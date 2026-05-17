@@ -8,5 +8,5 @@ enum Secrets {
     static let supabaseURL = URL(string: "https://REPLACE.supabase.co")!
     static let supabaseAnonKey = "REPLACE_WITH_ANON_KEY"
 
-    static let apiBaseURL = URL(string: "https://clipforge.bulsulabs.com")!
+    static let apiBaseURL = URL(string: "https://clipforge.bulsulabs.xyz")!
 }

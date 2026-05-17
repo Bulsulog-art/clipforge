@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
-      { protocol: "https", hostname: "cdn.clipforge.bulsulabs.com" },
+      { protocol: "https", hostname: "cdn.clipforge.bulsulabs.xyz" },
       { protocol: "https", hostname: "img.youtube.com" },
     ],
   },

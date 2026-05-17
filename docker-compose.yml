@@ -23,7 +23,7 @@ services:
     depends_on: [redis]
     labels:
       coolify.managed: "true"
-      coolify.fqdn: "https://clipforge.bulsulabs.com"
+      coolify.fqdn: "https://clipforge.bulsulabs.xyz"
 
   worker:
     build:

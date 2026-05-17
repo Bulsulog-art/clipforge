@@ -1,4 +1,4 @@
-# Domain Setup (`clipforge.bulsulabs.com`)
+# Domain Setup (`clipforge.bulsulabs.xyz`)
 
 ## Cloudflare DNS
 
@@ -22,7 +22,7 @@ iOS Universal Links için:
 
 ## Email (opsiyonel)
 
-`hello@clipforge.bulsulabs.com` için Cloudflare Email Routing → `berkebulsu@gmail.com` forward.
+`hello@clipforge.bulsulabs.xyz` için Cloudflare Email Routing → `berkebulsu@gmail.com` forward.
 
 Outbound email: **Resend** (`resend.com`) — Supabase Auth + transactional.
 DKIM/SPF/DMARC kayıtlarını Resend dashboard'dan al, Cloudflare DNS'e ekle.

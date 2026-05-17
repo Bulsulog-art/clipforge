@@ -18,10 +18,10 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "https://clipforge.bulsulabs.com"
+site_url = "https://clipforge.bulsulabs.xyz"
 additional_redirect_urls = [
   "http://localhost:3000/auth/callback",
-  "https://clipforge.bulsulabs.com/auth/callback",
+  "https://clipforge.bulsulabs.xyz/auth/callback",
   "clipforge://auth/callback"
 ]
 jwt_expiry = 3600

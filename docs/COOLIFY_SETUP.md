@@ -15,7 +15,7 @@ Coolify, self-hosted PaaS — Heroku/Vercel benzeri. `bulsulabs.com` VPS'inde ç
 - Repo: `https://github.com/bulsulabs/clipforge` (push edince)
 - Build pack: **Dockerfile** (`web/Dockerfile`)
 - Port: `3000`
-- Domain: `clipforge.bulsulabs.com`
+- Domain: `clipforge.bulsulabs.xyz`
 - Health check: `/api/health`
 
 ### Service 2 — `worker` (BullMQ + FFmpeg)
@@ -38,8 +38,8 @@ Her servis için `Environment Variables` sekmesinden ekle. Tüm liste `.env.exam
 ## 4. DNS (Cloudflare)
 
 ```
-A    clipforge.bulsulabs.com    → <VPS IP>     proxied
-A    api.clipforge.bulsulabs.com → <VPS IP>    proxied
+A    clipforge.bulsulabs.xyz    → <VPS IP>     proxied
+A    api.clipforge.bulsulabs.xyz → <VPS IP>    proxied
 ```
 
 SSL: Coolify otomatik Let's Encrypt ile halleder (Cloudflare proxied ise "Flexible" değil **"Full (strict)"** seç).

@@ -53,4 +53,4 @@ targets:
       properties:
         com.apple.developer.applesignin: [Default]
         com.apple.developer.associated-domains:
-          - applinks:clipforge.bulsulabs.com
+          - applinks:clipforge.bulsulabs.xyz

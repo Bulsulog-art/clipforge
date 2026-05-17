@@ -103,7 +103,7 @@ export default function LandingPage() {
           <div className="flex gap-4">
             <Link href="/legal/terms">Terms</Link>
             <Link href="/legal/privacy">Privacy</Link>
-            <a href="mailto:hello@clipforge.bulsulabs.com">Contact</a>
+            <a href="mailto:hello@clipforge.bulsulabs.xyz">Contact</a>
           </div>
         </div>
       </footer>

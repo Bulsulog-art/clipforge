@@ -96,9 +96,9 @@
 
 ### Infra
 - **Coolify** (self-host) → bulsulabs.com VPS
-- **clipforge.bulsulabs.com** (Next.js)
-- **api.clipforge.bulsulabs.com** (worker)
-- **cdn.clipforge.bulsulabs.com** (Supabase Storage proxy)
+- **clipforge.bulsulabs.xyz** (Next.js)
+- **api.clipforge.bulsulabs.xyz** (worker)
+- **cdn.clipforge.bulsulabs.xyz** (Supabase Storage proxy)
 - Cloudflare DNS + Tunnel (gerekirse)
 
 ---

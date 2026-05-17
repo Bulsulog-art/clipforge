@@ -29,7 +29,7 @@
 1. `clipforge-prod` projesi aç.
 2. SQL Editor'a `supabase/migrations/00001_init.sql` yapıştır, RUN.
 3. Storage buckets: `videos-raw` (private), `videos-rendered` (private), `thumbnails` (public).
-4. Auth → Site URL = `https://clipforge.bulsulabs.com`, Redirect URLs eklendi.
+4. Auth → Site URL = `https://clipforge.bulsulabs.xyz`, Redirect URLs eklendi.
 5. Google OAuth client ekle (gerekirse).
 6. `.env`'e kopyala: URL, anon key, service role, JWT secret.
 
@@ -41,7 +41,7 @@
 4. Products (App Store Connect'te oluşturduktan sonra): starter / pro / agency.
 5. Entitlements: starter / pro / agency.
 6. Offerings: default + 3 paket.
-7. Webhook: `https://clipforge.bulsulabs.com/api/revenuecat/webhook` (Bearer auth).
+7. Webhook: `https://clipforge.bulsulabs.xyz/api/revenuecat/webhook` (Bearer auth).
 
 ## E · Apple Developer
 
@@ -59,7 +59,7 @@
 | A | api.clipforge | <VPS IP> | proxied |
 | CNAME | cdn.clipforge | `<ref>.supabase.co` | DNS only |
 
-Apple Universal Links: `https://clipforge.bulsulabs.com/.well-known/apple-app-site-association` (Next.js route serve eder).
+Apple Universal Links: `https://clipforge.bulsulabs.xyz/.well-known/apple-app-site-association` (Next.js route serve eder).
 
 ## G · Deploy sırası
 
@@ -83,4 +83,4 @@ Apple Universal Links: `https://clipforge.bulsulabs.com/.well-known/apple-app-si
 - Indie Hackers post
 - X thread (Bulsu Labs)
 - 5–10 YouTube creator outreach (DM)
-- SEO: blog post serisi (`clipforge.bulsulabs.com/blog/how-to-clip-youtube-videos`)
+- SEO: blog post serisi (`clipforge.bulsulabs.xyz/blog/how-to-clip-youtube-videos`)

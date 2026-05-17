@@ -6,13 +6,13 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://clipforge.bulsulabs.com"),
+  metadataBase: new URL("https://clipforge.bulsulabs.xyz"),
   title: { default: "ClipForge — AI viral clip studio", template: "%s · ClipForge" },
   description: "Drop a long video. Get 50+ viral short clips, captioned and ready for TikTok, Reels and Shorts in minutes.",
   openGraph: {
     title: "ClipForge — AI viral clip studio",
     description: "From one long video to 100+ viral clips, posted everywhere.",
-    url: "https://clipforge.bulsulabs.com",
+    url: "https://clipforge.bulsulabs.xyz",
     siteName: "ClipForge",
     type: "website",
   },

@@ -23,7 +23,7 @@ Updated: 2026-05-17
 | Service | Tür | Durum | Detay |
 |---|---|---|---|
 | `clipforge-redis` | DB | **Starting** | Redis 7.2, BullMQ queue |
-| `clipforge-web` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /web, domain `clipforge.bulsulabs.com`, **16 env var** kayıt |
+| `clipforge-web` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /web, domain `clipforge.bulsulabs.xyz`, **16 env var** kayıt |
 | `clipforge-worker` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /worker, **18 env var** kayıt |
 
 Project ID: `ysdywlrjo47g1h4byhhhwb0p`
@@ -125,7 +125,7 @@ https://dash.cloudflare.com → `bulsulabs.com` zone → DNS records:
 2. https://coolify.bulsulabs.xyz/.../application/y11bhiffmpb3u2hdekwhjhdq → **Deploy** butonuna bas
 3. Worker'ı da deploy et
 4. Build ~3-5 dakika sürer
-5. https://clipforge.bulsulabs.com aç — landing page görmeli
+5. https://clipforge.bulsulabs.xyz aç — landing page görmeli
 
 ---
 
@@ -206,7 +206,7 @@ GITHUB_REPO=https://github.com/Bulsulog-art/clipforge
 ## 🎯 Sonraki büyük adımlar (post-launch)
 
 1. **Marketing**: ProductHunt schedule, Indie Hackers, X (Bulsu Labs)
-2. **SEO**: `clipforge.bulsulabs.com/blog/` — 10 yazı serisi
+2. **SEO**: `clipforge.bulsulabs.xyz/blog/` — 10 yazı serisi
 3. **YouTube outreach**: 50 podcast kanalı → "free trial + analytics" pitch
 4. **A/B testing**: Hook varyantları, paywall pozisyonu
 5. **Analytics**: PostHog veya Plausible
