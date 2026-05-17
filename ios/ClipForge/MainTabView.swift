@@ -5,6 +5,8 @@ struct MainTabView: View {
         TabView {
             ProjectsView()
                 .tabItem { Label("Studio", systemImage: "scissors") }
+            TrendsView()
+                .tabItem { Label("Trends", systemImage: "chart.line.uptrend.xyaxis") }
             ClipsFeedView()
                 .tabItem { Label("Clips", systemImage: "play.rectangle") }
             ChannelsView()

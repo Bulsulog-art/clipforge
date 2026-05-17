@@ -5,6 +5,7 @@ import { logger } from "./logger.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
+import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -106,3 +107,18 @@ logger.info({
   videoConcurrency: process.env.VIDEO_CONCURRENCY ?? 2,
   publishConcurrency: process.env.PUBLISH_CONCURRENCY ?? 4,
 }, "clipforge worker started");
+
+// Daily trend snapshot — runs every 24h, fires immediately on startup
+async function startTrendCron() {
+  while (true) {
+    try {
+      await buildAllSnapshots();
+    } catch (e) {
+      logger.error({ err: (e as Error).message }, "trend snapshots failed");
+    }
+    await new Promise((r) => setTimeout(r, 24 * 60 * 60 * 1000));
+  }
+}
+if (process.env.ENABLE_TREND_CRON !== "false") {
+  void startTrendCron();
+}

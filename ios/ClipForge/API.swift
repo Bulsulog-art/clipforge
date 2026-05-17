@@ -96,6 +96,27 @@ final class ClipForgeAPI {
         let voiceClone: Bool
     }
 
+    struct TrendSnapshot {
+        let generated_at: String?
+        let items: [[String: Any]]
+    }
+
+    func fetchTrends(niche: String) async throws -> TrendSnapshot {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/trends/\(niche)"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        let generated = json["generated_at"] as? String
+        let items = json["items"] as? [[String: Any]] ?? []
+        return TrendSnapshot(generated_at: generated, items: items)
+    }
+
     func translate(clipId: String, language: String, voiceClone: Bool) async throws {
         guard let token = SupabaseService.shared.session?.accessToken else {
             throw Error.unauthorized

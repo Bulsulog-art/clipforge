@@ -3,10 +3,13 @@ import SwiftUI
 struct RootView: View {
     @StateObject private var supabase = SupabaseService.shared
     @State private var didBindRevenueCat = false
+    @State private var hasOnboarded = UserDefaults.standard.bool(forKey: "clipforge.onboarded")
 
     var body: some View {
         Group {
-            if supabase.session == nil {
+            if !hasOnboarded {
+                OnboardingView { hasOnboarded = true }
+            } else if supabase.session == nil {
                 LoginView()
             } else {
                 MainTabView()
