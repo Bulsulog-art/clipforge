@@ -1,170 +1,212 @@
 # ClipForge — Setup Progress
 
-> Yapılanların ve yapılması gerekenlerin net listesi. **2026-05-17** itibariyle.
+**Status: 90% otomatize ettim, %10 sende kaldı (10 dakikalık iş).** 🚀
+
+Updated: 2026-05-17
 
 ---
 
-## ✅ Bende tamamlanan (otomatik)
+## ✅ Bende otomatik bitenler
 
-### 1. Kod (78 dosya)
-- [x] `PROJECT_PLAN.md` — TrustMRR 10 startup analizi → ClipForge pivot kararı
-- [x] Next.js 15 web (landing, auth, dashboard, studio, billing, API)
-- [x] BullMQ worker (yt-dlp + Whisper + GPT-4o-mini + FFmpeg + Remotion)
-- [x] iOS SwiftUI app (Sign in with Apple, Supabase, RevenueCat paywall, clips feed)
-- [x] Supabase migration (`clipforge` schema — izole)
-- [x] Dockerfile × 2 + `docker-compose.yml`
-- [x] 5 detaylı setup rehberi (`docs/`)
+### 1. Plan + Kod (78 dosya)
+- ClipForge: AI Viral Clips — uzun video → 100+ viral kısa klip → otomatik post
+- Pricing: Free / **$29** / **$79** / **$199** monthly
+- Hedef: $40K MRR / 12 ay
+- Repo: **https://github.com/Bulsulog-art/clipforge**
+- Klasör: `/Users/zeynepbulsu/clipforge`
 
-### 2. Coolify ([panel](https://coolify.bulsulabs.xyz/projects))
-- [x] ClipForge projesi → `production` env
-- [x] `clipforge-redis` (Redis 7.2 — BullMQ queue) — durdu, deploy'da başlatılacak
-- [x] `clipforge-web` — Dockerfile, `/web`, domain: `https://clipforge.bulsulabs.com`
-- [x] `clipforge-worker` — Dockerfile, `/worker`, internal only
+### 2. GitHub (Bulsulog-art)
+- Repo public, main branch push edildi
+- `gh repo create Bulsulog-art/clipforge --public --push` ile
 
-### 3. Supabase ([AuraGlow projesi](https://supabase.com/dashboard/project/rgtxjjnalesquhnexfez))
-> Free plan limiti dolu olduğu için AuraGlow backend'ini paylaşıyoruz. Tüm tablolar `clipforge` schema altında izole.
-- [x] `clipforge` schema migration uygulandı (8 tablo + RLS + tetikleyiciler)
-- [x] Data API exposed schemas: `clipforge` eklendi (3/3)
-- [x] Storage buckets:
+### 3. Coolify (`coolify.bulsulabs.xyz`)
+| Service | Tür | Durum | Detay |
+|---|---|---|---|
+| `clipforge-redis` | DB | **Starting** | Redis 7.2, BullMQ queue |
+| `clipforge-web` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /web, domain `clipforge.bulsulabs.com`, **16 env var** kayıt |
+| `clipforge-worker` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /worker, **18 env var** kayıt |
+
+Project ID: `ysdywlrjo47g1h4byhhhwb0p`
+Env ID: `ktz59uo5vfoo0yyv85r9pv29`
+
+### 4. Supabase (AuraGlow shared)
+- Project: `https://rgtxjjnalesquhnexfez.supabase.co` (AuraGlow)
+- **Schema: `clipforge`** (izole, AuraGlow tablolarına dokunmuyor)
+- Migration uygulandı — 8 tablo + RLS + tetikleyiciler + view
+- Storage buckets:
   - `clipforge-videos-raw` (private)
   - `clipforge-videos-rendered` (private)
   - `clipforge-thumbnails` (public)
-- [x] Project URL: `https://rgtxjjnalesquhnexfez.supabase.co`
+- Data API exposed schemas: `public, graphql_public, clipforge`
 
-### 4. RevenueCat ([panel](https://app.revenuecat.com))
-- [x] ClipForge projesi oluşturuldu (ID: `7f9507ae`)
-- [x] Category: Photo and Video
-- [x] Platforms: Native Apple + Web
+### 5. Apple Developer + App Store Connect
+- Team ID: `YA6Y85MSY6`
+- **Bundle ID: `com.bulsulabs.clipforge`** + capabilities (IAP, Sign in with Apple, Push, Associated Domains)
+- App Store Connect:
+  - App Name: **ClipForge: AI Viral Clips**
+  - App ID: `6770277172`
+  - SKU: `clipforge-001`
+  - Language: English (U.S.)
+- **App Store Connect API Key**:
+  - Name: RevenueCat - ClipForge
+  - Key ID: `8MVS98FSY4`
+  - Issuer ID: `ca7b4939-e833-4cc4-a5d3-b1f5819d9795`
+  - `.p8` indirildi: `/Users/zeynepbulsu/clipforge/ios/secrets/AuthKey_8MVS98FSY4.p8` (gitignored)
 
-### 5. Lokal env
-- [x] `web/.env.local` — Supabase URL ile hazır, anahtarlar manuel doldurulacak
+### 6. RevenueCat
+- Project: **ClipForge** (ID: `7f9507ae`)
+- Category: Photo and Video
+- Platforms: Native Apple + Web
+- iOS App config (ID `appdb5240c1d1`):
+  - Bundle ID: `com.bulsulabs.clipforge`
+  - IAP Key: `MCW898UCBH` (shared, mevcut)
+  - Issuer: `ca7b4939-e833-4cc4-a5d3-b1f5819d9795`
+- Test API key: `test_pZaSdrrSWGvaATIMKHrGTudfLgE` (development için)
+
+### 7. VPS
+- IP: **`72.62.39.172`** (mevcut Coolify deploy'lardan tespit edildi)
 
 ---
 
-## 🟡 Sende kalan manuel adımlar (2FA / hassas işlem)
+## 🟡 Sende kalan — 10 dakikalık iş
 
-### A. Supabase anahtarlarını `.env.local`'a yapıştır
-1. Aç: https://supabase.com/dashboard/project/rgtxjjnalesquhnexfez/settings/api-keys/legacy
-2. **anon public** anahtarını kopyala → `web/.env.local` içinde `NEXT_PUBLIC_SUPABASE_ANON_KEY=` satırına yapıştır
-3. **service_role** → Reveal → kopyala → `SUPABASE_SERVICE_ROLE_KEY=` satırına yapıştır
+### A. Supabase anahtarlarını al ve Coolify env'e yapıştır (5 dk)
 
-### B. Apple Developer ([panel](https://developer.apple.com/account/resources/identifiers))
-> **Bundle ID kaydı için 2FA seninle.**
+1. **Supabase dashboard** — anon key:
+   - https://supabase.com/dashboard/project/rgtxjjnalesquhnexfez/settings/api-keys/legacy
+   - **anon public** → **Copy** → değeri kaydet
 
-1. Identifiers → **+** → App IDs → App
-2. Bundle ID: `com.bulsulabs.clipforge`
-3. Capabilities:
-   - ☑ In-App Purchase
-   - ☑ Sign in with Apple
-   - ☑ Push Notifications
-   - ☑ Associated Domains
-4. Continue → Register
-5. Sonra App Store Connect → **My Apps → +**:
-   - Name: ClipForge
-   - Bundle ID: com.bulsulabs.clipforge (drop-down'dan seç)
-   - SKU: `clipforge-001`
-6. In-App Purchases oluştur:
-   - `clipforge_starter_monthly` ($29.99)
-   - `clipforge_pro_monthly` ($79.99)
-   - `clipforge_agency_monthly` ($199.99)
+2. **service_role** → Reveal → Copy → kaydet
 
-### C. App Store Connect API Key (RevenueCat için)
-1. App Store Connect → Users and Access → Integrations → App Store Connect API
-2. **Generate API Key** (Access: **Admin**)
-3. Key ID + Issuer ID kaydet
-4. `.p8` dosyasını indir (yalnızca bir kez verilir!)
+3. **Coolify clipforge-web** env vars — Developer view:
+   - https://coolify.bulsulabs.xyz/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/application/y11bhiffmpb3u2hdekwhjhdq/environment-variables
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=REPLACE_ME_FROM_SUPABASE_DASHBOARD` → yapıştır
+   - `SUPABASE_SERVICE_ROLE_KEY=REPLACE_ME_FROM_SUPABASE_DASHBOARD` → yapıştır
+   - **Save All Environment Variables**
 
-### D. RevenueCat tamamlama ([panel](https://app.revenuecat.com/projects/7f9507ae))
-1. **Önce email'i confirm et** (RC banner gösteriyordu)
-2. **Apps & providers** → Native Apple:
-   - Bundle ID: `com.bulsulabs.clipforge`
-   - App Store Connect API: `.p8` dosyasını yükle + Key ID + Issuer ID
-3. **Product catalog**:
-   - 3 product oluştur (App Store IAP'ları otomatik eşleşmeli)
-4. **Entitlements**:
-   - `starter` → `clipforge_starter_monthly`
-   - `pro` → `clipforge_pro_monthly`
-   - `agency` → `clipforge_agency_monthly`
-5. **Offerings → default**:
-   - 3 paketi ekle
-6. **Webhooks**:
-   - URL: `https://clipforge.bulsulabs.com/api/revenuecat/webhook`
-   - Auth header: `Bearer <env.local içindeki REVENUECAT_WEBHOOK_AUTH>`
-7. API keys'i `.env.local`'a kopyala (Public iOS, Public Web, Secret)
+4. **Coolify clipforge-worker** env vars için aynı:
+   - https://coolify.bulsulabs.xyz/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/application/aeoe3zdfhbhqzi89g32gkuwx/environment-variables
+   - `SUPABASE_SERVICE_ROLE_KEY=REPLACE_ME_FROM_SUPABASE_DASHBOARD` → yapıştır
+   - Save
 
-### E. Cloudflare DNS ([panel](https://dash.cloudflare.com))
-> **2FA seninle.**
+### B. Coolify Redis password'ünü al ve REDIS_URL'e yapıştır (1 dk)
 
-`bulsulabs.com` zone'unda:
+1. https://coolify.bulsulabs.xyz/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/database/viglo9hd308lmad9gkaqedv9
+2. **Redis URL (internal)** → Reveal → kopyala
+3. Web + worker env vars'da `REDIS_URL=...` satırını bu değerle değiştir
+
+### C. OpenAI + Replicate keys (3 dk)
+
+1. https://platform.openai.com/api-keys → New key (`clipforge-prod`) → kopyala
+2. https://replicate.com/account/api-tokens → kopyala
+3. Web + worker env vars'da `OPENAI_API_KEY=` ve `REPLICATE_API_TOKEN=` doldur
+
+### D. RevenueCat anahtarlarını al (2 dk)
+
+1. https://app.revenuecat.com/projects/7f9507ae/apps → ClipForge (App Store) tıkla
+2. Public iOS API key görünür → kopyala
+3. Web app (Stripe) eklenmediyse şimdilik test key kullan: `test_pZaSdrrSWGvaATIMKHrGTudfLgE`
+4. Web env vars:
+   - `NEXT_PUBLIC_REVENUECAT_PUBLIC_WEB_KEY=` → web key
+   - `REVENUECAT_SECRET_KEY=` → settings sayfasından
+
+### E. Cloudflare DNS (30 sn)
+
+https://dash.cloudflare.com → `bulsulabs.com` zone → DNS records:
 
 | Type | Name | Content | Proxy |
 |---|---|---|---|
-| A | `clipforge` | `<Coolify VPS IP>` | proxied |
-| A | `api.clipforge` | `<Coolify VPS IP>` | proxied |
+| A | `clipforge` | `72.62.39.172` | ✅ proxied |
+| A | `api.clipforge` | `72.62.39.172` | ✅ proxied |
 
-VPS IP'sini Coolify → Servers'dan bulabilirsin.
+### F. Deploy 🚀 (1 dk)
 
-### F. GitHub repo (sen push)
-Coolify deploy için public repo:
+1. **Redis çalışır olmalı** (Status: Healthy) — bekliyor.
+2. https://coolify.bulsulabs.xyz/.../application/y11bhiffmpb3u2hdekwhjhdq → **Deploy** butonuna bas
+3. Worker'ı da deploy et
+4. Build ~3-5 dakika sürer
+5. https://clipforge.bulsulabs.com aç — landing page görmeli
+
+---
+
+## 📱 iOS app (sonra, isteğe bağlı)
+
+### G. iOS app build (1 saat)
+
 ```bash
-cd /Users/zeynepbulsu/clipforge
-git init
-git add .
-git commit -m "feat: initial ClipForge"
-gh repo create bulsulabs/clipforge --public --source=. --push
-```
-Repo URL Coolify'da zaten `https://github.com/bulsulabs/clipforge` olarak yazılı.
-
-### G. OpenAI + Replicate API keys
-1. https://platform.openai.com/api-keys → New key (`clipforge-prod`) → `.env.local` → `OPENAI_API_KEY=`
-2. https://replicate.com/account/api-tokens → New token → `REPLICATE_API_TOKEN=`
-
-### H. Coolify env vars yapıştır
-Her servis için (web ve worker) **Environment Variables** sekmesinden `.env.local`'daki değişkenleri tek tek ekle.
-
-### I. Deploy
-1. Coolify → `clipforge-redis` → **Start** (önce database)
-2. Coolify → `clipforge-web` → **Deploy** (web uygulaması)
-3. Coolify → `clipforge-worker` → **Deploy** (queue worker)
-4. https://clipforge.bulsulabs.com test et — landing page görmeli
-
-### J. iOS — TestFlight (en son)
-```bash
-cd ios
+cd /Users/zeynepbulsu/clipforge/ios
+brew install xcodegen
 xcodegen generate
 open ClipForge.xcodeproj
 ```
-- Bundle ID: `com.bulsulabs.clipforge`
-- Team: Bulsu Labs
-- `Secrets.swift` içindeki `REPLACE_ME`'leri doldur
-- Archive → Distribute App → App Store Connect → TestFlight
+
+`ClipForge/Secrets.swift`'i doldur:
+```swift
+static let revenueCatIOSKey = "appl_..."   // RevenueCat dashboard'dan public iOS key
+static let supabaseURL = URL(string: "https://rgtxjjnalesquhnexfez.supabase.co")!
+static let supabaseAnonKey = "eyJ..."      // Supabase anon
+```
+
+Xcode → Archive → Distribute App → App Store Connect → TestFlight.
+
+### H. App Store Connect IAP (30 dk)
+
+App Store Connect → ClipForge: AI Viral Clips → Monetization → In-App Purchases:
+- `clipforge_starter_monthly` — Auto-Renewable, $29.99
+- `clipforge_pro_monthly` — $79.99
+- `clipforge_agency_monthly` — $199.99
+
+Hepsi `clipforge_subscriptions` subscription group altında.
+
+### I. RevenueCat entitlements + offerings (10 dk)
+
+RevenueCat → Products → 3 product otomatik eşlenir.
+Entitlements: `starter`, `pro`, `agency` (her product'a bağla).
+Offerings → `default` → 3 paket ekle.
 
 ---
 
-## 📊 Tahmini timeline
+## 📊 Server side: tüm anahtar değerler tek yerde
 
-- A + G (env keys) → **15 dk**
-- B + C (Apple Developer + App Store Connect) → **30 dk**
-- D (RevenueCat) → **20 dk**
-- E (Cloudflare DNS) → **5 dk**
-- F + H + I (GitHub + Coolify deploy) → **30 dk**
-- Test ve düzeltme → **30 dk**
+```bash
+# Supabase
+SUPABASE_URL=https://rgtxjjnalesquhnexfez.supabase.co
+SUPABASE_PROJECT_REF=rgtxjjnalesquhnexfez
 
-**Toplam: ~2 saat manuel iş**, sonra web canlıda.
+# Apple
+APPLE_TEAM_ID=YA6Y85MSY6
+BUNDLE_ID=com.bulsulabs.clipforge
+APPSTORE_APP_ID=6770277172
+APPSTORE_API_KEY_ID=8MVS98FSY4
+APPSTORE_ISSUER_ID=ca7b4939-e833-4cc4-a5d3-b1f5819d9795
+APPSTORE_P8=/Users/zeynepbulsu/clipforge/ios/secrets/AuthKey_8MVS98FSY4.p8
 
-iOS App Store onayı: +2-3 gün.
+# RevenueCat
+RC_PROJECT_ID=7f9507ae
+RC_IOS_APP_ID=appdb5240c1d1
+RC_TEST_API_KEY=test_pZaSdrrSWGvaATIMKHrGTudfLgE
+RC_IAP_KEY_ID=MCW898UCBH
+
+# Coolify
+COOLIFY_PROJECT_ID=ysdywlrjo47g1h4byhhhwb0p
+COOLIFY_ENV_ID=ktz59uo5vfoo0yyv85r9pv29
+COOLIFY_WEB_APP_ID=y11bhiffmpb3u2hdekwhjhdq
+COOLIFY_WORKER_APP_ID=aeoe3zdfhbhqzi89g32gkuwx
+COOLIFY_REDIS_ID=viglo9hd308lmad9gkaqedv9
+
+# VPS
+VPS_IP=72.62.39.172
+
+# GitHub
+GITHUB_REPO=https://github.com/Bulsulog-art/clipforge
+```
 
 ---
 
-## 📦 Proje dosyaları
+## 🎯 Sonraki büyük adımlar (post-launch)
 
-| Konum | İçerik |
-|---|---|
-| `/Users/zeynepbulsu/clipforge/PROJECT_PLAN.md` | Strateji + pazar analizi |
-| `/Users/zeynepbulsu/clipforge/web/` | Next.js 15 frontend + API |
-| `/Users/zeynepbulsu/clipforge/worker/` | BullMQ pipeline |
-| `/Users/zeynepbulsu/clipforge/ios/` | SwiftUI iOS app |
-| `/Users/zeynepbulsu/clipforge/supabase/migrations/00001_init.sql` | DB schema |
-| `/Users/zeynepbulsu/clipforge/docs/` | Servis-bazlı setup rehberleri |
-| `/Users/zeynepbulsu/clipforge/web/.env.local` | Env değişkenleri (REPLACE_ME'leri doldur) |
-| `/Users/zeynepbulsu/clipforge/docker-compose.yml` | Coolify orkestrasyon |
+1. **Marketing**: ProductHunt schedule, Indie Hackers, X (Bulsu Labs)
+2. **SEO**: `clipforge.bulsulabs.com/blog/` — 10 yazı serisi
+3. **YouTube outreach**: 50 podcast kanalı → "free trial + analytics" pitch
+4. **A/B testing**: Hook varyantları, paywall pozisyonu
+5. **Analytics**: PostHog veya Plausible
