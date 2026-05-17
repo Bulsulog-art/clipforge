@@ -3,7 +3,10 @@ import fs from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import ffmpeg from "fluent-ffmpeg";
 import { supabase } from "../supabase.js";
+import { logger } from "../logger.js";
+import { buildKaraokeASS, buildHookASS } from "./captions.js";
 import type { Moment } from "./score.js";
+import type { Transcript } from "./transcribe.js";
 
 type Args = {
   userId: string;
@@ -11,48 +14,78 @@ type Args = {
   sourcePath: string;
   index: number;
   moment: Moment;
+  transcript: Transcript;
+  niche: string;
   workDir: string;
 };
 
-export async function renderClip(a: Args) {
+export type RenderResult = {
+  storagePath: string;
+  thumbnailPath: string;
+  durationSec: number;
+};
+
+export async function renderClip(a: Args): Promise<RenderResult> {
   const out = path.join(a.workDir, `clip-${a.index}.mp4`);
   const thumb = path.join(a.workDir, `clip-${a.index}.jpg`);
+  const captionFile = path.join(a.workDir, `clip-${a.index}.ass`);
+  const hookFile = path.join(a.workDir, `clip-${a.index}-hook.ass`);
+
   const duration = a.moment.end - a.moment.start;
 
-  // 1) cut + scale to 9:16 + burn-in subtitle (simple variant)
+  // 1) Generate ASS subtitles (karaoke word-by-word + hook overlay)
+  await Promise.all([
+    fs.writeFile(
+      captionFile,
+      buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end),
+    ),
+    fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche)),
+  ]);
+
+  // 2) FFmpeg render: cut → scale → crop 9:16 → burn captions + hook → loudnorm
   await new Promise<void>((resolve, reject) => {
     ffmpeg(a.sourcePath)
       .setStartTime(a.moment.start)
       .duration(duration)
       .videoFilters([
-        // center-crop to 9:16
+        // upscale to fill 9:16 (1080x1920) without distortion
         "scale=-2:1920:force_original_aspect_ratio=increase",
         "crop=1080:1920",
-        // hook overlay
-        `drawtext=fontfile=/usr/share/fonts/truetype/inter/Inter-Bold.ttf:` +
-          `text='${escapeDrawText(a.moment.hook)}':fontcolor=white:fontsize=72:` +
-          `borderw=4:bordercolor=black:x=(w-text_w)/2:y=180:line_spacing=10`,
+        // burn karaoke captions (libass)
+        `ass=${escapePath(captionFile)}`,
+        // burn animated hook
+        `ass=${escapePath(hookFile)}`,
       ])
-      .audioFilters(["loudnorm=I=-16:LRA=11:TP=-1.5"])
+      .audioFilters(["loudnorm=I=-16:LRA=11:TP=-1.5", "highpass=f=80", "lowpass=f=12000"])
       .outputOptions([
-        "-c:v libx264",
-        "-preset veryfast",
-        "-crf 21",
-        "-c:a aac",
-        "-b:a 192k",
-        "-movflags +faststart",
-        "-pix_fmt yuv420p",
-        "-r 30",
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-crf", "20",
+        "-c:a", "aac",
+        "-b:a", "192k",
+        "-ar", "44100",
+        "-movflags", "+faststart",
+        "-pix_fmt", "yuv420p",
+        "-r", "30",
+        "-profile:v", "high",
+        "-level", "4.0",
       ])
+      .on("start", (cmd) => logger.debug({ jobId: a.jobId, clip: a.index, cmd }, "ffmpeg start"))
+      .on("stderr", (line) => {
+        // surface ass errors so we know if fonts are missing
+        if (line.includes("[Parsed_ass") && line.includes("font")) {
+          logger.warn({ line }, "ass font notice");
+        }
+      })
       .on("end", () => resolve())
       .on("error", reject)
       .save(out);
   });
 
-  // 2) thumbnail at mid clip
+  // 3) Thumbnail with highlighted hook (taken at 12% of duration for visual punch)
   await new Promise<void>((resolve, reject) => {
     ffmpeg(out)
-      .seekInput(Math.min(2, duration / 2))
+      .seekInput(Math.min(0.4 + duration * 0.12, duration - 0.1))
       .frames(1)
       .size("540x960")
       .on("end", () => resolve())
@@ -60,10 +93,11 @@ export async function renderClip(a: Args) {
       .save(thumb);
   });
 
-  // 3) upload to storage
+  // 4) Upload both to Supabase Storage
   const storagePath = `${a.userId}/${a.jobId}/clip-${a.index}.mp4`;
   const thumbPath = `${a.userId}/${a.jobId}/clip-${a.index}.jpg`;
-  const [{ error: vErr }, { error: tErr }] = await Promise.all([
+
+  const [vRes, tRes] = await Promise.all([
     supabase.storage.from("clipforge-videos-rendered").upload(storagePath, createReadStream(out) as any, {
       contentType: "video/mp4",
       upsert: true,
@@ -75,15 +109,20 @@ export async function renderClip(a: Args) {
       duplex: "half",
     } as any),
   ]);
-  if (vErr) throw vErr;
-  if (tErr) throw tErr;
+  if (vRes.error) throw vRes.error;
+  if (tRes.error) throw tRes.error;
 
-  await fs.unlink(out).catch(() => {});
-  await fs.unlink(thumb).catch(() => {});
+  await Promise.all([
+    fs.unlink(out).catch(() => {}),
+    fs.unlink(thumb).catch(() => {}),
+    fs.unlink(captionFile).catch(() => {}),
+    fs.unlink(hookFile).catch(() => {}),
+  ]);
 
   return { storagePath, thumbnailPath: thumbPath, durationSec: duration };
 }
 
-function escapeDrawText(s: string) {
-  return s.replace(/['"\\:%]/g, " ").replace(/\n/g, " ").slice(0, 80);
+function escapePath(p: string) {
+  // FFmpeg filter strings need colons escaped on the ass= filename
+  return p.replace(/\\/g, "/").replace(/:/g, "\\:").replace(/'/g, "\\'");
 }

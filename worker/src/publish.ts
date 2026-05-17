@@ -1,5 +1,8 @@
 import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
+import { postToTikTok } from "./publishers/tiktok.js";
+import { postToInstagram } from "./publishers/instagram.js";
+import { postToYouTubeShorts } from "./publishers/youtube.js";
 
 type Payload = { publishId: string; userId: string; clipId: string; platform: string };
 
@@ -7,26 +10,28 @@ export async function runPublish(p: Payload) {
   logger.info({ p }, "publishing");
   await supabase.from("publishes").update({ status: "publishing" }).eq("id", p.publishId);
 
-  // platform-specific dispatchers
   try {
-    const { data: clip } = await supabase.from("clips").select("*").eq("id", p.clipId).single();
-    const { data: account } = await supabase
-      .from("social_accounts")
-      .select("*")
-      .eq("user_id", p.userId)
-      .eq("platform", p.platform)
-      .single();
+    const [{ data: clip }, { data: account }] = await Promise.all([
+      supabase.from("clips").select("*").eq("id", p.clipId).single(),
+      supabase
+        .from("social_accounts")
+        .select("*")
+        .eq("user_id", p.userId)
+        .eq("platform", p.platform)
+        .single(),
+    ]);
     if (!clip || !account) throw new Error("missing clip or social account");
 
+    let result: { externalPostId: string; externalUrl: string };
     switch (p.platform) {
       case "tiktok":
-        await postToTikTok(account, clip);
+        result = await postToTikTok(account as any, clip as any);
         break;
       case "instagram":
-        await postToInstagram(account, clip);
+        result = await postToInstagram(account as any, clip as any);
         break;
       case "youtube":
-        await postToYouTubeShorts(account, clip);
+        result = await postToYouTubeShorts(account as any, clip as any);
         break;
       default:
         throw new Error(`platform ${p.platform} not implemented`);
@@ -34,24 +39,22 @@ export async function runPublish(p: Payload) {
 
     await supabase
       .from("publishes")
-      .update({ status: "published", published_at: new Date().toISOString() })
+      .update({
+        status: "published",
+        published_at: new Date().toISOString(),
+        external_post_id: result.externalPostId,
+        external_url: result.externalUrl,
+      })
       .eq("id", p.publishId);
+
+    logger.info({ publishId: p.publishId, externalUrl: result.externalUrl }, "publish ok");
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    await supabase.from("publishes").update({ status: "failed", error_message: msg }).eq("id", p.publishId);
+    logger.error({ publishId: p.publishId, error: msg }, "publish failed");
+    await supabase
+      .from("publishes")
+      .update({ status: "failed", error_message: msg })
+      .eq("id", p.publishId);
     throw e;
   }
-}
-
-async function postToTikTok(_account: any, _clip: any) {
-  // TODO: implement TikTok Content Posting API (initiated upload)
-  logger.warn("TikTok publisher stub");
-}
-async function postToInstagram(_account: any, _clip: any) {
-  // TODO: Instagram Graph API (Reels publish flow)
-  logger.warn("Instagram publisher stub");
-}
-async function postToYouTubeShorts(_account: any, _clip: any) {
-  // TODO: YouTube Data API resumable upload
-  logger.warn("YouTube publisher stub");
 }
