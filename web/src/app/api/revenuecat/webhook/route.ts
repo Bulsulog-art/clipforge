@@ -12,45 +12,31 @@ type RCEvent = {
 };
 
 /**
- * Subscription products: grant credits + tier upgrade.
- * Consumable products: grant credits only, refund-safe.
+ * Pricing model — single Plus tier, no Pro:
  *
- * Pricing model (USD):
- *   Plus weekly      $4.99  → 10 credits
- *   Plus monthly     $12.99 → 35 credits
- *   Plus retention   $9.99  → 35 credits  (win-back offer)
- *   Pro weekly       $7.99  → 25 credits
- *   Pro monthly      $19.99 → 100 credits
+ *   Plus weekly      $4.99   → 10 credits / week
+ *   Plus monthly     $14.99  → 40 credits / month
+ *   Plus retention   $12.99  → 40 credits / month  (win-back offer)
+ *
+ *   Plus-only packs (consumable, gated client-side by entitlement):
+ *     Pack 10        $4.99   → 10 credits
+ *     Pack 20        $7.99   → 20 credits
+ *
+ * Apple iade-safe: consumable packs can't be refunded after consume.
+ * Margin floor: 71% retention / 75% monthly / 81% weekly (at 40% utilization).
  */
 const SUBSCRIPTION_PRODUCTS: Record<
   string,
-  { tier: "starter" | "pro" | "agency"; credits: number; period: "weekly" | "monthly" }
+  { tier: "starter"; credits: number; period: "weekly" | "monthly" }
 > = {
-  // Plus tier (entitlement: starter)
-  clipforge_plus_weekly:           { tier: "starter", credits: 10,  period: "weekly"  },
-  clipforge_plus_monthly:          { tier: "starter", credits: 35,  period: "monthly" },
-  clipforge_plus_monthly_retention:{ tier: "starter", credits: 35,  period: "monthly" },
-
-  // Pro tier
-  clipforge_pro_weekly:            { tier: "pro",     credits: 25,  period: "weekly"  },
-  clipforge_pro_monthly:           { tier: "pro",     credits: 100, period: "monthly" },
-
-  // Agency tier (future)
-  clipforge_agency_monthly:        { tier: "agency",  credits: 600, period: "monthly" },
+  clipforge_plus_weekly:            { tier: "starter", credits: 10, period: "weekly" },
+  clipforge_plus_monthly:           { tier: "starter", credits: 40, period: "monthly" },
+  clipforge_plus_monthly_retention: { tier: "starter", credits: 40, period: "monthly" },
 };
 
 const CONSUMABLE_PRODUCTS: Record<string, number> = {
-  clipforge_credits_10:  10,
-  clipforge_credits_30:  30,
-  clipforge_credits_100: 100,
-  clipforge_credits_500: 500,
-};
-
-const ENTITLEMENT_TO_TIER: Record<string, "starter" | "pro" | "agency"> = {
-  starter: "starter",
-  plus: "starter",
-  pro: "pro",
-  agency: "agency",
+  clipforge_credits_10: 10,
+  clipforge_credits_20: 20,
 };
 
 export async function POST(req: Request) {
@@ -107,17 +93,9 @@ export async function POST(req: Request) {
           p_reference: evt.transaction_id,
           p_metadata: { period: sub.period, type: evt.type },
         });
-      }
-      // tier upgrade from entitlements
-      let tier: "free" | "starter" | "pro" | "agency" = "free";
-      for (const id of evt.entitlement_ids ?? []) {
-        const candidate = ENTITLEMENT_TO_TIER[id];
-        if (candidate && rank(candidate) > rank(tier)) tier = candidate;
-      }
-      if (tier !== "free") {
         await svc
           .from("profiles")
-          .update({ tier, revenuecat_app_user_id: evt.app_user_id })
+          .update({ tier: "starter", revenuecat_app_user_id: evt.app_user_id })
           .eq("id", profile.id);
       }
       break;
@@ -139,7 +117,7 @@ export async function POST(req: Request) {
             p_kind: "refund",
             p_reason: `refund ${evt.product_id}`,
             p_reference: evt.transaction_id,
-            p_metadata: { warning: "credits may already be consumed" },
+            p_metadata: { note: "consumable credits may already be spent" },
           })
           .then(() => {}, () => {});
       }
@@ -148,8 +126,4 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ ok: true });
-}
-
-function rank(t: string) {
-  return ({ free: 0, starter: 1, pro: 2, agency: 3 } as const)[t as "free"] ?? 0;
 }

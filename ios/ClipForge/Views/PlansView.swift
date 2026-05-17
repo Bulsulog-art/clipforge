@@ -11,81 +11,67 @@ struct PlansView: View {
 
     enum BillingPeriod: String, CaseIterable { case weekly, monthly }
 
-    private let plans: [PlanRow] = [
-        PlanRow(
-            tier: "Plus",
-            weeklyId: "clipforge_plus_weekly",
-            weeklyPrice: "$4.99",
-            weeklyCredits: "10 credits / week",
-            monthlyId: "clipforge_plus_monthly",
-            monthlyPrice: "$12.99",
-            monthlyCredits: "35 credits / month",
-            highlight: true,
-            features: [
-                "No watermark",
-                "Animated word-by-word captions",
-                "AI Face Swap (2 cr)",
-                "Connect TikTok, Reels, Shorts",
-                "Cancel anytime",
-            ]
-        ),
-        PlanRow(
-            tier: "Pro",
-            weeklyId: "clipforge_pro_weekly",
-            weeklyPrice: "$7.99",
-            weeklyCredits: "25 credits / week",
-            monthlyId: "clipforge_pro_monthly",
-            monthlyPrice: "$19.99",
-            monthlyCredits: "100 credits / month",
-            highlight: false,
-            features: [
-                "Everything in Plus",
-                "AI-enhanced Mr.Beast thumbnails",
-                "Auto-post + scheduling",
-                "AI translation 15+ languages",
-                "Voice clone (5 cr)",
-                "A/B hook testing",
-            ]
-        ),
-    ]
+    private let plus = PlanRow(
+        tier: "Plus",
+        weeklyId: "clipforge_plus_weekly",
+        weeklyPrice: "$4.99",
+        weeklyCredits: "10 credits / week",
+        monthlyId: "clipforge_plus_monthly",
+        monthlyPrice: "$14.99",
+        monthlyCredits: "40 credits / month",
+        features: [
+            "No watermark",
+            "Animated word-by-word captions",
+            "AI Face Swap (2 cr)",
+            "AI Translation 15+ languages (2 cr)",
+            "Voice clone (5 cr)",
+            "Auto-post to TikTok, Reels, Shorts, X",
+            "AI-enhanced thumbnails",
+            "A/B hook testing",
+            "Buy extra credit packs anytime",
+            "Cancel anytime",
+        ]
+    )
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    headerCard
+
                     Picker("Billing period", selection: $billing) {
-                        ForEach(BillingPeriod.allCases, id: \.self) { p in
-                            Text(p == .weekly ? "Weekly" : "Monthly · Save 35%")
-                                .tag(p)
-                        }
+                        Text("Weekly").tag(BillingPeriod.weekly)
+                        Text("Monthly · Save 25%").tag(BillingPeriod.monthly)
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
 
-                    ForEach(plans, id: \.tier) { plan in
-                        planCard(plan)
-                    }
+                    planCard(plus)
 
-                    Text("About to cancel? Existing Plus subscribers get $9.99/mo as a win-back offer.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                    infoCard(
+                        title: "Win-back offer",
+                        icon: "heart.fill",
+                        text: "If you ever start to cancel Plus, we'll automatically offer $12.99/month to keep you on."
+                    )
 
-                    Text("Or buy one-time credit packs — see the paywall.")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    infoCard(
+                        title: "Plus-only credit packs",
+                        icon: "bolt.fill",
+                        text: "Run out before the next refill? Plus members can buy +10 for $4.99 or +20 for $7.99 consumable packs — credits never expire."
+                    )
 
                     if let error {
                         Text(error)
-                            .font(.callout).foregroundStyle(.red)
-                            .padding().background(Color.red.opacity(0.1))
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
                             .clipShape(.rect(cornerRadius: 12))
                     }
                 }
                 .padding()
             }
-            .navigationTitle("Choose plan")
+            .navigationTitle("Get Plus")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -93,7 +79,10 @@ struct PlansView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Restore") {
-                        Task { try? await credits.refresh() }
+                        Task {
+                            try? await RevenueCatService.shared.restore()
+                            await credits.refresh()
+                        }
                     }
                     .font(.caption)
                 }
@@ -103,21 +92,38 @@ struct PlansView: View {
         }
     }
 
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Unlock everything")
+                .font(.largeTitle.bold())
+            Text("All AI tools. No watermark. Cancel anytime.")
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func infoCard(title: String, icon: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(title, systemImage: icon)
+                .font(.caption.bold())
+                .foregroundStyle(.brand)
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color.cardBackground)
+        .clipShape(.rect(cornerRadius: 14))
+    }
+
     private func planCard(_ plan: PlanRow) -> some View {
         let productId = billing == .weekly ? plan.weeklyId : plan.monthlyId
         let price = billing == .weekly ? plan.weeklyPrice : plan.monthlyPrice
-        let credits = billing == .weekly ? plan.weeklyCredits : plan.monthlyCredits
+        let creditsLine = billing == .weekly ? plan.weeklyCredits : plan.monthlyCredits
         let suffix = billing == .weekly ? "/wk" : "/mo"
 
         return VStack(alignment: .leading, spacing: 12) {
-            if plan.highlight {
-                Text("MOST POPULAR")
-                    .font(.caption2.bold())
-                    .padding(.horizontal, 8).padding(.vertical, 4)
-                    .background(Color.brand)
-                    .foregroundStyle(.white)
-                    .clipShape(.capsule)
-            }
             HStack(alignment: .firstTextBaseline) {
                 Text(plan.tier).font(.title.bold())
                 Spacer()
@@ -126,7 +132,7 @@ struct PlansView: View {
                     Text(suffix).foregroundStyle(.secondary)
                 }
             }
-            Text(credits).foregroundStyle(.brand).font(.callout.bold())
+            Text(creditsLine).foregroundStyle(.brand).font(.callout.bold())
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(plan.features, id: \.self) { f in
                     HStack(alignment: .top, spacing: 6) {
@@ -149,16 +155,15 @@ struct PlansView: View {
                     Spacer()
                 }
                 .padding()
-                .background(plan.highlight ? Color.brand : Color.cardBackground)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(plan.highlight ? .clear : Color.white.opacity(0.2), lineWidth: 1))
-                .foregroundStyle(plan.highlight ? .white : .primary)
+                .background(Color.brand)
+                .foregroundStyle(.white)
                 .clipShape(.rect(cornerRadius: 12))
             }
             .disabled(purchasing != nil)
         }
         .padding()
-        .background(plan.highlight ? Color.brand.opacity(0.08) : Color.cardBackground)
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(plan.highlight ? Color.brand : .clear, lineWidth: 1.5))
+        .background(Color.brand.opacity(0.08))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.brand, lineWidth: 1.5))
         .clipShape(.rect(cornerRadius: 18))
     }
 
@@ -168,7 +173,11 @@ struct PlansView: View {
         do {
             let products = try await Purchases.shared.products([productId])
             guard let product = products.first(where: { $0.productIdentifier == productId }) else {
-                throw NSError(domain: "Plans", code: 1, userInfo: [NSLocalizedDescriptionKey: "Product missing in App Store Connect"])
+                throw NSError(
+                    domain: "Plans",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Product missing in App Store Connect"]
+                )
             }
             let result = try await Purchases.shared.purchase(product: product)
             if !result.userCancelled {
@@ -189,6 +198,5 @@ private struct PlanRow {
     let monthlyId: String
     let monthlyPrice: String
     let monthlyCredits: String
-    let highlight: Bool
     let features: [String]
 }

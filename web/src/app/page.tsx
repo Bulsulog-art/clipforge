@@ -170,55 +170,41 @@ type BillingPeriod = "weekly" | "monthly";
 function PricingTabs() {
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
 
-  const plans = [
-    {
-      name: "Free",
-      weeklyPrice: "$0",
-      monthlyPrice: "$0",
-      body: "Try the magic.",
-      features: [
-        "5 credits / month",
-        "1 credit = 1 video → ~10 clips",
-        "Mr.Beast-style thumbnails",
-        "Watermark on output",
-      ],
-      cta: "Start free",
-    },
-    {
-      name: "Plus",
-      weeklyPrice: "$4.99",
-      weeklyCredits: "10 credits / week",
-      monthlyPrice: "$12.99",
-      monthlyCredits: "35 credits / month",
-      body: "For solo creators.",
-      features: [
-        "No watermark",
-        "Animated word-by-word captions",
-        "Connect TikTok, Reels, Shorts",
-        "AI Face Swap (2 cr)",
-        "Cancel anytime",
-      ],
-      cta: "Choose Plus",
-      highlight: true,
-    },
-    {
-      name: "Pro",
-      weeklyPrice: "$7.99",
-      weeklyCredits: "25 credits / week",
-      monthlyPrice: "$19.99",
-      monthlyCredits: "100 credits / month",
-      body: "For active creators.",
-      features: [
-        "Everything in Plus",
-        "AI-enhanced thumbnails",
-        "Auto-post + scheduling",
-        "AI translation 15+ languages",
-        "Voice clone (5 cr)",
-        "A/B hook testing",
-      ],
-      cta: "Choose Pro",
-    },
-  ];
+  const free = {
+    name: "Free",
+    price: "$0",
+    body: "Try the magic.",
+    features: [
+      "5 credits / month",
+      "1 credit = 1 video → ~10 clips",
+      "Mr.Beast-style thumbnails",
+      "Watermark on output",
+    ],
+    cta: "Start free",
+  };
+
+  const plus = {
+    name: "Plus",
+    weeklyPrice: "$4.99",
+    weeklyCredits: "10 credits / week",
+    monthlyPrice: "$14.99",
+    monthlyCredits: "40 credits / month",
+    body: "Everything unlocked.",
+    features: [
+      "No watermark",
+      "Animated word-by-word captions",
+      "AI Face Swap (2 cr)",
+      "AI Translation 15+ languages (2 cr)",
+      "Voice clone (5 cr)",
+      "Auto-post to TikTok, Reels, Shorts, X",
+      "AI-enhanced thumbnails",
+      "A/B hook testing",
+      "Buy extra credit packs anytime",
+      "Cancel anytime",
+    ],
+    cta: "Get Plus",
+    highlight: true,
+  };
 
   return (
     <>
@@ -241,36 +227,38 @@ function PricingTabs() {
         >
           Monthly
           <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-bold text-brand">
-            Save 35%
+            Save 25%
           </span>
         </button>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {plans.map((p) => {
-          const price = period === "weekly" ? p.weeklyPrice : p.monthlyPrice;
-          const periodLabel = period === "weekly" ? "/wk" : "/mo";
-          const credits =
-            period === "weekly" ? p.weeklyCredits : p.monthlyCredits;
-          return (
-            <PlanCard
-              key={p.name}
-              name={p.name}
-              price={price === "$0" ? "$0" : price}
-              periodLabel={price === "$0" ? "" : periodLabel}
-              body={p.body}
-              creditsLine={credits}
-              features={p.features}
-              highlight={p.highlight}
-              cta={p.cta}
-            />
-          );
-        })}
+      <div className="mx-auto mt-10 grid max-w-3xl gap-6 md:grid-cols-2">
+        <PlanCard
+          name={free.name}
+          price={free.price}
+          body={free.body}
+          features={free.features}
+          cta={free.cta}
+        />
+        <PlanCard
+          name={plus.name}
+          price={period === "weekly" ? plus.weeklyPrice : plus.monthlyPrice}
+          periodLabel={period === "weekly" ? "/wk" : "/mo"}
+          body={plus.body}
+          creditsLine={period === "weekly" ? plus.weeklyCredits : plus.monthlyCredits}
+          features={plus.features}
+          highlight={plus.highlight}
+          cta={plus.cta}
+        />
       </div>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
         About to cancel Plus? Stay for{" "}
-        <span className="font-semibold text-foreground">$9.99/mo</span> instead — win-back offer.
+        <span className="font-semibold text-foreground">$12.99/mo</span> instead — win-back offer.
+      </p>
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        Plus members can buy <span className="text-foreground">+10 credits for $4.99</span> or{" "}
+        <span className="text-foreground">+20 credits for $7.99</span> any time.
       </p>
     </>
   );

@@ -14,13 +14,13 @@ struct OnboardingView: View {
         Page(
             icon: "person.crop.square.filled.and.at.rectangle",
             title: "Face Swap.\nTranslate.\nGo viral.",
-            body: "Swap any face on a clip in 30 seconds (SwapTok-grade). Translate captions to 15+ languages. Or clone your voice on Pro.",
+            body: "Swap any face on a clip in 30 seconds (SwapTok-grade). Translate captions to 15+ languages. Voice clone in your own voice.",
             highlight: "Klap + HeyGen + Reface in one"
         ),
         Page(
             icon: "bolt.circle.fill",
             title: "Credits, not contracts.",
-            body: "5 free credits every month. Or Plus Weekly $4.99 to try. Pro Monthly $19.99 gets you 100 credits + auto-post + AI translation. Cancel anytime.",
+            body: "5 free credits every month. Plus weekly $4.99 → 10 credits/wk. Plus monthly $14.99 → 40 credits (save 25%). Top up anytime with +10 ($4.99) or +20 ($7.99) packs.",
             highlight: "Refund-safe consumables"
         ),
     ]

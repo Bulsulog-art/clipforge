@@ -5,6 +5,7 @@ struct CreditsPaywallView: View {
     @StateObject private var credits = CreditsService.shared
     @State private var purchasing: String?
     @State private var error: String?
+    @State private var showPlans = false
 
     var body: some View {
         NavigationStack {
@@ -21,38 +22,22 @@ struct CreditsPaywallView: View {
                             .clipShape(.rect(cornerRadius: 12))
                     }
 
-                    VStack(spacing: 12) {
-                        ForEach(CreditsService.creditPacks) { pack in
-                            packCard(pack)
-                        }
+                    if credits.hasPlus {
+                        plusContent
+                    } else {
+                        nonPlusUpsell
                     }
-
-                    HStack(spacing: 8) {
-                        Image(systemName: "shield.checkered")
-                            .foregroundStyle(.brand)
-                        Text("Credits never expire. No subscription. Refund-safe.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .background(Color.cardBackground)
-                    .clipShape(.rect(cornerRadius: 14))
-
-                    Text("Or get a monthly plan with auto-refilled credits — see Settings → Plans.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
                 }
                 .padding()
             }
-            .navigationTitle("Buy credits")
+            .navigationTitle(credits.hasPlus ? "Top up credits" : "Get more credits")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
             }
+            .sheet(isPresented: $showPlans) { PlansView() }
             .background(Color.appBackground.ignoresSafeArea())
             .task { await credits.refresh() }
         }
@@ -76,6 +61,79 @@ struct CreditsPaywallView: View {
         }
     }
 
+    private var plusContent: some View {
+        VStack(spacing: 12) {
+            ForEach(CreditsService.creditPacks) { pack in
+                packCard(pack)
+            }
+            HStack(spacing: 8) {
+                Image(systemName: "shield.checkered")
+                    .foregroundStyle(.brand)
+                Text("Credits never expire. Refund-safe consumable.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .background(Color.cardBackground)
+            .clipShape(.rect(cornerRadius: 14))
+        }
+    }
+
+    private var nonPlusUpsell: some View {
+        VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Plus members only", systemImage: "lock.fill")
+                    .font(.headline)
+                    .foregroundStyle(.brand)
+                Text("Credit packs are an exclusive perk for Plus subscribers. Start at $4.99/week and you can top up anytime.")
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.brand.opacity(0.08))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.brand, lineWidth: 1))
+            .clipShape(.rect(cornerRadius: 14))
+
+            Button {
+                showPlans = true
+            } label: {
+                HStack {
+                    Image(systemName: "sparkles")
+                    Text("See Plus pricing").fontWeight(.semibold)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .padding()
+                .background(Color.brand)
+                .foregroundStyle(.white)
+                .clipShape(.rect(cornerRadius: 14))
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("What's in Plus?")
+                    .font(.headline)
+                ForEach([
+                    "Plus weekly — $4.99 → 10 credits",
+                    "Plus monthly — $14.99 → 40 credits (save 25%)",
+                    "All AI tools, no watermark",
+                    "Buy +10 / +20 credit packs any time",
+                ], id: \.self) { line in
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.brand)
+                            .font(.caption)
+                            .padding(.top, 3)
+                        Text(line).font(.callout)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.cardBackground)
+            .clipShape(.rect(cornerRadius: 14))
+        }
+    }
+
     private func packCard(_ pack: CreditPack) -> some View {
         Button {
             Task { await purchase(pack) }
@@ -83,7 +141,7 @@ struct CreditsPaywallView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text("\(pack.credits)")
+                        Text("+\(pack.credits)")
                             .font(.title.bold())
                         Text("credits")
                             .foregroundStyle(.secondary)
@@ -123,6 +181,8 @@ struct CreditsPaywallView: View {
             dismiss()
         } catch CreditsError.cancelled {
             // ignore
+        } catch CreditsError.requiresPlus {
+            showPlans = true
         } catch let e {
             error = e.localizedDescription
         }

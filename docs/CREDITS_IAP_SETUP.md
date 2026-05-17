@@ -1,179 +1,153 @@
-# Credits + IAP Setup (Apple iade-proof + weekly/monthly + retention)
+# Credits + IAP Setup (Plus tek tier · Apple iade-proof)
 
-## Neden bu model?
+## Strateji özeti
 
-Klasik subscription'da Apple iade riski yüksek. Bu modelde:
+Pro tier'ı sildik — marj riski yüksekti. **Tek paid tier: Plus.** Tüm AI özellikleri Plus'ta. Free user funnel olarak kalıyor.
 
-- **Consumable kredi paketleri** → bir kez tüketildi mi Apple iade vermez
-- **Weekly subscription** → düşük commitment ($4.99-7.99 retention test)
-- **Monthly subscription** → daha çok kredi, fiyat avantajı
-- **Win-back offer** → cancel etmeye yelten kullanıcıya $9.99/ay teklif
+- **Free**: 5 kredi/ay, watermark, 1 platform
+- **Plus weekly** $4.99 → 10 kredi/hafta
+- **Plus monthly** $14.99 → 40 kredi/ay (kredi başına %25 ucuz)
+- **Plus retention** $12.99 → 40 kredi/ay (sadece cancel akışında, win-back)
+- **Plus-only kredi paketleri** (consumable):
+  - +10 credits → $4.99
+  - +20 credits → $7.99 (Best value)
 
-## Tam fiyat matrisi
+## Fiyat × Kredi × Marj tablosu
 
-### Subscription (auto-renewable)
+(Apple %15 small-biz, %40 ortalama kredi tüketimi varsayımı)
 
-| Product ID | Period | Price | Credits | Apple net (15%) | Marj @40% util |
+| SKU | Fiyat | Krediler | Apple net | Maliyet | **Marj** |
 |---|---|---|---|---|---|
-| `clipforge_plus_weekly`     | Weekly  | **$4.99**  | 10  | $4.24 | **%81** |
-| `clipforge_plus_monthly`    | Monthly | **$12.99** | 35  | $11.04 | **%75** |
-| `clipforge_plus_monthly_retention` | Monthly | **$9.99** | 35 | $8.49 | **%67** |
-| `clipforge_pro_weekly`      | Weekly  | **$7.99**  | 25  | $6.79 | **%71** |
-| `clipforge_pro_monthly`     | Monthly | **$19.99** | 100 | $16.99 | **%53** |
-| `clipforge_agency_monthly`  | Monthly | $49.99 | 600 | $42.49 | **%65** |
+| `clipforge_plus_weekly`            | $4.99  | 10 | $4.24 | $0.80 | **%81** |
+| `clipforge_plus_monthly`           | $14.99 | 40 | $12.74 | $3.20 | **%75** |
+| `clipforge_plus_monthly_retention` | $12.99 | 40 | $11.04 | $3.20 | **%71** |
+| `clipforge_credits_10`             | $4.99  | 10 | $4.24 | $0.80 | **%81** |
+| `clipforge_credits_20`             | $7.99  | 20 | $6.79 | $1.60 | **%80** |
 
-### Consumable credit packs (iade-proof)
+**Worst case (%100 kredi tüketimi):** Plus monthly $14.99 — 40 × $0.20 = $8 maliyet, $12.74 - $8 = **$4.74 (%37 marj)**. Hâlâ pozitif.
 
-| Product ID | Type | Price | Credits |
-|---|---|---|---|
-| `clipforge_credits_10`  | Consumable | $1.99  | 10 |
-| `clipforge_credits_30`  | Consumable | $4.99  | 30 |
-| `clipforge_credits_100` | Consumable | $14.99 | 100 |
-| `clipforge_credits_500` | Consumable | $59.99 | 500 |
+**Upgrade funnel:**
+- Weekly: $0.50/credit
+- Monthly: $0.37/credit (%25 ucuz)
+- Pack 10: $0.50/credit
+- Pack 20: $0.40/credit
+
+Kullanıcı haftalık deneyip aylık geçer → tükenirse pack alır → her senaryo Plus'a bağlı.
 
 ## App Store Connect kurulumu
 
-### Adım 1: Subscription Group
-
-App Store Connect → ClipForge → Monetization → **Subscription Groups → +**:
+### 1. Subscription Group oluştur
 - Name: `ClipForge Memberships`
 - Reference: `clipforge_subscriptions`
 
-### Adım 2: Auto-Renewable Subscriptions ekle
+### 2. Auto-renewable subscriptions ekle
 
-Subscription group içinde **+**:
+| Product ID | Period | Price | Display name |
+|---|---|---|---|
+| `clipforge_plus_weekly`  | 1 week  | $4.99  | Plus Weekly |
+| `clipforge_plus_monthly` | 1 month | $14.99 | Plus Monthly |
 
-1. **Plus Weekly**
-   - Product ID: `clipforge_plus_weekly`
-   - Reference Name: Plus Weekly
-   - Subscription Duration: **1 week**
-   - Price: $4.99 (Tier 5)
-   - Display name (EN): "Plus Weekly"
-   - Description: "10 credits per week, no watermark"
+### 3. Promotional Offer (retention $12.99)
 
-2. **Plus Monthly**
-   - Product ID: `clipforge_plus_monthly`
-   - Duration: **1 month**
-   - Price: $12.99
-   - Display name: "Plus Monthly"
-
-3. **Pro Weekly**
-   - Product ID: `clipforge_pro_weekly`
-   - Duration: 1 week
-   - Price: $7.99
-
-4. **Pro Monthly**
-   - Product ID: `clipforge_pro_monthly`
-   - Duration: 1 month
-   - Price: $19.99
-
-### Adım 3: Promotional Offer ($9.99 retention)
-
-`clipforge_plus_monthly` subscription'ı seç → **Subscription Prices → Offers → Promotional Offers → +**:
-- Reference Name: `plus_retention_999`
+`clipforge_plus_monthly` → **Subscription Prices → Promotional Offers → +**:
+- Reference: `plus_retention_1299`
 - Eligibility: **Existing subscribers**
 - Offer Type: Pay as you go
-- Duration: 3 months at $9.99/mo
-- Code redemption: Off (we'll call programmatically via RevenueCat)
+- Duration: 3 months at $12.99
+- Code redemption: Off (RC tetikler)
 
-### Adım 4: Consumable IAP
+### 4. Consumable IAP
 
-App Store Connect → ClipForge → Monetization → **In-App Purchases → +** (Consumable):
+| Product ID | Type | Price | Display name |
+|---|---|---|---|
+| `clipforge_credits_10` | Consumable | $4.99 | +10 Credits |
+| `clipforge_credits_20` | Consumable | $7.99 | +20 Credits — Best Value |
 
-| Product ID | Price | Display name |
-|---|---|---|
-| `clipforge_credits_10`  | $1.99  | "10 Credits" |
-| `clipforge_credits_30`  | $4.99  | "30 Credits" |
-| `clipforge_credits_100` | $14.99 | "100 Credits — Best Value" |
-| `clipforge_credits_500` | $59.99 | "500 Credits — Power Pack" |
+> Apple "subscription-required" bayrağı yok — iOS app UI gate'liyor (`hasPlus` kontrolü).
 
-### Adım 5: Localized pricing (TR)
+### 5. Türkçe override
 
-App Store Connect → Pricing → Per-country override:
-- $4.99 → 169₺
-- $7.99 → 269₺
-- $9.99 → 339₺
-- $12.99 → 449₺
-- $19.99 → 689₺
-- $59.99 → 1.999₺
+| USD | TR fiyat |
+|---|---|
+| $4.99  | 169₺ |
+| $7.99  | 269₺ |
+| $12.99 | 449₺ |
+| $14.99 | 499₺ |
 
-## RevenueCat kurulumu
-
-`Products` sekmesi — App Store Connect API ile otomatik eşlenir.
+## RevenueCat
 
 ### Entitlements
-
-| Entitlement | Products |
-|---|---|
-| `starter` (= Plus) | clipforge_plus_weekly, _monthly, _monthly_retention |
-| `pro` | clipforge_pro_weekly, _pro_monthly |
-| `agency` | clipforge_agency_monthly |
+- `starter` (alias: `plus`) → tüm 3 Plus subscription product
 
 ### Offerings
+`default`:
+- `weekly_plus`  → `clipforge_plus_weekly`
+- `monthly_plus` → `clipforge_plus_monthly`
+- `credits_10`   → `clipforge_credits_10`
+- `credits_20`   → `clipforge_credits_20`
 
-- `default` offering içine **5 paket** ekle:
-  - `weekly_plus` → clipforge_plus_weekly
-  - `monthly_plus` → clipforge_plus_monthly
-  - `weekly_pro` → clipforge_pro_weekly
-  - `monthly_pro` → clipforge_pro_monthly
-  - `consumable_*` → 4 credit pack
+Retention `clipforge_plus_monthly_retention` ayrı package olmaz — Promotional Offer'la sunulur.
 
 ### Webhook
+- URL: `https://clipforge.bulsulabs.xyz/api/revenuecat/webhook`
+- Auth: `Bearer <REVENUECAT_WEBHOOK_AUTH>`
 
-URL: `https://clipforge.bulsulabs.xyz/api/revenuecat/webhook`
-Auth header: `Bearer <REVENUECAT_WEBHOOK_AUTH>`
+İşlenen event'ler:
+- `NON_RENEWING_PURCHASE` → consumable → kredi
+- `INITIAL_PURCHASE` / `RENEWAL` / `PRODUCT_CHANGE` / `UNCANCELLATION` → subscription → 10/40 kredi + tier=starter
+- `CANCELLATION` / `EXPIRATION` / `BILLING_ISSUE` → tier=free, krediler kalır (kullanılana kadar)
+- `REFUND` → audit log (consumable krediler tüketildiyse geri alınamaz)
 
-Webhook handler şu olayları işliyor:
-- `NON_RENEWING_PURCHASE` → consumable kredi grant
-- `INITIAL_PURCHASE` / `RENEWAL` / `PRODUCT_CHANGE` / `UNCANCELLATION` → subscription kredi + tier
-- `CANCELLATION` / `EXPIRATION` / `BILLING_ISSUE` → tier → free
-- `REFUND` → audit log (consumable krediler geri alınamaz)
+## iOS UI Akışı
 
-## Retention flow
-
-iOS app cancel butonuna basıldığında:
-
-```swift
-// SettingsView'da cancel girişi
-if user is about to cancel Plus monthly {
-    // RevenueCatUI win-back offer card
-    PaywallView(offering: .promotional("plus_retention_999"))
-}
+```
+1. ProjectsView → "New project" → kredisiz
+   ↓
+2. CreditsPaywallView açılır
+   - Plus user → 2 kredi paketi (10/$4.99, 20/$7.99)
+   - Free user → "Plus only" upsell + "See Plus pricing" button
+   ↓
+3. PlansView (tek Plus tier)
+   - Weekly/Monthly segmented control
+   - Subscribe button → RevenueCat → Apple sandbox/production
+   - 2 info card: Win-back + Plus-only packs
+   ↓
+4. Webhook geliyor → DB grant_credits() → balance güncel
+   ↓
+5. Kullanıcı video oluşturur, kredi düşer
+   ↓
+6. Cancel akışında Apple Promotional Offer kartı:
+   "Stay for $12.99/mo instead?"
 ```
 
-Apple StoreKit otomatik olarak win-back offer'ı App Store cancellation sayfasında gösterir.
+## Test sequence
 
-## Marj risk analizi
+1. Sandbox tester aç (App Store Connect → Users → Sandbox)
+2. iOS sim'de free hesap → ProjectsView → New project (no credits)
+3. CreditsPaywallView → Plus-only upsell → See pricing → PlansView
+4. Plus Weekly $4.99 → Apple sandbox prompt → Confirm
+5. RC webhook → 10 kredi balance'a düşer
+6. Yeni project → 1 kredi tüketilir (9 kalır)
+7. CreditsPaywallView tekrar aç → 2 pack görünür
+8. Pack 10 → $4.99 → +10 kredi
+9. Sandbox'ta refund simüle et → REFUND event log
+10. Cancel testi → Apple win-back kartı: $12.99/mo
 
-**En kötü senaryo:** Pro monthly user her ay 100 kredinin TAMAMINI clip generation'a kullanır.
-- 100 × $0.20 cost = $20 cost
-- Net $16.99 - $20 = **−$3 zarar**
+## Cron'lar
 
-**Risk azaltma:**
-1. Hedef: 100 kredi gerçek %40 utilization → $8 cost, $8.99 marj
-2. Power user'lara "Krediler azaldı, ek pack al" notification
-3. Average olarak Pro user 60-80 kredi tüketir → güvenli marj
+`supabase/migrations/00004_trends_and_cron.sql`:
 
-## Türkçe market dikkat noktaları
+```sql
+-- 1. ayın ilk günü 00:05 UTC, free kullanıcılara 5 kredi yenile
+clipforge.refill_free_credits(5)
 
-- Apple TR aboneliklerini Euro/USD'den TL'ye çeviriyor — TR enflasyon yüksek
-- 3 ayda bir fiyat override gözden geçir
-- $0.99 = ~33₺ (2026-05)
-- Plus weekly 169₺ = bir orta kahve fiyatı → düşük entry barrier
+-- her gün 07:00 UTC trend heartbeat (worker daily snapshot tetikler)
+```
 
-## Test sırası
+## Bilinen sınırlamalar
 
-1. Sandbox tester oluştur (App Store Connect → Users → Sandbox)
-2. iOS sim'de signed-out → free trial sign up
-3. Plans view → Plus Weekly → confirm
-4. RC webhook → Supabase RPC → 10 kredi
-5. Video gönder → 1 kredi düşer (9 kalır)
-6. Sandbox'ta refund simüle et → REFUND event log
-7. Cancel test → Win-back offer prompt
+- **Plus-only pack gating** iOS UI'da yapılıyor. Teknik olarak biri RC API'sini direkt çağırırsa pack'i kart-doğrudan alabilir. Webhook yine grant ederse problem yok ama "Plus üye olmadan kredi paketi satın aldı" durumu mümkün. Production'da: webhook'ta `hasActiveSubscription` kontrolü ekle, yoksa kredi grant etme + Apple refund tetikle.
 
-## Ekranlar nerede
+- **Promotional Offer**'lar sandbox'ta tüm App Store Connect kurulumundan sonra aktif olmuyor — production'da test gerekebilir.
 
-- **Landing (web):** http://localhost:3000/#pricing — Weekly/Monthly toggle
-- **iOS:** Settings → "Choose plan" → PlansView (haftalık/aylık segment)
-- **iOS:** Studio'da kredisiz → otomatik CreditsPaywallView (consumable)
-- **iOS:** Cancel akışı → App Store sistem prompt + win-back card
+- **Voice clone (5 cr)** maliyeti ElevenLabs üzerinden $0.40/dk. 40 kredilik Plus monthly'de 8 voice clone = $3.20 maliyet — bu özellik Plus'a dahil edilirken kredi başına maliyet hesabına dahil edildi.
