@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/node";
 import { logger } from "./logger.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runPublish } from "./publish.js";
+import { runDerivative } from "./derivative.js";
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -58,16 +59,38 @@ const publishWorker = new Worker(
   },
 );
 
+const derivativeWorker = new Worker(
+  "derivative",
+  async (job) => {
+    try {
+      await runDerivative(job.data);
+    } catch (e) {
+      Sentry.captureException(e, { tags: { queue: "derivative", jobId: job.id } });
+      throw e;
+    }
+  },
+  {
+    connection,
+    concurrency: Number(process.env.DERIVATIVE_CONCURRENCY ?? 3),
+    metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
+    removeOnComplete: { count: 1000, age: 24 * 3600 },
+    removeOnFail: { count: 5000, age: 7 * 24 * 3600 },
+  },
+);
+
 videoWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "video job failed"),
 );
 publishWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "publish job failed"),
 );
+derivativeWorker.on("failed", (job, err) =>
+  logger.error({ jobId: job?.id, err: err.message }, "derivative job failed"),
+);
 
 async function shutdown(signal: string) {
   logger.info({ signal }, "shutting down");
-  await Promise.allSettled([videoWorker.close(), publishWorker.close()]);
+  await Promise.allSettled([videoWorker.close(), publishWorker.close(), derivativeWorker.close()]);
   await Sentry.flush(2000);
   await connection.quit();
   process.exit(0);

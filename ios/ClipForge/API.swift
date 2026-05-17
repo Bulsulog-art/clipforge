@@ -65,4 +65,51 @@ final class ClipForgeAPI {
             .createSignedURL(path: path, expiresIn: 60 * 30)
         return result
     }
+
+    func faceSwap(clipId: String, faceJpeg: Data) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        let url = Secrets.apiBaseURL.appendingPathComponent("/api/clips/\(clipId)/face-swap")
+        let boundary = "ClipForge-\(UUID().uuidString)"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"face\"; filename=\"face.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(faceJpeg)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        req.httpBody = body
+
+        let (_, resp) = try await URLSession.shared.upload(for: req, from: body)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if http.statusCode == 402 { throw Error.quotaExceeded }
+        guard (200..<300).contains(http.statusCode) else { throw Error.network }
+    }
+
+    struct TranslateRequest: Codable {
+        let targetLanguage: String
+        let voiceClone: Bool
+    }
+
+    func translate(clipId: String, language: String, voiceClone: Bool) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/clips/\(clipId)/translate"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.httpBody = try JSONEncoder().encode(
+            TranslateRequest(targetLanguage: language, voiceClone: voiceClone)
+        )
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if http.statusCode == 402 { throw Error.quotaExceeded }
+        guard (200..<300).contains(http.statusCode) else { throw Error.network }
+    }
 }

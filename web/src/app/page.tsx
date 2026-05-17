@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, Scissors, Send, BarChart3, Zap, Globe } from "lucide-react";
+import { ArrowRight, Sparkles, Scissors, Send, BarChart3, Zap, Globe, Users2, Languages } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -52,37 +52,47 @@ export default function LandingPage() {
         <p className="mt-6 text-sm text-muted-foreground">No credit card · 5-min setup · cancel anytime</p>
       </section>
 
-      <section className="container grid gap-6 py-20 md:grid-cols-3">
-        <Feature
-          icon={<Scissors />}
-          title="Viral moment detection"
-          body="Whisper transcribes, GPT-4o-mini scores. Top 8–30 moments become clips, sorted by viral potential."
-        />
-        <Feature
-          icon={<Sparkles />}
-          title="Studio-grade render"
-          body="Hooks, animated captions, jump cuts, B-roll, music, audio normalization — every clip ships polished."
-        />
-        <Feature
-          icon={<Send />}
-          title="One-click distribution"
-          body="Connect TikTok, Instagram, YouTube, X. Schedule a week of content in 60 seconds."
-        />
-        <Feature
-          icon={<Zap />}
-          title="A/B hook testing"
-          body="Same clip, three hooks. We post all three, kill the losers automatically. Pro plan."
-        />
-        <Feature
-          icon={<BarChart3 />}
-          title="What works for you"
-          body="Cross-platform analytics. We learn your audience and bias toward formats that ship."
-        />
-        <Feature
-          icon={<Globe />}
-          title="Multi-language"
-          body="Generate captions in 40+ languages. Reach audiences your competitors can't."
-        />
+      <section className="container py-20">
+        <div className="mb-12 text-center">
+          <h2 className="text-4xl font-bold">Everything you need.</h2>
+          <p className="mt-2 text-muted-foreground">Klap + HeyGen + Reface — one app, one price.</p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          <Feature
+            icon={<Scissors />}
+            title="Viral moment detection"
+            body="Whisper transcribes, GPT-4o-mini scores. Top 8–30 moments become clips, sorted by viral potential."
+          />
+          <Feature
+            icon={<Sparkles />}
+            title="Mr.Beast-style thumbnails"
+            body="Every clip gets a bold, niche-themed thumbnail with 3-layer glow text — no design skills required."
+            badge="NEW"
+          />
+          <Feature
+            icon={<Users2 />}
+            title="AI Face Swap"
+            body="Upload any portrait → replace the face in your clip. SwapTok-grade fun, viral K-factor through the roof."
+            badge="NEW · 2 cr"
+          />
+          <Feature
+            icon={<Languages />}
+            title="Translate to 15+ languages"
+            body="One clip, sold globally. Pro adds voice clone — same person, new language, mouth-synced."
+            badge="NEW · 2 cr"
+          />
+          <Feature
+            icon={<Send />}
+            title="One-click distribution"
+            body="Connect TikTok, Instagram, YouTube, X. Schedule a week of content in 60 seconds."
+          />
+          <Feature
+            icon={<Zap />}
+            title="A/B hook testing"
+            body="Same clip, three hooks. We post all three, kill the losers automatically. Pro plan."
+          />
+        </div>
       </section>
 
       <section id="pricing" className="container py-20">
@@ -174,9 +184,14 @@ export default function LandingPage() {
   );
 }
 
-function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
+function Feature({ icon, title, body, badge }: { icon: React.ReactNode; title: string; body: string; badge?: string }) {
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm transition hover:border-brand/40">
+    <div className="relative rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm transition hover:border-brand/40">
+      {badge && (
+        <span className="absolute right-4 top-4 rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-medium text-brand">
+          {badge}
+        </span>
+      )}
       <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-brand/10 text-brand">{icon}</div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{body}</p>
