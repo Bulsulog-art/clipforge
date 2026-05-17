@@ -1,0 +1,55 @@
+project_id = "clipforge"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "https://clipforge.bulsulabs.com"
+additional_redirect_urls = [
+  "http://localhost:3000/auth/callback",
+  "https://clipforge.bulsulabs.com/auth/callback",
+  "clipforge://auth/callback"
+]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+redirect_uri = ""
+
+[storage]
+enabled = true
+file_size_limit = "5GB"
+
+[functions.ingest-video]
+verify_jwt = true
+
+[functions.revenuecat-webhook]
+verify_jwt = false
+
+[functions.tiktok-callback]
+verify_jwt = false
+
+[functions.schedule-publish]
+verify_jwt = true

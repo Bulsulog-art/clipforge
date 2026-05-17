@@ -1,0 +1,59 @@
+# Coolify will read this for the full stack.
+# For solo services, prefer Coolify's "from Dockerfile" deployment per service.
+
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    image: clipforge-web
+    ports:
+      - "3000:3000"
+    env_file: ./web/.env
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on: [redis]
+    labels:
+      coolify.managed: "true"
+      coolify.fqdn: "https://clipforge.bulsulabs.com"
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    image: clipforge-worker
+    env_file: ./web/.env
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 8G
+    volumes:
+      - worker_tmp:/tmp
+    depends_on: [redis]
+    labels:
+      coolify.managed: "true"
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    labels:
+      coolify.managed: "true"
+
+volumes:
+  redis_data:
+  worker_tmp:

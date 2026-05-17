@@ -1,0 +1,24 @@
+node_modules/
+.next/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+
+# iOS
+ios/build/
+ios/ClipForge.xcodeproj/
+ios/ClipForge.xcworkspace/
+ios/Pods/
+ios/.swiftpm/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+
+# Supabase
+supabase/.branches
+supabase/.temp
+supabase/seed.sql
