@@ -108,31 +108,27 @@ export default function LandingPage() {
 
         <div className="mt-10 rounded-2xl border border-border/50 bg-card/30 p-6">
           <div className="flex flex-col items-center gap-1 text-center">
-            <h3 className="text-lg font-semibold">Need more? Buy credit packs anytime.</h3>
-            <p className="text-sm text-muted-foreground">
-              One-time consumable purchases. Credits never auto-renew, only used when you process a video.
+            <h3 className="text-lg font-semibold">Plus-only credit packs</h3>
+            <p className="max-w-xl text-sm text-muted-foreground">
+              Run out of credits before the next refill? Plus members can top up instantly inside the app. One-time consumable purchases — credits never auto-renew, never expire.
             </p>
           </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            {[
-              { credits: 10, price: "$1.99" },
-              { credits: 30, price: "$4.99" },
-              { credits: 100, price: "$14.99", popular: true },
-              { credits: 500, price: "$59.99" },
-            ].map((p) => (
-              <div
-                key={p.credits}
-                className={`rounded-xl border p-4 text-center ${
-                  p.popular ? "border-brand bg-brand/5" : "border-border/50 bg-card/40"
-                }`}
-              >
-                <div className="text-2xl font-semibold">{p.credits}</div>
-                <div className="text-xs text-muted-foreground">credits</div>
-                <div className="mt-2 text-lg font-bold">{p.price}</div>
-                {p.popular && <div className="mt-1 text-xs text-brand">best value</div>}
-              </div>
-            ))}
+          <div className="mx-auto mt-6 grid max-w-xl gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-border/50 bg-card/40 p-4 text-center">
+              <div className="text-2xl font-semibold">+10</div>
+              <div className="text-xs text-muted-foreground">credits</div>
+              <div className="mt-2 text-lg font-bold">$4.99</div>
+            </div>
+            <div className="rounded-xl border border-brand bg-brand/5 p-4 text-center">
+              <div className="text-2xl font-semibold">+20</div>
+              <div className="text-xs text-muted-foreground">credits</div>
+              <div className="mt-2 text-lg font-bold">$7.99</div>
+              <div className="mt-1 text-xs text-brand">best value</div>
+            </div>
           </div>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Available only inside the iOS app — Apple consumable IAP, refund-safe.
+          </p>
         </div>
       </section>
 
