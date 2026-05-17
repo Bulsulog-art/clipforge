@@ -8,16 +8,35 @@ type RCEvent = {
   transaction_id?: string;
   entitlement_ids?: string[];
   expiration_at_ms?: number;
+  period_type?: "NORMAL" | "TRIAL" | "INTRO" | "PROMOTIONAL";
 };
 
 /**
- * Subscription products grant monthly credits + tier upgrade.
- * Consumable products grant credits only (no tier change), refund-safe.
+ * Subscription products: grant credits + tier upgrade.
+ * Consumable products: grant credits only, refund-safe.
+ *
+ * Pricing model (USD):
+ *   Plus weekly      $4.99  → 10 credits
+ *   Plus monthly     $12.99 → 35 credits
+ *   Plus retention   $9.99  → 35 credits  (win-back offer)
+ *   Pro weekly       $7.99  → 25 credits
+ *   Pro monthly      $19.99 → 100 credits
  */
-const SUBSCRIPTION_PRODUCTS: Record<string, { tier: "starter" | "pro" | "agency"; credits: number }> = {
-  clipforge_plus_monthly:    { tier: "starter", credits: 30 },
-  clipforge_pro_monthly:     { tier: "pro",     credits: 150 },
-  clipforge_agency_monthly:  { tier: "agency",  credits: 800 },
+const SUBSCRIPTION_PRODUCTS: Record<
+  string,
+  { tier: "starter" | "pro" | "agency"; credits: number; period: "weekly" | "monthly" }
+> = {
+  // Plus tier (entitlement: starter)
+  clipforge_plus_weekly:           { tier: "starter", credits: 10,  period: "weekly"  },
+  clipforge_plus_monthly:          { tier: "starter", credits: 35,  period: "monthly" },
+  clipforge_plus_monthly_retention:{ tier: "starter", credits: 35,  period: "monthly" },
+
+  // Pro tier
+  clipforge_pro_weekly:            { tier: "pro",     credits: 25,  period: "weekly"  },
+  clipforge_pro_monthly:           { tier: "pro",     credits: 100, period: "monthly" },
+
+  // Agency tier (future)
+  clipforge_agency_monthly:        { tier: "agency",  credits: 600, period: "monthly" },
 };
 
 const CONSUMABLE_PRODUCTS: Record<string, number> = {
@@ -46,21 +65,21 @@ export async function POST(req: Request) {
 
   const svc = createServiceClient();
 
-  // Find the local profile that matches this RC app_user_id (uuid from Supabase auth.users)
   const { data: profile } = await svc
     .from("profiles")
     .select("id")
     .eq("id", evt.app_user_id)
     .maybeSingle();
   if (!profile) {
-    // user might not exist yet — store the app_user_id mapping for later sync
-    await svc.from("profiles").update({ revenuecat_app_user_id: evt.app_user_id }).eq("id", evt.app_user_id);
+    await svc
+      .from("profiles")
+      .update({ revenuecat_app_user_id: evt.app_user_id })
+      .eq("id", evt.app_user_id);
     return NextResponse.json({ ok: true, deferred: true });
   }
 
   switch (evt.type) {
     case "NON_RENEWING_PURCHASE": {
-      // Consumable credit pack
       const amount = CONSUMABLE_PRODUCTS[evt.product_id ?? ""];
       if (!amount) break;
       await svc.rpc("grant_credits", {
@@ -84,18 +103,22 @@ export async function POST(req: Request) {
           p_user_id: profile.id,
           p_amount: sub.credits,
           p_kind: "subscription_grant",
-          p_reason: evt.product_id,
+          p_reason: `${evt.product_id} (${sub.period})`,
           p_reference: evt.transaction_id,
+          p_metadata: { period: sub.period, type: evt.type },
         });
       }
-      // tier upgrade from entitlements (most accurate)
+      // tier upgrade from entitlements
       let tier: "free" | "starter" | "pro" | "agency" = "free";
       for (const id of evt.entitlement_ids ?? []) {
         const candidate = ENTITLEMENT_TO_TIER[id];
         if (candidate && rank(candidate) > rank(tier)) tier = candidate;
       }
       if (tier !== "free") {
-        await svc.from("profiles").update({ tier, revenuecat_app_user_id: evt.app_user_id }).eq("id", profile.id);
+        await svc
+          .from("profiles")
+          .update({ tier, revenuecat_app_user_id: evt.app_user_id })
+          .eq("id", profile.id);
       }
       break;
     }
@@ -107,17 +130,18 @@ export async function POST(req: Request) {
       break;
 
     case "REFUND": {
-      // Apple/Google refunded — claw back credits if they weren't consumed.
       const consumable = CONSUMABLE_PRODUCTS[evt.product_id ?? ""];
       if (consumable) {
-        await svc.rpc("grant_credits", {
-          p_user_id: profile.id,
-          p_amount: 0,
-          p_kind: "refund",
-          p_reason: `refund ${evt.product_id}`,
-          p_reference: evt.transaction_id,
-          p_metadata: { warning: "credits may already be consumed" },
-        }).then(() => {}, () => {});
+        await svc
+          .rpc("grant_credits", {
+            p_user_id: profile.id,
+            p_amount: 0,
+            p_kind: "refund",
+            p_reason: `refund ${evt.product_id}`,
+            p_reference: evt.transaction_id,
+            p_metadata: { warning: "credits may already be consumed" },
+          })
+          .then(() => {}, () => {});
       }
       break;
     }

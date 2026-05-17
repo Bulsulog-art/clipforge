@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Scissors, Send, BarChart3, Zap, Globe, Users2, Languages } from "lucide-react";
 
@@ -96,49 +99,12 @@ export default function LandingPage() {
       </section>
 
       <section id="pricing" className="container py-20">
-        <h2 className="text-center text-4xl font-bold">Honest pricing.</h2>
-        <p className="mt-2 text-center text-muted-foreground">No usage credits theater. Cancel anytime.</p>
+        <h2 className="text-center text-4xl font-bold">Pick a plan that fits.</h2>
+        <p className="mt-2 text-center text-muted-foreground">
+          Weekly to try, monthly to save. Credits never auto-renew on consumables.
+        </p>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          <PlanCard
-            name="Free"
-            price="$0"
-            body="Try the magic."
-            features={[
-              "5 credits / month",
-              "1 credit = 1 video → ~10 clips",
-              "Mr.Beast-style thumbnails",
-              "Multi-platform manual export",
-              "Watermark on output",
-            ]}
-          />
-          <PlanCard
-            name="Plus"
-            price="$9.99"
-            highlight
-            body="For solo creators."
-            features={[
-              "30 credits / month",
-              "No watermark",
-              "Premium animated captions",
-              "Connect TikTok, Reels, Shorts",
-              "Cancel anytime",
-            ]}
-          />
-          <PlanCard
-            name="Pro"
-            price="$19.99"
-            body="For active creators."
-            features={[
-              "150 credits / month",
-              "Everything in Plus",
-              "AI-enhanced thumbnails",
-              "Auto-post + scheduling",
-              "10 min AI translation / mo",
-              "A/B hook testing",
-            ]}
-          />
-        </div>
+        <PricingTabs />
 
         <div className="mt-10 rounded-2xl border border-border/50 bg-card/30 p-6">
           <div className="flex flex-col items-center gap-1 text-center">
@@ -199,9 +165,129 @@ function Feature({ icon, title, body, badge }: { icon: React.ReactNode; title: s
   );
 }
 
+type BillingPeriod = "weekly" | "monthly";
+
+function PricingTabs() {
+  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+
+  const plans = [
+    {
+      name: "Free",
+      weeklyPrice: "$0",
+      monthlyPrice: "$0",
+      body: "Try the magic.",
+      features: [
+        "5 credits / month",
+        "1 credit = 1 video → ~10 clips",
+        "Mr.Beast-style thumbnails",
+        "Watermark on output",
+      ],
+      cta: "Start free",
+    },
+    {
+      name: "Plus",
+      weeklyPrice: "$4.99",
+      weeklyCredits: "10 credits / week",
+      monthlyPrice: "$12.99",
+      monthlyCredits: "35 credits / month",
+      body: "For solo creators.",
+      features: [
+        "No watermark",
+        "Animated word-by-word captions",
+        "Connect TikTok, Reels, Shorts",
+        "AI Face Swap (2 cr)",
+        "Cancel anytime",
+      ],
+      cta: "Choose Plus",
+      highlight: true,
+    },
+    {
+      name: "Pro",
+      weeklyPrice: "$7.99",
+      weeklyCredits: "25 credits / week",
+      monthlyPrice: "$19.99",
+      monthlyCredits: "100 credits / month",
+      body: "For active creators.",
+      features: [
+        "Everything in Plus",
+        "AI-enhanced thumbnails",
+        "Auto-post + scheduling",
+        "AI translation 15+ languages",
+        "Voice clone (5 cr)",
+        "A/B hook testing",
+      ],
+      cta: "Choose Pro",
+    },
+  ];
+
+  return (
+    <>
+      <div className="mx-auto mt-8 flex w-fit rounded-full border border-border/50 bg-card/40 p-1">
+        <button
+          type="button"
+          onClick={() => setPeriod("weekly")}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium ${
+            period === "weekly" ? "bg-brand text-white" : "text-muted-foreground"
+          }`}
+        >
+          Weekly
+        </button>
+        <button
+          type="button"
+          onClick={() => setPeriod("monthly")}
+          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${
+            period === "monthly" ? "bg-brand text-white" : "text-muted-foreground"
+          }`}
+        >
+          Monthly
+          <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-bold text-brand">
+            Save 35%
+          </span>
+        </button>
+      </div>
+
+      <div className="mt-10 grid gap-6 md:grid-cols-3">
+        {plans.map((p) => {
+          const price = period === "weekly" ? p.weeklyPrice : p.monthlyPrice;
+          const periodLabel = period === "weekly" ? "/wk" : "/mo";
+          const credits =
+            period === "weekly" ? p.weeklyCredits : p.monthlyCredits;
+          return (
+            <PlanCard
+              key={p.name}
+              name={p.name}
+              price={price === "$0" ? "$0" : price}
+              periodLabel={price === "$0" ? "" : periodLabel}
+              body={p.body}
+              creditsLine={credits}
+              features={p.features}
+              highlight={p.highlight}
+              cta={p.cta}
+            />
+          );
+        })}
+      </div>
+
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        About to cancel Plus? Stay for{" "}
+        <span className="font-semibold text-foreground">$9.99/mo</span> instead — win-back offer.
+      </p>
+    </>
+  );
+}
+
 function PlanCard({
-  name, price, body, features, highlight,
-}: { name: string; price: string; body: string; features: string[]; highlight?: boolean }) {
+  name, price, body, features, highlight, periodLabel, creditsLine, cta,
+}: {
+  name: string;
+  price: string;
+  body: string;
+  features: string[];
+  highlight?: boolean;
+  periodLabel?: string;
+  creditsLine?: string;
+  cta?: string;
+}) {
   return (
     <div
       className={`relative rounded-2xl border p-6 ${
@@ -216,9 +302,12 @@ function PlanCard({
       <h3 className="text-xl font-semibold">{name}</h3>
       <div className="mt-2 text-4xl font-bold">
         {price}
-        <span className="text-base font-normal text-muted-foreground">/mo</span>
+        {periodLabel && <span className="text-base font-normal text-muted-foreground">{periodLabel}</span>}
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+      {creditsLine && (
+        <p className="mt-3 text-sm font-medium text-brand">{creditsLine}</p>
+      )}
       <ul className="mt-6 space-y-2 text-sm">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2">
@@ -233,7 +322,7 @@ function PlanCard({
           highlight ? "bg-brand text-white hover:bg-brand-glow" : "border border-border bg-card hover:bg-accent"
         }`}
       >
-        {name === "Free" ? "Start free" : `Choose ${name}`}
+        {cta ?? (name === "Free" ? "Start free" : `Choose ${name}`)}
       </Link>
     </div>
   );

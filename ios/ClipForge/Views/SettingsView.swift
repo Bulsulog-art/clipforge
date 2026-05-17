@@ -2,7 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var rc = RevenueCatService.shared
-    @State private var showPaywall = false
+    @StateObject private var credits = CreditsService.shared
+    @State private var showPlans = false
+    @State private var showCreditPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -10,10 +12,22 @@ struct SettingsView: View {
                 Section("Account") {
                     LabeledContent("Email", value: SupabaseService.shared.session?.user.email ?? "—")
                     LabeledContent("Plan", value: planLabel)
+                    LabeledContent("Credits", value: "\(credits.balance)")
                 }
-                Section {
-                    Button("Manage subscription") { showPaywall = true }
-                    Button("Restore purchases") { Task { try? await rc.restore() } }
+                Section("Billing") {
+                    Button {
+                        showPlans = true
+                    } label: {
+                        Label("Choose plan (weekly / monthly)", systemImage: "creditcard")
+                    }
+                    Button {
+                        showCreditPaywall = true
+                    } label: {
+                        Label("Buy credits (one-time)", systemImage: "bolt.fill")
+                    }
+                    Button("Restore purchases") {
+                        Task { try? await rc.restore() }
+                    }
                 }
                 Section {
                     Button("Sign out", role: .destructive) {
@@ -22,7 +36,9 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .sheet(isPresented: $showPaywall) { PaywallView() }
+            .sheet(isPresented: $showPlans) { PlansView() }
+            .sheet(isPresented: $showCreditPaywall) { CreditsPaywallView() }
+            .task { await credits.refresh() }
         }
     }
 
