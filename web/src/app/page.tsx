@@ -89,11 +89,74 @@ export default function LandingPage() {
         <h2 className="text-center text-4xl font-bold">Honest pricing.</h2>
         <p className="mt-2 text-center text-muted-foreground">No usage credits theater. Cancel anytime.</p>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-4">
-          <PlanCard name="Free" price="$0" body="Try the magic." features={["2 videos / month", "5 clips per video", "Watermark", "Manual export"]} />
-          <PlanCard name="Starter" price="$29" body="Solo creator." features={["10 videos", "Unlimited clips", "No watermark", "All export formats"]} />
-          <PlanCard name="Pro" price="$79" highlight body="Pro creator + auto-post." features={["50 videos", "Auto-post to all platforms", "A/B hook testing", "Brand kits", "Analytics"]} />
-          <PlanCard name="Agency" price="$199" body="Agencies & teams." features={["250 videos", "5 team members", "White-label exports", "API access", "Priority support"]} />
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <PlanCard
+            name="Free"
+            price="$0"
+            body="Try the magic."
+            features={[
+              "5 credits / month",
+              "1 credit = 1 video → ~10 clips",
+              "Mr.Beast-style thumbnails",
+              "Multi-platform manual export",
+              "Watermark on output",
+            ]}
+          />
+          <PlanCard
+            name="Plus"
+            price="$9.99"
+            highlight
+            body="For solo creators."
+            features={[
+              "30 credits / month",
+              "No watermark",
+              "Premium animated captions",
+              "Connect TikTok, Reels, Shorts",
+              "Cancel anytime",
+            ]}
+          />
+          <PlanCard
+            name="Pro"
+            price="$19.99"
+            body="For active creators."
+            features={[
+              "150 credits / month",
+              "Everything in Plus",
+              "AI-enhanced thumbnails",
+              "Auto-post + scheduling",
+              "10 min AI translation / mo",
+              "A/B hook testing",
+            ]}
+          />
+        </div>
+
+        <div className="mt-10 rounded-2xl border border-border/50 bg-card/30 p-6">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <h3 className="text-lg font-semibold">Need more? Buy credit packs anytime.</h3>
+            <p className="text-sm text-muted-foreground">
+              One-time consumable purchases. Credits never auto-renew, only used when you process a video.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {[
+              { credits: 10, price: "$1.99" },
+              { credits: 30, price: "$4.99" },
+              { credits: 100, price: "$14.99", popular: true },
+              { credits: 500, price: "$59.99" },
+            ].map((p) => (
+              <div
+                key={p.credits}
+                className={`rounded-xl border p-4 text-center ${
+                  p.popular ? "border-brand bg-brand/5" : "border-border/50 bg-card/40"
+                }`}
+              >
+                <div className="text-2xl font-semibold">{p.credits}</div>
+                <div className="text-xs text-muted-foreground">credits</div>
+                <div className="mt-2 text-lg font-bold">{p.price}</div>
+                {p.popular && <div className="mt-1 text-xs text-brand">best value</div>}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

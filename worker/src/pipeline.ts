@@ -7,6 +7,7 @@ import { downloadSource } from "./steps/download.js";
 import { transcribe } from "./steps/transcribe.js";
 import { scoreMoments } from "./steps/score.js";
 import { renderClip } from "./steps/render.js";
+import { generateThumbnail } from "./steps/thumbnail.js";
 
 type Payload = {
   jobId: string;
@@ -31,10 +32,7 @@ type Stage = keyof typeof STAGE_RANGES;
 async function setProgress(jobId: string, stage: Stage, fraction = 0, extra: Record<string, unknown> = {}) {
   const [lo, hi] = STAGE_RANGES[stage];
   const pct = Math.min(hi, Math.max(lo, Math.round(lo + (hi - lo) * fraction)));
-  await supabase
-    .from("video_jobs")
-    .update({ status: stage, progress: pct, ...extra })
-    .eq("id", jobId);
+  await supabase.from("video_jobs").update({ status: stage, progress: pct, ...extra }).eq("id", jobId);
 }
 
 async function setFailed(jobId: string, message: string) {
@@ -44,13 +42,51 @@ async function setFailed(jobId: string, message: string) {
     .eq("id", jobId);
 }
 
+async function getProfile(userId: string) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("tier, credits_balance, watermark_enabled")
+    .eq("id", userId)
+    .single();
+  return data as { tier: string; credits_balance: number; watermark_enabled: boolean } | null;
+}
+
+async function consumeCredits(userId: string, amount: number, reason: string, reference: string) {
+  const { data, error } = await supabase.rpc("consume_credits", {
+    p_user_id: userId,
+    p_amount: amount,
+    p_reason: reason,
+    p_reference: reference,
+  });
+  if (error) {
+    if (error.code === "P0001") throw new Error("insufficient_credits");
+    throw error;
+  }
+  return data as number;
+}
+
 export async function runVideoPipeline(p: Payload) {
   const work = await fs.mkdtemp(path.join(os.tmpdir(), `cf-${p.jobId}-`));
   logger.info({ jobId: p.jobId, work, niche: p.niche }, "pipeline start");
 
   try {
-    await setProgress(p.jobId, "transcribing", 0);
+    const profile = await getProfile(p.userId);
+    if (!profile) throw new Error("profile not found");
 
+    // Reserve 1 credit upfront so we don't burn API costs on an empty wallet.
+    try {
+      await consumeCredits(p.userId, 1, "video processing", p.jobId);
+    } catch (e) {
+      if ((e as Error).message === "insufficient_credits") {
+        throw new Error("Not enough credits. Buy more or wait for next month's refill.");
+      }
+      throw e;
+    }
+
+    const watermark = profile.tier === "free" || profile.watermark_enabled !== false;
+    const aiThumbnails = profile.tier === "pro" || profile.tier === "agency";
+
+    await setProgress(p.jobId, "transcribing", 0);
     const local = await downloadSource(p, work);
     logger.info({ jobId: p.jobId, dur: local.durationSec, title: local.title }, "downloaded");
     await supabase
@@ -71,17 +107,17 @@ export async function runVideoPipeline(p: Payload) {
       minSec: 25,
       maxSec: 70,
     });
-    logger.info({ jobId: p.jobId, moments: moments.length }, "scored");
     if (moments.length === 0) {
-      throw new Error("No viral moments found. Try a different video or longer source.");
+      throw new Error("No viral moments found. Try a longer or more dynamic source video.");
     }
+    logger.info({ jobId: p.jobId, moments: moments.length }, "scored");
 
     await setProgress(p.jobId, "rendering", 0);
 
     for (let i = 0; i < moments.length; i++) {
       const m = moments[i];
       try {
-        const { storagePath, thumbnailPath, durationSec } = await renderClip({
+        const render = await renderClip({
           userId: p.userId,
           jobId: p.jobId,
           sourcePath: local.path,
@@ -90,7 +126,30 @@ export async function runVideoPipeline(p: Payload) {
           transcript,
           niche: p.niche ?? "default",
           workDir: work,
+          watermark,
         });
+
+        // Mr.Beast-style thumbnail (CPU only — free) — replaces basic peak-frame thumb
+        let thumbnailPath = render.thumbnailPath;
+        try {
+          const thumb = await generateThumbnail({
+            userId: p.userId,
+            jobId: p.jobId,
+            clipIndex: i,
+            videoPath: render.renderedFilePath,
+            hook: m.hook ?? "",
+            niche: p.niche ?? "default",
+            durationSec: render.durationSec,
+            workDir: work,
+            aiBackground: aiThumbnails,
+          });
+          thumbnailPath = thumb.storagePath;
+        } catch (e) {
+          logger.warn({ err: (e as Error).message, clip: i }, "thumbnail generation failed — keeping fallback");
+        }
+
+        // cleanup local mp4 only after thumbnail is built
+        await fs.unlink(render.renderedFilePath).catch(() => {});
 
         await supabase.from("clips").insert({
           job_id: p.jobId,
@@ -102,9 +161,9 @@ export async function runVideoPipeline(p: Payload) {
           hook: m.hook,
           caption: m.caption,
           hashtags: m.hashtags,
-          storage_path: storagePath,
+          storage_path: render.storagePath,
           thumbnail_path: thumbnailPath,
-          duration_seconds: durationSec,
+          duration_seconds: render.durationSec,
           aspect_ratio: "9:16",
           status: "ready",
         });
@@ -112,7 +171,6 @@ export async function runVideoPipeline(p: Payload) {
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         logger.error({ jobId: p.jobId, clip: i, error: msg }, "clip render failed — skipping");
-        // record failed clip so user knows
         await supabase.from("clips").insert({
           job_id: p.jobId,
           user_id: p.userId,
@@ -130,52 +188,24 @@ export async function runVideoPipeline(p: Payload) {
       await setProgress(p.jobId, "rendering", (i + 1) / moments.length);
     }
 
-    // increment monthly usage quota
-    await incrementUsage(p.userId, 1, moments.length).catch((e) =>
-      logger.warn({ error: e }, "usage increment failed"),
-    );
-
     await setProgress(p.jobId, "ready", 1, { finished_at: new Date().toISOString() });
     logger.info({ jobId: p.jobId, clips: moments.length }, "pipeline ready");
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     logger.error({ jobId: p.jobId, err: message }, "pipeline failed");
     await setFailed(p.jobId, message);
+
+    // Refund the upfront credit on failure
+    await supabase.rpc("grant_credits", {
+      p_user_id: p.userId,
+      p_amount: 1,
+      p_kind: "admin_grant",
+      p_reason: "pipeline failure refund",
+      p_reference: p.jobId,
+    }).then(() => {}, () => {});
+
     throw e;
   } finally {
     void fs.rm(work, { recursive: true, force: true }).catch(() => {});
-  }
-}
-
-async function incrementUsage(userId: string, videos: number, clips: number) {
-  const periodStart = new Date();
-  periodStart.setUTCDate(1);
-  periodStart.setUTCHours(0, 0, 0, 0);
-  const period = periodStart.toISOString().slice(0, 10);
-
-  // upsert: insert or add
-  const { data: existing } = await supabase
-    .from("usage_quotas")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("period_start", period)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("usage_quotas")
-      .update({
-        videos_used: (existing.videos_used as number) + videos,
-        clips_generated: (existing.clips_generated as number) + clips,
-      })
-      .eq("user_id", userId)
-      .eq("period_start", period);
-  } else {
-    await supabase.from("usage_quotas").insert({
-      user_id: userId,
-      period_start: period,
-      videos_used: videos,
-      clips_generated: clips,
-    });
   }
 }
