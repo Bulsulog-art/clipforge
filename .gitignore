@@ -23,3 +23,7 @@ DerivedData/
 supabase/.branches
 supabase/.temp
 supabase/seed.sql
+
+# Large generated/binary assets that live in Supabase Storage
+assets/avatars/
+assets/music/

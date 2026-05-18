@@ -12,7 +12,7 @@ create type clipforge.avatar_job_status as enum (
 
 -- Stock avatars curated by us. Custom uploads land in `clipforge-uploads`.
 create table clipforge.avatars (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   description text,
   -- portrait image, square, recommended 768x768
@@ -43,7 +43,7 @@ on conflict do nothing;
 -- avatar_jobs — a request to render a talking-head clip from a script
 -- ---------------------------------------------------------------
 create table clipforge.avatar_jobs (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references clipforge.profiles(id) on delete cascade,
   -- script the avatar will speak (max ~600 chars = ~60s)
   script text not null check (length(script) between 10 and 1200),

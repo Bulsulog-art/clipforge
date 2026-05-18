@@ -12,7 +12,7 @@ create type clipforge.music_mood as enum (
 );
 
 create table clipforge.music_tracks (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   artist text,
   mood clipforge.music_mood not null default 'motivational',
