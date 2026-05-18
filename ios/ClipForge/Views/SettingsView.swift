@@ -35,6 +35,23 @@ struct SettingsView: View {
                         }
                     }
                 }
+                Section("Support") {
+                    Link(destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms")!) {
+                        Label("Terms of Service", systemImage: "doc.text")
+                    }
+                    Link(destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/privacy")!) {
+                        Label("Privacy Policy", systemImage: "lock.shield")
+                    }
+                    Link(destination: URL(string: "mailto:hello@clipforge.bulsulabs.xyz?subject=ClipForge%20support")!) {
+                        Label("Contact support", systemImage: "envelope")
+                    }
+                }
+                Section("About") {
+                    LabeledContent("Version", value: appVersionLine)
+                    Link(destination: URL(string: "https://clipforge.bulsulabs.xyz")!) {
+                        Label("Visit clipforge.bulsulabs.xyz", systemImage: "globe")
+                    }
+                }
                 Section {
                     Button("Sign out", role: .destructive) {
                         Task { try? await SupabaseService.shared.signOut() }
@@ -47,6 +64,12 @@ struct SettingsView: View {
             .sheet(isPresented: $showCancelFlow) { CancelFlowView() }
             .task { await credits.refresh() }
         }
+    }
+
+    private var appVersionLine: String {
+        let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
+        let b = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
+        return "\(v) (\(b))"
     }
 
     private var planLabel: String {

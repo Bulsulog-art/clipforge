@@ -132,6 +132,50 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="container py-20">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-4xl font-bold">Common questions.</h2>
+          <p className="mt-2 text-center text-muted-foreground">
+            Yes, you can really make 100 clips from one podcast in 5 minutes.
+          </p>
+
+          <dl className="mt-12 space-y-6">
+            <Faq
+              q="Is the free tier really one clip set forever?"
+              a="Yes. You get one full clip set on signup — drop a YouTube link up to 5 minutes, we'll cut and caption it. After that, Plus weekly is $4.99 (10 credits a week, cancel anytime). Watermark and a 'Made with ClipForge' outro are added to free renders."
+            />
+            <Faq
+              q="What's a credit?"
+              a="1 credit = 1 video processed into clips (typically 8–15 clips). Premium AI tools cost extra credits: Face Swap 2, Translation 2, Voice clone 5, AI thumbnail enhance 1."
+            />
+            <Faq
+              q="Why is everything in one app instead of three?"
+              a="Klap + HeyGen + Reface together cost $130+ a month. We do the same job for $14.99 because the heavy AI lift (Whisper, GPT, Replicate) is shared across features. One credit pool, one paywall."
+            />
+            <Faq
+              q="Can I cancel anytime?"
+              a="Yes. Settings → Manage / cancel subscription. If you start cancelling, we'll offer Plus at $12.99/mo to keep you on. Credits you've already bought are yours — they never expire."
+            />
+            <Faq
+              q="Will Apple refund me?"
+              a="Subscriptions: Apple's standard refund rules apply (typically up to 90 days). Credit packs are consumable — once spent, they aren't refundable, but unused packs can be refunded by Apple."
+            />
+            <Faq
+              q="Can I use this for content that doesn't belong to me?"
+              a="No. You need to own the source video or have a license. We're not lawyers — but our Terms make clear you take responsibility for what you upload. Face swap on real people without consent is not allowed."
+            />
+            <Faq
+              q="Where are clips stored?"
+              a="EU-region Supabase Storage. Free-tier clips are kept for 30 days. Plus subscribers' clips live as long as the subscription does + 90 days after cancellation."
+            />
+            <Faq
+              q="What languages can you translate to?"
+              a="English, Türkçe, Español, Français, Deutsch, Português, العربية, Русский, 日本語, 한국어, Italiano, Nederlands, Polski, Bahasa Indonesia, हिन्दी. More on request."
+            />
+          </dl>
+        </div>
+      </section>
+
       <footer className="container border-t border-border/50 py-10 text-sm text-muted-foreground">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <span>© {new Date().getFullYear()} Bulsu Labs · ClipForge</span>
@@ -143,6 +187,15 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function Faq({ q, a }: { q: string; a: string }) {
+  return (
+    <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm">
+      <dt className="text-base font-semibold">{q}</dt>
+      <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{a}</dd>
+    </div>
   );
 }
 
