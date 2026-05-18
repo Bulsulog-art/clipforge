@@ -8,6 +8,10 @@ const Body = z.object({
   sourceUrl: z.string().url(),
   niche: z.string().min(2).max(40),
   language: z.string().min(2).max(8).default("en"),
+  bgMusic: z.boolean().optional().default(true),
+  bgMusicMood: z
+    .enum(["hype", "chill", "motivational", "dramatic", "lofi", "cinematic", "comedic"])
+    .optional(),
 });
 
 export async function POST(req: Request) {
@@ -45,6 +49,8 @@ export async function POST(req: Request) {
       niche: body.niche,
       language: body.language,
       status: "queued",
+      bg_music_enabled: body.bgMusic,
+      bg_music_mood: body.bgMusicMood ?? null,
     })
     .select("id")
     .single();

@@ -5,6 +5,7 @@ import { logger } from "./logger.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
+import { runAvatarPipeline } from "./pipeline.avatar.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
 
 if (process.env.SENTRY_DSN) {
@@ -79,6 +80,25 @@ const derivativeWorker = new Worker(
   },
 );
 
+const avatarWorker = new Worker(
+  "avatar",
+  async (job) => {
+    try {
+      await runAvatarPipeline(job.data);
+    } catch (e) {
+      Sentry.captureException(e, { tags: { queue: "avatar", jobId: job.id } });
+      throw e;
+    }
+  },
+  {
+    connection,
+    concurrency: Number(process.env.AVATAR_CONCURRENCY ?? 2),
+    metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
+    removeOnComplete: { count: 500, age: 24 * 3600 },
+    removeOnFail: { count: 2000, age: 7 * 24 * 3600 },
+  },
+);
+
 videoWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "video job failed"),
 );
@@ -88,10 +108,18 @@ publishWorker.on("failed", (job, err) =>
 derivativeWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "derivative job failed"),
 );
+avatarWorker.on("failed", (job, err) =>
+  logger.error({ jobId: job?.id, err: err.message }, "avatar job failed"),
+);
 
 async function shutdown(signal: string) {
   logger.info({ signal }, "shutting down");
-  await Promise.allSettled([videoWorker.close(), publishWorker.close(), derivativeWorker.close()]);
+  await Promise.allSettled([
+    videoWorker.close(),
+    publishWorker.close(),
+    derivativeWorker.close(),
+    avatarWorker.close(),
+  ]);
   await Sentry.flush(2000);
   await connection.quit();
   process.exit(0);

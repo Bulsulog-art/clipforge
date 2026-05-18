@@ -4,6 +4,7 @@ struct ProjectsView: View {
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = ProjectsViewModel()
     @State private var showNewProject = false
+    @State private var showAvatarStudio = false
     @State private var deeplinkJob: VideoJob?
     @State private var seed: NewProjectSeed?
 
@@ -28,7 +29,18 @@ struct ProjectsView: View {
             .navigationTitle("Studio")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showNewProject = true } label: {
+                    Menu {
+                        Button {
+                            showNewProject = true
+                        } label: {
+                            Label("Clip from URL · 1 cr", systemImage: "link")
+                        }
+                        Button {
+                            showAvatarStudio = true
+                        } label: {
+                            Label("AI Avatar · 5 cr", systemImage: "person.wave.2.fill")
+                        }
+                    } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                             .foregroundStyle(.brand)
@@ -37,6 +49,9 @@ struct ProjectsView: View {
             }
             .sheet(isPresented: $showNewProject, onDismiss: { seed = nil }) {
                 NewProjectSheet(seed: seed) { viewModel.refresh() }
+            }
+            .sheet(isPresented: $showAvatarStudio) {
+                AvatarStudioView { viewModel.refresh() }
             }
             .navigationDestination(item: $deeplinkJob) { job in
                 JobDetailView(job: job)

@@ -8,6 +8,7 @@ import { transcribe } from "./steps/transcribe.js";
 import { scoreMoments } from "./steps/score.js";
 import { renderClip } from "./steps/render.js";
 import { generateThumbnail } from "./steps/thumbnail.js";
+import { pickTrack, downloadTrack, type MusicTrack } from "./steps/bg-music.js";
 import { sendPush } from "./push.js";
 
 type Payload = {
@@ -123,6 +124,43 @@ export async function runVideoPipeline(p: Payload) {
     }
     logger.info({ jobId: p.jobId, moments: moments.length }, "scored");
 
+    // Resolve a single BG music track for the whole job so all clips share the
+    // same sonic identity. Free tier always gets music (brand recall); Plus
+    // respects the per-job toggle.
+    const { data: jobRow } = await supabase
+      .from("video_jobs")
+      .select("bg_music_enabled, bg_music_mood")
+      .eq("id", p.jobId)
+      .single();
+    const musicEnabled =
+      profile.tier === "free" ? true : (jobRow?.bg_music_enabled as boolean | null) !== false;
+    let pickedTrack: MusicTrack | null = null;
+    let pickedTrackPath: string | null = null;
+    if (musicEnabled) {
+      try {
+        // Average clip length is bounded by score.ts (25–70s). Use the longest
+        // moment as the target so the track is long enough to never need a loop.
+        const target = Math.max(...moments.map((m) => m.end - m.start));
+        pickedTrack = await pickTrack({
+          niche: p.niche ?? "default",
+          durationSec: target,
+          mood: (jobRow?.bg_music_mood as string | null) ?? null,
+        });
+        if (pickedTrack) {
+          const dl = await downloadTrack(pickedTrack, work);
+          pickedTrackPath = dl?.localPath ?? null;
+          logger.info(
+            { jobId: p.jobId, track: pickedTrack.name, mood: pickedTrack.mood, file: !!pickedTrackPath },
+            pickedTrackPath ? "bg music ready" : "bg music track row found but file missing — skipping",
+          );
+        } else {
+          logger.info({ jobId: p.jobId, niche: p.niche }, "no bg music track matched — skipping");
+        }
+      } catch (e) {
+        logger.warn({ jobId: p.jobId, err: (e as Error).message }, "bg music selection failed — rendering without music");
+      }
+    }
+
     await setProgress(p.jobId, "rendering", 0);
 
     for (let i = 0; i < moments.length; i++) {
@@ -138,6 +176,7 @@ export async function runVideoPipeline(p: Payload) {
           niche: p.niche ?? "default",
           workDir: work,
           watermark,
+          bgMusicPath: pickedTrackPath,
         });
 
         // Mr.Beast-style thumbnail (CPU only — free) — replaces basic peak-frame thumb
@@ -177,6 +216,7 @@ export async function runVideoPipeline(p: Payload) {
           duration_seconds: render.durationSec,
           aspect_ratio: "9:16",
           status: "ready",
+          bg_music_track_id: pickedTrackPath ? pickedTrack?.id ?? null : null,
         });
         logger.info({ jobId: p.jobId, clip: i }, "clip rendered");
       } catch (e) {

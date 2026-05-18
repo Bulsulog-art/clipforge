@@ -39,7 +39,12 @@ final class ClipForgeAPI {
             .value
     }
 
-    func createJob(sourceUrl: String, niche: String) async throws {
+    func createJob(
+        sourceUrl: String,
+        niche: String,
+        bgMusic: Bool = true,
+        bgMusicMood: String? = nil
+    ) async throws {
         guard let token = SupabaseService.shared.session?.accessToken else {
             throw Error.unauthorized
         }
@@ -47,12 +52,25 @@ final class ClipForgeAPI {
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        req.httpBody = try JSONEncoder().encode([
-            "sourceType": "youtube",
-            "sourceUrl": sourceUrl,
-            "niche": niche,
-            "language": "en",
-        ])
+
+        struct CreateJobBody: Encodable {
+            let sourceType: String
+            let sourceUrl: String
+            let niche: String
+            let language: String
+            let bgMusic: Bool
+            let bgMusicMood: String?
+        }
+        req.httpBody = try JSONEncoder().encode(
+            CreateJobBody(
+                sourceType: "youtube",
+                sourceUrl: sourceUrl,
+                niche: niche,
+                language: "en",
+                bgMusic: bgMusic,
+                bgMusicMood: bgMusicMood
+            )
+        )
         let (_, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw Error.network }
         if http.statusCode == 402 { throw Error.quotaExceeded }
@@ -132,5 +150,72 @@ final class ClipForgeAPI {
         guard let http = resp as? HTTPURLResponse else { throw Error.network }
         if http.statusCode == 402 { throw Error.quotaExceeded }
         guard (200..<300).contains(http.statusCode) else { throw Error.network }
+    }
+
+    // MARK: - Avatar (AI talking-head)
+
+    struct Avatar: Identifiable, Decodable {
+        let id: String
+        let name: String
+        let description: String?
+        let persona: String?
+        let defaultVoiceId: String?
+        let imageUrl: String?
+    }
+
+    func fetchAvatars() async throws -> [Avatar] {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/avatars"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        struct Resp: Decodable { let avatars: [Avatar] }
+        return try JSONDecoder().decode(Resp.self, from: data).avatars
+    }
+
+    struct CreateAvatarJobBody: Encodable {
+        let script: String
+        let avatarId: String?
+        let customImagePath: String?
+        let voiceId: String
+        let niche: String
+        let bgMusic: Bool
+    }
+
+    @discardableResult
+    func createAvatarJob(
+        script: String,
+        avatarId: String?,
+        voiceId: String,
+        niche: String = "motivation",
+        bgMusic: Bool = true
+    ) async throws -> String {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/avatar-jobs"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.httpBody = try JSONEncoder().encode(
+            CreateAvatarJobBody(
+                script: script,
+                avatarId: avatarId,
+                customImagePath: nil,
+                voiceId: voiceId,
+                niche: niche,
+                bgMusic: bgMusic
+            )
+        )
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if http.statusCode == 402 { throw Error.quotaExceeded }
+        guard (200..<300).contains(http.statusCode) else { throw Error.network }
+        struct Resp: Decodable { let avatarJobId: String }
+        return try JSONDecoder().decode(Resp.self, from: data).avatarJobId
     }
 }

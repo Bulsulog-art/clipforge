@@ -17,13 +17,14 @@ struct VideoJob: Identifiable, Codable, Hashable {
 
 struct Clip: Identifiable, Codable, Hashable {
     let id: String
-    let jobId: String
+    let jobId: String?
     let hook: String?
     let caption: String?
     let storagePath: String?
     let thumbnailPath: String?
     let viralScore: Double?
     let durationSeconds: Double?
+    let sourceKind: String?
     enum CodingKeys: String, CodingKey {
         case id, hook, caption
         case jobId = "job_id"
@@ -31,5 +32,6 @@ struct Clip: Identifiable, Codable, Hashable {
         case thumbnailPath = "thumbnail_path"
         case viralScore = "viral_score"
         case durationSeconds = "duration_seconds"
+        case sourceKind = "source_kind"
     }
 }

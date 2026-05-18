@@ -7,6 +7,7 @@ let _videoQueue: Queue | undefined;
 let _publishQueue: Queue | undefined;
 let _analyticsQueue: Queue | undefined;
 let _derivativeQueue: Queue | undefined;
+let _avatarQueue: Queue | undefined;
 let _videoEvents: QueueEvents | undefined;
 
 function getConnection(): IORedis {
@@ -61,6 +62,16 @@ export const derivativeQueue = new Proxy({} as Queue, {
     }
     const value = (_derivativeQueue as any)[prop];
     return typeof value === "function" ? value.bind(_derivativeQueue) : value;
+  },
+});
+
+export const avatarQueue = new Proxy({} as Queue, {
+  get(_target, prop) {
+    if (!_avatarQueue) {
+      _avatarQueue = new Queue("avatar", { connection: getConnection() });
+    }
+    const value = (_avatarQueue as any)[prop];
+    return typeof value === "function" ? value.bind(_avatarQueue) : value;
   },
 });
 

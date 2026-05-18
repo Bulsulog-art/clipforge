@@ -19,6 +19,10 @@ type Args = {
   workDir: string;
   /** Free tier renders include the ClipForge watermark in the corner. */
   watermark?: boolean;
+  /** Optional background music file (already downloaded to local disk). */
+  bgMusicPath?: string | null;
+  /** Music level (0..1). Defaults to 0.16 for plenty of headroom under voice. */
+  bgMusicVolume?: number;
 };
 
 export type RenderResult = {
@@ -64,22 +68,45 @@ export async function renderClip(a: Args): Promise<RenderResult> {
       ].join(",")
     : null;
 
+  // Build complex filter chain. Single-input variant for voice-only;
+  // two-input variant when bg music is mixed in.
+  const videoChain = [
+    "scale=-2:1920:force_original_aspect_ratio=increase",
+    "crop=1080:1920",
+    `ass=${escapePath(captionFile)}`,
+    `ass=${escapePath(hookFile)}`,
+    ...(watermarkFilter ? [watermarkFilter] : []),
+  ].join(",");
+
+  const voiceChain = "loudnorm=I=-16:LRA=11:TP=-1.5,highpass=f=80,lowpass=f=12000";
+
+  const musicVolume = Math.max(0.05, Math.min(0.4, a.bgMusicVolume ?? 0.16));
+  const hasMusic = Boolean(a.bgMusicPath);
+
+  // afade out across the last 1s so music doesn't snap to silence.
+  const fadeOutStart = Math.max(0, duration - 1.0).toFixed(2);
+
+  const complexFilter = hasMusic
+    ? [
+        `[0:v]${videoChain}[v]`,
+        `[0:a]${voiceChain}[voice]`,
+        `[1:a]aloop=loop=-1:size=2e+09,atrim=duration=${duration.toFixed(2)},` +
+          `volume=${musicVolume.toFixed(2)},` +
+          `afade=t=in:st=0:d=0.6,` +
+          `afade=t=out:st=${fadeOutStart}:d=1.0[bg]`,
+        `[voice][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`,
+      ].join(";")
+    : [`[0:v]${videoChain}[v]`, `[0:a]${voiceChain}[aout]`].join(";");
+
   await new Promise<void>((resolve, reject) => {
-    ffmpeg(a.sourcePath)
-      .setStartTime(a.moment.start)
-      .duration(duration)
-      .videoFilters([
-        // upscale to fill 9:16 (1080x1920) without distortion
-        "scale=-2:1920:force_original_aspect_ratio=increase",
-        "crop=1080:1920",
-        // burn karaoke captions (libass)
-        `ass=${escapePath(captionFile)}`,
-        // burn animated hook
-        `ass=${escapePath(hookFile)}`,
-        ...(watermarkFilter ? [watermarkFilter] : []),
-      ])
-      .audioFilters(["loudnorm=I=-16:LRA=11:TP=-1.5", "highpass=f=80", "lowpass=f=12000"])
+    const cmd = ffmpeg(a.sourcePath).setStartTime(a.moment.start).duration(duration);
+    if (hasMusic && a.bgMusicPath) cmd.input(a.bgMusicPath);
+
+    cmd
+      .complexFilter(complexFilter)
       .outputOptions([
+        "-map", "[v]",
+        "-map", "[aout]",
         "-c:v", "libx264",
         "-preset", "veryfast",
         "-crf", "20",
@@ -92,9 +119,8 @@ export async function renderClip(a: Args): Promise<RenderResult> {
         "-profile:v", "high",
         "-level", "4.0",
       ])
-      .on("start", (cmd) => logger.debug({ jobId: a.jobId, clip: a.index, cmd }, "ffmpeg start"))
+      .on("start", (line) => logger.debug({ jobId: a.jobId, clip: a.index, line }, "ffmpeg start"))
       .on("stderr", (line) => {
-        // surface ass errors so we know if fonts are missing
         if (line.includes("[Parsed_ass") && line.includes("font")) {
           logger.warn({ line }, "ass font notice");
         }

@@ -8,6 +8,8 @@ struct NewProjectSheet: View {
     @State private var sending = false
     @State private var showPaywall = false
     @State private var error: String?
+    @State private var bgMusic: Bool = true
+    @State private var bgMusicMood: String = "auto"
     let seed: NewProjectSeed?
     let onCreated: () -> Void
 
@@ -19,6 +21,16 @@ struct NewProjectSheet: View {
 
     private let niches = ["motivation", "business", "finance", "health", "tech",
                           "education", "comedy", "fitness", "spirituality"]
+    private let moods: [(label: String, value: String)] = [
+        ("Auto (match niche)", "auto"),
+        ("Hype",               "hype"),
+        ("Motivational",       "motivational"),
+        ("Cinematic",          "cinematic"),
+        ("Dramatic",           "dramatic"),
+        ("Lofi",               "lofi"),
+        ("Chill",              "chill"),
+        ("Comedic",            "comedic"),
+    ]
 
     var body: some View {
         NavigationStack {
@@ -68,6 +80,26 @@ struct NewProjectSheet: View {
                     }
                 }
 
+                Section {
+                    Toggle(isOn: $bgMusic) {
+                        Label("Background music", systemImage: "music.note")
+                    }
+                    if bgMusic {
+                        Picker(selection: $bgMusicMood) {
+                            ForEach(moods, id: \.value) { Text($0.label).tag($0.value) }
+                        } label: {
+                            Label("Mood", systemImage: "waveform")
+                        }
+                    }
+                } header: {
+                    Text("Audio")
+                } footer: {
+                    Text(bgMusic
+                         ? "Adds a low-volume soundtrack matched to your niche. We duck under voice so dialogue stays clear."
+                         : "Voice-only render. Use this if your source already has music.")
+                        .font(.caption2)
+                }
+
                 if let error {
                     Section { Text(error).foregroundStyle(.red).font(.callout) }
                 }
@@ -103,7 +135,12 @@ struct NewProjectSheet: View {
         sending = true
         defer { sending = false }
         do {
-            try await ClipForgeAPI.shared.createJob(sourceUrl: url, niche: niche)
+            try await ClipForgeAPI.shared.createJob(
+                sourceUrl: url,
+                niche: niche,
+                bgMusic: bgMusic,
+                bgMusicMood: bgMusicMood == "auto" ? nil : bgMusicMood
+            )
             await credits.refresh()
             onCreated()
             dismiss()
