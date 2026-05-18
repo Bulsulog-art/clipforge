@@ -3,6 +3,8 @@ import RevenueCat
 
 @main
 struct ClipForgeApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     init() {
         Purchases.logLevel = .info
         Purchases.configure(

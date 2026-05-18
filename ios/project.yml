@@ -33,7 +33,7 @@ targets:
         NSCameraUsageDescription: "ClipForge needs camera access to record video for clips."
         NSPhotoLibraryUsageDescription: "ClipForge needs photo library access to import videos."
         NSMicrophoneUsageDescription: "ClipForge needs microphone access to record audio."
-        UIBackgroundModes: [audio, processing]
+        UIBackgroundModes: [audio, processing, remote-notification]
         ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleURLSchemes: [clipforge]
@@ -54,3 +54,4 @@ targets:
         com.apple.developer.applesignin: [Default]
         com.apple.developer.associated-domains:
           - applinks:clipforge.bulsulabs.xyz
+        aps-environment: development      # switch to "production" before App Store submission

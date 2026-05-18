@@ -5,6 +5,7 @@ struct SettingsView: View {
     @StateObject private var credits = CreditsService.shared
     @State private var showPlans = false
     @State private var showCreditPaywall = false
+    @State private var showCancelFlow = false
 
     var body: some View {
         NavigationStack {
@@ -28,6 +29,11 @@ struct SettingsView: View {
                     Button("Restore purchases") {
                         Task { try? await rc.restore() }
                     }
+                    if credits.hasPlus {
+                        Button("Manage / cancel subscription", role: .destructive) {
+                            showCancelFlow = true
+                        }
+                    }
                 }
                 Section {
                     Button("Sign out", role: .destructive) {
@@ -38,6 +44,7 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .sheet(isPresented: $showPlans) { PlansView() }
             .sheet(isPresented: $showCreditPaywall) { CreditsPaywallView() }
+            .sheet(isPresented: $showCancelFlow) { CancelFlowView() }
             .task { await credits.refresh() }
         }
     }

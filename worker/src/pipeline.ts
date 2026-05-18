@@ -8,6 +8,7 @@ import { transcribe } from "./steps/transcribe.js";
 import { scoreMoments } from "./steps/score.js";
 import { renderClip } from "./steps/render.js";
 import { generateThumbnail } from "./steps/thumbnail.js";
+import { sendPush } from "./push.js";
 
 type Payload = {
   jobId: string;
@@ -190,6 +191,39 @@ export async function runVideoPipeline(p: Payload) {
 
     await setProgress(p.jobId, "ready", 1, { finished_at: new Date().toISOString() });
     logger.info({ jobId: p.jobId, clips: moments.length }, "pipeline ready");
+
+    // Push notification
+    try {
+      await sendPush(p.userId, {
+        title: "Your clips are ready! 🎬",
+        body: `${moments.length} viral clip${moments.length === 1 ? "" : "s"} just dropped. Tap to share.`,
+        data: { jobId: p.jobId, kind: "job_ready" },
+      });
+    } catch (e) {
+      logger.warn({ err: (e as Error).message }, "push notify failed");
+    }
+
+    // Low-credit warning
+    try {
+      const { data: post } = await supabase
+        .from("profiles")
+        .select("credits_balance, tier")
+        .eq("id", p.userId)
+        .single();
+      const balance = (post?.credits_balance as number) ?? 0;
+      if (balance > 0 && balance <= 2) {
+        await sendPush(p.userId, {
+          title: "Only " + balance + " credit" + (balance === 1 ? "" : "s") + " left",
+          body:
+            post?.tier === "free"
+              ? "Get Plus for 10 credits/week to keep clipping."
+              : "Top up with a +10 or +20 pack any time.",
+          data: { kind: "low_credits" },
+        });
+      }
+    } catch (e) {
+      logger.warn({ err: (e as Error).message }, "low credit check failed");
+    }
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     logger.error({ jobId: p.jobId, err: message }, "pipeline failed");
