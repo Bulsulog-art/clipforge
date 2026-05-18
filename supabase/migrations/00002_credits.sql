@@ -25,7 +25,7 @@ create type clipforge.credit_event_kind as enum (
 );
 
 create table if not exists clipforge.credit_events (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references clipforge.profiles(id) on delete cascade,
   kind clipforge.credit_event_kind not null,
   amount integer not null,             -- positive = credit, negative = debit

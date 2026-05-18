@@ -7,7 +7,7 @@ create type clipforge.derivative_kind as enum ('face_swap', 'translation');
 create type clipforge.derivative_status as enum ('queued', 'processing', 'ready', 'failed');
 
 create table clipforge.clip_derivatives (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   source_clip_id uuid not null references clipforge.clips(id) on delete cascade,
   user_id uuid not null references clipforge.profiles(id) on delete cascade,
   kind clipforge.derivative_kind not null,

@@ -192,10 +192,12 @@ export async function runAvatarPipeline(p: AvatarPayload) {
     const transcript = await transcribe(tts.audioPath, "en");
     const totalDur = await probeDuration(portrait916);
 
-    // 7) Optional BG music (matched to niche)
+    // 7) Optional BG music (matched to niche). Respects the global kill
+    //    switch so the procedural seed catalog never sneaks into avatar clips.
     let bgMusicPath: string | null = null;
     let bgTrackId: string | null = null;
-    if (job.bg_music_enabled) {
+    const musicGlobalEnabled = process.env.BG_MUSIC_ENABLED_GLOBAL === "true";
+    if (musicGlobalEnabled && job.bg_music_enabled) {
       const t = await pickTrack({ niche: job.niche ?? "motivation", durationSec: totalDur });
       if (t) {
         const dl = await downloadTrack(t, work);

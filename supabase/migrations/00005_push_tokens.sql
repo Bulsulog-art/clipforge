@@ -4,7 +4,7 @@
 set search_path = clipforge, public;
 
 create table if not exists clipforge.push_tokens (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references clipforge.profiles(id) on delete cascade,
   token text not null,
   platform text not null default 'ios',         -- 'ios' | 'android' (future)

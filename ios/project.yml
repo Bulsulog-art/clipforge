@@ -61,4 +61,4 @@ targets:
         com.apple.developer.applesignin: [Default]
         com.apple.developer.associated-domains:
           - applinks:clipforge.bulsulabs.xyz
-        aps-environment: development      # switch to "production" before App Store submission
+        aps-environment: production       # flipped for App Store submission

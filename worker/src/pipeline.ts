@@ -132,8 +132,14 @@ export async function runVideoPipeline(p: Payload) {
       .select("bg_music_enabled, bg_music_mood")
       .eq("id", p.jobId)
       .single();
-    const musicEnabled =
-      profile.tier === "free" ? true : (jobRow?.bg_music_enabled as boolean | null) !== false;
+    // Global kill switch — set BG_MUSIC_ENABLED_GLOBAL=false in Coolify worker
+    // env until real CC0 tracks are uploaded. Default is OFF so the procedural
+    // sine-pad seed catalog never reaches the reviewer's ears.
+    const musicGlobalEnabled = process.env.BG_MUSIC_ENABLED_GLOBAL === "true";
+    const jobMusicEnabled = profile.tier === "free"
+      ? true
+      : (jobRow?.bg_music_enabled as boolean | null) !== false;
+    const musicEnabled = musicGlobalEnabled && jobMusicEnabled;
     let pickedTrack: MusicTrack | null = null;
     let pickedTrackPath: string | null = null;
     if (musicEnabled) {
