@@ -4,11 +4,18 @@ struct NewProjectSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var credits = CreditsService.shared
     @State private var url = ""
-    @State private var niche = "motivation"
+    @State private var niche: String
     @State private var sending = false
     @State private var showPaywall = false
     @State private var error: String?
+    let seed: NewProjectSeed?
     let onCreated: () -> Void
+
+    init(seed: NewProjectSeed? = nil, onCreated: @escaping () -> Void) {
+        self.seed = seed
+        self.onCreated = onCreated
+        _niche = State(initialValue: seed?.niche ?? "motivation")
+    }
 
     private let niches = ["motivation", "business", "finance", "health", "tech",
                           "education", "comedy", "fitness", "spirituality"]
@@ -31,6 +38,21 @@ struct NewProjectSheet: View {
                         Label("Buy more credits", systemImage: "plus.circle.fill")
                     }
                     .tint(.brand)
+                }
+
+                if let hook = seed?.hook {
+                    Section {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("Trending hook", systemImage: "sparkles")
+                                .font(.caption.bold())
+                                .foregroundStyle(.brand)
+                            Text("\"\(hook)\"")
+                                .font(.callout.italic())
+                            Text("Drop a video that fits this hook — we'll auto-pick the moment.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
 
                 Section("Video source") {

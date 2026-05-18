@@ -144,6 +144,40 @@ clipforge.refill_free_credits(5)
 -- her gün 07:00 UTC trend heartbeat (worker daily snapshot tetikler)
 ```
 
+## Push Notifications (APNs)
+
+Worker, kullanıcının cihazına bildirim gönderir:
+- "Your clips are ready! 🎬" — render bitince
+- "Only N credits left" — bakiye 2 ve altında
+
+### Apple Developer → APNs Key
+
+1. https://developer.apple.com/account/resources/authkeys/list
+2. **+** → Apple Push Notifications service (APNs)
+3. Name: `ClipForge APNs`
+4. Continue → Register → `.p8` indir (sadece **bir kez**)
+5. Key ID + Team ID kaydet
+
+### Coolify worker env
+
+```
+APNS_KEY_ID=ABC123XYZ4
+APNS_TEAM_ID=YA6Y85MSY6
+APNS_KEY_P8=-----BEGIN PRIVATE KEY-----\n<.p8 dosyasının tüm içeriği, \n ile yeni satırlar>\n-----END PRIVATE KEY-----
+APNS_BUNDLE_ID=com.bulsulabs.clipforge
+APNS_ENV=development  # production'a switch et App Store submission'dan önce
+```
+
+> `.p8` dosyasını Coolify env'de tek satırda yapıştır, `\n` literal kaçışlarıyla. Worker `.replace(/\\n/g, "\n")` ile parse ediyor.
+
+### iOS entitlements
+
+`project.yml` zaten ayarlı:
+- `aps-environment: development` (production switch için commit gerekir)
+- `UIBackgroundModes: [remote-notification, ...]`
+
+Kullanıcı app'i açtığında `PushService.requestPermission()` çağrılır (onboarding sonrası).
+
 ## Bilinen sınırlamalar
 
 - **Plus-only pack gating** iOS UI'da yapılıyor. Teknik olarak biri RC API'sini direkt çağırırsa pack'i kart-doğrudan alabilir. Webhook yine grant ederse problem yok ama "Plus üye olmadan kredi paketi satın aldı" durumu mümkün. Production'da: webhook'ta `hasActiveSubscription` kontrolü ekle, yoksa kredi grant etme + Apple refund tetikle.

@@ -3,6 +3,7 @@ import SwiftUI
 /// Read-only trend feed per niche. Free tier appetizer — sticky daily check-in.
 @MainActor
 struct TrendsView: View {
+    @EnvironmentObject private var appState: AppState
     @State private var niche: String = "motivation"
     @State private var items: [TrendItem] = []
     @State private var loading = false
@@ -94,6 +95,22 @@ struct TrendsView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
+
+            Button {
+                appState.startFromTrend(niche: niche, hook: item.hook)
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                    Text("Use this hook")
+                }
+                .font(.caption.bold())
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.brand)
+                .foregroundStyle(.white)
+                .clipShape(.capsule)
+            }
+            .padding(.top, 4)
         }
         .padding()
         .background(Color.cardBackground)

@@ -4,8 +4,11 @@ import Foundation
 final class ProjectsViewModel: ObservableObject {
     @Published var jobs: [VideoJob] = []
     @Published var error: String?
+    @Published var loading: Bool = false
 
     func load() async {
+        loading = true
+        defer { loading = false }
         do { jobs = try await ClipForgeAPI.shared.fetchJobs() }
         catch { self.error = error.localizedDescription }
     }
