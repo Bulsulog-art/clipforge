@@ -138,8 +138,8 @@ Use tools like Screenshot.rocks, Mockumate, or Figma.
 
 ```
 Test account for review:
-  email: reviewer@bulsulabs.com
-  password: ClipForge-Reviewer-2026
+  email: <SET_IN_APP_STORE_CONNECT_REVIEW_NOTES>
+  password: <SET_IN_APP_STORE_CONNECT_REVIEW_NOTES>
 
 The account is pre-funded with 5 credits to test:
 - Clip generation (try YouTube link https://www.youtube.com/watch?v=...)
