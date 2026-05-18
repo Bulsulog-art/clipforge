@@ -44,7 +44,7 @@ final class PushService: NSObject, ObservableObject {
     }
 
     func registerFailed(_ error: Error) {
-        print("APNs register failed: \(error)")
+        Telemetry.capture(error, context: ["op": "apns_register"])
     }
 
     private func sync(token: String) async {
@@ -62,7 +62,7 @@ final class PushService: NSObject, ObservableObject {
                         onConflict: "user_id,token")
                 .execute()
         } catch {
-            print("push token sync failed: \(error)")
+            Telemetry.capture(error, context: ["op": "push_token_sync"])
         }
     }
 
@@ -80,7 +80,7 @@ final class PushService: NSObject, ObservableObject {
                 .eq("token", value: token)
                 .execute()
         } catch {
-            print("push token unregister failed: \(error)")
+            Telemetry.capture(error, context: ["op": "push_token_unregister"])
         }
     }
 }

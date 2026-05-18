@@ -42,11 +42,17 @@ struct ClipsFeedView: View {
     }
 
     private var loadingState: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-            Text("Loading your clips…").foregroundStyle(.secondary).font(.footnote)
+        ZStack {
+            Color.cardBackground.ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 20) {
+                Spacer()
+                SkeletonBlock(width: 220, height: 22)
+                SkeletonBlock(width: 280, height: 14)
+                SkeletonBlock(width: 180, height: 14)
+            }
+            .padding(28)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptyState: some View {

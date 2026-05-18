@@ -21,6 +21,12 @@ final class SupabaseService: ObservableObject {
             self.session = change.session
             // Any auth state callback means restore finished (signed-in OR signed-out).
             if isRestoring { isRestoring = false }
+            // Mirror identity to telemetry so crash reports are user-scoped.
+            if let s = change.session {
+                Telemetry.identify(userId: s.user.id.uuidString, email: s.user.email)
+            } else {
+                Telemetry.clearUser()
+            }
         }
     }
 

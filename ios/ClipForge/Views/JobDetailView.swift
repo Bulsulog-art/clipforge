@@ -36,6 +36,13 @@ struct JobDetailView: View {
 
                 if vm.clips.isEmpty && progress.jobReady {
                     EmptyClipsView()
+                } else if vm.loading && vm.clips.isEmpty {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
+                        spacing: 12
+                    ) {
+                        ForEach(0..<4, id: \.self) { _ in ClipCellSkeleton() }
+                    }
                 } else {
                     LazyVGrid(
                         columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],

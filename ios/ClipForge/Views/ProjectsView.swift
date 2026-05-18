@@ -3,20 +3,44 @@ import SwiftUI
 struct ProjectsView: View {
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = ProjectsViewModel()
+    @StateObject private var credits = CreditsService.shared
+    @StateObject private var rc = RevenueCatService.shared
     @Environment(\.scenePhase) private var scenePhase
     @State private var showNewProject = false
     @State private var showAvatarStudio = false
+    @State private var showUploadSheet = false
+    @State private var showPlans = false
     @State private var deeplinkJob: VideoJob?
     @State private var seed: NewProjectSeed?
+    @State private var dismissedNudge: Bool = UserDefaults.standard.bool(forKey: "clipforge.nudgeDismissed")
 
     var body: some View {
         NavigationStack {
             Group {
-                if viewModel.jobs.isEmpty && !viewModel.loading {
+                if viewModel.loading && viewModel.jobs.isEmpty {
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(0..<4, id: \.self) { _ in ProjectRowSkeleton() }
+                        }
+                        .padding()
+                    }
+                    .disabled(true)
+                } else if viewModel.jobs.isEmpty {
                     emptyState
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 12) {
+                            if shouldShowNudge {
+                                FreeTierNudge(
+                                    onUpgradeTap: { showPlans = true },
+                                    onDismiss: {
+                                        withAnimation {
+                                            dismissedNudge = true
+                                            UserDefaults.standard.set(true, forKey: "clipforge.nudgeDismissed")
+                                        }
+                                    }
+                                )
+                            }
                             ForEach(viewModel.jobs) { job in
                                 NavigationLink(destination: JobDetailView(job: job)) {
                                     JobRow(job: job)
@@ -37,6 +61,11 @@ struct ProjectsView: View {
                             Label("Clip from URL · 1 cr", systemImage: "link")
                         }
                         Button {
+                            showUploadSheet = true
+                        } label: {
+                            Label("Upload your video · 1 cr", systemImage: "square.and.arrow.up")
+                        }
+                        Button {
                             showAvatarStudio = true
                         } label: {
                             Label("AI Avatar · 5 cr", systemImage: "person.wave.2.fill")
@@ -54,6 +83,10 @@ struct ProjectsView: View {
             .sheet(isPresented: $showAvatarStudio) {
                 AvatarStudioView { viewModel.refresh() }
             }
+            .sheet(isPresented: $showUploadSheet) {
+                UploadVideoSheet { viewModel.refresh() }
+            }
+            .sheet(isPresented: $showPlans) { PlansView() }
             .navigationDestination(item: $deeplinkJob) { job in
                 JobDetailView(job: job)
             }
@@ -144,6 +177,18 @@ struct ProjectsView: View {
             deeplinkJob = job
         }
         appState.pendingJobId = nil
+    }
+
+    /// Show the upgrade nudge only when:
+    ///   - user is on free tier (no active Plus / Pro)
+    ///   - has at least one ready clip set (proved the value)
+    ///   - has burned through their free credit (balance = 0)
+    ///   - hasn't manually dismissed
+    private var shouldShowNudge: Bool {
+        !rc.hasAnyPaid
+            && !dismissedNudge
+            && credits.balance == 0
+            && viewModel.jobs.contains(where: { $0.status == "ready" })
     }
 }
 

@@ -30,4 +30,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
             PushService.shared.registerFailed(error)
         }
     }
+
+    /// iOS hands us a completion handler when it wakes us in the background
+    /// to deliver background-URLSession events. We bridge it to UploadService
+    /// so the system knows when we've finished processing the events.
+    func application(
+        _ application: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        Task { @MainActor in
+            UploadService.shared.backgroundCompletionHandler = completionHandler
+        }
+    }
 }

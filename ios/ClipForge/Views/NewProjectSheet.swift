@@ -139,13 +139,14 @@ struct NewProjectSheet: View {
                     } label: {
                         HStack {
                             if sending { ProgressView() }
-                            Text(credits.balance >= 1 ? "Generate clips · 1 credit" : "Buy credits to start")
+                            Text(credits.balance >= 1 ? "Generate clips · 1 credit" : "Get credits — Plus")
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
                     }
                     .tint(.brand)
-                    .disabled(!SourceURL.isValid(url) || sending || credits.balance < 1)
+                    // URL must be valid; allow tap with 0 credits so we can open the paywall
+                    .disabled(!SourceURL.isValid(url) || sending)
                 }
             }
             .navigationTitle("New project")

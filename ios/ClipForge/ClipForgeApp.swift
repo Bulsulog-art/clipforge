@@ -7,6 +7,7 @@ struct ClipForgeApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        Telemetry.start()
         Purchases.logLevel = .info
         Purchases.configure(
             with: Configuration.Builder(withAPIKey: Secrets.revenueCatIOSKey)

@@ -15,6 +15,9 @@ packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift
     from: "2.0.0"
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa
+    from: "8.0.0"
 
 targets:
   ClipForge:
@@ -33,7 +36,7 @@ targets:
         NSCameraUsageDescription: "ClipForge needs camera access to record video for clips."
         NSPhotoLibraryUsageDescription: "ClipForge needs photo library access to import videos."
         NSMicrophoneUsageDescription: "ClipForge needs microphone access to record audio."
-        UIBackgroundModes: [audio, processing, remote-notification]
+        UIBackgroundModes: [audio, processing, remote-notification, fetch]
         ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleURLSchemes: [clipforge]
@@ -50,6 +53,8 @@ targets:
       - package: RevenueCat
       - package: RevenueCatUI
       - package: Supabase
+      - package: Sentry
+        product: Sentry
     entitlements:
       path: ClipForge/ClipForge.entitlements
       properties:
