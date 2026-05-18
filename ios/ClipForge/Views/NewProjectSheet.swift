@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct NewProjectSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -68,10 +69,38 @@ struct NewProjectSheet: View {
                 }
 
                 Section("Video source") {
-                    TextField("YouTube or TikTok URL", text: $url)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.URL)
-                        .autocorrectionDisabled()
+                    HStack(spacing: 8) {
+                        TextField("YouTube or TikTok URL", text: $url)
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.URL)
+                            .autocorrectionDisabled()
+                            .textContentType(.URL)
+                            .submitLabel(.go)
+                            .onSubmit { Task { await submit() } }
+                        if !url.isEmpty {
+                            Button {
+                                url = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .buttonStyle(.borderless)
+                        } else {
+                            Button {
+                                if let s = UIPasteboard.general.string { url = s }
+                            } label: {
+                                Image(systemName: "doc.on.clipboard")
+                                    .font(.callout)
+                                    .foregroundStyle(.brand)
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+                    if !url.isEmpty && !SourceURL.isValid(url) {
+                        Label("Paste a YouTube or TikTok link", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
                 }
 
                 Section("Niche") {
@@ -116,7 +145,7 @@ struct NewProjectSheet: View {
                         .frame(maxWidth: .infinity)
                     }
                     .tint(.brand)
-                    .disabled(url.isEmpty || sending)
+                    .disabled(!SourceURL.isValid(url) || sending || credits.balance < 1)
                 }
             }
             .navigationTitle("New project")

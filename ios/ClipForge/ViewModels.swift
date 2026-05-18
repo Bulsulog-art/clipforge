@@ -9,8 +9,16 @@ final class ProjectsViewModel: ObservableObject {
     func load() async {
         loading = true
         defer { loading = false }
-        do { jobs = try await ClipForgeAPI.shared.fetchJobs() }
-        catch { self.error = error.localizedDescription }
+        do {
+            jobs = try await ClipForgeAPI.shared.fetchJobs()
+            error = nil
+        } catch {
+            self.error = error.localizedDescription
+            // Don't flash a toast on initial empty + offline — banner handles it
+            if !jobs.isEmpty {
+                AppState.shared.flashError("Couldn't refresh projects.")
+            }
+        }
     }
     func refresh() { Task { await load() } }
 }
@@ -18,15 +26,35 @@ final class ProjectsViewModel: ObservableObject {
 @MainActor
 final class JobDetailViewModel: ObservableObject {
     @Published var clips: [Clip] = []
+    @Published var loading: Bool = false
+    @Published var error: String?
+
     func load(jobId: String) async {
-        clips = (try? await ClipForgeAPI.shared.fetchClips(jobId: jobId)) ?? []
+        loading = true
+        defer { loading = false }
+        do {
+            clips = try await ClipForgeAPI.shared.fetchClips(jobId: jobId)
+            error = nil
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 }
 
 @MainActor
 final class ClipsFeedViewModel: ObservableObject {
     @Published var clips: [Clip] = []
+    @Published var loading: Bool = false
     func load() async {
-        clips = (try? await ClipForgeAPI.shared.fetchAllClips()) ?? []
+        loading = true
+        defer { loading = false }
+        do {
+            clips = try await ClipForgeAPI.shared.fetchAllClips()
+        } catch {
+            // Don't clobber prior clips on transient error — show what we have
+            if clips.isEmpty {
+                AppState.shared.flashError("Couldn't refresh clips: \(error.localizedDescription)")
+            }
+        }
     }
 }

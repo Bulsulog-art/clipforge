@@ -7,6 +7,9 @@ final class SupabaseService: ObservableObject {
 
     let client: SupabaseClient
     @Published var session: Session?
+    /// Becomes true after the first auth state event arrives (token restore done).
+    /// RootView uses this to avoid flashing LoginView for already-signed-in users.
+    @Published private(set) var isRestoring: Bool = true
 
     private init() {
         client = SupabaseClient(supabaseURL: Secrets.supabaseURL, supabaseKey: Secrets.supabaseAnonKey)
@@ -16,6 +19,8 @@ final class SupabaseService: ObservableObject {
     func observeAuth() async {
         for await change in client.auth.authStateChanges {
             self.session = change.session
+            // Any auth state callback means restore finished (signed-in OR signed-out).
+            if isRestoring { isRestoring = false }
         }
     }
 

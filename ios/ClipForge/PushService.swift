@@ -83,11 +83,14 @@ extension PushService: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        // Deeplink: jobId / clipId in userInfo
+        // Deeplink: jobId for clip pipeline ready, clipId for avatar_ready
         let info = response.notification.request.content.userInfo
-        if let jobId = info["jobId"] as? String {
+        var payload: [AnyHashable: Any] = [:]
+        if let jobId = info["jobId"] as? String { payload["jobId"] = jobId }
+        if let clipId = info["clipId"] as? String { payload["clipId"] = clipId }
+        if !payload.isEmpty {
             NotificationCenter.default.post(
-                name: .clipForgeOpenJob, object: nil, userInfo: ["jobId": jobId]
+                name: .clipForgeOpenJob, object: nil, userInfo: payload
             )
         }
         completionHandler()
