@@ -1,9 +1,14 @@
 import SwiftUI
+import RevenueCat
 
+/// One-time credit top-up sheet. Plus members see the +10 / +20 packs at their
+/// localized App Store price; free users see a Plus upsell.
 struct CreditsPaywallView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var rc = RevenueCatService.shared
     @StateObject private var credits = CreditsService.shared
     @State private var purchasing: String?
+    @State private var restoring = false
     @State private var error: String?
     @State private var showPlans = false
 
@@ -27,6 +32,8 @@ struct CreditsPaywallView: View {
                     } else {
                         nonPlusUpsell
                     }
+
+                    legalFooter
                 }
                 .padding()
             }
@@ -36,12 +43,31 @@ struct CreditsPaywallView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
+                if credits.hasPlus {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            Task { await performRestore() }
+                        } label: {
+                            if restoring {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                Text("Restore").font(.caption)
+                            }
+                        }
+                        .disabled(restoring)
+                    }
+                }
             }
             .sheet(isPresented: $showPlans) { PlansView() }
             .background(Color.appBackground.ignoresSafeArea())
-            .task { await credits.refresh() }
+            .task {
+                if rc.offerings == nil { await rc.refreshOfferings() }
+                await credits.refresh()
+            }
         }
     }
+
+    // MARK: - Sections
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -51,6 +77,7 @@ struct CreditsPaywallView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("\(credits.balance)")
                     .font(.system(size: 56, weight: .bold))
+                    .minimumScaleFactor(0.6)
                 Text("credits")
                     .font(.title3)
                     .foregroundStyle(.secondary)
@@ -95,6 +122,7 @@ struct CreditsPaywallView: View {
             .clipShape(.rect(cornerRadius: 14))
 
             Button {
+                Task { await Haptics.impact(.medium) }
                 showPlans = true
             } label: {
                 HStack {
@@ -113,8 +141,8 @@ struct CreditsPaywallView: View {
                 Text("What's in Plus?")
                     .font(.headline)
                 ForEach([
-                    "Plus weekly — $4.99 → 10 credits",
-                    "Plus monthly — $14.99 → 40 credits (save 25%)",
+                    "Plus weekly — 10 credits",
+                    "Plus monthly — 40 credits (save 25%)",
                     "All AI tools, no watermark",
                     "Buy +10 / +20 credit packs any time",
                 ], id: \.self) { line in
@@ -135,8 +163,14 @@ struct CreditsPaywallView: View {
     }
 
     private func packCard(_ pack: CreditPack) -> some View {
-        Button {
-            Task { await purchase(pack) }
+        let pkg = rc.package(productId: pack.id)
+        let displayPrice = pkg?.storeProduct.localizedPriceString ?? pack.price
+        let pricePerCredit = pkg.map { p in
+            (p.storeProduct.price as NSDecimalNumber).doubleValue / Double(pack.credits)
+        }
+
+        return Button {
+            Task { await performPurchase(pack) }
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -150,14 +184,18 @@ struct CreditsPaywallView: View {
                         Text("Best value")
                             .font(.caption.bold())
                             .foregroundStyle(.brand)
+                    } else if let pricePerCredit {
+                        Text(String(format: "%.2f / credit", pricePerCredit))
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
                     }
                 }
                 Spacer()
-                VStack(spacing: 4) {
-                    Text(pack.price)
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(displayPrice)
                         .font(.title3.bold())
                     if purchasing == pack.id {
-                        ProgressView().scaleEffect(0.8)
+                        ProgressView().controlSize(.small)
                     }
                 }
             }
@@ -170,21 +208,62 @@ struct CreditsPaywallView: View {
             .clipShape(.rect(cornerRadius: 16))
         }
         .buttonStyle(.plain)
-        .disabled(purchasing != nil)
+        .disabled(purchasing != nil || pkg == nil)
     }
 
-    private func purchase(_ pack: CreditPack) async {
+    /// Apple-mandated disclosure for paid IAP. Consumables don't auto-renew so
+    /// the language is gentler — we still link ToS + Privacy.
+    private var legalFooter: some View {
+        VStack(spacing: 8) {
+            Text("One-time purchase. Credits never expire. Payment is charged to your Apple ID account.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            HStack(spacing: 14) {
+                Link("Terms",
+                     destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
+                Text("·").foregroundStyle(.tertiary)
+                Link("Privacy",
+                     destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/privacy") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
+            }
+            .font(.caption2.weight(.semibold))
+        }
+        .padding(.top, 4)
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Actions
+
+    private func performPurchase(_ pack: CreditPack) async {
+        await Haptics.impact(.medium)
         purchasing = pack.id
         defer { purchasing = nil }
         do {
             try await credits.purchase(pack: pack)
+            await Haptics.notify(.success)
             dismiss()
         } catch CreditsError.cancelled {
-            // ignore
+            // user just closed Apple sheet — no toast
         } catch CreditsError.requiresPlus {
+            await Haptics.notify(.warning)
             showPlans = true
         } catch let e {
             error = e.localizedDescription
+            await Haptics.notify(.error)
+        }
+    }
+
+    private func performRestore() async {
+        restoring = true
+        error = nil
+        defer { restoring = false }
+        do {
+            _ = try await rc.restore()
+            await credits.refresh()
+            await Haptics.notify(.success)
+        } catch let e {
+            error = e.localizedDescription
+            await Haptics.notify(.error)
         }
     }
 }
