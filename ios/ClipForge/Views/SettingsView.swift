@@ -6,6 +6,9 @@ struct SettingsView: View {
     @State private var showPlans = false
     @State private var showCreditPaywall = false
     @State private var showCancelFlow = false
+    @State private var showSignOutConfirm = false
+    @State private var showDeleteConfirm = false
+    @State private var deleting = false
 
     var body: some View {
         NavigationStack {
@@ -54,8 +57,14 @@ struct SettingsView: View {
                 }
                 Section {
                     Button("Sign out", role: .destructive) {
-                        Task { try? await SupabaseService.shared.signOut() }
+                        showSignOutConfirm = true
                     }
+                    Button("Delete account", role: .destructive) {
+                        showDeleteConfirm = true
+                    }
+                } footer: {
+                    Text("Deleting your account is permanent. Your subscription is tied to your Apple ID — manage it in Settings → Apple ID → Subscriptions.")
+                        .font(.caption2)
                 }
             }
             .navigationTitle("Settings")
@@ -63,6 +72,61 @@ struct SettingsView: View {
             .sheet(isPresented: $showCreditPaywall) { CreditsPaywallView() }
             .sheet(isPresented: $showCancelFlow) { CancelFlowView() }
             .task { await credits.refresh() }
+            .confirmationDialog(
+                "Sign out?",
+                isPresented: $showSignOutConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Sign out", role: .destructive) {
+                    Task { await performSignOut() }
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+            .alert(
+                "Delete account permanently?",
+                isPresented: $showDeleteConfirm
+            ) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) {
+                    Task { await performDeleteAccount() }
+                }
+            } message: {
+                Text("All your clips, projects, and credits will be erased. This cannot be undone. Active App Store subscriptions are managed separately via Apple ID settings.")
+            }
+            .overlay {
+                if deleting {
+                    ZStack {
+                        Color.black.opacity(0.55).ignoresSafeArea()
+                        VStack(spacing: 12) {
+                            ProgressView().controlSize(.large).tint(.white)
+                            Text("Deleting your account…")
+                                .foregroundStyle(.white)
+                                .font(.callout)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func performSignOut() async {
+        // Drop the user's push token first so we don't keep pinging a stale account
+        await PushService.shared.unregisterToken()
+        await RevenueCatService.shared.logOut()
+        try? await SupabaseService.shared.signOut()
+    }
+
+    private func performDeleteAccount() async {
+        deleting = true
+        defer { deleting = false }
+        do {
+            await PushService.shared.unregisterToken()
+            try await ClipForgeAPI.shared.deleteAccount()
+            await RevenueCatService.shared.logOut()
+            // Server has already invalidated the session — local cleanup
+            try? await SupabaseService.shared.signOut()
+        } catch {
+            AppState.shared.flashError("Couldn't delete account: \(error.localizedDescription)")
         }
     }
 

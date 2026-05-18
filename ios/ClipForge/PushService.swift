@@ -65,6 +65,24 @@ final class PushService: NSObject, ObservableObject {
             print("push token sync failed: \(error)")
         }
     }
+
+    /// Remove the current device's push token from the server so a signed-out
+    /// account doesn't receive notifications meant for the now-signed-in one.
+    /// No-op when offline; server cleanup will catch up via TTL on the token.
+    func unregisterToken() async {
+        guard let token = deviceToken,
+              let userId = SupabaseService.shared.session?.user.id else { return }
+        do {
+            try await SupabaseService.shared.client
+                .from("push_tokens")
+                .delete()
+                .eq("user_id", value: userId.uuidString)
+                .eq("token", value: token)
+                .execute()
+        } catch {
+            print("push token unregister failed: \(error)")
+        }
+    }
 }
 
 extension PushService: UNUserNotificationCenterDelegate {

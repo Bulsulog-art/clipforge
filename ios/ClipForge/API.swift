@@ -152,6 +152,24 @@ final class ClipForgeAPI {
         guard (200..<300).contains(http.statusCode) else { throw Error.network }
     }
 
+    // MARK: - Account
+
+    /// Permanently delete the user's ClipForge account. App Store requirement.
+    /// Server cascades the auth.users delete through to every clipforge table
+    /// + best-effort storage cleanup.
+    func deleteAccount() async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/account"))
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Avatar (AI talking-head)
 
     struct Avatar: Identifiable, Decodable {

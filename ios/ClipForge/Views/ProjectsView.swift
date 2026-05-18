@@ -3,6 +3,7 @@ import SwiftUI
 struct ProjectsView: View {
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = ProjectsViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showNewProject = false
     @State private var showAvatarStudio = false
     @State private var deeplinkJob: VideoJob?
@@ -67,6 +68,29 @@ struct ProjectsView: View {
                 seed = s
                 showNewProject = true
                 appState.pendingNewProject = nil
+            }
+            .onChange(of: scenePhase) { _, phase in
+                switch phase {
+                case .active:
+                    // Returning to foreground — refresh once and resume polling
+                    Task { await viewModel.load() }
+                case .background, .inactive:
+                    viewModel.stopPolling()
+                @unknown default:
+                    break
+                }
+            }
+            .onChange(of: viewModel.jobs.contains(where: { $0.status == "ready" })) { _, hasReady in
+                guard hasReady else { return }
+                // First ready clip exists — perfect moment to ask for push permission
+                // so future renders can notify the user. Once, ever.
+                if !UserDefaults.standard.bool(forKey: "clipforge.pushAskedAfterFirstReady"),
+                   PushService.shared.permission == .notDetermined {
+                    Task {
+                        _ = await PushService.shared.requestPermission()
+                        UserDefaults.standard.set(true, forKey: "clipforge.pushAskedAfterFirstReady")
+                    }
+                }
             }
         }
     }

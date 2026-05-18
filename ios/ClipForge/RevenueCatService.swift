@@ -42,4 +42,16 @@ final class RevenueCatService: ObservableObject {
     func restore() async throws {
         self.customerInfo = try await Purchases.shared.restorePurchases()
     }
+
+    /// Detach the RevenueCat user so the next sign-in re-binds cleanly. Must
+    /// be called from the sign-out + delete-account paths.
+    func logOut() async {
+        do {
+            let info = try await Purchases.shared.logOut()
+            self.customerInfo = info
+        } catch {
+            // RC throws if already anonymous — safe to swallow.
+            print("RC logout (likely already anonymous): \(error)")
+        }
+    }
 }
