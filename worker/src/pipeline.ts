@@ -79,17 +79,27 @@ export async function runVideoPipeline(p: Payload) {
       await consumeCredits(p.userId, 1, "video processing", p.jobId);
     } catch (e) {
       if ((e as Error).message === "insufficient_credits") {
-        throw new Error("Not enough credits. Buy more or wait for next month's refill.");
+        throw new Error("You've used your free clip. Upgrade to Plus for 10 credits/week.");
       }
       throw e;
     }
 
     const watermark = profile.tier === "free" || profile.watermark_enabled !== false;
-    const aiThumbnails = profile.tier === "pro" || profile.tier === "agency";
+    const aiThumbnails = profile.tier === "starter" || profile.tier === "pro" || profile.tier === "agency";
+    const maxSourceSec = profile.tier === "free" ? 300 : 5400; // 5 min free, 90 min paid
 
     await setProgress(p.jobId, "transcribing", 0);
     const local = await downloadSource(p, work);
     logger.info({ jobId: p.jobId, dur: local.durationSec, title: local.title }, "downloaded");
+
+    if (local.durationSec > maxSourceSec) {
+      throw new Error(
+        profile.tier === "free"
+          ? `Free tier supports videos up to 5 minutes. Upgrade to Plus for hour-long sources.`
+          : `Source video is too long (${Math.round(local.durationSec / 60)} min). Max 90 min.`,
+      );
+    }
+
     await supabase
       .from("video_jobs")
       .update({ duration_seconds: Math.round(local.durationSec), title: local.title })

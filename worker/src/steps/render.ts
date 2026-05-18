@@ -47,10 +47,21 @@ export async function renderClip(a: Args): Promise<RenderResult> {
   ]);
 
   // 2) FFmpeg render: cut → scale → crop 9:16 → burn captions + hook → loudnorm
+  // Free tier gets a bottom-right wordmark AND a forced 1.4s 'Made with ClipForge'
+  // outro overlay that fades in over the last 2 seconds.
   const watermarkFilter = a.watermark
-    ? `drawtext=fontfile=/usr/share/fonts/truetype/inter/Inter-Bold.ttf:` +
-        `text='clipforge.bulsulabs.xyz':fontcolor=white@0.7:fontsize=28:` +
-        `borderw=2:bordercolor=black@0.6:x=w-text_w-32:y=h-text_h-32`
+    ? [
+        `drawtext=fontfile=/usr/share/fonts/truetype/inter/Inter-Bold.ttf:` +
+          `text='Made with ClipForge':fontcolor=white:fontsize=42:` +
+          `borderw=3:bordercolor=black@0.9:` +
+          `x=(w-text_w)/2:y=h-text_h-90:` +
+          `alpha='if(lt(t,${(duration - 2).toFixed(2)}),0,if(lt(t,${(duration - 1.4).toFixed(2)}),(t-${(duration - 2).toFixed(2)})/0.6,1))'`,
+        `drawtext=fontfile=/usr/share/fonts/truetype/inter/Inter-Bold.ttf:` +
+          `text='clipforge.bulsulabs.xyz':fontcolor=white@0.85:fontsize=26:` +
+          `borderw=2:bordercolor=black@0.7:` +
+          `x=(w-text_w)/2:y=h-text_h-50:` +
+          `alpha='if(lt(t,${(duration - 2).toFixed(2)}),0,if(lt(t,${(duration - 1.4).toFixed(2)}),(t-${(duration - 2).toFixed(2)})/0.6,0.85))'`,
+      ].join(",")
     : null;
 
   await new Promise<void>((resolve, reject) => {

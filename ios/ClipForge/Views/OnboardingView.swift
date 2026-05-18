@@ -19,9 +19,9 @@ struct OnboardingView: View {
         ),
         Page(
             icon: "bolt.circle.fill",
-            title: "Credits, not contracts.",
-            body: "5 free credits every month. Plus weekly $4.99 → 10 credits/wk. Plus monthly $14.99 → 40 credits (save 25%). Top up anytime with +10 ($4.99) or +20 ($7.99) packs.",
-            highlight: "Refund-safe consumables"
+            title: "One free taste,\nthen Plus.",
+            body: "One clip set on the house — see the magic. Then Plus weekly $4.99 (10 cr/wk) or monthly $14.99 (40 cr/mo, save 25%). Top up with +10 or +20 packs.",
+            highlight: "Cancel anytime · refund-safe"
         ),
     ]
 

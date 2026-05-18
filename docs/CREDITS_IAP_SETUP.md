@@ -1,16 +1,28 @@
-# Credits + IAP Setup (Plus tek tier · Apple iade-proof)
+# Credits + IAP Setup (Plus tek tier · Apple iade-proof · Lifetime free taste)
 
 ## Strateji özeti
 
-Pro tier'ı sildik — marj riski yüksekti. **Tek paid tier: Plus.** Tüm AI özellikleri Plus'ta. Free user funnel olarak kalıyor.
+**Free tier sıfır rekürring maliyet.** Sadece **1 video lifetime**. Sonra Plus zorunlu.
 
-- **Free**: 5 kredi/ay, watermark, 1 platform
+- **Free**: 1 video lifetime (5dk max), watermark + "Made with ClipForge" outro (organic marketing)
 - **Plus weekly** $4.99 → 10 kredi/hafta
 - **Plus monthly** $14.99 → 40 kredi/ay (kredi başına %25 ucuz)
-- **Plus retention** $12.99 → 40 kredi/ay (sadece cancel akışında, win-back)
+- **Plus retention** $12.99 → 40 kredi/ay (cancel akışında win-back)
 - **Plus-only kredi paketleri** (consumable):
   - +10 credits → $4.99
   - +20 credits → $7.99 (Best value)
+
+### Free maliyet matematiği
+
+| Free user | Lifetime maliyet | Recurring |
+|---|---|---|
+| 1 | **$0.08** | **$0** |
+| 1.000 | $80 | $0 |
+| 100.000 | $8.000 (one-shot) | $0 |
+
+5 kredi/ay verseydik: 100K user × 5 × $0.08 = **$40K/ay rekürring**. Yıllık $480K maliyet farkı.
+
+Watermark + 2-saniye "Made with ClipForge" outro her free render'da → kullanıcı TikTok'a yüklediğinde **organik marketing** elde ediyoruz. Free zarar gibi görünmüyor, **paid ads alternatifi**.
 
 ## Fiyat × Kredi × Marj tablosu
 

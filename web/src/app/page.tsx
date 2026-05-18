@@ -169,14 +169,14 @@ function PricingTabs() {
   const free = {
     name: "Free",
     price: "$0",
-    body: "Try the magic.",
+    body: "One on the house.",
     features: [
-      "5 credits / month",
-      "1 credit = 1 video → ~10 clips",
+      "1 free clip set (lifetime)",
+      "Up to 5-minute source video",
       "Mr.Beast-style thumbnails",
-      "Watermark on output",
+      "Watermark + 'Made with ClipForge' outro",
     ],
-    cta: "Start free",
+    cta: "Try one free",
   };
 
   const plus = {
