@@ -10,6 +10,7 @@ final class ClipForgeAPI {
 
     func fetchJobs() async throws -> [VideoJob] {
         let res: [VideoJob] = try await supabase
+            .schema("clipforge")
             .from("video_jobs")
             .select()
             .order("created_at", ascending: false)
@@ -21,6 +22,7 @@ final class ClipForgeAPI {
 
     func fetchClips(jobId: String) async throws -> [Clip] {
         try await supabase
+            .schema("clipforge")
             .from("clips")
             .select()
             .eq("job_id", value: jobId)
@@ -31,6 +33,7 @@ final class ClipForgeAPI {
 
     func fetchAllClips() async throws -> [Clip] {
         try await supabase
+            .schema("clipforge")
             .from("clips")
             .select()
             .order("created_at", ascending: false)

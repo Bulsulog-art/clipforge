@@ -108,8 +108,10 @@ struct LoginView: View {
     private func handleApple(_ result: Result<ASAuthorization, Error>) async {
         switch result {
         case .failure(let e):
-            // ASAuthorizationError.canceled is normal (user dismissed); don't show
-            if (e as NSError).code != ASAuthorizationError.canceled.rawValue {
+            // ASAuthorizationError codes: 1000 unknown (often Simulator/no-iCloud),
+            // 1001 canceled. Treat both as silent — user can use magic link instead.
+            let code = (e as NSError).code
+            if code != ASAuthorizationError.canceled.rawValue && code != ASAuthorizationError.unknown.rawValue {
                 error = e.localizedDescription
             }
             return

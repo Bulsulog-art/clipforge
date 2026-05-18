@@ -57,6 +57,7 @@ final class PushService: NSObject, ObservableObject {
         }
         do {
             try await SupabaseService.shared.client
+                .schema("clipforge")
                 .from("push_tokens")
                 .upsert(Row(user_id: userId.uuidString, token: token, platform: "ios"),
                         onConflict: "user_id,token")
@@ -74,6 +75,7 @@ final class PushService: NSObject, ObservableObject {
               let userId = SupabaseService.shared.session?.user.id else { return }
         do {
             try await SupabaseService.shared.client
+                .schema("clipforge")
                 .from("push_tokens")
                 .delete()
                 .eq("user_id", value: userId.uuidString)

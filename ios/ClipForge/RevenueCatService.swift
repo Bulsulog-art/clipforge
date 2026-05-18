@@ -103,8 +103,13 @@ final class RevenueCatService: ObservableObject {
     /// Redeem the Apple promotional offer attached to clipforge_plus_monthly.
     /// Used by CancelFlowView for the $12.99 win-back.
     func redeemRetentionOffer(offerId: String = "plus_retention_1299") async throws {
-        let off = offerings?.current ?? (await refreshOfferings())?.current
-        guard let off else { throw PaywallError.offeringsUnavailable }
+        let currentOff: Offering?
+        if let cached = offerings?.current {
+            currentOff = cached
+        } else {
+            currentOff = await refreshOfferings()?.current
+        }
+        guard let off = currentOff else { throw PaywallError.offeringsUnavailable }
         guard let monthly = off.monthly
                 ?? off.availablePackages.first(where: {
                     $0.storeProduct.productIdentifier == "clipforge_plus_monthly"

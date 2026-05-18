@@ -6,3 +6,9 @@ extension Color {
     static let appBackground = Color(red: 0.04, green: 0.04, blue: 0.05)
     static let cardBackground = Color(red: 0.08, green: 0.08, blue: 0.10)
 }
+
+// Lets `.brand` resolve in any ShapeStyle context (foregroundStyle, fill, etc.)
+extension ShapeStyle where Self == Color {
+    static var brand: Color { .brand }
+    static var brandGlow: Color { .brandGlow }
+}

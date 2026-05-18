@@ -38,7 +38,7 @@ struct UploadVideoSheet: View {
                     }
                 }
 
-                Section("Video") {
+                Section {
                     PhotosPicker(
                         selection: $pickerItem,
                         matching: .videos,
@@ -51,22 +51,10 @@ struct UploadVideoSheet: View {
                         if let newItem { Task { await stage(item: newItem) } }
                     }
                     if let stagedURL {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(stagedURL.lastPathComponent).font(.callout).lineLimit(1)
-                            HStack(spacing: 8) {
-                                if let s = stagedDurationSec {
-                                    Label(formatDuration(s), systemImage: "clock")
-                                        .foregroundStyle(durationOK(s) ? .secondary : .orange)
-                                }
-                                if let mb = stagedSizeMB {
-                                    Label(String(format: "%.1f MB", mb),
-                                          systemImage: "doc.fill")
-                                        .foregroundStyle(sizeOK(mb) ? .secondary : .orange)
-                                }
-                            }
-                            .font(.caption2)
-                        }
+                        stagedDetails(stagedURL: stagedURL)
                     }
+                } header: {
+                    Text("Video")
                 } footer: {
                     Text(credits.hasPlus
                          ? "Plus: up to 90 min / 4 GB per upload."
@@ -125,6 +113,28 @@ struct UploadVideoSheet: View {
             .onChange(of: uploader.lastError) { _, newErr in
                 if let newErr { error = newErr }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func stagedDetails(stagedURL: URL) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(stagedURL.lastPathComponent)
+                .font(.callout)
+                .lineLimit(1)
+            HStack(spacing: 8) {
+                if let s = stagedDurationSec {
+                    let okDuration = durationOK(s)
+                    Label(formatDuration(s), systemImage: "clock")
+                        .foregroundStyle(okDuration ? Color.secondary : Color.orange)
+                }
+                if let mb = stagedSizeMB {
+                    let okSize = sizeOK(mb)
+                    Label(String(format: "%.1f MB", mb), systemImage: "doc.fill")
+                        .foregroundStyle(okSize ? Color.secondary : Color.orange)
+                }
+            }
+            .font(.caption2)
         }
     }
 

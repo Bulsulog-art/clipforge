@@ -12,7 +12,16 @@ final class SupabaseService: ObservableObject {
     @Published private(set) var isRestoring: Bool = true
 
     private init() {
-        client = SupabaseClient(supabaseURL: Secrets.supabaseURL, supabaseKey: Secrets.supabaseAnonKey)
+        // Route PostgREST queries to the `clipforge` schema (rather than the
+        // default `public`) so every `.from("profiles")` call hits the right
+        // table without needing per-call schema overrides.
+        client = SupabaseClient(
+            supabaseURL: Secrets.supabaseURL,
+            supabaseKey: Secrets.supabaseAnonKey,
+            options: SupabaseClientOptions(
+                db: SupabaseClientOptions.DatabaseOptions(schema: "clipforge")
+            )
+        )
         Task { await observeAuth() }
     }
 
@@ -24,6 +33,8 @@ final class SupabaseService: ObservableObject {
             // Mirror identity to telemetry so crash reports are user-scoped.
             if let s = change.session {
                 Telemetry.identify(userId: s.user.id.uuidString, email: s.user.email)
+                // Newly-bound session — pull profile + credits + RC entitlement.
+                Task { await CreditsService.shared.refresh() }
             } else {
                 Telemetry.clearUser()
             }

@@ -40,17 +40,22 @@ final class CreditsService: ObservableObject {
                 let credits_balance: Int
                 let credits_lifetime_purchased: Int
             }
+            // PostgREST uuid eq is case-sensitive at the wire level — lowercase
+            // to match Postgres canonical form.
             let row: ProfileRow = try await SupabaseService.shared.client
+                .schema("clipforge")
                 .from("profiles")
                 .select("credits_balance, credits_lifetime_purchased")
-                .eq("id", value: userId.uuidString)
+                .eq("id", value: userId.uuidString.lowercased())
                 .single()
                 .execute()
                 .value
             self.balance = row.credits_balance
             self.lifetimePurchased = row.credits_lifetime_purchased
+            self.lastError = nil
         } catch {
             self.lastError = error.localizedDescription
+            Telemetry.capture(error, context: ["op": "credits_refresh"])
         }
     }
 

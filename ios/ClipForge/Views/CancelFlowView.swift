@@ -201,8 +201,8 @@ struct CancelFlowView: View {
         } catch let e as PaywallError {
             error = e.errorDescription
             await Haptics.notify(.error)
-        } catch {
-            error = error.localizedDescription
+        } catch let e {
+            error = e.localizedDescription
             await Haptics.notify(.error)
         }
     }

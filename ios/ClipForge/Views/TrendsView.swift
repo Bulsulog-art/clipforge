@@ -75,7 +75,7 @@ struct TrendsView: View {
                     .font(.caption.bold())
                     .padding(.horizontal, 8).padding(.vertical, 3)
                     .background(Color.brand.opacity(0.18))
-                    .foregroundStyle(.brand)
+                    .foregroundStyle(Color.brand)
                     .clipShape(.capsule)
                 Spacer()
                 if let f = item.format {
