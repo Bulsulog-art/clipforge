@@ -2,10 +2,8 @@ import Foundation
 
 enum Secrets {
     // RevenueCat Public iOS API key (Project Settings → API keys).
-    // Placeholder until the user pastes the real `appl_…` key. The app still
-    // runs — only the paywall pricing card shows a "Couldn't load pricing"
-    // retry state until this is filled in.
-    static let revenueCatIOSKey = "appl_REPLACE_ME"
+    // Live key for the ClipForge project (4db5a480).
+    static let revenueCatIOSKey = "appl_CugNKpblXJVUQYbPqBJFpYsmdrk"
 
     // Supabase — live values for the AuraGlow project.
     static let supabaseURL = URL(string: "https://rgtxjjnalesquhnexfez.supabase.co")!
