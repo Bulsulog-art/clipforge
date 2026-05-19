@@ -196,4 +196,5 @@ Kullanıcı app'i açtığında `PushService.requestPermission()` çağrılır (
 
 - **Promotional Offer**'lar sandbox'ta tüm App Store Connect kurulumundan sonra aktif olmuyor — production'da test gerekebilir.
 
-- **Voice clone (5 cr)** maliyeti ElevenLabs üzerinden $0.40/dk. 40 kredilik Plus monthly'de 8 voice clone = $3.20 maliyet — bu özellik Plus'a dahil edilirken kredi başına maliyet hesabına dahil edildi.
+- **AI Avatar (5 cr)** maliyeti: OpenAI TTS-1-HD ~$0.06/dk + FAL SadTalker ~$0.10/dk = **$0.16/dk** toplam. 40 kredilik Plus monthly'de 8 avatar render ≈ $1.30 maliyet (önceki ElevenLabs+Replicate kombinasyonuna göre **~%60 daha ucuz**).
+- **Voice clone** (kullanıcının kendi sesini klonlama) **V1.1'e ertelendi**. ElevenLabs gerektiriyordu; OpenAI TTS klonlama yapmıyor. 6 stok ses (alloy/echo/fable/onyx/nova/shimmer) launch için yeterli — gerçek voice clone istendiğinde sadece ElevenLabs key eklenir, kod hazır.

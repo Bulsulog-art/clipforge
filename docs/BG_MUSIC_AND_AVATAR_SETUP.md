@@ -76,26 +76,33 @@ Format requirements:
 Already required, just confirm they're populated:
 
 ```
-ELEVENLABS_API_KEY=...        # used for TTS (avatar feature)
-REPLICATE_API_TOKEN=...       # used for SadTalker lip-sync
+OPENAI_API_KEY=...           # used for TTS (avatar voices) + Whisper + GPT
+FAL_KEY=...                  # used for SadTalker lip-sync + Flux thumbnails + face-swap
 OPENAI_API_KEY=...            # used for caption word-timing on avatar clips
 AVATAR_CONCURRENCY=2          # optional; defaults to 2
 ```
 
 ## 5. Voice catalog
 
-`avatars.default_voice_id` references **ElevenLabs voice IDs**, not
-ClipForge-internal IDs. Defaults seeded in the migration:
+`avatars.default_voice_id` stores ClipForge persona names (`alex`, `maya`,
+`theo`, `iris`). The TTS step maps these to OpenAI voices:
 
-| Avatar | ElevenLabs voice | Notes |
+| Avatar | OpenAI voice | Notes |
 |---|---|---|
-| Alex   | `pNInz6obpgDQGcFmaJgB` | Adam — calm masculine |
-| Maya   | `EXAVITQu4vr4xnSDxMAc` | Bella — bright feminine |
-| Theo   | `TxGEqnHWrfWFTfGW9XjX` | Josh — narrator |
-| Iris   | `21m00Tcm4TlvDq8ikWAM` | Rachel — warm |
+| Alex   | `alloy`   | Neutral mid-pitch — calm coach |
+| Maya   | `nova`    | Warm energetic feminine |
+| Theo   | `onyx`    | Deep masculine narrator |
+| Iris   | `shimmer` | Bright feminine, gentle |
 
-All four exist in every free-tier ElevenLabs account. Swap via
-`update avatars set default_voice_id = '...' where name = '...'`.
+OpenAI has 6 built-in voices total (alloy/echo/fable/onyx/nova/shimmer);
+all of them are unlocked with any OpenAI API key, no separate signup or
+free-tier limit. Swap via `update avatars set default_voice_id = '...'
+where name = '...'` (use any of the 6 OpenAI names or one of the persona
+keys above).
+
+> Voice cloning (user's own voice) is intentionally deferred to v1.1.
+> Add an `ELEVENLABS_API_KEY` and swap `synthesizeSpeech` back to its
+> ElevenLabs implementation when ready.
 
 ## 6. Economics
 
@@ -103,14 +110,17 @@ Per-clip cost at typical 30-second avatar render:
 
 | Component | Cost |
 |---|---|
-| ElevenLabs TTS (~150 chars) | $0.045 |
-| Replicate SadTalker (30s) | ~$0.06 |
-| Whisper transcribe (30s) | $0.003 |
+| OpenAI TTS-1-HD (~150 chars) | $0.0045 |
+| FAL SadTalker (30s) | ~$0.05 |
+| OpenAI Whisper transcribe (30s) | $0.003 |
+| FAL Flux Schnell thumbnail enhance | $0.003 |
 | FFmpeg compute (Coolify VPS) | negligible |
-| **Total** | **~$0.11** |
+| **Total** | **~$0.06** |
 
 Revenue: 5 credits × $0.20/credit = **$1.00 perceived value**
-(weekly Plus) or **$0.74** (monthly Plus).
+(weekly Plus) or **$0.74** (monthly Plus). Net margin per avatar:
+**$0.94 weekly / $0.68 monthly** — roughly 2× higher than the previous
+Replicate + ElevenLabs stack.
 
 Margin at 100% credit utilization: **~$0.63 per avatar render**.
 

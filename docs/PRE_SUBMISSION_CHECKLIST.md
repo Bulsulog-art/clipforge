@@ -23,8 +23,7 @@ Worker (`aeoe3zdfhbhqzi89g32gkuwx`):
 - [x] `NEXT_PUBLIC_SUPABASE_URL`
 - [x] `SUPABASE_SERVICE_ROLE_KEY`
 - [ ] `OPENAI_API_KEY` — **you provide**
-- [ ] `REPLICATE_API_TOKEN` — **you provide (after Replicate signup)**
-- [ ] `ELEVENLABS_API_KEY` — **you provide (after ElevenLabs signup)**
+- [ ] `FAL_KEY` — **you provide (https://fal.ai → API keys)**
 - [x] `REDIS_URL`
 - [x] `WORKER_INTERNAL_TOKEN`
 - [ ] `APNS_KEY_ID` — Apple Developer → Keys → APNs key
@@ -40,7 +39,7 @@ Web (`y11bhiffmpb3u2hdekwhjhdq`):
 - [x] `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [x] `SUPABASE_SERVICE_ROLE_KEY`
 - [ ] `OPENAI_API_KEY` — **same as worker**
-- [ ] `REPLICATE_API_TOKEN` — **same as worker**
+- [ ] `FAL_KEY` — **same as worker**
 - [ ] `REVENUECAT_SECRET_KEY` — RC dashboard → API keys
 - [ ] `REVENUECAT_WEBHOOK_AUTH` — same value across web + RC webhook config
 - [ ] `NEXT_PUBLIC_REVENUECAT_PUBLIC_WEB_KEY` — RC iOS public key

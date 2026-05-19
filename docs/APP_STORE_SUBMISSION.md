@@ -129,7 +129,7 @@ For each screenshot, overlay a single short marketing line at top:
 2. "AI picks the moments people share"
 3. "Mr.Beast thumbnails, every time"
 4. "Tap to post anywhere"
-5. "Face swap. Translate. Voice clone."
+5. "Face swap. Translate. AI avatars."
 6. "Know what to make next"
 
 Use tools like Screenshot.rocks, Mockumate, or Figma.

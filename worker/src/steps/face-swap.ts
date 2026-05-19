@@ -3,6 +3,7 @@ import path from "node:path";
 import { createReadStream } from "node:fs";
 import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
+import { runFalQueue } from "../fal.js";
 
 type Args = {
   userId: string;
@@ -12,22 +13,15 @@ type Args = {
   workDir: string;
 };
 
-const REPLICATE_API = "https://api.replicate.com/v1";
-
 /**
- * Face-swap an entire short clip using Replicate.
+ * Face-swap an entire short clip using FAL.ai.
  *
- * Uses `cdingram/face-swap` (cheap + fast, ~$0.025/run typical).
- * Falls back to `omniedgeio/face-swap` if user wants higher fidelity.
- *
- * Costs paid via 2 ClipForge credits ($0.30 user-perceived value).
+ * Model: `fal-ai/face-swap` (full video face swap). Typical run: 60-120 s for a
+ * 30-60 s clip, billed per-second of compute time (no idle charges, unlike
+ * Replicate). Costs paid via 2 ClipForge credits ($0.30 user-perceived value).
  */
 export async function runFaceSwap(args: Args) {
-  if (!process.env.REPLICATE_API_TOKEN) {
-    throw new Error("REPLICATE_API_TOKEN not set");
-  }
-
-  // 1) Sign both inputs so Replicate can fetch them
+  // 1) Sign both inputs so FAL can fetch them
   const [{ data: clipUrl, error: e1 }, { data: faceUrl, error: e2 }] = await Promise.all([
     supabase.storage.from("clipforge-videos-rendered").createSignedUrl(args.sourceClipPath, 3600),
     supabase.storage.from("clipforge-faces").createSignedUrl(args.targetFacePath, 3600),
@@ -35,55 +29,38 @@ export async function runFaceSwap(args: Args) {
   if (e1 || !clipUrl) throw new Error(`clip url ${e1?.message}`);
   if (e2 || !faceUrl) throw new Error(`face url ${e2?.message}`);
 
-  logger.info({ derivativeId: args.derivativeId }, "face swap → submit to replicate");
+  logger.info({ derivativeId: args.derivativeId }, "face swap → submit to FAL");
 
-  // 2) Create prediction
-  const create = await fetch(`${REPLICATE_API}/predictions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
-      "Content-Type": "application/json",
+  const result = await runFalQueue<{
+    video?: { url: string } | string;
+    output?: string;
+  }>(
+    "fal-ai/face-swap",
+    {
+      face_image_url: faceUrl.signedUrl,
+      target_video_url: clipUrl.signedUrl,
     },
-    body: JSON.stringify({
-      version: "cdingram/face-swap",
-      input: {
-        swap_image: faceUrl.signedUrl,
-        input_video: clipUrl.signedUrl,
+    {
+      timeoutMs: 6 * 60_000,
+      onProgress: async (frac) => {
+        await supabase
+          .from("clip_derivatives")
+          .update({ progress: Math.max(20, Math.round(frac * 95)) })
+          .eq("id", args.derivativeId);
       },
-    }),
-  });
-  const job = (await create.json()) as { id: string; urls: { get: string }; error?: string };
-  if (!create.ok) throw new Error(`replicate ${create.status}: ${job.error}`);
+    },
+  );
 
-  // 3) Poll for result (up to 5 min — video face swap is slow)
-  const start = Date.now();
-  let outputUrl: string | undefined;
-  while (Date.now() - start < 5 * 60_000) {
-    await new Promise((r) => setTimeout(r, 4000));
-    const stRes = await fetch(job.urls.get, {
-      headers: { Authorization: `Token ${process.env.REPLICATE_API_TOKEN}` },
-    });
-    const st = (await stRes.json()) as { status: string; output?: string | string[]; error?: string };
-
-    if (st.status === "succeeded") {
-      outputUrl = Array.isArray(st.output) ? st.output[0] : st.output;
-      break;
-    }
-    if (st.status === "failed" || st.status === "canceled") {
-      throw new Error(`replicate ${st.status}: ${st.error ?? ""}`);
-    }
-
-    // progress estimate (replicate gives no exact %)
-    const elapsed = (Date.now() - start) / 60_000;
-    const progress = Math.min(95, Math.round(20 + elapsed * 35));
-    await supabase
-      .from("clip_derivatives")
-      .update({ progress })
-      .eq("id", args.derivativeId);
+  const outputUrl =
+    typeof result.video === "string"
+      ? result.video
+      : result.video?.url ?? result.output ?? null;
+  if (!outputUrl) {
+    logger.error({ result }, "fal face-swap returned no video url");
+    throw new Error("face swap returned no output url");
   }
-  if (!outputUrl) throw new Error("face swap timed out after 5 min");
 
-  // 4) Download result + upload to our storage
+  // 2) Download result + upload to our storage
   const localOut = path.join(args.workDir, `swap-${args.derivativeId}.mp4`);
   const dl = await fetch(outputUrl);
   if (!dl.ok || !dl.body) throw new Error("could not download face swap output");

@@ -33,10 +33,10 @@ on conflict (id) do nothing;
 
 -- Seed 4 stock avatars (portraits must be uploaded to `clipforge-avatars/<image_path>`)
 insert into clipforge.avatars (name, description, image_path, default_voice_id, persona, sort_order) values
-  ('Alex',  'Calm coach voice — works for motivation & business',  'stock/alex.jpg',  'pNInz6obpgDQGcFmaJgB', 'masc',     1),
-  ('Maya',  'Bright energetic — great for fitness & lifestyle',    'stock/maya.jpg',  'EXAVITQu4vr4xnSDxMAc', 'fem',      2),
-  ('Theo',  'Authoritative narrator — finance, tech, news',        'stock/theo.jpg',  'TxGEqnHWrfWFTfGW9XjX', 'masc',     3),
-  ('Iris',  'Warm storyteller — spirituality, education',          'stock/iris.jpg',  '21m00Tcm4TlvDq8ikWAM', 'fem',      4)
+  ('Alex',  'Calm coach voice — works for motivation & business',  'stock/alex.jpg',  'alex', 'masc',     1),
+  ('Maya',  'Bright energetic — great for fitness & lifestyle',    'stock/maya.jpg',  'maya', 'fem',      2),
+  ('Theo',  'Authoritative narrator — finance, tech, news',        'stock/theo.jpg',  'theo', 'masc',     3),
+  ('Iris',  'Warm storyteller — spirituality, education',          'stock/iris.jpg',  'iris', 'fem',      4)
 on conflict do nothing;
 
 -- ---------------------------------------------------------------

@@ -4,6 +4,7 @@ import { createReadStream } from "node:fs";
 import ffmpeg from "fluent-ffmpeg";
 import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
+import { runFalSync } from "../fal.js";
 
 type ThumbArgs = {
   userId: string;
@@ -85,11 +86,11 @@ export async function generateThumbnail(args: ThumbArgs): Promise<{ storagePath:
       .save(out);
   });
 
-  if (args.aiBackground && process.env.REPLICATE_API_TOKEN) {
+  if (args.aiBackground && process.env.FAL_KEY) {
     try {
-      await enhanceWithReplicate(out);
+      await enhanceWithFalFlux(out);
     } catch (e) {
-      logger.warn({ err: (e as Error).message }, "replicate enhance failed — keeping CPU thumb");
+      logger.warn({ err: (e as Error).message }, "fal enhance failed — keeping CPU thumb");
     }
   }
 
@@ -108,55 +109,32 @@ export async function generateThumbnail(args: ThumbArgs): Promise<{ storagePath:
 }
 
 /**
- * Optional AI enhance via Replicate Flux Schnell.
+ * Optional AI enhance via FAL.ai Flux Schnell (img2img).
  * Sends the CPU thumbnail as init image with a "youtube thumbnail" prompt
- * to add depth and pop.
+ * to add depth and pop. Costs ~$0.003/image — ~10x cheaper than Replicate.
  */
-async function enhanceWithReplicate(localJpgPath: string) {
+async function enhanceWithFalFlux(localJpgPath: string) {
   const fileData = await fs.readFile(localJpgPath);
   const base64 = `data:image/jpeg;base64,${fileData.toString("base64")}`;
 
-  const res = await fetch("https://api.replicate.com/v1/predictions", {
-    method: "POST",
-    headers: {
-      Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
-      "Content-Type": "application/json",
+  // fal-ai/flux/schnell with image_url performs img2img. ~3 sec on average.
+  const result = await runFalSync<{ images?: Array<{ url: string }> }>(
+    "fal-ai/flux/schnell",
+    {
+      prompt: "viral YouTube thumbnail, mr beast style, dramatic lighting, vibrant colors, bold composition",
+      image_url: base64,
+      strength: 0.55,
+      image_size: "portrait_9_16",
+      num_images: 1,
+      enable_safety_checker: false,
     },
-    body: JSON.stringify({
-      version: "black-forest-labs/flux-schnell",
-      input: {
-        prompt: "viral YouTube thumbnail, mr beast style, dramatic lighting, vibrant colors, bold composition",
-        image: base64,
-        prompt_strength: 0.55,
-        output_format: "jpg",
-        num_outputs: 1,
-        aspect_ratio: "9:16",
-      },
-    }),
-  });
-  if (!res.ok) throw new Error(`Replicate ${res.status}`);
+  );
 
-  const job = (await res.json()) as { id: string; urls: { get: string } };
-
-  // poll
-  const start = Date.now();
-  while (Date.now() - start < 30_000) {
-    await new Promise((r) => setTimeout(r, 1500));
-    const sr = await fetch(job.urls.get, {
-      headers: { Authorization: `Token ${process.env.REPLICATE_API_TOKEN}` },
-    });
-    const status = (await sr.json()) as { status: string; output?: string[] };
-    if (status.status === "succeeded" && status.output?.[0]) {
-      const img = await fetch(status.output[0]);
-      const buf = Buffer.from(await img.arrayBuffer());
-      await fs.writeFile(localJpgPath, buf);
-      return;
-    }
-    if (status.status === "failed" || status.status === "canceled") {
-      throw new Error(`Replicate ${status.status}`);
-    }
-  }
-  throw new Error("Replicate enhance timed out");
+  const outUrl = result.images?.[0]?.url;
+  if (!outUrl) throw new Error("FAL Flux returned no image");
+  const img = await fetch(outUrl);
+  const buf = Buffer.from(await img.arrayBuffer());
+  await fs.writeFile(localJpgPath, buf);
 }
 
 function wrap(text: string, perLine: number): string[] {

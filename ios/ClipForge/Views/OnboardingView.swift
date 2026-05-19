@@ -17,7 +17,7 @@ struct OnboardingView: View {
         Page(
             icon: "person.crop.square.filled.and.at.rectangle",
             title: "Face Swap.\nTranslate.\nGo viral.",
-            body: "Swap any face on a clip in 30 seconds (SwapTok-grade). Translate captions to 15+ languages. Voice clone in your own voice.",
+            body: "Swap any face on a clip in 30 seconds (SwapTok-grade). Translate captions to 15+ languages. AI avatars that speak your script in 6 voices.",
             highlight: "Klap + HeyGen + Reface in one",
             isPushAsk: false
         ),
