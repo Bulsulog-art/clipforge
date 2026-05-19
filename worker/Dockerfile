@@ -18,7 +18,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 COPY package.json package-lock.json* tsconfig.json ./
 COPY src ./src
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true
-RUN npm install --ignore-scripts && npm run build
+# --ignore-scripts would break .bin symlinks (tsc not found -> exit 127).
+# Rely on YOUTUBE_DL_SKIP_DOWNLOAD env above to short-circuit the only
+# problematic preinstall instead.
+RUN npm install && npm run build
 
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
