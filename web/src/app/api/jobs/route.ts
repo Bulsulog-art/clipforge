@@ -3,9 +3,38 @@ import { z } from "zod";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { videoQueue } from "@/lib/queue";
 
+// Strict host allowlist — yt-dlp follows many protocols and would otherwise
+// happily fetch file://, internal IPs (169.254.169.254 metadata service, etc.),
+// or any third-party site. Keep this list narrow.
+const ALLOWED_SOURCE_HOSTS = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "music.youtube.com",
+  "youtu.be",
+  "tiktok.com",
+  "www.tiktok.com",
+  "m.tiktok.com",
+  "vm.tiktok.com",
+  "vt.tiktok.com",
+]);
+
+const SourceUrl = z
+  .string()
+  .url()
+  .refine((u) => {
+    try {
+      const parsed = new URL(u);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+      return ALLOWED_SOURCE_HOSTS.has(parsed.hostname.toLowerCase());
+    } catch {
+      return false;
+    }
+  }, "sourceUrl must be a YouTube or TikTok link");
+
 const Body = z.object({
   sourceType: z.enum(["youtube", "tiktok_url"]),
-  sourceUrl: z.string().url(),
+  sourceUrl: SourceUrl,
   niche: z.string().min(2).max(40),
   language: z.string().min(2).max(8).default("en"),
   bgMusic: z.boolean().optional().default(true),

@@ -33,6 +33,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid body", detail: (e as Error).message }, { status: 400 });
   }
 
+  // Ownership guard: customImagePath MUST live under the user's own UUID
+  // prefix in storage. Without this, a malicious client could pass another
+  // user's face/path and our worker would render a lipsync deepfake of
+  // someone else's likeness.
+  if (body.customImagePath) {
+    const prefix = `${user.id}/`;
+    if (!body.customImagePath.startsWith(prefix) || body.customImagePath.includes("..")) {
+      return NextResponse.json(
+        { error: "customImagePath must be under your own user folder" },
+        { status: 403 },
+      );
+    }
+  }
+
   const svc = createServiceClient();
 
   // Quick affordability check (anti-spam — actual reservation is in the worker)
