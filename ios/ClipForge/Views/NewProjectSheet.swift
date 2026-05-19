@@ -165,12 +165,19 @@ struct NewProjectSheet: View {
         sending = true
         defer { sending = false }
         do {
-            try await ClipForgeAPI.shared.createJob(
+            let jobId = try await ClipForgeAPI.shared.createJob(
                 sourceUrl: url,
                 niche: niche,
                 bgMusic: bgMusic,
                 bgMusicMood: bgMusicMood == "auto" ? nil : bgMusicMood
             )
+            if !jobId.isEmpty {
+                RenderActivityKit.start(
+                    jobId: jobId,
+                    title: niche.capitalized + " clip set",
+                    expectedClips: 12
+                )
+            }
             await credits.refresh()
             onCreated()
             dismiss()

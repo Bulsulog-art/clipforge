@@ -35,8 +35,12 @@
 	<string>ClipForge needs camera access to record video for clips.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>ClipForge needs microphone access to record audio.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>ClipForge needs to save finished clips to your Photos library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>ClipForge needs photo library access to import videos.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

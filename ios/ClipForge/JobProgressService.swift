@@ -55,12 +55,38 @@ final class JobProgressService: ObservableObject {
                 .single()
                 .execute()
                 .value
+            let prevStatus = status
             status = row.status
             progress = row.progress
             if let e = row.error_message, !e.isEmpty { error = e }
             if status == "ready" && !jobReady {
                 jobReady = true
                 await reloadClipsCount()
+            }
+
+            // Mirror to the Live Activity if there is one for this job.
+            if status == "ready" {
+                RenderActivityKit.end(
+                    jobId: jobId,
+                    finalStage: "ready",
+                    progress: 100,
+                    clipsReady: clipsReady
+                )
+            } else if status == "failed" {
+                RenderActivityKit.end(
+                    jobId: jobId,
+                    finalStage: "failed",
+                    progress: progress,
+                    clipsReady: clipsReady,
+                    dismissAfter: 30
+                )
+            } else if status != prevStatus || progress != row.progress {
+                RenderActivityKit.update(
+                    jobId: jobId,
+                    stage: status,
+                    progress: progress,
+                    clipsReady: clipsReady
+                )
             }
         } catch {
             // silent — next tick will retry

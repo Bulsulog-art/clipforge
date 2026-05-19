@@ -42,12 +42,13 @@ final class ClipForgeAPI {
             .value
     }
 
+    @discardableResult
     func createJob(
         sourceUrl: String,
         niche: String,
         bgMusic: Bool = true,
         bgMusicMood: String? = nil
-    ) async throws {
+    ) async throws -> String {
         guard let token = SupabaseService.shared.session?.accessToken else {
             throw Error.unauthorized
         }
@@ -74,10 +75,12 @@ final class ClipForgeAPI {
                 bgMusicMood: bgMusicMood
             )
         )
-        let (_, resp) = try await URLSession.shared.data(for: req)
+        let (data, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw Error.network }
         if http.statusCode == 402 { throw Error.quotaExceeded }
         guard (200..<300).contains(http.statusCode) else { throw Error.network }
+        struct Resp: Decodable { let jobId: String }
+        return (try? JSONDecoder().decode(Resp.self, from: data).jobId) ?? ""
     }
 
     func signedURL(path: String, bucket: String) async throws -> URL {
