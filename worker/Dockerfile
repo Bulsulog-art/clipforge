@@ -22,7 +22,10 @@ COPY src ./src
 # runtime stage uses a self-contained yt-dlp executable copied from deps).
 ENV YOUTUBE_DL_SKIP_PYTHON_CHECK=1
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true
-RUN npm install && npm run build
+# Force devDependencies (typescript, tsx, @types/*) even when Coolify
+# injects NODE_ENV=production at build time — otherwise tsc isn't installed
+# and `npm run build` exits 127 with "sh: 1: tsc: not found".
+RUN npm install --include=dev && npm run build
 
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
