@@ -12,6 +12,7 @@ struct ClipActionsSheet: View {
     @State private var lastResult: String?
     @State private var error: String?
     @State private var showPaywall = false
+    @State private var saving = false
 
     private let languages: [(code: String, label: String, flag: String)] = [
         ("en", "English", "🇺🇸"),
@@ -109,6 +110,32 @@ struct ClipActionsSheet: View {
                         .disabled(sending)
                     }
 
+                    Divider().background(Color.white.opacity(0.1))
+
+                    Section_h("📥 Export")
+                    Button {
+                        Task { await saveToPhotos() }
+                    } label: {
+                        HStack {
+                            if saving { ProgressView().tint(.white) } else {
+                                Image(systemName: "square.and.arrow.down.fill")
+                            }
+                            Text(saving ? "Saving…" : "Save to Photos")
+                                .fontWeight(.semibold)
+                            Spacer()
+                        }
+                        .padding()
+                        .background(
+                            LinearGradient(
+                                colors: [.brand, .brandGlow],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .foregroundStyle(.white)
+                        .clipShape(.rect(cornerRadius: 12))
+                    }
+                    .disabled(saving || clip.storagePath == nil)
+
                     if let lastResult {
                         Text(lastResult)
                             .padding()
@@ -168,6 +195,24 @@ struct ClipActionsSheet: View {
             showPaywall = true
         } catch let e {
             error = e.localizedDescription
+        }
+    }
+
+    private func saveToPhotos() async {
+        guard let path = clip.storagePath else { return }
+        saving = true
+        defer { saving = false }
+        do {
+            let url = try await ClipForgeAPI.shared.signedURL(
+                path: path, bucket: "clipforge-videos-rendered"
+            )
+            try await SaveToPhotos.saveVideo(from: url)
+            lastResult = "Saved to Photos ✓"
+            await Haptics.notify(.success)
+            ReviewPrompt.markSavedClip()
+        } catch let e {
+            error = e.localizedDescription
+            await Haptics.notify(.error)
         }
     }
 

@@ -6,6 +6,7 @@ struct JobDetailView: View {
     @StateObject private var progress = JobProgressService()
     @State private var actionsForClip: Clip?
     @State private var playerForClip: Clip?
+    @State private var fireConfetti = false
 
     var body: some View {
         ScrollView {
@@ -65,8 +66,18 @@ struct JobDetailView: View {
         }
         .onDisappear { progress.stop() }
         .onChange(of: progress.jobReady) { _, ready in
-            if ready { Task { await vm.load(jobId: job.id) } }
+            if ready {
+                Task {
+                    await vm.load(jobId: job.id)
+                    await Haptics.notify(.success)
+                    fireConfetti = true
+                    // Auto-reset so the overlay tears down after the animation
+                    try? await Task.sleep(nanoseconds: 1_800_000_000)
+                    fireConfetti = false
+                }
+            }
         }
+        .confettiOverlay(trigger: fireConfetti, count: 90, duration: 1.6)
         .task { await vm.load(jobId: job.id) }
         .refreshable { await vm.load(jobId: job.id) }
         .sheet(item: $actionsForClip) { clip in
