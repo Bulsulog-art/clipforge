@@ -17,10 +17,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json* tsconfig.json ./
 COPY src ./src
+# youtube-dl-exec's preinstall script verifies a `python` binary exists on
+# $PATH. The build-stage slim image has no Python; skip the check (the
+# runtime stage uses a self-contained yt-dlp executable copied from deps).
+ENV YOUTUBE_DL_SKIP_PYTHON_CHECK=1
 ENV YOUTUBE_DL_SKIP_DOWNLOAD=true
-# --ignore-scripts would break .bin symlinks (tsc not found -> exit 127).
-# Rely on YOUTUBE_DL_SKIP_DOWNLOAD env above to short-circuit the only
-# problematic preinstall instead.
 RUN npm install && npm run build
 
 FROM node:22-bookworm-slim AS runner

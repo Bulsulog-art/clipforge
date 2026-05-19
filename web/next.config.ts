@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Required for the Docker runner stage which copies /app/.next/standalone
+  // and /app/public into a slim node:22 image and runs `node server.js`.
+  output: "standalone",
   experimental: {
     serverActions: { bodySizeLimit: "10mb" },
   },
