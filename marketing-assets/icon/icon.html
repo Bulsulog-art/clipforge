@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 1024px; overflow: hidden; background: #000; }
+  .icon {
+    position: relative;
+    width: 1024px;
+    height: 1024px;
+    /* Bold tri-stop gradient: electric purple → magenta → fiery orange */
+    background:
+      radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.32) 0%, transparent 35%),
+      radial-gradient(circle at 80% 90%, rgba(0,0,0,0.40) 0%, transparent 55%),
+      linear-gradient(140deg,
+        #4C1D95 0%,
+        #7C3AED 22%,
+        #C026D3 45%,
+        #EC4899 68%,
+        #F97316 100%);
+  }
+  /* Soft glow ring around play */
+  .glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 720px;
+    height: 720px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%);
+    filter: blur(20px);
+  }
+  /* Modern rounded play shape via SVG for crisp edges and motion accent */
+  svg.play {
+    position: absolute;
+    top: 50%;
+    left: 53%;
+    transform: translate(-50%, -50%);
+    width: 620px;
+    height: 620px;
+    filter: drop-shadow(0 30px 60px rgba(20, 0, 40, 0.55));
+  }
+  /* AI sparkle — bold 4-point star, single, prominent */
+  svg.sparkle {
+    position: absolute;
+    filter: drop-shadow(0 6px 18px rgba(255, 200, 255, 0.6));
+  }
+  svg.sparkle.big   { top: 110px;  right: 110px; width: 170px; height: 170px; }
+  svg.sparkle.small { bottom: 150px; left: 140px; width: 90px; height: 90px; opacity: 0.85; }
+  /* Inset top highlight for premium glassy feel */
+  .top-light {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 25%);
+    pointer-events: none;
+  }
+  /* Bottom vignette for depth */
+  .bottom-shadow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.22) 100%);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div class="icon">
+    <div class="glow"></div>
+
+    <!-- Rounded modern play with subtle inner highlight -->
+    <svg class="play" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="playGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#F8E8FF" stop-opacity="0.96"/>
+        </linearGradient>
+      </defs>
+      <!-- Play triangle with rounded corners, slightly leaning forward -->
+      <path d="M 30 18
+               L 78 47
+               Q 82 50 78 53
+               L 30 82
+               Q 24 85 24 78
+               L 24 22
+               Q 24 15 30 18 Z"
+            fill="url(#playGrad)" />
+    </svg>
+
+    <!-- Big AI sparkle (4-point) -->
+    <svg class="sparkle big" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 50 0
+               C 52 35, 65 48, 100 50
+               C 65 52, 52 65, 50 100
+               C 48 65, 35 52, 0 50
+               C 35 48, 48 35, 50 0 Z"
+            fill="#FFFFFF" />
+    </svg>
+
+    <!-- Smaller secondary sparkle -->
+    <svg class="sparkle small" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 50 5
+               C 52 36, 64 48, 95 50
+               C 64 52, 52 64, 50 95
+               C 48 64, 36 52, 5 50
+               C 36 48, 48 36, 50 5 Z"
+            fill="#FFFFFF" opacity="0.85" />
+    </svg>
+
+    <div class="top-light"></div>
+    <div class="bottom-shadow"></div>
+  </div>
+</body>
+</html>

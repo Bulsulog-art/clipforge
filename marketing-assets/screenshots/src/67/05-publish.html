@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1290px; height: 2796px; overflow: hidden; font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
+  body {
+    background:
+      radial-gradient(circle at 70% 10%, rgba(255,255,255,0.20) 0%, transparent 38%),
+      radial-gradient(circle at 10% 95%, rgba(0,0,0,0.55) 0%, transparent 55%),
+      linear-gradient(160deg, #0F172A 0%, #1E3A8A 35%, #0E7490 70%, #14B8A6 100%);
+  }
+  .bg-sparkle { position: absolute; color: #fff; }
+  .bg-sparkle::before { content: "✦"; }
+  .sp1 { top: 200px; left: 110px; font-size: 80px; opacity: 0.55; }
+  .sp2 { top: 380px; right: 130px; font-size: 60px; opacity: 0.5; }
+  .sp3 { bottom: 920px; left: 80px; font-size: 70px; opacity: 0.45; }
+  .sp4 { bottom: 340px; right: 100px; font-size: 50px; opacity: 0.5; }
+
+  .copy { position: absolute; top: 200px; left: 80px; right: 80px; text-align: center; }
+  .eyebrow { font-size: 38px; font-weight: 700; letter-spacing: 8px; text-transform: uppercase; color: #5EEAD4; margin-bottom: 32px; }
+  .headline { font-size: 130px; font-weight: 900; line-height: 1.02; letter-spacing: -3px; margin-bottom: 36px; text-shadow: 0 4px 24px rgba(0,0,0,0.25); }
+  .grad { background: linear-gradient(90deg, #FDE047 0%, #5EEAD4 50%, #C4B5FD 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { font-size: 50px; font-weight: 500; line-height: 1.3; color: rgba(255,255,255,0.85); max-width: 1080px; margin: 0 auto; }
+
+  .phone { position: absolute; bottom: -180px; left: 50%; transform: translateX(-50%); width: 920px; height: 1880px; border-radius: 100px; background: linear-gradient(180deg, #0a1525 0%, #050a18 100%); padding: 22px; box-shadow: 0 60px 120px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.08), inset 0 0 0 2px rgba(255,255,255,0.06); }
+  .screen { width: 100%; height: 100%; border-radius: 80px; background: #050A14; overflow: hidden; position: relative; }
+  .status { height: 64px; display: flex; justify-content: space-between; align-items: center; padding: 0 80px; font-size: 30px; font-weight: 600; }
+  .navbar { display: flex; align-items: center; padding: 20px 40px 16px; font-size: 32px; font-weight: 700; }
+  .navbar .back { width: 60px; color: #5EEAD4; font-size: 38px; }
+  .navbar .title { flex: 1; text-align: center; }
+
+  /* Clip preview at top */
+  .preview-wrap { padding: 0 40px 30px; }
+  .preview {
+    position: relative;
+    height: 520px;
+    border-radius: 32px;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 100%),
+      radial-gradient(circle at 50% 40%, #1E40AF, #0F172A);
+  }
+  .preview .person {
+    position: absolute;
+    top: 12%; left: 50%; transform: translateX(-50%);
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FBBF24, #B45309);
+    border: 4px solid rgba(255,255,255,0.2);
+  }
+  .preview .body {
+    position: absolute;
+    top: 50%; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 280px;
+    border-radius: 50% 50% 0 0;
+    background: linear-gradient(180deg, #6D28D9, #1E1B4B);
+  }
+  .preview .cap {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FDE047;
+    color: #1F2937;
+    padding: 16px 28px;
+    border-radius: 14px;
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .preview .duration {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(20px);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .clip-meta { padding: 0 40px 24px; display:flex; justify-content: space-between; align-items: center; }
+  .clip-meta h2 { font-size: 36px; font-weight: 800; }
+  .clip-meta .ratio { background: rgba(255,255,255,0.08); padding: 12px 20px; border-radius: 999px; font-size: 24px; font-weight: 700; }
+
+  .section-title { padding: 0 40px 18px; font-size: 36px; font-weight: 800; }
+
+  .platforms { padding: 0 40px; }
+  .platform-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    margin-bottom: 14px;
+  }
+  .platform-row .left { display: flex; align-items: center; gap: 22px; }
+  .icon-square {
+    width: 84px; height: 84px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    font-weight: 900;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .tt { background: linear-gradient(135deg, #00F2EA, #FF0050); position: relative; }
+  .tt::after { content:""; position:absolute; inset:6px; border-radius:18px; background:#000; }
+  .tt span { position:relative; z-index:1; color:#fff; font-family: "SF Pro Display", system-ui; }
+  .ig { background: linear-gradient(135deg, #FBBF24 0%, #F472B6 50%, #6366F1 100%); }
+  .yt { background: #FF0000; }
+  .yt::before { content: "▶"; }
+  .x  { background: #000; color: #fff; border: 1px solid #444; }
+  .li { background: #0A66C2; }
+  .tw { background: #6B7280; }
+  .info-text { font-size: 28px; font-weight: 700; }
+  .info-text .meta { display: block; font-size: 22px; font-weight: 500; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  .toggle {
+    width: 70px; height: 40px;
+    background: linear-gradient(90deg, #5EEAD4, #14B8A6);
+    border-radius: 20px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .toggle::after { content: ""; position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; background: #fff; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+  .toggle.off { background: rgba(255,255,255,0.15); }
+  .toggle.off::after { right: auto; left: 4px; }
+
+  .cta {
+    margin: 30px 40px 0;
+    padding: 32px;
+    background: linear-gradient(90deg, #FDE047 0%, #14B8A6 100%);
+    color: #0F172A;
+    border-radius: 999px;
+    font-size: 38px;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(20,184,166,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+  }
+</style>
+</head>
+<body>
+  <span class="bg-sparkle sp1"></span>
+  <span class="bg-sparkle sp2"></span>
+  <span class="bg-sparkle sp3"></span>
+  <span class="bg-sparkle sp4"></span>
+
+  <div class="copy">
+    <div class="eyebrow">One-tap Publish</div>
+    <h1 class="headline">Post <span class="grad">everywhere.</span><br/>In one tap.</h1>
+    <p class="sub">TikTok, Reels, Shorts, X, LinkedIn — captioned, sized, and scheduled.</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="status"><span>9:41</span><span>100%</span></div>
+      <div class="navbar"><span class="back">←</span><span class="title">Publish clip</span><span style="width:60px"></span></div>
+
+      <div class="preview-wrap">
+        <div class="preview">
+          <div class="person"></div>
+          <div class="body"></div>
+          <div class="cap">VIRAL HOOK 🔥</div>
+          <div class="duration">0:42</div>
+        </div>
+      </div>
+
+      <div class="clip-meta">
+        <h2>Hook #03</h2>
+        <span class="ratio">9:16 vertical</span>
+      </div>
+
+      <div class="section-title">Send to</div>
+      <div class="platforms">
+        <div class="platform-row">
+          <div class="left">
+            <div class="icon-square tt"><span>TT</span></div>
+            <div class="info-text">TikTok<span class="meta">@yourhandle · 12.4k followers</span></div>
+          </div>
+          <div class="toggle"></div>
+        </div>
+        <div class="platform-row">
+          <div class="left">
+            <div class="icon-square ig">IG</div>
+            <div class="info-text">Instagram Reels<span class="meta">@yourhandle · 8.1k followers</span></div>
+          </div>
+          <div class="toggle"></div>
+        </div>
+        <div class="platform-row">
+          <div class="left">
+            <div class="icon-square yt"></div>
+            <div class="info-text">YouTube Shorts<span class="meta">Your Channel · 4.2k subs</span></div>
+          </div>
+          <div class="toggle"></div>
+        </div>
+        <div class="platform-row">
+          <div class="left">
+            <div class="icon-square x">𝕏</div>
+            <div class="info-text">X (Twitter)<span class="meta">@yourhandle</span></div>
+          </div>
+          <div class="toggle off"></div>
+        </div>
+      </div>
+
+      <div class="cta">📡 Post to 3 platforms</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1290px; height: 2796px; overflow: hidden; font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
+  body {
+    background:
+      radial-gradient(circle at 80% 5%, rgba(255,255,255,0.18) 0%, transparent 35%),
+      radial-gradient(circle at 10% 95%, rgba(0,0,0,0.50) 0%, transparent 55%),
+      linear-gradient(160deg, #0B1F4F 0%, #1E3A8A 35%, #6D28D9 70%, #DB2777 100%);
+    position: relative;
+  }
+  .bg-sparkle { position: absolute; color: #fff; }
+  .bg-sparkle::before { content: "✦"; }
+  .sp1 { top: 220px; left: 100px; font-size: 70px; opacity: 0.5; }
+  .sp2 { top: 360px; right: 140px; font-size: 90px; opacity: 0.65; }
+  .sp3 { bottom: 900px; left: 70px; font-size: 50px; opacity: 0.4; }
+  .sp4 { bottom: 460px; right: 90px; font-size: 65px; opacity: 0.55; }
+
+  .copy { position: absolute; top: 200px; left: 90px; right: 90px; text-align: center; }
+  .eyebrow { font-size: 38px; font-weight: 700; letter-spacing: 8px; text-transform: uppercase; color: #7DD3FC; margin-bottom: 32px; }
+  .headline { font-size: 130px; font-weight: 900; line-height: 1.02; letter-spacing: -3px; margin-bottom: 36px; text-shadow: 0 4px 24px rgba(0,0,0,0.25); }
+  .grad { background: linear-gradient(90deg, #7DD3FC 0%, #C4B5FD 50%, #F0ABFC 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { font-size: 50px; font-weight: 500; line-height: 1.3; color: rgba(255,255,255,0.85); max-width: 1050px; margin: 0 auto; }
+
+  .phone { position: absolute; bottom: -180px; left: 50%; transform: translateX(-50%); width: 920px; height: 1880px; border-radius: 100px; background: linear-gradient(180deg, #0B1430 0%, #050818 100%); padding: 22px; box-shadow: 0 60px 120px rgba(0,0,0,0.55), 0 0 0 4px rgba(255,255,255,0.08), inset 0 0 0 2px rgba(255,255,255,0.06); }
+  .screen { width: 100%; height: 100%; border-radius: 80px; background: #050514; overflow: hidden; position: relative; }
+  .status { height: 64px; display: flex; justify-content: space-between; align-items: center; padding: 0 80px; font-size: 30px; font-weight: 600; }
+  .navbar { display: flex; align-items: center; padding: 20px 40px 10px; font-size: 32px; font-weight: 700; }
+  .navbar .back { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #7DD3FC; }
+  .navbar .title { flex: 1; text-align: center; }
+  .navbar .save { color: #F0ABFC; font-weight: 800; }
+
+  .preview-wrap { padding: 30px 40px; }
+  .preview {
+    position: relative;
+    height: 760px;
+    border-radius: 36px;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%),
+      radial-gradient(circle at 50% 35%, #FCD34D 0%, #F472B6 50%, #6D28D9 100%);
+    overflow: hidden;
+  }
+  .face-circle {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-58%);
+    width: 380px; height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FDE68A, #B45309);
+    box-shadow: 0 0 80px rgba(252, 211, 77, 0.5);
+    border: 6px solid rgba(255,255,255,0.5);
+  }
+  .face-circle::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 100px; height: 100px;
+    background: rgba(0,0,0,0.45);
+    border-radius: 50%;
+    box-shadow: 0 0 0 30px rgba(0,0,0,0.2);
+  }
+  .scan-line {
+    position: absolute;
+    top: 40%; left: 12%; right: 12%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #7DD3FC, transparent);
+    box-shadow: 0 0 30px #7DD3FC;
+  }
+  .label-tag {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(20px);
+    padding: 14px 22px;
+    border-radius: 16px;
+    font-size: 26px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pulse { width: 14px; height: 14px; background: #4ADE80; border-radius: 50%; }
+
+  .section-title { padding: 30px 50px 16px; font-size: 38px; font-weight: 800; }
+  .face-row { display: flex; gap: 22px; padding: 0 50px 30px; overflow-x: auto; }
+  .face-card {
+    width: 180px; height: 220px;
+    border-radius: 28px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    border: 4px solid transparent;
+  }
+  .face-card.active { border-color: #F0ABFC; box-shadow: 0 0 30px rgba(240,171,252,0.6); }
+  .face-card .name { position: absolute; bottom: 12px; left: 12px; right: 12px; font-size: 24px; font-weight: 700; }
+  .f1 { background: linear-gradient(135deg, #F472B6, #DB2777); }
+  .f2 { background: linear-gradient(135deg, #FCD34D, #F59E0B); }
+  .f3 { background: linear-gradient(135deg, #7DD3FC, #2563EB); }
+  .f4 { background: linear-gradient(135deg, #86EFAC, #16A34A); }
+  .f5 { background: linear-gradient(135deg, #C4B5FD, #7C3AED); }
+  .f-new { background: rgba(255,255,255,0.08); border: 2px dashed rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; font-size:60px; color: rgba(255,255,255,0.6); }
+
+  .strength {
+    margin: 20px 50px;
+    padding: 28px 36px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 28px;
+  }
+  .strength-row { display: flex; justify-content: space-between; font-size: 30px; font-weight: 600; margin-bottom: 16px; }
+  .strength-row span { color: #F0ABFC; }
+  .slider { height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; position: relative; }
+  .slider::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 78%;
+    background: linear-gradient(90deg, #7DD3FC, #F0ABFC);
+    border-radius: 5px;
+  }
+  .slider::after {
+    content: "";
+    position: absolute;
+    left: 78%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px; height: 34px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .cta-row { display: flex; gap: 16px; margin: 24px 50px 0; }
+  .cta-row > button {
+    flex: 1;
+    padding: 28px;
+    border-radius: 999px;
+    border: 0;
+    font-size: 34px;
+    font-weight: 800;
+  }
+  .cta-row .secondary { background: rgba(255,255,255,0.1); color: #fff; }
+  .cta-row .primary { background: linear-gradient(90deg, #7DD3FC, #F0ABFC); color: #0B1430; }
+</style>
+</head>
+<body>
+  <span class="bg-sparkle sp1"></span>
+  <span class="bg-sparkle sp2"></span>
+  <span class="bg-sparkle sp3"></span>
+  <span class="bg-sparkle sp4"></span>
+
+  <div class="copy">
+    <div class="eyebrow">AI Face Swap</div>
+    <h1 class="headline"><span class="grad">Swap any face.</span><br/>Every frame.</h1>
+    <p class="sub">Upload once. Apply to any clip. Studio-grade results in minutes.</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="status"><span>9:41</span><span>100%</span></div>
+      <div class="navbar"><span class="back">←</span><span class="title">AI Face Swap</span><span class="save">Apply</span></div>
+
+      <div class="preview-wrap">
+        <div class="preview">
+          <div class="face-circle"></div>
+          <div class="scan-line"></div>
+          <div class="label-tag"><span class="pulse"></span>Preview · 1.2s remaining</div>
+        </div>
+      </div>
+
+      <div class="section-title">Choose a face</div>
+      <div class="face-row">
+        <div class="face-card f1 active"><div class="name">Saved 1</div></div>
+        <div class="face-card f2"><div class="name">Saved 2</div></div>
+        <div class="face-card f3"><div class="name">Saved 3</div></div>
+        <div class="face-card f4"><div class="name">Saved 4</div></div>
+        <div class="face-card f-new">+</div>
+      </div>
+
+      <div class="strength">
+        <div class="strength-row"><span>Strength</span><span>0.78</span></div>
+        <div class="slider"></div>
+      </div>
+
+      <div class="cta-row">
+        <button class="secondary">Preview</button>
+        <button class="primary">Render →</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

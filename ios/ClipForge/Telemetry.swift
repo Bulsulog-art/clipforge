@@ -53,12 +53,11 @@ enum Telemetry {
             SentrySDK.capture(error: error) { scope in
                 if !context.isEmpty { scope.setContext(value: context, key: "extra") }
             }
+        } else {
+            #if DEBUG
+            print("[telemetry] \(error)\n  context=\(context)")
+            #endif
         }
-        // Only print in DEBUG — App Review's static string scan would otherwise
-        // surface user emails / error stacks present in identify() context.
-        #if DEBUG
-        else { print("[telemetry] \(error)\n  context=\(context)") }
-        #endif
     }
 
     /// Capture a non-error breadcrumb. Used for diagnostic context.
@@ -77,10 +76,11 @@ enum Telemetry {
                 if !data.isEmpty { scope.setContext(value: data, key: "event") }
                 scope.setLevel(.info)
             }
+        } else {
+            #if DEBUG
+            print("[event] \(name) \(data)")
+            #endif
         }
-        #if DEBUG
-        else { print("[event] \(name) \(data)") }
-        #endif
     }
 
     private static var isDebug: Bool {
