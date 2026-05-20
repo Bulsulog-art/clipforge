@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { avatarQueue } from "@/lib/queue";
+import { isOwnedPath } from "@/lib/security";
 
 const Body = z.object({
   script: z.string().min(10).max(1200),
@@ -34,17 +35,13 @@ export async function POST(req: Request) {
   }
 
   // Ownership guard: customImagePath MUST live under the user's own UUID
-  // prefix in storage. Without this, a malicious client could pass another
-  // user's face/path and our worker would render a lipsync deepfake of
-  // someone else's likeness.
-  if (body.customImagePath) {
-    const prefix = `${user.id}/`;
-    if (!body.customImagePath.startsWith(prefix) || body.customImagePath.includes("..")) {
-      return NextResponse.json(
-        { error: "customImagePath must be under your own user folder" },
-        { status: 403 },
-      );
-    }
+  // prefix in storage. Without this a malicious client could pass another
+  // user's face/path and our worker would render a lipsync deepfake.
+  if (!isOwnedPath(body.customImagePath, user.id)) {
+    return NextResponse.json(
+      { error: "customImagePath must be under your own user folder" },
+      { status: 403 },
+    );
   }
 
   const svc = createServiceClient();

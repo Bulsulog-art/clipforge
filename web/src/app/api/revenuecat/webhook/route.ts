@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { timingSafeEqual } from "node:crypto";
 import { createServiceClient } from "@/lib/supabase/server";
+import { bearerEquals } from "@/lib/security";
 
 type RCEvent = {
   type: string;
@@ -40,24 +40,8 @@ const CONSUMABLE_PRODUCTS: Record<string, number> = {
   clipforge_credits_20: 20,
 };
 
-function bearerOk(headerValue: string | null): boolean {
-  const secret = process.env.REVENUECAT_WEBHOOK_AUTH;
-  if (!secret || !headerValue) return false;
-  const expected = `Bearer ${secret}`;
-  // Constant-time compare — a plain !== leaks length & matched-prefix
-  // timing information to a remote attacker probing the shared secret.
-  const a = Buffer.from(headerValue);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  try {
-    return timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
-}
-
 export async function POST(req: Request) {
-  if (!bearerOk(req.headers.get("authorization"))) {
+  if (!bearerEquals(req.headers.get("authorization"), process.env.REVENUECAT_WEBHOOK_AUTH)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

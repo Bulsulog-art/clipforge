@@ -41,20 +41,25 @@ export async function postToInstagram(
   const tags = (clip.hashtags ?? []).map((t) => `#${t.replace(/^#/, "")}`).slice(0, 10);
   const caption = `${captionParts.join("\n\n")}\n\n${tags.join(" ")}`.slice(0, 2200);
 
+  // Move the access token out of the URL — IG Graph API accepts it as a
+  // Bearer header, which keeps it out of reverse-proxy access logs, Sentry
+  // breadcrumbs (URL gets captured), and worker process listings (ps auxf).
+  const authHeaders = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Authorization: `Bearer ${account.access_token}`,
+  };
+
   // 1) Create container
-  const createRes = await fetch(
-    `${FB_API}/${account.external_user_id}/media?access_token=${encodeURIComponent(account.access_token)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        media_type: "REELS",
-        video_url: signed.signedUrl,
-        caption,
-        share_to_feed: "true",
-      }),
-    },
-  );
+  const createRes = await fetch(`${FB_API}/${account.external_user_id}/media`, {
+    method: "POST",
+    headers: authHeaders,
+    body: new URLSearchParams({
+      media_type: "REELS",
+      video_url: signed.signedUrl,
+      caption,
+      share_to_feed: "true",
+    }),
+  });
   const created = (await createRes.json()) as { id?: string; error?: { message: string } };
   if (!createRes.ok || !created.id) {
     throw new Error(`IG container create failed: ${created.error?.message ?? createRes.status}`);
@@ -66,9 +71,9 @@ export async function postToInstagram(
   const start = Date.now();
   while (Date.now() - start < 120_000) {
     await new Promise((r) => setTimeout(r, 4000));
-    const statusRes = await fetch(
-      `${FB_API}/${containerId}?fields=status_code,status&access_token=${encodeURIComponent(account.access_token)}`,
-    );
+    const statusRes = await fetch(`${FB_API}/${containerId}?fields=status_code,status`, {
+      headers: { Authorization: `Bearer ${account.access_token}` },
+    });
     const sj = (await statusRes.json()) as { status_code?: string; status?: string };
     if (sj.status_code === "FINISHED") break;
     if (sj.status_code === "ERROR" || sj.status_code === "EXPIRED") {
@@ -77,14 +82,11 @@ export async function postToInstagram(
   }
 
   // 3) Publish
-  const pubRes = await fetch(
-    `${FB_API}/${account.external_user_id}/media_publish?access_token=${encodeURIComponent(account.access_token)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ creation_id: containerId }),
-    },
-  );
+  const pubRes = await fetch(`${FB_API}/${account.external_user_id}/media_publish`, {
+    method: "POST",
+    headers: authHeaders,
+    body: new URLSearchParams({ creation_id: containerId }),
+  });
   const pub = (await pubRes.json()) as { id?: string; error?: { message: string } };
   if (!pubRes.ok || !pub.id) {
     throw new Error(`IG publish failed: ${pub.error?.message ?? pubRes.status}`);
