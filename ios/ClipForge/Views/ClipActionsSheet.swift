@@ -13,6 +13,8 @@ struct ClipActionsSheet: View {
     @State private var error: String?
     @State private var showPaywall = false
     @State private var saving = false
+    @State private var showFaceSwapConsent = false
+    @AppStorage("faceSwapConsentGivenAt") private var faceSwapConsentGivenAt: Double = 0
 
     private let languages: [(code: String, label: String, flag: String)] = [
         ("en", "English", "🇺🇸"),
@@ -53,7 +55,11 @@ struct ClipActionsSheet: View {
                         .tint(.brand)
 
                         Button {
-                            Task { await runFaceSwap() }
+                            if faceSwapConsentGivenAt > 0 {
+                                Task { await runFaceSwap() }
+                            } else {
+                                showFaceSwapConsent = true
+                            }
                         } label: {
                             HStack { Spacer(); Text("Face swap now").fontWeight(.semibold); Spacer() }
                                 .padding()
@@ -160,6 +166,15 @@ struct ClipActionsSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
             }
             .sheet(isPresented: $showPaywall) { CreditsPaywallView() }
+            .alert("Face Swap Consent", isPresented: $showFaceSwapConsent) {
+                Button("Cancel", role: .cancel) { }
+                Button("I confirm — start swap") {
+                    faceSwapConsentGivenAt = Date().timeIntervalSince1970
+                    Task { await runFaceSwap() }
+                }
+            } message: {
+                Text("By tapping confirm, you certify that the face image you uploaded is YOUR OWN face, OR that you have explicit written consent from the person whose face this is.\n\nClipForge prohibits using Face Swap to impersonate, harass, defame, deceive, or otherwise infringe on others' rights. Violations may result in account suspension.\n\nAll uploaded face images are encrypted at rest and deleted on account deletion.")
+            }
             .background(Color.appBackground.ignoresSafeArea())
             .task { await credits.refresh() }
         }
@@ -181,6 +196,7 @@ struct ClipActionsSheet: View {
     }
 
     private func runFaceSwap() async {
+        guard faceSwapConsentGivenAt > 0 else { showFaceSwapConsent = true; return }
         guard credits.balance >= 2 else { showPaywall = true; return }
         guard let item = faceImage else { return }
         sending = true

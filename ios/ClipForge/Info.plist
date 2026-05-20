@@ -28,17 +28,13 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>NSCameraUsageDescription</key>
-	<string>ClipForge needs camera access to record video for clips.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>ClipForge needs microphone access to record audio.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>ClipForge needs to save finished clips to your Photos library.</string>
+	<string>ClipForge saves your finished clips to your Photos library when you tap “Save to Photos”.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>ClipForge needs photo library access to import videos.</string>
+	<string>ClipForge needs photo library access to import the videos and face images you choose to edit.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIBackgroundModes</key>
