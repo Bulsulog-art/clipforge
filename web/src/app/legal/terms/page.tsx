@@ -44,7 +44,7 @@ export default function TermsPage() {
       <p>These terms are governed by the laws of Türkiye, without regard to conflict-of-laws principles. Disputes go to courts of Istanbul.</p>
 
       <h2>Contact</h2>
-      <p>Bulsu Labs — <a href="mailto:hello@clipforge.bulsulabs.xyz">hello@clipforge.bulsulabs.xyz</a>.</p>
+      <p>Bulsu Labs — <a href="mailto:info@bulsulabs.com">info@bulsulabs.com</a> · <a href="https://bulsulabs.com">bulsulabs.com</a>.</p>
     </LegalShell>
   );
 }

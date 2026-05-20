@@ -37,7 +37,7 @@ export function LegalShell({
           <div className="flex gap-4">
             <Link href="/legal/terms">Terms</Link>
             <Link href="/legal/privacy">Privacy</Link>
-            <a href="mailto:hello@clipforge.bulsulabs.xyz">Contact</a>
+            <a href="mailto:info@bulsulabs.com">Contact</a>
           </div>
         </div>
       </footer>
