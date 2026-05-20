@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { encryptToken } from "@/lib/encryption";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -62,8 +63,8 @@ export async function GET(req: NextRequest) {
       external_user_id: token.open_id,
       username,
       display_name: displayName,
-      access_token: token.access_token,
-      refresh_token: token.refresh_token ?? null,
+      access_token: encryptToken(token.access_token),
+      refresh_token: token.refresh_token ? encryptToken(token.refresh_token) : null,
       expires_at: token.expires_in
         ? new Date(Date.now() + token.expires_in * 1000).toISOString()
         : null,

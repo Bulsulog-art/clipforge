@@ -7,17 +7,23 @@
  * credits so the reviewer can exercise every feature.
  *
  * Usage:
- *   pnpm tsx src/cli/setup-reviewer.ts <email> <password>
+ *   REVIEWER_EMAIL=… REVIEWER_PASSWORD=… pnpm tsx src/cli/setup-reviewer.ts
  *
- * Output: prints back the credentials + user id. Save them into App Store
- * Connect → App Review → Sign-In Information.
+ * Password from env (not argv) so it doesn't show up in `ps auxf` or
+ * shell history. Output prints back the credentials + user id once —
+ * paste them into App Store Connect → App Review → Sign-In Information.
  */
 import { supabase } from "../supabase.js";
 
 async function main() {
-  const [email, password] = process.argv.slice(2);
+  // Accept --email arg or REVIEWER_EMAIL env. Password is env-only on purpose.
+  const argEmail = process.argv.slice(2).find((a) => !a.startsWith("-"));
+  const email = process.env.REVIEWER_EMAIL ?? argEmail;
+  const password = process.env.REVIEWER_PASSWORD;
   if (!email || !password) {
-    console.error("Usage: setup-reviewer <email> <password>");
+    console.error(
+      "Usage: REVIEWER_EMAIL=review@example.com REVIEWER_PASSWORD=secret pnpm tsx src/cli/setup-reviewer.ts",
+    );
     process.exit(1);
   }
 
@@ -77,10 +83,10 @@ async function main() {
   });
 
   console.log("\n══════════════════════════════════════════════════════════════");
-  console.log("Apple App Review credentials — paste into ASC App Review tab");
+  console.log("Apple App Review setup complete — paste into ASC App Review tab");
   console.log("══════════════════════════════════════════════════════════════");
   console.log(`  email:    ${email}`);
-  console.log(`  password: ${password}`);
+  console.log(`  password: (from REVIEWER_PASSWORD env — not echoed)`);
   console.log(`  user_id:  ${userId}`);
   console.log(`  tier:     starter (Plus unlocked, watermark off)`);
   console.log(`  credits:  5 (covers full feature audit)`);

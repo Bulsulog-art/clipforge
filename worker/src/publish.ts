@@ -3,6 +3,8 @@ import { supabase } from "./supabase.js";
 import { postToTikTok } from "./publishers/tiktok.js";
 import { postToInstagram } from "./publishers/instagram.js";
 import { postToYouTubeShorts } from "./publishers/youtube.js";
+import { decryptToken } from "./lib/encryption.js";
+import type { PublisherAccount, PublisherClip } from "./types/social.js";
 
 type Payload = { publishId: string; userId: string; clipId: string; platform: string };
 
@@ -11,7 +13,7 @@ export async function runPublish(p: Payload) {
   await supabase.from("publishes").update({ status: "publishing" }).eq("id", p.publishId);
 
   try {
-    const [{ data: clip }, { data: account }] = await Promise.all([
+    const [{ data: clipRow }, { data: accountRow }] = await Promise.all([
       supabase.from("clips").select("*").eq("id", p.clipId).single(),
       supabase
         .from("social_accounts")
@@ -20,18 +22,30 @@ export async function runPublish(p: Payload) {
         .eq("platform", p.platform)
         .single(),
     ]);
-    if (!clip || !account) throw new Error("missing clip or social account");
+    if (!clipRow || !accountRow) throw new Error("missing clip or social account");
+
+    const clip = clipRow as PublisherClip;
+    // OAuth tokens were encrypted at rest by the TikTok/IG/YT callback; decrypt
+    // them just before use. decryptToken is a no-op for legacy plaintext rows
+    // so we don't have to flush the table when this rolls out.
+    const account: PublisherAccount = {
+      ...(accountRow as PublisherAccount),
+      access_token: decryptToken((accountRow as PublisherAccount).access_token),
+      refresh_token: (accountRow as PublisherAccount).refresh_token
+        ? decryptToken((accountRow as PublisherAccount).refresh_token as string)
+        : null,
+    };
 
     let result: { externalPostId: string; externalUrl: string };
     switch (p.platform) {
       case "tiktok":
-        result = await postToTikTok(account as any, clip as any);
+        result = await postToTikTok(account, clip);
         break;
       case "instagram":
-        result = await postToInstagram(account as any, clip as any);
+        result = await postToInstagram(account, clip);
         break;
       case "youtube":
-        result = await postToYouTubeShorts(account as any, clip as any);
+        result = await postToYouTubeShorts(account, clip);
         break;
       default:
         throw new Error(`platform ${p.platform} not implemented`);

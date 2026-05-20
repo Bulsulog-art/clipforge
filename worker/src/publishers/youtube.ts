@@ -1,23 +1,6 @@
 import { logger } from "../logger.js";
 import { supabase } from "../supabase.js";
-
-type SocialAccount = {
-  id: string;
-  user_id: string;
-  external_user_id: string;
-  access_token: string;
-  refresh_token: string | null;
-  expires_at: string | null;
-};
-
-type Clip = {
-  id: string;
-  user_id: string;
-  storage_path: string;
-  hook: string | null;
-  caption: string | null;
-  hashtags: string[] | null;
-};
+import type { PublisherAccount as SocialAccount, PublisherClip as Clip } from "../types/social.js";
 
 /**
  * Publish a clip to YouTube Shorts via the YouTube Data API v3 (resumable upload).

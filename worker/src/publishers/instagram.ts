@@ -1,20 +1,6 @@
 import { logger } from "../logger.js";
 import { supabase } from "../supabase.js";
-
-type SocialAccount = {
-  id: string;
-  external_user_id: string; // ig_user_id
-  access_token: string;
-};
-
-type Clip = {
-  id: string;
-  user_id: string;
-  storage_path: string;
-  hook: string | null;
-  caption: string | null;
-  hashtags: string[] | null;
-};
+import type { PublisherAccount as SocialAccount, PublisherClip as Clip } from "../types/social.js";
 
 const FB_API = "https://graph.facebook.com/v20.0";
 
