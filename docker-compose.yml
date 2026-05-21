@@ -33,6 +33,11 @@ services:
     env_file: ./web/.env
     environment:
       NODE_ENV: production
+      # Use the local faster-whisper service running alongside the worker.
+      # If `whisper` is unreachable, transcribe.ts auto-falls-back to OpenAI
+      # Whisper API ($0.006/min) so the pipeline keeps moving during a
+      # whisper-service restart. See worker/src/steps/transcribe.ts.
+      WHISPER_LOCAL_URL: http://whisper:8080
     restart: unless-stopped
     deploy:
       resources:
@@ -41,7 +46,40 @@ services:
           memory: 8G
     volumes:
       - worker_tmp:/tmp
-    depends_on: [redis]
+    depends_on:
+      - redis
+      - whisper
+    labels:
+      coolify.managed: "true"
+
+  whisper:
+    build:
+      context: ./worker/whisper-service
+      dockerfile: Dockerfile
+      # `small` (~500MB int8) is the default; bump to `large-v3-turbo` on a
+      # GPU host for ~10x faster transcription + better non-English accuracy.
+      args:
+        WHISPER_MODEL_SIZE: small
+    image: clipforge-whisper
+    environment:
+      WHISPER_MODEL_SIZE: small
+      WHISPER_DEVICE: cpu
+      WHISPER_COMPUTE_TYPE: int8
+    restart: unless-stopped
+    # 30-min podcast → ~3-5 min on 2 CPU at int8. Higher cap headroom helps
+    # parallel transcriptions when the queue spikes.
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/health',timeout=3).status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # First boot loads the model (~5-10s); give it room before health flips.
+      start_period: 30s
     labels:
       coolify.managed: "true"
 
