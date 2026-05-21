@@ -4,6 +4,8 @@ import CryptoKit
 
 struct LoginView: View {
     @State private var email = ""
+    @State private var password = ""
+    @State private var usePassword = false
     @State private var sending = false
     @State private var sent = false
     @State private var error: String?
@@ -56,8 +58,8 @@ struct LoginView: View {
                         .keyboardType(.emailAddress)
                         .autocorrectionDisabled()
                         .textContentType(.emailAddress)
-                        .submitLabel(.send)
-                        .onSubmit { Task { await sendMagicLink() } }
+                        .submitLabel(usePassword ? .next : .send)
+                        .onSubmit { Task { if !usePassword { await sendMagicLink() } } }
                         .onChange(of: email) { _, _ in
                             // user is editing — reset the success badge
                             if sent { sent = false }
@@ -67,12 +69,26 @@ struct LoginView: View {
                         .background(Color.cardBackground)
                         .clipShape(.rect(cornerRadius: 12))
 
+                    if usePassword {
+                        SecureField("Password", text: $password)
+                            .textContentType(.password)
+                            .submitLabel(.go)
+                            .onSubmit { Task { await signInWithPassword() } }
+                            .padding()
+                            .background(Color.cardBackground)
+                            .clipShape(.rect(cornerRadius: 12))
+                    }
+
                     Button {
-                        Task { await sendMagicLink() }
+                        Task {
+                            if usePassword { await signInWithPassword() } else { await sendMagicLink() }
+                        }
                     } label: {
                         HStack {
                             if sending { ProgressView().tint(.white) }
-                            Text(sent ? "Check your email" : "Send magic link")
+                            Text(usePassword
+                                 ? "Sign in"
+                                 : (sent ? "Check your email" : "Send magic link"))
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
@@ -81,7 +97,22 @@ struct LoginView: View {
                         .foregroundStyle(.white)
                         .clipShape(.rect(cornerRadius: 12))
                     }
-                    .disabled(sending || !Self.isValidEmail(email))
+                    .disabled(
+                        sending
+                        || !Self.isValidEmail(email)
+                        || (usePassword && password.isEmpty)
+                    )
+
+                    Button {
+                        usePassword.toggle()
+                        sent = false
+                        error = nil
+                    } label: {
+                        Text(usePassword ? "Use magic link instead" : "Use password instead")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 4)
                 }
                 .padding(.horizontal, 24)
 
@@ -105,21 +136,38 @@ struct LoginView: View {
         }
     }
 
+    private func signInWithPassword() async {
+        sending = true
+        defer { sending = false }
+        do {
+            try await SupabaseService.shared.signInWithPassword(
+                email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                password: password
+            )
+        } catch let e {
+            error = e.localizedDescription
+        }
+    }
+
     private func handleApple(_ result: Result<ASAuthorization, Error>) async {
         switch result {
         case .failure(let e):
-            // ASAuthorizationError codes: 1000 unknown (often Simulator/no-iCloud),
-            // 1001 canceled. Treat both as silent — user can use magic link instead.
             let code = (e as NSError).code
-            if code != ASAuthorizationError.canceled.rawValue && code != ASAuthorizationError.unknown.rawValue {
-                error = e.localizedDescription
+            if code == ASAuthorizationError.canceled.rawValue {
+                // Genuine user cancellation — don't show anything.
+                return
             }
+            // Everything else surfaces to the user so they (and App Review)
+            // can act on it. `.unknown` (1000) IS a real failure on hardware
+            // — only the Simulator-without-iCloud case is benign and that
+            // user can simply tap Email/Password instead.
+            error = "Sign in with Apple failed: \(e.localizedDescription). You can sign in with email + password instead."
             return
         case .success(let auth):
             guard let cred = auth.credential as? ASAuthorizationAppleIDCredential,
                   let tokenData = cred.identityToken,
                   let token = String(data: tokenData, encoding: .utf8) else {
-                error = "Apple didn't return an identity token. Try again or use email."
+                error = "Apple didn't return an identity token. Use email + password to sign in."
                 return
             }
             guard let nonce = currentNonce else {
@@ -129,7 +177,7 @@ struct LoginView: View {
             do {
                 try await SupabaseService.shared.signInWithApple(idToken: token, nonce: nonce)
             } catch let e {
-                error = e.localizedDescription
+                error = "Apple sign-in finished, but the server rejected the token (\(e.localizedDescription)). Use email + password to sign in."
             }
         }
     }
