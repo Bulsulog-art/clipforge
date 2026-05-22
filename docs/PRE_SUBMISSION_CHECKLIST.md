@@ -52,9 +52,10 @@ Web (`y11bhiffmpb3u2hdekwhjhdq`):
 - [ ] iOS app added — bundle id `com.bulsulabs.clipforge`
 - [ ] Apple App Store shared secret pasted (App Store Connect → Users → Shared Secret)
 - [ ] Products imported: `clipforge_plus_weekly`, `clipforge_plus_monthly`,
-      `clipforge_credits_10`, `clipforge_credits_20`
-- [ ] Entitlement `starter` → both subscription products attached
-- [ ] Offering `default` exists, containing all 4 packages
+      `clipforge_plus_yearly`, `clipforge_credits_booster`,
+      `clipforge_credits_power`, `clipforge_credits_pro`
+- [ ] Entitlement `starter` → all 3 subscription products attached
+- [ ] Offering `default` exists, containing all 6 packages
 - [ ] Webhook configured: `https://clipforge.bulsulabs.xyz/api/revenuecat/webhook`
       header `Authorization: Bearer <REVENUECAT_WEBHOOK_AUTH>`
 
@@ -62,11 +63,14 @@ Web (`y11bhiffmpb3u2hdekwhjhdq`):
 
 - [ ] App created at `appstoreconnect.apple.com` — bundle id matches
 - [ ] App Information filled (category, age rating)
-- [ ] 4 in-app purchases created:
-  - [ ] `clipforge_plus_weekly` (Auto-renewable, 1 week, $4.99)
+- [ ] 6 in-app purchases created:
+  - [ ] `clipforge_plus_weekly` (Auto-renewable, 1 week, $5.99)
   - [ ] `clipforge_plus_monthly` (Auto-renewable, 1 month, $14.99)
-  - [ ] `clipforge_credits_10` (Consumable, $4.99)
-  - [ ] `clipforge_credits_20` (Consumable, $7.99)
+  - [ ] `clipforge_plus_yearly` (Auto-renewable, 1 year, $59.99)
+  - [ ] `clipforge_credits_booster` (Consumable, $9.99 → +10 credits)
+  - [ ] `clipforge_credits_power` (Consumable, $19.99 → +30 credits)
+  - [ ] `clipforge_credits_pro` (Consumable, $49.99 → +80 credits)
+- [ ] **No Introductory Offer (free trial) configured on any subscription**
 - [ ] Subscription group `ClipForge Memberships` created
 - [ ] Promotional offer `plus_retention_1299` attached to `clipforge_plus_monthly`
       (3 months × $12.99, Existing Subscribers, Pay-as-you-go)
@@ -100,11 +104,19 @@ Suggested 90-second walk-through:
 7. Settings → Choose plan to see paywall localization
 
 Subscription IAPs:
-  clipforge_plus_weekly   $4.99/wk
-  clipforge_plus_monthly  $14.99/mo
+  clipforge_plus_weekly   $5.99/wk   → 10 credits / week
+  clipforge_plus_monthly  $14.99/mo  → 40 credits / month
+  clipforge_plus_yearly   $59.99/yr  → 500 credits / year (best value)
 
-Promotional offer (Apple win-back) triggers when user opens
-"Manage / cancel subscription" in Settings.
+Consumable credit packs (Plus members only):
+  clipforge_credits_booster  $9.99   → +10 credits
+  clipforge_credits_power    $19.99  → +30 credits
+  clipforge_credits_pro      $49.99  → +80 credits
+
+No free trial offered (introductory offer disabled on all subscriptions).
+
+Promotional offer (Apple win-back, $12.99/mo for 3 months) triggers when
+user opens "Manage / cancel subscription" in Settings.
 
 Renders run on our own Supabase + worker stack in EU. We do not train
 on user content. Free clips auto-delete after 30 days.

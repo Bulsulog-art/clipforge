@@ -46,13 +46,15 @@ in 60 seconds.
 — Pricing —
 
 Free taste — 1 free clip set on signup. Try the magic.
-Plus weekly — $4.99 → 10 credits / week.
-Plus monthly — $14.99 → 40 credits / month (save 25%).
+Plus weekly  — $5.99  → 10 credits / week.
+Plus monthly — $14.99 → 40 credits / month.
+Plus yearly  — $59.99 → 500 credits / year (best value).
 
-Plus members can also buy +10 ($4.99) or +20 ($7.99) consumable credit
-packs anytime. Credits never expire.
+Plus members can also top up anytime with consumable credit packs:
+Booster +10 ($9.99), Power +30 ($19.99), Pro +80 ($49.99).
+Credits never expire.
 
-Cancel anytime. Refund-safe consumables. No hidden upsell.
+Cancel anytime. Refund-safe consumables. No free trial, no hidden upsell.
 
 — Privacy —
 
@@ -154,8 +156,16 @@ Key flows:
 - Settings → Buy credits (test sandbox IAP)
 
 Subscription Sandbox IAPs:
-- clipforge_plus_weekly  ($4.99/wk)
-- clipforge_plus_monthly ($14.99/mo)
+- clipforge_plus_weekly  ($5.99/wk  → 10 credits/week)
+- clipforge_plus_monthly ($14.99/mo → 40 credits/month)
+- clipforge_plus_yearly  ($59.99/yr → 500 credits/year)
+
+Consumable IAPs (Plus members only):
+- clipforge_credits_booster ($9.99  → +10 credits)
+- clipforge_credits_power   ($19.99 → +30 credits)
+- clipforge_credits_pro     ($49.99 → +80 credits)
+
+No introductory offer (free trial) configured on any subscription.
 
 Promotional Offer (for cancel flow testing):
 - plus_retention_1299 attached to clipforge_plus_monthly
@@ -180,7 +190,7 @@ Thank you for reviewing!
 - [ ] Sign in with Apple works
 - [ ] Test account credentials ready
 - [ ] Promotional Offer 'plus_retention_1299' created in ASC
-- [ ] All 5 IAP products (3 subs + 2 consumables) created and submitted with the same build
+- [ ] All 6 IAP products (3 subs: weekly/monthly/yearly + 3 consumables: Booster/Power/Pro) created and submitted with the same build
 - [ ] APNs key uploaded to RevenueCat
 - [ ] Push notification works in TestFlight build
 - [ ] No "lorem ipsum" / TODOs / debug logs in production binary

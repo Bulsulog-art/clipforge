@@ -112,7 +112,7 @@ struct CreditsPaywallView: View {
                 Label("Plus members only", systemImage: "lock.fill")
                     .font(.headline)
                     .foregroundStyle(.brand)
-                Text("Credit packs are an exclusive perk for Plus subscribers. Start at $4.99/week and you can top up anytime.")
+                Text("Credit packs are an exclusive perk for Plus subscribers. Start at $5.99/week, or save big with $59.99/year — and top up whenever you need.")
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -141,10 +141,11 @@ struct CreditsPaywallView: View {
                 Text("What's in Plus?")
                     .font(.headline)
                 ForEach([
-                    "Plus weekly — 10 credits",
-                    "Plus monthly — 40 credits (save 25%)",
+                    "Plus weekly — 10 credits / week",
+                    "Plus monthly — 40 credits / month",
+                    "Plus yearly — 500 credits / year (best value)",
                     "All AI tools, no watermark",
-                    "Buy +10 / +20 credit packs any time",
+                    "Top-up packs: Booster +10 · Power +30 · Pro +80",
                 ], id: \.self) { line in
                     HStack(alignment: .top, spacing: 6) {
                         Image(systemName: "checkmark.circle.fill")

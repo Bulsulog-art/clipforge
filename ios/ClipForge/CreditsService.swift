@@ -15,9 +15,17 @@ final class CreditsService: ObservableObject {
 
     /// Consumable IAP product identifiers (App Store Connect → Monetization → In-App Purchases).
     /// These are only purchasable for Plus subscribers — UI gates this.
+    ///
+    /// Pricing tuned so packs never undercut subscriptions:
+    ///   Booster  10cr  $9.99   = $0.999/cr  (emergency top-up)
+    ///   Power    30cr  $19.99  = $0.666/cr  (middle — most popular choice)
+    ///   Pro      80cr  $49.99  = $0.624/cr  (best pack rate, still > yearly's $0.12/cr)
+    ///
+    /// Yearly subscription beats every pack on per-credit price, by design.
     static let creditPacks: [CreditPack] = [
-        .init(id: "clipforge_credits_10", credits: 10, price: "$4.99"),
-        .init(id: "clipforge_credits_20", credits: 20, price: "$7.99", popular: true),
+        .init(id: "clipforge_credits_booster", credits: 10, price: "$9.99"),
+        .init(id: "clipforge_credits_power",   credits: 30, price: "$19.99", popular: true),
+        .init(id: "clipforge_credits_pro",     credits: 80, price: "$49.99"),
     ]
 
     private init() {}

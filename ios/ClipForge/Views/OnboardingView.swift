@@ -24,7 +24,7 @@ struct OnboardingView: View {
         Page(
             icon: "bolt.circle.fill",
             title: "One free taste,\nthen Plus.",
-            body: "One clip set on the house — see the magic. Then Plus weekly $4.99 (10 cr/wk) or monthly $14.99 (40 cr/mo, save 25%). Top up with +10 or +20 packs.",
+            body: "One clip set on the house — see the magic. Then Plus weekly $5.99 (10 cr/wk), monthly $14.99 (40 cr/mo), or yearly $59.99 (500 cr — best value). Top up with Booster, Power, or Pro packs.",
             highlight: "Cancel anytime · refund-safe",
             isPushAsk: false
         ),

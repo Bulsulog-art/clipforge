@@ -11,16 +11,41 @@ struct PlansView: View {
     @StateObject private var rc = RevenueCatService.shared
     @StateObject private var credits = CreditsService.shared
 
-    @State private var billing: BillingPeriod = .monthly
+    @State private var billing: BillingPeriod = .yearly
     @State private var purchasing: String?
     @State private var restoring = false
     @State private var restoreMessage: String?
     @State private var error: String?
 
-    enum BillingPeriod: String, CaseIterable { case weekly, monthly }
+    enum BillingPeriod: String, CaseIterable { case weekly, monthly, yearly }
 
-    private static let weeklyId = "clipforge_plus_weekly"
+    private static let weeklyId  = "clipforge_plus_weekly"
     private static let monthlyId = "clipforge_plus_monthly"
+    private static let yearlyId  = "clipforge_plus_yearly"
+
+    private func productId(for period: BillingPeriod) -> String {
+        switch period {
+        case .weekly:  return Self.weeklyId
+        case .monthly: return Self.monthlyId
+        case .yearly:  return Self.yearlyId
+        }
+    }
+
+    private func creditsLabel(for period: BillingPeriod) -> String {
+        switch period {
+        case .weekly:  return "10 credits / week"
+        case .monthly: return "40 credits / month"
+        case .yearly:  return "500 credits / year"
+        }
+    }
+
+    private func priceSuffix(for period: BillingPeriod) -> String {
+        switch period {
+        case .weekly:  return "/wk"
+        case .monthly: return "/mo"
+        case .yearly:  return "/yr"
+        }
+    }
 
     private let features = [
         "No watermark",
@@ -51,7 +76,7 @@ struct PlansView: View {
                     infoCard(
                         title: "Plus-only credit packs",
                         icon: "bolt.fill",
-                        text: "Run out before the next refill? Plus members can buy +10 for $4.99 or +20 for $7.99 consumable packs — credits never expire."
+                        text: "Run out before the next refill? Plus members can top up with Booster (+10, $9.99), Power (+30, $19.99) or Pro (+80, $49.99) — credits never expire."
                     )
                     legalFooter
                     if let error {
@@ -134,13 +159,28 @@ struct PlansView: View {
     }
 
     private var billingPicker: some View {
-        Picker("Billing period", selection: $billing) {
-            Text("Weekly").tag(BillingPeriod.weekly)
-            Text("Monthly · Save 25%").tag(BillingPeriod.monthly)
+        VStack(spacing: 6) {
+            Picker("Billing period", selection: $billing) {
+                Text("Weekly").tag(BillingPeriod.weekly)
+                Text("Monthly").tag(BillingPeriod.monthly)
+                Text("Yearly").tag(BillingPeriod.yearly)
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: billing) { _, _ in Task { await Haptics.impact(.light) } }
+
+            // Highlight the savings on the currently selected period so users
+            // see the value prop without crowding the segmented control labels.
+            if billing == .yearly {
+                Text("Best value · ~83% off weekly price")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.green)
+            } else if billing == .monthly {
+                Text("Save ~38% vs weekly")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.brand)
+            }
         }
-        .pickerStyle(.segmented)
         .padding(.horizontal)
-        .onChange(of: billing) { _, _ in Task { await Haptics.impact(.light) } }
     }
 
     @ViewBuilder
@@ -185,7 +225,7 @@ struct PlansView: View {
     }
 
     private func planCard(offerings: Offerings) -> some View {
-        let productId = billing == .weekly ? Self.weeklyId : Self.monthlyId
+        let productId = productId(for: billing)
         let pkg = rc.package(productId: productId)
         let activeProduct = rc.activeProductId
 
@@ -206,7 +246,7 @@ struct PlansView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(pkg.storeProduct.localizedPriceString)
                             .font(.title.bold())
-                        Text(billing == .weekly ? "/wk" : "/mo")
+                        Text(priceSuffix(for: billing))
                             .foregroundStyle(.secondary)
                     }
                 } else {
@@ -218,7 +258,7 @@ struct PlansView: View {
                 introBadge(intro)
             }
 
-            Text(billing == .weekly ? "10 credits / week" : "40 credits / month")
+            Text(creditsLabel(for: billing))
                 .foregroundStyle(.brand)
                 .font(.callout.bold())
 

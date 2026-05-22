@@ -15,29 +15,51 @@ type RCEvent = {
 /**
  * Pricing model — single Plus tier, no Pro:
  *
- *   Plus weekly      $4.99   → 10 credits / week
+ *   Plus weekly      $5.99   → 10 credits / week
  *   Plus monthly     $14.99  → 40 credits / month
- *   Plus retention   $12.99  → 40 credits / month  (win-back offer)
+ *   Plus yearly      $59.99  → 500 credits / year   (aggressive loyalty price)
+ *   Plus retention   $12.99  → 40 credits / month   (win-back offer)
  *
  *   Plus-only packs (consumable, gated client-side by entitlement):
- *     Pack 10        $4.99   → 10 credits
- *     Pack 20        $7.99   → 20 credits
+ *     Booster        $9.99   → 10 credits   ($0.999/cr  — emergency top-up)
+ *     Power          $19.99  → 30 credits   ($0.666/cr)
+ *     Pro            $49.99  → 80 credits   ($0.624/cr  — best pack rate)
+ *
+ *   Legacy packs (still honored if any old transactions arrive):
+ *     clipforge_credits_10 → 10 credits
+ *     clipforge_credits_20 → 20 credits
+ *
+ * Pack pricing is deliberately above subscription per-credit rate so packs
+ * never undercut subs — they're for "need credits RIGHT NOW, don't want a
+ * recurring charge" moments. Yearly ($0.12/cr) is the absolute best deal,
+ * rewarding upfront commitment.
  *
  * Apple iade-safe: consumable packs can't be refunded after consume.
- * Margin floor: 71% retention / 75% monthly / 81% weekly (at 40% utilization).
+ * Margins after economic stack (faster-whisper local, see worker/whisper-service):
+ *   Weekly  81%+
+ *   Monthly 75%+
+ *   Yearly  66%+ (worst case: 250 face_swaps), 88% realistic mixed usage
+ *   Booster pack 95%+ (10 credits × ~$0.05 cost = $0.50 COGS on $9.99 price)
  */
 const SUBSCRIPTION_PRODUCTS: Record<
   string,
-  { tier: "starter"; credits: number; period: "weekly" | "monthly" }
+  { tier: "starter"; credits: number; period: "weekly" | "monthly" | "yearly" }
 > = {
-  clipforge_plus_weekly:            { tier: "starter", credits: 10, period: "weekly" },
-  clipforge_plus_monthly:           { tier: "starter", credits: 40, period: "monthly" },
-  clipforge_plus_monthly_retention: { tier: "starter", credits: 40, period: "monthly" },
+  clipforge_plus_weekly:            { tier: "starter", credits: 10,  period: "weekly"  },
+  clipforge_plus_monthly:           { tier: "starter", credits: 40,  period: "monthly" },
+  clipforge_plus_monthly_retention: { tier: "starter", credits: 40,  period: "monthly" },
+  clipforge_plus_yearly:            { tier: "starter", credits: 500, period: "yearly"  },
 };
 
 const CONSUMABLE_PRODUCTS: Record<string, number> = {
-  clipforge_credits_10: 10,
-  clipforge_credits_20: 20,
+  // New consumable packs (Apr 2026 pricing refresh)
+  clipforge_credits_booster: 10,
+  clipforge_credits_power:   30,
+  clipforge_credits_pro:     80,
+  // Legacy IDs — honored in case any test/sandbox transactions still reference them.
+  // Safe to remove once ASC confirms no live products with these IDs exist.
+  clipforge_credits_10:      10,
+  clipforge_credits_20:      20,
 };
 
 export async function POST(req: Request) {

@@ -113,17 +113,23 @@ export default function LandingPage() {
               Run out of credits before the next refill? Plus members can top up instantly inside the app. One-time consumable purchases — credits never auto-renew, never expire.
             </p>
           </div>
-          <div className="mx-auto mt-6 grid max-w-xl gap-4 md:grid-cols-2">
+          <div className="mx-auto mt-6 grid max-w-2xl gap-4 md:grid-cols-3">
             <div className="rounded-xl border border-border/50 bg-card/40 p-4 text-center">
               <div className="text-2xl font-semibold">+10</div>
-              <div className="text-xs text-muted-foreground">credits</div>
-              <div className="mt-2 text-lg font-bold">$4.99</div>
+              <div className="text-xs text-muted-foreground">Booster</div>
+              <div className="mt-2 text-lg font-bold">$9.99</div>
             </div>
             <div className="rounded-xl border border-brand bg-brand/5 p-4 text-center">
-              <div className="text-2xl font-semibold">+20</div>
-              <div className="text-xs text-muted-foreground">credits</div>
-              <div className="mt-2 text-lg font-bold">$7.99</div>
-              <div className="mt-1 text-xs text-brand">best value</div>
+              <div className="text-2xl font-semibold">+30</div>
+              <div className="text-xs text-muted-foreground">Power</div>
+              <div className="mt-2 text-lg font-bold">$19.99</div>
+              <div className="mt-1 text-xs text-brand">most popular</div>
+            </div>
+            <div className="rounded-xl border border-border/50 bg-card/40 p-4 text-center">
+              <div className="text-2xl font-semibold">+80</div>
+              <div className="text-xs text-muted-foreground">Pro</div>
+              <div className="mt-2 text-lg font-bold">$49.99</div>
+              <div className="mt-1 text-xs text-muted-foreground">$0.62 / credit</div>
             </div>
           </div>
           <p className="mt-4 text-center text-xs text-muted-foreground">
@@ -142,7 +148,7 @@ export default function LandingPage() {
           <dl className="mt-12 space-y-6">
             <Faq
               q="Is the free tier really one clip set forever?"
-              a="Yes. You get one full clip set on signup — drop a YouTube link up to 5 minutes, we'll cut and caption it. After that, Plus weekly is $4.99 (10 credits a week, cancel anytime). Watermark and a 'Made with ClipForge' outro are added to free renders."
+              a="Yes. You get one full clip set on signup — drop a YouTube link up to 5 minutes, we'll cut and caption it. After that, Plus weekly is $5.99 (10 credits a week, cancel anytime). Watermark and a 'Made with ClipForge' outro are added to free renders."
             />
             <Faq
               q="What's a credit?"
@@ -214,10 +220,12 @@ function Feature({ icon, title, body, badge }: { icon: React.ReactNode; title: s
   );
 }
 
-type BillingPeriod = "weekly" | "monthly";
+type BillingPeriod = "weekly" | "monthly" | "yearly";
 
 function PricingTabs() {
-  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+  // Default to yearly — best per-credit deal, highest LTV, anchors the
+  // visitor on the largest commitment first.
+  const [period, setPeriod] = useState<BillingPeriod>("yearly");
 
   const free = {
     name: "Free",
@@ -234,10 +242,12 @@ function PricingTabs() {
 
   const plus = {
     name: "Plus",
-    weeklyPrice: "$4.99",
+    weeklyPrice: "$5.99",
     weeklyCredits: "10 credits / week",
     monthlyPrice: "$14.99",
     monthlyCredits: "40 credits / month",
+    yearlyPrice: "$59.99",
+    yearlyCredits: "500 credits / year",
     body: "Everything unlocked.",
     features: [
       "No watermark",
@@ -255,6 +265,13 @@ function PricingTabs() {
     highlight: true,
   };
 
+  const priceFor = (p: BillingPeriod) =>
+    p === "weekly" ? plus.weeklyPrice : p === "monthly" ? plus.monthlyPrice : plus.yearlyPrice;
+  const creditsFor = (p: BillingPeriod) =>
+    p === "weekly" ? plus.weeklyCredits : p === "monthly" ? plus.monthlyCredits : plus.yearlyCredits;
+  const periodLabelFor = (p: BillingPeriod) =>
+    p === "weekly" ? "/wk" : p === "monthly" ? "/mo" : "/yr";
+
   return (
     <>
       <div className="mx-auto mt-8 flex w-fit rounded-full border border-border/50 bg-card/40 p-1">
@@ -270,13 +287,22 @@ function PricingTabs() {
         <button
           type="button"
           onClick={() => setPeriod("monthly")}
-          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${
+          className={`rounded-full px-4 py-1.5 text-sm font-medium ${
             period === "monthly" ? "bg-brand text-white" : "text-muted-foreground"
           }`}
         >
           Monthly
+        </button>
+        <button
+          type="button"
+          onClick={() => setPeriod("yearly")}
+          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${
+            period === "yearly" ? "bg-brand text-white" : "text-muted-foreground"
+          }`}
+        >
+          Yearly
           <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-bold text-brand">
-            Save 25%
+            Best value
           </span>
         </button>
       </div>
@@ -291,10 +317,10 @@ function PricingTabs() {
         />
         <PlanCard
           name={plus.name}
-          price={period === "weekly" ? plus.weeklyPrice : plus.monthlyPrice}
-          periodLabel={period === "weekly" ? "/wk" : "/mo"}
+          price={priceFor(period)}
+          periodLabel={periodLabelFor(period)}
           body={plus.body}
-          creditsLine={period === "weekly" ? plus.weeklyCredits : plus.monthlyCredits}
+          creditsLine={creditsFor(period)}
           features={plus.features}
           highlight={plus.highlight}
           cta={plus.cta}
@@ -306,8 +332,10 @@ function PricingTabs() {
         <span className="font-semibold text-foreground">$12.99/mo</span> instead — win-back offer.
       </p>
       <p className="mt-2 text-center text-xs text-muted-foreground">
-        Plus members can buy <span className="text-foreground">+10 credits for $4.99</span> or{" "}
-        <span className="text-foreground">+20 credits for $7.99</span> any time.
+        Need more credits in a hurry? Plus members can grab{" "}
+        <span className="text-foreground">Booster +10 ($9.99)</span>,{" "}
+        <span className="text-foreground">Power +30 ($19.99)</span> or{" "}
+        <span className="text-foreground">Pro +80 ($49.99)</span> any time — never expires.
       </p>
     </>
   );
