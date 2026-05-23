@@ -301,6 +301,26 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Bulk clip actions
+
+    /// Set is_favorite on a batch of clips owned by the caller. Capped
+    /// server-side at 200 ids per request.
+    func bulkFavoriteClips(ids: [String], favorite: Bool) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/clips/bulk-favorite"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        struct Body: Encodable { let ids: [String]; let favorite: Bool }
+        req.httpBody = try JSONEncoder().encode(Body(ids: ids, favorite: favorite))
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Push notification preferences
 
     /// Returns the user's per-kind push opt-in map. Missing keys default to
