@@ -11,6 +11,12 @@ export async function POST(req: Request) {
   const file = form.get("file");
   const niche = String(form.get("niche") ?? "motivation");
   const language = String(form.get("language") ?? "en");
+  // Optional thumbnail style. Worker switches FFmpeg recipe on this.
+  const rawThumbStyle = String(form.get("thumbnailStyle") ?? "");
+  const thumbnailStyle: "mrbeast" | "cinematic" | "minimal" | undefined =
+    rawThumbStyle === "mrbeast" || rawThumbStyle === "cinematic" || rawThumbStyle === "minimal"
+      ? rawThumbStyle
+      : undefined;
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "file missing" }, { status: 400 });
@@ -44,7 +50,15 @@ export async function POST(req: Request) {
 
   await videoQueue.add(
     "ingest",
-    { jobId: job.id, userId: user.id, sourceType: "upload", storagePath: path, niche, language },
+    {
+      jobId: job.id,
+      userId: user.id,
+      sourceType: "upload",
+      storagePath: path,
+      niche,
+      language,
+      thumbnailStyle,
+    },
     { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 } },
   );
 

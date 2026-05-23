@@ -93,6 +93,13 @@ export type VideoJobPayload = {
   storagePath?: string;
   niche?: string;
   language?: string;
+  /**
+   * Thumbnail style picked at submit time. Workers switch on this in the
+   * thumbnail step. Values: "mrbeast" (default, big punchy text on a
+   * saturated frame), "cinematic" (letterbox + lower-third caption),
+   * "minimal" (clean clip frame + small caption pill).
+   */
+  thumbnailStyle?: "mrbeast" | "cinematic" | "minimal";
 };
 
 export type PublishJobPayload = {

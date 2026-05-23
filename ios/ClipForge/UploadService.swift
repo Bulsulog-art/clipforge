@@ -41,6 +41,7 @@ final class UploadService: NSObject, ObservableObject {
         fileMime: String,
         niche: String,
         language: String,
+        thumbnailStyle: String?,
         workDir: URL
     ) throws -> (URL, String) {
         let boundary = "clipforge-\(UUID().uuidString)"
@@ -58,6 +59,9 @@ final class UploadService: NSObject, ObservableObject {
         }
         writeField("niche", value: niche)
         writeField("language", value: language)
+        if let thumbnailStyle, !thumbnailStyle.isEmpty {
+            writeField("thumbnailStyle", value: thumbnailStyle)
+        }
         // File part
         let fileName = fileURL.lastPathComponent
         handle.write("--\(boundary)\r\n".data(using: .utf8)!)
@@ -82,7 +86,8 @@ final class UploadService: NSObject, ObservableObject {
     func upload(
         fileURL: URL,
         niche: String,
-        language: String = "en"
+        language: String = "en",
+        thumbnailStyle: String? = nil
     ) async throws {
         guard let token = SupabaseService.shared.session?.accessToken else {
             throw APIError.unauthorized
@@ -98,6 +103,7 @@ final class UploadService: NSObject, ObservableObject {
             fileMime: mime,
             niche: niche,
             language: language,
+            thumbnailStyle: thumbnailStyle,
             workDir: tmp
         )
 

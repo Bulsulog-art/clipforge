@@ -18,6 +18,7 @@ const Body = z.object({
   bgMusicMood: z
     .enum(["hype", "chill", "motivational", "dramatic", "lofi", "cinematic", "comedic"])
     .optional(),
+  thumbnailStyle: z.enum(["mrbeast", "cinematic", "minimal"]).optional(),
 });
 
 export async function POST(req: Request) {
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
       sourceUrl: body.sourceUrl,
       niche: body.niche,
       language: body.language,
+      thumbnailStyle: body.thumbnailStyle,
     },
     { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 } },
   );

@@ -11,6 +11,7 @@ struct NewProjectSheet: View {
     @State private var error: String?
     @State private var bgMusic: Bool = true
     @State private var bgMusicMood: String = "auto"
+    @State private var thumbnailStyle: String = "mrbeast"
     let seed: NewProjectSeed?
     let onCreated: () -> Void
 
@@ -18,7 +19,17 @@ struct NewProjectSheet: View {
         self.seed = seed
         self.onCreated = onCreated
         _niche = State(initialValue: seed?.niche ?? "motivation")
+        // Restore the user's last thumbnail choice so repeat creators don't
+        // have to re-pick every time. Default to "mrbeast" on first run.
+        let stored = UserDefaults.standard.string(forKey: "clipforge.thumbnailStyle") ?? "mrbeast"
+        _thumbnailStyle = State(initialValue: stored)
     }
+
+    private let thumbnailStyles: [(value: String, label: String, desc: String, icon: String)] = [
+        ("mrbeast",   "Punchy",    "Saturated frame, big bold hook — MrBeast / Veritasium energy.",          "bolt.fill"),
+        ("cinematic", "Cinematic", "Letterbox bars, desaturated colour, lower-third caption with film grain.", "film.fill"),
+        ("minimal",   "Minimal",   "Clean clip frame with a small caption pill — Apple / Linear aesthetic.",   "circle.dotted"),
+    ]
 
     private let niches = ["motivation", "business", "finance", "health", "tech",
                           "education", "comedy", "fitness", "spirituality"]
@@ -110,6 +121,44 @@ struct NewProjectSheet: View {
                 }
 
                 Section {
+                    ForEach(thumbnailStyles, id: \.value) { item in
+                        Button {
+                            thumbnailStyle = item.value
+                            UserDefaults.standard.set(item.value, forKey: "clipforge.thumbnailStyle")
+                            Task { await Haptics.impact(.light) }
+                        } label: {
+                            HStack(alignment: .top, spacing: 10) {
+                                Image(systemName: thumbnailStyle == item.value ? "checkmark.circle.fill" : "circle")
+                                    .foregroundStyle(thumbnailStyle == item.value ? Color.brand : .secondary)
+                                    .padding(.top, 2)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: item.icon)
+                                            .foregroundStyle(.brand)
+                                            .font(.caption)
+                                        Text(item.label)
+                                            .font(.callout.weight(.semibold))
+                                            .foregroundStyle(.primary)
+                                    }
+                                    Text(item.desc)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+                                Spacer(minLength: 0)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } header: {
+                    Text("Thumbnail style")
+                } footer: {
+                    Text("All clips in this project will use this style. You can pick a different one for the next render.")
+                        .font(.caption2)
+                }
+
+                Section {
                     Toggle(isOn: $bgMusic) {
                         Label("Background music", systemImage: "music.note")
                     }
@@ -169,7 +218,8 @@ struct NewProjectSheet: View {
                 sourceUrl: url,
                 niche: niche,
                 bgMusic: bgMusic,
-                bgMusicMood: bgMusicMood == "auto" ? nil : bgMusicMood
+                bgMusicMood: bgMusicMood == "auto" ? nil : bgMusicMood,
+                thumbnailStyle: thumbnailStyle
             )
             if !jobId.isEmpty {
                 RenderActivityKit.start(

@@ -47,7 +47,8 @@ final class ClipForgeAPI {
         sourceUrl: String,
         niche: String,
         bgMusic: Bool = true,
-        bgMusicMood: String? = nil
+        bgMusicMood: String? = nil,
+        thumbnailStyle: String? = nil
     ) async throws -> String {
         guard let token = SupabaseService.shared.session?.accessToken else {
             throw Error.unauthorized
@@ -64,6 +65,7 @@ final class ClipForgeAPI {
             let language: String
             let bgMusic: Bool
             let bgMusicMood: String?
+            let thumbnailStyle: String?
         }
         req.httpBody = try JSONEncoder().encode(
             CreateJobBody(
@@ -72,7 +74,8 @@ final class ClipForgeAPI {
                 niche: niche,
                 language: "en",
                 bgMusic: bgMusic,
-                bgMusicMood: bgMusicMood
+                bgMusicMood: bgMusicMood,
+                thumbnailStyle: thumbnailStyle
             )
         )
         let (data, resp) = try await URLSession.shared.data(for: req)

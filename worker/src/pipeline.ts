@@ -19,6 +19,11 @@ type Payload = {
   storagePath?: string;
   niche?: string;
   language?: string;
+  /**
+   * User-picked thumbnail style. Switches the FFmpeg compose recipe in
+   * `generateThumbnail`. Default `mrbeast` matches the prior behaviour.
+   */
+  thumbnailStyle?: "mrbeast" | "cinematic" | "minimal";
 };
 
 const STAGE_RANGES = {
@@ -198,6 +203,7 @@ export async function runVideoPipeline(p: Payload) {
             durationSec: render.durationSec,
             workDir: work,
             aiBackground: aiThumbnails,
+            style: p.thumbnailStyle ?? "mrbeast",
           });
           thumbnailPath = thumb.storagePath;
         } catch (e) {

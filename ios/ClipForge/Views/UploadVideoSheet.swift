@@ -15,6 +15,8 @@ struct UploadVideoSheet: View {
     @State private var stagedDurationSec: Double?
     @State private var stagedSizeMB: Double?
     @State private var niche = "motivation"
+    @State private var thumbnailStyle: String =
+        UserDefaults.standard.string(forKey: "clipforge.thumbnailStyle") ?? "mrbeast"
     @State private var preparing = false
     @State private var showPaywall = false
     @State private var error: String?
@@ -77,6 +79,18 @@ struct UploadVideoSheet: View {
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
+                    }
+                }
+
+                Section("Thumbnail style") {
+                    Picker("Style", selection: $thumbnailStyle) {
+                        Text("Punchy").tag("mrbeast")
+                        Text("Cinematic").tag("cinematic")
+                        Text("Minimal").tag("minimal")
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: thumbnailStyle) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "clipforge.thumbnailStyle")
                     }
                 }
 
@@ -207,7 +221,7 @@ struct UploadVideoSheet: View {
         if credits.balance < 1 { showPaywall = true; return }
         await Haptics.impact(.medium)
         do {
-            try await uploader.upload(fileURL: url, niche: niche)
+            try await uploader.upload(fileURL: url, niche: niche, thumbnailStyle: thumbnailStyle)
             DailyPickService.rememberNiche(niche)
         } catch {
             self.error = error.localizedDescription
