@@ -301,6 +301,30 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Account export
+
+    /// Download the user's GDPR data export as a JSON file. The file is
+    /// returned with Content-Disposition: attachment; we write it to a
+    /// temp path the caller can share / save.
+    func exportAccountData() async throws -> URL {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/account/export"))
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        // Write to temp file so the caller (FeedbackSheet share button)
+        // can hand a real fileURL to UIActivityViewController.
+        let filename = "clipforge-export-\(ISO8601DateFormatter().string(from: Date()).prefix(10)).json"
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(String(filename))
+        try data.write(to: tmp, options: .atomic)
+        return tmp
+    }
+
     // MARK: - Referrals
 
     struct ReferralInfo: Decodable {

@@ -11,6 +11,10 @@ struct SettingsView: View {
     @State private var deleting = false
     @State private var showFeedback = false
     @State private var showReferrals = false
+    @State private var exporting = false
+    @State private var exportError: String?
+    @State private var exportFileURL: URL?
+    @State private var showExportShare = false
 
     var body: some View {
         NavigationStack {
@@ -70,6 +74,24 @@ struct SettingsView: View {
                     }
                 }
                 Section {
+                    Button {
+                        Task { await performExport() }
+                    } label: {
+                        HStack {
+                            if exporting {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                Image(systemName: "square.and.arrow.down.on.square")
+                            }
+                            Text(exporting ? "Preparing export…" : "Export my data")
+                        }
+                    }
+                    .disabled(exporting)
+                    if let err = exportError {
+                        Text(err).font(.caption2).foregroundStyle(.red)
+                    }
+                }
+                Section {
                     Button("Sign out", role: .destructive) {
                         showSignOutConfirm = true
                     }
@@ -87,6 +109,11 @@ struct SettingsView: View {
             .sheet(isPresented: $showCancelFlow) { CancelFlowView() }
             .sheet(isPresented: $showFeedback) { FeedbackSheet() }
             .sheet(isPresented: $showReferrals) { ReferralsSheet() }
+            .sheet(isPresented: $showExportShare) {
+                if let url = exportFileURL {
+                    ShareSheet(items: [url])
+                }
+            }
             .task { await credits.refresh() }
             .confirmationDialog(
                 "Sign out?",
@@ -122,6 +149,24 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    /// GDPR Article 20 + App Store Review Guideline 5.1.1(v). Downloads the
+    /// user's bundled data JSON from the backend and opens a share sheet so
+    /// they can save it to Files / iCloud Drive / forward to themselves.
+    private func performExport() async {
+        exporting = true
+        exportError = nil
+        defer { exporting = false }
+        do {
+            let url = try await ClipForgeAPI.shared.exportAccountData()
+            exportFileURL = url
+            await Haptics.notify(.success)
+            showExportShare = true
+        } catch {
+            exportError = error.localizedDescription
+            await Haptics.notify(.error)
         }
     }
 
