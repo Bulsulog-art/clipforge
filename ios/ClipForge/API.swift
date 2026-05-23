@@ -301,6 +301,67 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Publish history
+
+    struct PublishHistoryRow: Identifiable, Decodable, Hashable {
+        let id: String
+        let platform: String
+        let status: String              // pending | publishing | published | failed
+        let scheduledFor: String?
+        let publishedAt: String?
+        let externalUrl: String?
+        let errorMessage: String?
+        let caption: String?
+        let createdAt: String?
+        let clipHook: String?
+        let clipThumbnailPath: String?
+    }
+
+    /// Fetch the user's last 100 publish rows joined with the originating
+    /// clip's hook + thumbnail path for visual context.
+    func fetchPublishHistory() async throws -> [PublishHistoryRow] {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/publishes"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        struct Resp: Decodable { let publishes: [PublishHistoryRow] }
+        return try JSONDecoder().decode(Resp.self, from: data).publishes
+    }
+
+    /// Cancel a scheduled (status=pending) publish. Removes the BullMQ
+    /// delayed job and marks the row as failed with "Cancelled by user".
+    func cancelPublish(id: String) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/publishes/\(id)"))
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
+    /// Re-enqueue a failed publish. Only failed rows are eligible server-side.
+    func retryPublish(id: String) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/publishes/\(id)/retry"))
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Custom branding (Plus feature)
 
     struct Branding: Decodable {

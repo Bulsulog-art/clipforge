@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showFeedback = false
     @State private var showReferrals = false
     @State private var showBranding = false
+    @State private var showPublishHistory = false
     @State private var exporting = false
     @State private var exportError: String?
     @State private var exportFileURL: URL?
@@ -55,6 +56,11 @@ struct SettingsView: View {
                         showBranding = true
                     } label: {
                         Label("Custom branding · Plus", systemImage: "checkerboard.shield")
+                    }
+                    Button {
+                        showPublishHistory = true
+                    } label: {
+                        Label("Publish history", systemImage: "paperplane.circle")
                     }
                 }
                 Section("Support") {
@@ -116,6 +122,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showFeedback) { FeedbackSheet() }
             .sheet(isPresented: $showReferrals) { ReferralsSheet() }
             .sheet(isPresented: $showBranding) { BrandingSheet() }
+            .sheet(isPresented: $showPublishHistory) { PublishHistorySheet() }
             .sheet(isPresented: $showExportShare) {
                 if let url = exportFileURL {
                     ShareSheet(items: [url])
