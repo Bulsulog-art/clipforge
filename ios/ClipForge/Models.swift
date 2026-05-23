@@ -31,6 +31,10 @@ struct Clip: Identifiable, Codable, Hashable {
     /// server hasn't backfilled the column on older clips (decoder uses
     /// `decodeIfPresent` via Bool?? trick on the Codable side).
     let isFavorite: Bool?
+    /// ISO8601 timestamp from the server. Needed for time-bucketed stats
+    /// and the Inbox feed; optional because older Supabase emit paths may
+    /// omit it on rare rows.
+    let createdAt: String?
     enum CodingKeys: String, CodingKey {
         case id, hook, caption, hashtags, status
         case jobId = "job_id"
@@ -40,5 +44,6 @@ struct Clip: Identifiable, Codable, Hashable {
         case durationSeconds = "duration_seconds"
         case sourceKind = "source_kind"
         case isFavorite = "is_favorite"
+        case createdAt = "created_at"
     }
 }

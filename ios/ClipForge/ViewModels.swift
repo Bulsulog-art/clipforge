@@ -123,7 +123,8 @@ final class ClipsFeedViewModel: ObservableObject {
             durationSeconds: original.durationSeconds,
             sourceKind: original.sourceKind,
             status: original.status,
-            isFavorite: newValue
+            isFavorite: newValue,
+            createdAt: original.createdAt
         )
         do {
             try await ClipForgeAPI.shared.setClipFavorite(id: clipId, favorite: newValue)

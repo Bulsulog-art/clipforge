@@ -179,6 +179,10 @@ struct StatsSheet: View {
             f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
             return f
         }()
+        func parse(_ s: String?) -> Date? {
+            guard let s else { return nil }
+            return isoStrict.date(from: s) ?? isoFrac.date(from: s)
+        }
         // Seed 14 days so an empty day still renders as a 0-height tick.
         var counts: [Date: Int] = [:]
         for offset in 0..<14 {
@@ -187,14 +191,13 @@ struct StatsSheet: View {
             }
         }
         for clip in clips where clip.status == "ready" {
-            // Use the underlying clip created_at proxy via its job — but the
-            // Clip Codable doesn't carry created_at. Fall back: every clip
-            // is dated to today (best-effort). Future commit: surface
-            // created_at on the iOS Clip model so this chart can be
-            // genuinely accurate.
-            let day = today
-            counts[day, default: 0] += 1
-            _ = clip
+            guard let raw = clip.createdAt, let stamp = parse(raw) else { continue }
+            let day = cal.startOfDay(for: stamp)
+            // Only count days that fall in our 14-day window — older clips
+            // are still in the data but shouldn't blow up the leftmost bar.
+            if counts[day] != nil {
+                counts[day, default: 0] += 1
+            }
         }
         return counts.keys.sorted().map { DayBucket(date: $0, count: counts[$0] ?? 0) }
     }
