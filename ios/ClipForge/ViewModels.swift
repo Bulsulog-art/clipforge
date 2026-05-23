@@ -86,6 +86,8 @@ final class JobDetailViewModel: ObservableObject {
 final class ClipsFeedViewModel: ObservableObject {
     @Published var clips: [Clip] = []
     @Published var loading: Bool = false
+    @Published var favoritesOnly: Bool = false
+
     func load() async {
         loading = true
         defer { loading = false }
@@ -96,6 +98,39 @@ final class ClipsFeedViewModel: ObservableObject {
             if clips.isEmpty {
                 AppState.shared.flashError("Couldn't refresh clips: \(error.localizedDescription)")
             }
+        }
+    }
+
+    var visibleClips: [Clip] {
+        favoritesOnly ? clips.filter { $0.isFavorite == true } : clips
+    }
+
+    /// Optimistic favorite toggle. Updates the in-memory clip immediately
+    /// so the star UI feels instant; rolls back on API error.
+    func toggleFavorite(clipId: String) async {
+        guard let idx = clips.firstIndex(where: { $0.id == clipId }) else { return }
+        let original = clips[idx]
+        let newValue = !(original.isFavorite ?? false)
+        clips[idx] = Clip(
+            id: original.id,
+            jobId: original.jobId,
+            hook: original.hook,
+            caption: original.caption,
+            hashtags: original.hashtags,
+            storagePath: original.storagePath,
+            thumbnailPath: original.thumbnailPath,
+            viralScore: original.viralScore,
+            durationSeconds: original.durationSeconds,
+            sourceKind: original.sourceKind,
+            status: original.status,
+            isFavorite: newValue
+        )
+        do {
+            try await ClipForgeAPI.shared.setClipFavorite(id: clipId, favorite: newValue)
+        } catch {
+            // Roll back
+            clips[idx] = original
+            AppState.shared.flashError("Couldn't update favorite: \(error.localizedDescription)")
         }
     }
 }

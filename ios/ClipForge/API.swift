@@ -301,6 +301,23 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Clip favorites
+
+    /// Star / unstar a clip. POST sets is_favorite=true, DELETE sets false.
+    /// RLS on the clips table already scopes the update to the owning user.
+    func setClipFavorite(id: String, favorite: Bool) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/clips/\(id)/favorite"))
+        req.httpMethod = favorite ? "POST" : "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Account export
 
     /// Download the user's GDPR data export as a JSON file. The file is

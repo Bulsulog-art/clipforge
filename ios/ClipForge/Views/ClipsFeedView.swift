@@ -18,15 +18,20 @@ struct ClipsFeedView: View {
                         loadingState
                     } else if vm.clips.isEmpty {
                         emptyState
+                    } else if vm.visibleClips.isEmpty {
+                        favoritesEmptyState
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 0) {
-                                ForEach(vm.clips) { clip in
+                                ForEach(vm.visibleClips) { clip in
                                     ClipCard(
                                         clip: clip,
                                         isVisible: scrollPosition == clip.id,
                                         onActions: { actionsClip = clip },
-                                        onPublish: { publishClip = clip }
+                                        onPublish: { publishClip = clip },
+                                        onToggleFavorite: {
+                                            Task { await vm.toggleFavorite(clipId: clip.id) }
+                                        }
                                     )
                                     .frame(width: proxy.size.width, height: proxy.size.height)
                                     .id(clip.id)
@@ -61,7 +66,66 @@ struct ClipsFeedView: View {
             .sheet(item: $publishClip) { clip in
                 ClipPublishSheet(clip: clip)
             }
+            .overlay(alignment: .top) {
+                if !vm.clips.isEmpty {
+                    favoritesFilterChip
+                        .padding(.top, 4)
+                }
+            }
         }
+    }
+
+    private var favoritesFilterChip: some View {
+        HStack(spacing: 8) {
+            chip(label: "All",        active: !vm.favoritesOnly) { vm.favoritesOnly = false }
+            chip(label: "Favorites",  active: vm.favoritesOnly,
+                 icon: "star.fill",   activeTint: .yellow) { vm.favoritesOnly = true }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(.black.opacity(0.45))
+        .clipShape(.capsule)
+    }
+
+    private func chip(
+        label: String,
+        active: Bool,
+        icon: String? = nil,
+        activeTint: Color = .white,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            action()
+            Task { await Haptics.impact(.light) }
+        } label: {
+            HStack(spacing: 4) {
+                if let icon { Image(systemName: icon).font(.caption2.weight(.bold)) }
+                Text(label).font(.caption.weight(.semibold))
+            }
+            .padding(.horizontal, 12).padding(.vertical, 5)
+            .background(active ? activeTint.opacity(0.85) : Color.clear)
+            .foregroundStyle(active ? .black : .white.opacity(0.85))
+            .clipShape(.capsule)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var favoritesEmptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "star.slash")
+                .font(.system(size: 44))
+                .foregroundStyle(.secondary)
+            Text("No favorites yet")
+                .font(.callout.weight(.semibold))
+            Text("Tap the star on any clip to save it here.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button("Show all clips") { vm.favoritesOnly = false }
+                .buttonStyle(.borderedProminent)
+                .tint(.brand)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var loadingState: some View {
@@ -119,6 +183,7 @@ private struct ClipCard: View {
     let isVisible: Bool
     let onActions: () -> Void
     let onPublish: () -> Void
+    let onToggleFavorite: () -> Void
 
     var body: some View {
         ZStack(alignment: .trailing) {
@@ -137,6 +202,13 @@ private struct ClipCard: View {
     private var actionColumn: some View {
         VStack(spacing: 18) {
             Spacer()
+            actionButton(
+                systemImage: clip.isFavorite == true ? "star.fill" : "star",
+                tint: clip.isFavorite == true ? .yellow : .white,
+                glow: false,
+                accessibilityLabel: clip.isFavorite == true ? "Unfavorite" : "Favorite",
+                action: onToggleFavorite
+            )
             actionButton(systemImage: "paperplane.fill",
                          tint: .brand,
                          glow: true,
@@ -176,7 +248,10 @@ private struct ClipCard: View {
                     .overlay(Circle().stroke(.white.opacity(0.18), lineWidth: 0.6))
                 Image(systemName: systemImage)
                     .font(.callout.weight(.bold))
-                    .foregroundStyle(.white)
+                    // Glow buttons always white over the gradient; chrome
+                    // buttons use the caller-supplied `tint` so we can flip
+                    // the star to yellow when filled.
+                    .foregroundStyle(glow ? .white : tint)
             }
             .shadow(color: glow ? .brand.opacity(0.45) : .black.opacity(0.4),
                     radius: glow ? 10 : 4)
