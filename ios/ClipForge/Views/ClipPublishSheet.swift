@@ -65,7 +65,7 @@ struct ClipPublishSheet: View {
     // MARK: - Sections
 
     private var headerCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Push this clip to your channels.")
                 .font(.title3.bold())
             if let hook = clip.hook {
@@ -73,6 +73,21 @@ struct ClipPublishSheet: View {
                     .font(.callout.italic())
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
+            }
+            if let tags = clip.hashtags, !tags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(tags.prefix(8), id: \.self) { tag in
+                            Text("#" + tag.replacingOccurrences(of: "#", with: ""))
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Color.brand.opacity(0.18))
+                                .foregroundStyle(.brand)
+                                .clipShape(.capsule)
+                        }
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

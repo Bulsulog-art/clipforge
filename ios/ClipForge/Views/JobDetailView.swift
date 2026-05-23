@@ -266,6 +266,25 @@ private struct ClipThumb: View {
 
             Text(clip.hook ?? "—").font(.caption).lineLimit(2)
 
+            if let tags = clip.hashtags, !tags.isEmpty {
+                // Compact hashtag chip strip — surfaces the AI-extracted tags
+                // without forcing the user to open the actions sheet.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 4) {
+                        ForEach(tags.prefix(3), id: \.self) { tag in
+                            Text("#" + tag.replacingOccurrences(of: "#", with: ""))
+                                .font(.caption2.weight(.semibold))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.brand.opacity(0.18))
+                                .foregroundStyle(.brand)
+                                .clipShape(.capsule)
+                                .lineLimit(1)
+                        }
+                    }
+                }
+            }
+
             if let score = clip.viralScore {
                 Text("⚡ \(String(format: "%.1f", score))")
                     .font(.caption2)
