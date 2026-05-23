@@ -5,5 +5,6 @@ import WidgetKit
 struct ClipForgeWidgetsBundle: WidgetBundle {
     var body: some Widget {
         RenderActivityWidget()
+        StudioWidget()
     }
 }

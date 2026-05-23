@@ -130,16 +130,22 @@ struct ProjectsView: View {
                 }
                 streak.reconcile(with: viewModel.jobs)
                 await dailyPick.refresh()
+                publishWidgetState()
             }
             .refreshable {
                 await viewModel.load()
                 streak.reconcile(with: viewModel.jobs)
                 await dailyPick.refresh()
+                publishWidgetState()
             }
             .onChange(of: viewModel.jobs.map(\.status)) { _, _ in
                 // Polls update job statuses; re-reconcile so a freshly-ready
                 // clip bumps the streak the moment it lands.
                 streak.reconcile(with: viewModel.jobs)
+                publishWidgetState()
+            }
+            .onChange(of: dailyPick.pick) { _, _ in
+                publishWidgetState()
             }
             .onChange(of: streak.pendingMilestone) { _, milestone in
                 guard let m = milestone else { return }
@@ -304,6 +310,33 @@ struct ProjectsView: View {
     /// history — otherwise the empty zeros look hollow.
     private var shouldShowMetrics: Bool {
         !viewModel.jobs.isEmpty
+    }
+
+    /// Push the latest in-memory metrics to the App Group so the home-screen
+    /// widget can render fresh state. Cheap (UserDefaults write + WidgetKit
+    /// reload nudge) so we call it on every meaningful change.
+    private func publishWidgetState() {
+        let cutoff = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+        let formatter = ISO8601DateFormatter()
+        let weeklyReady = viewModel.jobs.filter { job in
+            guard job.status == "ready",
+                  let d = formatter.date(from: job.createdAt) else { return false }
+            return d >= cutoff
+        }.count
+        let active = viewModel.jobs.filter {
+            $0.status != "ready" && $0.status != "failed"
+        }.count
+        let hook = dailyPick.pick.map { String($0.hook.prefix(120)) } ?? ""
+        let niche = dailyPick.pick?.niche ?? ""
+
+        SharedAppState.save(SharedAppState(
+            activeJobs: active,
+            readyThisWeek: weeklyReady,
+            streak: streak.current,
+            todaysPickHook: hook,
+            todaysPickNiche: niche,
+            updatedAt: Date()
+        ))
     }
 }
 

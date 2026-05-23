@@ -12,5 +12,9 @@
 	<array>
 		<string>applinks:clipforge.bulsulabs.xyz</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.bulsulabs.clipforge</string>
+	</array>
 </dict>
 </plist>
