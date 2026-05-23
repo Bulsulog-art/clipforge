@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var showSignOutConfirm = false
     @State private var showDeleteConfirm = false
     @State private var deleting = false
+    @State private var showFeedback = false
 
     var body: some View {
         NavigationStack {
@@ -39,6 +40,11 @@ struct SettingsView: View {
                     }
                 }
                 Section("Support") {
+                    Button {
+                        showFeedback = true
+                    } label: {
+                        Label("Send feedback", systemImage: "bubble.left.and.bubble.right.fill")
+                    }
                     Link(destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms")!) {
                         Label("Terms of Service", systemImage: "doc.text")
                     }
@@ -46,7 +52,7 @@ struct SettingsView: View {
                         Label("Privacy Policy", systemImage: "lock.shield")
                     }
                     Link(destination: URL(string: "mailto:hello@clipforge.bulsulabs.xyz?subject=ClipForge%20support")!) {
-                        Label("Contact support", systemImage: "envelope")
+                        Label("Email support", systemImage: "envelope")
                     }
                 }
                 Section("About") {
@@ -71,6 +77,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showPlans) { PlansView() }
             .sheet(isPresented: $showCreditPaywall) { CreditsPaywallView() }
             .sheet(isPresented: $showCancelFlow) { CancelFlowView() }
+            .sheet(isPresented: $showFeedback) { FeedbackSheet() }
             .task { await credits.refresh() }
             .confirmationDialog(
                 "Sign out?",

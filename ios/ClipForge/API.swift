@@ -301,6 +301,39 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Feedback
+
+    /// Send an in-app feedback message. Server stores it in clipforge.feedback
+    /// (RLS denies SELECTs so other users can't read each other's messages).
+    func sendFeedback(
+        message: String,
+        appVersion: String?,
+        osVersion: String?,
+        deviceModel: String?
+    ) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/feedback"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        struct Body: Encodable {
+            let message: String
+            let appVersion: String?
+            let osVersion: String?
+            let deviceModel: String?
+        }
+        req.httpBody = try JSONEncoder().encode(
+            Body(message: message, appVersion: appVersion, osVersion: osVersion, deviceModel: deviceModel)
+        )
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Job retry
 
     /// Re-queue a failed video job. Server resets status to queued, deletes
