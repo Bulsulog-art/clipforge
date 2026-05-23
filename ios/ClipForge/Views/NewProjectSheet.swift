@@ -231,6 +231,12 @@ struct NewProjectSheet: View {
             // Remember the niche so the next Studio "Today's pick" is
             // tailored to what the user actually creates.
             DailyPickService.rememberNiche(niche)
+            AnalyticsService.shared.track("job_created", props: [
+                "kind": "url",
+                "niche": niche,
+                "thumbnailStyle": thumbnailStyle,
+                "bgMusic": bgMusic,
+            ])
             await credits.refresh()
             onCreated()
             dismiss()

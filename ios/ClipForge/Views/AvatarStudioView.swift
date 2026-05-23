@@ -227,6 +227,11 @@ struct AvatarStudioView: View {
                 )
             }
             DailyPickService.rememberNiche(niche)
+            AnalyticsService.shared.track("job_created", props: [
+                "kind": "avatar",
+                "niche": niche,
+                "avatarId": id,
+            ])
             onSubmitted()
             showSuccess = true
         } catch ClipForgeAPI.Error.quotaExceeded {

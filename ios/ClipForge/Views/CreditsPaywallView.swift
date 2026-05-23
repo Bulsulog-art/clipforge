@@ -61,6 +61,10 @@ struct CreditsPaywallView: View {
             .sheet(isPresented: $showPlans) { PlansView() }
             .background(Color.appBackground.ignoresSafeArea())
             .task {
+                AnalyticsService.shared.track("paywall_viewed", props: [
+                    "kind": "credits",
+                    "hasPlus": credits.hasPlus,
+                ])
                 if rc.offerings == nil { await rc.refreshOfferings() }
                 await credits.refresh()
             }

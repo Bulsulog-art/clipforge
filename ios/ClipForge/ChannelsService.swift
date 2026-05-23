@@ -122,6 +122,9 @@ final class ChannelsService: NSObject, ObservableObject {
                 return
             }
             await Haptics.notify(.success)
+            AnalyticsService.shared.track("channel_connected", props: [
+                "platform": platform.rawValue,
+            ])
             await refresh()
         } catch ASWebAuthenticationSessionError.canceledLogin {
             // User dismissed — silent

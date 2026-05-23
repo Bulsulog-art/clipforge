@@ -223,6 +223,11 @@ struct UploadVideoSheet: View {
         do {
             try await uploader.upload(fileURL: url, niche: niche, thumbnailStyle: thumbnailStyle)
             DailyPickService.rememberNiche(niche)
+            AnalyticsService.shared.track("job_created", props: [
+                "kind": "upload",
+                "niche": niche,
+                "thumbnailStyle": thumbnailStyle,
+            ])
         } catch {
             self.error = error.localizedDescription
             await Haptics.notify(.error)

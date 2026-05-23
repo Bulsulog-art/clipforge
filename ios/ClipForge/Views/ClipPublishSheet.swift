@@ -362,10 +362,15 @@ struct ClipPublishSheet: View {
         defer { publishing = false }
 
         do {
+            let platforms = selected.map { $0.rawValue }
             _ = try await ClipForgeAPI.shared.publishClip(
                 clipId: clip.id,
-                platforms: selected.map { $0.rawValue }
+                platforms: platforms
             )
+            AnalyticsService.shared.track("clip_published", props: [
+                "platforms": platforms,
+                "count": platforms.count,
+            ])
             await Haptics.notify(.success)
             await loadStatuses()
             startPolling()

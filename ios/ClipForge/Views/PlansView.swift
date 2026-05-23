@@ -118,6 +118,10 @@ struct PlansView: View {
             }
             .background(Color.appBackground.ignoresSafeArea())
             .task {
+                AnalyticsService.shared.track("paywall_viewed", props: [
+                    "kind": "plans",
+                    "currentPeriod": billing.rawValue,
+                ])
                 if rc.offerings == nil { await rc.refreshOfferings() }
                 await credits.refresh()
             }
@@ -393,6 +397,12 @@ struct PlansView: View {
         do {
             let didPurchase = try await rc.purchase(pkg)
             if didPurchase {
+                AnalyticsService.shared.track("sub_purchased", props: [
+                    "product": productId,
+                ])
+                // Force-flush so the row lands even if the user immediately
+                // backgrounds the app to bask in the purchase confirmation.
+                await AnalyticsService.shared.flushNow()
                 await credits.refresh()
                 dismiss()
             }

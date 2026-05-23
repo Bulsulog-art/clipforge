@@ -145,6 +145,7 @@ struct ProjectsView: View {
                 JobDetailView(job: job)
             }
             .task {
+                AnalyticsService.shared.track("studio_viewed")
                 await viewModel.load()
                 if let lastNiche = viewModel.jobs.first?.niche, !lastNiche.isEmpty {
                     DailyPickService.rememberNiche(lastNiche)
