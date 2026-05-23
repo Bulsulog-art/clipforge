@@ -18,6 +18,9 @@ struct ClipActionsSheet: View {
     @State private var showPublishSheet = false
     @State private var derivatives: [ClipForgeAPI.Derivative] = []
     @State private var compareWith: ClipForgeAPI.Derivative?
+    @State private var remixing = false
+    @State private var remixError: String?
+    @State private var remixedJobId: String?
     @AppStorage("faceSwapConsentGivenAt") private var faceSwapConsentGivenAt: Double = 0
 
     private let languages: [(code: String, label: String, flag: String)] = [
@@ -130,6 +133,9 @@ struct ClipActionsSheet: View {
 
                     Divider().background(Color.white.opacity(0.1))
 
+                    remixSection
+                    Divider().background(Color.white.opacity(0.1))
+
                     Section_h("📥 Export")
                     Button {
                         Task { await saveToPhotos() }
@@ -206,6 +212,83 @@ struct ClipActionsSheet: View {
     /// Compare section visibility.
     private var readyFaceSwapDerivative: ClipForgeAPI.Derivative? {
         derivatives.first { $0.kind == "face_swap" && $0.status == "ready" && $0.storagePath != nil }
+    }
+
+    /// Re-renders the same source video as a new job. Different score-step
+    /// roll picks different moments so the remix isn't a carbon copy — useful
+    /// when one clip from a job goes viral and the user wants more chances
+    /// from the same long-form source.
+    private var remixSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Section_h("🔁 Remix this source")
+            Text("Re-run the same source video and let the AI surface different moments. Costs 1 credit, same as a normal render.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            if let jobId = remixedJobId {
+                Label("New render queued — find it in Studio.", systemImage: "checkmark.seal.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.green)
+                Text("Job id: \(jobId.prefix(8))…")
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(.tertiary)
+            } else {
+                Button {
+                    Task { await remix() }
+                } label: {
+                    HStack {
+                        if remixing { ProgressView().tint(.white) }
+                        Image(systemName: remixing ? "" : "arrow.triangle.2.circlepath")
+                            .opacity(remixing ? 0 : 1)
+                        Text(remixing ? "Queuing remix…" : "Remix · 1 credit")
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .opacity(0.7)
+                    }
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [.indigo, .purple],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .foregroundStyle(.white)
+                    .clipShape(.rect(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+                .disabled(remixing || (clip.jobId ?? "").isEmpty)
+            }
+            if let err = remixError {
+                Text(err).font(.caption2).foregroundStyle(.red)
+            }
+        }
+    }
+
+    private func remix() async {
+        remixing = true
+        remixError = nil
+        defer { remixing = false }
+        do {
+            let newJobId = try await ClipForgeAPI.shared.remixClip(id: clip.id)
+            remixedJobId = newJobId
+            // Light up a Live Activity for the new job so the user can track
+            // it from the Dynamic Island without leaving the sheet open.
+            if !newJobId.isEmpty {
+                RenderActivityKit.start(
+                    jobId: newJobId,
+                    title: "Remix",
+                    expectedClips: 12
+                )
+            }
+            await Haptics.notify(.success)
+            AnalyticsService.shared.track("clip_remixed", props: ["sourceClipId": clip.id])
+        } catch ClipForgeAPI.Error.quotaExceeded {
+            showPaywall = true
+        } catch {
+            remixError = error.localizedDescription
+            await Haptics.notify(.error)
+        }
     }
 
     private func compareSection(derivative: ClipForgeAPI.Derivative) -> some View {

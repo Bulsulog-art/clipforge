@@ -301,6 +301,26 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Clip remix
+
+    /// Re-renders a different cut of the source video that produced this
+    /// clip. Returns the new job id so the caller can start a Live
+    /// Activity + show the user the queued job.
+    func remixClip(id: String) async throws -> String {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/clips/\(id)/remix"))
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if http.statusCode == 402 { throw Error.quotaExceeded }
+        guard (200..<300).contains(http.statusCode) else { throw Error.network }
+        struct Resp: Decodable { let jobId: String }
+        return (try? JSONDecoder().decode(Resp.self, from: data).jobId) ?? ""
+    }
+
     // MARK: - Bulk clip actions
 
     /// Set is_favorite on a batch of clips owned by the caller. Capped
