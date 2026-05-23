@@ -22,6 +22,10 @@ struct ClipPublishSheet: View {
     @State private var pollTask: Task<Void, Never>?
     @State private var error: String?
     @State private var showPaywall = false
+    /// When false → "Publish now". When true → DatePicker visible, button
+    /// label changes to "Schedule for …".
+    @State private var scheduleEnabled = false
+    @State private var scheduledDate: Date = Date().addingTimeInterval(60 * 60)
 
     var body: some View {
         NavigationStack {
@@ -33,6 +37,7 @@ struct ClipPublishSheet: View {
                     } else {
                         channelSelector
                         captionEditor
+                        scheduleSection
                         publishButton
                     }
                     if !statuses.isEmpty { statusList }
@@ -210,17 +215,50 @@ struct ClipPublishSheet: View {
         }
     }
 
+    private var scheduleSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle(isOn: $scheduleEnabled.animation(.easeInOut(duration: 0.2))) {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar.badge.clock")
+                        .foregroundStyle(.brand)
+                    Text("Schedule for later")
+                        .font(.callout.weight(.semibold))
+                }
+            }
+            .tint(.brand)
+            if scheduleEnabled {
+                // 5-minute floor so a slow tap doesn't immediately fire. 90-day
+                // ceiling matches BullMQ delay practical limits.
+                DatePicker(
+                    "When",
+                    selection: $scheduledDate,
+                    in: Date().addingTimeInterval(5 * 60)...Date().addingTimeInterval(90 * 24 * 60 * 60),
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .datePickerStyle(.compact)
+                .tint(.brand)
+                .padding(.horizontal, 4)
+                Text("Posts will go live at the selected time. You can cancel a scheduled post from the Publish history.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(14)
+        .background(Color.cardBackground)
+        .clipShape(.rect(cornerRadius: 14))
+    }
+
     private var publishButton: some View {
         Button {
             Task { await publish() }
         } label: {
             HStack {
                 if publishing { ProgressView().tint(.white) }
-                Image(systemName: publishing ? "" : "paperplane.fill")
+                Image(systemName: publishing
+                      ? ""
+                      : (scheduleEnabled ? "calendar.badge.clock" : "paperplane.fill"))
                     .opacity(publishing ? 0 : 1)
-                Text(publishing
-                     ? "Publishing…"
-                     : "Publish to \(selected.count) channel\(selected.count == 1 ? "" : "s")")
+                Text(buttonLabel)
                     .fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)
@@ -238,6 +276,21 @@ struct ClipPublishSheet: View {
         }
         .buttonStyle(.plain)
         .disabled(!canPublish)
+    }
+
+    private var buttonLabel: String {
+        if publishing {
+            return scheduleEnabled ? "Scheduling…" : "Publishing…"
+        }
+        let n = selected.count
+        let suffix = "\(n) channel\(n == 1 ? "" : "s")"
+        if scheduleEnabled {
+            let fmt = DateFormatter()
+            fmt.dateStyle = .medium
+            fmt.timeStyle = .short
+            return "Schedule for \(fmt.string(from: scheduledDate))"
+        }
+        return "Publish to \(suffix)"
     }
 
     private var canPublish: Bool {
@@ -365,15 +418,22 @@ struct ClipPublishSheet: View {
             let platforms = selected.map { $0.rawValue }
             _ = try await ClipForgeAPI.shared.publishClip(
                 clipId: clip.id,
-                platforms: platforms
+                platforms: platforms,
+                scheduleFor: scheduleEnabled ? scheduledDate : nil
             )
             AnalyticsService.shared.track("clip_published", props: [
                 "platforms": platforms,
                 "count": platforms.count,
+                "scheduled": scheduleEnabled,
             ])
             await Haptics.notify(.success)
             await loadStatuses()
-            startPolling()
+            // No need to poll if the post is scheduled — it won't move from
+            // `pending` until the BullMQ delay expires. The Publish history
+            // view (6.3) is where users track scheduled rows.
+            if !scheduleEnabled {
+                startPolling()
+            }
         } catch ClipForgeAPI.Error.quotaExceeded {
             showPaywall = true
         } catch {
