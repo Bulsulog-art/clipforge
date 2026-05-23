@@ -301,6 +301,43 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Clip derivatives (face swap / translation)
+
+    /// One face-swap or translation produced from a source clip. Lives in
+    /// the `clip_derivatives` table — separate from `clips` so the original
+    /// stays intact and the user can compare side-by-side.
+    struct Derivative: Identifiable, Decodable, Hashable {
+        let id: String
+        let sourceClipId: String?
+        let kind: String                // "face_swap" | "translation"
+        let status: String              // "queued" | "processing" | "ready" | "failed"
+        let storagePath: String?
+        let targetLanguage: String?
+        let createdAt: String?
+        let finishedAt: String?
+        enum CodingKeys: String, CodingKey {
+            case id, kind, status
+            case sourceClipId  = "source_clip_id"
+            case storagePath   = "storage_path"
+            case targetLanguage = "target_language"
+            case createdAt     = "created_at"
+            case finishedAt    = "finished_at"
+        }
+    }
+
+    /// Fetch derivatives for a clip. UI uses this to surface a "Compare"
+    /// CTA when a face_swap exists, or a language-switcher for translations.
+    func fetchDerivatives(forClipId clipId: String) async throws -> [Derivative] {
+        try await supabase
+            .schema("clipforge")
+            .from("clip_derivatives")
+            .select("id, source_clip_id, kind, status, storage_path, target_language, created_at, finished_at")
+            .eq("source_clip_id", value: clipId)
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+    }
+
     // MARK: - Avatar (AI talking-head)
 
     struct Avatar: Identifiable, Decodable {

@@ -16,6 +16,8 @@ struct ClipActionsSheet: View {
     @State private var saving = false
     @State private var showFaceSwapConsent = false
     @State private var showPublishSheet = false
+    @State private var derivatives: [ClipForgeAPI.Derivative] = []
+    @State private var compareWith: ClipForgeAPI.Derivative?
     @AppStorage("faceSwapConsentGivenAt") private var faceSwapConsentGivenAt: Double = 0
 
     private let languages: [(code: String, label: String, flag: String)] = [
@@ -39,6 +41,11 @@ struct ClipActionsSheet: View {
 
                     publishSection
                     Divider().background(Color.white.opacity(0.1))
+
+                    if let compare = readyFaceSwapDerivative {
+                        compareSection(derivative: compare)
+                        Divider().background(Color.white.opacity(0.1))
+                    }
 
                     Section_h("🎭 Swap face (2 credits)")
                     VStack(alignment: .leading, spacing: 8) {
@@ -174,6 +181,9 @@ struct ClipActionsSheet: View {
             .sheet(isPresented: $showPublishSheet) {
                 ClipPublishSheet(clip: clip)
             }
+            .sheet(item: $compareWith) { d in
+                ClipBeforeAfterSheet(originalClip: clip, derivative: d)
+            }
             .alert("Face Swap Consent", isPresented: $showFaceSwapConsent) {
                 Button("Cancel", role: .cancel) { }
                 Button("I confirm — start swap") {
@@ -187,7 +197,56 @@ struct ClipActionsSheet: View {
             .task {
                 await credits.refresh()
                 await channels.refresh()
+                await loadDerivatives()
             }
+        }
+    }
+
+    /// The first ready face-swap derivative for this clip, if any. Drives the
+    /// Compare section visibility.
+    private var readyFaceSwapDerivative: ClipForgeAPI.Derivative? {
+        derivatives.first { $0.kind == "face_swap" && $0.status == "ready" && $0.storagePath != nil }
+    }
+
+    private func compareSection(derivative: ClipForgeAPI.Derivative) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Section_h("🆚 Before / After")
+            Text("Your face swap is ready. Drag the divider to compare the original with the swap.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Button {
+                Task { await Haptics.impact(.medium) }
+                compareWith = derivative
+            } label: {
+                HStack {
+                    Image(systemName: "rectangle.split.2x1.fill")
+                    Text("Open before/after")
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .opacity(0.7)
+                }
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: [.purple.opacity(0.85), .brand],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundStyle(.white)
+                .clipShape(.rect(cornerRadius: 12))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func loadDerivatives() async {
+        do {
+            self.derivatives = try await ClipForgeAPI.shared.fetchDerivatives(forClipId: clip.id)
+        } catch {
+            // Non-blocking — Compare just won't surface until a refresh.
         }
     }
 
