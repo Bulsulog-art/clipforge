@@ -48,6 +48,9 @@ struct ProjectsView: View {
                                     appState.startFromTrend(niche: pick.niche, hook: pick.hook)
                                 }
                             }
+                            if shouldShowMetrics {
+                                StudioMetricsCard(jobs: viewModel.jobs)
+                            }
                             ForEach(viewModel.jobs) { job in
                                 NavigationLink(destination: JobDetailView(job: job)) {
                                     JobRow(job: job)
@@ -264,6 +267,97 @@ struct ProjectsView: View {
     private var shouldShowDailyPick: Bool {
         let inFlight = viewModel.jobs.filter { $0.status != "ready" && $0.status != "failed" }.count
         return inFlight < 3
+    }
+
+    /// Show the metrics strip once the user has at least one job in their
+    /// history — otherwise the empty zeros look hollow.
+    private var shouldShowMetrics: Bool {
+        !viewModel.jobs.isEmpty
+    }
+}
+
+/// Compact metrics strip — three glanceable stats with subtle gradient
+/// underlay. Powered entirely by the in-memory jobs list so it costs zero
+/// network. Refreshes the moment ProjectsView's polling updates the jobs.
+private struct StudioMetricsCard: View {
+    let jobs: [VideoJob]
+
+    private var inFlight: Int {
+        jobs.filter { $0.status != "ready" && $0.status != "failed" }.count
+    }
+
+    /// "Ready this week" — jobs that finished in the last 7 days. We use
+    /// created_at as a proxy for finished_at because the API doesn't return
+    /// a separate timestamp. With our 60–120s render times the two are
+    /// effectively identical, and any 7d-old job that's still "ready" was
+    /// also created in roughly the same week.
+    private var readyThisWeek: Int {
+        let cutoff = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+        let formatter = ISO8601DateFormatter()
+        return jobs.filter { job in
+            guard job.status == "ready",
+                  let d = formatter.date(from: job.createdAt) else { return false }
+            return d >= cutoff
+        }.count
+    }
+
+    private var totalProjects: Int { jobs.count }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            metric(value: "\(inFlight)",
+                   label: "Active",
+                   icon: "bolt.fill",
+                   tint: .brand)
+            divider
+            metric(value: "\(readyThisWeek)",
+                   label: "Ready · 7d",
+                   icon: "checkmark.seal.fill",
+                   tint: .green)
+            divider
+            metric(value: "\(totalProjects)",
+                   label: "Projects",
+                   icon: "film.stack.fill",
+                   tint: .purple)
+        }
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.cardBackground, Color.cardBackground.opacity(0.65)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.white.opacity(0.05), lineWidth: 0.6)
+        )
+        .clipShape(.rect(cornerRadius: 14))
+    }
+
+    private func metric(value: String, label: String, icon: String, tint: Color) -> some View {
+        VStack(spacing: 5) {
+            HStack(spacing: 5) {
+                Image(systemName: icon)
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(tint)
+                Text(value)
+                    .font(.title3.weight(.bold))
+                    .monospacedDigit()
+            }
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .tracking(0.3)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.08))
+            .frame(width: 1, height: 30)
     }
 }
 
