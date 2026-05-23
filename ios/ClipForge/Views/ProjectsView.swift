@@ -11,6 +11,16 @@ struct ProjectsView: View {
     @State private var fireMilestoneConfetti = false
     @State private var milestoneToast: Int?
     @State private var tooltipStep: Int = Self.initialTooltipStep()
+    @State private var searchText: String = ""
+    @State private var statusFilter: StatusFilter = .all
+
+    enum StatusFilter: String, CaseIterable, Identifiable {
+        case all = "All"
+        case ready = "Ready"
+        case inFlight = "In flight"
+        case failed = "Failed"
+        var id: String { rawValue }
+    }
 
     /// Resolve the initial tooltip cursor from UserDefaults. Pulled into a
     /// static helper because inline closure initialisers on @State were
@@ -81,9 +91,20 @@ struct ProjectsView: View {
                             if shouldShowMetrics {
                                 StudioMetricsCard(jobs: viewModel.jobs, streak: streak.current)
                             }
-                            ForEach(viewModel.jobs) { job in
-                                NavigationLink(destination: JobDetailView(job: job)) {
-                                    JobRow(job: job)
+                            if shouldShowSearch {
+                                StudioSearchBar(
+                                    text: $searchText,
+                                    filter: $statusFilter
+                                )
+                            }
+                            let filtered = filteredJobs
+                            if filtered.isEmpty && (searchHasQuery || statusFilter != .all) {
+                                noResultsCard
+                            } else {
+                                ForEach(filtered) { job in
+                                    NavigationLink(destination: JobDetailView(job: job)) {
+                                        JobRow(job: job)
+                                    }
                                 }
                             }
                         }
@@ -356,6 +377,54 @@ struct ProjectsView: View {
         !viewModel.jobs.isEmpty
     }
 
+    /// Surface search + filter once the list passes a "scrollable enough"
+    /// threshold. Below 5 projects the chips would be visual clutter that
+    /// doesn't earn its keep.
+    private var shouldShowSearch: Bool {
+        viewModel.jobs.count >= 5
+    }
+
+    private var searchHasQuery: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var filteredJobs: [VideoJob] {
+        let inFlightStatuses: Set<String> = [
+            "queued", "transcribing", "scoring", "rendering",
+        ]
+        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return viewModel.jobs.filter { job in
+            switch statusFilter {
+            case .all:      break
+            case .ready:    if job.status != "ready" { return false }
+            case .failed:   if job.status != "failed" { return false }
+            case .inFlight: if !inFlightStatuses.contains(job.status) { return false }
+            }
+            if q.isEmpty { return true }
+            let title = (job.title ?? "").lowercased()
+            let niche = (job.niche ?? "").lowercased()
+            return title.contains(q) || niche.contains(q)
+        }
+    }
+
+    private var noResultsCard: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+            Text("No matches")
+                .font(.callout.weight(.semibold))
+            Text("Try clearing the search or switching the filter.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .background(Color.cardBackground)
+        .clipShape(.rect(cornerRadius: 14))
+    }
+
     /// Map RevenueCat's active product id onto the CreditAdvisor.Tier
     /// enum. Anything we don't recognise falls back to .free, which means
     /// CreditAdvisor stays quiet for that user (the FreeTierNudge handles
@@ -393,6 +462,76 @@ struct ProjectsView: View {
             todaysPickNiche: niche,
             updatedAt: Date()
         ))
+    }
+}
+
+/// Search field + status filter chips rendered above the job list once the
+/// user has 5+ projects. Pure client-side filtering — no backend call —
+/// because the full jobs list is already in memory from viewModel.fetchJobs.
+private struct StudioSearchBar: View {
+    @Binding var text: String
+    @Binding var filter: ProjectsView.StatusFilter
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search projects", text: $text)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                if !text.isEmpty {
+                    Button {
+                        text = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.tertiary)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Clear search")
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(Color.cardBackground)
+            .clipShape(.rect(cornerRadius: 10))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
+            )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(ProjectsView.StatusFilter.allCases) { f in
+                        chip(for: f)
+                    }
+                }
+            }
+        }
+    }
+
+    private func chip(for f: ProjectsView.StatusFilter) -> some View {
+        let selected = filter == f
+        return Button {
+            filter = f
+            Task { await Haptics.impact(.light) }
+        } label: {
+            Text(f.rawValue)
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(selected ? Color.brand : Color.cardBackground)
+                .foregroundStyle(selected ? .white : .secondary)
+                .clipShape(.capsule)
+                .overlay(
+                    Capsule().stroke(
+                        selected ? Color.clear : Color.secondary.opacity(0.25),
+                        lineWidth: 0.8
+                    )
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Filter: \(f.rawValue)")
     }
 }
 
