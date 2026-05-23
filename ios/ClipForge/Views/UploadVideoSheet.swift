@@ -105,7 +105,15 @@ struct UploadVideoSheet: View {
             .sheet(isPresented: $showPaywall) { CreditsPaywallView() }
             .task { await credits.refresh() }
             .onChange(of: uploader.lastJobId) { _, newId in
-                if newId != nil {
+                if let id = newId, !id.isEmpty {
+                    // Light up the Live Activity now that the server has
+                    // accepted the upload and minted a jobId — JobProgressService
+                    // will push status updates from there.
+                    RenderActivityKit.start(
+                        jobId: id,
+                        title: "\(niche.capitalized) clip set",
+                        expectedClips: 12
+                    )
                     onSubmitted()
                     dismiss()
                 }

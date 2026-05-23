@@ -22,12 +22,12 @@ struct SettingsView: View {
                     Button {
                         showPlans = true
                     } label: {
-                        Label("Choose plan (weekly / monthly)", systemImage: "creditcard")
+                        Label("Choose plan (weekly · monthly · yearly)", systemImage: "creditcard")
                     }
                     Button {
                         showCreditPaywall = true
                     } label: {
-                        Label("Buy credits (one-time)", systemImage: "bolt.fill")
+                        Label("Buy credits (Booster · Power · Pro)", systemImage: "bolt.fill")
                     }
                     Button("Restore purchases") {
                         Task { try? await rc.restore() }
@@ -136,10 +136,23 @@ struct SettingsView: View {
         return "\(v) (\(b))"
     }
 
+    /// Resolve the human-readable plan label from RevenueCat entitlements.
+    /// We rebranded "Starter" → "Plus" in the 2026-05 pricing refresh but the
+    /// RC entitlement key stayed `starter` to preserve existing subscriber
+    /// records — translate it for display only.
     private var planLabel: String {
-        if rc.customerInfo?.entitlements["agency"]?.isActive == true { return "Agency" }
-        if rc.customerInfo?.entitlements["pro"]?.isActive == true { return "Pro" }
-        if rc.customerInfo?.entitlements["starter"]?.isActive == true { return "Starter" }
+        if rc.customerInfo?.entitlements["agency"]?.isActive == true { return "Plus Agency" }
+        if rc.customerInfo?.entitlements["pro"]?.isActive == true { return "Plus Pro" }
+        if rc.customerInfo?.entitlements["starter"]?.isActive == true ||
+           rc.customerInfo?.entitlements["plus"]?.isActive == true {
+            // Suffix the period if we can read it from the active product id.
+            if let pid = rc.activeProductId {
+                if pid.contains("yearly")  { return "Plus · Yearly" }
+                if pid.contains("monthly") { return "Plus · Monthly" }
+                if pid.contains("weekly")  { return "Plus · Weekly" }
+            }
+            return "Plus"
+        }
         return "Free"
     }
 }

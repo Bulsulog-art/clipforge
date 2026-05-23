@@ -27,9 +27,13 @@ export async function POST(
     .select("tier")
     .eq("id", user.id)
     .single();
-  if (!profile || profile.tier === "free" || profile.tier === "starter") {
+  // Auto-posting is a Plus-tier feature. Our only paid tier in the IAP catalog
+  // is 'starter' (= Plus), so we gate just against 'free'. The legacy gate also
+  // rejected 'starter' from when we had separate Pro/Agency tiers — those were
+  // removed in the 2026-05 pricing refresh.
+  if (!profile || profile.tier === "free") {
     return NextResponse.json(
-      { error: "Auto-posting requires Pro or Agency plan." },
+      { error: "Auto-posting is a Plus feature. Subscribe to publish to your channels." },
       { status: 402 },
     );
   }

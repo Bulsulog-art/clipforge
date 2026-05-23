@@ -5,6 +5,7 @@ struct ClipActionsSheet: View {
     let clip: Clip
     @Environment(\.dismiss) private var dismiss
     @StateObject private var credits = CreditsService.shared
+    @StateObject private var channels = ChannelsService.shared
     @State private var faceImage: PhotosPickerItem?
     @State private var selectedLanguage = "en"
     @State private var voiceClone = false
@@ -14,6 +15,7 @@ struct ClipActionsSheet: View {
     @State private var showPaywall = false
     @State private var saving = false
     @State private var showFaceSwapConsent = false
+    @State private var showPublishSheet = false
     @AppStorage("faceSwapConsentGivenAt") private var faceSwapConsentGivenAt: Double = 0
 
     private let languages: [(code: String, label: String, flag: String)] = [
@@ -34,6 +36,9 @@ struct ClipActionsSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     creditsBadge
+
+                    publishSection
+                    Divider().background(Color.white.opacity(0.1))
 
                     Section_h("🎭 Swap face (2 credits)")
                     VStack(alignment: .leading, spacing: 8) {
@@ -166,6 +171,9 @@ struct ClipActionsSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
             }
             .sheet(isPresented: $showPaywall) { CreditsPaywallView() }
+            .sheet(isPresented: $showPublishSheet) {
+                ClipPublishSheet(clip: clip)
+            }
             .alert("Face Swap Consent", isPresented: $showFaceSwapConsent) {
                 Button("Cancel", role: .cancel) { }
                 Button("I confirm — start swap") {
@@ -176,7 +184,65 @@ struct ClipActionsSheet: View {
                 Text("By tapping confirm, you certify that the face image you uploaded is YOUR OWN face, OR that you have explicit written consent from the person whose face this is.\n\nClipForge prohibits using Face Swap to impersonate, harass, defame, deceive, or otherwise infringe on others' rights. Violations may result in account suspension.\n\nAll uploaded face images are encrypted at rest and deleted on account deletion.")
             }
             .background(Color.appBackground.ignoresSafeArea())
-            .task { await credits.refresh() }
+            .task {
+                await credits.refresh()
+                await channels.refresh()
+            }
+        }
+    }
+
+    private var publishSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Section_h("📡 Publish to channels")
+            let connected = channels.connectedPlatforms
+            Text(connected.isEmpty
+                 ? "Connect TikTok / Instagram / YouTube once — then auto-post every clip from here."
+                 : "Push this clip to \(connected.count) connected channel\(connected.count == 1 ? "" : "s") in one tap.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            if !connected.isEmpty {
+                HStack(spacing: 8) {
+                    ForEach(connected) { p in
+                        Image(systemName: p.sfSymbol)
+                            .frame(width: 30, height: 30)
+                            .background(Color(red: p.accent.red, green: p.accent.green, blue: p.accent.blue).opacity(0.18))
+                            .foregroundStyle(Color(red: p.accent.red, green: p.accent.green, blue: p.accent.blue))
+                            .clipShape(Circle())
+                    }
+                    Spacer()
+                }
+            }
+
+            Button {
+                Task { await Haptics.impact(.medium) }
+                showPublishSheet = true
+            } label: {
+                HStack {
+                    if channels.loading {
+                        ProgressView().tint(.white)
+                    } else {
+                        Image(systemName: connected.isEmpty ? "antenna.radiowaves.left.and.right" : "paperplane.fill")
+                    }
+                    Text(connected.isEmpty ? "Set up channels" : "Choose channels & post")
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .opacity(0.7)
+                }
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: [.brand, .brandGlow],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundStyle(.white)
+                .clipShape(.rect(cornerRadius: 12))
+            }
+            .disabled(clip.status != nil && clip.status != "ready")
         }
     }
 

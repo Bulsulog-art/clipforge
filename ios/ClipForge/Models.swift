@@ -20,13 +20,15 @@ struct Clip: Identifiable, Codable, Hashable {
     let jobId: String?
     let hook: String?
     let caption: String?
+    let hashtags: [String]?
     let storagePath: String?
     let thumbnailPath: String?
     let viralScore: Double?
     let durationSeconds: Double?
     let sourceKind: String?
+    let status: String?
     enum CodingKeys: String, CodingKey {
-        case id, hook, caption
+        case id, hook, caption, hashtags, status
         case jobId = "job_id"
         case storagePath = "storage_path"
         case thumbnailPath = "thumbnail_path"

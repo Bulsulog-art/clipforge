@@ -176,6 +176,128 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Channels (social connections + auto-publish)
+
+    struct Channel: Identifiable, Decodable, Hashable {
+        let id: String
+        let platform: String
+        let username: String?
+        let displayName: String?
+        let connectedAt: String?
+        let expiresAt: String?
+        let needsReconnect: Bool
+    }
+
+    /// List the user's connected social channels. Backend returns sanitized rows
+    /// (no tokens). Token health (`needsReconnect`) is computed server-side
+    /// from `expires_at` so the UI can prompt re-OAuth before a publish fails.
+    func listChannels() async throws -> [Channel] {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/channels"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        struct Resp: Decodable { let channels: [Channel] }
+        return try JSONDecoder().decode(Resp.self, from: data).channels
+    }
+
+    /// Revoke + delete a connected channel. Server attempts upstream token
+    /// revoke first (best-effort) and always deletes the local row.
+    func disconnectChannel(id: String) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/channels/\(id)"))
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
+    /// Kick off a publish to one or more platforms for a ready clip.
+    /// Server enqueues per-platform BullMQ jobs; iOS polls the `publishes`
+    /// table via Supabase to track status.
+    func publishClip(
+        clipId: String,
+        platforms: [String],
+        scheduleFor: Date? = nil
+    ) async throws -> [String] {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/clips/\(clipId)/publish"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        struct Body: Encodable {
+            let platforms: [String]
+            let scheduleFor: String?
+        }
+        let scheduleStr = scheduleFor.map { ISO8601DateFormatter().string(from: $0) }
+        req.httpBody = try JSONEncoder().encode(Body(platforms: platforms, scheduleFor: scheduleStr))
+
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if http.statusCode == 402 { throw Error.quotaExceeded }
+        guard (200..<300).contains(http.statusCode) else {
+            // Surface "412 — connect channels first" with a structured error so
+            // the UI can route the user to the Channels tab.
+            if http.statusCode == 412 {
+                throw Error.network
+            }
+            throw Error.network
+        }
+        struct Resp: Decodable { let publishIds: [String] }
+        return (try? JSONDecoder().decode(Resp.self, from: data).publishIds) ?? []
+    }
+
+    /// Fetch the publish history for a clip (status per platform).
+    /// iOS uses this for the "Posted to ✓" badges in ClipPlayer / ActionsSheet.
+    struct PublishRecord: Identifiable, Decodable {
+        let id: String
+        let platform: String
+        let status: String          // pending | publishing | published | failed
+        let externalUrl: String?
+        let publishedAt: String?
+        let errorMessage: String?
+    }
+
+    func fetchPublishes(clipId: String) async throws -> [PublishRecord] {
+        struct Row: Decodable {
+            let id: String
+            let platform: String
+            let status: String
+            let external_url: String?
+            let published_at: String?
+            let error_message: String?
+        }
+        let rows: [Row] = try await supabase
+            .schema("clipforge")
+            .from("publishes")
+            .select("id, platform, status, external_url, published_at, error_message")
+            .eq("clip_id", value: clipId)
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+        return rows.map {
+            PublishRecord(
+                id: $0.id,
+                platform: $0.platform,
+                status: $0.status,
+                externalUrl: $0.external_url,
+                publishedAt: $0.published_at,
+                errorMessage: $0.error_message
+            )
+        }
+    }
+
     // MARK: - Avatar (AI talking-head)
 
     struct Avatar: Identifiable, Decodable {

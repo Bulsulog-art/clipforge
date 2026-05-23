@@ -297,13 +297,15 @@ struct PlansView: View {
         .clipShape(.rect(cornerRadius: 18))
     }
 
+    /// Button copy for the subscribe CTA. We intentionally do NOT branch into
+    /// a "Start free trial" label here even if ASC happens to have an
+    /// introductory free-trial offer attached — the product decision (2026-05)
+    /// is no free trial on any subscription. If a paid intro discount is
+    /// present, the introBadge already surfaces it ("$0.99 for 1 week" etc.),
+    /// so the CTA can stay a clean "Subscribe".
     private func buttonLabel(productId: String) -> String {
         if purchasing == productId { return "Processing…" }
         if rc.activeProductId == productId { return "Current plan" }
-        if let pkg = rc.package(productId: productId),
-           pkg.storeProduct.introductoryDiscount != nil {
-            return "Start free trial"
-        }
         return "Subscribe"
     }
 
@@ -321,7 +323,11 @@ struct PlansView: View {
         let unit = unitWord(period.unit, count: period.value)
         switch intro.paymentMode {
         case .freeTrial:
-            return "\(period.value) \(unit) free trial"
+            // Defensive: per product decision (2026-05) no free-trial intro
+            // offer should be configured in ASC. If one ever sneaks in, label
+            // it as the intro pricing it really is (zero cost) rather than
+            // promoting "free trial" copy.
+            return "Intro: free for \(period.value) \(unit)"
         case .payAsYouGo, .payUpFront:
             return "\(intro.localizedPriceString) for \(period.value) \(unit)"
         }

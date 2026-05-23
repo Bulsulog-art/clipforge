@@ -210,13 +210,22 @@ struct AvatarStudioView: View {
         defer { submitting = false }
         error = nil
         do {
-            _ = try await ClipForgeAPI.shared.createAvatarJob(
+            let avatarJobId = try await ClipForgeAPI.shared.createAvatarJob(
                 script: script.trimmingCharacters(in: .whitespacesAndNewlines),
                 avatarId: id,
                 voiceId: voice,
                 niche: niche,
                 bgMusic: bgMusic
             )
+            // Pin the Live Activity to Lock Screen + Dynamic Island so the user
+            // can watch SadTalker progress without staying inside the app.
+            if !avatarJobId.isEmpty {
+                RenderActivityKit.start(
+                    jobId: avatarJobId,
+                    title: "AI Avatar — \(niche.capitalized)",
+                    expectedClips: 1
+                )
+            }
             onSubmitted()
             showSuccess = true
         } catch ClipForgeAPI.Error.quotaExceeded {

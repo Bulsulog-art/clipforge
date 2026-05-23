@@ -74,8 +74,21 @@ export async function GET(req: NextRequest) {
     { onConflict: "user_id,platform,external_user_id" },
   );
 
-  const res = NextResponse.redirect(new URL("/dashboard/social?connected=tiktok", url.origin));
+  // Honour the returnTo cookie set by the start route — lets the iOS app
+  // hand control back to ASWebAuthenticationSession via clipforge://.
+  const returnTo = req.cookies.get("oauth_return_to")?.value ?? "";
+  const finalUrl = returnTo
+    ? appendQuery(returnTo, { connected: "tiktok" })
+    : new URL("/dashboard/social?connected=tiktok", url.origin).toString();
+
+  const res = NextResponse.redirect(finalUrl);
   res.cookies.delete("tiktok_pkce");
   res.cookies.delete("tiktok_state");
+  res.cookies.delete("oauth_return_to");
   return res;
+}
+
+function appendQuery(target: string, extra: Record<string, string>): string {
+  const params = new URLSearchParams(extra);
+  return target + (target.includes("?") ? "&" : "?") + params.toString();
 }
