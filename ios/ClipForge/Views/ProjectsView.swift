@@ -37,6 +37,7 @@ struct ProjectsView: View {
     @State private var showCreditPaywall = false
     @State private var showInbox = false
     @StateObject private var inbox = NotificationsService.shared
+    @StateObject private var announcements = AnnouncementsService.shared
     @State private var deeplinkJob: VideoJob?
     @State private var seed: NewProjectSeed?
     @State private var dismissedNudge: Bool = UserDefaults.standard.bool(forKey: "clipforge.nudgeDismissed")
@@ -67,6 +68,11 @@ struct ProjectsView: View {
                                         }
                                     }
                                 )
+                            }
+                            ForEach(announcements.items) { item in
+                                AnnouncementBanner(item: item) {
+                                    announcements.dismiss(item.id)
+                                }
                             }
                             if let rec = advisor.recommendation {
                                 CreditAdvisorBanner(
@@ -214,6 +220,9 @@ struct ProjectsView: View {
                 // Refresh the inbox so the unread badge reflects reality
                 // when the user first lands on Studio.
                 await inbox.reload()
+                // Pull any active announcements (filtered by app version on
+                // the server, then by per-id dismissal client-side).
+                await announcements.refresh()
             }
             .refreshable {
                 await viewModel.load()
@@ -568,6 +577,66 @@ private struct StudioSearchBar: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Filter: \(f.rawValue)")
+    }
+}
+
+/// Server-driven "what's new" card. Refreshed by AnnouncementsService on
+/// Studio appear; dismissed via UserDefaults dedupe per-id. Supports a
+/// CTA that opens either an in-app deep link (clipforge://...) or any
+/// https URL in Safari.
+private struct AnnouncementBanner: View {
+    let item: AnnouncementsService.Announcement
+    let onDismiss: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Image(systemName: "megaphone.fill")
+                    .foregroundStyle(.purple)
+                Text(item.title)
+                    .font(.callout.weight(.bold))
+                Spacer()
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                        .padding(6)
+                }
+                .accessibilityLabel("Dismiss announcement")
+            }
+            Text(item.body)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if let label = item.ctaText, let urlStr = item.ctaUrl, let url = URL(string: urlStr) {
+                Button {
+                    Task { await Haptics.impact(.light) }
+                    UIApplication.shared.open(url)
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(label).font(.caption.weight(.bold))
+                        Image(systemName: "arrow.right").font(.caption2.weight(.bold))
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 7)
+                    .background(
+                        LinearGradient(
+                            colors: [.purple, .brand],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .foregroundStyle(.white)
+                    .clipShape(.capsule)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.cardBackground)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.purple.opacity(0.45), lineWidth: 1)
+        )
+        .clipShape(.rect(cornerRadius: 14))
     }
 }
 
