@@ -2,44 +2,83 @@ import Foundation
 import StoreKit
 import UIKit
 
-/// Decides when to fire `SKStoreReviewController.requestReview`. We only get
-/// 3 prompts per user per 365 days from Apple, so we'd better fire them at
-/// real-success moments, not arbitrary launches.
+/// Drives `SKStoreReviewController.requestReview` at moments of real
+/// user delight, not arbitrary launches. Apple caps actual prompt
+/// presentations to 3 per user per 365 days regardless of how many
+/// times we call the API, so we double-gate to make every request
+/// count:
 ///
-/// Heuristic — fire on the user's first **save-to-photos** that lands after
-/// they've successfully completed at least one render. That's the magic
-/// moment: they have a clip they're happy with AND just made a deliberate
-/// "I want to keep this" gesture. Conversion is much higher than on launch.
+///   1. **Per-trigger gate** — each trigger (first-save, fifth-save,
+///      first-publish, 7-day-streak) fires at most once via its own
+///      UserDefaults sentinel.
+///   2. **Global cooldown** — no more than one request across all
+///      triggers within a 90-day window. Keeps us well under Apple's
+///      365/3 ceiling even if the user sprints through every trigger
+///      in a single session.
 enum ReviewPrompt {
 
-    private static let SAVED_COUNT_KEY = "clipforge.review.savedClipCount"
-    private static let LAST_PROMPT_KEY = "clipforge.review.lastPromptAt"
+    private static let SAVED_COUNT_KEY        = "clipforge.review.savedClipCount"
+    private static let FIRST_PUBLISH_KEY      = "clipforge.review.firstPublishFired"
+    private static let STREAK_7_KEY           = "clipforge.review.streak7Fired"
+    private static let LAST_PROMPT_KEY        = "clipforge.review.lastPromptAt"
+    private static let COOLDOWN_SECONDS: TimeInterval = 90 * 86_400
 
-    /// Record that the user just saved a clip. Calls into Apple's review
-    /// prompt on the right boundary (1st + 5th save).
+    // MARK: - Triggers
+
+    /// Called from SaveToPhotos after a successful library write. Fires the
+    /// review prompt on the 1st and 5th save (legacy heuristic — keeps
+    /// converting because the user just made a deliberate "I want to keep
+    /// this" gesture).
     @MainActor
     static func markSavedClip() {
-        let defaults = UserDefaults.standard
-        let count = defaults.integer(forKey: SAVED_COUNT_KEY) + 1
-        defaults.set(count, forKey: SAVED_COUNT_KEY)
+        let count = UserDefaults.standard.integer(forKey: SAVED_COUNT_KEY) + 1
+        UserDefaults.standard.set(count, forKey: SAVED_COUNT_KEY)
+        if count == 1 || count == 5 {
+            requestReviewIfEligible()
+        }
+    }
 
-        // Threshold gates — only ask at the 1st and 5th save, and never more
-        // often than once per 30 days.
-        let isFirstSave = count == 1
-        let isFifthSave = count == 5
-        guard isFirstSave || isFifthSave else { return }
+    /// Called from ClipPublishSheet after the publishClip API call returns
+    /// successfully. Fires once-ever — the very first publish is the moment
+    /// where the user has just verified "yes, this app actually posts for me".
+    @MainActor
+    static func markFirstPublish() {
+        let fired = UserDefaults.standard.bool(forKey: FIRST_PUBLISH_KEY)
+        if fired { return }
+        UserDefaults.standard.set(true, forKey: FIRST_PUBLISH_KEY)
+        requestReviewIfEligible()
+    }
 
-        let lastAt = defaults.double(forKey: LAST_PROMPT_KEY)
+    /// Called when StreakService crosses a 7-day milestone. Fires once-ever
+    /// at that specific milestone — bigger milestones (14, 30, 365) already
+    /// have their own MilestoneBanner + confetti, no need to also ask for
+    /// a review.
+    @MainActor
+    static func markStreakMilestone(days: Int) {
+        guard days == 7 else { return }
+        let fired = UserDefaults.standard.bool(forKey: STREAK_7_KEY)
+        if fired { return }
+        UserDefaults.standard.set(true, forKey: STREAK_7_KEY)
+        requestReviewIfEligible()
+    }
+
+    // MARK: - Common gate
+
+    /// Apply the 90-day cooldown then call into Apple's modern API. Updates
+    /// the cooldown sentinel only when we actually issued the request so a
+    /// silent cooldown-blocked attempt doesn't waste a quarter.
+    @MainActor
+    private static func requestReviewIfEligible() {
+        let lastAt = UserDefaults.standard.double(forKey: LAST_PROMPT_KEY)
         let now = Date().timeIntervalSince1970
-        if now - lastAt < 30 * 86_400 { return }
+        if now - lastAt < COOLDOWN_SECONDS { return }
 
-        // Apple's modern API targets a window scene
         guard let scene = UIApplication.shared.connectedScenes
                 .first(where: { $0.activationState == .foregroundActive })
                 as? UIWindowScene else {
             return
         }
         SKStoreReviewController.requestReview(in: scene)
-        defaults.set(now, forKey: LAST_PROMPT_KEY)
+        UserDefaults.standard.set(now, forKey: LAST_PROMPT_KEY)
     }
 }

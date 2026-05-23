@@ -212,6 +212,11 @@ struct ProjectsView: View {
                     await Haptics.notify(.success)
                     milestoneToast = m
                     fireMilestoneConfetti = true
+                    // Ask for an App Store review at the 7-day streak —
+                    // that's a real consistency signal. Other milestones
+                    // already have their own celebration; no need to
+                    // double-up.
+                    ReviewPrompt.markStreakMilestone(days: m)
                     try? await Task.sleep(nanoseconds: 1_800_000_000)
                     fireMilestoneConfetti = false
                     try? await Task.sleep(nanoseconds: 2_400_000_000)

@@ -426,6 +426,12 @@ struct ClipPublishSheet: View {
                 "count": platforms.count,
                 "scheduled": scheduleEnabled,
             ])
+            // Immediate publishes count as "real proof the app works" — ask
+            // for a review here. Scheduled publishes don't trigger because
+            // the user hasn't actually seen anything go live yet.
+            if !scheduleEnabled {
+                ReviewPrompt.markFirstPublish()
+            }
             await Haptics.notify(.success)
             await loadStatuses()
             // No need to poll if the post is scheduled — it won't move from
