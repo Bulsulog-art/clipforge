@@ -301,6 +301,57 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Referrals
+
+    struct ReferralInfo: Decodable {
+        let code: String
+        let invitedCount: Int
+        let inviteCap: Int
+        let creditsPerRedemption: Int
+    }
+
+    /// Fetch the user's referral code + redemption stats. Server lazily
+    /// issues a code on first call so existing users don't need a backfill.
+    func fetchReferralInfo() async throws -> ReferralInfo {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/referrals/me"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        return try JSONDecoder().decode(ReferralInfo.self, from: data)
+    }
+
+    /// Apply a referral code as the invitee. Returns the friendly error
+    /// message from the server when the RPC rejects (self-referral,
+    /// already-redeemed, etc).
+    func applyReferralCode(_ code: String) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/referrals/apply"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        struct Body: Encodable { let code: String }
+        req.httpBody = try JSONEncoder().encode(Body(code: code))
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if !(200..<300).contains(http.statusCode) {
+            // Surface the friendly server message to the UI
+            struct Err: Decodable { let error: String? }
+            let serverMessage = (try? JSONDecoder().decode(Err.self, from: data).error) ?? "Couldn't redeem this code."
+            throw NSError(
+                domain: "ClipForgeAPI.Referral",
+                code: http.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: serverMessage]
+            )
+        }
+    }
+
     // MARK: - Feedback
 
     /// Send an in-app feedback message. Server stores it in clipforge.feedback

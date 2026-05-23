@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var showDeleteConfirm = false
     @State private var deleting = false
     @State private var showFeedback = false
+    @State private var showReferrals = false
 
     var body: some View {
         NavigationStack {
@@ -37,6 +38,13 @@ struct SettingsView: View {
                         Button("Manage / cancel subscription", role: .destructive) {
                             showCancelFlow = true
                         }
+                    }
+                }
+                Section("Grow") {
+                    Button {
+                        showReferrals = true
+                    } label: {
+                        Label("Invite friends · +5 credits each", systemImage: "gift.fill")
                     }
                 }
                 Section("Support") {
@@ -78,6 +86,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showCreditPaywall) { CreditsPaywallView() }
             .sheet(isPresented: $showCancelFlow) { CancelFlowView() }
             .sheet(isPresented: $showFeedback) { FeedbackSheet() }
+            .sheet(isPresented: $showReferrals) { ReferralsSheet() }
             .task { await credits.refresh() }
             .confirmationDialog(
                 "Sign out?",
