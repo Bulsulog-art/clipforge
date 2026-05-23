@@ -94,6 +94,41 @@ export async function runVideoPipeline(p: Payload) {
     const aiThumbnails = profile.tier === "starter" || profile.tier === "pro" || profile.tier === "agency";
     const maxSourceSec = profile.tier === "free" ? 300 : 5400; // 5 min free, 90 min paid
 
+    // Resolve custom branding (Plus only). If the user set a logo, download
+    // it once for the whole job and pass it to every renderClip call —
+    // overlays as a corner watermark instead of the default outro.
+    let brandingArgs: { localLogoPath: string; position: string; opacity: number } | undefined;
+    if (profile.tier !== "free") {
+      const { data: brandingRow } = await supabase
+        .from("clip_branding")
+        .select("logo_path, position, opacity")
+        .eq("user_id", p.userId)
+        .maybeSingle();
+      if (brandingRow?.logo_path) {
+        try {
+          const { data: signed } = await supabase.storage
+            .from("clipforge-faces")
+            .createSignedUrl(brandingRow.logo_path as string, 60 * 60);
+          if (signed?.signedUrl) {
+            const ext = (brandingRow.logo_path as string).split(".").pop() ?? "png";
+            const localLogoPath = path.join(work, `branding-logo.${ext}`);
+            const dl = await fetch(signed.signedUrl);
+            if (dl.ok) {
+              await fs.writeFile(localLogoPath, Buffer.from(await dl.arrayBuffer()));
+              brandingArgs = {
+                localLogoPath,
+                position: (brandingRow.position as string) ?? "bottom-right",
+                opacity: Number(brandingRow.opacity ?? 0.85),
+              };
+              logger.info({ jobId: p.jobId, position: brandingArgs.position }, "custom branding loaded");
+            }
+          }
+        } catch (e) {
+          logger.warn({ jobId: p.jobId, err: (e as Error).message }, "branding load failed — rendering without logo");
+        }
+      }
+    }
+
     await setProgress(p.jobId, "transcribing", 0);
     const local = await downloadSource(p, work);
     logger.info({ jobId: p.jobId, dur: local.durationSec, title: local.title }, "downloaded");
@@ -186,7 +221,10 @@ export async function runVideoPipeline(p: Payload) {
           transcript,
           niche: p.niche ?? "default",
           workDir: work,
-          watermark,
+          // When custom branding is set, suppress the default outro/wordmark
+          // so the user's logo isn't fighting our own.
+          watermark: watermark && !brandingArgs,
+          branding: brandingArgs,
           bgMusicPath: pickedTrackPath,
         });
 

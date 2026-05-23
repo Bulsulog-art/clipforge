@@ -23,6 +23,12 @@ type Args = {
   bgMusicPath?: string | null;
   /** Music level (0..1). Defaults to 0.16 for plenty of headroom under voice. */
   bgMusicVolume?: number;
+  /** Plus-tier custom branding. Logo image is composited as a corner watermark. */
+  branding?: {
+    localLogoPath: string;
+    position: string;   // 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+    opacity: number;    // 0.10..1.00
+  };
 };
 
 export type RenderResult = {
@@ -82,25 +88,54 @@ export async function renderClip(a: Args): Promise<RenderResult> {
 
   const musicVolume = Math.max(0.05, Math.min(0.4, a.bgMusicVolume ?? 0.16));
   const hasMusic = Boolean(a.bgMusicPath);
+  const hasBranding = Boolean(a.branding);
 
   // afade out across the last 1s so music doesn't snap to silence.
   const fadeOutStart = Math.max(0, duration - 1.0).toFixed(2);
 
-  const complexFilter = hasMusic
+  // Input index for the branding logo. Music takes [1] when present, so
+  // branding lands at [2] if both are set, otherwise [1].
+  const brandingInputIdx = hasMusic ? 2 : 1;
+
+  // When branding is set, we route the video through a 2-step filter:
+  //   1) [0:v] -> videoChain -> [v_base]
+  //   2) [v_base] + scaled logo -> overlay at corner -> [v]
+  // Otherwise we keep the legacy single-step path so musicless / brandless
+  // renders are unchanged.
+  const baseVideoLabel = hasBranding ? "[v_base]" : "[v]";
+  const videoBuild = `[0:v]${videoChain}${baseVideoLabel}`;
+
+  const brandingChain = hasBranding && a.branding
     ? [
-        `[0:v]${videoChain}[v]`,
+        // Scale the logo to a max of 216px wide (~20% of 1080) keeping aspect.
+        // colorchannelmixer applies the user's opacity to the alpha channel.
+        `[${brandingInputIdx}:v]format=rgba,scale=216:-1,` +
+          `colorchannelmixer=aa=${Math.max(0.10, Math.min(1.00, a.branding.opacity)).toFixed(2)}[logo]`,
+        `[v_base][logo]overlay=${overlayXY(a.branding.position)}[v]`,
+      ].join(";")
+    : null;
+
+  const audioChain = hasMusic
+    ? [
         `[0:a]${voiceChain}[voice]`,
         `[1:a]aloop=loop=-1:size=2e+09,atrim=duration=${duration.toFixed(2)},` +
           `volume=${musicVolume.toFixed(2)},` +
           `afade=t=in:st=0:d=0.6,` +
           `afade=t=out:st=${fadeOutStart}:d=1.0[bg]`,
         `[voice][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`,
-      ].join(";")
-    : [`[0:v]${videoChain}[v]`, `[0:a]${voiceChain}[aout]`].join(";");
+      ]
+    : [`[0:a]${voiceChain}[aout]`];
+
+  const complexFilter = [
+    videoBuild,
+    ...(brandingChain ? [brandingChain] : []),
+    ...audioChain,
+  ].join(";");
 
   await new Promise<void>((resolve, reject) => {
     const cmd = ffmpeg(a.sourcePath).setStartTime(a.moment.start).duration(duration);
     if (hasMusic && a.bgMusicPath) cmd.input(a.bgMusicPath);
+    if (hasBranding && a.branding) cmd.input(a.branding.localLogoPath);
 
     cmd
       .complexFilter(complexFilter)
@@ -167,6 +202,21 @@ export async function renderClip(a: Args): Promise<RenderResult> {
   ]);
 
   return { storagePath, thumbnailPath: thumbPath, durationSec: duration, renderedFilePath: out };
+}
+
+/**
+ * Map a stored position string to ffmpeg `overlay` x:y expressions. W/H
+ * are the main video width/height; w/h are the overlay (logo) dims.
+ * 24-pixel padding from the edges keeps the logo off the unsafe area.
+ */
+function overlayXY(position: string): string {
+  switch (position) {
+    case "top-left":     return "x=24:y=24";
+    case "top-right":    return "x=W-w-24:y=24";
+    case "bottom-left":  return "x=24:y=H-h-24";
+    case "bottom-right": return "x=W-w-24:y=H-h-24";
+    default:             return "x=W-w-24:y=H-h-24";
+  }
 }
 
 function escapePath(p: string) {
