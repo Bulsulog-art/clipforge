@@ -45,6 +45,8 @@ targets:
         NSPhotoLibraryAddUsageDescription: "ClipForge needs to save finished clips to your Photos library."
         NSMicrophoneUsageDescription: "ClipForge needs microphone access to record audio."
         UIBackgroundModes: [audio, processing, remote-notification, fetch]
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.bulsulabs.clipforge.refresh
         ITSAppUsesNonExemptEncryption: false
         NSSupportsLiveActivities: true
         CFBundleURLTypes:

@@ -9,6 +9,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         Task { @MainActor in
             await PushService.shared.bootstrap()
+            // Register the BGAppRefreshTask handler + queue the first wake.
+            // Subsequent wakes self-rearm at the end of each handler run.
+            BackgroundRefresh.registerAndSchedule()
         }
         return true
     }
