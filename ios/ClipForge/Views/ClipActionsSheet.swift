@@ -344,7 +344,7 @@ struct ClipActionsSheet: View {
         saving = true
         defer { saving = false }
         do {
-            let url = try await ClipForgeAPI.shared.signedURL(
+            let url = try await SignedURLCache.shared.signedURL(
                 path: path, bucket: "clipforge-videos-rendered"
             )
             try await SaveToPhotos.saveVideo(from: url)

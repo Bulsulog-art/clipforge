@@ -327,12 +327,25 @@ struct ClipVideoPlayer: View {
             return
         }
         do {
-            let url = try await ClipForgeAPI.shared.signedURL(
+            // Cached signed URLs: scrolling back to a previously-viewed card
+            // becomes instant instead of paying the Supabase round-trip again.
+            // SignedURLCache also coalesces concurrent requests for the same
+            // key so a fast scroll doesn't burst the storage API.
+            let url = try await SignedURLCache.shared.signedURL(
                 path: path,
                 bucket: "clipforge-videos-rendered"
             )
             let item = AVPlayerItem(url: url)
+            // Cap the forward buffer at 8 seconds. Default is "system-chosen"
+            // which on cellular can buffer 30–60s eagerly — multiplied across
+            // 5–10 visible feed cards that's a lot of unnecessary RAM. 8s is
+            // enough to hide a brief network stall while keeping each
+            // AVPlayerItem's footprint small.
+            item.preferredForwardBufferDuration = 8
             let p = AVPlayer(playerItem: item)
+            // Don't aggressively cache the next item — we control loading
+            // ourselves via the feed's scrollPosition tracking.
+            p.automaticallyWaitsToMinimizeStalling = true
             p.actionAtItemEnd = .none
             p.isMuted = muted
             // Loop endlessly — Reels/TikTok mental model

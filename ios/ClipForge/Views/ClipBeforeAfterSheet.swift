@@ -167,8 +167,8 @@ struct ClipBeforeAfterSheet: View {
         }
         do {
             let bucket = "clipforge-videos-rendered"
-            async let originalSigned = ClipForgeAPI.shared.signedURL(path: originalPath, bucket: bucket)
-            async let swappedSigned  = ClipForgeAPI.shared.signedURL(path: swappedPath,  bucket: bucket)
+            async let originalSigned = SignedURLCache.shared.signedURL(path: originalPath, bucket: bucket)
+            async let swappedSigned  = SignedURLCache.shared.signedURL(path: swappedPath,  bucket: bucket)
             let (origUrl, swapUrl) = try await (originalSigned, swappedSigned)
 
             let oItem = AVPlayerItem(url: origUrl)

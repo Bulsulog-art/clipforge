@@ -94,7 +94,7 @@ struct ClipPlayerView: View {
         sharing = true
         defer { sharing = false }
         do {
-            let url = try await ClipForgeAPI.shared.signedURL(
+            let url = try await SignedURLCache.shared.signedURL(
                 path: path,
                 bucket: "clipforge-videos-rendered"
             )

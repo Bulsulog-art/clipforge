@@ -114,6 +114,9 @@ struct SettingsView: View {
         await PushService.shared.unregisterToken()
         await RevenueCatService.shared.logOut()
         try? await SupabaseService.shared.signOut()
+        // Wipe the in-memory signed-URL cache so a re-sign-in as a different
+        // user can't accidentally hit the previous user's pre-signed paths.
+        await SignedURLCache.shared.invalidateAll()
     }
 
     private func performDeleteAccount() async {
@@ -125,6 +128,7 @@ struct SettingsView: View {
             await RevenueCatService.shared.logOut()
             // Server has already invalidated the session — local cleanup
             try? await SupabaseService.shared.signOut()
+            await SignedURLCache.shared.invalidateAll()
         } catch {
             AppState.shared.flashError("Couldn't delete account: \(error.localizedDescription)")
         }
