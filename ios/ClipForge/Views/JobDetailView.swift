@@ -13,6 +13,9 @@ struct JobDetailView: View {
     @State private var selectedIds: Set<String> = []
     @State private var bulkBusy: Bool = false
     @State private var bulkError: String?
+    @State private var bulkSaveCompleted: Int = 0
+    @State private var bulkSaveTotal: Int = 0
+    @State private var showBulkPublish: Bool = false
 
     var body: some View {
         ScrollView {
@@ -118,6 +121,11 @@ struct JobDetailView: View {
         .fullScreenCover(item: $playerForClip) { clip in
             ClipPlayerView(clip: clip)
         }
+        .sheet(isPresented: $showBulkPublish) {
+            BulkPublishSheet(
+                clips: vm.clips.filter { selectedIds.contains($0.id) }
+            )
+        }
         .navigationTitle(selecting ? "\(selectedIds.count) selected" : "Clips")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -138,22 +146,40 @@ struct JobDetailView: View {
     }
 
     private var bulkActionBar: some View {
-        HStack(spacing: 12) {
-            Button {
-                Task { await bulkSetFavorite(true) }
-            } label: {
-                Label("Star", systemImage: "star.fill")
-            }
-            .disabled(bulkBusy)
-            Button {
-                Task { await bulkSetFavorite(false) }
-            } label: {
-                Label("Unstar", systemImage: "star.slash")
-            }
-            .disabled(bulkBusy)
-            Spacer()
-            if bulkBusy {
-                ProgressView().controlSize(.small).tint(.white)
+        // Scroll horizontally so 4 actions + progress all fit on small
+        // devices without truncating labels.
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 14) {
+                Button {
+                    Task { await bulkSetFavorite(true) }
+                } label: {
+                    Label("Star", systemImage: "star.fill")
+                }
+                .disabled(bulkBusy)
+                Button {
+                    Task { await bulkSetFavorite(false) }
+                } label: {
+                    Label("Unstar", systemImage: "star.slash")
+                }
+                .disabled(bulkBusy)
+                Button {
+                    Task { await bulkSaveToPhotos() }
+                } label: {
+                    Label(bulkSaveTotal > 0
+                          ? "Saved \(bulkSaveCompleted)/\(bulkSaveTotal)"
+                          : "Save",
+                          systemImage: "square.and.arrow.down")
+                }
+                .disabled(bulkBusy)
+                Button {
+                    showBulkPublish = true
+                } label: {
+                    Label("Publish", systemImage: "paperplane.fill")
+                }
+                .disabled(bulkBusy)
+                if bulkBusy {
+                    ProgressView().controlSize(.small).tint(.white)
+                }
             }
         }
         .font(.callout.weight(.semibold))
@@ -181,6 +207,48 @@ struct JobDetailView: View {
             selectedIds.insert(id)
         }
         Task { await Haptics.impact(.light) }
+    }
+
+    /// Save every selected ready clip to the user's Photos library
+    /// sequentially. Photos permission is requested on the first call;
+    /// failures are tallied but don't abort the rest of the batch.
+    private func bulkSaveToPhotos() async {
+        let targets = vm.clips
+            .filter { selectedIds.contains($0.id) && $0.status == "ready" && $0.storagePath != nil }
+        if targets.isEmpty { return }
+        bulkBusy = true
+        bulkError = nil
+        bulkSaveCompleted = 0
+        bulkSaveTotal = targets.count
+        defer { bulkBusy = false }
+        var failures: [String] = []
+        for clip in targets {
+            do {
+                let url = try await SignedURLCache.shared.signedURL(
+                    path: clip.storagePath!,
+                    bucket: "clipforge-videos-rendered"
+                )
+                try await SaveToPhotos.saveVideo(from: url)
+                bulkSaveCompleted += 1
+            } catch {
+                failures.append(error.localizedDescription)
+            }
+        }
+        if failures.isEmpty {
+            await Haptics.notify(.success)
+            selecting = false
+            selectedIds.removeAll()
+        } else {
+            bulkError = "Saved \(bulkSaveCompleted) of \(targets.count). \(failures.first ?? "")"
+            await Haptics.notify(.warning)
+        }
+        // Reset the per-button counter after a beat so it doesn't stick
+        // around on the bar after success.
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            bulkSaveTotal = 0
+            bulkSaveCompleted = 0
+        }
     }
 
     private func bulkSetFavorite(_ favorite: Bool) async {
