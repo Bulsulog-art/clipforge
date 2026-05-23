@@ -27,7 +27,12 @@ struct RootView: View {
         .onChange(of: supabase.session?.user.id) { _, newId in
             guard let newId, !didBindRevenueCat else { return }
             didBindRevenueCat = true
-            Task { await RevenueCatService.shared.identify(userId: newId.uuidString) }
+            Task {
+                await RevenueCatService.shared.identify(userId: newId.uuidString)
+                // Refresh feature flags as soon as we have a session — subsequent
+                // ticks are handled by the FeatureFlagsService internal timer.
+                await FeatureFlagsService.shared.refresh()
+            }
         }
         .background(Color.appBackground.ignoresSafeArea())
     }
