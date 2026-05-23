@@ -33,6 +33,24 @@ export async function sendPush(userId: string, payload: PushPayload) {
     logger.warn("APNs env not configured — skipping push");
     return;
   }
+
+  // Respect per-user push preferences. Payload's `data.kind` is the
+  // notification's category (job_ready / low_credits / trend_match /
+  // avatar_ready). If the user has explicitly disabled it, return early.
+  const kind = payload.data?.kind;
+  if (kind) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("push_preferences")
+      .eq("id", userId)
+      .maybeSingle();
+    const prefs = (profile?.push_preferences as Record<string, boolean> | null) ?? {};
+    if (prefs[kind] === false) {
+      logger.info({ userId, kind }, "push suppressed by user preference");
+      return;
+    }
+  }
+
   const { data: tokens, error } = await supabase
     .from("push_tokens")
     .select("token")

@@ -301,6 +301,42 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Push notification preferences
+
+    /// Returns the user's per-kind push opt-in map. Missing keys default to
+    /// enabled on the worker side, so a fresh user with `{}` gets every push.
+    func fetchPushPreferences() async throws -> [String: Bool] {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/push-preferences"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        struct Resp: Decodable { let preferences: [String: Bool] }
+        return (try? JSONDecoder().decode(Resp.self, from: data).preferences) ?? [:]
+    }
+
+    /// Patch one or more kinds. Server merges with the existing map so a
+    /// partial update doesn't overwrite untouched keys.
+    func updatePushPreferences(_ updates: [String: Bool]) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/push-preferences"))
+        req.httpMethod = "PATCH"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        struct Body: Encodable { let preferences: [String: Bool] }
+        req.httpBody = try JSONEncoder().encode(Body(preferences: updates))
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Publish history
 
     struct PublishHistoryRow: Identifiable, Decodable, Hashable {
