@@ -11,6 +11,7 @@ struct ChannelsView: View {
     @StateObject private var credits = CreditsService.shared
     @State private var channelToDisconnect: ClipForgeAPI.Channel?
     @State private var animateGradient = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         NavigationStack {
@@ -31,6 +32,9 @@ struct ChannelsView: View {
             .refreshable { await svc.refresh() }
             .task { await svc.refresh() }
             .onAppear {
+                // Respect Reduce Motion — hold the hero gradient at its
+                // starting palette rather than the 6s perpetual sweep.
+                guard !reduceMotion else { return }
                 withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
                     animateGradient.toggle()
                 }

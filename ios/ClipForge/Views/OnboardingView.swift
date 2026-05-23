@@ -10,6 +10,7 @@ struct OnboardingView: View {
     @State private var page = 0
     @State private var requestingPush = false
     @State private var bgPhase: Double = 0  // drives the subtle background gradient drift
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let pages: [Page] = [
         Page(
@@ -76,6 +77,11 @@ struct OnboardingView: View {
             .padding(.bottom, 22)
         }
         .onAppear {
+            // Respect Reduce Motion — the 14s background drift is a
+            // continuous looping animation, the vestibular-trigger flavour
+            // Apple specifically calls out. Leave the gradient at its
+            // starting palette for those users.
+            guard !reduceMotion else { return }
             withAnimation(.linear(duration: 14).repeatForever(autoreverses: true)) {
                 bgPhase = 1
             }
@@ -503,6 +509,7 @@ private struct PushBannerIllustration: View {
     let isActive: Bool
     @State private var shown = false
     @State private var pulse = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -557,7 +564,9 @@ private struct PushBannerIllustration: View {
         .frame(maxWidth: .infinity)
         .onAppear {
             trigger()
-            pulse = true
+            // Reduce Motion: hold the halo at full opacity (a static ring
+            // instead of an endless outward pulse).
+            pulse = !reduceMotion
         }
         .onChange(of: isActive) { _, active in if active { trigger() } }
     }

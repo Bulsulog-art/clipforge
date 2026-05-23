@@ -784,6 +784,7 @@ private struct DailyPickCard: View {
     let pick: DailyPick
     let onTap: () -> Void
     @State private var phase: Double = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Button(action: onTap) {
@@ -853,6 +854,10 @@ private struct DailyPickCard: View {
         .accessibilityLabel("Today's pick: \(pick.hook)")
         .accessibilityHint("Opens a new project pre-filled with this \(pick.niche.capitalized) hook")
         .onAppear {
+            // Respect Reduce Motion — the perpetually-rotating border can
+            // be a vestibular trigger. Leave the gradient at a static
+            // phase=0 (still pretty, just not moving) for those users.
+            guard !reduceMotion else { return }
             withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
                 phase = 1
             }
