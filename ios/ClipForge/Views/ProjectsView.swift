@@ -10,6 +10,15 @@ struct ProjectsView: View {
     @StateObject private var advisor = CreditAdvisor.shared
     @State private var fireMilestoneConfetti = false
     @State private var milestoneToast: Int?
+    @State private var tooltipStep: Int = Self.initialTooltipStep()
+
+    /// Resolve the initial tooltip cursor from UserDefaults. Pulled into a
+    /// static helper because inline closure initialisers on @State were
+    /// tripping Swift's type-checker timeout in ProjectsView (the file has
+    /// a lot of property wrappers, which compounds the inference cost).
+    private static func initialTooltipStep() -> Int {
+        UserDefaults.standard.bool(forKey: "clipforge.tooltipsSeen") ? 99 : 0
+    }
     @Environment(\.scenePhase) private var scenePhase
     @State private var showNewProject = false
     @State private var showAvatarStudio = false
@@ -199,6 +208,12 @@ struct ProjectsView: View {
             }
             .animation(.spring, value: milestoneToast)
             .confettiOverlay(trigger: fireMilestoneConfetti, count: 120, duration: 1.8)
+            .overlay {
+                StudioTooltipsOverlay(step: $tooltipStep) {
+                    UserDefaults.standard.set(true, forKey: "clipforge.tooltipsSeen")
+                    tooltipStep = 99
+                }
+            }
             .onChange(of: appState.pendingJobId) { _, newId in
                 guard let id = newId else { return }
                 Task { await openDeeplinkJob(id: id) }
