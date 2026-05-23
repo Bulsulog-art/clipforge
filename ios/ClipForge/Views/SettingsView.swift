@@ -14,6 +14,7 @@ struct SettingsView: View {
     @State private var showBranding = false
     @State private var showPublishHistory = false
     @State private var showPushPrefs = false
+    @State private var showStats = false
     @State private var exporting = false
     @State private var exportError: String?
     @State private var exportFileURL: URL?
@@ -62,6 +63,11 @@ struct SettingsView: View {
                         showPublishHistory = true
                     } label: {
                         Label("Publish history", systemImage: "paperplane.circle")
+                    }
+                    Button {
+                        showStats = true
+                    } label: {
+                        Label("Stats", systemImage: "chart.bar.xaxis")
                     }
                 }
                 Section("Notifications") {
@@ -132,6 +138,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showBranding) { BrandingSheet() }
             .sheet(isPresented: $showPublishHistory) { PublishHistorySheet() }
             .sheet(isPresented: $showPushPrefs) { PushPreferencesSheet() }
+            .sheet(isPresented: $showStats) { StatsSheet() }
             .sheet(isPresented: $showExportShare) {
                 if let url = exportFileURL {
                     ShareSheet(items: [url])
