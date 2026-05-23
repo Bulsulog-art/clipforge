@@ -37,7 +37,7 @@ targets:
         # Locales we ship Localizable.xcstrings translations for. Adding a
         # value here makes iOS render the localised UI when the user's
         # device language matches; unmatched strings fall back to en.
-        CFBundleLocalizations: [en, tr]
+        CFBundleLocalizations: [en, tr, es]
         CFBundleDevelopmentRegion: en
         UILaunchScreen: {}
         NSCameraUsageDescription: "ClipForge needs camera access to record video for clips."

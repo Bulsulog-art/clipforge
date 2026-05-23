@@ -4,452 +4,552 @@
   "strings" : {
     "Studio" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Stüdyo" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Stüdyo" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Estudio" } }
       }
     },
     "Channels" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kanallar" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kanallar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Canales" } }
       }
     },
     "Trends" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Trendler" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Trendler" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tendencias" } }
       }
     },
     "Clips" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Klipler" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Klipler" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Clips" } }
       }
     },
     "Settings" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Ayarlar" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Ayarlar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes" } }
       }
     },
 
     "Next" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İleri" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İleri" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Siguiente" } }
       }
     },
     "Let's go" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hadi başlayalım" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hadi başlayalım" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¡Vamos!" } }
       }
     },
     "Skip" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Geç" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Geç" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Saltar" } }
       }
     },
     "Yes, notify me" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Evet, bildir" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Evet, bildir" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sí, notifícame" } }
       }
     },
     "Maybe later" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Belki sonra" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Belki sonra" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Quizás luego" } }
       }
     },
     "AI does the editing" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Düzenlemeyi yapay zeka yapar" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Düzenlemeyi yapay zeka yapar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La IA hace la edición" } }
       }
     },
     "Klap + HeyGen + Reface in one" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Klap + HeyGen + Reface tek uygulamada" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Klap + HeyGen + Reface tek uygulamada" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Klap + HeyGen + Reface en una sola app" } }
       }
     },
     "Cancel anytime · refund-safe" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İstediğin zaman iptal · iade güvenli" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İstediğin zaman iptal · iade güvenli" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cancela cuando quieras · reembolso seguro" } }
       }
     },
     "Only render alerts · no spam" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sadece render uyarıları · spam yok" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sadece render uyarıları · spam yok" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Solo alertas de render · sin spam" } }
       }
     },
 
     "Your studio is ready" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Stüdyon hazır" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Stüdyon hazır" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tu estudio está listo" } }
       }
     },
     "Or browse trending hooks →" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Veya popüler kancalara göz at →" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Veya popüler kancalara göz at →" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "O explora hooks en tendencia →" } }
       }
     },
     "Active" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Aktif" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Aktif" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Activos" } }
       }
     },
     "Ready · 7d" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hazır · 7g" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hazır · 7g" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Listos · 7d" } }
       }
     },
     "Day streak" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Günlük seri" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Günlük seri" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Días seguidos" } }
       }
     },
     "Streak" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Seri" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Seri" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Racha" } }
       }
     },
     "TODAY'S PICK" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "BUGÜNÜN SEÇİMİ" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "BUGÜNÜN SEÇİMİ" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "ELECCIÓN DE HOY" } }
       }
     },
     "Generate clips from this" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Buradan klip oluştur" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Buradan klip oluştur" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Genera clips desde esto" } }
       }
     },
 
     "Distribution" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Dağıtım" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Dağıtım" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Distribución" } }
       }
     },
     "Not connected" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlı değil" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlı değil" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No conectado" } }
       }
     },
     "Connect" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlan" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlan" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conectar" } }
       }
     },
     "Connecting…" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlanıyor…" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlanıyor…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conectando…" } }
       }
     },
     "Disconnect" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlantıyı kes" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bağlantıyı kes" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desconectar" } }
       }
     },
     "Reconnect" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yeniden bağlan" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yeniden bağlan" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reconectar" } }
       }
     },
     "How publishing works" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yayınlama nasıl çalışır" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yayınlama nasıl çalışır" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cómo funciona la publicación" } }
       }
     },
 
     "Publish" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yayınla" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yayınla" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Publicar" } }
       }
     },
     "Share" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Paylaş" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Paylaş" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Compartir" } }
       }
     },
     "AI tools" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "AI araçları" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "AI araçları" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Herramientas IA" } }
       }
     },
     "Save to Photos" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Fotoğraflara kaydet" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Fotoğraflara kaydet" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guardar en Fotos" } }
       }
     },
     "Caption copied — paste it after sharing" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Açıklama kopyalandı — paylaştıktan sonra yapıştır" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Açıklama kopyalandı — paylaştıktan sonra yapıştır" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Texto copiado — pégalo después de compartir" } }
       }
     },
     "Close" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kapat" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kapat" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerrar" } }
       }
     },
     "Cancel" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İptal" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İptal" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cancelar" } }
       }
     },
 
     "Account" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hesap" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hesap" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cuenta" } }
       }
     },
     "Email" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "E-posta" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "E-posta" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Correo" } }
       }
     },
     "Plan" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Plan" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Plan" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Plan" } }
       }
     },
     "Credits" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Krediler" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Krediler" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Créditos" } }
       }
     },
     "Billing" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Faturalandırma" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Faturalandırma" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Facturación" } }
       }
     },
     "Restore purchases" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Satın alımları geri yükle" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Satın alımları geri yükle" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restaurar compras" } }
       }
     },
     "Support" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Destek" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Destek" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Soporte" } }
       }
     },
     "Send feedback" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Geri bildirim gönder" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Geri bildirim gönder" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Enviar comentarios" } }
       }
     },
     "Email support" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "E-posta desteği" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "E-posta desteği" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Correo de soporte" } }
       }
     },
     "Privacy Policy" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Gizlilik Politikası" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Gizlilik Politikası" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Política de privacidad" } }
       }
     },
     "Terms of Service" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kullanım Şartları" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kullanım Şartları" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Términos de servicio" } }
       }
     },
     "About" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hakkında" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hakkında" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Acerca de" } }
       }
     },
     "Version" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sürüm" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sürüm" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Versión" } }
       }
     },
     "Sign out" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Çıkış yap" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Çıkış yap" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerrar sesión" } }
       }
     },
     "Delete account" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hesabı sil" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Hesabı sil" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar cuenta" } }
       }
     },
     "Grow" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Büyüt" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Büyüt" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Crecer" } }
       }
     },
     "Invite friends · +5 credits each" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşlarını davet et · her birine +5 kredi" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşlarını davet et · her birine +5 kredi" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Invita amigos · +5 créditos cada uno" } }
+      }
+    },
+    "Export my data" : {
+      "localizations" : {
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Verilerimi dışa aktar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Exportar mis datos" } }
+      }
+    },
+    "Preparing export…" : {
+      "localizations" : {
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Dışa aktarma hazırlanıyor…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Preparando exportación…" } }
       }
     },
 
     "Weekly" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Haftalık" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Haftalık" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Semanal" } }
       }
     },
     "Monthly" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Aylık" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Aylık" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mensual" } }
       }
     },
     "Yearly" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yıllık" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yıllık" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Anual" } }
       }
     },
     "Best value" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "En iyi değer" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "En iyi değer" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mejor valor" } }
       }
     },
     "Subscribe" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Abone ol" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Abone ol" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Suscribirse" } }
       }
     },
     "Current plan" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Mevcut plan" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Mevcut plan" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Plan actual" } }
       }
     },
     "Processing…" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İşleniyor…" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İşleniyor…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Procesando…" } }
       }
     },
     "Get Plus" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Plus Al" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Plus Al" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Obtener Plus" } }
       }
     },
     "Loading pricing…" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Fiyatlar yükleniyor…" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Fiyatlar yükleniyor…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargando precios…" } }
       }
     },
     "Couldn't load pricing" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Fiyatlar yüklenemedi" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Fiyatlar yüklenemedi" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se cargaron los precios" } }
       }
     },
     "Retry" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Tekrar dene" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Tekrar dene" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reintentar" } }
       }
     },
 
     "Get more credits" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Daha fazla kredi al" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Daha fazla kredi al" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Obtener más créditos" } }
       }
     },
     "Top up credits" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kredi yükle" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kredi yükle" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Recargar créditos" } }
       }
     },
     "Send" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Gönder" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Gönder" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Enviar" } }
       }
     },
     "Done" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Tamam" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Tamam" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Listo" } }
       }
     },
     "Got it!" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Anlaşıldı!" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Anlaşıldı!" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¡Entendido!" } }
       }
     },
 
     "Invite friends" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşlarını davet et" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşlarını davet et" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Invita amigos" } }
       }
     },
     "YOUR CODE" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "KODUNUZ" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "KODUNUZ" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "TU CÓDIGO" } }
       }
     },
     "Copy" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kopyala" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kopyala" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar" } }
       }
     },
     "Share with friends" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşlarla paylaş" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşlarla paylaş" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comparte con amigos" } }
       }
     },
     "Invited" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Davet edilen" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Davet edilen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Invitados" } }
       }
     },
     "Credits earned" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kazanılan kredi" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kazanılan kredi" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Créditos ganados" } }
       }
     },
     "Cap" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sınır" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sınır" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Límite" } }
       }
     },
     "Got a friend's code?" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşının kodu var mı?" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Arkadaşının kodu var mı?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Tienes el código de un amigo?" } }
       }
     },
     "Paste code" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kodu yapıştır" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kodu yapıştır" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pega el código" } }
       }
     },
     "Redeem" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kullan" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kullan" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Canjear" } }
       }
     },
     "Applying…" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Uygulanıyor…" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Uygulanıyor…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aplicando…" } }
       }
     },
 
     "Retry render" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Render'ı tekrar dene" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Render'ı tekrar dene" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reintentar render" } }
       }
     },
     "Render failed" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Render başarısız" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Render başarısız" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Render falló" } }
       }
     },
     "No clips yet" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Henüz klip yok" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Henüz klip yok" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay clips" } }
       }
     },
     "Go to Studio" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Stüdyo'ya git" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Stüdyo'ya git" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ir a Estudio" } }
       }
     },
 
     "Punchy" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Etkileyici" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Etkileyici" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Impactante" } }
       }
     },
     "Cinematic" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sinematik" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sinematik" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cinematográfico" } }
       }
     },
     "Minimal" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Minimal" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Minimal" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Minimalista" } }
       }
     },
     "Thumbnail style" : {
       "localizations" : {
-        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Küçük resim stili" } }
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Küçük resim stili" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Estilo de miniatura" } }
       }
     }
   }
