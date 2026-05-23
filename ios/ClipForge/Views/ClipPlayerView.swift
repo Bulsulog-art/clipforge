@@ -1,104 +1,44 @@
 import SwiftUI
 import AVKit
 
-/// Full-screen vertical clip player with native AVPlayer + share sheet.
-/// Used when user taps a thumbnail in JobDetailView / ClipsFeed.
+/// Fullscreen vertical clip player. The video rendering + auto-hiding scrubber
+/// chrome live in `ClipVideoPlayer`; this view layers on Publish, Share and
+/// the caption-to-clipboard toast.
 struct ClipPlayerView: View {
     let clip: Clip
     @Environment(\.dismiss) private var dismiss
-    @State private var player: AVPlayer?
-    @State private var loading = true
-    @State private var error: String?
     @State private var showShareSheet = false
     @State private var showPublishSheet = false
     @State private var localFileURL: URL?
     @State private var sharing = false
     @State private var captionCopiedToast = false
+    @State private var shareError: String?
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
-
-            if let player {
-                VideoPlayer(player: player)
-                    .ignoresSafeArea()
-                    .onAppear {
-                        player.play()
-                        NotificationCenter.default.addObserver(
-                            forName: .AVPlayerItemDidPlayToEndTime,
-                            object: player.currentItem,
-                            queue: .main
-                        ) { _ in
-                            player.seek(to: .zero)
-                            player.play()
+            ClipVideoPlayer(
+                clip: clip,
+                mode: .fullscreen,
+                isVisible: true,
+                onClose: { dismiss() },
+                trailingTopActions: [
+                    .init(
+                        label: "Publish",
+                        systemImage: "paperplane.fill",
+                        highlighted: true,
+                        action: {
+                            showPublishSheet = true
                         }
-                    }
-            } else if loading {
-                ProgressView().tint(.white)
-            } else if let error {
-                VStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.yellow)
-                    Text(error).foregroundStyle(.white)
-                    Button("Close") { dismiss() }
-                        .tint(.brand)
-                }
-            }
-
-            VStack {
-                HStack(spacing: 14) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white.opacity(0.85))
-                    }
-                    Spacer()
-                    // Publish to channels — primary CTA in the fullscreen player.
-                    Button(action: {
-                        Task { await Haptics.impact(.medium) }
-                        showPublishSheet = true
-                    }) {
-                        Label("Publish", systemImage: "paperplane.fill")
-                            .font(.caption.bold())
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                LinearGradient(
-                                    colors: [.brand, .brandGlow],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .foregroundStyle(.white)
-                            .clipShape(.capsule)
-                            .shadow(color: .brand.opacity(0.6), radius: 6)
-                    }
-                    .buttonStyle(.plain)
-
-                    Button(action: { Task { await prepareAndShare() } }) {
-                        if sharing {
-                            ProgressView().tint(.white)
-                        } else {
-                            Image(systemName: "square.and.arrow.up.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(.white.opacity(0.85))
+                    ),
+                    .init(
+                        label: "Share",
+                        systemImage: sharing ? "ellipsis" : "square.and.arrow.up",
+                        action: {
+                            Task { await prepareAndShare() }
                         }
-                    }
-                }
-                .padding()
-                Spacer()
-                if let hook = clip.hook {
-                    Text(hook)
-                        .font(.title3.bold())
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.leading)
-                        .padding()
-                        .background(.black.opacity(0.5))
-                        .clipShape(.rect(cornerRadius: 12))
-                        .padding()
-                }
-            }
+                    ),
+                ]
+            )
 
             if captionCopiedToast {
                 VStack {
@@ -110,16 +50,30 @@ struct ClipPlayerView: View {
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .background(.black.opacity(0.75))
+                    .background(.black.opacity(0.78))
                     .foregroundStyle(.white)
                     .clipShape(.capsule)
-                    .padding(.bottom, 110)
+                    .padding(.bottom, 80)
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
             }
+
+            if let err = shareError {
+                VStack {
+                    Spacer()
+                    Label(err, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote.weight(.semibold))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(.black.opacity(0.78))
+                        .foregroundStyle(.red)
+                        .clipShape(.capsule)
+                        .padding(.bottom, 80)
+                }
+            }
         }
-        .task { await loadStream() }
-        .onDisappear { player?.pause() }
+        .background(Color.black)
+        .ignoresSafeArea()
         .sheet(isPresented: $showShareSheet) {
             if let url = localFileURL {
                 ShareSheet(items: [url])
@@ -130,38 +84,26 @@ struct ClipPlayerView: View {
         }
     }
 
-    private func loadStream() async {
-        guard let path = clip.storagePath else {
-            error = "Clip not rendered yet"; loading = false; return
-        }
-        do {
-            let url = try await ClipForgeAPI.shared.signedURL(path: path, bucket: "clipforge-videos-rendered")
-            player = AVPlayer(url: url)
-            loading = false
-        } catch {
-            self.error = error.localizedDescription
-            loading = false
-        }
-    }
-
-    /// Download the clip to a temp file then present share sheet (TikTok, Instagram, Photos…).
-    /// We also stuff a smart caption (hook + caption + #hashtags) into the
-    /// system pasteboard so the user can paste it directly inside whichever
-    /// app they choose from the share sheet — most platforms don't accept a
-    /// caption via the share-extension protocol for video, so this is the
-    /// fastest path to a polished post.
+    /// Download the rendered MP4 to a temp file then present the system share
+    /// sheet. We also write a publish-ready caption (hook + caption + #hashtags)
+    /// to the system pasteboard so the user can paste it inside whatever
+    /// destination app they pick — share-extension share-items can't carry a
+    /// caption for video on most platforms, so this is the fastest path.
     private func prepareAndShare() async {
         guard let path = clip.storagePath else { return }
         sharing = true
         defer { sharing = false }
         do {
-            let url = try await ClipForgeAPI.shared.signedURL(path: path, bucket: "clipforge-videos-rendered")
+            let url = try await ClipForgeAPI.shared.signedURL(
+                path: path,
+                bucket: "clipforge-videos-rendered"
+            )
             let (data, _) = try await URLSession.shared.data(from: url)
-            let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("clipforge-\(clip.id).mp4")
+            let tmp = FileManager.default.temporaryDirectory
+                .appendingPathComponent("clipforge-\(clip.id).mp4")
             try data.write(to: tmp, options: .atomic)
             localFileURL = tmp
 
-            // Caption to clipboard
             let caption = composeCaption()
             if !caption.isEmpty {
                 UIPasteboard.general.string = caption
@@ -176,19 +118,24 @@ struct ClipPlayerView: View {
 
             showShareSheet = true
         } catch {
-            self.error = error.localizedDescription
+            shareError = error.localizedDescription
+            Task {
+                try? await Task.sleep(nanoseconds: 3_500_000_000)
+                await MainActor.run { shareError = nil }
+            }
         }
     }
 
-    /// Compose a publish-ready caption from the clip metadata.
-    /// Mirrors ClipPublishSheet.defaultCaption so the user gets the same text
-    /// regardless of which surface they share from.
     private func composeCaption() -> String {
         var parts: [String] = []
         if let h = clip.hook, !h.isEmpty { parts.append(h) }
         if let c = clip.caption, !c.isEmpty { parts.append(c) }
         if let tags = clip.hashtags, !tags.isEmpty {
-            parts.append(tags.prefix(5).map { "#\($0.replacingOccurrences(of: "#", with: ""))" }.joined(separator: " "))
+            parts.append(
+                tags.prefix(5)
+                    .map { "#\($0.replacingOccurrences(of: "#", with: ""))" }
+                    .joined(separator: " ")
+            )
         }
         return parts.joined(separator: "\n\n")
     }

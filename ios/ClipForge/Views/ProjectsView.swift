@@ -5,6 +5,7 @@ struct ProjectsView: View {
     @StateObject private var viewModel = ProjectsViewModel()
     @StateObject private var credits = CreditsService.shared
     @StateObject private var rc = RevenueCatService.shared
+    @StateObject private var dailyPick = DailyPickService.shared
     @Environment(\.scenePhase) private var scenePhase
     @State private var showNewProject = false
     @State private var showAvatarStudio = false
@@ -40,6 +41,12 @@ struct ProjectsView: View {
                                         }
                                     }
                                 )
+                            }
+                            if shouldShowDailyPick, let pick = dailyPick.pick {
+                                DailyPickCard(pick: pick) {
+                                    Task { await Haptics.impact(.medium) }
+                                    appState.startFromTrend(niche: pick.niche, hook: pick.hook)
+                                }
                             }
                             ForEach(viewModel.jobs) { job in
                                 NavigationLink(destination: JobDetailView(job: job)) {
@@ -110,8 +117,19 @@ struct ProjectsView: View {
             .navigationDestination(item: $deeplinkJob) { job in
                 JobDetailView(job: job)
             }
-            .task { await viewModel.load() }
-            .refreshable { await viewModel.load() }
+            .task {
+                await viewModel.load()
+                // Pull niche preference from the most recent job (better signal
+                // than the saved default once the user has activity).
+                if let lastNiche = viewModel.jobs.first?.niche, !lastNiche.isEmpty {
+                    DailyPickService.rememberNiche(lastNiche)
+                }
+                await dailyPick.refresh()
+            }
+            .refreshable {
+                await viewModel.load()
+                await dailyPick.refresh()
+            }
             .onChange(of: appState.pendingJobId) { _, newId in
                 guard let id = newId else { return }
                 Task { await openDeeplinkJob(id: id) }
@@ -238,6 +256,112 @@ struct ProjectsView: View {
             && !dismissedNudge
             && credits.balance == 0
             && viewModel.jobs.contains(where: { $0.status == "ready" })
+    }
+
+    /// Show the Today's pick hero card unless the user has 3+ in-flight jobs
+    /// — past that point the screen is busy enough that an inspirational
+    /// prompt becomes noise.
+    private var shouldShowDailyPick: Bool {
+        let inFlight = viewModel.jobs.filter { $0.status != "ready" && $0.status != "failed" }.count
+        return inFlight < 3
+    }
+}
+
+/// Studio hero card — Glowly-style "Today's pick" prompt. Powered by
+/// DailyPickService (6h-cached top trend for the user's niche). Tapping it
+/// jumps the user straight into NewProjectSheet with the hook + niche seeded.
+private struct DailyPickCard: View {
+    let pick: DailyPick
+    let onTap: () -> Void
+    @State private var phase: Double = 0
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    Label("TODAY'S PICK", systemImage: "sparkles")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.brand)
+                        .tracking(1.4)
+                    Spacer()
+                    Text(pick.niche.capitalized)
+                        .font(.caption2.weight(.bold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.brand.opacity(0.16))
+                        .foregroundStyle(.brand)
+                        .clipShape(.capsule)
+                    if let platform = pick.platform {
+                        Text(platform.capitalized)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Text("\"\(pick.hook)\"")
+                    .font(.title3.bold().italic())
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+                    .minimumScaleFactor(0.9)
+                    .foregroundStyle(.primary)
+
+                if let why = pick.whyItWorks, !why.isEmpty {
+                    Text(why)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+
+                HStack(spacing: 8) {
+                    Text("Generate clips from this")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(.white)
+                    Image(systemName: "arrow.right")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .background(
+                    LinearGradient(
+                        colors: [.brand, .brandGlow],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(.capsule)
+                .padding(.top, 4)
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.cardBackground)
+            .overlay(animatedBorder)
+            .clipShape(.rect(cornerRadius: 18))
+            .shadow(color: .brand.opacity(0.28), radius: 18, y: 8)
+        }
+        .buttonStyle(.plain)
+        .onAppear {
+            withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+                phase = 1
+            }
+        }
+    }
+
+    /// A 1-pt gradient stroke whose hue endpoints orbit around the card —
+    /// looks "alive" without being distracting. Cheap to render: a single
+    /// AngularGradient is animated by `phase` going 0 → 1 forever.
+    private var animatedBorder: some View {
+        RoundedRectangle(cornerRadius: 18)
+            .stroke(
+                AngularGradient(
+                    gradient: Gradient(colors: [
+                        .brand, .brandGlow, .purple, .brand,
+                    ]),
+                    center: .center,
+                    angle: .degrees(360 * phase)
+                ),
+                lineWidth: 1.2
+            )
     }
 }
 

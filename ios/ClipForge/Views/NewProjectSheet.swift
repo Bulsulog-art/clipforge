@@ -178,6 +178,9 @@ struct NewProjectSheet: View {
                     expectedClips: 12
                 )
             }
+            // Remember the niche so the next Studio "Today's pick" is
+            // tailored to what the user actually creates.
+            DailyPickService.rememberNiche(niche)
             await credits.refresh()
             onCreated()
             dismiss()

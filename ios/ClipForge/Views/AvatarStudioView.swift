@@ -226,6 +226,7 @@ struct AvatarStudioView: View {
                     expectedClips: 1
                 )
             }
+            DailyPickService.rememberNiche(niche)
             onSubmitted()
             showSuccess = true
         } catch ClipForgeAPI.Error.quotaExceeded {

@@ -208,6 +208,7 @@ struct UploadVideoSheet: View {
         await Haptics.impact(.medium)
         do {
             try await uploader.upload(fileURL: url, niche: niche)
+            DailyPickService.rememberNiche(niche)
         } catch {
             self.error = error.localizedDescription
             await Haptics.notify(.error)
