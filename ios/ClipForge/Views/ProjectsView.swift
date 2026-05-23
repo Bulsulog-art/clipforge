@@ -35,6 +35,8 @@ struct ProjectsView: View {
     @State private var showUploadSheet = false
     @State private var showPlans = false
     @State private var showCreditPaywall = false
+    @State private var showInbox = false
+    @StateObject private var inbox = NotificationsService.shared
     @State private var deeplinkJob: VideoJob?
     @State private var seed: NewProjectSeed?
     @State private var dismissedNudge: Bool = UserDefaults.standard.bool(forKey: "clipforge.nudgeDismissed")
@@ -134,6 +136,31 @@ struct ProjectsView: View {
                     }
                     .accessibilityLabel("\(credits.balance) credits — tap to view plans")
                 }
+                ToolbarItem(placement: .principal) {
+                    Button {
+                        Task { await Haptics.impact(.light) }
+                        showInbox = true
+                    } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: inbox.unreadCount > 0 ? "bell.badge.fill" : "bell")
+                                .font(.callout.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            if inbox.unreadCount > 0 {
+                                Text("\(min(inbox.unreadCount, 9))\(inbox.unreadCount > 9 ? "+" : "")")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 1)
+                                    .background(Color.red)
+                                    .clipShape(.capsule)
+                                    .offset(x: 6, y: -4)
+                            }
+                        }
+                    }
+                    .accessibilityLabel(inbox.unreadCount > 0
+                                        ? "Inbox · \(inbox.unreadCount) unread"
+                                        : "Inbox")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button {
@@ -171,6 +198,7 @@ struct ProjectsView: View {
             }
             .sheet(isPresented: $showPlans) { PlansView() }
             .sheet(isPresented: $showCreditPaywall) { CreditsPaywallView() }
+            .sheet(isPresented: $showInbox) { NotificationsSheet() }
             .navigationDestination(item: $deeplinkJob) { job in
                 JobDetailView(job: job)
             }
@@ -183,6 +211,9 @@ struct ProjectsView: View {
                 streak.reconcile(with: viewModel.jobs)
                 await dailyPick.refresh()
                 publishWidgetState()
+                // Refresh the inbox so the unread badge reflects reality
+                // when the user first lands on Studio.
+                await inbox.reload()
             }
             .refreshable {
                 await viewModel.load()
