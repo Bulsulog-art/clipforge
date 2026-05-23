@@ -6,6 +6,9 @@ struct ProjectsView: View {
     @StateObject private var credits = CreditsService.shared
     @StateObject private var rc = RevenueCatService.shared
     @StateObject private var dailyPick = DailyPickService.shared
+    @StateObject private var streak = StreakService.shared
+    @State private var fireMilestoneConfetti = false
+    @State private var milestoneToast: Int?
     @Environment(\.scenePhase) private var scenePhase
     @State private var showNewProject = false
     @State private var showAvatarStudio = false
@@ -49,7 +52,7 @@ struct ProjectsView: View {
                                 }
                             }
                             if shouldShowMetrics {
-                                StudioMetricsCard(jobs: viewModel.jobs)
+                                StudioMetricsCard(jobs: viewModel.jobs, streak: streak.current)
                             }
                             ForEach(viewModel.jobs) { job in
                                 NavigationLink(destination: JobDetailView(job: job)) {
@@ -122,17 +125,45 @@ struct ProjectsView: View {
             }
             .task {
                 await viewModel.load()
-                // Pull niche preference from the most recent job (better signal
-                // than the saved default once the user has activity).
                 if let lastNiche = viewModel.jobs.first?.niche, !lastNiche.isEmpty {
                     DailyPickService.rememberNiche(lastNiche)
                 }
+                streak.reconcile(with: viewModel.jobs)
                 await dailyPick.refresh()
             }
             .refreshable {
                 await viewModel.load()
+                streak.reconcile(with: viewModel.jobs)
                 await dailyPick.refresh()
             }
+            .onChange(of: viewModel.jobs.map(\.status)) { _, _ in
+                // Polls update job statuses; re-reconcile so a freshly-ready
+                // clip bumps the streak the moment it lands.
+                streak.reconcile(with: viewModel.jobs)
+            }
+            .onChange(of: streak.pendingMilestone) { _, milestone in
+                guard let m = milestone else { return }
+                Task { @MainActor in
+                    await Haptics.notify(.success)
+                    milestoneToast = m
+                    fireMilestoneConfetti = true
+                    try? await Task.sleep(nanoseconds: 1_800_000_000)
+                    fireMilestoneConfetti = false
+                    try? await Task.sleep(nanoseconds: 2_400_000_000)
+                    milestoneToast = nil
+                    streak.pendingMilestone = nil
+                }
+            }
+            .overlay(alignment: .top) {
+                if let m = milestoneToast {
+                    MilestoneBanner(days: m)
+                        .padding(.top, 8)
+                        .padding(.horizontal, 16)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .animation(.spring, value: milestoneToast)
+            .confettiOverlay(trigger: fireMilestoneConfetti, count: 120, duration: 1.8)
             .onChange(of: appState.pendingJobId) { _, newId in
                 guard let id = newId else { return }
                 Task { await openDeeplinkJob(id: id) }
@@ -276,11 +307,70 @@ struct ProjectsView: View {
     }
 }
 
+/// Brief celebratory toast shown when the user crosses a streak milestone.
+/// Pairs with the confetti overlay; copy includes the day count + a
+/// motivating subtitle that escalates with the milestone.
+private struct MilestoneBanner: View {
+    let days: Int
+
+    private var subtitle: String {
+        switch days {
+        case 3:   return "3 days in a row — you're cooking."
+        case 7:   return "One full week. Algorithm loves consistency."
+        case 14:  return "Two weeks straight. Top 5% of creators."
+        case 30:  return "30-day streak. This is real momentum."
+        case 60:  return "60 days. You're in the long game now."
+        case 90:  return "Quarter of a year. Few make it this far."
+        case 180: return "Half a year. Officially a content machine."
+        case 365: return "365 days. ClipForge royalty."
+        default:  return "Keep the streak alive!"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 40, height: 40)
+                Image(systemName: "flame.fill")
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(days)-day streak unlocked")
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(.white)
+                Text(subtitle)
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .lineLimit(2)
+            }
+            Spacer(minLength: 4)
+        }
+        .padding(12)
+        .background(.black.opacity(0.78))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(.orange.opacity(0.4), lineWidth: 1)
+        )
+        .clipShape(.rect(cornerRadius: 14))
+        .shadow(color: .orange.opacity(0.45), radius: 14, y: 5)
+    }
+}
+
 /// Compact metrics strip — three glanceable stats with subtle gradient
 /// underlay. Powered entirely by the in-memory jobs list so it costs zero
 /// network. Refreshes the moment ProjectsView's polling updates the jobs.
 private struct StudioMetricsCard: View {
     let jobs: [VideoJob]
+    let streak: Int
 
     private var inFlight: Int {
         jobs.filter { $0.status != "ready" && $0.status != "failed" }.count
@@ -301,8 +391,6 @@ private struct StudioMetricsCard: View {
         }.count
     }
 
-    private var totalProjects: Int { jobs.count }
-
     var body: some View {
         HStack(spacing: 0) {
             metric(value: "\(inFlight)",
@@ -315,10 +403,12 @@ private struct StudioMetricsCard: View {
                    icon: "checkmark.seal.fill",
                    tint: .green)
             divider
-            metric(value: "\(totalProjects)",
-                   label: "Projects",
-                   icon: "film.stack.fill",
-                   tint: .purple)
+            metric(
+                value: streak == 0 ? "—" : "\(streak)",
+                label: streak == 0 ? "Streak" : "Day streak",
+                icon: streak == 0 ? "flame" : "flame.fill",
+                tint: streak == 0 ? .secondary : .orange
+            )
         }
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
