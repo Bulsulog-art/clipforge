@@ -301,6 +301,99 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Custom branding (Plus feature)
+
+    struct Branding: Decodable {
+        let logoPath: String
+        let position: String          // "top-left" | "top-right" | "bottom-left" | "bottom-right"
+        let opacity: Double
+        let updatedAt: String?
+        let previewUrl: String?
+    }
+
+    /// Read the user's branding row (or nil if none set).
+    func fetchBranding() async throws -> Branding? {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/branding"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        struct Resp: Decodable { let branding: Branding? }
+        return (try? JSONDecoder().decode(Resp.self, from: data))?.branding
+    }
+
+    /// Upload a logo PNG/JPEG/WebP (≤ 2 MB). Plus tier only — returns
+    /// 402 → quotaExceeded if the user is on free.
+    func uploadBrandingLogo(imageData: Data, mimeType: String) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        let url = Secrets.apiBaseURL.appendingPathComponent("/api/branding/upload")
+        let boundary = "ClipForge-\(UUID().uuidString)"
+        let fileExt: String = {
+            switch mimeType {
+            case "image/jpeg": return "jpg"
+            case "image/webp": return "webp"
+            default:           return "png"
+            }
+        }()
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"logo\"; filename=\"logo.\(fileExt)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        req.httpBody = body
+
+        let (_, resp) = try await URLSession.shared.upload(for: req, from: body)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if http.statusCode == 402 { throw Error.quotaExceeded }
+        guard (200..<300).contains(http.statusCode) else { throw Error.network }
+    }
+
+    /// Patch position / opacity on the existing branding row.
+    func updateBranding(position: String?, opacity: Double?) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/branding"))
+        req.httpMethod = "PATCH"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        struct Body: Encodable {
+            let position: String?
+            let opacity: Double?
+        }
+        req.httpBody = try JSONEncoder().encode(Body(position: position, opacity: opacity))
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
+    /// Remove the branding row + best-effort delete the logo blob.
+    func removeBranding() async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/branding"))
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Clip favorites
 
     /// Star / unstar a clip. POST sets is_favorite=true, DELETE sets false.

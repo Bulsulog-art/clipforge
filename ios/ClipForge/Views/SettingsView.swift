@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var deleting = false
     @State private var showFeedback = false
     @State private var showReferrals = false
+    @State private var showBranding = false
     @State private var exporting = false
     @State private var exportError: String?
     @State private var exportFileURL: URL?
@@ -49,6 +50,11 @@ struct SettingsView: View {
                         showReferrals = true
                     } label: {
                         Label("Invite friends · +5 credits each", systemImage: "gift.fill")
+                    }
+                    Button {
+                        showBranding = true
+                    } label: {
+                        Label("Custom branding · Plus", systemImage: "checkerboard.shield")
                     }
                 }
                 Section("Support") {
@@ -109,6 +115,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showCancelFlow) { CancelFlowView() }
             .sheet(isPresented: $showFeedback) { FeedbackSheet() }
             .sheet(isPresented: $showReferrals) { ReferralsSheet() }
+            .sheet(isPresented: $showBranding) { BrandingSheet() }
             .sheet(isPresented: $showExportShare) {
                 if let url = exportFileURL {
                     ShareSheet(items: [url])
