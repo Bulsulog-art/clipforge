@@ -248,12 +248,15 @@ export async function runVideoPipeline(p: Payload) {
     await setProgress(p.jobId, "ready", 1, { finished_at: new Date().toISOString() });
     logger.info({ jobId: p.jobId, clips: moments.length }, "pipeline ready");
 
-    // Push notification
+    // Push notification — include the top clip's thumbnail so the alert
+    // renders as a rich notification (image inline + larger expansion).
     try {
+      const thumbnailUrl = await pickThumbnailForJob(p.jobId);
       await sendPush(p.userId, {
         title: "Your clips are ready! 🎬",
         body: `${moments.length} viral clip${moments.length === 1 ? "" : "s"} just dropped. Tap to share.`,
         data: { jobId: p.jobId, kind: "job_ready" },
+        attachmentUrl: thumbnailUrl,
       });
     } catch (e) {
       logger.warn({ err: (e as Error).message }, "push notify failed");
@@ -298,4 +301,29 @@ export async function runVideoPipeline(p: Payload) {
   } finally {
     void fs.rm(work, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+/**
+ * Pick a thumbnail to embed in the "your clips are ready" push notification.
+ * Prefer the highest viral_score clip with a thumbnail_path; sign that path
+ * for 24h. Returns undefined if no thumb is available — sendPush will then
+ * fall back to a plain text alert.
+ */
+async function pickThumbnailForJob(jobId: string): Promise<string | undefined> {
+  const { data: clip } = await supabase
+    .from("clips")
+    .select("thumbnail_path")
+    .eq("job_id", jobId)
+    .eq("status", "ready")
+    .not("thumbnail_path", "is", null)
+    .order("viral_score", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const thumbPath = clip?.thumbnail_path as string | undefined;
+  if (!thumbPath) return undefined;
+
+  const { data: signed } = await supabase.storage
+    .from("clipforge-videos-rendered")
+    .createSignedUrl(thumbPath, 24 * 60 * 60);
+  return signed?.signedUrl;
 }

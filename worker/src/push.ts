@@ -15,10 +15,20 @@ import { logger } from "./logger.js";
  *
  * To create the APNs auth key: developer.apple.com → Keys → "+ Apple Push Notifications service (APNs)"
  */
-export async function sendPush(
-  userId: string,
-  payload: { title: string; body: string; data?: Record<string, string> },
-) {
+export type PushPayload = {
+  title: string;
+  body: string;
+  data?: Record<string, string>;
+  /**
+   * Public HTTPS URL to an image (thumbnail / preview). When provided we
+   * set `mutable-content: 1` so the iOS Notification Service Extension
+   * downloads it and attaches it — the user sees the actual clip thumbnail
+   * inline in the notification (rich notifications, much higher CTR).
+   */
+  attachmentUrl?: string;
+};
+
+export async function sendPush(userId: string, payload: PushPayload) {
   if (!process.env.APNS_KEY_ID || !process.env.APNS_TEAM_ID || !process.env.APNS_KEY_P8) {
     logger.warn("APNs env not configured — skipping push");
     return;
@@ -63,17 +73,29 @@ function deliver(
   host: string,
   deviceToken: string,
   jwt: string,
-  payload: { title: string; body: string; data?: Record<string, string> },
+  payload: PushPayload,
 ) {
   return new Promise<void>((resolve, reject) => {
     const client = http2.connect(`https://${host}`);
+    // Build the aps dict. If we have a thumbnail URL, flip mutable-content
+    // so the iOS NotificationServiceExtension wakes up and attaches the image.
+    const aps: Record<string, unknown> = {
+      alert: { title: payload.title, body: payload.body },
+      sound: "default",
+      badge: 1,
+    };
+    if (payload.attachmentUrl) {
+      aps["mutable-content"] = 1;
+    }
+    const customData: Record<string, string> = { ...(payload.data ?? {}) };
+    if (payload.attachmentUrl) {
+      // Read by ClipForgeNotificationService.swift — it downloads this URL
+      // and attaches the result before the OS renders the alert.
+      customData["attachment_url"] = payload.attachmentUrl;
+    }
     const body = JSON.stringify({
-      aps: {
-        alert: { title: payload.title, body: payload.body },
-        sound: "default",
-        badge: 1,
-      },
-      ...(payload.data ?? {}),
+      aps,
+      ...customData,
     });
     const req = client.request({
       ":method": "POST",

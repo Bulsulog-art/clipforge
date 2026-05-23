@@ -296,12 +296,22 @@ export async function runAvatarPipeline(p: AvatarPayload) {
 
     logger.info({ avatarJobId: p.avatarJobId, clipId: clipRow.id }, "avatar pipeline ready");
 
-    // 12) Push notification
+    // 12) Push notification — attach the avatar thumbnail for rich rendering.
+    // We have `thumbnailPath` in scope from the render step; sign it for 24h
+    // so the iOS NotificationServiceExtension can download it.
     try {
+      let attachmentUrl: string | undefined;
+      if (thumbnailPath) {
+        const { data: signed } = await supabase.storage
+          .from("clipforge-videos-rendered")
+          .createSignedUrl(thumbnailPath, 24 * 60 * 60);
+        attachmentUrl = signed?.signedUrl;
+      }
       await sendPush(p.userId, {
         title: "Your AI avatar is ready! 🎙️",
         body: "Tap to watch your talking-head clip.",
         data: { kind: "avatar_ready", clipId: clipRow.id },
+        attachmentUrl,
       });
     } catch (e) {
       logger.warn({ err: (e as Error).message }, "avatar push failed");
