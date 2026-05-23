@@ -65,6 +65,12 @@ struct TrendsView: View {
             .navigationTitle("Trends")
             .refreshable { await load() }
             .task { await load() }
+            .onChange(of: appState.pendingTrendNiche) { _, newNiche in
+                guard let n = newNiche, !n.isEmpty else { return }
+                niche = n
+                appState.pendingTrendNiche = nil
+                Task { await load() }
+            }
         }
     }
 

@@ -25,6 +25,10 @@ final class AppState: ObservableObject {
     /// (and optional hook text) to prefill NewProjectSheet.
     @Published var pendingNewProject: NewProjectSeed?
 
+    /// When a trend_match push lands, the niche to surface on the Trends tab.
+    /// TrendsView reads this on appear to switch its picker.
+    @Published var pendingTrendNiche: String?
+
     static let shared = AppState()
 
     private init() {
@@ -41,6 +45,9 @@ final class AppState: ObservableObject {
                 } else if let clipId = note.userInfo?["clipId"] as? String {
                     self.selectedTab = .clips
                     self.pendingClipId = clipId
+                } else if let niche = note.userInfo?["trendNiche"] as? String, !niche.isEmpty {
+                    self.selectedTab = .trends
+                    self.pendingTrendNiche = niche
                 }
             }
         }

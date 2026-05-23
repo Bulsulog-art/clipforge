@@ -103,11 +103,18 @@ extension PushService: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        // Deeplink: jobId for clip pipeline ready, clipId for avatar_ready
+        // Deeplinks routed via NotificationCenter → AppState picks them up
+        // and adjusts selectedTab / pending*Id accordingly. Supported kinds:
+        //   • clip pipeline ready  → jobId
+        //   • avatar ready         → clipId
+        //   • trend match          → kind=trend_match + niche
         let info = response.notification.request.content.userInfo
         var payload: [AnyHashable: Any] = [:]
         if let jobId = info["jobId"] as? String { payload["jobId"] = jobId }
         if let clipId = info["clipId"] as? String { payload["clipId"] = clipId }
+        if let kind = info["kind"] as? String, kind == "trend_match" {
+            payload["trendNiche"] = info["niche"] as? String ?? ""
+        }
         if !payload.isEmpty {
             NotificationCenter.default.post(
                 name: .clipForgeOpenJob, object: nil, userInfo: payload
