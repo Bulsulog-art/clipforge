@@ -7,6 +7,8 @@ struct JobDetailView: View {
     @State private var actionsForClip: Clip?
     @State private var playerForClip: Clip?
     @State private var fireConfetti = false
+    @State private var retrying = false
+    @State private var retryError: String?
 
     var body: some View {
         ScrollView {
@@ -33,6 +35,12 @@ struct JobDetailView: View {
 
                 if progress.status == "failed", let e = progress.error {
                     ErrorCard(message: e)
+                    retryButton
+                    if let rerr = retryError {
+                        Text(rerr)
+                            .font(.caption2)
+                            .foregroundStyle(.red)
+                    }
                 }
 
                 if vm.clips.isEmpty && progress.jobReady {
@@ -88,6 +96,56 @@ struct JobDetailView: View {
         }
         .navigationTitle("Clips")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// CTA shown under the ErrorCard. Re-queues the job and immediately
+    /// kicks off our local progress poll so the UI feels responsive — the
+    /// server has already flipped status back to "queued" by the time the
+    /// network call returns.
+    private var retryButton: some View {
+        Button {
+            Task { await performRetry() }
+        } label: {
+            HStack {
+                if retrying {
+                    ProgressView().tint(.white)
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                }
+                Text(retrying ? "Re-queueing…" : "Retry render")
+                    .fontWeight(.semibold)
+                Spacer()
+            }
+            .padding()
+            .background(Color.brand)
+            .foregroundStyle(.white)
+            .clipShape(.rect(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .disabled(retrying)
+    }
+
+    private func performRetry() async {
+        retrying = true
+        retryError = nil
+        defer { retrying = false }
+        do {
+            try await ClipForgeAPI.shared.retryJob(id: job.id)
+            await Haptics.notify(.success)
+            // Restart progress polling — the server-side row is now
+            // status=queued so JobProgressService will tick through stages.
+            progress.start(jobId: job.id, initialStatus: "queued", initialProgress: 0)
+            // Fire a fresh Live Activity since the previous one was ended on
+            // the failure event.
+            RenderActivityKit.start(
+                jobId: job.id,
+                title: job.title ?? "ClipForge render",
+                expectedClips: 12
+            )
+        } catch {
+            retryError = error.localizedDescription
+            await Haptics.notify(.error)
+        }
     }
 }
 

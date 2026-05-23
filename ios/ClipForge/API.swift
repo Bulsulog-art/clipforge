@@ -301,6 +301,26 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Job retry
+
+    /// Re-queue a failed video job. Server resets status to queued, deletes
+    /// any partial clip rows, and re-enqueues the BullMQ ingest job. Credits
+    /// were already refunded at fail time, so no extra charge.
+    func retryJob(id: String) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(
+            url: Secrets.apiBaseURL.appendingPathComponent("/api/jobs/\(id)/retry")
+        )
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Clip derivatives (face swap / translation)
 
     /// One face-swap or translation produced from a source clip. Lives in
