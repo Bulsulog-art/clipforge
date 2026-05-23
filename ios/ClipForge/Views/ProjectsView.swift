@@ -7,6 +7,7 @@ struct ProjectsView: View {
     @StateObject private var rc = RevenueCatService.shared
     @StateObject private var dailyPick = DailyPickService.shared
     @StateObject private var streak = StreakService.shared
+    @StateObject private var advisor = CreditAdvisor.shared
     @State private var fireMilestoneConfetti = false
     @State private var milestoneToast: Int?
     @Environment(\.scenePhase) private var scenePhase
@@ -14,6 +15,7 @@ struct ProjectsView: View {
     @State private var showAvatarStudio = false
     @State private var showUploadSheet = false
     @State private var showPlans = false
+    @State private var showCreditPaywall = false
     @State private var deeplinkJob: VideoJob?
     @State private var seed: NewProjectSeed?
     @State private var dismissedNudge: Bool = UserDefaults.standard.bool(forKey: "clipforge.nudgeDismissed")
@@ -42,6 +44,22 @@ struct ProjectsView: View {
                                             dismissedNudge = true
                                             UserDefaults.standard.set(true, forKey: "clipforge.nudgeDismissed")
                                         }
+                                    }
+                                )
+                            }
+                            if let rec = advisor.recommendation {
+                                CreditAdvisorBanner(
+                                    recommendation: rec,
+                                    onAction: {
+                                        Task { await Haptics.impact(.medium) }
+                                        switch rec.target {
+                                        case .plansSheet:     showPlans = true
+                                        case .creditsPaywall: showCreditPaywall = true
+                                        }
+                                    },
+                                    onDismiss: {
+                                        Task { await Haptics.impact(.light) }
+                                        advisor.dismiss()
                                     }
                                 )
                             }
@@ -120,6 +138,7 @@ struct ProjectsView: View {
                 UploadVideoSheet { viewModel.refresh() }
             }
             .sheet(isPresented: $showPlans) { PlansView() }
+            .sheet(isPresented: $showCreditPaywall) { CreditsPaywallView() }
             .navigationDestination(item: $deeplinkJob) { job in
                 JobDetailView(job: job)
             }
@@ -146,6 +165,13 @@ struct ProjectsView: View {
             }
             .onChange(of: dailyPick.pick) { _, _ in
                 publishWidgetState()
+            }
+            .onChange(of: credits.balance) { _, _ in
+                advisor.update(
+                    currentBalance: credits.balance,
+                    tier: advisorTier,
+                    plusProductId: rc.activeProductId
+                )
             }
             .onChange(of: streak.pendingMilestone) { _, milestone in
                 guard let m = milestone else { return }
@@ -312,6 +338,18 @@ struct ProjectsView: View {
         !viewModel.jobs.isEmpty
     }
 
+    /// Map RevenueCat's active product id onto the CreditAdvisor.Tier
+    /// enum. Anything we don't recognise falls back to .free, which means
+    /// CreditAdvisor stays quiet for that user (the FreeTierNudge handles
+    /// the free-tier upsell separately).
+    private var advisorTier: CreditAdvisor.Tier {
+        guard rc.hasAnyPaid, let pid = rc.activeProductId else { return .free }
+        if pid.contains("yearly")  { return .yearly  }
+        if pid.contains("monthly") { return .monthly }
+        if pid.contains("weekly")  { return .weekly  }
+        return .free
+    }
+
     /// Push the latest in-memory metrics to the App Group so the home-screen
     /// widget can render fresh state. Cheap (UserDefaults write + WidgetKit
     /// reload nudge) so we call it on every meaningful change.
@@ -337,6 +375,66 @@ struct ProjectsView: View {
             todaysPickNiche: niche,
             updatedAt: Date()
         ))
+    }
+}
+
+/// Inline banner shown at the top of Studio when CreditAdvisor detects the
+/// user's burn rate doesn't match their current plan (e.g. Weekly burning
+/// 8 credits in 2 days → push Yearly). Tap → upgrade flow. Dismiss →
+/// snoozed for 7 days via CreditAdvisor.dismiss().
+private struct CreditAdvisorBanner: View {
+    let recommendation: CreditAdvisor.Recommendation
+    let onAction: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .foregroundStyle(.brand)
+                Text(recommendation.title)
+                    .font(.callout.weight(.bold))
+                Spacer()
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                        .padding(6)
+                }
+                .accessibilityLabel("Dismiss recommendation")
+            }
+            Text(recommendation.body)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Button(action: onAction) {
+                HStack(spacing: 6) {
+                    Text(recommendation.cta)
+                        .font(.caption.weight(.bold))
+                    Image(systemName: "arrow.right")
+                        .font(.caption2.weight(.bold))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(
+                    LinearGradient(
+                        colors: [.brand, .brandGlow],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundStyle(.white)
+                .clipShape(.capsule)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.cardBackground)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.brand.opacity(0.35), lineWidth: 1)
+        )
+        .clipShape(.rect(cornerRadius: 14))
     }
 }
 
