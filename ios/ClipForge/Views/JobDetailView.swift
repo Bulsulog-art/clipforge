@@ -260,6 +260,8 @@ private struct ClipThumb: View {
                             .shadow(color: .brand.opacity(0.5), radius: 8)
                     }
                     .padding(6)
+                    .accessibilityLabel("AI tools and publish")
+                    .accessibilityHint("Open the AI tools sheet — face swap, translate, save, publish")
                 }
             }
             .buttonStyle(.plain)

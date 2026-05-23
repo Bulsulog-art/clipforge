@@ -126,6 +126,8 @@ struct ProjectsView: View {
                             .font(.title2)
                             .foregroundStyle(.brand)
                     }
+                    .accessibilityLabel("Create new project")
+                    .accessibilityHint("Opens a menu to clip from URL, upload a video, or generate an AI avatar")
                 }
             }
             .sheet(isPresented: $showNewProject, onDismiss: { seed = nil }) {
@@ -573,6 +575,8 @@ private struct StudioMetricsCard: View {
                 .tracking(0.3)
         }
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
     }
 
     private var divider: some View {
@@ -655,6 +659,8 @@ private struct DailyPickCard: View {
             .shadow(color: .brand.opacity(0.28), radius: 18, y: 8)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Today's pick: \(pick.hook)")
+        .accessibilityHint("Opens a new project pre-filled with this \(pick.niche.capitalized) hook")
         .onAppear {
             withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
                 phase = 1

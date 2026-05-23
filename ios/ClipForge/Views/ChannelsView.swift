@@ -181,6 +181,8 @@ struct ChannelsView: View {
                             .overlay(Capsule().stroke(Color.secondary.opacity(0.35), lineWidth: 0.8))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Disconnect \(platform.displayName)")
+                    .accessibilityHint("Removes the authorization token so we can no longer post on your behalf")
 
                     if needsReconnect {
                         Button {
@@ -195,6 +197,7 @@ struct ChannelsView: View {
                                 .clipShape(.capsule)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Reconnect \(platform.displayName)")
                     }
                     Spacer()
                 } else {
@@ -224,6 +227,8 @@ struct ChannelsView: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(isConnecting)
+                    .accessibilityLabel(isConnecting ? "Connecting to \(platform.displayName)" : "Connect \(platform.displayName)")
+                    .accessibilityHint("Opens a secure OAuth window to authorise auto-publishing")
                 }
             }
 
