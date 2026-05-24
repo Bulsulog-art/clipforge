@@ -134,3 +134,84 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         SKIP_INSTALL: YES
 
+  # MARK: - Paired Apple Watch app
+  #
+  # Standalone watchOS targets (not embedded in the iPhone app right now
+  # — App Store pairing config lives in the watch app's Info.plist via
+  # WKApplication + WKCompanionAppBundleIdentifier). We keep them as
+  # siblings so xcodebuild can verify each with a watchOS Simulator
+  # destination without dragging in iOS-only frameworks during iOS
+  # builds.
+  #
+  # The watch app reads `SharedAppState` from its own App Group
+  # UserDefaults (App Groups don't cross devices); the iPhone pushes
+  # snapshots via WatchConnectivity in `WatchSyncBridge`, which writes
+  # them on the watch side.
+
+  ClipForgeWatch:
+    type: application
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - ClipForgeWatch
+      - Shared
+    info:
+      path: ClipForgeWatch/Info.plist
+      properties:
+        CFBundleDisplayName: ClipForge
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        CFBundleDevelopmentRegion: en
+        WKApplication: true
+        WKWatchOnly: false
+        WKCompanionAppBundleIdentifier: com.bulsulabs.clipforge
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.clipforge.watchkitapp
+        SWIFT_VERSION: "5.10"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        TARGETED_DEVICE_FAMILY: "4"
+    dependencies:
+      - target: ClipForgeWatchWidgets
+        embed: true
+        codeSign: true
+    entitlements:
+      path: ClipForgeWatch/ClipForgeWatch.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.bulsulabs.clipforge
+
+  ClipForgeWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - ClipForgeWatchWidgets
+      - Shared
+    info:
+      path: ClipForgeWatchWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: ClipForge Watch Widgets
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        CFBundleDevelopmentRegion: en
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.clipforge.watchkitapp.widgets
+        SWIFT_VERSION: "5.10"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        SKIP_INSTALL: YES
+        TARGETED_DEVICE_FAMILY: "4"
+    entitlements:
+      path: ClipForgeWatchWidgets/ClipForgeWatchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.bulsulabs.clipforge
+

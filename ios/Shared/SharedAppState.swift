@@ -62,8 +62,23 @@ struct SharedAppState: Codable, Equatable {
 
     /// Persist + nudge WidgetCenter so the home-screen widget refreshes
     /// at the next system opportunity (Apple throttles to ~once per 5–15min
-    /// for free-text widget kinds, but we should still call it).
+    /// for free-text widget kinds, but we should still call it). On iOS
+    /// we also forward the snapshot to the paired Apple Watch via the
+    /// bridge — the watch keeps its own App Group copy + reloads its
+    /// complication timelines.
     static func save(_ state: SharedAppState) {
+        writeRaw(state)
+        #if os(iOS)
+        WatchSyncBridge.shared.push(state)
+        #endif
+    }
+
+    /// Bare-bones write path used by both `save()` (iPhone) and the
+    /// WatchConnectivity bridge (watchOS, when an inbound context lands).
+    /// Persists to App Group UserDefaults and reloads widget timelines.
+    /// Doesn't push to the watch — the iPhone-only branch in `save()` is
+    /// what triggers the bridge, so we avoid a state echo loop here.
+    static func writeRaw(_ state: SharedAppState) {
         guard let data = try? JSONEncoder().encode(state) else { return }
         defaults?.set(data, forKey: key)
 
