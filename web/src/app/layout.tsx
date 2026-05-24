@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -30,6 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans`}>
+        {/* Captures UTM params + referrer at first landing and POSTs
+            to /api/account/attribution once the user has a session.
+            Renders nothing visible. */}
+        <AttributionCapture />
         {children}
         <Toaster richColors position="top-center" />
       </body>
