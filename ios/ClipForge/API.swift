@@ -301,6 +301,92 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Voice clones
+
+    struct VoiceClone: Identifiable, Decodable, Hashable {
+        let id: String
+        let name: String
+        let elevenlabs_voice_id: String
+        let status: String              // processing | ready | failed
+        let created_at: String?
+    }
+
+    func fetchVoiceClones() async throws -> [VoiceClone] {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/voice-clones"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        struct Resp: Decodable { let clones: [VoiceClone] }
+        return (try? JSONDecoder().decode(Resp.self, from: data).clones) ?? []
+    }
+
+    /// Upload a ≤ 60s audio sample. 402 maps to quotaExceeded for paywall.
+    @discardableResult
+    func uploadVoiceClone(name: String, audioData: Data, mimeType: String) async throws -> VoiceClone {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        let url = Secrets.apiBaseURL.appendingPathComponent("/api/voice-clones")
+        let boundary = "ClipForge-\(UUID().uuidString)"
+        let fileExt: String = {
+            switch mimeType {
+            case "audio/mp4", "audio/m4a", "audio/x-m4a": return "m4a"
+            case "audio/wav":                              return "wav"
+            case "audio/mpeg":                             return "mp3"
+            default:                                       return "m4a"
+            }
+        }()
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"name\"\r\n\r\n".data(using: .utf8)!)
+        body.append(name.data(using: .utf8)!)
+        body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"sample\"; filename=\"sample.\(fileExt)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(audioData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        req.httpBody = body
+
+        let (data, resp) = try await URLSession.shared.upload(for: req, from: body)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if http.statusCode == 402 { throw Error.quotaExceeded }
+        guard (200..<300).contains(http.statusCode) else {
+            struct Err: Decodable { let error: String? }
+            let msg = (try? JSONDecoder().decode(Err.self, from: data).error)
+                ?? "Couldn't upload sample."
+            throw NSError(
+                domain: "ClipForgeAPI.VoiceClone",
+                code: http.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: msg]
+            )
+        }
+        struct Resp: Decodable { let clone: VoiceClone }
+        return try JSONDecoder().decode(Resp.self, from: data).clone
+    }
+
+    func deleteVoiceClone(id: String) async throws {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/voice-clones/\(id)"))
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+    }
+
     // MARK: - Promo codes
 
     /// Redeem an admin-issued promo code (separate from per-user referral

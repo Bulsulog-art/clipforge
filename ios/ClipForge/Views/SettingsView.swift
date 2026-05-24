@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showFeedback = false
     @State private var showReferrals = false
     @State private var showBranding = false
+    @State private var showVoiceClones = false
     @State private var showPublishHistory = false
     @State private var showPushPrefs = false
     @State private var showStats = false
@@ -58,6 +59,11 @@ struct SettingsView: View {
                         showBranding = true
                     } label: {
                         Label("Custom branding · Plus", systemImage: "checkerboard.shield")
+                    }
+                    Button {
+                        showVoiceClones = true
+                    } label: {
+                        Label("Voice clones · Plus", systemImage: "waveform.badge.mic")
                     }
                     Button {
                         showPublishHistory = true
@@ -136,6 +142,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showFeedback) { FeedbackSheet() }
             .sheet(isPresented: $showReferrals) { ReferralsSheet() }
             .sheet(isPresented: $showBranding) { BrandingSheet() }
+            .sheet(isPresented: $showVoiceClones) { VoiceClonesSheet() }
             .sheet(isPresented: $showPublishHistory) { PublishHistorySheet() }
             .sheet(isPresented: $showPushPrefs) { PushPreferencesSheet() }
             .sheet(isPresented: $showStats) { StatsSheet() }
