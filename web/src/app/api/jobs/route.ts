@@ -47,6 +47,15 @@ export async function POST(req: Request) {
     );
   }
 
+  // Pull tier explicitly so we can prioritise the BullMQ enqueue below
+  // (v_user_quota may not surface the tier column reliably).
+  const { data: profile } = await svc
+    .from("profiles")
+    .select("tier")
+    .eq("id", user.id)
+    .maybeSingle();
+  const userTier = (profile?.tier as string | undefined) ?? "free";
+
   const { data: job, error } = await svc
     .from("video_jobs")
     .insert({
@@ -66,6 +75,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error?.message ?? "DB error" }, { status: 500 });
   }
 
+  // BullMQ priority — lower numbers run first. Plus tier jumps the queue
+  // when there's contention; free tier waits behind them. Equal priority
+  // among same-tier users (BullMQ falls back to FIFO).
+  const priority = queuePriorityForTier(userTier);
+
   await videoQueue.add(
     "ingest",
     {
@@ -77,8 +91,23 @@ export async function POST(req: Request) {
       language: body.language,
       thumbnailStyle: body.thumbnailStyle,
     },
-    { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 } },
+    { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },
   );
 
   return NextResponse.json({ jobId: job.id });
+}
+
+/**
+ * BullMQ priority bands. Lower numbers are serviced first. Spread by 10s
+ * so future intermediate tiers (e.g. agency=5) fit between bands without
+ * a renumbering migration.
+ */
+function queuePriorityForTier(tier: string | undefined): number {
+  switch (tier) {
+    case "agency": return 1;
+    case "pro":    return 5;
+    case "starter": return 10;   // current "Plus" tier
+    case "free":
+    default:       return 100;
+  }
 }

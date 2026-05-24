@@ -48,6 +48,19 @@ export async function POST(req: Request) {
     .single();
   if (error || !job) return NextResponse.json({ error: error?.message ?? "db" }, { status: 500 });
 
+  // Match the URL-source priority bands (see api/jobs/route.ts). Plus
+  // users render first when the queue is congested.
+  const { data: profile } = await svc
+    .from("profiles")
+    .select("tier")
+    .eq("id", user.id)
+    .maybeSingle();
+  const tier = (profile?.tier as string | undefined) ?? "free";
+  const priority =
+    tier === "agency" ? 1 :
+    tier === "pro"    ? 5 :
+    tier === "starter" ? 10 : 100;
+
   await videoQueue.add(
     "ingest",
     {
@@ -59,7 +72,7 @@ export async function POST(req: Request) {
       language,
       thumbnailStyle,
     },
-    { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 } },
+    { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },
   );
 
   return NextResponse.json({ jobId: job.id });
