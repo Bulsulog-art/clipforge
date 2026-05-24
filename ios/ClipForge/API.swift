@@ -862,6 +862,10 @@ final class ClipForgeAPI {
         let avatarId: String?
         let customImagePath: String?
         let voiceId: String
+        /// Optional Plus-only id from `/api/voice-clones`. When set, the
+        /// worker routes TTS through ElevenLabs with this cloned voice
+        /// instead of the stock OpenAI persona.
+        let voiceCloneId: String?
         let niche: String
         let bgMusic: Bool
     }
@@ -871,6 +875,7 @@ final class ClipForgeAPI {
         script: String,
         avatarId: String?,
         voiceId: String,
+        voiceCloneId: String? = nil,
         niche: String = "motivation",
         bgMusic: Bool = true
     ) async throws -> String {
@@ -887,6 +892,7 @@ final class ClipForgeAPI {
                 avatarId: avatarId,
                 customImagePath: nil,
                 voiceId: voiceId,
+                voiceCloneId: voiceCloneId,
                 niche: niche,
                 bgMusic: bgMusic
             )

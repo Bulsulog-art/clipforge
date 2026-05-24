@@ -21,7 +21,12 @@ const COST: Record<string, number> = {
   derivative_translation: 0.005,  // gpt-4o-mini + tts-1-hd
 
   // Avatars (clipforge.video_jobs where source_kind='avatar' — actually
-  // tracked via avatar_jobs OR clips.source_kind; we count clips.source_kind)
+  // tracked via avatar_jobs OR clips.source_kind; we count clips.source_kind).
+  // The base estimate covers tts-1-hd + sadtalker for stock voices.
+  // ElevenLabs-cloned voices (Plus only) are pricier per char but the
+  // average script is ~60 words / ~300 chars → roughly +$0.10 each. We
+  // don't split the count yet because the cost monitor only has clip
+  // source_kind to go on; revisit if Plus-clone usage gets meaningful.
   avatar_render:     0.16,    // tts-1-hd + sadtalker
 
   // Thumbnails (Plus only) — counted when aiThumbnails=true

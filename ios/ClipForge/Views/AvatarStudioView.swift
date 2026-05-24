@@ -15,6 +15,10 @@ struct AvatarStudioView: View {
     @State private var error: String?
     @State private var showSuccess = false
     @State private var showPaywall = false
+    @State private var voiceClones: [ClipForgeAPI.VoiceClone] = []
+    /// nil → use the avatar's stock OpenAI voice (default).
+    /// non-nil → route TTS to ElevenLabs with the user's cloned voice.
+    @State private var selectedVoiceCloneId: String?
     let onSubmitted: () -> Void
 
     private let niches = ["motivation", "business", "finance", "health", "tech",
@@ -92,6 +96,25 @@ struct AvatarStudioView: View {
                             }
                             .padding(.vertical, 4)
                         }
+                    }
+                }
+
+                // Plus-only override: if the user uploaded a voice
+                // sample in Settings, surface it here so the render can
+                // speak in their own voice via ElevenLabs.
+                if !voiceClones.isEmpty {
+                    Section {
+                        Picker("Voice", selection: $selectedVoiceCloneId) {
+                            Text("Stock voice (avatar default)").tag(String?.none)
+                            ForEach(voiceClones) { clone in
+                                Text("\u{1F3A4} \(clone.name)").tag(Optional(clone.id))
+                            }
+                        }
+                    } header: {
+                        Text("Voice")
+                    } footer: {
+                        Text("Cloned voices route through ElevenLabs and use your sample.")
+                            .font(.caption2)
                     }
                 }
 
@@ -201,6 +224,17 @@ struct AvatarStudioView: View {
         } catch {
             self.error = "Couldn't load avatars: \(error.localizedDescription)"
         }
+        // Best-effort: load the user's voice clones. Free-tier users get
+        // an empty list (the API returns 402 → quotaExceeded which we
+        // swallow). Plus users see their clones in the Voice picker
+        // section once it's wired up below.
+        do {
+            voiceClones = try await ClipForgeAPI.shared
+                .fetchVoiceClones()
+                .filter { $0.status == "ready" }
+        } catch {
+            voiceClones = []
+        }
     }
 
     private func submit() async {
@@ -214,6 +248,7 @@ struct AvatarStudioView: View {
                 script: script.trimmingCharacters(in: .whitespacesAndNewlines),
                 avatarId: id,
                 voiceId: voice,
+                voiceCloneId: selectedVoiceCloneId,
                 niche: niche,
                 bgMusic: bgMusic
             )

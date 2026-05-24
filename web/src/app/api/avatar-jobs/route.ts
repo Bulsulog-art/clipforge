@@ -9,6 +9,14 @@ const Body = z.object({
   avatarId: z.string().uuid().optional(),
   customImagePath: z.string().max(500).optional(),
   voiceId: z.string().min(2).max(80),
+  /**
+   * Optional Plus-only override: id of a row from `voice_clones`. When
+   * present, the worker will route TTS through ElevenLabs using the
+   * user's cloned voice (see worker/src/steps/tts.ts). We still require
+   * a `voiceId` so the worker can fall back to a stock voice if the
+   * clone was deleted between job creation and render.
+   */
+  voiceCloneId: z.string().uuid().optional(),
   niche: z.string().min(2).max(40).default("motivation"),
   bgMusic: z.boolean().optional().default(true),
 }).refine((b) => Boolean(b.avatarId) !== Boolean(b.customImagePath), {
@@ -59,6 +67,32 @@ export async function POST(req: Request) {
     );
   }
 
+  // Ownership guard for the optional voice clone: the row must belong
+  // to this user AND be marked ready. We do this before insert so we
+  // can return a clean 400 instead of silently dropping the clone (the
+  // worker would otherwise fall back to the stock voice, which the
+  // user wouldn't notice until render finished).
+  if (body.voiceCloneId) {
+    const { data: clone } = await svc
+      .from("voice_clones")
+      .select("id, status")
+      .eq("id", body.voiceCloneId)
+      .eq("user_id", user.id)
+      .single();
+    if (!clone) {
+      return NextResponse.json(
+        { error: "Voice clone not found or not yours" },
+        { status: 404 },
+      );
+    }
+    if (clone.status !== "ready") {
+      return NextResponse.json(
+        { error: `Voice clone isn't ready yet (status: ${clone.status})` },
+        { status: 409 },
+      );
+    }
+  }
+
   const { data: job, error } = await svc
     .from("avatar_jobs")
     .insert({
@@ -67,6 +101,7 @@ export async function POST(req: Request) {
       avatar_id: body.avatarId ?? null,
       custom_image_path: body.customImagePath ?? null,
       voice_id: body.voiceId,
+      voice_clone_id: body.voiceCloneId ?? null,
       niche: body.niche,
       bg_music_enabled: body.bgMusic,
       status: "queued",

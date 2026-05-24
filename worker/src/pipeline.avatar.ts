@@ -112,10 +112,32 @@ export async function runAvatarPipeline(p: AvatarPayload) {
     // 1) Load job + resolve portrait URL
     const { data: job, error: jobErr } = await supabase
       .from("avatar_jobs")
-      .select("script, voice_id, avatar_id, custom_image_path, niche, bg_music_enabled")
+      .select("script, voice_id, voice_clone_id, avatar_id, custom_image_path, niche, bg_music_enabled")
       .eq("id", p.avatarJobId)
       .single();
     if (jobErr || !job) throw new Error(jobErr?.message ?? "avatar job not found");
+
+    // If the user picked their own cloned voice, resolve the
+    // elevenlabs_voice_id now so we can pass it to TTS below.
+    // Failing the lookup (e.g. clone was deleted between queue +
+    // render) should fall back to the stock voice rather than crash
+    // the render outright — voice_id is always required by the API.
+    let elevenLabsVoiceId: string | undefined;
+    if (job.voice_clone_id) {
+      const { data: clone } = await supabase
+        .from("voice_clones")
+        .select("elevenlabs_voice_id, status")
+        .eq("id", job.voice_clone_id)
+        .single();
+      if (clone && clone.status === "ready" && clone.elevenlabs_voice_id) {
+        elevenLabsVoiceId = clone.elevenlabs_voice_id as string;
+      } else {
+        logger.warn(
+          { avatarJobId: p.avatarJobId, voice_clone_id: job.voice_clone_id },
+          "voice clone missing / not ready, falling back to stock voice",
+        );
+      }
+    }
 
     let portraitUrl: string | null = null;
     if (job.avatar_id) {
@@ -147,11 +169,13 @@ export async function runAvatarPipeline(p: AvatarPayload) {
       throw e;
     }
 
-    // 3) ElevenLabs TTS
+    // 3) TTS — ElevenLabs cloned voice if the user picked one, OpenAI
+    //    otherwise. See worker/src/steps/tts.ts for the routing logic.
     await updateProgress(p.avatarJobId, "synthesizing_voice", 0.2);
     const tts = await synthesizeSpeech({
       text: job.script,
       voiceId: job.voice_id,
+      elevenLabsVoiceId,
       workDir: work,
       label: "avatar-voice",
     });
