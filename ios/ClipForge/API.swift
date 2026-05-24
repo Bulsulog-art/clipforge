@@ -301,6 +301,39 @@ final class ClipForgeAPI {
         }
     }
 
+    // MARK: - Promo codes
+
+    /// Redeem an admin-issued promo code (separate from per-user referral
+    /// codes). Returns the granted credit count so the UI can show
+    /// "+5 credits added". Server side translates RPC error codes to
+    /// friendly messages.
+    @discardableResult
+    func redeemPromoCode(_ code: String) async throws -> Int {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/promo/redeem"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        struct Body: Encodable { let code: String }
+        req.httpBody = try JSONEncoder().encode(Body(code: code))
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if !(200..<300).contains(http.statusCode) {
+            struct Err: Decodable { let error: String? }
+            let msg = (try? JSONDecoder().decode(Err.self, from: data).error)
+                ?? "Couldn't redeem this code."
+            throw NSError(
+                domain: "ClipForgeAPI.Promo",
+                code: http.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: msg]
+            )
+        }
+        struct Resp: Decodable { let creditsGranted: Int }
+        return (try? JSONDecoder().decode(Resp.self, from: data).creditsGranted) ?? 0
+    }
+
     // MARK: - Clip remix
 
     /// Re-renders a different cut of the source video that produced this

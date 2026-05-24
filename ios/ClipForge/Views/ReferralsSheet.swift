@@ -15,6 +15,13 @@ struct ReferralsSheet: View {
     @State private var redeemError: String?
     @State private var redeemSuccess = false
 
+    /// Promo-code editor state — separate from referral redeem so a
+    /// failed redeem on one doesn't blank the other.
+    @State private var promoCode: String = ""
+    @State private var promoBusy = false
+    @State private var promoError: String?
+    @State private var promoCreditsGranted: Int = 0
+
     @State private var showShareSheet = false
     @State private var shareItems: [Any] = []
 
@@ -26,6 +33,7 @@ struct ReferralsSheet: View {
                     if let info {
                         codeCard(info)
                         redeemCard
+                        promoCard
                     } else if loading {
                         ProgressView()
                             .frame(maxWidth: .infinity)
@@ -212,6 +220,80 @@ struct ReferralsSheet: View {
 
     private var canRedeem: Bool {
         !redeeming && redeemCode.trimmingCharacters(in: .whitespacesAndNewlines).count >= 4
+    }
+
+    /// Promo codes are admin-issued (PR campaigns, partner deals, support
+    /// recovery). Separate field from referral so a user can redeem one
+    /// of each.
+    private var promoCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Got a promo code?")
+                .font(.callout.weight(.semibold))
+            HStack {
+                TextField("Paste promo code", text: $promoCode)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.cardBackground)
+                    .clipShape(.rect(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
+                Button {
+                    Task { await redeemPromo() }
+                } label: {
+                    HStack {
+                        if promoBusy { ProgressView().tint(.white) }
+                        Text(promoBusy ? "Applying…" : "Redeem")
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(canRedeemPromo ? Color.purple : Color.gray.opacity(0.5))
+                    .foregroundStyle(.white)
+                    .clipShape(.capsule)
+                }
+                .buttonStyle(.plain)
+                .disabled(!canRedeemPromo)
+            }
+            if let err = promoError {
+                Text(err).font(.caption2).foregroundStyle(.red)
+            }
+            if promoCreditsGranted > 0 {
+                Label("+\(promoCreditsGranted) credits added to your balance",
+                      systemImage: "checkmark.seal.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.green)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.cardBackground.opacity(0.55))
+        .clipShape(.rect(cornerRadius: 14))
+    }
+
+    private var canRedeemPromo: Bool {
+        !promoBusy && promoCode.trimmingCharacters(in: .whitespacesAndNewlines).count >= 3
+    }
+
+    private func redeemPromo() async {
+        let code = promoCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        guard !code.isEmpty else { return }
+        promoBusy = true
+        promoError = nil
+        defer { promoBusy = false }
+        do {
+            let granted = try await ClipForgeAPI.shared.redeemPromoCode(code)
+            promoCreditsGranted = granted
+            promoCode = ""
+            await Haptics.notify(.success)
+            await CreditsService.shared.refresh()
+        } catch {
+            promoError = error.localizedDescription
+            await Haptics.notify(.error)
+        }
     }
 
     private var footnote: some View {
