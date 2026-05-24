@@ -7,6 +7,7 @@ import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { runAvatarPipeline } from "./pipeline.avatar.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
+import { runCostMonitor } from "./jobs/cost-monitor.js";
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -149,4 +150,20 @@ async function startTrendCron() {
 }
 if (process.env.ENABLE_TREND_CRON !== "false") {
   void startTrendCron();
+}
+
+// Daily cost monitor — runs every 24h, fires immediately on startup so
+// the team sees today's spend before the first night sleep cycle.
+async function startCostMonitorCron() {
+  while (true) {
+    try {
+      await runCostMonitor();
+    } catch (e) {
+      logger.error({ err: (e as Error).message }, "cost monitor failed");
+    }
+    await new Promise((r) => setTimeout(r, 24 * 60 * 60 * 1000));
+  }
+}
+if (process.env.ENABLE_COST_MONITOR !== "false") {
+  void startCostMonitorCron();
 }
