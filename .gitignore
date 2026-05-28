@@ -27,3 +27,7 @@ supabase/seed.sql
 # Large generated/binary assets that live in Supabase Storage
 assets/avatars/
 assets/music/
+
+# Local-only backup blobs (e.g. icon iteration snapshots)
+*.OLD.png.bak
+*.bak

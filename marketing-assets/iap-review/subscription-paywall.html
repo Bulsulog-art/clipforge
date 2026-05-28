@@ -1,0 +1,198 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1242px; height: 2208px; overflow: hidden; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
+  body {
+    background:
+      radial-gradient(circle at 30% 8%, rgba(255,255,255,0.20) 0%, transparent 35%),
+      radial-gradient(circle at 90% 95%, rgba(0,0,0,0.50) 0%, transparent 55%),
+      linear-gradient(160deg, #0F172A 0%, #4C1D95 30%, #BE185D 70%, #F97316 100%);
+  }
+  .status { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 20px 60px 0; font-size: 32px; font-weight: 600; }
+  .nav { display: flex; align-items: center; padding: 20px 50px 30px; }
+  .close { font-size: 32px; color: #fff; opacity: 0.7; }
+  .nav h1 { flex: 1; text-align: center; font-size: 36px; font-weight: 700; margin-right: 32px; }
+
+  .hero {
+    text-align: center;
+    margin: 40px 60px 30px;
+  }
+  .hero .crown {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+  .hero h2 {
+    font-size: 88px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .hero h2 .grad {
+    background: linear-gradient(90deg, #FDE68A 0%, #FB923C 50%, #F9A8D4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p { font-size: 30px; color: rgba(255,255,255,0.78); }
+
+  .toggle {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border-radius: 999px;
+    padding: 6px;
+    margin: 22px 50px;
+  }
+  .toggle .opt {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    border-radius: 999px;
+  }
+  .toggle .opt.active {
+    background: linear-gradient(90deg, #FB923C, #EC4899);
+  }
+  .toggle .opt.dim { color: rgba(255,255,255,0.6); }
+
+  .plan {
+    margin: 18px 50px;
+    padding: 36px 40px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, rgba(251,146,60,0.25), rgba(236,72,153,0.25));
+    border: 3px solid #FB923C;
+  }
+  .plan.alt {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .plan-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .plan-head .name { font-size: 42px; font-weight: 800; }
+  .plan-head .save {
+    background: #FB923C;
+    color: #1a0533;
+    font-size: 22px;
+    font-weight: 900;
+    padding: 6px 14px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .plan .price {
+    font-size: 64px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+  .plan .price .currency { font-size: 32px; color: rgba(255,255,255,0.7); }
+  .plan .price .per { font-size: 26px; color: rgba(255,255,255,0.7); font-weight: 600; }
+  .plan .sub-line { font-size: 24px; color: rgba(255,255,255,0.6); margin-bottom: 18px; }
+
+  .features {
+    margin: 8px 50px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 28px;
+    padding: 28px 32px;
+  }
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 0;
+    font-size: 27px;
+  }
+  .feature .check {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #34D399;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #064e3b;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  .cta {
+    margin: 30px 50px 16px;
+    padding: 30px;
+    background: linear-gradient(90deg, #FB923C, #EC4899);
+    border-radius: 999px;
+    font-size: 34px;
+    font-weight: 900;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 16px 40px rgba(236,72,153,0.5);
+  }
+
+  .disclosure {
+    margin: 16px 50px 0;
+    font-size: 20px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+    text-align: center;
+  }
+  .restore-row {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    margin-top: 20px;
+    font-size: 22px;
+  }
+  .restore-row a { color: #FB923C; }
+</style>
+</head>
+<body>
+  <div class="status">
+    <span>9:41</span>
+    <span>100%</span>
+  </div>
+  <div class="nav">
+    <span class="close">✕</span>
+    <h1>ClipForge Plus</h1>
+  </div>
+
+  <div class="hero">
+    <div class="crown">👑</div>
+    <h2><span class="grad">Plus</span></h2>
+    <p>Unlimited renders. All AI features. No watermark.</p>
+  </div>
+
+  <div class="toggle">
+    <div class="opt dim">Weekly</div>
+    <div class="opt active">Monthly</div>
+  </div>
+
+  <div class="plan">
+    <div class="plan-head">
+      <span class="name">Monthly</span>
+      <span class="save">Save 25%</span>
+    </div>
+    <div class="price"><span class="currency">$</span>14.99<span class="per"> / month</span></div>
+    <div class="sub-line">40 credits/month · Cancel anytime</div>
+  </div>
+
+  <div class="features">
+    <div class="feature"><span class="check">✓</span>No watermark</div>
+    <div class="feature"><span class="check">✓</span>Animated word-by-word captions</div>
+    <div class="feature"><span class="check">✓</span>AI Face Swap</div>
+    <div class="feature"><span class="check">✓</span>AI Translation 15+ languages</div>
+    <div class="feature"><span class="check">✓</span>Voice clone in your voice</div>
+    <div class="feature"><span class="check">✓</span>One-tap publishing to TikTok, Reels, Shorts</div>
+  </div>
+
+  <div class="cta">Start Plus — $14.99/mo</div>
+
+  <div class="disclosure">
+    Subscription auto-renews monthly at $14.99 unless cancelled at least 24 h before the period ends. Manage in Settings → Apple ID → Subscriptions. Payment charged to your Apple ID. Weekly plan: $4.99/wk (10 credits).
+  </div>
+  <div class="restore-row">
+    <a>Terms of Service</a> · <a>Privacy Policy</a> · <a>Restore</a>
+  </div>
+</body>
+</html>

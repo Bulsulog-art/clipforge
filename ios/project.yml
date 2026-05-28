@@ -32,8 +32,8 @@ targets:
       path: ClipForge/Info.plist
       properties:
         CFBundleDisplayName: ClipForge
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "2.0"
+        CFBundleVersion: "2"
         # Locales we ship Localizable.xcstrings translations for. Adding a
         # value here makes iOS render the localised UI when the user's
         # device language matches; unmatched strings fall back to en.
@@ -93,8 +93,8 @@ targets:
       path: ClipForgeWidgets/Info.plist
       properties:
         CFBundleDisplayName: ClipForge Widgets
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "2.0"
+        CFBundleVersion: "2"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
@@ -120,8 +120,8 @@ targets:
       path: ClipForgeNotificationService/Info.plist
       properties:
         CFBundleDisplayName: ClipForge Push Service
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "2.0"
+        CFBundleVersion: "2"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
@@ -159,8 +159,8 @@ targets:
       path: ClipForgeWatch/Info.plist
       properties:
         CFBundleDisplayName: ClipForge
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "2.0"
+        CFBundleVersion: "2"
         CFBundleDevelopmentRegion: en
         WKApplication: true
         WKWatchOnly: false
@@ -195,8 +195,8 @@ targets:
       path: ClipForgeWatchWidgets/Info.plist
       properties:
         CFBundleDisplayName: ClipForge Watch Widgets
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "2.0"
+        CFBundleVersion: "2"
         CFBundleDevelopmentRegion: en
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
