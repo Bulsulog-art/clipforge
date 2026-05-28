@@ -370,5 +370,13 @@ final class VoiceRecorder: ObservableObject {
         isRecording = false
         lastRecording = url
         avRecorder = nil
+        // Deactivate the audio session so the mic indicator turns off
+        // and any other audio app (music, podcasts) can resume. The
+        // `notifyOthersOnDeactivation` flag tells iOS to send a
+        // resume notification to whoever was interrupted.
+        try? AVAudioSession.sharedInstance().setActive(
+            false,
+            options: [.notifyOthersOnDeactivation],
+        )
     }
 }

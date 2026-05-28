@@ -14,6 +14,16 @@ final class JobProgressService: ObservableObject {
     private var task: Task<Void, Never>?
     private var currentJobId: String?
 
+    /// SwiftUI tears the @StateObject down when the owning view leaves
+    /// the hierarchy, but `Task { while !Task.isCancelled { … } }`
+    /// keeps spinning forever unless we explicitly cancel it. Without
+    /// this the user pays for endless poll requests + battery whenever
+    /// they bounce in and out of a JobDetailView. Task.cancel() is
+    /// Sendable so it's safe to call from a nonisolated deinit.
+    nonisolated deinit {
+        task?.cancel()
+    }
+
     func start(jobId: String, initialStatus: String, initialProgress: Int) {
         currentJobId = jobId
         status = initialStatus
