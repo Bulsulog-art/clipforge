@@ -13,22 +13,37 @@ import Foundation
 ///
 /// Both calls fit comfortably in the 30s budget — they're a single
 /// Supabase fetch each.
-@MainActor
+///
+/// IMPORTANT — Apple's `BGTaskScheduler.register` MUST run synchronously
+/// during `application(_:didFinishLaunchingWithOptions:)`. If it lands
+/// after launch (e.g. wrapped in a `Task`), iOS crashes the process
+/// with `NSInternalInconsistencyException: All launch handlers must be
+/// registered before application finishes launching.` So this type is
+/// *not* `@MainActor` — `registerAndSchedule()` is called directly,
+/// synchronously, from `AppDelegate`. Only the work-per-tick hops onto
+/// the main actor.
 enum BackgroundRefresh {
     static let identifier = "com.bulsulabs.clipforge.refresh"
 
     /// Called once from app launch. Registers the handler and schedules
     /// the first refresh. Subsequent wakes re-register themselves at the
-    /// end of each handler.
+    /// end of each handler. MUST be called synchronously from
+    /// `didFinishLaunchingWithOptions` — see the type-level comment.
     static func registerAndSchedule() {
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: identifier,
             using: nil
         ) { task in
-            // The task closure runs on a background queue. Hop to the main
-            // actor before touching any of our @MainActor singletons.
+            // The task closure runs on a background queue. Guard the
+            // type — if iOS ever delivers a different task kind (very
+            // unlikely, but a force-cast would crash) we mark it done
+            // and bail. Then hop to the main actor for the work.
+            guard let refresh = task as? BGAppRefreshTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
             Task { @MainActor in
-                await handle(task as! BGAppRefreshTask)
+                await handle(refresh)
             }
         }
         schedule()
@@ -49,6 +64,7 @@ enum BackgroundRefresh {
 
     /// One wake cycle. Always re-schedules before exiting so the chain
     /// continues. Honour task.expirationHandler so iOS doesn't penalise us.
+    @MainActor
     private static func handle(_ task: BGAppRefreshTask) async {
         // Reschedule first — even if the work below is cancelled, we want
         // the chain to keep ticking.
@@ -71,6 +87,7 @@ enum BackgroundRefresh {
 
     /// Mirror of ProjectsView.publishWidgetState() but standalone so the
     /// background path doesn't depend on a view being instantiated.
+    @MainActor
     private static func republishWidgetSnapshot() async {
         guard let jobs = try? await ClipForgeAPI.shared.fetchJobs() else { return }
         let cutoff = Date().addingTimeInterval(-7 * 24 * 60 * 60)

@@ -29,6 +29,29 @@ export async function DELETE() {
   const svc = createServiceClient();
   const userId = user.id;
 
+  // Best-effort: tear down the user's ElevenLabs voice clones BEFORE the
+  // DB cascade wipes our pointers. Otherwise the voices linger in our
+  // workspace forever — a leaked voiceprint of a user who explicitly
+  // asked us to delete their data. GDPR Article 17 + App Store 5.1.1(v).
+  if (process.env.ELEVENLABS_API_KEY) {
+    const { data: clones } = await svc
+      .from("voice_clones")
+      .select("elevenlabs_voice_id")
+      .eq("user_id", userId);
+    const apiKey = process.env.ELEVENLABS_API_KEY;
+    await Promise.allSettled(
+      (clones ?? []).map((c) =>
+        fetch(
+          `https://api.elevenlabs.io/v1/voices/${c.elevenlabs_voice_id}`,
+          {
+            method: "DELETE",
+            headers: { "xi-api-key": apiKey },
+          },
+        ),
+      ),
+    );
+  }
+
   // Best-effort: remove the user's storage objects. We use list+remove rather
   // than the catch-all "rm -rf {prefix}" because Supabase doesn't support
   // recursive prefix delete in one call.

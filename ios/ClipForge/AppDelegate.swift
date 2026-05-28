@@ -7,11 +7,15 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        // BGTaskScheduler.register MUST happen synchronously inside
+        // didFinishLaunchingWithOptions or iOS crashes the process with
+        // "All launch handlers must be registered before application
+        // finishes launching." Do this BEFORE the async bootstrap so we
+        // never miss the launch window.
+        BackgroundRefresh.registerAndSchedule()
+
         Task { @MainActor in
             await PushService.shared.bootstrap()
-            // Register the BGAppRefreshTask handler + queue the first wake.
-            // Subsequent wakes self-rearm at the end of each handler run.
-            BackgroundRefresh.registerAndSchedule()
         }
         return true
     }

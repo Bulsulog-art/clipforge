@@ -213,8 +213,16 @@ struct JobDetailView: View {
     /// sequentially. Photos permission is requested on the first call;
     /// failures are tallied but don't abort the rest of the batch.
     private func bulkSaveToPhotos() async {
-        let targets = vm.clips
-            .filter { selectedIds.contains($0.id) && $0.status == "ready" && $0.storagePath != nil }
+        // Capture both the clip and its (non-nil) storagePath up-front so
+        // the loop body doesn't have to force-unwrap. The filter already
+        // guarantees non-nil, but Swift's flow analysis doesn't carry that
+        // through optional chaining inside async closures.
+        let targets: [(clip: Clip, path: String)] = vm.clips.compactMap { clip in
+            guard selectedIds.contains(clip.id),
+                  clip.status == "ready",
+                  let path = clip.storagePath else { return nil }
+            return (clip, path)
+        }
         if targets.isEmpty { return }
         bulkBusy = true
         bulkError = nil
@@ -222,10 +230,10 @@ struct JobDetailView: View {
         bulkSaveTotal = targets.count
         defer { bulkBusy = false }
         var failures: [String] = []
-        for clip in targets {
+        for target in targets {
             do {
                 let url = try await SignedURLCache.shared.signedURL(
-                    path: clip.storagePath!,
+                    path: target.path,
                     bucket: "clipforge-videos-rendered"
                 )
                 try await SaveToPhotos.saveVideo(from: url)

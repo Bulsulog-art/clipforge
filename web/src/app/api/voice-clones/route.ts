@@ -101,6 +101,12 @@ export async function POST(req: Request) {
     detail?: { status?: string; message?: string } | string;
   };
   if (!elRes.ok || !elJson.voice_id) {
+    // ElevenLabs rejected (sample too short / too noisy / quota): the
+    // upload succeeded but is now an orphan. Clean it up so we don't
+    // accumulate unreachable blobs against the user's storage usage.
+    await svc.storage.from("clipforge-faces").remove([samplePath])
+      .then(() => {}, () => {});
+
     const detail = typeof elJson.detail === "string"
       ? elJson.detail
       : elJson.detail?.message ?? `HTTP ${elRes.status}`;
@@ -122,6 +128,20 @@ export async function POST(req: Request) {
     .select("id, name, elevenlabs_voice_id, status, created_at")
     .single();
   if (insErr || !row) {
+    // DB persisted nothing but ElevenLabs has the voice + storage has
+    // the sample. Roll both back so the user can retry cleanly. Best
+    // effort — if either cleanup fails the row is still unreachable.
+    if (process.env.ELEVENLABS_API_KEY) {
+      await fetch(
+        `https://api.elevenlabs.io/v1/voices/${elJson.voice_id}`,
+        {
+          method: "DELETE",
+          headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY },
+        },
+      ).catch(() => {});
+    }
+    await svc.storage.from("clipforge-faces").remove([samplePath])
+      .then(() => {}, () => {});
     return NextResponse.json({ error: insErr?.message ?? "db" }, { status: 500 });
   }
 

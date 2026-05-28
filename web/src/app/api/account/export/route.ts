@@ -40,6 +40,9 @@ export async function POST() {
     { data: codes },
     { data: channels },
     { data: events },
+    { data: voiceClones },
+    { data: avatarJobs },
+    { data: pushPrefs },
   ] = await Promise.all([
     svc.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     svc.from("video_jobs").select("*").eq("user_id", user.id),
@@ -56,15 +59,20 @@ export async function POST() {
       .eq("user_id", user.id)
       .gte("created_at", ninetyDaysAgo)
       .order("created_at", { ascending: false }),
+    svc.from("voice_clones")
+      .select("id, name, elevenlabs_voice_id, sample_path, status, created_at")
+      .eq("user_id", user.id),
+    svc.from("avatar_jobs").select("*").eq("user_id", user.id),
+    svc.from("push_preferences").select("*").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const exportDoc = {
-    schema_version: 1,
+    schema_version: 2,
     exported_at: new Date().toISOString(),
     user_id: user.id,
     user_email: user.email ?? null,
     media_note:
-      "Rendered MP4 files are not bundled inline. Open any clip in the app and tap Save to Photos to download it individually.",
+      "Rendered MP4 files + voice samples are not bundled inline. Open any clip in the app and tap Save to Photos to download it individually. Voice samples and renders are stored under the storage_path values referenced in the rows below.",
     privacy_note:
       "OAuth tokens for connected channels are intentionally excluded from this export to prevent replay if the file is shared.",
     profile,
@@ -76,6 +84,9 @@ export async function POST() {
     feedback: feedback ?? [],
     referrals: referrals ?? [],
     channels: channels ?? [],
+    voice_clones: voiceClones ?? [],
+    avatar_jobs: avatarJobs ?? [],
+    push_preferences: pushPrefs ?? null,
     recent_events: events ?? [],
   };
 
