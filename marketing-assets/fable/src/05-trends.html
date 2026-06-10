@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1290px; height: 2796px; overflow: hidden; font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
+  body { position: relative; background:
+    radial-gradient(circle at 80% 6%, rgba(255,51,102,0.36) 0%, transparent 42%),
+    radial-gradient(circle at 14% 32%, rgba(255,215,0,0.16) 0%, transparent 44%),
+    linear-gradient(170deg, #160611 0%, #160a0a 45%, #0A0509 100%); }
+  .sp { position: absolute; color: #FF3366; } .sp::before { content: "✦"; }
+  .s1 { top: 250px; left: 110px; font-size: 64px; opacity: 0.5; } .s2 { top: 480px; right: 120px; font-size: 52px; opacity: 0.45; }
+  .copy { position: absolute; top: 188px; left: 84px; right: 84px; text-align: center; }
+  .eyebrow { font-size: 34px; font-weight: 800; letter-spacing: 7px; text-transform: uppercase; color: #FF6699; margin-bottom: 28px; }
+  .headline { font-size: 116px; font-weight: 900; line-height: 1.0; letter-spacing: -3px; }
+  .headline .grad { background: linear-gradient(95deg,#FF3366,#FFB199); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { margin-top: 30px; font-size: 46px; font-weight: 500; line-height: 1.3; color: rgba(255,255,255,0.72); max-width: 1010px; margin: 30px auto 0; }
+  .phone { position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%); width: 928px; height: 1860px; border-radius: 96px; background: linear-gradient(180deg,#1c0d14,#0a0508); padding: 20px; box-shadow: 0 50px 120px rgba(255,51,102,0.30), 0 0 0 3px rgba(255,51,102,0.18); }
+  .screen { width: 100%; height: 100%; border-radius: 78px; overflow: hidden; position: relative; background: #0B0609; }
+  .status { height: 66px; display: flex; justify-content: space-between; align-items: center; padding: 0 72px; font-size: 30px; font-weight: 700; }
+  .nav { display: flex; align-items: center; gap: 14px; padding: 6px 50px 18px; font-size: 34px; font-weight: 800; }
+  .nav .dot { width: 16px; height: 16px; border-radius: 50%; background: #FF3366; box-shadow: 0 0 16px #FF3366; }
+
+  .niche { display: flex; gap: 14px; padding: 0 48px 26px; overflow: hidden; }
+  .nchip { padding: 16px 28px; border-radius: 999px; font-size: 27px; font-weight: 700; white-space: nowrap; }
+  .nchip.on { background: linear-gradient(90deg,#FF3366,#FF6699); }
+  .nchip.off { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
+
+  .trend { margin: 0 48px 18px; padding: 28px 30px; border-radius: 26px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 22px; }
+  .trend .rank { font-size: 40px; font-weight: 900; color: rgba(255,255,255,0.35); width: 56px; }
+  .trend .info { flex: 1; }
+  .trend .topic { font-size: 34px; font-weight: 800; }
+  .trend .sub2 { font-size: 25px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  .trend .mom { text-align: right; }
+  .trend .pct { font-size: 36px; font-weight: 900; color: #00E676; }
+  .trend .arrow { font-size: 24px; color: #00E676; }
+  .spark { width: 120px; height: 56px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+  <span class="sp s1"></span><span class="sp s2"></span>
+  <div class="copy">
+    <div class="eyebrow">Trends</div>
+    <h1 class="headline">Ride the trend<br/><span class="grad">before it peaks.</span></h1>
+    <p class="sub">See what's blowing up in your niche right now — and make a clip about it today.</p>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="status"><span>9:41</span><span>100%</span></div>
+    <div class="nav"><span class="dot"></span>Trending now</div>
+    <div class="niche">
+      <div class="nchip on">🔥 Finance</div><div class="nchip off">Fitness</div><div class="nchip off">Tech</div><div class="nchip off">Mindset</div>
+    </div>
+    <div class="trend"><span class="rank">1</span><div class="info"><div class="topic">“The 50/30/20 myth”</div><div class="sub2">42K creators · last 24h</div></div><div class="mom"><div class="pct">+312%</div><div class="arrow">▲ surging</div></div></div>
+    <div class="trend"><span class="rank">2</span><div class="info"><div class="topic">High-yield savings hacks</div><div class="sub2">28K creators · last 24h</div></div><div class="mom"><div class="pct">+186%</div><div class="arrow">▲ rising</div></div></div>
+    <div class="trend"><span class="rank">3</span><div class="info"><div class="topic">“I quit my 9–5” stories</div><div class="sub2">19K creators · last 24h</div></div><div class="mom"><div class="pct">+97%</div><div class="arrow">▲ rising</div></div></div>
+    <div class="trend"><span class="rank">4</span><div class="info"><div class="topic">Side-hustle in 2026</div><div class="sub2">15K creators · last 24h</div></div><div class="mom"><div class="pct">+64%</div><div class="arrow">▲ rising</div></div></div>
+  </div></div>
+</body>
+</html>

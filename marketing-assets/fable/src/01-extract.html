@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1290px; height: 2796px; overflow: hidden;
+    font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; color: #fff; }
+  body {
+    position: relative;
+    background:
+      radial-gradient(circle at 80% 6%, rgba(255,51,102,0.40) 0%, transparent 40%),
+      radial-gradient(circle at 12% 32%, rgba(255,102,153,0.22) 0%, transparent 42%),
+      radial-gradient(circle at 50% 102%, rgba(255,51,102,0.18) 0%, transparent 55%),
+      linear-gradient(170deg, #14060B 0%, #1B0A12 45%, #0A0509 100%);
+  }
+  .sp { position: absolute; color: #FF3366; }
+  .sp::before { content: "✦"; }
+  .s1 { top: 250px; left: 110px; font-size: 56px; opacity: 0.5; }
+  .s2 { top: 470px; right: 130px; font-size: 84px; opacity: 0.6; }
+  .s3 { bottom: 980px; left: 80px; font-size: 44px; opacity: 0.4; }
+
+  .copy { position: absolute; top: 188px; left: 84px; right: 84px; text-align: center; }
+  .eyebrow { font-size: 34px; font-weight: 800; letter-spacing: 7px; text-transform: uppercase; color: #FF6699; margin-bottom: 28px; }
+  .headline { font-size: 122px; font-weight: 900; line-height: 1.0; letter-spacing: -4px; }
+  .headline .grad { background: linear-gradient(95deg, #FF3366 0%, #FF6699 60%, #FFB199 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { margin-top: 30px; font-size: 46px; font-weight: 500; line-height: 1.3; color: rgba(255,255,255,0.72); max-width: 1010px; margin-left: auto; margin-right: auto; }
+
+  .phone { position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%);
+    width: 928px; height: 1860px; border-radius: 96px; background: linear-gradient(180deg, #1c0d14 0%, #0a0508 100%);
+    padding: 20px; box-shadow: 0 50px 120px rgba(255,51,102,0.30), 0 0 0 3px rgba(255,51,102,0.18), inset 0 0 0 2px rgba(255,255,255,0.05); }
+  .screen { width: 100%; height: 100%; border-radius: 78px; overflow: hidden; position: relative; background: #0B0609; }
+  .status { height: 66px; display: flex; justify-content: space-between; align-items: center; padding: 0 72px; font-size: 30px; font-weight: 700; }
+  .nav { display: flex; align-items: center; gap: 14px; padding: 6px 50px 22px; font-size: 34px; font-weight: 800; }
+  .nav .dot { width: 16px; height: 16px; border-radius: 50%; background: #FF3366; box-shadow: 0 0 16px #FF3366; }
+
+  /* Source bar */
+  .source { margin: 0 48px 18px; padding: 26px 30px; border-radius: 26px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 20px; }
+  .source .yt { width: 70px; height: 70px; border-radius: 18px; background: linear-gradient(135deg,#FF0033,#CC0022); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0; }
+  .source .meta { flex: 1; min-width: 0; }
+  .source .url { font-size: 27px; color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .source .len { font-size: 24px; color: #FF6699; margin-top: 4px; font-weight: 600; }
+  .arrow { text-align: center; font-size: 40px; color: #FF3366; margin: 6px 0 16px; }
+
+  .clips-label { padding: 0 50px 16px; font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.6); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 0 48px; }
+  .clip { aspect-ratio: 9/13; border-radius: 26px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+  .c1 { background: linear-gradient(150deg, #3a1020, #FF3366 130%); }
+  .c2 { background: linear-gradient(150deg, #2a0e2e, #8B5CF6 130%); }
+  .c3 { background: linear-gradient(150deg, #102a2e, #00D9FF 130%); }
+  .c4 { background: linear-gradient(150deg, #2e2410, #FFD700 130%); }
+  .clip .score { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 14px; font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .clip .score b { color: #FF6699; }
+  .clip .cap { position: absolute; bottom: 16px; left: 16px; right: 16px; font-size: 26px; font-weight: 800; line-height: 1.1; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+  .clip .play { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); display:flex; align-items:center; justify-content:center; font-size: 34px; }
+</style>
+</head>
+<body>
+  <span class="sp s1"></span><span class="sp s2"></span><span class="sp s3"></span>
+  <div class="copy">
+    <div class="eyebrow">ClipForge</div>
+    <h1 class="headline">Long videos →<br/><span class="grad">viral clips.</span></h1>
+    <p class="sub">Paste a YouTube link. AI finds the best moments and cuts them — in minutes.</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="status"><span>9:41</span><span>100%</span></div>
+      <div class="nav"><span class="dot"></span>New project</div>
+
+      <div class="source">
+        <div class="yt">▶</div>
+        <div class="meta">
+          <div class="url">youtube.com/watch?v=podcast-ep-142</div>
+          <div class="len">1 hr 12 min · ready to slice</div>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="clips-label">12 clips · ranked by viral score</div>
+      <div class="grid">
+        <div class="clip c1"><div class="score">✦ <b>94</b></div><div class="play">▶</div><div class="cap">The truth nobody tells you…</div></div>
+        <div class="clip c2"><div class="score">✦ <b>91</b></div><div class="play">▶</div><div class="cap">This changed everything</div></div>
+        <div class="clip c3"><div class="score">✦ <b>88</b></div><div class="play">▶</div><div class="cap">Do this every morning</div></div>
+        <div class="clip c4"><div class="score">✦ <b>85</b></div><div class="play">▶</div><div class="cap">I was wrong about this</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
