@@ -3,20 +3,24 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light, premium theme. Subtly warm / pink-tinted whites (not clinical pure
+     white) + soft rose-gray borders give a bright, expensive feel that matches
+     the App Store screenshots. Brand stays #FF3366. The app no longer forces
+     .dark, so these :root values are what ships. */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
-    --primary: 346 100% 60%;
+    --background: 336 50% 99.2%;     /* barely-pink off-white page */
+    --foreground: 256 24% 11%;       /* soft near-black, less harsh than pure black */
+    --card: 0 0% 100%;               /* clean white cards lift off the warm page */
+    --card-foreground: 256 24% 11%;
+    --primary: 346 100% 60%;         /* ClipForge hot pink */
     --primary-foreground: 0 0% 100%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 6% 10%;
-    --border: 240 6% 90%;
+    --muted: 336 32% 96.5%;          /* soft pink-gray fills */
+    --muted-foreground: 252 8% 46%;
+    --accent: 336 40% 96%;
+    --accent-foreground: 256 24% 14%;
+    --border: 338 28% 92%;           /* soft rose-tinted hairlines */
     --ring: 346 100% 60%;
-    --radius: 0.75rem;
+    --radius: 0.85rem;               /* a touch rounder = friendlier/premium */
   }
   .dark {
     --background: 240 10% 4%;
