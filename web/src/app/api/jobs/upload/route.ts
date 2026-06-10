@@ -7,6 +7,24 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Enforce the monthly video quota BEFORE we parse the (up to 4GB) body and
+  // upload it to storage. The URL-source route (api/jobs/route.ts) already does
+  // this; the upload route skipped it entirely, so a free/over-limit user could
+  // bypass the limit and burn a 4GB upload + a full render. Same check, earliest
+  // possible point.
+  const svc = createServiceClient();
+  const { data: quota } = await svc
+    .from("v_user_quota")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+  if (quota && quota.videos_used >= quota.videos_limit) {
+    return NextResponse.json(
+      { error: "Monthly limit reached. Upgrade your plan to continue." },
+      { status: 402 },
+    );
+  }
+
   const form = await req.formData();
   const file = form.get("file");
   const niche = String(form.get("niche") ?? "motivation");
@@ -25,7 +43,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Max 4GB" }, { status: 413 });
   }
 
-  const svc = createServiceClient();
   const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase();
   const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
 

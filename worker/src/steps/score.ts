@@ -54,8 +54,24 @@ Rules:
 
   const raw = completion.choices[0].message.content ?? "{}";
   const parsed = Response.parse(JSON.parse(raw));
+
+  // Clamp GPT-chosen boundaries to the REAL source duration. The model can
+  // hallucinate timestamps past the end of the audio (or a tiny negative
+  // start), which would make ffmpeg cut beyond the source and produce a
+  // broken/black clip. The transcript's last word end is our known upper
+  // bound. Re-check the duration filter AFTER clamping so a moment that
+  // collapses below minSec is dropped rather than rendered as a stub.
+  const sourceEnd = input.transcript.words.at(-1)?.end ?? 0;
   return parsed.moments
-    .filter((m) => m.end - m.start >= input.minSec && m.end - m.start <= input.maxSec)
+    .map((m) => {
+      const start = Math.max(0, Math.min(m.start, sourceEnd));
+      const end = Math.max(start, Math.min(m.end, sourceEnd));
+      return { ...m, start, end };
+    })
+    .filter((m) => {
+      const dur = m.end - m.start;
+      return dur >= input.minSec && dur <= input.maxSec;
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, input.maxClips);
 }
