@@ -4,39 +4,39 @@
 <meta charset="utf-8" />
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1290px; height: 2796px; overflow: hidden; font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
+  html, body { width: 1290px; height: 2796px; overflow: hidden; font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #1A1326; }
   body { position: relative; background:
-    radial-gradient(circle at 82% 6%, rgba(0,217,255,0.22) 0%, transparent 42%),
-    radial-gradient(circle at 14% 30%, rgba(255,51,102,0.34) 0%, transparent 44%),
-    linear-gradient(170deg, #140611 0%, #0d0814 45%, #0A0509 100%); }
-  .sp { position: absolute; color: #FF3366; } .sp::before { content: "✦"; }
-  .s1 { top: 250px; left: 110px; font-size: 64px; opacity: 0.5; } .s2 { top: 480px; right: 120px; font-size: 50px; opacity: 0.45; }
-  .copy { position: absolute; top: 188px; left: 84px; right: 84px; text-align: center; }
-  .eyebrow { font-size: 34px; font-weight: 800; letter-spacing: 7px; text-transform: uppercase; color: #FF6699; margin-bottom: 28px; }
-  .headline { font-size: 120px; font-weight: 900; line-height: 1.0; letter-spacing: -3px; }
-  .headline .grad { background: linear-gradient(95deg,#FF3366,#FF6699); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  .sub { margin-top: 30px; font-size: 46px; font-weight: 500; line-height: 1.3; color: rgba(255,255,255,0.72); max-width: 1010px; margin: 30px auto 0; }
-  .phone { position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%); width: 928px; height: 1860px; border-radius: 96px; background: linear-gradient(180deg,#1c0d14,#0a0508); padding: 20px; box-shadow: 0 50px 120px rgba(255,51,102,0.30), 0 0 0 3px rgba(255,51,102,0.18); }
-  .screen { width: 100%; height: 100%; border-radius: 78px; overflow: hidden; position: relative; background: #0B0609; }
-  .status { height: 66px; display: flex; justify-content: space-between; align-items: center; padding: 0 72px; font-size: 30px; font-weight: 700; }
+    radial-gradient(circle at 82% 5%, rgba(0,166,196,0.12) 0%, transparent 40%),
+    radial-gradient(circle at 14% 30%, rgba(255,51,102,0.18) 0%, transparent 44%),
+    linear-gradient(168deg, #FFFFFF 0%, #FFF4F8 48%, #F6FCFE 100%); }
+  .sp { position: absolute; color: #FF3366; opacity: 0.5; } .sp::before { content: "✦"; }
+  .s1 { top: 250px; left: 110px; font-size: 60px; opacity: 0.45; } .s2 { top: 480px; right: 120px; font-size: 48px; opacity: 0.4; }
+  .copy { position: absolute; top: 190px; left: 84px; right: 84px; text-align: center; }
+  .eyebrow { font-size: 33px; font-weight: 800; letter-spacing: 7px; text-transform: uppercase; color: #FF3366; margin-bottom: 28px; }
+  .headline { font-size: 120px; font-weight: 900; line-height: 1.0; letter-spacing: -3px; color: #15101F; }
+  .headline .grad { background: linear-gradient(95deg,#FF2A5F,#FF6699); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { margin-top: 30px; font-size: 46px; font-weight: 500; line-height: 1.3; color: #6B6675; max-width: 1010px; margin: 30px auto 0; }
+  .phone { position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%); width: 928px; height: 1860px; border-radius: 96px; background: #FFFFFF; padding: 20px; box-shadow: 0 50px 120px rgba(255,51,102,0.22), 0 0 0 3px rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,51,102,0.12); }
+  .screen { width: 100%; height: 100%; border-radius: 78px; overflow: hidden; position: relative; background: linear-gradient(180deg,#FFFFFF,#FFF7F9); }
+  .status { height: 66px; display: flex; justify-content: space-between; align-items: center; padding: 0 72px; font-size: 30px; font-weight: 700; color:#15101F; }
 
-  .video { margin: 16px 40px 0; height: 1180px; border-radius: 34px; position: relative; overflow: hidden; background: radial-gradient(circle at 50% 32%, #2a1530 0%, #0d0712 100%); border: 1px solid rgba(255,255,255,0.07); }
-  .person { position: absolute; top: 16%; left: 50%; transform: translateX(-50%); width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #FF6699, #8B1E3F); }
-  .body { position: absolute; top: 42%; left: 50%; transform: translateX(-50%); width: 560px; height: 560px; border-radius: 50% 50% 0 0; background: linear-gradient(180deg,#3a1020,#160810); }
-  .live { position: absolute; top: 34px; right: 34px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 14px 22px; border-radius: 16px; font-size: 26px; font-weight: 700; display:flex; align-items:center; gap:12px; }
-  .live .d { width: 14px; height: 14px; border-radius: 50%; background: #FF3366; box-shadow: 0 0 12px #FF3366; }
+  .video { margin: 16px 40px 0; height: 1180px; border-radius: 34px; position: relative; overflow: hidden; background: radial-gradient(circle at 50% 30%, #FFD6E3 0%, #E9C7F0 60%, #C9E8F2 100%); box-shadow: 0 16px 40px rgba(21,16,31,0.10); }
+  .person { position: absolute; top: 16%; left: 50%; transform: translateX(-50%); width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #FFFFFF, #FF8FB0); }
+  .body { position: absolute; top: 42%; left: 50%; transform: translateX(-50%); width: 560px; height: 560px; border-radius: 50% 50% 0 0; background: linear-gradient(180deg,#FF6699,#E03060); }
+  .live { position: absolute; top: 34px; right: 34px; background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); color:#15101F; padding: 14px 22px; border-radius: 16px; font-size: 26px; font-weight: 700; display:flex; align-items:center; gap:12px; }
+  .live .d { width: 14px; height: 14px; border-radius: 50%; background: #FF3366; box-shadow: 0 0 10px rgba(255,51,102,0.7); }
 
   .caps { position: absolute; bottom: 150px; left: 0; right: 0; text-align: center; padding: 0 40px; }
-  .cw { display: inline-block; font-size: 60px; font-weight: 900; line-height: 1.05; padding: 10px 22px; border-radius: 16px; margin: 5px 5px; text-transform: uppercase; letter-spacing: -1px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .plain { color: #fff; text-shadow: 0 3px 12px rgba(0,0,0,0.8); }
-  .hot { background: #FF3366; color: #fff; transform: scale(1.08); box-shadow: 0 0 36px rgba(255,51,102,0.7); }
+  .cw { display: inline-block; font-size: 60px; font-weight: 900; line-height: 1.05; padding: 10px 22px; border-radius: 16px; margin: 5px 5px; text-transform: uppercase; letter-spacing: -1px; box-shadow: 0 10px 28px rgba(0,0,0,0.25); }
+  .plain { background:#fff; color: #15101F; }
+  .hot { background: #FF3366; color: #fff; transform: scale(1.08); box-shadow: 0 0 34px rgba(255,51,102,0.6); }
 
   .styles { margin: 26px 48px 0; }
-  .styles .lbl { font-size: 28px; font-weight: 700; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+  .styles .lbl { font-size: 28px; font-weight: 700; color: #8A8590; margin-bottom: 16px; }
   .chips { display: flex; gap: 14px; }
-  .chip { flex: 1; text-align: center; padding: 22px 0; border-radius: 18px; font-size: 28px; font-weight: 800; border: 2px solid transparent; }
-  .chip.on { background: linear-gradient(90deg,#FF3366,#FF6699); color: #fff; }
-  .chip.off { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); }
+  .chip { flex: 1; text-align: center; padding: 22px 0; border-radius: 18px; font-size: 28px; font-weight: 800; }
+  .chip.on { background: linear-gradient(90deg,#FF2A5F,#FF6699); color: #fff; box-shadow: 0 8px 22px rgba(255,51,102,0.3); }
+  .chip.off { background: #FFFFFF; color: #8A8590; border: 1px solid #F1E4E9; }
 </style>
 </head>
 <body>
