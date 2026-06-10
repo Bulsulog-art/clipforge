@@ -79,11 +79,21 @@ export async function POST(req: Request) {
     .eq("id", evt.app_user_id)
     .maybeSingle();
   if (!profile) {
-    await svc
-      .from("profiles")
-      .update({ revenuecat_app_user_id: evt.app_user_id })
-      .eq("id", evt.app_user_id);
-    return NextResponse.json({ ok: true, deferred: true });
+    // The profile doesn't exist yet. The old code did a no-op update (filtered
+    // on a non-existent id) and returned 200 — RevenueCat then marked the event
+    // delivered and never retried, so a purchase that raced ahead of signup was
+    // LOST (paid, no credits). Anonymous RC ids ($RCAnonymousID:…) never map to
+    // a profile, so we acknowledge + drop those. For a real (UUID) app_user_id
+    // we return 503 so RevenueCat retries with backoff until the profile is
+    // created at signup, at which point the retry processes normally.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      evt.app_user_id ?? "",
+    );
+    if (!isUuid) return NextResponse.json({ ok: true, ignored: "anonymous" });
+    return NextResponse.json(
+      { error: "profile not ready — retry", app_user_id: evt.app_user_id },
+      { status: 503 },
+    );
   }
 
   switch (evt.type) {
@@ -130,18 +140,21 @@ export async function POST(req: Request) {
       break;
 
     case "REFUND": {
+      // Consumable pack refund → claw back credits up to the current balance
+      // (already-spent credits can't be reclaimed). record_refund logs the
+      // actual amount and is idempotent by transaction.
       const consumable = CONSUMABLE_PRODUCTS[evt.product_id ?? ""];
       if (consumable) {
-        await svc
-          .rpc("grant_credits", {
-            p_user_id: profile.id,
-            p_amount: 0,
-            p_kind: "refund",
-            p_reason: `refund ${evt.product_id}`,
-            p_reference: evt.transaction_id,
-            p_metadata: { note: "consumable credits may already be spent" },
-          })
-          .then(() => {}, () => {});
+        await svc.rpc("record_refund", {
+          p_user_id: profile.id,
+          p_amount: consumable,
+          p_reason: `refund ${evt.product_id}`,
+          p_reference: evt.transaction_id,
+        });
+      }
+      // Subscription refund → revoke Plus access (same as an expiration).
+      if (SUBSCRIPTION_PRODUCTS[evt.product_id ?? ""]) {
+        await svc.from("profiles").update({ tier: "free" }).eq("id", profile.id);
       }
       break;
     }
