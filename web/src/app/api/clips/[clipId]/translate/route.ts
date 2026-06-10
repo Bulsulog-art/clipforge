@@ -26,12 +26,16 @@ export async function POST(
 
   const svc = createServiceClient();
 
-  // Voice clone is Pro+ only
+  // Voice clone is a paid (Plus) feature. The legacy gate required 'pro'/'agency'
+  // tiers that were REMOVED in the 2026-05 pricing refresh — our only paid tier
+  // in the IAP catalog is now 'starter' (= Plus), so no paying user could ever
+  // pass the old check and voice-clone translation was dead for everyone. Gate
+  // against 'free' only, matching voice-clones/route.ts and branding/upload/route.ts.
   if (body.voiceClone) {
     const { data: p } = await svc.from("profiles").select("tier").eq("id", user.id).single();
-    if (!p || (p.tier !== "pro" && p.tier !== "agency")) {
+    if (!p || p.tier === "free") {
       return NextResponse.json(
-        { error: "Voice clone requires Pro or Agency plan." },
+        { error: "Voice clone is a Plus feature. Subscribe to translate in your own voice." },
         { status: 402 },
       );
     }

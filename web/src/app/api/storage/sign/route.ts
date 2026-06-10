@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { isOwnedPath } from "@/lib/security";
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -12,7 +13,16 @@ export async function GET(req: NextRequest) {
   const download = url.searchParams.get("download") === "1";
   if (!path) return NextResponse.json({ error: "path missing" }, { status: 400 });
 
-  if (!path.startsWith(`${user.id}/`)) {
+  // Constrain bucket to this project's namespace — `bucket` is fully
+  // attacker-controllable, so without this an authenticated user could mint
+  // signed URLs for any bucket on the Supabase project (other apps' data).
+  if (!bucket.startsWith("clipforge-")) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  // Ownership + path-traversal guard (the shared helper rejects `..`); paths
+  // must live under the caller's own `${userId}/` prefix.
+  if (!isOwnedPath(path, user.id)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 

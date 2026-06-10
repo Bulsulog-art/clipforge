@@ -65,6 +65,7 @@ export async function runFalQueue<T = unknown>(
 
   // 2. Poll
   const start = Date.now();
+  let completed = false;
   while (Date.now() - start < timeoutMs) {
     await new Promise((r) => setTimeout(r, 2500));
     const st = await fetch(`${statusUrl}?logs=1`, {
@@ -78,13 +79,31 @@ export async function runFalQueue<T = unknown>(
       status: "IN_QUEUE" | "IN_PROGRESS" | "COMPLETED" | string;
       queue_position?: number;
       logs?: Array<{ message: string; level?: string }>;
+      error?: unknown;
     };
-    if (sj.status === "COMPLETED") break;
-    if (sj.status === "IN_PROGRESS") {
+    if (sj.status === "COMPLETED") {
+      completed = true;
+      break;
+    }
+    if (sj.status === "IN_QUEUE" || sj.status === "IN_PROGRESS") {
       // Heuristic: scale progress from elapsed time, no real % from FAL
       const elapsed = (Date.now() - start) / timeoutMs;
       await opts.onProgress?.(Math.min(0.92, 0.1 + elapsed * 0.85));
+      continue;
     }
+    // Any other terminal status (FAILED / ERROR / CANCELLED / …) is a hard
+    // failure. Previously we ignored it and kept polling until timeout, then
+    // fetched the response anyway and returned a garbage/error body as if it
+    // were a real result. Surface it loudly so BullMQ retries / the job fails
+    // with a real error message instead of silently producing broken output.
+    const tail = (sj.logs ?? []).slice(-3).map((l) => l.message).join(" | ");
+    throw new Error(
+      `fal ${model} terminal status ${sj.status}${tail ? `: ${tail}` : ""}`,
+    );
+  }
+
+  if (!completed) {
+    throw new Error(`fal ${model} timed out after ${Math.round(timeoutMs / 1000)}s`);
   }
 
   // 3. Final fetch

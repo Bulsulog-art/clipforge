@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { ClipsGrid } from "@/components/clips-grid";
 import { JobStatusBar } from "@/components/job-status-bar";
+import { JobRetryButton } from "@/components/job-retry-button";
 
 export default async function StudioJobPage({ params }: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await params;
@@ -59,6 +60,7 @@ export default async function StudioJobPage({ params }: { params: Promise<{ jobI
           <div className="mt-10 rounded-xl border border-red-500/30 bg-red-500/5 p-6">
             <p className="font-medium text-red-300">Render failed</p>
             <p className="mt-1 text-sm text-muted-foreground">{job.error_message ?? "Unknown error"}</p>
+            <JobRetryButton jobId={jobId} />
           </div>
         ) : (
           <div className="mt-10 rounded-xl border border-border/50 bg-card/40 p-12 text-center">

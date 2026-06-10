@@ -27,7 +27,8 @@ export function DashboardNav({ profile }: { profile: Profile | null }) {
         <nav className="flex items-center gap-6 text-sm">
           <Link href="/dashboard" className="text-foreground">Studio</Link>
           <Link href="/dashboard/social" className="text-muted-foreground hover:text-foreground">Channels</Link>
-          <Link href="/dashboard/analytics" className="text-muted-foreground hover:text-foreground">Analytics</Link>
+          {/* Analytics link removed until the performance-analytics feature ships
+              (the page didn't exist → hard 404). Re-add when /dashboard/analytics lands. */}
           <Link href="/dashboard/billing" className="text-muted-foreground hover:text-foreground">Billing</Link>
         </nav>
 
