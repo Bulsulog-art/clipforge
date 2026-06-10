@@ -72,8 +72,36 @@ Rules:
       const dur = m.end - m.start;
       return dur >= input.minSec && dur <= input.maxSec;
     })
+    // Tighten each clip to its actual speech envelope so it doesn't open or
+    // close on dead air — a clip that starts 1.5s before the first word (or
+    // lingers in silence after the last) feels sloppy and tanks retention in
+    // the first second. Because buildKaraokeASS + the ffmpeg cut both derive
+    // from these bounds, tightening here keeps captions, audio and duration in
+    // sync automatically. We only trim silence (never extend), keep a little
+    // breathing room, and skip the trim if it would drop the clip below minSec.
+    .map((m) => tightenToSpeech(m, input.transcript.words, input.minSec))
     .sort((a, b) => b.score - a.score)
     .slice(0, input.maxClips);
+}
+
+const LEAD_PAD_SEC = 0.15;  // a touch of air before the first word
+const TRAIL_PAD_SEC = 0.30; // let the last word land before cutting
+
+function tightenToSpeech(
+  m: Moment,
+  words: Transcript["words"],
+  minSec: number,
+): Moment {
+  const inside = words.filter((w) => w.end > m.start && w.start < m.end);
+  if (inside.length === 0) return m;
+  const firstStart = inside[0].start;
+  const lastEnd = inside[inside.length - 1].end;
+  const start = Math.max(m.start, firstStart - LEAD_PAD_SEC);
+  const end = Math.min(m.end, lastEnd + TRAIL_PAD_SEC);
+  // Don't over-trim: if the speech envelope is shorter than the minimum clip
+  // length, keep the original bounds rather than ship an ultra-short clip.
+  if (end - start < minSec) return m;
+  return { ...m, start, end };
 }
 
 function buildSegments(t: Transcript, minSec: number, maxSec: number) {
