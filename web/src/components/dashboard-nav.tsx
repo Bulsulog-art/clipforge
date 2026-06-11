@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Scissors, LogOut } from "lucide-react";
+import { Scissors, LogOut, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -27,8 +27,9 @@ export function DashboardNav({ profile }: { profile: Profile | null }) {
         <nav className="flex items-center gap-6 text-sm">
           <Link href="/dashboard" className="text-foreground">Studio</Link>
           <Link href="/dashboard/social" className="text-muted-foreground hover:text-foreground">Channels</Link>
-          {/* Analytics link removed until the performance-analytics feature ships
-              (the page didn't exist → hard 404). Re-add when /dashboard/analytics lands. */}
+          <Link href="/dashboard/analytics" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+            <BarChart3 className="h-3.5 w-3.5" /> Analytics
+          </Link>
           <Link href="/dashboard/billing" className="text-muted-foreground hover:text-foreground">Billing</Link>
         </nav>
 
