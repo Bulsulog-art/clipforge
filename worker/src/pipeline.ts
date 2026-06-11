@@ -10,6 +10,7 @@ import { renderClip } from "./steps/render.js";
 import { generateThumbnail } from "./steps/thumbnail.js";
 import { pickTrack, downloadTrack, type MusicTrack } from "./steps/bg-music.js";
 import { resolveNicheTemplate } from "./niche-templates.js";
+import { getWinningHooks } from "./jobs/winning-patterns.js";
 import { sendPush } from "./push.js";
 
 type Payload = {
@@ -162,6 +163,9 @@ export async function runVideoPipeline(p: Payload) {
     logger.info({ jobId: p.jobId, words: transcript.words.length }, "transcribed");
 
     await setProgress(p.jobId, "scoring", 0);
+    // Closed learning loop: bias scoring toward what already works for this
+    // creator. Best-effort — returns [] for new users, never blocks scoring.
+    const winningHooks = await getWinningHooks(p.userId);
     const moments = await scoreMoments({
       transcript,
       niche: p.niche ?? "default",
@@ -169,6 +173,7 @@ export async function runVideoPipeline(p: Payload) {
       minSec: 25,
       maxSec: 70,
       userPrompt: p.clipPrompt,
+      winningHooks,
     });
     if (moments.length === 0) {
       throw new Error("No viral moments found. Try a longer or more dynamic source video.");

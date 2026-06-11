@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import type { Transcript } from "./transcribe.js";
 import { resolveNicheTemplate } from "../niche-templates.js";
+import { buildWinningHint } from "../jobs/winning-patterns.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -29,10 +30,16 @@ export async function scoreMoments(input: {
    * genuinely match it — our answer to OpusClip's ClipAnything.
    */
   userPrompt?: string;
+  /**
+   * Hooks from this creator's best-performing past clips (closed learning
+   * loop). Biases selection toward what already works for them. Empty = no bias.
+   */
+  winningHooks?: string[];
 }): Promise<Moment[]> {
   const segments = buildSegments(input.transcript, input.minSec, input.maxSec);
 
   const promptBrief = (input.userPrompt ?? "").trim();
+  const winningHint = buildWinningHint(input.winningHooks ?? []);
   const hookTone = resolveNicheTemplate(input.niche).hookTone;
 
   const system = `You score short-form viral clip candidates for the "${input.niche}" niche.
@@ -50,7 +57,7 @@ Rules:
     promptBrief
       ? `\n\nIMPORTANT — the user is looking for specific clips: "${promptBrief}". Return ONLY moments that genuinely match this request. If fewer than ${input.maxClips} match, return only those — do NOT pad with unrelated moments. Rank the strongest matches highest.`
       : ""
-  }`;
+  }${winningHint ? `\n\n${winningHint}` : ""}`;
 
   const user = `TRANSCRIPT SEGMENTS:\n${segments
     .map((s, i) => `[${i}] ${s.start.toFixed(2)}–${s.end.toFixed(2)}s: ${s.text}`)
