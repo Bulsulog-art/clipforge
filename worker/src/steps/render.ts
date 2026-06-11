@@ -84,7 +84,10 @@ export async function renderClip(a: Args): Promise<RenderResult> {
     ...(watermarkFilter ? [watermarkFilter] : []),
   ].join(",");
 
-  const voiceChain = "loudnorm=I=-16:LRA=11:TP=-1.5,highpass=f=80,lowpass=f=12000";
+  // afftdn = gentle FFT denoise (removes hiss/room tone) BEFORE loudness
+  // normalization, so podcast/phone audio comes out clean — the "studio
+  // enhance" we advertise. Conservative noise floor so we never chew voice.
+  const voiceChain = "afftdn=nf=-25,loudnorm=I=-16:LRA=11:TP=-1.5,highpass=f=80,lowpass=f=12000";
 
   const musicVolume = Math.max(0.05, Math.min(0.4, a.bgMusicVolume ?? 0.16));
   const hasMusic = Boolean(a.bgMusicPath);
