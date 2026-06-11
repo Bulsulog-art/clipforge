@@ -20,6 +20,11 @@ type Payload = {
   niche?: string;
   language?: string;
   /**
+   * Optional ClipAnything-style brief. When set, scoreMoments only keeps
+   * clips matching the user's request ("every time I mention pricing").
+   */
+  clipPrompt?: string;
+  /**
    * User-picked thumbnail style. Switches the FFmpeg compose recipe in
    * `generateThumbnail`. Default `mrbeast` matches the prior behaviour.
    */
@@ -158,6 +163,7 @@ export async function runVideoPipeline(p: Payload) {
       maxClips: 12,
       minSec: 25,
       maxSec: 70,
+      userPrompt: p.clipPrompt,
     });
     if (moments.length === 0) {
       throw new Error("No viral moments found. Try a longer or more dynamic source video.");

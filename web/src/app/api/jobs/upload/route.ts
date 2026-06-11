@@ -29,6 +29,8 @@ export async function POST(req: Request) {
   const file = form.get("file");
   const niche = String(form.get("niche") ?? "motivation");
   const language = String(form.get("language") ?? "en");
+  // Optional ClipAnything brief — only clip moments matching this request.
+  const clipPrompt = String(form.get("prompt") ?? "").trim().slice(0, 280);
   // Optional thumbnail style. Worker switches FFmpeg recipe on this.
   const rawThumbStyle = String(form.get("thumbnailStyle") ?? "");
   const thumbnailStyle: "mrbeast" | "cinematic" | "minimal" | undefined =
@@ -59,6 +61,7 @@ export async function POST(req: Request) {
       storage_path: path,
       title: file.name,
       niche, language,
+      clip_prompt: clipPrompt || null,
       status: "queued",
     })
     .select("id")
@@ -87,6 +90,7 @@ export async function POST(req: Request) {
       storagePath: path,
       niche,
       language,
+      clipPrompt: clipPrompt || undefined,
       thumbnailStyle,
     },
     { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },

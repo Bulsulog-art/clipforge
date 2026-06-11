@@ -17,6 +17,7 @@ export default function NewProjectPage() {
   const [url, setUrl] = useState("");
   const [niche, setNiche] = useState("motivation");
   const [language, setLanguage] = useState("en");
+  const [clipPrompt, setClipPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
@@ -28,7 +29,7 @@ export default function NewProjectPage() {
     const res = await fetch("/api/jobs", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ sourceType: "youtube", sourceUrl: url, niche, language }),
+      body: JSON.stringify({ sourceType: "youtube", sourceUrl: url, niche, language, prompt: clipPrompt || undefined }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -47,6 +48,7 @@ export default function NewProjectPage() {
     form.append("file", file);
     form.append("niche", niche);
     form.append("language", language);
+    if (clipPrompt.trim()) form.append("prompt", clipPrompt.trim());
     const res = await fetch("/api/jobs/upload", { method: "POST", body: form });
     setLoading(false);
     if (!res.ok) {
@@ -131,6 +133,22 @@ export default function NewProjectPage() {
               <option value="pt">Português</option>
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">
+            What to clip <span className="font-normal text-muted-foreground">· optional</span>
+          </label>
+          <input
+            value={clipPrompt}
+            onChange={(e) => setClipPrompt(e.target.value)}
+            maxLength={280}
+            placeholder='e.g. "every time I talk about pricing" or "just the funny moments"'
+            className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Leave empty and ClipForge finds your most viral moments automatically. Add a brief to clip exactly what you want.
+          </p>
         </div>
 
         <button

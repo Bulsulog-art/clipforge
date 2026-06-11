@@ -22,8 +22,16 @@ export async function scoreMoments(input: {
   maxClips: number;
   minSec: number;
   maxSec: number;
+  /**
+   * Optional natural-language brief ("Clip every time I talk about pricing",
+   * "just the funny bits"). When set, the model only returns moments that
+   * genuinely match it — our answer to OpusClip's ClipAnything.
+   */
+  userPrompt?: string;
 }): Promise<Moment[]> {
   const segments = buildSegments(input.transcript, input.minSec, input.maxSec);
+
+  const promptBrief = (input.userPrompt ?? "").trim();
 
   const system = `You score short-form viral clip candidates for the "${input.niche}" niche.
 Return ONLY JSON matching this schema:
@@ -36,7 +44,11 @@ Rules:
 - Hashtags: 3–5, lowercase, no spaces, no #.
 - Scores reflect viral potential, share-ability, hook strength.
 - Each clip duration ${input.minSec}–${input.maxSec} seconds.
-- Boundaries must land on natural sentence breaks.`;
+- Boundaries must land on natural sentence breaks.${
+    promptBrief
+      ? `\n\nIMPORTANT — the user is looking for specific clips: "${promptBrief}". Return ONLY moments that genuinely match this request. If fewer than ${input.maxClips} match, return only those — do NOT pad with unrelated moments. Rank the strongest matches highest.`
+      : ""
+  }`;
 
   const user = `TRANSCRIPT SEGMENTS:\n${segments
     .map((s, i) => `[${i}] ${s.start.toFixed(2)}–${s.end.toFixed(2)}s: ${s.text}`)
