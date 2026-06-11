@@ -237,6 +237,8 @@ export async function runVideoPipeline(p: Payload) {
           transcript,
           niche: p.niche ?? "default",
           captionStyle: p.captionStyle ?? tpl.captionStyle,
+          // Off by default — flip JUMPCUT_ENABLED=true to render-test silence removal.
+          jumpCut: process.env.JUMPCUT_ENABLED === "true",
           workDir: work,
           // When custom branding is set, suppress the default outro/wordmark
           // so the user's logo isn't fighting our own.

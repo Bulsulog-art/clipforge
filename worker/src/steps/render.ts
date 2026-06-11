@@ -5,6 +5,7 @@ import ffmpeg from "fluent-ffmpeg";
 import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
 import { buildKaraokeASS, buildHookASS } from "./captions.js";
+import { planJumpCut, selectExpr } from "./jumpcut.js";
 import type { Moment } from "./score.js";
 import type { Transcript } from "./transcribe.js";
 
@@ -18,6 +19,8 @@ type Args = {
   niche: string;
   /** Caption style id (bold-pop | clean | neon | hype | minimal). */
   captionStyle?: string;
+  /** Remove internal silences ("jump cuts"). Off by default; render-test gated. */
+  jumpCut?: boolean;
   workDir: string;
   /** Free tier renders include the ClipForge watermark in the corner. */
   watermark?: boolean;
@@ -47,13 +50,19 @@ export async function renderClip(a: Args): Promise<RenderResult> {
   const captionFile = path.join(a.workDir, `clip-${a.index}.ass`);
   const hookFile = path.join(a.workDir, `clip-${a.index}-hook.ass`);
 
-  const duration = a.moment.end - a.moment.start;
+  // Optional jump-cut: remove internal silences. plan===null → render unchanged.
+  const plan = a.jumpCut ? planJumpCut(a.transcript.words, a.moment.start, a.moment.end) : null;
+  const duration = plan ? plan.keptDuration : a.moment.end - a.moment.start;
 
-  // 1) Generate ASS subtitles (karaoke word-by-word + hook overlay)
+  // 1) Generate ASS subtitles (karaoke word-by-word + hook overlay). With
+  // jump-cut on, captions come from the remapped (compressed-timeline) words so
+  // they stay perfectly in sync with the cut video.
   await Promise.all([
     fs.writeFile(
       captionFile,
-      buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle),
+      plan
+        ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle)
+        : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle),
     ),
     fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche)),
   ]);
@@ -78,7 +87,12 @@ export async function renderClip(a: Args): Promise<RenderResult> {
 
   // Build complex filter chain. Single-input variant for voice-only;
   // two-input variant when bg music is mixed in.
+  // When jump-cut is on, keep only the speech segments and renumber frame PTS
+  // so they concatenate seamlessly — BEFORE scaling/captioning.
+  const videoJump = plan ? [`select='${selectExpr(plan.segments)}'`, "setpts=N/FRAME_RATE/TB"] : [];
+  const audioJump = plan ? `aselect='${selectExpr(plan.segments)}',asetpts=N/SR/TB,` : "";
   const videoChain = [
+    ...videoJump,
     "scale=-2:1920:force_original_aspect_ratio=increase",
     "crop=1080:1920",
     `ass=${escapePath(captionFile)}`,
@@ -122,14 +136,14 @@ export async function renderClip(a: Args): Promise<RenderResult> {
 
   const audioChain = hasMusic
     ? [
-        `[0:a]${voiceChain}[voice]`,
+        `[0:a]${audioJump}${voiceChain}[voice]`,
         `[1:a]aloop=loop=-1:size=2e+09,atrim=duration=${duration.toFixed(2)},` +
           `volume=${musicVolume.toFixed(2)},` +
           `afade=t=in:st=0:d=0.6,` +
           `afade=t=out:st=${fadeOutStart}:d=1.0[bg]`,
         `[voice][bg]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`,
       ]
-    : [`[0:a]${voiceChain}[aout]`];
+    : [`[0:a]${audioJump}${voiceChain}[aout]`];
 
   const complexFilter = [
     videoBuild,
