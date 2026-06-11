@@ -24,6 +24,8 @@ type Args = {
   jumpCut?: boolean;
   /** Output aspect: 9:16 (default) | 1:1 | 16:9. */
   aspect?: string;
+  /** Face-tracking crop x-offset (px). Undefined = centre crop (default). */
+  faceCropX?: number;
   workDir: string;
   /** Free tier renders include the ClipForge watermark in the corner. */
   watermark?: boolean;
@@ -94,9 +96,15 @@ export async function renderClip(a: Args): Promise<RenderResult> {
   // so they concatenate seamlessly — BEFORE scaling/captioning.
   const videoJump = plan ? [`select='${selectExpr(plan.segments)}'`, "setpts=N/FRAME_RATE/TB"] : [];
   const audioJump = plan ? `aselect='${selectExpr(plan.segments)}',asetpts=N/SR/TB,` : "";
+  // scale + crop to the chosen aspect (default 9:16). With a face-track offset,
+  // shift the crop window horizontally to keep the speaker framed.
+  const baseScaleCrop = resolveAspect(a.aspect).scaleCrop;
+  const scaleCrop = a.faceCropX != null
+    ? baseScaleCrop.replace(/crop=(\d+):(\d+)/, `crop=$1:$2:${Math.max(0, Math.round(a.faceCropX))}:0`)
+    : baseScaleCrop;
   const videoChain = [
     ...videoJump,
-    resolveAspect(a.aspect).scaleCrop, // scale + centre-crop to the chosen aspect (default 9:16)
+    scaleCrop,
     `ass=${escapePath(captionFile)}`,
     `ass=${escapePath(hookFile)}`,
     ...(watermarkFilter ? [watermarkFilter] : []),
