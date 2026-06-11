@@ -33,7 +33,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "4"
+        CFBundleVersion: "5"
         # Locales we ship Localizable.xcstrings translations for. Adding a
         # value here makes iOS render the localised UI when the user's
         # device language matches; unmatched strings fall back to en.
@@ -63,6 +63,9 @@ targets:
         DEVELOPMENT_TEAM: "YA6Y85MSY6"    # fill from Apple Developer
         CODE_SIGN_STYLE: Automatic
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+        # iPhone-only: portrait vertical-video app. Avoids the App Store iPad
+        # screenshot requirement (APP_IPAD_PRO_3GEN_129) for a non-iPad experience.
+        TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
     dependencies:
@@ -99,7 +102,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge Widgets
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "4"
+        CFBundleVersion: "5"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
@@ -126,7 +129,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge Push Service
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "4"
+        CFBundleVersion: "5"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
@@ -165,7 +168,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "4"
+        CFBundleVersion: "5"
         CFBundleDevelopmentRegion: en
         WKApplication: true
         WKWatchOnly: false
@@ -201,7 +204,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge Watch Widgets
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "4"
+        CFBundleVersion: "5"
         CFBundleDevelopmentRegion: en
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
