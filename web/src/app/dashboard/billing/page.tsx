@@ -32,9 +32,12 @@ const PLUS_PLANS = [
 ];
 
 const PLUS_FEATURES = [
+  "Unlimited clips — no watermark",
+  "Tell it what to clip · prompt-driven",
+  "5 caption styles + niche-tuned looks",
   "Auto-post to TikTok, Reels & Shorts",
-  "Unlimited clips, no watermark",
-  "AI translate & voice clone",
+  "Performance analytics that learn your winners",
+  "Translate captions to 15+ languages",
   "Credits refill every billing cycle",
 ];
 

@@ -125,15 +125,19 @@ function StatusBadge({ status, progress }: { status: string; progress: number })
 function EmptyState() {
   return (
     <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
-      <Film className="mx-auto h-10 w-10 text-muted-foreground" />
-      <h3 className="mt-4 font-semibold text-foreground">No projects yet</h3>
-      <p className="mt-1 text-sm text-muted-foreground">Drop a YouTube link or upload a video to get started.</p>
+      <Film className="mx-auto h-10 w-10 text-brand" aria-hidden="true" />
+      <h3 className="mt-4 text-lg font-semibold text-foreground">Make your first clips</h3>
+      <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+        Paste a YouTube link (or upload a video) and ClipForge finds your most viral moments, captions them, and gets
+        them ready to post — in a few minutes.
+      </p>
       <Link
         href="/studio/new"
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+        className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
       >
-        <Plus className="h-4 w-4" /> New project
+        <Plus className="h-4 w-4" aria-hidden="true" /> Paste your first link
       </Link>
+      <p className="mt-3 text-xs text-muted-foreground">Free to try · no credit card</p>
     </div>
   );
 }
