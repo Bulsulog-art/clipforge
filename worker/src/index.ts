@@ -7,6 +7,7 @@ import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { runAvatarPipeline } from "./pipeline.avatar.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
+import { runMetricsSnapshot } from "./jobs/metrics-snapshot.js";
 import { runCostMonitor } from "./jobs/cost-monitor.js";
 
 if (process.env.SENTRY_DSN) {
@@ -166,4 +167,23 @@ async function startCostMonitorCron() {
 }
 if (process.env.ENABLE_COST_MONITOR !== "false") {
   void startCostMonitorCron();
+}
+
+// Performance metrics — poll live engagement for recently-published clips
+// every 6h and append to analytics_snapshots. The keystone of the learning
+// loop. Off by default until social metric scopes are wired; set
+// ENABLE_METRICS_CRON=true (and METRICS_USE_MOCK=true for a credential-free
+// first run) to turn it on.
+async function startMetricsCron() {
+  while (true) {
+    try {
+      await runMetricsSnapshot();
+    } catch (e) {
+      logger.error({ err: (e as Error).message }, "metrics snapshot failed");
+    }
+    await new Promise((r) => setTimeout(r, 6 * 60 * 60 * 1000));
+  }
+}
+if (process.env.ENABLE_METRICS_CRON === "true") {
+  void startMetricsCron();
 }
