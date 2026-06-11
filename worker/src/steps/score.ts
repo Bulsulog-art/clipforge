@@ -13,6 +13,9 @@ const Moment = z.object({
   hook: z.string().min(4).max(120),
   caption: z.string().min(4).max(220),
   hashtags: z.array(z.string()).max(6),
+  // 1–3 highest-impact spoken words to highlight in the captions. Optional so a
+  // model response without them (or any other Moment producer) never breaks.
+  keywords: z.array(z.string()).max(4).optional(),
 });
 const Response = z.object({ moments: z.array(Moment) });
 
@@ -44,13 +47,14 @@ export async function scoreMoments(input: {
 
   const system = `You score short-form viral clip candidates for the "${input.niche}" niche.
 Return ONLY JSON matching this schema:
-{ "moments": [ { "start": number, "end": number, "score": 0-10, "hook": string, "caption": string, "hashtags": string[] } ] }
+{ "moments": [ { "start": number, "end": number, "score": 0-10, "hook": string, "caption": string, "hashtags": string[], "keywords": string[] } ] }
 
 Rules:
 - Pick the ${input.maxClips} highest-viral moments from the transcript.
 - A great hook is < 9 words, written like a TikTok caption. Hook tone for this niche: ${hookTone}.
 - Captions: snappy, niche-appropriate, ≤ 200 chars, no quotes around it.
 - Hashtags: 3–5, lowercase, no spaces, no #.
+- keywords: 1–3 of the single most impactful words that ACTUALLY APPEAR in the spoken transcript for that moment — we highlight them in the captions for punch.
 - Scores reflect viral potential, share-ability, hook strength.
 - Each clip duration ${input.minSec}–${input.maxSec} seconds.
 - Boundaries must land on natural sentence breaks.${

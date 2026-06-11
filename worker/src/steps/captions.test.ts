@@ -103,6 +103,28 @@ describe("captions/style library", () => {
   });
 });
 
+describe("captions/keyword highlight", () => {
+  test("scales up a keyword word", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", ["seconds"]);
+    expect(ass).toContain("\\fscx118");
+  });
+
+  test("only the keyword is scaled, not every word", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", ["seconds"]);
+    expect((ass.match(/\\fscx118/g) ?? []).length).toBe(1);
+  });
+
+  test("no keywords → no scaling", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", []);
+    expect(ass).not.toContain("\\fscx118");
+  });
+
+  test("matches across case + punctuation ('WILD' → 'wild.')", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", ["WILD"]);
+    expect(ass).toContain("\\fscx118");
+  });
+});
+
 describe("captions/hook", () => {
   test("hook fits at top with pop animation tags", () => {
     const ass = buildHookASS("This will change everything you know", 8, "motivation");

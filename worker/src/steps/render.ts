@@ -61,8 +61,8 @@ export async function renderClip(a: Args): Promise<RenderResult> {
     fs.writeFile(
       captionFile,
       plan
-        ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle)
-        : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle),
+        ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle, a.moment.keywords)
+        : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle, a.moment.keywords),
     ),
     fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche)),
   ]);

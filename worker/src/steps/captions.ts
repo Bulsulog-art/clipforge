@@ -67,9 +67,11 @@ export function buildKaraokeASS(
   startSec: number,
   endSec: number,
   captionStyleId?: string,
+  keywords?: string[],
 ): string {
   const nicheStyle = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
   const cap = resolveCaptionStyle(captionStyleId);
+  const keywordSet = new Set((keywords ?? []).map((k) => normalizeKeyword(k)).filter(Boolean));
   const fill = cap.fillOverride ?? nicheStyle.fill;
   const outline = cap.outlineIsAccent ? nicheStyle.highlight : nicheStyle.outline;
 
@@ -85,8 +87,13 @@ export function buildKaraokeASS(
   const phrases = chunkPhrases(filtered);
 
   const header = assHeader({ fill, outline }, cap);
-  const events = phrases.map((p) => karaokeLine(p, nicheStyle.highlight, cap.uppercase)).join("\n");
+  const events = phrases.map((p) => karaokeLine(p, nicheStyle.highlight, cap.uppercase, keywordSet)).join("\n");
   return `${header}\n${events}\n`;
+}
+
+/** Lowercase + strip punctuation so "focus." and "Focus" both match "focus". */
+function normalizeKeyword(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9'’]/gi, "").trim();
 }
 
 function cleanWord(s: string) {
@@ -117,6 +124,7 @@ function karaokeLine(
   p: { start: number; end: number; words: { word: string; start: number; end: number }[] },
   highlightHex: string,
   uppercase: boolean,
+  keywordSet: Set<string>,
 ) {
   // ASS karaoke: each word wrapped in {\\k<centisec>} with active color override
   // We use {\\1c&Hbbggrr&} to change PrimaryColour mid-line
@@ -125,7 +133,11 @@ function karaokeLine(
     .map((w, i) => {
       const centisecs = Math.max(1, Math.round((w.end - w.start) * 100));
       const next = p.words[i + 1];
-      const text = escape(uppercase ? w.word.toUpperCase() : w.word);
+      let text = escape(uppercase ? w.word.toUpperCase() : w.word);
+      // Keyword pop: scale up the highest-impact words so they punch off-screen.
+      if (keywordSet.has(normalizeKeyword(w.word))) {
+        text = `{\\fscx118\\fscy118}${text}{\\fscx100\\fscy100}`;
+      }
       const safe = next ? `{\\1c&H${bgr}&}${text}{\\1c&HFFFFFF&}` : text;
       return `{\\k${centisecs}}${safe}`;
     })
