@@ -125,9 +125,9 @@ export function BulkScheduleForm({
 
   if (done) {
     return (
-      <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-10 text-center">
-        <CheckCircle2 className="h-10 w-10 text-green-400" />
-        <p className="text-lg font-medium text-green-200">
+      <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-10 text-center shadow-sm">
+        <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+        <p className="text-lg font-semibold text-emerald-700">
           {selectedClips.size} {selectedClips.size === 1 ? "clip" : "clips"} {mode === "now" ? "publishing" : "scheduled"}!
         </p>
       </div>
@@ -138,8 +138,11 @@ export function BulkScheduleForm({
     <div className="mt-8 space-y-7">
       {!isPaid && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3">
-          <p className="text-sm">Auto-posting is a <strong>Plus</strong> feature.</p>
-          <Link href="/dashboard/billing" className="shrink-0 rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-glow">
+          <p className="text-sm text-foreground">Auto-posting is a <strong>Plus</strong> feature.</p>
+          <Link
+            href="/dashboard/billing"
+            className="shrink-0 rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+          >
             Upgrade
           </Link>
         </div>
@@ -147,11 +150,11 @@ export function BulkScheduleForm({
 
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-medium">Clips ({selectedClips.size}/{clips.length})</p>
+          <p className="text-sm font-medium text-foreground">Clips ({selectedClips.size}/{clips.length})</p>
           <button
             type="button"
             onClick={() => setSelectedClips((p) => (p.size === clips.length ? new Set() : new Set(clips.map((c) => c.id))))}
-            className="text-xs text-brand hover:underline"
+            className="rounded text-xs text-brand transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             {selectedClips.size === clips.length ? "Deselect all" : "Select all"}
           </button>
@@ -165,7 +168,9 @@ export function BulkScheduleForm({
                 type="button"
                 onClick={() => toggleClip(c.id)}
                 title={c.hook}
-                className={`relative aspect-[9/16] overflow-hidden rounded-lg border-2 transition ${
+                aria-pressed={sel}
+                aria-label={`${sel ? "Deselect" : "Select"} clip: ${c.hook}`}
+                className={`relative aspect-[9/16] overflow-hidden rounded-lg border-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
                   sel ? "border-brand" : "border-transparent opacity-50 hover:opacity-80"
                 }`}
               >
@@ -191,7 +196,7 @@ export function BulkScheduleForm({
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-medium">Channels</p>
+        <p className="mb-2 text-sm font-medium text-foreground">Channels</p>
         <div className="flex flex-wrap gap-2">
           {channels.map((c) => {
             const meta = PLATFORM_META[c.platform];
@@ -200,7 +205,7 @@ export function BulkScheduleForm({
                 <Link
                   key={c.platform}
                   href="/dashboard/social"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border/40 px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                 >
                   {meta.icon} Connect {meta.name}
                 </Link>
@@ -211,8 +216,10 @@ export function BulkScheduleForm({
                 key={c.platform}
                 type="button"
                 onClick={() => togglePlatform(c.platform)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                  sel ? "border-brand bg-brand/10 text-brand" : "border-border/50 hover:bg-accent/50"
+                aria-pressed={sel}
+                aria-label={`Toggle posting to ${meta.name}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+                  sel ? "border-brand bg-brand/10 text-brand" : "border-border bg-card text-foreground hover:bg-accent"
                 }`}
               >
                 {meta.icon} {meta.name}
@@ -223,13 +230,14 @@ export function BulkScheduleForm({
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-medium">Timing</p>
+        <p className="mb-2 text-sm font-medium text-foreground">Timing</p>
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setMode("now")}
-            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition ${
-              mode === "now" ? "border-brand bg-brand/10 text-brand" : "border-border/50 hover:bg-accent/50"
+            aria-pressed={mode === "now"}
+            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+              mode === "now" ? "border-brand bg-brand/10 text-brand" : "border-border bg-card text-foreground hover:bg-accent"
             }`}
           >
             <Send className="h-4 w-4" /> Post now
@@ -237,8 +245,9 @@ export function BulkScheduleForm({
           <button
             type="button"
             onClick={() => setMode("schedule")}
-            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition ${
-              mode === "schedule" ? "border-brand bg-brand/10 text-brand" : "border-border/50 hover:bg-accent/50"
+            aria-pressed={mode === "schedule"}
+            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+              mode === "schedule" ? "border-brand bg-brand/10 text-brand" : "border-border bg-card text-foreground hover:bg-accent"
             }`}
           >
             <Clock className="h-4 w-4" /> Schedule
@@ -248,14 +257,16 @@ export function BulkScheduleForm({
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             <input
               type="datetime-local"
+              aria-label="Start date and time"
               value={startLocal}
               onChange={(e) => setStartLocal(e.target.value)}
-              className="w-full rounded-xl border border-border/50 bg-card/40 px-3 py-2.5 text-sm outline-none focus:border-brand"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             />
             <select
               value={intervalMin}
               onChange={(e) => setIntervalMin(Number(e.target.value))}
-              className="w-full rounded-xl border border-border/50 bg-card/40 px-3 py-2.5 text-sm outline-none focus:border-brand"
+              aria-label="Interval between posts"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               {INTERVALS.filter((iv) => iv.minutes > 0).map((iv) => (
                 <option key={iv.minutes} value={iv.minutes}>
@@ -273,12 +284,15 @@ export function BulkScheduleForm({
       </div>
 
       {error && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <span className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" /> {error.msg}
           </span>
           {error.cta && (
-            <Link href={error.cta.href} className="shrink-0 font-medium text-red-100 underline">
+            <Link
+              href={error.cta.href}
+              className="shrink-0 font-medium text-red-700 underline transition hover:text-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
               {error.cta.label}
             </Link>
           )}
@@ -289,7 +303,7 @@ export function BulkScheduleForm({
         type="button"
         onClick={submit}
         disabled={submitting || !isPaid || !anyConnected}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3 text-sm font-semibold text-white transition hover:bg-brand-glow disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3 text-sm font-semibold text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? (
           <>

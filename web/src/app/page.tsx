@@ -8,16 +8,29 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen gradient-bg">
       <nav className="container flex items-center justify-between py-6">
-        <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-          <Scissors className="h-5 w-5 text-brand" />
+        <Link
+          href="/"
+          className="flex items-center gap-2 rounded-lg text-lg font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40"
+        >
+          <Scissors className="h-5 w-5 text-brand" aria-hidden="true" />
           ClipForge
         </Link>
         <div className="flex items-center gap-4 text-sm">
-          <Link href="#pricing" className="text-muted-foreground hover:text-foreground">Pricing</Link>
-          <Link href="/login" className="text-muted-foreground hover:text-foreground">Log in</Link>
+          <Link
+            href="#pricing"
+            className="rounded-lg text-muted-foreground outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-lg text-muted-foreground outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
+          >
+            Log in
+          </Link>
           <Link
             href="/signup"
-            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-glow"
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-white outline-none transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             Start free
           </Link>
@@ -26,7 +39,7 @@ export default function LandingPage() {
 
       <section className="container py-20 text-center">
         <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur">
-          <Sparkles className="h-3.5 w-3.5 text-brand" />
+          <Sparkles className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
           AI viral clip studio · long video → a dozen ready-to-post clips
         </div>
         <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
@@ -41,14 +54,14 @@ export default function LandingPage() {
         <div className="mt-10 flex items-center justify-center gap-4">
           <Link
             href="/signup"
-            className="group flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-base font-medium text-white shadow-lg shadow-brand/30 hover:bg-brand-glow"
+            className="group flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-base font-medium text-white shadow-lg shadow-brand/30 outline-none transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             Try free · 2 videos
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden="true" />
           </Link>
           <Link
             href="#demo"
-            className="rounded-full border border-border bg-card/50 px-6 py-3 text-base font-medium backdrop-blur hover:bg-card"
+            className="rounded-full border border-border bg-card/50 px-6 py-3 text-base font-medium backdrop-blur outline-none transition hover:bg-accent focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             Watch demo
           </Link>
@@ -58,8 +71,8 @@ export default function LandingPage() {
 
       <section className="container py-20">
         <div className="mb-12 text-center">
-          <h2 className="text-4xl font-bold">Everything you need to go viral.</h2>
-          <p className="mt-2 text-muted-foreground">Clip, caption, brand and post — one app, one price.</p>
+          <h2 className="text-3xl font-bold md:text-4xl">Everything you need to go viral.</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Clip, caption, brand and post — one app, one price.</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -100,8 +113,8 @@ export default function LandingPage() {
       </section>
 
       <section id="pricing" className="container py-20">
-        <h2 className="text-center text-4xl font-bold">Pick a plan that fits.</h2>
-        <p className="mt-2 text-center text-muted-foreground">
+        <h2 className="text-center text-3xl font-bold md:text-4xl">Pick a plan that fits.</h2>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
           Weekly to try, monthly to save. Credits never auto-renew on consumables.
         </p>
 
@@ -141,8 +154,8 @@ export default function LandingPage() {
 
       <section className="container py-20">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-center text-4xl font-bold">Common questions.</h2>
-          <p className="mt-2 text-center text-muted-foreground">
+          <h2 className="text-center text-3xl font-bold md:text-4xl">Common questions.</h2>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             Turn one long video into a dozen captioned, ready-to-post clips in minutes.
           </p>
 
@@ -187,9 +200,24 @@ export default function LandingPage() {
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <span>© {new Date().getFullYear()} Bulsu Labs · ClipForge</span>
           <div className="flex gap-4">
-            <Link href="/legal/terms">Terms</Link>
-            <Link href="/legal/privacy">Privacy</Link>
-            <a href="mailto:hello@clipforge.bulsulabs.xyz">Contact</a>
+            <Link
+              href="/legal/terms"
+              className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
+              Terms
+            </Link>
+            <Link
+              href="/legal/privacy"
+              className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
+              Privacy
+            </Link>
+            <a
+              href="mailto:hello@clipforge.bulsulabs.xyz"
+              className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
+              Contact
+            </a>
           </div>
         </div>
       </footer>
@@ -214,7 +242,7 @@ function Feature({ icon, title, body, badge }: { icon: React.ReactNode; title: s
           {badge}
         </span>
       )}
-      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-brand/10 text-brand">{icon}</div>
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-brand/10 text-brand" aria-hidden="true">{icon}</div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{body}</p>
     </div>
@@ -280,8 +308,9 @@ function PricingTabs() {
         <button
           type="button"
           onClick={() => setPeriod("weekly")}
-          className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-            period === "weekly" ? "bg-brand text-white" : "text-muted-foreground"
+          aria-pressed={period === "weekly"}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
+            period === "weekly" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Weekly
@@ -289,8 +318,9 @@ function PricingTabs() {
         <button
           type="button"
           onClick={() => setPeriod("monthly")}
-          className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-            period === "monthly" ? "bg-brand text-white" : "text-muted-foreground"
+          aria-pressed={period === "monthly"}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
+            period === "monthly" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Monthly
@@ -298,8 +328,9 @@ function PricingTabs() {
         <button
           type="button"
           onClick={() => setPeriod("yearly")}
-          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${
-            period === "yearly" ? "bg-brand text-white" : "text-muted-foreground"
+          aria-pressed={period === "yearly"}
+          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
+            period === "yearly" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Yearly
@@ -378,14 +409,14 @@ function PlanCard({
       <ul className="mt-6 space-y-2 text-sm">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2">
-            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-brand" />
+            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
             {f}
           </li>
         ))}
       </ul>
       <Link
         href="/signup"
-        className={`mt-6 block rounded-full px-4 py-2.5 text-center text-sm font-medium ${
+        className={`mt-6 block rounded-full px-4 py-2.5 text-center text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
           highlight ? "bg-brand text-white hover:bg-brand-glow" : "border border-border bg-card hover:bg-accent"
         }`}
       >

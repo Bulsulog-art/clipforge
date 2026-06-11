@@ -35,28 +35,32 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-border/50 bg-card/60 p-8 backdrop-blur">
-      <Link href="/" className="mb-6 flex items-center gap-2 text-lg font-semibold">
+    <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm backdrop-blur">
+      <Link
+        href="/"
+        className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 rounded-md"
+      >
         <Scissors className="h-5 w-5 text-brand" />
         ClipForge
       </Link>
-      <h1 className="text-2xl font-semibold">Welcome back</h1>
+      <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
       <p className="mt-1 text-sm text-muted-foreground">Sign in with a magic link or Google.</p>
 
       <form onSubmit={handleMagicLink} className="mt-8 space-y-3">
-        <label className="block text-sm font-medium">Email</label>
+        <label htmlFor="email" className="block text-sm font-medium text-foreground">Email</label>
         <input
+          id="email"
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40"
           placeholder="you@studio.com"
         />
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-2.5 text-sm font-medium text-white hover:bg-brand-glow disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
           Send magic link
@@ -72,14 +76,14 @@ function LoginForm() {
       <button
         onClick={handleGoogle}
         disabled={loading}
-        className="w-full rounded-lg border border-border bg-card py-2.5 text-sm font-medium hover:bg-accent"
+        className="w-full rounded-full border border-border bg-card py-2.5 text-sm font-medium text-foreground transition hover:bg-accent disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
       >
         Continue with Google
       </button>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         New here?{" "}
-        <Link href="/signup" className="text-brand hover:underline">Create an account</Link>
+        <Link href="/signup" className="text-brand transition hover:underline">Create an account</Link>
       </p>
     </div>
   );
@@ -88,7 +92,14 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center gradient-bg px-4">
-      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+      <Suspense
+        fallback={
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            Loading…
+          </div>
+        }
+      >
         <LoginForm />
       </Suspense>
     </main>

@@ -25,9 +25,9 @@ export default async function DashboardPage() {
       <DashboardNav profile={profile ?? null} />
 
       <main className="container py-10">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold">Studio</h1>
+            <h1 className="text-3xl font-bold text-foreground">Studio</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {tier === "free"
                 ? "Free plan · upgrade to Pro for auto-posting and unlimited clips"
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
           </div>
           <Link
             href="/studio/new"
-            className="flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-glow"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             <Plus className="h-4 w-4" />
             New project
@@ -49,23 +49,23 @@ export default async function DashboardPage() {
           <Stat label="Ready / published" value={readyClips.toString()} icon={<BarChart3 />} />
         </div>
 
-        <h2 className="mt-12 text-lg font-semibold">Recent projects</h2>
+        <h2 className="mt-12 text-lg font-semibold text-foreground">Recent projects</h2>
         {jobs && jobs.length > 0 ? (
-          <div className="mt-4 overflow-hidden rounded-xl border border-border/50">
+          <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <table className="w-full text-sm">
-              <thead className="bg-card text-left text-xs uppercase text-muted-foreground">
+              <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">Title</th>
-                  <th className="px-4 py-3">Source</th>
-                  <th className="px-4 py-3">Duration</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  <th className="px-4 py-3 font-medium">Title</th>
+                  <th className="px-4 py-3 font-medium">Source</th>
+                  <th className="px-4 py-3 font-medium">Duration</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 text-right font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {jobs.map((j) => (
-                  <tr key={j.id} className="border-t border-border/50 hover:bg-card/50">
-                    <td className="px-4 py-3 font-medium">{j.title ?? "Untitled"}</td>
+                  <tr key={j.id} className="border-t border-border transition hover:bg-accent">
+                    <td className="px-4 py-3 font-medium text-foreground">{j.title ?? "Untitled"}</td>
                     <td className="px-4 py-3 text-muted-foreground">{j.source_type}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {j.duration_seconds ? formatDuration(j.duration_seconds) : "—"}
@@ -74,7 +74,7 @@ export default async function DashboardPage() {
                       <StatusBadge status={j.status} progress={j.progress} />
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link href={`/studio/${j.id}`} className="text-sm text-brand hover:underline">
+                      <Link href={`/studio/${j.id}`} className="text-sm font-medium text-brand transition hover:underline">
                         Open →
                       </Link>
                     </td>
@@ -93,12 +93,12 @@ export default async function DashboardPage() {
 
 function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/40 p-5">
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:shadow-md">
       <div className="flex items-center gap-3 text-muted-foreground">
         <div className="text-brand">{icon}</div>
         <span className="text-sm">{label}</span>
       </div>
-      <div className="mt-2 text-3xl font-semibold">{value}</div>
+      <div className="mt-2 text-3xl font-bold text-foreground">{value}</div>
     </div>
   );
 }
@@ -106,11 +106,11 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
 function StatusBadge({ status, progress }: { status: string; progress: number }) {
   const map: Record<string, string> = {
     queued: "bg-muted text-muted-foreground",
-    transcribing: "bg-blue-500/15 text-blue-300",
-    scoring: "bg-purple-500/15 text-purple-300",
-    rendering: "bg-amber-500/15 text-amber-300",
-    ready: "bg-green-500/15 text-green-300",
-    failed: "bg-red-500/15 text-red-300",
+    transcribing: "bg-blue-500/15 text-blue-700",
+    scoring: "bg-purple-500/15 text-purple-700",
+    rendering: "bg-amber-500/15 text-amber-700",
+    ready: "bg-green-500/15 text-green-700",
+    failed: "bg-red-500/15 text-red-700",
   };
   return (
     <span className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
@@ -124,13 +124,13 @@ function StatusBadge({ status, progress }: { status: string; progress: number })
 
 function EmptyState() {
   return (
-    <div className="mt-4 rounded-xl border border-dashed border-border/50 bg-card/30 p-12 text-center">
+    <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
       <Film className="mx-auto h-10 w-10 text-muted-foreground" />
-      <h3 className="mt-4 font-medium">No projects yet</h3>
+      <h3 className="mt-4 font-semibold text-foreground">No projects yet</h3>
       <p className="mt-1 text-sm text-muted-foreground">Drop a YouTube link or upload a video to get started.</p>
       <Link
         href="/studio/new"
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white"
+        className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
       >
         <Plus className="h-4 w-4" /> New project
       </Link>

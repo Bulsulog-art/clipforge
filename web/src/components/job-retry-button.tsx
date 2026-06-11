@@ -33,12 +33,12 @@ export function JobRetryButton({ jobId }: { jobId: string }) {
         type="button"
         onClick={retry}
         disabled={busy}
-        className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white outline-none transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-50"
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
         {busy ? "Restarting…" : "Retry render"}
       </button>
-      {err && <p className="mt-2 text-xs text-red-300">{err}</p>}
+      {err && <p className="mt-2 text-xs text-red-600">{err}</p>}
     </div>
   );
 }

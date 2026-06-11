@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, Eye, Heart, MessageCircle, Share2, TrendingUp, ExternalLink } from "lucide-react";
+import { BarChart3, Eye, Heart, MessageCircle, Share2, TrendingUp, ExternalLink, AlertCircle, Loader2 } from "lucide-react";
 
 type Totals = { views: number; likes: number; comments: number; shares: number; posts: number; engagementRate: number };
 type PlatformAgg = { platform: string; views: number; likes: number; comments: number; shares: number; posts: number };
@@ -76,17 +76,30 @@ export default function AnalyticsPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">Loading…</div>
+        <div className="flex items-center justify-center gap-3 rounded-2xl border border-border bg-card p-12 text-sm text-muted-foreground shadow-sm">
+          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+          Loading analytics…
+        </div>
       ) : error ? (
-        <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">{error}</div>
+        <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-sm">
+          <AlertCircle className="mx-auto mb-3 h-10 w-10 text-brand" />
+          <h2 className="text-lg font-semibold text-foreground">Couldn’t load analytics</h2>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">{error}</p>
+        </div>
       ) : !data || data.totals.posts === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-12 text-center">
+        <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-sm">
           <BarChart3 className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
-          <h2 className="text-lg font-semibold">No analytics yet</h2>
+          <h2 className="text-lg font-semibold text-foreground">No analytics yet</h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
             Connect your TikTok, Instagram and YouTube channels and post some clips. Real views, likes and shares land
             here automatically once they start performing.
           </p>
+          <a
+            href="/dashboard/social"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40 outline-none"
+          >
+            Connect channels
+          </a>
         </div>
       ) : (
         <div className="space-y-8">
@@ -153,10 +166,10 @@ export default function AnalyticsPage() {
               <h2 className="mb-3 text-lg font-semibold">Top performers</h2>
               <div className="space-y-3">
                 {data.topPosts.map((p, i) => (
-                  <div key={p.publishId} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+                  <div key={p.publishId} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:bg-accent">
                     <div className="w-6 text-center text-lg font-bold text-muted-foreground/60">{i + 1}</div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{p.hook ?? "Untitled clip"}</div>
+                      <div className="truncate font-medium text-foreground">{p.hook ?? "Untitled clip"}</div>
                       <div className="mt-0.5 text-xs text-muted-foreground">
                         {PLATFORM_LABEL[p.platform] ?? p.platform}
                         {p.viralScore != null ? ` · viral score ${p.viralScore}` : ""}
@@ -167,7 +180,13 @@ export default function AnalyticsPage() {
                       <div className="text-xs text-muted-foreground">{fmt(p.likes)} likes · {fmt(p.shares)} shares</div>
                     </div>
                     {p.url ? (
-                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand">
+                      <a
+                        href={p.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open post in a new tab"
+                        className="text-muted-foreground transition hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/40 outline-none rounded"
+                      >
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     ) : null}

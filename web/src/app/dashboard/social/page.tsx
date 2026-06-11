@@ -38,18 +38,18 @@ export default async function SocialPage({
       <DashboardNav profile={profile ?? null} />
 
       <main className="container max-w-3xl py-10">
-        <h1 className="text-3xl font-semibold">Channels</h1>
+        <h1 className="text-3xl font-bold">Channels</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Connect your accounts so ClipForge can publish clips on your behalf.
         </p>
 
         {sp.connected && (
-          <div className="mt-6 flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">
-            <CheckCircle2 className="h-4 w-4" /> Connected {sp.connected} successfully.
+          <div className="mt-6 flex items-center gap-2 rounded-xl border border-green-600/30 bg-green-600/10 px-4 py-3 text-sm font-medium text-green-700">
+            <CheckCircle2 className="h-4 w-4 shrink-0" /> Connected {sp.connected} successfully.
           </div>
         )}
         {sp.error && (
-          <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div className="mt-6 rounded-xl border border-red-600/30 bg-red-600/10 px-4 py-3 text-sm font-medium text-red-700">
             Connection failed: {sp.error}. Try again.
           </div>
         )}
@@ -60,14 +60,14 @@ export default async function SocialPage({
             return (
               <div
                 key={p.id}
-                className="flex items-center justify-between rounded-xl border border-border/50 bg-card/40 p-4"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:bg-accent"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand/15 text-brand">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand/15 text-brand">
                     {p.icon}
                   </div>
                   <div>
-                    <div className="font-medium">{p.name}</div>
+                    <div className="font-medium text-foreground">{p.name}</div>
                     <div className="text-xs text-muted-foreground">
                       {acc
                         ? `@${acc.username ?? acc.display_name}`
@@ -77,13 +77,14 @@ export default async function SocialPage({
                 </div>
                 {p.available ? (
                   acc ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-3 py-1 text-xs font-medium text-green-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-600/15 px-3 py-1 text-xs font-medium text-green-700">
                       <CheckCircle2 className="h-3.5 w-3.5" /> Connected
                     </span>
                   ) : (
                     <Link
                       href={`/api/auth/${p.id}`}
-                      className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-glow"
+                      aria-label={`Connect ${p.name}`}
+                      className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40 outline-none"
                     >
                       <Plug className="h-3.5 w-3.5" /> Connect
                     </Link>

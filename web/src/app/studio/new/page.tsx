@@ -68,19 +68,19 @@ export default function NewProjectPage() {
         <ArrowLeft className="h-4 w-4" /> Back to studio
       </Link>
 
-      <h1 className="text-3xl font-semibold">New project</h1>
+      <h1 className="text-3xl font-bold">New project</h1>
       <p className="mt-1 text-sm text-muted-foreground">Drop a video — we&apos;ll find the moments worth sharing.</p>
 
-      <div className="mt-8 flex gap-2 rounded-lg border border-border/50 bg-card/30 p-1">
+      <div className="mt-8 flex gap-2 rounded-lg border border-border bg-muted p-1">
         <button
           onClick={() => setTab("url")}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium ${tab === "url" ? "bg-card text-foreground" : "text-muted-foreground"}`}
+          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${tab === "url" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
         >
           <Link2 className="mr-2 inline h-4 w-4" /> URL
         </button>
         <button
           onClick={() => setTab("upload")}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium ${tab === "upload" ? "bg-card text-foreground" : "text-muted-foreground"}`}
+          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${tab === "upload" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
         >
           <Upload className="mr-2 inline h-4 w-4" /> Upload
         </button>
@@ -94,7 +94,7 @@ export default function NewProjectPage() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://youtube.com/watch?v=…"
-              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40"
             />
           </div>
         ) : (
@@ -104,7 +104,7 @@ export default function NewProjectPage() {
               type="file"
               accept="video/*"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm file:font-medium file:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
             />
           </div>
         )}
@@ -115,7 +115,7 @@ export default function NewProjectPage() {
             <select
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               {NICHES.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -125,7 +125,7 @@ export default function NewProjectPage() {
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+              className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               <option value="en">English</option>
               <option value="tr">Türkçe</option>
@@ -146,7 +146,7 @@ export default function NewProjectPage() {
             onChange={(e) => setClipPrompt(e.target.value)}
             maxLength={280}
             placeholder='e.g. "every time I talk about pricing" or "just the funny moments"'
-            className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+            className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40"
           />
           <p className="mt-1.5 text-xs text-muted-foreground">
             Leave empty and ClipForge finds your most viral moments automatically. Add a brief to clip exactly what you want.
@@ -166,11 +166,12 @@ export default function NewProjectPage() {
               <button
                 key={s.id}
                 type="button"
+                aria-pressed={captionStyle === s.id}
                 onClick={() => setCaptionStyle(s.id)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                className={`rounded-full px-4 py-2 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
                   captionStyle === s.id
                     ? "bg-brand text-white shadow-sm shadow-brand/30"
-                    : "border border-border bg-card text-muted-foreground hover:text-foreground"
+                    : "border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
               >
                 {s.label}
@@ -182,7 +183,7 @@ export default function NewProjectPage() {
         <button
           onClick={tab === "url" ? submitUrl : submitUpload}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3 text-sm font-medium text-white hover:bg-brand-glow disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3 text-sm font-medium text-white outline-none transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {loading ? "Processing…" : "Generate clips"}

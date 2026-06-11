@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Film } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { BulkScheduleForm } from "@/components/bulk-schedule-form";
@@ -56,14 +56,25 @@ export default async function ScheduleJobPage({ params }: { params: Promise<{ jo
         >
           <ArrowLeft className="h-4 w-4" /> Back to project
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold">Schedule clips</h1>
+        <h1 className="mt-4 text-3xl font-bold text-foreground">Schedule clips</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Pick clips and channels, then post them now or drip them out on a schedule.
         </p>
 
         {clipList.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-border/50 bg-card/40 p-10 text-center text-muted-foreground">
-            No finished clips yet. They’ll appear here once the render completes.
+          <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-10 text-center shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Film className="h-6 w-6" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              No finished clips yet. They’ll appear here once the render completes.
+            </p>
+            <Link
+              href={`/studio/${jobId}`}
+              className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to project
+            </Link>
           </div>
         ) : (
           <BulkScheduleForm

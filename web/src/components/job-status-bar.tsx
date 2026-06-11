@@ -63,15 +63,32 @@ export function JobStatusBar({ job }: { job: VideoJob }) {
 
   if (current.status === "ready") return null;
 
+  const isFailed = current.status === "failed";
+
   return (
-    <div className="mt-6 rounded-xl border border-border/50 bg-card/40 p-4">
+    <div className="mt-6 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">{LABELS[current.status] ?? current.status}</span>
+        <span className="flex items-center gap-2 font-medium text-foreground">
+          {!isFailed && (
+            <span className="relative flex h-2 w-2" aria-hidden="true">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+            </span>
+          )}
+          {LABELS[current.status] ?? current.status}
+        </span>
         <span className="text-muted-foreground">{current.progress}%</span>
       </div>
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+      <div
+        className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-valuenow={current.progress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={LABELS[current.status] ?? current.status}
+      >
         <div
-          className="h-full bg-brand transition-all duration-500"
+          className={`h-full transition-all duration-500 ${isFailed ? "bg-red-500" : "bg-brand"}`}
           style={{ width: `${Math.max(5, current.progress)}%` }}
         />
       </div>

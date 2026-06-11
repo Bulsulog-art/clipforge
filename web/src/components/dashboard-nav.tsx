@@ -17,27 +17,30 @@ export function DashboardNav({ profile }: { profile: Profile | null }) {
   }
 
   return (
-    <header className="border-b border-border/50 bg-card/30 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
       <div className="container flex items-center justify-between py-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 font-semibold text-foreground transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 rounded-md"
+        >
           <Scissors className="h-5 w-5 text-brand" />
           ClipForge
         </Link>
 
-        <nav className="flex items-center gap-6 text-sm">
-          <Link href="/dashboard" className="text-foreground">Studio</Link>
-          <Link href="/dashboard/social" className="text-muted-foreground hover:text-foreground">Channels</Link>
-          <Link href="/dashboard/analytics" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+        <nav className="hidden items-center gap-6 text-sm sm:flex">
+          <Link href="/dashboard" className="font-medium text-foreground transition hover:text-brand">Studio</Link>
+          <Link href="/dashboard/social" className="text-muted-foreground transition hover:text-foreground">Channels</Link>
+          <Link href="/dashboard/analytics" className="inline-flex items-center gap-1.5 text-muted-foreground transition hover:text-foreground">
             <BarChart3 className="h-3.5 w-3.5" /> Analytics
           </Link>
-          <Link href="/dashboard/billing" className="text-muted-foreground hover:text-foreground">Billing</Link>
+          <Link href="/dashboard/billing" className="text-muted-foreground transition hover:text-foreground">Billing</Link>
         </nav>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">{profile?.email}</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">{profile?.email}</span>
           <button
             onClick={signOut}
-            className="rounded-md p-2 text-muted-foreground hover:bg-accent"
+            className="rounded-md p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             aria-label="Sign out"
           >
             <LogOut className="h-4 w-4" />

@@ -34,12 +34,15 @@ export default async function PublishClipPage({
   if (!clip) {
     return (
       <div className="container max-w-xl py-16 text-center">
-        <h1 className="text-2xl font-semibold">Clip not found</h1>
+        <h1 className="text-3xl font-bold text-foreground">Clip not found</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           This clip doesn’t exist or isn’t yours.
         </p>
-        <Link href="/dashboard" className="mt-6 inline-block text-sm text-brand hover:underline">
-          ← Back to dashboard
+        <Link
+          href="/dashboard"
+          className="mt-6 inline-flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+        >
+          <ChevronLeft className="h-4 w-4" /> Back to dashboard
         </Link>
       </div>
     );
@@ -65,24 +68,24 @@ export default async function PublishClipPage({
           <ChevronLeft className="h-4 w-4" /> Back
         </Link>
 
-        <h1 className="mt-4 text-3xl font-semibold">Publish clip</h1>
+        <h1 className="mt-4 text-3xl font-bold text-foreground">Publish clip</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Post this clip to your connected channels — now or on a schedule.
         </p>
 
-        <div className="mt-6 flex gap-4 rounded-xl border border-border/50 bg-card/40 p-4">
+        <div className="mt-6 flex gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="relative aspect-[9/16] w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
             {clip.thumbnail_path && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={`/api/storage/sign?path=${encodeURIComponent(clip.thumbnail_path)}&bucket=clipforge-thumbnails`}
-                alt={clip.hook ?? ""}
+                alt={clip.hook ?? "Clip thumbnail"}
                 className="h-full w-full object-cover"
               />
             )}
           </div>
           <div className="min-w-0">
-            <p className="line-clamp-2 text-sm font-medium">{clip.hook ?? "Untitled clip"}</p>
+            <p className="line-clamp-2 text-sm font-medium text-foreground">{clip.hook ?? "Untitled clip"}</p>
             {clip.caption && (
               <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{clip.caption}</p>
             )}

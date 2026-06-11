@@ -60,7 +60,7 @@ export default async function BillingPage() {
       <DashboardNav profile={profile ?? null} />
 
       <main className="container max-w-5xl py-10">
-        <h1 className="text-3xl font-semibold">Billing</h1>
+        <h1 className="text-3xl font-bold text-foreground">Billing</h1>
         <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground">
           <span>
             Plan:{" "}
@@ -93,8 +93,8 @@ export default async function BillingPage() {
             {PLUS_PLANS.map((p) => (
               <div
                 key={p.product}
-                className={`relative rounded-2xl border p-6 ${
-                  p.highlight ? "border-brand bg-brand/5 ring-1 ring-brand/40" : "border-border/50 bg-card/40"
+                className={`relative rounded-2xl border p-6 shadow-sm transition hover:shadow-md ${
+                  p.highlight ? "border-brand bg-brand/5 ring-1 ring-brand/40" : "border-border bg-card"
                 }`}
               >
                 {p.highlight && (
@@ -102,8 +102,8 @@ export default async function BillingPage() {
                     Most popular
                   </span>
                 )}
-                <h3 className="text-lg font-semibold">{p.name}</h3>
-                <div className="mt-2 text-3xl font-bold">
+                <h3 className="text-lg font-semibold text-foreground">{p.name}</h3>
+                <div className="mt-2 text-3xl font-bold text-foreground">
                   {p.price}
                   <span className="text-base font-normal text-muted-foreground">{p.cadence}</span>
                 </div>
@@ -111,10 +111,10 @@ export default async function BillingPage() {
                 {p.note && <p className="mt-1 text-xs text-brand">{p.note}</p>}
                 <a
                   href={`/api/billing/checkout?product=${p.product}`}
-                  className={`mt-5 block rounded-full px-4 py-2.5 text-center text-sm font-medium ${
+                  className={`mt-5 block rounded-full px-4 py-2.5 text-center text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
                     p.highlight
                       ? "bg-brand text-white hover:bg-brand-glow"
-                      : "border border-border bg-card hover:bg-accent"
+                      : "border border-border bg-card text-foreground hover:bg-accent"
                   }`}
                 >
                   {isPlus ? "Switch to this" : "Choose"}
@@ -126,7 +126,7 @@ export default async function BillingPage() {
 
         {/* Credit packs */}
         <section className="mt-12">
-          <h2 className="text-lg font-semibold">Top up credits</h2>
+          <h2 className="text-lg font-semibold text-foreground">Top up credits</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             One-time packs for when you need credits right now. Credits never expire.
           </p>
@@ -134,21 +134,21 @@ export default async function BillingPage() {
             {CREDIT_PACKS.map((pack) => (
               <div
                 key={pack.product}
-                className={`flex items-center justify-between rounded-2xl border p-5 ${
-                  pack.best ? "border-brand/40 bg-brand/5" : "border-border/50 bg-card/40"
+                className={`flex items-center justify-between rounded-2xl border p-5 shadow-sm transition hover:shadow-md ${
+                  pack.best ? "border-brand/40 bg-brand/5" : "border-border bg-card"
                 }`}
               >
                 <div>
                   <div className="flex items-center gap-2">
                     <Zap className="h-4 w-4 text-brand" />
-                    <span className="text-2xl font-bold">{pack.credits}</span>
+                    <span className="text-2xl font-bold text-foreground">{pack.credits}</span>
                     <span className="text-sm text-muted-foreground">credits</span>
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">{pack.name}</div>
                 </div>
                 <a
                   href={`/api/billing/checkout?product=${pack.product}`}
-                  className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent"
+                  className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground outline-none transition hover:bg-accent focus-visible:ring-2 focus-visible:ring-brand/40"
                 >
                   {pack.price}
                 </a>
