@@ -30,7 +30,7 @@ struct LoginView: View {
 
                 Text("One long video. 100+ viral clips.")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
 
@@ -45,13 +45,13 @@ struct LoginView: View {
                     } onCompletion: { result in
                         Task { await handleApple(result) }
                     }
-                    .signInWithAppleButtonStyle(.white)
+                    .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
                     .clipShape(.rect(cornerRadius: 12))
 
-                    HStack { Rectangle().frame(height: 1).foregroundStyle(.white.opacity(0.1))
-                        Text("or").font(.footnote).foregroundStyle(.secondary)
-                        Rectangle().frame(height: 1).foregroundStyle(.white.opacity(0.1)) }
+                    HStack { Rectangle().frame(height: 1).foregroundStyle(.hairline)
+                        Text("or").font(.footnote).foregroundStyle(.textSecondary)
+                        Rectangle().frame(height: 1).foregroundStyle(.hairline) }
 
                     TextField("you@studio.com", text: $email)
                         .textInputAutocapitalization(.never)
@@ -110,7 +110,7 @@ struct LoginView: View {
                     } label: {
                         Text(usePassword ? "Use magic link instead" : "Use password instead")
                             .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                     }
                     .padding(.top, 4)
                 }

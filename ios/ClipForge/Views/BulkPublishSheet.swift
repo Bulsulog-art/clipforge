@@ -64,7 +64,7 @@ struct BulkPublishSheet: View {
                 .font(.title3.bold())
             Text("All \(clips.count) selected clips will go out to the same channels. Each clip uses its own AI-generated caption.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -73,11 +73,11 @@ struct BulkPublishSheet: View {
         VStack(spacing: 12) {
             Image(systemName: "antenna.radiowaves.left.and.right.slash")
                 .font(.system(size: 36))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
             Text("No channels connected").font(.headline)
             Text("Connect TikTok, Instagram or YouTube in the Channels tab first.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             Button {
@@ -105,7 +105,7 @@ struct BulkPublishSheet: View {
             Text("POST TO")
                 .font(.caption.weight(.bold))
                 .tracking(1.0)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
             ForEach(channels.connectedPlatforms) { p in
                 channelRow(p)
             }
@@ -123,14 +123,14 @@ struct BulkPublishSheet: View {
             HStack(spacing: 12) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(isSelected ? accent : .secondary)
+                    .foregroundStyle(isSelected ? accent : Color.textSecondary)
                 Image(systemName: p.sfSymbol)
                     .frame(width: 26)
                     .foregroundStyle(accent)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(p.displayName).font(.callout.weight(.semibold))
                     if let u = acct?.username {
-                        Text("@\(u)").font(.caption2).foregroundStyle(.secondary)
+                        Text("@\(u)").font(.caption2).foregroundStyle(.textSecondary)
                     }
                 }
                 Spacer()
@@ -153,10 +153,10 @@ struct BulkPublishSheet: View {
                 .foregroundStyle(.brand)
             Text("Each clip publishes with its own hook + caption + #hashtags. Per-platform character limits are handled automatically.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .padding(12)
-        .background(Color.cardBackground.opacity(0.55))
+        .background(Color.cardBackground)
         .clipShape(.rect(cornerRadius: 12))
     }
 

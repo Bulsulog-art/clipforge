@@ -11,9 +11,9 @@ struct ShimmerModifier: ViewModifier {
                 GeometryReader { geo in
                     LinearGradient(
                         gradient: Gradient(stops: [
-                            .init(color: .clear,                location: 0),
-                            .init(color: .white.opacity(0.18), location: 0.5),
-                            .init(color: .clear,                location: 1),
+                            .init(color: .clear,                       location: 0),
+                            .init(color: Color.cardBackground.opacity(0.9), location: 0.5),
+                            .init(color: .clear,                       location: 1),
                         ]),
                         startPoint: .leading,
                         endPoint: .trailing
@@ -44,7 +44,7 @@ struct SkeletonBlock: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: corner, style: .continuous)
-            .fill(Color.white.opacity(0.06))
+            .fill(Color.hairline)
             .frame(width: width, height: height)
             .shimmer()
     }
@@ -56,7 +56,7 @@ struct ProjectRowSkeleton: View {
     var body: some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(0.06))
+                .fill(Color.hairline)
                 .frame(width: 56, height: 56)
                 .shimmer()
             VStack(alignment: .leading, spacing: 8) {
@@ -78,7 +78,7 @@ struct ClipCellSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(0.06))
+                .fill(Color.hairline)
                 .aspectRatio(9.0/16.0, contentMode: .fit)
                 .shimmer()
             SkeletonBlock(width: 110, height: 11)

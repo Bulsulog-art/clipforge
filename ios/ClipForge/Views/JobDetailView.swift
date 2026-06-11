@@ -364,7 +364,7 @@ private struct ProgressCard: View {
             if clipsReady > 0 {
                 Text("\(clipsReady) clip\(clipsReady == 1 ? "" : "s") ready so far")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
         }
         .padding()
@@ -390,7 +390,7 @@ private struct ErrorCard: View {
             Label("Render failed", systemImage: "xmark.octagon.fill")
                 .font(.callout.bold())
                 .foregroundStyle(.red)
-            Text(message).font(.footnote).foregroundStyle(.secondary)
+            Text(message).font(.footnote).foregroundStyle(.textSecondary)
         }
         .padding()
         .background(Color.red.opacity(0.1))
@@ -403,9 +403,9 @@ private struct EmptyClipsView: View {
         VStack(spacing: 8) {
             Image(systemName: "film")
                 .font(.system(size: 36))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
             Text("No clips yet").font(.headline)
-            Text("Pull down to refresh.").font(.caption).foregroundStyle(.secondary)
+            Text("Pull down to refresh.").font(.caption).foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
@@ -433,7 +433,7 @@ private struct ClipThumb: View {
                             .overlay(
                                 Image(systemName: "play.fill")
                                     .font(.system(size: 30))
-                                    .foregroundStyle(.white.opacity(0.85))
+                                    .foregroundStyle(.textSecondary)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)

@@ -49,7 +49,7 @@ struct FeedbackSheet: View {
                 .foregroundStyle(.brand)
             Text("Bug, feature wish, or just a note — type away. We'll see your message with your account info attached so we can write back if needed.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -65,13 +65,13 @@ struct FeedbackSheet: View {
                 .clipShape(.rect(cornerRadius: 14))
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                        .stroke(Color.hairline, lineWidth: 1)
                 )
             HStack {
                 Spacer()
                 Text("\(message.count) / 4000")
                     .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.textSecondary.opacity(0.6))
             }
         }
     }
@@ -113,10 +113,10 @@ struct FeedbackSheet: View {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 44))
                 .foregroundStyle(.green)
-            Text("Got it!").font(.title3.bold())
+            Text("Got it!").font(.title3.bold()).foregroundStyle(.textPrimary)
             Text("Thanks for the note — we'll read it within a day or two and write back if it warrants a reply.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             Button {
@@ -152,7 +152,7 @@ struct FeedbackSheet: View {
     private var footnote: some View {
         Text("Attached: app version + iOS version + device model. No clip content, no contacts, no location.")
             .font(.caption2)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(.textSecondary.opacity(0.6))
             .multilineTextAlignment(.leading)
             .padding(.top, 4)
     }

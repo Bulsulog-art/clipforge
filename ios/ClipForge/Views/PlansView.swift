@@ -90,7 +90,7 @@ struct PlansView: View {
                     if let restoreMessage {
                         Text(restoreMessage)
                             .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
@@ -136,7 +136,7 @@ struct PlansView: View {
                 .font(.largeTitle.bold())
                 .minimumScaleFactor(0.8)
             Text("All AI tools. No watermark. Cancel anytime.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -151,7 +151,7 @@ struct PlansView: View {
                 if let renews = rc.plusRenewsAt {
                     Text("Renews \(renews.formatted(date: .abbreviated, time: .omitted))")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                 }
             }
             Spacer()
@@ -212,7 +212,7 @@ struct PlansView: View {
             if let err = rc.offeringsError {
                 Text(err)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
@@ -251,10 +251,10 @@ struct PlansView: View {
                         Text(pkg.storeProduct.localizedPriceString)
                             .font(.title.bold())
                         Text(priceSuffix(for: billing))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                     }
                 } else {
-                    Text("—").font(.title.bold()).foregroundStyle(.tertiary)
+                    Text("—").font(.title.bold()).foregroundStyle(.textSecondary.opacity(0.6))
                 }
             }
 
@@ -355,7 +355,7 @@ struct PlansView: View {
                 .foregroundStyle(.brand)
             Text(text)
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
@@ -369,12 +369,12 @@ struct PlansView: View {
         VStack(spacing: 8) {
             Text("Subscription auto-renews. Cancel any time in Settings → Apple ID → Subscriptions, at least 24 hours before the period ends. Payment is charged to your Apple ID account.")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
             HStack(spacing: 14) {
                 Link("Terms of Service",
                      destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
-                Text("·").foregroundStyle(.tertiary)
+                Text("·").foregroundStyle(.textSecondary.opacity(0.6))
                 Link("Privacy Policy",
                      destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/privacy") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
             }

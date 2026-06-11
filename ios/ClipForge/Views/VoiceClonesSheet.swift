@@ -80,7 +80,7 @@ struct VoiceClonesSheet: View {
                 .foregroundStyle(.brand)
             Text("Record a clean 30–60s sample in a quiet room. We forward it to ElevenLabs; your cloned voice then shows up as a picker option in AvatarStudio.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -92,7 +92,7 @@ struct VoiceClonesSheet: View {
                 .foregroundStyle(.brand)
             Text("Plus feature").font(.headline)
             Text("Voice cloning is included with any Plus subscription.")
-                .font(.callout).foregroundStyle(.secondary)
+                .font(.callout).foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center).padding(.horizontal)
         }
         .frame(maxWidth: .infinity).padding(.vertical, 26)
@@ -102,14 +102,14 @@ struct VoiceClonesSheet: View {
 
     private var existingClonesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Your clones").font(.caption.weight(.bold)).foregroundStyle(.secondary).tracking(0.8)
+            Text("Your clones").font(.caption.weight(.bold)).foregroundStyle(.textSecondary).tracking(0.8)
             ForEach(clones) { c in
                 HStack(spacing: 10) {
                     Image(systemName: c.status == "ready" ? "waveform" : "waveform.path.badge.minus")
                         .foregroundStyle(c.status == "ready" ? .green : .orange)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(c.name).font(.callout.weight(.semibold))
-                        Text(c.status.capitalized).font(.caption2).foregroundStyle(.secondary)
+                        Text(c.status.capitalized).font(.caption2).foregroundStyle(.textSecondary)
                     }
                     Spacer()
                     Button(role: .destructive) {
@@ -140,7 +140,7 @@ struct VoiceClonesSheet: View {
                 .clipShape(.rect(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                        .stroke(Color.hairline, lineWidth: 1)
                 )
 
             HStack(spacing: 14) {
@@ -165,7 +165,7 @@ struct VoiceClonesSheet: View {
                         .font(.title3.monospacedDigit().weight(.semibold))
                     Text(statusLine)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                 }
                 Spacer()
                 if recorder.lastRecording != nil && !recorder.isRecording {
@@ -178,7 +178,7 @@ struct VoiceClonesSheet: View {
                                 .fontWeight(.semibold)
                         }
                         .padding(.horizontal, 14).padding(.vertical, 10)
-                        .background(canUpload ? Color.brand : Color.gray.opacity(0.5))
+                        .background(canUpload ? Color.brand : Color.brand.opacity(0.4))
                         .foregroundStyle(.white)
                         .clipShape(.capsule)
                     }
@@ -189,7 +189,7 @@ struct VoiceClonesSheet: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.cardBackground.opacity(0.55))
+        .background(Color.cardBackground)
         .clipShape(.rect(cornerRadius: 14))
     }
 
@@ -205,7 +205,7 @@ struct VoiceClonesSheet: View {
     private var footnote: some View {
         Text("Up to 60s, mono audio, quiet background. Once uploaded, the clone appears in AvatarStudio's voice picker on your next render.")
             .font(.caption2)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(.textSecondary.opacity(0.6))
     }
 
     // MARK: - Behaviour

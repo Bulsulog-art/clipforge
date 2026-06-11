@@ -25,7 +25,7 @@ struct TrendsView: View {
 
                     if let lastUpdated {
                         Text("Updated \(lastUpdated)")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.caption).foregroundStyle(.textSecondary)
                     }
 
                     if loading && items.isEmpty {
@@ -48,13 +48,13 @@ struct TrendsView: View {
                         VStack(spacing: 8) {
                             Image(systemName: "sparkles.tv")
                                 .font(.system(size: 36))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.textSecondary)
                             Text("No trends yet for \(niche).")
                                 .font(.callout)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.textSecondary)
                             Text("Snapshots refresh every 24 hours.")
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.textSecondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
@@ -87,19 +87,19 @@ struct TrendsView: View {
                 if let f = item.format {
                     Text(f.replacingOccurrences(of: "_", with: " "))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                 }
             }
-            Text(item.title).font(.callout.bold())
-            Text("Hook: ") .font(.caption).foregroundStyle(.secondary)
-            + Text("\"\(item.hook)\"").font(.caption.italic())
+            Text(item.title).font(.callout.bold()).foregroundStyle(.textPrimary)
+            Text("Hook: ") .font(.caption).foregroundStyle(.textSecondary)
+            + Text("\"\(item.hook)\"").font(.caption.italic()).foregroundStyle(.textPrimary)
             if let why = item.why_it_works {
-                Text(why).font(.footnote).foregroundStyle(.secondary)
+                Text(why).font(.footnote).foregroundStyle(.textSecondary)
             }
             if let evidence = item.evidence {
                 Label(evidence, systemImage: "magnifyingglass")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
 
             Button {

@@ -76,7 +76,7 @@ struct ReferralsSheet: View {
                 .foregroundStyle(.brand)
             Text("You both get 5 credits when they redeem your code on signup.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -86,7 +86,7 @@ struct ReferralsSheet: View {
             Text("YOUR CODE")
                 .font(.caption2.weight(.bold))
                 .tracking(1.2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
             HStack {
                 Text(info.code)
                     .font(.system(.title, design: .monospaced).weight(.heavy))
@@ -111,9 +111,9 @@ struct ReferralsSheet: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background(Color.cardBackground)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.textPrimary)
                         .clipShape(.capsule)
-                        .overlay(Capsule().stroke(Color.secondary.opacity(0.3), lineWidth: 0.8))
+                        .overlay(Capsule().stroke(Color.hairline, lineWidth: 0.8))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Copy referral code")
@@ -158,7 +158,7 @@ struct ReferralsSheet: View {
                 .monospacedDigit()
             Text(label)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
@@ -182,7 +182,7 @@ struct ReferralsSheet: View {
                     .clipShape(.rect(cornerRadius: 10))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                            .stroke(Color.hairline, lineWidth: 1)
                     )
                 Button {
                     Task { await redeem() }
@@ -239,7 +239,7 @@ struct ReferralsSheet: View {
                     .clipShape(.rect(cornerRadius: 10))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                            .stroke(Color.hairline, lineWidth: 1)
                     )
                 Button {
                     Task { await redeemPromo() }
@@ -299,7 +299,7 @@ struct ReferralsSheet: View {
     private var footnote: some View {
         Text("Each user can redeem one referral code. Inviters max out at 20 redemptions (100 credits). Self-referrals don't count.")
             .font(.caption2)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(Color.textSecondary.opacity(0.6))
     }
 
     // MARK: - Behaviour

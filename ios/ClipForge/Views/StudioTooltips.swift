@@ -78,10 +78,10 @@ struct StudioTooltipsOverlay: View {
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.cardBackground)
-                        .foregroundStyle(.secondary)
+                        .background(Color.appBackground)
+                        .foregroundStyle(.textSecondary)
                         .clipShape(.capsule)
-                        .overlay(Capsule().stroke(Color.secondary.opacity(0.3), lineWidth: 0.8))
+                        .overlay(Capsule().stroke(Color.hairline, lineWidth: 0.8))
                 }
                 .buttonStyle(.plain)
 
@@ -112,13 +112,13 @@ struct StudioTooltipsOverlay: View {
             }
         }
         .padding(14)
-        .background(.black.opacity(0.88))
+        .background(Color.cardBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.brand.opacity(0.5), lineWidth: 1)
         )
         .clipShape(.rect(cornerRadius: 14))
-        .shadow(color: .black.opacity(0.4), radius: 14, y: 6)
+        .shadow(color: .black.opacity(0.12), radius: 14, y: 6)
         .frame(maxWidth: 360)
     }
 

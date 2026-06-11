@@ -76,7 +76,7 @@ struct ClipPublishSheet: View {
             if let hook = clip.hook {
                 Text("\"\(hook)\"")
                     .font(.callout.italic())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .lineLimit(2)
             }
             if let tags = clip.hashtags, !tags.isEmpty {
@@ -102,12 +102,12 @@ struct ClipPublishSheet: View {
         VStack(spacing: 12) {
             Image(systemName: "antenna.radiowaves.left.and.right.slash")
                 .font(.system(size: 36))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
             Text("No channels connected yet")
                 .font(.headline)
             Text("Head over to the Channels tab to connect TikTok, Instagram or YouTube — takes about 30 seconds.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             Button {
@@ -135,7 +135,7 @@ struct ClipPublishSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Post to")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .textCase(.uppercase)
                 .tracking(1.0)
             VStack(spacing: 8) {
@@ -157,7 +157,7 @@ struct ClipPublishSheet: View {
             HStack(spacing: 12) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(isSelected ? accent : .secondary)
+                    .foregroundStyle(isSelected ? accent : Color.textSecondary)
                 Image(systemName: p.sfSymbol)
                     .frame(width: 26)
                     .foregroundStyle(accent)
@@ -166,7 +166,7 @@ struct ClipPublishSheet: View {
                     if let u = acct?.username {
                         Text("@\(u)")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                             .lineLimit(1)
                     }
                 }
@@ -192,13 +192,13 @@ struct ClipPublishSheet: View {
             HStack {
                 Text("Caption")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .textCase(.uppercase)
                     .tracking(1.0)
                 Spacer()
                 Text("\(caption.count) chars")
                     .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.textSecondary.opacity(0.6))
             }
             // Use TextEditor for multiline. minHeight gives it room without
             // hijacking the whole sheet.
@@ -210,7 +210,7 @@ struct ClipPublishSheet: View {
                 .clipShape(.rect(cornerRadius: 14))
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                        .stroke(Color.hairline, lineWidth: 1)
                 )
         }
     }
@@ -240,7 +240,7 @@ struct ClipPublishSheet: View {
                 .padding(.horizontal, 4)
                 Text("Posts will go live at the selected time. You can cancel a scheduled post from the Publish history.")
                     .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.textSecondary.opacity(0.6))
             }
         }
         .padding(14)
@@ -301,7 +301,7 @@ struct ClipPublishSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Recent posts")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .textCase(.uppercase)
                 .tracking(1.0)
             ForEach(statuses) { rec in
@@ -324,7 +324,7 @@ struct ClipPublishSheet: View {
             case "published":  return .green
             case "failed":     return .red
             case "publishing": return .brand
-            default:           return .secondary
+            default:           return .textSecondary
             }
         }()
         return HStack(alignment: .top, spacing: 10) {

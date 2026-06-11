@@ -77,18 +77,19 @@ struct CreditsPaywallView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Balance")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
             HStack(alignment: .firstTextBaseline) {
                 Text("\(credits.balance)")
                     .font(.system(size: 56, weight: .bold))
                     .minimumScaleFactor(0.6)
+                    .foregroundStyle(.textPrimary)
                 Text("credits")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
             Text("1 credit ≈ 1 video → up to 10 clips")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
     }
 
@@ -102,7 +103,7 @@ struct CreditsPaywallView: View {
                     .foregroundStyle(.brand)
                 Text("Credits never expire. Refund-safe consumable.")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
             .padding()
             .background(Color.cardBackground)
@@ -117,7 +118,7 @@ struct CreditsPaywallView: View {
                     .font(.headline)
                     .foregroundStyle(.brand)
                 Text("Credit packs are an exclusive perk for Plus subscribers. Start at $5.99/week, or save big with $59.99/year — and top up whenever you need.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
@@ -144,6 +145,7 @@ struct CreditsPaywallView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("What's in Plus?")
                     .font(.headline)
+                    .foregroundStyle(.textPrimary)
                 ForEach([
                     "Plus weekly — 10 credits / week",
                     "Plus monthly — 40 credits / month",
@@ -156,7 +158,7 @@ struct CreditsPaywallView: View {
                             .foregroundStyle(.brand)
                             .font(.caption)
                             .padding(.top, 3)
-                        Text(line).font(.callout)
+                        Text(line).font(.callout).foregroundStyle(.textPrimary)
                     }
                 }
             }
@@ -182,8 +184,9 @@ struct CreditsPaywallView: View {
                     HStack(spacing: 8) {
                         Text("+\(pack.credits)")
                             .font(.title.bold())
+                            .foregroundStyle(.textPrimary)
                         Text("credits")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                     }
                     if pack.popular {
                         Text("Best value")
@@ -192,13 +195,14 @@ struct CreditsPaywallView: View {
                     } else if let pricePerCredit {
                         Text(String(format: "%.2f / credit", pricePerCredit))
                             .font(.caption2)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(Color.textSecondary.opacity(0.6))
                     }
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(displayPrice)
                         .font(.title3.bold())
+                        .foregroundStyle(.textPrimary)
                     if purchasing == pack.id {
                         ProgressView().controlSize(.small)
                     }
@@ -222,12 +226,12 @@ struct CreditsPaywallView: View {
         VStack(spacing: 8) {
             Text("One-time purchase. Credits never expire. Payment is charged to your Apple ID account.")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
             HStack(spacing: 14) {
                 Link("Terms",
                      destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
-                Text("·").foregroundStyle(.tertiary)
+                Text("·").foregroundStyle(Color.textSecondary.opacity(0.6))
                 Link("Privacy",
                      destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/privacy") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
             }

@@ -21,10 +21,11 @@ struct FreeTierNudge: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Loved it? Keep clipping.")
                     .font(.callout.weight(.semibold))
+                    .foregroundStyle(.textPrimary)
                     .lineLimit(1)
                 Text("Plus: 10 credits/week for $5.99 — cancel anytime.")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .lineLimit(2)
                     .minimumScaleFactor(0.9)
             }
@@ -46,7 +47,7 @@ struct FreeTierNudge: View {
                 onDismiss()
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.textSecondary.opacity(0.6))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Dismiss")

@@ -542,7 +542,7 @@ private struct StudioSearchBar: View {
             .clipShape(.rect(cornerRadius: 10))
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    .stroke(Color.hairline, lineWidth: 1)
             )
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -566,11 +566,11 @@ private struct StudioSearchBar: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(selected ? Color.brand : Color.cardBackground)
-                .foregroundStyle(selected ? .white : .secondary)
+                .foregroundStyle(selected ? .white : .textSecondary)
                 .clipShape(.capsule)
                 .overlay(
                     Capsule().stroke(
-                        selected ? Color.clear : Color.secondary.opacity(0.25),
+                        selected ? Color.clear : Color.hairline,
                         lineWidth: 0.8
                     )
                 )
@@ -739,22 +739,22 @@ private struct MilestoneBanner: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(days)-day streak unlocked")
                     .font(.callout.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.textPrimary)
                 Text(subtitle)
                     .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(.textSecondary)
                     .lineLimit(2)
             }
             Spacer(minLength: 4)
         }
         .padding(12)
-        .background(.black.opacity(0.78))
+        .background(Color.cardBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(.orange.opacity(0.4), lineWidth: 1)
         )
         .clipShape(.rect(cornerRadius: 14))
-        .shadow(color: .orange.opacity(0.45), radius: 14, y: 5)
+        .shadow(color: .orange.opacity(0.25), radius: 14, y: 5)
     }
 }
 
@@ -814,7 +814,7 @@ private struct StudioMetricsCard: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.white.opacity(0.05), lineWidth: 0.6)
+                .stroke(Color.hairline, lineWidth: 0.6)
         )
         .clipShape(.rect(cornerRadius: 14))
     }
@@ -841,7 +841,7 @@ private struct StudioMetricsCard: View {
 
     private var divider: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.08))
+            .fill(Color.hairline)
             .frame(width: 1, height: 30)
     }
 }
@@ -1018,7 +1018,7 @@ private struct JobRow: View {
             if job.status != "ready" && job.status != "failed" {
                 ZStack {
                     Circle()
-                        .stroke(Color.white.opacity(0.08), lineWidth: 3)
+                        .stroke(Color.hairline, lineWidth: 3)
                     Circle()
                         .trim(from: 0, to: CGFloat(job.progress) / 100)
                         .stroke(Color.brand, style: StrokeStyle(lineWidth: 3, lineCap: .round))

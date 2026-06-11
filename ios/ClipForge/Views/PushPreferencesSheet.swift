@@ -79,7 +79,7 @@ struct PushPreferencesSheet: View {
                 .foregroundStyle(.brand)
             Text("Toggle each kind of notification on or off. iOS-level Do Not Disturb still applies on top of these.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -100,7 +100,7 @@ struct PushPreferencesSheet: View {
                     .font(.callout.weight(.semibold))
                 Text(kind.body)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
@@ -122,7 +122,7 @@ struct PushPreferencesSheet: View {
     private var footnote: some View {
         Text("Disabling here doesn't stop in-app banners or the home-screen widget — just the push delivered to your lock screen.")
             .font(.caption2)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(.textSecondary.opacity(0.6))
             .padding(.top, 4)
     }
 

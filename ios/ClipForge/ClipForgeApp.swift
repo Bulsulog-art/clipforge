@@ -19,7 +19,7 @@ struct ClipForgeApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(.light)
                 .tint(.brand)
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {

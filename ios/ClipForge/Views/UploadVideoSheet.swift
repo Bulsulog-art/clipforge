@@ -36,7 +36,7 @@ struct UploadVideoSheet: View {
                     HStack {
                         Image(systemName: "creditcard.circle.fill").foregroundStyle(.brand)
                         Text("Balance"); Spacer()
-                        Text("\(credits.balance) credits").foregroundStyle(.secondary)
+                        Text("\(credits.balance) credits").foregroundStyle(.textSecondary)
                     }
                 }
 
@@ -77,7 +77,7 @@ struct UploadVideoSheet: View {
                                 .tint(.brand)
                             Text("\(Int(uploader.progress * 100))% — keeps going if you background the app.")
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.textSecondary)
                         }
                     }
                 }
@@ -148,12 +148,12 @@ struct UploadVideoSheet: View {
                 if let s = stagedDurationSec {
                     let okDuration = durationOK(s)
                     Label(formatDuration(s), systemImage: "clock")
-                        .foregroundStyle(okDuration ? Color.secondary : Color.orange)
+                        .foregroundStyle(okDuration ? Color.textSecondary : Color.orange)
                 }
                 if let mb = stagedSizeMB {
                     let okSize = sizeOK(mb)
                     Label(String(format: "%.1f MB", mb), systemImage: "doc.fill")
-                        .foregroundStyle(okSize ? Color.secondary : Color.orange)
+                        .foregroundStyle(okSize ? Color.textSecondary : Color.orange)
                 }
             }
             .font(.caption2)

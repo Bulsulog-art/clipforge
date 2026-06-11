@@ -44,7 +44,7 @@ struct AvatarStudioView: View {
                         Text("Balance")
                         Spacer()
                         Text("\(credits.balance) credits")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                     }
                     Label("AI avatar render: 5 credits", systemImage: "sparkles")
                         .font(.callout)
@@ -60,7 +60,7 @@ struct AvatarStudioView: View {
                     ZStack(alignment: .topLeading) {
                         if script.isEmpty {
                             Text("\"Three habits that quietly compound — first…\"")
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(.textSecondary.opacity(0.6))
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                         }
@@ -76,14 +76,14 @@ struct AvatarStudioView: View {
                         Text("\(script.count) / \(scriptLimit)")
                     }
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                 }
 
                 Section("Avatar") {
                     if loading {
                         HStack { ProgressView(); Text("Loading avatars…") }
                     } else if avatars.isEmpty {
-                        Text("No avatars available yet.").foregroundStyle(.secondary).font(.callout)
+                        Text("No avatars available yet.").foregroundStyle(.textSecondary).font(.callout)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 14) {
@@ -184,7 +184,7 @@ struct AvatarStudioView: View {
                     AsyncImage(url: url) { img in
                         img.resizable().aspectRatio(contentMode: .fill)
                     } placeholder: {
-                        Color.gray.opacity(0.2)
+                        Color.hairline
                     }
                     .frame(width: 92, height: 92)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -193,7 +193,7 @@ struct AvatarStudioView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 92, height: 92)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                 }
             }
             .overlay(
@@ -202,11 +202,11 @@ struct AvatarStudioView: View {
             )
             Text(a.name)
                 .font(.caption)
-                .foregroundStyle(isSelected ? Color.brand : .primary)
+                .foregroundStyle(isSelected ? Color.brand : .textPrimary)
             if let p = a.description {
                 Text(p)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .frame(width: 100)

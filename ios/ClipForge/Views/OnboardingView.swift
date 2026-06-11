@@ -70,7 +70,7 @@ struct OnboardingView: View {
                         finish()
                     }
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .padding(.top, 8)
                 }
             }
@@ -110,7 +110,7 @@ struct OnboardingView: View {
                     finish()
                 }
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .padding(.trailing, 18)
                 .padding(.top, 10)
             }
@@ -121,7 +121,7 @@ struct OnboardingView: View {
         HStack(spacing: 8) {
             ForEach(pages.indices, id: \.self) { i in
                 Capsule()
-                    .fill(i == page ? Color.brand : Color.white.opacity(0.25))
+                    .fill(i == page ? Color.brand : Color.hairline)
                     .frame(width: i == page ? 24 : 8, height: 8)
                     .animation(.spring, value: page)
             }
@@ -214,7 +214,7 @@ struct OnboardingView: View {
                 Text(p.body)
                     .font(.callout)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .padding(.horizontal, 28)
                     .lineLimit(4)
             }
@@ -554,7 +554,7 @@ private struct PushBannerIllustration: View {
                 .padding(10)
                 .background(.ultraThinMaterial)
                 .clipShape(.rect(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.08), lineWidth: 0.5))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(.hairline, lineWidth: 0.5))
                 .offset(y: shown ? 0 : -60)
                 .opacity(shown ? 1 : 0)
                 .shadow(color: .black.opacity(0.35), radius: 14, y: 6)

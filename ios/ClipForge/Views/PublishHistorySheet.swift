@@ -65,7 +65,7 @@ struct PublishHistorySheet: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                             .background(filter == f ? Color.brand : Color.cardBackground)
-                            .foregroundStyle(filter == f ? .white : .secondary)
+                            .foregroundStyle(filter == f ? Color.white : Color.textSecondary)
                             .clipShape(.capsule)
                     }
                     .buttonStyle(.plain)
@@ -87,7 +87,7 @@ struct PublishHistorySheet: View {
             if let hook = row.clipHook {
                 Text("\"\(hook)\"")
                     .font(.caption.italic())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .lineLimit(2)
             }
             timingLine(row)
@@ -112,7 +112,7 @@ struct PublishHistorySheet: View {
             case "publishing": return ("Posting…", .brand)
             case "failed":     return (row.errorMessage == "Cancelled by user" ? "Cancelled" : "Failed", .red)
             case "pending":    return (isScheduled(row) ? "Scheduled" : "Queued", .orange)
-            default:           return (row.status.capitalized, .secondary)
+            default:           return (row.status.capitalized, .textSecondary)
             }
         }()
         Text(text)
@@ -129,17 +129,17 @@ struct PublishHistorySheet: View {
             Label(d.formatted(date: .abbreviated, time: .shortened),
                   systemImage: "checkmark.seal")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(Color.textSecondary.opacity(0.6))
         } else if isScheduled(row), let when = row.scheduledFor, let d = parse(when) {
             Label("Goes live \(d.formatted(date: .abbreviated, time: .shortened))",
                   systemImage: "calendar.badge.clock")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(Color.textSecondary.opacity(0.6))
         } else if let created = row.createdAt, let d = parse(created) {
             Label(d.formatted(date: .abbreviated, time: .shortened),
                   systemImage: "clock")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(Color.textSecondary.opacity(0.6))
         }
     }
 
@@ -197,12 +197,13 @@ struct PublishHistorySheet: View {
         VStack(spacing: 8) {
             Image(systemName: "paperplane")
                 .font(.title2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
             Text("Nothing here yet")
                 .font(.callout.weight(.semibold))
+                .foregroundStyle(.textPrimary)
             Text("When you publish a clip, every attempt lands in this timeline.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)

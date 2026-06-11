@@ -43,18 +43,18 @@ struct ClipActionsSheet: View {
                     creditsBadge
 
                     publishSection
-                    Divider().background(Color.white.opacity(0.1))
+                    Divider().background(Color.hairline)
 
                     if let compare = readyFaceSwapDerivative {
                         compareSection(derivative: compare)
-                        Divider().background(Color.white.opacity(0.1))
+                        Divider().background(Color.hairline)
                     }
 
                     Section_h("🎭 Swap face (2 credits)")
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Upload a portrait photo — we'll replace the face in this clip.")
                             .font(.callout)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.textSecondary)
 
                         PhotosPicker(selection: $faceImage, matching: .images, photoLibrary: .shared()) {
                             HStack {
@@ -85,13 +85,13 @@ struct ClipActionsSheet: View {
                         .disabled(faceImage == nil || sending)
                     }
 
-                    Divider().background(Color.white.opacity(0.1))
+                    Divider().background(Color.hairline)
 
                     Section_h("🌍 Translate captions (2 credits)")
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Reach global audiences. Pro: clone your voice in 40+ languages.")
                             .font(.callout)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.textSecondary)
 
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                             ForEach(languages, id: \.code) { lang in
@@ -106,7 +106,7 @@ struct ClipActionsSheet: View {
                                     .background(selectedLanguage == lang.code ? Color.brand.opacity(0.18) : Color.cardBackground)
                                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(selectedLanguage == lang.code ? Color.brand : .clear, lineWidth: 1.5))
                                     .clipShape(.rect(cornerRadius: 10))
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(Color.textPrimary)
                                 }
                             }
                         }
@@ -114,7 +114,7 @@ struct ClipActionsSheet: View {
                         Toggle(isOn: $voiceClone) {
                             VStack(alignment: .leading) {
                                 Text("Clone my voice (5 credits)").font(.callout)
-                                Text("Pro plan only — mouth-synced new audio").font(.caption).foregroundStyle(.secondary)
+                                Text("Pro plan only — mouth-synced new audio").font(.caption).foregroundStyle(Color.textSecondary)
                             }
                         }
                         .tint(.brand)
@@ -131,10 +131,10 @@ struct ClipActionsSheet: View {
                         .disabled(sending)
                     }
 
-                    Divider().background(Color.white.opacity(0.1))
+                    Divider().background(Color.hairline)
 
                     remixSection
-                    Divider().background(Color.white.opacity(0.1))
+                    Divider().background(Color.hairline)
 
                     Section_h("📥 Export")
                     Button {
@@ -223,14 +223,14 @@ struct ClipActionsSheet: View {
             Section_h("🔁 Remix this source")
             Text("Re-run the same source video and let the AI surface different moments. Costs 1 credit, same as a normal render.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
             if let jobId = remixedJobId {
                 Label("New render queued — find it in Studio.", systemImage: "checkmark.seal.fill")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.green)
                 Text("Job id: \(jobId.prefix(8))…")
                     .font(.caption2.monospaced())
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(Color.textSecondary.opacity(0.6))
             } else {
                 Button {
                     Task { await remix() }
@@ -296,7 +296,7 @@ struct ClipActionsSheet: View {
             Section_h("🆚 Before / After")
             Text("Your face swap is ready. Drag the divider to compare the original with the swap.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
             Button {
                 Task { await Haptics.impact(.medium) }
                 compareWith = derivative
@@ -341,7 +341,7 @@ struct ClipActionsSheet: View {
                  ? "Connect TikTok / Instagram / YouTube once — then auto-post every clip from here."
                  : "Push this clip to \(connected.count) connected channel\(connected.count == 1 ? "" : "s") in one tap.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
 
             if !connected.isEmpty {
                 HStack(spacing: 8) {

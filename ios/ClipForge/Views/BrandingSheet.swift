@@ -77,7 +77,7 @@ struct BrandingSheet: View {
                 .foregroundStyle(.brand)
             Text("Replaces the default ‘Made with ClipForge’ outro on new renders. Upload a transparent PNG for the cleanest look.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -87,10 +87,10 @@ struct BrandingSheet: View {
             Image(systemName: "lock.fill")
                 .font(.system(size: 36))
                 .foregroundStyle(.brand)
-            Text("Plus feature").font(.headline)
+            Text("Plus feature").font(.headline).foregroundStyle(.textPrimary)
             Text("Custom branding is included with any Plus subscription — weekly, monthly, or yearly.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
@@ -110,7 +110,7 @@ struct BrandingSheet: View {
                         image.resizable().scaledToFit().frame(maxHeight: 120)
                     case .failure:
                         Image(systemName: "photo.fill")
-                            .font(.largeTitle).foregroundStyle(.secondary)
+                            .font(.largeTitle).foregroundStyle(.textSecondary)
                             .frame(height: 120)
                     @unknown default:
                         EmptyView()
@@ -173,7 +173,7 @@ struct BrandingSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Position")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .tracking(0.8)
                 .textCase(.uppercase)
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -206,13 +206,13 @@ struct BrandingSheet: View {
             HStack {
                 Text("Opacity")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .tracking(0.8)
                     .textCase(.uppercase)
                 Spacer()
                 Text(String(format: "%d%%", Int(opacity * 100)))
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
             Slider(value: $opacity, in: 0.10...1.00, step: 0.05) { editing in
                 if !editing { Task { await persistMeta() } }
@@ -241,7 +241,7 @@ struct BrandingSheet: View {
     private var footnote: some View {
         Text("Applied to new renders only — existing clips aren't re-rendered. PNG / JPEG / WebP up to 2 MB.")
             .font(.caption2)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(Color.textSecondary.opacity(0.6))
     }
 
     // MARK: - Behaviour

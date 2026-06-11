@@ -115,7 +115,7 @@ struct ChannelsView: View {
                     .font(.callout.weight(.semibold))
                 Text("Connect channels anyway — you'll be prompted to upgrade when you post.")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
             Spacer(minLength: 4)
         }
@@ -155,13 +155,13 @@ struct ChannelsView: View {
                             Text(needsReconnect ? "Token expiring — reconnect" :
                                  (acct.username.map { "@\($0)" } ?? "Connected"))
                                 .font(.caption)
-                                .foregroundStyle(needsReconnect ? .orange : .secondary)
+                                .foregroundStyle(needsReconnect ? .orange : .textSecondary)
                                 .lineLimit(1)
                         }
                     } else {
                         Text("Not connected")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                     }
                 }
                 Spacer(minLength: 4)
@@ -169,7 +169,7 @@ struct ChannelsView: View {
 
             Text(platform.marketingTagline)
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
 
             HStack(spacing: 10) {
                 if let acct = connected {
@@ -182,7 +182,7 @@ struct ChannelsView: View {
                             .padding(.vertical, 10)
                             .background(Color.cardBackground)
                             .clipShape(.capsule)
-                            .overlay(Capsule().stroke(Color.secondary.opacity(0.35), lineWidth: 0.8))
+                            .overlay(Capsule().stroke(Color.hairline, lineWidth: 0.8))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Disconnect \(platform.displayName)")
@@ -252,7 +252,7 @@ struct ChannelsView: View {
                 .stroke(
                     LinearGradient(
                         colors: connected != nil ? [accent.opacity(0.55), accent.opacity(0.15)]
-                                                  : [Color.white.opacity(0.05), Color.white.opacity(0.0)],
+                                                  : [Color.hairline, Color.hairline.opacity(0.4)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -271,7 +271,7 @@ struct ChannelsView: View {
                 .foregroundStyle(.brand)
             Text("ClipForge uses official OAuth from each platform. We never store your password — only a scoped publishing token we can revoke any time. Disconnecting here removes the token immediately and blocks any further posts.")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)

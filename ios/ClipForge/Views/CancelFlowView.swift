@@ -70,11 +70,12 @@ struct CancelFlowView: View {
                 .padding(.top, 10)
             Text("Wait — keep going for less")
                 .font(.title.bold())
+                .foregroundStyle(.textPrimary)
                 .multilineTextAlignment(.center)
                 .minimumScaleFactor(0.85)
             Text(persuasionCopy)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .padding(.horizontal)
         }
     }
@@ -91,10 +92,10 @@ struct CancelFlowView: View {
         if let renews = rc.plusRenewsAt {
             HStack(spacing: 10) {
                 Image(systemName: "calendar")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                 Text("Your plan currently renews \(renews.formatted(date: .abbreviated, time: .omitted)).")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                 Spacer()
             }
             .padding()
@@ -112,7 +113,7 @@ struct CancelFlowView: View {
             )
             Text("Then renews at \(fullPriceString ?? "$14.99") unless you cancel.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .padding()
         .background(Color.cardBackground)
@@ -143,15 +144,16 @@ struct CancelFlowView: View {
             Task { await openManageSubscriptions() }
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.textSecondary)
     }
 
     private func offerCard(price: String, label: String, highlight: Bool) -> some View {
         VStack(spacing: 4) {
             Text(price)
                 .font(.system(size: 48, weight: .bold))
+                .foregroundStyle(.textPrimary)
                 .minimumScaleFactor(0.7)
-            Text(label).font(.callout).foregroundStyle(.secondary)
+            Text(label).font(.callout).foregroundStyle(.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding()
@@ -168,12 +170,12 @@ struct CancelFlowView: View {
         VStack(spacing: 8) {
             Text("Discounted subscription auto-renews monthly. Cancel any time in Settings → Apple ID → Subscriptions, at least 24 hours before the period ends. Payment is charged to your Apple ID account.")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .multilineTextAlignment(.center)
             HStack(spacing: 14) {
                 Link("Terms",
                      destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
-                Text("·").foregroundStyle(.tertiary)
+                Text("·").foregroundStyle(.textSecondary.opacity(0.6))
                 Link("Privacy",
                      destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/privacy") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
             }

@@ -54,7 +54,7 @@ struct NewProjectSheet: View {
                         Text("Balance")
                         Spacer()
                         Text("\(credits.balance) credits")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.textSecondary)
                     }
                     Button {
                         showPaywall = true
@@ -74,7 +74,7 @@ struct NewProjectSheet: View {
                                 .font(.callout.italic())
                             Text("Drop a video that fits this hook — we'll auto-pick the moment.")
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.textSecondary)
                         }
                     }
                 }
@@ -93,7 +93,7 @@ struct NewProjectSheet: View {
                                 url = ""
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(Color.textSecondary.opacity(0.6))
                             }
                             .buttonStyle(.borderless)
                         } else {
@@ -129,7 +129,7 @@ struct NewProjectSheet: View {
                         } label: {
                             HStack(alignment: .top, spacing: 10) {
                                 Image(systemName: thumbnailStyle == item.value ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(thumbnailStyle == item.value ? Color.brand : .secondary)
+                                    .foregroundStyle(thumbnailStyle == item.value ? Color.brand : Color.textSecondary)
                                     .padding(.top, 2)
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack(spacing: 6) {
@@ -138,11 +138,11 @@ struct NewProjectSheet: View {
                                             .font(.caption)
                                         Text(item.label)
                                             .font(.callout.weight(.semibold))
-                                            .foregroundStyle(.primary)
+                                            .foregroundStyle(.textPrimary)
                                     }
                                     Text(item.desc)
                                         .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(.textSecondary)
                                         .lineLimit(2)
                                 }
                                 Spacer(minLength: 0)

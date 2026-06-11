@@ -95,7 +95,7 @@ struct StatsSheet: View {
             if total == 0 {
                 Text("Connect a channel and publish a clip to see this chart light up.")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .frame(maxWidth: .infinity, minHeight: 100, alignment: .center)
                     .multilineTextAlignment(.center)
             } else {
@@ -121,7 +121,7 @@ struct StatsSheet: View {
             if buckets.isEmpty {
                 Text("Submit a project to see your niche breakdown.")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .frame(maxWidth: .infinity, minHeight: 100, alignment: .center)
                     .multilineTextAlignment(.center)
             } else {
@@ -147,7 +147,7 @@ struct StatsSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.callout.weight(.bold))
-                Text(subtitle).font(.caption2).foregroundStyle(.secondary)
+                Text(subtitle).font(.caption2).foregroundStyle(.textSecondary)
             }
             content()
         }
