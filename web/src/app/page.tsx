@@ -133,23 +133,17 @@ export default function LandingPage() {
               Run out of credits before the next refill? Plus members can top up instantly inside the app. One-time consumable purchases — credits never auto-renew, never expire.
             </p>
           </div>
-          <div className="mx-auto mt-6 grid max-w-2xl gap-4 md:grid-cols-3">
+          <div className="mx-auto mt-6 grid max-w-md gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-border/50 bg-card/40 p-4 text-center">
               <div className="text-2xl font-semibold">+10</div>
-              <div className="text-xs text-muted-foreground">Booster</div>
-              <div className="mt-2 text-lg font-bold">$9.99</div>
+              <div className="text-xs text-muted-foreground">Top-up</div>
+              <div className="mt-2 text-sm font-medium text-muted-foreground">In-app price</div>
             </div>
             <div className="rounded-xl border border-brand bg-brand/5 p-4 text-center">
-              <div className="text-2xl font-semibold">+30</div>
-              <div className="text-xs text-muted-foreground">Power</div>
-              <div className="mt-2 text-lg font-bold">$19.99</div>
-              <div className="mt-1 text-xs text-brand">most popular</div>
-            </div>
-            <div className="rounded-xl border border-border/50 bg-card/40 p-4 text-center">
-              <div className="text-2xl font-semibold">+80</div>
-              <div className="text-xs text-muted-foreground">Pro</div>
-              <div className="mt-2 text-lg font-bold">$49.99</div>
-              <div className="mt-1 text-xs text-muted-foreground">$0.62 / credit</div>
+              <div className="text-2xl font-semibold">+20</div>
+              <div className="text-xs text-muted-foreground">Value</div>
+              <div className="mt-2 text-sm font-medium text-muted-foreground">In-app price</div>
+              <div className="mt-1 text-xs text-brand">best value</div>
             </div>
           </div>
           <p className="mt-4 text-center text-xs text-muted-foreground">
@@ -255,12 +249,11 @@ function Feature({ icon, title, body, badge }: { icon: React.ReactNode; title: s
   );
 }
 
-type BillingPeriod = "weekly" | "monthly" | "yearly";
+type BillingPeriod = "weekly" | "monthly";
 
 function PricingTabs() {
-  // Default to yearly — best per-credit deal, highest LTV, anchors the
-  // visitor on the largest commitment first.
-  const [period, setPeriod] = useState<BillingPeriod>("yearly");
+  // Monthly is the anchor — the best-value plan that's actually purchasable.
+  const [period, setPeriod] = useState<BillingPeriod>("monthly");
 
   const free = {
     name: "Free",
@@ -281,8 +274,6 @@ function PricingTabs() {
     weeklyCredits: "10 credits / week",
     monthlyPrice: "$14.99",
     monthlyCredits: "40 credits / month",
-    yearlyPrice: "$59.99",
-    yearlyCredits: "500 credits / year",
     body: "Everything unlocked.",
     features: [
       "No watermark",
@@ -301,12 +292,9 @@ function PricingTabs() {
     highlight: true,
   };
 
-  const priceFor = (p: BillingPeriod) =>
-    p === "weekly" ? plus.weeklyPrice : p === "monthly" ? plus.monthlyPrice : plus.yearlyPrice;
-  const creditsFor = (p: BillingPeriod) =>
-    p === "weekly" ? plus.weeklyCredits : p === "monthly" ? plus.monthlyCredits : plus.yearlyCredits;
-  const periodLabelFor = (p: BillingPeriod) =>
-    p === "weekly" ? "/wk" : p === "monthly" ? "/mo" : "/yr";
+  const priceFor = (p: BillingPeriod) => (p === "weekly" ? plus.weeklyPrice : plus.monthlyPrice);
+  const creditsFor = (p: BillingPeriod) => (p === "weekly" ? plus.weeklyCredits : plus.monthlyCredits);
+  const periodLabelFor = (p: BillingPeriod) => (p === "weekly" ? "/wk" : "/mo");
 
   return (
     <>
@@ -330,19 +318,6 @@ function PricingTabs() {
           }`}
         >
           Monthly
-        </button>
-        <button
-          type="button"
-          onClick={() => setPeriod("yearly")}
-          aria-pressed={period === "yearly"}
-          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
-            period === "yearly" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Yearly
-          <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-bold text-brand">
-            Best value
-          </span>
         </button>
       </div>
 
@@ -371,10 +346,9 @@ function PricingTabs() {
         <span className="font-semibold text-foreground">$12.99/mo</span> instead — win-back offer.
       </p>
       <p className="mt-2 text-center text-xs text-muted-foreground">
-        Need more credits in a hurry? Plus members can grab{" "}
-        <span className="text-foreground">Booster +10 ($9.99)</span>,{" "}
-        <span className="text-foreground">Power +30 ($19.99)</span> or{" "}
-        <span className="text-foreground">Pro +80 ($49.99)</span> any time — never expires.
+        Need more credits in a hurry? Plus members can grab a{" "}
+        <span className="text-foreground">+10</span> or{" "}
+        <span className="text-foreground">+20</span> top-up inside the app any time — credits never expire.
       </p>
     </>
   );

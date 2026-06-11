@@ -10,15 +10,15 @@ import { createClient } from "@/lib/supabase/server";
 // about — so a successful payment granted ZERO credits and never set the tier
 // ("paid money grants nothing"). Our real model is a single Plus subscription
 // + consumable credit packs. Keep this allowlist in sync with the webhook.
+// Only products that actually exist in App Store Connect / RevenueCat.
 const ALLOWED_PRODUCTS = new Set<string>([
   // Plus subscriptions (set tier=starter + grant period credits)
   "clipforge_plus_weekly",
   "clipforge_plus_monthly",
-  "clipforge_plus_yearly",
+  "clipforge_plus_monthly_retention",
   // Consumable credit packs (grant credits, no tier change)
-  "clipforge_credits_booster",
-  "clipforge_credits_power",
-  "clipforge_credits_pro",
+  "clipforge_credits_10",
+  "clipforge_credits_20",
 ]);
 
 export async function GET(req: NextRequest) {

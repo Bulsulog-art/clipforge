@@ -15,14 +15,6 @@ const PLUS_PLANS = [
     highlight: true,
   },
   {
-    product: "clipforge_plus_yearly",
-    name: "Plus Yearly",
-    price: "$59.99",
-    cadence: "/yr",
-    credits: "500 credits / year",
-    note: "Best value — ~$0.12/credit",
-  },
-  {
     product: "clipforge_plus_weekly",
     name: "Plus Weekly",
     price: "$5.99",
@@ -42,9 +34,8 @@ const PLUS_FEATURES = [
 ];
 
 const CREDIT_PACKS = [
-  { product: "clipforge_credits_booster", name: "Booster", price: "$9.99", credits: 10 },
-  { product: "clipforge_credits_power", name: "Power", price: "$19.99", credits: 30 },
-  { product: "clipforge_credits_pro", name: "Pro Pack", price: "$49.99", credits: 80, best: true },
+  { product: "clipforge_credits_10", name: "Top-up", price: "In-app", credits: 10 },
+  { product: "clipforge_credits_20", name: "Value", price: "In-app", credits: 20, best: true },
 ];
 
 export default async function BillingPage() {
@@ -111,7 +102,6 @@ export default async function BillingPage() {
                   <span className="text-base font-normal text-muted-foreground">{p.cadence}</span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{p.credits}</p>
-                {p.note && <p className="mt-1 text-xs text-brand">{p.note}</p>}
                 <a
                   href={`/api/billing/checkout?product=${p.product}`}
                   className={`mt-5 block rounded-full px-4 py-2.5 text-center text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${

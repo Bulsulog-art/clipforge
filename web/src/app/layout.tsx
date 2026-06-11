@@ -54,7 +54,6 @@ const JSON_LD = {
     { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
     { "@type": "Offer", name: "Plus (weekly)", price: "5.99", priceCurrency: "USD" },
     { "@type": "Offer", name: "Plus (monthly)", price: "14.99", priceCurrency: "USD" },
-    { "@type": "Offer", name: "Plus (yearly)", price: "59.99", priceCurrency: "USD" },
   ],
   publisher: { "@type": "Organization", name: "Bulsu Labs", url: "https://bulsulabs.com" },
 };
