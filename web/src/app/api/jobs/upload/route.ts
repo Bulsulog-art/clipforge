@@ -31,6 +31,12 @@ export async function POST(req: Request) {
   const language = String(form.get("language") ?? "en");
   // Optional ClipAnything brief — only clip moments matching this request.
   const clipPrompt = String(form.get("prompt") ?? "").trim().slice(0, 280);
+  // Optional caption style.
+  const CAPTION_STYLES = ["bold-pop", "clean", "neon", "hype", "minimal"] as const;
+  const rawCaptionStyle = String(form.get("captionStyle") ?? "");
+  const captionStyle = (CAPTION_STYLES as readonly string[]).includes(rawCaptionStyle)
+    ? rawCaptionStyle
+    : undefined;
   // Optional thumbnail style. Worker switches FFmpeg recipe on this.
   const rawThumbStyle = String(form.get("thumbnailStyle") ?? "");
   const thumbnailStyle: "mrbeast" | "cinematic" | "minimal" | undefined =
@@ -62,6 +68,7 @@ export async function POST(req: Request) {
       title: file.name,
       niche, language,
       clip_prompt: clipPrompt || null,
+      caption_style: captionStyle ?? null,
       status: "queued",
     })
     .select("id")
@@ -91,6 +98,7 @@ export async function POST(req: Request) {
       niche,
       language,
       clipPrompt: clipPrompt || undefined,
+      captionStyle,
       thumbnailStyle,
     },
     { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },

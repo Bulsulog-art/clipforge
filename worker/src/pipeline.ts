@@ -24,6 +24,8 @@ type Payload = {
    * clips matching the user's request ("every time I mention pricing").
    */
   clipPrompt?: string;
+  /** Caption style id (bold-pop | clean | neon | hype | minimal). */
+  captionStyle?: string;
   /**
    * User-picked thumbnail style. Switches the FFmpeg compose recipe in
    * `generateThumbnail`. Default `mrbeast` matches the prior behaviour.
@@ -226,6 +228,7 @@ export async function runVideoPipeline(p: Payload) {
           moment: m,
           transcript,
           niche: p.niche ?? "default",
+          captionStyle: p.captionStyle,
           workDir: work,
           // When custom branding is set, suppress the default outro/wordmark
           // so the user's logo isn't fighting our own.

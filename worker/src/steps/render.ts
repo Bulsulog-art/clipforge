@@ -16,6 +16,8 @@ type Args = {
   moment: Moment;
   transcript: Transcript;
   niche: string;
+  /** Caption style id (bold-pop | clean | neon | hype | minimal). */
+  captionStyle?: string;
   workDir: string;
   /** Free tier renders include the ClipForge watermark in the corner. */
   watermark?: boolean;
@@ -51,7 +53,7 @@ export async function renderClip(a: Args): Promise<RenderResult> {
   await Promise.all([
     fs.writeFile(
       captionFile,
-      buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end),
+      buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle),
     ),
     fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche)),
   ]);

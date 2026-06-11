@@ -18,6 +18,7 @@ export default function NewProjectPage() {
   const [niche, setNiche] = useState("motivation");
   const [language, setLanguage] = useState("en");
   const [clipPrompt, setClipPrompt] = useState("");
+  const [captionStyle, setCaptionStyle] = useState("bold-pop");
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
@@ -29,7 +30,7 @@ export default function NewProjectPage() {
     const res = await fetch("/api/jobs", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ sourceType: "youtube", sourceUrl: url, niche, language, prompt: clipPrompt || undefined }),
+      body: JSON.stringify({ sourceType: "youtube", sourceUrl: url, niche, language, prompt: clipPrompt || undefined, captionStyle }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -48,6 +49,7 @@ export default function NewProjectPage() {
     form.append("file", file);
     form.append("niche", niche);
     form.append("language", language);
+    form.append("captionStyle", captionStyle);
     if (clipPrompt.trim()) form.append("prompt", clipPrompt.trim());
     const res = await fetch("/api/jobs/upload", { method: "POST", body: form });
     setLoading(false);
@@ -149,6 +151,32 @@ export default function NewProjectPage() {
           <p className="mt-1.5 text-xs text-muted-foreground">
             Leave empty and ClipForge finds your most viral moments automatically. Add a brief to clip exactly what you want.
           </p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Caption style</label>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {[
+              { id: "bold-pop", label: "Bold Pop" },
+              { id: "clean", label: "Clean" },
+              { id: "neon", label: "Neon" },
+              { id: "hype", label: "HYPE" },
+              { id: "minimal", label: "Minimal" },
+            ].map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setCaptionStyle(s.id)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  captionStyle === s.id
+                    ? "bg-brand text-white shadow-sm shadow-brand/30"
+                    : "border border-border bg-card text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <button

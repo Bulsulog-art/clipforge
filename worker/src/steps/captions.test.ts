@@ -61,6 +61,48 @@ describe("captions/karaoke", () => {
   });
 });
 
+describe("captions/style library", () => {
+  const styleSize = (id: string) => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, id);
+    return ass.match(/Style: Caption,Inter Bold,(\d+),/)?.[1];
+  };
+
+  test("each style renders a distinct typographic treatment", () => {
+    // bold-pop 84, clean 76, neon 82, hype 94, minimal 72 — all different sizes
+    const sizes = ["bold-pop", "clean", "neon", "hype", "minimal"].map(styleSize);
+    expect(new Set(sizes).size).toBe(5);
+  });
+
+  test("hype style upper-cases the caption words", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "hype");
+    expect(ass).toContain("SECONDS");
+    expect(ass).not.toMatch(/\bseconds\b/);
+  });
+
+  test("non-hype styles keep original casing", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "clean");
+    expect(ass).toContain("seconds");
+  });
+
+  test("minimal style drops the outline (Outline=0)", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "minimal");
+    // …Shadow tuple: ",1,0,4,2," → BorderStyle=1, Outline=0, Shadow=4
+    expect(ass).toMatch(/,1,0,4,2,/);
+  });
+
+  test("neon style paints the outline with the niche accent (not black)", () => {
+    const neon = buildKaraokeASS(fakeWords, "motivation", 10, 14, "neon");
+    const bold = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop");
+    // bold-pop outlines black (&H00000000); neon outlines the accent → differs
+    expect(neon).not.toContain("&H00000000,&H64000000");
+    expect(bold).toContain("&H00000000,&H64000000");
+  });
+
+  test("unknown style id falls back to the default (bold-pop, size 84)", () => {
+    expect(styleSize("does-not-exist")).toBe("84");
+  });
+});
+
 describe("captions/hook", () => {
   test("hook fits at top with pop animation tags", () => {
     const ass = buildHookASS("This will change everything you know", 8, "motivation");

@@ -12,6 +12,45 @@ const NICHE_STYLES: Record<string, { fill: string; outline: string; highlight: s
   default:    { fill: "FFFFFF", outline: "000000", highlight: "FF3366" },
 };
 
+// Caption STYLE library. The niche picks the accent COLOR (brand identity);
+// the style controls the TYPOGRAPHY (font weight, size, outline, case, halo).
+// They compose: a "finance / neon" clip and a "comedy / hype" clip look
+// genuinely different — the dozens-of-styles surface every competitor leads on,
+// done with robust ASS primitives (no fragile per-word animation to break a
+// render we can't eyeball headlessly).
+export type CaptionStyleId = "bold-pop" | "clean" | "neon" | "hype" | "minimal";
+
+type CaptionStyleDef = {
+  fontName: string;
+  fontSize: number;
+  outlineWidth: number;
+  shadow: number;
+  uppercase: boolean;
+  /** Use the niche accent as the OUTLINE colour → glowing neon halo. */
+  outlineIsAccent: boolean;
+  /** Force a fill colour regardless of niche (else niche fill is used). */
+  fillOverride?: string;
+};
+
+const CAPTION_STYLES: Record<CaptionStyleId, CaptionStyleDef> = {
+  // Punchy default — thick black outline, big, the classic TikTok look.
+  "bold-pop": { fontName: "Inter Bold", fontSize: 84, outlineWidth: 6, shadow: 2, uppercase: false, outlineIsAccent: false },
+  // Understated — thin outline, smaller, for talking-head/educational.
+  "clean":    { fontName: "Inter Bold", fontSize: 76, outlineWidth: 2, shadow: 1, uppercase: false, outlineIsAccent: false },
+  // Glowing neon halo in the accent colour, white fill, no drop shadow.
+  "neon":     { fontName: "Inter Bold", fontSize: 82, outlineWidth: 5, shadow: 0, uppercase: false, outlineIsAccent: true, fillOverride: "FFFFFF" },
+  // Loud — ALL CAPS, oversized, heavy outline + shadow. Comedy/hype energy.
+  "hype":     { fontName: "Inter Bold", fontSize: 94, outlineWidth: 7, shadow: 3, uppercase: true,  outlineIsAccent: false },
+  // Elegant — no outline, soft drop shadow only, restrained size.
+  "minimal":  { fontName: "Inter Bold", fontSize: 72, outlineWidth: 0, shadow: 4, uppercase: false, outlineIsAccent: false },
+};
+
+export const DEFAULT_CAPTION_STYLE: CaptionStyleId = "bold-pop";
+
+export function resolveCaptionStyle(id?: string): CaptionStyleDef {
+  return CAPTION_STYLES[id as CaptionStyleId] ?? CAPTION_STYLES[DEFAULT_CAPTION_STYLE];
+}
+
 const SAFE_AREA = {
   // 9:16 (1080×1920): keep captions ~25% from bottom, away from TikTok UI overlay
   marginTop: 720,
@@ -27,8 +66,13 @@ export function buildKaraokeASS(
   niche: string,
   startSec: number,
   endSec: number,
+  captionStyleId?: string,
 ): string {
-  const style = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
+  const nicheStyle = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
+  const cap = resolveCaptionStyle(captionStyleId);
+  const fill = cap.fillOverride ?? nicheStyle.fill;
+  const outline = cap.outlineIsAccent ? nicheStyle.highlight : nicheStyle.outline;
+
   const filtered = words
     .filter((w) => w.start >= startSec - 0.05 && w.end <= endSec + 0.05)
     .map((w) => ({
@@ -40,8 +84,8 @@ export function buildKaraokeASS(
 
   const phrases = chunkPhrases(filtered);
 
-  const header = assHeader(style);
-  const events = phrases.map((p) => karaokeLine(p, style.highlight)).join("\n");
+  const header = assHeader({ fill, outline }, cap);
+  const events = phrases.map((p) => karaokeLine(p, nicheStyle.highlight, cap.uppercase)).join("\n");
   return `${header}\n${events}\n`;
 }
 
@@ -72,6 +116,7 @@ function chunkPhrases(words: { word: string; start: number; end: number }[]) {
 function karaokeLine(
   p: { start: number; end: number; words: { word: string; start: number; end: number }[] },
   highlightHex: string,
+  uppercase: boolean,
 ) {
   // ASS karaoke: each word wrapped in {\\k<centisec>} with active color override
   // We use {\\1c&Hbbggrr&} to change PrimaryColour mid-line
@@ -80,7 +125,8 @@ function karaokeLine(
     .map((w, i) => {
       const centisecs = Math.max(1, Math.round((w.end - w.start) * 100));
       const next = p.words[i + 1];
-      const safe = next ? `{\\1c&H${bgr}&}${escape(w.word)}{\\1c&HFFFFFF&}` : escape(w.word);
+      const text = escape(uppercase ? w.word.toUpperCase() : w.word);
+      const safe = next ? `{\\1c&H${bgr}&}${text}{\\1c&HFFFFFF&}` : text;
       return `{\\k${centisecs}}${safe}`;
     })
     .join(" ");
@@ -107,9 +153,12 @@ function hexToBgr(hex: string) {
   return `${b}${g}${r}`;
 }
 
-function assHeader(style: { fill: string; outline: string }) {
-  const fillBgr = hexToBgr(style.fill);
-  const outlineBgr = hexToBgr(style.outline);
+function assHeader(
+  colors: { fill: string; outline: string },
+  cap: CaptionStyleDef,
+) {
+  const fillBgr = hexToBgr(colors.fill);
+  const outlineBgr = hexToBgr(colors.outline);
   return `[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
@@ -119,7 +168,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,Inter Bold,84,&H00${fillBgr},&H000000FF,&H00${outlineBgr},&H64000000,-1,0,0,0,100,100,0,0,1,6,2,2,80,80,${SAFE_AREA.marginV},1
+Style: Caption,${cap.fontName},${cap.fontSize},&H00${fillBgr},&H000000FF,&H00${outlineBgr},&H64000000,-1,0,0,0,100,100,0,0,1,${cap.outlineWidth},${cap.shadow},2,80,80,${SAFE_AREA.marginV},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text`;
