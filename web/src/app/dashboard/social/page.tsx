@@ -10,7 +10,7 @@ const PLATFORMS: { id: Platform; name: string; icon: React.ReactNode; available:
   { id: "tiktok", name: "TikTok", icon: <Music className="h-5 w-5" />, available: true },
   { id: "instagram", name: "Instagram Reels", icon: <Camera className="h-5 w-5" />, available: true },
   { id: "youtube", name: "YouTube Shorts", icon: <Play className="h-5 w-5" />, available: true },
-  { id: "x", name: "X (Twitter)", icon: <Bolt className="h-5 w-5" />, available: false },
+  { id: "x", name: "X (Twitter)", icon: <Bolt className="h-5 w-5" />, available: true },
 ];
 
 export default async function SocialPage({
