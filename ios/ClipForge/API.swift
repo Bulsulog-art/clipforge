@@ -528,6 +528,45 @@ final class ClipForgeAPI {
         return try JSONDecoder().decode(Resp.self, from: data).publishes
     }
 
+    // MARK: - Analytics
+
+    struct AnalyticsSummary: Decodable {
+        struct Totals: Decodable {
+            let views: Int; let likes: Int; let comments: Int; let shares: Int
+            let posts: Int; let engagementRate: Double
+        }
+        struct PlatformAgg: Decodable, Identifiable {
+            let platform: String; let views: Int; let likes: Int; let comments: Int
+            let shares: Int; let posts: Int
+            var id: String { platform }
+        }
+        struct TopPost: Decodable, Identifiable {
+            let publishId: String; let platform: String; let url: String?
+            let hook: String?; let viralScore: Double?
+            let views: Int; let likes: Int; let comments: Int; let shares: Int
+            var id: String { publishId }
+        }
+        let totals: Totals
+        let byPlatform: [PlatformAgg]
+        let topPosts: [TopPost]
+        let updatedAt: String?
+    }
+
+    /// Real cross-platform performance for the signed-in creator. Backed by the
+    /// metrics snapshots the worker collects (GET /api/analytics).
+    func fetchAnalytics() async throws -> AnalyticsSummary {
+        guard let token = SupabaseService.shared.session?.accessToken else {
+            throw Error.unauthorized
+        }
+        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/analytics"))
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw Error.network
+        }
+        return try JSONDecoder().decode(AnalyticsSummary.self, from: data)
+    }
+
     /// Cancel a scheduled (status=pending) publish. Removes the BullMQ
     /// delayed job and marks the row as failed with "Cancelled by user".
     func cancelPublish(id: String) async throws {

@@ -16,6 +16,7 @@ struct StatsSheet: View {
     @State private var clips: [Clip] = []
     @State private var jobs: [VideoJob] = []
     @State private var publishes: [ClipForgeAPI.PublishHistoryRow] = []
+    @State private var analytics: ClipForgeAPI.AnalyticsSummary?
     @State private var loading = true
     @State private var error: String?
 
@@ -28,6 +29,9 @@ struct StatsSheet: View {
                     } else if let err = error {
                         Text(err).font(.callout).foregroundStyle(.red)
                     } else {
+                        if let a = analytics, a.totals.posts > 0 {
+                            realPerformanceCard(a)
+                        }
                         clipsPerDayCard
                         viralScoreCard
                         publishStatusCard
@@ -50,6 +54,47 @@ struct StatsSheet: View {
     }
 
     // MARK: - Cards
+
+    private func realPerformanceCard(_ a: ClipForgeAPI.AnalyticsSummary) -> some View {
+        chartCard(
+            title: "Real performance",
+            subtitle: "\(a.totals.posts) posts · \(Int((a.totals.engagementRate * 100).rounded()))% engagement"
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    statTile("Views", a.totals.views)
+                    statTile("Likes", a.totals.likes)
+                    statTile("Shares", a.totals.shares)
+                }
+                ForEach(Array(a.topPosts.prefix(3))) { p in
+                    HStack {
+                        Text(p.hook ?? "Clip")
+                            .font(.caption).lineLimit(1).foregroundStyle(.textPrimary)
+                        Spacer()
+                        Text("\(compactNum(p.views)) views")
+                            .font(.caption.weight(.semibold)).foregroundStyle(.brand)
+                    }
+                }
+            }
+        }
+    }
+
+    private func statTile(_ label: String, _ value: Int) -> some View {
+        VStack(spacing: 2) {
+            Text(compactNum(value)).font(.title3.weight(.bold)).foregroundStyle(.textPrimary)
+            Text(label).font(.caption2).foregroundStyle(.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(Color.appBackground)
+        .clipShape(.rect(cornerRadius: 10))
+    }
+
+    private func compactNum(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }
+        if n >= 1_000 { return String(format: "%.1fK", Double(n) / 1_000) }
+        return "\(n)"
+    }
 
     private var clipsPerDayCard: some View {
         let buckets = clipsPerDay()
@@ -268,9 +313,11 @@ struct StatsSheet: View {
             async let clipsT = ClipForgeAPI.shared.fetchAllClips()
             async let jobsT = ClipForgeAPI.shared.fetchJobs()
             async let pubsT = ClipForgeAPI.shared.fetchPublishHistory()
+            async let analyticsT = ClipForgeAPI.shared.fetchAnalytics()
             self.clips = (try? await clipsT) ?? []
             self.jobs = (try? await jobsT) ?? []
             self.publishes = (try? await pubsT) ?? []
+            self.analytics = try? await analyticsT
         }
     }
 }
