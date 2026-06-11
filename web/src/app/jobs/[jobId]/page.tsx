@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FallbackLanding } from "@/app/clips/[clipId]/page";
+import { FallbackLanding } from "@/components/fallback-landing";
 
 /**
  * Web fallback for `https://clipforge.bulsulabs.xyz/jobs/<id>` — see
