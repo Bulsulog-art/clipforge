@@ -103,6 +103,37 @@ describe("captions/style library", () => {
   });
 });
 
+describe("captions/aspect ratio", () => {
+  test("default (no aspect arg) is byte-for-byte 9:16 — 1080×1920, marginV 360", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14);
+    expect(ass).toContain("PlayResX: 1080");
+    expect(ass).toContain("PlayResY: 1920");
+    expect(ass).toContain(",80,80,360,1"); // marginV regression guard
+  });
+
+  test("1:1 → square canvas", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", undefined, "1:1");
+    expect(ass).toContain("PlayResX: 1080");
+    expect(ass).toContain("PlayResY: 1080");
+  });
+
+  test("16:9 → landscape canvas", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", undefined, "16:9");
+    expect(ass).toContain("PlayResX: 1920");
+    expect(ass).toContain("PlayResY: 1080");
+  });
+
+  test("hook ASS respects the aspect too", () => {
+    const ass = buildHookASS("Big news here", 8, "tech", "1:1");
+    expect(ass).toContain("PlayResY: 1080");
+  });
+
+  test("unknown aspect falls back to 9:16", () => {
+    const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", undefined, "21:9");
+    expect(ass).toContain("PlayResY: 1920");
+  });
+});
+
 describe("captions/keyword highlight", () => {
   test("scales up a keyword word", () => {
     const ass = buildKaraokeASS(fakeWords, "motivation", 10, 14, "bold-pop", ["seconds"]);

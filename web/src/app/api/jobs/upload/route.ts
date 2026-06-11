@@ -37,6 +37,10 @@ export async function POST(req: Request) {
   const captionStyle = (CAPTION_STYLES as readonly string[]).includes(rawCaptionStyle)
     ? rawCaptionStyle
     : undefined;
+  // Optional output aspect.
+  const ASPECTS = ["9:16", "1:1", "16:9"] as const;
+  const rawAspect = String(form.get("aspect") ?? "");
+  const aspect = (ASPECTS as readonly string[]).includes(rawAspect) ? rawAspect : undefined;
   // Optional thumbnail style. Worker switches FFmpeg recipe on this.
   const rawThumbStyle = String(form.get("thumbnailStyle") ?? "");
   const thumbnailStyle: "mrbeast" | "cinematic" | "minimal" | undefined =
@@ -69,6 +73,7 @@ export async function POST(req: Request) {
       niche, language,
       clip_prompt: clipPrompt || null,
       caption_style: captionStyle ?? null,
+      aspect_ratio: aspect ?? null,
       status: "queued",
     })
     .select("id")
@@ -99,6 +104,7 @@ export async function POST(req: Request) {
       language,
       clipPrompt: clipPrompt || undefined,
       captionStyle,
+      aspect,
       thumbnailStyle,
     },
     { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },

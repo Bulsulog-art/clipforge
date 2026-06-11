@@ -28,6 +28,8 @@ type Payload = {
   clipPrompt?: string;
   /** Caption style id (bold-pop | clean | neon | hype | minimal). */
   captionStyle?: string;
+  /** Output aspect: 9:16 (default) | 1:1 | 16:9. */
+  aspect?: string;
   /**
    * User-picked thumbnail style. Switches the FFmpeg compose recipe in
    * `generateThumbnail`. Default `mrbeast` matches the prior behaviour.
@@ -237,6 +239,7 @@ export async function runVideoPipeline(p: Payload) {
           transcript,
           niche: p.niche ?? "default",
           captionStyle: p.captionStyle ?? tpl.captionStyle,
+          aspect: p.aspect,
           // Off by default — flip JUMPCUT_ENABLED=true to render-test silence removal.
           jumpCut: process.env.JUMPCUT_ENABLED === "true",
           workDir: work,

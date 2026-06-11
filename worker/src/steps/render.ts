@@ -6,6 +6,7 @@ import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
 import { buildKaraokeASS, buildHookASS } from "./captions.js";
 import { planJumpCut, selectExpr } from "./jumpcut.js";
+import { resolveAspect } from "../aspect.js";
 import type { Moment } from "./score.js";
 import type { Transcript } from "./transcribe.js";
 
@@ -21,6 +22,8 @@ type Args = {
   captionStyle?: string;
   /** Remove internal silences ("jump cuts"). Off by default; render-test gated. */
   jumpCut?: boolean;
+  /** Output aspect: 9:16 (default) | 1:1 | 16:9. */
+  aspect?: string;
   workDir: string;
   /** Free tier renders include the ClipForge watermark in the corner. */
   watermark?: boolean;
@@ -61,10 +64,10 @@ export async function renderClip(a: Args): Promise<RenderResult> {
     fs.writeFile(
       captionFile,
       plan
-        ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle, a.moment.keywords)
-        : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle, a.moment.keywords),
+        ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle, a.moment.keywords, a.aspect)
+        : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle, a.moment.keywords, a.aspect),
     ),
-    fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche)),
+    fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche, a.aspect)),
   ]);
 
   // 2) FFmpeg render: cut → scale → crop 9:16 → burn captions + hook → loudnorm
@@ -93,8 +96,7 @@ export async function renderClip(a: Args): Promise<RenderResult> {
   const audioJump = plan ? `aselect='${selectExpr(plan.segments)}',asetpts=N/SR/TB,` : "";
   const videoChain = [
     ...videoJump,
-    "scale=-2:1920:force_original_aspect_ratio=increase",
-    "crop=1080:1920",
+    resolveAspect(a.aspect).scaleCrop, // scale + centre-crop to the chosen aspect (default 9:16)
     `ass=${escapePath(captionFile)}`,
     `ass=${escapePath(hookFile)}`,
     ...(watermarkFilter ? [watermarkFilter] : []),

@@ -17,6 +17,7 @@ const Body = z.object({
   // ClipAnything-style brief: only clip moments matching this request.
   prompt: z.string().trim().max(280).optional(),
   captionStyle: z.enum(["bold-pop", "clean", "neon", "hype", "minimal"]).optional(),
+  aspect: z.enum(["9:16", "1:1", "16:9"]).optional(),
   bgMusic: z.boolean().optional().default(true),
   bgMusicMood: z
     .enum(["hype", "chill", "motivational", "dramatic", "lofi", "cinematic", "comedic"])
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
       language: body.language,
       clip_prompt: body.prompt || null,
       caption_style: body.captionStyle ?? null,
+      aspect_ratio: body.aspect ?? null,
       status: "queued",
       bg_music_enabled: body.bgMusic,
       bg_music_mood: body.bgMusicMood ?? null,
@@ -96,6 +98,7 @@ export async function POST(req: Request) {
       language: body.language,
       clipPrompt: body.prompt || undefined,
       captionStyle: body.captionStyle,
+      aspect: body.aspect,
       thumbnailStyle: body.thumbnailStyle,
     },
     { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },

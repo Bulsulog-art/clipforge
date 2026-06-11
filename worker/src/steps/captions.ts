@@ -1,4 +1,5 @@
 import type { Word } from "./transcribe.js";
+import { resolveAspect, type AspectSpec } from "../aspect.js";
 
 const NICHE_STYLES: Record<string, { fill: string; outline: string; highlight: string }> = {
   motivation: { fill: "FFFFFF", outline: "000000", highlight: "FF3366" },
@@ -51,11 +52,6 @@ export function resolveCaptionStyle(id?: string): CaptionStyleDef {
   return CAPTION_STYLES[id as CaptionStyleId] ?? CAPTION_STYLES[DEFAULT_CAPTION_STYLE];
 }
 
-const SAFE_AREA = {
-  // 9:16 (1080×1920): keep captions ~25% from bottom, away from TikTok UI overlay
-  marginTop: 720,
-  marginV: 360,
-};
 
 const PHRASE_WORDS = 4;     // word count per visible chunk
 const MIN_WORD_SEC = 0.18;  // smooth tiny words
@@ -68,9 +64,11 @@ export function buildKaraokeASS(
   endSec: number,
   captionStyleId?: string,
   keywords?: string[],
+  aspectId?: string,
 ): string {
   const nicheStyle = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
   const cap = resolveCaptionStyle(captionStyleId);
+  const aspect = resolveAspect(aspectId);
   const keywordSet = new Set((keywords ?? []).map((k) => normalizeKeyword(k)).filter(Boolean));
   const fill = cap.fillOverride ?? nicheStyle.fill;
   const outline = cap.outlineIsAccent ? nicheStyle.highlight : nicheStyle.outline;
@@ -86,7 +84,7 @@ export function buildKaraokeASS(
 
   const phrases = chunkPhrases(filtered);
 
-  const header = assHeader({ fill, outline }, cap);
+  const header = assHeader({ fill, outline }, cap, aspect);
   const events = phrases.map((p) => karaokeLine(p, nicheStyle.highlight, cap.uppercase, keywordSet)).join("\n");
   return `${header}\n${events}\n`;
 }
@@ -168,26 +166,28 @@ function hexToBgr(hex: string) {
 function assHeader(
   colors: { fill: string; outline: string },
   cap: CaptionStyleDef,
+  aspect: AspectSpec,
 ) {
   const fillBgr = hexToBgr(colors.fill);
   const outlineBgr = hexToBgr(colors.outline);
   return `[Script Info]
 ScriptType: v4.00+
-PlayResX: 1080
-PlayResY: 1920
+PlayResX: ${aspect.w}
+PlayResY: ${aspect.h}
 WrapStyle: 2
 ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,${cap.fontName},${cap.fontSize},&H00${fillBgr},&H000000FF,&H00${outlineBgr},&H64000000,-1,0,0,0,100,100,0,0,1,${cap.outlineWidth},${cap.shadow},2,80,80,${SAFE_AREA.marginV},1
+Style: Caption,${cap.fontName},${cap.fontSize},&H00${fillBgr},&H000000FF,&H00${outlineBgr},&H64000000,-1,0,0,0,100,100,0,0,1,${cap.outlineWidth},${cap.shadow},2,80,80,${aspect.captionMarginV},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text`;
 }
 
-export function buildHookASS(hook: string, durationSec: number, niche: string): string {
+export function buildHookASS(hook: string, durationSec: number, niche: string, aspectId?: string): string {
   const style = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
+  const aspect = resolveAspect(aspectId);
   const fillBgr = hexToBgr(style.fill);
   const outlineBgr = hexToBgr(style.outline);
   const highlightBgr = hexToBgr(style.highlight);
@@ -198,14 +198,14 @@ export function buildHookASS(hook: string, durationSec: number, niche: string): 
 
   return `[Script Info]
 ScriptType: v4.00+
-PlayResX: 1080
-PlayResY: 1920
+PlayResX: ${aspect.w}
+PlayResY: ${aspect.h}
 WrapStyle: 2
 ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Hook,Inter Bold,96,&H00${fillBgr},&H00${highlightBgr},&H00${outlineBgr},&H80000000,-1,0,0,0,100,100,0,0,1,8,3,8,80,80,${SAFE_AREA.marginTop},1
+Style: Hook,Inter Bold,96,&H00${fillBgr},&H00${highlightBgr},&H00${outlineBgr},&H80000000,-1,0,0,0,100,100,0,0,1,8,3,8,80,80,${aspect.hookMarginV},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
