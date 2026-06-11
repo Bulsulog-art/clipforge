@@ -74,7 +74,15 @@ struct RootView: View {
     }
 }
 
+/// Animated brand launch. A spring-revealed scissors "snips" in over a soft,
+/// breathing brand glow, the wordmark + tagline rise underneath, and three
+/// mini clip cards fan out — a 1-second visual of the whole product promise
+/// ("one video → clips") the moment the app opens.
 private struct LaunchSplashView: View {
+    @State private var appear = false
+    @State private var pulse = false
+    @State private var fan = false
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -82,15 +90,55 @@ private struct LaunchSplashView: View {
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            VStack(spacing: 14) {
-                Image(systemName: "scissors")
-                    .font(.system(size: 56, weight: .bold))
-                    .foregroundStyle(.brand)
-                Text("ClipForge").font(.title.bold())
-                ProgressView()
-                    .controlSize(.small)
-                    .padding(.top, 6)
+
+            // Breathing brand glow behind the mark.
+            Circle()
+                .fill(Color.brand.opacity(0.20))
+                .frame(width: 300, height: 300)
+                .blur(radius: 80)
+                .scaleEffect(pulse ? 1.12 : 0.84)
+                .opacity(pulse ? 0.9 : 0.5)
+
+            VStack(spacing: 18) {
+                ZStack {
+                    Image(systemName: "scissors")
+                        .font(.system(size: 60, weight: .bold))
+                        .foregroundStyle(LinearGradient(colors: [.brand, .brandGlow], startPoint: .top, endPoint: .bottom))
+                        .scaleEffect(appear ? 1 : 0.55)
+                        .rotationEffect(.degrees(appear ? 0 : -28))
+                        .opacity(appear ? 1 : 0)
+                        .shadow(color: .brand.opacity(0.45), radius: pulse ? 22 : 8)
+                }
+
+                VStack(spacing: 6) {
+                    Text("ClipForge")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundStyle(.textPrimary)
+                    Text("Long videos → viral clips")
+                        .font(.subheadline)
+                        .foregroundStyle(.textSecondary)
+                }
+                .opacity(appear ? 1 : 0)
+                .offset(y: appear ? 0 : 12)
+
+                // Mini clips fanning out — the "you get a dozen clips" idea.
+                HStack(spacing: 8) {
+                    ForEach(0..<3, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(LinearGradient(colors: [.brand.opacity(0.9), .brandGlow.opacity(0.7)], startPoint: .top, endPoint: .bottom))
+                            .frame(width: 26, height: 38)
+                            .rotationEffect(.degrees(fan ? Double(i - 1) * 12 : 0))
+                            .offset(x: fan ? CGFloat(i - 1) * 10 : 0)
+                            .opacity(fan ? 1 : 0)
+                    }
+                }
+                .padding(.top, 4)
             }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.62)) { appear = true }
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.7).delay(0.25)) { fan = true }
+            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) { pulse = true }
         }
     }
 }

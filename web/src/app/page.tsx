@@ -38,20 +38,26 @@ export default function LandingPage() {
       </nav>
 
       <section className="container py-20 text-center">
-        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur">
+        <div
+          className="mx-auto mb-6 inline-flex animate-slide-up items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur [animation-fill-mode:backwards]"
+        >
           <Sparkles className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
           AI viral clip studio · long video → a dozen ready-to-post clips
         </div>
-        <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
+        <h1
+          className="mx-auto max-w-4xl animate-slide-up text-5xl font-bold tracking-tight [animation-delay:80ms] [animation-fill-mode:backwards] md:text-7xl"
+        >
           One long video.<br />
           <span className="gradient-text">A dozen viral clips.</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+        <p
+          className="mx-auto mt-6 max-w-2xl animate-slide-up text-lg text-muted-foreground [animation-delay:160ms] [animation-fill-mode:backwards]"
+        >
           Drop a YouTube link or upload your podcast — ClipForge finds the moments people share,
           adds animated word-by-word captions and scroll-stopping hooks, then posts them to
           TikTok, Reels and Shorts on autopilot.
         </p>
-        <div className="mt-10 flex items-center justify-center gap-4">
+        <div className="mt-10 flex animate-slide-up items-center justify-center gap-4 [animation-delay:240ms] [animation-fill-mode:backwards]">
           <Link
             href="/signup"
             className="group flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-base font-medium text-white shadow-lg shadow-brand/30 outline-none transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40"
