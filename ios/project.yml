@@ -32,14 +32,19 @@ targets:
       path: ClipForge/Info.plist
       properties:
         CFBundleDisplayName: ClipForge
-        CFBundleShortVersionString: "2.0"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "1.0.1"
+        CFBundleVersion: "4"
         # Locales we ship Localizable.xcstrings translations for. Adding a
         # value here makes iOS render the localised UI when the user's
         # device language matches; unmatched strings fall back to en.
         CFBundleLocalizations: [en, tr, es]
         CFBundleDevelopmentRegion: en
         UILaunchScreen: {}
+        # Portrait-only vertical-video app. UIRequiresFullScreen opts out of iPad
+        # multitasking so Apple doesn't require all four orientations (validation 90474).
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown]
+        UIRequiresFullScreen: true
         NSCameraUsageDescription: "ClipForge needs camera access to record video for clips."
         NSPhotoLibraryUsageDescription: "ClipForge needs photo library access to import videos."
         NSPhotoLibraryAddUsageDescription: "ClipForge needs to save finished clips to your Photos library."
@@ -55,7 +60,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.clipforge
         SWIFT_VERSION: "5.10"
-        DEVELOPMENT_TEAM: ""    # fill from Apple Developer
+        DEVELOPMENT_TEAM: "YA6Y85MSY6"    # fill from Apple Developer
         CODE_SIGN_STYLE: Automatic
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -93,15 +98,15 @@ targets:
       path: ClipForgeWidgets/Info.plist
       properties:
         CFBundleDisplayName: ClipForge Widgets
-        CFBundleShortVersionString: "2.0"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "1.0.1"
+        CFBundleVersion: "4"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.clipforge.widgets
         SWIFT_VERSION: "5.10"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "YA6Y85MSY6"
         CODE_SIGN_STYLE: Automatic
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         SKIP_INSTALL: YES
@@ -120,8 +125,8 @@ targets:
       path: ClipForgeNotificationService/Info.plist
       properties:
         CFBundleDisplayName: ClipForge Push Service
-        CFBundleShortVersionString: "2.0"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "1.0.1"
+        CFBundleVersion: "4"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
@@ -129,7 +134,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.clipforge.pushservice
         SWIFT_VERSION: "5.10"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "YA6Y85MSY6"
         CODE_SIGN_STYLE: Automatic
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         SKIP_INSTALL: YES
@@ -159,8 +164,8 @@ targets:
       path: ClipForgeWatch/Info.plist
       properties:
         CFBundleDisplayName: ClipForge
-        CFBundleShortVersionString: "2.0"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "1.0.1"
+        CFBundleVersion: "4"
         CFBundleDevelopmentRegion: en
         WKApplication: true
         WKWatchOnly: false
@@ -170,7 +175,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.clipforge.watchkitapp
         SWIFT_VERSION: "5.10"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "YA6Y85MSY6"
         CODE_SIGN_STYLE: Automatic
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         TARGETED_DEVICE_FAMILY: "4"
@@ -195,8 +200,8 @@ targets:
       path: ClipForgeWatchWidgets/Info.plist
       properties:
         CFBundleDisplayName: ClipForge Watch Widgets
-        CFBundleShortVersionString: "2.0"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "1.0.1"
+        CFBundleVersion: "4"
         CFBundleDevelopmentRegion: en
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
@@ -204,7 +209,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.clipforge.watchkitapp.widgets
         SWIFT_VERSION: "5.10"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "YA6Y85MSY6"
         CODE_SIGN_STYLE: Automatic
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         SKIP_INSTALL: YES
