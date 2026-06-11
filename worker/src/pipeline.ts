@@ -9,6 +9,7 @@ import { scoreMoments } from "./steps/score.js";
 import { renderClip } from "./steps/render.js";
 import { generateThumbnail } from "./steps/thumbnail.js";
 import { pickTrack, downloadTrack, type MusicTrack } from "./steps/bg-music.js";
+import { resolveNicheTemplate } from "./niche-templates.js";
 import { sendPush } from "./push.js";
 
 type Payload = {
@@ -81,6 +82,8 @@ async function consumeCredits(userId: string, amount: number, reason: string, re
 
 export async function runVideoPipeline(p: Payload) {
   const work = await fs.mkdtemp(path.join(os.tmpdir(), `cf-${p.jobId}-`));
+  // Niche template = the smart defaults for any axis the user didn't pick.
+  const tpl = resolveNicheTemplate(p.niche);
   logger.info({ jobId: p.jobId, work, niche: p.niche }, "pipeline start");
 
   try {
@@ -198,7 +201,7 @@ export async function runVideoPipeline(p: Payload) {
         pickedTrack = await pickTrack({
           niche: p.niche ?? "default",
           durationSec: target,
-          mood: (jobRow?.bg_music_mood as string | null) ?? null,
+          mood: (jobRow?.bg_music_mood as string | null) ?? tpl.musicMood,
         });
         if (pickedTrack) {
           const dl = await downloadTrack(pickedTrack, work);
@@ -228,7 +231,7 @@ export async function runVideoPipeline(p: Payload) {
           moment: m,
           transcript,
           niche: p.niche ?? "default",
-          captionStyle: p.captionStyle,
+          captionStyle: p.captionStyle ?? tpl.captionStyle,
           workDir: work,
           // When custom branding is set, suppress the default outro/wordmark
           // so the user's logo isn't fighting our own.
@@ -250,7 +253,7 @@ export async function runVideoPipeline(p: Payload) {
             durationSec: render.durationSec,
             workDir: work,
             aiBackground: aiThumbnails,
-            style: p.thumbnailStyle ?? "mrbeast",
+            style: p.thumbnailStyle ?? tpl.thumbnailStyle,
           });
           thumbnailPath = thumb.storagePath;
         } catch (e) {

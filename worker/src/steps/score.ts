@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { z } from "zod";
 import type { Transcript } from "./transcribe.js";
+import { resolveNicheTemplate } from "../niche-templates.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -32,6 +33,7 @@ export async function scoreMoments(input: {
   const segments = buildSegments(input.transcript, input.minSec, input.maxSec);
 
   const promptBrief = (input.userPrompt ?? "").trim();
+  const hookTone = resolveNicheTemplate(input.niche).hookTone;
 
   const system = `You score short-form viral clip candidates for the "${input.niche}" niche.
 Return ONLY JSON matching this schema:
@@ -39,7 +41,7 @@ Return ONLY JSON matching this schema:
 
 Rules:
 - Pick the ${input.maxClips} highest-viral moments from the transcript.
-- A great hook is < 9 words, evokes curiosity/emotion, written like a TikTok caption.
+- A great hook is < 9 words, written like a TikTok caption. Hook tone for this niche: ${hookTone}.
 - Captions: snappy, niche-appropriate, ≤ 200 chars, no quotes around it.
 - Hashtags: 3–5, lowercase, no spaces, no #.
 - Scores reflect viral potential, share-ability, hook strength.
