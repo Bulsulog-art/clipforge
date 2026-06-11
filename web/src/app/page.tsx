@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Scissors, Send, BarChart3, Zap, Globe, Users2, Languages } from "lucide-react";
+import { ArrowRight, Sparkles, Scissors, Send, BarChart3, Zap, Globe } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -58,43 +58,43 @@ export default function LandingPage() {
 
       <section className="container py-20">
         <div className="mb-12 text-center">
-          <h2 className="text-4xl font-bold">Everything you need.</h2>
-          <p className="mt-2 text-muted-foreground">Klap + HeyGen + Reface — one app, one price.</p>
+          <h2 className="text-4xl font-bold">Everything you need to go viral.</h2>
+          <p className="mt-2 text-muted-foreground">Clip, caption, brand and post — one app, one price.</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
           <Feature
             icon={<Scissors />}
-            title="Viral moment detection"
-            body="Whisper transcribes, GPT-4o-mini scores. Top 8–30 moments become clips, sorted by viral potential."
+            title="Tell it what to clip"
+            body="Just say what you want — “every time I mention pricing”, “the funny bits” — and AI clips exactly that. Or leave it blank and it finds your most viral moments."
+            badge="NEW"
+          />
+          <Feature
+            icon={<BarChart3 />}
+            title="Viral score, not guesswork"
+            body="Whisper transcribes, GPT-4o-mini scores every moment for hook strength, retention and shareability. The winners rise to the top."
+          />
+          <Feature
+            icon={<Zap />}
+            title="Captions that stop the scroll"
+            body="Word-by-word animated captions, burned in automatically — in 5 styles: Bold Pop, Clean, Neon, HYPE and Minimal."
+            badge="NEW"
+          />
+          <Feature
+            icon={<Globe />}
+            title="Pick your niche, get a look"
+            body="Finance, comedy, fitness, tech… each niche gets its own caption style, thumbnail, music mood and hook voice — automatically, on brand."
+            badge="NEW"
           />
           <Feature
             icon={<Sparkles />}
             title="Mr.Beast-style thumbnails"
             body="Every clip gets a bold, niche-themed thumbnail with 3-layer glow text — no design skills required."
-            badge="NEW"
-          />
-          <Feature
-            icon={<Users2 />}
-            title="AI Face Swap"
-            body="Upload any portrait → replace the face in your clip. SwapTok-grade fun, viral K-factor through the roof."
-            badge="NEW · 2 cr"
-          />
-          <Feature
-            icon={<Languages />}
-            title="Translate to 15+ languages"
-            body="One clip, sold globally. Pro adds voice clone — same person, new language, mouth-synced."
-            badge="NEW · 2 cr"
           />
           <Feature
             icon={<Send />}
-            title="One-click distribution"
-            body="Connect TikTok, Instagram, YouTube, X. Schedule a week of content in 60 seconds."
-          />
-          <Feature
-            icon={<Zap />}
-            title="A/B hook testing"
-            body="Same clip, three hooks. We post all three, kill the losers automatically. Pro plan."
+            title="Post everywhere, one tap"
+            body="Send every clip to TikTok, Instagram Reels and YouTube Shorts — now, or scheduled to drip a week of content out."
           />
         </div>
       </section>
@@ -252,13 +252,14 @@ function PricingTabs() {
     body: "Everything unlocked.",
     features: [
       "No watermark",
-      "Animated word-by-word captions",
+      "Word-by-word captions · 5 styles",
+      "Prompt-driven clipping (clip anything)",
+      "Niche-native templates",
       "AI Face Swap (2 cr)",
       "AI Translation 15+ languages (2 cr)",
       "Voice clone (5 cr)",
-      "Auto-post to TikTok, Reels, Shorts, X",
+      "Auto-post to TikTok, Reels & Shorts",
       "AI-enhanced thumbnails",
-      "A/B hook testing",
       "Buy extra credit packs anytime",
       "Cancel anytime",
     ],
