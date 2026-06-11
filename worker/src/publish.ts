@@ -3,6 +3,7 @@ import { supabase } from "./supabase.js";
 import { postToTikTok } from "./publishers/tiktok.js";
 import { postToInstagram } from "./publishers/instagram.js";
 import { postToYouTubeShorts } from "./publishers/youtube.js";
+import { postToX } from "./publishers/x.js";
 import { decryptToken } from "./lib/encryption.js";
 import type { PublisherAccount, PublisherClip } from "./types/social.js";
 
@@ -46,6 +47,9 @@ export async function runPublish(p: Payload) {
         break;
       case "youtube":
         result = await postToYouTubeShorts(account, clip);
+        break;
+      case "x":
+        result = await postToX(account, clip);
         break;
       default:
         throw new Error(`platform ${p.platform} not implemented`);
