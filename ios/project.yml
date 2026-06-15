@@ -33,7 +33,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "5"
+        CFBundleVersion: "6"
         # Locales we ship Localizable.xcstrings translations for. Adding a
         # value here makes iOS render the localised UI when the user's
         # device language matches; unmatched strings fall back to en.
@@ -49,7 +49,10 @@ targets:
         NSPhotoLibraryUsageDescription: "ClipForge needs photo library access to import videos."
         NSPhotoLibraryAddUsageDescription: "ClipForge needs to save finished clips to your Photos library."
         NSMicrophoneUsageDescription: "ClipForge needs microphone access to record audio."
-        UIBackgroundModes: [audio, processing, remote-notification, fetch]
+        # Only modes the app actually uses: push (remote-notification) + BGAppRefreshTask
+        # (fetch). 'audio' (no background audio playback) + 'processing' (no BGProcessingTask)
+        # were unjustified and triggered App Review Guideline 2.5.4.
+        UIBackgroundModes: [remote-notification, fetch]
         BGTaskSchedulerPermittedIdentifiers:
           - com.bulsulabs.clipforge.refresh
         ITSAppUsesNonExemptEncryption: false
@@ -102,7 +105,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge Widgets
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "5"
+        CFBundleVersion: "6"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
@@ -129,7 +132,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge Push Service
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "5"
+        CFBundleVersion: "6"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
@@ -168,7 +171,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "5"
+        CFBundleVersion: "6"
         CFBundleDevelopmentRegion: en
         WKApplication: true
         WKWatchOnly: false
@@ -204,7 +207,7 @@ targets:
       properties:
         CFBundleDisplayName: ClipForge Watch Widgets
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "5"
+        CFBundleVersion: "6"
         CFBundleDevelopmentRegion: en
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
