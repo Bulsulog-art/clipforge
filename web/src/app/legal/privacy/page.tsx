@@ -4,7 +4,7 @@ export const metadata = { title: "Privacy Policy — ClipForge" };
 
 export default function PrivacyPage() {
   return (
-    <LegalShell title="Privacy Policy" effective="May 2026">
+    <LegalShell title="Privacy Policy" effective="June 2026">
       <p>
         ClipForge is operated by Bulsu Labs (&quot;we&quot;, &quot;us&quot;). This policy explains exactly what we
         collect, why we collect it, who can see it, and what we never do. We wrote this in plain
@@ -68,6 +68,53 @@ export default function PrivacyPage() {
         <li>To detect abuse and fraud (e.g. someone trying to re-use a refunded purchase).</li>
       </ul>
 
+      <h2>Face data</h2>
+      <p>
+        ClipForge includes one optional feature — <strong>Face Swap</strong> — that processes face
+        data. This section explains exactly how it works, because face data is sensitive and we treat
+        it that way.
+      </p>
+      <ul>
+        <li>
+          <strong>What we collect.</strong> Face data is collected only when <em>you</em> tap
+          &quot;Face swap&quot; and pick a portrait photo from your library. The photo is a still image
+          you choose; we do not scan, capture, or access your camera or photo library in the
+          background, and we never collect face data automatically.
+        </li>
+        <li>
+          <strong>How we use it.</strong> The photo is used for one purpose only: to render the
+          face-swapped version of <em>your own</em> clip that you requested. We do
+          <strong> not</strong> create a faceprint or biometric template, do <strong>not</strong> use
+          it to identify or recognise any person, do <strong>not</strong> match it against any other
+          image or database, do <strong>not</strong> use it for advertising or analytics, and do
+          <strong> not</strong> use it to train any AI model.
+        </li>
+        <li>
+          <strong>Who we share it with.</strong> To perform the swap we send the photo to a single
+          sub-processor, <strong>FAL.ai</strong>, through a short-lived signed link that expires after
+          one hour. FAL.ai uses it only to run the face-swap model for your job and does not retain it
+          for training. We share face data with no one else, and we never sell it.
+        </li>
+        <li>
+          <strong>Where it is stored.</strong> Until the swap finishes the photo is stored encrypted
+          at rest in our Supabase object storage (EU region), protected by row-level security keyed to
+          your account so no other user can access it.
+        </li>
+        <li>
+          <strong>How long we keep it.</strong> We delete the uploaded face photo automatically as
+          soon as the swap is generated — typically within a few minutes. If a swap never completes,
+          the photo is removed when you delete your account (Settings &rarr; Account &rarr; Delete
+          Account) or sooner on request to{" "}
+          <a href="mailto:info@bulsulabs.com">info@bulsulabs.com</a>. The resulting swapped video is
+          treated like any other rendered clip.
+        </li>
+        <li>
+          <strong>Your responsibility.</strong> Before each swap you confirm that the face is your own
+          or that you have explicit consent from the person pictured. Using Face Swap to impersonate,
+          harass, defame, or deceive is prohibited and may result in account suspension.
+        </li>
+      </ul>
+
       <h2>Sub-processors</h2>
       <p>
         We rely on a small set of trusted vendors. Each only sees the data they need to do their
@@ -86,6 +133,7 @@ export default function PrivacyPage() {
       <h2>Data retention</h2>
       <ul>
         <li>Source videos are deleted within 24 hours of the render finishing.</li>
+        <li>Uploaded face photos (Face Swap) are deleted automatically as soon as the swap is generated — see <strong>Face data</strong> above.</li>
         <li>Rendered clips are kept while your account is active so you can re-download them.</li>
         <li>Account data (email, profile, purchase history) is kept until you delete the account.</li>
         <li>Crash/error logs are kept for 90 days then purged.</li>

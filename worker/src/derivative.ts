@@ -108,6 +108,25 @@ export async function runDerivative(p: DerivativePayload) {
       })
       .eq("id", p.derivativeId);
 
+    // Face-data minimization: once the swap is generated, the uploaded portrait
+    // has served its only purpose. Delete it immediately so a face image is never
+    // retained beyond the few minutes it takes to render (it is also covered by
+    // account-deletion cascade, but we do not wait for that).
+    if (p.kind === "face_swap" && derivative.target_face_path) {
+      const { error: rmErr } = await supabase.storage
+        .from("clipforge-faces")
+        .remove([derivative.target_face_path]);
+      if (rmErr) {
+        logger.warn({ derivativeId: p.derivativeId, err: rmErr.message }, "face image cleanup failed");
+      } else {
+        await supabase
+          .from("clip_derivatives")
+          .update({ target_face_path: null })
+          .eq("id", p.derivativeId);
+        logger.info({ derivativeId: p.derivativeId }, "face image deleted post-swap");
+      }
+    }
+
     logger.info({ derivativeId: p.derivativeId, kind: p.kind }, "derivative ready");
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
