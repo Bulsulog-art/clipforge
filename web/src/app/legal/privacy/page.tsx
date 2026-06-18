@@ -90,10 +90,12 @@ export default function PrivacyPage() {
           <strong> not</strong> use it to train any AI model.
         </li>
         <li>
-          <strong>Who we share it with.</strong> To perform the swap we send the photo to a single
-          sub-processor, <strong>FAL.ai</strong>, through a short-lived signed link that expires after
-          one hour. FAL.ai uses it only to run the face-swap model for your job and does not retain it
-          for training. We share face data with no one else, and we never sell it.
+          <strong>Who we share it with.</strong> To perform the swap, our AI sub-processor{" "}
+          <strong>FAL.ai</strong> fetches the photo through a short-lived signed link that expires after
+          one hour — we do not upload it to FAL&apos;s own storage. It is sent solely to render your
+          face-swap job and for no other purpose; FAL.ai is a third-party processor whose handling of
+          inputs is governed by its own Terms and Privacy Policy. We share face data with no one else,
+          and we never sell it.
         </li>
         <li>
           <strong>Where it is stored.</strong> Until the swap finishes the photo is stored encrypted
@@ -109,9 +111,10 @@ export default function PrivacyPage() {
           treated like any other rendered clip.
         </li>
         <li>
-          <strong>Your responsibility.</strong> Before each swap you confirm that the face is your own
-          or that you have explicit consent from the person pictured. Using Face Swap to impersonate,
-          harass, defame, or deceive is prohibited and may result in account suspension.
+          <strong>Your responsibility.</strong> The first time you use Face Swap you confirm that the
+          face is your own or that you have explicit consent from the person pictured. Using Face Swap
+          to impersonate, harass, defame, or deceive is prohibited and may result in account
+          suspension.
         </li>
       </ul>
 
