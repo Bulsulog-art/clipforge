@@ -90,25 +90,39 @@ export default function PrivacyPage() {
           <strong> not</strong> use it to train any AI model.
         </li>
         <li>
-          <strong>Who we share it with.</strong> To perform the swap, our AI sub-processor{" "}
-          <strong>FAL.ai</strong> fetches the photo through a short-lived signed link that expires after
-          one hour — we do not upload it to FAL&apos;s own storage. It is sent solely to render your
-          face-swap job and for no other purpose; FAL.ai is a third-party processor whose handling of
-          inputs is governed by its own Terms and Privacy Policy. We share face data with no one else,
-          and we never sell it.
+          <strong>Retention — we do not retain your face data.</strong> ClipForge does not retain your
+          face data. The uploaded photo is deleted from our storage automatically as soon as the swap
+          is generated — typically within a few minutes — and we do not keep it afterward. We never
+          create or store a faceprint, biometric template, or any data derived from your face. If a
+          swap never completes, the image is deleted when you delete your account (Settings &rarr;
+          Account &rarr; Delete Account) or sooner on request to{" "}
+          <a href="mailto:info@bulsulabs.com">info@bulsulabs.com</a>.
         </li>
         <li>
-          <strong>Where it is stored.</strong> Until the swap finishes the photo is stored encrypted
-          at rest in our Supabase object storage (EU region), protected by row-level security keyed to
-          your account so no other user can access it.
+          <strong>Where it is temporarily stored.</strong> During the few minutes it takes to render,
+          the photo is held encrypted at rest in our Supabase object storage (EU region), protected by
+          row-level security keyed to your account so no other user can access it. The resulting
+          swapped video is treated like any other rendered clip.
         </li>
         <li>
-          <strong>How long we keep it.</strong> We delete the uploaded face photo automatically as
-          soon as the swap is generated — typically within a few minutes. If a swap never completes,
-          the photo is removed when you delete your account (Settings &rarr; Account &rarr; Delete
-          Account) or sooner on request to{" "}
-          <a href="mailto:info@bulsulabs.com">info@bulsulabs.com</a>. The resulting swapped video is
-          treated like any other rendered clip.
+          <strong>Third parties we share face data with.</strong> We share your face photo with
+          exactly one third party: <strong>FAL.ai</strong> (fal.ai), an AI model-hosting provider. We
+          share face data with no one else, and we never sell it.
+        </li>
+        <li>
+          <strong>Why we share it.</strong> Solely so that FAL.ai can run the face-swap model and
+          generate the video you requested. FAL.ai cannot perform the swap without the image; we share
+          it for this single purpose and no other.
+        </li>
+        <li>
+          <strong>Does FAL.ai store face data?</strong> FAL.ai receives the image through a temporary
+          signed link that expires after one hour (we do not upload it to FAL.ai&apos;s storage
+          ourselves). To operate, debug and secure its service, FAL.ai may temporarily retain request
+          inputs — including the image — for up to 30 days, after which they are deleted; FAL.ai uses
+          the image only to process the requested job and for no other purpose. FAL.ai&apos;s data
+          practices are described in its{" "}
+          <a href="https://fal.ai/privacy">Privacy Policy</a> and{" "}
+          <a href="https://fal.ai/legal/terms-of-service">Terms of Service</a>.
         </li>
         <li>
           <strong>Your responsibility.</strong> The first time you use Face Swap you confirm that the
