@@ -5,6 +5,7 @@ import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { downloadSource } from "./steps/download.js";
 import { transcribe } from "./steps/transcribe.js";
+import { extractAudio } from "./steps/extract-audio.js";
 import { scoreMoments } from "./steps/score.js";
 import { renderClip } from "./steps/render.js";
 import { generateThumbnail } from "./steps/thumbnail.js";
@@ -160,7 +161,10 @@ export async function runVideoPipeline(p: Payload) {
       .eq("id", p.jobId);
 
     await setProgress(p.jobId, "transcribing", 0.4);
-    const transcript = await transcribe(local.path, p.language ?? "en");
+    // Transcribe from a small extracted audio track (falls back to the full
+    // source on failure) so we don't buffer a multi-GB video in memory.
+    const audioPath = await extractAudio(local.path, work);
+    const transcript = await transcribe(audioPath, p.language ?? "en");
     await supabase.from("video_jobs").update({ transcript }).eq("id", p.jobId);
     logger.info({ jobId: p.jobId, words: transcript.words.length }, "transcribed");
 
