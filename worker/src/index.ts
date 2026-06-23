@@ -2,6 +2,7 @@ import { Worker, MetricsTime } from "bullmq";
 import IORedis from "ioredis";
 import * as Sentry from "@sentry/node";
 import { logger } from "./logger.js";
+import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -186,4 +187,27 @@ async function startMetricsCron() {
 }
 if (process.env.ENABLE_METRICS_CRON === "true") {
   void startMetricsCron();
+}
+
+// Stuck-job reaper — every 10 min, flip any non-terminal video/avatar/derivative
+// row older than 60 min to 'failed' and idempotently refund the credits it
+// reserved. Kills the "stuck processing / infinite spinner" failure mode when
+// the worker is SIGKILLed mid-render (OOM) or an enqueue is lost. The 60-min
+// threshold never touches a legitimately long render or a briefly-queued job.
+async function startStuckJobReaperCron() {
+  while (true) {
+    await new Promise((r) => setTimeout(r, 10 * 60 * 1000));
+    try {
+      const { data, error } = await supabase.rpc("reap_stuck_jobs");
+      if (error) throw error;
+      if (typeof data === "number" && data > 0) {
+        logger.warn({ reaped: data }, "stuck-job reaper: marked timed-out jobs failed + refunded");
+      }
+    } catch (e) {
+      logger.error({ err: (e as Error).message }, "stuck-job reaper failed");
+    }
+  }
+}
+if (process.env.ENABLE_REAPER !== "false") {
+  void startStuckJobReaperCron();
 }
