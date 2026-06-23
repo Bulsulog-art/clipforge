@@ -97,7 +97,10 @@ async function synthesizeViaOpenAI(a: TTSArgs): Promise<{
 
   const voice = resolveVoice(a.voiceId);
   const body = {
-    model: a.modelId ?? "tts-1-hd",
+    // tts-1 (not -hd) by default: after the 9:16 blur+letterbox and bg-music
+    // mix the HD difference is marginal for short avatar scripts, at ~half the
+    // OpenAI TTS spend. Callers can still pass modelId to force tts-1-hd.
+    model: a.modelId ?? "tts-1",
     voice,
     input: a.text,
     response_format: "mp3",

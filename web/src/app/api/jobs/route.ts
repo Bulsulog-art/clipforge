@@ -87,22 +87,33 @@ export async function POST(req: Request) {
   // among same-tier users (BullMQ falls back to FIFO).
   const priority = queuePriorityForTier(userTier);
 
-  await videoQueue.add(
-    "ingest",
-    {
-      jobId: job.id,
-      userId: user.id,
-      sourceType: body.sourceType,
-      sourceUrl: body.sourceUrl,
-      niche: body.niche,
-      language: body.language,
-      clipPrompt: body.prompt || undefined,
-      captionStyle: body.captionStyle,
-      aspect: body.aspect,
-      thumbnailStyle: body.thumbnailStyle,
-    },
-    { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },
-  );
+  try {
+    await videoQueue.add(
+      "ingest",
+      {
+        jobId: job.id,
+        userId: user.id,
+        sourceType: body.sourceType,
+        sourceUrl: body.sourceUrl,
+        niche: body.niche,
+        language: body.language,
+        clipPrompt: body.prompt || undefined,
+        captionStyle: body.captionStyle,
+        aspect: body.aspect,
+        thumbnailStyle: body.thumbnailStyle,
+      },
+      { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },
+    );
+  } catch {
+    // Redis/queue hiccup: don't leave a permanently-stuck "queued" row that the
+    // app would poll forever. Mark it failed so the user sees a clear error +
+    // retry instead of an endless spinner.
+    await svc
+      .from("video_jobs")
+      .update({ status: "failed", error_message: "Could not start the job — please try again" })
+      .eq("id", job.id);
+    return NextResponse.json({ error: "Could not enqueue job, please try again" }, { status: 503 });
+  }
 
   return NextResponse.json({ jobId: job.id });
 }

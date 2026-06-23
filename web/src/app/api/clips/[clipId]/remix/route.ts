@@ -72,19 +72,27 @@ export async function POST(
   // 4. Enqueue. Worker pipeline runs the full score → render flow; the
   //    score temperature variance + the new job_id means moments will be
   //    different from the original.
-  await videoQueue.add(
-    "ingest",
-    {
-      jobId: newJob.id,
-      userId: user.id,
-      sourceType: srcJob.source_type as "upload" | "youtube" | "tiktok_url",
-      sourceUrl: (srcJob.source_url as string | null) ?? undefined,
-      storagePath: (srcJob.storage_path as string | null) ?? undefined,
-      niche: (srcJob.niche as string | null) ?? "motivation",
-      language: (srcJob.language as string | null) ?? "en",
-    },
-    { jobId: newJob.id, attempts: 3, backoff: { type: "exponential", delay: 5000 } },
-  );
+  try {
+    await videoQueue.add(
+      "ingest",
+      {
+        jobId: newJob.id,
+        userId: user.id,
+        sourceType: srcJob.source_type as "upload" | "youtube" | "tiktok_url",
+        sourceUrl: (srcJob.source_url as string | null) ?? undefined,
+        storagePath: (srcJob.storage_path as string | null) ?? undefined,
+        niche: (srcJob.niche as string | null) ?? "motivation",
+        language: (srcJob.language as string | null) ?? "en",
+      },
+      { jobId: newJob.id, attempts: 3, backoff: { type: "exponential", delay: 5000 } },
+    );
+  } catch {
+    await svc
+      .from("video_jobs")
+      .update({ status: "failed", error_message: "Could not start the remix — please try again" })
+      .eq("id", newJob.id);
+    return NextResponse.json({ error: "Could not enqueue remix, please try again" }, { status: 503 });
+  }
 
   return NextResponse.json({ jobId: newJob.id });
 }

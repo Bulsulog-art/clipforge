@@ -45,6 +45,7 @@ export async function runFalQueue<T = unknown>(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),
+    signal: AbortSignal.timeout(30_000),
   });
   if (!submit.ok) {
     const txt = await submit.text().catch(() => "");
@@ -68,9 +69,18 @@ export async function runFalQueue<T = unknown>(
   let completed = false;
   while (Date.now() - start < timeoutMs) {
     await new Promise((r) => setTimeout(r, 2500));
-    const st = await fetch(`${statusUrl}?logs=1`, {
-      headers: { Authorization: `Key ${key()}` },
-    });
+    let st: Response;
+    try {
+      st = await fetch(`${statusUrl}?logs=1`, {
+        headers: { Authorization: `Key ${key()}` },
+        // Per-poll timeout so a single hung socket can't consume the whole
+        // timeoutMs budget (and the worker slot) indefinitely — retry next tick.
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch {
+      // timed-out / transient network blip — retry on the next tick.
+      continue;
+    }
     if (!st.ok) {
       // transient — retry
       continue;

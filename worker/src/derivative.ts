@@ -23,12 +23,23 @@ export async function runDerivative(p: DerivativePayload) {
 
   await supabase.from("clip_derivatives").update({ status: "processing", progress: 5 }).eq("id", p.derivativeId);
 
+  // Determine the true cost: a voice-clone translation costs 5 credits, not the
+  // base 2. The web pre-flight already checks 5; the worker previously hardcoded
+  // 2 here, undercharging the premium path and writing a wrong ledger.
+  const { data: costRow } = await supabase
+    .from("clip_derivatives")
+    .select("voice_clone")
+    .eq("id", p.derivativeId)
+    .single();
+  const cost =
+    p.kind === "translation" && costRow?.voice_clone ? 5 : CREDIT_COST[p.kind] ?? 2;
+
   // Reserve credits
   try {
     await supabase
       .rpc("consume_credits", {
         p_user_id: p.userId,
-        p_amount: CREDIT_COST[p.kind] ?? 2,
+        p_amount: cost,
         p_reason: `${p.kind} render`,
         p_reference: p.derivativeId,
       })
@@ -103,7 +114,7 @@ export async function runDerivative(p: DerivativePayload) {
         status: "ready",
         progress: 100,
         storage_path: outPath,
-        credits_charged: CREDIT_COST[p.kind] ?? 2,
+        credits_charged: cost,
         finished_at: new Date().toISOString(),
       })
       .eq("id", p.derivativeId);
@@ -140,7 +151,7 @@ export async function runDerivative(p: DerivativePayload) {
     await supabase
       .rpc("grant_credits", {
         p_user_id: p.userId,
-        p_amount: CREDIT_COST[p.kind] ?? 2,
+        p_amount: cost,
         p_kind: "admin_grant",
         p_reason: `${p.kind} failure refund`,
         p_reference: p.derivativeId,

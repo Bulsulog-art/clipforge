@@ -112,11 +112,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error?.message ?? "DB error" }, { status: 500 });
   }
 
-  await avatarQueue.add(
-    "render",
-    { avatarJobId: job.id, userId: user.id },
-    { jobId: job.id, attempts: 2, backoff: { type: "exponential", delay: 10_000 } },
-  );
+  try {
+    await avatarQueue.add(
+      "render",
+      { avatarJobId: job.id, userId: user.id },
+      { jobId: job.id, attempts: 2, backoff: { type: "exponential", delay: 10_000 } },
+    );
+  } catch {
+    await svc
+      .from("avatar_jobs")
+      .update({ status: "failed", error_message: "Could not start the avatar render — please try again" })
+      .eq("id", job.id);
+    return NextResponse.json({ error: "Could not enqueue avatar job, please try again" }, { status: 503 });
+  }
 
   return NextResponse.json({ avatarJobId: job.id });
 }

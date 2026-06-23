@@ -55,16 +55,24 @@ export async function postToInstagram(
 
   // 2) Poll until container is FINISHED (~30s typical)
   const start = Date.now();
+  let finished = false;
   while (Date.now() - start < 120_000) {
     await new Promise((r) => setTimeout(r, 4000));
     const statusRes = await fetch(`${FB_API}/${containerId}?fields=status_code,status`, {
       headers: { Authorization: `Bearer ${account.access_token}` },
+      signal: AbortSignal.timeout(30_000),
     });
     const sj = (await statusRes.json()) as { status_code?: string; status?: string };
-    if (sj.status_code === "FINISHED") break;
+    if (sj.status_code === "FINISHED") { finished = true; break; }
     if (sj.status_code === "ERROR" || sj.status_code === "EXPIRED") {
       throw new Error(`IG container ${sj.status_code}: ${sj.status}`);
     }
+  }
+  // If the loop fell through without FINISHED the container is still processing;
+  // publishing now would error or post a half-processed reel. Fail cleanly so
+  // the user can retry instead.
+  if (!finished) {
+    throw new Error("IG container processing timed out — please try again");
   }
 
   // 3) Publish

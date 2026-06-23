@@ -93,22 +93,33 @@ export async function POST(req: Request) {
     tier === "pro"    ? 5 :
     tier === "starter" ? 10 : 100;
 
-  await videoQueue.add(
-    "ingest",
-    {
-      jobId: job.id,
-      userId: user.id,
-      sourceType: "upload",
-      storagePath: path,
-      niche,
-      language,
-      clipPrompt: clipPrompt || undefined,
-      captionStyle,
-      aspect,
-      thumbnailStyle,
-    },
-    { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },
-  );
+  try {
+    await videoQueue.add(
+      "ingest",
+      {
+        jobId: job.id,
+        userId: user.id,
+        sourceType: "upload",
+        storagePath: path,
+        niche,
+        language,
+        clipPrompt: clipPrompt || undefined,
+        captionStyle,
+        aspect,
+        thumbnailStyle,
+      },
+      { jobId: job.id, attempts: 3, backoff: { type: "exponential", delay: 5000 }, priority },
+    );
+  } catch {
+    // Queue hiccup: mark the row failed and drop the uploaded raw file so we
+    // don't leave a stuck "queued" job + orphaned storage object.
+    await svc
+      .from("video_jobs")
+      .update({ status: "failed", error_message: "Could not start the job — please try again" })
+      .eq("id", job.id);
+    await svc.storage.from("clipforge-videos-raw").remove([path]).then(() => {}, () => {});
+    return NextResponse.json({ error: "Could not enqueue job, please try again" }, { status: 503 });
+  }
 
   return NextResponse.json({ jobId: job.id });
 }
