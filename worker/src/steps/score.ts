@@ -4,8 +4,6 @@ import type { Transcript } from "./transcribe.js";
 import { resolveNicheTemplate } from "../niche-templates.js";
 import { buildWinningHint } from "../jobs/winning-patterns.js";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const Moment = z.object({
   start: z.number().nonnegative(),
   end: z.number().positive(),
@@ -39,7 +37,7 @@ export async function scoreMoments(input: {
    */
   winningHooks?: string[];
 }): Promise<Moment[]> {
-  const segments = buildSegments(input.transcript, input.minSec, input.maxSec);
+  const segments = buildSentenceSegments(input.transcript, input.maxSec);
 
   const promptBrief = (input.userPrompt ?? "").trim();
   const winningHint = buildWinningHint(input.winningHooks ?? []);
@@ -49,15 +47,26 @@ export async function scoreMoments(input: {
 Return ONLY JSON matching this schema:
 { "moments": [ { "start": number, "end": number, "score": 0-10, "hook": string, "caption": string, "hashtags": string[], "keywords": string[] } ] }
 
-Rules:
-- Pick the ${input.maxClips} highest-viral moments from the transcript.
-- A great hook is < 9 words, written like a TikTok caption. Hook tone for this niche: ${hookTone}.
-- Captions: snappy, niche-appropriate, ≤ 200 chars, no quotes around it.
-- Hashtags: 3–5, lowercase, no spaces, no #.
-- keywords: 1–3 of the single most impactful words that ACTUALLY APPEAR in the spoken transcript for that moment — we highlight them in the captions for punch.
-- Scores reflect viral potential, share-ability, hook strength.
-- Each clip duration ${input.minSec}–${input.maxSec} seconds.
-- Boundaries must land on natural sentence breaks.${
+The TRANSCRIPT below is split into sentence-level segments, each tagged with its [index] and start–end timestamps.
+
+How to choose a moment:
+- A moment is a span covering ONE or MORE CONSECUTIVE segments that together form a complete, self-contained thought (a clear setup that pays off). Combine adjacent segments freely when the idea continues across them.
+- "start" must equal the start time of the first segment you include; "end" must equal the end time of the last. Never start or end mid-sentence.
+- The clip must make sense ALONE, with zero external context.
+
+What makes a moment go viral (rank on this):
+- The opening line decides everything — the first ~3 seconds must be a scroll-stopping hook: a curiosity gap, a bold/contrarian claim, a surprising number, or a sharp question. Reject moments that open on filler, throat-clearing, or "so, um, yeah".
+- Favor emotional peaks, a strong opinion, a concrete result/number, a story beat, or a payoff/punchline.
+- Avoid rambling, repetition, and anything that needs the prior context to land.
+
+Output rules:
+- Return the ${input.maxClips} strongest moments, highest score first.
+- "hook": < 9 words, written like a TikTok caption. Hook tone for this niche: ${hookTone}.
+- "caption": snappy, niche-appropriate, ≤ 200 chars, no surrounding quotes.
+- "hashtags": 3–5, lowercase, no spaces, no #.
+- "keywords": 1–3 of the single most impactful words that ACTUALLY APPEAR in that moment's spoken text — we highlight them in captions for punch.
+- "score" (0–10): reflects hook strength + share-ability + standalone clarity.
+- Each clip duration ${input.minSec}–${input.maxSec} seconds.${
     promptBrief
       ? `\n\nIMPORTANT — the user is looking for specific clips: "${promptBrief}". Return ONLY moments that genuinely match this request. If fewer than ${input.maxClips} match, return only those — do NOT pad with unrelated moments. Rank the strongest matches highest.`
       : ""
@@ -67,6 +76,7 @@ Rules:
     .map((s, i) => `[${i}] ${s.start.toFixed(2)}–${s.end.toFixed(2)}s: ${s.text}`)
     .join("\n")}`;
 
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     response_format: { type: "json_object" },
@@ -129,19 +139,54 @@ function tightenToSpeech(
   return { ...m, start, end };
 }
 
-function buildSegments(t: Transcript, minSec: number, maxSec: number) {
-  const window = (minSec + maxSec) / 2;
-  const out: { start: number; end: number; text: string }[] = [];
-  let bucketStart = t.words[0]?.start ?? 0;
-  let text = "";
-  for (const w of t.words) {
-    text += `${w.word} `;
-    if (w.end - bucketStart >= window) {
-      out.push({ start: bucketStart, end: w.end, text: text.trim() });
-      bucketStart = w.end;
-      text = "";
-    }
+export type Segment = { start: number; end: number; text: string };
+
+/**
+ * Group the word-level transcript into SENTENCE-level segments so the scorer
+ * sees natural thought units instead of an arbitrary fixed-second grid. The
+ * model then composes a clip from one or more consecutive sentences, so a
+ * moment can begin on a real setup and end on its payoff. Same single LLM call
+ * — no extra cost, materially better boundaries.
+ *
+ * - A sentence ends on terminal punctuation (. ? ! …) carried by a word token.
+ * - A runaway unpunctuated stretch is force-split at maxSec so no single
+ *   segment is longer than one clip.
+ * - For very long sources we cap the segment count (LLM token budget) by
+ *   merging adjacent sentences — only triggers past MAX_SEGMENTS.
+ */
+export function buildSentenceSegments(t: Transcript, maxSec: number): Segment[] {
+  const words = t.words;
+  if (words.length === 0) return [];
+
+  const sentences: Segment[] = [];
+  let start = words[0].start;
+  let buf = "";
+  const flush = (end: number) => {
+    const text = buf.trim();
+    if (text) sentences.push({ start, end, text });
+    buf = "";
+  };
+  for (const w of words) {
+    if (!buf) start = w.start;
+    buf += `${w.word} `;
+    const endsSentence = /[.!?…]["')\]]?$/.test(w.word.trim());
+    const tooLong = w.end - start >= maxSec;
+    if (endsSentence || tooLong) flush(w.end);
   }
-  if (text.trim()) out.push({ start: bucketStart, end: t.words.at(-1)?.end ?? bucketStart, text: text.trim() });
-  return out;
+  if (buf.trim()) flush(words[words.length - 1].end);
+
+  // Token-budget guard for very long sources: merge adjacent sentences until
+  // under the cap. Normal-length videos pass through untouched.
+  const MAX_SEGMENTS = 240;
+  let segs = sentences;
+  while (segs.length > MAX_SEGMENTS) {
+    const merged: Segment[] = [];
+    for (let i = 0; i < segs.length; i += 2) {
+      const a = segs[i];
+      const b = segs[i + 1];
+      merged.push(b ? { start: a.start, end: b.end, text: `${a.text} ${b.text}` } : a);
+    }
+    segs = merged;
+  }
+  return segs;
 }
