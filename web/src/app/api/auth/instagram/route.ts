@@ -27,11 +27,16 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.META_APP_ID;
   if (!clientId) {
-    return NextResponse.json({ error: "META_APP_ID missing" }, { status: 500 });
+    const rt = req.nextUrl.searchParams.get("returnTo") ?? "";
+    const safe = isSafeReturnTo(rt) ? rt : "";
+    const dest = safe
+      ? safe + (safe.includes("?") ? "&" : "?") + "error=instagram_not_configured"
+      : new URL("/dashboard/social?error=instagram_not_configured", req.url).toString();
+    return NextResponse.redirect(dest);
   }
 
   const state = crypto.randomBytes(24).toString("base64url");
-  const redirectUri = new URL("/api/auth/instagram/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = new URL("/api/auth/instagram/callback", process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin).toString();
 
   const returnTo = req.nextUrl.searchParams.get("returnTo") ?? "";
   const safeReturnTo = isSafeReturnTo(returnTo) ? returnTo : "";

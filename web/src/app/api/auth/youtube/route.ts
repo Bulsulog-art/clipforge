@@ -23,11 +23,19 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.YOUTUBE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
-    return NextResponse.json({ error: "YOUTUBE_CLIENT_ID missing" }, { status: 500 });
+    // YouTube OAuth isn't configured on this deployment. Fail gracefully back
+    // into the app/site with a clear error code instead of a raw 500 JSON that
+    // breaks the in-app browser.
+    const rt = req.nextUrl.searchParams.get("returnTo") ?? "";
+    const safe = isSafeReturnTo(rt) ? rt : "";
+    const dest = safe
+      ? safe + (safe.includes("?") ? "&" : "?") + "error=youtube_not_configured"
+      : new URL("/dashboard/social?error=youtube_not_configured", req.url).toString();
+    return NextResponse.redirect(dest);
   }
 
   const state = crypto.randomBytes(24).toString("base64url");
-  const redirectUri = new URL("/api/auth/youtube/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = new URL("/api/auth/youtube/callback", process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin).toString();
 
   const returnTo = req.nextUrl.searchParams.get("returnTo") ?? "";
   const safeReturnTo = isSafeReturnTo(returnTo) ? returnTo : "";

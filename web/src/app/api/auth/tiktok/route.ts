@@ -12,12 +12,21 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.redirect(new URL("/login", req.url));
 
   const clientKey = process.env.TIKTOK_CLIENT_KEY;
-  if (!clientKey) return NextResponse.json({ error: "TIKTOK_CLIENT_KEY missing" }, { status: 500 });
+  if (!clientKey) {
+    // TikTok OAuth isn't configured on this deployment. Fail gracefully back
+    // into the app/site with a clear error code instead of a raw 500 JSON.
+    const rt = req.nextUrl.searchParams.get("returnTo") ?? "";
+    const safe = isSafeReturnTo(rt) ? rt : "";
+    const dest = safe
+      ? safe + (safe.includes("?") ? "&" : "?") + "error=tiktok_not_configured"
+      : new URL("/dashboard/social?error=tiktok_not_configured", req.url).toString();
+    return NextResponse.redirect(dest);
+  }
 
   const verifier = crypto.randomBytes(48).toString("base64url");
   const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
   const state = crypto.randomBytes(24).toString("base64url");
-  const redirectUri = new URL("/api/auth/tiktok/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = new URL("/api/auth/tiktok/callback", process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin).toString();
 
   // `returnTo` lets the iOS app pass clipforge://oauth/tiktok so the callback
   // can redirect back into the app via ASWebAuthenticationSession. Whitelist

@@ -15,12 +15,19 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.redirect(new URL("/login", req.url));
 
   const clientId = process.env.X_CLIENT_ID;
-  if (!clientId) return NextResponse.json({ error: "X_CLIENT_ID missing" }, { status: 500 });
+  if (!clientId) {
+    const rt = req.nextUrl.searchParams.get("returnTo") ?? "";
+    const safe = isSafeReturnTo(rt) ? rt : "";
+    const dest = safe
+      ? safe + (safe.includes("?") ? "&" : "?") + "error=x_not_configured"
+      : new URL("/dashboard/social?error=x_not_configured", req.url).toString();
+    return NextResponse.redirect(dest);
+  }
 
   const verifier = crypto.randomBytes(48).toString("base64url");
   const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
   const state = crypto.randomBytes(24).toString("base64url");
-  const redirectUri = new URL("/api/auth/x/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = new URL("/api/auth/x/callback", process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin).toString();
 
   const returnTo = req.nextUrl.searchParams.get("returnTo") ?? "";
   const safeReturnTo = isSafeReturnTo(returnTo) ? returnTo : "";
