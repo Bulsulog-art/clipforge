@@ -162,15 +162,15 @@ export default function LandingPage() {
           <dl className="mt-12 space-y-6">
             <Faq
               q="Is the free tier really one clip set forever?"
-              a="Yes. You get one full clip set on signup — drop a YouTube link up to 5 minutes, we'll cut and caption it. After that, Plus weekly is $5.99 (10 credits a week, cancel anytime). Watermark and a 'Made with ClipForge' outro are added to free renders."
+              a="Yes. You get one full clip set on signup — upload a video up to 5 minutes and we'll cut and caption it. After that, Plus weekly is $5.99 (10 credits a week, cancel anytime). Watermark and a 'Made with ClipForge' outro are added to free renders."
             />
             <Faq
               q="What's a credit?"
-              a="1 credit = 1 video processed into clips (typically 8–15 clips). Premium AI tools cost extra credits: Face Swap 2, Translation 2, Voice clone 5, AI thumbnail enhance 1."
+              a="1 credit = 1 video processed into clips (typically 8–15 clips). Extras cost additional credits: translating a finished clip is 2, and translating it in your own cloned voice is 5."
             />
             <Faq
               q="Why is everything in one app instead of three?"
-              a="Klap + HeyGen + Reface together cost $130+ a month. We do the same job for $14.99 because the heavy AI lift (Whisper, GPT, Replicate) is shared across features. One credit pool, one paywall."
+              a="Dedicated clipping tools start around $30 a month. We charge $14.99 because the pipeline runs on our own servers — transcription and rendering cost us compute, not per-minute API fees — and that saving goes into the price."
             />
             <Faq
               q="Can I cancel anytime?"
@@ -280,11 +280,9 @@ function PricingTabs() {
       "Word-by-word captions · 5 styles",
       "Prompt-driven clipping (clip anything)",
       "Niche-native templates",
-      "AI Face Swap (2 cr)",
       "AI Translation 15+ languages (2 cr)",
       "Voice clone (5 cr)",
       "Auto-post to TikTok, Reels & Shorts",
-      "AI-enhanced thumbnails",
       "Buy extra credit packs anytime",
       "Cancel anytime",
     ],
