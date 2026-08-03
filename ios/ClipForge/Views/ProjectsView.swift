@@ -31,7 +31,6 @@ struct ProjectsView: View {
     }
     @Environment(\.scenePhase) private var scenePhase
     @State private var showNewProject = false
-    @State private var showAvatarStudio = false
     @State private var showUploadSheet = false
     @State private var showPlans = false
     @State private var showCreditPaywall = false
@@ -179,25 +178,17 @@ struct ProjectsView: View {
                         } label: {
                             Label("Upload your video · 1 cr", systemImage: "square.and.arrow.up")
                         }
-                        Button {
-                            showAvatarStudio = true
-                        } label: {
-                            Label("AI Avatar · 5 cr", systemImage: "person.wave.2.fill")
-                        }
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                             .foregroundStyle(.brand)
                     }
                     .accessibilityLabel("Create new project")
-                    .accessibilityHint("Opens a menu to clip from URL, upload a video, or generate an AI avatar")
+                    .accessibilityHint("Opens a menu to clip from a URL or upload your own video")
                 }
             }
             .sheet(isPresented: $showNewProject, onDismiss: { seed = nil }) {
                 NewProjectSheet(seed: seed) { viewModel.refresh() }
-            }
-            .sheet(isPresented: $showAvatarStudio) {
-                AvatarStudioView { viewModel.refresh() }
             }
             .sheet(isPresented: $showUploadSheet) {
                 UploadVideoSheet { viewModel.refresh() }

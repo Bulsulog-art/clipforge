@@ -93,30 +93,6 @@ final class ClipForgeAPI {
         return result
     }
 
-    func faceSwap(clipId: String, faceJpeg: Data) async throws {
-        guard let token = SupabaseService.shared.session?.accessToken else {
-            throw Error.unauthorized
-        }
-        let url = Secrets.apiBaseURL.appendingPathComponent("/api/clips/\(clipId)/face-swap")
-        let boundary = "ClipForge-\(UUID().uuidString)"
-        var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"face\"; filename=\"face.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(faceJpeg)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        req.httpBody = body
-
-        let (_, resp) = try await URLSession.shared.upload(for: req, from: body)
-        guard let http = resp as? HTTPURLResponse else { throw Error.network }
-        if http.statusCode == 402 { throw Error.quotaExceeded }
-        guard (200..<300).contains(http.statusCode) else { throw Error.network }
-    }
 
     struct TranslateRequest: Codable {
         let targetLanguage: String
@@ -842,7 +818,7 @@ final class ClipForgeAPI {
     struct Derivative: Identifiable, Decodable, Hashable {
         let id: String
         let sourceClipId: String?
-        let kind: String                // "face_swap" | "translation"
+        let kind: String                // "translation"
         let status: String              // "queued" | "processing" | "ready" | "failed"
         let storagePath: String?
         let targetLanguage: String?
@@ -858,8 +834,8 @@ final class ClipForgeAPI {
         }
     }
 
-    /// Fetch derivatives for a clip. UI uses this to surface a "Compare"
-    /// CTA when a face_swap exists, or a language-switcher for translations.
+    /// Fetch derivatives for a clip. The UI uses this to surface the
+    /// language switcher for translation derivatives.
     func fetchDerivatives(forClipId clipId: String) async throws -> [Derivative] {
         try await supabase
             .schema("clipforge")
@@ -869,78 +845,5 @@ final class ClipForgeAPI {
             .order("created_at", ascending: false)
             .execute()
             .value
-    }
-
-    // MARK: - Avatar (AI talking-head)
-
-    struct Avatar: Identifiable, Decodable {
-        let id: String
-        let name: String
-        let description: String?
-        let persona: String?
-        let defaultVoiceId: String?
-        let imageUrl: String?
-    }
-
-    func fetchAvatars() async throws -> [Avatar] {
-        guard let token = SupabaseService.shared.session?.accessToken else {
-            throw Error.unauthorized
-        }
-        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/avatars"))
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw Error.network
-        }
-        struct Resp: Decodable { let avatars: [Avatar] }
-        return try JSONDecoder().decode(Resp.self, from: data).avatars
-    }
-
-    struct CreateAvatarJobBody: Encodable {
-        let script: String
-        let avatarId: String?
-        let customImagePath: String?
-        let voiceId: String
-        /// Optional Plus-only id from `/api/voice-clones`. When set, the
-        /// worker routes TTS through ElevenLabs with this cloned voice
-        /// instead of the stock OpenAI persona.
-        let voiceCloneId: String?
-        let niche: String
-        let bgMusic: Bool
-    }
-
-    @discardableResult
-    func createAvatarJob(
-        script: String,
-        avatarId: String?,
-        voiceId: String,
-        voiceCloneId: String? = nil,
-        niche: String = "motivation",
-        bgMusic: Bool = true
-    ) async throws -> String {
-        guard let token = SupabaseService.shared.session?.accessToken else {
-            throw Error.unauthorized
-        }
-        var req = URLRequest(url: Secrets.apiBaseURL.appendingPathComponent("/api/avatar-jobs"))
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        req.httpBody = try JSONEncoder().encode(
-            CreateAvatarJobBody(
-                script: script,
-                avatarId: avatarId,
-                customImagePath: nil,
-                voiceId: voiceId,
-                voiceCloneId: voiceCloneId,
-                niche: niche,
-                bgMusic: bgMusic
-            )
-        )
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        guard let http = resp as? HTTPURLResponse else { throw Error.network }
-        if http.statusCode == 402 { throw Error.quotaExceeded }
-        guard (200..<300).contains(http.statusCode) else { throw Error.network }
-        struct Resp: Decodable { let avatarJobId: String }
-        return try JSONDecoder().decode(Resp.self, from: data).avatarJobId
     }
 }

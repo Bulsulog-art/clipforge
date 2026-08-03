@@ -21,10 +21,10 @@ struct OnboardingView: View {
             isPushAsk: false
         ),
         Page(
-            kind: .faceSwap,
-            title: "Face Swap.\nTranslate.\nGo viral.",
-            body: "Swap any face in 30 seconds (SwapTok-grade). Translate captions to 15+ languages. AI avatars that speak your script in 6 voices.",
-            highlight: "Klap + HeyGen + Reface in one",
+            kind: .translate,
+            title: "One clip.\nEvery language.",
+            body: "Translate a finished clip's captions into 15+ languages — optionally in your own cloned voice — and reach an audience that doesn't speak yours.",
+            highlight: "Same clip, 15x the reach",
             isPushAsk: false
         ),
         Page(
@@ -227,7 +227,7 @@ struct OnboardingView: View {
     private func illustration(for kind: Page.Kind, isActive: Bool) -> some View {
         switch kind {
         case .splitClips:   SplitClipsIllustration(isActive: isActive)
-        case .faceSwap:     FaceSwapIllustration(isActive: isActive)
+        case .translate:    TranslateIllustration(isActive: isActive)
         case .pricingStack: PricingStackIllustration(isActive: isActive)
         case .pushBanner:   PushBannerIllustration(isActive: isActive)
         }
@@ -242,7 +242,7 @@ struct OnboardingView: View {
         let highlight: String
         let isPushAsk: Bool
 
-        enum Kind { case splitClips, faceSwap, pricingStack, pushBanner }
+        enum Kind { case splitClips, translate, pricingStack, pushBanner }
     }
 }
 
@@ -357,27 +357,27 @@ private struct SplitClipsIllustration: View {
     }
 }
 
-// MARK: - Stage 2: face swap
+// MARK: - Stage 2: translate into every language
 
-private struct FaceSwapIllustration: View {
+private struct TranslateIllustration: View {
     let isActive: Bool
     @State private var swap = false
 
     var body: some View {
         ZStack {
             HStack(spacing: 64) {
-                faceCard(
+                langCard(
                     gradient: [.indigo, .blue],
-                    icon: "person.crop.circle.fill",
-                    label: "Source"
+                    icon: "textformat",
+                    label: "English"
                 )
                 .offset(x: swap ? 80 : 0)
                 .zIndex(swap ? 1 : 0)
 
-                faceCard(
+                langCard(
                     gradient: [.brand, .brandGlow],
-                    icon: "person.crop.circle.badge.checkmark",
-                    label: "Swapped"
+                    icon: "globe",
+                    label: "15+ languages"
                 )
                 .offset(x: swap ? -80 : 0)
                 .zIndex(swap ? 0 : 1)
@@ -408,7 +408,7 @@ private struct FaceSwapIllustration: View {
         .onChange(of: isActive) { _, active in if active { trigger() } }
     }
 
-    private func faceCard(gradient: [Color], icon: String, label: String) -> some View {
+    private func langCard(gradient: [Color], icon: String, label: String) -> some View {
         VStack(spacing: 6) {
             ZStack {
                 Circle()

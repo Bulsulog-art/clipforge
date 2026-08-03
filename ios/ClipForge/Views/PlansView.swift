@@ -53,7 +53,6 @@ struct PlansView: View {
         "AI Face Swap (2 cr)",
         "AI Translation 15+ languages (2 cr)",
         "Voice clone (5 cr)",
-        "AI Avatar — talking head from script (5 cr)",
         "Auto-post to TikTok, Reels, Shorts, X",
         "AI-enhanced thumbnails",
         "Buy extra credit packs anytime",

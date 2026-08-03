@@ -1,12 +1,10 @@
 import SwiftUI
-import PhotosUI
 
 struct ClipActionsSheet: View {
     let clip: Clip
     @Environment(\.dismiss) private var dismiss
     @StateObject private var credits = CreditsService.shared
     @StateObject private var channels = ChannelsService.shared
-    @State private var faceImage: PhotosPickerItem?
     @State private var selectedLanguage = "en"
     @State private var voiceClone = false
     @State private var sending = false
@@ -14,14 +12,11 @@ struct ClipActionsSheet: View {
     @State private var error: String?
     @State private var showPaywall = false
     @State private var saving = false
-    @State private var showFaceSwapConsent = false
     @State private var showPublishSheet = false
     @State private var derivatives: [ClipForgeAPI.Derivative] = []
-    @State private var compareWith: ClipForgeAPI.Derivative?
     @State private var remixing = false
     @State private var remixError: String?
     @State private var remixedJobId: String?
-    @AppStorage("faceSwapConsentGivenAt") private var faceSwapConsentGivenAt: Double = 0
 
     private let languages: [(code: String, label: String, flag: String)] = [
         ("en", "English", "🇺🇸"),
@@ -43,48 +38,6 @@ struct ClipActionsSheet: View {
                     creditsBadge
 
                     publishSection
-                    Divider().background(Color.hairline)
-
-                    if let compare = readyFaceSwapDerivative {
-                        compareSection(derivative: compare)
-                        Divider().background(Color.hairline)
-                    }
-
-                    Section_h("🎭 Swap face (2 credits)")
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Upload a portrait photo — we'll replace the face in this clip.")
-                            .font(.callout)
-                            .foregroundStyle(Color.textSecondary)
-
-                        PhotosPicker(selection: $faceImage, matching: .images, photoLibrary: .shared()) {
-                            HStack {
-                                Image(systemName: "person.crop.square.filled.and.at.rectangle")
-                                Text(faceImage == nil ? "Pick a face photo" : "Photo selected ✓")
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                            }
-                            .padding()
-                            .background(Color.cardBackground)
-                            .clipShape(.rect(cornerRadius: 12))
-                        }
-                        .tint(.brand)
-
-                        Button {
-                            if faceSwapConsentGivenAt > 0 {
-                                Task { await runFaceSwap() }
-                            } else {
-                                showFaceSwapConsent = true
-                            }
-                        } label: {
-                            HStack { Spacer(); Text("Face swap now").fontWeight(.semibold); Spacer() }
-                                .padding()
-                                .background(Color.brand)
-                                .foregroundStyle(.white)
-                                .clipShape(.rect(cornerRadius: 12))
-                        }
-                        .disabled(faceImage == nil || sending)
-                    }
-
                     Divider().background(Color.hairline)
 
                     Section_h("🌍 Translate captions (2 credits)")
@@ -187,18 +140,6 @@ struct ClipActionsSheet: View {
             .sheet(isPresented: $showPublishSheet) {
                 ClipPublishSheet(clip: clip)
             }
-            .sheet(item: $compareWith) { d in
-                ClipBeforeAfterSheet(originalClip: clip, derivative: d)
-            }
-            .alert("Face Swap Consent", isPresented: $showFaceSwapConsent) {
-                Button("Cancel", role: .cancel) { }
-                Button("I confirm — start swap") {
-                    faceSwapConsentGivenAt = Date().timeIntervalSince1970
-                    Task { await runFaceSwap() }
-                }
-            } message: {
-                Text("By tapping confirm, you certify that the face image you uploaded is YOUR OWN face, OR that you have explicit written consent from the person whose face this is.\n\nClipForge prohibits using Face Swap to impersonate, harass, defame, deceive, or otherwise infringe on others' rights. Violations may result in account suspension.\n\nAll uploaded face images are encrypted at rest and deleted on account deletion.")
-            }
             .background(Color.appBackground.ignoresSafeArea())
             .task {
                 await credits.refresh()
@@ -208,11 +149,6 @@ struct ClipActionsSheet: View {
         }
     }
 
-    /// The first ready face-swap derivative for this clip, if any. Drives the
-    /// Compare section visibility.
-    private var readyFaceSwapDerivative: ClipForgeAPI.Derivative? {
-        derivatives.first { $0.kind == "face_swap" && $0.status == "ready" && $0.storagePath != nil }
-    }
 
     /// Re-renders the same source video as a new job. Different score-step
     /// roll picks different moments so the remix isn't a carbon copy — useful
@@ -291,45 +227,12 @@ struct ClipActionsSheet: View {
         }
     }
 
-    private func compareSection(derivative: ClipForgeAPI.Derivative) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Section_h("🆚 Before / After")
-            Text("Your face swap is ready. Drag the divider to compare the original with the swap.")
-                .font(.callout)
-                .foregroundStyle(Color.textSecondary)
-            Button {
-                Task { await Haptics.impact(.medium) }
-                compareWith = derivative
-            } label: {
-                HStack {
-                    Image(systemName: "rectangle.split.2x1.fill")
-                    Text("Open before/after")
-                        .fontWeight(.semibold)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .opacity(0.7)
-                }
-                .padding()
-                .background(
-                    LinearGradient(
-                        colors: [.purple.opacity(0.85), .brand],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .foregroundStyle(.white)
-                .clipShape(.rect(cornerRadius: 12))
-            }
-            .buttonStyle(.plain)
-        }
-    }
 
     private func loadDerivatives() async {
         do {
             self.derivatives = try await ClipForgeAPI.shared.fetchDerivatives(forClipId: clip.id)
         } catch {
-            // Non-blocking — Compare just won't surface until a refresh.
+            // Non-blocking — derivatives just refresh on the next open.
         }
     }
 
@@ -403,24 +306,6 @@ struct ClipActionsSheet: View {
         .clipShape(.rect(cornerRadius: 12))
     }
 
-    private func runFaceSwap() async {
-        guard faceSwapConsentGivenAt > 0 else { showFaceSwapConsent = true; return }
-        guard credits.balance >= 2 else { showPaywall = true; return }
-        guard let item = faceImage else { return }
-        sending = true
-        defer { sending = false }
-        do {
-            let data = try await item.loadTransferable(type: Data.self)
-            guard let data else { error = "Could not load image"; return }
-            try await ClipForgeAPI.shared.faceSwap(clipId: clip.id, faceJpeg: data)
-            lastResult = "Face swap queued. Check Clips tab in ~30-90 seconds."
-            await credits.refresh()
-        } catch ClipForgeAPI.Error.quotaExceeded {
-            showPaywall = true
-        } catch let e {
-            error = e.localizedDescription
-        }
-    }
 
     private func saveToPhotos() async {
         guard let path = clip.storagePath else { return }

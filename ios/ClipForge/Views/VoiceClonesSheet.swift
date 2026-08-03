@@ -3,7 +3,7 @@ import AVFoundation
 
 /// Plus-tier voice cloning. Record a ≤60s sample in-app, server forwards
 /// to ElevenLabs, the resulting voice id is persisted on the user's
-/// account and surfaces in the AvatarStudio voice picker.
+/// account and is offered when you translate a clip into another language.
 ///
 /// Recording is in-app (AVAudioRecorder → .m4a) so the user doesn't
 /// have to bounce out to Voice Memos and re-import. We cap at 60s
@@ -75,10 +75,10 @@ struct VoiceClonesSheet: View {
 
     private var headerCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label("Your voice on every avatar", systemImage: "waveform.badge.mic")
+            Label("Your voice in every language", systemImage: "waveform.badge.mic")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(.brand)
-            Text("Record a clean 30–60s sample in a quiet room. We forward it to ElevenLabs; your cloned voice then shows up as a picker option in AvatarStudio.")
+            Text("Record a clean 30–60s sample in a quiet room. We forward it to ElevenLabs; your cloned voice then becomes selectable when you translate a clip.")
                 .font(.callout)
                 .foregroundStyle(.textSecondary)
         }
@@ -203,7 +203,7 @@ struct VoiceClonesSheet: View {
     }
 
     private var footnote: some View {
-        Text("Up to 60s, mono audio, quiet background. Once uploaded, the clone appears in AvatarStudio's voice picker on your next render.")
+        Text("Up to 60s, mono audio, quiet background. Once uploaded, the clone becomes selectable the next time you translate a clip.")
             .font(.caption2)
             .foregroundStyle(.textSecondary.opacity(0.6))
     }
