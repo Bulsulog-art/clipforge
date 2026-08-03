@@ -335,10 +335,16 @@ struct ProjectsView: View {
             }
 
             VStack(spacing: 10) {
-                Text("Your studio is ready")
+                // Lead with the outcome, not the mechanics. A first-time user
+                // does not want to "paste a link and pick a niche" — they want
+                // clips that get views.
+                Text(credits.balance > 0
+                     ? "Your first clip set is on us"
+                     : "Turn one long video into a week of posts")
                     .font(.title.bold())
+                    .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.85)
-                Text("Paste a YouTube link, pick a niche, and ClipForge cuts the viral moments — captions, hook overlay and a Mr.Beast thumbnail included.")
+                Text("Drop a YouTube link. We find the moments worth posting and hand you back ready-to-upload vertical clips — captions burned in, hook on top, thumbnail done.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .font(.callout)
@@ -351,7 +357,10 @@ struct ProjectsView: View {
                     Task { await Haptics.impact(.medium) }
                     showNewProject = true
                 } label: {
-                    Label("Generate clips · 1 credit", systemImage: "sparkles")
+                    // Free-first framing: while the signup credit is unspent,
+                    // the button must not read like a price tag.
+                    Label(credits.balance > 0 ? "Make my first clips — free" : "Generate clips · 1 credit",
+                          systemImage: "sparkles")
                         .fontWeight(.semibold)
                         .padding(.horizontal, 24).padding(.vertical, 14)
                         .frame(maxWidth: 320)
@@ -365,6 +374,13 @@ struct ProjectsView: View {
                         .clipShape(.capsule)
                         .shadow(color: Color.brand.opacity(0.35), radius: 14, y: 6)
                 }
+
+                // Set the wait expectation up front. A render takes 60-120s;
+                // an unexplained wait is where people close the app and never
+                // come back.
+                Text("Takes about 90 seconds · no editing skills needed")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                 Button {
                     appState.selectedTab = .trends

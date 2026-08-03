@@ -107,7 +107,7 @@ export default function LandingPage() {
           />
           <Feature
             icon={<Sparkles />}
-            title="Mr.Beast-style thumbnails"
+            title="Scroll-stopping thumbnails"
             body="Every clip gets a bold, niche-themed thumbnail with 3-layer glow text — no design skills required."
           />
           <Feature
@@ -262,7 +262,7 @@ function PricingTabs() {
     features: [
       "1 free clip set (lifetime)",
       "Up to 5-minute source video",
-      "Mr.Beast-style thumbnails",
+      "Scroll-stopping thumbnails",
       "Watermark + 'Made with ClipForge' outro",
     ],
     cta: "Try one free",
