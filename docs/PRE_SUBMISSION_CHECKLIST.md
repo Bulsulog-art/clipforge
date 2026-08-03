@@ -14,7 +14,7 @@ This is the ordered, blocking list. Don't archive until every box is checked.
       `clipforge-avatars`, `clipforge-music`
 - [x] 4 stock avatar portraits uploaded to `clipforge-avatars/stock/`
 - [x] 12 procedural music seeds in `clipforge-music/` **(temporary — replace before launch)**
-- [x] Reviewer account created (`appreview@bulsulabs.xyz`)
+- [x] Reviewer account created (`appreview@bulsulabs.com`)
 
 ## 2. Coolify env vars
 
@@ -56,7 +56,7 @@ Web (`y11bhiffmpb3u2hdekwhjhdq`):
       `clipforge_credits_power`, `clipforge_credits_pro`
 - [ ] Entitlement `starter` → all 3 subscription products attached
 - [ ] Offering `default` exists, containing all 6 packages
-- [ ] Webhook configured: `https://clipforge.bulsulabs.xyz/api/revenuecat/webhook`
+- [ ] Webhook configured: `https://clipforge.bulsulabs.com/api/revenuecat/webhook`
       header `Authorization: Bearer <REVENUECAT_WEBHOOK_AUTH>`
 
 ## 4. App Store Connect
@@ -84,7 +84,7 @@ Web (`y11bhiffmpb3u2hdekwhjhdq`):
 Paste these **only into ASC App Review tab** (not in git repo):
 
 ```
-email:    appreview@bulsulabs.xyz
+email:    appreview@bulsulabs.com
 password: LQXguRkZfrLzO1T8dTFh1088
 ```
 
@@ -121,7 +121,7 @@ user opens "Manage / cancel subscription" in Settings.
 Renders run on our own Supabase + worker stack in EU. We do not train
 on user content. Free clips auto-delete after 30 days.
 
-Questions: hello@clipforge.bulsulabs.xyz
+Questions: hello@clipforge.bulsulabs.com
 ```
 
 ## 6. Screenshots (6.7" iPhone 17 Pro Max, 1290×2796)

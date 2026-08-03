@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FallbackLanding } from "@/components/fallback-landing";
 
 /**
- * Web fallback for the Universal Link `https://clipforge.bulsulabs.xyz/clips/<id>`.
+ * Web fallback for the Universal Link `https://clipforge.bulsulabs.com/clips/<id>`.
  * When the iOS app is installed Apple deep-links straight in; otherwise this
  * marketing surface renders (clip media is RLS-locked anyway).
  */

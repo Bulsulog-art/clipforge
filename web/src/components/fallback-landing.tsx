@@ -3,7 +3,7 @@ import { Scissors, Sparkles, Apple } from "lucide-react";
 
 /**
  * Web fallback for the Universal Links
- *   https://clipforge.bulsulabs.xyz/clips/<id>  and  /jobs/<id>
+ *   https://clipforge.bulsulabs.com/clips/<id>  and  /jobs/<id>
  * When the iOS app is installed Apple deep-links straight in and this never
  * renders; otherwise the visitor lands here, so it's a marketing surface, not a
  * (RLS-locked) clip preview. Shared by both route pages — kept in its own module

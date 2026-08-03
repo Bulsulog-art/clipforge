@@ -28,7 +28,7 @@
   - ✅ In-App Purchase
   - ✅ Sign in with Apple
   - ✅ Push Notifications
-  - ✅ Associated Domains (universal links: `applinks:clipforge.bulsulabs.xyz`)
+  - ✅ Associated Domains (universal links: `applinks:clipforge.bulsulabs.com`)
 
 ## 4. In-App Purchase oluştur
 

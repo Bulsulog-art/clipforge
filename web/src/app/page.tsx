@@ -213,7 +213,7 @@ export default function LandingPage() {
               Privacy
             </Link>
             <a
-              href="mailto:hello@clipforge.bulsulabs.xyz"
+              href="mailto:hello@clipforge.bulsulabs.com"
               className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               Contact

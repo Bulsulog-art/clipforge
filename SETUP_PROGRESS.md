@@ -19,11 +19,11 @@ Updated: 2026-05-17
 - Repo public, main branch push edildi
 - `gh repo create Bulsulog-art/clipforge --public --push` ile
 
-### 3. Coolify (`coolify.bulsulabs.xyz`)
+### 3. Coolify (`coolify.bulsulabs.com`)
 | Service | Tür | Durum | Detay |
 |---|---|---|---|
 | `clipforge-redis` | DB | **Starting** | Redis 7.2, BullMQ queue |
-| `clipforge-web` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /web, domain `clipforge.bulsulabs.xyz`, **16 env var** kayıt |
+| `clipforge-web` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /web, domain `clipforge.bulsulabs.com`, **16 env var** kayıt |
 | `clipforge-worker` | App | Slot hazır | Dockerfile, repo Bulsulog-art/clipforge, base /worker, **18 env var** kayıt |
 
 Project ID: `ysdywlrjo47g1h4byhhhwb0p`
@@ -79,19 +79,19 @@ Env ID: `ktz59uo5vfoo0yyv85r9pv29`
 2. **service_role** → Reveal → Copy → kaydet
 
 3. **Coolify clipforge-web** env vars — Developer view:
-   - https://coolify.bulsulabs.xyz/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/application/y11bhiffmpb3u2hdekwhjhdq/environment-variables
+   - https://coolify.bulsulabs.com/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/application/y11bhiffmpb3u2hdekwhjhdq/environment-variables
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY=REPLACE_ME_FROM_SUPABASE_DASHBOARD` → yapıştır
    - `SUPABASE_SERVICE_ROLE_KEY=REPLACE_ME_FROM_SUPABASE_DASHBOARD` → yapıştır
    - **Save All Environment Variables**
 
 4. **Coolify clipforge-worker** env vars için aynı:
-   - https://coolify.bulsulabs.xyz/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/application/aeoe3zdfhbhqzi89g32gkuwx/environment-variables
+   - https://coolify.bulsulabs.com/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/application/aeoe3zdfhbhqzi89g32gkuwx/environment-variables
    - `SUPABASE_SERVICE_ROLE_KEY=REPLACE_ME_FROM_SUPABASE_DASHBOARD` → yapıştır
    - Save
 
 ### B. Coolify Redis password'ünü al ve REDIS_URL'e yapıştır (1 dk)
 
-1. https://coolify.bulsulabs.xyz/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/database/viglo9hd308lmad9gkaqedv9
+1. https://coolify.bulsulabs.com/project/ysdywlrjo47g1h4byhhhwb0p/environment/ktz59uo5vfoo0yyv85r9pv29/database/viglo9hd308lmad9gkaqedv9
 2. **Redis URL (internal)** → Reveal → kopyala
 3. Web + worker env vars'da `REDIS_URL=...` satırını bu değerle değiştir
 
@@ -122,10 +122,10 @@ https://dash.cloudflare.com → `bulsulabs.com` zone → DNS records:
 ### F. Deploy 🚀 (1 dk)
 
 1. **Redis çalışır olmalı** (Status: Healthy) — bekliyor.
-2. https://coolify.bulsulabs.xyz/.../application/y11bhiffmpb3u2hdekwhjhdq → **Deploy** butonuna bas
+2. https://coolify.bulsulabs.com/.../application/y11bhiffmpb3u2hdekwhjhdq → **Deploy** butonuna bas
 3. Worker'ı da deploy et
 4. Build ~3-5 dakika sürer
-5. https://clipforge.bulsulabs.xyz aç — landing page görmeli
+5. https://clipforge.bulsulabs.com aç — landing page görmeli
 
 ---
 
@@ -206,7 +206,7 @@ GITHUB_REPO=https://github.com/Bulsulog-art/clipforge
 ## 🎯 Sonraki büyük adımlar (post-launch)
 
 1. **Marketing**: ProductHunt schedule, Indie Hackers, X (Bulsu Labs)
-2. **SEO**: `clipforge.bulsulabs.xyz/blog/` — 10 yazı serisi
+2. **SEO**: `clipforge.bulsulabs.com/blog/` — 10 yazı serisi
 3. **YouTube outreach**: 50 podcast kanalı → "free trial + analytics" pitch
 4. **A/B testing**: Hook varyantları, paywall pozisyonu
 5. **Analytics**: PostHog veya Plausible

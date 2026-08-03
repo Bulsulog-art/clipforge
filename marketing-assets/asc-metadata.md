@@ -11,7 +11,7 @@
 
 ## Privacy URLs
 
-- **Privacy Policy URL**: `https://clipforge.bulsulabs.xyz/legal/privacy`
+- **Privacy Policy URL**: `https://clipforge.bulsulabs.com/legal/privacy`
 - **User Privacy Choices URL**: (optional, leave blank)
 
 ## Version 2.0
@@ -36,7 +36,7 @@ NEW
 • Stats with SwiftUI Charts — clips per day, top niche, save rate
 • Studio favorites — star clips, filter to just the keepers
 • Custom branded watermark (Plus) — your logo on every clip
-• Universal Links — clipforge.bulsulabs.xyz/clips/<id> opens in the app
+• Universal Links — clipforge.bulsulabs.com/clips/<id> opens in the app
 • Siri shortcuts — "What's my streak?" and "Open ClipForge"
 • Referrals — invite a friend, both get 5 credits
 
@@ -107,12 +107,12 @@ viral,clips,AI,shorts,reels,captions,faceswap,tiktok,youtube,trends,editor,video
 
 ### Support URL
 ```
-https://clipforge.bulsulabs.xyz/support
+https://clipforge.bulsulabs.com/support
 ```
 
 ### Marketing URL
 ```
-https://clipforge.bulsulabs.xyz
+https://clipforge.bulsulabs.com
 ```
 
 ### Copyright
@@ -141,7 +141,7 @@ For each:
 
 - **Sign-in required**: YES
 - **Demo Account**:
-  - Username: `appreviewer@bulsulabs.xyz`
+  - Username: `appreviewer@bulsulabs.com`
   - Password: `ClipForge2026!Reviewer`
 - **Contact**:
   - First name: Berke
@@ -154,7 +154,7 @@ For each:
 ClipForge converts long videos into viral short clips using AI.
 
 REVIEW STEPS:
-1. Sign in with appreviewer@bulsulabs.xyz / ClipForge2026!Reviewer (account is pre-seeded with Agency tier and 1,000 credits).
+1. Sign in with appreviewer@bulsulabs.com / ClipForge2026!Reviewer (account is pre-seeded with Agency tier and 1,000 credits).
 2. Tap the sample project on Home — it already has 8 rendered clips. Tap any clip to preview.
 3. To test New Clip generation: tap "New Clip Set" and paste any public YouTube URL under 60 minutes (e.g. https://www.youtube.com/watch?v=jNQXAC9IVRw). Render takes ~30-60 s.
 4. To test AI Face Swap: open any rendered clip → AI Face Swap → pick one of the pre-saved faces in the reviewer account.
@@ -186,7 +186,7 @@ The reviewer account is pre-seeded with all v2.0 features:
   AvatarStudio → Voice picker without recording
 - The paired Apple Watch app (`com.bulsulabs.clipforge.watchkitapp`) is
   embedded; it activates once the iPhone app launches on a paired watch
-- Universal Links: `https://clipforge.bulsulabs.xyz/clips/<any-uuid>`
+- Universal Links: `https://clipforge.bulsulabs.com/clips/<any-uuid>`
   opens the clip player in the app (or the web fallback if the app
   isn't installed)
 - Siri shortcuts: "What's my ClipForge streak?" — works after first

@@ -8,10 +8,10 @@ import { NextResponse } from "next/server";
  * application/json (NOT text/json — Apple is strict about it).
  *
  * Paths declared here open in the ClipForge iOS app when the user taps:
- *   https://clipforge.bulsulabs.xyz/clips/<uuid>
- *   https://clipforge.bulsulabs.xyz/jobs/<uuid>
+ *   https://clipforge.bulsulabs.com/clips/<uuid>
+ *   https://clipforge.bulsulabs.com/jobs/<uuid>
  *
- * The matching applinks:clipforge.bulsulabs.xyz entitlement is already
+ * The matching applinks:clipforge.bulsulabs.com entitlement is already
  * declared on the iOS target (project.yml → associated-domains).
  *
  * appID format: <TEAM_ID>.<BUNDLE_ID>. We read APPLE_TEAM_ID from env so
