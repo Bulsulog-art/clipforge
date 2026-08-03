@@ -77,7 +77,7 @@ it; no separate submission.
 ## 5. Backend health check
 
 ```bash
-curl https://clipforge.bulsulabs.xyz/api/health?mode=deep
+curl https://clipforge.bulsulabs.com/api/health?mode=deep
 ```
 
 Should return `200` with `{ status: "ok", subsystems: { supabase: "ok",

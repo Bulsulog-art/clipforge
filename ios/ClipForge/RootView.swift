@@ -35,7 +35,7 @@ struct RootView: View {
             }
         }
         // Universal Links — tapped from Safari, Mail, Messages, etc.
-        // The associated-domains entitlement (applinks:clipforge.bulsulabs.xyz)
+        // The associated-domains entitlement (applinks:clipforge.bulsulabs.com)
         // is in project.yml; the AASA file lives at /.well-known/apple-app-
         // site-association on the same host.
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
@@ -50,8 +50,8 @@ struct RootView: View {
 
     /// Maps an incoming URL onto AppState so the right tab + pending-id is
     /// surfaced. Supports:
-    ///   https://clipforge.bulsulabs.xyz/clips/<uuid>  → Clips tab
-    ///   https://clipforge.bulsulabs.xyz/jobs/<uuid>   → Studio + open job
+    ///   https://clipforge.bulsulabs.com/clips/<uuid>  → Clips tab
+    ///   https://clipforge.bulsulabs.com/jobs/<uuid>   → Studio + open job
     ///   clipforge://oauth/<platform>                  → handled by
     ///       ASWebAuthenticationSession itself, never reaches us
     private func handleUniversalLink(_ url: URL) {

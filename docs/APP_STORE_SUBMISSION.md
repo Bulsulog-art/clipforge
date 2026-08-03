@@ -62,9 +62,9 @@ We never sell your data. Videos you upload are processed only for the
 clip pipeline (Supabase EU, OpenAI Whisper, optional Replicate face swap).
 We don't train on your content. Free clips auto-delete after 30 days.
 
-Full terms: clipforge.bulsulabs.xyz/legal/terms
-Privacy: clipforge.bulsulabs.xyz/legal/privacy
-Contact: hello@clipforge.bulsulabs.xyz
+Full terms: clipforge.bulsulabs.com/legal/terms
+Privacy: clipforge.bulsulabs.com/legal/privacy
+Contact: hello@clipforge.bulsulabs.com
 ```
 
 ### Keywords (max 100 chars, comma separated)
@@ -73,13 +73,13 @@ ai clips,opus,klap,podcast,viral,tiktok,reels,shorts,faceless,voiceover,subtitle
 ```
 
 ### Support URL
-`https://clipforge.bulsulabs.xyz/support`
+`https://clipforge.bulsulabs.com/support`
 
 ### Marketing URL
-`https://clipforge.bulsulabs.xyz`
+`https://clipforge.bulsulabs.com`
 
 ### Privacy Policy URL
-`https://clipforge.bulsulabs.xyz/legal/privacy`
+`https://clipforge.bulsulabs.com/legal/privacy`
 
 ### Copyright
 `© 2026 Bulsu Labs`

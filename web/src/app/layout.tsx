@@ -7,7 +7,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://clipforge.bulsulabs.xyz"),
+  metadataBase: new URL("https://clipforge.bulsulabs.com"),
   title: {
     default: "ClipForge — Turn long videos into viral clips, captioned & auto-posted",
     template: "%s · ClipForge",
@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     "Klap alternative", "AI short-form video editor", "viral score", "repurpose video",
   ],
   applicationName: "ClipForge",
-  alternates: { canonical: "https://clipforge.bulsulabs.xyz" },
+  alternates: { canonical: "https://clipforge.bulsulabs.com" },
   robots: { index: true, follow: true, "max-image-preview": "large" } as Metadata["robots"],
   openGraph: {
     title: "ClipForge — Turn long videos into viral clips",
     description:
       "One long video → a dozen captioned, viral-scored clips, auto-posted to TikTok, Reels and Shorts. Mobile-first AI clip studio.",
-    url: "https://clipforge.bulsulabs.xyz",
+    url: "https://clipforge.bulsulabs.com",
     siteName: "ClipForge",
     type: "website",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "ClipForge — AI viral clip studio" }],
@@ -49,7 +49,7 @@ const JSON_LD = {
   operatingSystem: "iOS, Web",
   description:
     "AI viral clip studio: turn a long video or podcast into a dozen captioned, viral-scored short clips and auto-post them to TikTok, Reels and Shorts.",
-  url: "https://clipforge.bulsulabs.xyz",
+  url: "https://clipforge.bulsulabs.com",
   offers: [
     { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
     { "@type": "Offer", name: "Plus (weekly)", price: "5.99", priceCurrency: "USD" },

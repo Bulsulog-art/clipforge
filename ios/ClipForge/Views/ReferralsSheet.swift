@@ -339,6 +339,6 @@ struct ReferralsSheet: View {
     }
 
     private func shareMessage(for code: String) -> String {
-        "Cut a viral clip in 60 seconds with ClipForge — use my code \(code) on signup and we both get 5 free credits.\n\nhttps://clipforge.bulsulabs.xyz"
+        "Cut a viral clip in 60 seconds with ClipForge — use my code \(code) on signup and we both get 5 free credits.\n\nhttps://clipforge.bulsulabs.com"
     }
 }

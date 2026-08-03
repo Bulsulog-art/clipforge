@@ -10,11 +10,11 @@ export const metadata: Metadata = {
     "free clip maker", "AI clip maker free", "free OpusClip alternative", "Klap alternative",
     "podcast to clips free", "long video to shorts", "AI video clipping free", "viral clip generator",
   ],
-  alternates: { canonical: "https://clipforge.bulsulabs.xyz/free-clip-maker" },
+  alternates: { canonical: "https://clipforge.bulsulabs.com/free-clip-maker" },
   openGraph: {
     title: "Free AI Clip Maker — long videos into viral clips",
     description: "Paste a link, get a dozen captioned viral clips, auto-posted. Free to start.",
-    url: "https://clipforge.bulsulabs.xyz/free-clip-maker",
+    url: "https://clipforge.bulsulabs.com/free-clip-maker",
     type: "website",
   },
 };

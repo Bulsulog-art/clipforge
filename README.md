@@ -2,7 +2,7 @@
 
 > Long-form video → 100+ viral short clips → auto-post to TikTok / Reels / Shorts.
 
-**Domain:** `clipforge.bulsulabs.xyz`
+**Domain:** `clipforge.bulsulabs.com`
 **Pricing:** Free / $29 / $79 / $199 monthly
 
 ## Quick start

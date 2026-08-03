@@ -230,10 +230,10 @@ struct CreditsPaywallView: View {
                 .multilineTextAlignment(.center)
             HStack(spacing: 14) {
                 Link("Terms",
-                     destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
+                     destination: URL(string: "https://clipforge.bulsulabs.com/legal/terms") ?? URL(string: "https://clipforge.bulsulabs.com")!)
                 Text("·").foregroundStyle(Color.textSecondary.opacity(0.6))
                 Link("Privacy",
-                     destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/privacy") ?? URL(string: "https://clipforge.bulsulabs.xyz")!)
+                     destination: URL(string: "https://clipforge.bulsulabs.com/legal/privacy") ?? URL(string: "https://clipforge.bulsulabs.com")!)
             }
             .font(.caption2.weight(.semibold))
         }

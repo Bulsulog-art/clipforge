@@ -20,9 +20,9 @@
   - Client ID + Secret'i Supabase'e yapıştır
 
 `Authentication → URL Configuration`:
-- Site URL: `https://clipforge.bulsulabs.xyz`
+- Site URL: `https://clipforge.bulsulabs.com`
 - Redirect URLs:
-  - `https://clipforge.bulsulabs.xyz/auth/callback`
+  - `https://clipforge.bulsulabs.com/auth/callback`
   - `http://localhost:3000/auth/callback`
   - `clipforge://auth/callback` (iOS deeplink)
 

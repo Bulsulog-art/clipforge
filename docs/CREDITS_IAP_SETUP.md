@@ -135,7 +135,7 @@ Yearly her zaman pack'ten daha ucuz → packlar bilerek "acil top-up" konumland�
 Retention `clipforge_plus_monthly_retention` ayrı package olmaz — Promotional Offer'la sunulur.
 
 ### Webhook
-- URL: `https://clipforge.bulsulabs.xyz/api/revenuecat/webhook`
+- URL: `https://clipforge.bulsulabs.com/api/revenuecat/webhook`
 - Auth: `Bearer <REVENUECAT_WEBHOOK_AUTH>`
 
 İşlenen event'ler:

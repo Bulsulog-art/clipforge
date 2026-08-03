@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FallbackLanding } from "@/components/fallback-landing";
 
 /**
- * Web fallback for `https://clipforge.bulsulabs.xyz/jobs/<id>` — see
+ * Web fallback for `https://clipforge.bulsulabs.com/jobs/<id>` — see
  * `clips/[clipId]/page.tsx` for the rationale.
  */
 export const dynamic = "force-static";

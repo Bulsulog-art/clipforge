@@ -89,20 +89,20 @@ struct SettingsView: View {
                     } label: {
                         Label("Send feedback", systemImage: "bubble.left.and.bubble.right.fill")
                     }
-                    Link(destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/terms")!) {
+                    Link(destination: URL(string: "https://clipforge.bulsulabs.com/legal/terms")!) {
                         Label("Terms of Service", systemImage: "doc.text")
                     }
-                    Link(destination: URL(string: "https://clipforge.bulsulabs.xyz/legal/privacy")!) {
+                    Link(destination: URL(string: "https://clipforge.bulsulabs.com/legal/privacy")!) {
                         Label("Privacy Policy", systemImage: "lock.shield")
                     }
-                    Link(destination: URL(string: "mailto:hello@clipforge.bulsulabs.xyz?subject=ClipForge%20support")!) {
+                    Link(destination: URL(string: "mailto:hello@clipforge.bulsulabs.com?subject=ClipForge%20support")!) {
                         Label("Email support", systemImage: "envelope")
                     }
                 }
                 Section("About") {
                     LabeledContent("Version", value: appVersionLine)
-                    Link(destination: URL(string: "https://clipforge.bulsulabs.xyz")!) {
-                        Label("Visit clipforge.bulsulabs.xyz", systemImage: "globe")
+                    Link(destination: URL(string: "https://clipforge.bulsulabs.com")!) {
+                        Label("Visit clipforge.bulsulabs.com", systemImage: "globe")
                     }
                 }
                 Section {

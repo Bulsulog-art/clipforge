@@ -9,7 +9,7 @@ enum Secrets {
     static let supabaseURL = URL(string: "https://rgtxjjnalesquhnexfez.supabase.co")!
     static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJndHhqam5hbGVzcXVobmV4ZmV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzEyMzQsImV4cCI6MjA5MTc0NzIzNH0.0rxQE5pyiSMVQEgyQZeRoMxwJ_VWR-s9XiufM8f1Ino"
 
-    static let apiBaseURL = URL(string: "https://clipforge.bulsulabs.xyz")!
+    static let apiBaseURL = URL(string: "https://clipforge.bulsulabs.com")!
 
     /// Sentry DSN. Empty string = telemetry disabled (safe default for dev).
     /// Get one from https://sentry.io → Projects → ClipForge iOS → Settings → SDK Setup.

@@ -56,7 +56,7 @@ final class SupabaseService: ObservableObject {
 
     /// Email + password sign-in. Exposed so App Review (and any user who
     /// prefers a password) has a non-SIWA path. The reviewer demo account
-    /// (appreviewer@bulsulabs.xyz) authenticates through this flow.
+    /// (appreviewer@bulsulabs.com) authenticates through this flow.
     func signInWithPassword(email: String, password: String) async throws {
         try await client.auth.signIn(email: email, password: password)
     }

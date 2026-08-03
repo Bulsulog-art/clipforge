@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
-      { protocol: "https", hostname: "cdn.clipforge.bulsulabs.xyz" },
+      { protocol: "https", hostname: "cdn.clipforge.bulsulabs.com" },
       { protocol: "https", hostname: "img.youtube.com" },
     ],
   },
@@ -25,8 +25,8 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.sentry.io",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://*.supabase.co https://cdn.clipforge.bulsulabs.xyz https://img.youtube.com",
-      "media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.xyz blob:",
+      "img-src 'self' data: blob: https://*.supabase.co https://cdn.clipforge.bulsulabs.com https://img.youtube.com",
+      "media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://api.revenuecat.com https://api.openai.com https://fal.run",
       "frame-ancestors 'none'",
       "base-uri 'self'",
@@ -44,7 +44,7 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
           // HSTS: 2-year max-age + includeSubDomains + preload. Match HSTS
-          // preload-list requirements so we can submit clipforge.bulsulabs.xyz
+          // preload-list requirements so we can submit clipforge.bulsulabs.com
           // after we've been TLS-only for a while.
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
           { key: "Content-Security-Policy", value: csp },
