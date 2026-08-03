@@ -168,15 +168,19 @@ struct ProjectsView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button {
-                            showNewProject = true
-                        } label: {
-                            Label("Clip from URL · 1 cr", systemImage: "link")
-                        }
+                        // Upload leads: it is the path that always works.
+                        // YouTube answers our servers with a bot challenge, so
+                        // a URL can fail through no fault of the user — it must
+                        // not be the first thing we offer.
                         Button {
                             showUploadSheet = true
                         } label: {
                             Label("Upload your video · 1 cr", systemImage: "square.and.arrow.up")
+                        }
+                        Button {
+                            showNewProject = true
+                        } label: {
+                            Label("Paste a link · 1 cr", systemImage: "link")
                         }
                     } label: {
                         Image(systemName: "plus.circle.fill")
@@ -184,7 +188,7 @@ struct ProjectsView: View {
                             .foregroundStyle(.brand)
                     }
                     .accessibilityLabel("Create new project")
-                    .accessibilityHint("Opens a menu to clip from a URL or upload your own video")
+                    .accessibilityHint("Opens a menu to upload your own video or paste a link")
                 }
             }
             .sheet(isPresented: $showNewProject, onDismiss: { seed = nil }) {
@@ -344,7 +348,7 @@ struct ProjectsView: View {
                     .font(.title.bold())
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.85)
-                Text("Drop a YouTube link. We find the moments worth posting and hand you back ready-to-upload vertical clips — captions burned in, hook on top, thumbnail done.")
+                Text("Upload a long video — a podcast, a stream, a talk. We find the moments worth posting and hand you back ready-to-upload vertical clips: captions burned in, hook on top, thumbnail done.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .font(.callout)
@@ -355,7 +359,10 @@ struct ProjectsView: View {
             VStack(spacing: 12) {
                 Button {
                     Task { await Haptics.impact(.medium) }
-                    showNewProject = true
+                    // Upload, not the URL sheet: YouTube blocks downloads from
+                    // our servers, so a link can fail for reasons the user
+                    // cannot fix. Never make that the first experience.
+                    showUploadSheet = true
                 } label: {
                     // Free-first framing: while the signup credit is unspent,
                     // the button must not read like a price tag.
