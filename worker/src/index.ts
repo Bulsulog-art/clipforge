@@ -6,7 +6,6 @@ import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
-import { runAvatarPipeline } from "./pipeline.avatar.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
 import { runMetricsSnapshot } from "./jobs/metrics-snapshot.js";
 import { runCostMonitor } from "./jobs/cost-monitor.js";
@@ -83,24 +82,10 @@ const derivativeWorker = new Worker(
   },
 );
 
-const avatarWorker = new Worker(
-  "avatar",
-  async (job) => {
-    try {
-      await runAvatarPipeline(job.data);
-    } catch (e) {
-      Sentry.captureException(e, { tags: { queue: "avatar", jobId: job.id } });
-      throw e;
-    }
-  },
-  {
-    connection,
-    concurrency: Number(process.env.AVATAR_CONCURRENCY ?? 2),
-    metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
-    removeOnComplete: { count: 500, age: 24 * 3600 },
-    removeOnFail: { count: 2000, age: 7 * 24 * 3600 },
-  },
-);
+// The avatar queue was removed along with FAL. Avatar videos required FAL's
+// paid lipsync model, so the feature could not run at zero COGS; it also had
+// zero usage (avatar_jobs was empty in production). Keeping a paid, advertised
+// feature that cannot work is exactly what got the app rejected before.
 
 videoWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "video job failed"),
@@ -111,17 +96,12 @@ publishWorker.on("failed", (job, err) =>
 derivativeWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "derivative job failed"),
 );
-avatarWorker.on("failed", (job, err) =>
-  logger.error({ jobId: job?.id, err: err.message }, "avatar job failed"),
-);
-
 async function shutdown(signal: string) {
   logger.info({ signal }, "shutting down");
   await Promise.allSettled([
     videoWorker.close(),
     publishWorker.close(),
     derivativeWorker.close(),
-    avatarWorker.close(),
   ]);
   await Sentry.flush(2000);
   await connection.quit();

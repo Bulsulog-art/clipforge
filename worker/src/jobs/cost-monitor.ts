@@ -17,7 +17,6 @@ const COST: Record<string, number> = {
   job_transcribe:    0.00,
 
   // Derivatives (clipforge.clip_derivatives)
-  derivative_face_swap:   0.15,   // fal-ai/face-swap
   derivative_translation: 0.005,  // gpt-4o-mini + tts-1-hd
 
   // Avatars (clipforge.video_jobs where source_kind='avatar' — actually
@@ -55,7 +54,7 @@ export async function runCostMonitor(): Promise<void> {
 
   const dollars =
     jobs * (COST.job_render + COST.job_score + COST.job_transcribe) +
-    (derivatives.face_swap   ?? 0) * COST.derivative_face_swap +
+    
     (derivatives.translation ?? 0) * COST.derivative_translation +
     avatarClips * COST.avatar_render;
 

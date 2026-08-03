@@ -266,7 +266,6 @@ export async function runVideoPipeline(p: Payload) {
             niche: p.niche ?? "default",
             durationSec: render.durationSec,
             workDir: work,
-            aiBackground: aiThumbnails,
             style: p.thumbnailStyle ?? tpl.thumbnailStyle,
           });
           thumbnailPath = thumb.storagePath;

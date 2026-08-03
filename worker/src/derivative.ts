@@ -3,17 +3,19 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import { supabase } from "./supabase.js";
 import { logger } from "./logger.js";
-import { runFaceSwap } from "./steps/face-swap.js";
 import { runTranslation } from "./steps/translate.js";
 
+// Face swap was removed: it was the only paid third-party dependency (FAL) in
+// the pipeline, nobody had ever used it, and it was the cause of two App Review
+// rejections (2.1 face data, 5.1.1 privacy policy). Derivatives are now
+// translation-only, and the product runs at effectively zero marginal COGS.
 export type DerivativePayload = {
   derivativeId: string;
   userId: string;
-  kind: "face_swap" | "translation";
+  kind: "translation";
 };
 
 const CREDIT_COST: Record<string, number> = {
-  face_swap: 2,
   translation: 2,
 };
 
@@ -71,42 +73,28 @@ export async function runDerivative(p: DerivativePayload) {
       .single();
     if (cErr || !clip?.storage_path) throw new Error("source clip not found");
 
-    let outPath: string;
+    // pull parent job for transcript
+    const { data: job } = await supabase
+      .from("video_jobs")
+      .select("transcript, niche")
+      .eq("id", clip.job_id)
+      .single();
+    const transcript = job?.transcript as { words: { word: string; start: number; end: number }[] } | null;
+    if (!transcript?.words) throw new Error("source transcript missing");
 
-    if (p.kind === "face_swap") {
-      if (!derivative.target_face_path) throw new Error("target face missing");
-      const result = await runFaceSwap({
-        userId: p.userId,
-        derivativeId: p.derivativeId,
-        sourceClipPath: clip.storage_path,
-        targetFacePath: derivative.target_face_path,
-        workDir: work,
-      });
-      outPath = result.storagePath;
-    } else {
-      // pull parent job for transcript
-      const { data: job } = await supabase
-        .from("video_jobs")
-        .select("transcript, niche")
-        .eq("id", clip.job_id)
-        .single();
-      const transcript = job?.transcript as { words: { word: string; start: number; end: number }[] } | null;
-      if (!transcript?.words) throw new Error("source transcript missing");
-
-      const result = await runTranslation({
-        userId: p.userId,
-        derivativeId: p.derivativeId,
-        sourceClipPath: clip.storage_path,
-        sourceTranscriptWords: transcript.words,
-        clipStartSec: Number(clip.start_seconds),
-        clipEndSec: Number(clip.end_seconds),
-        niche: job?.niche ?? "default",
-        targetLanguage: derivative.target_language ?? "en",
-        voiceClone: derivative.voice_clone ?? false,
-        workDir: work,
-      });
-      outPath = result.storagePath;
-    }
+    const result = await runTranslation({
+      userId: p.userId,
+      derivativeId: p.derivativeId,
+      sourceClipPath: clip.storage_path,
+      sourceTranscriptWords: transcript.words,
+      clipStartSec: Number(clip.start_seconds),
+      clipEndSec: Number(clip.end_seconds),
+      niche: job?.niche ?? "default",
+      targetLanguage: derivative.target_language ?? "en",
+      voiceClone: derivative.voice_clone ?? false,
+      workDir: work,
+    });
+    const outPath = result.storagePath;
 
     await supabase
       .from("clip_derivatives")
@@ -119,24 +107,8 @@ export async function runDerivative(p: DerivativePayload) {
       })
       .eq("id", p.derivativeId);
 
-    // Face-data minimization: once the swap is generated, the uploaded portrait
-    // has served its only purpose. Delete it immediately so a face image is never
-    // retained beyond the few minutes it takes to render (it is also covered by
-    // account-deletion cascade, but we do not wait for that).
-    if (p.kind === "face_swap" && derivative.target_face_path) {
-      const { error: rmErr } = await supabase.storage
-        .from("clipforge-faces")
-        .remove([derivative.target_face_path]);
-      if (rmErr) {
-        logger.warn({ derivativeId: p.derivativeId, err: rmErr.message }, "face image cleanup failed");
-      } else {
-        await supabase
-          .from("clip_derivatives")
-          .update({ target_face_path: null })
-          .eq("id", p.derivativeId);
-        logger.info({ derivativeId: p.derivativeId }, "face image deleted post-swap");
-      }
-    }
+    // (Face-swap cleanup used to live here. The feature is gone, so no face
+    // image is ever uploaded or stored in the first place.)
 
     logger.info({ derivativeId: p.derivativeId, kind: p.kind }, "derivative ready");
   } catch (e) {

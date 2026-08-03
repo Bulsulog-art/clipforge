@@ -4,7 +4,6 @@ import { createReadStream } from "node:fs";
 import ffmpeg from "fluent-ffmpeg";
 import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
-import { runFalSync } from "../fal.js";
 
 type ThumbStyle = "mrbeast" | "cinematic" | "minimal";
 
@@ -17,8 +16,6 @@ type ThumbArgs = {
   niche: string;
   durationSec: number;
   workDir: string;
-  /** Premium feature: call Replicate for AI background. Default: false (free). */
-  aiBackground?: boolean;
   /**
    * Compose recipe to use. Picked by the user in the iOS New Project sheet.
    *   mrbeast   — punchy, saturated, big bold hook (default; legacy behaviour)
@@ -47,7 +44,8 @@ const NICHE_GRADIENT: Record<string, [string, string]> = {
  *  - overlay 2-3-line bold hook with niche gradient + black outline
  *  - export 1080×1920 jpg (9:16 — matches clip)
  *
- * Cost: ~$0 (CPU only). If aiBackground=true, ~$0.003 via Replicate Flux.
+ * Cost: $0 — CPU only, no third-party API. (A paid FAL "AI enhance" path was
+ * removed: it added cost and a vendor dependency for a marginal visual gain.)
  */
 export async function generateThumbnail(args: ThumbArgs): Promise<{ storagePath: string }> {
   const out = path.join(args.workDir, `thumb-${args.clipIndex}.jpg`);
@@ -67,14 +65,6 @@ export async function generateThumbnail(args: ThumbArgs): Promise<{ storagePath:
       .save(out);
   });
 
-  if (args.aiBackground && process.env.FAL_KEY) {
-    try {
-      await enhanceWithFalFlux(out);
-    } catch (e) {
-      logger.warn({ err: (e as Error).message }, "fal enhance failed — keeping CPU thumb");
-    }
-  }
-
   const storagePath = `${args.userId}/${args.jobId}/thumb-${args.clipIndex}.jpg`;
   const { error } = await supabase.storage
     .from("clipforge-thumbnails")
@@ -87,35 +77,6 @@ export async function generateThumbnail(args: ThumbArgs): Promise<{ storagePath:
 
   await fs.unlink(out).catch(() => {});
   return { storagePath };
-}
-
-/**
- * Optional AI enhance via FAL.ai Flux Schnell (img2img).
- * Sends the CPU thumbnail as init image with a "youtube thumbnail" prompt
- * to add depth and pop. Costs ~$0.003/image — ~10x cheaper than Replicate.
- */
-async function enhanceWithFalFlux(localJpgPath: string) {
-  const fileData = await fs.readFile(localJpgPath);
-  const base64 = `data:image/jpeg;base64,${fileData.toString("base64")}`;
-
-  // fal-ai/flux/schnell with image_url performs img2img. ~3 sec on average.
-  const result = await runFalSync<{ images?: Array<{ url: string }> }>(
-    "fal-ai/flux/schnell",
-    {
-      prompt: "viral YouTube thumbnail, mr beast style, dramatic lighting, vibrant colors, bold composition",
-      image_url: base64,
-      strength: 0.55,
-      image_size: "portrait_9_16",
-      num_images: 1,
-      enable_safety_checker: false,
-    },
-  );
-
-  const outUrl = result.images?.[0]?.url;
-  if (!outUrl) throw new Error("FAL Flux returned no image");
-  const img = await fetch(outUrl);
-  const buf = Buffer.from(await img.arrayBuffer());
-  await fs.writeFile(localJpgPath, buf);
 }
 
 /**
