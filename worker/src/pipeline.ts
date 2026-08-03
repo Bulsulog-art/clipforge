@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
-import { downloadSource } from "./steps/download.js";
+import { downloadSource, SourceBlockedError } from "./steps/download.js";
 import { transcribe } from "./steps/transcribe.js";
 import { extractAudio } from "./steps/extract-audio.js";
 import { scoreMoments } from "./steps/score.js";
@@ -355,7 +355,11 @@ export async function runVideoPipeline(p: Payload) {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     logger.error({ jobId: p.jobId, err: message }, "pipeline failed");
-    await setFailed(p.jobId, message);
+    // A platform block is not a crash — it is a situation the user can act on.
+    // Store the plain instruction instead of a yt-dlp stack trace, which reads
+    // like the app is broken and is the fastest way to lose a first-time user.
+    const userFacing = e instanceof SourceBlockedError ? e.userMessage : message;
+    await setFailed(p.jobId, userFacing);
 
     // Refund the upfront credit on failure
     await supabase.rpc("grant_credits", {
