@@ -91,11 +91,21 @@ final class RevenueCatService: ObservableObject {
     /// (false on cancel). Throws on real errors so callers can show a banner.
     @discardableResult
     func purchase(_ package: Package) async throws -> Bool {
+        AnalyticsService.shared.track("purchase_started",
+                                      props: ["package": package.identifier])
         let result = try await Purchases.shared.purchase(package: package)
         self.customerInfo = result.customerInfo
         if !result.userCancelled {
             // Haptic on actual purchase, not on cancellation.
             await Haptics.notify(.success)
+            AnalyticsService.shared.track("purchase_completed",
+                                          props: ["package": package.identifier])
+            // Revenue is the one event we cannot afford to lose to a 30-second
+            // flush window or an app kill right after checkout.
+            await AnalyticsService.shared.flushNow()
+        } else {
+            AnalyticsService.shared.track("purchase_cancelled",
+                                          props: ["package": package.identifier])
         }
         return !result.userCancelled
     }

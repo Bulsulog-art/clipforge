@@ -136,6 +136,10 @@ final class UploadService: NSObject, ObservableObject {
         struct Resp: Decodable { let jobId: String? }
         if let r = try? JSONDecoder().decode(Resp.self, from: data), let id = r.jobId {
             lastJobId = id
+            // Activation milestone: the upload landed and a job exists. This is
+            // the step 66 signed-up users never reached, so it has to be
+            // measured rather than guessed at.
+            AnalyticsService.shared.track("job_created", props: ["source": "upload"])
         }
     }
 }

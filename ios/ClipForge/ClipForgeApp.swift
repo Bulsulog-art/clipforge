@@ -27,6 +27,10 @@ struct ClipForgeApp: App {
                         // balance changes (Plus purchase, credit pack, refund).
                         Task { await CreditsService.shared.refresh() }
                         Task { await PushService.shared.refreshAuthorization() }
+                        AnalyticsService.shared.track("app_opened")
+                    } else if phase == .background {
+                        // Last chance to ship queued events before iOS suspends us.
+                        Task { await AnalyticsService.shared.flushNow() }
                     }
                 }
                 .onOpenURL { url in
