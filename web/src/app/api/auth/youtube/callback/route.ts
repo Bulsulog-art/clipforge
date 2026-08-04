@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/encryption";
+import { appUrl } from "@/lib/app-url";
 
 /**
  * YouTube OAuth callback (Google OAuth 2.0).
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
     return clearAndRedirect(failUrl("yt_config_missing"));
   }
 
-  const redirectUri = new URL("/api/auth/youtube/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = appUrl("/api/auth/youtube/callback", req);
 
   // 1) Exchange code → access + refresh tokens
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {

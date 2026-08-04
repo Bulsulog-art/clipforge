@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/encryption";
+import { appUrl } from "@/lib/app-url";
 
 /**
  * Instagram OAuth callback (via Facebook Login).
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
     return clearAndRedirect(failUrl("ig_config_missing"));
   }
 
-  const redirectUri = new URL("/api/auth/instagram/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = appUrl("/api/auth/instagram/callback", req);
 
   // 1) Exchange code for a short-lived user token
   const tokenRes = await fetch(

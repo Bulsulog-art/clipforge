@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+import { appUrl } from "@/lib/app-url";
 
 /**
  * Kick off the X (Twitter) OAuth 2.0 flow with PKCE. Mirrors the TikTok flow.
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL("/login", req.url));
+  if (!user) return NextResponse.redirect(appUrl("/login", req));
 
   const clientId = process.env.X_CLIENT_ID;
   if (!clientId) {
@@ -20,14 +21,14 @@ export async function GET(req: NextRequest) {
     const safe = isSafeReturnTo(rt) ? rt : "";
     const dest = safe
       ? safe + (safe.includes("?") ? "&" : "?") + "error=x_not_configured"
-      : new URL("/dashboard/social?error=x_not_configured", req.url).toString();
+      : appUrl("/dashboard/social?error=x_not_configured", req);
     return NextResponse.redirect(dest);
   }
 
   const verifier = crypto.randomBytes(48).toString("base64url");
   const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
   const state = crypto.randomBytes(24).toString("base64url");
-  const redirectUri = new URL("/api/auth/x/callback", process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin).toString();
+  const redirectUri = appUrl("/api/auth/x/callback", req);
 
   const returnTo = req.nextUrl.searchParams.get("returnTo") ?? "";
   const safeReturnTo = isSafeReturnTo(returnTo) ? returnTo : "";

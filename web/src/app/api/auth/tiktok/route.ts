@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+import { appUrl } from "@/lib/app-url";
 
 /**
  * Kick off the TikTok OAuth flow with PKCE.
@@ -9,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL("/login", req.url));
+  if (!user) return NextResponse.redirect(appUrl("/login", req));
 
   const clientKey = process.env.TIKTOK_CLIENT_KEY;
   if (!clientKey) {
@@ -19,14 +20,14 @@ export async function GET(req: NextRequest) {
     const safe = isSafeReturnTo(rt) ? rt : "";
     const dest = safe
       ? safe + (safe.includes("?") ? "&" : "?") + "error=tiktok_not_configured"
-      : new URL("/dashboard/social?error=tiktok_not_configured", req.url).toString();
+      : appUrl("/dashboard/social?error=tiktok_not_configured", req);
     return NextResponse.redirect(dest);
   }
 
   const verifier = crypto.randomBytes(48).toString("base64url");
   const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
   const state = crypto.randomBytes(24).toString("base64url");
-  const redirectUri = new URL("/api/auth/tiktok/callback", process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin).toString();
+  const redirectUri = appUrl("/api/auth/tiktok/callback", req);
 
   // `returnTo` lets the iOS app pass clipforge://oauth/tiktok so the callback
   // can redirect back into the app via ASWebAuthenticationSession. Whitelist

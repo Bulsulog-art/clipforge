@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/encryption";
+import { appUrl } from "@/lib/app-url";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.redirect(new URL("/login", url.origin));
 
-  const redirectUri = new URL("/api/auth/tiktok/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = appUrl("/api/auth/tiktok/callback", req);
 
   const tokenRes = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
     method: "POST",

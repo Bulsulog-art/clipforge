@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+import { appUrl } from "@/lib/app-url";
 
 /**
  * Start the Instagram OAuth flow via Facebook Login.
@@ -23,7 +24,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL("/login", req.url));
+  if (!user) return NextResponse.redirect(appUrl("/login", req));
 
   const clientId = process.env.META_APP_ID;
   if (!clientId) {
@@ -31,12 +32,12 @@ export async function GET(req: NextRequest) {
     const safe = isSafeReturnTo(rt) ? rt : "";
     const dest = safe
       ? safe + (safe.includes("?") ? "&" : "?") + "error=instagram_not_configured"
-      : new URL("/dashboard/social?error=instagram_not_configured", req.url).toString();
+      : appUrl("/dashboard/social?error=instagram_not_configured", req);
     return NextResponse.redirect(dest);
   }
 
   const state = crypto.randomBytes(24).toString("base64url");
-  const redirectUri = new URL("/api/auth/instagram/callback", process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin).toString();
+  const redirectUri = appUrl("/api/auth/instagram/callback", req);
 
   const returnTo = req.nextUrl.searchParams.get("returnTo") ?? "";
   const safeReturnTo = isSafeReturnTo(returnTo) ? returnTo : "";

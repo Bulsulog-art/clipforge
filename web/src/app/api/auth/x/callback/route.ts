@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/encryption";
+import { appUrl } from "@/lib/app-url";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.X_CLIENT_ID!;
   const clientSecret = process.env.X_CLIENT_SECRET!;
-  const redirectUri = new URL("/api/auth/x/callback", process.env.NEXT_PUBLIC_APP_URL!).toString();
+  const redirectUri = appUrl("/api/auth/x/callback", req);
 
   // X uses HTTP Basic auth (client_id:client_secret) for confidential clients.
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");

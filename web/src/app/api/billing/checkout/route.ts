@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { appUrl } from "@/lib/app-url";
 
 // RevenueCat Web Billing routes the actual payment.
 // This endpoint resolves the correct paywall URL and signs the user.
@@ -24,7 +25,7 @@ const ALLOWED_PRODUCTS = new Set<string>([
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL("/login", req.url));
+  if (!user) return NextResponse.redirect(appUrl("/login", req));
 
   const product = new URL(req.url).searchParams.get("product");
   if (!product || !ALLOWED_PRODUCTS.has(product)) {
