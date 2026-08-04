@@ -14,6 +14,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@remotion/bundler": "^4.0.505",
+    "@remotion/renderer": "^4.0.505",
     "@sentry/node": "^8.30.0",
     "@supabase/supabase-js": "^2.45.0",
     "bullmq": "^5.12.0",
@@ -22,6 +24,9 @@
     "openai": "^4.62.0",
     "pino": "^9.4.0",
     "pino-pretty": "^11.2.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "remotion": "^4.0.505",
     "youtube-dl-exec": "^3.0.10",
     "zod": "^3.23.8"
   },
