@@ -152,16 +152,22 @@ export function backgroundCss(t: Theme): string {
  * for other aspects. The jumps are large on purpose: a phone screen held at
  * arm's length forgives nothing, and "one size smaller" reliably becomes
  * "nobody read it".
+ *
+ * These were raised after looking at the first renders. The earlier scale was
+ * defensible on paper and wrong on screen: in a 1080x1920 frame the content
+ * sat as a thin band in the middle with a third of the height empty above and
+ * below it, which reads as timid next to anything else in a feed. Short-form
+ * type is set far larger than page type, and the frame has to feel full.
  */
 export const TYPE = {
-  hook: 104,
-  display: 92,
-  statValue: 168,
-  heading: 64,
-  body: 48,
-  listItem: 46,
-  label: 32,
-  caption: 36,
+  hook: 132,
+  display: 116,
+  statValue: 224,
+  heading: 82,
+  body: 54,
+  listItem: 52,
+  label: 34,
+  caption: 40,
 } as const;
 
 /** Longer lines need to come down a step or they wrap into a wall. */
