@@ -10,7 +10,11 @@
     "resolveJsonModule": true,
     "outDir": "dist",
     "declaration": false,
-    "noEmit": false
+    "noEmit": false,
+    "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
 }
