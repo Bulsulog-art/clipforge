@@ -30,7 +30,7 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-bold text-foreground">Studio</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {tier === "free"
-                ? "Free plan · upgrade to Pro for auto-posting and unlimited clips"
+                ? "Free plan · upgrade to Plus for unlimited clips and no watermark"
                 : `${tier.charAt(0).toUpperCase() + tier.slice(1)} plan`}
             </p>
           </div>

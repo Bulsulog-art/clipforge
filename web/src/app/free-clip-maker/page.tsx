@@ -5,7 +5,7 @@ import { ArrowRight, Check, Scissors } from "lucide-react";
 export const metadata: Metadata = {
   title: "Free AI Clip Maker — turn long videos into viral clips",
   description:
-    "ClipForge is a free AI clip maker: paste a YouTube link or podcast and get a dozen captioned, viral-scored short clips auto-posted to TikTok, Reels and Shorts. A mobile-first OpusClip & Klap alternative.",
+    "ClipForge is a free AI clip maker: upload a video or podcast and get captioned, ranked vertical clips ready to download and post. A mobile-first OpusClip & Klap alternative.",
   keywords: [
     "free clip maker", "AI clip maker free", "free OpusClip alternative", "Klap alternative",
     "podcast to clips free", "long video to shorts", "AI video clipping free", "viral clip generator",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://clipforge.bulsulabs.com/free-clip-maker" },
   openGraph: {
     title: "Free AI Clip Maker — long videos into viral clips",
-    description: "Paste a link, get a dozen captioned viral clips, auto-posted. Free to start.",
+    description: "Upload a video, get captioned vertical clips in about a minute. Free to start.",
     url: "https://clipforge.bulsulabs.com/free-clip-maker",
     type: "website",
   },
@@ -55,7 +55,7 @@ const POINTS = [
   "AI scores every moment so you post the winners",
   "Animated word-by-word captions in 5 styles",
   "Each niche gets its own look automatically",
-  "Auto-post to TikTok, Reels & Shorts",
+  "Download ready-to-post 9:16 clips",
   "Free to start — no credit card",
 ];
 

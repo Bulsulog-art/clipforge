@@ -182,7 +182,7 @@ export default function LandingPage() {
             />
             <Faq
               q="Can I use this for content that doesn't belong to me?"
-              a="No. You need to own the source video or have a license. We're not lawyers — but our Terms make clear you take responsibility for what you upload. Face swap on real people without consent is not allowed."
+              a="No. You need to own the source video or have a license. We're not lawyers — but our Terms make clear you take responsibility for what you upload."
             />
             <Faq
               q="Where are clips stored?"
@@ -282,7 +282,7 @@ function PricingTabs() {
       "Niche-native templates",
       "AI Translation 15+ languages (2 cr)",
       "Voice clone (5 cr)",
-      "Auto-post to TikTok, Reels & Shorts",
+      "Translate a clip into 15+ languages",
       "Buy extra credit packs anytime",
       "Cancel anytime",
     ],

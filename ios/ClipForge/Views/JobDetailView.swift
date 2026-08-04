@@ -456,7 +456,7 @@ private struct ClipThumb: View {
                             }
                             .padding(6)
                             .accessibilityLabel("AI tools and publish")
-                            .accessibilityHint("Open the AI tools sheet — face swap, translate, save, publish")
+                            .accessibilityHint("Open the clip tools sheet — translate, voice, save, share")
                         }
                     }
 

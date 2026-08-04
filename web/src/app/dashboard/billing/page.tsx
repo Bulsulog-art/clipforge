@@ -27,7 +27,7 @@ const PLUS_FEATURES = [
   "Unlimited clips — no watermark",
   "Tell it what to clip · prompt-driven",
   "5 caption styles + niche-tuned looks",
-  "Auto-post to TikTok, Reels & Shorts",
+  "Translate a clip into 15+ languages",
   "Performance analytics that learn your winners",
   "Translate captions to 15+ languages",
   "Credits refill every billing cycle",
@@ -72,7 +72,7 @@ export default async function BillingPage() {
             {isPlus ? "Your Plus subscription" : "Go Plus"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            One subscription unlocks auto-posting and refills your credits every cycle.
+            One subscription drops the watermark and refills your credits every cycle.
           </p>
 
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">

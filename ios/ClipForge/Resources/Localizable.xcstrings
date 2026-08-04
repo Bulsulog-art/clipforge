@@ -1476,23 +1476,6 @@
         }
       }
     },
-    "All AI tools. No watermark. Cancel anytime.": {
-      "extractionState": "manual",
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tüm AI araçları. Filigran yok. İstediğin an iptal."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Todas las herramientas de IA. Sin marca de agua. Cancela cuando quieras."
-          }
-        }
-      }
-    },
     "Best value · ~83% off weekly price": {
       "extractionState": "manual",
       "localizations": {
@@ -1540,23 +1523,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "ACTUAL"
-          }
-        }
-      }
-    },
-    "Unlock everything": {
-      "extractionState": "manual",
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Her şeyin kilidini aç"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desbloquea todo"
           }
         }
       }
@@ -1693,6 +1659,193 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saldo"
+          }
+        }
+      }
+    },
+    "One long video in.\nTen short ones out.": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tek uzun video girer.\nOn kısa video çıkar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entra un vídeo largo.\nSalen diez cortos."
+          }
+        }
+      }
+    },
+    "Upload a video, and in about a minute you get vertical clips with captions burned in, a hook on each one and a thumbnail ready to post. No editing.": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir video yükle; yaklaşık bir dakika içinde altyazısı gömülü dikey klipler, her birine yazılmış bir açılış cümlesi ve paylaşıma hazır kapak görseli alırsın. Kurgu yok."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sube un vídeo y en aproximadamente un minuto tendrás clips verticales con subtítulos incrustados, un gancho en cada uno y una miniatura lista para publicar. Sin editar."
+          }
+        }
+      }
+    },
+    "Up to 10 vertical clips from one video": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tek videodan 10 adede kadar dikey klip"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hasta 10 clips verticales de un solo vídeo"
+          }
+        }
+      }
+    },
+    "Word-by-word captions burned in, 5 styles": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kelime kelime gömülü altyazı, 5 stil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtítulos palabra por palabra incrustados, 5 estilos"
+          }
+        }
+      }
+    },
+    "A hook written for each clip": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her klip için yazılmış açılış cümlesi"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un gancho escrito para cada clip"
+          }
+        }
+      }
+    },
+    "Thumbnail generated for every clip": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her klip için üretilen kapak görseli"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miniatura generada para cada clip"
+          }
+        }
+      }
+    },
+    "Silences cut automatically": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessizlikler otomatik kesilir"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los silencios se cortan automáticamente"
+          }
+        }
+      }
+    },
+    "Translate a clip into 15+ languages (2 cr)": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir klibi 15+ dile çevir (2 kredi)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traduce un clip a más de 15 idiomas (2 cr)"
+          }
+        }
+      }
+    },
+    "Your own voice on a clip (5 cr)": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klipte kendi sesin (5 kredi)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu propia voz en un clip (5 cr)"
+          }
+        }
+      }
+    },
+    "No watermark, no outro": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filigran yok, kapanış klibi yok"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin marca de agua, sin outro"
+          }
+        }
+      }
+    },
+    "Extra credit packs whenever you need them": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İhtiyaç oldukça ek kredi paketleri"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packs de créditos extra cuando los necesites"
           }
         }
       }

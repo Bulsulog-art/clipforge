@@ -9,14 +9,14 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   metadataBase: new URL("https://clipforge.bulsulabs.com"),
   title: {
-    default: "ClipForge — Turn long videos into viral clips, captioned & auto-posted",
+    default: "ClipForge — Turn one long video into ten captioned vertical clips",
     template: "%s · ClipForge",
   },
   description:
-    "ClipForge turns one long video or podcast into a dozen viral short clips — AI picks the best moments, scores them, adds animated word-by-word captions and hooks, and auto-posts to TikTok, Reels and Shorts. Mobile-first.",
+    "ClipForge turns one long video or podcast into up to ten vertical short clips: it picks the strongest moments, burns in word-by-word captions, writes a hook for each and generates a thumbnail. Download and post in a minute. Mobile-first.",
   keywords: [
     "AI video clipping", "viral clips", "podcast to clips", "long video to shorts",
-    "AI captions", "auto-post TikTok Reels Shorts", "clip maker", "OpusClip alternative",
+    "AI captions", "vertical clips for TikTok Reels Shorts", "clip maker", "OpusClip alternative",
     "Klap alternative", "AI short-form video editor", "viral score", "repurpose video",
   ],
   applicationName: "ClipForge",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ClipForge — Turn long videos into viral clips",
     description:
-      "One long video → a dozen captioned, viral-scored clips, auto-posted to TikTok, Reels and Shorts. Mobile-first AI clip studio.",
+      "One long video → up to ten captioned, ranked vertical clips, ready to download and post. Mobile-first AI clip studio.",
     url: "https://clipforge.bulsulabs.com",
     siteName: "ClipForge",
     type: "website",
@@ -48,7 +48,7 @@ const JSON_LD = {
   applicationCategory: "MultimediaApplication",
   operatingSystem: "iOS, Web",
   description:
-    "AI viral clip studio: turn a long video or podcast into a dozen captioned, viral-scored short clips and auto-post them to TikTok, Reels and Shorts.",
+    "AI clip studio: turn a long video or podcast into captioned, ranked vertical clips you can download and post anywhere.",
   url: "https://clipforge.bulsulabs.com",
   offers: [
     { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },

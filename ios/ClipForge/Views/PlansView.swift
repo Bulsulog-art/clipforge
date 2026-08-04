@@ -47,15 +47,24 @@ struct PlansView: View {
         }
     }
 
+    /// Only things the app actually does today.
+    ///
+    /// This list used to sell "AI Face Swap" — a feature removed from the
+    /// worker when the third-party provider was dropped — and "Auto-post to
+    /// TikTok, Reels, Shorts, X", which is gated behind platform approvals we
+    /// do not yet hold. Selling either is a refund request waiting to happen,
+    /// and this app has already been rejected once over claims it could not
+    /// back up. Anything added here must exist in the pipeline first.
     private let features = [
-        "No watermark",
-        "Animated word-by-word captions",
-        "AI Face Swap (2 cr)",
-        "AI Translation 15+ languages (2 cr)",
-        "Voice clone (5 cr)",
-        "Auto-post to TikTok, Reels, Shorts, X",
-        "AI-enhanced thumbnails",
-        "Buy extra credit packs anytime",
+        "Up to 10 vertical clips from one video",
+        "Word-by-word captions burned in, 5 styles",
+        "A hook written for each clip",
+        "Thumbnail generated for every clip",
+        "Silences cut automatically",
+        "Translate a clip into 15+ languages (2 cr)",
+        "Your own voice on a clip (5 cr)",
+        "No watermark, no outro",
+        "Extra credit packs whenever you need them",
         "Cancel anytime",
     ]
 
@@ -129,13 +138,18 @@ struct PlansView: View {
 
     // MARK: - Sections
 
+    /// The paywall is often the first screen that explains the product, so it
+    /// says what the app does before it says what it costs. "Unlock everything"
+    /// told people nothing: they could not tell what they were buying.
     private var headerCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Unlock everything")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("One long video in.\nTen short ones out.")
                 .font(.largeTitle.bold())
-                .minimumScaleFactor(0.8)
-            Text("All AI tools. No watermark. Cancel anytime.")
+                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("Upload a video, and in about a minute you get vertical clips with captions burned in, a hook on each one and a thumbnail ready to post. No editing.")
                 .foregroundStyle(.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
