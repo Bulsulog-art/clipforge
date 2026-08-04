@@ -177,9 +177,10 @@ struct PlansView: View {
 
     private var billingPicker: some View {
         VStack(spacing: 6) {
+            // Two terms only. Monthly was dropped: a third option made the
+            // decision harder without giving anyone a reason to buy.
             Picker("Billing period", selection: $billing) {
                 Text("Weekly").tag(BillingPeriod.weekly)
-                Text("Monthly").tag(BillingPeriod.monthly)
                 Text("Yearly").tag(BillingPeriod.yearly)
             }
             .pickerStyle(.segmented)
@@ -187,14 +188,13 @@ struct PlansView: View {
 
             // Highlight the savings on the currently selected period so users
             // see the value prop without crowding the segmented control labels.
+            // $49.99/yr against $6.99 × 52 = $363.48, so the claim is a real
+            // 86%. Substantiated numbers only — an invented discount is the
+            // kind of thing App Review reads the receipts on.
             if billing == .yearly {
-                Text("Best value · ~83% off weekly price")
+                Text("Best value · 86% less than paying weekly")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.green)
-            } else if billing == .monthly {
-                Text("Save ~38% vs weekly")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.brand)
             }
         }
         .padding(.horizontal)

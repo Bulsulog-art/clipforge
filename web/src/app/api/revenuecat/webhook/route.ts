@@ -13,51 +13,67 @@ type RCEvent = {
 };
 
 /**
- * Pricing model — single Plus tier, no Pro:
+ * Pricing model — two subscription terms, one top-up pack.
  *
- *   Plus weekly      $5.99   → 10 credits / week
- *   Plus monthly     $14.99  → 40 credits / month
- *   Plus yearly      $59.99  → 500 credits / year   (aggressive loyalty price)
- *   Plus retention   $12.99  → 40 credits / month   (win-back offer)
+ *   Plus weekly    $6.99/wk   →  30 credits, refilled weekly   ($0.233/cr)
+ *   Plus yearly    $49.99/yr  →  1200 credits, granted on renewal ($0.042/cr)
+ *   Top-up         $4.99      →  40 credits, never expire       ($0.125/cr)
  *
- *   Plus-only packs (consumable, gated client-side by entitlement):
- *     Booster        $9.99   → 10 credits   ($0.999/cr  — emergency top-up)
- *     Power          $19.99  → 30 credits   ($0.666/cr)
- *     Pro            $49.99  → 80 credits   ($0.624/cr  — best pack rate)
+ * Monthly was dropped: three terms made the choice harder without adding a
+ * reason to buy. Two terms read as "try it" and "commit", which is the only
+ * distinction that matters here.
  *
- *   Legacy packs (still honored if any old transactions arrive):
- *     clipforge_credits_10 → 10 credits
- *     clipforge_credits_20 → 20 credits
+ * WHY THESE NUMBERS
  *
- * Pack pricing is deliberately above subscription per-credit rate so packs
- * never undercut subs — they're for "need credits RIGHT NOW, don't want a
- * recurring charge" moments. Yearly ($0.12/cr) is the absolute best deal,
- * rewarding upfront commitment.
+ * One generated video costs us roughly $0.02 at the margin:
+ *   GPT-4o-mini scene plan + hook   ~$0.005
+ *   TTS narration (when used)       ~$0.010
+ *   Whisper transcription            $0      (runs locally, see whisper-service)
+ *   Remotion render                 ~$0.002  (our own CPU, amortised)
+ *   Storage + egress                ~$0.002
  *
- * Apple iade-safe: consumable packs can't be refunded after consume.
- * Margins after economic stack (faster-whisper local, see worker/whisper-service):
- *   Weekly  81%+
- *   Monthly 75%+
- *   Yearly  66%+ (worst case: 250 face_swaps), 88% realistic mixed usage
- *   Booster pack 95%+ (10 credits × ~$0.05 cost = $0.50 COGS on $9.99 price)
+ * Every plan therefore stays profitable even if a subscriber burns their
+ * entire allowance, which is the case that actually has to hold — plans sized
+ * on "nobody uses it all" are how the top 5% of users bankrupt a product:
+ *
+ *   Weekly  1560 cr/yr → $31 cost on $363 revenue   → 91% margin
+ *   Yearly  1200 cr/yr → $24 cost on $49.99 revenue → 52% margin
+ *   Top-up    40 cr    → $0.80 cost on $4.99        → 84% margin
+ *
+ * Yearly is 5.6× better per credit than weekly. That gap is the point: it
+ * pays cash upfront and it is the plan that survives churn.
+ *
+ * The top-up sits between the two rates. It has to be cheaper per credit than
+ * weekly, or a yearly member who runs dry is better off switching to weekly —
+ * and dearer than yearly, or it undercuts the plan we most want people on.
+ *
+ * Top-ups are sold to subscribers only. That is enforced server-side in
+ * /api/billing/checkout as well as in the client, because a pack bought
+ * without a subscription would be a dead end: the buyer would have credits
+ * but still carry a watermark and be capped on source length.
+ *
+ * Consumables cannot be refunded once consumed, so packs carry no refund risk.
  */
-const SUBSCRIPTION_PRODUCTS: Record<
+export const SUBSCRIPTION_PRODUCTS: Record<
   string,
   { tier: "starter"; credits: number; period: "weekly" | "monthly" | "yearly" }
 > = {
-  clipforge_plus_weekly:            { tier: "starter", credits: 10,  period: "weekly"  },
-  clipforge_plus_monthly:           { tier: "starter", credits: 40,  period: "monthly" },
-  clipforge_plus_monthly_retention: { tier: "starter", credits: 40,  period: "monthly" },
-  clipforge_plus_yearly:            { tier: "starter", credits: 500, period: "yearly"  },
+  clipforge_plus_weekly:            { tier: "starter", credits: 30,   period: "weekly"  },
+  clipforge_plus_yearly:            { tier: "starter", credits: 1200, period: "yearly"  },
+  // Retired terms. Anyone still on one keeps their old allowance until they
+  // renew onto a current plan; dropping the entry would silently grant zero.
+  clipforge_plus_monthly:           { tier: "starter", credits: 40,   period: "monthly" },
+  clipforge_plus_monthly_retention: { tier: "starter", credits: 40,   period: "monthly" },
 };
 
-const CONSUMABLE_PRODUCTS: Record<string, number> = {
-  // New consumable packs (Apr 2026 pricing refresh)
+export const CONSUMABLE_PRODUCTS: Record<string, number> = {
+  // The one top-up we sell: $4.99 → 40 credits, subscribers only.
+  clipforge_credits_topup:   40,
+  // Retired packs. Still honoured so a purchase already in flight, or a
+  // sandbox transaction, never lands as a silent zero-credit grant.
   clipforge_credits_booster: 10,
   clipforge_credits_power:   30,
   clipforge_credits_pro:     80,
-  // Legacy IDs — honored in case any test/sandbox transactions still reference them.
-  // Safe to remove once ASC confirms no live products with these IDs exist.
   clipforge_credits_10:      10,
   clipforge_credits_20:      20,
 };

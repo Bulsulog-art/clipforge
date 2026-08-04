@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Pricing — ClipForge",
   description:
-    "One free clip set to start. Plus from $5.99/week: unlimited styles, no watermark, cancel anytime.",
+    "One free clip set to start. Plus from $6.99/week, or $49.99 a year: no watermark, 1,200 credits, cancel anytime.",
   alternates: { canonical: "https://clipforge.bulsulabs.com/pricing" },
 };
 
@@ -48,9 +48,9 @@ const FREE: Plan = {
 const PLANS: Plan[] = [
   {
     name: "Plus weekly",
-    price: "$5.99",
+    price: "$6.99",
     period: "per week",
-    credits: "10 credits every week",
+    credits: "30 credits every week",
     features: [
       "No watermark",
       "Sources up to 90 minutes",
@@ -61,24 +61,10 @@ const PLANS: Plan[] = [
     ],
   },
   {
-    name: "Plus monthly",
-    price: "$14.99",
-    period: "per month",
-    credits: "40 credits every month",
-    note: "Most popular",
-    highlight: true,
-    features: [
-      "Everything in weekly",
-      "Better value per credit",
-      "Priority in the render queue",
-      "Cancel anytime",
-    ],
-  },
-  {
     name: "Plus yearly",
-    price: "$59.99",
+    price: "$49.99",
     period: "per year",
-    credits: "500 credits up front",
+    credits: "1,200 credits a year",
     note: "Best value",
     features: [
       "Everything in monthly",
