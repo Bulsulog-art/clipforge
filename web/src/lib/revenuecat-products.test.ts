@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { SUBSCRIPTION_PRODUCTS, CONSUMABLE_PRODUCTS } from "./route";
+import { SUBSCRIPTION_PRODUCTS, CONSUMABLE_PRODUCTS } from "./revenuecat-products";
 
 /**
  * The credit allowances ARE the business model. A number changed here without

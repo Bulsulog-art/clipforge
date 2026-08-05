@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { appUrl } from "@/lib/app-url";
+import { SUBSCRIPTION_PRODUCTS, CONSUMABLE_PRODUCTS } from "@/lib/revenuecat-products";
 
 // RevenueCat Web Billing routes the actual payment.
 // This endpoint resolves the correct paywall URL and signs the user.
@@ -11,28 +12,17 @@ import { appUrl } from "@/lib/app-url";
 // about — so a successful payment granted ZERO credits and never set the tier
 // ("paid money grants nothing"). Our real model is a single Plus subscription
 // + consumable credit packs. Keep this allowlist in sync with the webhook.
-// Subscriptions we sell. `clipforge_plus_yearly` was missing from this list,
-// so the yearly plan — the one we most want people on — could not be bought
-// through web checkout at all: it 400'd as an invalid product.
-const SUBSCRIPTION_PRODUCTS = new Set<string>([
-  "clipforge_plus_weekly",
-  "clipforge_plus_yearly",
-  // Retired, still purchasable for anyone mid-flow on an old paywall.
-  "clipforge_plus_monthly",
-  "clipforge_plus_monthly_retention",
-]);
+// The two allowlists are derived from the webhook's product table rather than
+// retyped here. They used to be separate literals, which is how
+// `clipforge_plus_yearly` ended up sellable by the webhook but rejected at
+// checkout: the plan we most want people on 400'd as an invalid product. One
+// table, two views of it, no drift.
+const SELLABLE_SUBSCRIPTIONS = new Set(Object.keys(SUBSCRIPTION_PRODUCTS));
 
 // Credit packs. These are top-ups for existing members, never an entry point:
 // credits alone don't lift the watermark or the source-length cap, so someone
 // who bought a pack without a subscription would have paid for a dead end.
-const CONSUMABLE_PRODUCTS = new Set<string>([
-  "clipforge_credits_topup",
-  "clipforge_credits_booster",
-  "clipforge_credits_power",
-  "clipforge_credits_pro",
-  "clipforge_credits_10",
-  "clipforge_credits_20",
-]);
+const SELLABLE_CONSUMABLES = new Set(Object.keys(CONSUMABLE_PRODUCTS));
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -40,8 +30,8 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.redirect(appUrl("/login", req));
 
   const product = new URL(req.url).searchParams.get("product");
-  const isSubscription = product ? SUBSCRIPTION_PRODUCTS.has(product) : false;
-  const isConsumable = product ? CONSUMABLE_PRODUCTS.has(product) : false;
+  const isSubscription = product ? SELLABLE_SUBSCRIPTIONS.has(product) : false;
+  const isConsumable = product ? SELLABLE_CONSUMABLES.has(product) : false;
   if (!product || (!isSubscription && !isConsumable)) {
     return NextResponse.json({ error: "invalid product" }, { status: 400 });
   }

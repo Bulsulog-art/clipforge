@@ -65,6 +65,32 @@ export const Backdrop: React.FC<{ theme: Theme; children: React.ReactNode }> = (
 };
 
 /**
+ * Longest last-line pair we will glue together to avoid a widow. Past this the
+ * pair is wide enough that forcing it onto one line risks an overflow, which
+ * looks far worse than the widow it would have prevented.
+ */
+const WIDOW_GUARD_CHARS = 14;
+
+/**
+ * Groups the words so the last line can never be a single short word.
+ *
+ * Headlines wrap by width, so where the lines fall is Chromium's decision, not
+ * ours — but a trailing "are" on a line of its own is the one break that reads
+ * as broken rather than as typesetting. Gluing the last two words into one
+ * unbreakable item removes exactly that case and leaves every other break
+ * alone.
+ */
+export function guardWidow(words: string[]): { text: string; index: number }[] {
+  const items = words.map((text, index) => ({ text, index }));
+  if (words.length < 3) return items;
+
+  const tail = words.slice(-2).join(" ");
+  if (tail.length > WIDOW_GUARD_CHARS) return items;
+
+  return [...items.slice(0, -2), { text: tail, index: words.length - 2 }];
+}
+
+/**
  * Display type. Optionally reveals word by word, which holds attention far
  * better than a whole line fading in at once.
  */
@@ -103,7 +129,7 @@ export const DisplayText: React.FC<{
         justifyContent: align === "center" ? "center" : "flex-start",
       }}
     >
-      {words.map((word, i) => {
+      {guardWidow(words).map(({ text: word, index: i }) => {
         const shown = i < visible;
         const anim = entrance(frame, {
           delay: byWord ? delay + i * 3 : delay,
@@ -119,6 +145,8 @@ export const DisplayText: React.FC<{
               transform: `translateY(${anim.translateY * scale}px)`,
               color: isAccent ? theme.accent : theme.foreground,
               display: "inline-block",
+              // A glued pair must not be split again by the wrap it exists to prevent.
+              whiteSpace: "pre",
             }}
           >
             {word}

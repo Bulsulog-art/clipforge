@@ -4,6 +4,7 @@ import { Film, Sparkles, BarChart3, Wand2, Scissors } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDuration } from "@/lib/utils";
 import { DashboardNav } from "@/components/dashboard-nav";
+import { ShowcaseStrip } from "@/components/generate/showcase-strip";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -151,7 +152,8 @@ function StatusBadge({ status, progress }: { status: string; progress: number })
  */
 function EmptyState() {
   return (
-    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+    <>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
       <Door
         href="/studio/create"
         icon={<Wand2 className="h-5 w-5" aria-hidden="true" />}
@@ -167,7 +169,16 @@ function EmptyState() {
         body="Paste a YouTube or TikTok link, or upload a file. We find the moments worth posting, caption them and get them ready to publish."
         cta="Paste a link"
       />
-    </div>
+      </div>
+
+      {/* Nothing explains the first door like watching it. */}
+      <div className="mt-14">
+        <ShowcaseStrip
+          heading="This is what a sentence turns into"
+          sub="Three real renders. Each one started as a single line of text."
+        />
+      </div>
+    </>
   );
 }
 

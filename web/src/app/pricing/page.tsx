@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ShowcaseStrip } from "@/components/generate/showcase-strip";
 
 export const metadata: Metadata = {
   title: "Pricing — ClipForge",
@@ -140,6 +141,15 @@ export default function PricingPage() {
           Your first clip set is on us — no card, no trial timer.
         </p>
       </header>
+
+      {/* Proof before price. Every one of these came out of the renderer the
+          plan below pays for, from a single sentence. */}
+      <div style={{ marginBottom: 48 }}>
+        <ShowcaseStrip
+          heading="Made from one sentence each"
+          sub="Real output from the renderer you're paying for — no mockups."
+        />
+      </div>
 
       <div style={{
         display: "grid", gap: 18,

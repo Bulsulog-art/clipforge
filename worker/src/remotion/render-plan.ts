@@ -20,20 +20,40 @@ import { resolveStockClips } from "./stock.js";
 const COMPOSITION_ID = "ClipForgeVideo";
 
 /**
- * Where footage is staged so the renderer can serve it.
+ * The public directory handed to the bundler.
  *
- * OffthreadVideo only downloads over http(s): an absolute path 404s against
- * the bundle's own server and `file://` is refused. Remotion's mechanism is
- * staticFile(), which resolves inside the bundle's public directory — and that
- * directory is fixed at bundle time, while the bundle itself is built once and
- * shared across every render.
+ * Deliberately empty. The bundler *copies* whatever is here into the bundle
+ * output at build time — it does not serve this path — so anything staged here
+ * after the first bundle is invisible to the renderer. Naming it explicitly
+ * still matters: without it the bundler would adopt whatever `public` folder
+ * happens to sit near the entry point.
  *
- * So there is one public root, and each render gets a subdirectory inside it.
- * The composition is handed "<renderId>/<file>.mp4", the subdirectory is
- * deleted when the render finishes, and webpack still only runs once.
+ * Footage is staged in `stagingDir()` below, inside the bundle itself.
  */
 export const PUBLIC_ROOT =
   process.env.REMOTION_PUBLIC_DIR ?? path.resolve(process.cwd(), ".remotion-public");
+
+/**
+ * Where footage is staged so the renderer can actually fetch it.
+ *
+ * OffthreadVideo only downloads over http(s): an absolute path 404s against
+ * the bundle's own server and `file://` is refused. Remotion's mechanism is
+ * staticFile(), which resolves to `/public/<name>` on the bundle's static
+ * server — and that server reads from the bundle directory on disk, at request
+ * time.
+ *
+ * The bundle is built once and reused, so staging into the *source* public
+ * directory only works for the first render in a process; every later one 404s
+ * because its files were written after the copy. Staging into the bundle's own
+ * public folder works for all of them. Each render gets a subdirectory, deleted
+ * when it finishes, and webpack still only runs once.
+ *
+ * Only a second render in the same process reveals the difference. The first
+ * one passes either way, which is exactly why this is written down.
+ */
+export function stagingDir(serveUrl: string, renderId: string): string {
+  return path.join(serveUrl, "public", renderId);
+}
 
 let bundlePromise: Promise<string> | undefined;
 
@@ -116,7 +136,7 @@ export async function resolveFootage(
   opts: {
     workDir: string;
     userAssets: string[];
-    /** Names the subdirectory of PUBLIC_ROOT this render stages into. */
+    /** Names the staging subdirectory, which is also the staticFile() prefix. */
     renderId?: string;
     pexelsApiKey?: string;
     fetchImpl?: typeof fetch;
@@ -170,15 +190,18 @@ export async function resolveFootage(
 }
 
 export async function renderPlan(args: RenderPlanArgs): Promise<RenderPlanResult> {
-  // Footage is staged in its own subdirectory of the shared public root so
-  // staticFile() can find it, and so two concurrent renders never see each
-  // other's files.
+  // Bundle first: the staging directory lives inside the bundle, because that
+  // is the only place the renderer's static server reads from.
+  const serveUrl = await getBundle(args.entryPoint);
+
+  // Each render stages into its own subdirectory so two concurrent renders
+  // never see each other's files.
   const renderId = randomUUID();
-  const assetDir = path.join(PUBLIC_ROOT, renderId);
+  const assetDir = stagingDir(serveUrl, renderId);
   await fs.mkdir(assetDir, { recursive: true });
 
   try {
-    return await renderStaged({ ...args, renderId, assetDir });
+    return await renderStaged({ ...args, renderId, assetDir, serveUrl });
   } finally {
     // Best effort: a leftover staging directory costs disk, not correctness.
     await fs.rm(assetDir, { recursive: true, force: true }).catch(() => {});
@@ -186,7 +209,7 @@ export async function renderPlan(args: RenderPlanArgs): Promise<RenderPlanResult
 }
 
 async function renderStaged(
-  args: RenderPlanArgs & { renderId: string; assetDir: string },
+  args: RenderPlanArgs & { renderId: string; assetDir: string; serveUrl: string },
 ): Promise<RenderPlanResult> {
   const {
     plan,
@@ -199,9 +222,9 @@ async function renderStaged(
     concurrency,
     onProgress,
     onWarn,
-    entryPoint,
     renderId,
     assetDir,
+    serveUrl,
   } = args;
 
   // A user's clip lives wherever it was downloaded; copy it in so every source
@@ -230,7 +253,6 @@ async function renderStaged(
   const missingFootage = footageScenes - Object.keys(footage).length;
 
   const inputProps = { plan, footage, voiceoverSrc, musicSrc, watermark };
-  const serveUrl = await getBundle(entryPoint);
 
   const composition = await selectComposition({
     serveUrl,
