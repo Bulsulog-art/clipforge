@@ -85,6 +85,10 @@ export async function POST(req: Request) {
       source_type: "generate",
       clip_prompt: body.prompt,
       aspect_ratio: body.aspect ?? "9:16",
+      // Recorded so a retry can rebuild the same video. The queue payload is
+      // gone by then, and a retry without these would quietly return a video
+      // with the person's own clips missing.
+      source_asset_paths: assetPaths.length ? assetPaths : null,
       status: "queued",
       progress: 0,
     })

@@ -50,6 +50,8 @@ export interface VideoJob {
   aspect_ratio: string | null;
   /** Only on generate jobs: the shot list the model wrote and the renderer used. */
   scene_plan: unknown | null;
+  /** Only on generate jobs: the clips the person attached, so a retry can reuse them. */
+  source_asset_paths: string[] | null;
   error_message: string | null;
   created_at: string;
   finished_at: string | null;

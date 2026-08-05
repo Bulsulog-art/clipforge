@@ -11,13 +11,29 @@ export function ClipsGrid({ clips }: { clips: Clip[] }) {
       {clips.map((c) => (
         <article key={c.id} className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:shadow-md">
           <div className="relative aspect-[9/16] bg-muted">
-            {c.thumbnail_path && (
+            {c.thumbnail_path ? (
               <img
                 src={`/api/storage/sign?path=${encodeURIComponent(c.thumbnail_path)}&bucket=clipforge-thumbnails`}
                 alt={c.hook ?? "Clip thumbnail"}
                 className="h-full w-full object-cover"
                 loading="lazy"
               />
+            ) : (
+              c.storage_path && (
+                // Generated videos have no separate thumbnail — the renderer
+                // makes an mp4 and nothing else. Loading just the metadata
+                // gets the browser to paint the first frame, which turns a
+                // blank grey card into the actual opening shot for the cost
+                // of a few kilobytes.
+                <video
+                  src={`/api/storage/sign?path=${encodeURIComponent(c.storage_path)}&bucket=clipforge-videos-rendered`}
+                  className="h-full w-full object-cover"
+                  preload="metadata"
+                  muted
+                  playsInline
+                  aria-hidden="true"
+                />
+              )
             )}
             <Link
               href={`/api/storage/sign?path=${encodeURIComponent(c.storage_path ?? "")}&bucket=clipforge-videos-rendered`}

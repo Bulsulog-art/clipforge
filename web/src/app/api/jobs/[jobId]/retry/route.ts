@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { videoQueue } from "@/lib/queue";
+import { videoQueue, generateQueue } from "@/lib/queue";
+import { planRetry } from "@/lib/retry-job";
 
 /**
  * POST /api/jobs/:jobId/retry
@@ -26,7 +27,7 @@ export async function POST(
   const svc = createServiceClient();
   const { data: job, error: fetchErr } = await svc
     .from("video_jobs")
-    .select("id, user_id, status, source_type, source_url, storage_path, niche, language")
+    .select("id, user_id, status, source_type, source_url, storage_path, niche, language, clip_prompt, aspect_ratio, source_asset_paths, scene_plan")
     .eq("id", jobId)
     .single();
   if (fetchErr || !job) {
@@ -62,19 +63,19 @@ export async function POST(
     return NextResponse.json({ error: resetErr.message }, { status: 500 });
   }
 
-  await videoQueue.add(
-    "ingest",
-    {
-      jobId,
-      userId: user.id,
-      sourceType: job.source_type,
-      sourceUrl: job.source_url ?? undefined,
-      storagePath: job.storage_path ?? undefined,
-      niche: job.niche ?? "motivation",
-      language: job.language ?? "en",
-    },
-    { jobId, attempts: 3, backoff: { type: "exponential", delay: 5000 } },
-  );
+  // Which pipeline this belongs to, and what it needs to run again, is
+  // decided in lib/retry-job.ts so the branch can be tested without Redis.
+  const plan = planRetry(job);
+  if (plan.queue === null) {
+    return NextResponse.json({ error: plan.error }, { status: 409 });
+  }
+
+  const queue = plan.queue === "generate" ? generateQueue : videoQueue;
+  await queue.add(plan.queue === "generate" ? "generate" : "ingest", plan.payload, {
+    jobId,
+    attempts: plan.options.attempts,
+    backoff: { type: "exponential", delay: plan.options.backoffDelay },
+  });
 
   return NextResponse.json({ ok: true });
 }
