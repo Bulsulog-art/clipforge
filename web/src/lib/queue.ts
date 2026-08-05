@@ -4,6 +4,7 @@ import IORedis from "ioredis";
 
 let _connection: IORedis | undefined;
 let _videoQueue: Queue | undefined;
+let _generateQueue: Queue | undefined;
 let _publishQueue: Queue | undefined;
 let _analyticsQueue: Queue | undefined;
 let _derivativeQueue: Queue | undefined;
@@ -32,6 +33,17 @@ export const videoQueue = new Proxy({} as Queue, {
     }
     const value = (_videoQueue as any)[prop];
     return typeof value === "function" ? value.bind(_videoQueue) : value;
+  },
+});
+
+/** Prompt-to-video. Its own queue so a CPU-bound render never starves clipping. */
+export const generateQueue = new Proxy({} as Queue, {
+  get(_target, prop) {
+    if (!_generateQueue) {
+      _generateQueue = new Queue("generate", { connection: getConnection() });
+    }
+    const value = (_generateQueue as any)[prop];
+    return typeof value === "function" ? value.bind(_generateQueue) : value;
   },
 });
 
@@ -100,6 +112,16 @@ export type VideoJobPayload = {
    * "minimal" (clean clip frame + small caption pill).
    */
   thumbnailStyle?: "mrbeast" | "cinematic" | "minimal";
+};
+
+export type GenerateJobPayload = {
+  jobId: string;
+  userId: string;
+  prompt: string;
+  /** Storage paths of clips the user attached, in their order. */
+  assetPaths?: string[];
+  aspect?: "9:16" | "1:1" | "16:9";
+  theme?: "midnight" | "sunrise" | "mono" | "candy" | "editorial";
 };
 
 export type PublishJobPayload = {
