@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, OffthreadVideo, useVideoConfig } from "remotion";
+import { AbsoluteFill, OffthreadVideo, staticFile, useVideoConfig } from "remotion";
 import type { Theme } from "../theme.js";
 import { TYPE, backgroundCss, fitText } from "../theme.js";
 import { entrance, kenBurns } from "../animation.js";
@@ -31,13 +31,16 @@ export const FootageScene: React.FC<{
   const safe = useSafeArea();
   const { width, height } = useVideoConfig();
   const zoom = kenBurns(frame, durationInFrames);
+  // A bare filename lives in the render's public directory; anything with a
+  // scheme is already fetchable as-is.
+  const resolvedSrc = src && !/^https?:/.test(src) ? staticFile(src) : src;
 
   return (
     <AbsoluteFill style={{ background: backgroundCss(theme) }}>
-      {src ? (
+      {resolvedSrc ? (
         <AbsoluteFill style={{ overflow: "hidden" }}>
           <OffthreadVideo
-            src={src}
+            src={resolvedSrc}
             // Footage is rarely the aspect we need, so it is filled and
             // cropped rather than letterboxed — bars read as a mistake.
             style={{
