@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { parseScenePlan, ScenePlanError, LIMITS, THEMES } from "./scene-plan.js";
+import { normalisePlanShape } from "./normalise-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
 
 /**
@@ -29,6 +30,12 @@ You do NOT control layout, colour, fonts, animation or timing curves. Those are 
 
 SCENE KINDS
 
+Every scene object carries its kind in a field literally named "kind". For example:
+
+  { "kind": "hook", "text": "Nobody tells you this about mornings", "seconds": 3 }
+
+Use exactly these values. Do not invent kinds, and do not rename the field.
+
 hook       — the opening line. Must earn the next three seconds. { text, sub?, seconds }
 statement  — one idea, large. { text, emphasis?: string[], seconds }
 list       — a heading and 2-6 items. { heading, items[], seconds }
@@ -53,7 +60,9 @@ RULES
 - aspect: "9:16" unless the user asks otherwise.
 - voiceover is optional. Include it only if narration adds something the type does not already say.
 
-Return exactly: { title, aspect, theme, music, scenes: [...], voiceover? }`;
+Return exactly: { title, aspect, theme, music, scenes: [...], voiceover? }
+
+Every entry in "scenes" must have "kind" and "seconds".`;
 
 export type PlanRequest = {
   /** What the person typed. */
@@ -155,7 +164,9 @@ async function complete(
   }
 
   try {
-    return { raw, parsed: JSON.parse(raw) };
+    // Translated before it is judged: a model that wrote `type` or `outro`
+    // meant the right scene, and failing it there costs a whole repair round.
+    return { raw, parsed: normalisePlanShape(JSON.parse(raw)) };
   } catch {
     throw new ScenePlanError(
       `model returned unparseable json: ${raw.slice(0, 200)}`,
