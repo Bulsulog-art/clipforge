@@ -2,197 +2,125 @@
 <html>
 <head>
 <meta charset="utf-8" />
+<!--
+  App Review screenshot for the ClipForge Plus subscriptions.
+
+  This has to match what a reviewer sees when they open the app, so it tracks
+  the real thing on three axes the previous version got wrong: the app is
+  light-themed now (not the old purple gradient), the prices are the ones App
+  Store Connect actually charges, and the feature list contains only features
+  that still exist. The version it replaced was still advertising AI Face Swap
+  and voice cloning, both removed when FAL was dropped.
+
+  Colours are lifted from ios/ClipForge/Theme.swift.
+-->
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1242px; height: 2208px; overflow: hidden; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
-  body {
-    background:
-      radial-gradient(circle at 30% 8%, rgba(255,255,255,0.20) 0%, transparent 35%),
-      radial-gradient(circle at 90% 95%, rgba(0,0,0,0.50) 0%, transparent 55%),
-      linear-gradient(160deg, #0F172A 0%, #4C1D95 30%, #BE185D 70%, #F97316 100%);
+  html, body {
+    width: 1242px; height: 2208px; overflow: hidden;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  .status { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 20px 60px 0; font-size: 32px; font-weight: 600; }
-  .nav { display: flex; align-items: center; padding: 20px 50px 30px; }
-  .close { font-size: 32px; color: #fff; opacity: 0.7; }
-  .nav h1 { flex: 1; text-align: center; font-size: 36px; font-weight: 700; margin-right: 32px; }
+  body { background: #FEF9FB; color: #17121F; }
 
-  .hero {
-    text-align: center;
-    margin: 40px 60px 30px;
-  }
-  .hero .crown {
-    font-size: 64px;
-    margin-bottom: 16px;
-  }
-  .hero h2 {
-    font-size: 88px;
-    font-weight: 900;
-    letter-spacing: -2px;
-    line-height: 1;
-    margin-bottom: 14px;
-  }
-  .hero h2 .grad {
-    background: linear-gradient(90deg, #FDE68A 0%, #FB923C 50%, #F9A8D4 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .hero p { font-size: 30px; color: rgba(255,255,255,0.78); }
+  .status { height: 92px; display: flex; justify-content: space-between; align-items: center; padding: 26px 62px 0; font-size: 32px; font-weight: 600; }
+  .nav { display: flex; align-items: center; padding: 10px 54px 26px; }
+  .nav .close { font-size: 34px; color: #17121F; opacity: 0.45; width: 60px; }
+  .nav h1 { flex: 1; text-align: center; font-size: 36px; font-weight: 700; margin-right: 60px; }
 
-  .toggle {
-    display: flex;
-    background: rgba(0,0,0,0.3);
-    border-radius: 999px;
-    padding: 6px;
-    margin: 22px 50px;
+  .hero { text-align: center; padding: 10px 70px 34px; }
+  .hero .mark {
+    display: inline-flex; align-items: center; gap: 14px;
+    background: rgba(255,51,102,0.10); color: #FF3366;
+    padding: 12px 26px; border-radius: 999px;
+    font-size: 26px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 26px;
   }
-  .toggle .opt {
-    flex: 1;
-    padding: 20px;
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    border-radius: 999px;
-  }
-  .toggle .opt.active {
-    background: linear-gradient(90deg, #FB923C, #EC4899);
-  }
-  .toggle .opt.dim { color: rgba(255,255,255,0.6); }
+  .hero h2 { font-size: 76px; font-weight: 800; letter-spacing: -2px; line-height: 1.04; }
+  .hero p { margin-top: 18px; font-size: 30px; line-height: 1.4; color: #6B6478; }
 
+  .plans { padding: 0 54px; display: flex; flex-direction: column; gap: 22px; }
   .plan {
-    margin: 18px 50px;
-    padding: 36px 40px;
-    border-radius: 32px;
-    background: linear-gradient(135deg, rgba(251,146,60,0.25), rgba(236,72,153,0.25));
-    border: 3px solid #FB923C;
+    background: #FFFFFF; border: 2px solid #EFE7EC; border-radius: 30px;
+    padding: 34px 38px; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(23,18,31,0.05);
   }
-  .plan.alt {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.15);
+  .plan.best { border-color: #FF3366; box-shadow: 0 14px 40px rgba(255,51,102,0.16); }
+  .plan .left .term { font-size: 34px; font-weight: 700; }
+  .plan .left .credits { margin-top: 8px; font-size: 27px; color: #6B6478; }
+  .plan .right { text-align: right; }
+  .plan .right .price { font-size: 54px; font-weight: 800; letter-spacing: -1.5px; }
+  .plan .right .per { font-size: 26px; color: #6B6478; margin-top: 4px; }
+  .badge {
+    display: inline-block; background: #FF3366; color: #fff;
+    font-size: 22px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 8px 16px; border-radius: 999px; margin-bottom: 12px;
   }
-  .plan-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .plan-head .name { font-size: 42px; font-weight: 800; }
-  .plan-head .save {
-    background: #FB923C;
-    color: #1a0533;
-    font-size: 22px;
-    font-weight: 900;
-    padding: 6px 14px;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .plan .price {
-    font-size: 64px;
-    font-weight: 900;
-    margin-bottom: 6px;
-    line-height: 1;
-  }
-  .plan .price .currency { font-size: 32px; color: rgba(255,255,255,0.7); }
-  .plan .price .per { font-size: 26px; color: rgba(255,255,255,0.7); font-weight: 600; }
-  .plan .sub-line { font-size: 24px; color: rgba(255,255,255,0.6); margin-bottom: 18px; }
 
-  .features {
-    margin: 8px 50px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 28px;
-    padding: 28px 32px;
-  }
-  .feature {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    padding: 12px 0;
-    font-size: 27px;
-  }
-  .feature .check {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #34D399;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #064e3b;
-    font-weight: 900;
-    flex-shrink: 0;
-  }
+  .features { margin: 38px 54px 0; background: #FFFFFF; border: 1px solid #EFE7EC; border-radius: 30px; padding: 34px 38px; }
+  .features .row { display: flex; align-items: flex-start; gap: 20px; padding: 15px 0; font-size: 29px; line-height: 1.35; }
+  .features .row .tick { color: #FF3366; font-size: 30px; font-weight: 800; line-height: 1.2; }
 
   .cta {
-    margin: 30px 50px 16px;
-    padding: 30px;
-    background: linear-gradient(90deg, #FB923C, #EC4899);
-    border-radius: 999px;
-    font-size: 34px;
-    font-weight: 900;
-    text-align: center;
-    color: #fff;
-    box-shadow: 0 16px 40px rgba(236,72,153,0.5);
+    margin: 40px 54px 0; background: #FF3366; color: #fff;
+    border-radius: 999px; text-align: center; padding: 34px;
+    font-size: 36px; font-weight: 800;
+    box-shadow: 0 14px 34px rgba(255,51,102,0.30);
   }
 
-  .disclosure {
-    margin: 16px 50px 0;
-    font-size: 20px;
-    color: rgba(255,255,255,0.55);
-    line-height: 1.5;
-    text-align: center;
-  }
-  .restore-row {
-    display: flex;
-    justify-content: center;
-    gap: 26px;
-    margin-top: 20px;
-    font-size: 22px;
-  }
-  .restore-row a { color: #FB923C; }
+  .terms { margin: 30px 62px 0; font-size: 22px; line-height: 1.55; color: #8B8496; text-align: center; }
+  .links { margin-top: 22px; display: flex; justify-content: center; gap: 34px; font-size: 24px; color: #FF3366; font-weight: 600; }
 </style>
 </head>
 <body>
-  <div class="status">
-    <span>9:41</span>
-    <span>100%</span>
-  </div>
-  <div class="nav">
-    <span class="close">✕</span>
-    <h1>ClipForge Plus</h1>
-  </div>
+  <div class="status"><span>9:41</span><span>100%</span></div>
+  <div class="nav"><span class="close">✕</span><h1>ClipForge Plus</h1></div>
 
   <div class="hero">
-    <div class="crown">👑</div>
-    <h2><span class="grad">Plus</span></h2>
-    <p>Unlimited renders. All AI features. No watermark.</p>
+    <div class="mark">Plus</div>
+    <h2>Describe it.<br/>We&rsquo;ll shoot it.</h2>
+    <p>One credit turns a sentence into a finished vertical video &mdash; or cuts a long one into clips.</p>
   </div>
 
-  <div class="toggle">
-    <div class="opt dim">Weekly</div>
-    <div class="opt active">Monthly</div>
-  </div>
-
-  <div class="plan">
-    <div class="plan-head">
-      <span class="name">Monthly</span>
-      <span class="save">Save 25%</span>
+  <div class="plans">
+    <div class="plan">
+      <div class="left">
+        <div class="term">Weekly</div>
+        <div class="credits">30 credits, refilled every week</div>
+      </div>
+      <div class="right">
+        <div class="price">$6.99</div>
+        <div class="per">per week</div>
+      </div>
     </div>
-    <div class="price"><span class="currency">$</span>14.99<span class="per"> / month</span></div>
-    <div class="sub-line">40 credits/month · Cancel anytime</div>
+
+    <div class="plan best">
+      <div class="left">
+        <div class="badge">Best value</div>
+        <div class="term">Yearly</div>
+        <div class="credits">1,200 credits &middot; about $5 a month</div>
+      </div>
+      <div class="right">
+        <div class="price">$49.99</div>
+        <div class="per">per year</div>
+      </div>
+    </div>
   </div>
 
   <div class="features">
-    <div class="feature"><span class="check">✓</span>No watermark</div>
-    <div class="feature"><span class="check">✓</span>Animated word-by-word captions</div>
-    <div class="feature"><span class="check">✓</span>AI Face Swap</div>
-    <div class="feature"><span class="check">✓</span>AI Translation 15+ languages</div>
-    <div class="feature"><span class="check">✓</span>Voice clone in your voice</div>
-    <div class="feature"><span class="check">✓</span>One-tap publishing to TikTok, Reels, Shorts</div>
+    <div class="row"><span class="tick">✓</span><span>Make a video from a prompt &mdash; we write the shots, find the footage, animate the type</span></div>
+    <div class="row"><span class="tick">✓</span><span>Add your own clips and we cut them in</span></div>
+    <div class="row"><span class="tick">✓</span><span>Cut a long video into captioned vertical clips</span></div>
+    <div class="row"><span class="tick">✓</span><span>No watermark &middot; sources up to 90 minutes</span></div>
+    <div class="row"><span class="tick">✓</span><span>Five caption styles, translation into 15+ languages</span></div>
   </div>
 
-  <div class="cta">Start Plus — $14.99/mo</div>
+  <div class="cta">Start Plus</div>
 
-  <div class="disclosure">
-    Subscription auto-renews monthly at $14.99 unless cancelled at least 24 h before the period ends. Manage in Settings → Apple ID → Subscriptions. Payment charged to your Apple ID. Weekly plan: $4.99/wk (10 credits).
+  <div class="terms">
+    Auto-renews at the price shown until cancelled at least 24 hours before the period ends.
+    Manage or cancel in Settings &rarr; Apple ID &rarr; Subscriptions.
   </div>
-  <div class="restore-row">
-    <a>Terms of Service</a> · <a>Privacy Policy</a> · <a>Restore</a>
-  </div>
+  <div class="links"><span>Terms of Use</span><span>Privacy Policy</span><span>Restore</span></div>
 </body>
 </html>

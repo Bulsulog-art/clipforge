@@ -38,7 +38,7 @@ struct SettingsView: View {
                     Button {
                         showCreditPaywall = true
                     } label: {
-                        Label("Buy credits (Booster · Power · Pro)", systemImage: "bolt.fill")
+                        Label("Top up credits", systemImage: "bolt.fill")
                     }
                     Button("Restore purchases") {
                         Task { try? await rc.restore() }

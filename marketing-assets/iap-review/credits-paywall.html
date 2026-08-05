@@ -2,190 +2,99 @@
 <html>
 <head>
 <meta charset="utf-8" />
+<!--
+  App Review screenshot for clipforge_credits_topup.
+
+  One pack, because that is what the app sells. The version this replaced
+  showed three cards — Booster, Power and Pro — whose product ids had never
+  existed in App Store Connect, so StoreKit could not resolve any of them and
+  the purchase failed at the tap. A reviewer following that screenshot would
+  have found a dead button.
+
+  Colours are lifted from ios/ClipForge/Theme.swift.
+-->
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1242px; height: 2208px; overflow: hidden; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
-  body {
-    background:
-      radial-gradient(circle at 30% 8%, rgba(255,255,255,0.18) 0%, transparent 35%),
-      radial-gradient(circle at 80% 95%, rgba(0,0,0,0.45) 0%, transparent 55%),
-      linear-gradient(160deg, #1a0533 0%, #4C1D95 35%, #7C3AED 65%, #EC4899 100%);
+  html, body {
+    width: 1242px; height: 2208px; overflow: hidden;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  .status { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 20px 60px 0; font-size: 32px; font-weight: 600; }
-  .nav { display: flex; align-items: center; padding: 20px 50px 30px; }
-  .close { font-size: 32px; color: #fff; opacity: 0.7; }
-  .nav h1 { flex: 1; text-align: center; font-size: 36px; font-weight: 700; margin-right: 32px; }
+  body { background: #FEF9FB; color: #17121F; }
 
-  .balance {
-    margin: 0 50px 30px;
-    padding: 24px 32px;
-    border-radius: 24px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .balance .label { font-size: 28px; opacity: 0.7; }
-  .balance .value { font-size: 56px; font-weight: 900; }
-  .balance .value span { font-size: 30px; opacity: 0.7; margin-left: 8px; }
+  .status { height: 92px; display: flex; justify-content: space-between; align-items: center; padding: 26px 62px 0; font-size: 32px; font-weight: 600; }
+  .nav { display: flex; align-items: center; padding: 10px 54px 30px; }
+  .nav .close { font-size: 30px; color: #FF3366; font-weight: 600; width: 140px; }
+  .nav h1 { flex: 1; text-align: center; font-size: 36px; font-weight: 700; }
+  .nav .restore { width: 140px; text-align: right; font-size: 26px; color: #FF3366; font-weight: 600; }
 
-  .title-block {
-    text-align: center;
-    margin: 30px 60px;
-  }
-  .title-block h2 {
-    font-size: 78px;
-    font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -2px;
-    margin-bottom: 16px;
-  }
-  .title-block h2 .accent {
-    background: linear-gradient(90deg, #FDE68A 0%, #FB923C 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .title-block p {
-    font-size: 32px;
-    color: rgba(255,255,255,0.7);
-    line-height: 1.3;
-  }
+  .balance { padding: 8px 54px 40px; }
+  .balance .label { font-size: 28px; color: #6B6478; }
+  .balance .row { display: flex; align-items: baseline; gap: 18px; margin-top: 10px; }
+  .balance .n { font-size: 120px; font-weight: 800; letter-spacing: -4px; line-height: 1; }
+  .balance .unit { font-size: 36px; color: #6B6478; }
+  .balance .note { margin-top: 14px; font-size: 28px; color: #6B6478; }
 
   .pack {
-    margin: 18px 50px;
-    padding: 36px 40px;
-    border-radius: 32px;
-    background: rgba(255,255,255,0.06);
-    border: 2px solid rgba(255,255,255,0.12);
-    display: flex;
-    align-items: center;
-    gap: 24px;
+    margin: 0 54px; background: #FFFFFF; border: 2px solid #FF3366; border-radius: 32px;
+    padding: 44px 42px; box-shadow: 0 14px 40px rgba(255,51,102,0.16);
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .pack.featured {
-    background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(236,72,153,0.4));
-    border-color: #FB923C;
-  }
-  .pack .icon {
-    width: 110px;
-    height: 110px;
-    border-radius: 28px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 60px;
-    font-weight: 900;
-    background: linear-gradient(135deg, #7C3AED, #EC4899);
-  }
-  .pack.featured .icon { background: linear-gradient(135deg, #FB923C, #EC4899); }
-  .pack .info { flex: 1; }
-  .pack h3 { font-size: 44px; font-weight: 800; margin-bottom: 8px; }
-  .pack p { font-size: 26px; color: rgba(255,255,255,0.65); }
-  .pack .badge {
-    display: inline-block;
-    background: #FB923C;
-    color: #1a0533;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 22px;
-    font-weight: 800;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .pack .price {
-    text-align: right;
-    flex-shrink: 0;
-  }
-  .pack .price .amount {
-    font-size: 50px;
-    font-weight: 900;
-    color: #fff;
-  }
-  .pack .price .currency {
-    font-size: 26px;
-    color: rgba(255,255,255,0.7);
-    margin-right: 4px;
-  }
-  .pack .price .per {
-    font-size: 22px;
-    color: rgba(255,255,255,0.55);
-    display: block;
-    margin-top: 4px;
+  .pack .left .amount { font-size: 56px; font-weight: 800; letter-spacing: -1.5px; }
+  .pack .left .sub { margin-top: 10px; font-size: 28px; color: #6B6478; }
+  .pack .buy {
+    background: #FF3366; color: #fff; border-radius: 999px;
+    padding: 26px 48px; font-size: 36px; font-weight: 800;
+    box-shadow: 0 10px 26px rgba(255,51,102,0.30);
   }
 
-  .disclosure {
-    margin: 40px 50px 0;
-    padding: 24px;
-    font-size: 22px;
-    color: rgba(255,255,255,0.55);
-    line-height: 1.5;
-    text-align: center;
-  }
+  .facts { margin: 34px 54px 0; background: #FFFFFF; border: 1px solid #EFE7EC; border-radius: 30px; padding: 34px 38px; }
+  .facts .row { display: flex; align-items: flex-start; gap: 20px; padding: 15px 0; font-size: 29px; line-height: 1.35; }
+  .facts .row .tick { color: #FF3366; font-size: 30px; font-weight: 800; line-height: 1.2; }
 
-  .restore-row {
-    display: flex;
-    justify-content: center;
-    gap: 28px;
-    margin-top: 24px;
-    font-size: 24px;
+  .gate {
+    margin: 34px 54px 0; background: rgba(255,51,102,0.07);
+    border: 1px solid rgba(255,51,102,0.28); border-radius: 30px; padding: 32px 38px;
   }
-  .restore-row a { color: #FB923C; text-decoration: none; }
+  .gate h3 { font-size: 30px; font-weight: 700; margin-bottom: 12px; }
+  .gate p { font-size: 27px; line-height: 1.45; color: #6B6478; }
+
+  .terms { margin: 36px 62px 0; font-size: 22px; line-height: 1.55; color: #8B8496; text-align: center; }
+  .links { margin-top: 22px; display: flex; justify-content: center; gap: 34px; font-size: 24px; color: #FF3366; font-weight: 600; }
 </style>
 </head>
 <body>
-  <div class="status">
-    <span>9:41</span>
-    <span>100%</span>
-  </div>
-  <div class="nav">
-    <span class="close">✕</span>
-    <h1>Buy Credits</h1>
-  </div>
+  <div class="status"><span>9:41</span><span>100%</span></div>
+  <div class="nav"><span class="close">Close</span><h1>Top up credits</h1><span class="restore">Restore</span></div>
 
   <div class="balance">
-    <span class="label">Your balance</span>
-    <span class="value">3<span>credits</span></span>
-  </div>
-
-  <div class="title-block">
-    <h2>Top up<br/><span class="accent">your studio.</span></h2>
-    <p>Credits never expire. Use them anytime.</p>
+    <div class="label">Balance</div>
+    <div class="row"><span class="n">3</span><span class="unit">credits</span></div>
+    <div class="note">1 credit &mdash; one video from a prompt, or one clip set</div>
   </div>
 
   <div class="pack">
-    <div class="icon">10</div>
-    <div class="info">
-      <h3>10 Credits</h3>
-      <p>~10 AI clip projects</p>
+    <div class="left">
+      <div class="amount">+40 credits</div>
+      <div class="sub">$0.12 per credit</div>
     </div>
-    <div class="price">
-      <span class="currency">$</span><span class="amount">4.99</span>
-      <span class="per">one-time</span>
-    </div>
+    <div class="buy">$4.99</div>
   </div>
 
-  <div class="pack featured">
-    <div class="icon">20</div>
-    <div class="info">
-      <div class="badge">Best value · save 20%</div>
-      <h3>20 Credits</h3>
-      <p>~20 AI clip projects</p>
-    </div>
-    <div class="price">
-      <span class="currency">$</span><span class="amount">7.99</span>
-      <span class="per">one-time</span>
-    </div>
+  <div class="facts">
+    <div class="row"><span class="tick">✓</span><span>Credits never expire while you are subscribed</span></div>
+    <div class="row"><span class="tick">✓</span><span>One-time purchase &mdash; not a subscription, nothing renews</span></div>
+    <div class="row"><span class="tick">✓</span><span>Stacks on top of your weekly or yearly refill</span></div>
   </div>
 
-  <div class="disclosure">
-    Consumable in-app purchase. Credits are spent on AI features (face swap, captions, translation). Payment is charged to your Apple ID. Credits do not auto-renew and cannot be refunded once spent. Tap a pack to purchase.
+  <div class="gate">
+    <h3>Plus members only</h3>
+    <p>Credits on their own don&rsquo;t lift the watermark or the source-length cap, so a pack without a plan would be a dead end. Start Plus first and this button unlocks.</p>
   </div>
 
-  <div class="restore-row">
-    <a>Restore Purchases</a>
+  <div class="terms">
+    One-time purchase. Consumable credits are used as you render and are not refundable once consumed.
   </div>
+  <div class="links"><span>Terms of Use</span><span>Privacy Policy</span></div>
 </body>
 </html>

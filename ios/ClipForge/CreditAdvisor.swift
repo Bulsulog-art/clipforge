@@ -7,10 +7,10 @@ import SwiftUI
 /// just `CreditsService.balance` deltas tracked in UserDefaults.
 ///
 /// Examples it covers:
-///   Weekly subscriber burning 8 of 10 credits in 2 days → "Yearly saves
+///   Weekly subscriber burning 24 of 30 credits in 2 days → "Yearly saves
 ///   ~80%". Monthly subscriber on pace for 4×40 = 160 cr/mo → "Yearly is
 ///   cheaper per credit". Yearly subscriber already burned 50+ this
-///   week → "Top up with Pro pack at $0.62/credit".
+///   week → "Top up: 40 credits for $4.99".
 @MainActor
 final class CreditAdvisor: ObservableObject {
     static let shared = CreditAdvisor()
@@ -86,11 +86,11 @@ final class CreditAdvisor: ObservableObject {
 
         switch tier {
         case .weekly:
-            // 70% of 10 cr = 7. If they're burning past that, weekly is a bad fit.
-            if weekly >= 7 {
+            // 70% of 30 cr = 21. If they're burning past that, weekly is a bad fit.
+            if weekly >= 21 {
                 return Recommendation(
                     title: "You're moving fast 🔥",
-                    body: "You've spent \(weekly) credits this week on Plus Weekly. Yearly gives you 500 credits and works out to ~80% less per credit.",
+                    body: "You've spent \(weekly) credits this week on Plus Weekly. Yearly gives you 1,200 credits and works out to about 82% less per credit.",
                     cta: "See Yearly",
                     target: .plansSheet
                 )
@@ -106,12 +106,12 @@ final class CreditAdvisor: ObservableObject {
                 )
             }
         case .yearly:
-            // 500/yr ≈ 10/wk. 50+ in one week → top-up territory.
-            if weekly >= 50 {
+            // 1,200/yr ≈ 23/wk. Double that in one week → top-up territory.
+            if weekly >= 46 {
                 return Recommendation(
                     title: "Big week — going through credits fast",
-                    body: "You've spent \(weekly) this week. A Pro pack (+80 credits) is $0.62/credit and covers a heavy week without nudging your renewal.",
-                    cta: "Get Pro pack",
+                    body: "You've spent \(weekly) this week. A top-up adds 40 credits for $4.99 and covers a heavy stretch without touching your renewal.",
+                    cta: "Top up credits",
                     target: .creditsPaywall
                 )
             }

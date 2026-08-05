@@ -13,19 +13,23 @@ final class CreditsService: ObservableObject {
     @Published var loading: Bool = false
     @Published var lastError: String?
 
-    /// Consumable IAP product identifiers (App Store Connect → Monetization → In-App Purchases).
-    /// These are only purchasable for Plus subscribers — UI gates this.
+    /// The consumable we sell (App Store Connect → Monetization → In-App Purchases).
+    /// Purchasable by Plus subscribers only — the UI gates it and the server
+    /// enforces it, because credits alone lift neither the watermark nor the
+    /// source-length cap.
     ///
-    /// Pricing tuned so packs never undercut subscriptions:
-    ///   Booster  10cr  $9.99   = $0.999/cr  (emergency top-up)
-    ///   Power    30cr  $19.99  = $0.666/cr  (middle — most popular choice)
-    ///   Pro      80cr  $49.99  = $0.624/cr  (best pack rate, still > yearly's $0.12/cr)
+    /// One pack, not three. The previous list named `clipforge_credits_booster`,
+    /// `_power` and `_pro` — none of which have ever existed in App Store
+    /// Connect, so StoreKit could not resolve them and every top-up in the
+    /// shipped app failed at the tap. Three cards also made the choice harder
+    /// than the decision deserves: this is a refill, not a plan.
     ///
-    /// Yearly subscription beats every pack on per-credit price, by design.
+    /// $4.99 → 40 credits = $0.125/cr. Cheaper than weekly's $0.233/cr so a
+    /// yearly member who runs dry is never better off switching to weekly, and
+    /// dearer than yearly's $0.042/cr so it never undercuts the plan we most
+    /// want people on.
     static let creditPacks: [CreditPack] = [
-        .init(id: "clipforge_credits_booster", credits: 10, price: "$9.99"),
-        .init(id: "clipforge_credits_power",   credits: 30, price: "$19.99", popular: true),
-        .init(id: "clipforge_credits_pro",     credits: 80, price: "$49.99"),
+        .init(id: "clipforge_credits_topup", credits: 40, price: "$4.99"),
     ]
 
     private init() {}

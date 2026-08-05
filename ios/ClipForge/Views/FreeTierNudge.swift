@@ -23,7 +23,7 @@ struct FreeTierNudge: View {
                     .font(.callout.weight(.semibold))
                     .foregroundStyle(.textPrimary)
                     .lineLimit(1)
-                Text("Plus: 10 credits/week for $5.99 — cancel anytime.")
+                Text("Plus: 30 credits a week for $6.99 — cancel anytime.")
                     .font(.caption2)
                     .foregroundStyle(.textSecondary)
                     .lineLimit(2)

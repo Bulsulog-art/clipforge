@@ -1,7 +1,7 @@
 import SwiftUI
 import RevenueCat
 
-/// One-time credit top-up sheet. Plus members see the +10 / +20 packs at their
+/// One-time credit top-up sheet. Plus members see the top-up pack at their
 /// localized App Store price; free users see a Plus upsell.
 struct CreditsPaywallView: View {
     @Environment(\.dismiss) private var dismiss
@@ -87,7 +87,7 @@ struct CreditsPaywallView: View {
                     .font(.title3)
                     .foregroundStyle(.textSecondary)
             }
-            Text("1 credit ≈ 1 video → up to 10 clips")
+            Text("1 credit — one video from a prompt, or one clip set")
                 .font(.callout)
                 .foregroundStyle(.textSecondary)
         }
@@ -117,7 +117,12 @@ struct CreditsPaywallView: View {
                 Label("Plus members only", systemImage: "lock.fill")
                     .font(.headline)
                     .foregroundStyle(.brand)
-                Text("Credit packs are an exclusive perk for Plus subscribers. Start at $5.99/week, or save big with $59.99/year — and top up whenever you need.")
+                // No prices written here: they come from StoreKit on the
+                // plans screen, so they are always the ones Apple will charge
+                // and always in the reader's own currency. The two hardcoded
+                // figures this replaced ($5.99/week, $59.99/year) had both
+                // been wrong since the pricing changed.
+                Text("Top-ups are a Plus perk. Start a plan and you can add credits whenever you run dry — they never expire while you're subscribed.")
                     .foregroundStyle(.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -147,11 +152,11 @@ struct CreditsPaywallView: View {
                     .font(.headline)
                     .foregroundStyle(.textPrimary)
                 ForEach([
-                    "Plus weekly — 10 credits / week",
-                    "Plus monthly — 40 credits / month",
-                    "Plus yearly — 500 credits / year (best value)",
-                    "All AI tools, no watermark",
-                    "Top-up packs: Booster +10 · Power +30 · Pro +80",
+                    "Describe a video, get an mp4 — 1 credit each",
+                    "Plus weekly — 30 credits every week",
+                    "Plus yearly — 1,200 credits a year (best value)",
+                    "No watermark, longer sources, every caption style",
+                    "Top up any time — 40 credits, never expire",
                 ], id: \.self) { line in
                     HStack(alignment: .top, spacing: 6) {
                         Image(systemName: "checkmark.circle.fill")

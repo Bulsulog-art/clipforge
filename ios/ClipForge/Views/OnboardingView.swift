@@ -30,7 +30,7 @@ struct OnboardingView: View {
         Page(
             kind: .pricingStack,
             title: "One free taste,\nthen Plus.",
-            body: "1 free clip set on signup. After that: Plus weekly $5.99, monthly $14.99, or yearly $59.99 (500 credits — best value).",
+            body: "1 free clip set on signup. After that: Plus weekly $6.99 (30 credits a week), or yearly $49.99 (1,200 credits — best value).",
             highlight: "Cancel anytime · refund-safe",
             isPushAsk: false
         ),

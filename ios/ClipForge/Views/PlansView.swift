@@ -31,11 +31,14 @@ struct PlansView: View {
         }
     }
 
+    /// Allowances as actually granted by the RevenueCat webhook. These are
+    /// the numbers a subscriber will hold us to, so they live next to the
+    /// server's table in spirit — every one of them was stale.
     private func creditsLabel(for period: BillingPeriod) -> String {
         switch period {
-        case .weekly:  return "10 credits / week"
+        case .weekly:  return "30 credits / week"
         case .monthly: return "40 credits / month"
-        case .yearly:  return "500 credits / year"
+        case .yearly:  return "1,200 credits / year"
         }
     }
 
@@ -82,9 +85,11 @@ struct PlansView: View {
                         text: "If you ever start to cancel Plus, we'll automatically offer $12.99/month to keep you on."
                     )
                     infoCard(
-                        title: "Plus-only credit packs",
+                        title: "Plus-only top-ups",
                         icon: "bolt.fill",
-                        text: "Run out before the next refill? Plus members can top up with Booster (+10, $9.99), Power (+30, $19.99) or Pro (+80, $49.99) — credits never expire."
+                        // Named three packs that have never existed in App Store
+                        // Connect, so every one of them failed at the tap.
+                        text: "Run out before the next refill? Plus members can add 40 credits for $4.99 — they never expire while you're subscribed."
                     )
                     legalFooter
                     if let error {
