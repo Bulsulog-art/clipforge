@@ -7,6 +7,7 @@ import { logger } from "./logger.js";
 import { planFromPrompt } from "./remotion/plan-from-prompt.js";
 import { renderPlan } from "./remotion/render-plan.js";
 import { ScenePlanError, totalSeconds } from "./remotion/scene-plan.js";
+import { renderConcurrency } from "./remotion/capacity.js";
 import type { ScenePlan } from "./remotion/scene-plan.js";
 
 /**
@@ -168,7 +169,7 @@ export async function runGenerate(p: GeneratePayload) {
       userAssets,
       watermark: !isPaid,
       pexelsApiKey: process.env.PEXELS_API_KEY,
-      concurrency: Number(process.env.REMOTION_CONCURRENCY ?? 4),
+      concurrency: renderConcurrency(),
       onProgress: (fraction) => {
         // Fire and forget: a progress write that fails must not fail a render
         // that is otherwise going fine.

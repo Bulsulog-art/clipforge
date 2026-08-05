@@ -1,5 +1,17 @@
 export type SubscriptionTier = "free" | "starter" | "pro" | "agency";
-export type JobStatus = "queued" | "transcribing" | "scoring" | "rendering" | "ready" | "failed";
+// Two pipelines share this enum: clipping goes queued → transcribing →
+// scoring → rendering, prompt→video goes queued → planning → gathering →
+// rendering → uploading. Both end at ready or failed.
+export type JobStatus =
+  | "queued"
+  | "planning"
+  | "gathering"
+  | "transcribing"
+  | "scoring"
+  | "rendering"
+  | "uploading"
+  | "ready"
+  | "failed";
 export type ClipStatus = "draft" | "rendering" | "ready" | "scheduled" | "published" | "failed";
 export type Platform = "tiktok" | "instagram" | "youtube" | "x" | "facebook" | "linkedin";
 export type PublishStatus = "pending" | "publishing" | "published" | "failed";
@@ -14,6 +26,8 @@ export interface Profile {
   niche: string | null;
   brand_color: string;
   watermark_enabled: boolean;
+  /** Renders left. One credit per generated video; refunded when one fails. */
+  credits_balance: number;
   created_at: string;
   updated_at: string;
 }
@@ -21,7 +35,7 @@ export interface Profile {
 export interface VideoJob {
   id: string;
   user_id: string;
-  source_type: "upload" | "youtube" | "tiktok_url";
+  source_type: "upload" | "youtube" | "tiktok_url" | "generate";
   source_url: string | null;
   storage_path: string | null;
   title: string | null;
@@ -31,6 +45,11 @@ export interface VideoJob {
   status: JobStatus;
   progress: number;
   transcript: unknown | null;
+  /** What the person asked for — the brief on a clipping job, the prompt on a generate job. */
+  clip_prompt: string | null;
+  aspect_ratio: string | null;
+  /** Only on generate jobs: the shot list the model wrote and the renderer used. */
+  scene_plan: unknown | null;
   error_message: string | null;
   created_at: string;
   finished_at: string | null;

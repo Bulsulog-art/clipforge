@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Film, Sparkles, BarChart3 } from "lucide-react";
+import { Film, Sparkles, BarChart3, Wand2, Scissors } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDuration } from "@/lib/utils";
 import { DashboardNav } from "@/components/dashboard-nav";
@@ -34,13 +34,24 @@ export default async function DashboardPage() {
                 : `${tier.charAt(0).toUpperCase() + tier.slice(1)} plan`}
             </p>
           </div>
-          <Link
-            href="/studio/new"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-          >
-            <Plus className="h-4 w-4" />
-            New project
-          </Link>
+          {/* Two doors, named by what they do. The old single "New project"
+              button hid the fact that the app does two different things. */}
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/studio/create"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
+              <Wand2 className="h-4 w-4" aria-hidden="true" />
+              Make a video
+            </Link>
+            <Link
+              href="/studio/new"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
+              <Scissors className="h-4 w-4" aria-hidden="true" />
+              Clip a long video
+            </Link>
+          </div>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -66,7 +77,7 @@ export default async function DashboardPage() {
                 {jobs.map((j) => (
                   <tr key={j.id} className="border-t border-border transition hover:bg-accent">
                     <td className="px-4 py-3 font-medium text-foreground">{j.title ?? "Untitled"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{j.source_type}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{SOURCE_LABELS[j.source_type] ?? j.source_type}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {j.duration_seconds ? formatDuration(j.duration_seconds) : "—"}
                     </td>
@@ -91,6 +102,14 @@ export default async function DashboardPage() {
   );
 }
 
+/** The raw column values are database words. These are the ones people use. */
+const SOURCE_LABELS: Record<string, string> = {
+  generate: "From a prompt",
+  upload: "Uploaded file",
+  youtube: "YouTube link",
+  tiktok_url: "TikTok link",
+};
+
 function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:shadow-md">
@@ -106,9 +125,12 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
 function StatusBadge({ status, progress }: { status: string; progress: number }) {
   const map: Record<string, string> = {
     queued: "bg-muted text-muted-foreground",
+    planning: "bg-blue-500/15 text-blue-700",
+    gathering: "bg-purple-500/15 text-purple-700",
     transcribing: "bg-blue-500/15 text-blue-700",
     scoring: "bg-purple-500/15 text-purple-700",
     rendering: "bg-amber-500/15 text-amber-700",
+    uploading: "bg-amber-500/15 text-amber-700",
     ready: "bg-green-500/15 text-green-700",
     failed: "bg-red-500/15 text-red-700",
   };
@@ -122,22 +144,63 @@ function StatusBadge({ status, progress }: { status: string; progress: number })
   );
 }
 
+/**
+ * The first thing a new account sees, so it has one job: say what this app is
+ * for. It does two things, and naming both plainly beats one clever headline
+ * that covers neither.
+ */
 function EmptyState() {
   return (
-    <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
-      <Film className="mx-auto h-10 w-10 text-brand" aria-hidden="true" />
-      <h3 className="mt-4 text-lg font-semibold text-foreground">Make your first clips</h3>
-      <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-        Paste a YouTube link (or upload a video) and ClipForge finds your most viral moments, captions them, and gets
-        them ready to post — in a few minutes.
-      </p>
-      <Link
+    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <Door
+        href="/studio/create"
+        icon={<Wand2 className="h-5 w-5" aria-hidden="true" />}
+        title="Make a video from a sentence"
+        body="Describe what it should say. We write the shots, pull the footage, animate the type and hand you an mp4. Add your own clips if you have them."
+        cta="Describe your first video"
+        primary
+      />
+      <Door
         href="/studio/new"
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-      >
-        <Plus className="h-4 w-4" aria-hidden="true" /> Paste your first link
-      </Link>
-      <p className="mt-3 text-xs text-muted-foreground">Free to try · no credit card</p>
+        icon={<Scissors className="h-5 w-5" aria-hidden="true" />}
+        title="Cut a long video into clips"
+        body="Paste a YouTube or TikTok link, or upload a file. We find the moments worth posting, caption them and get them ready to publish."
+        cta="Paste a link"
+      />
     </div>
+  );
+}
+
+function Door({
+  href,
+  icon,
+  title,
+  body,
+  cta,
+  primary = false,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  cta: string;
+  primary?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm outline-none transition hover:border-brand/50 hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand/40"
+    >
+      <span
+        className={`flex h-11 w-11 items-center justify-center rounded-full ${
+          primary ? "bg-brand text-white" : "bg-muted text-brand"
+        }`}
+      >
+        {icon}
+      </span>
+      <h3 className="mt-4 text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
+      <span className="mt-4 text-sm font-semibold text-brand transition group-hover:underline">{cta} →</span>
+    </Link>
   );
 }

@@ -5,6 +5,7 @@ import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
+import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
@@ -62,7 +63,7 @@ const generateWorker = new Worker(
   },
   {
     connection,
-    concurrency: Number(process.env.GENERATE_CONCURRENCY ?? 2),
+    concurrency: generateConcurrency(),
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     removeOnComplete: { count: 1000, age: 24 * 3600 },
     removeOnFail: { count: 5000, age: 7 * 24 * 3600 },

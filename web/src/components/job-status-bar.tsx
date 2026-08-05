@@ -5,14 +5,35 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { VideoJob } from "@/lib/supabase/types";
 
+/**
+ * Two pipelines write to this bar. The clipping one transcribes and scores;
+ * the prompt→video one plans and gathers. Where they name the same stage
+ * differently ("rendering clips" vs "rendering your video") the generate
+ * wording wins in GENERATE_LABELS below.
+ */
 const LABELS: Record<string, string> = {
   queued: "Queued · waiting for worker",
+  planning: "Writing the shot list",
+  gathering: "Finding the footage",
   transcribing: "Transcribing audio with Whisper",
   scoring: "Scoring viral moments",
   rendering: "Rendering clips",
+  uploading: "Finishing up",
   ready: "Ready",
   failed: "Failed",
 };
+
+const GENERATE_LABELS: Record<string, string> = {
+  queued: "Queued · your video is next",
+  rendering: "Rendering your video",
+};
+
+function label(job: VideoJob): string {
+  if (job.source_type === "generate") {
+    return GENERATE_LABELS[job.status] ?? LABELS[job.status] ?? job.status;
+  }
+  return LABELS[job.status] ?? job.status;
+}
 
 export function JobStatusBar({ job }: { job: VideoJob }) {
   const supabase = createClient();
@@ -75,7 +96,7 @@ export function JobStatusBar({ job }: { job: VideoJob }) {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
             </span>
           )}
-          {LABELS[current.status] ?? current.status}
+          {label(current)}
         </span>
         <span className="text-muted-foreground">{current.progress}%</span>
       </div>
@@ -85,7 +106,7 @@ export function JobStatusBar({ job }: { job: VideoJob }) {
         aria-valuenow={current.progress}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={LABELS[current.status] ?? current.status}
+        aria-label={label(current)}
       >
         <div
           className={`h-full transition-all duration-500 ${isFailed ? "bg-red-500" : "bg-brand"}`}

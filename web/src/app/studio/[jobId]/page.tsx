@@ -32,11 +32,17 @@ export default async function StudioJobPage({ params }: { params: Promise<{ jobI
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">{job.title ?? "Untitled project"}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Niche: <span className="text-foreground">{job.niche ?? "—"}</span> ·{" "}
-              Language: <span className="text-foreground">{job.language}</span>
-            </p>
+            <h1 className="text-3xl font-bold">{job.title ?? (job.source_type === "generate" ? "Your video" : "Untitled project")}</h1>
+            {job.source_type === "generate" ? (
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                &ldquo;{job.clip_prompt}&rdquo;
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Niche: <span className="text-foreground">{job.niche ?? "—"}</span> ·{" "}
+                Language: <span className="text-foreground">{job.language}</span>
+              </p>
+            )}
           </div>
 
           {clips && clips.length > 0 && (
@@ -53,7 +59,11 @@ export default async function StudioJobPage({ params }: { params: Promise<{ jobI
 
         {clips && clips.length > 0 ? (
           <>
-            <h2 className="mt-10 text-lg font-semibold">{clips.length} clips · sorted by viral score</h2>
+            <h2 className="mt-10 text-lg font-semibold">
+              {job.source_type === "generate"
+                ? "Your video"
+                : `${clips.length} clips · sorted by viral score`}
+            </h2>
             <ClipsGrid clips={clips} />
           </>
         ) : job.status === "failed" ? (
@@ -70,8 +80,14 @@ export default async function StudioJobPage({ params }: { params: Promise<{ jobI
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Sparkles className="h-6 w-6 text-brand" aria-hidden="true" />
             </div>
-            <p className="mt-4 text-lg font-semibold text-foreground">Finding your best moments</p>
-            <p className="mt-1 text-sm text-muted-foreground">Clips appear here as soon as the render finishes (~ 2–6 minutes).</p>
+            <p className="mt-4 text-lg font-semibold text-foreground">
+              {job.source_type === "generate" ? "Making your video" : "Finding your best moments"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {job.source_type === "generate"
+                ? "It appears here the moment the render finishes — usually under a minute."
+                : "Clips appear here as soon as the render finishes (~ 2\u20136 minutes)."}
+            </p>
           </div>
         )}
       </main>
