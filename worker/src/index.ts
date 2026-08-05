@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/node";
 import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
+import { runGenerate } from "./generate.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
@@ -38,6 +39,30 @@ const videoWorker = new Worker(
   {
     connection,
     concurrency: Number(process.env.VIDEO_CONCURRENCY ?? 2),
+    metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
+    removeOnComplete: { count: 1000, age: 24 * 3600 },
+    removeOnFail: { count: 5000, age: 7 * 24 * 3600 },
+  },
+);
+
+// Prompt-to-video. Its own queue rather than a job type on video-pipeline:
+// the two have different shapes, different failure modes and — the reason
+// that matters — different concurrency. A Remotion render is CPU-bound on
+// headless Chromium, so letting it share a pool with transcription would let
+// either one starve the other.
+const generateWorker = new Worker(
+  "generate",
+  async (job) => {
+    try {
+      await runGenerate(job.data);
+    } catch (e) {
+      Sentry.captureException(e, { tags: { queue: "generate", jobId: job.id } });
+      throw e;
+    }
+  },
+  {
+    connection,
+    concurrency: Number(process.env.GENERATE_CONCURRENCY ?? 2),
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     removeOnComplete: { count: 1000, age: 24 * 3600 },
     removeOnFail: { count: 5000, age: 7 * 24 * 3600 },
@@ -90,6 +115,9 @@ const derivativeWorker = new Worker(
 videoWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "video job failed"),
 );
+generateWorker.on("failed", (job, err) =>
+  logger.error({ jobId: job?.id, err: err.message }, "generate job failed"),
+);
 publishWorker.on("failed", (job, err) =>
   logger.error({ jobId: job?.id, err: err.message }, "publish job failed"),
 );
@@ -100,6 +128,7 @@ async function shutdown(signal: string) {
   logger.info({ signal }, "shutting down");
   await Promise.allSettled([
     videoWorker.close(),
+    generateWorker.close(),
     publishWorker.close(),
     derivativeWorker.close(),
   ]);
