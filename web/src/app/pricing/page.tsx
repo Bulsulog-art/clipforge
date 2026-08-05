@@ -43,6 +43,7 @@ const FREE: Plan = {
     "Word-by-word captions",
     "Auto-generated hook + thumbnail",
     "Watermark and a short outro on free renders",
+    "Making a video from a prompt needs credits — see Plus",
   ],
 };
 
@@ -53,6 +54,8 @@ const PLANS: Plan[] = [
     period: "per week",
     credits: "30 credits every week",
     features: [
+      "Describe a video, get an mp4 — 1 credit each",
+      "Add your own clips and we cut them in",
       "No watermark",
       "Sources up to 90 minutes",
       "5 caption styles, niche colour presets",
@@ -68,7 +71,7 @@ const PLANS: Plan[] = [
     credits: "1,200 credits a year",
     note: "Best value",
     features: [
-      "Everything in monthly",
+      "Everything in weekly",
       "Works out to about $5 a month",
       "Credits never expire while you are subscribed",
       "Cancel anytime",
@@ -159,6 +162,20 @@ export default function PricingPage() {
         <PlanCard plan={FREE} />
         {PLANS.map((p) => <PlanCard key={p.name} plan={p} />)}
       </div>
+
+      {/* Top-ups are a members-only refill, not a way in. Saying so here saves
+          someone buying credits that would leave them watermarked and capped. */}
+      <section style={{
+        border: "1px solid rgba(255,255,255,0.10)", borderRadius: 14,
+        padding: "18px 20px", marginBottom: 22, fontSize: 14, lineHeight: 1.6,
+      }}>
+        <h2 style={{ fontSize: 15, margin: "0 0 6px" }}>Run out mid-month?</h2>
+        <p style={{ margin: 0, opacity: 0.8 }}>
+          Add 40 more credits for $4.99. They never expire while you are subscribed. Top-ups are
+          for members only — credits on their own don&apos;t lift the watermark or the source-length
+          cap, so a pack without a plan would be a dead end.
+        </p>
+      </section>
 
       <section style={{
         border: "1px solid rgba(255,255,255,0.10)", borderRadius: 14,
