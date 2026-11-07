@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Scissors, Send, BarChart3, Zap, Globe } from "lucide-react";
+import { PRICING } from "@/lib/site";
 
 export default function LandingPage() {
   return (
@@ -102,7 +103,7 @@ export default function LandingPage() {
           <Feature
             icon={<Globe />}
             title="Pick your niche, get a look"
-            body="Finance, comedy, fitness, tech… each niche gets its own caption style, thumbnail, music mood and hook voice — automatically, on brand."
+            body="Finance, comedy, fitness, tech… each niche gets its own caption style, thumbnail and hook voice — automatically, on brand."
             badge="NEW"
           />
           <Feature
@@ -112,8 +113,8 @@ export default function LandingPage() {
           />
           <Feature
             icon={<Send />}
-            title="Post everywhere, one tap"
-            body="Send every clip to TikTok, Instagram Reels and YouTube Shorts — now, or scheduled to drip a week of content out."
+            title="The speaker stays in frame"
+            body="Landscape podcasts and interviews are reframed to 9:16 around the person talking, not cropped down the middle. Download and post to TikTok, Reels or Shorts."
           />
         </div>
       </section>
@@ -121,7 +122,7 @@ export default function LandingPage() {
       <section id="pricing" className="container py-20">
         <h2 className="text-center text-3xl font-bold md:text-4xl">Pick a plan that fits.</h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          Weekly to try, monthly to save. Credits never auto-renew on consumables.
+          Weekly to try, yearly to save. Cancel anytime.
         </p>
 
         <PricingTabs />
@@ -130,7 +131,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center gap-1 text-center">
             <h3 className="text-lg font-semibold">Plus-only credit packs</h3>
             <p className="max-w-xl text-sm text-muted-foreground">
-              Run out of credits before the next refill? Plus members can top up instantly inside the app. One-time consumable purchases — credits never auto-renew, never expire.
+              Run out of credits before the next refill? Plus members can add {PRICING.topup.credits} credits for {PRICING.topup.price} from Billing or the app. One-time purchase, no renewal.
             </p>
           </div>
           <div className="mx-auto mt-6 grid max-w-md gap-4 sm:grid-cols-2">
@@ -162,23 +163,23 @@ export default function LandingPage() {
           <dl className="mt-12 space-y-6">
             <Faq
               q="Is the free tier really one clip set forever?"
-              a="Yes. You get one full clip set on signup — upload a video up to 5 minutes and we'll cut and caption it. After that, Plus weekly is $5.99 (10 credits a week, cancel anytime). Watermark and a 'Made with ClipForge' outro are added to free renders."
+              a={`Yes. You get one full clip set on signup — upload a video up to ${PRICING.free.sourceMinutes} minutes and we'll cut and caption it. After that, Plus is ${PRICING.weekly.price} a week (${PRICING.weekly.credits} credits) or ${PRICING.yearly.price} a year (${PRICING.yearly.credits.toLocaleString("en-US")} credits), cancel anytime. Free renders carry a watermark and a 'Made with ClipForge' outro.`}
             />
             <Faq
               q="What's a credit?"
-              a="1 credit = 1 video processed into clips (typically 8–15 clips). Extras cost additional credits: translating a finished clip is 2, and translating it in your own cloned voice is 5."
+              a="1 credit = 1 video processed into clips (up to 12 clips per video). Translating a finished clip into another language costs 2 credits."
             />
             <Faq
-              q="Why is everything in one app instead of three?"
-              a="Dedicated clipping tools start around $30 a month. We charge $14.99 because the pipeline runs on our own servers — transcription and rendering cost us compute, not per-minute API fees — and that saving goes into the price."
+              q="Why is it cheaper than other clipping tools?"
+              a={`Dedicated clipping tools often start around $30 a month. Plus yearly works out to ${PRICING.yearly.perMonth} a month because rendering runs on our own servers, not per-minute third-party APIs, and that saving goes into the price.`}
             />
             <Faq
               q="Can I cancel anytime?"
-              a="Yes. Settings → Manage / cancel subscription. If you start cancelling, we'll offer Plus at $12.99/mo to keep you on. Credits you've already bought are yours — they never expire."
+              a="Yes, anytime: on the web from Billing, in the iOS app from Settings → Manage subscription. You keep Plus until the end of the period you paid for."
             />
             <Faq
-              q="Will Apple refund me?"
-              a="Subscriptions: Apple's standard refund rules apply (typically up to 90 days). Credit packs are consumable — once spent, they aren't refundable, but unused packs can be refunded by Apple."
+              q="How do refunds work?"
+              a="Bought in the iOS app: Apple handles refunds under its standard rules. Bought on the web: email us and we sort it out. Spent credits can't be refunded."
             />
             <Faq
               q="Can I use this for content that doesn't belong to me?"
@@ -199,7 +200,16 @@ export default function LandingPage() {
       <footer className="container border-t border-border/50 py-10 text-sm text-muted-foreground">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <span>© {new Date().getFullYear()} Bulsu Labs · ClipForge</span>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/use-cases" className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40">
+              Use cases
+            </Link>
+            <Link href="/alternatives" className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40">
+              Alternatives
+            </Link>
+            <Link href="/pricing" className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40">
+              Pricing
+            </Link>
             <Link
               href="/legal/terms"
               className="rounded-lg outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand/40"
@@ -249,11 +259,11 @@ function Feature({ icon, title, body, badge }: { icon: React.ReactNode; title: s
   );
 }
 
-type BillingPeriod = "weekly" | "monthly";
+type BillingPeriod = "weekly" | "yearly";
 
 function PricingTabs() {
   // Monthly is the anchor — the best-value plan that's actually purchasable.
-  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+  const [period, setPeriod] = useState<BillingPeriod>("yearly");
 
   const free = {
     name: "Free",
@@ -270,19 +280,19 @@ function PricingTabs() {
 
   const plus = {
     name: "Plus",
-    weeklyPrice: "$5.99",
-    weeklyCredits: "10 credits / week",
-    monthlyPrice: "$14.99",
-    monthlyCredits: "40 credits / month",
+    weeklyPrice: PRICING.weekly.price,
+    weeklyCredits: `${PRICING.weekly.credits} credits / week`,
+    yearlyPrice: PRICING.yearly.price,
+    yearlyCredits: `${PRICING.yearly.credits.toLocaleString("en-US")} credits / year`,
     body: "Everything unlocked.",
     features: [
       "No watermark",
       "Word-by-word captions · 5 styles",
       "Prompt-driven clipping (clip anything)",
       "Niche-native templates",
-      "AI Translation 15+ languages (2 cr)",
-      "Voice clone (5 cr)",
-      "Translate a clip into 15+ languages",
+      "Speaker-tracked vertical framing",
+      "Translate a clip into 15+ languages (2 cr)",
+      "Hour-long sources",
       "Buy extra credit packs anytime",
       "Cancel anytime",
     ],
@@ -290,9 +300,9 @@ function PricingTabs() {
     highlight: true,
   };
 
-  const priceFor = (p: BillingPeriod) => (p === "weekly" ? plus.weeklyPrice : plus.monthlyPrice);
-  const creditsFor = (p: BillingPeriod) => (p === "weekly" ? plus.weeklyCredits : plus.monthlyCredits);
-  const periodLabelFor = (p: BillingPeriod) => (p === "weekly" ? "/wk" : "/mo");
+  const priceFor = (p: BillingPeriod) => (p === "weekly" ? plus.weeklyPrice : plus.yearlyPrice);
+  const creditsFor = (p: BillingPeriod) => (p === "weekly" ? plus.weeklyCredits : plus.yearlyCredits);
+  const periodLabelFor = (p: BillingPeriod) => (p === "weekly" ? "/wk" : "/yr");
 
   return (
     <>
@@ -309,13 +319,13 @@ function PricingTabs() {
         </button>
         <button
           type="button"
-          onClick={() => setPeriod("monthly")}
-          aria-pressed={period === "monthly"}
+          onClick={() => setPeriod("yearly")}
+          aria-pressed={period === "yearly"}
           className={`rounded-full px-4 py-1.5 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40 ${
-            period === "monthly" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
+            period === "yearly" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          Monthly
+          Yearly
         </button>
       </div>
 

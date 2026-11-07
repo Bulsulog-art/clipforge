@@ -3,11 +3,12 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import "./globals.css";
+import { SITE_URL, PRICING } from "@/lib/site";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://clipforge.bulsulabs.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "ClipForge — Turn one long video into ten captioned vertical clips",
     template: "%s · ClipForge",
@@ -20,13 +21,13 @@ export const metadata: Metadata = {
     "Klap alternative", "AI short-form video editor", "viral score", "repurpose video",
   ],
   applicationName: "ClipForge",
-  alternates: { canonical: "https://clipforge.bulsulabs.com" },
+  alternates: { canonical: SITE_URL },
   robots: { index: true, follow: true, "max-image-preview": "large" } as Metadata["robots"],
   openGraph: {
     title: "ClipForge — Turn long videos into viral clips",
     description:
       "One long video → up to ten captioned, ranked vertical clips, ready to download and post. Mobile-first AI clip studio.",
-    url: "https://clipforge.bulsulabs.com",
+    url: SITE_URL,
     siteName: "ClipForge",
     type: "website",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "ClipForge — AI viral clip studio" }],
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ClipForge — Turn long videos into viral clips",
-    description: "AI finds your most viral moments, captions them, and posts to TikTok/Reels/Shorts. Mobile-first.",
+    description: "AI finds your most viral moments, captions them and frames the speaker in 9:16. Ready for TikTok, Reels and Shorts.",
     creator: "@bulsulabs",
   },
 };
@@ -49,11 +50,11 @@ const JSON_LD = {
   operatingSystem: "iOS, Web",
   description:
     "AI clip studio: turn a long video or podcast into captioned, ranked vertical clips you can download and post anywhere.",
-  url: "https://clipforge.bulsulabs.com",
+  url: SITE_URL,
   offers: [
     { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
-    { "@type": "Offer", name: "Plus (weekly)", price: "5.99", priceCurrency: "USD" },
-    { "@type": "Offer", name: "Plus (monthly)", price: "14.99", priceCurrency: "USD" },
+    { "@type": "Offer", name: "Plus (weekly)", price: String(PRICING.weekly.amount), priceCurrency: "USD" },
+    { "@type": "Offer", name: "Plus (yearly)", price: String(PRICING.yearly.amount), priceCurrency: "USD" },
   ],
   publisher: { "@type": "Organization", name: "Bulsu Labs", url: "https://bulsulabs.com" },
 };

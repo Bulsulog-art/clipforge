@@ -1,16 +1,22 @@
 import type { MetadataRoute } from "next";
-
-const BASE = "https://clipforge.bulsulabs.com";
+import { SEO_PAGES } from "@/content/seo-pages";
+import { absoluteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    { url: BASE, changeFrequency: "weekly", priority: 1 },
-    { url: `${BASE}/free-clip-maker`, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/pricing`, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/signup`, changeFrequency: "yearly", priority: 0.6 },
-    { url: `${BASE}/login`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE}/support`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE}/legal/privacy`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${BASE}/legal/terms`, changeFrequency: "yearly", priority: 0.2 },
+    { url: absoluteUrl("/"), changeFrequency: "weekly", priority: 1 },
+    { url: absoluteUrl("/pricing"), changeFrequency: "monthly", priority: 0.9 },
+    { url: absoluteUrl("/free-clip-maker"), changeFrequency: "monthly", priority: 0.8 },
+    { url: absoluteUrl("/use-cases"), changeFrequency: "monthly", priority: 0.7 },
+    { url: absoluteUrl("/alternatives"), changeFrequency: "monthly", priority: 0.7 },
+    ...SEO_PAGES.map((p) => ({
+      url: absoluteUrl(`/${p.section}/${p.slug}`),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    { url: absoluteUrl("/signup"), changeFrequency: "yearly", priority: 0.5 },
+    { url: absoluteUrl("/support"), changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/legal/privacy"), changeFrequency: "yearly", priority: 0.2 },
+    { url: absoluteUrl("/legal/terms"), changeFrequency: "yearly", priority: 0.2 },
   ];
 }
