@@ -71,3 +71,33 @@ export const CONSUMABLE_PRODUCTS: Record<string, number> = {
   clipforge_credits_10:      10,
   clipforge_credits_20:      20,
 };
+/**
+ * What the web checkout actually sells today. Everything else in the tables
+ * above is still honoured by the webhook but no longer offered.
+ */
+export const LIVE_SUBSCRIPTIONS = ["clipforge_plus_weekly", "clipforge_plus_yearly"] as const;
+export const LIVE_TOPUP = "clipforge_credits_topup" as const;
+
+/**
+ * Build a RevenueCat Web Purchase Link, in the documented shape:
+ *   https://pay.rev.cat/<token>/<appUserId>?package_id=…&email=…
+ *
+ * The App User ID is a PATH segment, not a query parameter, and a package is
+ * pre-selected with `package_id` — the identifier of a package in the
+ * offering behind the link. The offering's packages are named after the
+ * product they hold (package `clipforge_plus_weekly` holds product
+ * `clipforge_plus_weekly`), so the product id is the package id.
+ */
+export function webPurchaseUrl(args: {
+  token: string;
+  appUserId: string;
+  packageId: string;
+  email?: string | null;
+}): string {
+  const url = new URL(
+    `https://pay.rev.cat/${encodeURIComponent(args.token)}/${encodeURIComponent(args.appUserId)}`,
+  );
+  url.searchParams.set("package_id", args.packageId);
+  if (args.email) url.searchParams.set("email", args.email);
+  return url.toString();
+}
