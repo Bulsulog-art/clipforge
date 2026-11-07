@@ -40,3 +40,9 @@ describe("isBadOrigin", () => {
     expect(isBadOrigin({ ...base, pathname: "/api/revenuecat/webhook" })).toBe(false);
   });
 });
+
+describe("Dodo webhook", () => {
+  it("is not blocked for having no Origin (it verifies its own signature)", () => {
+    expect(isBadOrigin({ ...base, pathname: "/api/dodo/webhook" })).toBe(false);
+  });
+});

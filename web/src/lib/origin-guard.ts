@@ -17,7 +17,7 @@ const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 // Inbound webhooks legitimately have a different (or absent) Origin —
 // they MUST do their own auth (Bearer / OAuth code / signature).
-const WEBHOOK_PATHS = ["/api/revenuecat/webhook", "/api/auth/tiktok/callback"];
+const WEBHOOK_PATHS = ["/api/revenuecat/webhook", "/api/dodo/webhook", "/api/auth/tiktok/callback"];
 
 export function allowedOrigins(env: {
   NEXT_PUBLIC_APP_URL?: string;

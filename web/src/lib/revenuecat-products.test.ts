@@ -2,9 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   SUBSCRIPTION_PRODUCTS,
   CONSUMABLE_PRODUCTS,
-  LIVE_SUBSCRIPTIONS,
-  LIVE_TOPUP,
-  webPurchaseUrl,
 } from "./revenuecat-products";
 
 /**
@@ -83,30 +80,5 @@ describe("the plans sit in the right order", () => {
 
   it("the top-up is dearer than yearly, so it never undercuts the plan we want people on", () => {
     expect(perCredit.topup).toBeGreaterThan(perCredit.yearly);
-  });
-});
-
-describe("webPurchaseUrl", () => {
-  it("puts the user in the path and pre-selects the package, as RevenueCat documents", () => {
-    const url = webPurchaseUrl({
-      token: "abc123",
-      appUserId: "5f0c-user",
-      packageId: "clipforge_plus_yearly",
-      email: "a+b@example.com",
-    });
-    expect(url).toBe(
-      "https://pay.rev.cat/abc123/5f0c-user?package_id=clipforge_plus_yearly&email=a%2Bb%40example.com",
-    );
-  });
-
-  it("omits email when it is not known", () => {
-    expect(webPurchaseUrl({ token: "t", appUserId: "u", packageId: "p" })).toBe(
-      "https://pay.rev.cat/t/u?package_id=p",
-    );
-  });
-
-  it("only sells products the webhook will credit", () => {
-    for (const id of LIVE_SUBSCRIPTIONS) expect(SUBSCRIPTION_PRODUCTS[id]).toBeDefined();
-    expect(CONSUMABLE_PRODUCTS[LIVE_TOPUP]).toBe(40);
   });
 });
