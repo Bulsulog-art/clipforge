@@ -1,4 +1,10 @@
+import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 import { logger } from "../logger.js";
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Compute a single, stable horizontal crop offset that keeps the speaker in
@@ -24,22 +30,62 @@ export function smoothCropX(faceCentresX: number[], frameW: number, cropW: numbe
 }
 
 /**
- * Detect face x-centres for the clip. Render-test integration point: wire a face
- * detector (a fal model, or a Python mediapipe helper) keyed by FACE_DETECT_MODEL
- * + sample N frames via ffmpeg, returning each frame's primary-face x-centre.
- * Returns [] when no detector is configured → smoothCropX falls back to centre,
- * i.e. the current behaviour, so enabling the flag is always safe.
+ * Where to put the crop window, in the SCALED frame the render filter crops
+ * from, given face centres measured in SOURCE pixels.
+ *
+ * Mirrors resolveAspect().scaleCrop: the source is scaled up until it covers
+ * the output (force_original_aspect_ratio=increase) and the overflow is
+ * cropped. Only horizontal overflow is steered — that is the case for a
+ * landscape source cut to 9:16 or 1:1, which is every podcast and talking
+ * head. Returns undefined (= keep the centre crop) when there is no
+ * horizontal overflow or no face was found.
  */
-export async function detectFaceCentresX(_args: {
+export function faceCropOffset(args: {
+  srcW: number;
+  srcH: number;
+  outW: number;
+  outH: number;
+  centresSrcX: number[];
+}): number | undefined {
+  const { srcW, srcH, outW, outH, centresSrcX } = args;
+  if (srcW <= 0 || srcH <= 0 || centresSrcX.length === 0) return undefined;
+  const scale = Math.max(outW / srcW, outH / srcH);
+  // ffmpeg's -2 rounds the scaled width to an even number.
+  const scaledW = Math.round((srcW * scale) / 2) * 2;
+  if (scaledW <= outW) return undefined;
+  return smoothCropX(centresSrcX.map((x) => x * scale), scaledW, outW);
+}
+
+export type FaceTrack = { width: number; height: number; centres: number[] };
+
+const FACE_SCRIPT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../face/face_track.py");
+
+/**
+ * Sample the clip's frames with the OpenCV helper (worker/face/face_track.py)
+ * and return the speaker's x-centre per sampled frame.
+ *
+ * Never throws: no Python, no OpenCV, a timeout or bad output all yield null,
+ * and the caller renders the plain centre crop it always did.
+ */
+export async function detectFaces(args: {
   sourcePath: string;
   clipStartSec: number;
   clipEndSec: number;
-  frameW: number;
   samples?: number;
-}): Promise<number[]> {
-  if (!process.env.FACE_DETECT_MODEL) return [];
-  // Intentionally not implemented blind: plug the configured detector here and
-  // render-test. Until then we degrade to centre crop (no behaviour change).
-  logger.info({ model: process.env.FACE_DETECT_MODEL }, "face detect configured but not wired — centre crop");
-  return [];
+}): Promise<FaceTrack | null> {
+  if (process.env.FACE_TRACK_ENABLED === "false") return null;
+  const python = process.env.FACE_TRACK_PYTHON || "/opt/face/bin/python";
+  try {
+    const { stdout } = await execFileAsync(
+      python,
+      ["-I", FACE_SCRIPT, args.sourcePath, String(args.clipStartSec), String(args.clipEndSec), String(args.samples ?? 12)],
+      { timeout: 60_000, maxBuffer: 1024 * 1024 },
+    );
+    const parsed = JSON.parse(stdout) as FaceTrack;
+    if (!Array.isArray(parsed.centres) || !(parsed.width > 0) || !(parsed.height > 0)) return null;
+    return parsed;
+  } catch (e) {
+    logger.warn({ err: (e as Error).message }, "face tracking unavailable — centre crop");
+    return null;
+  }
 }

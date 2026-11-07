@@ -73,6 +73,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/* \
   && fc-cache -f
 
+# Face tracking for the vertical reframe (src/steps/reframe.ts). An isolated
+# venv at a fixed path holds OpenCV; nothing else uses this Python. yt-dlp does
+# NOT depend on it — that stays the standalone ELF copied below.
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-venv \
+  && rm -rf /var/lib/apt/lists/* \
+  && python3 -m venv /opt/face \
+  && /opt/face/bin/pip install --no-cache-dir opencv-python-headless==4.10.0.84
+COPY face ./face
+# Fail the build, not the first job, if the helper cannot run in this image.
+RUN ffmpeg -v error -f lavfi -i testsrc2=s=640x360:d=1:r=10 -pix_fmt yuv420p /tmp/face-check.mp4 \
+  && /opt/face/bin/python -I /app/face/face_track.py /tmp/face-check.mp4 0 1 2 \
+  && rm /tmp/face-check.mp4
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /usr/local/bin/yt-dlp /usr/local/bin/yt-dlp
 COPY --from=builder /app/dist ./dist
