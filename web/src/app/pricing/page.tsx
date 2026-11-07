@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/site";
 import Link from "next/link";
 import { ShowcaseStrip } from "@/components/generate/showcase-strip";
 
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
   title: "Pricing — ClipForge",
   description:
     "One free clip set to start. Plus from $6.99/week, or $49.99 a year: no watermark, 1,200 credits, cancel anytime.",
-  alternates: { canonical: "https://clipforge.bulsulabs.com/pricing" },
+  alternates: { canonical: absoluteUrl("/pricing") },
 };
 
 /**

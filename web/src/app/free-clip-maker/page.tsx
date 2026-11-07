@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/site";
 import { ArrowRight, Check, Scissors } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -10,11 +11,11 @@ export const metadata: Metadata = {
     "free clip maker", "AI clip maker free", "free OpusClip alternative", "Klap alternative",
     "podcast to clips free", "long video to shorts", "AI video clipping free", "viral clip generator",
   ],
-  alternates: { canonical: "https://clipforge.bulsulabs.com/free-clip-maker" },
+  alternates: { canonical: absoluteUrl("/free-clip-maker") },
   openGraph: {
     title: "Free AI Clip Maker — long videos into viral clips",
     description: "Upload a video, get captioned vertical clips in about a minute. Free to start.",
-    url: "https://clipforge.bulsulabs.com/free-clip-maker",
+    url: absoluteUrl("/free-clip-maker"),
     type: "website",
   },
 };
@@ -28,7 +29,7 @@ const FAQ_LD = {
       name: "Is ClipForge really free?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes — you get a full clip set free on signup, no credit card. Paste a YouTube link up to 5 minutes and ClipForge cuts and captions it. Plus starts at $5.99/week if you want more.",
+        text: "Yes — you get a full clip set free on signup, no credit card. Paste a YouTube link up to 5 minutes and ClipForge cuts and captions it. Plus starts at $6.99/week, or $49.99 a year, if you want more.",
       },
     },
     {
@@ -111,7 +112,7 @@ export default function FreeClipMakerPage() {
         <p className="mx-auto mt-3 max-w-xl text-center text-sm text-muted-foreground">
           The paid clip tools are powerful — and priced for agencies. ClipForge gives creators the same long-video-to-
           viral-clips workflow, mobile-first, with prompt-driven clipping and niche-native looks, starting free. When
-          you&apos;re ready, Plus is $5.99/week.
+          you&apos;re ready, Plus is $6.99/week or $49.99/year.
         </p>
         <div className="mt-8 text-center">
           <Link href="/signup" className="text-sm font-medium text-brand hover:underline">
