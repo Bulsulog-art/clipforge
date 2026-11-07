@@ -20,6 +20,10 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
+# Docker sets HOSTNAME to the container id, and the standalone server binds
+# to $HOSTNAME — so it never listened on localhost and Coolify's healthcheck
+# (GET localhost:3000/api/health) was refused, rolling back every deploy.
+ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
