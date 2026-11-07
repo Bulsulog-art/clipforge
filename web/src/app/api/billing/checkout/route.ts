@@ -1,44 +1,32 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { appUrl } from "@/lib/app-url";
-import { SUBSCRIPTION_PRODUCTS, CONSUMABLE_PRODUCTS } from "@/lib/revenuecat-products";
+import { LIVE_SUBSCRIPTIONS, LIVE_TOPUP, webPurchaseUrl } from "@/lib/revenuecat-products";
 
-// RevenueCat Web Billing routes the actual payment.
-// This endpoint resolves the correct paywall URL and signs the user.
+// RevenueCat Web Purchase Links take the payment; this endpoint picks the
+// package, identifies the user and sends them there.
 //
-// CRITICAL: the product IDs here MUST match the ones the RevenueCat webhook
-// recognises (web/src/app/api/revenuecat/webhook/route.ts). The old map sold
-// `clipforge_{starter,pro,agency}_monthly` — products the webhook knows nothing
-// about — so a successful payment granted ZERO credits and never set the tier
-// ("paid money grants nothing"). Our real model is a single Plus subscription
-// + consumable credit packs. Keep this allowlist in sync with the webhook.
-// The two allowlists are derived from the webhook's product table rather than
-// retyped here. They used to be separate literals, which is how
-// `clipforge_plus_yearly` ended up sellable by the webhook but rejected at
-// checkout: the plan we most want people on 400'd as an invalid product. One
-// table, two views of it, no drift.
-const SELLABLE_SUBSCRIPTIONS = new Set(Object.keys(SUBSCRIPTION_PRODUCTS));
+// It used to build `pay.rev.cat/<offering id>?app_user_id=…&product=…` from
+// REVENUECAT_PUBLIC_WEB_OFFERING_ID — a variable that was never set (the
+// deployed one is NEXT_PUBLIC_…, and its value is the offering name
+// "default", not a link token), with the user id and product in parameters
+// the hosted checkout does not read. No web payment could ever complete.
 
-// Credit packs. These are top-ups for existing members, never an entry point:
-// credits alone don't lift the watermark or the source-length cap, so someone
-// who bought a pack without a subscription would have paid for a dead end.
-const SELLABLE_CONSUMABLES = new Set(Object.keys(CONSUMABLE_PRODUCTS));
+const SELLABLE = new Set<string>([...LIVE_SUBSCRIPTIONS, LIVE_TOPUP]);
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(appUrl("/login", req));
+  if (!user) return NextResponse.redirect(appUrl("/login?redirect=/dashboard/billing", req));
 
   const product = new URL(req.url).searchParams.get("product");
-  const isSubscription = product ? SELLABLE_SUBSCRIPTIONS.has(product) : false;
-  const isConsumable = product ? SELLABLE_CONSUMABLES.has(product) : false;
-  if (!product || (!isSubscription && !isConsumable)) {
+  if (!product || !SELLABLE.has(product)) {
     return NextResponse.json({ error: "invalid product" }, { status: 400 });
   }
 
-  // Enforce the members-only rule here as well as in the client: the client
-  // gate is a courtesy, this one is the actual rule.
-  if (isConsumable) {
+  // Top-ups are for members only: credits alone don't lift the watermark or
+  // the source-length cap, so a pack bought without a plan is a dead end.
+  if (product === LIVE_TOPUP) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("tier")
@@ -52,8 +40,15 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const checkoutUrl = new URL("https://pay.rev.cat/" + process.env.REVENUECAT_PUBLIC_WEB_OFFERING_ID);
-  checkoutUrl.searchParams.set("app_user_id", user.id);
-  checkoutUrl.searchParams.set("product", product);
-  return NextResponse.redirect(checkoutUrl.toString());
+  const token = process.env.REVENUECAT_WEB_PURCHASE_LINK_TOKEN?.trim();
+  if (!token) {
+    return NextResponse.json(
+      { error: "Web checkout is not available yet. Please try again shortly." },
+      { status: 503 },
+    );
+  }
+
+  return NextResponse.redirect(
+    webPurchaseUrl({ token, appUserId: user.id, packageId: product, email: user.email }),
+  );
 }

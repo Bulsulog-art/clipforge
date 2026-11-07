@@ -3,39 +3,38 @@ import { Check, Sparkles, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard-nav";
 
-// Pricing model: ONE Plus subscription + consumable credit packs.
-// Product IDs MUST match the RevenueCat webhook + checkout allowlist.
+// Must match the public /pricing page and the products the webhook credits
+// (lib/revenuecat-products). Plans: weekly to try it, yearly to commit.
 const PLUS_PLANS = [
   {
-    product: "clipforge_plus_monthly",
-    name: "Plus Monthly",
-    price: "$14.99",
-    cadence: "/mo",
-    credits: "40 credits / month",
+    product: "clipforge_plus_yearly",
+    name: "Plus yearly",
+    price: "$49.99",
+    cadence: "/yr",
+    credits: "1,200 credits a year · about $5/mo",
     highlight: true,
   },
   {
     product: "clipforge_plus_weekly",
-    name: "Plus Weekly",
-    price: "$5.99",
+    name: "Plus weekly",
+    price: "$6.99",
     cadence: "/wk",
-    credits: "10 credits / week",
+    credits: "30 credits every week",
   },
 ];
 
 const PLUS_FEATURES = [
-  "Unlimited clips — no watermark",
+  "No watermark",
+  "Hour-long sources (free is capped at 5 minutes)",
   "Tell it what to clip · prompt-driven",
   "5 caption styles + niche-tuned looks",
+  "Speaker-tracked vertical framing",
   "Translate a clip into 15+ languages",
-  "Performance analytics that learn your winners",
-  "Translate captions to 15+ languages",
   "Credits refill every billing cycle",
 ];
 
 const CREDIT_PACKS = [
-  { product: "clipforge_credits_10", name: "Top-up", price: "In-app", credits: 10 },
-  { product: "clipforge_credits_20", name: "Value", price: "In-app", credits: 20, best: true },
+  { product: "clipforge_credits_topup", name: "Top-up", price: "$4.99", credits: 40, best: true },
 ];
 
 export default async function BillingPage() {
@@ -83,7 +82,7 @@ export default async function BillingPage() {
             ))}
           </ul>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
             {PLUS_PLANS.map((p) => (
               <div
                 key={p.product}
@@ -117,7 +116,8 @@ export default async function BillingPage() {
           </div>
         </section>
 
-        {/* Credit packs */}
+        {/* Credit packs — members only; the checkout refuses them for free users too. */}
+        {isPlus && (
         <section className="mt-12">
           <h2 className="text-lg font-semibold text-foreground">Top up credits</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -149,6 +149,7 @@ export default async function BillingPage() {
             ))}
           </div>
         </section>
+        )}
       </main>
     </div>
   );
