@@ -50,6 +50,28 @@ describe("buildSentenceSegments", () => {
     for (const s of segs) expect(s.end - s.start).toBeLessThanOrEqual(6 + 2);
   });
 
+  it("splits an unpunctuated (OpenAI whisper-1) transcript on pauses, not just at maxSec", () => {
+    // 3 spoken sentences of ~8s, separated by 1s pauses, no punctuation at all.
+    const words: Array<[string, number, number]> = [];
+    for (const sentenceStart of [0, 9, 18]) {
+      for (let k = 0; k < 16; k++) {
+        words.push([`w${sentenceStart}_${k}`, sentenceStart + k * 0.5, sentenceStart + k * 0.5 + 0.45]);
+      }
+    }
+    const segs = buildSentenceSegments(tx(words), 70);
+    expect(segs).toHaveLength(3);
+    expect(segs.map((s) => s.start)).toEqual([0, 9, 18]);
+  });
+
+  it("does not split a punctuated transcript on ordinary pauses", () => {
+    const t = tx([
+      ["Wait", 0, 0.4],
+      ["for", 1.5, 1.8],
+      ["it.", 1.9, 2.2],
+    ]);
+    expect(buildSentenceSegments(t, 60)).toHaveLength(1);
+  });
+
   it("caps segment count for very long sources by merging", () => {
     const words: Array<[string, number, number]> = [];
     for (let i = 0; i < 600; i++) words.push([`x${i}.`, i, i + 1]); // 600 one-word sentences

@@ -154,6 +154,9 @@ export type Segment = { start: number; end: number; text: string };
  * - For very long sources we cap the segment count (LLM token budget) by
  *   merging adjacent sentences — only triggers past MAX_SEGMENTS.
  */
+const SENTENCE_END = /[.!?…]["')\]]?$/;
+const PAUSE_SEC = 0.6;
+
 export function buildSentenceSegments(t: Transcript, maxSec: number): Segment[] {
   const words = t.words;
   if (words.length === 0) return [];
@@ -166,12 +169,23 @@ export function buildSentenceSegments(t: Transcript, maxSec: number): Segment[] 
     if (text) sentences.push({ start, end, text });
     buf = "";
   };
-  for (const w of words) {
+  // OpenAI whisper-1 returns word timestamps WITHOUT punctuation (only the
+  // local faster-whisper service keeps it). With no punctuation there is no
+  // sentence end to find, every segment ran to the maxSec force-split, and a
+  // segment that long cannot form a clip inside [minSec, maxSec] — so whenever
+  // transcription fell back to OpenAI, nearly every moment was filtered out.
+  // In that case a pause in speech is the sentence boundary instead.
+  const punctuated = words.filter((w) => SENTENCE_END.test(w.word.trim())).length;
+  const usePauses = punctuated < words.length / 60;
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
     if (!buf) start = w.start;
     buf += `${w.word} `;
-    const endsSentence = /[.!?…]["')\]]?$/.test(w.word.trim());
+    const endsSentence = SENTENCE_END.test(w.word.trim());
+    const next = words[i + 1];
+    const pause = usePauses && next !== undefined && next.start - w.end >= PAUSE_SEC;
     const tooLong = w.end - start >= maxSec;
-    if (endsSentence || tooLong) flush(w.end);
+    if (endsSentence || pause || tooLong) flush(w.end);
   }
   if (buf.trim()) flush(words[words.length - 1].end);
 
