@@ -1,16 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { appUrl } from "@/lib/app-url";
-import { LIVE_SUBSCRIPTIONS, LIVE_TOPUP, webPurchaseUrl } from "@/lib/revenuecat-products";
+import { LIVE_SUBSCRIPTIONS, LIVE_TOPUP } from "@/lib/revenuecat-products";
+import { createDodoCheckout, dodoProductId, type PlanKey } from "@/lib/dodo";
 
-// RevenueCat Web Purchase Links take the payment; this endpoint picks the
-// package, identifies the user and sends them there.
-//
-// It used to build `pay.rev.cat/<offering id>?app_user_id=…&product=…` from
-// REVENUECAT_PUBLIC_WEB_OFFERING_ID — a variable that was never set (the
-// deployed one is NEXT_PUBLIC_…, and its value is the offering name
-// "default", not a link token), with the user id and product in parameters
-// the hosted checkout does not read. No web payment could ever complete.
+// Web payments go through Dodo Payments (hosted checkout). The iOS app keeps
+// buying through the App Store / RevenueCat; both land in the same credit
+// ledger, keyed by the same catalogue (lib/revenuecat-products).
 
 const SELLABLE = new Set<string>([...LIVE_SUBSCRIPTIONS, LIVE_TOPUP]);
 
@@ -23,10 +19,11 @@ export async function GET(req: NextRequest) {
   if (!product || !SELLABLE.has(product)) {
     return NextResponse.json({ error: "invalid product" }, { status: 400 });
   }
+  const plan = product as PlanKey;
 
   // Top-ups are for members only: credits alone don't lift the watermark or
   // the source-length cap, so a pack bought without a plan is a dead end.
-  if (product === LIVE_TOPUP) {
+  if (plan === LIVE_TOPUP) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("tier")
@@ -40,15 +37,30 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const token = process.env.REVENUECAT_WEB_PURCHASE_LINK_TOKEN?.trim();
-  if (!token) {
+  const apiKey = process.env.DODO_API_KEY?.trim();
+  const productId = dodoProductId(plan);
+  if (!apiKey || !productId) {
     return NextResponse.json(
       { error: "Web checkout is not available yet. Please try again shortly." },
       { status: 503 },
     );
   }
 
-  return NextResponse.redirect(
-    webPurchaseUrl({ token, appUserId: user.id, packageId: product, email: user.email }),
-  );
+  try {
+    const checkoutUrl = await createDodoCheckout({
+      apiKey,
+      productId,
+      plan,
+      userId: user.id,
+      email: user.email,
+      returnUrl: appUrl("/dashboard/billing?checkout=done", req).toString(),
+    });
+    return NextResponse.redirect(checkoutUrl);
+  } catch (e) {
+    console.error("[checkout] dodo checkout failed", (e as Error).message);
+    return NextResponse.json(
+      { error: "Could not start checkout. Please try again." },
+      { status: 502 },
+    );
+  }
 }
