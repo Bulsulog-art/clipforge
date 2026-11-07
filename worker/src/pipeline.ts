@@ -10,6 +10,8 @@ import { scoreMoments } from "./steps/score.js";
 import { renderClip } from "./steps/render.js";
 import { generateThumbnail } from "./steps/thumbnail.js";
 import { pickTrack, downloadTrack, type MusicTrack } from "./steps/bg-music.js";
+import { detectFaces, faceCropOffset } from "./steps/reframe.js";
+import { resolveAspect } from "./aspect.js";
 import { resolveNicheTemplate } from "./niche-templates.js";
 import { getWinningHooks } from "./jobs/winning-patterns.js";
 import { sendPush } from "./push.js";
@@ -234,6 +236,15 @@ export async function runVideoPipeline(p: Payload) {
     for (let i = 0; i < moments.length; i++) {
       const m = moments[i];
       try {
+        // Keep the speaker in the vertical frame instead of always cropping the
+        // middle of a landscape shot. No face / no detector → centre crop.
+        const out = resolveAspect(p.aspect);
+        const faces = await detectFaces({ sourcePath: local.path, clipStartSec: m.start, clipEndSec: m.end });
+        const faceCropX = faces
+          ? faceCropOffset({ srcW: faces.width, srcH: faces.height, outW: out.w, outH: out.h, centresSrcX: faces.centres })
+          : undefined;
+        logger.info({ jobId: p.jobId, clip: i, faces: faces?.centres.length ?? null, faceCropX }, "reframe");
+
         const render = await renderClip({
           userId: p.userId,
           jobId: p.jobId,
@@ -244,6 +255,7 @@ export async function runVideoPipeline(p: Payload) {
           niche: p.niche ?? "default",
           captionStyle: p.captionStyle ?? tpl.captionStyle,
           aspect: p.aspect,
+          faceCropX,
           // Off by default — flip JUMPCUT_ENABLED=true to render-test silence removal.
           jumpCut: process.env.JUMPCUT_ENABLED === "true",
           workDir: work,
