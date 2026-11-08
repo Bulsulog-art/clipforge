@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
+import { LIMITS } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 
 // The only thing a clinic changes on an item: its decision. Nothing is
 // publishable until it is "approved".
@@ -16,6 +18,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // The cookie already carries the clinic's language (the app pages keep it in step).
   const err = await dvErrors();
   if (!user) return NextResponse.json({ error: err.signIn }, { status: 401 });
+  const limited = await rateLimited([{ key: `rl:items:user:${user.id}`, rule: LIMITS.itemsUser }], () => err.tooMany);
+  if (limited) return limited;
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: err.invalidDecision }, { status: 400 });
   const body = parsed.data;

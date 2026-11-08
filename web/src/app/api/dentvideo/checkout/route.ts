@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
+import { LIMITS, clientIp } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink } from "@/lib/dentvid/billing";
 import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
 
@@ -18,6 +20,15 @@ const Body = z.object({
 export async function POST(req: Request) {
   const { db, user } = await dvSession();
   if (!user) return NextResponse.json({ error: (await dvErrors()).signIn }, { status: 401 });
+  const ip = clientIp(req.headers);
+  const limited = await rateLimited(
+    [
+      { key: `rl:checkout:user:${user.id}`, rule: LIMITS.checkoutUser },
+      { key: `rl:checkout:ip:${ip}`, rule: LIMITS.checkoutIp },
+    ],
+    async () => (await dvErrors()).tooMany,
+  );
+  if (limited) return limited;
 
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, plan").eq("owner_id", user.id).maybeSingle();
   const language = (clinic?.profile as { language?: string } | undefined)?.language;
