@@ -70,6 +70,7 @@ async function main() {
         `${pkg.copy.caption}\n\n${pkg.copy.hashtags.map((h) => `#${h}`).join(" ")}\n`,
       );
       await fs.writeFile(path.join(dir, "checks.json"), JSON.stringify(pkg.checks, null, 2));
+      if (pkg.shootCard) await fs.writeFile(path.join(dir, "shoot-card.json"), JSON.stringify(pkg.shootCard, null, 2));
     }
     console.log(`${pkg.status === "ready" ? "✓" : "✗"} ${pkg.topic.title}${pkg.status === "rejected" ? ` — rejected at ${pkg.stage}` : ""}`);
   }

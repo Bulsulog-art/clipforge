@@ -30,12 +30,43 @@ describe("hard compliance rules", () => {
     expect(rules("Kalıcı beyazlık")).toContain("absolute");
   });
 
+  it("catches them in German, Spanish, French, Portuguese and Italian", () => {
+    expect(rules("Garantiert schmerzfreie Implantate")).toEqual(["guarantee", "absolute"]);
+    expect(rules("Die beste Zahnarztpraxis in Berlin")).toContain("superlative");
+    expect(rules("Jetzt 20% Rabatt auf Bleaching")).toContain("price");
+    expect(rules("Vorher-Nachher Bilder")).toContain("before_after");
+    expect(rules("Blanqueamiento sin dolor y garantizado")).toEqual(["guarantee", "absolute"]);
+    expect(rules("La mejor clínica de Madrid")).toContain("superlative");
+    expect(rules("Descuento especial este mes")).toContain("price");
+    expect(rules("Fotos de antes y después")).toContain("before_after");
+    expect(rules("Un sourire parfait garanti, sans douleur")).toEqual(["guarantee", "absolute"]);
+    expect(rules("Le meilleur dentiste de Paris")).toContain("superlative");
+    expect(rules("Résultats à vie")).toContain("absolute");
+    expect(rules("Clareamento sem dor com desconto")).toEqual(["absolute", "price"]);
+    expect(rules("Il migliore studio dentistico, sconto del 30%")).toEqual(["superlative", "price"]);
+    expect(rules("Prima e dopo il trattamento")).toContain("before_after");
+  });
+
+  it("does not treat 'permanent teeth' (adult teeth) as a promise, in any language", () => {
+    expect(rules("Permanent teeth usually start coming in around age six.")).toEqual([]);
+    expect(rules("Kalıcı dişler genellikle 6 yaş civarında çıkmaya başlar.")).toEqual([]);
+    expect(rules("Los dientes permanentes suelen salir hacia los seis años.")).toEqual([]);
+    expect(rules("Die bleibenden Zähne kommen meist ab sechs Jahren.")).toEqual([]);
+    expect(rules("Les dents permanentes apparaissent vers six ans.")).toEqual([]);
+    // …but a permanent RESULT is still a promise.
+    expect(rules("Permanent results after one visit")).toContain("absolute");
+    expect(rules("Kalıcı beyazlık")).toContain("absolute");
+  });
+
   it("lets ordinary, hedged education through", () => {
     expect(rules("Whitening can make teeth a few shades lighter. Ask your dentist if it suits you.")).toEqual([]);
     expect(rules("Diş eti hastalığı erken fark edilirse tedavi edilebilir.")).toEqual([]);
     expect(rules("Brush twice a day for two minutes.")).toEqual([]);
     // Words that merely contain a risky stem are not hits.
     expect(rules("Bestow care on your gums")).toEqual([]);
+    expect(rules("Es mejor cepillarse dos veces al día.")).toEqual([]);
+    expect(rules("Unser Leistungsangebot umfasst Prophylaxe.")).toEqual([]);
+    expect(rules("Il est préférable de consulter votre dentiste.")).toEqual([]);
   });
 
   it("the stricter verdict wins", () => {
@@ -85,12 +116,14 @@ function plan(lines: string[]): ScenePlan {
 function fakeClient(script: {
   plans: ScenePlan[];
   reviews: ("pass" | "revise" | "block")[];
+  accuracy?: ("pass" | "revise" | "block")[];
   copies?: { caption: string; hashtags: string[] }[];
   topics?: Topic[];
 }) {
   const calls: { system: string; user: string }[] = [];
   const plans = [...script.plans];
   const reviews = [...script.reviews];
+  const accuracy = [...(script.accuracy ?? [])];
   const copies = [...(script.copies ?? [{ caption: "Whitening can lighten teeth safely when supervised. Book a check-up.", hashtags: ["dentist", "izmir", "whitening"] }])];
   const client = {
     chat: {
@@ -104,7 +137,12 @@ function fakeClient(script: {
           else if (system.startsWith("You review")) {
             const v = reviews.shift() ?? "pass";
             body = { verdict: v, issues: v === "pass" ? [] : [{ quote: "x", problem: "too strong", fix: "soften" }] };
-          } else if (system.startsWith("You write the Instagram")) body = copies.shift();
+          } else if (system.startsWith("You are a careful general dentist")) {
+            const v = accuracy.shift() ?? "pass";
+            body = { verdict: v, issues: v === "pass" ? [] : [{ quote: "protects teeth", problem: "not true", fix: "can lighten teeth" }] };
+          } else if (system.startsWith("You write a filming card"))
+            body = { opening: "Let's talk whitening.", points: ["Supervised whitening is considered safe.", "Sensitivity can happen."], closing: "Ask us.", avoid: ["prices"], setup: ["Film vertically"], minutes: 3 };
+          else if (system.startsWith("You write the Instagram")) body = copies.shift();
           else if (system.startsWith("You plan short")) body = { topics: script.topics ?? [TOPIC] };
           return { choices: [{ message: { content: JSON.stringify(body) } }] };
         },
@@ -132,8 +170,9 @@ describe("the orchestrator", () => {
     const pkg = await produceVideo({ client }, PROFILE, TOPIC);
     expect(pkg.status).toBe("ready");
     if (pkg.status === "ready") {
-      expect(pkg.checks.script.verdict).toBe("pass");
-      expect(pkg.checks.copy.verdict).toBe("pass");
+      expect(pkg.checks.script.compliance.verdict).toBe("pass");
+      expect(pkg.checks.script.accuracy.verdict).toBe("pass");
+      expect(pkg.checks.copy.compliance.verdict).toBe("pass");
     }
   });
 
@@ -142,12 +181,12 @@ describe("the orchestrator", () => {
     const pkg = await produceVideo({ client }, PROFILE, TOPIC);
     expect(pkg.status).toBe("ready");
     const secondPlanPrompt = calls.filter((c) => c.system.startsWith("You write scene plans"))[1].user;
-    expect(secondPlanPrompt).toContain("compliance reviewer required");
+    expect(secondPlanPrompt).toContain("reviewer required these changes");
   });
 
   it("never ships a script the hard rules flag, even if the model says pass", async () => {
     const risky = plan(["Painless whitening, guaranteed", "The best results in Izmir", "20% off this week"]);
-    const { client } = fakeClient({ plans: [risky, risky], reviews: ["pass", "pass"] });
+    const { client } = fakeClient({ plans: [risky, risky, risky], reviews: ["pass", "pass", "pass"] });
     const pkg = await produceVideo({ client }, PROFILE, TOPIC);
     expect(pkg.status).toBe("rejected");
     if (pkg.status === "rejected") {
@@ -166,10 +205,11 @@ describe("the orchestrator", () => {
   it("rejects a caption that keeps failing review", async () => {
     const { client } = fakeClient({
       plans: [clean],
-      reviews: ["pass", "pass", "pass"],
+      reviews: ["pass", "pass", "pass", "pass"],
       copies: [
         { caption: "Best whitening in town, 30% off!", hashtags: ["dentist", "deal", "izmir"] },
         { caption: "Still the best price, guaranteed.", hashtags: ["dentist", "deal", "izmir"] },
+        { caption: "The best, guaranteed, painless.", hashtags: ["dentist", "deal", "izmir"] },
       ],
     });
     const pkg = await produceVideo({ client }, PROFILE, TOPIC);
@@ -212,6 +252,29 @@ describe("the orchestrator", () => {
     });
     const week = await produceWeek({ client }, PROFILE, { count: 5 });
     expect(week.map((w) => w.status)).toEqual(["rejected", "ready"]);
+  });
+
+  it("sends a clinically wrong script back with the dentist-reviewer's fix, then ships it pending approval", async () => {
+    const { client, calls } = fakeClient({ plans: [clean, clean], reviews: ["pass", "pass", "pass"], accuracy: ["revise", "pass", "pass"] });
+    const pkg = await produceVideo({ client }, PROFILE, TOPIC);
+    expect(pkg.status).toBe("ready");
+    if (pkg.status === "ready") {
+      expect(pkg.approval).toBe("pending");
+      expect(pkg.checks.script.accuracy.verdict).toBe("pass");
+      expect(pkg.shootCard?.points.length).toBeGreaterThan(0);
+    }
+    const plans = calls.filter((c) => c.system.startsWith("You write scene plans"));
+    expect(plans[1].user).toContain("can lighten teeth");
+  });
+
+  it("writes the caption from the approved script, so they cannot disagree", async () => {
+    const { client, calls } = fakeClient({ plans: [clean], reviews: ["pass", "pass"] });
+    await produceVideo({ client }, PROFILE, TOPIC);
+    const copyPrompt = calls.find((c) => c.system.startsWith("You write the Instagram"))!.user;
+    expect(copyPrompt).toContain("Supervised whitening is considered safe for enamel.");
+    const captionReview = calls.filter((c) => c.system.startsWith("You are a careful general dentist")).at(-1)!.user;
+    expect(captionReview).toContain("CAPTION:");
+    expect(captionReview).toContain("VIDEO SCRIPT:");
   });
 
   it("briefs the scriptwriter with the clinic's language, handle and the rules", () => {

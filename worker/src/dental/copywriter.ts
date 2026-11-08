@@ -17,6 +17,8 @@ export async function writePostCopy(
   profile: ClinicProfile,
   topic: Topic,
   fixes: string[] = [],
+  /** The approved video script. The caption may only state facts it contains. */
+  facts?: string,
 ): Promise<PostCopy> {
   const copy = await agentJson(client, {
     system: `You write the Instagram/TikTok caption under an educational dental video.
@@ -29,6 +31,7 @@ Return JSON: { "caption", "hashtags": [] }`,
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""}. Language: ${profile.language}. Tone: ${profile.tone}.\n` +
       `Video: "${topic.title}" — answers: ${topic.question}\n` +
       (profile.bookingUrl ? `Booking link: ${profile.bookingUrl}\n` : "") +
+      (facts ? `The video says exactly this — state only facts that appear here, add no new numbers, ages, timings or medical claims:\n${facts}\n` : "") +
       (fixes.length ? `A reviewer required these changes: ${fixes.join(" | ")}\n` : ""),
     schema: postCopySchema,
     temperature: 0.7,

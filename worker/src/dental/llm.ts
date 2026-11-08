@@ -2,6 +2,8 @@ import type OpenAI from "openai";
 import type { z } from "zod";
 
 export const AGENT_MODEL = "gpt-4o-mini";
+/** For judgement calls where being wrong is expensive (clinical accuracy). */
+export const REVIEW_MODEL = "gpt-4o";
 
 /**
  * One agent turn: system + user prompt in, JSON validated against `schema`
@@ -12,7 +14,7 @@ export const AGENT_MODEL = "gpt-4o-mini";
  */
 export async function agentJson<S extends z.ZodTypeAny>(
   client: OpenAI,
-  args: { system: string; user: string; schema: S; temperature?: number },
+  args: { system: string; user: string; schema: S; temperature?: number; model?: string },
 ): Promise<z.infer<S>> {
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: "system", content: args.system },
@@ -20,7 +22,7 @@ export async function agentJson<S extends z.ZodTypeAny>(
   ];
   const ask = async () => {
     const res = await client.chat.completions.create({
-      model: AGENT_MODEL,
+      model: args.model ?? AGENT_MODEL,
       temperature: args.temperature ?? 0.5,
       response_format: { type: "json_object" },
       messages,
