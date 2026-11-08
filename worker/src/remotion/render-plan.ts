@@ -8,6 +8,7 @@ import { webpackOverride } from "./webpack-override.js";
 import { dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
 import { resolveStockClips } from "./stock.js";
+import { stageBackgrounds } from "./backgrounds.js";
 import type { LogoStyle } from "./logo-style.js";
 
 /**
@@ -277,8 +278,14 @@ async function renderStaged(
   const footageScenes = plan.scenes.filter((s) => s.kind === "footage").length;
   const missingFootage = footageScenes - Object.keys(footage).length;
 
+  // Library photos behind the text (plan.backgrounds), staged like everything
+  // else. If none could be had, the plan goes out without them: a plain
+  // theme background beats a render that waits on an image that 404s.
+  const backgroundSrcs = await stageBackgrounds(plan.backgrounds, { assetDir, renderId, onWarn });
+
   const inputProps = {
-    plan,
+    plan: plan.backgrounds && !backgroundSrcs.length ? { ...plan, backgrounds: undefined } : plan,
+    ...(backgroundSrcs.length ? { backgroundSrcs } : {}),
     footage,
     voiceoverSrc: stagedVoiceover,
     musicSrc: stagedMusic,
