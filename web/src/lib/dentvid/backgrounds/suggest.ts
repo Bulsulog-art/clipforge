@@ -145,10 +145,10 @@ function conceptHits(text: string): number[] {
  * Ranked library ids for a video, best first: between SUGGEST_MIN and
  * SUGGEST_MAX (default 16), or the whole library when it is smaller.
  */
-export function suggestBackgrounds(input: SuggestInput, count = 16, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
-  const want = Math.min(library.length, Math.max(SUGGEST_MIN, Math.min(SUGGEST_MAX, Math.round(count))));
-  if (!want) return [];
+type Scores = { catScore: Record<string, number>; tagScore: Record<string, number> };
 
+/** How strongly the video's own words point at each category and tag (no floor). */
+function topicScores(input: SuggestInput): Scores {
   // The topic and the title say what the video is about; the scenes say it at length.
   const head = [input.topic ?? "", input.plan?.title ?? ""].join(" . ");
   const body = [...strings(input.plan?.scenes ?? []), input.plan?.voiceover?.text ?? ""].join(" . ");
@@ -165,6 +165,25 @@ export function suggestBackgrounds(input: SuggestInput, count = 16, library: Lib
   });
   const service = BY_SERVICE.find(([re]) => re.test(input.service ?? ""))?.[1];
   if (service) catScore[service] = (catScore[service] ?? 0) + 12;
+  return { catScore, tagScore };
+}
+
+/**
+ * The photos that are actually about this video: their category is named by
+ * its topic, service or script. Only these go in by default — a root
+ * canal video gets no photos rather than whitening ones; the clinic can still
+ * pick any suggestion by hand.
+ */
+export function matchingBackgrounds(input: SuggestInput, library: LibraryImage[] = BACKGROUND_LIBRARY): Set<string> {
+  const { catScore } = topicScores(input);
+  return new Set(library.filter((img) => (catScore[img.category] ?? 0) > 0).map((img) => img.id));
+}
+
+export function suggestBackgrounds(input: SuggestInput, count = 16, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+  const want = Math.min(library.length, Math.max(SUGGEST_MIN, Math.min(SUGGEST_MAX, Math.round(count))));
+  if (!want) return [];
+
+  const { catScore, tagScore } = topicScores(input);
 
   // A small, fixed floor for the general looks so a plan that matches nothing
   // still gets a sensible, stable list.

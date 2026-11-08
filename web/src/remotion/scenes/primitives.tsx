@@ -5,6 +5,7 @@ import { AbsoluteFill, useVideoConfig } from "remotion";
 import type { Theme } from "../theme";
 import { backgroundCss, fitText } from "../theme";
 import { entrance, wordsVisible } from "../animation";
+import { usePhotoBackdrop } from "../background-layer";
 
 /**
  * The pieces every scene is built from.
@@ -43,8 +44,11 @@ export const Backdrop: React.FC<{ theme: Theme; children: React.ReactNode }> = (
 }) => {
   const scale = useScale();
   const safe = useSafeArea();
+  // Over background photos the frame stays see-through; the photo layer
+  // (background-layer.tsx) brings its own contrast-safe tint.
+  const photo = usePhotoBackdrop();
   return (
-    <AbsoluteFill style={{ background: backgroundCss(theme) }}>
+    <AbsoluteFill style={{ background: photo ? "transparent" : backgroundCss(theme) }}>
       {/* A soft light source keeps the flat gradient from reading as a solid fill. */}
       <AbsoluteFill
         style={{

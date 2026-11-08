@@ -36,6 +36,8 @@ const FILES = [
   "scenes/text-scenes.tsx",
   "scenes/data-scenes.tsx",
   "scenes/footage-scene.tsx",
+  "background-layer.tsx",
+  "photo-overlay.ts",
 ];
 
 function mirror(source, file) {

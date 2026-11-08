@@ -8,6 +8,7 @@ import {
   backgroundSrc,
   defaultBackgrounds,
   fold,
+  matchingBackgrounds,
   suggestBackgrounds,
 } from "./suggest.js";
 
@@ -91,5 +92,22 @@ describe("helpers", () => {
     const ids = suggestBackgrounds({});
     expect(defaultBackgrounds(ids, 30)).toEqual(ids.slice(0, 3));
     expect(defaultBackgrounds(ids, 60)).toEqual(ids.slice(0, 4));
+  });
+});
+
+describe("matchingBackgrounds: only on-topic photos go in by default", () => {
+  it("a whitening video matches whitening photos", () => {
+    const m = matchingBackgrounds({ topic: "Does whitening damage enamel?", service: "Teeth whitening", language: "en" });
+    expect(m.size).toBeGreaterThan(0);
+    for (const id of m) expect(category(id)).toBe("whitening");
+  });
+  it("a Turkish implant video matches implant photos", () => {
+    const m = matchingBackgrounds({ topic: "İmplant ne kadar sürer?", service: "İmplant", language: "tr" });
+    expect([...m].some((id) => category(id) === "implants")).toBe(true);
+    expect([...m].every((id) => category(id) !== "whitening")).toBe(true);
+  });
+  it("a topic with no photos in its category gets none (no unrelated fallback)", () => {
+    const m = matchingBackgrounds({ topic: "What happens during a root canal?", service: "Root canal treatment", language: "en" });
+    for (const id of m) expect(["whitening", "implants", "aligners"]).not.toContain(category(id));
   });
 });
