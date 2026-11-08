@@ -7,7 +7,7 @@ import type { Transcript, Word } from "./transcribe.js";
 process.env.NEXT_PUBLIC_SUPABASE_URL ||= "http://localhost:54321";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "test-service-role-key";
 process.env.OPENAI_API_KEY ||= "test-openai-key";
-const { buildSentenceSegments } = await import("./score.js");
+const { buildSentenceSegments, expandToMinimum } = await import("./score.js");
 
 // Helper: build a Transcript from (word, start, end) tuples.
 function tx(words: Array<[string, number, number]>): Transcript {
@@ -83,5 +83,29 @@ describe("buildSentenceSegments", () => {
 
   it("returns [] for an empty transcript", () => {
     expect(buildSentenceSegments(tx([]), 60)).toEqual([]);
+  });
+});
+
+describe("expandToMinimum", () => {
+  const segs = [
+    { start: 0, end: 4, text: "a" },
+    { start: 5, end: 10, text: "b" },
+    { start: 11, end: 17, text: "c" },
+    { start: 18, end: 23, text: "d" },
+  ];
+
+  it("grows a one-sentence moment forward over whole sentences until it is long enough", () => {
+    expect(expandToMinimum({ start: 5, end: 10 }, segs, 12, 60)).toEqual({ start: 5, end: 17 });
+  });
+
+  it("grows backwards when there is nothing after it", () => {
+    expect(expandToMinimum({ start: 18, end: 23 }, segs, 12, 60)).toEqual({ start: 11, end: 23 });
+  });
+
+  it("leaves a long-enough moment alone, and gives up rather than exceed maxSec", () => {
+    const ok = { start: 0, end: 17 };
+    expect(expandToMinimum(ok, segs, 12, 60)).toBe(ok);
+    const short = { start: 5, end: 10 };
+    expect(expandToMinimum(short, segs, 30, 20)).toBe(short);
   });
 });

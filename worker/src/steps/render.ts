@@ -49,7 +49,47 @@ export type RenderResult = {
   renderedFilePath: string;
 };
 
+export type LocalClip = {
+  /** The rendered MP4 on local disk. */
+  videoPath: string;
+  /** A peak-frame JPEG on local disk. */
+  thumbPath: string;
+  durationSec: number;
+};
+
+/**
+ * Render a clip to local files only — cut, reframe, captions, hook, audio.
+ * The vertical-specific pipelines (e.g. dental) use this directly and decide
+ * themselves what to store; renderClip adds the upload for the main pipeline.
+ */
+export type RenderClipFileArgs = Omit<Args, "userId" | "jobId">;
+
 export async function renderClip(a: Args): Promise<RenderResult> {
+  const local = await renderClipFile(a);
+  // Upload both to Supabase Storage
+  const storagePath = `${a.userId}/${a.jobId}/clip-${a.index}.mp4`;
+  const thumbPath = `${a.userId}/${a.jobId}/clip-${a.index}.jpg`;
+
+  const [vRes, tRes] = await Promise.all([
+    supabase.storage.from("clipforge-videos-rendered").upload(storagePath, createReadStream(local.videoPath) as any, {
+      contentType: "video/mp4",
+      upsert: true,
+      duplex: "half",
+    } as any),
+    supabase.storage.from("clipforge-thumbnails").upload(thumbPath, createReadStream(local.thumbPath) as any, {
+      contentType: "image/jpeg",
+      upsert: true,
+      duplex: "half",
+    } as any),
+  ]);
+  if (vRes.error) throw vRes.error;
+  if (tRes.error) throw tRes.error;
+  await fs.unlink(local.thumbPath).catch(() => {});
+
+  return { storagePath, thumbnailPath: thumbPath, durationSec: local.durationSec, renderedFilePath: local.videoPath };
+}
+
+export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> {
   const out = path.join(a.workDir, `clip-${a.index}.mp4`);
   const thumb = path.join(a.workDir, `clip-${a.index}.jpg`);
   const captionFile = path.join(a.workDir, `clip-${a.index}.ass`);
@@ -69,7 +109,7 @@ export async function renderClip(a: Args): Promise<RenderResult> {
         ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle, a.moment.keywords, a.aspect)
         : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle, a.moment.keywords, a.aspect),
     ),
-    fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche, a.aspect)),
+    fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche, a.aspect, { top: a.faceCropX != null })),
   ]);
 
   // 2) FFmpeg render: cut → scale → crop 9:16 → burn captions + hook → loudnorm
@@ -183,7 +223,7 @@ export async function renderClip(a: Args): Promise<RenderResult> {
         "-profile:v", "high",
         "-level", "4.0",
       ])
-      .on("start", (line) => logger.debug({ jobId: a.jobId, clip: a.index, line }, "ffmpeg start"))
+      .on("start", (line) => logger.debug({ clip: a.index, line }, "ffmpeg start"))
       .on("stderr", (line) => {
         if (line.includes("[Parsed_ass") && line.includes("font")) {
           logger.warn({ line }, "ass font notice");
@@ -205,32 +245,9 @@ export async function renderClip(a: Args): Promise<RenderResult> {
       .save(thumb);
   });
 
-  // 4) Upload both to Supabase Storage
-  const storagePath = `${a.userId}/${a.jobId}/clip-${a.index}.mp4`;
-  const thumbPath = `${a.userId}/${a.jobId}/clip-${a.index}.jpg`;
+  await Promise.all([fs.unlink(captionFile).catch(() => {}), fs.unlink(hookFile).catch(() => {})]);
 
-  const [vRes, tRes] = await Promise.all([
-    supabase.storage.from("clipforge-videos-rendered").upload(storagePath, createReadStream(out) as any, {
-      contentType: "video/mp4",
-      upsert: true,
-      duplex: "half",
-    } as any),
-    supabase.storage.from("clipforge-thumbnails").upload(thumbPath, createReadStream(thumb) as any, {
-      contentType: "image/jpeg",
-      upsert: true,
-      duplex: "half",
-    } as any),
-  ]);
-  if (vRes.error) throw vRes.error;
-  if (tRes.error) throw tRes.error;
-
-  await Promise.all([
-    fs.unlink(thumb).catch(() => {}),
-    fs.unlink(captionFile).catch(() => {}),
-    fs.unlink(hookFile).catch(() => {}),
-  ]);
-
-  return { storagePath, thumbnailPath: thumbPath, durationSec: duration, renderedFilePath: out };
+  return { videoPath: out, thumbPath: thumb, durationSec: duration };
 }
 
 /**

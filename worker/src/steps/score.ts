@@ -1,4 +1,11 @@
 import OpenAI from "openai";
+
+// Behind an HTTPS proxy (NODE_USE_ENV_PROXY=1, e.g. a dev sandbox) use Node's
+// built-in fetch, which honours HTTPS_PROXY; the SDK's bundled node-fetch does
+// not. Production keeps the SDK default, unchanged.
+const builtinFetch = process.env.NODE_USE_ENV_PROXY
+  ? (globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"])
+  : undefined;
 import { z } from "zod";
 import type { Transcript } from "./transcribe.js";
 import { resolveNicheTemplate } from "../niche-templates.js";
@@ -76,7 +83,7 @@ Output rules:
     .map((s, i) => `[${i}] ${s.start.toFixed(2)}–${s.end.toFixed(2)}s: ${s.text}`)
     .join("\n")}`;
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, fetch: builtinFetch });
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     response_format: { type: "json_object" },
@@ -103,6 +110,10 @@ Output rules:
       const end = Math.max(start, Math.min(m.end, sourceEnd));
       return { ...m, start, end };
     })
+    // The model often picks one strong sentence (3-6 s) despite the length
+    // rule; dropping it lost every clip of a 45-second recording. Grow a short
+    // moment into its neighbouring sentences instead, on sentence boundaries.
+    .map((m) => expandToMinimum(m, segments, input.minSec, input.maxSec))
     .filter((m) => {
       const dur = m.end - m.start;
       return dur >= input.minSec && dur <= input.maxSec;
@@ -117,6 +128,36 @@ Output rules:
     .map((m) => tightenToSpeech(m, input.transcript.words, input.minSec))
     .sort((a, b) => b.score - a.score)
     .slice(0, input.maxClips);
+}
+
+/**
+ * Extend a too-short moment over the adjacent sentence segments — following
+ * ones first (a setup usually needs its payoff), then preceding ones — until
+ * it reaches minSec, never past maxSec. Boundaries stay on sentence edges.
+ * A moment that is long enough is returned unchanged.
+ */
+export function expandToMinimum<M extends { start: number; end: number }>(
+  m: M,
+  segments: Segment[],
+  minSec: number,
+  maxSec: number,
+): M {
+  if (m.end - m.start >= minSec || segments.length === 0) return m;
+  // The segments the moment overlaps.
+  let first = segments.findIndex((s) => s.end > m.start);
+  if (first < 0) return m;
+  let last = first;
+  while (last + 1 < segments.length && segments[last + 1].start < m.end) last++;
+  const span = () => segments[last].end - segments[first].start;
+  while (span() < minSec) {
+    const canNext = last + 1 < segments.length && segments[last + 1].end - segments[first].start <= maxSec;
+    const canPrev = first > 0 && segments[last].end - segments[first - 1].start <= maxSec;
+    if (canNext) last++;
+    else if (canPrev) first--;
+    else break;
+  }
+  if (span() < minSec) return m;
+  return { ...m, start: segments[first].start, end: segments[last].end };
 }
 
 const LEAD_PAD_SEC = 0.15;  // a touch of air before the first word

@@ -53,7 +53,18 @@ export function resolveCaptionStyle(id?: string): CaptionStyleDef {
 }
 
 
-const PHRASE_WORDS = 4;     // word count per visible chunk
+const PHRASE_WORDS = 4;     // at most this many words per visible chunk
+/**
+ * Characters that fit on one caption line. Measured on a render: Inter Bold
+ * runs ~0.44-0.47 x font size per character; 0.5 leaves room for the 118%
+ * keyword pop, uppercase styles need ~0.62. The left and right margins are
+ * 80 px each. Chunking by word count alone overflowed the frame as soon as a
+ * language had long words ("Wurzelbehandlung ist heute völlig" ran off both
+ * edges, because WrapStyle 2 never wraps).
+ */
+export function maxCharsPerLine(fontSize: number, uppercase: boolean, frameWidth: number): number {
+  return Math.max(8, Math.floor((frameWidth - 160) / (fontSize * (uppercase ? 0.62 : 0.5))));
+}
 const MIN_WORD_SEC = 0.18;  // smooth tiny words
 const MAX_PHRASE_SEC = 2.6; // never let a chunk stay > 2.6s
 
@@ -82,10 +93,19 @@ export function buildKaraokeASS(
     }))
     .filter((w) => w.word.length > 0);
 
-  const phrases = chunkPhrases(filtered);
+  const maxChars = maxCharsPerLine(cap.fontSize, cap.uppercase, aspect.w);
+  const phrases = chunkPhrases(filtered, maxChars);
 
   const header = assHeader({ fill, outline }, cap, aspect);
-  const events = phrases.map((p) => karaokeLine(p, nicheStyle.highlight, cap.uppercase, keywordSet)).join("\n");
+  const events = phrases
+    .map((p, i) => {
+      // End before the next chunk starts: a 40 ms overlap made libass stack
+      // two captions on top of each other.
+      const next = phrases[i + 1];
+      const end = next ? Math.min(p.end + 0.04, next.start) : p.end + 0.04;
+      return karaokeLine({ ...p, end }, nicheStyle.highlight, cap.uppercase, keywordSet, maxChars);
+    })
+    .join("\n");
   return `${header}\n${events}\n`;
 }
 
@@ -98,22 +118,30 @@ function cleanWord(s: string) {
   return s.replace(/[\r\n]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function chunkPhrases(words: { word: string; start: number; end: number }[]) {
+export function chunkPhrases(words: { word: string; start: number; end: number }[], maxChars = Infinity) {
   const out: { start: number; end: number; words: typeof words }[] = [];
   let cursor = 0;
   while (cursor < words.length) {
-    const chunk = words.slice(cursor, cursor + PHRASE_WORDS);
-    if (chunk.length === 0) break;
+    // Take words while they fit on one line (always at least one word).
+    const chunk = [words[cursor]];
+    let len = words[cursor].word.length;
+    while (
+      cursor + chunk.length < words.length &&
+      chunk.length < PHRASE_WORDS &&
+      len + 1 + words[cursor + chunk.length].word.length <= maxChars
+    ) {
+      len += 1 + words[cursor + chunk.length].word.length;
+      chunk.push(words[cursor + chunk.length]);
+    }
     const startW = chunk[0];
     const endW = chunk[chunk.length - 1];
     const duration = endW.end - startW.start;
-    if (duration > MAX_PHRASE_SEC) {
-      // split aggressively
-      out.push({ start: startW.start, end: Math.min(endW.end, startW.start + MAX_PHRASE_SEC), words: chunk });
-    } else {
-      out.push({ start: startW.start, end: endW.end, words: chunk });
-    }
-    cursor += PHRASE_WORDS;
+    out.push({
+      start: startW.start,
+      end: duration > MAX_PHRASE_SEC ? Math.min(endW.end, startW.start + MAX_PHRASE_SEC) : endW.end,
+      words: chunk,
+    });
+    cursor += chunk.length;
   }
   return out;
 }
@@ -123,6 +151,7 @@ function karaokeLine(
   highlightHex: string,
   uppercase: boolean,
   keywordSet: Set<string>,
+  maxChars = Infinity,
 ) {
   // ASS karaoke: each word wrapped in {\\k<centisec>} with active color override
   // We use {\\1c&Hbbggrr&} to change PrimaryColour mid-line
@@ -141,7 +170,10 @@ function karaokeLine(
     })
     .join(" ");
 
-  return `Dialogue: 0,${assTime(p.start)},${assTime(p.end + 0.04)},Caption,,0,0,0,karaoke,${segments}`;
+  // A single word longer than a line cannot wrap; squeeze it horizontally.
+  const chars = p.words.reduce((n, w) => n + w.word.length, 0) + p.words.length - 1;
+  const squeeze = chars > maxChars ? `{\\fscx${Math.max(55, Math.floor((100 * maxChars) / chars))}}` : "";
+  return `Dialogue: 0,${assTime(p.start)},${assTime(p.end)},Caption,,0,0,0,karaoke,${squeeze}${segments}`;
 }
 
 function assTime(seconds: number) {
@@ -185,7 +217,14 @@ Style: Caption,${cap.fontName},${cap.fontSize},&H00${fillBgr},&H000000FF,&H00${o
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text`;
 }
 
-export function buildHookASS(hook: string, durationSec: number, niche: string, aspectId?: string): string {
+export function buildHookASS(
+  hook: string,
+  durationSec: number,
+  niche: string,
+  aspectId?: string,
+  /** Put the hook at the very top — for talking heads, so it never covers the face. */
+  opts: { top?: boolean } = {},
+): string {
   const style = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
   const aspect = resolveAspect(aspectId);
   const fillBgr = hexToBgr(style.fill);
@@ -194,7 +233,8 @@ export function buildHookASS(hook: string, durationSec: number, niche: string, a
 
   // Hook stays through first ~3s with a pop entrance
   const hookEnd = Math.min(durationSec, 3.4);
-  const lines = wrapHook(hook).map(escape).join("\\N");
+  const lines = wrapHook(hook, maxCharsPerLine(HOOK_FONT_SIZE, false, aspect.w)).map(escape).join("\\N");
+  const hookMarginV = opts.top ? Math.round(aspect.h * 0.07) : aspect.hookMarginV;
 
   return `[Script Info]
 ScriptType: v4.00+
@@ -205,19 +245,28 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Hook,Inter Bold,96,&H00${fillBgr},&H00${highlightBgr},&H00${outlineBgr},&H80000000,-1,0,0,0,100,100,0,0,1,8,3,8,80,80,${aspect.hookMarginV},1
+Style: Hook,Inter Bold,${HOOK_FONT_SIZE},&H00${fillBgr},&H00${highlightBgr},&H00${outlineBgr},&H80000000,-1,0,0,0,100,100,0,0,1,8,3,8,80,80,${hookMarginV},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,${assTime(0)},${assTime(hookEnd)},Hook,,0,0,0,,{\\fad(200,300)\\t(0,250,\\fscx105\\fscy105)\\t(250,500,\\fscx100\\fscy100)}${lines}`;
 }
 
-function wrapHook(hook: string) {
-  const words = hook.trim().split(/\s+/);
+const HOOK_FONT_SIZE = 96;
+
+/** Wrap the hook into at most 3 lines that fit the frame width. */
+export function wrapHook(hook: string, maxChars = 22) {
+  const words = hook.trim().split(/\s+/).filter(Boolean);
   const lines: string[] = [];
-  const target = words.length <= 6 ? 3 : 4;
-  for (let i = 0; i < words.length; i += target) {
-    lines.push(words.slice(i, i + target).join(" "));
+  let line = "";
+  for (const w of words) {
+    if (line && line.length + 1 + w.length > maxChars) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = line ? `${line} ${w}` : w;
+    }
   }
+  if (line) lines.push(line);
   return lines.slice(0, 3);
 }

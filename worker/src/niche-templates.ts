@@ -43,6 +43,7 @@ export const NICHE_TEMPLATES: Record<string, NicheTemplate> = {
   history:      { captionStyle: "bold-pop", thumbnailStyle: "cinematic", musicMood: "dramatic",     hookTone: "intriguing — open a story loop with a startling detail" },
   science:      { captionStyle: "neon",     thumbnailStyle: "cinematic", musicMood: "cinematic",    hookTone: "astonishing — lead with the surprising fact" },
   lifestyle:    { captionStyle: "minimal",  thumbnailStyle: "mrbeast",   musicMood: "lofi",         hookTone: "aspirational and relatable — make them picture the result" },
+  dental:       { captionStyle: "clean",    thumbnailStyle: "minimal",   musicMood: "chill",        hookTone: "calm and trustworthy — lead with the patient's own question or a common misconception, never fear or hype" },
   default:      DEFAULT_TEMPLATE,
 };
 

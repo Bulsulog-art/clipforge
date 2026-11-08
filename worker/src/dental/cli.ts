@@ -2,6 +2,7 @@
  * Run the dental agents end to end from the command line.
  *
  *   npx tsx src/dental/cli.ts <profile.json> [--count 5] [--render] [--out ./dental-out]
+ *   npx tsx src/dental/cli.ts <profile.json> --recording dentist.mp4 [--count 3] [--out dir]
  *
  * Needs OPENAI_API_KEY; --render also needs the Remotion browser (present in
  * the worker image) and uses PEXELS_API_KEY for stock footage when set.
@@ -14,8 +15,16 @@ import path from "node:path";
 import OpenAI from "openai";
 import { clinicProfileSchema } from "./profile.js";
 import { produceWeek } from "./week.js";
+import { clipsFromRecording } from "./recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { prepareVoiceover } from "../remotion/voiceover.js";
+
+// Node's built-in fetch, not the SDK's bundled node-fetch: the built-in one
+// honours HTTPS_PROXY (with NODE_USE_ENV_PROXY=1), so the CLI runs behind a
+// proxy as well as directly.
+function openaiClient(): OpenAI {
+  return new OpenAI({ fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] });
+}
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -35,12 +44,33 @@ async function main() {
   const doRender = process.argv.includes("--render");
   await fs.mkdir(outDir, { recursive: true });
 
+  const recording = arg("recording");
+  if (recording) {
+    // The dentist's own video → reviewed, captioned clips.
+    const clips = await clipsFromRecording(
+      { client: openaiClient(), workDir: outDir, render: true, log: (msg, extra) => console.log(`· ${msg}`, extra ?? "") },
+      profile,
+      path.resolve(recording),
+      undefined,
+      { maxClips: Number(arg("count") ?? 3) },
+    );
+    await fs.writeFile(path.join(outDir, "clips.json"), JSON.stringify(clips, null, 2));
+    for (const c of clips) {
+      console.log(
+        `\n[${c.status}] ${c.moment.start.toFixed(1)}–${c.moment.end.toFixed(1)}s  ${c.moment.hook}` +
+          (c.findings.length ? `\n  needs attention: ${c.findings.join(" | ")}` : "") +
+          `\n  ${c.videoPath ?? ""}`,
+      );
+    }
+    return;
+  }
+
   const week = await produceWeek(
     {
       // Node's built-in fetch, not the SDK's bundled node-fetch: the built-in
       // one honours HTTPS_PROXY (with NODE_USE_ENV_PROXY=1), so the CLI runs
       // behind a proxy as well as directly.
-      client: new OpenAI({ fetch: globalThis.fetch as unknown as ConstructorParameters<typeof OpenAI>[0] extends infer O ? O extends { fetch?: infer F } ? F : never : never }),
+      client: openaiClient(),
       log: (msg, extra) => console.log(`· ${msg}`, extra ?? ""),
       render: doRender
         ? async (plan, topic) => {
