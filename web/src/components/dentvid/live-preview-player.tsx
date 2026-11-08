@@ -345,6 +345,9 @@ export default function LivePreviewPlayer({
                 key={`${lang}/${entry.id}`}
                 ref={playerRef}
                 component={ClipForgeVideo}
+                // Bulsu Labs has two people, so Remotion's free licence applies
+                // (remotion.dev/license: companies of up to 3 employees).
+                acknowledgeRemotionLicense
                 inputProps={inputProps}
                 durationInFrames={durationInFrames}
                 compositionWidth={1080}
