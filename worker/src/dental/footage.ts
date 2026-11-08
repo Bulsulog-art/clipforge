@@ -17,12 +17,12 @@ const PEOPLE_OR_CLINIC =
 
 /** Object shots by service, in several languages' service names. */
 const BY_SERVICE: [RegExp, string[]][] = [
-  [/implant/i, ["dental implant model", "tooth model close up", "dental model teeth"]],
-  [/whiten|bleach|blanque|beyazlat|blanchi|clare|sbianc/i, ["teeth whitening tray", "white toothpaste close up", "coffee cup close up"]],
-  [/align|alinead|plak|aligneur|allinea|alinhad|ortodon/i, ["clear aligner close up", "clear aligner case", "glass of water close up"]],
-  [/root|wurzel|endodon|kanal|canal|devital/i, ["tooth model close up", "ice cubes close up", "dental model teeth"]],
-  [/child|kinder|niñ|odontopedi|çocuk|pédodont|pedodon|bambin|crian/i, ["child toothbrush", "colorful toothbrushes", "kids toothpaste"]],
-  [/clean|reinig|limpieza|temizl|détartr|igiene|limpeza|hygien/i, ["toothbrush close up", "dental floss close up", "toothpaste on toothbrush"]],
+  [/implant|インプラント|زراع/i, ["dental implant model", "tooth model close up", "dental model teeth"]],
+  [/whiten|bleach|blanque|beyazlat|blanchi|clare|sbianc|ホワイトニング|تبييض|wybiel/i, ["teeth whitening tray", "white toothpaste close up", "coffee cup close up"]],
+  [/align|alinead|plak|aligneur|allinea|alinhad|ortodon|矯正|マウスピース|تقويم|nakładk/i, ["clear aligner close up", "clear aligner case", "glass of water close up"]],
+  [/root|wurzel|endodon|kanal|kanał|canal|devital|根管|عصب/i, ["tooth model close up", "ice cubes close up", "dental model teeth"]],
+  [/child|kinder|niñ|odontopedi|çocuk|pédodont|pedodon|bambin|crian|小児|子ども|子供|أطفال|dziec/i, ["child toothbrush", "colorful toothbrushes", "kids toothpaste"]],
+  [/clean|reinig|limpieza|temizl|détartr|igiene|limpeza|hygien|クリーニング|歯石|تنظيف|جير|higienizac|skaling|kamień/i, ["toothbrush close up", "dental floss close up", "toothpaste on toothbrush"]],
 ];
 const GENERAL = ["toothbrush close up", "dental floss close up", "toothpaste on toothbrush", "glass of water close up", "electric toothbrush"];
 

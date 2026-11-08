@@ -45,6 +45,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # ffmpeg + libass (for ASS karaoke captions) + Inter font + emoji + Twemoji,
+# Noto Sans CJK (Japanese videos: without it every kanji renders as a tofu box)
+# and Noto Core (Noto Sans/Kufi Arabic for Arabic videos — see src/remotion/script.ts),
 # plus the shared libraries headless Chromium needs. Remotion renders every
 # frame in a real browser, so without these the generate queue fails on its
 # first job with a linker error and nothing else in the image explains why.
@@ -53,6 +55,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libass9 \
     fonts-inter \
     fonts-noto-color-emoji \
+    fonts-noto-cjk \
+    fonts-noto-core \
     fontconfig \
     ca-certificates \
     libnss3 \
@@ -113,6 +117,9 @@ ENV REMOTION_PUBLIC_DIR=/app/.remotion-public
 # library would otherwise present: a cryptic runtime error on someone's first
 # generate job, long after the deploy that caused it.
 RUN fc-match "Inter Bold" \
+  && fc-list | grep -q "Noto Sans CJK JP" \
+  && fc-list | grep -q "Noto Kufi Arabic" \
+  && fc-list | grep -q "Noto Sans Arabic" \
   && ffmpeg -h filter=ass > /dev/null \
   && yt-dlp --version \
   && node -e "require('@remotion/renderer').ensureBrowser().then(()=>console.log('chromium ok')).catch(e=>{console.error('chromium FAILED:',e.message);process.exit(1)})" \

@@ -3,7 +3,8 @@ import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
-import { brandTheme, theme as resolveTheme } from "./theme.js";
+import { brandTheme, localizeTheme, theme as resolveTheme } from "./theme.js";
+import { isRtl } from "./script.js";
 import { sceneOpacity } from "./animation.js";
 import { SceneView } from "./scenes/index.js";
 import { Watermark } from "./Watermark.js";
@@ -62,7 +63,9 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   logoStyle,
   backgroundSrcs,
 }) => {
-  const t = brandTheme(resolveTheme(plan.theme), plan.brandColor, plan.brandAccent);
+  // The language's fonts and script rules (Japanese, Arabic), then the clinic's colours.
+  const t = localizeTheme(brandTheme(resolveTheme(plan.theme), plan.brandColor, plan.brandAccent), plan.language);
+  const rtl = isRtl(plan.language);
   const photos = backgroundSrcs?.length ? backgroundSrcs : plan.backgrounds ?? [];
   // Over photos, muted and accent text are lifted just enough to stay readable (photo-overlay.ts).
   const sceneTheme = photos.length ? photoTheme(t) : t;
@@ -72,7 +75,9 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   const ctaIndex = logo ? plan.scenes.findIndex((s) => s.kind === "cta") : -1;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: t.background[0] }}>
+    // lang picks the right glyph shapes (Japanese, not Chinese, kanji); dir
+    // lays Arabic out right to left — text, list rows, the compare columns.
+    <AbsoluteFill lang={plan.language} dir={rtl ? "rtl" : "ltr"} style={{ backgroundColor: t.background[0] }}>
       {photos.length ? <BackgroundLayer srcs={photos} theme={t} /> : null}
       <PhotoBackdrop.Provider value={photos.length > 0}>
       {plan.scenes.map((scene, i) => {
@@ -109,6 +114,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
           style={logo.style}
           theme={t}
           hideFrom={ctaIndex >= 0 ? offsets[ctaIndex] : undefined}
+          rtl={rtl}
         />
       ) : null}
     </AbsoluteFill>
@@ -147,11 +153,12 @@ const FadingScene: React.FC<{
  * and search icons there. Steps aside as the sign-off, which shows the logo
  * large, comes in.
  */
-const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideFrom?: number }> = ({
+const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideFrom?: number; rtl?: boolean }> = ({
   src,
   style,
   theme,
   hideFrom,
+  rtl,
 }) => {
   const frame = useCurrentFrame();
   const opacity =
@@ -160,7 +167,8 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
       : interpolate(frame, [hideFrom - 4, hideFrom + 6], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   if (opacity <= 0) return null;
   return (
-    <div style={{ position: "absolute", top: 260, right: 64, opacity }}>
+    // Mirrored in a right-to-left video: the mark sits at the reading start's opposite corner, top left.
+    <div style={{ position: "absolute", top: 260, ...(rtl ? { left: 64 } : { right: 64 }), opacity }}>
       <LogoMark src={src} style={style} theme={theme} size={CORNER_LOGO} />
     </div>
   );

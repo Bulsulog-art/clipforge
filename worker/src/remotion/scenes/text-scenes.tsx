@@ -1,7 +1,8 @@
 import React from "react";
 import { useVideoConfig } from "remotion";
 import type { Theme } from "../theme.js";
-import { TYPE } from "../theme.js";
+import { PHRASE_BREAK } from "../script.js";
+import { TYPE, leading } from "../theme.js";
 import { entrance, drift } from "../animation.js";
 import { Backdrop, DisplayText, BodyText, Label, Surface, AccentRule, useScale } from "./primitives.js";
 import type { Scene } from "../scene-plan.js";
@@ -136,6 +137,9 @@ export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: L
               fontSize: TYPE.label * scale,
               fontWeight: 700,
               letterSpacing: "0.06em",
+              // A handle is Latin and left-to-right even in an Arabic frame ("@clinic", not "clinic@").
+              direction: "ltr",
+              unicodeBidi: "isolate",
               color: theme.onAccent,
               background: theme.accent,
               padding: `${16 * scale}px ${34 * scale}px`,
@@ -193,7 +197,8 @@ export const CompareScene: React.FC<Props<"compare">> = ({ scene, theme, frame }
                 fontFamily: theme.displayFont,
                 fontSize: 62 * scale,
                 fontWeight: 700,
-                lineHeight: 1.22,
+                lineHeight: leading(theme, 1.22),
+                ...PHRASE_BREAK,
                 color: theme.foreground,
               }}
             >

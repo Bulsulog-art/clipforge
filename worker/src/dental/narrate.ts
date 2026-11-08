@@ -3,6 +3,7 @@ import { z } from "zod";
 import { agentJson, REVIEW_MODEL } from "./llm.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
 import { AVOID_WORDS } from "./compliance.js";
+import { marketRules, speechTarget } from "./locale.js";
 import type { Topic } from "./strategist.js";
 import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 
@@ -32,6 +33,9 @@ export const SPOKEN_CUES: Record<string, string> = {
   it: `Italiano parlato e vicino: "sa una cosa?", "in pratica", "quindi", frasi brevi. Niente stile da opuscolo ("viene effettuato", "si raccomanda di").`,
   pt: `Português falado e próximo: "sabe que mais?", "na verdade", "então", frases curtas. Nada de estilo de folheto ("é realizado", "recomenda-se").`,
   en: `Spoken English with contractions: "here's the thing", "honestly", "so". No brochure phrases ("is carried out", "it is important to note").`,
+  pl: `Mówiony polski, bliski: "wiedzą Państwo co?" albo "wiesz co?" (zgodnie z formą zwracania się), "tak naprawdę", "czyli", "i tu ważna rzecz", krótkie zdania. Bez języka ulotki i urzędu ("dokonuje się", "przeprowadzany jest", "należy podkreślić", "w celu").`,
+  ar: `عربية فصحى مبسّطة كما يتكلّمها طبيب مع مريضه، لا لغة نشرات: جمل قصيرة، وروابط محكية مثل "في الحقيقة"، "يعني"، "والمهم هنا"، "لا تقلقوا". تجنّبوا "يتم إجراء"، "تجدر الإشارة إلى"، "حيث إن"، "وبالتالي" المتكرّرة. لا عامية ثقيلة ولا تشكيل.`,
+  ja: `話し言葉の日本語で、患者さんに直接語りかける口調にする：「実は」「ちなみに」「ここがポイントで」「〜なんです」「〜ですよね」「ご安心ください」。書き言葉・パンフレット調（「〜を行います」「〜となっております」「〜することが重要です」「〜に関しましては」）は避ける。一文は短く、読点で区切って自然な間をつくる。英語の直訳調にしない。`,
 };
 
 const narrationSchema = z.object({ text: z.string().min(20).max(1200) });
@@ -54,11 +58,11 @@ function screenPoints(plan: ScenePlan): string[] {
 }
 
 export function narrationBrief(profile: ClinicProfile, topic: Topic, plan: ScenePlan, fixes: string[] = [], previous?: string): string {
-  const words = Math.round(totalSeconds(plan) * 2.3);
+  const target = speechTarget(totalSeconds(plan), profile.language);
   return [
     `Video: "${topic.title}" — answers the patient question "${topic.question}".`,
     `On screen, in order:\n${screenPoints(plan).map((p) => `- ${p}`).join("\n")}`,
-    `Write about ${words} words (±15%).`,
+    `Write about ${target} (±15%).`,
     fixes.length ? `A reviewer required: ${fixes.join(" | ")}` : "",
     previous && fixes.length ? `Your previous narration — keep it and change only what the reviewer required:\n${previous}` : "",
   ]
@@ -88,7 +92,7 @@ How it must sound:
 Content rules (a clinical and a compliance reviewer read this next):
 - Say ONLY what is on screen, in your own words. No new facts, numbers, products or claims.
 - Hedge where outcomes vary ("usually", "can", "for most people").
-- Never use: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}. No prices, discounts or patient stories.
+- Never use: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}. No prices, discounts or patient stories.${marketRules(profile.country) ? `\n- ${marketRules(profile.country)}` : ""}
 Return JSON: { "text": "<the full narration>" }`,
     user: narrationBrief(profile, topic, plan, fixes, previous),
     schema: narrationSchema,

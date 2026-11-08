@@ -1,4 +1,5 @@
 import type { ThemeId } from "./scene-plan.js";
+import { fontStackFor, layoutUnits, scriptOfLanguage, visualLength, type Script } from "./script.js";
 
 /**
  * The look of the output.
@@ -43,6 +44,8 @@ export type Theme = {
   radius: number;
   /** Whether display type is set in caps. Editorial looks want it off. */
   uppercaseDisplay: boolean;
+  /** The writing system of the video's text (localizeTheme); absent = Latin. */
+  script?: Script;
 };
 
 const SANS = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
@@ -183,12 +186,47 @@ const GLYPH_EM = 0.62;
  */
 export function fitText(size: number, text: string, comfortable = 42): number {
   let fitted = size;
-  if (text.length > comfortable) {
+  // Japanese characters are full-width: measured in Latin-glyph units so the
+  // same "comfortable" length means the same width on screen.
+  const length = visualLength(text);
+  if (length > comfortable) {
     // Never below 58% for length alone — past that the shrinking is what looks broken.
-    fitted = Math.round(size * Math.max(0.58, Math.sqrt(comfortable / text.length)));
+    fitted = Math.round(size * Math.max(0.58, Math.sqrt(comfortable / length)));
   }
-  const longest = Math.max(1, ...text.split(/\s+/).map((w) => [...w].length));
+  // The widest unit that cannot wrap: a word, or a Japanese phrase.
+  const longest = Math.max(1, ...layoutUnits(text).units.map((w) => visualLength(w)));
   return Math.min(fitted, Math.floor(TEXT_WIDTH / (longest * GLYPH_EM)));
+}
+
+/**
+ * The theme set up for the video's language: that script's fonts in front of
+ * the theme's own (which stay as the fallback for Latin words, digits and
+ * @handles), and the script recorded so scenes can drop letter-spacing for
+ * Arabic and relax line height. Latin languages get the theme unchanged.
+ */
+export function localizeTheme(t: Theme, language: string | undefined): Theme {
+  const script = scriptOfLanguage(language);
+  if (script === "latin") return t;
+  const display = fontStackFor(language, "display");
+  const body = fontStackFor(language, "body");
+  return {
+    ...t,
+    script,
+    // Serif Latin display faces have no Japanese or Arabic; the script's sans leads.
+    displayFont: display ? `${display}, ${t.displayFont}` : t.displayFont,
+    bodyFont: body ? `${body}, ${t.bodyFont}` : t.bodyFont,
+    uppercaseDisplay: false,
+  };
+}
+
+/** Letter-spacing that is safe for the script: Arabic letters join, and any tracking pulls the joins apart. */
+export function tracking(t: Pick<Theme, "script">, latin: string): string {
+  return t.script === "arabic" ? "0" : t.script === "cjk" && latin.startsWith("-") ? "0" : latin;
+}
+
+/** Line height for the script: Arabic needs room for its dots and tall letters, Japanese a little more air. */
+export function leading(t: Pick<Theme, "script">, latin: number): number {
+  return t.script === "arabic" ? Math.max(latin, 1.0) + 0.3 : t.script === "cjk" ? Math.max(latin, 1.0) + 0.12 : latin;
 }
 
 // MARK: - Contrast

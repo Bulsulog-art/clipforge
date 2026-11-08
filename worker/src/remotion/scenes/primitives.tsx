@@ -1,7 +1,8 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import type { Theme } from "../theme.js";
-import { backgroundCss, fitText } from "../theme.js";
+import { backgroundCss, fitText, leading, tracking } from "../theme.js";
+import { PHRASE_BREAK, layoutUnits, visualLength } from "../script.js";
 import { entrance, wordsVisible } from "../animation.js";
 import { usePhotoBackdrop } from "../background-layer.js";
 
@@ -89,7 +90,7 @@ export function guardWidow(words: string[]): { text: string; index: number }[] {
   if (words.length < 3) return items;
 
   const tail = words.slice(-2).join(" ");
-  if (tail.length > WIDOW_GUARD_CHARS) return items;
+  if (visualLength(tail) > WIDOW_GUARD_CHARS) return items;
 
   return [...items.slice(0, -2), { text: tail, index: words.length - 2 }];
 }
@@ -111,7 +112,8 @@ export const DisplayText: React.FC<{
   weight?: number;
 }> = ({ text, theme, frame, size, emphasis, byWord = false, delay = 0, align = "left", weight = 800 }) => {
   const scale = useScale();
-  const words = text.split(/\s+/).filter(Boolean);
+  // Words, or for Japanese short phrases (script.ts): the units the line may wrap between.
+  const { units: words, spaced } = layoutUnits(text);
   const visible = byWord ? wordsVisible(frame, words.length, 3, delay) : words.length;
   const emphasised = new Set((emphasis ?? []).flatMap((e) => e.toLowerCase().split(/\s+/)));
   const fitted = fitText(size, text);
@@ -122,18 +124,20 @@ export const DisplayText: React.FC<{
         fontFamily: theme.displayFont,
         fontSize: fitted * scale,
         fontWeight: weight,
-        lineHeight: 1.08,
-        letterSpacing: theme.uppercaseDisplay ? "0.01em" : "-0.02em",
+        lineHeight: leading(theme, 1.08),
+        letterSpacing: tracking(theme, theme.uppercaseDisplay ? "0.01em" : "-0.02em"),
         textTransform: theme.uppercaseDisplay ? "uppercase" : "none",
         color: theme.foreground,
-        textAlign: align,
+        // "start", not "left": right-aligned in an Arabic (dir=rtl) frame.
+        textAlign: align === "center" ? "center" : "start",
         display: "flex",
         flexWrap: "wrap",
-        gap: `${0.16 * fitted * scale}px ${0.26 * fitted * scale}px`,
+        // Japanese phrases sit flush against each other; spaces only where the language has them.
+        gap: `${0.16 * fitted * scale}px ${spaced ? 0.26 * fitted * scale : 0}px`,
         justifyContent: align === "center" ? "center" : "flex-start",
       }}
     >
-      {guardWidow(words).map(({ text: word, index: i }) => {
+      {(spaced ? guardWidow(words) : words.map((t, index) => ({ text: t, index }))).map(({ text: word, index: i }) => {
         const shown = i < visible;
         const anim = entrance(frame, {
           delay: byWord ? delay + i * 3 : delay,
@@ -178,7 +182,7 @@ export const Label: React.FC<{
         fontFamily: theme.bodyFont,
         fontSize: size * scale,
         fontWeight: 700,
-        letterSpacing: "0.14em",
+        letterSpacing: tracking(theme, theme.script ? "0.04em" : "0.14em"),
         textTransform: "uppercase",
         color: color ?? theme.muted,
         opacity: anim.opacity,
@@ -208,9 +212,10 @@ export const BodyText: React.FC<{
         fontFamily: theme.bodyFont,
         fontSize: fitText(size, text, 70) * scale,
         fontWeight: 500,
-        lineHeight: 1.35,
+        lineHeight: leading(theme, 1.35),
         color: color ?? theme.muted,
-        textAlign: align,
+        textAlign: align === "center" ? "center" : "start",
+        ...PHRASE_BREAK,
         opacity: anim.opacity,
         transform: `translateY(${anim.translateY * scale}px)`,
       }}

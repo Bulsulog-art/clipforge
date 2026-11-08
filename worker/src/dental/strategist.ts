@@ -3,6 +3,7 @@ import { z } from "zod";
 import { agentJson, REVIEW_MODEL } from "./llm.js";
 import { PILLARS, addressRule, type ClinicProfile } from "./profile.js";
 import { scanHardRules } from "./compliance.js";
+import { hookLimit, marketRules, speechUnits } from "./locale.js";
 
 /**
  * The strategist agent: a week of video ideas for one clinic.
@@ -42,7 +43,7 @@ Rules:
 - Educational and accurate, mainstream dental guidance only. No prices, discounts, guarantees, superlatives, before/after promises or testimonials.
 - Mix the pillars across the week (${PILLARS.join(", ")}); never more than two of the same pillar.
 - Spread the week across the clinic's services: at most two videos about the same service, and never two that answer the same question in different words.
-- Hooks decide whether anyone watches. Under 9 words, specific, and built on one of these:
+- Hooks decide whether anyone watches. ${hookLimit(profile.language).text.replace(/^u/, "U")}, specific, and built on one of these:
   * a myth stated, then challenged: "Whitening thins your enamel? Not really."
   * a common mistake: "You're brushing too hard — here's the sign."
   * a concrete number or timeframe: "Your toothbrush has a 3-month expiry date."
@@ -50,7 +51,7 @@ Rules:
   Never a generic textbook question ("What is X?", "Is X important?", "How does X work?"), never a hook that suggests dentists or clinics get things wrong (the clinic posts it), never a bare topic label, never a listicle label ("3 tips for…", "5 things about…").
   Open a loop, do not close it: the hook raises the question and the video answers it. "Implant treatment happens in 3 stages." gives the answer away; "Your implant isn't done on day one — here's why." makes people stay.
   Medicine is rarely absolute, and a reviewer will reject absolutes, so a myth hook challenges with "not quite" / "usually not", never a flat "No!".
-The examples above show shapes only — do not reuse their subjects.
+The examples above show shapes only — do not reuse their subjects.${marketRules(profile.country) ? `\n- ${marketRules(profile.country)}` : ""}
 Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } ] }`,
     user:
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""} (${profile.country}).\n` +
@@ -110,7 +111,7 @@ export async function sharpenHooks(client: OpenAI, profile: ClinicProfile, topic
       system: `You are the editor who writes the first line of short dental-education videos (Reels/TikTok) for a clinic, in native ${profile.language}.
 For each topic: write 4 different hooks, then pick the one a patient scrolling their feed would stop for.
 A strong hook:
-- is under 9 words, specific and concrete — a moment, a mistake, a surprising fact or a myth;
+- is ${hookLimit(profile.language).text}, specific and concrete — a moment, a mistake, a surprising fact or a myth;
 - opens a question the video answers; it never gives the answer away;
 - sounds like something a person would say out loud in ${profile.language}, not a headline or a translation;
 - ${addressRule(profile)}
@@ -125,7 +126,7 @@ Return JSON: { "hooks": [ { "index", "candidates": [ { "hook", "score" } ×4 ] }
     const best = new Map(
       hooks.map((h) => {
         const ok = h.candidates
-          .filter((c) => c.hook.split(/\s+/).length <= 12 && scanHardRules(c.hook).length === 0)
+          .filter((c) => speechUnits(c.hook, profile.language) <= hookLimit(profile.language).max && scanHardRules(c.hook).length === 0)
           .sort((a, b) => b.score - a.score);
         return [h.index, ok[0]?.hook.trim()];
       }),

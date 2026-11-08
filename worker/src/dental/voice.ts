@@ -23,6 +23,9 @@ const LANGUAGE_NAMES: Record<string, string> = {
   fr: "French",
   it: "Italian",
   pt: "European Portuguese",
+  pl: "Polish",
+  ar: "Modern Standard Arabic",
+  ja: "standard Japanese (Tokyo)",
 };
 
 /**
@@ -37,6 +40,9 @@ const LANGUAGE_NOTES: Record<string, string> = {
   fr: "Standard French pronunciation. Pronounce dental terms clearly (détartrage, gencives, dévitalisation).",
   it: "Standard Italian pronunciation. Pronounce dental terms clearly (devitalizzazione, gengive, sbiancamento).",
   pt: "European Portuguese from Lisbon, not Brazilian. Pronounce dental terms clearly (gengivas, alinhadores, desvitalização).",
+  pl: "Standard Polish pronunciation. Pronounce dental terms clearly (kamień nazębny, leczenie kanałowe, dziąsła, wybielanie); keep the stress on the penultimate syllable.",
+  ar: "Clear Modern Standard Arabic as spoken by a Gulf clinician, neutral and easy to follow; not Egyptian or Levantine colloquial. Pronounce dental terms clearly (تسوّس، اللثة، زراعة الأسنان، علاج العصب، تقويم شفاف).",
+  ja: "Natural standard Japanese (Tokyo accent) with correct pitch accent; polite です・ます, soft and reassuring. Read dental terms correctly (歯周病, 歯石, 根管治療, 知覚過敏, マウスピース矯正).",
 };
 
 export function voiceInstructions(language: string): string {
@@ -47,6 +53,23 @@ export function voiceInstructions(language: string): string {
     "You are a warm, calm dentist speaking to one patient. Natural, unhurried pace with small pauses between ideas; reassuring, never salesy or announcer-like.",
     LANGUAGE_NOTES[lang] ?? `Pronounce dental terms correctly in ${name}.`,
   ].join(" ");
+}
+
+/**
+ * Voices that do not carry a language well, swapped for one that does. The
+ * planner picks "nova" (female) or "onyx" (male). Listening test for the new
+ * languages (Nov 2026, tts-1-hd, gpt-4o-transcribe round trip + gpt-audio
+ * judge, one clinic script each): Japanese and Polish were native-sounding in
+ * every voice; in Arabic "onyx" garbled the opening words (13% character
+ * error) and "nova" was judged slightly foreign-accented, while "shimmer"
+ * (female) and "echo" (male) read it natively with no errors.
+ */
+const VOICE_SWAP: Record<string, Record<string, "shimmer" | "echo">> = {
+  ar: { nova: "shimmer", onyx: "echo" },
+};
+
+export function voiceFor<V extends string>(language: string | undefined, voice: V): V | "shimmer" | "echo" {
+  return VOICE_SWAP[(language ?? "").toLowerCase().slice(0, 2)]?.[voice] ?? voice;
 }
 
 export type VoiceConfig = { model: string; instructions?: string };

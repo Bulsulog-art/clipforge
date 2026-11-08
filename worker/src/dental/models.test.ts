@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DEFAULT_AGENT_MODEL, DEFAULT_REVIEW_MODEL, JUDGE_MODEL, resolveModels } from "./llm.js";
 import { params } from "../lib/model-params.js";
-import { resolveVoice, voiceInstructions } from "./voice.js";
+import { resolveVoice, voiceFor, voiceInstructions } from "./voice.js";
 import { wer } from "./voice-eval.js";
 
 vi.mock("../steps/tts.js", () => ({ synthesizeSpeech: vi.fn() }));
@@ -67,7 +67,9 @@ describe("resolveVoice", () => {
   });
 
   it("has a brief for every panel language", () => {
-    for (const l of ["tr", "de", "es", "en", "fr", "it", "pt"]) expect(voiceInstructions(l)).not.toMatch(/undefined/);
+    for (const l of ["tr", "de", "es", "en", "fr", "it", "pt", "ja", "ar", "pl"]) expect(voiceInstructions(l)).not.toMatch(/undefined/);
+    expect(voiceInstructions("ja")).toMatch(/Japanese/);
+    expect(voiceInstructions("ar")).toMatch(/Modern Standard Arabic/);
   });
 });
 
@@ -116,5 +118,14 @@ describe("wer", () => {
   });
   it("counts substitutions and drops against the script", () => {
     expect(wer("one two three four", "one too three")).toBe(0.5);
+  });
+});
+
+describe("voice per language", () => {
+  it("swaps the voices that read Arabic badly, and leaves the rest", () => {
+    expect(voiceFor("ar", "onyx")).toBe("echo");
+    expect(voiceFor("ar", "nova")).toBe("shimmer");
+    expect(voiceFor("ja", "nova")).toBe("nova");
+    expect(voiceFor("pl", "onyx")).toBe("onyx");
   });
 });

@@ -5,7 +5,7 @@ const row = (o: Partial<EvalRow>): EvalRow => ({ clinic: "C", language: "tr", to
 
 describe("eval", () => {
   it("panel covers every supported language with valid profiles", () => {
-    expect(new Set(PANEL.map((p) => p.language))).toEqual(new Set(["tr", "de", "es", "en", "fr", "it", "pt"]));
+    expect(new Set(PANEL.map((p) => p.language))).toEqual(new Set(["tr", "de", "es", "en", "fr", "it", "pt", "ja", "ar", "pl"]));
   });
   it("summarises ready, first-pass, scores and spread per language", () => {
     const rows = [

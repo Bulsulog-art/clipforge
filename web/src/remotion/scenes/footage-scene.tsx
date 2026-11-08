@@ -3,7 +3,8 @@
 import React from "react";
 import { AbsoluteFill, OffthreadVideo, staticFile, useVideoConfig } from "remotion";
 import type { Theme } from "../theme";
-import { TYPE, backgroundCss, fitText } from "../theme";
+import { PHRASE_BREAK } from "../script";
+import { TYPE, backgroundCss, fitText, leading, tracking } from "../theme";
 import { entrance, kenBurns } from "../animation";
 import { useScale, useSafeArea } from "./primitives";
 import type { Scene } from "../scene-plan";
@@ -82,8 +83,9 @@ export const FootageScene: React.FC<{
               fontFamily: theme.displayFont,
               fontSize: fitText(TYPE.heading, scene.caption, 46) * scale,
               fontWeight: 800,
-              lineHeight: 1.14,
-              letterSpacing: "-0.02em",
+              lineHeight: leading(theme, 1.14),
+              letterSpacing: tracking(theme, "-0.02em"),
+              ...PHRASE_BREAK,
               // Always white over footage: the theme's foreground may be dark,
               // and a dark caption on an unpredictable shot is a coin flip.
               color: "#FFFFFF",

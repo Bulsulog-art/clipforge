@@ -5,7 +5,7 @@ const reply = (list: string[]) => new Response(JSON.stringify(["q", list]), { st
 
 describe("patient searches", () => {
   it("has question prompts for every language a clinic can choose", () => {
-    for (const l of ["en", "de", "es", "fr", "it", "pt", "tr"]) expect(SEEDS[l]?.length).toBeGreaterThanOrEqual(3);
+    for (const l of ["en", "de", "es", "fr", "it", "pt", "tr", "ja", "ar", "pl"]) expect(SEEDS[l]?.length).toBeGreaterThanOrEqual(3);
   });
   it("drops price searches and fragments", () => {
     expect(cleanSuggestions(["diş beyazlatma zararlı mı", "diş beyazlatma fiyatları 2026", "diş beyazlatma zararlı mı ekşi", "diş"], "diş beyazlatma zararlı mı")).toEqual(["diş beyazlatma zararlı mı"]);
@@ -25,5 +25,10 @@ describe("patient searches", () => {
   it("returns nothing (never throws) when the network is blocked", async () => {
     const f = (async () => { throw new Error("blocked"); }) as unknown as typeof fetch;
     expect(await patientSearches(["Implants"], "en", "US", { fetchImpl: f })).toEqual([]);
+  });
+  it("keeps Japanese suggestions that have no spaces, and still drops prices", () => {
+    expect(cleanSuggestions(["インプラント痛い", "インプラント 痛い 期間", "インプラント 費用", "インプラント 知恵袋"], "インプラント 痛い")).toEqual(["インプラント痛い", "インプラント 痛い 期間"]);
+    expect(cleanSuggestions(["تبييض الاسنان اضرار", "تبييض الاسنان سعر"], "اضرار تبييض")).toEqual(["تبييض الاسنان اضرار"]);
+    expect(cleanSuggestions(["wybielanie zębów boli", "wybielanie zębów cena"], "wybielanie zębów boli")).toEqual(["wybielanie zębów boli"]);
   });
 });

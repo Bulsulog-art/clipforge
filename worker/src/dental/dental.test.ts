@@ -440,3 +440,91 @@ describe("per-language agent material", () => {
     }
   });
 });
+
+describe("new markets: Japanese, Arabic, Polish hard rules", () => {
+  it("catches the 医療広告ガイドライン classics in Japanese (no spaces, no word boundaries)", () => {
+    expect(rules("無痛で安心のインプラント")).toContain("absolute");
+    expect(rules("当院は地域一番の歯科医院です")).toContain("superlative");
+    expect(rules("日本一のクリニック")).toContain("superlative");
+    expect(rules("ホワイトニングのキャンペーン中")).toContain("price");
+    expect(rules("インプラント 300,000円")).toContain("price");
+    expect(rules("ビフォーアフター写真をご覧ください")).toContain("before_after");
+    expect(rules("患者様の声をご紹介します")).toContain("testimonial");
+    expect(rules("歯周病が完治します")).toContain("cure");
+    expect(rules("効果を保証します")).toContain("guarantee");
+    expect(rules("フロスは歯周病を防ぎます")).toContain("absolute");
+    expect(rules("１００％白くなります")).toContain("absolute");
+  });
+  it("lets ordinary Japanese dental language through", () => {
+    expect(rules("永久歯は6歳ごろから生えてきます")).toEqual([]);
+    expect(rules("フロスは歯周病を防ぐのに役立ちます")).toEqual([]);
+    expect(rules("治療前後の注意点をお伝えします")).toEqual([]);
+    expect(rules("効果を保証できません")).toEqual([]);
+    expect(rules("必ず歯科医師に相談してください")).toEqual([]);
+    expect(rules("しみることがありますが、多くの場合は一時的です")).toEqual([]);
+  });
+  it("catches DHA-listed claims in Arabic, with attached prefixes", () => {
+    expect(rules("زراعة أسنان بدون ألم ومضمونة")).toEqual(["guarantee", "absolute"]);
+    expect(rules("أفضل عيادة أسنان في دبي")).toContain("superlative");
+    expect(rules("خصم 20% على التبييض")).toContain("price");
+    expect(rules("التبييض بـ 500 درهم")).toContain("price");
+    expect(rules("شاهدوا صور قبل وبعد")).toContain("before_after");
+    expect(rules("نتائج فورية")).toContain("absolute");
+    expect(rules("بدون آثار جانبية")).toContain("absolute");
+    expect(rules("الخيط يمنع التسوس")).toContain("absolute");
+    expect(rules("مرضانا يقولون")).toContain("testimonial");
+    expect(rules("علاج نهائي للألم")).toContain("cure");
+    expect(rules("ابتسامة دائمة")).toContain("absolute");
+  });
+  it("lets ordinary Arabic dental language through", () => {
+    expect(rules("الأسنان الدائمة تظهر عادة في سن السادسة")).toEqual([]);
+    expect(rules("بعد علاج العصب توضع الحشوة الدائمة")).toEqual([]);
+    expect(rules("نظفوا أسنانكم قبل وبعد الأكل")).toEqual([]);
+    expect(rules("نظفوا أسنانكم دائماً بلطف")).toEqual([]);
+    expect(rules("قد يساعد الخيط على الوقاية من التسوس")).toEqual([]);
+    expect(rules("لا نضمن النتائج")).toEqual([]);
+  });
+  it("catches the classics in Polish and lets the hedged forms through", () => {
+    expect(rules("Bezbolesne leczenie z gwarancją")).toEqual(["guarantee", "absolute"]);
+    expect(rules("Najlepszy gabinet stomatologiczny w Krakowie")).toContain("superlative");
+    expect(rules("Wybielanie 20% rabatu")).toContain("price");
+    expect(rules("Implant 3000 zł")).toContain("price");
+    expect(rules("Zdjęcia przed i po")).toContain("before_after");
+    expect(rules("Nić dentystyczna zapobiega próchnicy")).toContain("absolute");
+    expect(rules("Efekt na zawsze")).toContain("absolute");
+    expect(rules("Opinie naszych pacjentów")).toContain("testimonial");
+    expect(rules("Nić może pomóc zapobiegać próchnicy")).toEqual([]);
+    expect(rules("Myj zęby przed i po jedzeniu")).toEqual([]);
+    expect(rules("Zęby stałe wyrastają około 6. roku życia")).toEqual([]);
+    expect(rules("Trwałe wypełnienie po leczeniu kanałowym")).toEqual([]);
+    expect(rules("Nie gwarantujemy efektów")).toEqual([]);
+  });
+});
+
+describe("narration length in the language's own unit", () => {
+  const jaPlan = (text: string) => ({ ...plan(["フック", "説明", "項目"]), voiceover: { text, voice: "nova" } }) as ScenePlan;
+  it("counts Japanese in characters, not space-separated words", () => {
+    const long = "実は、ホワイトニングのあとに歯がしみるのはよくあることなんです。".repeat(6);
+    expect(narrationProblems(jaPlan(long), "ja")).toEqual([]);
+    // The same text counted in words is a single "word" and was always rejected.
+    expect(narrationProblems(jaPlan(long), "en")[0]).toMatch(/1 words/);
+    expect(narrationProblems(jaPlan("短すぎます。"), "ja")[0]).toMatch(/characters/);
+  });
+  it("tells Japanese writers characters and Japanese limits", () => {
+    const brief = scriptBrief({ ...PROFILE, language: "ja", country: "JP" }, TOPIC);
+    expect(brief).toMatch(/Japanese characters per second/);
+    expect(brief).toMatch(/hook at most 20 characters/);
+    expect(brief).toMatch(/医療広告ガイドライン/);
+  });
+});
+
+describe("per-language agent material (new markets)", () => {
+  it("covers ja, ar and pl", async () => {
+    const { SPOKEN_CUES } = await import("./narrate.js");
+    const { AVOID_WORDS } = await import("./compliance.js");
+    for (const l of ["ja", "ar", "pl"]) {
+      expect(SPOKEN_CUES[l], `spoken cues for ${l}`).toBeTruthy();
+      expect(AVOID_WORDS[l], `avoid words for ${l}`).toBeTruthy();
+    }
+  });
+});

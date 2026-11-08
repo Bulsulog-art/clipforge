@@ -2,7 +2,8 @@
 // Edit the worker file and re-run the script; web/src/remotion/sync.test.ts checks they match.
 import React from "react";
 import type { Theme } from "../theme";
-import { TYPE, fitText } from "../theme";
+import { PHRASE_BREAK } from "../script";
+import { TYPE, fitText, leading, tracking } from "../theme";
 import { entrance, stagger, countUpText, drift } from "../animation";
 import { Backdrop, Label, BodyText, Surface, useScale } from "./primitives";
 import type { Scene } from "../scene-plan";
@@ -36,8 +37,9 @@ export const ListScene: React.FC<Props<"list">> = ({ scene, theme, frame, durati
           fontFamily: theme.displayFont,
           fontSize: fitText(TYPE.heading, scene.heading) * scale,
           fontWeight: 800,
-          lineHeight: 1.1,
-          letterSpacing: theme.uppercaseDisplay ? "0.01em" : "-0.02em",
+          lineHeight: leading(theme, 1.1),
+          letterSpacing: tracking(theme, theme.uppercaseDisplay ? "0.01em" : "-0.02em"),
+          ...PHRASE_BREAK,
           textTransform: theme.uppercaseDisplay ? "uppercase" : "none",
           color: theme.foreground,
           ...transformFrom(entrance(frame, { delay: headingDelay, duration: 16, distance: 26 }), scale),
@@ -86,7 +88,8 @@ export const ListScene: React.FC<Props<"list">> = ({ scene, theme, frame, durati
                   fontFamily: theme.bodyFont,
                   fontSize: fitText(TYPE.listItem, item, 40) * scale,
                   fontWeight: 600,
-                  lineHeight: 1.25,
+                  lineHeight: leading(theme, 1.25),
+                  ...PHRASE_BREAK,
                   color: theme.foreground,
                 }}
               >
@@ -138,7 +141,8 @@ export const StatScene: React.FC<Props<"stat">> = ({ scene, theme, frame, durati
             fontFamily: theme.displayFont,
             fontSize: fitText(TYPE.heading, scene.label, 34) * scale,
             fontWeight: 700,
-            lineHeight: 1.15,
+            lineHeight: leading(theme, 1.15),
+            ...PHRASE_BREAK,
             color: theme.foreground,
             textAlign: "center",
             ...transformFrom(entrance(frame, { delay: 14, duration: 16, distance: 24 }), scale),
