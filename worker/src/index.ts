@@ -1,11 +1,12 @@
-import { Worker, MetricsTime } from "bullmq";
+import { Worker, MetricsTime, Queue } from "bullmq";
 import IORedis from "ioredis";
 import * as Sentry from "@sentry/node";
 import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
-import { runDentvidRecording, runDentvidWeek } from "./dentvid/jobs.js";
+import { dentvidDb, runDentvidRecording, runDentvidWeek } from "./dentvid/jobs.js";
+import { dispatchWeeks } from "./dentvid/schedule.js";
 import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -79,6 +80,7 @@ const dentvidWorker = new Worker(
     try {
       if (job.name === "week") return await runDentvidWeek(job.data);
       if (job.name === "recording") return await runDentvidRecording(job.data);
+      if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue);
       throw new Error(`unknown dentvid job ${job.name}`);
     } catch (e) {
       Sentry.captureException(e, { tags: { queue: "dentvid", jobId: job.id } });
@@ -92,6 +94,14 @@ const dentvidWorker = new Worker(
     removeOnFail: { count: 1000, age: 14 * 24 * 3600 },
   },
 );
+// Monday delivery: each Monday 05:00 UTC (morning across Europe and Türkiye),
+// start the week for every clinic that should get one (dentvid/schedule.ts).
+const dentvidQueue = new Queue("dentvid", { connection });
+if (process.env.DENTVID_SUPABASE_URL) {
+  dentvidQueue
+    .upsertJobScheduler("dentvid-monday", { pattern: "0 5 * * 1", tz: "UTC" }, { name: "dispatch", data: {} })
+    .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: scheduler setup failed"));
+}
 dentvidWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed"));
 
 const publishWorker = new Worker(
@@ -157,6 +167,7 @@ async function shutdown(signal: string) {
     publishWorker.close(),
     derivativeWorker.close(),
     dentvidWorker.close(),
+    dentvidQueue.close(),
   ]);
   await Sentry.flush(2000);
   await connection.quit();
