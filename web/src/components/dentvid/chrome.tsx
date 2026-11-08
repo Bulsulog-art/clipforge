@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuides, type Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import { asLocale } from "@/lib/dentvid/locale";
-import { pathLocale } from "@/lib/dentvid/page-locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { dvHref } from "@/lib/dentvid/host";
@@ -23,8 +22,24 @@ export function announceLocale(locale: Locale) {
   window.dispatchEvent(new CustomEvent(LANG_EVENT, { detail: locale }));
 }
 
-// Shared with the root layout, which renders <html lang dir> on the server.
-export { pathLocale };
+/**
+ * The language the page itself is in, when its address says so: a localized
+ * landing (/dentvideo/tr) or a guide (each guide has one language). Null for
+ * the app and sign-up screens, whose language is per visitor.
+ */
+export function pathLocale(pathname: string, guideLocales: Record<string, Locale>): Locale | null {
+  // On dentvideo.com the address is "/tr" (the middleware serves the
+  // /dentvideo section there); elsewhere it is "/dentvideo/tr". Read both.
+  const all = pathname.split("/").filter(Boolean);
+  const parts = all[0] === "dentvideo" ? all.slice(1) : all;
+  if (parts.length === 0) return "en";
+  // English guides hub and About: /guides, /about.
+  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about")) return "en";
+  if (parts[0] === "guides") return guideLocales[parts[1] ?? ""] ?? null;
+  if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
+  // A landing (/tr), or its guides hub or About page (/tr/guides).
+  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about")) ? (parts[0] as Locale) : null;
+}
 
 function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; ready: boolean } {
   const fromPath = pathLocale(usePathname() ?? "", guideLocales);
@@ -58,8 +73,7 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
   // Until the visitor's language is known on the app screens, keep the space
   // but not the English words.
   const hide = ready ? "" : "invisible";
-  // <html lang dir> is right in the server's HTML (root layout); this keeps
-  // it in step when a client-side navigation changes the page's language.
+  // <html lang> follows the page on client-side navigation (HtmlLang sets it on first load).
   useEffect(() => {
     if (ready) {
       document.documentElement.lang = locale;

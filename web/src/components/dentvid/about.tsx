@@ -5,7 +5,7 @@ import { ENTITY } from "@/content/guides/entity";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { aboutJsonLd } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
-import { Breadcrumbs, GuideCta } from "./guide-parts";
+import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 
 /** What DentVideo is, stated plainly, with the facts as a definition list. */
 export function AboutPage({ locale }: { locale: Locale }) {
@@ -14,6 +14,7 @@ export function AboutPage({ locale }: { locale: Locale }) {
   return (
     <main lang={locale} dir={dirOf(locale)}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd(locale)) }} />
+      <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">

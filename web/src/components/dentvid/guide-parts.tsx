@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { dateLocale } from "@/lib/dentvid/app-ui";
 import { ArrowRight, ChevronRight } from "lucide-react";
-import { LANDING_PATH, type Locale } from "@/content/dentvideo";
+import { LANDING_PATH, dirOf, type Locale } from "@/content/dentvideo";
 import { parseInline, resolveTarget } from "@/content/guides/text";
 import { GUIDE_UI } from "@/content/guides/ui";
 import { dvHref } from "@/lib/dentvid/host";
@@ -70,6 +70,23 @@ export function GuideCta({ locale }: { locale: Locale }) {
         </Link>
       </div>
     </section>
+  );
+}
+
+/**
+ * Gives <html> this page's language before first paint. The root layout is
+ * shared with ClipForge and renders lang="en", which told screen readers and
+ * search engines that the German, Spanish, Turkish and French pages were
+ * English. The header keeps it in step on client-side navigation.
+ */
+export function HtmlLang({ locale }: { locale: Locale }) {
+  // Arabic also turns the whole document right to left (scrollbars, focus order, the header outside <main>).
+  return (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `document.documentElement.lang=${JSON.stringify(locale)};document.documentElement.dir=${JSON.stringify(dirOf(locale))}`,
+      }}
+    />
   );
 }
 

@@ -22,6 +22,7 @@ import { DV_FOUNDING, DV_TIERS, foundingOfferOpen } from "@/lib/dentvid/billing"
 import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
 import { Teaser } from "./teaser";
+import { HtmlLang } from "./guide-parts";
 
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
@@ -631,6 +632,7 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
   return (
     <main lang={locale} dir={dirOf(locale)}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
+      <HtmlLang locale={locale} />
       <Hero locale={locale} />
       <Problem locale={locale} />
       <How locale={locale} />

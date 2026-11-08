@@ -7,7 +7,7 @@ import { readingMinutes, relatedGuides, sectionId, translationsOf } from "@/cont
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
-import { Breadcrumbs, GuideCta, RichText, formatDate } from "@/components/dentvid/guide-parts";
+import { Breadcrumbs, GuideCta, HtmlLang, RichText, formatDate } from "@/components/dentvid/guide-parts";
 
 // Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
 // inside the header and footer rather than Next's bare default.
@@ -36,6 +36,7 @@ export default async function GuidePage({ params }: Props) {
   return (
     <main lang={L}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guideJsonLd(g)) }} />
+      <HtmlLang locale={L} />
 
       <article>
         <header className="relative isolate overflow-hidden border-b border-dv-line">
