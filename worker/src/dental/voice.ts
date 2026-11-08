@@ -1,10 +1,11 @@
 /**
  * Which TTS model narrates a DentVideo clip, and how it is told to speak.
  *
- * The default stays OpenAI tts-1-hd until the listening test in
- * `voice-eval.ts` has been run (see "Model choice" in docs/AUTONOMOUS_PLAN.md):
- * gpt-4o-mini-tts takes tone and pronunciation instructions and costs about
- * half as much per minute, but it was not measured against tts-1-hd yet.
+ * The default is OpenAI tts-1-hd, by measurement (`voice-eval.ts`, "Model
+ * choice" in docs/AUTONOMOUS_PLAN.md): gpt-4o-mini-tts with the briefs below
+ * transcribed as accurately but scored the same or lower side by side in
+ * tr/de/es/en, and spoke 8-12% slower in tr/de/es. It is about half the price
+ * per minute and stays available per language.
  *
  *   DENTVID_TTS_MODEL           model for every language (default tts-1-hd)
  *   DENTVID_TTS_MODEL_<LANG>    per-language override, e.g. DENTVID_TTS_MODEL_TR

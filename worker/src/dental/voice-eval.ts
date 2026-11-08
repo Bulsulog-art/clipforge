@@ -16,9 +16,10 @@
  *                      (pauses over 0.6s at -40 dB)
  *   WER                gpt-4o-transcribe's transcript vs the script: words
  *                      the voice dropped, swapped or garbled
- *   natural / accuracy gpt-audio listens and scores 1-5, and lists any
+ *   natural / accuracy gpt-audio listens and scores 1-10, and lists any
  *                      mispronounced words
- * Plus a pairwise preference per script (both orders, to cancel position bias).
+ * Plus a side-by-side score per script, asked in both orders to cancel the
+ * judge's position bias.
  */
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -97,22 +98,43 @@ async function transcribe(file: string, language: string): Promise<string> {
   return ((await res.json()) as { text: string }).text;
 }
 
-async function listen(prompt: string, files: string[]): Promise<Record<string, unknown>> {
-  const content: unknown[] = [{ type: "text", text: prompt }];
-  for (const f of files) content.push({ type: "input_audio", input_audio: { data: (await fs.readFile(f)).toString("base64"), format: "mp3" } });
-  const res = await fetch(`${API}/chat/completions`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: process.env.VOICE_JUDGE_MODEL ?? "gpt-audio", modalities: ["text"], temperature: 0, messages: [{ role: "user", content }] }),
-  });
-  if (!res.ok) throw new Error(`judge ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const raw = ((await res.json()) as { choices: { message: { content: string } }[] }).choices[0].message.content;
-  try {
-    return JSON.parse(raw.replace(/^```(json)?|```$/g, "").trim());
-  } catch {
-    return { raw };
+/**
+ * Ask the audio model about one or more labelled clips. Audio goes first and
+ * the question last: asked the other way round, gpt-audio sometimes answered
+ * as if no audio had been attached. Non-JSON answers (it occasionally
+ * refuses) are retried twice.
+ */
+async function listen(prompt: string, clips: { label?: string; file: string }[]): Promise<Record<string, unknown>> {
+  const content: unknown[] = [];
+  for (const c of clips) {
+    if (c.label) content.push({ type: "text", text: c.label });
+    content.push({ type: "input_audio", input_audio: { data: (await fs.readFile(c.file)).toString("base64"), format: "mp3" } });
   }
+  content.push({ type: "text", text: prompt });
+  let raw = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(`${API}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: process.env.VOICE_JUDGE_MODEL ?? "gpt-audio", modalities: ["text"], temperature: 0, messages: [{ role: "user", content }] }),
+    });
+    if (!res.ok) throw new Error(`judge ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    raw = ((await res.json()) as { choices: { message: { content: string } }[] }).choices[0].message.content ?? "";
+    const json = /\{[\s\S]*\}/.exec(raw)?.[0];
+    try {
+      if (json) return JSON.parse(json);
+    } catch {
+      // not JSON: ask again
+    }
+  }
+  return { raw };
 }
+
+const RUBRIC = (language: string) =>
+  `Score strictly on 1-10; 6 is "clearly synthetic but acceptable", 9-10 only if you would believe a real ${language}-speaking dentist recorded it.
+natural: human prosody — varied intonation, natural pauses and stress, no robotic or flat delivery, no odd rhythm.
+accuracy: every word pronounced correctly for a native ${language} speaker, dental terms included; foreign accent or wrong stress costs points.
+warmth: sounds like a calm, kind dentist talking to one patient, not an announcer or an advert.`;
 
 async function main() {
   const arg = (n: string) => {
@@ -144,8 +166,8 @@ async function main() {
       const transcript = await transcribe(file, s.language);
       const words = s.narration!.split(/\s+/).length;
       const verdict = await listen(
-        `You are a native ${s.language} speaker judging the voice-over of a dental clinic's patient-education video. The script is:\n"""${s.narration}"""\nListen to the recording. Return JSON only: {"natural":1-5,"accuracy":1-5,"warmth":1-5,"mispronounced":["word", ...],"why":"one sentence"}. natural: sounds like a real person, not a machine (5 = indistinguishable from a human). accuracy: every word said and pronounced correctly in ${s.language}, dental terms included. warmth: a calm, kind dentist speaking to one patient.`,
-        [file],
+        `You are a native ${s.language} speaker judging the recording above: the voice-over of a dental clinic's patient-education video. The script is:\n"""${s.narration}"""\n${RUBRIC(s.language)}\nReturn JSON only: {"natural":n,"accuracy":n,"warmth":n,"mispronounced":["word", ...],"why":"one sentence"}.`,
+        [{ file }],
       ).catch((e: Error): Record<string, unknown> => ({ error: e.message }));
       results.push({
         language: s.language,
@@ -162,16 +184,23 @@ async function main() {
       console.log(JSON.stringify(results.at(-1)));
     }
     if (candidates.length === 2) {
-      const [a, b] = candidates.map((c) => files[c.name]);
-      const ask = `Two recordings of the same ${s.language} dental-video voice-over follow (first, then second). Which would a ${s.language}-speaking patient prefer to hear from their dentist: more natural, correctly pronounced, warm? Return JSON only: {"prefer":"first"|"second","why":"one sentence"}.`;
-      const ab = await listen(ask, [a, b]).catch((e: Error): Record<string, unknown> => ({ error: e.message }));
-      const ba = await listen(ask, [b, a]).catch((e: Error): Record<string, unknown> => ({ error: e.message }));
+      // Both clips scored side by side, in both orders: asked only "which do
+      // you prefer", gpt-audio picked whichever came second every time.
+      const ask = `Recordings A and B above are two voices reading the same ${s.language} dental-video voice-over. Score each one.\n${RUBRIC(s.language)}\nReturn JSON only: {"A":{"natural":n,"accuracy":n,"warmth":n},"B":{"natural":n,"accuracy":n,"warmth":n},"why":"one sentence"}.`;
+      const [c0, c1] = candidates.map((c) => c.name);
+      const sum = (v: unknown) => {
+        const o = (v ?? {}) as Record<string, number>;
+        return (Number(o.natural) || 0) + (Number(o.accuracy) || 0) + (Number(o.warmth) || 0);
+      };
+      const first = await listen(ask, [{ label: "Recording A:", file: files[c0] }, { label: "Recording B:", file: files[c1] }]).catch((e: Error): Record<string, unknown> => ({ error: e.message }));
+      const second = await listen(ask, [{ label: "Recording A:", file: files[c1] }, { label: "Recording B:", file: files[c0] }]).catch((e: Error): Record<string, unknown> => ({ error: e.message }));
       results.push({
         language: s.language,
         script: i,
         pairwise: true,
-        votesFor: { [candidates[0].name]: (ab.prefer === "first" ? 1 : 0) + (ba.prefer === "second" ? 1 : 0), [candidates[1].name]: (ab.prefer === "second" ? 1 : 0) + (ba.prefer === "first" ? 1 : 0) },
-        why: [ab.why, ba.why],
+        // natural+accuracy+warmth (3-30), averaged over both orders.
+        score: { [c0]: (sum(first.A) + sum(second.B)) / 2, [c1]: (sum(first.B) + sum(second.A)) / 2 },
+        why: [first.why, second.why],
       });
       console.log(JSON.stringify(results.at(-1)));
     }

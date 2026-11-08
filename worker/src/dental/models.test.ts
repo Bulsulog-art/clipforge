@@ -14,6 +14,8 @@ const { prepareVoiceover } = await import("../remotion/voiceover.js");
 describe("resolveModels", () => {
   it("keeps the measured defaults when nothing is set", () => {
     expect(resolveModels({})).toEqual({ agent: DEFAULT_AGENT_MODEL, review: DEFAULT_REVIEW_MODEL });
+    // The eval winner (docs/AUTONOMOUS_PLAN.md, "Model choice").
+    expect(resolveModels({})).toEqual({ agent: "gpt-5.4-mini", review: "gpt-5.4" });
   });
 
   it("takes env overrides, trimmed, and ignores blanks", () => {
