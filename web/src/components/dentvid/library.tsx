@@ -52,7 +52,7 @@ export function Library({ items, canStartWeek }: { items: LibraryItem[]; canStar
           disabled={starting || !canStartWeek}
           className="rounded-full bg-[#0f5c5c] px-6 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60"
         >
-          {starting ? "Starting…" : "Make this week's videos"}
+          {starting ? "Starting…" : canStartWeek ? "Make this week's videos" : "This week's videos are made"}
         </button>
         <a href="/dentvideo/app/record" className="rounded-full border border-[#0f5c5c] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-[#e6efed]">
           Upload your own recording

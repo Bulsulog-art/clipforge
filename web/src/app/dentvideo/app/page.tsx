@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { dvSession } from "@/lib/dentvid/auth";
+import { dvSession, weekOf } from "@/lib/dentvid/auth";
 import { loadItems } from "@/lib/dentvid/items";
 import { ClinicForm } from "@/components/dentvid/clinic-form";
 import { Library } from "@/components/dentvid/library";
@@ -44,7 +44,7 @@ export default async function AppHome() {
           Clinic settings
         </Link>
       </div>
-      <div className="mt-8"><Library items={items} canStartWeek /></div>
+      <div className="mt-8"><Library items={items} canStartWeek={!items.some((i) => i.kind === "generated" && i.week_of === weekOf())} /></div>
     </main>
   );
 }
