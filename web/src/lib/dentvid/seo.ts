@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
-import { GUIDES, LANDING, SAMPLE_VIDEOS, LANDING_PATH, LOCALES, HREFLANG, guidePath, type Guide, type Locale } from "@/content/dentvideo";
+import { LANDING, SAMPLE_VIDEOS, LANDING_PATH, LOCALES, HREFLANG, type Locale } from "@/content/dentvideo";
+import { dentvideoSitemapEntries } from "./seo-guides";
 
 /** hreflang map for the landings: every locale plus x-default (English). */
 export function landingAlternates(): Record<string, string> {
@@ -64,43 +65,10 @@ export function landingJsonLd(locale: Locale) {
   };
 }
 
-export function guideMetadata(g: Guide): Metadata {
-  const url = absoluteUrl(guidePath(g));
-  return {
-    title: { absolute: `${g.title} · DentVideo` },
-    description: g.description,
-    alternates: { canonical: url },
-    openGraph: { title: g.title, description: g.description, url, type: "article", siteName: "DentVideo", locale: OG_LOCALE[g.locale] },
-  };
-}
-
-export function guideJsonLd(g: Guide) {
-  const url = absoluteUrl(guidePath(g));
-  return {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Article",
-        headline: g.h1,
-        description: g.description,
-        inLanguage: g.locale,
-        url,
-        mainEntityOfPage: url,
-        publisher: PUBLISHER,
-      },
-      { ...faqPage(g.faq), inLanguage: g.locale },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "DentVideo", item: absoluteUrl(LANDING_PATH[g.locale]) },
-          { "@type": "ListItem", position: 2, name: g.h1, item: url },
-        ],
-      },
-    ],
-  };
-}
+// Guides, guides indexes, About pages and the sitemap live in seo-guides.ts.
+export { guideJsonLd, guideMetadata } from "./seo-guides";
 
 /** Every public DentVideo path, for the sitemap. */
 export function dentvideoPaths(): string[] {
-  return [...LOCALES.map((l) => LANDING_PATH[l]), ...GUIDES.map(guidePath)];
+  return dentvideoSitemapEntries().map((e) => e.path);
 }

@@ -1,0 +1,43 @@
+/**
+ * Extra fields for the DentVideo guides. Kept here (not in content/dentvideo.ts)
+ * so the guide library can grow without touching the landing copy.
+ *
+ * Inline links in any guide text use a small markdown subset:
+ *   [label](guide:<slug>)   another guide (resolved to its path)
+ *   [label](guides:)        the guides index in the guide's language
+ *   [label](landing:)       the DentVideo landing in the guide's language
+ *   [label](about:)         the About page in the guide's language
+ *   [label](start:)         the free first week sign-up
+ *   [label](https://…)      an external source
+ */
+
+export type SectionExtras = {
+  /** A checklist or steps shown after the paragraphs. */
+  list?: string[];
+  /** Number the list (steps) instead of ticking it (checklist). */
+  ordered?: boolean;
+  /** Paragraphs shown after the list. */
+  after?: string[];
+};
+
+export type GuideSource = { label: string; url: string };
+
+/** What a guide is about, for grouping on the guides index and choosing related guides. */
+export type GuideCategory = "rules" | "ideas" | "video" | "tools";
+
+export type GuideExtras = {
+  /**
+   * The same guide in other languages shares a topic key. hreflang links only
+   * guides with the same key, so a country-specific guide (German HWG,
+   * Turkish regulation) is never presented as a translation of another.
+   */
+  topic?: string;
+  category?: GuideCategory;
+  /** ISO dates (YYYY-MM-DD). */
+  published?: string;
+  updated?: string;
+  /** Official texts and bodies the guide relies on. */
+  sources?: GuideSource[];
+  /** Step-by-step instructions, emitted as HowTo structured data. */
+  howTo?: { name: string; steps: { name: string; text: string }[] };
+};

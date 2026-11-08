@@ -13,6 +13,9 @@
  *   regulations that exist; the clinic is told to check its national rules.
  */
 
+import type { GuideExtras, SectionExtras } from "./guides/types";
+import { GUIDE_LIBRARY, mergeGuides } from "./guides";
+
 export const LOCALES = ["en", "de", "es", "tr", "fr"] as const;
 export type Locale = (typeof LOCALES)[number];
 
@@ -328,7 +331,7 @@ export const LANDING: Record<Locale, LandingContent> = {
   },
 };
 
-export type GuideSection = { heading: string; paragraphs: string[] };
+export type GuideSection = { heading: string; paragraphs: string[] } & SectionExtras;
 export type Guide = {
   locale: Locale;
   slug: string;
@@ -338,9 +341,10 @@ export type Guide = {
   intro: string;
   sections: GuideSection[];
   faq: Faq[];
-};
+} & GuideExtras;
 
-export const GUIDES: Guide[] = [
+// The first guides; the full library (and longer versions of these) lives in content/guides/.
+const BASE_GUIDES: Guide[] = [
   {
     locale: "en",
     slug: "instagram-videos-for-dentists",
@@ -558,6 +562,8 @@ export const GUIDES: Guide[] = [
     ],
   },
 ];
+
+export const GUIDES: Guide[] = mergeGuides(BASE_GUIDES, GUIDE_LIBRARY);
 
 export function guidePath(g: Pick<Guide, "slug">): string {
   return `/dentvideo/guides/${g.slug}`;
