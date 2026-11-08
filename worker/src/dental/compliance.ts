@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { z } from "zod";
-import { agentJson } from "./llm.js";
+import { agentJson, REVIEW_MODEL } from "./llm.js";
 import type { ClinicProfile } from "./profile.js";
 
 /**
@@ -230,7 +230,7 @@ Flag anything a health regulator, professional body or platform could object to:
 - anything that identifies a patient,
 - medical statements that are not mainstream, accepted dental guidance.
 - absolute effect claims ("prevents", "stops", "önler", "engeller" without "can"/"helps"): ask for a hedged form ("can help prevent", "önlemeye yardımcı olur").
-Educational, accurate, hedged statements are fine and must NOT be flagged. Hedging words include "can", "may", "usually", "often", "for most people", "ask your dentist", and in Turkish "-ebilir/-abilir", "olabilir", "genellikle", "çoğu durumda", "hekiminize danışın". Typical ranges given as typical ("usually 3-6 weeks", "genellikle 3-6 hafta") are fine.
+Educational, accurate, hedged statements are fine and must NOT be flagged. "Often", "in many cases", "oft", "a menudo", "genellikle" ARE hedges, not guarantees; never ask to stack a second hedge on a hedged sentence. Hedging words include "can", "may", "usually", "often", "for most people", "ask your dentist", and in Turkish "-ebilir/-abilir", "olabilir", "genellikle", "çoğu durumda", "hekiminize danışın". Typical ranges given as typical ("usually 3-6 weeks", "genellikle 3-6 hafta") are fine.
 Only flag what a regulator would actually object to. A fix that merely re-words an already hedged sentence is not a fix — in that case the sentence passes.
 Advice to take medication must defer to the dentist ("as your dentist advises" / "hekiminizin önerdiği şekilde").
 
@@ -256,6 +256,10 @@ export async function reviewCompliance(
       `\nTEXT:\n${text}`,
     schema: reviewSchema,
     temperature: 0.1,
+    // The gatekeeper. On the small model it kept trading synonyms
+    // ("können dazu beitragen" → "können helfen") until good videos ran out
+    // of attempts; judgement is what this agent is for.
+    model: REVIEW_MODEL,
   });
   // The model sometimes "fixes" a sentence into itself, or flags a plain
   // question as a promise ("Can tartar affect your heart?" — seen live in
@@ -268,11 +272,23 @@ export async function reviewCompliance(
 
 const norm = (s: string) => s.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
+// Hedge words. A "fix" that only adds or moves these to a sentence that is
+// already hedged is the reviewer stacking caveats ("kann möglicherweise …
+// möglicherweise effektiv"), not a compliance change.
+const HEDGES = new Set(
+  "can could may might possibly often usually generally typically in many cases most some kann können könnte möglicherweise eventuell oft häufig meist meistens in vielen fällen puede pueden podría posiblemente a menudo normalmente generalmente en muchos casos peut peuvent pourrait souvent généralement habituellement dans de nombreux cas pode podem poderá frequentemente geralmente può possono spesso solitamente olabilir genellikle çoğu zaman bazen çoğu durumda".split(" "),
+);
+const unhedged = (s: string) => norm(s).split(" ").filter((w) => !HEDGES.has(w)).join(" ");
+
 /** An issue whose fix changes nothing, or that objects to a bare question. */
 export function noOpIssue(i: { quote: string; fix: string }): boolean {
   const q = norm(i.quote);
   if (!q) return true;
   if (norm(i.fix) === q) return true;
+  // …but only when the sentence was hedged already: "Whitening is safe" →
+  // "usually safe" is a real fix.
+  const hedged = norm(i.quote).split(" ").some((w) => HEDGES.has(w));
+  if (hedged && unhedged(i.fix) === unhedged(i.quote)) return true;
   // A question promises nothing; a fix that only appends to it is padding.
   return i.quote.trim().endsWith("?") && norm(i.fix).startsWith(q);
 }

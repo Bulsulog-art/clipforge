@@ -5,7 +5,7 @@ import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
-import { planWeek, type Topic } from "./strategist.js";
+import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { AFTERCARE_GUIDE, reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
 import { inspectVideo, type QaReport } from "../steps/qa.js";
@@ -124,7 +124,8 @@ async function reviewed<T>(
   deps: WeekDeps,
   label: string,
   topic: Topic,
-  write: (fixes: string[]) => Promise<T>,
+  /** `previous` is the last draft a reviewer sent back, to be edited rather than redone. */
+  write: (fixes: string[], previous?: T) => Promise<T>,
   textOf: (t: T) => string,
   accuracyOf: (t: T) => Promise<AccuracyResult>,
   profile: ClinicProfile,
@@ -132,8 +133,10 @@ async function reviewed<T>(
   check?: (t: T) => string[],
 ): Promise<Outcome<{ value: T }>> {
   let fixes: string[] = [];
+  let previous: T | undefined;
   for (let attempt = 0; attempt < 3; attempt++) {
-    const value = await write(fixes);
+    const value = await write(fixes, previous);
+    previous = value;
     const problems = check?.(value) ?? [];
     if (problems.length) {
       deps.log?.(`${label} structure`, { topic: topic.title, attempt, problems });
@@ -176,18 +179,25 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
     deps,
     "script",
     topic,
-    async (fixes) => {
+    async (fixes, previous) => {
       // A plan that is still invalid after the planner's own repair round
       // (seen in the eval: a 95-character cta) gets one fresh attempt told
       // exactly what was wrong, instead of losing the topic.
-      const brief = scriptBrief(profile, topic, fixes);
+      // A rewrite edits the draft the reviewer saw. Writing from scratch
+      // fixed one sentence and introduced new problems elsewhere (eval:
+      // most rejections were a third, different objection).
+      const brief =
+        scriptBrief(profile, topic, fixes) +
+        (previous && fixes.length
+          ? `\nThis is a revision. Keep the previous version below — its structure, scenes and wording — and change ONLY what the reviewer required:\n${JSON.stringify({ scenes: previous.scenes, voiceover: previous.voiceover })}`
+          : "");
       const { plan } = await planFromPrompt({ prompt: brief, aspect: "9:16" }, deps.client).catch((err: Error) =>
         planFromPrompt({ prompt: `${brief}\nThe previous attempt was invalid: ${err.message}. Keep every on-screen text well under its limit.`, aspect: "9:16" }, deps.client),
       );
       // The planner's voice-over reads like a leaflet; the narrator rewrites
       // it from the screen text alone, so the reviews below still see one story.
       if (!plan.voiceover) return plan;
-      const text = await narrate(deps.client, profile, topic, plan, fixes).catch(() => plan.voiceover!.text);
+      const text = await narrate(deps.client, profile, topic, plan, fixes, previous?.voiceover?.text).catch(() => plan.voiceover!.text);
       return { ...plan, voiceover: { ...plan.voiceover, text } };
     },
     planText,
@@ -254,7 +264,7 @@ export async function produceWeek(
   const want = Math.max(1, opts.count ?? 5);
   // Plan spares: a topic the reviewers reject is replaced, so the clinic
   // still gets the week it pays for instead of a gap.
-  const topics = await planWeek(deps.client, profile, { ...opts, count: want + 2 });
+  const topics = await sharpenHooks(deps.client, profile, await planWeek(deps.client, profile, { ...opts, count: want + 2 }));
   const out: VideoPackage[] = [];
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.
   for (const topic of topics) {

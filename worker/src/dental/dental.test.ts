@@ -402,3 +402,11 @@ describe("permanent restorations are a dental term", () => {
   it.each(["Kalıcı dolgu yapılana kadar o tarafla çiğnemeyin.", "until the permanent filling is placed", "hasta la restauración permanente", "bis zur dauerhaften Füllung"])("passes %s", (t) =>
     expect(scanHardRules(t).map((h) => h.rule)).not.toContain("absolute"));
 });
+
+describe("hedge stacking is not a fix", () => {
+  it("treats added hedge words as a no-op", async () => {
+    const { noOpIssue } = await import("./compliance.js");
+    expect(noOpIssue({ quote: "Sie können Ihre Zähne sanft und effektiv bewegen.", fix: "Sie können möglicherweise Ihre Zähne sanft und möglicherweise effektiv bewegen." })).toBe(true);
+    expect(noOpIssue({ quote: "Durulamamak diş sağlığınızı artırabilir.", fix: "Durulamamak diş sağlığınızı destekleyebilir." })).toBe(false);
+  });
+});

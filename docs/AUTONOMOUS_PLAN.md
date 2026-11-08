@@ -77,6 +77,16 @@ Run with `npx tsx src/dental/eval.ts --per 4 --out <dir>`.
 | 3 | compliance ignores no-op fixes and objections to questions; negated "not permanent" allowed; "before and after meals" is time, not results; writers given the standard aftercare guide | 94% | 63% | 3.67 | 3.67 |
 | 4 (tr+de, 10 videos) | "permanent filling/crown" is a dental term; no listicle hooks; warm formal voice; invalid plan retried with its error | tr 100% / de 80%¹ | tr 80% / de 20% | tr 3.4 / de 3.75 | tr 3.0 / de 3.5 |
 
+| 5 | hook editor (gpt-4o writes 4 options per topic, keeps the best) | 94% | 81% | 4.00 | 3.67 |
+| 6 | hook-shape variety; spoken-register cues per language | 81% | 56% | 3.92 | 3.46 |
+| 7 (24 videos) | rewrites edit the previous draft instead of starting over | 79% | 67% | 3.84 | 3.74 |
+| 8 (24) | removed an example hook the model kept cloning into topics; topics built on banned words dropped; reviewers stop stacking hedges; general hygiene is always relevant | 88% | 63% | 4.05 | 3.57 |
+| 9 (24) | compliance reviewer on gpt-4o (the small model traded synonyms until attempts ran out) | **96%** | **71%** | 3.91 | 3.43 |
+
+Rounds of 16–24 videos swing about ±10 points between runs, so changes were kept only when the reasons behind them were visible in the per-video notes, not just because a number moved.
+The voice score is consistently lower for the two formal clinics (tr, de: about 3) than for the informal ones (es, en: about 4).
+The judge reads formal address as "less warm". Formal address is the clinic's choice, so this is partly a bias in the judge, not a writing fault.
+
 ¹ The one German loss was a plan over the cta length limit, which is fixed by the retry and covered by a test.
 
 What the judge still asks for: more surprise in hooks and warmer Turkish narration.
