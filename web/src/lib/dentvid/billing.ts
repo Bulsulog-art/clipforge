@@ -18,13 +18,13 @@ export type DvPlanState = "trial" | "active" | "paused" | "cancelled";
 
 /** Owner-approved list prices in whole USD (docs/POSITIONING.md §6). */
 export const DV_PRICES_USD: Record<DvTier, Partial<Record<DvInterval, number>>> = {
-  starter: { month: 39 },
-  practice: { month: 69, year: 690 },
-  group: { month: 219 },
+  starter: { month: 49 },
+  practice: { month: 99, year: 990 },
+  group: { month: 279 },
 };
 
 /** Founding offer: Practice monthly at this price for 12 months, first 100 clinics. */
-export const DV_FOUNDING = { tier: "practice" as DvTier, interval: "month" as DvInterval, priceUsd: 39, months: 12, clinics: 100 };
+export const DV_FOUNDING = { tier: "practice" as DvTier, interval: "month" as DvInterval, priceUsd: 49, months: 12, clinics: 100 };
 
 export const DV_BRAND_ID_DEFAULT = "brnd_0NrVafyQGNiKOz0caOKgm";
 

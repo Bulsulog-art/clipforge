@@ -131,7 +131,7 @@ describe("guide library", () => {
       expect(v, l).toContain(String(DV_PRICES_USD.practice.year));
       expect(v, l).toContain(String(DV_FOUNDING.clinics));
     }
-    expect(llmsTxt()).toContain("Paid plans from $39/month");
+    expect(llmsTxt()).toContain("Paid plans from $49/month");
   });
 });
 
@@ -215,7 +215,7 @@ describe("structured data", () => {
       expect(types).toEqual(expect.arrayContaining(["AboutPage", "Organization", "SoftwareApplication", "FAQPage"]));
       // Google's SoftwareApplication rich result needs a priced offer.
       const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown> }[]).find((n) => n["@type"] === "SoftwareApplication");
-      expect(app?.offers, l).toMatchObject({ "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: 39, highPrice: 219, offerCount: 3 });
+      expect(app?.offers, l).toMatchObject({ "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: 49, highPrice: 279, offerCount: 3 });
     }
   });
 
