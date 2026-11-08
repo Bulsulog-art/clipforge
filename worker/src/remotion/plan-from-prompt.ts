@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { parseScenePlan, ScenePlanError, LIMITS, THEMES } from "./scene-plan.js";
 import { normalisePlanShape } from "./normalise-plan.js";
+import { modelParams } from "../lib/model-params.js";
 import type { ScenePlan } from "./scene-plan.js";
 
 /**
@@ -75,6 +76,8 @@ export type PlanRequest = {
   /** Overrides the model's choice when the user picked one in the UI. */
   aspect?: ScenePlan["aspect"];
   theme?: ScenePlan["theme"];
+  /** Model to plan with; defaults to PLAN_MODEL. DentVideo passes its writer model. */
+  model?: string;
 };
 
 export type PlanResult = {
@@ -120,7 +123,8 @@ export async function planFromPrompt(
     { role: "user", content: userMessage(req) },
   ];
 
-  const first = await complete(client, messages);
+  const model = req.model ?? PLAN_MODEL;
+  const first = await complete(client, messages, model);
   try {
     return { plan: parseScenePlan(first.parsed, assets), repaired: false };
   } catch (firstError) {
@@ -136,7 +140,7 @@ export async function planFromPrompt(
         `Return the corrected JSON. Change only what is needed to satisfy the rule.`,
     });
 
-    const second = await complete(client, messages);
+    const second = await complete(client, messages, model);
     // A second failure is surfaced as-is; the caller shows userMessage.
     return { plan: parseScenePlan(second.parsed, assets), repaired: true };
   }
@@ -145,14 +149,16 @@ export async function planFromPrompt(
 async function complete(
   client: OpenAI,
   messages: OpenAI.Chat.ChatCompletionMessageParam[],
+  model: string = PLAN_MODEL,
 ): Promise<{ raw: string; parsed: unknown }> {
   const response = await client.chat.completions.create({
-    model: PLAN_MODEL,
+    model,
     // Warm enough for the writing to have a pulse, cool enough that the
     // structure stays put. Above ~0.9 the model starts inventing scene kinds.
-    temperature: 0.7,
+    ...modelParams(model, 0.7),
     response_format: { type: "json_object" },
-    max_tokens: 1600,
+    // max_completion_tokens, not max_tokens: the reasoning models reject the latter.
+    max_completion_tokens: 1600,
     messages,
   });
 
