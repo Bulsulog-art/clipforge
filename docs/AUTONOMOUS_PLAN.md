@@ -8,7 +8,7 @@ open item, updates the status here, commits and pushes.
 
 **Kısaca:** DentVideo canlıda ve uçtan uca çalışıyor. Bir klinik kaydoluyor, profilini giriyor ve haftanın videolarını istiyor. Sistem 15–20 dakikada 5 video üretiyor. Her video klinik doğruluk ve sağlık reklamı kurallarından geçiyor, ses ve görüntü ölçümü yapılıyor, video kliniğin renginde ve logosuyla geliyor. Hiçbir şey hekim onaylamadan yayınlanmıyor.
 
-**Canlı adresler** (alan adı alınana kadar):
+**Canlı adres: https://dentvideo.com** (2026-11-08'de bağlandı). DNS Hostinger API ile sunucuya yönlendirildi, domain Coolify'da web uygulamasına eklendi ve HTTPS çalışıyor. Eski clipforge.bulsulabs.com/dentvideo adresleri 301 ile dentvideo.com'a gidiyor. Canonical, hreflang ve sitemap dentvideo.com'u gösteriyor. Eski adresler (yönlendirme öncesi):
 - https://clipforge.bulsulabs.com/dentvideo, ayrıca /de, /es, /tr ve /fr
 - Rehberler: /dentvideo/guides/…
 - Uygulama: /dentvideo/app
@@ -37,7 +37,7 @@ open item, updates the status here, commits and pushes.
    - Açılış sayfasında gerçek örnek bir hafta: demo klinik için düzeltilmeden konan 3 video.
 
 **Sizin kararınızı bekleyenler:**
-- **dentvideo.com alınsın**; mümkünse .de, .es ve .com.tr de. Marka araştırmasını (USPTO, EUIPO, TÜRKPATENT) buradan yapamadım. Almadan önce bakılmalı.
+- ~~dentvideo.com alınsın~~ (alındı ve bağlandı). Mümkünse .de, .es ve .com.tr de alınsın. Marka araştırmasını (USPTO, EUIPO, TÜRKPATENT) buradan yapamadım. Almadan önce bakılmalı.
 - **Fiyatlar.** Sitede şimdilik "ilk hafta ücretsiz" yazıyor. Fiyat uydurmadım.
 - **Dodo:** alan adından sonra DentVideo markası ve ürünleri açılacak. `DODO_API_KEY` sunucuda tanımlı değil.
 - **Coolify API anahtarı** sohbete düz yazıyla yapıştırıldı. Lütfen yenileyin.
