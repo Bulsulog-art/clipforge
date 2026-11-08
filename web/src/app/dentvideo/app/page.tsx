@@ -8,6 +8,9 @@ import { appText } from "@/content/dentvideo-app";
 import { ClinicForm } from "@/components/dentvid/clinic-form";
 import { Library } from "@/components/dentvid/library";
 import { RememberLocale } from "@/components/dentvid/chrome";
+import { PlanPanel, PlanStatus } from "@/components/dentvid/plan-panel";
+import { loadClinicPlan } from "@/lib/dentvid/plan";
+import { DV_FOUNDING, dvAvailablePlans, foundingOfferOpen } from "@/lib/dentvid/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: appText(await dvLocale()).home.metaTitle, robots: { index: false } };
 }
 
-export default async function AppHome() {
+export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string }> }) {
   const { db, user } = await dvSession();
   if (!user) redirect("/dentvideo/start");
 
@@ -34,7 +37,10 @@ export default async function AppHome() {
     );
   }
 
-  const { items } = await loadItems(db, user.id);
+  const [{ items }, plan, { billing }] = await Promise.all([loadItems(db, user.id), loadClinicPlan(db, clinic.id), searchParams]);
+  const b = appText(locale).billing;
+  // Back from Dodo: the webhook usually lands within seconds, so say so.
+  const notice = billing === "success" && plan.plan !== "active" ? b.success : billing === "cancelled" ? b.cancelled : null;
 
   return (
     <main lang={locale} className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -45,12 +51,35 @@ export default async function AppHome() {
           <h1 className="dv-display text-[2.5rem] leading-[1.05] sm:text-5xl">{t.title}</h1>
           <p className="mt-2 max-w-2xl text-dv-body">{t.lead}</p>
         </div>
-        <Link href="/dentvideo/app/settings" className="text-sm text-[#0f5c5c] underline-offset-4 hover:underline">
-          {t.settings}
-        </Link>
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <PlanStatus locale={locale} state={plan.plan} tier={plan.tier} renewsAt={plan.renewsAt} />
+          <Link href="/dentvideo/app/settings" className="text-sm text-[#0f5c5c] underline-offset-4 hover:underline">
+            {t.settings}
+          </Link>
+        </div>
       </div>
+      {notice && (
+        <p role="status" className="mt-6 rounded-xl bg-[#e6efed] px-4 py-3 text-sm text-[#0f5c5c]">
+          {notice}
+        </p>
+      )}
+      {!plan.canMake && (
+        <div className="mt-8">
+          <PlanPanel
+            locale={locale}
+            state={plan.plan}
+            options={dvAvailablePlans()}
+            founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd } : null}
+          />
+        </div>
+      )}
       <div className="mt-8">
-        <Library locale={locale} items={items} canStartWeek={!items.some((i) => i.kind === "generated" && i.week_of === weekOf())} />
+        <Library
+          locale={locale}
+          items={items}
+          locked={!plan.canMake}
+          canStartWeek={plan.canMake && !items.some((i) => i.kind === "generated" && i.week_of === weekOf())}
+        />
       </div>
     </main>
   );

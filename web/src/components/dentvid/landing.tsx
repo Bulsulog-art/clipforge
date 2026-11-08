@@ -18,6 +18,7 @@ import { LANDING, LANDING_PATH, LANGUAGE_NAME, guidePath, guidesFor, type Locale
 import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
 import { appText } from "@/content/dentvideo-app";
 import { landingJsonLd } from "@/lib/dentvid/seo";
+import { foundingOfferOpen } from "@/lib/dentvid/billing";
 import { HeroVideo, PhoneFrame } from "./phone";
 
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
@@ -429,22 +430,77 @@ function Compare({ locale }: { locale: Locale }) {
 
 function Pricing({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
+  const p = c.pricing;
+  const start = `/dentvideo/start?lang=${locale}`;
+  const founding = foundingOfferOpen();
   return (
-    <section id="pricing" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
-      <div className="dv-card relative isolate overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20">
-        <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
-        <div aria-hidden="true" className="absolute left-1/2 top-0 -z-10 h-72 w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#cfe6e0] opacity-80 blur-3xl" />
-        <H2 className="mx-auto max-w-2xl">{c.pricing.heading}</H2>
-        <p className="mx-auto mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{c.pricing.text}</p>
-        <Link href={`/dentvideo/start?lang=${locale}`} className="dv-btn dv-btn-primary group mt-9 px-7 py-4 text-base">
-          {c.pricing.cta}
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-        </Link>
-        <p className="mt-5 flex items-center justify-center gap-2 text-sm text-dv-muted">
-          <Check className="h-4 w-4 text-dv-teal" aria-hidden="true" />
-          {c.hero.note}
-        </p>
+    <section id="pricing" className="relative isolate mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
+      <div aria-hidden="true" className="absolute left-1/2 top-16 -z-10 h-72 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
+      <div className="text-center">
+        <H2 className="mx-auto max-w-2xl">{p.heading}</H2>
+        <p className="mx-auto mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{p.text}</p>
       </div>
+
+      {founding && (
+        <div className="dv-grain relative mx-auto mt-12 flex max-w-3xl flex-col items-center gap-3 overflow-hidden rounded-[1.25rem] bg-dv-teal px-6 py-5 text-center text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)] sm:flex-row sm:gap-4 sm:text-left">
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#f7f1e7] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-dv-teal-900">
+            <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+            {p.foundingBadge}
+          </span>
+          <p className="text-[1.0625rem] font-semibold leading-snug text-white">{p.founding}</p>
+        </div>
+      )}
+
+      <ul className="mt-10 grid gap-5 md:grid-cols-3">
+        {p.tiers.map((tier, i) => {
+          const featured = i === 1;
+          return (
+            <li
+              key={tier.name}
+              className={`dv-card relative flex flex-col p-7 ${featured ? "ring-2 ring-dv-teal md:-my-3 md:py-10" : ""}`}
+            >
+              {featured && (
+                <span className="absolute -top-3 left-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgba(15,92,92,0.8)]">
+                  {p.recommended}
+                </span>
+              )}
+              <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-dv-muted">{tier.blurb}</p>
+              <p className="mt-6 flex items-baseline gap-1">
+                <span className="dv-display text-[3.25rem] leading-none text-dv-ink">{tier.price}</span>
+                <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
+              </p>
+              {featured && <p className="mt-2 text-sm font-medium text-dv-teal">{p.yearly}</p>}
+              <ul className="mt-6 space-y-3 border-t border-dv-line pt-6">
+                {tier.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-[0.9375rem] leading-snug text-dv-body">
+                    <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/15">
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-auto pt-8">
+                <Link
+                  href={start}
+                  className={`dv-btn group w-full px-5 py-3.5 text-[0.9375rem] ${featured ? "dv-btn-primary" : "dv-btn-secondary !text-dv-teal"}`}
+                >
+                  {p.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </Link>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className="mt-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-dv-muted">
+        <Check className="h-4 w-4 text-dv-teal" aria-hidden="true" />
+        <span>{c.hero.note}</span>
+        <span aria-hidden="true">·</span>
+        <span>{p.note}</span>
+      </p>
     </section>
   );
 }

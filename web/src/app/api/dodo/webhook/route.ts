@@ -6,6 +6,9 @@ import {
   subscriptionCredits,
   topupCredits,
 } from "@/lib/dodo";
+import { isDentvideoEvent } from "@/lib/dentvid/billing";
+import { handleDentvideoEvent } from "@/lib/dentvid/billing-webhook";
+import { dvAdmin } from "@/lib/dentvid/supabase";
 
 /**
  * POST /api/dodo/webhook — Dodo Payments events (Standard Webhooks).
@@ -19,6 +22,11 @@ import {
  * period (or per payment), which the RPC deduplicates — so Dodo retrying an
  * event, or sending both active and renewed for the same period, never
  * grants twice. Unknown events are acknowledged and ignored.
+ *
+ * Dodo allows one webhook URL per business, and DentVideo sells through the
+ * same business: its events (metadata.app = "dentvideo", or its brand /
+ * products) go to lib/dentvid/billing-webhook and never touch ClipForge's
+ * profiles or credits.
  */
 
 type DodoCustomer = { email?: string | null };
@@ -26,6 +34,8 @@ type DodoData = {
   subscription_id?: string | null;
   payment_id?: string | null;
   product_id?: string | null;
+  brand_id?: string | null;
+  next_billing_date?: string | null;
   previous_billing_date?: string | null;
   status?: string | null;
   metadata?: Record<string, unknown> | null;
@@ -54,6 +64,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
   const d = evt.data ?? {};
+
+  if (isDentvideoEvent(d)) {
+    let db;
+    try {
+      db = dvAdmin();
+    } catch (e) {
+      console.error("[dodo:dentvideo] backend not configured", (e as Error).message);
+      return NextResponse.json({ error: "dentvideo backend not configured" }, { status: 500 });
+    }
+    const result = await handleDentvideoEvent(db, evt);
+    return NextResponse.json(result.body, { status: result.status });
+  }
+
   const svc = createServiceClient();
 
   // Who is this? The checkout puts our user id in metadata; the customer's

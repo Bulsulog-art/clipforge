@@ -7,8 +7,9 @@
  *
  * Rules for anything written here:
  * - describe only what the product does today;
- * - no prices (none are set yet — the first week is free), no statistics,
- *   no testimonials (proposed prices and the ROI maths live in docs/POSITIONING.md);
+ * - prices only in `pricing` (owner-approved USD list prices, kept in step with
+ *   lib/dentvid/billing by dentvideo.test.ts); no statistics, no testimonials
+ *   (the ROI maths lives in docs/POSITIONING.md);
  * - never promise patients or bookings; the ROI line stays hedged;
  * - advertising-rule content stays general and hedged and names only
  *   regulations that exist; the clinic is told to check its national rules.
@@ -48,6 +49,8 @@ export type Comparison = {
   roiNote: string;
 };
 
+export type PricingTier = { name: string; price: string; blurb: string; features: [string, string, string] };
+
 export type LandingContent = {
   meta: { title: string; description: string; ogDescription: string };
   hero: { eyebrow: string; h1: string; lead: string; cta: string; note: string };
@@ -60,7 +63,22 @@ export type LandingContent = {
   samples: { heading: string; text: string; note: string };
   checks: { heading: string; items: { title: string; text: string }[] };
   compare: Comparison;
-  pricing: { heading: string; text: string; cta: string };
+  /** The plans. Currency figures are allowed here and nowhere else (dentvideo.test.ts). */
+  pricing: {
+    heading: string;
+    text: string;
+    cta: string;
+    perMonth: string;
+    recommended: string;
+    foundingBadge: string;
+    /** The founding offer, in the owner's words. */
+    founding: string;
+    /** Practice billed yearly. */
+    yearly: string;
+    note: string;
+    /** Starter, Practice, Group — always in this order. */
+    tiers: [PricingTier, PricingTier, PricingTier];
+  };
   guidesHeading: string;
   faqHeading: string;
   faq: Faq[];
@@ -122,8 +140,42 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     pricing: {
       heading: "Start with a free week",
-      text: "Your first week of videos is free, with no card. After that, one simple monthly plan with no minimum term. Founding clinics get an introductory price when plans open.",
+      text: "Your first week of videos is free, with no card. After that, choose the plan that fits your clinic — monthly, with no minimum term.",
       cta: "Start your free first week",
+      perMonth: "/month",
+      recommended: "Recommended",
+      foundingBadge: "Founding offer",
+      founding: "Practice for $39/month for 12 months — first 100 clinics",
+      yearly: "or $690 a year — two months free",
+      note: "Prices in USD. Taxes may apply.",
+      tiers: [
+        {
+          name: "Starter",
+          price: "$39",
+          blurb: "For a single clinic getting started.",
+          features: [
+            "Five narrated, captioned videos every Monday",
+            "Checked for advertising rules and clinical accuracy",
+            "Filming cards for your own clips",
+          ],
+        },
+        {
+          name: "Practice",
+          price: "$69",
+          blurb: "For clinics that want their own faces on screen.",
+          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Up to two languages"],
+        },
+        {
+          name: "Group",
+          price: "$219",
+          blurb: "For small groups with several sites.",
+          features: [
+            "Up to three locations",
+            "Five videos per location every Monday",
+            "One consistent, checked voice across sites",
+          ],
+        },
+      ],
     },
     guidesHeading: "Guides",
     faqHeading: "Questions",
@@ -197,8 +249,42 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     pricing: {
       heading: "Mit einer kostenlosen Woche beginnen",
-      text: "Ihre erste Woche ist kostenlos, ohne Kreditkarte. Danach ein einfacher Monatstarif ohne Mindestlaufzeit. Gründungspraxen erhalten einen Einführungspreis, sobald die Tarife starten.",
+      text: "Ihre erste Woche ist kostenlos, ohne Kreditkarte. Danach wählen Sie den Tarif, der zu Ihrer Praxis passt — monatlich, ohne Mindestlaufzeit.",
       cta: "Erste Woche kostenlos starten",
+      perMonth: "/Monat",
+      recommended: "Empfohlen",
+      foundingBadge: "Gründungsangebot",
+      founding: "Practice für 39 $/Monat, 12 Monate lang — für die ersten 100 Praxen",
+      yearly: "oder 690 $ im Jahr — 2 Monate geschenkt",
+      note: "Preise in USD, ggf. zzgl. Steuern.",
+      tiers: [
+        {
+          name: "Starter",
+          price: "39 $",
+          blurb: "Für eine Praxis, die einfach anfangen will.",
+          features: [
+            "Jeden Montag fünf vertonte, untertitelte Videos",
+            "Geprüft auf Werberecht und fachliche Richtigkeit",
+            "Drehkarten für Ihre eigenen Clips",
+          ],
+        },
+        {
+          name: "Practice",
+          price: "69 $",
+          blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
+          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Bis zu zwei Sprachen"],
+        },
+        {
+          name: "Group",
+          price: "219 $",
+          blurb: "Für kleine Praxisgruppen mit mehreren Standorten.",
+          features: [
+            "Bis zu drei Standorte",
+            "Fünf Videos pro Standort, jeden Montag",
+            "Ein einheitlicher, geprüfter Auftritt an allen Standorten",
+          ],
+        },
+      ],
     },
     guidesHeading: "Ratgeber",
     faqHeading: "Häufige Fragen",
@@ -272,8 +358,38 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     pricing: {
       heading: "Empieza con una semana gratis",
-      text: "Tu primera semana de vídeos es gratis y sin tarjeta. Después, un plan mensual sencillo y sin permanencia. Las clínicas fundadoras tendrán un precio de lanzamiento cuando se abran los planes.",
+      text: "Tu primera semana de vídeos es gratis y sin tarjeta. Después, elige el plan que encaja con tu clínica: mensual y sin permanencia.",
       cta: "Empieza tu primera semana gratis",
+      perMonth: "/mes",
+      recommended: "Recomendado",
+      foundingBadge: "Oferta fundadora",
+      founding: "Practice por 39 $/mes durante 12 meses — primeras 100 clínicas",
+      yearly: "o 690 $ al año — 2 meses gratis",
+      note: "Precios en USD. Pueden aplicarse impuestos.",
+      tiers: [
+        {
+          name: "Starter",
+          price: "39 $",
+          blurb: "Para una clínica que quiere empezar.",
+          features: [
+            "Cinco vídeos narrados y subtitulados cada lunes",
+            "Revisados según las normas de publicidad y la exactitud clínica",
+            "Fichas de grabación para tus propios clips",
+          ],
+        },
+        {
+          name: "Practice",
+          price: "69 $",
+          blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
+          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Hasta dos idiomas"],
+        },
+        {
+          name: "Group",
+          price: "219 $",
+          blurb: "Para pequeños grupos con varias sedes.",
+          features: ["Hasta tres sedes", "Cinco vídeos por sede cada lunes", "Una voz coherente y revisada en todas las sedes"],
+        },
+      ],
     },
     guidesHeading: "Guías",
     faqHeading: "Preguntas frecuentes",
@@ -347,8 +463,38 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     pricing: {
       heading: "Ücretsiz bir haftayla başlayın",
-      text: "İlk haftanızın videoları ücretsizdir, kart gerekmez. Sonrasında taahhütsüz, sade bir aylık paket. Kurucu klinikler, paketler açıldığında tanıtım fiyatından yararlanır.",
+      text: "İlk haftanızın videoları ücretsizdir, kart gerekmez. Sonrasında kliniğinize uyan planı seçin — aylık ve taahhütsüz.",
       cta: "İlk haftanızı ücretsiz başlatın",
+      perMonth: "/ay",
+      recommended: "Önerilen",
+      foundingBadge: "Kurucu teklifi",
+      founding: "12 ay boyunca aylık $39 ile Practice — ilk 100 klinik için",
+      yearly: "ya da yıllık $690 — 2 ay ücretsiz",
+      note: "Fiyatlar USD cinsindendir. Vergiler eklenebilir.",
+      tiers: [
+        {
+          name: "Starter",
+          price: "$39",
+          blurb: "Yeni başlayan tek bir klinik için.",
+          features: [
+            "Her pazartesi beş seslendirilmiş, altyazılı video",
+            "Reklam kuralları ve klinik doğruluk açısından kontrol edilir",
+            "Kendi videolarınız için çekim kartları",
+          ],
+        },
+        {
+          name: "Practice",
+          price: "$69",
+          blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
+          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "En fazla iki dil"],
+        },
+        {
+          name: "Group",
+          price: "$219",
+          blurb: "Birden fazla şubesi olan küçük gruplar için.",
+          features: ["En fazla üç şube", "Her pazartesi şube başına beş video", "Tüm şubelerde tutarlı, kontrol edilmiş bir dil"],
+        },
+      ],
     },
     guidesHeading: "Rehberler",
     faqHeading: "Sık sorulan sorular",
@@ -422,8 +568,46 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     pricing: {
       heading: "Commencez par une semaine gratuite",
-      text: "Votre première semaine de vidéos est gratuite, sans carte bancaire. Ensuite, un abonnement mensuel simple, sans engagement. Les cabinets fondateurs bénéficieront d'un tarif de lancement à l'ouverture des offres.",
+      text: "Votre première semaine de vidéos est gratuite, sans carte bancaire. Ensuite, choisissez la formule adaptée à votre cabinet — mensuelle et sans engagement.",
       cta: "Commencer la première semaine gratuite",
+      perMonth: "/mois",
+      recommended: "Recommandée",
+      foundingBadge: "Offre fondateurs",
+      founding: "Practice à 39 $/mois pendant 12 mois — pour les 100 premiers cabinets",
+      yearly: "ou 690 $ par an — 2 mois offerts",
+      note: "Prix en USD, taxes éventuelles en sus.",
+      tiers: [
+        {
+          name: "Starter",
+          price: "39 $",
+          blurb: "Pour un cabinet qui veut se lancer simplement.",
+          features: [
+            "Cinq vidéos commentées et sous-titrées chaque lundi",
+            "Vérifiées selon les règles de communication et l'exactitude clinique",
+            "Fiches de tournage pour vos propres clips",
+          ],
+        },
+        {
+          name: "Practice",
+          price: "69 $",
+          blurb: "Pour les cabinets qui veulent apparaître eux-mêmes à l'écran.",
+          features: [
+            "Tout ce qu'inclut Starter",
+            "Vos propres enregistrements transformés en clips sous-titrés",
+            "Jusqu'à deux langues",
+          ],
+        },
+        {
+          name: "Group",
+          price: "219 $",
+          blurb: "Pour les petits groupes de plusieurs cabinets.",
+          features: [
+            "Jusqu'à trois sites",
+            "Cinq vidéos par site chaque lundi",
+            "Une communication cohérente et vérifiée sur tous les sites",
+          ],
+        },
+      ],
     },
     guidesHeading: "Guides",
     faqHeading: "Questions fréquentes",
