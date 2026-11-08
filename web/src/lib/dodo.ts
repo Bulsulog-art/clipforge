@@ -95,22 +95,45 @@ export async function createDodoCheckout(args: {
   returnUrl: string;
   env?: NodeJS.ProcessEnv;
 }): Promise<string> {
-  const res = await fetch(`${dodoApiBase(args.env)}/checkouts`, {
+  return postDodoCheckout({
+    apiKey: args.apiKey,
+    env: args.env,
+    body: {
+      product_cart: [{ product_id: args.productId, quantity: 1 }],
+      ...(args.email ? { customer: { email: args.email } } : {}),
+      metadata: { user_id: args.userId, plan: args.plan },
+      return_url: args.returnUrl,
+    },
+  });
+}
+
+export class DodoCheckoutError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(`dodo checkout ${status}: ${message}`);
+  }
+}
+
+/**
+ * POST /checkouts (Checkout Sessions API) with a prepared body; returns the
+ * hosted checkout URL. Shared by ClipForge and DentVideo — one Dodo business.
+ */
+export async function postDodoCheckout(args: {
+  apiKey: string;
+  body: Record<string, unknown>;
+  env?: NodeJS.ProcessEnv;
+  fetchImpl?: typeof fetch;
+}): Promise<string> {
+  const res = await (args.fetchImpl ?? fetch)(`${dodoApiBase(args.env)}/checkouts`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${args.apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      product_cart: [{ product_id: args.productId, quantity: 1 }],
-      ...(args.email ? { customer: { email: args.email } } : {}),
-      metadata: { user_id: args.userId, plan: args.plan },
-      return_url: args.returnUrl,
-    }),
+    body: JSON.stringify(args.body),
   });
   const data = (await res.json().catch(() => ({}))) as { checkout_url?: string | null; message?: string };
   if (!res.ok || !data.checkout_url) {
-    throw new Error(`dodo checkout ${res.status}: ${data.message ?? "no checkout_url"}`);
+    throw new DodoCheckoutError(res.status, data.message ?? "no checkout_url");
   }
   return data.checkout_url;
 }

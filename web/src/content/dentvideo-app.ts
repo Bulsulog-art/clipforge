@@ -110,6 +110,37 @@ export type AppText = {
     queuedNote: string;
     tooBig: string;
   };
+  billing: {
+    heading: string;
+    state: { trial: string; active: string; paused: string; cancelled: string };
+    activeTier: string;
+    renews: string;
+    trialNote: string;
+    chooseTitle: string;
+    leadTrial: string;
+    leadPaused: string;
+    leadCancelled: string;
+    monthly: string;
+    yearly: string;
+    yearlySave: string;
+    perMonth: string;
+    perYear: string;
+    monthlyOnly: string;
+    recommended: string;
+    foundingBadge: string;
+    foundingLine: string;
+    foundingThen: string;
+    choose: string;
+    opening: string;
+    haveCode: string;
+    codeLabel: string;
+    fineprint: string;
+    success: string;
+    cancelled: string;
+    needPlan: string;
+    settingsHeading: string;
+    tiers: Record<"starter" | "practice" | "group", { name: string; blurb: string; features: [string, string, string] }>;
+  };
   errors: {
     signIn: string;
     setupFirst: string;
@@ -123,6 +154,13 @@ export type AppText = {
     accountExists: string;
     createFailed: string;
     saveFailed: string;
+    planRequired: string;
+    recordingsNeedPractice: string;
+    alreadySubscribed: string;
+    invalidPlan: string;
+    invalidCode: string;
+    checkoutUnavailable: string;
+    checkoutFailed: string;
   };
 };
 
@@ -240,6 +278,61 @@ export const APP_TEXT: Record<Locale, AppText> = {
       queuedNote: "Your clips will appear in your library in about 10 minutes.",
       tooBig: "Please keep recordings under {mb} MB (about 10 minutes of phone video).",
     },
+    billing: {
+      heading: "Your plan",
+      state: { trial: "Free first week", active: "Active", paused: "Paused", cancelled: "Cancelled" },
+      activeTier: "{tier} plan",
+      renews: "Renews on {date}",
+      trialNote: "Your first week is free — no card needed.",
+      chooseTitle: "Choose your plan",
+      leadTrial: "Your free week is on us. To keep five checked videos coming every Monday, choose a plan.",
+      leadPaused: "Your last payment did not go through, so new videos are paused. Choose a plan to carry on.",
+      leadCancelled: "Your plan has ended. Choose a plan to start your weekly videos again.",
+      monthly: "Monthly",
+      yearly: "Yearly",
+      yearlySave: "2 months free",
+      perMonth: "/month",
+      perYear: "/year",
+      monthlyOnly: "Billed monthly",
+      recommended: "Recommended",
+      foundingBadge: "Founding offer",
+      foundingLine: "Practice for {price}/month for 12 months — first 100 clinics",
+      foundingThen: "Then {price}/month.",
+      choose: "Choose {tier}",
+      opening: "Opening checkout…",
+      haveCode: "Have a discount code?",
+      codeLabel: "Discount code",
+      fineprint: "Prices in USD. Taxes may apply. No minimum term. Secure payment by Dodo Payments.",
+      success: "Thank you! Your plan is being activated — this can take a minute.",
+      cancelled: "Checkout was cancelled. Nothing was charged.",
+      needPlan: "Choose a plan to make more videos",
+      settingsHeading: "Plan and billing",
+      tiers: {
+        starter: {
+          name: "Starter",
+          blurb: "For a single clinic getting started.",
+          features: [
+            "Five narrated, captioned videos every Monday",
+            "Checked for advertising rules and clinical accuracy",
+            "Filming cards for your own clips",
+          ],
+        },
+        practice: {
+          name: "Practice",
+          blurb: "For clinics that want their own faces on screen.",
+          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Your logo and brand colours in every video"],
+        },
+        group: {
+          name: "Group",
+          blurb: "For small groups with several sites.",
+          features: [
+            "Up to three locations",
+            "Five videos per location every Monday",
+            "One consistent, checked voice across sites",
+          ],
+        },
+      },
+    },
     errors: {
       signIn: "Please sign in again.",
       setupFirst: "Set up your clinic first.",
@@ -253,6 +346,13 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "An account with this email already exists. Sign in instead.",
       createFailed: "Could not create the account. Please try again.",
       saveFailed: "Could not save. Please try again.",
+      planRequired: "Your free week has been made. Choose a plan to make more videos.",
+      recordingsNeedPractice: "Your own recordings are part of the Practice plan. Upgrade to turn your recording into clips.",
+      alreadySubscribed: "Your plan is already active.",
+      invalidPlan: "That plan is not available.",
+      invalidCode: "That discount code could not be applied.",
+      checkoutUnavailable: "Checkout is not available yet. Please try again shortly.",
+      checkoutFailed: "Could not open checkout. Please try again.",
     },
   },
 
@@ -374,6 +474,61 @@ export const APP_TEXT: Record<Locale, AppText> = {
       queuedNote: "Ihre Clips erscheinen in etwa 10 Minuten in Ihrer Bibliothek.",
       tooBig: "Bitte laden Sie Aufnahmen unter {mb} MB hoch (etwa 10 Minuten Handyvideo).",
     },
+    billing: {
+      heading: "Ihr Tarif",
+      state: { trial: "Kostenlose erste Woche", active: "Aktiv", paused: "Pausiert", cancelled: "Gekündigt" },
+      activeTier: "Tarif {tier}",
+      renews: "Verlängert sich am {date}",
+      trialNote: "Ihre erste Woche ist kostenlos — ohne Kreditkarte.",
+      chooseTitle: "Wählen Sie Ihren Tarif",
+      leadTrial: "Ihre erste Woche geht auf uns. Damit weiterhin jeden Montag fünf geprüfte Videos kommen, wählen Sie einen Tarif.",
+      leadPaused: "Ihre letzte Zahlung ist nicht durchgegangen, deshalb sind neue Videos pausiert. Wählen Sie einen Tarif, um weiterzumachen.",
+      leadCancelled: "Ihr Tarif ist beendet. Wählen Sie einen Tarif, um die wöchentlichen Videos wieder zu starten.",
+      monthly: "Monatlich",
+      yearly: "Jährlich",
+      yearlySave: "2 Monate geschenkt",
+      perMonth: "/Monat",
+      perYear: "/Jahr",
+      monthlyOnly: "Monatliche Abrechnung",
+      recommended: "Empfohlen",
+      foundingBadge: "Gründungsangebot",
+      foundingLine: "Practice für {price}/Monat, 12 Monate lang — für die ersten 100 Praxen",
+      foundingThen: "Danach {price}/Monat.",
+      choose: "{tier} wählen",
+      opening: "Checkout wird geöffnet…",
+      haveCode: "Haben Sie einen Rabattcode?",
+      codeLabel: "Rabattcode",
+      fineprint: "Preise in USD, ggf. zzgl. Steuern. Keine Mindestlaufzeit. Sichere Zahlung über Dodo Payments.",
+      success: "Vielen Dank! Ihr Tarif wird aktiviert — das kann eine Minute dauern.",
+      cancelled: "Der Checkout wurde abgebrochen. Es wurde nichts berechnet.",
+      needPlan: "Tarif wählen, um weitere Videos zu erstellen",
+      settingsHeading: "Tarif und Abrechnung",
+      tiers: {
+        starter: {
+          name: "Starter",
+          blurb: "Für eine Praxis, die einfach anfangen will.",
+          features: [
+            "Jeden Montag fünf vertonte, untertitelte Videos",
+            "Geprüft auf Werberecht und fachliche Richtigkeit",
+            "Drehkarten für Ihre eigenen Clips",
+          ],
+        },
+        practice: {
+          name: "Practice",
+          blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
+          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Ihr Logo und Ihre Markenfarben in jedem Video"],
+        },
+        group: {
+          name: "Group",
+          blurb: "Für kleine Praxisgruppen mit mehreren Standorten.",
+          features: [
+            "Bis zu drei Standorte",
+            "Fünf Videos pro Standort, jeden Montag",
+            "Ein einheitlicher, geprüfter Auftritt an allen Standorten",
+          ],
+        },
+      },
+    },
     errors: {
       signIn: "Bitte melden Sie sich erneut an.",
       setupFirst: "Bitte richten Sie zuerst Ihre Praxis ein.",
@@ -387,6 +542,13 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Zu dieser E-Mail-Adresse gibt es schon ein Konto. Bitte melden Sie sich an.",
       createFailed: "Das Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
       saveFailed: "Speichern hat nicht geklappt. Bitte versuchen Sie es erneut.",
+      planRequired: "Ihre kostenlose Woche ist erstellt. Wählen Sie einen Tarif, um weitere Videos zu erstellen.",
+      recordingsNeedPractice: "Eigene Aufnahmen sind im Tarif Practice enthalten. Wechseln Sie den Tarif, um Ihre Aufnahme in Clips zu verwandeln.",
+      alreadySubscribed: "Ihr Tarif ist bereits aktiv.",
+      invalidPlan: "Dieser Tarif ist nicht verfügbar.",
+      invalidCode: "Dieser Rabattcode konnte nicht angewendet werden.",
+      checkoutUnavailable: "Der Checkout ist noch nicht verfügbar. Bitte versuchen Sie es in Kürze erneut.",
+      checkoutFailed: "Der Checkout konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.",
     },
   },
 
@@ -508,6 +670,57 @@ export const APP_TEXT: Record<Locale, AppText> = {
       queuedNote: "Tus clips aparecerán en tu biblioteca en unos 10 minutos.",
       tooBig: "Sube grabaciones de menos de {mb} MB (unos 10 minutos de vídeo del móvil).",
     },
+    billing: {
+      heading: "Tu plan",
+      state: { trial: "Primera semana gratis", active: "Activo", paused: "En pausa", cancelled: "Cancelado" },
+      activeTier: "Plan {tier}",
+      renews: "Se renueva el {date}",
+      trialNote: "Tu primera semana es gratis, sin tarjeta.",
+      chooseTitle: "Elige tu plan",
+      leadTrial: "Tu primera semana corre de nuestra cuenta. Para seguir recibiendo cinco vídeos revisados cada lunes, elige un plan.",
+      leadPaused: "Tu último pago no se completó, así que los vídeos nuevos están en pausa. Elige un plan para continuar.",
+      leadCancelled: "Tu plan ha terminado. Elige un plan para volver a recibir tus vídeos semanales.",
+      monthly: "Mensual",
+      yearly: "Anual",
+      yearlySave: "2 meses gratis",
+      perMonth: "/mes",
+      perYear: "/año",
+      monthlyOnly: "Facturación mensual",
+      recommended: "Recomendado",
+      foundingBadge: "Oferta fundadora",
+      foundingLine: "Practice por {price}/mes durante 12 meses — primeras 100 clínicas",
+      foundingThen: "Después, {price}/mes.",
+      choose: "Elegir {tier}",
+      opening: "Abriendo el pago…",
+      haveCode: "¿Tienes un código de descuento?",
+      codeLabel: "Código de descuento",
+      fineprint: "Precios en USD. Pueden aplicarse impuestos. Sin permanencia. Pago seguro con Dodo Payments.",
+      success: "¡Gracias! Estamos activando tu plan; puede tardar un minuto.",
+      cancelled: "Has cancelado el pago. No se ha cobrado nada.",
+      needPlan: "Elige un plan para crear más vídeos",
+      settingsHeading: "Plan y facturación",
+      tiers: {
+        starter: {
+          name: "Starter",
+          blurb: "Para una clínica que quiere empezar.",
+          features: [
+            "Cinco vídeos narrados y subtitulados cada lunes",
+            "Revisados según las normas de publicidad y la exactitud clínica",
+            "Fichas de grabación para tus propios clips",
+          ],
+        },
+        practice: {
+          name: "Practice",
+          blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
+          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Tu logo y tus colores en cada vídeo"],
+        },
+        group: {
+          name: "Group",
+          blurb: "Para pequeños grupos con varias sedes.",
+          features: ["Hasta tres sedes", "Cinco vídeos por sede cada lunes", "Una voz coherente y revisada en todas las sedes"],
+        },
+      },
+    },
     errors: {
       signIn: "Vuelve a iniciar sesión.",
       setupFirst: "Primero configura tu clínica.",
@@ -521,6 +734,13 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Ya existe una cuenta con este correo. Inicia sesión.",
       createFailed: "No se pudo crear la cuenta. Inténtalo de nuevo.",
       saveFailed: "No se pudo guardar. Inténtalo de nuevo.",
+      planRequired: "Tu semana gratis ya está hecha. Elige un plan para crear más vídeos.",
+      recordingsNeedPractice: "Tus propias grabaciones están en el plan Practice. Cambia de plan para convertir tu grabación en clips.",
+      alreadySubscribed: "Tu plan ya está activo.",
+      invalidPlan: "Ese plan no está disponible.",
+      invalidCode: "No se pudo aplicar ese código de descuento.",
+      checkoutUnavailable: "El pago aún no está disponible. Inténtalo de nuevo en un momento.",
+      checkoutFailed: "No se pudo abrir el pago. Inténtalo de nuevo.",
     },
   },
 
@@ -642,6 +862,57 @@ export const APP_TEXT: Record<Locale, AppText> = {
       queuedNote: "Klipleriniz yaklaşık 10 dakika içinde kitaplığınızda görünecek.",
       tooBig: "Lütfen {mb} MB'tan küçük kayıtlar yükleyin (telefonla yaklaşık 10 dakikalık video).",
     },
+    billing: {
+      heading: "Planınız",
+      state: { trial: "Ücretsiz ilk hafta", active: "Aktif", paused: "Duraklatıldı", cancelled: "İptal edildi" },
+      activeTier: "{tier} planı",
+      renews: "{date} tarihinde yenilenir",
+      trialNote: "İlk haftanız ücretsiz — kart gerekmez.",
+      chooseTitle: "Planınızı seçin",
+      leadTrial: "İlk haftanız bizden. Her pazartesi beş kontrol edilmiş video gelmeye devam etsin istiyorsanız bir plan seçin.",
+      leadPaused: "Son ödemeniz gerçekleşmedi, bu yüzden yeni videolar duraklatıldı. Devam etmek için bir plan seçin.",
+      leadCancelled: "Planınız sona erdi. Haftalık videolarınızı yeniden başlatmak için bir plan seçin.",
+      monthly: "Aylık",
+      yearly: "Yıllık",
+      yearlySave: "2 ay ücretsiz",
+      perMonth: "/ay",
+      perYear: "/yıl",
+      monthlyOnly: "Aylık faturalandırılır",
+      recommended: "Önerilen",
+      foundingBadge: "Kurucu teklifi",
+      foundingLine: "12 ay boyunca aylık {price} ile Practice — ilk 100 klinik için",
+      foundingThen: "Sonrasında aylık {price}.",
+      choose: "{tier} planını seç",
+      opening: "Ödeme sayfası açılıyor…",
+      haveCode: "İndirim kodunuz var mı?",
+      codeLabel: "İndirim kodu",
+      fineprint: "Fiyatlar USD cinsindendir. Vergiler eklenebilir. Asgari süre yok. Güvenli ödeme Dodo Payments ile.",
+      success: "Teşekkürler! Planınız etkinleştiriliyor — bu bir dakika sürebilir.",
+      cancelled: "Ödeme iptal edildi. Herhangi bir ücret alınmadı.",
+      needPlan: "Daha fazla video için bir plan seçin",
+      settingsHeading: "Plan ve faturalandırma",
+      tiers: {
+        starter: {
+          name: "Starter",
+          blurb: "Yeni başlayan tek bir klinik için.",
+          features: [
+            "Her pazartesi beş seslendirilmiş, altyazılı video",
+            "Reklam kuralları ve klinik doğruluk açısından kontrol edilir",
+            "Kendi videolarınız için çekim kartları",
+          ],
+        },
+        practice: {
+          name: "Practice",
+          blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
+          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Her videoda logonuz ve marka renkleriniz"],
+        },
+        group: {
+          name: "Group",
+          blurb: "Birden fazla şubesi olan küçük gruplar için.",
+          features: ["En fazla üç şube", "Her pazartesi şube başına beş video", "Tüm şubelerde tutarlı, kontrol edilmiş bir dil"],
+        },
+      },
+    },
     errors: {
       signIn: "Lütfen yeniden giriş yapın.",
       setupFirst: "Önce kliniğinizi tanımlayın.",
@@ -655,6 +926,13 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Bu e-posta adresiyle zaten bir hesap var. Lütfen giriş yapın.",
       createFailed: "Hesap oluşturulamadı. Lütfen tekrar deneyin.",
       saveFailed: "Kaydedilemedi. Lütfen tekrar deneyin.",
+      planRequired: "Ücretsiz haftanız hazırlandı. Daha fazla video için bir plan seçin.",
+      recordingsNeedPractice: "Kendi kayıtlarınız Practice planına dahildir. Kaydınızı kliplere dönüştürmek için planınızı yükseltin.",
+      alreadySubscribed: "Planınız zaten aktif.",
+      invalidPlan: "Bu plan mevcut değil.",
+      invalidCode: "Bu indirim kodu uygulanamadı.",
+      checkoutUnavailable: "Ödeme henüz kullanılamıyor. Lütfen biraz sonra tekrar deneyin.",
+      checkoutFailed: "Ödeme sayfası açılamadı. Lütfen tekrar deneyin.",
     },
   },
 
@@ -776,6 +1054,65 @@ export const APP_TEXT: Record<Locale, AppText> = {
       queuedNote: "Vos extraits apparaîtront dans votre bibliothèque d'ici une dizaine de minutes.",
       tooBig: "Merci d'envoyer des enregistrements de moins de {mb} Mo (environ 10 minutes de vidéo au téléphone).",
     },
+    billing: {
+      heading: "Votre formule",
+      state: { trial: "Première semaine offerte", active: "Active", paused: "En pause", cancelled: "Résiliée" },
+      activeTier: "Formule {tier}",
+      renews: "Renouvellement le {date}",
+      trialNote: "Votre première semaine est offerte — sans carte bancaire.",
+      chooseTitle: "Choisissez votre formule",
+      leadTrial: "Votre première semaine vous est offerte. Pour continuer à recevoir cinq vidéos vérifiées chaque lundi, choisissez une formule.",
+      leadPaused: "Votre dernier paiement n'a pas abouti : les nouvelles vidéos sont en pause. Choisissez une formule pour continuer.",
+      leadCancelled: "Votre formule a pris fin. Choisissez une formule pour relancer vos vidéos hebdomadaires.",
+      monthly: "Mensuel",
+      yearly: "Annuel",
+      yearlySave: "2 mois offerts",
+      perMonth: "/mois",
+      perYear: "/an",
+      monthlyOnly: "Facturation mensuelle",
+      recommended: "Recommandée",
+      foundingBadge: "Offre fondateurs",
+      foundingLine: "Practice à {price}/mois pendant 12 mois — pour les 100 premiers cabinets",
+      foundingThen: "Ensuite {price}/mois.",
+      choose: "Choisir {tier}",
+      opening: "Ouverture du paiement…",
+      haveCode: "Vous avez un code de réduction ?",
+      codeLabel: "Code de réduction",
+      fineprint: "Prix en USD, taxes éventuelles en sus. Sans engagement. Paiement sécurisé par Dodo Payments.",
+      success: "Merci ! Votre formule est en cours d'activation — cela peut prendre une minute.",
+      cancelled: "Le paiement a été annulé. Rien n'a été débité.",
+      needPlan: "Choisissez une formule pour créer d'autres vidéos",
+      settingsHeading: "Formule et facturation",
+      tiers: {
+        starter: {
+          name: "Starter",
+          blurb: "Pour un cabinet qui veut se lancer simplement.",
+          features: [
+            "Cinq vidéos commentées et sous-titrées chaque lundi",
+            "Vérifiées selon les règles de communication et l'exactitude clinique",
+            "Fiches de tournage pour vos propres clips",
+          ],
+        },
+        practice: {
+          name: "Practice",
+          blurb: "Pour les cabinets qui veulent apparaître eux-mêmes à l'écran.",
+          features: [
+            "Tout ce qu'inclut Starter",
+            "Vos propres enregistrements transformés en clips sous-titrés",
+            "Votre logo et vos couleurs dans chaque vidéo",
+          ],
+        },
+        group: {
+          name: "Group",
+          blurb: "Pour les petits groupes de plusieurs cabinets.",
+          features: [
+            "Jusqu'à trois sites",
+            "Cinq vidéos par site chaque lundi",
+            "Une communication cohérente et vérifiée sur tous les sites",
+          ],
+        },
+      },
+    },
     errors: {
       signIn: "Merci de vous reconnecter.",
       setupFirst: "Commencez par configurer votre cabinet.",
@@ -789,6 +1126,13 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Un compte existe déjà avec cet e-mail. Connectez-vous.",
       createFailed: "Le compte n'a pas pu être créé. Merci de réessayer.",
       saveFailed: "L'enregistrement a échoué. Merci de réessayer.",
+      planRequired: "Votre semaine offerte est réalisée. Choisissez une formule pour créer d'autres vidéos.",
+      recordingsNeedPractice: "Vos propres enregistrements font partie de la formule Practice. Changez de formule pour transformer votre enregistrement en clips.",
+      alreadySubscribed: "Votre formule est déjà active.",
+      invalidPlan: "Cette formule n'est pas disponible.",
+      invalidCode: "Ce code de réduction n'a pas pu être appliqué.",
+      checkoutUnavailable: "Le paiement n'est pas encore disponible. Merci de réessayer dans un instant.",
+      checkoutFailed: "Impossible d'ouvrir le paiement. Merci de réessayer.",
     },
   },
 };

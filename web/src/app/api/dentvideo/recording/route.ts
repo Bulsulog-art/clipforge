@@ -3,6 +3,7 @@ import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
 import { dentvidQueue } from "@/lib/queue";
+import { loadClinicPlan } from "@/lib/dentvid/plan";
 
 // The browser uploads the recording straight to the clinic's own storage
 // folder (storage RLS allows only that folder), then calls this to process it.
@@ -19,6 +20,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: err.invalidUpload }, { status: 400 });
   }
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
+  // The first week is free; after that, and while a plan is paused or
+  // cancelled, new weeks need a plan.
+  const plan = await loadClinicPlan(db, clinic.id);
+  if (!plan.canMake) return NextResponse.json({ error: err.planRequired, needsPlan: true }, { status: 402 });
+  // Own recordings are a Practice/Group feature (as sold on the pricing page).
+  if (plan.plan === "active" && plan.tier === "starter") return NextResponse.json({ error: err.recordingsNeedPractice, needsPlan: true }, { status: 402 });
 
   const path = parsed.data.path;
   try {

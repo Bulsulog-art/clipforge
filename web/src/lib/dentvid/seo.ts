@@ -3,6 +3,7 @@ import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { LANDING, LANDING_PATH, LOCALES, HREFLANG, type Locale } from "@/content/dentvideo";
 import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
 import { dentvideoSitemapEntries } from "./seo-guides";
+import { DV_PRICES_USD, DV_TIERS } from "./billing";
 
 /** hreflang map for the landings: every locale plus x-default (English). */
 export function landingAlternates(): Record<string, string> {
@@ -47,7 +48,13 @@ export function landingJsonLd(locale: Locale) {
         inLanguage: locale,
         description: c.meta.description,
         url: absoluteUrl(LANDING_PATH[locale]),
-        offers: { "@type": "Offer", description: c.pricing.text },
+        offers: DV_TIERS.map((tier, i) => ({
+          "@type": "Offer",
+          name: c.pricing.tiers[i].name,
+          price: DV_PRICES_USD[tier].month,
+          priceCurrency: "USD",
+          description: c.pricing.text,
+        })),
         publisher: PUBLISHER,
       },
       { ...faqPage(c.faq), inLanguage: locale },

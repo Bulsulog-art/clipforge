@@ -28,7 +28,18 @@ const STATUS_CLS: Record<LibraryItem["status"], string> = {
   failed: "bg-[#fbeaea] text-[#8a1f1f]",
 };
 
-export function Library({ items, canStartWeek, locale }: { items: LibraryItem[]; canStartWeek: boolean; locale: Locale }) {
+export function Library({
+  items,
+  canStartWeek,
+  locale,
+  locked = false,
+}: {
+  items: LibraryItem[];
+  canStartWeek: boolean;
+  locale: Locale;
+  /** No plan (free week made, or paused/cancelled): new videos wait for a plan. */
+  locked?: boolean;
+}) {
   const text = appText(locale);
   const t = text.library;
   const router = useRouter();
@@ -66,16 +77,24 @@ export function Library({ items, canStartWeek, locale }: { items: LibraryItem[];
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={startWeek}
-          disabled={starting || !canStartWeek}
-          className="dv-btn dv-btn-primary px-6 py-3"
-        >
-          {starting ? t.starting : canStartWeek ? t.makeWeek : t.weekMade}
-        </button>
-        <a href="/dentvideo/app/record" className="dv-btn dv-btn-secondary px-6 py-3 !text-dv-teal">
-          {t.uploadOwn}
-        </a>
+        {locked ? (
+          <a href="#plans" className="dv-btn dv-btn-primary px-6 py-3">
+            {text.billing.needPlan}
+          </a>
+        ) : (
+          <>
+            <button
+              onClick={startWeek}
+              disabled={starting || !canStartWeek}
+              className="dv-btn dv-btn-primary px-6 py-3"
+            >
+              {starting ? t.starting : canStartWeek ? t.makeWeek : t.weekMade}
+            </button>
+            <a href="/dentvideo/app/record" className="dv-btn dv-btn-secondary px-6 py-3 !text-dv-teal">
+              {t.uploadOwn}
+            </a>
+          </>
+        )}
         {approvable.length > 1 && (
           <button onClick={approveAll} disabled={approving} className="dv-btn px-6 py-3 bg-dv-teal-50 text-dv-teal ring-1 ring-dv-teal/40 hover:bg-dv-teal-100">
             {fmt(t.approveAll, { n: String(approvable.length) })}

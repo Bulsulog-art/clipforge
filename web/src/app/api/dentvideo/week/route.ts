@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { dvSession, weekOf } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
 import { dentvidQueue } from "@/lib/queue";
+import { loadClinicPlan } from "@/lib/dentvid/plan";
 
 // Start this week's videos. One run per clinic per week: the job id is the
 // week, so pressing the button twice queues nothing new.
@@ -11,6 +12,9 @@ export async function POST() {
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile").eq("owner_id", user.id).maybeSingle();
   const err = await dvErrors((clinic?.profile as { language?: string } | undefined)?.language);
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
+  // The first week is free; after that, and while a plan is paused or
+  // cancelled, new weeks need a plan.
+  if (!(await loadClinicPlan(db, clinic.id)).canMake) return NextResponse.json({ error: err.planRequired, needsPlan: true }, { status: 402 });
 
   const week = weekOf();
   const jobId = `week:${clinic.id}:${week}`;
