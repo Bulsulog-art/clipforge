@@ -2,12 +2,26 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { allowedOrigins, isBadOrigin } from "@/lib/origin-guard";
 import { routeForHost } from "@/lib/dentvid/host";
+import { API_GLOBAL_PER_IP, MemoryStore, clientIp, slidingWindow } from "@/lib/rate-limit";
+
+// A cheap first line against floods of /api requests: a per-IP sliding
+// window kept in this process's memory (one app instance on one VPS, so it
+// sees all traffic). Pages and static files are not counted. Per-route
+// limits with tighter numbers live in Redis (lib/rate-limit-server).
+const apiBuckets = new MemoryStore(50_000);
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // CSRF defence: Origin check on state-changing /api requests, with an
 // exemption for bearer-authenticated (native app) calls. See lib/origin-guard.
 export async function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/api/")) {
+    const r = await slidingWindow(apiBuckets, `api:${clientIp(req.headers)}`, API_GLOBAL_PER_IP);
+    if (!r.ok) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: { "Retry-After": String(r.retryAfterSec) } });
+    }
+  }
+
   // dentvideo.com is served from the /dentvideo section (lib/dentvid/host).
   const route = routeForHost(
     req.headers.get("x-forwarded-host") ?? req.headers.get("host"),

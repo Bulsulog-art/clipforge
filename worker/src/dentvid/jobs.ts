@@ -21,6 +21,9 @@ import { isPaying } from "./schedule.js";
 import { patientSearches } from "../dental/questions.js";
 import { analyseLogo, brandFromLogo, logoStyleOf } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
+import { UnrecoverableError } from "bullmq";
+import { alertRefusal, sendOwnerAlert, SpendGuard, type AlertSender, type RefusalReason, type SpendOp } from "./spend-guard.js";
+import type { ParkStore } from "./park.js";
 
 /**
  * DentVideo jobs. The product's data lives on Liman (self-hosted Supabase):
@@ -45,6 +48,69 @@ export function dentvidDb(): SupabaseClient {
   return _db;
 }
 
+// ---- Spend guard wiring (spend-guard.ts) ------------------------------------
+// index.ts configures the guard with the worker's Redis; until then the
+// guard has no store and refuses everything (fail-closed).
+
+type SpendDeps = { guard: SpendGuard; park: ParkStore | null; alert: AlertSender };
+let spend: SpendDeps = { guard: new SpendGuard(null), park: null, alert: sendOwnerAlert };
+
+export function configureSpend(deps: Partial<SpendDeps> & { guard: SpendGuard }): void {
+  spend = { park: null, alert: sendOwnerAlert, ...deps };
+}
+
+/** The job was refused by the spend guard and parked (or refused outright); BullMQ must not retry it. */
+export class SpendRefusedError extends UnrecoverableError {
+  constructor(
+    public reason: RefusalReason,
+    detail: string,
+    public parked: boolean,
+  ) {
+    super(`spend guard: ${reason}${parked ? " (parked)" : ""} — ${detail}`);
+  }
+}
+
+/** Upper bounds on what a recording may cost us in CPU and transcription. */
+const MAX_RECORDING_BYTES = 600 * 1024 * 1024;
+const maxRecordingMinutes = () => Number(process.env.DENTVID_MAX_RECORDING_MIN ?? 30) || 30;
+const MAX_LOGO_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Reserve budget for a week or recording before any paid call. On refusal
+ * the job is parked for automatic retry and the owner is alerted (once per
+ * reason per day); if it cannot even be parked (Redis down), a normal error
+ * lets BullMQ retry it later with backoff.
+ */
+async function reserveOrPark(op: Extract<SpendOp, "week" | "recording">, data: { clinicId: string } & Record<string, unknown>, jobId?: string): Promise<void> {
+  const d = await spend.guard.reserve(op, data.clinicId);
+  if (d.ok) return;
+  let parked = false;
+  if (jobId && spend.park) {
+    try {
+      await spend.park.put({ jobId, name: op, data, reason: d.reason, parkedAt: new Date().toISOString() });
+      parked = true;
+    } catch (e) {
+      logger.error({ jobId, err: (e as Error).message }, "dentvid: could not park job");
+    }
+  }
+  await alertRefusal(spend.guard, { op, clinicId: data.clinicId, reason: d.reason, detail: d.detail, parked }, spend.alert).catch(() => false);
+  if (!parked) throw new Error(`spend guard: ${d.reason} — ${d.detail} (not parked; BullMQ will retry)`);
+  throw new SpendRefusedError(d.reason, d.detail, true);
+}
+
+/** A storage key the worker may touch for this owner: inside their folder, no traversal. */
+export function ownedKey(key: string | null | undefined, ownerId: string): key is string {
+  return !!key && key.startsWith(`${ownerId}/`) && !key.split("/").some((seg) => seg === ".." || seg === "." || seg === "");
+}
+
+/** Clinics with plan = 'active' on Liman — scales the global spend ceilings (spend-guard.ts). Throws on error. */
+export async function countActiveClinics(): Promise<number> {
+  const { count, error } = await dentvidDb().from("dentvid_clinics").select("id", { count: "exact", head: true }).eq("plan", "active");
+  if (error) throw new Error(`count active clinics: ${error.message}`);
+  if (typeof count !== "number") throw new Error("count active clinics: no count returned");
+  return count;
+}
+
 export type WeekJob = { clinicId: string; count?: number };
 /** Re-render one generated video after the clinic picked new background photos. */
 export type RestyleJob = { itemId: string };
@@ -58,10 +124,14 @@ async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string)
     .single();
   if (error || !data) throw new Error(`clinic ${clinicId} not found: ${error?.message ?? ""}`);
   const profile: ClinicProfile = clinicProfileSchema.parse(data.profile);
-  if (data.logo_path) {
+  if (data.logo_path && !ownedKey(data.logo_path, data.owner_id as string)) {
+    logger.warn({ clinicId }, "dentvid: logo_path outside the owner's folder ignored");
+  } else if (data.logo_path) {
     const local = path.join(workDir, `logo${path.extname(data.logo_path) || ".png"}`);
     const { data: blob } = await db.storage.from(BUCKET).download(data.logo_path);
-    if (blob) {
+    if (blob && blob.size > MAX_LOGO_BYTES) {
+      logger.warn({ clinicId, bytes: blob.size }, "dentvid: logo too large, ignored");
+    } else if (blob) {
       await fs.writeFile(local, Buffer.from(await blob.arrayBuffer()));
       profile.logo = local;
     }
@@ -97,6 +167,13 @@ async function upload(db: SupabaseClient, key: string, file: string, contentType
     .from(BUCKET)
     .upload(key, createReadStream(file) as unknown as Blob, { contentType, upsert: true, duplex: "half" } as never);
   if (error) throw new Error(`upload ${key}: ${error.message}`);
+}
+
+/** Media duration in seconds via ffprobe; NaN when unreadable (treated as too long). */
+function durationSec(file: string): Promise<number> {
+  return new Promise((resolve) =>
+    ffmpeg.ffprobe(file, (err, meta) => resolve(err ? Number.NaN : Number(meta?.format?.duration ?? Number.NaN))),
+  );
 }
 
 function frameAt(video: string, out: string, atSec: number): Promise<string> {
@@ -142,9 +219,11 @@ async function paying(db: SupabaseClient, clinicId: string, kind: string): Promi
   return false;
 }
 
-export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; flagged: number; rejected: number }> {
+export async function runDentvidWeek(job: WeekJob, ctx: { jobId?: string } = {}): Promise<{ ready: number; flagged: number; rejected: number }> {
   const db = dentvidDb();
   if (!(await paying(db, job.clinicId, "week"))) return { ready: 0, flagged: 0, rejected: 0 };
+  // Budget first: nothing below may call a paid API before this passes.
+  await reserveOrPark("week", { ...job }, ctx.jobId);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
     const { ownerId, profile, logoStyle } = await loadClinic(db, job.clinicId, workDir);
@@ -205,16 +284,29 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
   }
 }
 
-export async function runDentvidRecording(job: RecordingJob): Promise<{ clips: number }> {
+export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: string } = {}): Promise<{ clips: number }> {
   const db = dentvidDb();
   if (!(await paying(db, job.clinicId, "recording"))) return { clips: 0 };
+  await reserveOrPark("recording", { ...job }, ctx.jobId);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-rec-"));
   try {
     const { ownerId, profile } = await loadClinic(db, job.clinicId, workDir);
+    // The path came from the browser via the web app: it must be this
+    // owner's recording (the service role below bypasses storage RLS).
+    if (!ownedKey(job.sourcePath, ownerId) || !job.sourcePath.startsWith(`${ownerId}/recordings/`)) {
+      throw new UnrecoverableError(`recording path outside the owner's folder: ${job.sourcePath}`);
+    }
     const { data: blob, error } = await db.storage.from(BUCKET).download(job.sourcePath);
     if (error || !blob) throw new Error(`download ${job.sourcePath}: ${error?.message ?? "empty"}`);
+    if (blob.size > MAX_RECORDING_BYTES) throw new UnrecoverableError(`recording too large: ${blob.size} bytes`);
     const source = path.join(workDir, `source${path.extname(job.sourcePath) || ".mp4"}`);
     await fs.writeFile(source, Buffer.from(await blob.arrayBuffer()));
+    // Transcription and rendering scale with length: refuse very long files
+    // before any of it runs.
+    const minutes = (await durationSec(source)) / 60;
+    if (!(minutes <= maxRecordingMinutes())) {
+      throw new UnrecoverableError(`recording is ${Number.isFinite(minutes) ? minutes.toFixed(1) : "?"} min; the limit is ${maxRecordingMinutes()} min`);
+    }
 
     const clips = await clipsFromRecording(
       { client: new OpenAI(), workDir, render: true, log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`) },
@@ -265,6 +357,28 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-restyle-"));
   try {
     if (item.kind !== "generated" || !item.plan) throw new Error("only generated videos with a stored plan can be re-rendered");
+    // Same rule as weeks and recordings: no paid TTS for a clinic that is not paying,
+    // and never past the spend guard. A refused restyle is not retried; the card says it failed.
+    const clinicId = item.clinic_id as string;
+    const markFailed = () =>
+      db
+        .from("dentvid_items")
+        .update({ restyle_status: "failed", updated_at: new Date().toISOString() })
+        .eq("id", item.id)
+        .then(
+          () => {},
+          () => {},
+        );
+    if (!(await paying(db, clinicId, "restyle"))) {
+      await markFailed();
+      return { ok: false };
+    }
+    const d = await spend.guard.reserve("restyle", clinicId);
+    if (!d.ok) {
+      await alertRefusal(spend.guard, { op: "restyle", clinicId, reason: d.reason, detail: d.detail, parked: false }, spend.alert).catch(() => false);
+      await markFailed();
+      return { ok: false };
+    }
     const { profile, logoStyle } = await loadClinic(db, item.clinic_id as string, workDir);
     const stored = parseScenePlan(item.plan);
     // Painted in the clinic's colour exactly as the weekly run does (week.ts).
@@ -292,7 +406,8 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       .update({ video_path: files.videoPath, thumb_path: files.thumbPath ?? null, restyle_status: null, updated_at: new Date().toISOString() })
       .eq("id", item.id);
     if (upd) throw new Error(`update item: ${upd.message}`);
-    const old = [item.video_path, item.thumb_path].filter((p): p is string => Boolean(p));
+    // Only ever delete inside this owner's folder (the paths are on a row the owner can edit).
+    const old = [item.video_path, item.thumb_path].filter((p): p is string => ownedKey(p, item.owner_id as string));
     if (old.length) await db.storage.from(BUCKET).remove(old).catch(() => {});
     return { ok: true };
   } catch (e) {

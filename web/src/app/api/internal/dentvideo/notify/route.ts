@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
 import { readyEmail, sendEmail } from "@/lib/dentvid/email";
+import { LIMITS } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 
 /**
  * Called by the worker when a clinic's week or recording is ready: emails
@@ -31,6 +33,15 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "bad request" }, { status: 400 });
   const { clinicId, kind, ready, flagged } = parsed.data;
+  // A worker bug (or a leaked token) must not turn into an email storm.
+  const limited = await rateLimited(
+    [
+      { key: `rl:notify:clinic:${clinicId}`, rule: LIMITS.notifyClinic },
+      { key: "rl:notify:global", rule: LIMITS.notifyGlobal },
+    ],
+    () => "too many notices",
+  );
+  if (limited) return limited;
 
   const db = dvAdmin();
   const { data: clinic } = await db.from("dentvid_clinics").select("owner_id, profile").eq("id", clinicId).maybeSingle();

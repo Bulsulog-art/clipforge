@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
+import { LIMITS } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
+import { isOwnRecordingPath } from "@/lib/dentvid/paths";
 
 // The browser uploads the recording straight to the clinic's own storage
 // folder (storage RLS allows only that folder), then calls this to process it.
@@ -12,11 +15,19 @@ const Body = z.object({ path: z.string().min(3).max(300) });
 export async function POST(req: Request) {
   const { db, user } = await dvSession();
   if (!user) return NextResponse.json({ error: (await dvErrors()).signIn }, { status: 401 });
+  const limited = await rateLimited(
+    [
+      { key: `rl:recording:user:${user.id}`, rule: LIMITS.recordingUser },
+      { key: `rl:recording:userday:${user.id}`, rule: LIMITS.recordingUserDay },
+    ],
+    async () => (await dvErrors()).tooMany,
+  );
+  if (limited) return limited;
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile").eq("owner_id", user.id).maybeSingle();
   const err = await dvErrors((clinic?.profile as { language?: string } | undefined)?.language);
 
   const parsed = Body.safeParse(await req.json().catch(() => null));
-  if (!parsed.success || !parsed.data.path.startsWith(`${user.id}/recordings/`)) {
+  if (!parsed.success || !isOwnRecordingPath(parsed.data.path, user.id)) {
     return NextResponse.json({ error: err.invalidUpload }, { status: 400 });
   }
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });

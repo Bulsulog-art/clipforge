@@ -225,6 +225,8 @@ export type AppText = {
     invalidLogo: string;
     invalidDecision: string;
     badSignup: string;
+    /** 429: too many requests in a short time. */
+    tooMany: string;
     accountExists: string;
     createFailed: string;
     saveFailed: string;
@@ -534,6 +536,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidLogo: "That logo could not be used. Please upload it again.",
       invalidDecision: "That action is not available.",
       badSignup: "Enter a valid email and a password of at least 8 characters.",
+      tooMany: "Too many attempts. Please wait a few minutes and try again.",
       accountExists: "An account with this email already exists. Sign in instead.",
       createFailed: "Could not create the account. Please try again.",
       saveFailed: "Could not save. Please try again.",
@@ -844,6 +847,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidLogo: "Dieses Logo konnte nicht verwendet werden. Bitte laden Sie es erneut hoch.",
       invalidDecision: "Diese Aktion ist nicht möglich.",
       badSignup: "Bitte geben Sie eine gültige E-Mail-Adresse und ein Passwort mit mindestens 8 Zeichen ein.",
+      tooMany: "Zu viele Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
       accountExists: "Zu dieser E-Mail-Adresse gibt es schon ein Konto. Bitte melden Sie sich an.",
       createFailed: "Das Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
       saveFailed: "Speichern hat nicht geklappt. Bitte versuchen Sie es erneut.",
@@ -1150,6 +1154,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidLogo: "No pudimos usar ese logo. Súbelo de nuevo.",
       invalidDecision: "Esa acción no está disponible.",
       badSignup: "Escribe un correo válido y una contraseña de al menos 8 caracteres.",
+      tooMany: "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
       accountExists: "Ya existe una cuenta con este correo. Inicia sesión.",
       createFailed: "No se pudo crear la cuenta. Inténtalo de nuevo.",
       saveFailed: "No se pudo guardar. Inténtalo de nuevo.",
@@ -1456,6 +1461,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidLogo: "Bu logo kullanılamadı. Lütfen yeniden yükleyin.",
       invalidDecision: "Bu işlem yapılamıyor.",
       badSignup: "Geçerli bir e-posta adresi ve en az 8 karakterlik bir şifre girin.",
+      tooMany: "Çok fazla deneme yapıldı. Lütfen birkaç dakika bekleyip tekrar deneyin.",
       accountExists: "Bu e-posta adresiyle zaten bir hesap var. Lütfen giriş yapın.",
       createFailed: "Hesap oluşturulamadı. Lütfen tekrar deneyin.",
       saveFailed: "Kaydedilemedi. Lütfen tekrar deneyin.",
@@ -1770,6 +1776,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidLogo: "Ce logo n'a pas pu être utilisé. Merci de l'envoyer à nouveau.",
       invalidDecision: "Cette action n'est pas disponible.",
       badSignup: "Saisissez un e-mail valide et un mot de passe d'au moins 8 caractères.",
+      tooMany: "Trop de tentatives. Merci de patienter quelques minutes avant de réessayer.",
       accountExists: "Un compte existe déjà avec cet e-mail. Connectez-vous.",
       createFailed: "Le compte n'a pas pu être créé. Merci de réessayer.",
       saveFailed: "L'enregistrement a échoué. Merci de réessayer.",
