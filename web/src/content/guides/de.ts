@@ -23,6 +23,8 @@ export const GUIDES_DE: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Instagram-Videos für Zahnarztpraxen: Themen, Format, Dreh und Werberecht",
+    seoTitle: "Instagram für Zahnarztpraxen: Videos und Reels",
+    seoDescription: "Welche Kurzvideos Patienten ansehen, Reels-Format, Untertitel, Rhythmus und was Heilmittelwerbegesetz und Berufsordnung Zahnarztpraxen verbieten.",
     description: "Ratgeber für Zahnarztpraxen: welche Kurzvideos Patienten ansehen, Reels-Format, Untertitel, Rhythmus und was Heilmittelwerbegesetz und Berufsordnung verbieten.",
     h1: "Instagram-Videos für Zahnarztpraxen",
     intro:
@@ -121,6 +123,8 @@ export const GUIDES_DE: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Heilmittelwerbegesetz für Zahnärzte: Was ist auf Instagram und TikTok erlaubt?",
+    seoTitle: "Heilmittelwerbegesetz: Was Zahnärzte posten dürfen",
+    seoDescription: "HWG, UWG und Berufsordnung in Social Media: Erfolgsversprechen, Vorher-Nachher, Patientenstimmen, Rabatte, Datenschutz – mit Checkliste für die Praxis.",
     description: "HWG, UWG und Berufsordnung für Zahnarztpraxen in Social Media: Erfolgsversprechen, Vorher-Nachher, Patientenstimmen, Rabatte, Datenschutz — mit Checkliste. Keine Rechtsberatung.",
     h1: "Heilmittelwerbegesetz für Zahnärzte: Was ist in Social Media erlaubt?",
     intro:
@@ -209,6 +213,8 @@ export const GUIDES_DE: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Social Media für die Zahnarztpraxis: Themenideen für Instagram, Reels und TikTok",
+    seoTitle: "Social-Media-Ideen für die Zahnarztpraxis",
+    seoDescription: "Themenideen für Instagram, Reels und TikTok in der Zahnarztpraxis: Patientenfragen, Behandlungen erklärt, Team, Saisonthemen und ein Beispielmonat.",
     description: "Themenideen für Instagram, Reels und TikTok in der Zahnarztpraxis: Patientenfragen, Behandlungen erklärt, Team, saisonale Themen, ein Beispielmonat und was Sie besser lassen.",
     h1: "Social Media für die Zahnarztpraxis: Themenideen",
     intro:
@@ -331,6 +337,8 @@ export const GUIDES_DE: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Patientenaufklärung per Video in der Zahnarztpraxis: Themen, Einsatz und Genauigkeit",
+    seoTitle: "Patientenaufklärung per Video in der Zahnarztpraxis",
+    seoDescription: "Aufklärungsvideos für die Zahnarztpraxis: welche Themen zuerst, Wartezimmer, E-Mail und Instagram, Skriptvorlage, Genauigkeit und Aufklärungspflicht.",
     description: "Aufklärungsvideos für die Zahnarztpraxis: welche Themen zuerst, Einsatz im Wartezimmer, per E-Mail und auf Instagram, Skriptvorlage, Genauigkeit und das Verhältnis zur Aufklärungspflicht.",
     h1: "Patientenaufklärung per Video in der Zahnarztpraxis",
     intro:
@@ -429,6 +437,8 @@ export const GUIDES_DE: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Zahnarzt-Werbung in Österreich und der Schweiz: ZÄG, Werberichtlinie und MedBG",
+    seoTitle: "Zahnarzt-Werbung in Österreich und der Schweiz",
+    seoDescription: "Was Zahnärzte in Österreich und der Schweiz in Social Media zeigen dürfen: § 35 ZÄG, Werberichtlinie der ÖZÄK, Art. 40 MedBG und SSO-Standesordnung.",
     description: "Was Zahnärzte in Österreich und der Schweiz in Social Media zeigen dürfen: § 35 ZÄG und Werberichtlinie der ÖZÄK, Art. 40 MedBG und SSO-Standesordnung. Keine Rechtsberatung.",
     h1: "Zahnarzt-Werbung in Österreich und der Schweiz",
     intro:
@@ -525,6 +535,8 @@ export const GUIDES_DE: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Praxismarketing für Zahnärzte: Agentur, Social-Media-Manager, Team oder Software?",
+    seoTitle: "Praxismarketing für Zahnärzte: Agentur oder selbst?",
+    seoDescription: "Social Media der Zahnarztpraxis organisieren: Agentur, Freelancer, Team oder Software im Vergleich, Fragen vor dem Vertrag und wer haftet.",
     description: "Social Media in der Zahnarztpraxis organisieren: Agentur, Freelancer, Team oder Software im Vergleich, Fragen vor dem Vertrag, ein Wochenablauf und wer haftet.",
     h1: "Praxismarketing für Zahnärzte: Agentur, Team oder Software?",
     intro:

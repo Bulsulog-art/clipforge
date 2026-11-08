@@ -18,6 +18,8 @@ export const GUIDES_TR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Diş hekimleri için Instagram videoları: ne çekilir, nasıl paylaşılır, nelere dikkat edilir",
+    seoTitle: "Diş hekimi Instagram videoları: ne paylaşılır?",
+    seoDescription: "Diş klinikleri için Instagram video rehberi: hastaların izlediği konular, Reels formatı, altyazı, paylaşım sıklığı ve yönetmeliğe uygun dil.",
     description: "Diş klinikleri için Instagram video rehberi: hastaların izlediği konular, Reels formatı, altyazı, paylaşım sıklığı ve 2025 tanıtım yönetmeliğine uygun dil.",
     h1: "Diş hekimleri için Instagram videoları",
     intro:
@@ -123,6 +125,8 @@ export const GUIDES_TR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Diş hekimi reklam yasağı: 2025 tanıtım yönetmeliğine göre sosyal medyada neler paylaşılabilir?",
+    seoTitle: "Diş hekimi reklam yasağı: neler paylaşılabilir?",
+    seoDescription: "2025 Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Yönetmeliği'ne göre diş hekimleri için yasak ifadeler, öncesi-sonrası, KVKK ve kontrol listesi.",
     description: "Diş hekimleri ve klinikler için reklam yasağı rehberi: 2025 Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Yönetmeliği, yasak ifadeler, öncesi-sonrası, KVKK ve kontrol listesi.",
     h1: "Diş hekimi reklam yasağı: sosyal medyada neler paylaşılabilir?",
     intro:
@@ -216,6 +220,8 @@ export const GUIDES_TR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Diş hekimleri için Instagram paylaşım fikirleri: bir yıllık, yönetmeliğe uygun konu listesi",
+    seoTitle: "Diş hekimi için Instagram paylaşım fikirleri",
+    seoDescription: "Diş klinikleri için Instagram ve TikTok paylaşım fikirleri: hasta soruları, tedavi açıklamaları, ekip, mevsimsel konular ve kaçınılacak içerikler.",
     description: "Diş klinikleri için Instagram ve TikTok paylaşım fikirleri: hasta soruları, tedavi açıklamaları, ekip ve klinik tanıtımı, mevsimsel konular ve kaçınılacak içerikler.",
     h1: "Diş hekimleri için Instagram paylaşım fikirleri",
     intro:
@@ -340,6 +346,8 @@ export const GUIDES_TR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Diş kliniklerinde hasta bilgilendirme videoları: hangi konular, nerede, nasıl doğru tutulur",
+    seoTitle: "Diş kliniği hasta bilgilendirme videoları",
+    seoDescription: "Diş klinikleri için hasta bilgilendirme videoları: tedavi öncesi ve sonrası konular, bekleme salonu ve WhatsApp kullanımı, doğruluk ve onam.",
     description: "Diş klinikleri için hasta bilgilendirme videosu rehberi: tedavi öncesi ve sonrası konular, bekleme salonu ve WhatsApp kullanımı, doğruluk ve onam ile ilişkisi.",
     h1: "Diş kliniklerinde hasta bilgilendirme videoları",
     intro:
@@ -444,6 +452,8 @@ export const GUIDES_TR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Diş kliniği sosyal medya yönetimi: ajans, serbest çalışan, ekip içi ya da yazılım?",
+    seoTitle: "Diş kliniği sosyal medya yönetimi: ajans mı?",
+    seoDescription: "Diş kliniği sosyal medyası için ajans, serbest içerik üreticisi, klinik ekibi ve yazılım: artıları, eksileri ve sözleşmeden önce sorulacak sorular.",
     description: "Diş kliniği sosyal medya yönetimi için seçenekler: reklam ajansı, serbest içerik üreticisi, klinik ekibi ve yazılım. Artıları, eksileri ve sözleşmeden önce sorulacak sorular.",
     h1: "Diş kliniği sosyal medya yönetimi: ajans mı, ekip mi, yazılım mı?",
     intro:
@@ -550,6 +560,8 @@ export const GUIDES_TR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Diş hekimi videosu telefonla nasıl çekilir: beş dakikalık çekim rehberi",
+    seoTitle: "Diş hekimi videosu telefonla nasıl çekilir?",
+    seoDescription: "Diş hekimleri için telefonla video çekimi: ışık, ses, kadraj, konuşma planı, mahremiyet kontrolü ve tek kayıttan bir haftalık kısa video.",
     description: "Diş hekimleri için telefonla video çekim rehberi: ışık, ses, kadraj, konuşma planı, mahremiyet kontrolü ve bir kayıttan bir haftalık kısa video çıkarma.",
     h1: "Diş hekimi videosu telefonla nasıl çekilir",
     intro:

@@ -6,7 +6,18 @@ import { ENTITY } from "./entity";
 import { guideTexts, guideWordCount, parseInline, plainText, resolveTarget, translationsOf } from "./text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "./ui";
 import { GUIDE_LIBRARY } from "./index";
-import { aboutJsonLd, dentvideoSitemapEntries, guideAlternates, guideJsonLd, guidesIndexJsonLd } from "@/lib/dentvid/seo-guides";
+import {
+  SEO_DESCRIPTION_MAX,
+  SEO_TITLE_MAX,
+  aboutJsonLd,
+  dentvideoSitemapEntries,
+  guideAlternates,
+  guideJsonLd,
+  guideMetadata,
+  guideSeoDescription,
+  guideSeoTitle,
+  guidesIndexJsonLd,
+} from "@/lib/dentvid/seo-guides";
 import { sitemapUrls, sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 import { INDEXNOW_KEY } from "@/lib/dentvid/indexnow";
@@ -111,6 +122,50 @@ describe("guide library", () => {
       expect(v, l).toContain(String(DV_FOUNDING.clinics));
     }
     expect(llmsTxt()).toContain("Paid plans from $39/month");
+  });
+});
+
+describe("search snippets", () => {
+  it("every guide's rendered title fits in 60 characters and its meta description in 155", () => {
+    for (const g of GUIDES) {
+      const m = guideMetadata(g);
+      const title = (m.title as { absolute: string }).absolute;
+      expect(title, g.slug).toBe(guideSeoTitle(g));
+      expect(title.length, `${g.slug}: ${title}`).toBeLessThanOrEqual(SEO_TITLE_MAX);
+      expect(String(m.description).length, g.slug).toBeLessThanOrEqual(SEO_DESCRIPTION_MAX);
+      expect(m.openGraph?.title, g.slug).toBe(g.seoTitle);
+      expect(m.twitter?.title, g.slug).toBe(g.seoTitle);
+      expect(m.openGraph?.description, g.slug).toBe(m.description);
+      expect(m.twitter?.description, g.slug).toBe(m.description);
+    }
+  });
+
+  it("guide titles are unique within each language", () => {
+    for (const l of LOCALES) {
+      const titles = guidesFor(l).map(guideSeoTitle);
+      expect(new Set(titles).size, l).toBe(titles.length);
+    }
+  });
+
+  it("keeps the brand suffix whenever it fits", () => {
+    for (const g of GUIDES) {
+      if (`${g.seoTitle} · DentVideo`.length <= SEO_TITLE_MAX) expect(guideSeoTitle(g), g.slug).toMatch(/ · DentVideo$/);
+    }
+  });
+
+  it("falls back to the full title and description without SEO fields", () => {
+    const g = { ...GUIDES[0], seoTitle: undefined, seoDescription: undefined };
+    expect(guideSeoTitle(g)).toBe(`${g.title} · DentVideo`);
+    expect(guideSeoDescription(g)).toBe(g.description);
+  });
+
+  it("snippets make no promises, superlatives or 'painless' claims", () => {
+    const banned = /\b(guarantee|painless|best|cheapest|no\.? ?1)\b|garantiert|schmerzfrei|beste[nrs]?\b|garantizad|sin dolor|mejor(es)?\b|garanti|sans douleur|meilleur|garantili|ağrısız|acısız|en iyi/i;
+    for (const g of GUIDES) expect(`${g.seoTitle} ${g.seoDescription}`, g.slug).not.toMatch(banned);
+  });
+
+  it("About meta descriptions fit in 155 characters", () => {
+    for (const l of LOCALES) expect(ENTITY[l].meta.description.length, l).toBeLessThanOrEqual(SEO_DESCRIPTION_MAX);
   });
 });
 

@@ -110,16 +110,40 @@ export function guideOgImagePath(g: Guide): string {
   return `${guidePath(g)}/opengraph-image`;
 }
 
+/** Longest title Google shows untruncated, in characters (roughly 600px). */
+export const SEO_TITLE_MAX = 60;
+/** Longest meta description Google shows untruncated, in characters. */
+export const SEO_DESCRIPTION_MAX = 155;
+const BRAND_SUFFIX = " · DentVideo";
+
+/**
+ * A guide's <title>: its short SEO title (or, without one, its full title)
+ * plus " · DentVideo" when that still fits in SEO_TITLE_MAX characters.
+ */
+export function guideSeoTitle(g: Guide): string {
+  if (!g.seoTitle) return `${g.title}${BRAND_SUFFIX}`;
+  const branded = `${g.seoTitle}${BRAND_SUFFIX}`;
+  return branded.length <= SEO_TITLE_MAX ? branded : g.seoTitle;
+}
+
+/** A guide's meta description: the short SEO one, falling back to the full description. */
+export function guideSeoDescription(g: Guide): string {
+  return g.seoDescription ?? g.description;
+}
+
 export function guideMetadata(g: Guide): Metadata {
   const url = absoluteUrl(guidePath(g));
   const languages = guideAlternates(g);
+  const title = guideSeoTitle(g);
+  const shareTitle = g.seoTitle ?? g.title;
+  const description = guideSeoDescription(g);
   return {
-    title: { absolute: `${g.title} · DentVideo` },
-    description: g.description,
+    title: { absolute: title },
+    description,
     alternates: { canonical: url, ...(languages ? { languages } : {}) },
     openGraph: {
-      title: g.title,
-      description: g.description,
+      title: shareTitle,
+      description,
       url,
       type: "article",
       siteName: "DentVideo",
@@ -128,7 +152,7 @@ export function guideMetadata(g: Guide): Metadata {
       ...(g.updated ? { modifiedTime: g.updated } : {}),
     },
     // The layout's generic X card text would otherwise apply; the image comes from opengraph-image.tsx.
-    twitter: { card: "summary_large_image", title: g.title, description: g.description },
+    twitter: { card: "summary_large_image", title: shareTitle, description },
   };
 }
 

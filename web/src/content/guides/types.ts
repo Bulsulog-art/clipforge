@@ -33,6 +33,15 @@ export type GuideExtras = {
    */
   topic?: string;
   category?: GuideCategory;
+  /**
+   * The search-result title, without the brand: it leads with the phrase
+   * people search for. " · DentVideo" is appended when the whole stays within
+   * 60 characters (see guideSeoTitle). The on-page H1 and `title` are unchanged;
+   * without it the page falls back to `title`.
+   */
+  seoTitle?: string;
+  /** The meta description (at most 155 characters); falls back to `description`. */
+  seoDescription?: string;
   /** ISO dates (YYYY-MM-DD). */
   published?: string;
   updated?: string;
