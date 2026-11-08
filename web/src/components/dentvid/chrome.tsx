@@ -8,6 +8,7 @@ import { appText } from "@/content/dentvideo-app";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { dvHref } from "@/lib/dentvid/host";
 import { DvLogo } from "./mark";
 import { Clapperboard, LogOut, Settings, Video } from "lucide-react";
 import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
@@ -72,6 +73,10 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
   // Until the visitor's language is known on the app screens, keep the space
   // but not the English words.
   const hide = ready ? "" : "invisible";
+  // <html lang> follows the page on client-side navigation (HtmlLang sets it on first load).
+  useEffect(() => {
+    if (ready) document.documentElement.lang = locale;
+  }, [locale, ready]);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -90,15 +95,15 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:h-[4.5rem] sm:px-6">
-        <Link href={home} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
+        <Link href={dvHref(home)} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
           <DvLogo className="h-7 w-auto sm:h-8" />
         </Link>
         {!quiet && (
           <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
-            <Link href={`${home}#how`} className={navLink}>{t.howItWorks}</Link>
-            <Link href={`${home}#pricing`} className={navLink}>{t.pricing}</Link>
-            <Link href={GUIDES_INDEX_PATH[locale]} className={navLink}>{GUIDE_UI[locale].guides}</Link>
-            <Link href="/dentvideo/app" className="dv-btn dv-btn-primary ml-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
+            <Link href={dvHref(`${home}#how`)} className={navLink}>{t.howItWorks}</Link>
+            <Link href={dvHref(`${home}#pricing`)} className={navLink}>{t.pricing}</Link>
+            <Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={navLink}>{GUIDE_UI[locale].guides}</Link>
+            <Link href={dvHref("/dentvideo/app")} className="dv-btn dv-btn-primary ml-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
               {t.openApp}
             </Link>
           </nav>
@@ -121,23 +126,23 @@ export function DvFooter({ guideLocales }: Props) {
       <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20">
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm">
-            <Link href={home} className="-m-1 inline-block rounded-lg p-1" aria-label="DentVideo">
+            <Link href={dvHref(home)} className="-m-1 inline-block rounded-lg p-1" aria-label="DentVideo">
               <DvLogo tone="dark" className="h-9 w-auto" />
             </Link>
             <p className={`mt-6 text-sm leading-relaxed text-[#a9c3be] ${ready ? "" : "invisible"}`}>{t.footer}</p>
           </div>
           <div className={`grid grid-cols-2 gap-x-16 text-sm ${ready ? "" : "invisible"}`}>
             <ul className="space-y-3.5">
-              <li><Link href={`${home}#how`} className={link}>{t.howItWorks}</Link></li>
-              <li><Link href={`${home}#pricing`} className={link}>{t.pricing}</Link></li>
-              <li><Link href={GUIDES_INDEX_PATH[locale]} className={link}>{GUIDE_UI[locale].guides}</Link></li>
-              <li><Link href={ABOUT_PATH[locale]} className={link}>{GUIDE_UI[locale].about}</Link></li>
-              <li><Link href="/dentvideo/app" className={link}>{t.openApp}</Link></li>
+              <li><Link href={dvHref(`${home}#how`)} className={link}>{t.howItWorks}</Link></li>
+              <li><Link href={dvHref(`${home}#pricing`)} className={link}>{t.pricing}</Link></li>
+              <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{GUIDE_UI[locale].guides}</Link></li>
+              <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{GUIDE_UI[locale].about}</Link></li>
+              <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>
             </ul>
             <ul className="space-y-3.5">
               {LOCALES.map((l) => (
                 <li key={l}>
-                  <Link href={LANDING_PATH[l]} hrefLang={l} lang={l} className={l === locale ? "rounded-md font-semibold text-white" : link}>
+                  <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} className={l === locale ? "rounded-md font-semibold text-white" : link}>
                     {LANGUAGE_NAME[l]}
                   </Link>
                 </li>

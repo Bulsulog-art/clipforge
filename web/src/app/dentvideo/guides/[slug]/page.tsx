@@ -6,9 +6,12 @@ import { GUIDES, LANDING_PATH, LANGUAGE_NAME, findGuide, guidePath } from "@/con
 import { readingMinutes, relatedGuides, sectionId, translationsOf } from "@/content/guides/text";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
-import { Breadcrumbs, GuideCta, RichText, formatDate } from "@/components/dentvid/guide-parts";
+import { dvHref } from "@/lib/dentvid/host";
+import { Breadcrumbs, GuideCta, HtmlLang, RichText, formatDate } from "@/components/dentvid/guide-parts";
 
-export const dynamicParams = false;
+// Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
+// inside the header and footer rather than Next's bare default.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }));
@@ -33,6 +36,7 @@ export default async function GuidePage({ params }: Props) {
   return (
     <main lang={L}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guideJsonLd(g)) }} />
+      <HtmlLang locale={L} />
 
       <article>
         <header className="relative isolate overflow-hidden border-b border-dv-line">
@@ -164,7 +168,7 @@ export default async function GuidePage({ params }: Props) {
           {translations.length > 0 && (
             <p className="mt-10 flex flex-wrap gap-x-4 gap-y-2 text-sm text-dv-muted">
               {translations.map((o) => (
-                <Link key={o.slug} href={guidePath(o)} hrefLang={o.locale} lang={o.locale} className="rounded-md font-medium text-dv-teal underline-offset-4 hover:underline">
+                <Link key={o.slug} href={dvHref(guidePath(o))} hrefLang={o.locale} lang={o.locale} className="inline-block rounded-md py-0.5 font-medium text-dv-teal underline-offset-4 hover:underline">
                   {LANGUAGE_NAME[o.locale]}
                 </Link>
               ))}
@@ -178,14 +182,14 @@ export default async function GuidePage({ params }: Props) {
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {related.map((o) => (
             <li key={o.slug}>
-              <Link href={guidePath(o)} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-ink">
+              <Link href={dvHref(guidePath(o))} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-ink">
                 {o.h1}
                 <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-x-0 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
             </li>
           ))}
           <li>
-            <Link href={GUIDES_INDEX_PATH[L]} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-teal">
+            <Link href={dvHref(GUIDES_INDEX_PATH[L])} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-teal">
               {ui.allGuides}
               <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
             </Link>

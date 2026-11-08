@@ -148,6 +148,9 @@ describe("structured data", () => {
       expect(page.mainEntity.itemListElement).toHaveLength(guidesFor(l).length);
       const types = (aboutJsonLd(l)["@graph"] as { "@type": string; publisher?: unknown }[]).map((n) => n["@type"]);
       expect(types).toEqual(expect.arrayContaining(["AboutPage", "Organization", "SoftwareApplication", "FAQPage"]));
+      // Google's SoftwareApplication rich result needs a priced offer.
+      const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown> }[]).find((n) => n["@type"] === "SoftwareApplication");
+      expect(app?.offers, l).toMatchObject({ "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: 39, highPrice: 219, offerCount: 3 });
     }
   });
 

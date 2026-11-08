@@ -78,3 +78,19 @@ export function HeroVideo({ src, poster, title, labels }: { src: string; poster:
     </>
   );
 }
+
+/**
+ * Stand-in for the live preview while its player loads: the same phone and the
+ * same two caption lines underneath, so nothing below moves when it arrives.
+ */
+export function PreviewPlaceholder() {
+  return (
+    <div aria-hidden="true" className="mx-auto w-full max-w-[300px]">
+      <PhoneFrame>
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-[#123b3a] to-[#0b2423]" />
+      </PhoneFrame>
+      <p className="mt-4 text-sm">&nbsp;</p>
+      <p className="mt-0.5 text-xs">&nbsp;</p>
+    </div>
+  );
+}

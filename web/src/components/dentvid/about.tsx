@@ -4,7 +4,8 @@ import { LANDING_PATH, type Locale } from "@/content/dentvideo";
 import { ENTITY } from "@/content/guides/entity";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { aboutJsonLd } from "@/lib/dentvid/seo-guides";
-import { Breadcrumbs, GuideCta } from "./guide-parts";
+import { dvHref } from "@/lib/dentvid/host";
+import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 
 /** What DentVideo is, stated plainly, with the facts as a definition list. */
 export function AboutPage({ locale }: { locale: Locale }) {
@@ -13,6 +14,7 @@ export function AboutPage({ locale }: { locale: Locale }) {
   return (
     <main lang={locale}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd(locale)) }} />
+      <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">
@@ -62,7 +64,7 @@ export function AboutPage({ locale }: { locale: Locale }) {
           <GuideCta locale={locale} />
         </div>
         <p className="mt-8 text-sm">
-          <Link href={GUIDES_INDEX_PATH[locale]} className="font-semibold text-dv-teal underline-offset-4 hover:underline">
+          <Link href={dvHref(GUIDES_INDEX_PATH[locale])} className="font-semibold text-dv-teal underline-offset-4 hover:underline">
             {ui.allGuides}
           </Link>
         </p>

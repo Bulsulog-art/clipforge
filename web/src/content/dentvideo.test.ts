@@ -16,6 +16,15 @@ describe("DentVideo landing content", () => {
     for (const l of LOCALES) expect(shape(LANDING[l]), l).toEqual(en);
   });
 
+  it("search snippets fit: titles up to 65 characters, descriptions 70–160", () => {
+    for (const l of LOCALES) {
+      const { title, description } = LANDING[l].meta;
+      expect(title.length, `${l} title`).toBeLessThanOrEqual(65);
+      expect(description.length, `${l} description`).toBeGreaterThanOrEqual(70);
+      expect(description.length, `${l} description`).toBeLessThanOrEqual(160);
+    }
+  });
+
   it("has no empty strings", () => {
     const walk = (v: unknown, path: string) => {
       if (typeof v === "string") expect(v.trim(), path).not.toBe("");

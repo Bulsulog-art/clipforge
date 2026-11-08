@@ -8,7 +8,9 @@ import { landingMetadata } from "@/lib/dentvid/seo";
 // Static siblings (app, start, guides, llms.txt) take precedence over this
 // dynamic segment, and anything else 404s.
 const OTHER = LOCALES.filter((l) => l !== "en");
-export const dynamicParams = false;
+// Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
+// inside the header and footer rather than Next's bare default.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return OTHER.map((locale) => ({ locale }));

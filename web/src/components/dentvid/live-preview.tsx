@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import dynamic from "next/dynamic";
 import { APP_TEXT } from "@/content/dentvideo-app";
 import type { Locale } from "@/content/dentvideo";
-import { PhoneFrame } from "./phone";
+import { PreviewPlaceholder } from "./phone";
 
 /**
  * A clinic's own weekly videos, playing in a phone before it has paid:
@@ -31,7 +31,7 @@ export type PreviewProfile = {
 
 const Player = dynamic(() => import("./live-preview-player"), {
   ssr: false,
-  loading: () => <PreviewSkeleton />,
+  loading: () => <PreviewPlaceholder />,
 });
 
 export function LivePreview({
@@ -47,15 +47,4 @@ export function LivePreview({
   // Italian and Portuguese clinics see the interface (and, for now, the videos) in English.
   const locale: Locale = profile.language in APP_TEXT ? (profile.language as Locale) : "en";
   return <Player profile={profile} backgrounds={backgrounds} text={APP_TEXT[locale].preview} className={className} />;
-}
-
-function PreviewSkeleton() {
-  return (
-    <div className="mx-auto w-full max-w-[300px]">
-      <PhoneFrame>
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-[#123b3a] to-[#0b2423]" />
-      </PhoneFrame>
-      <div className="mt-4 h-4" />
-    </div>
-  );
 }

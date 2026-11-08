@@ -19,8 +19,10 @@ import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
 import { appText } from "@/content/dentvideo-app";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { foundingOfferOpen } from "@/lib/dentvid/billing";
+import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
 import { Teaser } from "./teaser";
+import { HtmlLang } from "./guide-parts";
 
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
@@ -58,9 +60,11 @@ function Hero({ locale }: { locale: Locale }) {
           <h1 className="dv-display dv-rise-2 mt-6 text-balance max-w-[16ch] text-[2.625rem] leading-[1.02] text-dv-ink sm:text-6xl lg:max-w-[15ch] lg:text-[4.25rem] lg:leading-[0.98]">
             {c.hero.h1}
           </h1>
-          <p className="dv-rise-3 mt-7 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body sm:text-lg">{c.hero.lead}</p>
+          {/* Not animated in: this paragraph is the largest thing in the first screen (the LCP element), and
+              a fade from opacity 0 holds its paint back until after hydration on slow phones. */}
+          <p className="mt-7 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body sm:text-lg">{c.hero.lead}</p>
           <div className="dv-rise-3 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href={`/dentvideo/start?lang=${locale}`} className="dv-btn dv-btn-primary group px-7 py-4 text-base">
+            <Link href={dvHref(`/dentvideo/start?lang=${locale}`)} className="dv-btn dv-btn-primary group px-7 py-4 text-base">
               {c.hero.cta}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </Link>
@@ -273,7 +277,8 @@ function Samples({ locale }: { locale: Locale }) {
           <H2>{c.samples.heading}</H2>
           <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.samples.text}</p>
         </div>
-        <ul className="-mx-4 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
+        {/* On phones this row scrolls sideways, so keyboard users can focus and scroll it too. */}
+        <ul tabIndex={0} aria-label={c.samples.heading} className="-mx-4 mt-12 flex snap-x rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dv-teal snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
           {SAMPLE_VIDEOS[locale].map(({ slug, name, seconds }) => (
             <li key={slug} className="w-[72%] shrink-0 snap-center sm:w-auto">
               <PhoneFrame className="mx-auto max-w-[18rem]">
@@ -432,7 +437,7 @@ function Compare({ locale }: { locale: Locale }) {
 function Pricing({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   const p = c.pricing;
-  const start = `/dentvideo/start?lang=${locale}`;
+  const start = dvHref(`/dentvideo/start?lang=${locale}`);
   const founding = foundingOfferOpen();
   return (
     <section id="pricing" className="relative isolate mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
@@ -516,7 +521,7 @@ function Guides({ locale }: { locale: Locale }) {
       <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {guides.map((g) => (
           <li key={g.slug}>
-            <Link href={guidePath(g)} className="dv-card group flex h-full flex-col p-6 transition-shadow hover:shadow-[0_0_0_1px_rgba(15,92,92,0.35),0_18px_40px_-20px_rgba(15,92,92,0.35)]">
+            <Link href={dvHref(guidePath(g))} className="dv-card group flex h-full flex-col p-6 transition-shadow hover:shadow-[0_0_0_1px_rgba(15,92,92,0.35),0_18px_40px_-20px_rgba(15,92,92,0.35)]">
               <span className="flex items-start justify-between gap-4">
                 <span className="font-semibold leading-snug text-dv-ink">{g.h1}</span>
                 <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
@@ -560,11 +565,12 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
   return (
     <main lang={locale}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
+      <HtmlLang locale={locale} />
       <Hero locale={locale} />
       <Problem locale={locale} />
       <How locale={locale} />
       <Samples locale={locale} />
-      <Teaser locale={locale} copy={LANDING[locale].teaser} href={`/dentvideo/start?lang=${locale}`} />
+      <Teaser locale={locale} copy={LANDING[locale].teaser} href={dvHref(`/dentvideo/start?lang=${locale}`)} />
       <Checks locale={locale} />
       <Compare locale={locale} />
       <Pricing locale={locale} />
@@ -584,7 +590,7 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
             {l === current ? (
               <span className="dv-chip inline-flex rounded-full bg-dv-teal px-3.5 py-1.5 font-semibold text-white" aria-current="page">{LANGUAGE_NAME[l]}</span>
             ) : (
-              <Link href={LANDING_PATH[l]} hrefLang={l} lang={l} className="dv-chip inline-flex rounded-full bg-white px-3.5 py-1.5 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge">
+              <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} className="dv-chip inline-flex rounded-full bg-white px-3.5 py-1.5 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge">
                 {LANGUAGE_NAME[l]}
               </Link>
             )}

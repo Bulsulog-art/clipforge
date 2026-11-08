@@ -6,7 +6,8 @@ import { readingMinutes } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { ENTITY } from "@/content/guides/entity";
 import { guidesIndexJsonLd } from "@/lib/dentvid/seo-guides";
-import { Breadcrumbs, GuideCta } from "./guide-parts";
+import { dvHref } from "@/lib/dentvid/host";
+import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 
 const ORDER: GuideCategory[] = ["ideas", "video", "rules", "tools"];
 
@@ -19,6 +20,7 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
   return (
     <main lang={locale}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guidesIndexJsonLd(locale)) }} />
+      <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div aria-hidden="true" className="absolute -left-40 -top-24 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
@@ -49,7 +51,7 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
 
         <p className="mt-10 max-w-3xl text-sm leading-relaxed text-dv-muted">
           {ENTITY[locale].definition}{" "}
-          <Link href={ABOUT_PATH[locale]} className="font-medium text-dv-teal underline-offset-4 hover:underline">
+          <Link href={dvHref(ABOUT_PATH[locale])} className="font-medium text-dv-teal underline-offset-4 hover:underline">
             {ui.about}
           </Link>
         </p>
@@ -61,7 +63,7 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
 function GuideCard({ g, minutes }: { g: Guide; minutes: string }) {
   return (
     <Link
-      href={guidePath(g)}
+      href={dvHref(guidePath(g))}
       className="dv-card group flex h-full flex-col p-6 transition-shadow hover:shadow-[0_0_0_1px_rgba(15,92,92,0.35),0_18px_40px_-20px_rgba(15,92,92,0.35)]"
     >
       <span className="flex items-start justify-between gap-4">
