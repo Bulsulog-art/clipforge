@@ -47,7 +47,7 @@ Rules:
   * a common mistake: "You're brushing too hard — here's the sign."
   * a concrete number or timeframe: "Your toothbrush has a 3-month expiry date."
   * a relatable moment: "That sharp pain when you drink something cold?"
-  Never a generic textbook question ("What is X?", "Is X important?", "How does X work?"), never a bare topic label, never a listicle label ("3 tips for…", "5 things about…").
+  Never a generic textbook question ("What is X?", "Is X important?", "How does X work?"), never a hook that suggests dentists or clinics get things wrong (the clinic posts it), never a bare topic label, never a listicle label ("3 tips for…", "5 things about…").
   Open a loop, do not close it: the hook raises the question and the video answers it. "Implant treatment happens in 3 stages." gives the answer away; "Your implant isn't done on day one — here's why." makes people stay.
   Medicine is rarely absolute, and a reviewer will reject absolutes, so a myth hook challenges with "not quite" / "usually not", never a flat "No!".
 The examples above show shapes only — do not reuse their subjects.
@@ -111,7 +111,7 @@ A strong hook:
 - opens a question the video answers; it never gives the answer away;
 - sounds like something a person would say out loud in ${profile.language}, not a headline or a translation;
 - ${addressRule(profile)}
-Never: a textbook question ("What is X?"), a topic label or "Topic: description" line ("Your implant: a multi-step process"), a listicle ("3 tips…"), absolutes ("never", "always", "No!"), promises, prices, "best", fear.
+Never: anything suggesting dentists or clinics get things wrong ("What do dentists often skip?") — the clinic itself posts this; a textbook question ("What is X?"), a "Did you know?" opener in any language ("Lo sapeva?", "Wussten Sie?", "¿Sabías que?", "Biliyor muydunuz?"), a topic label or "Topic: description" line ("Your implant: a multi-step process"), a listicle ("3 tips…"), absolutes ("never", "always", "No!"), promises, prices, "best", fear.
 Score every candidate 1-5 as that scrolling patient would, strictly: 3 is "fine, forgettable".
 Vary the shapes across the week: at most half of the chosen hooks may be questions; the rest a mistake ("You're brushing too hard — here's the sign."), a moment ("That twinge when you sip something cold…"), or a surprising fact.
 Return JSON: { "hooks": [ { "index", "candidates": [ { "hook", "score" } ×4 ] } ] } — one entry per topic, same index.`,

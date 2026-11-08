@@ -427,3 +427,16 @@ describe("sharpenHooks", () => {
     expect((await sharpenHooks(broken, PROFILE, [TOPIC]))[0].hook).toBe(TOPIC.hook);
   });
 });
+
+describe("per-language agent material", () => {
+  it("covers every language a clinic can choose", async () => {
+    const { SPOKEN_CUES } = await import("./narrate.js");
+    const { AVOID_WORDS } = await import("./compliance.js");
+    // The languages the sign-up form offers (web/src/lib/dentvid/profile.ts).
+    const langs = ["en", "de", "es", "fr", "it", "pt", "tr"];
+    for (const l of langs) {
+      expect(SPOKEN_CUES[l], `spoken cues for ${l}`).toBeTruthy();
+      expect(AVOID_WORDS[l], `avoid words for ${l}`).toBeTruthy();
+    }
+  });
+});

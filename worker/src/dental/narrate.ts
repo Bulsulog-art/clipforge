@@ -29,6 +29,8 @@ export const SPOKEN_CUES: Record<string, string> = {
   de: `Gesprochenes Deutsch: "Wissen Sie was?", "ehrlich gesagt", "das heißt", kurze Sätze. Kein Behörden- oder Prospektdeutsch ("erfolgt", "gewährleistet", "im Rahmen von").`,
   es: `Español hablado y cercano: "mira", "la verdad es que", "o sea", frases cortas. Nada de folleto ("se lleva a cabo", "cabe destacar").`,
   fr: `Français parlé : "vous savez", "en fait", "du coup", phrases courtes. Pas de style brochure ("il convient de", "s'effectue").`,
+  it: `Italiano parlato e vicino: "sa una cosa?", "in pratica", "quindi", frasi brevi. Niente stile da opuscolo ("viene effettuato", "si raccomanda di").`,
+  pt: `Português falado e próximo: "sabe que mais?", "na verdade", "então", frases curtas. Nada de estilo de folheto ("é realizado", "recomenda-se").`,
   en: `Spoken English with contractions: "here's the thing", "honestly", "so". No brochure phrases ("is carried out", "it is important to note").`,
 };
 

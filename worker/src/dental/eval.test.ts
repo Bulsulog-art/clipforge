@@ -4,8 +4,8 @@ import { PANEL, reportMarkdown, summarise, type EvalRow } from "./eval.js";
 const row = (o: Partial<EvalRow>): EvalRow => ({ clinic: "C", language: "tr", topic: "T", service: "S", status: "ready", rewrites: 0, notes: [], ...o });
 
 describe("eval", () => {
-  it("panel covers four languages with valid profiles", () => {
-    expect(new Set(PANEL.map((p) => p.language))).toEqual(new Set(["tr", "de", "es", "en"]));
+  it("panel covers every supported language with valid profiles", () => {
+    expect(new Set(PANEL.map((p) => p.language))).toEqual(new Set(["tr", "de", "es", "en", "fr", "it", "pt"]));
   });
   it("summarises ready, first-pass, scores and spread per language", () => {
     const rows = [
