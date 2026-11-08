@@ -33,13 +33,6 @@ export const HREFLANG: Record<Locale, string> = { en: "en", de: "de", es: "es", 
 
 export type Faq = { q: string; a: string };
 
-/** Real output for a demo clinic (worker/src/dental/cli.ts --render), unedited; files in public/dentvideo/samples. */
-export const SAMPLE_VIDEOS = [
-  { slug: "whitening-myths-debunked", name: "Whitening thins your enamel? Not quite.", seconds: 27 },
-  { slug: "caring-for-clear-aligners", name: "That funky smell from your aligners? Avoid it this way.", seconds: 21 },
-  { slug: "proper-brushing-technique", name: "Missing spots when you brush? Here's a clue.", seconds: 20 },
-] as const;
-
 /** "DentVideo vs an agency vs doing it yourself": three columns, the same rows in every locale. */
 export type Comparison = {
   heading: string;
