@@ -27,8 +27,8 @@ export default async function AppHome() {
   if (!clinic) {
     return (
       <main lang={locale} className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <h1 className="text-3xl font-semibold tracking-tight">{t.setupTitle}</h1>
-        <p className="mt-2 text-[#4a5a57]">{t.setupLead}</p>
+        <h1 className="dv-display text-[2.5rem] leading-[1.05] sm:text-5xl">{t.setupTitle}</h1>
+        <p className="mt-2 text-dv-body">{t.setupLead}</p>
         <div className="mt-8"><ClinicForm locale={locale} /></div>
       </main>
     );
@@ -41,9 +41,9 @@ export default async function AppHome() {
       <RememberLocale locale={locale} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-[#6b7a77]">{profile.name ?? t.yourClinic}</p>
-          <h1 className="text-3xl font-semibold tracking-tight">{t.title}</h1>
-          <p className="mt-2 max-w-2xl text-[#4a5a57]">{t.lead}</p>
+          <p className="text-sm text-dv-muted">{profile.name ?? t.yourClinic}</p>
+          <h1 className="dv-display text-[2.5rem] leading-[1.05] sm:text-5xl">{t.title}</h1>
+          <p className="mt-2 max-w-2xl text-dv-body">{t.lead}</p>
         </div>
         <Link href="/dentvideo/app/settings" className="text-sm text-[#0f5c5c] underline-offset-4 hover:underline">
           {t.settings}

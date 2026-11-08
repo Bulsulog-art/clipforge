@@ -23,8 +23,8 @@ export default async function Settings() {
   return (
     <main lang={locale} className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <RememberLocale locale={locale} />
-      <h1 className="text-3xl font-semibold tracking-tight">{t.title}</h1>
-      <p className="mt-2 text-[#4a5a57]">{t.lead}</p>
+      <h1 className="dv-display text-[2.5rem] leading-[1.05] sm:text-5xl">{t.title}</h1>
+      <p className="mt-2 text-dv-body">{t.lead}</p>
       <div className="mt-8">
         <ClinicForm locale={locale} initial={profile} logoPath={clinic?.logo_path} submitLabel={t.save} />
       </div>

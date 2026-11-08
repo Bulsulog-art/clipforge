@@ -98,7 +98,7 @@ export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
     }
   }
 
-  const field = "mt-1 w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3 outline-none focus:border-[#0f5c5c] focus:ring-2 focus:ring-[#0f5c5c]/20";
+  const field = "dv-field";
   const label = "block text-sm font-medium";
 
   return (
@@ -144,7 +144,7 @@ export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
           placeholder={SERVICE_HINTS[p.language]}
           className={field}
         />
-        <span className="mt-1 block text-xs font-normal text-[#6b7a77]">{t.servicesHelp}</span>
+        <span className="mt-1 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
       </label>
       <label className={label}>
         {t.tone}
@@ -167,17 +167,17 @@ export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
         {t.brandColor}
         <span className="mt-1 flex items-center gap-3">
           <input type="color" value={p.brandColor} onChange={set("brandColor")} className="h-12 w-16 cursor-pointer rounded-lg border border-[#d9d1c3] bg-white" />
-          <span className="font-mono text-sm text-[#4a5a57]">{p.brandColor}</span>
+          <span className="font-mono text-sm text-dv-body">{p.brandColor}</span>
         </span>
       </label>
       <label className={`${label} sm:col-span-2`}>
         {t.logo}
         <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setLogo(e.target.files?.[0] ?? null)} className={`${field} file:mr-3 file:rounded-full file:border-0 file:bg-[#e6efed] file:px-3 file:py-1`} />
-        {logoPath && !logo && <span className="mt-1 block text-xs font-normal text-[#6b7a77]">{t.logoSaved}</span>}
+        {logoPath && !logo && <span className="mt-1 block text-xs font-normal text-dv-muted">{t.logoSaved}</span>}
       </label>
       {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f] sm:col-span-2" role="alert">{error}</p>}
       <div className="sm:col-span-2">
-        <button type="submit" disabled={busy} className="rounded-full bg-[#0f5c5c] px-8 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60">
+        <button type="submit" disabled={busy} className="dv-btn dv-btn-primary px-8 py-3">
           {busy ? t.saving : submitLabel ?? t.save}
         </button>
       </div>

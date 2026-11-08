@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowRight, ArrowUpRight, ChevronRight, Plus } from "lucide-react";
 import { GUIDES, LANDING, LANDING_PATH, findGuide, guidePath, guidesFor } from "@/content/dentvideo";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
+import { DvIcon } from "@/components/dentvid/mark";
 
 export const dynamicParams = false;
 
@@ -25,58 +27,79 @@ export default async function GuidePage({ params }: Props) {
   const related = guidesFor(g.locale).filter((o) => o.slug !== g.slug);
 
   return (
-    <main lang={g.locale} className="mx-auto max-w-3xl px-4 pb-24 pt-12 sm:px-6 sm:pt-16">
+    <main lang={g.locale}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guideJsonLd(g)) }} />
 
-      <nav aria-label="Breadcrumb" className="text-sm text-[#6b7a77]">
-        <Link href={home} className="underline-offset-4 hover:underline">DentVideo</Link>
-        <span className="mx-2" aria-hidden="true">/</span>
-        <span>{c.guidesHeading}</span>
-      </nav>
-
       <article>
-        <h1 className="mt-6 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{g.h1}</h1>
-        <p className="mt-6 text-lg text-[#4a5a57]">{g.intro}</p>
+      <header className="relative isolate overflow-hidden border-b border-dv-line">
+        <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
+        <div aria-hidden="true" className="absolute -right-40 -top-20 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
+        <div className="mx-auto max-w-3xl px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-16">
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-dv-muted">
+            <Link href={home} className="rounded-md font-medium text-dv-teal underline-offset-4 hover:underline">DentVideo</Link>
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{c.guidesHeading}</span>
+          </nav>
+          <h1 className="dv-display mt-6 text-balancetext-[2.5rem] leading-[1.04] text-dv-ink sm:text-[3.5rem]">{g.h1}</h1>
+          <p className="mt-6 text-lg leading-relaxed text-dv-body sm:text-xl">{g.intro}</p>
+        </div>
+      </header>
 
+      <div className="mx-auto max-w-3xl px-4 pb-8 pt-4 sm:px-6">
         {g.sections.map((s) => (
-          <section key={s.heading} className="mt-12">
-            <h2 className="text-2xl font-semibold tracking-tight">{s.heading}</h2>
+          <section key={s.heading} className="mt-12 sm:mt-14">
+            <h2 className="text-[1.5rem] font-semibold leading-snug tracking-tight text-dv-ink sm:text-[1.75rem]">{s.heading}</h2>
             {s.paragraphs.map((p, i) => (
-              <p key={i} className="mt-4 leading-relaxed text-[#33423f]">{p}</p>
+              <p key={i} className="mt-4 text-[1.0625rem] leading-[1.75] text-[#33423f]">{p}</p>
             ))}
           </section>
         ))}
 
-        <aside className="mt-14 rounded-2xl bg-[#0f5c5c] p-7 text-[#f5efe6] sm:p-9">
-          <p className="text-xl font-semibold leading-snug">{c.hero.h1}</p>
-          <p className="mt-2 text-[#cfe2df]">{c.pricing.text}</p>
-          <Link href={`/dentvideo/start?lang=${g.locale}`} className="mt-6 inline-block rounded-full bg-[#f5efe6] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-white">
+        <aside className="dv-on-dark dv-grain relative isolate mt-16 overflow-hidden rounded-[1.5rem] bg-dv-teal-900 p-7 text-[#f7f1e7] sm:p-10">
+          <div aria-hidden="true" className="absolute -right-24 -top-24 -z-10 h-72 w-72 rounded-full bg-[#167269] opacity-70 blur-3xl" />
+          <DvIcon tone="dark" className="h-11 w-11" />
+          <p className="dv-display mt-6 text-[1.875rem] leading-[1.1] text-white sm:text-[2.25rem]">{c.hero.h1}</p>
+          <p className="mt-3 max-w-xl leading-relaxed text-[#cfe2df]">{c.pricing.text}</p>
+          <Link href={`/dentvideo/start?lang=${g.locale}`} className="dv-btn dv-btn-light group mt-7 px-6 py-3.5">
             {c.hero.cta}
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
         </aside>
 
-        <section className="mt-14">
-          <h2 className="text-2xl font-semibold tracking-tight">{c.faqHeading}</h2>
-          <dl className="mt-6 space-y-6">
-            {g.faq.map((f) => (
-              <div key={f.q} className="border-b border-[#e8e1d5] pb-6">
-                <dt className="font-semibold">{f.q}</dt>
-                <dd className="mt-2 text-[#4a5a57]">{f.a}</dd>
-              </div>
+        <section className="mt-16">
+          <h2 className="dv-display text-[2rem] leading-tight text-dv-ink sm:text-[2.5rem]">{c.faqHeading}</h2>
+          <div className="mt-6 divide-y divide-dv-line border-y border-dv-line">
+            {g.faq.map((f, i) => (
+              <details key={f.q} className="group" open={i === 0}>
+                <summary className="flex cursor-pointer items-start justify-between gap-6 py-5 text-left font-semibold leading-snug text-dv-ink">
+                  {f.q}
+                  <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-300 group-open:rotate-45">
+                    <Plus className="h-4 w-4" />
+                  </span>
+                </summary>
+                <p className="-mt-1 pb-6 pr-12 leading-relaxed text-dv-body">{f.a}</p>
+              </details>
             ))}
-          </dl>
+          </div>
         </section>
+      </div>
       </article>
 
-      <nav aria-label={c.guidesHeading} className="mt-14 border-t border-[#e8e1d5] pt-8">
-        <ul className="space-y-3">
+      <nav aria-label={c.guidesHeading} className="mx-auto max-w-3xl px-4 pb-24 pt-10 sm:px-6">
+        <ul className="grid gap-3 sm:grid-cols-2">
           {related.map((o) => (
             <li key={o.slug}>
-              <Link href={guidePath(o)} className="font-medium text-[#0f5c5c] underline-offset-4 hover:underline">{o.h1}</Link>
+              <Link href={guidePath(o)} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-ink">
+                {o.h1}
+                <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+              </Link>
             </li>
           ))}
           <li>
-            <Link href={home} className="font-medium text-[#0f5c5c] underline-offset-4 hover:underline">DentVideo — {c.hero.eyebrow}</Link>
+            <Link href={home} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-teal">
+              DentVideo — {c.hero.eyebrow}
+              <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
           </li>
         </ul>
       </nav>
