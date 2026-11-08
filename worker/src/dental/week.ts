@@ -1,6 +1,7 @@
 import type OpenAI from "openai";
 import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import { narrate } from "./narrate.js";
+import { AGENT_MODEL } from "./llm.js";
 import { guardFootage } from "./footage.js";
 import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
@@ -201,8 +202,8 @@ export async function produceVideo(
         (previous && fixes.length
           ? `\nThis is a revision. Keep the previous version below — its structure, scenes and wording — and change ONLY what the reviewer required:\n${JSON.stringify({ scenes: previous.scenes, voiceover: previous.voiceover })}`
           : "");
-      const { plan } = await planFromPrompt({ prompt: brief, aspect: "9:16" }, deps.client).catch((err: Error) =>
-        planFromPrompt({ prompt: `${brief}\nThe previous attempt was invalid: ${err.message}. Keep every on-screen text well under its limit.`, aspect: "9:16" }, deps.client),
+      const { plan } = await planFromPrompt({ prompt: brief, aspect: "9:16", model: AGENT_MODEL }, deps.client).catch((err: Error) =>
+        planFromPrompt({ prompt: `${brief}\nThe previous attempt was invalid: ${err.message}. Keep every on-screen text well under its limit.`, aspect: "9:16", model: AGENT_MODEL }, deps.client),
       );
       // The planner's voice-over reads like a leaflet; the narrator rewrites
       // it from the screen text alone, so the reviews below still see one story.

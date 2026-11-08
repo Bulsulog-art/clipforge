@@ -18,6 +18,7 @@ import { produceWeek } from "./week.js";
 import { clipsFromRecording } from "./recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { prepareVoiceover } from "../remotion/voiceover.js";
+import { resolveVoice } from "./voice.js";
 
 // Node's built-in fetch, not the SDK's bundled node-fetch: the built-in one
 // honours HTTPS_PROXY (with NODE_USE_ENV_PROXY=1), so the CLI runs behind a
@@ -76,7 +77,10 @@ async function main() {
         ? async (plan, topic) => {
             const dir = path.join(outDir, slug(topic.title));
             await fs.mkdir(dir, { recursive: true });
-            const voice = await prepareVoiceover(plan, dir);
+            const voice = await prepareVoiceover(plan, dir, {
+              ...resolveVoice(profile.language),
+              onFallback: (e) => console.warn(`  ! tts model failed, used tts-1-hd: ${e.message}`),
+            });
             const res = await renderPlan({
               plan: voice.plan,
               voiceoverSrc: voice.voiceoverPath,

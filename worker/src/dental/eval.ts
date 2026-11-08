@@ -25,10 +25,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import OpenAI from "openai";
 import { z } from "zod";
-import { agentJson, REVIEW_MODEL } from "./llm.js";
+import { AGENT_MODEL, agentJson, JUDGE_MODEL, REVIEW_MODEL } from "./llm.js";
 import { clinicProfileSchema, type ClinicProfile } from "./profile.js";
 import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { patientSearches } from "./questions.js";
+import { totalSeconds } from "../remotion/scene-plan.js";
 import { planText, produceVideo, type VideoPackage } from "./week.js";
 
 export const PANEL: ClinicProfile[] = [
@@ -58,7 +59,7 @@ const judgeSchema = z.object({
 /** One independent judge, deliberately not the writer's model or prompt. */
 export async function judge(client: OpenAI, profile: ClinicProfile, hook: string, narration: string) {
   return agentJson(client, {
-    model: REVIEW_MODEL,
+    model: JUDGE_MODEL,
     temperature: 0,
     system: `You judge short dental-education videos for a clinic's Instagram/TikTok, as a native ${profile.language} speaker.
 Score strictly; 3 is "fine, forgettable", 5 is rare.
@@ -86,6 +87,10 @@ export type EvalRow = {
   hookWhy?: string;
   voiceScore?: number;
   voiceWhy?: string;
+  /** The narration as it would be spoken, for listening tests. */
+  narration?: string;
+  /** The plan's length before it is stretched to the voice, in seconds. */
+  planSeconds?: number;
 };
 
 export function summarise(rows: EvalRow[]) {
@@ -138,9 +143,54 @@ export function reportMarkdown(rows: EvalRow[], s: ReturnType<typeof summarise>,
   return lines.join("\n");
 }
 
+/**
+ * USD per 1M tokens (input, output), standard tier. gpt-4o/4o-mini/4.1/5 from
+ * OpenAI's price list; gpt-5.4/5.5 from price aggregators (2026 — OpenAI's
+ * page was unreachable from here). Unknown models report tokens only.
+ */
+export const PRICES: Record<string, [number, number]> = {
+  "gpt-4o-mini": [0.15, 0.6],
+  "gpt-4o": [2.5, 10],
+  "gpt-4.1-mini": [0.4, 1.6],
+  "gpt-4.1": [2, 8],
+  "gpt-4.1-nano": [0.1, 0.4],
+  "gpt-5-mini": [0.25, 2],
+  "gpt-5": [1.25, 10],
+  "gpt-5.4-mini": [0.75, 4.5],
+  "gpt-5.4": [2.5, 15],
+  "gpt-5.5": [5, 30],
+};
+
+export type Usage = Record<string, { calls: number; input: number; output: number }>;
+
+export function usageCost(usage: Usage): number | undefined {
+  let usd = 0;
+  for (const [model, u] of Object.entries(usage)) {
+    const price = PRICES[model];
+    if (!price) return undefined;
+    usd += (u.input * price[0] + u.output * price[1]) / 1e6;
+  }
+  return Math.round(usd * 10000) / 10000;
+}
+
+/** Counts every chat completion's tokens by model, without touching the agents. */
+export function meterClient(client: OpenAI, usage: Usage): OpenAI {
+  const completions = client.chat.completions;
+  const create = completions.create.bind(completions) as (body: unknown, opts?: unknown) => Promise<unknown>;
+  (completions as unknown as { create: unknown }).create = async (body: { model: string }, opts?: unknown) => {
+    const res = (await create(body, opts)) as OpenAI.Chat.ChatCompletion;
+    const u = (usage[body.model] ??= { calls: 0, input: 0, output: 0 });
+    u.calls++;
+    u.input += res.usage?.prompt_tokens ?? 0;
+    u.output += res.usage?.completion_tokens ?? 0;
+    return res;
+  };
+  return client;
+}
+
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
-async function evalClinic(client: OpenAI, profile: ClinicProfile, per: number): Promise<EvalRow[]> {
+async function evalClinic(client: OpenAI, judgeClient: OpenAI, profile: ClinicProfile, per: number): Promise<EvalRow[]> {
   const patientSearchList = process.env.EVAL_SEARCHES ? await patientSearches(profile.services, profile.language, profile.country) : [];
   const topics = await sharpenHooks(client, profile, await planWeek(client, profile, { count: per, patientSearches: patientSearchList }));
   const rows: EvalRow[] = [];
@@ -167,7 +217,8 @@ async function evalClinic(client: OpenAI, profile: ClinicProfile, per: number): 
     }
     const hookScene = pkg.plan.scenes.find((s) => s.kind === "hook");
     const hook = hookScene && "text" in hookScene ? hookScene.text : topic.hook;
-    const verdict = await judge(client, profile, hook, pkg.plan.voiceover?.text ?? planText(pkg.plan));
+    const narration = pkg.plan.voiceover?.text ?? planText(pkg.plan);
+    const verdict = await judge(judgeClient, profile, hook, narration);
     rows.push(
       base(profile, topic, {
         status: "ready",
@@ -178,6 +229,8 @@ async function evalClinic(client: OpenAI, profile: ClinicProfile, per: number): 
         hookWhy: verdict.hookWhy,
         voiceScore: verdict.voice,
         voiceWhy: verdict.voiceWhy,
+        narration,
+        planSeconds: totalSeconds(pkg.plan),
       }),
     );
   }
@@ -196,17 +249,36 @@ async function main() {
   const per = Number(arg("per") ?? 4);
   const out = path.resolve(arg("out") ?? "dental-eval");
   const only = arg("only")?.split(",");
-  const client = new OpenAI({ fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] });
+  const fetchOpt = { fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] };
+  // Production calls are metered; the judge runs on its own client so its
+  // tokens (the eval's cost, not a video's) stay out of the bill.
+  const usage: Usage = {};
+  const client = meterClient(new OpenAI(fetchOpt), usage);
+  const judgeClient = new OpenAI(fetchOpt);
   const panel = PANEL.filter((p) => !only || only.includes(p.language));
 
   // Clinics run in parallel; each clinic's videos run in order, as in production.
-  const rows = (await Promise.all(panel.map((p) => evalClinic(client, p, per)))).flat();
+  const started = Date.now();
+  const rows = (await Promise.all(panel.map((p) => evalClinic(client, judgeClient, p, per)))).flat();
   const s = summarise(rows);
+  const usd = usageCost(usage);
+  const readyCount = rows.filter((r) => r.status === "ready").length;
+  const costs = {
+    agentModel: AGENT_MODEL,
+    reviewModel: REVIEW_MODEL,
+    judgeModel: JUDGE_MODEL,
+    usage,
+    usd,
+    usdPerVideo: usd === undefined ? undefined : Math.round((usd / rows.length) * 10000) / 10000,
+    usdPerReadyVideo: usd === undefined || !readyCount ? undefined : Math.round((usd / readyCount) * 10000) / 10000,
+    minutes: Math.round((Date.now() - started) / 600) / 100,
+  };
   const when = new Date().toISOString().slice(0, 16).replace("T", " ");
   await fs.mkdir(out, { recursive: true });
-  await fs.writeFile(path.join(out, "eval.json"), JSON.stringify({ when, summary: s, rows }, null, 2));
+  await fs.writeFile(path.join(out, "eval.json"), JSON.stringify({ when, summary: s, costs, rows }, null, 2));
   await fs.writeFile(path.join(out, "report.md"), reportMarkdown(rows, s, when));
   console.log(reportMarkdown(rows, s, when).split("## Videos")[0]);
+  console.log(JSON.stringify(costs, null, 2));
 }
 
 if (process.argv[1] && /eval\.(ts|js|mts)$/.test(process.argv[1])) {

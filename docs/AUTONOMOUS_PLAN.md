@@ -163,3 +163,127 @@ The judge reads formal address as "less warm". Formal address is the clinic's ch
 
 What the judge still asks for: more surprise in hooks and warmer Turkish narration.
 These are the next levers. The writer brief is fine; the reviewers no longer cost rewrites for nothing.
+
+## Model choice (2026-11-08)
+
+**Question from the owner:** are the agents and the voice on the best models?
+
+**Answer, measured:**
+- **Text:** switched to **gpt-5.4-mini** for the writers and **gpt-5.4** for the reviewers (narrator, hook editor, strategist, accuracy, compliance).
+  - Over two runs, ready rate and hook score held.
+  - The first-pass rate went from 67% to 88%.
+  - The voice score went from 3.48 to 4.09. The biggest gain was Turkish, from 3.0 to 4.0.
+  - The cost is about one cent more per video.
+- **Voice:** stays on **tts-1-hd** in all four languages tested.
+  - gpt-4o-mini-tts, with per-language dentist instructions, transcribed just as accurately.
+  - It scored the same or lower in a side-by-side listening test, in every language.
+  - It reads 8–12% slower in tr, de and es.
+  - It stays available behind a flag.
+
+### Text models: tr, de, en, `--per 4`, judge fixed on gpt-4o
+
+| Writer / reviewer | Runs | Videos | Ready | First pass | Hook | Voice | Voice tr / de / en | $/ready video |
+|---|---|---|---|---|---|---|---|---|
+| gpt-4o-mini / gpt-4o (before) | 2 | 24 | 96% | 67% | 3.96 | 3.48 | 3.00 / 3.38 / 4.00 | 0.0236 |
+| gpt-4.1-mini / gpt-4.1 | 2 | 21¹ | 90% | 48% | 4.16 | 4.05 | 3.86 / 3.80 / 4.43 | 0.0286 |
+| gpt-4o-mini / gpt-5.4 | 1 | 12 | 100% | 58% | 4.00 | 4.00 | 4.00 / 4.00 / 4.00 | 0.0337 |
+| **gpt-5.4-mini / gpt-5.4 (now)** | 2 | 24 | 96% | **88%** | 3.96 | **4.09** | 4.00 / 4.00 / 4.25 | 0.0340 |
+
+Per run:
+
+| Config | Ready | First pass | Hook | Voice |
+|---|---|---|---|---|
+| before, run 1 | 100% | 83% | 3.92 | 3.33 |
+| before, run 2 | 92% | 50% | 4.00 | 3.64 |
+| gpt-4.1-mini/4.1, run 1 | 100% | 60% | 4.20 | 4.00 |
+| gpt-4.1-mini/4.1, run 2 | 82% | 36% | 4.11 | 4.11 |
+| gpt-5.4-mini/5.4, run 1 | 100% | 83% | 3.92 | 4.08 |
+| gpt-5.4-mini/5.4, run 2 | 92% | 92% | 4.00 | 4.09 |
+
+¹ The gpt-4.1 strategist planned fewer topics than asked: German got 2 and then 3 topics instead of 4.
+
+**Why gpt-5.4-mini / gpt-5.4:**
+- **The rule was:** change a reviewer only if ready rate, hook and voice all hold or improve over two runs, and change a writer only if the first-pass rate improves. This config is the only one that meets both.
+- **The voice gain is real, not noise.** It holds in both runs (+0.75 and +0.45 over the matching baseline run). The per-video notes show why.
+  - The gpt-4o narrator wrote Turkish judged "formal and repetitive, lacking warmth", e.g. "Diş taşı temizliği, bu sorunları önlemeye yardımcı olabilir. Diş taşı, diş etlerinizin…".
+  - gpt-5.4 opens with the patient's own situation, e.g. "Temizlikten sonra bir şey içerken dişiniz sızladı mı? Bakın, …", and is judged "conversational, like a dentist's natural explanation".
+- **The gpt-5.4 reviewer alone gives the voice gain.** The third row shows this, but with the old writer the first-pass rate fell to 58%. The gpt-5.4-mini writer is what lifts first pass.
+- **gpt-4.1/4.1 scored a little higher on hook, but failed the ready rule.** It lost ready rate (82% in run 2), had the most rewrites, and its strategist under-planned the week.
+- **Not tested:**
+  - gpt-5.5. At $5/$30 per million tokens it would cost about twice as much again, and gpt-5.4 already reaches the judge's ceiling of about 4.
+  - gpt-5.6 and gpt-6.x. No public price was found for them.
+  - Reasoning effort. The reasoning models run at the lowest effort; higher effort was not measured.
+
+**Risk seen:** 1 of 24 videos with the new writer was lost to a scene plan whose text ran over a length limit, even after the retry. The old configuration also lost one video (tr), to a reviewer rejection. The retry hint already names the limit. If this repeats in production, the next step is to have the planner shorten the text instead.
+
+**Cost:** text costs **$0.034 per ready video, up from $0.024** (+$0.010, +44%), with metered tokens and the judge excluded. That is about $0.05 more per clinic per 5-video week, which is negligible against the $39 Starter plan.
+- Prices per million tokens (input / output): gpt-4o-mini 0.15/0.60, gpt-4o 2.50/10, gpt-4.1-mini 0.40/1.60, gpt-4.1 2/8, gpt-5.4-mini 0.75/4.50, gpt-5.4 2.50/15.
+- The gpt-5.4 prices come from price aggregators, because platform.openai.com is outside this session's allowlist. Check them against the OpenAI invoice.
+- To roll back without a deploy: `DENTVID_AGENT_MODEL=gpt-4o-mini DENTVID_REVIEW_MODEL=gpt-4o`.
+
+### Voice: tts-1-hd vs gpt-4o-mini-tts
+**Setup:**
+- Same scripts, voice "nova".
+- gpt-4o-mini-tts gets the per-language brief in `worker/src/dental/voice.ts`: a warm, calm dentist, one patient, natural pace, correct dental terms, Castilian for es.
+- Run 2 used 3 new-model narrations each for tr/de/en and 2 for es.
+- Run 1 used 2 old-model narrations per language.
+
+**What was measured:**
+- **Length:** spoken length against the plan.
+- **Words per second.**
+- **Loudness and silence:** EBU R128 loudness and total silence (pauses over 0.6 s), from ffmpeg.
+- **WER:** gpt-4o-transcribe's transcript compared with the script.
+- **Side-by-side score:** gpt-audio scored both clips together for natural, accuracy and warmth, 1–10 each (sum 3–30), in both orders.
+
+| Lang | Model | Length vs plan | Words/s | LUFS | WER | Side-by-side (3–30) |
+|---|---|---|---|---|---|---|
+| tr | tts-1-hd | 1.32 | 2.04 | −27.1 | 0.01 | **25.0** |
+| tr | gpt-4o-mini-tts | 1.43 | 1.87 | −19.6 | 0.01 | 23.0 |
+| de | tts-1-hd | 1.16 | 2.62 | −26.1 | 0.03 | 24.5 |
+| de | gpt-4o-mini-tts | 1.23 | 2.46 | −19.5 | 0.02 | 24.5 |
+| es | tts-1-hd | 1.21 | 2.94 | −25.3 | 0.02 | **25.3** |
+| es | gpt-4o-mini-tts | 1.35 | 2.61 | −19.6 | 0.03 | 22.5 |
+| en | tts-1-hd | 1.30 | 2.93 | −25.8 | 0.01 | **24.8** |
+| en | gpt-4o-mini-tts | 1.31 | 2.91 | −20.2 | 0.01 | 24.5 |
+
+Run 1 had single-clip scores on a 1–5 scale. tts-1-hd scored the same or higher on naturalness in every language (5.0 against 4.0–5.0).
+
+In run 1 the judge flagged two mispronunciations, both from gpt-4o-mini-tts: "meigen" in German and "clínica" in Spanish. tts-1-hd had none.
+
+**Decision:** tts-1-hd stays the default in all four languages. The rule was "switch where gpt-4o-mini-tts wins with WER no worse". It won nowhere: two ties and two losses, with WER equal.
+- gpt-4o-mini-tts also speaks 8–12% slower in tr/de/es. That stretches the video, because the plan is fitted to the voice.
+- To try it per language: `DENTVID_TTS_MODEL_<LANG>=gpt-4o-mini-tts`. The instructions are applied, and on any error the narration falls back to tts-1-hd.
+
+**Limits of this test:**
+- **gpt-audio is a weak judge.**
+  - Asked "which do you prefer", it picked whichever clip came second in 15 of 16 pairs (the other gave no answer), so that method was dropped for scoring both clips side by side.
+  - It refused or gave no scores in about 30% of the single-clip scorings (11 of 38).
+  - Its scores bunch at 8–9 out of 10.
+  - Read these as "no evidence that gpt-4o-mini-tts is better", not as "tts-1-hd is clearly better".
+- **No human listened.** Samples are in the scratchpad, and an owner's listen to tr and de is the cheapest next check.
+
+**Separate finding:** both voices come out quiet. tts-1-hd measures about −26 LUFS and gpt-4o-mini-tts about −20, while Instagram and TikTok play around −14. The render applies no loudness normalisation; music is mixed at 0.12. A `loudnorm` pass on the voice-over would help whichever model is used.
+
+### How to re-run
+```
+cd worker
+DENTVID_AGENT_MODEL=<writer> DENTVID_REVIEW_MODEL=<reviewer> NODE_USE_ENV_PROXY=1 \
+  npx tsx src/dental/eval.ts --per 4 --only tr,de,en --out eval-<name>   # judge stays gpt-4o
+npx tsx src/dental/voice-eval.ts --from eval-<name>/eval.json --out voice --per-lang 3
+```
+- **Text eval:** `eval.json` records `costs` (tokens per model, $ per video and per ready video, judge excluded) and each ready video's narration and planned length.
+- **Model settings:** `worker/src/lib/model-params.ts` handles what each model accepts. The gpt-5/6 reasoning models reject any temperature except 1 and take `reasoning_effort` instead. gpt-5.4 accepts a temperature when its reasoning effort is "none".
+- **Models the key can use (2026-11-08):** gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5.1, gpt-5.2, gpt-5.4, gpt-5.4-mini, gpt-5.4-nano, gpt-5.5, gpt-5.6-*, gpt-6-*, gpt-6.1-*, o3, tts-1, tts-1-hd, gpt-4o-mini-tts, gpt-audio, gpt-4o-transcribe, whisper-1.
+
+### Would Anthropic Claude or ElevenLabs be better?
+- **Claude (writer, narrator, reviewer):**
+  - The voice score was the weakest number, and it moved most when the narrator model changed. A model that writes more natural non-English prose is the most likely next gain, and Claude models are strong there.
+  - This is untested.
+  - It needs an `ANTHROPIC_API_KEY` and a small adapter in `agentJson` (JSON via a tool call).
+  - The judge must stay on gpt-4o, so the comparison stays fair.
+  - Not integrated: no key.
+- **ElevenLabs (voice):**
+  - Since gpt-4o-mini-tts did not beat tts-1-hd, the next voice candidate is ElevenLabs `eleven_multilingual_v2`. It is generally rated more natural than OpenAI voices for non-English speech, at roughly 3–10× tts-1-hd's price per minute.
+  - The worker already has the code path (`steps/tts.ts`, used for cloned voices).
+  - It needs `ELEVENLABS_API_KEY` and one stock voice id per language. `voice-eval.ts` can then compare it in the same test, ideally with a human listening as well.
+  - Not enabled: no key.

@@ -28,6 +28,11 @@ type TTSArgs = {
    * elevenLabsVoiceId is set.
    */
   modelId?: string;
+  /**
+   * How to speak (tone, pace, pronunciation). Only gpt-4o-mini-tts reads it;
+   * it is left out of the request for tts-1 / tts-1-hd.
+   */
+  instructions?: string;
 };
 
 /**
@@ -96,14 +101,16 @@ async function synthesizeViaOpenAI(a: TTSArgs): Promise<{
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
 
   const voice = resolveVoice(a.voiceId);
+  // tts-1 (not -hd) by default: after the 9:16 blur+letterbox and bg-music
+  // mix the HD difference is marginal for short avatar scripts, at ~half the
+  // OpenAI TTS spend. Callers can still pass modelId to force tts-1-hd.
+  const model = a.modelId ?? "tts-1";
   const body = {
-    // tts-1 (not -hd) by default: after the 9:16 blur+letterbox and bg-music
-    // mix the HD difference is marginal for short avatar scripts, at ~half the
-    // OpenAI TTS spend. Callers can still pass modelId to force tts-1-hd.
-    model: a.modelId ?? "tts-1",
+    model,
     voice,
     input: a.text,
     response_format: "mp3",
+    ...(a.instructions && !model.startsWith("tts-1") ? { instructions: a.instructions } : {}),
   };
 
   const res = await fetch(`${OPENAI_BASE}/audio/speech`, {
