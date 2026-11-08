@@ -12,10 +12,10 @@ import { LogoPreview } from "./logo-preview";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, splitServices } from "@/lib/dentvid/service-hints";
 
-const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "AE", "CA", "AU"];
+const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "PL", "JP", "SG", "AE", "SA", "QA", "KW", "BH", "OM", "CA", "AU"];
 
 /** A new clinic starts in the country and language the visitor came in with. */
-const DEFAULT_COUNTRY: Record<Locale, string> = { en: "US", de: "DE", es: "ES", tr: "TR", fr: "FR" };
+const DEFAULT_COUNTRY: Record<Locale, string> = { en: "US", de: "DE", es: "ES", tr: "TR", fr: "FR", ja: "JP", ar: "AE", pl: "PL" };
 
 /** Brand colours to try when the logo gives none (or there is no logo yet). */
 const PRESET_COLOURS = ["#0f5c5c", "#1f4e79", "#2e7d6b", "#b6774f", "#8a3b4a", "#24303a"];

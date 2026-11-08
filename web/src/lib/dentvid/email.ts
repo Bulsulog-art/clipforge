@@ -108,6 +108,42 @@ const COPY: Record<string, Copy> = {
     button: "Videoları inceleyin",
     footer: "Bu e-postayı kliniğiniz DentVideo kullandığı için alıyorsunuz.",
   },
+  ja: {
+    weekSubject: (n) => `新しい動画${n}本のご確認をお願いします`,
+    recordingSubject: (n) => `撮影した動画から${n}本のクリップができました`,
+    hello: (c) => `${c} ご担当者様`,
+    weekBody: "今週の患者さん向け説明動画が完成し、チェックも済みました。",
+    recordingBody: "撮影した動画を、字幕付きの短いクリップに仕上げました。",
+    readyLine: (n) => `承認待ち：${n}本`,
+    flaggedLine: (n) => `要確認：${n}本（理由を表示しています）`,
+    approval: "院長先生が承認されるまで、何も公開されません。",
+    button: "動画を確認する",
+    footer: "このメールは、DentVideoをご利用の医院にお送りしています。",
+  },
+  ar: {
+    weekSubject: (n) => `فيديوهات جديدة بانتظار مراجعتكم: ${n}`,
+    recordingSubject: (n) => `مقاطع جاهزة من تسجيلكم: ${n}`,
+    hello: (c) => `مرحباً ${c}،`,
+    weekBody: "فيديوهات هذا الأسبوع التوعوية للمرضى جاهزة وتمّت مراجعتها.",
+    recordingBody: "حوّلنا تسجيلكم إلى مقاطع قصيرة مع النص على الشاشة.",
+    readyLine: (n) => `جاهزة للاعتماد: ${n}`,
+    flaggedLine: (n) => `تحتاج نظرة سريعة: ${n}، مع ذكر السبب`,
+    approval: "لا يُنشر شيء قبل أن تعتمدوه.",
+    button: "مراجعة الفيديوهات",
+    footer: "تصلكم هذه الرسالة لأن عيادتكم تستخدم DentVideo.",
+  },
+  pl: {
+    weekSubject: (n) => `Nowe filmy czekają na Państwa akceptację: ${n}`,
+    recordingSubject: (n) => `Klipy z Państwa nagrania są gotowe: ${n}`,
+    hello: (c) => `Dzień dobry, ${c},`,
+    weekBody: "filmy edukacyjne na ten tydzień są gotowe i sprawdzone.",
+    recordingBody: "Państwa nagranie zamieniliśmy w krótkie klipy z napisami.",
+    readyLine: (n) => `Gotowe do akceptacji: ${n}`,
+    flaggedLine: (n) => `Do szybkiego przejrzenia: ${n}, z podaniem powodu`,
+    approval: "Nic nie zostanie opublikowane bez Państwa akceptacji.",
+    button: "Przejrzyj filmy",
+    footer: "Otrzymują Państwo tę wiadomość, ponieważ gabinet korzysta z DentVideo.",
+  },
 };
 
 export const EMAIL_LANGUAGES = Object.keys(COPY);
@@ -132,6 +168,10 @@ export function readyEmail(args: {
   const body = args.kind === "week" ? c.weekBody : c.recordingBody;
   const text = [c.hello(args.clinicName), "", body, "", ...lines.map((l) => `• ${l}`), "", c.approval, "", `${c.button}: ${args.appUrl}`, "", "—", c.footer].join("\n");
   const lang = COPY[args.language] ? args.language : "en";
+  // Arabic reads right to left: the whole message flips; the brand and the link stay left to right.
+  const rtl = lang === "ar";
+  const dir = rtl ? "rtl" : "ltr";
+  const align = rtl ? "right" : "left";
   const font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
   const row = (dot: string, label: string) =>
     `<tr><td width="20" valign="top" style="padding:6px 0"><div style="width:10px;height:10px;border-radius:5px;background:${dot};margin-top:6px;font-size:0;line-height:0">&nbsp;</div></td><td style="padding:6px 0;font-size:16px;line-height:24px;color:#14211f">${esc(label)}</td></tr>`;
@@ -142,19 +182,19 @@ export function readyEmail(args: {
   const url = esc(args.appUrl);
   // Table layout, inline styles and a bgcolor button: what Gmail, Apple Mail and Outlook all render the same.
   const html = `<!doctype html>
-<html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${esc(subject)}</title></head>
-<body style="margin:0;padding:0;background:#faf7f2;font-family:${font};color:#14211f;-webkit-text-size-adjust:100%">
+<html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${esc(subject)}</title></head>
+<body dir="${dir}" style="margin:0;padding:0;background:#faf7f2;font-family:${font};color:#14211f;-webkit-text-size-adjust:100%;text-align:${align}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#faf7f2">${esc(body)} ${esc(c.approval)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#faf7f2"><tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px">
-<tr><td style="padding:0 4px 16px;font-family:${font};font-size:20px;font-weight:700;letter-spacing:-0.2px;color:#14211f">Dent<span style="color:#0f5c5c">Video</span></td></tr>
+<table role="presentation" dir="${dir}" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;text-align:${align}">
+<tr><td style="padding:0 4px 16px;font-family:${font};font-size:20px;font-weight:700;letter-spacing:-0.2px;color:#14211f;text-align:${align}"><span dir="ltr">Dent<span style="color:#0f5c5c">Video</span></span></td></tr>
 <tr><td style="background:#ffffff;border:1px solid #e8e1d5;border-radius:16px;padding:32px 28px">
 <p style="margin:0 0 12px;font-size:16px;line-height:24px">${esc(c.hello(args.clinicName))}</p>
 <p style="margin:0 0 20px;font-size:16px;line-height:24px">${esc(body)}</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;background:#faf7f2;border-radius:12px"><tr><td style="padding:10px 16px"><table role="presentation" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr></table>
 <p style="margin:0 0 24px;font-size:14px;line-height:21px;color:#3d4c49">${esc(c.approval)}</p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#0f5c5c" style="border-radius:999px;background:#0f5c5c"><a href="${url}" style="display:inline-block;padding:14px 28px;font-family:${font};font-size:16px;font-weight:600;line-height:20px;color:#ffffff;text-decoration:none;border-radius:999px">${esc(c.button)}</a></td></tr></table>
-<p style="margin:16px 0 0;font-size:12px;line-height:18px;color:#5b6a67;word-break:break-all"><a href="${url}" style="color:#0f5c5c">${url}</a></p>
+<p style="margin:16px 0 0;font-size:12px;line-height:18px;color:#5b6a67;word-break:break-all"><a href="${url}" dir="ltr" style="color:#0f5c5c">${url}</a></p>
 </td></tr>
 <tr><td style="padding:16px 4px 0;font-size:12px;line-height:18px;color:#5b6a67">${esc(c.footer)}</td></tr>
 </table>

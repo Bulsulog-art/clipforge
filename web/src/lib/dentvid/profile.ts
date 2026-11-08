@@ -13,13 +13,16 @@ export const LANGUAGES = [
   { code: "it", label: "Italiano" },
   { code: "pt", label: "Português" },
   { code: "tr", label: "Türkçe" },
+  { code: "ja", label: "日本語" },
+  { code: "ar", label: "العربية" },
+  { code: "pl", label: "Polski" },
 ] as const;
 
 export const clinicProfileSchema = z.object({
   name: z.string().trim().min(1).max(80),
   city: z.string().trim().max(60).optional(),
   country: z.string().trim().length(2).toUpperCase(),
-  language: z.enum(["en", "de", "es", "fr", "it", "pt", "tr"]),
+  language: z.enum(["en", "de", "es", "fr", "it", "pt", "tr", "ja", "ar", "pl"]),
   services: z.array(z.string().trim().min(2).max(60)).min(1).max(20),
   tone: z.enum(["warm", "expert", "playful", "calm"]).default("warm"),
   address: z.enum(["formal", "informal"]).default("formal"),

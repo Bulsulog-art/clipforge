@@ -8,10 +8,15 @@ import type { Locale } from "./dentvideo";
  *
  * `name` is the video's on-screen hook, verbatim; `seconds` its length.
  * The first entry is the hero video.
+ *
+ * Japanese, Arabic and Polish have no sample week yet: those landings show a
+ * drawn phone card and the live preview instead, never another language's
+ * videos. Render a demo clinic's week with the pipeline to add one.
  */
 export type SampleVideo = { slug: string; name: string; seconds: number };
+export type SampleWeek = readonly [SampleVideo, SampleVideo, SampleVideo];
 
-export const SAMPLE_VIDEOS: Record<Locale, readonly [SampleVideo, SampleVideo, SampleVideo]> = {
+export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Demo Dental Studio (US)
   en: [
     { slug: "whitening-myths-debunked", name: "Whitening thins your enamel? Not quite.", seconds: 27 },
@@ -43,6 +48,11 @@ export const SAMPLE_VIDEOS: Record<Locale, readonly [SampleVideo, SampleVideo, S
     { slug: "detartrage", name: "L'ennemi invisible de votre brosse à dents...", seconds: 35 },
   ],
 };
+
+/** The sample week for a landing, if that language has one. */
+export function samplesFor(locale: Locale): SampleWeek | undefined {
+  return SAMPLE_VIDEOS[locale];
+}
 
 export function sampleSrc(locale: Locale, slug: string, ext: "mp4" | "jpg"): string {
   return `/dentvideo/samples/${locale}/${slug}.${ext}`;

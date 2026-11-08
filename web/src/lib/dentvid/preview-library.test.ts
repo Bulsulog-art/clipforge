@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { formatHandle, libraryLanguage, personalisePlan, pickPreviews, serviceCategory, PREVIEW_LANGUAGES } from "./preview-library";
-import { PREVIEW_MANIFEST } from "./preview-manifest";
+import { formatHandle, libraryLanguage, personalisePlan, pickPreviews, serviceCategory, PREVIEW_LANGUAGES, PREVIEW_LIBRARY } from "./preview-library";
+import { splitServices, SERVICE_HINTS } from "./service-hints";
 import { parseScenePlan } from "@/remotion/scene-plan";
 
 const PUBLIC = path.resolve(__dirname, "../../../public/dentvideo/preview");
@@ -25,11 +25,43 @@ describe("serviceCategory", () => {
     ["Professionelle Zahnreinigung", "cleaning"],
     ["Détartrage", "cleaning"],
     ["Diş taşı temizliği", "cleaning"],
+    ["インプラント", "implant"],
+    ["マウスピース矯正", "aligners"],
+    ["根管治療", "rootcanal"],
+    ["小児歯科", "children"],
+    ["歯周病の予防", "gum"],
+    ["歯のクリーニング", "cleaning"],
+    ["زراعة الأسنان", "implant"],
+    ["التقويم الشفاف", "aligners"],
+    ["علاج اللثة", "gum"],
+    ["طب أسنان الأطفال", "children"],
+    ["تنظيف الأسنان", "cleaning"],
+    ["Leczenie kanałowe", "rootcanal"],
+    ["Leczenie nakładkami", "aligners"],
+    ["Stomatologia dziecięca", "children"],
+    ["Higienizacja", "cleaning"],
+    ["Krwawienie dziąseł", "gum"],
     ["Veneers", undefined],
   ])("%s → %s", (service, category) => expect(serviceCategory(service)).toBe(category));
 });
 
+describe("example services", () => {
+  it.each(["ja", "ar", "pl"])("every %s example maps to a topic, split on the language's own comma", (l) => {
+    const services = splitServices(SERVICE_HINTS[l]);
+    expect(services).toHaveLength(6);
+    for (const s of services) expect(serviceCategory(s), s).toBeDefined();
+  });
+});
+
 describe("pickPreviews", () => {
+  it("previews Japanese, Arabic and Polish clinics in their own language", () => {
+    for (const l of ["ja", "ar", "pl"] as const) {
+      expect(libraryLanguage(l)).toBe(l);
+      const picks = pickPreviews(splitServices(SERVICE_HINTS[l]), l, 3);
+      expect(picks).toHaveLength(3);
+      expect(picks.every((p) => PREVIEW_LIBRARY[l].includes(p))).toBe(true);
+    }
+  });
   it("leads with the clinic's own services, in its order, without repeating a topic", () => {
     const picks = pickPreviews(["İmplant tedavisi", "Diş beyazlatma"], "tr", 3);
     expect(picks.map((p) => p.category).slice(0, 2)).toEqual(["implant", "whitening"]);
@@ -64,17 +96,25 @@ describe("personalisePlan", () => {
 });
 
 describe("the library on disk", () => {
-  const all = PREVIEW_LANGUAGES.flatMap((l) => PREVIEW_MANIFEST[l].map((e) => ({ l, e })));
-  it("has 4–6 videos per language", () => {
-    for (const l of PREVIEW_LANGUAGES) expect(PREVIEW_MANIFEST[l].length, l).toBeGreaterThanOrEqual(4);
-    for (const l of PREVIEW_LANGUAGES) expect(PREVIEW_MANIFEST[l].length, l).toBeLessThanOrEqual(6);
+  const all = PREVIEW_LANGUAGES.flatMap((l) => PREVIEW_LIBRARY[l].map((e) => ({ l, e })));
+  it("has 3–6 videos per language, narrated ones at least 4", () => {
+    for (const l of PREVIEW_LANGUAGES) {
+      const lib = PREVIEW_LIBRARY[l];
+      expect(lib.length, l).toBeGreaterThanOrEqual(lib.every((e) => e.narrated === false) ? 3 : 4);
+      expect(lib.length, l).toBeLessThanOrEqual(6);
+    }
   });
-  it.each(all.map(({ l, e }) => [`${l}/${e.id}`, l, e.id]))("%s is a valid plan with narration and no sample-clinic text", (_, l, id) => {
-    const json = fs.readFileSync(path.join(PUBLIC, l, `${id}.json`), "utf8");
+  it.each(all.map(({ l, e }) => [`${l}/${e.id}`, l, e]))("%s is a valid plan with no sample-clinic text, narrated unless marked silent", (_, l, e) => {
+    const json = fs.readFileSync(path.join(PUBLIC, l, `${e.id}.json`), "utf8");
     expect(json).not.toMatch(/demo/i);
     const plan = personalisePlan(JSON.parse(json), { name: "Smile Studio", handle: "smilestudio" });
     expect(() => parseScenePlan(plan)).not.toThrow();
-    expect(fs.statSync(path.join(PUBLIC, l, `${id}.mp3`)).size).toBeGreaterThan(20_000);
+    const mp3 = path.join(PUBLIC, l, `${e.id}.mp3`);
+    if (e.narrated === false) {
+      expect(fs.existsSync(mp3)).toBe(false);
+      // A silent plan names its language, so the player sets lang/dir and the script's fonts.
+      expect(plan.language).toBe(l);
+    } else expect(fs.statSync(mp3).size).toBeGreaterThan(20_000);
   });
   it("stays small enough to ship (≤ 8 MB)", () => {
     const size = (dir: string): number =>

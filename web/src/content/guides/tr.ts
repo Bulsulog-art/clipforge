@@ -193,7 +193,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo bu kontrolü nasıl yapar",
         paragraphs: [
-          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (garanti, acısız, kalıcı, en iyi, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı yedi dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
+          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (garanti, acısız, kalıcı, en iyi, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı on dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
         ],
       },
     ],

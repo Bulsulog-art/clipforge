@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { LANDING, LANDING_PATH, LOCALES, HREFLANG, type Locale } from "@/content/dentvideo";
-import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
+import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { dentvideoSitemapEntries } from "./seo-guides";
 import { DV_PRICES_USD, DV_TIERS } from "./billing";
 
@@ -13,7 +13,7 @@ export function landingAlternates(): Record<string, string> {
   return languages;
 }
 
-const OG_LOCALE: Record<Locale, string> = { en: "en_US", de: "de_DE", es: "es_ES", tr: "tr_TR", fr: "fr_FR" };
+import { OG_ALTERNATE_LOCALES, OG_LOCALE } from "./seo-guides";
 
 export function landingMetadata(locale: Locale): Metadata {
   const c = LANDING[locale];
@@ -22,7 +22,15 @@ export function landingMetadata(locale: Locale): Metadata {
     title: { absolute: c.meta.title },
     description: c.meta.description,
     alternates: { canonical: url, languages: landingAlternates() },
-    openGraph: { title: c.meta.title, description: c.meta.ogDescription, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale] },
+    openGraph: {
+      title: c.meta.title,
+      description: c.meta.ogDescription,
+      url,
+      type: "website",
+      siteName: "DentVideo",
+      locale: OG_LOCALE[locale],
+      ...(OG_ALTERNATE_LOCALES[locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[locale] } : {}),
+    },
   };
 }
 
@@ -59,7 +67,7 @@ export function landingJsonLd(locale: Locale) {
       },
       { ...faqPage(c.faq), inLanguage: locale },
       // The sample week shown on this landing, in this landing's language.
-      ...SAMPLE_VIDEOS[locale].map((v) => ({
+      ...(samplesFor(locale) ?? []).map((v) => ({
         "@type": "VideoObject",
         name: v.name,
         description: `${c.samples.heading} — DentVideo`,

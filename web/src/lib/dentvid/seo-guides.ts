@@ -11,7 +11,20 @@ import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
  * the JSON-LD, llms.txt and the sitemap state the same facts.
  */
 
-export const OG_LOCALE: Record<Locale, string> = { en: "en_US", de: "de_DE", es: "es_ES", tr: "tr_TR", fr: "fr_FR" };
+export const OG_LOCALE: Record<Locale, string> = {
+  en: "en_US",
+  de: "de_DE",
+  es: "es_ES",
+  tr: "tr_TR",
+  fr: "fr_FR",
+  ja: "ja_JP",
+  // The Arabic pages are written for the Gulf: the UAE first, Saudi Arabia as an alternate.
+  ar: "ar_AE",
+  pl: "pl_PL",
+};
+
+/** Further og:locale values a landing also serves (the Arabic one is for the whole Gulf). */
+export const OG_ALTERNATE_LOCALES: Partial<Record<Locale, string[]>> = { ar: ["ar_SA"] };
 
 /** The date the site's non-guide pages last changed in substance. */
 export const SITE_UPDATED = "2026-11-08";
@@ -24,7 +37,7 @@ export function organizationNode() {
   return { "@type": "Organization", "@id": ORG_ID, name: PUBLISHER_NAME, url: PUBLISHER_URL };
 }
 
-const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix"];
+const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
 
 export function softwareNode(locale: Locale) {
   const e = ENTITY[locale];
