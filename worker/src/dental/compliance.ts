@@ -87,6 +87,10 @@ export const HARD_RULES: Rule[] = [
       w(`${AFTER_TEETH}(permanent(ly)?|kalıcı|dauerhaft\\p{L}*|bleibend\\p{L}*|permanente[s]?)${NOT_TEETH}`),
       w("forever|lifetime|ömür boyu|für immer|lebenslang|para siempre|de por vida|pour toujours|à vie|para sempre|vitalíci\\p{L}*|per sempre|a vita"),
       w("kesin(likle)? sonuç"),
+      // The bare verb promises the outcome; the hedged form ("helps prevent",
+      // "önlemeye yardımcı olur", "ayuda a prevenir") uses another form of the
+      // word and passes. Seen live: "diş eti hastalıklarını önler".
+      w("prevents|önler|verhindert|previene|prévient|previne"),
     ],
   },
   {

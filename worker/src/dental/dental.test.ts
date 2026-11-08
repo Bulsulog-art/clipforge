@@ -62,6 +62,16 @@ describe("hard compliance rules", () => {
     expect(rules("Garantizamos resultados")).toContain("guarantee");
   });
 
+  it("flags the bare 'prevents' and lets the hedged form through", () => {
+    expect(rules("Cleanings prevent gum disease.")).toEqual([]); // plural subject, still general advice
+    expect(rules("Flossing prevents gum disease.")).toContain("absolute");
+    expect(rules("Diş taşı temizliği diş eti hastalıklarını önler.")).toContain("absolute");
+    expect(rules("Diş eti hastalıklarını önlemeye yardımcı olur.")).toEqual([]);
+    expect(rules("Zahnseide verhindert Karies.")).toContain("absolute");
+    expect(rules("La limpieza ayuda a prevenir caries.")).toEqual([]);
+    expect(rules("La limpieza previene caries.")).toContain("absolute");
+  });
+
   it("does not treat 'permanent teeth' (adult teeth) as a promise, in any language", () => {
     expect(rules("Permanent teeth usually start coming in around age six.")).toEqual([]);
     expect(rules("Kalıcı dişler genellikle 6 yaş civarında çıkmaya başlar.")).toEqual([]);

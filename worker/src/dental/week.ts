@@ -198,10 +198,14 @@ export async function produceWeek(
   profile: ClinicProfile,
   opts: { count?: number; avoidTitles?: string[] } = {},
 ): Promise<VideoPackage[]> {
-  const topics = await planWeek(deps.client, profile, opts);
+  const want = Math.max(1, opts.count ?? 5);
+  // Plan spares: a topic the reviewers reject is replaced, so the clinic
+  // still gets the week it pays for instead of a gap.
+  const topics = await planWeek(deps.client, profile, { ...opts, count: want + 2 });
   const out: VideoPackage[] = [];
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.
   for (const topic of topics) {
+    if (out.filter((p) => p.status === "ready").length >= want) break;
     // One topic failing (a plan the model could not get valid, a render
     // error) must not cost the clinic the rest of its week.
     try {
