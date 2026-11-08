@@ -9,6 +9,7 @@ import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { DV_FOUNDING, dvAvailablePlans, foundingOfferOpen, foundingCode } from "@/lib/dentvid/billing";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
+import { dodoApiKey } from "@/lib/dentvid/dodo-account";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,8 @@ export default async function Settings() {
       plan={plan}
       plans={dvAvailablePlans()}
       founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}
+      // Only whether a key exists reaches the page — never the key.
+      selfServe={!!dodoApiKey()}
     />
   );
 }
