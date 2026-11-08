@@ -1,6 +1,7 @@
 import type OpenAI from "openai";
 import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import { narrate } from "./narrate.js";
+import { guardFootage } from "./footage.js";
 import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
@@ -94,7 +95,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Words the reviewers always reject — never use them on screen or in narration: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}.`,
     `Aftercare and instructions: only what dentists normally tell patients for THIS procedure, and say to follow the dentist's own instructions. Do not invent timeframes or extra restrictions. Reference:\n${AFTERCARE_GUIDE}`,
     `Never invent statistics or percentages ("80% of patients…"); say "most people" or leave it out. A number is allowed only for a guideline interval or timeframe (every 6 months, the first 48 hours).`,
-    `Include exactly ONE footage scene with stock footage — { "kind": "footage", "source": { "type": "stock", "query": "..." }, "caption": "<one short line of the answer>", "seconds": 3-4 } — placed right after the hook or in the middle, so the video is not only text. The query: 2-4 English words for an object or action you can film (e.g. "teeth whitening tray", "dental floss close up", "child brushing teeth"), never a generic "dentist office", never patients' faces in treatment.`,
+    `Include exactly ONE footage scene with stock footage — { "kind": "footage", "source": { "type": "stock", "query": "..." }, "caption": "<one short line of the answer>", "seconds": 3-4 } — placed right after the hook or in the middle, so the video is not only text. The query: 2-4 English words for an object or action you can film (e.g. "teeth whitening tray", "dental floss close up", "child brushing teeth"), never a generic "dentist office" — objects only, no people, no clinic or treatment scenes.`,
     `End with a cta scene inviting the viewer to ask the clinic or book a check-up` +
       (profile.handle ? `. Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : "."),
     `On-screen length limits: hook and every list item and the cta at most 80 characters; other lines at most 200. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`,
@@ -175,7 +176,13 @@ export function narrationProblems(plan: ScenePlan): string[] {
   return [];
 }
 
-export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic: Topic): Promise<VideoPackage> {
+export async function produceVideo(
+  deps: WeekDeps,
+  profile: ClinicProfile,
+  topic: Topic,
+  /** Stock queries already used this week, so no two videos share a shot. */
+  usedFootage: Set<string> = new Set(),
+): Promise<VideoPackage> {
   const script = await reviewed(
     deps,
     "script",
@@ -237,7 +244,9 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
   ).catch(() => undefined);
   const shootCard = card?.ok ? card.value : undefined;
   // Painted in the clinic's colour, so the week reads as theirs.
-  const branded = profile.brandColor ? { ...script.value, brandColor: profile.brandColor } : script.value;
+  // Objects only, never people or a clinic in stock footage; no repeats.
+  const safe = guardFootage(script.value, topic.service, usedFootage);
+  const branded = profile.brandColor ? { ...safe, brandColor: profile.brandColor } : safe;
   const videoPath = deps.render ? await deps.render(branded, topic) : undefined;
   // Measure the render before anyone sees it (silent narration, wrong size,
   // black frames…). A failing video is still delivered, marked with why.
@@ -248,7 +257,7 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
     status: "ready",
     approval: "pending",
     topic,
-    plan: script.value,
+    plan: safe,
     copy: post.value,
     checks: { script: script.checks, copy: post.checks },
     shootCard,
@@ -267,13 +276,14 @@ export async function produceWeek(
   // still gets the week it pays for instead of a gap.
   const topics = await sharpenHooks(deps.client, profile, await planWeek(deps.client, profile, { ...opts, count: want + 2 }));
   const out: VideoPackage[] = [];
+  const usedFootage = new Set<string>();
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.
   for (const topic of topics) {
     if (out.filter((p) => p.status === "ready").length >= want) break;
     // One topic failing (a plan the model could not get valid, a render
     // error) must not cost the clinic the rest of its week.
     try {
-      out.push(await produceVideo(deps, profile, topic));
+      out.push(await produceVideo(deps, profile, topic, usedFootage));
     } catch (e) {
       deps.log?.("topic failed", { topic: topic.title, error: (e as Error).message });
       out.push({ status: "rejected", topic, stage: "script", reasons: [`could not produce: ${(e as Error).message}`] });

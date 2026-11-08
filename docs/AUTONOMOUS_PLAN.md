@@ -41,7 +41,7 @@ open item, updates the status here, commits and pushes.
 - **Fiyatlar.** Sitede şimdilik "ilk hafta ücretsiz" yazıyor. Fiyat uydurmadım.
 - **Dodo:** alan adından sonra DentVideo markası ve ürünleri açılacak. `DODO_API_KEY` sunucuda tanımlı değil.
 - **Coolify API anahtarı** sohbete düz yazıyla yapıştırıldı. Lütfen yenileyin.
-- **Test hesaplarını silin (Liman auth):** e2e-dentvideo@bulsulabs.com ve e2e-dentvideo-de@bulsulabs.com, ayrıca bunlara ait `dentvid_clinics` ve `dentvid_items` satırları ile `dentvid` bucket'taki dosyalar.
+- **Test hesaplarını silin (Liman auth):** e2e-dentvideo@bulsulabs.com, e2e-dentvideo-de@bulsulabs.com ve e2e-dentvideo-es@bulsulabs.com, ayrıca bunlara ait `dentvid_clinics` ve `dentvid_items` satırları ile `dentvid` bucket'taki dosyalar.
 - **Bulut ClipForge projesindeki boş tablolar:** `clipforge.clinics` ve `clipforge.dental_items` kullanılmıyor. Gece silme yapmadım; isterseniz kaldırılabilir.
 
 **Bilinen sınırlar:**
