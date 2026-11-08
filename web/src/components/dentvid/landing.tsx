@@ -334,6 +334,98 @@ function Checks({ locale }: { locale: Locale }) {
   );
 }
 
+/** "DentVideo vs an agency vs doing it yourself": a table from md up, one card per row on phones. */
+function Compare({ locale }: { locale: Locale }) {
+  const { compare: c } = LANDING[locale];
+  const [us, ...others] = c.columns;
+  return (
+    <section id="compare" aria-labelledby="compare-heading" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-24 sm:px-6 sm:pt-32">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+        <H2 id="compare-heading">{c.heading}</H2>
+        <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.text}</p>
+      </div>
+
+      {/* md and up: a real table, DentVideo's column tinted. */}
+      <div className="dv-card mt-12 hidden overflow-hidden md:block lg:mt-16">
+        <table className="w-full table-fixed border-collapse text-left">
+          <caption className="sr-only">{c.heading}</caption>
+          <colgroup>
+            <col className="w-[22%]" />
+            <col className="w-[30%]" />
+            <col className="w-[24%]" />
+            <col className="w-[24%]" />
+          </colgroup>
+          <thead>
+            <tr>
+              <td className="p-0" />
+              <th scope="col" className="bg-dv-teal px-6 pb-5 pt-6 text-base font-semibold tracking-tight text-white">
+                <span className="flex items-center gap-2">
+                  <BadgeCheck className="h-5 w-5 text-[#bfe3dc]" aria-hidden="true" />
+                  {us}
+                </span>
+              </th>
+              {others.map((col) => (
+                <th key={col} scope="col" className="px-6 pb-5 pt-6 text-base font-semibold tracking-tight text-dv-ink">
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {c.rows.map((r) => (
+              <tr key={r.label} className="border-t border-dv-line">
+                <th scope="row" className="px-6 py-5 align-top text-sm font-semibold text-dv-ink">{r.label}</th>
+                <td className="border-t border-dv-teal/10 bg-dv-teal-50 px-6 py-5 align-top">
+                  <span className="flex items-start gap-2.5 text-[0.9375rem] font-medium leading-snug text-dv-ink">
+                    <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
+                      <Check className="h-3 w-3" strokeWidth={3.5} />
+                    </span>
+                    {r.values[0]}
+                  </span>
+                </td>
+                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.values[1]}</td>
+                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.values[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Phones: one card per row, DentVideo first. */}
+      <ul className="mt-10 space-y-4 md:hidden">
+        {c.rows.map((r) => (
+          <li key={r.label} className="dv-card overflow-hidden">
+            <p className="px-5 pt-5 text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{r.label}</p>
+            <div className="mx-3 mt-3 rounded-xl bg-dv-teal-50 px-3 py-3 ring-1 ring-inset ring-dv-teal/10">
+              <p className="text-xs font-semibold text-dv-teal">{us}</p>
+              <p className="mt-1 flex items-start gap-2 text-[0.9375rem] font-medium leading-snug text-dv-ink">
+                <span aria-hidden="true" className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
+                  <Check className="h-2.5 w-2.5" strokeWidth={3.5} />
+                </span>
+                {r.values[0]}
+              </p>
+            </div>
+            <dl className="grid grid-cols-2 gap-4 px-5 pb-5 pt-4">
+              {others.map((col, i) => (
+                <div key={col}>
+                  <dt className="text-xs font-semibold text-dv-muted">{col}</dt>
+                  <dd className="mt-1 text-sm leading-snug text-dv-body">{r.values[i + 1]}</dd>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))}
+      </ul>
+
+      {/* The ROI line: honest, no figures. */}
+      <div className="dv-grain relative mt-6 overflow-hidden rounded-[1.25rem] bg-dv-teal p-7 text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)] sm:p-9">
+        <p className="dv-display max-w-3xl text-balance text-[1.625rem] leading-[1.15] text-white sm:text-[2rem]">{c.roi}</p>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#cfe2df]">{c.roiNote}</p>
+      </div>
+    </section>
+  );
+}
+
 function Pricing({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   return (
@@ -415,6 +507,7 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <How locale={locale} />
       <Samples locale={locale} />
       <Checks locale={locale} />
+      <Compare locale={locale} />
       <Pricing locale={locale} />
       <Guides locale={locale} />
       <Faq locale={locale} />
