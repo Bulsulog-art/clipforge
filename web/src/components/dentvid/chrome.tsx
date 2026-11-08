@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LEGAL_LINKS, PRIVACY_PATH, TERMS_PATH, legalLocale } from "@/content/dentvideo-legal";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LANDING_PATH, LANGUAGE_NAME, LOCALES, type Locale } from "@/content/dentvideo";
@@ -132,7 +133,11 @@ export function DvFooter({ guideLocales }: Props) {
         </div>
         <div className="mt-14 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-[#8fb0aa] sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Bulsu Labs</p>
-          <p className="tracking-wide">dentvideo.com</p>
+          <p className={`flex gap-5 ${ready ? "" : "invisible"}`}>
+            <Link href={TERMS_PATH[legalLocale(locale)]} className={link}>{LEGAL_LINKS[locale].terms}</Link>
+            <Link href={PRIVACY_PATH[legalLocale(locale)]} className={link}>{LEGAL_LINKS[locale].privacy}</Link>
+            <span className="tracking-wide">dentvideo.com</span>
+          </p>
         </div>
       </div>
     </footer>
