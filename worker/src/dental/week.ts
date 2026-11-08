@@ -3,6 +3,7 @@ import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import { narrate } from "./narrate.js";
 import { AGENT_MODEL } from "./llm.js";
 import { guardFootage } from "./footage.js";
+import { backgroundSrc, defaultBackgrounds, matchingBackgrounds, suggestBackgrounds } from "../dentvid/backgrounds/suggest.js";
 import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
@@ -33,6 +34,8 @@ export type VideoPackage =
       approval: "pending" | "approved" | "rejected";
       topic: Topic;
       plan: ScenePlan;
+      /** Library photo ids for this video, best first; plan.backgrounds holds the chosen ones. */
+      suggestedBackgrounds?: string[];
       copy: PostCopy;
       checks: { script: Checks; copy: Checks };
       /** How the dentist can film this topic themselves, in their language. */
@@ -248,7 +251,20 @@ export async function produceVideo(
   const shootCard = card?.ok ? card.value : undefined;
   // Painted in the clinic's colour, so the week reads as theirs.
   // Objects only, never people or a clinic in stock footage; no repeats.
-  const safe = guardFootage(script.value, topic.service, usedFootage);
+  const guarded = guardFootage(script.value, topic.service, usedFootage);
+  // Library photos behind the text: 10–20 ranked suggestions are kept for the
+  // clinic to choose from; the top few go in by default (dentvid/backgrounds).
+  const bgInput = {
+    plan: guarded,
+    topic: `${topic.title} . ${topic.question} . ${topic.hook}`,
+    service: topic.service,
+    language: profile.language,
+  };
+  const suggestedBackgrounds = suggestBackgrounds(bgInput);
+  // Only photos about this topic go in by default; with none, the video keeps its plain brand backdrop.
+  const relevant = matchingBackgrounds(bgInput);
+  const chosen = defaultBackgrounds(suggestedBackgrounds.filter((id) => relevant.has(id)), totalSeconds(guarded)).map(backgroundSrc);
+  const safe: ScenePlan = chosen.length ? { ...guarded, backgrounds: chosen } : guarded;
   const branded = profile.brandColor
     ? { ...safe, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
     : safe;
@@ -263,6 +279,7 @@ export async function produceVideo(
     approval: "pending",
     topic,
     plan: safe,
+    suggestedBackgrounds,
     copy: post.value,
     checks: { script: script.checks, copy: post.checks },
     shootCard,

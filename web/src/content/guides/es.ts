@@ -106,7 +106,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo ayuda DentVideo",
         paragraphs: [
-          "[DentVideo](landing:) planifica cada semana cinco temas a partir de tus tratamientos y de preguntas reales de pacientes, escribe y pone voz a los vídeos y los subtitula con tu logo y tus colores. Cada guion se revisa dos veces: en afirmaciones publicitarias restringidas y en precisión clínica. Tus propias grabaciones nunca se reescriben; lo dudoso se marca con el motivo. Nada se publica sin tu aprobación. [La primera semana es gratis](start:).",
+          "[DentVideo](landing:) planifica cada semana cinco temas a partir de tus tratamientos y de preguntas reales de pacientes, escribe y pone voz a los vídeos y los subtitula con tu logo y tus colores. Cada guion se revisa dos veces: en afirmaciones publicitarias restringidas y en precisión clínica. Tus propias grabaciones nunca se reescriben; lo dudoso se marca con el motivo. Nada se publica sin tu aprobación. [Mira una vista previa con tu logo antes de pagar](start:).",
         ],
       },
     ],
@@ -502,7 +502,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo encaja DentVideo",
         paragraphs: [
-          "[DentVideo](landing:) hace vídeos educativos que no necesitan imágenes de pacientes: narrados, subtitulados y con el logo y los colores de tu clínica, o cortados de una grabación tuya hablando a cámara. Cada guion se revisa para que no prometa resultados ni use testimonios. Si en tu propia grabación aparece algo que merece otra mirada, se marca con el motivo; tú decides y apruebas. [Prueba la primera semana gratis](start:).",
+          "[DentVideo](landing:) hace vídeos educativos que no necesitan imágenes de pacientes: narrados, subtitulados y con el logo y los colores de tu clínica, o cortados de una grabación tuya hablando a cámara. Cada guion se revisa para que no prometa resultados ni use testimonios. Si en tu propia grabación aparece algo que merece otra mirada, se marca con el motivo; tú decides y apruebas. [Ve tus vídeos antes de pagar](start:).",
         ],
       },
     ],
@@ -601,7 +601,7 @@ export const GUIDES_ES: Guide[] = [
         heading: "El modelo mixto: realista para muchas clínicas",
         paragraphs: [
           "Para muchas clínicas, lo que más dura es un modelo mixto: los vídeos educativos regulares salen de una herramienta o de fuera, el dentista añade una o dos veces al mes una grabación corta propia y el equipo publica y responde. La cuenta se mantiene activa, suena a tu clínica y nadie vive con la presión semanal. Los temas, en [ideas de contenido para Instagram](guide:ideas-contenido-instagram-clinica-dental).",
-          "[DentVideo](landing:) es un software para la parte de contenido: crea cinco vídeos educativos cortos por semana, revisa cada guion en precisión clínica y publicidad sanitaria y corta tus grabaciones en clips subtitulados. Publicar y responder sigue siendo cosa tuya o de tu agencia: DentVideo no publica nada por sí mismo. [La primera semana es gratis](start:).",
+          "[DentVideo](landing:) es un software para la parte de contenido: crea cinco vídeos educativos cortos por semana, revisa cada guion en precisión clínica y publicidad sanitaria y corta tus grabaciones en clips subtitulados. Publicar y responder sigue siendo cosa tuya o de tu agencia: DentVideo no publica nada por sí mismo. [Mira una vista previa con tu logo antes de pagar](start:).",
         ],
       },
     ],

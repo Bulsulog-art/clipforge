@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { BackgroundPicker } from "./background-picker";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
@@ -17,6 +18,8 @@ export type LibraryItem = {
   findings: string[];
   videoUrl?: string;
   thumbUrl?: string;
+  /** Background photos (generated videos only): library ids offered, those in use, and a pending re-render. */
+  photos?: { suggested: string[]; chosen: string[]; status?: "queued" | "failed" };
 };
 
 const STATUS_CLS: Record<LibraryItem["status"], string> = {
@@ -37,7 +40,7 @@ export function Library({
   items: LibraryItem[];
   canStartWeek: boolean;
   locale: Locale;
-  /** No plan (free week made, or paused/cancelled): new videos wait for a plan. */
+  /** No active plan (not paid yet, paused or cancelled): new videos wait for a plan. */
   locked?: boolean;
 }) {
   const text = appText(locale);
@@ -70,6 +73,15 @@ export function Library({
     setApproving(false);
     router.refresh();
   }
+
+  // While a video is being re-made with new photos, look again every 20 s so
+  // the card swaps to the new video by itself.
+  const updating = items.some((i) => i.photos?.status === "queued");
+  useEffect(() => {
+    if (!updating) return;
+    const timer = setInterval(() => router.refresh(), 20_000);
+    return () => clearInterval(timer);
+  }, [updating, router]);
 
   const visible = items.filter((i) => showRejected || i.status !== "rejected");
   const rejectedCount = items.filter((i) => i.status === "rejected").length;
@@ -220,7 +232,11 @@ function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["libra
           </details>
         )}
 
-        {shareHint && <p className="rounded-xl bg-[#e6efed] px-3 py-2 text-sm text-[#0f5c5c]" role="status">{t.shareHint}</p>}
+        {item.photos && item.status !== "rejected" && (
+          <BackgroundPicker itemId={item.id} photos={item.photos} t={t.photos} onChanged={onChanged} />
+        )}
+
+        {shareHint &&<p className="rounded-xl bg-[#e6efed] px-3 py-2 text-sm text-[#0f5c5c]" role="status">{t.shareHint}</p>}
 
         {item.status !== "rejected" && item.videoUrl && (
           <div className="mt-auto flex flex-wrap gap-2 pt-2">

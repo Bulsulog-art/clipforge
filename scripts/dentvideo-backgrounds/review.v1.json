@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "note": "Every generated image was looked at on a contact sheet (and zoomed where in doubt). Ids present in the raw results and not listed under rejected are approved.",
+  "rejected": {
+    "whitening-06": "wrong aspect: model returned 1088x1536 instead of 1088x1920",
+    "implants-08": "dental chair rendered on an office-chair base with castors; wrong equipment, dated room",
+    "implants-12": "desk calendar with printed numbers (lettering)",
+    "implants-13": "tooth-like blobs on instrument tips (implied anatomy, uncanny)",
+    "aligners-01": "trays read as a sports mouthguard / bent tube, not a real aligner"
+  }
+}

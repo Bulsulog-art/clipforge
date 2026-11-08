@@ -16,6 +16,11 @@ describe("routeForHost", () => {
     expect(dv("/dentvideo/start", "?lang=tr")).toEqual({ kind: "redirect", url: "https://dentvideo.com/start?lang=tr", status: 308 });
     expect(dv("/dentvideo")).toEqual({ kind: "redirect", url: "https://dentvideo.com/", status: 308 });
     expect(dv("/dentvideo/samples/a.mp4")).toEqual({ kind: "next" });
+    // The live preview's library: plans, narration and its font.
+    expect(dv("/dentvideo/preview/tr/whitening-x.json")).toEqual({ kind: "next" });
+    expect(dv("/dentvideo/preview/tr/whitening-x.mp3")).toEqual({ kind: "next" });
+    expect(dv("/dentvideo/preview/fonts/inter-latin-wght-normal.woff2")).toEqual({ kind: "next" });
+    expect(routeForHost("clipforge.bulsulabs.com", "/dentvideo/preview/de/a.json", "", "https://dentvideo.com")).toEqual({ kind: "next" });
     expect(dv("/api/dentvideo/week")).toEqual({ kind: "next" });
     expect(dv("/_next/static/x.js")).toEqual({ kind: "next" });
     expect(routeForHost("www.dentvideo.com", "/de", "")).toEqual({ kind: "redirect", url: "https://dentvideo.com/de", status: 308 });

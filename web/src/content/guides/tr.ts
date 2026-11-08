@@ -102,7 +102,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo nasıl yardımcı olur",
         paragraphs: [
-          "[DentVideo](landing:), kliniğinizin sunduğu tedavilerden ve hastaların sorduğu sorulardan her hafta beş kısa video hazırlar; yazar, seslendirir, logonuz ve renklerinizle altyazılar. Her senaryo klinik doğruluk ve tanıtım kurallarına göre iki kez denetlenir; kendi kaydınızdaki sözleri değiştirmez, dikkat gerektiren yeri gerekçesiyle işaretler. Siz onaylamadan hiçbir şey yayınlanmaz. [İlk haftayı ücretsiz deneyebilirsiniz](start:).",
+          "[DentVideo](landing:), kliniğinizin sunduğu tedavilerden ve hastaların sorduğu sorulardan her hafta beş kısa video hazırlar; yazar, seslendirir, logonuz ve renklerinizle altyazılar. Her senaryo klinik doğruluk ve tanıtım kurallarına göre iki kez denetlenir; kendi kaydınızdaki sözleri değiştirmez, dikkat gerektiren yeri gerekçesiyle işaretler. Siz onaylamadan hiçbir şey yayınlanmaz. [Ödemeden önce logonuzla canlı önizlemeyi görün](start:).",
         ],
       },
     ],
@@ -529,7 +529,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo nerede durur",
         paragraphs: [
-          "[DentVideo](landing:), içerik üretimini üstlenen bir yazılımdır: her hafta beş kısa bilgilendirme videosu hazırlar, her senaryoyu klinik doğruluk ve tanıtım kurallarına göre denetler, kendi kayıtlarınızı altyazılı kliplere böler. Sizin yerinize paylaşım yapmaz ve mesajlarınızı yanıtlamaz; onayladığınız videoları indirip siz paylaşırsınız. Bu sayede bir ajansla ya da ekibinizle birlikte de kullanılabilir. [İlk hafta ücretsizdir](start:).",
+          "[DentVideo](landing:), içerik üretimini üstlenen bir yazılımdır: her hafta beş kısa bilgilendirme videosu hazırlar, her senaryoyu klinik doğruluk ve tanıtım kurallarına göre denetler, kendi kayıtlarınızı altyazılı kliplere böler. Sizin yerinize paylaşım yapmaz ve mesajlarınızı yanıtlamaz; onayladığınız videoları indirip siz paylaşırsınız. Bu sayede bir ajansla ya da ekibinizle birlikte de kullanılabilir. [Ödemeden önce videolarınızı görün](start:).",
         ],
       },
     ],
@@ -636,7 +636,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo ile kaydınız ne olur",
         paragraphs: [
-          "[DentVideo](landing:) uygulamasında her hafta bir çekim kartı ne söyleyebileceğinizi önerir. Beş dakikalık kaydınızı yüklediğinizde kısa, altyazılı ve logolu kliplere bölünür. Sözleriniz hiçbir zaman değiştirilmez; bir cümle vaat gibi okunabiliyorsa klip gerekçesi ve önerilen bir ifadeyle işaretlenir, karar sizde kalır. Çekim yapamadığınız haftalar için seslendirmeli bilgilendirme videoları hazırdır. [İlk haftayı ücretsiz başlatın](start:).",
+          "[DentVideo](landing:) uygulamasında her hafta bir çekim kartı ne söyleyebileceğinizi önerir. Beş dakikalık kaydınızı yüklediğinizde kısa, altyazılı ve logolu kliplere bölünür. Sözleriniz hiçbir zaman değiştirilmez; bir cümle vaat gibi okunabiliyorsa klip gerekçesi ve önerilen bir ifadeyle işaretlenir, karar sizde kalır. Çekim yapamadığınız haftalar için seslendirmeli bilgilendirme videoları hazırdır. [Önizlemenizi görün](start:).",
         ],
       },
     ],

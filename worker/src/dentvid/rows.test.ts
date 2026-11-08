@@ -31,6 +31,12 @@ describe("rowFromPackage", () => {
     expect(row.findings[0]).toMatch(/quality: 23.6s of silence/);
   });
 
+  it("stores the suggested background photos, and nothing when there are none", () => {
+    const ids3 = ["implants-03", "implants-06", "implants-07"];
+    expect(rowFromPackage({ ...(ready as object), suggestedBackgrounds: ids3 } as never, ids, { videoPath: "u1/x.mp4" }).suggested_backgrounds).toEqual(ids3);
+    expect("suggested_backgrounds" in rowFromPackage(ready, ids)).toBe(false);
+  });
+
   it("a ready package whose upload failed is flagged, never shown as ready", () => {
     expect(rowFromPackage(ready, ids).status).toBe("flagged");
   });

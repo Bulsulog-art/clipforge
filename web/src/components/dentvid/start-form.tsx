@@ -7,6 +7,7 @@ import type { Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import { announceLocale } from "./chrome";
 import { DvIcon } from "./mark";
+import { Stepper } from "./onboarding";
 
 export function StartForm({ locale, remember }: { locale: Locale; remember: boolean }) {
   const t = appText(locale).start;
@@ -40,7 +41,9 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
       }
       const { error: signInError } = await dvBrowser().auth.signInWithPassword({ email, password });
       if (signInError) throw new Error(t.wrongPassword);
-      router.push("/dentvideo/app");
+      // Into the funnel: a new account describes its clinic next; a returning
+      // one lands where it left off (or in the app, once it pays).
+      router.push(mode === "signup" ? "/dentvideo/start?step=clinic" : "/dentvideo/start");
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -55,7 +58,12 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
     <main lang={locale} className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
       <div aria-hidden="true" className="absolute left-1/2 top-0 -z-10 h-80 w-[44rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
-      <div className="mx-auto flex max-w-md flex-col px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
+      {mode === "signup" && (
+        <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-12">
+          <Stepper locale={locale} current="account" />
+        </div>
+      )}
+      <div className={`mx-auto flex max-w-md flex-col px-4 pb-24 sm:px-6 ${mode === "signup" ? "pt-10" : "pt-10 sm:pt-16"}`}>
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
         <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : t.titleSignin}</h1>
         <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : t.leadSignin}</p>

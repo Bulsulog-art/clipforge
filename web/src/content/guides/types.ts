@@ -7,7 +7,7 @@
  *   [label](guides:)        the guides index in the guide's language
  *   [label](landing:)       the DentVideo landing in the guide's language
  *   [label](about:)         the About page in the guide's language
- *   [label](start:)         the free first week sign-up
+ *   [label](start:)         the sign-up (live preview, then a plan)
  *   [label](https://…)      an external source
  */
 
