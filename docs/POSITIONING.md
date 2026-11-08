@@ -148,12 +148,12 @@ don't offer (health-advertising and clinical review on every line).
 
 | Market | Starter | Practice | Group | Practice annual |
 | --- | --- | --- | --- | --- |
-| US | $39 | $69 | $219 | $690 |
+| US | $49 | $99 | $279 | $990 |
 | UK | £35 | £59 | £169 | £590 |
 | DE / FR / ES / IT / PT (EUR) | €39 | €69 | €189 | €690 |
 | TR | 590 TL | 1,090 TL | 2,990 TL | 10,900 TL |
 
-**Owner decision (2026-11-08): $10 lower than first proposed — Starter $39, Practice $69.** Other currencies moved by the same amount.
+**Owner decision (2026-11-08, revised the same day): US list prices raised to Starter $49, Practice $99 (yearly $990), Group $279** — at $39/$69 the product read as cheap next to agencies charging $500–3,000/month, and health buyers read very low prices as low quality. The site sells in USD only for now; the UK/EUR/TR rows are the earlier proposal and need revisiting before local-currency pricing goes live.
 Unit cost of a Practice clinic (~20 videos/month): ~$1.40 OpenAI (text ~$1.10, voice ~$0.30) + ~$3.20 payment fees ≈ **$4.60/month → ~93% gross margin**.
 
 Turkey is priced for local purchasing power. Net minimum wage in 2026 is 28,075 TL, and local agencies charge 8.6–65k TL/mo.
@@ -161,7 +161,7 @@ Review TL prices every 6 months because of inflation. A Turkish clinic billing f
 
 ### Founding-clinic offer (the "$50" answer)
 
-- **The first 100 clinics get Practice at the Starter price: €39 / $39 / £35 / 590 TL per month, locked for 12 months**,
+- **The first 100 clinics get Practice at $49/month for 12 months** (half of the $99 list price; Dodo code KURUCU100, 50.51% off Practice monthly, 12 cycles, 100 uses),
   as long as they stay subscribed. In return they agree to a 15-minute feedback call. If they consent explicitly, we may name them on the site later.
 - **No free week (owner decision, 2026-11-08).** Nothing is generated before payment: zero abuse, zero API spend before money.
   The funnel is sign up → describe the clinic → **live preview** of its own branded videos in a phone frame (drawn in the

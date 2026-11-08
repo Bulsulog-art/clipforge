@@ -38,10 +38,10 @@ describe("DentVideo products", () => {
 
   it("offers only plans with a product and a price", () => {
     expect(dvAvailablePlans({}).map((p) => `${p.tier}:${p.interval}:${p.priceUsd}`)).toEqual([
-      "starter:month:39",
-      "practice:month:69",
-      "practice:year:690",
-      "group:month:219",
+      "starter:month:49",
+      "practice:month:99",
+      "practice:year:990",
+      "group:month:279",
     ]);
   });
 

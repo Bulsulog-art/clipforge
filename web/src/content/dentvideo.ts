@@ -157,13 +157,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       perMonth: "/month",
       recommended: "Recommended",
       foundingBadge: "Founding offer",
-      founding: "Practice for $39/month for 12 months — first 100 clinics",
-      yearly: "or $690 a year — 12 months for the price of 10",
+      founding: "Practice for $49/month for 12 months — first 100 clinics",
+      yearly: "or $990 a year — 12 months for the price of 10",
       note: "Prices in USD. Taxes may apply.",
       tiers: [
         {
           name: "Starter",
-          price: "$39",
+          price: "$49",
           blurb: "For a single clinic getting started.",
           features: [
             "Five narrated, captioned videos every Monday",
@@ -173,13 +173,13 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "$69",
+          price: "$99",
           blurb: "For clinics that want their own faces on screen.",
           features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Filming cards for your own clips"],
         },
         {
           name: "Group",
-          price: "$219",
+          price: "$279",
           blurb: "For small groups with several sites.",
           features: [
             "Up to three locations",
@@ -277,13 +277,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       perMonth: "/Monat",
       recommended: "Empfohlen",
       foundingBadge: "Gründungsangebot",
-      founding: "Practice für 39 $/Monat, 12 Monate lang — für die ersten 100 Praxen",
-      yearly: "oder 690 $ im Jahr — 12 Monate zum Preis von 10",
+      founding: "Practice für 49 $/Monat, 12 Monate lang — für die ersten 100 Praxen",
+      yearly: "oder 990 $ im Jahr — 12 Monate zum Preis von 10",
       note: "Preise in USD, ggf. zzgl. Steuern.",
       tiers: [
         {
           name: "Starter",
-          price: "39 $",
+          price: "49 $",
           blurb: "Für eine Praxis, die einfach anfangen will.",
           features: [
             "Jeden Montag fünf vertonte, untertitelte Videos",
@@ -293,13 +293,13 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "69 $",
+          price: "99 $",
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
           features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Drehkarten für Ihre eigenen Clips"],
         },
         {
           name: "Group",
-          price: "219 $",
+          price: "279 $",
           blurb: "Für kleine Praxisgruppen mit mehreren Standorten.",
           features: [
             "Bis zu drei Standorte",
@@ -397,13 +397,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       perMonth: "/mes",
       recommended: "Recomendado",
       foundingBadge: "Oferta fundadora",
-      founding: "Practice por 39 $/mes durante 12 meses — primeras 100 clínicas",
-      yearly: "o 690 $ al año: 12 meses al precio de 10",
+      founding: "Practice por 49 $/mes durante 12 meses — primeras 100 clínicas",
+      yearly: "o 990 $ al año: 12 meses al precio de 10",
       note: "Precios en USD. Pueden aplicarse impuestos.",
       tiers: [
         {
           name: "Starter",
-          price: "39 $",
+          price: "49 $",
           blurb: "Para una clínica que quiere empezar.",
           features: [
             "Cinco vídeos narrados y subtitulados cada lunes",
@@ -413,13 +413,13 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "69 $",
+          price: "99 $",
           blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
           features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Fichas de grabación para tus propios clips"],
         },
         {
           name: "Group",
-          price: "219 $",
+          price: "279 $",
           blurb: "Para pequeños grupos con varias sedes.",
           features: ["Hasta tres sedes", "Cinco vídeos por sede cada lunes", "Una voz coherente y revisada en todas las sedes"],
         },
@@ -513,13 +513,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       perMonth: "/ay",
       recommended: "Önerilen",
       foundingBadge: "Kurucu teklifi",
-      founding: "12 ay boyunca aylık $39 ile Practice — ilk 100 klinik için",
-      yearly: "ya da yıllık $690 — 10 ay fiyatına 12 ay",
+      founding: "12 ay boyunca aylık $49 ile Practice — ilk 100 klinik için",
+      yearly: "ya da yıllık $990 — 10 ay fiyatına 12 ay",
       note: "Fiyatlar USD cinsindendir. Vergiler eklenebilir.",
       tiers: [
         {
           name: "Starter",
-          price: "$39",
+          price: "$49",
           blurb: "Yeni başlayan tek bir klinik için.",
           features: [
             "Her pazartesi beş seslendirilmiş, altyazılı video",
@@ -529,13 +529,13 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "$69",
+          price: "$99",
           blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
           features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Kendi videolarınız için çekim kartları"],
         },
         {
           name: "Group",
-          price: "$219",
+          price: "$279",
           blurb: "Birden fazla şubesi olan küçük gruplar için.",
           features: ["En fazla üç şube", "Her pazartesi şube başına beş video", "Tüm şubelerde tutarlı, kontrol edilmiş bir dil"],
         },
@@ -629,13 +629,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       perMonth: "/mois",
       recommended: "Recommandée",
       foundingBadge: "Offre fondateurs",
-      founding: "Practice à 39 $/mois pendant 12 mois — pour les 100 premiers cabinets",
-      yearly: "ou 690 $ par an — 12 mois pour le prix de 10",
+      founding: "Practice à 49 $/mois pendant 12 mois — pour les 100 premiers cabinets",
+      yearly: "ou 990 $ par an — 12 mois pour le prix de 10",
       note: "Prix en USD, taxes éventuelles en sus.",
       tiers: [
         {
           name: "Starter",
-          price: "39 $",
+          price: "49 $",
           blurb: "Pour un cabinet qui veut se lancer simplement.",
           features: [
             "Cinq vidéos commentées et sous-titrées chaque lundi",
@@ -645,7 +645,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "69 $",
+          price: "99 $",
           blurb: "Pour les cabinets qui veulent apparaître eux-mêmes à l'écran.",
           features: [
             "Tout ce qu'inclut Starter",
@@ -655,7 +655,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Group",
-          price: "219 $",
+          price: "279 $",
           blurb: "Pour les petits groupes de plusieurs cabinets.",
           features: [
             "Jusqu'à trois sites",
