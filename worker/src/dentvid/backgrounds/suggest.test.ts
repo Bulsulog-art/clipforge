@@ -160,3 +160,43 @@ describe("matchingBackgrounds: every category, every language", () => {
     }
   });
 });
+
+/**
+ * The new pipeline languages (docs/MARKETS.md). One topic per photo category
+ * per language, written the way a clinic in that market would title it. The
+ * shipped library only holds whitening, implant and aligner photos today, so
+ * the other categories are checked against a one-photo-per-category library:
+ * the day photos for them are added, these languages already find them.
+ */
+describe("new languages find every photo category", () => {
+  const CATS = ["whitening", "implants", "aligners", "cleaning", "rootcanal", "kids", "sensitivity", "breath", "food", "hygiene", "calm", "clinic"];
+  const lib = CATS.map((c) => ({ id: `${c}-01`, category: c, tags: [], luminance: 0.5 }));
+  const TOPICS: Record<string, Record<string, string>> = {
+    ja: {
+      whitening: "ホワイトニングの効果", implants: "インプラントの流れ", aligners: "マウスピース矯正の装着時間",
+      cleaning: "歯石とクリーニング", rootcanal: "根管治療とは", kids: "子どもの乳歯ケア", sensitivity: "知覚過敏でしみる",
+      breath: "口臭の原因", food: "砂糖と虫歯", hygiene: "歯ブラシとフロスの使い方", calm: "歯医者が怖い・不安", clinic: "歯科医院の定期検診",
+    },
+    ar: {
+      whitening: "تبييض الأسنان", implants: "زراعة الأسنان", aligners: "التقويم الشفاف",
+      cleaning: "تنظيف الجير", rootcanal: "علاج العصب", kids: "أسنان الأطفال", sensitivity: "حساسية الأسنان",
+      breath: "رائحة الفم", food: "السكر والتسوس", hygiene: "فرشاة الأسنان وخيط الأسنان", calm: "الخوف من طبيب الأسنان", clinic: "موعد في العيادة",
+    },
+    pl: {
+      whitening: "Wybielanie zębów", implants: "Implanty zębowe", aligners: "Nakładki ortodontyczne",
+      cleaning: "Skaling i kamień nazębny", rootcanal: "Leczenie kanałowe", kids: "Zęby mleczne u dzieci", sensitivity: "Nadwrażliwość zębów",
+      breath: "Nieświeży oddech", food: "Cukier i próchnica", hygiene: "Szczoteczka i nitka", calm: "Strach przed dentystą", clinic: "Wizyta w gabinecie",
+    },
+  };
+  for (const [lang, topics] of Object.entries(TOPICS))
+    for (const cat of CATS)
+      it(`${lang} ${cat}`, () => {
+        expect([...matchingBackgrounds({ topic: topics[cat], language: lang }, lib)]).toContain(`${cat}-01`);
+      });
+
+  it("leads with the right shipped photos from a new-language service name", () => {
+    expect(category(suggestBackgrounds({ service: "インプラント" })[0])).toBe("implants");
+    expect(category(suggestBackgrounds({ service: "تبييض الأسنان" })[0])).toBe("whitening");
+    expect(category(suggestBackgrounds({ service: "Nakładki ortodontyczne" })[0])).toBe("aligners");
+  });
+});

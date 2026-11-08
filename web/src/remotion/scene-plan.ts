@@ -166,6 +166,12 @@ export const scenePlanSchema = z.object({
    * as before.
    */
   backgrounds: z.array(z.string().regex(BACKGROUND_PATH)).min(1).max(MAX_BACKGROUNDS).optional(),
+  /**
+   * The language the on-screen text is in (BCP-47, "ja", "ar-AE"). Decides
+   * fonts, line breaking and direction (script.ts): Japanese wraps between
+   * phrases, not spaces; Arabic is laid out right to left. Absent: as before.
+   */
+  language: z.string().min(2).max(16).optional(),
 });
 
 export type ScenePlan = z.infer<typeof scenePlanSchema>;

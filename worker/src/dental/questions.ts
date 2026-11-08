@@ -12,6 +12,8 @@
  * prices may not be advertised in health care in most of these markets.
  */
 
+import { CJK } from "./locale.js";
+
 const ENDPOINT = "https://suggestqueries.google.com/complete/search";
 
 /** Question-shaped prompts per language; "{s}" is the service name. */
@@ -23,17 +25,22 @@ export const SEEDS: Record<string, string[]> = {
   fr: ["{s} dangereux", "{s} combien de temps", "après {s}", "{s} douleur"],
   it: ["{s} fa male", "{s} quanto dura", "dopo {s}", "{s} rischi"],
   pt: ["{s} faz mal", "{s} quanto tempo", "depois de {s}", "{s} dói"],
+  pl: ["czy {s}", "{s} ile trwa", "po {s}", "{s} boli"],
+  ar: ["هل {s}", "{s} كم يستغرق", "بعد {s}", "اضرار {s}"],
+  // Japanese searches are space-separated keyword pairs: "ホワイトニング 痛い".
+  ja: ["{s} 痛い", "{s} 期間", "{s} 後", "{s} リスク"],
 };
 
-const PRICE = /price|cost|cheap|fiyat|ücret|ucuz|kosten|preis|günstig|precio|barato|prix|tarif|prezzo|costo|preço|barato|€|\$|₺|£/i;
+const PRICE = /price|cost|cheap|fiyat|ücret|ucuz|kosten|preis|günstig|precio|barato|prix|tarif|prezzo|costo|preço|barato|cena|cennik|koszt|kosztuje|\btanie?\b|zł|سعر|اسعار|أسعار|تكلفة|بكم|値段|料金|費用|相場|円|安い|€|\$|₺|£|¥/i;
 
 /** Sites and forums people add to a search ("… ekşi", "… reddit") are not questions. */
-const SITES = /\b(ekşi|eksi|reddit|forum|quora|youtube|wiki\w*|donanımhaber|gutefrage|tiktok|instagram)\b/i;
+const SITES = /\b(ekşi|eksi|reddit|forum|quora|youtube|wiki\w*|donanımhaber|gutefrage|tiktok|instagram|znanylekarz)\b|知恵袋|ブログ|ランキング|口コミ/i;
 
 export function cleanSuggestions(raw: string[], seed: string): string[] {
   return raw
     .map((s) => s.trim())
-    .filter((s) => s.length > seed.length - 3 && s.split(/\s+/).length >= 2 && !PRICE.test(s) && !SITES.test(s));
+    // Japanese suggestions often drop the space ("インプラント痛い"); length is the test there.
+    .filter((s) => s.length > seed.length - 3 && (s.split(/\s+/).length >= 2 || CJK.test(s)) && !PRICE.test(s) && !SITES.test(s));
 }
 
 export async function patientSearches(

@@ -66,6 +66,28 @@ export function maxCharsPerLine(fontSize: number, uppercase: boolean, frameWidth
   return Math.max(8, Math.floor((frameWidth - 160) / (fontSize * (uppercase ? 0.62 : 0.5))));
 }
 const MIN_WORD_SEC = 0.18;  // smooth tiny words
+
+/**
+ * Japanese and Chinese are written without spaces, and whisper returns their
+ * "words" as single characters or short tokens. Joined with spaces they read
+ * as "歯 ぐ き の 出 血" and four of them made a chunk of four characters.
+ * So: no space next to a CJK token, CJK characters measured at full width
+ * (about twice a Latin glyph), and the chunk limited by width, not by count.
+ */
+const CJK_TOKEN = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\u3000-\u303F\uFF00-\uFFEF]/u;
+export function isCjkWord(word: string): boolean {
+  return CJK_TOKEN.test(word);
+}
+/** Width of a caption word in Latin-character units. */
+export function captionWidth(word: string): number {
+  let n = 0;
+  for (const ch of word) n += CJK_TOKEN.test(ch) ? 2 : 1;
+  return n;
+}
+/** The separator drawn between two caption words. */
+export function joiner(a: string, b: string): string {
+  return isCjkWord(a) || isCjkWord(b) ? "" : " ";
+}
 const MAX_PHRASE_SEC = 2.6; // never let a chunk stay > 2.6s
 
 export function buildKaraokeASS(
@@ -127,13 +149,15 @@ export function chunkPhrases(words: { word: string; start: number; end: number }
   while (cursor < words.length) {
     // Take words while they fit on one line (always at least one word).
     const chunk = [words[cursor]];
-    let len = words[cursor].word.length;
+    let len = captionWidth(words[cursor].word);
+    const cjk = isCjkWord(words[cursor].word);
     while (
       cursor + chunk.length < words.length &&
-      chunk.length < PHRASE_WORDS &&
-      len + 1 + words[cursor + chunk.length].word.length <= maxChars
+      // CJK tokens are characters, not words: only the width limits the chunk.
+      chunk.length < (cjk ? 24 : PHRASE_WORDS) &&
+      len + joiner(chunk[chunk.length - 1].word, words[cursor + chunk.length].word).length + captionWidth(words[cursor + chunk.length].word) <= maxChars
     ) {
-      len += 1 + words[cursor + chunk.length].word.length;
+      len += joiner(chunk[chunk.length - 1].word, words[cursor + chunk.length].word).length + captionWidth(words[cursor + chunk.length].word);
       chunk.push(words[cursor + chunk.length]);
     }
     const startW = chunk[0];
@@ -171,10 +195,11 @@ function karaokeLine(
       const safe = next ? `{\\1c&H${bgr}&}${text}{\\1c&HFFFFFF&}` : text;
       return `{\\k${centisecs}}${safe}`;
     })
-    .join(" ");
+    .map((seg, i) => (i === 0 ? seg : joiner(p.words[i - 1].word, p.words[i].word) + seg))
+    .join("");
 
   // A single word longer than a line cannot wrap; squeeze it horizontally.
-  const chars = p.words.reduce((n, w) => n + w.word.length, 0) + p.words.length - 1;
+  const chars = p.words.reduce((n, w, i) => n + captionWidth(w.word) + (i ? joiner(p.words[i - 1].word, w.word).length : 0), 0);
   const squeeze = chars > maxChars ? `{\\fscx${Math.max(55, Math.floor((100 * maxChars) / chars))}}` : "";
   return `Dialogue: 0,${assTime(p.start)},${assTime(p.end)},Caption,,0,0,0,karaoke,${squeeze}${segments}`;
 }

@@ -188,3 +188,18 @@ describe("footage motion", () => {
     }
   });
 });
+
+describe("scene windows: a real cross-dissolve, never an empty frame at a cut", () => {
+  it("keeps one scene fully drawn at every frame between the first fade-in and the last fade-out", async () => {
+    const { sceneWindows, windowOpacity, CROSSFADE } = await import("./animation.js");
+    const frames = [90, 105, 150, 135, 150, 135, 90];
+    const offsets = frames.map((_, i) => frames.slice(0, i).reduce((a, b) => a + b, 0));
+    const wins = sceneWindows(offsets, frames);
+    const total = frames.reduce((a, b) => a + b, 0);
+    expect(wins.at(-1)!.from + wins.at(-1)!.durationInFrames).toBe(total); // running time unchanged
+    for (let f = CROSSFADE; f < total - CROSSFADE; f++) {
+      const best = Math.max(...wins.map((w) => (f >= w.from && f < w.from + w.durationInFrames ? windowOpacity(f - w.from, w) : 0)));
+      expect(best, `frame ${f}`).toBe(1);
+    }
+  });
+});

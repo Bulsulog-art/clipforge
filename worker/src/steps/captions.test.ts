@@ -1,5 +1,5 @@
 import { describe, expect, test, it } from "vitest";
-import { buildKaraokeASS, buildHookASS, chunkPhrases, maxCharsPerLine, wrapHook } from "./captions.js";
+import { buildKaraokeASS, buildHookASS, captionWidth, chunkPhrases, maxCharsPerLine, wrapHook } from "./captions.js";
 import type { Word } from "./transcribe.js";
 
 const fakeWords: Word[] = [
@@ -237,3 +237,20 @@ describe("long hooks", () => {
     expect(size).toBeLessThan(96);
   });
 });
+
+describe("captions without spaces (Japanese)", () => {
+  const chars = [..."歯ぐきの出血は放っておかないでください"].map((c, i) => ({ word: c, start: i * 0.2, end: i * 0.2 + 0.18 }));
+  it("chunks CJK characters by width, not four tokens at a time", () => {
+    const max = maxCharsPerLine(76, false, 1080);
+    const chunks = chunkPhrases(chars, max);
+    expect(chunks[0].words.length).toBeGreaterThan(4);
+    for (const c of chunks) expect(c.words.reduce((n, w) => n + captionWidth(w.word), 0)).toBeLessThanOrEqual(max);
+  });
+  it("draws Japanese tokens without spaces between them", () => {
+    const ass = buildKaraokeASS(chars.slice(0, 5), "dental", 0, 2, "clean", [], "9:16");
+    const line = ass.split("\n").find((l) => l.startsWith("Dialogue"))!;
+    const text = line.replace(/\{[^}]*\}/g, "").split(",").slice(9).join(",");
+    expect(text).toBe("歯ぐきの出");
+  });
+});
+

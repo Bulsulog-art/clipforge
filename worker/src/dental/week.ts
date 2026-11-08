@@ -8,6 +8,8 @@ import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
+import { isUnspaced, marketRules, speechRate, speechTarget, speechUnits } from "./locale.js";
+import { voiceFor } from "./voice.js";
 import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { AFTERCARE_GUIDE, reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
@@ -93,18 +95,21 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `An educational ${profile.language} video for the dental clinic "${profile.name}".`,
     `Topic: ${topic.title}. It answers the patient question: "${topic.question}".`,
     `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
-    `Include narration exactly in this shape: "voiceover": { "text": "<the full narration, every sentence>", "voice": "nova" } (voice may be "nova" or "onyx"). The text is natural spoken ${profile.language}, same form of address, covering the same points as the screen. It should sound like a friendly dentist talking to one patient: varied sentences, contractions where the language uses them, every sentence adding something new, no word or idea repeated, never list items read out. About 2.3 words per second of video.`,
+    `Include narration exactly in this shape: "voiceover": { "text": "<the full narration, every sentence>", "voice": "nova" } (voice may be "nova" or "onyx"). The text is natural spoken ${profile.language}, same form of address, covering the same points as the screen. It should sound like a friendly dentist talking to one patient: varied sentences, contractions where the language uses them, every sentence adding something new, no word or idea repeated, never list items read out. About ${speechRate(profile.language).perSecond} ${speechRate(profile.language).unit === "characters" ? "Japanese characters" : "words"} per second of video.`,
     `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
     `Words the reviewers always reject — never use them on screen or in narration: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}.`,
     `Aftercare and instructions: only what dentists normally tell patients for THIS procedure, and say to follow the dentist's own instructions. Do not invent timeframes or extra restrictions. Reference:\n${AFTERCARE_GUIDE}`,
+    marketRules(profile.country) ? `This market's advertising rules: ${marketRules(profile.country)}` : "",
     `Never invent statistics or percentages ("80% of patients…"); say "most people" or leave it out. A number is allowed only for a guideline interval or timeframe (every 6 months, the first 48 hours).`,
     `Include exactly ONE footage scene with stock footage — { "kind": "footage", "source": { "type": "stock", "query": "..." }, "caption": "<one short line of the answer>", "seconds": 3-4 } — placed right after the hook or in the middle, so the video is not only text. The query: 2-4 English words for an object or action you can film (e.g. "teeth whitening tray", "dental floss close up", "child brushing teeth"), never a generic "dentist office" — objects only, no people, no clinic or treatment scenes.`,
     `End with a cta scene inviting the viewer to ask the clinic or book a check-up` +
       (profile.handle ? `. Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : "."),
-    `On-screen length limits: hook and every list item and the cta at most 80 characters; other lines at most 200. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`,
+    isUnspaced(profile.language)
+      ? `On-screen length limits (Japanese characters are twice as wide as Latin letters): hook at most 20 characters, every list item at most 18, the cta at most 24, other lines at most 50. Use Japanese punctuation (、。「」) and no spaces between words. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`
+      : `On-screen length limits: hook and every list item and the cta at most 80 characters; other lines at most 200. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`,
     fixes.length ? `A compliance or clinical reviewer required these changes: ${fixes.join(" | ")}` : "",
   ]
     .filter(Boolean)
@@ -172,13 +177,16 @@ async function reviewed<T>(
  * { "text": "nova", "voice": "nova" } — the voice name in the text field,
  * which rendered a 0.5-second voiceover over a 24-second video.
  */
-export function narrationProblems(plan: ScenePlan): string[] {
+export function narrationProblems(plan: ScenePlan, language?: string): string[] {
   const text = plan.voiceover?.text?.trim() ?? "";
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const needed = Math.round(totalSeconds(plan) * 1.2);
+  // Counted in the language's own unit: a Japanese narration has no spaces,
+  // and counted in words it was one "word" long, every time.
+  const rate = speechRate(language);
+  const units = speechUnits(text, language);
+  const needed = Math.round(totalSeconds(plan) * rate.perSecond * 0.52);
   if (!text) return ['add "voiceover": { "text": "<full narration>", "voice": "nova" }'];
-  if (words < needed)
-    return [`voiceover.text has ${words} words; write the full narration (about ${Math.round(totalSeconds(plan) * 2.3)} words) — it must be the spoken script, not a voice name`];
+  if (units < needed)
+    return [`voiceover.text has ${units} ${rate.unit}; write the full narration (about ${speechTarget(totalSeconds(plan), language)}) — it must be the spoken script, not a voice name`];
   return [];
 }
 
@@ -217,7 +225,7 @@ export async function produceVideo(
     planText,
     (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
     profile,
-    narrationProblems,
+    (plan) => narrationProblems(plan, profile.language),
   );
   if (!script.ok) return { status: "rejected", topic, stage: "script", reasons: script.rejected };
 
@@ -264,7 +272,13 @@ export async function produceVideo(
   // Only photos about this topic go in by default; with none, the video keeps its plain brand backdrop.
   const relevant = matchingBackgrounds(bgInput);
   const chosen = defaultBackgrounds(suggestedBackgrounds.filter((id) => relevant.has(id)), totalSeconds(guarded)).map(backgroundSrc);
-  const safe: ScenePlan = chosen.length ? { ...guarded, backgrounds: chosen } : guarded;
+  // The renderer needs the language for fonts, line breaking and direction (RTL for Arabic).
+  const withLang: ScenePlan = {
+    ...guarded,
+    language: profile.language,
+    ...(guarded.voiceover ? { voiceover: { ...guarded.voiceover, voice: voiceFor(profile.language, guarded.voiceover.voice) } } : {}),
+  };
+  const safe: ScenePlan = chosen.length ? { ...withLang, backgrounds: chosen } : withLang;
   const branded = profile.brandColor
     ? { ...safe, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
     : safe;

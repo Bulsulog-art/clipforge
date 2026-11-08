@@ -3,7 +3,7 @@
  *
  *   npx tsx src/dental/eval.ts [--per 4] [--out ./dental-eval] [--only tr,de]
  *
- * A fixed panel of clinics (four countries, four languages, different tones
+ * A fixed panel of clinics (ten countries and languages, different tones
  * and forms of address) is run through the whole agent chain without
  * rendering, and the result is measured the same way every time:
  *
@@ -47,6 +47,13 @@ export const PANEL: ClinicProfile[] = [
     services: ["Igiene dentale", "Sbiancamento", "Impianti", "Allineatori", "Devitalizzazione"] },
   { name: "Clínica Sorriso Atlântico", city: "Lisboa", country: "PT", language: "pt", tone: "warm", address: "informal",
     services: ["Limpeza", "Clareamento", "Implantes", "Alinhadores", "Tratamento de canal"] },
+  // New markets (docs/MARKETS.md): Japan, the Gulf, Poland.
+  { name: "さくら歯科クリニック", city: "東京", country: "JP", language: "ja", tone: "calm", address: "formal",
+    services: ["歯のクリーニング", "ホワイトニング", "インプラント", "マウスピース矯正", "根管治療"] },
+  { name: "عيادة الابتسامة لطب الأسنان", city: "دبي", country: "AE", language: "ar", tone: "warm", address: "formal",
+    services: ["تنظيف الأسنان", "تبييض الأسنان", "زراعة الأسنان", "التقويم الشفاف", "علاج العصب"] },
+  { name: "Gabinet Stomatologiczny Wawel", city: "Kraków", country: "PL", language: "pl", tone: "warm", address: "formal",
+    services: ["Higienizacja", "Wybielanie zębów", "Implanty", "Nakładki ortodontyczne", "Leczenie kanałowe"] },
 ].map((p) => clinicProfileSchema.parse(p));
 
 const judgeSchema = z.object({

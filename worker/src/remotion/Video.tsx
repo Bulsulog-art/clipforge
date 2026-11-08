@@ -3,8 +3,9 @@ import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
-import { brandTheme, theme as resolveTheme } from "./theme.js";
-import { sceneOpacity } from "./animation.js";
+import { brandTheme, localizeTheme, theme as resolveTheme } from "./theme.js";
+import { isRtl } from "./script.js";
+import { sceneWindows, windowOpacity, type SceneWindow } from "./animation.js";
 import { SceneView } from "./scenes/index.js";
 import { Watermark } from "./Watermark.js";
 import { LogoMark } from "./LogoMark.js";
@@ -62,25 +63,31 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   logoStyle,
   backgroundSrcs,
 }) => {
-  const t = brandTheme(resolveTheme(plan.theme), plan.brandColor, plan.brandAccent);
+  // The language's fonts and script rules (Japanese, Arabic), then the clinic's colours.
+  const t = localizeTheme(brandTheme(resolveTheme(plan.theme), plan.brandColor, plan.brandAccent), plan.language);
+  const rtl = isRtl(plan.language);
   const photos = backgroundSrcs?.length ? backgroundSrcs : plan.backgrounds ?? [];
   // Over photos, muted and accent text are lifted just enough to stay readable (photo-overlay.ts).
   const sceneTheme = photos.length ? photoTheme(t) : t;
   const offsets = sceneOffsets(plan);
+  const windows = sceneWindows(offsets, plan.scenes.map(sceneFrames));
   const logo = logoSrc ? { src: asStatic(logoSrc), style: logoStyle } : undefined;
   // The sign-off shows the logo large; the corner mark steps aside for it.
   const ctaIndex = logo ? plan.scenes.findIndex((s) => s.kind === "cta") : -1;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: t.background[0] }}>
+    // lang picks the right glyph shapes (Japanese, not Chinese, kanji); dir
+    // lays Arabic out right to left — text, list rows, the compare columns.
+    <AbsoluteFill lang={plan.language} dir={rtl ? "rtl" : "ltr"} style={{ backgroundColor: t.background[0] }}>
       {photos.length ? <BackgroundLayer srcs={photos} theme={t} /> : null}
       <PhotoBackdrop.Provider value={photos.length > 0}>
       {plan.scenes.map((scene, i) => {
-        const durationInFrames = sceneFrames(scene);
+        const win = windows[i];
+        const durationInFrames = win.durationInFrames;
         return (
           <Sequence
             key={i}
-            from={offsets[i]}
+            from={win.from}
             durationInFrames={durationInFrames}
             // Scenes overlap by the fade length so the outgoing frame is still
             // on screen while the next one comes up.
@@ -90,6 +97,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
               scene={scene}
               theme={sceneTheme}
               durationInFrames={durationInFrames}
+              window={win}
               footageSrc={footage[String(i)]}
               logo={logo}
             />
@@ -109,6 +117,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
           style={logo.style}
           theme={t}
           hideFrom={ctaIndex >= 0 ? offsets[ctaIndex] : undefined}
+          rtl={rtl}
         />
       ) : null}
     </AbsoluteFill>
@@ -120,12 +129,13 @@ const FadingScene: React.FC<{
   scene: ScenePlan["scenes"][number];
   theme: ReturnType<typeof resolveTheme>;
   durationInFrames: number;
+  window: SceneWindow;
   footageSrc?: string;
   logo?: { src: string; style?: LogoStyle };
-}> = ({ scene, theme, durationInFrames, footageSrc, logo }) => {
+}> = ({ scene, theme, durationInFrames, window, footageSrc, logo }) => {
   const frame = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, durationInFrames) }}>
+    <AbsoluteFill style={{ opacity: windowOpacity(frame, window) }}>
       <SceneView
         scene={scene}
         theme={theme}
@@ -147,11 +157,12 @@ const FadingScene: React.FC<{
  * and search icons there. Steps aside as the sign-off, which shows the logo
  * large, comes in.
  */
-const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideFrom?: number }> = ({
+const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideFrom?: number; rtl?: boolean }> = ({
   src,
   style,
   theme,
   hideFrom,
+  rtl,
 }) => {
   const frame = useCurrentFrame();
   const opacity =
@@ -160,7 +171,8 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
       : interpolate(frame, [hideFrom - 4, hideFrom + 6], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   if (opacity <= 0) return null;
   return (
-    <div style={{ position: "absolute", top: 260, right: 64, opacity }}>
+    // Mirrored in a right-to-left video: the mark sits at the reading start's opposite corner, top left.
+    <div style={{ position: "absolute", top: 260, ...(rtl ? { left: 64 } : { right: 64 }), opacity }}>
       <LogoMark src={src} style={style} theme={theme} size={CORNER_LOGO} />
     </div>
   );

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addressFor } from "./locale.js";
 
 /**
  * Everything the agents know about one clinic. Filled once at onboarding;
@@ -51,7 +52,5 @@ export const PILLARS = ["education", "myth", "procedure", "aftercare", "preventi
 export type Pillar = (typeof PILLARS)[number];
 
 export function addressRule(p: Pick<ClinicProfile, "address" | "language">): string {
-  return p.address === "informal"
-    ? `Address the viewer informally (e.g. du / tú / tu / sen) and consistently, every line.`
-    : `Address the viewer formally (e.g. Sie / usted / vous / siz) and consistently, every line.`;
+  return addressFor(p.language, p.address);
 }
