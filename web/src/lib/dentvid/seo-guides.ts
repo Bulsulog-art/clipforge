@@ -90,6 +90,11 @@ export function guideAlternates(g: Guide): Record<string, string> | undefined {
   return paths && absolute(paths);
 }
 
+/** The landing's share card for a language (hubs and About pages reuse it). */
+function landingOgImage(locale: Locale): string {
+  return absoluteUrl(`${LANDING_PATH[locale]}/opengraph-image`);
+}
+
 export function guideOgImagePath(g: Guide): string {
   return `${guidePath(g)}/opengraph-image`;
 }
@@ -111,6 +116,8 @@ export function guideMetadata(g: Guide): Metadata {
       ...(g.published ? { publishedTime: g.published } : {}),
       ...(g.updated ? { modifiedTime: g.updated } : {}),
     },
+    // The layout's generic X card text would otherwise apply; the image comes from opengraph-image.tsx.
+    twitter: { card: "summary_large_image", title: g.title, description: g.description },
   };
 }
 
@@ -167,7 +174,8 @@ export function guidesIndexMetadata(locale: Locale): Metadata {
     title: { absolute: ui.index.title },
     description: ui.index.description,
     alternates: { canonical: url, languages: guidesIndexAlternates() },
-    openGraph: { title: ui.index.h1, description: ui.index.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale] },
+    openGraph: { title: ui.index.h1, description: ui.index.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale], images: [landingOgImage(locale)] },
+    twitter: { card: "summary_large_image", title: ui.index.h1, description: ui.index.description, images: [landingOgImage(locale)] },
   };
 }
 
@@ -214,7 +222,8 @@ export function aboutMetadata(locale: Locale): Metadata {
     title: { absolute: e.meta.title },
     description: e.meta.description,
     alternates: { canonical: url, languages: aboutAlternates() },
-    openGraph: { title: e.meta.title, description: e.meta.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale] },
+    openGraph: { title: e.meta.title, description: e.meta.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale], images: [landingOgImage(locale)] },
+    twitter: { card: "summary_large_image", title: e.meta.title, description: e.meta.description, images: [landingOgImage(locale)] },
   };
 }
 
