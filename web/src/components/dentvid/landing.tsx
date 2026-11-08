@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LANDING, LANDING_PATH, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
+import { LANDING, LANDING_PATH, SAMPLE_VIDEOS, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 
 /** A pure CSS phone showing a vertical video frame with a caption line. */
@@ -83,6 +83,27 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section id="samples" className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+        <h2 className="text-3xl font-semibold tracking-tight">{c.samples.heading}</h2>
+        <p className="mt-3 max-w-2xl text-[#4a5a57]">{c.samples.text}</p>
+        <ul className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {SAMPLE_VIDEOS.map(({ slug: name, name: title }) => (
+            <li key={name} className="overflow-hidden rounded-2xl border border-[#e8e1d5] bg-[#14211f] shadow-sm">
+              <video
+                src={`/dentvideo/samples/${name}.mp4`}
+                poster={`/dentvideo/samples/${name}.jpg`}
+                controls
+                playsInline
+                preload="none"
+                aria-label={title}
+                className="aspect-[9/16] w-full object-cover"
+              />
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-sm text-[#6b7a77]">{c.samples.note}</p>
       </section>
 
       <section className="bg-[#0f5c5c] text-[#f5efe6]">

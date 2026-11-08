@@ -29,12 +29,21 @@ export const HREFLANG: Record<Locale, string> = { en: "en", de: "de", es: "es", 
 
 export type Faq = { q: string; a: string };
 
+/** Real output for a demo clinic (worker/src/dental/cli.ts --render), unedited; files in public/dentvideo/samples. */
+export const SAMPLE_VIDEOS = [
+  { slug: "whitening-myths-debunked", name: "Whitening thins your enamel? Not quite.", seconds: 27 },
+  { slug: "caring-for-clear-aligners", name: "That funky smell from your aligners? Avoid it this way.", seconds: 21 },
+  { slug: "proper-brushing-technique", name: "Missing spots when you brush? Here's a clue.", seconds: 20 },
+] as const;
+
 export type LandingContent = {
   meta: { title: string; description: string; ogDescription: string };
   hero: { eyebrow: string; h1: string; lead: string; cta: string; note: string };
   mock: { hook: string; caption: string; label: string };
   problem: { title: string; text: string }[];
   how: { heading: string; steps: { title: string; text: string }[] };
+  /** Real output for a demo clinic, shown as-is. */
+  samples: { heading: string; text: string; note: string };
   checks: { heading: string; items: { title: string; text: string }[] };
   pricing: { heading: string; text: string; cta: string };
   guidesHeading: string;
@@ -71,6 +80,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Approve and post", text: "Watch, approve or decline. Download approved videos with a ready caption and hashtags. Anything that needs your eye is marked, with the reason." },
       ],
     },
+    samples: { heading: "A sample week", text: "Three videos DentVideo made for a demo clinic, exactly as they came out — narrated, captioned and checked. Yours are made in your language, colours and tone.", note: "Demo clinic. The sample videos are in English." },
     checks: {
       heading: "Checked twice before you see it",
       items: [
@@ -123,6 +133,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Freigeben und posten", text: "Ansehen, freigeben oder ablehnen. Freigegebene Videos mit fertigem Text und Hashtags herunterladen. Was Ihren Blick braucht, ist markiert — mit Begründung." },
       ],
     },
+    samples: { heading: "Eine Beispielwoche", text: "Drei Videos, die DentVideo für eine Demo-Praxis erstellt hat – genau so, wie sie herauskamen: vertont, untertitelt und geprüft. Ihre Videos entstehen in Ihrer Sprache, Ihren Farben und Ihrem Ton.", note: "Demo-Praxis. Die Beispielvideos sind auf Englisch." },
     checks: {
       heading: "Zweimal geprüft, bevor Sie es sehen",
       items: [
@@ -175,6 +186,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Aprueba y publica", text: "Míralos, apruébalos o recházalos. Descarga los aprobados con el texto y los hashtags listos. Lo que necesita tu atención aparece marcado, con el motivo." },
       ],
     },
+    samples: { heading: "Una semana de ejemplo", text: "Tres vídeos que DentVideo hizo para una clínica de demostración, tal como salieron: narrados, subtitulados y revisados. Los tuyos se hacen en tu idioma, con tus colores y tu tono.", note: "Clínica de demostración. Los vídeos de ejemplo están en inglés." },
     checks: {
       heading: "Revisado dos veces antes de que lo veas",
       items: [
@@ -227,6 +239,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Onaylayın ve paylaşın", text: "İzleyin, onaylayın ya da reddedin. Onayladığınız videoları hazır açıklama ve etiketlerle indirin. Dikkatinizi gerektiren her şey gerekçesiyle işaretlenir." },
       ],
     },
+    samples: { heading: "Örnek bir hafta", text: "DentVideo'nun bir demo klinik için hazırladığı üç video, çıktığı haliyle: seslendirilmiş, altyazılı ve kontrol edilmiş. Sizinkiler kendi dilinizde, renklerinizde ve üslubunuzda hazırlanır.", note: "Demo klinik. Örnek videolar İngilizcedir." },
     checks: {
       heading: "Siz görmeden önce iki kez denetlenir",
       items: [
@@ -279,6 +292,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Validez et publiez", text: "Regardez, validez ou refusez. Téléchargez les vidéos validées avec leur texte et leurs hashtags. Ce qui demande votre attention est signalé, avec la raison." },
       ],
     },
+    samples: { heading: "Une semaine d'exemple", text: "Trois vidéos réalisées par DentVideo pour un cabinet de démonstration, telles qu'elles sont sorties : commentées, sous-titrées et vérifiées. Les vôtres sont faites dans votre langue, vos couleurs et votre ton.", note: "Cabinet de démonstration. Les vidéos d'exemple sont en anglais." },
     checks: {
       heading: "Vérifié deux fois avant que vous le voyiez",
       items: [
