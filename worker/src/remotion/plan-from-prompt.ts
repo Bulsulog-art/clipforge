@@ -59,6 +59,7 @@ RULES
 - theme: one of ${THEMES.join(", ")}. Pick for subject, not novelty — midnight for most, editorial for considered or literary subjects, mono for blunt statements, candy for playful, sunrise for warm and personal.
 - aspect: "9:16" unless the user asks otherwise.
 - voiceover is optional. Include it only if narration adds something the type does not already say.
+- music: exactly one of "none", "calm", "uplifting", "tense", "playful". Nothing else — not a description.
 
 Return exactly: { title, aspect, theme, music, scenes: [...], voiceover? }
 

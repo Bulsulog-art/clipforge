@@ -39,7 +39,12 @@ Rules:
 - Write everything in the clinic's language.
 - Educational and accurate, mainstream dental guidance only. No prices, discounts, guarantees, superlatives, before/after promises or testimonials.
 - Mix the pillars across the week (${PILLARS.join(", ")}); never more than two of the same pillar.
-- Hooks: a question, a common myth, or a surprising but true fact. Under 9 words.
+- Hooks decide whether anyone watches. Under 9 words, specific, and built on one of these:
+  * a myth stated, then challenged: "Whitening thins your enamel? Not really."
+  * a common mistake: "Stop rinsing right after you brush."
+  * a concrete number or timeframe: "Your toothbrush has a 3-month expiry date."
+  * a relatable moment: "That sharp pain when you drink something cold?"
+  Never a generic textbook question ("What is X?", "Is X important?", "How does X work?") and never a bare topic label.
 Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } ] }`,
     user:
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""} (${profile.country}).\n` +

@@ -150,7 +150,10 @@ Flag anything a health regulator, professional body or platform could object to:
 - claims to cure, fear-mongering, or diagnosing the viewer ("if you have X you need Y"),
 - anything that identifies a patient,
 - medical statements that are not mainstream, accepted dental guidance.
-Educational, accurate, hedged statements ("can help", "ask your dentist") are fine.
+- absolute effect claims ("prevents", "stops", "önler", "engeller" without "can"/"helps"): ask for a hedged form ("can help prevent", "önlemeye yardımcı olur").
+Educational, accurate, hedged statements are fine and must NOT be flagged. Hedging words include "can", "may", "usually", "often", "for most people", "ask your dentist", and in Turkish "-ebilir/-abilir", "olabilir", "genellikle", "çoğu durumda", "hekiminize danışın". Typical ranges given as typical ("usually 3-6 weeks", "genellikle 3-6 hafta") are fine.
+Only flag what a regulator would actually object to. A fix that merely re-words an already hedged sentence is not a fix — in that case the sentence passes.
+Advice to take medication must defer to the dentist ("as your dentist advises" / "hekiminizin önerdiği şekilde").
 
 Return JSON: { "verdict": "pass" | "revise" | "block", "issues": [ { "quote", "problem", "fix" } ] }
 - "pass": nothing to change.
