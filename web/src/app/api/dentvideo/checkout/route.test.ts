@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_TEXT } from "@/content/dentvideo-app";
+import { VERIFY_COPY } from "@/content/dentvideo-auth";
 
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 
-let session: { user: { id: string; email: string } | null; clinic: Record<string, unknown> | null };
+let session: { user: { id: string; email: string; user_metadata?: Record<string, unknown> } | null; clinic: Record<string, unknown> | null };
 
 vi.mock("@/lib/dentvid/auth", () => ({
   dvSession: async () => ({
@@ -17,7 +18,12 @@ vi.mock("@/lib/dentvid/auth", () => ({
     },
   }),
 }));
-vi.mock("@/lib/dentvid/locale-server", () => ({ dvErrors: async () => APP_TEXT.en.errors }));
+vi.mock("@/lib/dentvid/locale-server", () => ({
+  dvErrors: async () => APP_TEXT.en.errors,
+  dvLocale: async (clinicLanguage?: string | null) => clinicLanguage ?? "en",
+}));
+
+const verified = { product: "dentvideo", email_verified_at: "2026-11-01T10:00:00.000Z", email_verified_for: "dr@clinic.example" };
 
 const fetchMock = vi.fn();
 
@@ -34,7 +40,7 @@ async function call(body: unknown) {
 const sent = (i: number) => JSON.parse(fetchMock.mock.calls[i][1].body as string) as Record<string, unknown>;
 
 beforeEach(() => {
-  session = { user: { id: OWNER, email: "dr@clinic.example" }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de" } } };
+  session = { user: { id: OWNER, email: "dr@clinic.example", user_metadata: verified }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de" } } };
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("DODO_API_KEY", "sk_test");
@@ -52,6 +58,21 @@ describe("POST /api/dentvideo/checkout", () => {
   it("needs a signed-in clinic owner", async () => {
     session.user = null;
     expect((await call({ plan: "practice", interval: "month" })).status).toBe(401);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses an owner who has not confirmed their email, in the clinic's language", async () => {
+    session.user = { id: OWNER, email: "dr@clinic.example", user_metadata: { product: "dentvideo" } };
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(403);
+    expect(res.body).toMatchObject({ code: "email_unverified", email: "dr@clinic.example" });
+    expect(res.body.error).toBe(VERIFY_COPY.de.checkoutBlocked);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses an address confirmed before it was changed", async () => {
+    session.user = { id: OWNER, email: "new@clinic.example", user_metadata: verified };
+    expect((await call({ plan: "practice", interval: "month" })).status).toBe(403);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

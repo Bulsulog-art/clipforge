@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { ArrowLeft, ArrowRight, Check, Pencil } from "lucide-react";
 import { dirOf, type Locale } from "@/content/dentvideo";
@@ -9,6 +9,7 @@ import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { ONBOARDING_STEPS, STEP_COOKIE, TEASER_KEY, stepIndex, type OnboardingStep } from "@/lib/dentvid/onboarding";
 import { BrandFields, ClinicDetailsFields, HandleField, LanguageField, useClinicDraft, type ClinicDraft } from "./clinic-form";
 import { PlanPanel, type PlanOption } from "./plan-panel";
+import { VerifiedNote, VerifyCard, type VerifyCardHandle } from "./verify-email";
 import type { PreviewProfile } from "./live-preview";
 import { trackDv } from "@/lib/dentvid/events-client";
 
@@ -91,6 +92,10 @@ type Props = {
   founding: { priceUsd: number; code?: string } | null;
   /** Back from Dodo without paying. */
   checkoutCancelled?: boolean;
+  /** The signed-in account's address and whether it is confirmed (lib/dentvid/verify-email). */
+  account?: { email: string; verified: boolean };
+  /** Dev harness: show the code card without asking the server for a code. */
+  autoSendCode?: boolean;
 };
 
 /**
@@ -100,7 +105,7 @@ type Props = {
  * is kept in the URL (?step=) and the furthest one in a cookie, so a
  * returning visitor lands where they left off (lib/dentvid/onboarding.ts).
  */
-export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, founding, checkoutCancelled }: Props) {
+export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, founding, checkoutCancelled, account, autoSendCode = true }: Props) {
   const t = appText(locale).onboarding;
   const draft = useClinicDraft({ locale, initial, logoUrl });
   const [step, setStep] = useState(initialStep);
@@ -170,6 +175,8 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
             founding={founding}
             cancelled={!!checkoutCancelled}
             onEdit={() => go("preview")}
+            account={account}
+            autoSendCode={autoSendCode}
           />
         )}
       </div>
@@ -295,6 +302,8 @@ function PlanStep({
   founding,
   cancelled,
   onEdit,
+  account,
+  autoSendCode,
 }: {
   locale: Locale;
   preview: PreviewProfile;
@@ -302,8 +311,14 @@ function PlanStep({
   founding: { priceUsd: number; code?: string } | null;
   cancelled: boolean;
   onEdit: () => void;
+  account?: { email: string; verified: boolean };
+  autoSendCode: boolean;
 }) {
   const t = appText(locale).onboarding;
+  // Checkout waits for a confirmed address; the clinic and preview steps never do.
+  const [verified, setVerified] = useState(account?.verified ?? true);
+  const [justVerified, setJustVerified] = useState(false);
+  const card = useRef<VerifyCardHandle>(null);
   return (
     <>
       <StepHeader title={t.planTitle} lead={t.planLead} />
@@ -328,8 +343,42 @@ function PlanStep({
           {t.back}
         </button>
       </div>
+      {account && !verified && (
+        <div className="mt-6">
+          <VerifyCard
+            ref={card}
+            locale={locale}
+            email={account.email}
+            autoSend={autoSendCode}
+            onVerified={() => {
+              setVerified(true);
+              setJustVerified(true);
+            }}
+          />
+        </div>
+      )}
+      {justVerified && (
+        <div className="mt-6">
+          <VerifiedNote locale={locale} />
+        </div>
+      )}
       <div className="mt-6">
-        <PlanPanel locale={locale} state="trial" options={plans} founding={founding} bare />
+        <PlanPanel
+          locale={locale}
+          state="trial"
+          options={plans}
+          founding={founding}
+          bare
+          onNeedsVerification={
+            account
+              ? () => {
+                  setVerified(false);
+                  setJustVerified(false);
+                  setTimeout(() => card.current?.focus(), 0);
+                }
+              : undefined
+          }
+        />
       </div>
     </>
   );

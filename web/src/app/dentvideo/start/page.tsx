@@ -12,6 +12,7 @@ import { dvLocale } from "@/lib/dentvid/locale-server";
 import { dvSession } from "@/lib/dentvid/auth";
 import { STEP_COOKIE, resolveStep } from "@/lib/dentvid/onboarding";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
+import { isEmailVerified } from "@/lib/dentvid/verify-email";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { DV_FOUNDING, dvAvailablePlans, foundingCode, foundingOfferOpen } from "@/lib/dentvid/billing";
 
@@ -77,6 +78,7 @@ export default async function StartPage({ searchParams }: Props) {
         plans={dvAvailablePlans()}
         founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}
         checkoutCancelled={sp.billing === "cancelled"}
+        account={user.email ? { email: user.email, verified: isEmailVerified(user) } : undefined}
       />
     </>
   );

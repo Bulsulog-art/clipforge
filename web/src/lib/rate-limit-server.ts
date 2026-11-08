@@ -2,6 +2,7 @@ import IORedis from "ioredis";
 import { NextResponse } from "next/server";
 import { checkAll, type Check, type CounterStore, type LimitResult } from "./rate-limit";
 import type { ReplayStore } from "./webhook-replay";
+import { MemoryKv, type VerifyKv } from "./dentvid/verify-email";
 
 /**
  * Redis-backed limits for the API routes (REDIS_URL — the same Redis as the
@@ -97,6 +98,32 @@ export function replayStore(): ReplayStore | null {
       await r.set(key, value, "EX", ttlSec);
     },
     del: async (key) => {
+      await r.del(key);
+    },
+  };
+}
+
+/**
+ * A small key/value store with expiry on the same connection (email
+ * verification codes, lib/dentvid/verify-email). Unlike the limiter this is
+ * not fail-open: callers get the error and answer "try again".
+ * Without REDIS_URL (local dev) a per-process map stands in.
+ */
+let _memKv: MemoryKv | null = null;
+export function kvStore(): VerifyKv {
+  const r = limiterRedis();
+  if (!r) return (_memKv ??= new MemoryKv());
+  return {
+    get: async (key) => {
+      await readyRedis();
+      return r.get(key);
+    },
+    set: async (key, value, ttlSec) => {
+      await readyRedis();
+      await r.set(key, value, "EX", Math.max(1, Math.ceil(ttlSec)));
+    },
+    del: async (key) => {
+      await readyRedis();
       await r.del(key);
     },
   };

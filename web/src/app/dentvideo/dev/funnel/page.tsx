@@ -20,6 +20,17 @@ const DEMO_CLINIC: Record<Locale, { name: string; city: string; country: string 
   pl: { name: "Gabinet Stomatologiczny Uśmiech", city: "Kraków", country: "PL" },
 };
 
+const DEMO_EMAIL: Record<Locale, string> = {
+  en: "hello@riverside-dental.example",
+  de: "praxis@zahnarzt-am-park.example",
+  es: "hola@clinicasonrisa.example",
+  tr: "info@gulumsedis.example",
+  fr: "contact@cabinet-du-parc.example",
+  ja: "info@sakura-dental.example",
+  ar: "info@smile-dental.example",
+  pl: "rejestracja@gabinet-usmiech.example",
+};
+
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Funnel preview", robots: { index: false, follow: false } };
 
@@ -27,8 +38,9 @@ export const metadata: Metadata = { title: "Funnel preview", robots: { index: fa
  * Dev-only: every step of the onboarding wizard without a session, for
  * design review and screenshots. 404 unless DENTVIDEO_DEV_PREVIEW=1.
  *   /dentvideo/dev/funnel?step=account|clinic|preview|plan|first-week|activating&lang=tr
+ * The plan step shows the email-code card; &verified=1 hides it.
  */
-export default async function FunnelPreview({ searchParams }: { searchParams: Promise<{ step?: string; lang?: string; empty?: string }> }) {
+export default async function FunnelPreview({ searchParams }: { searchParams: Promise<{ step?: string; lang?: string; empty?: string; verified?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const locale = asLocale(sp.lang) ?? "en";
@@ -60,6 +72,8 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
       plans={dvAvailablePlans()}
       founding={{ priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() }}
       checkoutCancelled={false}
+      account={{ email: DEMO_EMAIL[locale], verified: sp.verified === "1" }}
+      autoSendCode={false}
     />
   );
 }

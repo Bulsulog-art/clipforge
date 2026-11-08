@@ -78,7 +78,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email: addr, password, website, elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)) }),
+          body: JSON.stringify({ email: addr, password, website, elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)), locale }),
         });
         const body = await res.json().catch(() => ({}));
         if (res.status === 409) {
