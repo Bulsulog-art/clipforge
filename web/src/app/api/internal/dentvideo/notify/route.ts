@@ -1,7 +1,7 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
+import { workerAuthorised } from "@/lib/dentvid/internal-auth";
 import { readyEmail, sendEmail } from "@/lib/dentvid/email";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
@@ -20,17 +20,8 @@ const Body = z.object({
   flagged: z.number().int().min(0),
 });
 
-function authorised(header: string | null): boolean {
-  const expected = process.env.WORKER_INTERNAL_TOKEN;
-  const got = (header ?? "").replace(/^Bearer\s+/i, "");
-  if (!expected || !got) return false;
-  const a = Buffer.from(got);
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function POST(req: Request) {
-  if (!authorised(req.headers.get("authorization"))) return NextResponse.json({ error: "unauthorised" }, { status: 401 });
+  if (!workerAuthorised(req.headers.get("authorization"))) return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "bad request" }, { status: 400 });
   const { clinicId, kind, ready, flagged } = parsed.data;

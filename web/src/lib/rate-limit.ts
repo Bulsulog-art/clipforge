@@ -164,12 +164,25 @@ export const LIMITS = {
   itemsUser: { limit: 120, windowSec: 10 * MIN },
   // Save the clinic profile (DB write + storage).
   clinicUser: { limit: 30, windowSec: 10 * MIN },
+  // Self-serve account (DentVideo settings): billing portal / plan change call Dodo;
+  // an export signs a URL for every stored file; deletion is rare by nature.
+  billingUser: { limit: 10, windowSec: 10 * MIN },
+  accountExportUser: { limit: 3, windowSec: HOUR },
+  accountExportUserDay: { limit: 10, windowSec: DAY },
+  accountDeleteUser: { limit: 5, windowSec: HOUR },
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },
   // First-party funnel events (POST /api/dentvideo/event): a few per page view.
   eventIp: { limit: 60, windowSec: 10 * MIN },
   eventGlobal: { limit: 20_000, windowSec: HOUR },
+  // Lifecycle reminders (welcome is once per clinic). A hard ceiling on
+  // reminder emails per hour, whatever the scheduler finds due.
+  lifecycleGlobal: { limit: 100, windowSec: HOUR },
+  // The hourly worker call itself.
+  lifecycleRun: { limit: 6, windowSec: HOUR },
+  // Unsubscribe links (signed, no login).
+  unsubscribeIp: { limit: 30, windowSec: 10 * MIN },
   // Payment provider; a handful of IPs, retries included.
   dodoWebhookIp: { limit: 600, windowSec: MIN },
   // /api/health?deep=1 makes outbound calls (Supabase, Redis, OpenAI).

@@ -10,7 +10,15 @@ export type DvWebhookResult = { status: 200 | 500; body: Record<string, unknown>
 export type DvWebhookDeps = {
   /** Queue the clinic's first week (tests pass a mock; the default uses the BullMQ dentvid queue). */
   enqueueWeek?: (db: SupabaseClient, clinicId: string) => Promise<FirstWeekResult>;
+  /** Send the welcome email (tests pass a mock; the default goes through lifecycle.ts and Resend). */
+  sendWelcome?: (db: SupabaseClient, clinicId: string) => Promise<string>;
 };
+
+async function welcome(db: SupabaseClient, clinicId: string): Promise<string> {
+  if (!process.env.RESEND_API_KEY) return "no email key";
+  const [{ sendWelcome, supabaseLifecycleStore, lifecycleConfig }, { sendEmail }] = await Promise.all([import("./lifecycle"), import("./email")]);
+  return sendWelcome({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig() }, clinicId);
+}
 
 async function queueWeek(db: SupabaseClient, clinicId: string): Promise<FirstWeekResult> {
   // Imported here so this module (and its tests) do not touch Redis on load.
@@ -92,5 +100,21 @@ export async function handleDentvideoEvent(
       console.error("[dodo:dentvideo] could not queue the first week", clinic.id, (e as Error).message);
     }
   }
-  return { status: 200, body: { ok: true, app: "dentvideo", plan: update.plan ?? clinic.plan, ...(firstWeek ? { firstWeek } : {}) } };
+
+  // The welcome email: once per clinic (dentvid_email_log), so a retried
+  // event or a clinic that pays again after cancelling never gets it twice.
+  // Best effort, like the first week — the payment is already recorded.
+  let welcomeEmail: string | undefined;
+  if (update.plan === "active" && clinic.plan !== "active") {
+    try {
+      welcomeEmail = await (deps.sendWelcome ?? welcome)(db, clinic.id);
+    } catch (e) {
+      welcomeEmail = "failed";
+      console.error("[dodo:dentvideo] welcome email failed", clinic.id, (e as Error).message);
+    }
+  }
+  return {
+    status: 200,
+    body: { ok: true, app: "dentvideo", plan: update.plan ?? clinic.plan, ...(firstWeek ? { firstWeek } : {}), ...(welcomeEmail ? { welcomeEmail } : {}) },
+  };
 }

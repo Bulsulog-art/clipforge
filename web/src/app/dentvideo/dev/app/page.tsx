@@ -23,9 +23,11 @@ export const metadata: Metadata = { title: "App preview", robots: { index: false
  *   between (this week not made yet), empty (paid, nothing ever made),
  *   first-week (just paid), paused, cancelled, trial (no plan, old videos), updating
  * settings states: active (default), paused, trial
+ *   &billing=email shows the path without DODO_API_KEY (default: self-serve);
+ *   &dialog=delete opens the delete-account dialog
  * record states: practice (default), starter, nocards
  */
-export default async function AppPreview({ searchParams }: { searchParams: Promise<{ screen?: string; state?: string; lang?: string }> }) {
+export default async function AppPreview({ searchParams }: { searchParams: Promise<{ screen?: string; state?: string; lang?: string; billing?: string; dialog?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const locale = asLocale(sp.lang) ?? "en";
@@ -45,6 +47,8 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
         plan={demoPlan(planState)}
         plans={plans}
         founding={founding}
+        selfServe={sp.billing !== "email"}
+        initialDialog={sp.dialog === "delete" ? "delete" : null}
       />
     );
   }
