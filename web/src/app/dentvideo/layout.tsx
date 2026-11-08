@@ -16,7 +16,17 @@ export const metadata: Metadata = {
     title: "DentVideo — patient-education videos for dental clinics",
     description: "Your dentist's own voice, cut into captioned short videos. Checked before you see them. Approved by you.",
   },
-  title: { default: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
+  // The root layout's ClipForge canonical and share card must not leak onto
+  // DentVideo pages that set none of their own (sign-up, app, 404): pages
+  // with a canonical set it themselves.
+  alternates: {},
+  openGraph: {
+    siteName: "DentVideo",
+    type: "website",
+    title: "DentVideo — patient-education videos for dental clinics",
+    description: "Five patient videos every Monday, checked before you see them. You just approve.",
+  },
+  title: { default:"DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
     "DentVideo turns a dentist's five-minute phone recording into a week of captioned, compliant short videos — and writes, narrates and checks educational videos when there is no time to film.",
   applicationName: "DentVideo",

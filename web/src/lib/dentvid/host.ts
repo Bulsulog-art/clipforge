@@ -24,6 +24,12 @@ export type HostRoute =
 const PASS_THROUGH = /^\/(_next|api|\.well-known)(\/|$)|^\/favicon\.ico$/;
 /** A file under /dentvideo/ (sample videos, posters, the live preview's plans and narration) is served as-is. */
 const STATIC_FILE = /\.(mp4|webm|mp3|json|jpg|jpeg|png|webp|svg|ico|woff2?)$/i;
+/**
+ * Share images from opengraph-image.tsx routes. Next names them by their
+ * in-app path (/dentvideo/de/opengraph-image), so they are served in place
+ * rather than bounced through a redirect that link scrapers may not follow.
+ */
+const OG_IMAGE = /\/opengraph-image(?:\/[\w-]+)?$/;
 
 /**
  * Where a request goes.
@@ -39,7 +45,7 @@ export function routeForHost(host: string | null | undefined, pathname: string, 
     if (h.startsWith("www.")) return { kind: "redirect", url: `https://dentvideo.com${pathname}${search}`, status: 308 };
     if (PASS_THROUGH.test(pathname)) return { kind: "next" };
     if (pathname === "/dentvideo" || pathname.startsWith("/dentvideo/")) {
-      if (STATIC_FILE.test(pathname)) return { kind: "next" };
+      if (STATIC_FILE.test(pathname) || OG_IMAGE.test(pathname)) return { kind: "next" };
       const clean = pathname.slice("/dentvideo".length) || "/";
       return { kind: "redirect", url: `https://dentvideo.com${clean}${search}`, status: 308 };
     }
@@ -72,4 +78,21 @@ export function dvUrl(path: string): string {
     process.env.NEXT_PUBLIC_DENTVIDEO_URL || undefined,
     (process.env.NEXT_PUBLIC_APP_URL || "https://clipforge.bulsulabs.com").replace(/\/+$/, ""),
   );
+}
+
+/**
+ * The href for an in-app DentVideo path ("/dentvideo/de", "/dentvideo#how",
+ * "/dentvideo/start?lang=tr"). Once dentvideo.com is canonical the page lives
+ * at the clean path ("/de", "/#how", "/start?lang=tr"); linking to the in-app
+ * path would cost every click and every prefetch a 308 redirect.
+ */
+export function dentvideoHref(path: string, canonicalUrl: string | undefined): string {
+  if (!canonicalUrl || !/^\/dentvideo(?=[/?#]|$)/.test(path)) return path;
+  const rest = path.slice("/dentvideo".length);
+  return rest.startsWith("/") ? rest : `/${rest}`;
+}
+
+/** dentvideoHref with this deployment's settings (a NEXT_PUBLIC_ variable, so server and client agree). */
+export function dvHref(path: string): string {
+  return dentvideoHref(path, process.env.NEXT_PUBLIC_DENTVIDEO_URL || undefined);
 }
