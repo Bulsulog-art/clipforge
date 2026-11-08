@@ -7,9 +7,13 @@ export const SERVICE_HINTS: Record<string, string> = {
   it: "Igiene dentale, Sbiancamento, Impianti, Allineatori, Devitalizzazione, Odontoiatria pediatrica",
   pt: "Limpeza, Clareamento, Implantes, Alinhadores, Tratamento de canal, Odontopediatria",
   tr: "Diş taşı temizliği, Diş beyazlatma, İmplant, Şeffaf plak, Kanal tedavisi, Çocuk diş hekimliği",
+  ja: "歯のクリーニング、ホワイトニング、インプラント、マウスピース矯正、根管治療、小児歯科",
+  ar: "تنظيف الأسنان، تبييض الأسنان، زراعة الأسنان، التقويم الشفاف، علاج العصب، طب أسنان الأطفال",
+  pl: "Higienizacja, Wybielanie zębów, Implanty, Leczenie nakładkami, Leczenie kanałowe, Stomatologia dziecięca",
 };
 
-export const splitServices = (s: string) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
+/** Services as typed: separated by commas, new lines, or the Japanese (、) and Arabic (،) commas. */
+export const splitServices = (s: string) => s.split(/[,，、،\n]/).map((x) => x.trim()).filter(Boolean);
 
 /** The first few example services for a language. */
 export const exampleServices = (language: string, n = 3) => splitServices(SERVICE_HINTS[language] ?? SERVICE_HINTS.en).slice(0, n);

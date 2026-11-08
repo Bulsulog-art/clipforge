@@ -126,7 +126,7 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10 opacity-70" />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-24 sm:px-6 sm:py-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-16">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pl-2 pr-3.5 text-sm font-medium text-dv-teal ring-1 ring-dv-line">
+          <p className="inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pe-3.5 ps-2 text-sm font-medium text-dv-teal ring-1 ring-dv-line">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal-50">
               <ImagePlus className="h-3 w-3" aria-hidden="true" />
             </span>
@@ -189,7 +189,7 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
             </div>
             <Link href={href} onClick={carry} className="dv-btn dv-btn-primary group w-full px-7 py-4 text-base">
               {copy.cta}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
             </Link>
             <p className="-mt-1 text-center text-xs text-dv-muted">{copy.note}</p>
           </div>

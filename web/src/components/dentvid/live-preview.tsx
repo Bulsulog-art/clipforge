@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import dynamic from "next/dynamic";
 import { APP_TEXT } from "@/content/dentvideo-app";
 import type { Locale } from "@/content/dentvideo";
+import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { PreviewPlaceholder } from "./phone";
 
 /**
@@ -21,7 +22,7 @@ import { PreviewPlaceholder } from "./phone";
 
 export type PreviewProfile = {
   name: string;
-  language: "en" | "de" | "es" | "fr" | "it" | "pt" | "tr";
+  language: ClinicProfile["language"];
   services: string[];
   brandColor?: string /* "#rrggbb" */;
   logoUrl?: string /* object URL or https */;

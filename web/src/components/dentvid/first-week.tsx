@@ -39,7 +39,7 @@ export function FirstWeek({ locale, paid, pollMs = 10_000 }: { locale: Locale; p
   return (
     <section aria-live="polite" className="dv-card relative isolate overflow-hidden p-6 sm:p-10">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10 opacity-70" />
-      <div aria-hidden="true" className="absolute -right-24 -top-24 -z-10 h-72 w-72 rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
+      <div aria-hidden="true" className="absolute -end-24 -top-24 -z-10 h-72 w-72 rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
       <p className="inline-flex items-center gap-2 rounded-full bg-dv-teal-50 px-3 py-1 text-xs font-semibold text-dv-teal ring-1 ring-inset ring-dv-teal/15">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-dv-teal opacity-50 motion-reduce:animate-none" />

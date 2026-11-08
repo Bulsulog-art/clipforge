@@ -40,6 +40,9 @@ const QUOTES: Record<Locale, [string, string]> = {
   es: ["«", "»"],
   fr: ["« ", " »"],
   tr: ["“", "”"],
+  ja: ["「", "」"],
+  ar: ["«", "»"],
+  pl: ["„", "”"],
 };
 export function quote(locale: Locale, s: string): string {
   const [a, b] = QUOTES[locale];
@@ -177,5 +180,8 @@ export function fileSize(bytes: number, locale: Locale): string {
 
 /** Dates for people: English clinics get "2 November" (UK order), not "November 2". */
 export function dateLocale(locale: string): string {
-  return locale === "en" ? "en-GB" : locale;
+  if (locale === "en") return "en-GB";
+  // Gulf clinics write Western digits (0–9); plain "ar" would format in Arabic-Indic ones.
+  if (locale === "ar") return "ar-u-nu-latn";
+  return locale;
 }

@@ -103,9 +103,7 @@ function demoPlan(plan: ClinicPlan["plan"], tier: ClinicPlan["tier"] = "practice
 
 function demoProfile(locale: Locale) {
   return {
-    name: { en: "Riverside Dental", de: "Zahnarztpraxis am Park", es: "Clínica Dental Sonrisa", tr: "Gülümse Diş Kliniği", fr: "Cabinet Dentaire du Parc" }[locale],
-    city: { en: "Bristol", de: "München", es: "Valencia", tr: "İzmir", fr: "Lyon" }[locale],
-    country: { en: "GB", de: "DE", es: "ES", tr: "TR", fr: "FR" }[locale],
+    ...DEMO_CLINIC[locale],
     language: locale,
     services: splitServices(SERVICE_HINTS[locale]).slice(0, 4),
     tone: "warm" as const,
@@ -115,8 +113,19 @@ function demoProfile(locale: Locale) {
   };
 }
 
-/** The three real sample videos for a language (mp4 + poster). */
-const SAMPLES: Record<Locale, string[]> = {
+const DEMO_CLINIC: Record<Locale, { name: string; city: string; country: string }> = {
+  en: { name: "Riverside Dental", city: "Bristol", country: "GB" },
+  de: { name: "Zahnarztpraxis am Park", city: "München", country: "DE" },
+  es: { name: "Clínica Dental Sonrisa", city: "Valencia", country: "ES" },
+  tr: { name: "Gülümse Diş Kliniği", city: "İzmir", country: "TR" },
+  fr: { name: "Cabinet Dentaire du Parc", city: "Lyon", country: "FR" },
+  ja: { name: "さくら歯科クリニック", city: "横浜市", country: "JP" },
+  ar: { name: "عيادة الابتسامة لطب الأسنان", city: "دبي", country: "AE" },
+  pl: { name: "Gabinet Stomatologiczny Uśmiech", city: "Kraków", country: "PL" },
+};
+
+/** The three real sample videos for a language (mp4 + poster). Japanese, Arabic and Polish have none yet. */
+const SAMPLES: Partial<Record<Locale, string[]>> = {
   en: ["proper-brushing-technique", "whitening-myths-debunked", "caring-for-clear-aligners"],
   de: ["bleaching-zahnschmelz", "aligner-verfaerbung", "kinder-zahnarztangst"],
   es: ["limpieza-dental", "cuidado-encias", "primer-diente"],
@@ -158,6 +167,30 @@ const COPY: Record<Locale, Copy> = {
     rejected: "Des implants pour tous après 60 ans",
     rejectedWhy: "Le sujet suppose un diagnostic individuel ; une vidéo générale pourrait induire en erreur.",
   },
+  ja: {
+    titles: ["歯石とクリーニング", "歯ぐきからの出血", "子どもの仕上げみがき", "定期検診で行うこと", "正しい歯みがきの方法"],
+    caption: "歯みがきは1日2回、歯と歯ぐきの境目を意識して。気になることは、次回のご来院時にお気軽にご相談ください。",
+    tags: ["歯医者", "歯科医院", "歯みがき"],
+    finding: "「必ずきれいになる」という表現があります。効果には個人差があるため、「きれいにしやすくなります」などへの言い換えをおすすめします。",
+    rejected: "60歳以上の方すべてにインプラント",
+    rejectedWhy: "個別の診断が必要なテーマのため、一般向けの動画では誤解を招くおそれがあります。",
+  },
+  ar: {
+    titles: ["تنظيف الجير", "نزيف اللثة", "تفريش أسنان الأطفال", "ماذا يحدث في الفحص الدوري؟", "الطريقة الصحيحة للتفريش"],
+    caption: "دقيقتان، مرتين يومياً، مع إمالة الفرشاة نحو اللثة. لأي سؤال، تحدّثوا معنا في زيارتكم القادمة.",
+    tags: ["طبيب_أسنان", "صحة_الفم", "تفريش_الأسنان"],
+    finding: "ورد تعبير «أسنان بيضاء من أول جلسة»، والنتائج تختلف من شخص لآخر؛ يُفضّل «أفتح لدى كثير من المرضى».",
+    rejected: "زراعة الأسنان لكل من تجاوز الستين",
+    rejectedWhy: "يحتاج هذا الموضوع إلى تشخيص فردي، وقد يكون الفيديو العام مضلّلاً.",
+  },
+  pl: {
+    titles: ["Kamień nazębny i higienizacja", "Krwawienie dziąseł", "Szczotkowanie zębów u dzieci", "Co dzieje się na przeglądzie", "Jak dobrze szczotkować zęby"],
+    caption: "Dwie minuty, dwa razy dziennie, ze szczoteczką skierowaną lekko w stronę dziąseł. Pytania? Zapraszamy na kolejną wizytę.",
+    tags: ["dentysta", "zdrowiezebow", "higienajamyustnej"],
+    finding: "Pada sformułowanie „białe zęby po jednej wizycie”; efekty są indywidualne, lepiej: „u wielu pacjentów wyraźnie jaśniejsze”.",
+    rejected: "Implanty dla wszystkich po 60. roku życia",
+    rejectedWhy: "Temat wymaga indywidualnej diagnozy; ogólny film mógłby wprowadzać w błąd.",
+  },
   tr: {
     titles: ["Diş taşı temizliği neden önemli?", "Beyazlatma ve hassasiyet", "İmplant tedavisinin aşamaları", "Kontrolde neler oluyor?", "Diş eti kanaması: ne zaman gelmeli?"],
     caption: "Günde iki kez, ikişer dakika — fırçayı diş etine doğru hafifçe eğin. Sorularınız için bir sonraki randevunuzda bize sorun.",
@@ -171,7 +204,12 @@ const COPY: Record<Locale, Copy> = {
 function demoItems(locale: Locale, thisWeek: string, lastWeek: string): LibraryItem[] {
   const c = COPY[locale];
   const s = SAMPLES[locale];
-  const media = (n: number) => ({ videoUrl: `/dentvideo/samples/${locale}/${s[n % 3]}.mp4`, thumbUrl: `/dentvideo/samples/${locale}/${s[n % 3]}.jpg` });
+  // Without samples in the language, cards show library photos (no burned-in words) over the English demo video.
+  const PHOTOS = ["cleaning-05", "hygiene-04", "kids-03"];
+  const media = (n: number) =>
+    s
+      ? { videoUrl: `/dentvideo/samples/${locale}/${s[n % 3]}.mp4`, thumbUrl: `/dentvideo/samples/${locale}/${s[n % 3]}.jpg` }
+      : { videoUrl: `/dentvideo/samples/en/${SAMPLES.en![n % 3]}.mp4`, thumbUrl: `/dentvideo/backgrounds/${PHOTOS[n % 3]}.jpg` };
   const photos = (n: number): LibraryItem["photos"] => ({
     suggested: ["whitening-03", "whitening-07", "implants-02", "implants-06", "aligners-04", "whitening-10", "implants-09", "whitening-13"].slice(n % 2, (n % 2) + 7),
     chosen: [],
@@ -210,6 +248,9 @@ function demoCards(locale: Locale): { title: string; card: ShootCard }[] {
     de: { opening: "Die meisten putzen kürzer als eine Minute.", points: ["Zwei Minuten, zweimal täglich", "Bürste zum Zahnfleisch neigen", "Weiche Borsten, sanfte Kreise"], closing: "Wir zeigen es Ihnen gern beim nächsten Termin.", avoid: ["Markennamen", "Erfolgsversprechen"], setup: ["Handy auf Augenhöhe", "Blick zum Fenster"], minutes: 2 },
     es: { opening: "La mayoría se cepilla menos de un minuto.", points: ["Dos minutos, dos veces al día", "Cepillo inclinado hacia la encía", "Cerdas suaves, círculos suaves"], closing: "Te lo enseñamos en tu próxima visita.", avoid: ["marcas", "promesas de resultados"], setup: ["móvil a la altura de los ojos", "de cara a una ventana"], minutes: 2 },
     fr: { opening: "La plupart se brossent moins d'une minute.", points: ["Deux minutes, deux fois par jour", "Brosse inclinée vers la gencive", "Poils souples, petits cercles"], closing: "Nous vous montrons au prochain rendez-vous.", avoid: ["noms de marques", "promesses de résultat"], setup: ["téléphone à hauteur des yeux", "face à une fenêtre"], minutes: 2 },
+    ja: { opening: "歯みがきの時間、1分もかかっていない方が多いようです。", points: ["1日2回、2分ずつ", "歯ブラシを歯ぐきの方へ少し傾ける", "やわらかい毛先で小さく動かす"], closing: "次回のご来院時に、実際にお見せしますね。", avoid: ["商品名", "効果の約束"], setup: ["スマートフォンは目の高さに", "窓の方を向いて"], minutes: 2 },
+    ar: { opening: "كثير منا يفرّش أسنانه أقل من دقيقة.", points: ["دقيقتان، مرتين يومياً", "أميلوا الفرشاة نحو اللثة", "شعيرات ناعمة وحركات دائرية لطيفة"], closing: "اسألونا لنريكم الطريقة في زيارتكم القادمة.", avoid: ["أسماء العلامات التجارية", "الوعد بنتائج"], setup: ["الهاتف بمستوى العين", "الوجه نحو النافذة"], minutes: 2 },
+    pl: { opening: "Większość z nas szczotkuje zęby krócej niż minutę.", points: ["Dwie minuty, dwa razy dziennie", "Szczoteczka lekko w stronę dziąseł", "Miękkie włosie, delikatne ruchy"], closing: "Chętnie pokażemy to Państwu na kolejnej wizycie.", avoid: ["nazwy marek", "obietnice efektów"], setup: ["telefon na wysokości oczu", "twarzą do okna"], minutes: 2 },
     tr: { opening: "Çoğumuz dişlerimizi bir dakikadan kısa fırçalıyoruz.", points: ["Günde iki kez, iki dakika", "Fırçayı diş etine doğru eğin", "Yumuşak kıl, nazik daireler"], closing: "Bir sonraki randevunuzda size gösterelim.", avoid: ["marka adları", "sonuç vaadi"], setup: ["telefon göz hizasında", "pencereye dönük"], minutes: 2 },
   };
   return [0, 1, 2].map((n) => ({ title: c.titles[n], card: card[locale] }));

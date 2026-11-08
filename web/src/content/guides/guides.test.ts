@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { GUIDES, LOCALES, guidePath, guidesFor } from "../dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LOCALES, guidePath, guidesFor } from "../dentvideo";
 import { ENTITY } from "./entity";
 import { guideTexts, guideWordCount, parseInline, plainText, resolveTarget, translationsOf } from "./text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "./ui";
@@ -64,7 +64,17 @@ describe("guide library", () => {
   });
 
   it("each priority market has at least five guides", () => {
-    for (const l of LOCALES) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
+    expect(GUIDE_HUB_LOCALES).toEqual(["en", "de", "es", "tr", "fr"]);
+    for (const l of GUIDE_HUB_LOCALES) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
+  });
+
+  it("Japanese, Arabic and Polish have no guides yet, so no hub is advertised", () => {
+    for (const l of ["ja", "ar", "pl"] as const) {
+      expect(guidesFor(l), l).toEqual([]);
+      expect(dentvideoSitemapEntries().map((e) => e.path), l).not.toContain(GUIDES_INDEX_PATH[l]);
+      expect(llmsTxt(), l).not.toContain(GUIDES_INDEX_PATH[l].replace("/dentvideo", ""));
+      for (const e of dentvideoSitemapEntries()) expect(Object.values(e.alternates ?? {}), e.path).not.toContain(GUIDES_INDEX_PATH[l]);
+    }
   });
 
   it("every library guide made it into GUIDES", () => {
@@ -98,7 +108,7 @@ describe("guide library", () => {
 
   // Prices appear only in the About "Price" fact (which llms.txt copies), and
   // only the configured USD list and founding prices; never in guides or CTAs.
-  const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix"];
+  const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
   const MONEY = /[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL\b)/;
 
   it("states no prices or invented percentages outside the About price fact", () => {
@@ -225,10 +235,8 @@ describe("sitemap", () => {
   it("lists every guide, guides index, About page and landing exactly once, with a lastmod", () => {
     expect(new Set(paths).size).toBe(paths.length);
     for (const g of GUIDES) expect(paths).toContain(guidePath(g));
-    for (const l of LOCALES) {
-      expect(paths).toContain(GUIDES_INDEX_PATH[l]);
-      expect(paths).toContain(ABOUT_PATH[l]);
-    }
+    for (const l of LOCALES) expect(paths).toContain(ABOUT_PATH[l]);
+    for (const l of GUIDE_HUB_LOCALES) expect(paths).toContain(GUIDES_INDEX_PATH[l]);
     for (const e of entries) expect(e.lastmod, e.path).toMatch(ISO);
   });
 

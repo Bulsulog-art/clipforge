@@ -18,8 +18,24 @@
 import type { GuideExtras, SectionExtras } from "./guides/types";
 import { GUIDE_LIBRARY, mergeGuides } from "./guides";
 
-export const LOCALES = ["en", "de", "es", "tr", "fr"] as const;
+export const LOCALES = ["en", "de", "es", "tr", "fr", "ja", "ar", "pl"] as const;
 export type Locale = (typeof LOCALES)[number];
+
+/** Locales written right to left: their pages carry dir="rtl" and mirror their layout. */
+export const RTL_LOCALES: readonly Locale[] = ["ar"];
+export function dirOf(locale: Locale): "rtl" | "ltr" {
+  return RTL_LOCALES.includes(locale) ? "rtl" : "ltr";
+}
+
+/**
+ * Locales whose pages live in their own route folder (app/dentvideo/ja, /ar)
+ * so that only they load a Japanese or Arabic web font; the other languages
+ * share app/dentvideo/[locale].
+ */
+export const OWN_ROUTE_LOCALES: readonly Locale[] = ["ja", "ar"];
+
+/** The languages served by app/dentvideo/[locale]: not English (the root) and not the own-route ones. */
+export const SHARED_ROUTE_LOCALES: Locale[] = LOCALES.filter((l) => l !== "en" && !OWN_ROUTE_LOCALES.includes(l));
 
 export const LANDING_PATH: Record<Locale, string> = {
   en: "/dentvideo",
@@ -27,13 +43,25 @@ export const LANDING_PATH: Record<Locale, string> = {
   es: "/dentvideo/es",
   tr: "/dentvideo/tr",
   fr: "/dentvideo/fr",
+  ja: "/dentvideo/ja",
+  ar: "/dentvideo/ar",
+  pl: "/dentvideo/pl",
 };
 
 /** Each language's own name, for the language switcher. */
-export const LANGUAGE_NAME: Record<Locale, string> = { en: "English", de: "Deutsch", es: "Español", tr: "Türkçe", fr: "Français" };
+export const LANGUAGE_NAME: Record<Locale, string> = {
+  en: "English",
+  de: "Deutsch",
+  es: "Español",
+  tr: "Türkçe",
+  fr: "Français",
+  ja: "日本語",
+  ar: "العربية",
+  pl: "Polski",
+};
 
 /** BCP-47 tags for hreflang. */
-export const HREFLANG: Record<Locale, string> = { en: "en", de: "de", es: "es", tr: "tr", fr: "fr" };
+export const HREFLANG: Record<Locale, string> = { en: "en", de: "de", es: "es", tr: "tr", fr: "fr", ja: "ja", ar: "ar", pl: "pl" };
 
 export type Faq = { q: string; a: string };
 
@@ -130,7 +158,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     checks: {
       heading: "Checked twice before you see it",
       items: [
-        { title: "Advertising rules", text: "No guarantees, “painless”, “permanent”, “best”, prices, discounts, before-and-after promises or testimonials — caught in seven languages." },
+        { title: "Advertising rules", text: "No guarantees, “painless”, “permanent”, “best”, prices, discounts, before-and-after promises or testimonials — caught in ten languages." },
         { title: "Clinical accuracy", text: "A reviewer acting as a general dentist checks every statement against mainstream guidance — and that advice belongs to the right procedure." },
         { title: "Sound and picture", text: "Every video is measured before delivery: narration present and audible, no silent gaps or black frames, the right size for each platform." },
       ],
@@ -145,7 +173,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Health-advertising check", values: ["Every script and caption, twice, before you see it", "Depends on the agency — ask who checks it", "Up to you"] },
         { label: "Topics", values: ["What patients in your country actually search for", "The agency's content calendar", "Whatever you have time to think of"] },
         { label: "Consistency", values: ["Five videos every Monday, automatically", "As agreed in the contract", "Until the week gets busy"] },
-        { label: "Languages", values: ["Seven, written natively", "Usually one", "Yours"] },
+        { label: "Languages", values: ["Ten, written natively", "Usually one", "Yours"] },
       ],
       roi: "We can't promise you patients — no one honestly can. But a single implant or aligner case is typically worth more than a year of DentVideo.",
       roiNote: "Based on typical private fees for one implant or aligner treatment. Your fees and results will differ.",
@@ -212,7 +240,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Do I have to film anything?", a: "No, but it helps. Each week you get educational videos made for you — written, narrated and captioned in your language. If you also record five minutes of yourself talking through one of our filming cards, we turn it into short clips of you, which patients trust most." },
       { q: "Do you post to Instagram or TikTok for me?", a: "Not automatically yet. On your phone, an approved video opens the share menu with the video attached and its caption already copied, so posting to Instagram or TikTok takes one tap. Nothing ever goes out without you." },
       { q: "Will you change what I say in my own recordings?", a: "Never. If something you said could be read as a promise or is worth a second look, the clip is marked for your attention with the reason and a suggested wording — the decision stays with you." },
-      { q: "Which languages are supported?", a: "English, German, Spanish, French, Italian, Portuguese and Turkish, with formal or informal address as your clinic prefers." },
+      { q: "Which languages are supported?", a: "English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic and Polish, with formal or informal address as your clinic prefers." },
       { q: "Can I see my videos before I pay?", a: "Yes. Create an account, describe your clinic and you see a live preview of how your videos will look with your own logo, colours and name, right in your browser. If you like it, choose a plan: your first week of videos is made right after payment, and we email you when it is ready. Plans are monthly, you can cancel anytime, and the first clinics to join get a founding price." },
     ],
   },
@@ -250,7 +278,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     checks: {
       heading: "Zweimal geprüft, bevor Sie es sehen",
       items: [
-        { title: "Werberecht", text: "Keine Garantien, kein „schmerzfrei“, „dauerhaft“, „die beste Praxis“, keine Preise, Rabatte, Vorher-Nachher-Versprechen oder Patientenstimmen — erkannt in sieben Sprachen." },
+        { title: "Werberecht", text: "Keine Garantien, kein „schmerzfrei“, „dauerhaft“, „die beste Praxis“, keine Preise, Rabatte, Vorher-Nachher-Versprechen oder Patientenstimmen — erkannt in zehn Sprachen." },
         { title: "Fachliche Richtigkeit", text: "Ein Prüfer in der Rolle eines Allgemeinzahnarztes gleicht jede Aussage mit anerkannten Empfehlungen ab — und prüft, ob ein Rat zur richtigen Behandlung gehört." },
         { title: "Ton und Bild", text: "Jedes Video wird vor der Auslieferung vermessen: Sprecher hörbar, keine stillen Lücken oder schwarzen Bilder, das richtige Format für jede Plattform." },
       ],
@@ -265,7 +293,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Werberechtliche Prüfung", values: ["Jedes Skript und jeder Text, zweimal, bevor Sie es sehen", "Je nach Agentur — fragen Sie, wer prüft", "Liegt bei Ihnen"] },
         { label: "Themen", values: ["Was Patienten in Ihrem Land wirklich suchen", "Der Redaktionsplan der Agentur", "Was Ihnen gerade einfällt"] },
         { label: "Regelmäßigkeit", values: ["Fünf Videos, jeden Montag, automatisch", "Wie im Vertrag vereinbart", "Bis die Woche voll wird"] },
-        { label: "Sprachen", values: ["Sieben, muttersprachlich formuliert", "Meist eine", "Ihre"] },
+        { label: "Sprachen", values: ["Zehn, muttersprachlich formuliert", "Meist eine", "Ihre"] },
       ],
       roi: "Patienten können wir Ihnen nicht versprechen — das kann niemand ehrlich. Aber schon ein einzelner Implantat- oder Aligner-Fall ist in der Regel mehr wert als ein Jahr DentVideo.",
       roiNote: "Bezogen auf übliche Privathonorare für eine Implantat- oder Aligner-Behandlung. Ihre Honorare und Ergebnisse können abweichen.",
@@ -332,7 +360,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Muss ich selbst filmen?", a: "Nein, aber es hilft. Jede Woche erhalten Sie Aufklärungsvideos, die für Sie geschrieben, vertont und in Ihrer Sprache untertitelt werden. Wenn Sie zusätzlich fünf Minuten zu einer unserer Drehkarten sprechen, schneiden wir daraus kurze Clips mit Ihnen — denen vertrauen Patienten am meisten." },
       { q: "Posten Sie für mich auf Instagram oder TikTok?", a: "Noch nicht automatisch. Auf dem Handy öffnet ein freigegebenes Video das Teilen-Menü mit angehängtem Video, der Begleittext ist bereits kopiert — Instagram oder TikTok ist also nur ein Klick. Ohne Sie geht nie etwas hinaus." },
       { q: "Verändern Sie, was ich in meinen Aufnahmen sage?", a: "Nie. Wenn etwas als Versprechen verstanden werden könnte oder einen zweiten Blick wert ist, wird der Clip für Sie markiert — mit Begründung und einem Formulierungsvorschlag. Die Entscheidung bleibt bei Ihnen." },
-      { q: "Welche Sprachen gibt es?", a: "Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch und Türkisch — mit „Sie“ oder „du“, wie Ihre Praxis es möchte." },
+      { q: "Welche Sprachen gibt es?", a: "Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Türkisch, Japanisch, Arabisch und Polnisch — mit „Sie“ oder „du“, wie Ihre Praxis es möchte." },
       { q: "Kann ich meine Videos sehen, bevor ich zahle?", a: "Ja. Legen Sie ein Konto an und beschreiben Sie Ihre Praxis — dann sehen Sie direkt im Browser eine Live-Vorschau, wie Ihre Videos mit Ihrem eigenen Logo, Ihren Farben und Ihrem Namen aussehen. Wenn sie Ihnen gefällt, wählen Sie einen Tarif: Ihre erste Woche Videos entsteht direkt nach der Zahlung, und wir schicken Ihnen eine E-Mail, sobald sie fertig ist. Die Tarife sind monatlich und jederzeit kündbar; die ersten Praxen erhalten einen Gründungspreis." },
     ],
   },
@@ -370,7 +398,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     checks: {
       heading: "Revisado dos veces antes de que lo veas",
       items: [
-        { title: "Normas de publicidad", text: "Sin garantías, “sin dolor”, “permanente”, “la mejor clínica”, precios, descuentos, promesas de antes y después ni testimonios, detectados en siete idiomas." },
+        { title: "Normas de publicidad", text: "Sin garantías, “sin dolor”, “permanente”, “la mejor clínica”, precios, descuentos, promesas de antes y después ni testimonios, detectados en diez idiomas." },
         { title: "Precisión clínica", text: "Un revisor con el criterio de un dentista general contrasta cada afirmación con las recomendaciones aceptadas y comprueba que cada consejo corresponde al tratamiento correcto." },
         { title: "Sonido e imagen", text: "Cada vídeo se mide antes de entregarse: voz presente y audible, sin silencios largos ni fotogramas negros, en el formato correcto para cada plataforma." },
       ],
@@ -385,7 +413,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Revisión de publicidad sanitaria", values: ["Cada guion y cada texto, dos veces, antes de que lo veas", "Depende de la agencia: pregunta quién lo revisa", "Cosa tuya"] },
         { label: "Temas", values: ["Lo que los pacientes de tu país buscan de verdad", "El calendario de contenidos de la agencia", "Lo que se te ocurra"] },
         { label: "Constancia", values: ["Cinco vídeos cada lunes, automáticamente", "Lo que diga el contrato", "Hasta que la semana se complica"] },
-        { label: "Idiomas", values: ["Siete, redactados de forma nativa", "Normalmente uno", "El tuyo"] },
+        { label: "Idiomas", values: ["Diez, redactados de forma nativa", "Normalmente uno", "El tuyo"] },
       ],
       roi: "No podemos prometerte pacientes; nadie puede hacerlo con honestidad. Pero un solo caso de implante o de alineadores suele valer más que un año de DentVideo.",
       roiNote: "Según los honorarios privados habituales de un tratamiento de implante o de alineadores. Tus honorarios y tus resultados pueden variar.",
@@ -448,7 +476,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "¿Tengo que grabar algo?", a: "No, aunque ayuda. Cada semana recibes vídeos educativos hechos para ti: escritos, con voz y subtitulados en tu idioma. Si además grabas cinco minutos hablando sobre una de nuestras tarjetas, lo convertimos en clips cortos contigo, que es lo que más confianza genera en los pacientes." },
       { q: "¿Publicáis en Instagram o TikTok por mí?", a: "Todavía no de forma automática. En el móvil, un vídeo aprobado abre el menú de compartir con el vídeo adjunto y el texto ya copiado, así que publicarlo en Instagram o TikTok es un toque. Nunca sale nada sin ti." },
       { q: "¿Cambiaréis lo que digo en mis grabaciones?", a: "Nunca. Si algo de lo que dices puede entenderse como una promesa o merece una segunda mirada, el clip se marca para ti con el motivo y una redacción sugerida. La decisión es tuya." },
-      { q: "¿Qué idiomas hay?", a: "Español, inglés, alemán, francés, italiano, portugués y turco, con trato de tú o de usted, como prefiera tu clínica." },
+      { q: "¿Qué idiomas hay?", a: "Español, inglés, alemán, francés, italiano, portugués, turco, japonés, árabe y polaco, con trato de tú o de usted, como prefiera tu clínica." },
       { q: "¿Puedo ver mis vídeos antes de pagar?", a: "Sí. Crea una cuenta, describe tu clínica y verás en el navegador una vista previa en directo de cómo serán tus vídeos con tu propio logo, tus colores y tu nombre. Si te gusta, elige un plan: tu primera semana de vídeos se crea justo después del pago y te avisamos por correo cuando esté lista. Los planes son mensuales, puedes cancelar cuando quieras y las primeras clínicas en unirse tienen un precio fundador." },
     ],
   },
@@ -486,7 +514,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     checks: {
       heading: "Siz görmeden önce iki kez denetlenir",
       items: [
-        { title: "Reklam kuralları", text: "Garanti, “acısız”, “kalıcı”, “en iyi klinik”, fiyat, indirim, öncesi-sonrası vaadi ve hasta yorumu yok; yedi dilde yakalanır." },
+        { title: "Reklam kuralları", text: "Garanti, “acısız”, “kalıcı”, “en iyi klinik”, fiyat, indirim, öncesi-sonrası vaadi ve hasta yorumu yok; on dilde yakalanır." },
         { title: "Klinik doğruluk", text: "Genel diş hekimi gözüyle çalışan bir denetçi her ifadeyi kabul görmüş önerilerle karşılaştırır ve her tavsiyenin doğru tedaviye ait olduğunu kontrol eder." },
         { title: "Ses ve görüntü", text: "Her video teslimden önce ölçülür: seslendirme var ve duyuluyor, uzun sessizlik ya da siyah kare yok, her platform için doğru boyutta." },
       ],
@@ -501,7 +529,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Tanıtım kuralları denetimi", values: ["Her senaryo ve açıklama, siz görmeden iki kez", "Ajansa bağlı; kimin denetlediğini sorun", "Size kalmış"] },
         { label: "Konular", values: ["Ülkenizdeki hastaların gerçekten aradıkları", "Ajansın içerik takvimi", "O an aklınıza gelen"] },
         { label: "Süreklilik", values: ["Her pazartesi beş video, kendiliğinden", "Sözleşmede ne yazıyorsa", "Hafta yoğunlaşana kadar"] },
-        { label: "Diller", values: ["Yedi dil, ana dilinde yazılmış", "Genellikle bir", "Sizin diliniz"] },
+        { label: "Diller", values: ["On dil, ana dilinde yazılmış", "Genellikle bir", "Sizin diliniz"] },
       ],
       roi: "Size hasta sözü veremeyiz; bunu dürüstçe kimse veremez. Ama tek bir implant hastası çoğu zaman DentVideo'nun yaklaşık bir yıllık bedelini karşılar.",
       roiNote: "Tek diş implant tedavisinin yaygın özel muayenehane ücretlerine göre. Sizin ücretleriniz ve sonuçlarınız farklı olabilir.",
@@ -564,7 +592,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Çekim yapmam gerekiyor mu?", a: "Hayır, ama faydası olur. Her hafta sizin için yazılmış, seslendirilmiş ve kendi dilinizde altyazılanmış bilgilendirme videoları alırsınız. Ayrıca çekim kartlarımızdan biriyle beş dakika konuşursanız, bunu hastaların en çok güvendiği şeye, yani sizin olduğunuz kısa kliplere dönüştürürüz." },
       { q: "Instagram ya da TikTok'ta benim yerime paylaşıyor musunuz?", a: "Henüz otomatik değil. Telefonunuzda onayladığınız video, paylaşım menüsünü video ekli olarak açar ve açıklama panoya kopyalanır; Instagram ya da TikTok'ta paylaşmak tek dokunuştur. Hiçbir şey sizsiz yayınlanmaz." },
       { q: "Kendi kayıtlarımda söylediklerimi değiştiriyor musunuz?", a: "Asla. Söylediğiniz bir şey vaat gibi anlaşılabiliyorsa ya da ikinci kez bakmaya değerse, klip gerekçesi ve önerilen bir ifadeyle sizin için işaretlenir. Karar her zaman sizindir." },
-      { q: "Hangi diller destekleniyor?", a: "Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, İtalyanca ve Portekizce; kliniğinizin tercihine göre “siz” ya da “sen” hitabıyla." },
+      { q: "Hangi diller destekleniyor?", a: "Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, İtalyanca, Portekizce, Japonca, Arapça ve Lehçe; kliniğinizin tercihine göre “siz” ya da “sen” hitabıyla." },
       { q: "Ödeme yapmadan önce videolarımı görebilir miyim?", a: "Evet. Bir hesap açıp kliniğinizi tanıttığınızda, videolarınızın kendi logonuz, renkleriniz ve adınızla nasıl görüneceğini doğrudan tarayıcınızda canlı önizlemede görürsünüz. Beğenirseniz bir plan seçin: ilk haftanızın videoları ödemenin hemen ardından hazırlanır ve hazır olduğunda size e-posta göndeririz. Planlar aylıktır, istediğiniz zaman iptal edebilirsiniz; ilk katılan klinikler kurucu fiyatından yararlanır." },
     ],
   },
@@ -602,7 +630,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     checks: {
       heading: "Vérifié deux fois avant que vous le voyiez",
       items: [
-        { title: "Règles de communication", text: "Pas de garantie, de « sans douleur », de « définitif », de « meilleur cabinet », de prix, de réduction, de promesse avant-après ni de témoignage — repérés dans sept langues." },
+        { title: "Règles de communication", text: "Pas de garantie, de « sans douleur », de « définitif », de « meilleur cabinet », de prix, de réduction, de promesse avant-après ni de témoignage — repérés dans dix langues." },
         { title: "Exactitude clinique", text: "Un relecteur dans le rôle d'un omnipraticien confronte chaque affirmation aux recommandations reconnues et vérifie que chaque conseil correspond au bon soin." },
         { title: "Son et image", text: "Chaque vidéo est mesurée avant livraison : voix présente et audible, pas de silences ni d'images noires, le bon format pour chaque plateforme." },
       ],
@@ -617,7 +645,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Vérification déontologique", values: ["Chaque script et chaque texte, deux fois, avant que vous les voyiez", "Selon l'agence : demandez qui vérifie", "À votre charge"] },
         { label: "Sujets", values: ["Ce que les patients de votre pays recherchent vraiment", "Le calendrier éditorial de l'agence", "Ce qui vous vient à l'esprit"] },
         { label: "Régularité", values: ["Cinq vidéos chaque lundi, automatiquement", "Selon le contrat", "Jusqu'à ce que la semaine se charge"] },
-        { label: "Langues", values: ["Sept, rédigées nativement", "Souvent une seule", "La vôtre"] },
+        { label: "Langues", values: ["Dix, rédigées nativement", "Souvent une seule", "La vôtre"] },
       ],
       roi: "Nous ne pouvons pas vous promettre de patients ; personne ne le peut honnêtement. Mais un seul traitement implantaire ou par aligneurs vaut en général plus qu'une année de DentVideo.",
       roiNote: "Sur la base des honoraires habituels d'un traitement implantaire ou par aligneurs. Vos honoraires et vos résultats peuvent différer.",
@@ -688,8 +716,350 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Dois-je filmer quelque chose ?", a: "Non, mais cela aide. Chaque semaine, vous recevez des vidéos d'information réalisées pour vous : rédigées, mises en voix et sous-titrées dans votre langue. Si vous enregistrez aussi cinq minutes à partir d'une de nos fiches, nous en tirons de courts extraits où l'on vous voit, ce qui inspire le plus confiance aux patients." },
       { q: "Publiez-vous sur Instagram ou TikTok à ma place ?", a: "Pas encore automatiquement. Sur votre téléphone, une vidéo validée ouvre le menu de partage avec la vidéo jointe et le texte déjà copié : publier sur Instagram ou TikTok tient en un geste. Rien ne part jamais sans vous." },
       { q: "Modifiez-vous ce que je dis dans mes enregistrements ?", a: "Jamais. Si un propos peut être compris comme une promesse ou mérite d'être revu, l'extrait vous est signalé avec la raison et une formulation suggérée. La décision vous appartient." },
-      { q: "Quelles langues sont disponibles ?", a: "Français, anglais, allemand, espagnol, italien, portugais et turc, avec vouvoiement ou tutoiement selon votre cabinet." },
+      { q: "Quelles langues sont disponibles ?", a: "Français, anglais, allemand, espagnol, italien, portugais, turc, japonais, arabe et polonais, avec vouvoiement ou tutoiement selon votre cabinet." },
       { q: "Puis-je voir mes vidéos avant de payer ?", a: "Oui. Créez un compte, décrivez votre cabinet et vous verrez, directement dans le navigateur, un aperçu en direct de vos vidéos avec votre logo, vos couleurs et votre nom. S'il vous convient, choisissez une formule : votre première semaine de vidéos est réalisée dès le paiement, et nous vous prévenons par e-mail quand elle est prête. Les formules sont mensuelles, résiliables à tout moment, et les premiers cabinets inscrits bénéficient d'un tarif fondateur." },
+    ],
+  },
+  // Japanese: です・ます throughout, no あなた; the clinic is addressed as 院長先生 / 医院.
+  // MHLW 医療広告ガイドライン vocabulary; no superlatives, No.1, guarantees, testimonials or before/after.
+  ja: {
+    meta: {
+      title: "DentVideo — 歯科医院のための患者さん向け説明動画",
+      description:
+        "毎週月曜日、患者さんが実際に検索している疑問に答える説明動画を5本お届けします。医院のカラーとロゴ入りで、医療広告ガイドラインと臨床の観点からチェック済み。院長先生は承認するだけです。",
+      ogDescription: "毎週月曜日に5本の患者さん向け動画。院長先生がご覧になる前にチェック済みで、あとは承認するだけです。",
+    },
+    hero: {
+      eyebrow: "歯科医院の皆さまへ",
+      h1: "来院の前から、「知っている先生」に。",
+      lead: "患者さんの多くは、InstagramやGoogleで見て、すでに知っている歯科医院を選びます。けれども、診療の合間に台本を考え、撮影し、編集する時間はなかなか取れません。しかも「痛くない」といった一言や料金の表示が、医療広告ガイドライン上の問題になることもあります。DentVideoは、地域の患者さんが実際に検索している疑問に答える動画を毎週5本、医院のカラーで仕上げ、表現をチェックしたうえでお届けします。院長先生のお時間は数分だけ。代理店に依頼するより負担が軽く、CanvaやChatGPTと違って、制作もチェックもDentVideoが行います。",
+      cta: "自院のプレビューを見る",
+      note: "お支払いの前に、医院のロゴとカラーで仕上がりをその場でご確認いただけます。先着100院に先行導入価格をご用意しています。",
+    },
+    mock: { hook: "歯ぐきから血が出るのはなぜ？", caption: "多くは、歯ぐきの炎症のサインです。", label: "ご確認をお待ちしています" },
+    video: { play: "再生", pause: "一時停止" },
+    problem: [
+      { title: "投稿する時間がない", text: "患者さんは予約の前に医院を調べます。けれども毎週、台本を考え、撮影して編集する時間は診療の合間には取りにくく、アカウントの更新はつい止まりがちです。" },
+      { title: "その一言が、ガイドライン違反に", text: "「痛くない」「必ず」、料金の表示、ビフォーアフター、患者さんの体験談。いずれも医療広告ガイドラインで問題になりうる表現です。一般的な代理店やAIツールがそこまで確認しているとは限らず、責任は医院に残ります。" },
+      { title: "DentVideoがすること", text: "毎週月曜日、医院のカラーで仕上げてチェックを済ませた1週間分の動画が届きます。院長先生は数分ご覧になり、ワンタップで承認、ワンタップで共有するだけです。" },
+    ],
+    how: {
+      heading: "ご利用の流れ",
+      steps: [
+        { title: "最初に一度だけ設定", text: "言語、診療内容、話し方のトーン、カラー、ロゴを登録します。所要時間は2分ほど。動画は、医院で実際に行っている診療についてだけ作られます。" },
+        { title: "毎週月曜日に5本", text: "テーマは、国内の患者さんがGoogleで実際に検索している疑問から選びます。すべてナレーションと字幕付きで医院のカラーに仕上げ、準備ができたらメールでお知らせします。" },
+        { title: "承認して、共有", text: "1週間分をまとめてワンタップで承認することも、1本ずつ確認することもできます。キャプションはコピー済みなので、スマートフォンからInstagramのリールやTikTokにそのまま投稿できます。確認が必要な箇所には、理由を添えて印を付けます。" },
+      ],
+    },
+    samples: { heading: "1週間分のサンプル", text: "DentVideoがデモ医院のために制作した動画を、そのまま掲載しています。ナレーション、字幕、チェックまで済んだ状態です。実際の動画は、医院の言語・カラー・話し方で制作します。", note: "デモ医院の動画です。DentVideoが制作し、手を加えていません。" },
+    checks: {
+      heading: "院長先生がご覧になる前に、二重のチェック",
+      items: [
+        { title: "広告表現", text: "「必ず」「痛くない」「永久」「最高」といった表現、料金、割引、ビフォーアフター、体験談を、10の言語で検出します。" },
+        { title: "臨床的な正確性", text: "一般歯科医の立場で確認するレビュアーが、すべての説明を標準的な知見と照らし合わせ、アドバイスが正しい処置に対応しているかを確かめます。" },
+        { title: "音声と映像", text: "お届けする前に、すべての動画を計測します。ナレーションが入っていて聞き取れること、無音や黒い画面がないこと、各プラットフォームに合ったサイズであること。" },
+      ],
+    },
+    compare: {
+      heading: "DentVideo、代理店、自院での制作を比べると",
+      text: "どの方法でも、投稿を続けることはできます。DentVideoは、すべての文言を医療広告の観点から確認したうえでお届けし、院長先生の夜の時間を使いません。",
+      columns: ["DentVideo", "SNS運用代理店", "自院で制作"],
+      rows: [
+        { label: "費用", values: ["定額の月額プラン。代理店費用のごく一部", "月に数万円以上かかることが多く、最低契約期間がある場合も", "ツール代は安価。ただし夜の時間を費やします"] },
+        { label: "毎週の院長先生のお時間", values: ["確認と承認に数分", "打ち合わせ、修正のやり取り、最終確認", "台本・撮影・編集・字幕に数時間"] },
+        { label: "医療広告のチェック", values: ["すべての台本とキャプションを、ご覧になる前に2回", "代理店によります。誰が確認するのかお尋ねください", "院長先生ご自身で"] },
+        { label: "テーマ", values: ["国内の患者さんが実際に検索している疑問", "代理店のコンテンツカレンダー", "その時に思いついたこと"] },
+        { label: "継続性", values: ["毎週月曜日に5本、自動で", "契約内容による", "忙しくなるまで"] },
+        { label: "言語", values: ["10言語、それぞれ自然な文章で", "多くは1言語", "院長先生の言語"] },
+      ],
+      roi: "患者さんが増えるとお約束することはできません。誠実にお約束できる人はいないはずです。ただ、インプラントやマウスピース矯正の自費診療1件は、一般的にDentVideoの1年分を上回ります。",
+      roiNote: "インプラントやマウスピース矯正の一般的な自費診療の費用にもとづく目安です。実際の費用や結果は医院によって異なります。",
+    },
+    pricing: {
+      heading: "まずはご覧ください。プランはそのあとで。",
+      text: "お支払いの前に、医院のロゴ・カラー・医院名で実際の動画がどう仕上がるかを、ライブプレビューでご確認いただけます。そのうえでプランをお選びください。月単位の契約で、いつでも解約できます。初週の動画は、お支払いの完了後すぐに制作を始めます。",
+      cta: "自院のプレビューを見る",
+      perMonth: "/月",
+      recommended: "おすすめ",
+      foundingBadge: "先行導入価格",
+      founding: "Practiceプランを12か月間 月額$49で — 先着100院",
+      yearly: "または年額$990（10か月分の料金で12か月）",
+      note: "価格は米ドル建てです。別途税金がかかる場合があります。",
+      tiers: [
+        {
+          name: "Starter",
+          price: "$49",
+          blurb: "まずは始めてみたい1医院に。",
+          features: ["毎週月曜日、ナレーションと字幕付きの動画5本", "広告表現と臨床的な正確性をチェック", "すべての動画に医院のロゴとカラー"],
+        },
+        {
+          name: "Practice",
+          price: "$99",
+          blurb: "院長先生ご自身も動画に登場したい医院に。",
+          features: ["Starterのすべての内容", "ご自身で撮影した動画を字幕付きクリップに", "撮影用の台本カード"],
+        },
+        {
+          name: "Group",
+          price: "$279",
+          blurb: "複数の医院を運営するグループに。",
+          features: ["最大3医院まで", "医院ごとに毎週月曜日に5本", "全医院で統一された、チェック済みの発信"],
+        },
+      ],
+    },
+    teaser: {
+      eyebrow: "医院のロゴでお試しください",
+      heading: "お支払いの前に、自院の動画を",
+      text: "医院名を入力し、ロゴを追加してカラーを選ぶと、プレビューがその場で変わります。アカウントを作成するまで、入力した内容がブラウザの外に送られることはありません。",
+      name: "医院名",
+      namePlaceholder: "〇〇歯科クリニック",
+      logo: "ロゴを追加",
+      color: "ブランドカラー",
+      cta: "プレビューの続きを見る",
+      note: "月単位の契約で、いつでも解約できます。お支払いはプランを選んだときだけです。",
+    },
+    guidesHeading: "ガイド",
+    faqHeading: "よくあるご質問",
+    faq: [
+      { q: "CanvaやChatGPTがあるのに、なぜ有料のサービスが必要なのですか？", a: "時間があれば、それらのツールでも作れます。ただ、テーマ選び、医療広告ガイドラインに配慮した台本づくり、収録、編集、字幕、投稿は、すべて医院側の作業として残ります。DentVideoはこれらを毎週月曜日までに済ませ、すべての文言を2回チェックします。院長先生のご負担は、数分の確認と2回のタップです。" },
+      { q: "SNS運用代理店との違いは何ですか？", a: "代理店に依頼する場合、一般的には月額の費用に加えて打ち合わせや修正のやり取りが必要で、医療広告の観点から誰が内容を確認しているのかも確かめる必要があります。DentVideoは費用を抑えられ、打ち合わせも不要です。すべての台本が、ご覧になる前に広告表現のレビューと臨床的な正確性のレビューを通ります。すでに代理店とお付き合いがある場合は、DentVideoの動画を代理店に投稿してもらうこともできます。" },
+      { q: "新しい患者さんは増えますか？", a: "数字のお約束はいたしません。誠実にお約束できるものではなく、医療広告のルールも効果の約束を認めていないためです。DentVideoにできるのは、患者さんが検索する疑問にわかりやすく答える動画で、毎週の発信を続けること。来院前から医院を身近に感じていただくための取り組みです。なお、インプラントやマウスピース矯正の自費診療1件は、一般的にDentVideoの1年分を上回ります。" },
+      { q: "医療広告ガイドラインの対象になりますか？", a: "医院のInstagramやTikTokへの投稿は、医療法上の「広告」にあたる場合があり、その場合は厚生労働省の「医療広告ガイドライン」が適用されます。DentVideoのチェックは、このガイドラインを踏まえて、比較優良広告や誇大広告にあたる表現（「地域一番」「絶対」「痛くない」など）、体験談、ビフォーアフター、料金や割引の表示を避けるように作られています。自由診療を取り上げる動画では、キャプションに治療内容・費用・主なリスクや副作用を医院で追記していただくことがあります。当社は法律事務所ではなく、すべての動画は院長先生の承認を経て公開されます。判断に迷う場合は、管轄の保健所や所属する歯科医師会にご相談ください。" },
+      { q: "AIで作ったありきたりな動画に見えませんか？", a: "ナレーションは日本語の合成音声ですが、架空の医師やアバター、患者さんは登場しません。素材映像は歯ブラシなどの物に限り、人物・医院・治療の場面は使いません。すべての動画に医院のロゴとカラーが入ります。より医院らしさを出したい場合は、院長先生が5分ほど話す様子を撮影していただければ、字幕付きの短いクリップに仕上げます。" },
+      { q: "どのくらいの時間がかかりますか？", a: "最初の設定に2分ほど、一度だけです。その後は毎週月曜日に数分。準備ができたらメールでお知らせしますので、動画をご覧になり、ワンタップでまとめて承認し（確認が必要なものには理由が表示されます）、スマートフォンから共有してください。" },
+      { q: "撮影は必要ですか？", a: "必須ではありません。毎週、台本・ナレーション・字幕まで日本語で仕上げた説明動画をお届けします。そのうえで、撮影用カードを見ながら5分ほどお話しいただければ、院長先生が登場する短いクリップにします。患者さんに、より身近に感じていただける動画になります。" },
+      { q: "InstagramやTikTokに自動で投稿されますか？", a: "現時点では、自動投稿は行っていません。スマートフォンで承認済みの動画を開くと、共有メニューに動画が添付され、キャプションもコピーされた状態になるため、InstagramやTikTokへの投稿はタップひとつで済みます。動画ファイルなので、YouTubeショートやLINE公式アカウントでもお使いいただけます。院長先生の承認なしに公開されることはありません。" },
+      { q: "撮影した動画で話した内容を変更されることはありますか？", a: "ありません。約束と受け取られかねない表現や、もう一度確認したほうがよい箇所があれば、理由と言い換えの案を添えてクリップに印を付けます。判断は院長先生にお任せします。" },
+      { q: "対応している言語は？", a: "日本語、英語、ドイツ語、スペイン語、フランス語、イタリア語、ポルトガル語、トルコ語、アラビア語、ポーランド語の10言語です。日本語の動画は、です・ます調の丁寧な語り口でお作りします。" },
+      { q: "お支払いの前に、動画を確認できますか？", a: "はい。アカウントを作成して医院の情報を入力すると、医院のロゴ・カラー・医院名で動画がどう仕上がるかを、ブラウザ上のライブプレビューでご確認いただけます。気に入っていただけたら、プランをお選びください。初週の動画はお支払い後すぐに制作を始め、準備ができたらメールでお知らせします。月単位の契約でいつでも解約でき、先着の医院には先行導入価格をご用意しています。" },
+    ],
+  },
+
+  // Arabic (Gulf-oriented Modern Standard Arabic): the clinic is addressed in the plural (أنتم / عيادتكم),
+  // which is polite and includes men and women. DHA's banned words (the best, 100%, no side effects,
+  // immediate results), "guaranteed", discounts and limited-time offers never appear as claims.
+  ar: {
+    meta: {
+      title: "DentVideo — فيديوهات توعوية للمرضى لعيادات الأسنان",
+      description:
+        "خمسة فيديوهات توعوية للمرضى كل يوم اثنين، بتعليق صوتي وبألوان عيادتكم، تُراجَع وفق ضوابط الإعلان الصحي والدقة السريرية. وما عليكم إلا الاعتماد.",
+      ogDescription: "خمسة فيديوهات للمرضى كل يوم اثنين، تُراجَع قبل أن تصلكم. وما عليكم إلا الاعتماد.",
+    },
+    hero: {
+      eyebrow: "لعيادات الأسنان",
+      h1: "كونوا العيادة التي يشعر المرضى أنهم يعرفونها.",
+      lead: "يختار المرضى غالباً طبيب الأسنان الذي عرفوه من إنستغرام وتيك توك وسناب شات. لكن كتابة النص والتصوير والمونتاج تحتاج وقتاً لا يتّسع له جدول العيادة، وكلمة واحدة مثل «بدون ألم» أو ذكر سعر قد تخالف ضوابط الإعلان الصحي. يُبقي DentVideo عيادتكم حاضرة كل أسبوع: خمسة فيديوهات تجيب عمّا يبحث عنه المرضى في منطقتكم، بألوان عيادتكم، بعد مراجعة كل عبارة فيها، مقابل دقائق قليلة من وقتكم. تكلفته أقل من وكالة تسويق، وعلى خلاف Canva وChatGPT يتولّى العمل والمراجعة عنكم.",
+      cta: "شاهدوا معاينة عيادتكم",
+      note: "شاهدوا فيديوهاتكم بشعاركم وألوانكم مباشرةً قبل الدفع. سعر المؤسسين لأول 100 عيادة.",
+    },
+    mock: { hook: "هل يضرّ التبييض بمينا الأسنان؟", caption: "تحت إشراف طبيب الأسنان، غالباً لا.", label: "جاهز لمراجعتكم" },
+    video: { play: "تشغيل", pause: "إيقاف مؤقت" },
+    problem: [
+      { title: "لا وقت للنشر", text: "يبحث المرضى عن العيادة قبل أن يحجزوا. لكن كتابة النص والتصوير والمونتاج كل أسبوع تأخذ ساعات لا تملكونها، فيتوقف الحساب عن النشر." },
+      { title: "كلمة واحدة قد تعني مخالفة", text: "«بدون ألم» و«مضمون» وذكر الأسعار وصور قبل وبعد قد تخالف معايير الإعلان الطبي لدى الجهات الصحية. نادراً ما تتحقق الوكالات وأدوات الذكاء الاصطناعي العامة من ذلك، وتبقى المسؤولية على العيادة." },
+      { title: "ما يقدّمه DentVideo", text: "كل يوم اثنين يصلكم أسبوع كامل من الفيديوهات بهوية عيادتكم، بعد مراجعتها. دوركم: دقائق للمشاهدة، ولمسة للاعتماد، ولمسة للمشاركة." },
+    ],
+    how: {
+      heading: "كيف يعمل",
+      steps: [
+        { title: "إعداد لمرة واحدة", text: "اللغة والخدمات وأسلوب الحديث والألوان والشعار، في دقيقتين. ولا تتناول الفيديوهات إلا العلاجات التي تقدّمها عيادتكم." },
+        { title: "خمسة فيديوهات كل يوم اثنين", text: "نختار المواضيع مما يبحث عنه المرضى في بلدكم على Google. كل فيديو بتعليق صوتي ونص على الشاشة وبألوان عيادتكم، ونرسل إليكم بريداً إلكترونياً حين يجهز الأسبوع." },
+        { title: "اعتمدوا وشاركوا", text: "اعتمدوا فيديوهات الأسبوع كلها بلمسة واحدة، أو واحداً تلو الآخر. وشاركوها على إنستغرام أو تيك توك أو سناب شات من هاتفكم، والنص المرافق منسوخ مسبقاً. وكل ما يحتاج نظرة منكم نضع عليه علامة مع السبب." },
+      ],
+    },
+    samples: { heading: "أسبوع نموذجي", text: "ثلاثة فيديوهات أعدّها DentVideo لعيادة تجريبية، كما خرجت تماماً: بتعليق صوتي ونص على الشاشة وبعد المراجعة. فيديوهاتكم تُعدّ بلغتكم وألوانكم وأسلوبكم.", note: "عيادة تجريبية. من إعداد DentVideo، دون تعديل." },
+    checks: {
+      heading: "مراجعة مزدوجة قبل أن تصلكم",
+      items: [
+        { title: "ضوابط الإعلان", text: "لا ضمانات، ولا «بدون ألم» أو «دائم» أو «الأفضل»، ولا أسعار أو خصومات أو وعود قبل وبعد أو شهادات مرضى. نرصدها في عشر لغات." },
+        { title: "الدقة السريرية", text: "مراجِع يعمل بعين طبيب أسنان عام يطابق كل معلومة مع التوصيات المعتمدة، ويتحقق من أن كل نصيحة تخص الإجراء الصحيح." },
+        { title: "الصوت والصورة", text: "نقيس كل فيديو قبل تسليمه: التعليق الصوتي موجود وواضح، ولا فراغات صامتة ولا لقطات سوداء، والمقاس مناسب لكل منصة." },
+      ],
+    },
+    compare: {
+      heading: "DentVideo أم وكالة تسويق أم التنفيذ بأنفسكم؟",
+      text: "الخيارات الثلاثة تملأ حسابكم بالمحتوى. أما DentVideo فيراجع كل سطر وفق ضوابط الإعلان الصحي قبل أن يصلكم، دون أن يأخذ من أمسياتكم.",
+      columns: ["DentVideo", "وكالة تسويق", "التنفيذ بأنفسكم"],
+      rows: [
+        { label: "التكلفة", values: ["اشتراك شهري ثابت، جزء بسيط من أتعاب وكالة", "عادةً آلاف الدراهم أو الريالات شهرياً، وغالباً مع حد أدنى لمدة العقد", "أدوات رخيصة، ثمنها أمسياتكم"] },
+        { label: "وقتكم كل أسبوع", values: ["دقائق للمشاهدة والاعتماد", "اجتماعات وجولات تعديل وموافقات", "ساعات للكتابة والتصوير والمونتاج والنصوص"] },
+        { label: "مراجعة الإعلان الصحي", values: ["كل نص وكل تعليق، مرتين، قبل أن تروه", "حسب الوكالة، فاسألوا من يراجع", "على عاتقكم"] },
+        { label: "المواضيع", values: ["ما يبحث عنه المرضى في بلدكم فعلاً", "خطة المحتوى لدى الوكالة", "ما يخطر ببالكم"] },
+        { label: "الانتظام", values: ["خمسة فيديوهات كل يوم اثنين، تلقائياً", "حسب العقد", "حتى يزدحم الأسبوع"] },
+        { label: "اللغات", values: ["عشر لغات، بصياغة طبيعية في كل منها", "لغة واحدة غالباً", "لغتكم"] },
+      ],
+      roi: "لا نستطيع أن نعدكم بمرضى جدد، ولا أحد يستطيع ذلك بصدق. لكن حالة زراعة أو تقويم شفاف واحدة تزيد قيمتها عادةً على اشتراك عام كامل في DentVideo.",
+      roiNote: "استناداً إلى الرسوم المعتادة في العيادات الخاصة لعلاج زراعة أو تقويم شفاف واحد. تختلف رسومكم ونتائجكم.",
+    },
+    pricing: {
+      heading: "شاهدوا أولاً، ثم اختاروا الباقة.",
+      text: "قبل الدفع، شاهدوا معاينة حية لفيديوهاتكم أنتم: بشعاركم وألوانكم واسم عيادتكم. ثم اختاروا باقة باشتراك شهري يمكن إلغاؤه في أي وقت. ويبدأ إعداد أسبوعكم الأول فور الدفع.",
+      cta: "شاهدوا معاينة عيادتكم",
+      perMonth: "شهرياً",
+      recommended: "موصى بها",
+      foundingBadge: "سعر المؤسسين",
+      founding: "باقة Practice بسعر $49 شهرياً لمدة 12 شهراً، لأول 100 عيادة",
+      yearly: "أو $990 سنوياً: 12 شهراً بسعر 10",
+      note: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب.",
+      tiers: [
+        {
+          name: "Starter",
+          price: "$49",
+          blurb: "لعيادة واحدة تبدأ للتو.",
+          features: ["خمسة فيديوهات بتعليق صوتي ونص على الشاشة كل يوم اثنين", "مراجعة لضوابط الإعلان والدقة السريرية", "شعاركم وألوان هويتكم في كل فيديو"],
+        },
+        {
+          name: "Practice",
+          price: "$99",
+          blurb: "للعيادات التي تريد أن يظهر أطباؤها بأنفسهم.",
+          features: ["كل ما في Starter", "تسجيلاتكم الخاصة تتحوّل إلى مقاطع قصيرة مع النص", "بطاقات تصوير لمقاطعكم الخاصة"],
+        },
+        {
+          name: "Group",
+          price: "$279",
+          blurb: "للمجموعات الصغيرة متعددة الفروع.",
+          features: ["حتى ثلاثة فروع", "خمسة فيديوهات لكل فرع كل يوم اثنين", "صوت واحد متّسق ومُراجَع في جميع الفروع"],
+        },
+      ],
+    },
+    teaser: {
+      eyebrow: "جرّبوه بشعار عيادتكم",
+      heading: "شاهدوا فيديوهاتكم قبل الدفع",
+      text: "اكتبوا اسم عيادتكم وأضيفوا شعاركم واختاروا لوناً، فتتغيّر المعاينة فوراً. لا يغادر شيء متصفحكم قبل إنشاء الحساب.",
+      name: "اسم العيادة",
+      namePlaceholder: "عيادتكم",
+      logo: "أضيفوا شعاركم",
+      color: "لون الهوية",
+      cta: "تابعوا إلى المعاينة الكاملة",
+      note: "اشتراك شهري يمكن إلغاؤه في أي وقت. لا تدفعون إلا عند اختيار باقة.",
+    },
+    guidesHeading: "أدلة",
+    faqHeading: "أسئلة شائعة",
+    faq: [
+      { q: "لماذا ندفع مقابل هذا بينما يوجد Canva وChatGPT؟", a: "يمكنكم استخدامهما إن توفّر لديكم الوقت. هذه الأدوات تمنحكم صفحة فارغة: اختيار المواضيع، وكتابة نص يلتزم بضوابط الإعلان، والتسجيل والمونتاج وكتابة النص على الشاشة والنشر، كلها تبقى عليكم. أما DentVideo فينجز ذلك كله كل يوم اثنين ويراجع كل سطر مرتين. دوركم دقائق من المشاهدة ولمستان." },
+      { q: "ما الفرق بينه وبين وكالة التسويق؟", a: "الوكالة تعني عادةً أتعاباً شهرية واجتماعات وجولات تعديل، وعليكم أن تسألوا من يراجع المحتوى وفق ضوابط الإعلان الصحي. يكلّف DentVideo جزءاً بسيطاً من ذلك، ولا يحتاج اجتماعات، ويمرّر كل نص على مراجِع لضوابط الإعلان ومراجِع للدقة السريرية قبل أن تروه. وإن كنتم تعملون مع وكالة، فيمكنها نشر فيديوهات DentVideo نيابةً عنكم." },
+      { q: "هل سيجلب لنا مرضى جدداً؟", a: "لا نعد بأرقام، فلا أحد يستطيع ذلك بصدق، وضوابط الإعلان الصحي لا تقبل الوعود أيضاً. ما يفعله DentVideo هو إبقاء عيادتكم حاضرة كل أسبوع بإجابات واضحة عن الأسئلة التي يبحث عنها المرضى، فيشعرون أنهم يعرفونكم قبل الحجز. وحالة زراعة أو تقويم شفاف واحدة تزيد قيمتها عادةً على اشتراك عام كامل، فلا يحتاج الكثير ليغطي تكلفته." },
+      { q: "هل يتوافق هذا مع ضوابط الإعلان الصحي في الإمارات والسعودية؟", a: "المحتوى التوعوي مسموح به عموماً، أما الترويج الذي يعد بنتائج فلا. وهذا ما يلتزم به المراجعون لدينا: لا «الأفضل» ولا «مئة بالمئة» ولا «بدون آثار جانبية» ولا «نتائج فورية»، ولا أسعار أو عروض أو صور قبل وبعد أو شهادات مرضى. في دبي تنطبق معايير هيئة الصحة بدبي (DHA) لمحتوى الإعلانات الطبية على وسائل التواصل الاجتماعي، وهي تشترط اعتماد المدير الطبي للمنشأة لكل منشور. وفي أبوظبي تنظّم دائرة الصحة الإعلان الصحي، وعلى المستوى الاتحادي وزارة الصحة ووقاية المجتمع، وفي السعودية وزارة الصحة. تبقى تصاريح الإعلان والموافقات المطلوبة في إمارتكم أو بلدكم، ومنها تصريح المعلن من مجلس الإمارات للإعلام عند الحاجة، من مسؤولية العيادة، وخطوة اعتماد كل فيديو في DentVideo هي المكان المناسب لموافقة المدير الطبي. لسنا مكتب محاماة، فإن كان لديكم سؤال غير معتاد فارجعوا إلى الجهة الصحية المختصة." },
+      { q: "ألن يبدو كمحتوى عام من صنع الذكاء الاصطناعي؟", a: "التعليق الصوتي صوت اصطناعي بلغتكم، لكن لا أطباء وهميين ولا وجوه افتراضية ولا مرضى: اللقطات الجاهزة تقتصر على الأدوات والأشياء، دون أشخاص أو عيادات أو علاجات، وكل فيديو يحمل شعاركم وألوانكم. وللمسة أكثر خصوصية، سجّلوا خمس دقائق تتحدثون فيها، ونحوّلها إلى مقاطع قصيرة مع النص تظهرون فيها بأنفسكم." },
+      { q: "كم يحتاج من وقتنا؟", a: "دقيقتان للإعداد، مرة واحدة. بعدها دقائق قليلة كل يوم اثنين: نرسل إليكم بريداً إلكترونياً حين يجهز الأسبوع، فتشاهدون وتعتمدون الكل بلمسة واحدة، وما يحتاج نظرة منكم معلَّم مع السبب، ثم تشاركون من هاتفكم." },
+      { q: "هل علينا أن نصوّر شيئاً؟", a: "لا، لكن ذلك يفيد. تصلكم كل أسبوع فيديوهات توعوية جاهزة: مكتوبة ومسجّلة بصوت معلّق وبنص على الشاشة بلغتكم. وإن سجّلتم أيضاً خمس دقائق تتحدثون فيها انطلاقاً من إحدى بطاقات التصوير، نحوّلها إلى مقاطع قصيرة تظهرون فيها، وهي ما يثق به المرضى عادةً أكثر من غيره." },
+      { q: "هل تنشرون على إنستغرام أو تيك توك نيابةً عنا؟", a: "ليس تلقائياً بعد. على الهاتف، يفتح الفيديو المعتمد قائمة المشاركة والفيديو مرفق والنص منسوخ مسبقاً، فيكفي لمسة واحدة للنشر على إنستغرام أو تيك توك أو سناب شات. ولا يُنشر شيء دون موافقتكم." },
+      { q: "هل تغيّرون ما نقوله في تسجيلاتنا؟", a: "أبداً. إن كان في كلامكم ما قد يُفهم على أنه وعد أو يستحق نظرة ثانية، نعلّم المقطع مع السبب واقتراحٍ لصياغة بديلة، ويبقى القرار لكم." },
+      { q: "ما اللغات المتاحة؟", a: "العربية والإنجليزية والفرنسية والألمانية والإسبانية والإيطالية والبرتغالية والتركية واليابانية والبولندية. نكتب الفيديوهات العربية بفصحى مبسّطة قريبة من لغة وسائل التواصل في الخليج، ونخاطب المشاهدين بصيغة الجمع التي تشمل الرجال والنساء." },
+      { q: "هل يمكننا رؤية فيديوهاتنا قبل الدفع؟", a: "نعم. أنشئوا حساباً وصِفوا عيادتكم، فتشاهدون في متصفحكم معاينة حية لفيديوهاتكم بشعاركم وألوانكم واسم عيادتكم. وإن أعجبتكم، اختاروا باقة: يبدأ إعداد أسبوعكم الأول فور الدفع، ونرسل إليكم بريداً حين يجهز. الاشتراك شهري ويمكن إلغاؤه في أي وقت، وأول العيادات المنضمّة تحصل على سعر المؤسسين." },
+    ],
+  },
+
+  // Polish: formal "Państwo" in prose (never "ty"); short UI buttons keep the usual imperative.
+  // Kodeks Etyki Lekarskiej (from 1 Jan 2025) is named; no "najlepszy", guarantees, "bezbolesny" claims or 100%.
+  pl: {
+    meta: {
+      title: "DentVideo — filmy dla pacjentów gabinetów stomatologicznych",
+      description:
+        "Co poniedziałek pięć filmów dla pacjentów z lektorem, w kolorach gabinetu, sprawdzonych pod kątem reklamy medycznej i wiedzy klinicznej. Wystarczy zatwierdzić.",
+      ogDescription: "Pięć filmów dla pacjentów co poniedziałek, sprawdzonych, zanim Państwo je zobaczą. Wystarczy zatwierdzić.",
+    },
+    hero: {
+      eyebrow: "Dla gabinetów stomatologicznych",
+      h1: "Niech pacjenci czują, że już Państwa znają.",
+      lead: "Pacjenci wybierają dentystę, którego znają już z Instagrama, Facebooka i Google. Ale scenariusz, nagranie i montaż zabierają wieczory, których Państwo nie mają, a jedno niefortunne słowo, jak „bezbolesny”, albo cena w poście może skończyć się skargą. DentVideo co tydzień utrzymuje Państwa widoczność: pięć filmów odpowiadających na pytania, które pacjenci z okolicy naprawdę wpisują w wyszukiwarkę, w kolorach gabinetu i sprawdzonych pod kątem ryzykownych sformułowań, za kilka minut Państwa czasu. Taniej niż agencja, a w przeciwieństwie do Canvy czy ChatGPT, DentVideo wykonuje pracę i kontrolę za Państwa.",
+      cta: "Pokaż mój podgląd",
+      note: "Własne filmy z logo gabinetu zobaczą Państwo na żywo, zanim cokolwiek zapłacą. Cena założycielska dla pierwszych 100 gabinetów.",
+    },
+    mock: { hook: "Czy wybielanie niszczy szkliwo?", caption: "Pod kontrolą dentysty zwykle nie.", label: "Gotowe do akceptacji" },
+    video: { play: "Odtwórz", pause: "Wstrzymaj" },
+    problem: [
+      { title: "Brak czasu na publikowanie", text: "Pacjenci sprawdzają gabinet w internecie, zanim umówią wizytę. Ale co tydzień scenariusz, nagranie i montaż to godziny, których Państwo nie mają, więc profil milknie." },
+      { title: "Jedno słowo, jedna skarga", text: "„Bezbolesny”, „gwarantowany”, cena czy zdjęcia przed i po mogą naruszać zasady informowania o usługach medycznych. Agencje i ogólne narzędzia AI rzadko to sprawdzają, a ryzyko zostaje po stronie gabinetu." },
+      { title: "Co robi DentVideo", text: "Co poniedziałek przychodzi tydzień sprawdzonych filmów w identyfikacji wizualnej gabinetu. Państwa rola: kilka minut na obejrzenie, jedno dotknięcie, by zatwierdzić, i jedno, by udostępnić." },
+    ],
+    how: {
+      heading: "Jak to działa",
+      steps: [
+        { title: "Jednorazowa konfiguracja", text: "Język, zakres usług, ton, kolory i logo: dwie minuty. Filmy dotyczą wyłącznie zabiegów, które gabinet faktycznie wykonuje." },
+        { title: "Pięć filmów co poniedziałek", text: "Tematy pochodzą z tego, czego pacjenci w Polsce szukają w Google. Każdy film ma lektora, napisy i kolory gabinetu, a gdy tydzień jest gotowy, wysyłamy e-mail." },
+        { title: "Zatwierdzanie i udostępnianie", text: "Cały tydzień można zatwierdzić jednym dotknięciem albo film po filmie. Z telefonu udostępniają go Państwo na Instagramie, Facebooku lub TikToku, z opisem już skopiowanym. Wszystko, co wymaga Państwa uwagi, jest oznaczone wraz z powodem." },
+      ],
+    },
+    samples: { heading: "Przykładowy tydzień", text: "Trzy filmy, które DentVideo przygotowało dla gabinetu demonstracyjnego, dokładnie w takiej postaci, w jakiej powstały: z lektorem, napisami i po kontroli. Państwa filmy powstają w Państwa języku, kolorach i tonie.", note: "Gabinet demonstracyjny. Przygotowane przez DentVideo, bez poprawek." },
+    checks: {
+      heading: "Sprawdzone dwukrotnie, zanim Państwo je zobaczą",
+      items: [
+        { title: "Zasady reklamy", text: "Bez gwarancji, „bezbolesnych” i „trwałych” efektów, „najlepszego gabinetu”, cen, rabatów, obietnic przed i po oraz opinii pacjentów. Wychwytujemy je w dziesięciu językach." },
+        { title: "Poprawność kliniczna", text: "Recenzent w roli lekarza dentysty ogólnego porównuje każde stwierdzenie z aktualną wiedzą i sprawdza, czy zalecenie dotyczy właściwego zabiegu." },
+        { title: "Dźwięk i obraz", text: "Każdy film jest mierzony przed wysłaniem: lektor jest obecny i słyszalny, nie ma cichych przerw ani czarnych klatek, a format pasuje do każdej platformy." },
+      ],
+    },
+    compare: {
+      heading: "DentVideo, agencja czy samodzielnie?",
+      text: "Każda z tych dróg zapełni profil. DentVideo sprawdza każde zdanie pod kątem zasad reklamy medycznej, zanim do Państwa trafi, i nie zabiera wieczorów.",
+      columns: ["DentVideo", "Agencja social media", "Samodzielnie"],
+      rows: [
+        { label: "Koszt", values: ["Stały miesięczny abonament, ułamek kosztu agencji", "Zwykle od kilkuset do kilku tysięcy złotych miesięcznie, często z minimalnym okresem umowy", "Tanie narzędzia, opłacane Państwa wieczorami"] },
+        { label: "Państwa czas w tygodniu", values: ["Kilka minut na obejrzenie i zatwierdzenie", "Briefy, rundy poprawek i akceptacje", "Godziny na scenariusz, nagranie, montaż i napisy"] },
+        { label: "Kontrola zasad reklamy", values: ["Każdy scenariusz i opis, dwukrotnie, zanim Państwo je zobaczą", "Zależy od agencji: warto zapytać, kto sprawdza", "Po Państwa stronie"] },
+        { label: "Tematy", values: ["To, czego pacjenci w Polsce naprawdę szukają", "Kalendarz treści agencji", "To, co akurat przyjdzie do głowy"] },
+        { label: "Regularność", values: ["Pięć filmów co poniedziałek, automatycznie", "Zgodnie z umową", "Do pierwszego pracowitego tygodnia"] },
+        { label: "Języki", values: ["Dziesięć, w każdym naturalnym językiem", "Zwykle jeden", "Państwa język"] },
+      ],
+      roi: "Nie możemy obiecać Państwu pacjentów; nikt nie może tego uczciwie zrobić. Ale jeden przypadek leczenia implantologicznego lub nakładkowego jest zwykle wart więcej niż rok DentVideo.",
+      roiNote: "Na podstawie typowych cen prywatnego leczenia implantologicznego lub nakładkowego. Państwa ceny i wyniki mogą się różnić.",
+    },
+    pricing: {
+      heading: "Najpierw podgląd. Potem wybór planu.",
+      text: "Zanim Państwo zapłacą, zobaczą Państwo na żywo, jak będą wyglądać filmy gabinetu: z Państwa logo, kolorami i nazwą. Potem wybór planu: rozliczenie miesięczne, rezygnacja w dowolnym momencie. Pierwszy tydzień filmów powstaje zaraz po płatności.",
+      cta: "Pokaż mój podgląd",
+      perMonth: "/mies.",
+      recommended: "Polecany",
+      foundingBadge: "Oferta założycielska",
+      founding: "Practice za 49 $ miesięcznie przez 12 miesięcy dla pierwszych 100 gabinetów",
+      yearly: "lub 990 $ rocznie: 12 miesięcy w cenie 10",
+      note: "Ceny w USD. Mogą zostać doliczone podatki.",
+      tiers: [
+        {
+          name: "Starter",
+          price: "49 $",
+          blurb: "Dla jednego gabinetu na dobry początek.",
+          features: ["Pięć filmów z lektorem i napisami co poniedziałek", "Kontrola zasad reklamy i poprawności klinicznej", "Logo i kolory gabinetu w każdym filmie"],
+        },
+        {
+          name: "Practice",
+          price: "99 $",
+          blurb: "Dla gabinetów, które chcą same pokazać się w kadrze.",
+          features: ["Wszystko z planu Starter", "Państwa własne nagrania jako klipy z napisami", "Karty z podpowiedziami do własnych nagrań"],
+        },
+        {
+          name: "Group",
+          price: "279 $",
+          blurb: "Dla małych sieci z kilkoma placówkami.",
+          features: ["Do trzech placówek", "Pięć filmów na placówkę co poniedziałek", "Spójny, sprawdzony przekaz we wszystkich placówkach"],
+        },
+      ],
+    },
+    teaser: {
+      eyebrow: "Z logo Państwa gabinetu",
+      heading: "Filmy gabinetu, zanim Państwo zapłacą",
+      text: "Wystarczy wpisać nazwę gabinetu, dodać logo i wybrać kolor, a podgląd zmienia się na bieżąco. Nic nie opuszcza przeglądarki, dopóki nie założą Państwo konta.",
+      name: "Nazwa gabinetu",
+      namePlaceholder: "Państwa gabinet",
+      logo: "Dodaj logo",
+      color: "Kolor marki",
+      cta: "Przejdź do pełnego podglądu",
+      note: "Rozliczenie miesięczne, rezygnacja w dowolnym momencie. Płatność dopiero po wyborze planu.",
+    },
+    guidesHeading: "Poradniki",
+    faqHeading: "Częste pytania",
+    faq: [
+      { q: "Po co płacić, skoro jest Canva i ChatGPT?", a: "Można z nich korzystać, jeśli są na to godziny. Te narzędzia dają pustą kartkę: wybór tematów, scenariusz zgodny z zasadami reklamy, nagranie, montaż, napisy i publikacja zostają po Państwa stronie. DentVideo robi to wszystko co poniedziałek i sprawdza każde zdanie dwukrotnie. Państwa rola to kilka minut oglądania i dwa dotknięcia." },
+      { q: "Czym to się różni od agencji social media?", a: "Agencja to zwykle miesięczny abonament, briefy i rundy poprawek, a do tego trzeba dopytać, kto sprawdza treści pod kątem zasad reklamy medycznej. DentVideo kosztuje ułamek tej kwoty, nie wymaga spotkań, a każdy scenariusz przechodzi kontrolę zasad reklamy i kontrolę kliniczną, zanim Państwo go zobaczą. Jeśli współpracują Państwo już z agencją, może ona publikować filmy DentVideo w imieniu gabinetu." },
+      { q: "Czy to przyniesie nowych pacjentów?", a: "Nie obiecujemy liczb: nikt nie może tego uczciwie zrobić, a zasady reklamy usług medycznych i tak nie sprzyjają obietnicom. DentVideo sprawia, że gabinet jest widoczny co tydzień, z jasnymi odpowiedziami na pytania, których szukają pacjenci, więc znają Państwa, zanim się umówią. Jeden przypadek leczenia implantologicznego lub nakładkowego jest zwykle wart więcej niż rok DentVideo, więc nie musi on zdziałać wiele, by się zwrócić." },
+      { q: "Czy to jest zgodne z zasadami reklamy obowiązującymi lekarzy dentystów w Polsce?", a: "Od 1 stycznia 2025 r. Kodeks Etyki Lekarskiej, który obowiązuje także lekarzy dentystów, nie zawiera już ogólnego zakazu reklamy, ale informacja o usługach nadal musi być rzetelna i nie może wprowadzać w błąd. Do tego dochodzą przepisy o zwalczaniu nieuczciwej konkurencji i ochronie konsumentów, a Prawo farmaceutyczne zabrania lekarzom udziału w reklamie leków. Nasi recenzenci trzymają się bezpiecznej strony: bez gwarancji, „bezbolesnych” zabiegów, superlatywów, cen, rabatów, zdjęć przed i po, opinii pacjentów i polecania marek produktów. Nie jesteśmy kancelarią prawną, a każdy film zatwierdzają Państwo sami; w nietypowej sytuacji warto zapytać okręgową izbę lekarską." },
+      { q: "Czy to nie będzie wyglądać jak typowe treści z AI?", a: "Lektor to głos syntetyczny w Państwa języku, ale nie ma tu fikcyjnych lekarzy, awatarów ani pacjentów: materiały stockowe pokazują wyłącznie przedmioty, nigdy ludzi, gabinety ani zabiegi, a każdy film ma logo i kolory gabinetu. Najbardziej osobisty efekt da pięciominutowe nagranie z Państwa udziałem: zamienimy je w krótkie klipy z napisami." },
+      { q: "Ile czasu to zajmuje?", a: "Dwie minuty na konfigurację, jeden raz. Potem kilka minut w każdy poniedziałek: wysyłamy e-mail, gdy tydzień jest gotowy, a Państwo oglądają filmy, zatwierdzają wszystkie jednym dotknięciem (to, co wymaga uwagi, jest oznaczone z podaniem powodu) i udostępniają je z telefonu." },
+      { q: "Czy trzeba coś nagrywać?", a: "Nie, ale warto. Co tydzień otrzymują Państwo gotowe filmy edukacyjne: napisane, z lektorem i napisami po polsku. Jeśli dodatkowo nagrają Państwo pięć minut według jednej z naszych kart, zrobimy z tego krótkie klipy z Państwa udziałem. Takim filmom pacjenci zwykle ufają najbardziej." },
+      { q: "Czy publikujecie za nas na Instagramie lub TikToku?", a: "Jeszcze nie automatycznie. Na telefonie zatwierdzony film otwiera menu udostępniania z dołączonym filmem i skopiowanym opisem, więc publikacja na Instagramie, Facebooku czy TikToku to jedno dotknięcie. Nic nie zostanie opublikowane bez Państwa zgody." },
+      { q: "Czy zmieniacie to, co mówimy w naszych nagraniach?", a: "Nigdy. Jeśli coś mogłoby zostać odebrane jako obietnica albo warto spojrzeć na to drugi raz, klip zostaje oznaczony z podaniem powodu i propozycją sformułowania. Decyzja należy do Państwa." },
+      { q: "Jakie języki są dostępne?", a: "Polski, angielski, niemiecki, hiszpański, francuski, włoski, portugalski, turecki, japoński i arabski, z formą „Państwo” albo „ty”, zależnie od stylu gabinetu." },
+      { q: "Czy możemy zobaczyć filmy przed zapłatą?", a: "Tak. Po założeniu konta i opisaniu gabinetu zobaczą Państwo w przeglądarce podgląd na żywo: jak będą wyglądać filmy z logo, kolorami i nazwą gabinetu. Jeśli się spodoba, wystarczy wybrać plan. Pierwszy tydzień filmów powstaje zaraz po płatności, a gdy będzie gotowy, wyślemy e-mail. Plany są miesięczne, z możliwością rezygnacji w dowolnym momencie, a pierwsze gabinety otrzymują cenę założycielską." },
     ],
   },
 };
@@ -795,7 +1165,7 @@ const BASE_GUIDES: Guide[] = [
         "Educate rather than promise: explain what a treatment involves and what is typical, and hedge where outcomes vary. Invite viewers to ask or book a check-up instead of offering a deal. Keep patient information out of posts unless you have documented consent and the rules allow it.",
       ]},
       { heading: "How DentVideo helps", paragraphs: [
-        "DentVideo checks every script and caption for these commonly restricted claims in seven languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes.",
+        "DentVideo checks every script and caption for these commonly restricted claims in ten languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes.",
       ]},
     ],
     faq: [
@@ -939,3 +1309,15 @@ export function findGuide(slug: string): Guide | undefined {
 export function guidesFor(locale: Locale): Guide[] {
   return GUIDES.filter((g) => g.locale === locale);
 }
+
+/**
+ * Whether a language has a guides hub. Japanese, Arabic and Polish have no
+ * guides yet, so they get no hub page, no "Guides" link and no sitemap entry:
+ * the site never advertises a page that would be empty.
+ */
+export function hasGuides(locale: Locale): boolean {
+  return guidesFor(locale).length > 0;
+}
+
+/** The languages with a guides hub, in LOCALES order. */
+export const GUIDE_HUB_LOCALES: Locale[] = LOCALES.filter(hasGuides);

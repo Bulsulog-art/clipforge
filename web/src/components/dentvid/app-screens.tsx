@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Mail, ShieldCheck, UserRound } from "lucide-react";
-import type { Locale } from "@/content/dentvideo";
+import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
@@ -54,7 +54,7 @@ export function AppHomeView({
   const onlyFirstWeek = firstWeek && items.length === 0;
   const Heading = firstWeek ? "h2" : "h1";
   return (
-    <main lang={locale} className={`${MAIN} max-w-6xl`}>
+    <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-6xl`}>
       <RememberLocale locale={locale} />
       {notice && (
         <p role="status" className="mb-6 rounded-xl bg-dv-teal-50 px-4 py-3 text-sm text-dv-teal ring-1 ring-inset ring-dv-teal/15">
@@ -118,7 +118,7 @@ export function SettingsView({
   const b = text.billing;
   const manageHref = mailtoHref(t.manageSubject, profile?.name ? `${text.form.clinicName}: ${profile.name}\n\n` : undefined);
   return (
-    <main lang={locale} className={`${MAIN} max-w-3xl`}>
+    <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-3xl`}>
       <RememberLocale locale={locale} />
       <h1 className="dv-display text-[2.5rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
       <p className="mt-2 text-dv-body">{t.lead}</p>
@@ -171,10 +171,10 @@ export function RecordView({ locale, cards, plan }: { locale: Locale; cards: { t
   // Own recordings are part of Practice and Group; Starter sees what it would get instead of an upload that fails.
   const starter = plan?.plan === "active" && plan.tier === "starter";
   return (
-    <main lang={locale} className={`${MAIN} max-w-5xl`}>
+    <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-5xl`}>
       <RememberLocale locale={locale} />
-      <Link href="/dentvideo/app" className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-sm font-medium text-dv-teal hover:underline">
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+      <Link href="/dentvideo/app" className="-ms-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-sm font-medium text-dv-teal hover:underline">
+        <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
         {t.backToVideos}
       </Link>
       <h1 className="dv-display mt-2 text-balance text-[2.5rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
@@ -226,7 +226,7 @@ export function RecordView({ locale, cards, plan }: { locale: Locale; cards: { t
                   <p className="mt-3 text-sm text-dv-body">
                     <span className="font-semibold text-dv-ink">{t.startWith}</span> {quote(locale, card.opening)}
                   </p>
-                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-dv-body">
+                  <ul className="mt-3 list-disc space-y-1 ps-5 text-sm text-dv-body">
                     {card.points.map((pt, i) => (
                       <li key={i}>{pt}</li>
                     ))}

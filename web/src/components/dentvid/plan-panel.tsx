@@ -12,8 +12,12 @@ export type PlanOption = { tier: DvTier; interval: DvInterval; priceUsd: number 
 const TIERS: DvTier[] = ["starter", "practice", "group"];
 
 export function usd(locale: Locale, amount: number) {
-  return new Intl.NumberFormat(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
+  // Arabic pages write "$39" as the landing does (Western digits, no right-to-left marks to reorder it).
+  return new Intl.NumberFormat(locale === "ar" ? "en-US" : locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
 }
+
+/** A price inside a sentence, isolated so right-to-left text cannot reorder it ("US$ 39", not "$US 39"). */
+const inText = (s: string) => `\u2068${s}\u2069`;
 
 /** "Choose your plan": the three tiers, a monthly/yearly toggle, the founding offer. */
 export function PlanPanel({
@@ -85,7 +89,7 @@ export function PlanPanel({
                 className={`min-h-11 rounded-full px-4 py-2 text-sm font-semibold transition ${interval === iv ? "bg-white text-dv-ink shadow-[0_1px_3px_rgba(20,33,31,0.12)]" : "text-dv-muted hover:text-dv-ink"}`}
               >
                 {iv === "month" ? t.monthly : t.yearly}
-                {iv === "year" && <span className="ml-1.5 text-xs font-medium text-dv-teal">{t.yearlySave}</span>}
+                {iv === "year" && <span className="ms-1.5 text-xs font-medium text-dv-teal">{t.yearlySave}</span>}
               </button>
             ))}
           </div>
@@ -98,9 +102,14 @@ export function PlanPanel({
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {t.foundingBadge}
           </span>
-          {fmt(t.foundingLine, { price: usd(locale, founding.priceUsd) })}
+          {fmt(t.foundingLine, { price: inText(usd(locale, founding.priceUsd)) })}
           {founding.code && (
-            <span className="rounded-full bg-white/15 px-2.5 py-0.5 font-mono text-xs">{fmt(t.foundingCodeLine, { code: founding.code })}</span>
+            <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs">
+              {/* Only the code is monospaced: a monospace face has no Japanese or Arabic. */}
+              {t.foundingCodeLine.split("{code}")[0]}
+              <code dir="ltr" className="font-mono">{founding.code}</code>
+              {t.foundingCodeLine.split("{code}")[1] ?? ""}
+            </span>
           )}
         </p>
       )}
@@ -117,26 +126,26 @@ export function PlanPanel({
           return (
             <li key={tier} className={`relative flex flex-col rounded-[1.25rem] bg-white p-6 ring-1 ring-dv-line ${featured ? "ring-2 ring-dv-teal" : ""}`}>
               {featured && (
-                <span className="absolute -top-3 left-6 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white">{foundingHere ? t.foundingBadge : t.recommended}</span>
+                <span className="absolute -top-3 start-6 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white">{foundingHere ? t.foundingBadge : t.recommended}</span>
               )}
               <h3 className="font-semibold text-dv-ink">{copy.name}</h3>
               <p className="mt-1 text-sm text-dv-muted">{copy.blurb}</p>
               <p className="mt-5 flex flex-wrap items-baseline gap-x-2">
                 {foundingHere && founding ? (
                   <>
-                    <span className="dv-display text-[2.75rem] leading-none text-dv-ink">{usd(locale, founding.priceUsd)}</span>
+                    <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink">{usd(locale, founding.priceUsd)}</span>
                     <span className="text-sm font-medium text-dv-muted">{t.perMonth}</span>
                     <s className="text-sm text-dv-muted">{usd(locale, opt.priceUsd)}</s>
                   </>
                 ) : (
                   <>
-                    <span className="dv-display text-[2.75rem] leading-none text-dv-ink">{usd(locale, opt.priceUsd)}</span>
+                    <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink">{usd(locale, opt.priceUsd)}</span>
                     <span className="text-sm font-medium text-dv-muted">{opt.interval === "year" ? t.perYear : t.perMonth}</span>
                   </>
                 )}
               </p>
               <p className="mt-1 min-h-[1.25rem] text-xs text-dv-muted">
-                {foundingHere ? fmt(t.foundingThen, { price: usd(locale, opt.priceUsd) }) : interval === "year" && opt.interval === "month" ? t.monthlyOnly : ""}
+                {foundingHere ? fmt(t.foundingThen, { price: inText(usd(locale, opt.priceUsd)) }) : interval === "year" && opt.interval === "month" ? t.monthlyOnly : ""}
               </p>
               <ul className="mt-4 space-y-2.5 border-t border-dv-line pt-4">
                 {copy.features.map((f) => (
@@ -154,7 +163,7 @@ export function PlanPanel({
                   className={`dv-btn group w-full px-5 py-3 text-sm ${featured ? "dv-btn-primary" : "dv-btn-secondary !text-dv-teal"}`}
                 >
                   {busy === tier ? t.opening : fmt(t.choose, { tier: copy.name })}
-                  {busy !== tier && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+                  {busy !== tier && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />}
                 </button>
               </div>
             </li>
@@ -174,6 +183,7 @@ export function PlanPanel({
           <label className="mt-2 block max-w-xs text-xs font-medium text-dv-muted">
             {t.codeLabel}
             <input
+              dir="ltr"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               maxLength={40}

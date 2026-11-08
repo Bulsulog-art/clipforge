@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { dvBrowser } from "@/lib/dentvid/supabase";
-import type { Locale } from "@/content/dentvideo";
+import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import { authText } from "@/content/dentvideo-auth";
 import { announceLocale } from "./chrome";
@@ -106,7 +106,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
   const field = "dv-field";
 
   return (
-    <main lang={locale} className="relative isolate overflow-hidden">
+    <main lang={locale} dir={dirOf(locale)} className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
       <div aria-hidden="true" className="absolute left-1/2 top-0 -z-10 h-80 w-[44rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
       {mode === "signup" && (
@@ -122,13 +122,14 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
         <form onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
-            <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+            <input type="email" dir="ltr" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
           </label>
           {mode !== "forgot" && (
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.password}</span>
             <input
               type="password"
+              dir="ltr"
               required
               minLength={8}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}

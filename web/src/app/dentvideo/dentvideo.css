@@ -211,3 +211,102 @@ html:has(.dv) {
 .dv details > summary::-webkit-details-marker {
   display: none;
 }
+
+/* ---------- Japanese and Arabic ----------
+ * The faces come from components/dentvid/font-ja|font-ar (loaded only on the
+ * pages that can show them); these defaults name local copies otherwise.
+ * Elements are matched by their own lang attribute (main, header, footer,
+ * language links), so a Japanese page's "English" link stays Latin.
+ */
+.dv {
+  --dv-font-jp: "Noto Sans JP";
+  --dv-font-ar: "IBM Plex Sans Arabic";
+}
+.dv[lang="ja"],
+.dv [lang="ja"] {
+  font-family: var(--dv-font-jp), "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", sans-serif;
+  /* Kinsoku: no line starts with 。、」 or a small kana. */
+  line-break: strict;
+  overflow-wrap: anywhere;
+}
+.dv[lang="ar"],
+.dv [lang="ar"] {
+  font-family: var(--dv-font-ar), "Noto Sans Arabic", "Geeza Pro", "Segoe UI", Tahoma, sans-serif;
+}
+/* Arabic letters join: tracking would tear them apart. */
+.dv :lang(ar),
+.dv:lang(ar) {
+  letter-spacing: 0 !important;
+}
+
+/* Instrument Serif has no Japanese or Arabic: display type is set in the script's own face, heavier. */
+.dv :lang(ja) .dv-display,
+.dv .dv-display:lang(ja) {
+  font-family: var(--dv-font-jp), "Hiragino Sans", "Yu Gothic", Meiryo, "Noto Sans CJK JP", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-feature-settings: "palt";
+}
+.dv :lang(ar) .dv-display,
+.dv .dv-display:lang(ar) {
+  font-family: var(--dv-font-ar), "Noto Sans Arabic", "Geeza Pro", "Segoe UI", sans-serif;
+  font-weight: 600;
+}
+/* Kanji and Arabic need more line height than the serif's tight leading. */
+.dv :lang(ja) .dv-display,
+.dv .dv-display:lang(ja),
+.dv :lang(ar) .dv-display,
+.dv .dv-display:lang(ar) {
+  line-height: 1.35;
+}
+/* Prices and step numbers stay in the brand serif in every language. */
+.dv .dv-display.dv-figure {
+  line-height: 1;
+  font-family: var(--dv-font-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+
+/* Japanese headings break between phrases, never inside a word, at sizes that suit kanji. */
+.dv :lang(ja) :is(h1, h2, h3, summary, .dv-h3) {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+@supports (word-break: auto-phrase) {
+  .dv :lang(ja) :is(h1, h2, h3, summary, .dv-h3) {
+    word-break: auto-phrase;
+  }
+}
+.dv .dv-h1:lang(ja) {
+  max-width: 13em;
+  font-size: 2rem;
+  line-height: 1.35;
+}
+.dv .dv-h2:lang(ja) {
+  font-size: 1.75rem;
+  line-height: 1.4;
+}
+.dv .dv-h1:lang(ar) {
+  font-size: 2.375rem;
+  line-height: 1.3;
+}
+.dv .dv-h2:lang(ar) {
+  font-size: 2rem;
+  line-height: 1.35;
+}
+@media (min-width: 640px) {
+  .dv .dv-h1:lang(ja) { font-size: 2.75rem; }
+  .dv .dv-h2:lang(ja) { font-size: 2.25rem; }
+  .dv .dv-h1:lang(ar) { font-size: 3.25rem; }
+  .dv .dv-h2:lang(ar) { font-size: 2.625rem; }
+}
+@media (min-width: 1024px) {
+  .dv .dv-h1:lang(ja) { font-size: 3.25rem; }
+  .dv .dv-h2:lang(ja) { font-size: 2.5rem; }
+  .dv .dv-h1:lang(ar) { font-size: 3.75rem; max-width: 14em; }
+  .dv .dv-h2:lang(ar) { font-size: 3rem; }
+}
+/* Arabic body text reads better with a little more air. */
+.dv :lang(ar) p:not(.dv-display) {
+  line-height: 1.85;
+}

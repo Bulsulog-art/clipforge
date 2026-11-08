@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
-import { GUIDES, HREFLANG, LANDING_PATH, LOCALES, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, HREFLANG, LANDING_PATH, LOCALES, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
 import { ENTITY, PUBLISHER_NAME, PUBLISHER_URL, VIDEO_LANGUAGES } from "@/content/guides/entity";
 import { plainText, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
@@ -12,7 +12,20 @@ import { DV_PRICES_USD, DV_TIERS } from "./billing";
  * the JSON-LD, llms.txt and the sitemap state the same facts.
  */
 
-export const OG_LOCALE: Record<Locale, string> = { en: "en_US", de: "de_DE", es: "es_ES", tr: "tr_TR", fr: "fr_FR" };
+export const OG_LOCALE: Record<Locale, string> = {
+  en: "en_US",
+  de: "de_DE",
+  es: "es_ES",
+  tr: "tr_TR",
+  fr: "fr_FR",
+  ja: "ja_JP",
+  // The Arabic pages are written for the Gulf: the UAE first, Saudi Arabia as an alternate.
+  ar: "ar_AE",
+  pl: "pl_PL",
+};
+
+/** Further og:locale values a landing also serves (the Arabic one is for the whole Gulf). */
+export const OG_ALTERNATE_LOCALES: Partial<Record<Locale, string[]>> = { ar: ["ar_SA"] };
 
 /** The date the site's non-guide pages last changed in substance. */
 export const SITE_UPDATED = "2026-11-08";
@@ -25,7 +38,7 @@ export function organizationNode() {
   return { "@type": "Organization", "@id": ORG_ID, name: PUBLISHER_NAME, url: PUBLISHER_URL };
 }
 
-const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix"];
+const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
 
 const monthlyPrices = () => DV_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
 
@@ -89,9 +102,9 @@ function absolute(map: Record<string, string>): Record<string, string> {
 }
 
 /** One page per language (landing, guides index, About): every locale plus x-default (English). */
-function perLocaleAltPaths(paths: Record<Locale, string>): Record<string, string> {
+function perLocaleAltPaths(paths: Record<Locale, string>, locales: readonly Locale[] = LOCALES): Record<string, string> {
   const languages: Record<string, string> = {};
-  for (const l of LOCALES) languages[HREFLANG[l]] = paths[l];
+  for (const l of locales) languages[HREFLANG[l]] = paths[l];
   languages["x-default"] = paths.en;
   return languages;
 }
@@ -199,7 +212,8 @@ export function guideJsonLd(g: Guide) {
 /* ---------- Guides index ---------- */
 
 export function guidesIndexAlternates(): Record<string, string> {
-  return absolute(perLocaleAltPaths(GUIDES_INDEX_PATH));
+  // Only languages that have a hub: Japanese, Arabic and Polish have no guides yet.
+  return absolute(perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES));
 }
 
 export function guidesIndexMetadata(locale: Locale): Metadata {
@@ -300,7 +314,7 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
   const latestGuide = (l: Locale) => guidesFor(l).map(dateOf).reduce((a, b) => (b > a ? b : a), SITE_UPDATED);
   return [
     ...LOCALES.map((l) => ({ path: LANDING_PATH[l], lastmod: SITE_UPDATED, priority: l === "en" ? "1.0" : "0.9", alternates: perLocaleAltPaths(LANDING_PATH) })),
-    ...LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH) })),
+    ...GUIDE_HUB_LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES) })),
     ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: SITE_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
   ];

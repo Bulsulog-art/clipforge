@@ -17,7 +17,7 @@ describe("resolveLocale", () => {
   });
   it("defaults to English", () => {
     expect(resolveLocale({})).toBe("en");
-    expect(resolveLocale({ acceptLanguage: "ja,zh;q=0.8" })).toBe("en");
+    expect(resolveLocale({ acceptLanguage: "ko,zh;q=0.8" })).toBe("en");
   });
 });
 
@@ -27,6 +27,10 @@ describe("fromAcceptLanguage", () => {
     expect(fromAcceptLanguage("de;q=0.5,fr;q=0.9")).toBe("fr");
     expect(fromAcceptLanguage("en-US,en;q=0.9")).toBe("en");
     expect(fromAcceptLanguage("tr;q=0,de")).toBe("de");
+    expect(fromAcceptLanguage("ja-JP,ja;q=0.9,en;q=0.8")).toBe("ja");
+    expect(fromAcceptLanguage("ar-AE,ar;q=0.9")).toBe("ar");
+    expect(fromAcceptLanguage("ar-SA")).toBe("ar");
+    expect(fromAcceptLanguage("pl-PL,pl;q=0.9,en-US;q=0.8")).toBe("pl");
   });
   it("handles empty input", () => {
     expect(fromAcceptLanguage(null)).toBeNull();

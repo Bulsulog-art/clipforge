@@ -7,9 +7,11 @@
  * accuracy reviewers once, when the library was built
  * (scripts/build-dentvideo-preview.mts), and every visitor replays them.
  */
-import { PREVIEW_MANIFEST, type PreviewEntry } from "./preview-manifest";
+import { PREVIEW_MANIFEST, type PreviewEntry as BuiltEntry } from "./preview-manifest";
+import { SILENT_PREVIEW_MANIFEST } from "./preview-manifest-silent";
 
-export type { PreviewEntry };
+/** A library video. `narrated: false` marks a silent one (no .mp3 beside its plan). */
+export type PreviewEntry = BuiltEntry & { narrated?: boolean };
 
 /** What a service is about, so a clinic sees videos about what it offers. */
 export type ServiceCategory = "implant" | "whitening" | "aligners" | "rootcanal" | "children" | "gum" | "cleaning";
@@ -21,21 +23,28 @@ export type ServiceCategory = "implant" | "whitening" | "aligners" | "rootcanal"
  */
 const BY_SERVICE: [RegExp, ServiceCategory][] = [
   // "İmplant": a Turkish capital İ does not fold to i under /i.
-  [/[iİı]mplant/i, "implant"],
-  [/whiten|bleach|blanque|beyazlat|blanchi|clare|sbianc/i, "whitening"],
-  [/align|alinead|plak|aligneur|allinea|alinhad|ortodon|orthodon|kieferorth|invisalign|zahnspange|brace/i, "aligners"],
-  [/root|wurzel|endodon|kanal|canal|devital/i, "rootcanal"],
-  [/child|kid|kinder|niñ|nin[oa]s|odontopedi|çocuk|cocuk|pédodont|pedodon|pediatr|paediatr|bambin|crian/i, "children"],
-  [/gum|zahnfleisch|parodon|periodon|enc[ií]a|gencive|diş ?eti|dis ?eti|gengiv/i, "gum"],
-  [/clean|reinig|limpieza|temizl|détartr|detartr|igiene|limpeza|hygien|scaling|prophyla|prophylax/i, "cleaning"],
+  // Japanese, Arabic and Polish stems mirror the worker's footage.ts.
+  [/[iİı]mplant|インプラント|زراع/i, "implant"],
+  [/whiten|bleach|blanque|beyazlat|blanchi|clare|sbianc|ホワイトニング|تبييض|wybiel/i, "whitening"],
+  [/align|alinead|plak|aligneur|allinea|alinhad|ortodon|orthodon|kieferorth|invisalign|zahnspange|brace|矯正|マウスピース|تقويم|nakładk/i, "aligners"],
+  [/root|wurzel|endodon|kanal|kanał|canal|devital|根管|عصب/i, "rootcanal"],
+  [/child|kid|kinder|niñ|nin[oa]s|odontopedi|çocuk|cocuk|pédodont|pedodon|pediatr|paediatr|bambin|crian|小児|子ども|子供|أطفال|dziec/i, "children"],
+  [/gum|zahnfleisch|parodon|periodon|enc[ií]a|gencive|diş ?eti|dis ?eti|gengiv|歯周|歯ぐき|歯茎|لثة|اللثة|dziąs|przyzęb/i, "gum"],
+  [/clean|reinig|limpieza|temizl|détartr|detartr|igiene|limpeza|hygien|scaling|prophyla|prophylax|クリーニング|歯石|تنظيف|جير|higienizac|skaling|kamień/i, "cleaning"],
 ];
 
 export function serviceCategory(service: string): ServiceCategory | undefined {
   return BY_SERVICE.find(([re]) => re.test(service))?.[1];
 }
 
-export const PREVIEW_LANGUAGES = ["en", "de", "es", "fr", "tr"] as const;
+export const PREVIEW_LANGUAGES = ["en", "de", "es", "fr", "tr", "ja", "ar", "pl"] as const;
 export type PreviewLanguage = (typeof PREVIEW_LANGUAGES)[number];
+
+/** The whole library: built (narrated) videos, and the silent ones for languages that have none yet. */
+export const PREVIEW_LIBRARY: Record<PreviewLanguage, PreviewEntry[]> = {
+  ...SILENT_PREVIEW_MANIFEST,
+  ...PREVIEW_MANIFEST,
+};
 
 /** The library language for a clinic language; one we have no videos in falls back to English. */
 export function libraryLanguage(language: string): PreviewLanguage {
@@ -51,7 +60,7 @@ export function pickPreviews(
   services: string[],
   language: string,
   count = 3,
-  manifest: Record<PreviewLanguage, PreviewEntry[]> = PREVIEW_MANIFEST,
+  manifest: Partial<Record<PreviewLanguage, PreviewEntry[]>> = PREVIEW_LIBRARY,
 ): PreviewEntry[] {
   const pool = manifest[libraryLanguage(language)] ?? [];
   const wanted = [...new Set(services.map(serviceCategory).filter((c): c is ServiceCategory => Boolean(c)))];

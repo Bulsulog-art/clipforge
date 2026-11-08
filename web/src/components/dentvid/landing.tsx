@@ -14,8 +14,8 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import { LANDING, LANDING_PATH, LANGUAGE_NAME, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
-import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
+import { LANDING, LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
+import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { appText } from "@/content/dentvideo-app";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { foundingOfferOpen } from "@/lib/dentvid/billing";
@@ -26,13 +26,13 @@ import { HtmlLang } from "./guide-parts";
 
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
-/** The seven production languages, as codes (shown in the "your clinic" visual). */
-const LANGUAGE_CODES = ["EN", "DE", "ES", "FR", "IT", "PT", "TR"];
+/** The ten production languages, as codes (shown in the "your clinic" visual). */
+const LANGUAGE_CODES = ["EN", "DE", "ES", "FR", "IT", "PT", "TR", "JA", "AR", "PL"];
 
 /** Section heading in the display serif. */
 function H2({ children, className = "", id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <h2 id={id} className={`dv-display text-balance text-[2.375rem] leading-[1.05] sm:text-5xl lg:text-[3.5rem] ${className}`}>
+    <h2 id={id} className={`dv-display dv-h2 text-balance text-[2.375rem] leading-[1.05] sm:text-5xl lg:text-[3.5rem] ${className}`}>
       {children}
     </h2>
   );
@@ -41,23 +41,23 @@ function H2({ children, className = "", id }: { children: React.ReactNode; class
 function Hero({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   const chrome = appText(locale).chrome;
-  const hero = SAMPLE_VIDEOS[locale][0];
+  const hero = samplesFor(locale)?.[0];
   return (
     <section className="relative isolate overflow-hidden">
       {/* backdrop: faint grid + two soft glows */}
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
-      <div aria-hidden="true" className="absolute -right-40 top-10 -z-10 h-[34rem] w-[34rem] rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
-      <div aria-hidden="true" className="absolute -left-48 top-64 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#f3e3cc] opacity-60 blur-3xl" />
+      <div aria-hidden="true" className="absolute -end-40 top-10 -z-10 h-[34rem] w-[34rem] rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
+      <div aria-hidden="true" className="absolute -start-48 top-64 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#f3e3cc] opacity-60 blur-3xl" />
 
       <div className="mx-auto grid max-w-6xl items-center gap-16 px-4 pb-20 pt-10 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10 lg:pb-28 lg:pt-20">
         <div className="min-w-0">
-          <p className="dv-rise inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pl-2 pr-3.5 text-sm font-medium text-dv-teal shadow-[0_1px_2px_rgba(20,33,31,0.05)] ring-1 ring-dv-line backdrop-blur">
+          <p className="dv-rise inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pe-3.5 ps-2 text-sm font-medium text-dv-teal shadow-[0_1px_2px_rgba(20,33,31,0.05)] ring-1 ring-dv-line backdrop-blur">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal-50">
               <span className="h-1.5 w-1.5 rounded-full bg-dv-teal" />
             </span>
             {c.hero.eyebrow}
           </p>
-          <h1 className="dv-display dv-rise-2 mt-6 text-balance max-w-[16ch] text-[2.625rem] leading-[1.02] text-dv-ink sm:text-6xl lg:max-w-[15ch] lg:text-[4.25rem] lg:leading-[0.98]">
+          <h1 className="dv-display dv-h1 dv-rise-2 mt-6 text-balance max-w-[16ch] text-[2.625rem] leading-[1.02] text-dv-ink sm:text-6xl lg:max-w-[15ch] lg:text-[4.25rem] lg:leading-[0.98]">
             {c.hero.h1}
           </h1>
           {/* Not animated in: this paragraph is the largest thing in the first screen (the LCP element), and
@@ -66,7 +66,7 @@ function Hero({ locale }: { locale: Locale }) {
           <div className="dv-rise-3 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link href={dvHref(`/dentvideo/start?lang=${locale}`)} className="dv-btn dv-btn-primary group px-7 py-4 text-base">
               {c.hero.cta}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
             </Link>
             <a href="#how" className="dv-btn dv-btn-secondary px-6 py-4 text-base">{chrome.howItWorks}</a>
           </div>
@@ -79,13 +79,17 @@ function Hero({ locale }: { locale: Locale }) {
         <div className="relative mx-auto w-full max-w-[22rem] lg:max-w-none">
           <div className="relative mx-auto w-[15.5rem] sm:w-[17.5rem] lg:w-[18.5rem]">
             <PhoneFrame>
-              <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} />
+              {hero ? (
+                <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} />
+              ) : (
+                <DrawnVideo locale={locale} />
+              )}
             </PhoneFrame>
           </div>
 
           {/* The patient's question… */}
-          <div aria-hidden="true" className="dv-float absolute -left-1 -top-6 z-20 w-max max-w-[12rem] sm:-left-10 sm:top-8 sm:max-w-[13.5rem] lg:-left-16">
-            <div className="dv-card flex items-start gap-2.5 p-3 pr-3.5">
+          <div aria-hidden="true" className="dv-float absolute -start-1 -top-6 z-20 w-max max-w-[12rem] sm:-start-10 sm:top-8 sm:max-w-[13.5rem] lg:-start-16">
+            <div className="dv-card flex items-start gap-2.5 p-3 pe-3.5">
               <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-dv-sand text-dv-teal">
                 <MessageCircleQuestion className="h-4 w-4" />
               </span>
@@ -94,7 +98,7 @@ function Hero({ locale }: { locale: Locale }) {
           </div>
 
           {/* …answered, and checked before the dentist sees it. */}
-          <div className="dv-float-slow absolute -bottom-14 -right-1 z-20 w-[13rem] sm:-right-8 sm:bottom-6 sm:w-[14.5rem] lg:-right-6">
+          <div className="dv-float-slow absolute -bottom-14 -end-1 z-20 w-[13rem] sm:-end-8 sm:bottom-6 sm:w-[14.5rem] lg:-end-6">
             <div className="dv-card p-4">
               <p className="flex items-center gap-2 text-[0.8125rem] font-semibold text-dv-ink">
                 <BadgeCheck className="h-[1.125rem] w-[1.125rem] text-dv-teal" aria-hidden="true" />
@@ -115,6 +119,39 @@ function Hero({ locale }: { locale: Locale }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * The hero phone for a language without a sample week: a drawn frame in the
+ * brand colours with the landing's own answer line, so the first screen is
+ * entirely in the visitor's language. The live preview further down plays
+ * real videos in it.
+ */
+function DrawnVideo({ locale }: { locale: Locale }) {
+  const c = LANDING[locale];
+  return (
+    <div className="absolute inset-0 flex flex-col bg-gradient-to-b from-[#16706a] via-[#0f5c5c] to-[#0b3f3e] px-5 pb-8 pt-12 text-white">
+      <div className="flex gap-1">
+        {[1, 0.55, 0.3].map((o, i) => (
+          <span key={i} className="h-[3px] flex-1 rounded-full bg-white" style={{ opacity: o }} />
+        ))}
+      </div>
+      <div className="mt-6 flex items-center gap-2">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#8fd1c6]" />
+        </span>
+        <span className="h-1.5 w-20 rounded-full bg-white/40" />
+      </div>
+      <div className="flex flex-1 flex-col justify-center">
+        <p className="dv-h3 text-balance text-[1.375rem] font-bold leading-snug">{c.mock.caption}</p>
+        <span className="mt-4 block h-1 w-12 rounded-full bg-[#8fd1c6]" />
+      </div>
+      <div className="space-y-2">
+        <span className="block h-1.5 w-4/5 rounded-full bg-white/35" />
+        <span className="block h-1.5 w-3/5 rounded-full bg-white/25" />
+      </div>
+    </div>
   );
 }
 
@@ -181,8 +218,9 @@ function ClinicVisual() {
 }
 
 function WeekVisual({ locale }: { locale: Locale }) {
-  const [a, b, c] = SAMPLE_VIDEOS[locale];
-  const posters = [b.slug, a.slug, c.slug];
+  const week = samplesFor(locale);
+  // Without a sample week (ja, ar, pl) every card is drawn.
+  const posters = week ? [week[1].slug, week[0].slug, week[2].slug] : [null, null, null];
   return (
     <div className="flex items-end justify-center">
       {[0, 1, 2, 3, 4].map((i) => {
@@ -212,11 +250,19 @@ function WeekVisual({ locale }: { locale: Locale }) {
 }
 
 function ApproveVisual({ locale }: { locale: Locale }) {
+  const poster = samplesFor(locale)?.[2];
   return (
     <div className="dv-card mx-auto flex w-[85%] max-w-[16rem] items-center gap-3 p-3">
-      <div className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-lg">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={sampleSrc(locale, SAMPLE_VIDEOS[locale][2].slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
+      <div className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-b from-[#1a6b66] to-[#0b3f3e]">
+        {poster ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={sampleSrc(locale, poster.slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
+        ) : (
+          <span className="absolute inset-x-2 top-1/2 space-y-1">
+            <span className="block h-1 w-full rounded-full bg-white/70" />
+            <span className="block h-1 w-2/3 rounded-full bg-white/50" />
+          </span>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <span className="block h-2 w-full rounded-full bg-dv-ink/75" />
@@ -256,7 +302,7 @@ function How({ locale }: { locale: Locale }) {
                 </div>
               </div>
               <div className="flex flex-1 flex-col p-7">
-                <span className="dv-display text-[1.75rem] leading-none text-dv-teal">{String(i + 1).padStart(2, "0")}</span>
+                <span className="dv-display dv-figure text-[1.75rem] leading-none text-dv-teal">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="mt-4 text-lg font-semibold tracking-tight text-dv-ink">{s.title}</h3>
                 <p className="mt-2 leading-relaxed text-dv-body">{s.text}</p>
               </div>
@@ -270,6 +316,9 @@ function How({ locale }: { locale: Locale }) {
 
 function Samples({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
+  const week = samplesFor(locale);
+  // No sample week in this language yet: the live preview right below shows the videos instead.
+  if (!week) return null;
   return (
     <section id="samples" className="dv-grain relative overflow-hidden border-y border-dv-line bg-dv-sand">
       <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32">
@@ -279,7 +328,7 @@ function Samples({ locale }: { locale: Locale }) {
         </div>
         {/* On phones this row scrolls sideways, so keyboard users can focus and scroll it too. */}
         <ul tabIndex={0} aria-label={c.samples.heading} className="-mx-4 mt-12 flex snap-x rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dv-teal snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
-          {SAMPLE_VIDEOS[locale].map(({ slug, name, seconds }) => (
+          {week.map(({ slug, name, seconds }) => (
             <li key={slug} className="w-[72%] shrink-0 snap-center sm:w-auto">
               <PhoneFrame className="mx-auto max-w-[18rem]">
                 <video
@@ -311,8 +360,8 @@ function Checks({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   return (
     <section className="dv-on-dark dv-grain relative isolate overflow-hidden bg-dv-teal-900 text-[#f7f1e7]">
-      <div aria-hidden="true" className="absolute -left-32 -top-32 -z-10 h-[30rem] w-[30rem] rounded-full bg-[#167269] opacity-50 blur-3xl" />
-      <div aria-hidden="true" className="absolute -bottom-40 right-0 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#0f5c5c] opacity-70 blur-3xl" />
+      <div aria-hidden="true" className="absolute -start-32 -top-32 -z-10 h-[30rem] w-[30rem] rounded-full bg-[#167269] opacity-50 blur-3xl" />
+      <div aria-hidden="true" className="absolute -bottom-40 end-0 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#0f5c5c] opacity-70 blur-3xl" />
       <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32">
         <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-[#bfe3dc] ring-1 ring-white/15">
           <ShieldCheck className="h-6 w-6" aria-hidden="true" />
@@ -355,7 +404,7 @@ function Compare({ locale }: { locale: Locale }) {
 
       {/* md and up: a real table, DentVideo's column tinted. */}
       <div className="dv-card mt-12 hidden overflow-hidden md:block lg:mt-16">
-        <table className="w-full table-fixed border-collapse text-left">
+        <table className="w-full table-fixed border-collapse text-start">
           <caption className="sr-only">{c.heading}</caption>
           <colgroup>
             <col className="w-[22%]" />
@@ -448,7 +497,7 @@ function Pricing({ locale }: { locale: Locale }) {
       </div>
 
       {founding && (
-        <div className="dv-grain relative mx-auto mt-12 flex max-w-3xl flex-col items-center gap-3 overflow-hidden rounded-[1.25rem] bg-dv-teal px-6 py-5 text-center text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)] sm:flex-row sm:gap-4 sm:text-left">
+        <div className="dv-grain relative mx-auto mt-12 flex max-w-3xl flex-col items-center gap-3 overflow-hidden rounded-[1.25rem] bg-dv-teal px-6 py-5 text-center text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)] sm:flex-row sm:gap-4 sm:text-start">
           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#f7f1e7] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-dv-teal-900">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {p.foundingBadge}
@@ -466,14 +515,14 @@ function Pricing({ locale }: { locale: Locale }) {
               className={`dv-card relative flex flex-col p-7 ${featured ? "ring-2 ring-dv-teal md:-my-3 md:py-10" : ""}`}
             >
               {featured && (
-                <span className="absolute -top-3 left-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgba(15,92,92,0.8)]">
+                <span className="absolute -top-3 start-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgba(15,92,92,0.8)]">
                   {p.recommended}
                 </span>
               )}
               <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
               <p className="mt-1 text-sm leading-relaxed text-dv-muted">{tier.blurb}</p>
               <p className="mt-6 flex items-baseline gap-1">
-                <span className="dv-display text-[3.25rem] leading-none text-dv-ink">{tier.price}</span>
+                <span dir="ltr" className="dv-display dv-figure text-[3.25rem] leading-none text-dv-ink">{tier.price}</span>
                 <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
               </p>
               {featured && <p className="mt-2 text-sm font-medium text-dv-teal">{p.yearly}</p>}
@@ -493,7 +542,7 @@ function Pricing({ locale }: { locale: Locale }) {
                   className={`dv-btn group w-full px-5 py-3.5 text-[0.9375rem] ${featured ? "dv-btn-primary" : "dv-btn-secondary !text-dv-teal"}`}
                 >
                   {p.cta}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
                 </Link>
               </div>
             </li>
@@ -524,7 +573,7 @@ function Guides({ locale }: { locale: Locale }) {
             <Link href={dvHref(guidePath(g))} className="dv-card group flex h-full flex-col p-6 transition-shadow hover:shadow-[0_0_0_1px_rgba(15,92,92,0.35),0_18px_40px_-20px_rgba(15,92,92,0.35)]">
               <span className="flex items-start justify-between gap-4">
                 <span className="font-semibold leading-snug text-dv-ink">{g.h1}</span>
-                <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
               </span>
               <span className="mt-3 block text-sm leading-relaxed text-dv-body">{g.description}</span>
             </Link>
@@ -546,13 +595,13 @@ function Faq({ locale }: { locale: Locale }) {
         <div className="divide-y divide-dv-line border-y border-dv-line">
           {c.faq.map((f, i) => (
             <details key={f.q} className="group" open={i === 0}>
-              <summary className="flex cursor-pointer items-start justify-between gap-6 py-6 text-left text-[1.0625rem] font-semibold leading-snug text-dv-ink">
+              <summary className="flex cursor-pointer items-start justify-between gap-6 py-6 text-start text-[1.0625rem] font-semibold leading-snug text-dv-ink">
                 {f.q}
                 <span aria-hidden="true" className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-300 group-open:rotate-45">
                   <Plus className="h-4 w-4" />
                 </span>
               </summary>
-              <p className="-mt-1 max-w-2xl pb-7 pr-12 leading-relaxed text-dv-body">{f.a}</p>
+              <p className="-mt-1 max-w-2xl pb-7 pe-12 leading-relaxed text-dv-body">{f.a}</p>
             </details>
           ))}
         </div>
@@ -563,7 +612,7 @@ function Faq({ locale }: { locale: Locale }) {
 
 export function DentVideoLanding({ locale }: { locale: Locale }) {
   return (
-    <main lang={locale}>
+    <main lang={locale} dir={dirOf(locale)}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
       <Hero locale={locale} />
@@ -576,21 +625,21 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <Pricing locale={locale} />
       <Guides locale={locale} />
       <Faq locale={locale} />
-      <LanguageSwitcher current={locale} />
+      <LanguageSwitcher current={locale} label={appText(locale).chrome.language} />
     </main>
   );
 }
 
-export function LanguageSwitcher({ current }: { current: Locale }) {
+export function LanguageSwitcher({ current, label }: { current: Locale; label: string }) {
   return (
-    <nav aria-label="Language" className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+    <nav aria-label={label} className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
       <ul className="flex flex-wrap gap-2 text-sm">
-        {(Object.keys(LANDING_PATH) as Locale[]).map((l) => (
+        {LOCALES.map((l) => (
           <li key={l}>
             {l === current ? (
-              <span className="dv-chip inline-flex rounded-full bg-dv-teal px-3.5 py-1.5 font-semibold text-white" aria-current="page">{LANGUAGE_NAME[l]}</span>
+              <span lang={l} className="dv-chip inline-flex rounded-full bg-dv-teal px-3.5 py-1.5 font-semibold text-white" aria-current="page">{LANGUAGE_NAME[l]}</span>
             ) : (
-              <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} className="dv-chip inline-flex rounded-full bg-white px-3.5 py-1.5 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge">
+              <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} dir={dirOf(l)} className="dv-chip inline-flex rounded-full bg-white px-3.5 py-1.5 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge">
                 {LANGUAGE_NAME[l]}
               </Link>
             )}

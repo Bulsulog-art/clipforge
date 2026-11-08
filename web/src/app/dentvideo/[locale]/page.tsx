@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DentVideoLanding } from "@/components/dentvid/landing";
-import { LOCALES, type Locale } from "@/content/dentvideo";
+import { SHARED_ROUTE_LOCALES, type Locale } from "@/content/dentvideo";
 import { landingMetadata } from "@/lib/dentvid/seo";
 
 // English lives at /dentvideo; the other languages are static pages here.
 // Static siblings (app, start, guides, llms.txt) take precedence over this
 // dynamic segment, and anything else 404s.
-const OTHER = LOCALES.filter((l) => l !== "en");
+const OTHER = SHARED_ROUTE_LOCALES;
 // Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
 // inside the header and footer rather than Next's bare default.
 export const dynamicParams = true;

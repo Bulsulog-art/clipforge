@@ -124,7 +124,7 @@ export default function LivePreviewPlayer({
     const next = entries[(index + 1) % entries.length];
     if (next && next !== entry) {
       void loadPlan(lang, next.id).catch(() => {});
-      prefetchAudio(lang, next.id);
+      if (next.narrated !== false) prefetchAudio(lang, next.id);
     }
     return () => {
       live = false;
@@ -184,7 +184,8 @@ export default function LivePreviewPlayer({
             footage: {},
             watermark: false,
             // A public-folder path: the composition's staticFile() makes it /dentvideo/preview/…
-            voiceoverSrc: `${BASE.slice(1)}/${lang}/${entry.id}.mp3`,
+            // A silent library video (narrated: false) has no narration file.
+            ...(entry.narrated === false ? {} : { voiceoverSrc: `${BASE.slice(1)}/${lang}/${entry.id}.mp3` }),
             logoSrc: logo?.url === logoUrl ? logoUrl : undefined,
             logoStyle: colors ? { treatment: colors.treatment, aspect: colors.aspect, ...(colors.crop ? { crop: colors.crop } : {}) } : undefined,
           }
@@ -321,11 +322,14 @@ export default function LivePreviewPlayer({
     if (!t) return;
     const dx = e.clientX - t.x;
     const dy = e.clientY - t.y;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go((dx < 0) !== isRtl() ? 1 : -1);
     else if (Math.abs(dx) < 8 && Math.abs(dy) < 8) toggle();
   };
 
   const ring = brand ? (brand.startsWith("#") ? brand : `#${brand}`) : "#0f5c5c";
+  // The page's direction (Arabic pages are right to left): there the next video lies to the left.
+  const isRtl = () => (rootRef.current ? getComputedStyle(rootRef.current).direction === "rtl" : false);
+  const silent = entry?.narrated === false;
 
   return (
     <div ref={rootRef} className={`mx-auto w-full max-w-[300px] ${className}`}>
@@ -343,12 +347,15 @@ export default function LivePreviewPlayer({
             <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-white/80">{text.failed}</div>
           ) : inputProps && ready ? (
             <div
+              // The Player lays out its scaled canvas left to right; on an Arabic page it would sit off
+              // screen. The composition sets its own direction from the plan's language.
+              dir="ltr"
               className="absolute inset-0 touch-pan-y select-none"
               onPointerDown={onPointerDown}
               onPointerUp={onPointerUp}
               onKeyDown={(e) => {
-                if (e.key === "ArrowRight") go(1);
-                if (e.key === "ArrowLeft") go(-1);
+                if (e.key === "ArrowRight") go(isRtl() ? -1 : 1);
+                if (e.key === "ArrowLeft") go(isRtl() ? 1 : -1);
               }}
             >
               <Player
@@ -386,22 +393,24 @@ export default function LivePreviewPlayer({
                 <span key={e.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
                   {i < index ? <span className="block h-full w-full bg-white" /> : null}
                   {i === index ? (
-                    <span ref={barRef} className="block h-full w-full origin-left bg-white" style={{ transform: "scaleX(0)" }} />
+                    <span ref={barRef} className="block h-full w-full origin-left bg-white rtl:origin-right" style={{ transform: "scaleX(0)" }} />
                   ) : null}
                 </span>
               ))}
             </div>
           ) : null}
 
-          <div className="absolute right-4 top-14 z-10 flex gap-2">
-            <button
-              type="button"
-              onClick={toggleMute}
-              aria-label={muted ? text.unmute : text.mute}
-              className="dv-btn h-10 w-10 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
-            >
-              {muted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
-            </button>
+          <div className="absolute end-4 top-14 z-10 flex gap-2">
+            {silent ? null : (
+              <button
+                type="button"
+                onClick={toggleMute}
+                aria-label={muted ? text.unmute : text.mute}
+                className="dv-btn h-10 w-10 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
+              >
+                {muted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
+              </button>
+            )}
             <button
               type="button"
               onClick={toggle}
@@ -420,17 +429,17 @@ export default function LivePreviewPlayer({
               type="button"
               onClick={() => go(-1)}
               aria-label={text.previous}
-              className="dv-btn absolute -left-14 top-1/2 h-10 w-10 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
+              className="dv-btn absolute -start-14 top-1/2 h-10 w-10 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
             >
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              <ChevronLeft className="h-5 w-5 rtl:-scale-x-100" aria-hidden="true" />
             </button>
             <button
               type="button"
               onClick={() => go(1)}
               aria-label={text.next}
-              className="dv-btn absolute -right-14 top-1/2 h-10 w-10 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
+              className="dv-btn absolute -end-14 top-1/2 h-10 w-10 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
             >
-              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+              <ChevronRight className="h-5 w-5 rtl:-scale-x-100" aria-hidden="true" />
             </button>
           </div>
         ) : null}

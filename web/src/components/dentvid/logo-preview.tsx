@@ -64,7 +64,7 @@ export function LogoPreview({
         style={{ background: `linear-gradient(160deg, ${deep} 0%, ${lighter} 100%)` }}
         aria-hidden="true"
       >
-        <span className="absolute right-2 top-6 inline-flex overflow-hidden rounded-lg shadow" style={{ ...chip, lineHeight: 0 }}>
+        <span className="absolute end-2 top-6 inline-flex overflow-hidden rounded-lg shadow" style={{ ...chip, lineHeight: 0 }}>
           <span className="relative block overflow-hidden" style={{ width: size.w, height: size.h }}>
             {/* eslint-disable-next-line @next/next/no-img-element -- a local object URL, not an optimisable asset */}
             <img
