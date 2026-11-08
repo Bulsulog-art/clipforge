@@ -8,6 +8,14 @@ const sans = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], variable: "--d
 const serif = Instrument_Serif({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--dv-font-serif", display: "swap" });
 
 export const metadata: Metadata = {
+  // Share images and other relative URLs resolve on dentvideo.com, not the ClipForge host.
+  ...(process.env.NEXT_PUBLIC_DENTVIDEO_URL ? { metadataBase: new URL(process.env.NEXT_PUBLIC_DENTVIDEO_URL) } : {}),
+  // Without this, DentVideo pages inherited ClipForge's Twitter/X card text.
+  twitter: {
+    card: "summary_large_image",
+    title: "DentVideo — patient-education videos for dental clinics",
+    description: "Your dentist's own voice, cut into captioned short videos. Checked before you see them. Approved by you.",
+  },
   title: { default: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
     "DentVideo turns a dentist's five-minute phone recording into a week of captioned, compliant short videos — and writes, narrates and checks educational videos when there is no time to film.",

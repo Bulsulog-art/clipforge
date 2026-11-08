@@ -1,6 +1,7 @@
 import React from "react";
 import type { Theme } from "../theme.js";
 import type { Scene } from "../scene-plan.js";
+import type { LogoStyle } from "../logo-style.js";
 import { HookScene, StatementScene, QuoteScene, CtaScene, CompareScene } from "./text-scenes.js";
 import { ListScene, StatScene } from "./data-scenes.js";
 import { FootageScene } from "./footage-scene.js";
@@ -19,7 +20,9 @@ export const SceneView: React.FC<{
   durationInFrames: number;
   /** Footage resolved by the render step, keyed by scene index. */
   footageSrc?: string;
-}> = ({ scene, theme, frame, durationInFrames, footageSrc }) => {
+  /** The client's logo, already resolved; the sign-off shows it large. */
+  logo?: { src: string; style?: LogoStyle };
+}> = ({ scene, theme, frame, durationInFrames, footageSrc, logo }) => {
   switch (scene.kind) {
     case "hook":
       return <HookScene scene={scene} theme={theme} frame={frame} />;
@@ -28,7 +31,7 @@ export const SceneView: React.FC<{
     case "quote":
       return <QuoteScene scene={scene} theme={theme} frame={frame} />;
     case "cta":
-      return <CtaScene scene={scene} theme={theme} frame={frame} />;
+      return <CtaScene scene={scene} theme={theme} frame={frame} logo={logo} />;
     case "compare":
       return <CompareScene scene={scene} theme={theme} frame={frame} />;
     case "list":

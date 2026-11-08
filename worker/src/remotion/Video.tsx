@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Img, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
@@ -7,6 +7,9 @@ import { brandTheme, theme as resolveTheme } from "./theme.js";
 import { sceneOpacity } from "./animation.js";
 import { SceneView } from "./scenes/index.js";
 import { Watermark } from "./Watermark.js";
+import { LogoMark } from "./LogoMark.js";
+import { CORNER_LOGO, logoStyleSchema, type LogoStyle } from "./logo-style.js";
+import type { Theme } from "./theme.js";
 
 /**
  * Props the renderer is handed. The plan travels as data alongside the two
@@ -25,6 +28,8 @@ export const videoPropsSchema = z.object({
   watermark: z.boolean().default(false),
   /** A client's logo, staged like the audio; shown small in the top corner. */
   logoSrc: z.string().optional(),
+  /** How to draw the logo, from analysing it (dental/logo.ts). Absent: a light chip. */
+  logoStyle: logoStyleSchema.optional(),
 });
 
 export type VideoProps = z.infer<typeof videoPropsSchema>;
@@ -46,9 +51,13 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   musicSrc,
   watermark,
   logoSrc,
+  logoStyle,
 }) => {
-  const t = brandTheme(resolveTheme(plan.theme), plan.brandColor);
+  const t = brandTheme(resolveTheme(plan.theme), plan.brandColor, plan.brandAccent);
   const offsets = sceneOffsets(plan);
+  const logo = logoSrc ? { src: asStatic(logoSrc), style: logoStyle } : undefined;
+  // The sign-off shows the logo large; the corner mark steps aside for it.
+  const ctaIndex = logo ? plan.scenes.findIndex((s) => s.kind === "cta") : -1;
 
   return (
     <AbsoluteFill style={{ backgroundColor: t.background[0] }}>
@@ -68,6 +77,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
               theme={t}
               durationInFrames={durationInFrames}
               footageSrc={footage[String(i)]}
+              logo={logo}
             />
           </Sequence>
         );
@@ -78,7 +88,14 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
       {musicSrc ? <Audio src={asStatic(musicSrc)} volume={voiceoverSrc ? 0.12 : 0.35} /> : null}
 
       {watermark ? <Watermark theme={t} /> : null}
-      {logoSrc ? <ClinicLogo src={asStatic(logoSrc)} /> : null}
+      {logo ? (
+        <ClinicLogo
+          src={logo.src}
+          style={logo.style}
+          theme={t}
+          hideFrom={ctaIndex >= 0 ? offsets[ctaIndex] : undefined}
+        />
+      ) : null}
     </AbsoluteFill>
   );
 };
@@ -89,7 +106,8 @@ const FadingScene: React.FC<{
   theme: ReturnType<typeof resolveTheme>;
   durationInFrames: number;
   footageSrc?: string;
-}> = ({ scene, theme, durationInFrames, footageSrc }) => {
+  logo?: { src: string; style?: LogoStyle };
+}> = ({ scene, theme, durationInFrames, footageSrc, logo }) => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{ opacity: sceneOpacity(frame, durationInFrames) }}>
@@ -99,32 +117,39 @@ const FadingScene: React.FC<{
         frame={frame}
         durationInFrames={durationInFrames}
         footageSrc={footageSrc}
+        logo={logo}
       />
     </AbsoluteFill>
   );
 };
 
 /**
- * The clinic's logo, top right, on a light chip: logos are drawn for white
- * letterheads, and a dark logo straight on a dark brand background vanishes.
+ * The clinic's logo, top right, on the chip its analysis asked for: a light
+ * chip for a dark mark (logos are drawn for white letterheads, and a dark
+ * logo straight on a dark brand background vanishes), a deep brand chip for
+ * a white mark, none for a logo that brings its own background.
  * Set below the top ~13%: Reels and TikTok draw their own header and camera
- * and search icons there.
+ * and search icons there. Steps aside as the sign-off, which shows the logo
+ * large, comes in.
  */
-const ClinicLogo: React.FC<{ src: string }> = ({ src }) => (
-  <div
-    style={{
-      position: "absolute",
-      top: 260,
-      right: 64,
-      padding: "14px 18px",
-      borderRadius: 22,
-      background: "rgba(255,255,255,0.92)",
-      boxShadow: "0 6px 24px rgba(0,0,0,0.18)",
-    }}
-  >
-    <Img src={src} style={{ display: "block", maxWidth: 190, maxHeight: 84, objectFit: "contain" }} />
-  </div>
-);
+const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideFrom?: number }> = ({
+  src,
+  style,
+  theme,
+  hideFrom,
+}) => {
+  const frame = useCurrentFrame();
+  const opacity =
+    hideFrom === undefined
+      ? 1
+      : interpolate(frame, [hideFrom - 4, hideFrom + 6], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  if (opacity <= 0) return null;
+  return (
+    <div style={{ position: "absolute", top: 260, right: 64, opacity }}>
+      <LogoMark src={src} style={style} theme={theme} size={CORNER_LOGO} />
+    </div>
+  );
+};
 
 /** Staged files are named relative to the public folder; URLs pass through. */
 function asStatic(src: string): string {
