@@ -76,8 +76,11 @@ export function buildKaraokeASS(
   captionStyleId?: string,
   keywords?: string[],
   aspectId?: string,
+  /** Brand colour (hex, no #) for the word highlight — e.g. the clinic's colour. */
+  accentHex?: string,
 ): string {
-  const nicheStyle = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
+  const baseStyle = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
+  const nicheStyle = accentHex ? { ...baseStyle, highlight: accentHex } : baseStyle;
   const cap = resolveCaptionStyle(captionStyleId);
   const aspect = resolveAspect(aspectId);
   const keywordSet = new Set((keywords ?? []).map((k) => normalizeKeyword(k)).filter(Boolean));
@@ -211,7 +214,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,${cap.fontName},${cap.fontSize},&H00${fillBgr},&H000000FF,&H00${outlineBgr},&H64000000,-1,0,0,0,100,100,0,0,1,${cap.outlineWidth},${cap.shadow},2,80,80,${aspect.captionMarginV},1
+Style: Caption,${cap.fontName},${cap.fontSize},&H00${fillBgr},&H00${fillBgr},&H00${outlineBgr},&H64000000,-1,0,0,0,100,100,0,0,1,${cap.outlineWidth},${cap.shadow},2,80,80,${aspect.captionMarginV},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text`;
@@ -223,17 +226,25 @@ export function buildHookASS(
   niche: string,
   aspectId?: string,
   /** Put the hook at the very top — for talking heads, so it never covers the face. */
-  opts: { top?: boolean } = {},
+  opts: { top?: boolean; accentHex?: string } = {},
 ): string {
   const style = NICHE_STYLES[niche] ?? NICHE_STYLES.default;
   const aspect = resolveAspect(aspectId);
   const fillBgr = hexToBgr(style.fill);
   const outlineBgr = hexToBgr(style.outline);
-  const highlightBgr = hexToBgr(style.highlight);
+  const highlightBgr = hexToBgr(opts.accentHex ?? style.highlight);
 
   // Hook stays through first ~3s with a pop entrance
   const hookEnd = Math.min(durationSec, 3.4);
-  const lines = wrapHook(hook, maxCharsPerLine(HOOK_FONT_SIZE, false, aspect.w)).map(escape).join("\\N");
+  // Step the size down until the whole hook fits in three lines; cutting
+  // words off made a question lose its verb ("Was muss ich nach einer
+  // Wurzelbehandlung" — "beachten?" was dropped).
+  let fontSize = HOOK_FONT_SIZE;
+  for (const size of [HOOK_FONT_SIZE, 84, 72, 62]) {
+    fontSize = size;
+    if (wrapHook(hook, maxCharsPerLine(size, false, aspect.w), Infinity).length <= 3) break;
+  }
+  const lines = wrapHook(hook, maxCharsPerLine(fontSize, false, aspect.w)).map(escape).join("\\N");
   const hookMarginV = opts.top ? Math.round(aspect.h * 0.07) : aspect.hookMarginV;
 
   return `[Script Info]
@@ -245,7 +256,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Hook,Inter Bold,${HOOK_FONT_SIZE},&H00${fillBgr},&H00${highlightBgr},&H00${outlineBgr},&H80000000,-1,0,0,0,100,100,0,0,1,8,3,8,80,80,${hookMarginV},1
+Style: Hook,Inter Bold,${fontSize},&H00${fillBgr},&H00${highlightBgr},&H00${outlineBgr},&H80000000,-1,0,0,0,100,100,0,0,1,8,3,8,80,80,${hookMarginV},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -255,7 +266,7 @@ Dialogue: 1,${assTime(0)},${assTime(hookEnd)},Hook,,0,0,0,,{\\fad(200,300)\\t(0,
 const HOOK_FONT_SIZE = 96;
 
 /** Wrap the hook into at most 3 lines that fit the frame width. */
-export function wrapHook(hook: string, maxChars = 22) {
+export function wrapHook(hook: string, maxChars = 22, maxLines = 3) {
   const words = hook.trim().split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let line = "";
@@ -268,5 +279,5 @@ export function wrapHook(hook: string, maxChars = 22) {
     }
   }
   if (line) lines.push(line);
-  return lines.slice(0, 3);
+  return lines.slice(0, maxLines);
 }

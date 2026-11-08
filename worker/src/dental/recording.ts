@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "node:fs/promises";
 import type OpenAI from "openai";
 import { extractAudio } from "../steps/extract-audio.js";
 import { transcribe, type Transcript } from "../steps/transcribe.js";
@@ -6,6 +7,7 @@ import { scoreMoments, type Moment } from "../steps/score.js";
 import { renderClipFile } from "../steps/render.js";
 import { detectFaces, faceCropOffset } from "../steps/reframe.js";
 import { resolveAspect } from "../aspect.js";
+import { inspectVideo } from "../steps/qa.js";
 import { reviewCompliance, scanHardRules, type ComplianceResult } from "./compliance.js";
 import { reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
@@ -72,6 +74,7 @@ export async function clipsFromRecording(
   topic?: Topic,
   opts: { maxClips?: number } = {},
 ): Promise<RecordedClip[]> {
+  const logoPath = await localLogo(profile.logo, deps.workDir);
   const audio = await extractAudio(videoPath, deps.workDir);
   const transcript = await transcribe(audio, profile.language);
   deps.log?.("transcribed", { words: transcript.words.length });
@@ -135,9 +138,13 @@ export async function clipsFromRecording(
         faceCropX,
         workDir: deps.workDir,
         watermark: false,
+        accentHex: profile.brandColor,
+        branding: logoPath ? { localLogoPath: logoPath, position: "top-right", opacity: 0.9 } : undefined,
       });
       clipVideo = clip.videoPath;
       clipThumb = clip.thumbPath;
+      const qa = await inspectVideo(clip.videoPath, { width: outAspect.w, height: outAspect.h, minSec: 8, maxSec: 65, expectAudio: true });
+      if (!qa.ok) findings.push(...qa.issues.map((i) => `quality: ${i}`));
     }
 
     out.push({
@@ -158,4 +165,20 @@ export async function clipsFromRecording(
 
 export function clipDir(workDir: string, i: number): string {
   return path.join(workDir, `clip-${i}`);
+}
+
+/** The clinic's logo as a local file (downloads a URL once); undefined if unusable. */
+async function localLogo(logo: string | undefined, workDir: string): Promise<string | undefined> {
+  if (!logo) return undefined;
+  if (!/^https?:/.test(logo)) return logo;
+  try {
+    const res = await fetch(logo);
+    if (!res.ok) return undefined;
+    const ext = (logo.split("?")[0].split(".").pop() ?? "png").slice(0, 4);
+    const file = path.join(workDir, `clinic-logo.${ext}`);
+    await fs.writeFile(file, Buffer.from(await res.arrayBuffer()));
+    return file;
+  } catch {
+    return undefined;
+  }
 }

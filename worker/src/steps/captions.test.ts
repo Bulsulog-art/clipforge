@@ -209,3 +209,31 @@ describe("captions fit the frame (seen live: German lines ran off both edges)", 
     expect(marginOf(top)).toBeLessThan(marginOf(mid));
   });
 });
+
+describe("brand colour", () => {
+  it("uses the clinic's colour for the word highlight and the hook", () => {
+    const words = [{ word: "Hallo", start: 0, end: 0.5 }, { word: "Welt", start: 0.5, end: 1 }];
+    // 1A7F8C (RGB) → 8C7F1A (ASS BGR)
+    expect(buildKaraokeASS(words, "default", 0, 2, "clean", [], "9:16", "1A7F8C")).toContain("8C7F1A");
+    expect(buildHookASS("Hallo", 4, "default", "9:16", { accentHex: "1A7F8C" })).toContain("8C7F1A");
+  });
+});
+
+describe("karaoke colours", () => {
+  it("shows words not yet spoken in the caption fill, not a hard-coded red", () => {
+    const ass = buildKaraokeASS([{ word: "Hallo", start: 0, end: 0.5 }], "default", 0, 1, "clean", [], "9:16");
+    const style = ass.split("\n").find((l) => l.startsWith("Style: Caption"))!.split(",");
+    expect(style[4]).toBe(style[3]); // SecondaryColour === PrimaryColour
+    expect(style[4]).not.toBe("&H000000FF");
+  });
+});
+
+describe("long hooks", () => {
+  it("shrinks the type rather than dropping words", () => {
+    const hook = "Was muss ich nach einer Wurzelbehandlung beachten?";
+    const ass = buildHookASS(hook, 4, "default", "9:16");
+    expect(ass).toContain("beachten?");
+    const size = Number(ass.match(/Style: Hook,Inter Bold,(\d+),/)![1]);
+    expect(size).toBeLessThan(96);
+  });
+});
