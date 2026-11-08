@@ -83,7 +83,7 @@ cost model; `worker/src/jobs/cost-monitor.ts` pushes a daily $ alert).
 
 | Queue / job | Trigger | Cost per run | Limits now |
 |---|---|---|---|
-| `dentvid` **week** | Monday 05:00 UTC dispatch (paying clinics), `/week`, Dodo activation | ≈ $0.25 OpenAI (budgeted $0.50) + 5 renders | paying check → **spend guard** (global day/month $ scaled by active clinics, clinic day $, ≤ 3 runs/clinic/week) → parked + alert on refusal |
+| `dentvid` **week** | Monday 05:00 UTC dispatch (paying clinics), `/week`, Dodo activation | ≈ $0.25 OpenAI (budgeted $0.50) + 5 renders | paying check → **spend guard** (global day/month $ scaled by active clinics, clinic day $, ≤ 6 runs/clinic/week) → parked + alert on refusal; 4 attempts with backoff, top-up of thin weeks, owner alert on final failure (§2b) |
 | `dentvid` **recording** | `/recording` | ≤ $0.50 budgeted; CPU heavy | paying check → spend guard (≤ 5/clinic/week) → path ownership, ≤ 600 MB, ≤ 30 min |
 | `dentvid` **restyle** | `/items/[id]/backgrounds` | ≈ $0.02 TTS + 1 render | paying check (new) → spend guard (≤ 10/clinic/day) → refused = card shows "failed" |
 | `dentvid` **dispatch** | scheduler | DB read | — |
@@ -157,9 +157,45 @@ count query and cached 10 minutes. If the count fails, the env caps apply
 (spending is still bounded; nothing is blocked silently) and the owner gets one
 alert that day; with many clinics some Monday weeks may then park and they
 resume within 15 minutes of the count working again. Example: 100 paying
-clinics → $115/day, $515/month; a single clinic looping is stopped after 3
-week runs / 10 restyles whatever the global room. If Redis is down the guard
+clinics → $115/day, $515/month; a single clinic looping is stopped after 6
+week runs / 10 restyles / $5 a day whatever the global room. (6 = a week's 4
+automatic attempts — see Self-healing below — plus room for a manual re-run.
+A week that ends thin may reserve one `topup`, $0.30, money only.) If Redis is down the guard
 still fails closed.
+
+### Self-healing (before anyone is alerted)
+
+`worker/src/dentvid/retry.ts`, `jobs.ts`, `watchdog.ts`, `dental/week.ts`.
+
+- **Week jobs retry with backoff**: `attempts: 4`, exponential from 2 min (2 → 4 → 8 min) — the same options wherever a week is queued (Monday dispatch, payment webhook, the app's button, parked-job resume, watchdogs; web keeps the numbers in `lib/dentvid/week-job.ts`, a test checks they match).
+- **Transient vs permanent** (`classifyFailure`): 429, 5xx, timeouts (incl. render timeouts), network resets, storage errors, "zero usable videos" → retried. 400/401/403, missing clinic, invalid profile (Zod), quota, `UnrecoverableError` → **not** retried; the owner is told at once. Unknown → retried (the spend guard caps what retries can cost).
+- **Inside a week**: each video that fails technically is re-attempted once; a failed upload is retried once; a week with fewer than 3 usable videos is topped up with extra topics (one round, budgeted as `topup`); nothing usable and the failures were technical → nothing is stored and the job fails transiently so BullMQ retries it.
+- **The clinic never sees raw errors**: technical failures go to `dentvid_items.error` (owner only), never to `findings`; the library shows a calm, localized note from the worker's `dv:weekstate:<clinic>:<week>` key — "taking a little longer, retrying automatically" while retries remain, "delayed, we're on it" after the last one.
+- **First week** (`watchdog-first-week`, every 15 min): a clinic that paid (event `payment_succeeded` first=true, or the webhook's Redis marker `dv:ops:paid`) with no videos after 45 min is re-queued once per payment (missing job → added under its id; failed → retried; completed-but-empty → `week:<clinic>:<monday>:requeue`; queued/running → left alone).
+- **Monday** (`watchdog-monday`, 07:00 UTC): every active clinic must have `week:<clinic>:<monday>`; missing ones are queued (same id, never doubled).
+
+## 2b. Owner alerts
+
+One helper, `ops-alert.ts`, byte-identical in `worker/src/dentvid/` and `web/src/lib/dentvid/` (a web test fails if they differ): what each alert says, one email per **incident key per UTC day**, at most `DENTVID_ALERT_MAX_PER_HOUR` (8) emails an hour (then one "muted" note), Redis de-duplication with an in-process fallback, Resend to `OWNER_ALERT_EMAIL`. Every email: Turkish + English subject, what happened, the clinic (name + id, tier, country, email when known), what the system already did, what to do.
+
+| Alert | Raised by | Threshold / key |
+|---|---|---|
+| A paying clinic's week failed | worker `jobs.ts` | after the last attempt, or at once if permanent · `week_failed:<clinic>:<week>` |
+| Thin week delivered | worker `jobs.ts` | < 3 usable after re-attempts and top-up · `thin_week:<clinic>:<week>` |
+| Monday dispatch did not run / zero jobs / a clinic without a job | worker `watchdog.ts`, Mon 07:00 UTC | `dispatch:<week>` |
+| First week not delivered 2 h after payment | worker `watchdog.ts` | 120 min (`DENTVID_FIRST_WEEK_ALERT_MIN`) · `first_week_late:<clinic>` |
+| Webhook signature failures | web Dodo route | ≥ 5 / hour (`DENTVID_ALERT_WEBHOOK_SIG_PER_HOUR`) |
+| Webhook processing failed (5xx / exception) | web Dodo route | every one, de-duplicated per event type per day |
+| Customer payment failed / subscription stopped | web `billing-webhook.ts` | `payment.failed`, `past_due`, `on_hold`/`failed` (→ paused), `cancelled`/`expired` of an active clinic · per clinic + event |
+| Emails failing (Resend) | web `email.ts` | ≥ 3 / hour (`DENTVID_ALERT_EMAIL_FAIL_PER_HOUR`) |
+| Render failures spiking | worker | ≥ 5 / hour (`DENTVID_ALERT_RENDER_FAIL_PER_HOUR`) |
+| 5xx spiking | web `instrumentation.ts` (`onRequestError`) + webhook 5xx | ≥ 10 / hour (`DENTVID_ALERT_5XX_PER_HOUR`) |
+| New paying clinic (good news) / a clinic came back | web `billing-webhook.ts` | at once · `new_paying:<clinic>` |
+| Spend guard refusals (existing) | worker `spend-guard.ts` | per reason per day (unchanged), now through the same helper |
+
+**Daily digest** — 08:30 Europe/Istanbul (worker scheduler `dentvid-digest` → `POST /api/internal/dentvideo/digest`), only if anything happened in the last 24 h, once per day: sign-ups, new paying clinics, MRR and its 24 h delta (snapshot `dv:ops:mrr`), paying clinics, lost/at-risk clinics, weeks delivered/failed, emails sent/failed, alerts raised.
+
+**Kill switch**: `DENTVID_OWNER_ALERTS=off` — alerts are only logged and the digest is not sent (self-healing keeps working). Counters live in Redis under `dv:ops:*` / `dv:alert:*` (TTL ≤ 3 days); no database migration.
 
 ClipForge's own worker queues are not behind this guard; they spend credits
 users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
@@ -187,8 +223,13 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 
 | Var | Where | Default | Meaning |
 |---|---|---|---|
-| `OWNER_ALERT_EMAIL` | worker | — (alerts only logged) | where spend-guard alerts go |
+| `OWNER_ALERT_EMAIL` | worker + web | — (alerts only logged) | where owner alerts and the daily digest go |
 | `RESEND_API_KEY` | worker (already on web) | — | needed for worker alerts |
+| `DENTVID_OWNER_ALERTS` | worker + web | on | `off` = no owner alert emails, no digest (logged only) |
+| `DENTVID_ALERT_MAX_PER_HOUR` | worker + web | `8` | most alert emails per clock hour (then one "muted" note) |
+| `DENTVID_ALERT_WEBHOOK_SIG_PER_HOUR` / `_EMAIL_FAIL_PER_HOUR` / `_RENDER_FAIL_PER_HOUR` / `_5XX_PER_HOUR` | worker + web | `5` / `3` / `5` / `10` | spike thresholds |
+| `DENTVID_FIRST_WEEK_REQUEUE_MIN` / `DENTVID_FIRST_WEEK_ALERT_MIN` | worker | `45` / `120` | first week: re-queue, then alert |
+| `DENTVID_COST_TOPUP_USD` | worker | `0.30` | budget for topping up a thin week |
 | `DENTVIDEO_EMAIL_FROM` | worker (optional) | `DentVideo <hello@dentvideo.com>` | sender |
 | `DENTVIDEO_EMAIL_REPLY_TO` | web (optional) | `hello@dentvideo.com` | reply-to on every DentVideo email |
 | `DENTVIDEO_UNSUBSCRIBE_SECRET` | web | falls back to `WORKER_INTERNAL_TOKEN` | signs unsubscribe links; changing it invalidates links already sent |
@@ -200,8 +241,8 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `DENTVID_DAILY_USD_PER_ACTIVE_CLINIC` | worker | `1.15` (derived from the op costs) | daily ceiling growth per active clinic |
 | `DENTVID_MONTHLY_USD_PER_ACTIVE_CLINIC` | worker | `5.15` (derived) | monthly ceiling growth per active clinic |
 | `DENTVID_PARK_RESUME_MIN` | worker | `15` | how often parked jobs are re-checked |
-| `DENTVID_CLINIC_DAILY_USD_CAP` | worker | `3` | per clinic per day |
-| `DENTVID_MAX_WEEKS_PER_CLINIC_WEEK` | worker | `3` | week runs per clinic per ISO week |
+| `DENTVID_CLINIC_DAILY_USD_CAP` | worker | `5` | per clinic per day (4 week attempts + top-ups fit) |
+| `DENTVID_MAX_WEEKS_PER_CLINIC_WEEK` | worker | `6` | week runs per clinic per ISO week (4 automatic attempts + a re-run) |
 | `DENTVID_MAX_RESTYLES_PER_CLINIC_DAY` | worker | `10` | re-renders per clinic per day |
 | `DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK` | worker | `5` | recordings per clinic per ISO week |
 | `DENTVID_MAX_RECORDING_MIN` | worker | `30` | longest recording processed |

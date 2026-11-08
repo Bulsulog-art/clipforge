@@ -15,6 +15,7 @@ import {
   videoFileName,
   weekLabelDate,
   weekSummary,
+  delayNote,
   weeksAgo,
   type CardState,
 } from "@/lib/dentvid/app-ui";
@@ -71,6 +72,7 @@ export function Library({
   locale,
   locked = false,
   currentWeek,
+  weekDelay = null,
 }: {
   items: LibraryItem[];
   canStartWeek: boolean;
@@ -79,6 +81,8 @@ export function Library({
   locked?: boolean;
   /** Monday of this week (YYYY-MM-DD), from the server. */
   currentWeek: string;
+  /** This week's run is being retried / is delayed (worker → Redis): a calm note, never an error. */
+  weekDelay?: "retrying" | "delayed" | null;
 }) {
   const text = appText(locale);
   const t = text.library;
@@ -88,14 +92,15 @@ export function Library({
   const groups = groupByWeek(items);
   const thisWeek = items.filter((i) => i.week_of === currentWeek);
   const notMade = items.filter((i) => i.status === "rejected");
-  const action = nextAction({ locked, canStartWeek, thisWeek });
+  const delay = delayNote(weekDelay, thisWeek);
+  const action = nextAction({ locked, canStartWeek, thisWeek, delayed: !!delay });
 
   // While anything is being made or re-made, look again every 20 s so cards
   // change by themselves.
   const busy = items.some((i) => {
     const c = cardState(i);
     return c === "making" || c === "updating";
-  });
+  }) || !!delay;
   useEffect(() => {
     if (!busy) return;
     const timer = setInterval(() => router.refresh(), 20_000);
@@ -104,7 +109,7 @@ export function Library({
 
   return (
     <div>
-      {action !== "locked" && <NextStep locale={locale} action={action} thisWeek={thisWeek} />}
+      {action !== "locked" && <NextStep locale={locale} action={action} thisWeek={thisWeek} delay={delay} />}
 
       {groups.length === 0 && action === "locked" && (
         <p className="mt-8 rounded-2xl border border-dashed border-dv-edge p-8 text-center text-dv-body">{text.home.emptyTitle}</p>
@@ -160,7 +165,17 @@ export function Library({
 }
 
 /** "3 videos are waiting for your approval" — the one thing to do now, with its button. */
-function NextStep({ locale, action, thisWeek }: { locale: Locale; action: Exclude<ReturnType<typeof nextAction>, "locked">; thisWeek: LibraryItem[] }) {
+function NextStep({
+  locale,
+  action,
+  thisWeek,
+  delay = null,
+}: {
+  locale: Locale;
+  action: Exclude<ReturnType<typeof nextAction>, "locked">;
+  thisWeek: LibraryItem[];
+  delay?: "retrying" | "delayed" | null;
+}) {
   const text = appText(locale);
   const h = text.home;
   const t = text.library;
@@ -233,7 +248,7 @@ function NextStep({ locale, action, thisWeek }: { locale: Locale; action: Exclud
             {h.thisWeek}
           </p>
           <h2 className="dv-display mt-2 text-balance text-[1.75rem] leading-[1.1] text-dv-ink sm:text-[2.125rem]">{title}</h2>
-          <p className="mt-2 text-[0.9375rem] leading-relaxed text-dv-body">{lead}</p>
+          <p className="mt-2 text-[0.9375rem] leading-relaxed text-dv-body">{delay ? (delay === "delayed" ? h.delayDelayed : h.delayRetrying) : lead}</p>
           {chips.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2">
               {chips.map(([k, n, cls]) => (

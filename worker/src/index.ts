@@ -8,8 +8,12 @@ import { runGenerate } from "./generate.js";
 import { configureSpend, countActiveClinics, dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
 import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
 import { RedisParkStore, resumeParked } from "./dentvid/park.js";
-import { dispatchWeeks } from "./dentvid/schedule.js";
+import { dispatchWeeks, weekOf } from "./dentvid/schedule.js";
 import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
+import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore } from "./dentvid/ops.js";
+import { alerts, cleanError, resendSender } from "./dentvid/ops-alert.js";
+import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
+import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
 import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -39,6 +43,9 @@ const spendGuard = new SpendGuard(new RedisGuardStore(connection), undefined, {
   activeClinics: process.env.DENTVID_SUPABASE_URL ? countActiveClinics : undefined,
 });
 const parkStore = new RedisParkStore(connection);
+// Owner alerts (dentvid/ops-alert.ts, shared with the web app): Redis for
+// de-duplication and counters, Resend to OWNER_ALERT_EMAIL.
+configureOps({ store: new RedisOpsStore(connection), send: resendSender(process.env) });
 configureSpend({ guard: spendGuard, park: parkStore });
 
 const videoWorker = new Worker(
@@ -90,10 +97,10 @@ const dentvidWorker = new Worker(
   "dentvid",
   async (job) => {
     try {
-      if (job.name === "week") return await runDentvidWeek(job.data, { jobId: job.id });
+      if (job.name === "week") return await runDentvidWeek(job.data, { jobId: job.id, attemptsMade: job.attemptsMade, attempts: job.opts.attempts });
       if (job.name === "recording") return await runDentvidRecording(job.data, { jobId: job.id });
       if (job.name === "restyle") return await runDentvidRestyle(job.data);
-      if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue);
+      if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue, new Date(), opsStore());
       throw new Error(`unknown dentvid job ${job.name}`);
     } catch (e) {
       // A spend-guard refusal is expected behaviour (parked + owner alerted), not a crash.
@@ -116,7 +123,18 @@ if (process.env.DENTVID_SUPABASE_URL) {
     .upsertJobScheduler("dentvid-monday", { pattern: "0 5 * * 1", tz: "UTC" }, { name: "dispatch", data: {} })
     .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: scheduler setup failed"));
 }
-dentvidWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed"));
+dentvidWorker.on("failed", (job, err) => {
+  logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed");
+  // runDentvidWeek alerts on its own final failure; a job that died with the
+  // process (OOM, restart — "stalled") never reached that code, so tell the owner here.
+  if (job?.name === "week" && /stalled/i.test(err.message) && job.attemptsMade >= (job.opts.attempts ?? 1)) {
+    const clinicId = (job.data as { clinicId?: string }).clinicId ?? "unknown";
+    void (async () =>
+      ownerAlert(
+        alerts.weekFailed({ clinic: await clinicRef(dentvidDb(), clinicId), week: weekOf(), attempts: job.attemptsMade, error: cleanError(err), permanent: false }),
+      ))().catch(() => {});
+  }
+});
 
 // DentVideo lifecycle email (welcome is sent by the payment webhook; this is
 // the unpaid-clinic reminders): hourly, on its own small queue so it never
@@ -127,6 +145,11 @@ const dentvidMailWorker = new Worker(
   "dentvid-mail",
   async (job) => {
     if (job.name === "lifecycle") return await runLifecycle();
+    if (job.name === "digest") return await runDigest();
+    if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
+      const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };
+      return job.name === "watchdog-monday" ? await checkMondayDispatch(deps) : await checkFirstWeeks(deps);
+    }
     throw new Error(`unknown dentvid-mail job ${job.name}`);
   },
   { connection, concurrency: 1, removeOnComplete: { count: 200 }, removeOnFail: { count: 200 } },
@@ -135,6 +158,17 @@ if (process.env.DENTVID_SUPABASE_URL) {
   dentvidMailQueue
     .upsertJobScheduler("dentvid-lifecycle", LIFECYCLE_SCHEDULE, { name: "lifecycle", data: {} })
     .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: lifecycle scheduler setup failed"));
+  // Watchdogs (dentvid/watchdog.ts) and the owner's daily digest — on this light
+  // queue, so they never wait behind a Monday of renders.
+  for (const [id, schedule, name] of [
+    ["dentvid-watchdog-monday", WATCHDOG_SCHEDULE, "watchdog-monday"],
+    ["dentvid-watchdog-first-week", FIRST_WEEK_SCHEDULE, "watchdog-first-week"],
+    ["dentvid-digest", DIGEST_SCHEDULE, "digest"],
+  ] as const) {
+    dentvidMailQueue
+      .upsertJobScheduler(id, schedule, { name, data: {} })
+      .catch((e) => logger.error({ err: (e as Error).message, id }, "dentvid: scheduler setup failed"));
+  }
 }
 
 // Parked dentvid jobs go back on the queue once the spend guard has room

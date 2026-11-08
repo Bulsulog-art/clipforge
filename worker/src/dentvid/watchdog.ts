@@ -1,0 +1,214 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { logger } from "../logger.js";
+import { WEEK_JOB_OPTS } from "./retry.js";
+import { dispatchKey, weekJobId, weekOf } from "./schedule.js";
+import { alerts, thresholds, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
+
+/**
+ * Watchdogs: the worker checking its own promises, healing what it can and
+ * telling the owner what it could not.
+ *
+ *   Monday 07:00 UTC   every paying clinic has this week's job (the dispatch
+ *                      runs at 05:00). Missing jobs are queued now (same ids,
+ *                      so nothing doubles) and the owner is told.
+ *   every 15 minutes   a clinic that paid has its first week. At 45 min with
+ *                      no videos the week is re-queued once (idempotent job
+ *                      id); at 2 h the owner is told.
+ *
+ * Time, the database, the queue and the alert are injected, so the logic is
+ * tested with a fake clock and fakes.
+ */
+
+export const WATCHDOG_SCHEDULE = { pattern: "0 7 * * 1", tz: "UTC" } as const;
+export const FIRST_WEEK_SCHEDULE = { pattern: "*/15 * * * *", tz: "UTC" } as const;
+/** Paid-clinic markers the web app writes (best effort) next to the payment_succeeded event. */
+export const PAID_LIST_KEY = "dv:ops:paid";
+
+export interface WatchDb {
+  activeClinicIds(): Promise<string[]>;
+  /** First payments (payment_succeeded with first = true) since a time. */
+  firstPayments(since: Date): Promise<{ clinicId: string; paidAt: string }[]>;
+  /** A usable generated video (ready / flagged) created since a time. */
+  deliveredSince(clinicId: string, since: Date): Promise<boolean>;
+  /** Of these clinics, the ones with generated items for the week. */
+  weekMade(clinicIds: string[], week: string): Promise<Set<string>>;
+  isActive(clinicId: string): Promise<boolean>;
+  clinic(clinicId: string): Promise<ClinicRef>;
+}
+
+type JobLike = { getState(): Promise<string>; retry(state?: "failed" | "completed"): Promise<void> };
+export type WatchQueue = {
+  getJob(id: string): Promise<JobLike | undefined | null>;
+  add(name: string, data: unknown, opts: Record<string, unknown>): Promise<unknown>;
+};
+
+export type WatchDeps = {
+  db: WatchDb;
+  queue: WatchQueue;
+  store: OpsStore | null;
+  alert: (a: OwnerAlert) => Promise<DeliverResult>;
+  now?: Date;
+  env?: Record<string, string | undefined>;
+};
+
+/* ------------------------------------------------------------ Monday */
+
+export type DispatchCheck = { week: string; active: number; jobs: number; missing: string[]; requeued: number; alerted: boolean };
+
+export async function checkMondayDispatch(deps: WatchDeps): Promise<DispatchCheck> {
+  const now = deps.now ?? new Date();
+  const week = weekOf(now);
+  const active = await deps.db.activeClinicIds();
+  const res: DispatchCheck = { week, active: active.length, jobs: 0, missing: [], requeued: 0, alerted: false };
+  if (!active.length) return res;
+
+  const marker = deps.store ? await deps.store.get(dispatchKey(week)).catch(() => null) : null;
+  const ran = marker ? (JSON.parse(marker) as { jobs?: number }) : null;
+
+  const noJob: string[] = [];
+  for (const id of active) {
+    const job = await deps.queue.getJob(weekJobId(id, week)).catch(() => null);
+    if (job) res.jobs++;
+    else noJob.push(id);
+  }
+  // A clinic whose week is already in the library (e.g. made before its job was cleaned up) is fine.
+  const made = noJob.length ? await deps.db.weekMade(noJob, week) : new Set<string>();
+  res.missing = noJob.filter((id) => !made.has(id));
+
+  for (const id of res.missing) {
+    try {
+      await deps.queue.add("week", { clinicId: id, count: 5 }, { jobId: weekJobId(id, week), ...WEEK_JOB_OPTS });
+      res.requeued++;
+    } catch (e) {
+      logger.error({ clinicId: id, err: (e as Error).message }, "dentvid: watchdog could not queue a week");
+    }
+  }
+
+  // Spec: the dispatch did not run, or ran with zero jobs while clinics are active, or a clinic has no job.
+  const reason = !ran ? "the dispatch never ran" : ran.jobs === 0 ? "the dispatch ran but queued zero jobs" : res.missing.length ? `${res.missing.length} clinic(s) had no job` : "";
+  if (reason) {
+    await deps.alert(alerts.dispatchMissing({ week, activeClinics: active.length, jobs: res.jobs, missing: res.missing.length, requeued: res.requeued, reason }));
+    res.alerted = true;
+  }
+  logger.info({ ...res, missing: res.missing.length }, "dentvid: monday watchdog");
+  return res;
+}
+
+/* ------------------------------------------------------------ first week */
+
+export type FirstWeekCheck = { checked: number; requeued: string[]; alerted: string[] };
+
+const MIN = 60_000;
+
+export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> {
+  const now = deps.now ?? new Date();
+  const t = thresholds(deps.env ?? process.env);
+  const res: FirstWeekCheck = { checked: 0, requeued: [], alerted: [] };
+  const since = new Date(now.getTime() - 3 * 86_400_000);
+
+  // Payments from the events table, plus the web app's Redis markers (either may be missing).
+  const paid = new Map<string, string>();
+  const add = (clinicId: string, paidAt: string) => {
+    if (!clinicId || Number.isNaN(Date.parse(paidAt)) || Date.parse(paidAt) < since.getTime()) return;
+    const prev = paid.get(clinicId);
+    if (!prev || paidAt > prev) paid.set(clinicId, paidAt);
+  };
+  for (const p of await deps.db.firstPayments(since).catch(() => [])) add(p.clinicId, p.paidAt);
+  if (deps.store) {
+    for (const raw of await deps.store.list(PAID_LIST_KEY).catch(() => [] as string[])) {
+      try {
+        const p = JSON.parse(raw) as { clinicId: string; paidAt: string };
+        add(p.clinicId, p.paidAt);
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  for (const [clinicId, paidAt] of paid) {
+    const minutes = Math.floor((now.getTime() - Date.parse(paidAt)) / MIN);
+    if (minutes < t.firstWeekRequeueMin) continue;
+    res.checked++;
+    if (await deps.db.deliveredSince(clinicId, new Date(paidAt))) continue;
+    if (!(await deps.db.isActive(clinicId))) continue;
+
+    const week = weekOf(new Date(paidAt));
+    const id = weekJobId(clinicId, week);
+    const job = await deps.queue.getJob(id).catch(() => null);
+    const state = job ? await job.getState().catch(() => "unknown") : "missing";
+    let requeued = false;
+    // Once per payment: the marker makes a second watchdog run (or a second worker) a no-op.
+    const fresh = deps.store ? await deps.store.setNx(`dv:ops:fw-requeue:${clinicId}:${paidAt}`, 7 * 86_400).catch(() => false) : false;
+    if (fresh) {
+      if (state === "missing") {
+        await deps.queue.add("week", { clinicId, count: 5 }, { jobId: id, ...WEEK_JOB_OPTS });
+        requeued = true;
+      } else if (state === "failed" && job) {
+        await job.retry("failed");
+        requeued = true;
+      } else if (state === "completed") {
+        // Ran but left nothing usable (or skipped): a fresh run under its own fixed id.
+        await deps.queue.add("week", { clinicId, count: 5 }, { jobId: `${id}:requeue`, ...WEEK_JOB_OPTS });
+        requeued = true;
+      }
+      // waiting / active / delayed: already on its way — re-queuing would not make it faster.
+      if (requeued) {
+        res.requeued.push(clinicId);
+        logger.warn({ clinicId, minutes, state }, "dentvid: first week re-queued");
+      }
+    }
+    if (minutes >= t.firstWeekAlertMin) {
+      const wasRequeued = requeued || (deps.store ? (await deps.store.get(`dv:ops:fw-requeue:${clinicId}:${paidAt}`).catch(() => null)) !== null : false);
+      const r = await deps.alert(alerts.firstWeekLate({ clinic: await deps.db.clinic(clinicId), paidAt, minutes, requeued: wasRequeued, jobState: state }));
+      if (r === "sent") res.alerted.push(clinicId);
+    }
+  }
+  return res;
+}
+
+/* ------------------------------------------------------------ Liman */
+
+export function supabaseWatchDb(db: SupabaseClient): WatchDb {
+  return {
+    async activeClinicIds() {
+      const { data, error } = await db.from("dentvid_clinics").select("id").eq("plan", "active");
+      if (error) throw new Error(`active clinics: ${error.message}`);
+      return (data ?? []).map((r) => r.id as string);
+    },
+    async firstPayments(since) {
+      const { data, error } = await db
+        .from("dentvid_events")
+        .select("clinic_id, props, created_at")
+        .eq("name", "payment_succeeded")
+        .gte("created_at", since.toISOString())
+        .limit(500);
+      if (error) return [];
+      return (data ?? [])
+        .filter((r) => r.clinic_id && (r.props as { first?: unknown } | null)?.first === true)
+        .map((r) => ({ clinicId: r.clinic_id as string, paidAt: new Date(r.created_at as string).toISOString() }));
+    },
+    async deliveredSince(clinicId, since) {
+      const { count } = await db
+        .from("dentvid_items")
+        .select("id", { count: "exact", head: true })
+        .eq("clinic_id", clinicId)
+        .eq("kind", "generated")
+        .in("status", ["ready", "flagged"])
+        .gte("created_at", since.toISOString());
+      return (count ?? 0) > 0;
+    },
+    async weekMade(clinicIds, week) {
+      const { data } = await db.from("dentvid_items").select("clinic_id").in("clinic_id", clinicIds).eq("kind", "generated").eq("week_of", week);
+      return new Set((data ?? []).map((r) => r.clinic_id as string));
+    },
+    async isActive(clinicId) {
+      const { data } = await db.from("dentvid_clinics").select("plan").eq("id", clinicId).maybeSingle();
+      return (data as { plan?: string } | null)?.plan === "active";
+    },
+    async clinic(clinicId) {
+      const { data } = await db.from("dentvid_clinics").select("id, profile, plan_tier").eq("id", clinicId).maybeSingle();
+      const p = ((data as { profile?: { name?: string; country?: string } } | null)?.profile ?? {}) as { name?: string; country?: string };
+      return { id: clinicId, name: p.name ?? null, country: p.country ?? null, tier: (data as { plan_tier?: string } | null)?.plan_tier ?? null };
+    },
+  };
+}

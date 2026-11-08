@@ -7,7 +7,8 @@ import {
   topupCredits,
 } from "@/lib/dodo";
 import { isDentvideoEvent } from "@/lib/dentvid/billing";
-import { handleDentvideoEvent } from "@/lib/dentvid/billing-webhook";
+import { alertWebhookFailure, handleDentvideoEvent } from "@/lib/dentvid/billing-webhook";
+import { noteWebhookSignatureFailure } from "@/lib/dentvid/ops-server";
 import { dvAdmin } from "@/lib/dentvid/supabase";
 import { claimWebhook, settleWebhook } from "@/lib/webhook-replay";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
@@ -67,7 +68,11 @@ export async function POST(req: Request) {
     signature: req.headers.get("webhook-signature"),
     body,
   });
-  if (!ok) return NextResponse.json({ error: "invalid signature" }, { status: 401 });
+  if (!ok) {
+    // A burst of these means a rotated secret (real payments not recorded!) or someone poking: owner alert past a threshold.
+    await noteWebhookSignatureFailure();
+    return NextResponse.json({ error: "invalid signature" }, { status: 401 });
+  }
 
   // Signed and fresh — now make sure this delivery is processed only once
   // (lib/webhook-replay). A failed delivery is released so Dodo's retry runs.
@@ -103,9 +108,18 @@ async function handle(body: string): Promise<NextResponse> {
       db = dvAdmin();
     } catch (e) {
       console.error("[dodo:dentvideo] backend not configured", (e as Error).message);
+      await alertWebhookFailure(evt, e);
       return NextResponse.json({ error: "dentvideo backend not configured" }, { status: 500 });
     }
-    const result = await handleDentvideoEvent(db, evt);
+    let result;
+    try {
+      result = await handleDentvideoEvent(db, evt);
+    } catch (e) {
+      await alertWebhookFailure(evt, e);
+      throw e;
+    }
+    // 5xx → Dodo retries; the owner is told once a day per event type in case the retries keep failing.
+    if (result.status >= 500) await alertWebhookFailure(evt, String(result.body.error ?? "500"));
     return NextResponse.json(result.body, { status: result.status });
   }
 

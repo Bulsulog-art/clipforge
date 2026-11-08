@@ -292,12 +292,21 @@ describe("the orchestrator", () => {
     const broken = { ...plan(["a", "b", "c"]), music: "warm and inviting" } as unknown as ScenePlan;
     const { client } = fakeClient({
       topics: [TOPIC, other],
-      // First topic: both plan attempts and the fresh retry's two invalid → throws. Second topic: clean.
-      plans: [broken, broken, broken, broken, plan(["Implant aftercare", "Keep the area clean.", "Follow your dentist's advice."])],
+      // First topic: both plan attempts and the fresh retry's two invalid → throws, and the
+      // same again on its one re-attempt (VIDEO_ATTEMPTS). Second topic: clean.
+      plans: [broken, broken, broken, broken, broken, broken, broken, broken, plan(["Implant aftercare", "Keep the area clean.", "Follow your dentist's advice."])],
       reviews: ["pass", "pass"],
     });
-    const week = await produceWeek({ client }, PROFILE, { count: 5 });
+    const errors: string[] = [];
+    const week = await produceWeek({ client, onVideoError: (e) => void errors.push(e.message) }, PROFILE, { count: 5 });
     expect(week.map((w) => w.status)).toEqual(["rejected", "ready"]);
+    // Tried twice, then given up with a technical error the clinic never sees.
+    expect(errors).toHaveLength(2);
+    const lost = week[0];
+    if (lost.status === "rejected") {
+      expect(lost.reasons).toEqual([]);
+      expect(lost.error).toBeTruthy();
+    }
   });
 
   it("retries an invalid plan once with the error instead of losing the topic", async () => {

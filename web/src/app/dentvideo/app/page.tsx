@@ -9,6 +9,7 @@ import { AppHomeView } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { appSendsToFunnel, showFirstWeek } from "@/lib/dentvid/onboarding";
 import { DV_FOUNDING, dvAvailablePlans, foundingOfferOpen, foundingCode } from "@/lib/dentvid/billing";
+import { readWeekDelay } from "@/lib/dentvid/ops-server";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,8 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const generated = items.filter((i) => i.kind === "generated");
   const madeThisWeek = generated.some((i) => i.week_of === week && i.status !== "failed");
   const firstWeek = showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed") });
+  // A run that is being retried or is delayed: the library says so calmly (never an error).
+  const weekDelay = plan.canMake ? await readWeekDelay(clinic.id, week) : null;
   const b = appText(locale).billing;
   const notice = billing === "cancelled" ? b.cancelled : null;
 
@@ -48,6 +51,7 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
       firstWeek={firstWeek}
       madeThisWeek={madeThisWeek}
       currentWeek={week}
+      weekDelay={weekDelay}
       notice={notice}
       plans={dvAvailablePlans()}
       founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}

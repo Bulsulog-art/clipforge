@@ -1,5 +1,6 @@
 import type IORedis from "ioredis";
 import { logger } from "../logger.js";
+import { WEEK_JOB_OPTS } from "./retry.js";
 import type { RefusalReason, SpendGuard } from "./spend-guard.js";
 
 /**
@@ -98,7 +99,7 @@ export async function resumeParked(
       else if (state === "completed") await job.retry("completed");
       // waiting / active / delayed: already on its way
     } else {
-      await queue.add(p.name, p.data, { jobId: p.jobId, attempts: 2, backoff: { type: "exponential", delay: 60_000 } });
+      await queue.add(p.name, p.data, { jobId: p.jobId, ...(p.name === "week" ? WEEK_JOB_OPTS : { attempts: 2, backoff: { type: "exponential", delay: 60_000 } }) });
     }
     await store.remove(p.jobId);
     resumed++;

@@ -46,7 +46,14 @@ export type VideoPackage =
       /** Measurements of the rendered file; issues mean "look before posting". */
       qa?: QaReport;
     }
-  | { status: "rejected"; topic: Topic; stage: "script" | "copy"; reasons: string[] };
+  | {
+      status: "rejected";
+      topic: Topic;
+      stage: "script" | "copy";
+      reasons: string[];
+      /** Set when it was not the reviewers but a technical failure (render, API, network) — never shown to the clinic. */
+      error?: string;
+    };
 
 export type WeekDeps = {
   client: OpenAI;
@@ -55,7 +62,12 @@ export type WeekDeps = {
   log?: (msg: string, extra?: Record<string, unknown>) => void;
   /** Real patient searches for the clinic's services (dental/questions.ts). Omit to plan without them. */
   searches?: (profile: ClinicProfile) => Promise<string[]>;
+  /** Told about every technical failure of one video (counted for the owner's error-spike alert). */
+  onVideoError?: (e: Error, topic: Topic) => void | Promise<void>;
 };
+
+/** A video that fails for a technical reason is tried this many times before its topic is given up. */
+export const VIDEO_ATTEMPTS = 2;
 
 /** Every word a viewer will read or hear in the video. */
 export function planText(plan: ScenePlan): string {
@@ -319,13 +331,22 @@ export async function produceWeek(
   for (const topic of topics) {
     if (out.filter((p) => p.status === "ready").length >= want) break;
     // One topic failing (a plan the model could not get valid, a render
-    // error) must not cost the clinic the rest of its week.
-    try {
-      out.push(await produceVideo(deps, profile, topic, usedFootage));
-    } catch (e) {
-      deps.log?.("topic failed", { topic: topic.title, error: (e as Error).message });
-      out.push({ status: "rejected", topic, stage: "script", reasons: [`could not produce: ${(e as Error).message}`] });
+    // error) must not cost the clinic the rest of its week: it is tried
+    // once more (most failures are passing — a 429, a render timeout), then
+    // recorded as not made and the next spare topic takes its place.
+    let lastError: Error | undefined;
+    for (let attempt = 1; attempt <= VIDEO_ATTEMPTS; attempt++) {
+      try {
+        out.push(await produceVideo(deps, profile, topic, usedFootage));
+        lastError = undefined;
+        break;
+      } catch (e) {
+        lastError = e as Error;
+        deps.log?.("topic failed", { topic: topic.title, attempt, error: lastError.message });
+        await deps.onVideoError?.(lastError, topic);
+      }
     }
+    if (lastError) out.push({ status: "rejected", topic, stage: "script", reasons: [], error: lastError.message });
   }
   return out;
 }

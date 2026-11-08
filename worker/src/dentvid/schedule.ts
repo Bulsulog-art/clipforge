@@ -1,6 +1,8 @@
 import type { Queue } from "bullmq";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
+import { WEEK_JOB_OPTS } from "./retry.js";
+import type { OpsStore } from "./ops-alert.js";
 
 /**
  * Monday delivery. Every Monday the worker starts the week for each clinic
@@ -36,14 +38,20 @@ export function clinicsToRun(clinics: ClinicRow[]): string[] {
   return clinics.filter((c) => isPaying(c.plan)).map((c) => c.id);
 }
 
-export async function dispatchWeeks(db: SupabaseClient, queue: Queue, now = new Date()): Promise<number> {
+export const weekJobId = (clinicId: string, week: string) => `week:${clinicId}:${week}`;
+
+/** Written when the Monday dispatch ran; the 07:00 watchdog (watchdog.ts) looks for it. */
+export const dispatchKey = (week: string) => `dv:ops:dispatch:${week}`;
+
+export async function dispatchWeeks(db: SupabaseClient, queue: Pick<Queue, "add">, now = new Date(), store: OpsStore | null = null): Promise<number> {
   const { data: clinics, error } = await db.from("dentvid_clinics").select("id, plan").eq("plan", "active");
   if (error) throw new Error(`dispatch: ${error.message}`);
   const ids = clinicsToRun((clinics ?? []) as ClinicRow[]);
   const week = weekOf(now);
   for (const clinicId of ids) {
-    await queue.add("week", { clinicId, count: 5 }, { jobId: `week:${clinicId}:${week}`, attempts: 2, backoff: { type: "exponential", delay: 60_000 } });
+    await queue.add("week", { clinicId, count: 5 }, { jobId: weekJobId(clinicId, week), ...WEEK_JOB_OPTS });
   }
+  if (store) await store.set(dispatchKey(week), JSON.stringify({ at: now.toISOString(), jobs: ids.length }), 8 * 86_400).catch(() => {});
   logger.info({ week, clinics: ids.length }, "dentvid: monday dispatch");
   return ids.length;
 }

@@ -236,10 +236,27 @@ export async function sendEmail(to: string, msg: { subject: string; html: string
       }),
       signal: AbortSignal.timeout(15_000),
     });
-    if (!res.ok) console.error("dentvideo email failed", res.status, (await res.text()).slice(0, 300));
+    if (!res.ok) {
+      const detail = (await res.text()).slice(0, 300);
+      console.error("dentvideo email failed", res.status, detail);
+      await noteOps(`${res.status} ${detail}`);
+    } else {
+      await noteOps(null);
+    }
     return res.ok;
   } catch (e) {
     console.error("dentvideo email failed", (e as Error).message);
+    await noteOps((e as Error).message);
     return false;
+  }
+}
+
+/** Sent / failed counts for the owner's digest and the email-failure alert (ops-server.ts). Never throws. */
+async function noteOps(error: string | null): Promise<void> {
+  try {
+    const ops = await import("./ops-server");
+    await (error === null ? ops.noteEmailSent() : ops.noteEmailFailure(error));
+  } catch {
+    // best effort
   }
 }

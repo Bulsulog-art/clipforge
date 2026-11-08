@@ -110,14 +110,36 @@ export function weekSummary(items: LibraryItem[]) {
  * - idle: nothing to do (e.g. all declined)
  */
 export type NextAction = "locked" | "review" | "making" | "start" | "share" | "idle";
-export function nextAction(args: { locked: boolean; canStartWeek: boolean; thisWeek: LibraryItem[] }): NextAction {
+export function nextAction(args: { locked: boolean; canStartWeek: boolean; thisWeek: LibraryItem[]; delayed?: boolean }): NextAction {
   if (args.locked) return "locked";
   const s = weekSummary(args.thisWeek);
   if (s.look + s.review > 0) return "review";
   if (s.making + s.updating > 0) return "making";
+  // This week's run is being retried (or is delayed and the team is on it): still "being made", not "start".
+  if (args.delayed) return "making";
   if (args.canStartWeek) return "start";
   if (s.approved > 0) return "share";
   return "idle";
+}
+
+/**
+ * The delay note for this week, or null: shown only while nothing of this
+ * week is ready to look at — once videos are in, the note has done its job.
+ */
+export function delayNote(delay: "retrying" | "delayed" | null | undefined, thisWeek: LibraryItem[]): "retrying" | "delayed" | null {
+  if (!delay) return null;
+  const s = weekSummary(thisWeek);
+  return s.look + s.review + s.approved > 0 ? null : delay;
+}
+
+/**
+ * What a clinic may read about a video: the reviewers' reasons. Technical
+ * failures are recorded for the owner only (dentvid_items.error); this also
+ * hides the ones older rows still carry in their findings.
+ */
+const TECHNICAL = [/^could not produce:/i, /^the video file is missing$/i, /^could not store/i];
+export function clinicFindings(findings: string[] | null | undefined): string[] {
+  return (findings ?? []).filter((f) => typeof f === "string" && !TECHNICAL.some((r) => r.test(f.trim())));
 }
 
 /** Ready videos that one tap can approve. Ones marked for a look are left out on purpose — they need the dentist's eyes. */

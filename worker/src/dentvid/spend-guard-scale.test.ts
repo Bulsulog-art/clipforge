@@ -46,7 +46,7 @@ describe("global caps scale with active clinics", () => {
     const guard = new SpendGuard(new MemoryGuardStore(), () => guardConfig({}), { activeClinics: async () => 1000 });
     let allowed = 0;
     for (let i = 0; i < 500; i++) if ((await guard.reserve("week", "looping-clinic", { now: MONDAY })).ok) allowed++;
-    expect(allowed).toBe(3); // DENTVID_MAX_WEEKS_PER_CLINIC_WEEK
+    expect(allowed).toBe(6); // DENTVID_MAX_WEEKS_PER_CLINIC_WEEK (4 automatic attempts + room for a re-run)
     expect(await guard.reserve("week", "looping-clinic", { now: MONDAY })).toMatchObject({ ok: false, reason: "clinic_weekly_weeks" });
     let restyles = 0;
     for (let i = 0; i < 500; i++) if ((await guard.reserve("restyle", "looping-clinic", { now: MONDAY })).ok) restyles++;

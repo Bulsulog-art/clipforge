@@ -30,6 +30,8 @@ export type ItemRow = {
   video_path?: string;
   thumb_path?: string;
   source_path?: string;
+  /** Technical failure, for the owner (admin dashboard) only — the clinic's library never shows it. */
+  error?: string;
 };
 
 export function rowFromPackage(
@@ -45,7 +47,9 @@ export function rowFromPackage(
       status: "rejected",
       title: pkg.topic.title,
       topic: pkg.topic,
+      // Reviewer reasons are for the dentist; a technical error is not.
       findings: pkg.reasons,
+      ...(pkg.error ? { error: pkg.error.slice(0, 500) } : {}),
     };
   }
   const qaIssues = pkg.qa && !pkg.qa.ok ? pkg.qa.issues.map((i) => `quality: ${i}`) : [];
