@@ -47,7 +47,7 @@ open item, updates the status here, commits and pushes.
 **Bilinen sınırlar:**
 - Tarayıcıdan kayıt yükleme bu sandbox'tan test edilemedi, çünkü sandbox proxy'si liman.bulsulabs.com isteklerindeki yetki başlığını değiştiriyor. Kayıttan klip çıkarma hattının kendisi yerelde uçtan uca doğrulandı. Gerçek bir tarayıcıdan bir kez denemek yeterli.
 - Seslendirme puanı resmî hitap kullanan kliniklerde (siz/Sie) biraz düşük çıkıyor. Bunun bir kısmı puanlayıcının "resmî = soğuk" önyargısı.
-- Videolar şu an tipografi ağırlıklı. Stok görüntü için PEXELS_API_KEY tanımlanırsa sahnelere görüntü de eklenir.
+- Videolar şu an tipografi ağırlıklı. Stok görüntü (Pexels) altyapısı ve anahtarı üretimde hazır, ama senaryo yazarı nadiren görüntü sahnesi seçiyor. Her videoya bir stok görüntü sahnesi eklemek bir sonraki kalite adımı. Bu sandbox'ta Pexels anahtarı olmadığı için render'ını burada doğrulayamadım, bu yüzden test etmeden canlıya almadım.
 
 **Sonraki adımlar (önerim):**
 1. Alan adını alıp dentvideo.com → /dentvideo yönlendirmesini kurmak.
