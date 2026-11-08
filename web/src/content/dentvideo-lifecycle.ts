@@ -52,6 +52,9 @@ export type LifecycleCopy = {
     button: string;
   };
   unsubPage: {
+    confirmTitle: string;
+    confirmBody: string;
+    confirmButton: string;
     title: string;
     body: string;
     invalidTitle: string;
@@ -106,6 +109,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Choose a plan",
     },
     unsubPage: {
+      confirmTitle: "Unsubscribe from reminders?",
+      confirmBody: "You'll stop getting reminder emails from DentVideo. If you choose a plan later, we'll still email you when your videos are ready.",
+      confirmButton: "Unsubscribe",
       title: "You're unsubscribed",
       body: "We won't send you any more reminders. If you choose a plan later, we'll still email you when your videos are ready.",
       invalidTitle: "This link doesn't work",
@@ -158,6 +164,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Tarif wählen",
     },
     unsubPage: {
+      confirmTitle: "Von Erinnerungen abmelden?",
+      confirmBody: "Sie erhalten dann keine Erinnerungen mehr von DentVideo. Wenn Sie später einen Tarif wählen, erhalten Sie weiterhin eine E-Mail, sobald Ihre Videos fertig sind.",
+      confirmButton: "Abmelden",
       title: "Sie sind abgemeldet",
       body: "Wir schicken Ihnen keine Erinnerungen mehr. Wenn Sie später einen Tarif wählen, erhalten Sie weiterhin eine E-Mail, sobald Ihre Videos fertig sind.",
       invalidTitle: "Dieser Link funktioniert nicht",
@@ -210,6 +219,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Elegir un plan",
     },
     unsubPage: {
+      confirmTitle: "¿Darte de baja de los recordatorios?",
+      confirmBody: "Dejarás de recibir recordatorios de DentVideo. Si más adelante eliges un plan, te seguiremos avisando cuando tus vídeos estén listos.",
+      confirmButton: "Darme de baja",
       title: "Te has dado de baja",
       body: "No te enviaremos más recordatorios. Si más adelante eliges un plan, te seguiremos avisando cuando tus vídeos estén listos.",
       invalidTitle: "Este enlace no funciona",
@@ -262,6 +274,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Plan seçin",
     },
     unsubPage: {
+      confirmTitle: "Hatırlatmalardan çıkmak istiyor musunuz?",
+      confirmBody: "DentVideo'dan artık hatırlatma e-postası almazsınız. İleride bir plan seçerseniz, videolarınız hazır olduğunda yine e-posta alırsınız.",
+      confirmButton: "Abonelikten çık",
       title: "Abonelikten çıktınız",
       body: "Size artık hatırlatma göndermeyeceğiz. İleride bir plan seçerseniz, videolarınız hazır olduğunda yine e-posta alırsınız.",
       invalidTitle: "Bu bağlantı çalışmıyor",
@@ -314,6 +329,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Choisir une formule",
     },
     unsubPage: {
+      confirmTitle: "Se désabonner des rappels ?",
+      confirmBody: "Vous ne recevrez plus de rappels de DentVideo. Si vous choisissez une formule plus tard, nous vous écrirons toujours quand vos vidéos seront prêtes.",
+      confirmButton: "Me désabonner",
       title: "Désabonnement confirmé",
       body: "Nous ne vous enverrons plus de rappels. Si vous choisissez une formule plus tard, nous vous écrirons toujours quand vos vidéos seront prêtes.",
       invalidTitle: "Ce lien ne fonctionne pas",
@@ -366,6 +384,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "プランを選ぶ",
     },
     unsubPage: {
+      confirmTitle: "リマインドメールの配信を停止しますか？",
+      confirmBody: "DentVideoからのリマインドメールが届かなくなります。後日プランをお選びいただいた場合も、動画の完成をお知らせするメールは引き続きお届けします。",
+      confirmButton: "配信を停止する",
       title: "配信を停止しました",
       body: "今後、リマインドメールはお送りしません。後日プランをお選びいただいた場合も、動画の完成をお知らせするメールは引き続きお届けします。",
       invalidTitle: "このリンクは無効です",
@@ -418,6 +439,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "اختيار باقة",
     },
     unsubPage: {
+      confirmTitle: "إلغاء الاشتراك في التذكيرات؟",
+      confirmBody: "لن تصلكم بعد ذلك رسائل التذكير من DentVideo. وإذا اخترتم باقة لاحقاً، فسنراسلكم عند جاهزية فيديوهاتكم.",
+      confirmButton: "إلغاء الاشتراك",
       title: "تم إلغاء اشتراككم",
       body: "لن نرسل إليكم أي تذكيرات بعد الآن. وإذا اخترتم باقة لاحقاً، فسنراسلكم عند جاهزية فيديوهاتكم.",
       invalidTitle: "هذا الرابط لا يعمل",
@@ -470,6 +494,9 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Wybierz plan",
     },
     unsubPage: {
+      confirmTitle: "Wypisać się z przypomnień?",
+      confirmBody: "Nie będą Państwo już otrzymywać przypomnień od DentVideo. Jeśli później wybiorą Państwo plan, nadal napiszemy, gdy filmy będą gotowe.",
+      confirmButton: "Wypisz mnie",
       title: "Wypisanie potwierdzone",
       body: "Nie będziemy już wysyłać przypomnień. Jeśli później wybiorą Państwo plan, nadal napiszemy, gdy filmy będą gotowe.",
       invalidTitle: "Ten link nie działa",

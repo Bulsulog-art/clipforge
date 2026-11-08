@@ -55,7 +55,7 @@ signed = provider signature. **Limit** after this change; ⚠ = a gap found
 | `POST /api/revenuecat/webhook` | bearer secret | DB writes | global per-IP | — |
 | `POST /api/internal/dentvideo/notify` | worker (bearer, constant-time compare) | 1 Resend email | 6/h per clinic, 300/h global | ⚠ leaked token = unlimited emails to every clinic |
 | `POST /api/internal/dentvideo/lifecycle` | worker, hourly (bearer, constant-time compare) | ≤ 50 reminder emails per run | 6 runs/h; 100 reminders/h global; once per clinic and kind (`dentvid_email_log`) | a leaked token can only send reminders that are already due, once |
-| `GET`/`POST /api/dentvideo/unsubscribe?t=` | anyone with the signed link (HMAC token; POST = RFC 8058 one-click, exempt from the Origin check) | 1 DB write | 30 / 10 min per IP | — |
+| `GET`/`POST /api/dentvideo/unsubscribe?t=` | anyone with the signed link (HMAC token). GET only shows a confirm page (link scanners cannot opt out); POST = the button or RFC 8058 one-click, exempt from the Origin check | 1 DB write (POST only) | 30 / 10 min per IP | — |
 | `GET /api/health?deep=1` | anon | outbound calls to Supabase, Redis, OpenAI | 10/min per IP; error text no longer exposed | ⚠ public amplifier; leaked raw error messages |
 | `GET /api/health` | anon | none | excluded from middleware | — |
 

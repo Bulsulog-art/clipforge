@@ -209,13 +209,31 @@ export function offerNudgeEmail(args: NudgeArgs & { offer: OfferTerms }): Render
   });
 }
 
-/** The page the unsubscribe link opens: a short confirmation in the clinic's language. */
-export function unsubscribePage(args: { language: string; state: "done" | "invalid" | "error"; homeUrl: string }): string {
+export type UnsubState = "confirm" | "done" | "invalid" | "error";
+
+/**
+ * The page the unsubscribe link opens, in the clinic's language.
+ * "confirm" (GET) changes nothing: one button POSTs back to `action`, so a
+ * link scanner that opens the URL cannot unsubscribe anyone (RFC 8058 §3).
+ */
+export function unsubscribePage(args: { language: string; state: UnsubState; homeUrl: string; action?: string }): string {
   const { lang, copy: c } = lifecycleText(args.language);
   const p = c.unsubPage;
   const [title, body] =
-    args.state === "done" ? [p.title, p.body] : args.state === "invalid" ? [p.invalidTitle, p.invalidBody] : [p.errorTitle, p.errorBody];
+    args.state === "confirm"
+      ? [p.confirmTitle, p.confirmBody]
+      : args.state === "done"
+        ? [p.title, p.body]
+        : args.state === "invalid"
+          ? [p.invalidTitle, p.invalidBody]
+          : [p.errorTitle, p.errorBody];
   const rtl = lang === "ar";
+  const btn = `display:inline-block;padding:12px 24px;border-radius:999px;font-family:${FONT};font-size:16px;font-weight:600;text-decoration:none`;
+  const action =
+    args.state === "confirm" && args.action
+      ? `<form method="post" action="${esc(args.action)}" style="margin:0 0 12px"><button type="submit" style="${btn};border:0;cursor:pointer;background:${TEAL};color:#fff">${esc(p.confirmButton)}</button></form>
+<a href="${esc(args.homeUrl)}" style="color:${MUTED};font-size:14px">${esc(p.back)}</a>`
+      : `<a href="${esc(args.homeUrl)}" style="${btn};background:${TEAL};color:#fff">${esc(p.back)}</a>`;
   return `<!doctype html>
 <html lang="${lang}" dir="${rtl ? "rtl" : "ltr"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)} · DentVideo</title></head>
 <body style="margin:0;background:${PAPER};font-family:${FONT};color:${INK}">
@@ -224,6 +242,6 @@ export function unsubscribePage(args: { language: string; state: "done" | "inval
 <div style="background:#fff;border:1px solid #e8e1d5;border-radius:16px;padding:28px">
 <h1 style="margin:0 0 12px;font-size:22px;line-height:30px">${esc(title)}</h1>
 <p style="margin:0 0 20px;font-size:16px;line-height:24px">${richText(fill(body, { email: CONTACT_EMAIL }))}</p>
-<a href="${esc(args.homeUrl)}" style="display:inline-block;padding:12px 24px;border-radius:999px;background:${TEAL};color:#fff;text-decoration:none;font-weight:600">${esc(p.back)}</a>
+${action}
 </div></main></body></html>`;
 }
