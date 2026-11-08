@@ -88,6 +88,37 @@ export function Library({ items, canStartWeek, locale }: { items: LibraryItem[];
 function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["library"]; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareHint, setShareHint] = useState(false);
+
+  // Posting is the step dentists skip. On a phone this opens the share sheet
+  // with the video attached (Instagram, TikTok, WhatsApp…) and the caption
+  // already on the clipboard to paste; elsewhere it downloads the file.
+  async function share() {
+    if (!item.videoUrl) return;
+    setSharing(true);
+    try {
+      await navigator.clipboard?.writeText(post).catch(() => {});
+      const blob = await (await fetch(item.videoUrl)).blob();
+      const file = new File([blob], "dentvideo.mp4", { type: "video/mp4" });
+      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text: post });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "dentvideo.mp4";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      }
+      setShareHint(true);
+      setTimeout(() => setShareHint(false), 6000);
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") window.open(item.videoUrl, "_blank");
+    } finally {
+      setSharing(false);
+    }
+  }
 
   async function decide(approval: "approved" | "rejected" | "pending") {
     setBusy(true);
@@ -150,6 +181,8 @@ function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["libra
           </details>
         )}
 
+        {shareHint && <p className="rounded-xl bg-[#e6efed] px-3 py-2 text-sm text-[#0f5c5c]" role="status">{t.shareHint}</p>}
+
         {item.status !== "rejected" && item.videoUrl && (
           <div className="mt-auto flex flex-wrap gap-2 pt-2">
             {item.approval !== "approved" ? (
@@ -157,9 +190,14 @@ function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["libra
                 {t.approve}
               </button>
             ) : (
-              <a href={item.videoUrl} download className="rounded-full bg-[#0f5c5c] px-4 py-2 text-sm font-medium text-[#f5efe6] hover:bg-[#0c4a4a]">
-                {t.download}
-              </a>
+              <>
+                <button disabled={sharing} onClick={share} className="rounded-full bg-[#0f5c5c] px-4 py-2 text-sm font-medium text-[#f5efe6] hover:bg-[#0c4a4a] disabled:opacity-60">
+                  {t.share}
+                </button>
+                <a href={item.videoUrl} download className="rounded-full border border-[#d9d1c3] px-4 py-2 text-sm hover:bg-[#f1ece4]">
+                  {t.download}
+                </a>
+              </>
             )}
             {item.approval !== "rejected" ? (
               <button disabled={busy} onClick={() => decide("rejected")} className="rounded-full border border-[#d9d1c3] px-4 py-2 text-sm hover:bg-[#f1ece4] disabled:opacity-60">
