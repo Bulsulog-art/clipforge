@@ -7,6 +7,7 @@ import { LANDING_PATH, LANGUAGE_NAME, LOCALES, type Locale } from "@/content/den
 import { appText } from "@/content/dentvideo-app";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
+import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { DvLogo } from "./mark";
 
 /** Fired when a page sets the interface language, so the header follows at once. */
@@ -26,8 +27,12 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   const parts = pathname.split("/").filter(Boolean);
   if (parts[0] !== "dentvideo") return null;
   if (parts.length === 1) return "en";
+  // English guides hub and About: /dentvideo/guides, /dentvideo/about.
+  if (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about")) return "en";
   if (parts[1] === "guides") return guideLocales[parts[2] ?? ""] ?? null;
-  return parts.length === 2 && (LOCALES as readonly string[]).includes(parts[1]) ? (parts[1] as Locale) : null;
+  if (!(LOCALES as readonly string[]).includes(parts[1])) return null;
+  // A landing (/dentvideo/tr), or its guides hub or About page (/dentvideo/tr/guides).
+  return parts.length === 2 || (parts.length === 3 && (parts[2] === "guides" || parts[2] === "about")) ? (parts[1] as Locale) : null;
 }
 
 function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; ready: boolean } {
@@ -78,6 +83,7 @@ export function DvHeader({ guideLocales }: Props) {
         <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
           <Link href={`${home}#how`} className={navLink}>{t.howItWorks}</Link>
           <Link href={`${home}#pricing`} className={navLink}>{t.pricing}</Link>
+          <Link href={GUIDES_INDEX_PATH[locale]} className={navLink}>{GUIDE_UI[locale].guides}</Link>
           <Link href="/dentvideo/app" className="dv-btn dv-btn-primary ml-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
             {t.openApp}
           </Link>
@@ -107,6 +113,8 @@ export function DvFooter({ guideLocales }: Props) {
             <ul className="space-y-3.5">
               <li><Link href={`${home}#how`} className={link}>{t.howItWorks}</Link></li>
               <li><Link href={`${home}#pricing`} className={link}>{t.pricing}</Link></li>
+              <li><Link href={GUIDES_INDEX_PATH[locale]} className={link}>{GUIDE_UI[locale].guides}</Link></li>
+              <li><Link href={ABOUT_PATH[locale]} className={link}>{GUIDE_UI[locale].about}</Link></li>
               <li><Link href="/dentvideo/app" className={link}>{t.openApp}</Link></li>
             </ul>
             <ul className="space-y-3.5">

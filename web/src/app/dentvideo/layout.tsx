@@ -20,6 +20,15 @@ export const metadata: Metadata = {
   description:
     "DentVideo turns a dentist's five-minute phone recording into a week of captioned, compliant short videos — and writes, narrates and checks educational videos when there is no time to film.",
   applicationName: "DentVideo",
+  // Optional search-console verification by meta tag (DNS TXT records are the preferred route; see docs/SEO_PLAN.md).
+  ...(process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION || process.env.DENTVIDEO_BING_SITE_VERIFICATION
+    ? {
+        verification: {
+          ...(process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION ? { google: process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION } : {}),
+          ...(process.env.DENTVIDEO_BING_SITE_VERIFICATION ? { other: { "msvalidate.01": process.env.DENTVIDEO_BING_SITE_VERIFICATION } } : {}),
+        },
+      }
+    : {}),
   icons: {
     icon: [
       { url: "/dentvideo/icon.svg", type: "image/svg+xml" },
