@@ -1,0 +1,80 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Pause, Play } from "lucide-react";
+
+/**
+ * A device frame around real DentVideo output. Pure CSS, no image assets:
+ * titanium-style rim, side buttons, dynamic island, 9:16 screen.
+ */
+export function PhoneFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`relative ${className}`}>
+      {/* side buttons */}
+      <span aria-hidden="true" className="absolute -left-[3px] top-[18%] h-[7%] w-[3px] rounded-l bg-[#2b3634]" />
+      <span aria-hidden="true" className="absolute -left-[3px] top-[28%] h-[11%] w-[3px] rounded-l bg-[#2b3634]" />
+      <span aria-hidden="true" className="absolute -right-[3px] top-[24%] h-[14%] w-[3px] rounded-r bg-[#2b3634]" />
+      <div className="rounded-[2.9rem] bg-gradient-to-b from-[#3a4644] via-[#1b2523] to-[#2f3b39] p-[3px] shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]">
+        <div className="rounded-[2.75rem] bg-[#0b1110] p-[9px]">
+          <div className="relative aspect-[9/16] overflow-hidden rounded-[2.2rem] bg-[#0b3f3e]">
+            {children}
+            <span aria-hidden="true" className="absolute left-1/2 top-2.5 h-[22px] w-[30%] -translate-x-1/2 rounded-full bg-black" />
+            {/* glass sheen */}
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[2.2rem] bg-[linear-gradient(115deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0)_32%)]" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Muted, looping sample video for the hero. Autoplays only when the visitor
+ * has not asked for reduced motion; always has a visible pause/play control.
+ */
+export function HeroVideo({ src, poster, title, labels }: { src: string; poster: string; title: string; labels: { play: string; pause: string } }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    v.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+  }, []);
+
+  function toggle() {
+    const v = ref.current;
+    if (!v) return;
+    if (v.paused) v.play().then(() => setPlaying(true)).catch(() => {});
+    else {
+      v.pause();
+      setPlaying(false);
+    }
+  }
+
+  return (
+    <>
+      <video
+        ref={ref}
+        src={src}
+        poster={poster}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label={title}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={playing ? labels.pause : labels.play}
+        className="dv-btn absolute bottom-4 left-4 z-10 h-10 w-10 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
+      >
+        {playing ? <Pause className="h-4 w-4" fill="currentColor" aria-hidden="true" /> : <Play className="ml-0.5 h-4 w-4" fill="currentColor" aria-hidden="true" />}
+      </button>
+    </>
+  );
+}

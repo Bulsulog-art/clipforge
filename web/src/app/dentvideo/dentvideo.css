@@ -1,0 +1,209 @@
+/*
+ * DentVideo surface styles (docs/BRAND.md). Everything is scoped under .dv so
+ * nothing leaks into ClipForge pages that share this app.
+ */
+
+.dv {
+  --dv-ink: #14211f;
+  --dv-teal: #0f5c5c;
+  --dv-paper: #faf7f2;
+  --dv-line: #e8e1d5;
+  font-family: var(--dv-font-sans), system-ui, sans-serif;
+  font-feature-settings: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dv ::selection {
+  background: #cfe6e0;
+  color: var(--dv-ink);
+}
+
+/* One focus treatment for every interactive element; the outline follows
+   each element's own corner radius. */
+.dv :is(a, button, summary, video, [tabindex]):focus-visible {
+  outline: 2px solid rgba(15, 92, 92, 0.75);
+  outline-offset: 3px;
+}
+.dv .dv-on-dark :is(a, button):focus-visible {
+  outline-color: #8fd1c6;
+}
+
+/* Display type: Instrument Serif, optically tightened. */
+:where(.dv) .dv-display {
+  font-family: var(--dv-font-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  font-feature-settings: "kern", "liga";
+}
+
+/* Buttons */
+:where(.dv) .dv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+:where(.dv) .dv-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+:where(.dv) .dv-btn-primary {
+  color: #f7f1e7;
+  background: linear-gradient(180deg, #13706d 0%, #0f5c5c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(11, 63, 62, 0.25),
+    0 8px 20px -8px rgba(15, 92, 92, 0.55);
+}
+:where(.dv) .dv-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #0f6564 0%, #0b4a4a 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(11, 63, 62, 0.3),
+    0 12px 26px -10px rgba(15, 92, 92, 0.6);
+}
+:where(.dv) .dv-btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+:where(.dv) .dv-btn-secondary {
+  color: var(--dv-ink);
+  background: #fff;
+  box-shadow: 0 0 0 1px #e1d9cb, 0 1px 2px rgba(20, 33, 31, 0.06);
+}
+:where(.dv) .dv-btn-secondary:hover:not(:disabled) {
+  background: #fdfbf8;
+  box-shadow: 0 0 0 1px #cfc5b4, 0 2px 6px rgba(20, 33, 31, 0.08);
+}
+:where(.dv) .dv-btn-light {
+  color: #0b3f3e;
+  background: #f7f1e7;
+  box-shadow: inset 0 1px 0 #fff, 0 10px 24px -12px rgba(0, 0, 0, 0.5);
+}
+:where(.dv) .dv-btn-light:hover:not(:disabled) {
+  background: #fff;
+}
+
+/* Cards: hairline + layered soft shadow. */
+:where(.dv) .dv-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow:
+    0 0 0 1px rgba(20, 33, 31, 0.06),
+    0 1px 2px rgba(20, 33, 31, 0.04),
+    0 12px 32px -16px rgba(20, 33, 31, 0.14);
+}
+
+/* Form fields */
+:where(.dv) .dv-field {
+  margin-top: 0.375rem;
+  width: 100%;
+  border-radius: 0.875rem;
+  border: 1px solid #d9d1c3;
+  background: #fff;
+  padding: 0.8rem 1rem;
+  color: var(--dv-ink);
+  box-shadow: inset 0 1px 2px rgba(20, 33, 31, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+:where(.dv) .dv-field:focus {
+  border-color: var(--dv-teal);
+  box-shadow: 0 0 0 4px rgba(15, 92, 92, 0.14);
+}
+
+/* Fine film grain over tinted surfaces (SVG turbulence, no image request). */
+:where(.dv) .dv-grain {
+  position: relative;
+  isolation: isolate;
+}
+:where(.dv) .dv-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Faint clinical grid, faded out at the edges. */
+:where(.dv) .dv-grid {
+  background-image:
+    linear-gradient(to right, rgba(15, 92, 92, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 92, 92, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 30%, transparent 75%);
+}
+
+/* Gentle entrance and float, only when motion is welcome. */
+@media (prefers-reduced-motion: no-preference) {
+  :where(.dv) .dv-rise {
+    animation: dv-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  :where(.dv) .dv-rise-2 {
+    animation: dv-rise 0.8s 0.12s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  :where(.dv) .dv-rise-3 {
+    animation: dv-rise 0.8s 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  :where(.dv) .dv-float {
+    animation: dv-float 7s ease-in-out infinite;
+  }
+  :where(.dv) .dv-float-slow {
+    animation: dv-float 9s 1s ease-in-out infinite;
+  }
+}
+@keyframes dv-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dv-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dv *,
+  .dv *::before,
+  .dv *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html:has(.dv) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.dv) {
+    scroll-behavior: auto;
+  }
+}
+
+/* FAQ disclosure marker */
+.dv details > summary {
+  list-style: none;
+}
+.dv details > summary::-webkit-details-marker {
+  display: none;
+}

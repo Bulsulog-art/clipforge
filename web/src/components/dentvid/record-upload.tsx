@@ -48,20 +48,20 @@ export function RecordUpload({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div className="rounded-2xl border border-[#e8e1d5] bg-white p-6">
+    <div className="dv-card p-6">
       <label className="block text-sm font-medium">
         {t.fileLabel}
         <input
           type="file"
           accept="video/mp4,video/quicktime,video/webm"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="mt-2 w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-[#e6efed] file:px-3 file:py-1"
+          className="dv-field file:mr-3 file:rounded-full file:border-0 file:bg-[#e6efed] file:px-3 file:py-1"
         />
       </label>
       <button
         onClick={upload}
         disabled={!file || state === "uploading" || state === "queued"}
-        className="mt-4 rounded-full bg-[#0f5c5c] px-6 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60"
+        className="mt-4 dv-btn dv-btn-primary px-6 py-3"
       >
         {state === "uploading" ? t.uploading : state === "queued" ? t.queued : t.upload}
       </button>

@@ -32,18 +32,18 @@ export default async function RecordPage() {
   return (
     <main lang={locale} className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <RememberLocale locale={locale} />
-      <h1 className="text-3xl font-semibold tracking-tight">{t.title}</h1>
-      <p className="mt-2 max-w-2xl text-[#4a5a57]">{t.lead}</p>
+      <h1 className="dv-display text-[2.5rem] leading-[1.05] sm:text-5xl">{t.title}</h1>
+      <p className="mt-2 max-w-2xl text-dv-body">{t.lead}</p>
 
       <div className="mt-8"><RecordUpload locale={locale} /></div>
 
       <h2 className="mt-12 text-xl font-semibold">{t.cardsHeading}</h2>
       {cards.length === 0 ? (
-        <p className="mt-3 text-[#4a5a57]">{t.noCards}</p>
+        <p className="mt-3 text-dv-body">{t.noCards}</p>
       ) : (
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {cards.map(({ title, card }) => (
-            <article key={title} className="rounded-2xl border border-[#e8e1d5] bg-white p-6">
+            <article key={title} className="dv-card p-6">
               <h3 className="font-semibold">{title}</h3>
               <p className="mt-3 text-sm"><span className="font-medium">{t.startWith}</span> “{card.opening}”</p>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[#33423f]">
@@ -51,7 +51,7 @@ export default async function RecordPage() {
               </ul>
               <p className="mt-3 text-sm"><span className="font-medium">{t.closeWith}</span> “{card.closing}”</p>
               {card.avoid?.length ? <p className="mt-3 text-xs text-[#7a4b00]">{t.avoid} {card.avoid.join(" · ")}</p> : null}
-              {card.setup?.length ? <p className="mt-2 text-xs text-[#6b7a77]">{t.filming} {card.setup.join(" · ")}</p> : null}
+              {card.setup?.length ? <p className="mt-2 text-xs text-dv-muted">{t.filming} {card.setup.join(" · ")}</p> : null}
             </article>
           ))}
         </div>

@@ -24,6 +24,9 @@ export const LANDING_PATH: Record<Locale, string> = {
   fr: "/dentvideo/fr",
 };
 
+/** Each language's own name, for the language switcher. */
+export const LANGUAGE_NAME: Record<Locale, string> = { en: "English", de: "Deutsch", es: "Español", tr: "Türkçe", fr: "Français" };
+
 /** BCP-47 tags for hreflang. */
 export const HREFLANG: Record<Locale, string> = { en: "en", de: "de", es: "es", tr: "tr", fr: "fr" };
 
@@ -40,6 +43,8 @@ export type LandingContent = {
   meta: { title: string; description: string; ogDescription: string };
   hero: { eyebrow: string; h1: string; lead: string; cta: string; note: string };
   mock: { hook: string; caption: string; label: string };
+  /** Labels for the hero video's play/pause control. */
+  video: { play: string; pause: string };
   problem: { title: string; text: string }[];
   how: { heading: string; steps: { title: string; text: string }[] };
   /** Real output for a demo clinic, shown as-is. */
@@ -67,6 +72,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       note: "No card. Seven languages.",
     },
     mock: { hook: "Does whitening damage enamel?", caption: "When it is supervised, usually not.", label: "Ready for your review" },
+    video: { play: "Play", pause: "Pause" },
     problem: [
       { title: "The problem", text: "Patients choose a dentist they feel they know. Posting every week takes hours you do not have, and agencies cost hundreds a month." },
       { title: "The risk", text: "One “painless, guaranteed” or a discount in a post can break health-advertising rules. Generic tools do not know the difference." },
@@ -120,6 +126,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       note: "Keine Kreditkarte. Sieben Sprachen.",
     },
     mock: { hook: "Schadet Bleaching dem Zahnschmelz?", caption: "Unter zahnärztlicher Aufsicht in der Regel nicht.", label: "Bereit zur Prüfung" },
+    video: { play: "Abspielen", pause: "Pausieren" },
     problem: [
       { title: "Das Problem", text: "Patienten wählen eine Praxis, die sie zu kennen glauben. Jede Woche zu posten kostet Stunden, die Sie nicht haben, und Agenturen kosten Hunderte im Monat." },
       { title: "Das Risiko", text: "Ein „schmerzfrei, garantiert“ oder ein Rabatt in einem Beitrag kann gegen das Heilmittelwerbegesetz verstoßen. Allgemeine Tools erkennen den Unterschied nicht." },
@@ -173,6 +180,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       note: "Sin tarjeta. Siete idiomas.",
     },
     mock: { hook: "¿El blanqueamiento daña el esmalte?", caption: "Bajo supervisión, normalmente no.", label: "Listo para revisar" },
+    video: { play: "Reproducir", pause: "Pausar" },
     problem: [
       { title: "El problema", text: "Los pacientes eligen al dentista que sienten que conocen. Publicar cada semana lleva horas que no tienes, y una agencia cuesta cientos al mes." },
       { title: "El riesgo", text: "Un “sin dolor, garantizado” o un descuento en una publicación puede incumplir las normas de publicidad sanitaria. Las herramientas genéricas no notan la diferencia." },
@@ -226,6 +234,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       note: "Kart gerekmez. Yedi dil.",
     },
     mock: { hook: "Diş beyazlatma mineye zarar verir mi?", caption: "Hekim kontrolünde genellikle hayır.", label: "İncelemenize hazır" },
+    video: { play: "Oynat", pause: "Duraklat" },
     problem: [
       { title: "Sorun", text: "Hastalar tanıdıklarını hissettikleri hekimi seçer. Her hafta paylaşım yapmak, ayıramadığınız saatler demek; ajanslar ise aylık yüzlerce lira tutuyor." },
       { title: "Risk", text: "Bir paylaşımdaki “acısız, garantili” ifadesi ya da bir indirim, sağlık hizmetlerinde tanıtım kurallarına aykırı olabilir. Genel araçlar bu farkı bilmez." },
@@ -279,6 +288,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       note: "Sans carte bancaire. Sept langues.",
     },
     mock: { hook: "Le blanchiment abîme-t-il l'émail ?", caption: "Encadré par un dentiste, en général non.", label: "Prête pour validation" },
+    video: { play: "Lire", pause: "Mettre en pause" },
     problem: [
       { title: "Le problème", text: "Les patients choisissent un dentiste qu'ils ont l'impression de connaître. Publier chaque semaine demande des heures que vous n'avez pas, et une agence coûte des centaines d'euros par mois." },
       { title: "Le risque", text: "Un « sans douleur, garanti » ou une réduction dans une publication peut enfreindre les règles de communication en santé. Les outils génériques ne font pas la différence." },

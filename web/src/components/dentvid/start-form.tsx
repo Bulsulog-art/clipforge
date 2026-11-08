@@ -6,6 +6,7 @@ import { dvBrowser } from "@/lib/dentvid/supabase";
 import type { Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import { announceLocale } from "./chrome";
+import { DvIcon } from "./mark";
 
 export function StartForm({ locale, remember }: { locale: Locale; remember: boolean }) {
   const t = appText(locale).start;
@@ -48,52 +49,52 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
     }
   }
 
-  const field =
-    "mt-1 w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3 outline-none focus:border-[#0f5c5c] focus:ring-2 focus:ring-[#0f5c5c]/20";
+  const field = "dv-field";
 
   return (
-    <main lang={locale} className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{mode === "signup" ? t.titleSignup : t.titleSignin}</h1>
-      <p className="mt-2 text-[#4a5a57]">{mode === "signup" ? t.leadSignup : t.leadSignin}</p>
+    <main lang={locale} className="relative isolate overflow-hidden">
+      <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
+      <div aria-hidden="true" className="absolute left-1/2 top-0 -z-10 h-80 w-[44rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
+      <div className="mx-auto flex max-w-md flex-col px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
+        <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
+        <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : t.titleSignin}</h1>
+        <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : t.leadSignin}</p>
 
-      <form onSubmit={submit} className="mt-8 space-y-4">
-        <label className="block">
-          <span className="text-sm font-medium">{t.email}</span>
-          <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">{t.password}</span>
-          <input
-            type="password"
-            required
-            minLength={8}
-            autoComplete={mode === "signup" ? "new-password" : "current-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={field}
-          />
-          {mode === "signup" && <span className="mt-1 block text-xs text-[#6b7a77]">{t.passwordHint}</span>}
-        </label>
-        {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+        <form onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+          <label className="block">
+            <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
+            <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+          </label>
+          <label className="block">
+            <span className="text-sm font-semibold text-dv-ink">{t.password}</span>
+            <input
+              type="password"
+              required
+              minLength={8}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={field}
+            />
+            {mode === "signup" && <span className="mt-2 block text-xs text-dv-muted">{t.passwordHint}</span>}
+          </label>
+          {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+          <button type="submit" disabled={busy} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
+            {busy ? t.busy : mode === "signup" ? t.submitSignup : t.submitSignin}
+          </button>
+        </form>
+
         <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-full bg-[#0f5c5c] px-6 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60"
+          type="button"
+          onClick={() => {
+            setMode(mode === "signup" ? "signin" : "signup");
+            setError(null);
+          }}
+          className="mx-auto mt-6 rounded-md text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
         >
-          {busy ? t.busy : mode === "signup" ? t.submitSignup : t.submitSignin}
+          {mode === "signup" ? t.toSignin : t.toSignup}
         </button>
-      </form>
-
-      <button
-        type="button"
-        onClick={() => {
-          setMode(mode === "signup" ? "signin" : "signup");
-          setError(null);
-        }}
-        className="mt-6 text-sm text-[#0f5c5c] underline-offset-4 hover:underline"
-      >
-        {mode === "signup" ? t.toSignin : t.toSignup}
-      </button>
+      </div>
     </main>
   );
 }
