@@ -12,6 +12,7 @@ import { produceWeek } from "../dental/week.js";
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { prepareVoiceover } from "../remotion/voiceover.js";
+import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { notifyReady } from "./notify.js";
@@ -133,7 +134,10 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
         searches: (p) => patientSearches(p.services, p.language, p.country),
         render: async (plan, topic) => {
           const dir = await fs.mkdtemp(path.join(workDir, "v-"));
-          const voice = await prepareVoiceover(plan, dir).catch((e) => {
+          const voice = await prepareVoiceover(plan, dir, {
+            ...resolveVoice(profile.language),
+            onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
+          }).catch((e) => {
             logger.warn({ err: (e as Error).message, topic: topic.title }, "dentvid: voiceover failed");
             return { plan, voiceoverPath: undefined };
           });

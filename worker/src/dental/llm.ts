@@ -1,9 +1,39 @@
 import type OpenAI from "openai";
 import type { z } from "zod";
+import { modelParams } from "../lib/model-params.js";
 
-export const AGENT_MODEL = "gpt-4o-mini";
+/**
+ * Which models DentVideo's agents run on. The defaults are the ones the ten
+ * eval rounds were tuned on; "Model choice" in docs/AUTONOMOUS_PLAN.md has the
+ * candidates, their prices, and the commands to measure them.
+ *
+ *   agent   the writers: scene planner, copywriter, shoot card
+ *   review  the judgement calls: clinical accuracy, compliance, narrator,
+ *           strategist and hook editor
+ *
+ * DENTVID_AGENT_MODEL / DENTVID_REVIEW_MODEL override them (for the eval, or
+ * to roll back without a deploy of new code).
+ */
+export const DEFAULT_AGENT_MODEL = "gpt-4o-mini";
+export const DEFAULT_REVIEW_MODEL = "gpt-4o";
+
+export function resolveModels(env: Record<string, string | undefined> = process.env) {
+  const pick = (v: string | undefined, fallback: string) => (v && v.trim() ? v.trim() : fallback);
+  return {
+    agent: pick(env.DENTVID_AGENT_MODEL, DEFAULT_AGENT_MODEL),
+    review: pick(env.DENTVID_REVIEW_MODEL, DEFAULT_REVIEW_MODEL),
+  };
+}
+
+const models = resolveModels();
+export const AGENT_MODEL = models.agent;
 /** For judgement calls where being wrong is expensive (clinical accuracy). */
-export const REVIEW_MODEL = "gpt-4o";
+export const REVIEW_MODEL = models.review;
+/**
+ * The eval's judge. Fixed on purpose, independent of the models under test:
+ * a judge that changes with the candidate makes scores incomparable.
+ */
+export const JUDGE_MODEL = process.env.DENTVID_JUDGE_MODEL?.trim() || "gpt-4o";
 
 /**
  * One agent turn: system + user prompt in, JSON validated against `schema`
@@ -21,9 +51,10 @@ export async function agentJson<S extends z.ZodTypeAny>(
     { role: "user", content: args.user },
   ];
   const ask = async () => {
+    const model = args.model ?? AGENT_MODEL;
     const res = await client.chat.completions.create({
-      model: args.model ?? AGENT_MODEL,
-      temperature: args.temperature ?? 0.5,
+      model,
+      ...modelParams(model, args.temperature ?? 0.5),
       response_format: { type: "json_object" },
       messages,
     });

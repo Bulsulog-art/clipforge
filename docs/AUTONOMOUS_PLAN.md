@@ -163,3 +163,104 @@ The judge reads formal address as "less warm". Formal address is the clinic's ch
 
 What the judge still asks for: more surprise in hooks and warmer Turkish narration.
 These are the next levers. The writer brief is fine; the reviewers no longer cost rewrites for nothing.
+
+## Model choice (2026-11-08) — measurement blocked, defaults unchanged
+
+**Question from the owner:** are the agents and the voice on the best models?
+
+**Short answer: not measured yet, so nothing was switched.** The OpenAI account ran out of credit
+(`insufficient_quota: credit_balance_exhausted`) about one minute into the comparison runs. Every request
+since then fails with the same error, the eval judge included. Changing the
+defaults without numbers would go against the rule of this eval ("change it and see the numbers move"),
+so the production defaults are still **gpt-4o-mini (writers) / gpt-4o (reviewers) / tts-1-hd (voice)**.
+The work that was done makes the comparison a set of env flags and two commands. It can be run once credit is added.
+
+### What the key can use (`GET /v1/models`, 2026-11-08)
+Text: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5.1, gpt-5.2, gpt-5.4,
+gpt-5.4-mini, gpt-5.4-nano, gpt-5.5, gpt-5.6-{luna,sol,terra}, gpt-6-{astra,luna,sol}, gpt-6.1-{sol,terra}, o3.
+Voice: tts-1, tts-1-hd, gpt-4o-mini-tts (2025-03-20 and 2025-12-15), gpt-audio, gpt-audio-mini, gpt-realtime-*.
+Transcription: whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe. There is no gpt-4o-audio-preview, so
+gpt-audio is the listening judge.
+
+What each model accepts was probed directly before the credit ran out. The reasoning models (gpt-5,
+gpt-5.5, gpt-5.6-*, gpt-6*) reject any temperature except 1. They need `reasoning_effort` instead: "none" for
+most of them, "minimal" for gpt-5/-mini, "low" for gpt-6.1. The gpt-5.4 family takes a temperature when
+reasoning is "none". `worker/src/lib/model-params.ts` encodes this. Without it, setting any gpt-5+ model
+would have failed every agent call.
+
+### Measured so far
+One smoke video (en, writer gpt-5.4-mini, reviewer gpt-5.4): ready on the first pass, hook 4/5, voice 4/5,
+**$0.031**. The token meter recorded 9 reviewer calls (6,267 input / 459 output tokens) and 4 writer calls (3,017 / 1,382).
+One video says nothing about quality, because rounds of 16–24 videos already swing about ±10 points. It
+does give a real token profile, and the cost column below uses it.
+
+### Cost per video (price list × the measured token profile)
+| Config (writer / reviewer) | Text $/video | vs today |
+|---|---|---|
+| gpt-4o-mini / gpt-4o (today) | ~0.022 | — |
+| gpt-4.1-mini / gpt-4.1 | ~0.020 | −10% |
+| gpt-4.1-mini / gpt-4o | ~0.024 | +10% |
+| gpt-4o-mini / gpt-5.4 | ~0.024 | +11% |
+| gpt-5.4-mini / gpt-5.4 | 0.031 (metered) | +44% |
+| gpt-4o-mini / gpt-5.5 | ~0.046 | +115% |
+
+Prices per 1M tokens (input/output): 4o-mini 0.15/0.60, 4o 2.50/10, 4.1-mini 0.40/1.60, 4.1 2/8,
+5.4-mini 0.75/4.50, 5.4 2.50/15, 5.5 5/30. The gpt-5.4 and 5.5 prices come from aggregator sites, because
+platform.openai.com is outside this session's network allowlist. The gpt-5.6/6.x models have no public
+price that could be found, so they were left out. A video that needs a rewrite costs about 1.5× these figures.
+Even the most expensive option is a few cents a video. For a clinic's week of 5 videos, the most expensive
+row adds about $0.12. So cost does not decide this. Quality does.
+
+Voice (a 30-second narration is about 450 characters): tts-1-hd at $30 per 1M characters is about
+**$0.0135**. gpt-4o-mini-tts is OpenAI's estimate of about $0.015 per minute, so about **$0.0075**.
+That makes the newer, steerable model about half the price.
+
+### What to run when credit is back (≈ $3 total)
+```
+cd worker
+# text: same panel, judge fixed on gpt-4o (DENTVID_JUDGE_MODEL is not changed between runs)
+for cfg in "gpt-4o-mini gpt-4o" "gpt-4.1-mini gpt-4.1" "gpt-4o-mini gpt-5.4" "gpt-5.4-mini gpt-5.4"; do
+  set -- $cfg
+  DENTVID_AGENT_MODEL=$1 DENTVID_REVIEW_MODEL=$2 NODE_USE_ENV_PROXY=1 \
+    npx tsx src/dental/eval.ts --per 4 --only tr,de,en --out eval-$1-$2
+done   # then repeat the best one once: ±10 points is noise
+# voice: the same scripts read by both models, measured and listened to
+npx tsx src/dental/voice-eval.ts --from eval-gpt-4o-mini-gpt-4o/eval.json --out voice --per-lang 2
+```
+`eval.json` now records `costs` for each run: tokens per model, $ per video and $ per ready video, with the
+judge's tokens excluded. It also stores each ready video's narration and planned length, which the voice test reads.
+`voice-eval.ts` measures each clip:
+- spoken length against the plan, and words per second
+- loudness (EBU R128 LUFS) and total silence, from ffmpeg
+- word error rate between gpt-4o-transcribe's transcript and the script
+- gpt-audio's 1–5 scores for natural, accuracy and warmth, with any mispronounced words
+- a pairwise preference, asked in both orders
+
+**How to decide:** switch a reviewer only if ready rate, hook and voice all hold or improve over two runs
+(the narrator and hook editor are "reviewer" calls, and they move hook and voice the most). Switch a
+writer only if the first-pass rate improves, because rewrites are the writer's cost. Switch the voice per
+language where gpt-4o-mini-tts wins the pairwise vote with WER no worse.
+
+### How to switch (no code change)
+- `DENTVID_AGENT_MODEL`, `DENTVID_REVIEW_MODEL` choose the writer and reviewer models. The writer model
+  now also drives the DentVideo scene planner, which used to have its own hard-coded gpt-4o-mini. The
+  ClipForge prompt-to-video planner keeps its own default.
+- `DENTVID_TTS_MODEL` sets the voice model for all languages, and `DENTVID_TTS_MODEL_<LANG>`
+  (e.g. `DENTVID_TTS_MODEL_TR=gpt-4o-mini-tts`) sets it for one language. A steerable model gets a
+  per-language brief (`worker/src/dental/voice.ts`): a warm, calm dentist speaking to one patient, a
+  natural pace, and that language's dental terms pronounced correctly (Castilian for es, European
+  Portuguese for pt). If the configured model fails, the narration is spoken again on tts-1-hd and the
+  failure is logged. A TTS outage loses the tone, not the video.
+
+### Would Anthropic Claude or ElevenLabs be better?
+- **Claude (writer/narrator/reviewer).** This is likely to help most on the weakest number, the voice
+  score (about 3.5 and lowest for formal tr/de). Claude models are strong at natural, non-translated prose
+  in German, Spanish and Turkish, and at keeping to a long list of style and compliance rules. This is
+  untested here. It needs an `ANTHROPIC_API_KEY` and a small adapter in `agentJson` (JSON via a tool or a
+  prefilled `{`). The judge must stay on gpt-4o, so that Claude is not graded by itself or by a different
+  judge than the baseline. It was not integrated: no key.
+- **ElevenLabs (voice).** For non-English narration it is generally rated more natural than OpenAI's voices,
+  especially for Turkish stress and German compounds. It costs more: roughly 3–10× tts-1-hd per minute,
+  depending on the plan. The worker already has an ElevenLabs path (`steps/tts.ts`,
+  `eleven_multilingual_v2`, used for cloned voices). It needs `ELEVENLABS_API_KEY` and a stock voice id
+  per language. `voice-eval.ts` could then compare it in the same test. It was not enabled: no key.
