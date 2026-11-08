@@ -6,6 +6,7 @@ import { ArrowRight, BadgeCheck, Check } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
 import type { DvInterval, DvPlanState, DvTier } from "@/lib/dentvid/billing";
+import { trackDv } from "@/lib/dentvid/events-client";
 
 export type PlanOption = { tier: DvTier; interval: DvInterval; priceUsd: number };
 
@@ -51,6 +52,7 @@ export function PlanPanel({
   async function choose(tier: DvTier, chosen: DvInterval) {
     setBusy(tier);
     setError(null);
+    trackDv("plan_clicked", { locale, props: { tier, interval: chosen, where: bare ? "onboarding" : "app" } });
     try {
       const res = await fetch("/api/dentvideo/checkout", {
         method: "POST",

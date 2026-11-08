@@ -5,6 +5,7 @@ import { dvAdmin } from "@/lib/dentvid/supabase";
 import { readyEmail, sendEmail } from "@/lib/dentvid/email";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
+import { recordEvent } from "@/lib/dentvid/events-server";
 
 /**
  * Called by the worker when a clinic's week or recording is ready: emails
@@ -51,6 +52,8 @@ export async function POST(req: Request) {
   if (!email) return NextResponse.json({ sent: false, reason: "no email" });
 
   const profile = clinic.profile as { name?: string; language?: string };
+  // Funnel: the worker finished a week (or a recording) for this clinic.
+  void recordEvent("week_ready", { db, clinicId, locale: profile.language, props: { kind, ready, flagged } });
   const base = (process.env.NEXT_PUBLIC_DENTVIDEO_URL || `${(process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "")}/dentvideo`).replace(/\/+$/, "");
   const msg = readyEmail({ kind, counts: { ready, flagged }, clinicName: profile.name ?? "", language: profile.language ?? "en", appUrl: `${base}/app` });
   if (!msg) return NextResponse.json({ sent: false, reason: "nothing ready" });

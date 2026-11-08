@@ -167,6 +167,9 @@ export const LIMITS = {
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },
+  // First-party funnel events (POST /api/dentvideo/event): a few per page view.
+  eventIp: { limit: 60, windowSec: 10 * MIN },
+  eventGlobal: { limit: 20_000, windowSec: HOUR },
   // Payment provider; a handful of IPs, retries included.
   dodoWebhookIp: { limit: 600, windowSec: MIN },
   // /api/health?deep=1 makes outbound calls (Supabase, Redis, OpenAI).

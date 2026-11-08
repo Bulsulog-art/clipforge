@@ -6,6 +6,7 @@ import { dvErrors } from "@/lib/dentvid/locale-server";
 import { isOwnLogoPath } from "@/lib/dentvid/paths";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
+import { recordEvent } from "@/lib/dentvid/events-server";
 
 const Body = z.object({
   profile: clinicProfileSchema,
@@ -42,5 +43,10 @@ export async function POST(req: Request) {
     console.error("dentvideo clinic save failed", error.message);
     return NextResponse.json({ error: err.saveFailed }, { status: 500 });
   }
+  void recordEvent("clinic_saved", {
+    locale: body.profile.language,
+    props: { country: body.profile.country, language: body.profile.language },
+    clinicId: data.id as string,
+  });
   return NextResponse.json({ id: data.id });
 }
