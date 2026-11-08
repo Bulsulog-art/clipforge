@@ -7,6 +7,7 @@ import { addressRule, type ClinicProfile } from "./profile.js";
 import { planWeek, type Topic } from "./strategist.js";
 import { reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
+import { inspectVideo, type QaReport } from "../steps/qa.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -34,6 +35,8 @@ export type VideoPackage =
       /** How the dentist can film this topic themselves, in their language. */
       shootCard?: ShootCard;
       videoPath?: string;
+      /** Measurements of the rendered file; issues mean "look before posting". */
+      qa?: QaReport;
     }
   | { status: "rejected"; topic: Topic; stage: "script" | "copy"; reasons: string[] };
 
@@ -206,6 +209,11 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
   ).catch(() => undefined);
   const shootCard = card?.ok ? card.value : undefined;
   const videoPath = deps.render ? await deps.render(script.value, topic) : undefined;
+  // Measure the render before anyone sees it (silent narration, wrong size,
+  // black frames…). A failing video is still delivered, marked with why.
+  const qa = videoPath
+    ? await inspectVideo(videoPath, { width: 1080, height: 1920, minSec: 8, maxSec: 90, expectAudio: true }).catch(() => undefined)
+    : undefined;
   return {
     status: "ready",
     approval: "pending",
@@ -215,6 +223,7 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
     checks: { script: script.checks, copy: post.checks },
     shootCard,
     videoPath,
+    qa,
   };
 }
 

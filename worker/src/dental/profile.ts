@@ -22,6 +22,14 @@ export const clinicProfileSchema = z.object({
   address: z.enum(["formal", "informal"]).default("formal"),
   /** Instagram/TikTok handle without @, shown on the CTA scene. */
   handle: z.string().max(40).optional(),
+  /** The clinic's brand colour, "#1a7f8c" — caption highlights and accents. */
+  brandColor: z
+    .string()
+    .regex(/^#?[0-9a-fA-F]{6}$/)
+    .transform((c) => c.replace(/^#/, "").toUpperCase())
+    .optional(),
+  /** Path or URL of the clinic's logo (PNG with transparency works best). */
+  logo: z.string().max(500).optional(),
   /** Where a viewer books. Goes in the caption, never on screen. */
   bookingUrl: z.string().url().optional(),
 });

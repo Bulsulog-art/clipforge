@@ -26,6 +26,8 @@ type Args = {
   aspect?: string;
   /** Face-tracking crop x-offset (px). Undefined = centre crop (default). */
   faceCropX?: number;
+  /** Brand colour (hex, no #) for the caption and hook highlight. */
+  accentHex?: string;
   workDir: string;
   /** Free tier renders include the ClipForge watermark in the corner. */
   watermark?: boolean;
@@ -106,10 +108,10 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
     fs.writeFile(
       captionFile,
       plan
-        ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle, a.moment.keywords, a.aspect)
-        : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle, a.moment.keywords, a.aspect),
+        ? buildKaraokeASS(plan.words, a.niche, 0, plan.keptDuration, a.captionStyle, a.moment.keywords, a.aspect, a.accentHex)
+        : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle, a.moment.keywords, a.aspect, a.accentHex),
     ),
-    fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche, a.aspect, { top: a.faceCropX != null })),
+    fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche, a.aspect, { top: a.faceCropX != null, accentHex: a.accentHex })),
   ]);
 
   // 2) FFmpeg render: cut → scale → crop 9:16 → burn captions + hook → loudnorm

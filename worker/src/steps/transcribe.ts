@@ -116,11 +116,33 @@ async function transcribeOpenAI(filePath: string, language: string): Promise<Tra
     segments?: { start: number; end: number; text: string }[];
   };
 
-  return {
-    language: r.language,
-    text: r.text,
-    words:
-      r.words ??
-      (r.segments ?? []).map((s) => ({ word: s.text.trim(), start: s.start, end: s.end })),
-  };
+  const words = r.words ?? (r.segments ?? []).map((s) => ({ word: s.text.trim(), start: s.start, end: s.end }));
+  return { language: r.language, text: r.text, words: restorePunctuation(words, r.text) };
+}
+
+const norm = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+
+/**
+ * whisper-1 returns word timestamps without punctuation or sentence case,
+ * while its full `text` has both. Walk the two in order and give each timed
+ * word its punctuated, cased form from the text. Captions then read like
+ * sentences ("Zuerst: Solange …" rather than "zuerst solange …"), and
+ * sentence segmentation finds real sentence ends again. Words that cannot be
+ * matched are left exactly as they were.
+ */
+export function restorePunctuation(words: Word[], text: string): Word[] {
+  const tokens = text.split(/\s+/).filter(Boolean);
+  let j = 0;
+  return words.map((w) => {
+    const target = norm(w.word);
+    if (!target) return w;
+    // Look a few tokens ahead: the text occasionally splits or joins words.
+    for (let k = j; k < Math.min(tokens.length, j + 4); k++) {
+      if (norm(tokens[k]) === target) {
+        j = k + 1;
+        return { ...w, word: tokens[k] };
+      }
+    }
+    return w;
+  });
 }
