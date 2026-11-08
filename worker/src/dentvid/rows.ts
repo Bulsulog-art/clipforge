@@ -19,6 +19,8 @@ export type ItemRow = {
   title: string;
   topic?: unknown;
   plan?: unknown;
+  /** Library photo ids offered for this video (0003_dentvid_backgrounds.sql). */
+  suggested_backgrounds?: string[];
   copy?: unknown;
   spoken?: string;
   checks?: unknown;
@@ -58,6 +60,7 @@ export function rowFromPackage(
     title: pkg.topic.title,
     topic: pkg.topic,
     plan: pkg.plan,
+    ...(pkg.suggestedBackgrounds?.length ? { suggested_backgrounds: pkg.suggestedBackgrounds } : {}),
     copy: pkg.copy,
     checks: pkg.checks,
     findings,

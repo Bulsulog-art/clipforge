@@ -66,6 +66,17 @@ export type AppText = {
     shareHint: string;
     decline: string;
     undo: string;
+    /** "Background photos": the picker under each generated video. */
+    photos: {
+      title: string;
+      hint: string;
+      selected: string;
+      apply: string;
+      applying: string;
+      updating: string;
+      failed: string;
+      photoAlt: string;
+    };
   };
   form: {
     clinicName: string;
@@ -144,6 +155,8 @@ export type AppText = {
   };
   errors: {
     signIn: string;
+    invalidPhotos: string;
+    photosBusy: string;
     setupFirst: string;
     invalidUpload: string;
     couldNotStart: string;
@@ -235,6 +248,16 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Caption copied — choose Instagram or TikTok, then paste it.",
       decline: "Decline",
       undo: "Undo",
+      photos: {
+        title: "Background photos",
+        hint: "Tap 1–4 photos to rotate behind the text. Your video is re-made with them.",
+        selected: "{n} of 4 selected",
+        apply: "Apply",
+        applying: "Saving…",
+        updating: "Updating your video with the new photos…",
+        failed: "Updating the photos didn't work. Try again.",
+        photoAlt: "Background photo {n}",
+      },
     },
     form: {
       clinicName: "Clinic name",
@@ -337,6 +360,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     errors: {
       signIn: "Please sign in again.",
+      invalidPhotos: "Choose between 1 and 4 photos from the list.",
+      photosBusy: "This video is already being updated.",
       setupFirst: "Set up your clinic first.",
       invalidUpload: "That upload could not be used. Please try again.",
       couldNotStart: "Could not start — please try again.",
@@ -427,6 +452,16 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Text kopiert – Instagram oder TikTok wählen und einfügen.",
       decline: "Ablehnen",
       undo: "Rückgängig",
+      photos: {
+        title: "Hintergrundfotos",
+        hint: "Tippen Sie 1–4 Fotos an, die hinter dem Text wechseln. Das Video wird damit neu erstellt.",
+        selected: "{n} von 4 ausgewählt",
+        apply: "Übernehmen",
+        applying: "Wird gespeichert…",
+        updating: "Ihr Video wird mit den neuen Fotos aktualisiert…",
+        failed: "Die Fotos konnten nicht übernommen werden. Bitte erneut versuchen.",
+        photoAlt: "Hintergrundfoto {n}",
+      },
     },
     form: {
       clinicName: "Name der Praxis",
@@ -534,6 +569,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     errors: {
       signIn: "Bitte melden Sie sich erneut an.",
+      invalidPhotos: "Wählen Sie 1 bis 4 Fotos aus der Liste.",
+      photosBusy: "Dieses Video wird bereits aktualisiert.",
       setupFirst: "Bitte richten Sie zuerst Ihre Praxis ein.",
       invalidUpload: "Diese Datei konnte nicht verwendet werden. Bitte versuchen Sie es erneut.",
       couldNotStart: "Der Start hat nicht geklappt – bitte versuchen Sie es erneut.",
@@ -624,6 +661,16 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Texto copiado: elige Instagram o TikTok y pégalo.",
       decline: "Descartar",
       undo: "Deshacer",
+      photos: {
+        title: "Fotos de fondo",
+        hint: "Toque de 1 a 4 fotos para que roten detrás del texto. El vídeo se vuelve a crear con ellas.",
+        selected: "{n} de 4 seleccionadas",
+        apply: "Aplicar",
+        applying: "Guardando…",
+        updating: "Actualizando su vídeo con las nuevas fotos…",
+        failed: "No se pudieron aplicar las fotos. Inténtelo de nuevo.",
+        photoAlt: "Foto de fondo {n}",
+      },
     },
     form: {
       clinicName: "Nombre de la clínica",
@@ -727,6 +774,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     errors: {
       signIn: "Vuelve a iniciar sesión.",
+      invalidPhotos: "Elija entre 1 y 4 fotos de la lista.",
+      photosBusy: "Este vídeo ya se está actualizando.",
       setupFirst: "Primero configura tu clínica.",
       invalidUpload: "No pudimos usar ese archivo. Inténtalo de nuevo.",
       couldNotStart: "No se pudo empezar. Inténtalo de nuevo.",
@@ -817,6 +866,16 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Açıklama kopyalandı — Instagram'ı veya TikTok'u seçip yapıştırın.",
       decline: "Reddet",
       undo: "Geri al",
+      photos: {
+        title: "Arka plan fotoğrafları",
+        hint: "Metnin arkasında dönecek 1–4 fotoğrafa dokunun. Videonuz bunlarla yeniden hazırlanır.",
+        selected: "4 fotoğraftan {n} seçildi",
+        apply: "Uygula",
+        applying: "Kaydediliyor…",
+        updating: "Videonuz yeni fotoğraflarla güncelleniyor…",
+        failed: "Fotoğraflar uygulanamadı. Lütfen tekrar deneyin.",
+        photoAlt: "Arka plan fotoğrafı {n}",
+      },
     },
     form: {
       clinicName: "Klinik adı",
@@ -920,6 +979,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     errors: {
       signIn: "Lütfen yeniden giriş yapın.",
+      invalidPhotos: "Listeden 1 ile 4 arasında fotoğraf seçin.",
+      photosBusy: "Bu video zaten güncelleniyor.",
       setupFirst: "Önce kliniğinizi tanımlayın.",
       invalidUpload: "Bu dosya kullanılamadı. Lütfen tekrar deneyin.",
       couldNotStart: "Başlatılamadı, lütfen tekrar deneyin.",
@@ -1010,6 +1071,16 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Texte copié : choisissez Instagram ou TikTok, puis collez-le.",
       decline: "Refuser",
       undo: "Annuler",
+      photos: {
+        title: "Photos d'arrière-plan",
+        hint: "Touchez 1 à 4 photos qui défileront derrière le texte. La vidéo est refaite avec elles.",
+        selected: "{n} sur 4 sélectionnées",
+        apply: "Appliquer",
+        applying: "Enregistrement…",
+        updating: "Mise à jour de votre vidéo avec les nouvelles photos…",
+        failed: "Les photos n'ont pas pu être appliquées. Réessayez.",
+        photoAlt: "Photo d'arrière-plan {n}",
+      },
     },
     form: {
       clinicName: "Nom du cabinet",
@@ -1121,6 +1192,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     errors: {
       signIn: "Merci de vous reconnecter.",
+      invalidPhotos: "Choisissez entre 1 et 4 photos dans la liste.",
+      photosBusy: "Cette vidéo est déjà en cours de mise à jour.",
       setupFirst: "Commencez par configurer votre cabinet.",
       invalidUpload: "Ce fichier n'a pas pu être utilisé. Merci de réessayer.",
       couldNotStart: "Le lancement a échoué, merci de réessayer.",

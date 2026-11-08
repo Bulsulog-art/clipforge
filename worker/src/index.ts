@@ -5,7 +5,7 @@ import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
-import { dentvidDb, runDentvidRecording, runDentvidWeek } from "./dentvid/jobs.js";
+import { dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek } from "./dentvid/jobs.js";
 import { dispatchWeeks } from "./dentvid/schedule.js";
 import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
@@ -80,6 +80,7 @@ const dentvidWorker = new Worker(
     try {
       if (job.name === "week") return await runDentvidWeek(job.data);
       if (job.name === "recording") return await runDentvidRecording(job.data);
+      if (job.name === "restyle") return await runDentvidRestyle(job.data);
       if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue);
       throw new Error(`unknown dentvid job ${job.name}`);
     } catch (e) {
