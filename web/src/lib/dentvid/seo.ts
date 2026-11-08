@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { absoluteUrl } from "@/lib/site";
-import { GUIDES, LANDING, LANDING_PATH, LOCALES, HREFLANG, guidePath, type Guide, type Locale } from "@/content/dentvideo";
+import { GUIDES, LANDING, SAMPLE_VIDEOS, LANDING_PATH, LOCALES, HREFLANG, guidePath, type Guide, type Locale } from "@/content/dentvideo";
 
 /** hreflang map for the landings: every locale plus x-default (English). */
 export function landingAlternates(): Record<string, string> {
@@ -49,6 +49,17 @@ export function landingJsonLd(locale: Locale) {
         publisher: PUBLISHER,
       },
       { ...faqPage(c.faq), inLanguage: locale },
+      ...SAMPLE_VIDEOS.map((v) => ({
+        "@type": "VideoObject",
+        name: v.name,
+        description: `${c.samples.heading} — DentVideo`,
+        thumbnailUrl: absoluteUrl(`/dentvideo/samples/${v.slug}.jpg`),
+        contentUrl: absoluteUrl(`/dentvideo/samples/${v.slug}.mp4`),
+        uploadDate: "2026-11-08",
+        duration: `PT${v.seconds}S`,
+        inLanguage: "en",
+        publisher: PUBLISHER,
+      })),
     ],
   };
 }
