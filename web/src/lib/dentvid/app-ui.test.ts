@@ -77,7 +77,7 @@ describe("nextAction and approvable", () => {
 
 describe("dates", () => {
   it("labels a week by its Monday in the clinic's language, without shifting a day", () => {
-    expect(weekLabelDate("2026-11-02", "en")).toBe("November 2");
+    expect(weekLabelDate("2026-11-02", "en")).toBe("2 November");
     expect(weekLabelDate("2026-11-02", "de")).toBe("2. November");
     expect(weekLabelDate("2026-11-02", "tr")).toBe("2 Kasım");
     expect(weekLabelDate("nope", "en")).toBe("nope");
