@@ -170,12 +170,25 @@ export const TYPE = {
   caption: 40,
 } as const;
 
-/** Longer lines need to come down a step or they wrap into a wall. */
+/** Width text may use, in 1080-wide authoring units: the frame minus the 8.5% safe margin each side. */
+const TEXT_WIDTH = 1080 * (1 - 2 * 0.085);
+/** A generous average advance of one bold glyph, in ems. */
+const GLYPH_EM = 0.62;
+
+/**
+ * Longer lines need to come down a step or they wrap into a wall. And no
+ * single word may be wider than the frame: a line can wrap between words but
+ * not inside one, so German and Turkish compounds ("Zahnfleischprobleme",
+ * "Temizlenmediğinde") ran off the right edge at full size.
+ */
 export function fitText(size: number, text: string, comfortable = 42): number {
-  if (text.length <= comfortable) return size;
-  const ratio = comfortable / text.length;
-  // Never below 58% — past that the shrinking is what looks broken.
-  return Math.round(size * Math.max(0.58, Math.sqrt(ratio)));
+  let fitted = size;
+  if (text.length > comfortable) {
+    // Never below 58% for length alone — past that the shrinking is what looks broken.
+    fitted = Math.round(size * Math.max(0.58, Math.sqrt(comfortable / text.length)));
+  }
+  const longest = Math.max(1, ...text.split(/\s+/).map((w) => [...w].length));
+  return Math.min(fitted, Math.floor(TEXT_WIDTH / (longest * GLYPH_EM)));
 }
 
 // MARK: - Contrast
