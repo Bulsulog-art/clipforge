@@ -1,5 +1,7 @@
 /**
- * The one email DentVideo sends: "your videos are ready for your review".
+ * "Your videos are ready for your review" — the service email every paying
+ * clinic gets — and the Resend sender all DentVideo mail goes through.
+ * Lifecycle mail (welcome, reminders) is in lifecycle-email.ts.
  *
  * Plain, short and in the clinic's language. It says how many videos are
  * ready and how many need a look, and links straight to the library. It
@@ -202,16 +204,37 @@ export function readyEmail(args: {
   return { subject, html, text };
 }
 
+export type SendOptions = {
+  /** Extra MIME headers, e.g. List-Unsubscribe / List-Unsubscribe-Post. */
+  headers?: Record<string, string>;
+  /** Resend keeps one send per key for 24 hours: a retried call cannot mail twice. */
+  idempotencyKey?: string;
+};
+
 /** Sends through Resend. Returns false (never throws) when it cannot. */
-export async function sendEmail(to: string, msg: { subject: string; html: string; text: string }): Promise<boolean> {
+export async function sendEmail(to: string, msg: { subject: string; html: string; text: string }, opts: SendOptions = {}): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
   const from = process.env.DENTVIDEO_EMAIL_FROM || "DentVideo <hello@dentvideo.com>";
+  const replyTo = process.env.DENTVIDEO_EMAIL_REPLY_TO || "hello@dentvideo.com";
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject: msg.subject, html: msg.html, text: msg.text }),
+      headers: {
+        authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+        ...(opts.idempotencyKey ? { "idempotency-key": opts.idempotencyKey } : {}),
+      },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        reply_to: replyTo,
+        subject: msg.subject,
+        html: msg.html,
+        text: msg.text,
+        ...(opts.headers ? { headers: opts.headers } : {}),
+      }),
+      signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) console.error("dentvideo email failed", res.status, (await res.text()).slice(0, 300));
     return res.ok;
