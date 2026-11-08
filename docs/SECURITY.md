@@ -54,6 +54,8 @@ signed = provider signature. **Limit** after this change; ⚠ = a gap found
 | `POST /api/dodo/webhook` | signed (Standard Webhooks HMAC, 5-min timestamp tolerance — verified) | DB writes; DentVideo activation queues the first week | 600/min per IP; body ≤ 256 KB; **replay protection**: each `webhook-id` processed once (Redis, 7 days), failed deliveries released for Dodo's retry | ⚠ signed request could be replayed within 5 min; raw DB error text returned |
 | `POST /api/revenuecat/webhook` | bearer secret | DB writes | global per-IP | — |
 | `POST /api/internal/dentvideo/notify` | worker (bearer, constant-time compare) | 1 Resend email | 6/h per clinic, 300/h global | ⚠ leaked token = unlimited emails to every clinic |
+| `POST /api/internal/dentvideo/lifecycle` | worker, hourly (bearer, constant-time compare) | ≤ 50 reminder emails per run | 6 runs/h; 100 reminders/h global; once per clinic and kind (`dentvid_email_log`) | a leaked token can only send reminders that are already due, once |
+| `GET`/`POST /api/dentvideo/unsubscribe?t=` | anyone with the signed link (HMAC token). GET only shows a confirm page (link scanners cannot opt out); POST = the button or RFC 8058 one-click, exempt from the Origin check | 1 DB write (POST only) | 30 / 10 min per IP | — |
 | `GET /api/health?deep=1` | anon | outbound calls to Supabase, Redis, OpenAI | 10/min per IP; error text no longer exposed | ⚠ public amplifier; leaked raw error messages |
 | `GET /api/health` | anon | none | excluded from middleware | — |
 
@@ -186,6 +188,10 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `OWNER_ALERT_EMAIL` | worker | — (alerts only logged) | where spend-guard alerts go |
 | `RESEND_API_KEY` | worker (already on web) | — | needed for worker alerts |
 | `DENTVIDEO_EMAIL_FROM` | worker (optional) | `DentVideo <hello@dentvideo.com>` | sender |
+| `DENTVIDEO_EMAIL_REPLY_TO` | web (optional) | `hello@dentvideo.com` | reply-to on every DentVideo email |
+| `DENTVIDEO_UNSUBSCRIBE_SECRET` | web | falls back to `WORKER_INTERNAL_TOKEN` | signs unsubscribe links; changing it invalidates links already sent |
+| `DENTVIDEO_LIFECYCLE_EMAILS` | web | on | `off` = no welcome / reminder emails |
+| `DENTVIDEO_LIFECYCLE_MAX_PER_RUN` | web | `50` | reminders per hourly run |
 | `DENTVID_PAUSE_GENERATION` | worker | off | `1` = kill switch for all DentVideo paid work |
 | `DENTVID_DAILY_USD_CAP` | worker | `20` | floor of the global DentVideo $ per UTC day |
 | `DENTVID_MONTHLY_USD_CAP` | worker | `300` | floor of the global DentVideo $ per month |

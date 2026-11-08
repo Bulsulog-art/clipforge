@@ -9,6 +9,7 @@ import { configureSpend, countActiveClinics, dentvidDb, runDentvidRecording, run
 import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
 import { RedisParkStore, resumeParked } from "./dentvid/park.js";
 import { dispatchWeeks } from "./dentvid/schedule.js";
+import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
 import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -117,6 +118,25 @@ if (process.env.DENTVID_SUPABASE_URL) {
 }
 dentvidWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed"));
 
+// DentVideo lifecycle email (welcome is sent by the payment webhook; this is
+// the unpaid-clinic reminders): hourly, on its own small queue so it never
+// waits behind a Monday of renders. The web app decides and sends
+// (api/internal/dentvideo/lifecycle) — idempotent and capped per hour there.
+const dentvidMailQueue = new Queue("dentvid-mail", { connection });
+const dentvidMailWorker = new Worker(
+  "dentvid-mail",
+  async (job) => {
+    if (job.name === "lifecycle") return await runLifecycle();
+    throw new Error(`unknown dentvid-mail job ${job.name}`);
+  },
+  { connection, concurrency: 1, removeOnComplete: { count: 200 }, removeOnFail: { count: 200 } },
+);
+if (process.env.DENTVID_SUPABASE_URL) {
+  dentvidMailQueue
+    .upsertJobScheduler("dentvid-lifecycle", LIFECYCLE_SCHEDULE, { name: "lifecycle", data: {} })
+    .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: lifecycle scheduler setup failed"));
+}
+
 // Parked dentvid jobs go back on the queue once the spend guard has room
 // again (cap raised, clinic count readable again, pause lifted, Redis back,
 // next day / month) — checked every DENTVID_PARK_RESUME_MIN minutes (15), so
@@ -198,6 +218,8 @@ async function shutdown(signal: string) {
     derivativeWorker.close(),
     dentvidWorker.close(),
     dentvidQueue.close(),
+    dentvidMailWorker.close(),
+    dentvidMailQueue.close(),
   ]);
   await Sentry.flush(2000);
   await connection.quit();

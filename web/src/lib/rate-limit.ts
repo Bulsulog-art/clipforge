@@ -173,6 +173,13 @@ export const LIMITS = {
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },
+  // Lifecycle reminders (welcome is once per clinic). A hard ceiling on
+  // reminder emails per hour, whatever the scheduler finds due.
+  lifecycleGlobal: { limit: 100, windowSec: HOUR },
+  // The hourly worker call itself.
+  lifecycleRun: { limit: 6, windowSec: HOUR },
+  // Unsubscribe links (signed, no login).
+  unsubscribeIp: { limit: 30, windowSec: 10 * MIN },
   // Payment provider; a handful of IPs, retries included.
   dodoWebhookIp: { limit: 600, windowSec: MIN },
   // /api/health?deep=1 makes outbound calls (Supabase, Redis, OpenAI).
