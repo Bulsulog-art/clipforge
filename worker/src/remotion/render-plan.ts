@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { webpackOverride } from "./webpack-override.js";
-import { dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
+import { LIMITS, dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
 import { resolveStockClips } from "./stock.js";
 import { stageBackgrounds } from "./backgrounds.js";
@@ -277,6 +277,9 @@ async function renderStaged(
 
   const footageScenes = plan.scenes.filter((s) => s.kind === "footage").length;
   const missingFootage = footageScenes - Object.keys(footage).length;
+  if (missingFootage > 0) onWarn?.(`${missingFootage} footage scene(s) without a clip; captions shown on the brand look`);
+  // A footage scene with no clip and no caption would be an empty frame.
+  const filled = withoutEmptyFootage(plan, footage);
 
   // Library photos behind the text (plan.backgrounds), staged like everything
   // else. If none could be had, the plan goes out without them: a plain
@@ -284,9 +287,9 @@ async function renderStaged(
   const backgroundSrcs = await stageBackgrounds(plan.backgrounds, { assetDir, renderId, onWarn });
 
   const inputProps = {
-    plan: plan.backgrounds && !backgroundSrcs.length ? { ...plan, backgrounds: undefined } : plan,
+    plan: plan.backgrounds && !backgroundSrcs.length ? { ...filled.plan, backgrounds: undefined } : filled.plan,
     ...(backgroundSrcs.length ? { backgroundSrcs } : {}),
-    footage,
+    footage: filled.footage,
     voiceoverSrc: stagedVoiceover,
     musicSrc: stagedMusic,
     watermark,
@@ -330,3 +333,48 @@ async function renderStaged(
 
 /** Exported for the job layer: where each scene begins, for progress reporting. */
 export { sceneOffsets };
+
+/**
+ * A footage scene whose clip could not be had (no PEXELS_API_KEY, no result,
+ * a failed download) still shows its caption on the brand look. One with no
+ * caption either would ship an empty frame — never acceptable — so its time
+ * goes to the scene before it (or after it, for the first scene), keeping
+ * the total length the narration was timed to. Footage indices are remapped.
+ */
+export function withoutEmptyFootage(plan: ScenePlan, footage: Record<string, string>): { plan: ScenePlan; footage: Record<string, string> } {
+  const empty = (i: number) => {
+    const s = plan.scenes[i];
+    return s.kind === "footage" && !footage[String(i)] && !s.caption?.trim();
+  };
+  if (!plan.scenes.some((_, i) => empty(i)) || plan.scenes.every((_, i) => empty(i))) return { plan, footage };
+  const scenes = plan.scenes.map((s) => ({ ...s }));
+  const keep = scenes.map((_, i) => !empty(i));
+  const max = LIMITS.sceneSeconds.max;
+  scenes.forEach((s, i) => {
+    if (keep[i]) return;
+    // Its time goes to the neighbours, each only up to the per-scene limit.
+    const prev = scenes.slice(0, i).map((_, j) => j).reverse().find((j) => keep[j]);
+    const next = scenes.map((_, j) => j).find((j) => j > i && keep[j]);
+    const targets = [prev, next].filter((j): j is number => j !== undefined);
+    const room = targets.reduce((r, j) => r + Math.max(0, max - scenes[j].seconds), 0);
+    if (room + 1e-6 < s.seconds) {
+      keep[i] = true; // nowhere to put it: keep the scene (brand background) rather than break the plan
+      return;
+    }
+    let left = s.seconds;
+    for (const j of targets) {
+      const add = Math.min(left, max - scenes[j].seconds);
+      scenes[j].seconds = Math.round((scenes[j].seconds + add) * 100) / 100;
+      left -= add;
+    }
+  });
+  const remapped: Record<string, string> = {};
+  let n = 0;
+  scenes.forEach((_, i) => {
+    if (!keep[i]) return;
+    if (footage[String(i)]) remapped[String(n)] = footage[String(i)];
+    n++;
+  });
+  return { plan: { ...plan, scenes: scenes.filter((_, i) => keep[i]) } as ScenePlan, footage: remapped };
+}
+

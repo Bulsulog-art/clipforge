@@ -7,7 +7,7 @@ import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan";
 import type { ScenePlan } from "./scene-plan";
 import { brandTheme, localizeTheme, theme as resolveTheme } from "./theme";
 import { isRtl } from "./script";
-import { sceneOpacity } from "./animation";
+import { sceneWindows, windowOpacity, type SceneWindow } from "./animation";
 import { SceneView } from "./scenes/index";
 import { Watermark } from "./Watermark";
 import { LogoMark } from "./LogoMark";
@@ -72,6 +72,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   // Over photos, muted and accent text are lifted just enough to stay readable (photo-overlay.ts).
   const sceneTheme = photos.length ? photoTheme(t) : t;
   const offsets = sceneOffsets(plan);
+  const windows = sceneWindows(offsets, plan.scenes.map(sceneFrames));
   const logo = logoSrc ? { src: asStatic(logoSrc), style: logoStyle } : undefined;
   // The sign-off shows the logo large; the corner mark steps aside for it.
   const ctaIndex = logo ? plan.scenes.findIndex((s) => s.kind === "cta") : -1;
@@ -83,11 +84,12 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
       {photos.length ? <BackgroundLayer srcs={photos} theme={t} /> : null}
       <PhotoBackdrop.Provider value={photos.length > 0}>
       {plan.scenes.map((scene, i) => {
-        const durationInFrames = sceneFrames(scene);
+        const win = windows[i];
+        const durationInFrames = win.durationInFrames;
         return (
           <Sequence
             key={i}
-            from={offsets[i]}
+            from={win.from}
             durationInFrames={durationInFrames}
             // Scenes overlap by the fade length so the outgoing frame is still
             // on screen while the next one comes up.
@@ -97,6 +99,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
               scene={scene}
               theme={sceneTheme}
               durationInFrames={durationInFrames}
+              window={win}
               footageSrc={footage[String(i)]}
               logo={logo}
             />
@@ -128,12 +131,13 @@ const FadingScene: React.FC<{
   scene: ScenePlan["scenes"][number];
   theme: ReturnType<typeof resolveTheme>;
   durationInFrames: number;
+  window: SceneWindow;
   footageSrc?: string;
   logo?: { src: string; style?: LogoStyle };
-}> = ({ scene, theme, durationInFrames, footageSrc, logo }) => {
+}> = ({ scene, theme, durationInFrames, window, footageSrc, logo }) => {
   const frame = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, durationInFrames) }}>
+    <AbsoluteFill style={{ opacity: windowOpacity(frame, window) }}>
       <SceneView
         scene={scene}
         theme={theme}

@@ -61,3 +61,25 @@ describe("scripts", () => {
     expect(fontStackFor("en", "body")).toBeUndefined();
   });
 });
+
+describe("fonts the renderer actually has", () => {
+  const LANGS = ["en", "de", "es", "fr", "it", "pt", "tr", "ja", "ar", "pl"];
+  const first = (stack: string) => stack.split(",")[0].trim().replace(/^"|"$/g, "");
+  it("every theme, in every pipeline language, leads with a font installed in the worker image", async () => {
+    const { THEME_LIST, RENDER_FONTS } = await import("./theme.js");
+    for (const t of THEME_LIST)
+      for (const lang of LANGS) {
+        const l = localizeTheme(t, lang);
+        expect(RENDER_FONTS, `${t.id}/${lang} display`).toContain(first(l.displayFont));
+        expect(RENDER_FONTS, `${t.id}/${lang} body`).toContain(first(l.bodyFont));
+      }
+  });
+  it("the worker Dockerfile installs and checks every one of them", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const { RENDER_FONTS } = await import("./theme.js");
+    const docker = fs.readFileSync(path.resolve(__dirname, "../../Dockerfile"), "utf8");
+    for (const pkg of ["fonts-inter", "fonts-noto-core", "fonts-noto-cjk"]) expect(docker).toContain(pkg);
+    for (const f of RENDER_FONTS) expect(docker, f).toMatch(new RegExp(`(grep -q "${f}"|family=${f}:)`));
+  });
+});

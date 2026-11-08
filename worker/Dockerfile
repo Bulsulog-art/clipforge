@@ -46,7 +46,8 @@ ENV NODE_ENV=production
 
 # ffmpeg + libass (for ASS karaoke captions) + Inter font + emoji + Twemoji,
 # Noto Sans CJK (Japanese videos: without it every kanji renders as a tofu box)
-# and Noto Core (Noto Sans/Kufi Arabic for Arabic videos — see src/remotion/script.ts),
+# and Noto Core (Noto Sans/Kufi Arabic for Arabic videos — see src/remotion/script.ts —
+# and Noto Serif Display for the Editorial theme; RENDER_FONTS in src/remotion/theme.ts),
 # plus the shared libraries headless Chromium needs. Remotion renders every
 # frame in a real browser, so without these the generate queue fails on its
 # first job with a linker error and nothing else in the image explains why.
@@ -120,6 +121,11 @@ RUN fc-match "Inter Bold" \
   && fc-list | grep -q "Noto Sans CJK JP" \
   && fc-list | grep -q "Noto Kufi Arabic" \
   && fc-list | grep -q "Noto Sans Arabic" \
+  && fc-list | grep -q "Noto Serif Display" \
+  && fc-list | grep -q "Noto Sans CJK SC" \
+  && fc-list | grep -q "Noto Sans CJK TC" \
+  && fc-list ":family=Inter:charset=0104 0105 0106 0107 0118 0119 0141 0142 0143 0144 015a 015b 0179 017a 017b 017c 011f 015f 0130 0131" family | grep -q Inter \
+  && fc-list ":family=Noto Serif Display:charset=0104 0105 0106 0107 0118 0119 0141 0142 0143 0144 015a 015b 0179 017a 017b 017c 011f 015f 0130 0131" family | grep -q "Noto Serif Display" \
   && ffmpeg -h filter=ass > /dev/null \
   && yt-dlp --version \
   && node -e "require('@remotion/renderer').ensureBrowser().then(()=>console.log('chromium ok')).catch(e=>{console.error('chromium FAILED:',e.message);process.exit(1)})" \

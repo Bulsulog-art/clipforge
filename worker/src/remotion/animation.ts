@@ -79,6 +79,36 @@ export function entrance(
  * Fade at both ends of a scene so cuts never hard-snap. Returns 1 through the
  * middle. `hold` frames are left untouched at full opacity.
  */
+/**
+ * Where each scene sits on the timeline, drawn as a real cross-dissolve.
+ *
+ * Scenes used to fade out to the background and the next one fade in after
+ * it, with the next scene's text still waiting on its entrance delay: about
+ * 0.4 s of empty frame at every cut — a contact sheet caught one and it read
+ * as a blank video. Now every scene after the first starts CROSSFADE frames
+ * early, on top of the one before, and fades in over it; the outgoing scene
+ * stays fully drawn underneath. Only the last scene fades out (the video's
+ * end). Scene lengths and the total running time are unchanged.
+ */
+export const CROSSFADE = 8;
+
+export type SceneWindow = { from: number; durationInFrames: number; fadeIn: boolean; fadeOut: boolean };
+
+export function sceneWindows(offsets: number[], frames: number[]): SceneWindow[] {
+  return offsets.map((offset, i) => {
+    const lead = i > 0 ? Math.min(CROSSFADE, offset) : 0;
+    return { from: offset - lead, durationInFrames: frames[i] + lead, fadeIn: true, fadeOut: i === offsets.length - 1 };
+  });
+}
+
+/** Opacity of a scene inside its window (sceneWindows). */
+export function windowOpacity(frame: number, w: Pick<SceneWindow, "durationInFrames" | "fadeIn" | "fadeOut">, fade = CROSSFADE): number {
+  if (w.durationInFrames <= fade * 2) return 1;
+  const inP = w.fadeIn ? easeInOut(frame / fade) : 1;
+  const outP = w.fadeOut ? easeInOut((w.durationInFrames - frame) / fade) : 1;
+  return Math.min(1, inP, outP);
+}
+
 export function sceneOpacity(
   frame: number,
   durationInFrames: number,

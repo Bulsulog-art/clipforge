@@ -51,7 +51,28 @@ export type Theme = {
 };
 
 const SANS = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
-const SERIF = '"Playfair Display", Georgia, "Times New Roman", serif';
+// Playfair Display was never installed in the worker image, so the Editorial
+// look rendered in whatever serif fontconfig fell back to (Times-like
+// Liberation/DejaVu). Noto Serif Display — a high-contrast display serif from
+// fonts-noto-core, with full Latin Extended (ą ę ł ń ś ź ż, ğ ş İ, ő ű) — is
+// what renders now; Playfair stays second for browsers that have it.
+const SERIF = '"Noto Serif Display", "Playfair Display", Georgia, "Times New Roman", serif';
+
+/**
+ * Every family a theme or a language stack leads with, all installed in the
+ * worker image (worker/Dockerfile checks each one at build time). A family
+ * that is not here renders in a fallback nobody chose — theme.test.ts fails
+ * if a theme or a language's stack starts with anything else.
+ */
+export const RENDER_FONTS = [
+  "Inter", // fonts-inter
+  "Noto Serif Display", // fonts-noto-core
+  "Noto Sans CJK JP", // fonts-noto-cjk
+  "Noto Sans CJK SC",
+  "Noto Sans CJK TC",
+  "Noto Kufi Arabic", // fonts-noto-core
+  "Noto Sans Arabic",
+] as const;
 
 export const THEME_LIST: Theme[] = [
   {

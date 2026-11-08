@@ -5,6 +5,7 @@ import { PHRASE_BREAK } from "../script.js";
 import { TYPE, backgroundCss, fitText, leading, tracking } from "../theme.js";
 import { entrance, kenBurns } from "../animation.js";
 import { useScale, useSafeArea } from "./primitives.js";
+import { usePhotoBackdrop } from "../background-layer.js";
 import type { Scene } from "../scene-plan.js";
 
 /**
@@ -35,9 +36,14 @@ export const FootageScene: React.FC<{
   // A bare filename lives in the render's public directory; anything with a
   // scheme is already fetchable as-is.
   const resolvedSrc = src && !/^https?:/.test(src) ? staticFile(src) : src;
+  // No clip (no stock key, no result, a failed download): the caption sits on
+  // the video's library photos when it has them, on the brand background
+  // otherwise. A scene with neither clip nor caption never reaches here —
+  // render-plan.ts folds it into its neighbour (withoutEmptyFootage).
+  const photo = usePhotoBackdrop();
 
   return (
-    <AbsoluteFill style={{ background: backgroundCss(theme) }}>
+    <AbsoluteFill style={{ background: !resolvedSrc && photo ? "transparent" : backgroundCss(theme) }}>
       {resolvedSrc ? (
         <AbsoluteFill style={{ overflow: "hidden" }}>
           <OffthreadVideo

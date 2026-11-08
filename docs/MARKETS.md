@@ -414,3 +414,13 @@ Agent cost: $0.043 per video.
 
 **Renders:** one real CLI video per language (34.8 s ja, 36.5 s ar, 32.6 s pl, QA ok): no tofu, Japanese wraps
 between phrases, Arabic is right-to-left (list badges, compare cards, logo mirrored to the top left, @handle kept LTR).
+
+**Review fixes (same PR):** the Editorial theme asked for Playfair Display, which the worker image never had, so it
+rendered in a Times-like fallback. It now leads with Noto Serif Display (fonts-noto-core, full Latin Extended), every
+theme × language is tested to lead with an installed family, and the Dockerfile checks Polish/Turkish glyph coverage.
+Cuts are now a real cross-dissolve (the old fade-out/fade-in left ~0.4 s of empty frame at every cut). Footage without
+a clip shows its caption on the library photos or the brand background, and a caption-less one is folded into its
+neighbour. The shipped photo library only has whitening, implant and aligner photos, so cleaning/root-canal/kids topics
+get no photos in any language until photos for those categories are added; the ja/ar/pl keywords for every category
+are in place and tested.
+

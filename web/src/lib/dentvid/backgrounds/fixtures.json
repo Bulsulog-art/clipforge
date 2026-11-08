@@ -286,5 +286,98 @@
    "aligners-11",
    "implants-07"
   ]
+ },
+ {
+  "name": "ja whitening",
+  "input": {
+   "topic": "ホワイトニング後、コーヒーで着色する？",
+   "service": "ホワイトニング",
+   "language": "ja",
+   "plan": {
+    "title": "ホワイトニングと着色",
+    "aspect": "9:16",
+    "theme": "editorial",
+    "music": "none",
+    "scenes": [
+     {
+      "kind": "hook",
+      "text": "白さはどれくらい続く？",
+      "seconds": 3
+     },
+     {
+      "kind": "list",
+      "heading": "白さを保つコツ",
+      "items": [
+       "コーヒーや紅茶を控える",
+       "定期的なクリーニング"
+      ],
+      "seconds": 4
+     }
+    ]
+   }
+  },
+  "expected": [
+   "whitening-15",
+   "whitening-01",
+   "whitening-02",
+   "whitening-03",
+   "whitening-04",
+   "whitening-05",
+   "whitening-07",
+   "whitening-08",
+   "whitening-09",
+   "whitening-10",
+   "whitening-11",
+   "whitening-12",
+   "whitening-13",
+   "whitening-14",
+   "whitening-16",
+   "whitening-17"
+  ]
+ },
+ {
+  "name": "ar implants by topic only",
+  "count": 12,
+  "input": {
+   "topic": "زراعة الأسنان: كم تستغرق؟",
+   "language": "ar"
+  },
+  "expected": [
+   "implants-01",
+   "implants-02",
+   "implants-03",
+   "implants-04",
+   "implants-05",
+   "implants-06",
+   "implants-07",
+   "implants-09",
+   "implants-10",
+   "implants-11",
+   "implants-14",
+   "implants-15"
+  ]
+ },
+ {
+  "name": "pl aligners by service",
+  "count": 12,
+  "input": {
+   "topic": "Ile godzin nosić nakładki?",
+   "service": "Nakładki ortodontyczne",
+   "language": "pl"
+  },
+  "expected": [
+   "aligners-08",
+   "aligners-02",
+   "aligners-03",
+   "aligners-04",
+   "aligners-11",
+   "aligners-14",
+   "aligners-05",
+   "whitening-01",
+   "implants-01",
+   "whitening-02",
+   "implants-02",
+   "whitening-03"
+  ]
  }
 ]
