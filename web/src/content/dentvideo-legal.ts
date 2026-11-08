@@ -21,7 +21,7 @@ export type LegalDoc = {
 };
 
 export const LEGAL_UPDATED = "2026-11-08";
-export const LEGAL_CONTACT = "info@bulsulabs.com";
+export const LEGAL_CONTACT = "hello@dentvideo.com";
 
 /** Languages with their own legal text. Others use English. */
 export const LEGAL_LOCALES = ["en", "tr"] as const;
@@ -47,7 +47,7 @@ const TERMS_EN: LegalDoc = {
   updatedLabel: "Last updated",
   intro: [
     "DentVideo (dentvideo.com) is a service operated by Bulsu Labs (\"we\", \"us\"). These terms are the agreement between us and the clinic or professional who creates a DentVideo account (\"you\"). By creating an account or paying for a plan you accept them. If you accept them on behalf of a clinic, you confirm you may bind that clinic.",
-    "We wrote these terms in plain language. If something is unclear, write to info@bulsulabs.com before you subscribe.",
+    "We wrote these terms in plain language. If something is unclear, write to hello@dentvideo.com before you subscribe.",
   ],
   sections: [
     {
@@ -67,7 +67,7 @@ const TERMS_EN: LegalDoc = {
     {
       heading: "3. Your account",
       blocks: [
-        "Give accurate details about your clinic and keep your login private. You are responsible for what happens under your account. Tell us at info@bulsulabs.com if you think someone else has used it.",
+        "Give accurate details about your clinic and keep your login private. You are responsible for what happens under your account. Tell us at hello@dentvideo.com if you think someone else has used it.",
       ],
     },
     {
@@ -142,7 +142,7 @@ const TERMS_EN: LegalDoc = {
       heading: "12. Law and contact",
       blocks: [
         "These terms are governed by the laws of the Republic of Türkiye, and the courts of Istanbul have jurisdiction, unless mandatory law in your country gives you other rights. The English text is binding; translations are for convenience.",
-        "Questions: info@bulsulabs.com.",
+        "Questions: hello@dentvideo.com.",
       ],
     },
   ],
@@ -154,7 +154,7 @@ const TERMS_TR: LegalDoc = {
   updatedLabel: "Son güncelleme",
   intro: [
     "DentVideo (dentvideo.com), Bulsu Labs (\"biz\") tarafından işletilen bir hizmettir. Bu şartlar, bizimle DentVideo hesabı açan klinik ya da hekim (\"siz\") arasındaki sözleşmedir. Hesap açarak veya bir plan için ödeme yaparak bu şartları kabul edersiniz. Bir klinik adına kabul ediyorsanız, o kliniği bağlamaya yetkili olduğunuzu beyan edersiniz.",
-    "Bu şartları sade bir dille yazdık. Anlaşılmayan bir nokta varsa, abone olmadan önce info@bulsulabs.com adresine yazın. Bağlayıcı metin İngilizce metindir; bu çeviri kolaylık içindir.",
+    "Bu şartları sade bir dille yazdık. Anlaşılmayan bir nokta varsa, abone olmadan önce hello@dentvideo.com adresine yazın. Bağlayıcı metin İngilizce metindir; bu çeviri kolaylık içindir.",
   ],
   sections: [
     {
@@ -174,7 +174,7 @@ const TERMS_TR: LegalDoc = {
     {
       heading: "3. Hesabınız",
       blocks: [
-        "Kliniğiniz hakkında doğru bilgi verin ve giriş bilgilerinizi gizli tutun. Hesabınız üzerinden yapılan işlemlerden siz sorumlusunuz. Hesabınızın başkası tarafından kullanıldığını düşünüyorsanız info@bulsulabs.com adresine bildirin.",
+        "Kliniğiniz hakkında doğru bilgi verin ve giriş bilgilerinizi gizli tutun. Hesabınız üzerinden yapılan işlemlerden siz sorumlusunuz. Hesabınızın başkası tarafından kullanıldığını düşünüyorsanız hello@dentvideo.com adresine bildirin.",
       ],
     },
     {
@@ -249,7 +249,7 @@ const TERMS_TR: LegalDoc = {
       heading: "12. Uygulanacak hukuk ve iletişim",
       blocks: [
         "Ülkenizin emredici hukuku size başka haklar tanımadıkça, bu şartlara Türkiye Cumhuriyeti hukuku uygulanır ve İstanbul mahkemeleri yetkilidir. Bağlayıcı metin İngilizce metindir.",
-        "Sorularınız için: info@bulsulabs.com.",
+        "Sorularınız için: hello@dentvideo.com.",
       ],
     },
   ],
@@ -260,7 +260,7 @@ const PRIVACY_EN: LegalDoc = {
   metaDescription: "What DentVideo collects, why, who processes it, how long we keep it and your rights.",
   updatedLabel: "Last updated",
   intro: [
-    "DentVideo is operated by Bulsu Labs (\"we\", \"us\"). This policy explains what personal data we handle when a clinic uses DentVideo or when someone visits dentvideo.com, why, who else sees it and how long we keep it. Contact: info@bulsulabs.com.",
+    "DentVideo is operated by Bulsu Labs (\"we\", \"us\"). This policy explains what personal data we handle when a clinic uses DentVideo or when someone visits dentvideo.com, why, who else sees it and how long we keep it. Contact: hello@dentvideo.com.",
     "DentVideo is built to work without patient data. Patients do not use DentVideo, and we ask clinics not to upload anything that identifies a patient.",
   ],
   sections: [
@@ -332,7 +332,7 @@ const PRIVACY_EN: LegalDoc = {
     {
       heading: "6. Your rights",
       blocks: [
-        "You can ask to access, correct, export or delete your data, to restrict or object to processing, and to withdraw any consent you gave. Write to info@bulsulabs.com from the email on your account; we answer within 30 days. You can also complain to your data protection authority. In Türkiye this is the Personal Data Protection Authority (KVKK); in the EU, the authority in your country.",
+        "You can ask to access, correct, export or delete your data, to restrict or object to processing, and to withdraw any consent you gave. Write to hello@dentvideo.com from the email on your account; we answer within 30 days. You can also complain to your data protection authority. In Türkiye this is the Personal Data Protection Authority (KVKK); in the EU, the authority in your country.",
       ],
     },
     {
@@ -361,7 +361,7 @@ const PRIVACY_TR: LegalDoc = {
   metaDescription: "DentVideo'nun hangi verileri, neden topladığı, kimlerin işlediği, ne kadar sakladığı ve haklarınız.",
   updatedLabel: "Son güncelleme",
   intro: [
-    "DentVideo, Bulsu Labs (\"biz\") tarafından işletilir. Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ve GDPR kapsamında; bir klinik DentVideo'yu kullandığında veya biri dentvideo.com'u ziyaret ettiğinde hangi kişisel verileri işlediğimizi, neden işlediğimizi, kimlerin gördüğünü ve ne kadar sakladığımızı açıklar. İletişim: info@bulsulabs.com.",
+    "DentVideo, Bulsu Labs (\"biz\") tarafından işletilir. Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ve GDPR kapsamında; bir klinik DentVideo'yu kullandığında veya biri dentvideo.com'u ziyaret ettiğinde hangi kişisel verileri işlediğimizi, neden işlediğimizi, kimlerin gördüğünü ve ne kadar sakladığımızı açıklar. İletişim: hello@dentvideo.com.",
     "DentVideo hasta verisi olmadan çalışacak şekilde tasarlanmıştır. Hastalar DentVideo'yu kullanmaz ve kliniklerden hastayı tanımlayan hiçbir şey yüklememelerini isteriz.",
   ],
   sections: [
@@ -433,7 +433,7 @@ const PRIVACY_TR: LegalDoc = {
     {
       heading: "6. Haklarınız (KVKK m.11)",
       blocks: [
-        "Verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini, silinmesini veya aktarılmasını isteme, işlemeye itiraz etme ve verdiğiniz rızayı geri alma haklarınız vardır. Hesabınızdaki e-posta adresinden info@bulsulabs.com adresine yazın; en geç 30 gün içinde yanıt veririz. Kişisel Verileri Koruma Kurumu'na (veya AB'deyseniz ülkenizdeki veri koruma otoritesine) şikâyette bulunabilirsiniz.",
+        "Verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini, silinmesini veya aktarılmasını isteme, işlemeye itiraz etme ve verdiğiniz rızayı geri alma haklarınız vardır. Hesabınızdaki e-posta adresinden hello@dentvideo.com adresine yazın; en geç 30 gün içinde yanıt veririz. Kişisel Verileri Koruma Kurumu'na (veya AB'deyseniz ülkenizdeki veri koruma otoritesine) şikâyette bulunabilirsiniz.",
       ],
     },
     {

@@ -151,11 +151,13 @@ export async function sendEmail(to: string, msg: { subject: string; html: string
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
   const from = process.env.DENTVIDEO_EMAIL_FROM || "DentVideo <hello@dentvideo.com>";
+  // Clinics reply to a real inbox, not to the sending address.
+  const replyTo = process.env.DENTVIDEO_REPLY_TO || "hello@dentvideo.com";
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject: msg.subject, html: msg.html, text: msg.text }),
+      body: JSON.stringify({ from, to: [to], reply_to: replyTo, subject: msg.subject, html: msg.html, text: msg.text }),
     });
     if (!res.ok) console.error("dentvideo email failed", res.status, (await res.text()).slice(0, 300));
     return res.ok;
