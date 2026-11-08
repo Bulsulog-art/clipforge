@@ -34,3 +34,4 @@ assets/music/
 
 # Local agent worktrees
 .claude/worktrees/
+web/src/lib/dentvid/_e2e_cookie.ts
