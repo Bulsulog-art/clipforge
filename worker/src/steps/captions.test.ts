@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
-import { buildKaraokeASS, buildHookASS } from "./captions.js";
+import { describe, expect, test, it } from "vitest";
+import { buildKaraokeASS, buildHookASS, chunkPhrases, maxCharsPerLine, wrapHook } from "./captions.js";
 import type { Word } from "./transcribe.js";
 
 const fakeWords: Word[] = [
@@ -171,5 +171,41 @@ describe("captions/hook", () => {
     const dialogue = ass.match(/Dialogue:[^\n]+/)?.[0] ?? "";
     const lines = (dialogue.match(/\\N/g) ?? []).length + 1;
     expect(lines).toBeLessThanOrEqual(3);
+  });
+});
+
+describe("captions fit the frame (seen live: German lines ran off both edges)", () => {
+  const de = "Und ganz wichtig eine Wurzelbehandlung ist heute völlig schmerzfrei".split(" ");
+  const words = de.map((w, i) => ({ word: w, start: i * 0.4, end: i * 0.4 + 0.35 }));
+
+  it("chunks by line width, not just word count", () => {
+    const max = maxCharsPerLine(76, false, 1080);
+    for (const c of chunkPhrases(words, max)) {
+      const chars = c.words.map((w) => w.word).join(" ").length;
+      // over the budget only when a single word is longer than a line
+      expect(chars <= max || c.words.length === 1).toBe(true);
+    }
+  });
+
+  it("never overlaps one caption with the next", () => {
+    const ass = buildKaraokeASS(words.map((w) => ({ ...w })), "default", 0, 10, "clean", [], "9:16");
+    const times = [...ass.matchAll(/Dialogue: 0,([\d:.]+),([\d:.]+),/g)].map((m) => [m[1], m[2]]);
+    const sec = (t: string) => { const [h, m, s] = t.split(":"); return +h * 3600 + +m * 60 + +s; };
+    for (let i = 1; i < times.length; i++) expect(sec(times[i - 1][1])).toBeLessThanOrEqual(sec(times[i][0]));
+  });
+
+  it("squeezes a single word longer than a line instead of letting it overflow", () => {
+    const long = [{ word: "Zahnfleischentzündungsbehandlungsmöglichkeiten", start: 0, end: 1 }];
+    const ass = buildKaraokeASS(long, "default", 0, 2, "hype", [], "9:16");
+    expect(ass).toMatch(/\\fscx\d+/);
+  });
+
+  it("wraps the hook by width and moves it to the top over a face", () => {
+    const lines = wrapHook("Ist eine Wurzelbehandlung wirklich schmerzhaft für Kinder?", 18);
+    for (const l of lines) expect(l.length <= 18 || !l.includes(" ")).toBe(true);
+    const top = buildHookASS("Hallo", 5, "default", "9:16", { top: true });
+    const mid = buildHookASS("Hallo", 5, "default", "9:16");
+    const marginOf = (a: string) => Number(a.match(/Style: Hook,.*,(\d+),1\s*$/m)![1]);
+    expect(marginOf(top)).toBeLessThan(marginOf(mid));
   });
 });

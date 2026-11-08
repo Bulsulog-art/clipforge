@@ -49,9 +49,19 @@ export async function reviewAccuracy(
   profile: Pick<ClinicProfile, "language" | "country">,
   topic: Pick<Topic, "title" | "question" | "service">,
   parts: { script: string; caption?: string },
+  /**
+   * "recording": the text is the dentist's own words from their video. They
+   * chose the subject, so there is no topic to be relevant to — only wrong,
+   * unsafe or promise-like statements are flagged. (A correct temporary-
+   * filling tip was flagged as "off topic" against an auto-generated title.)
+   */
+  mode: "script" | "recording" = "script",
 ): Promise<AccuracyResult> {
   return agentJson(client, {
-    system: SYSTEM,
+    system:
+      mode === "recording"
+        ? `${SYSTEM}\n\nTHIS TEXT IS THE DENTIST'S OWN SPOKEN WORDS from their video. Skip check 2 (relevance) entirely: the dentist chose what to talk about. Flag only statements that are clinically wrong, unsafe, or contradict standard instructions for the procedure being described.`
+        : SYSTEM,
     user:
       `Language: ${profile.language}. Country: ${profile.country}.\n` +
       `Topic: ${topic.title} (service: ${topic.service}). Patient question: ${topic.question}\n\n` +

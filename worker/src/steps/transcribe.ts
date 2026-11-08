@@ -1,7 +1,19 @@
 import fs from "node:fs";
 import OpenAI from "openai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Behind an HTTPS proxy (NODE_USE_ENV_PROXY=1, e.g. a dev sandbox) use Node's
+// built-in fetch, which honours HTTPS_PROXY; the SDK's bundled node-fetch does
+// not. Production keeps the SDK default, unchanged.
+// The upload is a streamed multipart body, which the built-in fetch only
+// sends with duplex: "half".
+const builtinFetch = process.env.NODE_USE_ENV_PROXY
+  ? (((url: string, init?: RequestInit) =>
+      globalThis.fetch(url, { ...init, duplex: "half" } as RequestInit)) as unknown as NonNullable<
+      ConstructorParameters<typeof OpenAI>[0]
+    >["fetch"])
+  : undefined;
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, fetch: builtinFetch });
 
 export type Word = { word: string; start: number; end: number };
 export type Transcript = { language: string; text: string; words: Word[] };
