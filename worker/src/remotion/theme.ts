@@ -199,3 +199,52 @@ export function worstBackground(t: Theme): string {
   const [from, to] = t.background;
   return luminance(from) < luminance(to) ? from : to;
 }
+
+// MARK: - Clinic brand
+
+function mix(hex: string, toward: string, amount: number): string {
+  const p = (h: string) => [0, 2, 4].map((i) => parseInt(h.replace("#", "").slice(i, i + 2), 16));
+  const [a, b] = [p(hex), p(toward)];
+  return (
+    "#" +
+    a
+      .map((c, i) => Math.round(c + (b[i] - c) * amount))
+      .map((c) => c.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase()
+  );
+}
+
+/**
+ * The theme repainted in a clinic's brand colour, so every video reads as
+ * theirs. The background is the brand hue taken deep (dark enough that white
+ * type clears 7:1 on both stops); the accent is the brand hue lifted until it
+ * reads on that background. A pale brand colour still yields a dark,
+ * legible frame, because legibility is not negotiable.
+ */
+export function brandTheme(base: Theme, brandHex?: string): Theme {
+  if (!brandHex || !/^#?[0-9a-fA-F]{6}$/.test(brandHex)) return base;
+  const brand = `#${brandHex.replace("#", "").toUpperCase()}`;
+  const fg = "#FFFFFF";
+  let deep = 0.62;
+  // The lighter stop is the one white type has to clear.
+  while (deep < 0.98 && contrastRatio(fg, mix(brand, "#05080A", deep - 0.18)) < 7.5) deep += 0.02;
+  const from = mix(brand, "#05080A", Math.min(0.98, deep));
+  const to = mix(brand, "#05080A", deep - 0.18);
+  let lift = 0;
+  let accent = brand;
+  while (lift < 0.9 && contrastRatio(accent, to) < 4.5) {
+    lift += 0.05;
+    accent = mix(brand, "#FFFFFF", lift);
+  }
+  return {
+    ...base,
+    background: [from, to],
+    foreground: fg,
+    muted: mix(brand, "#FFFFFF", 0.7),
+    accent,
+    onAccent: from,
+    surface: "rgba(255,255,255,0.08)",
+    border: "rgba(255,255,255,0.14)",
+  };
+}

@@ -24,8 +24,8 @@ open item, updates the status here, commits and pushes.
 | 4 | Web app: clinic onboarding (profile, brand colour, logo) | done — /dentvideo/app |
 | 5 | Web app: content library — preview, findings, approve / reject, download | done |
 | 6 | Web app: upload a recording (shoot card shown) | done — /dentvideo/app/record |
-| 7 | Brand landing + SEO/GEO pages for dentists (EN, DE, ES, TR) | landing done (EN); localized + SEO pages next |
-| 8 | End-to-end check on production, QA pass, final report for the owner | todo |
+| 7 | Brand landing + SEO/GEO pages for dentists (EN, DE, ES, TR) | done — EN + DE/ES/TR/FR landings, 7 guides, hreflang, /dentvideo/llms.txt, sitemap (PR #13) |
+| 8 | End-to-end check on production, QA pass, final report for the owner | in progress — test clinic week running on production worker |
 
 ## Decisions log
 - **Name: DentVideo — dentvideo.com (available 2026-11-08), the owner's

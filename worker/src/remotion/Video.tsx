@@ -3,7 +3,7 @@ import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from "remo
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
-import { theme as resolveTheme } from "./theme.js";
+import { brandTheme, theme as resolveTheme } from "./theme.js";
 import { sceneOpacity } from "./animation.js";
 import { SceneView } from "./scenes/index.js";
 import { Watermark } from "./Watermark.js";
@@ -44,7 +44,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   musicSrc,
   watermark,
 }) => {
-  const t = resolveTheme(plan.theme);
+  const t = brandTheme(resolveTheme(plan.theme), plan.brandColor);
   const offsets = sceneOffsets(plan);
 
   return (
