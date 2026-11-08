@@ -47,6 +47,21 @@ describe("hard compliance rules", () => {
     expect(rules("Prima e dopo il trattamento")).toContain("before_after");
   });
 
+  it("only counts superlatives about the clinic, and lets negated guarantees through (seen in real runs)", () => {
+    expect(rules("Consult your dentist for the best approach.")).toEqual([]);
+    expect(rules("En iyi şekilde fırçalayın.")).toEqual([]);
+    expect(rules("En iyi sonuç için hekiminize danışın.")).toEqual([]);
+    expect(rules("Das beste ist, regelmäßig zu putzen.")).toEqual([]);
+    expect(rules("Es lo mejor para tu salud.")).toEqual([]);
+    expect(rules("The best dentist in Austin")).toContain("superlative");
+    expect(rules("İzmir'in en iyi kliniği")).toContain("superlative");
+    expect(rules("La mejor clínica de Madrid")).toContain("superlative");
+    expect(rules("No garantiza dientes más blancos.")).toEqual([]);
+    expect(rules("Whitening does not guarantee whiter teeth.")).toEqual([]);
+    expect(rules("Beyazlık garanti etmez.")).toEqual([]);
+    expect(rules("Garantizamos resultados")).toContain("guarantee");
+  });
+
   it("does not treat 'permanent teeth' (adult teeth) as a promise, in any language", () => {
     expect(rules("Permanent teeth usually start coming in around age six.")).toEqual([]);
     expect(rules("Kalıcı dişler genellikle 6 yaş civarında çıkmaya başlar.")).toEqual([]);
@@ -83,6 +98,7 @@ const PROFILE: ClinicProfile = {
   language: "en",
   services: ["whitening", "implants", "check-ups"],
   tone: "warm",
+  address: "formal",
   handle: "smilestudio",
 };
 
@@ -272,8 +288,10 @@ describe("the orchestrator", () => {
     await produceVideo({ client }, PROFILE, TOPIC);
     const copyPrompt = calls.find((c) => c.system.startsWith("You write the Instagram"))!.user;
     expect(copyPrompt).toContain("Supervised whitening is considered safe for enamel.");
-    const captionReview = calls.filter((c) => c.system.startsWith("You are a careful general dentist")).at(-1)!.user;
-    expect(captionReview).toContain("CAPTION:");
+    const reviews = calls.filter((c) => c.system.startsWith("You are a careful general dentist"));
+    // script → caption (against the script) → shoot card
+    expect(reviews).toHaveLength(3);
+    const captionReview = reviews.find((c) => c.user.includes("CAPTION:"))!.user;
     expect(captionReview).toContain("VIDEO SCRIPT:");
   });
 

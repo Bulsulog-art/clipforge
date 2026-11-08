@@ -50,13 +50,31 @@ const NOT_TEETH = "(?!\\s+(teeth|tooth|dişler\\p{L}*|diş(?!\\p{L})|zähne|zahn
 // noun ("dientes permanentes"), so the exclusion has to look behind as well.
 const AFTER_TEETH = "(?<!(dientes|dents|dentes|denti|molares|molaires)\\s+)";
 
+// What a superlative has to be about to count as an advertising claim.
+const CLINIC_NOUNS = {
+  en: "dentists?|dental (clinic|practice|office|care|team)|clinic|practice|team|doctors?|prices?|deals?|smiles?|treatments?|care|service",
+  tr: "klini\\p{L}*|diş hekim\\p{L}*|doktor\\p{L}*|hekim\\p{L}*|fiyat\\p{L}*|tedavi\\p{L}*|hizmet\\p{L}*|ekip\\p{L}*",
+  de: "zahnarzt\\p{L}*|zahnärzt\\p{L}*|praxis|klinik|team|preis\\p{L}*|behandlung\\p{L}*|lächeln",
+  es: "dentistas?|clínicas?|consultas?|equipos?|precios?|tratamientos?|sonrisas?",
+  fr: "dentistes?|cliniques?|cabinets?|équipes?|prix|traitements?|sourires?",
+  pt: "dentistas?|clínicas?|consultórios?|equipes?|preços?|tratamentos?|sorrisos?",
+  it: "dentist[ia]|clinic[ah]e?|studi?o?|team|prezz[oi]|trattament[oi]|sorris[oi]",
+};
+const CITYISH = "\\p{Lu}\\p{L}+";
+
+// "Does not guarantee whiter teeth" is the honest version of a claim, not a
+// guarantee. Hard rules cannot read sentences, but they can see a negation
+// right before the word.
+const NEGATED = "(?<!(no|not|n't|never|cannot|can't|nicht|kein\\p{L}*|ne|n'|não|non|nunca|jamais|mai)\\s+)";
+
 export const HARD_RULES: Rule[] = [
   {
     id: "guarantee",
     why: "Results cannot be guaranteed in healthcare.",
     patterns: [
-      w("guarantee[ds]?|risk[- ]free"),
-      w("garanti\\p{L}*|garantía|garanzia|garantia|risksiz"), // tr de fr pt it es
+      w(`${NEGATED}(guarantee[ds]?|risk[- ]free)`),
+      // tr de fr pt it es; Turkish negates after the verb ("garanti etmez").
+      w(`${NEGATED}(garanti\\p{L}*|garantía|garanzia|garantia)(?!\\s+(etmez|edilemez|vermez))|risksiz`),
       w("sin riesgo|sans risque|sem risco|senza rischi|risikofrei"),
     ],
   },
@@ -74,14 +92,17 @@ export const HARD_RULES: Rule[] = [
   {
     id: "superlative",
     why: "Unverifiable superlatives and comparisons with other clinics are restricted.",
+    // Only superlatives ABOUT the clinic, its people, its prices or its
+    // results. "Ask your dentist for the best approach" / "en iyi şekilde"
+    // are ordinary language and were rejecting good videos.
     patterns: [
-      w("best|#\\s?1|number one|top[- ]rated|cheapest"),
-      w("en iyi|bir numara|en ucuz"),
-      w("(der|die|das) beste\\p{L}*|nr\\.?\\s?1|günstigste\\p{L}*"),
-      w("(el|la|los|las) mejor(es)?|más barat\\p{L}*"),
-      w("(le|la|les) meilleur\\p{L}*|moins cher"),
-      w("(o|a|os|as) melhor(es)?|mais barat\\p{L}*"),
-      w("(il|la|i|le) miglior\\p{L}*|più economic\\p{L}*"),
+      w(`(the )?best (${CLINIC_NOUNS.en})|best in (town|the city|${CITYISH})|#\\s?1|number one|top[- ]rated|cheapest`),
+      w(`en iyi (${CLINIC_NOUNS.tr})|bir numara|en ucuz`),
+      w(`beste\\p{L}* (${CLINIC_NOUNS.de})|nr\\.?\\s?1|günstigste\\p{L}*`),
+      w(`(el|la|los|las) mejor(es)? (${CLINIC_NOUNS.es})|más barat\\p{L}*`),
+      w(`(le|la|les) meilleur\\p{L}* (${CLINIC_NOUNS.fr})|moins cher`),
+      w(`(o|a|os|as) melhor(es)? (${CLINIC_NOUNS.pt})|mais barat\\p{L}*`),
+      w(`(il|la|i|le) miglior\\p{L}* (${CLINIC_NOUNS.it})|più economic\\p{L}*`),
     ],
   },
   {

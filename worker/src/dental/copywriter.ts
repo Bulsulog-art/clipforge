@@ -1,7 +1,7 @@
 import type OpenAI from "openai";
 import { z } from "zod";
 import { agentJson } from "./llm.js";
-import type { ClinicProfile } from "./profile.js";
+import { addressRule, type ClinicProfile } from "./profile.js";
 import type { Topic } from "./strategist.js";
 
 /** The copywriter agent: the post text that goes under the video. */
@@ -28,7 +28,7 @@ export async function writePostCopy(
 - hashtags: lowercase, no '#', topic and local (city) tags. Do NOT make a hashtag of the clinic's name or translate it; the clinic's own tag is added automatically.
 Return JSON: { "caption", "hashtags": [] }`,
     user:
-      `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""}. Language: ${profile.language}. Tone: ${profile.tone}.\n` +
+      `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""}. Language: ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}\n` +
       `Video: "${topic.title}" — answers: ${topic.question}\n` +
       (profile.bookingUrl ? `Booking link: ${profile.bookingUrl}\n` : "") +
       (facts ? `The video says exactly this — state only facts that appear here, add no new numbers, ages, timings or medical claims:\n${facts}\n` : "") +

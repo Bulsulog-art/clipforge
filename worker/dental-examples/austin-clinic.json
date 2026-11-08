@@ -1,3 +1,17 @@
-{ "name": "Bright Oak Dental", "city": "Austin", "country": "US", "language": "en",
-  "services": ["teeth whitening", "dental implants", "cleanings", "invisalign", "pediatric dentistry"],
-  "tone": "warm", "handle": "brightoakdental", "bookingUrl": "https://example.com/book" }
+{
+  "name": "Bright Oak Dental",
+  "city": "Austin",
+  "country": "US",
+  "language": "en",
+  "services": [
+    "teeth whitening",
+    "dental implants",
+    "cleanings",
+    "invisalign",
+    "pediatric dentistry"
+  ],
+  "tone": "warm",
+  "handle": "brightoakdental",
+  "bookingUrl": "https://example.com/book",
+  "address": "formal"
+}

@@ -1,7 +1,7 @@
 import type OpenAI from "openai";
 import { z } from "zod";
 import { agentJson } from "./llm.js";
-import type { ClinicProfile } from "./profile.js";
+import { addressRule, type ClinicProfile } from "./profile.js";
 import type { Topic } from "./strategist.js";
 
 /**
@@ -23,20 +23,30 @@ export const shootCardSchema = z.object({
 });
 export type ShootCard = z.infer<typeof shootCardSchema>;
 
-export async function writeShootCard(client: OpenAI, profile: ClinicProfile, topic: Topic): Promise<ShootCard> {
+export function shootCardText(c: ShootCard): string {
+  return [c.opening, ...c.points, c.closing].join("\n");
+}
+
+export async function writeShootCard(
+  client: OpenAI,
+  profile: ClinicProfile,
+  topic: Topic,
+  fixes: string[] = [],
+): Promise<ShootCard> {
   return agentJson(client, {
     system: `You write a filming card for a dentist who will record a short talking-to-camera video on a phone.
 Everything in the clinic's language. Plain, spoken sentences the dentist can say naturally — not a script to read word for word.
 - opening: the first sentence to say, built on the hook.
-- points: 2-5 talking points, each one idea, accurate and hedged where outcomes vary.
+- points: 2-5 talking points, each one idea, accurate and hedged where outcomes vary. Medication or home-remedy advice must say to follow the dentist's instructions.
 - closing: one sentence inviting viewers to ask or book a check-up (no prices, offers or guarantees).
 - avoid: what NOT to say for this topic (promises, prices, naming patients, …).
 - setup: 1-4 practical filming tips (vertical, eye level, quiet room, window light, …).
 - minutes: suggested length, usually 2-5.
 Return JSON: { "opening", "points": [], "closing", "avoid": [], "setup": [], "minutes" }`,
     user:
-      `Clinic: ${profile.name}. Language: ${profile.language}. Tone: ${profile.tone}.\n` +
-      `Topic: ${topic.title}. Hook: ${topic.hook}. Patient question: ${topic.question}`,
+      `Clinic: ${profile.name}. Language: ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}\n` +
+      `Topic: ${topic.title}. Hook: ${topic.hook}. Patient question: ${topic.question}` +
+      (fixes.length ? `\nA reviewer required these changes: ${fixes.join(" | ")}` : ""),
     schema: shootCardSchema,
     temperature: 0.6,
   });

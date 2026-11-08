@@ -14,6 +14,12 @@ export const clinicProfileSchema = z.object({
   /** What the clinic actually offers. Agents only talk about these. */
   services: z.array(z.string().min(2).max(60)).min(1).max(20),
   tone: z.enum(["warm", "expert", "playful", "calm"]).default("warm"),
+  /**
+   * How the clinic addresses patients where the language distinguishes it
+   * (Sie/du, usted/tú, vous/tu, siz/sen). A German video that switched from
+   * "du" to "Sie" mid-way was seen in a real run.
+   */
+  address: z.enum(["formal", "informal"]).default("formal"),
   /** Instagram/TikTok handle without @, shown on the CTA scene. */
   handle: z.string().max(40).optional(),
   /** Where a viewer books. Goes in the caption, never on screen. */
@@ -25,3 +31,9 @@ export type ClinicProfile = z.infer<typeof clinicProfileSchema>;
 /** Content pillars — the weekly mix the strategist balances across. */
 export const PILLARS = ["education", "myth", "procedure", "aftercare", "prevention", "team"] as const;
 export type Pillar = (typeof PILLARS)[number];
+
+export function addressRule(p: Pick<ClinicProfile, "address" | "language">): string {
+  return p.address === "informal"
+    ? `Address the viewer informally (e.g. du / tú / tu / sen) and consistently, every line.`
+    : `Address the viewer formally (e.g. Sie / usted / vous / siz) and consistently, every line.`;
+}

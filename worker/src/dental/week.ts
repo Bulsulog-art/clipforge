@@ -3,10 +3,10 @@ import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
 import { reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
-import type { ClinicProfile } from "./profile.js";
+import { addressRule, type ClinicProfile } from "./profile.js";
 import { planWeek, type Topic } from "./strategist.js";
 import { reviewAccuracy, type AccuracyResult } from "./accuracy.js";
-import { writeShootCard, type ShootCard } from "./shoot-card.js";
+import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -83,7 +83,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Topic: ${topic.title}. It answers the patient question: "${topic.question}".`,
     `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
     `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta.`,
-    `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}.`,
+    `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
     `Stock footage queries: 2-4 English words specific to THIS topic (e.g. "teeth whitening tray", "dental floss close up", "child toothbrush"), not a generic "dentist office", and never patients' faces in treatment.`,
@@ -166,7 +166,20 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
   );
   if (!post.ok) return { status: "rejected", topic, stage: "copy", reasons: post.rejected };
 
-  const shootCard = await writeShootCard(deps.client, profile, topic).catch(() => undefined);
+  // The dentist will SAY these words on camera, so the card gets the same
+  // two reviews as the video. A card that cannot pass is left out; the
+  // video itself does not depend on it. (Seen live: a card recommending
+  // over-the-counter painkillers without deferring to the dentist.)
+  const card = await reviewed(
+    deps,
+    "shoot card",
+    topic,
+    (fixes) => writeShootCard(deps.client, profile, topic, fixes),
+    shootCardText,
+    (c) => reviewAccuracy(deps.client, profile, topic, { script: shootCardText(c) }),
+    profile,
+  ).catch(() => undefined);
+  const shootCard = card?.ok ? card.value : undefined;
   const videoPath = deps.render ? await deps.render(script.value, topic) : undefined;
   return {
     status: "ready",

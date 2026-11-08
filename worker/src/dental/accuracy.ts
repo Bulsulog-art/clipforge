@@ -32,7 +32,8 @@ Check, against mainstream current guidance (national dental associations, FDI, N
 2. Relevance: does each piece of advice belong to THIS topic/procedure? (e.g. advice for extractions does not belong in root-canal aftercare.)
 3. Consistency: when both a video script and a caption are given, they must not contradict each other (ages, timings, counts).
 4. Safety: medication or home-remedy advice must defer to the patient's own dentist; nothing that could delay seeing a dentist for pain, swelling or bleeding.
-Hedged, generally true statements PASS. Do not nitpick wording or style; only flag what a dentist would correct.
+5. Standard instructions: advice must match what dentists normally tell patients for THIS procedure — flag advice that is stricter, looser or different from standard instructions (it misleads patients as much as a wrong fact).
+Hedged, generally true statements PASS. Do not nitpick wording or style. Do not ask for more detail, more caveats or a longer list of risks: a short video cannot say everything, and that is not an error. Only flag what a dentist would actually correct.
 
 Return JSON: { "verdict": "pass" | "revise" | "block", "issues": [ { "quote", "problem", "fix" } ] }
 - "revise": give the corrected statement in "fix", in the same language as the text.
