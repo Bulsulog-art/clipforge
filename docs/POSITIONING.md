@@ -148,17 +148,20 @@ don't offer (health-advertising and clinical review on every line).
 
 | Market | Starter | Practice | Group | Practice annual |
 | --- | --- | --- | --- | --- |
-| US | $59 | $89 | $229 | $890 |
-| UK | £45 | £69 | £179 | £690 |
-| DE / FR / ES / IT / PT (EUR) | €49 | €79 | €199 | €790 |
-| TR | 790 TL | 1,290 TL | 3,290 TL | 12,900 TL |
+| US | $39 | $69 | $219 | $690 |
+| UK | £35 | £59 | £169 | £590 |
+| DE / FR / ES / IT / PT (EUR) | €39 | €69 | €189 | €690 |
+| TR | 590 TL | 1,090 TL | 2,990 TL | 10,900 TL |
+
+**Owner decision (2026-11-08): $10 lower than first proposed — Starter $39, Practice $69.** Other currencies moved by the same amount.
+Unit cost of a Practice clinic (~20 videos/month): ~$1.40 OpenAI (text ~$1.10, voice ~$0.30) + ~$3.20 payment fees ≈ **$4.60/month → ~93% gross margin**.
 
 Turkey is priced for local purchasing power. Net minimum wage in 2026 is 28,075 TL, and local agencies charge 8.6–65k TL/mo.
 Review TL prices every 6 months because of inflation. A Turkish clinic billing foreign patients can pay the EUR price for EN/DE output.
 
 ### Founding-clinic offer (the "$50" answer)
 
-- **The first 100 clinics get Practice at the Starter price: €49 / $49 / £45 / 790 TL per month, locked for 12 months**,
+- **The first 100 clinics get Practice at the Starter price: €39 / $39 / £35 / 590 TL per month, locked for 12 months**,
   as long as they stay subscribed. In return they agree to a 15-minute feedback call. If they consent explicitly, we may name them on the site later.
 - The free first week (no card) stays as it is.
 - The site currently says: free first week, monthly with **no minimum term**, and a founding price when plans open, **without
