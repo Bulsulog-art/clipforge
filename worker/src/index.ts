@@ -5,7 +5,7 @@ import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
-import { configureSpend, dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
+import { configureSpend, countActiveClinics, dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
 import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
 import { RedisParkStore, resumeParked } from "./dentvid/park.js";
 import { dispatchWeeks } from "./dentvid/schedule.js";
@@ -33,7 +33,10 @@ connection.on("ready", () => logger.info("redis ready"));
 
 // DentVideo spend guard (dentvid/spend-guard.ts): every paid API call in a
 // dentvid job is budgeted in Redis first; refused weeks/recordings are parked.
-const spendGuard = new SpendGuard(new RedisGuardStore(connection));
+// Global ceilings grow with the number of paying clinics (counted on Liman, cached 10 min).
+const spendGuard = new SpendGuard(new RedisGuardStore(connection), undefined, {
+  activeClinics: process.env.DENTVID_SUPABASE_URL ? countActiveClinics : undefined,
+});
 const parkStore = new RedisParkStore(connection);
 configureSpend({ guard: spendGuard, park: parkStore });
 
@@ -115,10 +118,13 @@ if (process.env.DENTVID_SUPABASE_URL) {
 dentvidWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed"));
 
 // Parked dentvid jobs go back on the queue once the spend guard has room
-// again (next day / month, pause lifted, Redis back).
+// again (cap raised, clinic count readable again, pause lifted, Redis back,
+// next day / month) — checked every DENTVID_PARK_RESUME_MIN minutes (15), so
+// a Monday week parked in the morning still runs that day once allowed.
+const PARK_RESUME_MS = Math.max(1, Number(process.env.DENTVID_PARK_RESUME_MIN ?? 15) || 15) * 60 * 1000;
 async function startParkedResumeCron() {
   while (true) {
-    await new Promise((r) => setTimeout(r, 30 * 60 * 1000));
+    await new Promise((r) => setTimeout(r, PARK_RESUME_MS));
     try {
       await resumeParked(parkStore, dentvidQueue, spendGuard);
     } catch (e) {

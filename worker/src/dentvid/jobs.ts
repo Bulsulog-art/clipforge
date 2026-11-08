@@ -103,6 +103,14 @@ export function ownedKey(key: string | null | undefined, ownerId: string): key i
   return !!key && key.startsWith(`${ownerId}/`) && !key.split("/").some((seg) => seg === ".." || seg === "." || seg === "");
 }
 
+/** Clinics with plan = 'active' on Liman — scales the global spend ceilings (spend-guard.ts). Throws on error. */
+export async function countActiveClinics(): Promise<number> {
+  const { count, error } = await dentvidDb().from("dentvid_clinics").select("id", { count: "exact", head: true }).eq("plan", "active");
+  if (error) throw new Error(`count active clinics: ${error.message}`);
+  if (typeof count !== "number") throw new Error("count active clinics: no count returned");
+  return count;
+}
+
 export type WeekJob = { clinicId: string; count?: number };
 /** Re-render one generated video after the clinic picked new background photos. */
 export type RestyleJob = { itemId: string };

@@ -79,13 +79,13 @@ cost model; `worker/src/jobs/cost-monitor.ts` pushes a daily $ alert).
 
 | Queue / job | Trigger | Cost per run | Limits now |
 |---|---|---|---|
-| `dentvid` **week** | Monday 05:00 UTC dispatch (paying clinics), `/week`, Dodo activation | ≈ $0.25 OpenAI (budgeted $0.50) + 5 renders | paying check → **spend guard** (global day/month $, clinic day $, ≤ 3 runs/clinic/week) → parked + alert on refusal |
+| `dentvid` **week** | Monday 05:00 UTC dispatch (paying clinics), `/week`, Dodo activation | ≈ $0.25 OpenAI (budgeted $0.50) + 5 renders | paying check → **spend guard** (global day/month $ scaled by active clinics, clinic day $, ≤ 3 runs/clinic/week) → parked + alert on refusal |
 | `dentvid` **recording** | `/recording` | ≤ $0.50 budgeted; CPU heavy | paying check → spend guard (≤ 5/clinic/week) → path ownership, ≤ 600 MB, ≤ 30 min |
 | `dentvid` **restyle** | `/items/[id]/backgrounds` | ≈ $0.02 TTS + 1 render | paying check (new) → spend guard (≤ 10/clinic/day) → refused = card shows "failed" |
 | `dentvid` **dispatch** | scheduler | DB read | — |
 | `video-pipeline`, `generate`, `derivative`, `publish` | ClipForge routes | per ClipForge credit model | credits/quota; concurrency env; daily cost-monitor alert |
 | cron: trend snapshot, cost monitor, metrics, stuck-job reaper | timers | small | — |
-| cron (new): resume parked dentvid jobs | every 30 min | none | re-queues a parked job only when a dry-run of the guard passes |
+| cron (new): resume parked dentvid jobs | every 15 min (`DENTVID_PARK_RESUME_MIN`) | none | re-queues a parked job only when a dry-run of the guard passes |
 
 Concurrency (`DENTVID_CONCURRENCY=1`, `VIDEO_CONCURRENCY`, …) bounds CPU: a
 flood of queued jobs makes a queue longer, it does not make the box fall over.
@@ -126,10 +126,10 @@ select o.name, o.created_at, (o.metadata->>'size')::bigint as bytes
 
 - Before the **first** paid call of a week, recording or restyle, the job reserves its estimated cost atomically (one Redis Lua script, all-or-nothing) against:
   `dv:spend:usd:day:<date>`, `dv:spend:usd:month:<yyyy-mm>`, `dv:spend:usd:clinic:<id>:<date>`, and the per-clinic op counter for that job type.
-- **Refused →** week / recording: the BullMQ job fails with an `UnrecoverableError` (no retry storm) and is **parked** in `dv:parked`; every 30 minutes parked jobs whose guard check now passes are put back on the queue (same job id, so no duplicates). Parked > 7 days → dropped and logged. Restyle: refused, card shows "failed".
+- **Refused →** week / recording: the BullMQ job fails with an `UnrecoverableError` (no retry storm) and is **parked** in `dv:parked`; every 15 minutes parked jobs whose guard check now passes are put back on the queue (same job id, so no duplicates). Parked > 7 days → dropped and logged. Restyle: refused, card shows "failed".
 - **Alert**: one email to `OWNER_ALERT_EMAIL` per reason per day (per clinic for clinic-level reasons), via Resend from the worker. De-duplicated in Redis, or in process memory when Redis is down. Never more than a handful of emails a day.
 - **Fail-closed**: no Redis (or Redis not `ready`) → nothing is spent; the job errors and BullMQ retries it with backoff (it cannot be parked without Redis either).
-- **Kill switch**: `DENTVID_PAUSE_GENERATION=1` → every week/recording is parked, every restyle refused, one alert. Remove it and redeploy/restart: parked jobs resume within 30 minutes.
+- **Kill switch**: `DENTVID_PAUSE_GENERATION=1` → every week/recording is parked, every restyle refused, one alert. Remove it and redeploy/restart: parked jobs resume within 15 minutes.
 
 Cost estimates (on purpose ≈ 2× measured; change via env when models or prices change):
 
@@ -139,10 +139,23 @@ Cost estimates (on purpose ≈ 2× measured; change via env when models or price
 | restyle | $0.03 | one tts-1-hd re-synthesis of the stored narration |
 | recording | $0.50 | Whisper API fallback $0.006/min × 30 min max = $0.18 (local faster-whisper = $0) + scoring/reviews for ≤ 6 clips |
 
-With the defaults the worst case is **$20/day and $300/month** of DentVideo
-OpenAI spend whatever happens — about 40 paying clinics' Monday runs per day of
-headroom. Raise `DENTVID_DAILY_USD_CAP` / `DENTVID_MONTHLY_USD_CAP` as the
-clinic count grows (rule of thumb: daily ≥ clinics × $0.50, monthly ≥ clinics × $3).
+**Global ceilings scale with paying clinics.** Their job is to catch runaway
+bugs, not to limit growth (per-clinic caps bound abuse, and unpaid clinics
+cannot generate at all). In force at any moment:
+
+- daily = max(`DENTVID_DAILY_USD_CAP` = $20, active × `DENTVID_DAILY_USD_PER_ACTIVE_CLINIC`)
+  — default per clinic = week + one recording + 5 restyles = **$1.15**, because every week runs on Monday;
+- monthly = max(`DENTVID_MONTHLY_USD_CAP` = $300, active × `DENTVID_MONTHLY_USD_PER_ACTIVE_CLINIC`)
+  — default per clinic = 4.5 weeks + 4 recordings + 30 restyles = **$5.15**.
+
+`active` = clinics with `plan = 'active'` on Liman, counted with a head-only
+count query and cached 10 minutes. If the count fails, the env caps apply
+(spending is still bounded; nothing is blocked silently) and the owner gets one
+alert that day; with many clinics some Monday weeks may then park and they
+resume within 15 minutes of the count working again. Example: 100 paying
+clinics → $115/day, $515/month; a single clinic looping is stopped after 3
+week runs / 10 restyles whatever the global room. If Redis is down the guard
+still fails closed.
 
 ClipForge's own worker queues are not behind this guard; they spend credits
 users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
@@ -174,8 +187,11 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `RESEND_API_KEY` | worker (already on web) | — | needed for worker alerts |
 | `DENTVIDEO_EMAIL_FROM` | worker (optional) | `DentVideo <hello@dentvideo.com>` | sender |
 | `DENTVID_PAUSE_GENERATION` | worker | off | `1` = kill switch for all DentVideo paid work |
-| `DENTVID_DAILY_USD_CAP` | worker | `20` | global DentVideo $ per UTC day |
-| `DENTVID_MONTHLY_USD_CAP` | worker | `300` | global DentVideo $ per month |
+| `DENTVID_DAILY_USD_CAP` | worker | `20` | floor of the global DentVideo $ per UTC day |
+| `DENTVID_MONTHLY_USD_CAP` | worker | `300` | floor of the global DentVideo $ per month |
+| `DENTVID_DAILY_USD_PER_ACTIVE_CLINIC` | worker | `1.15` (derived from the op costs) | daily ceiling growth per active clinic |
+| `DENTVID_MONTHLY_USD_PER_ACTIVE_CLINIC` | worker | `5.15` (derived) | monthly ceiling growth per active clinic |
+| `DENTVID_PARK_RESUME_MIN` | worker | `15` | how often parked jobs are re-checked |
 | `DENTVID_CLINIC_DAILY_USD_CAP` | worker | `3` | per clinic per day |
 | `DENTVID_MAX_WEEKS_PER_CLINIC_WEEK` | worker | `3` | week runs per clinic per ISO week |
 | `DENTVID_MAX_RESTYLES_PER_CLINIC_DAY` | worker | `10` | re-renders per clinic per day |
@@ -188,7 +204,7 @@ The compose file loads both services from `web/.env`, so in Coolify add them to 
 
 ## 6. Owner checklist (only you can do these — highest impact first)
 
-1. **OpenAI hard cap** — platform.openai.com → Settings → Limits: set a monthly **budget** (e.g. $100 to start) and email alerts at 50% / 80%. Use a separate **project** + key for the worker so a leaked ClipForge key cannot drain DentVideo's budget and vice versa. This is the backstop behind everything in this document.
+1. **OpenAI hard cap** — platform.openai.com → Settings → Limits: set a monthly **budget** above the guard's monthly ceiling (≥ $300, or active clinics × $5.15 + ClipForge usage) and email alerts at 50% / 80%. Use a separate **project** + key for the worker so a leaked ClipForge key cannot drain DentVideo's budget and vice versa. This is the backstop behind everything in this document.
 2. **Rotate the Coolify API token** — it appeared in a session scratchpad. Coolify → Keys & Tokens → revoke and create a new one; update anywhere it is used.
 3. **fal.ai** — dashboard → Billing: turn **auto top-up OFF**, keep a small prepaid balance; delete keys you do not use. fal is only for our own photo generation.
 4. **Set `OWNER_ALERT_EMAIL` + `RESEND_API_KEY` on the worker** and apply **`supabase/liman/0004_dentvid_hardening.sql`** on Liman (SQL editor; run the checks at its bottom). Also check Liman's storage `FILE_SIZE_LIMIT` env is ≥ 500 MB if large recordings must upload.

@@ -7,7 +7,10 @@ import { logger } from "../logger.js";
  * Every dentvid job that can call a paid API reserves its estimated cost
  * here BEFORE the first call. A reservation is all-or-nothing across:
  *
- *   global   $ today, $ this month                     (DENTVID_DAILY_USD_CAP / DENTVID_MONTHLY_USD_CAP)
+ *   global   $ today, $ this month — the larger of the env ceiling
+ *            (DENTVID_DAILY_USD_CAP / DENTVID_MONTHLY_USD_CAP) and the number
+ *            of paying clinics × a per-clinic allowance, so growth never
+ *            parks paying clinics; the global cap only catches runaway bugs
  *   clinic   $ today                                   (DENTVID_CLINIC_DAILY_USD_CAP)
  *            weeks this ISO week, restyles today,
  *            recordings this ISO week                  (DENTVID_MAX_*)
@@ -38,6 +41,10 @@ export type GuardConfig = {
   maxRestylesPerClinicDay: number;
   maxRecordingsPerClinicWeek: number;
   costUsd: Record<SpendOp, number>;
+  /** Global daily ceiling grows by this per active clinic (Monday: every week runs on the same day). */
+  dailyUsdPerActiveClinic: number;
+  /** Global monthly ceiling grows by this per active clinic. */
+  monthlyUsdPerActiveClinic: number;
 };
 
 /**
@@ -61,6 +68,11 @@ function num(v: string | undefined, fallback: number): number {
 }
 
 export function guardConfig(env: Record<string, string | undefined> = process.env): GuardConfig {
+  const costUsd: Record<SpendOp, number> = {
+    week: num(env.DENTVID_COST_WEEK_USD, COST_DEFAULTS.week),
+    restyle: num(env.DENTVID_COST_RESTYLE_USD, COST_DEFAULTS.restyle),
+    recording: num(env.DENTVID_COST_RECORDING_USD, COST_DEFAULTS.recording),
+  };
   return {
     paused: env.DENTVID_PAUSE_GENERATION === "1" || env.DENTVID_PAUSE_GENERATION === "true",
     // ~40 paying clinics' Monday runs at the estimate above, with room for retries.
@@ -71,11 +83,24 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
     maxWeeksPerClinicWeek: num(env.DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 3),
     maxRestylesPerClinicDay: num(env.DENTVID_MAX_RESTYLES_PER_CLINIC_DAY, 10),
     maxRecordingsPerClinicWeek: num(env.DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK, 5),
-    costUsd: {
-      week: num(env.DENTVID_COST_WEEK_USD, COST_DEFAULTS.week),
-      restyle: num(env.DENTVID_COST_RESTYLE_USD, COST_DEFAULTS.restyle),
-      recording: num(env.DENTVID_COST_RECORDING_USD, COST_DEFAULTS.recording),
-    },
+    costUsd,
+    // A clinic's Monday: its week (5 videos), one recording and a few restyles.
+    // Defaults: 0.50 + 0.50 + 5 × 0.03 = $1.15.
+    dailyUsdPerActiveClinic: num(env.DENTVID_DAILY_USD_PER_ACTIVE_CLINIC, costUsd.week + costUsd.recording + 5 * costUsd.restyle),
+    // A clinic's month: ≈ 4.5 weeks + 4 recordings + 30 restyles. Defaults: 2.25 + 2.00 + 0.90 = $5.15.
+    monthlyUsdPerActiveClinic: num(env.DENTVID_MONTHLY_USD_PER_ACTIVE_CLINIC, 4.5 * costUsd.week + 4 * costUsd.recording + 30 * costUsd.restyle),
+  };
+}
+
+/**
+ * The global ceilings in force: never below the env caps, and growing with
+ * the number of paying clinics. `active` null (count unknown) → env caps.
+ */
+export function scaledCaps(cfg: GuardConfig, active: number | null): { dailyUsd: number; monthlyUsd: number } {
+  const n = active ?? 0;
+  return {
+    dailyUsd: Math.max(cfg.dailyUsd, n * cfg.dailyUsdPerActiveClinic),
+    monthlyUsd: Math.max(cfg.monthlyUsd, n * cfg.monthlyUsdPerActiveClinic),
   };
 }
 
@@ -137,17 +162,67 @@ export function countersFor(op: SpendOp, clinicId: string, cfg: GuardConfig, now
 /** Global reasons concern everyone (owner must act); clinic reasons concern one clinic. */
 export const isGlobalReason = (r: RefusalReason) => r === "paused" || r === "store_unavailable" || r === "global_daily_usd" || r === "global_monthly_usd";
 
+export type GuardOptions = {
+  /** Number of clinics with plan = 'active' (Liman). Cached for `cacheMs`. */
+  activeClinics?: () => Promise<number>;
+  cacheMs?: number;
+  /** Owner alert when the count cannot be read (once a day; the env caps apply meanwhile). */
+  alert?: AlertSender;
+};
+
+export const ACTIVE_COUNT_CACHE_MS = 10 * 60 * 1000;
+
 export class SpendGuard {
+  private active: { n: number; at: number } | null = null;
+
   constructor(
     private store: GuardStore | null,
     private cfg: () => GuardConfig = () => guardConfig(),
+    private opts: GuardOptions = {},
   ) {}
+
+  /**
+   * Active clinics, from cache when fresh. When the count fails the env caps
+   * apply (never a silent block of paying clinics beyond them) and the owner
+   * gets one alert a day; a cached count is not trusted past its age.
+   */
+  async activeClinics(now = Date.now()): Promise<number | null> {
+    if (!this.opts.activeClinics) return null;
+    const ttl = this.opts.cacheMs ?? ACTIVE_COUNT_CACHE_MS;
+    if (this.active && now - this.active.at < ttl) return this.active.n;
+    try {
+      const n = await this.opts.activeClinics();
+      if (!Number.isFinite(n) || n < 0) throw new Error(`bad count ${n}`);
+      this.active = { n, at: now };
+      return n;
+    } catch (e) {
+      this.active = null;
+      const msg = (e as Error).message;
+      logger.error({ err: msg }, "dentvid: active clinic count failed — using env spend caps");
+      if (await this.once(`dv:spend:alert:clinic_count:${dayOf(new Date(now))}`, DAY)) {
+        await (this.opts.alert ?? sendOwnerAlert)(
+          "[DentVideo] spend guard: active clinic count unavailable",
+          [
+            "The spend guard could not count active clinics on Liman, so the global ceilings fell back to the env caps",
+            `(DENTVID_DAILY_USD_CAP / DENTVID_MONTHLY_USD_CAP) instead of growing with the number of paying clinics.`,
+            "",
+            `Error: ${msg}`,
+            "",
+            "If you have more paying clinics than those caps cover, some weeks may be parked (they resume automatically).",
+            "No further email about this today.",
+          ].join("\n"),
+        ).catch(() => false);
+      }
+      return null;
+    }
+  }
 
   /** Reserve the budget for one operation, or say why not. Nothing is spent on a refusal. */
   async reserve(op: SpendOp, clinicId: string, opts: { dryRun?: boolean; now?: Date } = {}): Promise<GuardDecision> {
-    const cfg = this.cfg();
-    if (cfg.paused) return { ok: false, reason: "paused", detail: "DENTVID_PAUSE_GENERATION is set" };
+    const base = this.cfg();
+    if (base.paused) return { ok: false, reason: "paused", detail: "DENTVID_PAUSE_GENERATION is set" };
     if (!this.store) return { ok: false, reason: "store_unavailable", detail: "no counter store configured" };
+    const cfg = { ...base, ...scaledCaps(base, await this.activeClinics(opts.now?.getTime())) };
     const counters = countersFor(op, clinicId, cfg, opts.now);
     let idx: number;
     try {
@@ -296,7 +371,7 @@ export async function alertRefusal(
     args.detail,
     "",
     args.parked
-      ? "The job is parked, not lost: it is retried automatically every 30 minutes once there is room again (or the pause is lifted). Parked jobs older than 7 days are dropped."
+      ? "The job is parked, not lost: it is retried automatically every 15 minutes (DENTVID_PARK_RESUME_MIN) once there is room again (or the pause is lifted). Parked jobs older than 7 days are dropped."
       : "The request was refused; the clinic can try again later.",
     "No further email for this reason today. See docs/SECURITY.md → Spend guards for the knobs.",
   ].join("\n");
