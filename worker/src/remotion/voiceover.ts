@@ -84,20 +84,80 @@ export async function prepareVoiceover(
   return { plan: fitPlanToVoice(plan, voiceSeconds), voiceoverPath: loud, voiceSeconds, voiceModel: used };
 }
 
-/**
- * TTS comes out around -26 LUFS; Reels/TikTok/Shorts play at about -14, so
- * unnormalised narration sounds noticeably quieter than the videos around it
- * in a feed. Bring it to -16 LUFS (true peak -1.5 dB). Fail-soft: on any
- * ffmpeg error the original file is used.
- */
-export function normalizeLoudness(input: string): Promise<string> {
-  const out = input.replace(/(\.[a-z0-9]+)?$/i, ".loud.mp3");
+/** Narration target: a little under the platforms' ~-14 so music and peaks keep headroom. */
+export const LOUDNESS = { I: -16, TP: -1.5, LRA: 11 } as const;
+
+export type LoudnormMeasure = {
+  input_i: string;
+  input_tp: string;
+  input_lra: string;
+  input_thresh: string;
+  target_offset: string;
+};
+
+/** Pull loudnorm's `print_format=json` block out of ffmpeg's stderr. */
+export function parseLoudnormJson(stderr: string): LoudnormMeasure | null {
+  const m = stderr.match(/\{[^{}]*"input_i"[^{}]*\}/);
+  if (!m) return null;
+  try {
+    const j = JSON.parse(m[0]) as Record<string, unknown>;
+    const keys = ["input_i", "input_tp", "input_lra", "input_thresh", "target_offset"] as const;
+    // Silence measures as -inf, which the second pass rejects.
+    if (!keys.every((k) => Number.isFinite(Number(j[k])))) return null;
+    return Object.fromEntries(keys.map((k) => [k, String(j[k])])) as LoudnormMeasure;
+  } catch {
+    return null;
+  }
+}
+
+/** The loudnorm filter: linear two-pass when a measurement is given, dynamic one-pass otherwise. */
+export function loudnormFilter(m?: LoudnormMeasure | null): string {
+  const base = `loudnorm=I=${LOUDNESS.I}:TP=${LOUDNESS.TP}:LRA=${LOUDNESS.LRA}`;
+  if (!m) return base;
+  return (
+    `${base}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}` +
+    `:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`
+  );
+}
+
+function measureLoudness(input: string): Promise<LoudnormMeasure | null> {
   return new Promise((resolve) => {
     try {
       ffmpeg(input)
-        .audioFilters("loudnorm=I=-16:TP=-1.5:LRA=11")
+        .audioFilters(`${loudnormFilter()}:print_format=json`)
+        .noVideo()
+        .format("null")
+        .on("end", (_out: string | null, err: string | null) => resolve(parseLoudnormJson(err ?? "")))
+        .on("error", () => resolve(null))
+        .save("-");
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * TTS comes out quiet (tts-1-hd about -26 LUFS, gpt-4o-mini-tts about -20,
+ * measured 2026-11-08); Reels/TikTok/Shorts play at about -14, so
+ * unnormalised narration sounds noticeably quieter than the videos around it
+ * in a feed. Bring it to -16 LUFS (true peak -1.5 dB).
+ *
+ * Two-pass: measure first, then apply one linear gain, which keeps the
+ * voice's natural dynamics (one-pass loudnorm pumps on short clips). If the
+ * measurement fails it falls back to one pass. Fail-soft: if the encode
+ * fails the original file is used. Sample rate is pinned to 48 kHz because
+ * loudnorm resamples to 192 kHz internally.
+ */
+export async function normalizeLoudness(input: string): Promise<string> {
+  const out = input.replace(/(\.[a-z0-9]+)?$/i, ".loud.mp3");
+  const measured = await measureLoudness(input);
+  return new Promise((resolve) => {
+    try {
+      ffmpeg(input)
+        .audioFilters(loudnormFilter(measured))
         .audioCodec("libmp3lame")
         .audioBitrate("160k")
+        .audioFrequency(48000)
         .on("end", () => resolve(out))
         .on("error", () => resolve(input))
         .save(out);
