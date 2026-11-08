@@ -164,6 +164,12 @@ export const LIMITS = {
   itemsUser: { limit: 120, windowSec: 10 * MIN },
   // Save the clinic profile (DB write + storage).
   clinicUser: { limit: 30, windowSec: 10 * MIN },
+  // Self-serve account (DentVideo settings): billing portal / plan change call Dodo;
+  // an export signs a URL for every stored file; deletion is rare by nature.
+  billingUser: { limit: 10, windowSec: 10 * MIN },
+  accountExportUser: { limit: 3, windowSec: HOUR },
+  accountExportUserDay: { limit: 10, windowSec: DAY },
+  accountDeleteUser: { limit: 5, windowSec: HOUR },
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },

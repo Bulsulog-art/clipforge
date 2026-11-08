@@ -11,6 +11,7 @@ import { RememberLocale } from "./chrome";
 import { FirstWeek } from "./first-week";
 import { PlanPanel, PlanStatus, type PlanOption } from "./plan-panel";
 import { ClinicForm } from "./clinic-form";
+import { AccountPanel } from "./account-panel";
 import { RecordUpload } from "./record-upload";
 
 /**
@@ -105,6 +106,8 @@ export function SettingsView({
   plan,
   plans,
   founding,
+  selfServe = false,
+  initialDialog = null,
 }: {
   locale: Locale;
   profile?: Partial<ClinicProfile>;
@@ -113,6 +116,10 @@ export function SettingsView({
   plan: ClinicPlan | null;
   plans: PlanOption[];
   founding: Founding;
+  /** DODO_API_KEY is set on the server: billing portal and plan change are self-serve (else the email card). */
+  selfServe?: boolean;
+  /** Dev preview only: open the delete dialog on load. */
+  initialDialog?: "delete" | null;
 }) {
   const text = appText(locale);
   const t = text.settings;
@@ -145,7 +152,7 @@ export function SettingsView({
               <PlanPanel locale={locale} state={plan.plan} options={plans} founding={founding} />
             </div>
           )}
-          {plan.plan !== "trial" && plan.plan !== "cancelled" && (
+          {!selfServe && plan.plan !== "trial" && plan.plan !== "cancelled" && (
             <div className="dv-card mt-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
               <div className="max-w-xl">
                 <h3 className="font-semibold text-dv-ink">{t.manageTitle}</h3>
@@ -158,8 +165,10 @@ export function SettingsView({
               </a>
             </div>
           )}
+          <AccountPanel part="billing" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} />
         </section>
       )}
+      <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} initialDialog={initialDialog} />
     </main>
   );
 }
