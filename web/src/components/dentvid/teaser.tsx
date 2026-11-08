@@ -19,9 +19,11 @@ const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePre
  * True once `ref` is within `margin` of the viewport. The live preview (the
  * Remotion player, its fonts and narration: several hundred KB) is half-way
  * down the landing, so it is fetched as the visitor scrolls towards it rather
- * than competing with the hero on first load.
+ * than competing with the hero on first load. The margin is about two
+ * screens, so the player has settled (it sizes itself once mounted) before
+ * it scrolls into view.
  */
-function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "600px"): boolean {
+function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "1600px"): boolean {
   const [near, setNear] = useState(false);
   useEffect(() => {
     const el = ref.current;
