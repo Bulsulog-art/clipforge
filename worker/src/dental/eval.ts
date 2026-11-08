@@ -39,6 +39,12 @@ export const PANEL: ClinicProfile[] = [
     services: ["Limpieza dental", "Blanqueamiento", "Implantes", "Ortodoncia invisible", "Endodoncia"] },
   { name: "Barton Creek Family Dental", city: "Austin", country: "US", language: "en", tone: "playful", address: "informal",
     services: ["Cleanings", "Teeth whitening", "Clear aligners", "Children's dentistry", "Dental implants"] },
+  { name: "Cabinet Dentaire des Lilas", city: "Lyon", country: "FR", language: "fr", tone: "calm", address: "formal",
+    services: ["Détartrage", "Blanchiment", "Implants", "Aligneurs", "Traitement de canal"] },
+  { name: "Studio Dentistico Navigli", city: "Milano", country: "IT", language: "it", tone: "warm", address: "formal",
+    services: ["Igiene dentale", "Sbiancamento", "Impianti", "Allineatori", "Devitalizzazione"] },
+  { name: "Clínica Sorriso Atlântico", city: "Lisboa", country: "PT", language: "pt", tone: "warm", address: "informal",
+    services: ["Limpeza", "Clareamento", "Implantes", "Alinhadores", "Tratamento de canal"] },
 ].map((p) => clinicProfileSchema.parse(p));
 
 const judgeSchema = z.object({
