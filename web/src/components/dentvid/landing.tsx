@@ -20,6 +20,7 @@ import { appText } from "@/content/dentvideo-app";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { foundingOfferOpen } from "@/lib/dentvid/billing";
 import { HeroVideo, PhoneFrame } from "./phone";
+import { Teaser } from "./teaser";
 
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
@@ -54,7 +55,7 @@ function Hero({ locale }: { locale: Locale }) {
             </span>
             {c.hero.eyebrow}
           </p>
-          <h1 className="dv-display dv-rise-2 mt-6 text-balancemax-w-[14ch] text-[2.75rem] leading-[1.02] text-dv-ink sm:text-6xl lg:max-w-[13ch] lg:text-[4.75rem] lg:leading-[0.98]">
+          <h1 className="dv-display dv-rise-2 mt-6 text-balance max-w-[16ch] text-[2.625rem] leading-[1.02] text-dv-ink sm:text-6xl lg:max-w-[15ch] lg:text-[4.25rem] lg:leading-[0.98]">
             {c.hero.h1}
           </h1>
           <p className="dv-rise-3 mt-7 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body sm:text-lg">{c.hero.lead}</p>
@@ -497,7 +498,7 @@ function Pricing({ locale }: { locale: Locale }) {
 
       <p className="mt-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-dv-muted">
         <Check className="h-4 w-4 text-dv-teal" aria-hidden="true" />
-        <span>{c.hero.note}</span>
+        <span>{c.teaser.note}</span>
         <span aria-hidden="true">·</span>
         <span>{p.note}</span>
       </p>
@@ -563,6 +564,7 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <Problem locale={locale} />
       <How locale={locale} />
       <Samples locale={locale} />
+      <Teaser locale={locale} copy={LANDING[locale].teaser} href={`/dentvideo/start?lang=${locale}`} />
       <Checks locale={locale} />
       <Compare locale={locale} />
       <Pricing locale={locale} />

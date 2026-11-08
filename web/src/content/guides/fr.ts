@@ -103,7 +103,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Comment DentVideo vous aide",
         paragraphs: [
-          "[DentVideo](landing:) planifie chaque semaine cinq sujets à partir de vos soins et de vraies questions de patients, rédige et met en voix les vidéos, puis les sous-titre avec votre logo et vos couleurs. Chaque script est vérifié deux fois : allégations couramment encadrées et exactitude clinique. Vos propres enregistrements ne sont jamais réécrits ; ce qui mérite un second regard est signalé avec la raison. Rien n'est publié sans votre validation. [La première semaine est gratuite](start:).",
+          "[DentVideo](landing:) planifie chaque semaine cinq sujets à partir de vos soins et de vraies questions de patients, rédige et met en voix les vidéos, puis les sous-titre avec votre logo et vos couleurs. Chaque script est vérifié deux fois : allégations couramment encadrées et exactitude clinique. Vos propres enregistrements ne sont jamais réécrits ; ce qui mérite un second regard est signalé avec la raison. Rien n'est publié sans votre validation. [Voyez un aperçu à votre logo avant de payer](start:).",
         ],
       },
     ],
@@ -504,7 +504,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Ce que fait DentVideo",
         paragraphs: [
-          "[DentVideo](landing:) produit des vidéos d'information qui n'ont pas besoin d'images de patients : narrées, sous-titrées, aux couleurs du cabinet, ou découpées dans un enregistrement où vous parlez face caméra. Chaque script est vérifié pour qu'il ne contienne ni promesse ni témoignage ; vous validez tout. Les règles générales sont résumées dans le guide sur la [communication du chirurgien-dentiste](guide:communication-chirurgien-dentiste-reseaux-sociaux). [Essayez la première semaine gratuitement](start:).",
+          "[DentVideo](landing:) produit des vidéos d'information qui n'ont pas besoin d'images de patients : narrées, sous-titrées, aux couleurs du cabinet, ou découpées dans un enregistrement où vous parlez face caméra. Chaque script est vérifié pour qu'il ne contienne ni promesse ni témoignage ; vous validez tout. Les règles générales sont résumées dans le guide sur la [communication du chirurgien-dentiste](guide:communication-chirurgien-dentiste-reseaux-sociaux). [Voyez vos vidéos avant de payer](start:).",
         ],
       },
     ],
@@ -603,7 +603,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Le modèle mixte, réaliste pour beaucoup de cabinets",
         paragraphs: [
           "Pour beaucoup de cabinets, ce qui tient dans la durée est un modèle mixte : les vidéos d'information régulières viennent d'un outil ou d'un prestataire, le praticien ajoute une ou deux fois par mois un court enregistrement, et l'équipe publie et répond. Le compte reste actif, il ressemble au cabinet et personne ne subit de pression hebdomadaire. Des sujets dans les [idées de contenu Instagram](guide:idees-contenu-instagram-cabinet-dentaire).",
-          "[DentVideo](landing:) est un logiciel pour la partie contenu : il crée cinq vidéos d'information courtes par semaine, vérifie chaque script pour l'exactitude clinique et les règles de communication, et découpe vos enregistrements en extraits sous-titrés. La publication et les réponses restent chez vous ou votre agence : DentVideo ne publie rien lui-même. [La première semaine est gratuite](start:).",
+          "[DentVideo](landing:) est un logiciel pour la partie contenu : il crée cinq vidéos d'information courtes par semaine, vérifie chaque script pour l'exactitude clinique et les règles de communication, et découpe vos enregistrements en extraits sous-titrés. La publication et les réponses restent chez vous ou votre agence : DentVideo ne publie rien lui-même. [Voyez un aperçu à votre logo avant de payer](start:).",
         ],
       },
     ],

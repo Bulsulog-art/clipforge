@@ -127,7 +127,7 @@ don't offer (health-advertising and clinical review on every line).
 | "AI content looks fake." | The narration is a synthetic voice. There are no avatar doctors or patients, stock footage shows objects only, and the clinic's own brand is on every video. Recording 5 minutes of yourself gives the most personal clips. |
 | "I don't have time." | Two minutes of setup, then a few minutes on Mondays: an email arrives, you approve everything in one tap and share from your phone. |
 | "Do you post for me?" | Not automatically yet (it waits on Meta/TikTok app review). Sharing from the phone is one tap. |
-| "What after the free week?" | Nothing unless you choose a plan; no card is taken. Monthly plans, no minimum term, founding price for early clinics. |
+| "Can I see it before I pay?" | Yes: after sign-up you describe your clinic and see a live preview of your own videos with your logo and colours, in the browser. Then choose a plan; the first week is made right after payment. Monthly, cancel anytime, founding price for early clinics. |
 
 ## 6. Pricing recommendation
 
@@ -163,9 +163,12 @@ Review TL prices every 6 months because of inflation. A Turkish clinic billing f
 
 - **The first 100 clinics get Practice at the Starter price: €39 / $39 / £35 / 590 TL per month, locked for 12 months**,
   as long as they stay subscribed. In return they agree to a 15-minute feedback call. If they consent explicitly, we may name them on the site later.
-- The free first week (no card) stays as it is.
-- The site currently says: free first week, monthly with **no minimum term**, and a founding price when plans open, **without
-  figures**. **The owner must confirm two things before launch:** (a) "no minimum term" and (b) the founding figures. The site's
+- **No free week (owner decision, 2026-11-08).** Nothing is generated before payment: zero abuse, zero API spend before money.
+  The funnel is sign up → describe the clinic → **live preview** of its own branded videos in a phone frame (drawn in the
+  browser, zero cost) → choose a plan → pay (Dodo) → the first real week is queued by the payment webhook and arrives in
+  about 15 minutes, with the usual "ready" email.
+- The site now says: see your own branded videos before you pay (a live preview with your logo and colours), monthly,
+  cancel anytime, founding price for the first 100 clinics. **The owner must confirm two things before launch:** (a) "no minimum term" and (b) the founding figures. The site's
   content test (`dentvideo.test.ts`) forbids currency figures, so add prices deliberately when they are set.
 
 ### ROI maths (for sales conversations, not for the site)

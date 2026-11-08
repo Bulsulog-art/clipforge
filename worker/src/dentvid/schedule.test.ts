@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { clinicsToRun, weekOf } from "./schedule.js";
+import { clinicsToRun, isPaying, weekOf } from "./schedule.js";
 import { notifyReady } from "./notify.js";
 
 describe("monday dispatch", () => {
@@ -7,15 +7,21 @@ describe("monday dispatch", () => {
     expect(weekOf(new Date("2026-11-08T11:00:00Z"))).toBe("2026-11-02"); // Sunday
     expect(weekOf(new Date("2026-11-09T05:00:00Z"))).toBe("2026-11-09"); // Monday
   });
-  it("runs active clinics weekly and trials only for their free first week", () => {
+  it("runs only paying clinics — a trial (not paid yet) clinic never gets a week, made before or not", () => {
     const clinics = [
       { id: "a", plan: "active" },
       { id: "t1", plan: "trial" },
       { id: "t2", plan: "trial" },
       { id: "p", plan: "paused" },
       { id: "c", plan: "cancelled" },
+      { id: "a2", plan: "active" },
     ];
-    expect(clinicsToRun(clinics, new Set(["a", "t2"]))).toEqual(["a", "t1"]);
+    expect(clinicsToRun(clinics)).toEqual(["a", "a2"]);
+    expect(clinicsToRun([{ id: "t", plan: "trial" }])).toEqual([]);
+  });
+  it("only an active plan pays for model calls", () => {
+    expect(isPaying("active")).toBe(true);
+    for (const p of ["trial", "paused", "cancelled", "", null, undefined]) expect(isPaying(p)).toBe(false);
   });
 });
 

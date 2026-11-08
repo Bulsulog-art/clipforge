@@ -251,7 +251,7 @@ export type ClinicBilling = {
 export function applyTransition(current: ClinicBilling, t: DvTransition): Partial<ClinicBilling> | null {
   if (t.kind === "deactivate" && current.dodo_subscription_id && current.dodo_subscription_id !== t.subscriptionId) return null;
   if (t.kind === "deactivate" && current.plan === "trial" && !current.dodo_subscription_id && t.plan === "paused") {
-    // A first payment that never went through: the clinic simply stays on trial.
+    // A first payment that never went through: the clinic simply stays unpaid.
     return null;
   }
   const next: Partial<ClinicBilling> = { plan: t.plan, dodo_subscription_id: t.subscriptionId };
@@ -268,16 +268,18 @@ export function applyTransition(current: ClinicBilling, t: DvTransition): Partia
 /* ------------------------------------------------------------ access rule */
 
 /**
- * Can this clinic have new videos made? Paying clinics yes; a trial clinic
- * until its free week is made; paused or cancelled clinics no.
+ * Can this clinic have videos made? Only a paying clinic.
+ *
+ * There is no free week: `trial` means "signed up, not paid yet". Such a
+ * clinic sees a live preview of its branded videos (rendered in the browser,
+ * no API spend) and chooses a plan; its first week is made right after the
+ * payment webhook activates it. Paused or cancelled clinics wait for a plan.
  */
-export function canMakeVideos(plan: DvPlanState | string | null | undefined, freeWeekUsed: boolean): boolean {
-  if (plan === "active") return true;
-  if (!plan || plan === "trial") return !freeWeekUsed;
-  return false;
+export function canMakeVideos(plan: DvPlanState | string | null | undefined): boolean {
+  return plan === "active";
 }
 
-/** Should the app offer the plans? Trial with the free week made, or paused/cancelled. */
-export function needsPlan(plan: DvPlanState | string | null | undefined, freeWeekUsed: boolean): boolean {
-  return !canMakeVideos(plan, freeWeekUsed);
+/** Should the app offer the plans? Every clinic that is not paying. */
+export function needsPlan(plan: DvPlanState | string | null | undefined): boolean {
+  return !canMakeVideos(plan);
 }

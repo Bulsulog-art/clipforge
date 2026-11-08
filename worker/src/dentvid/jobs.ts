@@ -16,6 +16,7 @@ import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { notifyReady } from "./notify.js";
+import { isPaying } from "./schedule.js";
 import { patientSearches } from "../dental/questions.js";
 import { analyseLogo, brandFromLogo, logoStyleOf } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
@@ -120,8 +121,21 @@ async function insert(db: SupabaseClient, rows: ItemRow[]) {
   if (error) throw new Error(`insert items: ${error.message}`);
 }
 
+/**
+ * Last line of defence for "no API spend before payment": the web routes,
+ * the payment webhook and the Monday dispatch only queue work for paying
+ * clinics, and the worker checks again before calling any model.
+ */
+async function paying(db: SupabaseClient, clinicId: string, kind: string): Promise<boolean> {
+  const { data } = await db.from("dentvid_clinics").select("plan").eq("id", clinicId).maybeSingle();
+  if (isPaying((data as { plan?: string } | null)?.plan)) return true;
+  logger.warn({ clinicId, plan: (data as { plan?: string } | null)?.plan ?? null, kind }, "dentvid: skipped — clinic has no active plan");
+  return false;
+}
+
 export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; flagged: number; rejected: number }> {
   const db = dentvidDb();
+  if (!(await paying(db, job.clinicId, "week"))) return { ready: 0, flagged: 0, rejected: 0 };
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
     const { ownerId, profile, logoStyle } = await loadClinic(db, job.clinicId, workDir);
@@ -184,6 +198,7 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
 
 export async function runDentvidRecording(job: RecordingJob): Promise<{ clips: number }> {
   const db = dentvidDb();
+  if (!(await paying(db, job.clinicId, "recording"))) return { clips: 0 };
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-rec-"));
   try {
     const { ownerId, profile } = await loadClinic(db, job.clinicId, workDir);
