@@ -34,13 +34,13 @@ export const SAMPLE_VIDEOS: Record<Locale, readonly [SampleVideo, SampleVideo, S
   tr: [
     { slug: "implant-asamalari", name: "İlk randevuda implant bitmiyor!", seconds: 23 },
     { slug: "dis-tasi-temizligi", name: "Diş taşı diş etlerinizi sessizce nasıl tehdit eder?", seconds: 38 },
-    { slug: "dis-beyazlatma", name: "Beyazlatma sonrası minenizdeki değişiklikleri biliyor musunuz?", seconds: 29 },
+    { slug: "beyazlatma-hassasiyet", name: "Beyazlatma sonrası dişler daha hassas mı olur?", seconds: 29 },
   ],
   // Cabinet Dentaire Démo (FR), vous
   fr: [
     { slug: "gencives-qui-saignent", name: "Gencives qui saignent : le signe d'alerte.", seconds: 27 },
     { slug: "blanchiment-email", name: "Blanchiment et l'émail : la vérité.", seconds: 32 },
-    { slug: "visites-dentiste", name: "Visites au dentiste : toujours nécessaires ?", seconds: 27 },
+    { slug: "detartrage", name: "L'ennemi invisible de votre brosse à dents...", seconds: 35 },
   ],
 };
 
