@@ -60,6 +60,13 @@ open item, updates the status here, commits and pushes.
 
 **Kapanış (11:05 UTC):** 8 saatlik gece çalışması bitti, saatlik kontrol kapatıldı. Her şey birleştirildi ve canlıda, dentvideo.com yayında. Sonraki iş: otomatik haftalık teslim ve e-posta bildirimi, ardından onaylanan videoların otomatik paylaşımı.
 
+**Gündüz eklenenler (2026-11-08):**
+- **Otomatik pazartesi teslimi:** Her pazartesi 05:00 UTC'de aktif kliniklerin haftası kendiliğinden hazırlanıyor. Deneme kliniklerine yalnızca ücretsiz ilk haftaları yapılıyor.
+- **"Videolarınız hazır" e-postası:** Kliniğin dilinde (7 dil) hello@dentvideo.com adresinden gidiyor. Resend'de alan adı doğrulandı (DKIM/SPF/DMARC).
+- **Tek dokunuşla paylaşım:** Onaylanan videoda "Instagram'da veya TikTok'ta paylaş" telefonun paylaşım menüsünü video ekli olarak açıyor ve açıklama panoya kopyalanıyor.
+- **Gerçek hasta aramaları:** Konular artık kliniğin ülkesinde gerçekten aratılan sorulardan (Google önerileri) seçiliyor. Test turunda 12 videonun 12'si hazır çıktı.
+- **Doğrudan otomatik paylaşım** (Instagram/TikTok/YouTube API'leri) platform onaylarına bağlı. Uygulamalar üretimde hiç paylaşım yapmamış, bu yüzden Meta ve TikTok onay süreçleri gerekiyor.
+
 ## Ground rules (do not break)
 - Quality over quantity: every change tested; renders checked frame by frame.
 - No purchases, no domain registration, no App Store submissions, no emails
