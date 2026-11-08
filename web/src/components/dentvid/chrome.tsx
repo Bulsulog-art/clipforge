@@ -24,15 +24,17 @@ export function announceLocale(locale: Locale) {
  * the app and sign-up screens, whose language is per visitor.
  */
 export function pathLocale(pathname: string, guideLocales: Record<string, Locale>): Locale | null {
-  const parts = pathname.split("/").filter(Boolean);
-  if (parts[0] !== "dentvideo") return null;
-  if (parts.length === 1) return "en";
-  // English guides hub and About: /dentvideo/guides, /dentvideo/about.
-  if (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about")) return "en";
-  if (parts[1] === "guides") return guideLocales[parts[2] ?? ""] ?? null;
-  if (!(LOCALES as readonly string[]).includes(parts[1])) return null;
-  // A landing (/dentvideo/tr), or its guides hub or About page (/dentvideo/tr/guides).
-  return parts.length === 2 || (parts.length === 3 && (parts[2] === "guides" || parts[2] === "about")) ? (parts[1] as Locale) : null;
+  // On dentvideo.com the address is "/tr" (the middleware serves the
+  // /dentvideo section there); elsewhere it is "/dentvideo/tr". Read both.
+  const all = pathname.split("/").filter(Boolean);
+  const parts = all[0] === "dentvideo" ? all.slice(1) : all;
+  if (parts.length === 0) return "en";
+  // English guides hub and About: /guides, /about.
+  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about")) return "en";
+  if (parts[0] === "guides") return guideLocales[parts[1] ?? ""] ?? null;
+  if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
+  // A landing (/tr), or its guides hub or About page (/tr/guides).
+  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about")) ? (parts[0] as Locale) : null;
 }
 
 function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; ready: boolean } {
