@@ -60,6 +60,7 @@ export type AppText = {
     copyCaption: string;
     copied: string;
     approve: string;
+    approveAll: string;
     download: string;
     share: string;
     shareHint: string;
@@ -185,6 +186,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Copy caption",
       copied: "Copied",
       approve: "Approve",
+      approveAll: "Approve all {n} ready videos",
       download: "Download",
       share: "Share to Instagram or TikTok",
       shareHint: "Caption copied — choose Instagram or TikTok, then paste it.",
@@ -309,6 +311,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Text kopieren",
       copied: "Kopiert",
       approve: "Freigeben",
+      approveAll: "Alle {n} fertigen Videos freigeben",
       download: "Herunterladen",
       share: "Auf Instagram oder TikTok teilen",
       shareHint: "Text kopiert – Instagram oder TikTok wählen und einfügen.",
@@ -438,6 +441,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Copiar texto",
       copied: "Copiado",
       approve: "Aprobar",
+      approveAll: "Aprobar los {n} vídeos listos",
       download: "Descargar",
       share: "Compartir en Instagram o TikTok",
       shareHint: "Texto copiado: elige Instagram o TikTok y pégalo.",
@@ -567,6 +571,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Açıklamayı kopyala",
       copied: "Kopyalandı",
       approve: "Onayla",
+      approveAll: "Hazır {n} videonun hepsini onayla",
       download: "İndir",
       share: "Instagram'da veya TikTok'ta paylaş",
       shareHint: "Açıklama kopyalandı — Instagram'ı veya TikTok'u seçip yapıştırın.",
@@ -696,6 +701,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Copier le texte",
       copied: "Copié",
       approve: "Valider",
+      approveAll: "Valider les {n} vidéos prêtes",
       download: "Télécharger",
       share: "Partager sur Instagram ou TikTok",
       shareHint: "Texte copié : choisissez Instagram ou TikTok, puis collez-le.",

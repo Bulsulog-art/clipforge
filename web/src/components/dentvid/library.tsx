@@ -45,6 +45,21 @@ export function Library({ items, canStartWeek, locale }: { items: LibraryItem[];
     setMessage(res.ok ? t.started : body.error ?? text.errors.couldNotStart);
   }
 
+  // Most weeks every ready video is fine; one tap approves them all. Flagged
+  // ones are left out on purpose — they need the dentist's eyes.
+  const approvable = items.filter((i) => i.status === "ready" && i.approval === "pending" && i.videoUrl);
+  const [approving, setApproving] = useState(false);
+  async function approveAll() {
+    setApproving(true);
+    await Promise.all(
+      approvable.map((i) =>
+        fetch(`/api/dentvideo/items/${i.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ approval: "approved" }) }),
+      ),
+    );
+    setApproving(false);
+    router.refresh();
+  }
+
   const visible = items.filter((i) => showRejected || i.status !== "rejected");
   const rejectedCount = items.filter((i) => i.status === "rejected").length;
 
@@ -61,6 +76,11 @@ export function Library({ items, canStartWeek, locale }: { items: LibraryItem[];
         <a href="/dentvideo/app/record" className="rounded-full border border-[#0f5c5c] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-[#e6efed]">
           {t.uploadOwn}
         </a>
+        {approvable.length > 1 && (
+          <button onClick={approveAll} disabled={approving} className="rounded-full border border-[#0f5c5c] bg-[#e6efed] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-[#d5e6e3] disabled:opacity-60">
+            {fmt(t.approveAll, { n: String(approvable.length) })}
+          </button>
+        )}
         <button onClick={() => router.refresh()} className="text-sm text-[#4a5a57] underline-offset-4 hover:underline">
           {t.refresh}
         </button>
