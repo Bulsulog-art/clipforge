@@ -100,7 +100,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Approve and share", text: "Approve the whole week in one tap, or one by one. Share to Instagram or TikTok from your phone with the caption already copied. Anything that needs your eye is marked, with the reason." },
       ],
     },
-    samples: { heading: "A sample week", text: "Three videos DentVideo made for a demo clinic, exactly as they came out — narrated, captioned and checked. Yours are made in your language, colours and tone.", note: "Demo clinic. The sample videos are in English." },
+    samples: { heading: "A sample week", text: "Three videos DentVideo made for a demo clinic, exactly as they came out — narrated, captioned and checked. Yours are made in your language, colours and tone.", note: "Demo clinic. Made by DentVideo, unedited." },
     checks: {
       heading: "Checked twice before you see it",
       items: [
@@ -175,7 +175,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Freigeben und teilen", text: "Die ganze Woche mit einem Tipp freigeben oder jedes Video einzeln. Direkt vom Handy auf Instagram oder TikTok teilen, der Begleittext ist schon kopiert. Was Ihren Blick braucht, ist markiert — mit Begründung." },
       ],
     },
-    samples: { heading: "Eine Beispielwoche", text: "Drei Videos, die DentVideo für eine Demo-Praxis erstellt hat – genau so, wie sie herauskamen: vertont, untertitelt und geprüft. Ihre Videos entstehen in Ihrer Sprache, Ihren Farben und Ihrem Ton.", note: "Demo-Praxis. Die Beispielvideos sind auf Englisch." },
+    samples: { heading: "Eine Beispielwoche", text: "Drei Videos, die DentVideo für eine Demo-Praxis erstellt hat – genau so, wie sie herauskamen: vertont, untertitelt und geprüft. Ihre Videos entstehen in Ihrer Sprache, Ihren Farben und Ihrem Ton.", note: "Demo-Praxis. Von DentVideo erstellt, unbearbeitet." },
     checks: {
       heading: "Zweimal geprüft, bevor Sie es sehen",
       items: [
@@ -250,7 +250,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Aprueba y comparte", text: "Aprueba toda la semana con un toque, o vídeo a vídeo. Compártelos en Instagram o TikTok desde el móvil con el texto ya copiado. Lo que necesita tu atención aparece marcado, con el motivo." },
       ],
     },
-    samples: { heading: "Una semana de ejemplo", text: "Tres vídeos que DentVideo hizo para una clínica de demostración, tal como salieron: narrados, subtitulados y revisados. Los tuyos se hacen en tu idioma, con tus colores y tu tono.", note: "Clínica de demostración. Los vídeos de ejemplo están en inglés." },
+    samples: { heading: "Una semana de ejemplo", text: "Tres vídeos que DentVideo hizo para una clínica de demostración, tal como salieron: narrados, subtitulados y revisados. Los tuyos se hacen en tu idioma, con tus colores y tu tono.", note: "Clínica de demostración. Hechos por DentVideo, sin editar." },
     checks: {
       heading: "Revisado dos veces antes de que lo veas",
       items: [
@@ -325,7 +325,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Onaylayın ve paylaşın", text: "Haftanın tamamını tek dokunuşla ya da tek tek onaylayın. Açıklaması kopyalanmış haliyle telefonunuzdan Instagram'a veya TikTok'a paylaşın. Dikkatinizi gerektiren her şey gerekçesiyle işaretlenir." },
       ],
     },
-    samples: { heading: "Örnek bir hafta", text: "DentVideo'nun bir demo klinik için hazırladığı üç video, çıktığı haliyle: seslendirilmiş, altyazılı ve kontrol edilmiş. Sizinkiler kendi dilinizde, renklerinizde ve üslubunuzda hazırlanır.", note: "Demo klinik. Örnek videolar İngilizcedir." },
+    samples: { heading: "Örnek bir hafta", text: "DentVideo'nun bir demo klinik için hazırladığı üç video, çıktığı haliyle: seslendirilmiş, altyazılı ve kontrol edilmiş. Sizinkiler kendi dilinizde, renklerinizde ve üslubunuzda hazırlanır.", note: "Demo klinik. DentVideo hazırladı, düzenlenmedi." },
     checks: {
       heading: "Siz görmeden önce iki kez denetlenir",
       items: [
@@ -400,7 +400,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         { title: "Validez et partagez", text: "Validez toute la semaine d'un geste, ou vidéo par vidéo. Partagez sur Instagram ou TikTok depuis votre téléphone, texte déjà copié. Ce qui demande votre attention est signalé, avec la raison." },
       ],
     },
-    samples: { heading: "Une semaine d'exemple", text: "Trois vidéos réalisées par DentVideo pour un cabinet de démonstration, telles qu'elles sont sorties : commentées, sous-titrées et vérifiées. Les vôtres sont faites dans votre langue, vos couleurs et votre ton.", note: "Cabinet de démonstration. Les vidéos d'exemple sont en anglais." },
+    samples: { heading: "Une semaine d'exemple", text: "Trois vidéos réalisées par DentVideo pour un cabinet de démonstration, telles qu'elles sont sorties : commentées, sous-titrées et vérifiées. Les vôtres sont faites dans votre langue, vos couleurs et votre ton.", note: "Cabinet de démonstration. Réalisées par DentVideo, sans retouche." },
     checks: {
       heading: "Vérifié deux fois avant que vous le voyiez",
       items: [
