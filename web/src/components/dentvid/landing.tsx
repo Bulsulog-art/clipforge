@@ -52,7 +52,7 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">{c.hero.h1}</h1>
           <p className="mt-6 max-w-2xl text-lg text-[#4a5a57]">{c.hero.lead}</p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Link href="/dentvideo/start" className={cta}>{c.hero.cta}</Link>
+            <Link href={`/dentvideo/start?lang=${locale}`} className={cta}>{c.hero.cta}</Link>
             <span className="text-sm text-[#6b7a77]">{c.hero.note}</span>
           </div>
         </div>
@@ -102,7 +102,7 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <section id="pricing" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <h2 className="text-3xl font-semibold tracking-tight">{c.pricing.heading}</h2>
         <p className="mt-3 max-w-2xl text-[#4a5a57]">{c.pricing.text}</p>
-        <Link href="/dentvideo/start" className={`mt-8 inline-block ${cta}`}>{c.pricing.cta}</Link>
+        <Link href={`/dentvideo/start?lang=${locale}`} className={`mt-8 inline-block ${cta}`}>{c.pricing.cta}</Link>
       </section>
 
       {guides.length > 0 && (

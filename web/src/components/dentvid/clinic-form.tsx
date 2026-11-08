@@ -4,12 +4,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { dvBrowser, BUCKET } from "@/lib/dentvid/supabase";
 import { LANGUAGES, type ClinicProfile } from "@/lib/dentvid/profile";
+import type { Locale } from "@/content/dentvideo";
+import { appText, fmt } from "@/content/dentvideo-app";
 
-const COUNTRIES: [string, string][] = [
-  ["US", "United States"], ["GB", "United Kingdom"], ["DE", "Germany"], ["AT", "Austria"], ["CH", "Switzerland"],
-  ["ES", "Spain"], ["MX", "Mexico"], ["FR", "France"], ["IT", "Italy"], ["PT", "Portugal"], ["BR", "Brazil"],
-  ["TR", "Türkiye"], ["NL", "Netherlands"], ["AE", "United Arab Emirates"], ["CA", "Canada"], ["AU", "Australia"],
-];
+const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "AE", "CA", "AU"];
+
+/** A new clinic starts in the country and language the visitor came in with. */
+const DEFAULT_COUNTRY: Record<Locale, string> = { en: "US", de: "DE", es: "ES", tr: "TR", fr: "FR" };
+
+/** Country names in the interface's language, from the browser's own data. */
+function countryName(code: string, locale: Locale): string {
+  try {
+    return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
 
 const SERVICE_HINTS: Record<string, string> = {
   en: "Cleanings, Teeth whitening, Implants, Clear aligners, Root canal treatment, Children's dentistry",
@@ -21,15 +31,17 @@ const SERVICE_HINTS: Record<string, string> = {
   tr: "Diş taşı temizliği, Diş beyazlatma, İmplant, Şeffaf plak, Kanal tedavisi, Çocuk diş hekimliği",
 };
 
-type Props = { initial?: Partial<ClinicProfile>; logoPath?: string | null; submitLabel?: string };
+type Props = { locale: Locale; initial?: Partial<ClinicProfile>; logoPath?: string | null; submitLabel?: string };
 
-export function ClinicForm({ initial, logoPath, submitLabel = "Save and continue" }: Props) {
+export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
+  const text = appText(locale);
+  const t = text.form;
   const router = useRouter();
   const [p, setP] = useState({
     name: initial?.name ?? "",
     city: initial?.city ?? "",
-    country: initial?.country ?? "US",
-    language: initial?.language ?? "en",
+    country: initial?.country ?? DEFAULT_COUNTRY[locale],
+    language: initial?.language ?? locale,
     services: (initial?.services ?? []).join(", "),
     tone: initial?.tone ?? "warm",
     address: initial?.address ?? "formal",
@@ -52,11 +64,11 @@ export function ClinicForm({ initial, logoPath, submitLabel = "Save and continue
       if (logo) {
         const db = dvBrowser();
         const { data: u } = await db.auth.getUser();
-        if (!u.user) throw new Error("Please sign in again.");
+        if (!u.user) throw new Error(text.errors.signIn);
         const ext = (logo.name.split(".").pop() ?? "png").toLowerCase().slice(0, 4);
         newLogo = `${u.user.id}/logo.${ext}`;
         const { error: upErr } = await db.storage.from(BUCKET).upload(newLogo, logo, { upsert: true, contentType: logo.type });
-        if (upErr) throw new Error(`Logo upload failed: ${upErr.message}`);
+        if (upErr) throw new Error(fmt(t.logoFailed, { message: upErr.message }));
       }
       const profile = {
         name: p.name,
@@ -76,7 +88,7 @@ export function ClinicForm({ initial, logoPath, submitLabel = "Save and continue
         body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}) }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error ?? "Could not save.");
+      if (!res.ok) throw new Error(body.error ?? text.errors.saveFailed);
       router.push("/dentvideo/app");
       router.refresh();
     } catch (err) {
@@ -92,23 +104,23 @@ export function ClinicForm({ initial, logoPath, submitLabel = "Save and continue
   return (
     <form onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
       <label className={`${label} sm:col-span-2`}>
-        Clinic name
+        {t.clinicName}
         <input required value={p.name} onChange={set("name")} className={field} />
       </label>
       <label className={label}>
-        City
+        {t.city}
         <input value={p.city} onChange={set("city")} className={field} />
       </label>
       <label className={label}>
-        Country
+        {t.country}
         <select value={p.country} onChange={set("country")} className={field}>
-          {COUNTRIES.map(([code, name]) => (
-            <option key={code} value={code}>{name}</option>
+          {COUNTRIES.map((code) => (
+            <option key={code} value={code} suppressHydrationWarning>{countryName(code, locale)}</option>
           ))}
         </select>
       </label>
       <label className={label}>
-        Language of your videos
+        {t.language}
         <select value={p.language} onChange={set("language")} className={field}>
           {LANGUAGES.map((l) => (
             <option key={l.code} value={l.code}>{l.label}</option>
@@ -116,14 +128,14 @@ export function ClinicForm({ initial, logoPath, submitLabel = "Save and continue
         </select>
       </label>
       <label className={label}>
-        How you address patients
+        {t.address}
         <select value={p.address} onChange={set("address")} className={field}>
-          <option value="formal">Formal (Sie, usted, vous, siz)</option>
-          <option value="informal">Informal (du, tú, tu, sen)</option>
+          <option value="formal">{t.formal}</option>
+          <option value="informal">{t.informal}</option>
         </select>
       </label>
       <label className={`${label} sm:col-span-2`}>
-        Services you offer
+        {t.services}
         <textarea
           required
           rows={3}
@@ -132,43 +144,41 @@ export function ClinicForm({ initial, logoPath, submitLabel = "Save and continue
           placeholder={SERVICE_HINTS[p.language]}
           className={field}
         />
-        <span className="mt-1 block text-xs font-normal text-[#6b7a77]">
-          Comma-separated. Videos are only ever made about these.
-        </span>
+        <span className="mt-1 block text-xs font-normal text-[#6b7a77]">{t.servicesHelp}</span>
       </label>
       <label className={label}>
-        Tone
+        {t.tone}
         <select value={p.tone} onChange={set("tone")} className={field}>
-          <option value="warm">Warm</option>
-          <option value="expert">Expert</option>
-          <option value="calm">Calm</option>
-          <option value="playful">Playful</option>
+          <option value="warm">{t.tones.warm}</option>
+          <option value="expert">{t.tones.expert}</option>
+          <option value="calm">{t.tones.calm}</option>
+          <option value="playful">{t.tones.playful}</option>
         </select>
       </label>
       <label className={label}>
-        Instagram / TikTok handle
-        <input value={p.handle} onChange={set("handle")} placeholder="@yourclinic" className={field} />
+        {t.handle}
+        <input value={p.handle} onChange={set("handle")} placeholder="@" className={field} />
       </label>
       <label className={label}>
-        Booking link (optional)
+        {t.booking}
         <input type="url" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className={field} />
       </label>
       <label className={label}>
-        Brand colour
+        {t.brandColor}
         <span className="mt-1 flex items-center gap-3">
           <input type="color" value={p.brandColor} onChange={set("brandColor")} className="h-12 w-16 cursor-pointer rounded-lg border border-[#d9d1c3] bg-white" />
           <span className="font-mono text-sm text-[#4a5a57]">{p.brandColor}</span>
         </span>
       </label>
       <label className={`${label} sm:col-span-2`}>
-        Logo (PNG with a transparent background works best)
+        {t.logo}
         <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setLogo(e.target.files?.[0] ?? null)} className={`${field} file:mr-3 file:rounded-full file:border-0 file:bg-[#e6efed] file:px-3 file:py-1`} />
-        {logoPath && !logo && <span className="mt-1 block text-xs font-normal text-[#6b7a77]">A logo is already saved.</span>}
+        {logoPath && !logo && <span className="mt-1 block text-xs font-normal text-[#6b7a77]">{t.logoSaved}</span>}
       </label>
       {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f] sm:col-span-2" role="alert">{error}</p>}
       <div className="sm:col-span-2">
         <button type="submit" disabled={busy} className="rounded-full bg-[#0f5c5c] px-8 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60">
-          {busy ? "Saving…" : submitLabel}
+          {busy ? t.saving : submitLabel ?? t.save}
         </button>
       </div>
     </form>

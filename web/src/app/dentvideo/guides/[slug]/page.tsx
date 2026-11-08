@@ -50,7 +50,7 @@ export default async function GuidePage({ params }: Props) {
         <aside className="mt-14 rounded-2xl bg-[#0f5c5c] p-7 text-[#f5efe6] sm:p-9">
           <p className="text-xl font-semibold leading-snug">{c.hero.h1}</p>
           <p className="mt-2 text-[#cfe2df]">{c.pricing.text}</p>
-          <Link href="/dentvideo/start" className="mt-6 inline-block rounded-full bg-[#f5efe6] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-white">
+          <Link href={`/dentvideo/start?lang=${g.locale}`} className="mt-6 inline-block rounded-full bg-[#f5efe6] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-white">
             {c.hero.cta}
           </Link>
         </aside>
