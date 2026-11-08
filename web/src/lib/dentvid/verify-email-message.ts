@@ -7,7 +7,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
  * flips the whole message; the brand and the code itself stay left to right.
  */
 export function codeEmail(args: { language: string; code: string }): { subject: string; html: string; text: string } {
-  const lang = args.language in VERIFY_COPY ? args.language : "en";
+  const lang = Object.hasOwn(VERIFY_COPY, args.language) ? args.language : "en";
   const c = verifyText(lang).email;
   const subject = fmtAuth(c.subject, { code: args.code });
   const spaced = `${args.code.slice(0, 3)} ${args.code.slice(3)}`;

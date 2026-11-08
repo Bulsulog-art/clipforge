@@ -1,8 +1,10 @@
 /**
  * Strings for account recovery: "forgot password", the reset email and the
  * page that sets a new password. Kept apart from dentvideo-app.ts so new site
- * languages can be added without touching the rest; any language without its
- * own entry falls back to English.
+ * languages can be added without touching the rest. Every site language has
+ * its own entry (typed Record<Locale, …>; the parity test checks keys and
+ * placeholders); only codes outside the site's languages fall back to English.
+ * Tone per docs/MARKETS.md: です・ます for ja, plural أنتم for ar, "Państwo" for pl.
  */
 import type { Locale } from "./dentvideo";
 
@@ -26,7 +28,7 @@ export type AuthCopy = {
   email: { subject: string; hello: string; body: string; button: string; ignore: string; footer: string };
 };
 
-const COPY: Record<string, AuthCopy> = {
+const COPY: Record<Locale, AuthCopy> = {
   en: {
     forgot: "Forgot your password?",
     forgotTitle: "Reset your password",
@@ -157,12 +159,91 @@ const COPY: Record<string, AuthCopy> = {
       footer: "Vous recevez cet e-mail car une réinitialisation a été demandée sur dentvideo.com.",
     },
   },
+  ja: {
+    forgot: "パスワードをお忘れですか？",
+    forgotTitle: "パスワードの再設定",
+    forgotLead: "ご登録のメールアドレスを入力してください。新しいパスワードを設定するためのリンクをお送りします。",
+    sendLink: "リンクを送信する",
+    sent: "このメールアドレスのアカウントがある場合は、リンクをお送りしました。有効期限は1時間です。迷惑メールフォルダもご確認ください。",
+    backToSignIn: "ログイン画面に戻る",
+    existsTryingSignIn: "すでにアカウントをお持ちです。ログインしています…",
+    existsWrongPassword: "このメールアドレスのアカウントはすでにありますが、パスワードが一致しません。ログインするか、パスワードを再設定してください。",
+    signInFailedAfterSignup: "アカウントは作成されましたが、ただいまログインできませんでした。下のフォームから、同じメールアドレスとパスワードでログインしてください。",
+    resetTitle: "新しいパスワードの設定",
+    resetLead: "8文字以上で設定してください。設定後、そのままログインできます。",
+    newPassword: "新しいパスワード",
+    savePassword: "保存して続ける",
+    saved: "パスワードを保存しました。医院のページに移動しています…",
+    linkInvalid: "このリンクは有効期限が切れているか、すでに使用されています。もう一度リンクをお申し込みください。",
+    tooShort: "8文字以上で入力してください。",
+    email: {
+      subject: "DentVideoのパスワード再設定",
+      hello: "DentVideoをご利用いただきありがとうございます。",
+      body: "このDentVideoアカウントのパスワード再設定のお申し込みがありました。下のボタンから新しいパスワードを設定してください。リンクの有効期限は1時間です。",
+      button: "新しいパスワードを設定する",
+      ignore: "お心当たりがない場合は、このメールを破棄してください。パスワードは変更されません。",
+      footer: "このメールは、dentvideo.com でパスワードの再設定が申し込まれたためお送りしています。",
+    },
+  },
+  ar: {
+    forgot: "نسيتم كلمة المرور؟",
+    forgotTitle: "إعادة تعيين كلمة المرور",
+    forgotLead: "أدخلوا البريد الإلكتروني الذي سجّلتم به، وسنرسل إليكم رابطاً لاختيار كلمة مرور جديدة.",
+    sendLink: "إرسال الرابط",
+    sent: "إن كان هناك حساب بهذا البريد الإلكتروني فالرابط في طريقه إليكم. يبقى صالحاً لمدة ساعة، ويُرجى التحقق من مجلد الرسائل غير المرغوب فيها أيضاً.",
+    backToSignIn: "العودة إلى تسجيل الدخول",
+    existsTryingSignIn: "لديكم حساب بالفعل، جارٍ تسجيل الدخول…",
+    existsWrongPassword: "يوجد حساب بهذا البريد الإلكتروني، لكن كلمة المرور غير مطابقة. سجّلوا الدخول أو أعيدوا تعيين كلمة المرور.",
+    signInFailedAfterSignup: "حسابكم جاهز، لكن تسجيل الدخول لم ينجح الآن. يُرجى تسجيل الدخول أدناه بالبريد الإلكتروني وكلمة المرور نفسيهما.",
+    resetTitle: "اختاروا كلمة مرور جديدة",
+    resetLead: "8 أحرف على الأقل، وبعدها يتم تسجيل دخولكم مباشرة.",
+    newPassword: "كلمة المرور الجديدة",
+    savePassword: "حفظ ومتابعة",
+    saved: "تم حفظ كلمة المرور. جارٍ نقلكم إلى صفحة عيادتكم…",
+    linkInvalid: "انتهت صلاحية هذا الرابط أو سبق استخدامه. اطلبوا رابطاً جديداً.",
+    tooShort: "استخدموا 8 أحرف على الأقل.",
+    email: {
+      subject: "إعادة تعيين كلمة مرور DentVideo",
+      hello: "مرحباً،",
+      body: "طُلبت إعادة تعيين كلمة المرور لهذا الحساب على DentVideo. استخدموا الزر أدناه لاختيار كلمة مرور جديدة. يبقى الرابط صالحاً لمدة ساعة.",
+      button: "اختيار كلمة مرور جديدة",
+      ignore: "إن لم تطلبوا ذلك فتجاهلوا هذه الرسالة، ولن تتغير كلمة المرور.",
+      footer: "تصلكم هذه الرسالة لأنه طُلبت إعادة تعيين كلمة المرور على dentvideo.com.",
+    },
+  },
+  pl: {
+    forgot: "Nie pamiętają Państwo hasła?",
+    forgotTitle: "Resetowanie hasła",
+    forgotLead: "Prosimy podać adres e-mail użyty przy rejestracji. Wyślemy link do ustawienia nowego hasła.",
+    sendLink: "Wyślij link",
+    sent: "Jeśli istnieje konto z tym adresem, link jest już w drodze. Jest ważny przez godzinę — prosimy sprawdzić też folder spam.",
+    backToSignIn: "Wróć do logowania",
+    existsTryingSignIn: "Mają już Państwo konto — trwa logowanie…",
+    existsWrongPassword: "Konto z tym adresem e-mail już istnieje, ale hasło się nie zgadza. Prosimy się zalogować lub zresetować hasło.",
+    signInFailedAfterSignup: "Konto jest gotowe, ale logowanie chwilowo się nie powiodło. Prosimy zalogować się poniżej tym samym adresem e-mail i hasłem.",
+    resetTitle: "Ustawienie nowego hasła",
+    resetLead: "Co najmniej 8 znaków. Zaraz potem nastąpi automatyczne logowanie.",
+    newPassword: "Nowe hasło",
+    savePassword: "Zapisz i przejdź dalej",
+    saved: "Hasło zapisane. Przechodzimy do Państwa gabinetu…",
+    linkInvalid: "Ten link wygasł lub został już użyty. Prosimy poprosić o nowy.",
+    tooShort: "Hasło musi mieć co najmniej 8 znaków.",
+    email: {
+      subject: "Reset hasła do DentVideo",
+      hello: "Dzień dobry,",
+      body: "otrzymaliśmy prośbę o zresetowanie hasła do tego konta DentVideo. Nowe hasło można ustawić przyciskiem poniżej. Link jest ważny przez godzinę.",
+      button: "Ustaw nowe hasło",
+      ignore: "Jeśli to nie Państwo wysłali tę prośbę, wystarczy zignorować tę wiadomość — hasło pozostanie bez zmian.",
+      footer: "Otrzymują Państwo tę wiadomość, ponieważ na dentvideo.com poproszono o zresetowanie hasła.",
+    },
+  },
 };
 
-export const AUTH_LANGUAGES = Object.keys(COPY);
+export const AUTH_LANGUAGES = Object.keys(COPY) as Locale[];
+export const AUTH_COPY: Readonly<Record<Locale, AuthCopy>> = COPY;
 
 export function authText(locale: string | undefined | null): AuthCopy {
-  return COPY[locale ?? "en"] ?? COPY.en;
+  return (COPY as Record<string, AuthCopy>)[(locale ?? "en").slice(0, 2)] ?? COPY.en;
 }
 
 // ---------------------------------------------------------------------------
@@ -434,35 +515,35 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     },
   },
   pl: {
-    title: "Potwierdź adres e-mail",
-    lead: "Wysłaliśmy 6-cyfrowy kod na adres {email}. Wpisz go, aby wybrać plan.",
+    title: "Potwierdzenie adresu e-mail",
+    lead: "Wysłaliśmy 6-cyfrowy kod na adres {email}. Prosimy go wpisać, aby wybrać plan.",
     codeLabel: "6-cyfrowy kod",
-    codeHint: "Nie widzisz go? Sprawdź folder spam. Kod jest ważny przez 15 minut.",
+    codeHint: "Nie ma go w skrzynce? Prosimy sprawdzić folder spam. Kod jest ważny przez 15 minut.",
     submit: "Potwierdź",
     checking: "Sprawdzanie…",
     resend: "Wyślij nowy kod",
     resendIn: "Nowy kod za {s} s",
     resent: "Nowy kod jest w drodze na adres {email}.",
     changeEmail: "Zmień adres e-mail",
-    newEmailLabel: "Twój adres e-mail",
+    newEmailLabel: "Adres e-mail",
     saveEmail: "Wyślij kod na ten adres",
     cancel: "Anuluj",
-    done: "Adres e-mail potwierdzony. Wybierz plan poniżej.",
+    done: "Adres e-mail potwierdzony. Plan można wybrać poniżej.",
     wrong: "Kod się nie zgadza. Pozostałe próby: {n}.",
-    expired: "Ten kod wygasł. Poproś o nowy.",
-    locked: "Zbyt wiele błędnych prób. Poproś o nowy kod.",
-    none: "Dla tego adresu nie czeka żaden kod. Poproś o nowy.",
-    malformed: "Wpisz 6 cyfr z wiadomości e-mail.",
+    expired: "Ten kod wygasł. Prosimy poprosić o nowy.",
+    locked: "Zbyt wiele błędnych prób. Prosimy poprosić o nowy kod.",
+    none: "Dla tego adresu nie czeka żaden kod. Prosimy poprosić o nowy.",
+    malformed: "Prosimy wpisać 6 cyfr z wiadomości e-mail.",
     emailTaken: "Ten adres e-mail jest już używany przez inne konto.",
-    failed: "Nie udało się. Spróbuj ponownie za chwilę.",
-    checkoutBlocked: "Najpierw potwierdź adres e-mail: wpisz 6-cyfrowy kod, który wysłaliśmy.",
+    failed: "Nie udało się. Prosimy spróbować ponownie za chwilę.",
+    checkoutBlocked: "Prosimy najpierw potwierdzić adres e-mail — wystarczy wpisać 6-cyfrowy kod, który wysłaliśmy.",
     email: {
-      subject: "{code} to Twój kod DentVideo",
+      subject: "{code} — kod DentVideo",
       hello: "Dzień dobry,",
-      body: "wpisz ten kod na dentvideo.com, aby potwierdzić swój adres e-mail:",
+      body: "prosimy wpisać ten kod na dentvideo.com, aby potwierdzić adres e-mail:",
       expires: "Kod jest ważny przez 15 minut.",
-      ignore: "Jeśli nie zakładałeś konta w DentVideo, zignoruj tę wiadomość — nie wyślemy Ci nic więcej.",
-      footer: "Otrzymujesz tę wiadomość, ponieważ ten adres został użyty do rejestracji na dentvideo.com.",
+      ignore: "Jeśli nie zakładali Państwo konta w DentVideo, wystarczy zignorować tę wiadomość — nie wyślemy niczego więcej.",
+      footer: "Otrzymują Państwo tę wiadomość, ponieważ ten adres został użyty do rejestracji na dentvideo.com.",
     },
   },
 };

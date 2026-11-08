@@ -182,8 +182,8 @@ export const VerifyCard = forwardRef<VerifyCardHandle, Props>(function VerifyCar
           </h2>
           <p className="mt-1 text-pretty text-sm leading-relaxed text-dv-body">
             {leadParts[0]}
-            {/* An address is left to right inside any sentence. */}
-            <bdi dir="ltr" className="inline-block max-w-full font-semibold text-dv-ink [overflow-wrap:anywhere]">
+            {/* An address is left to right inside any sentence; kept on one line unless too long for a phone. */}
+            <bdi dir="ltr" className={`font-semibold text-dv-ink ${email.length <= 26 ? "whitespace-nowrap" : "[overflow-wrap:anywhere]"}`}>
               {email}
             </bdi>
             {leadParts[1] ?? ""}
