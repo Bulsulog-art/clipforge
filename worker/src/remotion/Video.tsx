@@ -10,6 +10,8 @@ import { Watermark } from "./Watermark.js";
 import { LogoMark } from "./LogoMark.js";
 import { CORNER_LOGO, logoStyleSchema, type LogoStyle } from "./logo-style.js";
 import type { Theme } from "./theme.js";
+import { BackgroundLayer, PhotoBackdrop } from "./background-layer.js";
+import { photoTheme } from "./photo-overlay.js";
 
 /**
  * Props the renderer is handed. The plan travels as data alongside the two
@@ -30,6 +32,12 @@ export const videoPropsSchema = z.object({
   logoSrc: z.string().optional(),
   /** How to draw the logo, from analysing it (dental/logo.ts). Absent: a light chip. */
   logoStyle: logoStyleSchema.optional(),
+  /**
+   * The plan's background photos as the renderer staged them (render-plan.ts),
+   * parallel to plan.backgrounds. Absent: plan.backgrounds are used as-is,
+   * which is what the browser preview does (they are web paths).
+   */
+  backgroundSrcs: z.array(z.string()).max(8).optional(),
 });
 
 export type VideoProps = z.infer<typeof videoPropsSchema>;
@@ -52,8 +60,12 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   watermark,
   logoSrc,
   logoStyle,
+  backgroundSrcs,
 }) => {
   const t = brandTheme(resolveTheme(plan.theme), plan.brandColor, plan.brandAccent);
+  const photos = backgroundSrcs?.length ? backgroundSrcs : plan.backgrounds ?? [];
+  // Over photos, muted and accent text are lifted just enough to stay readable (photo-overlay.ts).
+  const sceneTheme = photos.length ? photoTheme(t) : t;
   const offsets = sceneOffsets(plan);
   const logo = logoSrc ? { src: asStatic(logoSrc), style: logoStyle } : undefined;
   // The sign-off shows the logo large; the corner mark steps aside for it.
@@ -61,6 +73,8 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor: t.background[0] }}>
+      {photos.length ? <BackgroundLayer srcs={photos} theme={t} /> : null}
+      <PhotoBackdrop.Provider value={photos.length > 0}>
       {plan.scenes.map((scene, i) => {
         const durationInFrames = sceneFrames(scene);
         return (
@@ -74,7 +88,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
           >
             <FadingScene
               scene={scene}
-              theme={t}
+              theme={sceneTheme}
               durationInFrames={durationInFrames}
               footageSrc={footage[String(i)]}
               logo={logo}
@@ -82,6 +96,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
           </Sequence>
         );
       })}
+      </PhotoBackdrop.Provider>
 
       {voiceoverSrc ? <Audio src={asStatic(voiceoverSrc)} /> : null}
       {/* Music sits well under narration; it is texture, not content. */}
@@ -151,7 +166,11 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
   );
 };
 
-/** Staged files are named relative to the public folder; URLs pass through. */
-function asStatic(src: string): string {
-  return /^https?:/.test(src) ? src : staticFile(src);
+/**
+ * Staged files are named relative to the public folder; URLs pass through —
+ * including blob: and data: URLs, which is what the browser preview hands it
+ * for a logo the visitor has only just picked (web/src/components/dentvid/live-preview.tsx).
+ */
+export function asStatic(src: string): string {
+  return /^(https?|blob|data):/.test(src) ? src : staticFile(src);
 }

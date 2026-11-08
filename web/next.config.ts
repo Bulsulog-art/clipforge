@@ -26,7 +26,8 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://*.supabase.co https://cdn.clipforge.bulsulabs.com https://img.youtube.com",
-      "media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob:",
+      // data: for the live preview's player, which unlocks its audio tags with a silent data: mp3.
+      "media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob: data:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://api.revenuecat.com https://api.openai.com https://fal.run",
       "frame-ancestors 'none'",
       "base-uri 'self'",

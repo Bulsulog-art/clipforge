@@ -22,8 +22,8 @@ export type HostRoute =
   | { kind: "redirect"; url: string; status: 301 | 308 };
 
 const PASS_THROUGH = /^\/(_next|api|\.well-known)(\/|$)|^\/favicon\.ico$/;
-/** A file under /dentvideo/ (sample videos, posters) is served as-is. */
-const STATIC_FILE = /\.(mp4|webm|jpg|jpeg|png|webp|svg|ico|woff2?)$/i;
+/** A file under /dentvideo/ (sample videos, posters, the live preview's plans and narration) is served as-is. */
+const STATIC_FILE = /\.(mp4|webm|mp3|json|jpg|jpeg|png|webp|svg|ico|woff2?)$/i;
 
 /**
  * Where a request goes.

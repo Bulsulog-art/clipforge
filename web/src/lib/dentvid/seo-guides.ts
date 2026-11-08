@@ -40,7 +40,7 @@ export function softwareNode(locale: Locale) {
     inLanguage: [...VIDEO_LANGUAGES],
     audience: { "@type": "BusinessAudience", audienceType: "Dental clinics and dentists" },
     publisher: { "@id": ORG_ID },
-    offers: { "@type": "Offer", name: "First week free", description: e.facts.find((f) => PRICE_LABELS.includes(f.label))?.value },
+    offers: { "@type": "Offer", name: "Monthly plan", description: e.facts.find((f) => PRICE_LABELS.includes(f.label))?.value },
   };
 }
 

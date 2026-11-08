@@ -1,0 +1,290 @@
+[
+ {
+  "name": "tr whitening",
+  "input": {
+   "plan": {
+    "music": "calm",
+    "theme": "sunrise",
+    "title": "Diş Beyazlatma Kalıcı mı?",
+    "aspect": "9:16",
+    "brandColor": "1A7F8C",
+    "scenes": [
+     {
+      "kind": "hook",
+      "text": "Diş beyazlatma sonrası renk ne kadar kalır?",
+      "seconds": 3.5
+     },
+     {
+      "kind": "statement",
+      "text": "Kahve, çay ve kırmızı şarap dişlerde yeniden leke bırakabilir.",
+      "emphasis": [
+       "leke"
+      ],
+      "seconds": 4.5
+     },
+     {
+      "kind": "list",
+      "heading": "Beyazlığı korumak için",
+      "items": [
+       "Koyu içeceklerden sonra su için",
+       "Günde iki kez fırçalayın",
+       "Düzenli kontrol randevusu alın"
+      ],
+      "seconds": 6
+     },
+     {
+      "kind": "stat",
+      "value": "1–3 yıl",
+      "label": "sonuç genellikle bu kadar sürebilir",
+      "context": "Kişiden kişiye değişir.",
+      "seconds": 4
+     },
+     {
+      "kind": "statement",
+      "text": "Size uygun yöntemi diş hekiminiz belirler.",
+      "seconds": 3.5
+     },
+     {
+      "kind": "cta",
+      "text": "Beyazlatma için kliniğimizden randevu alın.",
+      "handle": "@e2etest.klinik",
+      "seconds": 4
+     }
+    ]
+   },
+   "service": "Diş beyazlatma",
+   "language": "tr"
+  },
+  "expected": [
+   "whitening-14",
+   "whitening-15",
+   "whitening-01",
+   "whitening-02",
+   "whitening-03",
+   "whitening-04",
+   "whitening-05",
+   "whitening-07",
+   "whitening-08",
+   "whitening-09",
+   "whitening-10",
+   "whitening-11",
+   "whitening-12",
+   "whitening-13",
+   "whitening-16",
+   "whitening-17"
+  ]
+ },
+ {
+  "name": "de implant",
+  "input": {
+   "plan": {
+    "music": "calm",
+    "theme": "midnight",
+    "title": "Zahnimplantat: Wie lange hält es?",
+    "aspect": "9:16",
+    "brandColor": "2B4C7E",
+    "brandAccent": "C9A44C",
+    "scenes": [
+     {
+      "kind": "hook",
+      "text": "Ein Zahnimplantat kann viele Jahre halten.",
+      "seconds": 3.5
+     },
+     {
+      "kind": "statement",
+      "text": "Das Implantat aus Titan verwächst mit dem Knochen und trägt eine Krone.",
+      "emphasis": [
+       "Titan"
+      ],
+      "seconds": 4.5
+     },
+     {
+      "kind": "list",
+      "heading": "Was die Haltbarkeit unterstützt",
+      "items": [
+       "Gründliches Zähneputzen",
+       "Zahnseide oder Interdentalbürsten",
+       "Regelmäßige Kontrolle in der Praxis"
+      ],
+      "seconds": 6
+     },
+     {
+      "kind": "compare",
+      "left": {
+       "label": "Brücke",
+       "text": "Nachbarzähne werden beschliffen"
+      },
+      "right": {
+       "label": "Implantat",
+       "text": "Nachbarzähne bleiben unberührt"
+      },
+      "seconds": 5
+     },
+     {
+      "kind": "cta",
+      "text": "Lassen Sie sich in unserer Praxis beraten.",
+      "handle": "@praxis.beispiel",
+      "seconds": 4
+     }
+    ]
+   },
+   "service": "Implantologie",
+   "language": "de"
+  },
+  "expected": [
+   "implants-03",
+   "implants-06",
+   "implants-07",
+   "implants-14",
+   "implants-15",
+   "implants-05",
+   "implants-16",
+   "implants-01",
+   "implants-02",
+   "implants-04",
+   "implants-09",
+   "implants-10",
+   "implants-11",
+   "implants-17",
+   "implants-18",
+   "whitening-01"
+  ]
+ },
+ {
+  "name": "tr tartar cleaning",
+  "input": {
+   "plan": {
+    "music": "calm",
+    "theme": "sunrise",
+    "title": "Diş Taşı Temizliği Sıklığı",
+    "aspect": "9:16",
+    "scenes": [
+     {
+      "kind": "hook",
+      "text": "Diş taşı temizliği genellikle yılda 1 veya 2 kez önerilir.",
+      "seconds": 3
+     },
+     {
+      "kind": "statement",
+      "text": "Bu sıklık, kişisel ağız sağlığı durumunuza bağlı olarak değişebilir.",
+      "seconds": 4
+     },
+     {
+      "kind": "compare",
+      "left": {
+       "text": "Daha az diş taşı birikimi olanlar için.",
+       "label": "Yılda 1 kez"
+      },
+      "right": {
+       "text": "Daha fazla diş taşı birikimi olanlar için.",
+       "label": "Yılda 2 kez"
+      },
+      "seconds": 5
+     },
+     {
+      "kind": "statement",
+      "text": "Diş hekiminiz, sizin için en uygun sıklığı belirleyecektir.",
+      "seconds": 3
+     },
+     {
+      "kind": "cta",
+      "text": "Daha fazla bilgi için kliniğimizle iletişime geçin veya bir kontrol randevusu alın.",
+      "handle": "@e2etest.klinik",
+      "seconds": 5
+     }
+    ],
+    "brandColor": "1A7F8C"
+   },
+   "service": "Diş taşı temizliği",
+   "language": "tr"
+  },
+  "expected": [
+   "implants-03",
+   "whitening-01",
+   "whitening-02",
+   "aligners-02",
+   "implants-01",
+   "whitening-03",
+   "aligners-03",
+   "implants-02",
+   "whitening-04",
+   "aligners-04",
+   "implants-04",
+   "whitening-05",
+   "aligners-05",
+   "implants-05",
+   "whitening-07",
+   "aligners-08"
+  ]
+ },
+ {
+  "name": "es aligners by topic only",
+  "input": {
+   "topic": "Alineadores invisibles: ¿cuánto tiempo al día?",
+   "language": "es"
+  },
+  "count": 12,
+  "expected": [
+   "aligners-08",
+   "aligners-02",
+   "aligners-03",
+   "aligners-04",
+   "aligners-11",
+   "aligners-14",
+   "aligners-05",
+   "whitening-01",
+   "implants-01",
+   "whitening-02",
+   "implants-02",
+   "whitening-03"
+  ]
+ },
+ {
+  "name": "fr coffee stains",
+  "input": {
+   "topic": "Café, thé et taches sur les dents",
+   "service": "Blanchiment",
+   "language": "fr"
+  },
+  "count": 10,
+  "expected": [
+   "whitening-15",
+   "whitening-01",
+   "whitening-02",
+   "whitening-03",
+   "whitening-04",
+   "whitening-05",
+   "whitening-07",
+   "whitening-08",
+   "whitening-09",
+   "whitening-10"
+  ]
+ },
+ {
+  "name": "nothing matches",
+  "input": {},
+  "count": 20,
+  "expected": [
+   "whitening-01",
+   "implants-01",
+   "whitening-02",
+   "aligners-02",
+   "implants-02",
+   "whitening-03",
+   "aligners-03",
+   "implants-03",
+   "whitening-04",
+   "aligners-04",
+   "implants-04",
+   "whitening-05",
+   "aligners-05",
+   "implants-05",
+   "whitening-07",
+   "aligners-08",
+   "implants-06",
+   "whitening-08",
+   "aligners-11",
+   "implants-07"
+  ]
+ }
+]

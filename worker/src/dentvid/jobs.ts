@@ -11,11 +11,13 @@ import { clinicProfileSchema, type ClinicProfile } from "../dental/profile.js";
 import { produceWeek } from "../dental/week.js";
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
+import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
 import { prepareVoiceover } from "../remotion/voiceover.js";
 import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { notifyReady } from "./notify.js";
+import { isPaying } from "./schedule.js";
 import { patientSearches } from "../dental/questions.js";
 import { analyseLogo, brandFromLogo, logoStyleOf } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
@@ -44,6 +46,8 @@ export function dentvidDb(): SupabaseClient {
 }
 
 export type WeekJob = { clinicId: string; count?: number };
+/** Re-render one generated video after the clinic picked new background photos. */
+export type RestyleJob = { itemId: string };
 export type RecordingJob = { clinicId: string; sourcePath: string };
 
 async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string) {
@@ -116,12 +120,31 @@ async function storeVideo(db: SupabaseClient, ownerId: string, videoPath: string
 
 async function insert(db: SupabaseClient, rows: ItemRow[]) {
   if (!rows.length) return;
-  const { error } = await db.from("dentvid_items").insert(rows);
+  let { error } = await db.from("dentvid_items").insert(rows);
+  if (error && /suggested_backgrounds/.test(error.message)) {
+    // Liman without 0003_dentvid_backgrounds.sql yet: a week of videos must
+    // not be lost over the suggestions; the web app recomputes them from the plan.
+    logger.warn({ err: error.message }, "dentvid: suggested_backgrounds column missing; inserting without it");
+    ({ error } = await db.from("dentvid_items").insert(rows.map(({ suggested_backgrounds: _drop, ...r }) => r)));
+  }
   if (error) throw new Error(`insert items: ${error.message}`);
+}
+
+/**
+ * Last line of defence for "no API spend before payment": the web routes,
+ * the payment webhook and the Monday dispatch only queue work for paying
+ * clinics, and the worker checks again before calling any model.
+ */
+async function paying(db: SupabaseClient, clinicId: string, kind: string): Promise<boolean> {
+  const { data } = await db.from("dentvid_clinics").select("plan").eq("id", clinicId).maybeSingle();
+  if (isPaying((data as { plan?: string } | null)?.plan)) return true;
+  logger.warn({ clinicId, plan: (data as { plan?: string } | null)?.plan ?? null, kind }, "dentvid: skipped — clinic has no active plan");
+  return false;
 }
 
 export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; flagged: number; rejected: number }> {
   const db = dentvidDb();
+  if (!(await paying(db, job.clinicId, "week"))) return { ready: 0, flagged: 0, rejected: 0 };
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
     const { ownerId, profile, logoStyle } = await loadClinic(db, job.clinicId, workDir);
@@ -184,6 +207,7 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
 
 export async function runDentvidRecording(job: RecordingJob): Promise<{ clips: number }> {
   const db = dentvidDb();
+  if (!(await paying(db, job.clinicId, "recording"))) return { clips: 0 };
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-rec-"));
   try {
     const { ownerId, profile } = await loadClinic(db, job.clinicId, workDir);
@@ -213,6 +237,74 @@ export async function runDentvidRecording(job: RecordingJob): Promise<{ clips: n
       flagged: rows.filter((r) => r.status === "flagged").length,
     });
     return { clips: rows.length };
+  } finally {
+    void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/**
+ * Re-renders one generated video with the background photos the clinic
+ * picked (web: POST /api/dentvideo/items/[id]/backgrounds writes them into
+ * plan.backgrounds and sets restyle_status = 'queued').
+ *
+ * Re-uses the stored plan, copy and reviews unchanged — only the photos
+ * differ, so nothing is re-written or re-reviewed. Narration audio is not
+ * stored, so it is synthesised again from the stored narration text: same
+ * text, same voice, about 1–2 US cents of TTS per re-render.
+ * The old file is replaced only once the new one is stored; on failure the
+ * old video stays and the card says the update did not work.
+ */
+export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean }> {
+  const db = dentvidDb();
+  const { data: item, error } = await db
+    .from("dentvid_items")
+    .select("id, clinic_id, owner_id, kind, plan, video_path, thumb_path")
+    .eq("id", job.itemId)
+    .single();
+  if (error || !item) throw new Error(`item ${job.itemId} not found: ${error?.message ?? ""}`);
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-restyle-"));
+  try {
+    if (item.kind !== "generated" || !item.plan) throw new Error("only generated videos with a stored plan can be re-rendered");
+    const { profile, logoStyle } = await loadClinic(db, item.clinic_id as string, workDir);
+    const stored = parseScenePlan(item.plan);
+    // Painted in the clinic's colour exactly as the weekly run does (week.ts).
+    const plan: ScenePlan = profile.brandColor
+      ? { ...stored, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
+      : stored;
+    const voice = await prepareVoiceover(plan, workDir, resolveVoice(profile.language)).catch((e) => {
+      logger.warn({ err: (e as Error).message, itemId: item.id }, "dentvid: restyle voiceover failed");
+      return { plan, voiceoverPath: undefined };
+    });
+    const res = await renderPlan({
+      plan: voice.plan,
+      voiceoverSrc: voice.voiceoverPath,
+      workDir,
+      outputPath: path.join(workDir, "video.mp4"),
+      pexelsApiKey: process.env.PEXELS_API_KEY,
+      concurrency: renderConcurrency(),
+      logoSrc: profile.logo,
+      logoStyle,
+      onWarn: (m) => logger.warn({ itemId: item.id }, `dentvid: restyle ${m}`),
+    });
+    const files = await storeVideo(db, item.owner_id as string, res.outputPath);
+    const { error: upd } = await db
+      .from("dentvid_items")
+      .update({ video_path: files.videoPath, thumb_path: files.thumbPath ?? null, restyle_status: null, updated_at: new Date().toISOString() })
+      .eq("id", item.id);
+    if (upd) throw new Error(`update item: ${upd.message}`);
+    const old = [item.video_path, item.thumb_path].filter((p): p is string => Boolean(p));
+    if (old.length) await db.storage.from(BUCKET).remove(old).catch(() => {});
+    return { ok: true };
+  } catch (e) {
+    await db
+      .from("dentvid_items")
+      .update({ restyle_status: "failed", updated_at: new Date().toISOString() })
+      .eq("id", job.itemId)
+      .then(
+        () => {},
+        () => {},
+      );
+    throw e;
   } finally {
     void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }

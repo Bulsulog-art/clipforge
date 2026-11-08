@@ -79,6 +79,18 @@ export type LandingContent = {
     /** Starter, Practice, Group — always in this order. */
     tiers: [PricingTier, PricingTier, PricingTier];
   };
+  /** "Try it with your logo": a small live preview on the landing that leads to /start. */
+  teaser: {
+    eyebrow: string;
+    heading: string;
+    text: string;
+    name: string;
+    namePlaceholder: string;
+    logo: string;
+    color: string;
+    cta: string;
+    note: string;
+  };
   guidesHeading: string;
   faqHeading: string;
   faq: Faq[];
@@ -94,10 +106,10 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     hero: {
       eyebrow: "For dental clinics",
-      h1: "Five patient videos every Monday. You just approve.",
-      lead: "Patients choose a dentist they feel they already know. DentVideo gets you there without taking your evenings: every Monday, five narrated, captioned videos answering what patients in your country actually search for — in your clinic's colours, checked for health-advertising rules and clinical accuracy. One tap to approve, one tap to share.",
-      cta: "Start your free first week",
-      note: "No card. Seven languages.",
+      h1: "Be the dentist patients feel they already know.",
+      lead: "Patients choose a dentist they already know from Instagram and Google. But filming and editing take evenings you don't have — and one wrong word, like “painless” or a price, can bring a complaint. DentVideo keeps you visible every week: five videos answering what patients near you actually search for, in your colours, checked for risky wording, for a few minutes of your time. Less than an agency, and unlike Canva or ChatGPT, it does the work and the checking for you.",
+      cta: "See your preview",
+      note: "See your own branded videos live before you pay. Founding price for the first 100 clinics.",
     },
     mock: { hook: "Does whitening damage enamel?", caption: "When it is supervised, usually not.", label: "Ready for your review" },
     video: { play: "Play", pause: "Pause" },
@@ -139,14 +151,14 @@ export const LANDING: Record<Locale, LandingContent> = {
       roiNote: "Based on typical private fees for one implant or aligner treatment. Your fees and results will differ.",
     },
     pricing: {
-      heading: "Start with a free week",
-      text: "Your first week of videos is free, with no card. After that, choose the plan that fits your clinic — monthly, with no minimum term.",
-      cta: "Start your free first week",
+      heading: "See it first. Then choose a plan.",
+      text: "Before you pay, watch a live preview of how your own videos will look — your logo, your colours, your clinic's name. Then choose a plan: monthly, cancel anytime. Your first week of videos is made right after payment.",
+      cta: "See your preview",
       perMonth: "/month",
       recommended: "Recommended",
       foundingBadge: "Founding offer",
       founding: "Practice for $39/month for 12 months — first 100 clinics",
-      yearly: "or $690 a year — two months free",
+      yearly: "or $690 a year — 12 months for the price of 10",
       note: "Prices in USD. Taxes may apply.",
       tiers: [
         {
@@ -156,14 +168,14 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: [
             "Five narrated, captioned videos every Monday",
             "Checked for advertising rules and clinical accuracy",
-            "Filming cards for your own clips",
+            "Your logo and brand colours in every video",
           ],
         },
         {
           name: "Practice",
           price: "$69",
           blurb: "For clinics that want their own faces on screen.",
-          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Your logo and brand colours in every video"],
+          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Filming cards for your own clips"],
         },
         {
           name: "Group",
@@ -176,6 +188,17 @@ export const LANDING: Record<Locale, LandingContent> = {
           ],
         },
       ],
+    },
+    teaser: {
+      eyebrow: "Try it with your logo",
+      heading: "See your videos before you pay",
+      text: "Type your clinic's name, add your logo and pick a colour — the preview changes as you go. Nothing leaves your browser until you create an account.",
+      name: "Clinic name",
+      namePlaceholder: "Your clinic",
+      logo: "Add your logo",
+      color: "Brand colour",
+      cta: "Continue to your full preview",
+      note: "Monthly, cancel anytime. You pay only when you choose a plan.",
     },
     guidesHeading: "Guides",
     faqHeading: "Questions",
@@ -190,7 +213,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Do you post to Instagram or TikTok for me?", a: "Not automatically yet. On your phone, an approved video opens the share menu with the video attached and its caption already copied, so posting to Instagram or TikTok takes one tap. Nothing ever goes out without you." },
       { q: "Will you change what I say in my own recordings?", a: "Never. If something you said could be read as a promise or is worth a second look, the clip is marked for your attention with the reason and a suggested wording — the decision stays with you." },
       { q: "Which languages are supported?", a: "English, German, Spanish, French, Italian, Portuguese and Turkish, with formal or informal address as your clinic prefers." },
-      { q: "What happens after the free week?", a: "Nothing, unless you choose a plan — there is no card to charge. Plans are monthly with no minimum term, and the first clinics to join get a founding price." },
+      { q: "Can I see my videos before I pay?", a: "Yes. Create an account, describe your clinic and you see a live preview of how your videos will look with your own logo, colours and name, right in your browser. If you like it, choose a plan: your first week of videos is made right after payment, and we email you when it is ready. Plans are monthly, you can cancel anytime, and the first clinics to join get a founding price." },
     ],
   },
 
@@ -203,10 +226,10 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     hero: {
       eyebrow: "Für Zahnarztpraxen",
-      h1: "Jeden Montag fünf Patientenvideos. Sie geben nur frei.",
-      lead: "Patienten wählen eine Praxis, die sie schon zu kennen glauben. DentVideo sorgt dafür, ohne Ihre Abende zu kosten: Jeden Montag fünf vertonte, untertitelte Videos zu dem, was Patienten in Ihrem Land tatsächlich googeln — in Ihren Praxisfarben, geprüft auf Heilmittelwerberecht und fachliche Richtigkeit. Ein Tipp zum Freigeben, ein Tipp zum Teilen.",
-      cta: "Erste Woche kostenlos starten",
-      note: "Keine Kreditkarte. Sieben Sprachen.",
+      h1: "Werden Sie die Praxis, die Patienten schon zu kennen glauben.",
+      lead: "Patienten wählen eine Praxis, die sie schon von Instagram und Google kennen. Doch Drehen und Schneiden kosten Abende, die Sie nicht haben — und ein falsches Wort wie „schmerzfrei“ oder ein Preis kann eine Beschwerde nach sich ziehen. DentVideo hält Sie jede Woche sichtbar: fünf Videos zu dem, was Patienten in Ihrer Nähe wirklich suchen, in Ihren Farben, auf riskante Formulierungen geprüft, für ein paar Minuten Ihrer Zeit. Günstiger als eine Agentur — und anders als Canva oder ChatGPT erledigt DentVideo die Arbeit und die Prüfung für Sie.",
+      cta: "Ihre Vorschau ansehen",
+      note: "Sehen Sie Ihre eigenen Videos mit Ihrer Marke live, bevor Sie zahlen. Gründungspreis für die ersten 100 Praxen.",
     },
     mock: { hook: "Schadet Bleaching dem Zahnschmelz?", caption: "Unter zahnärztlicher Aufsicht in der Regel nicht.", label: "Bereit zur Prüfung" },
     video: { play: "Abspielen", pause: "Pausieren" },
@@ -248,14 +271,14 @@ export const LANDING: Record<Locale, LandingContent> = {
       roiNote: "Bezogen auf übliche Privathonorare für eine Implantat- oder Aligner-Behandlung. Ihre Honorare und Ergebnisse können abweichen.",
     },
     pricing: {
-      heading: "Mit einer kostenlosen Woche beginnen",
-      text: "Ihre erste Woche ist kostenlos, ohne Kreditkarte. Danach wählen Sie den Tarif, der zu Ihrer Praxis passt — monatlich, ohne Mindestlaufzeit.",
-      cta: "Erste Woche kostenlos starten",
+      heading: "Erst ansehen. Dann Tarif wählen.",
+      text: "Bevor Sie zahlen, sehen Sie in einer Live-Vorschau, wie Ihre eigenen Videos aussehen — mit Ihrem Logo, Ihren Farben und dem Namen Ihrer Praxis. Dann wählen Sie einen Tarif: monatlich, jederzeit kündbar. Ihre erste Woche Videos entsteht direkt nach der Zahlung.",
+      cta: "Ihre Vorschau ansehen",
       perMonth: "/Monat",
       recommended: "Empfohlen",
       foundingBadge: "Gründungsangebot",
       founding: "Practice für 39 $/Monat, 12 Monate lang — für die ersten 100 Praxen",
-      yearly: "oder 690 $ im Jahr — 2 Monate geschenkt",
+      yearly: "oder 690 $ im Jahr — 12 Monate zum Preis von 10",
       note: "Preise in USD, ggf. zzgl. Steuern.",
       tiers: [
         {
@@ -265,14 +288,14 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: [
             "Jeden Montag fünf vertonte, untertitelte Videos",
             "Geprüft auf Werberecht und fachliche Richtigkeit",
-            "Drehkarten für Ihre eigenen Clips",
+            "Ihr Logo und Ihre Markenfarben in jedem Video",
           ],
         },
         {
           name: "Practice",
           price: "69 $",
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
-          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Ihr Logo und Ihre Markenfarben in jedem Video"],
+          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Drehkarten für Ihre eigenen Clips"],
         },
         {
           name: "Group",
@@ -285,6 +308,17 @@ export const LANDING: Record<Locale, LandingContent> = {
           ],
         },
       ],
+    },
+    teaser: {
+      eyebrow: "Mit Ihrem Logo ausprobieren",
+      heading: "Ihre Videos sehen, bevor Sie zahlen",
+      text: "Geben Sie den Namen Ihrer Praxis ein, fügen Sie Ihr Logo hinzu und wählen Sie eine Farbe — die Vorschau ändert sich sofort. Nichts verlässt Ihren Browser, bevor Sie ein Konto anlegen.",
+      name: "Name der Praxis",
+      namePlaceholder: "Ihre Praxis",
+      logo: "Logo hinzufügen",
+      color: "Markenfarbe",
+      cta: "Weiter zur vollständigen Vorschau",
+      note: "Monatlich, jederzeit kündbar. Sie zahlen erst, wenn Sie einen Tarif wählen.",
     },
     guidesHeading: "Ratgeber",
     faqHeading: "Häufige Fragen",
@@ -299,7 +333,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Posten Sie für mich auf Instagram oder TikTok?", a: "Noch nicht automatisch. Auf dem Handy öffnet ein freigegebenes Video das Teilen-Menü mit angehängtem Video, der Begleittext ist bereits kopiert — Instagram oder TikTok ist also ein Tipp. Ohne Sie geht nie etwas hinaus." },
       { q: "Verändern Sie, was ich in meinen Aufnahmen sage?", a: "Nie. Wenn etwas als Versprechen verstanden werden könnte oder einen zweiten Blick wert ist, wird der Clip für Sie markiert — mit Begründung und einem Formulierungsvorschlag. Die Entscheidung bleibt bei Ihnen." },
       { q: "Welche Sprachen gibt es?", a: "Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch und Türkisch — mit „Sie“ oder „du“, wie Ihre Praxis es möchte." },
-      { q: "Was passiert nach der kostenlosen Woche?", a: "Nichts, solange Sie keinen Tarif wählen — es gibt keine Karte, die belastet werden könnte. Die Tarife sind monatlich ohne Mindestlaufzeit, und die ersten Praxen erhalten einen Gründungspreis." },
+      { q: "Kann ich meine Videos sehen, bevor ich zahle?", a: "Ja. Legen Sie ein Konto an und beschreiben Sie Ihre Praxis — dann sehen Sie direkt im Browser eine Live-Vorschau, wie Ihre Videos mit Ihrem eigenen Logo, Ihren Farben und Ihrem Namen aussehen. Wenn sie Ihnen gefällt, wählen Sie einen Tarif: Ihre erste Woche Videos entsteht direkt nach der Zahlung, und wir schicken Ihnen eine E-Mail, sobald sie fertig ist. Die Tarife sind monatlich und jederzeit kündbar; die ersten Praxen erhalten einen Gründungspreis." },
     ],
   },
 
@@ -312,10 +346,10 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     hero: {
       eyebrow: "Para clínicas dentales",
-      h1: "Cinco vídeos para tus pacientes cada lunes. Tú solo apruebas.",
-      lead: "Los pacientes eligen al dentista que sienten que ya conocen. DentVideo lo consigue sin quitarte las tardes: cada lunes, cinco vídeos con voz y subtítulos que responden a lo que los pacientes de tu país buscan en Google, con los colores de tu clínica y revisados en publicidad sanitaria y precisión clínica. Un toque para aprobar, otro para compartir.",
-      cta: "Empieza tu primera semana gratis",
-      note: "Sin tarjeta. Siete idiomas.",
+      h1: "Sé el dentista que tus pacientes sienten que ya conocen.",
+      lead: "Los pacientes eligen al dentista que ya conocen por Instagram y Google. Pero grabar y editar te quita tardes que no tienes, y una palabra equivocada, como «sin dolor» o un precio, puede acabar en una reclamación. DentVideo te mantiene visible cada semana: cinco vídeos que responden a lo que de verdad buscan los pacientes de tu zona, con tus colores, revisados para evitar expresiones de riesgo, por unos minutos de tu tiempo. Cuesta menos que una agencia y, a diferencia de Canva o ChatGPT, hace el trabajo y la revisión por ti.",
+      cta: "Ver tu vista previa",
+      note: "Ve en directo tus propios vídeos con tu marca antes de pagar. Precio de fundadoras para las primeras 100 clínicas.",
     },
     mock: { hook: "¿El blanqueamiento daña el esmalte?", caption: "Bajo supervisión, normalmente no.", label: "Listo para revisar" },
     video: { play: "Reproducir", pause: "Pausar" },
@@ -357,14 +391,14 @@ export const LANDING: Record<Locale, LandingContent> = {
       roiNote: "Según los honorarios privados habituales de un tratamiento de implante o de alineadores. Tus honorarios y tus resultados pueden variar.",
     },
     pricing: {
-      heading: "Empieza con una semana gratis",
-      text: "Tu primera semana de vídeos es gratis y sin tarjeta. Después, elige el plan que encaja con tu clínica: mensual y sin permanencia.",
-      cta: "Empieza tu primera semana gratis",
+      heading: "Primero lo ves. Luego eliges plan.",
+      text: "Antes de pagar, ves una vista previa en directo de cómo serán tus propios vídeos: tu logo, tus colores, el nombre de tu clínica. Después eliges un plan: mensual y cancelas cuando quieras. Tu primera semana de vídeos se crea justo después del pago.",
+      cta: "Ver tu vista previa",
       perMonth: "/mes",
       recommended: "Recomendado",
       foundingBadge: "Oferta fundadora",
       founding: "Practice por 39 $/mes durante 12 meses — primeras 100 clínicas",
-      yearly: "o 690 $ al año — 2 meses gratis",
+      yearly: "o 690 $ al año: 12 meses al precio de 10",
       note: "Precios en USD. Pueden aplicarse impuestos.",
       tiers: [
         {
@@ -374,14 +408,14 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: [
             "Cinco vídeos narrados y subtitulados cada lunes",
             "Revisados según las normas de publicidad y la exactitud clínica",
-            "Fichas de grabación para tus propios clips",
+            "Tu logo y tus colores en cada vídeo",
           ],
         },
         {
           name: "Practice",
           price: "69 $",
           blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
-          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Tu logo y tus colores en cada vídeo"],
+          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Fichas de grabación para tus propios clips"],
         },
         {
           name: "Group",
@@ -390,6 +424,17 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: ["Hasta tres sedes", "Cinco vídeos por sede cada lunes", "Una voz coherente y revisada en todas las sedes"],
         },
       ],
+    },
+    teaser: {
+      eyebrow: "Pruébalo con tu logo",
+      heading: "Ve tus vídeos antes de pagar",
+      text: "Escribe el nombre de tu clínica, añade tu logo y elige un color: la vista previa cambia al momento. Nada sale de tu navegador hasta que creas una cuenta.",
+      name: "Nombre de la clínica",
+      namePlaceholder: "Tu clínica",
+      logo: "Añade tu logo",
+      color: "Color de marca",
+      cta: "Ver la vista previa completa",
+      note: "Mensual, cancela cuando quieras. Solo pagas cuando eliges un plan.",
     },
     guidesHeading: "Guías",
     faqHeading: "Preguntas frecuentes",
@@ -404,7 +449,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "¿Publicáis en Instagram o TikTok por mí?", a: "Todavía no de forma automática. En el móvil, un vídeo aprobado abre el menú de compartir con el vídeo adjunto y el texto ya copiado, así que publicarlo en Instagram o TikTok es un toque. Nunca sale nada sin ti." },
       { q: "¿Cambiaréis lo que digo en mis grabaciones?", a: "Nunca. Si algo de lo que dices puede entenderse como una promesa o merece una segunda mirada, el clip se marca para ti con el motivo y una redacción sugerida. La decisión es tuya." },
       { q: "¿Qué idiomas hay?", a: "Español, inglés, alemán, francés, italiano, portugués y turco, con trato de tú o de usted, como prefiera tu clínica." },
-      { q: "¿Qué pasa después de la semana gratis?", a: "Nada, salvo que elijas un plan: no hay tarjeta que cobrar. Los planes son mensuales y sin permanencia, y las primeras clínicas en unirse tendrán un precio de fundadoras." },
+      { q: "¿Puedo ver mis vídeos antes de pagar?", a: "Sí. Crea una cuenta, describe tu clínica y verás en el navegador una vista previa en directo de cómo serán tus vídeos con tu propio logo, tus colores y tu nombre. Si te gusta, elige un plan: tu primera semana de vídeos se crea justo después del pago y te avisamos por correo cuando esté lista. Los planes son mensuales, puedes cancelar cuando quieras y las primeras clínicas en unirse tienen un precio de fundadoras." },
     ],
   },
 
@@ -417,10 +462,10 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     hero: {
       eyebrow: "Diş klinikleri için",
-      h1: "Her pazartesi beş hasta videosu. Siz yalnızca onaylayın.",
-      lead: "Hastalar tanıdıklarını hissettikleri hekimi seçer. DentVideo bunu akşamlarınızdan çalmadan sağlar: Her pazartesi, ülkenizdeki hastaların Google'da gerçekten aradığı sorulara yanıt veren beş seslendirilmiş, altyazılı video. Kliniğinizin renklerinde, sağlık tanıtım kurallarına ve klinik doğruluğa göre denetlenmiş. Onaylamak tek dokunuş, paylaşmak tek dokunuş.",
-      cta: "İlk haftanızı ücretsiz başlatın",
-      note: "Kart gerekmez. Yedi dil.",
+      h1: "Hastaların zaten tanıdığını hissettiği hekim siz olun.",
+      lead: "Hastalar Instagram'dan ve Google'dan zaten tanıdıkları hekimi seçer. Ama çekim ve kurgu sizde olmayan akşamları ister; “ağrısız” gibi tek bir yanlış kelime ya da bir fiyat da şikâyete yol açabilir. DentVideo sizi her hafta görünür tutar: bölgenizdeki hastaların gerçekten aradığı sorulara yanıt veren beş video, kliniğinizin renklerinde, riskli ifadelere karşı denetlenmiş, yalnızca birkaç dakikanızı alarak. Bir ajanstan daha uygun; Canva veya ChatGPT'den farklı olarak işi de denetimi de sizin yerinize yapar.",
+      cta: "Önizlemenizi görün",
+      note: "Ödeme yapmadan önce markalı videolarınızı canlı görün. İlk 100 kliniğe kurucu fiyatı.",
     },
     mock: { hook: "Diş beyazlatma mineye zarar verir mi?", caption: "Hekim kontrolünde genellikle hayır.", label: "İncelemenize hazır" },
     video: { play: "Oynat", pause: "Duraklat" },
@@ -462,14 +507,14 @@ export const LANDING: Record<Locale, LandingContent> = {
       roiNote: "Tek diş implant tedavisinin yaygın özel muayenehane ücretlerine göre. Sizin ücretleriniz ve sonuçlarınız farklı olabilir.",
     },
     pricing: {
-      heading: "Ücretsiz bir haftayla başlayın",
-      text: "İlk haftanızın videoları ücretsizdir, kart gerekmez. Sonrasında kliniğinize uyan planı seçin — aylık ve taahhütsüz.",
-      cta: "İlk haftanızı ücretsiz başlatın",
+      heading: "Önce görün. Sonra plan seçin.",
+      text: "Ödeme yapmadan önce kendi videolarınızın nasıl görüneceğini canlı önizlemede görün: logonuz, renkleriniz, kliniğinizin adı. Sonra bir plan seçin: aylık, istediğiniz zaman iptal. İlk haftanızın videoları ödemenin hemen ardından hazırlanır.",
+      cta: "Önizlemenizi görün",
       perMonth: "/ay",
       recommended: "Önerilen",
       foundingBadge: "Kurucu teklifi",
       founding: "12 ay boyunca aylık $39 ile Practice — ilk 100 klinik için",
-      yearly: "ya da yıllık $690 — 2 ay ücretsiz",
+      yearly: "ya da yıllık $690 — 10 ay fiyatına 12 ay",
       note: "Fiyatlar USD cinsindendir. Vergiler eklenebilir.",
       tiers: [
         {
@@ -479,14 +524,14 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: [
             "Her pazartesi beş seslendirilmiş, altyazılı video",
             "Reklam kuralları ve klinik doğruluk açısından kontrol edilir",
-            "Kendi videolarınız için çekim kartları",
+            "Her videoda logonuz ve marka renkleriniz",
           ],
         },
         {
           name: "Practice",
           price: "$69",
           blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
-          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Her videoda logonuz ve marka renkleriniz"],
+          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Kendi videolarınız için çekim kartları"],
         },
         {
           name: "Group",
@@ -495,6 +540,17 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: ["En fazla üç şube", "Her pazartesi şube başına beş video", "Tüm şubelerde tutarlı, kontrol edilmiş bir dil"],
         },
       ],
+    },
+    teaser: {
+      eyebrow: "Logonuzla deneyin",
+      heading: "Ödemeden önce videolarınızı görün",
+      text: "Kliniğinizin adını yazın, logonuzu ekleyin ve bir renk seçin — önizleme anında değişir. Hesap açana kadar hiçbir şey tarayıcınızdan çıkmaz.",
+      name: "Klinik adı",
+      namePlaceholder: "Kliniğiniz",
+      logo: "Logonuzu ekleyin",
+      color: "Marka rengi",
+      cta: "Tam önizlemeye devam edin",
+      note: "Aylık, istediğiniz zaman iptal. Yalnızca plan seçtiğinizde ödersiniz.",
     },
     guidesHeading: "Rehberler",
     faqHeading: "Sık sorulan sorular",
@@ -509,7 +565,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Instagram ya da TikTok'ta benim yerime paylaşıyor musunuz?", a: "Henüz otomatik değil. Telefonunuzda onayladığınız video, paylaşım menüsünü video ekli olarak açar ve açıklama panoya kopyalanır; Instagram ya da TikTok'ta paylaşmak tek dokunuştur. Hiçbir şey sizsiz yayınlanmaz." },
       { q: "Kendi kayıtlarımda söylediklerimi değiştiriyor musunuz?", a: "Asla. Söylediğiniz bir şey vaat gibi anlaşılabiliyorsa ya da ikinci kez bakmaya değerse, klip gerekçesi ve önerilen bir ifadeyle sizin için işaretlenir. Karar her zaman sizindir." },
       { q: "Hangi diller destekleniyor?", a: "Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, İtalyanca ve Portekizce; kliniğinizin tercihine göre “siz” ya da “sen” hitabıyla." },
-      { q: "Ücretsiz haftadan sonra ne olur?", a: "Bir paket seçmediğiniz sürece hiçbir şey; çekilecek bir kart yok. Paketler aylık ve taahhütsüzdür; ilk katılan klinikler kurucu fiyatından yararlanır." },
+      { q: "Ödeme yapmadan önce videolarımı görebilir miyim?", a: "Evet. Bir hesap açıp kliniğinizi tanıttığınızda, videolarınızın kendi logonuz, renkleriniz ve adınızla nasıl görüneceğini doğrudan tarayıcınızda canlı önizlemede görürsünüz. Beğenirseniz bir plan seçin: ilk haftanızın videoları ödemenin hemen ardından hazırlanır ve hazır olduğunda size e-posta göndeririz. Planlar aylıktır, istediğiniz zaman iptal edebilirsiniz; ilk katılan klinikler kurucu fiyatından yararlanır." },
     ],
   },
 
@@ -522,10 +578,10 @@ export const LANDING: Record<Locale, LandingContent> = {
     },
     hero: {
       eyebrow: "Pour les cabinets dentaires",
-      h1: "Cinq vidéos patient chaque lundi. Vous n'avez qu'à valider.",
-      lead: "Les patients choisissent un dentiste qu'ils ont l'impression de déjà connaître. DentVideo s'en charge sans empiéter sur vos soirées : chaque lundi, cinq vidéos en voix off et sous-titrées qui répondent à ce que les patients de votre pays recherchent sur Google, aux couleurs de votre cabinet, vérifiées au regard des règles de communication en santé et de l'exactitude clinique. Un geste pour valider, un geste pour partager.",
-      cta: "Commencer la première semaine gratuite",
-      note: "Sans carte bancaire. Sept langues.",
+      h1: "Devenez le dentiste que les patients ont l'impression de connaître.",
+      lead: "Les patients choisissent un dentiste qu'ils connaissent déjà par Instagram et Google. Mais filmer et monter demande des soirées que vous n'avez pas — et un seul mauvais mot, comme « sans douleur » ou un prix, peut valoir une plainte. DentVideo vous rend visible chaque semaine : cinq vidéos qui répondent à ce que les patients de votre région recherchent vraiment, à vos couleurs, vérifiées contre les formulations à risque, pour quelques minutes de votre temps. Moins cher qu'une agence et, contrairement à Canva ou ChatGPT, DentVideo fait le travail et la vérification pour vous.",
+      cta: "Voir votre aperçu",
+      note: "Voyez en direct vos propres vidéos à votre image avant de payer. Tarif fondateur pour les 100 premiers cabinets.",
     },
     mock: { hook: "Le blanchiment abîme-t-il l'émail ?", caption: "Encadré par un dentiste, en général non.", label: "Prête pour validation" },
     video: { play: "Lire", pause: "Mettre en pause" },
@@ -567,14 +623,14 @@ export const LANDING: Record<Locale, LandingContent> = {
       roiNote: "Sur la base des honoraires habituels d'un traitement implantaire ou par aligneurs. Vos honoraires et vos résultats peuvent différer.",
     },
     pricing: {
-      heading: "Commencez par une semaine gratuite",
-      text: "Votre première semaine de vidéos est gratuite, sans carte bancaire. Ensuite, choisissez la formule adaptée à votre cabinet — mensuelle et sans engagement.",
-      cta: "Commencer la première semaine gratuite",
+      heading: "Voyez d'abord. Choisissez ensuite.",
+      text: "Avant de payer, découvrez un aperçu en direct de vos propres vidéos : votre logo, vos couleurs, le nom de votre cabinet. Choisissez ensuite une formule : mensuelle, résiliable à tout moment. Votre première semaine de vidéos est réalisée dès le paiement.",
+      cta: "Voir votre aperçu",
       perMonth: "/mois",
       recommended: "Recommandée",
       foundingBadge: "Offre fondateurs",
       founding: "Practice à 39 $/mois pendant 12 mois — pour les 100 premiers cabinets",
-      yearly: "ou 690 $ par an — 2 mois offerts",
+      yearly: "ou 690 $ par an — 12 mois pour le prix de 10",
       note: "Prix en USD, taxes éventuelles en sus.",
       tiers: [
         {
@@ -584,7 +640,7 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: [
             "Cinq vidéos commentées et sous-titrées chaque lundi",
             "Vérifiées selon les règles de communication et l'exactitude clinique",
-            "Fiches de tournage pour vos propres clips",
+            "Votre logo et vos couleurs dans chaque vidéo",
           ],
         },
         {
@@ -594,7 +650,7 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: [
             "Tout ce qu'inclut Starter",
             "Vos propres enregistrements transformés en clips sous-titrés",
-            "Votre logo et vos couleurs dans chaque vidéo",
+            "Fiches de tournage pour vos propres clips",
           ],
         },
         {
@@ -609,6 +665,17 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
       ],
     },
+    teaser: {
+      eyebrow: "Essayez avec votre logo",
+      heading: "Voyez vos vidéos avant de payer",
+      text: "Saisissez le nom de votre cabinet, ajoutez votre logo et choisissez une couleur : l'aperçu change aussitôt. Rien ne quitte votre navigateur avant la création de votre compte.",
+      name: "Nom du cabinet",
+      namePlaceholder: "Votre cabinet",
+      logo: "Ajouter votre logo",
+      color: "Couleur de marque",
+      cta: "Continuer vers l'aperçu complet",
+      note: "Mensuel, résiliable à tout moment. Vous ne payez qu'en choisissant une formule.",
+    },
     guidesHeading: "Guides",
     faqHeading: "Questions fréquentes",
     faq: [
@@ -622,7 +689,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Publiez-vous sur Instagram ou TikTok à ma place ?", a: "Pas encore automatiquement. Sur votre téléphone, une vidéo validée ouvre le menu de partage avec la vidéo jointe et le texte déjà copié : publier sur Instagram ou TikTok tient en un geste. Rien ne part jamais sans vous." },
       { q: "Modifiez-vous ce que je dis dans mes enregistrements ?", a: "Jamais. Si un propos peut être compris comme une promesse ou mérite d'être revu, l'extrait vous est signalé avec la raison et une formulation suggérée. La décision vous appartient." },
       { q: "Quelles langues sont disponibles ?", a: "Français, anglais, allemand, espagnol, italien, portugais et turc, avec vouvoiement ou tutoiement selon votre cabinet." },
-      { q: "Que se passe-t-il après la semaine gratuite ?", a: "Rien, sauf si vous choisissez une offre : il n'y a pas de carte à débiter. Les abonnements sont mensuels et sans engagement, et les premiers cabinets inscrits bénéficient d'un tarif fondateur." },
+      { q: "Puis-je voir mes vidéos avant de payer ?", a: "Oui. Créez un compte, décrivez votre cabinet et vous verrez, directement dans le navigateur, un aperçu en direct de vos vidéos avec votre logo, vos couleurs et votre nom. S'il vous convient, choisissez une formule : votre première semaine de vidéos est réalisée dès le paiement, et nous vous prévenons par e-mail quand elle est prête. Les formules sont mensuelles, résiliables à tout moment, et les premiers cabinets inscrits bénéficient d'un tarif fondateur." },
     ],
   },
 };

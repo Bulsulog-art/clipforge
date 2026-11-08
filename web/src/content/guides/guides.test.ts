@@ -10,6 +10,7 @@ import { aboutJsonLd, dentvideoSitemapEntries, guideAlternates, guideJsonLd, gui
 import { sitemapUrls, sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 import { INDEXNOW_KEY } from "@/lib/dentvid/indexnow";
+import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS } from "@/lib/dentvid/billing";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -84,9 +85,32 @@ describe("guide library", () => {
     }
   });
 
-  it("states no prices or invented percentages", () => {
-    const text = JSON.stringify(GUIDES) + JSON.stringify(ENTITY) + JSON.stringify(GUIDE_UI);
-    expect(text).not.toMatch(/[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL\b)/);
+  // Prices appear only in the About "Price" fact (which llms.txt copies), and
+  // only the configured USD list and founding prices; never in guides or CTAs.
+  const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix"];
+  const MONEY = /[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL\b)/;
+
+  it("states no prices or invented percentages outside the About price fact", () => {
+    const entityWithoutPrice = LOCALES.map((l) => ({ ...ENTITY[l], facts: ENTITY[l].facts.filter((f) => !PRICE_LABELS.includes(f.label)) }));
+    const text = JSON.stringify(GUIDES) + JSON.stringify(entityWithoutPrice) + JSON.stringify(GUIDE_UI);
+    expect(text).not.toMatch(MONEY);
+  });
+
+  it("the About price fact states the configured plans, founding offer and live preview in every language", () => {
+    const allowed = new Set<number>([DV_FOUNDING.priceUsd]);
+    for (const tier of DV_TIERS) for (const v of Object.values(DV_PRICES_USD[tier])) if (v) allowed.add(v);
+    for (const l of LOCALES) {
+      const price = ENTITY[l].facts.find((f) => PRICE_LABELS.includes(f.label));
+      expect(price, l).toBeDefined();
+      const v = price!.value;
+      expect(v, l).not.toMatch(/[€£₺%]|TL\b/);
+      const figures = [...v.matchAll(/\$\s?(\d[\d,.]*)|(\d[\d,.]*)\s?\$/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
+      for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
+      for (const tier of DV_TIERS) expect(v, `${l} ${tier}`).toContain(String(DV_PRICES_USD[tier].month));
+      expect(v, l).toContain(String(DV_PRICES_USD.practice.year));
+      expect(v, l).toContain(String(DV_FOUNDING.clinics));
+    }
+    expect(llmsTxt()).toContain("Paid plans from $39/month");
   });
 });
 
