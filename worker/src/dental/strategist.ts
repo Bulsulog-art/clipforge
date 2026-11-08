@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { z } from "zod";
-import { agentJson } from "./llm.js";
+import { agentJson, REVIEW_MODEL } from "./llm.js";
 import { PILLARS, addressRule, type ClinicProfile } from "./profile.js";
 
 /**
@@ -46,6 +46,8 @@ Rules:
   * a concrete number or timeframe: "Your toothbrush has a 3-month expiry date."
   * a relatable moment: "That sharp pain when you drink something cold?"
   Never a generic textbook question ("What is X?", "Is X important?", "How does X work?") and never a bare topic label.
+  Open a loop, do not close it: the hook raises the question and the video answers it. "Implant treatment happens in 3 stages." gives the answer away; "Your implant isn't done on day one — here's why." makes people stay.
+  Medicine is rarely absolute, and a reviewer will reject absolutes, so a myth hook challenges with "not quite" / "usually not", never a flat "No!".
 Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } ] }`,
     user:
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""} (${profile.country}).\n` +
@@ -55,6 +57,8 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } 
       (opts.avoidTitles?.length ? `\nAlready published, do not repeat: ${opts.avoidTitles.join(" | ")}` : ""),
     schema: weekSchema,
     temperature: 0.8,
+    // Hooks decide whether anyone watches; worth the stronger model once a week.
+    model: REVIEW_MODEL,
   });
 
   // Keep only topics about services the clinic offers, and cap the count.

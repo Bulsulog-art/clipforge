@@ -5,6 +5,7 @@ import {
   theme,
   contrastRatio,
   worstBackground,
+  brandTheme,
   fitText,
   TYPE,
 } from "./theme.js";
@@ -117,5 +118,19 @@ describe("type scale", () => {
 
   it("never goes below what is legible on a phone", () => {
     for (const size of Object.values(TYPE)) expect(size).toBeGreaterThanOrEqual(30);
+  });
+});
+
+describe("brandTheme", () => {
+  const base = theme("sunrise");
+  it.each(["#1a7f8c", "0F5C5C", "#F2E8D5", "#FF0000", "#000000", "#FFFFFF", "#7A2B3A"])("stays legible for %s", (c) => {
+    const t = brandTheme(base, c);
+    for (const bg of t.background) expect(contrastRatio(t.foreground, bg)).toBeGreaterThanOrEqual(7);
+    for (const bg of t.background) expect(contrastRatio(t.accent, bg)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(t.onAccent, t.accent)).toBeGreaterThanOrEqual(4.5);
+  });
+  it("leaves the theme alone without a brand colour", () => {
+    expect(brandTheme(base, undefined)).toBe(base);
+    expect(brandTheme(base, "teal")).toBe(base);
   });
 });

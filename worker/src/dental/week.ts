@@ -90,6 +90,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
+    `Never invent statistics or percentages ("80% of patients…"); say "most people" or leave it out. A number is allowed only for a guideline interval or timeframe (every 6 months, the first 48 hours).`,
     `Stock footage queries: 2-4 English words specific to THIS topic (e.g. "teeth whitening tray", "dental floss close up", "child toothbrush"), not a generic "dentist office", and never patients' faces in treatment.`,
     `End with a cta scene inviting the viewer to ask the clinic or book a check-up` +
       (profile.handle ? `. Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : "."),
@@ -208,7 +209,9 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
     profile,
   ).catch(() => undefined);
   const shootCard = card?.ok ? card.value : undefined;
-  const videoPath = deps.render ? await deps.render(script.value, topic) : undefined;
+  // Painted in the clinic's colour, so the week reads as theirs.
+  const branded = profile.brandColor ? { ...script.value, brandColor: profile.brandColor } : script.value;
+  const videoPath = deps.render ? await deps.render(branded, topic) : undefined;
   // Measure the render before anyone sees it (silent narration, wrong size,
   // black frames…). A failing video is still delivered, marked with why.
   const qa = videoPath
