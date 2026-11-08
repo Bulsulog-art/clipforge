@@ -1,0 +1,56 @@
+# Deploy to Coolify on every push to main.
+#
+# Coolify's GitHub App webhook never fired for this repository (every
+# deployment in its history was started through the API), so merges did not
+# reach dentvideo.com until someone deployed by hand. This calls the same API.
+#
+# Needs one repository secret: COOLIFY_TOKEN — a Coolify API token with the
+# "deploy" permission only (Coolify → Keys & Tokens → API tokens).
+# Only the app whose folder changed is redeployed, so a docs or web change does
+# not restart the worker in the middle of a render.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Which apps changed
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || ! git rev-parse HEAD~1 >/dev/null 2>&1; then
+            echo "web=true" >> "$GITHUB_OUTPUT"; echo "worker=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files=$(git diff --name-only HEAD~1 HEAD)
+          echo "$files"
+          echo "web=$(echo "$files" | grep -qE '^web/' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "worker=$(echo "$files" | grep -qE '^worker/' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Deploy web
+        if: steps.changed.outputs.web == 'true'
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          test -n "$COOLIFY_TOKEN" || { echo "::error::COOLIFY_TOKEN secret is missing"; exit 1; }
+          curl -fsS -X POST -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "https://coolify.bulsulabs.com/api/v1/deploy?uuid=y11bhiffmpb3u2hdekwhjhdq"
+      - name: Deploy worker
+        if: steps.changed.outputs.worker == 'true'
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          test -n "$COOLIFY_TOKEN" || { echo "::error::COOLIFY_TOKEN secret is missing"; exit 1; }
+          curl -fsS -X POST -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "https://coolify.bulsulabs.com/api/v1/deploy?uuid=aeoe3zdfhbhqzi89g32gkuwx"
