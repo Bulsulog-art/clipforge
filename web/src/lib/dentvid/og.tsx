@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { LANDING, SAMPLE_VIDEOS, type Locale } from "@/content/dentvideo";
+import { LANDING, type Locale } from "@/content/dentvideo";
+import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
 import {
   LOCKUP_VIEWBOX,
   LOGO_COLORS,
@@ -22,7 +23,7 @@ export async function dentvideoOgImage(locale: Locale) {
   const [serif, sans, poster] = await Promise.all([
     readFile(join(root, "assets/fonts/InstrumentSerif-Regular.ttf")),
     readFile(join(root, "assets/fonts/PlusJakartaSans-SemiBold.ttf")),
-    readFile(join(root, `public/dentvideo/samples/${SAMPLE_VIDEOS[0].slug}.jpg`)),
+    readFile(join(root, "public", sampleSrc(locale, SAMPLE_VIDEOS[locale][0].slug, "jpg"))),
   ]);
   const posterUri = `data:image/jpeg;base64,${poster.toString("base64")}`;
   const L = LOGO_COLORS.light;

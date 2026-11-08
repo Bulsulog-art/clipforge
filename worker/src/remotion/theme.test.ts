@@ -97,8 +97,24 @@ describe("type fitting", () => {
   });
 
   it("never shrinks past the point where shrinking is the problem", () => {
-    const absurd = "x".repeat(400);
+    const absurd = "word ".repeat(80).trim();
     expect(fitText(TYPE.hook, absurd)).toBeGreaterThanOrEqual(Math.round(TYPE.hook * 0.58));
+  });
+
+  it("keeps the longest word inside the frame", () => {
+    // Seen running off the right edge at full size in German and Turkish renders.
+    for (const [size, text] of [
+      [TYPE.display, "Temizlenmediğinde, diş eti hastalığına yol açabilir."],
+      [TYPE.display, "Sie kann helfen, Karies und Zahnfleischprobleme zu vermeiden."],
+      [TYPE.hook, "Blanqueamiento: ¿causa sensibilidad o es un mito?"],
+    ] as const) {
+      const longest = Math.max(...text.split(" ").map((w) => [...w].length));
+      expect(fitText(size, text) * longest * 0.62).toBeLessThanOrEqual(1080 * 0.83);
+    }
+  });
+
+  it("leaves ordinary English headlines alone", () => {
+    expect(fitText(TYPE.hook, "Whitening thins your enamel? Not quite.")).toBe(TYPE.hook);
   });
 
   it("shrinks monotonically with length", () => {

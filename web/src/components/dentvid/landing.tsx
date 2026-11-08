@@ -14,12 +14,12 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import { LANDING, LANDING_PATH, LANGUAGE_NAME, SAMPLE_VIDEOS, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
+import { LANDING, LANDING_PATH, LANGUAGE_NAME, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
+import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
 import { appText } from "@/content/dentvideo-app";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { HeroVideo, PhoneFrame } from "./phone";
 
-const sample = (slug: string, ext: "mp4" | "jpg") => `/dentvideo/samples/${slug}.${ext}`;
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
 /** The seven production languages, as codes (shown in the "your clinic" visual). */
@@ -37,7 +37,7 @@ function H2({ children, className = "", id }: { children: React.ReactNode; class
 function Hero({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   const chrome = appText(locale).chrome;
-  const hero = SAMPLE_VIDEOS[0];
+  const hero = SAMPLE_VIDEOS[locale][0];
   return (
     <section className="relative isolate overflow-hidden">
       {/* backdrop: faint grid + two soft glows */}
@@ -73,7 +73,7 @@ function Hero({ locale }: { locale: Locale }) {
         <div className="relative mx-auto w-full max-w-[22rem] lg:max-w-none">
           <div className="relative mx-auto w-[15.5rem] sm:w-[17.5rem] lg:w-[18.5rem]">
             <PhoneFrame>
-              <HeroVideo src={sample(hero.slug, "mp4")} poster={sample(hero.slug, "jpg")} title={hero.name} labels={c.video} />
+              <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} />
             </PhoneFrame>
           </div>
 
@@ -174,8 +174,9 @@ function ClinicVisual() {
   );
 }
 
-function WeekVisual() {
-  const posters = [SAMPLE_VIDEOS[1].slug, SAMPLE_VIDEOS[0].slug, SAMPLE_VIDEOS[2].slug];
+function WeekVisual({ locale }: { locale: Locale }) {
+  const [a, b, c] = SAMPLE_VIDEOS[locale];
+  const posters = [b.slug, a.slug, c.slug];
   return (
     <div className="flex items-end justify-center">
       {[0, 1, 2, 3, 4].map((i) => {
@@ -190,7 +191,7 @@ function WeekVisual() {
           >
             {slug ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={sample(slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
+              <img src={sampleSrc(locale, slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
             ) : (
               <span className="absolute inset-x-2 top-1/2 space-y-1">
                 <span className="block h-1 w-full rounded-full bg-white/70" />
@@ -204,12 +205,12 @@ function WeekVisual() {
   );
 }
 
-function ApproveVisual() {
+function ApproveVisual({ locale }: { locale: Locale }) {
   return (
     <div className="dv-card mx-auto flex w-[85%] max-w-[16rem] items-center gap-3 p-3">
       <div className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-lg">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={sample(SAMPLE_VIDEOS[2].slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
+        <img src={sampleSrc(locale, SAMPLE_VIDEOS[locale][2].slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
       </div>
       <div className="min-w-0 flex-1">
         <span className="block h-2 w-full rounded-full bg-dv-ink/75" />
@@ -230,7 +231,7 @@ function ApproveVisual() {
   );
 }
 
-const STEP_VISUALS = [ClinicVisual, WeekVisual, ApproveVisual];
+const STEP_VISUALS: React.ComponentType<{ locale: Locale }>[] = [ClinicVisual, WeekVisual, ApproveVisual];
 
 function How({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
@@ -245,7 +246,7 @@ function How({ locale }: { locale: Locale }) {
               <div aria-hidden="true" className="relative flex h-48 items-center justify-center overflow-hidden bg-gradient-to-b from-dv-sand to-[#f8f4ee]">
                 <div className="dv-grid absolute inset-0 opacity-70" />
                 <div className="relative w-full">
-                  <Visual />
+                  <Visual locale={locale} />
                 </div>
               </div>
               <div className="flex flex-1 flex-col p-7">
@@ -271,12 +272,12 @@ function Samples({ locale }: { locale: Locale }) {
           <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.samples.text}</p>
         </div>
         <ul className="-mx-4 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
-          {SAMPLE_VIDEOS.map(({ slug, name, seconds }) => (
+          {SAMPLE_VIDEOS[locale].map(({ slug, name, seconds }) => (
             <li key={slug} className="w-[72%] shrink-0 snap-center sm:w-auto">
               <PhoneFrame className="mx-auto max-w-[18rem]">
                 <video
-                  src={sample(slug, "mp4")}
-                  poster={sample(slug, "jpg")}
+                  src={sampleSrc(locale, slug, "mp4")}
+                  poster={sampleSrc(locale, slug, "jpg")}
                   controls
                   playsInline
                   preload="none"
@@ -329,6 +330,98 @@ function Checks({ locale }: { locale: Locale }) {
             );
           })}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/** "DentVideo vs an agency vs doing it yourself": a table from md up, one card per row on phones. */
+function Compare({ locale }: { locale: Locale }) {
+  const { compare: c } = LANDING[locale];
+  const [us, ...others] = c.columns;
+  return (
+    <section id="compare" aria-labelledby="compare-heading" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-24 sm:px-6 sm:pt-32">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+        <H2 id="compare-heading">{c.heading}</H2>
+        <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.text}</p>
+      </div>
+
+      {/* md and up: a real table, DentVideo's column tinted. */}
+      <div className="dv-card mt-12 hidden overflow-hidden md:block lg:mt-16">
+        <table className="w-full table-fixed border-collapse text-left">
+          <caption className="sr-only">{c.heading}</caption>
+          <colgroup>
+            <col className="w-[22%]" />
+            <col className="w-[30%]" />
+            <col className="w-[24%]" />
+            <col className="w-[24%]" />
+          </colgroup>
+          <thead>
+            <tr>
+              <td className="p-0" />
+              <th scope="col" className="bg-dv-teal px-6 pb-5 pt-6 text-base font-semibold tracking-tight text-white">
+                <span className="flex items-center gap-2">
+                  <BadgeCheck className="h-5 w-5 text-[#bfe3dc]" aria-hidden="true" />
+                  {us}
+                </span>
+              </th>
+              {others.map((col) => (
+                <th key={col} scope="col" className="px-6 pb-5 pt-6 text-base font-semibold tracking-tight text-dv-ink">
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {c.rows.map((r) => (
+              <tr key={r.label} className="border-t border-dv-line">
+                <th scope="row" className="px-6 py-5 align-top text-sm font-semibold text-dv-ink">{r.label}</th>
+                <td className="border-t border-dv-teal/10 bg-dv-teal-50 px-6 py-5 align-top">
+                  <span className="flex items-start gap-2.5 text-[0.9375rem] font-medium leading-snug text-dv-ink">
+                    <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
+                      <Check className="h-3 w-3" strokeWidth={3.5} />
+                    </span>
+                    {r.values[0]}
+                  </span>
+                </td>
+                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.values[1]}</td>
+                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.values[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Phones: one card per row, DentVideo first. */}
+      <ul className="mt-10 space-y-4 md:hidden">
+        {c.rows.map((r) => (
+          <li key={r.label} className="dv-card overflow-hidden">
+            <p className="px-5 pt-5 text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{r.label}</p>
+            <div className="mx-3 mt-3 rounded-xl bg-dv-teal-50 px-3 py-3 ring-1 ring-inset ring-dv-teal/10">
+              <p className="text-xs font-semibold text-dv-teal">{us}</p>
+              <p className="mt-1 flex items-start gap-2 text-[0.9375rem] font-medium leading-snug text-dv-ink">
+                <span aria-hidden="true" className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
+                  <Check className="h-2.5 w-2.5" strokeWidth={3.5} />
+                </span>
+                {r.values[0]}
+              </p>
+            </div>
+            <dl className="grid grid-cols-2 gap-4 px-5 pb-5 pt-4">
+              {others.map((col, i) => (
+                <div key={col}>
+                  <dt className="text-xs font-semibold text-dv-muted">{col}</dt>
+                  <dd className="mt-1 text-sm leading-snug text-dv-body">{r.values[i + 1]}</dd>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))}
+      </ul>
+
+      {/* The ROI line: honest, no figures. */}
+      <div className="dv-grain relative mt-6 overflow-hidden rounded-[1.25rem] bg-dv-teal p-7 text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)] sm:p-9">
+        <p className="dv-display max-w-3xl text-balance text-[1.625rem] leading-[1.15] text-white sm:text-[2rem]">{c.roi}</p>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#cfe2df]">{c.roiNote}</p>
       </div>
     </section>
   );
@@ -415,6 +508,7 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <How locale={locale} />
       <Samples locale={locale} />
       <Checks locale={locale} />
+      <Compare locale={locale} />
       <Pricing locale={locale} />
       <Guides locale={locale} />
       <Faq locale={locale} />
