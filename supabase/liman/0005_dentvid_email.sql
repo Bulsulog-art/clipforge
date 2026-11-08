@@ -35,6 +35,8 @@ create table if not exists public.dentvid_email_log (
 -- Service role only: no policies, so owners (anon / authenticated) can neither
 -- read nor write it through the REST API.
 alter table public.dentvid_email_log enable row level security;
+-- Service role only: RLS hides rows, but table grants (e.g. TRUNCATE) are not covered by RLS.
+revoke all on public.dentvid_email_log from anon, authenticated;
 
 -- The hourly reminder query: unpaid clinics that have not opted out, by age.
 create index if not exists dentvid_clinics_trial_created
