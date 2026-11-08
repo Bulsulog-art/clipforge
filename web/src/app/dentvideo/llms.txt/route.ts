@@ -1,5 +1,5 @@
 import { GUIDES, LANDING, LANDING_PATH, LOCALES, guidePath } from "@/content/dentvideo";
-import { absoluteUrl } from "@/lib/site";
+import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 
 // llms.txt (https://llmstxt.org) for DentVideo: a plain summary for AI answer
 // engines, built only from content/dentvideo.ts so it cannot drift from the pages.

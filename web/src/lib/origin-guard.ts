@@ -24,7 +24,7 @@ export function allowedOrigins(env: {
   NODE_ENV?: string;
 }): string[] {
   const app = env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
-  const list = [app, "https://clipforge.bulsulabs.com"].filter(
+  const list = [app, "https://clipforge.bulsulabs.com", "https://dentvideo.com", "https://www.dentvideo.com"].filter(
     (o): o is string => Boolean(o),
   );
   if (env.NODE_ENV !== "production") list.push("http://localhost:3000");

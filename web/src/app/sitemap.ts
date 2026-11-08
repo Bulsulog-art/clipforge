@@ -15,7 +15,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
-    ...dentvideoPaths().map((path) => ({
+    // Once dentvideo.com is the canonical home, its pages are listed in its
+    // own sitemap (dentvideo.com/sitemap.xml), not this one.
+    ...(process.env.NEXT_PUBLIC_DENTVIDEO_URL ? [] : dentvideoPaths()).map((path) => ({
       url: absoluteUrl(path),
       changeFrequency: "monthly" as const,
       priority: path === "/dentvideo" ? 0.9 : 0.7,
