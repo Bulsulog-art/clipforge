@@ -10,9 +10,8 @@ const publicFile = (src: string) => path.join(__dirname, "../../public", src);
 const WITH_SAMPLES = LOCALES.filter((l) => samplesFor(l));
 
 describe("sample week per landing", () => {
-  it("the original five landings have samples; Japanese, Arabic and Polish do not borrow another language's", () => {
-    expect(WITH_SAMPLES).toEqual(["en", "de", "es", "tr", "fr"]);
-    for (const l of ["ja", "ar", "pl"] as const) expect(SAMPLE_VIDEOS[l]).toBeUndefined();
+  it("every landing has its own sample week", () => {
+    expect(WITH_SAMPLES).toEqual(LOCALES);
   });
 
   it.each(WITH_SAMPLES)("%s lists three distinct samples whose files exist", (locale) => {
