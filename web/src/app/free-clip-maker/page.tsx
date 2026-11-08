@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { absoluteUrl } from "@/lib/site";
 import { ArrowRight, Check, Scissors } from "lucide-react";
+import { ClipForgeJsonLd } from "@/components/clipforge-jsonld";
 
 export const metadata: Metadata = {
   title: "Free AI Clip Maker — turn long videos into viral clips",
@@ -63,6 +64,7 @@ const POINTS = [
 export default function FreeClipMakerPage() {
   return (
     <main className="min-h-screen gradient-bg">
+      <ClipForgeJsonLd />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_LD) }} />
 
       <nav className="container flex items-center justify-between py-6">

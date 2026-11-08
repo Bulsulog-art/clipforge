@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Scissors, Send, BarChart3, Zap, Globe } from "lucide-react";
 import { PRICING } from "@/lib/site";
+import { ClipForgeJsonLd } from "@/components/clipforge-jsonld";
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen gradient-bg">
+      <ClipForgeJsonLd />
       <nav className="container flex items-center justify-between py-6">
         <Link
           href="/"

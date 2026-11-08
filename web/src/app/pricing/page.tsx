@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { absoluteUrl } from "@/lib/site";
 import Link from "next/link";
 import { ShowcaseStrip } from "@/components/generate/showcase-strip";
+import { ClipForgeJsonLd } from "@/components/clipforge-jsonld";
 
 export const metadata: Metadata = {
   title: "Pricing — ClipForge",
@@ -137,6 +138,7 @@ function PlanCard({ plan }: { plan: Plan }) {
 export default function PricingPage() {
   return (
     <main style={{ maxWidth: 1040, margin: "0 auto", padding: "64px 20px 96px" }}>
+      <ClipForgeJsonLd />
       <header style={{ textAlign: "center", marginBottom: 44 }}>
         <h1 style={{ fontSize: 40, lineHeight: 1.1, margin: "0 0 14px", fontWeight: 800 }}>
           Start free. Upgrade when it pays for itself.
