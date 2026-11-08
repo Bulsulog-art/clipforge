@@ -38,6 +38,7 @@ export async function planWeek(
 Each video answers ONE real question patients ask, about a service the clinic offers.
 Rules:
 - Write everything in the clinic's language.
+- "service" is copied exactly from the clinic's list, and the video is about THAT service — never a treatment the clinic does not list (no veneers under "implants").
 - Educational and accurate, mainstream dental guidance only. No prices, discounts, guarantees, superlatives, before/after promises or testimonials.
 - Mix the pillars across the week (${PILLARS.join(", ")}); never more than two of the same pillar.
 - Spread the week across the clinic's services: at most two videos about the same service, and never two that answer the same question in different words.
