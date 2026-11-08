@@ -81,7 +81,10 @@ Run with `npx tsx src/dental/eval.ts --per 4 --out <dir>`.
 | 6 | hook-shape variety; spoken-register cues per language | 81% | 56% | 3.92 | 3.46 |
 | 7 (24 videos) | rewrites edit the previous draft instead of starting over | 79% | 67% | 3.84 | 3.74 |
 | 8 (24) | removed an example hook the model kept cloning into topics; topics built on banned words dropped; reviewers stop stacking hedges; general hygiene is always relevant | 88% | 63% | 4.05 | 3.57 |
-| 9 (24) | compliance reviewer on gpt-4o (the small model traded synonyms until attempts ran out) | **96%** | **71%** | 3.91 | 3.43 |
+| 9 (24) | compliance reviewer on gpt-4o (the small model traded synonyms until attempts ran out) | 96% | 71% | 3.91 | 3.43 |
+| 10 (24) | hook editor scores each candidate and keeps the best clean one; no "Topic: label" hooks; topics must match the listed service they name | **100%** | 58% | **4.00** | 3.50 |
+
+Production check after these rounds: a fresh German clinic week on the live worker gave 5/5 ready, QA passing, and the brand colour applied.
 
 Rounds of 16–24 videos swing about ±10 points between runs, so changes were kept only when the reasons behind them were visible in the per-video notes, not just because a number moved.
 The voice score is consistently lower for the two formal clinics (tr, de: about 3) than for the informal ones (es, en: about 4).

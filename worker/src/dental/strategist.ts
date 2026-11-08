@@ -83,7 +83,12 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } 
 }
 
 const sharpenSchema = z.object({
-  hooks: z.array(z.object({ index: z.number().int().min(0), candidates: z.array(z.string()).max(6), best: z.string().min(3).max(90) })),
+  hooks: z.array(
+    z.object({
+      index: z.number().int().min(0),
+      candidates: z.array(z.object({ hook: z.string().min(3).max(90), score: z.number().min(1).max(5) })).min(1).max(6),
+    }),
+  ),
 });
 
 /**
@@ -106,16 +111,25 @@ A strong hook:
 - opens a question the video answers; it never gives the answer away;
 - sounds like something a person would say out loud in ${profile.language}, not a headline or a translation;
 - ${addressRule(profile)}
-Never: a textbook question ("What is X?"), a topic label, a listicle ("3 tips…"), absolutes ("never", "always", "No!"), promises, prices, "best", fear.
+Never: a textbook question ("What is X?"), a topic label or "Topic: description" line ("Your implant: a multi-step process"), a listicle ("3 tips…"), absolutes ("never", "always", "No!"), promises, prices, "best", fear.
+Score every candidate 1-5 as that scrolling patient would, strictly: 3 is "fine, forgettable".
 Vary the shapes across the week: at most half of the chosen hooks may be questions; the rest a mistake ("You're brushing too hard — here's the sign."), a moment ("That twinge when you sip something cold…"), or a surprising fact.
-Return JSON: { "hooks": [ { "index", "candidates": [4 strings], "best" } ] } — one entry per topic, same index.`,
+Return JSON: { "hooks": [ { "index", "candidates": [ { "hook", "score" } ×4 ] } ] } — one entry per topic, same index.`,
       user: topics.map((t, i) => `${i}. Topic: ${t.title} — patient question: "${t.question}" — current hook: "${t.hook}"`).join("\n"),
       schema: sharpenSchema,
     });
-    const best = new Map(hooks.map((h) => [h.index, h.best.trim()]));
+    // Highest-scoring candidate that is short enough and clean of banned words.
+    const best = new Map(
+      hooks.map((h) => {
+        const ok = h.candidates
+          .filter((c) => c.hook.split(/\s+/).length <= 12 && scanHardRules(c.hook).length === 0)
+          .sort((a, b) => b.score - a.score);
+        return [h.index, ok[0]?.hook.trim()];
+      }),
+    );
     return topics.map((t, i) => {
       const h = best.get(i);
-      return h && h.split(/\s+/).length <= 12 ? { ...t, hook: h } : t;
+      return h ? { ...t, hook: h } : t;
     });
   } catch {
     return topics;
