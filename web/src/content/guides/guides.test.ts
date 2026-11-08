@@ -186,6 +186,13 @@ describe("header/footer language on the new pages", () => {
     const g = Object.fromEntries(GUIDES.map((x) => [x.slug, x.locale]));
     expect(pathLocale("/dentvideo/guides", g)).toBe("en");
     expect(pathLocale("/dentvideo/about", g)).toBe("en");
+    // dentvideo.com serves the same pages without the /dentvideo prefix.
+    expect(pathLocale("/", g)).toBe("en");
+    expect(pathLocale("/de", g)).toBe("de");
+    expect(pathLocale("/fr/guides", g)).toBe("fr");
+    expect(pathLocale("/es/about", g)).toBe("es");
+    expect(pathLocale("/app", g)).toBeNull();
+    expect(pathLocale("/start", g)).toBeNull();
     expect(pathLocale("/dentvideo/tr/guides", g)).toBe("tr");
     expect(pathLocale("/dentvideo/de/about", g)).toBe("de");
     expect(pathLocale("/dentvideo/guides/dis-hekimi-reklam-yasagi", g)).toBe("tr");
