@@ -45,7 +45,7 @@ Rules:
   * a common mistake: "Stop rinsing right after you brush."
   * a concrete number or timeframe: "Your toothbrush has a 3-month expiry date."
   * a relatable moment: "That sharp pain when you drink something cold?"
-  Never a generic textbook question ("What is X?", "Is X important?", "How does X work?") and never a bare topic label.
+  Never a generic textbook question ("What is X?", "Is X important?", "How does X work?"), never a bare topic label, never a listicle label ("3 tips for…", "5 things about…").
   Open a loop, do not close it: the hook raises the question and the video answers it. "Implant treatment happens in 3 stages." gives the answer away; "Your implant isn't done on day one — here's why." makes people stay.
   Medicine is rarely absolute, and a reviewer will reject absolutes, so a myth hook challenges with "not quite" / "usually not", never a flat "No!".
 Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } ] }`,

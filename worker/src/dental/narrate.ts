@@ -1,0 +1,78 @@
+import type OpenAI from "openai";
+import { z } from "zod";
+import { agentJson, REVIEW_MODEL } from "./llm.js";
+import { addressRule, type ClinicProfile } from "./profile.js";
+import { AVOID_WORDS } from "./compliance.js";
+import type { Topic } from "./strategist.js";
+import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
+
+/**
+ * The narrator.
+ *
+ * The scene planner writes the on-screen text well and the voice-over badly:
+ * the eval's judge scored narration 2.8/5 — "a list read aloud", "stiff",
+ * "repetitive" — in every language. So the narration gets its own agent,
+ * on the stronger model, whose only job is to say what is on screen the way
+ * a dentist would say it to one patient across the chair.
+ *
+ * It may not add facts: everything it says must already be on screen, so
+ * the two reviewers that follow judge one story, not two.
+ */
+const narrationSchema = z.object({ text: z.string().min(20).max(1200) });
+
+/** Every point on screen, in order — the only material the narrator may use. */
+function screenPoints(plan: ScenePlan): string[] {
+  const out: string[] = [];
+  for (const s of plan.scenes) {
+    const scene = s as Record<string, unknown>;
+    for (const key of ["text", "sub", "heading", "label", "value", "context", "caption", "attribution"]) {
+      if (typeof scene[key] === "string" && scene[key]) out.push(`${s.kind}: ${scene[key]}`);
+    }
+    for (const key of ["items", "left", "right", "rows"]) {
+      const v = scene[key];
+      if (Array.isArray(v)) out.push(`${s.kind}: ${v.map((x) => (typeof x === "string" ? x : JSON.stringify(x))).join(" / ")}`);
+      else if (v && typeof v === "object") out.push(`${s.kind}: ${JSON.stringify(v)}`);
+    }
+  }
+  return out;
+}
+
+export function narrationBrief(profile: ClinicProfile, topic: Topic, plan: ScenePlan, fixes: string[] = []): string {
+  const words = Math.round(totalSeconds(plan) * 2.3);
+  return [
+    `Video: "${topic.title}" — answers the patient question "${topic.question}".`,
+    `On screen, in order:\n${screenPoints(plan).map((p) => `- ${p}`).join("\n")}`,
+    `Write about ${words} words (±15%).`,
+    fixes.length ? `A reviewer required: ${fixes.join(" | ")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+export async function narrate(
+  client: OpenAI,
+  profile: ClinicProfile,
+  topic: Topic,
+  plan: ScenePlan,
+  fixes: string[] = [],
+): Promise<string> {
+  const { text } = await agentJson(client, {
+    model: REVIEW_MODEL,
+    temperature: 0.7,
+    system: `You are the dentist at ${profile.name}${profile.city ? ` in ${profile.city}` : ""}, recording the voice-over for a short educational video. You speak native, everyday ${profile.language}.
+How it must sound:
+- One person talking to one patient across the chair. Tone: ${profile.tone}. ${addressRule(profile)} Formal address can still be warm: everyday words, not brochure language.
+- Open by saying the hook in your own spoken words — as a question or a moment the viewer recognises, not as a headline.
+- Short and medium sentences mixed. Connect points with spoken links ("and here's the thing", "that's why", "so"), never "firstly/secondly" and never read a list as a list.
+- Each sentence adds something new. Do not repeat a word or idea you already said.
+- End with a light, friendly nudge to ask at the clinic — no pressure, no urgency.
+Content rules (a clinical and a compliance reviewer read this next):
+- Say ONLY what is on screen, in your own words. No new facts, numbers, products or claims.
+- Hedge where outcomes vary ("usually", "can", "for most people").
+- Never use: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}. No prices, discounts or patient stories.
+Return JSON: { "text": "<the full narration>" }`,
+    user: narrationBrief(profile, topic, plan, fixes),
+    schema: narrationSchema,
+  });
+  return text.trim();
+}

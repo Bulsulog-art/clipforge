@@ -25,7 +25,7 @@ open item, updates the status here, commits and pushes.
 | 5 | Web app: content library — preview, findings, approve / reject, download | done |
 | 6 | Web app: upload a recording (shoot card shown) | done — /dentvideo/app/record |
 | 7 | Brand landing + SEO/GEO pages for dentists (EN, DE, ES, TR) | done — EN + DE/ES/TR/FR landings, 7 guides, hreflang, /dentvideo/llms.txt, sitemap (PR #13) |
-| 8 | End-to-end check on production, QA pass, final report for the owner | in progress — test clinic week running on production worker |
+| 8 | End-to-end check on production, QA pass, final report for the owner | done — production run: sign-up → clinic → week → 5 ready / 2 rejected (genuine: invented statistic, absolute claim) → stored and served; fixes shipped (brand colour, hooks, topic spread, honest re-run state). Not testable from the sandbox: browser upload of a recording (the sandbox proxy rewrites Authorization for liman.bulsulabs.com) — the recording pipeline itself is verified locally. |
 
 ## Decisions log
 - **Name: DentVideo — dentvideo.com (available 2026-11-08), the owner's
@@ -62,3 +62,22 @@ open item, updates the status here, commits and pushes.
 - Prices for DentVideo (and then the Dodo brand + products once the domain is bought).
 - Buy **dentvideo.com** (and ideally dentvideo.de / .es / .com.tr). Before buying,
   a trademark search (USPTO, EUIPO, TÜRKPATENT) was not possible from here.
+
+## Agent training — eval rounds (2026-11-08)
+
+`worker/src/dental/eval.ts` runs a fixed panel (İzmir/tr formal-warm, München/de formal-expert,
+Madrid/es informal-calm, Austin/en informal-playful) through the whole agent chain without rendering.
+A gpt-4o judge, as a scrolling patient, scores hook and narration 1-5.
+Run with `npx tsx src/dental/eval.ts --per 4 --out <dir>`.
+
+| Round | Change | Ready | First pass | Hook | Voice |
+|---|---|---|---|---|---|
+| base | — | 88% | 19% | 3.43 | 2.79 |
+| 2 | narrator agent (gpt-4o) rewrites the voice-over from screen text only; writers told the words reviewers always reject | 69% | 25% | 3.64 | 3.73 |
+| 3 | compliance ignores no-op fixes and objections to questions; negated "not permanent" allowed; "before and after meals" is time, not results; writers given the standard aftercare guide | 94% | 63% | 3.67 | 3.67 |
+| 4 (tr+de, 10 videos) | "permanent filling/crown" is a dental term; no listicle hooks; warm formal voice; invalid plan retried with its error | tr 100% / de 80%¹ | tr 80% / de 20% | tr 3.4 / de 3.75 | tr 3.0 / de 3.5 |
+
+¹ The one German loss was a plan over the cta length limit, which is fixed by the retry and covered by a test.
+
+What the judge still asks for: more surprise in hooks and warmer Turkish narration.
+These are the next levers. The writer brief is fine; the reviewers no longer cost rewrites for nothing.
