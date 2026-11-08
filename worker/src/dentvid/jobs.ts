@@ -16,6 +16,8 @@ import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { notifyReady } from "./notify.js";
 import { patientSearches } from "../dental/questions.js";
+import { analyseLogo, brandFromLogo, logoStyleOf } from "../dental/logo.js";
+import type { LogoStyle } from "../remotion/logo-style.js";
 
 /**
  * DentVideo jobs. The product's data lives on Liman (self-hosted Supabase):
@@ -59,7 +61,30 @@ async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string)
       profile.logo = local;
     }
   }
-  return { ownerId: data.owner_id as string, profile };
+  const logoStyle = profile.logo ? await brandWithLogo(profile, clinicId) : undefined;
+  return { ownerId: data.owner_id as string, profile, logoStyle };
+}
+
+/**
+ * Reads the logo once per job: its colours fill a brand colour the clinic
+ * left empty and supply the accent; its shape and brightness decide how it
+ * is drawn. A logo that cannot be read costs nothing but the defaults.
+ */
+async function brandWithLogo(profile: ClinicProfile, clinicId: string): Promise<LogoStyle | undefined> {
+  try {
+    const analysis = await analyseLogo(profile.logo!);
+    const brand = brandFromLogo(profile.brandColor, analysis);
+    if (brand.brandColor) profile.brandColor = brand.brandColor;
+    if (brand.brandAccent) profile.brandAccent = brand.brandAccent;
+    logger.info(
+      { clinicId, treatment: analysis.treatment, brandColor: profile.brandColor, brandAccent: profile.brandAccent },
+      "dentvid: logo analysed",
+    );
+    return logoStyleOf(analysis);
+  } catch (e) {
+    logger.warn({ clinicId, err: (e as Error).message }, "dentvid: logo analysis failed");
+    return undefined;
+  }
 }
 
 async function upload(db: SupabaseClient, key: string, file: string, contentType: string) {
@@ -98,7 +123,7 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
   const db = dentvidDb();
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
-    const { ownerId, profile } = await loadClinic(db, job.clinicId, workDir);
+    const { ownerId, profile, logoStyle } = await loadClinic(db, job.clinicId, workDir);
     const { data: past } = await db.from("dentvid_items").select("title").eq("clinic_id", job.clinicId).limit(200);
 
     const week = await produceWeek(
@@ -120,6 +145,7 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
             pexelsApiKey: process.env.PEXELS_API_KEY,
             concurrency: renderConcurrency(),
             logoSrc: profile.logo,
+            logoStyle,
           });
           return res.outputPath;
         },

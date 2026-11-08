@@ -5,6 +5,8 @@ import { TYPE } from "../theme.js";
 import { entrance, drift } from "../animation.js";
 import { Backdrop, DisplayText, BodyText, Label, Surface, AccentRule, useScale } from "./primitives.js";
 import type { Scene } from "../scene-plan.js";
+import { LogoMark } from "../LogoMark.js";
+import { CTA_LOGO, type LogoStyle } from "../logo-style.js";
 
 type Props<K extends Scene["kind"]> = {
   scene: Extract<Scene, { kind: K }>;
@@ -92,10 +94,18 @@ export const QuoteScene: React.FC<Props<"quote">> = ({ scene, theme, frame }) =>
  * The close. Kept quiet on purpose: a call to action that shouts reads as an
  * advert and gets scrolled, and the ask is a single line either way.
  */
-export const CtaScene: React.FC<Props<"cta">> = ({ scene, theme, frame }) => {
+export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: LogoStyle } }> = ({
+  scene,
+  theme,
+  frame,
+  logo,
+}) => {
   const scale = useScale();
   const pulse = drift(frame, 70, 0.012);
   const chip = entrance(frame, { delay: 12, duration: 20, distance: 26 });
+  // The logo arrives after the line has started reading, then the handle
+  // under it: the frame ends on who said it and where to find them.
+  const mark = entrance(frame, { delay: 8, duration: 22, distance: 34 });
   return (
     <Backdrop theme={theme}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 * scale }}>
@@ -108,6 +118,17 @@ export const CtaScene: React.FC<Props<"cta">> = ({ scene, theme, frame }) => {
           delay={2}
           align="center"
         />
+        {logo ? (
+          <div
+            style={{
+              marginTop: 34 * scale,
+              opacity: mark.opacity,
+              transform: `translateY(${mark.translateY * scale}px)`,
+            }}
+          >
+            <LogoMark src={logo.src} style={logo.style} theme={theme} size={CTA_LOGO} signOff />
+          </div>
+        ) : null}
         {scene.handle ? (
           <div
             style={{
@@ -119,6 +140,7 @@ export const CtaScene: React.FC<Props<"cta">> = ({ scene, theme, frame }) => {
               background: theme.accent,
               padding: `${16 * scale}px ${34 * scale}px`,
               borderRadius: 999,
+              marginTop: logo ? 8 * scale : 0,
               opacity: chip.opacity,
               transform: `translateY(${chip.translateY * scale}px) scale(${pulse})`,
             }}

@@ -134,3 +134,42 @@ describe("brandTheme", () => {
     expect(brandTheme(base, "teal")).toBe(base);
   });
 });
+
+describe("brandTheme with a logo accent", () => {
+  const base = theme("sunrise");
+  const pairs: [string, string][] = [
+    ["#14286E", "#DEAA28"], // navy + gold
+    ["#1A7F8C", "#E4572E"], // teal + coral
+    ["#F2E8D5", "#0A2342"], // cream + deep navy (too dark to lift within bounds)
+    ["#7A2B3A", "#2E86AB"],
+    ["#000000", "#FF0000"],
+    ["#FFFFFF", "#00A86B"],
+  ];
+  it.each(pairs)("keeps every contrast guarantee for %s + %s", (brand, accent) => {
+    const t = brandTheme(base, brand, accent);
+    for (const bg of t.background) expect(contrastRatio(t.foreground, bg)).toBeGreaterThanOrEqual(7);
+    for (const bg of t.background) expect(contrastRatio(t.accent, bg)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(t.onAccent, t.accent)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(t.muted, worstBackground(t))).toBeGreaterThanOrEqual(3);
+  });
+
+  it("uses a distinct logo hue as the accent", () => {
+    const plain = brandTheme(base, "#14286E");
+    const withGold = brandTheme(base, "#14286E", "#DEAA28");
+    expect(withGold.background).toEqual(plain.background);
+    expect(withGold.accent).toBe("#DEAA28");
+    expect(withGold.accent).not.toBe(plain.accent);
+  });
+
+  it("ignores an accent of the same hue as the brand", () => {
+    expect(brandTheme(base, "#14286E", "#1A3080")).toEqual(brandTheme(base, "#14286E"));
+  });
+
+  it("refuses an accent that could only be made legible by bleaching it", () => {
+    expect(brandTheme(base, "#F2E8D5", "#0A2342")).toEqual(brandTheme(base, "#F2E8D5"));
+  });
+
+  it("ignores a malformed accent", () => {
+    expect(brandTheme(base, "#14286E", "gold")).toEqual(brandTheme(base, "#14286E"));
+  });
+});

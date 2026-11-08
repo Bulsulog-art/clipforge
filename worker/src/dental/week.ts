@@ -248,7 +248,9 @@ export async function produceVideo(
   // Painted in the clinic's colour, so the week reads as theirs.
   // Objects only, never people or a clinic in stock footage; no repeats.
   const safe = guardFootage(script.value, topic.service, usedFootage);
-  const branded = profile.brandColor ? { ...safe, brandColor: profile.brandColor } : safe;
+  const branded = profile.brandColor
+    ? { ...safe, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
+    : safe;
   const videoPath = deps.render ? await deps.render(branded, topic) : undefined;
   // Measure the render before anyone sees it (silent narration, wrong size,
   // black frames…). A failing video is still delivered, marked with why.

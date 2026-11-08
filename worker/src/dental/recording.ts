@@ -12,6 +12,7 @@ import { reviewCompliance, scanHardRules, type ComplianceResult } from "./compli
 import { reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import type { ClinicProfile } from "./profile.js";
+import { analyseLogo, logoStyleOf } from "./logo.js";
 import type { Topic } from "./strategist.js";
 
 /**
@@ -75,6 +76,9 @@ export async function clipsFromRecording(
   opts: { maxClips?: number } = {},
 ): Promise<RecordedClip[]> {
   const logoPath = await localLogo(profile.logo, deps.workDir);
+  // Same chip and size as the generated videos; an unreadable logo is drawn
+  // the way it always was.
+  const logoStyle = logoPath && deps.render ? await analyseLogo(logoPath).then(logoStyleOf).catch(() => undefined) : undefined;
   const audio = await extractAudio(videoPath, deps.workDir);
   const transcript = await transcribe(audio, profile.language);
   deps.log?.("transcribed", { words: transcript.words.length });
@@ -139,7 +143,9 @@ export async function clipsFromRecording(
         workDir: deps.workDir,
         watermark: false,
         accentHex: profile.brandColor,
-        branding: logoPath ? { localLogoPath: logoPath, position: "top-right", opacity: 0.9 } : undefined,
+        branding: logoPath
+          ? { localLogoPath: logoPath, position: "top-right", opacity: logoStyle ? 1 : 0.9, style: logoStyle }
+          : undefined,
       });
       clipVideo = clip.videoPath;
       clipThumb = clip.thumbPath;

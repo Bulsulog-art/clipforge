@@ -84,6 +84,10 @@ export type AppText = {
     brandColor: string;
     logo: string;
     logoSaved: string;
+    logoSuggested: string;
+    logoNoColour: string;
+    logoSwatches: string;
+    logoPreview: string;
     save: string;
     saving: string;
     logoFailed: string;
@@ -210,6 +214,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       brandColor: "Brand colour",
       logo: "Logo (PNG with a transparent background works best)",
       logoSaved: "A logo is already saved.",
+      logoSuggested: "We picked your brand colour from your logo. Tap another colour below, or choose any colour you like.",
+      logoNoColour: "Your logo has no strong colour, so pick the brand colour you'd like your videos in.",
+      logoSwatches: "Colours in your logo",
+      logoPreview: "How your logo will appear in your videos",
       save: "Save and continue",
       saving: "Saving…",
       logoFailed: "The logo could not be uploaded: {message}",
@@ -335,6 +343,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       brandColor: "Markenfarbe",
       logo: "Logo (am besten PNG mit transparentem Hintergrund)",
       logoSaved: "Ein Logo ist bereits gespeichert.",
+      logoSuggested: "Wir haben Ihre Markenfarbe aus Ihrem Logo übernommen. Tippen Sie unten auf eine andere Farbe oder wählen Sie eine beliebige.",
+      logoNoColour: "Ihr Logo hat keine ausgeprägte Farbe – wählen Sie die Markenfarbe, in der Ihre Videos erscheinen sollen.",
+      logoSwatches: "Farben in Ihrem Logo",
+      logoPreview: "So erscheint Ihr Logo in Ihren Videos",
       save: "Speichern und weiter",
       saving: "Wird gespeichert …",
       logoFailed: "Das Logo konnte nicht hochgeladen werden: {message}",
@@ -465,6 +477,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       brandColor: "Color de marca",
       logo: "Logo (mejor en PNG con fondo transparente)",
       logoSaved: "Ya hay un logo guardado.",
+      logoSuggested: "Tomamos el color de marca de su logo. Toque otro color abajo o elija el que prefiera.",
+      logoNoColour: "Su logo no tiene un color marcado: elija el color de marca que quiere para sus videos.",
+      logoSwatches: "Colores de su logo",
+      logoPreview: "Así aparecerá su logo en sus videos",
       save: "Guardar y continuar",
       saving: "Guardando…",
       logoFailed: "No se pudo subir el logo: {message}",
@@ -595,6 +611,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       brandColor: "Marka rengi",
       logo: "Logo (en iyisi şeffaf arka planlı PNG)",
       logoSaved: "Kayıtlı bir logonuz var.",
+      logoSuggested: "Marka renginizi logonuzdan aldık. Aşağıdan başka bir renge dokunabilir ya da istediğiniz rengi seçebilirsiniz.",
+      logoNoColour: "Logonuzda belirgin bir renk yok; videolarınızın marka rengini seçin.",
+      logoSwatches: "Logonuzdaki renkler",
+      logoPreview: "Logonuz videolarınızda böyle görünecek",
       save: "Kaydet ve devam et",
       saving: "Kaydediliyor…",
       logoFailed: "Logo yüklenemedi: {message}",
@@ -725,6 +745,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       brandColor: "Couleur de marque",
       logo: "Logo (idéalement un PNG à fond transparent)",
       logoSaved: "Un logo est déjà enregistré.",
+      logoSuggested: "Nous avons repris la couleur de marque de votre logo. Touchez une autre couleur ci-dessous ou choisissez celle que vous voulez.",
+      logoNoColour: "Votre logo n'a pas de couleur marquée : choisissez la couleur de marque de vos vidéos.",
+      logoSwatches: "Couleurs de votre logo",
+      logoPreview: "Voici comment votre logo apparaîtra dans vos vidéos",
       save: "Enregistrer et continuer",
       saving: "Enregistrement…",
       logoFailed: "Le logo n'a pas pu être envoyé : {message}",
