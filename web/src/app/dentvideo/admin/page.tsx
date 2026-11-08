@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * The owner dashboard: revenue, funnel, operations and recent clinics.
- * 404 for everyone but the emails in DENTVIDEO_ADMIN_EMAILS.
+ * 404 for everyone but the emails in DENTVIDEO_ADMIN_USER_IDS.
  */
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ days?: string; locale?: string }> }) {
   const { email } = await requireAdmin();

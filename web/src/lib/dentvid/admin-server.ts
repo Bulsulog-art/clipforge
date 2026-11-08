@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { dvSession } from "./auth";
-import { isAdminEmail } from "./admin";
+import { isAdminUser } from "./admin";
 import { foundingCode } from "./billing";
 import { dvAdmin } from "./supabase";
 import { missingTable } from "./events-server";
@@ -9,19 +9,19 @@ import type { AdminClinic, AdminEvent, AdminItem } from "./admin-metrics";
 
 /**
  * The owner dashboard's gate and data. Everyone who is not a signed-in
- * admin (DENTVIDEO_ADMIN_EMAILS) gets the ordinary 404 — signed-out
+ * admin (DENTVIDEO_ADMIN_USER_IDS) gets the ordinary 404 — signed-out
  * visitors included — so the page does not admit to existing.
  */
-export async function requireAdmin(): Promise<{ email: string }> {
-  let email: string | null | undefined;
+export async function requireAdmin(): Promise<{ id: string; email: string }> {
+  let user: { id: string; email?: string | null } | null = null;
   try {
-    const { user } = await dvSession();
-    email = user?.email;
+    user = (await dvSession()).user;
   } catch {
-    email = null;
+    user = null;
   }
-  if (!email || !isAdminEmail(email)) notFound();
-  return { email };
+  // The user id decides; the email is only shown as "signed in as".
+  if (!user || !isAdminUser(user.id)) notFound();
+  return { id: user.id, email: user.email ?? user.id };
 }
 
 const PAGE = 1000;
