@@ -36,7 +36,10 @@ async function main() {
 
   const week = await produceWeek(
     {
-      client: new OpenAI(),
+      // Node's built-in fetch, not the SDK's bundled node-fetch: the built-in
+      // one honours HTTPS_PROXY (with NODE_USE_ENV_PROXY=1), so the CLI runs
+      // behind a proxy as well as directly.
+      client: new OpenAI({ fetch: globalThis.fetch as unknown as ConstructorParameters<typeof OpenAI>[0] extends infer O ? O extends { fetch?: infer F } ? F : never : never }),
       log: (msg, extra) => console.log(`· ${msg}`, extra ?? ""),
       render: doRender
         ? async (plan, topic) => {

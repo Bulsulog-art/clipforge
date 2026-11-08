@@ -75,13 +75,14 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
   return [
     `An educational ${profile.language} video for the dental clinic "${profile.name}".`,
     `Topic: ${topic.title}. It answers the patient question: "${topic.question}".`,
-    `Open with this hook (you may tighten it): "${topic.hook}".`,
+    `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
+    `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}.`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
-    `Stock footage queries must be generic (e.g. "dentist office", "toothbrush close up"), never patients' faces in treatment.`,
+    `Stock footage queries: 2-4 English words specific to THIS topic (e.g. "teeth whitening tray", "dental floss close up", "child toothbrush"), not a generic "dentist office", and never patients' faces in treatment.`,
     `End with a cta scene inviting the viewer to ask the clinic or book a check-up` +
-      (profile.handle ? `, with handle "@${profile.handle.replace(/^@/, "")}".` : "."),
+      (profile.handle ? `. Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : "."),
     fixes.length ? `A compliance reviewer required these changes: ${fixes.join(" | ")}` : "",
   ]
     .filter(Boolean)
@@ -152,6 +153,15 @@ export async function produceWeek(
   const topics = await planWeek(deps.client, profile, opts);
   const out: VideoPackage[] = [];
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.
-  for (const topic of topics) out.push(await produceVideo(deps, profile, topic));
+  for (const topic of topics) {
+    // One topic failing (a plan the model could not get valid, a render
+    // error) must not cost the clinic the rest of its week.
+    try {
+      out.push(await produceVideo(deps, profile, topic));
+    } catch (e) {
+      deps.log?.("topic failed", { topic: topic.title, error: (e as Error).message });
+      out.push({ status: "rejected", topic, stage: "script", reasons: [`could not produce: ${(e as Error).message}`] });
+    }
+  }
   return out;
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type OpenAI from "openai";
 import { scanHardRules, stricter } from "./compliance.js";
+import { finalHashtags } from "./copywriter.js";
 import { planText, produceVideo, produceWeek, scriptBrief } from "./week.js";
 import type { ClinicProfile } from "./profile.js";
 import type { Topic } from "./strategist.js";
@@ -200,10 +201,38 @@ describe("the orchestrator", () => {
     expect(rendered).toEqual([TOPIC.title, other.title]);
   });
 
+  it("keeps going when one topic throws, and reports it", async () => {
+    const other: Topic = { ...TOPIC, title: "Implant aftercare", service: "implants", pillar: "aftercare" };
+    const broken = { ...plan(["a", "b", "c"]), music: "warm and inviting" } as unknown as ScenePlan;
+    const { client } = fakeClient({
+      topics: [TOPIC, other],
+      // First topic: both plan attempts invalid → throws. Second topic: clean.
+      plans: [broken, broken, plan(["Implant aftercare", "Keep the area clean.", "Follow your dentist's advice."])],
+      reviews: ["pass", "pass"],
+    });
+    const week = await produceWeek({ client }, PROFILE, { count: 5 });
+    expect(week.map((w) => w.status)).toEqual(["rejected", "ready"]);
+  });
+
   it("briefs the scriptwriter with the clinic's language, handle and the rules", () => {
     const brief = scriptBrief({ ...PROFILE, language: "tr" }, TOPIC);
     expect(brief).toContain("in tr");
     expect(brief).toContain("@smilestudio");
     expect(brief).toMatch(/Never mention prices/);
+  });
+});
+
+describe("finalHashtags", () => {
+  it("puts the clinic's real tag first and drops invented brand tags", () => {
+    const tags = finalHashtags(["#gülüşstudio", "DişSağlığı", "izmir", "smilestudio", "diş sağlığı", "bad-tag!"], {
+      name: "Smile Studio",
+      handle: "smilestudio.izmir",
+    });
+    expect(tags[0]).toBe("smilestudioizmir");
+    expect(tags).not.toContain("gülüşstudio");
+    expect(tags).toContain("dişsağlığı");
+    expect(tags).toContain("izmir");
+    expect(tags.filter((t) => t === "dişsağlığı")).toHaveLength(1);
+    expect(tags).not.toContain("bad-tag!");
   });
 });

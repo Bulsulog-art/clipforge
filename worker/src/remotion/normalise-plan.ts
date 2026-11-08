@@ -130,5 +130,24 @@ export function normalisePlanShape(raw: unknown): unknown {
     return next;
   });
 
-  return { ...raw, scenes };
+  const next: Record<string, unknown> = { ...raw, scenes };
+  // Narration written as a bare string means the text; the voice defaults.
+  // Seen in production: "scene plan invalid at voiceover: Expected object,
+  // received string", which cost a clinic one of its five weekly videos.
+  if (typeof raw.voiceover === "string") {
+    next.voiceover = raw.voiceover.trim() ? { text: raw.voiceover.trim() } : undefined;
+  } else if (isObject(raw.voiceover)) {
+    // { voice: "nova" } with no text is narration of nothing: drop it rather
+    // than fail the whole video ("voiceover.text: Required", seen live).
+    const text = typeof raw.voiceover.text === "string" ? raw.voiceover.text.trim() : "";
+    if (!text) next.voiceover = undefined;
+  } else if (raw.voiceover === null) {
+    next.voiceover = undefined;
+  }
+  // Music is a fixed vocabulary; a mood description ("warm and inviting") is
+  // not worth failing a render over — play it safe with no music.
+  if (typeof raw.music === "string" && !MUSIC.has(raw.music)) next.music = "none";
+  return next;
 }
+
+const MUSIC = new Set(["none", "calm", "uplifting", "tense", "playful"]);

@@ -74,3 +74,27 @@ describe("what it must not touch", () => {
     expect(kinds(out)).toEqual([undefined, undefined, "hook"]);
   });
 });
+
+describe("normalisePlanShape: voiceover and music", () => {
+  const base = { title: "t", aspect: "9:16", theme: "sunrise", scenes: [{ kind: "hook", text: "Hi there", seconds: 3 }] };
+
+  it("turns a bare-string voiceover into { text }", () => {
+    const out = normalisePlanShape({ ...base, voiceover: "Say this." }) as { voiceover: unknown };
+    expect(out.voiceover).toEqual({ text: "Say this." });
+  });
+
+  it("drops a voiceover object with no text, keeps one with text", () => {
+    expect((normalisePlanShape({ ...base, voiceover: { voice: "nova" } }) as { voiceover: unknown }).voiceover).toBeUndefined();
+    expect((normalisePlanShape({ ...base, voiceover: { text: "Hi", voice: "nova" } }) as { voiceover: unknown }).voiceover).toEqual({ text: "Hi", voice: "nova" });
+  });
+
+  it("drops an empty string voiceover", () => {
+    const out = normalisePlanShape({ ...base, voiceover: "  " }) as { voiceover: unknown };
+    expect(out.voiceover).toBeUndefined();
+  });
+
+  it("replaces a described mood with no music, keeps a valid value", () => {
+    expect((normalisePlanShape({ ...base, music: "warm and inviting" }) as { music: string }).music).toBe("none");
+    expect((normalisePlanShape({ ...base, music: "calm" }) as { music: string }).music).toBe("calm");
+  });
+});
