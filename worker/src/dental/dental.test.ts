@@ -4,7 +4,7 @@ import { scanHardRules, stricter } from "./compliance.js";
 import { finalHashtags } from "./copywriter.js";
 import { narrationProblems, planText, produceVideo, produceWeek, scriptBrief } from "./week.js";
 import type { ClinicProfile } from "./profile.js";
-import type { Topic } from "./strategist.js";
+import { planWeek, type Topic } from "./strategist.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
 
 const rules = (t: string) => scanHardRules(t).map((h) => h.rule);
@@ -345,5 +345,15 @@ describe("finalHashtags", () => {
     expect(tags).toContain("izmir");
     expect(tags.filter((t) => t === "dişsağlığı")).toHaveLength(1);
     expect(tags).not.toContain("bad-tag!");
+  });
+});
+
+describe("planWeek", () => {
+  it("keeps at most two topics per service", async () => {
+    const t = (service: string, i: number) => ({ title: `Topic ${i}`, pillar: "myth", question: "A real question?", hook: "A short hook here", service });
+    const content = JSON.stringify({ topics: [t("Implants", 1), t("Implants", 2), t("Implants", 3), t("Cleanings", 4)] });
+    const client = { chat: { completions: { create: async () => ({ choices: [{ message: { content } }] }) } } } as never;
+    const topics = await planWeek(client, { ...PROFILE, services: ["Implants", "Cleanings"] }, { count: 5 });
+    expect(topics.map((x) => x.title)).toEqual(["Topic 1", "Topic 2", "Topic 4"]);
   });
 });

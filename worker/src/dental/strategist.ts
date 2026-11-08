@@ -39,6 +39,7 @@ Rules:
 - Write everything in the clinic's language.
 - Educational and accurate, mainstream dental guidance only. No prices, discounts, guarantees, superlatives, before/after promises or testimonials.
 - Mix the pillars across the week (${PILLARS.join(", ")}); never more than two of the same pillar.
+- Spread the week across the clinic's services: at most two videos about the same service, and never two that answer the same question in different words.
 - Hooks decide whether anyone watches. Under 9 words, specific, and built on one of these:
   * a myth stated, then challenged: "Whitening thins your enamel? Not really."
   * a common mistake: "Stop rinsing right after you brush."
@@ -58,7 +59,15 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } 
 
   // Keep only topics about services the clinic offers, and cap the count.
   const offered = profile.services.map((s) => s.toLowerCase());
+  const perService = new Map<string, number>();
   return topics
     .filter((t) => offered.some((s) => t.service.toLowerCase().includes(s) || s.includes(t.service.toLowerCase())))
+    .filter((t) => {
+      // At most two per service, so one service cannot fill the week.
+      const key = t.service.toLowerCase().trim();
+      const n = perService.get(key) ?? 0;
+      perService.set(key, n + 1);
+      return n < 2;
+    })
     .slice(0, count);
 }
