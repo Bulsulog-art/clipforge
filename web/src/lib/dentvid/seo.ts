@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { absoluteUrl } from "@/lib/site";
+import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { GUIDES, LANDING, SAMPLE_VIDEOS, LANDING_PATH, LOCALES, HREFLANG, guidePath, type Guide, type Locale } from "@/content/dentvideo";
 
 /** hreflang map for the landings: every locale plus x-default (English). */

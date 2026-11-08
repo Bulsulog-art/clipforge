@@ -1,12 +1,27 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { allowedOrigins, isBadOrigin } from "@/lib/origin-guard";
+import { routeForHost } from "@/lib/dentvid/host";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // CSRF defence: Origin check on state-changing /api requests, with an
 // exemption for bearer-authenticated (native app) calls. See lib/origin-guard.
 export async function middleware(req: NextRequest) {
+  // dentvideo.com is served from the /dentvideo section (lib/dentvid/host).
+  const route = routeForHost(
+    req.headers.get("x-forwarded-host") ?? req.headers.get("host"),
+    req.nextUrl.pathname,
+    req.nextUrl.search,
+    process.env.NEXT_PUBLIC_DENTVIDEO_URL || undefined,
+  );
+  if (route.kind === "redirect") return NextResponse.redirect(route.url, route.status);
+  if (route.kind === "rewrite") {
+    const url = req.nextUrl.clone();
+    url.pathname = route.path;
+    return NextResponse.rewrite(url);
+  }
+
   // CSRF / Origin guard — runs before any DB work.
   if (
     isBadOrigin({
