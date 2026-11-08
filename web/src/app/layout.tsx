@@ -4,6 +4,11 @@ import { Toaster } from "sonner";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
+import { cookies, headers } from "next/headers";
+import { GUIDES, type Locale } from "@/content/dentvideo";
+import { DV_PATH_HEADER } from "@/lib/dentvid/host";
+import { LANG_COOKIE } from "@/lib/dentvid/locale";
+import { documentLanguage } from "@/lib/dentvid/page-locale";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -50,9 +55,21 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const GUIDE_LOCALES: Record<string, Locale> = Object.fromEntries(GUIDES.map((g) => [g.slug, g.locale]));
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // ClipForge is English. DentVideo pages (marked by the middleware) carry
+  // their own language, and Arabic turns the document right to left, in the
+  // server's HTML rather than after a script runs.
+  const [h, jar] = await Promise.all([headers(), cookies()]);
+  const { lang, dir } = documentLanguage(
+    h.get(DV_PATH_HEADER),
+    { cookie: jar.get(LANG_COOKIE)?.value, acceptLanguage: h.get("accept-language") },
+    GUIDE_LOCALES,
+  );
   return (
-    <html lang="en" suppressHydrationWarning>
+    // suppressHydrationWarning: on client-side navigation the DentVideo header keeps lang/dir in step.
+    <html lang={lang} dir={dir} suppressHydrationWarning>
       <body className={`${inter.variable} font-sans`}>
         {/* Captures UTM params + referrer at first landing and POSTs
             to /api/account/attribution once the user has a session.

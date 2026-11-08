@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { allowedOrigins, isBadOrigin } from "@/lib/origin-guard";
-import { routeForHost } from "@/lib/dentvid/host";
+import { DV_PATH_HEADER, isDentvideoPath, routeForHost } from "@/lib/dentvid/host";
 import { API_GLOBAL_PER_IP, MemoryStore, clientIp, slidingWindow } from "@/lib/rate-limit";
 
 // A cheap first line against floods of /api requests: a per-IP sliding
@@ -30,10 +30,18 @@ export async function middleware(req: NextRequest) {
     process.env.NEXT_PUBLIC_DENTVIDEO_URL || undefined,
   );
   if (route.kind === "redirect") return NextResponse.redirect(route.url, route.status);
+
+  // The root layout renders <html lang dir> from the DentVideo page being
+  // served (lib/dentvid/page-locale). Never trust a client-sent copy.
+  const headers = new Headers(req.headers);
+  headers.delete(DV_PATH_HEADER);
+  const inAppPath = route.kind === "rewrite" ? route.path : req.nextUrl.pathname;
+  if (isDentvideoPath(inAppPath)) headers.set(DV_PATH_HEADER, `${inAppPath}${req.nextUrl.search}`);
+
   if (route.kind === "rewrite") {
     const url = req.nextUrl.clone();
     url.pathname = route.path;
-    return NextResponse.rewrite(url);
+    return NextResponse.rewrite(url, { request: { headers } });
   }
 
   // CSRF / Origin guard — runs before any DB work.
@@ -49,7 +57,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.json({ error: "Bad Origin" }, { status: 403 });
   }
 
-  let res = NextResponse.next({ request: req });
+  let res = NextResponse.next({ request: { headers } });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,7 +67,9 @@ export async function middleware(req: NextRequest) {
         getAll: () => req.cookies.getAll(),
         setAll: (cookiesToSet: CookieToSet[]) => {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-          res = NextResponse.next({ request: req });
+          // req.cookies.set rewrote req's cookie header: carry it over.
+          headers.set("cookie", req.headers.get("cookie") ?? "");
+          res = NextResponse.next({ request: { headers } });
           cookiesToSet.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
         },
       },

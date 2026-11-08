@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
 import { dvSession } from "@/lib/dentvid/auth";
 import { loadItems } from "@/lib/dentvid/items";
 import { dvLocale } from "@/lib/dentvid/locale-server";
@@ -15,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RecordPage() {
   const { db, user } = await dvSession();
-  if (!user) redirect("/dentvideo/start");
+  if (!user) redirect(dvHref("/dentvideo/start"));
   const [{ rows }, { data: clinic }] = await Promise.all([
     loadItems(db, user.id),
     db.from("dentvid_clinics").select("id, profile").eq("owner_id", user.id).maybeSingle(),

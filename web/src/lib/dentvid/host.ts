@@ -16,6 +16,18 @@ export function isDentvideoHost(host: string | null | undefined): boolean {
   return DENTVIDEO_HOSTS.includes((host ?? "").toLowerCase().split(":")[0]);
 }
 
+/**
+ * Request header the middleware sets on every DentVideo page request: the
+ * in-app path and query ("/dentvideo/start?lang=tr"), whichever host served
+ * it. The root layout reads it to render <html lang dir> (page-locale.ts).
+ */
+export const DV_PATH_HEADER = "x-dv-path";
+
+/** Whether an in-app path ("/dentvideo", "/dentvideo/de", "/dentvideo?x") is in the DentVideo section. */
+export function isDentvideoPath(path: string): boolean {
+  return /^\/dentvideo(?=[/?#]|$)/.test(path);
+}
+
 export type HostRoute =
   | { kind: "next" }
   | { kind: "rewrite"; path: string }

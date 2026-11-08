@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
@@ -17,9 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Settings() {
   const { db, user } = await dvSession();
-  if (!user) redirect("/dentvideo/start");
+  if (!user) redirect(dvHref("/dentvideo/start"));
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path").eq("owner_id", user.id).maybeSingle();
-  if (!clinic) redirect("/dentvideo/start?step=clinic");
+  if (!clinic) redirect(dvHref("/dentvideo/start?step=clinic"));
   const profile = (clinic?.profile ?? undefined) as Partial<ClinicProfile> | undefined;
   const locale = await dvLocale(profile?.language);
   const [plan, logoUrl] = await Promise.all([clinic ? loadClinicPlan(db, clinic.id) : null, logoSignedUrl(db, clinic?.logo_path as string | null | undefined)]);

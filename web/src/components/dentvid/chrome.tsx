@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuides, type Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import { asLocale } from "@/lib/dentvid/locale";
+import { pathLocale } from "@/lib/dentvid/page-locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { dvHref } from "@/lib/dentvid/host";
 import { DvLogo } from "./mark";
-import { Clapperboard, LogOut, Settings, Video } from "lucide-react";
+import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
 import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 
@@ -22,24 +23,8 @@ export function announceLocale(locale: Locale) {
   window.dispatchEvent(new CustomEvent(LANG_EVENT, { detail: locale }));
 }
 
-/**
- * The language the page itself is in, when its address says so: a localized
- * landing (/dentvideo/tr) or a guide (each guide has one language). Null for
- * the app and sign-up screens, whose language is per visitor.
- */
-export function pathLocale(pathname: string, guideLocales: Record<string, Locale>): Locale | null {
-  // On dentvideo.com the address is "/tr" (the middleware serves the
-  // /dentvideo section there); elsewhere it is "/dentvideo/tr". Read both.
-  const all = pathname.split("/").filter(Boolean);
-  const parts = all[0] === "dentvideo" ? all.slice(1) : all;
-  if (parts.length === 0) return "en";
-  // English guides hub and About: /guides, /about.
-  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about")) return "en";
-  if (parts[0] === "guides") return guideLocales[parts[1] ?? ""] ?? null;
-  if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
-  // A landing (/tr), or its guides hub or About page (/tr/guides).
-  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about")) ? (parts[0] as Locale) : null;
-}
+// Shared with the root layout, which renders <html lang dir> on the server.
+export { pathLocale };
 
 function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; ready: boolean } {
   const fromPath = pathLocale(usePathname() ?? "", guideLocales);
@@ -73,7 +58,8 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
   // Until the visitor's language is known on the app screens, keep the space
   // but not the English words.
   const hide = ready ? "" : "invisible";
-  // <html lang> follows the page on client-side navigation (HtmlLang sets it on first load).
+  // <html lang dir> is right in the server's HTML (root layout); this keeps
+  // it in step when a client-side navigation changes the page's language.
   useEffect(() => {
     if (ready) {
       document.documentElement.lang = locale;
@@ -87,16 +73,25 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
+  const [open, setOpen] = useState(false);
   const navLink =
     "hidden rounded-full px-3.5 py-2 font-medium text-dv-body transition-colors hover:bg-dv-sand-200/70 hover:text-dv-ink md:inline-block";
+  const links = [
+    { href: dvHref(`${home}#how`), label: t.howItWorks },
+    { href: dvHref(`${home}#pricing`), label: t.pricing },
+    // As on the desktop: only languages that have guides link to them.
+    ...(hasGuides(locale) ? [{ href: dvHref(GUIDES_INDEX_PATH[locale]), label: GUIDE_UI[locale].guides }] : []),
+  ];
   return (
     <header
       lang={locale}
       dir={dirOf(locale)}
       className={`sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300 ${
-        scrolled
-          ? "border-dv-line/80 bg-dv-paper/80 shadow-[0_10px_30px_-24px_rgba(20,33,31,0.45)] backdrop-blur-xl backdrop-saturate-150"
-          : "border-transparent bg-dv-paper/0"
+        open
+          ? "border-dv-line/80 bg-dv-paper"
+          : scrolled
+            ? "border-dv-line/80 bg-dv-paper/80 shadow-[0_10px_30px_-24px_rgba(20,33,31,0.45)] backdrop-blur-xl backdrop-saturate-150"
+            : "border-transparent bg-dv-paper/0"
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:h-[4.5rem] sm:px-6">
@@ -105,16 +100,151 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
         </Link>
         {!quiet && (
           <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
-            <Link href={dvHref(`${home}#how`)} className={navLink}>{t.howItWorks}</Link>
-            <Link href={dvHref(`${home}#pricing`)} className={navLink}>{t.pricing}</Link>
-            {hasGuides(locale) && <Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={navLink}>{GUIDE_UI[locale].guides}</Link>}
+            {links.map((l) => (
+              <Link key={l.href} href={l.href} className={navLink}>{l.label}</Link>
+            ))}
             <Link href={dvHref("/dentvideo/app")} className="dv-btn dv-btn-primary ms-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
               {t.openApp}
             </Link>
+            <MobileMenu locale={locale} links={links} label={t.menu} languageLabel={t.language} open={open} setOpen={setOpen} />
           </nav>
         )}
       </div>
     </header>
+  );
+}
+
+/**
+ * Below the md breakpoint the header has room for the logo and "Open app"
+ * only; the other links and the languages open from this button, as a sheet
+ * under the header. Escape or the button closes it and returns focus to the
+ * button; Tab stays inside while it is open; any link closes it.
+ */
+function MobileMenu({
+  locale,
+  links,
+  label,
+  languageLabel,
+  open,
+  setOpen,
+}: {
+  locale: Locale;
+  links: { href: string; label: string }[];
+  label: string;
+  languageLabel: string;
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const id = useId();
+  const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const path = usePathname();
+
+  // A new page closes it; so does a window that grows to the desktop layout.
+  useEffect(() => setOpen(false), [path, setOpen]);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const on = () => mq.matches && setOpen(false);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, [setOpen]);
+
+  useEffect(() => {
+    if (!open) return;
+    const sheet = panel.current;
+    sheet?.querySelector<HTMLElement>("a[href]")?.focus();
+    // The page under the sheet stays put.
+    const root = document.documentElement;
+    const overflow = root.style.overflow;
+    root.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        button.current?.focus();
+        return;
+      }
+      if (e.key !== "Tab" || !sheet) return;
+      const items = [button.current, ...sheet.querySelectorAll<HTMLElement>("a[href]")].filter((x): x is HTMLElement => !!x);
+      const i = items.indexOf(document.activeElement as HTMLElement);
+      const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : i === -1 || i === items.length - 1 ? 0 : i + 1;
+      e.preventDefault();
+      items[next].focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      root.style.overflow = overflow;
+    };
+  }, [open, setOpen]);
+
+  const close = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // The page must scroll again before the link moves it.
+    document.documentElement.style.overflow = "";
+    setOpen(false);
+    // A section of this same page (#how, #pricing): go there directly; the
+    // router would not scroll a page that was locked a moment ago.
+    const to = new URL(e.currentTarget.href);
+    const target = to.hash && to.pathname === window.location.pathname ? document.getElementById(to.hash.slice(1)) : null;
+    if (target && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+      e.preventDefault();
+      window.history.pushState(window.history.state, "", to.hash);
+      target.scrollIntoView();
+    }
+  };
+  return (
+    <>
+      <button
+        ref={button}
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        aria-label={label}
+        onClick={() => setOpen((o) => !o)}
+        className="-me-1.5 ms-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-dv-ink transition-colors hover:bg-dv-sand-200/70 md:hidden"
+      >
+        {open ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+      </button>
+      <div
+        id={id}
+        ref={panel}
+        hidden={!open}
+        className="absolute inset-x-0 top-full h-[calc(100dvh-4rem)] overflow-y-auto sm:h-[calc(100dvh-4.5rem)] overscroll-contain border-t border-dv-line/80 bg-dv-paper md:hidden"
+      >
+        <div className="px-4 pb-10 pt-3">
+          <ul className="divide-y divide-dv-line/80">
+            {links.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} onClick={close} className="flex min-h-14 items-center text-lg font-semibold text-dv-ink">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{languageLabel}</p>
+          <ul className="mt-3 grid grid-cols-2 gap-2">
+            {LOCALES.map((l) => (
+              <li key={l}>
+                <Link
+                  href={dvHref(LANDING_PATH[l])}
+                  hrefLang={l}
+                  lang={l}
+                  dir={dirOf(l)}
+                  onClick={close}
+                  aria-current={l === locale ? "true" : undefined}
+                  className={`flex min-h-12 items-center justify-between gap-2 rounded-2xl px-4 text-[0.9375rem] ring-1 transition-colors ${
+                    l === locale ? "bg-dv-teal font-semibold text-white ring-dv-teal" : "bg-white font-medium text-dv-body ring-dv-line hover:text-dv-ink"
+                  }`}
+                >
+                  {LANGUAGE_NAME[l]}
+                  {l === locale ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -202,7 +332,7 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
     } catch {
       /* signed out locally either way */
     }
-    window.location.assign("/dentvideo/start");
+    window.location.assign(dvHref("/dentvideo/start"));
   }
 
   const tabLink = (key: AppTab) =>
@@ -213,12 +343,12 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
   return (
     <header lang={locale} dir={dirOf(locale)} className="sticky top-0 z-40 border-b border-dv-line/80 bg-dv-paper/90 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:h-16 sm:px-6">
-        <Link href="/dentvideo/app" className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
+        <Link href={dvHref("/dentvideo/app")} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
           <DvLogo className="h-7 w-auto" />
         </Link>
         <nav aria-label={t.appNav} className={`hidden items-center gap-1 rounded-full bg-white/70 p-1 ring-1 ring-dv-line md:flex ${hide}`}>
           {TABS.map(({ key, href, Icon }) => (
-            <Link key={key} href={href} aria-current={key === tab ? "page" : undefined} className={tabLink(key)}>
+            <Link key={key} href={dvHref(href)} aria-current={key === tab ? "page" : undefined} className={tabLink(key)}>
               <Icon className="h-4 w-4" aria-hidden="true" />
               {t[key]}
             </Link>
@@ -239,7 +369,7 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
           {TABS.map(({ key, href, Icon }) => (
             <li key={key}>
               <Link
-                href={href}
+                href={dvHref(href)}
                 aria-current={key === tab ? "page" : undefined}
                 className={`flex min-h-12 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5 text-[0.8125rem] font-semibold leading-tight transition-colors ${
                   key === tab ? "bg-dv-teal text-white" : "text-dv-body hover:bg-dv-sand-200/70 hover:text-dv-ink"

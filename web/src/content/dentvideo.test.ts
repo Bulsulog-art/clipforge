@@ -25,6 +25,15 @@ describe("DentVideo landing content", () => {
     }
   });
 
+  // The hero lead is the first screen's largest paint (LCP) and about five lines on a phone.
+  it("the hero lead stays short: at most 45 words (Japanese: 160 characters)", () => {
+    for (const l of LOCALES) {
+      const lead = LANDING[l].hero.lead;
+      if (l === "ja") expect(lead.length, l).toBeLessThanOrEqual(160);
+      else expect(lead.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length, l).toBeLessThanOrEqual(45);
+    }
+  });
+
   it("has no empty strings", () => {
     const walk = (v: unknown, path: string) => {
       if (typeof v === "string") expect(v.trim(), path).not.toBe("");
@@ -65,6 +74,25 @@ describe("DentVideo landing content", () => {
       expect(p.founding, l).toContain(String(DV_FOUNDING.months));
       expect(p.founding, l).toContain(String(DV_FOUNDING.clinics));
       expect(p.yearly, l).toContain(String(DV_PRICES_USD.practice.year));
+    }
+  });
+
+  it("the founding offer's card shows its price, the list price after it, and for how long — in every locale", () => {
+    const digits = (s: string) => s.replace(/\D/g, "");
+    const tier = DV_TIERS.indexOf(DV_FOUNDING.tier);
+    const list = DV_PRICES_USD[DV_FOUNDING.tier][DV_FOUNDING.interval];
+    for (const l of LOCALES) {
+      const p = LANDING[l].pricing;
+      const card = p.foundingCard;
+      expect(digits(card.price), l).toBe(String(DV_FOUNDING.priceUsd));
+      expect(digits(card.listPrice), l).toBe(String(list));
+      // The struck-through list price is the one printed on that card when the offer is closed.
+      expect(card.listPrice, l).toBe(p.tiers[tier].price);
+      // Same currency notation as the rest of the locale ("$49" or "49 $").
+      expect(card.price.replace(/\d+/, "#"), l).toBe(card.listPrice.replace(/\d+/, "#"));
+      // Honest: the note names the founding price, how long it lasts, and what it is after.
+      const figures = [...card.note.matchAll(/\d+/g)].map((m) => Number(m[0]));
+      expect(figures, l).toEqual(expect.arrayContaining([DV_FOUNDING.priceUsd, DV_FOUNDING.months, list]));
     }
   });
 

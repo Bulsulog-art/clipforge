@@ -10,9 +10,11 @@
 import type { Locale } from "./dentvideo";
 
 export type AppText = {
-  chrome: { howItWorks: string; pricing: string; openApp: string; footer: string; videos: string; record: string; settings: string; signOut: string; signingOut: string; appNav: string; help: string; /** Label of the language switcher. */ language: string };
+  chrome: { howItWorks: string; pricing: string; openApp: string; footer: string; videos: string; record: string; settings: string; signOut: string; signingOut: string; appNav: string; help: string; /** Label of the language switcher. */ language: string; /** The phone menu button (aria-expanded says whether it is open). */ menu: string };
   start: {
     metaTitle: string;
+    /** Shown when a sign-up link is shared (the page is noindex). */
+    metaDescription: string;
     titleSignup: string;
     titleSignin: string;
     leadSignup: string;
@@ -264,6 +266,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "Your DentVideo",
       help: "Questions? Write to us:",
       language: "Language",
+      menu: "Menu",
       howItWorks: "How it works",
       pricing: "Pricing",
       openApp: "Open app",
@@ -271,6 +274,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "Start",
+      metaDescription: "Create your DentVideo account, add your clinic's logo and colours, and watch a live preview of your own patient-education videos before you choose a plan.",
       titleSignup: "See your videos before you pay",
       titleSignin: "Welcome back",
       leadSignup: "Create an account, describe your clinic and watch a live preview with your logo and colours. You only pay when you choose a plan.",
@@ -573,6 +577,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "Ihr DentVideo",
       help: "Fragen? Schreiben Sie uns:",
       language: "Sprache",
+      menu: "Menü",
       howItWorks: "So funktioniert's",
       pricing: "Preise",
       openApp: "Zur App",
@@ -580,6 +585,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "Start",
+      metaDescription: "Erstellen Sie Ihr DentVideo-Konto, fügen Sie Logo und Farben Ihrer Praxis hinzu und sehen Sie eine Live-Vorschau Ihrer eigenen Patientenvideos, bevor Sie einen Tarif wählen.",
       titleSignup: "Ihre Videos sehen, bevor Sie zahlen",
       titleSignin: "Willkommen zurück",
       leadSignup: "Legen Sie ein Konto an, beschreiben Sie Ihre Praxis und sehen Sie eine Live-Vorschau mit Ihrem Logo und Ihren Farben. Sie zahlen erst, wenn Sie einen Tarif wählen.",
@@ -885,6 +891,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "Tu DentVideo",
       help: "¿Dudas? Escríbenos:",
       language: "Idioma",
+      menu: "Menú",
       howItWorks: "Cómo funciona",
       pricing: "Precios",
       openApp: "Abrir la app",
@@ -892,6 +899,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "Empezar",
+      metaDescription: "Crea tu cuenta de DentVideo, añade el logotipo y los colores de tu clínica y mira una vista previa en directo de tus propios vídeos para pacientes antes de elegir un plan.",
       titleSignup: "Ve tus vídeos antes de pagar",
       titleSignin: "Hola de nuevo",
       leadSignup: "Crea una cuenta, describe tu clínica y mira una vista previa en directo con tu logo y tus colores. Solo pagas cuando eliges un plan.",
@@ -1193,6 +1201,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "DentVideo hesabınız",
       help: "Sorunuz mu var? Bize yazın:",
       language: "Dil",
+      menu: "Menü",
       howItWorks: "Nasıl çalışır",
       pricing: "Fiyatlandırma",
       openApp: "Uygulamayı aç",
@@ -1200,6 +1209,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "Başlayın",
+      metaDescription: "DentVideo hesabınızı oluşturun, kliniğinizin logosunu ve renklerini ekleyin; plan seçmeden önce kendi hasta bilgilendirme videolarınızın canlı önizlemesini izleyin.",
       titleSignup: "Ödemeden önce videolarınızı görün",
       titleSignin: "Tekrar hoş geldiniz",
       leadSignup: "Hesap açın, kliniğinizi tanıtın ve logonuz ile renklerinizle canlı önizlemeyi görün. Yalnızca plan seçtiğinizde ödersiniz.",
@@ -1501,6 +1511,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "Votre DentVideo",
       help: "Une question ? Écrivez-nous :",
       language: "Langue",
+      menu: "Menu",
       howItWorks: "Comment ça marche",
       pricing: "Tarifs",
       openApp: "Ouvrir l'app",
@@ -1508,6 +1519,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "Commencer",
+      metaDescription: "Créez votre compte DentVideo, ajoutez le logo et les couleurs de votre cabinet, et regardez un aperçu en direct de vos propres vidéos patients avant de choisir une formule.",
       titleSignup: "Voyez vos vidéos avant de payer",
       titleSignin: "Bon retour parmi nous",
       leadSignup: "Créez un compte, décrivez votre cabinet et découvrez un aperçu en direct avec votre logo et vos couleurs. Vous ne payez qu'en choisissant une formule.",
@@ -1817,6 +1829,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "DentVideo メニュー",
       help: "ご不明な点はこちらまで：",
       language: "言語",
+      menu: "メニュー",
       howItWorks: "ご利用の流れ",
       pricing: "料金",
       openApp: "アプリを開く",
@@ -1824,6 +1837,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "はじめる",
+      metaDescription: "DentVideoのアカウントを作成し、医院のロゴとカラーを登録すると、プランを選ぶ前に、医院オリジナルの患者さん向け動画をその場でプレビューできます。",
       titleSignup: "お支払いの前に、自院の動画を",
       titleSignin: "おかえりなさい",
       leadSignup: "アカウントを作成して医院の情報を入力すると、医院のロゴとカラーでライブプレビューをご覧いただけます。お支払いはプランを選んだときだけです。",
@@ -2119,6 +2133,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "DentVideo الخاص بكم",
       help: "لديكم سؤال؟ راسلونا:",
       language: "اللغة",
+      menu: "القائمة",
       howItWorks: "كيف يعمل",
       pricing: "الأسعار",
       openApp: "افتحوا التطبيق",
@@ -2126,6 +2141,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "ابدؤوا",
+      metaDescription: "أنشئوا حساب DentVideo، وأضيفوا شعار عيادتكم وألوانها، وشاهدوا معاينة مباشرة لفيديوهات التوعية الخاصة بعيادتكم قبل اختيار الباقة.",
       titleSignup: "شاهدوا فيديوهاتكم قبل الدفع",
       titleSignin: "أهلاً بعودتكم",
       leadSignup: "أنشئوا حساباً وصِفوا عيادتكم، ثم شاهدوا معاينة حية بشعاركم وألوانكم. لا تدفعون إلا عند اختيار باقة.",
@@ -2422,6 +2438,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       appNav: "Państwa DentVideo",
       help: "Pytania? Prosimy pisać na adres:",
       language: "Język",
+      menu: "Menu",
       howItWorks: "Jak to działa",
       pricing: "Cennik",
       openApp: "Otwórz aplikację",
@@ -2429,6 +2446,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
     },
     start: {
       metaTitle: "Start",
+      metaDescription: "Wystarczy założyć konto DentVideo i dodać logo oraz kolory gabinetu, by przed wyborem planu zobaczyć podgląd na żywo własnych filmów edukacyjnych dla pacjentów.",
       titleSignup: "Filmy gabinetu, zanim Państwo zapłacą",
       titleSignin: "Witamy ponownie",
       leadSignup: "Wystarczy założyć konto i opisać gabinet, by zobaczyć podgląd na żywo z logo i kolorami gabinetu. Płatność dopiero po wyborze planu.",

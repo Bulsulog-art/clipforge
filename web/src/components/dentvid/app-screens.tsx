@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { dvHref } from "@/lib/dentvid/host";
 import { ArrowLeft, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
@@ -134,7 +135,7 @@ export function SettingsView({
           {plan.plan === "trial" && (
             <p className="mt-3 text-sm text-dv-body">
               {b.trialNote}{" "}
-              <Link href="/dentvideo/start?step=preview" className="font-semibold text-dv-teal underline-offset-4 hover:underline">
+              <Link href={dvHref("/dentvideo/start?step=preview")} className="font-semibold text-dv-teal underline-offset-4 hover:underline">
                 {b.toPreview}
               </Link>
             </p>
@@ -173,7 +174,7 @@ export function RecordView({ locale, cards, plan }: { locale: Locale; cards: { t
   return (
     <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-5xl`}>
       <RememberLocale locale={locale} />
-      <Link href="/dentvideo/app" className="-ms-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-sm font-medium text-dv-teal hover:underline">
+      <Link href={dvHref("/dentvideo/app")} className="-ms-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-sm font-medium text-dv-teal hover:underline">
         <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
         {t.backToVideos}
       </Link>

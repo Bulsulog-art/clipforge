@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
@@ -48,7 +49,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
   function goIn(isNew: boolean) {
     // Into the funnel: a new account describes its clinic next; a returning
     // one lands where it left off (or in the app, once it pays).
-    router.push(isNew ? "/dentvideo/start?step=clinic" : "/dentvideo/start");
+    router.push(dvHref(isNew ? "/dentvideo/start?step=clinic" : "/dentvideo/start"));
     router.refresh();
   }
 
