@@ -380,7 +380,7 @@ export default function LivePreviewPlayer({
             </div>
           ) : null}
 
-          <div className="absolute bottom-4 left-4 z-10 flex gap-2">
+          <div className="absolute right-4 top-14 z-10 flex gap-2">
             <button
               type="button"
               onClick={toggleMute}
