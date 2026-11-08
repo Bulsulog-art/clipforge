@@ -1,5 +1,7 @@
 import type IORedis from "ioredis";
 import { logger } from "../logger.js";
+import { ownerAlert } from "./ops.js";
+import { alerts } from "./ops-alert.js";
 
 /**
  * Hard spend guards for DentVideo's metered work (OpenAI text, TTS, Whisper).
@@ -30,7 +32,11 @@ import { logger } from "../logger.js";
  * reason per day; a restyle is simply refused (the card says it failed).
  */
 
-export type SpendOp = "week" | "restyle" | "recording";
+/**
+ * topup: extra topics for a week that ended thin (jobs.ts MIN_USABLE_VIDEOS) —
+ * money only, no count of its own (it belongs to a week already counted).
+ */
+export type SpendOp = "week" | "restyle" | "recording" | "topup";
 
 export type GuardConfig = {
   paused: boolean;
@@ -60,7 +66,7 @@ export type GuardConfig = {
  * Override with DENTVID_COST_WEEK_USD / _RESTYLE_USD / _RECORDING_USD when
  * models or prices change.
  */
-export const COST_DEFAULTS: Record<SpendOp, number> = { week: 0.5, restyle: 0.03, recording: 0.5 };
+export const COST_DEFAULTS: Record<SpendOp, number> = { week: 0.5, restyle: 0.03, recording: 0.5, topup: 0.3 };
 
 function num(v: string | undefined, fallback: number): number {
   const n = Number(v);
@@ -72,15 +78,18 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
     week: num(env.DENTVID_COST_WEEK_USD, COST_DEFAULTS.week),
     restyle: num(env.DENTVID_COST_RESTYLE_USD, COST_DEFAULTS.restyle),
     recording: num(env.DENTVID_COST_RECORDING_USD, COST_DEFAULTS.recording),
+    topup: num(env.DENTVID_COST_TOPUP_USD, COST_DEFAULTS.topup),
   };
   return {
     paused: env.DENTVID_PAUSE_GENERATION === "1" || env.DENTVID_PAUSE_GENERATION === "true",
     // ~40 paying clinics' Monday runs at the estimate above, with room for retries.
     dailyUsd: num(env.DENTVID_DAILY_USD_CAP, 20),
     monthlyUsd: num(env.DENTVID_MONTHLY_USD_CAP, 300),
-    clinicDailyUsd: num(env.DENTVID_CLINIC_DAILY_USD_CAP, 3),
-    // Monday + a retry or two after a failed run.
-    maxWeeksPerClinicWeek: num(env.DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 3),
+    // A Monday whose week needed all 4 attempts (retry.ts) and a top-up each
+    // time: 4 × 0.50 + 4 × 0.30 = $3.20, plus a recording or a few restyles.
+    clinicDailyUsd: num(env.DENTVID_CLINIC_DAILY_USD_CAP, 5),
+    // Monday's 4 automatic attempts (retry.ts WEEK_ATTEMPTS) + a manual re-run or a first week.
+    maxWeeksPerClinicWeek: num(env.DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 6),
     maxRestylesPerClinicDay: num(env.DENTVID_MAX_RESTYLES_PER_CLINIC_DAY, 10),
     maxRecordingsPerClinicWeek: num(env.DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK, 5),
     costUsd,
@@ -314,31 +323,21 @@ export class MemoryGuardStore implements GuardStore {
 export type AlertSender = (subject: string, text: string) => Promise<boolean>;
 
 /**
- * One email to OWNER_ALERT_EMAIL through Resend (RESEND_API_KEY, same
- * account as the web app's DentVideo emails). Never throws.
+ * One email to OWNER_ALERT_EMAIL — through the shared owner-alert helper
+ * (ops-alert.ts: kill switch DENTVID_OWNER_ALERTS=off, per-day de-duplication,
+ * hourly storm cap, Resend transport). Never throws.
  */
 export const sendOwnerAlert: AlertSender = async (subject, text) => {
-  const to = process.env.OWNER_ALERT_EMAIL?.trim();
-  const key = process.env.RESEND_API_KEY?.trim();
-  if (!to || !key) {
-    logger.error({ subject }, "dentvid alert: OWNER_ALERT_EMAIL or RESEND_API_KEY not set — alert only in logs");
-    return false;
-  }
-  const from = process.env.DENTVIDEO_EMAIL_FROM || "DentVideo <hello@dentvideo.com>";
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject, text }),
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!res.ok) logger.error({ status: res.status }, "dentvid alert: email failed");
-    return res.ok;
-  } catch (e) {
-    logger.error({ err: (e as Error).message }, "dentvid alert: email failed");
-    return false;
-  }
+  const r = await ownerAlert(alerts.raw({ key: `spend:${hash(subject + "\n" + text)}`, subject, text }));
+  if (r === "failed") logger.error({ subject }, "dentvid alert: email failed or not configured — alert only in logs");
+  return r === "sent";
 };
+
+function hash(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
 
 const REASON_TEXT: Record<RefusalReason, string> = {
   paused: "Generation is paused (DENTVID_PAUSE_GENERATION=1).",

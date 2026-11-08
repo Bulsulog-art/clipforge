@@ -37,6 +37,7 @@ export function AppHomeView({
   founding,
   currentWeek,
   pollMs,
+  weekDelay = null,
 }: {
   locale: Locale;
   clinicName?: string;
@@ -50,6 +51,8 @@ export function AppHomeView({
   /** Monday of this week (YYYY-MM-DD). */
   currentWeek: string;
   pollMs?: number;
+  /** This week's run is being retried / is delayed (lib/dentvid/ops-server readWeekDelay). */
+  weekDelay?: "retrying" | "delayed" | null;
 }) {
   const text = appText(locale);
   const t = text.home;
@@ -65,7 +68,7 @@ export function AppHomeView({
       )}
       {firstWeek && (
         <div className={onlyFirstWeek ? "" : "mb-12"}>
-          <FirstWeek locale={locale} paid={plan.plan === "active"} pollMs={pollMs} />
+          <FirstWeek locale={locale} paid={plan.plan === "active"} pollMs={pollMs} delay={weekDelay} />
         </div>
       )}
       {!onlyFirstWeek && (
@@ -90,6 +93,7 @@ export function AppHomeView({
               locked={!plan.canMake}
               canStartWeek={plan.canMake && !firstWeek && !madeThisWeek}
               currentWeek={currentWeek}
+              weekDelay={weekDelay}
             />
           </div>
         </>

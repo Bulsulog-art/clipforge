@@ -13,8 +13,20 @@ import { appText } from "@/content/dentvideo-app";
  * for the week once more — idempotent (same job id), and a safety net if the
  * webhook could not reach the queue.
  */
-export function FirstWeek({ locale, paid, pollMs = 10_000 }: { locale: Locale; paid: boolean; pollMs?: number }) {
+export function FirstWeek({
+  locale,
+  paid,
+  pollMs = 10_000,
+  delay = null,
+}: {
+  locale: Locale;
+  paid: boolean;
+  pollMs?: number;
+  /** The first week's run is being retried / is delayed: one calm, honest line. */
+  delay?: "retrying" | "delayed" | null;
+}) {
   const t = appText(locale).onboarding;
+  const h = appText(locale).home;
   const router = useRouter();
   const asked = useRef(false);
 
@@ -49,6 +61,11 @@ export function FirstWeek({ locale, paid, pollMs = 10_000 }: { locale: Locale; p
       </p>
       <h1 className="dv-display mt-5 text-balance text-[2.5rem] leading-[1.04] text-dv-ink sm:text-[3.25rem]">{t.firstWeekTitle}</h1>
       <p className="mt-3 max-w-2xl text-[1.0625rem] leading-relaxed text-dv-body">{t.firstWeekLead}</p>
+      {paid && delay && (
+        <p role="status" className="mt-4 max-w-2xl rounded-xl bg-dv-sand px-4 py-3 text-sm leading-relaxed text-dv-body ring-1 ring-inset ring-dv-line">
+          {delay === "delayed" ? h.delayDelayed : h.delayRetrying}
+        </p>
+      )}
       <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map(({ key, state }) => (
           <li

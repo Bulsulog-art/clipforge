@@ -8,7 +8,7 @@ import OpenAI from "openai";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { clinicProfileSchema, type ClinicProfile } from "../dental/profile.js";
-import { produceWeek } from "../dental/week.js";
+import { produceWeek, type VideoPackage } from "../dental/week.js";
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
@@ -17,7 +17,10 @@ import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { notifyReady } from "./notify.js";
-import { isPaying } from "./schedule.js";
+import { isPaying, weekOf } from "./schedule.js";
+import { classifyFailure, isLastAttempt, TransientWeekError } from "./retry.js";
+import { clinicRef, noteRenderFailure, ownerAlert, setWeekDelay } from "./ops.js";
+import { alerts, cleanError } from "./ops-alert.js";
 import { patientSearches } from "../dental/questions.js";
 import { analyseLogo, brandFromLogo, logoStyleOf } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
@@ -219,7 +222,71 @@ async function paying(db: SupabaseClient, clinicId: string, kind: string): Promi
   return false;
 }
 
-export async function runDentvidWeek(job: WeekJob, ctx: { jobId?: string } = {}): Promise<{ ready: number; flagged: number; rejected: number }> {
+/** Fewer usable videos than this and the week is topped up with extra topics. */
+export const MIN_USABLE_VIDEOS = 3;
+
+export type WeekCtx = { jobId?: string; attemptsMade?: number; attempts?: number };
+export type WeekResult = { ready: number; flagged: number; rejected: number; toppedUp?: number };
+
+const usableRow = (r: ItemRow) => (r.status === "ready" || r.status === "flagged") && !!r.video_path;
+
+/**
+ * A paying clinic's week, made to heal itself before anyone is told:
+ *  - each video that fails for a technical reason is re-attempted once (week.ts);
+ *  - a finished video that fails to upload is uploaded once more;
+ *  - fewer than MIN_USABLE_VIDEOS usable → extra topics top the week up
+ *    (one round, budgeted as a "topup" by the spend guard);
+ *  - nothing usable and the failures were technical → nothing is stored and
+ *    the job fails with a transient error, so BullMQ runs it again later
+ *    (WEEK_JOB_OPTS: 4 attempts, 2/4/8 min apart);
+ *  - transient errors are retried, permanent ones are not (retry.ts).
+ * While it retries the library says "taking a little longer"; when every
+ * attempt failed it says "delayed, we're on it" and the owner gets one email.
+ */
+export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<WeekResult> {
+  const week = weekOf();
+  const last = isLastAttempt(ctx.attemptsMade ?? 0, ctx.attempts ?? 1);
+  try {
+    const result = await makeWeek(job, ctx, week);
+    await setWeekDelay(job.clinicId, week, null);
+    return result;
+  } catch (e) {
+    if (e instanceof SpendRefusedError) {
+      // Parked: it runs by itself once the guard has room; the guard told the owner.
+      await setWeekDelay(job.clinicId, week, "retrying");
+      throw e;
+    }
+    const kind = classifyFailure(e);
+    if (kind === "transient" && !last) {
+      logger.warn({ clinicId: job.clinicId, attempt: (ctx.attemptsMade ?? 0) + 1, err: (e as Error).message }, "dentvid: week failed — will retry");
+      await setWeekDelay(job.clinicId, week, "retrying");
+      throw e;
+    }
+    await setWeekDelay(job.clinicId, week, "delayed");
+    await ownerAlert(
+      alerts.weekFailed({
+        clinic: await clinicRef(safeDb(), job.clinicId),
+        week,
+        attempts: (ctx.attemptsMade ?? 0) + 1,
+        error: cleanError(e),
+        permanent: kind === "permanent",
+      }),
+    ).catch(() => "failed");
+    // Permanent: tell BullMQ not to spend more attempts on it.
+    if (kind === "permanent" && !(e instanceof UnrecoverableError)) throw new UnrecoverableError((e as Error).message);
+    throw e;
+  }
+}
+
+function safeDb(): SupabaseClient | null {
+  try {
+    return dentvidDb();
+  } catch {
+    return null;
+  }
+}
+
+async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekResult> {
   const db = dentvidDb();
   if (!(await paying(db, job.clinicId, "week"))) return { ready: 0, flagged: 0, rejected: 0 };
   // Budget first: nothing below may call a paid API before this passes.
@@ -228,60 +295,126 @@ export async function runDentvidWeek(job: WeekJob, ctx: { jobId?: string } = {})
   try {
     const { ownerId, profile, logoStyle } = await loadClinic(db, job.clinicId, workDir);
     const { data: past } = await db.from("dentvid_items").select("title").eq("clinic_id", job.clinicId).limit(200);
+    const want = job.count ?? 5;
+    const ids = { clinicId: job.clinicId, ownerId };
 
-    const week = await produceWeek(
-      {
-        client: new OpenAI(),
-        log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`),
-        searches: (p) => patientSearches(p.services, p.language, p.country),
-        render: async (plan, topic) => {
-          const dir = await fs.mkdtemp(path.join(workDir, "v-"));
-          const voice = await prepareVoiceover(plan, dir, {
-            ...resolveVoice(profile.language),
-            onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
-          }).catch((e) => {
-            logger.warn({ err: (e as Error).message, topic: topic.title }, "dentvid: voiceover failed");
-            return { plan, voiceoverPath: undefined };
-          });
-          const res = await renderPlan({
-            plan: voice.plan,
-            voiceoverSrc: voice.voiceoverPath,
-            workDir: dir,
-            outputPath: path.join(dir, "video.mp4"),
-            pexelsApiKey: process.env.PEXELS_API_KEY,
-            concurrency: renderConcurrency(),
-            logoSrc: profile.logo,
-            logoStyle,
-          });
-          return res.outputPath;
+    const produce = (count: number, avoidTitles: string[]) =>
+      produceWeek(
+        {
+          client: new OpenAI(),
+          log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`),
+          searches: (p) => patientSearches(p.services, p.language, p.country),
+          onVideoError: (e) => noteRenderFailure(e).catch(() => {}),
+          render: async (plan, topic) => {
+            const dir = await fs.mkdtemp(path.join(workDir, "v-"));
+            const voice = await prepareVoiceover(plan, dir, {
+              ...resolveVoice(profile.language),
+              onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
+            }).catch((e) => {
+              logger.warn({ err: (e as Error).message, topic: topic.title }, "dentvid: voiceover failed");
+              return { plan, voiceoverPath: undefined };
+            });
+            const res = await renderPlan({
+              plan: voice.plan,
+              voiceoverSrc: voice.voiceoverPath,
+              workDir: dir,
+              outputPath: path.join(dir, "video.mp4"),
+              pexelsApiKey: process.env.PEXELS_API_KEY,
+              concurrency: renderConcurrency(),
+              logoSrc: profile.logo,
+              logoStyle,
+            });
+            return res.outputPath;
+          },
         },
-      },
-      profile,
-      { count: job.count ?? 5, avoidTitles: (past ?? []).map((p) => p.title as string) },
-    );
+        profile,
+        { count, avoidTitles },
+      );
 
-    const rows: ItemRow[] = [];
-    for (const pkg of week) {
-      const ids = { clinicId: job.clinicId, ownerId };
-      if (pkg.status === "ready" && pkg.videoPath) {
-        const stored = await storeVideo(db, ownerId, pkg.videoPath).catch((e) => {
-          logger.error({ err: (e as Error).message }, "dentvid: store failed");
-          return undefined;
+    const toRows = async (pkgs: VideoPackage[]): Promise<ItemRow[]> => {
+      const rows: ItemRow[] = [];
+      for (const pkg of pkgs) {
+        if (pkg.status === "ready" && pkg.videoPath) {
+          const stored = await storeWithRetry(db, ownerId, pkg.videoPath);
+          if (stored) rows.push(rowFromPackage(pkg, ids, stored));
+          // A video we could not store is not shown as a card that never loads.
+          else rows.push(rowFromPackage({ status: "rejected", topic: pkg.topic, stage: "copy", reasons: [], error: "could not store the video file" }, ids));
+        } else {
+          rows.push(rowFromPackage(pkg, ids));
+        }
+      }
+      return rows;
+    };
+
+    const avoid = (past ?? []).map((p) => p.title as string);
+    const rows = await toRows(await produce(want, avoid));
+
+    // Top-up: a thin week gets extra topics (one round, within the spend guard's caps).
+    let toppedUp = 0;
+    const usable = () => rows.filter(usableRow).length;
+    const enough = Math.min(MIN_USABLE_VIDEOS, want);
+    if (usable() < enough) {
+      const d = await spend.guard.reserve("topup", job.clinicId);
+      if (d.ok) {
+        const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)]).catch((e) => {
+          logger.warn({ clinicId: job.clinicId, err: (e as Error).message }, "dentvid: top-up failed");
+          return [] as VideoPackage[];
         });
-        rows.push(rowFromPackage(pkg, ids, stored));
+        const more = await toRows(extra);
+        toppedUp = more.filter(usableRow).length;
+        rows.push(...more);
+        logger.info({ clinicId: job.clinicId, toppedUp }, "dentvid: week topped up");
       } else {
-        rows.push(rowFromPackage(pkg, ids));
+        logger.warn({ clinicId: job.clinicId, reason: d.reason }, "dentvid: top-up refused by the spend guard");
       }
     }
+
+    const technical = rows.filter((r) => r.status === "rejected" && r.error);
+    if (usable() === 0 && technical.length > 0) {
+      // Nothing to show and it was not the reviewers: store nothing, run again later.
+      throw new TransientWeekError(`zero usable videos (${technical.length} technical failures; last: ${technical.at(-1)!.error})`);
+    }
+
     await insert(db, rows);
     const count = (s: ItemRow["status"]) => rows.filter((r) => r.status === s).length;
-    const result = { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected") };
+    const result = { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected"), toppedUp };
+    if (usable() < enough) {
+      await ownerAlert(
+        alerts.thinWeek({
+          clinic: await clinicRef(db, job.clinicId),
+          week,
+          usable: usable(),
+          wanted: want,
+          reasons: rows.filter((r) => r.status === "rejected").map((r) => (r.error ? cleanError(r.error) : r.findings.join("; ") || "rejected by review")),
+        }),
+      ).catch(() => "failed");
+    }
     // The dentist hears about it — they should not have to keep checking.
     await notifyReady(job.clinicId, "week", { ready: result.ready, flagged: result.flagged });
     return result;
   } finally {
     void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+/** Upload a finished video, once more if the first try fails (storage blips). Undefined when both fail. */
+async function storeWithRetry(db: SupabaseClient, ownerId: string, videoPath: string) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      return await storeVideo(db, ownerId, videoPath);
+    } catch (e) {
+      logger.error({ attempt, err: (e as Error).message }, "dentvid: store failed");
+      if (attempt === 2) await noteRenderFailure(e).catch(() => {});
+      else await new Promise((r) => setTimeout(r, storeRetryMs));
+    }
+  }
+  return undefined;
+}
+
+let storeRetryMs = 3_000;
+/** For tests. */
+export function _setStoreRetryMs(ms: number) {
+  storeRetryMs = ms;
 }
 
 export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: string } = {}): Promise<{ clips: number }> {

@@ -11,7 +11,12 @@ import { weekOf } from "./week";
  * twice however many of those paths fire.
  */
 export const WEEK_VIDEOS = 5;
-export const WEEK_JOB_OPTS = { attempts: 2, backoff: { type: "exponential" as const, delay: 60_000 } };
+/**
+ * Same numbers as the worker's retry.ts (WEEK_JOB_OPTS): 4 attempts, 2 → 4 → 8
+ * minutes apart. The worker decides which failures are worth a retry
+ * (transient: rate limits, timeouts, 5xx) and stops early on permanent ones.
+ */
+export const WEEK_JOB_OPTS = { attempts: 4, backoff: { type: "exponential" as const, delay: 120_000 } };
 
 export function weekJobId(clinicId: string, week: string): string {
   return `week:${clinicId}:${week}`;

@@ -31,7 +31,7 @@ describe("SpendGuard", () => {
   });
 
   it("enforces the global daily $ ceiling across clinics", async () => {
-    const g = new SpendGuard(new MemoryGuardStore(), () => cfg({ dailyUsd: 1, costUsd: { week: 0.5, restyle: 0.03, recording: 0.5 } }));
+    const g = new SpendGuard(new MemoryGuardStore(), () => cfg({ dailyUsd: 1, costUsd: { week: 0.5, restyle: 0.03, recording: 0.5, topup: 0.3 } }));
     expect((await g.reserve("week", "a")).ok).toBe(true);
     expect((await g.reserve("week", "b")).ok).toBe(true);
     expect(await g.reserve("week", "c")).toMatchObject({ ok: false, reason: "global_daily_usd" });

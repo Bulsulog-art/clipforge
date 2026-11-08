@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { BUCKET } from "./supabase";
 import type { LibraryItem } from "@/components/dentvid/library";
 import { chosenPhotoIds, cleanPhotoIds, suggestBackgrounds, SUGGEST_MAX } from "./backgrounds";
+import { clinicFindings } from "./app-ui";
 
 type Row = {
   id: string;
@@ -72,7 +73,7 @@ export async function loadItems(db: SupabaseClient, ownerId: string): Promise<{ 
     week_of: r.week_of,
     caption: r.copy?.caption,
     hashtags: r.copy?.hashtags,
-    findings: r.findings ?? [],
+    findings: clinicFindings(r.findings),
     videoUrl: r.video_path ? urls.get(r.video_path) : undefined,
     thumbUrl: r.thumb_path ? urls.get(r.thumb_path) : undefined,
     photos: photosFor(r),

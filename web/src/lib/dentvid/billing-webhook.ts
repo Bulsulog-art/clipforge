@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { applyTransition, dvTransition, type ClinicBilling, type DodoEventData } from "./billing";
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
 import { recordEvent } from "./events-server";
+import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert";
+import { clinicRefFor, markPaid, raiseOwnerAlert } from "./ops-server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -12,7 +14,25 @@ export type DvWebhookDeps = {
   enqueueWeek?: (db: SupabaseClient, clinicId: string) => Promise<FirstWeekResult>;
   /** Send the welcome email (tests pass a mock; the default goes through lifecycle.ts and Resend). */
   sendWelcome?: (db: SupabaseClient, clinicId: string) => Promise<string>;
+  /** Owner alerts (tests pass a mock; the default is ops-server → OWNER_ALERT_EMAIL). */
+  alert?: (a: OwnerAlert) => Promise<unknown>;
+  /** Name, country, tier, email of a clinic for an alert. */
+  clinicRef?: (db: SupabaseClient, clinicId: string) => Promise<ClinicRef>;
+  /** Tell the worker's first-week watchdog a clinic just paid (Redis marker). */
+  markPaid?: (clinicId: string) => Promise<void>;
 };
+
+/** Payment trouble that does not move the plan yet (Dodo keeps the subscription through its grace period). */
+const AT_RISK_ONLY = new Set(["payment.failed", "subscription.past_due"]);
+
+async function tell(db: SupabaseClient, deps: DvWebhookDeps, clinicId: string, make: (c: ClinicRef) => OwnerAlert): Promise<void> {
+  try {
+    const c = await (deps.clinicRef ?? clinicRefFor)(db, clinicId);
+    await (deps.alert ?? raiseOwnerAlert)(make(c));
+  } catch (e) {
+    console.error("[dodo:dentvideo] owner alert failed", (e as Error).message);
+  }
+}
 
 async function welcome(db: SupabaseClient, clinicId: string): Promise<string> {
   if (!process.env.RESEND_API_KEY) return "no email key";
@@ -50,6 +70,22 @@ async function findClinic(db: SupabaseClient, by: "id" | "dodo_subscription_id",
  * cancelled), this week's videos are queued at once: there is no free week,
  * so this is the moment the dentist gets their first real videos.
  */
+/** payment.failed / subscription.past_due: nothing moves yet, but the owner should know (once a day per clinic). */
+async function atRiskOnly(db: SupabaseClient, type: string, d: DodoEventData, deps: DvWebhookDeps): Promise<DvWebhookResult> {
+  const metaClinic = typeof d.metadata?.clinic_id === "string" && UUID.test(d.metadata.clinic_id) ? d.metadata.clinic_id : null;
+  let found = metaClinic ? await findClinic(db, "id", metaClinic) : { row: null, error: null };
+  if (!found.row && !found.error && d.subscription_id) found = await findClinic(db, "dodo_subscription_id", d.subscription_id);
+  const clinic = found.row;
+  if (clinic) await tell(db, deps, clinic.id, (c) => alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: type, from: clinic.plan, to: clinic.plan }));
+  return { status: 200, body: { ok: true, app: "dentvideo", ignored: type, ...(clinic ? { alerted: true } : {}) } };
+}
+
+/** A DentVideo event the route could not process (500 or exception): the owner is told once a day per event type. */
+export async function alertWebhookFailure(evt: { type?: string; data?: DodoEventData } | null, error: unknown, deps: Pick<DvWebhookDeps, "alert"> = {}): Promise<void> {
+  const clinicId = typeof evt?.data?.metadata?.clinic_id === "string" && UUID.test(evt.data.metadata.clinic_id) ? evt.data.metadata.clinic_id : null;
+  await (deps.alert ?? raiseOwnerAlert)(alerts.webhookError({ event: evt?.type ?? "unknown", error: cleanError(error), clinic: clinicId ? { id: clinicId } : undefined })).catch(() => {});
+}
+
 export async function handleDentvideoEvent(
   db: SupabaseClient,
   evt: { type: string; data: DodoEventData },
@@ -57,6 +93,7 @@ export async function handleDentvideoEvent(
 ): Promise<DvWebhookResult> {
   const d = evt.data ?? {};
   const t = dvTransition(evt.type, d);
+  if (!t && AT_RISK_ONLY.has(evt.type)) return atRiskOnly(db, evt.type, d, deps);
   if (!t) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
 
   const metaClinic = typeof d.metadata?.clinic_id === "string" && UUID.test(d.metadata.clinic_id) ? d.metadata.clinic_id : null;
@@ -85,6 +122,23 @@ export async function handleDentvideoEvent(
     ({ error } = await db.from("dentvid_clinics").update({ plan: update.plan ?? clinic.plan, updated_at: now }).eq("id", clinic.id));
   }
   if (error) return { status: 500, body: { error: error.message } };
+
+  const from = clinic.plan;
+  const to = update.plan ?? clinic.plan;
+  // The owner hears about it: a new (or returning) paying clinic — good news, sent at once —
+  // and a paying clinic whose subscription stopped (customer at risk).
+  if (to === "active" && from !== "active") {
+    await (deps.markPaid ?? markPaid)(clinic.id).catch(() => {});
+    await tell(db, deps, clinic.id, (c) =>
+      alerts.newPayingClinic({
+        clinic: { ...c, tier: c.tier ?? t.tier },
+        interval: typeof d.metadata?.interval === "string" ? d.metadata.interval : null,
+        returning: from === "paused" || from === "cancelled",
+      }),
+    );
+  } else if (from === "active" && (to === "paused" || to === "cancelled")) {
+    await tell(db, deps, clinic.id, (c) => alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from, to }));
+  }
 
   // Paid: make this week's videos now rather than waiting for Monday. The
   // worker emails the dentist when they are ready. Best effort — the plan

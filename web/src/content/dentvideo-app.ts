@@ -39,6 +39,10 @@ export type AppText = {
     lookLead: string;
     makingTitle: string;
     makingLead: string;
+    /** A week run failed for a passing reason and is being retried (worker: dv:weekstate). Calm, no error text. */
+    delayRetrying: string;
+    /** It failed after every retry; the owner has been alerted. Honest, calm. */
+    delayDelayed: string;
     startTitle: string;
     startLead: string;
     shareTitle: string;
@@ -299,6 +303,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "Videos marked for a look show the reason on the card.",
       makingTitle: "Your videos are being made",
       makingLead: "It takes about 15 minutes. This page updates by itself, and we'll email you when they're ready.",
+      delayRetrying: "Taking a little longer than usual — we're retrying automatically. You don't need to do anything.",
+      delayDelayed: "This week's videos are delayed. We've been alerted and are on it — we'll email you as soon as they're ready.",
       startTitle: "This week's videos aren't made yet",
       startLead: "New videos arrive every Monday. If they're not here yet, you can start them now — it takes about 15 minutes.",
       shareTitle: "All approved — time to post",
@@ -610,6 +616,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "Bei markierten Videos steht der Grund direkt auf der Karte.",
       makingTitle: "Ihre Videos werden erstellt",
       makingLead: "Das dauert etwa 15 Minuten. Diese Seite aktualisiert sich von selbst, und Sie bekommen eine E-Mail, sobald alles fertig ist.",
+      delayRetrying: "Dauert etwas länger als sonst – wir versuchen es automatisch erneut. Sie müssen nichts tun.",
+      delayDelayed: "Die Videos dieser Woche verzögern sich. Wir sind informiert und kümmern uns darum – Sie bekommen eine E-Mail, sobald sie fertig sind.",
       startTitle: "Die Videos dieser Woche sind noch nicht erstellt",
       startLead: "Neue Videos kommen jeden Montag. Sind sie noch nicht da, können Sie sie jetzt starten – das dauert etwa 15 Minuten.",
       shareTitle: "Alles freigegeben – Zeit zum Posten",
@@ -924,6 +932,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "Los vídeos marcados para revisar muestran el motivo en la tarjeta.",
       makingTitle: "Estamos creando tus vídeos",
       makingLead: "Tarda unos 15 minutos. Esta página se actualiza sola y te avisaremos por correo cuando estén listos.",
+      delayRetrying: "Está tardando un poco más de lo normal: lo reintentamos automáticamente. No tienes que hacer nada.",
+      delayDelayed: "Los vídeos de esta semana se retrasan. Ya estamos avisados y trabajando en ello; te escribiremos en cuanto estén listos.",
       startTitle: "Los vídeos de esta semana aún no están hechos",
       startLead: "Los vídeos nuevos llegan cada lunes. Si aún no están, puedes empezarlos ahora: tarda unos 15 minutos.",
       shareTitle: "Todo aprobado: es hora de publicar",
@@ -1234,6 +1244,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "Göz atılması gereken videolarda nedeni kartın üzerinde yazar.",
       makingTitle: "Videolarınız hazırlanıyor",
       makingLead: "Yaklaşık 15 dakika sürer. Bu sayfa kendiliğinden yenilenir; videolar hazır olunca size e-posta göndeririz.",
+      delayRetrying: "Her zamankinden biraz uzun sürüyor — otomatik olarak yeniden deniyoruz. Sizin bir şey yapmanıza gerek yok.",
+      delayDelayed: "Bu haftanın videoları gecikti. Ekibimiz haberdar ve ilgileniyor; hazır olur olmaz size e-posta göndereceğiz.",
       startTitle: "Bu haftanın videoları henüz hazırlanmadı",
       startLead: "Yeni videolar her pazartesi gelir. Henüz gelmediyse şimdi başlatabilirsiniz; yaklaşık 15 dakika sürer.",
       shareTitle: "Hepsi onaylandı — paylaşma zamanı",
@@ -1544,6 +1556,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "Pour les vidéos à revoir, la raison est indiquée sur la carte.",
       makingTitle: "Vos vidéos sont en préparation",
       makingLead: "Comptez environ 15 minutes. Cette page se met à jour toute seule, et nous vous écrivons dès qu'elles sont prêtes.",
+      delayRetrying: "C'est un peu plus long que d'habitude — nous réessayons automatiquement. Vous n'avez rien à faire.",
+      delayDelayed: "Les vidéos de cette semaine ont du retard. Nous sommes prévenus et nous nous en occupons — nous vous écrivons dès qu'elles sont prêtes.",
       startTitle: "Les vidéos de cette semaine ne sont pas encore créées",
       startLead: "Les nouvelles vidéos arrivent chaque lundi. Si elles ne sont pas encore là, vous pouvez les lancer maintenant : comptez environ 15 minutes.",
       shareTitle: "Tout est validé : place à la publication",
@@ -1862,6 +1876,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "確認が必要な動画には、カードに理由が表示されています。",
       makingTitle: "動画を制作しています",
       makingLead: "15分ほどかかります。このページは自動で更新され、完成したらメールでお知らせします。",
+      delayRetrying: "いつもより少し時間がかかっています。自動で再試行していますので、操作は不要です。",
+      delayDelayed: "今週の動画の作成が遅れています。担当者が対応中です。完成しだいメールでお知らせします。",
       startTitle: "今週の動画はまだ制作されていません",
       startLead: "新しい動画は毎週月曜日に届きます。まだ届いていない場合は、今すぐ制作を始められます。15分ほどかかります。",
       shareTitle: "すべて承認済みです。投稿しましょう",
@@ -2166,6 +2182,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "الفيديوهات التي تحتاج نظرة منكم يظهر السبب على بطاقتها.",
       makingTitle: "نُعِدّ فيديوهاتكم الآن",
       makingLead: "يستغرق ذلك نحو 15 دقيقة. تتحدّث هذه الصفحة تلقائياً، ونرسل إليكم بريداً حين تجهز.",
+      delayRetrying: "يستغرق الأمر وقتاً أطول قليلاً من المعتاد — نعيد المحاولة تلقائياً. لا حاجة لأي إجراء منكم.",
+      delayDelayed: "تأخّرت فيديوهات هذا الأسبوع. فريقنا على علم ويعمل على ذلك، وسنرسل إليكم بريداً حين تجهز.",
       startTitle: "لم تُعَدّ فيديوهات هذا الأسبوع بعد",
       startLead: "تصل فيديوهات جديدة كل يوم اثنين. وإن لم تصل بعد، يمكنكم بدء إعدادها الآن، ويستغرق ذلك نحو 15 دقيقة.",
       shareTitle: "اعتُمد كل شيء، حان وقت النشر",
@@ -2471,6 +2489,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       lookLead: "Przy filmach oznaczonych do przejrzenia powód widać na karcie.",
       makingTitle: "Państwa filmy są w przygotowaniu",
       makingLead: "To potrwa około 15 minut. Strona odświeża się sama, a gdy filmy będą gotowe, wyślemy e-mail.",
+      delayRetrying: "Trwa to nieco dłużej niż zwykle — ponawiamy automatycznie. Nie muszą Państwo nic robić.",
+      delayDelayed: "Filmy na ten tydzień są opóźnione. Wiemy o tym i już nad tym pracujemy — wyślemy e-mail, gdy będą gotowe.",
       startTitle: "Filmy na ten tydzień jeszcze nie powstały",
       startLead: "Nowe filmy przychodzą w każdy poniedziałek. Jeśli jeszcze ich nie ma, można je przygotować teraz; to potrwa około 15 minut.",
       shareTitle: "Wszystko zatwierdzone, czas publikować",
