@@ -3,7 +3,14 @@
   "city": "Izmir",
   "country": "TR",
   "language": "tr",
-  "services": ["diş beyazlatma", "implant", "diş taşı temizliği", "kanal tedavisi", "çocuk diş hekimliği"],
+  "services": [
+    "diş beyazlatma",
+    "implant",
+    "diş taşı temizliği",
+    "kanal tedavisi",
+    "çocuk diş hekimliği"
+  ],
   "tone": "warm",
-  "handle": "smilestudio.izmir"
+  "handle": "smilestudio.izmir",
+  "address": "formal"
 }

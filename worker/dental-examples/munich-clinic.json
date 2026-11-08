@@ -1,0 +1,16 @@
+{
+  "name": "Zahnpraxis am Isartor",
+  "city": "München",
+  "country": "DE",
+  "language": "de",
+  "services": [
+    "Professionelle Zahnreinigung",
+    "Implantate",
+    "Bleaching",
+    "Wurzelbehandlung",
+    "Kinderzahnheilkunde"
+  ],
+  "tone": "expert",
+  "handle": "zahnpraxis.isartor",
+  "address": "formal"
+}

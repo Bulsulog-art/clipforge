@@ -35,72 +35,125 @@ export type RuleId =
 
 type Rule = { id: RuleId; why: string; patterns: RegExp[] };
 
-// \b does not work for Turkish letters, so Turkish patterns use explicit
-// non-letter boundaries.
+// \b only knows ASCII letters, so every pattern uses explicit Unicode
+// letter boundaries — the same helper works for English, Turkish, German,
+// Spanish, French, Portuguese and Italian.
 const L = "[\\p{L}\\p{N}]";
-const tr = (s: string) => new RegExp(`(?<!${L})${s}(?!${L})`, "iu");
-const en = (s: string) => new RegExp(`\\b${s}\\b`, "i");
+const w = (s: string) => new RegExp(`(?<!${L})(?:${s})(?!${L})`, "iu");
+
+// "Permanent teeth" (adult teeth) is a dental term, not a promise. Every
+// language's version of it is excluded from the "permanent" rule, or every
+// children's-dentistry video would be rejected.
+const NOT_TEETH = "(?!\\s+(teeth|tooth|dişler\\p{L}*|diş(?!\\p{L})|zähne|zahn|dientes|dents|dentes|denti|molar\\p{L}*))";
+
+// …and in Spanish, French, Portuguese and Italian the adjective follows the
+// noun ("dientes permanentes"), so the exclusion has to look behind as well.
+const AFTER_TEETH = "(?<!(dientes|dents|dentes|denti|molares|molaires)\\s+)";
+
+// What a superlative has to be about to count as an advertising claim.
+const CLINIC_NOUNS = {
+  en: "dentists?|dental (clinic|practice|office|care|team)|clinic|practice|team|doctors?|prices?|deals?|smiles?|treatments?|care|service",
+  tr: "klini\\p{L}*|diş hekim\\p{L}*|doktor\\p{L}*|hekim\\p{L}*|fiyat\\p{L}*|tedavi\\p{L}*|hizmet\\p{L}*|ekip\\p{L}*",
+  de: "zahnarzt\\p{L}*|zahnärzt\\p{L}*|praxis|klinik|team|preis\\p{L}*|behandlung\\p{L}*|lächeln",
+  es: "dentistas?|clínicas?|consultas?|equipos?|precios?|tratamientos?|sonrisas?",
+  fr: "dentistes?|cliniques?|cabinets?|équipes?|prix|traitements?|sourires?",
+  pt: "dentistas?|clínicas?|consultórios?|equipes?|preços?|tratamentos?|sorrisos?",
+  it: "dentist[ia]|clinic[ah]e?|studi?o?|team|prezz[oi]|trattament[oi]|sorris[oi]",
+};
+const CITYISH = "\\p{Lu}\\p{L}+";
+
+// "Does not guarantee whiter teeth" is the honest version of a claim, not a
+// guarantee. Hard rules cannot read sentences, but they can see a negation
+// right before the word.
+const NEGATED = "(?<!(no|not|n't|never|cannot|can't|nicht|kein\\p{L}*|ne|n'|não|non|nunca|jamais|mai)\\s+)";
 
 export const HARD_RULES: Rule[] = [
   {
     id: "guarantee",
     why: "Results cannot be guaranteed in healthcare.",
-    patterns: [en("guarantee[ds]?"), en("guaranteed"), en("risk[- ]free"), tr("garanti\\p{L}*"), tr("risksiz")],
+    patterns: [
+      w(`${NEGATED}(guarantee[ds]?|risk[- ]free)`),
+      // tr de fr pt it es; Turkish negates after the verb ("garanti etmez").
+      w(`${NEGATED}(garanti\\p{L}*|garantía|garanzia|garantia)(?!\\s+(etmez|edilemez|vermez))|risksiz`),
+      w("sin riesgo|sans risque|sem risco|senza rischi|risikofrei"),
+    ],
   },
   {
     id: "absolute",
     why: "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes.",
     patterns: [
-      en("painless"),
-      en("pain[- ]free"),
-      en("100\\s?%"),
       /100\s?%/,
-      en("permanent(ly)?"),
-      en("forever"),
-      en("lifetime"),
-      tr("acısız"),
-      tr("ağrısız"),
-      tr("kalıcı"),
-      tr("ömür boyu"),
-      tr("kesin(likle)? sonuç"),
+      w("painless|pain[- ]free|acısız|ağrısız|schmerzfrei\\p{L}*|schmerzlos\\p{L}*|sin dolor|indoloro|sans douleur|indolore|sem dor|indolor|senza dolore"),
+      w(`${AFTER_TEETH}(permanent(ly)?|kalıcı|dauerhaft\\p{L}*|bleibend\\p{L}*|permanente[s]?)${NOT_TEETH}`),
+      w("forever|lifetime|ömür boyu|für immer|lebenslang|para siempre|de por vida|pour toujours|à vie|para sempre|vitalíci\\p{L}*|per sempre|a vita"),
+      w("kesin(likle)? sonuç"),
+      // The bare verb promises the outcome; the hedged form ("helps prevent",
+      // "önlemeye yardımcı olur", "ayuda a prevenir") uses another form of the
+      // word and passes. Seen live: "diş eti hastalıklarını önler".
+      w("prevents|önler|verhindert|previene|prévient|previne"),
     ],
   },
   {
     id: "superlative",
     why: "Unverifiable superlatives and comparisons with other clinics are restricted.",
-    patterns: [en("best"), en("#\\s?1"), en("number one"), en("top[- ]rated"), en("cheapest"), tr("en iyi"), tr("bir numara"), tr("en ucuz")],
+    // Only superlatives ABOUT the clinic, its people, its prices or its
+    // results. "Ask your dentist for the best approach" / "en iyi şekilde"
+    // are ordinary language and were rejecting good videos.
+    patterns: [
+      w(`(the )?best (${CLINIC_NOUNS.en})|best in (town|the city|${CITYISH})|#\\s?1|number one|top[- ]rated|cheapest`),
+      w(`en iyi (${CLINIC_NOUNS.tr})|bir numara|en ucuz`),
+      w(`beste\\p{L}* (${CLINIC_NOUNS.de})|nr\\.?\\s?1|günstigste\\p{L}*`),
+      w(`(el|la|los|las) mejor(es)? (${CLINIC_NOUNS.es})|más barat\\p{L}*`),
+      w(`(le|la|les) meilleur\\p{L}* (${CLINIC_NOUNS.fr})|moins cher`),
+      w(`(o|a|os|as) melhor(es)? (${CLINIC_NOUNS.pt})|mais barat\\p{L}*`),
+      w(`(il|la|i|le) miglior\\p{L}* (${CLINIC_NOUNS.it})|più economic\\p{L}*`),
+    ],
   },
   {
     id: "price",
     why: "Prices, discounts and promotions in health advertising are banned or restricted in many markets.",
     patterns: [
-      en("discount(s|ed)?"),
-      en("\\d+\\s?% off"),
-      en("free (consultation|check-?up|whitening)"),
-      en("special offer"),
-      en("limited time"),
+      w("discount(s|ed)?|\\d+\\s?% off|free (consultation|check-?up|whitening)|special offer|limited time"),
       /[$€£₺]\s?\d/,
-      /\d\s?(usd|eur|gbp|tl|try)\b/i,
-      tr("indirim\\p{L}*"),
-      tr("kampanya\\p{L}*"),
-      tr("ücretsiz muayene"),
-      tr("fırsat\\p{L}*"),
+      /\d\s?(usd|eur|gbp|tl|try|€)(?![\p{L}])/iu,
+      w("indirim\\p{L}*|kampanya\\p{L}*|ücretsiz muayene|fırsat\\p{L}*"),
+      w("rabatt\\p{L}*|sonderangebot\\p{L}*|aktionspreis\\p{L}*|kostenlose (beratung|untersuchung|zahnreinigung)"),
+      w("descuento\\p{L}*|oferta especial|promoci[oó]n\\p{L}*|gratis"),
+      w("réduction\\p{L}*|promo\\p{L}*|offre spéciale|gratuit\\p{L}*"),
+      w("desconto\\p{L}*|promoção|oferta especial|grátis"),
+      w("scont\\p{L}*|offerta speciale|promozion\\p{L}*"),
     ],
   },
   {
     id: "before_after",
     why: "Before/after results imply an outcome every patient will get.",
-    patterns: [en("before (and|&) after"), en("before/after"), tr("öncesi (ve )?sonrası")],
+    patterns: [
+      w("before (and|&) after|before/after|öncesi (ve )?sonrası"),
+      w("vorher[- ]?(und )?nachher|antes y después|avant[- /]?(et )?après|antes e depois|prima e dopo"),
+    ],
   },
   {
     id: "testimonial",
     why: "Patient testimonials and reviews are restricted in health advertising in several markets.",
-    patterns: [en("our patients? (say|said|love)"), en("5[- ]star"), en("testimonial"), tr("hastalarımız (diyor|anlatıyor)")],
+    patterns: [
+      w("our patients? (say|said|love)|5[- ]star|testimonials?"),
+      w("hastalarımız (diyor|anlatıyor)"),
+      w("unsere patienten sagen|patientenbewertung\\p{L}*"),
+      w("nuestros pacientes dicen|testimonios?"),
+      w("nos patients disent|témoignages?"),
+      w("nossos pacientes dizem|depoimentos?"),
+      w("i nostri pazienti dicono|testimonianz\\p{L}*"),
+    ],
   },
   {
     id: "cure",
     why: "Claiming to cure or eliminate a condition overstates what treatment can promise.",
-    patterns: [en("cures?"), en("eliminates? (all )?pain"), tr("kesin tedavi"), tr("tamamen (yok eder|geçer|iyileştirir)")],
+    patterns: [
+      w("cures?|eliminates? (all )?pain"),
+      w("kesin tedavi|tamamen (yok eder|geçer|iyileştirir)"),
+      w("heilt|heilung garantiert"),
+      w("cura definitiva|guérit|guérison définitive|guarisce"),
+    ],
   },
 ];
 

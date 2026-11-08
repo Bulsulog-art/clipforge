@@ -1,0 +1,16 @@
+{
+  "name": "Clínica Dental Sonrisa",
+  "city": "Madrid",
+  "country": "ES",
+  "language": "es",
+  "services": [
+    "blanqueamiento dental",
+    "implantes",
+    "limpieza dental",
+    "ortodoncia",
+    "endodoncia"
+  ],
+  "tone": "warm",
+  "handle": "clinicasonrisa.madrid",
+  "address": "informal"
+}

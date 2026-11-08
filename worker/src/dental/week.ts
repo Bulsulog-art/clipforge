@@ -3,8 +3,10 @@ import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
 import { reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
-import type { ClinicProfile } from "./profile.js";
+import { addressRule, type ClinicProfile } from "./profile.js";
 import { planWeek, type Topic } from "./strategist.js";
+import { reviewAccuracy, type AccuracyResult } from "./accuracy.js";
+import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -23,10 +25,14 @@ import { planWeek, type Topic } from "./strategist.js";
 export type VideoPackage =
   | {
       status: "ready";
+      /** Nothing is published until the clinic's dentist approves it. */
+      approval: "pending" | "approved" | "rejected";
       topic: Topic;
       plan: ScenePlan;
       copy: PostCopy;
-      checks: { script: ComplianceResult; copy: ComplianceResult };
+      checks: { script: Checks; copy: Checks };
+      /** How the dentist can film this topic themselves, in their language. */
+      shootCard?: ShootCard;
       videoPath?: string;
     }
   | { status: "rejected"; topic: Topic; stage: "script" | "copy"; reasons: string[] };
@@ -77,70 +83,112 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Topic: ${topic.title}. It answers the patient question: "${topic.question}".`,
     `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
     `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta.`,
-    `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}.`,
+    `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
     `Stock footage queries: 2-4 English words specific to THIS topic (e.g. "teeth whitening tray", "dental floss close up", "child toothbrush"), not a generic "dentist office", and never patients' faces in treatment.`,
     `End with a cta scene inviting the viewer to ask the clinic or book a check-up` +
       (profile.handle ? `. Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : "."),
-    fixes.length ? `A compliance reviewer required these changes: ${fixes.join(" | ")}` : "",
+    fixes.length ? `A compliance or clinical reviewer required these changes: ${fixes.join(" | ")}` : "",
   ]
     .filter(Boolean)
     .join("\n");
 }
 
-function fixesOf(r: ComplianceResult): string[] {
+type Review = { verdict: "pass" | "revise" | "block"; issues: { quote: string; problem: string; fix: string }[]; hard?: ComplianceResult["hard"] };
+
+function fixesOf(r: Review): string[] {
   return [
-    ...r.hard.map((h) => `remove or reword "${h.match}" (${h.why})`),
+    ...(r.hard ?? []).map((h) => `remove or reword "${h.match}" (${h.why})`),
     ...r.issues.map((i) => `"${i.quote}": ${i.problem} → ${i.fix}`),
   ];
 }
 
-type Outcome<T> = ({ ok: true; check: ComplianceResult } & T) | { ok: false; rejected: string[] };
+export type Checks = { compliance: ComplianceResult; accuracy: AccuracyResult };
+type Outcome<T> = ({ ok: true; checks: Checks } & T) | { ok: false; rejected: string[] };
 
-async function scriptFor(deps: WeekDeps, profile: ClinicProfile, topic: Topic): Promise<Outcome<{ plan: ScenePlan }>> {
+/**
+ * Write, then pass both reviewers. Compliance first (cheap, and a hard-rule
+ * hit makes the accuracy review moot), then clinical accuracy. Either one's
+ * fixes feed the next rewrite; three attempts in all.
+ */
+async function reviewed<T>(
+  deps: WeekDeps,
+  label: string,
+  topic: Topic,
+  write: (fixes: string[]) => Promise<T>,
+  textOf: (t: T) => string,
+  accuracyOf: (t: T) => Promise<AccuracyResult>,
+  profile: ClinicProfile,
+): Promise<Outcome<{ value: T }>> {
   let fixes: string[] = [];
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const { plan } = await planFromPrompt(
-      { prompt: scriptBrief(profile, topic, fixes), aspect: "9:16" },
-      deps.client,
-    );
-    const check = await reviewCompliance(deps.client, profile, planText(plan));
-    deps.log?.("script reviewed", { topic: topic.title, attempt, verdict: check.verdict });
-    if (check.verdict === "pass") return { ok: true, plan, check };
-    if (check.verdict === "block") return { ok: false, rejected: fixesOf(check) };
-    fixes = fixesOf(check);
-  }
-  return { ok: false, rejected: fixes };
-}
-
-async function copyFor(deps: WeekDeps, profile: ClinicProfile, topic: Topic): Promise<Outcome<{ copy: PostCopy }>> {
-  let fixes: string[] = [];
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const copy = await writePostCopy(deps.client, profile, topic, fixes);
-    const check = await reviewCompliance(deps.client, profile, `${copy.caption}\n${copy.hashtags.join(" ")}`);
-    deps.log?.("copy reviewed", { topic: topic.title, attempt, verdict: check.verdict });
-    if (check.verdict === "pass") return { ok: true, copy, check };
-    if (check.verdict === "block") return { ok: false, rejected: fixesOf(check) };
-    fixes = fixesOf(check);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const value = await write(fixes);
+    const compliance = await reviewCompliance(deps.client, profile, textOf(value));
+    deps.log?.(`${label} compliance`, { topic: topic.title, attempt, verdict: compliance.verdict });
+    if (compliance.verdict === "block") return { ok: false, rejected: fixesOf(compliance) };
+    if (compliance.verdict === "revise") {
+      fixes = fixesOf(compliance);
+      continue;
+    }
+    const accuracy = await accuracyOf(value);
+    deps.log?.(`${label} accuracy`, { topic: topic.title, attempt, verdict: accuracy.verdict });
+    if (accuracy.verdict === "pass") return { ok: true, value, checks: { compliance, accuracy } };
+    if (accuracy.verdict === "block") return { ok: false, rejected: fixesOf(accuracy) };
+    fixes = fixesOf(accuracy);
   }
   return { ok: false, rejected: fixes };
 }
 
 export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic: Topic): Promise<VideoPackage> {
-  const script = await scriptFor(deps, profile, topic);
+  const script = await reviewed(
+    deps,
+    "script",
+    topic,
+    async (fixes) => (await planFromPrompt({ prompt: scriptBrief(profile, topic, fixes), aspect: "9:16" }, deps.client)).plan,
+    planText,
+    (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
+    profile,
+  );
   if (!script.ok) return { status: "rejected", topic, stage: "script", reasons: script.rejected };
 
-  const post = await copyFor(deps, profile, topic);
+  // The caption is written FROM the approved script, and reviewed against
+  // it, so the two cannot disagree (seen live: "age 1" vs "6 months").
+  const facts = planText(script.value);
+  const post = await reviewed(
+    deps,
+    "copy",
+    topic,
+    (fixes) => writePostCopy(deps.client, profile, topic, fixes, facts),
+    (c) => `${c.caption}\n${c.hashtags.join(" ")}`,
+    (c) => reviewAccuracy(deps.client, profile, topic, { script: facts, caption: c.caption }),
+    profile,
+  );
   if (!post.ok) return { status: "rejected", topic, stage: "copy", reasons: post.rejected };
 
-  const videoPath = deps.render ? await deps.render(script.plan, topic) : undefined;
+  // The dentist will SAY these words on camera, so the card gets the same
+  // two reviews as the video. A card that cannot pass is left out; the
+  // video itself does not depend on it. (Seen live: a card recommending
+  // over-the-counter painkillers without deferring to the dentist.)
+  const card = await reviewed(
+    deps,
+    "shoot card",
+    topic,
+    (fixes) => writeShootCard(deps.client, profile, topic, fixes),
+    shootCardText,
+    (c) => reviewAccuracy(deps.client, profile, topic, { script: shootCardText(c) }),
+    profile,
+  ).catch(() => undefined);
+  const shootCard = card?.ok ? card.value : undefined;
+  const videoPath = deps.render ? await deps.render(script.value, topic) : undefined;
   return {
     status: "ready",
+    approval: "pending",
     topic,
-    plan: script.plan,
-    copy: post.copy,
-    checks: { script: script.check, copy: post.check },
+    plan: script.value,
+    copy: post.value,
+    checks: { script: script.checks, copy: post.checks },
+    shootCard,
     videoPath,
   };
 }
@@ -150,10 +198,14 @@ export async function produceWeek(
   profile: ClinicProfile,
   opts: { count?: number; avoidTitles?: string[] } = {},
 ): Promise<VideoPackage[]> {
-  const topics = await planWeek(deps.client, profile, opts);
+  const want = Math.max(1, opts.count ?? 5);
+  // Plan spares: a topic the reviewers reject is replaced, so the clinic
+  // still gets the week it pays for instead of a gap.
+  const topics = await planWeek(deps.client, profile, { ...opts, count: want + 2 });
   const out: VideoPackage[] = [];
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.
   for (const topic of topics) {
+    if (out.filter((p) => p.status === "ready").length >= want) break;
     // One topic failing (a plan the model could not get valid, a render
     // error) must not cost the clinic the rest of its week.
     try {

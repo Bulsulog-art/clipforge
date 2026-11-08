@@ -1,7 +1,7 @@
 import type OpenAI from "openai";
 import { z } from "zod";
 import { agentJson } from "./llm.js";
-import { PILLARS, type ClinicProfile } from "./profile.js";
+import { PILLARS, addressRule, type ClinicProfile } from "./profile.js";
 
 /**
  * The strategist agent: a week of video ideas for one clinic.
@@ -48,7 +48,7 @@ Rules:
 Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } ] }`,
     user:
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""} (${profile.country}).\n` +
-      `Language: ${profile.language}. Tone: ${profile.tone}.\n` +
+      `Language: ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}\n` +
       `Services: ${profile.services.join(", ")}.\n` +
       `Plan ${count} videos.` +
       (opts.avoidTitles?.length ? `\nAlready published, do not repeat: ${opts.avoidTitles.join(" | ")}` : ""),
