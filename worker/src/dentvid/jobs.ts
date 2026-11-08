@@ -14,6 +14,7 @@ import { renderPlan } from "../remotion/render-plan.js";
 import { prepareVoiceover } from "../remotion/voiceover.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
+import { notifyReady } from "./notify.js";
 
 /**
  * DentVideo jobs. The product's data lives on Liman (self-hosted Supabase):
@@ -140,7 +141,10 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
     }
     await insert(db, rows);
     const count = (s: ItemRow["status"]) => rows.filter((r) => r.status === s).length;
-    return { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected") };
+    const result = { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected") };
+    // The dentist hears about it — they should not have to keep checking.
+    await notifyReady(job.clinicId, "week", { ready: result.ready, flagged: result.flagged });
+    return result;
   } finally {
     void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }
@@ -172,6 +176,10 @@ export async function runDentvidRecording(job: RecordingJob): Promise<{ clips: n
       rows.push(rowFromClip(clip, { clinicId: job.clinicId, ownerId, sourcePath: job.sourcePath }, stored));
     }
     await insert(db, rows);
+    await notifyReady(job.clinicId, "recording", {
+      ready: rows.filter((r) => r.status === "ready").length,
+      flagged: rows.filter((r) => r.status === "flagged").length,
+    });
     return { clips: rows.length };
   } finally {
     void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
