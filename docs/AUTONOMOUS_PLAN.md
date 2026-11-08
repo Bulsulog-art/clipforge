@@ -4,6 +4,58 @@ Started 2026-11-08 03:05 UTC, runs until **2026-11-08 11:05 UTC** (8 hours).
 The owner is asleep. Each hourly check-in reads this file, continues the next
 open item, updates the status here, commits and pushes.
 
+## Sabah raporu (2026-11-08)
+
+**Kısaca:** DentVideo canlıda ve uçtan uca çalışıyor. Bir klinik kaydoluyor, profilini giriyor ve haftanın videolarını istiyor. Sistem 15–20 dakikada 5 video üretiyor. Her video klinik doğruluk ve sağlık reklamı kurallarından geçiyor, ses ve görüntü ölçümü yapılıyor, video kliniğin renginde ve logosuyla geliyor. Hiçbir şey hekim onaylamadan yayınlanmıyor.
+
+**Canlı adresler** (alan adı alınana kadar):
+- https://clipforge.bulsulabs.com/dentvideo, ayrıca /de, /es, /tr ve /fr
+- Rehberler: /dentvideo/guides/…
+- Uygulama: /dentvideo/app
+- Yapay zekâ arama motorları için: /dentvideo/llms.txt
+
+**Gece yapılanlar:**
+1. Canlı test: Türkçe (İzmir) ve Almanca (München) test kliniklerinin haftaları üretim sunucusunda üretildi.
+   - İlk Türkçe hafta: 5 video hazır, 2 reddedildi. İki ret de yerindeydi: biri uydurma bir "%80" istatistiği, diğeri mutlak bir iddiaydı.
+   - Son Almanca hafta: 5/5 hazır, kalite kontrolü temiz, marka rengi uygulanmış.
+2. Bulunan ve düzeltilen hatalar:
+   - Haftalık videolar kliniğin marka rengini kullanmıyordu.
+   - Haftalık videolarda logo yoktu.
+   - Açılış cümleleri (hook) cevabı baştan veriyordu.
+   - Aynı hizmetten iki benzer konu çıkıyordu.
+   - "Bu haftanın videoları" düğmesine ikinci kez basınca, hiçbir şey üretilmediği halde "hazırlanıyor" yazıyordu.
+3. Ajan eğitimi: 4 ülke ve 4 dilden sabit test klinikleri ve bağımsız bir "hasta gözüyle" puanlayıcı kuruldu. 10 tur boyunca:
+   - Hazır video oranı %88'den %100'e çıktı (24/24).
+   - Düzeltme istemeden geçen video oranı %19'dan %58–81'e çıktı.
+   - Hook puanı 3,4'ten 4,0'a çıktı (5 üzerinden).
+   - Seslendirme puanı 2,8'den yaklaşık 3,6'ya çıktı.
+   
+   Yeni ajanlar: seslendirme yazarı (anlatıcı), hook editörü (her konu için 4 seçenek yazıp puanlıyor). Uyum denetçisi de güçlü modele alındı ve gereksiz itirazları kesildi. Ayrıntılı tablo aşağıda.
+4. Web sitesi:
+   - 5 dilde açılış sayfası ve 7 rehber, hreflang etiketleri ve llms.txt.
+   - Uygulamanın tamamı 5 dilde. Türk bir hekim hiç İngilizce görmüyor.
+   - Açılış sayfasında gerçek örnek bir hafta: demo klinik için düzeltilmeden konan 3 video.
+
+**Sizin kararınızı bekleyenler:**
+- **dentvideo.com alınsın**; mümkünse .de, .es ve .com.tr de. Marka araştırmasını (USPTO, EUIPO, TÜRKPATENT) buradan yapamadım. Almadan önce bakılmalı.
+- **Fiyatlar.** Sitede şimdilik "ilk hafta ücretsiz" yazıyor. Fiyat uydurmadım.
+- **Dodo:** alan adından sonra DentVideo markası ve ürünleri açılacak. `DODO_API_KEY` sunucuda tanımlı değil.
+- **Coolify API anahtarı** sohbete düz yazıyla yapıştırıldı. Lütfen yenileyin.
+- **Test hesaplarını silin (Liman auth):** e2e-dentvideo@bulsulabs.com ve e2e-dentvideo-de@bulsulabs.com, ayrıca bunlara ait `dentvid_clinics` ve `dentvid_items` satırları ile `dentvid` bucket'taki dosyalar.
+- **Bulut ClipForge projesindeki boş tablolar:** `clipforge.clinics` ve `clipforge.dental_items` kullanılmıyor. Gece silme yapmadım; isterseniz kaldırılabilir.
+
+**Bilinen sınırlar:**
+- Tarayıcıdan kayıt yükleme bu sandbox'tan test edilemedi, çünkü sandbox proxy'si liman.bulsulabs.com isteklerindeki yetki başlığını değiştiriyor. Kayıttan klip çıkarma hattının kendisi yerelde uçtan uca doğrulandı. Gerçek bir tarayıcıdan bir kez denemek yeterli.
+- Seslendirme puanı resmî hitap kullanan kliniklerde (siz/Sie) biraz düşük çıkıyor. Bunun bir kısmı puanlayıcının "resmî = soğuk" önyargısı.
+- Videolar şu an tipografi ağırlıklı. Stok görüntü için PEXELS_API_KEY tanımlanırsa sahnelere görüntü de eklenir.
+
+**Sonraki adımlar (önerim):**
+1. Alan adını alıp dentvideo.com → /dentvideo yönlendirmesini kurmak.
+2. Fiyat ve Dodo ürünlerini açmak.
+3. 5–10 gerçek klinikle ücretsiz ilk hafta denemesi yapmak.
+4. YouTube trend ajanı.
+5. iOS uygulamasının yeniden markalanması.
+
 ## Ground rules (do not break)
 - Quality over quantity: every change tested; renders checked frame by frame.
 - No purchases, no domain registration, no App Store submissions, no emails
@@ -26,6 +78,9 @@ open item, updates the status here, commits and pushes.
 | 6 | Web app: upload a recording (shoot card shown) | done — /dentvideo/app/record |
 | 7 | Brand landing + SEO/GEO pages for dentists (EN, DE, ES, TR) | done — EN + DE/ES/TR/FR landings, 7 guides, hreflang, /dentvideo/llms.txt, sitemap (PR #13) |
 | 8 | End-to-end check on production, QA pass, final report for the owner | done — production run: sign-up → clinic → week → 5 ready / 2 rejected (genuine: invented statistic, absolute claim) → stored and served; fixes shipped (brand colour, hooks, topic spread, honest re-run state). Not testable from the sandbox: browser upload of a recording (the sandbox proxy rewrites Authorization for liman.bulsulabs.com) — the recording pipeline itself is verified locally. |
+| 9 | Interface in five languages (header, sign-up, app screens, API messages) | done — PR #18 |
+| 10 | Agent training with an eval harness (10 rounds) | done — 24/24 ready in the last round; see below |
+| 11 | Real sample week on the landing page + VideoObject structured data | done — PR #22 |
 
 ## Decisions log
 - **Name: DentVideo — dentvideo.com (available 2026-11-08), the owner's
