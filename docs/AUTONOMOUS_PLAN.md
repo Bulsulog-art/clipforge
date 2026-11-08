@@ -140,6 +140,9 @@ Run with `npx tsx src/dental/eval.ts --per 4 --out <dir>`.
 | 8 (24) | removed an example hook the model kept cloning into topics; topics built on banned words dropped; reviewers stop stacking hedges; general hygiene is always relevant | 88% | 63% | 4.05 | 3.57 |
 | 9 (24) | compliance reviewer on gpt-4o (the small model traded synonyms until attempts ran out) | 96% | 71% | 3.91 | 3.43 |
 | 10 (24) | hook editor scores each candidate and keeps the best clean one; no "Topic: label" hooks; topics must match the listed service they name | **100%** | 58% | **4.00** | 3.50 |
+| 11 (16) | one stock-footage scene per video (verified on production with a Spanish clinic, guarded to object shots) | 88% | 50% | 3.93 | 3.50 |
+| 12 (fr/it/pt, 14) | French, Italian, Portuguese added to the panel | 100% | 64% | 3.93 | 3.43 (it 2.75) |
+| 13 (fr/it/pt, 14) | Italian/Portuguese spoken cues (they had fallen back to English); no hooks that blame dentists; no "Did you know?" openers | 93% | 36% | 3.62 | 3.54 (it 3.4) |
 
 Production check after these rounds: a fresh German clinic week on the live worker gave 5/5 ready, QA passing, and the brand colour applied.
 
