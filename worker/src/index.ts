@@ -5,7 +5,9 @@ import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
-import { dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek } from "./dentvid/jobs.js";
+import { configureSpend, dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
+import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
+import { RedisParkStore, resumeParked } from "./dentvid/park.js";
 import { dispatchWeeks } from "./dentvid/schedule.js";
 import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
@@ -28,6 +30,12 @@ const connection = new IORedis(process.env.REDIS_URL!, { maxRetriesPerRequest: n
 
 connection.on("error", (e) => logger.error({ err: e.message }, "redis connection error"));
 connection.on("ready", () => logger.info("redis ready"));
+
+// DentVideo spend guard (dentvid/spend-guard.ts): every paid API call in a
+// dentvid job is budgeted in Redis first; refused weeks/recordings are parked.
+const spendGuard = new SpendGuard(new RedisGuardStore(connection));
+const parkStore = new RedisParkStore(connection);
+configureSpend({ guard: spendGuard, park: parkStore });
 
 const videoWorker = new Worker(
   "video-pipeline",
@@ -78,13 +86,14 @@ const dentvidWorker = new Worker(
   "dentvid",
   async (job) => {
     try {
-      if (job.name === "week") return await runDentvidWeek(job.data);
-      if (job.name === "recording") return await runDentvidRecording(job.data);
+      if (job.name === "week") return await runDentvidWeek(job.data, { jobId: job.id });
+      if (job.name === "recording") return await runDentvidRecording(job.data, { jobId: job.id });
       if (job.name === "restyle") return await runDentvidRestyle(job.data);
       if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue);
       throw new Error(`unknown dentvid job ${job.name}`);
     } catch (e) {
-      Sentry.captureException(e, { tags: { queue: "dentvid", jobId: job.id } });
+      // A spend-guard refusal is expected behaviour (parked + owner alerted), not a crash.
+      if (!(e instanceof SpendRefusedError)) Sentry.captureException(e, { tags: { queue: "dentvid", jobId: job.id } });
       throw e;
     }
   },
@@ -104,6 +113,20 @@ if (process.env.DENTVID_SUPABASE_URL) {
     .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: scheduler setup failed"));
 }
 dentvidWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed"));
+
+// Parked dentvid jobs go back on the queue once the spend guard has room
+// again (next day / month, pause lifted, Redis back).
+async function startParkedResumeCron() {
+  while (true) {
+    await new Promise((r) => setTimeout(r, 30 * 60 * 1000));
+    try {
+      await resumeParked(parkStore, dentvidQueue, spendGuard);
+    } catch (e) {
+      logger.error({ err: (e as Error).message }, "dentvid: resume parked failed");
+    }
+  }
+}
+if (process.env.DENTVID_SUPABASE_URL) void startParkedResumeCron();
 
 const publishWorker = new Worker(
   "publish",

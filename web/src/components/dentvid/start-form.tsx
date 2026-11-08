@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 import type { Locale } from "@/content/dentvideo";
@@ -18,6 +18,10 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Bot brakes (lib/dentvid/bot-check): a honeypot field people never see,
+  // and how long the form was open before it was sent.
+  const [website, setWebsite] = useState("");
+  const openedAt = useRef<number>(Date.now());
 
   // Arrived from a localized landing (?lang=tr): keep that language for the
   // rest of the visit, including the API's messages.
@@ -34,7 +38,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, password, website, elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)) }),
         });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error ?? errors.createFailed);
@@ -86,6 +90,14 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
             />
             {mode === "signup" && <span className="mt-2 block text-xs text-dv-muted">{t.passwordHint}</span>}
           </label>
+          {mode === "signup" && (
+            <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>
+              <label>
+                Website
+                <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+              </label>
+            </div>
+          )}
           {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
           <button type="submit" disabled={busy} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
             {busy ? t.busy : mode === "signup" ? t.submitSignup : t.submitSignin}

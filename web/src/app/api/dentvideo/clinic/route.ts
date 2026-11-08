@@ -3,6 +3,9 @@ import { z } from "zod";
 import { clinicProfileSchema } from "@/lib/dentvid/profile";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
+import { isOwnLogoPath } from "@/lib/dentvid/paths";
+import { LIMITS } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 
 const Body = z.object({
   profile: clinicProfileSchema,
@@ -15,6 +18,8 @@ export async function POST(req: Request) {
   // Answer in the language the clinic just chose, when it says one.
   const err = await dvErrors((raw as { profile?: { language?: string } } | null)?.profile?.language);
   if (!user) return NextResponse.json({ error: err.signIn }, { status: 401 });
+  const limited = await rateLimited([{ key: `rl:clinic:user:${user.id}`, rule: LIMITS.clinicUser }], () => err.tooMany);
+  if (limited) return limited;
 
   const parsed = Body.safeParse(raw);
   if (!parsed.success) {
@@ -22,7 +27,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: field ? `${err.invalidProfile} (${field})` : err.invalidProfile }, { status: 400 });
   }
   const body = parsed.data;
-  if (body.logoPath && !body.logoPath.startsWith(`${user.id}/`)) {
+  if (body.logoPath && !isOwnLogoPath(body.logoPath, user.id)) {
     return NextResponse.json({ error: err.invalidLogo }, { status: 400 });
   }
 
