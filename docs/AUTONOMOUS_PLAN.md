@@ -49,6 +49,8 @@ open item, updates the status here, commits and pushes.
 - Seslendirme puanı resmî hitap kullanan kliniklerde (siz/Sie) biraz düşük çıkıyor. Bunun bir kısmı puanlayıcının "resmî = soğuk" önyargısı.
 - Her videoda artık bir stok görüntü sahnesi (Pexels) var. Üretimde bir İspanyolca test haftasıyla doğrulandı: 5 videonun 5'inde görüntü var. Bir klipte başka bir klinikte tedavi edilen gerçek bir hasta göründü. Bu yüzden görüntüler artık yalnızca nesne çekimleriyle sınırlı: insan, klinik ya da tedavi sahnesi yok, aynı hafta içinde aynı klip tekrar etmiyor. Yine de Pexels'in döndürdüğü her klibi önceden göremiyoruz. Hekim onayı bu yüzden şart.
 
+- Hekimin kendi kaydından çıkan kliplerde logo en üst köşede (24 px). Instagram ve TikTok o bölgeye kendi simgelerini koyuyor. Logoyu biraz aşağı almak, yüze göre konumlanan başlıkla birlikte ayarlanmalı. Gerçek bir hekim videosuyla denenmesi gereken küçük bir iş.
+
 **Sonraki adımlar (önerim):**
 1. Alan adını alıp dentvideo.com → /dentvideo yönlendirmesini kurmak.
 2. Fiyat ve Dodo ürünlerini açmak.
