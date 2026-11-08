@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { backgroundSrc, defaultBackgrounds, matchingBackgrounds, suggestBackgrounds, type SuggestInput } from "@/lib/dentvid/backgrounds/suggest";
 import { Player, type PlayerRef } from "@remotion/player";
 import { ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { ClipForgeVideo } from "@/remotion/Video";
@@ -154,7 +155,16 @@ export default function LivePreviewPlayer({
 
   const name = useDebounced(profile.name, 120);
   const handle = useDebounced(profile.handle, 120);
-  const bgKey = backgrounds?.join("\u0000") ?? "";
+  // The same photos a real week would get (worker dental/week.ts): ranked by
+  // the video's own words, and only those whose category matches its topic.
+  const autoBackgrounds = useMemo(() => {
+    if (!raw || !entry) return [];
+    const input = { plan: raw as unknown as SuggestInput["plan"], topic: entry.title, service: entry.service, language: lang };
+    const relevant = matchingBackgrounds(input);
+    const seconds = (raw.scenes as { seconds?: number }[]).reduce((t, sc) => t + (sc.seconds ?? 0), 0);
+    return defaultBackgrounds(suggestBackgrounds(input).filter((id) => relevant.has(id)), seconds).map(backgroundSrc);
+  }, [raw, entry, lang]);
+  const bgKey = (backgrounds ?? autoBackgrounds).join("\u0000");
   const plan = useMemo(() => {
     if (!raw) return undefined;
     const personal = personalisePlan(raw, { name, handle });
