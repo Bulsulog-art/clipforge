@@ -4,7 +4,7 @@ import { absoluteUrl } from "@/lib/site";
 // Search and AI answer engines are welcome on every public page — being
 // quoted by them is the point of the marketing pages (GEO). Private app
 // areas and the API stay out of every index.
-const PRIVATE = ["/api/", "/dashboard", "/studio", "/jobs/", "/clips/", "/auth/"];
+const PRIVATE = ["/api/", "/dashboard", "/studio", "/jobs/", "/clips/", "/auth/", "/dentvideo/app", "/dentvideo/start"];
 
 export default function robots(): MetadataRoute.Robots {
   return {

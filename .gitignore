@@ -31,3 +31,7 @@ assets/music/
 # Local-only backup blobs (e.g. icon iteration snapshots)
 *.OLD.png.bak
 *.bak
+
+# Local agent worktrees
+.claude/worktrees/
+web/src/lib/dentvid/_e2e_cookie.mts
