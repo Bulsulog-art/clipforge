@@ -1,0 +1,9 @@
+{
+  "name": "Smile Studio",
+  "city": "Izmir",
+  "country": "TR",
+  "language": "tr",
+  "services": ["diş beyazlatma", "implant", "diş taşı temizliği", "kanal tedavisi", "çocuk diş hekimliği"],
+  "tone": "warm",
+  "handle": "smilestudio.izmir"
+}
