@@ -14,12 +14,12 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import { LANDING, LANDING_PATH, LANGUAGE_NAME, SAMPLE_VIDEOS, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
+import { LANDING, LANDING_PATH, LANGUAGE_NAME, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
+import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
 import { appText } from "@/content/dentvideo-app";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { HeroVideo, PhoneFrame } from "./phone";
 
-const sample = (slug: string, ext: "mp4" | "jpg") => `/dentvideo/samples/${slug}.${ext}`;
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
 /** The seven production languages, as codes (shown in the "your clinic" visual). */
@@ -37,7 +37,7 @@ function H2({ children, className = "", id }: { children: React.ReactNode; class
 function Hero({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   const chrome = appText(locale).chrome;
-  const hero = SAMPLE_VIDEOS[0];
+  const hero = SAMPLE_VIDEOS[locale][0];
   return (
     <section className="relative isolate overflow-hidden">
       {/* backdrop: faint grid + two soft glows */}
@@ -73,7 +73,7 @@ function Hero({ locale }: { locale: Locale }) {
         <div className="relative mx-auto w-full max-w-[22rem] lg:max-w-none">
           <div className="relative mx-auto w-[15.5rem] sm:w-[17.5rem] lg:w-[18.5rem]">
             <PhoneFrame>
-              <HeroVideo src={sample(hero.slug, "mp4")} poster={sample(hero.slug, "jpg")} title={hero.name} labels={c.video} />
+              <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} />
             </PhoneFrame>
           </div>
 
@@ -174,8 +174,9 @@ function ClinicVisual() {
   );
 }
 
-function WeekVisual() {
-  const posters = [SAMPLE_VIDEOS[1].slug, SAMPLE_VIDEOS[0].slug, SAMPLE_VIDEOS[2].slug];
+function WeekVisual({ locale }: { locale: Locale }) {
+  const [a, b, c] = SAMPLE_VIDEOS[locale];
+  const posters = [b.slug, a.slug, c.slug];
   return (
     <div className="flex items-end justify-center">
       {[0, 1, 2, 3, 4].map((i) => {
@@ -190,7 +191,7 @@ function WeekVisual() {
           >
             {slug ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={sample(slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
+              <img src={sampleSrc(locale, slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
             ) : (
               <span className="absolute inset-x-2 top-1/2 space-y-1">
                 <span className="block h-1 w-full rounded-full bg-white/70" />
@@ -204,12 +205,12 @@ function WeekVisual() {
   );
 }
 
-function ApproveVisual() {
+function ApproveVisual({ locale }: { locale: Locale }) {
   return (
     <div className="dv-card mx-auto flex w-[85%] max-w-[16rem] items-center gap-3 p-3">
       <div className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-lg">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={sample(SAMPLE_VIDEOS[2].slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
+        <img src={sampleSrc(locale, SAMPLE_VIDEOS[locale][2].slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
       </div>
       <div className="min-w-0 flex-1">
         <span className="block h-2 w-full rounded-full bg-dv-ink/75" />
@@ -230,7 +231,7 @@ function ApproveVisual() {
   );
 }
 
-const STEP_VISUALS = [ClinicVisual, WeekVisual, ApproveVisual];
+const STEP_VISUALS: React.ComponentType<{ locale: Locale }>[] = [ClinicVisual, WeekVisual, ApproveVisual];
 
 function How({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
@@ -245,7 +246,7 @@ function How({ locale }: { locale: Locale }) {
               <div aria-hidden="true" className="relative flex h-48 items-center justify-center overflow-hidden bg-gradient-to-b from-dv-sand to-[#f8f4ee]">
                 <div className="dv-grid absolute inset-0 opacity-70" />
                 <div className="relative w-full">
-                  <Visual />
+                  <Visual locale={locale} />
                 </div>
               </div>
               <div className="flex flex-1 flex-col p-7">
@@ -271,12 +272,12 @@ function Samples({ locale }: { locale: Locale }) {
           <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.samples.text}</p>
         </div>
         <ul className="-mx-4 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
-          {SAMPLE_VIDEOS.map(({ slug, name, seconds }) => (
+          {SAMPLE_VIDEOS[locale].map(({ slug, name, seconds }) => (
             <li key={slug} className="w-[72%] shrink-0 snap-center sm:w-auto">
               <PhoneFrame className="mx-auto max-w-[18rem]">
                 <video
-                  src={sample(slug, "mp4")}
-                  poster={sample(slug, "jpg")}
+                  src={sampleSrc(locale, slug, "mp4")}
+                  poster={sampleSrc(locale, slug, "jpg")}
                   controls
                   playsInline
                   preload="none"
