@@ -44,11 +44,13 @@ const w = (s: string) => new RegExp(`(?<!${L})(?:${s})(?!${L})`, "iu");
 // "Permanent teeth" (adult teeth) is a dental term, not a promise. Every
 // language's version of it is excluded from the "permanent" rule, or every
 // children's-dentistry video would be rejected.
-const NOT_TEETH = "(?!\\s+(teeth|tooth|dişler\\p{L}*|diş(?!\\p{L})|zähne|zahn|dientes|dents|dentes|denti|molar\\p{L}*))";
+// Likewise the permanent filling/crown/restoration that replaces a temporary
+// one after a root canal (seen live: "kalıcı dolgu" rejected three times).
+const NOT_TEETH = "(?!\\s+(teeth|tooth|dişler\\p{L}*|diş(?!\\p{L})|zähne|zahn|dientes|dents|dentes|denti|molar\\p{L}*|filling\\p{L}*|crown\\p{L}*|restoration\\p{L}*|dolgu\\p{L}*|kron\\p{L}*|restorasyon\\p{L}*|füllung\\p{L}*|krone\\p{L}*|versorgung\\p{L}*))";
 
 // …and in Spanish, French, Portuguese and Italian the adjective follows the
 // noun ("dientes permanentes"), so the exclusion has to look behind as well.
-const AFTER_TEETH = "(?<!(dientes|dents|dentes|denti|molares|molaires)\\s+)";
+const AFTER_TEETH = "(?<!(dientes|dents|dentes|denti|molares|molaires|empaste|obturación|obturation|restauración|restauração|restauro|otturazione|corona|couronne|coroa)\\s+)";
 
 // What a superlative has to be about to count as an advertising claim.
 const CLINIC_NOUNS = {
@@ -67,6 +69,21 @@ const CITYISH = "\\p{Lu}\\p{L}+";
 // right before the word.
 const NEGATED = "(?<!(no|not|n't|never|cannot|can't|nicht|kein\\p{L}*|ne|n'|não|non|nunca|jamais|mai)\\s+)";
 
+/**
+ * The words a writer must not reach for, by language — told to the writers
+ * up front so a rewrite is not spent learning them from the reviewer.
+ * (Baseline eval: most script rewrites were "prevents"/"önler"/"dauerhaft".)
+ */
+export const AVOID_WORDS: Record<string, string> = {
+  en: "prevents, stops (say \"can help prevent\"), permanent, painless, pain-free, guaranteed, risk-free, forever, lifetime, best, #1, before-and-after results, cures, 100%",
+  tr: "önler, engeller (\"önlemeye yardımcı olabilir\" deyin), kalıcı, acısız, ağrısız, garanti, ömür boyu, en iyi, kesin sonuç, öncesi-sonrası sonuçları, tamamen iyileştirir, %100",
+  de: "verhindert (\"kann helfen vorzubeugen\"), dauerhaft, schmerzfrei, schmerzlos, garantiert, risikofrei, für immer, lebenslang, beste, Vorher-Nachher, heilt, 100 %",
+  es: "previene (\"puede ayudar a prevenir\"), permanente, sin dolor, garantizado, sin riesgo, para siempre, de por vida, el mejor, resultados de antes y después, cura, 100 %",
+  fr: "prévient (\"peut aider à prévenir\"), permanent, sans douleur, garanti, sans risque, pour toujours, à vie, le meilleur, avant/après, guérit, 100 %",
+  pt: "previne (\"pode ajudar a prevenir\"), permanente, sem dor, garantido, sem risco, para sempre, vitalício, o melhor, antes e depois, cura, 100%",
+  it: "previene (\"può aiutare a prevenire\"), permanente, senza dolore, garantito, senza rischi, per sempre, a vita, il migliore, prima e dopo, guarisce, 100%",
+};
+
 export const HARD_RULES: Rule[] = [
   {
     id: "guarantee",
@@ -84,7 +101,8 @@ export const HARD_RULES: Rule[] = [
     patterns: [
       /100\s?%/,
       w("painless|pain[- ]free|acısız|ağrısız|schmerzfrei\\p{L}*|schmerzlos\\p{L}*|sin dolor|indoloro|sans douleur|indolore|sem dor|indolor|senza dolore"),
-      w(`${AFTER_TEETH}(permanent(ly)?|kalıcı|dauerhaft\\p{L}*|bleibend\\p{L}*|permanente[s]?)${NOT_TEETH}`),
+      // "Nicht dauerhaft empfindlich" (not permanently sensitive) is the honest hedge.
+      w(`${NEGATED}${AFTER_TEETH}(permanent(ly)?|kalıcı|dauerhaft\\p{L}*|bleibend\\p{L}*|permanente[s]?)${NOT_TEETH}`),
       w("forever|lifetime|ömür boyu|für immer|lebenslang|para siempre|de por vida|pour toujours|à vie|para sempre|vitalíci\\p{L}*|per sempre|a vita"),
       w("kesin(likle)? sonuç"),
       // The bare verb promises the outcome; the hedged form ("helps prevent",
@@ -128,8 +146,16 @@ export const HARD_RULES: Rule[] = [
     id: "before_after",
     why: "Before/after results imply an outcome every patient will get.",
     patterns: [
-      w("before (and|&) after|before/after|öncesi (ve )?sonrası"),
-      w("vorher[- ]?(und )?nachher|antes y después|avant[- /]?(et )?après|antes e depois|prima e dopo"),
+      // Only results ("before and after photos", "el antes y después"), not
+      // time: "brush before and after meals" / "antes y después de comer"
+      // was rejecting good aftercare advice.
+      w("before (and|&) after(?!\\s+(meals?|eating|food|each|every|you|your|brushing|bed|sleep))|before/after"),
+      w("(?<!(yemek|yemekler|yemeklerden|fırçalama)\\s)öncesi (ve )?sonrası"),
+      w("vorher[- ]?(und )?nachher"),
+      w("antes y después(?!\\s+de (comer|cada comida|las comidas|cepillar\\p{L}*|usar\\p{L}*|lavar\\p{L}*|dormir|beber))"),
+      w("antes e depois(?!\\s+(de comer|das refeições|de cada refeição|de escovar|de dormir|de beber))"),
+      w("avant[- /]?(et )?après(?!\\s+(les repas|chaque repas|le repas|de manger|le brossage|de dormir|de boire))"),
+      w("prima e dopo(?!\\s+(i pasti|ogni pasto|il pasto|di mangiare|aver mangiato|di dormire|di bere))"),
     ],
   },
   {
@@ -231,7 +257,24 @@ export async function reviewCompliance(
     schema: reviewSchema,
     temperature: 0.1,
   });
-  return { verdict: stricter(review.verdict, hard.length ? "revise" : "pass"), hard, issues: review.issues };
+  // The model sometimes "fixes" a sentence into itself, or flags a plain
+  // question as a promise ("Can tartar affect your heart?" — seen live in
+  // Turkish, three rounds in a row until a good video was rejected). Those
+  // are not issues; if nothing real is left, the text passes.
+  const issues = review.issues.filter((i) => !noOpIssue(i));
+  const verdict = review.verdict === "revise" && issues.length === 0 ? "pass" : review.verdict;
+  return { verdict: stricter(verdict, hard.length ? "revise" : "pass"), hard, issues };
+}
+
+const norm = (s: string) => s.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
+/** An issue whose fix changes nothing, or that objects to a bare question. */
+export function noOpIssue(i: { quote: string; fix: string }): boolean {
+  const q = norm(i.quote);
+  if (!q) return true;
+  if (norm(i.fix) === q) return true;
+  // A question promises nothing; a fix that only appends to it is padding.
+  return i.quote.trim().endsWith("?") && norm(i.fix).startsWith(q);
 }
 
 const RANK = { pass: 0, revise: 1, block: 2 } as const;

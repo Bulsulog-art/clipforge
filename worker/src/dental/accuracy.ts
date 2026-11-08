@@ -26,6 +26,20 @@ export const accuracySchema = z.object({
 });
 export type AccuracyResult = z.infer<typeof accuracySchema>;
 
+/**
+ * What dentists normally tell patients after each procedure. The reviewer
+ * checks against it, and the writers are given it up front: in the eval most
+ * accuracy rewrites were invented aftercare ("48 hours", salt rinses after a
+ * root canal) that the writer could not have known was wrong.
+ */
+export const AFTERCARE_GUIDE = `Procedure-specific aftercare is often mixed up — check which procedure it belongs to:
+- extractions and implant surgery: for the first ~24 hours no vigorous rinsing, spitting or straws (protect the clot); AFTER that, gentle warm salt-water rinses are commonly advised. None of this applies to root canals, fillings or cleanings;
+- "wait about 30 minutes before eating or drinking" → after fluoride varnish or similar, not after every cleaning;
+- "avoid chewing on that side until the permanent restoration" → root canals with a temporary filling;
+- "wear aligners 20-22 hours a day" → clear aligners;
+- professional cleaning: usually no special restrictions afterwards; gums can be a little tender or teeth briefly sensitive;
+- whitening: avoiding strongly coloured food and drink (coffee, tea, red wine) for the first day or two is commonly advised; temporary sensitivity is common.`;
+
 const SYSTEM = `You are a careful general dentist reviewing patient-education content before a clinic publishes it.
 Check, against mainstream current guidance (national dental associations, FDI, NHS/ADA-level consensus):
 1. Accuracy: is every clinical statement true for most patients? Flag wrong facts, outdated advice, overstated benefits ("whitening protects teeth"), understated risks.
@@ -33,11 +47,7 @@ Check, against mainstream current guidance (national dental associations, FDI, N
 3. Consistency: when both a video script and a caption are given, they must not contradict each other (ages, timings, counts).
 4. Safety: medication or home-remedy advice must defer to the patient's own dentist; nothing that could delay seeing a dentist for pain, swelling or bleeding.
 5. Standard instructions: advice must match what dentists normally tell patients for THIS procedure — flag advice that is stricter, looser or different from standard instructions (it misleads patients as much as a wrong fact).
-Procedure-specific aftercare is often mixed up — check which procedure it belongs to:
-- extractions and implant surgery: for the first ~24 hours no vigorous rinsing, spitting or straws (protect the clot); AFTER that, gentle warm salt-water rinses are commonly advised. None of this applies to root canals, fillings or cleanings;
-- "wait about 30 minutes before eating or drinking" → after fluoride varnish or similar, not after every cleaning;
-- "avoid chewing on that side until the permanent restoration" → root canals with a temporary filling;
-- "wear aligners 20-22 hours a day" → clear aligners.
+${AFTERCARE_GUIDE}
 Hedged, generally true statements PASS. Do not nitpick wording or style. Do not ask for more detail, more caveats or a longer list of risks: a short video cannot say everything, and that is not an error. Only flag what a dentist would actually correct.
 
 Return JSON: { "verdict": "pass" | "revise" | "block", "issues": [ { "quote", "problem", "fix" } ] }

@@ -292,12 +292,21 @@ describe("the orchestrator", () => {
     const broken = { ...plan(["a", "b", "c"]), music: "warm and inviting" } as unknown as ScenePlan;
     const { client } = fakeClient({
       topics: [TOPIC, other],
-      // First topic: both plan attempts invalid → throws. Second topic: clean.
-      plans: [broken, broken, plan(["Implant aftercare", "Keep the area clean.", "Follow your dentist's advice."])],
+      // First topic: both plan attempts and the fresh retry's two invalid → throws. Second topic: clean.
+      plans: [broken, broken, broken, broken, plan(["Implant aftercare", "Keep the area clean.", "Follow your dentist's advice."])],
       reviews: ["pass", "pass"],
     });
     const week = await produceWeek({ client }, PROFILE, { count: 5 });
     expect(week.map((w) => w.status)).toEqual(["rejected", "ready"]);
+  });
+
+  it("retries an invalid plan once with the error instead of losing the topic", async () => {
+    const broken = { ...clean, scenes: [] } as unknown as ScenePlan;
+    const { client, calls } = fakeClient({ plans: [broken, broken, clean], reviews: ["pass", "pass", "pass"] });
+    const pkg = await produceVideo({ client }, PROFILE, TOPIC);
+    expect(pkg.status).toBe("ready");
+    const plans = calls.filter((c) => c.system.startsWith("You write scene plans"));
+    expect(plans.at(-1)!.user).toContain("previous attempt was invalid");
   });
 
   it("sends a clinically wrong script back with the dentist-reviewer's fix, then ships it pending approval", async () => {
@@ -356,4 +365,40 @@ describe("planWeek", () => {
     const topics = await planWeek(client, { ...PROFILE, services: ["Implants", "Cleanings"] }, { count: 5 });
     expect(topics.map((x) => x.title)).toEqual(["Topic 1", "Topic 2", "Topic 4"]);
   });
+});
+
+describe("before/after rule reads time, not results", () => {
+  it.each([
+    "Lávalos antes y después de comer.",
+    "Brush before and after meals.",
+    "Yemek öncesi ve sonrası ağzınızı çalkalayın.",
+    "Nettoyez-les avant et après les repas.",
+    "Escove antes e depois das refeições.",
+  ])("passes %s", (t) => expect(scanHardRules(t).map((h) => h.rule)).not.toContain("before_after"));
+  it.each([
+    "See our before and after photos!",
+    "Fotos de antes y después.",
+    "Antes y después del tratamiento",
+    "Vorher-Nachher-Bilder unserer Patienten",
+    "Beyazlatma öncesi sonrası farkı",
+    "Our before/after gallery",
+  ])("flags %s", (t) => expect(scanHardRules(t).map((h) => h.rule)).toContain("before_after"));
+});
+
+describe("compliance no-op issues", () => {
+  it("drops fixes that change nothing and padding on a question", async () => {
+    const { noOpIssue } = await import("./compliance.js");
+    expect(noOpIssue({ quote: "Diş taşı kalp sağlığınızı etkileyebilir mi?", fix: "Diş taşı kalp sağlığınızı etkileyebilir mi? Hekiminize danışın." })).toBe(true);
+    expect(noOpIssue({ quote: "Most people can.", fix: "most people can" })).toBe(true);
+    expect(noOpIssue({ quote: "Whitening is safe.", fix: "Whitening is usually safe." })).toBe(false);
+  });
+  it("lets a negated 'permanent' through", () => {
+    expect(scanHardRules("Bleaching macht die Zähne nicht dauerhaft empfindlich.").map((h) => h.rule)).not.toContain("absolute");
+    expect(scanHardRules("Bleaching wirkt dauerhaft.").map((h) => h.rule)).toContain("absolute");
+  });
+});
+
+describe("permanent restorations are a dental term", () => {
+  it.each(["Kalıcı dolgu yapılana kadar o tarafla çiğnemeyin.", "until the permanent filling is placed", "hasta la restauración permanente", "bis zur dauerhaften Füllung"])("passes %s", (t) =>
+    expect(scanHardRules(t).map((h) => h.rule)).not.toContain("absolute"));
 });

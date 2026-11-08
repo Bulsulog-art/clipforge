@@ -1,11 +1,12 @@
 import type OpenAI from "openai";
 import { planFromPrompt } from "../remotion/plan-from-prompt.js";
+import { narrate } from "./narrate.js";
 import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
-import { reviewCompliance, type ComplianceResult } from "./compliance.js";
+import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
 import { planWeek, type Topic } from "./strategist.js";
-import { reviewAccuracy, type AccuracyResult } from "./accuracy.js";
+import { AFTERCARE_GUIDE, reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
 import { inspectVideo, type QaReport } from "../steps/qa.js";
 
@@ -90,6 +91,8 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
+    `Words the reviewers always reject — never use them on screen or in narration: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}.`,
+    `Aftercare and instructions: only what dentists normally tell patients for THIS procedure, and say to follow the dentist's own instructions. Do not invent timeframes or extra restrictions. Reference:\n${AFTERCARE_GUIDE}`,
     `Never invent statistics or percentages ("80% of patients…"); say "most people" or leave it out. A number is allowed only for a guideline interval or timeframe (every 6 months, the first 48 hours).`,
     `Stock footage queries: 2-4 English words specific to THIS topic (e.g. "teeth whitening tray", "dental floss close up", "child toothbrush"), not a generic "dentist office", and never patients' faces in treatment.`,
     `End with a cta scene inviting the viewer to ask the clinic or book a check-up` +
@@ -138,14 +141,14 @@ async function reviewed<T>(
       continue;
     }
     const compliance = await reviewCompliance(deps.client, profile, textOf(value));
-    deps.log?.(`${label} compliance`, { topic: topic.title, attempt, verdict: compliance.verdict });
+    deps.log?.(`${label} compliance`, { topic: topic.title, attempt, verdict: compliance.verdict, ...(compliance.verdict === "pass" ? {} : { fixes: fixesOf(compliance) }) });
     if (compliance.verdict === "block") return { ok: false, rejected: fixesOf(compliance) };
     if (compliance.verdict === "revise") {
       fixes = fixesOf(compliance);
       continue;
     }
     const accuracy = await accuracyOf(value);
-    deps.log?.(`${label} accuracy`, { topic: topic.title, attempt, verdict: accuracy.verdict });
+    deps.log?.(`${label} accuracy`, { topic: topic.title, attempt, verdict: accuracy.verdict, ...(accuracy.verdict === "pass" ? {} : { fixes: fixesOf(accuracy) }) });
     if (accuracy.verdict === "pass") return { ok: true, value, checks: { compliance, accuracy } };
     if (accuracy.verdict === "block") return { ok: false, rejected: fixesOf(accuracy) };
     fixes = fixesOf(accuracy);
@@ -173,7 +176,20 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
     deps,
     "script",
     topic,
-    async (fixes) => (await planFromPrompt({ prompt: scriptBrief(profile, topic, fixes), aspect: "9:16" }, deps.client)).plan,
+    async (fixes) => {
+      // A plan that is still invalid after the planner's own repair round
+      // (seen in the eval: a 95-character cta) gets one fresh attempt told
+      // exactly what was wrong, instead of losing the topic.
+      const brief = scriptBrief(profile, topic, fixes);
+      const { plan } = await planFromPrompt({ prompt: brief, aspect: "9:16" }, deps.client).catch((err: Error) =>
+        planFromPrompt({ prompt: `${brief}\nThe previous attempt was invalid: ${err.message}. Keep every on-screen text well under its limit.`, aspect: "9:16" }, deps.client),
+      );
+      // The planner's voice-over reads like a leaflet; the narrator rewrites
+      // it from the screen text alone, so the reviews below still see one story.
+      if (!plan.voiceover) return plan;
+      const text = await narrate(deps.client, profile, topic, plan, fixes).catch(() => plan.voiceover!.text);
+      return { ...plan, voiceover: { ...plan.voiceover, text } };
+    },
     planText,
     (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
     profile,
