@@ -94,7 +94,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
             <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>
               <label>
                 Website
-                <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                <input type="text" name="dv_hp_7f3" tabIndex={-1} autoComplete="off" data-1p-ignore data-lpignore="true" value={website} onChange={(e) => setWebsite(e.target.value)} />
               </label>
             </div>
           )}
