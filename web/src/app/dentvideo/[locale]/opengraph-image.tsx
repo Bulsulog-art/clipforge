@@ -1,8 +1,8 @@
-import { LOCALES, type Locale } from "@/content/dentvideo";
+import { SHARED_ROUTE_LOCALES, type Locale } from "@/content/dentvideo";
 import { OG_SIZE, dentvideoOgImage } from "@/lib/dentvid/og";
 
 // One card per localized landing, rendered at build time.
-const OTHER = LOCALES.filter((l) => l !== "en");
+const OTHER = SHARED_ROUTE_LOCALES;
 export const dynamicParams = false;
 
 export function generateStaticParams() {

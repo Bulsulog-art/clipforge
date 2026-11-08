@@ -19,6 +19,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vidéos pour cabinets dentaires : sujets, format, tournage et règles de communication",
+    seoTitle: "Vidéos pour cabinet dentaire : sujets et format",
+    seoDescription: "Quelles vidéos courtes les patients regardent, format Reels, sous-titres, rythme de publication et ce que le code de déontologie encadre pour le dentiste.",
     description: "Guide pratique pour cabinets dentaires : quelles vidéos courtes les patients regardent, format Reels, sous-titres, rythme et ce que le code de déontologie encadre.",
     h1: "Vidéos pour cabinets dentaires",
     intro:
@@ -123,6 +125,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Communication du chirurgien-dentiste sur les réseaux sociaux : ce que permet la déontologie",
+    seoTitle: "Réseaux sociaux du dentiste : ce que dit le code",
+    seoDescription: "Ce qu'un chirurgien-dentiste peut publier sur Instagram depuis le décret de 2020 : information loyale, interdits, témoignages, influence et checklist.",
     description: "Ce qu'un chirurgien-dentiste peut publier sur Instagram depuis le décret de 2020 : information loyale, interdits, témoignages, comparaisons, influence et checklist. Pas un conseil juridique.",
     h1: "Communication du chirurgien-dentiste sur les réseaux sociaux",
     intro:
@@ -220,6 +224,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Idées de contenu Instagram pour cabinet dentaire : une année de sujets sans risque",
+    seoTitle: "Instagram du cabinet dentaire : idées de posts",
+    seoDescription: "Idées de publications Instagram, Reels et TikTok pour cabinet dentaire : questions de patients, soins expliqués, équipe, saisons et ce qu'il faut éviter.",
     description: "Idées de publications Instagram, Reels et TikTok pour cabinet dentaire : questions de patients, soins expliqués, équipe, sujets de saison, un mois type et ce qu'il vaut mieux éviter.",
     h1: "Idées de contenu Instagram pour cabinet dentaire",
     intro:
@@ -339,6 +345,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vidéos d'information patient au cabinet dentaire : sujets, usages et exactitude",
+    seoTitle: "Vidéos d'information patient au cabinet dentaire",
+    seoDescription: "Vidéos d'information patient pour cabinet dentaire : sujets prioritaires, modèle de script, salle d'attente, e-mail, réseaux, exactitude et consentement.",
     description: "Guide des vidéos d'information patient pour cabinets dentaires : sujets prioritaires, modèle de script, salle d'attente, e-mail et réseaux, exactitude et consentement éclairé.",
     h1: "Vidéos d'information patient au cabinet dentaire",
     intro:
@@ -435,6 +443,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Photos avant/après et témoignages : ce qu'un chirurgien-dentiste peut publier",
+    seoTitle: "Photos avant/après dentiste : ce qui est permis",
+    seoDescription: "Avant/après, avis et témoignages de patients sur les réseaux d'un cabinet dentaire : déontologie, RGPD, droit à l'image et consentement écrit.",
     description: "Avant/après, avis et témoignages de patients sur les réseaux d'un cabinet dentaire : déontologie, RGPD, droit à l'image, consentement écrit et alternatives sûres. Pas un conseil juridique.",
     h1: "Photos avant/après et témoignages : ce qu'un dentiste peut publier",
     intro:
@@ -526,6 +536,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Marketing dentaire : agence, community manager, équipe ou outil ?",
+    seoTitle: "Marketing dentaire : agence, équipe ou outil ?",
+    seoDescription: "Réseaux sociaux du cabinet dentaire : agence, freelance, équipe ou logiciel comparés, questions avant de signer, flux hebdomadaire et responsabilités.",
     description: "Organiser les réseaux sociaux d'un cabinet dentaire : agence, freelance, équipe ou logiciel comparés, questions avant de signer, un flux hebdomadaire et qui est responsable.",
     h1: "Marketing dentaire : agence, équipe ou outil ?",
     intro:

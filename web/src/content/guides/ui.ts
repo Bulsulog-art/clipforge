@@ -28,7 +28,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     guides: "Guides",
     about: "About",
     index: {
-      title: "Guides for dental clinics: social media, patient videos and advertising rules · DentVideo",
+      title: "Dental clinic guides: social media, videos, ad rules · DentVideo",
       description:
         "Practical guides for dentists: what to post on Instagram and TikTok, how to film patient-education videos, and what health-advertising rules allow in the UK, the US and elsewhere.",
       h1: "Guides for dental clinics",
@@ -56,7 +56,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     guides: "Ratgeber",
     about: "Über DentVideo",
     index: {
-      title: "Ratgeber für Zahnarztpraxen: Social Media, Aufklärungsvideos und Werberecht · DentVideo",
+      title: "Zahnarzt-Ratgeber: Social Media, Videos, Werberecht · DentVideo",
       description:
         "Praktische Ratgeber für Zahnärztinnen und Zahnärzte: was Sie auf Instagram posten, wie Sie Aufklärungsvideos drehen und was HWG und Berufsordnung in Deutschland, Österreich und der Schweiz erlauben.",
       h1: "Ratgeber für Zahnarztpraxen",
@@ -84,7 +84,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     guides: "Guías",
     about: "Sobre DentVideo",
     index: {
-      title: "Guías para clínicas dentales: redes sociales, vídeos para pacientes y publicidad sanitaria · DentVideo",
+      title: "Guías dentales: redes sociales, vídeos y publicidad · DentVideo",
       description:
         "Guías prácticas para dentistas: qué publicar en Instagram y TikTok, cómo grabar vídeos educativos para pacientes y qué permite la normativa de publicidad sanitaria en España.",
       h1: "Guías para clínicas dentales",
@@ -112,7 +112,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     guides: "Rehberler",
     about: "DentVideo hakkında",
     index: {
-      title: "Diş klinikleri için rehberler: sosyal medya, hasta bilgilendirme videoları ve tanıtım kuralları · DentVideo",
+      title: "Diş kliniği rehberleri: sosyal medya, video, tanıtım · DentVideo",
       description:
         "Diş hekimleri için pratik rehberler: Instagram ve TikTok'ta ne paylaşılır, hasta bilgilendirme videosu nasıl çekilir ve Türkiye'deki sağlık tanıtım yönetmeliği neye izin verir.",
       h1: "Diş klinikleri için rehberler",
@@ -140,7 +140,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     guides: "Guides",
     about: "À propos de DentVideo",
     index: {
-      title: "Guides pour cabinets dentaires : réseaux sociaux, vidéos patients et règles de communication · DentVideo",
+      title: "Guides dentaires : réseaux sociaux, vidéos, règles · DentVideo",
       description:
         "Guides pratiques pour chirurgiens-dentistes : quoi publier sur Instagram et TikTok, comment tourner des vidéos d'information patient et ce que permet le code de déontologie en France.",
       h1: "Guides pour cabinets dentaires",

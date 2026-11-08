@@ -31,6 +31,8 @@ export function landingMetadata(locale: Locale): Metadata {
       locale: OG_LOCALE[locale],
       ...(OG_ALTERNATE_LOCALES[locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[locale] } : {}),
     },
+    // Otherwise the layout's English X card text would apply to every language.
+    twitter: { card: "summary_large_image", title: c.meta.title, description: c.meta.ogDescription },
   };
 }
 

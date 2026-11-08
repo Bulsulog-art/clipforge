@@ -337,6 +337,9 @@ export default function LivePreviewPlayer({
             <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-white/80">{text.failed}</div>
           ) : inputProps && ready ? (
             <div
+              // The Player lays out its scaled canvas left to right; on an Arabic page it would sit off
+              // screen. The composition sets its own direction from the plan's language.
+              dir="ltr"
               className="absolute inset-0 touch-pan-y select-none"
               onPointerDown={onPointerDown}
               onPointerUp={onPointerUp}
@@ -349,6 +352,9 @@ export default function LivePreviewPlayer({
                 key={`${lang}/${entry.id}`}
                 ref={playerRef}
                 component={ClipForgeVideo}
+                // Bulsu Labs has two people, so Remotion's free licence applies
+                // (remotion.dev/license: companies of up to 3 employees).
+                acknowledgeRemotionLicense
                 inputProps={inputProps}
                 durationInFrames={durationInFrames}
                 compositionWidth={1080}
@@ -431,7 +437,7 @@ export default function LivePreviewPlayer({
 
       <p className="mt-4 text-center text-sm font-semibold text-dv-ink">{text.caption}</p>
       {entry ? (
-        <p className="mt-0.5 text-center text-xs text-dv-ink/60" aria-live="polite">
+        <p className="mt-0.5 text-center text-xs text-dv-muted" aria-live="polite">
           {entry.title} · {fmt(text.videoOf, { n: index + 1, total: entries.length })}
         </p>
       ) : null}

@@ -37,6 +37,20 @@ const FREE_TRIAL_CLAIMS: RegExp[] = [
   /haftanızı ücretsiz/i,
   /kart gerekmez/i,
   /ücretsiz deneme/i,
+  // ja (無料 only if something really is free — nothing is)
+  /無料/,
+  /お試し(期間|プラン|版)/,
+  /無料体験/,
+  /トライアル/,
+  // ar
+  /مجان/,
+  /تجربة مجانية/,
+  /بدون بطاقة/,
+  // pl
+  /za darmo/i,
+  /bezpłatn/i,
+  /darmow/i,
+  /bez karty/i,
   // fr
   /semaine (offerte|gratuite)/i,
   /première semaine (est |vous est )?(offerte|gratuite)/i,
@@ -65,6 +79,10 @@ describe("no free-trial claims anywhere", () => {
       "Try your first week free",
       "İlk haftayı ücretsiz deneyebilirsiniz",
       "Essayez la première semaine gratuitement",
+      "最初の1週間は無料です",
+      "الأسبوع الأول مجاناً",
+      "Pierwszy tydzień za darmo",
+      "Bezpłatny okres próbny",
     ]) {
       expect(claimsIn(old), old).not.toEqual([]);
     }

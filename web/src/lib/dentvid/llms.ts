@@ -1,4 +1,4 @@
-import { GUIDES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor } from "@/content/dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor } from "@/content/dentvideo";
 import { ENTITY, PUBLISHER_NAME } from "@/content/guides/entity";
 import { guideMarkdown } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
@@ -35,7 +35,7 @@ export function llmsTxt(): string {
     ...LOCALES.map((l) => `- [DentVideo — ${LANGUAGE_NAME[l]}](${abs(LANDING_PATH[l])}) (${l})`),
     ...LOCALES.map((l) => `- [${ENTITY[l].h1}](${abs(ABOUT_PATH[l])}) (${l}): ${ENTITY[l].definition}`),
     "",
-    ...LOCALES.flatMap((l) => [
+    ...GUIDE_HUB_LOCALES.flatMap((l) => [
       `## Guides (${LANGUAGE_NAME[l]})`,
       `- [${GUIDE_UI[l].index.h1}](${abs(GUIDES_INDEX_PATH[l])}): ${GUIDE_UI[l].index.description}`,
       ...guidesFor(l).map((g) => `- [${g.h1}](${abs(guidePath(g))}): ${g.description}`),

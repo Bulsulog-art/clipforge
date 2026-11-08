@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { ArrowLeft, ArrowRight, Check, Pencil } from "lucide-react";
-import type { Locale } from "@/content/dentvideo";
+import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { ONBOARDING_STEPS, STEP_COOKIE, TEASER_KEY, stepIndex, type OnboardingStep } from "@/lib/dentvid/onboarding";
@@ -149,9 +149,9 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
   }
 
   return (
-    <main lang={locale} className="relative isolate overflow-hidden">
+    <main lang={locale} dir={dirOf(locale)} className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="dv-grid absolute inset-x-0 top-0 -z-10 h-[40rem]" />
-      <div aria-hidden="true" className="absolute -right-40 top-0 -z-10 h-[30rem] w-[30rem] rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
+      <div aria-hidden="true" className="absolute -end-40 top-0 -z-10 h-[30rem] w-[30rem] rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6 sm:pt-12">
         <Stepper locale={locale} current={step} />
         {step === "clinic" && <ClinicStep locale={locale} draft={draft} onDone={() => go("preview")} />}
@@ -219,7 +219,7 @@ function ClinicStep({ locale, draft, onDone }: { locale: Locale; draft: ClinicDr
           {error && <p className="mt-6 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
           <button type="submit" disabled={busy} className="dv-btn dv-btn-primary group mt-8 w-full px-7 py-4 text-base sm:w-auto">
             {busy ? text.form.saving : t.clinicNext}
-            {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+            {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />}
           </button>
         </div>
         {/* A first glimpse while typing; the next step is the full preview. */}
@@ -270,7 +270,7 @@ function PreviewStep({ locale, draft, onBack, onDone }: { locale: Locale; draft:
           {error && <p className="mt-6 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
           <button type="submit" disabled={busy} className="dv-btn dv-btn-primary group mt-8 w-full px-7 py-4 text-base">
             {busy ? f.saving : t.previewNext}
-            {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+            {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />}
           </button>
           <button type="button" onClick={onBack} className="mx-auto mt-5 flex items-center gap-1.5 rounded-md text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -306,7 +306,7 @@ function PlanStep({
           {t.cancelled}
         </p>
       )}
-      <div className="mx-auto mt-10 flex max-w-3xl items-center gap-4 rounded-2xl bg-white/80 p-3 pr-4 ring-1 ring-dv-line backdrop-blur">
+      <div className="mx-auto mt-10 flex max-w-3xl items-center gap-4 rounded-2xl bg-white/80 p-3 pe-4 ring-1 ring-dv-line backdrop-blur">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl" style={{ background: preview.brandColor }}>
           {preview.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- object URL or signed URL
@@ -318,7 +318,7 @@ function PlanStep({
           <span className="block truncate font-semibold text-dv-ink">{preview.name || "—"}</span>
         </span>
         <button type="button" onClick={onEdit} className="dv-btn dv-btn-secondary shrink-0 px-4 py-2 text-sm !text-dv-teal">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
           {t.back}
         </button>
       </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { LivePreview, type PreviewProfile } from "@/components/dentvid/live-preview";
 
-const LANGUAGES: PreviewProfile["language"][] = ["en", "de", "es", "fr", "tr", "it", "pt"];
+const LANGUAGES: PreviewProfile["language"][] = ["en", "de", "es", "fr", "tr", "it", "pt", "ja", "ar", "pl"];
 
 const SERVICES: Record<string, string> = {
   en: "Cleanings, Teeth whitening, Dental implants",

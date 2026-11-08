@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
-import { GUIDES, HREFLANG, LANDING_PATH, LOCALES, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, HREFLANG, LANDING_PATH, LOCALES, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
 import { ENTITY, PUBLISHER_NAME, PUBLISHER_URL, VIDEO_LANGUAGES } from "@/content/guides/entity";
 import { plainText, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { DV_PRICES_USD, DV_TIERS } from "./billing";
 
 /**
  * Metadata, structured data and sitemap entries for the guide library, the
@@ -39,6 +40,8 @@ export function organizationNode() {
 
 const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
 
+const monthlyPrices = () => DV_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
+
 export function softwareNode(locale: Locale) {
   const e = ENTITY[locale];
   return {
@@ -53,7 +56,15 @@ export function softwareNode(locale: Locale) {
     inLanguage: [...VIDEO_LANGUAGES],
     audience: { "@type": "BusinessAudience", audienceType: "Dental clinics and dentists" },
     publisher: { "@id": ORG_ID },
-    offers: { "@type": "Offer", name: "Monthly plan", description: e.facts.find((f) => PRICE_LABELS.includes(f.label))?.value },
+    // Google requires a price on a SoftwareApplication offer: the plans' monthly range, from billing.
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: Math.min(...monthlyPrices()),
+      highPrice: Math.max(...monthlyPrices()),
+      offerCount: monthlyPrices().length,
+      description: e.facts.find((f) => PRICE_LABELS.includes(f.label))?.value,
+    },
   };
 }
 
@@ -91,9 +102,9 @@ function absolute(map: Record<string, string>): Record<string, string> {
 }
 
 /** One page per language (landing, guides index, About): every locale plus x-default (English). */
-function perLocaleAltPaths(paths: Record<Locale, string>): Record<string, string> {
+function perLocaleAltPaths(paths: Record<Locale, string>, locales: readonly Locale[] = LOCALES): Record<string, string> {
   const languages: Record<string, string> = {};
-  for (const l of LOCALES) languages[HREFLANG[l]] = paths[l];
+  for (const l of locales) languages[HREFLANG[l]] = paths[l];
   languages["x-default"] = paths.en;
   return languages;
 }
@@ -112,16 +123,40 @@ export function guideOgImagePath(g: Guide): string {
   return `${guidePath(g)}/opengraph-image`;
 }
 
+/** Longest title Google shows untruncated, in characters (roughly 600px). */
+export const SEO_TITLE_MAX = 60;
+/** Longest meta description Google shows untruncated, in characters. */
+export const SEO_DESCRIPTION_MAX = 155;
+const BRAND_SUFFIX = " · DentVideo";
+
+/**
+ * A guide's <title>: its short SEO title (or, without one, its full title)
+ * plus " · DentVideo" when that still fits in SEO_TITLE_MAX characters.
+ */
+export function guideSeoTitle(g: Guide): string {
+  if (!g.seoTitle) return `${g.title}${BRAND_SUFFIX}`;
+  const branded = `${g.seoTitle}${BRAND_SUFFIX}`;
+  return branded.length <= SEO_TITLE_MAX ? branded : g.seoTitle;
+}
+
+/** A guide's meta description: the short SEO one, falling back to the full description. */
+export function guideSeoDescription(g: Guide): string {
+  return g.seoDescription ?? g.description;
+}
+
 export function guideMetadata(g: Guide): Metadata {
   const url = absoluteUrl(guidePath(g));
   const languages = guideAlternates(g);
+  const title = guideSeoTitle(g);
+  const shareTitle = g.seoTitle ?? g.title;
+  const description = guideSeoDescription(g);
   return {
-    title: { absolute: `${g.title} · DentVideo` },
-    description: g.description,
+    title: { absolute: title },
+    description,
     alternates: { canonical: url, ...(languages ? { languages } : {}) },
     openGraph: {
-      title: g.title,
-      description: g.description,
+      title: shareTitle,
+      description,
       url,
       type: "article",
       siteName: "DentVideo",
@@ -130,7 +165,7 @@ export function guideMetadata(g: Guide): Metadata {
       ...(g.updated ? { modifiedTime: g.updated } : {}),
     },
     // The layout's generic X card text would otherwise apply; the image comes from opengraph-image.tsx.
-    twitter: { card: "summary_large_image", title: g.title, description: g.description },
+    twitter: { card: "summary_large_image", title: shareTitle, description },
   };
 }
 
@@ -177,7 +212,8 @@ export function guideJsonLd(g: Guide) {
 /* ---------- Guides index ---------- */
 
 export function guidesIndexAlternates(): Record<string, string> {
-  return absolute(perLocaleAltPaths(GUIDES_INDEX_PATH));
+  // Only languages that have a hub: Japanese, Arabic and Polish have no guides yet.
+  return absolute(perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES));
 }
 
 export function guidesIndexMetadata(locale: Locale): Metadata {
@@ -278,7 +314,7 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
   const latestGuide = (l: Locale) => guidesFor(l).map(dateOf).reduce((a, b) => (b > a ? b : a), SITE_UPDATED);
   return [
     ...LOCALES.map((l) => ({ path: LANDING_PATH[l], lastmod: SITE_UPDATED, priority: l === "en" ? "1.0" : "0.9", alternates: perLocaleAltPaths(LANDING_PATH) })),
-    ...LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH) })),
+    ...GUIDE_HUB_LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES) })),
     ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: SITE_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
   ];

@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { LANDING_PATH, type Locale } from "@/content/dentvideo";
+import { LANDING_PATH, dirOf, hasGuides, type Locale } from "@/content/dentvideo";
 import { ENTITY } from "@/content/guides/entity";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { aboutJsonLd } from "@/lib/dentvid/seo-guides";
-import { Breadcrumbs, GuideCta } from "./guide-parts";
+import { dvHref } from "@/lib/dentvid/host";
+import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 
 /** What DentVideo is, stated plainly, with the facts as a definition list. */
 export function AboutPage({ locale }: { locale: Locale }) {
   const e = ENTITY[locale];
   const ui = GUIDE_UI[locale];
   return (
-    <main lang={locale}>
+    <main lang={locale} dir={dirOf(locale)}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd(locale)) }} />
+      <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">
@@ -46,13 +48,13 @@ export function AboutPage({ locale }: { locale: Locale }) {
           <div className="mt-6 divide-y divide-dv-line border-y border-dv-line">
             {e.faq.map((f, i) => (
               <details key={f.q} className="group" open={i === 0}>
-                <summary className="flex cursor-pointer items-start justify-between gap-6 py-5 text-left font-semibold leading-snug text-dv-ink">
+                <summary className="flex cursor-pointer items-start justify-between gap-6 py-5 text-start font-semibold leading-snug text-dv-ink">
                   {f.q}
                   <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-300 group-open:rotate-45">
                     <Plus className="h-4 w-4" />
                   </span>
                 </summary>
-                <p className="-mt-1 pb-6 pr-12 leading-relaxed text-dv-body">{f.a}</p>
+                <p className="-mt-1 pb-6 pe-12 leading-relaxed text-dv-body">{f.a}</p>
               </details>
             ))}
           </div>
@@ -61,11 +63,13 @@ export function AboutPage({ locale }: { locale: Locale }) {
         <div className="mt-16">
           <GuideCta locale={locale} />
         </div>
-        <p className="mt-8 text-sm">
-          <Link href={GUIDES_INDEX_PATH[locale]} className="font-semibold text-dv-teal underline-offset-4 hover:underline">
-            {ui.allGuides}
-          </Link>
-        </p>
+        {hasGuides(locale) && (
+          <p className="mt-8 text-sm">
+            <Link href={dvHref(GUIDES_INDEX_PATH[locale])} className="font-semibold text-dv-teal underline-offset-4 hover:underline">
+              {ui.allGuides}
+            </Link>
+          </p>
+        )}
       </div>
     </main>
   );

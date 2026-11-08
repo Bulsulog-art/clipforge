@@ -4,9 +4,21 @@ import { StartForm } from "@/components/dentvid/start-form";
 import { Onboarding } from "@/components/dentvid/onboarding";
 import { FirstWeek } from "@/components/dentvid/first-week";
 import { asLocale } from "@/lib/dentvid/locale";
+import { dirOf, type Locale } from "@/content/dentvideo";
 import { asStep } from "@/lib/dentvid/onboarding";
 import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
 import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
+
+const DEMO_CLINIC: Record<Locale, { name: string; city: string; country: string }> = {
+  en: { name: "Riverside Dental", city: "Bristol", country: "GB" },
+  de: { name: "Zahnarztpraxis am Park", city: "München", country: "DE" },
+  es: { name: "Clínica Dental Sonrisa", city: "Valencia", country: "ES" },
+  tr: { name: "Gülümse Diş Kliniği", city: "İzmir", country: "TR" },
+  fr: { name: "Cabinet Dentaire du Parc", city: "Lyon", country: "FR" },
+  ja: { name: "さくら歯科クリニック", city: "横浜市", country: "JP" },
+  ar: { name: "عيادة الابتسامة لطب الأسنان", city: "دبي", country: "AE" },
+  pl: { name: "Gabinet Stomatologiczny Uśmiech", city: "Kraków", country: "PL" },
+};
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Funnel preview", robots: { index: false, follow: false } };
@@ -22,7 +34,7 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
   const locale = asLocale(sp.lang) ?? "en";
   if (sp.step === "first-week" || sp.step === "activating") {
     return (
-      <main lang={locale} className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <main lang={locale} dir={dirOf(locale)} className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <FirstWeek locale={locale} paid={sp.step === "first-week"} pollMs={3_600_000} />
       </main>
     );
@@ -32,9 +44,7 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
   const demo = sp.empty
     ? undefined
     : {
-        name: { en: "Riverside Dental", de: "Zahnarztpraxis am Park", es: "Clínica Dental Sonrisa", tr: "Gülümse Diş Kliniği", fr: "Cabinet Dentaire du Parc" }[locale],
-        city: { en: "Bristol", de: "München", es: "Valencia", tr: "İzmir", fr: "Lyon" }[locale],
-        country: { en: "GB", de: "DE", es: "ES", tr: "TR", fr: "FR" }[locale],
+        ...DEMO_CLINIC[locale],
         language: locale,
         services: splitServices(SERVICE_HINTS[locale]).slice(0, 4),
         tone: "warm" as const,

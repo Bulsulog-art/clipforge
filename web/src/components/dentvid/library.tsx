@@ -140,7 +140,7 @@ export function Library({
                 <li key={i.id} className="rounded-xl bg-white p-4 ring-1 ring-dv-line">
                   <p className="font-medium text-dv-ink">{i.title}</p>
                   {i.findings.length > 0 && (
-                    <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-dv-body">
+                    <ul className="mt-1.5 list-disc space-y-1 ps-5 text-sm text-dv-body">
                       {i.findings.slice(0, 4).map((f, n) => (
                         <li key={n}>{f}</li>
                       ))}
@@ -200,7 +200,8 @@ function NextStep({ locale, action, thisWeek }: { locale: Locale; action: Exclud
     : action === "share" ? h.shareTitle
     : h.idleTitle;
   const lead =
-    action === "review" ? `${h.reviewLead}${s.look > 0 ? ` ${h.lookLead}` : ""}`
+    // Japanese runs sentences together without a space.
+    action === "review" ? `${h.reviewLead}${s.look > 0 ? `${locale === "ja" ? "" : " "}${h.lookLead}` : ""}`
     : action === "making" ? h.makingLead
     : action === "start" ? h.startLead
     : action === "share" ? h.shareLead
@@ -342,7 +343,7 @@ function ItemCard({ item, t, onChanged, onPlay }: { item: LibraryItem; t: AppTex
       {item.findings.length > 0 && state !== "making" && state !== "failed" && (
         <div className={`mx-3 mb-3 rounded-xl p-3 text-sm sm:mx-4 ${state === "look" ? "bg-[#fdf6ea]" : "bg-dv-sand/70"}`}>
           <p className="font-semibold text-[#7a4b00]">{t.whatToCheck}</p>
-          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[#5c4a2a]">
+          <ul className="mt-1.5 list-disc space-y-1 ps-5 text-[#5c4a2a]">
             {item.findings.slice(0, 6).map((f, i) => (
               <li key={i}>{f}</li>
             ))}

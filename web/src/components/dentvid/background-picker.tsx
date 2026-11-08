@@ -83,7 +83,7 @@ export function BackgroundPicker({
                     >
                       <Image src={backgroundSrc(id)} alt={fmt(t.photoAlt, { n: i + 1 })} width={72} height={128} sizes="72px" className="h-full w-full object-cover" />
                       {on && (
-                        <span aria-hidden="true" className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-dv-teal text-xs font-semibold text-white shadow">
+                        <span aria-hidden="true" className="absolute end-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-dv-teal text-xs font-semibold text-white shadow">
                           {order + 1}
                         </span>
                       )}

@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LANDING_PATH, LANGUAGE_NAME, LOCALES, type Locale } from "@/content/dentvideo";
+import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuides, type Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { dvHref } from "@/lib/dentvid/host";
 import { DvLogo } from "./mark";
 import { Clapperboard, LogOut, Settings, Video } from "lucide-react";
 import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
@@ -72,6 +73,13 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
   // Until the visitor's language is known on the app screens, keep the space
   // but not the English words.
   const hide = ready ? "" : "invisible";
+  // <html lang> follows the page on client-side navigation (HtmlLang sets it on first load).
+  useEffect(() => {
+    if (ready) {
+      document.documentElement.lang = locale;
+      document.documentElement.dir = dirOf(locale);
+    }
+  }, [locale, ready]);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -83,6 +91,8 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
     "hidden rounded-full px-3.5 py-2 font-medium text-dv-body transition-colors hover:bg-dv-sand-200/70 hover:text-dv-ink md:inline-block";
   return (
     <header
+      lang={locale}
+      dir={dirOf(locale)}
       className={`sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300 ${
         scrolled
           ? "border-dv-line/80 bg-dv-paper/80 shadow-[0_10px_30px_-24px_rgba(20,33,31,0.45)] backdrop-blur-xl backdrop-saturate-150"
@@ -90,15 +100,15 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:h-[4.5rem] sm:px-6">
-        <Link href={home} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
+        <Link href={dvHref(home)} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
           <DvLogo className="h-7 w-auto sm:h-8" />
         </Link>
         {!quiet && (
           <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
-            <Link href={`${home}#how`} className={navLink}>{t.howItWorks}</Link>
-            <Link href={`${home}#pricing`} className={navLink}>{t.pricing}</Link>
-            <Link href={GUIDES_INDEX_PATH[locale]} className={navLink}>{GUIDE_UI[locale].guides}</Link>
-            <Link href="/dentvideo/app" className="dv-btn dv-btn-primary ml-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
+            <Link href={dvHref(`${home}#how`)} className={navLink}>{t.howItWorks}</Link>
+            <Link href={dvHref(`${home}#pricing`)} className={navLink}>{t.pricing}</Link>
+            {hasGuides(locale) && <Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={navLink}>{GUIDE_UI[locale].guides}</Link>}
+            <Link href={dvHref("/dentvideo/app")} className="dv-btn dv-btn-primary ms-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
               {t.openApp}
             </Link>
           </nav>
@@ -116,28 +126,28 @@ export function DvFooter({ guideLocales }: Props) {
   const home = LANDING_PATH[locale];
   const link = "rounded-md text-[#c9d9d5] transition-colors hover:text-white";
   return (
-    <footer className="dv-on-dark dv-grain relative overflow-hidden bg-dv-teal-950 text-[#c9d9d5]">
+    <footer lang={locale} dir={dirOf(locale)} className="dv-on-dark dv-grain relative overflow-hidden bg-dv-teal-950 text-[#c9d9d5]">
       <div aria-hidden="true" className="pointer-events-none absolute -top-48 left-1/2 h-96 w-[64rem] -translate-x-1/2 rounded-full bg-[#167269]/30 blur-3xl" />
       <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20">
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm">
-            <Link href={home} className="-m-1 inline-block rounded-lg p-1" aria-label="DentVideo">
+            <Link href={dvHref(home)} className="-m-1 inline-block rounded-lg p-1" aria-label="DentVideo">
               <DvLogo tone="dark" className="h-9 w-auto" />
             </Link>
             <p className={`mt-6 text-sm leading-relaxed text-[#a9c3be] ${ready ? "" : "invisible"}`}>{t.footer}</p>
           </div>
           <div className={`grid grid-cols-2 gap-x-16 text-sm ${ready ? "" : "invisible"}`}>
             <ul className="space-y-3.5">
-              <li><Link href={`${home}#how`} className={link}>{t.howItWorks}</Link></li>
-              <li><Link href={`${home}#pricing`} className={link}>{t.pricing}</Link></li>
-              <li><Link href={GUIDES_INDEX_PATH[locale]} className={link}>{GUIDE_UI[locale].guides}</Link></li>
-              <li><Link href={ABOUT_PATH[locale]} className={link}>{GUIDE_UI[locale].about}</Link></li>
-              <li><Link href="/dentvideo/app" className={link}>{t.openApp}</Link></li>
+              <li><Link href={dvHref(`${home}#how`)} className={link}>{t.howItWorks}</Link></li>
+              <li><Link href={dvHref(`${home}#pricing`)} className={link}>{t.pricing}</Link></li>
+              {hasGuides(locale) && <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{GUIDE_UI[locale].guides}</Link></li>}
+              <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{GUIDE_UI[locale].about}</Link></li>
+              <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>
             </ul>
             <ul className="space-y-3.5">
               {LOCALES.map((l) => (
                 <li key={l}>
-                  <Link href={LANDING_PATH[l]} hrefLang={l} lang={l} className={l === locale ? "rounded-md font-semibold text-white" : link}>
+                  <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} dir={dirOf(l)} className={l === locale ? "rounded-md font-semibold text-white" : link}>
                     {LANGUAGE_NAME[l]}
                   </Link>
                 </li>
@@ -176,6 +186,13 @@ const TABS: { key: AppTab; href: string; Icon: typeof Video }[] = [
 function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab: AppTab }) {
   const t = appText(locale).chrome;
   const [leaving, setLeaving] = useState(false);
+  // As on the site: <html> speaks the app's language, right to left in Arabic.
+  useEffect(() => {
+    if (ready) {
+      document.documentElement.lang = locale;
+      document.documentElement.dir = dirOf(locale);
+    }
+  }, [locale, ready]);
   const hide = ready ? "" : "invisible";
 
   async function signOut() {
@@ -194,7 +211,7 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
     }`;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-dv-line/80 bg-dv-paper/90 backdrop-blur-xl backdrop-saturate-150">
+    <header lang={locale} dir={dirOf(locale)} className="sticky top-0 z-40 border-b border-dv-line/80 bg-dv-paper/90 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:h-16 sm:px-6">
         <Link href="/dentvideo/app" className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
           <DvLogo className="h-7 w-auto" />
@@ -213,7 +230,7 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
           disabled={leaving}
           className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-dv-body transition-colors hover:bg-dv-sand-200/70 hover:text-dv-ink disabled:opacity-60 ${hide}`}
         >
-          <LogOut className="h-4 w-4" aria-hidden="true" />
+          <LogOut className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
           {leaving ? t.signingOut : t.signOut}
         </button>
       </div>
@@ -243,12 +260,12 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
 function AppFooter({ locale, ready }: { locale: Locale; ready: boolean }) {
   const t = appText(locale).chrome;
   return (
-    <footer className={`border-t border-dv-line bg-dv-sand/60 ${ready ? "" : "invisible"}`}>
+    <footer lang={locale} dir={dirOf(locale)} className={`border-t border-dv-line bg-dv-sand/60 ${ready ? "" : "invisible"}`}>
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-dv-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="max-w-xl">{t.footer}</p>
         <p>
           {t.help}{" "}
-          <a href={`mailto:${DV_SUPPORT_EMAIL}`} className="font-medium text-dv-teal underline-offset-4 hover:underline">
+          <a dir="ltr" href={`mailto:${DV_SUPPORT_EMAIL}`} className="font-medium text-dv-teal underline-offset-4 hover:underline">
             {DV_SUPPORT_EMAIL}
           </a>
         </p>

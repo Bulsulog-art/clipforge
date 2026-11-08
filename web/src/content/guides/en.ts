@@ -24,6 +24,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Instagram videos for dentists: what to post, how to film it and what to avoid",
+    seoTitle: "Instagram for dentists: what to post in Reels",
+    seoDescription: "Which short videos patients watch, the Reels format, captions, posting rhythm, five-minute filming and what health-advertising rules restrict for dentists.",
     description: "A practical guide for dental clinics: which short videos patients watch, the Reels format, captions, posting rhythm, five-minute filming and what health-advertising rules restrict.",
     h1: "Instagram videos for dentists: what to post, and how to keep it simple",
     intro:
@@ -130,6 +132,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Patient-education videos for dental clinics: topics, uses and accuracy",
+    seoTitle: "Dental patient education videos: topics and uses",
+    seoDescription: "Why short patient education videos help dental clinics, which topics to start with, a script template, where to use them and how to keep them accurate.",
     description: "Why short patient-education videos help dental clinics, which topics to cover first, a script template, where to use them and how to keep them accurate.",
     h1: "Patient-education videos for dental clinics",
     intro:
@@ -224,6 +228,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Dental social media and advertising rules: what to watch for, country by country",
+    seoTitle: "Dental advertising guidelines for social media",
+    seoDescription: "The claims health-advertising rules commonly restrict in dental social media posts, with pointers for the UK, US, Germany, Spain, France and Türkiye.",
     description: "The claims health-advertising rules commonly restrict in dental social media posts, with pointers to the UK, US, Germany, Spain, France and Türkiye. Not legal advice.",
     h1: "Dental social media and advertising rules: what to watch for",
     intro:
@@ -318,6 +324,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Dental social media post ideas: a year of safe topics for Instagram, Reels and TikTok",
+    seoTitle: "Dental social media post ideas for a whole year",
+    seoDescription: "A year of dental social media post ideas: patient questions, treatments explained, aftercare, team, seasonal topics, captions and what to avoid.",
     description: "Dental social media post ideas: patient questions, treatments explained, aftercare, team and practice, seasonal topics, a sample month, captions and hashtags, and what to avoid.",
     h1: "Dental social media post ideas",
     intro:
@@ -436,6 +444,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "UK dental advertising rules for social media: GDC standards and the ASA's CAP Code",
+    seoTitle: "GDC social media guidance and the CAP Code",
+    seoDescription: "What UK dentists can post on social media under GDC standards and the ASA's CAP Code: testimonials, prices, Botox, specialist titles and UK GDPR.",
     description: "What UK dentists can post on Instagram and TikTok: GDC standards and advertising guidance, CAP Code substantiation, testimonials, prices, Botox, specialist titles and UK GDPR. Not legal advice.",
     h1: "UK dental advertising rules for social media",
     intro:
@@ -522,6 +532,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Dental advertising rules in the US: FTC, ADA Code, state boards and HIPAA on social media",
+    seoTitle: "US dental advertising rules: FTC, ADA, HIPAA",
+    seoDescription: "What US dental practices can post on social media: FTC advertising and endorsement rules, reviews, the ADA Code, state dental boards and HIPAA.",
     description: "What US dental practices can post on social media: FTC truth-in-advertising and endorsement rules, the reviews and testimonials rule, ADA Code, state dental boards and HIPAA. Not legal advice.",
     h1: "Dental advertising rules in the US for social media",
     intro:
@@ -606,6 +618,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Patient photos, videos and reviews on dental social media: consent, HIPAA and UK GDPR",
+    seoTitle: "Dental social media consent: photos, HIPAA, GDPR",
+    seoDescription: "What a dental practice needs before posting patient photos or videos: written consent or HIPAA authorization, what the form says and review replies.",
     description: "What dental practices need before posting patient photos, videos or stories: written consent or HIPAA authorization, what the form should say, review replies and safe alternatives. Not legal advice.",
     h1: "Patient photos and videos on dental social media: consent and privacy",
     intro:
@@ -686,6 +700,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Dental video marketing: agency, freelancer, in-house or software?",
+    seoTitle: "Dental video marketing: agency or software?",
+    seoDescription: "Dental video marketing compared: agency, freelancer, in-house team or software, questions to ask before signing, a weekly workflow and who is responsible.",
     description: "How to run a dental practice's social media video: agency, freelancer, in-house team or software compared, questions to ask before signing, a weekly workflow and who is responsible.",
     h1: "Dental video marketing: agency, freelancer, in-house or software?",
     intro:

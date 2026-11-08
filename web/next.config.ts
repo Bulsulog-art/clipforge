@@ -17,6 +17,18 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "img.youtube.com" },
     ],
   },
+  async rewrites() {
+    // Browsers and search engines ask dentvideo.com for /favicon.ico whatever
+    // the page links. The middleware skips that path (see its matcher), so the
+    // host routing lives here; the forwarded host is checked as the proxy sets it.
+    const dentvideo = "(www\\.)?dentvideo\\.com";
+    return {
+      beforeFiles: [
+        { source: "/favicon.ico", has: [{ type: "header", key: "x-forwarded-host", value: dentvideo }], destination: "/dentvideo/favicon.ico" },
+        { source: "/favicon.ico", has: [{ type: "host", value: dentvideo }], destination: "/dentvideo/favicon.ico" },
+      ],
+    };
+  },
   async headers() {
     // DentVideo's backend (Liman, self-hosted Supabase): the browser signs in,
     // uploads recordings/logos and plays signed video URLs from it directly.

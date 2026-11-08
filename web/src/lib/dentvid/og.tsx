@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { LANDING, type Locale } from "@/content/dentvideo";
+import { LANDING, dirOf, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import {
   LOCKUP_VIEWBOX,
@@ -21,7 +21,14 @@ export const OG_SIZE = { width: 1200, height: 630 };
  * glyphs of the card's text (the `text=` subset) at build time, as TrueType.
  * Without the network the card is drawn without its words rather than in tofu.
  */
-const SCRIPT_FONT: Partial<Record<Locale, string>> = { ja: "Noto Sans JP", ar: "Noto Sans Arabic" };
+const SCRIPT_FONT: Partial<Record<Locale, string>> = { ja: "Noto Sans JP" };
+/**
+ * Satori (next/og) cannot shape Arabic: its font parser rejects the contextual
+ * substitutions Arabic faces rely on, and it has no right-to-left layout. The
+ * Arabic card is drawn without words — logo, dentvideo.com and the phone — and
+ * the shared link's title and description carry the Arabic text.
+ */
+const WORDLESS: readonly Locale[] = ["ar"];
 
 async function googleFontSubset(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
   try {
@@ -51,9 +58,10 @@ export async function dentvideoOgImage(locale: Locale) {
   ]);
   const posterUri = poster ? `data:image/jpeg;base64,${poster.toString("base64")}` : null;
   const L = LOGO_COLORS.light;
-  const rtl = locale === "ar";
+  // A right-to-left card once a script can be drawn right to left (not yet: see WORDLESS).
+  const rtl = dirOf(locale) === "rtl" && !WORDLESS.includes(locale);
   // Words only when they can be drawn: Latin always, Japanese/Arabic when their font arrived.
-  const words = !family || script !== null;
+  const words = !WORDLESS.includes(locale) && (!family || script !== null);
   const headFont = family ? "Script" : "Instrument";
   const bodyFont = family ? "Script" : "Jakarta";
   const align = rtl ? "flex-end" : "flex-start";

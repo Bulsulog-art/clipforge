@@ -22,6 +22,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vídeos para clínicas dentales en redes sociales: temas, formato y publicidad sanitaria",
+    seoTitle: "Vídeos para clínicas dentales: temas y formato",
+    seoDescription: "Qué vídeos cortos ven los pacientes, formato Reels, subtítulos, frecuencia y qué limita la publicidad sanitaria en España a las clínicas dentales.",
     description: "Guía práctica para clínicas dentales: qué vídeos cortos ven los pacientes, formato Reels, subtítulos, frecuencia y qué limita la publicidad sanitaria en España.",
     h1: "Vídeos para clínicas dentales en redes sociales",
     intro:
@@ -126,6 +128,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Publicidad sanitaria para dentistas: qué se puede publicar en redes sociales en España",
+    seoTitle: "Publicidad sanitaria para dentistas en redes",
+    seoDescription: "Qué puede publicar un dentista en redes en España: Ley General de Sanidad, RD 1907/1996, normas autonómicas, código deontológico y checklist.",
     description: "Normativa de publicidad sanitaria para clínicas dentales en redes: Ley General de Sanidad, RD 1907/1996, comunidades autónomas, código deontológico, ejemplos y checklist. No es asesoramiento jurídico.",
     h1: "Publicidad sanitaria para dentistas: qué se puede publicar en redes",
     intro:
@@ -220,6 +224,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Ideas de contenido para Instagram de una clínica dental: un año de temas seguros",
+    seoTitle: "Instagram para clínica dental: ideas para un año",
+    seoDescription: "Ideas de publicaciones para Instagram, Reels y TikTok de una clínica dental: preguntas de pacientes, tratamientos, equipo, temporada y qué evitar.",
     description: "Ideas de publicaciones para Instagram, Reels y TikTok de clínicas dentales: preguntas de pacientes, tratamientos explicados, equipo, temas de temporada, un mes de ejemplo y qué evitar.",
     h1: "Ideas de contenido para el Instagram de una clínica dental",
     intro:
@@ -339,6 +345,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vídeos educativos para pacientes dentales: temas, usos y cómo mantenerlos precisos",
+    seoTitle: "Vídeos educativos dentales para pacientes",
+    seoDescription: "Vídeos de educación al paciente para clínicas dentales: temas para empezar, plantilla de guion, sala de espera, WhatsApp, precisión y consentimiento.",
     description: "Guía de vídeos de educación al paciente para clínicas dentales: por qué temas empezar, plantilla de guion, sala de espera, WhatsApp y redes, precisión y consentimiento informado.",
     h1: "Vídeos educativos para pacientes dentales",
     intro:
@@ -435,6 +443,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Fotos y vídeos de pacientes en redes: consentimiento y protección de datos en clínicas dentales",
+    seoTitle: "Consentimiento para fotos de pacientes dentales",
+    seoDescription: "Qué exigen el RGPD y la LOPDGDD para publicar fotos, vídeos o radiografías de pacientes en redes y cómo redactar el consentimiento en la clínica.",
     description: "Qué exige el RGPD y la LOPDGDD para publicar fotos, vídeos o radiografías de pacientes en redes, cómo redactar el consentimiento y qué evitar. No es asesoramiento jurídico.",
     h1: "Fotos y vídeos de pacientes en redes: consentimiento y datos",
     intro:
@@ -524,6 +534,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Marketing dental en redes: ¿agencia, community manager, equipo propio o herramienta?",
+    seoTitle: "Marketing dental: ¿agencia o herramienta?",
+    seoDescription: "Redes de una clínica dental: agencia, freelance, equipo propio o software comparados, preguntas antes de contratar, flujo semanal y quién responde.",
     description: "Cómo organizar las redes de una clínica dental: agencia, freelance, equipo o software comparados, preguntas antes de contratar, un flujo semanal y quién responde de los errores.",
     h1: "Marketing dental en redes: ¿agencia, equipo o herramienta?",
     intro:

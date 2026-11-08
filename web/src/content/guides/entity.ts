@@ -29,7 +29,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "About DentVideo — what it is, who it is for, how checks work",
       description:
-        "DentVideo is a web app by Bulsu Labs that makes short, narrated patient-education videos for dental clinics in ten languages and checks each one for clinical accuracy and health-advertising rules before the dentist approves it.",
+        "DentVideo by Bulsu Labs makes short, narrated patient-education videos for dental clinics in ten languages, checked for accuracy and advertising rules.",
     },
     h1: "About DentVideo",
     definition:
@@ -73,7 +73,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "Über DentVideo — was es ist, für wen, wie geprüft wird",
       description:
-        "DentVideo ist eine Web-App von Bulsu Labs, die kurze, vertonte Aufklärungsvideos für Zahnarztpraxen in zehn Sprachen erstellt und jedes vor der Freigabe auf fachliche Richtigkeit und Werberecht im Gesundheitswesen prüft.",
+        "DentVideo von Bulsu Labs erstellt kurze, vertonte Aufklärungsvideos für Zahnarztpraxen in zehn Sprachen, geprüft auf Richtigkeit und Werberecht.",
     },
     h1: "Über DentVideo",
     definition:
@@ -117,7 +117,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "Sobre DentVideo — qué es, para quién y cómo se revisa",
       description:
-        "DentVideo es una aplicación web de Bulsu Labs que crea vídeos educativos cortos y narrados para clínicas dentales en diez idiomas y revisa cada uno en precisión clínica y normas de publicidad sanitaria antes de que el dentista lo apruebe.",
+        "DentVideo, de Bulsu Labs, crea vídeos educativos cortos y narrados para clínicas dentales en diez idiomas, revisados en precisión y publicidad sanitaria.",
     },
     h1: "Sobre DentVideo",
     definition:
@@ -130,7 +130,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
       { label: "Cómo se revisa", value: "Un software revisa cada guion y cada texto dos veces: frente a las afirmaciones publicitarias que suelen estar restringidas (garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios) y mediante un revisor que actúa como dentista general frente a las guías clínicas habituales. Lo que no pasa se reescribe o no se hace. Las grabaciones propias nunca se modifican; lo que merece otra mirada se marca con el motivo." },
       { label: "Quién decide", value: "La clínica. Nada se publica sin su aprobación, y DentVideo no publica en redes por sí mismo: la clínica descarga los vídeos aprobados y los publica." },
       { label: "Valor jurídico", value: "Un filtro cuidadoso, no asesoramiento jurídico. La clínica sigue siendo responsable de lo que publica." },
-      { label: "Precio", value: "Planes desde 39 $ al mes: Starter 39 $, Practice 69 $ (o 690 $ al año), Group 219 $ al mes. Mensuales y sin permanencia. Antes de pagar, la clínica ve una vista previa en directo de sus propios vídeos con su logo y sus colores; su primera semana de vídeos se crea justo después del pago. Oferta de fundadoras: Practice a 39 $ al mes durante 12 meses para las primeras 100 clínicas." },
+      { label: "Precio", value: "Planes desde 39 $ al mes: Starter 39 $, Practice 69 $ (o 690 $ al año), Group 219 $ al mes. Mensuales y sin permanencia. Antes de pagar, la clínica ve una vista previa en directo de sus propios vídeos con su logo y sus colores; su primera semana de vídeos se crea justo después del pago. Oferta fundadora: Practice a 39 $ al mes durante 12 meses para las primeras 100 clínicas." },
       { label: "Empresa", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Web", value: "dentvideo.com — en español, inglés, alemán, turco, francés, japonés, árabe y polaco." },
     ],
@@ -161,7 +161,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "DentVideo hakkında — nedir, kimin için, nasıl denetlenir",
       description:
-        "DentVideo, Bulsu Labs'in geliştirdiği; diş klinikleri için on dilde kısa, seslendirmeli hasta bilgilendirme videoları üreten ve her birini hekim onayından önce klinik doğruluk ve sağlık tanıtım kurallarına göre denetleyen bir web uygulamasıdır.",
+        "DentVideo, diş klinikleri için on dilde seslendirmeli hasta bilgilendirme videoları üretir; her video doğruluk ve tanıtım kurallarına göre denetlenir.",
     },
     h1: "DentVideo hakkında",
     definition:
@@ -205,7 +205,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "À propos de DentVideo — ce que c'est, pour qui, comment c'est vérifié",
       description:
-        "DentVideo est une application web de Bulsu Labs qui crée de courtes vidéos d'information patient, narrées, pour les cabinets dentaires en dix langues, et vérifie chacune pour l'exactitude clinique et les règles de communication avant validation par le praticien.",
+        "DentVideo, de Bulsu Labs, crée de courtes vidéos d'information patient narrées pour cabinets dentaires en dix langues, vérifiées avant validation.",
     },
     h1: "À propos de DentVideo",
     definition:
@@ -249,7 +249,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "DentVideoについて：サービスの内容、対象、チェックのしくみ",
       description:
-        "DentVideoは、Bulsu Labsが提供するウェブアプリです。歯科医院向けに、ナレーション付きの短い患者さん向け説明動画を10言語で制作し、院長先生の承認の前に、臨床的な正確性と医療広告の観点から1本ずつチェックします。",
+        "DentVideoはBulsu Labsのウェブアプリ。歯科医院向けにナレーション付きの短い説明動画を10言語で制作し、臨床的な正確性と医療広告の観点からチェックします。",
     },
     h1: "DentVideoについて",
     definition:
@@ -293,7 +293,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "عن DentVideo: ما هو، ولمن، وكيف تتم المراجعة",
       description:
-        "DentVideo تطبيق ويب من Bulsu Labs يُعدّ لعيادات الأسنان فيديوهات توعوية قصيرة للمرضى بتعليق صوتي في عشر لغات، ويراجع كل فيديو للدقة السريرية وضوابط الإعلان الصحي قبل أن يعتمده طبيب الأسنان.",
+        "DentVideo من Bulsu Labs يُعدّ لعيادات الأسنان فيديوهات توعوية قصيرة بتعليق صوتي في عشر لغات، ويراجعها للدقة السريرية وضوابط الإعلان الصحي.",
     },
     h1: "عن DentVideo",
     definition:
@@ -337,7 +337,7 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     meta: {
       title: "O DentVideo: czym jest, dla kogo i jak działa kontrola",
       description:
-        "DentVideo to aplikacja internetowa Bulsu Labs, która tworzy dla gabinetów stomatologicznych krótkie filmy edukacyjne z lektorem w dziesięciu językach i sprawdza każdy pod kątem poprawności klinicznej i zasad reklamy medycznej, zanim zatwierdzi go lekarz dentysta.",
+        "DentVideo (Bulsu Labs) tworzy krótkie filmy edukacyjne z lektorem dla gabinetów stomatologicznych w 10 językach, sprawdzane klinicznie i pod kątem reklamy.",
     },
     h1: "O DentVideo",
     definition:

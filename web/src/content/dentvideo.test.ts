@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GUIDES, LANDING, LANDING_PATH, LOCALES, guidePath, guidesFor } from "./dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LANDING, LANDING_PATH, LOCALES, dirOf, guidePath, guidesFor } from "./dentvideo";
 import { dentvideoPaths, guideJsonLd, landingAlternates, landingJsonLd } from "@/lib/dentvid/seo";
 import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS } from "@/lib/dentvid/billing";
 
@@ -14,6 +14,15 @@ describe("DentVideo landing content", () => {
   it("every locale has the same keys and sections as English", () => {
     const en = shape(LANDING.en);
     for (const l of LOCALES) expect(shape(LANDING[l]), l).toEqual(en);
+  });
+
+  it("search snippets fit: titles up to 65 characters, descriptions 70–160", () => {
+    for (const l of LOCALES) {
+      const { title, description } = LANDING[l].meta;
+      expect(title.length, `${l} title`).toBeLessThanOrEqual(65);
+      expect(description.length, `${l} description`).toBeGreaterThanOrEqual(70);
+      expect(description.length, `${l} description`).toBeLessThanOrEqual(160);
+    }
   });
 
   it("has no empty strings", () => {
@@ -88,8 +97,8 @@ describe("DentVideo guides", () => {
     for (const s of slugs) expect(s).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   });
 
-  it("every locale has at least one guide", () => {
-    for (const l of LOCALES) expect(guidesFor(l).length, l).toBeGreaterThan(0);
+  it("every locale with a guides hub has guides", () => {
+    for (const l of GUIDE_HUB_LOCALES) expect(guidesFor(l).length, l).toBeGreaterThan(0);
   });
 
   it("each guide has sections, an FAQ and breadcrumb structured data", () => {

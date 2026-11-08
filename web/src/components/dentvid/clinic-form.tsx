@@ -222,7 +222,7 @@ export function ClinicDetailsFields({ draft, locale }: { draft: ClinicDraft; loc
       <HandleField draft={draft} t={t} />
       <label className={`${label} sm:col-span-2`}>
         {t.booking}
-        <input type="url" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
+        <input type="url" dir="ltr" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
       </label>
     </div>
   );
@@ -245,14 +245,14 @@ export function HandleField({ draft, t }: { draft: ClinicDraft; t: AppText["form
   return (
     <label className={label}>
       {t.handle}
-      <span className="relative mt-0 block">
-        <span aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 mt-[3px] -translate-y-1/2 text-dv-muted">@</span>
+      <span dir="ltr" className="relative mt-0 block">
+        <span aria-hidden="true" className="pointer-events-none absolute start-4 top-1/2 mt-[3px] -translate-y-1/2 text-dv-muted">@</span>
         <input
           value={draft.p.handle.replace(/^@/, "")}
           onChange={(e) => draft.update("handle", e.target.value.replace(/^@/, "").replace(/\s/g, ""))}
           autoCapitalize="none"
           spellCheck={false}
-          className="dv-field !pl-8"
+          className="dv-field !ps-8"
         />
       </span>
     </label>
@@ -306,7 +306,7 @@ export function BrandFields({ draft, locale, showLogoPreview = false }: { draft:
               className="absolute -inset-2 h-[calc(100%+1rem)] w-[calc(100%+1rem)] cursor-pointer border-0 p-0"
             />
           </span>
-          <span className="font-mono text-sm font-normal text-dv-body">{p.brandColor}</span>
+          <span dir="ltr" className="font-mono text-sm font-normal text-dv-body">{p.brandColor}</span>
           <span className="flex flex-wrap items-center gap-2" role="group" aria-label={fromLogo ? t.logoSwatches : t.brandColor}>
             {swatches.map((c) => {
               const on = p.brandColor.toLowerCase() === c.toLowerCase();

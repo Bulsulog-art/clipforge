@@ -1,12 +1,23 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { GUIDES, LOCALES, guidePath, guidesFor } from "../dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LOCALES, guidePath, guidesFor } from "../dentvideo";
 import { ENTITY } from "./entity";
 import { guideTexts, guideWordCount, parseInline, plainText, resolveTarget, translationsOf } from "./text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "./ui";
 import { GUIDE_LIBRARY } from "./index";
-import { aboutJsonLd, dentvideoSitemapEntries, guideAlternates, guideJsonLd, guidesIndexJsonLd } from "@/lib/dentvid/seo-guides";
+import {
+  SEO_DESCRIPTION_MAX,
+  SEO_TITLE_MAX,
+  aboutJsonLd,
+  dentvideoSitemapEntries,
+  guideAlternates,
+  guideJsonLd,
+  guideMetadata,
+  guideSeoDescription,
+  guideSeoTitle,
+  guidesIndexJsonLd,
+} from "@/lib/dentvid/seo-guides";
 import { sitemapUrls, sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 import { INDEXNOW_KEY } from "@/lib/dentvid/indexnow";
@@ -53,7 +64,17 @@ describe("guide library", () => {
   });
 
   it("each priority market has at least five guides", () => {
-    for (const l of LOCALES) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
+    expect(GUIDE_HUB_LOCALES).toEqual(["en", "de", "es", "tr", "fr"]);
+    for (const l of GUIDE_HUB_LOCALES) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
+  });
+
+  it("Japanese, Arabic and Polish have no guides yet, so no hub is advertised", () => {
+    for (const l of ["ja", "ar", "pl"] as const) {
+      expect(guidesFor(l), l).toEqual([]);
+      expect(dentvideoSitemapEntries().map((e) => e.path), l).not.toContain(GUIDES_INDEX_PATH[l]);
+      expect(llmsTxt(), l).not.toContain(GUIDES_INDEX_PATH[l].replace("/dentvideo", ""));
+      for (const e of dentvideoSitemapEntries()) expect(Object.values(e.alternates ?? {}), e.path).not.toContain(GUIDES_INDEX_PATH[l]);
+    }
   });
 
   it("every library guide made it into GUIDES", () => {
@@ -87,7 +108,7 @@ describe("guide library", () => {
 
   // Prices appear only in the About "Price" fact (which llms.txt copies), and
   // only the configured USD list and founding prices; never in guides or CTAs.
-  const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix"];
+  const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
   const MONEY = /[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL\b)/;
 
   it("states no prices or invented percentages outside the About price fact", () => {
@@ -111,6 +132,50 @@ describe("guide library", () => {
       expect(v, l).toContain(String(DV_FOUNDING.clinics));
     }
     expect(llmsTxt()).toContain("Paid plans from $39/month");
+  });
+});
+
+describe("search snippets", () => {
+  it("every guide's rendered title fits in 60 characters and its meta description in 155", () => {
+    for (const g of GUIDES) {
+      const m = guideMetadata(g);
+      const title = (m.title as { absolute: string }).absolute;
+      expect(title, g.slug).toBe(guideSeoTitle(g));
+      expect(title.length, `${g.slug}: ${title}`).toBeLessThanOrEqual(SEO_TITLE_MAX);
+      expect(String(m.description).length, g.slug).toBeLessThanOrEqual(SEO_DESCRIPTION_MAX);
+      expect(m.openGraph?.title, g.slug).toBe(g.seoTitle);
+      expect(m.twitter?.title, g.slug).toBe(g.seoTitle);
+      expect(m.openGraph?.description, g.slug).toBe(m.description);
+      expect(m.twitter?.description, g.slug).toBe(m.description);
+    }
+  });
+
+  it("guide titles are unique within each language", () => {
+    for (const l of LOCALES) {
+      const titles = guidesFor(l).map(guideSeoTitle);
+      expect(new Set(titles).size, l).toBe(titles.length);
+    }
+  });
+
+  it("keeps the brand suffix whenever it fits", () => {
+    for (const g of GUIDES) {
+      if (`${g.seoTitle} · DentVideo`.length <= SEO_TITLE_MAX) expect(guideSeoTitle(g), g.slug).toMatch(/ · DentVideo$/);
+    }
+  });
+
+  it("falls back to the full title and description without SEO fields", () => {
+    const g = { ...GUIDES[0], seoTitle: undefined, seoDescription: undefined };
+    expect(guideSeoTitle(g)).toBe(`${g.title} · DentVideo`);
+    expect(guideSeoDescription(g)).toBe(g.description);
+  });
+
+  it("snippets make no promises, superlatives or 'painless' claims", () => {
+    const banned = /\b(guarantee|painless|best|cheapest|no\.? ?1)\b|garantiert|schmerzfrei|beste[nrs]?\b|garantizad|sin dolor|mejor(es)?\b|garanti|sans douleur|meilleur|garantili|ağrısız|acısız|en iyi/i;
+    for (const g of GUIDES) expect(`${g.seoTitle} ${g.seoDescription}`, g.slug).not.toMatch(banned);
+  });
+
+  it("About meta descriptions fit in 155 characters", () => {
+    for (const l of LOCALES) expect(ENTITY[l].meta.description.length, l).toBeLessThanOrEqual(SEO_DESCRIPTION_MAX);
   });
 });
 
@@ -148,6 +213,9 @@ describe("structured data", () => {
       expect(page.mainEntity.itemListElement).toHaveLength(guidesFor(l).length);
       const types = (aboutJsonLd(l)["@graph"] as { "@type": string; publisher?: unknown }[]).map((n) => n["@type"]);
       expect(types).toEqual(expect.arrayContaining(["AboutPage", "Organization", "SoftwareApplication", "FAQPage"]));
+      // Google's SoftwareApplication rich result needs a priced offer.
+      const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown> }[]).find((n) => n["@type"] === "SoftwareApplication");
+      expect(app?.offers, l).toMatchObject({ "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: 39, highPrice: 219, offerCount: 3 });
     }
   });
 
@@ -167,10 +235,8 @@ describe("sitemap", () => {
   it("lists every guide, guides index, About page and landing exactly once, with a lastmod", () => {
     expect(new Set(paths).size).toBe(paths.length);
     for (const g of GUIDES) expect(paths).toContain(guidePath(g));
-    for (const l of LOCALES) {
-      expect(paths).toContain(GUIDES_INDEX_PATH[l]);
-      expect(paths).toContain(ABOUT_PATH[l]);
-    }
+    for (const l of LOCALES) expect(paths).toContain(ABOUT_PATH[l]);
+    for (const l of GUIDE_HUB_LOCALES) expect(paths).toContain(GUIDES_INDEX_PATH[l]);
     for (const e of entries) expect(e.lastmod, e.path).toMatch(ISO);
   });
 
