@@ -27,7 +27,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { agentJson, REVIEW_MODEL } from "./llm.js";
 import { clinicProfileSchema, type ClinicProfile } from "./profile.js";
-import { planWeek, type Topic } from "./strategist.js";
+import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { planText, produceVideo, type VideoPackage } from "./week.js";
 
 export const PANEL: ClinicProfile[] = [
@@ -134,7 +134,7 @@ export function reportMarkdown(rows: EvalRow[], s: ReturnType<typeof summarise>,
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 async function evalClinic(client: OpenAI, profile: ClinicProfile, per: number): Promise<EvalRow[]> {
-  const topics = await planWeek(client, profile, { count: per });
+  const topics = await sharpenHooks(client, profile, await planWeek(client, profile, { count: per }));
   const rows: EvalRow[] = [];
   for (const topic of topics) {
     const notes: string[] = [];

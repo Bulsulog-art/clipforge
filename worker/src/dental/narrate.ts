@@ -18,6 +18,20 @@ import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
  * It may not add facts: everything it says must already be on screen, so
  * the two reviewers that follow judge one story, not two.
  */
+/**
+ * How each language sounds spoken rather than written. The eval's judge kept
+ * calling the Turkish narration "formal, a leaflet": written-register verbs
+ * ("gerçekleştirilir", "sağlanmaktadır") read aloud. Formal address is the
+ * clinic's choice and stays; the register is what changes.
+ */
+export const SPOKEN_CUES: Record<string, string> = {
+  tr: `Konuşma Türkçesi kullanın: "bakın", "aslında", "şöyle düşünün", "merak etmeyin", "-ebilirsiniz". Yazı dili kalıplarından kaçının: "gerçekleştirilir", "sağlanmaktadır", "mevcuttur", "önem arz eder", "-mektedir".`,
+  de: `Gesprochenes Deutsch: "Wissen Sie was?", "ehrlich gesagt", "das heißt", kurze Sätze. Kein Behörden- oder Prospektdeutsch ("erfolgt", "gewährleistet", "im Rahmen von").`,
+  es: `Español hablado y cercano: "mira", "la verdad es que", "o sea", frases cortas. Nada de folleto ("se lleva a cabo", "cabe destacar").`,
+  fr: `Français parlé : "vous savez", "en fait", "du coup", phrases courtes. Pas de style brochure ("il convient de", "s'effectue").`,
+  en: `Spoken English with contractions: "here's the thing", "honestly", "so". No brochure phrases ("is carried out", "it is important to note").`,
+};
+
 const narrationSchema = z.object({ text: z.string().min(20).max(1200) });
 
 /** Every point on screen, in order — the only material the narrator may use. */
@@ -37,13 +51,14 @@ function screenPoints(plan: ScenePlan): string[] {
   return out;
 }
 
-export function narrationBrief(profile: ClinicProfile, topic: Topic, plan: ScenePlan, fixes: string[] = []): string {
+export function narrationBrief(profile: ClinicProfile, topic: Topic, plan: ScenePlan, fixes: string[] = [], previous?: string): string {
   const words = Math.round(totalSeconds(plan) * 2.3);
   return [
     `Video: "${topic.title}" — answers the patient question "${topic.question}".`,
     `On screen, in order:\n${screenPoints(plan).map((p) => `- ${p}`).join("\n")}`,
     `Write about ${words} words (±15%).`,
     fixes.length ? `A reviewer required: ${fixes.join(" | ")}` : "",
+    previous && fixes.length ? `Your previous narration — keep it and change only what the reviewer required:\n${previous}` : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -55,6 +70,7 @@ export async function narrate(
   topic: Topic,
   plan: ScenePlan,
   fixes: string[] = [],
+  previous?: string,
 ): Promise<string> {
   const { text } = await agentJson(client, {
     model: REVIEW_MODEL,
@@ -62,6 +78,7 @@ export async function narrate(
     system: `You are the dentist at ${profile.name}${profile.city ? ` in ${profile.city}` : ""}, recording the voice-over for a short educational video. You speak native, everyday ${profile.language}.
 How it must sound:
 - One person talking to one patient across the chair. Tone: ${profile.tone}. ${addressRule(profile)} Formal address can still be warm: everyday words, not brochure language.
+- ${SPOKEN_CUES[profile.language] ?? SPOKEN_CUES.en}
 - Open by saying the hook in your own spoken words — as a question or a moment the viewer recognises, not as a headline.
 - Short and medium sentences mixed. Connect points with spoken links ("and here's the thing", "that's why", "so"), never "firstly/secondly" and never read a list as a list.
 - Each sentence adds something new. Do not repeat a word or idea you already said.
@@ -71,7 +88,7 @@ Content rules (a clinical and a compliance reviewer read this next):
 - Hedge where outcomes vary ("usually", "can", "for most people").
 - Never use: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}. No prices, discounts or patient stories.
 Return JSON: { "text": "<the full narration>" }`,
-    user: narrationBrief(profile, topic, plan, fixes),
+    user: narrationBrief(profile, topic, plan, fixes, previous),
     schema: narrationSchema,
   });
   return text.trim();

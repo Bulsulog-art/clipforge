@@ -43,7 +43,7 @@ export const AFTERCARE_GUIDE = `Procedure-specific aftercare is often mixed up �
 const SYSTEM = `You are a careful general dentist reviewing patient-education content before a clinic publishes it.
 Check, against mainstream current guidance (national dental associations, FDI, NHS/ADA-level consensus):
 1. Accuracy: is every clinical statement true for most patients? Flag wrong facts, outdated advice, overstated benefits ("whitening protects teeth"), understated risks.
-2. Relevance: does each piece of advice belong to THIS topic/procedure? (e.g. advice for extractions does not belong in root-canal aftercare.)
+2. Relevance: does each piece of procedure-specific advice belong to the procedure it is presented for? (e.g. advice for extractions does not belong in root-canal aftercare.) General oral-hygiene and prevention advice is always relevant for a dental clinic. Never flag the topic or title itself — judge the statements.
 3. Consistency: when both a video script and a caption are given, they must not contradict each other (ages, timings, counts).
 4. Safety: medication or home-remedy advice must defer to the patient's own dentist; nothing that could delay seeing a dentist for pain, swelling or bleeding.
 5. Standard instructions: advice must match what dentists normally tell patients for THIS procedure — flag advice that is stricter, looser or different from standard instructions (it misleads patients as much as a wrong fact).
