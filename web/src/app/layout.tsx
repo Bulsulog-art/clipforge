@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import "./globals.css";
-import { SITE_URL, PRICING } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -40,24 +40,8 @@ export const metadata: Metadata = {
   },
 };
 
-// SoftwareApplication structured data — earns rich results in search + helps
-// the page describe itself to AI search engines. No fake ratings.
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "ClipForge",
-  applicationCategory: "MultimediaApplication",
-  operatingSystem: "iOS, Web",
-  description:
-    "AI clip studio: turn a long video or podcast into captioned, ranked vertical clips you can download and post anywhere.",
-  url: SITE_URL,
-  offers: [
-    { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
-    { "@type": "Offer", name: "Plus (weekly)", price: String(PRICING.weekly.amount), priceCurrency: "USD" },
-    { "@type": "Offer", name: "Plus (yearly)", price: String(PRICING.yearly.amount), priceCurrency: "USD" },
-  ],
-  publisher: { "@type": "Organization", name: "Bulsu Labs", url: "https://bulsulabs.com" },
-};
+// ClipForge's SoftwareApplication JSON-LD lives in
+// components/clipforge-jsonld.tsx and is rendered by ClipForge pages only.
 
 export const viewport: Viewport = {
   themeColor: [
@@ -70,10 +54,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans`}>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
-        />
         {/* Captures UTM params + referrer at first landing and POSTs
             to /api/account/attribution once the user has a session.
             Renders nothing visible. */}

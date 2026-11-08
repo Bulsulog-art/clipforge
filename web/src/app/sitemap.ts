@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SEO_PAGES } from "@/content/seo-pages";
 import { absoluteUrl } from "@/lib/site";
+import { dentvideoPaths } from "@/lib/dentvid/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -13,6 +14,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: absoluteUrl(`/${p.section}/${p.slug}`),
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    ...dentvideoPaths().map((path) => ({
+      url: absoluteUrl(path),
+      changeFrequency: "monthly" as const,
+      priority: path === "/dentvideo" ? 0.9 : 0.7,
     })),
     { url: absoluteUrl("/signup"), changeFrequency: "yearly", priority: 0.5 },
     { url: absoluteUrl("/support"), changeFrequency: "yearly", priority: 0.3 },
