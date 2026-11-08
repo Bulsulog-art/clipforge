@@ -8,6 +8,7 @@ import { webpackOverride } from "./webpack-override.js";
 import { dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
 import { resolveStockClips } from "./stock.js";
+import type { LogoStyle } from "./logo-style.js";
 
 /**
  * Renders a scene plan to an mp4.
@@ -91,6 +92,8 @@ export type RenderPlanArgs = {
   watermark?: boolean;
   /** Local path or URL of a client logo, drawn in the top corner. */
   logoSrc?: string;
+  /** How the logo is drawn (chip, size by aspect), from dental/logo.ts. */
+  logoStyle?: LogoStyle;
   pexelsApiKey?: string;
   /** How many frames to render at once. Tuned by the caller to the box. */
   concurrency?: number;
@@ -220,6 +223,7 @@ async function renderStaged(
     voiceoverSrc,
     musicSrc,
     logoSrc,
+    logoStyle,
     watermark = false,
     pexelsApiKey,
     concurrency,
@@ -273,7 +277,15 @@ async function renderStaged(
   const footageScenes = plan.scenes.filter((s) => s.kind === "footage").length;
   const missingFootage = footageScenes - Object.keys(footage).length;
 
-  const inputProps = { plan, footage, voiceoverSrc: stagedVoiceover, musicSrc: stagedMusic, watermark, logoSrc: stagedLogo };
+  const inputProps = {
+    plan,
+    footage,
+    voiceoverSrc: stagedVoiceover,
+    musicSrc: stagedMusic,
+    watermark,
+    logoSrc: stagedLogo,
+    ...(stagedLogo && logoStyle ? { logoStyle } : {}),
+  };
 
   // Use a specific browser binary when one is configured (a dev box with a
   // preinstalled chrome-headless-shell); otherwise Remotion's own download.

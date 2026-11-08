@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { dvBrowser, BUCKET } from "@/lib/dentvid/supabase";
 import { LANGUAGES, type ClinicProfile } from "@/lib/dentvid/profile";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
+import { accentFor, analyseLogoFile, type LogoColors } from "@/lib/dentvid/logo-colors";
+import { LogoPreview } from "./logo-preview";
 
 const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "AE", "CA", "AU"];
 
@@ -50,6 +52,26 @@ export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
     brandColor: initial?.brandColor ? `#${initial.brandColor}` : "#0f5c5c",
   });
   const [logo, setLogo] = useState<File | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [colors, setColors] = useState<LogoColors | null>(null);
+  const latest = useRef<File | null>(null);
+  useEffect(() => () => {
+    if (logoUrl) URL.revokeObjectURL(logoUrl);
+  }, [logoUrl]);
+
+  /** A new logo: read its colours and suggest the brand colour from it. The clinic can still pick any. */
+  async function chooseLogo(file: File | null) {
+    latest.current = file;
+    setLogo(file);
+    setColors(null);
+    setLogoUrl(file ? URL.createObjectURL(file) : null);
+    if (!file) return;
+    const found = await analyseLogoFile(file);
+    // A second file chosen while the first was being read wins.
+    if (!found || latest.current !== file) return;
+    setColors(found);
+    if (found.suggested) setP((prev) => ({ ...prev, brandColor: found.suggested! }));
+  }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const set = (k: keyof typeof p) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -163,18 +185,48 @@ export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
         {t.booking}
         <input type="url" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className={field} />
       </label>
-      <label className={label}>
-        {t.brandColor}
-        <span className="mt-1 flex items-center gap-3">
-          <input type="color" value={p.brandColor} onChange={set("brandColor")} className="h-12 w-16 cursor-pointer rounded-lg border border-[#d9d1c3] bg-white" />
-          <span className="font-mono text-sm text-dv-body">{p.brandColor}</span>
-        </span>
-      </label>
       <label className={`${label} sm:col-span-2`}>
         {t.logo}
-        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setLogo(e.target.files?.[0] ?? null)} className={`${field} file:mr-3 file:rounded-full file:border-0 file:bg-[#e6efed] file:px-3 file:py-1`} />
+        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => void chooseLogo(e.target.files?.[0] ?? null)} className={`${field} file:mr-3 file:rounded-full file:border-0 file:bg-[#e6efed] file:px-3 file:py-1`} />
         {logoPath && !logo && <span className="mt-1 block text-xs font-normal text-dv-muted">{t.logoSaved}</span>}
       </label>
+      <div className={`${label} sm:col-span-2`}>
+        <label htmlFor="dv-brand-color">{t.brandColor}</label>
+        <span className="mt-1 flex flex-wrap items-center gap-3">
+          <input id="dv-brand-color" type="color" value={p.brandColor} onChange={set("brandColor")} className="h-12 w-16 cursor-pointer rounded-lg border border-[#d9d1c3] bg-white" />
+          <span className="font-mono text-sm text-dv-body">{p.brandColor}</span>
+          {colors && colors.swatches.length > 0 && (
+            <span className="flex items-center gap-2" role="group" aria-label={t.logoSwatches}>
+              {colors.swatches.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setP((prev) => ({ ...prev, brandColor: c }))}
+                  title={c}
+                  aria-label={c}
+                  aria-pressed={p.brandColor.toLowerCase() === c}
+                  className={`h-8 w-8 rounded-full border border-black/10 shadow-sm transition hover:scale-110 ${p.brandColor.toLowerCase() === c ? "ring-2 ring-[#0f5c5c] ring-offset-2" : ""}`}
+                  style={{ background: c }}
+                />
+              ))}
+            </span>
+          )}
+        </span>
+        {colors && (
+          <span className="mt-1 block text-xs font-normal text-dv-muted">{colors.suggested ? t.logoSuggested : t.logoNoColour}</span>
+        )}
+      </div>
+      {logoUrl && colors && (
+        <LogoPreview
+          src={logoUrl}
+          brandColor={p.brandColor}
+          colors={colors}
+          accent={accentFor(p.brandColor, colors)}
+          label={t.logoPreview}
+          name={p.name || "—"}
+          handle={p.handle || undefined}
+        />
+      )}
       {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f] sm:col-span-2" role="alert">{error}</p>}
       <div className="sm:col-span-2">
         <button type="submit" disabled={busy} className="dv-btn dv-btn-primary px-8 py-3">

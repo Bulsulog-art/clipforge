@@ -9,6 +9,8 @@ import { planJumpCut, selectExpr } from "./jumpcut.js";
 import { resolveAspect } from "../aspect.js";
 import type { Moment } from "./score.js";
 import type { Transcript } from "./transcribe.js";
+import { logoOverlayFilters } from "./logo-overlay.js";
+import type { LogoStyle } from "../remotion/logo-style.js";
 
 type Args = {
   userId: string;
@@ -40,6 +42,8 @@ type Args = {
     localLogoPath: string;
     position: string;   // 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
     opacity: number;    // 0.10..1.00
+    /** Chip, size and trim from analysing the logo (dental/logo.ts). Absent: bare, 216px wide. */
+    style?: LogoStyle;
   };
 };
 
@@ -176,14 +180,17 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
   const baseVideoLabel = hasBranding ? "[v_base]" : "[v]";
   const videoBuild = `[0:v]${videoChain}${baseVideoLabel}`;
 
+  // Without a style: the logo scaled to 216px wide (~20% of 1080), the
+  // user's opacity on its alpha. With one (dental): the same chip, size and
+  // trim the Remotion videos use — see logo-overlay.ts.
   const brandingChain = hasBranding && a.branding
-    ? [
-        // Scale the logo to a max of 216px wide (~20% of 1080) keeping aspect.
-        // colorchannelmixer applies the user's opacity to the alpha channel.
-        `[${brandingInputIdx}:v]format=rgba,scale=216:-1,` +
-          `colorchannelmixer=aa=${Math.max(0.10, Math.min(1.00, a.branding.opacity)).toFixed(2)}[logo]`,
-        `[v_base][logo]overlay=${overlayXY(a.branding.position)}[v]`,
-      ].join(";")
+    ? logoOverlayFilters({
+        input: brandingInputIdx,
+        position: overlayXY(a.branding.position),
+        opacity: a.branding.opacity,
+        style: a.branding.style,
+        brandHex: a.accentHex,
+      }).join(";")
     : null;
 
   const audioChain = hasMusic

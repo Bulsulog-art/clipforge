@@ -149,6 +149,8 @@ export const scenePlanSchema = z.object({
   music: z.enum(["none", "calm", "uplifting", "tense", "playful"]).default("none"),
   /** A client's brand colour; repaints the theme in that hue (see brandTheme). */
   brandColor: z.string().regex(/^#?[0-9a-fA-F]{6}$/).optional(),
+  /** A second colour from the client's logo; becomes the accent when it can (see brandTheme). */
+  brandAccent: z.string().regex(/^#?[0-9a-fA-F]{6}$/).optional(),
 });
 
 export type ScenePlan = z.infer<typeof scenePlanSchema>;

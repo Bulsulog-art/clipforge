@@ -202,7 +202,7 @@ export function worstBackground(t: Theme): string {
 
 // MARK: - Clinic brand
 
-function mix(hex: string, toward: string, amount: number): string {
+export function mix(hex: string, toward: string, amount: number): string {
   const p = (h: string) => [0, 2, 4].map((i) => parseInt(h.replace("#", "").slice(i, i + 2), 16));
   const [a, b] = [p(hex), p(toward)];
   return (
@@ -215,14 +215,39 @@ function mix(hex: string, toward: string, amount: number): string {
   );
 }
 
+/** Hue in degrees (0–360) of a hex colour; NaN for a pure grey. */
+export function hue(hex: string): number {
+  const m = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(m.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b);
+  const d = max - Math.min(r, g, b);
+  if (d === 0) return NaN;
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
+}
+
+/** Shortest distance between two hues, 0–180 (0 when either is grey). */
+export function hueDistance(a: string, b: string): number {
+  const d = Math.abs(hue(a) - hue(b));
+  return Number.isNaN(d) ? 0 : Math.min(d, 360 - d);
+}
+
 /**
  * The theme repainted in a clinic's brand colour, so every video reads as
  * theirs. The background is the brand hue taken deep (dark enough that white
  * type clears 7:1 on both stops); the accent is the brand hue lifted until it
  * reads on that background. A pale brand colour still yields a dark,
  * legible frame, because legibility is not negotiable.
+ *
+ * `accentHex` is a second colour taken from the clinic's logo (see
+ * dental/logo.ts). When it is a genuinely different hue from the brand it
+ * becomes the accent — a navy-and-gold logo then gets a navy frame with gold
+ * emphasis, which is what makes the video look like the clinic's letterhead
+ * rather than a tint of it. It is held to exactly the same contrast bar as
+ * the brand-derived accent, and is only used if it meets it without being
+ * washed out toward white; otherwise the brand accent stands.
  */
-export function brandTheme(base: Theme, brandHex?: string): Theme {
+export function brandTheme(base: Theme, brandHex?: string, accentHex?: string): Theme {
   if (!brandHex || !/^#?[0-9a-fA-F]{6}$/.test(brandHex)) return base;
   const brand = `#${brandHex.replace("#", "").toUpperCase()}`;
   const fg = "#FFFFFF";
@@ -236,6 +261,20 @@ export function brandTheme(base: Theme, brandHex?: string): Theme {
   while (lift < 0.9 && contrastRatio(accent, to) < 4.5) {
     lift += 0.05;
     accent = mix(brand, "#FFFFFF", lift);
+  }
+  if (accentHex && /^#?[0-9a-fA-F]{6}$/.test(accentHex)) {
+    const logoAccent = `#${accentHex.replace("#", "").toUpperCase()}`;
+    if (hueDistance(logoAccent, brand) >= 25) {
+      // At most a 45% lift: past that a saturated logo colour turns into a
+      // pastel nobody would recognise as theirs, and the brand accent is better.
+      let l = 0;
+      let candidate = logoAccent;
+      while (l < 0.45 && contrastRatio(candidate, to) < 4.5) {
+        l += 0.05;
+        candidate = mix(logoAccent, "#FFFFFF", l);
+      }
+      if (contrastRatio(candidate, to) >= 4.5) accent = candidate;
+    }
   }
   return {
     ...base,

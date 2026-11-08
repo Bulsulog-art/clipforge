@@ -28,6 +28,16 @@ export const clinicProfileSchema = z.object({
     .regex(/^#?[0-9a-fA-F]{6}$/)
     .transform((c) => c.replace(/^#/, "").toUpperCase())
     .optional(),
+  /**
+   * A second colour from the clinic's logo, used as the video accent when it
+   * can be (see brandTheme). Derived from the logo when a job starts
+   * (dental/logo.ts brandFromLogo); not something the clinic fills in.
+   */
+  brandAccent: z
+    .string()
+    .regex(/^#?[0-9a-fA-F]{6}$/)
+    .transform((c) => c.replace(/^#/, "").toUpperCase())
+    .optional(),
   /** Path or URL of the clinic's logo (PNG with transparency works best). */
   logo: z.string().max(500).optional(),
   /** Where a viewer books. Goes in the caption, never on screen. */
