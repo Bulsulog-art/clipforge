@@ -155,6 +155,7 @@ export type AppText = {
     createFailed: string;
     saveFailed: string;
     planRequired: string;
+    recordingsNeedPractice: string;
     alreadySubscribed: string;
     invalidPlan: string;
     invalidCode: string;
@@ -319,7 +320,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         practice: {
           name: "Practice",
           blurb: "For clinics that want their own faces on screen.",
-          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Up to two languages"],
+          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Your logo and brand colours in every video"],
         },
         group: {
           name: "Group",
@@ -346,6 +347,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       createFailed: "Could not create the account. Please try again.",
       saveFailed: "Could not save. Please try again.",
       planRequired: "Your free week has been made. Choose a plan to make more videos.",
+      recordingsNeedPractice: "Your own recordings are part of the Practice plan. Upgrade to turn your recording into clips.",
       alreadySubscribed: "Your plan is already active.",
       invalidPlan: "That plan is not available.",
       invalidCode: "That discount code could not be applied.",
@@ -514,7 +516,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         practice: {
           name: "Practice",
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
-          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Bis zu zwei Sprachen"],
+          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Ihr Logo und Ihre Markenfarben in jedem Video"],
         },
         group: {
           name: "Group",
@@ -541,6 +543,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       createFailed: "Das Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
       saveFailed: "Speichern hat nicht geklappt. Bitte versuchen Sie es erneut.",
       planRequired: "Ihre kostenlose Woche ist erstellt. Wählen Sie einen Tarif, um weitere Videos zu erstellen.",
+      recordingsNeedPractice: "Eigene Aufnahmen sind im Tarif Practice enthalten. Wechseln Sie den Tarif, um Ihre Aufnahme in Clips zu verwandeln.",
       alreadySubscribed: "Ihr Tarif ist bereits aktiv.",
       invalidPlan: "Dieser Tarif ist nicht verfügbar.",
       invalidCode: "Dieser Rabattcode konnte nicht angewendet werden.",
@@ -709,7 +712,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         practice: {
           name: "Practice",
           blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
-          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Hasta dos idiomas"],
+          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Tu logo y tus colores en cada vídeo"],
         },
         group: {
           name: "Group",
@@ -732,6 +735,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       createFailed: "No se pudo crear la cuenta. Inténtalo de nuevo.",
       saveFailed: "No se pudo guardar. Inténtalo de nuevo.",
       planRequired: "Tu semana gratis ya está hecha. Elige un plan para crear más vídeos.",
+      recordingsNeedPractice: "Tus propias grabaciones están en el plan Practice. Cambia de plan para convertir tu grabación en clips.",
       alreadySubscribed: "Tu plan ya está activo.",
       invalidPlan: "Ese plan no está disponible.",
       invalidCode: "No se pudo aplicar ese código de descuento.",
@@ -900,7 +904,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         practice: {
           name: "Practice",
           blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
-          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "En fazla iki dil"],
+          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Her videoda logonuz ve marka renkleriniz"],
         },
         group: {
           name: "Group",
@@ -923,6 +927,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       createFailed: "Hesap oluşturulamadı. Lütfen tekrar deneyin.",
       saveFailed: "Kaydedilemedi. Lütfen tekrar deneyin.",
       planRequired: "Ücretsiz haftanız hazırlandı. Daha fazla video için bir plan seçin.",
+      recordingsNeedPractice: "Kendi kayıtlarınız Practice planına dahildir. Kaydınızı kliplere dönüştürmek için planınızı yükseltin.",
       alreadySubscribed: "Planınız zaten aktif.",
       invalidPlan: "Bu plan mevcut değil.",
       invalidCode: "Bu indirim kodu uygulanamadı.",
@@ -1094,7 +1099,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           features: [
             "Tout ce qu'inclut Starter",
             "Vos propres enregistrements transformés en clips sous-titrés",
-            "Jusqu'à deux langues",
+            "Votre logo et vos couleurs dans chaque vidéo",
           ],
         },
         group: {
@@ -1122,6 +1127,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       createFailed: "Le compte n'a pas pu être créé. Merci de réessayer.",
       saveFailed: "L'enregistrement a échoué. Merci de réessayer.",
       planRequired: "Votre semaine offerte est réalisée. Choisissez une formule pour créer d'autres vidéos.",
+      recordingsNeedPractice: "Vos propres enregistrements font partie de la formule Practice. Changez de formule pour transformer votre enregistrement en clips.",
       alreadySubscribed: "Votre formule est déjà active.",
       invalidPlan: "Cette formule n'est pas disponible.",
       invalidCode: "Ce code de réduction n'a pas pu être appliqué.",

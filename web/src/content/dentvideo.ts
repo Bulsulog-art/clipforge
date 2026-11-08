@@ -163,7 +163,7 @@ export const LANDING: Record<Locale, LandingContent> = {
           name: "Practice",
           price: "$69",
           blurb: "For clinics that want their own faces on screen.",
-          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Up to two languages"],
+          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Your logo and brand colours in every video"],
         },
         {
           name: "Group",
@@ -272,7 +272,7 @@ export const LANDING: Record<Locale, LandingContent> = {
           name: "Practice",
           price: "69 $",
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
-          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Bis zu zwei Sprachen"],
+          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Ihr Logo und Ihre Markenfarben in jedem Video"],
         },
         {
           name: "Group",
@@ -381,7 +381,7 @@ export const LANDING: Record<Locale, LandingContent> = {
           name: "Practice",
           price: "69 $",
           blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
-          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Hasta dos idiomas"],
+          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Tu logo y tus colores en cada vídeo"],
         },
         {
           name: "Group",
@@ -486,7 +486,7 @@ export const LANDING: Record<Locale, LandingContent> = {
           name: "Practice",
           price: "$69",
           blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
-          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "En fazla iki dil"],
+          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Her videoda logonuz ve marka renkleriniz"],
         },
         {
           name: "Group",
@@ -594,7 +594,7 @@ export const LANDING: Record<Locale, LandingContent> = {
           features: [
             "Tout ce qu'inclut Starter",
             "Vos propres enregistrements transformés en clips sous-titrés",
-            "Jusqu'à deux langues",
+            "Votre logo et vos couleurs dans chaque vidéo",
           ],
         },
         {
