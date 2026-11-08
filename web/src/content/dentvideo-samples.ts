@@ -9,9 +9,7 @@ import type { Locale } from "./dentvideo";
  * `name` is the video's on-screen hook, verbatim; `seconds` its length.
  * The first entry is the hero video.
  *
- * Japanese, Arabic and Polish have no sample week yet: those landings show a
- * drawn phone card and the live preview instead, never another language's
- * videos. Render a demo clinic's week with the pipeline to add one.
+ * Every landing shows its own language's videos, never another language's.
  */
 export type SampleVideo = { slug: string; name: string; seconds: number };
 export type SampleWeek = readonly [SampleVideo, SampleVideo, SampleVideo];
@@ -46,6 +44,24 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
     { slug: "gencives-qui-saignent", name: "Gencives qui saignent : le signe d'alerte.", seconds: 27 },
     { slug: "blanchiment-email", name: "Blanchiment et l'émail : la vérité.", seconds: 32 },
     { slug: "detartrage", name: "L'ennemi invisible de votre brosse à dents...", seconds: 35 },
+  ],
+  // デモ歯科クリニック (Tokyo), です・ます
+  ja: [
+    { slug: "tsumetai-mono-de-shimiru", name: "冷たい水だけしみます", seconds: 34 },
+    { slug: "mouthpiece-shokuji", name: "おやつのたびに外します？", seconds: 32 },
+    { slug: "ha-ga-nuketa-mama", name: "1本ないまま噛んでいます", seconds: 31 },
+  ],
+  // عيادة ديمو لطب الأسنان (Dubai), formal plural
+  ar: [
+    { slug: "qahwa-baad-altabyid", name: "بعد التبييض، القهوة من أول يوم؟", seconds: 37 },
+    { slug: "nazif-allitha", name: "إذا نزل دم، تكملون أم توقفون؟", seconds: 34 },
+    { slug: "tafrish-qawi", name: "تضغطون بالفرشاة؟ الحساسية قد تبدأ هكذا.", seconds: 37 },
+  ],
+  // Gabinet Stomatologiczny Demo (Kraków), Państwo
+  pl: [
+    { slug: "wybielanie-przed-slubem", name: "Ślub za tydzień, a wybielanie teraz?", seconds: 33 },
+    { slug: "bol-po-lodach", name: "Ten ząb kłuje przy lodach?", seconds: 31 },
+    { slug: "pierwsza-wizyta-dziecka", name: "Przed wizytą mówią Państwo „nie bój się”?", seconds: 32 },
   ],
 };
 

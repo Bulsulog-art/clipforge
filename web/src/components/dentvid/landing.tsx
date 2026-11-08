@@ -219,7 +219,7 @@ function ClinicVisual() {
 
 function WeekVisual({ locale }: { locale: Locale }) {
   const week = samplesFor(locale);
-  // Without a sample week (ja, ar, pl) every card is drawn.
+  // Without a sample week every card is drawn.
   const posters = week ? [week[1].slug, week[0].slug, week[2].slug] : [null, null, null];
   return (
     <div className="flex items-end justify-center">

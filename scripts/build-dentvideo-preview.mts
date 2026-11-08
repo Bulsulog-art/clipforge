@@ -7,6 +7,9 @@
  *   cd worker && npx tsx ../scripts/build-dentvideo-preview.mts <selection.json>
  *
  * selection.json: { "<lang>": [{ "dir": "/abs/path/to/video-folder", "name": "Demo Clinic", "handle": "democlinic" }, ...] }
+ * A title in a non-Latin script (Japanese, Arabic) has no ASCII slug: give the
+ * pick a romanised "slug" for its file name. "title" replaces a topic title
+ * that reads as a brief rather than a label (the player shows it).
  *
  * For each video:
  *   - the narration is loudness-normalised (-16 LUFS, as voiceover.ts does)
@@ -22,6 +25,8 @@
  *     the brand background, as a render without stock footage does).
  *
  * Writes <lang>/<id>.json + <lang>/<id>.mp3 and web/src/lib/dentvid/preview-manifest.ts.
+ * Only the languages in selection.json are rebuilt; the manifest keeps every
+ * other language's entries as they are.
  */
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -33,17 +38,22 @@ import { fitPlanToVoice } from "../worker/src/remotion/voiceover.ts";
 // web/ is not an ESM package, so its module arrives as CommonJS: take the namespace.
 const webLib = await import("../web/src/lib/dentvid/preview-library.ts");
 const { serviceCategory, HANDLE_TOKEN, NAME_TOKEN } = ((webLib as { default?: typeof webLib }).default ?? webLib) as typeof webLib;
+const builtLib = await import("../web/src/lib/dentvid/preview-manifest.ts");
+const { PREVIEW_MANIFEST } = ((builtLib as { default?: typeof builtLib }).default ?? builtLib) as typeof builtLib;
 
 const run = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(root, "web/public/dentvideo/preview");
 
-type Pick = { dir: string; name: string; handle: string };
+type Pick = { dir: string; name: string; handle: string; slug?: string; title?: string };
 
 async function seconds(file: string): Promise<number> {
   const { stdout } = await run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]);
   return Number(stdout.trim());
 }
+
+/** "Demo" as the sample clinics write it: Latin, Japanese, Arabic. */
+const DEMO = /demo|デモ|ديمو/i;
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -65,7 +75,8 @@ const slug = (s: string) =>
 
 async function main() {
   const selection: Record<string, Pick[]> = JSON.parse(await fs.readFile(process.argv[2], "utf8"));
-  const manifest: Record<string, unknown[]> = {};
+  // Languages not rebuilt this time keep their entries.
+  const manifest: Record<string, unknown[]> = { ...PREVIEW_MANIFEST };
   let bytes = 0;
   for (const [lang, picks] of Object.entries(selection)) {
     await fs.rm(path.join(OUT, lang), { recursive: true, force: true });
@@ -84,11 +95,15 @@ async function main() {
       for (const [stage, c] of Object.entries(pkg.checks ?? {}))
         if (c.compliance.verdict === "fail" || c.accuracy.verdict === "fail") throw new Error(`${pick.dir}: ${stage} review failed`);
       const spoken = raw.voiceover?.text ?? "";
-      if (new RegExp(escape(pick.name), "i").test(spoken) || new RegExp(escape(pick.handle), "i").test(spoken))
+      // A narrator often shortens the name ("عيادة ديمو", "デモ歯科"): the sample clinics are all "Demo" in some script.
+      if (new RegExp(escape(pick.name), "i").test(spoken) || new RegExp(escape(pick.handle), "i").test(spoken) || DEMO.test(spoken))
         throw new Error(`${pick.dir}: the narration says the sample clinic's name`);
 
       const category = serviceCategory(pkg.topic.service);
-      const id = `${category ?? "general"}-${slug(pkg.topic.title)}`;
+      const title = pick.title ?? pkg.topic.title;
+      const words = pick.slug ?? slug(title);
+      if (!words) throw new Error(`${pick.dir}: "${title}" has no ASCII slug — add "slug" to the pick`);
+      const id = `${category ?? "general"}-${words}`;
       const mp3 = path.join(OUT, lang, `${id}.mp3`);
       await run("ffmpeg", [
         "-v", "error", "-y", "-i", path.join(pick.dir, "voiceover.mp3"),
@@ -103,13 +118,21 @@ async function main() {
         if (text.kind === "footage") text.source = { type: "stock", query: "preview" };
         return text;
       });
-      const leftover = JSON.stringify(scenes).match(/demo/i);
+      const leftover = JSON.stringify(scenes).match(DEMO);
       if (leftover) throw new Error(`${pick.dir}: sample clinic text left on screen: ${JSON.stringify(scenes)}`);
-      const plan = { title: pkg.topic.title, aspect: timed.aspect, theme: timed.theme, music: "none", scenes };
+      // The language stays: the player sets lang/dir, line breaking and the script's fonts from it.
+      const plan = {
+        title,
+        aspect: timed.aspect,
+        theme: timed.theme,
+        music: "none",
+        ...(timed.language ? { language: timed.language } : {}),
+        scenes,
+      };
       await fs.writeFile(path.join(OUT, lang, `${id}.json`), JSON.stringify(plan));
       const size = (await fs.stat(mp3)).size + JSON.stringify(plan).length;
       bytes += size;
-      manifest[lang].push({ id, category, service: pkg.topic.service, title: pkg.topic.title, seconds: Math.round(totalSeconds(timed) * 10) / 10 });
+      manifest[lang].push({ id, category, service: pkg.topic.service, title, seconds: Math.round(totalSeconds(timed) * 10) / 10 });
       console.log(`${lang}/${id}  ${category ?? "-"}  ${timed.theme}  voice ${voice.toFixed(1)}s video ${totalSeconds(timed).toFixed(1)}s  ${(size / 1024).toFixed(0)} KB`);
     }
   }
@@ -117,7 +140,7 @@ async function main() {
     `// GENERATED by scripts/build-dentvideo-preview.mts — the live preview's library (files in public/dentvideo/preview/).\n` +
     `import type { ServiceCategory } from "./preview-library";\n\n` +
     `export type PreviewEntry = { id: string; category?: ServiceCategory; service: string; title: string; seconds: number };\n\n` +
-    `export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr", PreviewEntry[]> = ${JSON.stringify(manifest, null, 2)};\n`;
+    `export const PREVIEW_MANIFEST: Record<${Object.keys(manifest).map((l) => JSON.stringify(l)).join(" | ")}, PreviewEntry[]> = ${JSON.stringify(manifest, null, 2)};\n`;
   await fs.writeFile(path.join(root, "web/src/lib/dentvid/preview-manifest.ts"), ts);
   console.log(`\ntotal ${(bytes / 1024 / 1024).toFixed(2)} MB`);
 }

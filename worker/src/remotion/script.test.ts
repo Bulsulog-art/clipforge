@@ -26,6 +26,10 @@ describe("scripts", () => {
     expect(layoutUnits("気になるときは当院にご相談ください").units).toContain("ご相談ください");
   });
 
+  it("keeps a number, its range and its counter on one line", () => {
+    expect(layoutUnits("目安は、7〜8歳ごろまでです。").units).toEqual(["目安は、", "7〜8歳ごろまでです。"]);
+  });
+
   it("keeps opening brackets with the word after them", () => {
     const { units } = layoutUnits("「フロス」は毎日");
     expect(units[0].startsWith("「フロス")).toBe(true);

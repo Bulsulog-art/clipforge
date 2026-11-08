@@ -99,8 +99,10 @@ export function layoutUnits(text: string): { units: string[]; spaced: boolean } 
       (NO_LINE_START.test(piece) ||
         isParticle(piece) ||
         (isKana(piece) && last.length + piece.length <= 10) ||
-        // A one-kanji suffix continues the compound before it: 一時+的, 知覚過敏+用.
-        (KANJI_SUFFIX.has(piece) && /\p{Script=Han}$/u.test(last)) ||
+        // A one-kanji suffix continues the compound (一時+的, 知覚過敏+用) or the number (8+歳) before it.
+        (KANJI_SUFFIX.has(piece) && /[\p{Script=Han}\p{N}]$/u.test(last)) ||
+        // A number range is one unit: 7+〜+8 never breaks.
+        (NUMBER_PART.test(piece) && NUMBER_END.test(last)) ||
         // A one- or two-character fragment ("落ち" before "着いて") is never a phrase of its own.
         (last.length <= 2 && !NO_LINE_START.test(last.slice(-1)) && last.length + piece.length <= 10));
     if (glueBack && !pendingOpen) units[units.length - 1] += piece;
@@ -111,6 +113,8 @@ export function layoutUnits(text: string): { units: string[]; spaced: boolean } 
   return { units, spaced: false };
 }
 
+const NUMBER_PART = /^[\p{N}〜～~\-–]+$/u;
+const NUMBER_END = /[\p{N}〜～~\-–]$/u;
 const KANJI_SUFFIX = new Set(["的", "性", "用", "者", "化", "中", "後", "前", "時", "力", "感", "式", "法", "症", "型", "期", "率", "間", "目", "回", "日", "歳", "本", "分", "院", "科", "医"]);
 const PARTICLES = new Set(["の", "は", "が", "を", "に", "へ", "と", "で", "も", "や", "か", "ね", "よ", "な", "から", "まで", "より", "って", "けど", "ので", "には", "では", "とは", "でも", "です", "ます", "ました", "でした", "ません", "ですか", "ましょう", "ください"]);
 function isParticle(s: string): boolean {

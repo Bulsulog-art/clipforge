@@ -3,7 +3,7 @@ import type { ServiceCategory } from "./preview-library";
 
 export type PreviewEntry = { id: string; category?: ServiceCategory; service: string; title: string; seconds: number };
 
-export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr", PreviewEntry[]> = {
+export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | "ar" | "pl", PreviewEntry[]> = {
   "en": [
     {
       "id": "cleaning-proper-brushing-technique",
@@ -201,6 +201,121 @@ export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr", PreviewE
       "service": "İmplant tedavisi",
       "title": "İmplant tedavisi - Sonrası bakım",
       "seconds": 32.4
+    }
+  ],
+  "ja": [
+    {
+      "id": "cleaning-chakushoku-wa-toreru",
+      "category": "cleaning",
+      "service": "歯のクリーニング",
+      "title": "着色は取れる？",
+      "seconds": 36.6
+    },
+    {
+      "id": "implant-ha-ga-nuketa-mama",
+      "category": "implant",
+      "service": "インプラント",
+      "title": "抜けたままでも？",
+      "seconds": 30.7
+    },
+    {
+      "id": "aligners-mouthpiece-shokuji",
+      "category": "aligners",
+      "service": "マウスピース矯正",
+      "title": "マウスピースは食事のたびに外す？",
+      "seconds": 32.5
+    },
+    {
+      "id": "children-shiage-migaki-nansai-made",
+      "category": "children",
+      "service": "小児歯科",
+      "title": "仕上げみがきは何歳まで？",
+      "seconds": 38
+    },
+    {
+      "id": "general-tsumetai-mono-de-shimiru",
+      "service": "知覚過敏",
+      "title": "冷たい物でしみる時",
+      "seconds": 34.3
+    },
+    {
+      "id": "general-tsuyoku-migaku-kuse",
+      "service": "知覚過敏",
+      "title": "強く磨くクセ",
+      "seconds": 40.2
+    }
+  ],
+  "ar": [
+    {
+      "id": "cleaning-nazif-allitha",
+      "category": "cleaning",
+      "service": "تنظيف الأسنان",
+      "title": "نزيف اللثة أثناء التنظيف",
+      "seconds": 33.6
+    },
+    {
+      "id": "whitening-qahwa-baad-altabyid",
+      "category": "whitening",
+      "service": "تبييض الأسنان",
+      "title": "القهوة بعد التبييض",
+      "seconds": 37.1
+    },
+    {
+      "id": "implant-ziraa-ziyara-wahida",
+      "category": "implant",
+      "service": "زراعة الأسنان",
+      "title": "هل الزراعة تتم في زيارة واحدة فقط؟",
+      "seconds": 43.8
+    },
+    {
+      "id": "aligners-tabdil-altaqwim-alshaffaf",
+      "category": "aligners",
+      "service": "التقويم الشفاف",
+      "title": "لماذا قد يتأخر تبديل التقويم الشفاف؟",
+      "seconds": 57.4
+    },
+    {
+      "id": "children-awwal-ziyara-lil-tifl",
+      "category": "children",
+      "service": "طب أسنان الأطفال",
+      "title": "موعد أول زيارة لأسنان الطفل",
+      "seconds": 46.7
+    }
+  ],
+  "pl": [
+    {
+      "id": "cleaning-skaling-wystarczy-raz-w-roku",
+      "category": "cleaning",
+      "service": "Higienizacja",
+      "title": "Skaling wystarczy raz w roku?",
+      "seconds": 32
+    },
+    {
+      "id": "whitening-wybielanie-przed-waznym-dniem",
+      "category": "whitening",
+      "service": "Wybielanie zębów",
+      "title": "Wybielanie przed ważnym dniem",
+      "seconds": 33
+    },
+    {
+      "id": "implant-implant-od-razu-jak-wlasny-zab",
+      "category": "implant",
+      "service": "Implanty",
+      "title": "Implant od razu jak własny ząb?",
+      "seconds": 37
+    },
+    {
+      "id": "children-pierwsza-wizyta-dziecka-bez-stresu",
+      "category": "children",
+      "service": "Stomatologia dziecięca",
+      "title": "Pierwsza wizyta dziecka bez stresu",
+      "seconds": 32
+    },
+    {
+      "id": "general-bol-po-lodach-to-nie-przypadek",
+      "service": "Nadwrażliwość zębów",
+      "title": "Ból po lodach to nie przypadek",
+      "seconds": 31
     }
   ]
 };

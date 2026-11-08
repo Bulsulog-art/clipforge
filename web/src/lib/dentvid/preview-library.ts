@@ -8,7 +8,6 @@
  * (scripts/build-dentvideo-preview.mts), and every visitor replays them.
  */
 import { PREVIEW_MANIFEST, type PreviewEntry as BuiltEntry } from "./preview-manifest";
-import { SILENT_PREVIEW_MANIFEST } from "./preview-manifest-silent";
 
 /** A library video. `narrated: false` marks a silent one (no .mp3 beside its plan). */
 export type PreviewEntry = BuiltEntry & { narrated?: boolean };
@@ -40,11 +39,8 @@ export function serviceCategory(service: string): ServiceCategory | undefined {
 export const PREVIEW_LANGUAGES = ["en", "de", "es", "fr", "tr", "ja", "ar", "pl"] as const;
 export type PreviewLanguage = (typeof PREVIEW_LANGUAGES)[number];
 
-/** The whole library: built (narrated) videos, and the silent ones for languages that have none yet. */
-export const PREVIEW_LIBRARY: Record<PreviewLanguage, PreviewEntry[]> = {
-  ...SILENT_PREVIEW_MANIFEST,
-  ...PREVIEW_MANIFEST,
-};
+/** The whole library: reviewed, narrated videos in every preview language. */
+export const PREVIEW_LIBRARY: Record<PreviewLanguage, PreviewEntry[]> = PREVIEW_MANIFEST;
 
 /** The library language for a clinic language; one we have no videos in falls back to English. */
 export function libraryLanguage(language: string): PreviewLanguage {

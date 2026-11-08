@@ -116,9 +116,10 @@ describe("the library on disk", () => {
       expect(plan.language).toBe(l);
     } else expect(fs.statSync(mp3).size).toBeGreaterThan(20_000);
   });
-  it("stays small enough to ship (≤ 8 MB)", () => {
+  // Eight languages of 5–6 narrated videos (~1.5 MB each); a visitor only ever loads three.
+  it("stays small enough to ship (≤ 12 MB)", () => {
     const size = (dir: string): number =>
       fs.readdirSync(dir, { withFileTypes: true }).reduce((n, f) => n + (f.isDirectory() ? size(path.join(dir, f.name)) : fs.statSync(path.join(dir, f.name)).size), 0);
-    expect(size(PUBLIC)).toBeLessThan(8 * 1024 * 1024);
+    expect(size(PUBLIC)).toBeLessThan(12 * 1024 * 1024);
   });
 });
