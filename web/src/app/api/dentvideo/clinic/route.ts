@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { clinicProfileSchema } from "@/lib/dentvid/profile";
 import { dvSession } from "@/lib/dentvid/auth";
+import { dvErrors } from "@/lib/dentvid/locale-server";
 
 const Body = z.object({
   profile: clinicProfileSchema,
@@ -10,20 +11,19 @@ const Body = z.object({
 
 export async function POST(req: Request) {
   const { db, user } = await dvSession();
-  if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  const raw = await req.json().catch(() => null);
+  // Answer in the language the clinic just chose, when it says one.
+  const err = await dvErrors((raw as { profile?: { language?: string } } | null)?.profile?.language);
+  if (!user) return NextResponse.json({ error: err.signIn }, { status: 401 });
 
-  let body: z.infer<typeof Body>;
-  try {
-    body = Body.parse(await req.json());
-  } catch (e) {
-    const issue = e instanceof z.ZodError ? e.issues[0] : undefined;
-    return NextResponse.json(
-      { error: issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid clinic profile." },
-      { status: 400 },
-    );
+  const parsed = Body.safeParse(raw);
+  if (!parsed.success) {
+    const field = parsed.error.issues[0]?.path.join(".");
+    return NextResponse.json({ error: field ? `${err.invalidProfile} (${field})` : err.invalidProfile }, { status: 400 });
   }
+  const body = parsed.data;
   if (body.logoPath && !body.logoPath.startsWith(`${user.id}/`)) {
-    return NextResponse.json({ error: "Invalid logo." }, { status: 400 });
+    return NextResponse.json({ error: err.invalidLogo }, { status: 400 });
   }
 
   const row = {
@@ -33,6 +33,9 @@ export async function POST(req: Request) {
     updated_at: new Date().toISOString(),
   };
   const { data, error } = await db.from("dentvid_clinics").upsert(row, { onConflict: "owner_id" }).select("id").single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("dentvideo clinic save failed", error.message);
+    return NextResponse.json({ error: err.saveFailed }, { status: 500 });
+  }
   return NextResponse.json({ id: data.id });
 }

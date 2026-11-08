@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Locale } from "@/content/dentvideo";
+import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 
 export type LibraryItem = {
   id: string;
@@ -17,16 +19,18 @@ export type LibraryItem = {
   thumbUrl?: string;
 };
 
-const STATUS: Record<LibraryItem["status"], { label: string; cls: string }> = {
-  ready: { label: "Ready for your review", cls: "bg-[#e6efed] text-[#0f5c5c]" },
-  flagged: { label: "Needs your attention", cls: "bg-[#fdf1dc] text-[#7a4b00]" },
-  rejected: { label: "Not made — see why", cls: "bg-[#f1ece4] text-[#6b7a77]" },
-  queued: { label: "Queued", cls: "bg-[#f1ece4] text-[#4a5a57]" },
-  working: { label: "In progress", cls: "bg-[#f1ece4] text-[#4a5a57]" },
-  failed: { label: "Failed", cls: "bg-[#fbeaea] text-[#8a1f1f]" },
+const STATUS_CLS: Record<LibraryItem["status"], string> = {
+  ready: "bg-[#e6efed] text-[#0f5c5c]",
+  flagged: "bg-[#fdf1dc] text-[#7a4b00]",
+  rejected: "bg-[#f1ece4] text-[#6b7a77]",
+  queued: "bg-[#f1ece4] text-[#4a5a57]",
+  working: "bg-[#f1ece4] text-[#4a5a57]",
+  failed: "bg-[#fbeaea] text-[#8a1f1f]",
 };
 
-export function Library({ items, canStartWeek }: { items: LibraryItem[]; canStartWeek: boolean }) {
+export function Library({ items, canStartWeek, locale }: { items: LibraryItem[]; canStartWeek: boolean; locale: Locale }) {
+  const text = appText(locale);
+  const t = text.library;
   const router = useRouter();
   const [starting, setStarting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -38,7 +42,7 @@ export function Library({ items, canStartWeek }: { items: LibraryItem[]; canStar
     const res = await fetch("/api/dentvideo/week", { method: "POST" });
     const body = await res.json().catch(() => ({}));
     setStarting(false);
-    setMessage(res.ok ? "This week's videos are being made. It takes about 15 minutes — they will appear here." : body.error ?? "Could not start.");
+    setMessage(res.ok ? t.started : body.error ?? text.errors.couldNotStart);
   }
 
   const visible = items.filter((i) => showRejected || i.status !== "rejected");
@@ -52,41 +56,38 @@ export function Library({ items, canStartWeek }: { items: LibraryItem[]; canStar
           disabled={starting || !canStartWeek}
           className="rounded-full bg-[#0f5c5c] px-6 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60"
         >
-          {starting ? "Starting…" : canStartWeek ? "Make this week's videos" : "This week's videos are made"}
+          {starting ? t.starting : canStartWeek ? t.makeWeek : t.weekMade}
         </button>
         <a href="/dentvideo/app/record" className="rounded-full border border-[#0f5c5c] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-[#e6efed]">
-          Upload your own recording
+          {t.uploadOwn}
         </a>
         <button onClick={() => router.refresh()} className="text-sm text-[#4a5a57] underline-offset-4 hover:underline">
-          Refresh
+          {t.refresh}
         </button>
       </div>
       {message && <p className="mt-4 rounded-xl bg-[#e6efed] px-4 py-3 text-sm text-[#0f5c5c]">{message}</p>}
 
       {visible.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-[#d9d1c3] p-10 text-center text-[#4a5a57]">
-          No videos yet. Press “Make this week's videos”, or upload a short recording of yourself.
-        </div>
+        <div className="mt-10 rounded-2xl border border-dashed border-[#d9d1c3] p-10 text-center text-[#4a5a57]">{t.empty}</div>
       ) : (
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((item) => (
-            <ItemCard key={item.id} item={item} onChanged={() => router.refresh()} />
+            <ItemCard key={item.id} item={item} t={t} onChanged={() => router.refresh()} />
           ))}
         </ul>
       )}
       {rejectedCount > 0 && (
         <button onClick={() => setShowRejected(!showRejected)} className="mt-6 text-sm text-[#4a5a57] underline-offset-4 hover:underline">
-          {showRejected ? "Hide" : "Show"} {rejectedCount} topic{rejectedCount === 1 ? "" : "s"} we did not make, and why
+          {showRejected ? t.hideRejected : fmt(t.showRejected, { n: rejectedCount })}
         </button>
       )}
     </div>
   );
 }
 
-function ItemCard({ item, onChanged }: { item: LibraryItem; onChanged: () => void }) {
+function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["library"]; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const status = STATUS[item.status];
 
   async function decide(approval: "approved" | "rejected" | "pending") {
     setBusy(true);
@@ -107,20 +108,22 @@ function ItemCard({ item, onChanged }: { item: LibraryItem; onChanged: () => voi
         <video src={item.videoUrl} poster={item.thumbUrl} controls playsInline preload="none" className="aspect-[9/16] w-full bg-[#14211f] object-cover" />
       ) : (
         <div className="flex aspect-[9/16] w-full items-center justify-center bg-[#f1ece4] px-6 text-center text-sm text-[#6b7a77]">
-          {item.status === "rejected" ? "This topic was not made." : "No video file."}
+          {item.status === "rejected" ? t.notMade : t.noVideo}
         </div>
       )}
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${status.cls}`}>
-          {item.approval === "approved" ? "Approved by you" : item.approval === "rejected" ? "Declined by you" : status.label}
+        <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${STATUS_CLS[item.status]}`}>
+          {item.approval === "approved" ? t.approvedByYou : item.approval === "rejected" ? t.declinedByYou : t.status[item.status]}
         </span>
         <h3 className="font-semibold leading-snug">{item.title}</h3>
-        <p className="text-xs text-[#6b7a77]">{item.kind === "recording" ? "From your recording" : "Made for you"} · week of {item.week_of}</p>
+        <p className="text-xs text-[#6b7a77]">
+          {item.kind === "recording" ? t.fromRecording : t.madeForYou} · {fmt(t.weekOf, { date: item.week_of })}
+        </p>
 
         {item.findings.length > 0 && (
           <details className="rounded-xl bg-[#fdf6ea] p-3 text-sm" open={item.status === "flagged"}>
             <summary className="cursor-pointer font-medium text-[#7a4b00]">
-              {item.status === "rejected" ? "Why we did not make it" : "What to check before posting"}
+              {item.status === "rejected" ? t.whyNotMade : t.whatToCheck}
             </summary>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-[#5c4a2a]">
               {item.findings.slice(0, 6).map((f, i) => (
@@ -132,7 +135,7 @@ function ItemCard({ item, onChanged }: { item: LibraryItem; onChanged: () => voi
 
         {item.caption && (
           <details className="text-sm">
-            <summary className="cursor-pointer text-[#0f5c5c]">Caption and hashtags</summary>
+            <summary className="cursor-pointer text-[#0f5c5c]">{t.captionAndHashtags}</summary>
             <p className="mt-2 whitespace-pre-line text-[#33423f]">{post}</p>
             <button
               onClick={async () => {
@@ -142,7 +145,7 @@ function ItemCard({ item, onChanged }: { item: LibraryItem; onChanged: () => voi
               }}
               className="mt-2 text-xs text-[#0f5c5c] underline-offset-4 hover:underline"
             >
-              {copied ? "Copied" : "Copy caption"}
+              {copied ? t.copied : t.copyCaption}
             </button>
           </details>
         )}
@@ -151,20 +154,20 @@ function ItemCard({ item, onChanged }: { item: LibraryItem; onChanged: () => voi
           <div className="mt-auto flex flex-wrap gap-2 pt-2">
             {item.approval !== "approved" ? (
               <button disabled={busy} onClick={() => decide("approved")} className="rounded-full bg-[#0f5c5c] px-4 py-2 text-sm font-medium text-[#f5efe6] hover:bg-[#0c4a4a] disabled:opacity-60">
-                Approve
+                {t.approve}
               </button>
             ) : (
               <a href={item.videoUrl} download className="rounded-full bg-[#0f5c5c] px-4 py-2 text-sm font-medium text-[#f5efe6] hover:bg-[#0c4a4a]">
-                Download
+                {t.download}
               </a>
             )}
             {item.approval !== "rejected" ? (
               <button disabled={busy} onClick={() => decide("rejected")} className="rounded-full border border-[#d9d1c3] px-4 py-2 text-sm hover:bg-[#f1ece4] disabled:opacity-60">
-                Decline
+                {t.decline}
               </button>
             ) : (
               <button disabled={busy} onClick={() => decide("pending")} className="rounded-full border border-[#d9d1c3] px-4 py-2 text-sm hover:bg-[#f1ece4] disabled:opacity-60">
-                Undo
+                {t.undo}
               </button>
             )}
           </div>

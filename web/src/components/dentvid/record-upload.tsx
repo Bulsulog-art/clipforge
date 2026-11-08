@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { dvBrowser, BUCKET } from "@/lib/dentvid/supabase";
+import type { Locale } from "@/content/dentvideo";
+import { appText, fmt } from "@/content/dentvideo-app";
 
 const MAX_MB = 500;
 
-export function RecordUpload() {
+export function RecordUpload({ locale }: { locale: Locale }) {
+  const { record: t, errors } = appText(locale);
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<"idle" | "uploading" | "queued" | "error">("idle");
@@ -16,7 +19,7 @@ export function RecordUpload() {
     if (!file) return;
     if (file.size > MAX_MB * 1024 * 1024) {
       setState("error");
-      setError(`Please keep recordings under ${MAX_MB} MB (about 10 minutes of phone video).`);
+      setError(fmt(t.tooBig, { mb: MAX_MB }));
       return;
     }
     setState("uploading");
@@ -24,18 +27,18 @@ export function RecordUpload() {
     try {
       const db = dvBrowser();
       const { data: u } = await db.auth.getUser();
-      if (!u.user) throw new Error("Please sign in again.");
+      if (!u.user) throw new Error(errors.signIn);
       const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase().slice(0, 4);
       const path = `${u.user.id}/recordings/${Date.now()}.${ext}`;
       const { error: upErr } = await db.storage.from(BUCKET).upload(path, file, { contentType: file.type || "video/mp4" });
-      if (upErr) throw new Error(upErr.message);
+      if (upErr) throw new Error(errors.invalidUpload);
       const res = await fetch("/api/dentvideo/recording", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ path }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error ?? "Could not start processing.");
+      if (!res.ok) throw new Error(body.error ?? errors.couldNotStart);
       setState("queued");
       setTimeout(() => router.push("/dentvideo/app"), 2500);
     } catch (e) {
@@ -47,7 +50,7 @@ export function RecordUpload() {
   return (
     <div className="rounded-2xl border border-[#e8e1d5] bg-white p-6">
       <label className="block text-sm font-medium">
-        Your recording (vertical or landscape, 1–10 minutes)
+        {t.fileLabel}
         <input
           type="file"
           accept="video/mp4,video/quicktime,video/webm"
@@ -60,9 +63,9 @@ export function RecordUpload() {
         disabled={!file || state === "uploading" || state === "queued"}
         className="mt-4 rounded-full bg-[#0f5c5c] px-6 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60"
       >
-        {state === "uploading" ? "Uploading…" : state === "queued" ? "Received — making your clips" : "Upload and make clips"}
+        {state === "uploading" ? t.uploading : state === "queued" ? t.queued : t.upload}
       </button>
-      {state === "queued" && <p className="mt-3 text-sm text-[#0f5c5c]">Your clips will appear in your library in about 10 minutes.</p>}
+      {state === "queued" && <p className="mt-3 text-sm text-[#0f5c5c]">{t.queuedNote}</p>}
       {error && <p className="mt-3 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
     </div>
   );

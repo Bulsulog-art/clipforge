@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
+import { dvErrors } from "@/lib/dentvid/locale-server";
 
 // Liman has public sign-up disabled (it hosts other apps too), so DentVideo
 // accounts are created here with the service role, already confirmed; the
@@ -11,12 +12,10 @@ const Body = z.object({
 });
 
 export async function POST(req: Request) {
-  let body: z.infer<typeof Body>;
-  try {
-    body = Body.parse(await req.json());
-  } catch {
-    return NextResponse.json({ error: "Enter a valid email and a password of at least 8 characters." }, { status: 400 });
-  }
+  const err = await dvErrors();
+  const parsed = Body.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: err.badSignup }, { status: 400 });
+  const body = parsed.data;
   const { error } = await dvAdmin().auth.admin.createUser({
     email: body.email,
     password: body.password,
@@ -25,10 +24,7 @@ export async function POST(req: Request) {
   });
   if (error) {
     const exists = /already|registered|exists/i.test(error.message);
-    return NextResponse.json(
-      { error: exists ? "An account with this email already exists. Sign in instead." : "Could not create the account." },
-      { status: exists ? 409 : 500 },
-    );
+    return NextResponse.json({ error: exists ? err.accountExists : err.createFailed }, { status: exists ? 409 : 500 });
   }
   return NextResponse.json({ ok: true });
 }
