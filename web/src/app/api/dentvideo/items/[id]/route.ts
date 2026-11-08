@@ -4,6 +4,7 @@ import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
+import { recordEvent } from "@/lib/dentvid/events-server";
 
 // The only thing a clinic changes on an item: its decision. Nothing is
 // publishable until it is "approved".
@@ -23,14 +24,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: err.invalidDecision }, { status: 400 });
   const body = parsed.data;
-  const { error } = await db
+  const { data: updated, error } = await db
     .from("dentvid_items")
     .update({ approval: body.approval, approval_note: body.note ?? null, updated_at: new Date().toISOString() })
     .eq("id", id)
-    .eq("owner_id", user.id);
+    .eq("owner_id", user.id)
+    .select("clinic_id");
   if (error) {
     console.error("dentvideo decision failed", error.message);
     return NextResponse.json({ error: err.saveFailed }, { status: 500 });
   }
+  const clinicId = (updated?.[0] as { clinic_id?: string } | undefined)?.clinic_id;
+  if (body.approval === "approved" && clinicId) void recordEvent("video_approved", { clinicId });
   return NextResponse.json({ ok: true });
 }

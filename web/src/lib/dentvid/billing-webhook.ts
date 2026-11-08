@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { applyTransition, dvTransition, type ClinicBilling, type DodoEventData } from "./billing";
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
+import { recordEvent } from "./events-server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -89,6 +90,7 @@ export async function handleDentvideoEvent(
   // worker emails the dentist when they are ready. Best effort — the plan
   // has already moved, and the app's "first week" screen asks for the week
   // again (idempotent, same job id) if this did not get through.
+  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first: clinic.plan !== "active", event: evt.type } });
   let firstWeek: FirstWeekResult | "failed" | undefined;
   if (update.plan === "active" && clinic.plan !== "active") {
     try {

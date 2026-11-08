@@ -6,6 +6,7 @@ import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink } from "@/lib/dentvid/billing";
 import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
+import { recordEvent } from "@/lib/dentvid/events-server";
 
 // POST /api/dentvideo/checkout — open a Dodo hosted checkout for the signed-in
 // clinic owner's plan. The clinic and owner ride along in metadata, which
@@ -49,15 +50,24 @@ export async function POST(req: Request) {
     locale: language,
   });
   if (!built.ok) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
+  // Funnel: a checkout URL was handed to the clinic (fire-and-forget).
+  const opened = (url: string, via: "api" | "link", founding: boolean) => {
+    void recordEvent("checkout_opened", {
+      locale: language,
+      clinicId: clinic.id as string,
+      props: { tier: parsed.data.plan, interval: parsed.data.interval, founding, via },
+    });
+    return url;
+  };
 
   // The same Dodo account as ClipForge: DODO_API_KEY, DODO_ENVIRONMENT=live.
   // Without an API key, Dodo's static payment link does the same job (same
   // product, metadata and return URL); the clinic types any code in Dodo.
   const apiKey = process.env.DODO_API_KEY?.trim();
-  if (!apiKey) return NextResponse.json({ url: buildDvStaticLink(built), code: built.discount });
+  if (!apiKey) return NextResponse.json({ url: opened(buildDvStaticLink(built), "link", built.autoDiscount), code: built.discount });
 
   try {
-    return NextResponse.json({ url: await postDodoCheckout({ apiKey, body: built.body }) });
+    return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: built.body }), "api", built.autoDiscount) });
   } catch (e) {
     // The founding code is applied for the clinic; once its 100 uses are gone
     // (or it is switched off in Dodo) checkout must still open, at list price.
@@ -65,7 +75,7 @@ export async function POST(req: Request) {
       const withoutCode = { ...built.body };
       delete withoutCode.discount_codes;
       try {
-        return NextResponse.json({ url: await postDodoCheckout({ apiKey, body: withoutCode }) });
+        return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: withoutCode }), "api", false) });
       } catch (e2) {
         console.error("[dentvideo checkout] dodo checkout failed", (e2 as Error).message);
       }

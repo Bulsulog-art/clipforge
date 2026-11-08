@@ -10,6 +10,7 @@ import { ONBOARDING_STEPS, STEP_COOKIE, TEASER_KEY, stepIndex, type OnboardingSt
 import { BrandFields, ClinicDetailsFields, HandleField, LanguageField, useClinicDraft, type ClinicDraft } from "./clinic-form";
 import { PlanPanel, type PlanOption } from "./plan-panel";
 import type { PreviewProfile } from "./live-preview";
+import { trackDv } from "@/lib/dentvid/events-client";
 
 /** The live preview runs only in the browser (canvas/video, object URLs): load it there, lazily. */
 const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePreview), {
@@ -105,6 +106,11 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
   const [step, setStep] = useState(initialStep);
 
   useEffect(() => rememberStep(initialStep), [initialStep]);
+  // Funnel (once per tab): the wizard's first live preview, and the preview step itself.
+  useEffect(() => {
+    if (step === "clinic" || step === "preview") trackDv("preview_started", { locale, props: { where: "wizard" }, once: "preview:wizard" });
+    if (step === "preview") trackDv("preview_step_viewed", { locale, once: "preview-step" });
+  }, [step, locale]);
 
   // Arrived from the landing's "Try it with your logo": carry the name,
   // colour, language and logo over (a new clinic only).

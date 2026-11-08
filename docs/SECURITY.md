@@ -45,6 +45,8 @@ signed = provider signature. **Limit** after this change; ⚠ = a gap found
 | `POST /week` | paying | queues **week** job: ~5 videos × (LLM writers + reviewers + TTS + Remotion render) ≈ $0.25 | 10/h per user; job id per clinic+week; worker: ≤ 3 week runs per clinic per ISO week | ⚠ a failed run could be re-queued forever |
 | `POST /items/[id]/backgrounds` | user (owner of item) | queues **restyle**: 1 TTS (~$0.02) + 1 full render (CPU minutes) | 6/10 min + 10/day per user; worker: paying check + 10/day per clinic | ⚠ unlimited; ⚠ worker did not check the plan (cancelled clinics could re-render) |
 | `PATCH /items/[id]` | user (owner) | DB update | 120/10 min per user | — |
+| `POST /event` | anon / user | 1 DB insert (`dentvid_events`, migration 0006) | 60/10 min per IP, 20k/h global; body ≤ 1 KB; allow-listed names and per-event prop shapes (no free text, emails/phones dropped); browsers may send only `landing_view`, `preview_started`, `preview_step_viewed`, `plan_clicked`, `video_shared` — payment, sign-up, checkout, approval and week events are recorded server-side only; clinic id taken from the session, never the body; no IP/UA stored | — |
+| `/admin`, `/admin/clinic/[id]` (owner dashboard, pages) | admin | service-role reads of all clinics, items, events; Redis spend counters; optional Dodo `GET /discounts` | 404 unless the signed-in Liman user **id** is in `DENTVIDEO_ADMIN_USER_IDS`; noindex | Email-based access would be unsafe: `/signup` creates confirmed accounts without verifying the address, so anyone could register an admin's email first. Ids are assigned by Liman. |
 | storage upload (browser → Liman `dentvid` bucket) | user, own folder (RLS) | VPS disk | migration 0004: 500 MB per object, MIME allow-list (mp4/mov/webm/m4v/png/jpeg/webp) | ⚠ no server-side size/type limit (client-only 500 MB) → disk exhaustion *(fixed once 0004 is applied)* |
 
 ### Webhooks & internal
@@ -205,6 +207,7 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `DENTVID_MAX_RECORDING_MIN` | worker | `30` | longest recording processed |
 | `DENTVID_COST_WEEK_USD` / `_RESTYLE_USD` / `_RECORDING_USD` | worker | `0.50` / `0.03` / `0.50` | per-op estimates |
 | `TRUST_CF_CONNECTING_IP` | web | off | `1` once dentvideo.com is behind Cloudflare with the origin locked |
+| `DENTVIDEO_ADMIN_USER_IDS` | web | — (nobody) | comma-separated Liman auth user UUIDs that may open `/dentvideo/admin`; email addresses grant nothing |
 
 The compose file loads both services from `web/.env`, so in Coolify add them to the shared env.
 

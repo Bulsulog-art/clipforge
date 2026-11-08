@@ -7,6 +7,7 @@ import { ArrowRight, ImagePlus } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { analyseLogoFile } from "@/lib/dentvid/logo-colors";
 import { TEASER_KEY } from "@/lib/dentvid/onboarding";
+import { trackDv } from "@/lib/dentvid/events-client";
 import { exampleServices } from "@/lib/dentvid/service-hints";
 import { PreviewPlaceholder } from "./phone";
 
@@ -74,12 +75,20 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
   /** The logo as a data URL, read when chosen, so the hand-over on click is synchronous. */
   const [logoData, setLogoData] = useState<string | null>(null);
   const latest = useRef<File | null>(null);
+  /** Funnel: the visitor started playing with the preview (first change, once per tab). */
+  const started = useRef(false);
+  const touch = () => {
+    if (started.current) return;
+    started.current = true;
+    trackDv("preview_started", { locale, props: { where: "landing" }, once: "preview:landing" });
+  };
 
   useEffect(() => () => {
     if (logoUrl) URL.revokeObjectURL(logoUrl);
   }, [logoUrl]);
 
   async function chooseLogo(file: File | null) {
+    touch();
     latest.current = file;
     setLogo(file);
     setSwatches([]);
@@ -140,7 +149,10 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
           <div className="dv-card mt-8 grid gap-5 p-5 sm:p-6">
             <label className="block text-sm font-semibold text-dv-ink">
               {copy.name}
-              <input value={name} onChange={(e) => setName(e.target.value.slice(0, 80))} placeholder={copy.namePlaceholder} autoComplete="organization" className="dv-field" />
+              <input value={name} onChange={(e) => {
+                  touch();
+                  setName(e.target.value.slice(0, 80));
+                }} placeholder={copy.namePlaceholder} autoComplete="organization" className="dv-field" />
             </label>
             <div className="grid gap-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-end">
               <label className="block text-sm font-semibold text-dv-ink">
@@ -169,7 +181,10 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                         type="button"
                         aria-label={c}
                         aria-pressed={on}
-                        onClick={() => setColor(c)}
+                        onClick={() => {
+                          touch();
+                          setColor(c);
+                        }}
                         className={`h-8 w-8 rounded-full border border-black/10 shadow-sm transition hover:scale-110 ${on ? "ring-2 ring-dv-teal ring-offset-2 ring-offset-white" : ""}`}
                         style={{ background: c }}
                       />
@@ -179,7 +194,10 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                     <input
                       type="color"
                       value={color}
-                      onChange={(e) => setColor(e.target.value)}
+                      onChange={(e) => {
+                        touch();
+                        setColor(e.target.value);
+                      }}
                       aria-label={copy.color}
                       className="h-full w-full cursor-pointer rounded-full border-0 p-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-2 [&::-webkit-color-swatch]:border-white"
                     />

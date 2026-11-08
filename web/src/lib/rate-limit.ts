@@ -173,6 +173,9 @@ export const LIMITS = {
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },
+  // First-party funnel events (POST /api/dentvideo/event): a few per page view.
+  eventIp: { limit: 60, windowSec: 10 * MIN },
+  eventGlobal: { limit: 20_000, windowSec: HOUR },
   // Lifecycle reminders (welcome is once per clinic). A hard ceiling on
   // reminder emails per hour, whatever the scheduler finds due.
   lifecycleGlobal: { limit: 100, windowSec: HOUR },

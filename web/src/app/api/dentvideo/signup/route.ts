@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
-import { dvErrors } from "@/lib/dentvid/locale-server";
+import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
+import { recordEvent } from "@/lib/dentvid/events-server";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { botSignup } from "@/lib/dentvid/bot-check";
@@ -53,5 +54,7 @@ export async function POST(req: Request) {
     if (!exists) console.error("[dentvideo signup] createUser failed", error.message);
     return NextResponse.json({ error: exists ? err.accountExists : err.createFailed }, { status: exists ? 409 : 500 });
   }
+  // Funnel: no email, no user id — just that an account was made, in which language.
+  void recordEvent("signup_completed", { locale: await dvLocale().catch(() => null) });
   return NextResponse.json({ ok: true });
 }

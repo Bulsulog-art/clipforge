@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Check, CheckCheck, Download, Loader2, Play, RotateCcw, Share2, Sparkles, X } from "lucide-react";
 import { BackgroundPicker } from "./background-picker";
+import { trackDv } from "@/lib/dentvid/events-client";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import {
@@ -501,6 +502,7 @@ function useShare(item: LibraryItem, t: AppText["library"]) {
 
   async function run() {
     if (!item.videoUrl) return;
+    trackDv("video_shared", { props: { method: mode === "phone" ? "share" : "download" } });
     // The clipboard first, while the tap still counts.
     if (post) await navigator.clipboard?.writeText(post).catch(() => {});
     if (mode === "desktop") {
@@ -539,6 +541,7 @@ function useShare(item: LibraryItem, t: AppText["library"]) {
   }
 
   async function download() {
+    trackDv("video_shared", { props: { method: "download" } });
     try {
       save(await load());
     } catch {
