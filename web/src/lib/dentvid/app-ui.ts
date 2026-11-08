@@ -126,7 +126,7 @@ export function approvableIds(items: LibraryItem[]): string[] {
 export function weekLabelDate(week: string, locale: Locale): string {
   const d = new Date(`${week}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return week;
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "UTC" }).format(d);
+  return new Intl.DateTimeFormat(dateLocale(locale), { day: "numeric", month: "long", timeZone: "UTC" }).format(d);
 }
 
 /** How many whole weeks before `current` a week is (0 = this week, 1 = last week). */
@@ -173,4 +173,9 @@ export function fileSize(bytes: number, locale: Locale): string {
   if (bytes >= 1024 ** 3) return `${nf(bytes / 1024 ** 3, 1)} GB`;
   if (bytes >= 1024 ** 2) return `${nf(bytes / 1024 ** 2, bytes >= 10 * 1024 ** 2 ? 0 : 1)} MB`;
   return `${nf(Math.max(1, Math.round(bytes / 1024)), 0)} KB`;
+}
+
+/** Dates for people: English clinics get "2 November" (UK order), not "November 2". */
+export function dateLocale(locale: string): string {
+  return locale === "en" ? "en-GB" : locale;
 }

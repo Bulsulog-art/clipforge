@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { dateLocale } from "@/lib/dentvid/app-ui";
 import { ArrowRight, BadgeCheck, Check } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
@@ -217,7 +218,7 @@ export function PlanStatus({
         {label}
       </span>
       {date && !Number.isNaN(date.getTime()) && (
-        <span className="text-xs text-dv-muted">{fmt(t.renews, { date: new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(date) })}</span>
+        <span className="text-xs text-dv-muted">{fmt(t.renews, { date: new Intl.DateTimeFormat(dateLocale(locale), { dateStyle: "long" }).format(date) })}</span>
       )}
     </p>
   );

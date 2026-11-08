@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { dateLocale } from "@/lib/dentvid/app-ui";
 import { ArrowRight, ChevronRight } from "lucide-react";
 import { LANDING_PATH, type Locale } from "@/content/dentvideo";
 import { parseInline, resolveTarget } from "@/content/guides/text";
@@ -73,5 +74,5 @@ export function GuideCta({ locale }: { locale: Locale }) {
 
 /** "8 November 2026" in the page's language. */
 export function formatDate(iso: string, locale: Locale): string {
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+  return new Intl.DateTimeFormat(dateLocale(locale), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
 }
