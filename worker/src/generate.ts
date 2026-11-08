@@ -6,6 +6,7 @@ import { supabase } from "./supabase.js";
 import { logger } from "./logger.js";
 import { planFromPrompt } from "./remotion/plan-from-prompt.js";
 import { renderPlan } from "./remotion/render-plan.js";
+import { prepareVoiceover } from "./remotion/voiceover.js";
 import { ScenePlanError, totalSeconds } from "./remotion/scene-plan.js";
 import { renderConcurrency } from "./remotion/capacity.js";
 import type { ScenePlan } from "./remotion/scene-plan.js";
@@ -161,9 +162,17 @@ export async function runGenerate(p: GeneratePayload) {
       duration_seconds: Math.round(totalSeconds(plan)),
     });
 
+    // Speak the narration, if the plan has one, and time the scenes to it.
+    // Plans with a voiceover used to render silent: nothing synthesized it.
+    const voice = await prepareVoiceover(plan, workDir).catch((e) => {
+      logger.warn({ jobId: p.jobId, err: (e as Error).message }, "voiceover failed — rendering without narration");
+      return { plan, voiceoverPath: undefined };
+    });
+
     const outputPath = path.join(workDir, "out.mp4");
     const result = await renderPlan({
-      plan,
+      plan: voice.plan,
+      voiceoverSrc: voice.voiceoverPath,
       workDir,
       outputPath,
       userAssets,

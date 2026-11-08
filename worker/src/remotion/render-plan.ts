@@ -241,6 +241,23 @@ async function renderStaged(
     }
   }
 
+  // Audio has the same constraint as footage: the composition can only fetch
+  // what is staged in its public folder. Both were passed as raw local paths
+  // and silently never played.
+  const stageAudio = async (src?: string) => {
+    if (!src || /^https?:/.test(src)) return src;
+    const dest = path.join(assetDir, path.basename(src));
+    try {
+      await fs.copyFile(src, dest);
+      return toRenderableSrc(dest, renderId);
+    } catch (e) {
+      onWarn?.(`could not stage audio ${src}: ${(e as Error).message}`);
+      return undefined;
+    }
+  };
+  const stagedVoiceover = await stageAudio(voiceoverSrc);
+  const stagedMusic = await stageAudio(musicSrc);
+
   const footage = await resolveFootage(plan, {
     workDir: assetDir,
     renderId,
@@ -252,12 +269,17 @@ async function renderStaged(
   const footageScenes = plan.scenes.filter((s) => s.kind === "footage").length;
   const missingFootage = footageScenes - Object.keys(footage).length;
 
-  const inputProps = { plan, footage, voiceoverSrc, musicSrc, watermark };
+  const inputProps = { plan, footage, voiceoverSrc: stagedVoiceover, musicSrc: stagedMusic, watermark };
+
+  // Use a specific browser binary when one is configured (a dev box with a
+  // preinstalled chrome-headless-shell); otherwise Remotion's own download.
+  const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
 
   const composition = await selectComposition({
     serveUrl,
     id: COMPOSITION_ID,
     inputProps,
+    browserExecutable,
   });
 
   await renderMedia({
@@ -270,6 +292,7 @@ async function renderStaged(
     // Short-form is watched on a phone over cellular; a visually lossless
     // encode at a sane bitrate beats a pristine file nobody waits for.
     crf: 23,
+    browserExecutable,
     onProgress: onProgress ? ({ progress }) => onProgress(progress) : undefined,
   });
 

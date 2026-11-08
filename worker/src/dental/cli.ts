@@ -15,6 +15,7 @@ import OpenAI from "openai";
 import { clinicProfileSchema } from "./profile.js";
 import { produceWeek } from "./week.js";
 import { renderPlan } from "../remotion/render-plan.js";
+import { prepareVoiceover } from "../remotion/voiceover.js";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -45,8 +46,10 @@ async function main() {
         ? async (plan, topic) => {
             const dir = path.join(outDir, slug(topic.title));
             await fs.mkdir(dir, { recursive: true });
+            const voice = await prepareVoiceover(plan, dir);
             const res = await renderPlan({
-              plan,
+              plan: voice.plan,
+              voiceoverSrc: voice.voiceoverPath,
               workDir: dir,
               outputPath: path.join(dir, "video.mp4"),
               pexelsApiKey: process.env.PEXELS_API_KEY,
