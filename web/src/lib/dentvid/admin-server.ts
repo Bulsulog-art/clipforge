@@ -5,6 +5,7 @@ import { isAdminUser } from "./admin";
 import { foundingCode } from "./billing";
 import { dvAdmin } from "./supabase";
 import { missingTable } from "./events-server";
+import { isEmailVerified } from "./verify-email";
 import type { AdminClinic, AdminEvent, AdminItem } from "./admin-metrics";
 
 /**
@@ -58,7 +59,22 @@ export type AdminData = {
   spend: SpendState;
   dodoFoundingUses: number | null;
   warnings: string[];
+  /** Owner ids whose email is confirmed (lib/dentvid/verify-email); undefined when it could not be read. */
+  verifiedOwners?: string[];
 };
+
+/** Which clinic owners confirmed their address. One admin call for up to 1000 users (Liman holds other apps' too). */
+async function loadVerifiedOwners(db: SupabaseClient, ownerIds: string[]): Promise<string[] | undefined> {
+  if (!ownerIds.length) return [];
+  try {
+    const want = new Set(ownerIds);
+    const { data, error } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (error) return undefined;
+    return (data?.users ?? []).filter((u) => want.has(u.id) && isEmailVerified(u)).map((u) => u.id);
+  } catch {
+    return undefined;
+  }
+}
 
 const num = (v: string | undefined, d: number) => {
   const n = Number(v);
@@ -155,6 +171,7 @@ export async function loadAdminData(now = new Date()): Promise<AdminData> {
   if (items.error) warnings.push(`Videos could not be read: ${items.error.message}`);
   const eventsTable = !events.error;
   if (events.error && !missingTable(events.error)) warnings.push(`Events could not be read: ${events.error.message}`);
+  const verifiedOwners = await loadVerifiedOwners(db, [...new Set(clinics.rows.map((c) => c.owner_id).filter((x): x is string => !!x))]);
   return {
     now: now.toISOString(),
     clinics: clinics.rows,
@@ -164,6 +181,7 @@ export async function loadAdminData(now = new Date()): Promise<AdminData> {
     spend,
     dodoFoundingUses,
     warnings,
+    verifiedOwners,
   };
 }
 

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
-import { dvErrors } from "@/lib/dentvid/locale-server";
+import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
+import { isEmailVerified } from "@/lib/dentvid/verify-email";
+import { verifyText } from "@/content/dentvideo-auth";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink } from "@/lib/dentvid/billing";
@@ -36,6 +38,10 @@ export async function POST(req: Request) {
   const err = await dvErrors(language);
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
   if (clinic.plan === "active") return NextResponse.json({ error: err.alreadySubscribed }, { status: 409 });
+  // Paying is where an address starts getting mail (welcome, "videos ready"): it must be proven first.
+  if (!isEmailVerified(user)) {
+    return NextResponse.json({ error: verifyText(await dvLocale(language)).checkoutBlocked, code: "email_unverified", email: user.email }, { status: 403 });
+  }
 
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });

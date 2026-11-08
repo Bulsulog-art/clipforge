@@ -6,6 +6,7 @@ import { ArrowRight, BadgeCheck, Check } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
 import type { DvInterval, DvPlanState, DvTier } from "@/lib/dentvid/billing";
+import { VerifyCard } from "./verify-email";
 import { trackDv } from "@/lib/dentvid/events-client";
 
 export type PlanOption = { tier: DvTier; interval: DvInterval; priceUsd: number };
@@ -28,6 +29,7 @@ export function PlanPanel({
   founding,
   bare = false,
   keepVideos = false,
+  onNeedsVerification,
 }: {
   locale: Locale;
   state: DvPlanState;
@@ -38,6 +40,8 @@ export function PlanPanel({
   bare?: boolean;
   /** Paused or cancelled with videos in the library: say they stay, and can still be shared. */
   keepVideos?: boolean;
+  /** Checkout refused an unconfirmed address and the page shows its own code card (the onboarding plan step). */
+  onNeedsVerification?: () => void;
 }) {
   const text = appText(locale);
   const t = text.billing;
@@ -46,6 +50,8 @@ export function PlanPanel({
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<DvTier | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Inline code card (in the app, where the page has none): the address to confirm. */
+  const [verifyFor, setVerifyFor] = useState<string | null>(null);
 
   const lead = state === "paused" ? t.leadPaused : state === "cancelled" ? t.leadCancelled : t.leadTrial;
 
@@ -59,9 +65,21 @@ export function PlanPanel({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ plan: tier, interval: chosen, ...(code.trim() ? { code: code.trim() } : {}) }),
       });
-      const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string; code?: string; email?: string };
       if (res.ok && body.url) {
         window.location.href = body.url;
+        return;
+      }
+      // The address is not confirmed yet (lib/dentvid/verify-email): the code card.
+      if (res.status === 403 && body.code === "email_unverified") {
+        setBusy(null);
+        if (onNeedsVerification) {
+          setError(null);
+          onNeedsVerification();
+        } else {
+          setError(body.error ?? null);
+          setVerifyFor(body.email ?? "");
+        }
         return;
       }
       setError(body.error ?? text.errors.checkoutFailed);
@@ -177,6 +195,18 @@ export function PlanPanel({
         <p role="alert" className="mt-5 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]">
           {error}
         </p>
+      )}
+      {verifyFor !== null && (
+        <div className="mt-5">
+          <VerifyCard
+            locale={locale}
+            email={verifyFor}
+            onVerified={() => {
+              setVerifyFor(null);
+              setError(null);
+            }}
+          />
+        </div>
       )}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">

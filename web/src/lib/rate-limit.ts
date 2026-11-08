@@ -149,6 +149,15 @@ export const LIMITS = {
   signupIp: { limit: 5, windowSec: 10 * MIN },
   signupIpDay: { limit: 20, windowSec: DAY },
   signupGlobal: { limit: 200, windowSec: HOUR },
+  // Email ownership codes (lib/dentvid/verify-email): each send is an email,
+  // each confirm a guess at a 6-digit code (5 tries per code on top of this).
+  verifySendUser: { limit: 6, windowSec: HOUR },
+  verifySendEmail: { limit: 6, windowSec: HOUR },
+  verifySendIp: { limit: 20, windowSec: HOUR },
+  verifySendGlobal: { limit: 300, windowSec: HOUR },
+  verifyConfirmUser: { limit: 15, windowSec: 10 * MIN },
+  verifyConfirmIp: { limit: 60, windowSec: 10 * MIN },
+  verifyChangeUser: { limit: 3, windowSec: HOUR },
   // Opens a Dodo checkout session (an outbound API call each).
   checkoutUser: { limit: 10, windowSec: 10 * MIN },
   checkoutIp: { limit: 30, windowSec: HOUR },
