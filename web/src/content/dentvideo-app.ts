@@ -61,6 +61,8 @@ export type AppText = {
     copied: string;
     approve: string;
     download: string;
+    share: string;
+    shareHint: string;
     decline: string;
     undo: string;
   };
@@ -184,6 +186,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copied: "Copied",
       approve: "Approve",
       download: "Download",
+      share: "Share to Instagram or TikTok",
+      shareHint: "Caption copied — choose Instagram or TikTok, then paste it.",
       decline: "Decline",
       undo: "Undo",
     },
@@ -306,6 +310,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copied: "Kopiert",
       approve: "Freigeben",
       download: "Herunterladen",
+      share: "Auf Instagram oder TikTok teilen",
+      shareHint: "Text kopiert – Instagram oder TikTok wählen und einfügen.",
       decline: "Ablehnen",
       undo: "Rückgängig",
     },
@@ -433,6 +439,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copied: "Copiado",
       approve: "Aprobar",
       download: "Descargar",
+      share: "Compartir en Instagram o TikTok",
+      shareHint: "Texto copiado: elige Instagram o TikTok y pégalo.",
       decline: "Descartar",
       undo: "Deshacer",
     },
@@ -560,6 +568,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copied: "Kopyalandı",
       approve: "Onayla",
       download: "İndir",
+      share: "Instagram'da veya TikTok'ta paylaş",
+      shareHint: "Açıklama kopyalandı — Instagram'ı veya TikTok'u seçip yapıştırın.",
       decline: "Reddet",
       undo: "Geri al",
     },
@@ -687,6 +697,8 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copied: "Copié",
       approve: "Valider",
       download: "Télécharger",
+      share: "Partager sur Instagram ou TikTok",
+      shareHint: "Texte copié : choisissez Instagram ou TikTok, puis collez-le.",
       decline: "Refuser",
       undo: "Annuler",
     },
