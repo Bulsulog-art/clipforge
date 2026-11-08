@@ -22,9 +22,9 @@ export type LibraryItem = {
 const STATUS_CLS: Record<LibraryItem["status"], string> = {
   ready: "bg-[#e6efed] text-[#0f5c5c]",
   flagged: "bg-[#fdf1dc] text-[#7a4b00]",
-  rejected: "bg-[#f1ece4] text-[#6b7a77]",
-  queued: "bg-[#f1ece4] text-[#4a5a57]",
-  working: "bg-[#f1ece4] text-[#4a5a57]",
+  rejected: "bg-[#f1ece4] text-dv-muted",
+  queued: "bg-[#f1ece4] text-dv-body",
+  working: "bg-[#f1ece4] text-dv-body",
   failed: "bg-[#fbeaea] text-[#8a1f1f]",
 };
 
@@ -69,26 +69,26 @@ export function Library({ items, canStartWeek, locale }: { items: LibraryItem[];
         <button
           onClick={startWeek}
           disabled={starting || !canStartWeek}
-          className="rounded-full bg-[#0f5c5c] px-6 py-3 font-medium text-[#f5efe6] transition hover:bg-[#0c4a4a] disabled:opacity-60"
+          className="dv-btn dv-btn-primary px-6 py-3"
         >
           {starting ? t.starting : canStartWeek ? t.makeWeek : t.weekMade}
         </button>
-        <a href="/dentvideo/app/record" className="rounded-full border border-[#0f5c5c] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-[#e6efed]">
+        <a href="/dentvideo/app/record" className="dv-btn dv-btn-secondary px-6 py-3 !text-dv-teal">
           {t.uploadOwn}
         </a>
         {approvable.length > 1 && (
-          <button onClick={approveAll} disabled={approving} className="rounded-full border border-[#0f5c5c] bg-[#e6efed] px-6 py-3 font-medium text-[#0f5c5c] transition hover:bg-[#d5e6e3] disabled:opacity-60">
+          <button onClick={approveAll} disabled={approving} className="dv-btn px-6 py-3 bg-dv-teal-50 text-dv-teal ring-1 ring-dv-teal/40 hover:bg-dv-teal-100">
             {fmt(t.approveAll, { n: String(approvable.length) })}
           </button>
         )}
-        <button onClick={() => router.refresh()} className="text-sm text-[#4a5a57] underline-offset-4 hover:underline">
+        <button onClick={() => router.refresh()} className="text-sm text-dv-body underline-offset-4 hover:underline">
           {t.refresh}
         </button>
       </div>
       {message && <p className="mt-4 rounded-xl bg-[#e6efed] px-4 py-3 text-sm text-[#0f5c5c]">{message}</p>}
 
       {visible.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-[#d9d1c3] p-10 text-center text-[#4a5a57]">{t.empty}</div>
+        <div className="mt-10 rounded-2xl border border-dashed border-[#d9d1c3] p-10 text-center text-dv-body">{t.empty}</div>
       ) : (
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((item) => (
@@ -97,7 +97,7 @@ export function Library({ items, canStartWeek, locale }: { items: LibraryItem[];
         </ul>
       )}
       {rejectedCount > 0 && (
-        <button onClick={() => setShowRejected(!showRejected)} className="mt-6 text-sm text-[#4a5a57] underline-offset-4 hover:underline">
+        <button onClick={() => setShowRejected(!showRejected)} className="mt-6 text-sm text-dv-body underline-offset-4 hover:underline">
           {showRejected ? t.hideRejected : fmt(t.showRejected, { n: rejectedCount })}
         </button>
       )}
@@ -154,11 +154,11 @@ function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["libra
   const post = [item.caption ?? "", (item.hashtags ?? []).map((h) => `#${h}`).join(" ")].filter(Boolean).join("\n\n");
 
   return (
-    <li className="flex flex-col overflow-hidden rounded-2xl border border-[#e8e1d5] bg-white shadow-sm">
+    <li className="dv-card flex flex-col overflow-hidden">
       {item.videoUrl ? (
         <video src={item.videoUrl} poster={item.thumbUrl} controls playsInline preload="none" className="aspect-[9/16] w-full bg-[#14211f] object-cover" />
       ) : (
-        <div className="flex aspect-[9/16] w-full items-center justify-center bg-[#f1ece4] px-6 text-center text-sm text-[#6b7a77]">
+        <div className="flex aspect-[9/16] w-full items-center justify-center bg-[#f1ece4] px-6 text-center text-sm text-dv-muted">
           {item.status === "rejected" ? t.notMade : t.noVideo}
         </div>
       )}
@@ -167,7 +167,7 @@ function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["libra
           {item.approval === "approved" ? t.approvedByYou : item.approval === "rejected" ? t.declinedByYou : t.status[item.status]}
         </span>
         <h3 className="font-semibold leading-snug">{item.title}</h3>
-        <p className="text-xs text-[#6b7a77]">
+        <p className="text-xs text-dv-muted">
           {item.kind === "recording" ? t.fromRecording : t.madeForYou} · {fmt(t.weekOf, { date: item.week_of })}
         </p>
 
@@ -206,25 +206,25 @@ function ItemCard({ item, t, onChanged }: { item: LibraryItem; t: AppText["libra
         {item.status !== "rejected" && item.videoUrl && (
           <div className="mt-auto flex flex-wrap gap-2 pt-2">
             {item.approval !== "approved" ? (
-              <button disabled={busy} onClick={() => decide("approved")} className="rounded-full bg-[#0f5c5c] px-4 py-2 text-sm font-medium text-[#f5efe6] hover:bg-[#0c4a4a] disabled:opacity-60">
+              <button disabled={busy} onClick={() => decide("approved")} className="dv-btn dv-btn-primary px-4 py-2 text-sm">
                 {t.approve}
               </button>
             ) : (
               <>
-                <button disabled={sharing} onClick={share} className="rounded-full bg-[#0f5c5c] px-4 py-2 text-sm font-medium text-[#f5efe6] hover:bg-[#0c4a4a] disabled:opacity-60">
+                <button disabled={sharing} onClick={share} className="dv-btn dv-btn-primary px-4 py-2 text-sm">
                   {t.share}
                 </button>
-                <a href={item.videoUrl} download className="rounded-full border border-[#d9d1c3] px-4 py-2 text-sm hover:bg-[#f1ece4]">
+                <a href={item.videoUrl} download className="dv-btn dv-btn-secondary px-4 py-2 text-sm">
                   {t.download}
                 </a>
               </>
             )}
             {item.approval !== "rejected" ? (
-              <button disabled={busy} onClick={() => decide("rejected")} className="rounded-full border border-[#d9d1c3] px-4 py-2 text-sm hover:bg-[#f1ece4] disabled:opacity-60">
+              <button disabled={busy} onClick={() => decide("rejected")} className="dv-btn dv-btn-secondary px-4 py-2 text-sm">
                 {t.decline}
               </button>
             ) : (
-              <button disabled={busy} onClick={() => decide("pending")} className="rounded-full border border-[#d9d1c3] px-4 py-2 text-sm hover:bg-[#f1ece4] disabled:opacity-60">
+              <button disabled={busy} onClick={() => decide("pending")} className="dv-btn dv-btn-secondary px-4 py-2 text-sm">
                 {t.undo}
               </button>
             )}

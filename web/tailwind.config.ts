@@ -16,9 +16,24 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
         brand: { DEFAULT: "#FF3366", glow: "#FF6699" },
+        // DentVideo (docs/BRAND.md). Used only under /dentvideo.
+        dv: {
+          ink: "#14211f",
+          body: "#3d4c49",
+          muted: "#5b6a67",
+          teal: { DEFAULT: "#0f5c5c", 950: "#082e2d", 900: "#0b3f3e", 800: "#0c4a4a", 600: "#167269", 300: "#8fd1c6", 100: "#dcebe7", 50: "#eef5f2" },
+          paper: "#faf7f2",
+          sand: { DEFAULT: "#f5efe6", 200: "#efe7da" },
+          line: "#e8e1d5",
+          edge: "#d9d1c3",
+        },
       },
       borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
-      fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        "dv-sans": ["var(--dv-font-sans)", "system-ui", "sans-serif"],
+        "dv-serif": ["var(--dv-font-serif)", "Georgia", "serif"],
+      },
       keyframes: {
         "fade-in": { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
         "slide-up": { "0%": { transform: "translateY(20px)", opacity: "0" }, "100%": { transform: "translateY(0)", opacity: "1" } },
