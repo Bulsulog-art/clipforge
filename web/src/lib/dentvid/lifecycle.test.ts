@@ -34,7 +34,7 @@ const clinic = (n: number, over: Partial<ClinicForMail> = {}): ClinicForMail => 
 });
 
 /** In-memory Liman: clinics, owners' emails and the email log, with the same unique rule. */
-function memoryStore(clinics: ClinicForMail[], emails: Record<string, string> = {}, opts: { missing?: boolean } = {}) {
+function memoryStore(clinics: ClinicForMail[], emails: Record<string, string> = {}, opts: { missing?: boolean; unverified?: Set<string> } = {}) {
   const rows = new Map(clinics.map((c) => [c.id, { ...c }]));
   const log: LogRow[] = [];
   let clock = NOW;
@@ -69,8 +69,8 @@ function memoryStore(clinics: ClinicForMail[], emails: Record<string, string> = 
       const i = log.findIndex((l) => l.clinic_id === cid && l.kind === kind);
       if (i >= 0) log.splice(i, 1);
     },
-    async ownerEmail(owner) {
-      return emails[owner] ?? `${owner}@clinic.example`;
+    async owner(owner) {
+      return { email: emails[owner] ?? `${owner}@clinic.example`, verified: !opts.unverified?.has(owner) };
     },
     async optOut(cid, at) {
       const c = rows.get(cid);
@@ -196,6 +196,22 @@ describe("runNudges: sending", () => {
     }
   });
 
+  it("skips owners who have not confirmed their address, without using up the reminder", async () => {
+    const unverified = new Set(["owner-1"]);
+    const m = memoryStore([clinic(1), clinic(2)], {}, { unverified });
+    const { send, sent } = sender();
+    const r = await runNudges({ store: m.store, send, allow: allowAll, now: NOW, config: cfg() });
+    expect(sent.map((s) => s.to)).toEqual(["owner-2@clinic.example"]);
+    expect(r.skipped.unverified).toBe(1);
+    expect(m.log.map((l) => l.clinic_id)).toEqual([id(2)]);
+    // Confirmed an hour later: reminder 1 goes out then.
+    unverified.delete("owner-1");
+    const later = new Date(NOW.getTime() + H);
+    m.setClock(later);
+    await runNudges({ store: m.store, send, allow: allowAll, now: later, config: cfg() });
+    expect(sent.map((s) => s.to)).toEqual(["owner-2@clinic.example", "owner-1@clinic.example"]);
+  });
+
   it("skips test accounts (e2e-…) and owners without an email", async () => {
     const m = memoryStore([clinic(1), clinic(2), clinic(3)], { "owner-1": "e2e-funnel-123@dentvideo.test", "owner-2": "" });
     const { send, sent } = sender();
@@ -289,6 +305,14 @@ describe("welcome after the first payment", () => {
     expect(await sendWelcome({ store: missing.store, send, config: cfg() }, id(1))).toBe("migration missing");
     expect(sent).toHaveLength(0);
     warn.mockRestore();
+  });
+
+  it("goes only to an owner who confirmed the address", async () => {
+    const { send, sent } = sender();
+    const m = memoryStore([clinic(1, { plan: "active" })], {}, { unverified: new Set(["owner-1"]) });
+    expect(await sendWelcome({ store: m.store, send, config: cfg() }, id(1))).toBe("unverified");
+    expect(m.log).toHaveLength(0);
+    expect(sent).toHaveLength(0);
   });
 
   it("the payment webhook asks for it only when a clinic becomes active", async () => {

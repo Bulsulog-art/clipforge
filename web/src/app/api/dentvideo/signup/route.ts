@@ -6,10 +6,14 @@ import { recordEvent } from "@/lib/dentvid/events-server";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { botSignup } from "@/lib/dentvid/bot-check";
+import { asLocale } from "@/lib/dentvid/locale";
+import { sendVerificationCode } from "@/lib/dentvid/verify-email-server";
 
 // Liman has public sign-up disabled (it hosts other apps too), so DentVideo
-// accounts are created here with the service role, already confirmed; the
-// browser then signs in with the same email and password.
+// accounts are created here with the service role, already "confirmed" in
+// Supabase's sense; the browser then signs in with the same email and
+// password. Ownership of the address is proven separately: a 6-digit code is
+// emailed right away (lib/dentvid/verify-email) and checkout waits for it.
 //
 // Bot brakes (no third-party captcha): per-IP and global rate limits, a
 // hidden honeypot field and a minimum time on the form (lib/dentvid/bot-check).
@@ -20,6 +24,8 @@ const Body = z.object({
   website: z.string().max(200).optional(),
   /** Milliseconds the form was open before submit (start-form.tsx). */
   elapsedMs: z.number().int().nonnegative().optional(),
+  /** Interface language, for the verification email. */
+  locale: z.string().max(8).optional(),
 });
 
 export async function POST(req: Request) {
@@ -43,7 +49,7 @@ export async function POST(req: Request) {
     console.warn("[dentvideo signup] refused as automated", bot, ip);
     return NextResponse.json({ error: err.createFailed }, { status: 400 });
   }
-  const { error } = await dvAdmin().auth.admin.createUser({
+  const { data: created, error } = await dvAdmin().auth.admin.createUser({
     email: body.email,
     password: body.password,
     email_confirm: true,
@@ -55,6 +61,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: exists ? err.accountExists : err.createFailed }, { status: exists ? 409 : 500 });
   }
   // Funnel: no email, no user id — just that an account was made, in which language.
-  void recordEvent("signup_completed", { locale: await dvLocale().catch(() => null) });
-  return NextResponse.json({ ok: true });
+  const locale = asLocale(body.locale) ?? (await dvLocale().catch(() => "en" as const));
+  void recordEvent("signup_completed", { locale });
+  // The code email. Not fatal if it fails: the plan step asks for one again.
+  const code = created?.user ? await sendVerificationCode({ userId: created.user.id, email: body.email, language: locale }) : null;
+  return NextResponse.json({ ok: true, codeSent: !!code?.ok });
 }

@@ -8,6 +8,7 @@ import type { DvEventName } from "./events";
 
 export type AdminClinic = {
   id: string;
+  owner_id?: string;
   created_at: string;
   plan: string;
   plan_tier?: string | null;

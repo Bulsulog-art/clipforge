@@ -4,6 +4,7 @@ import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS, dvBaseUrl, foundingCode, founding
 import { CONTACT_EMAIL, offerNudgeEmail, previewNudgeEmail, welcomeEmail, type OfferTerms, type Rendered } from "./lifecycle-email";
 import type { SendOptions } from "./email";
 import { unsubscribeSecret, unsubscribeToken } from "./unsubscribe-token";
+import { isEmailVerified } from "./verify-email";
 
 /**
  * Lifecycle email: who gets which email, when, and never twice.
@@ -18,7 +19,10 @@ import { unsubscribeSecret, unsubscribeToken } from "./unsubscribe-token";
  *
  * Reminders stop the moment the clinic pays (plan leaves "trial"), opts out
  * (email_opt_out_at) or is deleted (the row is gone). Nobody without a
- * clinic row is ever selected, and test accounts (e2e-…) are skipped.
+ * clinic row is ever selected, and test accounts (e2e-…) are skipped. Mail
+ * only goes to an owner who proved the address (6-digit code or password
+ * reset, lib/dentvid/verify-email): an unverified owner is skipped without
+ * using up the reminder, so it still goes out once they confirm.
  *
  * Idempotency: a row in dentvid_email_log (unique per clinic and kind) is
  * claimed before sending and released if the send fails, and Resend gets an
@@ -41,7 +45,9 @@ export type ClinicForMail = {
   email_opt_out_at: string | null;
 };
 
-export type LogRow = { clinic_id: string; kind: LifecycleKind; sent_at: string };
+export type OwnerContact = { email: string; verified: boolean };
+
+export type LogRow ={ clinic_id: string; kind: LifecycleKind; sent_at: string };
 
 export class MissingSchemaError extends Error {
   constructor(what: string) {
@@ -58,7 +64,8 @@ export interface LifecycleStore {
   /** Writes the (clinic, kind) row; false when it is already there. */
   claim(clinicId: string, kind: LifecycleKind): Promise<boolean>;
   release(clinicId: string, kind: LifecycleKind): Promise<void>;
-  ownerEmail(ownerId: string): Promise<string | null>;
+  /** The owner's address and whether they proved they read it (lib/dentvid/verify-email). */
+  owner(ownerId: string): Promise<OwnerContact | null>;
   /** Marks the clinic opted out; false when there is no such clinic. */
   optOut(clinicId: string, at: Date): Promise<boolean>;
 }
@@ -234,13 +241,19 @@ export async function runNudges(deps: RunDeps): Promise<RunResult> {
         skip("opted out");
         continue;
       }
-      const email = await store.ownerEmail(clinic.owner_id);
-      if (!email) {
+      const owner = await store.owner(clinic.owner_id);
+      if (!owner?.email) {
         skip("no email");
         continue;
       }
+      const email = owner.email;
       if (isTestEmail(email)) {
         skip("test account");
+        continue;
+      }
+      // Not claimed: once the owner confirms the address, the reminder is still due.
+      if (!owner.verified) {
+        skip("unverified");
         continue;
       }
       if (!(await deps.allow())) {
@@ -270,7 +283,7 @@ export async function runNudges(deps: RunDeps): Promise<RunResult> {
   return res;
 }
 
-export type WelcomeResult = "sent" | "already sent" | "no clinic" | "no email" | "test account" | "disabled" | "failed" | "migration missing";
+export type WelcomeResult = "sent" | "already sent" | "no clinic" | "no email" | "test account" | "unverified" | "disabled" | "failed" | "migration missing";
 
 /** The welcome after the first payment. Once per clinic, whatever the webhook does (retries, re-activation). */
 export async function sendWelcome(deps: Omit<RunDeps, "allow">, clinicId: string): Promise<WelcomeResult> {
@@ -279,9 +292,11 @@ export async function sendWelcome(deps: Omit<RunDeps, "allow">, clinicId: string
   try {
     const clinic = await store.clinic(clinicId);
     if (!clinic) return "no clinic";
-    const email = await store.ownerEmail(clinic.owner_id);
-    if (!email) return "no email";
+    const owner = await store.owner(clinic.owner_id);
+    if (!owner?.email) return "no email";
+    const email = owner.email;
     if (isTestEmail(email)) return "test account";
+    if (!owner.verified) return "unverified";
     if (!(await store.claim(clinic.id, "welcome"))) return "already sent";
     const { lang } = lifecycleText(clinic.profile?.language);
     const msg = welcomeEmail({ language: lang, clinicName: clinic.profile?.name ?? "", appUrl: `${cfg.base}/app` });
@@ -354,10 +369,10 @@ export function supabaseLifecycleStore(db: SupabaseClient): LifecycleStore {
     async release(clinicId, kind) {
       await db.from("dentvid_email_log").delete().eq("clinic_id", clinicId).eq("kind", kind);
     },
-    async ownerEmail(ownerId) {
+    async owner(ownerId) {
       const { data, error } = await db.auth.admin.getUserById(ownerId);
-      if (error) return null;
-      return data?.user?.email ?? null;
+      if (error || !data?.user?.email) return null;
+      return { email: data.user.email, verified: isEmailVerified(data.user) };
     },
     async optOut(clinicId, at) {
       const { data, error } = await db.from("dentvid_clinics").update({ email_opt_out_at: at.toISOString() }).eq("id", clinicId).select("id");

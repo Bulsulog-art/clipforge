@@ -106,6 +106,22 @@ function PlanBadge({ plan, tier }: { plan: string; tier?: string | null }) {
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ${PLAN_BADGE[plan] ?? PLAN_BADGE.trial}`}>{label}</span>;
 }
 
+/** Whether the owner confirmed their address (lib/dentvid/verify-email). Nothing when it could not be read. */
+function EmailBadge({ verified }: { verified: boolean | undefined }) {
+  if (verified === undefined) return null;
+  return verified ? (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-dv-teal">
+      <CircleCheck className="h-3.5 w-3.5" aria-hidden="true" />
+      email confirmed
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-[#9a5b00]">
+      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+      email unconfirmed
+    </span>
+  );
+}
+
 function RunBadge({ run }: { run: ClinicRun | undefined }) {
   const s = runState(run);
   if (s === "none") return <span className="text-sm text-dv-muted">—</span>;
@@ -152,6 +168,8 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
   const errors = latestErrors(data.items);
   const names = new Map(data.clinics.map((c) => [c.id, c.profile?.name || "(no name)"]));
   const recent = data.clinics.slice().sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 25);
+  const verifiedOwners = data.verifiedOwners ? new Set(data.verifiedOwners) : null;
+  const emailOk = (c: { owner_id?: string }) => (verifiedOwners && c.owner_id ? verifiedOwners.has(c.owner_id) : undefined);
   const href = (q: { days?: number; locale?: string | null }) => {
     const p = new URLSearchParams();
     const d = q.days ?? days;
@@ -531,6 +549,9 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
                   </div>
                   <PlanBadge plan={c.plan} tier={c.plan_tier} />
                 </div>
+                <div className="mt-2">
+                  <EmailBadge verified={emailOk(c)} />
+                </div>
                 <div className="mt-3 flex items-center justify-between gap-3">
                   <RunBadge run={runs.get(c.id)} />
                   <Link href={clinicHref(c.id)} className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-dv-teal">
@@ -549,6 +570,7 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
                   <th scope="col" className="px-3 py-3 font-semibold">Country</th>
                   <th scope="col" className="px-3 py-3 font-semibold">Language</th>
                   <th scope="col" className="px-3 py-3 font-semibold">Plan</th>
+                  <th scope="col" className="px-3 py-3 font-semibold">Email</th>
                   <th scope="col" className="px-3 py-3 font-semibold">Created</th>
                   <th scope="col" className="px-3 py-3 font-semibold">Last week</th>
                   <th scope="col" className="px-4 py-3">
@@ -564,6 +586,9 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
                     <td className="px-3 py-3 uppercase text-dv-body">{c.profile?.language ?? "—"}</td>
                     <td className="px-3 py-3">
                       <PlanBadge plan={c.plan} tier={c.plan_tier} />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      <EmailBadge verified={emailOk(c)} />
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 tabular-nums text-dv-body">{day(c.created_at)}</td>
                     <td className="px-3 py-3">

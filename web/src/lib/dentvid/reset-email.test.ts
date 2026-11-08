@@ -13,9 +13,10 @@ describe("account recovery copy", () => {
     }
   });
 
-  it("falls back to English for a language without its own text", () => {
-    expect(authText("ja")).toEqual(authText("en"));
+  it("falls back to English only outside the site's languages", () => {
+    expect(authText("it")).toEqual(authText("en"));
     expect(authText(undefined)).toEqual(authText("en"));
+    expect(authText("ja")).not.toEqual(authText("en"));
   });
 });
 
@@ -26,6 +27,21 @@ describe("resetEmail", () => {
     expect(m.text).toContain("https://dentvideo.com/reset?token_hash=a&b=<x>");
     expect(m.html).toContain("token_hash=a&amp;b=&lt;x&gt;");
     expect(m.html).not.toContain("<x>");
-    expect(m.html).toContain('lang="tr"');
+    expect(m.html).toContain('lang="tr" dir="ltr"');
+  });
+
+  it("reads right to left in Arabic, with the brand and the link kept left to right", () => {
+    const m = resetEmail({ language: "ar", link: "https://dentvideo.com/reset?token_hash=a" });
+    expect(m.subject).toBe("إعادة تعيين كلمة مرور DentVideo");
+    expect(m.html).toContain('lang="ar" dir="rtl"');
+    expect(m.html).toContain('<body dir="rtl"');
+    expect(m.html).toMatch(/<p dir="ltr"[^>]*>https:\/\/dentvideo\.com\/reset/);
+    expect(m.html).toContain('<span dir="ltr">Dent');
+  });
+
+  it("an unknown language gets English, marked as English", () => {
+    const m = resetEmail({ language: "x\"><script>", link: "https://dentvideo.com/reset" });
+    expect(m.subject).toBe(authText("en").email.subject);
+    expect(m.html).toContain('lang="en" dir="ltr"');
   });
 });

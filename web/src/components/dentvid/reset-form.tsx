@@ -21,8 +21,24 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
     let cancelled = false;
     (async () => {
       if (!tokenHash) return setPhase("invalid");
-      const { error: e } = await dvBrowser().auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
-      if (!cancelled) setPhase(e ? "invalid" : "ready");
+      // Exchanged on the server: opening this link proves the address, so the
+      // account is marked verified there (lib/dentvid/verify-email).
+      let ok = false;
+      try {
+        const res = await fetch("/api/dentvideo/password-reset/exchange", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ token_hash: tokenHash }),
+        });
+        const body = (await res.json().catch(() => ({}))) as { access_token?: string; refresh_token?: string };
+        if (res.ok && body.access_token && body.refresh_token) {
+          const { error: e } = await dvBrowser().auth.setSession({ access_token: body.access_token, refresh_token: body.refresh_token });
+          ok = !e;
+        }
+      } catch {
+        ok = false;
+      }
+      if (!cancelled) setPhase(ok ? "ready" : "invalid");
     })();
     return () => {
       cancelled = true;
@@ -46,7 +62,7 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
   }
 
   return (
-    <main lang={locale} className="relative isolate overflow-hidden">
+    <main lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
       <div className="mx-auto flex max-w-md flex-col px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
@@ -66,6 +82,7 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
                 <span className="text-sm font-semibold text-dv-ink">{t.newPassword}</span>
                 <input
                   type="password"
+                  dir="ltr"
                   required
                   minLength={8}
                   autoComplete="new-password"
