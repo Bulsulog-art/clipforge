@@ -163,6 +163,19 @@ export type AppText = {
     checkoutUnavailable: string;
     checkoutFailed: string;
   };
+  /** The live preview of a clinic's own videos, before it subscribes (components/dentvid/live-preview.tsx). */
+  preview: {
+    caption: string;
+    loading: string;
+    unmute: string;
+    mute: string;
+    play: string;
+    pause: string;
+    previous: string;
+    next: string;
+    videoOf: string;
+    failed: string;
+  };
 };
 
 export const APP_TEXT: Record<Locale, AppText> = {
@@ -355,6 +368,18 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidCode: "That discount code could not be applied.",
       checkoutUnavailable: "Checkout is not available yet. Please try again shortly.",
       checkoutFailed: "Could not open checkout. Please try again.",
+    },
+    preview: {
+      caption: "Your Monday videos — preview",
+      loading: "Preparing your videos…",
+      unmute: "Turn sound on",
+      mute: "Turn sound off",
+      play: "Play",
+      pause: "Pause",
+      previous: "Previous video",
+      next: "Next video",
+      videoOf: "Video {n} of {total}",
+      failed: "The preview could not load. Please refresh the page.",
     },
   },
 
@@ -553,6 +578,18 @@ export const APP_TEXT: Record<Locale, AppText> = {
       checkoutUnavailable: "Der Checkout ist noch nicht verfügbar. Bitte versuchen Sie es in Kürze erneut.",
       checkoutFailed: "Der Checkout konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.",
     },
+    preview: {
+      caption: "Ihre Videos für Montag — Vorschau",
+      loading: "Ihre Videos werden vorbereitet…",
+      unmute: "Ton einschalten",
+      mute: "Ton ausschalten",
+      play: "Abspielen",
+      pause: "Pause",
+      previous: "Vorheriges Video",
+      next: "Nächstes Video",
+      videoOf: "Video {n} von {total}",
+      failed: "Die Vorschau konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
+    },
   },
 
   es: {
@@ -746,6 +783,18 @@ export const APP_TEXT: Record<Locale, AppText> = {
       checkoutUnavailable: "El pago aún no está disponible. Inténtalo de nuevo en un momento.",
       checkoutFailed: "No se pudo abrir el pago. Inténtalo de nuevo.",
     },
+    preview: {
+      caption: "Tus vídeos del lunes — vista previa",
+      loading: "Preparando tus vídeos…",
+      unmute: "Activar sonido",
+      mute: "Silenciar",
+      play: "Reproducir",
+      pause: "Pausa",
+      previous: "Vídeo anterior",
+      next: "Vídeo siguiente",
+      videoOf: "Vídeo {n} de {total}",
+      failed: "No se pudo cargar la vista previa. Recarga la página.",
+    },
   },
 
   tr: {
@@ -938,6 +987,18 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidCode: "Bu indirim kodu uygulanamadı.",
       checkoutUnavailable: "Ödeme henüz kullanılamıyor. Lütfen biraz sonra tekrar deneyin.",
       checkoutFailed: "Ödeme sayfası açılamadı. Lütfen tekrar deneyin.",
+    },
+    preview: {
+      caption: "Pazartesi videolarınız — önizleme",
+      loading: "Videolarınız hazırlanıyor…",
+      unmute: "Sesi aç",
+      mute: "Sesi kapat",
+      play: "Oynat",
+      pause: "Duraklat",
+      previous: "Önceki video",
+      next: "Sonraki video",
+      videoOf: "Video {n} / {total}",
+      failed: "Önizleme yüklenemedi. Lütfen sayfayı yenileyin.",
     },
   },
 
@@ -1139,6 +1200,18 @@ export const APP_TEXT: Record<Locale, AppText> = {
       invalidCode: "Ce code de réduction n'a pas pu être appliqué.",
       checkoutUnavailable: "Le paiement n'est pas encore disponible. Merci de réessayer dans un instant.",
       checkoutFailed: "Impossible d'ouvrir le paiement. Merci de réessayer.",
+    },
+    preview: {
+      caption: "Vos vidéos du lundi — aperçu",
+      loading: "Préparation de vos vidéos…",
+      unmute: "Activer le son",
+      mute: "Couper le son",
+      play: "Lire",
+      pause: "Pause",
+      previous: "Vidéo précédente",
+      next: "Vidéo suivante",
+      videoOf: "Vidéo {n} sur {total}",
+      failed: "L'aperçu n'a pas pu se charger. Merci d'actualiser la page.",
     },
   },
 };

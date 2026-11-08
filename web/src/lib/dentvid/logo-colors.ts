@@ -215,3 +215,32 @@ export async function analyseLogoFile(file: Blob): Promise<LogoColors | undefine
     return undefined;
   }
 }
+
+/**
+ * Reads a logo by URL — an object URL the visitor just picked, or an https
+ * one served with CORS. Goes through an <img> rather than fetch(): the
+ * site's CSP allows blob: images but not blob: fetches. Resolves undefined
+ * when the pixels cannot be read (a cross-origin logo without CORS).
+ */
+export async function analyseLogoUrl(url: string): Promise<LogoColors | undefined> {
+  try {
+    const img = new Image();
+    if (/^https?:/.test(url)) img.crossOrigin = "anonymous";
+    img.src = url;
+    await img.decode();
+    // An SVG without its own size reports 0×0; give it the browser's default box.
+    const [iw, ih] = [img.naturalWidth || 300, img.naturalHeight || 150];
+    const k = Math.min(1, SIDE / Math.max(iw, ih));
+    const w = Math.max(1, Math.round(iw * k));
+    const h = Math.max(1, Math.round(ih * k));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return undefined;
+    ctx.drawImage(img, 0, 0, w, h);
+    return logoColors(ctx.getImageData(0, 0, w, h).data, w, h);
+  } catch {
+    return undefined;
+  }
+}

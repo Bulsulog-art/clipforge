@@ -151,7 +151,11 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
   );
 };
 
-/** Staged files are named relative to the public folder; URLs pass through. */
-function asStatic(src: string): string {
-  return /^https?:/.test(src) ? src : staticFile(src);
+/**
+ * Staged files are named relative to the public folder; URLs pass through —
+ * including blob: and data: URLs, which is what the browser preview hands it
+ * for a logo the visitor has only just picked (web/src/components/dentvid/live-preview.tsx).
+ */
+export function asStatic(src: string): string {
+  return /^(https?|blob|data):/.test(src) ? src : staticFile(src);
 }
