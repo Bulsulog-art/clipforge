@@ -410,3 +410,20 @@ describe("hedge stacking is not a fix", () => {
     expect(noOpIssue({ quote: "Durulamamak diş sağlığınızı artırabilir.", fix: "Durulamamak diş sağlığınızı destekleyebilir." })).toBe(false);
   });
 });
+
+describe("sharpenHooks", () => {
+  it("keeps the best-scored clean candidate, and the original when the editor fails", async () => {
+    const { sharpenHooks } = await import("./strategist.js");
+    const content = JSON.stringify({
+      hooks: [{ index: 0, candidates: [
+        { hook: "Painless whitening in one hour!", score: 5 },
+        { hook: "That twinge after whitening? Here's why.", score: 4 },
+        { hook: "Whitening: a short overview.", score: 2 },
+      ] }],
+    });
+    const ok = { chat: { completions: { create: async () => ({ choices: [{ message: { content } }] }) } } } as never;
+    expect((await sharpenHooks(ok, PROFILE, [TOPIC]))[0].hook).toBe("That twinge after whitening? Here's why.");
+    const broken = { chat: { completions: { create: async () => { throw new Error("down"); } } } } as never;
+    expect((await sharpenHooks(broken, PROFILE, [TOPIC]))[0].hook).toBe(TOPIC.hook);
+  });
+});
