@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 import type { Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
+import { authText } from "@/content/dentvideo-auth";
 import { announceLocale } from "./chrome";
 import { DvIcon } from "./mark";
 import { Stepper } from "./onboarding";
@@ -12,8 +13,10 @@ import { Stepper } from "./onboarding";
 export function StartForm({ locale, remember }: { locale: Locale; remember: boolean }) {
   const t = appText(locale).start;
   const errors = appText(locale).errors;
+  const a = authText(locale);
   const router = useRouter();
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [mode, setMode] = useState<"signup" | "signin" | "forgot">("signup");
+  const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,26 +32,70 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
     if (remember) announceLocale(locale);
   }, [remember, locale]);
 
+  // /start?mode=signin or ?mode=forgot (e.g. from an expired reset link).
+  useEffect(() => {
+    const m = new URLSearchParams(window.location.search).get("mode");
+    if (m === "signin" || m === "forgot") setMode(m);
+  }, []);
+
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  async function signIn(addr: string): Promise<boolean> {
+    const { error: e } = await dvBrowser().auth.signInWithPassword({ email: addr, password });
+    return !e;
+  }
+
+  function goIn(isNew: boolean) {
+    // Into the funnel: a new account describes its clinic next; a returning
+    // one lands where it left off (or in the app, once it pays).
+    router.push(isNew ? "/dentvideo/start?step=clinic" : "/dentvideo/start");
+    router.refresh();
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setNotice(null);
+    // Phones add spaces and capitals; the account is stored trimmed and lower-case.
+    const addr = email.trim().toLowerCase();
     try {
+      if (mode === "forgot") {
+        await fetch("/api/dentvideo/password-reset", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email: addr, locale }),
+        }).catch(() => null);
+        setNotice(a.sent);
+        return;
+      }
       if (mode === "signup") {
+        // Password managers fill the form instantly; wait out the bot brake
+        // instead of refusing a real person.
+        const elapsed = Date.now() - openedAt.current;
+        if (elapsed < 2700) await wait(2700 - elapsed);
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email, password, website, elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)) }),
+          body: JSON.stringify({ email: addr, password, website, elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)) }),
         });
         const body = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          // Already registered (often a second try): sign in if the password matches.
+          setNotice(a.existsTryingSignIn);
+          if (await signIn(addr)) return goIn(false);
+          setNotice(null);
+          setMode("signin");
+          throw new Error(a.existsWrongPassword);
+        }
         if (!res.ok) throw new Error(body.error ?? errors.createFailed);
+        // The account exists now; a flaky network must not strand it.
+        if ((await signIn(addr)) || (await wait(1200).then(() => signIn(addr)))) return goIn(true);
+        setMode("signin");
+        throw new Error(a.signInFailedAfterSignup);
       }
-      const { error: signInError } = await dvBrowser().auth.signInWithPassword({ email, password });
-      if (signInError) throw new Error(t.wrongPassword);
-      // Into the funnel: a new account describes its clinic next; a returning
-      // one lands where it left off (or in the app, once it pays).
-      router.push(mode === "signup" ? "/dentvideo/start?step=clinic" : "/dentvideo/start");
-      router.refresh();
+      if (!(await signIn(addr))) throw new Error(t.wrongPassword);
+      goIn(false);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -69,14 +116,15 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
       )}
       <div className={`mx-auto flex max-w-md flex-col px-4 pb-24 sm:px-6 ${mode === "signup" ? "pt-10" : "pt-10 sm:pt-16"}`}>
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
-        <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : t.titleSignin}</h1>
-        <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : t.leadSignin}</p>
+        <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
+        <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
 
         <form onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
             <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
           </label>
+          {mode !== "forgot" && (
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.password}</span>
             <input
@@ -90,6 +138,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
             />
             {mode === "signup" && <span className="mt-2 block text-xs text-dv-muted">{t.passwordHint}</span>}
           </label>
+          )}
           {mode === "signup" && (
             <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>
               <label>
@@ -99,20 +148,35 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
             </div>
           )}
           {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+          {notice && <p className="rounded-xl bg-[#e6f2ef] px-4 py-3 text-sm text-[#0f5c5c]" role="status">{notice}</p>}
           <button type="submit" disabled={busy} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
-            {busy ? t.busy : mode === "signup" ? t.submitSignup : t.submitSignin}
+            {busy ? t.busy : mode === "signup" ? t.submitSignup : mode === "forgot" ? a.sendLink : t.submitSignin}
           </button>
+          {mode === "signin" && (
+            <button
+              type="button"
+              onClick={() => {
+                setMode("forgot");
+                setError(null);
+                setNotice(null);
+              }}
+              className="block w-full rounded-md text-center text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
+            >
+              {a.forgot}
+            </button>
+          )}
         </form>
 
         <button
           type="button"
           onClick={() => {
-            setMode(mode === "signup" ? "signin" : "signup");
+            setMode(mode === "signup" ? "signin" : mode === "forgot" ? "signin" : "signup");
             setError(null);
+            setNotice(null);
           }}
           className="mx-auto mt-6 rounded-md text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
         >
-          {mode === "signup" ? t.toSignin : t.toSignup}
+          {mode === "signup" ? t.toSignin : mode === "forgot" ? a.backToSignIn : t.toSignup}
         </button>
       </div>
     </main>
