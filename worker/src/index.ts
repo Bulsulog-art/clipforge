@@ -5,6 +5,7 @@ import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
+import { runDentvidRecording, runDentvidWeek } from "./dentvid/jobs.js";
 import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -70,6 +71,29 @@ const generateWorker = new Worker(
   },
 );
 
+// DentVideo: weekly content runs and the dentist's own recordings. One job
+// at a time — each one renders several videos.
+const dentvidWorker = new Worker(
+  "dentvid",
+  async (job) => {
+    try {
+      if (job.name === "week") return await runDentvidWeek(job.data);
+      if (job.name === "recording") return await runDentvidRecording(job.data);
+      throw new Error(`unknown dentvid job ${job.name}`);
+    } catch (e) {
+      Sentry.captureException(e, { tags: { queue: "dentvid", jobId: job.id } });
+      throw e;
+    }
+  },
+  {
+    connection,
+    concurrency: Number(process.env.DENTVID_CONCURRENCY ?? 1),
+    removeOnComplete: { count: 500, age: 7 * 24 * 3600 },
+    removeOnFail: { count: 1000, age: 14 * 24 * 3600 },
+  },
+);
+dentvidWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed"));
+
 const publishWorker = new Worker(
   "publish",
   async (job) => {
@@ -132,6 +156,7 @@ async function shutdown(signal: string) {
     generateWorker.close(),
     publishWorker.close(),
     derivativeWorker.close(),
+    dentvidWorker.close(),
   ]);
   await Sentry.flush(2000);
   await connection.quit();
