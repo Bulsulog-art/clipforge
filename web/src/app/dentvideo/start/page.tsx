@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
 import { StartForm } from "@/components/dentvid/start-form";
 import { Onboarding } from "@/components/dentvid/onboarding";
 import { RememberLocale } from "@/components/dentvid/chrome";
 import { appText } from "@/content/dentvideo-app";
+import { LANDING_PATH } from "@/content/dentvideo";
 import { asLocale } from "@/lib/dentvid/locale";
 import { dvLocale } from "@/lib/dentvid/locale-server";
 import { dvSession } from "@/lib/dentvid/auth";
@@ -25,8 +27,19 @@ type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: s
  */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const fromLink = asLocale((await searchParams).lang);
-  const t = appText(fromLink ?? (await dvLocale()));
-  return { title: t.start.metaTitle };
+  const locale = fromLink ?? (await dvLocale());
+  const t = appText(locale);
+  // noindex, but a shared sign-up link still unfurls: text and card in the link's language.
+  // (Setting openGraph here replaces the inherited one, so the share image is named too.)
+  const description = t.start.metaDescription;
+  const title = `${t.start.metaTitle} · DentVideo`;
+  const image = `${LANDING_PATH[locale]}/opengraph-image`;
+  return {
+    title: t.start.metaTitle,
+    description,
+    openGraph: { siteName: "DentVideo", type: "website", title, description, images: [{ url: image, width: 1200, height: 630, alt: "DentVideo" }] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
 }
 
 export default async function StartPage({ searchParams }: Props) {
@@ -48,7 +61,7 @@ export default async function StartPage({ searchParams }: Props) {
     requested: sp.step,
     reached: (await cookies()).get(STEP_COOKIE)?.value,
   });
-  if (where.kind === "app") redirect("/dentvideo/app");
+  if (where.kind === "app") redirect(dvHref("/dentvideo/app"));
   const step = where.step === "account" ? "clinic" : where.step;
 
   const locale = fromLink ?? (await dvLocale(profile?.language));

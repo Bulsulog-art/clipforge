@@ -103,6 +103,11 @@ export type LandingContent = {
     founding: string;
     /** Practice billed yearly. */
     yearly: string;
+    /**
+     * On the Practice card while the founding offer is open: the founding
+     * price, the list price it replaces (shown struck through) and when it ends.
+     */
+    foundingCard: { price: string; listPrice: string; note: string };
     note: string;
     /** Starter, Practice, Group — always in this order. */
     tiers: [PricingTier, PricingTier, PricingTier];
@@ -135,7 +140,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "For dental clinics",
       h1: "Be the dentist patients feel they already know.",
-      lead: "Patients choose a dentist they already know from Instagram and Google. But filming and editing take evenings you don't have — and one wrong word, like “painless” or a price, can bring a complaint. DentVideo keeps you visible every week: five videos answering what patients near you actually search for, in your colours, checked for risky wording, for a few minutes of your time. Less than an agency, and unlike Canva or ChatGPT, it does the work and the checking for you.",
+      lead: "Filming and editing take evenings you don't have, and one wrong word can bring a complaint. DentVideo sends five checked videos in your colours every week; you just approve. Less than an agency. Your first week is made right after you subscribe.",
       cta: "See your preview",
       note: "See your own branded videos live before you pay. Founding price for the first 100 clinics.",
     },
@@ -187,6 +192,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "Founding offer",
       founding: "Practice for $49/month for 12 months — first 100 clinics",
       yearly: "or $990 a year — 12 months for the price of 10",
+      foundingCard: { price: "$49", listPrice: "$99", note: "With the founding offer: $49/month for your first 12 months, then $99/month." },
       note: "Prices in USD. Taxes may apply.",
       tiers: [
         {
@@ -255,7 +261,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "Für Zahnarztpraxen",
       h1: "Werden Sie die Praxis, die Patienten schon zu kennen glauben.",
-      lead: "Patienten wählen eine Praxis, die sie schon von Instagram und Google kennen. Doch Drehen und Schneiden kosten Abende, die Sie nicht haben — und ein falsches Wort wie „schmerzfrei“ oder ein Preis kann eine Beschwerde nach sich ziehen. DentVideo hält Sie jede Woche sichtbar: fünf Videos zu dem, was Patienten in Ihrer Nähe wirklich suchen, in Ihren Farben, auf riskante Formulierungen geprüft, für ein paar Minuten Ihrer Zeit. Günstiger als eine Agentur — und anders als Canva oder ChatGPT erledigt DentVideo die Arbeit und die Prüfung für Sie.",
+      lead: "Dreh und Schnitt kosten Abende, die Sie nicht haben, und ein falsches Wort kann eine Abmahnung bedeuten. DentVideo liefert jede Woche fünf geprüfte Videos in Ihren Farben; Sie geben nur frei. Günstiger als eine Agentur. Ihre erste Woche entsteht direkt nach der Buchung.",
       cta: "Ihre Vorschau ansehen",
       note: "Sehen Sie Ihre eigenen Videos mit Ihrer Marke live, bevor Sie zahlen. Gründungspreis für die ersten 100 Praxen.",
     },
@@ -307,6 +313,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "Gründungsangebot",
       founding: "Practice für 49 $/Monat, 12 Monate lang — für die ersten 100 Praxen",
       yearly: "oder 990 $ im Jahr — 12 Monate zum Preis von 10",
+      foundingCard: { price: "49 $", listPrice: "99 $", note: "Mit dem Gründungsangebot: 49\u00a0$/Monat in den ersten 12 Monaten, danach 99\u00a0$/Monat." },
       note: "Preise in USD, ggf. zzgl. Steuern.",
       tiers: [
         {
@@ -375,7 +382,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "Para clínicas dentales",
       h1: "Sé el dentista que tus pacientes sienten que ya conocen.",
-      lead: "Los pacientes eligen al dentista que ya conocen por Instagram y Google. Pero grabar y editar te quita tardes que no tienes, y una palabra equivocada, como «sin dolor» o un precio, puede acabar en una reclamación. DentVideo te mantiene visible cada semana: cinco vídeos que responden a lo que de verdad buscan los pacientes de tu zona, con tus colores, revisados para evitar expresiones de riesgo, por unos minutos de tu tiempo. Cuesta menos que una agencia y, a diferencia de Canva o ChatGPT, hace el trabajo y la revisión por ti.",
+      lead: "Grabar y editar te quita tardes, y una palabra equivocada puede costarte una reclamación. Cada semana, DentVideo te envía cinco vídeos revisados con tus colores; tú solo apruebas. Cuesta menos que una agencia. Tu primera semana se prepara nada más suscribirte.",
       cta: "Ver tu vista previa",
       note: "Ve en directo tus propios vídeos con tu marca antes de pagar. Precio fundador para las primeras 100 clínicas.",
     },
@@ -427,6 +434,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "Oferta fundadora",
       founding: "Practice por 49 $/mes durante 12 meses — primeras 100 clínicas",
       yearly: "o 990 $ al año: 12 meses al precio de 10",
+      foundingCard: { price: "49 $", listPrice: "99 $", note: "Con la oferta fundadora: 49\u00a0$/mes durante los primeros 12 meses y, después, 99\u00a0$/mes." },
       note: "Precios en USD. Pueden aplicarse impuestos.",
       tiers: [
         {
@@ -491,7 +499,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "Diş klinikleri için",
       h1: "Hastaların zaten tanıdığını hissettiği hekim siz olun.",
-      lead: "Hastalar Instagram'dan ve Google'dan zaten tanıdıkları hekimi seçer. Ama çekim ve kurgu sizde olmayan akşamları ister; “ağrısız” gibi tek bir yanlış kelime ya da bir fiyat da şikâyete yol açabilir. DentVideo sizi her hafta görünür tutar: bölgenizdeki hastaların gerçekten aradığı sorulara yanıt veren beş video, kliniğinizin renklerinde, riskli ifadelere karşı denetlenmiş, yalnızca birkaç dakikanızı alarak. Bir ajanstan daha uygun; Canva veya ChatGPT'den farklı olarak işi de denetimi de sizin yerinize yapar.",
+      lead: "Çekim ve kurgu sizde olmayan akşamları ister; tek bir yanlış kelime de şikâyete yol açabilir. DentVideo her hafta kliniğinizin renklerinde, denetlenmiş beş video gönderir; siz yalnızca onaylarsınız. Bir ajanstan daha uygundur. İlk haftanız, abone olur olmaz hazırlanır.",
       cta: "Önizlemenizi görün",
       note: "Ödeme yapmadan önce markalı videolarınızı canlı görün. İlk 100 kliniğe kurucu fiyatı.",
     },
@@ -543,6 +551,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "Kurucu teklifi",
       founding: "12 ay boyunca aylık $49 ile Practice — ilk 100 klinik için",
       yearly: "ya da yıllık $990 — 10 ay fiyatına 12 ay",
+      foundingCard: { price: "$49", listPrice: "$99", note: "Kurucu teklifiyle ilk 12 ay aylık $49, sonrasında aylık $99." },
       note: "Fiyatlar USD cinsindendir. Vergiler eklenebilir.",
       tiers: [
         {
@@ -607,7 +616,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "Pour les cabinets dentaires",
       h1: "Devenez le dentiste que les patients ont l'impression de connaître.",
-      lead: "Les patients choisissent un dentiste qu'ils connaissent déjà par Instagram et Google. Mais filmer et monter demande des soirées que vous n'avez pas — et un seul mauvais mot, comme « sans douleur » ou un prix, peut valoir une plainte. DentVideo vous rend visible chaque semaine : cinq vidéos qui répondent à ce que les patients de votre région recherchent vraiment, à vos couleurs, débarrassées des formulations à risque, pour quelques minutes de votre temps. Moins cher qu'une agence et, contrairement à Canva ou ChatGPT, DentVideo fait le travail et la vérification pour vous.",
+      lead: "Filmer et monter dévore vos soirées, et un mot de travers peut valoir une plainte. Chaque semaine, DentVideo vous envoie cinq vidéos vérifiées à vos couleurs : vous validez, c'est tout. Moins cher qu'une agence. Votre première semaine est préparée dès votre abonnement.",
       cta: "Voir votre aperçu",
       note: "Voyez en direct vos propres vidéos à votre image avant de payer. Tarif fondateur pour les 100 premiers cabinets.",
     },
@@ -659,6 +668,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "Offre fondateurs",
       founding: "Practice à 49 $/mois pendant 12 mois — pour les 100 premiers cabinets",
       yearly: "ou 990 $ par an — 12 mois pour le prix de 10",
+      foundingCard: { price: "49 $", listPrice: "99 $", note: "Avec l'offre fondateurs : 49\u00a0$/mois pendant les 12 premiers mois, puis 99\u00a0$/mois." },
       note: "Prix en USD, taxes éventuelles en sus.",
       tiers: [
         {
@@ -732,7 +742,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "歯科医院の皆さまへ",
       h1: "来院の前から、「知っている先生」に。",
-      lead: "患者さんの多くは、InstagramやGoogleで見て、すでに知っている歯科医院を選びます。けれども、診療の合間に台本を考え、撮影し、編集する時間はなかなか取れません。しかも「痛くない」といった一言や料金の表示が、医療広告ガイドライン上の問題になることもあります。DentVideoは、地域の患者さんが実際に検索している疑問に答える動画を毎週5本、医院のカラーで仕上げ、表現をチェックしたうえでお届けします。院長先生のお時間は数分だけ。代理店に依頼するより負担が軽く、CanvaやChatGPTと違って、制作もチェックもDentVideoが行います。",
+      lead: "撮影や編集の時間は取りにくく、ひとつの表現が医療広告ガイドライン上の問題になることも。DentVideoは、表現をチェックした動画を毎週5本、医院のカラーでお届けします。院長先生は承認するだけ。代理店に頼むより負担が軽く、最初の1週間分はお申し込み後すぐに制作します。",
       cta: "自院のプレビューを見る",
       note: "お支払いの前に、医院のロゴとカラーで仕上がりをその場でご確認いただけます。先着100院に先行導入価格をご用意しています。",
     },
@@ -784,6 +794,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "先行導入価格",
       founding: "Practiceプランを12か月間 月額$49で — 先着100院",
       yearly: "または年額$990（10か月分の料金で12か月）",
+      foundingCard: { price: "$49", listPrice: "$99", note: "先行導入価格では、最初の12か月は月額$49、13か月目以降は月額$99です。" },
       note: "価格は米ドル建てです。別途税金がかかる場合があります。",
       tiers: [
         {
@@ -847,7 +858,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "لعيادات الأسنان",
       h1: "كونوا العيادة التي يشعر المرضى أنهم يعرفونها.",
-      lead: "يختار المرضى غالباً طبيب الأسنان الذي عرفوه من إنستغرام وتيك توك وسناب شات. لكن كتابة النص والتصوير والمونتاج تحتاج وقتاً لا يتّسع له جدول العيادة، وكلمة واحدة مثل «بدون ألم» أو ذكر سعر قد تخالف ضوابط الإعلان الصحي. يُبقي DentVideo عيادتكم حاضرة كل أسبوع: خمسة فيديوهات تجيب عمّا يبحث عنه المرضى في منطقتكم، بألوان عيادتكم، بعد مراجعة كل عبارة فيها، مقابل دقائق قليلة من وقتكم. تكلفته أقل من وكالة تسويق، وعلى خلاف Canva وChatGPT يتولّى العمل والمراجعة عنكم.",
+      lead: "كتابة النص والتصوير والمونتاج تحتاج وقتاً لا يتّسع له جدول العيادة، وكلمة واحدة قد تخالف ضوابط الإعلان الصحي. يرسل DentVideo كل أسبوع خمسة فيديوهات مُراجَعة بألوان عيادتكم، وما عليكم إلا الموافقة. تكلفته أقل من وكالة تسويق، ونُعدّ أسبوعكم الأول فور الاشتراك.",
       cta: "شاهدوا معاينة عيادتكم",
       note: "شاهدوا فيديوهاتكم بشعاركم وألوانكم مباشرةً قبل الدفع. سعر المؤسسين لأول 100 عيادة.",
     },
@@ -899,6 +910,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "سعر المؤسسين",
       founding: "باقة Practice بسعر $49 شهرياً لمدة 12 شهراً، لأول 100 عيادة",
       yearly: "أو $990 سنوياً: 12 شهراً بسعر 10",
+      foundingCard: { price: "$49", listPrice: "$99", note: "بسعر المؤسسين: $49 شهرياً لأول 12 شهراً، ثم $99 شهرياً." },
       note: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب.",
       tiers: [
         {
@@ -961,7 +973,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     hero: {
       eyebrow: "Dla gabinetów stomatologicznych",
       h1: "Niech pacjenci czują, że już Państwa znają.",
-      lead: "Pacjenci wybierają dentystę, którego znają już z Instagrama, Facebooka i Google. Ale scenariusz, nagranie i montaż zabierają wieczory, których Państwo nie mają, a jedno niefortunne słowo, jak „bezbolesny”, albo cena w poście może skończyć się skargą. DentVideo co tydzień utrzymuje Państwa widoczność: pięć filmów odpowiadających na pytania, które pacjenci z okolicy naprawdę wpisują w wyszukiwarkę, w kolorach gabinetu i sprawdzonych pod kątem ryzykownych sformułowań, za kilka minut Państwa czasu. Taniej niż agencja, a w przeciwieństwie do Canvy czy ChatGPT, DentVideo wykonuje pracę i kontrolę za Państwa.",
+      lead: "Nagranie i montaż zabierają wieczory, których Państwo nie mają, a jedno niefortunne słowo może skończyć się skargą. DentVideo co tydzień dostarcza pięć sprawdzonych filmów w kolorach gabinetu; wystarczy je zatwierdzić. Taniej niż agencja. Pierwszy tydzień przygotowujemy zaraz po wykupieniu planu.",
       cta: "Pokaż mój podgląd",
       note: "Własne filmy z logo gabinetu zobaczą Państwo na żywo, zanim cokolwiek zapłacą. Cena założycielska dla pierwszych 100 gabinetów.",
     },
@@ -1013,6 +1025,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       foundingBadge: "Oferta założycielska",
       founding: "Practice za 49 $ miesięcznie przez 12 miesięcy dla pierwszych 100 gabinetów",
       yearly: "lub 990 $ rocznie: 12 miesięcy w cenie 10",
+      foundingCard: { price: "49 $", listPrice: "99 $", note: "W ofercie założycielskiej: 49\u00a0$ miesięcznie przez pierwsze 12 miesięcy, potem 99\u00a0$ miesięcznie." },
       note: "Ceny w USD. Mogą zostać doliczone podatki.",
       tiers: [
         {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 import { authText } from "@/content/dentvideo-auth";
 import { DvIcon } from "./mark";
@@ -40,7 +41,7 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
       return;
     }
     setPhase("saved");
-    router.push("/dentvideo/start");
+    router.push(dvHref("/dentvideo/start"));
     router.refresh();
   }
 
@@ -53,7 +54,7 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
         {phase === "invalid" ? (
           <div className="dv-card mt-9 space-y-4 p-6 sm:p-8">
             <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{t.linkInvalid}</p>
-            <a href={`/dentvideo/start?mode=forgot&lang=${encodeURIComponent(locale)}`} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
+            <a href={dvHref(`/dentvideo/start?mode=forgot&lang=${encodeURIComponent(locale)}`)} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
               {t.forgot}
             </a>
           </div>

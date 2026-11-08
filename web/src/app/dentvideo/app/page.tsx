@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
 import { dvSession, weekOf } from "@/lib/dentvid/auth";
 import { loadItems } from "@/lib/dentvid/items";
 import { dvLocale } from "@/lib/dentvid/locale-server";
@@ -17,18 +18,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string }> }) {
   const { db, user } = await dvSession();
-  if (!user) redirect("/dentvideo/start");
+  if (!user) redirect(dvHref("/dentvideo/start"));
 
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path").eq("owner_id", user.id).maybeSingle();
   // No clinic yet: the onboarding wizard describes it (and shows the preview).
-  if (!clinic) redirect("/dentvideo/start?step=clinic");
+  if (!clinic) redirect(dvHref("/dentvideo/start?step=clinic"));
   const profile = (clinic.profile ?? {}) as { name?: string; language?: string };
   const locale = await dvLocale(profile.language);
 
   const [{ items }, plan, { billing }] = await Promise.all([loadItems(db, user.id), loadClinicPlan(db, clinic.id), searchParams]);
   // Not paid yet, and nothing to show: back to the preview / plans.
   if (appSendsToFunnel(plan.plan, billing, items.length)) {
-    redirect(billing === "cancelled" ? "/dentvideo/start?step=plan&billing=cancelled" : "/dentvideo/start");
+    redirect(dvHref(billing === "cancelled" ? "/dentvideo/start?step=plan&billing=cancelled" : "/dentvideo/start"));
   }
 
   const week = weekOf();

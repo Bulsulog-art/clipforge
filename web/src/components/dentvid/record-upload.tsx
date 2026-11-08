@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { dvHref } from "@/lib/dentvid/host";
 import { CheckCircle2, FileVideo, Loader2, Upload } from "lucide-react";
 import { dvBrowser, BUCKET, DV_SUPABASE_ANON, DV_SUPABASE_URL } from "@/lib/dentvid/supabase";
 import type { Locale } from "@/content/dentvideo";
@@ -90,7 +91,7 @@ export function RecordUpload({ locale }: { locale: Locale }) {
         <CheckCircle2 className="h-8 w-8 text-dv-teal" aria-hidden="true" />
         <h2 className="mt-3 text-lg font-semibold text-dv-ink">{t.queued}</h2>
         <p className="mt-1 text-dv-body">{t.queuedNote}</p>
-        <Link href="/dentvideo/app" className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto">
+        <Link href={dvHref("/dentvideo/app")} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto">
           {t.backToVideos}
         </Link>
       </div>

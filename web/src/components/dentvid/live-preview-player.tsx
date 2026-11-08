@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { backgroundSrc, defaultBackgrounds, matchingBackgrounds, suggestBackgrounds, type SuggestInput } from "@/lib/dentvid/backgrounds/suggest";
-import { Player, type PlayerRef } from "@remotion/player";
+import { Player, Thumbnail, type PlayerRef } from "@remotion/player";
 import { ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { ClipForgeVideo } from "@/remotion/Video";
 import { FPS, totalFrames, type ScenePlan } from "@/remotion/scene-plan";
@@ -19,6 +19,8 @@ import type { PreviewProfile } from "./live-preview";
 
 const BASE = "/dentvideo/preview";
 const HEX = /^#?[0-9a-fA-F]{6}$/;
+/** The frame the poster shows: about a second in, once the first scene has faded in. */
+const POSTER_FRAME = 30;
 
 // MARK: - Fonts
 
@@ -213,6 +215,9 @@ export default function LivePreviewPlayer({
   // narration stopped the moment sound was turned on).
   const startMuted = useRef(true);
   const [playing, setPlaying] = useState(false);
+  // Still on this video's first frame (a refused autoplay can start and stop there).
+  const [atStart, setAtStart] = useState(true);
+  useEffect(() => setAtStart(true), [entry?.id]);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [visible, setVisible] = useState(true);
   const wantPlay = useRef(true);
@@ -236,6 +241,25 @@ export default function LivePreviewPlayer({
 
   const durationInFrames = plan ? Math.max(1, totalFrames(plan)) : 1;
 
+  // The poster: a still of this video about a second in (hook and branding on screen).
+  const posterFrame = Math.min(POSTER_FRAME, durationInFrames - 1);
+  const renderPoster = useCallback(
+    () =>
+      inputProps ? (
+        <Thumbnail
+          component={ClipForgeVideo}
+          inputProps={inputProps}
+          frameToDisplay={posterFrame}
+          durationInFrames={durationInFrames}
+          compositionWidth={1080}
+          compositionHeight={1920}
+          fps={FPS}
+          style={{ width: "100%", height: "100%" }}
+        />
+      ) : null,
+    [inputProps, posterFrame, durationInFrames],
+  );
+
   useEffect(() => {
     const p = playerRef.current;
     if (!p) return;
@@ -252,6 +276,8 @@ export default function LivePreviewPlayer({
     };
     const onFrame = (e: { detail: { frame: number } }) => {
       if (barRef.current) barRef.current.style.transform = `scaleX(${Math.min(1, (e.detail.frame + 1) / durationInFrames)})`;
+      // Past the first frame: from now on a pause shows the video where it is, not the poster.
+      if (e.detail.frame > 0) setAtStart(false);
     };
     const onMute = (e: { detail: { isMuted: boolean } }) => setMuted(e.detail.isMuted);
     p.addEventListener("play", onPlay);
@@ -378,6 +404,12 @@ export default function LivePreviewPlayer({
                 doubleClickToFullscreen={false}
                 spaceKeyToPlayOrPause={false}
                 numberOfSharedAudioTags={0}
+                // Until it first plays — autoplay blocked (iOS Low Power Mode, data saver),
+                // reduced motion, or the moment before autoplay starts — show a real frame
+                // of this video in the clinic's look, not the composition's empty first frame.
+                renderPoster={renderPoster}
+                showPosterWhenUnplayed
+                showPosterWhenPaused={atStart}
               />
             </div>
           ) : (
