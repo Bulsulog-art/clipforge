@@ -8,6 +8,9 @@ import { createClient as createAdmin } from "@supabase/supabase-js";
  */
 const URL = process.env.NEXT_PUBLIC_DENTVID_SUPABASE_URL ?? "";
 const ANON = process.env.NEXT_PUBLIC_DENTVID_SUPABASE_ANON_KEY ?? "";
+/** For a browser upload with progress (XMLHttpRequest), which the SDK's fetch cannot report. */
+export const DV_SUPABASE_URL = URL;
+export const DV_SUPABASE_ANON = ANON;
 export const COOKIE_NAME = "dv-auth";
 export const BUCKET = "dentvid";
 

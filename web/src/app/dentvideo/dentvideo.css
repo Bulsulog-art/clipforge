@@ -21,7 +21,8 @@
 
 /* One focus treatment for every interactive element; the outline follows
    each element's own corner radius. */
-.dv :is(a, button, summary, video, [tabindex]):focus-visible {
+.dv :is(a, button, summary, video, [tabindex]):focus-visible,
+.dv label:has(> input.sr-only:focus-visible) {
   outline: 2px solid rgba(15, 92, 92, 0.75);
   outline-offset: 3px;
 }
@@ -47,6 +48,9 @@
   font-weight: 600;
   letter-spacing: -0.005em;
   line-height: 1.2;
+  /* Every button is at least a comfortable thumb's tap (44px). */
+  min-height: 2.75rem;
+  text-align: center;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }

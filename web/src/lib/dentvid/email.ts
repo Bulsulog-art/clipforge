@@ -131,17 +131,33 @@ export function readyEmail(args: {
   ].filter(Boolean);
   const body = args.kind === "week" ? c.weekBody : c.recordingBody;
   const text = [c.hello(args.clinicName), "", body, "", ...lines.map((l) => `• ${l}`), "", c.approval, "", `${c.button}: ${args.appUrl}`, "", "—", c.footer].join("\n");
-  const html = `<!doctype html><html><body style="margin:0;background:#faf7f2;font-family:Inter,Helvetica,Arial,sans-serif;color:#14211f">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border:1px solid #e8e1d5;border-radius:16px" cellpadding="0" cellspacing="0"><tr><td style="padding:32px">
-<p style="margin:0 0 24px;font-weight:600;color:#0f5c5c;font-size:18px">DentVideo</p>
-<p style="margin:0 0 12px;font-size:16px">${esc(c.hello(args.clinicName))}</p>
-<p style="margin:0 0 16px;font-size:16px;line-height:1.5">${esc(body)}</p>
-<ul style="margin:0 0 16px;padding-left:20px;font-size:16px;line-height:1.6">${lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
-<p style="margin:0 0 24px;font-size:14px;color:#4a5a57">${esc(c.approval)}</p>
-<a href="${esc(args.appUrl)}" style="display:inline-block;background:#0f5c5c;color:#f5efe6;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:600">${esc(c.button)}</a>
-</td></tr></table>
-<p style="margin:16px 0 0;font-size:12px;color:#6b7a77">${esc(c.footer)}</p>
+  const lang = COPY[args.language] ? args.language : "en";
+  const font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  const row = (dot: string, label: string) =>
+    `<tr><td width="20" valign="top" style="padding:6px 0"><div style="width:10px;height:10px;border-radius:5px;background:${dot};margin-top:6px;font-size:0;line-height:0">&nbsp;</div></td><td style="padding:6px 0;font-size:16px;line-height:24px;color:#14211f">${esc(label)}</td></tr>`;
+  const rows = [
+    args.counts.ready > 0 ? row("#0f5c5c", c.readyLine(args.counts.ready)) : "",
+    args.counts.flagged > 0 ? row("#c98a1b", c.flaggedLine(args.counts.flagged)) : "",
+  ].join("");
+  const url = esc(args.appUrl);
+  // Table layout, inline styles and a bgcolor button: what Gmail, Apple Mail and Outlook all render the same.
+  const html = `<!doctype html>
+<html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:0;background:#faf7f2;font-family:${font};color:#14211f;-webkit-text-size-adjust:100%">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#faf7f2">${esc(body)} ${esc(c.approval)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#faf7f2"><tr><td align="center" style="padding:32px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px">
+<tr><td style="padding:0 4px 16px;font-family:${font};font-size:20px;font-weight:700;letter-spacing:-0.2px;color:#14211f">Dent<span style="color:#0f5c5c">Video</span></td></tr>
+<tr><td style="background:#ffffff;border:1px solid #e8e1d5;border-radius:16px;padding:32px 28px">
+<p style="margin:0 0 12px;font-size:16px;line-height:24px">${esc(c.hello(args.clinicName))}</p>
+<p style="margin:0 0 20px;font-size:16px;line-height:24px">${esc(body)}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;background:#faf7f2;border-radius:12px"><tr><td style="padding:10px 16px"><table role="presentation" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr></table>
+<p style="margin:0 0 24px;font-size:14px;line-height:21px;color:#3d4c49">${esc(c.approval)}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#0f5c5c" style="border-radius:999px;background:#0f5c5c"><a href="${url}" style="display:inline-block;padding:14px 28px;font-family:${font};font-size:16px;font-weight:600;line-height:20px;color:#ffffff;text-decoration:none;border-radius:999px">${esc(c.button)}</a></td></tr></table>
+<p style="margin:16px 0 0;font-size:12px;line-height:18px;color:#5b6a67;word-break:break-all"><a href="${url}" style="color:#0f5c5c">${url}</a></p>
+</td></tr>
+<tr><td style="padding:16px 4px 0;font-size:12px;line-height:18px;color:#5b6a67">${esc(c.footer)}</td></tr>
+</table>
 </td></tr></table></body></html>`;
   return { subject, html, text };
 }

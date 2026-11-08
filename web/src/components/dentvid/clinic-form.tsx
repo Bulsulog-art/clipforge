@@ -345,7 +345,11 @@ export function BrandFields({ draft, locale, showLogoPreview = false }: { draft:
 
 type Props = { locale: Locale; initial?: Partial<ClinicProfile>; logoPath?: string | null; logoUrl?: string | null; submitLabel?: string };
 
-/** Clinic settings: every field on one page, saved together. */
+/**
+ * Clinic settings: every field on one page, saved together. Saving stays on
+ * the page and says so; the save bar sticks to the bottom of a phone screen
+ * while there are unsaved changes.
+ */
 export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
   const text = appText(locale);
   const t = text.form;
@@ -353,14 +357,16 @@ export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
   const draft = useClinicDraft({ locale, initial, logoUrl });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setSaved(false);
     try {
       await draft.save();
-      router.push("/dentvideo/app");
+      setSaved(true);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -369,15 +375,28 @@ export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
     }
   }
 
+  const section = "dv-card p-5 sm:p-7";
+  const heading = "mb-5 text-lg font-semibold text-dv-ink";
   return (
-    <form onSubmit={submit} className="grid gap-8">
-      <ClinicDetailsFields draft={draft} locale={locale} />
-      <BrandFields draft={draft} locale={locale} showLogoPreview />
-      {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
-      <div>
-        <button type="submit" disabled={busy} className="dv-btn dv-btn-primary px-8 py-3">
-          {busy ? t.saving : submitLabel ?? t.save}
-        </button>
+    <form onSubmit={submit} className="grid gap-6" onChange={() => setSaved(false)}>
+      <section aria-labelledby="clinic-details" className={section}>
+        <h2 id="clinic-details" className={heading}>{text.settings.clinicHeading}</h2>
+        <ClinicDetailsFields draft={draft} locale={locale} />
+      </section>
+      <section aria-labelledby="clinic-brand" className={section}>
+        <h2 id="clinic-brand" className={heading}>{text.settings.brandHeading}</h2>
+        <BrandFields draft={draft} locale={locale} showLogoPreview />
+      </section>
+      <div className={`sticky bottom-0 z-10 -mx-4 border-t border-dv-line bg-dv-paper/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none ${draft.dirty || busy || error ? "" : "max-sm:static max-sm:mx-0 max-sm:border-0 max-sm:bg-transparent max-sm:px-0 max-sm:py-0 max-sm:backdrop-blur-none"}`}>
+        {error && <p className="mb-3 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button type="submit" disabled={busy} className="dv-btn dv-btn-primary w-full px-8 py-3 sm:w-auto">
+            {busy ? t.saving : submitLabel ?? t.save}
+          </button>
+          <p role="status" className="text-sm text-dv-teal">
+            {saved && !draft.dirty ? text.settings.saved : ""}
+          </p>
+        </div>
       </div>
     </form>
   );

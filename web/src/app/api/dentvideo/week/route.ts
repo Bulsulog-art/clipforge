@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { dvSession, weekOf } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
+import { LIMITS } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { WEEK_JOB_OPTS, WEEK_VIDEOS, weekJobId } from "@/lib/dentvid/week-job";
@@ -10,6 +12,8 @@ import { WEEK_JOB_OPTS, WEEK_VIDEOS, weekJobId } from "@/lib/dentvid/week-job";
 export async function POST() {
   const { db, user } = await dvSession();
   if (!user) return NextResponse.json({ error: (await dvErrors()).signIn }, { status: 401 });
+  const limited = await rateLimited([{ key: `rl:week:user:${user.id}`, rule: LIMITS.weekUser }], async () => (await dvErrors()).tooMany);
+  if (limited) return limited;
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile").eq("owner_id", user.id).maybeSingle();
   const err = await dvErrors((clinic?.profile as { language?: string } | undefined)?.language);
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });

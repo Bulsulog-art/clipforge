@@ -18,7 +18,7 @@ Turns reviewed raw images into the shipped library.
     index the suggestion engine ranks (a test asserts they match)
 """
 import argparse, io, json, os
-from PIL import Image
+from PIL import Image, ImageFilter
 
 MAX_BYTES = 90 * 1024
 W, H = 1080, 1920
@@ -31,11 +31,16 @@ def luminance_stats(im):
     return round(mean, 3), round(p95, 3)
 
 def encode(im):
-    for q in range(88, 59, -2):
-        buf = io.BytesIO()
-        im.save(buf, "JPEG", quality=q, progressive=True, optimize=True, subsampling="4:2:0")
-        if buf.tell() <= MAX_BYTES:
-            return buf.getvalue(), q
+    # Most photos fit at q 64-88. Fine high-frequency texture (frost, sand
+    # grain) does not; for those a barely visible softening (radius 0.8 px at
+    # 1080 wide, under a 65-77 % tint in the video) beats blocky low-q JPEG.
+    for soften in (0, 0.8, 1.4):
+        src = im.filter(ImageFilter.GaussianBlur(soften)) if soften else im
+        for q in range(88, 59, -2):
+            buf = io.BytesIO()
+            src.save(buf, "JPEG", quality=q, progressive=True, optimize=True, subsampling="4:2:0")
+            if buf.tell() <= MAX_BYTES:
+                return buf.getvalue(), q
     return buf.getvalue(), q
 
 def main():

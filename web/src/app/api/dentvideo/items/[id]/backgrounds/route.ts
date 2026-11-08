@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
+import { LIMITS } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { cleanPhotoIds, MAX_PHOTOS, withBackgrounds } from "@/lib/dentvid/backgrounds";
 
@@ -16,6 +18,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { db, user } = await dvSession();
   const err = await dvErrors();
   if (!user) return NextResponse.json({ error: err.signIn }, { status: 401 });
+  const limited = await rateLimited(
+    [
+      { key: `rl:restyle:user:${user.id}`, rule: LIMITS.restyleUser },
+      { key: `rl:restyle:userday:${user.id}`, rule: LIMITS.restyleUserDay },
+    ],
+    () => err.tooMany,
+  );
+  if (limited) return limited;
 
   const parsed = Body.safeParse(await req.json().catch(() => null));
   const ids = parsed.success ? cleanPhotoIds(parsed.data.backgrounds) : [];

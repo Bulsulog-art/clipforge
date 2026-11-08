@@ -6,6 +6,16 @@
     "implants-08": "dental chair rendered on an office-chair base with castors; wrong equipment, dated room",
     "implants-12": "desk calendar with printed numbers (lettering)",
     "implants-13": "tooth-like blobs on instrument tips (implied anatomy, uncanny)",
-    "aligners-01": "trays read as a sports mouthguard / bent tube, not a real aligner"
-  }
+    "aligners-01": "trays read as a sports mouthguard / bent tube, not a real aligner",
+    "breath-01": "wrong aspect: model returned 1088x1536 instead of 1088x1920",
+    "hygiene-02": "printed lettering on the toothbrush handle and base",
+    "hygiene-03": "floss strand hangs from nowhere; reads as an artifact",
+    "hygiene-12": "two taps on one basin (impossible plumbing)",
+    "clinic-02": "letter-like shapes on book spines (lettering)",
+    "clinic-03": "instrument tray mounted on the wall; implausible",
+    "clinic-12": "lit display on the dental lamp reads as UI text",
+    "sensitivity-04": "steam rising from the glass of iced water (physically wrong)",
+    "calm-02": "small dark artifact in the bottom-right corner"
+  },
+  "round2": "2026-11-08: 6–7 strongest prompts per empty category (63 calls) + 5 replacement prompts for clinic/hygiene rejects; the other prompts were deliberately not generated (budget)."
 }

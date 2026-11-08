@@ -62,16 +62,16 @@
    "whitening-02",
    "whitening-03",
    "whitening-04",
+   "food-01",
+   "clinic-01",
    "whitening-05",
+   "food-02",
+   "hygiene-01",
+   "clinic-04",
    "whitening-07",
-   "whitening-08",
-   "whitening-09",
-   "whitening-10",
-   "whitening-11",
-   "whitening-12",
-   "whitening-13",
-   "whitening-16",
-   "whitening-17"
+   "food-03",
+   "hygiene-04",
+   "clinic-17"
   ]
  },
  {
@@ -137,17 +137,17 @@
    "implants-07",
    "implants-14",
    "implants-15",
+   "clinic-01",
    "implants-05",
+   "clinic-04",
    "implants-16",
+   "clinic-17",
    "implants-01",
+   "hygiene-01",
+   "clinic-06",
    "implants-02",
-   "implants-04",
-   "implants-09",
-   "implants-10",
-   "implants-11",
-   "implants-17",
-   "implants-18",
-   "whitening-01"
+   "hygiene-04",
+   "clinic-07"
   ]
  },
  {
@@ -199,22 +199,22 @@
    "language": "tr"
   },
   "expected": [
+   "cleaning-05",
+   "cleaning-06",
+   "cleaning-08",
+   "cleaning-09",
+   "cleaning-14",
+   "cleaning-02",
+   "cleaning-12",
+   "clinic-01",
+   "clinic-04",
+   "clinic-17",
+   "clinic-06",
+   "clinic-07",
+   "clinic-13",
+   "clinic-14",
    "implants-03",
-   "whitening-01",
-   "whitening-02",
-   "aligners-02",
-   "implants-01",
-   "whitening-03",
-   "aligners-03",
-   "implants-02",
-   "whitening-04",
-   "aligners-04",
-   "implants-04",
-   "whitening-05",
-   "aligners-05",
-   "implants-05",
-   "whitening-07",
-   "aligners-08"
+   "calm-01"
   ]
  },
  {
@@ -232,11 +232,11 @@
    "aligners-11",
    "aligners-14",
    "aligners-05",
-   "whitening-01",
-   "implants-01",
-   "whitening-02",
-   "implants-02",
-   "whitening-03"
+   "calm-01",
+   "clinic-01",
+   "hygiene-01",
+   "calm-03",
+   "clinic-04"
   ]
  },
  {
@@ -251,13 +251,13 @@
    "whitening-15",
    "whitening-01",
    "whitening-02",
+   "food-01",
    "whitening-03",
+   "food-02",
    "whitening-04",
+   "food-03",
    "whitening-05",
-   "whitening-07",
-   "whitening-08",
-   "whitening-09",
-   "whitening-10"
+   "whitening-07"
   ]
  },
  {
@@ -265,26 +265,26 @@
   "input": {},
   "count": 20,
   "expected": [
+   "calm-01",
+   "clinic-01",
+   "hygiene-01",
+   "calm-03",
+   "clinic-04",
    "whitening-01",
+   "hygiene-04",
+   "calm-05",
    "implants-01",
+   "clinic-06",
    "whitening-02",
    "aligners-02",
+   "hygiene-05",
+   "calm-08",
    "implants-02",
+   "clinic-07",
    "whitening-03",
    "aligners-03",
-   "implants-03",
-   "whitening-04",
-   "aligners-04",
-   "implants-04",
-   "whitening-05",
-   "aligners-05",
-   "implants-05",
-   "whitening-07",
-   "aligners-08",
-   "implants-06",
-   "whitening-08",
-   "aligners-11",
-   "implants-07"
+   "hygiene-08",
+   "calm-10"
   ]
  },
  {
@@ -321,18 +321,18 @@
    "whitening-01",
    "whitening-02",
    "whitening-03",
+   "food-01",
    "whitening-04",
+   "food-02",
    "whitening-05",
+   "food-03",
    "whitening-07",
+   "food-04",
    "whitening-08",
+   "food-05",
    "whitening-09",
-   "whitening-10",
-   "whitening-11",
-   "whitening-12",
-   "whitening-13",
-   "whitening-14",
-   "whitening-16",
-   "whitening-17"
+   "cleaning-05",
+   "food-07"
   ]
  },
  {
@@ -373,11 +373,11 @@
    "aligners-11",
    "aligners-14",
    "aligners-05",
-   "whitening-01",
-   "implants-01",
-   "whitening-02",
-   "implants-02",
-   "whitening-03"
+   "calm-01",
+   "clinic-01",
+   "hygiene-01",
+   "calm-03",
+   "clinic-04"
   ]
  }
 ]
