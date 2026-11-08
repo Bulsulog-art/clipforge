@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
-import { DV_INTERVALS, DV_TIERS, buildDvCheckout } from "@/lib/dentvid/billing";
+import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink } from "@/lib/dentvid/billing";
 import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
 
 // POST /api/dentvideo/checkout — open a Dodo hosted checkout for the signed-in
@@ -40,8 +40,10 @@ export async function POST(req: Request) {
   if (!built.ok) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
 
   // The same Dodo account as ClipForge: DODO_API_KEY, DODO_ENVIRONMENT=live.
+  // Without an API key, Dodo's static payment link does the same job (same
+  // product, metadata and return URL); the clinic types any code in Dodo.
   const apiKey = process.env.DODO_API_KEY?.trim();
-  if (!apiKey) return NextResponse.json({ error: err.checkoutUnavailable }, { status: 503 });
+  if (!apiKey) return NextResponse.json({ url: buildDvStaticLink(built), code: built.discount });
 
   try {
     return NextResponse.json({ url: await postDodoCheckout({ apiKey, body: built.body }) });

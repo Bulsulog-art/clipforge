@@ -129,6 +129,7 @@ export type AppText = {
     recommended: string;
     foundingBadge: string;
     foundingLine: string;
+    foundingCodeLine: string;
     foundingThen: string;
     choose: string;
     opening: string;
@@ -297,6 +298,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Recommended",
       foundingBadge: "Founding offer",
       foundingLine: "Practice for {price}/month for 12 months — first 100 clinics",
+      foundingCodeLine: "Code at checkout: {code}",
       foundingThen: "Then {price}/month.",
       choose: "Choose {tier}",
       opening: "Opening checkout…",
@@ -493,6 +495,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Empfohlen",
       foundingBadge: "Gründungsangebot",
       foundingLine: "Practice für {price}/Monat, 12 Monate lang — für die ersten 100 Praxen",
+      foundingCodeLine: "Code im Checkout: {code}",
       foundingThen: "Danach {price}/Monat.",
       choose: "{tier} wählen",
       opening: "Checkout wird geöffnet…",
@@ -689,6 +692,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Recomendado",
       foundingBadge: "Oferta fundadora",
       foundingLine: "Practice por {price}/mes durante 12 meses — primeras 100 clínicas",
+      foundingCodeLine: "Código en el pago: {code}",
       foundingThen: "Después, {price}/mes.",
       choose: "Elegir {tier}",
       opening: "Abriendo el pago…",
@@ -881,6 +885,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Önerilen",
       foundingBadge: "Kurucu teklifi",
       foundingLine: "12 ay boyunca aylık {price} ile Practice — ilk 100 klinik için",
+      foundingCodeLine: "Ödemede kod: {code}",
       foundingThen: "Sonrasında aylık {price}.",
       choose: "{tier} planını seç",
       opening: "Ödeme sayfası açılıyor…",
@@ -1073,6 +1078,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Recommandée",
       foundingBadge: "Offre fondateurs",
       foundingLine: "Practice à {price}/mois pendant 12 mois — pour les 100 premiers cabinets",
+      foundingCodeLine: "Code au paiement : {code}",
       foundingThen: "Ensuite {price}/mois.",
       choose: "Choisir {tier}",
       opening: "Ouverture du paiement…",
