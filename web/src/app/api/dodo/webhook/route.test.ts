@@ -39,6 +39,11 @@ function fakeDb(rows: Record<string, Record<string, unknown>[]> = {}) {
         }
         return q;
       },
+      // dentvid_items head count ("is this week already made?"): none yet.
+      neq: (col: string, v: unknown) => {
+        calls.push({ table, op: "count", args: [...filters, [col, v]] });
+        return Promise.resolve({ count: 0, data: null, error: null });
+      },
       maybeSingle: () => {
         const hit = (rows[table] ?? []).find((r) => filters.every(([c, x]) => r[c] === x)) ?? null;
         return Promise.resolve({ data: hit ? { ...hit } : null, error: null });
@@ -58,6 +63,10 @@ let liman = fakeDb();
 
 vi.mock("@/lib/supabase/server", () => ({ createServiceClient: () => cloud.client }));
 vi.mock("@/lib/dentvid/supabase", () => ({ dvAdmin: () => liman.client }));
+const queued: { name: string; data: unknown; opts: Record<string, unknown> }[] = [];
+vi.mock("@/lib/queue", () => ({
+  dentvidQueue: { add: async (name: string, data: unknown, opts: Record<string, unknown>) => void queued.push({ name, data, opts }) },
+}));
 
 const SECRET = "whsec_" + Buffer.from("test-secret-for-dodo-webhooks").toString("base64");
 process.env.DODO_WEBHOOK_SECRET = SECRET;
@@ -104,6 +113,7 @@ async function post(req: Request) {
 }
 
 beforeEach(() => {
+  queued.length = 0;
   cloud = fakeDb({ profiles: [{ id: CF_USER, email: "dr@clinic.example", tier: "free" }] });
   liman = fakeDb({ dentvid_clinics: [{ id: CLINIC, owner_id: OWNER, plan: "trial", plan_tier: null, dodo_subscription_id: null, plan_renews_at: null }] });
 });
@@ -122,6 +132,18 @@ describe("POST /api/dodo/webhook", () => {
     expect(res.body).toMatchObject({ app: "dentvideo", plan: "active" });
     expect(liman.rows.dentvid_clinics[0]).toMatchObject({ plan: "active", plan_tier: "practice", dodo_subscription_id: "sub_dv_1", plan_renews_at: "2026-12-08T10:00:00Z" });
     expect(cloud.calls).toHaveLength(0);
+  });
+
+  it("payment → the clinic's first week is queued at once (no free week, nothing before payment)", async () => {
+    const res = await post(signed(dvEvent("subscription.active")));
+    expect(res.body).toMatchObject({ plan: "active", firstWeek: "queued" });
+    expect(queued).toHaveLength(1);
+    expect(queued[0].name).toBe("week");
+    expect(queued[0].data).toEqual({ clinicId: CLINIC, count: 5 });
+    expect(String(queued[0].opts.jobId)).toMatch(new RegExp(`^week:${CLINIC}:\\d{4}-\\d{2}-\\d{2}$`));
+    // A repeat of the same event queues nothing more.
+    await post(signed(dvEvent("subscription.active")));
+    expect(queued).toHaveLength(1);
   });
 
   it("is idempotent: the same event twice writes once", async () => {

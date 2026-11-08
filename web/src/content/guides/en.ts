@@ -109,7 +109,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colours with your logo. Every script is checked twice — for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [Your first week is free](start:).",
+          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colours with your logo. Every script is checked twice — for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [See a live preview with your logo before you pay](start:).",
         ],
       },
     ],
@@ -663,7 +663,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Alternatives that need no patient data",
         paragraphs: [
           "Most useful content does not need real patients at all: the dentist explaining to camera, models and typodonts, diagrams, animation and narrated videos. They are easier to produce, never have to be taken down when consent is withdrawn and raise no advertising questions. Ideas in [dental social media post ideas](guide:dental-social-media-post-ideas).",
-          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colours, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [Try your first week free](start:).",
+          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colours, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [See your own videos before you pay](start:).",
         ],
       },
     ],
@@ -763,7 +763,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "The mixed model most practices settle on",
         paragraphs: [
           "For many practices, what lasts is a mix: regular education videos come from a tool or an outside provider, the dentist adds a short recording of their own once or twice a month, and the team posts and replies. The account stays active, sounds like the practice and nobody is under weekly pressure. Topics in [dental social media post ideas](guide:dental-social-media-post-ideas); filming tips in [Instagram videos for dentists](guide:instagram-videos-for-dentists).",
-          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency — DentVideo does not publish anything itself. [Your first week is free](start:).",
+          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency — DentVideo does not publish anything itself. [See a live preview with your logo before you pay](start:).",
         ],
       },
     ],

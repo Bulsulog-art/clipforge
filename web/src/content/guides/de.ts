@@ -101,7 +101,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo hilft",
         paragraphs: [
-          "[DentVideo](landing:) plant jede Woche fünf Themen aus Ihren Leistungen und echten Patientenfragen, schreibt und vertont die Videos und untertitelt sie mit Ihrem Logo und in Ihren Farben. Jedes Skript wird zweimal geprüft: auf häufig verbotene Werbeaussagen und auf fachliche Richtigkeit. Ihre eigenen Aufnahmen werden nie umformuliert; Auffälliges wird mit Begründung markiert. Nichts geht ohne Ihre Freigabe hinaus. [Die erste Woche ist kostenlos](start:).",
+          "[DentVideo](landing:) plant jede Woche fünf Themen aus Ihren Leistungen und echten Patientenfragen, schreibt und vertont die Videos und untertitelt sie mit Ihrem Logo und in Ihren Farben. Jedes Skript wird zweimal geprüft: auf häufig verbotene Werbeaussagen und auf fachliche Richtigkeit. Ihre eigenen Aufnahmen werden nie umformuliert; Auffälliges wird mit Begründung markiert. Nichts geht ohne Ihre Freigabe hinaus. [Sehen Sie vor der Zahlung eine Live-Vorschau mit Ihrem Logo](start:).",
         ],
       },
     ],
@@ -502,7 +502,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo hilft",
         paragraphs: [
-          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung — Sie geben jedes Video frei. [Erste Woche kostenlos starten](start:).",
+          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung — Sie geben jedes Video frei. [Ihre Videos ansehen, bevor Sie zahlen](start:).",
         ],
       },
     ],
@@ -602,7 +602,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Das Mischmodell: für viele Praxen realistisch",
         paragraphs: [
           "Für viele Praxen trägt ein Mischmodell am längsten: Regelmäßige Aufklärungsvideos kommen aus einem Tool oder von außen, die Zahnärztin ergänzt ein- bis zweimal im Monat eine kurze eigene Aufnahme, und das Team beantwortet Nachrichten und postet. So bleibt das Profil aktiv, klingt nach der Praxis, und niemand steht jede Woche unter Druck. Themen dafür liefern die [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
-          "[DentVideo](landing:) ist eine Software für den Inhaltsteil: Sie erstellt jede Woche fünf kurze Aufklärungsvideos, prüft jedes Skript auf fachliche Richtigkeit und Werberecht und schneidet Ihre eigenen Aufnahmen in untertitelte Clips. Posten und Nachrichten bleiben bei Ihnen oder Ihrer Agentur — DentVideo veröffentlicht nichts selbst. [Die erste Woche ist kostenlos](start:).",
+          "[DentVideo](landing:) ist eine Software für den Inhaltsteil: Sie erstellt jede Woche fünf kurze Aufklärungsvideos, prüft jedes Skript auf fachliche Richtigkeit und Werberecht und schneidet Ihre eigenen Aufnahmen in untertitelte Clips. Posten und Nachrichten bleiben bei Ihnen oder Ihrer Agentur — DentVideo veröffentlicht nichts selbst. [Sehen Sie vor der Zahlung eine Live-Vorschau mit Ihrem Logo](start:).",
         ],
       },
     ],

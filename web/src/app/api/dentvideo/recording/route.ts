@@ -20,8 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: err.invalidUpload }, { status: 400 });
   }
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
-  // The first week is free; after that, and while a plan is paused or
-  // cancelled, new weeks need a plan.
+  // No free week: recordings are processed only for a paying clinic.
   const plan = await loadClinicPlan(db, clinic.id);
   if (!plan.canMake) return NextResponse.json({ error: err.planRequired, needsPlan: true }, { status: 402 });
   // Own recordings are a Practice/Group feature (as sold on the pricing page).

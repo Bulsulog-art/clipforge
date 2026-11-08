@@ -37,7 +37,7 @@ export function Library({
   items: LibraryItem[];
   canStartWeek: boolean;
   locale: Locale;
-  /** No plan (free week made, or paused/cancelled): new videos wait for a plan. */
+  /** No active plan (not paid yet, paused or cancelled): new videos wait for a plan. */
   locked?: boolean;
 }) {
   const text = appText(locale);

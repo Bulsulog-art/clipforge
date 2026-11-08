@@ -20,12 +20,15 @@ export function PlanPanel({
   state,
   options,
   founding,
+  bare = false,
 }: {
   locale: Locale;
   state: DvPlanState;
   options: PlanOption[];
   /** Founding price when the offer is open (Practice monthly), else null. */
   founding: { priceUsd: number; code?: string } | null;
+  /** Inside the onboarding wizard the step has its own heading: keep the panel's title for screen readers only. */
+  bare?: boolean;
 }) {
   const text = appText(locale);
   const t = text.billing;
@@ -62,7 +65,7 @@ export function PlanPanel({
     <section id="plans" aria-labelledby="plans-title" className="dv-card relative isolate scroll-mt-24 overflow-hidden p-6 sm:p-8">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10 opacity-60" />
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-2xl">
+        <div className={bare ? "sr-only" : "max-w-2xl"}>
           <h2 id="plans-title" className="dv-display text-[2rem] leading-tight sm:text-[2.5rem]">{t.chooseTitle}</h2>
           <p className="mt-2 text-dv-body">{lead}</p>
         </div>

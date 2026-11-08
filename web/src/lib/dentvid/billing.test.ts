@@ -176,19 +176,20 @@ describe("plan transitions", () => {
     expect(applyTransition(paused, dvTransition("subscription.active", d, {})!)?.plan).toBe("active");
   });
 
-  it("a first payment that fails leaves a trial clinic on trial", () => {
+  it("a first payment that fails leaves an unpaid clinic unpaid", () => {
     expect(applyTransition(trial, dvTransition("subscription.failed", d, {})!)).toBeNull();
   });
 });
 
 describe("access", () => {
-  it("trial until the free week is made; active always; paused/cancelled never", () => {
-    expect(canMakeVideos("trial", false)).toBe(true);
-    expect(canMakeVideos("trial", true)).toBe(false);
-    expect(canMakeVideos("active", true)).toBe(true);
-    expect(canMakeVideos("paused", false)).toBe(false);
-    expect(canMakeVideos("cancelled", false)).toBe(false);
-    expect(needsPlan("trial", true)).toBe(true);
-    expect(needsPlan("active", true)).toBe(false);
+  it("only a paying clinic makes videos — no free week: trial (not paid yet), paused and cancelled never", () => {
+    expect(canMakeVideos("active")).toBe(true);
+    expect(canMakeVideos("trial")).toBe(false);
+    expect(canMakeVideos(null)).toBe(false);
+    expect(canMakeVideos(undefined)).toBe(false);
+    expect(canMakeVideos("paused")).toBe(false);
+    expect(canMakeVideos("cancelled")).toBe(false);
+    expect(needsPlan("trial")).toBe(true);
+    expect(needsPlan("active")).toBe(false);
   });
 });
