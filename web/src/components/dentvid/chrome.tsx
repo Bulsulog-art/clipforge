@@ -9,6 +9,9 @@ import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { DvLogo } from "./mark";
+import { Clapperboard, LogOut, Settings, Video } from "lucide-react";
+import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
+import { dvBrowser } from "@/lib/dentvid/supabase";
 
 /** Fired when a page sets the interface language, so the header follows at once. */
 const LANG_EVENT = "dv-lang";
@@ -56,6 +59,14 @@ type Props = { guideLocales: Record<string, Locale> };
 
 export function DvHeader({ guideLocales }: Props) {
   const { locale, ready } = useDvLocale(guideLocales);
+  const path = usePathname() ?? "";
+  const tab = appTab(path);
+  if (tab) return <AppHeader locale={locale} ready={ready} tab={tab} />;
+  return <SiteHeader locale={locale} ready={ready} quiet={isFunnel(path)} />;
+}
+
+/** The site header; `quiet` (the sign-up wizard) keeps only the logo, so the next step is the only way on. */
+function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; quiet: boolean }) {
   const t = appText(locale).chrome;
   const home = LANDING_PATH[locale];
   // Until the visitor's language is known on the app screens, keep the space
@@ -82,14 +93,16 @@ export function DvHeader({ guideLocales }: Props) {
         <Link href={home} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
           <DvLogo className="h-7 w-auto sm:h-8" />
         </Link>
-        <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
-          <Link href={`${home}#how`} className={navLink}>{t.howItWorks}</Link>
-          <Link href={`${home}#pricing`} className={navLink}>{t.pricing}</Link>
-          <Link href={GUIDES_INDEX_PATH[locale]} className={navLink}>{GUIDE_UI[locale].guides}</Link>
-          <Link href="/dentvideo/app" className="dv-btn dv-btn-primary ml-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
-            {t.openApp}
-          </Link>
-        </nav>
+        {!quiet && (
+          <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
+            <Link href={`${home}#how`} className={navLink}>{t.howItWorks}</Link>
+            <Link href={`${home}#pricing`} className={navLink}>{t.pricing}</Link>
+            <Link href={GUIDES_INDEX_PATH[locale]} className={navLink}>{GUIDE_UI[locale].guides}</Link>
+            <Link href="/dentvideo/app" className="dv-btn dv-btn-primary ml-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
+              {t.openApp}
+            </Link>
+          </nav>
+        )}
       </div>
     </header>
   );
@@ -97,6 +110,8 @@ export function DvHeader({ guideLocales }: Props) {
 
 export function DvFooter({ guideLocales }: Props) {
   const { locale, ready } = useDvLocale(guideLocales);
+  const path = usePathname() ?? "";
+  if (appTab(path) || isFunnel(path)) return <AppFooter locale={locale} ready={ready} />;
   const t = appText(locale).chrome;
   const home = LANDING_PATH[locale];
   const link = "rounded-md text-[#c9d9d5] transition-colors hover:text-white";
@@ -145,4 +160,99 @@ export function RememberLocale({ locale }: { locale: Locale }) {
     if (asLocale(rememberedLocale()) !== locale) announceLocale(locale);
   }, [locale]);
   return null;
+}
+
+const TABS: { key: AppTab; href: string; Icon: typeof Video }[] = [
+  { key: "videos", href: "/dentvideo/app", Icon: Video },
+  { key: "record", href: "/dentvideo/app/record", Icon: Clapperboard },
+  { key: "settings", href: "/dentvideo/app/settings", Icon: Settings },
+];
+
+/**
+ * Inside the app: the logo, the three screens (Videos, Record, Settings) and
+ * sign-out. On a phone the screens sit in a row of equal tabs under the logo,
+ * each a full thumb's width.
+ */
+function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab: AppTab }) {
+  const t = appText(locale).chrome;
+  const [leaving, setLeaving] = useState(false);
+  const hide = ready ? "" : "invisible";
+
+  async function signOut() {
+    setLeaving(true);
+    try {
+      await dvBrowser().auth.signOut();
+    } catch {
+      /* signed out locally either way */
+    }
+    window.location.assign("/dentvideo/start");
+  }
+
+  const tabLink = (key: AppTab) =>
+    `inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors ${
+      key === tab ? "bg-dv-teal text-white" : "text-dv-body hover:bg-dv-sand-200/70 hover:text-dv-ink"
+    }`;
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-dv-line/80 bg-dv-paper/90 backdrop-blur-xl backdrop-saturate-150">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:h-16 sm:px-6">
+        <Link href="/dentvideo/app" className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
+          <DvLogo className="h-7 w-auto" />
+        </Link>
+        <nav aria-label={t.appNav} className={`hidden items-center gap-1 rounded-full bg-white/70 p-1 ring-1 ring-dv-line md:flex ${hide}`}>
+          {TABS.map(({ key, href, Icon }) => (
+            <Link key={key} href={href} aria-current={key === tab ? "page" : undefined} className={tabLink(key)}>
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {t[key]}
+            </Link>
+          ))}
+        </nav>
+        <button
+          type="button"
+          onClick={signOut}
+          disabled={leaving}
+          className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-dv-body transition-colors hover:bg-dv-sand-200/70 hover:text-dv-ink disabled:opacity-60 ${hide}`}
+        >
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+          {leaving ? t.signingOut : t.signOut}
+        </button>
+      </div>
+      <nav aria-label={t.appNav} className={`border-t border-dv-line/70 px-2 py-1.5 md:hidden ${hide}`}>
+        <ul className="grid grid-cols-3 gap-1">
+          {TABS.map(({ key, href, Icon }) => (
+            <li key={key}>
+              <Link
+                href={href}
+                aria-current={key === tab ? "page" : undefined}
+                className={`flex min-h-12 w-full flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5 text-[0.8125rem] font-semibold leading-tight transition-colors ${
+                  key === tab ? "bg-dv-teal text-white" : "text-dv-body hover:bg-dv-sand-200/70 hover:text-dv-ink"
+                }`}
+              >
+                <Icon className="h-[1.125rem] w-[1.125rem] shrink-0" aria-hidden="true" />
+                <span className="max-w-full text-center [overflow-wrap:anywhere]">{t[key]}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+  );
+}
+
+/** Inside the app: one calm line — the compliance promise and where to write. */
+function AppFooter({ locale, ready }: { locale: Locale; ready: boolean }) {
+  const t = appText(locale).chrome;
+  return (
+    <footer className={`border-t border-dv-line bg-dv-sand/60 ${ready ? "" : "invisible"}`}>
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-dv-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <p className="max-w-xl">{t.footer}</p>
+        <p>
+          {t.help}{" "}
+          <a href={`mailto:${DV_SUPPORT_EMAIL}`} className="font-medium text-dv-teal underline-offset-4 hover:underline">
+            {DV_SUPPORT_EMAIL}
+          </a>
+        </p>
+      </div>
+    </footer>
+  );
 }

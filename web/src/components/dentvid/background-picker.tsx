@@ -54,17 +54,19 @@ export function BackgroundPicker({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {updating && (
-        <p className="rounded-xl bg-[#e6efed] px-3 py-2 text-sm text-[#0f5c5c]" role="status">
-          {t.updating}
+    <div className="flex flex-col">
+      {photos.status === "failed" && (
+        <p role="alert" className="mt-3 rounded-xl bg-[#fbeaea] px-3 py-2 text-sm text-[#8a1f1f]">
+          {t.failed}
         </p>
       )}
-      {photos.status === "failed" && <p className="rounded-xl bg-[#fbeaea] px-3 py-2 text-sm text-[#8a1f1f]">{t.failed}</p>}
-      <details className="text-sm" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
-        <summary className="cursor-pointer text-[#0f5c5c]">{t.title}</summary>
+      <details className="group text-sm" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
+        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-dv-teal">
+          {t.title}
+          <span aria-hidden="true" className="text-dv-muted transition-transform group-open:rotate-45">+</span>
+        </summary>
         {open && (
-          <div className="mt-2">
+          <div className="pb-3">
             <p className="text-xs text-dv-muted">{t.hint}</p>
             <ul className="-mx-1 mt-2 flex snap-x gap-2 overflow-x-auto px-1 pb-2" aria-label={t.title}>
               {photos.suggested.map((id, i) => {
@@ -77,11 +79,11 @@ export function BackgroundPicker({
                       disabled={updating || saving}
                       onClick={() => toggle(id)}
                       aria-pressed={on}
-                      className={`relative block h-32 w-[72px] overflow-hidden rounded-lg ring-offset-2 transition ${on ? "ring-2 ring-dv-teal" : "ring-1 ring-[#d9d1c3] opacity-90 hover:opacity-100"}`}
+                      className={`relative block h-32 w-[72px] overflow-hidden rounded-lg ring-offset-2 transition disabled:cursor-not-allowed ${on ? "ring-2 ring-dv-teal" : "ring-1 ring-dv-edge opacity-90 hover:opacity-100"}`}
                     >
                       <Image src={backgroundSrc(id)} alt={fmt(t.photoAlt, { n: i + 1 })} width={72} height={128} sizes="72px" className="h-full w-full object-cover" />
                       {on && (
-                        <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal text-[11px] font-semibold text-white">
+                        <span aria-hidden="true" className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-dv-teal text-xs font-semibold text-white shadow">
                           {order + 1}
                         </span>
                       )}
@@ -95,13 +97,13 @@ export function BackgroundPicker({
                 type="button"
                 onClick={apply}
                 disabled={!changed || picked.length === 0 || saving || updating}
-                className="dv-btn dv-btn-primary px-4 py-2 text-sm disabled:opacity-50"
+                className="dv-btn dv-btn-primary px-5 py-2.5 text-sm"
               >
                 {saving ? t.applying : t.apply}
               </button>
-              <span className="text-xs text-dv-muted">{fmt(t.selected, { n: picked.length })}</span>
+              <span className="text-xs text-dv-muted" aria-live="polite">{fmt(t.selected, { n: picked.length })}</span>
             </div>
-            {error && <p className="mt-2 text-sm text-[#8a1f1f]">{error}</p>}
+            {error && <p role="alert" className="mt-2 text-sm text-[#8a1f1f]">{error}</p>}
           </div>
         )}
       </details>

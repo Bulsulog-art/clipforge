@@ -21,6 +21,7 @@ export function PlanPanel({
   options,
   founding,
   bare = false,
+  keepVideos = false,
 }: {
   locale: Locale;
   state: DvPlanState;
@@ -29,6 +30,8 @@ export function PlanPanel({
   founding: { priceUsd: number; code?: string } | null;
   /** Inside the onboarding wizard the step has its own heading: keep the panel's title for screen readers only. */
   bare?: boolean;
+  /** Paused or cancelled with videos in the library: say they stay, and can still be shared. */
+  keepVideos?: boolean;
 }) {
   const text = appText(locale);
   const t = text.billing;
@@ -68,6 +71,7 @@ export function PlanPanel({
         <div className={bare ? "sr-only" : "max-w-2xl"}>
           <h2 id="plans-title" className="dv-display text-[2rem] leading-tight sm:text-[2.5rem]">{t.chooseTitle}</h2>
           <p className="mt-2 text-dv-body">{lead}</p>
+          {keepVideos && state !== "trial" && <p className="mt-2 text-sm text-dv-muted">{t.keepVideos}</p>}
         </div>
         {hasYearly && (
           <div role="group" aria-label={`${t.monthly} / ${t.yearly}`} className="inline-flex rounded-full bg-dv-sand p-1 ring-1 ring-inset ring-dv-line">
@@ -77,7 +81,7 @@ export function PlanPanel({
                 type="button"
                 aria-pressed={interval === iv}
                 onClick={() => setIv(iv)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${interval === iv ? "bg-white text-dv-ink shadow-[0_1px_3px_rgba(20,33,31,0.12)]" : "text-dv-muted hover:text-dv-ink"}`}
+                className={`min-h-11 rounded-full px-4 py-2 text-sm font-semibold transition ${interval === iv ? "bg-white text-dv-ink shadow-[0_1px_3px_rgba(20,33,31,0.12)]" : "text-dv-muted hover:text-dv-ink"}`}
               >
                 {iv === "month" ? t.monthly : t.yearly}
                 {iv === "year" && <span className="ml-1.5 text-xs font-medium text-dv-teal">{t.yearlySave}</span>}
@@ -165,7 +169,7 @@ export function PlanPanel({
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <details className="text-sm">
-          <summary className="cursor-pointer text-dv-teal">{t.haveCode}</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center text-dv-teal">{t.haveCode}</summary>
           <label className="mt-2 block max-w-xs text-xs font-medium text-dv-muted">
             {t.codeLabel}
             <input
