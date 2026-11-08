@@ -79,6 +79,30 @@ export async function prepareVoiceover(
       return synthesizeSpeech({ ...base, modelId: DEFAULT_VOICE_MODEL });
     })
     .then((r) => r.audioPath);
-  const voiceSeconds = await probeSeconds(audioPath);
-  return { plan: fitPlanToVoice(plan, voiceSeconds), voiceoverPath: audioPath, voiceSeconds, voiceModel: used };
+  const loud = await normalizeLoudness(audioPath);
+  const voiceSeconds = await probeSeconds(loud);
+  return { plan: fitPlanToVoice(plan, voiceSeconds), voiceoverPath: loud, voiceSeconds, voiceModel: used };
+}
+
+/**
+ * TTS comes out around -26 LUFS; Reels/TikTok/Shorts play at about -14, so
+ * unnormalised narration sounds noticeably quieter than the videos around it
+ * in a feed. Bring it to -16 LUFS (true peak -1.5 dB). Fail-soft: on any
+ * ffmpeg error the original file is used.
+ */
+export function normalizeLoudness(input: string): Promise<string> {
+  const out = input.replace(/(\.[a-z0-9]+)?$/i, ".loud.mp3");
+  return new Promise((resolve) => {
+    try {
+      ffmpeg(input)
+        .audioFilters("loudnorm=I=-16:TP=-1.5:LRA=11")
+        .audioCodec("libmp3lame")
+        .audioBitrate("160k")
+        .on("end", () => resolve(out))
+        .on("error", () => resolve(input))
+        .save(out);
+    } catch {
+      resolve(input);
+    }
+  });
 }
