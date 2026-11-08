@@ -94,8 +94,19 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("is unavailable without DODO_API_KEY", async () => {
+  it("falls back to a Dodo static payment link with the metadata when there is no DODO_API_KEY", async () => {
     vi.stubEnv("DODO_API_KEY", "");
-    expect((await call({ plan: "starter", interval: "month" })).status).toBe(503);
+    vi.stubEnv("DODO_ENVIRONMENT", "live");
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(200);
+    const { url, code } = res.body as { url: string; code: string | null };
+    const u = new URL(url);
+    expect(u.origin).toBe("https://checkout.dodopayments.com");
+    expect(u.pathname).toMatch(/^\/buy\/pdt_/);
+    expect(u.searchParams.get("metadata_app")).toBe("dentvideo");
+    expect(u.searchParams.get("metadata_plan")).toBe("practice");
+    expect(u.searchParams.get("redirect_url")).toMatch(/\/app\?billing=success$/);
+    expect(code).toBe("KURUCU100");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

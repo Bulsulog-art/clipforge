@@ -8,7 +8,7 @@ import { RememberLocale } from "@/components/dentvid/chrome";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { PlanPanel, PlanStatus } from "@/components/dentvid/plan-panel";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
-import { DV_FOUNDING, dvAvailablePlans, foundingOfferOpen } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, dvAvailablePlans, foundingOfferOpen, foundingCode } from "@/lib/dentvid/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +46,7 @@ export default async function Settings() {
                 locale={locale}
                 state={plan.plan}
                 options={dvAvailablePlans()}
-                founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd } : null}
+                founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}
               />
             </div>
           )}

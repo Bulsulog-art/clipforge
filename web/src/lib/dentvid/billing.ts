@@ -146,6 +146,27 @@ export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env):
   return { ok: true, body, productId, discount, autoDiscount: !typed && !!discount };
 }
 
+/**
+ * A Dodo static payment link for the same checkout — no API key needed.
+ * https://docs.dodopayments.com/developer-resources/integration-guide :
+ * checkout.dodopayments.com/buy/{product_id}?quantity=1&email=…&disableEmail=true
+ * &redirect_url=…&metadata_<key>=… (metadata lands on the subscription and its
+ * webhooks exactly like the API checkout's). A discount code is typed by the
+ * clinic in Dodo's checkout; the plan panel shows the founding code to use.
+ */
+export function buildDvStaticLink(plan: Extract<DvCheckoutPlan, { ok: true }>, env: Env = process.env): string {
+  const host = (env.DODO_ENVIRONMENT ?? "").trim() === "live" ? "https://checkout.dodopayments.com" : "https://test.checkout.dodopayments.com";
+  const b = plan.body as { customer?: { email?: string }; metadata: Record<string, string>; return_url: string };
+  const q = new URLSearchParams({ quantity: "1" });
+  if (b.customer?.email) {
+    q.set("email", b.customer.email);
+    q.set("disableEmail", "true");
+  }
+  q.set("redirect_url", b.return_url);
+  for (const [k, v] of Object.entries(b.metadata)) q.set(`metadata_${k}`, String(v));
+  return `${host}/buy/${plan.productId}?${q.toString()}`;
+}
+
 /* ---------------------------------------------------------------- webhook */
 
 export type DodoEventData = {

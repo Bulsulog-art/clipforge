@@ -25,7 +25,7 @@ export function PlanPanel({
   state: DvPlanState;
   options: PlanOption[];
   /** Founding price when the offer is open (Practice monthly), else null. */
-  founding: { priceUsd: number } | null;
+  founding: { priceUsd: number; code?: string } | null;
 }) {
   const text = appText(locale);
   const t = text.billing;
@@ -91,6 +91,9 @@ export function PlanPanel({
             {t.foundingBadge}
           </span>
           {fmt(t.foundingLine, { price: usd(locale, founding.priceUsd) })}
+          {founding.code && (
+            <span className="rounded-full bg-white/15 px-2.5 py-0.5 font-mono text-xs">{fmt(t.foundingCodeLine, { code: founding.code })}</span>
+          )}
         </p>
       )}
 
