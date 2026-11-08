@@ -116,6 +116,7 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
             outputPath: path.join(dir, "video.mp4"),
             pexelsApiKey: process.env.PEXELS_API_KEY,
             concurrency: renderConcurrency(),
+            logoSrc: profile.logo,
           });
           return res.outputPath;
         },

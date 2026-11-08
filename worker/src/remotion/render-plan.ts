@@ -89,6 +89,8 @@ export type RenderPlanArgs = {
   voiceoverSrc?: string;
   musicSrc?: string;
   watermark?: boolean;
+  /** Local path or URL of a client logo, drawn in the top corner. */
+  logoSrc?: string;
   pexelsApiKey?: string;
   /** How many frames to render at once. Tuned by the caller to the box. */
   concurrency?: number;
@@ -217,6 +219,7 @@ async function renderStaged(
     userAssets = [],
     voiceoverSrc,
     musicSrc,
+    logoSrc,
     watermark = false,
     pexelsApiKey,
     concurrency,
@@ -257,6 +260,7 @@ async function renderStaged(
   };
   const stagedVoiceover = await stageAudio(voiceoverSrc);
   const stagedMusic = await stageAudio(musicSrc);
+  const stagedLogo = await stageAudio(logoSrc);
 
   const footage = await resolveFootage(plan, {
     workDir: assetDir,
@@ -269,7 +273,7 @@ async function renderStaged(
   const footageScenes = plan.scenes.filter((s) => s.kind === "footage").length;
   const missingFootage = footageScenes - Object.keys(footage).length;
 
-  const inputProps = { plan, footage, voiceoverSrc: stagedVoiceover, musicSrc: stagedMusic, watermark };
+  const inputProps = { plan, footage, voiceoverSrc: stagedVoiceover, musicSrc: stagedMusic, watermark, logoSrc: stagedLogo };
 
   // Use a specific browser binary when one is configured (a dev box with a
   // preinstalled chrome-headless-shell); otherwise Remotion's own download.

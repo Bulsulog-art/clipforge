@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Img, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
@@ -23,6 +23,8 @@ export const videoPropsSchema = z.object({
   musicSrc: z.string().optional(),
   /** Free renders carry the mark; subscribers do not. */
   watermark: z.boolean().default(false),
+  /** A client's logo, staged like the audio; shown small in the top corner. */
+  logoSrc: z.string().optional(),
 });
 
 export type VideoProps = z.infer<typeof videoPropsSchema>;
@@ -43,6 +45,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   voiceoverSrc,
   musicSrc,
   watermark,
+  logoSrc,
 }) => {
   const t = brandTheme(resolveTheme(plan.theme), plan.brandColor);
   const offsets = sceneOffsets(plan);
@@ -75,6 +78,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
       {musicSrc ? <Audio src={asStatic(musicSrc)} volume={voiceoverSrc ? 0.12 : 0.35} /> : null}
 
       {watermark ? <Watermark theme={t} /> : null}
+      {logoSrc ? <ClinicLogo src={asStatic(logoSrc)} /> : null}
     </AbsoluteFill>
   );
 };
@@ -99,6 +103,28 @@ const FadingScene: React.FC<{
     </AbsoluteFill>
   );
 };
+
+/**
+ * The clinic's logo, top right, on a light chip: logos are drawn for white
+ * letterheads, and a dark logo straight on a dark brand background vanishes.
+ * Set below the top ~13%: Reels and TikTok draw their own header and camera
+ * and search icons there.
+ */
+const ClinicLogo: React.FC<{ src: string }> = ({ src }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: 260,
+      right: 64,
+      padding: "14px 18px",
+      borderRadius: 22,
+      background: "rgba(255,255,255,0.92)",
+      boxShadow: "0 6px 24px rgba(0,0,0,0.18)",
+    }}
+  >
+    <Img src={src} style={{ display: "block", maxWidth: 190, maxHeight: 84, objectFit: "contain" }} />
+  </div>
+);
 
 /** Staged files are named relative to the public folder; URLs pass through. */
 function asStatic(src: string): string {
