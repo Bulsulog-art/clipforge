@@ -30,7 +30,7 @@ const weekSchema = z.object({ topics: z.array(topicSchema).min(1).max(14) });
 export async function planWeek(
   client: OpenAI,
   profile: ClinicProfile,
-  opts: { count?: number; avoidTitles?: string[] } = {},
+  opts: { count?: number; avoidTitles?: string[]; patientSearches?: string[] } = {},
 ): Promise<Topic[]> {
   const count = Math.min(14, Math.max(1, opts.count ?? 5));
   const { topics } = await agentJson(client, {
@@ -57,7 +57,10 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service" } 
       `Language: ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}\n` +
       `Services: ${profile.services.join(", ")}.\n` +
       `Plan ${count} videos.` +
-      (opts.avoidTitles?.length ? `\nAlready published, do not repeat: ${opts.avoidTitles.join(" | ")}` : ""),
+      (opts.avoidTitles?.length ? `\nAlready published, do not repeat: ${opts.avoidTitles.join(" | ")}` : "") +
+      (opts.patientSearches?.length
+        ? `\nWhat patients in ${profile.country} actually type into Google about these services (real searches, this week). Build most of the week on these questions — answer them as asked, never mention prices:\n- ${opts.patientSearches.join("\n- ")}`
+        : ""),
     schema: weekSchema,
     temperature: 0.8,
     // Hooks decide whether anyone watches; worth the stronger model once a week.

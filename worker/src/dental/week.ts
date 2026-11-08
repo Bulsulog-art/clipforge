@@ -47,6 +47,8 @@ export type WeekDeps = {
   /** Renders a plan to a file and returns its path. Omit to plan only. */
   render?: (plan: ScenePlan, topic: Topic) => Promise<string>;
   log?: (msg: string, extra?: Record<string, unknown>) => void;
+  /** Real patient searches for the clinic's services (dental/questions.ts). Omit to plan without them. */
+  searches?: (profile: ClinicProfile) => Promise<string[]>;
 };
 
 /** Every word a viewer will read or hear in the video. */
@@ -274,7 +276,9 @@ export async function produceWeek(
   const want = Math.max(1, opts.count ?? 5);
   // Plan spares: a topic the reviewers reject is replaced, so the clinic
   // still gets the week it pays for instead of a gap.
-  const topics = await sharpenHooks(deps.client, profile, await planWeek(deps.client, profile, { ...opts, count: want + 2 }));
+  const patientSearches = deps.searches ? await deps.searches(profile).catch(() => []) : [];
+  deps.log?.("patient searches", { count: patientSearches.length });
+  const topics = await sharpenHooks(deps.client, profile, await planWeek(deps.client, profile, { ...opts, count: want + 2, patientSearches }));
   const out: VideoPackage[] = [];
   const usedFootage = new Set<string>();
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.

@@ -15,6 +15,7 @@ import { prepareVoiceover } from "../remotion/voiceover.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { notifyReady } from "./notify.js";
+import { patientSearches } from "../dental/questions.js";
 
 /**
  * DentVideo jobs. The product's data lives on Liman (self-hosted Supabase):
@@ -104,6 +105,7 @@ export async function runDentvidWeek(job: WeekJob): Promise<{ ready: number; fla
       {
         client: new OpenAI(),
         log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`),
+        searches: (p) => patientSearches(p.services, p.language, p.country),
         render: async (plan, topic) => {
           const dir = await fs.mkdtemp(path.join(workDir, "v-"));
           const voice = await prepareVoiceover(plan, dir).catch((e) => {
