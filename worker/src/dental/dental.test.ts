@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type OpenAI from "openai";
 import { scanHardRules, stricter } from "./compliance.js";
 import { finalHashtags } from "./copywriter.js";
-import { planText, produceVideo, produceWeek, scriptBrief } from "./week.js";
+import { narrationProblems, planText, produceVideo, produceWeek, scriptBrief } from "./week.js";
 import type { ClinicProfile } from "./profile.js";
 import type { Topic } from "./strategist.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
@@ -132,6 +132,12 @@ function plan(lines: string[]): ScenePlan {
       { kind: "list", heading: "Good to know", items: [lines[2], "Ask your dentist"], seconds: 5 },
       { kind: "cta", text: "Book a check-up", handle: "@smilestudio", seconds: 3 },
     ],
+    voiceover: {
+      text:
+        "Many people worry that whitening damages enamel. When it is supervised by a dentist, whitening is considered safe for most people. " +
+        "Some sensitivity can happen and it usually fades within a few days. If you have questions, ask your dentist or book a check-up with us.",
+      voice: "nova",
+    },
   } as ScenePlan;
 }
 
@@ -177,6 +183,20 @@ function fakeClient(script: {
   } as unknown as OpenAI;
   return { client, calls };
 }
+
+describe("narrationProblems", () => {
+  it("rejects a voice name typed into the text field (seen live)", () => {
+    const p = { ...plan(["a hook", "a statement", "an item"]), voiceover: { text: "nova", voice: "nova" } } as ScenePlan;
+    expect(narrationProblems(p)[0]).toMatch(/full narration/);
+  });
+  it("asks for narration when there is none", () => {
+    const p = { ...plan(["a hook", "a statement", "an item"]), voiceover: undefined } as ScenePlan;
+    expect(narrationProblems(p)[0]).toMatch(/add "voiceover"/);
+  });
+  it("accepts a real narration", () => {
+    expect(narrationProblems(plan(["a hook", "a statement", "an item"]))).toEqual([]);
+  });
+});
 
 describe("planText", () => {
   it("collects every on-screen word", () => {

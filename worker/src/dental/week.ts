@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { planFromPrompt } from "../remotion/plan-from-prompt.js";
-import type { ScenePlan } from "../remotion/scene-plan.js";
+import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
@@ -82,6 +82,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `An educational ${profile.language} video for the dental clinic "${profile.name}".`,
     `Topic: ${topic.title}. It answers the patient question: "${topic.question}".`,
     `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
+    `Include narration exactly in this shape: "voiceover": { "text": "<the full narration, every sentence>", "voice": "nova" } (voice may be "nova" or "onyx"). The text is natural spoken ${profile.language}, same form of address, covering the same points as the screen. It should sound like a friendly dentist talking to one patient: varied sentences, contractions where the language uses them, every sentence adding something new, no word or idea repeated, never list items read out. About 2.3 words per second of video.`,
     `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
@@ -120,10 +121,18 @@ async function reviewed<T>(
   textOf: (t: T) => string,
   accuracyOf: (t: T) => Promise<AccuracyResult>,
   profile: ClinicProfile,
+  /** Deterministic checks run before any reviewer; problems become fixes. */
+  check?: (t: T) => string[],
 ): Promise<Outcome<{ value: T }>> {
   let fixes: string[] = [];
   for (let attempt = 0; attempt < 3; attempt++) {
     const value = await write(fixes);
+    const problems = check?.(value) ?? [];
+    if (problems.length) {
+      deps.log?.(`${label} structure`, { topic: topic.title, attempt, problems });
+      fixes = problems;
+      continue;
+    }
     const compliance = await reviewCompliance(deps.client, profile, textOf(value));
     deps.log?.(`${label} compliance`, { topic: topic.title, attempt, verdict: compliance.verdict });
     if (compliance.verdict === "block") return { ok: false, rejected: fixesOf(compliance) };
@@ -140,6 +149,21 @@ async function reviewed<T>(
   return { ok: false, rejected: fixes };
 }
 
+/**
+ * A narrated video needs narration that is actually narration. Seen live:
+ * { "text": "nova", "voice": "nova" } — the voice name in the text field,
+ * which rendered a 0.5-second voiceover over a 24-second video.
+ */
+export function narrationProblems(plan: ScenePlan): string[] {
+  const text = plan.voiceover?.text?.trim() ?? "";
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const needed = Math.round(totalSeconds(plan) * 1.2);
+  if (!text) return ['add "voiceover": { "text": "<full narration>", "voice": "nova" }'];
+  if (words < needed)
+    return [`voiceover.text has ${words} words; write the full narration (about ${Math.round(totalSeconds(plan) * 2.3)} words) — it must be the spoken script, not a voice name`];
+  return [];
+}
+
 export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic: Topic): Promise<VideoPackage> {
   const script = await reviewed(
     deps,
@@ -149,6 +173,7 @@ export async function produceVideo(deps: WeekDeps, profile: ClinicProfile, topic
     planText,
     (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
     profile,
+    narrationProblems,
   );
   if (!script.ok) return { status: "rejected", topic, stage: "script", reasons: script.rejected };
 

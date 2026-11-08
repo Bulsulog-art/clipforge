@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
@@ -70,9 +70,9 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
         );
       })}
 
-      {voiceoverSrc ? <Audio src={voiceoverSrc} /> : null}
+      {voiceoverSrc ? <Audio src={asStatic(voiceoverSrc)} /> : null}
       {/* Music sits well under narration; it is texture, not content. */}
-      {musicSrc ? <Audio src={musicSrc} volume={voiceoverSrc ? 0.12 : 0.35} /> : null}
+      {musicSrc ? <Audio src={asStatic(musicSrc)} volume={voiceoverSrc ? 0.12 : 0.35} /> : null}
 
       {watermark ? <Watermark theme={t} /> : null}
     </AbsoluteFill>
@@ -99,3 +99,8 @@ const FadingScene: React.FC<{
     </AbsoluteFill>
   );
 };
+
+/** Staged files are named relative to the public folder; URLs pass through. */
+function asStatic(src: string): string {
+  return /^https?:/.test(src) ? src : staticFile(src);
+}
