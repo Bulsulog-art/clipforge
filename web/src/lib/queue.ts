@@ -9,6 +9,7 @@ let _publishQueue: Queue | undefined;
 let _analyticsQueue: Queue | undefined;
 let _derivativeQueue: Queue | undefined;
 let _avatarQueue: Queue | undefined;
+let _dentvidQueue: Queue | undefined;
 let _videoEvents: QueueEvents | undefined;
 
 function getConnection(): IORedis {
@@ -130,3 +131,14 @@ export type PublishJobPayload = {
   clipId: string;
   platform: string;
 };
+
+/** DentVideo: weekly content runs ("week") and the dentist's recordings ("recording"). */
+export const dentvidQueue = new Proxy({} as Queue, {
+  get(_target, prop) {
+    if (!_dentvidQueue) {
+      _dentvidQueue = new Queue("dentvid", { connection: getConnection() });
+    }
+    const value = (_dentvidQueue as any)[prop];
+    return typeof value === "function" ? value.bind(_dentvidQueue) : value;
+  },
+});

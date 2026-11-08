@@ -20,11 +20,11 @@ open item, updates the status here, commits and pushes.
 |---|------|--------|
 | 1 | Product name + .com availability + conflict check, decision recorded | done — **DentVideo** (dentvideo.com) |
 | 2 | Data model: clinics, dental content items (additive migration) | done — on Liman (`supabase/liman/0001_dentvid.sql`) |
-| 3 | Worker jobs: weekly content run + recording run, results stored | todo |
-| 4 | Web app: clinic onboarding (profile, brand colour, logo) | todo |
-| 5 | Web app: content library — preview, findings, approve / reject, download | todo |
-| 6 | Web app: upload a recording (shoot card shown) | todo |
-| 7 | Brand landing + SEO/GEO pages for dentists (EN, DE, ES, TR) | todo |
+| 3 | Worker jobs: weekly content run + recording run, results stored | done |
+| 4 | Web app: clinic onboarding (profile, brand colour, logo) | done — /dentvideo/app |
+| 5 | Web app: content library — preview, findings, approve / reject, download | done |
+| 6 | Web app: upload a recording (shoot card shown) | done — /dentvideo/app/record |
+| 7 | Brand landing + SEO/GEO pages for dentists (EN, DE, ES, TR) | landing done (EN); localized + SEO pages next |
 | 8 | End-to-end check on production, QA pass, final report for the owner | todo |
 
 ## Decisions log
@@ -51,6 +51,14 @@ open item, updates the status here, commits and pushes.
   /dentvideo with its own Liman client, so it can be served on dentvideo.com
   later by pointing the domain at the same app (host-based routing).
 
+- **Sign-up**: Liman has public sign-up disabled (it hosts other apps), so
+  DentVideo creates accounts server-side with the service role
+  (/api/dentvideo/signup) and the browser signs in with the password. The
+  global Liman setting was not changed.
+- **Pricing**: not invented. The site says "first week free, founding clinics
+  get introductory pricing when plans open" until the owner sets prices.
+
 ## Questions for the owner
+- Prices for DentVideo (and then the Dodo brand + products once the domain is bought).
 - Buy **dentvideo.com** (and ideally dentvideo.de / .es / .com.tr). Before buying,
   a trademark search (USPTO, EUIPO, TÜRKPATENT) was not possible from here.
