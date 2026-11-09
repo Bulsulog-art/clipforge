@@ -230,6 +230,18 @@ export default function LivePreviewPlayer({
     if (rm) wantPlay.current = false;
   }, []);
 
+  // The composition's background photos are decoration (the captions carry the
+  // words), and remotion/ is mirrored from the worker: mark them alt="" here.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof MutationObserver === "undefined") return;
+    const mark = () => el.querySelectorAll("img:not([alt])").forEach((img) => img.setAttribute("alt", ""));
+    mark();
+    const mo = new MutationObserver(mark);
+    mo.observe(el, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, []);
+
   // Off screen, nothing plays: a phone should not burn battery on a video nobody sees.
   useEffect(() => {
     const el = rootRef.current;
@@ -438,7 +450,7 @@ export default function LivePreviewPlayer({
                 type="button"
                 onClick={toggleMute}
                 aria-label={muted ? text.unmute : text.mute}
-                className="dv-btn h-10 w-10 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
+                className="dv-btn h-11 w-11 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
               >
                 {muted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
               </button>
@@ -447,7 +459,7 @@ export default function LivePreviewPlayer({
               type="button"
               onClick={toggle}
               aria-label={playing ? text.pause : text.play}
-              className="dv-btn h-10 w-10 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
+              className="dv-btn h-11 w-11 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
             >
               {playing ? <Pause className="h-4 w-4" fill="currentColor" aria-hidden="true" /> : <Play className="ml-0.5 h-4 w-4" fill="currentColor" aria-hidden="true" />}
             </button>
@@ -461,7 +473,7 @@ export default function LivePreviewPlayer({
               type="button"
               onClick={() => go(-1)}
               aria-label={text.previous}
-              className="dv-btn absolute -start-14 top-1/2 h-10 w-10 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
+              className="dv-btn absolute -start-14 top-1/2 h-11 w-11 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
             >
               <ChevronLeft className="h-5 w-5 rtl:-scale-x-100" aria-hidden="true" />
             </button>
@@ -469,7 +481,7 @@ export default function LivePreviewPlayer({
               type="button"
               onClick={() => go(1)}
               aria-label={text.next}
-              className="dv-btn absolute -end-14 top-1/2 h-10 w-10 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
+              className="dv-btn absolute -end-14 top-1/2 h-11 w-11 -translate-y-1/2 bg-white text-dv-ink shadow-md ring-1 ring-black/5 hover:bg-white/90"
             >
               <ChevronRight className="h-5 w-5 rtl:-scale-x-100" aria-hidden="true" />
             </button>

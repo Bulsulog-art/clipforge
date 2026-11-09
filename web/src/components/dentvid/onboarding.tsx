@@ -236,7 +236,7 @@ function ClinicStep({ locale, draft, onDone }: { locale: Locale; draft: ClinicDr
           </button>
         </div>
         {/* A first glimpse while typing; the next step is the full preview. */}
-        <aside className="hidden lg:block" aria-hidden="true">
+        <aside className="hidden lg:block" aria-hidden="true" inert>
           <div className="sticky top-24">
             <LivePreview profile={draft.preview} />
           </div>
@@ -285,7 +285,7 @@ function PreviewStep({ locale, draft, onBack, onDone }: { locale: Locale; draft:
             {busy ? f.saving : t.previewNext}
             {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />}
           </button>
-          <button type="button" onClick={onBack} className="mx-auto mt-5 flex items-center gap-1.5 rounded-md text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
+          <button type="button" onClick={onBack} className="mx-auto mt-3 flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
             {t.editDetails}
           </button>
@@ -336,7 +336,7 @@ function PlanStep({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-xs font-medium uppercase tracking-[0.08em] text-dv-muted">{t.planRecap}</span>
-          <span className="block truncate font-semibold text-dv-ink">{preview.name || "—"}</span>
+          <span className="line-clamp-2 block font-semibold leading-snug text-dv-ink [overflow-wrap:anywhere]">{preview.name || "—"}</span>
         </span>
         <button type="button" onClick={onEdit} className="dv-btn dv-btn-secondary shrink-0 px-4 py-2 text-sm !text-dv-teal">
           <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />

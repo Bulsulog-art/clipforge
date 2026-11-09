@@ -36,6 +36,7 @@ export default async function Settings() {
       founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}
       // Only whether a key exists reaches the page — never the key.
       selfServe={!!dodoApiKey()}
+      accountEmail={user.email ?? null}
     />
   );
 }

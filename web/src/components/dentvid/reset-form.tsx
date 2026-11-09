@@ -6,11 +6,12 @@ import { dvHref } from "@/lib/dentvid/host";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 import { authText } from "@/content/dentvideo-auth";
 import { DvIcon } from "./mark";
+import { dirOf, type Locale } from "@/content/dentvideo";
 
 type Phase = "checking" | "ready" | "invalid" | "saving" | "saved";
 
 /** Opened from the reset email: exchange the token for a session, then set a new password. */
-export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; locale: string }) {
+export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; locale: Locale }) {
   const t = authText(locale);
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("checking");
@@ -62,7 +63,7 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
   }
 
   return (
-    <main lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="relative isolate overflow-hidden">
+    <main lang={locale} dir={dirOf(locale)} className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
       <div className="mx-auto flex max-w-md flex-col px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />

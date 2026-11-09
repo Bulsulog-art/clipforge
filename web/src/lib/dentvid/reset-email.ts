@@ -23,7 +23,7 @@ export function resetEmail(args: { language: string; link: string }): { subject:
 <p dir="ltr" style="margin:20px 0 0;font-size:13px;color:#4a5a57;word-break:break-all;text-align:left">${esc(args.link)}</p>
 <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#4a5a57">${esc(c.ignore)}</p>
 </td></tr></table>
-<p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:#6b7a77;max-width:520px;text-align:${align}">${esc(c.footer)}</p>
+<p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:#5b6a67;max-width:520px;text-align:${align}">${esc(c.footer)}</p>
 </td></tr></table></body></html>`;
   return { subject: c.subject, html, text };
 }

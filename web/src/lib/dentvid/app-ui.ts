@@ -207,3 +207,24 @@ export function dateLocale(locale: string): string {
   if (locale === "ar") return "ar-u-nu-latn";
   return locale;
 }
+
+/**
+ * What the delete dialog asks the clinic to type: its clinic name, or the
+ * account email when the profile has no name — the phrase the server checks
+ * (lib/dentvid/account.ts confirmPhrase).
+ */
+export function deletePhrase(clinicName: string | null | undefined, email: string | null | undefined): string {
+  return clinicName?.trim() || email?.trim() || "";
+}
+
+/**
+ * Does the typed text confirm the deletion? Mirrors the server
+ * (account.ts confirmAccepted with a clinic row): the phrase above or the
+ * account email, ignoring case, spacing and Unicode form.
+ */
+export function deleteConfirmOk(typed: string, clinicName: string | null | undefined, email: string | null | undefined): boolean {
+  const norm = (s: string) => s.normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase();
+  const t = norm(typed);
+  if (!t) return false;
+  return [deletePhrase(clinicName, email), email ?? ""].some((p) => norm(p).length > 0 && norm(p) === t);
+}
