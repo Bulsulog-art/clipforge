@@ -20,7 +20,9 @@ const asLocale = (v: string): Locale | null => ((OTHER as string[]).includes(v) 
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = asLocale((await params).locale);
-  return locale ? aboutMetadata(locale) : {};
+  // Unknown: the 404's own (localized) title.
+  if (!locale) notFound();
+  return aboutMetadata(locale);
 }
 
 export default async function LocalizedAbout({ params }: Props) {

@@ -213,6 +213,8 @@ export type AppText = {
     haveCode: string;
     codeLabel: string;
     fineprint: string;
+    /** The fine print while the Yearly toggle is on: billed once a year in advance, renews yearly. */
+    fineprintYearly: string;
     success: string;
     cancelled: string;
     needPlan: string;
@@ -505,6 +507,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "Have a discount code?",
       codeLabel: "Discount code",
       fineprint: "Prices in USD. Taxes may apply. Monthly, cancel anytime. Secure payment by Dodo Payments.",
+      fineprintYearly: "Prices in USD. Taxes may apply. Yearly plans are paid once a year in advance and renew each year; cancel anytime before the renewal date and you won't be charged again. Secure payment by Dodo Payments.",
       success: "Thank you! Your plan is being activated — this can take a minute.",
       cancelled: "Checkout was cancelled. Nothing was charged.",
       needPlan: "Choose a plan to make more videos",
@@ -821,6 +824,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "Haben Sie einen Rabattcode?",
       codeLabel: "Rabattcode",
       fineprint: "Preise in USD, ggf. zzgl. Steuern. Monatlich, jederzeit kündbar. Sichere Zahlung über Dodo Payments.",
+      fineprintYearly: "Preise in USD, ggf. zzgl. Steuern. Jahrestarife werden einmal jährlich im Voraus bezahlt und verlängern sich jedes Jahr; kündigen Sie jederzeit vor dem Verlängerungsdatum, dann wird nichts mehr abgebucht. Sichere Zahlung über Dodo Payments.",
       success: "Vielen Dank! Ihr Tarif wird aktiviert — das kann eine Minute dauern.",
       cancelled: "Der Checkout wurde abgebrochen. Es wurde nichts berechnet.",
       needPlan: "Tarif wählen, um weitere Videos zu erstellen",
@@ -1137,6 +1141,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "¿Tienes un código de descuento?",
       codeLabel: "Código de descuento",
       fineprint: "Precios en USD. Pueden aplicarse impuestos. Mensual, cancela cuando quieras. Pago seguro con Dodo Payments.",
+      fineprintYearly: "Precios en USD. Pueden aplicarse impuestos. Los planes anuales se pagan una vez al año por adelantado y se renuevan cada año; cancela cuando quieras antes de la fecha de renovación y no se te volverá a cobrar. Pago seguro con Dodo Payments.",
       success: "¡Gracias! Estamos activando tu plan; puede tardar un minuto.",
       cancelled: "Has cancelado el pago. No se ha cobrado nada.",
       needPlan: "Elige un plan para crear más vídeos",
@@ -1449,6 +1454,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "İndirim kodunuz var mı?",
       codeLabel: "İndirim kodu",
       fineprint: "Fiyatlar USD cinsindendir. Vergiler eklenebilir. Aylık, istediğiniz zaman iptal. Güvenli ödeme Dodo Payments ile.",
+      fineprintYearly: "Fiyatlar USD cinsindendir. Vergiler eklenebilir. Yıllık planlar yılda bir kez peşin ödenir ve her yıl yenilenir; yenileme tarihinden önce istediğiniz zaman iptal ederseniz tekrar ücret alınmaz. Güvenli ödeme Dodo Payments ile.",
       success: "Teşekkürler! Planınız etkinleştiriliyor — bu bir dakika sürebilir.",
       cancelled: "Ödeme iptal edildi. Herhangi bir ücret alınmadı.",
       needPlan: "Daha fazla video için bir plan seçin",
@@ -1761,6 +1767,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "Vous avez un code de réduction ?",
       codeLabel: "Code de réduction",
       fineprint: "Prix en USD, taxes éventuelles en sus. Mensuel, résiliable à tout moment. Paiement sécurisé par Dodo Payments.",
+      fineprintYearly: "Prix en USD, taxes éventuelles en sus. Les formules annuelles sont payées une fois par an d'avance et se renouvellent chaque année ; résiliez à tout moment avant la date de renouvellement et vous ne serez plus prélevé. Paiement sécurisé par Dodo Payments.",
       success: "Merci ! Votre formule est en cours d'activation — cela peut prendre une minute.",
       cancelled: "Le paiement a été annulé. Rien n'a été débité.",
       needPlan: "Choisissez une formule pour créer d'autres vidéos",
@@ -2078,6 +2085,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "割引コードをお持ちですか？",
       codeLabel: "割引コード",
       fineprint: "価格は米ドル建てです。別途税金がかかる場合があります。月単位の契約で、いつでも解約できます。お支払いはDodo Paymentsが安全に処理します。",
+      fineprintYearly: "価格は米ドル建てです。別途税金がかかる場合があります。年払いプランは1年分を前払いでお支払いいただき、毎年自動で更新されます。更新日より前に解約すれば、次回以降の請求は発生しません。お支払いはDodo Paymentsが安全に処理します。",
       success: "ありがとうございます。プランを有効にしています。1分ほどかかる場合があります。",
       cancelled: "お支払いは完了していません。料金は発生していません。",
       needPlan: "動画を制作するには、プランをお選びください",
@@ -2384,6 +2392,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "لديكم رمز ترويجي؟",
       codeLabel: "الرمز الترويجي",
       fineprint: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب. اشتراك شهري يمكن إلغاؤه في أي وقت. الدفع الآمن عبر Dodo Payments.",
+      fineprintYearly: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب. تُدفع الباقات السنوية مرة واحدة مقدماً كل عام وتتجدد سنوياً، ويمكنكم الإلغاء في أي وقت قبل تاريخ التجديد فلا تُخصم أي دفعة أخرى. الدفع الآمن عبر Dodo Payments.",
       success: "شكراً لكم! نفعّل باقتكم الآن، وقد يستغرق ذلك دقيقة.",
       cancelled: "أُلغيت عملية الدفع ولم يُخصم أي مبلغ.",
       needPlan: "اختاروا باقة لإعداد المزيد من الفيديوهات",
@@ -2691,6 +2700,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       haveCode: "Mają Państwo kod rabatowy?",
       codeLabel: "Kod rabatowy",
       fineprint: "Ceny w USD. Mogą zostać doliczone podatki. Rozliczenie miesięczne, rezygnacja w dowolnym momencie. Bezpieczna płatność przez Dodo Payments.",
+      fineprintYearly: "Ceny w USD. Mogą zostać doliczone podatki. Plany roczne są opłacane raz w roku z góry i odnawiają się co roku; rezygnacja w dowolnym momencie przed datą odnowienia oznacza brak kolejnych opłat. Bezpieczna płatność przez Dodo Payments.",
       success: "Dziękujemy! Aktywujemy plan; to może potrwać minutę.",
       cancelled: "Płatność została anulowana. Nic nie pobrano.",
       needPlan: "Aby przygotować kolejne filmy, prosimy wybrać plan",

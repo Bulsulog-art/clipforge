@@ -220,6 +220,15 @@ export function fitText(size: number, text: string, comfortable = 42): number {
 }
 
 /**
+ * Can this run of text, kept on one line (it will not wrap), sit inside the
+ * frame's safe width at this size? Uses the same generous glyph estimate as
+ * fitText, so anything it accepts stays inside the frame in every language.
+ */
+export function fitsOneLine(size: number, text: string): boolean {
+  return visualLength(text) * GLYPH_EM * size <= TEXT_WIDTH;
+}
+
+/**
  * The theme set up for the video's language: that script's fonts in front of
  * the theme's own (which stay as the fallback for Latin words, digits and
  * @handles), and the script recorded so scenes can drop letter-spacing for

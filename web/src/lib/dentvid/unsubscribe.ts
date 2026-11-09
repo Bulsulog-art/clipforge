@@ -16,7 +16,13 @@ import { verifyUnsubscribeToken } from "./unsubscribe-token";
  *
  * Opting out stops reminders only; service mail about paid videos still goes.
  */
-export type UnsubRequest = { method: "GET" | "POST"; url: string; accept?: string | null };
+export type UnsubRequest = {
+  method: "GET" | "POST";
+  url: string;
+  accept?: string | null;
+  /** The visitor's language (dv-lang cookie / Accept-Language): used until the clinic's own is known, e.g. for a broken link. */
+  language?: string | null;
+};
 export type UnsubResponse = { status: number; contentType: string; body: string };
 export type UnsubDeps = { store: () => LifecycleStore; secret: string | null; homeUrl: string; now?: () => Date };
 
@@ -26,16 +32,17 @@ export async function handleUnsubscribe(req: UnsubRequest, deps: UnsubDeps): Pro
   const url = new URL(req.url);
   const clinicId = verifyUnsubscribeToken(url.searchParams.get("t"), deps.secret);
   const wantsHtml = req.method === "GET" || /text\/html/i.test(req.accept ?? "");
-  const page = (status: number, state: "confirm" | "done" | "invalid" | "error", language = "en") =>
+  const visitor = asLocale(req.language) ?? "en";
+  const page = (status: number, state: "confirm" | "done" | "invalid" | "error", language: string = visitor) =>
     html(status, unsubscribePage({ language, state, homeUrl: deps.homeUrl, action: `${url.pathname}${url.search}` }));
 
   if (!clinicId) return wantsHtml ? page(400, "invalid") : { status: 400, contentType: "text/plain", body: "invalid" };
 
-  let language = "en";
+  let language: string = visitor;
   try {
     const store = deps.store();
     const clinic = await store.clinic(clinicId);
-    language = asLocale(clinic?.profile?.language) ?? "en";
+    language = asLocale(clinic?.profile?.language) ?? visitor;
     if (req.method === "GET") return page(200, "confirm", language);
     // A deleted clinic gets no more email anyway: confirm rather than alarm.
     if (clinic) await store.optOut(clinicId, deps.now?.() ?? new Date());

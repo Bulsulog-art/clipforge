@@ -232,7 +232,7 @@ export function PlanPanel({
             />
           </label>
         </details>
-        <p className="text-xs text-dv-muted">{t.fineprint}</p>
+        <p className="text-xs text-dv-muted">{interval === "year" ? t.fineprintYearly : t.fineprint}</p>
       </div>
     </section>
   );
