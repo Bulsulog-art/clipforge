@@ -1,6 +1,6 @@
 import type IORedis from "ioredis";
 import { logger } from "../logger.js";
-import { WEEK_JOB_OPTS } from "./retry.js";
+import { batchWeekJobOpts, FIRST_WEEK_JOB_OPTS, RECORDING_JOB_OPTS } from "./job-options.js";
 import type { RefusalReason, SpendGuard } from "./spend-guard.js";
 
 /**
@@ -99,7 +99,9 @@ export async function resumeParked(
       else if (state === "completed") await job.retry("completed");
       // waiting / active / delayed: already on its way
     } else {
-      await queue.add(p.name, p.data, { jobId: p.jobId, ...(p.name === "week" ? WEEK_JOB_OPTS : { attempts: 2, backoff: { type: "exponential", delay: 60_000 } }) });
+      // Back with the priority it was queued with: a batch week behind anyone waiting, everything else in front.
+      const opts = p.name === "week" ? ((p.data as { batch?: boolean }).batch ? batchWeekJobOpts(0) : FIRST_WEEK_JOB_OPTS) : RECORDING_JOB_OPTS;
+      await queue.add(p.name, p.data, { jobId: p.jobId, ...opts });
     }
     await store.remove(p.jobId);
     resumed++;

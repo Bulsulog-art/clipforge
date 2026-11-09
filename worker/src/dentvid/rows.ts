@@ -32,6 +32,8 @@ export type ItemRow = {
   source_path?: string;
   /** Technical failure, for the owner (admin dashboard) only — the clinic's library never shows it. */
   error?: string;
+  /** The Monday a generated video is for; set by the week job (jobs.ts). Absent: the column default (week of the insert). */
+  week_of?: string;
 };
 
 export function rowFromPackage(

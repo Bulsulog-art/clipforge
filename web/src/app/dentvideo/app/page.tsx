@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { dvHref } from "@/lib/dentvid/host";
-import { dvSession, weekOf } from "@/lib/dentvid/auth";
+import { deliveryWeek, dvSession } from "@/lib/dentvid/auth";
 import { loadItems } from "@/lib/dentvid/items";
 import { dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
@@ -33,7 +33,8 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
     redirect(dvHref(billing === "cancelled" ? "/dentvideo/start?step=plan&billing=cancelled" : "/dentvideo/start"));
   }
 
-  const week = weekOf();
+  // "This week" is the week being delivered: from the Saturday-evening batch on, the coming Monday's.
+  const week = deliveryWeek();
   const generated = items.filter((i) => i.kind === "generated");
   const madeThisWeek = generated.some((i) => i.week_of === week && i.status !== "failed");
   const firstWeek = showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed") });

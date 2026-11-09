@@ -46,14 +46,15 @@ describe("backoff", () => {
   });
 });
 
-describe("Monday dispatch uses the shared options and leaves a mark for the watchdog", () => {
-  it("queues each active clinic with WEEK_JOB_OPTS and records the run", async () => {
+describe("the weekly dispatch uses the shared options and leaves a mark for the watchdog", () => {
+  it("queues each active clinic with the week's retries, the coming Monday in the data, and records the run", async () => {
     const db = { from: () => ({ select: () => ({ eq: async () => ({ data: [{ id: "a", plan: "active" }, { id: "b", plan: "active" }], error: null }) }) }) };
     const add = vi.fn(async () => ({}));
     const store = new MemoryOpsStore();
-    const now = new Date("2026-11-09T05:00:00Z");
+    const now = new Date("2026-11-14T18:00:00Z"); // Saturday 18:00 UTC
     expect(await dispatchWeeks(db as never, { add } as never, now, store)).toBe(2);
-    expect(add).toHaveBeenCalledWith("week", { clinicId: "a", count: 5 }, { jobId: "week:a:2026-11-09", ...WEEK_JOB_OPTS });
-    expect(JSON.parse((await store.get(dispatchKey("2026-11-09")))!)).toEqual({ at: now.toISOString(), jobs: 2 });
+    // No country → UTC: Monday 07:00 UTC is 37 h away.
+    expect(add).toHaveBeenCalledWith("week", { clinicId: "a", count: 5, week: "2026-11-16", batch: true }, { jobId: "week:a:2026-11-16", ...WEEK_JOB_OPTS, priority: 137 });
+    expect(JSON.parse((await store.get(dispatchKey("2026-11-16")))!)).toEqual({ at: now.toISOString(), jobs: 2, waves: 1, projectedLate: 0 });
   });
 });

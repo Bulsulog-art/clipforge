@@ -7,6 +7,7 @@ import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { isOwnRecordingPath } from "@/lib/dentvid/paths";
+import { RECORDING_JOB_OPTS } from "@/lib/dentvid/job-options";
 
 // The browser uploads the recording straight to the clinic's own storage
 // folder (storage RLS allows only that folder), then calls this to process it.
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
   const path = parsed.data.path;
   try {
-    await dentvidQueue.add("recording", { clinicId: clinic.id, sourcePath: path }, { jobId: `rec:${path}`, attempts: 2, backoff: { type: "exponential", delay: 60_000 } });
+    await dentvidQueue.add("recording", { clinicId: clinic.id, sourcePath: path }, { jobId: `rec:${path}`, ...RECORDING_JOB_OPTS });
   } catch {
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });
   }
