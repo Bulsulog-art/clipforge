@@ -139,7 +139,9 @@ describe("POST /api/dodo/webhook", () => {
     expect(res.body).toMatchObject({ plan: "active", firstWeek: "queued" });
     expect(queued).toHaveLength(1);
     expect(queued[0].name).toBe("week");
-    expect(queued[0].data).toEqual({ clinicId: CLINIC, count: 5 });
+    // The week it is for travels with the job; it goes ahead of the weekend batch (job-options.ts).
+    expect(queued[0].data).toEqual({ clinicId: CLINIC, count: 5, week: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) });
+    expect(queued[0].opts.priority).toBe(1);
     expect(String(queued[0].opts.jobId)).toMatch(new RegExp(`^week:${CLINIC}:\\d{4}-\\d{2}-\\d{2}$`));
     // A repeat of the same event queues nothing more.
     await post(signed(dvEvent("subscription.active")));

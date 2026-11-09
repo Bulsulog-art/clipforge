@@ -95,7 +95,7 @@ cost model; `worker/src/jobs/cost-monitor.ts` pushes a daily $ alert).
 | cron: trend snapshot, cost monitor, metrics, stuck-job reaper | timers | small | — |
 | cron (new): resume parked dentvid jobs | every 15 min (`DENTVID_PARK_RESUME_MIN`) | none | re-queues a parked job only when a dry-run of the guard passes |
 
-Concurrency (`DENTVID_CONCURRENCY=1`, `VIDEO_CONCURRENCY`, …) bounds CPU: a
+Concurrency (`DENTVID_RENDER_CONCURRENCY=1`, see docs/CAPACITY.md; `VIDEO_CONCURRENCY`, …) bounds CPU: a
 flood of queued jobs makes a queue longer, it does not make the box fall over.
 
 ### Data isolation (Liman, `supabase/liman/*.sql`)

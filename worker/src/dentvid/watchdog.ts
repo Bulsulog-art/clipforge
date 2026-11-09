@@ -1,25 +1,32 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
-import { WEEK_JOB_OPTS } from "./retry.js";
-import { dispatchKey, weekJobId, weekOf } from "./schedule.js";
+import { batchWeekJobOpts, DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, type WeekJobData } from "./job-options.js";
+import { deliveryWeek, dispatchKey, weekJobId } from "./schedule.js";
 import { alerts, thresholds, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
 
 /**
  * Watchdogs: the worker checking its own promises, healing what it can and
  * telling the owner what it could not.
  *
- *   Monday 07:00 UTC   every paying clinic has this week's job (the dispatch
- *                      runs at 05:00). Missing jobs are queued now (same ids,
- *                      so nothing doubles) and the owner is told.
- *   every 15 minutes   a clinic that paid has its first week. At 45 min with
- *                      no videos the week is re-queued once (idempotent job
- *                      id); at 2 h the owner is told.
+ *   Saturday 19:30 UTC  every paying clinic has the coming week's job (the
+ *                       dispatch runs at 18:00, schedule.ts). Missing jobs are
+ *                       queued now (same ids, so nothing doubles) and the
+ *                       owner is told — with the rest of the weekend still
+ *                       ahead to make them before Monday morning.
+ *   every 15 minutes    a clinic that paid has its first week. At 45 min with
+ *                       no videos the week is re-queued once (idempotent job
+ *                       id) — or, if it is still waiting behind other work,
+ *                       moved to the front of the queue; at 2 h the owner is
+ *                       told. The first week outranks the weekly batch
+ *                       (job-options.ts), so a Monday payer waits for at most
+ *                       the one week already rendering, not for the batch.
  *
  * Time, the database, the queue and the alert are injected, so the logic is
  * tested with a fake clock and fakes.
  */
 
-export const WATCHDOG_SCHEDULE = { pattern: "0 7 * * 1", tz: "UTC" } as const;
+/** 90 minutes after the Saturday 18:00 UTC dispatch (schedule.ts DISPATCH_SCHEDULE). */
+export const WATCHDOG_SCHEDULE = { pattern: "30 19 * * 6", tz: "UTC" } as const;
 export const FIRST_WEEK_SCHEDULE = { pattern: "*/15 * * * *", tz: "UTC" } as const;
 /** Paid-clinic markers the web app writes (best effort) next to the payment_succeeded event. */
 export const PAID_LIST_KEY = "dv:ops:paid";
@@ -36,7 +43,12 @@ export interface WatchDb {
   clinic(clinicId: string): Promise<ClinicRef>;
 }
 
-type JobLike = { getState(): Promise<string>; retry(state?: "failed" | "completed"): Promise<void> };
+type JobLike = {
+  getState(): Promise<string>;
+  retry(state?: "failed" | "completed"): Promise<void>;
+  opts?: { priority?: number };
+  changePriority?(opts: { priority?: number }): Promise<void>;
+};
 export type WatchQueue = {
   getJob(id: string): Promise<JobLike | undefined | null>;
   add(name: string, data: unknown, opts: Record<string, unknown>): Promise<unknown>;
@@ -57,7 +69,8 @@ export type DispatchCheck = { week: string; active: number; jobs: number; missin
 
 export async function checkMondayDispatch(deps: WatchDeps): Promise<DispatchCheck> {
   const now = deps.now ?? new Date();
-  const week = weekOf(now);
+  // The week the dispatch queued: on Saturday evening, the coming Monday's.
+  const week = deliveryWeek(now);
   const active = await deps.db.activeClinicIds();
   const res: DispatchCheck = { week, active: active.length, jobs: 0, missing: [], requeued: 0, alerted: false };
   if (!active.length) return res;
@@ -77,7 +90,9 @@ export async function checkMondayDispatch(deps: WatchDeps): Promise<DispatchChec
 
   for (const id of res.missing) {
     try {
-      await deps.queue.add("week", { clinicId: id, count: 5 }, { jobId: weekJobId(id, week), ...WEEK_JOB_OPTS });
+      // Late already: at the front of the batch, still behind anyone waiting right now.
+      const data: WeekJobData = { clinicId: id, count: 5, week, batch: true };
+      await deps.queue.add("week", data, { jobId: weekJobId(id, week), ...batchWeekJobOpts(0) });
       res.requeued++;
     } catch (e) {
       logger.error({ clinicId: id, err: (e as Error).message }, "dentvid: watchdog could not queue a week");
@@ -132,7 +147,12 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
     if (await deps.db.deliveredSince(clinicId, new Date(paidAt))) continue;
     if (!(await deps.db.isActive(clinicId))) continue;
 
-    const week = weekOf(new Date(paidAt));
+    // Same week the web app queued at payment (web/src/lib/dentvid/week-job.ts).
+    const week = deliveryWeek(new Date(paidAt));
+    const data: WeekJobData = { clinicId, count: 5, week };
+    // A clinic that already has this week's videos (made before it cancelled and came back,
+    // or by the Monday run) is delivered: re-queuing would make the same week twice.
+    if ((await deps.db.weekMade([clinicId], week).catch(() => new Set<string>())).has(clinicId)) continue;
     const id = weekJobId(clinicId, week);
     const job = await deps.queue.getJob(id).catch(() => null);
     const state = job ? await job.getState().catch(() => "unknown") : "missing";
@@ -141,17 +161,22 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
     const fresh = deps.store ? await deps.store.setNx(`dv:ops:fw-requeue:${clinicId}:${paidAt}`, 7 * 86_400).catch(() => false) : false;
     if (fresh) {
       if (state === "missing") {
-        await deps.queue.add("week", { clinicId, count: 5 }, { jobId: id, ...WEEK_JOB_OPTS });
+        await deps.queue.add("week", data, { jobId: id, ...FIRST_WEEK_JOB_OPTS });
         requeued = true;
       } else if (state === "failed" && job) {
         await job.retry("failed");
         requeued = true;
       } else if (state === "completed") {
         // Ran but left nothing usable (or skipped): a fresh run under its own fixed id.
-        await deps.queue.add("week", { clinicId, count: 5 }, { jobId: `${id}:requeue`, ...WEEK_JOB_OPTS });
+        await deps.queue.add("week", data, { jobId: `${id}:requeue`, ...FIRST_WEEK_JOB_OPTS });
+        requeued = true;
+      } else if ((state === "waiting" || state === "prioritized") && job?.changePriority && job.opts?.priority !== DENTVID_PRIORITY.firstWeek) {
+        // Still waiting behind other work (queued before priorities existed,
+        // or as a batch week): to the front, without a second job.
+        await job.changePriority({ priority: DENTVID_PRIORITY.firstWeek });
         requeued = true;
       }
-      // waiting / active / delayed: already on its way — re-queuing would not make it faster.
+      // active / delayed / already at the front: on its way — re-queuing would not make it faster.
       if (requeued) {
         res.requeued.push(clinicId);
         logger.warn({ clinicId, minutes, state }, "dentvid: first week re-queued");
@@ -198,7 +223,8 @@ export function supabaseWatchDb(db: SupabaseClient): WatchDb {
       return (count ?? 0) > 0;
     },
     async weekMade(clinicIds, week) {
-      const { data } = await db.from("dentvid_items").select("clinic_id").in("clinic_id", clinicIds).eq("kind", "generated").eq("week_of", week);
+      // Any generated item of that week except a failed placeholder counts: the week ran and was stored.
+      const { data } = await db.from("dentvid_items").select("clinic_id").in("clinic_id", clinicIds).eq("kind", "generated").eq("week_of", week).neq("status", "failed");
       return new Set((data ?? []).map((r) => r.clinic_id as string));
     },
     async isActive(clinicId) {

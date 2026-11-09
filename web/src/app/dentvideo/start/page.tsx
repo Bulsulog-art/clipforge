@@ -15,7 +15,8 @@ import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { isEmailVerified } from "@/lib/dentvid/verify-email";
 import { legalPagesOn } from "@/lib/dentvid/legal";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
-import { DV_FOUNDING, dvAvailablePlans, foundingCode, foundingOfferOpen } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
+import { adminOrNull, foundingForApp } from "@/lib/dentvid/billing-state";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,8 @@ export default async function StartPage({ searchParams }: Props) {
 
   const locale = fromLink ?? (await dvLocale(profile?.language));
   const logoUrl = await logoSignedUrl(db, clinic?.logo_path as string | null | undefined);
+  // The founding offer closes by itself once its 100 seats are taken (lib/dentvid/subscriptions).
+  const founding = await foundingForApp(await adminOrNull());
   return (
     <>
       <RememberLocale locale={locale} />
@@ -77,7 +80,7 @@ export default async function StartPage({ searchParams }: Props) {
         initial={profile}
         logoUrl={logoUrl}
         plans={dvAvailablePlans()}
-        founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}
+        founding={founding.open ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode(), ...(founding.reliable ? { left: founding.left } : {}) } : null}
         checkoutCancelled={sp.billing === "cancelled"}
         account={user.email ? { email: user.email, verified: isEmailVerified(user) } : undefined}
       />

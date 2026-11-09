@@ -179,6 +179,11 @@ export type DodoEventData = {
   metadata?: Record<string, unknown> | null;
   customer?: { email?: string | null } | null;
   product_cart?: { product_id: string; quantity?: number }[] | null;
+  /** The discount applied to the subscription / payment, when any (Dodo puts the id, not the code). */
+  discount_id?: string | null;
+  /** Refunds and disputes. */
+  dispute_id?: string | null;
+  refund_id?: string | null;
 };
 
 /** Is this Dodo event about DentVideo (and so not ClipForge's business)? */
@@ -282,4 +287,169 @@ export function canMakeVideos(plan: DvPlanState | string | null | undefined): bo
 /** Should the app offer the plans? Every clinic that is not paying. */
 export function needsPlan(plan: DvPlanState | string | null | undefined): boolean {
   return !canMakeVideos(plan);
+}
+
+/* ------------------------------------------------------ subscription ledger */
+
+/**
+ * A Dodo subscription's status as we last applied it (dentvid_subscriptions,
+ * migration 0007). "pending" = a payment arrived before the activation;
+ * "lapsed" = our nightly reconciliation found no renewal past the grace.
+ */
+export type DvSubStatus = "pending" | "active" | "on_hold" | "paused" | "cancelled" | "expired" | "failed" | "lapsed";
+
+/** Statuses after which Dodo will not charge again (a fresh checkout is safe). */
+export const DV_SUB_ENDED: ReadonlySet<string> = new Set(["cancelled", "expired", "failed"]);
+
+/** The subscription status a webhook event reports, or null for events that do not say. */
+export function dvEventSubStatus(type: string, d: DodoEventData): DvSubStatus | null {
+  switch (type) {
+    case "subscription.active":
+    case "subscription.renewed":
+    case "subscription.unpaused":
+      return "active";
+    case "subscription.plan_changed":
+      return d.status === "active" ? "active" : null;
+    case "subscription.on_hold":
+      return "on_hold";
+    case "subscription.paused":
+      return "paused";
+    case "subscription.cancelled":
+      return "cancelled";
+    case "subscription.expired":
+      return "expired";
+    case "subscription.failed":
+      return "failed";
+    default:
+      return null;
+  }
+}
+
+/** When the event happened (Dodo's top-level `timestamp`), as ISO, or null when it does not say. */
+export function dvEventTime(evt: { timestamp?: unknown } | null | undefined): string | null {
+  const t = typeof evt?.timestamp === "string" ? Date.parse(evt.timestamp) : Number.NaN;
+  return Number.isFinite(t) ? new Date(t).toISOString() : null;
+}
+
+/** An event older than the last one applied to its subscription: ignore it (webhooks arrive out of order). */
+export function isStaleEvent(lastEventAt: string | null | undefined, eventAt: string | null | undefined): boolean {
+  if (!lastEventAt || !eventAt) return false;
+  const last = Date.parse(lastEventAt);
+  const at = Date.parse(eventAt);
+  return Number.isFinite(last) && Number.isFinite(at) && at < last;
+}
+
+export type DvSubRecord = {
+  dodo_subscription_id: string;
+  clinic_id: string;
+  status: DvSubStatus | string;
+  product?: string | null;
+  tier?: DvTier | null;
+  interval?: DvInterval | null;
+  discount_id?: string | null;
+  founding?: boolean | null;
+  period_end?: string | null;
+  last_event_at?: string | null;
+  last_event_type?: string | null;
+  updated_at?: string | null;
+};
+
+/**
+ * Did this subscription use the founding offer? Practice monthly with a
+ * discount on it — the discount id must match DENTVIDEO_FOUNDING_DISCOUNT_ID
+ * when that is set; without it any discount counts (seats are then counted
+ * conservatively, never under-counted).
+ */
+export function usedFounding(tier: DvTier | null | undefined, interval: string | null | undefined, discountId: string | null | undefined, env: Env = process.env): boolean {
+  if (tier !== DV_FOUNDING.tier || interval !== DV_FOUNDING.interval || !discountId) return false;
+  const want = env.DENTVIDEO_FOUNDING_DISCOUNT_ID?.trim();
+  return !want || want === discountId;
+}
+
+/* ------------------------------------------------------- checkout refusal */
+
+/** How long a paid-but-not-yet-active subscription blocks a second checkout. */
+export const DV_PENDING_WINDOW_MS = 30 * 60_000;
+
+export type DvCheckoutBlock =
+  | { code: "active" }
+  | { code: "pending" }
+  | { code: "payment_update" }
+  | { code: "cancelled_pending"; until: string };
+
+/**
+ * Should a new checkout be refused because the clinic already has a
+ * subscription that has not ended? (A second checkout makes a second Dodo
+ * subscription: the clinic would be charged twice.)
+ *
+ *   active               already paying
+ *   pending              paid / activated at Dodo within the last 30 min,
+ *                        our webhook not applied yet
+ *   payment_update       on hold / paused: update the card, don't buy again
+ *   cancelled_pending    cancelled, but the paid period has not run out
+ *
+ * `subs` is null when the ledger table is missing (0007 not applied): then
+ * only the clinic row is known, and a paused clinic with a subscription id is
+ * sent to the "update your card" path. `dodoStatus` is Dodo's live status of
+ * the clinic's current subscription when DODO_API_KEY is set; it wins over
+ * what is stored.
+ */
+export function checkoutBlock(args: {
+  clinic: { plan: string; dodo_subscription_id?: string | null };
+  subs: DvSubRecord[] | null;
+  dodoStatus?: string | null;
+  now?: Date;
+}): DvCheckoutBlock | null {
+  const now = (args.now ?? new Date()).getTime();
+  const { clinic, subs } = args;
+  if (clinic.plan === "active") return { code: "active" };
+  const currentId = clinic.dodo_subscription_id ?? null;
+  const live = currentId ? args.dodoStatus ?? null : null;
+  if (live === "active") return { code: "pending" };
+  if (live === "on_hold" || live === "paused") return { code: "payment_update" };
+  const currentEnded = !!live && DV_SUB_ENDED.has(live);
+
+  if (subs) {
+    for (const r of subs) {
+      const updated = Date.parse(r.updated_at ?? r.last_event_at ?? "");
+      const recent = Number.isFinite(updated) && now - updated < DV_PENDING_WINDOW_MS;
+      if ((r.status === "pending" || r.status === "active") && recent) return { code: "pending" };
+    }
+    const current = currentId ? subs.find((r) => r.dodo_subscription_id === currentId) : undefined;
+    if (current && !currentEnded) {
+      if (current.status === "on_hold" || current.status === "paused" || current.status === "lapsed") return { code: "payment_update" };
+      if (current.status === "cancelled" && current.period_end && Date.parse(current.period_end) > now) {
+        return { code: "cancelled_pending", until: current.period_end };
+      }
+    }
+    return null;
+  }
+
+  // No ledger: the clinic row alone. A paused clinic still has a subscription Dodo may retry.
+  if (clinic.plan === "paused" && currentId && !currentEnded) return { code: "payment_update" };
+  return null;
+}
+
+/* ---------------------------------------------------------- founding seats */
+
+export type FoundingState = {
+  /** The offer may be shown and applied. */
+  open: boolean;
+  used: number;
+  left: number;
+  /** Counted from recorded subscriptions (0007): honest enough to show "N left". */
+  reliable: boolean;
+};
+
+/**
+ * The founding offer's state from the seats used: closed by the env switch,
+ * or once DV_FOUNDING.clinics seats are taken. `recorded` is the number of
+ * clinics whose subscription used the founding discount (null when the
+ * ledger is missing); `estimate` is active Practice clinics (always known).
+ * The larger of the two is used, so the offer never stays open past 100.
+ */
+export function foundingState(recorded: number | null, estimate: number, env: Env = process.env): FoundingState {
+  const used = Math.max(0, Math.floor(Math.max(recorded ?? 0, estimate)));
+  const left = Math.max(0, DV_FOUNDING.clinics - used);
+  return { open: foundingOfferOpen(env) && left > 0, used, left, reliable: recorded !== null && recorded >= estimate };
 }

@@ -8,6 +8,8 @@ import { ENTITY } from "@/content/guides/entity";
 import { guidesIndexJsonLd } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
+import { CommercialLinks } from "./solution-page";
+import { solutionsFor } from "@/content/solutions";
 
 const ORDER: GuideCategory[] = ["ideas", "video", "rules", "tools"];
 
@@ -32,6 +34,11 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+        {solutionsFor(locale).length > 0 && (
+          <div className="mt-10 max-w-3xl">
+            <CommercialLinks locale={locale} pages={solutionsFor(locale)} />
+          </div>
+        )}
         {groups.map(({ c, items }) => (
           <section key={c} className="mt-14 sm:mt-16" aria-labelledby={`cat-${c}`}>
             <h2 id={`cat-${c}`} className="dv-display text-[2rem] leading-tight text-dv-ink sm:text-[2.5rem]">{ui.categories[c]}</h2>

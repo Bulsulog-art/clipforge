@@ -13,7 +13,8 @@ export function landingAlternates(): Record<string, string> {
   return languages;
 }
 
-import { OG_ALTERNATE_LOCALES, OG_LOCALE } from "./seo-guides";
+import { ALTERNATE_NAMES, SAME_AS } from "@/content/guides/entity";
+import { OG_ALTERNATE_LOCALES, OG_LOCALE, ORG_ID, organizationNode, softwareId, websiteNode } from "./seo-guides";
 
 export function landingMetadata(locale: Locale): Metadata {
   const c = LANDING[locale];
@@ -36,7 +37,8 @@ export function landingMetadata(locale: Locale): Metadata {
   };
 }
 
-const PUBLISHER = { "@type": "Organization", name: "Bulsu Labs", url: "https://bulsulabs.com" };
+// The same organisation, product and site nodes (stable @ids) as the About pages, guides and commercial pages.
+const PUBLISHER = { "@id": ORG_ID };
 
 function faqPage(faq: { q: string; a: string }[]) {
   return {
@@ -50,9 +52,14 @@ export function landingJsonLd(locale: Locale) {
   return {
     "@context": "https://schema.org",
     "@graph": [
+      websiteNode(locale),
+      organizationNode(),
       {
         "@type": "SoftwareApplication",
+        "@id": softwareId(),
         name: "DentVideo",
+        alternateName: [...ALTERNATE_NAMES],
+        ...(SAME_AS.length ? { sameAs: [...SAME_AS] } : {}),
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         inLanguage: locale,

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { dvServer } from "./supabase";
 
-export { weekOf } from "./week";
+export { deliveryWeek, weekOf } from "./week";
 
 /** The signed-in DentVideo user and a client acting as them (RLS applies). */
 export async function dvSession() {

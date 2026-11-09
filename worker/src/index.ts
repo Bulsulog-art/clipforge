@@ -8,13 +8,19 @@ import { runGenerate } from "./generate.js";
 import { configureSpend, countActiveClinics, dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
 import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
 import { RedisParkStore, resumeParked } from "./dentvid/park.js";
-import { dispatchWeeks, weekOf } from "./dentvid/schedule.js";
+import { DISPATCH_SCHEDULE, dispatchWeeks } from "./dentvid/schedule.js";
+import { isBatchPriority } from "./dentvid/job-options.js";
+import { batchNice, withNicedChildren } from "./dentvid/nice.js";
+import { configureReadyMail, notifyReady, type ReadyMailJob } from "./dentvid/notify.js";
 import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
 import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore } from "./dentvid/ops.js";
 import { alerts, cleanError, resendSender } from "./dentvid/ops-alert.js";
 import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
-import { generateConcurrency } from "./remotion/capacity.js";
+import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
+import { workerRoles } from "./roles.js";
+import { dodoLookup, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
+import { jobWeek } from "./dentvid/jobs.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
@@ -32,6 +38,11 @@ if (process.env.SENTRY_DSN) {
 }
 
 const connection = new IORedis(process.env.REDIS_URL!, { maxRetriesPerRequest: null });
+
+// What this process runs (roles.ts): everything by default; a render-only
+// server runs WORKER_QUEUES=dentvid (docs/CAPACITY.md).
+const ROLES = workerRoles();
+logger.info({ roles: [...ROLES] }, "worker roles");
 
 connection.on("error", (e) => logger.error({ err: e.message }, "redis connection error"));
 connection.on("ready", () => logger.info("redis ready"));
@@ -60,6 +71,7 @@ const videoWorker = new Worker(
   },
   {
     connection,
+    autorun: ROLES.has("video-pipeline"),
     concurrency: Number(process.env.VIDEO_CONCURRENCY ?? 2),
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     removeOnComplete: { count: 1000, age: 24 * 3600 },
@@ -84,6 +96,7 @@ const generateWorker = new Worker(
   },
   {
     connection,
+    autorun: ROLES.has("generate"),
     concurrency: generateConcurrency(),
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     removeOnComplete: { count: 1000, age: 24 * 3600 },
@@ -91,16 +104,24 @@ const generateWorker = new Worker(
   },
 );
 
-// DentVideo: weekly content runs and the dentist's own recordings. One job
-// at a time — each one renders several videos.
+// DentVideo: weekly content runs and the dentist's own recordings.
+// DENTVID_RENDER_CONCURRENCY jobs at a time (default 1 — each one renders
+// several videos, and this box is shared with the website; docs/CAPACITY.md).
+// Jobs carry priorities (dentvid/job-options.ts): what someone is waiting for
+// first, the weekend batch last — and the batch renders niced (dentvid/nice.ts).
+const DENTVID_CONCURRENCY = dentvidConcurrency();
+const BATCH_NICE = batchNice();
 const dentvidWorker = new Worker(
   "dentvid",
   async (job) => {
     try {
-      if (job.name === "week") return await runDentvidWeek(job.data, { jobId: job.id, attemptsMade: job.attemptsMade, attempts: job.opts.attempts });
+      if (job.name === "week") {
+        const run = () => runDentvidWeek(job.data, { jobId: job.id, attemptsMade: job.attemptsMade, attempts: job.opts.attempts });
+        return isBatchPriority(job.opts.priority) ? await withNicedChildren(BATCH_NICE, run) : await run();
+      }
       if (job.name === "recording") return await runDentvidRecording(job.data, { jobId: job.id });
       if (job.name === "restyle") return await runDentvidRestyle(job.data);
-      if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue, new Date(), opsStore());
+      if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue, new Date(), opsStore(), DENTVID_CONCURRENCY);
       throw new Error(`unknown dentvid job ${job.name}`);
     } catch (e) {
       // A spend-guard refusal is expected behaviour (parked + owner alerted), not a crash.
@@ -110,17 +131,23 @@ const dentvidWorker = new Worker(
   },
   {
     connection,
-    concurrency: Number(process.env.DENTVID_CONCURRENCY ?? 1),
-    removeOnComplete: { count: 500, age: 7 * 24 * 3600 },
+    // DENTVID_RENDER_CONCURRENCY=0: this box takes no renders (a render server does).
+    autorun: ROLES.has("dentvid") && DENTVID_CONCURRENCY > 0,
+    concurrency: Math.max(1, DENTVID_CONCURRENCY),
+    // Enough to keep a whole week's jobs: the job ids are what stop a week
+    // from being queued twice (dispatch, payment, button, watchdogs).
+    removeOnComplete: { count: 5000, age: 7 * 24 * 3600 },
     removeOnFail: { count: 1000, age: 14 * 24 * 3600 },
   },
 );
-// Monday delivery: each Monday 05:00 UTC (morning across Europe and Türkiye),
-// start the week for every clinic that should get one (dentvid/schedule.ts).
+// Weekly delivery: each Saturday 18:00 UTC, queue the coming week for every
+// clinic that should get one, earliest Monday morning first, so every clinic
+// has its videos by Monday 07:00 in its own time zone (dentvid/schedule.ts).
+// The scheduler keeps its old id, so this replaces the Monday 05:00 schedule.
 const dentvidQueue = new Queue("dentvid", { connection });
-if (process.env.DENTVID_SUPABASE_URL) {
+if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
   dentvidQueue
-    .upsertJobScheduler("dentvid-monday", { pattern: "0 5 * * 1", tz: "UTC" }, { name: "dispatch", data: {} })
+    .upsertJobScheduler("dentvid-monday", DISPATCH_SCHEDULE, { name: "dispatch", data: {} })
     .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: scheduler setup failed"));
 }
 dentvidWorker.on("failed", (job, err) => {
@@ -131,8 +158,23 @@ dentvidWorker.on("failed", (job, err) => {
     const clinicId = (job.data as { clinicId?: string }).clinicId ?? "unknown";
     void (async () =>
       ownerAlert(
-        alerts.weekFailed({ clinic: await clinicRef(dentvidDb(), clinicId), week: weekOf(), attempts: job.attemptsMade, error: cleanError(err), permanent: false }),
+        alerts.weekFailed({ clinic: await clinicRef(dentvidDb(), clinicId), week: jobWeek(job.data as { week?: string }), attempts: job.attemptsMade, error: cleanError(err), permanent: false }),
       ))().catch(() => {});
+  }
+  // A restyle that died outside its own error handling (stalled, killed): the card must not say "updating…" forever.
+  if (job?.name === "restyle" && job.attemptsMade >= (job.opts.attempts ?? 1)) {
+    const itemId = (job.data as { itemId?: string }).itemId;
+    if (itemId) {
+      void dentvidDb()
+        .from("dentvid_items")
+        .update({ restyle_status: "failed", updated_at: new Date().toISOString() })
+        .eq("id", itemId)
+        .eq("restyle_status", "queued")
+        .then(
+          () => {},
+          () => {},
+        );
+    }
   }
 });
 
@@ -141,20 +183,27 @@ dentvidWorker.on("failed", (job, err) => {
 // waits behind a Monday of renders. The web app decides and sends
 // (api/internal/dentvideo/lifecycle) — idempotent and capped per hour there.
 const dentvidMailQueue = new Queue("dentvid-mail", { connection });
+// "Your videos are ready" emails held for the clinic's morning (dentvid/notify.ts).
+configureReadyMail(dentvidMailQueue);
 const dentvidMailWorker = new Worker(
   "dentvid-mail",
   async (job) => {
     if (job.name === "lifecycle") return await runLifecycle();
+    if (job.name === "notify") {
+      const d = job.data as ReadyMailJob;
+      return await notifyReady(d.clinicId, d.kind, { ready: d.ready, flagged: d.flagged });
+    }
     if (job.name === "digest") return await runDigest();
+    if (job.name === "billing-reconcile") return await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), alert: ownerAlert });
     if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
       const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };
       return job.name === "watchdog-monday" ? await checkMondayDispatch(deps) : await checkFirstWeeks(deps);
     }
     throw new Error(`unknown dentvid-mail job ${job.name}`);
   },
-  { connection, concurrency: 1, removeOnComplete: { count: 200 }, removeOnFail: { count: 200 } },
+  { connection, autorun: ROLES.has("dentvid-mail"), concurrency: 1, removeOnComplete: { count: 200 }, removeOnFail: { count: 200 } },
 );
-if (process.env.DENTVID_SUPABASE_URL) {
+if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
   dentvidMailQueue
     .upsertJobScheduler("dentvid-lifecycle", LIFECYCLE_SCHEDULE, { name: "lifecycle", data: {} })
     .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: lifecycle scheduler setup failed"));
@@ -164,6 +213,7 @@ if (process.env.DENTVID_SUPABASE_URL) {
     ["dentvid-watchdog-monday", WATCHDOG_SCHEDULE, "watchdog-monday"],
     ["dentvid-watchdog-first-week", FIRST_WEEK_SCHEDULE, "watchdog-first-week"],
     ["dentvid-digest", DIGEST_SCHEDULE, "digest"],
+    ["dentvid-billing-reconcile", RECONCILE_SCHEDULE, "billing-reconcile"],
   ] as const) {
     dentvidMailQueue
       .upsertJobScheduler(id, schedule, { name, data: {} })
@@ -186,7 +236,7 @@ async function startParkedResumeCron() {
     }
   }
 }
-if (process.env.DENTVID_SUPABASE_URL) void startParkedResumeCron();
+if (process.env.DENTVID_SUPABASE_URL && ROLES.has("crons")) void startParkedResumeCron();
 
 const publishWorker = new Worker(
   "publish",
@@ -200,6 +250,7 @@ const publishWorker = new Worker(
   },
   {
     connection,
+    autorun: ROLES.has("publish"),
     concurrency: Number(process.env.PUBLISH_CONCURRENCY ?? 4),
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     removeOnComplete: { count: 1000, age: 24 * 3600 },
@@ -219,6 +270,7 @@ const derivativeWorker = new Worker(
   },
   {
     connection,
+    autorun: ROLES.has("derivative"),
     concurrency: Number(process.env.DERIVATIVE_CONCURRENCY ?? 3),
     metrics: { maxDataPoints: MetricsTime.ONE_HOUR },
     removeOnComplete: { count: 1000, age: 24 * 3600 },
@@ -282,7 +334,7 @@ async function startTrendCron() {
     await new Promise((r) => setTimeout(r, 24 * 60 * 60 * 1000));
   }
 }
-if (process.env.ENABLE_TREND_CRON !== "false") {
+if (process.env.ENABLE_TREND_CRON !== "false" && ROLES.has("crons")) {
   void startTrendCron();
 }
 
@@ -298,7 +350,7 @@ async function startCostMonitorCron() {
     await new Promise((r) => setTimeout(r, 24 * 60 * 60 * 1000));
   }
 }
-if (process.env.ENABLE_COST_MONITOR !== "false") {
+if (process.env.ENABLE_COST_MONITOR !== "false" && ROLES.has("crons")) {
   void startCostMonitorCron();
 }
 
@@ -317,7 +369,7 @@ async function startMetricsCron() {
     await new Promise((r) => setTimeout(r, 6 * 60 * 60 * 1000));
   }
 }
-if (process.env.ENABLE_METRICS_CRON === "true") {
+if (process.env.ENABLE_METRICS_CRON === "true" && ROLES.has("crons")) {
   void startMetricsCron();
 }
 
@@ -340,6 +392,6 @@ async function startStuckJobReaperCron() {
     }
   }
 }
-if (process.env.ENABLE_REAPER !== "false") {
+if (process.env.ENABLE_REAPER !== "false" && ROLES.has("crons")) {
   void startStuckJobReaperCron();
 }

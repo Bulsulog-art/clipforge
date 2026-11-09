@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { GUIDES, GUIDE_HUB_LOCALES, HREFLANG, LANDING_PATH, LOCALES, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
-import { ENTITY, PUBLISHER_NAME, PUBLISHER_URL, VIDEO_LANGUAGES } from "@/content/guides/entity";
+import { ALTERNATE_NAMES, ENTITY, PUBLISHER_NAME, PUBLISHER_URL, SAME_AS, VIDEO_LANGUAGES } from "@/content/guides/entity";
+import { SOLUTIONS, solutionPath, solutionTranslations, type SolutionPage } from "@/content/solutions";
+import { SOLUTION_UI } from "@/content/solutions/ui";
+import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { plainText, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { DV_PRICES_USD, DV_TIERS } from "./billing";
@@ -31,11 +34,30 @@ export const OG_ALTERNATE_LOCALES: Partial<Record<Locale, string[]>> = { ar: ["a
 export const SITE_UPDATED = "2026-11-08";
 
 // Stable node ids, so every page's graph describes the same organisation and product.
-const ORG_ID = `${PUBLISHER_URL}/#organization`;
-const softwareId = () => `${absoluteUrl(LANDING_PATH.en)}#software`;
+export const ORG_ID = `${PUBLISHER_URL}/#organization`;
+export const softwareId = () => `${absoluteUrl(LANDING_PATH.en)}#software`;
+export const websiteId = () => `${absoluteUrl(LANDING_PATH.en)}#website`;
 
 export function organizationNode() {
   return { "@type": "Organization", "@id": ORG_ID, name: PUBLISHER_NAME, url: PUBLISHER_URL };
+}
+
+/**
+ * The site itself, so search engines can show "DentVideo" as the site name
+ * and know the brand's other spellings ("Dent Video").
+ */
+export function websiteNode(locale: Locale) {
+  return {
+    "@type": "WebSite",
+    "@id": websiteId(),
+    name: "DentVideo",
+    alternateName: [...ALTERNATE_NAMES],
+    url: absoluteUrl(LANDING_PATH.en),
+    inLanguage: [...LOCALES],
+    description: ENTITY[locale].definition,
+    publisher: { "@id": ORG_ID },
+    about: { "@id": softwareId() },
+  };
 }
 
 const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
@@ -48,7 +70,10 @@ export function softwareNode(locale: Locale) {
     "@type": "SoftwareApplication",
     "@id": softwareId(),
     name: "DentVideo",
+    alternateName: [...ALTERNATE_NAMES],
     url: absoluteUrl(LANDING_PATH.en),
+    // Only profiles that exist (content/guides/entity.ts); none is invented.
+    ...(SAME_AS.length ? { sameAs: [...SAME_AS] } : {}),
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "Patient-education video for dental clinics",
     operatingSystem: "Web",
@@ -317,5 +342,89 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
     ...GUIDE_HUB_LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES) })),
     ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: SITE_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
+    ...SOLUTIONS.map((p) => ({ path: solutionPath(p), lastmod: p.updated ?? p.published, priority: "0.8", alternates: solutionAltPaths(p) })),
   ];
+}
+
+/* ---------- Commercial pages (/videos/<slug>) ---------- */
+
+/** A commercial page's <title>: its SEO title, plus " · DentVideo" unless it already names the brand. */
+export function solutionSeoTitle(p: SolutionPage): string {
+  return p.seoTitle.includes("DentVideo") ? p.seoTitle : `${p.seoTitle}${BRAND_SUFFIX}`;
+}
+
+/** hreflang for a commercial page: the pages of the same kind, one per language. */
+export function solutionAltPaths(p: SolutionPage): Record<string, string> | undefined {
+  const group = solutionTranslations(p);
+  if (group.length < 2) return undefined;
+  const languages: Record<string, string> = {};
+  for (const o of group) languages[HREFLANG[o.locale]] = solutionPath(o);
+  const en = group.find((o) => o.locale === "en");
+  if (en) languages["x-default"] = solutionPath(en);
+  return languages;
+}
+
+export function solutionMetadata(p: SolutionPage): Metadata {
+  const url = absoluteUrl(solutionPath(p));
+  const alt = solutionAltPaths(p);
+  const title = solutionSeoTitle(p);
+  return {
+    title: { absolute: title },
+    description: p.seoDescription,
+    alternates: { canonical: url, ...(alt ? { languages: absolute(alt) } : {}) },
+    openGraph: {
+      title,
+      description: p.seoDescription,
+      url,
+      type: "website",
+      siteName: "DentVideo",
+      locale: OG_LOCALE[p.locale],
+      ...(OG_ALTERNATE_LOCALES[p.locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[p.locale] } : {}),
+      images: [landingOgImage(p.locale)],
+    },
+    twitter: { card: "summary_large_image", title, description: p.seoDescription, images: [landingOgImage(p.locale)] },
+  };
+}
+
+export function solutionJsonLd(p: SolutionPage) {
+  const url = absoluteUrl(solutionPath(p));
+  const ui = SOLUTION_UI[p.locale];
+  const samples = p.kind === "product" ? (samplesFor(p.locale) ?? []) : [];
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": url,
+        url,
+        name: p.h1,
+        description: p.seoDescription,
+        inLanguage: p.locale,
+        datePublished: p.published,
+        dateModified: p.updated ?? p.published,
+        isPartOf: { "@id": websiteId() },
+        about: { "@id": softwareId() },
+        publisher: { "@id": ORG_ID },
+      },
+      organizationNode(),
+      softwareNode(p.locale),
+      faqNode(p.faq, p.locale),
+      breadcrumb([
+        { name: "DentVideo", path: LANDING_PATH[p.locale] },
+        { name: p.nav, path: solutionPath(p) },
+      ]),
+      // The sample videos shown on the page: real DentVideo output for a demo clinic in this language.
+      ...samples.map((v) => ({
+        "@type": "VideoObject",
+        name: v.name,
+        description: `${ui.samplesHeading}. ${ui.samplesNote}`,
+        thumbnailUrl: absoluteUrl(sampleSrc(p.locale, v.slug, "jpg")),
+        contentUrl: absoluteUrl(sampleSrc(p.locale, v.slug, "mp4")),
+        uploadDate: "2026-11-08",
+        duration: `PT${v.seconds}S`,
+        inLanguage: p.locale,
+        publisher: { "@id": ORG_ID },
+      })),
+    ],
+  };
 }

@@ -89,7 +89,7 @@ type Props = {
   /** Signed URL of the saved logo. */
   logoUrl?: string | null;
   plans: PlanOption[];
-  founding: { priceUsd: number; code?: string } | null;
+  founding: { priceUsd: number; code?: string; left?: number } | null;
   /** Back from Dodo without paying. */
   checkoutCancelled?: boolean;
   /** The signed-in account's address and whether it is confirmed (lib/dentvid/verify-email). */
@@ -308,7 +308,7 @@ function PlanStep({
   locale: Locale;
   preview: PreviewProfile;
   plans: PlanOption[];
-  founding: { priceUsd: number; code?: string } | null;
+  founding: { priceUsd: number; code?: string; left?: number } | null;
   cancelled: boolean;
   onEdit: () => void;
   account?: { email: string; verified: boolean };

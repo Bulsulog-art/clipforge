@@ -462,16 +462,16 @@ export const alerts = {
     return {
       key: `dispatch:${a.week}`,
       severity: "urgent",
-      titleTr: "Pazartesi üretimi başlamadı",
-      titleEn: "Monday dispatch did not run",
-      what: [`At the 07:00 UTC check, ${a.activeClinics} paying clinic(s) should have this week's job, but ${a.missing} had none (${a.reason}).`],
+      titleTr: "Haftalık üretim başlamadı",
+      titleEn: "Weekly dispatch did not run",
+      what: [`At the Saturday 19:30 UTC check, ${a.activeClinics} paying clinic(s) should have the coming week's job, but ${a.missing} had none (${a.reason}).`],
       facts: [
         ["Week", a.week],
         ["Active clinics", String(a.activeClinics)],
         ["Jobs found", String(a.jobs)],
       ],
       done: [a.requeued ? `Queued the ${a.requeued} missing week(s) now (same job ids, so nothing doubles).` : "Could not queue the missing weeks (see the logs)."],
-      todo: ["Check that the worker is running and its Monday scheduler exists (dentvid-monday).", "Watch for the “videos ready” notices over the next hour."],
+      todo: ["Check that the worker is running and its weekly scheduler exists (dentvid-monday, Saturday 18:00 UTC).", "Watch the batch over the weekend: every clinic is due by Monday 07:00 in its own time zone."],
     };
   },
 
@@ -521,7 +521,7 @@ export const alerts = {
     };
   },
 
-  customerAtRisk(a: { clinic: ClinicRef; event: string; from: string; to: string }): OwnerAlert {
+  customerAtRisk(a: { clinic: ClinicRef; event: string; from: string; to: string; clinicEmailed?: boolean }): OwnerAlert {
     const failed = /failed|on_hold|past_due/.test(a.event);
     return {
       key: `at_risk:${a.clinic.id}:${a.event}`,
@@ -532,7 +532,9 @@ export const alerts = {
       what: [`Dodo sent ${a.event}: plan ${a.from} → ${a.to} (${tierLabel(a.clinic)}).`],
       done: [
         a.to === "active" ? "Nothing changed yet — the clinic keeps access through Dodo's grace period." : "The clinic keeps its videos; new weeks stop until it pays again.",
-        "No email was sent to the clinic by DentVideo (Dodo sends its own payment notices).",
+        a.clinicEmailed
+          ? "The clinic was emailed what happened and how to update its card (in its language, once per incident); the app shows “update your payment” instead of the plan picker."
+          : "No email was sent to the clinic by DentVideo (Dodo sends its own payment notices).",
       ],
       todo: failed
         ? [`Write a friendly note${a.clinic.email ? ` to ${a.clinic.email}` : ""}: their card may have expired; the billing portal link is in Settings.`]
@@ -579,6 +581,82 @@ export const alerts = {
       what: [`${a.clinic.name?.trim() || "A clinic"} ${a.returning ? "re-activated" : "just paid for"} DentVideo ${a.clinic.tier ?? ""}${a.interval ? ` (${a.interval}ly)` : ""}${a.clinic.country ? ` from ${a.clinic.country}` : ""}.`],
       done: ["Plan set to active, this week's videos queued, welcome email sent (once per clinic)."],
       todo: [`Say hello${a.clinic.email ? ` — ${a.clinic.email}` : ""}. A personal line from the founder in the first hour is remembered.`],
+    };
+  },
+
+  duplicateSubscription(a: { clinic: ClinicRef; existing: string; existingStatus: string; duplicate: string; kept: string }): OwnerAlert {
+    return {
+      key: `dup_sub:${a.clinic.id}:${a.duplicate}`,
+      severity: "urgent",
+      titleTr: "Klinik iki kez abone oldu",
+      titleEn: "A clinic has two live subscriptions",
+      clinic: a.clinic,
+      what: [`Subscription ${a.duplicate} became active while the clinic already had ${a.existing} (${a.existingStatus}). The clinic may be charged twice.`],
+      facts: [
+        ["Existing", `${a.existing} (${a.existingStatus})`],
+        ["New", a.duplicate],
+        ["Clinic now on", a.kept],
+      ],
+      done: ["Both subscriptions are recorded (dentvid_subscriptions); the clinic keeps one plan and nothing was cancelled automatically."],
+      todo: [
+        `In Dodo, cancel the subscription the clinic does not need and refund its charge${a.clinic.email ? `, then tell ${a.clinic.email}` : ""}.`,
+        "If the clinic is now on the one you cancel, the next webhook moves it to the other live subscription by itself.",
+      ],
+    };
+  },
+
+  lateActivation(a: { clinic: ClinicRef; subscriptionId: string; event: string; status: string }): OwnerAlert {
+    return {
+      key: `late_activation:${a.clinic.id}:${a.subscriptionId}`,
+      severity: "warning",
+      titleTr: "Geç gelen ödeme olayı yok sayıldı",
+      titleEn: "A late activation was ignored",
+      clinic: a.clinic,
+      what: [`Dodo sent ${a.event} for ${a.subscriptionId}, which we already recorded as ${a.status}. Without a newer timestamp (or a Dodo API check) it was not allowed to switch the clinic back on.`],
+      done: ["The clinic's plan was left as it was."],
+      todo: ["Check the subscription in Dodo. If it really is active again, set the clinic's plan by hand in /dentvideo/admin (or replay the event)."],
+    };
+  },
+
+  billingDispute(a: { clinic: ClinicRef; event: string; paymentId?: string | null; paused: boolean }): OwnerAlert {
+    const dispute = a.event.startsWith("dispute.");
+    return {
+      key: `billing_dispute:${a.clinic.id}:${a.event}:${a.paymentId ?? ""}`,
+      severity: dispute ? "urgent" : "warning",
+      titleTr: dispute ? "Ödemeye itiraz (chargeback)" : "İade",
+      titleEn: dispute ? "Chargeback / payment dispute" : "Refund",
+      clinic: a.clinic,
+      what: [`Dodo sent ${a.event}${a.paymentId ? ` for payment ${a.paymentId}` : ""} (${tierLabel(a.clinic)}).`],
+      done: [a.paused ? "The clinic was paused: no new weeks are made while the payment is disputed." : "The clinic's plan was not changed."],
+      todo: dispute
+        ? ["Answer the dispute in Dodo with the delivery evidence (videos made, emails sent).", "If the dispute is withdrawn or won and the clinic should carry on, re-activate its plan in /dentvideo/admin."]
+        : ["Check the refund in Dodo matches what you agreed with the clinic."],
+    };
+  },
+
+  accessLapsed(a: { clinic: ClinicRef; renewsAt: string; dodoStatus?: string | null }): OwnerAlert {
+    return {
+      key: `lapsed:${a.clinic.id}:${a.renewsAt.slice(0, 10)}`,
+      severity: "warning",
+      titleTr: "Yenileme gelmedi, erişim durduruldu",
+      titleEn: "No renewal arrived — access paused",
+      clinic: a.clinic,
+      what: [`The paid period ended ${a.renewsAt.slice(0, 16).replace("T", " ")} UTC and no renewal event arrived within the 3-day grace.`],
+      facts: a.dodoStatus ? [["Dodo status", a.dodoStatus]] : [],
+      done: ["The clinic was set to paused (videos kept; new weeks stop). A renewal event that arrives later switches it back on."],
+      todo: ["Check the subscription in Dodo (and the webhook log). If it did renew, replay the renewal event or set the plan by hand."],
+    };
+  },
+
+  foundingFull(a: { used: number; clinics: number }): OwnerAlert {
+    return {
+      key: "founding_full",
+      severity: "good",
+      titleTr: "Kurucu teklifi doldu",
+      titleEn: "The founding offer is full",
+      what: [`${a.used} of ${a.clinics} founding seats are taken.`],
+      done: ["Checkout and the app stopped offering the founding price automatically."],
+      todo: ["Set DENTVIDEO_FOUNDING_OFFER=off on the web app so the static landing pages stop showing the banner, and disable the code in Dodo."],
     };
   },
 

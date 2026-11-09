@@ -5,7 +5,8 @@ import { dateLocale } from "@/lib/dentvid/app-ui";
 import { ArrowRight, BadgeCheck, Check } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
-import type { DvInterval, DvPlanState, DvTier } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, type DvInterval, type DvPlanState, type DvTier } from "@/lib/dentvid/billing";
+import { billingText } from "@/content/dentvideo-billing";
 import { VerifyCard } from "./verify-email";
 import { trackDv } from "@/lib/dentvid/events-client";
 
@@ -34,8 +35,8 @@ export function PlanPanel({
   locale: Locale;
   state: DvPlanState;
   options: PlanOption[];
-  /** Founding price when the offer is open (Practice monthly), else null. */
-  founding: { priceUsd: number; code?: string } | null;
+  /** Founding price when the offer is open (Practice monthly), else null; `left` only when counted reliably. */
+  founding: { priceUsd: number; code?: string; left?: number } | null;
   /** Inside the onboarding wizard the step has its own heading: keep the panel's title for screen readers only. */
   bare?: boolean;
   /** Paused or cancelled with videos in the library: say they stay, and can still be shared. */
@@ -133,6 +134,11 @@ export function PlanPanel({
               {t.foundingCodeLine.split("{code}")[0]}
               <code dir="ltr" className="font-mono">{founding.code}</code>
               {t.foundingCodeLine.split("{code}")[1] ?? ""}
+            </span>
+          )}
+          {typeof founding.left === "number" && founding.left > 0 && (
+            <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs">
+              {billingText(locale).copy.seatsLeft.replace("{left}", String(founding.left)).replace("{total}", String(DV_FOUNDING.clinics))}
             </span>
           )}
         </p>

@@ -7,7 +7,13 @@ import { rateLimited } from "@/lib/rate-limit-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
 
 // The only thing a clinic changes on an item: its decision. Nothing is
-// publishable until it is "approved".
+// publishable until it is "approved". Only a finished video (ready / flagged)
+// can be decided on — a queued, failed or rejected item has nothing to approve
+// (0007 enforces the same on direct REST writes).
+
+/** Item statuses a clinic may approve or reject. */
+const DECIDABLE = ["ready", "flagged"] as const;
+
 const Body = z.object({
   approval: z.enum(["approved", "rejected", "pending"]),
   note: z.string().max(500).optional(),
@@ -29,12 +35,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .update({ approval: body.approval, approval_note: body.note ?? null, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("owner_id", user.id)
+    .in("status", DECIDABLE)
     .select("clinic_id");
   if (error) {
     console.error("dentvideo decision failed", error.message);
     return NextResponse.json({ error: err.saveFailed }, { status: 500 });
   }
-  const clinicId = (updated?.[0] as { clinic_id?: string } | undefined)?.clinic_id;
+  if (!updated?.length) return NextResponse.json({ error: err.invalidDecision }, { status: 409 });
+  const clinicId = (updated[0] as { clinic_id?: string } | undefined)?.clinic_id;
   if (body.approval === "approved" && clinicId) void recordEvent("video_approved", { clinicId });
   return NextResponse.json({ ok: true });
 }
