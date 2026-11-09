@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
-import { GUIDES, type Locale } from "@/content/dentvideo";
-import { DvFooter, DvHeader } from "@/components/dentvid/chrome";
+import { GUIDES, LOCALES, type Locale } from "@/content/dentvideo";
+import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
+import { DvFooter, DvHeader, type CommercialNav } from "@/components/dentvid/chrome";
 import "./dentvideo.css";
 
 const sans = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], variable: "--dv-font-sans", display: "swap" });
@@ -50,15 +51,18 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#faf7f2" };
 
-// Each guide is written in one language; the header and footer follow it.
-const GUIDE_LOCALES: Record<string, Locale> = Object.fromEntries(GUIDES.map((g) => [g.slug, g.locale]));
+// Each guide and each commercial page is written in one language; the header and footer follow it.
+const GUIDE_LOCALES: Record<string, Locale> = Object.fromEntries([...GUIDES, ...SOLUTIONS].map((g) => [g.slug, g.locale]));
+
+// The footer links every language's commercial pages (only their paths and short labels reach the browser).
+const COMMERCIAL: CommercialNav = Object.fromEntries(LOCALES.map((l) => [l, solutionsFor(l).map((p) => ({ href: solutionPath(p), label: p.nav }))]));
 
 export default function DentVideoLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`dv ${sans.variable} ${serif.variable} flex min-h-screen flex-col bg-dv-paper text-dv-ink antialiased`}>
       <DvHeader guideLocales={GUIDE_LOCALES} />
       <div className="flex-1">{children}</div>
-      <DvFooter guideLocales={GUIDE_LOCALES} />
+      <DvFooter guideLocales={GUIDE_LOCALES} commercial={COMMERCIAL} />
     </div>
   );
 }

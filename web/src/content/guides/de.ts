@@ -614,7 +614,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Das Mischmodell: für viele Praxen realistisch",
         paragraphs: [
           "Für viele Praxen trägt ein Mischmodell am längsten: Regelmäßige Aufklärungsvideos kommen aus einem Tool oder von außen, die Zahnärztin ergänzt ein- bis zweimal im Monat eine kurze eigene Aufnahme, und das Team beantwortet Nachrichten und postet. So bleibt das Profil aktiv, klingt nach der Praxis, und niemand steht jede Woche unter Druck. Themen dafür liefern die [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
-          "[DentVideo](landing:) ist eine Software für den Inhaltsteil: Sie erstellt jede Woche fünf kurze Aufklärungsvideos, prüft jedes Skript auf fachliche Richtigkeit und Werberecht und schneidet Ihre eigenen Aufnahmen in untertitelte Clips. Posten und Nachrichten bleiben bei Ihnen oder Ihrer Agentur — DentVideo veröffentlicht nichts selbst. [Sehen Sie vor der Zahlung eine Live-Vorschau mit Ihrem Logo](start:).",
+          "[DentVideo](landing:) ist eine Software für den Inhaltsteil: Sie erstellt jede Woche fünf kurze Aufklärungsvideos, prüft jedes Skript auf fachliche Richtigkeit und Werberecht und schneidet Ihre eigenen Aufnahmen in untertitelte Clips. Posten und Nachrichten bleiben bei Ihnen oder Ihrer Agentur — DentVideo veröffentlicht nichts selbst. [Sehen Sie vor der Zahlung eine Live-Vorschau mit Ihrem Logo](start:). Eine Tabelle mit allen Optionen finden Sie unter [DentVideo im Vergleich mit Agentur, Canva und ChatGPT](video:dentvideo-agentur-canva-chatgpt).",
         ],
       },
     ],

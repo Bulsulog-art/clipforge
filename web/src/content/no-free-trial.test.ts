@@ -3,6 +3,8 @@ import { GUIDES, LANDING, LOCALES } from "./dentvideo";
 import { APP_TEXT } from "./dentvideo-app";
 import { ENTITY } from "./guides/entity";
 import { GUIDE_UI } from "./guides/ui";
+import { SOLUTIONS } from "./solutions";
+import { SOLUTION_UI } from "./solutions/ui";
 import { EMAIL_LANGUAGES, readyEmail } from "@/lib/dentvid/email";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 
@@ -103,6 +105,11 @@ describe("no free-trial claims anywhere", () => {
 
   it("guides", () => {
     expect(claimsIn(JSON.stringify(GUIDES))).toEqual([]);
+  });
+
+  it("commercial pages and their interface words", () => {
+    expect(claimsIn(JSON.stringify(SOLUTIONS))).toEqual([]);
+    expect(claimsIn(JSON.stringify(SOLUTION_UI))).toEqual([]);
   });
 
   it("llms.txt and llms-full.txt", () => {

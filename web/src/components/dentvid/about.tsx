@@ -6,6 +6,8 @@ import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { aboutJsonLd } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
+import { CommercialLinks } from "./solution-page";
+import { solutionsFor } from "@/content/solutions";
 
 /** What DentVideo is, stated plainly, with the facts as a definition list. */
 export function AboutPage({ locale }: { locale: Locale }) {
@@ -42,6 +44,12 @@ export function AboutPage({ locale }: { locale: Locale }) {
             ))}
           </section>
         ))}
+
+        {solutionsFor(locale).length > 0 && (
+          <div className="mt-14">
+            <CommercialLinks locale={locale} pages={solutionsFor(locale)} />
+          </div>
+        )}
 
         <section className="mt-16">
           <h2 className="dv-display text-[2rem] leading-tight text-dv-ink sm:text-[2.5rem]">{ui.faq}</h2>

@@ -278,3 +278,98 @@ video embeds (a DentVideo sample answering the guide's question) with VideoObjec
   health advertising; ADA Code advisory opinions (2025 social-media update); GDC guidance revisions; FTC reviews rule
   enforcement; France's ONCD recommendations.
 - No prices, no invented statistics, no testimonials in any guide (tested).
+
+---
+
+## 9. Owning dent/dental video searches (2026-11-09)
+
+The owner asked for DentVideo to come up first when people type "dent…" / "dental…". This section is the honest
+map of what that can mean, with the evidence, and what was shipped for it (branch `claude/seo-own-dental-video`).
+
+### 9.1 What is and is not achievable
+
+- **"dent", "dental", "dentist" (head terms): not achievable, and not worth chasing.** Google Suggest for `dent`
+  returns *dentist near me, dentist, dental insurance, dentaquest, dental hygienist salary, dentures…* (US), *dentolo,
+  dentsply sirona…* (DE), *dentista, dentista cerca de mi…* (ES), *dentosept, dentysta…* (PL), *dental ilan,
+  dentsoft…* (TR). These are local-pack, insurance, jobs and brand searches by patients; no software site ranks for
+  them and the traffic would not convert. No page targets them.
+- **Brand / navigational queries: achievable within weeks of indexing, and must be owned.** `dentvideo`,
+  `dentvideo app/login/review/price` return **no suggestions** — the brand has no search demand yet, and a web search
+  for "DentVideo" today shows unrelated pages (a University of Michigan "DENT-Video" service request page, dental
+  video encyclopedias). That means there is no strong incumbent: once dentvideo.com is indexed with consistent entity
+  data, the exact-match brand should rank #1 quickly. **Watch-out:** `dent video` (two words) autocompletes to *dent
+  videos* — car **paintless dent repair** — and *dental videos*. The two-word spelling is shared with other intents, so
+  we can be found for it but cannot expect to own it; always write the brand as one word, "DentVideo".
+- **Commercial "dental video" queries: page 1 in 3–6 months is realistic for a handful, per locale, not for the
+  biggest.** SERPs are held by patient-education libraries (Spear, Optio, ADA Toothflix, ViewMedica) for "dental
+  patient education videos", and by **HeyGen's programmatic pages** for "dental ai video generator / dentist video
+  maker". Those programmatic pages are thin and generic; a specialised page with real sample output, a rules angle and
+  an FAQ can compete — but authority (links) decides the last mile. Non-English commercial SERPs are weaker.
+
+### 9.2 Research (Google Suggest, hl/gl per market, 2026-11-09; ~130 seeds; raw output not committed)
+
+Verbatim suggestions that matter (selection):
+
+| Market | Brand / tool intent | Commercial intent | Informational (feeds the above) |
+| --- | --- | --- | --- |
+| en (us/gb) | *dentvideo* → none; *dent video app* → dental video app, dental video editing app | ai dental videos · dental ai video generator · dental video maker · dental videos ai · dental video template · dental clinic video template · dental marketing videos · dental promotional video · dental clinic marketing video · videos for dental clinic/office · canva dental templates · chatgpt for dentists · dental social media marketing/manager | dental videos for patients · … for patient education · … for waiting room · … for instagram · how to make dental videos · dental reels ideas · dental social media post ideas |
+| tr | — | diş kliniği sosyal medya (yönetimi) · diş kliniği instagram · diş kliniği tanıtım videosu · diş kliniği reklam ajansı · diş hekimi yapay zeka · diş kliniği yapay zeka | diş hekimi reklam yasağı/cezası/yönetmeliği · diş tedavisi videoları |
+| de | — | zahnarzt marketing (agentur) · online marketing zahnarzt · ki für/software zahnarztpraxis · zahnarzt imagefilm · wartezimmer tv zahnarzt · zahnarztpraxis video(s) | patientenaufklärung videos · zahnarzt social media · zahnarzt instagram |
+| es | — | videos dentales con ia · vídeos dentales para pacientes · vídeos para dentistas · banco de videos para dentistas · ia para dentistas · agencia marketing para dentistas · marketing digital para dentistas | videos para clinicas dentales · videos educativos dentales · marketing para dentistas instagram |
+| fr | — | vidéo présentation cabinet dentaire et ses traitements · video salle d'attente dentiste · marketing dentaire | dentiste reseaux sociaux · video explicative dentiste |
+| ja | — | 歯科 患者説明ツール / ソフト · 歯科 患者 説明 動画 · 歯科医院 待合室 動画 · 歯科 動画コンテンツ · 歯科 sns 運用 代行 · 歯科医院 sns 運用 代行 · 歯科 インスタ代行 | 歯科 インスタ ネタ / 運用 · 歯科 ai活用 |
+| ar (ae/sa) | — | فيديو عيادة اسنان · فيديوهات عيادات اسنان · تسويق عيادة اسنان · تسويق عيادات الاسنان · ذكاء اصطناعي اسنان | عيادة اسنان انستقرام |
+| pl | — | marketing stomatologiczny · marketing w gabinecie stomatologicznym · marketing dla stomatologów · reklama gabinetu stomatologicznego · ai stomatologia | filmy stomatologiczne · film edukacyjny o zębach |
+
+Skipped as wrong intent: "dentist video for kids/toddlers", "zahnarzt videos bohren schmerzen", "videos de dentistas
+sacando muelas", "video dentiste humour", "فيديو اسنان للاطفال", "film o zębach dla dzieci" (patients/children),
+"dental videos free download" (library seekers — answered honestly in an FAQ, not targeted), "clip dentaire" (a
+denture product), "dental video camera/editor job".
+
+### 9.3 Query map → pages (what targets what, so pages do not cannibalise each other)
+
+| Group | Queries | Page | 3–6 month outlook |
+| --- | --- | --- | --- |
+| Brand | DentVideo · what is DentVideo · DentVideo price / login / app / review (all 8 languages) | `/` + `/<l>` landings (title starts "DentVideo — …"), `/about` + `/<l>/about` retitled "What is DentVideo? …" with brand FAQ (price → pricing, sign-in, mobile app, reviews) | **#1 for "DentVideo" once indexed** (needs GSC + Bing verification and a few profiles linking back). "dent video" two words: page 1 plausible, #1 not guaranteed (shared with car dent repair). |
+| en commercial | ai dental videos · dental ai video generator · dental video maker · dental videos for instagram · dental clinic video template | `/videos/ai-dental-video-maker` | Page 1 for the long-tail AI variants plausible; "dental ai video generator" competes with HeyGen — needs links. |
+| en comparison | dental social media marketing agency (vs) · canva dental · chatgpt for dentists | `/videos/dentvideo-vs-agency-canva-chatgpt` | "DentVideo vs …" brand-comparison queries: yes. Generic agency queries: unlikely (agencies own them); the page is for evaluation-stage visitors and answer engines. |
+| tr | diş kliniği sosyal medya · diş kliniği instagram · diş kliniği tanıtım videosu · diş hekimi yapay zeka | `/videos/dis-klinigi-sosyal-medya-videolari`; comparison `/videos/dentvideo-ajans-canva-chatgpt` | Best chance of all markets (thin native SERP). Page 1 for "diş kliniği sosyal medya videoları/videosu" realistic. |
+| de | zahnarzt videos · zahnarztpraxis video · ki für zahnarztpraxis · wartezimmer tv zahnarzt | `/videos/zahnarztpraxis-videos-ki`; comparison `/videos/dentvideo-agentur-canva-chatgpt` | Page 1 for "Videos für Zahnarztpraxis (KI)" variants realistic; "ki zahnarztpraxis" is dominated by phone-assistant vendors. |
+| es | videos dentales con ia · vídeos dentales para pacientes · vídeos para dentistas | `/videos/videos-dentales-con-ia`; comparison `/videos/dentvideo-agencia-canva-chatgpt` | "videos dentales con ia" — weak SERP, good chance. |
+| fr | vidéo présentation cabinet dentaire et ses traitements · video salle d'attente dentiste | `/videos/videos-traitements-cabinet-dentaire` | Plausible; the existing guide `videos-information-patient-dentaire` keeps the informational salle-d'attente intent. |
+| ja | 歯科 患者説明 動画 / ツール / ソフト · 歯科医院 待合室 動画 · 歯科 sns 運用 代行 | `/videos/shika-kanja-setsumei-doga` | Competitive (established 患者説明ツール vendors); long-tail plausible. Needs a native reviewer before promotion. |
+| ar | فيديو عيادة اسنان · فيديوهات عيادات اسنان · تسويق عيادة اسنان | `/videos/fidyohat-iyadat-al-asnan` | Very thin Arabic B2B SERP; good chance for the marketing variants. |
+| pl | marketing stomatologiczny · marketing gabinetu stomatologicznego · filmy stomatologiczne | `/videos/filmy-marketing-stomatologiczny` | Agencies rank for "marketing stomatologiczny"; page 1 for the video/film variants plausible. |
+| Informational long tail | the guides in §3 | each guide now links to its language's product page (or comparison for agency/tool guides) with a descriptive anchor; hubs and About pages link both | Feeds authority to the commercial pages; unchanged targets. |
+
+Rules for these pages (tested in `web/src/content/solutions/solutions.test.ts`): one product page per language and
+a comparison only in en/de/es/tr (where agency/alternative demand showed up); every page lists the suggest queries it
+answers; ≥ 5 sections, ≥ 4 FAQs, 550+ words (700+ ja); title ≤ 60 incl. "DentVideo", description ≤ 155; no prices,
+percentages, superlatives, "painless"-type words outside quoted examples, or market do-not-say phrases; hreflang
+reciprocal per page kind; in sitemap and llms.txt; WebPage + SoftwareApplication (same `@id` as landing/About) +
+FAQPage + BreadcrumbList JSON-LD; product pages embed the three real sample videos (`preload="none"`) as VideoObject.
+
+### 9.4 Brand entity (shipped)
+
+- One `@id` for the product (`…/dentvideo#software`), the organisation (`https://bulsulabs.com/#organization`) and a
+  new **WebSite** node (`name: "DentVideo"`, `alternateName: ["Dent Video", "DentVideo app"]`) on every landing — the
+  signal Google uses for the site name in results.
+- `SAME_AS` in `content/guides/entity.ts` is **empty on purpose**: no profile exists yet. Add LinkedIn, Crunchbase,
+  Product Hunt, G2, Wikidata URLs there once live (a test rejects placeholders).
+- The "reviews" FAQ says plainly that DentVideo is new and publishes no testimonials. Update it when real third-party
+  reviews (G2/Capterra/OMR) exist — link them, never quote them as testimonials on regulated-market pages.
+
+### 9.5 Off-site actions that decide the outcome (owner)
+
+1. Set `NEXT_PUBLIC_DENTVIDEO_URL=https://dentvideo.com` in production (until then canonicals point at the ClipForge
+   host and the brand cannot consolidate).
+2. Google Search Console (Domain property) + Bing Webmaster Tools (import from GSC); submit the sitemap; request
+   indexing for `/`, `/about`, the 8 landings and the 12 `/videos/…` pages; run `node scripts/indexnow.mjs`.
+3. Profiles that say the same one-line definition and link to dentvideo.com: LinkedIn page, Crunchbase, Product Hunt,
+   G2/Capterra, OMR Reviews (DACH), AlternativeTo/SaaSHub, a YouTube channel with the demo video. Then fill `SAME_AS`.
+4. **Google Business Profile: not eligible** (no staffed customer location; GBP is for local businesses). Do not create
+   one with a home or virtual address.
+5. Links for the commercial pages: trade-press guest articles and association newsletters listed in §7 and
+   OFFSITE_PLAN, linking to the language's `/videos/…` page or the rules guide — not to the homepage only.
+6. Month 2: in GSC, check "DentVideo" position (target 1), impressions for each §9.3 query; rewrite titles of
+   `/videos/…` pages with impressions but position > 10.

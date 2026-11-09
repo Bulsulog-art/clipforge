@@ -24,14 +24,28 @@ export const SITE_URL = "https://dentvideo.com";
 /** The languages DentVideo makes videos in (the site itself is in eight: not Italian or Portuguese). */
 export const VIDEO_LANGUAGES = ["en", "de", "es", "fr", "it", "pt", "tr", "ja", "ar", "pl"] as const;
 
-export const ENTITY: Record<Locale, EntityFacts> = {
+/**
+ * Other spellings people type for the brand. Emitted as `alternateName` on the
+ * WebSite and SoftwareApplication nodes so "dent video" resolves to DentVideo.
+ */
+export const ALTERNATE_NAMES = ["Dent Video", "DentVideo app"] as const;
+
+/**
+ * Official profiles of DentVideo elsewhere (LinkedIn, Crunchbase, G2, Product
+ * Hunt, Wikidata …), emitted as `sameAs`. Add a URL only once the profile is
+ * live and says the same as this file (docs/OFFSITE_PLAN.md). None exists yet
+ * (2026-11-09), so this stays empty: an invented sameAs is worse than none.
+ */
+export const SAME_AS: readonly string[] = [];
+
+const BASE: Record<Locale, EntityFacts> = {
   en: {
     meta: {
-      title: "About DentVideo — what it is, who it is for, how checks work",
+      title: "What is DentVideo? The dental video app, explained",
       description:
         "DentVideo by Bulsu Labs makes short, narrated patient-education videos for dental clinics in ten languages, checked for accuracy and advertising rules.",
     },
-    h1: "About DentVideo",
+    h1: "What is DentVideo?",
     definition:
       "DentVideo is a web app for dental clinics that makes short patient-education videos — narrated, captioned and in the clinic's colours — and checks every script for clinical accuracy and health-advertising rules before the dentist approves it. It is made by Bulsu Labs.",
     facts: [
@@ -71,11 +85,11 @@ export const ENTITY: Record<Locale, EntityFacts> = {
   },
   de: {
     meta: {
-      title: "Über DentVideo — was es ist, für wen, wie geprüft wird",
+      title: "Was ist DentVideo? Die Video-App für Zahnarztpraxen",
       description:
         "DentVideo von Bulsu Labs erstellt kurze, vertonte Aufklärungsvideos für Zahnarztpraxen in zehn Sprachen, geprüft auf Richtigkeit und Werberecht.",
     },
-    h1: "Über DentVideo",
+    h1: "Was ist DentVideo?",
     definition:
       "DentVideo ist eine Web-App für Zahnarztpraxen, die kurze Patientenaufklärungsvideos erstellt — vertont, untertitelt und in den Farben der Praxis — und jedes Skript auf fachliche Richtigkeit und Werberecht prüft, bevor die Zahnärztin oder der Zahnarzt es freigibt. Entwickelt von Bulsu Labs.",
     facts: [
@@ -115,11 +129,11 @@ export const ENTITY: Record<Locale, EntityFacts> = {
   },
   es: {
     meta: {
-      title: "Sobre DentVideo — qué es, para quién y cómo se revisa",
+      title: "¿Qué es DentVideo? La app de vídeos para dentistas",
       description:
         "DentVideo, de Bulsu Labs, crea vídeos educativos cortos y narrados para clínicas dentales en diez idiomas, revisados en precisión y publicidad sanitaria.",
     },
-    h1: "Sobre DentVideo",
+    h1: "¿Qué es DentVideo?",
     definition:
       "DentVideo es una aplicación web para clínicas dentales que crea vídeos cortos de educación al paciente —narrados, subtitulados y con los colores de la clínica— y revisa cada guion en precisión clínica y normas de publicidad sanitaria antes de que el dentista lo apruebe. La desarrolla Bulsu Labs.",
     facts: [
@@ -159,11 +173,11 @@ export const ENTITY: Record<Locale, EntityFacts> = {
   },
   tr: {
     meta: {
-      title: "DentVideo hakkında — nedir, kimin için, nasıl denetlenir",
+      title: "DentVideo nedir? Diş klinikleri için video uygulaması",
       description:
         "DentVideo, diş klinikleri için on dilde seslendirmeli hasta bilgilendirme videoları üretir; her video doğruluk ve tanıtım kurallarına göre denetlenir.",
     },
-    h1: "DentVideo hakkında",
+    h1: "DentVideo nedir?",
     definition:
       "DentVideo, diş klinikleri için kısa hasta bilgilendirme videoları üreten —seslendirilmiş, altyazılı ve kliniğin renklerinde— ve her senaryoyu diş hekimi onaylamadan önce klinik doğruluk ve sağlık tanıtım kurallarına göre denetleyen bir web uygulamasıdır. Bulsu Labs tarafından geliştirilir.",
     facts: [
@@ -203,11 +217,11 @@ export const ENTITY: Record<Locale, EntityFacts> = {
   },
   fr: {
     meta: {
-      title: "À propos de DentVideo — ce que c'est, pour qui, comment c'est vérifié",
+      title: "Qu'est-ce que DentVideo ? L'appli vidéo des dentistes",
       description:
         "DentVideo, de Bulsu Labs, crée de courtes vidéos d'information patient narrées pour cabinets dentaires en dix langues, vérifiées avant validation.",
     },
-    h1: "À propos de DentVideo",
+    h1: "Qu'est-ce que DentVideo ?",
     definition:
       "DentVideo est une application web pour cabinets dentaires qui crée de courtes vidéos d'information patient — narrées, sous-titrées et aux couleurs du cabinet — et vérifie chaque script pour l'exactitude clinique et les règles de communication en santé avant que le chirurgien-dentiste ne le valide. Elle est développée par Bulsu Labs.",
     facts: [
@@ -247,11 +261,11 @@ export const ENTITY: Record<Locale, EntityFacts> = {
   },
   ja: {
     meta: {
-      title: "DentVideoについて：サービスの内容、対象、チェックのしくみ",
+      title: "DentVideoとは？歯科医院向け動画アプリの概要",
       description:
         "DentVideoはBulsu Labsのウェブアプリ。歯科医院向けにナレーション付きの短い説明動画を10言語で制作し、臨床的な正確性と医療広告の観点からチェックします。",
     },
-    h1: "DentVideoについて",
+    h1: "DentVideoとは",
     definition:
       "DentVideoは、歯科医院のための患者さん向け説明動画を制作するウェブアプリです。ナレーションと字幕を付け、医院のカラーで仕上げた短い動画を作り、院長先生が承認する前に、すべての台本を臨床的な正確性と医療広告の観点からチェックします。提供はBulsu Labsです。",
     facts: [
@@ -291,11 +305,11 @@ export const ENTITY: Record<Locale, EntityFacts> = {
   },
   ar: {
     meta: {
-      title: "عن DentVideo: ما هو، ولمن، وكيف تتم المراجعة",
+      title: "ما هو DentVideo؟ تطبيق فيديو لعيادات الأسنان",
       description:
         "DentVideo من Bulsu Labs يُعدّ لعيادات الأسنان فيديوهات توعوية قصيرة بتعليق صوتي في عشر لغات، ويراجعها للدقة السريرية وضوابط الإعلان الصحي.",
     },
-    h1: "عن DentVideo",
+    h1: "ما هو DentVideo؟",
     definition:
       "DentVideo تطبيق ويب لعيادات الأسنان يُعدّ فيديوهات توعوية قصيرة للمرضى، بتعليق صوتي ونص على الشاشة وبألوان العيادة، ويراجع كل نص للدقة السريرية وضوابط الإعلان الصحي قبل أن يعتمده طبيب الأسنان. تطوّره Bulsu Labs.",
     facts: [
@@ -335,11 +349,11 @@ export const ENTITY: Record<Locale, EntityFacts> = {
   },
   pl: {
     meta: {
-      title: "O DentVideo: czym jest, dla kogo i jak działa kontrola",
+      title: "Czym jest DentVideo? Aplikacja wideo dla stomatologów",
       description:
         "DentVideo (Bulsu Labs) tworzy krótkie filmy edukacyjne z lektorem dla gabinetów stomatologicznych w 10 językach, sprawdzane klinicznie i pod kątem reklamy.",
     },
-    h1: "O DentVideo",
+    h1: "Czym jest DentVideo?",
     definition:
       "DentVideo to aplikacja internetowa dla gabinetów stomatologicznych, która tworzy krótkie filmy edukacyjne dla pacjentów, z lektorem, napisami i w kolorach gabinetu, i sprawdza każdy scenariusz pod kątem poprawności klinicznej i zasad reklamy medycznej, zanim zatwierdzi go lekarz dentysta. Tworzy ją Bulsu Labs.",
     facts: [
@@ -378,3 +392,65 @@ export const ENTITY: Record<Locale, EntityFacts> = {
     ],
   },
 };
+
+/**
+ * The questions people type next to the brand name ("DentVideo price",
+ * "DentVideo login", "DentVideo app", "DentVideo review"), answered on the
+ * About page in every language. No figures here: prices live only in the
+ * "Price" fact above. No testimonials, so the review answer says so plainly.
+ */
+const BRAND_FAQ: Record<Locale, Faq[]> = {
+  en: [
+    { q: "How much does DentVideo cost?", a: "DentVideo has monthly plans with no minimum term; the current prices are in the Price line above and in the pricing section of the homepage. Before paying, you see a live preview of your own branded videos." },
+    { q: "How do I sign in to DentVideo?", a: "Open dentvideo.com/start and choose “Sign in”, or tap “Open app” at the top of any page: if you are signed out, it takes you to the sign-in form. There is nothing to install." },
+    { q: "Is there a DentVideo mobile app?", a: "Not in the app stores yet. DentVideo is a web app that works in your phone's browser; on a phone, an approved video opens the share menu so you can post it to Instagram or TikTok." },
+    { q: "Where can I read reviews of DentVideo?", a: "DentVideo is new, and we do not publish testimonials, partly because many health-advertising rules restrict them. A fair way to judge it is to watch the sample videos on the homepage and the live preview of your own videos before you pay." },
+  ],
+  de: [
+    { q: "Was kostet DentVideo?", a: "DentVideo hat monatliche Tarife ohne Mindestlaufzeit; die aktuellen Preise stehen oben unter „Preis“ und im Preisbereich der Startseite. Vor der Zahlung sehen Sie eine Live-Vorschau Ihrer eigenen Videos." },
+    { q: "Wie melde ich mich bei DentVideo an?", a: "Öffnen Sie dentvideo.com/start und wählen Sie „Anmelden“, oder tippen Sie oben auf „Zur App“: Wenn Sie abgemeldet sind, landen Sie im Anmeldeformular. Installieren müssen Sie nichts." },
+    { q: "Gibt es eine DentVideo-App fürs Smartphone?", a: "Noch nicht in den App-Stores. DentVideo ist eine Web-App, die im Browser Ihres Smartphones läuft; dort öffnet ein freigegebenes Video das Teilen-Menü, sodass Sie es auf Instagram oder TikTok posten können." },
+    { q: "Wo finde ich Bewertungen zu DentVideo?", a: "DentVideo ist neu, und wir veröffentlichen keine Kundenstimmen — auch weil das Werberecht für Heilberufe sie oft einschränkt. Fair beurteilen können Sie es anhand der Beispielvideos auf der Startseite und der Live-Vorschau Ihrer eigenen Videos vor der Zahlung." },
+  ],
+  es: [
+    { q: "¿Cuánto cuesta DentVideo?", a: "DentVideo tiene planes mensuales sin permanencia; los precios actuales están en la línea «Precio» de arriba y en la sección de precios de la página principal. Antes de pagar ves una vista previa en directo de tus propios vídeos." },
+    { q: "¿Cómo inicio sesión en DentVideo?", a: "Abre dentvideo.com/start y elige «Inicia sesión», o pulsa «Abrir la app» arriba en cualquier página: si no has iniciado sesión, te lleva al formulario. No hay nada que instalar." },
+    { q: "¿Hay una app móvil de DentVideo?", a: "Todavía no en las tiendas de aplicaciones. DentVideo es una aplicación web que funciona en el navegador del móvil; allí, un vídeo aprobado abre el menú de compartir para publicarlo en Instagram o TikTok." },
+    { q: "¿Dónde puedo leer opiniones sobre DentVideo?", a: "DentVideo es nuevo y no publicamos testimonios, también porque muchas normas de publicidad sanitaria los restringen. Una forma justa de valorarlo son los vídeos de ejemplo de la página principal y la vista previa de tus propios vídeos antes de pagar." },
+  ],
+  tr: [
+    { q: "DentVideo'nun fiyatı ne kadar?", a: "DentVideo'nun taahhütsüz aylık planları vardır; güncel fiyatlar yukarıdaki “Ücret” satırında ve ana sayfanın fiyat bölümünde yer alır. Ödemeden önce kendi markalı videolarınızın canlı önizlemesini görürsünüz." },
+    { q: "DentVideo'ya nasıl giriş yaparım?", a: "dentvideo.com/start adresini açıp “Giriş yapın”ı seçin ya da herhangi bir sayfanın üstündeki “Uygulamayı aç”a dokunun: oturumunuz kapalıysa giriş formuna yönlendirilirsiniz. Bir şey yüklemeniz gerekmez." },
+    { q: "DentVideo'nun mobil uygulaması var mı?", a: "Henüz uygulama mağazalarında yok. DentVideo, telefonunuzun tarayıcısında çalışan bir web uygulamasıdır; telefonda onaylanan bir video paylaşım menüsünü açar, böylece Instagram veya TikTok'ta paylaşabilirsiniz." },
+    { q: "DentVideo hakkında yorumları nerede okuyabilirim?", a: "DentVideo yeni bir hizmettir ve kullanıcı yorumu yayımlamıyoruz; sağlıkta tanıtım kuralları da bunları çoğu zaman kısıtlar. Adil bir değerlendirme için ana sayfadaki örnek videolara ve ödeme öncesinde kendi videolarınızın canlı önizlemesine bakın." },
+  ],
+  fr: [
+    { q: "Combien coûte DentVideo ?", a: "DentVideo propose des formules mensuelles sans engagement ; les prix actuels figurent à la ligne « Prix » ci-dessus et dans la section tarifs de la page d'accueil. Avant de payer, vous voyez un aperçu en direct de vos propres vidéos." },
+    { q: "Comment me connecter à DentVideo ?", a: "Ouvrez dentvideo.com/start et choisissez « Connectez-vous », ou touchez « Ouvrir l'app » en haut de n'importe quelle page : si vous êtes déconnecté, vous arrivez sur le formulaire de connexion. Rien à installer." },
+    { q: "Existe-t-il une application mobile DentVideo ?", a: "Pas encore dans les stores. DentVideo est une application web qui fonctionne dans le navigateur du téléphone ; sur mobile, une vidéo validée ouvre le menu de partage pour la publier sur Instagram ou TikTok." },
+    { q: "Où lire des avis sur DentVideo ?", a: "DentVideo est récent et nous ne publions pas de témoignages, notamment parce que les règles de communication en santé les encadrent souvent. Pour vous faire une idée, regardez les vidéos d'exemple de la page d'accueil et l'aperçu de vos propres vidéos avant de payer." },
+  ],
+  ja: [
+    { q: "DentVideoの料金はいくらですか？", a: "最低契約期間のない月額プランです。現在の料金は上の「料金」欄とトップページの料金セクションに記載しています。お支払いの前に、貴院の動画のプレビューをご確認いただけます。" },
+    { q: "DentVideoにログインするには？", a: "dentvideo.com/start を開いて「ログイン」を選ぶか、各ページ上部の「アプリを開く」を押してください。ログインしていない場合はログイン画面に移動します。インストールは不要です。" },
+    { q: "DentVideoのスマホアプリはありますか？", a: "アプリストア版はまだありません。DentVideoはスマートフォンのブラウザで使えるWebアプリです。スマートフォンでは、承認した動画から共有メニューを開き、InstagramやTikTokに投稿できます。" },
+    { q: "DentVideoの口コミや評判はどこで見られますか？", a: "DentVideoは新しいサービスで、利用者の声は掲載していません。医療広告ガイドラインでも体験談の扱いには注意が必要です。トップページのサンプル動画と、お支払い前に確認できる貴院の動画プレビューでご判断ください。" },
+  ],
+  ar: [
+    { q: "كم تكلفة DentVideo؟", a: "لدى DentVideo خطط شهرية دون حد أدنى للمدة، والأسعار الحالية في سطر «السعر» أعلاه وفي قسم الأسعار بالصفحة الرئيسية. قبل الدفع ترون معاينة حية لفيديوهاتكم بعلامتكم." },
+    { q: "كيف أسجّل الدخول إلى DentVideo؟", a: "افتحوا dentvideo.com/start واختاروا «سجّلوا الدخول»، أو اضغطوا «افتحوا التطبيق» أعلى أي صفحة؛ إذا لم تكونوا مسجّلين ستنتقلون إلى نموذج الدخول. لا حاجة لتثبيت أي شيء." },
+    { q: "هل يوجد تطبيق DentVideo للهاتف؟", a: "ليس في متاجر التطبيقات بعد. DentVideo تطبيق ويب يعمل في متصفح الهاتف، وفيه يفتح الفيديو المعتمد قائمة المشاركة لنشره على Instagram أو TikTok." },
+    { q: "أين أقرأ تقييمات DentVideo؟", a: "DentVideo خدمة جديدة، ولا ننشر شهادات العملاء، ومن أسباب ذلك أن ضوابط الإعلان الصحي تقيّدها غالباً. والطريقة المنصفة للحكم عليه هي الفيديوهات النموذجية في الصفحة الرئيسية والمعاينة الحية لفيديوهاتكم قبل الدفع." },
+  ],
+  pl: [
+    { q: "Ile kosztuje DentVideo?", a: "DentVideo ma plany miesięczne bez minimalnego okresu umowy; aktualne ceny są w wierszu „Cena” powyżej i w sekcji cen na stronie głównej. Przed płatnością widzą Państwo podgląd na żywo własnych filmów." },
+    { q: "Jak zalogować się do DentVideo?", a: "Proszę otworzyć dentvideo.com/start i wybrać „Zaloguj się” albo kliknąć „Otwórz aplikację” u góry dowolnej strony: po wylogowaniu trafią Państwo do formularza logowania. Niczego nie trzeba instalować." },
+    { q: "Czy DentVideo ma aplikację mobilną?", a: "Jeszcze nie w sklepach z aplikacjami. DentVideo to aplikacja internetowa działająca w przeglądarce telefonu; tam zaakceptowany film otwiera menu udostępniania, więc można go opublikować na Instagramie lub TikToku." },
+    { q: "Gdzie przeczytać opinie o DentVideo?", a: "DentVideo jest nowe i nie publikujemy opinii klientów, również dlatego, że zasady reklamy medycznej często je ograniczają. Rzetelnie można je ocenić po przykładowych filmach na stronie głównej i podglądzie własnych filmów przed płatnością." },
+  ],
+};
+
+/** The facts per language, with the brand questions after the product questions. */
+export const ENTITY: Record<Locale, EntityFacts> = Object.fromEntries(
+  (Object.keys(BASE) as Locale[]).map((l) => [l, { ...BASE[l], faq: [...BASE[l].faq, ...BRAND_FAQ[l]] }]),
+) as Record<Locale, EntityFacts>;
