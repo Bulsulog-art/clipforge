@@ -49,7 +49,7 @@ export async function dispatchWeeks(db: SupabaseClient, queue: Pick<Queue, "add"
   const ids = clinicsToRun((clinics ?? []) as ClinicRow[]);
   const week = weekOf(now);
   for (const clinicId of ids) {
-    await queue.add("week", { clinicId, count: 5 }, { jobId: weekJobId(clinicId, week), ...WEEK_JOB_OPTS });
+    await queue.add("week", { clinicId, count: 5, week }, { jobId: weekJobId(clinicId, week), ...WEEK_JOB_OPTS });
   }
   if (store) await store.set(dispatchKey(week), JSON.stringify({ at: now.toISOString(), jobs: ids.length }), 8 * 86_400).catch(() => {});
   logger.info({ week, clinics: ids.length }, "dentvid: monday dispatch");

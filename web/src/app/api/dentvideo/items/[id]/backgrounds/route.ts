@@ -6,6 +6,7 @@ import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { cleanPhotoIds, MAX_PHOTOS, withBackgrounds } from "@/lib/dentvid/backgrounds";
+import { restyleStatus } from "@/lib/dentvid/restyle";
 
 // The clinic picks 1–4 library photos for one of its generated videos. They
 // go into the stored plan, and the worker re-renders the video with them
@@ -41,7 +42,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .eq("owner_id", user.id)
     .maybeSingle();
   if (!item || item.kind !== "generated" || !item.plan) return NextResponse.json({ error: err.invalidPhotos }, { status: 404 });
-  if (item.restyle_status === "queued") return NextResponse.json({ error: err.photosBusy }, { status: 409 });
+  // A re-render still queued after RESTYLE_STALE_MS is treated as failed: the clinic may try again.
+  if (restyleStatus(item.restyle_status, item.restyle_requested_at) === "queued") return NextResponse.json({ error: err.photosBusy }, { status: 409 });
 
   const { error } = await db
     .from("dentvid_items")

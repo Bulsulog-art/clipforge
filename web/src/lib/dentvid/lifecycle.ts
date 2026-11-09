@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
 import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS, dvBaseUrl, foundingCode, foundingOfferOpen } from "./billing";
-import { CONTACT_EMAIL, offerNudgeEmail, previewNudgeEmail, welcomeEmail, type OfferTerms, type Rendered } from "./lifecycle-email";
+import { CONTACT_EMAIL, offerNudgeEmail, paymentProblemEmail, previewNudgeEmail, welcomeEmail, type OfferTerms, type PaymentFix, type PaymentProblemKind, type Rendered } from "./lifecycle-email";
 import type { SendOptions } from "./email";
 import { unsubscribeSecret, unsubscribeToken } from "./unsubscribe-token";
 import { isEmailVerified } from "./verify-email";
@@ -306,6 +306,45 @@ export async function sendWelcome(deps: Omit<RunDeps, "allow">, clinicId: string
       return "failed";
     }
     return "sent";
+  } catch (e) {
+    if (e instanceof MissingSchemaError) {
+      warnOnce("schema", e.message);
+      return "migration missing";
+    }
+    throw e;
+  }
+}
+
+export type PaymentMailResult = WelcomeResult | "deduped";
+
+/**
+ * "Your payment didn't go through": to the clinic, in its language, on
+ * payment.failed / subscription.on_hold. Transactional (sent even after an
+ * unsubscribe from reminders). `claim` is a once-per-incident key (Redis
+ * SET NX); without a store it returns true and the email goes (a Dodo retry
+ * of the same event is already deduplicated by the webhook replay guard).
+ */
+export async function sendPaymentProblem(
+  deps: Omit<RunDeps, "allow"> & { claim: (key: string) => Promise<boolean> },
+  clinicId: string,
+  kind: PaymentProblemKind,
+  fix: PaymentFix,
+): Promise<PaymentMailResult> {
+  const { store, config: cfg } = deps;
+  if (!cfg.enabled) return "disabled";
+  try {
+    const clinic = await store.clinic(clinicId);
+    if (!clinic) return "no clinic";
+    const owner = await store.owner(clinic.owner_id);
+    if (!owner?.email) return "no email";
+    if (isTestEmail(owner.email)) return "test account";
+    if (!owner.verified) return "unverified";
+    if (!(await deps.claim(`dv:billmail:${clinic.id}:${kind}`))) return "deduped";
+    const { lang } = lifecycleText(clinic.profile?.language);
+    const msg = paymentProblemEmail({ language: lang, clinicName: clinic.profile?.name ?? "", kind, fix, appUrl: `${cfg.base}/app` });
+    const day = (deps.now ?? new Date()).toISOString().slice(0, 10);
+    const ok = await deps.send(owner.email, msg, { idempotencyKey: `dentvideo-payment-${kind}-${clinic.id}-${day}` });
+    return ok ? "sent" : "failed";
   } catch (e) {
     if (e instanceof MissingSchemaError) {
       warnOnce("schema", e.message);

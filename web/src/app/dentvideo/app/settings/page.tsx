@@ -7,7 +7,8 @@ import { appText } from "@/content/dentvideo-app";
 import { SettingsView } from "@/components/dentvid/app-screens";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
-import { DV_FOUNDING, dvAvailablePlans, foundingOfferOpen, foundingCode } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
+import { adminOrNull, foundingForApp, loadAppBillingPanel } from "@/lib/dentvid/billing-state";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { dodoApiKey } from "@/lib/dentvid/dodo-account";
 
@@ -25,6 +26,11 @@ export default async function Settings() {
   const profile = (clinic?.profile ?? undefined) as Partial<ClinicProfile> | undefined;
   const locale = await dvLocale(profile?.language);
   const [plan, logoUrl] = await Promise.all([clinic ? loadClinicPlan(db, clinic.id) : null, logoSignedUrl(db, clinic?.logo_path as string | null | undefined)]);
+  const admin = await adminOrNull();
+  const [panel, founding] = await Promise.all([
+    plan && !plan.canMake ? loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin) : null,
+    foundingForApp(admin),
+  ]);
   return (
     <SettingsView
       locale={locale}
@@ -33,7 +39,8 @@ export default async function Settings() {
       logoUrl={logoUrl}
       plan={plan}
       plans={dvAvailablePlans()}
-      founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}
+      founding={founding.open ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode(), ...(founding.reliable ? { left: founding.left } : {}) } : null}
+      billingIssue={panel && panel.kind !== "plans" ? panel : null}
       // Only whether a key exists reaches the page — never the key.
       selfServe={!!dodoApiKey()}
       accountEmail={user.email ?? null}

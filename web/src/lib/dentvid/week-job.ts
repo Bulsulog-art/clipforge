@@ -18,13 +18,20 @@ export const WEEK_VIDEOS = 5;
  */
 export const WEEK_JOB_OPTS = { attempts: 4, backoff: { type: "exponential" as const, delay: 120_000 } };
 
+/**
+ * The job's data. `week` is the Monday it is for: the worker stamps the
+ * videos with it rather than the day the job happens to run (a job queued
+ * Sunday night that runs on Monday still belongs to Sunday's week).
+ */
+export type WeekJobData = { clinicId: string; count: number; week: string };
+
 export function weekJobId(clinicId: string, week: string): string {
   return `week:${clinicId}:${week}`;
 }
 
 /** The slice of a BullMQ Queue this needs, so tests can pass a mock. */
 export type WeekQueue = {
-  add(name: string, data: { clinicId: string; count: number }, opts: Record<string, unknown>): Promise<unknown>;
+  add(name: string, data: WeekJobData, opts: Record<string, unknown>): Promise<unknown>;
 };
 
 export type FirstWeekResult = "queued" | "made";
@@ -45,6 +52,6 @@ export async function enqueueFirstWeek(db: SupabaseClient, queue: WeekQueue, cli
     .eq("week_of", week)
     .neq("status", "failed");
   if ((count ?? 0) > 0) return "made";
-  await queue.add("week", { clinicId, count: WEEK_VIDEOS }, { jobId: weekJobId(clinicId, week), ...WEEK_JOB_OPTS });
+  await queue.add("week", { clinicId, count: WEEK_VIDEOS, week }, { jobId: weekJobId(clinicId, week), ...WEEK_JOB_OPTS });
   return "queued";
 }

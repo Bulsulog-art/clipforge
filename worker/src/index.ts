@@ -8,12 +8,14 @@ import { runGenerate } from "./generate.js";
 import { configureSpend, countActiveClinics, dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
 import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
 import { RedisParkStore, resumeParked } from "./dentvid/park.js";
-import { dispatchWeeks, weekOf } from "./dentvid/schedule.js";
+import { dispatchWeeks } from "./dentvid/schedule.js";
 import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
 import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore } from "./dentvid/ops.js";
 import { alerts, cleanError, resendSender } from "./dentvid/ops-alert.js";
 import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
+import { dodoLookup, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
+import { jobWeek } from "./dentvid/jobs.js";
 import { generateConcurrency } from "./remotion/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -131,8 +133,23 @@ dentvidWorker.on("failed", (job, err) => {
     const clinicId = (job.data as { clinicId?: string }).clinicId ?? "unknown";
     void (async () =>
       ownerAlert(
-        alerts.weekFailed({ clinic: await clinicRef(dentvidDb(), clinicId), week: weekOf(), attempts: job.attemptsMade, error: cleanError(err), permanent: false }),
+        alerts.weekFailed({ clinic: await clinicRef(dentvidDb(), clinicId), week: jobWeek(job.data as { week?: string }), attempts: job.attemptsMade, error: cleanError(err), permanent: false }),
       ))().catch(() => {});
+  }
+  // A restyle that died outside its own error handling (stalled, killed): the card must not say "updating…" forever.
+  if (job?.name === "restyle" && job.attemptsMade >= (job.opts.attempts ?? 1)) {
+    const itemId = (job.data as { itemId?: string }).itemId;
+    if (itemId) {
+      void dentvidDb()
+        .from("dentvid_items")
+        .update({ restyle_status: "failed", updated_at: new Date().toISOString() })
+        .eq("id", itemId)
+        .eq("restyle_status", "queued")
+        .then(
+          () => {},
+          () => {},
+        );
+    }
   }
 });
 
@@ -146,6 +163,7 @@ const dentvidMailWorker = new Worker(
   async (job) => {
     if (job.name === "lifecycle") return await runLifecycle();
     if (job.name === "digest") return await runDigest();
+    if (job.name === "billing-reconcile") return await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), alert: ownerAlert });
     if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
       const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };
       return job.name === "watchdog-monday" ? await checkMondayDispatch(deps) : await checkFirstWeeks(deps);
@@ -164,6 +182,7 @@ if (process.env.DENTVID_SUPABASE_URL) {
     ["dentvid-watchdog-monday", WATCHDOG_SCHEDULE, "watchdog-monday"],
     ["dentvid-watchdog-first-week", FIRST_WEEK_SCHEDULE, "watchdog-first-week"],
     ["dentvid-digest", DIGEST_SCHEDULE, "digest"],
+    ["dentvid-billing-reconcile", RECONCILE_SCHEDULE, "billing-reconcile"],
   ] as const) {
     dentvidMailQueue
       .upsertJobScheduler(id, schedule, { name, data: {} })

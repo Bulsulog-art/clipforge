@@ -26,10 +26,17 @@ describe("photosFor (library card data)", () => {
   const plan = { title: "Zahnimplantat", scenes: [{ kind: "hook", text: "Ein Implantat aus Titan" }], backgrounds: ["/dentvideo/backgrounds/implants-07.jpg"] };
 
   it("uses stored suggestions, with the photos in use first", () => {
-    const p = photosFor({ kind: "generated", plan, suggested_backgrounds: ["implants-03", "implants-07", "bogus-01"], restyle_status: "queued" })!;
+    const p = photosFor({ kind: "generated", plan, suggested_backgrounds: ["implants-03", "implants-07", "bogus-01"], restyle_status: "queued", restyle_requested_at: new Date().toISOString() })!;
     expect(p.suggested).toEqual(["implants-07", "implants-03"]);
     expect(p.chosen).toEqual(["implants-07"]);
     expect(p.status).toBe("queued");
+  });
+
+  it("a re-render queued for more than 30 minutes shows as failed (the clinic can try again)", () => {
+    const old = new Date(Date.now() - 31 * 60_000).toISOString();
+    expect(photosFor({ kind: "generated", plan, restyle_status: "queued", restyle_requested_at: old })!.status).toBe("failed");
+    expect(photosFor({ kind: "generated", plan, restyle_status: "queued", restyle_requested_at: null })!.status).toBe("failed");
+    expect(photosFor({ kind: "generated", plan, restyle_status: null })!.status).toBeUndefined();
   });
 
   it("computes suggestions for videos made before there were any", () => {

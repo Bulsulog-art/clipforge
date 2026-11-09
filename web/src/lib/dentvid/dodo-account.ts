@@ -60,6 +60,19 @@ export function dodoGetSubscription(o: Opts, subscriptionId: string): Promise<Do
   return call<DodoSubscription>(o, "GET", `/subscriptions/${safeId(subscriptionId)}`);
 }
 
+export type DodoPayment = {
+  payment_id: string;
+  subscription_id?: string | null;
+  brand_id?: string | null;
+  metadata?: Record<string, unknown> | null;
+  product_cart?: { product_id: string; quantity?: number }[] | null;
+};
+
+/** One payment (refunds and disputes name only the payment: this finds whose it is). */
+export function dodoGetPayment(o: Opts, paymentId: string): Promise<DodoPayment> {
+  return call<DodoPayment>(o, "GET", `/payments/${safeId(paymentId)}`);
+}
+
 /** A one-time link to Dodo's hosted customer portal (cancel, card, invoices). */
 export async function dodoPortalLink(o: Opts, customerId: string, returnUrl: string): Promise<string> {
   const q = new URLSearchParams({ return_url: returnUrl });
