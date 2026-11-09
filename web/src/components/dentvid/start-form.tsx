@@ -162,7 +162,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
                 setError(null);
                 setNotice(null);
               }}
-              className="block w-full rounded-md text-center text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
+              className="flex min-h-11 w-full items-center justify-center rounded-md text-center text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
             >
               {a.forgot}
             </button>
@@ -176,7 +176,7 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
             setError(null);
             setNotice(null);
           }}
-          className="mx-auto mt-6 rounded-md text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
+          className="mx-auto mt-4 inline-flex min-h-11 items-center rounded-md px-1 text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
         >
           {mode === "signup" ? t.toSignin : mode === "forgot" ? a.backToSignIn : t.toSignup}
         </button>

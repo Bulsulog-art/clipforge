@@ -109,7 +109,7 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:h-[4.5rem] sm:px-6">
-        <Link href={dvHref(home)} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
+        <Link href={dvHref(home)} className="-m-1 inline-flex min-h-11 shrink-0 items-center rounded-lg p-1" aria-label="DentVideo">
           <DvLogo className="h-7 w-auto sm:h-8" />
         </Link>
         {!quiet && (
@@ -357,7 +357,7 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
   return (
     <header lang={locale} dir={dirOf(locale)} className="sticky top-0 z-40 border-b border-dv-line/80 bg-dv-paper/90 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:h-16 sm:px-6">
-        <Link href={dvHref("/dentvideo/app")} className="-m-1 shrink-0 rounded-lg p-1" aria-label="DentVideo">
+        <Link href={dvHref("/dentvideo/app")} className="-m-1 inline-flex min-h-11 shrink-0 items-center rounded-lg p-1" aria-label="DentVideo">
           <DvLogo className="h-7 w-auto" />
         </Link>
         <nav aria-label={t.appNav} className={`hidden items-center gap-1 rounded-full bg-white/70 p-1 ring-1 ring-dv-line md:flex ${hide}`}>

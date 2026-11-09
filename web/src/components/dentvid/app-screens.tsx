@@ -112,9 +112,12 @@ export function SettingsView({
   founding,
   selfServe = false,
   initialDialog = null,
+  accountEmail = null,
 }: {
   locale: Locale;
   profile?: Partial<ClinicProfile>;
+  /** The login's address (the delete dialog accepts it when the clinic has no name). */
+  accountEmail?: string | null;
   logoPath?: string | null;
   logoUrl?: string | null;
   plan: ClinicPlan | null;
@@ -172,7 +175,7 @@ export function SettingsView({
           <AccountPanel part="billing" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} />
         </section>
       )}
-      <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} initialDialog={initialDialog} />
+      <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} accountEmail={accountEmail} initialDialog={initialDialog} />
     </main>
   );
 }

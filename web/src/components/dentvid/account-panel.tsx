@@ -7,7 +7,7 @@ import { appText, fmt } from "@/content/dentvideo-app";
 import { accountText } from "@/content/dentvideo-account";
 import { dvHref } from "@/lib/dentvid/host";
 import { dvBrowser } from "@/lib/dentvid/supabase";
-import { mailtoHref } from "@/lib/dentvid/app-ui";
+import { deleteConfirmOk, deletePhrase, mailtoHref } from "@/lib/dentvid/app-ui";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
 import type { DvTier } from "@/lib/dentvid/billing";
 import { usd, type PlanOption } from "./plan-panel";
@@ -22,8 +22,6 @@ import { usd, type PlanOption } from "./plan-panel";
  * clinic; nothing here carries a key or an id.
  */
 
-/** The same comparison the server makes (lib/dentvid/account.ts confirmMatches). */
-const norm = (s: string) => s.normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase();
 const isolate = (s: string) => `⁨${s}⁩`;
 
 async function postJson(
@@ -60,7 +58,23 @@ function ErrorLine({ msg }: { msg: string | null }) {
  * A modal built on <dialog>.showModal(): focus is trapped and Escape closes it
  * natively; focus returns to the button that opened it.
  */
-function Modal({ open, onClose, labelledBy, describedBy, children }: { open: boolean; onClose: () => void; labelledBy: string; describedBy: string; children: React.ReactNode }) {
+function Modal({
+  open,
+  onClose,
+  onClosed,
+  labelledBy,
+  describedBy,
+  children,
+}: {
+  open: boolean;
+  /** Escape or a click on the backdrop: may be refused (while a request runs). */
+  onClose: () => void;
+  /** The dialog has closed (by the browser too): the state must follow. */
+  onClosed: () => void;
+  labelledBy: string;
+  describedBy: string;
+  children: React.ReactNode;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<Element | null>(null);
   useEffect(() => {
@@ -83,6 +97,11 @@ function Modal({ open, onClose, labelledBy, describedBy, children }: { open: boo
         e.preventDefault();
         onClose();
       }}
+      // Chrome closes a dialog on a second Escape even when cancel is prevented
+      // (close watchers): follow it, or the opener could not open it again.
+      onClose={() => {
+        if (open) onClosed();
+      }}
       onClick={(e) => {
         // A click on the backdrop (the dialog element itself, outside the panel) closes it.
         if (e.target === ref.current) onClose();
@@ -100,6 +119,7 @@ export function AccountPanel({
   plan,
   plans,
   clinicName,
+  accountEmail = null,
   initialDialog = null,
   part,
 }: {
@@ -111,6 +131,8 @@ export function AccountPanel({
   plan: ClinicPlan | null;
   plans: PlanOption[];
   clinicName: string;
+  /** The login's address: what to type when the clinic has no name (as the server allows). */
+  accountEmail?: string | null;
   /** Dev preview only: open the delete dialog on load. */
   initialDialog?: "delete" | null;
 }) {
@@ -209,7 +231,8 @@ export function AccountPanel({
   const [delBusy, setDelBusy] = useState(false);
   const [delError, setDelError] = useState<string | null>(null);
   const blockedBySub = paying && !selfServe;
-  const matches = norm(typed).length > 0 && norm(typed) === norm(clinicName);
+  const phrase = deletePhrase(clinicName, accountEmail);
+  const matches = deleteConfirmOk(typed, clinicName, accountEmail);
   async function deleteAccount(e: React.FormEvent) {
     e.preventDefault();
     if (!matches || blockedBySub) return;
@@ -299,7 +322,7 @@ export function AccountPanel({
           </div>
         )}
 
-        <Modal open={!!target} onClose={() => !changeBusy && setTarget(null)} labelledBy={ids.chg} describedBy={ids.chgBody}>
+        <Modal open={!!target} onClose={() => !changeBusy && setTarget(null)} onClosed={() => setTarget(null)} labelledBy={ids.chg} describedBy={ids.chgBody}>
           {target && (
             <>
               <h2 id={ids.chg} className="text-xl font-semibold text-dv-ink">
@@ -369,7 +392,7 @@ export function AccountPanel({
         </div>
       </section>
 
-      <Modal open={delOpen} onClose={() => !delBusy && setDelOpen(false)} labelledBy={ids.del} describedBy={ids.delBody}>
+      <Modal open={delOpen} onClose={() => !delBusy && setDelOpen(false)} onClosed={() => setDelOpen(false)} labelledBy={ids.del} describedBy={ids.delBody}>
         <form onSubmit={deleteAccount}>
           <h2 id={ids.del} className="text-xl font-semibold text-dv-ink">
             {t.deleteDialogTitle}
@@ -387,7 +410,7 @@ export function AccountPanel({
               <button type="button" onClick={() => setDelOpen(false)} className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm">
                 {t.back}
               </button>
-              <a href={mailtoHref(t.deleteSubject, `${text.form.clinicName}: ${clinicName}\n\n`)} className="dv-btn dv-btn-primary px-5 py-2.5 text-sm">
+              <a href={mailtoHref(t.deleteSubject, `${text.form.clinicName}: ${phrase}\n\n`)} className="dv-btn dv-btn-primary px-5 py-2.5 text-sm">
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 {t.emailUs}
               </a>
@@ -396,7 +419,7 @@ export function AccountPanel({
             <>
               <label htmlFor={ids.input} className="mt-5 block text-sm font-medium text-dv-ink">
                 {labelBefore}
-                <bdi className="font-semibold">{clinicName}</bdi>
+                <bdi className="font-semibold">{phrase}</bdi>
                 {labelAfter}
               </label>
               <input

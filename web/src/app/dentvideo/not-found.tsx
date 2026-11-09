@@ -40,7 +40,7 @@ export default function DentVideoNotFound() {
                   href={dvHref(LANDING_PATH[l])}
                   hrefLang={l}
                   lang={l}
-                  className="dv-chip inline-flex rounded-full bg-white px-3.5 py-1.5 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge"
+                  className="dv-chip inline-flex min-h-11 items-center rounded-full bg-white px-4 py-1.5 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge"
                 >
                   {LANGUAGE_NAME[l]}
                 </Link>
