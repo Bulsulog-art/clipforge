@@ -613,7 +613,7 @@ export const GUIDES_ES: Guide[] = [
         heading: "El modelo mixto: realista para muchas clínicas",
         paragraphs: [
           "Para muchas clínicas, lo que más dura es un modelo mixto: los vídeos educativos regulares salen de una herramienta o de fuera, el dentista añade una o dos veces al mes una grabación corta propia y el equipo publica y responde. La cuenta se mantiene activa, suena a tu clínica y nadie vive con la presión semanal. Los temas, en [ideas de contenido para Instagram](guide:ideas-contenido-instagram-clinica-dental).",
-          "[DentVideo](landing:) es un software para la parte de contenido: crea cinco vídeos educativos cortos por semana, revisa cada guion en precisión clínica y publicidad sanitaria y corta tus grabaciones en clips subtitulados. Publicar y responder sigue siendo cosa tuya o de tu agencia: DentVideo no publica nada por sí mismo. [Mira una vista previa con tu logo antes de pagar](start:).",
+          "[DentVideo](landing:) es un software para la parte de contenido: crea cinco vídeos educativos cortos por semana, revisa cada guion en precisión clínica y publicidad sanitaria y corta tus grabaciones en clips subtitulados. Publicar y responder sigue siendo cosa tuya o de tu agencia: DentVideo no publica nada por sí mismo. [Mira una vista previa con tu logo antes de pagar](start:). Tienes una tabla con todas las opciones en [cómo se compara DentVideo con una agencia, Canva y ChatGPT](video:dentvideo-agencia-canva-chatgpt).",
         ],
       },
     ],

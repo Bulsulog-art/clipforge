@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { deliveryWeek } from "./week";
 import { FIRST_WEEK_JOB_OPTS, WEEK_RETRY, type WeekJobData } from "./job-options";
 
+export type { WeekJobData };
+
 /**
  * The "week" job on the BullMQ `dentvid` queue — one place for its id and
  * options, shared by the "make this week" button (api/dentvideo/week), the

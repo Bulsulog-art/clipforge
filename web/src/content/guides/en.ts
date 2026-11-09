@@ -779,7 +779,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "The mixed model most practices settle on",
         paragraphs: [
           "For many practices, what lasts is a mix: regular education videos come from a tool or an outside provider, the dentist adds a short recording of their own once or twice a month, and the team posts and replies. The account stays active, sounds like the practice and nobody is under weekly pressure. Topics in [dental social media post ideas](guide:dental-social-media-post-ideas); filming tips in [Instagram videos for dentists](guide:instagram-videos-for-dentists).",
-          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency — DentVideo does not publish anything itself. [See a live preview with your logo before you pay](start:).",
+          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency — DentVideo does not publish anything itself. [See a live preview with your logo before you pay](start:). For a side-by-side table, see [how DentVideo compares with an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
         ],
       },
     ],

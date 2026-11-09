@@ -2,6 +2,41 @@
 
 One entry per growth change: what shipped, why, what to watch. Newest first.
 
+## 2026-11-09 — Owning "DentVideo" and the dental-video searches we can win
+
+**Why.** The owner wants DentVideo first when people type "dent…/dental…". Google Suggest (≈130 seeds, 8 markets)
+shows the head terms are patient searches (*dentist near me, dental insurance, dentolo, dentista…*) — not winnable or
+useful. "dentvideo" has no suggestions and no strong incumbent, so the brand is ours to take; "dent video" (two words)
+is shared with car dent-repair videos. Commercial demand exists for AI/patient/clinic video phrasings in every market.
+Full map and outlook: `docs/SEO_PLAN.md` §9.
+
+**What shipped** (branch `claude/seo-own-dental-video`)
+
+- 12 commercial pages at `/videos/<slug>`, one product page per language + a fair comparison (DentVideo vs agency vs
+  Canva vs ChatGPT) in en/de/es/tr, each with the three real sample videos, the checks, "what DentVideo does not do",
+  FAQ and links to its guides:
+  `/videos/ai-dental-video-maker`, `/videos/dentvideo-vs-agency-canva-chatgpt`, `/videos/zahnarztpraxis-videos-ki`,
+  `/videos/dentvideo-agentur-canva-chatgpt`, `/videos/videos-dentales-con-ia`, `/videos/dentvideo-agencia-canva-chatgpt`,
+  `/videos/dis-klinigi-sosyal-medya-videolari`, `/videos/dentvideo-ajans-canva-chatgpt`,
+  `/videos/videos-traitements-cabinet-dentaire`, `/videos/shika-kanja-setsumei-doga`,
+  `/videos/fidyohat-iyadat-al-asnan`, `/videos/filmy-marketing-stomatologiczny`.
+- Brand entity: WebSite node (name DentVideo, alternateName "Dent Video") and one SoftwareApplication/Organization
+  `@id` across landings, About, guides and the new pages; About pages retitled "What is DentVideo? …" in 8 languages
+  with brand FAQ (price → pricing, sign-in, mobile app, reviews — honest: none yet); `SAME_AS` ready but empty.
+- Internal links: every guide shows a descriptive link to its language's product page (agency/tool guides: the
+  comparison, also linked inline); hubs, About pages and the footer link the commercial pages; footer "Sign in" link.
+- Sitemap, hreflang (per page kind), llms.txt and llms-full.txt include the new pages. No new client JS: pages are
+  server-rendered, videos `preload="none"`, the footer gets only paths and labels.
+- Tests: `web/src/content/solutions/solutions.test.ts` (lengths, compliance words, prices, links, hreflang
+  reciprocity, sitemap, JSON-LD, llms, header language) + no-free-trial scan of the new copy.
+
+**Watch**
+
+- GSC: position for "DentVideo" (target 1 within weeks of indexing), impressions per `/videos/…` page and query (§9.3).
+- Native review before promoting ja/ar/pl pages; refresh the reviews FAQ once G2/Capterra/OMR reviews exist.
+- Off-site (owner): `NEXT_PUBLIC_DENTVIDEO_URL`, GSC + Bing, IndexNow, LinkedIn/Crunchbase/Product Hunt/G2 profiles
+  (then fill `SAME_AS`), trade-press links to the `/videos/…` pages. No Google Business Profile (not eligible).
+
 ## 2026-11-09 — First native guides for Japanese, Arabic and Polish; their guides hubs go live
 
 **What shipped** (branch `claude/growth-ja-ar-pl`)

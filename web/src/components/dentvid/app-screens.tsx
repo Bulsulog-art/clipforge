@@ -10,6 +10,7 @@ import { Library, type LibraryItem } from "./library";
 import { RememberLocale } from "./chrome";
 import { FirstWeek } from "./first-week";
 import { PlanPanel, PlanStatus, type PlanOption } from "./plan-panel";
+import { BillingIssuePanel, type BillingIssue } from "./billing-issue";
 import { ClinicForm } from "./clinic-form";
 import { AccountPanel } from "./account-panel";
 import { RecordUpload } from "./record-upload";
@@ -21,7 +22,7 @@ import { RecordUpload } from "./record-upload";
  * fake data, so what is reviewed there is what clinics see.
  */
 
-type Founding = { priceUsd: number; code?: string } | null;
+type Founding = { priceUsd: number; code?: string; left?: number } | null;
 
 const MAIN = "mx-auto px-4 pb-20 pt-6 sm:px-6 sm:pt-10";
 
@@ -38,6 +39,7 @@ export function AppHomeView({
   currentWeek,
   pollMs,
   weekDelay = null,
+  billingIssue = null,
 }: {
   locale: Locale;
   clinicName?: string;
@@ -53,6 +55,8 @@ export function AppHomeView({
   pollMs?: number;
   /** This week's run is being retried / is delayed (lib/dentvid/ops-server readWeekDelay). */
   weekDelay?: "retrying" | "delayed" | null;
+  /** Instead of the plan picker: update the card / payment being confirmed / cancelled but paid up (lib/dentvid/billing-state). */
+  billingIssue?: BillingIssue | null;
 }) {
   const text = appText(locale);
   const t = text.home;
@@ -83,7 +87,11 @@ export function AppHomeView({
           </header>
           {!plan.canMake && !firstWeek && (
             <div className="mt-8">
-              <PlanPanel locale={locale} state={plan.plan} options={plans} founding={founding} keepVideos={items.length > 0} />
+              {billingIssue ? (
+                <BillingIssuePanel locale={locale} issue={billingIssue} clinicName={clinicName} keepVideos={items.length > 0} />
+              ) : (
+                <PlanPanel locale={locale} state={plan.plan} options={plans} founding={founding} keepVideos={items.length > 0} />
+              )}
             </div>
           )}
           <div className="mt-8">
@@ -113,6 +121,7 @@ export function SettingsView({
   selfServe = false,
   initialDialog = null,
   accountEmail = null,
+  billingIssue = null,
 }: {
   locale: Locale;
   profile?: Partial<ClinicProfile>;
@@ -127,6 +136,8 @@ export function SettingsView({
   selfServe?: boolean;
   /** Dev preview only: open the delete dialog on load. */
   initialDialog?: "delete" | null;
+  /** Instead of the plan picker: update the card / payment being confirmed / cancelled but paid up. */
+  billingIssue?: BillingIssue | null;
 }) {
   const text = appText(locale);
   const t = text.settings;
@@ -156,7 +167,11 @@ export function SettingsView({
           )}
           {!plan.canMake && (
             <div className="mt-6">
-              <PlanPanel locale={locale} state={plan.plan} options={plans} founding={founding} />
+              {billingIssue ? (
+                <BillingIssuePanel locale={locale} issue={billingIssue} clinicName={profile?.name} />
+              ) : (
+                <PlanPanel locale={locale} state={plan.plan} options={plans} founding={founding} />
+              )}
             </div>
           )}
           {!selfServe && plan.plan !== "trial" && plan.plan !== "cancelled" && (

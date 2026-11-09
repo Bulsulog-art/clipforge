@@ -190,6 +190,16 @@ describe("first-week watchdog (every 15 min)", () => {
     expect(raised).toEqual([]);
   });
 
+  it("a returning clinic that already has this week's videos counts as delivered: no second week, no alert", async () => {
+    const { q, added } = fakeQueue({ "week:new:2026-11-09": "completed" });
+    const weekMade = vi.fn(async (ids: string[], week: string) => new Set(week === "2026-11-09" ? ids : []));
+    const r = await checkFirstWeeks({ db: fakeDb({ firstPayments: payments, weekMade }), queue: q, store, alert, now: plus(130), env: {} });
+    expect(r.requeued).toEqual([]);
+    expect(added).toEqual([]);
+    expect(raised).toEqual([]);
+    expect(weekMade).toHaveBeenCalledWith(["new"], "2026-11-09");
+  });
+
   it("also finds payments from the web app's Redis markers when the events table missed one", async () => {
     await store.push(PAID_LIST_KEY, JSON.stringify({ clinicId: "redis-only", paidAt: PAID }), 1, 100);
     const { q, added } = fakeQueue();

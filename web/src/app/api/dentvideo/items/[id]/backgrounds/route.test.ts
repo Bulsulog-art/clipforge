@@ -90,9 +90,15 @@ describe("POST /api/dentvideo/items/[id]/backgrounds", () => {
   });
 
   it("does not queue twice while an update is running", async () => {
-    session.item = { ...session.item!, restyle_status: "queued" };
+    session.item = { ...session.item!, restyle_status: "queued", restyle_requested_at: new Date().toISOString() };
     expect((await call({ backgrounds: ["implants-03"] })).status).toBe(409);
     expect(added).toHaveLength(0);
+  });
+
+  it("a re-render stuck in the queue for over 30 minutes no longer blocks a retry", async () => {
+    session.item = { ...session.item!, restyle_status: "queued", restyle_requested_at: new Date(Date.now() - 31 * 60_000).toISOString() };
+    expect((await call({ backgrounds: ["implants-03"] })).status).toBe(200);
+    expect(added).toHaveLength(1);
   });
 
   it("marks the update failed when the queue is down", async () => {

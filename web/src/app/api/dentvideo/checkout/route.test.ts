@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_TEXT } from "@/content/dentvideo-app";
 import { VERIFY_COPY } from "@/content/dentvideo-auth";
+import { BILLING_COPY } from "@/content/dentvideo-billing";
 
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
@@ -92,12 +93,49 @@ describe("POST /api/dentvideo/checkout", () => {
     });
   });
 
-  it("opens at list price when Dodo refuses the founding code", async () => {
+  it("never charges list price silently when Dodo refuses the founding code: says the offer is full", async () => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ message: "discount usage limit reached" }), { status: 422 })).mockResolvedValueOnce(ok());
     const res = await call({ plan: "practice", interval: "month" });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe("founding_full");
+    expect(String(res.body.error)).toMatch(/^Das Gründungsangebot .* 99\s\$\/Monat/);
     expect(sent(0).discount_codes).toEqual(["KURUCU100"]);
-    expect(sent(1).discount_codes).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a second subscription while the clinic's current one is on hold: update the card instead", async () => {
+    session.clinic = { ...session.clinic, plan: "paused", dodo_subscription_id: "sub_old" };
+    // Dodo (API key set) says the subscription is on hold.
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ subscription_id: "sub_old", status: "on_hold" }), { status: 200 }));
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe("payment_update");
+    expect(String(res.body.error)).toContain("Plan und Abrechnung");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/subscriptions\/sub_old$/);
+  });
+
+  it("refuses while Dodo says the subscription is active but our webhook has not landed (pending)", async () => {
+    session.clinic = { ...session.clinic, plan: "trial", dodo_subscription_id: "sub_new" };
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ subscription_id: "sub_new", status: "active" }), { status: 200 }));
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res).toMatchObject({ status: 409, body: { code: "pending", error: BILLING_COPY.de.refuse.pending } });
+  });
+
+  it("lets a clinic whose old subscription has ended buy again", async () => {
+    session.clinic = { ...session.clinic, plan: "paused", dodo_subscription_id: "sub_old" };
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ subscription_id: "sub_old", status: "failed" }), { status: 200 })).mockResolvedValueOnce(ok());
+    expect((await call({ plan: "practice", interval: "month" })).status).toBe(200);
+  });
+
+  it("without an API key or ledger, a paused clinic with a subscription is sent to the email path", async () => {
+    vi.stubEnv("DODO_API_KEY", "");
+    session.clinic = { ...session.clinic, plan: "paused", dodo_subscription_id: "sub_old" };
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe("payment_update");
+    expect(String(res.body.error)).toContain("hello@dentvideo.com");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("says so when a typed code is refused, without retrying", async () => {

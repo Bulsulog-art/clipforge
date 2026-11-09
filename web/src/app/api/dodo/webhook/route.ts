@@ -7,7 +7,7 @@ import {
   topupCredits,
 } from "@/lib/dodo";
 import { isDentvideoEvent } from "@/lib/dentvid/billing";
-import { alertWebhookFailure, handleDentvideoEvent } from "@/lib/dentvid/billing-webhook";
+import { alertWebhookFailure, handleDentvideoEvent, isDentvideoMoneyBackEvent } from "@/lib/dentvid/billing-webhook";
 import { noteWebhookSignatureFailure } from "@/lib/dentvid/ops-server";
 import { dvAdmin } from "@/lib/dentvid/supabase";
 import { claimWebhook, settleWebhook } from "@/lib/webhook-replay";
@@ -51,6 +51,14 @@ type DodoEvent = { type: string; data: DodoData };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const MAX_BODY = 256 * 1024;
+
+function dvAdminOrNull() {
+  try {
+    return dvAdmin();
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(req: Request) {
   const ip = clientIp(req.headers);
@@ -102,7 +110,8 @@ async function handle(body: string): Promise<NextResponse> {
   }
   const d = evt.data ?? {};
 
-  if (isDentvideoEvent(d)) {
+  // Refunds and disputes carry only a payment id: DentVideo claims them when the payment is one of its own.
+  if (isDentvideoEvent(d) || (/^(refund|dispute)\./.test(evt.type ?? "") && (await isDentvideoMoneyBackEvent(evt, dvAdminOrNull())))) {
     let db;
     try {
       db = dvAdmin();

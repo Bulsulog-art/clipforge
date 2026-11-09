@@ -9,6 +9,8 @@ import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, GuideCta, HtmlLang, RichText, formatDate } from "@/components/dentvid/guide-parts";
 import { GuideScriptFont } from "@/components/dentvid/font-guide";
+import { CommercialLinks } from "@/components/dentvid/solution-page";
+import { commercialPageForGuide } from "@/content/solutions";
 
 // Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
 // inside the header and footer rather than Next's bare default.
@@ -35,6 +37,8 @@ export default async function GuidePage({ params }: Props) {
   const related = relatedGuides(g);
   const translations = translationsOf(g).filter((o) => o.slug !== g.slug);
   const date = g.updated ?? g.published;
+  // The commercial page this guide's reader most likely wants next (descriptive anchor, same language).
+  const commercial = commercialPageForGuide(g);
 
   return (
     <main lang={L} dir={dirOf(L)}>
@@ -128,6 +132,12 @@ export default async function GuidePage({ params }: Props) {
               ))}
             </section>
           ))}
+
+          {commercial && (
+            <div className="mt-14">
+              <CommercialLinks locale={L} pages={[commercial]} />
+            </div>
+          )}
 
           <div className="mt-16">
             <GuideCta locale={L} />

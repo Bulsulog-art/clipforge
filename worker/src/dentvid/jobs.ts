@@ -28,6 +28,7 @@ import type { LogoStyle } from "../remotion/logo-style.js";
 import { UnrecoverableError } from "bullmq";
 import { alertRefusal, sendOwnerAlert, SpendGuard, type AlertSender, type RefusalReason, type SpendOp } from "./spend-guard.js";
 import type { ParkStore } from "./park.js";
+import { probeDuration } from "../lib/media-input.js";
 
 /**
  * DentVideo jobs. The product's data lives on Liman (self-hosted Supabase):
@@ -122,10 +123,24 @@ export async function countActiveClinics(): Promise<number> {
  * dispatch (schedule.ts) rather than by someone waiting for it.
  */
 export type WeekJob = { clinicId: string; count?: number; week?: string; batch?: boolean };
+
+/** The week a job is for: its own `week` when valid, else the current one. */
+export function jobWeek(job: Pick<WeekJob, "week">, now = new Date()): string {
+  return validWeek(job.week) ?? weekOf(now);
+}
+
 /** Re-render one generated video after the clinic picked new background photos. */
 export type RestyleJob = { itemId: string };
 export type RecordingJob = { clinicId: string; sourcePath: string };
 
+/** Logo uploads the worker will read: the storage key's extension decides the local file name. */
+const LOGO_EXT = /\.(png|jpe?g|webp)$/i;
+
+/**
+ * The clinic, its validated profile and — only from the storage object at
+ * the owner's logo key — a local logo file inside `workDir`. Nothing in the
+ * profile can point the renderers at a file or URL (dental/profile.ts).
+ */
 async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string) {
   const { data, error } = await db
     .from("dentvid_clinics")
@@ -134,20 +149,23 @@ async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string)
     .single();
   if (error || !data) throw new Error(`clinic ${clinicId} not found: ${error?.message ?? ""}`);
   const profile: ClinicProfile = clinicProfileSchema.parse(data.profile);
-  if (data.logo_path && !ownedKey(data.logo_path, data.owner_id as string)) {
-    logger.warn({ clinicId }, "dentvid: logo_path outside the owner's folder ignored");
-  } else if (data.logo_path) {
-    const local = path.join(workDir, `logo${path.extname(data.logo_path) || ".png"}`);
-    const { data: blob } = await db.storage.from(BUCKET).download(data.logo_path);
+  const ownerId = data.owner_id as string;
+  let logoPath: string | undefined;
+  const key = data.logo_path as string | null;
+  if (key && (!ownedKey(key, ownerId) || !key.startsWith(`${ownerId}/logo.`) || !LOGO_EXT.test(key))) {
+    logger.warn({ clinicId }, "dentvid: logo_path is not the owner's logo key; ignored");
+  } else if (key) {
+    const { data: blob } = await db.storage.from(BUCKET).download(key);
     if (blob && blob.size > MAX_LOGO_BYTES) {
       logger.warn({ clinicId, bytes: blob.size }, "dentvid: logo too large, ignored");
     } else if (blob) {
+      const local = path.join(workDir, `logo${path.extname(key).toLowerCase()}`);
       await fs.writeFile(local, Buffer.from(await blob.arrayBuffer()));
-      profile.logo = local;
+      logoPath = local;
     }
   }
-  const logoStyle = profile.logo ? await brandWithLogo(profile, clinicId) : undefined;
-  return { ownerId: data.owner_id as string, profile, logoStyle };
+  const logoStyle = logoPath ? await brandWithLogo(profile, logoPath, clinicId) : undefined;
+  return { ownerId, profile, logoPath, logoStyle };
 }
 
 /**
@@ -155,9 +173,9 @@ async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string)
  * left empty and supply the accent; its shape and brightness decide how it
  * is drawn. A logo that cannot be read costs nothing but the defaults.
  */
-async function brandWithLogo(profile: ClinicProfile, clinicId: string): Promise<LogoStyle | undefined> {
+async function brandWithLogo(profile: ClinicProfile, logoPath: string, clinicId: string): Promise<LogoStyle | undefined> {
   try {
-    const analysis = await analyseLogo(profile.logo!);
+    const analysis = await analyseLogo(logoPath);
     const brand = brandFromLogo(profile.brandColor, analysis);
     if (brand.brandColor) profile.brandColor = brand.brandColor;
     if (brand.brandAccent) profile.brandAccent = brand.brandAccent;
@@ -179,12 +197,8 @@ async function upload(db: SupabaseClient, key: string, file: string, contentType
   if (error) throw new Error(`upload ${key}: ${error.message}`);
 }
 
-/** Media duration in seconds via ffprobe; NaN when unreadable (treated as too long). */
-function durationSec(file: string): Promise<number> {
-  return new Promise((resolve) =>
-    ffmpeg.ffprobe(file, (err, meta) => resolve(err ? Number.NaN : Number(meta?.format?.duration ?? Number.NaN))),
-  );
-}
+/** Duration of an uploaded recording; NaN unless it is a plain local MP4/MOV/WebM/Matroska file (lib/media-input.ts). */
+const durationSec = (file: string) => probeDuration(file, "video");
 
 function frameAt(video: string, out: string, atSec: number): Promise<string> {
   return new Promise((resolve, reject) =>
@@ -251,7 +265,7 @@ const usableRow = (r: ItemRow) => (r.status === "ready" || r.status === "flagged
  * attempt failed it says "delayed, we're on it" and the owner gets one email.
  */
 export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<WeekResult> {
-  const week = validWeek(job.week) ?? weekOf();
+  const week = jobWeek(job);
   const last = isLastAttempt(ctx.attemptsMade ?? 0, ctx.attempts ?? 1);
   try {
     const result = await makeWeek(job, ctx, week);
@@ -300,7 +314,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
   await reserveOrPark("week", { ...job }, ctx.jobId);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
-    const { ownerId, profile, logoStyle } = await loadClinic(db, job.clinicId, workDir);
+    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, job.clinicId, workDir);
     const { data: past } = await db.from("dentvid_items").select("title").eq("clinic_id", job.clinicId).limit(200);
     const want = job.count ?? 5;
     const ids = { clinicId: job.clinicId, ownerId };
@@ -328,7 +342,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
               outputPath: path.join(dir, "video.mp4"),
               pexelsApiKey: process.env.PEXELS_API_KEY,
               concurrency: renderConcurrency(),
-              logoSrc: profile.logo,
+              logoSrc: logoPath,
               logoStyle,
             });
             return res.outputPath;
@@ -382,8 +396,9 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
       throw new TransientWeekError(`zero usable videos (${technical.length} technical failures; last: ${technical.at(-1)!.error})`);
     }
 
-    // Stamped with the week they are for (the column's default is the week of the insert).
-    await insert(db, rows.map((r) => ({ ...r, week_of: week })));
+    // Stamped with the week the job was queued for, not the day it happens to run (a Sunday job finishing Monday).
+    for (const r of rows) r.week_of = week;
+    await insert(db, rows);
     const count = (s: ItemRow["status"]) => rows.filter((r) => r.status === s).length;
     const result = { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected"), toppedUp };
     if (usable() < enough) {
@@ -438,7 +453,7 @@ export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: stri
   await reserveOrPark("recording", { ...job }, ctx.jobId);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-rec-"));
   try {
-    const { ownerId, profile } = await loadClinic(db, job.clinicId, workDir);
+    const { ownerId, profile, logoPath } = await loadClinic(db, job.clinicId, workDir);
     // The path came from the browser via the web app: it must be this
     // owner's recording (the service role below bypasses storage RLS).
     if (!ownedKey(job.sourcePath, ownerId) || !job.sourcePath.startsWith(`${ownerId}/recordings/`)) {
@@ -452,12 +467,13 @@ export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: stri
     // Transcription and rendering scale with length: refuse very long files
     // before any of it runs.
     const minutes = (await durationSec(source)) / 60;
+    if (!Number.isFinite(minutes)) throw new UnrecoverableError("recording is not a readable MP4/MOV/WebM video");
     if (!(minutes <= maxRecordingMinutes())) {
       throw new UnrecoverableError(`recording is ${Number.isFinite(minutes) ? minutes.toFixed(1) : "?"} min; the limit is ${maxRecordingMinutes()} min`);
     }
 
     const clips = await clipsFromRecording(
-      { client: new OpenAI(), workDir, render: true, log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`) },
+      { client: new OpenAI(), workDir, render: true, logoPath, log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`) },
       profile,
       source,
       undefined,
@@ -527,7 +543,7 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       await markFailed();
       return { ok: false };
     }
-    const { profile, logoStyle } = await loadClinic(db, item.clinic_id as string, workDir);
+    const { profile, logoPath, logoStyle } = await loadClinic(db, item.clinic_id as string, workDir);
     const stored = parseScenePlan(item.plan);
     // Painted in the clinic's colour exactly as the weekly run does (week.ts).
     const plan: ScenePlan = profile.brandColor
@@ -544,7 +560,7 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       outputPath: path.join(workDir, "video.mp4"),
       pexelsApiKey: process.env.PEXELS_API_KEY,
       concurrency: renderConcurrency(),
-      logoSrc: profile.logo,
+      logoSrc: logoPath,
       logoStyle,
       onWarn: (m) => logger.warn({ itemId: item.id }, `dentvid: restyle ${m}`),
     });

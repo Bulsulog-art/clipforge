@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { contrastRatio, hueDistance } from "../remotion/theme.js";
 import type { LogoStyle, LogoTreatment } from "../remotion/logo-style.js";
+import { assertLocalMedia, safeInputArgs } from "../lib/media-input.js";
 
 const run = promisify(execFile);
 
@@ -294,8 +295,10 @@ export function logoStyleOf(a: LogoAnalysis): LogoStyle {
 const ANALYSIS_SIDE = 160;
 
 async function probeSize(file: string): Promise<{ width: number; height: number }> {
+  // The logo is a customer upload: a local file in the job's temp dir, read as an image only.
+  assertLocalMedia(file);
   const { stdout } = await run("ffprobe", [
-    "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", file,
+    "-v", "error", ...safeInputArgs("image"), "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", file,
   ]);
   const [width, height] = stdout.trim().split("\n")[0].split("x").map(Number);
   if (!width || !height) throw new Error(`cannot read logo size: ${file}`);
@@ -314,7 +317,7 @@ export async function decodeRgba(file: string, side = ANALYSIS_SIDE): Promise<Rg
   const vf = `format=rgba,premultiply=inplace=1,scale=${width}:${height}:flags=area,unpremultiply=inplace=1`;
   const { stdout } = await run(
     "ffmpeg",
-    ["-v", "error", "-i", file, "-frames:v", "1", "-vf", vf, "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"],
+    ["-v", "error", ...safeInputArgs("image"), "-i", assertLocalMedia(file), "-frames:v", "1", "-vf", vf, "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"],
     { encoding: "buffer", maxBuffer: width * height * 4 + 1024 },
   );
   const data = new Uint8Array(stdout as Buffer);

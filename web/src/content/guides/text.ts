@@ -1,5 +1,6 @@
 import { GUIDES, LANDING_PATH, findGuide, guidePath, type Guide, type Locale } from "../dentvideo";
 import { ABOUT_PATH, GUIDES_INDEX_PATH } from "./ui";
+import { findSolution, solutionPath, type SolutionPage } from "../solutions";
 
 /** A piece of guide text: plain, or an inline link written as [label](target). */
 export type Inline = { kind: "text"; text: string } | { kind: "link"; label: string; target: string };
@@ -43,6 +44,10 @@ export function resolveTarget(target: string, locale: Locale): string | null {
       return ABOUT_PATH[locale];
     case "start":
       return `/dentvideo/start?lang=${locale}`;
+    case "video": {
+      const p = findSolution(arg);
+      return p ? solutionPath(p) : null;
+    }
     default:
       return null;
   }
@@ -55,6 +60,44 @@ export function guideTexts(g: Guide): string[] {
     ...g.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.list ?? []), ...(s.after ?? [])]),
     ...g.faq.flatMap((f) => [f.q, f.a]),
   ];
+}
+
+/** Every piece of running text on a commercial page, in reading order. */
+export function solutionTexts(p: SolutionPage): string[] {
+  return [
+    p.intro,
+    ...p.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.list ?? []), ...(s.after ?? [])]),
+    ...(p.table ? [p.table.caption, ...p.table.rows.flatMap((r) => [r.label, ...r.values]), p.table.note ?? ""] : []),
+    ...p.faq.flatMap((f) => [f.q, f.a]),
+  ];
+}
+
+/** A commercial page as Markdown, with absolute links, for llms-full.txt. */
+export function solutionMarkdown(p: SolutionPage, abs: (path: string) => string): string {
+  const link = (t: string) =>
+    t.replace(LINK, (_, label: string, target: string) => {
+      const to = resolveTarget(target, p.locale);
+      return to ? `[${label}](${/^https?:/.test(to) ? to : abs(to)})` : label;
+    });
+  const lines = [`## ${p.h1}`, "", `URL: ${abs(solutionPath(p))}`, `Language: ${p.locale}`, "", link(p.intro), ""];
+  if (p.table) {
+    lines.push(`### ${p.table.caption}`, "", `| | ${p.table.columns.join(" | ")} |`, `|${" --- |".repeat(p.table.columns.length + 1)}`);
+    for (const r of p.table.rows) lines.push(`| ${r.label} | ${r.values.join(" | ")} |`);
+    lines.push("");
+    if (p.table.note) lines.push(p.table.note, "");
+  }
+  for (const s of p.sections) {
+    lines.push(`### ${s.heading}`, "");
+    for (const para of s.paragraphs) lines.push(link(para), "");
+    if (s.list?.length) {
+      s.list.forEach((item, i) => lines.push(`${s.ordered ? `${i + 1}.` : "-"} ${link(item)}`));
+      lines.push("");
+    }
+    for (const para of s.after ?? []) lines.push(link(para), "");
+  }
+  lines.push("### FAQ", "");
+  for (const f of p.faq) lines.push(`**${f.q}**`, link(f.a), "");
+  return lines.join("\n");
 }
 
 // Japanese has no spaces between words: a run of kana/kanji is split into

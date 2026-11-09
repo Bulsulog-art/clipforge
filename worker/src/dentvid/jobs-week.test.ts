@@ -134,6 +134,17 @@ describe("a week that heals itself", () => {
     expect(inserted.every((row) => row.week_of === week)).toBe(true);
   });
 
+  it("videos are stamped with the week in the job data, not the day the job runs", async () => {
+    produceWeek.mockResolvedValueOnce(["a", "b", "c"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 3, week: "2026-11-02" }, { attempts: 4 });
+    expect(inserted.map((r) => r.week_of)).toEqual(["2026-11-02", "2026-11-02", "2026-11-02"]);
+    // An old job without a week (or a malformed one) falls back to the current week.
+    inserted.length = 0;
+    produceWeek.mockResolvedValueOnce(["d", "e", "f"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 3, week: "next monday" }, { attempts: 4 });
+    expect(inserted.every((r) => r.week_of === week)).toBe(true);
+  });
+
   it("a storage blip is retried: the video is kept", async () => {
     uploadFailures = 1;
     produceWeek.mockResolvedValueOnce(["a", "b", "c"].map(ready));

@@ -8,6 +8,7 @@ import { appText } from "@/content/dentvideo-app";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { SOLUTION_UI } from "@/content/solutions/ui";
 import { dvHref } from "@/lib/dentvid/host";
 import { DvLogo } from "./mark";
 import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
@@ -35,7 +36,8 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   if (parts.length === 0) return "en";
   // English guides hub and About: /guides, /about.
   if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about")) return "en";
-  if (parts[0] === "guides") return guideLocales[parts[1] ?? ""] ?? null;
+  // Guides (/guides/<slug>) and commercial pages (/videos/<slug>) each have one language.
+  if (parts[0] === "guides" || parts[0] === "videos") return guideLocales[parts[1] ?? ""] ?? null;
   if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
   // A landing (/tr), or its guides hub or About page (/tr/guides).
   return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about")) ? (parts[0] as Locale) : null;
@@ -262,7 +264,10 @@ function MobileMenu({
   );
 }
 
-export function DvFooter({ guideLocales }: Props) {
+/** The commercial pages per language, as small href/label pairs (the layout passes them, so their text stays on the server). */
+export type CommercialNav = Partial<Record<Locale, { href: string; label: string }[]>>;
+
+export function DvFooter({ guideLocales, commercial }: Props & { commercial?: CommercialNav }) {
   const { locale, ready } = useDvLocale(guideLocales);
   const path = usePathname() ?? "";
   if (appTab(path) || isFunnel(path)) return <AppFooter locale={locale} ready={ready} />;
@@ -285,8 +290,13 @@ export function DvFooter({ guideLocales }: Props) {
               <li><Link href={dvHref(`${home}#how`)} className={link}>{t.howItWorks}</Link></li>
               <li><Link href={dvHref(`${home}#pricing`)} className={link}>{t.pricing}</Link></li>
               {hasGuides(locale) && <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{GUIDE_UI[locale].guides}</Link></li>}
+              {(commercial?.[locale] ?? []).map((p) => (
+                <li key={p.href}><Link href={dvHref(p.href)} className={link}>{p.label}</Link></li>
+              ))}
               <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{GUIDE_UI[locale].about}</Link></li>
               <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>
+              {/* Returning clinics: straight to the sign-in form rather than sign-up. */}
+              <li><Link href={dvHref(`/dentvideo/start?mode=signin&lang=${locale}`)} className={link}>{SOLUTION_UI[locale].signIn}</Link></li>
             </ul>
             <ul className="space-y-3.5">
               {LOCALES.map((l) => (

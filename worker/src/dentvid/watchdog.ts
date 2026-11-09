@@ -150,6 +150,9 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
     // Same week the web app queued at payment (web/src/lib/dentvid/week-job.ts).
     const week = deliveryWeek(new Date(paidAt));
     const data: WeekJobData = { clinicId, count: 5, week };
+    // A clinic that already has this week's videos (made before it cancelled and came back,
+    // or by the Monday run) is delivered: re-queuing would make the same week twice.
+    if ((await deps.db.weekMade([clinicId], week).catch(() => new Set<string>())).has(clinicId)) continue;
     const id = weekJobId(clinicId, week);
     const job = await deps.queue.getJob(id).catch(() => null);
     const state = job ? await job.getState().catch(() => "unknown") : "missing";
@@ -220,7 +223,8 @@ export function supabaseWatchDb(db: SupabaseClient): WatchDb {
       return (count ?? 0) > 0;
     },
     async weekMade(clinicIds, week) {
-      const { data } = await db.from("dentvid_items").select("clinic_id").in("clinic_id", clinicIds).eq("kind", "generated").eq("week_of", week);
+      // Any generated item of that week except a failed placeholder counts: the week ran and was stored.
+      const { data } = await db.from("dentvid_items").select("clinic_id").in("clinic_id", clinicIds).eq("kind", "generated").eq("week_of", week).neq("status", "failed");
       return new Set((data ?? []).map((r) => r.clinic_id as string));
     },
     async isActive(clinicId) {
