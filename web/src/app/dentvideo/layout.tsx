@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     title: "DentVideo — patient-education videos for dental clinics",
     description: "Five patient videos every Monday, checked before you see them. You just approve.",
   },
-  title: { default:"DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
+  title: { absolute: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
     "DentVideo turns a dentist's five-minute phone recording into a week of captioned, compliant short videos — and writes, narrates and checks educational videos when there is no time to film.",
   applicationName: "DentVideo",

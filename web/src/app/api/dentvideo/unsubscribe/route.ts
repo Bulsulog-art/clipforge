@@ -5,6 +5,7 @@ import { handleUnsubscribe } from "@/lib/dentvid/unsubscribe";
 import { unsubscribeSecret } from "@/lib/dentvid/unsubscribe-token";
 import { clientIp, LIMITS } from "@/lib/rate-limit";
 import { limitChecks } from "@/lib/rate-limit-server";
+import { requestLocale } from "@/lib/dentvid/request-locale";
 
 /**
  * Unsubscribe from DentVideo reminder emails, no login (signed token).
@@ -18,15 +19,17 @@ const HEADERS = { "cache-control": "no-store", "x-robots-tag": "noindex" };
 
 async function respond(req: Request, method: "GET" | "POST") {
   const home = lifecycleConfig().base;
+  // Until the clinic is known (a broken link, a rate limit), the visitor's own language.
+  const language = requestLocale(req.headers.get("cookie"), req.headers.get("accept-language"));
   const limit = await limitChecks([{ key: `rl:unsub:ip:${clientIp(req.headers)}`, rule: LIMITS.unsubscribeIp }]);
   if (!limit.ok) {
-    return new Response(unsubscribePage({ language: "en", state: "error", homeUrl: home }), {
+    return new Response(unsubscribePage({ language, state: "error", homeUrl: home }), {
       status: 429,
       headers: { ...HEADERS, "content-type": "text/html; charset=utf-8", "retry-after": String(limit.retryAfterSec) },
     });
   }
   const r = await handleUnsubscribe(
-    { method, url: req.url, accept: req.headers.get("accept") },
+    { method, url: req.url, accept: req.headers.get("accept"), language },
     { store: () => supabaseLifecycleStore(dvAdmin()), secret: unsubscribeSecret(), homeUrl: home },
   );
   return new Response(r.body, { status: r.status, headers: { ...HEADERS, "content-type": r.contentType } });

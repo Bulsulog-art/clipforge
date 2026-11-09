@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import type { Theme } from "../theme.js";
-import { backgroundCss, fitText, leading, tracking } from "../theme.js";
+import { backgroundCss, fitText, fitsOneLine, leading, tracking } from "../theme.js";
 import { PHRASE_BREAK, layoutUnits, visualLength } from "../script.js";
 import { entrance, wordsVisible } from "../animation.js";
 import { usePhotoBackdrop } from "../background-layer.js";
@@ -84,13 +84,19 @@ const WIDOW_GUARD_CHARS = 14;
  * as broken rather than as typesetting. Gluing the last two words into one
  * unbreakable item removes exactly that case and leaves every other break
  * alone.
+ *
+ * `size` is the font size the line is set at: the glued pair cannot wrap, so
+ * it is only glued when it fits the frame's width at that size. Without it a
+ * pair under the character limit could still overrun a large hook (Polish
+ * "znów krwawią?" at 132 px ran 15 px past the frame).
  */
-export function guardWidow(words: string[]): { text: string; index: number }[] {
+export function guardWidow(words: string[], size?: number): { text: string; index: number }[] {
   const items = words.map((text, index) => ({ text, index }));
   if (words.length < 3) return items;
 
   const tail = words.slice(-2).join(" ");
   if (visualLength(tail) > WIDOW_GUARD_CHARS) return items;
+  if (size !== undefined && !fitsOneLine(size, tail)) return items;
 
   return [...items.slice(0, -2), { text: tail, index: words.length - 2 }];
 }
@@ -137,7 +143,7 @@ export const DisplayText: React.FC<{
         justifyContent: align === "center" ? "center" : "flex-start",
       }}
     >
-      {(spaced ? guardWidow(words) : words.map((t, index) => ({ text: t, index }))).map(({ text: word, index: i }) => {
+      {(spaced ? guardWidow(words, fitted) : words.map((t, index) => ({ text: t, index }))).map(({ text: word, index: i }) => {
         const shown = i < visible;
         const anim = entrance(frame, {
           delay: byWord ? delay + i * 3 : delay,

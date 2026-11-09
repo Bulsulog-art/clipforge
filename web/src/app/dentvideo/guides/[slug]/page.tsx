@@ -21,7 +21,9 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const g = findGuide((await params).slug);
-  return g ? guideMetadata(g) : {};
+  // Unknown: the 404's own (localized) title.
+  if (!g) notFound();
+  return guideMetadata(g);
 }
 
 export default async function GuidePage({ params }: Props) {

@@ -24,7 +24,9 @@ function asLocale(v: string): Locale | null {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = asLocale((await params).locale);
-  return locale ? landingMetadata(locale) : {};
+  // Unknown: the 404's own (localized) title, not the layout default.
+  if (!locale) notFound();
+  return landingMetadata(locale);
 }
 
 export default async function LocalizedLanding({ params }: Props) {

@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { allowedOrigins, isBadOrigin } from "@/lib/origin-guard";
 import { routeForHost } from "@/lib/dentvid/host";
+import { TOO_MANY, requestLocale } from "@/lib/dentvid/request-locale";
 import { API_GLOBAL_PER_IP, MemoryStore, clientIp, slidingWindow } from "@/lib/rate-limit";
 
 // A cheap first line against floods of /api requests: a per-IP sliding
@@ -18,7 +19,11 @@ export async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api/")) {
     const r = await slidingWindow(apiBuckets, `api:${clientIp(req.headers)}`, API_GLOBAL_PER_IP);
     if (!r.ok) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: { "Retry-After": String(r.retryAfterSec) } });
+      // DentVideo screens show `error` as-is: say it in the visitor's language there.
+      const error = req.nextUrl.pathname.startsWith("/api/dentvideo/")
+        ? TOO_MANY[requestLocale(req.headers.get("cookie"), req.headers.get("accept-language"))]
+        : "Too many requests";
+      return NextResponse.json({ error }, { status: 429, headers: { "Retry-After": String(r.retryAfterSec) } });
     }
   }
 

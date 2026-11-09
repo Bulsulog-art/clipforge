@@ -79,6 +79,24 @@ describe("unsubscribe (RFC 8058: GET confirms, POST acts)", () => {
     err.mockRestore();
   });
 
+  it("a broken link speaks the visitor's language when it is known, else English", async () => {
+    const { deps } = setup();
+    const pl = await handleUnsubscribe({ method: "GET", url: url("junk"), language: "pl" }, deps);
+    expect(pl.status).toBe(400);
+    expect(pl.body).toContain('lang="pl"');
+    expect(pl.body).not.toContain("This link doesn&#39;t work");
+    const ar = await handleUnsubscribe({ method: "GET", url: url("junk"), language: "ar" }, deps);
+    expect(ar.body).toContain('dir="rtl"');
+    const unknown = await handleUnsubscribe({ method: "GET", url: url("junk"), language: "it" }, deps);
+    expect(unknown.body).toContain("This link doesn&#39;t work");
+  });
+
+  it("the clinic's language wins over the visitor's once the link is valid", async () => {
+    const { deps } = setup("de");
+    const r = await handleUnsubscribe({ method: "GET", url: url(unsubscribeToken(ID, SECRET)), language: "fr" }, deps);
+    expect(r.body).toContain("Von Erinnerungen abmelden?");
+  });
+
   it("a deleted clinic is confirmed, not an error", async () => {
     const { optOut, deps } = setup("en", { noClinic: true });
     const r = await handleUnsubscribe({ method: "POST", url: url(unsubscribeToken(ID, SECRET)) }, deps);
