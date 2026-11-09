@@ -30,6 +30,8 @@ export type ItemRow = {
   video_path?: string;
   thumb_path?: string;
   source_path?: string;
+  /** The Monday this item belongs to; set by the week job from the job data (not the run date). */
+  week_of?: string;
   /** Technical failure, for the owner (admin dashboard) only — the clinic's library never shows it. */
   error?: string;
 };

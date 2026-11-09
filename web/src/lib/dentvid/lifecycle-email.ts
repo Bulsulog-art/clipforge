@@ -1,4 +1,5 @@
 import { fill, lifecycleText, type LifecycleCopy } from "@/content/dentvideo-lifecycle";
+import { billingText } from "@/content/dentvideo-billing";
 
 /**
  * Lifecycle emails, rendered: the welcome after the first payment, the two
@@ -207,6 +208,39 @@ export function offerNudgeEmail(args: NudgeArgs & { offer: OfferTerms }): Render
     button: c.offer.button,
     last: c.offer.last,
   });
+}
+
+export type PaymentProblemKind = "failed" | "on_hold";
+/**
+ * How the clinic fixes it: the billing portal in Settings (DODO_API_KEY set),
+ * a reply to us (no API key: we send a secure link), or — only once the old
+ * subscription has ended, so a new one cannot double-charge — a fresh plan.
+ */
+export type PaymentFix = "portal" | "email" | "checkout";
+
+/** "Your payment didn't go through" — what happened and the one way to fix it. Transactional (no unsubscribe). */
+export function paymentProblemEmail(args: { language: string; clinicName: string; kind: PaymentProblemKind; fix: PaymentFix; appUrl: string }): Rendered {
+  const { lang, copy: c } = billingText(args.language);
+  const e = c.email;
+  const clinic = clinicLabel(args.clinicName);
+  const vars = { clinic, email: CONTACT_EMAIL };
+  const subject = args.kind === "failed" ? e.failedSubject : e.holdSubject;
+  const hello = tidy(fill(e.hello, vars));
+  const what = args.kind === "failed" ? e.failedBody : e.holdBody;
+  const how = fill(args.fix === "portal" ? e.fixPortal : args.fix === "checkout" ? e.fixCheckout : e.fixEmail, vars);
+  const url = args.fix === "portal" ? `${args.appUrl}/settings#billing-title` : args.appUrl;
+  const html = layout({
+    lang,
+    subject,
+    preheader: e.preheader,
+    hello,
+    body: para(what) + para(how),
+    button: { label: e.button, url },
+    signoff: e.signoff,
+    footer: e.footer,
+  });
+  const text = textVersion([hello, what, how, `${e.button}: ${url}`, e.signoff, `—\n${e.footer}`]);
+  return { subject, html, text };
 }
 
 export type UnsubState = "confirm" | "done" | "invalid" | "error";

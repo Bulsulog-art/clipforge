@@ -1,29 +1,68 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { applyTransition, dvTransition, type ClinicBilling, type DodoEventData } from "./billing";
+import {
+  DV_FOUNDING,
+  DV_SUB_ENDED,
+  applyTransition,
+  dvEventSubStatus,
+  dvEventTime,
+  dvPlanForProduct,
+  dvTransition,
+  isDentvideoEvent,
+  isStaleEvent,
+  usedFounding,
+  type ClinicBilling,
+  type DodoEventData,
+  type DvInterval,
+  type DvSubRecord,
+  type DvTier,
+  type FoundingState,
+} from "./billing";
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
 import { recordEvent } from "./events-server";
 import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert";
-import { clinicRefFor, markPaid, raiseOwnerAlert } from "./ops-server";
+import { clinicRefFor, markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
+import { loadFoundingState, supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
+import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type DvWebhookResult = { status: 200 | 500; body: Record<string, unknown> };
+
+export type DvWebhookEvent = { type: string; data: DodoEventData; timestamp?: unknown };
 
 export type DvWebhookDeps = {
   /** Queue the clinic's first week (tests pass a mock; the default uses the BullMQ dentvid queue). */
   enqueueWeek?: (db: SupabaseClient, clinicId: string) => Promise<FirstWeekResult>;
   /** Send the welcome email (tests pass a mock; the default goes through lifecycle.ts and Resend). */
   sendWelcome?: (db: SupabaseClient, clinicId: string) => Promise<string>;
+  /** "Your payment didn't go through" to the clinic (default: lifecycle.ts sendPaymentProblem). */
+  sendPaymentMail?: (db: SupabaseClient, clinicId: string, kind: PaymentProblemKind, fix: PaymentFix) => Promise<string>;
   /** Owner alerts (tests pass a mock; the default is ops-server → OWNER_ALERT_EMAIL). */
   alert?: (a: OwnerAlert) => Promise<unknown>;
   /** Name, country, tier, email of a clinic for an alert. */
   clinicRef?: (db: SupabaseClient, clinicId: string) => Promise<ClinicRef>;
-  /** Tell the worker's first-week watchdog a clinic just paid (Redis marker). */
+  /** Tell the worker's first-week watchdog a clinic just paid for the first time (Redis marker). */
   markPaid?: (clinicId: string) => Promise<void>;
+  /** The subscription ledger (0007); the default degrades to "unknown" when the table is missing. */
+  subs?: SubscriptionStore;
+  /**
+   * Dodo's live status of a subscription, when DODO_API_KEY is set (null:
+   * no key or the call failed). Used to confirm an activation before it
+   * switches a clinic on.
+   */
+  dodoStatus?: (subscriptionId: string) => Promise<string | null>;
+  /** Founding seats (to tell the owner once the offer is full). */
+  founding?: (db: SupabaseClient) => Promise<FoundingState>;
+  /** Self-serve billing portal available (DODO_API_KEY set). */
+  selfServe?: boolean;
+  now?: () => Date;
 };
 
 /** Payment trouble that does not move the plan yet (Dodo keeps the subscription through its grace period). */
 const AT_RISK_ONLY = new Set(["payment.failed", "subscription.past_due"]);
+/** Refunds and disputes: logged, the owner told; a chargeback pauses the clinic. */
+const MONEY_BACK = /^(refund|dispute)\./;
+const CHARGEBACK = new Set(["dispute.opened", "dispute.accepted", "dispute.lost"]);
 
 async function tell(db: SupabaseClient, deps: DvWebhookDeps, clinicId: string, make: (c: ClinicRef) => OwnerAlert): Promise<void> {
   try {
@@ -40,10 +79,30 @@ async function welcome(db: SupabaseClient, clinicId: string): Promise<string> {
   return sendWelcome({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig() }, clinicId);
 }
 
+async function paymentMail(db: SupabaseClient, clinicId: string, kind: PaymentProblemKind, fix: PaymentFix): Promise<string> {
+  if (!process.env.RESEND_API_KEY) return "no email key";
+  const [{ sendPaymentProblem, supabaseLifecycleStore, lifecycleConfig }, { sendEmail }] = await Promise.all([import("./lifecycle"), import("./email")]);
+  const store = await webOpsStore().catch(() => null);
+  const claim = async (key: string) => (store ? store.setNx(key, 3 * 86_400).catch(() => true) : true);
+  return sendPaymentProblem({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig(), claim }, clinicId, kind, fix);
+}
+
 async function queueWeek(db: SupabaseClient, clinicId: string): Promise<FirstWeekResult> {
   // Imported here so this module (and its tests) do not touch Redis on load.
   const { dentvidQueue } = await import("@/lib/queue");
   return enqueueFirstWeek(db, dentvidQueue, clinicId);
+}
+
+async function liveDodoStatus(subscriptionId: string): Promise<string | null> {
+  const { dodoApiKey, dodoGetSubscription } = await import("./dodo-account");
+  const apiKey = dodoApiKey();
+  if (!apiKey) return null;
+  try {
+    return (await dodoGetSubscription({ apiKey }, subscriptionId)).status ?? null;
+  } catch (e) {
+    console.warn("[dodo:dentvideo] could not confirm subscription with Dodo", (e as Error).message);
+    return null;
+  }
 }
 
 type ClinicRow = ClinicBilling & { id: string; owner_id: string };
@@ -61,23 +120,108 @@ async function findClinic(db: SupabaseClient, by: "id" | "dodo_subscription_id",
   return { row: (base.data as ClinicRow | null) ?? null, error: base.error?.message ?? null };
 }
 
-/**
- * A verified Dodo event that belongs to DentVideo: move the clinic's plan.
- * Unknown clinics and events that change nothing are acknowledged (200) —
- * retrying will not change them; database errors return 500 so Dodo retries.
- *
- * When a clinic becomes active (its first payment, or back from paused or
- * cancelled), this week's videos are queued at once: there is no free week,
- * so this is the moment the dentist gets their first real videos.
- */
-/** payment.failed / subscription.past_due: nothing moves yet, but the owner should know (once a day per clinic). */
-async function atRiskOnly(db: SupabaseClient, type: string, d: DodoEventData, deps: DvWebhookDeps): Promise<DvWebhookResult> {
-  const metaClinic = typeof d.metadata?.clinic_id === "string" && UUID.test(d.metadata.clinic_id) ? d.metadata.clinic_id : null;
+const metaClinicOf = (d: DodoEventData) => (typeof d.metadata?.clinic_id === "string" && UUID.test(d.metadata.clinic_id) ? d.metadata.clinic_id : null);
+
+/** The clinic an event is about: metadata first, then the stored subscription id, then the payment index. */
+async function clinicFor(db: SupabaseClient, d: DodoEventData, subs: SubscriptionStore): Promise<{ row: ClinicRow | null; error: string | null }> {
+  const metaClinic = metaClinicOf(d);
   let found = metaClinic ? await findClinic(db, "id", metaClinic) : { row: null, error: null };
   if (!found.row && !found.error && d.subscription_id) found = await findClinic(db, "dodo_subscription_id", d.subscription_id);
+  if (!found.row && !found.error && d.subscription_id) {
+    const rec = await subs.get(d.subscription_id);
+    if (rec) found = await findClinic(db, "id", rec.clinic_id);
+  }
+  if (!found.row && !found.error && d.payment_id) {
+    const p = await subs.paymentClinic(d.payment_id);
+    if (p) found = await findClinic(db, "id", p.clinic_id);
+  }
+  return found;
+}
+
+const metaInterval = (d: DodoEventData): DvInterval | null => (d.metadata?.interval === "month" || d.metadata?.interval === "year" ? d.metadata.interval : null);
+
+/** The ledger row this event leaves behind for its subscription. */
+function ledgerRow(
+  clinicId: string,
+  subscriptionId: string,
+  status: string,
+  d: DodoEventData,
+  prev: DvSubRecord | null | undefined,
+  eventAt: string,
+  type: string,
+): DvSubRecord & Record<string, unknown> {
+  const plan = dvPlanForProduct(d.product_id);
+  const tier: DvTier | null = plan?.tier ?? (prev?.tier as DvTier | null | undefined) ?? null;
+  const interval: DvInterval | null = plan?.interval ?? metaInterval(d) ?? (prev?.interval as DvInterval | null | undefined) ?? null;
+  const discountId = d.discount_id ?? prev?.discount_id ?? null;
+  return {
+    dodo_subscription_id: subscriptionId,
+    clinic_id: clinicId,
+    status,
+    product: d.product_id ?? prev?.product ?? null,
+    tier,
+    interval,
+    discount_id: discountId,
+    // A seat once taken stays taken (Dodo counts the code's uses the same way).
+    founding: !!prev?.founding || usedFounding(tier, interval, discountId),
+    period_end: d.next_billing_date ?? prev?.period_end ?? null,
+    last_event_at: eventAt,
+    last_event_type: type,
+  };
+}
+
+/** payment.failed / subscription.past_due: nothing moves yet, but the owner should know (once a day per clinic) and so should the clinic. */
+async function atRiskOnly(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhookDeps, subs: SubscriptionStore): Promise<DvWebhookResult> {
+  const d = evt.data ?? {};
+  const found = await clinicFor(db, d, subs);
   const clinic = found.row;
-  if (clinic) await tell(db, deps, clinic.id, (c) => alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: type, from: clinic.plan, to: clinic.plan }));
-  return { status: 200, body: { ok: true, app: "dentvideo", ignored: type, ...(clinic ? { alerted: true } : {}) } };
+  if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
+  // A first payment that failed at checkout: the clinic saw it there; it has no plan to lose.
+  const firstAttempt = clinic.plan === "trial" && !clinic.dodo_subscription_id;
+  let clinicEmail: string | undefined;
+  if (evt.type === "payment.failed" && !firstAttempt) {
+    clinicEmail = await (deps.sendPaymentMail ?? paymentMail)(db, clinic.id, "failed", deps.selfServe ?? !!process.env.DODO_API_KEY?.trim() ? "portal" : "email").catch((e) => {
+      console.error("[dodo:dentvideo] payment email failed", clinic.id, (e as Error).message);
+      return "failed";
+    });
+  }
+  await tell(db, deps, clinic.id, (c) =>
+    alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from: clinic.plan, to: clinic.plan, clinicEmailed: clinicEmail === "sent" }),
+  );
+  return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type, alerted: true, ...(clinicEmail ? { clinicEmail } : {}) } };
+}
+
+/** payment.succeeded: remember which clinic the payment belongs to (refunds / disputes), and that a subscription is on its way. */
+async function paymentSucceeded(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhookDeps, subs: SubscriptionStore): Promise<DvWebhookResult> {
+  const d = evt.data ?? {};
+  const found = await clinicFor(db, d, subs);
+  const clinic = found.row;
+  if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
+  if (d.payment_id) await subs.recordPayment(d.payment_id, clinic.id, d.subscription_id ?? null);
+  if (d.subscription_id) {
+    const prev = await subs.get(d.subscription_id);
+    // Only a subscription we have not seen: "pending" until its activation arrives (blocks a second checkout meanwhile).
+    if (prev === null) await subs.put(ledgerRow(clinic.id, d.subscription_id, "pending", d, prev, dvEventTime(evt) ?? (deps.now?.() ?? new Date()).toISOString(), evt.type));
+  }
+  return { status: 200, body: { ok: true, app: "dentvideo", recorded: evt.type } };
+}
+
+/** refund.* / dispute.*: the owner hears about it; a chargeback pauses the clinic (no new weeks while disputed). */
+async function moneyBack(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhookDeps, subs: SubscriptionStore): Promise<DvWebhookResult> {
+  const d = evt.data ?? {};
+  const found = await clinicFor(db, d, subs);
+  if (found.error) return { status: 500, body: { error: found.error } };
+  const clinic = found.row;
+  console.warn("[dodo:dentvideo] money back event", evt.type, d.payment_id ?? "", clinic?.id ?? "no clinic");
+  if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: "no clinic", event: evt.type } };
+  let paused = false;
+  if (CHARGEBACK.has(evt.type) && clinic.plan === "active") {
+    const { error } = await db.from("dentvid_clinics").update({ plan: "paused", updated_at: new Date().toISOString() }).eq("id", clinic.id);
+    if (error) return { status: 500, body: { error: error.message } };
+    paused = true;
+  }
+  await tell(db, deps, clinic.id, (c) => alerts.billingDispute({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, paymentId: d.payment_id ?? null, paused }));
+  return { status: 200, body: { ok: true, app: "dentvideo", event: evt.type, paused } };
 }
 
 /** A DentVideo event the route could not process (500 or exception): the owner is told once a day per event type. */
@@ -86,21 +230,60 @@ export async function alertWebhookFailure(evt: { type?: string; data?: DodoEvent
   await (deps.alert ?? raiseOwnerAlert)(alerts.webhookError({ event: evt?.type ?? "unknown", error: cleanError(error), clinic: clinicId ? { id: clinicId } : undefined })).catch(() => {});
 }
 
-export async function handleDentvideoEvent(
-  db: SupabaseClient,
-  evt: { type: string; data: DodoEventData },
-  deps: DvWebhookDeps = {},
-): Promise<DvWebhookResult> {
+/**
+ * Refund and dispute events name only a payment (no metadata): are they
+ * DentVideo's? Yes when the payment is in our index (0007), or — with
+ * DODO_API_KEY — when Dodo says the payment's metadata/brand/product is ours.
+ */
+export async function isDentvideoMoneyBackEvent(evt: { type?: string; data?: DodoEventData } | null, db: SupabaseClient | null): Promise<boolean> {
+  const d = evt?.data;
+  if (!evt?.type || !MONEY_BACK.test(evt.type) || !d) return false;
+  if (isDentvideoEvent(d)) return true;
+  if (!d.payment_id) return false;
+  try {
+    if (db && (await supabaseSubscriptionStore(db).paymentClinic(d.payment_id))) return true;
+    const { dodoApiKey, dodoGetPayment } = await import("./dodo-account");
+    const apiKey = dodoApiKey();
+    if (!apiKey) return false;
+    const p = await dodoGetPayment({ apiKey }, d.payment_id);
+    return isDentvideoEvent({ metadata: p.metadata, brand_id: p.brand_id, product_cart: p.product_cart });
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A verified Dodo event that belongs to DentVideo: move the clinic's plan.
+ * Unknown clinics and events that change nothing are acknowledged (200) —
+ * retrying will not change them; database errors return 500 so Dodo retries.
+ *
+ * Ordering and duplicates (dentvid_subscriptions, 0007 — skipped gracefully
+ * when the table is missing):
+ *  - an event older than the last one applied to its subscription is ignored;
+ *  - an activation for a subscription already cancelled/expired switches the
+ *    clinic back on only when it is newer than that, or Dodo confirms it;
+ *  - with DODO_API_KEY every activation is confirmed with Dodo first;
+ *  - a second subscription activating while the clinic has a live one is
+ *    recorded next to it and the owner is told (refund / cancel one);
+ *  - when the clinic's current subscription ends while another one is live,
+ *    the clinic moves to that one instead of losing access.
+ *
+ * When a clinic becomes active this week's videos are queued at once: there
+ * is no free week, so this is the moment the dentist gets their first videos.
+ */
+export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhookDeps = {}): Promise<DvWebhookResult> {
   const d = evt.data ?? {};
+  const subs = deps.subs ?? supabaseSubscriptionStore(db);
+  const now = deps.now?.() ?? new Date();
+  const eventAt = dvEventTime(evt);
+  if (MONEY_BACK.test(evt.type)) return moneyBack(db, evt, deps, subs);
+  if (evt.type === "payment.succeeded") return paymentSucceeded(db, evt, deps, subs);
   const t = dvTransition(evt.type, d);
-  if (!t && AT_RISK_ONLY.has(evt.type)) return atRiskOnly(db, evt.type, d, deps);
+  if (!t && AT_RISK_ONLY.has(evt.type)) return atRiskOnly(db, evt, deps, subs);
   if (!t) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
 
-  const metaClinic = typeof d.metadata?.clinic_id === "string" && UUID.test(d.metadata.clinic_id) ? d.metadata.clinic_id : null;
   const metaOwner = typeof d.metadata?.owner_id === "string" ? d.metadata.owner_id : null;
-
-  let found = metaClinic ? await findClinic(db, "id", metaClinic) : { row: null, error: null };
-  if (!found.row && !found.error) found = await findClinic(db, "dodo_subscription_id", t.subscriptionId);
+  const found = await clinicFor(db, d, subs);
   if (found.error) return { status: 500, body: { error: found.error } };
   const clinic = found.row;
   if (!clinic) {
@@ -112,41 +295,128 @@ export async function handleDentvideoEvent(
     return { status: 200, body: { ok: true, app: "dentvideo", ignored: "owner mismatch" } };
   }
 
+  const prev = await subs.get(t.subscriptionId); // undefined: no ledger
+  const ledger = prev !== undefined;
+  const reported = dvEventSubStatus(evt.type, d) ?? (t.kind === "activate" ? "active" : t.plan);
+  const stamp = eventAt ?? now.toISOString();
+  const record = (status: string) => (ledger ? subs.put(ledgerRow(clinic.id, t.subscriptionId, status, d, prev, stamp, evt.type)) : Promise.resolve(false));
+
+  // 1. Out of order: an older event never undoes a newer one.
+  if (prev && isStaleEvent(prev.last_event_at, eventAt)) {
+    console.warn("[dodo:dentvideo] stale event ignored", evt.type, t.subscriptionId, eventAt, prev.last_event_at);
+    return { status: 200, body: { ok: true, app: "dentvideo", ignored: "stale" } };
+  }
+
+  if (t.kind === "activate") {
+    // 2. A subscription we know has ended may not come back on a late event.
+    const knownEnded =
+      (prev && DV_SUB_ENDED.has(String(prev.status)) ? String(prev.status) : null) ??
+      (clinic.dodo_subscription_id === t.subscriptionId && clinic.plan === "cancelled" ? "cancelled" : null);
+    const newerThanEnd = !!(prev && eventAt && prev.last_event_at && Date.parse(eventAt) > Date.parse(prev.last_event_at));
+    // 3. With an API key, Dodo's own word decides whether this is really active.
+    const live = await (deps.dodoStatus ?? liveDodoStatus)(t.subscriptionId);
+    if (live && live !== "active") {
+      console.warn("[dodo:dentvideo] activation not confirmed by Dodo", evt.type, t.subscriptionId, live);
+      if (ledger) await subs.put(ledgerRow(clinic.id, t.subscriptionId, live, d, prev, stamp, evt.type));
+      return { status: 200, body: { ok: true, app: "dentvideo", ignored: "not active at Dodo", dodoStatus: live } };
+    }
+    if (knownEnded && !newerThanEnd && live !== "active") {
+      await tell(db, deps, clinic.id, (c) => alerts.lateActivation({ clinic: c, subscriptionId: t.subscriptionId, event: evt.type, status: knownEnded }));
+      return { status: 200, body: { ok: true, app: "dentvideo", ignored: "late activation" } };
+    }
+
+    // 4. A different subscription while the clinic already has a live one: a duplicate.
+    const other = clinic.dodo_subscription_id && clinic.dodo_subscription_id !== t.subscriptionId ? clinic.dodo_subscription_id : null;
+    if (other && (clinic.plan === "active" || clinic.plan === "paused")) {
+      const otherRec = ledger ? await subs.get(other) : undefined;
+      const otherEnded = !!otherRec && DV_SUB_ENDED.has(String(otherRec.status));
+      if (!otherEnded) {
+        const keepOld = clinic.plan === "active";
+        await tell(db, deps, clinic.id, (c) =>
+          alerts.duplicateSubscription({
+            clinic: c,
+            existing: other,
+            existingStatus: otherRec?.status ? String(otherRec.status) : clinic.plan,
+            duplicate: t.subscriptionId,
+            kept: keepOld ? other : t.subscriptionId,
+          }),
+        );
+        if (keepOld) {
+          // Recorded next to the live one; the clinic stays on the subscription it had.
+          await record("active");
+          return { status: 200, body: { ok: true, app: "dentvideo", duplicate: true, kept: other } };
+        }
+        // The old one is on hold: the clinic moves to the one that pays (below); the owner cancels the other.
+      }
+    }
+  }
+
+  // 5. The clinic's current subscription ended but another of its subscriptions is live: move to that one.
+  if (t.kind === "deactivate" && ledger && clinic.dodo_subscription_id === t.subscriptionId) {
+    const others = (await subs.forClinic(clinic.id)) ?? [];
+    const alt = others.find((r) => r.dodo_subscription_id !== t.subscriptionId && r.status === "active");
+    if (alt) {
+      await record(reported);
+      const move: Record<string, unknown> = { plan: "active", dodo_subscription_id: alt.dodo_subscription_id, plan_renews_at: alt.period_end ?? null, updated_at: now.toISOString() };
+      if (alt.tier) move.plan_tier = alt.tier;
+      const { error } = await db.from("dentvid_clinics").update(move).eq("id", clinic.id);
+      if (error) return { status: 500, body: { error: error.message } };
+      return { status: 200, body: { ok: true, app: "dentvideo", plan: "active", movedTo: alt.dodo_subscription_id } };
+    }
+  }
+
   const update = applyTransition(clinic, t);
+  await record(reported);
   if (!update) return { status: 200, body: { ok: true, app: "dentvideo", unchanged: true } };
 
-  const now = new Date().toISOString();
-  let { error } = await db.from("dentvid_clinics").update({ ...update, updated_at: now }).eq("id", clinic.id);
+  let { error } = await db.from("dentvid_clinics").update({ ...update, updated_at: now.toISOString() }).eq("id", clinic.id);
   if (error && missingColumn(error)) {
     // Billing columns not migrated yet: the plan itself still moves.
-    ({ error } = await db.from("dentvid_clinics").update({ plan: update.plan ?? clinic.plan, updated_at: now }).eq("id", clinic.id));
+    ({ error } = await db.from("dentvid_clinics").update({ plan: update.plan ?? clinic.plan, updated_at: now.toISOString() }).eq("id", clinic.id));
   }
   if (error) return { status: 500, body: { error: error.message } };
 
   const from = clinic.plan;
   const to = update.plan ?? clinic.plan;
+  // A clinic's genuine first activation: it never had a subscription. A clinic coming back from
+  // paused/cancelled is not "first" — the first-week watchdog must not re-make a week it has.
+  const first = from === "trial" && !clinic.dodo_subscription_id;
+
+  // The clinic hears about a payment problem (H9): on hold → its weeks stop until the card is updated.
+  let clinicEmail: string | undefined;
+  if (evt.type === "subscription.on_hold" && to === "paused") {
+    const fix: PaymentFix = deps.selfServe ?? !!process.env.DODO_API_KEY?.trim() ? "portal" : "email";
+    clinicEmail = await (deps.sendPaymentMail ?? paymentMail)(db, clinic.id, "on_hold", fix).catch((e) => {
+      console.error("[dodo:dentvideo] payment email failed", clinic.id, (e as Error).message);
+      return "failed";
+    });
+  }
+
   // The owner hears about it: a new (or returning) paying clinic — good news, sent at once —
   // and a paying clinic whose subscription stopped (customer at risk).
   if (to === "active" && from !== "active") {
-    await (deps.markPaid ?? markPaid)(clinic.id).catch(() => {});
+    if (first) await (deps.markPaid ?? markPaid)(clinic.id).catch(() => {});
     await tell(db, deps, clinic.id, (c) =>
       alerts.newPayingClinic({
         clinic: { ...c, tier: c.tier ?? t.tier },
         interval: typeof d.metadata?.interval === "string" ? d.metadata.interval : null,
-        returning: from === "paused" || from === "cancelled",
+        returning: !first,
       }),
     );
   } else if (from === "active" && (to === "paused" || to === "cancelled")) {
-    await tell(db, deps, clinic.id, (c) => alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from, to }));
+    await tell(db, deps, clinic.id, (c) =>
+      alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from, to, clinicEmailed: clinicEmail === "sent" }),
+    );
   }
 
   // Paid: make this week's videos now rather than waiting for Monday. The
   // worker emails the dentist when they are ready. Best effort — the plan
   // has already moved, and the app's "first week" screen asks for the week
-  // again (idempotent, same job id) if this did not get through.
-  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first: clinic.plan !== "active", event: evt.type } });
+  // again (idempotent, same job id) if this did not get through. A returning
+  // clinic that already has this week's videos keeps them (enqueueFirstWeek).
+  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first, event: evt.type } });
   let firstWeek: FirstWeekResult | "failed" | undefined;
-  if (update.plan === "active" && clinic.plan !== "active") {
+  if (update.plan === "active" && from !== "active") {
     try {
       firstWeek = await (deps.enqueueWeek ?? queueWeek)(db, clinic.id);
     } catch (e) {
@@ -157,9 +427,8 @@ export async function handleDentvideoEvent(
 
   // The welcome email: once per clinic (dentvid_email_log), so a retried
   // event or a clinic that pays again after cancelling never gets it twice.
-  // Best effort, like the first week — the payment is already recorded.
   let welcomeEmail: string | undefined;
-  if (update.plan === "active" && clinic.plan !== "active") {
+  if (update.plan === "active" && from !== "active") {
     try {
       welcomeEmail = await (deps.sendWelcome ?? welcome)(db, clinic.id);
     } catch (e) {
@@ -167,8 +436,26 @@ export async function handleDentvideoEvent(
       console.error("[dodo:dentvideo] welcome email failed", clinic.id, (e as Error).message);
     }
   }
+
+  // Founding seats: the owner hears once when the 100th is taken (checkout and the app close the offer themselves).
+  if (update.plan === "active" && from !== "active" && t.tier === DV_FOUNDING.tier) {
+    try {
+      const f = await (deps.founding ?? loadFoundingState)(db);
+      if (!f.open && f.left === 0) await (deps.alert ?? raiseOwnerAlert)(alerts.foundingFull({ used: f.used, clinics: DV_FOUNDING.clinics }));
+    } catch {
+      // best effort
+    }
+  }
+
   return {
     status: 200,
-    body: { ok: true, app: "dentvideo", plan: update.plan ?? clinic.plan, ...(firstWeek ? { firstWeek } : {}), ...(welcomeEmail ? { welcomeEmail } : {}) },
+    body: {
+      ok: true,
+      app: "dentvideo",
+      plan: update.plan ?? clinic.plan,
+      ...(firstWeek ? { firstWeek } : {}),
+      ...(welcomeEmail ? { welcomeEmail } : {}),
+      ...(clinicEmail ? { clinicEmail } : {}),
+    },
   };
 }

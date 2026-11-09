@@ -3,6 +3,7 @@ import { BUCKET } from "./supabase";
 import type { LibraryItem } from "@/components/dentvid/library";
 import { chosenPhotoIds, cleanPhotoIds, suggestBackgrounds, SUGGEST_MAX } from "./backgrounds";
 import { clinicFindings } from "./app-ui";
+import { restyleStatus } from "./restyle";
 
 type Row = {
   id: string;
@@ -21,6 +22,7 @@ type Row = {
   /** 0003_dentvid_backgrounds.sql; absent on a database without it. */
   suggested_backgrounds?: unknown;
   restyle_status?: "queued" | "failed" | null;
+  restyle_requested_at?: string | null;
 };
 
 /**
@@ -29,7 +31,7 @@ type Row = {
  * plan now — the engine is shared with the worker), the photos in use, and
  * whether a re-render is pending.
  */
-export function photosFor(r: Pick<Row, "kind" | "plan" | "topic" | "suggested_backgrounds" | "restyle_status">): LibraryItem["photos"] {
+export function photosFor(r: Pick<Row, "kind" | "plan" | "topic" | "suggested_backgrounds" | "restyle_status" | "restyle_requested_at">): LibraryItem["photos"] {
   if (r.kind !== "generated" || !r.plan) return undefined;
   const stored = Array.isArray(r.suggested_backgrounds)
     ? r.suggested_backgrounds.filter((id): id is string => cleanPhotoIds([id]).length === 1)
@@ -44,7 +46,7 @@ export function photosFor(r: Pick<Row, "kind" | "plan" | "topic" | "suggested_ba
   const chosen = chosenPhotoIds(r.plan);
   // Photos in use always appear in the strip, even if the ranking moved on.
   const list = [...chosen, ...suggested.filter((id) => !chosen.includes(id))].slice(0, SUGGEST_MAX);
-  return { suggested: list, chosen, status: r.restyle_status ?? undefined };
+  return { suggested: list, chosen, status: restyleStatus(r.restyle_status, r.restyle_requested_at) ?? undefined };
 }
 
 /** The clinic's items with short-lived signed URLs for video and poster. */

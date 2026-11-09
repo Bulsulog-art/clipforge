@@ -1,5 +1,4 @@
 import path from "node:path";
-import fs from "node:fs/promises";
 import type OpenAI from "openai";
 import { extractAudio } from "../steps/extract-audio.js";
 import { transcribe, type Transcript } from "../steps/transcribe.js";
@@ -48,6 +47,11 @@ export type RecordingDeps = {
   workDir: string;
   /** Render the clips to files. Off = review and copy only. */
   render?: boolean;
+  /**
+   * The clinic's logo as a local file the job downloaded from storage (the
+   * owner's logo key) into its work dir. Never a URL or a profile value.
+   */
+  logoPath?: string;
   log?: (msg: string, extra?: Record<string, unknown>) => void;
 };
 
@@ -75,7 +79,7 @@ export async function clipsFromRecording(
   topic?: Topic,
   opts: { maxClips?: number } = {},
 ): Promise<RecordedClip[]> {
-  const logoPath = await localLogo(profile.logo, deps.workDir);
+  const logoPath = deps.logoPath;
   // Same chip and size as the generated videos; an unreadable logo is drawn
   // the way it always was.
   const logoStyle = logoPath && deps.render ? await analyseLogo(logoPath).then(logoStyleOf).catch(() => undefined) : undefined;
@@ -171,20 +175,4 @@ export async function clipsFromRecording(
 
 export function clipDir(workDir: string, i: number): string {
   return path.join(workDir, `clip-${i}`);
-}
-
-/** The clinic's logo as a local file (downloads a URL once); undefined if unusable. */
-async function localLogo(logo: string | undefined, workDir: string): Promise<string | undefined> {
-  if (!logo) return undefined;
-  if (!/^https?:/.test(logo)) return logo;
-  try {
-    const res = await fetch(logo);
-    if (!res.ok) return undefined;
-    const ext = (logo.split("?")[0].split(".").pop() ?? "png").slice(0, 4);
-    const file = path.join(workDir, `clinic-logo.${ext}`);
-    await fs.writeFile(file, Buffer.from(await res.arrayBuffer()));
-    return file;
-  } catch {
-    return undefined;
-  }
 }

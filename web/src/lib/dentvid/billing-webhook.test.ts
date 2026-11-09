@@ -113,7 +113,7 @@ describe("enqueueFirstWeek", () => {
     const { db, itemFilters } = fakeDb(unpaid(), 0);
     const add = vi.fn(async () => ({}));
     expect(await enqueueFirstWeek(db, { add }, CLINIC, now)).toBe("queued");
-    expect(add).toHaveBeenCalledWith("week", { clinicId: CLINIC, count: 5 }, { jobId: `week:${CLINIC}:2026-11-02`, ...WEEK_JOB_OPTS });
+    expect(add).toHaveBeenCalledWith("week", { clinicId: CLINIC, count: 5, week: "2026-11-02" }, { jobId: `week:${CLINIC}:2026-11-02`, ...WEEK_JOB_OPTS });
     expect(weekJobId(CLINIC, "2026-11-02")).toBe(`week:${CLINIC}:2026-11-02`);
     expect(itemFilters).toEqual(
       expect.arrayContaining([

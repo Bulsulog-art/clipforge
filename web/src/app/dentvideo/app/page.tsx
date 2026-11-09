@@ -8,8 +8,9 @@ import { appText } from "@/content/dentvideo-app";
 import { AppHomeView } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { appSendsToFunnel, showFirstWeek } from "@/lib/dentvid/onboarding";
-import { DV_FOUNDING, dvAvailablePlans, foundingOfferOpen, foundingCode } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
 import { readWeekDelay } from "@/lib/dentvid/ops-server";
+import { adminOrNull, foundingForApp, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
 
 export const dynamic = "force-dynamic";
 
@@ -36,11 +37,19 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const week = weekOf();
   const generated = items.filter((i) => i.kind === "generated");
   const madeThisWeek = generated.some((i) => i.week_of === week && i.status !== "failed");
-  const firstWeek = showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed") });
+  const admin = await adminOrNull();
+  // ?billing=success shows "being made" only with evidence of a payment (or right after the return from checkout).
+  const seen = billing === "success" && plan.plan === "trial" && !madeThisWeek ? await paymentSeen(clinic.id, admin) : true;
+  const firstWeek = showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed"), paymentSeen: seen });
   // A run that is being retried or is delayed: the library says so calmly (never an error).
   const weekDelay = plan.canMake ? await readWeekDelay(clinic.id, week) : null;
   const b = appText(locale).billing;
   const notice = billing === "cancelled" ? b.cancelled : null;
+  // Not paying: the plan picker — unless buying would double-charge (on hold → update the card, payment being confirmed, cancelled but paid up).
+  const [panel, founding] = await Promise.all([
+    plan.canMake ? null : loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin),
+    foundingForApp(admin),
+  ]);
 
   return (
     <AppHomeView
@@ -54,7 +63,8 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
       weekDelay={weekDelay}
       notice={notice}
       plans={dvAvailablePlans()}
-      founding={foundingOfferOpen() ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() } : null}
+      founding={founding.open ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode(), ...(founding.reliable ? { left: founding.left } : {}) } : null}
+      billingIssue={panel && panel.kind !== "plans" ? panel : null}
     />
   );
 }

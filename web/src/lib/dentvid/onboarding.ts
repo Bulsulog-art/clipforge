@@ -68,8 +68,19 @@ export function appSendsToFunnel(plan: DvPlanState | string | null | undefined, 
  * this week's videos exist), and for a paying clinic that has never had a
  * week made (it came back before the email).
  */
-export function showFirstWeek(args: { plan: DvPlanState | string | null | undefined; billing?: string | null; madeThisWeek: boolean; everMade: boolean }): boolean {
+export function showFirstWeek(args: {
+  plan: DvPlanState | string | null | undefined;
+  billing?: string | null;
+  madeThisWeek: boolean;
+  everMade: boolean;
+  /**
+   * For a clinic not active yet: is there evidence a payment happened
+   * (billing-state.ts paymentSeen)? Without it ?billing=success alone does
+   * not claim the videos are being made. Defaults to true.
+   */
+  paymentSeen?: boolean;
+}): boolean {
   if (args.madeThisWeek) return false;
-  if (args.billing === "success") return args.plan === "trial" || args.plan === "active";
+  if (args.billing === "success") return args.plan === "active" || (args.plan === "trial" && args.paymentSeen !== false);
   return args.plan === "active" && !args.everMade;
 }

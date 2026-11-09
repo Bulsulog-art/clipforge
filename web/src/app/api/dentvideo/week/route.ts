@@ -33,7 +33,7 @@ export async function POST() {
       else if (state === "completed") return NextResponse.json({ error: err.weekMade }, { status: 409 });
       else return NextResponse.json({ ok: true, week, already: true });
     }
-    await dentvidQueue.add("week", { clinicId: clinic.id, count: WEEK_VIDEOS }, { jobId, ...WEEK_JOB_OPTS });
+    await dentvidQueue.add("week", { clinicId: clinic.id, count: WEEK_VIDEOS, week }, { jobId, ...WEEK_JOB_OPTS });
   } catch {
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });
   }

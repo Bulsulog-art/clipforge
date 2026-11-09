@@ -77,7 +77,7 @@ export async function checkMondayDispatch(deps: WatchDeps): Promise<DispatchChec
 
   for (const id of res.missing) {
     try {
-      await deps.queue.add("week", { clinicId: id, count: 5 }, { jobId: weekJobId(id, week), ...WEEK_JOB_OPTS });
+      await deps.queue.add("week", { clinicId: id, count: 5, week }, { jobId: weekJobId(id, week), ...WEEK_JOB_OPTS });
       res.requeued++;
     } catch (e) {
       logger.error({ clinicId: id, err: (e as Error).message }, "dentvid: watchdog could not queue a week");
@@ -133,6 +133,9 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
     if (!(await deps.db.isActive(clinicId))) continue;
 
     const week = weekOf(new Date(paidAt));
+    // A clinic that already has this week's videos (made before it cancelled and came back,
+    // or by the Monday run) is delivered: re-queuing would make the same week twice.
+    if ((await deps.db.weekMade([clinicId], week).catch(() => new Set<string>())).has(clinicId)) continue;
     const id = weekJobId(clinicId, week);
     const job = await deps.queue.getJob(id).catch(() => null);
     const state = job ? await job.getState().catch(() => "unknown") : "missing";
@@ -141,14 +144,14 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
     const fresh = deps.store ? await deps.store.setNx(`dv:ops:fw-requeue:${clinicId}:${paidAt}`, 7 * 86_400).catch(() => false) : false;
     if (fresh) {
       if (state === "missing") {
-        await deps.queue.add("week", { clinicId, count: 5 }, { jobId: id, ...WEEK_JOB_OPTS });
+        await deps.queue.add("week", { clinicId, count: 5, week }, { jobId: id, ...WEEK_JOB_OPTS });
         requeued = true;
       } else if (state === "failed" && job) {
         await job.retry("failed");
         requeued = true;
       } else if (state === "completed") {
         // Ran but left nothing usable (or skipped): a fresh run under its own fixed id.
-        await deps.queue.add("week", { clinicId, count: 5 }, { jobId: `${id}:requeue`, ...WEEK_JOB_OPTS });
+        await deps.queue.add("week", { clinicId, count: 5, week }, { jobId: `${id}:requeue`, ...WEEK_JOB_OPTS });
         requeued = true;
       }
       // waiting / active / delayed: already on its way — re-queuing would not make it faster.
@@ -198,7 +201,8 @@ export function supabaseWatchDb(db: SupabaseClient): WatchDb {
       return (count ?? 0) > 0;
     },
     async weekMade(clinicIds, week) {
-      const { data } = await db.from("dentvid_items").select("clinic_id").in("clinic_id", clinicIds).eq("kind", "generated").eq("week_of", week);
+      // Any generated item of that week except a failed placeholder counts: the week ran and was stored.
+      const { data } = await db.from("dentvid_items").select("clinic_id").in("clinic_id", clinicIds).eq("kind", "generated").eq("week_of", week).neq("status", "failed");
       return new Set((data ?? []).map((r) => r.clinic_id as string));
     },
     async isActive(clinicId) {

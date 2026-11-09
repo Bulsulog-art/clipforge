@@ -115,7 +115,7 @@ describe("first-week watchdog (every 15 min)", () => {
     const { q, added } = fakeQueue();
     const deps = { db: fakeDb({ firstPayments: payments }), queue: q, store, alert, env: {} };
     expect((await checkFirstWeeks({ ...deps, now: plus(45) })).requeued).toEqual(["new"]);
-    expect(added).toEqual([{ name: "week", data: { clinicId: "new", count: 5 }, opts: { jobId: "week:new:2026-11-02", ...WEEK_JOB_OPTS } }]);
+    expect(added).toEqual([{ name: "week", data: { clinicId: "new", count: 5, week: "2026-11-02" }, opts: { jobId: "week:new:2026-11-02", ...WEEK_JOB_OPTS } }]);
     // Next runs (and a second worker) do nothing more.
     expect((await checkFirstWeeks({ ...deps, now: plus(60) })).requeued).toEqual([]);
     expect((await checkFirstWeeks({ ...deps, now: plus(75) })).requeued).toEqual([]);
@@ -158,6 +158,16 @@ describe("first-week watchdog (every 15 min)", () => {
     await checkFirstWeeks({ db: fakeDb({ firstPayments: payments, isActive: async () => false }), queue: q, store, alert, now: plus(130), env: {} });
     expect(added).toEqual([]);
     expect(raised).toEqual([]);
+  });
+
+  it("a returning clinic that already has this week's videos counts as delivered: no second week, no alert", async () => {
+    const { q, added } = fakeQueue({ "week:new:2026-11-02": "completed" });
+    const weekMade = vi.fn(async (ids: string[], week: string) => new Set(week === "2026-11-02" ? ids : []));
+    const r = await checkFirstWeeks({ db: fakeDb({ firstPayments: payments, weekMade }), queue: q, store, alert, now: plus(130), env: {} });
+    expect(r.requeued).toEqual([]);
+    expect(added).toEqual([]);
+    expect(raised).toEqual([]);
+    expect(weekMade).toHaveBeenCalledWith(["new"], "2026-11-02");
   });
 
   it("also finds payments from the web app's Redis markers when the events table missed one", async () => {

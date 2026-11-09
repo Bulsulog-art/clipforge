@@ -53,7 +53,7 @@ describe("Monday dispatch uses the shared options and leaves a mark for the watc
     const store = new MemoryOpsStore();
     const now = new Date("2026-11-09T05:00:00Z");
     expect(await dispatchWeeks(db as never, { add } as never, now, store)).toBe(2);
-    expect(add).toHaveBeenCalledWith("week", { clinicId: "a", count: 5 }, { jobId: "week:a:2026-11-09", ...WEEK_JOB_OPTS });
+    expect(add).toHaveBeenCalledWith("week", { clinicId: "a", count: 5, week: "2026-11-09" }, { jobId: "week:a:2026-11-09", ...WEEK_JOB_OPTS });
     expect(JSON.parse((await store.get(dispatchKey("2026-11-09")))!)).toEqual({ at: now.toISOString(), jobs: 2 });
   });
 });
