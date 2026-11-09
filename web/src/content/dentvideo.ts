@@ -1324,9 +1324,9 @@ export function guidesFor(locale: Locale): Guide[] {
 }
 
 /**
- * Whether a language has a guides hub. Japanese, Arabic and Polish have no
- * guides yet, so they get no hub page, no "Guides" link and no sitemap entry:
- * the site never advertises a page that would be empty.
+ * Whether a language has a guides hub. A language without guides gets no hub
+ * page, no "Guides" link and no sitemap entry: the site never advertises a
+ * page that would be empty. Every language has guides today.
  */
 export function hasGuides(locale: Locale): boolean {
   return guidesFor(locale).length > 0;

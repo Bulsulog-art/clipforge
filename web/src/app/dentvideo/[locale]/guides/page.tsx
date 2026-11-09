@@ -5,7 +5,7 @@ import { GuidesIndex } from "@/components/dentvid/guides-index";
 import { guidesIndexMetadata } from "@/lib/dentvid/seo-guides";
 
 // Guides hub per language (dentvideo.com/de/guides …); English lives at /guides.
-// Only languages that have guides get a hub (Polish has none yet; ja and ar live in their own folders).
+// Only languages that have guides get a hub; ja and ar have their own folders (app/dentvideo/ja|ar/guides) for their web fonts.
 const OTHER = SHARED_ROUTE_LOCALES.filter(hasGuides);
 // Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
 // inside the header and footer rather than Next's bare default.

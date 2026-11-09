@@ -212,7 +212,7 @@ export function guideJsonLd(g: Guide) {
 /* ---------- Guides index ---------- */
 
 export function guidesIndexAlternates(): Record<string, string> {
-  // Only languages that have a hub: Japanese, Arabic and Polish have no guides yet.
+  // Only languages that have a hub (see hasGuides).
   return absolute(perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES));
 }
 
