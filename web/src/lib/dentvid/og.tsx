@@ -21,16 +21,16 @@ export const OG_SIZE = { width: 1200, height: 630 };
  * glyphs of the card's text (the `text=` subset) at build time, as TrueType.
  * Without the network the card is drawn without its words rather than in tofu.
  */
-const SCRIPT_FONT: Partial<Record<Locale, string>> = { ja: "Noto Sans JP" };
+export const SCRIPT_FONT: Partial<Record<Locale, string>> = { ja: "Noto Sans JP" };
 /**
  * Satori (next/og) cannot shape Arabic: its font parser rejects the contextual
  * substitutions Arabic faces rely on, and it has no right-to-left layout. The
  * Arabic card is drawn without words — logo, dentvideo.com and the phone — and
  * the shared link's title and description carry the Arabic text.
  */
-const WORDLESS: readonly Locale[] = ["ar"];
+export const WORDLESS: readonly Locale[] = ["ar"];
 
-async function googleFontSubset(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
+export async function googleFontSubset(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
   try {
     const css = await (
       await fetch(`https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@${weight}&text=${encodeURIComponent(text)}`)

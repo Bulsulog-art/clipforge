@@ -13,17 +13,31 @@ import {
   WORDMARK_TRANSFORM,
   WORDMARK_VIDEO,
 } from "@/components/dentvid/mark";
-import { OG_SIZE } from "./og";
+import { OG_SIZE, SCRIPT_FONT, WORDLESS, googleFontSubset } from "./og";
 
-/** The social card for a guide: logo, "Guides" label and the guide's title, in brand type. */
+/**
+ * The social card for a guide: logo, "Guides" label and the guide's title, in brand type.
+ * Japanese is drawn in Noto Sans JP (a build-time subset of exactly the card's glyphs, as on
+ * the Japanese landing card). Arabic cannot be shaped by next/og, so its card, like the Arabic
+ * landing card, carries the logo and dentvideo.com only; the link's title and description
+ * carry the words. Without the network the Japanese card falls back to the same wordless card.
+ */
 export async function guideOgImage(g: Guide) {
   const root = process.cwd();
-  const [serif, sans] = await Promise.all([
+  const label = GUIDE_UI[g.locale].guides;
+  const family = SCRIPT_FONT[g.locale];
+  const [serif, sans, script] = await Promise.all([
     readFile(join(root, "assets/fonts/InstrumentSerif-Regular.ttf")),
     readFile(join(root, "assets/fonts/PlusJakartaSans-SemiBold.ttf")),
+    family ? googleFontSubset(family, 700, `${g.h1}${label}`) : Promise.resolve(null),
   ]);
   const L = LOGO_COLORS.light;
-  const size = g.h1.length > 70 ? 60 : g.h1.length > 45 ? 70 : 80;
+  const words = !WORDLESS.includes(g.locale) && (!family || script !== null);
+  const titleFont = family ? "Script" : "Instrument";
+  const labelFont = family ? "Script" : "Jakarta";
+  // CJK glyphs are about twice as wide as Latin letters: size by visual width.
+  const len = family ? g.h1.length * 2 : g.h1.length;
+  const size = len > 70 ? 60 : len > 45 ? 70 : 80;
 
   return new ImageResponse(
     (
@@ -57,11 +71,17 @@ export async function guideOgImage(g: Guide) {
               <path d={WORDMARK_VIDEO} fill={L.video} />
             </g>
           </svg>
-          <div style={{ display: "flex", padding: "10px 22px", borderRadius: 9999, background: "#0f5c5c", color: "#ffffff", fontSize: 24 }}>
-            {GUIDE_UI[g.locale].guides}
-          </div>
+          {words ? (
+            <div style={{ display: "flex", padding: "10px 22px", borderRadius: 9999, background: "#0f5c5c", color: "#ffffff", fontSize: 24, fontFamily: labelFont }}>
+              {label}
+            </div>
+          ) : null}
         </div>
-        <div style={{ display: "flex", fontFamily: "Instrument", fontSize: size, lineHeight: 1.04, letterSpacing: "-0.01em", maxWidth: 1040 }}>{g.h1}</div>
+        {words ? (
+          <div style={{ display: "flex", fontFamily: titleFont, fontSize: size, lineHeight: family ? 1.3 : 1.04, letterSpacing: family ? 0 : "-0.01em", maxWidth: 1040 }}>{g.h1}</div>
+        ) : (
+          <div style={{ display: "flex" }} />
+        )}
         <div style={{ display: "flex", fontSize: 24, color: "#3d4c49" }}>dentvideo.com</div>
       </div>
     ),
@@ -70,6 +90,7 @@ export async function guideOgImage(g: Guide) {
       fonts: [
         { name: "Instrument", data: serif, weight: 400, style: "normal" },
         { name: "Jakarta", data: sans, weight: 600, style: "normal" },
+        ...(script ? [{ name: "Script", data: script, weight: 700 as const, style: "normal" as const }] : []),
       ],
     },
   );

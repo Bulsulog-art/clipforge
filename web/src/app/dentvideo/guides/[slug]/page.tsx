@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Check, ExternalLink, Plus } from "lucide-react";
-import { GUIDES, LANDING_PATH, LANGUAGE_NAME, findGuide, guidePath } from "@/content/dentvideo";
+import { GUIDES, LANDING_PATH, LANGUAGE_NAME, dirOf, findGuide, guidePath } from "@/content/dentvideo";
 import { readingMinutes, relatedGuides, sectionId, translationsOf } from "@/content/guides/text";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, GuideCta, HtmlLang, RichText, formatDate } from "@/components/dentvid/guide-parts";
+import { GuideScriptFont } from "@/components/dentvid/font-guide";
 
 // Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
 // inside the header and footer rather than Next's bare default.
@@ -34,14 +35,15 @@ export default async function GuidePage({ params }: Props) {
   const date = g.updated ?? g.published;
 
   return (
-    <main lang={L}>
+    <main lang={L} dir={dirOf(L)}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guideJsonLd(g)) }} />
       <HtmlLang locale={L} />
+      <GuideScriptFont locale={L} />
 
       <article>
         <header className="relative isolate overflow-hidden border-b border-dv-line">
           <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
-          <div aria-hidden="true" className="absolute -right-40 -top-20 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
+          <div aria-hidden="true" className="absolute -end-40 -top-20 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
           <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">
             <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[L] }, { name: ui.breadcrumbGuides, href: GUIDES_INDEX_PATH[L] }, { name: g.h1 }]} />
             <h1 className="dv-display mt-6 text-balance text-[2.375rem] leading-[1.04] text-dv-ink sm:text-[3.25rem]">{g.h1}</h1>
@@ -73,7 +75,7 @@ export default async function GuidePage({ params }: Props) {
               <ol className="mt-3 grid gap-x-8 gap-y-2 text-[0.9375rem] sm:grid-cols-2">
                 {g.sections.map((s, i) => (
                   <li key={s.heading} className="flex gap-2.5">
-                    <span className="w-5 shrink-0 text-right font-semibold tabular-nums text-dv-teal">{i + 1}</span>
+                    <span className="w-5 shrink-0 text-end font-semibold tabular-nums text-dv-teal">{i + 1}</span>
                     <a href={`#${sectionId(s.heading, i)}`} className="text-dv-body underline-offset-4 hover:text-dv-ink hover:underline">
                       {s.heading}
                     </a>
@@ -134,13 +136,13 @@ export default async function GuidePage({ params }: Props) {
             <div className="mt-6 divide-y divide-dv-line border-y border-dv-line">
               {g.faq.map((f, i) => (
                 <details key={f.q} className="group" open={i === 0}>
-                  <summary className="flex cursor-pointer items-start justify-between gap-6 py-5 text-left font-semibold leading-snug text-dv-ink">
+                  <summary className="flex cursor-pointer items-start justify-between gap-6 py-5 text-start font-semibold leading-snug text-dv-ink">
                     {f.q}
                     <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-300 group-open:rotate-45">
                       <Plus className="h-4 w-4" />
                     </span>
                   </summary>
-                  <p className="-mt-1 pb-6 pr-12 leading-relaxed text-dv-body">
+                  <p className="-mt-1 pb-6 pe-12 leading-relaxed text-dv-body">
                     <RichText text={f.a} locale={L} />
                   </p>
                 </details>
@@ -184,14 +186,14 @@ export default async function GuidePage({ params }: Props) {
             <li key={o.slug}>
               <Link href={dvHref(guidePath(o))} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-ink">
                 {o.h1}
-                <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-x-0 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
               </Link>
             </li>
           ))}
           <li>
             <Link href={dvHref(GUIDES_INDEX_PATH[L])} className="dv-card group flex h-full items-start justify-between gap-4 p-5 font-semibold leading-snug text-dv-teal">
               {ui.allGuides}
-              <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+              <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
             </Link>
           </li>
         </ul>
