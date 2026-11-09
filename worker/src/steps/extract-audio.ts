@@ -1,6 +1,7 @@
 import ffmpeg from "fluent-ffmpeg";
 import path from "node:path";
 import { logger } from "../logger.js";
+import { PROTOCOL_WHITELIST } from "../lib/media-input.js";
 
 /**
  * Extract a small mono 16 kHz MP3 from the source before transcription.
@@ -21,6 +22,8 @@ export async function extractAudio(sourcePath: string, workDir: string): Promise
   try {
     await new Promise<void>((resolve, reject) => {
       ffmpeg(sourcePath)
+        // A local file only: no http/concat/… even if the "video" is a playlist in disguise.
+        .inputOptions(["-protocol_whitelist", PROTOCOL_WHITELIST])
         .noVideo()
         .audioChannels(1)
         .audioFrequency(16000)

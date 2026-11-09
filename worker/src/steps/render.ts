@@ -10,6 +10,7 @@ import { resolveAspect } from "../aspect.js";
 import type { Moment } from "./score.js";
 import type { Transcript } from "./transcribe.js";
 import { logoOverlayFilters } from "./logo-overlay.js";
+import { PROTOCOL_WHITELIST } from "../lib/media-input.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
 
 type Args = {
@@ -211,9 +212,11 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
   ].join(";");
 
   await new Promise<void>((resolve, reject) => {
-    const cmd = ffmpeg(a.sourcePath).setStartTime(a.moment.start).duration(duration);
-    if (hasMusic && a.bgMusicPath) cmd.input(a.bgMusicPath);
-    if (hasBranding && a.branding) cmd.input(a.branding.localLogoPath);
+    // Every input is a local file we wrote: no network or nested protocols, whatever the file says it is.
+    const local = ["-protocol_whitelist", PROTOCOL_WHITELIST];
+    const cmd = ffmpeg(a.sourcePath).inputOptions(local).setStartTime(a.moment.start).duration(duration);
+    if (hasMusic && a.bgMusicPath) cmd.input(a.bgMusicPath).inputOptions(local);
+    if (hasBranding && a.branding) cmd.input(a.branding.localLogoPath).inputOptions(local);
 
     cmd
       .complexFilter(complexFilter)

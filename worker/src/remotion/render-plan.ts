@@ -10,6 +10,7 @@ import type { ScenePlan } from "./scene-plan.js";
 import { resolveStockClips } from "./stock.js";
 import { stageBackgrounds } from "./backgrounds.js";
 import type { LogoStyle } from "./logo-style.js";
+import { isInside, mediaRoots } from "../lib/media-input.js";
 
 /**
  * Renders a scene plan to an mp4.
@@ -91,7 +92,7 @@ export type RenderPlanArgs = {
   voiceoverSrc?: string;
   musicSrc?: string;
   watermark?: boolean;
-  /** Local path or URL of a client logo, drawn in the top corner. */
+  /** Local path of a client logo (a file the job wrote into its work dir), drawn in the top corner. */
   logoSrc?: string;
   /** How the logo is drawn (chip, size by aspect), from dental/logo.ts. */
   logoStyle?: LogoStyle;
@@ -101,6 +102,12 @@ export type RenderPlanArgs = {
   onProgress?: (fraction: number) => void;
   onWarn?: (message: string) => void;
   entryPoint?: string;
+  /**
+   * Extra directories local assets may be staged from. The OS temp dir (job
+   * work dirs) and `workDir` are always allowed; anything else — a URL, a
+   * path outside them, a symlink pointing out — is never staged.
+   */
+  assetRoots?: string[];
 };
 
 export type RenderPlanResult = {
@@ -111,6 +118,42 @@ export type RenderPlanResult = {
   /** Scenes that asked for footage and did not get any. */
   missingFootage: number;
 };
+
+/**
+ * Copies one local asset (voiceover, music, logo, a user's clip) into the
+ * render's staging folder and returns the name the composition loads, or
+ * undefined (with a warning) when it may not or cannot be staged.
+ *
+ * Only plain local files inside `roots` are staged: never a URL (the
+ * headless browser would fetch it from inside our network), never a path
+ * elsewhere on the box. The renderer's static server only serves what is in
+ * the staging folder, so this is the single gate for what a video can embed.
+ */
+export async function stageLocalAsset(
+  src: string | undefined,
+  opts: { assetDir: string; renderId: string; roots: string[]; onWarn?: (m: string) => void; what?: string },
+): Promise<string | undefined> {
+  if (!src) return undefined;
+  const what = opts.what ?? "asset";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(src) || !path.isAbsolute(src)) {
+    opts.onWarn?.(`${what} is not a local file; not staged`);
+    return undefined;
+  }
+  if (!isInside(src, opts.roots)) {
+    opts.onWarn?.(`${what} is outside the job's directories; not staged`);
+    return undefined;
+  }
+  const dest = path.join(opts.assetDir, path.basename(src));
+  try {
+    const st = await fs.lstat(src);
+    if (!st.isFile()) throw new Error("not a regular file");
+    await fs.copyFile(src, dest);
+    return toRenderableSrc(dest, opts.renderId);
+  } catch (e) {
+    opts.onWarn?.(`could not stage ${what} ${path.basename(src)}: ${(e as Error).message}`);
+    return undefined;
+  }
+}
 
 /**
  * Turns a local path into something the renderer can actually fetch.
@@ -235,37 +278,24 @@ async function renderStaged(
     serveUrl,
   } = args;
 
+  // Only plain local files inside the job's directories are ever staged (stageLocalAsset).
+  const roots = mediaRoots([args.workDir, ...(args.assetRoots ?? [])]);
+
   // A user's clip lives wherever it was downloaded; copy it in so every source
-  // the composition asks for resolves from one directory.
+  // the composition asks for resolves from one directory. One that cannot be
+  // staged keeps its index (empty), so its scene falls back to the brand look.
   const stagedUserAssets: string[] = [];
   for (const asset of userAssets) {
-    const dest = path.join(assetDir, path.basename(asset));
-    try {
-      await fs.copyFile(asset, dest);
-      stagedUserAssets.push(dest);
-    } catch (e) {
-      onWarn?.(`could not stage user asset ${asset}: ${(e as Error).message}`);
-      stagedUserAssets.push(asset);
-    }
+    const staged = await stageLocalAsset(asset, { assetDir, renderId, roots, onWarn, what: "user asset" });
+    stagedUserAssets.push(staged ? path.join(assetDir, path.basename(asset)) : "");
   }
 
   // Audio has the same constraint as footage: the composition can only fetch
   // what is staged in its public folder. Both were passed as raw local paths
   // and silently never played.
-  const stageAudio = async (src?: string) => {
-    if (!src || /^https?:/.test(src)) return src;
-    const dest = path.join(assetDir, path.basename(src));
-    try {
-      await fs.copyFile(src, dest);
-      return toRenderableSrc(dest, renderId);
-    } catch (e) {
-      onWarn?.(`could not stage audio ${src}: ${(e as Error).message}`);
-      return undefined;
-    }
-  };
-  const stagedVoiceover = await stageAudio(voiceoverSrc);
-  const stagedMusic = await stageAudio(musicSrc);
-  const stagedLogo = await stageAudio(logoSrc);
+  const stagedVoiceover = await stageLocalAsset(voiceoverSrc, { assetDir, renderId, roots, onWarn, what: "voiceover" });
+  const stagedMusic = await stageLocalAsset(musicSrc, { assetDir, renderId, roots, onWarn, what: "music" });
+  const stagedLogo = await stageLocalAsset(logoSrc, { assetDir, renderId, roots, onWarn, what: "logo" });
 
   const footage = await resolveFootage(plan, {
     workDir: assetDir,
