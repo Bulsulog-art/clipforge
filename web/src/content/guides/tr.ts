@@ -539,7 +539,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo nerede durur",
         paragraphs: [
-          "[DentVideo](landing:), içerik üretimini üstlenen bir yazılımdır: her hafta beş kısa bilgilendirme videosu hazırlar, her senaryoyu klinik doğruluk ve tanıtım kurallarına göre denetler, kendi kayıtlarınızı altyazılı kliplere böler. Sizin yerinize paylaşım yapmaz ve mesajlarınızı yanıtlamaz; onayladığınız videoları indirip siz paylaşırsınız. Bu sayede bir ajansla ya da ekibinizle birlikte de kullanılabilir. [Ödemeden önce videolarınızı görün](start:).",
+          "[DentVideo](landing:), içerik üretimini üstlenen bir yazılımdır: her hafta beş kısa bilgilendirme videosu hazırlar, her senaryoyu klinik doğruluk ve tanıtım kurallarına göre denetler, kendi kayıtlarınızı altyazılı kliplere böler. Sizin yerinize paylaşım yapmaz ve mesajlarınızı yanıtlamaz; onayladığınız videoları indirip siz paylaşırsınız. Bu sayede bir ajansla ya da ekibinizle birlikte de kullanılabilir. [Ödemeden önce videolarınızı görün](start:). Seçenekleri tablo halinde görmek için [DentVideo'nun ajans, Canva ve ChatGPT ile karşılaştırmasına](video:dentvideo-ajans-canva-chatgpt) bakın.",
         ],
       },
     ],

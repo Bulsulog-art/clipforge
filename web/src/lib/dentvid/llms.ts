@@ -1,6 +1,7 @@
 import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor } from "@/content/dentvideo";
 import { ENTITY, PUBLISHER_NAME } from "@/content/guides/entity";
-import { guideMarkdown } from "@/content/guides/text";
+import { guideMarkdown, solutionMarkdown } from "@/content/guides/text";
+import { SOLUTIONS, solutionPath } from "@/content/solutions";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { dentvideoPublicUrl } from "./host";
 
@@ -35,6 +36,9 @@ export function llmsTxt(): string {
     ...LOCALES.map((l) => `- [DentVideo — ${LANGUAGE_NAME[l]}](${abs(LANDING_PATH[l])}) (${l})`),
     ...LOCALES.map((l) => `- [${ENTITY[l].h1}](${abs(ABOUT_PATH[l])}) (${l}): ${ENTITY[l].definition}`),
     "",
+    "## What DentVideo makes, and how it compares",
+    ...SOLUTIONS.map((p) => `- [${p.h1}](${abs(solutionPath(p))}) (${p.locale}): ${p.seoDescription}`),
+    "",
     ...GUIDE_HUB_LOCALES.flatMap((l) => [
       `## Guides (${LANGUAGE_NAME[l]})`,
       `- [${GUIDE_UI[l].index.h1}](${abs(GUIDES_INDEX_PATH[l])}): ${GUIDE_UI[l].index.description}`,
@@ -54,6 +58,9 @@ export function llmsFullTxt(): string {
     `Publisher: ${PUBLISHER_NAME}. Guides are general information, not legal advice; rules differ by country and change.`,
     "",
     ...LOCALES.flatMap((l) => [`# ${ENTITY[l].h1}`, "", ENTITY[l].definition, "", ...ENTITY[l].facts.map((f) => `- ${f.label}: ${f.value}`), ""]),
+    "# What DentVideo makes, and how it compares",
+    "",
+    ...SOLUTIONS.map((p) => solutionMarkdown(p, abs)),
     "# Guides",
     "",
     ...GUIDES.map((g) => guideMarkdown(g, abs)),
