@@ -52,6 +52,8 @@ export function PlanPanel({
   const [error, setError] = useState<string | null>(null);
   /** Inline code card (in the app, where the page has none): the address to confirm. */
   const [verifyFor, setVerifyFor] = useState<string | null>(null);
+  /** The plan that was chosen when checkout asked for the code: checkout resumes with it once confirmed. */
+  const [pending, setPending] = useState<{ tier: DvTier; interval: DvInterval } | null>(null);
 
   const lead = state === "paused" ? t.leadPaused : state === "cancelled" ? t.leadCancelled : t.leadTrial;
 
@@ -77,7 +79,9 @@ export function PlanPanel({
           setError(null);
           onNeedsVerification();
         } else {
-          setError(body.error ?? null);
+          // The code card says what to do; the server's sentence would only repeat it.
+          setError(null);
+          setPending({ tier, interval: chosen });
           setVerifyFor(body.email ?? "");
         }
         return;
@@ -204,6 +208,9 @@ export function PlanPanel({
             onVerified={() => {
               setVerifyFor(null);
               setError(null);
+              // Straight on to the checkout the clinic had asked for.
+              if (pending) void choose(pending.tier, pending.interval);
+              setPending(null);
             }}
           />
         </div>

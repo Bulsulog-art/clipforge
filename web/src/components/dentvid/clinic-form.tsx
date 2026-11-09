@@ -307,7 +307,7 @@ export function BrandFields({ draft, locale, showLogoPreview = false }: { draft:
             />
           </span>
           <span dir="ltr" className="font-mono text-sm font-normal text-dv-body">{p.brandColor}</span>
-          <span className="flex flex-wrap items-center gap-2" role="group" aria-label={fromLogo ? t.logoSwatches : t.brandColor}>
+          <span className="-ms-1.5 flex flex-wrap items-center" role="group" aria-label={fromLogo ? t.logoSwatches : t.brandColor}>
             {swatches.map((c) => {
               const on = p.brandColor.toLowerCase() === c.toLowerCase();
               return (
@@ -318,9 +318,15 @@ export function BrandFields({ draft, locale, showLogoPreview = false }: { draft:
                   title={c}
                   aria-label={c}
                   aria-pressed={on}
-                  className={`h-8 w-8 rounded-full border border-black/10 shadow-sm transition hover:scale-110 ${on ? "ring-2 ring-dv-teal ring-offset-2 ring-offset-white" : ""}`}
-                  style={{ background: c }}
-                />
+                  // A 44 px target around a 32 px swatch.
+                  className="group flex h-11 w-11 items-center justify-center rounded-full"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`h-8 w-8 rounded-full border border-black/10 shadow-sm transition group-hover:scale-110 ${on ? "ring-2 ring-dv-teal ring-offset-2 ring-offset-white" : ""}`}
+                    style={{ background: c }}
+                  />
+                </button>
               );
             })}
           </span>

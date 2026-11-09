@@ -5,6 +5,8 @@ import {
   approvableIds,
   cardState,
   checkRecording,
+  deleteConfirmOk,
+  deletePhrase,
   fileSize,
   groupByWeek,
   isFunnel,
@@ -27,6 +29,25 @@ const item = (over: Partial<LibraryItem> = {}): LibraryItem => ({
   findings: [],
   videoUrl: "/v.mp4",
   ...over,
+});
+
+describe("delete confirmation (mirrors lib/dentvid/account.ts confirmAccepted)", () => {
+  it("asks for the clinic name, or the email when the profile has none", () => {
+    expect(deletePhrase("Riverside Dental", "a@b.example")).toBe("Riverside Dental");
+    expect(deletePhrase("   ", "a@b.example")).toBe("a@b.example");
+    expect(deletePhrase(undefined, null)).toBe("");
+  });
+  it("accepts the name or the email, ignoring case, spacing and Unicode form", () => {
+    expect(deleteConfirmOk("  riverside   DENTAL ", "Riverside Dental", "a@b.example")).toBe(true);
+    expect(deleteConfirmOk("A@B.example", "Riverside Dental", "a@b.example")).toBe(true);
+    expect(deleteConfirmOk("ＲＩＶＥＲＳＩＤＥ Dental", "Riverside Dental", null)).toBe(true);
+    expect(deleteConfirmOk("Riverside", "Riverside Dental", "a@b.example")).toBe(false);
+  });
+  it("can still be confirmed when the clinic has no name (it used to be impossible)", () => {
+    expect(deleteConfirmOk("a@b.example", "", "a@b.example")).toBe(true);
+    expect(deleteConfirmOk("", "", "a@b.example")).toBe(false);
+    expect(deleteConfirmOk("x", "", null)).toBe(false);
+  });
 });
 
 describe("cardState", () => {

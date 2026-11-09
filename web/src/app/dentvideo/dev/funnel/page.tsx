@@ -39,15 +39,16 @@ export const metadata: Metadata = { title: "Funnel preview", robots: { index: fa
  * design review and screenshots. 404 unless DENTVIDEO_DEV_PREVIEW=1.
  *   /dentvideo/dev/funnel?step=account|clinic|preview|plan|first-week|activating&lang=tr
  * The plan step shows the email-code card; &verified=1 hides it.
+ * first-week takes &delay=retrying|delayed (the worker's "taking a little longer" note).
  */
-export default async function FunnelPreview({ searchParams }: { searchParams: Promise<{ step?: string; lang?: string; empty?: string; verified?: string }> }) {
+export default async function FunnelPreview({ searchParams }: { searchParams: Promise<{ step?: string; lang?: string; empty?: string; verified?: string; delay?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const locale = asLocale(sp.lang) ?? "en";
   if (sp.step === "first-week" || sp.step === "activating") {
     return (
       <main lang={locale} dir={dirOf(locale)} className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <FirstWeek locale={locale} paid={sp.step === "first-week"} pollMs={3_600_000} />
+        <FirstWeek locale={locale} paid={sp.step === "first-week"} pollMs={3_600_000} delay={sp.delay === "retrying" || sp.delay === "delayed" ? sp.delay : null} />
       </main>
     );
   }
