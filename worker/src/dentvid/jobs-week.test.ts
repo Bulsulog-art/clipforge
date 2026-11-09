@@ -19,7 +19,8 @@ vi.mock("../remotion/voiceover.js", () => ({ prepareVoiceover: vi.fn() }));
 vi.mock("../remotion/render-plan.js", () => ({ renderPlan: vi.fn() }));
 vi.mock("../dental/questions.js", () => ({ patientSearches: vi.fn(async () => []) }));
 const notifyReady = vi.fn(async () => true);
-vi.mock("./notify.js", () => ({ notifyReady }));
+const sendReadyAtCivilHour = vi.fn(async () => ({ sent: true, at: new Date(), held: false }));
+vi.mock("./notify.js", () => ({ notifyReady, sendReadyAtCivilHour }));
 // No real ffmpeg: thumbnails just fail (they are optional).
 vi.mock("fluent-ffmpeg", () => {
   const chain: Record<string, unknown> = {};
@@ -112,9 +113,25 @@ describe("a week that heals itself", () => {
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { jobId: "w", attemptsMade: 1, attempts: 4 });
     expect(r).toMatchObject({ ready: 5, toppedUp: 0 });
     expect(inserted).toHaveLength(5);
-    expect(notifyReady).toHaveBeenCalledWith(CLINIC, "week", { ready: 5, flagged: 0 });
+    // Not a batch week: the dentist is told at once, in their own zone's terms (TR → Istanbul).
+    expect(sendReadyAtCivilHour).toHaveBeenCalledWith({ clinicId: CLINIC, week, tz: "Europe/Istanbul", batch: false, counts: { ready: 5, flagged: 0 } });
+    // Stamped with the week they are for.
+    expect(inserted.every((row) => row.week_of === week)).toBe(true);
     expect(await ops.get(weekStateKey(CLINIC, week))).toBeNull();
     expect(mails).toEqual([]);
+  });
+
+  it("a batch week made on Saturday is stamped with the coming Monday and its email is held for the clinic's morning", async () => {
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2030-01-07", batch: true }, { attempts: 4 });
+    expect(inserted.map((row) => row.week_of)).toEqual(Array(5).fill("2030-01-07"));
+    expect(sendReadyAtCivilHour).toHaveBeenCalledWith(expect.objectContaining({ week: "2030-01-07", batch: true, tz: "Europe/Istanbul" }));
+  });
+
+  it("a job without a week (queued before the field existed) means the week it runs in", async () => {
+    produceWeek.mockResolvedValueOnce(["a", "b", "c"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 3, week: "not-a-week" }, { attempts: 4 });
+    expect(inserted.every((row) => row.week_of === week)).toBe(true);
   });
 
   it("videos are stamped with the week in the job data, not the day the job runs", async () => {
@@ -166,7 +183,7 @@ describe("a week that heals itself", () => {
     produceWeek.mockResolvedValue(["a", "b", "c", "d", "e"].map(broken));
     await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
     expect(inserted).toEqual([]);
-    expect(notifyReady).not.toHaveBeenCalled();
+    expect(sendReadyAtCivilHour).not.toHaveBeenCalled();
     expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
     expect(mails).toEqual([]);
   });

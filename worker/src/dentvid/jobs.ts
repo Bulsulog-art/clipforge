@@ -16,8 +16,9 @@ import { prepareVoiceover } from "../remotion/voiceover.js";
 import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
-import { notifyReady } from "./notify.js";
-import { isPaying, weekOf } from "./schedule.js";
+import { notifyReady, sendReadyAtCivilHour } from "./notify.js";
+import { isPaying, validWeek, weekOf } from "./schedule.js";
+import { clinicTimeZone } from "./timezone.js";
 import { classifyFailure, isLastAttempt, TransientWeekError } from "./retry.js";
 import { clinicRef, noteRenderFailure, ownerAlert, setWeekDelay } from "./ops.js";
 import { alerts, cleanError } from "./ops-alert.js";
@@ -116,19 +117,18 @@ export async function countActiveClinics(): Promise<number> {
 }
 
 /**
- * `week` is the Monday ("YYYY-MM-DD") the job was queued for — set by every
- * producer (Monday dispatch, payment webhook, the app's button, watchdogs,
- * parked-job resume keeps the data). Older jobs without it fall back to the
- * week the job runs in.
+ * week: the Monday the videos are for (YYYY-MM-DD) — a batch week is made on
+ * the weekend before it, so "now" is the wrong week. Jobs queued before this
+ * field existed mean the week they run in. batch: queued by the weekly
+ * dispatch (schedule.ts) rather than by someone waiting for it.
  */
-export type WeekJob = { clinicId: string; count?: number; week?: string };
+export type WeekJob = { clinicId: string; count?: number; week?: string; batch?: boolean };
 
 /** The week a job is for: its own `week` when valid, else the current one. */
 export function jobWeek(job: Pick<WeekJob, "week">, now = new Date()): string {
-  const w = job.week;
-  if (typeof w === "string" && /^\d{4}-\d{2}-\d{2}$/.test(w) && !Number.isNaN(Date.parse(`${w}T00:00:00Z`))) return w;
-  return weekOf(now);
+  return validWeek(job.week) ?? weekOf(now);
 }
+
 /** Re-render one generated video after the clinic picked new background photos. */
 export type RestyleJob = { itemId: string };
 export type RecordingJob = { clinicId: string; sourcePath: string };
@@ -412,8 +412,15 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
         }),
       ).catch(() => "failed");
     }
-    // The dentist hears about it — they should not have to keep checking.
-    await notifyReady(job.clinicId, "week", { ready: result.ready, flagged: result.flagged });
+    // The dentist hears about it — they should not have to keep checking —
+    // at a civil hour of their own morning (notify.ts).
+    await sendReadyAtCivilHour({
+      clinicId: job.clinicId,
+      week,
+      tz: clinicTimeZone(profile.country, (profile as { timezone?: string }).timezone),
+      batch: job.batch === true,
+      counts: { ready: result.ready, flagged: result.flagged },
+    });
     return result;
   } finally {
     void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});

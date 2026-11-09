@@ -5,6 +5,7 @@ import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
+import { RESTYLE_JOB_OPTS } from "@/lib/dentvid/job-options";
 import { cleanPhotoIds, MAX_PHOTOS, withBackgrounds } from "@/lib/dentvid/backgrounds";
 import { restyleStatus } from "@/lib/dentvid/restyle";
 
@@ -64,7 +65,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await dentvidQueue.add(
       "restyle",
       { itemId: id },
-      { jobId: `restyle:${id}:${Date.now()}`, attempts: 2, backoff: { type: "exponential", delay: 30_000 } },
+      // Ahead of the weekend batch: the clinic is looking at "updating…" (job-options.ts).
+      { jobId: `restyle:${id}:${Date.now()}`, ...RESTYLE_JOB_OPTS },
     );
   } catch {
     // Not queued: say so on the card instead of "updating…" forever.

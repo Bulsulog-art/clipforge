@@ -10,6 +10,7 @@ import type { ScenePlan } from "./scene-plan.js";
 import { resolveStockClips } from "./stock.js";
 import { stageBackgrounds } from "./backgrounds.js";
 import type { LogoStyle } from "./logo-style.js";
+import { renderTuning, type RenderTuning } from "./capacity.js";
 import { isInside, mediaRoots } from "../lib/media-input.js";
 
 /**
@@ -99,6 +100,8 @@ export type RenderPlanArgs = {
   pexelsApiKey?: string;
   /** How many frames to render at once. Tuned by the caller to the box. */
   concurrency?: number;
+  /** Encoder / decoder flags; default renderTuning() for this box (capacity.ts). */
+  tuning?: RenderTuning;
   onProgress?: (fraction: number) => void;
   onWarn?: (message: string) => void;
   entryPoint?: string;
@@ -329,13 +332,18 @@ async function renderStaged(
 
   // Use a specific browser binary when one is configured (a dev box with a
   // preinstalled chrome-headless-shell); otherwise Remotion's own download.
+  // REMOTION_CHROME_MODE=chrome-for-testing lets that binary be a full Chrome.
   const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
+  const chromeMode = process.env.REMOTION_CHROME_MODE === "chrome-for-testing" ? ("chrome-for-testing" as const) : undefined;
+  // Sized to the box (capacity.ts): x264 preset, footage cache, decoder threads.
+  const tuning = args.tuning ?? renderTuning();
 
   const composition = await selectComposition({
     serveUrl,
     id: COMPOSITION_ID,
     inputProps,
     browserExecutable,
+    ...(chromeMode ? { chromeMode } : {}),
   });
 
   await renderMedia({
@@ -348,7 +356,11 @@ async function renderStaged(
     // Short-form is watched on a phone over cellular; a visually lossless
     // encode at a sane bitrate beats a pristine file nobody waits for.
     crf: 23,
+    x264Preset: tuning.x264Preset,
+    offthreadVideoCacheSizeInBytes: tuning.offthreadVideoCacheSizeInBytes,
+    offthreadVideoThreads: tuning.offthreadVideoThreads,
     browserExecutable,
+    ...(chromeMode ? { chromeMode } : {}),
     onProgress: onProgress ? ({ progress }) => onProgress(progress) : undefined,
   });
 

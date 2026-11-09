@@ -22,6 +22,14 @@ describe.runIf(fs.existsSync(worker))("one owner-alert helper for web and worker
     expect(WEEK_JOB_OPTS.attempts).toBe(Number(/WEEK_ATTEMPTS = (\d+)/.exec(src)![1]));
     expect(WEEK_JOB_OPTS.backoff.delay).toBe(Number(/WEEK_BACKOFF_MS = ([\d_]+)/.exec(src)![1].replace(/_/g, "")));
   });
+  it("web/src/lib/dentvid/job-options.ts (priorities and retries) is byte-identical to the worker's", () => {
+    expect(fs.readFileSync(path.join(here, "job-options.ts"), "utf8")).toBe(fs.readFileSync(path.join(worker, "job-options.ts"), "utf8"));
+  });
+  it("the web app and the worker agree on the delivery week (Saturday 18:00 UTC boundary)", () => {
+    const src = fs.readFileSync(path.join(worker, "schedule.ts"), "utf8");
+    expect(src).toMatch(/DISPATCH_SCHEDULE = \{ pattern: "0 18 \* \* 6", tz: "UTC" \}/);
+    expect(src).toMatch(/DISPATCH_HOURS_INTO_WEEK = 5 \* 24 \+ 18;/);
+  });
 });
 
 let store: MemoryOpsStore;

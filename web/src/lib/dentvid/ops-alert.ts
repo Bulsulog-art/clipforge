@@ -462,16 +462,16 @@ export const alerts = {
     return {
       key: `dispatch:${a.week}`,
       severity: "urgent",
-      titleTr: "Pazartesi üretimi başlamadı",
-      titleEn: "Monday dispatch did not run",
-      what: [`At the 07:00 UTC check, ${a.activeClinics} paying clinic(s) should have this week's job, but ${a.missing} had none (${a.reason}).`],
+      titleTr: "Haftalık üretim başlamadı",
+      titleEn: "Weekly dispatch did not run",
+      what: [`At the Saturday 19:30 UTC check, ${a.activeClinics} paying clinic(s) should have the coming week's job, but ${a.missing} had none (${a.reason}).`],
       facts: [
         ["Week", a.week],
         ["Active clinics", String(a.activeClinics)],
         ["Jobs found", String(a.jobs)],
       ],
       done: [a.requeued ? `Queued the ${a.requeued} missing week(s) now (same job ids, so nothing doubles).` : "Could not queue the missing weeks (see the logs)."],
-      todo: ["Check that the worker is running and its Monday scheduler exists (dentvid-monday).", "Watch for the “videos ready” notices over the next hour."],
+      todo: ["Check that the worker is running and its weekly scheduler exists (dentvid-monday, Saturday 18:00 UTC).", "Watch the batch over the weekend: every clinic is due by Monday 07:00 in its own time zone."],
     };
   },
 

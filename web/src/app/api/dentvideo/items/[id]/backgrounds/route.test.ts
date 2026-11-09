@@ -71,6 +71,8 @@ describe("POST /api/dentvideo/items/[id]/backgrounds", () => {
     expect(updates[0].restyle_status).toBe("queued");
     expect(added[0][0]).toBe("restyle");
     expect(added[0][1]).toEqual({ itemId: ITEM });
+    // Ahead of the weekend batch: the clinic is watching "updating…".
+    expect(added[0][2]).toMatchObject({ priority: 1, attempts: 2 });
   });
 
   it("refuses unknown ids, URLs, none and more than four", async () => {
