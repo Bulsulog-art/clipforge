@@ -10,8 +10,14 @@ import { authText } from "@/content/dentvideo-auth";
 import { announceLocale } from "./chrome";
 import { DvIcon } from "./mark";
 import { Stepper } from "./onboarding";
+import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "./turnstile-widget";
+import { ConsentLine } from "./consent-line";
 
-export function StartForm({ locale, remember }: { locale: Locale; remember: boolean }) {
+/**
+ * `legal`: show the consent line linking to /terms and /privacy — only once
+ * those pages exist (DENTVIDEO_LEGAL_PAGES=on, read by the server page).
+ */
+export function StartForm({ locale, remember, legal = false }: { locale: Locale; remember: boolean; legal?: boolean }) {
   const t = appText(locale).start;
   const errors = appText(locale).errors;
   const a = authText(locale);
@@ -26,6 +32,9 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
   // and how long the form was open before it was sent.
   const [website, setWebsite] = useState("");
   const openedAt = useRef<number>(Date.now());
+  // Cloudflare Turnstile, when configured (NEXT_PUBLIC_TURNSTILE_SITE_KEY).
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const captchaBox = useRef<TurnstileHandle>(null);
 
   // Arrived from a localized landing (?lang=tr): keep that language for the
   // rest of the visit, including the API's messages.
@@ -78,19 +87,23 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email: addr, password, website, elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)), locale }),
+          body: JSON.stringify({
+            email: addr,
+            password,
+            website,
+            elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)),
+            locale,
+            ...(captcha ? { turnstile: captcha } : {}),
+          }),
         });
+        // A Turnstile token is good for one try.
+        captchaBox.current?.reset();
         const body = await res.json().catch(() => ({}));
-        if (res.status === 409) {
-          // Already registered (often a second try): sign in if the password matches.
-          setNotice(a.existsTryingSignIn);
-          if (await signIn(addr)) return goIn(false);
-          setNotice(null);
-          setMode("signin");
-          throw new Error(a.existsWrongPassword);
-        }
         if (!res.ok) throw new Error(body.error ?? errors.createFailed);
-        // The account exists now; a flaky network must not strand it.
+        // The answer is the same whether or not the address already had an
+        // account (the server does not say). Sign in: a new account, or a
+        // returning one with its own password, gets in; otherwise the message
+        // offers sign-in and reset without saying which case it was.
         if ((await signIn(addr)) || (await wait(1200).then(() => signIn(addr)))) return goIn(true);
         setMode("signin");
         throw new Error(a.signInFailedAfterSignup);
@@ -149,9 +162,11 @@ export function StartForm({ locale, remember }: { locale: Locale; remember: bool
               </label>
             </div>
           )}
+          {mode === "signup" && TURNSTILE_SITE_KEY && <TurnstileWidget ref={captchaBox} locale={locale} onToken={setCaptcha} />}
+          {mode === "signup" && legal && <ConsentLine locale={locale} />}
           {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
           {notice && <p className="rounded-xl bg-[#e6f2ef] px-4 py-3 text-sm text-[#0f5c5c]" role="status">{notice}</p>}
-          <button type="submit" disabled={busy} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
+          <button type="submit" disabled={busy || (mode === "signup" && !!TURNSTILE_SITE_KEY && !captcha)} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
             {busy ? t.busy : mode === "signup" ? t.submitSignup : mode === "forgot" ? a.sendLink : t.submitSignin}
           </button>
           {mode === "signin" && (

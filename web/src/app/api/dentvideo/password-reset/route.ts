@@ -3,10 +3,11 @@ import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
 import { dvErrors } from "@/lib/dentvid/locale-server";
 import { dvUrl } from "@/lib/dentvid/host";
-import { clientIp } from "@/lib/rate-limit";
+import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { sendEmail } from "@/lib/dentvid/email";
 import { resetEmail } from "@/lib/dentvid/reset-email";
+import { isDentvideoUser } from "@/lib/dentvid/membership";
 
 // POST /api/dentvideo/password-reset — email a "choose a new password" link.
 //
@@ -34,7 +35,8 @@ export async function POST(req: Request) {
   const limited = await rateLimited(
     [
       { key: `rl:reset:ip:${ip}`, rule: { limit: 5, windowSec: 60 * MIN } },
-      { key: `rl:reset:email:${email}`, rule: { limit: 3, windowSec: 60 * MIN } },
+      { key: `rl:reset:email:${email}`, rule: LIMITS.resetEmail },
+      { key: `rl:reset:emailday:${email}`, rule: LIMITS.resetEmailDay },
       { key: "rl:reset:global", rule: { limit: 200, windowSec: 60 * MIN } },
     ],
     () => err.tooMany,
@@ -44,8 +46,9 @@ export async function POST(req: Request) {
   try {
     const { data, error } = await dvAdmin().auth.admin.generateLink({ type: "recovery", email });
     const hashed = data?.properties?.hashed_token;
-    // Only DentVideo accounts: Liman also holds other apps' users.
-    const isDentVideo = (data?.user?.user_metadata as { product?: string } | undefined)?.product === "dentvideo";
+    // Only DentVideo accounts: Liman also holds other apps' users. The marker
+    // is app_metadata (server-only), not user_metadata (user-editable).
+    const isDentVideo = isDentvideoUser(data?.user);
     if (!error && hashed && isDentVideo) {
       const link = dvUrl(`/dentvideo/reset?token_hash=${encodeURIComponent(hashed)}&lang=${encodeURIComponent(language)}`);
       const sent = await sendEmail(email, resetEmail({ language, link }));

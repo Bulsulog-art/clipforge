@@ -37,19 +37,21 @@ signed = provider signature. **Limit** after this change; ⚠ = a gap found
 
 | Endpoint | Caller | Cost per call | Limits now | Gaps found |
 |---|---|---|---|---|
-| `POST /signup` | anon | Liman `auth.admin.createUser` (service role, confirmed account), DB row | 5/10 min + 20/day per IP, 200/h global; honeypot + min 2.5 s fill time | ⚠ no rate limit, no bot check → mass account creation |
+| `POST /signup` | anon | Liman `auth.admin.createUser` (service role, confirmed account, `app_metadata.product = "dentvideo"`), 1 code email; for an address that already has a DentVideo account: 1 reset email instead | per IP 5/10 min + 10/day, per /24 (IPv6 /64) 40/day, per address 3/h, **1500/h global** (backstop only — was 200/h, which a small botnet could exhaust and lock real clinics out); honeypot + min 2.5 s fill time; **Cloudflare Turnstile when `TURNSTILE_SECRET_KEY` + `NEXT_PUBLIC_TURNSTILE_SITE_KEY` are set** (fail-closed while set). Same `{ ok: true }` whether or not the address already had an account (no 409) | ⚠ no rate limit, no bot check → mass account creation; ⚠ (audit M6) global limit was the primary limit → sign-up DoS; ⚠ (M7) 409 "account exists" leaked which addresses have accounts |
 | login (browser → Liman GoTrue directly) | anon | GoTrue CPU | GoTrue's own `GOTRUE_RATE_LIMIT_*`; Cloudflare | *open*: the app never sees it — owner step (Cloudflare rule on `/auth/v1/token`) |
-| `POST /clinic` | user | DB upsert | 30/10 min per user; logo path must be exactly `<uid>/logo.<ext>` | ⚠ prefix-only path check |
-| `POST /verify-email` (send / confirm / change) | user | send: 1 Resend email; confirm: Redis get/set + admin `updateUserById`; change: admin `updateUserById` + 1 email | send: 1 per 60 s per user (code record), 6/h per user, 6/h per address, 20/h per IP, 300/h global; confirm: 5 tries per code (then re-send), 15/10 min per user, 60/10 min per IP; change: 3/h per user, unverified accounts only. Only an HMAC of the code is stored (Redis `dv:verify:<uid>`, 15-min TTL) | `/signup` creates Liman-confirmed accounts, so ownership is tracked separately in `user_metadata.email_verified_at/for` |
-| `POST /password-reset/exchange` | anon (holder of a reset link) | GoTrue `verifyOtp` + admin `updateUserById` | 20/h per IP | A successful recovery exchange proves the address and marks it verified |
+| `POST /clinic` | user | DB upsert; storage list + remove (service role) | 30/10 min per user; logo path must be exactly `<uid>/logo-<epoch ms>.<ext>` (legacy `<uid>/logo.<ext>` accepted); the new logo must exist and be ≤ 5 MB; the **previous logo file is deleted** after the save | ⚠ prefix-only path check; ⚠ (audit H3) replacing a logo failed: `upsert` over `<uid>/logo.<ext>` needs an UPDATE policy the bucket does not have |
+| `POST /upload-url` (new) | user with `app_metadata.product = "dentvideo"` | storage list of the owner folder + 1 signed upload URL | 30/10 min per user; **recordings only for an active Practice/Group clinic**; type + size per kind (logo: png/jpeg/webp ≤ 5 MB; recording: mp4/mov/webm/m4v ≤ 500 MB); **per-owner quota** unpaid 20 files / 50 MB, active 3000 files / 25 GB (`lib/dentvid/storage-quota.ts`); the server picks the path | (audit H4) storage could be filled by any signed-in account — recordings were uploaded straight to Liman before the plan check |
+| `POST /verify-email` (send / confirm / change) | user | send: 1 Resend email; confirm: Redis get/set + admin `updateUserById`; change: admin `updateUserById` + 1 email | send: 1 per 60 s per user (code record), 6/h per user, 6/h per address, 20/h per IP, 300/h global; confirm: 5 tries per code (then re-send), 15/10 min per user, 60/10 min per IP; change: 3/h per user, unverified accounts only. Only an HMAC of the code is stored (Redis `dv:verify:<uid>`, 15-min TTL) | `/signup` creates Liman-confirmed accounts, so ownership is tracked separately in **`app_metadata.email_verified_at/for/via`** (server-only). ⚠ (audit H2) it was in `user_metadata`, which any signed-in user can rewrite with `PUT /auth/v1/user` — anyone could mark themselves verified and pass the checkout gate. Send also 4/h + 10/day per address |
+| `POST /password-reset` | anon | admin `generateLink` + 1 email | 5/h per IP, 3/h + 6/day per address (shared with the sign-up "existing account" mail), 200/h global; only accounts with `app_metadata.product = "dentvideo"` are mailed | marker read from `user_metadata` (user-editable) before |
+| `POST /password-reset/exchange` | anon (holder of a reset link) | GoTrue `verifyOtp` + admin `updateUserById` (+ `signOut(others)`) | 20/h per IP | A successful recovery exchange proves the address and marks it verified; **if the account was unverified, every other session is ended** — the owner of a squatted address reclaims it by resetting the password (audit M7) |
 | `POST /checkout` | user | 1–2 Dodo API calls | 10/10 min per user, 30/h per IP; **403 unless the address is verified** | ⚠ none |
 | `POST /recording` (after browser upload to Liman) | paying (Practice/Group) | queues **recording** job: download, ffprobe, transcription (local Whisper = CPU; API fallback $0.006/min), LLM scoring + reviews, up to 6 renders | 6/h + 5/day per user; strict path regex; worker: spend guard, ≤ 600 MB, ≤ 30 min | ⚠ unlimited; ⚠ `..` in path only prefix-checked; ⚠ no size/duration cap server-side |
 | `POST /week` | paying | queues **week** job: ~5 videos × (LLM writers + reviewers + TTS + Remotion render) ≈ $0.25 | 10/h per user; job id per clinic+week; worker: ≤ 3 week runs per clinic per ISO week | ⚠ a failed run could be re-queued forever |
 | `POST /items/[id]/backgrounds` | user (owner of item) | queues **restyle**: 1 TTS (~$0.02) + 1 full render (CPU minutes) | 6/10 min + 10/day per user; worker: paying check + 10/day per clinic | ⚠ unlimited; ⚠ worker did not check the plan (cancelled clinics could re-render) |
 | `PATCH /items/[id]` | user (owner) | DB update | 120/10 min per user | — |
-| `POST /event` | anon / user | 1 DB insert (`dentvid_events`, migration 0006) | 60/10 min per IP, 20k/h global; body ≤ 1 KB; allow-listed names and per-event prop shapes (no free text, emails/phones dropped); browsers may send only `landing_view`, `preview_started`, `preview_step_viewed`, `plan_clicked`, `video_shared` — payment, sign-up, checkout, approval and week events are recorded server-side only; clinic id taken from the session, never the body; no IP/UA stored | — |
+| `POST /event` | anon / user | 1 DB insert (`dentvid_events`, migration 0006) | 30/10 min per IP, 12/10 min per IP per event name, 5k/h global for anonymous events, a separate 5k/h for events tied to a signed-in clinic (an anonymous flood cannot crowd out the paying funnel) — was 60/10 min per IP, 20k/h global (audit L9); body ≤ 1 KB; allow-listed names and per-event prop shapes (no free text, emails/phones dropped); browsers may send only `landing_view`, `preview_started`, `preview_step_viewed`, `plan_clicked`, `video_shared` — payment, sign-up, checkout, approval and week events are recorded server-side only; clinic id taken from the session, never the body; no IP/UA stored | — |
 | `/admin`, `/admin/clinic/[id]` (owner dashboard, pages) | admin | service-role reads of all clinics, items, events; Redis spend counters; optional Dodo `GET /discounts` | 404 unless the signed-in Liman user **id** is in `DENTVIDEO_ADMIN_USER_IDS`; noindex | Email-based access would be unsafe: `/signup` creates confirmed accounts before the address is verified (the 6-digit code only gates checkout and mail), so anyone could register an admin's email first. Ids are assigned by Liman. |
-| storage upload (browser → Liman `dentvid` bucket) | user, own folder (RLS) | VPS disk | migration 0004: 500 MB per object, MIME allow-list (mp4/mov/webm/m4v/png/jpeg/webp) | ⚠ no server-side size/type limit (client-only 500 MB) → disk exhaustion *(fixed once 0004 is applied)* |
+| storage upload (browser → Liman `dentvid` bucket) | user: signed upload URL from `/upload-url`; direct uploads per migration **0008** policy | VPS disk | 0004: 500 MB per object, MIME allow-list. **0008**: members only; owner may insert only `<uid>/logo[-<ms>].(png\|jpg\|jpeg\|webp)`, or `<uid>/recordings/<ms>.(mp4\|mov\|webm\|m4v)` while active on Practice/Group; per-owner file/byte quota (same numbers as `/upload-url`); no owner UPDATE/DELETE | ⚠ no server-side size/type limit (client-only 500 MB) → disk exhaustion *(fixed once 0004 is applied)*; ⚠ (H4) any account could fill its folder *(fixed once 0008 is applied; `/upload-url` already enforces it for the app)* |
 
 ### Webhooks & internal
 
@@ -106,11 +108,31 @@ flood of queued jobs makes a queue longer, it does not make the box fall over.
   Fixed twice: the worker only touches keys inside `<owner_id>/` (`ownedKey`), and migration **0004** adds triggers that limit owner edits to `approval`, `approval_note`, `plan.backgrounds` (library paths only), `restyle_*`, and a logo path of the exact form `<uid>/logo.<ext>`.
 - Billing columns (`plan`, `plan_tier`, …) are already protected by the 0002 trigger. ✔
 - Storage: read/insert only in `(foldername)[1] = auth.uid()`. ✔ Signed URLs are created with the *user's* client, so a forged path cannot be signed. ✔
-- *Note (functional, not security)*: there is no storage UPDATE policy, so `upload(..., { upsert: true })` of a logo with the same extension as the existing one fails. Fix by adding an own-folder UPDATE policy if logo replacement errors are reported.
+- Logo replacement (audit H3, fixed): logos are versioned (`<uid>/logo-<epoch ms>.<ext>`), so no overwrite and no UPDATE policy are needed; `/api/dentvideo/clinic` deletes the previous file with the service role after the save. Until 0008 is applied, the 0004 trigger quietly refuses the new name for owner writes, so the route stores the (already validated) path with the service role.
+
+### Shared Liman (audit H5)
+
+Liman is one self-hosted Supabase for ~8 apps; their users share `auth.users`.
+
+- **Who is a DentVideo user**: `app_metadata.product = "dentvideo"` (or `"dentvideo"` in `app_metadata.products`), set by `/api/dentvideo/signup` with the service role (`lib/dentvid/membership.ts`). Nothing is ever decided from `user_metadata` — any signed-in user can write it (`PUT /auth/v1/user`). Accounts made before this change carry the marker only in `user_metadata.product`: `scripts/dentvideo-backfill-app-metadata.mts` copies it (and a verified flag proven for the current address) into `app_metadata`.
+- **RLS (migration 0008)**: every owner policy on `dentvid_clinics`, `dentvid_items` and the `dentvid` bucket also requires `public.dentvid_is_member(auth.uid())`, a security-definer check of `auth.users.raw_app_meta_data`. Another app's user can no longer create a DentVideo clinic or upload into the bucket. (Before 0008 they can: the gap is closed only once it is applied.)
+- **Account deletion rule** (`deleteDentvideoAccount`, `isDentvideoOnly`): DentVideo data (storage folder, items, clinic) is always removed. The **auth user itself is deleted only when the account is DentVideo's alone**: `app_metadata.product = "dentvideo"`, no other product in `app_metadata.products`, no `app_metadata` keys other than GoTrue's (`provider`, `providers`) and DentVideo's (`product`, `email_verified_*`), only email identities, and `user_metadata` holding nothing but GoTrue's identity copy (`sub`, `email`, `email_verified`, `phone_verified`) and DentVideo's legacy keys. Anything else — another app's key, a second identity provider, a missing marker — keeps the login and only removes DentVideo's `app_metadata` keys (and legacy `user_metadata.product`). The rule errs towards keeping a login: a stray key keeps a DentVideo-only login alive; it never deletes another app's user. Other apps that want their users protected should keep an app marker in `app_metadata` (e.g. `products: ["their-app"]`).
+- **Owner / infra actions (not code)**: (1) hide PostgREST's OpenAPI description from `anon` — set `PGRST_OPENAPI_MODE=disabled` (or `follow-privileges`) on Liman's `rest` service; today any visitor holding the public anon key can list every table and RPC of every app on Liman. (2) Move DentVideo to **its own Supabase project** (or its own Liman instance): shared `auth.users`, a shared service-role key and shared storage mean a bug or leaked key in any of the ~8 apps reaches DentVideo's clinics and vice versa. Both are in the owner checklist (§6).
 
 ### Retention (owner decision — not automated)
 
-Raw recordings (`<uid>/recordings/*`) are kept forever after processing, and so
+**Unpaid accounts (automated script, audit H4)**: `scripts/dentvideo-storage-cleanup.mts`
+(logic: `web/src/lib/dentvid/storage-cleanup.ts`) deletes objects older than 30 days in
+the folders of trial / clinic-less accounts — keeping the clinic's current logo — and of
+folders whose account no longer exists. Paying, paused and cancelled clinics are never
+touched. Dry run by default; `--apply` deletes through the Storage API. Schedule it weekly
+(e.g. a Coolify scheduled task):
+
+```bash
+cd web && NEXT_PUBLIC_DENTVID_SUPABASE_URL=… DENTVID_SERVICE_ROLE_KEY=… ../worker/node_modules/.bin/tsx ../scripts/dentvideo-storage-cleanup.mts --apply
+```
+
+Raw recordings (`<uid>/recordings/*`) of paying clinics are kept forever after processing, and so
 are all past weeks' videos (only the file a restyle replaces is deleted).
 Storage grows by roughly 5 videos × ~10 MB per clinic per week plus recordings.
 Recommended: delete raw recordings 30 days after their clips were made. Run on
@@ -209,7 +231,8 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 - `web/src/lib/rate-limit-server.ts` — Redis store on `REDIS_URL`, 500 ms timeout, fail-open; `rateLimited()` returns a 429 with `Retry-After` and the localized `errors.tooMany` text (dvErrors) for DentVideo routes.
 - `web/src/middleware.ts` — 300 req/min per IP on `/api/*`, in process memory (bounded map). Pages and static files are not counted.
 - **Client IP**: `x-real-ip` (set by Traefik), else the last `x-forwarded-for` hop. Behind Cloudflare set `TRUST_CF_CONNECTING_IP=1` **only after** the origin accepts Cloudflare IPs only — otherwise anyone can choose their own bucket.
-- Sign-up bot brakes: hidden honeypot field + ≥ 2.5 s form time (`lib/dentvid/bot-check.ts`). Optional upgrade: Cloudflare Turnstile (owner step below) — needs a site key + secret.
+- Sign-up bot brakes: hidden honeypot field + ≥ 2.5 s form time (`lib/dentvid/bot-check.ts`); per-IP, per-network (/24, /64) and per-address limits first, a high global backstop after them. **Cloudflare Turnstile is wired** (`lib/dentvid/turnstile.ts`, `components/dentvid/turnstile-widget.tsx`): off until both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (build-time) and `TURNSTILE_SECRET_KEY` are set; then the form shows the widget, the CSP allows `challenges.cloudflare.com`, and the server refuses a sign-up without a valid token (fail-closed if Cloudflare is unreachable).
+- Account enumeration / squatting (audit M7): `/signup` answers `{ ok: true }` for an address that already has an account; a DentVideo owner gets a reset link by email (counted against the reset limits: 3/h, 6/day per address). The browser then tries to sign in: the right password gets in, a wrong one gets "couldn't sign you in — sign in or reset your password", worded the same whatever the reason. *Residual*: a brand-new address always signs in, so a stranger who tries a sign-up can still infer that a failing address is taken — inherent to sign-up-then-sign-in; full non-enumeration would need email-link sign-up. Squatting: anyone can register someone else's address (unverified, cannot pay); the real owner resets the password from the mailbox, which marks the address verified and ends the squatter's sessions (`exchangeRecovery`).
 - Dodo webhook replay: `lib/webhook-replay.ts` (tests in `webhook-replay.test.ts`, `app/api/dodo/webhook/replay.test.ts`).
 
 ## 4. HTTP hardening
@@ -251,10 +274,27 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `DENTVID_COST_WEEK_USD` / `_RESTYLE_USD` / `_RECORDING_USD` | worker | `0.50` / `0.03` / `0.50` | per-op estimates |
 | `TRUST_CF_CONNECTING_IP` | web | off | `1` once dentvideo.com is behind Cloudflare with the origin locked |
 | `DENTVIDEO_ADMIN_USER_IDS` | web | — (nobody) | comma-separated Liman auth user UUIDs that may open `/dentvideo/admin`; email addresses grant nothing |
+| `DENTVIDEO_VERIFY_SECRET` | web | falls back to `DENTVID_SERVICE_ROLE_KEY` **with a one-time `SECURITY:` warning in the log** in production | HMAC key for email codes. Set a dedicated random value (owner checklist); changing it voids only codes waiting at that moment |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` | web (site key is build-time) | off | Cloudflare Turnstile on sign-up; set both or neither |
+| `DENTVIDEO_LEGAL_PAGES` | web | off | `on` shows the sign-up consent line linking `/terms` and `/privacy` (8 languages) — only once those pages exist |
+
+Every DentVideo variable the code reads (web and worker) is listed, with its default, in `web/.env.example`. The ones that matter for security: `DENTVID_SERVICE_ROLE_KEY` (server only — never `NEXT_PUBLIC_`), `DENTVIDEO_VERIFY_SECRET`, `DENTVIDEO_UNSUBSCRIBE_SECRET`, `WORKER_INTERNAL_TOKEN`, `DODO_API_KEY`, `DODO_WEBHOOK_SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `DENTVIDEO_ADMIN_USER_IDS`, `TRUST_CF_CONNECTING_IP` (only behind a locked origin), `DENTVIDEO_DEV_PREVIEW` (never in production).
 
 The compose file loads both services from `web/.env`, so in Coolify add them to the shared env.
 
 ## 6. Owner checklist (only you can do these — highest impact first)
+
+0. **Auth/storage audit fixes (H2–H5) — in this order:**
+   1. Run the backfill (dry run, then `--apply`); it is additive and safe before or after the deploy, but must run **before** step 3:
+      `cd web && NEXT_PUBLIC_DENTVID_SUPABASE_URL=https://liman.bulsulabs.com DENTVID_SERVICE_ROLE_KEY=… ../worker/node_modules/.bin/tsx ../scripts/dentvideo-backfill-app-metadata.mts [--apply] [--no-verified]`.
+      Review any "NOT marked" clinic owners it lists (clinics created by non-DentVideo Liman users).
+   2. Deploy the web app.
+   3. Apply **`supabase/liman/0008_dentvid_storage.sql`** (SQL editor); first run its last check query (owners who would be locked out) — it must be empty or reviewed.
+   4. Set **`DENTVIDEO_VERIFY_SECRET`** (`openssl rand -hex 32`) in Coolify; until then the log says `SECURITY: DENTVIDEO_VERIFY_SECRET is not set` once per process.
+   5. Schedule `scripts/dentvideo-storage-cleanup.mts --apply` weekly (§1 Retention).
+   6. Liman `rest` service: **`PGRST_OPENAPI_MODE=disabled`** (or `follow-privileges`) so `anon` cannot list every app's tables and RPCs.
+   7. Plan the move of DentVideo to **its own Supabase project** — the shared auth users, service-role key and storage are the remaining cross-app risk (§1 Shared Liman).
+   8. Optional: Turnstile keys (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY`, rebuild for the public key); `DENTVIDEO_LEGAL_PAGES=on` once `/terms` and `/privacy` are live.
 
 1. **OpenAI hard cap** — platform.openai.com → Settings → Limits: set a monthly **budget** above the guard's monthly ceiling (≥ $300, or active clinics × $5.15 + ClipForge usage) and email alerts at 50% / 80%. Use a separate **project** + key for the worker so a leaked ClipForge key cannot drain DentVideo's budget and vice versa. This is the backstop behind everything in this document.
 2. **Rotate the Coolify API token** — it appeared in a session scratchpad. Coolify → Keys & Tokens → revoke and create a new one; update anywhere it is used.
@@ -267,7 +307,7 @@ The compose file loads both services from `web/.env`, so in Coolify add them to 
    4. Security → Bots: **Bot Fight Mode** on. WAF → managed rules on.
    5. WAF → Rate limiting rules: e.g. `/api/dentvideo/signup` 5 req / 10 s per IP → block 10 min; `/api/*` 300 req / min per IP → managed challenge; Liman `/auth/v1/token` (if proxied) 10 / min per IP.
    6. Lock the origin: in Hostinger's firewall (or `ufw`) allow 80/443 **only from Cloudflare's IP ranges** (cloudflare.com/ips), keep SSH restricted to your IP. Then set `TRUST_CF_CONNECTING_IP=1` on the web app.
-   7. Optional: **Turnstile** on the sign-up form — create a widget, give us the site key/secret and we wire the server-side check into `/api/dentvideo/signup`.
+   7. Optional: **Turnstile** on the sign-up form — create a widget and set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` (the check is already wired into `/api/dentvideo/signup`).
 6. **Resend** — set a daily sending limit / usage alert in the Resend dashboard; verify only the domains you send from; restrict the API key to "sending access".
 7. **Backups** — Hostinger hPanel → VPS → Snapshots & Backups: enable weekly automatic backups and take a manual snapshot before each big deploy. **Liman database**: schedule a nightly `pg_dump` to off-box storage (Coolify → the Supabase service → Backups → S3-compatible destination, e.g. Backblaze B2 / Cloudflare R2) and test a restore once.
 8. **2FA everywhere** — GitHub, Coolify, Dodo Payments, Hostinger, OpenAI, fal.ai, Resend, Cloudflare, Apple/App Store Connect, domain registrar. Prefer an authenticator app or passkey over SMS; store recovery codes offline.

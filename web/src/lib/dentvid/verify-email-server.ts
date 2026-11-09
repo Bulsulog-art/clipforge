@@ -3,11 +3,11 @@ import { kvStore } from "@/lib/rate-limit-server";
 import { sendEmail } from "./email";
 import { DV_SUPABASE_ANON, DV_SUPABASE_URL, dvAdmin } from "./supabase";
 import { codeEmail } from "./verify-email-message";
-import { isEmailVerified, issueCode, verifiedMetadata, verifySecret, type IssueResult, type VerifyKv, type VerifyMethod } from "./verify-email";
+import { isEmailVerified, issueCode, verifiedAppMetadata, verifySecret, type IssueResult, type VerifyKv, type VerifyMethod } from "./verify-email";
 
 /**
  * Server wiring for lib/dentvid/verify-email: Redis for the code, Resend for
- * the email, the admin API for the verified flag.
+ * the email, the admin API for the verified flag (app_metadata).
  */
 
 export type SendCodeResult = { ok: true } | { ok: false; reason: "cooldown"; retryAfterSec: number } | { ok: false; reason: "pending" | "unavailable" | "not sent" };
@@ -48,9 +48,11 @@ export async function sendVerificationCode(args: {
 export type ExchangeDeps = {
   verify: (tokenHash: string) => Promise<{
     session: { access_token: string; refresh_token: string } | null;
-    user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null;
+    user: { id: string; email?: string | null; app_metadata?: Record<string, unknown> } | null;
   }>;
   markVerified: (userId: string, email: string, method: VerifyMethod) => Promise<boolean>;
+  /** End every other session of this user (the access token's own stays). */
+  signOutOthers: (accessToken: string) => Promise<void>;
 };
 
 const exchangeDeps: ExchangeDeps = {
@@ -61,18 +63,31 @@ const exchangeDeps: ExchangeDeps = {
     return { session: data.session, user: data.user };
   },
   markVerified: (userId, email, method) => markEmailVerified(userId, email, method),
+  async signOutOthers(accessToken) {
+    const { error } = await dvAdmin().auth.admin.signOut(accessToken, "others");
+    if (error) console.error("[dentvideo reset] could not end other sessions", error.message);
+  },
 };
 
 /**
  * Exchange a password-reset token for a session. A successful exchange means
  * the person opened mail sent to the account's address, so it also marks the
  * address verified. Null when the token is invalid or used.
+ *
+ * Reclaiming a squatted address: someone may have signed up with another
+ * person's address (accounts start unverified). The real owner resets the
+ * password from the mailbox; when the account was unverified until now,
+ * every other session (the squatter's) is ended here, and the new password
+ * set on /reset keeps them out.
  */
 export async function exchangeRecovery(tokenHash: string, deps: ExchangeDeps = exchangeDeps) {
   const { session, user } = await deps.verify(tokenHash);
   if (!session || !user) return null;
   let verified = isEmailVerified(user);
-  if (!verified && user.email) verified = await deps.markVerified(user.id, user.email, "reset");
+  if (!verified && user.email) {
+    verified = await deps.markVerified(user.id, user.email, "reset");
+    await deps.signOutOthers(session.access_token).catch(() => {});
+  }
   return { access_token: session.access_token, refresh_token: session.refresh_token, verified };
 }
 
@@ -84,7 +99,8 @@ export async function markEmailVerified(userId: string, email: string, method: V
     if (readError || !data?.user) return false;
     // Only for the address the account has now (a change since the code was sent does not count).
     if ((data.user.email ?? "").toLowerCase() !== email.toLowerCase()) return false;
-    const { error } = await admin.auth.admin.updateUserById(userId, { user_metadata: verifiedMetadata(data.user.user_metadata, email, method) });
+    // app_metadata: only the service role can write it (user_metadata is the user's own to edit).
+    const { error } = await admin.auth.admin.updateUserById(userId, { app_metadata: verifiedAppMetadata(email, method) });
     if (error) {
       console.error("[dentvideo verify] could not mark verified", error.message);
       return false;

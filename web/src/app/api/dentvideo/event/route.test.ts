@@ -11,7 +11,13 @@ vi.mock("@/lib/dentvid/events-server", async (orig) => ({
     return true;
   },
 }));
-vi.mock("@/lib/rate-limit-server", () => ({ limitChecks: async () => ({ ok: limitOk, remaining: 0, retryAfterSec: 1 }) }));
+const checked: string[][] = [];
+vi.mock("@/lib/rate-limit-server", () => ({
+  limitChecks: async (checks: { key: string }[]) => {
+    checked.push(checks.map((c) => c.key));
+    return { ok: limitOk, remaining: 0, retryAfterSec: 1 };
+  },
+}));
 vi.mock("@/lib/dentvid/auth", () => ({
   dvSession: async () => ({
     user: { id: "u1", email: "dr@clinic.example" },
@@ -32,6 +38,7 @@ const post = async (body: string) => {
 describe("POST /api/dentvideo/event", () => {
   beforeEach(() => {
     inserted.length = 0;
+    checked.length = 0;
     limitOk = true;
   });
 
@@ -55,6 +62,21 @@ describe("POST /api/dentvideo/event", () => {
 
   it("refuses a body over the cap", async () => {
     expect((await post(JSON.stringify({ name: "landing_view", pad: "x".repeat(4000) }))).status).toBe(413);
+  });
+
+  it("limits per IP, per IP and event name, and globally — anonymous and clinic events on separate ceilings", async () => {
+    await post(JSON.stringify({ name: "landing_view" }));
+    expect(checked).toEqual([["rl:event:ip:203.0.113.9"], ["rl:event:ipname:203.0.113.9:landing_view", "rl:event:global"]]);
+    checked.length = 0;
+    await post(JSON.stringify({ name: "plan_clicked", props: { tier: "practice", interval: "month", where: "onboarding" } }));
+    expect(checked[1]).toEqual(["rl:event:ipname:203.0.113.9:plan_clicked", "rl:event:global:clinic"]);
+  });
+
+  it("anonymous limits are tighter than before (per IP 30/10 min, 12 per event name, 5000/h global)", async () => {
+    const { LIMITS } = await import("@/lib/rate-limit");
+    expect(LIMITS.eventIp).toEqual({ limit: 30, windowSec: 600 });
+    expect(LIMITS.eventIpName.limit).toBeLessThan(LIMITS.eventIp.limit);
+    expect(LIMITS.eventGlobal).toEqual({ limit: 5000, windowSec: 3600 });
   });
 
   it("over the rate limit: dropped quietly", async () => {

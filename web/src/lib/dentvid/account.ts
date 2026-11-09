@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BUCKET } from "./supabase";
 import { subscriptionEnded, type DodoSubscription } from "./dodo-account";
+import { isDentvideoOnly, withoutDentvideo } from "./membership";
 
 /**
  * Self-serve account control for a DentVideo clinic: export everything we
@@ -35,9 +36,11 @@ export function isOwnPath(path: string, ownerId: string): boolean {
 }
 
 /** Every object under "<owner>/" in the dentvid bucket, walking sub-folders. */
-export async function listOwnerFiles(db: SupabaseClient, ownerId: string): Promise<{ path: string; size: number | null; contentType: string | null }[]> {
+export type OwnerFile = { path: string; size: number | null; contentType: string | null; createdAt?: string | null };
+
+export async function listOwnerFiles(db: SupabaseClient, ownerId: string): Promise<OwnerFile[]> {
   const root = assertOwnerId(ownerId);
-  const out: { path: string; size: number | null; contentType: string | null }[] = [];
+  const out: OwnerFile[] = [];
   const queue: { prefix: string; depth: number }[] = [{ prefix: root, depth: 0 }];
   while (queue.length) {
     const { prefix, depth } = queue.shift()!;
@@ -55,7 +58,7 @@ export async function listOwnerFiles(db: SupabaseClient, ownerId: string): Promi
           continue;
         }
         const meta = (e.metadata ?? {}) as { size?: number; mimetype?: string };
-        out.push({ path, size: typeof meta.size === "number" ? meta.size : null, contentType: meta.mimetype ?? null });
+        out.push({ path, size: typeof meta.size === "number" ? meta.size : null, contentType: meta.mimetype ?? null, createdAt: (e as { created_at?: string | null }).created_at ?? null });
         if (out.length >= MAX_FILES) return out;
       }
       if (entries.length < LIST_PAGE) break;
@@ -174,7 +177,17 @@ export type DodoDeps = {
 export type DeleteStep = "lookup" | "billing" | "storage" | "items" | "clinic" | "auth";
 
 export type DeleteResult =
-  | { ok: true; files: number; items: number; clinic: boolean; cancelledSubscription: boolean; userDeleted: boolean }
+  | {
+      ok: true;
+      files: number;
+      items: number;
+      clinic: boolean;
+      cancelledSubscription: boolean;
+      /** The Liman auth user itself was deleted (a DentVideo-only account). */
+      userDeleted: boolean;
+      /** The login belongs to other apps on Liman too: only DentVideo's data and markers were removed. */
+      loginKept: boolean;
+    }
   | { ok: false; reason: "confirm" | "subscription_active" | "billing_failed" | "failed"; step?: DeleteStep };
 
 const notFound = (e: { status?: number; message?: string; code?: string } | null | undefined) =>
@@ -188,7 +201,11 @@ const notFound = (e: { status?: number; message?: string; code?: string } | null
  *   2. every storage object under "<owner>/" (videos, posters, recordings, logo);
  *   3. its dentvid_items rows;
  *   4. its dentvid_clinics row;
- *   5. the auth user (admin API).
+ *   5. the login — Liman is shared with other apps, so the auth user is
+ *      deleted only when it is DentVideo's alone (lib/dentvid/membership
+ *      isDentvideoOnly: app_metadata.product = "dentvideo" and no other app's
+ *      marker). Otherwise only DentVideo's app_metadata keys (product,
+ *      email_verified_*) are removed and the login stays for the other app.
  *
  * Idempotent: every step is a no-op on what is already gone, so a retry
  * after a partial failure finishes the job. Nothing is removed until the
@@ -250,11 +267,29 @@ export async function deleteDentvideoAccount(args: {
   const { error: de, count: clinics } = await admin.from("dentvid_clinics").delete({ count: "exact" }).eq("owner_id", owner);
   if (de) return { ok: false, reason: "failed", step: "clinic" };
 
-  // 5. Login.
-  const { error: ae } = await admin.auth.admin.deleteUser(owner);
-  if (ae && !notFound(ae as { status?: number; message?: string; code?: string })) return { ok: false, reason: "failed", step: "auth" };
+  // 5. Login: deleted only if no other app on Liman uses it.
+  let userDeleted = false;
+  let loginKept = false;
+  const { data: got, error: ge } = await admin.auth.admin.getUserById(owner);
+  if (ge && !notFound(ge as { status?: number; message?: string; code?: string })) return { ok: false, reason: "failed", step: "auth" };
+  const authUser = ge ? null : (got?.user ?? null);
+  if (authUser && isDentvideoOnly(authUser)) {
+    const { error: ae } = await admin.auth.admin.deleteUser(owner);
+    if (ae && !notFound(ae as { status?: number; message?: string; code?: string })) return { ok: false, reason: "failed", step: "auth" };
+    userDeleted = !ae;
+  } else if (authUser) {
+    loginKept = true;
+    const app_metadata = withoutDentvideo(authUser.app_metadata);
+    const legacy = (authUser.user_metadata ?? {}) as Record<string, unknown>;
+    const user_metadata =
+      legacy.product === "dentvideo" ? { product: null, email_verified_at: null, email_verified_for: null, email_verified_via: null } : undefined;
+    if (Object.keys(app_metadata).length || user_metadata) {
+      const { error: ue } = await admin.auth.admin.updateUserById(owner, { app_metadata, ...(user_metadata ? { user_metadata } : {}) });
+      if (ue) return { ok: false, reason: "failed", step: "auth" };
+    }
+  }
 
-  const result = { ok: true as const, files, items: items ?? 0, clinic: (clinics ?? 0) > 0 || !!clinic, cancelledSubscription, userDeleted: !ae };
+  const result = { ok: true as const, files, items: items ?? 0, clinic: (clinics ?? 0) > 0 || !!clinic, cancelledSubscription, userDeleted, loginKept };
   (args.log ?? defaultLog)({
     evt: "dentvideo.account_deleted",
     // A one-way reference (not the id, no name or email) to match support questions.
@@ -263,6 +298,7 @@ export async function deleteDentvideoAccount(args: {
     items: result.items,
     clinic: result.clinic,
     subscription_cancelled: cancelledSubscription,
+    login: userDeleted ? "deleted" : loginKept ? "kept_shared" : "gone",
     at: new Date().toISOString(),
   });
   return result;

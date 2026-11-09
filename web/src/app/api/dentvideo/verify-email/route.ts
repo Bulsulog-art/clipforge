@@ -40,6 +40,7 @@ export async function POST(req: Request) {
   const sendChecks = (to: string): Check[] => [
     { key: `rl:verify:send:user:${user.id}`, rule: LIMITS.verifySendUser },
     { key: `rl:verify:send:email:${to}`, rule: LIMITS.verifySendEmail },
+    { key: `rl:verify:send:emailday:${to}`, rule: LIMITS.verifySendEmailDay },
     { key: `rl:verify:send:ip:${ip}`, rule: LIMITS.verifySendIp },
     { key: "rl:verify:send:global", rule: LIMITS.verifySendGlobal },
   ];

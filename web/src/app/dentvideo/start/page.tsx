@@ -13,6 +13,7 @@ import { dvSession } from "@/lib/dentvid/auth";
 import { STEP_COOKIE, resolveStep } from "@/lib/dentvid/onboarding";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { isEmailVerified } from "@/lib/dentvid/verify-email";
+import { legalPagesOn } from "@/lib/dentvid/legal";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { DV_FOUNDING, dvAvailablePlans, foundingCode, foundingOfferOpen } from "@/lib/dentvid/billing";
 
@@ -50,7 +51,7 @@ export default async function StartPage({ searchParams }: Props) {
 
   if (!user) {
     const locale = fromLink ?? (await dvLocale());
-    return <StartForm locale={locale} remember={fromLink !== null} />;
+    return <StartForm locale={locale} remember={fromLink !== null} legal={legalPagesOn()} />;
   }
 
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path, plan").eq("owner_id", user.id).maybeSingle();

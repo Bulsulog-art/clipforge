@@ -7,7 +7,7 @@ import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
  * Liman creates accounts already "confirmed" (public sign-up is off there,
  * so /api/dentvideo/signup uses the admin API), which means Supabase's own
  * email_confirmed_at proves nothing. Ownership is recorded separately in the
- * user's metadata: `email_verified_at` plus `email_verified_for`, the address
+ * user's app_metadata (server-only): `email_verified_at` plus `email_verified_for`, the address
  * it was proven for — change the address and the account is unverified again.
  * A successful password-reset link exchange proves ownership too.
  *
@@ -163,14 +163,19 @@ export async function checkCode(kv: VerifyKv, args: { userId: string; email: str
 }
 
 // ---------------------------------------------------------------------------
-// The verified flag (auth user_metadata)
+// The verified flag (auth app_metadata — server-only)
+//
+// It used to live in user_metadata, which the user can rewrite themselves
+// (PUT /auth/v1/user), so anyone could mark their own address verified. Only
+// app_metadata counts now; it is written with the service role (admin API).
+// Legacy user_metadata flags are ignored.
 
-export type VerifiableUser = { email?: string | null; user_metadata?: Record<string, unknown> | null } | null | undefined;
+export type VerifiableUser = { email?: string | null; app_metadata?: Record<string, unknown> | null } | null | undefined;
 
 /** True once this account proved it receives mail at its current address. */
 export function isEmailVerified(user: VerifiableUser): boolean {
   if (!user?.email) return false;
-  const m = user.user_metadata ?? {};
+  const m = user.app_metadata ?? {};
   const at = m.email_verified_at;
   const forEmail = m.email_verified_for;
   return typeof at === "string" && at.length > 0 && typeof forEmail === "string" && normalizeEmail(forEmail) === normalizeEmail(user.email);
@@ -178,14 +183,29 @@ export function isEmailVerified(user: VerifiableUser): boolean {
 
 export type VerifyMethod = "code" | "reset";
 
-/** The metadata to merge into the user once ownership is proven. */
-export function verifiedMetadata(existing: Record<string, unknown> | null | undefined, email: string, method: VerifyMethod, now = new Date()) {
-  return { ...(existing ?? {}), email_verified_at: now.toISOString(), email_verified_for: normalizeEmail(email), email_verified_via: method };
+/** The app_metadata keys to set once ownership is proven (GoTrue merges them into the rest). */
+export function verifiedAppMetadata(email: string, method: VerifyMethod, now = new Date()) {
+  return { email_verified_at: now.toISOString(), email_verified_for: normalizeEmail(email), email_verified_via: method };
 }
 
-/** The server secret the code HMAC is keyed with. */
-export function verifySecret(env: Record<string, string | undefined> = process.env): string | null {
-  return env.DENTVIDEO_VERIFY_SECRET?.trim() || env.DENTVID_SERVICE_ROLE_KEY?.trim() || null;
+let warnedFallback = false;
+
+/**
+ * The server secret the code HMAC is keyed with: DENTVIDEO_VERIFY_SECRET.
+ * Production does not set it yet, so it falls back to the service-role key
+ * (still secret, server-only) and says so once per process in the log; the
+ * owner checklist (docs/SECURITY.md) asks for a dedicated value. Setting it
+ * later only voids codes that are waiting (15-minute life).
+ */
+export function verifySecret(env: Record<string, string | undefined> = process.env, warn: (msg: string) => void = console.warn): string | null {
+  const own = env.DENTVIDEO_VERIFY_SECRET?.trim();
+  if (own) return own;
+  const fallback = env.DENTVID_SERVICE_ROLE_KEY?.trim() || null;
+  if (fallback && env.NODE_ENV === "production" && !warnedFallback) {
+    warnedFallback = true;
+    warn("[dentvideo verify] SECURITY: DENTVIDEO_VERIFY_SECRET is not set; email codes are keyed with the service-role key. Set a dedicated random secret (docs/SECURITY.md, owner checklist).");
+  }
+  return fallback;
 }
 
 /** An in-memory store: tests, and local dev without Redis (one process only). */

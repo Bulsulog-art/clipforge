@@ -19,12 +19,10 @@ const NO_CONTENT = () => new NextResponse(null, { status: 204 });
 
 export async function POST(req: Request) {
   const ip = clientIp(req.headers);
-  const limit = await limitChecks([
-    { key: `rl:event:ip:${ip}`, rule: LIMITS.eventIp },
-    { key: "rl:event:global", rule: LIMITS.eventGlobal },
-  ]);
+  // Cheap per-IP brake before the body is read.
+  const first = await limitChecks([{ key: `rl:event:ip:${ip}`, rule: LIMITS.eventIp }]);
   // Over the limit: drop quietly (a 429 would only make a script retry).
-  if (!limit.ok) return NO_CONTENT();
+  if (!first.ok) return NO_CONTENT();
 
   const text = await readCapped(req, DV_EVENT_MAX_BYTES).catch(() => null);
   if (text === null) return NextResponse.json({ error: "too large" }, { status: 413 });
@@ -43,6 +41,15 @@ export async function POST(req: Request) {
       // no session / backend: the event still counts, without a clinic
     }
   }
+
+  // One event name per IP (a script replaying landing_view), and a global
+  // ceiling: anonymous events share a tight one; a signed-in clinic's events
+  // have their own, so an anonymous flood cannot crowd them out.
+  const second = await limitChecks([
+    { key: `rl:event:ipname:${ip}:${row.name}`, rule: LIMITS.eventIpName },
+    row.clinic_id ? { key: "rl:event:global:clinic", rule: LIMITS.eventClinicGlobal } : { key: "rl:event:global", rule: LIMITS.eventGlobal },
+  ]);
+  if (!second.ok) return NO_CONTENT();
 
   await insertEventRow(row);
   return NO_CONTENT();

@@ -6,6 +6,7 @@ import { FirstWeek } from "@/components/dentvid/first-week";
 import { asLocale } from "@/lib/dentvid/locale";
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { asStep } from "@/lib/dentvid/onboarding";
+import { legalPagesOn } from "@/lib/dentvid/legal";
 import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
 import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
 
@@ -53,7 +54,7 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
     );
   }
   const step = asStep(sp.step) ?? "account";
-  if (step === "account") return <StartForm locale={locale} remember={false} />;
+  if (step === "account") return <StartForm locale={locale} remember={false} legal={legalPagesOn()} />;
   const demo = sp.empty
     ? undefined
     : {
