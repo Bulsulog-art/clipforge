@@ -57,8 +57,18 @@ export function guideTexts(g: Guide): string[] {
   ];
 }
 
+// Japanese has no spaces between words: a run of kana/kanji is split into
+// words by the platform's dictionary segmenter instead of counted as one.
+const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
+const JA_WORDS = new Intl.Segmenter("ja", { granularity: "word" });
+
 export function wordCount(text: string): number {
-  return plainText(text).split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+  let n = 0;
+  for (const w of plainText(text).split(/\s+/)) {
+    if (!/[\p{L}\p{N}]/u.test(w)) continue;
+    n += CJK.test(w) ? [...JA_WORDS.segment(w)].filter((s) => s.isWordLike).length : 1;
+  }
+  return n;
 }
 
 export function guideWordCount(g: Guide): number {

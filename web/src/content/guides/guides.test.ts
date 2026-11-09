@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GUIDES, GUIDE_HUB_LOCALES, LOCALES, guidePath, guidesFor } from "../dentvideo";
 import { ENTITY } from "./entity";
-import { guideTexts, guideWordCount, parseInline, plainText, resolveTarget, translationsOf } from "./text";
+import { guideTexts, guideWordCount, parseInline, resolveTarget, translationsOf, wordCount } from "./text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "./ui";
 import { GUIDE_LIBRARY } from "./index";
 import {
@@ -48,7 +48,7 @@ describe("guide library", () => {
       expect(g.published, g.slug).toMatch(ISO);
       expect(g.updated ?? g.published, g.slug).toMatch(ISO);
       // The quotable answer: a first paragraph of one to a few sentences, not an essay.
-      const words = plainText(g.intro).split(/\s+/).length;
+      const words = wordCount(g.intro);
       expect(words, g.slug).toBeGreaterThanOrEqual(25);
       expect(words, g.slug).toBeLessThanOrEqual(110);
       expect(g.title.length, g.slug).toBeLessThanOrEqual(110);
@@ -63,18 +63,27 @@ describe("guide library", () => {
     for (const g of GUIDES) for (const s of g.sources ?? []) expect(s.url, g.slug).toMatch(/^https:\/\//);
   });
 
-  it("each priority market has at least five guides", () => {
-    expect(GUIDE_HUB_LOCALES).toEqual(["en", "de", "es", "tr", "fr"]);
-    for (const l of GUIDE_HUB_LOCALES) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
+  it("every language has a guides hub; the first five markets have at least five guides each", () => {
+    expect(GUIDE_HUB_LOCALES).toEqual([...LOCALES]);
+    for (const l of ["en", "de", "es", "tr", "fr"] as const) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
   });
 
-  it("Japanese, Arabic and Polish have no guides yet, so no hub is advertised", () => {
+  it("Japanese, Arabic and Polish each have a rules guide and a what-to-post guide, and their hubs are advertised", () => {
+    const hubs = dentvideoSitemapEntries().find((e) => e.path === GUIDES_INDEX_PATH.en)!;
     for (const l of ["ja", "ar", "pl"] as const) {
-      expect(guidesFor(l), l).toEqual([]);
-      expect(dentvideoSitemapEntries().map((e) => e.path), l).not.toContain(GUIDES_INDEX_PATH[l]);
-      expect(llmsTxt(), l).not.toContain(GUIDES_INDEX_PATH[l].replace("/dentvideo", ""));
-      for (const e of dentvideoSitemapEntries()) expect(Object.values(e.alternates ?? {}), e.path).not.toContain(GUIDES_INDEX_PATH[l]);
+      const cats = guidesFor(l).map((g) => g.category);
+      expect(cats, l).toEqual(expect.arrayContaining(["rules", "ideas"]));
+      expect(dentvideoSitemapEntries().map((e) => e.path), l).toContain(GUIDES_INDEX_PATH[l]);
+      expect(Object.values(hubs.alternates ?? {}), l).toContain(GUIDES_INDEX_PATH[l]);
+      expect(llmsTxt(), l).toContain(GUIDES_INDEX_PATH[l].replace("/dentvideo", ""));
+      // Each guide links back to its hub as well as to the landing.
+      for (const g of guidesFor(l)) expect(guideTexts(g).some((t) => t.includes("](guides:)")), g.slug).toBe(true);
     }
+  });
+
+  it("counts Japanese words without spaces", () => {
+    expect(wordCount("歯科医院がSNSに投稿する")).toBeGreaterThan(4);
+    expect(wordCount("two words")).toBe(2);
   });
 
   it("every library guide made it into GUIDES", () => {
@@ -170,7 +179,8 @@ describe("search snippets", () => {
   });
 
   it("snippets make no promises, superlatives or 'painless' claims", () => {
-    const banned = /\b(guarantee|painless|best|cheapest|no\.? ?1)\b|garantiert|schmerzfrei|beste[nrs]?\b|garantizad|sin dolor|mejor(es)?\b|garanti|sans douleur|meilleur|garantili|ağrısız|acısız|en iyi/i;
+    const banned =
+      /\b(guarantee|painless|best|cheapest|no\.? ?1)\b|garantiert|schmerzfrei|beste[nrs]?\b|garantizad|sin dolor|mejor(es)?\b|garanti|sans douleur|meilleur|garantili|ağrısız|acısız|en iyi|最高|日本一|一番|絶対|必ず|無痛|痛くない|保証|الأفضل|مضمون|بدون ألم|الأرخص|najlepsz|gwarant|bezbolesn|nr 1/i;
     for (const g of GUIDES) expect(`${g.seoTitle} ${g.seoDescription}`, g.slug).not.toMatch(banned);
   });
 
@@ -287,6 +297,10 @@ describe("header/footer language on the new pages", () => {
     expect(pathLocale("/dentvideo/de/about", g)).toBe("de");
     expect(pathLocale("/dentvideo/guides/dis-hekimi-reklam-yasagi", g)).toBe("tr");
     expect(pathLocale("/dentvideo/fr", g)).toBe("fr");
+    expect(pathLocale("/ja/guides", g)).toBe("ja");
+    expect(pathLocale("/dentvideo/ar/guides", g)).toBe("ar");
+    expect(pathLocale("/pl/guides", g)).toBe("pl");
+    expect(pathLocale("/guides/madha-tanshur-iyadat-al-asnan", g)).toBe("ar");
     expect(pathLocale("/dentvideo/app", g)).toBeNull();
     expect(pathLocale("/dentvideo/de/whatever", g)).toBeNull();
   });
