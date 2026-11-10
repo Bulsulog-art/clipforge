@@ -84,7 +84,8 @@ export const SOLUTIONS_PL: SolutionPage[] = [
       { q: "Czy mogę zobaczyć filmy przed płatnością?", a: "Tak. Po opisaniu gabinetu widzą Państwo podgląd na żywo z logo, kolorami i nazwą gabinetu. Pierwszy pełny tydzień powstaje zaraz po wyborze planu." },
       { q: "Czy kontrola jest poradą prawną?", a: "Nie. Wychwytuje sformułowania często ograniczane i oznacza to, co warto przejrzeć, ale przepisy się zmieniają. Każdy film akceptują Państwo." },
     ],
-    guides: ["reklama-gabinetu-stomatologicznego-kodeks-etyki", "co-publikowac-gabinet-stomatologiczny"],
+    guides: ["reklama-gabinetu-stomatologicznego-kodeks-etyki", "co-publikowac-gabinet-stomatologiczny", "filmy-edukacyjne-dla-pacjentow-gabinet-stomatologiczny"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

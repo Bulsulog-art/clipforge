@@ -25,7 +25,7 @@ export const GUIDES_FR: Guide[] = [
     description: "Guide pratique pour cabinets dentaires : quelles vidéos courtes les patients regardent, format Reels, sous-titres, rythme et ce que le code de déontologie encadre.",
     h1: "Vidéos pour cabinets dentaires",
     intro:
-      "Les meilleures vidéos pour un cabinet dentaire répondent en 20 à 60 secondes à une seule question de patient, au format vertical, sous-titrées et formulées avec prudence. Une à trois vidéos par semaine suffisent. Les promesses de résultat, « sans douleur », les réductions, les superlatifs et les témoignages de patients n'y ont pas leur place : le code de déontologie des chirurgiens-dentistes les encadre.",
+      "Les vidéos utiles pour un cabinet dentaire répondent en 20 à 60 secondes à une seule question de patient, au format vertical, sous-titrées et formulées avec prudence. Une à trois vidéos par semaine suffisent. Les promesses de résultat, « sans douleur », les réductions, les superlatifs et les témoignages de patients n'y ont pas leur place : le code de déontologie des chirurgiens-dentistes les encadre.",
     sections: [
       {
         heading: "Pourquoi les patients regardent des vidéos",
@@ -37,7 +37,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Les sujets qui fonctionnent",
         paragraphs: [
-          "Vous avez déjà la meilleure liste : les questions posées au fauteuil chaque jour. Répondez à une seule par vidéo. Pour une année de sujets, voyez les [idées de contenu Instagram pour cabinet dentaire](guide:idees-contenu-instagram-cabinet-dentaire).",
+          "Vous avez déjà la liste la plus utile : les questions posées au fauteuil chaque jour. Répondez à une seule par vidéo. Pour une année de sujets, voyez les [idées de contenu Instagram pour cabinet dentaire](guide:idees-contenu-instagram-cabinet-dentaire).",
         ],
         list: [
           "Le blanchiment abîme-t-il l'émail ?",
@@ -251,7 +251,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Trois règles pour choisir un sujet",
         paragraphs: ["Trois questions suffisent pour juger une idée :"],
         list: [
-          "Un patient le demande-t-il vraiment ? Les questions du fauteuil, du téléphone et de Google sont les meilleurs sujets.",
+          "Un patient le demande-t-il vraiment ? Les questions du fauteuil, du téléphone et de Google sont les sujets les plus utiles.",
           "Pratiquons-nous ce soin au cabinet ? N'expliquez que ce que vous faites.",
           "Est-ce que j'informe ou est-ce que je pousse ? Pas « prenez rendez-vous vite, l'offre se termine », mais « parlez-en à votre prochain contrôle ».",
         ],
@@ -321,7 +321,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Texte de publication et hashtags",
         paragraphs: [
           "Le texte sous la vidéo reprend en bref ce qu'elle dit, sans ajouter de promesse. Une structure qui marche : la question en première ligne, la réponse en deux ou trois phrases, puis « Votre dentiste vous dira ce qui convient dans votre cas ». Le nom du cabinet et la ville suffisent pour être trouvé.",
-          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq à dix pertinents plutôt que trente au hasard. Évitez les superlatifs comme #meilleurdentiste et tout ce qui évoque une offre.",
+          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq à dix pertinents plutôt que trente au hasard. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
         ],
       },
       {
@@ -345,6 +345,7 @@ export const GUIDES_FR: Guide[] = [
       },
     ],
     faq: [
+      { q: "Existe-t-il un plan prêt pour toute l'année ?", a: "Oui : notre [calendrier éditorial pour cabinet dentaire](guide:calendrier-editorial-cabinet-dentaire) propose un thème d'information pour chacune des 52 semaines, calé sur des dates comme la journée mondiale de la santé bucco-dentaire, le 20 mars." },
       { q: "Que publier sur l'Instagram d'un cabinet dentaire ?", a: "Des réponses courtes aux questions des patients, des explications claires des soins, des conseils après les soins et des présentations de l'équipe, toujours informatives, prudentes et sans promesse." },
       { q: "Combien de publications par semaine ?", a: "Une à trois par semaine restent réalistes pour la plupart des cabinets. La régularité compte plus que la fréquence." },
       { q: "Faut-il un contenu différent pour TikTok ?", a: "En général non. La même vidéo verticale sous-titrée fonctionne sur Reels, TikTok et YouTube Shorts ; adaptez le texte." },

@@ -160,7 +160,7 @@ export const GUIDES_PL: Guide[] = [
       {
         heading: "Na początek: pytania pacjentów",
         paragraphs: [
-          "Najlepsza lista tematów już istnieje: to pytania, które Państwa zespół słyszy codziennie w rejestracji i na fotelu. Wystarczy przez tydzień zapisywać je na kartce, by mieć tematy na kilka miesięcy.",
+          "Najcenniejsza lista tematów już istnieje: to pytania, które Państwa zespół słyszy codziennie w rejestracji i na fotelu. Wystarczy przez tydzień zapisywać je na kartce, by mieć tematy na kilka miesięcy.",
           "Jeden post powinien odpowiadać na jedno pytanie. Warto też mówić wyłącznie o usługach, które gabinet rzeczywiście wykonuje. Pacjent, który zobaczy film o leczeniu niedostępnym w Państwa gabinecie, trafi pod niewłaściwy adres.",
         ],
       },
@@ -255,6 +255,7 @@ export const GUIDES_PL: Guide[] = [
       },
     ],
     faq: [
+      { q: "Czy jest gotowa lista tematów filmów edukacyjnych?", a: "Tak: w poradniku [filmy edukacyjne dla pacjentów gabinetu stomatologicznego](guide:filmy-edukacyjne-dla-pacjentow-gabinet-stomatologiczny) jest lista tematów według kategorii i budowa krótkiego filmu w czterech krokach." },
       {
         q: "Jak często publikować?",
         a: "Regularność jest ważniejsza niż liczba postów. Od jednego do trzech krótkich filmów tygodniowo w stałe dni to realny cel dla większości gabinetów.",

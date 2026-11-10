@@ -31,7 +31,7 @@ export const GUIDES_DE: Guide[] = [
     description: "Ratgeber für Zahnarztpraxen: welche Kurzvideos Patienten ansehen, Reels-Format, Untertitel, Rhythmus und was Heilmittelwerbegesetz und Berufsordnung verbieten.",
     h1: "Instagram-Videos für Zahnarztpraxen",
     intro:
-      "Die besten Instagram-Videos für Zahnarztpraxen beantworten in 20 bis 60 Sekunden eine einzige Patientenfrage — hochkant, untertitelt und sachlich formuliert. Ein bis drei Videos pro Woche genügen. Erfolgsversprechen, „schmerzfrei“, Rabatte, Superlative und Patientenstimmen gehören nicht hinein, weil Heilmittelwerbegesetz und zahnärztliche Berufsordnung sie einschränken.",
+      "Gute Instagram-Videos für Zahnarztpraxen beantworten in 20 bis 60 Sekunden eine einzige Patientenfrage — hochkant, untertitelt und sachlich formuliert. Ein bis drei Videos pro Woche genügen. Erfolgsversprechen, „schmerzfrei“, Rabatte, Superlative und Patientenstimmen gehören nicht hinein, weil Heilmittelwerbegesetz und zahnärztliche Berufsordnung sie einschränken.",
     sections: [
       {
         heading: "Warum Patienten Videos ansehen",
@@ -43,7 +43,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Welche Themen funktionieren",
         paragraphs: [
-          "Die beste Themenliste haben Sie schon: die Fragen, die Patienten jeden Tag am Behandlungsstuhl stellen. Beantworten Sie pro Video genau eine. Weitere Ideen für ein ganzes Jahr finden Sie in den [Social-Media-Themenideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen).",
+          "Die wichtigste Themenliste haben Sie schon: die Fragen, die Patienten jeden Tag am Behandlungsstuhl stellen. Beantworten Sie pro Video genau eine. Weitere Ideen für ein ganzes Jahr finden Sie in den [Social-Media-Themenideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen).",
         ],
         list: [
           "Schadet Bleaching dem Zahnschmelz?",
@@ -188,7 +188,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Checkliste vor dem Posten",
         paragraphs: ["Lautet eine Antwort „ja“, formulieren Sie neu oder fragen Sie nach:"],
         list: [
-          "Verspricht der Text oder das Bild einen sicheren Erfolg, Schmerzfreiheit oder Dauerhaftigkeit?",
+          "Verspricht der Text oder das Bild einen sicheren Erfolg, „Schmerzfreiheit“ oder Dauerhaftigkeit?",
           "Gibt es Superlative, Vergleiche mit anderen Praxen oder herabsetzende Aussagen?",
           "Werden Rabatte, Gutscheine, Gewinnspiele oder Geschenke angeboten?",
           "Gibt es Vorher-Nachher-Bilder oder Patientenstimmen?",
@@ -234,7 +234,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Drei Regeln für die Themenwahl",
         paragraphs: ["Ob eine Idee ein guter Beitrag wird, zeigen drei Fragen:"],
         list: [
-          "Fragt ein Patient das wirklich? Fragen vom Behandlungsstuhl, vom Telefon und aus der Google-Suche sind die besten Themen.",
+          "Fragt ein Patient das wirklich? Fragen vom Behandlungsstuhl, vom Telefon und aus der Google-Suche sind die ergiebigsten Themen.",
           "Bieten wir das in unserer Praxis an? Erklären Sie nur Leistungen, die Sie erbringen.",
           "Informiert der Beitrag, oder drängt er? Nicht „Jetzt Termin sichern, Aktion endet Freitag“, sondern „Lassen Sie das beim nächsten Termin anschauen“.",
         ],
@@ -296,7 +296,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Woher neue Themen kommen",
         paragraphs: [
-          "Wenn die Liste leer wird, helfen drei Quellen. Erstens Ihr Team: Empfang und ZFA wissen am besten, was Patienten am Telefon und am Stuhl fragen — bitten Sie sie, eine Woche lang jede Frage zu notieren. Zweitens Google: Tippen Sie „Implantat“ oder „Bleaching“ ins Suchfeld und lesen Sie die Vorschläge; Muster wie „… schädlich“, „… wie lange“, „nach …“ zeigen echte Sorgen. Drittens Ihr eigenes Profil: Kommentare und Nachrichten unter Videos sind das nächste Thema.",
+          "Wenn die Liste leer wird, helfen drei Quellen. Erstens Ihr Team: Empfang und ZFA hören täglich, was Patienten am Telefon und am Stuhl fragen — bitten Sie sie, eine Woche lang jede Frage zu notieren. Zweitens Google: Tippen Sie „Implantat“ oder „Bleaching“ ins Suchfeld und lesen Sie die Vorschläge; Muster wie „… schädlich“, „… wie lange“, „nach …“ zeigen echte Sorgen. Drittens Ihr eigenes Profil: Kommentare und Nachrichten unter Videos sind das nächste Thema.",
           "Preisfragen kommen häufig, sind aber kein Videothema. Beantworten Sie sie persönlich; wiederholt sich die Frage, erklären Sie in einem Video den Ablauf und die Faktoren, die den Aufwand bestimmen — ohne Beträge.",
         ],
       },
@@ -328,6 +328,7 @@ export const GUIDES_DE: Guide[] = [
       },
     ],
     faq: [
+      { q: "Gibt es einen fertigen Plan für ein ganzes Jahr?", a: "Ja: Unser [Redaktionsplan für die Zahnarztpraxis](guide:redaktionsplan-social-media-zahnarztpraxis) enthält 52 Wochenthemen, abgestimmt auf Termine wie den Tag der Zahngesundheit am 25. September." },
       { q: "Was sollte eine Zahnarztpraxis auf Instagram posten?", a: "Kurze Antworten auf Patientenfragen, verständliche Erklärungen von Behandlungen, Pflegetipps und Vorstellungen des Teams — sachlich, vorsichtig formuliert und ohne Versprechen." },
       { q: "Wie oft sollte eine Praxis posten?", a: "Ein bis drei Beiträge pro Woche sind für die meisten Praxen gut machbar. Regelmäßigkeit ist wichtiger als Häufigkeit." },
       { q: "Brauche ich für TikTok andere Inhalte?", a: "Meist nicht. Dasselbe hochformatige, untertitelte Kurzvideo funktioniert auf Instagram Reels, TikTok und YouTube Shorts; nur den Text passen Sie an." },
@@ -411,7 +412,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Im Team verankern",
         paragraphs: [
           "Aufklärungsvideos wirken nur, wenn das Team sie nutzt. Der Empfang kann mit der Terminbestätigung das Video „Ihr erster Termin“ schicken, die ZFA nach der Behandlung auf das passende Nachsorgevideo hinweisen, und die Zahnärztin im Gespräch sagen: „Dazu gibt es ein kurzes Video, das Sie sich zu Hause noch einmal ansehen können.“ Eine einfache Tabelle, welches Video zu welcher Behandlung gehört, reicht.",
-          "Überprüfen Sie die Videos einmal im Jahr und immer dann, wenn sich Ihr Praxisprotokoll ändert. Rückmeldungen wie „das habe ich im Video nicht verstanden“ zeigen am besten, welches Video überarbeitet werden sollte.",
+          "Überprüfen Sie die Videos einmal im Jahr und immer dann, wenn sich Ihr Praxisprotokoll ändert. Rückmeldungen wie „das habe ich im Video nicht verstanden“ zeigen deutlich, welches Video überarbeitet werden sollte.",
         ],
       },
       {
@@ -565,7 +566,7 @@ export const GUIDES_DE: Guide[] = [
         list: [
           "Agentur: übernimmt Planung, Gestaltung und Posting und spart Zeit. Kosten sind oft hoch, und nicht jede Agentur kennt Heilmittelwerbegesetz und Berufsordnung — Rabattaktionen, Gewinnspiele und Vorher-Nachher-Slider sind in anderen Branchen üblich, bei Zahnärzten riskant.",
           "Freier Social-Media-Manager: flexibler und oft günstiger, stark bei Dreh und Schnitt. Die Kontinuität hängt an einer Person, das Rechtswissen schwankt.",
-          "Team: kennt Praxis und Patienten am besten, Inhalte wirken authentisch. Doch die Zeit ist knapp, und die Behandlung hat immer Vorrang.",
+          "Team: kennt Praxis und Patienten aus erster Hand, Inhalte wirken authentisch. Doch die Zeit ist knapp, und die Behandlung hat immer Vorrang.",
           "Software: erstellt regelmäßige Inhalte schnell und planbar. Allgemeine Tools kennen das Werberecht im Gesundheitswesen nicht; auch bei einem spezialisierten Tool bleibt die letzte Prüfung bei der Zahnärztin.",
         ],
       },

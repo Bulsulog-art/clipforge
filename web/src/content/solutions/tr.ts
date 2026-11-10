@@ -87,8 +87,9 @@ export const SOLUTIONS_TR: SolutionPage[] = [
       { q: "Ödemeden önce videolarımı görebilir miyim?", a: "Evet. Kliniğinizi tanımladıktan sonra logonuz, renkleriniz ve klinik adınızla canlı bir önizleme görürsünüz. İlk tam haftanız plan seçtikten hemen sonra hazırlanır." },
       { q: "Denetim hukuki danışmanlık mı?", a: "Hayır. Sık kısıtlanan ifadeleri yakalar ve dikkat gerektireni işaretler; ancak kurallar değişir. Her videoyu siz onaylarsınız ve yayımladığınız içerikten siz sorumlusunuz." },
     ],
-    guides: ["hasta-bilgilendirme-videolari", "dis-hekimleri-icin-instagram-videolari", "dis-hekimi-instagram-paylasim-fikirleri", "dis-hekimi-reklam-yasagi"],
+    guides: ["hasta-bilgilendirme-videolari", "dis-hekimleri-icin-instagram-videolari", "dis-hekimi-instagram-paylasim-fikirleri", "dis-hekimi-reklam-yasagi", "dis-klinigi-sosyal-medya-icerik-takvimi"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
   {
     locale: "tr",
@@ -163,5 +164,6 @@ export const SOLUTIONS_TR: SolutionPage[] = [
     ],
     guides: ["dis-klinigi-sosyal-medya-yonetimi", "dis-hekimi-reklam-yasagi", "dis-hekimi-instagram-paylasim-fikirleri", "dis-hekimi-video-cekimi"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

@@ -116,7 +116,7 @@ export const CALENDAR_ES: Guide = {
       list: [
         "Semana 40 — Flúor: qué hace y dónde está.",
         "Semana 41 — Colutorios: cuándo ayudan y cuándo no hacen falta.",
-        "Semana 42 — Dulces de otoño: mejor con las comidas que a todas horas.",
+        "Semana 42 — Dulces de otoño: con las comidas, no a todas horas.",
         "Semana 43 — Prótesis removibles: limpieza diaria y cuidado por la noche.",
         "Semana 44 — Cuidar la boca de un familiar mayor.",
         "Semana 45 — Radiografías dentales: para qué sirven y cada cuánto se recomiendan.",

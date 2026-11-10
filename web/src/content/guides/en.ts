@@ -50,7 +50,7 @@ export const GUIDES_EN: Guide[] = [
     description: "A practical guide for dental clinics: which short videos patients watch, the Reels format, captions, posting rhythm, five-minute filming and what health-advertising rules restrict.",
     h1: "Instagram videos for dentists: what to post, and how to keep it simple",
     intro:
-      "The best Instagram videos for dentists answer one patient question in 20 to 60 seconds: vertical, captioned and worded carefully. One to three a week is enough. Guarantees, “painless”, discounts, superlatives and patient testimonials should stay out, because health-advertising rules restrict them in many countries, including under GDC and ASA guidance in the UK and FTC rules in the US.",
+      "Instagram videos that work for dentists answer one patient question in 20 to 60 seconds: vertical, captioned and worded carefully. One to three a week is enough. Guarantees, “painless”, discounts, superlatives and patient testimonials should stay out, because health-advertising rules restrict them in many countries, including under GDC and ASA guidance in the UK and FTC rules in the US.",
     sections: [
       {
         heading: "Why patients watch dentists' videos",
@@ -62,7 +62,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "What patients actually want to see",
         paragraphs: [
-          "The questions people ask at the chair are the best topics. Answer one per video. For a year's worth of ideas, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
+          "The questions people ask at the chair make the most useful topics. Answer one per video. For a year's worth of ideas, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
         ],
         list: [
           "Does whitening damage enamel?",
@@ -372,7 +372,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Three rules for choosing a topic",
         paragraphs: ["Three questions tell you whether an idea will make a good post:"],
         list: [
-          "Do patients really ask this? Questions from the chair, the phone and Google are the best topics.",
+          "Do patients really ask this? Questions from the chair, the phone and Google make the most useful topics.",
           "Do we offer it? Only explain treatments your clinic provides.",
           "Does it inform, or push? Not “Book now, offer ends Friday”, but “Ask us about it at your next check-up”.",
         ],
@@ -434,7 +434,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Where to find more topics",
         paragraphs: [
-          "When the list runs dry, look in three places. Your team: reception and nurses know best what patients ask on the phone and in the chair — ask them to note every question for a week. Google: type “dental implant” or “teeth whitening” into the search box and read the suggestions; patterns such as “is … safe”, “how long” and “after” reveal real concerns. Your own account: comments and messages under your videos are your next topic.",
+          "When the list runs dry, look in three places. Your team: reception and nurses hear first-hand what patients ask on the phone and in the chair — ask them to note every question for a week. Google: type “dental implant” or “teeth whitening” into the search box and read the suggestions; patterns such as “is … safe”, “how long” and “after” reveal real concerns. Your own account: comments and messages under your videos are your next topic.",
           "Price questions come up often but are rarely a good video. Answer them individually; if they keep coming, explain the steps of the treatment and what affects the plan, rather than numbers.",
         ],
       },
@@ -466,6 +466,7 @@ export const GUIDES_EN: Guide[] = [
       },
     ],
     faq: [
+      { q: "Is there a ready-made plan for a whole year?", a: "Yes: our [dental social media content calendar](guide:dental-social-media-content-calendar) gives one educational topic for each of the 52 weeks, tied to dates such as World Oral Health Day on 20 March." },
       { q: "What should a dental practice post on Instagram?", a: "Short answers to patient questions, clear explanations of treatments, aftercare tips and introductions to the team — informative, carefully worded and free of promises." },
       { q: "How many posts a week?", a: "One to three a week is manageable for most practices. Consistency matters more than frequency." },
       { q: "Do I need different content for TikTok?", a: "Usually not. The same vertical, captioned short video works on Reels, TikTok and YouTube Shorts; adapt the caption." },
@@ -599,7 +600,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "What do federal FTC rules require?",
         paragraphs: [
-          "Under Section 5 of the FTC Act, advertising must be truthful and not misleading, and objective claims need a reasonable basis before you make them. For health-related claims the FTC expects competent and reliable scientific evidence, as set out in its Health Products Compliance Guidance. A post that says a treatment is painless, permanent or guaranteed is a claim you would have to support.",
+          "Under Section 5 of the FTC Act, advertising must be truthful and not misleading, and objective claims need a reasonable basis before you make them. For health-related claims the FTC expects competent and reliable scientific evidence, as set out in its Health Products Compliance Guidance. A post that says a treatment is “painless”, “permanent” or “guaranteed” is a claim you would have to support.",
           "The FTC's Endorsement Guides (16 CFR Part 255, revised in 2023) cover testimonials and influencer posts: endorsements must reflect the endorser's honest experience, a consumer testimonial is not competent and reliable scientific evidence, results that are not typical must not be presented as typical, and any material connection — payment, free treatment, a discount — must be disclosed clearly and conspicuously. A disclosure hidden behind a “more” link does not count. Tags in social media posts can themselves be endorsements.",
           "Since 21 October 2024 the FTC's Trade Regulation Rule on the Use of Consumer Reviews and Testimonials (16 CFR Part 465) has also applied. It prohibits fake reviews and testimonials, buying reviews conditioned on what they say, and suppressing negative reviews, and it allows civil penalties for knowing violations. Offering patients a discount for a five-star review falls on the wrong side of it.",
         ],

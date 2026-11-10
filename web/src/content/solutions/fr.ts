@@ -85,7 +85,8 @@ export const SOLUTIONS_FR: SolutionPage[] = [
       { q: "Puis-je voir mes vidéos avant de payer ?", a: "Oui. Après avoir décrit votre cabinet, vous voyez un aperçu en direct avec votre logo, vos couleurs et votre nom. La première semaine complète est réalisée juste après le choix d'une formule." },
       { q: "Le contrôle vaut-il conseil juridique ?", a: "Non. Il repère les affirmations souvent restreintes et signale ce qui mérite un second regard, mais les règles évoluent. Vous validez chaque vidéo." },
     ],
-    guides: ["videos-information-patient-dentaire", "videos-pour-cabinets-dentaires", "idees-contenu-instagram-cabinet-dentaire", "communication-chirurgien-dentiste-reseaux-sociaux"],
+    guides: ["videos-information-patient-dentaire", "videos-pour-cabinets-dentaires", "idees-contenu-instagram-cabinet-dentaire", "communication-chirurgien-dentiste-reseaux-sociaux", "calendrier-editorial-cabinet-dentaire"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

@@ -24,7 +24,7 @@ export const GUIDES_TR: Guide[] = [
     description: "Diş klinikleri için Instagram video rehberi: hastaların izlediği konular, Reels formatı, altyazı, paylaşım sıklığı ve 2025 tanıtım yönetmeliğine uygun dil.",
     h1: "Diş hekimleri için Instagram videoları",
     intro:
-      "Diş hekimleri için en iyi Instagram videoları, hastaların koltukta sorduğu tek bir soruyu 20–60 saniyede, sade ve temkinli bir dille yanıtlayan dikey, altyazılı kısa videolardır. Haftada bir ila üç video yeterlidir; fiyat, indirim, garanti, “acısız” gibi ifadeler ve hasta teşekkürleri ise Türkiye'deki tanıtım kuralları nedeniyle videoya girmemelidir.",
+      "Diş hekimleri için işe yarayan Instagram videoları, hastaların koltukta sorduğu tek bir soruyu 20–60 saniyede, sade ve temkinli bir dille yanıtlayan dikey, altyazılı kısa videolardır. Haftada bir ila üç video yeterlidir; fiyat, indirim, garanti, “acısız” gibi ifadeler ve hasta teşekkürleri ise Türkiye'deki tanıtım kuralları nedeniyle videoya girmemelidir.",
     sections: [
       {
         heading: "Hastalar neden video izliyor",
@@ -36,7 +36,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "Hangi konular işe yarar",
         paragraphs: [
-          "En iyi konu listesi zaten elinizde: hastaların her gün sorduğu sorular. Her videoda yalnızca bir soruyu yanıtlayın. Konu bulmakta zorlanırsanız [Instagram paylaşım fikirleri rehberinde](guide:dis-hekimi-instagram-paylasim-fikirleri) bir yıllık liste var.",
+          "En kullanışlı konu listesi zaten elinizde: hastaların her gün sorduğu sorular. Her videoda yalnızca bir soruyu yanıtlayın. Konu bulmakta zorlanırsanız [Instagram paylaşım fikirleri rehberinde](guide:dis-hekimi-instagram-paylasim-fikirleri) bir yıllık liste var.",
         ],
         list: [
           "Diş beyazlatma mineye zarar verir mi?",
@@ -204,7 +204,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo bu kontrolü nasıl yapar",
         paragraphs: [
-          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (garanti, acısız, kalıcı, en iyi, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı on dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
+          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (“garanti”, “acısız”, “kalıcı”, “en iyi”, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı on dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
         ],
       },
     ],
@@ -238,7 +238,7 @@ export const GUIDES_TR: Guide[] = [
         heading: "Konu seçmenin üç kuralı",
         paragraphs: ["Bir fikrin iyi bir paylaşım olup olmayacağını anlamak için üç soru yeter:"],
         list: [
-          "Bir hasta bunu gerçekten soruyor mu? Koltukta, telefonda ya da Google'da sorulan sorular en iyi konulardır.",
+          "Bir hasta bunu gerçekten soruyor mu? Koltukta, telefonda ya da Google'da sorulan sorular en verimli konulardır.",
           "Bu tedaviyi kliniğimizde yapıyor muyuz? Yalnızca sunduğunuz hizmetleri anlatın.",
           "Bilgilendiriyor mu, yönlendiriyor mu? “Hemen randevu alın, indirimi kaçırmayın” değil; “bu durumda hekiminize danışın”.",
         ],
@@ -313,7 +313,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "Soruları nereden bulursunuz",
         paragraphs: [
-          "Konu listesi tükendiğinde üç kaynağa bakın. Birincisi ekibiniz: resepsiyon ve asistanlar hastaların telefonda ve koltukta ne sorduğunu en iyi bilen kişilerdir; bir hafta boyunca gelen soruları bir kâğıda not etmelerini isteyin. İkincisi Google: arama kutusuna “implant” ya da “diş beyazlatma” yazıp çıkan önerilere bakın; “… zararlı mı”, “… ne kadar sürer”, “… sonrası” gibi kalıplar hastaların gerçek kaygılarını gösterir. Üçüncüsü kendi hesabınız: videolarınızın altına gelen yorum ve mesajlar bir sonraki videonun konusudur.",
+          "Konu listesi tükendiğinde üç kaynağa bakın. Birincisi ekibiniz: resepsiyon ve asistanlar hastaların telefonda ve koltukta ne sorduğunu ilk elden duyan kişilerdir; bir hafta boyunca gelen soruları bir kâğıda not etmelerini isteyin. İkincisi Google: arama kutusuna “implant” ya da “diş beyazlatma” yazıp çıkan önerilere bakın; “… zararlı mı”, “… ne kadar sürer”, “… sonrası” gibi kalıplar hastaların gerçek kaygılarını gösterir. Üçüncüsü kendi hesabınız: videolarınızın altına gelen yorum ve mesajlar bir sonraki videonun konusudur.",
           "Fiyat soruları sık gelir ama video konusu olamaz; bu soruları mesajla, birebir yanıtlayın. Aynı soru birçok kez geliyorsa, fiyatı değil süreci anlatan bir video hazırlayın: tedavinin hangi aşamalardan oluştuğu ve maliyeti nelerin etkilediği.",
         ],
       },
@@ -336,6 +336,7 @@ export const GUIDES_TR: Guide[] = [
       },
     ],
     faq: [
+      { q: "Bütün yıl için hazır bir plan var mı?", a: "Evet: [diş kliniği sosyal medya içerik takvimi](guide:dis-klinigi-sosyal-medya-icerik-takvimi) rehberimiz 52 haftanın her biri için bir bilgilendirme konusu önerir; 20 Mart ve 22 Kasım gibi tarihler de takvimde yer alır." },
       { q: "Diş kliniği Instagram'da ne paylaşmalı?", a: "Hasta sorularının kısa yanıtları, tedavilerin anlaşılır anlatımı, tedavi sonrası bakım ipuçları ve ekip tanıtımı. Tümü bilgilendirici, temkinli ve yönlendirmesiz olmalıdır." },
       { q: "Diş hekimi Instagram'da hasta fotoğrafı paylaşabilir mi?", a: "Ancak hastanın belgelenmiş açık rızasıyla ve tanıtım kurallarına uygun biçimde. Öncesi-sonrası görselleri yönetmelik açısından tartışmalı olduğundan paylaşmadan önce odanıza danışın." },
       { q: "Haftada kaç paylaşım yapılmalı?", a: "Haftada bir ila üç kısa video çoğu klinik için yeterli ve sürdürülebilirdir. Düzen, sıklıktan daha önemlidir." },
@@ -478,7 +479,7 @@ export const GUIDES_TR: Guide[] = [
         list: [
           "Ajans: Planlama, tasarım ve paylaşımı üstlenir; zamandan tasarruf sağlar. Ancak maliyeti yüksek olabilir ve her ajans sağlık mevzuatını bilmez. Kampanya, indirim ve öncesi-sonrası gibi genel pazarlama alışkanlıkları sağlıkta risk yaratır.",
           "Serbest içerik üreticisi: Daha esnek ve genellikle daha uygun maliyetlidir; çekim ve kurgu konusunda güçlü olabilir. Sürekliliği kişiye bağlıdır, mevzuat bilgisi değişkendir.",
-          "Klinik ekibi: Hastaları ve kliniği en iyi tanıyan kişilerdir; içerik samimi olur. Ancak ekip zamanı kısıtlıdır ve tedavi işleri hep önceliklidir.",
+          "Klinik ekibi: Hastaları ve kliniği yakından tanıyan kişilerdir; içerik samimi olur. Ancak ekip zamanı kısıtlıdır ve tedavi işleri hep önceliklidir.",
           "Yazılım: Düzenli içeriği hızlı ve öngörülebilir biçimde üretir. Genel amaçlı araçlar sağlık tanıtım kurallarını bilmez; sağlığa özel bir araçta bile son kontrol hekime aittir.",
         ],
       },
@@ -665,7 +666,7 @@ export const GUIDES_TR: Guide[] = [
       { q: "Önlük ya da forma ile mi çekmeliyim?", a: "Hastanın sizi klinikte göreceği kıyafet en doğal olanıdır. Desenli ya da çok parlak kıyafetler yerine düz renkler kamerada daha iyi görünür." },
       { q: "Çekimde gözlerimi nereye bakmalıyım?", a: "Ekrana değil, telefonun kamera merceğine bakın. Mercek göz hizasında olursa izleyici sizinle göz teması kurduğunu hisseder." },
       { q: "Metni ezberlemeli miyim?", a: "Hayır. Ana noktaları not edip bir hastaya anlatır gibi konuşmak genellikle daha doğal ve daha güvenilir sonuç verir." },
-      { q: "Çekim için en iyi zaman ne zaman?", a: "Gün ışığının yumuşak olduğu sabah ya da öğleden sonra saatleri ve hasta trafiğinin az olduğu bir boşluk idealdir. Haftada bir sabit zaman ayırmak çekimi alışkanlığa dönüştürür." },
+      { q: "Çekim için hangi zaman uygun?", a: "Gün ışığının yumuşak olduğu sabah ya da öğleden sonra saatleri ve hasta trafiğinin az olduğu bir boşluk idealdir. Haftada bir sabit zaman ayırmak çekimi alışkanlığa dönüştürür." },
       { q: "Bir kayıttan kaç video çıkar?", a: "Üç dört soruyu yanıtladığınız beş dakikalık bir kayıttan genellikle dört beş kısa video çıkar." },
     ],
     howTo: {
