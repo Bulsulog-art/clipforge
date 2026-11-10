@@ -92,13 +92,30 @@ export function HtmlLang({ locale }: { locale: Locale }) {
 }
 
 /**
- * A section table. On phones it scrolls sideways inside its own box (the
- * page itself never scrolls horizontally); keyboard users can focus it.
+ * A section table: stacked cards on phones (no sideways scrolling), a real
+ * table with row and column headers from the sm breakpoint up.
  */
 export function SectionTableView({ table, locale }: { table: SectionTable; locale: Locale }) {
   return (
     <figure className="mt-6">
-      <div tabIndex={0} role="region" aria-label={table.caption} className="overflow-x-auto rounded-2xl bg-white ring-1 ring-dv-line focus-visible:outline focus-visible:outline-2 focus-visible:outline-dv-teal">
+      {/* Phones: one card per row with each value under its column heading (no sideways scrolling); wider screens get the table. */}
+      <div className="space-y-3 sm:hidden">
+        <p className="text-sm font-semibold text-dv-ink">{table.caption}</p>
+        {table.rows.map((r, i) => (
+          <dl key={i} className="rounded-2xl bg-white p-4 ring-1 ring-dv-line">
+            <dt className="font-semibold leading-snug text-dv-ink">
+              <RichText text={r[0]} locale={locale} />
+            </dt>
+            {r.slice(1).map((cell, j) => (
+              <dd key={j} className="mt-2 text-[0.9375rem] leading-snug text-[#33423f]">
+                <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{table.columns[j + 1]}</span>
+                <RichText text={cell} locale={locale} />
+              </dd>
+            ))}
+          </dl>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto rounded-2xl bg-white ring-1 ring-dv-line sm:block">
         <table className="w-full min-w-[32rem] border-collapse text-start text-[0.9375rem] leading-snug">
           <caption className="px-4 pb-1 pt-4 text-start text-sm font-semibold text-dv-ink sm:px-5">{table.caption}</caption>
           <thead>
