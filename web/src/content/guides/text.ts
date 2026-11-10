@@ -1,6 +1,7 @@
 import { GUIDES, LANDING_PATH, findGuide, guidePath, type Guide, type Locale } from "../dentvideo";
 import { ABOUT_PATH, GUIDES_INDEX_PATH } from "./ui";
 import { findSolution, solutionPath, type SolutionPage } from "../solutions";
+import type { SectionTable } from "./types";
 
 /** A piece of guide text: plain, or an inline link written as [label](target). */
 export type Inline = { kind: "text"; text: string } | { kind: "link"; label: string; target: string };
@@ -53,11 +54,30 @@ export function resolveTarget(target: string, locale: Locale): string | null {
   }
 }
 
+/** The cells of a section table, in reading order (caption, header, then row by row). */
+export function tableTexts(t: SectionTable | undefined): string[] {
+  if (!t) return [];
+  return [t.caption, ...t.columns, ...t.rows.flat(), ...(t.note ? [t.note] : [])];
+}
+
+/** A section table as a Markdown table. */
+function tableMarkdown(t: SectionTable, link: (s: string) => string): string[] {
+  const row = (cells: string[]) => `| ${cells.map((c) => link(c).replace(/\|/g, "\\|")).join(" | ")} |`;
+  const lines = [`**${t.caption}**`, "", row(t.columns), `|${" --- |".repeat(t.columns.length)}`, ...t.rows.map(row), ""];
+  if (t.note) lines.push(link(t.note), "");
+  return lines;
+}
+
+/** The date a page's facts were last checked: `reviewed`, else `updated`, else `published`. */
+export function reviewedDate(p: { reviewed?: string; updated?: string; published?: string }): string | undefined {
+  return p.reviewed ?? p.updated ?? p.published;
+}
+
 /** Every piece of running text in a guide, in reading order. */
 export function guideTexts(g: Guide): string[] {
   return [
     g.intro,
-    ...g.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.list ?? []), ...(s.after ?? [])]),
+    ...g.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.list ?? []), ...tableTexts(s.table), ...(s.after ?? [])]),
     ...g.faq.flatMap((f) => [f.q, f.a]),
   ];
 }
@@ -66,7 +86,7 @@ export function guideTexts(g: Guide): string[] {
 export function solutionTexts(p: SolutionPage): string[] {
   return [
     p.intro,
-    ...p.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.list ?? []), ...(s.after ?? [])]),
+    ...p.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.list ?? []), ...tableTexts(s.table), ...(s.after ?? [])]),
     ...(p.table ? [p.table.caption, ...p.table.rows.flatMap((r) => [r.label, ...r.values]), p.table.note ?? ""] : []),
     ...p.faq.flatMap((f) => [f.q, f.a]),
   ];
@@ -93,6 +113,7 @@ export function solutionMarkdown(p: SolutionPage, abs: (path: string) => string)
       s.list.forEach((item, i) => lines.push(`${s.ordered ? `${i + 1}.` : "-"} ${link(item)}`));
       lines.push("");
     }
+    if (s.table) lines.push(...tableMarkdown(s.table, link));
     for (const para of s.after ?? []) lines.push(link(para), "");
   }
   lines.push("### FAQ", "");
@@ -162,6 +183,8 @@ export function guideMarkdown(g: Guide, abs: (path: string) => string): string {
     });
   const lines = [`## ${g.h1}`, "", `URL: ${abs(guidePath(g))}`, `Language: ${g.locale}`];
   if (g.updated) lines.push(`Updated: ${g.updated}`);
+  const reviewed = reviewedDate(g);
+  if (reviewed) lines.push(`Last reviewed: ${reviewed} by the DentVideo editorial team (Bulsu Labs)`);
   lines.push("", link(g.intro), "");
   for (const s of g.sections) {
     lines.push(`### ${s.heading}`, "");
@@ -170,6 +193,7 @@ export function guideMarkdown(g: Guide, abs: (path: string) => string): string {
       s.list.forEach((item, i) => lines.push(`${s.ordered ? `${i + 1}.` : "-"} ${link(item)}`));
       lines.push("");
     }
+    if (s.table) lines.push(...tableMarkdown(s.table, link));
     for (const p of s.after ?? []) lines.push(link(p), "");
   }
   if (g.faq.length) {

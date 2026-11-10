@@ -3,7 +3,8 @@ import type { Guide } from "../dentvideo";
 // Türkçe rehberler. Kurallar: yalnızca bugün geçerli olanı anlatın, istatistik
 // ve fiyat uydurmayın, mevzuatı temkinli ve kaynaklı aktarın.
 
-const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/" };
+const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+const RG_2023 = { label: "Resmî Gazete — 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete (yürürlükten kaldırılan önceki yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2023/07/20230729-29.htm" };
 const MEVZUAT = { label: "Mevzuat Bilgi Sistemi — yönetmeliklerin güncel metni", url: "https://www.mevzuat.gov.tr/" };
 const TDB = { label: "Türk Dişhekimleri Birliği (meslek etiği ve oda duyuruları)", url: "https://www.tdb.org.tr/" };
 const KVKK = { label: "Kişisel Verileri Koruma Kurumu — 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
@@ -23,7 +24,7 @@ export const GUIDES_TR: Guide[] = [
     description: "Diş klinikleri için Instagram video rehberi: hastaların izlediği konular, Reels formatı, altyazı, paylaşım sıklığı ve 2025 tanıtım yönetmeliğine uygun dil.",
     h1: "Diş hekimleri için Instagram videoları",
     intro:
-      "Diş hekimleri için en iyi Instagram videoları, hastaların koltukta sorduğu tek bir soruyu 20–60 saniyede, sade ve temkinli bir dille yanıtlayan dikey, altyazılı kısa videolardır. Haftada bir ila üç video yeterlidir; fiyat, indirim, garanti, “acısız” gibi ifadeler ve hasta teşekkürleri ise Türkiye'deki tanıtım kuralları nedeniyle videoya girmemelidir.",
+      "Diş hekimleri için işe yarayan Instagram videoları, hastaların koltukta sorduğu tek bir soruyu 20–60 saniyede, sade ve temkinli bir dille yanıtlayan dikey, altyazılı kısa videolardır. Haftada bir ila üç video yeterlidir; fiyat, indirim, garanti, “acısız” gibi ifadeler ve hasta teşekkürleri ise Türkiye'deki tanıtım kuralları nedeniyle videoya girmemelidir.",
     sections: [
       {
         heading: "Hastalar neden video izliyor",
@@ -35,7 +36,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "Hangi konular işe yarar",
         paragraphs: [
-          "En iyi konu listesi zaten elinizde: hastaların her gün sorduğu sorular. Her videoda yalnızca bir soruyu yanıtlayın. Konu bulmakta zorlanırsanız [Instagram paylaşım fikirleri rehberinde](guide:dis-hekimi-instagram-paylasim-fikirleri) bir yıllık liste var.",
+          "En kullanışlı konu listesi zaten elinizde: hastaların her gün sorduğu sorular. Her videoda yalnızca bir soruyu yanıtlayın. Konu bulmakta zorlanırsanız [Instagram paylaşım fikirleri rehberinde](guide:dis-hekimi-instagram-paylasim-fikirleri) bir yıllık liste var.",
         ],
         list: [
           "Diş beyazlatma mineye zarar verir mi?",
@@ -123,7 +124,8 @@ export const GUIDES_TR: Guide[] = [
     slug: "dis-hekimi-reklam-yasagi",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Diş hekimi reklam yasağı: 2025 tanıtım yönetmeliğine göre sosyal medyada neler paylaşılabilir?",
     seoTitle: "Diş hekimi reklam yasağı: neler paylaşılabilir?",
     seoDescription: "2025 Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Yönetmeliği'ne göre diş hekimleri için yasak ifadeler, öncesi-sonrası, KVKK ve kontrol listesi.",
@@ -133,16 +135,16 @@ export const GUIDES_TR: Guide[] = [
       "Türkiye'de diş hekimleri ve diş klinikleri reklam yapamaz; yalnızca kurallara uygun tanıtım ve bilgilendirme yapabilir. 12 Kasım 2025'te yayımlanan Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik; ücret, indirim, kampanya, hasta teşekkürü, sponsorlu öne çıkarma ve yönlendirici içerikleri sınırlar. Eğitici, temkinli ve hasta mahremiyetine saygılı paylaşımlar ise serbesttir.",
     sections: [
       {
-        heading: "Reklam ile bilgilendirme arasındaki fark",
+        heading: "Reklam ile bilgilendirme arasındaki fark nedir?",
         paragraphs: [
           "Yönetmeliğin temel ayrımı şudur: sağlık hizmetinin açık ya da örtülü reklamı yasaktır, kamuoyunu doğru bilgilendirme ise ilkelere uyulduğu sürece serbesttir. Pratikte bir paylaşımın amacı hastayı bir tedaviye ya da kliniğe yönlendirmek, talep yaratmak veya özendirmekse reklam sayılma riski yüksektir. Amacı bir konuyu anlaşılır kılmaksa bilgilendirme olarak değerlendirilmesi daha olasıdır.",
           "Klinik hesabındaki bir Instagram gönderisi, web sitesi, Google profili ve YouTube kanalı bu kurallara tabidir. Yönetmelik yalnızca kliniği değil, hekimin kişisel hesabından yaptığı mesleki paylaşımları da kapsar.",
         ],
       },
       {
-        heading: "2025 yönetmeliği neyi değiştirdi",
+        heading: "2025 yönetmeliği neyi değiştirdi?",
         paragraphs: [
-          "Sağlık Bakanlığı, 2023 tarihli düzenlemenin yerine 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete'de yeni bir yönetmelik yayımladı. Hukuk bürolarının ve meslek odalarının değerlendirmelerine göre öne çıkan noktalar şunlardır; madde numaraları ve istisnalar için mutlaka resmî metne bakın:",
+          "Sağlık Bakanlığı, 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete'de yayımlanan aynı adlı yönetmeliği yürürlükten kaldırarak 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete'de yeni bir yönetmelik yayımladı. Aramalarda hâlâ “32263 sayılı yönetmelik” görülse de geçerli metin 2025 tarihli olandır. Yeni yönetmelik sağlık meslek mensuplarını, özel sağlık kuruluşlarını ve uluslararası sağlık turizmi aracı kuruluşlarını kapsar. Hukuk bürolarının ve meslek odalarının değerlendirmelerine göre öne çıkan noktalar şunlardır; madde numaraları ve istisnalar için mutlaka resmî metne bakın:",
         ],
         list: [
           "Tanıtım ve bilgilendirmede ücret, indirim, kampanya ve promosyon bilgisine yer verilemez (uluslararası sağlık turizmine ilişkin ayrı hükümler bulunur).",
@@ -150,24 +152,29 @@ export const GUIDES_TR: Guide[] = [
           "Ücretli, sponsorlu ya da öne çıkmaya yönelik paylaşım ve arama motoru kayıtları kısıtlanmıştır; sınırlı istisnalar için güncel metne bakın.",
           "Kişilerin rızası olmadan arama, SMS, e-posta ya da sosyal medya mesajıyla tanıtım yapılamaz.",
           "Çekiliş, hediye ve benzeri özendirici pazarlama faaliyetleri yapılamaz.",
-          "Denetim il sağlık müdürlükleri ve Bakanlık tarafından yapılır; aykırılıklarda idari yaptırımlar uygulanabilir.",
+          "Denetim il sağlık müdürlükleri ve Bakanlık tarafından yapılır; şikâyet ve tespitler il sağlık müdürlükleri bünyesindeki il değerlendirme komisyonlarında incelenir ve aykırılıklarda idari yaptırımlar uygulanabilir.",
         ],
       },
       {
-        heading: "Sorun yaratan ifadeler ve güvenli karşılıkları",
+        heading: "Diş hekimi sosyal medyada hangi ifadeleri kullanmamalı?",
         paragraphs: [
           "Kesin sonuç vaadi, üstünlük iddiası ve yönlendirme, hem yönetmelik hem meslek etiği açısından en riskli dildir. Aynı bilgiyi temkinli bir dille vermek çoğu zaman mümkündür:",
         ],
-        list: [
-          "“Acısız implant” yerine: “İşlem lokal anestezi altında yapılır; çoğu hasta sonrasında hafif bir hassasiyet hisseder.”",
-          "“Garantili beyazlatma” yerine: “Beyazlatmanın etkisi kişiden kişiye değişir; hekiminiz uygun olup olmadığını değerlendirir.”",
-          "“Ömür boyu kalıcı” yerine: “Düzenli bakım ve kontrollerle uzun yıllar kullanılabilir.”",
-          "“Şehrin en iyi kliniği” yerine: kliniğin adı, adresi ve sunduğu hizmetler gibi doğrulanabilir bilgiler.",
-          "“Bu ay indirimde” yerine: hiçbir fiyat ya da kampanya bilgisi.",
-        ],
+        table: {
+          caption: "Riskli ifade, nedeni ve temkinli karşılığı",
+          columns: ["Riskli ifade", "Neden riskli", "Temkinli karşılık"],
+          rows: [
+            ["“Acısız implant”", "Kesin sonuç vaadi; yanıltıcı olabilir", "“İşlem lokal anestezi altında yapılır; çoğu hasta sonrasında hafif bir hassasiyet hisseder.”"],
+            ["“Garantili beyazlatma”", "Garanti ve beklenti yaratma", "“Beyazlatmanın etkisi kişiden kişiye değişir; hekiminiz uygun olup olmadığını değerlendirir.”"],
+            ["“Ömür boyu kalıcı”", "Kalıcılığı abartır", "“Düzenli bakım ve kontrollerle uzun yıllar kullanılabilir.”"],
+            ["“Şehrin en iyi kliniği”", "Üstünlük iddiası ve karşılaştırma", "Kliniğin adı, adresi ve sunduğu hizmetler gibi doğrulanabilir bilgiler"],
+            ["“Bu ay indirimde”", "Ücret, indirim ve kampanya bilgisi yasak", "Hiçbir fiyat ya da kampanya bilgisi; soru sormaya veya kontrole davet"],
+            ["Hasta teşekkür mesajı paylaşımı", "Memnuniyet ifadeleriyle tanıtım sınırlı; mahremiyet", "Hastaların sorduğu soruyu yanıtlayan eğitici bir video"],
+          ],
+        },
       },
       {
-        heading: "Öncesi-sonrası görselleri ve hasta mahremiyeti",
+        heading: "Öncesi-sonrası görselleri paylaşılabilir mi?",
         paragraphs: [
           "Öncesi-sonrası görselleri konusundaki yorumlar birbirinden farklıdır: bazı değerlendirmeler bu görsellerin reklam niteliği taşıdığını ve yasak olduğunu, bazıları ise hastanın açık rızası, kimliğin gizlenmesi ve “sonuçlar kişiden kişiye değişebilir” uyarısı gibi koşullarla bilgilendirme amaçlı kullanılabileceğini söyler. Bu belirsizlik nedeniyle en güvenli yaklaşım, öncesi-sonrası görsellerini sosyal medyada hiç kullanmamak ya da kullanmadan önce odanızın ve bir hukukçunun görüşünü almaktır.",
           "Ayrıca sağlık verisi, 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında özel nitelikli kişisel veridir. Bir hastanın yüzü, sesi, adı ya da ağız içi fotoğrafı paylaşılacaksa amacı açıkça belirten, yazılı ve geri alınabilir bir onam alın; onamı hasta dosyasında saklayın. Görüntüde diğer hastaların, ekranlardaki hasta bilgilerinin ve randevu defterinin görünmediğinden emin olun.",
@@ -197,7 +204,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo bu kontrolü nasıl yapar",
         paragraphs: [
-          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (garanti, acısız, kalıcı, en iyi, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı on dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
+          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (“garanti”, “acısız”, “kalıcı”, “en iyi”, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı on dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
         ],
       },
     ],
@@ -210,7 +217,7 @@ export const GUIDES_TR: Guide[] = [
       { q: "Bu rehber hukuki danışmanlık mıdır?", a: "Hayır. Genel bilgidir; mevzuat değişebilir ve yoruma açıktır. Somut durumlar için diş hekimleri odanıza, il sağlık müdürlüğüne ya da bir hukukçuya danışın." },
       { q: "Fenomenlerle iş birliği yapabilir miyim?", a: "Bir fenomenin tedaviyi ya da kliniği öven paylaşımı örtülü reklam sayılabilir. Sağlıkta reklam yasak olduğundan bu tür iş birliklerinden önce hukuki görüş alın." },
     ],
-    sources: [RG, MEVZUAT, TDB, KVKK, SB],
+    sources: [RG, MEVZUAT, TDB, KVKK, SB, RG_2023],
   },
   {
     locale: "tr",
@@ -231,7 +238,7 @@ export const GUIDES_TR: Guide[] = [
         heading: "Konu seçmenin üç kuralı",
         paragraphs: ["Bir fikrin iyi bir paylaşım olup olmayacağını anlamak için üç soru yeter:"],
         list: [
-          "Bir hasta bunu gerçekten soruyor mu? Koltukta, telefonda ya da Google'da sorulan sorular en iyi konulardır.",
+          "Bir hasta bunu gerçekten soruyor mu? Koltukta, telefonda ya da Google'da sorulan sorular en verimli konulardır.",
           "Bu tedaviyi kliniğimizde yapıyor muyuz? Yalnızca sunduğunuz hizmetleri anlatın.",
           "Bilgilendiriyor mu, yönlendiriyor mu? “Hemen randevu alın, indirimi kaçırmayın” değil; “bu durumda hekiminize danışın”.",
         ],
@@ -306,7 +313,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "Soruları nereden bulursunuz",
         paragraphs: [
-          "Konu listesi tükendiğinde üç kaynağa bakın. Birincisi ekibiniz: resepsiyon ve asistanlar hastaların telefonda ve koltukta ne sorduğunu en iyi bilen kişilerdir; bir hafta boyunca gelen soruları bir kâğıda not etmelerini isteyin. İkincisi Google: arama kutusuna “implant” ya da “diş beyazlatma” yazıp çıkan önerilere bakın; “… zararlı mı”, “… ne kadar sürer”, “… sonrası” gibi kalıplar hastaların gerçek kaygılarını gösterir. Üçüncüsü kendi hesabınız: videolarınızın altına gelen yorum ve mesajlar bir sonraki videonun konusudur.",
+          "Konu listesi tükendiğinde üç kaynağa bakın. Birincisi ekibiniz: resepsiyon ve asistanlar hastaların telefonda ve koltukta ne sorduğunu ilk elden duyan kişilerdir; bir hafta boyunca gelen soruları bir kâğıda not etmelerini isteyin. İkincisi Google: arama kutusuna “implant” ya da “diş beyazlatma” yazıp çıkan önerilere bakın; “… zararlı mı”, “… ne kadar sürer”, “… sonrası” gibi kalıplar hastaların gerçek kaygılarını gösterir. Üçüncüsü kendi hesabınız: videolarınızın altına gelen yorum ve mesajlar bir sonraki videonun konusudur.",
           "Fiyat soruları sık gelir ama video konusu olamaz; bu soruları mesajla, birebir yanıtlayın. Aynı soru birçok kez geliyorsa, fiyatı değil süreci anlatan bir video hazırlayın: tedavinin hangi aşamalardan oluştuğu ve maliyeti nelerin etkilediği.",
         ],
       },
@@ -329,6 +336,7 @@ export const GUIDES_TR: Guide[] = [
       },
     ],
     faq: [
+      { q: "Bütün yıl için hazır bir plan var mı?", a: "Evet: [diş kliniği sosyal medya içerik takvimi](guide:dis-klinigi-sosyal-medya-icerik-takvimi) rehberimiz 52 haftanın her biri için bir bilgilendirme konusu önerir; 20 Mart ve 22 Kasım gibi tarihler de takvimde yer alır." },
       { q: "Diş kliniği Instagram'da ne paylaşmalı?", a: "Hasta sorularının kısa yanıtları, tedavilerin anlaşılır anlatımı, tedavi sonrası bakım ipuçları ve ekip tanıtımı. Tümü bilgilendirici, temkinli ve yönlendirmesiz olmalıdır." },
       { q: "Diş hekimi Instagram'da hasta fotoğrafı paylaşabilir mi?", a: "Ancak hastanın belgelenmiş açık rızasıyla ve tanıtım kurallarına uygun biçimde. Öncesi-sonrası görselleri yönetmelik açısından tartışmalı olduğundan paylaşmadan önce odanıza danışın." },
       { q: "Haftada kaç paylaşım yapılmalı?", a: "Haftada bir ila üç kısa video çoğu klinik için yeterli ve sürdürülebilirdir. Düzen, sıklıktan daha önemlidir." },
@@ -471,7 +479,7 @@ export const GUIDES_TR: Guide[] = [
         list: [
           "Ajans: Planlama, tasarım ve paylaşımı üstlenir; zamandan tasarruf sağlar. Ancak maliyeti yüksek olabilir ve her ajans sağlık mevzuatını bilmez. Kampanya, indirim ve öncesi-sonrası gibi genel pazarlama alışkanlıkları sağlıkta risk yaratır.",
           "Serbest içerik üreticisi: Daha esnek ve genellikle daha uygun maliyetlidir; çekim ve kurgu konusunda güçlü olabilir. Sürekliliği kişiye bağlıdır, mevzuat bilgisi değişkendir.",
-          "Klinik ekibi: Hastaları ve kliniği en iyi tanıyan kişilerdir; içerik samimi olur. Ancak ekip zamanı kısıtlıdır ve tedavi işleri hep önceliklidir.",
+          "Klinik ekibi: Hastaları ve kliniği yakından tanıyan kişilerdir; içerik samimi olur. Ancak ekip zamanı kısıtlıdır ve tedavi işleri hep önceliklidir.",
           "Yazılım: Düzenli içeriği hızlı ve öngörülebilir biçimde üretir. Genel amaçlı araçlar sağlık tanıtım kurallarını bilmez; sağlığa özel bir araçta bile son kontrol hekime aittir.",
         ],
       },
@@ -658,7 +666,7 @@ export const GUIDES_TR: Guide[] = [
       { q: "Önlük ya da forma ile mi çekmeliyim?", a: "Hastanın sizi klinikte göreceği kıyafet en doğal olanıdır. Desenli ya da çok parlak kıyafetler yerine düz renkler kamerada daha iyi görünür." },
       { q: "Çekimde gözlerimi nereye bakmalıyım?", a: "Ekrana değil, telefonun kamera merceğine bakın. Mercek göz hizasında olursa izleyici sizinle göz teması kurduğunu hisseder." },
       { q: "Metni ezberlemeli miyim?", a: "Hayır. Ana noktaları not edip bir hastaya anlatır gibi konuşmak genellikle daha doğal ve daha güvenilir sonuç verir." },
-      { q: "Çekim için en iyi zaman ne zaman?", a: "Gün ışığının yumuşak olduğu sabah ya da öğleden sonra saatleri ve hasta trafiğinin az olduğu bir boşluk idealdir. Haftada bir sabit zaman ayırmak çekimi alışkanlığa dönüştürür." },
+      { q: "Çekim için hangi zaman uygun?", a: "Gün ışığının yumuşak olduğu sabah ya da öğleden sonra saatleri ve hasta trafiğinin az olduğu bir boşluk idealdir. Haftada bir sabit zaman ayırmak çekimi alışkanlığa dönüştürür." },
       { q: "Bir kayıttan kaç video çıkar?", a: "Üç dört soruyu yanıtladığınız beş dakikalık bir kayıttan genellikle dört beş kısa video çıkar." },
     ],
     howTo: {

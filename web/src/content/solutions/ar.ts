@@ -86,7 +86,8 @@ export const SOLUTIONS_AR: SolutionPage[] = [
       { q: "هل يغني DentVideo عن تصريح الإعلان الصحي؟", a: "لا. تصاريح الإعلان واعتماد المحتوى لدى الجهة المختصة في إمارتكم أو بلدكم تبقى مسؤولية العيادة. DentVideo يساعد في إعداد محتوى توعوي أهدأ لغةً يسهل اعتماده." },
       { q: "هل أرى الفيديوهات قبل الدفع؟", a: "نعم. بعد التعريف بالعيادة ترون معاينة حية بشعاركم وألوانكم واسم عيادتكم، ويُعَدّ الأسبوع الكامل الأول مباشرة بعد اختيار الخطة." },
     ],
-    guides: ["dawabit-ilan-iyadat-al-asnan-al-khaleej", "madha-tanshur-iyadat-al-asnan"],
+    guides: ["dawabit-ilan-iyadat-al-asnan-al-khaleej", "madha-tanshur-iyadat-al-asnan", "fidyohat-tawiyat-al-marda-iyadat-al-asnan"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

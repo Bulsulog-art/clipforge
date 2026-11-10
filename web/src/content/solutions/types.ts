@@ -50,4 +50,6 @@ export type SolutionPage = {
   guides: string[];
   published: string;
   updated?: string;
+  /** When the facts on the page were last checked (ISO date); falls back to `updated`. */
+  reviewed?: string;
 };

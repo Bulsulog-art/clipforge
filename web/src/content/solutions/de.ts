@@ -95,8 +95,9 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       { q: "Kann ich meine Videos vor der Zahlung sehen?", a: "Ja. Nachdem Sie Ihre Praxis beschrieben haben, sehen Sie eine Live-Vorschau mit Ihrem Logo, Ihren Farben und Ihrem Praxisnamen. Die erste volle Woche entsteht direkt nach der Tarifwahl." },
       { q: "Ist die Prüfung eine Rechtsberatung?", a: "Nein. Sie fängt häufig verbotene Aussagen ab und markiert Auffälliges. Regeln unterscheiden sich in Deutschland, Österreich und der Schweiz und ändern sich; Sie geben jedes Video frei." },
     ],
-    guides: ["patientenaufklaerung-videos-zahnarztpraxis", "instagram-videos-fuer-zahnarztpraxen", "social-media-zahnarztpraxis-ideen", "heilmittelwerbegesetz-zahnarzt-social-media"],
+    guides: ["patientenaufklaerung-videos-zahnarztpraxis", "instagram-videos-fuer-zahnarztpraxen", "social-media-zahnarztpraxis-ideen", "heilmittelwerbegesetz-zahnarzt-social-media", "redaktionsplan-social-media-zahnarztpraxis"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
   {
     locale: "de",
@@ -171,5 +172,6 @@ export const SOLUTIONS_DE: SolutionPage[] = [
     ],
     guides: ["praxismarketing-zahnarzt-agentur-oder-selbst", "heilmittelwerbegesetz-zahnarzt-social-media", "social-media-zahnarztpraxis-ideen", "zahnarzt-werbung-oesterreich-schweiz"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

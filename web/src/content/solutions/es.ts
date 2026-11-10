@@ -87,8 +87,9 @@ export const SOLUTIONS_ES: SolutionPage[] = [
       { q: "¿Puedo ver mis vídeos antes de pagar?", a: "Sí. Después de describir tu clínica ves una vista previa en directo con tu logo, tus colores y tu nombre. La primera semana completa se hace justo después de elegir un plan." },
       { q: "¿La revisión es asesoramiento legal?", a: "No. Detecta afirmaciones que suelen estar restringidas y marca lo dudoso, pero la normativa cambia según el país y la comunidad autónoma. Tú apruebas cada vídeo." },
     ],
-    guides: ["videos-educativos-pacientes-dentales", "videos-para-clinicas-dentales", "ideas-contenido-instagram-clinica-dental", "publicidad-sanitaria-dentistas"],
+    guides: ["videos-educativos-pacientes-dentales", "videos-para-clinicas-dentales", "ideas-contenido-instagram-clinica-dental", "publicidad-sanitaria-dentistas", "calendario-contenidos-clinica-dental"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
   {
     locale: "es",
@@ -163,5 +164,6 @@ export const SOLUTIONS_ES: SolutionPage[] = [
     ],
     guides: ["marketing-dental-agencia-o-herramienta", "publicidad-sanitaria-dentistas", "consentimiento-fotos-pacientes-clinica-dental", "ideas-contenido-instagram-clinica-dental"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

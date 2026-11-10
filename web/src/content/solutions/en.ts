@@ -113,8 +113,9 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         a: "No. It catches commonly restricted claims and flags anything worth a second look, but rules differ by country and change. You approve every video and stay responsible for what you publish.",
       },
     ],
-    guides: ["patient-education-videos", "instagram-videos-for-dentists", "dental-social-media-post-ideas", "dental-social-media-advertising-rules"],
+    guides: ["patient-education-videos", "instagram-videos-for-dentists", "dental-social-media-post-ideas", "dental-social-media-advertising-rules", "dental-social-media-content-calendar"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
   {
     locale: "en",
@@ -208,5 +209,6 @@ export const SOLUTIONS_EN: SolutionPage[] = [
     ],
     guides: ["dental-video-marketing-agency-or-software", "dental-social-media-advertising-rules", "patient-consent-dental-social-media", "dental-social-media-post-ideas"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

@@ -3,11 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Check, ExternalLink, Plus } from "lucide-react";
 import { GUIDES, LANDING_PATH, LANGUAGE_NAME, dirOf, findGuide, guidePath } from "@/content/dentvideo";
-import { readingMinutes, relatedGuides, sectionId, translationsOf } from "@/content/guides/text";
+import { readingMinutes, relatedGuides, reviewedDate, sectionId, translationsOf } from "@/content/guides/text";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
-import { Breadcrumbs, GuideCta, HtmlLang, RichText, formatDate } from "@/components/dentvid/guide-parts";
+import { Breadcrumbs, Byline, GuideCta, HtmlLang, RichText, SectionTableView, formatDate } from "@/components/dentvid/guide-parts";
 import { GuideScriptFont } from "@/components/dentvid/font-guide";
 import { CommercialLinks } from "@/components/dentvid/solution-page";
 import { commercialPageForGuide } from "@/content/solutions";
@@ -71,6 +71,9 @@ export default async function GuidePage({ params }: Props) {
                 </>
               )}
             </p>
+            <p className="mt-2 text-sm text-dv-muted">
+              <Byline locale={L} reviewed={reviewedDate(g)} />
+            </p>
           </div>
         </header>
 
@@ -125,6 +128,7 @@ export default async function GuidePage({ params }: Props) {
                     ))}
                   </ul>
                 ))}
+              {s.table && <SectionTableView table={s.table} locale={L} />}
               {s.after?.map((p, j) => (
                 <p key={j} className="mt-4 text-[1.0625rem] leading-[1.75] text-[#33423f]">
                   <RichText text={p} locale={L} />

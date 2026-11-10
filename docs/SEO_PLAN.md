@@ -373,3 +373,60 @@ FAQPage + BreadcrumbList JSON-LD; product pages embed the three real sample vide
    OFFSITE_PLAN, linking to the language's `/videos/…` page or the rules guide — not to the homepage only.
 6. Month 2: in GSC, check "DentVideo" position (target 1), impressions for each §9.3 query; rewrite titles of
    `/videos/…` pages with impressions but position > 10.
+
+---
+
+## 10. Content quality pass: E-E-A-T and GEO (2026-11-10, branch `claude/seo-content-quality`)
+
+### 10.1 What changed on every page
+- **Byline and review date.** Every guide and `/videos` page shows "By the DentVideo editorial team, Bulsu Labs ·
+  Last reviewed <date>" (`GUIDE_UI.byline` / `lastReviewed`, field `reviewed`, falling back to `updated`). JSON-LD:
+  Article `author` and WebPage `reviewedBy` are the editorial team (`parentOrganization` = Bulsu Labs), WebPage
+  `lastReviewed` = the review date. No named clinical or legal reviewer exists, so none is claimed (tested).
+- **Tables.** `SectionExtras.table` renders as stacked cards on phones and a real table from `sm` up; tables go into
+  llms-full.txt as Markdown. Used for "rules by country", "risky wording → safer wording", state board rules,
+  awareness dates and "where to show patient-education videos".
+- **Question-style H2s** on the rules guides and all new guides (what answer engines match against questions).
+- **llms.txt** now has an editorial policy block and a page index per language (landing, About, `/videos` pages,
+  hub, every guide with its last-reviewed date); llms-full.txt carries review dates and tables.
+
+### 10.2 Sources verified and deep-linked (via web search of the official pages, 2026-11-10)
+Fetching official sites directly was blocked from the build environment, so each citation was verified through search
+results that show the official URL and text. Only facts found that way were added; generic homepages were replaced by
+deep links where one was confirmed.
+- UK: GDC Guidance on advertising (website details: GDC number, qualification and country, NHS/private status,
+  complaints route, last-updated date); GDC Guidance on using social media (in effect 27 June 2016); CAP Code
+  section 12; ASA advice on prescription-only medicines.
+- US: FTC Endorsement Guides 16 CFR 255 (revised 2023, eCFR); FTC reviews and testimonials rule 16 CFR 465 (in force
+  21 Oct 2024); ADA Code 2025 (Advisory Opinion 5.F.7 social media, 4.E.1 influencers); Texas 22 TAC §§ 108.50–108.63
+  incl. § 108.57; Florida § 466.019 and r. 64B5-4.003; California B&P § 651; HHS OCR Elite Dental settlement (2019).
+- DE/AT/CH: § 11 and § 15 HWG; BZÄK MBO-Z "Berufliche Kommunikation"; BGH I ZR 170/24 (31 July 2025, before/after
+  ban covers hyaluron injections); § 35 ZÄG (RIS, Gesetzesnummer 20004372); Art. 40 MedBG (Fedlex eli/cc/2007/537).
+- FR: art. R. 4127-215-1 CSP (LEGIARTI000042743767) and the ONCD recommendations (6 May 2021, amended 9 Dec 2021 and
+  24 Mar 2023).
+- ES: Tribunal Supremo on celebrities in dental clinic ads (Poder Judicial note); Defensor del Pueblo recommendation.
+- TR: Resmî Gazete 12 Nov 2025 no. 33075 (day index) replacing 29 Jul 2023 no. 32263.
+- Not stated because not verifiable here: exact article numbers of the 2025 Turkish regulation, the exact CAP rule
+  number for POMs, Spanish RD 1907/1996 sub-article numbers, ADHA dental-hygiene month.
+
+### 10.3 New pages (8)
+| Topic (hreflang group) | Pages |
+| --- | --- |
+| content-calendar (52 weekly topics + real awareness dates per market) | en `/guides/dental-social-media-content-calendar`, de `/guides/redaktionsplan-social-media-zahnarztpraxis`, es `/guides/calendario-contenidos-clinica-dental`, fr `/guides/calendrier-editorial-cabinet-dentaire`, tr `/guides/dis-klinigi-sosyal-medya-icerik-takvimi` |
+| patient-education (joins the existing en/de/es/fr/tr group) | ja `/guides/shika-kanja-setsumei-doga-theme`, ar `/guides/fidyohat-tawiyat-al-marda-iyadat-al-asnan`, pl `/guides/filmy-edukacyjne-dla-pacjentow-gabinet-stomatologiczny` |
+
+Each is written for its market (dates, rules, address form), links to ≥ 2 guides of its language, the landing and the
+preview, and is linked from that language's "what to post" guide FAQ and its `/videos` page.
+
+### 10.4 Tests (`web/src/content/guides/quality.test.ts`, shared word lists in `content/compliance-words.ts`)
+Review date between publication and today; team byline without credentials; no superlatives or do-not-say phrases in
+any guide body/table/FAQ outside quoted examples (several "the best videos…" intros were rewritten); no money or
+percentages on any editorial page; every link and citation https; ≥ 2 deep-link sources per rules guide; tables well
+formed; FAQ answers short enough to quote; JSON-LD round-trips and matches the visible FAQ, HowTo only where declared;
+hreflang identical across each topic group; every guide in the sitemap with its alternates; llms.txt per-language
+index and llms-full.txt tables and review dates.
+
+### 10.5 Still for the owner
+- A named professional reviewer per market (TR, DE, ES, FR, UK/US, JA, AR, PL) — then add a real reviewer line.
+- Re-check the Turkish regulation's article numbers against the official Resmî Gazete text and add them.
+- Quarterly: bump `reviewed` only after actually re-checking each rules guide's sources.
