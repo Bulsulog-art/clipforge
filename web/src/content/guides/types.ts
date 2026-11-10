@@ -16,8 +16,19 @@ export type SectionExtras = {
   list?: string[];
   /** Number the list (steps) instead of ticking it (checklist). */
   ordered?: boolean;
+  /** A small comparison table shown after the list (e.g. "risky wording → safer wording"). */
+  table?: SectionTable;
   /** Paragraphs shown after the list. */
   after?: string[];
+};
+
+/** A plain data table: a caption, column headings and rows of cells (inline links allowed). */
+export type SectionTable = {
+  caption: string;
+  columns: string[];
+  /** Each row has exactly one cell per column. */
+  rows: string[][];
+  note?: string;
 };
 
 export type GuideSource = { label: string; url: string };
@@ -45,6 +56,12 @@ export type GuideExtras = {
   /** ISO dates (YYYY-MM-DD). */
   published?: string;
   updated?: string;
+  /**
+   * When the editorial team last checked the facts and every source link
+   * (ISO date). Shown as "Last reviewed" with the byline and emitted as the
+   * WebPage's lastReviewed. Falls back to `updated`.
+   */
+  reviewed?: string;
   /** Official texts and bodies the guide relies on. */
   sources?: GuideSource[];
   /** Step-by-step instructions, emitted as HowTo structured data. */

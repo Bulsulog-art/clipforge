@@ -13,6 +13,10 @@ export type GuideUi = {
   breadcrumbGuides: string;
   onThisPage: string;
   updated: string;
+  /** Who wrote and reviews the page (no personal credentials: a team at Bulsu Labs). */
+  byline: string;
+  /** "Last reviewed": the date the facts and sources were last checked. */
+  lastReviewed: string;
   readingTime: (minutes: number) => string;
   sources: string;
   sourcesNote: string;
@@ -38,6 +42,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "Guides",
     onThisPage: "On this page",
     updated: "Updated",
+    byline: "By the DentVideo editorial team, Bulsu Labs",
+    lastReviewed: "Last reviewed",
     readingTime: (m) => `${m} min read`,
     sources: "Sources and official texts",
     sourcesNote: "Rules change. Check the current text with your regulator or professional body before you rely on it.",
@@ -66,6 +72,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "Ratgeber",
     onThisPage: "Auf dieser Seite",
     updated: "Aktualisiert",
+    byline: "Von der DentVideo-Redaktion, Bulsu Labs",
+    lastReviewed: "Zuletzt geprüft",
     readingTime: (m) => `${m} Min. Lesezeit`,
     sources: "Quellen und amtliche Texte",
     sourcesNote: "Regeln ändern sich. Prüfen Sie den aktuellen Wortlaut bei Ihrer Kammer oder Behörde, bevor Sie sich darauf stützen.",
@@ -94,6 +102,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "Guías",
     onThisPage: "En esta página",
     updated: "Actualizado",
+    byline: "Por el equipo editorial de DentVideo, Bulsu Labs",
+    lastReviewed: "Última revisión",
     readingTime: (m) => `${m} min de lectura`,
     sources: "Fuentes y textos oficiales",
     sourcesNote: "Las normas cambian. Comprueba el texto vigente con tu colegio o la autoridad sanitaria antes de basarte en él.",
@@ -122,6 +132,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "Rehberler",
     onThisPage: "Bu sayfada",
     updated: "Güncellendi",
+    byline: "DentVideo editör ekibi, Bulsu Labs",
+    lastReviewed: "Son kontrol",
     readingTime: (m) => `${m} dk okuma`,
     sources: "Kaynaklar ve resmî metinler",
     sourcesNote: "Kurallar değişir. Güvenmeden önce güncel metni Resmî Gazete'den, meslek odanızdan ya da il sağlık müdürlüğünden kontrol edin.",
@@ -150,6 +162,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "Guides",
     onThisPage: "Sur cette page",
     updated: "Mis à jour",
+    byline: "Par l’équipe éditoriale de DentVideo, Bulsu Labs",
+    lastReviewed: "Dernière vérification",
     readingTime: (m) => `${m} min de lecture`,
     sources: "Sources et textes officiels",
     sourcesNote: "Les règles évoluent. Vérifiez le texte en vigueur auprès de votre conseil de l'Ordre avant de vous y fier.",
@@ -177,6 +191,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "ガイド",
     onThisPage: "このページの内容",
     updated: "更新日",
+    byline: "DentVideo編集部（Bulsu Labs）",
+    lastReviewed: "最終確認日",
     readingTime: (m) => `約${m}分で読めます`,
     sources: "出典と公的な資料",
     sourcesNote: "ルールは変わることがあります。参考にする前に、最新の内容を厚生労働省や管轄の保健所でご確認ください。",
@@ -204,6 +220,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "أدلة",
     onThisPage: "في هذه الصفحة",
     updated: "آخر تحديث",
+    byline: "فريق تحرير DentVideo، Bulsu Labs",
+    lastReviewed: "آخر مراجعة",
     readingTime: (m) => `مدة القراءة: ${m} د`,
     sources: "المصادر والنصوص الرسمية",
     sourcesNote: "تتغيّر الضوابط. تحقّقوا من النص الساري لدى الجهة الصحية المختصة قبل الاعتماد عليه.",
@@ -231,6 +249,8 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     breadcrumbGuides: "Poradniki",
     onThisPage: "Na tej stronie",
     updated: "Aktualizacja",
+    byline: "Redakcja DentVideo, Bulsu Labs",
+    lastReviewed: "Ostatnia weryfikacja",
     readingTime: (m) => `${m} min czytania`,
     sources: "Źródła i teksty urzędowe",
     sourcesNote: "Przepisy się zmieniają. Przed skorzystaniem z nich warto sprawdzić aktualny tekst w okręgowej izbie lekarskiej.",
