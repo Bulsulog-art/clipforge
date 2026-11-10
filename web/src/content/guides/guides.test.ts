@@ -21,7 +21,7 @@ import {
 import { sitemapUrls, sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 import { INDEXNOW_KEY } from "@/lib/dentvid/indexnow";
-import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -136,7 +136,9 @@ describe("guide library", () => {
       expect(v, l).not.toMatch(/[€£₺%]|TL\b/);
       const figures = [...v.matchAll(/\$\s?(\d[\d,.]*)|(\d[\d,.]*)\s?\$/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
       for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
-      for (const tier of DV_TIERS) expect(v, `${l} ${tier}`).toContain(String(DV_PRICES_USD[tier].month));
+      for (const tier of DV_SELF_SERVE_TIERS) expect(v, `${l} ${tier}`).toContain(String(DV_PRICES_USD[tier].month));
+      // Group is Contact us: the fact sends groups to the address, with no price.
+      expect(v, l).toContain("hello@dentvideo.com");
       expect(v, l).toContain(String(DV_PRICES_USD.practice.year));
       expect(v, l).toContain(String(DV_FOUNDING.clinics));
     }
@@ -223,9 +225,9 @@ describe("structured data", () => {
       expect(page.mainEntity.itemListElement).toHaveLength(guidesFor(l).length);
       const types = (aboutJsonLd(l)["@graph"] as { "@type": string; publisher?: unknown }[]).map((n) => n["@type"]);
       expect(types).toEqual(expect.arrayContaining(["AboutPage", "Organization", "SoftwareApplication", "FAQPage"]));
-      // Google's SoftwareApplication rich result needs a priced offer.
+      // Google's SoftwareApplication rich result needs a priced offer: the self-serve plans only (Group is Contact us).
       const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown> }[]).find((n) => n["@type"] === "SoftwareApplication");
-      expect(app?.offers, l).toMatchObject({ "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: 49, highPrice: 279, offerCount: 3 });
+      expect(app?.offers, l).toMatchObject({ "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: 49, highPrice: 99, offerCount: 2 });
     }
   });
 

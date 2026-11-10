@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GUIDES, GUIDE_HUB_LOCALES, LANDING, LANDING_PATH, LOCALES, dirOf, guidePath, guidesFor } from "./dentvideo";
 import { dentvideoPaths, guideJsonLd, landingAlternates, landingJsonLd } from "@/lib/dentvid/seo";
-import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
 
 /** Shape of a value: object keys and array lengths, recursively. */
 function shape(v: unknown): unknown {
@@ -68,8 +68,9 @@ describe("DentVideo landing content", () => {
       const figures = [...text.matchAll(/\$\s?(\d[\d,.]*)|(\d[\d,.]*)\s?\$/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
       expect(figures.length, l).toBeGreaterThan(0);
       for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
-      // Starter, Practice, Group at their monthly list prices, in that order.
-      DV_TIERS.forEach((tier, i) => expect(p.tiers[i].price.replace(/\D/g, ""), `${l} ${tier}`).toBe(String(DV_PRICES_USD[tier].month)));
+      // Starter, Practice at their monthly list prices, in that order (Group is Contact us: no price).
+      expect(p.tiers, l).toHaveLength(DV_SELF_SERVE_TIERS.length);
+      DV_SELF_SERVE_TIERS.forEach((tier, i) => expect(p.tiers[i].price.replace(/\D/g, ""), `${l} ${tier}`).toBe(String(DV_PRICES_USD[tier].month)));
       expect(p.founding, l).toContain(String(DV_FOUNDING.priceUsd));
       expect(p.founding, l).toContain(String(DV_FOUNDING.months));
       expect(p.founding, l).toContain(String(DV_FOUNDING.clinics));

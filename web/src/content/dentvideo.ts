@@ -109,8 +109,11 @@ export type LandingContent = {
      */
     foundingCard: { price: string; listPrice: string; note: string };
     note: string;
-    /** Starter, Practice, Group — always in this order. */
-    tiers: [PricingTier, PricingTier, PricingTier];
+    /**
+     * Starter, Practice — always in this order. Group (multi-location) is not
+     * sold self-serve: its card is "Contact us" (content/dentvideo-group.ts).
+     */
+    tiers: [PricingTier, PricingTier];
   };
   /** "Try it with your logo": a small live preview on the landing that leads to /start. */
   teaser: {
@@ -210,16 +213,6 @@ export const LANDING: Record<Locale, LandingContent> = {
           price: "$99",
           blurb: "For clinics that want their own faces on screen.",
           features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Filming cards for your own clips"],
-        },
-        {
-          name: "Group",
-          price: "$279",
-          blurb: "For small groups with several sites.",
-          features: [
-            "Up to three locations",
-            "Five videos per location every Monday",
-            "One consistent, checked voice across sites",
-          ],
         },
       ],
     },
@@ -332,16 +325,6 @@ export const LANDING: Record<Locale, LandingContent> = {
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
           features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Drehkarten für Ihre eigenen Clips"],
         },
-        {
-          name: "Group",
-          price: "279 $",
-          blurb: "Für kleine Praxisgruppen mit mehreren Standorten.",
-          features: [
-            "Bis zu drei Standorte",
-            "Fünf Videos pro Standort, jeden Montag",
-            "Ein einheitlicher, geprüfter Auftritt an allen Standorten",
-          ],
-        },
       ],
     },
     teaser: {
@@ -453,12 +436,6 @@ export const LANDING: Record<Locale, LandingContent> = {
           blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
           features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Fichas de grabación para tus propios clips"],
         },
-        {
-          name: "Group",
-          price: "279 $",
-          blurb: "Para pequeños grupos con varias sedes.",
-          features: ["Hasta tres sedes", "Cinco vídeos por sede cada lunes", "Una voz coherente y revisada en todas las sedes"],
-        },
       ],
     },
     teaser: {
@@ -569,12 +546,6 @@ export const LANDING: Record<Locale, LandingContent> = {
           price: "$99",
           blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
           features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Kendi videolarınız için çekim kartları"],
-        },
-        {
-          name: "Group",
-          price: "$279",
-          blurb: "Birden fazla şubesi olan küçük gruplar için.",
-          features: ["En fazla üç şube", "Her pazartesi şube başına beş video", "Tüm şubelerde tutarlı, kontrol edilmiş bir dil"],
         },
       ],
     },
@@ -691,16 +662,6 @@ export const LANDING: Record<Locale, LandingContent> = {
             "Fiches de tournage pour vos propres clips",
           ],
         },
-        {
-          name: "Group",
-          price: "279 $",
-          blurb: "Pour les petits groupes de plusieurs cabinets.",
-          features: [
-            "Jusqu'à trois sites",
-            "Cinq vidéos par site chaque lundi",
-            "Une communication cohérente et vérifiée sur tous les sites",
-          ],
-        },
       ],
     },
     teaser: {
@@ -808,12 +769,6 @@ export const LANDING: Record<Locale, LandingContent> = {
           price: "$99",
           blurb: "院長先生ご自身も動画に登場したい医院に。",
           features: ["Starterのすべての内容", "ご自身で撮影した動画を字幕付きクリップに", "撮影用の台本カード"],
-        },
-        {
-          name: "Group",
-          price: "$279",
-          blurb: "複数の医院を運営するグループに。",
-          features: ["最大3医院まで", "医院ごとに毎週月曜日に5本", "全医院で統一された、チェック済みの発信"],
         },
       ],
     },
@@ -925,12 +880,6 @@ export const LANDING: Record<Locale, LandingContent> = {
           blurb: "للعيادات التي تريد أن يظهر أطباؤها بأنفسهم.",
           features: ["كل ما في Starter", "تسجيلاتكم الخاصة تتحوّل إلى مقاطع قصيرة مع النص", "بطاقات تصوير لمقاطعكم الخاصة"],
         },
-        {
-          name: "Group",
-          price: "$279",
-          blurb: "للمجموعات الصغيرة متعددة الفروع.",
-          features: ["حتى ثلاثة فروع", "خمسة فيديوهات لكل فرع كل يوم اثنين", "صوت واحد متّسق ومُراجَع في جميع الفروع"],
-        },
       ],
     },
     teaser: {
@@ -1039,12 +988,6 @@ export const LANDING: Record<Locale, LandingContent> = {
           price: "99 $",
           blurb: "Dla gabinetów, które chcą same pokazać się w kadrze.",
           features: ["Wszystko z planu Starter", "Państwa własne nagrania jako klipy z napisami", "Karty z podpowiedziami do własnych nagrań"],
-        },
-        {
-          name: "Group",
-          price: "279 $",
-          blurb: "Dla małych sieci z kilkoma placówkami.",
-          features: ["Do trzech placówek", "Pięć filmów na placówkę co poniedziałek", "Spójny, sprawdzony przekaz we wszystkich placówkach"],
         },
       ],
     },

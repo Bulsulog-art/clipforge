@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
-import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS, dvBaseUrl, foundingCode, foundingOfferOpen } from "./billing";
+import { DV_FOUNDING, DV_PRICES_USD, DV_SELF_SERVE_TIERS, dvBaseUrl, foundingCode, foundingOfferOpen } from "./billing";
 import { CONTACT_EMAIL, offerNudgeEmail, paymentProblemEmail, previewNudgeEmail, welcomeEmail, type OfferTerms, type PaymentFix, type PaymentProblemKind, type Rendered } from "./lifecycle-email";
 import type { SendOptions } from "./email";
 import { unsubscribeSecret, unsubscribeToken } from "./unsubscribe-token";
@@ -135,7 +135,7 @@ export function offerTerms(env: Env = process.env): OfferTerms {
       code: foundingCode(env),
     };
   }
-  const monthly = DV_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
+  const monthly = DV_SELF_SERVE_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
   return { open: false, fromUsd: Math.min(...monthly) };
 }
 
