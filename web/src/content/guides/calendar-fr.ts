@@ -1,0 +1,155 @@
+import type { Guide } from "../dentvideo";
+import { CALENDAR_PUBLISHED, FDI } from "./calendar";
+
+// Calendrier éditorial écrit pour la France (vouvoiement), sans promotion ni
+// témoignage : le code de déontologie (art. R. 4127-215-1 CSP) les exclut.
+
+export const CALENDAR_FR: Guide = {
+  locale: "fr",
+  slug: "calendrier-editorial-cabinet-dentaire",
+  topic: "content-calendar",
+  category: "ideas",
+  published: CALENDAR_PUBLISHED,
+  updated: CALENDAR_PUBLISHED,
+  reviewed: CALENDAR_PUBLISHED,
+  title: "Calendrier éditorial pour un cabinet dentaire : 52 thèmes de publication sur un an",
+  seoTitle: "Calendrier éditorial cabinet dentaire : 52 thèmes",
+  seoDescription: "Un an de publications pour un cabinet dentaire : un thème d'information par semaine, les dates clés de l'année et ce qu'il vaut mieux éviter.",
+  description: "Calendrier éditorial pour cabinets dentaires : 52 thèmes hebdomadaires pour Instagram, TikTok et YouTube Shorts, dates récurrentes et limites déontologiques.",
+  h1: "Calendrier éditorial pour un cabinet dentaire : 52 semaines",
+  intro:
+    "Un calendrier éditorial de cabinet dentaire est une liste d'un thème d'information par semaine, préparée un trimestre à l'avance et calée sur des dates qui reviennent chaque année, comme la journée mondiale de la santé bucco-dentaire le 20 mars. Voici 52 thèmes pour Instagram, TikTok ou YouTube Shorts. Chacun répond à une question réelle de patient : aucun ne demande de promotion, de témoignage ni de photo avant-après.",
+  sections: [
+    {
+      heading: "Comment planifier une année de publications ?",
+      paragraphs: [
+        "Planifiez des thèmes, pas des publications isolées. Un thème hebdomadaire (« sensibilité dentaire », « protège-dents ») donne une courte vidéo, un carrousel et une question en story, et toute l'équipe sait ce qui est prévu. La plupart des comptes de cabinets s'arrêtent parce que personne n'est chargé de cette question.",
+        "Une routine qui tient dans une petite équipe :",
+      ],
+      ordered: true,
+      list: [
+        "Chaque trimestre, reprenez les 13 semaines suivantes du calendrier et rayez les thèmes liés à des soins que le cabinet ne propose pas.",
+        "Remplacez-les par les questions posées au fauteuil le trimestre précédent. Une vraie question vaut mieux que n'importe quelle liste.",
+        "Décidez qui filme et qui valide. Toute information médicale doit être relue par le chirurgien-dentiste avant publication.",
+        "Tournez par séries : vingt minutes suffisent pour les réponses courtes de quatre semaines.",
+        "Gardez une trace de ce qui a été publié, quand et dans quelle version validée. En cas de question du conseil de l'Ordre, cet historique aide.",
+      ],
+    },
+    {
+      heading: "Quelles dates inscrire au calendrier ?",
+      paragraphs: [
+        "Les journées thématiques donnent une raison d'être à une publication et se préparent à l'avance. Retenez celles d'organisations reconnues et vérifiez le thème de l'année sur leur site :",
+      ],
+      table: {
+        caption: "Dates récurrentes utiles pour un cabinet dentaire en France",
+        columns: ["Quand", "Occasion", "Idée de thème"],
+        rows: [
+          ["20 mars", "Journée mondiale de la santé bucco-dentaire (FDI World Dental Federation)", "Les liens entre santé bucco-dentaire et santé générale, expliqués avec prudence"],
+          ["Février à avril", "Vacances d'hiver et de printemps", "Sports de glisse et protège-dents ; partir avec sa brosse à dents"],
+          ["Juillet-août", "Vacances d'été", "Que faire en cas de dent cassée ou de douleur loin du cabinet"],
+          ["Septembre", "Rentrée scolaire", "Goûters et boissons plus doux pour les dents ; contrôle d'orthodontie"],
+          ["Décembre", "Fêtes de fin d'année", "Chocolats, nougat, fruits à coque et horaires de garde"],
+        ],
+        note: "Les thèmes officiels changent chaque année ; vérifiez-les sur le site de l'organisateur (voir Sources).",
+      },
+    },
+    {
+      heading: "Semaines 1 à 13 (janvier à mars) : habitudes et enfants",
+      paragraphs: ["En janvier, on prend de nouvelles habitudes ; en mars arrive la journée mondiale de la santé bucco-dentaire :"],
+      list: [
+        "Semaine 1 — Le brossage : deux minutes, deux fois par jour, en orientant la brosse vers la gencive.",
+        "Semaine 2 — Fil dentaire ou brossettes : ce qui convient selon les espaces, montré sur un modèle.",
+        "Semaine 3 — Les gencives qui saignent : une raison de consulter, pas d'arrêter le brossage.",
+        "Semaine 4 — Ce qui se passe pendant un contrôle et un détartrage, étape par étape.",
+        "Semaine 5 — À quel âge emmener un enfant chez le dentiste pour la première fois ?",
+        "Semaine 6 — Quelle quantité de dentifrice pour un enfant ? Ce que disent les recommandations selon l'âge.",
+        "Semaine 7 — Grignotage et boissons sucrées : pourquoi la fréquence compte autant que la quantité.",
+        "Semaine 8 — Les scellements de sillons : de quoi s'agit-il et pour qui ?",
+        "Semaine 9 — Dents sensibles : causes fréquentes et ce qui aide souvent.",
+        "Semaine 10 — Protège-dents pour le sport : sur mesure ou du commerce.",
+        "Semaine 11 — Bouche sèche : les médicaments en cause et l'effet sur les dents.",
+        "Semaine 12 — Journée mondiale de la santé bucco-dentaire (20 mars) : ce que les liens entre la bouche et le reste du corps veulent dire, et ce qu'ils ne veulent pas dire.",
+        "Semaine 13 — Présentation de l'équipe : qui fait quoi au cabinet.",
+      ],
+    },
+    {
+      heading: "Semaines 14 à 26 (avril à juin) : les soins expliqués",
+      paragraphs: ["Le printemps se prête aux explications calmes, avant que le patient n'en ait besoin :"],
+      list: [
+        "Semaine 14 — Quand changer de brosse à dents, et comment voir qu'elle est usée.",
+        "Semaine 15 — Brosse électrique ou manuelle : la technique compte plus que l'outil.",
+        "Semaine 16 — Les dents de sagesse : quand faut-il s'en occuper, et quand peut-on les garder ?",
+        "Semaine 17 — Érosion acide : sodas, agrumes, et pourquoi attendre un peu avant de se brosser les dents.",
+        "Semaine 18 — Éclaircissement : à quoi s'attendre, combien de temps l'effet peut durer, et pour qui il n'est pas indiqué.",
+        "Semaine 19 — Mauvaise haleine : causes courantes et quand consulter.",
+        "Semaine 20 — Le détartrage : à quoi il sert et comment il se passe.",
+        "Semaine 21 — Peur du dentiste : ce que vous pouvez nous dire, ce que nous pouvons faire.",
+        "Semaine 22 — Le traitement de canal (dévitalisation) sans idées reçues.",
+        "Semaine 23 — Obturation ou couronne : pourquoi certaines dents ont besoin de plus.",
+        "Semaine 24 — Tabac, vapotage et gencives.",
+        "Semaine 25 — Grossesse et gencives : pourquoi un contrôle est utile.",
+        "Semaine 26 — Semaine des questions : répondre à trois questions posées par les patients ce trimestre.",
+      ],
+    },
+    {
+      heading: "Semaines 27 à 39 (juillet à septembre) : vacances et rentrée",
+      paragraphs: ["L'été, on voyage et on fait du sport ; en septembre, on reprend le rythme scolaire :"],
+      list: [
+        "Semaine 27 — Dent expulsée après un choc : les bons réflexes des premières minutes.",
+        "Semaine 28 — La trousse de voyage et que faire en cas de douleur dentaire à l'étranger.",
+        "Semaine 29 — Glaçons, stylos, bouchons : les habitudes qui ébrèchent les dents.",
+        "Semaine 30 — Le bruxisme : les signes et le rôle d'une gouttière.",
+        "Semaine 31 — L'implant dentaire : les étapes du traitement.",
+        "Semaine 32 — Remplacer une dent absente : implant, bridge ou prothèse amovible, en mots simples.",
+        "Semaine 33 — Les aligneurs transparents : comment ils déplacent les dents et ce qu'ils demandent au quotidien.",
+        "Semaine 34 — Rentrée : goûters et boissons plus doux pour les dents.",
+        "Semaine 35 — À quel âge prévoir un premier bilan d'orthodontie ?",
+        "Semaine 36 — Bien se brosser les dents avec des bagues.",
+        "Semaine 37 — Les maladies des gencives : de la gingivite à la parodontite, et pourquoi agir tôt.",
+        "Semaine 38 — Diabète et gencives.",
+        "Semaine 39 — Dans les coulisses : comment les instruments sont nettoyés et stérilisés.",
+      ],
+    },
+    {
+      heading: "Semaines 40 à 52 (octobre à décembre) : prévention et fêtes",
+      paragraphs: ["En fin d'année : prévention, gourmandises et informations pratiques :"],
+      list: [
+        "Semaine 40 — Le fluor : ce qu'il fait et où on le trouve.",
+        "Semaine 41 — Bains de bouche : quand ils sont utiles et quand ils ne servent à rien.",
+        "Semaine 42 — Bonbons d'Halloween : mieux vaut au repas qu'à longueur de soirée.",
+        "Semaine 43 — Prothèse amovible : nettoyage quotidien et soin la nuit.",
+        "Semaine 44 — Aider un parent âgé à prendre soin de sa bouche.",
+        "Semaine 45 — Les radiographies dentaires : à quoi elles servent et à quelle fréquence.",
+        "Semaine 46 — Les signes d'une dent fêlée.",
+        "Semaine 47 — Mal de dents avant le rendez-vous : ce qu'il est raisonnable de faire chez soi.",
+        "Semaine 48 — Fêtes : nougat, caramels et fruits à coque.",
+        "Semaine 49 — Horaires des fêtes et urgences dentaires : qui appeler.",
+        "Semaine 50 — Une séance de prévention avec l'assistante ou l'hygiéniste : comment elle se passe.",
+        "Semaine 51 — Les questions de l'année : ce que les patients nous ont le plus demandé.",
+        "Semaine 52 — Un rappel pour le contrôle de la nouvelle année.",
+      ],
+    },
+    {
+      heading: "Que faut-il laisser hors du calendrier ?",
+      paragraphs: [
+        "Les journées thématiques poussent à des publications contraires à la déontologie : une « remise spéciale santé bucco-dentaire », un jeu-concours, un carrousel d'avis. Gardez un calendrier d'information. Pas de tarifs mis en avant, pas de témoignages de patients, pas de photos avant-après, pas de mots comme « sans douleur », « garanti » ou « définitif ». L'article R. 4127-215-1 du Code de la santé publique exclut les témoignages de tiers et les comparaisons ; tout est détaillé dans le guide sur la [communication du chirurgien-dentiste sur les réseaux sociaux](guide:communication-chirurgien-dentiste-reseaux-sociaux).",
+        "L'exactitude médicale compte autant que la déontologie. Chaque thème est une information générale, mais la formulation engage le praticien : restez prudent (« le plus souvent », « chez la plupart des patients ») et rappelez que chaque situation est évaluée au cabinet.",
+      ],
+    },
+    {
+      heading: "Quel format pour quelle semaine ?",
+      paragraphs: [
+        "Trois formats couvrent presque tout. Une réponse face caméra du praticien de 20 à 40 secondes pour les questions (« l'éclaircissement abîme-t-il l'émail ? »). Une vidéo explicative commentée et sous-titrée pour les soins (implant, dévitalisation). Un court extrait des coulisses pour les semaines équipe et hygiène. La réalisation est détaillée dans [vidéos pour cabinets dentaires](guide:videos-pour-cabinets-dentaires) ; d'autres idées dans [idées de contenu Instagram pour cabinet dentaire](guide:idees-contenu-instagram-cabinet-dentaire).",
+        "[DentVideo](landing:) transforme un tel calendrier en cinq vidéos commentées et sous-titrées par semaine, dans votre langue et vos couleurs, vérifie chaque script au regard des allégations publicitaires souvent restreintes et de l'exactitude médicale, puis attend votre validation. [Voir un aperçu avec votre logo](start:).",
+      ],
+    },
+  ],
+  faq: [
+    { q: "À quelle fréquence un cabinet dentaire doit-il publier ?", a: "La régularité compte plus que le volume. Une à trois publications courtes d'information par semaine sont tenables pour la plupart des cabinets ; ce calendrier propose un thème par semaine, décliné en une ou plusieurs publications." },
+    { q: "Quelles dates retenir pour un cabinet dentaire ?", a: "Surtout la journée mondiale de la santé bucco-dentaire, le 20 mars, et les moments de l'année comme les vacances, la rentrée et les fêtes." },
+    { q: "Puis-je proposer une offre lors d'une journée thématique ?", a: "Non, c'est à éviter : le chirurgien-dentiste ne doit pas exercer comme un commerce, et une remise transforme une information en démarche commerciale." },
+    { q: "Les mêmes thèmes conviennent-ils à TikTok et YouTube Shorts ?", a: "Oui. Une vidéo verticale sous-titrée de 20 à 60 secondes fonctionne sur les trois plateformes ; adaptez seulement le texte et les hashtags." },
+    { q: "Faut-il reprendre tous les thèmes ?", a: "Non. Ne publiez que sur les soins proposés au cabinet et remplacez librement un thème par une question de vos propres patients." },
+  ],
+  sources: [FDI],
+};
