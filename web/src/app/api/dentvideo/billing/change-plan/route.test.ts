@@ -62,9 +62,19 @@ describe("POST /api/dentvideo/billing/change-plan", () => {
     expect((await call({ plan: "practice" })).body).toEqual({ error: ACCOUNT_TEXT.en.errors.samePlan });
     expect((await call({ plan: "platinum" })).status).toBe(400);
     session.clinic = { ...session.clinic!, plan: "cancelled" };
-    expect((await call({ plan: "group" })).status).toBe(409);
+    expect((await call({ plan: "starter" })).status).toBe(409);
     session.user = null;
-    expect((await call({ plan: "group" })).status).toBe(401);
+    expect((await call({ plan: "starter" })).status).toBe(401);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("never switches to Group: it is Contact us, monthly or yearly", async () => {
+    for (const interval of ["month", "year"]) {
+      const res = await call({ plan: "group", interval });
+      expect(res.status, interval).toBe(400);
+      expect(res.body.code, interval).toBe("contact_sales");
+      expect(String(res.body.error), interval).toContain("hello@dentvideo.com");
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

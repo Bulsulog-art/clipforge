@@ -219,7 +219,8 @@ export type AppText = {
     cancelled: string;
     needPlan: string;
     settingsHeading: string;
-    tiers: Record<"starter" | "practice" | "group", { name: string; blurb: string; features: [string, string, string] }>;
+    /** Self-serve tiers only: Group is "Contact us" (content/dentvideo-group.ts). */
+    tiers: Record<"starter" | "practice", { name: string; blurb: string; features: [string, string, string] }>;
   };
   errors: {
     signIn: string;
@@ -526,15 +527,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
           name: "Practice",
           blurb: "For clinics that want their own faces on screen.",
           features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Filming cards for your own clips"],
-        },
-        group: {
-          name: "Group",
-          blurb: "For small groups with several sites.",
-          features: [
-            "Up to three locations",
-            "Five videos per location every Monday",
-            "One consistent, checked voice across sites",
-          ],
         },
       },
     },
@@ -844,15 +836,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
           features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Drehkarten für Ihre eigenen Clips"],
         },
-        group: {
-          name: "Group",
-          blurb: "Für kleine Praxisgruppen mit mehreren Standorten.",
-          features: [
-            "Bis zu drei Standorte",
-            "Fünf Videos pro Standort, jeden Montag",
-            "Ein einheitlicher, geprüfter Auftritt an allen Standorten",
-          ],
-        },
       },
     },
     errors: {
@@ -1161,11 +1144,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
           features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Fichas de grabación para tus propios clips"],
         },
-        group: {
-          name: "Group",
-          blurb: "Para pequeños grupos con varias sedes.",
-          features: ["Hasta tres sedes", "Cinco vídeos por sede cada lunes", "Una voz coherente y revisada en todas las sedes"],
-        },
       },
     },
     errors: {
@@ -1473,11 +1451,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
           name: "Practice",
           blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
           features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Kendi videolarınız için çekim kartları"],
-        },
-        group: {
-          name: "Group",
-          blurb: "Birden fazla şubesi olan küçük gruplar için.",
-          features: ["En fazla üç şube", "Her pazartesi şube başına beş video", "Tüm şubelerde tutarlı, kontrol edilmiş bir dil"],
         },
       },
     },
@@ -1791,15 +1764,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
             "Fiches de tournage pour vos propres clips",
           ],
         },
-        group: {
-          name: "Group",
-          blurb: "Pour les petits groupes de plusieurs cabinets.",
-          features: [
-            "Jusqu'à trois sites",
-            "Cinq vidéos par site chaque lundi",
-            "Une communication cohérente et vérifiée sur tous les sites",
-          ],
-        },
       },
     },
     errors: {
@@ -2100,11 +2064,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
           name: "Practice",
           blurb: "院長先生ご自身も動画に登場したい医院に。",
           features: ["Starterのすべての内容", "ご自身で撮影した動画を字幕付きクリップに", "撮影用の台本カード"],
-        },
-        group: {
-          name: "Group",
-          blurb: "複数の医院を運営するグループに。",
-          features: ["最大3医院まで", "医院ごとに毎週月曜日に5本", "全医院で統一された、チェック済みの発信"],
         },
       },
     },
@@ -2408,11 +2367,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "للعيادات التي تريد أن يظهر أطباؤها بأنفسهم.",
           features: ["كل ما في Starter", "تسجيلاتكم الخاصة تتحوّل إلى مقاطع قصيرة مع النص", "بطاقات تصوير لمقاطعكم الخاصة"],
         },
-        group: {
-          name: "Group",
-          blurb: "للمجموعات الصغيرة متعددة الفروع.",
-          features: ["حتى ثلاثة فروع", "خمسة فيديوهات لكل فرع كل يوم اثنين", "صوت واحد متّسق ومُراجَع في جميع الفروع"],
-        },
       },
     },
     errors: {
@@ -2715,11 +2669,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
           name: "Practice",
           blurb: "Dla gabinetów, które chcą same pokazać się w kadrze.",
           features: ["Wszystko z planu Starter", "Państwa własne nagrania jako klipy z napisami", "Karty z podpowiedziami do własnych nagrań"],
-        },
-        group: {
-          name: "Group",
-          blurb: "Dla małych sieci z kilkoma placówkami.",
-          features: ["Do trzech placówek", "Pięć filmów na placówkę co poniedziałek", "Spójny, sprawdzony przekaz we wszystkich placówkach"],
         },
       },
     },

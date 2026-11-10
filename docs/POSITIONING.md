@@ -133,10 +133,10 @@ don't offer (health-advertising and clinical review on every line).
 
 ### Tiers (EUR list prices; other markets below)
 
-| | **Starter** | **Practice** (recommended) | **Group** |
+| | **Starter** | **Practice** (recommended) | **Group** (Contact us — see below) |
 | --- | --- | --- | --- |
-| Monthly | **€49** | **€79** | **€199** (up to 3 locations), +€59 per extra location |
-| Annual (2 months free) | €490 | €790 | €1,990 |
+| Monthly | **€49** | **€79** | custom (no public price) |
+| Annual (2 months free) | €490 | €790 | — |
 | Weekly videos | 5 narrated videos every Monday | 5 narrated videos every Monday | 5 per location every Monday |
 | Own recordings → captioned clips | not included | up to 4 recordings/month | up to 4 per location |
 | Filming cards | yes | yes | yes |
@@ -148,12 +148,21 @@ don't offer (health-advertising and clinical review on every line).
 
 | Market | Starter | Practice | Group | Practice annual |
 | --- | --- | --- | --- | --- |
-| US | $49 | $99 | $279 | $990 |
+| US | $49 | $99 | Contact us | $990 |
 | UK | £35 | £59 | £169 | £590 |
 | DE / FR / ES / IT / PT (EUR) | €39 | €69 | €189 | €690 |
 | TR | 590 TL | 1,090 TL | 2,990 TL | 10,900 TL |
 
-**Owner decision (2026-11-08, revised the same day): US list prices raised to Starter $49, Practice $99 (yearly $990), Group $279** — at $39/$69 the product read as cheap next to agencies charging $500–3,000/month, and health buyers read very low prices as low quality. The site sells in USD only for now; the UK/EUR/TR rows are the earlier proposal and need revisiting before local-currency pricing goes live.
+**Owner decision (2026-11-08, revised the same day): US list prices raised to Starter $49, Practice $99 (yearly $990)** — at $39/$69 the product read as cheap next to agencies charging $500–3,000/month, and health buyers read very low prices as low quality. The site sells in USD only for now; the UK/EUR/TR rows are the earlier proposal and need revisiting before local-currency pricing goes live.
+**Owner decision (2026-11-10): Group is "Contact us", not a self-serve plan.** Multi-location does not exist in the
+product yet (one clinic per account, no per-location approvers or dashboard), so selling "up to 3 locations" was a promise
+the product could not keep. Everywhere Group appears (landing pricing in all 8 languages, the app's plan picker and
+settings, About / llms.txt) it shows "custom pricing" and a Contact us email (hello@dentvideo.com, subject in the page's
+language): "For groups and multi-location practices — tell us your locations and we'll set it up with you." No price,
+no location count, no Group Offer in the structured data; the checkout and change-plan routes refuse `plan=group`
+(400 `contact_sales`). The Dodo Group product id stays in `web/src/lib/dentvid/billing.ts` only so a stray Group payment
+still maps in the webhook. The Group column in the tier table above is the original proposal, not what is sold.
+
 Unit cost of a Practice clinic (~20 videos/month): ~$1.40 OpenAI (text ~$1.10, voice ~$0.30) + ~$3.20 payment fees ≈ **$4.60/month → ~93% gross margin**.
 
 Turkey is priced for local purchasing power. Net minimum wage in 2026 is 28,075 TL, and local agencies charge 8.6–65k TL/mo.

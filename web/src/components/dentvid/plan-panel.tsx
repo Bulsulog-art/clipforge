@@ -2,17 +2,24 @@
 
 import { useState } from "react";
 import { dateLocale } from "@/lib/dentvid/app-ui";
-import { ArrowRight, BadgeCheck, Check } from "lucide-react";
+import { ArrowRight, BadgeCheck, Check, Mail } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
-import { DV_FOUNDING, type DvInterval, type DvPlanState, type DvTier } from "@/lib/dentvid/billing";
+import { DV_FOUNDING, DV_SELF_SERVE_TIERS, type DvInterval, type DvPlanState, type DvTier } from "@/lib/dentvid/billing";
+import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { billingText } from "@/content/dentvideo-billing";
 import { VerifyCard } from "./verify-email";
 import { trackDv } from "@/lib/dentvid/events-client";
 
 export type PlanOption = { tier: DvTier; interval: DvInterval; priceUsd: number };
 
-const TIERS: DvTier[] = ["starter", "practice", "group"];
+/** The cards a clinic can buy itself; Group follows them as a "Contact us" card. */
+const TIERS = DV_SELF_SERVE_TIERS;
+
+/** A tier's display name — Group included (a legacy Group subscription still shows its name). */
+export function tierName(locale: Locale, tier: DvTier): string {
+  return tier === "group" ? GROUP_CONTACT[locale].name : appText(locale).billing.tiers[tier].name;
+}
 
 export function usd(locale: Locale, amount: number) {
   // Arabic pages write "$39" as the landing does (Western digits, no right-to-left marks to reorder it).
@@ -22,7 +29,7 @@ export function usd(locale: Locale, amount: number) {
 /** A price inside a sentence, isolated so right-to-left text cannot reorder it ("US$ 39", not "$US 39"). */
 const inText = (s: string) => `\u2068${s}\u2069`;
 
-/** "Choose your plan": the three tiers, a monthly/yearly toggle, the founding offer. */
+/** "Choose your plan": Starter and Practice, Group as Contact us, a monthly/yearly toggle, the founding offer. */
 export function PlanPanel({
   locale,
   state,
@@ -199,6 +206,21 @@ export function PlanPanel({
             </li>
           );
         })}
+        <li className="relative flex flex-col rounded-[1.25rem] bg-white p-6 ring-1 ring-dv-line" data-tier="group">
+          <h3 className="font-semibold text-dv-ink">{GROUP_CONTACT[locale].name}</h3>
+          <p className="mt-5 dv-display text-[1.5rem] leading-tight text-dv-ink">{GROUP_CONTACT[locale].price}</p>
+          <p className="mt-4 border-t border-dv-line pt-4 text-sm leading-relaxed text-dv-body">{GROUP_CONTACT[locale].text}</p>
+          <div className="mt-auto pt-6">
+            <a
+              href={groupMailto(locale)}
+              onClick={() => trackDv("plan_clicked", { locale, props: { tier: "group", interval: "month", where: bare ? "onboarding" : "app" } })}
+              className="dv-btn dv-btn-secondary w-full px-5 py-3 text-sm !text-dv-teal"
+            >
+              <Mail className="h-4 w-4" aria-hidden="true" />
+              {GROUP_CONTACT[locale].cta}
+            </a>
+          </div>
+        </li>
       </ul>
 
       {error && (
@@ -263,7 +285,7 @@ export function PlanStatus({
       : state === "trial"
         ? "bg-white text-dv-body ring-dv-line"
         : "bg-[#fdf1dc] text-[#7a4b00] ring-[#f0dcb5]";
-  const label = state === "active" && tier ? fmt(t.activeTier, { tier: t.tiers[tier].name }) : t.state[state];
+  const label = state === "active" && tier ? fmt(t.activeTier, { tier: tierName(locale, tier) }) : t.state[state];
   const date = renewsAt && state === "active" ? new Date(renewsAt) : null;
   return (
     <p className="flex flex-wrap items-center gap-2 text-sm">
