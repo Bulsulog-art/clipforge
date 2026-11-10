@@ -16,12 +16,29 @@ export const DV_INTERVALS = ["month", "year"] as const;
 export type DvInterval = (typeof DV_INTERVALS)[number];
 export type DvPlanState = "trial" | "active" | "paused" | "cancelled";
 
-/** Owner-approved list prices in whole USD (docs/POSITIONING.md §6). */
+/**
+ * Tiers a clinic can buy itself. Group (groups, multi-location practices) is
+ * "Contact us": multi-location does not exist in the product, so it has no
+ * public price and no checkout (content/dentvideo-group.ts). "group" stays a
+ * tier so a stray Group payment still maps in the webhook.
+ */
+export const DV_SELF_SERVE_TIERS = ["starter", "practice"] as const satisfies readonly DvTier[];
+export function isSelfServeTier(tier: string | null | undefined): boolean {
+  return (DV_SELF_SERVE_TIERS as readonly string[]).includes(tier ?? "");
+}
+
+/** Owner-approved list prices in whole USD (docs/POSITIONING.md §6). Group has none: it is sold by contact. */
 export const DV_PRICES_USD: Record<DvTier, Partial<Record<DvInterval, number>>> = {
   starter: { month: 49 },
   practice: { month: 99, year: 990 },
-  group: { month: 279 },
+  group: {},
 };
+
+/**
+ * What the legacy Group product charges, for internal revenue maths only
+ * (admin MRR) should a Group subscription ever exist. Never shown or sold.
+ */
+export const DV_LEGACY_GROUP_MONTHLY_USD = 279;
 
 /** Founding offer: Practice monthly at this price for 12 months, first 100 clinics. */
 export const DV_FOUNDING = { tier: "practice" as DvTier, interval: "month" as DvInterval, priceUsd: 49, months: 12, clinics: 100 };
@@ -32,6 +49,7 @@ export const DV_BRAND_ID_DEFAULT = "brnd_0NrVafyQGNiKOz0caOKgm";
 export const DV_PRODUCTS: { tier: DvTier; interval: DvInterval; env: string; fallback: string | null }[] = [
   { tier: "starter", interval: "month", env: "DENTVIDEO_DODO_PRODUCT_STARTER_MONTHLY", fallback: "pdt_0NrVahwZsINvy3TNz2H35" },
   { tier: "practice", interval: "month", env: "DENTVIDEO_DODO_PRODUCT_PRACTICE_MONTHLY", fallback: "pdt_0NrVai0xqpQKU8H3Zj3QN" },
+  // Group is not sold (Contact us): its id stays only so a stray Group payment still maps in the webhook.
   { tier: "group", interval: "month", env: "DENTVIDEO_DODO_PRODUCT_GROUP_MONTHLY", fallback: "pdt_0NrVai5ZNwqFoSZbcfV8S" },
   { tier: "practice", interval: "year", env: "DENTVIDEO_DODO_PRODUCT_PRACTICE_YEARLY", fallback: "pdt_0NrVaiBrxhFhPrt8IbdSu" },
   // Not created in Dodo yet: offered only once their env var is set.
@@ -59,10 +77,10 @@ export function dvPlanForProduct(productId: string | null | undefined, env: Env 
   return null;
 }
 
-/** Which tier/interval pairs can be bought right now (a product id and a list price exist). */
+/** Which tier/interval pairs can be bought right now (self-serve, a product id and a list price exist). */
 export function dvAvailablePlans(env: Env = process.env): { tier: DvTier; interval: DvInterval; priceUsd: number }[] {
   const out: { tier: DvTier; interval: DvInterval; priceUsd: number }[] = [];
-  for (const tier of DV_TIERS) {
+  for (const tier of DV_SELF_SERVE_TIERS) {
     for (const interval of DV_INTERVALS) {
       const priceUsd = DV_PRICES_USD[tier][interval];
       if (priceUsd && dvProductId(tier, interval, env)) out.push({ tier, interval, priceUsd });
@@ -115,7 +133,7 @@ export type DvCheckoutInput = {
 
 export type DvCheckoutPlan =
   | { ok: true; body: Record<string, unknown>; productId: string; discount: string | null; autoDiscount: boolean }
-  | { ok: false; reason: "unavailable" };
+  | { ok: false; reason: "unavailable" | "contact_sales" };
 
 /**
  * The Dodo `POST /checkouts` body for a clinic's plan. Field names follow
@@ -125,6 +143,7 @@ export type DvCheckoutPlan =
  * customization.force_language.
  */
 export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env): DvCheckoutPlan {
+  if (!isSelfServeTier(input.tier)) return { ok: false, reason: "contact_sales" };
   const productId = dvProductId(input.tier, input.interval, env);
   if (!productId || !DV_PRICES_USD[input.tier][input.interval]) return { ok: false, reason: "unavailable" };
 

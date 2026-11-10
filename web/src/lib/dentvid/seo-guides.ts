@@ -7,7 +7,7 @@ import { SOLUTION_UI } from "@/content/solutions/ui";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { plainText, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
-import { DV_PRICES_USD, DV_TIERS } from "./billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 
 /**
  * Metadata, structured data and sitemap entries for the guide library, the
@@ -62,7 +62,8 @@ export function websiteNode(locale: Locale) {
 
 const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
 
-const monthlyPrices = () => DV_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
+/** Self-serve monthly list prices only: Group is "Contact us" and is not an offer. */
+const monthlyPrices = () => DV_SELF_SERVE_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
 
 export function softwareNode(locale: Locale) {
   const e = ENTITY[locale];

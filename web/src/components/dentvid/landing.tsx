@@ -7,6 +7,7 @@ import {
   Check,
   Clock3,
   Download,
+  Mail,
   MessageCircleQuestion,
   Plus,
   ShieldCheck,
@@ -17,6 +18,7 @@ import {
 import { LANDING, LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { appText } from "@/content/dentvideo-app";
+import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { DV_FOUNDING, DV_TIERS, foundingOfferOpen } from "@/lib/dentvid/billing";
 import { dvHref } from "@/lib/dentvid/host";
@@ -567,6 +569,7 @@ function Pricing({ locale }: { locale: Locale }) {
             </li>
           );
         })}
+        <GroupCard locale={locale} />
       </ul>
 
       <p className="mt-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-dv-muted">
@@ -576,6 +579,24 @@ function Pricing({ locale }: { locale: Locale }) {
         <span>{p.note}</span>
       </p>
     </section>
+  );
+}
+
+/** Group (multi-location): no price, no checkout — "Contact us" by email, subject in the page's language. */
+function GroupCard({ locale }: { locale: Locale }) {
+  const g = GROUP_CONTACT[locale];
+  return (
+    <li className="dv-card relative flex flex-col p-7" data-tier="group">
+      <h3 className="text-lg font-semibold text-dv-ink">{g.name}</h3>
+      <p className="mt-6 dv-display text-[1.75rem] leading-tight text-dv-ink">{g.price}</p>
+      <p className="mt-6 border-t border-dv-line pt-6 text-[0.9375rem] leading-relaxed text-dv-body">{g.text}</p>
+      <div className="mt-auto pt-8">
+        <a href={groupMailto(locale)} className="dv-btn dv-btn-secondary w-full px-5 py-3.5 text-[0.9375rem] !text-dv-teal">
+          <Mail className="h-4 w-4" aria-hidden="true" />
+          {g.cta}
+        </a>
+      </div>
+    </li>
   );
 }
 

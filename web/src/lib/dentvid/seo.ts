@@ -3,7 +3,7 @@ import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { LANDING, LANDING_PATH, LOCALES, HREFLANG, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { dentvideoSitemapEntries } from "./seo-guides";
-import { DV_PRICES_USD, DV_TIERS } from "./billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 
 /** hreflang map for the landings: every locale plus x-default (English). */
 export function landingAlternates(): Record<string, string> {
@@ -65,7 +65,8 @@ export function landingJsonLd(locale: Locale) {
         inLanguage: locale,
         description: c.meta.description,
         url: absoluteUrl(LANDING_PATH[locale]),
-        offers: DV_TIERS.map((tier, i) => ({
+        // Only what can be bought: Group is "Contact us", so it has no Offer (no price published that is not sold).
+        offers: DV_SELF_SERVE_TIERS.map((tier, i) => ({
           "@type": "Offer",
           name: c.pricing.tiers[i].name,
           price: DV_PRICES_USD[tier].month,

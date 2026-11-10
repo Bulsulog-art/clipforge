@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
-import { dvErrors } from "@/lib/dentvid/locale-server";
+import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
-import { DV_INTERVALS, DV_PRICES_USD, DV_TIERS, dvPlanForProduct, dvProductId } from "@/lib/dentvid/billing";
+import { DV_INTERVALS, DV_PRICES_USD, DV_TIERS, dvPlanForProduct, dvProductId, isSelfServeTier } from "@/lib/dentvid/billing";
+import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentvideo-group";
 import { accountErrors, ownClinic } from "@/lib/dentvid/account-route";
 import { dodoApiKey, dodoChangePlan, dodoGetSubscription, subscriptionEnded } from "@/lib/dentvid/dodo-account";
 
@@ -30,6 +31,12 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: (await dvErrors()).invalidPlan }, { status: 400 });
   const { plan, interval } = parsed.data;
+  // Group (multi-location) is "Contact us": never a self-serve switch either.
+  if (!isSelfServeTier(plan)) {
+    const locale = await dvLocale((clinic?.profile as { language?: string } | undefined)?.language);
+    const g = GROUP_CONTACT[locale];
+    return NextResponse.json({ error: `${g.text} ${GROUP_CONTACT_EMAIL}`, code: "contact_sales", contact: groupMailto(locale) }, { status: 400 });
+  }
   const productId = dvProductId(plan, interval);
   if (!productId || !DV_PRICES_USD[plan][interval]) return NextResponse.json({ error: (await dvErrors()).invalidPlan }, { status: 400 });
 

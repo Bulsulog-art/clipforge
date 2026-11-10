@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GUIDES, LANDING, LOCALES } from "./dentvideo";
 import { APP_TEXT } from "./dentvideo-app";
+import { GROUP_CONTACT } from "./dentvideo-group";
 import { ENTITY } from "./guides/entity";
 import { GUIDE_UI } from "./guides/ui";
 import { SOLUTIONS } from "./solutions";
@@ -96,6 +97,10 @@ describe("no free-trial claims anywhere", () => {
 
   it.each(LOCALES)("app interface (%s)", (l) => {
     expect(claimsIn(JSON.stringify(APP_TEXT[l]))).toEqual([]);
+  });
+
+  it.each(LOCALES)("Group contact card (%s)", (l) => {
+    expect(claimsIn(JSON.stringify(GROUP_CONTACT[l]))).toEqual([]);
   });
 
   it.each(LOCALES)("About facts and guide CTAs (%s)", (l) => {

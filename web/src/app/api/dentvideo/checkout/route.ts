@@ -6,7 +6,8 @@ import { isEmailVerified } from "@/lib/dentvid/verify-email";
 import { verifyText } from "@/content/dentvideo-auth";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
-import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink } from "@/lib/dentvid/billing";
+import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink, isSelfServeTier } from "@/lib/dentvid/billing";
+import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentvideo-group";
 import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
 import { recordEvent } from "@/lib/dentvid/events-server";
 import { adminOrNull, checkoutBlockMessage, foundingForApp, foundingFullMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
@@ -38,6 +39,9 @@ export async function POST(req: Request) {
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, plan, dodo_subscription_id").eq("owner_id", user.id).maybeSingle();
   const language = (clinic?.profile as { language?: string } | undefined)?.language;
   const err = await dvErrors(language);
+  const parsed = Body.safeParse(await req.json().catch(() => null));
+  // Group (multi-location) is "Contact us": no self-serve purchase, monthly or yearly.
+  if (parsed.success && !isSelfServeTier(parsed.data.plan)) return contactSales(await dvLocale(language));
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
   // A clinic whose subscription has not ended must not open a second one (it would be charged twice):
   // active, paid-but-not-yet-active, on hold (update the card instead), cancelled but still paid up.
@@ -55,7 +59,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: verifyText(await dvLocale(language)).checkoutBlocked, code: "email_unverified", email: user.email }, { status: 403 });
   }
 
-  const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
 
   // The founding offer closes by itself at 100 seats: then the checkout is at list price, as the app shows.
@@ -70,7 +73,7 @@ export async function POST(req: Request) {
     email: user.email,
     locale: language,
   }, env);
-  if (!built.ok) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
+  if (!built.ok) return built.reason === "contact_sales" ? contactSales(await dvLocale(language)) : NextResponse.json({ error: err.invalidPlan }, { status: 400 });
   // Funnel: a checkout URL was handed to the clinic (fire-and-forget).
   const opened = (url: string, via: "api" | "link", founding: boolean) => {
     void recordEvent("checkout_opened", {
@@ -106,4 +109,10 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ error: err.checkoutFailed }, { status: 502 });
   }
+}
+
+/** 400 for a tier that is sold by contact only (Group): say where to write instead. */
+function contactSales(locale: Awaited<ReturnType<typeof dvLocale>>) {
+  const g = GROUP_CONTACT[locale];
+  return NextResponse.json({ error: `${g.text} ${GROUP_CONTACT_EMAIL}`, code: "contact_sales", contact: groupMailto(locale) }, { status: 400 });
 }

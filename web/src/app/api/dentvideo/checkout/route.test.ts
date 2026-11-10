@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_TEXT } from "@/content/dentvideo-app";
 import { VERIFY_COPY } from "@/content/dentvideo-auth";
 import { BILLING_COPY } from "@/content/dentvideo-billing";
+import { GROUP_CONTACT } from "@/content/dentvideo-group";
 
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
@@ -145,11 +146,33 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("refuses unknown or unsold plans and clinics that already pay", async () => {
+  it("refuses unknown plans and clinics that already pay", async () => {
     expect((await call({ plan: "platinum", interval: "month" })).status).toBe(400);
-    expect((await call({ plan: "group", interval: "year" })).status).toBe(400);
     session.clinic = { ...session.clinic, plan: "active" };
-    expect((await call({ plan: "group", interval: "month" })).status).toBe(409);
+    expect((await call({ plan: "starter", interval: "month" })).status).toBe(409);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses Group (monthly or yearly) with a clear 400 that points to the contact address", async () => {
+    for (const interval of ["month", "year"]) {
+      const res = await call({ plan: "group", interval });
+      expect(res.status, interval).toBe(400);
+      expect(res.body.code, interval).toBe("contact_sales");
+      // The clinic's language (de), with the address to write to.
+      expect(res.body.error, interval).toBe(`${GROUP_CONTACT.de.text} hello@dentvideo.com`);
+      expect(String(res.body.contact), interval).toMatch(/^mailto:hello@dentvideo\.com\?subject=/);
+    }
+    // Before any other check: a paying or unverified clinic gets the same answer, never a link.
+    session.clinic = { ...session.clinic, plan: "active" };
+    expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
+    session.user = { id: OWNER, email: "dr@clinic.example", user_metadata: { product: "dentvideo" } };
+    expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
+    // No API key (static payment link path): still no Group link.
+    vi.stubEnv("DODO_API_KEY", "");
+    session.clinic = { ...session.clinic, plan: "trial" };
+    const res = await call({ plan: "group", interval: "month" });
+    expect(res.status).toBe(400);
+    expect(res.body.url).toBeUndefined();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
