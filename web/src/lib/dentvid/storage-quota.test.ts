@@ -50,11 +50,12 @@ describe("extFor", () => {
 });
 
 describe("legal pages switch", () => {
-  it("is off unless DENTVIDEO_LEGAL_PAGES=on", () => {
-    expect(legalPagesOn({})).toBe(false);
-    expect(legalPagesOn({ DENTVIDEO_LEGAL_PAGES: "off" })).toBe(false);
+  it("is on unless DENTVIDEO_LEGAL_PAGES=off (the legal pages exist)", () => {
+    expect(legalPagesOn({})).toBe(true);
+    expect(legalPagesOn({ DENTVIDEO_LEGAL_PAGES: "" })).toBe(true);
     expect(legalPagesOn({ DENTVIDEO_LEGAL_PAGES: "on" })).toBe(true);
-    expect(legalPagesOn({ DENTVIDEO_LEGAL_PAGES: " ON " })).toBe(true);
+    expect(legalPagesOn({ DENTVIDEO_LEGAL_PAGES: " OFF " })).toBe(false);
+    expect(legalPagesOn({ DENTVIDEO_LEGAL_PAGES: "0" })).toBe(false);
   });
 
   it("splits the consent sentence around its two links", () => {

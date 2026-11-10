@@ -21,6 +21,14 @@ export type EntityFacts = {
 export const PUBLISHER_NAME = "Bulsu Labs";
 export const PUBLISHER_URL = "https://bulsulabs.com";
 export const SITE_URL = "https://dentvideo.com";
+
+/**
+ * The company behind DentVideo (legal name, register number, tax ID, address),
+ * used by the legal pages and the Organization structured data. Kept in its
+ * own small module so the footer can import it without this file's text.
+ */
+export { OPERATOR } from "./operator";
+
 /** The languages DentVideo makes videos in (the site itself is in eight: not Italian or Portuguese). */
 export const VIDEO_LANGUAGES = ["en", "de", "es", "fr", "it", "pt", "tr", "ja", "ar", "pl"] as const;
 

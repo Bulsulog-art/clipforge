@@ -9,6 +9,7 @@ import { DV_FOUNDING, DV_SELF_SERVE_TIERS, type DvInterval, type DvPlanState, ty
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { billingText } from "@/content/dentvideo-billing";
 import { VerifyCard } from "./verify-email";
+import { CheckoutConsent } from "./consent-line";
 import { trackDv } from "@/lib/dentvid/events-client";
 
 export type PlanOption = { tier: DvTier; interval: DvInterval; priceUsd: number };
@@ -261,6 +262,9 @@ export function PlanPanel({
           </label>
         </details>
         <p className="text-xs text-dv-muted">{interval === "year" ? t.fineprintYearly : t.fineprint}</p>
+      </div>
+      <div className="mt-3">
+        <CheckoutConsent locale={locale} />
       </div>
     </section>
   );

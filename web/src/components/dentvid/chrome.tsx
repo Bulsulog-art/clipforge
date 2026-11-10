@@ -10,6 +10,9 @@ import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { dvHref } from "@/lib/dentvid/host";
+import { LEGAL_NAV, isLegalKind, legalPath } from "@/content/legal/nav";
+import { LEGAL_KINDS } from "@/content/legal/types";
+import { OPERATOR } from "@/content/guides/operator";
 import { DvLogo } from "./mark";
 import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
 import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
@@ -35,12 +38,13 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   const parts = all[0] === "dentvideo" ? all.slice(1) : all;
   if (parts.length === 0) return "en";
   // English guides hub and About: /guides, /about.
-  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about")) return "en";
+  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about" || isLegalKind(parts[0]))) return "en";
   // Guides (/guides/<slug>) and commercial pages (/videos/<slug>) each have one language.
   if (parts[0] === "guides" || parts[0] === "videos") return guideLocales[parts[1] ?? ""] ?? null;
   if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
   // A landing (/tr), or its guides hub or About page (/tr/guides).
-  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about")) ? (parts[0] as Locale) : null;
+  // … or one of its legal pages (/tr/terms).
+  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about" || isLegalKind(parts[1]))) ? (parts[0] as Locale) : null;
 }
 
 function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; ready: boolean } {
@@ -309,8 +313,19 @@ export function DvFooter({ guideLocales, commercial }: Props & { commercial?: Co
             </ul>
           </div>
         </div>
-        <div className="mt-14 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-[#8fb0aa] sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Bulsu Labs</p>
+        <nav aria-label={LEGAL_NAV[locale].legal} className={`mt-14 border-t border-white/10 pt-6 ${ready ? "" : "invisible"}`}>
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-xs" data-testid="dv-legal-links">
+            {LEGAL_KINDS.map((k) => (
+              <li key={k}>
+                <Link href={dvHref(legalPath(k, locale))} className={link}>{LEGAL_NAV[locale].nav[k]}</Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="mt-4 flex flex-col gap-2 text-xs text-[#8fb0aa] sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {OPERATOR.brand} · <bdi>{OPERATOR.shortName}</bdi>
+          </p>
           <p className="tracking-wide">dentvideo.com</p>
         </div>
       </div>
@@ -424,6 +439,15 @@ function AppFooter({ locale, ready }: { locale: Locale; ready: boolean }) {
           </a>
         </p>
       </div>
+      <nav aria-label={LEGAL_NAV[locale].legal} className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-dv-muted" data-testid="dv-legal-links">
+          {LEGAL_KINDS.map((k) => (
+            <li key={k}>
+              <Link href={dvHref(legalPath(k, locale))} className="underline-offset-4 hover:text-dv-ink hover:underline">{LEGAL_NAV[locale].nav[k]}</Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </footer>
   );
 }
