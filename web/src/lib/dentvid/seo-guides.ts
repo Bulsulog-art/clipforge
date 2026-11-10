@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { GUIDES, GUIDE_HUB_LOCALES, HREFLANG, LANDING_PATH, LOCALES, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
-import { ALTERNATE_NAMES, ENTITY, PUBLISHER_NAME, PUBLISHER_URL, SAME_AS, VIDEO_LANGUAGES } from "@/content/guides/entity";
+import { ALTERNATE_NAMES, ENTITY, OPERATOR, PUBLISHER_NAME, PUBLISHER_URL, SAME_AS, VIDEO_LANGUAGES } from "@/content/guides/entity";
 import { SOLUTIONS, solutionPath, solutionTranslations, type SolutionPage } from "@/content/solutions";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { plainText, reviewedDate, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
+import { LEGAL, LEGAL_KINDS, LEGAL_UPDATED, legalPath, type LegalKind } from "@/content/legal";
 
 /**
  * Metadata, structured data and sitemap entries for the guide library, the
@@ -38,8 +39,26 @@ export const ORG_ID = `${PUBLISHER_URL}/#organization`;
 export const softwareId = () => `${absoluteUrl(LANDING_PATH.en)}#software`;
 export const websiteId = () => `${absoluteUrl(LANDING_PATH.en)}#website`;
 
+/** The publisher: Bulsu Labs, with the legal fields of the company that trades under it (content/guides/entity OPERATOR). */
 export function organizationNode() {
-  return { "@type": "Organization", "@id": ORG_ID, name: PUBLISHER_NAME, url: PUBLISHER_URL };
+  return {
+    "@type": "Organization",
+    "@id": ORG_ID,
+    name: PUBLISHER_NAME,
+    legalName: OPERATOR.legalName,
+    url: PUBLISHER_URL,
+    email: OPERATOR.companyEmail,
+    taxID: OPERATOR.taxId,
+    identifier: { "@type": "PropertyValue", propertyID: "CRPS registration number (Montenegro)", value: OPERATOR.registrationNumber },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: OPERATOR.street,
+      postalCode: OPERATOR.postalCode,
+      addressLocality: OPERATOR.city,
+      addressCountry: OPERATOR.countryCode,
+    },
+    foundingLocation: { "@type": "Place", name: `${OPERATOR.city}, ${OPERATOR.country}` },
+  };
 }
 
 /** The guides' author and reviewer: a team at Bulsu Labs (no invented individual credentials). */
@@ -350,6 +369,54 @@ export function aboutJsonLd(locale: Locale) {
   };
 }
 
+/* ---------- Legal pages (/terms, /privacy, /refunds, /dpa, /imprint) ---------- */
+
+const legalPaths = (kind: LegalKind) => Object.fromEntries(LOCALES.map((l) => [l, legalPath(kind, l)])) as Record<Locale, string>;
+
+export function legalAlternates(kind: LegalKind): Record<string, string> {
+  return absolute(perLocaleAltPaths(legalPaths(kind)));
+}
+
+export function legalMetadata(kind: LegalKind, locale: Locale): Metadata {
+  const doc = LEGAL[locale].docs[kind];
+  const url = absoluteUrl(legalPath(kind, locale));
+  const title = `${doc.title}${BRAND_SUFFIX}`;
+  return {
+    title: { absolute: title },
+    description: doc.description,
+    alternates: { canonical: url, languages: legalAlternates(kind) },
+    openGraph: { title, description: doc.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale], images: [landingOgImage(locale)] },
+    twitter: { card: "summary_large_image", title, description: doc.description, images: [landingOgImage(locale)] },
+  };
+}
+
+export function legalJsonLd(kind: LegalKind, locale: Locale) {
+  const doc = LEGAL[locale].docs[kind];
+  const url = absoluteUrl(legalPath(kind, locale));
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": kind === "imprint" ? "AboutPage" : "WebPage",
+        "@id": url,
+        name: doc.title,
+        description: doc.description,
+        inLanguage: locale,
+        url,
+        dateModified: LEGAL_UPDATED,
+        isPartOf: { "@id": websiteId() },
+        publisher: { "@id": ORG_ID },
+        ...(kind === "imprint" ? { mainEntity: { "@id": ORG_ID } } : {}),
+      },
+      organizationNode(),
+      breadcrumb([
+        { name: "DentVideo", path: LANDING_PATH[locale] },
+        { name: doc.title, path: legalPath(kind, locale) },
+      ]),
+    ],
+  };
+}
+
 /* ---------- Sitemap ---------- */
 
 /** A sitemap entry; `alternates` maps hreflang codes to in-app paths of true translations. */
@@ -365,6 +432,7 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
     ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: SITE_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
     ...SOLUTIONS.map((p) => ({ path: solutionPath(p), lastmod: p.updated ?? p.published, priority: "0.8", alternates: solutionAltPaths(p) })),
+    ...LEGAL_KINDS.flatMap((k) => LOCALES.map((l) => ({ path: legalPath(k, l), lastmod: LEGAL_UPDATED, priority: "0.3", alternates: perLocaleAltPaths(legalPaths(k)) }))),
   ];
 }
 

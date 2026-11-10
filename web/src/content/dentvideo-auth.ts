@@ -17,7 +17,7 @@ export type AuthCopy = {
   backToSignIn: string;
   /** After sign-up, when signing in fails: never says whether the address already had an account. */
   signInFailedAfterSignup: string;
-  /** Sign-up consent line (shown when DENTVIDEO_LEGAL_PAGES=on); {terms} and {privacy} become links. */
+  /** Sign-up consent line (shown by default; DENTVIDEO_LEGAL_PAGES=off hides it); {terms} and {privacy} become links. */
   consent: string;
   termsLink: string;
   privacyLink: string;

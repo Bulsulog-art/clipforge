@@ -14,10 +14,10 @@ import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "./tur
 import { ConsentLine } from "./consent-line";
 
 /**
- * `legal`: show the consent line linking to /terms and /privacy — only once
- * those pages exist (DENTVIDEO_LEGAL_PAGES=on, read by the server page).
+ * `legal`: show the consent line linking to the Terms and Privacy Policy (on
+ * by default; DENTVIDEO_LEGAL_PAGES=off hides it, read by the server page).
  */
-export function StartForm({ locale, remember, legal = false }: { locale: Locale; remember: boolean; legal?: boolean }) {
+export function StartForm({ locale, remember, legal = true }: { locale: Locale; remember: boolean; legal?: boolean }) {
   const t = appText(locale).start;
   const errors = appText(locale).errors;
   const a = authText(locale);

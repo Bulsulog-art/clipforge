@@ -1,5 +1,6 @@
 import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
-import { ENTITY, PUBLISHER_NAME } from "@/content/guides/entity";
+import { ENTITY, OPERATOR, PUBLISHER_NAME } from "@/content/guides/entity";
+import { LEGAL, LEGAL_KINDS, legalPath, operatorAddress } from "@/content/legal";
 import { guideMarkdown, reviewedDate, solutionMarkdown } from "@/content/guides/text";
 import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
@@ -45,6 +46,19 @@ function editorialBlock(): string[] {
   ];
 }
 
+/** Who operates DentVideo and where the legal texts are (English authoritative). */
+function legalBlock(): string[] {
+  const docs = LEGAL.en.docs;
+  return [
+    "## Legal",
+    `- Operator: ${OPERATOR.legalName} (${OPERATOR.shortName}), a limited liability company under the laws of Montenegro, trading as ${OPERATOR.brand}. Registered office: ${operatorAddress("en")}. CRPS registration no. ${OPERATOR.registrationNumber}; tax ID (PIB) ${OPERATOR.taxId}. Managing director: ${OPERATOR.director}. Contact: ${OPERATOR.productEmail}.`,
+    "- DentVideo is sold to businesses and professionals (dental clinics). Payments: Dodo Payments is the merchant of record.",
+    ...LEGAL_KINDS.map((k) => `- [${docs[k].title}](${abs(legalPath(k, "en"))}): ${docs[k].description}`),
+    "- Translations of every legal page exist in all site languages (linked per language below); the English version prevails.",
+    "",
+  ];
+}
+
 /** One language's pages: landing, About, product/comparison pages, guides hub and every guide. */
 function languageIndex(l: Locale): string[] {
   const lines = [
@@ -60,6 +74,7 @@ function languageIndex(l: Locale): string[] {
       lines.push(`- [${g.h1}](${abs(guidePath(g))}): ${g.description}${reviewed ? ` (last reviewed ${reviewed})` : ""}`);
     }
   }
+  lines.push(`- Legal: ${LEGAL_KINDS.map((k) => `[${LEGAL[l].docs[k].title}](${abs(legalPath(k, l))})`).join(", ")}`);
   lines.push("");
   return lines;
 }
@@ -68,6 +83,7 @@ export function llmsTxt(): string {
   const lines = [
     ...factsBlock(),
     ...editorialBlock(),
+    ...legalBlock(),
     "## What DentVideo makes, and how it compares",
     ...SOLUTIONS.map((p) => `- [${p.h1}](${abs(solutionPath(p))}) (${p.locale}): ${p.seoDescription}`),
     "",
@@ -85,6 +101,7 @@ export function llmsFullTxt(): string {
   const lines = [
     ...factsBlock(),
     ...editorialBlock(),
+    ...legalBlock(),
     "",
     ...LOCALES.flatMap((l) => [`# ${ENTITY[l].h1}`, "", ENTITY[l].definition, "", ...ENTITY[l].facts.map((f) => `- ${f.label}: ${f.value}`), ""]),
     "# What DentVideo makes, and how it compares",

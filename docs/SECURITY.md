@@ -276,7 +276,7 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `DENTVIDEO_ADMIN_USER_IDS` | web | — (nobody) | comma-separated Liman auth user UUIDs that may open `/dentvideo/admin`; email addresses grant nothing |
 | `DENTVIDEO_VERIFY_SECRET` | web | falls back to `DENTVID_SERVICE_ROLE_KEY` **with a one-time `SECURITY:` warning in the log** in production | HMAC key for email codes. Set a dedicated random value (owner checklist); changing it voids only codes waiting at that moment |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` | web (site key is build-time) | off | Cloudflare Turnstile on sign-up; set both or neither |
-| `DENTVIDEO_LEGAL_PAGES` | web | off | `on` shows the sign-up consent line linking `/terms` and `/privacy` (8 languages) — only once those pages exist |
+| `DENTVIDEO_LEGAL_PAGES` | web | on | the sign-up consent line linking `/terms` and `/privacy` (8 languages) is shown by default; `off` hides it |
 
 Every DentVideo variable the code reads (web and worker) is listed, with its default, in `web/.env.example`. The ones that matter for security: `DENTVID_SERVICE_ROLE_KEY` (server only — never `NEXT_PUBLIC_`), `DENTVIDEO_VERIFY_SECRET`, `DENTVIDEO_UNSUBSCRIBE_SECRET`, `WORKER_INTERNAL_TOKEN`, `DODO_API_KEY`, `DODO_WEBHOOK_SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `DENTVIDEO_ADMIN_USER_IDS`, `TRUST_CF_CONNECTING_IP` (only behind a locked origin), `DENTVIDEO_DEV_PREVIEW` (never in production).
 
@@ -294,7 +294,7 @@ The compose file loads both services from `web/.env`, so in Coolify add them to 
    5. Schedule `scripts/dentvideo-storage-cleanup.mts --apply` weekly (§1 Retention).
    6. Liman `rest` service: **`PGRST_OPENAPI_MODE=disabled`** (or `follow-privileges`) so `anon` cannot list every app's tables and RPCs.
    7. Plan the move of DentVideo to **its own Supabase project** — the shared auth users, service-role key and storage are the remaining cross-app risk (§1 Shared Liman).
-   8. Optional: Turnstile keys (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY`, rebuild for the public key); `DENTVIDEO_LEGAL_PAGES=on` once `/terms` and `/privacy` are live.
+   8. Optional: Turnstile keys (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY`, rebuild for the public key). (The legal pages are live; the sign-up consent line is on by default.)
 
 1. **OpenAI hard cap** — platform.openai.com → Settings → Limits: set a monthly **budget** above the guard's monthly ceiling (≥ $300, or active clinics × $5.15 + ClipForge usage) and email alerts at 50% / 80%. Use a separate **project** + key for the worker so a leaked ClipForge key cannot drain DentVideo's budget and vice versa. This is the backstop behind everything in this document.
 2. **Rotate the Coolify API token** — it appeared in a session scratchpad. Coolify → Keys & Tokens → revoke and create a new one; update anywhere it is used.
