@@ -182,7 +182,8 @@ describe("legal pages", () => {
 
   it("lists the sub-processors, and says what is not one", () => {
     const t = text(page("dpa", "en"));
-    for (const n of ["Hostinger", "OpenAI", "Resend", "Dodo Payments", "Sentry"]) expect(t).toContain(n);
+    for (const n of ["Hostinger", "OpenAI", "Resend", "Dodo Payments"]) expect(t).toContain(n);
+    expect(t).not.toContain("Sentry"); // not enabled in production
     expect(t).toContain("Supabase Inc. receives no data");
     expect(t).toContain("standard contractual clauses");
     expect(t).not.toMatch(/fal\.ai|Cloudflare|Google Analytics/);

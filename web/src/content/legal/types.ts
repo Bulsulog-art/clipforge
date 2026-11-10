@@ -21,7 +21,7 @@ export type LegalKind = (typeof LEGAL_KINDS)[number];
 export const LEGAL_UPDATED = "2026-11-10";
 
 /** Providers that process personal data for DentVideo (the DPA's sub-processor list). */
-export const SUBPROCESSOR_IDS = ["hostinger", "openai", "resend", "dodo", "sentry"] as const;
+export const SUBPROCESSOR_IDS = ["hostinger", "openai", "resend", "dodo"] as const;
 export type SubprocessorId = (typeof SUBPROCESSOR_IDS)[number];
 
 /** Fixed facts per provider; purpose, data and location wording is per language. */
@@ -30,7 +30,6 @@ export const SUBPROCESSORS: Record<SubprocessorId, { name: string; url: string }
   openai: { name: "OpenAI", url: "https://openai.com/policies/privacy-policy/" },
   resend: { name: "Resend", url: "https://resend.com/legal/privacy-policy" },
   dodo: { name: "Dodo Payments", url: "https://dodopayments.com/privacy-policy" },
-  sentry: { name: "Sentry (Functional Software, Inc.)", url: "https://sentry.io/privacy/" },
 };
 
 export type LegalBlock =

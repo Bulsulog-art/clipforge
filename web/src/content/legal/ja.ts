@@ -45,11 +45,6 @@ export const JA: LegalText = {
       data: "メールアドレス、氏名と請求先情報、決済データ、サブスクリプションの状態。",
       location: "Dodo Paymentsのプライバシーポリシーをご覧ください",
     },
-    sentry: {
-      purpose: "当社サーバーのエラーレポート（エラー監視が有効な場合のみ）。",
-      data: "IPアドレスやアカウントIDを含むことがある技術的なエラー情報。",
-      location: "米国",
-    },
   },
 
   docs: {

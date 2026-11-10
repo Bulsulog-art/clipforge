@@ -45,11 +45,6 @@ export const TR: LegalText = {
       data: "E-posta adresi, ad ve fatura bilgileri, ödeme verileri, abonelik durumu.",
       location: "Dodo Payments gizlilik politikasına bakınız",
     },
-    sentry: {
-      purpose: "Sunucularımızdan hata raporları; yalnızca hata izleme açıkken.",
-      data: "IP adresi veya hesap kimliği içerebilen teknik hata ayrıntıları.",
-      location: "ABD",
-    },
   },
 
   docs: {

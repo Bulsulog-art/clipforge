@@ -45,11 +45,6 @@ export const FR: LegalText = {
       data: "Adresse e-mail, nom et coordonnées de facturation, données de paiement, statut de l'abonnement.",
       location: "Voir la politique de confidentialité de Dodo Payments",
     },
-    sentry: {
-      purpose: "Rapports d'erreurs de nos serveurs, uniquement lorsque la surveillance des erreurs est activée.",
-      data: "Détails techniques de l'erreur, pouvant inclure une adresse IP ou un identifiant de compte.",
-      location: "États-Unis",
-    },
   },
 
   docs: {
