@@ -171,7 +171,7 @@ describe("POST /api/dentvideo/checkout", () => {
     // Before any other check: a paying or unverified clinic gets the same answer, never a link.
     session.clinic = { ...session.clinic, plan: "active" };
     expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
-    session.user = { id: OWNER, email: "dr@clinic.example", user_metadata: { product: "dentvideo" } };
+    session.user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } };
     expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
     // No API key (static payment link path): still no Group link.
     vi.stubEnv("DODO_API_KEY", "");
