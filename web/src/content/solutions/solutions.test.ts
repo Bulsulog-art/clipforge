@@ -18,20 +18,10 @@ import {
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
+import { BODY_BANNED, MONEY, SNIPPET_BANNED, unquoted } from "../compliance-words";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Quoted words ("painless", „schmerzfrei“, «sin dolor», 「痛くない」) are examples of what is filtered out, not claims. */
-function unquoted(text: string): string {
-  return text.replace(/“[^”]*”|„[^“”]*[“”]|«[^»]*»|「[^」]*」|"[^"]*"|‘[^’]*’/g, " ");
-}
-
-// Promises and superlatives, per docs/MARKETS.md do-not-say lists and the landing rules.
-const SNIPPET_BANNED =
-  /\b(guarantee[ds]?|painless|best|cheapest|no\.? ?1|#1)\b|garantiert|schmerzfrei|\bbeste[nrs]?\b|garantizad|sin dolor|\bmejor(es)?\b|garanti|sans douleur|meilleur|garantili|ağrısız|acısız|en iyi|最高|日本一|一番|絶対|必ず|無痛|痛くない|保証|無料|الأفضل|مضمون|بدون ألم|الأرخص|najlepsz|gwarant|bezbolesn|\bnr 1\b|100\s?%/i;
-const BODY_BANNED =
-  /\b(best|cheapest|no\.? ?1|#1|painless)\b|\bbeste[nrs]?\b|schmerzfrei|\bmejor(es)?\b|sin dolor|meilleur|sans douleur|en iyi|ağrısız|acısız|最高|日本一|一番|無痛|痛くない|無料|確実に集患|患者数.?倍|完全対応|100\s?%準拠|الأفضل|الأرخص|نتائج فورية|عرض لفترة محدودة|بدون ألم|najlepsz|bezbolesn|zgodne z prawem|\bnr 1\b/i;
-const MONEY = /[$€£₺¥]\s?\d|\d\s?(%|€|\$|£|TL\b|円|ريال|درهم|zł)/;
 
 describe("commercial pages: inventory", () => {
   it("slugs are unique, URL-safe and do not collide with guides", () => {

@@ -2,13 +2,13 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Check, Plus } from "lucide-react";
 import { LANDING_PATH, dirOf, findGuide, guidePath, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
-import { sectionId } from "@/content/guides/text";
+import { reviewedDate, sectionId } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { solutionPath, solutionsFor, type SolutionPage } from "@/content/solutions";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { solutionJsonLd } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
-import { Breadcrumbs, GuideCta, HtmlLang, RichText } from "./guide-parts";
+import { Breadcrumbs, Byline, GuideCta, HtmlLang, RichText, SectionTableView } from "./guide-parts";
 import { GuideScriptFont } from "./font-guide";
 import { PhoneFrame } from "./phone";
 
@@ -50,6 +50,9 @@ export function SolutionView({ p }: { p: SolutionPage }) {
               {ui.pricing}
             </Link>
           </div>
+          <p className="mt-6 text-sm text-dv-muted">
+            <Byline locale={L} reviewed={reviewedDate(p)} />
+          </p>
         </div>
       </header>
 
@@ -150,6 +153,7 @@ export function SolutionView({ p }: { p: SolutionPage }) {
                   ))}
                 </ul>
               ))}
+            {s.table && <SectionTableView table={s.table} locale={L} />}
             {s.after?.map((para, j) => (
               <p key={j} className="mt-4 text-[1.0625rem] leading-[1.75] text-[#33423f]">
                 <RichText text={para} locale={L} />

@@ -10,7 +10,8 @@ import { dvBrowser } from "@/lib/dentvid/supabase";
 import { deleteConfirmOk, deletePhrase, mailtoHref } from "@/lib/dentvid/app-ui";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
 import type { DvTier } from "@/lib/dentvid/billing";
-import { usd, type PlanOption } from "./plan-panel";
+import { tierName as planTierName, usd, type PlanOption } from "./plan-panel";
+import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 
 /**
  * Self-serve account control on the settings screen:
@@ -259,7 +260,7 @@ export function AccountPanel({
   }
 
   const [labelBefore, labelAfter = ""] = t.deleteTypeLabel.split("{name}");
-  const tierName = (tier: DvTier) => text.billing.tiers[tier].name;
+  const tierName = (tier: DvTier) => planTierName(locale, tier);
   const priceLine = (o: PlanOption) => `${usd(locale, o.priceUsd)} ${o.interval === "year" ? text.billing.perYear : text.billing.perMonth}`;
 
   if (part === "billing") {
@@ -313,6 +314,21 @@ export function AccountPanel({
                   </li>
                 );
               })}
+              {/* Group (multi-location) is not a self-serve switch: write to us. */}
+              <li className={`flex flex-col rounded-2xl p-4 ring-1 ring-inset ${plan.tier === "group" ? "bg-dv-teal-50 ring-dv-teal/30" : "bg-white ring-dv-line"}`} data-tier="group">
+                <span className="text-sm font-semibold text-dv-ink">{GROUP_CONTACT[locale].name}</span>
+                <span className="mt-0.5 text-sm text-dv-muted">{GROUP_CONTACT[locale].price}</span>
+                <div className="mt-3">
+                  {plan.tier === "group" ? (
+                    <span className="inline-flex min-h-11 items-center text-xs font-semibold text-dv-teal">{t.current}</span>
+                  ) : (
+                    <a href={groupMailto(locale)} className="dv-btn dv-btn-secondary w-full px-4 py-2 text-sm !text-dv-teal">
+                      <Mail className="h-4 w-4" aria-hidden="true" />
+                      {GROUP_CONTACT[locale].cta}
+                    </a>
+                  )}
+                </div>
+              </li>
             </ul>
             {changed && (
               <p role="status" className="mt-4 rounded-xl bg-dv-teal-50 px-4 py-3 text-sm text-dv-teal-900">

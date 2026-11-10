@@ -85,7 +85,8 @@ export const SOLUTIONS_JA: SolutionPage[] = [
       { q: "支払い前に動画を見られますか？", a: "はい。医院の情報を登録すると、ロゴ・カラー・医院名が入ったプレビューをその場で確認できます。最初の1週間分はプランを選んだ直後に作成します。" },
       { q: "チェックは法的助言ですか？", a: "いいえ。規制されやすい表現を検出し、確認が必要な箇所に印を付けますが、ルールは改定されることがあります。すべての動画は院長先生が承認します。" },
     ],
-    guides: ["iryo-kokoku-guideline-shika-sns", "shika-iin-sns-toko-naiyo"],
+    guides: ["iryo-kokoku-guideline-shika-sns", "shika-iin-sns-toko-naiyo", "shika-kanja-setsumei-doga-theme"],
     published: "2026-11-09",
+    reviewed: "2026-11-10",
   },
 ];

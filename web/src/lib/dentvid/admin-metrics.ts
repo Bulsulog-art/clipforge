@@ -3,7 +3,7 @@
  * rows already loaded — so the maths (MRR, conversion, churn, funnel rates)
  * is unit-tested and the dev harness can feed fake rows to the same code.
  */
-import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS, type DvInterval, type DvTier } from "./billing";
+import { DV_FOUNDING, DV_LEGACY_GROUP_MONTHLY_USD, DV_PRICES_USD, DV_TIERS, type DvInterval, type DvTier } from "./billing";
 import type { DvEventName } from "./events";
 
 export type AdminClinic = {
@@ -74,6 +74,8 @@ export function clinicMrr(c: Pick<AdminClinic, "plan" | "plan_tier">, hint: Bill
   const interval: DvInterval = hint.interval === "year" && DV_PRICES_USD[tier].year ? "year" : "month";
   if (interval === "year") return (DV_PRICES_USD[tier].year ?? 0) / 12;
   if (hint.founding && tier === DV_FOUNDING.tier) return DV_FOUNDING.priceUsd;
+  // Group has no public price (Contact us); a legacy Group subscription is counted at what it charges.
+  if (tier === "group") return DV_LEGACY_GROUP_MONTHLY_USD;
   return DV_PRICES_USD[tier].month ?? 0;
 }
 

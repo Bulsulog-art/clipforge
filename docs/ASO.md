@@ -126,16 +126,16 @@ Counted with Python `len()` (Unicode code points; App Store Connect and Play Con
 
 | Locale | Name [30] | Subtitle [30] | iOS keywords [100] | Promo text [170] | Play short [80] | Full description [4000] |
 | --- | --- | --- | --- | --- | --- | --- |
-| en-US | 27 | 27 | 96 | 166 | 72 | 2764 |
-| en-GB | 27 | 28 | 94 | 162 | 72 | 2712 |
-| de-DE | 25 | 29 | 99 | 170 | 69 | 3050 |
-| es-ES | 25 | 25 | 99 | 160 | 72 | 2862 |
-| es-MX | 29 | 21 | 99 | 156 | 76 | 2919 |
-| tr-TR | 27 | 24 | 100 | 168 | 77 | 2859 |
-| fr-FR | 28 | 21 | 97 | 163 | 70 | 3227 |
-| it-IT | 28 | 27 | 92 | 170 | 71 | 3007 |
-| pt-BR | 27 | 21 | 100 | 160 | 74 | 2929 |
-| pt-PT | 27 | 29 | 100 | 165 | 79 | 2948 |
+| en-US | 27 | 27 | 96 | 166 | 72 | 2784 |
+| en-GB | 27 | 28 | 94 | 162 | 72 | 2736 |
+| de-DE | 25 | 29 | 99 | 170 | 69 | 3082 |
+| es-ES | 25 | 25 | 99 | 160 | 72 | 2887 |
+| es-MX | 29 | 21 | 99 | 156 | 76 | 2942 |
+| tr-TR | 27 | 24 | 100 | 168 | 77 | 2889 |
+| fr-FR | 28 | 21 | 97 | 163 | 70 | 3275 |
+| it-IT | 28 | 27 | 92 | 170 | 71 | 3031 |
+| pt-BR | 27 | 21 | 100 | 160 | 74 | 2962 |
+| pt-PT | 27 | 29 | 100 | 165 | 79 | 2972 |
 
 ## en-US
 
@@ -151,7 +151,7 @@ Counted with Python `len()` (Unicode code points; App Store Connect and Play Con
 
 **Search evidence (Google suggest, Nov 2026):** dental social media (app), social media for dentists / dental practices, dental marketing (ideas, agency), dental posts for social media, dental office social media ideas, dental patient education app, patient education videos dental, how to make dental videos, dental video editing app, dental instagram captions.
 
-**Full description** (2764 / 4000 chars; same text for App Store and Google Play):
+**Full description** (2784 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo makes short patient-education videos for your dental practice: five every Monday, narrated, captioned and in your clinic's colors. Every script is checked before you see it.
@@ -186,7 +186,7 @@ PLANS
 See a live preview with your logo and colors before you subscribe.
 • Starter: five checked videos every Monday, plus filming cards.
 • Practice: everything in Starter, your own recordings turned into captioned clips, and your logo and brand colors in every video. Monthly or yearly.
-• Group: up to three locations, five videos per location every Monday.
+• Group: for groups and multi-location practices. Contact us and we'll set it up with you.
 
 Terms of Use: https://dentvideo.com/terms
 Privacy Policy: https://dentvideo.com/privacy
@@ -217,7 +217,7 @@ DentVideo is made by Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** dental social media (post ideas, posts, marketing, manager), dental practice marketing (ideas, agency), dental patient education (videos, app), dental video marketing, gdc advertising guidance, gdc ethical advertising.
 
-**Full description** (2712 / 4000 chars; same text for App Store and Google Play):
+**Full description** (2736 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo makes short patient-education videos for your dental practice: five every Monday, narrated, captioned and in your practice colours. Every script is checked before you see it.
@@ -252,7 +252,7 @@ PLANS
 See a live preview with your logo and colours before you subscribe.
 • Starter: five checked videos every Monday, plus filming cards.
 • Practice: everything in Starter, your own recordings turned into captioned clips, and your logo and brand colours in every video. Monthly or yearly.
-• Group: up to three sites, five videos per site every Monday.
+• Group: for groups and multi-site practices. Contact us and we'll set it up with you.
 
 Terms of Use: https://dentvideo.com/terms
 Privacy Policy: https://dentvideo.com/privacy
@@ -283,7 +283,7 @@ DentVideo is made by Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** social media zahnarztpraxis (manager, seminar, fortbildung), zahnarzt marketing (agentur), zahnarztpraxis marketing, instagram zahnarztpraxis, zahnarztpraxis video(s), patientenaufklärung videos, werbung zahnarzt erlaubt, zahnärzte werbung österreich.
 
-**Full description** (3050 / 4000 chars; same text for App Store and Google Play):
+**Full description** (3082 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo erstellt kurze Aufklärungsvideos für Ihre Zahnarztpraxis: fünf jeden Montag, vertont, untertitelt und in Ihren Praxisfarben. Jedes Skript wird geprüft, bevor Sie es sehen.
@@ -318,7 +318,7 @@ TARIFE
 Vor dem Abschluss sehen Sie eine Live-Vorschau mit Ihrem Logo und Ihren Farben.
 • Starter: jeden Montag fünf geprüfte Videos, dazu Drehkarten.
 • Practice: alles aus Starter, eigene Aufnahmen als untertitelte Clips sowie Logo und Praxisfarben in jedem Video. Monatlich oder jährlich.
-• Group: bis zu drei Standorte, je fünf Videos pro Standort und Woche.
+• Group: für Praxisgruppen mit mehreren Standorten. Sprechen Sie uns an, wir richten es mit Ihnen ein.
 
 Nutzungsbedingungen: https://dentvideo.com/terms
 Datenschutzerklärung: https://dentvideo.com/privacy
@@ -349,7 +349,7 @@ DentVideo ist ein Produkt von Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** marketing dental, marketing para dentistas (instagram, digital, agencia, estrategias), vídeos para dentistas, app para dentistas, reels para dentistas, contenido para dentistas / ideas de contenido, redes sociales clínica dental, vídeos educativos dentales.
 
-**Full description** (2862 / 4000 chars; same text for App Store and Google Play):
+**Full description** (2887 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo crea vídeos cortos de educación al paciente para tu clínica dental: cinco cada lunes, con voz, subtítulos y los colores de tu clínica. Cada guion se revisa antes de que lo veas.
@@ -384,7 +384,7 @@ PLANES
 Antes de suscribirte ves una vista previa en directo con tu logo y tus colores.
 • Starter: cinco vídeos revisados cada lunes y tarjetas de grabación.
 • Practice: todo lo de Starter, tus propias grabaciones convertidas en clips con subtítulos y tu logo y colores en cada vídeo. Mensual o anual.
-• Group: hasta tres centros, cinco vídeos por centro cada lunes.
+• Group: para grupos y clínicas con varios centros. Escríbenos y lo configuramos contigo.
 
 Condiciones de uso: https://dentvideo.com/terms
 Política de privacidad: https://dentvideo.com/privacy
@@ -415,7 +415,7 @@ DentVideo es un producto de Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** marketing para dentistas (instagram, digital, agencia, curso), publicidad para dentistas (ideas, frases), videos para dentistas, app para dentistas, contenido para dentistas.
 
-**Full description** (2919 / 4000 chars; same text for App Store and Google Play):
+**Full description** (2942 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo crea videos cortos de educación para pacientes de su consultorio dental: cinco cada lunes, con voz, subtítulos y los colores de su clínica. Cada guion se revisa antes de que usted lo vea.
@@ -450,7 +450,7 @@ PLANES
 Antes de suscribirse verá una vista previa en vivo con su logo y sus colores.
 • Starter: cinco videos revisados cada lunes y tarjetas de grabación.
 • Practice: todo lo de Starter, sus propias grabaciones convertidas en clips con subtítulos y su logo y colores en cada video. Mensual o anual.
-• Group: hasta tres sucursales, cinco videos por sucursal cada lunes.
+• Group: para grupos y clínicas con varias sucursales. Escríbenos y lo configuramos contigo.
 
 Términos de uso: https://dentvideo.com/terms
 Aviso de privacidad: https://dentvideo.com/privacy
@@ -481,7 +481,7 @@ DentVideo es un producto de Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** diş kliniği sosyal medya (yönetimi), diş hekimi reklam yasağı / cezası / yönetmeliği, diş kliniği reklam (ajansı, yönetmeliği), diş hekimi instagram, diş hekimi videoları, diş hekimi uygulaması, ağız ve diş sağlığı eğitim videoları.
 
-**Full description** (2859 / 4000 chars; same text for App Store and Google Play):
+**Full description** (2889 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo, diş kliniğiniz için kısa hasta bilgilendirme videoları hazırlar: her pazartesi beş video; seslendirilmiş, altyazılı ve kliniğinizin renklerinde. Her metin siz görmeden önce denetlenir.
@@ -516,7 +516,7 @@ PAKETLER
 Abone olmadan önce logonuz ve renklerinizle canlı bir önizleme görürsünüz.
 • Starter: her pazartesi beş denetlenmiş video ve çekim kartları.
 • Practice: Starter'daki her şey, kendi kayıtlarınızdan altyazılı klipler, her videoda logonuz ve kurumsal renkleriniz. Aylık ya da yıllık.
-• Group: üç şubeye kadar, her şube için her pazartesi beş video.
+• Group: gruplar ve çok şubeli klinikler için. Bize ulaşın, kurulumu sizinle birlikte yapalım.
 
 Kullanım koşulları: https://dentvideo.com/terms
 Gizlilik politikası: https://dentvideo.com/privacy
@@ -547,7 +547,7 @@ DentVideo bir Bulsu Labs ürünüdür.
 
 **Search evidence (Google suggest, Nov 2026):** marketing dentaire, marketing cabinet dentaire, marketing et communication au cabinet dentaire, publicité dentiste, dentiste réseaux sociaux, vidéo présentation cabinet dentaire, application pour dentiste.
 
-**Full description** (3227 / 4000 chars; same text for App Store and Google Play):
+**Full description** (3275 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo crée de courtes vidéos d'information patient pour votre cabinet dentaire : cinq chaque lundi, en voix off, sous-titrées et aux couleurs du cabinet. Chaque script est vérifié avant de vous parvenir.
@@ -582,7 +582,7 @@ FORMULES
 Avant de vous abonner, vous voyez un aperçu en direct avec votre logo et vos couleurs.
 • Starter : cinq vidéos vérifiées chaque lundi et des fiches de tournage.
 • Practice : tout Starter, vos propres enregistrements transformés en extraits sous-titrés, votre logo et vos couleurs dans chaque vidéo. Mensuel ou annuel.
-• Group : jusqu'à trois sites, cinq vidéos par site chaque lundi.
+• Group : pour les groupes et les cabinets à plusieurs sites. Contactez-nous, nous le mettons en place avec vous.
 
 Conditions d'utilisation : https://dentvideo.com/terms
 Politique de confidentialité : https://dentvideo.com/privacy
@@ -613,7 +613,7 @@ DentVideo est un produit de Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** marketing dentisti, marketing studio dentistico, agenzia marketing dentisti, marketing per studi dentistici, video per studio dentistico, video presentazione studio dentistico, video sala attesa studio dentistico, app per studi dentistici, social media dentista, post instagram dentista.
 
-**Full description** (3007 / 4000 chars; same text for App Store and Google Play):
+**Full description** (3031 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 DentVideo crea brevi video informativi per i pazienti del tuo studio dentistico: cinque ogni lunedì, con voce narrante, sottotitoli e i colori dello studio. Ogni testo viene verificato prima che tu lo veda.
@@ -648,7 +648,7 @@ PIANI
 Prima di abbonarti vedi un'anteprima dal vivo con il tuo logo e i tuoi colori.
 • Starter: cinque video verificati ogni lunedì e schede di ripresa.
 • Practice: tutto Starter, le tue registrazioni trasformate in clip sottotitolate, il tuo logo e i tuoi colori in ogni video. Mensile o annuale.
-• Group: fino a tre sedi, cinque video per sede ogni lunedì.
+• Group: per gruppi e studi con più sedi. Contattaci e lo configuriamo insieme a te.
 
 Termini di utilizzo: https://dentvideo.com/terms
 Informativa sulla privacy: https://dentvideo.com/privacy
@@ -679,7 +679,7 @@ DentVideo è un prodotto di Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** marketing odontológico (instagram, regras, agência), marketing para dentistas (instagram, digital), posts para dentistas / posts prontos para dentistas, vídeos para dentistas, vídeos odontologia para pacientes, odontologia vídeos educativos, app para dentistas, publicidade odontológica / manual de publicidade odontológica.
 
-**Full description** (2929 / 4000 chars; same text for App Store and Google Play):
+**Full description** (2962 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 O DentVideo cria vídeos curtos de educação para os pacientes do seu consultório odontológico: cinco toda segunda-feira, com narração, legendas e as cores da sua clínica. Cada roteiro é revisado antes de chegar até você.
@@ -714,7 +714,7 @@ PLANOS
 Antes de assinar, você vê uma prévia ao vivo com o seu logo e as suas cores.
 • Starter: cinco vídeos revisados toda segunda e cartões de gravação.
 • Practice: tudo do Starter, as suas gravações transformadas em clipes legendados e o seu logo e cores em cada vídeo. Mensal ou anual.
-• Group: até três unidades, cinco vídeos por unidade toda segunda.
+• Group: para grupos e clínicas com várias unidades. Fale com a gente e configuramos tudo com você.
 
 Termos de uso: https://dentvideo.com/terms
 Política de privacidade: https://dentvideo.com/privacy
@@ -745,7 +745,7 @@ O DentVideo é um produto da Bulsu Labs.
 
 **Search evidence (Google suggest, Nov 2026):** marketing dentista (instagram, digital, agência), publicidade dentista / publicidade para dentistas, vídeos dentista / vídeos para dentistas, clínica dentária instagram, marketing clínica dentária, app para dentistas.
 
-**Full description** (2948 / 4000 chars; same text for App Store and Google Play):
+**Full description** (2972 / 4000 chars; same text for App Store and Google Play):
 
 ```text
 O DentVideo cria vídeos curtos de informação ao doente para a sua clínica dentária: cinco todas as segundas-feiras, com locução, legendas e as cores da clínica. Cada guião é verificado antes de o ver.
@@ -780,7 +780,7 @@ PLANOS
 Antes de subscrever, vê uma pré-visualização em direto com o seu logótipo e as suas cores.
 • Starter: cinco vídeos verificados todas as segundas e cartões de gravação.
 • Practice: tudo o que o Starter inclui, as suas gravações transformadas em clipes legendados e o seu logótipo e cores em cada vídeo. Mensal ou anual.
-• Group: até três clínicas, cinco vídeos por clínica todas as segundas.
+• Group: para grupos e clínicas com várias unidades. Fale connosco e configuramos tudo consigo.
 
 Termos de utilização: https://dentvideo.com/terms
 Política de privacidade: https://dentvideo.com/privacy

@@ -1,0 +1,155 @@
+import type { Guide } from "../dentvideo";
+import { CALENDAR_PUBLISHED, FDI, TDZ } from "./calendar";
+
+// Redaktionsplan für Deutschland (nicht übersetzt, sondern für den deutschen
+// Markt geschrieben): Termine aus Deutschland, Hinweise zum HWG.
+
+export const CALENDAR_DE: Guide = {
+  locale: "de",
+  slug: "redaktionsplan-social-media-zahnarztpraxis",
+  topic: "content-calendar",
+  category: "ideas",
+  published: CALENDAR_PUBLISHED,
+  updated: CALENDAR_PUBLISHED,
+  reviewed: CALENDAR_PUBLISHED,
+  title: "Redaktionsplan für die Zahnarztpraxis: 52 Wochenthemen für Instagram und TikTok",
+  seoTitle: "Redaktionsplan Zahnarztpraxis: 52 Wochenthemen",
+  seoDescription: "Ein Jahr Social Media für die Zahnarztpraxis: ein Aufklärungsthema pro Woche, Tag der Zahngesundheit und Weltmundgesundheitstag – HWG-tauglich.",
+  description: "Redaktionsplan für Zahnarztpraxen: 52 Wochenthemen für Instagram, TikTok und YouTube Shorts, feste Termine wie der Tag der Zahngesundheit und was nicht hineingehört.",
+  h1: "Redaktionsplan für die Zahnarztpraxis: 52 Wochenthemen",
+  intro:
+    "Ein Redaktionsplan für die Zahnarztpraxis ist eine Liste mit einem Aufklärungsthema pro Woche, die ein Quartal im Voraus steht und sich an festen Terminen wie dem Tag der Zahngesundheit am 25. September orientiert. Hier finden Sie 52 Wochenthemen für Instagram, TikTok und YouTube Shorts. Jedes beantwortet eine Frage, die Patientinnen und Patienten tatsächlich stellen – ohne Rabatte, Patientenstimmen oder Vorher-Nachher-Bilder.",
+  sections: [
+    {
+      heading: "Wie plant eine Zahnarztpraxis ein Jahr Social Media?",
+      paragraphs: [
+        "Planen Sie Themen, keine einzelnen Posts. Aus einem Wochenthema („empfindliche Zähne“, „Sportmundschutz“) werden ein kurzes Video, ein Karussell und eine Story-Frage, und im Team ist klar, was diese Woche kommt. Die meisten Praxisprofile schlafen ein, weil sich niemand für diese Frage zuständig fühlt.",
+        "Ein Ablauf, der auch im kleinen Team funktioniert:",
+      ],
+      ordered: true,
+      list: [
+        "Einmal pro Quartal die nächsten 13 Wochen aus dem Plan übernehmen und Themen zu Leistungen streichen, die Ihre Praxis nicht anbietet.",
+        "Fragen einsetzen, die Patienten im letzten Quartal am Behandlungsstuhl gestellt haben. Echte Fragen schlagen jede Liste.",
+        "Festlegen, wer aufnimmt und wer freigibt. Jede fachliche Aussage sollte vor dem Posten von der Zahnärztin oder dem Zahnarzt freigegeben werden.",
+        "In Blöcken drehen: 20 Minuten reichen für kurze Antworten auf vier Wochen.",
+        "Festhalten, was wann mit welchem Wortlaut gepostet wurde. Bei Rückfragen der Kammer oder einer Abmahnung hilft diese Dokumentation.",
+      ],
+    },
+    {
+      heading: "Welche festen Termine gehören in den Plan?",
+      paragraphs: [
+        "Aktionstage geben einem Post einen Anlass und lassen sich gut vorplanen. Nutzen Sie die Termine anerkannter Organisationen und prüfen Sie das aktuelle Motto auf deren Seiten:",
+      ],
+      table: {
+        caption: "Wiederkehrende Termine für Zahnarztpraxen in Deutschland",
+        columns: ["Wann", "Anlass", "Veranstalter"],
+        rows: [
+          ["20. März", "Weltmundgesundheitstag (World Oral Health Day)", "FDI World Dental Federation"],
+          ["März/April", "Ostern: Süßigkeiten und Zahnpflege", "—"],
+          ["August/September (je nach Bundesland)", "Schulanfang: Pausenbrot, Getränke, Zahnspangen-Check", "—"],
+          ["25. September", "Tag der Zahngesundheit (2026: „Gesund beginnt im Mund – Kau dich fit!“)", "Aktionskreis Tag der Zahngesundheit, u. a. mit der Bundeszahnärztekammer"],
+          ["Dezember", "Advent und Feiertage: Plätzchen, Nüsse, Notdienst", "—"],
+        ],
+        note: "Termine und Mottos ändern sich; prüfen Sie sie auf den unter „Quellen“ verlinkten Seiten.",
+      },
+    },
+    {
+      heading: "Woche 1–13 (Januar bis März): Routinen und Kinderzähne",
+      paragraphs: ["Im Januar fangen Menschen neue Gewohnheiten an; im März kommt der Weltmundgesundheitstag:"],
+      list: [
+        "Woche 1 – Zähneputzen: zwei Minuten, zweimal täglich, und wie man am Zahnfleischrand putzt.",
+        "Woche 2 – Zahnseide oder Interdentalbürstchen: was zu welchen Zwischenräumen passt, am Modell gezeigt.",
+        "Woche 3 – Zahnfleischbluten: ein Grund für einen Kontrolltermin, nicht fürs Aufhören mit dem Putzen.",
+        "Woche 4 – Was bei einer Kontrolle passiert, Schritt für Schritt.",
+        "Woche 5 – Wann sollte ein Kind zum ersten Mal zur Zahnärztin?",
+        "Woche 6 – Wie viel Zahnpasta für Kinder? Was die aktuellen Empfehlungen je nach Alter sagen.",
+        "Woche 7 – Zwischenmahlzeiten und Saftschorlen: warum die Häufigkeit zählt.",
+        "Woche 8 – Fissurenversiegelung: was das ist und für wen sie infrage kommt.",
+        "Woche 9 – Empfindliche Zähne: häufige Ursachen und was meist hilft.",
+        "Woche 10 – Mundschutz beim Sport: individuell angefertigt oder aus dem Handel.",
+        "Woche 11 – Mundtrockenheit: Medikamente als Ursache und warum das für die Zähne zählt.",
+        "Woche 12 – Weltmundgesundheitstag (20. März): was Mundgesundheit mit der allgemeinen Gesundheit zu tun hat – und was nicht.",
+        "Woche 13 – Das Team stellt sich vor: wer in der Praxis was macht.",
+      ],
+    },
+    {
+      heading: "Woche 14–26 (April bis Juni): Behandlungen verständlich erklärt",
+      paragraphs: ["Das Frühjahr eignet sich, um Behandlungen in Ruhe zu erklären, bevor jemand sie braucht:"],
+      list: [
+        "Woche 14 – Nach Ostern: Süßes zu den Mahlzeiten statt den ganzen Tag über.",
+        "Woche 15 – Elektrische oder Handzahnbürste: Technik ist wichtiger als das Gerät.",
+        "Woche 16 – Weisheitszähne: wann sie Aufmerksamkeit brauchen und wann nicht.",
+        "Woche 17 – Säure und Zahnschmelz: Limonade, Zitrus und warum man danach nicht sofort putzt.",
+        "Woche 18 – Bleaching: was man erwarten kann und für wen es nicht geeignet ist.",
+        "Woche 19 – Mundgeruch: häufige Ursachen und wann man zur Zahnärztin sollte.",
+        "Woche 20 – Professionelle Zahnreinigung: was dabei passiert.",
+        "Woche 21 – Angst vor dem Zahnarzt: was Sie uns sagen können und was wir tun können.",
+        "Woche 22 – Wurzelkanalbehandlung ohne Mythen erklärt.",
+        "Woche 23 – Füllung oder Krone: warum manche Zähne mehr brauchen.",
+        "Woche 24 – Rauchen, Dampfen und Zahnfleisch.",
+        "Woche 25 – Schwangerschaft und Zahnfleisch: warum eine Kontrolle sinnvoll ist.",
+        "Woche 26 – Fragenwoche: drei Fragen beantworten, die Patienten in diesem Quartal gestellt haben.",
+      ],
+    },
+    {
+      heading: "Woche 27–39 (Juli bis September): Urlaub, Schulanfang, Tag der Zahngesundheit",
+      paragraphs: ["Im Sommer geht es um Reisen und Sport, im September um den Schulalltag und den Tag der Zahngesundheit:"],
+      list: [
+        "Woche 27 – Ausgeschlagener Zahn: was in den ersten Minuten zu tun ist und warum Tempo zählt.",
+        "Woche 28 – Zahnpflege im Urlaub und was bei Zahnschmerzen im Ausland hilft.",
+        "Woche 29 – Eiswürfel, Kugelschreiber, Flaschen öffnen: Angewohnheiten, die Zähne absplittern lassen.",
+        "Woche 30 – Zähneknirschen: Anzeichen und was eine Aufbissschiene macht.",
+        "Woche 31 – Implantate: der Ablauf Schritt für Schritt.",
+        "Woche 32 – Zahnlücke schließen: Implantat, Brücke oder Prothese, in einfachen Worten.",
+        "Woche 33 – Durchsichtige Schienen (Aligner): wie sie Zähne bewegen und was das Tragen bedeutet.",
+        "Woche 34 – Schulanfang: Pausenbrot und Getränke, die Zähne schonen.",
+        "Woche 35 – Wann ist eine kieferorthopädische Untersuchung bei Kindern sinnvoll?",
+        "Woche 36 – Putzen mit fester Zahnspange.",
+        "Woche 37 – Parodontitis: von der Zahnfleischentzündung zur Parodontitis, und warum frühe Behandlung zählt.",
+        "Woche 38 – Tag der Zahngesundheit (25. September): das Motto des Jahres aufgreifen, 2026 etwa die Kaufähigkeit.",
+        "Woche 39 – Blick hinter die Kulissen: wie Instrumente aufbereitet und sterilisiert werden.",
+      ],
+    },
+    {
+      heading: "Woche 40–52 (Oktober bis Dezember): Vorsorge und Feiertage",
+      paragraphs: ["Zum Jahresende stehen Vorsorge, Süßes und praktische Hinweise im Vordergrund:"],
+      list: [
+        "Woche 40 – Fluorid: was es bewirkt und wo es vorkommt.",
+        "Woche 41 – Mundspülungen: wann sie sinnvoll sind und wann nicht.",
+        "Woche 42 – Diabetes und Zahnfleisch.",
+        "Woche 43 – Prothesen: tägliche Reinigung und Pflege über Nacht.",
+        "Woche 44 – Zahnpflege bei älteren Angehörigen und in der Pflege.",
+        "Woche 45 – Röntgenbilder beim Zahnarzt: wozu sie dienen und wie oft sie empfohlen werden.",
+        "Woche 46 – Anzeichen für einen Zahnriss.",
+        "Woche 47 – Zahnschmerzen vor dem Termin: was man zu Hause sinnvoll tun kann.",
+        "Woche 48 – Advent: Plätzchen, Nüsse und harte Krusten.",
+        "Woche 49 – Öffnungszeiten über die Feiertage und der zahnärztliche Notdienst.",
+        "Woche 50 – Was bei einem Termin in der Prophylaxe passiert.",
+        "Woche 51 – Die Fragen des Jahres: ein Rückblick auf das, was Patienten am häufigsten wissen wollten.",
+        "Woche 52 – Erinnerung an die Kontrolle im neuen Jahr.",
+      ],
+    },
+    {
+      heading: "Was gehört nicht in den Redaktionsplan?",
+      paragraphs: [
+        "Aktionstage verleiten zu Posts, die gegen das Werberecht verstoßen: ein „Zahngesundheitstag-Rabatt“, ein Gewinnspiel, ein Karussell mit Bewertungen. Halten Sie den Plan aufklärend. Lassen Sie Preise und Aktionen, Patientenstimmen, Vorher-Nachher-Bilder und Wörter wie „schmerzfrei“, „garantiert“ oder „dauerhaft“ weg. Werbegaben und Rabatte sind nach § 7 HWG nur in engen Ausnahmen zulässig; Einzelheiten im Ratgeber zum [Heilmittelwerbegesetz für Zahnärzte](guide:heilmittelwerbegesetz-zahnarzt-social-media).",
+        "Fachliche Richtigkeit ist genauso wichtig wie das Werberecht. Jedes Thema oben ist allgemeine Aufklärung, aber die Formulierung verantwortet die Praxis: vorsichtig („meist“, „bei den meisten Patienten“) und mit dem Hinweis, dass die Zahnärztin im Einzelfall berät.",
+      ],
+    },
+    {
+      heading: "Welches Format passt zu welcher Woche?",
+      paragraphs: [
+        "Drei Formate decken fast alles ab. Eine 20–40 Sekunden lange Antwort der Zahnärztin vor der Kamera passt zu Fragen („Schadet Bleaching dem Zahnschmelz?“). Ein vertontes Erklärvideo mit Untertiteln passt zu Behandlungsabläufen (Implantat, Wurzelbehandlung). Ein kurzer Clip hinter den Kulissen passt zu Team- und Hygienewochen. Wie man solche Videos dreht, steht in [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen); weitere Einzelideen in [Social-Media-Ideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen).",
+        "[DentVideo](landing:) macht aus einem solchen Plan fünf vertonte, untertitelte Videos pro Woche in Ihrer Sprache und Ihren Farben, prüft jedes Skript auf häufig eingeschränkte Werbeaussagen und fachliche Richtigkeit und wartet auf Ihre Freigabe. [Sehen Sie eine Live-Vorschau mit Ihrem Logo](start:).",
+      ],
+    },
+  ],
+  faq: [
+    { q: "Wie oft sollte eine Zahnarztpraxis auf Instagram posten?", a: "Regelmäßigkeit zählt mehr als Menge. Ein bis drei kurze Aufklärungsbeiträge pro Woche sind für die meisten Praxen machbar; der Plan liefert ein Thema pro Woche, aus dem ein oder mehrere Beiträge werden." },
+    { q: "Welche Aktionstage sind für Zahnarztpraxen relevant?", a: "Vor allem der Weltmundgesundheitstag am 20. März und der Tag der Zahngesundheit am 25. September, dazu saisonale Anlässe wie Ostern, Schulanfang und die Adventszeit." },
+    { q: "Darf ich zum Tag der Zahngesundheit eine Aktion anbieten?", a: "Besser nicht. Rabatte, Gutscheine und Gewinnspiele sind nach § 7 HWG nur in engen Ausnahmen zulässig und machen aus einem Aufklärungspost Werbung. Bieten Sie stattdessen Information an." },
+    { q: "Kann ich dieselben Themen auf TikTok und YouTube Shorts posten?", a: "Ja. Ein senkrechtes, untertiteltes Video von 20 bis 60 Sekunden funktioniert auf allen drei Plattformen; passen Sie nur Beitragstext und Hashtags an." },
+    { q: "Muss ich jedes Thema übernehmen?", a: "Nein. Posten Sie nur zu Leistungen, die Ihre Praxis anbietet, und ersetzen Sie Themen durch Fragen Ihrer eigenen Patienten." },
+  ],
+  sources: [FDI, TDZ],
+};

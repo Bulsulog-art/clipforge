@@ -545,7 +545,7 @@ Add a reference URL (the independent article) to the main statements.
 **G2 / Capterra / OMR / SaaSHub**
 - One-liner: the short form above.
 - Description (en): the Crunchbase long description plus:
-  > Plans: Starter, Practice (adds your own recordings turned into clips) and Group (up to three locations). A live
+  > Plans: Starter, Practice (adds your own recordings turned into clips) and Group (for groups and multi-location practices: contact us, custom pricing). A live
   > preview of your branded video is shown before you pay.
 - Key features:
   1. five videos every Monday;

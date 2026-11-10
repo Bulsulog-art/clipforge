@@ -5,9 +5,9 @@ import { ALTERNATE_NAMES, ENTITY, PUBLISHER_NAME, PUBLISHER_URL, SAME_AS, VIDEO_
 import { SOLUTIONS, solutionPath, solutionTranslations, type SolutionPage } from "@/content/solutions";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
-import { plainText, translationsOf } from "@/content/guides/text";
+import { plainText, reviewedDate, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
-import { DV_PRICES_USD, DV_TIERS } from "./billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 
 /**
  * Metadata, structured data and sitemap entries for the guide library, the
@@ -42,6 +42,16 @@ export function organizationNode() {
   return { "@type": "Organization", "@id": ORG_ID, name: PUBLISHER_NAME, url: PUBLISHER_URL };
 }
 
+/** The guides' author and reviewer: a team at Bulsu Labs (no invented individual credentials). */
+export function editorialTeam(locale: Locale) {
+  return {
+    "@type": "Organization",
+    name: "DentVideo editorial team",
+    url: absoluteUrl(ABOUT_PATH[locale]),
+    parentOrganization: { "@id": ORG_ID },
+  };
+}
+
 /**
  * The site itself, so search engines can show "DentVideo" as the site name
  * and know the brand's other spellings ("Dent Video").
@@ -62,7 +72,8 @@ export function websiteNode(locale: Locale) {
 
 const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
 
-const monthlyPrices = () => DV_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
+/** Self-serve monthly list prices only: Group is "Contact us" and is not an offer. */
+const monthlyPrices = () => DV_SELF_SERVE_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
 
 export function softwareNode(locale: Locale) {
   const e = ENTITY[locale];
@@ -210,11 +221,22 @@ export function guideJsonLd(g: Guide) {
       image: absoluteUrl(guideOgImagePath(g)),
       ...(g.published ? { datePublished: g.published } : {}),
       ...(g.updated || g.published ? { dateModified: g.updated ?? g.published } : {}),
-      author: { "@type": "Organization", name: "DentVideo", url: absoluteUrl(LANDING_PATH[g.locale]) },
+      author: editorialTeam(g.locale),
       publisher: organizationNode(),
       about: { "@id": softwareId() },
       isPartOf: { "@type": "CollectionPage", "@id": absoluteUrl(GUIDES_INDEX_PATH[g.locale]), name: ui.index.h1 },
       ...(g.sources?.length ? { citation: g.sources.map((s) => ({ "@type": "CreativeWork", name: s.label, url: s.url })) } : {}),
+    },
+    {
+      // The page around the article: when its facts were last checked, and by whom.
+      "@type": "WebPage",
+      "@id": url,
+      url,
+      name: g.h1,
+      inLanguage: g.locale,
+      mainEntity: { "@id": `${url}#article` },
+      ...(reviewedDate(g) ? { lastReviewed: reviewedDate(g) } : {}),
+      reviewedBy: editorialTeam(g.locale),
     },
     faqNode(g.faq, g.locale),
     breadcrumb([
@@ -402,6 +424,8 @@ export function solutionJsonLd(p: SolutionPage) {
         inLanguage: p.locale,
         datePublished: p.published,
         dateModified: p.updated ?? p.published,
+        lastReviewed: reviewedDate(p),
+        reviewedBy: editorialTeam(p.locale),
         isPartOf: { "@id": websiteId() },
         about: { "@id": softwareId() },
         publisher: { "@id": ORG_ID },

@@ -3,6 +3,8 @@ import {
   applyTransition,
   buildDvCheckout,
   canMakeVideos,
+  DV_PRICES_USD,
+  isSelfServeTier,
   dvAvailablePlans,
   dvPlanForProduct,
   dvProductId,
@@ -36,13 +38,24 @@ describe("DentVideo products", () => {
     expect(dvPlanForProduct("pdt_clipforge", env)).toBeNull();
   });
 
-  it("offers only plans with a product and a price", () => {
+  it("offers only self-serve plans with a product and a price (Group is Contact us)", () => {
     expect(dvAvailablePlans({}).map((p) => `${p.tier}:${p.interval}:${p.priceUsd}`)).toEqual([
       "starter:month:49",
       "practice:month:99",
       "practice:year:990",
-      "group:month:279",
     ]);
+    // Even if a Group yearly product were configured, it is never offered.
+    const env = { DENTVIDEO_DODO_PRODUCT_GROUP_YEARLY: "pdt_group_year" };
+    expect(dvAvailablePlans(env).some((p) => p.tier === "group")).toBe(false);
+  });
+
+  it("Group has no public price but its product id still maps for a stray payment", () => {
+    expect(DV_PRICES_USD.group).toEqual({});
+    expect(isSelfServeTier("group")).toBe(false);
+    expect(isSelfServeTier("starter") && isSelfServeTier("practice")).toBe(true);
+    expect(dvPlanForProduct("pdt_0NrVai5ZNwqFoSZbcfV8S", {})).toEqual({ tier: "group", interval: "month" });
+    expect(isDentvideoEvent({ product_id: "pdt_0NrVai5ZNwqFoSZbcfV8S" }, {})).toBe(true);
+    expect(dvTransition("subscription.active", { subscription_id: "sub_g", product_id: "pdt_0NrVai5ZNwqFoSZbcfV8S" }, {})).toMatchObject({ plan: "active", tier: "group" });
   });
 
   it("founding offer is open unless switched off", () => {
@@ -72,7 +85,7 @@ describe("buildDvCheckout", () => {
   it("no founding code when the offer is closed, or on other plans", () => {
     const closed = buildDvCheckout({ ...base, tier: "practice", interval: "month" }, { ...ENV, DENTVIDEO_FOUNDING_OFFER: "0" });
     expect(closed.ok && closed.body.discount_codes).toBeFalsy();
-    for (const [tier, interval] of [["starter", "month"], ["group", "month"], ["practice", "year"]] as const) {
+    for (const [tier, interval] of [["starter", "month"], ["practice", "year"]] as const) {
       const r = buildDvCheckout({ ...base, tier, interval }, ENV);
       expect(r.ok, `${tier}/${interval}`).toBe(true);
       if (r.ok) {
@@ -87,8 +100,8 @@ describe("buildDvCheckout", () => {
     const r = buildDvCheckout({ ...base, tier: "practice", interval: "month", code: "  welcome10 " }, ENV);
     expect(r.ok && r.body.discount_codes).toEqual(["WELCOME10"]);
     expect(r.ok && r.autoDiscount).toBe(false);
-    const g = buildDvCheckout({ ...base, tier: "group", interval: "month", code: "group5" }, ENV);
-    expect(g.ok && g.body.discount_codes).toEqual(["GROUP5"]);
+    const s = buildDvCheckout({ ...base, tier: "starter", interval: "month", code: "start5" }, ENV);
+    expect(s.ok && s.body.discount_codes).toEqual(["START5"]);
   });
 
   it("ignores implausible codes and unknown locales; uses the configured founding code", () => {
@@ -100,6 +113,13 @@ describe("buildDvCheckout", () => {
 
   it("refuses plans that are not sold", () => {
     expect(buildDvCheckout({ ...base, tier: "starter", interval: "year" }, ENV)).toEqual({ ok: false, reason: "unavailable" });
+  });
+
+  it("refuses Group, monthly or yearly, even with a code or a configured product: it is Contact us", () => {
+    const env = { ...ENV, DENTVIDEO_DODO_PRODUCT_GROUP_YEARLY: "pdt_group_year" };
+    for (const interval of ["month", "year"] as const) {
+      expect(buildDvCheckout({ ...base, tier: "group", interval, code: "group5" }, env)).toEqual({ ok: false, reason: "contact_sales" });
+    }
   });
 
   it("falls back to the app URL when the DentVideo domain is not set", () => {

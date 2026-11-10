@@ -1,7 +1,7 @@
-import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor } from "@/content/dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
 import { ENTITY, PUBLISHER_NAME } from "@/content/guides/entity";
-import { guideMarkdown, solutionMarkdown } from "@/content/guides/text";
-import { SOLUTIONS, solutionPath } from "@/content/solutions";
+import { guideMarkdown, reviewedDate, solutionMarkdown } from "@/content/guides/text";
+import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { dentvideoPublicUrl } from "./host";
 
@@ -29,24 +29,53 @@ function factsBlock(): string[] {
   ];
 }
 
+/**
+ * How the guides are written, so an answer engine can judge what it quotes:
+ * who writes them, how they are dated and sourced, and what they never contain.
+ */
+function editorialBlock(): string[] {
+  return [
+    "## Editorial policy (guides and /videos pages)",
+    `- Written and reviewed by the DentVideo editorial team at ${PUBLISHER_NAME}, a two-person software company. No page claims a named clinical or legal reviewer.`,
+    "- Every page shows a \"last reviewed\" date; rules guides link the official texts they rely on (laws, regulators, professional bodies) in a Sources list.",
+    "- Rules guides are general information, not legal advice. They are hedged (\"usually\", \"check your regulator\") because rules differ by country and change.",
+    "- Guides contain no prices, no invented statistics, no patient testimonials and no promised patient results.",
+    "- DentVideo publishes no customer reviews or testimonials: it is new, and none are invented.",
+    "",
+  ];
+}
+
+/** One language's pages: landing, About, product/comparison pages, guides hub and every guide. */
+function languageIndex(l: Locale): string[] {
+  const lines = [
+    `## ${LANGUAGE_NAME[l]} (${l})`,
+    `- [DentVideo — ${LANGUAGE_NAME[l]}](${abs(LANDING_PATH[l])}): landing page`,
+    `- [${ENTITY[l].h1}](${abs(ABOUT_PATH[l])}): ${ENTITY[l].definition}`,
+    ...solutionsFor(l).map((p) => `- [${p.h1}](${abs(solutionPath(p))}): ${p.seoDescription}`),
+  ];
+  if (GUIDE_HUB_LOCALES.includes(l)) {
+    lines.push(`- [${GUIDE_UI[l].index.h1}](${abs(GUIDES_INDEX_PATH[l])}): ${GUIDE_UI[l].index.description}`);
+    for (const g of guidesFor(l)) {
+      const reviewed = reviewedDate(g);
+      lines.push(`- [${g.h1}](${abs(guidePath(g))}): ${g.description}${reviewed ? ` (last reviewed ${reviewed})` : ""}`);
+    }
+  }
+  lines.push("");
+  return lines;
+}
+
 export function llmsTxt(): string {
   const lines = [
     ...factsBlock(),
-    "## Pages",
-    ...LOCALES.map((l) => `- [DentVideo — ${LANGUAGE_NAME[l]}](${abs(LANDING_PATH[l])}) (${l})`),
-    ...LOCALES.map((l) => `- [${ENTITY[l].h1}](${abs(ABOUT_PATH[l])}) (${l}): ${ENTITY[l].definition}`),
-    "",
+    ...editorialBlock(),
     "## What DentVideo makes, and how it compares",
     ...SOLUTIONS.map((p) => `- [${p.h1}](${abs(solutionPath(p))}) (${p.locale}): ${p.seoDescription}`),
     "",
-    ...GUIDE_HUB_LOCALES.flatMap((l) => [
-      `## Guides (${LANGUAGE_NAME[l]})`,
-      `- [${GUIDE_UI[l].index.h1}](${abs(GUIDES_INDEX_PATH[l])}): ${GUIDE_UI[l].index.description}`,
-      ...guidesFor(l).map((g) => `- [${g.h1}](${abs(guidePath(g))}): ${g.description}`),
-      "",
-    ]),
+    "# Pages by language",
+    "",
+    ...LOCALES.flatMap(languageIndex),
     "## Optional",
-    `- [Full text of every guide](${abs("/dentvideo/llms-full.txt")})`,
+    `- [Full text of every guide and product page](${abs("/dentvideo/llms-full.txt")})`,
     "",
   ];
   return lines.join("\n");
@@ -55,7 +84,7 @@ export function llmsTxt(): string {
 export function llmsFullTxt(): string {
   const lines = [
     ...factsBlock(),
-    `Publisher: ${PUBLISHER_NAME}. Guides are general information, not legal advice; rules differ by country and change.`,
+    ...editorialBlock(),
     "",
     ...LOCALES.flatMap((l) => [`# ${ENTITY[l].h1}`, "", ENTITY[l].definition, "", ...ENTITY[l].facts.map((f) => `- ${f.label}: ${f.value}`), ""]),
     "# What DentVideo makes, and how it compares",

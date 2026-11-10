@@ -4,6 +4,7 @@ import { ArrowRight, ChevronRight } from "lucide-react";
 import { LANDING_PATH, dirOf, type Locale } from "@/content/dentvideo";
 import { parseInline, resolveTarget } from "@/content/guides/text";
 import { GUIDE_UI } from "@/content/guides/ui";
+import type { SectionTable } from "@/content/guides/types";
 import { dvHref } from "@/lib/dentvid/host";
 import { DvIcon } from "./mark";
 
@@ -87,6 +88,90 @@ export function HtmlLang({ locale }: { locale: Locale }) {
         __html: `document.documentElement.lang=${JSON.stringify(locale)};document.documentElement.dir=${JSON.stringify(dirOf(locale))}`,
       }}
     />
+  );
+}
+
+/**
+ * A section table: stacked cards on phones (no sideways scrolling), a real
+ * table with row and column headers from the sm breakpoint up.
+ */
+export function SectionTableView({ table, locale }: { table: SectionTable; locale: Locale }) {
+  return (
+    <figure className="mt-6">
+      {/* Phones: one card per row with each value under its column heading (no sideways scrolling); wider screens get the table. */}
+      <div className="space-y-3 sm:hidden">
+        <p className="text-sm font-semibold text-dv-ink">{table.caption}</p>
+        {table.rows.map((r, i) => (
+          <dl key={i} className="rounded-2xl bg-white p-4 ring-1 ring-dv-line">
+            <dt className="font-semibold leading-snug text-dv-ink">
+              <RichText text={r[0]} locale={locale} />
+            </dt>
+            {r.slice(1).map((cell, j) => (
+              <dd key={j} className="mt-2 text-[0.9375rem] leading-snug text-[#33423f]">
+                <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{table.columns[j + 1]}</span>
+                <RichText text={cell} locale={locale} />
+              </dd>
+            ))}
+          </dl>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto rounded-2xl bg-white ring-1 ring-dv-line sm:block">
+        <table className="w-full min-w-[32rem] border-collapse text-start text-[0.9375rem] leading-snug">
+          <caption className="px-4 pb-1 pt-4 text-start text-sm font-semibold text-dv-ink sm:px-5">{table.caption}</caption>
+          <thead>
+            <tr className="border-b border-dv-line">
+              {table.columns.map((c) => (
+                <th key={c} scope="col" className="px-4 py-3 text-start font-semibold text-dv-ink sm:px-5">
+                  {c}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((r, i) => (
+              <tr key={i} className="border-b border-dv-line last:border-0 align-top">
+                {r.map((cell, j) =>
+                  j === 0 ? (
+                    <th key={j} scope="row" className="px-4 py-3 text-start font-medium text-dv-ink sm:px-5">
+                      <RichText text={cell} locale={locale} />
+                    </th>
+                  ) : (
+                    <td key={j} className="px-4 py-3 text-[#33423f] sm:px-5">
+                      <RichText text={cell} locale={locale} />
+                    </td>
+                  ),
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {table.note && (
+        <figcaption className="mt-3 text-sm leading-relaxed text-dv-muted">
+          <RichText text={table.note} locale={locale} />
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+/**
+ * Who stands behind the page and when its facts were last checked. A team
+ * byline only: DentVideo has no named clinical reviewer yet, and no page may
+ * invent credentials.
+ */
+export function Byline({ locale, reviewed }: { locale: Locale; reviewed?: string }) {
+  const ui = GUIDE_UI[locale];
+  return (
+    <span>
+      {ui.byline}
+      {reviewed && (
+        <>
+          {" · "}
+          {ui.lastReviewed} <time dateTime={reviewed}>{formatDate(reviewed, locale)}</time>
+        </>
+      )}
+    </span>
   );
 }
 
