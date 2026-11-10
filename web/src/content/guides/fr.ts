@@ -4,8 +4,9 @@ import type { Guide } from "../dentvideo";
 // aujourd'hui ; pas de chiffres inventés ni de prix ; règles déontologiques
 // présentées avec prudence et sources officielles.
 
-const LEGIFRANCE = { label: "Légifrance — Code de la santé publique, art. R. 4127-215 et suivants (décret n° 2020-1658 du 22 décembre 2020)", url: "https://www.legifrance.gouv.fr/" };
-const ONCD = { label: "Ordre national des chirurgiens-dentistes — recommandations sur la communication professionnelle", url: "https://www.ordre-chirurgiens-dentistes.fr/" };
+const LEGIFRANCE = { label: "Légifrance — Code de la santé publique, art. R. 4127-215 et suivants (décret n° 2020-1658 du 22 décembre 2020)", url: "https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072665/LEGISCTA000006190548/2021-07-13/" };
+const R4127_215_1 = { label: "Légifrance — Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
+const ONCD = { label: "Ordre national des chirurgiens-dentistes — Communication professionnelle des chirurgiens-dentistes (recommandations du 6 mai 2021, modifiées le 9 décembre 2021 et le 24 mars 2023)", url: "https://www.ordre-chirurgiens-dentistes.fr/pour-le-chirurgien-dentiste/communication-professionnelle-des-chirurgiens-dentistes/" };
 const CNIL = { label: "CNIL — données de santé et droit à l'image", url: "https://www.cnil.fr/" };
 const RGPD = { label: "Règlement général sur la protection des données (RGPD), art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
 const DGCCRF = { label: "DGCCRF — influence commerciale (loi n° 2023-451 du 9 juin 2023)", url: "https://www.economie.gouv.fr/dgccrf" };
@@ -123,7 +124,8 @@ export const GUIDES_FR: Guide[] = [
     slug: "communication-chirurgien-dentiste-reseaux-sociaux",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Communication du chirurgien-dentiste sur les réseaux sociaux : ce que permet la déontologie",
     seoTitle: "Réseaux sociaux du dentiste : ce que dit le code",
     seoDescription: "Ce qu'un chirurgien-dentiste peut publier sur Instagram depuis le décret de 2020 : information loyale, interdits, témoignages, influence et checklist.",
@@ -133,14 +135,28 @@ export const GUIDES_FR: Guide[] = [
       "Depuis le décret du 22 décembre 2020, un chirurgien-dentiste peut communiquer au public, y compris sur les réseaux sociaux, des informations loyales, honnêtes et utiles sur son exercice. Il ne peut toujours pas exercer la profession comme un commerce : pas de témoignages de tiers, pas de comparaison avec d'autres praticiens, pas de promesse ni d'incitation à des soins inutiles.",
     sections: [
       {
-        heading: "Ce qui a changé en 2020",
+        heading: "Un dentiste peut-il faire de la publicité depuis 2020 ?",
         paragraphs: [
           "Jusqu'en 2020, le code de déontologie interdisait aux chirurgiens-dentistes tout procédé direct ou indirect de publicité. Le décret n° 2020-1658 du 22 décembre 2020 a supprimé cette interdiction générale et introduit un droit à la communication. L'article R. 4127-215 du Code de la santé publique maintient en revanche que la profession ne doit pas être pratiquée comme un commerce.",
           "En substance, le chirurgien-dentiste peut désormais diffuser, par tout moyen dont un site ou un compte Instagram, des informations sur ses compétences, son parcours, ses pratiques et les conditions de son exercice, à condition qu'elles soient loyales, honnêtes et vérifiables.",
         ],
       },
       {
-        heading: "Ce que vous pouvez publier sans difficulté",
+        heading: "Que dit l'article R. 4127-215-1 ?",
+        paragraphs: [
+          "L'article R. 4127-215-1, créé par le décret de 2020 et en vigueur depuis le 25 décembre 2020, est le texte à garder sous les yeux. Il comporte trois paragraphes :",
+        ],
+        list: [
+          "I. Le chirurgien-dentiste peut communiquer au public, par tout moyen, y compris sur un site internet, des informations de nature à contribuer au libre choix du praticien par le patient : ses compétences, ses pratiques professionnelles, son parcours et les conditions de son exercice. Cette communication est loyale et honnête, ne fait pas appel à des témoignages de tiers, ne repose pas sur des comparaisons avec d'autres praticiens et n'incite pas à un recours inutile à des actes.",
+          "II. Il peut aussi diffuser des informations à visée éducative ou sanitaire, scientifiquement étayées, avec prudence et sans présenter comme acquises des hypothèses non confirmées.",
+          "III. Ces communications tiennent compte des recommandations émises par le Conseil national de l'Ordre.",
+        ],
+        after: [
+          "Les recommandations de l'Ordre ont été adoptées le 6 mai 2021, puis modifiées le 9 décembre 2021 et le 24 mars 2023. Elles précisent par exemple qu'un praticien non spécialiste qui limite son exercice à une discipline doit éviter toute ambiguïté avec les spécialistes qualifiés. Relisez la version en vigueur sur le site de l'Ordre avant une campagne.",
+        ],
+      },
+      {
+        heading: "Que peut-on publier sans difficulté ?",
         paragraphs: ["Ces contenus relèvent clairement de l'information loyale et utile :"],
         list: [
           "Des réponses prudentes aux questions fréquentes des patients",
@@ -152,7 +168,7 @@ export const GUIDES_FR: Guide[] = [
         ],
       },
       {
-        heading: "Les limites posées par le code",
+        heading: "Quelles limites pose le code de déontologie ?",
         paragraphs: ["Les textes et les recommandations de l'Ordre convergent sur plusieurs limites ; vérifiez le libellé exact sur Légifrance :"],
         list: [
           "Pas de témoignages de tiers : avis, remerciements ou récits de patients mis en avant.",
@@ -164,7 +180,7 @@ export const GUIDES_FR: Guide[] = [
         ],
       },
       {
-        heading: "Formuler sans promettre",
+        heading: "Comment formuler sans promettre ?",
         paragraphs: ["Presque toute information peut se dire sans promesse :"],
         list: [
           "Au lieu de « implants sans douleur » : « L'intervention se fait sous anesthésie locale ; la plupart des patients ressentent ensuite une gêne légère quelques jours. »",
@@ -214,7 +230,7 @@ export const GUIDES_FR: Guide[] = [
       { q: "Les règles s'appliquent-elles aussi à mon compte personnel ?", a: "Dès que vous parlez de votre exercice ou de soins, oui. Le code de déontologie s'applique au praticien, quel que soit le compte utilisé." },
       { q: "Ce guide est-il un conseil juridique ?", a: "Non. C'est une information générale ; les textes évoluent. Pour un cas précis, adressez-vous à votre conseil départemental de l'Ordre ou à un avocat." },
     ],
-    sources: [LEGIFRANCE, ONCD, DGCCRF],
+    sources: [R4127_215_1, LEGIFRANCE, ONCD, DGCCRF],
   },
   {
     locale: "fr",

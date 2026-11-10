@@ -6,12 +6,15 @@ import type { Guide } from "../dentvideo";
 
 const HWG = { label: "Heilmittelwerbegesetz (HWG) — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
 const UWG = { label: "Gesetz gegen den unlauteren Wettbewerb (UWG) — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/uwg_2004/" };
-const BZAEK = { label: "Bundeszahnärztekammer — Musterberufsordnung (MBO-Z) und Landeszahnärztekammern", url: "https://www.bzaek.de/" };
+const BZAEK = { label: "Bundeszahnärztekammer — Musterberufsordnung (MBO-Z), Abschnitt „Berufliche Kommunikation“ (§§ 20–22)", url: "https://www.bzaek.de/recht/musterberufsordnung/berufliche-kommunikation.html" };
+const HWG11 = { label: "§ 11 HWG — Werbung außerhalb der Fachkreise (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
+const HWG15 = { label: "§ 15 HWG — Bußgeldvorschriften (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__15.html" };
+const LTO_BGH = { label: "LTO — BGH, Urteil vom 31. Juli 2025, I ZR 170/24: keine Vorher-Nachher-Bilder für Hyaluron-Unterspritzungen", url: "https://www.lto.de/recht/nachrichten/n/izr17024-bgh-vorher-nachher-bildern-schoenheitsoperation-dr-rick-und-nick-aesthetify" };
 const DSGVO = { label: "Datenschutz-Grundverordnung (DSGVO), Art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
 const DDG = { label: "Digitale-Dienste-Gesetz (DDG), § 5 Impressumspflicht — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/ddg/" };
-const RIS = { label: "Rechtsinformationssystem des Bundes (RIS) — Zahnärztegesetz (ZÄG), § 35", url: "https://www.ris.bka.gv.at/" };
+const RIS = { label: "Rechtsinformationssystem des Bundes (RIS) — Zahnärztegesetz (ZÄG), § 35", url: "https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20004372&Paragraf=35" };
 const OEZAEK = { label: "Österreichische Zahnärztekammer — Werberichtlinie (WR-ÖZÄK)", url: "https://www.zahnaerztekammer.at/" };
-const FEDLEX = { label: "Fedlex — Medizinalberufegesetz (MedBG, SR 811.11), Art. 40", url: "https://www.fedlex.admin.ch/" };
+const FEDLEX = { label: "Fedlex — Medizinalberufegesetz (MedBG, SR 811.11), Art. 40", url: "https://www.fedlex.admin.ch/eli/cc/2007/537/de" };
 const SSO = { label: "Schweizerische Zahnärzte-Gesellschaft SSO — Standesordnung", url: "https://www.sso.ch/" };
 
 export const GUIDES_DE: Guide[] = [
@@ -121,7 +124,8 @@ export const GUIDES_DE: Guide[] = [
     slug: "heilmittelwerbegesetz-zahnarzt-social-media",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Heilmittelwerbegesetz für Zahnärzte: Was ist auf Instagram und TikTok erlaubt?",
     seoTitle: "Heilmittelwerbegesetz: Was Zahnärzte posten dürfen",
     seoDescription: "HWG, UWG und Berufsordnung in Social Media: Erfolgsversprechen, Vorher-Nachher, Patientenstimmen, Rabatte, Datenschutz – mit Checkliste für die Praxis.",
@@ -131,14 +135,14 @@ export const GUIDES_DE: Guide[] = [
       "Zahnärztinnen und Zahnärzte dürfen in Social Media sachlich über ihre Tätigkeit informieren; verboten ist berufswidrige Werbung. Maßgeblich sind das Heilmittelwerbegesetz (HWG), das UWG und die Berufsordnung der Landeszahnärztekammer. Heikel sind vor allem Erfolgsversprechen, irreführende Aussagen, Superlative und Vergleiche, Rabatte und Werbegaben sowie Vorher-Nachher-Bilder bei bestimmten Eingriffen.",
     sections: [
       {
-        heading: "Information ist erlaubt, berufswidrige Werbung nicht",
+        heading: "Darf ein Zahnarzt überhaupt werben?",
         paragraphs: [
           "Ein umfassendes Werbeverbot für Zahnärzte gibt es seit Langem nicht mehr. Die Musterberufsordnung der Bundeszahnärztekammer (§ 21 MBO-Z) und die Berufsordnungen der Länder erlauben sachangemessene Information über die Berufstätigkeit und verbieten berufswidrige Werbung — insbesondere anpreisende, irreführende, herabsetzende oder vergleichende. Die Paragrafennummern unterscheiden sich je nach Land; der Grundsatz ist überall ähnlich.",
           "Ein Instagram-Post, ein TikTok-Video oder ein YouTube-Short der Praxis ist in aller Regel Werbung im Sinne dieser Regeln, auch wenn er „nur“ informieren soll. Das gilt auch für berufliche Posts auf dem privaten Profil der Zahnärztin.",
         ],
       },
       {
-        heading: "Was das HWG besonders regelt",
+        heading: "Was regelt das Heilmittelwerbegesetz für Zahnärzte?",
         paragraphs: [
           "Das Heilmittelwerbegesetz gilt nicht nur für Arzneimittel, sondern auch für Werbung für Behandlungen und Verfahren. Für Zahnarztpraxen sind diese Punkte am wichtigsten; prüfen Sie den genauen Wortlaut im Gesetz:",
         ],
@@ -146,26 +150,32 @@ export const GUIDES_DE: Guide[] = [
           "Irreführung (§ 3 HWG): unter anderem der falsche Eindruck, ein Erfolg sei sicher zu erwarten, oder Behandlungen hätten keine Risiken.",
           "Werbegaben und Rabatte (§ 7 HWG): Zuwendungen, Gutscheine und Preisnachlässe sind nur in engen Ausnahmen zulässig.",
           "Publikumswerbung (§ 11 HWG): Außerhalb der Fachkreise sind bestimmte Werbeformen verboten, etwa Vorher-Nachher-Vergleiche bei operativen plastisch-chirurgischen Eingriffen ohne medizinische Notwendigkeit und missbräuchliche oder irreführende Äußerungen Dritter.",
-          "Verstöße können als Ordnungswidrigkeit geahndet werden; zusätzlich drohen Abmahnungen von Mitbewerbern und Verbänden nach UWG.",
+          "Verstöße gegen § 11 HWG sind nach § 15 HWG Ordnungswidrigkeiten, die mit einem Bußgeld geahndet werden können; zusätzlich drohen Abmahnungen von Mitbewerbern und Verbänden nach UWG.",
         ],
       },
       {
-        heading: "Vorher-Nachher-Bilder: die häufigste Frage",
+        heading: "Sind Vorher-Nachher-Bilder erlaubt?",
         paragraphs: [
           "Die Rechtslage ist differenziert. Das ausdrückliche Verbot in § 11 HWG betrifft vergleichende Darstellungen bei operativen plastisch-chirurgischen Eingriffen ohne medizinische Notwendigkeit. Für viele zahnärztliche Behandlungen greift es nach seinem Wortlaut nicht unmittelbar; Gerichte haben einzelne zahnärztliche Vorher-Nachher-Darstellungen unterschiedlich bewertet. Die Oberlandesgerichte legen das Verbot zudem weit aus: Auch Story-Sequenzen, in denen die Bilder nicht nebeneinander stehen, können als Vergleich gelten.",
+          "Für Praxen, die auch ästhetische Behandlungen anbieten, ist ein Urteil des Bundesgerichtshofs wichtig: Am 31. Juli 2025 (Az. I ZR 170/24) hat der BGH entschieden, dass auch Unterspritzungen mit Hyaluronsäure, die Nase oder Kinn formen, „operative plastisch-chirurgische Eingriffe“ im Sinne des HWG sind. Vorher-Nachher-Bilder dafür dürfen gegenüber Laien nicht beworben werden. Wer Lippen- oder Faltenbehandlungen anbietet, sollte deshalb in Social Media ganz auf Vergleichsbilder verzichten.",
           "Unabhängig vom HWG bleiben Irreführung und Berufsrecht: Bearbeitete oder besonders ausgewählte Bilder, die ein typisches Ergebnis vortäuschen, sind problematisch. Wer Vorher-Nachher-Bilder zeigen möchte, sollte vorher die Kammer oder eine Fachanwältin für Medizinrecht fragen und immer eine schriftliche Einwilligung der Patientin haben.",
         ],
       },
       {
-        heading: "Sichere Formulierungen statt Versprechen",
-        paragraphs: ["Fast jede Information lässt sich sachlich sagen, ohne zu versprechen:"],
-        list: [
-          "Statt „schmerzfreie Implantate“: „Der Eingriff erfolgt unter örtlicher Betäubung; danach spüren die meisten Patienten für einige Tage ein leichtes Ziehen.“",
-          "Statt „garantiert weißere Zähne“: „Wie stark Bleaching wirkt, ist individuell verschieden. Ob es für Sie geeignet ist, klären wir vorher.“",
-          "Statt „hält ein Leben lang“: „Mit guter Pflege und regelmäßigen Kontrollen kann ein Implantat viele Jahre halten.“",
-          "Statt „beste Praxis in München“: überprüfbare Fakten wie Leistungen, Qualifikationen und Sprechzeiten.",
-          "Statt „nur diesen Monat günstiger“: gar keine Rabattaktion.",
-        ],
+        heading: "Was darf ein Zahnarzt stattdessen sagen?",
+        paragraphs: ["Fast jede Information lässt sich sachlich sagen, ohne zu versprechen. Die rechte Spalte ist in aller Regel unbedenklich:"],
+        table: {
+          caption: "Riskante Formulierung, Grund und sachliche Alternative",
+          columns: ["Riskant", "Warum", "Sachlich"],
+          rows: [
+            ["„schmerzfreie Implantate“", "Erfolgsversprechen; Irreführung nach § 3 HWG möglich", "„Der Eingriff erfolgt unter örtlicher Betäubung; danach spüren die meisten Patienten für einige Tage ein leichtes Ziehen.“"],
+            ["„garantiert weißere Zähne“", "Der Eindruck, ein Erfolg sei sicher zu erwarten", "„Wie stark Bleaching wirkt, ist individuell verschieden. Ob es für Sie geeignet ist, klären wir vorher.“"],
+            ["„hält ein Leben lang“", "Übertreibt die Haltbarkeit", "„Mit guter Pflege und regelmäßigen Kontrollen kann ein Implantat viele Jahre halten.“"],
+            ["„beste Praxis in München“", "Anpreisend und vergleichend (§ 21 MBO-Z)", "Überprüfbare Fakten: Leistungen, Qualifikationen, Sprachen, Sprechzeiten"],
+            ["„nur diesen Monat günstiger“", "Preisnachlass als Lockmittel (§ 7 HWG)", "Keine Aktion; stattdessen zur Frage oder Kontrolle einladen"],
+            ["Story mit Patientenzitaten", "Äußerungen Dritter (§ 11 HWG), Schweigepflicht", "Ein Erklärvideo zur Frage, die diese Patienten gestellt haben"],
+          ],
+        },
       },
       {
         heading: "Datenschutz, Schweigepflicht und Recht am eigenen Bild",
@@ -203,7 +213,7 @@ export const GUIDES_DE: Guide[] = [
       { q: "Darf ich mit Influencern zusammenarbeiten?", a: "Bezahlte Kooperationen müssen als Werbung gekennzeichnet sein, und die Influencer-Aussagen müssen dieselben Regeln einhalten wie Ihre eigenen. Lobende Behandlungserfahrungen sind als Äußerungen Dritter heikel; lassen Sie solche Kooperationen vorher prüfen." },
       { q: "Ist dieser Ratgeber eine Rechtsberatung?", a: "Nein. Er ist eine allgemeine Information. Regeln ändern sich und hängen vom Einzelfall ab; verbindlich klären Sie Fragen mit Ihrer Landeszahnärztekammer oder einer Fachanwältin für Medizinrecht." },
     ],
-    sources: [HWG, UWG, BZAEK, DSGVO, DDG],
+    sources: [HWG, HWG11, HWG15, LTO_BGH, UWG, BZAEK, DSGVO, DDG],
   },
   {
     locale: "de",
@@ -435,7 +445,8 @@ export const GUIDES_DE: Guide[] = [
     slug: "zahnarzt-werbung-oesterreich-schweiz",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Zahnarzt-Werbung in Österreich und der Schweiz: ZÄG, Werberichtlinie und MedBG",
     seoTitle: "Zahnarzt-Werbung in Österreich und der Schweiz",
     seoDescription: "Was Zahnärzte in Österreich und der Schweiz in Social Media zeigen dürfen: § 35 ZÄG, Werberichtlinie der ÖZÄK, Art. 40 MedBG und SSO-Standesordnung.",

@@ -11,6 +11,8 @@ const LO1982 = { label: "Ley Orgánica 1/1982, derecho a la propia imagen — BO
 const RGPD = { label: "Reglamento General de Protección de Datos (RGPD), art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
 const AEPD = { label: "Agencia Española de Protección de Datos (AEPD)", url: "https://www.aepd.es/" };
 const CGD = { label: "Consejo General de Dentistas de España — Código Español de Ética y Deontología Dental", url: "https://consejodentistas.es/" };
+const TS_FAMOSOS = { label: "Poder Judicial — El Tribunal Supremo avala la prohibición de difundir publicidad de clínicas de odontología utilizando a personas famosas", url: "https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Noticias-Judiciales/El-Tribunal-Supremo-avala-la-prohibicion-de-difundir-publicidad-de-clinicas-de-odontologia-utilizando-a-personas-famosas" };
+const DEFENSOR = { label: "Defensor del Pueblo — Control específico de la publicidad de las clínicas dentales (recomendación)", url: "https://www.defensordelpueblo.es/resoluciones/control-especifico-de-la-publicidad-de-las-clinicas-dentales" };
 const COFEPRIS = { label: "COFEPRIS (México) — publicidad de servicios de salud", url: "https://www.gob.mx/cofepris" };
 
 export const GUIDES_ES: Guide[] = [
@@ -126,7 +128,8 @@ export const GUIDES_ES: Guide[] = [
     slug: "publicidad-sanitaria-dentistas",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Publicidad sanitaria para dentistas: qué se puede publicar en redes sociales en España",
     seoTitle: "Publicidad sanitaria para dentistas en redes",
     seoDescription: "Qué puede publicar un dentista en redes en España: Ley General de Sanidad, RD 1907/1996, normas autonómicas, código deontológico y checklist.",
@@ -136,14 +139,14 @@ export const GUIDES_ES: Guide[] = [
       "En España, una clínica dental puede publicar en redes información sanitaria veraz, objetiva y prudente, pero no publicidad engañosa ni que induzca al consumo. La regulan la Ley General de Sanidad, la Ley General de Publicidad, el Real Decreto 1907/1996, la normativa de cada comunidad autónoma y el código deontológico dental. Son especialmente delicados las promesas de resultados, los descuentos, los superlativos y los testimonios.",
     sections: [
       {
-        heading: "Una publicación en Instagram es publicidad sanitaria",
+        heading: "¿Una publicación en Instagram es publicidad sanitaria?",
         paragraphs: [
           "Para la normativa, lo que publica una clínica para dar a conocer sus servicios suele considerarse publicidad, aunque tenga tono educativo. Da igual el canal: web, Google, Instagram, TikTok o YouTube. También cuentan las publicaciones profesionales que el dentista hace desde su cuenta personal y las de influencers con los que la clínica colabora.",
           "Eso no significa que no se pueda comunicar. Significa que lo que se comunica tiene que ser veraz, objetivo, prudente y no crear falsas expectativas.",
         ],
       },
       {
-        heading: "El marco legal en España",
+        heading: "¿Qué normas regulan la publicidad dental en España?",
         paragraphs: ["Resumido y sin pretender ser exhaustivo; revisa siempre el texto vigente:"],
         list: [
           "Ley 14/1986, General de Sanidad: atribuye a las administraciones sanitarias el control de la publicidad sanitaria.",
@@ -157,7 +160,14 @@ export const GUIDES_ES: Guide[] = [
         ],
       },
       {
-        heading: "Lo que suele estar restringido",
+        heading: "¿Puede una clínica dental anunciarse con famosos o influencers?",
+        paragraphs: [
+          "Con mucha cautela. En 2020 el Tribunal Supremo avaló la prohibición de difundir publicidad de clínicas de odontología utilizando a personas famosas, en un caso sobre una campaña de una cadena dental con un actor y una presentadora conocidos. El razonamiento exacto está en la nota del Poder Judicial enlazada en las fuentes; antes de cualquier colaboración con un perfil conocido, consulta a tu colegio o a un abogado sanitario.",
+          "El Defensor del Pueblo también ha recomendado a las administraciones un control específico de la publicidad de las clínicas dentales, y los servicios de consumo de algunos ayuntamientos, como el de Madrid, han hecho campañas de inspección centradas en ellas. Es decir: la publicidad dental se mira con lupa, también en redes.",
+        ],
+      },
+      {
+        heading: "¿Qué suele estar restringido?",
         paragraphs: [],
         list: [
           "Garantías de resultado y absolutos: “sin dolor”, “resultado garantizado”, “definitivo”, “para toda la vida”",
@@ -170,7 +180,7 @@ export const GUIDES_ES: Guide[] = [
         ],
       },
       {
-        heading: "Cómo decirlo de forma segura",
+        heading: "¿Cómo decirlo de forma segura?",
         paragraphs: ["Casi toda la información puede darse sin prometer:"],
         list: [
           "En lugar de “implantes sin dolor”: “Se hace con anestesia local; después, la mayoría de pacientes nota una molestia leve unos días.”",
@@ -214,7 +224,7 @@ export const GUIDES_ES: Guide[] = [
       { q: "¿Puedo colaborar con influencers?", a: "La publicidad de influencers debe identificarse como tal y cumplir las mismas reglas que la de la clínica; un influencer elogiando su tratamiento funciona como testimonio. Consulta antes de cerrar una colaboración." },
       { q: "¿Esta guía es asesoramiento jurídico?", a: "No. Es información general; las normas cambian y varían por comunidad y país. Para casos concretos consulta a tu colegio, a la consejería de sanidad o a un abogado." },
     ],
-    sources: [LGS, LGP, RD1907, CGD, COFEPRIS],
+    sources: [LGS, LGP, RD1907, CGD, COFEPRIS, TS_FAMOSOS, DEFENSOR],
   },
   {
     locale: "es",

@@ -3,7 +3,8 @@ import type { Guide } from "../dentvideo";
 // Türkçe rehberler. Kurallar: yalnızca bugün geçerli olanı anlatın, istatistik
 // ve fiyat uydurmayın, mevzuatı temkinli ve kaynaklı aktarın.
 
-const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/" };
+const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+const RG_2023 = { label: "Resmî Gazete — 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete (yürürlükten kaldırılan önceki yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2023/07/20230729-29.htm" };
 const MEVZUAT = { label: "Mevzuat Bilgi Sistemi — yönetmeliklerin güncel metni", url: "https://www.mevzuat.gov.tr/" };
 const TDB = { label: "Türk Dişhekimleri Birliği (meslek etiği ve oda duyuruları)", url: "https://www.tdb.org.tr/" };
 const KVKK = { label: "Kişisel Verileri Koruma Kurumu — 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
@@ -123,7 +124,8 @@ export const GUIDES_TR: Guide[] = [
     slug: "dis-hekimi-reklam-yasagi",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Diş hekimi reklam yasağı: 2025 tanıtım yönetmeliğine göre sosyal medyada neler paylaşılabilir?",
     seoTitle: "Diş hekimi reklam yasağı: neler paylaşılabilir?",
     seoDescription: "2025 Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Yönetmeliği'ne göre diş hekimleri için yasak ifadeler, öncesi-sonrası, KVKK ve kontrol listesi.",
@@ -133,16 +135,16 @@ export const GUIDES_TR: Guide[] = [
       "Türkiye'de diş hekimleri ve diş klinikleri reklam yapamaz; yalnızca kurallara uygun tanıtım ve bilgilendirme yapabilir. 12 Kasım 2025'te yayımlanan Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik; ücret, indirim, kampanya, hasta teşekkürü, sponsorlu öne çıkarma ve yönlendirici içerikleri sınırlar. Eğitici, temkinli ve hasta mahremiyetine saygılı paylaşımlar ise serbesttir.",
     sections: [
       {
-        heading: "Reklam ile bilgilendirme arasındaki fark",
+        heading: "Reklam ile bilgilendirme arasındaki fark nedir?",
         paragraphs: [
           "Yönetmeliğin temel ayrımı şudur: sağlık hizmetinin açık ya da örtülü reklamı yasaktır, kamuoyunu doğru bilgilendirme ise ilkelere uyulduğu sürece serbesttir. Pratikte bir paylaşımın amacı hastayı bir tedaviye ya da kliniğe yönlendirmek, talep yaratmak veya özendirmekse reklam sayılma riski yüksektir. Amacı bir konuyu anlaşılır kılmaksa bilgilendirme olarak değerlendirilmesi daha olasıdır.",
           "Klinik hesabındaki bir Instagram gönderisi, web sitesi, Google profili ve YouTube kanalı bu kurallara tabidir. Yönetmelik yalnızca kliniği değil, hekimin kişisel hesabından yaptığı mesleki paylaşımları da kapsar.",
         ],
       },
       {
-        heading: "2025 yönetmeliği neyi değiştirdi",
+        heading: "2025 yönetmeliği neyi değiştirdi?",
         paragraphs: [
-          "Sağlık Bakanlığı, 2023 tarihli düzenlemenin yerine 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete'de yeni bir yönetmelik yayımladı. Hukuk bürolarının ve meslek odalarının değerlendirmelerine göre öne çıkan noktalar şunlardır; madde numaraları ve istisnalar için mutlaka resmî metne bakın:",
+          "Sağlık Bakanlığı, 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete'de yayımlanan aynı adlı yönetmeliği yürürlükten kaldırarak 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete'de yeni bir yönetmelik yayımladı. Aramalarda hâlâ “32263 sayılı yönetmelik” görülse de geçerli metin 2025 tarihli olandır. Yeni yönetmelik sağlık meslek mensuplarını, özel sağlık kuruluşlarını ve uluslararası sağlık turizmi aracı kuruluşlarını kapsar. Hukuk bürolarının ve meslek odalarının değerlendirmelerine göre öne çıkan noktalar şunlardır; madde numaraları ve istisnalar için mutlaka resmî metne bakın:",
         ],
         list: [
           "Tanıtım ve bilgilendirmede ücret, indirim, kampanya ve promosyon bilgisine yer verilemez (uluslararası sağlık turizmine ilişkin ayrı hükümler bulunur).",
@@ -150,24 +152,29 @@ export const GUIDES_TR: Guide[] = [
           "Ücretli, sponsorlu ya da öne çıkmaya yönelik paylaşım ve arama motoru kayıtları kısıtlanmıştır; sınırlı istisnalar için güncel metne bakın.",
           "Kişilerin rızası olmadan arama, SMS, e-posta ya da sosyal medya mesajıyla tanıtım yapılamaz.",
           "Çekiliş, hediye ve benzeri özendirici pazarlama faaliyetleri yapılamaz.",
-          "Denetim il sağlık müdürlükleri ve Bakanlık tarafından yapılır; aykırılıklarda idari yaptırımlar uygulanabilir.",
+          "Denetim il sağlık müdürlükleri ve Bakanlık tarafından yapılır; şikâyet ve tespitler il sağlık müdürlükleri bünyesindeki il değerlendirme komisyonlarında incelenir ve aykırılıklarda idari yaptırımlar uygulanabilir.",
         ],
       },
       {
-        heading: "Sorun yaratan ifadeler ve güvenli karşılıkları",
+        heading: "Diş hekimi sosyal medyada hangi ifadeleri kullanmamalı?",
         paragraphs: [
           "Kesin sonuç vaadi, üstünlük iddiası ve yönlendirme, hem yönetmelik hem meslek etiği açısından en riskli dildir. Aynı bilgiyi temkinli bir dille vermek çoğu zaman mümkündür:",
         ],
-        list: [
-          "“Acısız implant” yerine: “İşlem lokal anestezi altında yapılır; çoğu hasta sonrasında hafif bir hassasiyet hisseder.”",
-          "“Garantili beyazlatma” yerine: “Beyazlatmanın etkisi kişiden kişiye değişir; hekiminiz uygun olup olmadığını değerlendirir.”",
-          "“Ömür boyu kalıcı” yerine: “Düzenli bakım ve kontrollerle uzun yıllar kullanılabilir.”",
-          "“Şehrin en iyi kliniği” yerine: kliniğin adı, adresi ve sunduğu hizmetler gibi doğrulanabilir bilgiler.",
-          "“Bu ay indirimde” yerine: hiçbir fiyat ya da kampanya bilgisi.",
-        ],
+        table: {
+          caption: "Riskli ifade, nedeni ve temkinli karşılığı",
+          columns: ["Riskli ifade", "Neden riskli", "Temkinli karşılık"],
+          rows: [
+            ["“Acısız implant”", "Kesin sonuç vaadi; yanıltıcı olabilir", "“İşlem lokal anestezi altında yapılır; çoğu hasta sonrasında hafif bir hassasiyet hisseder.”"],
+            ["“Garantili beyazlatma”", "Garanti ve beklenti yaratma", "“Beyazlatmanın etkisi kişiden kişiye değişir; hekiminiz uygun olup olmadığını değerlendirir.”"],
+            ["“Ömür boyu kalıcı”", "Kalıcılığı abartır", "“Düzenli bakım ve kontrollerle uzun yıllar kullanılabilir.”"],
+            ["“Şehrin en iyi kliniği”", "Üstünlük iddiası ve karşılaştırma", "Kliniğin adı, adresi ve sunduğu hizmetler gibi doğrulanabilir bilgiler"],
+            ["“Bu ay indirimde”", "Ücret, indirim ve kampanya bilgisi yasak", "Hiçbir fiyat ya da kampanya bilgisi; soru sormaya veya kontrole davet"],
+            ["Hasta teşekkür mesajı paylaşımı", "Memnuniyet ifadeleriyle tanıtım sınırlı; mahremiyet", "Hastaların sorduğu soruyu yanıtlayan eğitici bir video"],
+          ],
+        },
       },
       {
-        heading: "Öncesi-sonrası görselleri ve hasta mahremiyeti",
+        heading: "Öncesi-sonrası görselleri paylaşılabilir mi?",
         paragraphs: [
           "Öncesi-sonrası görselleri konusundaki yorumlar birbirinden farklıdır: bazı değerlendirmeler bu görsellerin reklam niteliği taşıdığını ve yasak olduğunu, bazıları ise hastanın açık rızası, kimliğin gizlenmesi ve “sonuçlar kişiden kişiye değişebilir” uyarısı gibi koşullarla bilgilendirme amaçlı kullanılabileceğini söyler. Bu belirsizlik nedeniyle en güvenli yaklaşım, öncesi-sonrası görsellerini sosyal medyada hiç kullanmamak ya da kullanmadan önce odanızın ve bir hukukçunun görüşünü almaktır.",
           "Ayrıca sağlık verisi, 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında özel nitelikli kişisel veridir. Bir hastanın yüzü, sesi, adı ya da ağız içi fotoğrafı paylaşılacaksa amacı açıkça belirten, yazılı ve geri alınabilir bir onam alın; onamı hasta dosyasında saklayın. Görüntüde diğer hastaların, ekranlardaki hasta bilgilerinin ve randevu defterinin görünmediğinden emin olun.",
@@ -210,7 +217,7 @@ export const GUIDES_TR: Guide[] = [
       { q: "Bu rehber hukuki danışmanlık mıdır?", a: "Hayır. Genel bilgidir; mevzuat değişebilir ve yoruma açıktır. Somut durumlar için diş hekimleri odanıza, il sağlık müdürlüğüne ya da bir hukukçuya danışın." },
       { q: "Fenomenlerle iş birliği yapabilir miyim?", a: "Bir fenomenin tedaviyi ya da kliniği öven paylaşımı örtülü reklam sayılabilir. Sağlıkta reklam yasak olduğundan bu tür iş birliklerinden önce hukuki görüş alın." },
     ],
-    sources: [RG, MEVZUAT, TDB, KVKK, SB],
+    sources: [RG, MEVZUAT, TDB, KVKK, SB, RG_2023],
   },
   {
     locale: "tr",
