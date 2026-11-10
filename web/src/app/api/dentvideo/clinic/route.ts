@@ -7,11 +7,24 @@ import { isOwnLogoPath } from "@/lib/dentvid/paths";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
+import { BUCKET, dvAdmin } from "@/lib/dentvid/supabase";
+import { LOGO_MAX_BYTES } from "@/lib/dentvid/storage-quota";
 
 const Body = z.object({
   profile: clinicProfileSchema,
   logoPath: z.string().max(300).nullable().optional(),
 });
+
+/** Size of one object in the owner's folder, null when it is not there. */
+async function objectSize(path: string): Promise<number | null> {
+  const slash = path.lastIndexOf("/");
+  const { data, error } = await dvAdmin().storage.from(BUCKET).list(path.slice(0, slash), { search: path.slice(slash + 1), limit: 10 });
+  if (error) throw new Error(error.message);
+  const hit = (data ?? []).find((e) => e.name === path.slice(slash + 1) && e.id != null);
+  if (!hit) return null;
+  const size = (hit.metadata as { size?: number } | null)?.size;
+  return typeof size === "number" ? size : 0;
+}
 
 export async function POST(req: Request) {
   const { db, user } = await dvSession();
@@ -32,17 +45,63 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: err.invalidLogo }, { status: 400 });
   }
 
+  // The logo replaced by this save (deleted once the new path is stored).
+  const { data: before } = await db.from("dentvid_clinics").select("logo_path").eq("owner_id", user.id).maybeSingle();
+  const previousLogo = (before?.logo_path as string | null | undefined) ?? null;
+  const newLogo = body.logoPath && body.logoPath !== previousLogo ? body.logoPath : null;
+
+  // A signed upload URL cannot bound the size; check the stored file here.
+  if (newLogo) {
+    try {
+      const size = await objectSize(newLogo);
+      if (size === null) return NextResponse.json({ error: err.invalidLogo }, { status: 400 });
+      if (size > LOGO_MAX_BYTES) {
+        await dvAdmin().storage.from(BUCKET).remove([newLogo]);
+        return NextResponse.json({ error: err.invalidLogo, code: "size" }, { status: 400 });
+      }
+    } catch (e) {
+      console.error("dentvideo clinic: logo check failed", (e as Error).message);
+      return NextResponse.json({ error: err.saveFailed }, { status: 503 });
+    }
+  }
+
   const row = {
     owner_id: user.id,
     profile: body.profile,
     ...(body.logoPath !== undefined ? { logo_path: body.logoPath } : {}),
     updated_at: new Date().toISOString(),
   };
-  const { data, error } = await db.from("dentvid_clinics").upsert(row, { onConflict: "owner_id" }).select("id").single();
+  const { data, error } = await db.from("dentvid_clinics").upsert(row, { onConflict: "owner_id" }).select("id, logo_path").single();
   if (error) {
     console.error("dentvideo clinic save failed", error.message);
     return NextResponse.json({ error: err.saveFailed }, { status: 500 });
   }
+
+  // Before migration 0008 the 0004 trigger knows only "<uid>/logo.<ext>" and
+  // quietly keeps the old value for a versioned name. The path was validated
+  // above (own folder, exact shape), so store it with the service role.
+  let savedLogo = (data.logo_path as string | null | undefined) ?? null;
+  if (body.logoPath && savedLogo !== body.logoPath) {
+    const { error: fixErr } = await dvAdmin().from("dentvid_clinics").update({ logo_path: body.logoPath }).eq("owner_id", user.id);
+    if (fixErr) {
+      console.error("dentvideo clinic: logo path not saved", fixErr.message);
+      return NextResponse.json({ error: err.saveFailed }, { status: 500 });
+    }
+    savedLogo = body.logoPath;
+  }
+
+  // The old logo file goes once the new one is stored (only if the row really changed).
+  const replaced = body.logoPath !== undefined && previousLogo && savedLogo !== previousLogo && isOwnLogoPath(previousLogo, user.id);
+  if (replaced) {
+    try {
+      const { error: rmErr } = await dvAdmin().storage.from(BUCKET).remove([previousLogo]);
+      if (rmErr) console.warn("dentvideo clinic: previous logo not removed", rmErr.message);
+    } catch (e) {
+      // The save stands; the orphan is picked up by scripts/dentvideo-storage-cleanup.mjs.
+      console.warn("dentvideo clinic: previous logo not removed", (e as Error).message);
+    }
+  }
+
   void recordEvent("clinic_saved", {
     locale: body.profile.language,
     props: { country: body.profile.country, language: body.profile.language },

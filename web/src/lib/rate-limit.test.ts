@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { API_GLOBAL_PER_IP, LIMITS, MemoryStore, checkAll, clientIp, slidingWindow } from "./rate-limit";
+import { API_GLOBAL_PER_IP, LIMITS, MemoryStore, checkAll, clientIp, networkOf, slidingWindow } from "./rate-limit";
+
+describe("networkOf", () => {
+  it("groups IPv4 by /24 and IPv6 by /64", () => {
+    expect(networkOf("203.0.113.9")).toBe("203.0.113.0/24");
+    expect(networkOf("::ffff:203.0.113.77")).toBe("203.0.113.0/24");
+    expect(networkOf("2001:db8:abcd:12:1:2:3:4")).toBe("2001:db8:abcd:12::/64");
+    expect(networkOf("2001:db8::1")).toBe("2001:db8:0:0::/64");
+    expect(networkOf("2001:0db8:0000:0012::9")).toBe("2001:db8:0:12::/64");
+    expect(networkOf("unknown")).toBe("unknown");
+  });
+});
+
+describe("sign-up limits", () => {
+  it("per client is the brake; the global ceiling is a high backstop", () => {
+    expect(LIMITS.signupIp.limit).toBeLessThanOrEqual(5);
+    expect(LIMITS.signupIpDay.limit).toBeLessThanOrEqual(10);
+    // A distributed flood needs many networks to lock everyone out for an hour.
+    expect(LIMITS.signupGlobal.limit / LIMITS.signupIpDay.limit).toBeGreaterThanOrEqual(100);
+    expect(LIMITS.signupGlobal.windowSec).toBe(3600);
+  });
+});
 
 const h = (m: Record<string, string>) => ({ get: (k: string) => m[k.toLowerCase()] ?? null });
 

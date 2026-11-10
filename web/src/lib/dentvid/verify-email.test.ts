@@ -9,7 +9,7 @@ import {
   isEmailVerified,
   issueCode,
   pendingCode,
-  verifiedMetadata,
+  verifiedAppMetadata,
   verifyKey,
   verifySecret,
 } from "./verify-email";
@@ -139,40 +139,81 @@ describe("resending", () => {
 
 describe("the verified flag", () => {
   it("holds only for the address it was proven for", () => {
-    const meta = verifiedMetadata({ product: "dentvideo" }, "Dr@Clinic.example", "code", new Date(T0));
-    expect(meta).toEqual({ product: "dentvideo", email_verified_at: new Date(T0).toISOString(), email_verified_for: "dr@clinic.example", email_verified_via: "code" });
-    expect(isEmailVerified({ email: "dr@clinic.example", user_metadata: meta })).toBe(true);
-    expect(isEmailVerified({ email: "other@clinic.example", user_metadata: meta })).toBe(false);
+    const meta = verifiedAppMetadata("Dr@Clinic.example", "code", new Date(T0));
+    expect(meta).toEqual({ email_verified_at: new Date(T0).toISOString(), email_verified_for: "dr@clinic.example", email_verified_via: "code" });
+    const app_metadata = { product: "dentvideo", ...meta };
+    expect(isEmailVerified({ email: "dr@clinic.example", app_metadata })).toBe(true);
+    expect(isEmailVerified({ email: "other@clinic.example", app_metadata })).toBe(false);
     // Accounts from before verification existed: confirmed by Supabase, not by us.
-    expect(isEmailVerified({ email: "dr@clinic.example", user_metadata: { product: "dentvideo" } })).toBe(false);
+    expect(isEmailVerified({ email: "dr@clinic.example", app_metadata: { product: "dentvideo" } })).toBe(false);
     expect(isEmailVerified(null)).toBe(false);
+  });
+
+  it("ignores user_metadata, which the user can set themselves (PUT /auth/v1/user)", () => {
+    const forged = { email: "dr@clinic.example", app_metadata: { product: "dentvideo" }, user_metadata: verifiedAppMetadata("dr@clinic.example", "code") };
+    expect(isEmailVerified(forged)).toBe(false);
+  });
+});
+
+describe("the code secret", () => {
+  it("prefers DENTVIDEO_VERIFY_SECRET", () => {
+    const warn = vi.fn();
+    expect(verifySecret({ DENTVIDEO_VERIFY_SECRET: " own ", DENTVID_SERVICE_ROLE_KEY: "srk", NODE_ENV: "production" }, warn)).toBe("own");
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the service-role key, warning once in production", () => {
+    const warn = vi.fn();
+    expect(verifySecret({ DENTVID_SERVICE_ROLE_KEY: "srk", NODE_ENV: "production" }, warn)).toBe("srk");
+    expect(verifySecret({ DENTVID_SERVICE_ROLE_KEY: "srk", NODE_ENV: "production" }, warn)).toBe("srk");
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain("DENTVIDEO_VERIFY_SECRET");
+    expect(verifySecret({}, warn)).toBeNull();
   });
 });
 
 describe("password reset proves ownership", () => {
   const session = { access_token: "at", refresh_token: "rt" };
 
-  it("a successful recovery-token exchange marks the account verified", async () => {
+  it("a successful recovery-token exchange marks the account verified and ends other sessions (reclaims a squatted address)", async () => {
     const markVerified = vi.fn(async () => true);
+    const signOutOthers = vi.fn(async () => {});
     const r = await exchangeRecovery("hash-1", {
-      verify: async () => ({ session, user: { id: USER, email: "dr@clinic.example", user_metadata: { product: "dentvideo" } } }),
+      verify: async () => ({ session, user: { id: USER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } } }),
       markVerified,
+      signOutOthers,
     });
     expect(r).toEqual({ access_token: "at", refresh_token: "rt", verified: true });
     expect(markVerified).toHaveBeenCalledWith(USER, "dr@clinic.example", "reset");
+    expect(signOutOthers).toHaveBeenCalledWith("at");
+  });
+
+  it("a failure to end other sessions does not fail the exchange", async () => {
+    const r = await exchangeRecovery("hash-1", {
+      verify: async () => ({ session, user: { id: USER, email: "dr@clinic.example", app_metadata: {} } }),
+      markVerified: async () => true,
+      signOutOthers: async () => {
+        throw new Error("down");
+      },
+    });
+    expect(r).toMatchObject({ verified: true });
   });
 
   it("an invalid or used token proves nothing", async () => {
     const markVerified = vi.fn(async () => true);
-    expect(await exchangeRecovery("bad", { verify: async () => ({ session: null, user: null }), markVerified })).toBeNull();
+    const signOutOthers = vi.fn(async () => {});
+    expect(await exchangeRecovery("bad", { verify: async () => ({ session: null, user: null }), markVerified, signOutOthers })).toBeNull();
     expect(markVerified).not.toHaveBeenCalled();
+    expect(signOutOthers).not.toHaveBeenCalled();
   });
 
-  it("an already verified account is not written again", async () => {
+  it("an already verified account is not written again and keeps its other sessions", async () => {
     const markVerified = vi.fn(async () => true);
-    const user = { id: USER, email: "dr@clinic.example", user_metadata: verifiedMetadata({}, "dr@clinic.example", "code") };
-    expect(await exchangeRecovery("h", { verify: async () => ({ session, user }), markVerified })).toMatchObject({ verified: true });
+    const signOutOthers = vi.fn(async () => {});
+    const user = { id: USER, email: "dr@clinic.example", app_metadata: verifiedAppMetadata("dr@clinic.example", "code") };
+    expect(await exchangeRecovery("h", { verify: async () => ({ session, user }), markVerified, signOutOthers })).toMatchObject({ verified: true });
     expect(markVerified).not.toHaveBeenCalled();
+    expect(signOutOthers).not.toHaveBeenCalled();
   });
 });
 

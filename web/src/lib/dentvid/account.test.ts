@@ -15,7 +15,9 @@ type Row = Record<string, unknown>;
  * `leaky` makes table reads ignore their filters (as if RLS and the query
  * were both wrong) to prove the code's own owner checks hold.
  */
-function fakeSupabase(opts: { leaky?: boolean } = {}) {
+type AuthUser = { id: string; email?: string; app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown>; identities?: { provider: string }[] };
+
+function fakeSupabase(opts: { leaky?: boolean; authUsers?: Record<string, Partial<AuthUser>> } = {}) {
   const tables: Record<string, Row[]> = {
     dentvid_clinics: [
       { id: CLINIC_A, owner_id: A, profile: { name: "Riverside Dental", language: "en" }, logo_path: `${A}/logo.png`, plan: "trial", dodo_subscription_id: null },
@@ -39,6 +41,8 @@ function fakeSupabase(opts: { leaky?: boolean } = {}) {
     ].map((p) => [p, { size: 1000, mimetype: p.endsWith(".png") ? "image/png" : "video/mp4" }]),
   );
   const users = new Set([A, B]);
+  const dvOnly = { app_metadata: { provider: "email", providers: ["email"], product: "dentvideo" }, user_metadata: {}, identities: [{ provider: "email" }] };
+  const authUsers = new Map<string, AuthUser>([A, B].map((id) => [id, { id, ...dvOnly, ...(opts.authUsers?.[id] ?? {}) } as AuthUser]));
   const calls: string[] = [];
 
   const from = (table: string) => {
@@ -92,6 +96,20 @@ function fakeSupabase(opts: { leaky?: boolean } = {}) {
 
   const auth = {
     admin: {
+      getUserById: async (id: string) => {
+        if (!users.has(id)) return { data: { user: null }, error: { status: 404, code: "user_not_found", message: "User not found" } };
+        return { data: { user: authUsers.get(id) }, error: null };
+      },
+      updateUserById: async (id: string, attrs: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> }) => {
+        calls.push(`auth.updateUserById ${id} ${JSON.stringify(attrs)}`);
+        const u = authUsers.get(id)!;
+        // GoTrue merges metadata and drops keys set to null.
+        const merge = (base: Record<string, unknown> = {}, patch: Record<string, unknown> = {}) =>
+          Object.fromEntries(Object.entries({ ...base, ...patch }).filter(([, v]) => v !== null));
+        if (attrs.app_metadata) u.app_metadata = merge(u.app_metadata, attrs.app_metadata);
+        if (attrs.user_metadata) u.user_metadata = merge(u.user_metadata, attrs.user_metadata);
+        return { data: { user: u }, error: null };
+      },
       deleteUser: async (id: string) => {
         calls.push(`auth.deleteUser ${id}`);
         if (!users.has(id)) return { data: null, error: { status: 404, message: "User not found" } };
@@ -101,7 +119,7 @@ function fakeSupabase(opts: { leaky?: boolean } = {}) {
     },
   };
 
-  return { db: { from, storage, auth } as unknown as SupabaseClient, tables, files, users, calls };
+  return { db: { from, storage, auth } as unknown as SupabaseClient, tables, files, users, authUsers, calls };
 }
 
 const dodo = (status = "active") => {
@@ -143,7 +161,7 @@ describe("deleteDentvideoAccount", () => {
     const s = fakeSupabase();
     const log = vi.fn();
     const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log });
-    expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, cancelledSubscription: false, userDeleted: true });
+    expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, cancelledSubscription: false, userDeleted: true, loginKept: false });
 
     const order = s.calls.map((c) => c.split(" ").slice(0, 2).join(" "));
     expect(order).toEqual(["storage.remove 5", "delete dentvid_items", "delete dentvid_clinics", `auth.deleteUser ${A}`]);
@@ -170,9 +188,48 @@ describe("deleteDentvideoAccount", () => {
     const args = { admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} };
     expect((await deleteDentvideoAccount(args)).ok).toBe(true);
     const again = await deleteDentvideoAccount(args);
-    expect(again).toEqual({ ok: true, files: 0, items: 0, clinic: false, cancelledSubscription: false, userDeleted: false });
+    expect(again).toEqual({ ok: true, files: 0, items: 0, clinic: false, cancelledSubscription: false, userDeleted: false, loginKept: false });
     expect(s.tables.dentvid_clinics).toHaveLength(1);
     expect(s.files.size).toBe(2);
+  });
+
+  it("keeps a login another Liman app also uses: only DentVideo's data and markers go", async () => {
+    const s = fakeSupabase({
+      authUsers: {
+        [A]: {
+          app_metadata: { provider: "email", providers: ["email"], product: "dentvideo", email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: "dr@a.example", email_verified_via: "code", role: "aires_admin" },
+          user_metadata: { product: "dentvideo", full_name: "Dr A" },
+        },
+      },
+    });
+    const log = vi.fn();
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log });
+    expect(res).toMatchObject({ ok: true, files: 5, items: 2, clinic: true, userDeleted: false, loginKept: true });
+    expect(s.calls.some((c) => c.startsWith("auth.deleteUser"))).toBe(false);
+    expect([...s.users].sort()).toEqual([A, B].sort());
+    // DentVideo's keys are gone; the other app's are untouched.
+    expect(s.authUsers.get(A)!.app_metadata).toEqual({ provider: "email", providers: ["email"], role: "aires_admin" });
+    expect(s.authUsers.get(A)!.user_metadata).toEqual({ full_name: "Dr A" });
+    expect(JSON.stringify(log.mock.calls[0][0])).toContain("kept_shared");
+  });
+
+  it("never deletes a login whose only DentVideo claim is user_metadata (anyone can write that)", async () => {
+    const s = fakeSupabase({ authUsers: { [A]: { app_metadata: { provider: "email", providers: ["email"] }, user_metadata: { product: "dentvideo" } } } });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} });
+    expect(res).toMatchObject({ ok: true, userDeleted: false, loginKept: true });
+    expect(s.users.has(A)).toBe(true);
+    expect(s.tables.dentvid_clinics.map((r) => r.id)).toEqual([CLINIC_B]);
+  });
+
+  it("keeps a login with another product listed or a non-email identity", async () => {
+    for (const other of [
+      { app_metadata: { provider: "email", product: "dentvideo", products: ["dentvideo", "coz"] } },
+      { app_metadata: { provider: "google", providers: ["email", "google"], product: "dentvideo" }, identities: [{ provider: "email" }, { provider: "google" }] },
+    ]) {
+      const s = fakeSupabase({ authUsers: { [A]: other } });
+      expect(await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: null, log: () => {} })).toMatchObject({ ok: true, loginKept: true });
+      expect(s.users.has(A)).toBe(true);
+    }
   });
 
   it("deletes nothing when the typed name does not match", async () => {

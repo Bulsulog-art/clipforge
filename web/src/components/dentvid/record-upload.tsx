@@ -8,21 +8,23 @@ import { dvBrowser, BUCKET, DV_SUPABASE_ANON, DV_SUPABASE_URL } from "@/lib/dent
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
 import { RECORDING_MAX_MB, checkRecording, fileSize } from "@/lib/dentvid/app-ui";
+import { requestUpload, signedUploadEndpoint } from "@/lib/dentvid/upload-client";
 
 /**
- * Upload one recording to the clinic's folder with a progress bar (an
- * XMLHttpRequest to Storage's upload endpoint — the same request the SDK
- * makes, which cannot report progress), then queue it. If that request is
- * refused, the SDK uploads it instead, without progress.
+ * Upload one recording to the clinic's folder with a progress bar, then
+ * queue it. The server first checks the plan and the storage quota and signs
+ * a one-time upload for a path it picks (/api/dentvideo/upload-url); the file
+ * goes to Storage's signed-upload endpoint with an XMLHttpRequest (the SDK's
+ * fetch cannot report progress). If that request is refused, the SDK
+ * uploads it instead, without progress.
  */
-function uploadWithProgress(path: string, file: File, token: string, onProgress: (pct: number) => void): Promise<boolean> {
+function uploadWithProgress(path: string, signToken: string, file: File, contentType: string, onProgress: (pct: number) => void): Promise<boolean> {
   return new Promise((resolve) => {
     if (!DV_SUPABASE_URL) return resolve(false);
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${DV_SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`);
-    xhr.setRequestHeader("authorization", `Bearer ${token}`);
+    xhr.open("PUT", signedUploadEndpoint(path, signToken));
     xhr.setRequestHeader("apikey", DV_SUPABASE_ANON);
-    xhr.setRequestHeader("content-type", file.type || "video/mp4");
+    xhr.setRequestHeader("content-type", contentType);
     xhr.setRequestHeader("cache-control", "max-age=3600");
     xhr.setRequestHeader("x-upsert", "false");
     xhr.upload.onprogress = (e) => {
@@ -61,14 +63,17 @@ export function RecordUpload({ locale }: { locale: Locale }) {
       const { data: s } = await db.auth.getSession();
       const user = s.session?.user;
       if (!user || !s.session) throw new Error(errors.signIn);
-      const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase().slice(0, 4);
-      const path = `${user.id}/recordings/${Date.now()}.${ext}`;
+      const up = await requestUpload("recording", file, errors.invalidUpload);
+      const path = up.path;
       setPct(0);
-      const ok = await uploadWithProgress(path, file, s.session.access_token, setPct);
+      const ok = await uploadWithProgress(path, up.token, file, up.contentType, setPct);
       if (!ok) {
         setPct(null);
-        const { error: upErr } = await db.storage.from(BUCKET).upload(path, file, { contentType: file.type || "video/mp4" });
-        if (upErr) throw new Error(errors.invalidUpload);
+        const { error: upErr } = await db.storage.from(BUCKET).uploadToSignedUrl(path, up.token, file, { contentType: up.contentType });
+        if (upErr) {
+          const { error: direct } = await db.storage.from(BUCKET).upload(path, file, { contentType: up.contentType });
+          if (direct) throw new Error(errors.invalidUpload);
+        }
       }
       setPct(100);
       const res = await fetch("/api/dentvideo/recording", {

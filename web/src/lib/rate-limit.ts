@@ -145,14 +145,25 @@ const DAY = 86400;
  * real clinic, tight for a script. Keys: rl:<name>:<ip|user|clinic|global>:<id>.
  */
 export const LIMITS = {
-  // Creating accounts: no captcha, so this is the main brake on bot sign-ups.
+  // Creating accounts. Per IP (and per /24 or /64 network) is the brake on bot
+  // sign-ups; the global ceiling is only a backstop against a distributed
+  // flood — set high so one attacker cannot lock real clinics out (it used to
+  // be 200/h, which a few hundred proxies could exhaust all day).
+  // Optional Turnstile (lib/dentvid/turnstile) adds a human check on top.
   signupIp: { limit: 5, windowSec: 10 * MIN },
-  signupIpDay: { limit: 20, windowSec: DAY },
-  signupGlobal: { limit: 200, windowSec: HOUR },
+  signupIpDay: { limit: 10, windowSec: DAY },
+  signupNetDay: { limit: 40, windowSec: DAY },
+  signupEmail: { limit: 3, windowSec: HOUR },
+  signupGlobal: { limit: 1500, windowSec: HOUR },
+  // "Forgot password" mail per address; a repeated sign-up for an existing
+  // DentVideo address mails the same link and counts here too.
+  resetEmail: { limit: 3, windowSec: HOUR },
+  resetEmailDay: { limit: 6, windowSec: DAY },
   // Email ownership codes (lib/dentvid/verify-email): each send is an email,
   // each confirm a guess at a 6-digit code (5 tries per code on top of this).
   verifySendUser: { limit: 6, windowSec: HOUR },
-  verifySendEmail: { limit: 6, windowSec: HOUR },
+  verifySendEmail: { limit: 4, windowSec: HOUR },
+  verifySendEmailDay: { limit: 10, windowSec: DAY },
   verifySendIp: { limit: 20, windowSec: HOUR },
   verifySendGlobal: { limit: 300, windowSec: HOUR },
   verifyConfirmUser: { limit: 15, windowSec: 10 * MIN },
@@ -171,6 +182,8 @@ export const LIMITS = {
   weekUser: { limit: 10, windowSec: HOUR },
   // Approve / reject an item (cheap DB write).
   itemsUser: { limit: 120, windowSec: 10 * MIN },
+  // A signed upload URL (logo / recording): lists the owner folder for the quota.
+  uploadUrlUser: { limit: 30, windowSec: 10 * MIN },
   // Save the clinic profile (DB write + storage).
   clinicUser: { limit: 30, windowSec: 10 * MIN },
   // Self-serve account (DentVideo settings): billing portal / plan change call Dodo;
@@ -182,9 +195,16 @@ export const LIMITS = {
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },
-  // First-party funnel events (POST /api/dentvideo/event): a few per page view.
-  eventIp: { limit: 60, windowSec: 10 * MIN },
-  eventGlobal: { limit: 20_000, windowSec: HOUR },
+  // First-party funnel events (POST /api/dentvideo/event): a few per page view
+  // (landing_view, preview_started, a preview_step_viewed per wizard step,
+  // plan_clicked). Anonymous traffic gets a tighter per-IP and per-event
+  // budget; a signed-in clinic's events are counted per IP as before but not
+  // against the anonymous global ceiling, so a flood of fake landing views
+  // cannot crowd out the paying funnel on the dashboard.
+  eventIp: { limit: 30, windowSec: 10 * MIN },
+  eventIpName: { limit: 12, windowSec: 10 * MIN },
+  eventGlobal: { limit: 5_000, windowSec: HOUR },
+  eventClinicGlobal: { limit: 5_000, windowSec: HOUR },
   // Lifecycle reminders (welcome is once per clinic). A hard ceiling on
   // reminder emails per hour, whatever the scheduler finds due.
   lifecycleGlobal: { limit: 100, windowSec: HOUR },
@@ -197,6 +217,27 @@ export const LIMITS = {
   // /api/health?deep=1 makes outbound calls (Supabase, Redis, OpenAI).
   healthDeepIp: { limit: 10, windowSec: MIN },
 } satisfies Record<string, Rule>;
+
+/**
+ * The network an address belongs to, for limits a botnet on neighbouring
+ * addresses should share: the /24 for IPv4, the /64 for IPv6. Anything else
+ * (e.g. "unknown") is returned as is.
+ */
+export function networkOf(ip: string): string {
+  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/.exec(ip);
+  if (v4) return `${v4[1]}.${v4[2]}.${v4[3]}.0/24`;
+  if (ip.includes(":")) {
+    const mapped = /^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i.exec(ip);
+    if (mapped) return networkOf(mapped[1]);
+    const [head, tail] = ip.toLowerCase().split("::");
+    const left = head ? head.split(":") : [];
+    const right = tail !== undefined && tail ? tail.split(":") : [];
+    const groups = tail === undefined ? left : [...left, ...Array(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right];
+    if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return ip;
+    return `${groups.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, "")).join(":")}::/64`;
+  }
+  return ip;
+}
 
 /** The cheap global limit the middleware applies to every /api/* request, per IP. */
 export const API_GLOBAL_PER_IP: Rule = { limit: 300, windowSec: MIN };

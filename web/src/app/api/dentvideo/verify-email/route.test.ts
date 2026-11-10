@@ -4,7 +4,7 @@ import { VERIFY_COPY } from "@/content/dentvideo-auth";
 
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 
-type User = { id: string; email: string; user_metadata: Record<string, unknown> };
+type User = { id: string; email: string; app_metadata: Record<string, unknown> };
 let user: User | null;
 let kv: MemoryKv;
 const mails: { to: string; subject: string; text: string }[] = [];
@@ -26,11 +26,11 @@ vi.mock("@/lib/dentvid/supabase", () => ({
     auth: {
       admin: {
         getUserById: async () => ({ data: { user }, error: null }),
-        updateUserById: async (_id: string, attrs: { email?: string; user_metadata?: Record<string, unknown> }) => {
+        updateUserById: async (_id: string, attrs: { email?: string; app_metadata?: Record<string, unknown> }) => {
           updates.push(attrs);
           if (attrs.email === "taken@clinic.example") return { data: null, error: { message: "A user with this email address has already been registered" } };
           if (user && attrs.email) user.email = attrs.email;
-          if (user && attrs.user_metadata) user.user_metadata = attrs.user_metadata;
+          if (user && attrs.app_metadata) user.app_metadata = { ...user.app_metadata, ...attrs.app_metadata };
           return { data: { user }, error: null };
         },
       },
@@ -47,7 +47,7 @@ async function call(body: unknown) {
 const lastCode = () => /\b(\d{3}) (\d{3})\b/.exec(mails[mails.length - 1].text)!.slice(1).join("");
 
 beforeEach(() => {
-  user = { id: OWNER, email: "dr@clinic.example", user_metadata: { product: "dentvideo" } };
+  user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } };
   kv = new MemoryKv();
   mails.length = 0;
   updates.length = 0;
@@ -74,7 +74,7 @@ describe("POST /api/dentvideo/verify-email", () => {
 
     const ok = await call({ action: "confirm", code: lastCode() });
     expect(ok).toEqual({ status: 200, body: { ok: true, verified: true, email: "dr@clinic.example" } });
-    expect(user!.user_metadata).toMatchObject({ product: "dentvideo", email_verified_for: "dr@clinic.example", email_verified_via: "code" });
+    expect(user!.app_metadata).toMatchObject({ product: "dentvideo", email_verified_for: "dr@clinic.example", email_verified_via: "code" });
     // Done: nothing more is sent.
     expect(await call({ action: "send" })).toMatchObject({ body: { verified: true } });
     expect(mails).toHaveLength(1);
@@ -101,7 +101,7 @@ describe("POST /api/dentvideo/verify-email", () => {
   });
 
   it("never swaps the address of a verified account", async () => {
-    user!.user_metadata = { email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: "dr@clinic.example" };
+    user!.app_metadata = { email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: "dr@clinic.example" };
     expect(await call({ action: "change", email: "other@clinic.example" })).toMatchObject({ body: { verified: true } });
     expect(updates).toHaveLength(0);
   });

@@ -11,6 +11,7 @@ import { accentFor, analyseLogoFile, type LogoColors } from "@/lib/dentvid/logo-
 import { LogoPreview } from "./logo-preview";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, splitServices } from "@/lib/dentvid/service-hints";
+import { requestUpload } from "@/lib/dentvid/upload-client";
 
 const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "PL", "JP", "SG", "AE", "SA", "QA", "KW", "BH", "OM", "CA", "AU"];
 
@@ -125,13 +126,21 @@ export function useClinicDraft({
   async function save(): Promise<void> {
     let newLogo: string | undefined;
     if (logo) {
+      // A new, versioned name each time (no overwrite), signed by the server
+      // after its checks; the server deletes the previous logo once saved.
       const db = dvBrowser();
       const { data: u } = await db.auth.getUser();
       if (!u.user) throw new Error(text.errors.signIn);
-      const ext = (logo.name.split(".").pop() ?? "png").toLowerCase().slice(0, 4);
-      newLogo = `${u.user.id}/logo.${ext}`;
-      const { error: upErr } = await db.storage.from(BUCKET).upload(newLogo, logo, { upsert: true, contentType: logo.type });
-      if (upErr) throw new Error(fmt(text.form.logoFailed, { message: upErr.message }));
+      const up = await requestUpload("logo", logo, text.errors.invalidLogo).catch((e: Error) => {
+        throw new Error(fmt(text.form.logoFailed, { message: e.message }));
+      });
+      newLogo = up.path;
+      const { error: upErr } = await db.storage.from(BUCKET).uploadToSignedUrl(up.path, up.token, logo, { contentType: up.contentType });
+      if (upErr) {
+        // Older storage servers without signed uploads: the same path directly (storage policy applies).
+        const { error: direct } = await db.storage.from(BUCKET).upload(up.path, logo, { contentType: up.contentType });
+        if (direct) throw new Error(fmt(text.form.logoFailed, { message: upErr.message }));
+      }
     }
     const profile = {
       name: p.name,

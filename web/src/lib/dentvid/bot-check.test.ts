@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MIN_FILL_MS, botSignup } from "./bot-check";
-import { isOwnLogoPath, isOwnRecordingPath } from "./paths";
+import { LOGO_EXTS, RECORDING_EXTS, fileExt, isOwnLogoPath, isOwnRecordingPath, logoPathFor, recordingPathFor } from "./paths";
 
 describe("botSignup", () => {
   it("lets a person through", () => {
@@ -28,5 +28,20 @@ describe("clinic storage paths", () => {
     expect(isOwnRecordingPath(`${U}/logo.png`, U)).toBe(false);
     expect(isOwnLogoPath(`${OTHER}/logo.png`, U)).toBe(false);
     expect(isOwnLogoPath(`${U}/../${OTHER}/logo.png`, U)).toBe(false);
+  });
+  it("accepts versioned logo names (no overwrite needed to replace a logo) and builds them", () => {
+    expect(isOwnLogoPath(`${U}/logo-1731081600000.png`, U)).toBe(true);
+    expect(isOwnLogoPath(logoPathFor(U.toUpperCase(), "webp", 1731081600000), U)).toBe(true);
+    expect(logoPathFor(U, "png", 1731081600000)).toBe(`${U}/logo-1731081600000.png`);
+    expect(isOwnLogoPath(`${U}/logo-abc.png`, U)).toBe(false);
+    expect(isOwnLogoPath(`${U}/logo-1731081600000.png/x`, U)).toBe(false);
+    expect(isOwnLogoPath(`${OTHER}/logo-1731081600000.png`, U)).toBe(false);
+    expect(isOwnRecordingPath(recordingPathFor(U, "mov", 1731081600000), U)).toBe(true);
+  });
+  it("reads an allowed extension from a file name", () => {
+    expect(fileExt("Logo.PNG", LOGO_EXTS)).toBe("png");
+    expect(fileExt("logo.svg", LOGO_EXTS)).toBeNull();
+    expect(fileExt("clip.MOV", RECORDING_EXTS)).toBe("mov");
+    expect(fileExt("noext", RECORDING_EXTS)).toBeNull();
   });
 });

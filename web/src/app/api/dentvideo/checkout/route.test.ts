@@ -7,7 +7,7 @@ import { GROUP_CONTACT } from "@/content/dentvideo-group";
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 
-let session: { user: { id: string; email: string; user_metadata?: Record<string, unknown> } | null; clinic: Record<string, unknown> | null };
+let session: { user: { id: string; email: string; app_metadata?: Record<string, unknown> } | null; clinic: Record<string, unknown> | null };
 
 vi.mock("@/lib/dentvid/auth", () => ({
   dvSession: async () => ({
@@ -42,7 +42,7 @@ async function call(body: unknown) {
 const sent = (i: number) => JSON.parse(fetchMock.mock.calls[i][1].body as string) as Record<string, unknown>;
 
 beforeEach(() => {
-  session = { user: { id: OWNER, email: "dr@clinic.example", user_metadata: verified }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de" } } };
+  session = { user: { id: OWNER, email: "dr@clinic.example", app_metadata: verified }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de" } } };
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("DODO_API_KEY", "sk_test");
@@ -64,7 +64,7 @@ describe("POST /api/dentvideo/checkout", () => {
   });
 
   it("refuses an owner who has not confirmed their email, in the clinic's language", async () => {
-    session.user = { id: OWNER, email: "dr@clinic.example", user_metadata: { product: "dentvideo" } };
+    session.user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } };
     const res = await call({ plan: "practice", interval: "month" });
     expect(res.status).toBe(403);
     expect(res.body).toMatchObject({ code: "email_unverified", email: "dr@clinic.example" });
@@ -72,8 +72,14 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("refuses a verified flag the user wrote into their own user_metadata", async () => {
+    session.user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" }, user_metadata: verified } as typeof session.user;
+    expect((await call({ plan: "practice", interval: "month" })).status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("refuses an address confirmed before it was changed", async () => {
-    session.user = { id: OWNER, email: "new@clinic.example", user_metadata: verified };
+    session.user = { id: OWNER, email: "new@clinic.example", app_metadata: verified };
     expect((await call({ plan: "practice", interval: "month" })).status).toBe(403);
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -165,7 +171,7 @@ describe("POST /api/dentvideo/checkout", () => {
     // Before any other check: a paying or unverified clinic gets the same answer, never a link.
     session.clinic = { ...session.clinic, plan: "active" };
     expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
-    session.user = { id: OWNER, email: "dr@clinic.example", user_metadata: { product: "dentvideo" } };
+    session.user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } };
     expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
     // No API key (static payment link path): still no Group link.
     vi.stubEnv("DODO_API_KEY", "");
