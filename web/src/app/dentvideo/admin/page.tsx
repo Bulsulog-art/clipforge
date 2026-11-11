@@ -23,6 +23,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       basePath={dvHref("/dentvideo/admin")}
       clinicHref={(id) => dvHref(`/dentvideo/admin/clinic/${id}`)}
       viewer={email}
+      demosHref={dvHref("/dentvideo/admin/demos")}
     />
   );
 }

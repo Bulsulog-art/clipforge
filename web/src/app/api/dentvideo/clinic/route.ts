@@ -10,12 +10,20 @@ import { recordEvent } from "@/lib/dentvid/events-server";
 import { geoCountry } from "@/lib/dentvid/events";
 import { BUCKET, dvAdmin } from "@/lib/dentvid/supabase";
 import { LOGO_MAX_BYTES } from "@/lib/dentvid/storage-quota";
+import { copyDemoLogoTo, loadDemoRow } from "@/lib/dentvid/demos-server";
+import { isDemoActive } from "@/lib/dentvid/demos";
 
 const Body = z.object({
   profile: clinicProfileSchema,
   logoPath: z.string().max(300).nullable().optional(),
   /** The tab's first-touch source (lib/dentvid/attribution): becomes the clinic's first touch on /admin. */
   attribution: z.record(z.string().max(80)).optional(),
+  /**
+   * The personalised demo the clinic came from (/d/<token>): credits the
+   * clinic to it, and — when the clinic has no logo of its own yet — the
+   * demo's logo is copied into the owner's folder, so nothing is retyped.
+   */
+  demoToken: z.string().regex(/^[A-Za-z0-9]{10,12}$/).optional(),
 });
 
 /** Size of one object in the owner's folder, null when it is not there. */
@@ -52,6 +60,14 @@ export async function POST(req: Request) {
   const { data: before } = await db.from("dentvid_clinics").select("logo_path").eq("owner_id", user.id).maybeSingle();
   const previousLogo = (before?.logo_path as string | null | undefined) ?? null;
   const newLogo = body.logoPath && body.logoPath !== previousLogo ? body.logoPath : null;
+
+  // From a demo link: the demo it came from (any state — the credit stays), and its logo for a clinic without one.
+  const demo = body.demoToken ? await loadDemoRow(body.demoToken).catch(() => null) : null;
+  if (demo && !body.logoPath && !previousLogo && demo.logo_path && isDemoActive(demo)) {
+    const copied = await copyDemoLogoTo(demo.token, user.id).catch(() => null);
+    // Copied by the server from a checked image (≤ 2 MB, PNG/JPEG/WebP) into the owner's own folder.
+    if (copied && isOwnLogoPath(copied, user.id)) body.logoPath = copied;
+  }
 
   // A signed upload URL cannot bound the size; check the stored file here.
   if (newLogo) {
@@ -107,7 +123,7 @@ export async function POST(req: Request) {
 
   void recordEvent("clinic_saved", {
     locale: body.profile.language,
-    props: { ...(body.attribution ?? {}), country: body.profile.country, language: body.profile.language },
+    props: { ...(body.attribution ?? {}), ...(demo ? { demo: demo.token } : {}), country: body.profile.country, language: body.profile.language },
     clinicId: data.id as string,
     geo: geoCountry(req.headers),
   });

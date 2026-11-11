@@ -94,6 +94,7 @@ export default function LivePreviewPlayer({
   text,
   className = "",
   track,
+  demoToken,
 }: {
   profile: PreviewProfile;
   backgrounds?: string[];
@@ -101,6 +102,8 @@ export default function LivePreviewPlayer({
   className?: string;
   /** Count preview_played / preview_completed for this place in the funnel. */
   track?: "landing" | "wizard";
+  /** On a personalised demo page (/d/<token>): count demo_preview_played for that demo. */
+  demoToken?: string;
 }) {
   const lang = libraryLanguage(profile.language);
   const servicesKey = profile.services.join("\u0000");
@@ -283,6 +286,7 @@ export default function LivePreviewPlayer({
       setPlaying(true);
       // Funnel: the preview really played (once per tab and place).
       if (track) trackDv("preview_played", { locale: profile.language, props: { where: track }, once: `preview-play:${track}` });
+      if (demoToken) trackDv("demo_preview_played", { locale: profile.language, props: { demo: demoToken }, once: `demo-play:${demoToken}` });
     };
     const onPause = () => setPlaying(false);
     const onEnded = () => {
@@ -317,7 +321,7 @@ export default function LivePreviewPlayer({
       p.removeEventListener("frameupdate", onFrame);
       p.removeEventListener("mutechange", onMute);
     };
-  }, [entries.length, durationInFrames, entry?.id, ready, track, profile.language]);
+  }, [entries.length, durationInFrames, entry?.id, ready, track, demoToken, profile.language]);
 
   useEffect(() => {
     const p = playerRef.current;

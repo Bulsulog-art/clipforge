@@ -14,6 +14,7 @@ import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "./tur
 import { ConsentLine } from "./consent-line";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
+import { rememberDemo } from "@/lib/dentvid/demo-cookie";
 
 /**
  * `legal`: show the consent line linking to the Terms and Privacy Policy (on
@@ -46,8 +47,12 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
 
   // /start?mode=signin or ?mode=forgot (e.g. from an expired reset link).
   useEffect(() => {
-    const m = new URLSearchParams(window.location.search).get("mode");
+    const q = new URLSearchParams(window.location.search);
+    const m = q.get("mode");
     if (m === "signin" || m === "forgot") setMode(m);
+    // From a demo link ("Start with these settings"): the clinic step fills itself from it after sign-up.
+    const demo = q.get("demo");
+    if (demo) rememberDemo(demo);
     // A link straight to /start?utm_…: keep its source for the tab, as a landing would.
     captureFromLocation();
   }, []);

@@ -96,6 +96,12 @@ type Props = {
   account?: { email: string; verified: boolean };
   /** Dev harness: show the code card without asking the server for a code. */
   autoSendCode?: boolean;
+  /**
+   * Arrived from a personalised demo link (/d/<token>) with no clinic yet:
+   * the clinic as the demo showed it (name, city, country, language,
+   * colour) and its logo, so nothing is retyped.
+   */
+  demo?: { token: string; profile: Partial<ClinicProfile>; logoUrl?: string | null };
 };
 
 /**
@@ -105,9 +111,16 @@ type Props = {
  * is kept in the URL (?step=) and the furthest one in a cookie, so a
  * returning visitor lands where they left off (lib/dentvid/onboarding.ts).
  */
-export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, founding, checkoutCancelled, account, autoSendCode = true }: Props) {
+export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, founding, checkoutCancelled, account, autoSendCode = true, demo }: Props) {
   const t = appText(locale).onboarding;
-  const draft = useClinicDraft({ locale, initial, logoUrl });
+  // A demo fills only a clinic that has no name yet; what the clinic saved always wins.
+  const fromDemo = demo && !initial?.name ? demo : undefined;
+  const draft = useClinicDraft({
+    locale,
+    initial: fromDemo ? { ...fromDemo.profile, ...initial } : initial,
+    logoUrl: logoUrl ?? fromDemo?.logoUrl ?? null,
+    demoToken: demo?.token,
+  });
   const [step, setStep] = useState(initialStep);
 
   useEffect(() => rememberStep(initialStep), [initialStep]);

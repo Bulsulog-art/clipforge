@@ -16,7 +16,7 @@ const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 
 describe("event allow-list", () => {
   it("knows exactly the funnel events", () => {
-    expect(DV_EVENTS).toHaveLength(17);
+    expect(DV_EVENTS).toHaveLength(20);
     expect(isDvEvent("landing_view")).toBe(true);
     expect(isDvEvent("payment_succeeded")).toBe(true);
     for (const bad of ["pageview", "", "LANDING_VIEW", "landing_view ", null, 3, {}]) expect(isDvEvent(bad)).toBe(false);

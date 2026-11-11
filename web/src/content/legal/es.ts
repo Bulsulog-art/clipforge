@@ -248,6 +248,7 @@ export const ES: LegalText = {
                 "Eventos de uso: se conservan como estadística anónima; al eliminar tu cuenta se elimina su vínculo con tu clínica.",
                 "Facturas y registros de pago: los conserva Dodo Payments como comerciante registrado según sus propias obligaciones legales, y nosotros en la medida en que lo exija la normativa contable y fiscal.",
                 "Contadores de límite de peticiones: de minutos a horas.",
+                "Clínicas a las que contactamos con una demo personalizada: creamos la demo nosotros a partir de información comercial pública (nombre de la clínica, ciudad, país, color de marca y logotipo) y la conservamos hasta 60 días, salvo que la clínica se registre. Para que borremos una demo antes, escriba a {email}.",
               ],
             },
           ],

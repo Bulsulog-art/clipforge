@@ -254,6 +254,7 @@ export const EN: LegalText = {
                 "Usage events: kept as anonymous statistics; deleting your account removes their link to your clinic.",
                 "Invoices and payment records: kept by Dodo Payments as merchant of record under its own legal obligations, and by us as far as accounting and tax law requires.",
                 "Rate-limit counters: minutes to hours.",
+                "Clinics we contact with a personalised demo: we create the demo ourselves from public business information (clinic name, city, country, brand colour and logo) and keep it for up to 60 days, unless the clinic signs up. To have a demo deleted sooner, write to {email}.",
               ],
             },
           ],
