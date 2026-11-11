@@ -28,7 +28,7 @@ export const TR: LegalText = {
     hostinger: {
       purpose: "dentvideo.com'un, video işleme sunucularının, veritabanımızın, oturum açma ve dosya depolamanın çalıştığı sanal sunucu (açık kaynaklı Supabase yazılımının kendi kurulumumuz).",
       data: "Tüm hizmet verileri: hesap, klinik profili, yüklemeler, videolar, ödeme referansları, kayıtlar (log).",
-      location: "Veri merkezi konumu henüz teyit edilmedi; bu liste güncellenecek.",
+      location: "Almanya (AB)",
     },
     openai: {
       purpose: "Metinleri yazar ve inceler, yapay seslendirmeyi oluşturur ve kendi transkripsiyon hizmetimiz kullanılamadığında yüklenen kayıtları yazıya döker.",
