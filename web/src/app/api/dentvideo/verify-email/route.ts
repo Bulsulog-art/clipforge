@@ -9,6 +9,8 @@ import { kvStore, rateLimited } from "@/lib/rate-limit-server";
 import { fmtAuth, verifyText } from "@/content/dentvideo-auth";
 import { checkCode, isEmailVerified, normalizeEmail, pendingCode, verifySecret, VERIFY_RULES } from "@/lib/dentvid/verify-email";
 import { markEmailVerified, sendVerificationCode, type SendCodeResult } from "@/lib/dentvid/verify-email-server";
+import { recordEvent } from "@/lib/dentvid/events-server";
+import { geoCountry } from "@/lib/dentvid/events";
 
 // POST /api/dentvideo/verify-email — the signed-in owner proves they receive
 // mail at their account's address (lib/dentvid/verify-email).
@@ -19,7 +21,7 @@ import { markEmailVerified, sendVerificationCode, type SendCodeResult } from "@/
 
 const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("send"), onlyIfNone: z.boolean().optional(), locale: z.string().max(8).optional() }),
-  z.object({ action: z.literal("confirm"), code: z.string().max(40) }),
+  z.object({ action: z.literal("confirm"), code: z.string().max(40), attribution: z.record(z.string().max(80)).optional() }),
   z.object({ action: z.literal("change"), email: z.string().trim().toLowerCase().email().max(200), locale: z.string().max(8).optional() }),
 ]);
 
@@ -85,6 +87,8 @@ export async function POST(req: Request) {
       return json({ error, reason: res.reason, ...(res.reason === "wrong" ? { attemptsLeft: res.attemptsLeft } : {}) }, 400);
     }
     if (!(await markEmailVerified(user.id, email, "code"))) return json({ error: v.failed }, 503);
+    // Funnel: the address was confirmed (no address, no user id stored).
+    void recordEvent("code_verified", { locale, props: body.attribution, geo: geoCountry(req.headers) });
     return json({ ok: true, verified: true, email });
   }
 

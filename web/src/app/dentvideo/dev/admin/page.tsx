@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminClinicView, AdminDashboard, type AdminLibraryItem } from "@/components/dentvid/admin-dashboard";
-import type { AdminClinic, AdminEvent, AdminItem } from "@/lib/dentvid/admin-metrics";
+import { asCountryFilter, type AdminClinic, type AdminEvent, type AdminItem } from "@/lib/dentvid/admin-metrics";
 import type { AdminData } from "@/lib/dentvid/admin-server";
 import { asLocale } from "@/lib/dentvid/locale";
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Owner dashboard preview", robots: { 
  *   /dentvideo/dev/admin?empty=1                  a fresh install (no events table, no Redis)
  *   /dentvideo/dev/admin?clinic=<id>              one clinic's read-only library
  */
-export default async function AdminPreview({ searchParams }: { searchParams: Promise<{ days?: string; locale?: string; empty?: string; clinic?: string }> }) {
+export default async function AdminPreview({ searchParams }: { searchParams: Promise<{ days?: string; locale?: string; country?: string; empty?: string; clinic?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const now = new Date();
@@ -46,6 +46,7 @@ export default async function AdminPreview({ searchParams }: { searchParams: Pro
       data={data}
       days={sp.days === "7" ? 7 : 30}
       locale={asLocale(sp.locale) ?? null}
+      country={asCountryFilter(sp.country)}
       basePath={base}
       clinicHref={(id) => `${base}?clinic=${id}`}
       viewer="owner@dentvideo.com"
@@ -118,8 +119,12 @@ function demoData(now: Date): AdminData {
       const locale = pick(r, LOCALE_WEIGHT as [string, number][]);
       const at = t - d * DAY - r() * DAY;
       const src = pick(r, [["", 55], ["google", 25], ["instagram", 8], ["linkedin", 6], ["newsletter", 6]] as [string, number][]);
-      ev("landing_view", at, locale, null, src ? { utm_source: src } : {});
-      if (r() < 0.19) ev("preview_started", at + 60_000, locale, null, { where: "landing" });
+      const tags = src === "instagram" ? { utm_source: src, utm_medium: "dm", utm_campaign: `${locale}-launch` } : src ? { utm_source: src } : {};
+      const geo = { geo: NAMES[locale].country };
+      ev("landing_view", at, locale, null, { ...tags, ...geo });
+      if (r() < 0.22) ev("cta_clicked", at + 30_000, locale, null, { ...tags, ...geo, where: r() < 0.7 ? "hero" : "pricing" });
+      if (r() < 0.19) ev("preview_started", at + 60_000, locale, null, { ...tags, ...geo, where: "landing" });
+      if (r() < 0.1) ev("signup_started", at + 90_000, locale, null, { ...tags, ...geo });
     }
   }
 
@@ -148,11 +153,18 @@ function demoData(now: Date): AdminData {
       dodo_subscription_id: willPay ? `sub_${id.slice(0, 8)}` : null,
       profile: { name, country: pool.country, language: locale },
     });
-    ev("signup_completed", at, locale, null);
+    const touch = pick(r, [[{}, 50], [{ utm_source: "google" }, 25], [{ utm_source: "instagram", utm_medium: "dm", utm_campaign: `${locale}-launch` }, 15], [{ ref: "linkedin.com" }, 10]] as [Record<string, string>, number][]);
+    ev("signup_completed", at, locale, null, { ...touch, geo: pool.country });
     if (r() < 0.9) {
-      ev("clinic_saved", at + 4 * 60_000, locale, id, { country: pool.country, language: locale });
+      ev("clinic_saved", at + 4 * 60_000, locale, id, { ...touch, country: pool.country, language: locale });
       ev("preview_started", at + 4 * 60_000, locale, id, { where: "wizard" });
-      if (r() < 0.86) ev("preview_step_viewed", at + 6 * 60_000, locale, id);
+      if (r() < 0.86) {
+        ev("preview_step_viewed", at + 6 * 60_000, locale, id);
+        ev("preview_played", at + 6 * 60_000, locale, id, { where: "wizard" });
+        if (r() < 0.7) ev("preview_completed", at + 7 * 60_000, locale, id, { where: "wizard" });
+      }
+      if (willPay || r() < 0.5) ev("plan_viewed", at + 8 * 60_000, locale, id);
+      if (willPay || r() < 0.3) ev("code_verified", at + 8.5 * 60_000, locale, null, { geo: pool.country });
       if (willPay || r() < 0.42) {
         const interval = tier === "practice" && r() < 0.2 ? "year" : "month";
         const founding = tier === "practice" && interval === "month" && r() < 0.8;

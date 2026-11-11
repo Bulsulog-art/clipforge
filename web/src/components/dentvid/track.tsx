@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { externalReferrerHost } from "@/lib/dentvid/events";
+import Link from "next/link";
+import type { DvCtaWhere } from "@/lib/dentvid/events";
+import { attributionFrom, captureAttribution } from "@/lib/dentvid/attribution";
 import { trackDv } from "@/lib/dentvid/events-client";
 
 /**
@@ -12,18 +14,37 @@ import { trackDv } from "@/lib/dentvid/events-client";
 export function LandingView({ locale }: { locale: string }) {
   useEffect(() => {
     try {
-      const q = new URLSearchParams(window.location.search);
-      const props: Record<string, string> = {};
-      for (const k of ["utm_source", "utm_medium", "utm_campaign"]) {
-        const v = q.get(k);
-        if (v) props[k] = v.slice(0, 40);
-      }
-      const ref = document.referrer ? externalReferrerHost(document.referrer, window.location.hostname) : undefined;
-      if (ref) props.ref = ref;
-      trackDv("landing_view", { locale, props, once: `landing:${locale}` });
+      // This visit's own source (for the view), and the tab's first touch kept for the sign-up.
+      const visit = attributionFrom(window.location.search, document.referrer, window.location.hostname);
+      captureAttribution(visit);
+      trackDv("landing_view", { locale, props: visit, once: `landing:${locale}` });
     } catch {
       // never break the page
     }
   }, [locale]);
   return null;
+}
+
+/**
+ * A link into the sign-up that counts the click (cta_clicked, with where it
+ * sits on the page). The navigation never waits for the event.
+ */
+export function TrackedLink({
+  href,
+  locale,
+  where,
+  className,
+  children,
+}: {
+  href: string;
+  locale: string;
+  where: DvCtaWhere;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link href={href} className={className} data-cta={where} onClick={() => trackDv("cta_clicked", { locale, props: { where } })}>
+      {children}
+    </Link>
+  );
 }

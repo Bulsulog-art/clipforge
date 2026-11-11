@@ -115,6 +115,7 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
   useEffect(() => {
     if (step === "clinic" || step === "preview") trackDv("preview_started", { locale, props: { where: "wizard" }, once: "preview:wizard" });
     if (step === "preview") trackDv("preview_step_viewed", { locale, once: "preview-step" });
+    if (step === "plan") trackDv("plan_viewed", { locale, once: "plan-step" });
   }, [step, locale]);
 
   // Arrived from the landing's "Try it with your logo": carry the name,
@@ -221,7 +222,7 @@ function ClinicStep({ locale, draft, onDone }: { locale: Locale; draft: ClinicDr
       <StepHeader title={t.clinicTitle} lead={t.clinicLead} />
       <form onSubmit={submit} className="mt-10 grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-14">
         <div className="dv-card p-5 sm:p-8">
-          <ClinicDetailsFields draft={draft} locale={locale} />
+          <ClinicDetailsFields draft={draft} locale={locale} moreLabel={t.moreDetails} />
           <div className="mt-8 border-t border-dv-line pt-7">
             <h2 className="text-base font-semibold text-dv-ink">{t.brandHeading}</h2>
             <p className="mt-1 text-sm text-dv-muted">{t.brandHint}</p>
@@ -260,7 +261,7 @@ function PreviewStep({ locale, draft, onBack, onDone }: { locale: Locale; draft:
         <div className="relative lg:sticky lg:top-24">
           <div aria-hidden="true" className="absolute left-1/2 top-1/2 -z-10 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25 blur-3xl" style={{ background: draft.p.brandColor }} />
           <div className="mx-auto w-full max-w-[14.5rem] sm:max-w-[19rem] lg:max-w-[21rem]">
-            <LivePreview profile={draft.preview} />
+            <LivePreview profile={draft.preview} track="wizard" />
           </div>
           <p className="mx-auto mt-6 max-w-sm text-center text-xs leading-relaxed text-dv-muted">{t.previewNote}</p>
         </div>

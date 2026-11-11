@@ -9,7 +9,12 @@ let limitedKey: string | null = null;
 const sendCode = vi.fn(async () => ({ ok: true as const }));
 
 vi.mock("@/lib/dentvid/locale-server", () => ({ dvErrors: async () => APP_TEXT.en.errors, dvLocale: async () => "en" }));
-vi.mock("@/lib/dentvid/events-server", () => ({ recordEvent: async () => {} }));
+const recorded: unknown[][] = [];
+vi.mock("@/lib/dentvid/events-server", () => ({
+  recordEvent: async (...a: unknown[]) => {
+    recorded.push(a);
+  },
+}));
 vi.mock("@/lib/dentvid/verify-email-server", () => ({ sendVerificationCode: (...a: unknown[]) => sendCode(...(a as [])) }));
 vi.mock("@/lib/dentvid/email", () => ({
   sendEmail: async (to: string, msg: { subject: string }) => {
@@ -43,10 +48,12 @@ vi.mock("@/lib/dentvid/supabase", () => ({
   }),
 }));
 
-async function signup(extra: Record<string, unknown> = {}) {
+async function signup(extra: Record<string, unknown> = {}, headers: Record<string, string> = {}) {
   const { POST } = await import("./route");
   const body = { email: "Dr@Clinic.example", password: "longenough", website: "", elapsedMs: 5000, locale: "de", ...extra };
-  const res = await POST(new Request("https://dentvideo.com/api/dentvideo/signup", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9" }, body: JSON.stringify(body) }));
+  const res = await POST(
+    new Request("https://dentvideo.com/api/dentvideo/signup", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9", ...headers }, body: JSON.stringify(body) }),
+  );
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
 }
 
@@ -66,6 +73,14 @@ afterEach(() => {
 });
 
 describe("POST /api/dentvideo/signup", () => {
+  it("records signup_completed with the tab's first-touch source and the edge country (no email, no user id)", async () => {
+    recorded.length = 0;
+    const attribution = { utm_source: "instagram", utm_medium: "dm", utm_campaign: "tr-launch" };
+    await signup({ attribution }, { "cf-ipcountry": "TR" });
+    expect(recorded).toEqual([["signup_completed", { locale: "de", props: attribution, geo: "TR" }]]);
+    expect(JSON.stringify(recorded)).not.toContain("clinic.example");
+  });
+
   it("creates the account with the DentVideo marker in app_metadata (server-only), not user_metadata", async () => {
     expect(await signup()).toEqual({ status: 200, body: { ok: true } });
     expect(created).toHaveLength(1);

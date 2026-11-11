@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { DV_CLINIC_CLIENT_EVENTS, DV_EVENT_MAX_BYTES, parseClientEvent } from "@/lib/dentvid/events";
+import { DV_CLINIC_CLIENT_EVENTS, DV_EVENT_MAX_BYTES, geoCountry, parseClientEvent } from "@/lib/dentvid/events";
 import { insertEventRow, readCapped } from "@/lib/dentvid/events-server";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { limitChecks } from "@/lib/rate-limit-server";
@@ -26,7 +26,8 @@ export async function POST(req: Request) {
 
   const text = await readCapped(req, DV_EVENT_MAX_BYTES).catch(() => null);
   if (text === null) return NextResponse.json({ error: "too large" }, { status: 413 });
-  const row = parseClientEvent(text);
+  // The country comes from the proxy's geo header (an ISO code), never from the body.
+  const row = parseClientEvent(text, geoCountry(req.headers));
   if (!row) return NextResponse.json({ error: "bad event" }, { status: 400 });
 
   if (DV_CLINIC_CLIENT_EVENTS.includes(row.name)) {

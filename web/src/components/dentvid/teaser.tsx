@@ -205,7 +205,14 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                 </span>
               </div>
             </div>
-            <Link href={href} onClick={carry} className="dv-btn dv-btn-primary group w-full px-7 py-4 text-base">
+            <Link
+              href={href}
+              onClick={() => {
+                carry();
+                trackDv("cta_clicked", { locale, props: { where: "teaser" } });
+              }}
+              data-cta="teaser"
+              className="dv-btn dv-btn-primary group w-full px-7 py-4 text-base">
               {copy.cta}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
             </Link>
@@ -225,6 +232,7 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                   brandColor: color,
                   logoUrl: logoUrl ?? undefined,
                 }}
+                track="landing"
               />
             ) : (
               <PreviewPlaceholder />

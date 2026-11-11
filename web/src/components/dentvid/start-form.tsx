@@ -12,6 +12,8 @@ import { DvIcon } from "./mark";
 import { Stepper } from "./onboarding";
 import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "./turnstile-widget";
 import { ConsentLine } from "./consent-line";
+import { trackDv } from "@/lib/dentvid/events-client";
+import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
 
 /**
  * `legal`: show the consent line linking to the Terms and Privacy Policy (on
@@ -46,7 +48,17 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
   useEffect(() => {
     const m = new URLSearchParams(window.location.search).get("mode");
     if (m === "signin" || m === "forgot") setMode(m);
+    // A link straight to /start?utm_…: keep its source for the tab, as a landing would.
+    captureFromLocation();
   }, []);
+
+  /** Funnel: the first keystroke in the sign-up form (once per tab). */
+  const started = useRef(false);
+  const startTyping = () => {
+    if (started.current || mode !== "signup") return;
+    started.current = true;
+    trackDv("signup_started", { locale, once: "signup-start" });
+  };
 
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -93,6 +105,7 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
             website,
             elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)),
             locale,
+            attribution: readAttribution(),
             ...(captcha ? { turnstile: captcha } : {}),
           }),
         });
@@ -136,7 +149,18 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
         <form onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
-            <input type="email" dir="ltr" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+            <input
+              type="email"
+              dir="ltr"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => {
+                startTyping();
+                setEmail(e.target.value);
+              }}
+              className={field}
+            />
           </label>
           {mode !== "forgot" && (
           <label className="block">

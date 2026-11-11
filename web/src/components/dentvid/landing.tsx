@@ -4,7 +4,11 @@ import {
   ArrowUpRight,
   AudioWaveform,
   BadgeCheck,
+  Building2,
+  CalendarX2,
   Check,
+  CreditCard,
+  Lock,
   Clock3,
   Download,
   Mail,
@@ -24,7 +28,9 @@ import { DV_FOUNDING, DV_TIERS, foundingOfferOpen } from "@/lib/dentvid/billing"
 import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
 import { Teaser } from "./teaser";
-import { LandingView } from "./track";
+import { LandingView, TrackedLink } from "./track";
+import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
+import { LEGAL_KINDS } from "@/content/legal/types";
 import { HtmlLang } from "./guide-parts";
 
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
@@ -52,36 +58,63 @@ function Hero({ locale }: { locale: Locale }) {
       <div aria-hidden="true" className="absolute -end-40 top-10 -z-10 h-[34rem] w-[34rem] rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
       <div aria-hidden="true" className="absolute -start-48 top-64 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#f3e3cc] opacity-60 blur-3xl" />
 
-      <div className="mx-auto grid max-w-6xl items-center gap-16 px-4 pb-20 pt-10 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10 lg:pb-28 lg:pt-20">
-        <div className="min-w-0">
+      {/*
+        One grid, two arrangements. Phones: what it is (text), the CTA with the starting price, then a real
+        sample video beside the three risk-reducers — all in the first screen. From lg: text, CTA and points
+        on the left, the full-size phone on the right.
+      */}
+      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_8.25rem] gap-x-4 gap-y-7 px-4 pb-20 pt-6 [grid-template-areas:'text_text'_'cta_cta'_'points_phone'] sm:grid-cols-[minmax(0,1fr)_10rem] sm:px-6 sm:pt-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-10 lg:gap-y-0 lg:pb-28 lg:pt-16 lg:[grid-template-areas:'._phone'_'text_phone'_'cta_phone'_'points_phone'_'._phone']">
+        <div className="min-w-0 [grid-area:text]">
           <p className="dv-rise inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pe-3.5 ps-2 text-sm font-medium text-dv-teal shadow-[0_1px_2px_rgba(20,33,31,0.05)] ring-1 ring-dv-line backdrop-blur">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal-50">
               <span className="h-1.5 w-1.5 rounded-full bg-dv-teal" />
             </span>
             {c.hero.eyebrow}
           </p>
-          <h1 className="dv-display dv-h1 dv-rise-2 mt-6 text-balance max-w-[16ch] text-[2.625rem] leading-[1.02] text-dv-ink sm:text-6xl lg:max-w-[15ch] lg:text-[4.25rem] lg:leading-[0.98]">
+          {/* Not animated in: the headline and the lead are the first screen's largest paints (LCP); a fade from
+              opacity 0 would hold them back until after hydration on slow phones. */}
+          <h1 className="dv-display dv-h1 mt-5 text-balance text-[2.25rem] leading-[1.04] text-dv-ink sm:mt-6 sm:text-[3.25rem] lg:max-w-[17ch] lg:text-[3.75rem] lg:leading-[1]">
             {c.hero.h1}
           </h1>
-          {/* Not animated in: this paragraph is the largest thing in the first screen (the LCP element), and
-              a fade from opacity 0 holds its paint back until after hydration on slow phones. */}
-          <p className="mt-7 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body sm:text-lg">{c.hero.lead}</p>
-          <div className="dv-rise-3 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href={dvHref(`/dentvideo/start?lang=${locale}`)} className="dv-btn dv-btn-primary group px-7 py-4 text-base">
+          <p className="mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body sm:mt-6 sm:text-lg">{c.hero.lead}</p>
+        </div>
+
+        <div className="min-w-0 [grid-area:cta] lg:mt-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <TrackedLink href={dvHref(`/dentvideo/start?lang=${locale}`)} locale={locale} where="hero" className="dv-btn dv-btn-primary group px-7 py-4 text-base">
               {c.hero.cta}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-            </Link>
-            <a href="#how" className="dv-btn dv-btn-secondary px-6 py-4 text-base">{chrome.howItWorks}</a>
+            </TrackedLink>
+            {/* Phones: the sample video right below already shows how it works; one clear action in the first screen. */}
+            <div className="hidden sm:block">
+              <a href="#how" className="dv-btn dv-btn-secondary px-6 py-4 text-base">{chrome.howItWorks}</a>
+            </div>
           </div>
-          <p className="mt-6 flex items-center gap-2 text-sm text-dv-muted">
-            <Check className="h-4 w-4 text-dv-teal" aria-hidden="true" />
-            {c.hero.note}
+          <p className="mt-3 text-sm text-dv-muted">
+            <span className="font-semibold text-dv-ink">{c.pricing.from}</span>
+            {foundingOfferOpen() && (
+              <>
+                <span aria-hidden="true"> · </span>
+                {c.hero.note}
+              </>
+            )}
           </p>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[22rem] lg:max-w-none">
-          <div className="relative mx-auto w-[15.5rem] sm:w-[17.5rem] lg:w-[18.5rem]">
-            <PhoneFrame>
+        <ul className="min-w-0 space-y-3 self-center [grid-area:points] lg:mt-7 lg:self-start" data-hero-points>
+          {c.hero.points.map((pt) => (
+            <li key={pt} className="flex items-start gap-2.5 text-[0.9375rem] font-medium leading-snug text-dv-ink">
+              <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
+                <Check className="h-3 w-3" strokeWidth={3.5} />
+              </span>
+              {pt}
+            </li>
+          ))}
+        </ul>
+
+        <div className="relative w-full self-center [grid-area:phone] lg:mx-auto lg:max-w-none">
+          <div className="relative mx-auto w-full lg:w-[18.5rem]">
+            <PhoneFrame compact>
               {hero ? (
                 <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} />
               ) : (
@@ -90,8 +123,8 @@ function Hero({ locale }: { locale: Locale }) {
             </PhoneFrame>
           </div>
 
-          {/* The patient's question… */}
-          <div aria-hidden="true" className="dv-float absolute -start-1 -top-6 z-20 w-max max-w-[12rem] sm:-start-10 sm:top-8 sm:max-w-[13.5rem] lg:-start-16">
+          {/* The patient's question… (wide screens only: on a phone the small video speaks for itself) */}
+          <div aria-hidden="true" className="dv-float absolute -start-16 top-8 z-20 hidden w-max max-w-[13.5rem] lg:block">
             <div className="dv-card flex items-start gap-2.5 p-3 pe-3.5">
               <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-dv-sand text-dv-teal">
                 <MessageCircleQuestion className="h-4 w-4" />
@@ -101,7 +134,7 @@ function Hero({ locale }: { locale: Locale }) {
           </div>
 
           {/* …answered, and checked before the dentist sees it. */}
-          <div className="dv-float-slow absolute -bottom-14 -end-1 z-20 w-[13rem] sm:-end-8 sm:bottom-6 sm:w-[14.5rem] lg:-end-6">
+          <div className="dv-float-slow absolute -end-6 bottom-6 z-20 hidden w-[14.5rem] lg:block">
             <div className="dv-card p-4">
               <p className="flex items-center gap-2 text-[0.8125rem] font-semibold text-dv-ink">
                 <BadgeCheck className="h-[1.125rem] w-[1.125rem] text-dv-teal" aria-hidden="true" />
@@ -558,13 +591,15 @@ function Pricing({ locale }: { locale: Locale }) {
                 ))}
               </ul>
               <div className="mt-auto pt-8">
-                <Link
+                <TrackedLink
                   href={start}
+                  locale={locale}
+                  where="pricing"
                   className={`dv-btn group w-full px-5 py-3.5 text-[0.9375rem] ${featured ? "dv-btn-primary" : "dv-btn-secondary !text-dv-teal"}`}
                 >
                   {p.cta}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-                </Link>
+                </TrackedLink>
               </div>
             </li>
           );
@@ -597,6 +632,47 @@ function GroupCard({ locale }: { locale: Locale }) {
         </a>
       </div>
     </li>
+  );
+}
+
+const TRUST_ICONS = [Building2, CreditCard, Lock, CalendarX2];
+
+/**
+ * Who runs DentVideo, who takes the money, what happens to the data, how to
+ * leave — facts from the legal pages, with links to them. No testimonials,
+ * logos or ratings: there are none yet, and invented ones are banned.
+ */
+function Trust({ locale }: { locale: Locale }) {
+  const t = LANDING[locale].trust;
+  const nav = LEGAL_NAV[locale];
+  return (
+    <section id="trust" aria-labelledby="trust-heading" className="mx-auto max-w-6xl scroll-mt-24 px-4 pb-24 sm:px-6 sm:pb-32">
+      <h2 id="trust-heading" className="dv-display text-[2rem] leading-tight sm:text-[2.5rem]">{t.heading}</h2>
+      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {t.items.map((it, i) => {
+          const Icon = TRUST_ICONS[i] ?? ShieldCheck;
+          return (
+            <li key={it.title} className="dv-card p-6">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dv-sand text-dv-teal ring-1 ring-dv-line">
+                <Icon className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 font-semibold tracking-tight text-dv-ink">{it.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-dv-body">{it.text}</p>
+            </li>
+          );
+        })}
+      </ul>
+      <nav aria-label={t.legal} className="mt-6">
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+          <span className="font-medium text-dv-muted">{t.legal}:</span>
+          {LEGAL_KINDS.map((k) => (
+            <Link key={k} href={dvHref(legalPath(k, locale))} className="font-medium text-dv-teal underline-offset-4 hover:underline">
+              {nav.nav[k]}
+            </Link>
+          ))}
+        </p>
+      </nav>
+    </section>
   );
 }
 
@@ -664,6 +740,7 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <Checks locale={locale} />
       <Compare locale={locale} />
       <Pricing locale={locale} />
+      <Trust locale={locale} />
       <Guides locale={locale} />
       <Faq locale={locale} />
       <LanguageSwitcher current={locale} label={appText(locale).chrome.language} />

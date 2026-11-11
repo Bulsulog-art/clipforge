@@ -4,6 +4,7 @@ import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } f
 import { CheckCircle2, MailCheck } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { fmtAuth, verifyText } from "@/content/dentvideo-auth";
+import { readAttribution } from "@/lib/dentvid/attribution";
 
 export type VerifyCardHandle = { focus: () => void };
 
@@ -100,7 +101,8 @@ export const VerifyCard = forwardRef<VerifyCardHandle, Props>(function VerifyCar
     setError(null);
     setNotice(null);
     try {
-      const r = await post({ action: "confirm", code: digits });
+      // The tab's first-touch source, so the confirmed step counts for the right campaign on /admin.
+      const r = await post({ action: "confirm", code: digits, attribution: readAttribution() });
       if (r.ok && r.verified) {
         onVerified(r.email ?? email);
         return;

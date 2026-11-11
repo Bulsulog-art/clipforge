@@ -12,6 +12,7 @@ import { LogoPreview } from "./logo-preview";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, splitServices } from "@/lib/dentvid/service-hints";
 import { requestUpload } from "@/lib/dentvid/upload-client";
+import { readAttribution } from "@/lib/dentvid/attribution";
 
 const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "PL", "JP", "SG", "AE", "SA", "QA", "KW", "BH", "OM", "CA", "AU"];
 
@@ -157,7 +158,8 @@ export function useClinicDraft({
     const res = await fetch("/api/dentvideo/clinic", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}) }),
+      // The tab's first-touch source rides along, so the clinic's payment can be credited to it (/admin Sources).
+      body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}), attribution: readAttribution() }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error ?? text.errors.saveFailed);
@@ -184,55 +186,109 @@ export type ClinicDraft = ReturnType<typeof useClinicDraft>;
 
 const label = "block text-sm font-semibold text-dv-ink";
 
-/** Name, place, language, address, services, tone, handle, booking link. */
-export function ClinicDetailsFields({ draft, locale }: { draft: ClinicDraft; locale: Locale }) {
+/**
+ * Name, place, language, address, services, tone, handle, booking link.
+ *
+ * `moreLabel` (the sign-up wizard): only what the first preview and the
+ * compliance rules need is shown — name, country, language, services — and
+ * the rest (city, form of address, tone, handle, booking link; all optional
+ * or with a default) folds under that label, so a new clinic reaches its
+ * preview with four fields instead of nine. Settings shows everything.
+ */
+export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: ClinicDraft; locale: Locale; moreLabel?: string }) {
   const t = appText(locale).form;
   const { p, set } = draft;
+  const name = (
+    <label className={`${label} sm:col-span-2`}>
+      {t.clinicName}
+      <input required value={p.name} onChange={set("name")} autoComplete="organization" className="dv-field" />
+    </label>
+  );
+  const city = (
+    <label className={label}>
+      {t.city}
+      <input value={p.city} onChange={set("city")} autoComplete="address-level2" className="dv-field" />
+    </label>
+  );
+  const country = (
+    <label className={label}>
+      {t.country}
+      <select value={p.country} onChange={set("country")} className="dv-field">
+        {COUNTRIES.map((code) => (
+          <option key={code} value={code} suppressHydrationWarning>{countryName(code, locale)}</option>
+        ))}
+      </select>
+    </label>
+  );
+  const address = (
+    <label className={label}>
+      {t.address}
+      <select value={p.address} onChange={set("address")} className="dv-field">
+        <option value="formal">{t.formal}</option>
+        <option value="informal">{t.informal}</option>
+      </select>
+    </label>
+  );
+  const services = (
+    <label className={`${label} sm:col-span-2`}>
+      {t.services}
+      <textarea required rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
+      <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
+    </label>
+  );
+  const tone = (
+    <label className={label}>
+      {t.tone}
+      <select value={p.tone} onChange={set("tone")} className="dv-field">
+        <option value="warm">{t.tones.warm}</option>
+        <option value="expert">{t.tones.expert}</option>
+        <option value="calm">{t.tones.calm}</option>
+        <option value="playful">{t.tones.playful}</option>
+      </select>
+    </label>
+  );
+  const booking = (
+    <label className={`${label} sm:col-span-2`}>
+      {t.booking}
+      <input type="url" dir="ltr" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
+    </label>
+  );
+
+  if (moreLabel) {
+    return (
+      <div className="grid gap-5 sm:grid-cols-2" data-fields="essential">
+        {name}
+        {country}
+        <LanguageField draft={draft} t={t} />
+        {services}
+        <details className="group sm:col-span-2" data-fields="more">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-semibold text-dv-teal [&::-webkit-details-marker]:hidden">
+            <span aria-hidden="true" className="inline-block transition-transform group-open:rotate-90 rtl:-scale-x-100">›</span>
+            {moreLabel}
+          </summary>
+          <div className="mt-4 grid gap-5 sm:grid-cols-2">
+            {city}
+            {address}
+            {tone}
+            <HandleField draft={draft} t={t} />
+            {booking}
+          </div>
+        </details>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-5 sm:grid-cols-2">
-      <label className={`${label} sm:col-span-2`}>
-        {t.clinicName}
-        <input required value={p.name} onChange={set("name")} autoComplete="organization" className="dv-field" />
-      </label>
-      <label className={label}>
-        {t.city}
-        <input value={p.city} onChange={set("city")} autoComplete="address-level2" className="dv-field" />
-      </label>
-      <label className={label}>
-        {t.country}
-        <select value={p.country} onChange={set("country")} className="dv-field">
-          {COUNTRIES.map((code) => (
-            <option key={code} value={code} suppressHydrationWarning>{countryName(code, locale)}</option>
-          ))}
-        </select>
-      </label>
+      {name}
+      {city}
+      {country}
       <LanguageField draft={draft} t={t} />
-      <label className={label}>
-        {t.address}
-        <select value={p.address} onChange={set("address")} className="dv-field">
-          <option value="formal">{t.formal}</option>
-          <option value="informal">{t.informal}</option>
-        </select>
-      </label>
-      <label className={`${label} sm:col-span-2`}>
-        {t.services}
-        <textarea required rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
-        <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
-      </label>
-      <label className={label}>
-        {t.tone}
-        <select value={p.tone} onChange={set("tone")} className="dv-field">
-          <option value="warm">{t.tones.warm}</option>
-          <option value="expert">{t.tones.expert}</option>
-          <option value="calm">{t.tones.calm}</option>
-          <option value="playful">{t.tones.playful}</option>
-        </select>
-      </label>
+      {address}
+      {services}
+      {tone}
       <HandleField draft={draft} t={t} />
-      <label className={`${label} sm:col-span-2`}>
-        {t.booking}
-        <input type="url" dir="ltr" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
-      </label>
+      {booking}
     </div>
   );
 }

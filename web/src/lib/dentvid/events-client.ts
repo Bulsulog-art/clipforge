@@ -1,4 +1,5 @@
 import type { DvEventName } from "./events";
+import { readAttribution } from "./attribution";
 
 /**
  * Send a funnel event from the browser — fire-and-forget. Never throws,
@@ -18,7 +19,8 @@ export function trackDv(name: DvEventName, opts: { locale?: string; props?: Reco
         // storage unavailable: count it anyway
       }
     }
-    const body = JSON.stringify({ name, locale: opts.locale, props: opts.props ?? {} });
+    // The tab's first-touch source rides along on every event (lib/dentvid/attribution).
+    const body = JSON.stringify({ name, locale: opts.locale, props: { ...readAttribution(), ...(opts.props ?? {}) } });
     void fetch("/api/dentvideo/event", {
       method: "POST",
       headers: { "content-type": "application/json" },
