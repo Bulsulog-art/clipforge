@@ -155,9 +155,11 @@ export type AdminDashboardProps = {
   clinicHref: (id: string) => string;
   /** Shown as "signed in as". */
   viewer?: string;
+  /** The demo-links page (/admin/demos), linked from the header. */
+  demosHref?: string;
 };
 
-export function AdminDashboard({ data, days, locale, country = null, basePath, clinicHref, viewer }: AdminDashboardProps) {
+export function AdminDashboard({ data, days, locale, country = null, basePath, clinicHref, viewer, demosHref }: AdminDashboardProps) {
   const now = new Date(data.now);
   const hints = billingHints(data.events);
   const rev = revenue(data.clinics, hints);
@@ -198,6 +200,12 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
               As of {when(data.now)} UTC{viewer ? ` · ${viewer}` : ""}
             </p>
           </div>
+          {demosHref && (
+            <Link href={demosHref} className="dv-btn dv-btn-secondary px-4 py-2 text-sm">
+              Demo links
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          )}
         </header>
 
         {data.warnings.length > 0 && (

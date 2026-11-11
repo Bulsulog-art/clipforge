@@ -207,6 +207,15 @@ export const LIMITS = {
   eventIpName: { limit: 12, windowSec: 10 * MIN },
   eventGlobal: { limit: 5_000, windowSec: HOUR },
   eventClinicGlobal: { limit: 5_000, windowSec: HOUR },
+  // Personalised demo links (/d/<token>): a view counts at most once an hour
+  // per address and demo, so a reload or a link-preview bot does not inflate
+  // it; the logo is served from the private bucket (one storage read each).
+  demoViewIpToken: { limit: 1, windowSec: HOUR },
+  demoViewIp: { limit: 30, windowSec: 10 * MIN },
+  demoViewGlobal: { limit: 3_000, windowSec: HOUR },
+  demoLogoIp: { limit: 60, windowSec: 10 * MIN },
+  // The owner creating demos (each may fetch one logo URL).
+  demoAdminUser: { limit: 60, windowSec: HOUR },
   // Lifecycle reminders (welcome is once per clinic). A hard ceiling on
   // reminder emails per hour, whatever the scheduler finds due.
   lifecycleGlobal: { limit: 100, windowSec: HOUR },

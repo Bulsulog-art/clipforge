@@ -37,6 +37,9 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   const all = pathname.split("/").filter(Boolean);
   const parts = all[0] === "dentvideo" ? all.slice(1) : all;
   if (parts.length === 0) return "en";
+  // A personalised demo page: /d/<token> (English) or /<lang>/d/<token>.
+  if (parts[0] === "d" && parts.length === 2) return "en";
+  if (parts[1] === "d" && parts.length === 3 && (LOCALES as readonly string[]).includes(parts[0])) return parts[0] as Locale;
   // English guides hub and About: /guides, /about.
   if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about" || isLegalKind(parts[0]))) return "en";
   // Guides (/guides/<slug>) and commercial pages (/videos/<slug>) each have one language.

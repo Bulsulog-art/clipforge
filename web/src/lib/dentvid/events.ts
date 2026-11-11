@@ -33,6 +33,9 @@ export const DV_EVENTS = [
   "week_ready",
   "video_approved",
   "video_shared",
+  "demo_viewed",
+  "demo_preview_played",
+  "demo_cta_clicked",
 ] as const;
 export type DvEventName = (typeof DV_EVENTS)[number];
 
@@ -52,6 +55,8 @@ export const DV_CLIENT_EVENTS: readonly DvEventName[] = [
   "plan_viewed",
   "plan_clicked",
   "video_shared",
+  "demo_preview_played",
+  "demo_cta_clicked",
 ];
 
 /** Browser events that belong to a signed-in clinic: the route looks the clinic up from the session. */
@@ -69,12 +74,17 @@ type Rule =
   | { kind: "host" }
   | { kind: "int"; max: number }
   | { kind: "bool" }
-  | { kind: "country" };
+  | { kind: "country" }
+  /** A demo link's token (lib/dentvid/demos): base62, case kept. */
+  | { kind: "token" }
+  /** utm_content: a short tag, case kept (it carries a demo token). */
+  | { kind: "content" };
 
 const TIER: Rule = { kind: "enum", values: ["starter", "practice", "group"] };
 const INTERVAL: Rule = { kind: "enum", values: ["month", "year"] };
 const LANGUAGE: Rule = { kind: "enum", values: ["en", "de", "es", "fr", "it", "pt", "tr", "ja", "ar", "pl"] };
 const PREVIEW_WHERE: Rule = { kind: "enum", values: ["landing", "wizard"] };
+const DEMO: Rule = { kind: "token" };
 
 export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
   landing_view: { utm_source: { kind: "slug" }, utm_medium: { kind: "slug" }, utm_campaign: { kind: "slug" }, ref: { kind: "host" } },
@@ -83,7 +93,7 @@ export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
   signup_started: {},
   signup_completed: {},
   code_verified: {},
-  clinic_saved: { country: { kind: "country" }, language: LANGUAGE },
+  clinic_saved: { country: { kind: "country" }, language: LANGUAGE, demo: DEMO },
   preview_step_viewed: {},
   preview_played: { where: PREVIEW_WHERE },
   preview_completed: { where: PREVIEW_WHERE },
@@ -99,6 +109,10 @@ export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
   week_ready: { kind: { kind: "enum", values: ["week", "recording"] }, ready: { kind: "int", max: 100 }, flagged: { kind: "int", max: 100 } },
   video_approved: {},
   video_shared: { method: { kind: "enum", values: ["share", "download"] } },
+  // Personalised demo links (/<lang>/d/<token>): the token names the demo, never the clinic.
+  demo_viewed: { demo: DEMO, utm_campaign: { kind: "slug" } },
+  demo_preview_played: { demo: DEMO },
+  demo_cta_clicked: { demo: DEMO, where: { kind: "enum", values: ["start", "question"] } },
 };
 
 /** The first-touch source tags any event may carry (utm_* slugs, the referring host). */
@@ -106,6 +120,7 @@ export const DV_ATTRIBUTION_PROPS: Record<string, Rule> = {
   utm_source: { kind: "slug" },
   utm_medium: { kind: "slug" },
   utm_campaign: { kind: "slug" },
+  utm_content: { kind: "content" },
   ref: { kind: "host" },
 };
 
@@ -136,6 +151,14 @@ function clean(rule: Rule, raw: unknown): string | number | boolean | undefined 
       const v = raw.trim().toLowerCase();
       if (EMAIL.test(v) || PHONE.test(v)) return undefined;
       return SLUG.test(v) ? v : undefined;
+    }
+    case "token":
+      return typeof raw === "string" && /^[A-Za-z0-9]{10,12}$/.test(raw) ? raw : undefined;
+    case "content": {
+      if (typeof raw !== "string") return undefined;
+      const v = raw.trim();
+      if (EMAIL.test(v) || PHONE.test(v)) return undefined;
+      return /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/.test(v) ? v : undefined;
     }
     case "host": {
       if (typeof raw !== "string") return undefined;

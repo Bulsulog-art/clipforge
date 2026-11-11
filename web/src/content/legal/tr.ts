@@ -248,6 +248,7 @@ export const TR: LegalText = {
                 "Kullanım olayları: anonim istatistik olarak kalır; hesabınızı silmek kliniğinizle bağlantılarını kaldırır.",
                 "Faturalar ve ödeme kayıtları: satıcı olarak Dodo Payments kendi yasal yükümlülükleri uyarınca, biz de muhasebe ve vergi mevzuatının gerektirdiği ölçüde saklarız.",
                 "İstek sınırı sayaçları: dakikalardan saatlere.",
+                "Kişiye özel bir demoyla iletişime geçtiğimiz klinikler: demoyu herkese açık işletme bilgilerinden (klinik adı, şehir, ülke, marka rengi ve logo) kendimiz hazırlarız ve klinik kaydolmadıkça en fazla 60 gün saklarız. Bir demonun daha önce silinmesini isterseniz {email} adresine yazın.",
               ],
             },
           ],

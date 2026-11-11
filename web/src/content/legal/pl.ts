@@ -248,6 +248,7 @@ export const PL: LegalText = {
                 "Zdarzenia użycia: pozostają jako anonimowa statystyka; usunięcie konta usuwa ich powiązanie z gabinetem.",
                 "Faktury i dokumenty płatności: przechowuje je Dodo Payments jako sprzedawca zgodnie z własnymi obowiązkami prawnymi, a my w zakresie wymaganym przez przepisy rachunkowe i podatkowe.",
                 "Liczniki limitów zapytań: od minut do godzin.",
+                "Gabinety, z którymi kontaktujemy się z indywidualnym demo: demo tworzymy sami na podstawie publicznych informacji o firmie (nazwa gabinetu, miasto, kraj, kolor marki i logo) i przechowujemy je najwyżej 60 dni, chyba że gabinet się zarejestruje. Aby usunąć demo wcześniej, prosimy napisać na {email}.",
               ],
             },
           ],
