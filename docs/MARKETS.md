@@ -329,7 +329,7 @@ For the agent localising the website. These are copy rules for marketing pages, 
 **Wiring the site to the pipeline:** the sign-up/profile form's language list
 (`web/src/lib/dentvid/profile.ts`) must offer `ja`, `ar` and `pl` — the video pipeline accepts them as of this change,
 and the live preview (`web/src/remotion`, mirrored from the worker) already renders Japanese and right-to-left Arabic.
-Country codes JP, AE/SA/QA/KW/BH/OM, PL and SG switch on that market's compliance rules in the pipeline.
+Country codes JP, AE/SA/QA/KW/BH/OM, PL, SG and the launch markets TR, DE, AT, CH, ES and MX switch on that market's compliance rules in the pipeline (`worker/src/dental/locale.ts` marketRules; phrase checks per language in `compliance.ts`).
 
 ### Japanese — `ja` (ja-JP)
 - **Script/direction:** Japanese (kanji + kana), LTR. No spaces between words; use full-width punctuation 、。「」;

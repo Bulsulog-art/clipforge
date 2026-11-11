@@ -537,3 +537,63 @@ describe("per-language agent material (new markets)", () => {
     }
   });
 });
+
+describe("launch markets: Turkish, German, Spanish hard rules (TR, DE/AT/CH, ES/MX)", () => {
+  it("catches what the Turkish Tanıtım Yönetmeliği (RG 33075) names", () => {
+    expect(rules("Türkiye'nin en iyi diş kliniği")).toContain("superlative");
+    expect(rules("İzmir'in en iyi implant merkezi")).toContain("superlative");
+    expect(rules("Bölgenin ilk ve tek kliniği")).toContain("superlative");
+    expect(rules("Şehrin lider kliniği")).toContain("superlative");
+    expect(rules("Diğer kliniklerden farklı olarak")).toContain("superlative");
+    expect(rules("Garantili beyazlatma")).toContain("guarantee");
+    expect(rules("İmplantta %50 indirim")).toContain("price");
+    expect(rules("12 ay taksit imkanı")).toContain("price");
+    expect(rules("Ücretsiz kontrol ve hediye diş fırçası")).toContain("price");
+    expect(rules("Öncesi sonrası farkı inanılmaz")).toContain("before_after");
+    expect(rules("Hasta yorumlarımızı okuyun")).toContain("testimonial");
+    expect(rules("Hastalarımızın teşekkür mesajları")).toContain("testimonial");
+    expect(rules("Ömür boyu ve acısız")).toContain("absolute");
+    expect(rules("Hiçbir yan etkisi yok")).toContain("absolute");
+  });
+  it("catches HWG / ZÄG / MedBG classics in German", () => {
+    expect(rules("Implantate schmerzfrei garantiert")).toEqual(["guarantee", "absolute"]);
+    expect(rules("Unsere Vorher-Nachher-Galerie")).toContain("before_after");
+    expect(rules("Vorher/Nachher-Bilder vom Bleaching")).toContain("before_after");
+    expect(rules("Die beste Zahnarztpraxis in Wien")).toContain("superlative");
+    expect(rules("Die führende Praxis für Implantate")).toContain("superlative");
+    expect(rules("Mit Erfolgsgarantie")).toContain("guarantee");
+    expect(rules("Bleaching ohne Risiko")).toContain("guarantee");
+    expect(rules("Ohne Nebenwirkungen")).toContain("absolute");
+    expect(rules("Jetzt Gutschein sichern")).toContain("price");
+    expect(rules("Großes Gewinnspiel zum Tag der Zahngesundheit")).toContain("price");
+    expect(rules("Nur diesen Monat: Zahnreinigung 20 % günstiger")).toContain("price");
+    expect(rules("Patientenstimmen zu unserer Praxis")).toContain("testimonial");
+  });
+  it("catches RD 1907/1996 and COFEPRIS classics in Spanish", () => {
+    expect(rules("Blanqueamiento garantizado")).toContain("guarantee");
+    expect(rules("El mejor dentista de Madrid")).toContain("superlative");
+    expect(rules("Somos número uno en implantes")).toContain("superlative");
+    expect(rules("Líderes en ortodoncia invisible")).toContain("superlative");
+    expect(rules("Resultados asegurados")).toContain("guarantee");
+    expect(rules("Resultados inmediatos y sin efectos secundarios")).toContain("absolute");
+    expect(rules("Una sonrisa para toda la vida")).toContain("absolute");
+    expect(rules("Implantes con 12 meses sin intereses")).toContain("price");
+    expect(rules("2x1 en limpiezas dentales")).toContain("price");
+    expect(rules("Limpieza por 800 pesos")).toContain("price");
+    expect(rules("Participa en nuestro sorteo")).toContain("price");
+    expect(rules("La clínica de los famosos")).toContain("testimonial");
+    expect(rules("Opiniones de nuestros pacientes")).toContain("testimonial");
+    expect(rules("Mira el antes y después")).toContain("before_after");
+  });
+  it.each([
+    // tr — informative, hedged, no steering.
+    "Diş taşı neden oluşur? Plak zamanla sertleşir ve fırçayla çıkmaz. Diş taşı temizliği genellikle 6 ayda bir önerilir; sizin için uygun aralığı hekiminiz belirler. Kontrollerinizi kaçırmayın. Bu konuda en iyi bilgiyi hekiminiz verir.",
+    "Kanal tedavisinden sonra dişe kalıcı dolgu yapılır. İlk günlerde hafif hassasiyet olabilir. Sonuç garanti edilemez ama çoğu durumda birkaç gün içinde geçer. Yemek öncesi ve sonrası ağzınızı çalkalayın.",
+    // de — sachlich, hedged.
+    "Tut eine Implantation weh? Der Eingriff erfolgt unter örtlicher Betäubung. Danach spüren die meisten Patienten einige Tage ein leichtes Ziehen. Ein Erfolg ist nicht garantiert; Ihre Zahnärztin bespricht Nutzen und Risiken mit Ihnen.",
+    "Nach der Wurzelbehandlung bekommt der Zahn eine dauerhafte Füllung oder eine Krone. Putzen Sie vorher und nachher gründlich. Zahnseide kann helfen, Karies vorzubeugen.",
+    // es — veraz, prudente.
+    "¿Duele un implante? Se coloca con anestesia local y la mayoría de las personas nota molestias leves unos días. No hay resultados asegurados: tu dentista valorará si es adecuado para ti.",
+    "Después de la endodoncia se coloca un empaste definitivo o una corona. Cepíllate antes y después de comer. El hilo dental puede ayudar a prevenir la caries.",
+  ])("lets a compliant script through: %s", (t) => expect(rules(t)).toEqual([]));
+});
