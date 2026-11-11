@@ -240,8 +240,16 @@ describe("no admin code in the browser", () => {
       return statSync(p).isDirectory() ? files(p) : [p];
     });
 
+  // The demo-link form needs browser state (copy buttons, form): it only posts to
+  // /api/dentvideo/admin/demos, which re-checks requireAdmin, and the next test
+  // keeps it free of server-only admin modules.
+  const CLIENT_OK = new Set(["src/components/dentvid/admin-demo-form.tsx"]);
+
   it("no admin page, component or helper is a client component", () => {
-    const admin = roots.flatMap((r) => files(path.resolve(r))).filter((f) => /admin/.test(path.relative(process.cwd(), f)) && /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f));
+    const admin = roots
+      .flatMap((r) => files(path.resolve(r)))
+      .filter((f) => /admin/.test(path.relative(process.cwd(), f)) && /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
+      .filter((f) => !CLIENT_OK.has(path.relative(process.cwd(), f)));
     expect(admin.length).toBeGreaterThan(10);
     for (const f of admin) expect(readFileSync(f, "utf8"), f).not.toMatch(/^\s*["']use client["']/m);
   });
