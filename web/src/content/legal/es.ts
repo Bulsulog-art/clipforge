@@ -28,7 +28,7 @@ export const ES: LegalText = {
     hostinger: {
       purpose: "Servidor privado virtual en el que funcionan dentvideo.com, el procesamiento de vídeos, nuestra base de datos, los accesos y el almacenamiento de archivos (nuestra propia instalación del software de código abierto Supabase).",
       data: "Todos los datos del servicio: cuenta, perfil de la clínica, archivos subidos, vídeos, referencias de facturación, registros.",
-      location: "Ubicación del centro de datos pendiente de confirmar; esta lista se actualizará.",
+      location: "Alemania (UE)",
     },
     openai: {
       purpose: "Escribe y revisa guiones, crea la narración con voz sintética y transcribe las grabaciones subidas cuando nuestro propio servicio de transcripción no está disponible.",
