@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
 import { workerAuthorised } from "@/lib/dentvid/internal-auth";
-import { readyEmail, sendEmail } from "@/lib/dentvid/email";
+import { sendReadyNotice } from "@/lib/dentvid/ready-notice";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
-import { recordEvent } from "@/lib/dentvid/events-server";
 
 /**
  * Called by the worker when a clinic's week or recording is ready: emails
@@ -35,19 +34,8 @@ export async function POST(req: Request) {
   );
   if (limited) return limited;
 
-  const db = dvAdmin();
-  const { data: clinic } = await db.from("dentvid_clinics").select("owner_id, profile").eq("id", clinicId).maybeSingle();
-  if (!clinic) return NextResponse.json({ error: "no clinic" }, { status: 404 });
-  const { data: owner } = await db.auth.admin.getUserById(clinic.owner_id as string);
-  const email = owner?.user?.email;
-  if (!email) return NextResponse.json({ sent: false, reason: "no email" });
-
-  const profile = clinic.profile as { name?: string; language?: string };
-  // Funnel: the worker finished a week (or a recording) for this clinic.
-  void recordEvent("week_ready", { db, clinicId, locale: profile.language, props: { kind, ready, flagged } });
-  const base = (process.env.NEXT_PUBLIC_DENTVIDEO_URL || `${(process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "")}/dentvideo`).replace(/\/+$/, "");
-  const msg = readyEmail({ kind, counts: { ready, flagged }, clinicName: profile.name ?? "", language: profile.language ?? "en", appUrl: `${base}/app` });
-  if (!msg) return NextResponse.json({ sent: false, reason: "nothing ready" });
-  const sent = await sendEmail(email, msg);
-  return NextResponse.json({ sent });
+  const res = await sendReadyNotice(dvAdmin(), clinicId, kind, { ready, flagged });
+  if (res.reason === "no clinic") return NextResponse.json({ error: "no clinic" }, { status: 404 });
+  if (res.reason === "no email" || res.reason === "nothing ready") return NextResponse.json({ sent: false, reason: res.reason });
+  return NextResponse.json({ sent: res.sent });
 }

@@ -146,7 +146,7 @@ function RunBadge({ run }: { run: ClinicRun | undefined }) {
 
 export type AdminDashboardProps = {
   data: AdminData;
-  days: 7 | 30;
+  days: number;
   locale: string | null;
   /** ISO country filter (eventCountry), or null for all. */
   country?: string | null;
@@ -164,17 +164,6 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
   const g = growth(data.clinics, now);
   const seats = foundingSeats(data.clinics, data.dodoFoundingUses);
   const signupSeries = dailyCounts(data.clinics.map((c) => c.created_at), 30, now);
-  const visitSeries = dailyCounts(data.events.filter((e) => e.name === "landing_view").map((e) => e.created_at), 30, now);
-  const countries = clinicCountries(data.clinics);
-  const steps = funnel(data.events, { days, now, locale, country, countries });
-  // Bars on a square-root scale: visits outnumber payments 100:1, and a linear bar would hide every step after the first.
-  const top = Math.max(1, ...steps.map((s) => s.count));
-  // Each breakdown honours the other filter: by locale within the chosen country, by country within the chosen locale.
-  const locales = funnelByLocale(data.events, { days, now, country, countries });
-  const allLocales = funnelByLocale(data.events, { days, now, countries });
-  const byCountry = funnelByCountry(data.events, { days, now, locale, countries });
-  const allCountries = funnelByCountry(data.events, { days, now, countries });
-  const sources = funnelBySource(data.events, { days, now, locale, country, countries });
   const runs = lastRuns(data.items);
   const totals = runTotals(runs);
   const errors = latestErrors(data.items);
@@ -182,7 +171,7 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
   const recent = data.clinics.slice().sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 25);
   const verifiedOwners = data.verifiedOwners ? new Set(data.verifiedOwners) : null;
   const emailOk = (c: { owner_id?: string }) => (verifiedOwners && c.owner_id ? verifiedOwners.has(c.owner_id) : undefined);
-  const href = (q: { days?: number; locale?: string | null; country?: string | null }) => {
+  const href = (q: FunnelQuery) => {
     const p = new URLSearchParams();
     const d = q.days ?? days;
     const l = q.locale === undefined ? locale : q.locale;
@@ -299,140 +288,24 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
           </Tile>
         </section>
 
-        {/* Funnel */}
-        <section aria-labelledby="funnel-title" className="mt-14">
-          <SectionTitle
-            title="Funnel"
-            lead={
-              data.eventsTable
-                ? "Distinct clinics per step once signed up; visits once per browser tab. Bars on a square-root scale; % = from the step before."
-                : "No events yet — apply supabase/liman/0006_dentvid_events.sql to start counting."
-            }
-            right={
-              <div className="flex flex-wrap gap-2" aria-label="Range">
-                <Chip href={href({ days: 7 })} on={days === 7}>
-                  7 days
-                </Chip>
-                <Chip href={href({ days: 30 })} on={days === 30}>
-                  30 days
-                </Chip>
-              </div>
-            }
-          />
-          <div className="mt-4 flex flex-wrap gap-2" aria-label="Locale">
-            <Chip href={href({ locale: null })} on={!locale}>
-              All locales
-            </Chip>
-            {allLocales
-              .filter((l) => l.locale !== "—")
-              .map((l) => (
-                <Chip key={l.locale} href={href({ locale: l.locale })} on={locale === l.locale}>
-                  <span className="uppercase">{l.locale}</span>
-                </Chip>
-              ))}
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2" aria-label="Country">
-            <Chip href={href({ country: null })} on={!country}>
-              All countries
-            </Chip>
-            {allCountries
-              .filter((c) => c.key !== "—")
-              .map((c) => (
-                <Chip key={c.key} href={href({ country: c.key })} on={country === c.key}>
-                  {c.key}
-                </Chip>
-              ))}
-          </div>
-
-          <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-            <ol className="dv-card divide-y divide-dv-line p-2 sm:p-3">
-              {steps.map((s, i) => (
-                <li key={s.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 px-3 py-2.5">
-                  <span className="flex min-w-0 items-baseline gap-2 text-sm font-medium text-dv-ink">
-                    <span className="w-5 shrink-0 text-xs tabular-nums text-dv-muted">{i + 1}</span>
-                    <span className="truncate">{s.label}</span>
-                  </span>
-                  <span className="flex items-baseline gap-3 text-sm tabular-nums">
-                    <span className="font-semibold text-dv-ink">{int(s.count)}</span>
-                    <span className="w-14 text-end text-xs text-dv-muted" title="Conversion from the step before">
-                      {i === 0 ? "" : pct(s.fromPrev)}
-                    </span>
-                  </span>
-                  <span className="col-span-2 ms-7 block h-2 overflow-hidden rounded-full bg-dv-sand">
-                    <span className="block h-full rounded-full bg-dv-teal" style={{ width: `${Math.sqrt(s.count / top) * 100}%`, opacity: 1 - i * 0.045 }} />
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <div className="grid content-start gap-4">
-              <div className="dv-card p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">Overall</p>
-                <dl className="mt-3 grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <dt className="text-dv-muted">Visit → sign-up</dt>
-                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">{pct(steps.find((s) => s.key === "signup")?.fromTop ?? null)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-dv-muted">Sign-up → paid</dt>
-                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">
-                      {pct(
-                        (() => {
-                          const su = steps.find((s) => s.key === "signup")?.count ?? 0;
-                          const pd = steps.find((s) => s.key === "paid")?.count ?? 0;
-                          return su ? pd / su : null;
-                        })(),
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-dv-muted">Visit → paid</dt>
-                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">{pct(steps.find((s) => s.key === "paid")?.fromTop ?? null)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-dv-muted">Paid → shared</dt>
-                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">
-                      {pct(
-                        (() => {
-                          const pd = steps.find((s) => s.key === "paid")?.count ?? 0;
-                          const sh = steps.find((s) => s.key === "shared")?.count ?? 0;
-                          return pd ? sh / pd : null;
-                        })(),
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-              <div className="dv-card p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">Landing views per day · 30 days</p>
-                <Sparkline values={visitSeries} label={`Landing views per day, last 30 days: ${visitSeries.join(", ")}`} className="mt-3" />
-              </div>
+        <FunnelAndSources
+          data={data}
+          days={days}
+          now={now}
+          locale={locale}
+          country={country}
+          href={href}
+          range={
+            <div className="flex flex-wrap gap-2" aria-label="Range">
+              <Chip href={href({ days: 7 })} on={days === 7}>
+                7 days
+              </Chip>
+              <Chip href={href({ days: 30 })} on={days === 30}>
+                30 days
+              </Chip>
             </div>
-          </div>
-
-          <SegmentTable
-            title="By language"
-            caption={`Funnel by locale, last ${days} days${country ? `, ${country}` : ""}`}
-            keyLabel="Locale"
-            rows={locales}
-            upper
-          />
-          <SegmentTable
-            title="By country"
-            caption={`Funnel by country, last ${days} days${locale ? `, ${locale}` : ""}`}
-            keyLabel="Country"
-            rows={byCountry}
-            note="The clinic's own country once it has one; before that the visitor's country from the edge's geo header (— when none is set)."
-          />
-        </section>
-
-        {/* Sources */}
-        <section aria-labelledby="sources-title" className="mt-14">
-          <SectionTitle
-            title="Sources"
-            lead="utm_source / utm_medium / utm_campaign of the visit (else the referring site). A clinic's checkout and payment count for its first touch — the source its browser tab arrived with. Same range and filters as the funnel."
-          />
-          <SegmentTable title="" caption={`Funnel by source, last ${days} days`} keyLabel="Source" rows={sources} sources />
-        </section>
+          }
+        />
 
         {/* Operations */}
         <section aria-labelledby="ops-title" className="mt-14">
@@ -623,6 +496,176 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
   );
 }
 
+export type FunnelQuery = { days?: number; locale?: string | null; country?: string | null };
+
+/**
+ * The funnel, its breakdowns by language and country, and the sources table,
+ * for the window of `days` days ending at `now`. Shared by the old one-page
+ * dashboard and the admin panel's Funnel & sources screen (which adds custom
+ * date ranges).
+ */
+export function FunnelAndSources({
+  data,
+  days,
+  now,
+  locale,
+  country,
+  href,
+  range,
+  rangeLabel = `last ${days} days`,
+}: {
+  data: Pick<AdminData, "events" | "clinics" | "eventsTable">;
+  days: number;
+  now: Date;
+  locale: string | null;
+  country: string | null;
+  href: (q: FunnelQuery) => string;
+  range: React.ReactNode;
+  rangeLabel?: string;
+}) {
+  const countries = clinicCountries(data.clinics);
+  const visitSeries = dailyCounts(data.events.filter((e) => e.name === "landing_view").map((e) => e.created_at), 30, now);
+  const steps = funnel(data.events, { days, now, locale, country, countries });
+  // Bars on a square-root scale: visits outnumber payments 100:1, and a linear bar would hide every step after the first.
+  const top = Math.max(1, ...steps.map((s) => s.count));
+  // Each breakdown honours the other filter: by locale within the chosen country, by country within the chosen locale.
+  const locales = funnelByLocale(data.events, { days, now, country, countries });
+  const allLocales = funnelByLocale(data.events, { days, now, countries });
+  const byCountry = funnelByCountry(data.events, { days, now, locale, countries });
+  const allCountries = funnelByCountry(data.events, { days, now, countries });
+  const sources = funnelBySource(data.events, { days, now, locale, country, countries });
+  return (
+    <>
+        {/* Funnel */}
+        <section aria-labelledby="funnel-title" className="mt-14">
+          <SectionTitle
+            title="Funnel"
+            lead={
+              data.eventsTable
+                ? "Distinct clinics per step once signed up; visits once per browser tab. Bars on a square-root scale; % = from the step before."
+                : "No events yet — apply supabase/liman/0006_dentvid_events.sql to start counting."
+            }
+            right={range}
+          />
+          <div className="mt-4 flex flex-wrap gap-2" aria-label="Locale">
+            <Chip href={href({ locale: null })} on={!locale}>
+              All locales
+            </Chip>
+            {allLocales
+              .filter((l) => l.locale !== "—")
+              .map((l) => (
+                <Chip key={l.locale} href={href({ locale: l.locale })} on={locale === l.locale}>
+                  <span className="uppercase">{l.locale}</span>
+                </Chip>
+              ))}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2" aria-label="Country">
+            <Chip href={href({ country: null })} on={!country}>
+              All countries
+            </Chip>
+            {allCountries
+              .filter((c) => c.key !== "—")
+              .map((c) => (
+                <Chip key={c.key} href={href({ country: c.key })} on={country === c.key}>
+                  {c.key}
+                </Chip>
+              ))}
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+            <ol className="dv-card divide-y divide-dv-line p-2 sm:p-3">
+              {steps.map((s, i) => (
+                <li key={s.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 px-3 py-2.5">
+                  <span className="flex min-w-0 items-baseline gap-2 text-sm font-medium text-dv-ink">
+                    <span className="w-5 shrink-0 text-xs tabular-nums text-dv-muted">{i + 1}</span>
+                    <span className="truncate">{s.label}</span>
+                  </span>
+                  <span className="flex items-baseline gap-3 text-sm tabular-nums">
+                    <span className="font-semibold text-dv-ink">{int(s.count)}</span>
+                    <span className="w-14 text-end text-xs text-dv-muted" title="Conversion from the step before">
+                      {i === 0 ? "" : pct(s.fromPrev)}
+                    </span>
+                  </span>
+                  <span className="col-span-2 ms-7 block h-2 overflow-hidden rounded-full bg-dv-sand">
+                    <span className="block h-full rounded-full bg-dv-teal" style={{ width: `${Math.sqrt(s.count / top) * 100}%`, opacity: 1 - i * 0.045 }} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <div className="grid content-start gap-4">
+              <div className="dv-card p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">Overall</p>
+                <dl className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <dt className="text-dv-muted">Visit → sign-up</dt>
+                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">{pct(steps.find((s) => s.key === "signup")?.fromTop ?? null)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-dv-muted">Sign-up → paid</dt>
+                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">
+                      {pct(
+                        (() => {
+                          const su = steps.find((s) => s.key === "signup")?.count ?? 0;
+                          const pd = steps.find((s) => s.key === "paid")?.count ?? 0;
+                          return su ? pd / su : null;
+                        })(),
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-dv-muted">Visit → paid</dt>
+                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">{pct(steps.find((s) => s.key === "paid")?.fromTop ?? null)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-dv-muted">Paid → shared</dt>
+                    <dd className="mt-0.5 text-xl font-semibold tabular-nums text-dv-ink">
+                      {pct(
+                        (() => {
+                          const pd = steps.find((s) => s.key === "paid")?.count ?? 0;
+                          const sh = steps.find((s) => s.key === "shared")?.count ?? 0;
+                          return pd ? sh / pd : null;
+                        })(),
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              <div className="dv-card p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">Landing views per day · 30 days</p>
+                <Sparkline values={visitSeries} label={`Landing views per day, last 30 days: ${visitSeries.join(", ")}`} className="mt-3" />
+              </div>
+            </div>
+          </div>
+
+          <SegmentTable
+            title="By language"
+            caption={`Funnel by locale, ${rangeLabel}${country ? `, ${country}` : ""}`}
+            keyLabel="Locale"
+            rows={locales}
+            upper
+          />
+          <SegmentTable
+            title="By country"
+            caption={`Funnel by country, ${rangeLabel}${locale ? `, ${locale}` : ""}`}
+            keyLabel="Country"
+            rows={byCountry}
+            note="The clinic's own country once it has one; before that the visitor's country from the edge's geo header (— when none is set)."
+          />
+        </section>
+
+        {/* Sources */}
+        <section aria-labelledby="sources-title" className="mt-14">
+          <SectionTitle
+            title="Sources"
+            lead="utm_source / utm_medium / utm_campaign of the visit (else the referring site). A clinic's checkout and payment count for its first touch — the source its browser tab arrived with. Same range and filters as the funnel."
+          />
+          <SegmentTable title="" caption={`Funnel by source, ${rangeLabel}`} keyLabel="Source" rows={sources} sources />
+        </section>
+
+    </>
+  );
+}
+
 /** One row per segment (locale, country or source): the key steps and the conversions that matter. */
 function SegmentTable({
   title,
@@ -709,100 +752,5 @@ function TierBar({ starter, practice, group, unknown }: { starter: number; pract
         <span key={i} style={{ flexGrow: s.n, background: s.c }} />
       ))}
     </div>
-  );
-}
-
-/* ----------------------------------------------------- read-only library */
-
-export type AdminLibraryItem = {
-  id: string;
-  title: string;
-  kind: string;
-  status: string;
-  approval: string;
-  week_of: string;
-  thumbUrl?: string;
-  videoUrl?: string;
-  findings?: unknown[];
-};
-
-const STATUS_TONE: Record<string, string> = {
-  ready: "text-dv-teal",
-  flagged: "text-[#9a5b00]",
-  rejected: "text-[#9a5b00]",
-  failed: "text-[#b42318]",
-  queued: "text-dv-muted",
-  working: "text-dv-muted",
-};
-
-/** One clinic's library, read-only: what the dentist sees, without any buttons that change it. */
-export function AdminClinicView({
-  clinic,
-  items,
-  backHref,
-}: {
-  clinic: { id: string; created_at: string; plan: string; plan_tier?: string | null; profile?: { name?: string; country?: string; language?: string; city?: string } | null };
-  items: AdminLibraryItem[];
-  backHref: string;
-}) {
-  const weeks = [...new Set(items.map((i) => i.week_of))].sort().reverse();
-  return (
-    <main lang="en" className="relative isolate overflow-hidden">
-      <div aria-hidden="true" className="dv-grid absolute inset-x-0 top-0 -z-10 h-[24rem]" />
-      <div className="mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6 sm:pt-12">
-        <Link href={backHref} className="text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
-          ← Owner dashboard
-        </Link>
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase tracking-[0.12em] text-dv-teal">Clinic library · read-only</p>
-            <h1 className="dv-display mt-2 truncate text-[2.25rem] leading-[1.05] text-dv-ink sm:text-[3rem]">{clinic.profile?.name || "(no name)"}</h1>
-            <p className="mt-2 text-sm text-dv-muted">
-              {[clinic.profile?.city, clinic.profile?.country].filter(Boolean).join(", ") || "—"} · <span className="uppercase">{clinic.profile?.language ?? "—"}</span> · since {day(clinic.created_at)}
-            </p>
-          </div>
-          <PlanBadge plan={clinic.plan} tier={clinic.plan_tier} />
-        </div>
-
-        {items.length === 0 && <p className="dv-card mt-8 p-6 text-center text-dv-muted">No videos made for this clinic yet.</p>}
-
-        {weeks.map((w) => {
-          const list = items.filter((i) => i.week_of === w);
-          return (
-            <section key={w} className="mt-10" aria-label={`Week of ${w}`}>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">Week of {day(w)}</h2>
-              <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {list.map((i) => (
-                  <li key={i.id} className="dv-card flex gap-4 p-3">
-                    <div className="relative aspect-[9/16] w-20 shrink-0 overflow-hidden rounded-xl bg-dv-sand">
-                      {i.thumbUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- signed URL
-                        <img src={i.thumbUrl} alt="" className="h-full w-full object-cover" />
-                      ) : null}
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <p className="line-clamp-2 text-sm font-semibold leading-snug text-dv-ink">{i.title}</p>
-                      <p className="mt-1 text-xs text-dv-muted">{i.kind === "recording" ? "Recording" : "Generated"}</p>
-                      <p className="mt-auto flex flex-wrap gap-x-3 pt-2 text-xs font-medium">
-                        <span className={STATUS_TONE[i.status] ?? "text-dv-body"}>{i.status}</span>
-                        <span className={i.approval === "approved" ? "text-dv-teal" : i.approval === "rejected" ? "text-[#8a1f1f]" : "text-dv-muted"}>
-                          {i.approval === "pending" ? "awaiting decision" : i.approval}
-                        </span>
-                        {i.findings && i.findings.length > 0 && <span className="text-[#9a5b00]">{i.findings.length} finding{i.findings.length > 1 ? "s" : ""}</span>}
-                      </p>
-                      {i.videoUrl && (
-                        <a href={i.videoUrl} target="_blank" rel="noopener noreferrer" className="mt-1.5 text-xs font-medium text-dv-teal underline-offset-4 hover:underline">
-                          Open video
-                        </a>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          );
-        })}
-      </div>
-    </main>
   );
 }

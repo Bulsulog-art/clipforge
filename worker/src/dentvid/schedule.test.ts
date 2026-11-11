@@ -71,7 +71,7 @@ describe("the weekend batch, in waves by time zone", () => {
   });
 
   it("queues every paying clinic's week stamped with the coming Monday, flagged as batch, ordered by deadline", async () => {
-    const db = { from: () => ({ select: (cols: string) => (expect(cols).toContain("profile"), { eq: async () => ({ data: clinics.filter((c) => c.plan === "active"), error: null }) }) }) };
+    const db = { from: () => ({ select: (cols: string) => (expect(cols).toBe("*"), { eq: async () => ({ data: clinics.filter((c) => c.plan === "active"), error: null }) }) }) };
     const add = vi.fn(async () => ({}));
     expect(await dispatchWeeks(db as never, { add } as never, SAT)).toBe(7);
     const calls = add.mock.calls as unknown as [string, { clinicId: string; week: string; batch: boolean }, { jobId: string; priority: number }][];

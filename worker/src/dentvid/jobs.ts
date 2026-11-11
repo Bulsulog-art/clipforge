@@ -15,9 +15,9 @@ import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
 import { prepareVoiceover } from "../remotion/voiceover.js";
 import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
-import { rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
+import { afterRerender, rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { notifyReady, sendReadyAtCivilHour } from "./notify.js";
-import { isPaying, validWeek, weekOf } from "./schedule.js";
+import { shouldRun, validWeek, weekOf } from "./schedule.js";
 import { clinicTimeZone } from "./timezone.js";
 import { classifyFailure, isLastAttempt, TransientWeekError } from "./retry.js";
 import { clinicRef, noteRenderFailure, ownerAlert, setWeekDelay } from "./ops.js";
@@ -237,9 +237,11 @@ async function insert(db: SupabaseClient, rows: ItemRow[]) {
  * clinics, and the worker checks again before calling any model.
  */
 async function paying(db: SupabaseClient, clinicId: string, kind: string): Promise<boolean> {
-  const { data } = await db.from("dentvid_clinics").select("plan").eq("id", clinicId).maybeSingle();
-  if (isPaying((data as { plan?: string } | null)?.plan)) return true;
-  logger.warn({ clinicId, plan: (data as { plan?: string } | null)?.plan ?? null, kind }, "dentvid: skipped — clinic has no active plan");
+  // "*": admin_paused_at (0010_dentvid_admin.sql) may not exist yet on a given database.
+  const { data } = await db.from("dentvid_clinics").select("*").eq("id", clinicId).maybeSingle();
+  const row = (data ?? null) as { plan?: string; admin_paused_at?: string | null } | null;
+  if (row && shouldRun({ plan: row.plan ?? "", admin_paused_at: row.admin_paused_at })) return true;
+  logger.warn({ clinicId, plan: row?.plan ?? null, adminPaused: !!row?.admin_paused_at, kind }, "dentvid: skipped — clinic has no active plan or is paused by the owner");
   return false;
 }
 
@@ -514,7 +516,7 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
   const db = dentvidDb();
   const { data: item, error } = await db
     .from("dentvid_items")
-    .select("id, clinic_id, owner_id, kind, plan, video_path, thumb_path")
+    .select("id, clinic_id, owner_id, kind, status, findings, plan, video_path, thumb_path")
     .eq("id", job.itemId)
     .single();
   if (error || !item) throw new Error(`item ${job.itemId} not found: ${error?.message ?? ""}`);
@@ -567,7 +569,14 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
     const files = await storeVideo(db, item.owner_id as string, res.outputPath);
     const { error: upd } = await db
       .from("dentvid_items")
-      .update({ video_path: files.videoPath, thumb_path: files.thumbPath ?? null, restyle_status: null, updated_at: new Date().toISOString() })
+      .update({
+        video_path: files.videoPath,
+        thumb_path: files.thumbPath ?? null,
+        restyle_status: null,
+        // A row flagged only because its file was missing (or a legacy failed one) is healed by the new file.
+        ...afterRerender(item.status as string | null, item.findings),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", item.id);
     if (upd) throw new Error(`update item: ${upd.message}`);
     // Only ever delete inside this owner's folder (the paths are on a row the owner can edit).

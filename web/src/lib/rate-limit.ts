@@ -195,6 +195,8 @@ export const LIMITS = {
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },
+  // Owner admin panel actions (api/dentvideo/admin/action): a human clicking, never a script.
+  adminAction: { limit: 30, windowSec: 10 * 60 },
   // First-party funnel events (POST /api/dentvideo/event): a few per page view
   // (landing_view, preview_started, a preview_step_viewed per wizard step,
   // plan_clicked). Anonymous traffic gets a tighter per-IP and per-event

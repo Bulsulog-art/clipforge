@@ -56,7 +56,7 @@ export function rowFromPackage(
   }
   const qaIssues = pkg.qa && !pkg.qa.ok ? pkg.qa.issues.map((i) => `quality: ${i}`) : [];
   // A package meant to be rendered that has no stored video is not ready.
-  const missingVideo = stored ? [] : ["the video file is missing"];
+  const missingVideo = stored ? [] : [MISSING_VIDEO];
   const findings = [...qaIssues, ...missingVideo];
   return {
     clinic_id: ids.clinicId,
@@ -82,7 +82,7 @@ export function rowFromClip(
   ids: { clinicId: string; ownerId: string; sourcePath: string },
   stored?: { videoPath: string; thumbPath?: string },
 ): ItemRow {
-  const findings = stored ? clip.findings : [...clip.findings, "the video file is missing"];
+  const findings = stored ? clip.findings : [...clip.findings, MISSING_VIDEO];
   return {
     clinic_id: ids.clinicId,
     owner_id: ids.ownerId,
@@ -102,4 +102,23 @@ export function rowFromClip(
 /** Storage keys live under the owner's folder (storage RLS checks it). */
 export function storageKey(ownerId: string, itemKey: string, ext: "mp4" | "jpg"): string {
   return `${ownerId}/${itemKey}.${ext}`;
+}
+
+/** The finding a package gets when its video could not be stored (rowFromPackage / rowFromClip). */
+export const MISSING_VIDEO = "the video file is missing";
+
+/**
+ * A row's status and findings once a re-render (restyle, or the owner's
+ * "retry this video" in the admin panel) has stored a fresh video: the
+ * "file is missing" finding goes; a row flagged only for that becomes ready;
+ * a legacy "failed" row becomes flagged (the dentist looks first). Any other
+ * status is left alone: a reviewer's verdict is never upgraded by a render.
+ */
+export function afterRerender(status: string | null | undefined, findings: unknown): { status?: "ready" | "flagged"; findings?: string[] } {
+  const list = Array.isArray(findings) ? findings.filter((f): f is string => typeof f === "string") : [];
+  const kept = list.filter((f) => f !== MISSING_VIDEO);
+  const changed = kept.length !== list.length;
+  if (status === "failed") return { status: "flagged", ...(changed ? { findings: kept } : {}) };
+  if (status === "flagged" && changed) return kept.length ? { findings: kept } : { status: "ready", findings: kept };
+  return changed ? { findings: kept } : {};
 }
