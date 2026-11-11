@@ -26,6 +26,7 @@ import { runDerivative } from "./derivative.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
 import { runMetricsSnapshot } from "./jobs/metrics-snapshot.js";
 import { runCostMonitor } from "./jobs/cost-monitor.js";
+import { startHeartbeat } from "./dentvid/heartbeat.js";
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -145,6 +146,10 @@ const dentvidWorker = new Worker(
 // has its videos by Monday 07:00 in its own time zone (dentvid/schedule.ts).
 // The scheduler keeps its old id, so this replaces the Monday 05:00 schedule.
 const dentvidQueue = new Queue("dentvid", { connection });
+// The worker's pulse for the owner's admin panel (dentvid/heartbeat.ts): every
+// minute, version, uptime, roles and render concurrency, plus the day's API
+// spend copied into a long-lived per-day record.
+const stopHeartbeat = startHeartbeat(connection, { roles: ROLES, renderConcurrency: DENTVID_CONCURRENCY });
 if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
   dentvidQueue
     .upsertJobScheduler("dentvid-monday", DISPATCH_SCHEDULE, { name: "dispatch", data: {} })
@@ -297,6 +302,7 @@ derivativeWorker.on("failed", (job, err) =>
 );
 async function shutdown(signal: string) {
   logger.info({ signal }, "shutting down");
+  stopHeartbeat();
   await Promise.allSettled([
     videoWorker.close(),
     generateWorker.close(),

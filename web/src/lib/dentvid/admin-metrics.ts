@@ -13,7 +13,10 @@ export type AdminClinic = {
   plan: string;
   plan_tier?: string | null;
   dodo_subscription_id?: string | null;
-  profile?: { name?: string; country?: string; language?: string } | null;
+  profile?: { name?: string; country?: string; language?: string; city?: string } | null;
+  /** Paused by the owner in the admin panel (0010); absent before that migration. */
+  admin_paused_at?: string | null;
+  logo_path?: string | null;
 };
 
 export type AdminEvent = {
@@ -33,6 +36,9 @@ export type AdminItem = {
   approval: string;
   title?: string | null;
   error?: string | null;
+  /** Reviewer / QA findings (0001); loaded by the admin panel to tell a missing file from a review flag. */
+  findings?: unknown;
+  video_path?: string | null;
   updated_at: string;
 };
 
@@ -320,10 +326,12 @@ export type SegmentFilter = {
 };
 
 function inSegment(events: AdminEvent[], f: SegmentFilter): AdminEvent[] {
-  const since = (f.now ?? new Date()).getTime() - f.days * DAY;
+  const until = (f.now ?? new Date()).getTime();
+  const since = until - f.days * DAY;
   return events.filter(
     (e) =>
       Date.parse(e.created_at) > since &&
+      Date.parse(e.created_at) <= until &&
       (!f.locale || e.locale === f.locale) &&
       (!f.country || eventCountry(e, f.countries) === f.country),
   );

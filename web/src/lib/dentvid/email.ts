@@ -209,12 +209,51 @@ export type SendOptions = {
   headers?: Record<string, string>;
   /** Resend keeps one send per key for 24 hours: a retried call cannot mail twice. */
   idempotencyKey?: string;
+  /**
+   * What to record in dentvid_email_sends (0010) for the admin panel: kind,
+   * clinic, language — never the address or content. Without it, a send whose
+   * idempotency key names a clinic ("dentvideo-<kind>-<clinic id>[-<day>]") is
+   * recorded from the key; anything else (password reset, sign-in code) is not.
+   */
+  log?: EmailLog | null;
 };
+
+export type EmailLog = { clinicId: string | null; kind: string; language?: string | null };
+
+/** The log entry an idempotency key implies ("dentvideo-welcome-<uuid>", "dentvideo-payment-on_hold-<uuid>-2026-11-11"). */
+export function emailLogFromKey(key: string | undefined): EmailLog | null {
+  const m = /^dentvideo-([a-z_-]{3,40})-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:-\d{4}-\d{2}-\d{2})?$/.exec(key ?? "");
+  if (!m) return null;
+  return { clinicId: m[2], kind: m[1].replace(/-/g, "_") };
+}
+
+/** Best effort: one row in dentvid_email_sends. A missing table (0010 not applied) is ignored. */
+async function logSend(entry: EmailLog | null, ok: boolean, error: string | null): Promise<void> {
+  if (!entry) return;
+  try {
+    const { dvAdmin } = await import("./supabase");
+    await dvAdmin()
+      .from("dentvid_email_sends")
+      .insert({
+        clinic_id: entry.clinicId,
+        kind: entry.kind.slice(0, 40),
+        language: entry.language && /^[a-z]{2}$/.test(entry.language) ? entry.language : null,
+        status: ok ? "sent" : "failed",
+        error: error ? error.slice(0, 500) : null,
+      });
+  } catch {
+    // best effort
+  }
+}
 
 /** Sends through Resend. Returns false (never throws) when it cannot. */
 export async function sendEmail(to: string, msg: { subject: string; html: string; text: string }, opts: SendOptions = {}): Promise<boolean> {
+  const entry = opts.log === undefined ? emailLogFromKey(opts.idempotencyKey) : opts.log;
   const key = process.env.RESEND_API_KEY;
-  if (!key) return false;
+  if (!key) {
+    await logSend(entry, false, "RESEND_API_KEY is not set");
+    return false;
+  }
   const from = process.env.DENTVIDEO_EMAIL_FROM || "DentVideo <hello@dentvideo.com>";
   const replyTo = process.env.DENTVIDEO_EMAIL_REPLY_TO || "hello@dentvideo.com";
   try {
@@ -240,13 +279,16 @@ export async function sendEmail(to: string, msg: { subject: string; html: string
       const detail = (await res.text()).slice(0, 300);
       console.error("dentvideo email failed", res.status, detail);
       await noteOps(`${res.status} ${detail}`);
+      await logSend(entry, false, `${res.status} ${detail}`);
     } else {
       await noteOps(null);
+      await logSend(entry, true, null);
     }
     return res.ok;
   } catch (e) {
     console.error("dentvideo email failed", (e as Error).message);
     await noteOps((e as Error).message);
+    await logSend(entry, false, (e as Error).message);
     return false;
   }
 }

@@ -58,15 +58,26 @@ export function validWeek(w: unknown): string | undefined {
   return typeof w === "string" && /^\d{4}-\d{2}-\d{2}$/.test(w) && !Number.isNaN(Date.parse(`${w}T00:00:00Z`)) ? w : undefined;
 }
 
-export type ClinicRow = { id: string; plan: string; profile?: { country?: string; timezone?: string } | null };
+export type ClinicRow = {
+  id: string;
+  plan: string;
+  profile?: { country?: string; timezone?: string } | null;
+  /** The owner paused this clinic from the admin panel (0010_dentvid_admin.sql); absent before that migration. */
+  admin_paused_at?: string | null;
+};
 
 /** Only a paying clinic has videos made (no API spend before payment). */
 export function isPaying(plan: string | null | undefined): boolean {
   return plan === "active";
 }
 
+/** Paying, and not paused by the owner from the admin panel. */
+export function shouldRun(c: Pick<ClinicRow, "plan" | "admin_paused_at">): boolean {
+  return isPaying(c.plan) && !c.admin_paused_at;
+}
+
 export function clinicsToRun(clinics: ClinicRow[]): string[] {
-  return clinics.filter((c) => isPaying(c.plan)).map((c) => c.id);
+  return clinics.filter(shouldRun).map((c) => c.id);
 }
 
 export const weekJobId = (clinicId: string, week: string) => `week:${clinicId}:${week}`;
@@ -82,7 +93,7 @@ export type BatchEntry = { clinicId: string; tz: string; deadline: Date; hoursTo
  */
 export function planBatch(clinics: ClinicRow[], week: string, now: Date): BatchEntry[] {
   return clinics
-    .filter((c) => isPaying(c.plan))
+    .filter(shouldRun)
     .map((c, i) => {
       const tz = clinicTimeZone(c.profile?.country, c.profile?.timezone);
       const deadline = mondayMorning(week, tz);
@@ -136,7 +147,8 @@ export async function dispatchWeeks(
   store: OpsStore | null = null,
   workers = 1,
 ): Promise<number> {
-  const { data: clinics, error } = await db.from("dentvid_clinics").select("id, plan, profile").eq("plan", "active");
+  // "*": admin_paused_at (0010) may not exist yet on a given database.
+  const { data: clinics, error } = await db.from("dentvid_clinics").select("*").eq("plan", "active");
   if (error) throw new Error(`dispatch: ${error.message}`);
   const week = deliveryWeek(now);
   const batch = planBatch((clinics ?? []) as ClinicRow[], week, now);
