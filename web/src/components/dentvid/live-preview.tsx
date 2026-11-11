@@ -40,6 +40,7 @@ export function LivePreview({
   className,
   backgrounds,
   track,
+  demoToken,
 }: {
   profile: PreviewProfile;
   className?: string;
@@ -47,8 +48,10 @@ export function LivePreview({
   backgrounds?: string[];
   /** Funnel place for preview_played / preview_completed (omit to count nothing). */
   track?: "landing" | "wizard";
+  /** A personalised demo page's token: counts demo_preview_played for it. */
+  demoToken?: string;
 }): JSX.Element {
   // Italian and Portuguese clinics see the interface (and, for now, the videos) in English.
   const locale: Locale = profile.language in APP_TEXT ? (profile.language as Locale) : "en";
-  return <Player profile={profile} backgrounds={backgrounds} text={APP_TEXT[locale].preview} className={className} track={track} />;
+  return <Player profile={profile} backgrounds={backgrounds} text={APP_TEXT[locale].preview} className={className} track={track} demoToken={demoToken} />;
 }

@@ -19,7 +19,7 @@ import { externalReferrerHost } from "./events";
  */
 
 export const ATTR_KEY = "dv-attr";
-export const ATTR_FIELDS = ["utm_source", "utm_medium", "utm_campaign", "ref"] as const;
+export const ATTR_FIELDS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "ref"] as const;
 export type Attribution = Partial<Record<(typeof ATTR_FIELDS)[number], string>>;
 
 const SLUG = /^[a-z0-9][a-z0-9._-]{0,39}$/;
@@ -32,6 +32,9 @@ export function attributionFrom(search: string, referrer: string, ownHost: strin
     const v = q.get(k)?.trim().toLowerCase().slice(0, 40);
     if (v && SLUG.test(v)) out[k] = v;
   }
+  // utm_content keeps its case: a demo link puts its token there (lib/dentvid/demos).
+  const content = q.get("utm_content")?.trim().slice(0, 40);
+  if (content && Object.keys(out).length > 0 && /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/.test(content)) out.utm_content = content;
   if (Object.keys(out).length === 0 && referrer) {
     const ref = externalReferrerHost(referrer, ownHost);
     if (ref) out.ref = ref;

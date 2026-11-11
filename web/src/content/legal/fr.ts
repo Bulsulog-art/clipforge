@@ -248,6 +248,7 @@ export const FR: LegalText = {
                 "Événements d'usage : conservés comme statistiques anonymes ; la suppression de votre compte supprime leur lien avec votre cabinet.",
                 "Factures et justificatifs de paiement : conservés par Dodo Payments en tant que marchand officiel selon ses propres obligations légales, et par nous dans la mesure exigée par le droit comptable et fiscal.",
                 "Compteurs de limitation : de quelques minutes à quelques heures.",
+                "Cabinets que nous contactons avec une démo personnalisée : nous créons nous-mêmes la démo à partir d'informations professionnelles publiques (nom du cabinet, ville, pays, couleur de marque et logo) et la conservons 60 jours au plus, sauf si le cabinet s'inscrit. Pour faire supprimer une démo plus tôt, écrivez à {email}.",
               ],
             },
           ],

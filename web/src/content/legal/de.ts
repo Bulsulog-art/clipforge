@@ -248,6 +248,7 @@ export const DE: LegalText = {
                 "Nutzungsereignisse: bleiben als anonyme Statistik; die Löschung Ihres Kontos entfernt ihre Verbindung zu Ihrer Praxis.",
                 "Rechnungen und Zahlungsbelege: bewahrt Dodo Payments als Händler nach eigenen gesetzlichen Pflichten auf, und wir, soweit Buchhaltungs- und Steuerrecht es verlangen.",
                 "Zähler für Ratenbegrenzung: Minuten bis Stunden.",
+                "Praxen, die wir mit einer persönlichen Demo ansprechen: Wir erstellen die Demo selbst aus öffentlichen Geschäftsangaben (Praxisname, Ort, Land, Markenfarbe und Logo) und bewahren sie bis zu 60 Tage auf, sofern sich die Praxis nicht registriert. Wenn Sie eine Demo früher löschen lassen möchten, schreiben Sie an {email}.",
               ],
             },
           ],

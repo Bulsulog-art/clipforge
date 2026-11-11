@@ -17,10 +17,13 @@ import { legalPagesOn } from "@/lib/dentvid/legal";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
 import { adminOrNull, foundingForApp } from "@/lib/dentvid/billing-state";
+import { DEMO_COOKIE, demoTokenFrom } from "@/lib/dentvid/demo-cookie";
+import { loadActiveDemo } from "@/lib/dentvid/demos-server";
+import { demoLogoSrc } from "@/lib/dentvid/demos";
 
 export const dynamic = "force-dynamic";
 
-type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: string }> };
+type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: string; demo?: string }> };
 
 /**
  * The paid funnel: 1 account → 2 clinic → 3 live preview → 4 plan and pay.
@@ -57,17 +60,21 @@ export default async function StartPage({ searchParams }: Props) {
 
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path, plan").eq("owner_id", user.id).maybeSingle();
   const profile = (clinic?.profile ?? undefined) as Partial<ClinicProfile> | undefined;
+  const cookieStore = await cookies();
+  // From a personalised demo link (?demo= or the dv-demo cookie): a clinic without a name yet starts from the demo.
+  const demoToken = profile?.name ? null : demoTokenFrom(sp.demo, cookieStore.get(DEMO_COOKIE)?.value);
+  const demo = demoToken ? await loadActiveDemo(demoToken) : null;
   const where = resolveStep({
     signedIn: true,
     hasClinic: !!clinic,
     plan: (clinic as { plan?: string } | null)?.plan ?? null,
     requested: sp.step,
-    reached: (await cookies()).get(STEP_COOKIE)?.value,
+    reached: cookieStore.get(STEP_COOKIE)?.value,
   });
   if (where.kind === "app") redirect(dvHref("/dentvideo/app"));
   const step = where.step === "account" ? "clinic" : where.step;
 
-  const locale = fromLink ?? (await dvLocale(profile?.language));
+  const locale = fromLink ?? (await dvLocale(profile?.language ?? demo?.language));
   const logoUrl = await logoSignedUrl(db, clinic?.logo_path as string | null | undefined);
   // The founding offer closes by itself once its 100 seats are taken (lib/dentvid/subscriptions).
   const founding = await foundingForApp(await adminOrNull());
@@ -83,6 +90,21 @@ export default async function StartPage({ searchParams }: Props) {
         founding={founding.open ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode(), ...(founding.reliable ? { left: founding.left } : {}) } : null}
         checkoutCancelled={sp.billing === "cancelled"}
         account={user.email ? { email: user.email, verified: isEmailVerified(user) } : undefined}
+        demo={
+          demo
+            ? {
+                token: demo.token,
+                profile: {
+                  name: demo.clinicName,
+                  ...(demo.city ? { city: demo.city } : {}),
+                  ...(demo.country ? { country: demo.country } : {}),
+                  language: demo.language,
+                  brandColor: demo.colour,
+                },
+                logoUrl: demo.hasLogo ? demoLogoSrc(demo.token) : null,
+              }
+            : undefined
+        }
       />
     </>
   );

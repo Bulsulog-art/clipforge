@@ -54,11 +54,14 @@ export function useClinicDraft({
   locale,
   initial,
   logoUrl: savedLogoUrl,
+  demoToken,
 }: {
   locale: Locale;
   initial?: Partial<ClinicProfile>;
   /** A signed URL of the clinic's saved logo, to preview it before any change. */
   logoUrl?: string | null;
+  /** Arrived from a personalised demo link: sent with the save (credit, and the demo's logo is copied server side). */
+  demoToken?: string;
 }) {
   const text = appText(locale);
   const [p, setP] = useState<DraftFields>({
@@ -159,7 +162,7 @@ export function useClinicDraft({
       method: "POST",
       headers: { "content-type": "application/json" },
       // The tab's first-touch source rides along, so the clinic's payment can be credited to it (/admin Sources).
-      body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}), attribution: readAttribution() }),
+      body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}), attribution: readAttribution(), ...(demoToken ? { demoToken } : {}) }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error ?? text.errors.saveFailed);
