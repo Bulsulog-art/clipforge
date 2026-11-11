@@ -7,12 +7,15 @@ import { isOwnLogoPath } from "@/lib/dentvid/paths";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
+import { geoCountry } from "@/lib/dentvid/events";
 import { BUCKET, dvAdmin } from "@/lib/dentvid/supabase";
 import { LOGO_MAX_BYTES } from "@/lib/dentvid/storage-quota";
 
 const Body = z.object({
   profile: clinicProfileSchema,
   logoPath: z.string().max(300).nullable().optional(),
+  /** The tab's first-touch source (lib/dentvid/attribution): becomes the clinic's first touch on /admin. */
+  attribution: z.record(z.string().max(80)).optional(),
 });
 
 /** Size of one object in the owner's folder, null when it is not there. */
@@ -104,8 +107,9 @@ export async function POST(req: Request) {
 
   void recordEvent("clinic_saved", {
     locale: body.profile.language,
-    props: { country: body.profile.country, language: body.profile.language },
+    props: { ...(body.attribution ?? {}), country: body.profile.country, language: body.profile.language },
     clinicId: data.id as string,
+    geo: geoCountry(req.headers),
   });
   return NextResponse.json({ id: data.id });
 }

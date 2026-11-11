@@ -196,13 +196,23 @@ export function dailyCounts(dates: string[], days: number, now = new Date()): nu
 
 export type FunnelStepDef = { key: string; event: DvEventName; label: string; where?: Record<string, unknown> };
 
-/** The funnel in order. Wizard preview starts are a different moment (after sign-up), so step 2 counts only the landing teaser. */
+/**
+ * The funnel in order, one row per step a visitor takes. Wizard preview
+ * starts are a different moment (after sign-up), so "teaser" counts only the
+ * landing's own preview.
+ */
 export const FUNNEL: FunnelStepDef[] = [
   { key: "visit", event: "landing_view", label: "Landing views" },
-  { key: "teaser", event: "preview_started", label: "Tried the preview", where: { where: "landing" } },
+  { key: "cta", event: "cta_clicked", label: "Clicked a sign-up button" },
+  { key: "teaser", event: "preview_started", label: "Tried the landing preview", where: { where: "landing" } },
+  { key: "signupStart", event: "signup_started", label: "Started the sign-up form" },
   { key: "signup", event: "signup_completed", label: "Signed up" },
   { key: "clinic", event: "clinic_saved", label: "Clinic saved" },
   { key: "preview", event: "preview_step_viewed", label: "Saw their preview" },
+  { key: "played", event: "preview_played", label: "Preview played", where: { where: "wizard" } },
+  { key: "previewDone", event: "preview_completed", label: "Watched a preview video to the end", where: { where: "wizard" } },
+  { key: "planView", event: "plan_viewed", label: "Saw the plans" },
+  { key: "verified", event: "code_verified", label: "Confirmed their email code" },
   { key: "plan", event: "plan_clicked", label: "Clicked a plan" },
   { key: "checkout", event: "checkout_opened", label: "Opened checkout" },
   { key: "paid", event: "payment_succeeded", label: "Paid" },
@@ -235,9 +245,92 @@ export function stepCount(events: AdminEvent[], def: FunnelStepDef): number {
 /** a ÷ b, or null when b is 0. */
 export const rate = (a: number, b: number): number | null => (b > 0 ? a / b : null);
 
-export function funnel(events: AdminEvent[], opts: { days: number; now?: Date; locale?: string | null; steps?: FunnelStepDef[] }): FunnelStep[] {
-  const since = (opts.now ?? new Date()).getTime() - opts.days * DAY;
-  const inWindow = events.filter((e) => Date.parse(e.created_at) > since && (!opts.locale || e.locale === opts.locale));
+/* ------------------------------------------------- segments: who, where from */
+
+/** Clinic id → its own country (the profile's), for events tied to a clinic. */
+export function clinicCountries(clinics: Pick<AdminClinic, "id" | "profile">[]): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const c of clinics) {
+    const cc = c.profile?.country;
+    if (typeof cc === "string" && /^[A-Z]{2}$/.test(cc)) out.set(c.id, cc);
+  }
+  return out;
+}
+
+/**
+ * The country an event belongs to: the clinic's own country once it has one,
+ * else the country the clinic typed on clinic_saved, else the proxy's geo
+ * country (props.geo), else "—" (no geo header at the edge yet).
+ */
+export function eventCountry(e: AdminEvent, byClinic: Map<string, string> = new Map()): string {
+  const fromClinic = e.clinic_id ? byClinic.get(e.clinic_id) : undefined;
+  if (fromClinic) return fromClinic;
+  const p = e.props ?? {};
+  if (typeof p.country === "string" && /^[A-Z]{2}$/.test(p.country)) return p.country;
+  if (typeof p.geo === "string" && /^[A-Z]{2}$/.test(p.geo)) return p.geo;
+  return "—";
+}
+
+/** "instagram / dm / tr-launch", "ref: google.com", or null when the event carries no source. */
+export function sourceOf(props: Record<string, unknown> | null | undefined): string | null {
+  const p = props ?? {};
+  const utm = ["utm_source", "utm_medium", "utm_campaign"].map((k) => (typeof p[k] === "string" ? (p[k] as string) : ""));
+  if (utm.some(Boolean)) return utm.map((v) => v || "—").join(" / ");
+  if (typeof p.ref === "string" && p.ref) return `ref: ${p.ref}`;
+  return null;
+}
+
+export const DIRECT = "(direct / none)";
+
+/** ?country= on /admin: an ISO code, or null. */
+export function asCountryFilter(v: string | null | undefined): string | null {
+  const c = (v ?? "").trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(c) ? c : null;
+}
+
+/**
+ * First-touch source per clinic: the source on the clinic's earliest event
+ * that carries one (the wizard stamps clinic_saved with the visit's UTM tags,
+ * which the browser keeps for the tab — lib/dentvid/attribution). Every later
+ * event of that clinic, payment included, is credited to it.
+ */
+export function clinicSources(events: AdminEvent[]): Map<string, string> {
+  const out = new Map<string, string>();
+  const sorted = events.filter((e) => e.clinic_id).sort((a, b) => a.created_at.localeCompare(b.created_at));
+  for (const e of sorted) {
+    if (out.has(e.clinic_id!)) continue;
+    const s = sourceOf(e.props);
+    if (s) out.set(e.clinic_id!, s);
+  }
+  return out;
+}
+
+/** An event's source: its own tags, else its clinic's first touch, else direct. */
+export function eventSource(e: AdminEvent, byClinic: Map<string, string>): string {
+  return sourceOf(e.props) ?? (e.clinic_id ? byClinic.get(e.clinic_id) : undefined) ?? DIRECT;
+}
+
+export type SegmentFilter = {
+  days: number;
+  now?: Date;
+  locale?: string | null;
+  country?: string | null;
+  /** Clinic id → country, to place clinic events in a country (clinicCountries). */
+  countries?: Map<string, string>;
+};
+
+function inSegment(events: AdminEvent[], f: SegmentFilter): AdminEvent[] {
+  const since = (f.now ?? new Date()).getTime() - f.days * DAY;
+  return events.filter(
+    (e) =>
+      Date.parse(e.created_at) > since &&
+      (!f.locale || e.locale === f.locale) &&
+      (!f.country || eventCountry(e, f.countries) === f.country),
+  );
+}
+
+export function funnel(events: AdminEvent[], opts: SegmentFilter & { steps?: FunnelStepDef[] }): FunnelStep[] {
+  const inWindow = inSegment(events, opts);
   const defs = opts.steps ?? FUNNEL;
   const counts = defs.map((d) => stepCount(inWindow, d));
   return defs.map((d, i) => ({
@@ -248,31 +341,81 @@ export function funnel(events: AdminEvent[], opts: { days: number; now?: Date; l
   }));
 }
 
-export type LocaleRow = { locale: string; visits: number; teaser: number; signups: number; plans: number; paid: number; visitToPaid: number | null; signupToPaid: number | null };
+/** The key steps of one segment (a locale, a country, a source). */
+export type SegmentRow = {
+  key: string;
+  visits: number;
+  cta: number;
+  teaser: number;
+  signups: number;
+  verified: number;
+  previewDone: number;
+  plans: number;
+  checkouts: number;
+  paid: number;
+  visitToSignup: number | null;
+  visitToPaid: number | null;
+  signupToPaid: number | null;
+};
 
-/** The key steps per locale, busiest first. Events without a locale are grouped as "—". */
-export function funnelByLocale(events: AdminEvent[], opts: { days: number; now?: Date }): LocaleRow[] {
-  const since = (opts.now ?? new Date()).getTime() - opts.days * DAY;
-  const inWindow = events.filter((e) => Date.parse(e.created_at) > since);
-  const locales = [...new Set(inWindow.map((e) => e.locale ?? "—"))];
-  const step = (key: string) => FUNNEL.find((s) => s.key === key)!;
-  const rows = locales.map((locale) => {
-    const evs = inWindow.filter((e) => (e.locale ?? "—") === locale);
-    const visits = stepCount(evs, step("visit"));
-    const signups = stepCount(evs, step("signup"));
-    const paid = stepCount(evs, step("paid"));
-    return {
-      locale,
-      visits,
-      teaser: stepCount(evs, step("teaser")),
-      signups,
-      plans: stepCount(evs, step("plan")),
-      paid,
-      visitToPaid: rate(paid, visits),
-      signupToPaid: rate(paid, signups),
-    };
-  });
-  return rows.sort((a, b) => b.visits - a.visits || b.signups - a.signups || a.locale.localeCompare(b.locale));
+/** Kept for callers of the old name: a SegmentRow keyed by locale. */
+export type LocaleRow = SegmentRow & { locale: string };
+
+const stepDef = (key: string) => FUNNEL.find((s) => s.key === key)!;
+
+function segmentRow(key: string, evs: AdminEvent[]): SegmentRow {
+  const visits = stepCount(evs, stepDef("visit"));
+  const signups = stepCount(evs, stepDef("signup"));
+  const paid = stepCount(evs, stepDef("paid"));
+  return {
+    key,
+    visits,
+    cta: stepCount(evs, stepDef("cta")),
+    teaser: stepCount(evs, stepDef("teaser")),
+    signups,
+    verified: stepCount(evs, stepDef("verified")),
+    previewDone: stepCount(evs, stepDef("previewDone")),
+    plans: stepCount(evs, stepDef("plan")),
+    checkouts: stepCount(evs, stepDef("checkout")),
+    paid,
+    visitToSignup: rate(signups, visits),
+    visitToPaid: rate(paid, visits),
+    signupToPaid: rate(paid, signups),
+  };
+}
+
+/** The key steps per segment, busiest first. */
+export function funnelBy(events: AdminEvent[], keyOf: (e: AdminEvent) => string, f: SegmentFilter): SegmentRow[] {
+  const groups = new Map<string, AdminEvent[]>();
+  for (const e of inSegment(events, f)) {
+    const k = keyOf(e);
+    const list = groups.get(k);
+    if (list) list.push(e);
+    else groups.set(k, [e]);
+  }
+  return [...groups.entries()]
+    .map(([k, evs]) => segmentRow(k, evs))
+    .sort((a, b) => b.visits - a.visits || b.signups - a.signups || b.paid - a.paid || a.key.localeCompare(b.key));
+}
+
+/** Per locale; events without a locale are grouped as "—". */
+export function funnelByLocale(events: AdminEvent[], f: SegmentFilter): LocaleRow[] {
+  return funnelBy(events, (e) => e.locale ?? "—", f).map((r) => ({ ...r, locale: r.key }));
+}
+
+/** Per country (eventCountry). */
+export function funnelByCountry(events: AdminEvent[], f: SegmentFilter): SegmentRow[] {
+  return funnelBy(events, (e) => eventCountry(e, f.countries), f);
+}
+
+/**
+ * Per source (utm_source / utm_medium / utm_campaign, else the referring
+ * host, else direct). Clinic events — checkout, payment — are credited to
+ * the clinic's first touch, looked up over all events, not only the window.
+ */
+export function funnelBySource(events: AdminEvent[], f: SegmentFilter): SegmentRow[] {
+  const firstTouch = clinicSources(events);
+  return funnelBy(events, (e) => eventSource(e, firstTouch), f);
 }
 
 /* ------------------------------------------------------------- operations */

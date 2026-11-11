@@ -5,8 +5,12 @@ import {
   billingHints,
   dailyCounts,
   foundingSeats,
+  clinicCountries,
   funnel,
+  funnelByCountry,
   funnelByLocale,
+  funnelBySource,
+  type SegmentRow,
   growth,
   lastRuns,
   latestErrors,
@@ -144,6 +148,8 @@ export type AdminDashboardProps = {
   data: AdminData;
   days: 7 | 30;
   locale: string | null;
+  /** ISO country filter (eventCountry), or null for all. */
+  country?: string | null;
   /** The dashboard's own path, for the filter links. */
   basePath: string;
   clinicHref: (id: string) => string;
@@ -151,7 +157,7 @@ export type AdminDashboardProps = {
   viewer?: string;
 };
 
-export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewer }: AdminDashboardProps) {
+export function AdminDashboard({ data, days, locale, country = null, basePath, clinicHref, viewer }: AdminDashboardProps) {
   const now = new Date(data.now);
   const hints = billingHints(data.events);
   const rev = revenue(data.clinics, hints);
@@ -159,10 +165,16 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
   const seats = foundingSeats(data.clinics, data.dodoFoundingUses);
   const signupSeries = dailyCounts(data.clinics.map((c) => c.created_at), 30, now);
   const visitSeries = dailyCounts(data.events.filter((e) => e.name === "landing_view").map((e) => e.created_at), 30, now);
-  const steps = funnel(data.events, { days, now, locale });
+  const countries = clinicCountries(data.clinics);
+  const steps = funnel(data.events, { days, now, locale, country, countries });
   // Bars on a square-root scale: visits outnumber payments 100:1, and a linear bar would hide every step after the first.
   const top = Math.max(1, ...steps.map((s) => s.count));
-  const locales = funnelByLocale(data.events, { days, now });
+  // Each breakdown honours the other filter: by locale within the chosen country, by country within the chosen locale.
+  const locales = funnelByLocale(data.events, { days, now, country, countries });
+  const allLocales = funnelByLocale(data.events, { days, now, countries });
+  const byCountry = funnelByCountry(data.events, { days, now, locale, countries });
+  const allCountries = funnelByCountry(data.events, { days, now, countries });
+  const sources = funnelBySource(data.events, { days, now, locale, country, countries });
   const runs = lastRuns(data.items);
   const totals = runTotals(runs);
   const errors = latestErrors(data.items);
@@ -170,12 +182,14 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
   const recent = data.clinics.slice().sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 25);
   const verifiedOwners = data.verifiedOwners ? new Set(data.verifiedOwners) : null;
   const emailOk = (c: { owner_id?: string }) => (verifiedOwners && c.owner_id ? verifiedOwners.has(c.owner_id) : undefined);
-  const href = (q: { days?: number; locale?: string | null }) => {
+  const href = (q: { days?: number; locale?: string | null; country?: string | null }) => {
     const p = new URLSearchParams();
     const d = q.days ?? days;
     const l = q.locale === undefined ? locale : q.locale;
+    const c = q.country === undefined ? country : q.country;
     if (d !== 30) p.set("days", String(d));
     if (l) p.set("locale", l);
+    if (c) p.set("country", c);
     const s = p.toString();
     return s ? `${basePath}?${s}` : basePath;
   };
@@ -309,11 +323,23 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
             <Chip href={href({ locale: null })} on={!locale}>
               All locales
             </Chip>
-            {locales
+            {allLocales
               .filter((l) => l.locale !== "—")
               .map((l) => (
                 <Chip key={l.locale} href={href({ locale: l.locale })} on={locale === l.locale}>
                   <span className="uppercase">{l.locale}</span>
+                </Chip>
+              ))}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2" aria-label="Country">
+            <Chip href={href({ country: null })} on={!country}>
+              All countries
+            </Chip>
+            {allCountries
+              .filter((c) => c.key !== "—")
+              .map((c) => (
+                <Chip key={c.key} href={href({ country: c.key })} on={country === c.key}>
+                  {c.key}
                 </Chip>
               ))}
           </div>
@@ -383,42 +409,29 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
             </div>
           </div>
 
-          <div className="dv-card mt-4 overflow-x-auto">
-            <table className="w-full min-w-[34rem] text-left text-sm">
-              <caption className="sr-only">Funnel by locale, last {days} days</caption>
-              <thead>
-                <tr className="border-b border-dv-line text-xs uppercase tracking-[0.06em] text-dv-muted [&>th]:whitespace-nowrap">
-                  <th scope="col" className="px-4 py-3 font-semibold">Locale</th>
-                  <th scope="col" className="px-3 py-3 text-end font-semibold">Visits</th>
-                  <th scope="col" className="px-3 py-3 text-end font-semibold">Tried</th>
-                  <th scope="col" className="px-3 py-3 text-end font-semibold">Sign-ups</th>
-                  <th scope="col" className="px-3 py-3 text-end font-semibold">Plan clicks</th>
-                  <th scope="col" className="px-3 py-3 text-end font-semibold">Paid</th>
-                  <th scope="col" className="px-4 py-3 text-end font-semibold">Visit → paid</th>
-                </tr>
-              </thead>
-              <tbody className="tabular-nums">
-                {locales.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-dv-muted">
-                      No events in this range.
-                    </td>
-                  </tr>
-                )}
-                {locales.map((l) => (
-                  <tr key={l.locale} className="border-b border-dv-line last:border-0">
-                    <th scope="row" className="px-4 py-2.5 font-semibold uppercase text-dv-ink">{l.locale}</th>
-                    <td className="px-3 py-2.5 text-end">{int(l.visits)}</td>
-                    <td className="px-3 py-2.5 text-end">{int(l.teaser)}</td>
-                    <td className="px-3 py-2.5 text-end">{int(l.signups)}</td>
-                    <td className="px-3 py-2.5 text-end">{int(l.plans)}</td>
-                    <td className="px-3 py-2.5 text-end font-semibold text-dv-ink">{int(l.paid)}</td>
-                    <td className="px-4 py-2.5 text-end">{pct(l.visitToPaid)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <SegmentTable
+            title="By language"
+            caption={`Funnel by locale, last ${days} days${country ? `, ${country}` : ""}`}
+            keyLabel="Locale"
+            rows={locales}
+            upper
+          />
+          <SegmentTable
+            title="By country"
+            caption={`Funnel by country, last ${days} days${locale ? `, ${locale}` : ""}`}
+            keyLabel="Country"
+            rows={byCountry}
+            note="The clinic's own country once it has one; before that the visitor's country from the edge's geo header (— when none is set)."
+          />
+        </section>
+
+        {/* Sources */}
+        <section aria-labelledby="sources-title" className="mt-14">
+          <SectionTitle
+            title="Sources"
+            lead="utm_source / utm_medium / utm_campaign of the visit (else the referring site). A clinic's checkout and payment count for its first touch — the source its browser tab arrived with. Same range and filters as the funnel."
+          />
+          <SegmentTable title="" caption={`Funnel by source, last ${days} days`} keyLabel="Source" rows={sources} sources />
         </section>
 
         {/* Operations */}
@@ -607,6 +620,77 @@ export function AdminDashboard({ data, days, locale, basePath, clinicHref, viewe
         </section>
       </div>
     </main>
+  );
+}
+
+/** One row per segment (locale, country or source): the key steps and the conversions that matter. */
+function SegmentTable({
+  title,
+  caption,
+  keyLabel,
+  rows,
+  note,
+  upper = false,
+  sources = false,
+}: {
+  title: string;
+  caption: string;
+  keyLabel: string;
+  rows: SegmentRow[];
+  note?: string;
+  upper?: boolean;
+  /** The Sources table: "Preview done" and checkouts matter more than the landing teaser. */
+  sources?: boolean;
+}) {
+  const cols: { label: string; value: (r: SegmentRow) => React.ReactNode; strong?: boolean }[] = [
+    { label: "Visitors", value: (r) => int(r.visits) },
+    { label: "CTA clicks", value: (r) => int(r.cta) },
+    ...(sources ? [] : [{ label: "Tried", value: (r: SegmentRow) => int(r.teaser) }]),
+    { label: "Sign-ups", value: (r) => int(r.signups) },
+    { label: "Preview done", value: (r) => int(r.previewDone) },
+    { label: "Checkouts", value: (r) => int(r.checkouts) },
+    { label: "Paid", value: (r) => int(r.paid), strong: true },
+    { label: "Visit → sign-up", value: (r) => pct(r.visitToSignup) },
+    { label: "Visit → paid", value: (r) => pct(r.visitToPaid) },
+    { label: "Sign-up → paid", value: (r) => pct(r.signupToPaid) },
+  ];
+  return (
+    <div className="mt-4">
+      {title && <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{title}</h3>}
+      <div className="dv-card mt-2 overflow-x-auto">
+        <table className="w-full min-w-[52rem] text-left text-sm" data-segment={keyLabel.toLowerCase()}>
+          <caption className="sr-only">{caption}</caption>
+          <thead>
+            <tr className="border-b border-dv-line text-xs uppercase tracking-[0.06em] text-dv-muted [&>th]:whitespace-nowrap">
+              <th scope="col" className="px-4 py-3 font-semibold">{keyLabel}</th>
+              {cols.map((c) => (
+                <th key={c.label} scope="col" className="px-3 py-3 text-end font-semibold">{c.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="tabular-nums">
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={cols.length + 1} className="px-4 py-6 text-center text-dv-muted">
+                  No events in this range.
+                </td>
+              </tr>
+            )}
+            {rows.map((r) => (
+              <tr key={r.key} className="border-b border-dv-line last:border-0">
+                <th scope="row" className={`max-w-[16rem] truncate px-4 py-2.5 font-semibold text-dv-ink ${upper ? "uppercase" : ""}`} title={r.key}>
+                  {r.key}
+                </th>
+                {cols.map((c) => (
+                  <td key={c.label} className={`px-3 py-2.5 text-end ${c.strong ? "font-semibold text-dv-ink" : ""}`}>{c.value(r)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {note && <p className="mt-2 text-xs text-dv-muted">{note}</p>}
+    </div>
   );
 }
 

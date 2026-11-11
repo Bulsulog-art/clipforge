@@ -39,13 +39,16 @@ export function LivePreview({
   profile,
   className,
   backgrounds,
+  track,
 }: {
   profile: PreviewProfile;
   className?: string;
   /** Background photos for the videos (one per scene, in order), when a picker has chosen them. */
   backgrounds?: string[];
+  /** Funnel place for preview_played / preview_completed (omit to count nothing). */
+  track?: "landing" | "wizard";
 }): JSX.Element {
   // Italian and Portuguese clinics see the interface (and, for now, the videos) in English.
   const locale: Locale = profile.language in APP_TEXT ? (profile.language as Locale) : "en";
-  return <Player profile={profile} backgrounds={backgrounds} text={APP_TEXT[locale].preview} className={className} />;
+  return <Player profile={profile} backgrounds={backgrounds} text={APP_TEXT[locale].preview} className={className} track={track} />;
 }

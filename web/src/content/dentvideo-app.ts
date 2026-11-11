@@ -145,6 +145,8 @@ export type AppText = {
     previewNote: string;
     previewNext: string;
     editDetails: string;
+    /** The wizard's clinic step: the fold over the optional fields (city, address, tone, handle, booking link). */
+    moreDetails: string;
     planTitle: string;
     planLead: string;
     planRecap: string;
@@ -425,6 +427,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "This preview is drawn in your browser. Your real videos are written, narrated and checked twice once you choose a plan.",
       previewNext: "Looks good — choose a plan",
       editDetails: "Edit services and other details",
+      moreDetails: "More details (optional — change them anytime in Settings)",
       planTitle: "Choose your plan",
       planLead: "Your first week of videos is made right after payment — about 15 minutes. Then five new, checked videos every Monday. Monthly, cancel anytime.",
       planRecap: "Your preview",
@@ -730,6 +733,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "Diese Vorschau entsteht in Ihrem Browser. Ihre echten Videos werden nach der Tarifwahl geschrieben, vertont und zweimal geprüft.",
       previewNext: "Gefällt mir — Tarif wählen",
       editDetails: "Leistungen und weitere Angaben bearbeiten",
+      moreDetails: "Weitere Angaben (optional, jederzeit in den Einstellungen änderbar)",
       planTitle: "Wählen Sie Ihren Tarif",
       planLead: "Ihre erste Woche Videos entsteht direkt nach der Zahlung — in etwa 15 Minuten. Danach jeden Montag fünf neue, geprüfte Videos. Monatlich, jederzeit kündbar.",
       planRecap: "Ihre Vorschau",
@@ -1038,6 +1042,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "Esta vista previa se dibuja en tu navegador. Tus vídeos reales se escriben, se narran y se revisan dos veces en cuanto eliges un plan.",
       previewNext: "Me gusta: elegir un plan",
       editDetails: "Editar tratamientos y otros datos",
+      moreDetails: "Más datos (opcional; puedes cambiarlos en Ajustes cuando quieras)",
       planTitle: "Elige tu plan",
       planLead: "Tu primera semana de vídeos se crea justo después del pago, en unos 15 minutos. Después, cinco vídeos nuevos y revisados cada lunes. Mensual, cancela cuando quieras.",
       planRecap: "Tu vista previa",
@@ -1346,6 +1351,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "Bu önizleme tarayıcınızda çiziliyor. Gerçek videolarınız, plan seçtiğiniz anda yazılır, seslendirilir ve iki kez kontrol edilir.",
       previewNext: "Güzel görünüyor — plan seçin",
       editDetails: "Tedavileri ve diğer bilgileri düzenleyin",
+      moreDetails: "Diğer bilgiler (isteğe bağlı; Ayarlar'dan istediğiniz zaman değiştirebilirsiniz)",
       planTitle: "Planınızı seçin",
       planLead: "İlk haftanızın videoları ödemenin hemen ardından, yaklaşık 15 dakikada hazırlanır. Sonra her pazartesi beş yeni, kontrol edilmiş video. Aylık, istediğiniz zaman iptal.",
       planRecap: "Önizlemeniz",
@@ -1654,6 +1660,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "Cet aperçu est dessiné dans votre navigateur. Vos vraies vidéos sont rédigées, mises en voix et vérifiées deux fois dès que vous choisissez une formule.",
       previewNext: "C'est parfait — choisir une formule",
       editDetails: "Modifier les soins et les autres informations",
+      moreDetails: "Plus d'informations (facultatif, modifiable à tout moment dans les Paramètres)",
       planTitle: "Choisissez votre formule",
       planLead: "Votre première semaine de vidéos est réalisée dès le paiement, en 15 minutes environ. Ensuite, cinq nouvelles vidéos vérifiées chaque lundi. Mensuel, résiliable à tout moment.",
       planRecap: "Votre aperçu",
@@ -1966,6 +1973,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "このプレビューはブラウザ上で描画しています。実際の動画は、プランをお選びいただいた後に、台本の作成、ナレーション、2回のチェックを経て制作されます。",
       previewNext: "この内容でプランを選ぶ",
       editDetails: "診療内容などを編集する",
+      moreDetails: "その他の情報（任意・あとから設定で変更できます）",
       planTitle: "プランを選ぶ",
       planLead: "初週の動画は、お支払い後すぐに制作を始めます（15分ほど）。その後は毎週月曜日に、チェック済みの新しい動画が5本届きます。月単位の契約で、いつでも解約できます。",
       planRecap: "プレビュー",
@@ -2268,6 +2276,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "تُرسم هذه المعاينة في متصفحكم. أما فيديوهاتكم الفعلية فتُكتب وتُسجَّل وتُراجَع مرتين بعد اختيار الباقة.",
       previewNext: "تبدو جيدة، لنختر الباقة",
       editDetails: "تعديل الخدمات والتفاصيل الأخرى",
+      moreDetails: "تفاصيل إضافية (اختيارية، ويمكن تعديلها لاحقاً من الإعدادات)",
       planTitle: "اختاروا باقتكم",
       planLead: "يبدأ إعداد أسبوعكم الأول فور الدفع، ويستغرق نحو 15 دقيقة. بعدها تصلكم كل يوم اثنين خمسة فيديوهات جديدة بعد مراجعتها. اشتراك شهري يمكن إلغاؤه في أي وقت.",
       planRecap: "معاينتكم",
@@ -2571,6 +2580,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       previewNote: "Ten podgląd powstaje w przeglądarce. Prawdziwe filmy są pisane, nagrywane z lektorem i dwukrotnie sprawdzane po wyborze planu.",
       previewNext: "Wygląda dobrze, wybierz plan",
       editDetails: "Edytuj zabiegi i pozostałe dane",
+      moreDetails: "Więcej danych (opcjonalnie, można je zmienić w Ustawieniach)",
       planTitle: "Wybór planu",
       planLead: "Pierwszy tydzień filmów powstaje zaraz po płatności, w około 15 minut. Potem co poniedziałek pięć nowych, sprawdzonych filmów. Rozliczenie miesięczne, rezygnacja w dowolnym momencie.",
       planRecap: "Państwa podgląd",

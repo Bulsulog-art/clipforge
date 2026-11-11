@@ -7,20 +7,29 @@ import { Pause, Play } from "lucide-react";
  * A device frame around real DentVideo output. Pure CSS, no image assets:
  * titanium-style rim, side buttons, dynamic island, 9:16 screen.
  */
-export function PhoneFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function PhoneFrame({ children, className = "", compact = false }: { children: React.ReactNode; className?: string; compact?: boolean }) {
+  // `compact`: a small phone below the lg breakpoint (the hero's first screen on phones), full size from lg up.
+  const r = compact
+    ? {
+        outer: "rounded-[1.6rem] lg:rounded-[2.9rem]",
+        mid: "rounded-[1.5rem] p-[5px] lg:rounded-[2.75rem] lg:p-[9px]",
+        screen: "rounded-[1.2rem] lg:rounded-[2.2rem]",
+        island: "top-1.5 h-[10px] lg:top-2.5 lg:h-[22px]",
+      }
+    : { outer: "rounded-[2.9rem]", mid: "rounded-[2.75rem] p-[9px]", screen: "rounded-[2.2rem]", island: "top-2.5 h-[22px]" };
   return (
     <div className={`relative ${className}`}>
       {/* side buttons */}
       <span aria-hidden="true" className="absolute -left-[3px] top-[18%] h-[7%] w-[3px] rounded-l bg-[#2b3634]" />
       <span aria-hidden="true" className="absolute -left-[3px] top-[28%] h-[11%] w-[3px] rounded-l bg-[#2b3634]" />
       <span aria-hidden="true" className="absolute -right-[3px] top-[24%] h-[14%] w-[3px] rounded-r bg-[#2b3634]" />
-      <div className="rounded-[2.9rem] bg-gradient-to-b from-[#3a4644] via-[#1b2523] to-[#2f3b39] p-[3px] shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]">
-        <div className="rounded-[2.75rem] bg-[#0b1110] p-[9px]">
-          <div className="relative aspect-[9/16] overflow-hidden rounded-[2.2rem] bg-[#0b3f3e]">
+      <div className={`${r.outer} bg-gradient-to-b from-[#3a4644] via-[#1b2523] to-[#2f3b39] p-[3px] shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]`}>
+        <div className={`${r.mid} bg-[#0b1110]`}>
+          <div className={`relative aspect-[9/16] overflow-hidden ${r.screen} bg-[#0b3f3e]`}>
             {children}
-            <span aria-hidden="true" className="absolute left-1/2 top-2.5 h-[22px] w-[30%] -translate-x-1/2 rounded-full bg-black" />
+            <span aria-hidden="true" className={`absolute left-1/2 ${r.island} w-[30%] -translate-x-1/2 rounded-full bg-black`} />
             {/* glass sheen */}
-            <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[2.2rem] bg-[linear-gradient(115deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0)_32%)]" />
+            <span aria-hidden="true" className={`pointer-events-none absolute inset-0 ${r.screen} bg-[linear-gradient(115deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0)_32%)]`} />
           </div>
         </div>
       </div>
@@ -71,7 +80,7 @@ export function HeroVideo({ src, poster, title, labels }: { src: string; poster:
         type="button"
         onClick={toggle}
         aria-label={playing ? labels.pause : labels.play}
-        className="dv-btn absolute bottom-4 left-4 z-10 h-10 w-10 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
+        className="dv-btn absolute bottom-2 left-2 z-10 h-9 w-9 lg:bottom-4 lg:left-4 lg:h-10 lg:w-10 bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md hover:bg-white/25"
       >
         {playing ? <Pause className="h-4 w-4" fill="currentColor" aria-hidden="true" /> : <Play className="ml-0.5 h-4 w-4" fill="currentColor" aria-hidden="true" />}
       </button>

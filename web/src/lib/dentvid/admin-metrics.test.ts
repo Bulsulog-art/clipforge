@@ -178,9 +178,11 @@ describe("funnel rates", () => {
     const by = Object.fromEntries(f.map((s) => [s.key, s]));
     expect(by.visit.count).toBe(140);
     expect(by.visit.fromPrev).toBeNull();
-    expect(by.teaser.fromPrev).toBeCloseTo(20 / 140);
+    expect(by.teaser.count).toBe(20);
+    expect(by.teaser.fromTop).toBeCloseTo(20 / 140);
+    expect(by.cta.count).toBe(0);
+    expect(by.teaser.fromPrev).toBeNull(); // nothing on the step before (no CTA clicks recorded)
     expect(by.signup.count).toBe(11);
-    expect(by.signup.fromPrev).toBeCloseTo(11 / 20);
     expect(by.clinic.fromPrev).toBeCloseTo(8 / 11);
     expect(by.preview.count).toBe(0);
     expect(by.plan.fromPrev).toBeNull(); // nothing on the step before

@@ -10,6 +10,7 @@ import { analyseLogoUrl, accentFor, type LogoColors } from "@/lib/dentvid/logo-c
 import { libraryLanguage, personalisePlan, pickPreviews, type PreviewEntry } from "@/lib/dentvid/preview-library";
 import { fmt, type AppText } from "@/content/dentvideo-app";
 import { PhoneFrame } from "./phone";
+import { trackDv } from "@/lib/dentvid/events-client";
 import type { PreviewProfile } from "./live-preview";
 
 /**
@@ -92,11 +93,14 @@ export default function LivePreviewPlayer({
   backgrounds,
   text,
   className = "",
+  track,
 }: {
   profile: PreviewProfile;
   backgrounds?: string[];
   text: AppText["preview"];
   className?: string;
+  /** Count preview_played / preview_completed for this place in the funnel. */
+  track?: "landing" | "wizard";
 }) {
   const lang = libraryLanguage(profile.language);
   const servicesKey = profile.services.join("\u0000");
@@ -275,9 +279,15 @@ export default function LivePreviewPlayer({
   useEffect(() => {
     const p = playerRef.current;
     if (!p) return;
-    const onPlay = () => setPlaying(true);
+    const onPlay = () => {
+      setPlaying(true);
+      // Funnel: the preview really played (once per tab and place).
+      if (track) trackDv("preview_played", { locale: profile.language, props: { where: track }, once: `preview-play:${track}` });
+    };
     const onPause = () => setPlaying(false);
     const onEnded = () => {
+      // Funnel: a whole preview video was watched to its end.
+      if (track) trackDv("preview_completed", { locale: profile.language, props: { where: track }, once: `preview-done:${track}` });
       // Story-style: the next video, round and round.
       startMuted.current = p.isMuted();
       if (entries.length > 1) setIndex((i) => (i + 1) % entries.length);
@@ -307,7 +317,7 @@ export default function LivePreviewPlayer({
       p.removeEventListener("frameupdate", onFrame);
       p.removeEventListener("mutechange", onMute);
     };
-  }, [entries.length, durationInFrames, entry?.id, ready]);
+  }, [entries.length, durationInFrames, entry?.id, ready, track, profile.language]);
 
   useEffect(() => {
     const p = playerRef.current;
