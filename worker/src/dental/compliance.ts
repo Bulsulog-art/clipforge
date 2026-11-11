@@ -2,7 +2,7 @@ import type OpenAI from "openai";
 import { z } from "zod";
 import { agentJson, REVIEW_MODEL } from "./llm.js";
 import type { ClinicProfile } from "./profile.js";
-import { marketRules } from "./locale.js";
+import { marketLanguage, marketLanguages, marketRules } from "./locale.js";
 
 /**
  * The compliance agent. Health advertising is regulated almost everywhere,
@@ -63,9 +63,9 @@ const AFTER_TEETH = "(?<!(dientes|dents|dentes|denti|molares|molaires|empaste|ob
 // What a superlative has to be about to count as an advertising claim.
 const CLINIC_NOUNS = {
   en: "dentists?|dental (clinic|practice|office|care|team)|clinic|practice|team|doctors?|prices?|deals?|smiles?|treatments?|care|service",
-  tr: "klini\\p{L}*|diş hekim\\p{L}*|doktor\\p{L}*|hekim\\p{L}*|fiyat\\p{L}*|tedavi\\p{L}*|hizmet\\p{L}*|ekip\\p{L}*",
-  de: "zahnarzt\\p{L}*|zahnärzt\\p{L}*|praxis|klinik|team|preis\\p{L}*|behandlung\\p{L}*|lächeln",
-  es: "dentistas?|clínicas?|consultas?|equipos?|precios?|tratamientos?|sonrisas?",
+  tr: "klini\\p{L}*|diş klini\\p{L}*|diş hekim\\p{L}*|diş merkez\\p{L}*|ağız ve diş\\p{L}*|merkez\\p{L}*|doktor\\p{L}*|hekim\\p{L}*|uzman\\p{L}*|fiyat\\p{L}*|tedavi\\p{L}*|hizmet\\p{L}*|ekip\\p{L}*|implant\\p{L}*",
+  de: "zahnarzt\\p{L}*|zahnärzt\\p{L}*|praxis|klinik|zahnklinik\\p{L}*|zahnzentrum|team|preis\\p{L}*|behandlung\\p{L}*|implantat\\p{L}*|lächeln",
+  es: "dentistas?|odontólog[oa]s?|clínicas?|consultas?|equipos?|precios?|tratamientos?|implantes?|especialistas?|sonrisas?",
   fr: "dentistes?|cliniques?|cabinets?|équipes?|prix|traitements?|sourires?",
   pt: "dentistas?|clínicas?|consultórios?|equipes?|preços?|tratamentos?|sorrisos?",
   it: "dentist[ia]|clinic[ah]e?|studi?o?|team|prezz[oi]|trattament[oi]|sorris[oi]",
@@ -87,9 +87,12 @@ const NEGATED = "(?<!(no|not|n't|never|cannot|can't|nicht|kein\\p{L}*|ne|n'|não
  */
 export const AVOID_WORDS: Record<string, string> = {
   en: "prevents, stops (say \"can help prevent\"), permanent, painless, pain-free, guaranteed, risk-free, forever, lifetime, best, #1, before-and-after results, cures, 100%",
-  tr: "önler, engeller (\"önlemeye yardımcı olabilir\" deyin), kalıcı, acısız, ağrısız, garanti, ömür boyu, en iyi, kesin sonuç, öncesi-sonrası sonuçları, tamamen iyileştirir, %100",
-  de: "verhindert (\"kann helfen vorzubeugen\"), dauerhaft, schmerzfrei, schmerzlos, garantiert, risikofrei, für immer, lebenslang, beste, Vorher-Nachher, heilt, 100 %",
-  es: "previene (\"puede ayudar a prevenir\"), permanente, sin dolor, garantizado, sin riesgo, para siempre, de por vida, el mejor, resultados de antes y después, cura, 100 %",
+  // Tanıtım Yönetmeliği, RG 12.11.2025 no. 33075 — see locale.ts marketRules("TR").
+  tr: "önler, engeller (\"önlemeye yardımcı olabilir\" deyin), kalıcı, acısız, ağrısız, garanti, garantili, ömür boyu, yan etkisiz, en iyi, ilk ve tek, lider, bir numara, en uygun fiyat, diğer kliniklerden farklı, kesin sonuç, öncesi-sonrası sonuçları, hasta yorumları, teşekkür mesajları, tamamen iyileştirir, indirim, kampanya, taksit, hediye, ücretsiz, %100",
+  // HWG §§ 3, 7, 11; ZÄG § 35 (AT); Art. 40 MedBG (CH) — see locale.ts.
+  de: "verhindert (\"kann helfen vorzubeugen\"), dauerhaft, schmerzfrei, schmerzlos, garantiert, Erfolgsgarantie, risikofrei, ohne Risiko, ohne Nebenwirkungen, für immer, lebenslang, beste, führend, Nr. 1, Vorher-Nachher, Patientenstimmen, Erfahrungsberichte, heilt, Rabatt, Gutschein, Gewinnspiel, kostenlos, 100 %",
+  // RD 1907/1996 (ES); Reglamento LGS en Materia de Publicidad (MX) — see locale.ts.
+  es: "previene (\"puede ayudar a prevenir\"), permanente, sin dolor, garantizado, resultados asegurados, sin riesgo, sin efectos secundarios, resultados inmediatos, resultado definitivo, para siempre, de por vida, el mejor, número uno, líderes, resultados de antes y después, testimonios, famosos, cura, descuento, promoción, 2x1, meses sin intereses, gratis, 100 %",
   fr: "prévient (\"peut aider à prévenir\"), permanent, sans douleur, garanti, sans risque, pour toujours, à vie, le meilleur, avant/après, guérit, 100 %",
   pt: "previne (\"pode ajudar a prevenir\"), permanente, sem dor, garantido, sem risco, para sempre, vitalício, o melhor, antes e depois, cura, 100%",
   it: "previene (\"può aiutare a prevenire\"), permanente, senza dolore, garantito, senza rischi, per sempre, a vita, il migliore, prima e dopo, guarisce, 100%",
@@ -110,7 +113,12 @@ export const HARD_RULES: Rule[] = [
       w(`${NEGATED}(guarantee[ds]?|risk[- ]free)`),
       // tr de fr pt it es; Turkish negates after the verb ("garanti etmez").
       w(`${NEGATED}(garanti\\p{L}*|garantía|garanzia|garantia)(?!\\s+(etmez|edilemez|vermez))|risksiz`),
-      w("sin riesgo|sans risque|sem risco|senza rischi|risikofrei"),
+      w("sin riesgos?|sans risque|sem risco|senza rischi|risikofrei"),
+      // Launch markets (locale.ts marketRules TR/DE/AT/CH/ES/MX): § 3 HWG
+      // (success presented as certain), RD 1907/1996 and the Mexican
+      // Reglamento de Publicidad (no guaranteed results).
+      w(`${NEGATED}(\\p{L}+garantie\\p{L}*|ohne (jedes |jegliches )?risiko|risikolos\\p{L}*)`),
+      w(`${NEGATED}(?<!no (hay|existen?)\\s+)(resultados? asegurados?|éxito asegurado|éxito garantizado)`),
       w(`${NEGATED}(gwarant\\p{L}*|gwarancj\\p{L}*)|bez (żadnego )?ryzyka`),
       a(`${NEGATED}(مضمون\\p{L}*|ضمان\\p{L}*|نضمن|يضمن|تضمن)|(بدون|بلا|دون) (أي )?مخاطر|خال\\p{M}*\\s+من المخاطر`),
       // 保証できません (cannot guarantee) is the honest version.
@@ -127,6 +135,10 @@ export const HARD_RULES: Rule[] = [
       w(`${NEGATED}${AFTER_TEETH}(permanent(ly)?|kalıcı|dauerhaft\\p{L}*|bleibend\\p{L}*|permanente[s]?)${NOT_TEETH}`),
       w("forever|lifetime|ömür boyu|für immer|lebenslang|para siempre|de por vida|pour toujours|à vie|para sempre|vitalíci\\p{L}*|per sempre|a vita"),
       w("kesin(likle)? sonuç"),
+      // "No side effects" / "instant results" / "definitive result" in the
+      // launch markets' languages. "Empaste definitivo" / "corona definitiva"
+      // (the permanent filling or crown) are dental terms and do not match.
+      w(`${NEGATED}(yan etkisiz|yan etkisi (yok|olmayan|bulunmayan)|ohne nebenwirkungen|keine nebenwirkungen|sin efectos (secundarios|adversos)|sofortige\\p{L}* ergebnis\\p{L}*|resultados? inmediatos?|resultados? definitivos?|solución definitiva|para toda la vida|anında sonuç\\p{L}*)`),
       w("bezbolesn\\p{L}*|bez (żadnego )?bólu|na zawsze|dożywotn\\p{L}*|na całe życie|na stałe"),
       w(`${NEGATED}(?<!(wypełnienie|uzupełnienie|odbudowa|korona|plomba)\\s+)(trwał[aey]|trwale)(?!\\s+(wypełnieni|uzupełnieni|odbudow|koron|plomb)\\p{L}*)`),
       a("(بدون|بلا|دون) (أي )?ألم|غير مؤلم\\p{L}*|مدى الحياة|مدى العمر|طوال العمر|(إلى|الى) الأبد|للأبد|نتائج فورية|نتيجة فورية|(بدون|بلا|دون) (أي )?آثار جانبية|لا (توجد|يوجد) (أي )?آثار جانبية"),
@@ -151,8 +163,15 @@ export const HARD_RULES: Rule[] = [
     patterns: [
       w(`(the )?best (${CLINIC_NOUNS.en})|best in (town|the city|${CITYISH})|#\\s?1|number one|top[- ]rated|cheapest`),
       w(`en iyi (${CLINIC_NOUNS.tr})|bir numara|en ucuz`),
+      // Tanıtım Yönetmeliği (RG 33075): superiority, firsts, comparison with
+      // other clinics.
+      w(`ilk ve tek|tek adres\\p{L}*|lider (klini\\p{L}*|diş\\p{L}*|kurum\\p{L}*|merkez\\p{L}*|marka\\p{L}*)|(türkiye|bölge|şehr|ilç)(\\p{L}|['’])*\\s+(lider\\p{L}*|bir numara\\p{L}*|en iyi\\p{L}*)|en uygun fiyat\\p{L}*|en kaliteli|diğer klinikler(den|e göre)|rakipsiz`),
       w(`beste\\p{L}* (${CLINIC_NOUNS.de})|nr\\.?\\s?1|günstigste\\p{L}*`),
+      // Berufsordnung / § 21 MBO-Z: anpreisende or vergleichende Werbung.
+      w(`marktführ\\p{L}*|führende\\p{L}* (${CLINIC_NOUNS.de})|nummer (eins|1)|besser als (andere|jede|alle)\\p{L}*|günstiger als (andere|jede|alle)\\p{L}*`),
       w(`(el|la|los|las) mejor(es)? (${CLINIC_NOUNS.es})|más barat\\p{L}*`),
+      // RD 1907/1996, Código de Ética y Deontología Dental, Reglamento LGS (MX).
+      w(`número uno|n[º°]\\s?1|líder(es)? en (${CLINIC_NOUNS.es}|implant\\p{L}*|ortodoncia|estética\\p{L}*|odontolog\\p{L}*|el sector|el país|españa|méxico)|mejor(es)? que (otr[oa]s|cualquier)\\p{L}*|(la|el) únic[oa] (clínica|dentista|consulta)`),
       w(`(le|la|les) meilleur\\p{L}* (${CLINIC_NOUNS.fr})|moins cher`),
       w(`(o|a|os|as) melhor(es)? (${CLINIC_NOUNS.pt})|mais barat\\p{L}*`),
       w(`(il|la|i|le) miglior\\p{L}* (${CLINIC_NOUNS.it})|più economic\\p{L}*`),
@@ -171,8 +190,15 @@ export const HARD_RULES: Rule[] = [
       /[\d٠-٩]\s?(درهم|ريال|دينار|ر\.س|د\.إ)|(درهم|ريال) ?[\d٠-٩]/u,
       /\d[\d,，]*\s?円/u,
       w("indirim\\p{L}*|kampanya\\p{L}*|ücretsiz muayene|fırsat\\p{L}*"),
+      // RG 33075: no ücret, indirim, kampanya, taksit or gifts.
+      w("taksit\\p{L}*|hediye\\p{L}*|promosyon\\p{L}*|ücretsiz (kontrol|danışma|konsültasyon|beyazlatma|diş taşı)\\p{L}*|bedava|sınırlı süre\\p{L}*"),
       w("rabatt\\p{L}*|sonderangebot\\p{L}*|aktionspreis\\p{L}*|kostenlose (beratung|untersuchung|zahnreinigung)"),
+      // § 7 HWG: Werbegaben, Gutscheine, Preisnachlässe; Gewinnspiele.
+      w("gutschein\\p{L}*|gewinnspiel\\p{L}*|verlosung\\p{L}*|preisnachlass\\p{L}*|nur (noch )?(diesen|diese|im) (monat|woche)|kostenlos\\p{L}* (erstberatung|kontrolle|prophylaxe|bleaching|aufhellung)|\\d+\\s?%\\s?(günstiger|rabatt)"),
       w("descuento\\p{L}*|oferta especial|promoci[oó]n\\p{L}*|gratis"),
+      // Spain and Mexico: draws, coupons and financing hooks ("meses sin intereses", "2x1").
+      w("sorteo\\p{L}*|cup[oó]n\\p{L}*|meses sin intereses|2\\s?x\\s?1|precio especial|financiación (al )?0\\s?%|por tiempo limitado|(solo|sólo) (este|por este|durante este) mes"),
+      /\d\s?(mxn|pesos)(?![\p{L}])/iu,
       w("réduction\\p{L}*|promo\\p{L}*|offre spéciale|gratuit\\p{L}*"),
       w("desconto\\p{L}*|promoção|oferta especial|grátis"),
       w("scont\\p{L}*|offerta speciale|promozion\\p{L}*"),
@@ -190,7 +216,9 @@ export const HARD_RULES: Rule[] = [
       // was rejecting good aftercare advice.
       w("before (and|&) after(?!\\s+(meals?|eating|food|each|every|you|your|brushing|bed|sleep))|before/after"),
       w("(?<!(yemek|yemekler|yemeklerden|fırçalama)\\s)öncesi (ve )?sonrası"),
-      w("vorher[- ]?(und )?nachher"),
+      // "Vorher-Nachher", "Vorher/Nachher-Bilder", "vorher & nachher" (§ 11 HWG);
+      // "putzen Sie vorher und nachher gründlich" is an instruction, not a result.
+      w("vorher\\s?[-/&]?\\s?nachher|vorher und nachher(?!\\s+(gründlich|sorgfältig|gut|putzen|reinigen|spülen|essen|trinken|jede\\p{L}*|de[mnr]|die|das|ihre|ihr|zähne|mund))"),
       w("antes y después(?!\\s+de (comer|cada comida|las comidas|cepillar\\p{L}*|usar\\p{L}*|lavar\\p{L}*|dormir|beber))"),
       w("antes e depois(?!\\s+(de comer|das refeições|de cada refeição|de escovar|de dormir|de beber))"),
       w("avant[- /]?(et )?après(?!\\s+(les repas|chaque repas|le repas|de manger|le brossage|de dormir|de boire))"),
@@ -204,12 +232,18 @@ export const HARD_RULES: Rule[] = [
   },
   {
     id: "testimonial",
-    why: "Patient testimonials and reviews are restricted in health advertising in several markets.",
+    why: "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets.",
     patterns: [
       w("our patients? (say|said|love)|5[- ]star|testimonials?"),
       w("hastalarımız (diyor|anlatıyor)"),
+      // RG 33075: patients' thank-you and satisfaction statements.
+      w("hasta yorum\\p{L}*|hastalarımızın (yorum|teşekkür|deneyim)\\p{L}*|teşekkür mesaj\\p{L}*|memnun hasta\\p{L}*|hasta memnuniyet\\p{L}*"),
       w("unsere patienten sagen|patientenbewertung\\p{L}*"),
+      // § 11 HWG: statements by third parties used to advertise.
+      w("patientenstimme\\p{L}*|erfahrungsbericht\\p{L}*|bewertungen (unserer|von) patient\\p{L}*|zufriedene\\p{L}* patient\\p{L}*|dankschreiben"),
       w("nuestros pacientes dicen|testimonios?"),
+      // RD 1907/1996 and the Tribunal Supremo's ban on famous people in dental-clinic ads.
+      w("opiniones de (nuestros )?pacientes|reseñas|pacientes satisfechos|famosos|celebridades|(recomendad|avalad|elegid)[oa]s? por (famos\\p{L}*|celebridades|estrellas)"),
       w("nos patients disent|témoignages?"),
       w("nossos pacientes dizem|depoimentos?"),
       w("i nostri pazienti dicono|testimonianz\\p{L}*"),
@@ -281,6 +315,7 @@ Flag anything a health regulator, professional body or platform could object to:
 - medical statements that are not mainstream, accepted dental guidance.
 - absolute effect claims ("prevents", "stops", "önler", "engeller" without "can"/"helps"): ask for a hedged form ("can help prevent", "önlemeye yardımcı olur").
 - absolute effect claims in Polish ("zapobiega" → "może pomóc zapobiegać"), Arabic ("يمنع"/"يقي من" → "قد يساعد على الوقاية من") and Japanese ("防ぎます" → "防ぐのに役立ちます").
+- in German ("verhindert" → "kann helfen vorzubeugen") and Spanish ("previene" → "puede ayudar a prevenir") too; celebrity or influencer endorsements, urgency or pressure to book ("hemen randevu alın", "nur noch diese Woche", "no esperes más"), and a COFEPRIS permit number the clinic did not give are issues as well. A calm closing invitation to ask at the next check-up is fine.
 Educational, accurate, hedged statements are fine and must NOT be flagged. "Often", "in many cases", "oft", "a menudo", "genellikle" ARE hedges, not guarantees; never ask to stack a second hedge on a hedged sentence. Hedging words include "can", "may", "usually", "often", "for most people", "ask your dentist", and in Turkish "-ebilir/-abilir", "olabilir", "genellikle", "çoğu durumda", "hekiminize danışın". Polish "może", "zwykle", "często", "u większości osób", Arabic "قد", "غالباً", "عادةً", "في كثير من الحالات", Japanese "〜ことがあります", "〜場合があります", "一般的に", "多くの場合", "個人差があります" are hedges too. Typical ranges given as typical ("usually 3-6 weeks", "genellikle 3-6 hafta") are fine.
 Only flag what a regulator would actually object to. A fix that merely re-words an already hedged sentence is not a fix — in that case the sentence passes.
 Advice to take medication must defer to the dentist ("as your dentist advises" / "hekiminizin önerdiği şekilde").
@@ -301,6 +336,11 @@ export async function reviewCompliance(
     system: SYSTEM,
     user:
       `Clinic country: ${profile.country}. Language: ${profile.language}.\n` +
+      // A Swiss clinic writing French is normal; an Austrian one writing
+      // English is not, but the country's rules apply all the same.
+      (marketLanguage(profile.country, profile.language) !== profile.language
+        ? `The text is not in one of this market's usual languages (${marketLanguages(profile.country).join(", ")}); the market's rules still apply.\n`
+        : "") +
       (marketRules(profile.country) ? `This market's own rules (apply them too): ${marketRules(profile.country)}\n` : "") +
       (hard.length
         ? `Automatic checks already found: ${hard.map((h) => `"${h.match}" (${h.rule})`).join(", ")}. Include fixes for these.\n`
