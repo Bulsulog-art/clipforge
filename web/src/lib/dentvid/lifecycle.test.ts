@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  baseKind,
   dueNudges,
+  GAP_H,
+  idempotencyKey,
   isTestEmail,
+  KindNotAllowedError,
+  SEQUENCE,
   lifecycleConfig,
   MissingSchemaError,
   NUDGE_RULES,
@@ -10,13 +15,13 @@ import {
   sendWelcome,
   type ClinicForMail,
   type LifecycleConfig,
-  type LifecycleKind,
   type LifecycleStore,
   type LogRow,
   type Sender,
 } from "./lifecycle";
 import { verifyUnsubscribeToken } from "./unsubscribe-token";
 import { handleDentvideoEvent } from "./billing-webhook";
+import { emailLogFromKey } from "./email";
 
 const H = 3600_000;
 const NOW = new Date("2026-11-09T10:23:00Z");
@@ -103,44 +108,87 @@ function sender() {
 
 const allowAll = async () => true;
 
-describe("scheduler: which reminder is due (fake clock)", () => {
-  it("nothing before 24 h; reminder 1 from 24 h; nothing for a clinic first seen after 7 days", () => {
-    const at = (h: number) => dueNudges([clinic(1, { created_at: ago(h) })], [], NOW);
-    expect(at(23.9)).toEqual([]);
-    expect(at(24)).toEqual([{ clinicId: id(1), kind: "nudge_preview" }]);
-    expect(at(70)).toEqual([{ clinicId: id(1), kind: "nudge_preview" }]);
-    expect(at(NUDGE_RULES.previewUntilH)).toEqual([]);
+describe("scheduler: which activation email is due (fake clock)", () => {
+  const due = (h: number, logs: LogRow[] = [], over: Partial<ClinicForMail> = {}, opts = {}) => dueNudges([clinic(1, { created_at: ago(h), ...over })], logs, NOW, opts);
+  const sentAt = (kind: string, h: number): LogRow => ({ clinic_id: id(1), kind, sent_at: ago(h) });
+
+  it("day 0 / 1 / 3 / 7 windows, nothing before 2 h or after 14 days", () => {
+    expect(due(1.9)).toEqual([]);
+    expect(due(2)).toEqual([{ clinicId: id(1), kind: "nudge_start" }]);
+    expect(due(30)).toEqual([{ clinicId: id(1), kind: "nudge_preview" }]);
+    expect(due(80)).toEqual([{ clinicId: id(1), kind: "nudge_objections" }]);
+    expect(due(170)).toEqual([{ clinicId: id(1), kind: "nudge_offer" }]);
+    expect(due(NUDGE_RULES.lastUntilH)).toEqual([]);
+    expect(SEQUENCE.map((s) => s.kind)).toEqual(["nudge_start", "nudge_preview", "nudge_objections", "nudge_offer"]);
   });
 
-  it("reminder 2 from 72 h, at least 36 h after reminder 1, and never a third", () => {
-    const c = clinic(1, { created_at: ago(72) });
-    expect(dueNudges([c], [{ clinic_id: c.id, kind: "nudge_preview", sent_at: ago(48) }], NOW)).toEqual([{ clinicId: c.id, kind: "nudge_offer" }]);
-    // Reminder 1 went out late (e.g. after an outage): reminder 2 waits for the gap.
-    expect(dueNudges([c], [{ clinic_id: c.id, kind: "nudge_preview", sent_at: ago(10) }], NOW)).toEqual([]);
-    // Not yet 72 h.
-    expect(dueNudges([clinic(2, { created_at: ago(71) })], [{ clinic_id: id(2), kind: "nudge_preview", sent_at: ago(47) }], NOW)).toEqual([]);
-    // Both sent: nothing, ever.
-    const both: LogRow[] = [
-      { clinic_id: c.id, kind: "nudge_preview", sent_at: ago(100) },
-      { clinic_id: c.id, kind: "nudge_offer", sent_at: ago(50) },
-    ];
-    expect(dueNudges([c], both, NOW)).toEqual([]);
+  it("no catch-up burst, never backwards, never twice, at least GAP_H apart", () => {
+    // First seen at 80 h with nothing sent: only day 3, not days 0 and 1 as well.
+    expect(due(80).map((d) => d.kind)).toEqual(["nudge_objections"]);
+    expect(due(30, [sentAt("nudge_preview", 2)])).toEqual([]);
+    expect(due(80, [sentAt("nudge_offer", 1)])).toEqual([]);
+    expect(due(80, [sentAt("nudge_preview", GAP_H - 1)])).toEqual([]);
+    expect(due(80, [sentAt("nudge_preview", GAP_H)])).toEqual([{ clinicId: id(1), kind: "nudge_objections" }]);
   });
 
-  it("walks one clinic through a week of hourly runs: exactly two emails, 24 h and 72 h in", async () => {
+  it("day 7 only while founding seats are left", () => {
+    expect(due(170, [], {}, { offerOpen: false })).toEqual([]);
+    expect(due(170, [], {}, { offerOpen: true })).toHaveLength(1);
+  });
+
+  it("respects quiet hours in the clinic's own zone", () => {
+    // NOW is 10:23 UTC: 19:23 in Tokyo (inside the window), 05:23 in New York (outside), 13:23 in Istanbul.
+    expect(due(30, [], { profile: { language: "ja", country: "JP" } })).toHaveLength(1);
+    expect(due(30, [], { profile: { language: "en", country: "US" } })).toEqual([]);
+    expect(due(30, [], { profile: { language: "tr", country: "TR" } })).toHaveLength(1);
+    // An explicit zone wins over the country.
+    expect(due(30, [], { profile: { language: "en", country: "TR", timezone: "America/Los_Angeles" } })).toEqual([]);
+    const late = dueNudges([clinic(1, { created_at: ago(30), profile: { country: "JP" } })], [], new Date("2026-11-09T12:00:00Z"));
+    expect(late).toEqual([]); // 21:00 in Tokyo
+  });
+
+  it("walks one clinic through two weeks of hourly runs: exactly four emails, day 0, 1, 3 and 7", async () => {
     const created = new Date("2026-11-01T09:10:00Z");
     const m = memoryStore([clinic(1, { created_at: created.toISOString() })]);
     const { send, sent } = sender();
     const at: number[] = [];
-    for (let h = 0; h <= 7 * 24; h++) {
+    for (let h = 0; h <= 14 * 24; h++) {
       const now = new Date(created.getTime() + h * H);
       m.setClock(now);
       const before = sent.length;
       await runNudges({ store: m.store, send, allow: allowAll, now, config: cfg() });
       if (sent.length > before) at.push(h);
     }
-    expect(at).toEqual([24, 72]);
-    expect(m.log.map((l) => l.kind)).toEqual(["nudge_preview", "nudge_offer"]);
+    expect(at).toEqual([2, 24, 72, 168]);
+    expect(m.log.map((l) => l.kind)).toEqual(["nudge_start", "nudge_preview", "nudge_objections", "nudge_offer"]);
+    for (const s of sent) expect(s.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
+  });
+
+  it("the sequence stops for good the moment the clinic pays", async () => {
+    const created = new Date("2026-11-01T09:10:00Z");
+    const m = memoryStore([clinic(1, { created_at: created.toISOString() })]);
+    const { send, sent } = sender();
+    for (let h = 0; h <= 14 * 24; h++) {
+      const now = new Date(created.getTime() + h * H);
+      if (h === 30) m.rows.get(id(1))!.plan = "active";
+      m.setClock(now);
+      await runNudges({ store: m.store, send, allow: allowAll, now, config: cfg() });
+    }
+    expect(m.log.map((l) => l.kind)).toEqual(["nudge_start", "nudge_preview"]);
+    expect(sent).toHaveLength(2);
+  });
+
+  it("the sequence stops for good after an unsubscribe", async () => {
+    const created = new Date("2026-11-01T09:10:00Z");
+    const m = memoryStore([clinic(1, { created_at: created.toISOString() })]);
+    const { send, sent } = sender();
+    for (let h = 0; h <= 14 * 24; h++) {
+      const now = new Date(created.getTime() + h * H);
+      if (h === 3) await m.store.optOut(id(1), now);
+      m.setClock(now);
+      await runNudges({ store: m.store, send, allow: allowAll, now, config: cfg() });
+    }
+    expect(sent).toHaveLength(1);
   });
 
   it("never selects a paid, opted-out or unknown clinic", () => {
@@ -157,7 +205,7 @@ describe("runNudges: sending", () => {
     expect(r).toMatchObject({ due: 1, sent: 1, failed: 0 });
     const mail = sent[0];
     expect(mail.to).toBe("owner-1@clinic.example");
-    expect(mail.subject).toBe("Kliniğinize özel video önizlemeniz sizi bekliyor");
+    expect(mail.subject).toBe("Kliniğinize özel örnek videolar");
     expect(mail.html).toContain('href="https://dentvideo.com/start?step=preview&amp;lang=tr"');
     expect(mail.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
     const link = /<(https:\/\/dentvideo\.com\/api\/dentvideo\/unsubscribe\?t=[^>]+)>/.exec(mail.headers?.["List-Unsubscribe"] ?? "")?.[1];
@@ -259,27 +307,40 @@ describe("runNudges: sending", () => {
     warn.mockRestore();
   });
 
-  it("reminder 2 carries the founding offer from billing.ts while open, and drops it once closed", async () => {
-    const created = ago(80);
-    const prev: LogRow = { clinic_id: id(1), kind: "nudge_preview", sent_at: ago(50) };
+  it("day 7 carries the founding offer from billing.ts while open, and is not sent at all once closed", async () => {
+    const created = ago(170);
     const open = memoryStore([clinic(1, { created_at: created, profile: { name: "Smile", language: "en" } })]);
-    open.log.push(prev);
     const a = sender();
-    await runNudges({ store: open.store, send: a.send, allow: allowAll, now: NOW, config: cfg() });
+    await runNudges({ store: open.store, send: a.send, allow: allowAll, now: NOW, config: { ...cfg(), seats: { left: 41, reliable: true } } });
     expect(a.sent[0].subject).toBe("Founding offer: Practice for $49/month for 12 months");
     expect(a.sent[0].text).toContain("first 100 clinics");
     expect(a.sent[0].text).toContain("then $99/month");
     expect(a.sent[0].text).toContain("KURUCU100");
+    expect(a.sent[0].text).toContain("41 of 100");
     expect(a.sent[0].html).toContain("https://dentvideo.com/start?step=plan&amp;lang=en");
 
     const closed = memoryStore([clinic(1, { created_at: created, profile: { name: "Smile", language: "en" } })]);
-    closed.log.push(prev);
     const b = sender();
     const closedCfg = lifecycleConfig({ NEXT_PUBLIC_DENTVIDEO_URL: "https://dentvideo.com", DENTVIDEO_UNSUBSCRIBE_SECRET: "s", DENTVIDEO_FOUNDING_OFFER: "off" });
-    await runNudges({ store: closed.store, send: b.send, allow: allowAll, now: NOW, config: closedCfg });
-    expect(b.sent[0].subject).toBe("Your DentVideo preview is still saved");
-    expect(b.sent[0].text).toContain("$49/month");
-    expect(b.sent[0].text).not.toMatch(/founding|KURUCU/i);
+    const r = await runNudges({ store: closed.store, send: b.send, allow: allowAll, now: NOW, config: closedCfg });
+    expect(b.sent).toHaveLength(0);
+    expect(r.due).toBe(0);
+    expect(closed.log).toHaveLength(0);
+  });
+
+  it("skips (without failing the run) a kind the database does not allow yet (migration 0011)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const m = memoryStore([clinic(1, { created_at: ago(3) }), clinic(2)]);
+    const realClaim = m.store.claim.bind(m.store);
+    m.store.claim = async (cid, kind) => {
+      if (kind === "nudge_start") throw new KindNotAllowedError(kind);
+      return realClaim(cid, kind);
+    };
+    const { send, sent } = sender();
+    const r = await runNudges({ store: m.store, send, allow: allowAll, now: NOW, config: cfg() });
+    expect(r.skipped["migration 0011 missing"]).toBe(1);
+    expect(sent.map((s) => s.to)).toEqual(["owner-2@clinic.example"]);
+    warn.mockRestore();
   });
 });
 
@@ -348,12 +409,24 @@ describe("welcome after the first payment", () => {
 });
 
 describe("kinds", () => {
-  it("match the migration's check constraint", async () => {
+  it("match the migrations' check constraints", async () => {
     const { readFileSync } = await import("node:fs");
-    const sql = readFileSync(new URL("../../../../supabase/liman/0005_dentvid_email.sql", import.meta.url), "utf8");
-    const kinds: LifecycleKind[] = ["welcome", "nudge_preview", "nudge_offer"];
-    for (const k of kinds) expect(sql).toContain(`'${k}'`);
-    expect(sql).toMatch(/unique \(clinic_id, kind\)/);
-    expect(sql).toContain("email_opt_out_at");
+    const v5 = readFileSync(new URL("../../../../supabase/liman/0005_dentvid_email.sql", import.meta.url), "utf8");
+    for (const k of ["welcome", "nudge_preview", "nudge_offer"]) expect(v5).toContain(`'${k}'`);
+    expect(v5).toMatch(/unique \(clinic_id, kind\)/);
+    const v11 = readFileSync(new URL("../../../../supabase/liman/0011_dentvid_email_kinds.sql", import.meta.url), "utf8");
+    const re = new RegExp(/kind ~ '([^']+)'/.exec(v11)![1]);
+    for (const k of [...SEQUENCE.map((s) => s.kind), "welcome", "nudge_post_2026_11_09", "monthly_2026_10"]) {
+      expect(k, k).toMatch(re);
+      expect(k.length, k).toBeLessThanOrEqual(40);
+    }
+  });
+
+  it("idempotency keys stay readable by the admin log", () => {
+    expect(idempotencyKey("nudge_start", id(1))).toBe(`dentvideo-nudge_start-${id(1)}`);
+    expect(idempotencyKey("nudge_post_2026_11_09", id(1))).toBe(`dentvideo-nudge_post-${id(1)}-2026-11-09`);
+    expect(idempotencyKey("monthly_2026_10", id(1))).toBe(`dentvideo-monthly-${id(1)}-2026-10-01`);
+    expect(emailLogFromKey(idempotencyKey("nudge_post_2026_11_09", id(1)))).toEqual({ clinicId: id(1), kind: "nudge_post" });
+    expect(baseKind("monthly_2026_10")).toBe("monthly");
   });
 });

@@ -83,7 +83,7 @@ describe("market copy rules (docs/MARKETS.md)", () => {
     const m = readyEmail({ kind: "week", counts: { ready: 4, flagged: 1 }, clinicName: "عيادة الابتسامة", language: "ar", appUrl: "https://dentvideo.com/app" })!;
     expect(m.html).toContain('<html lang="ar" dir="rtl">');
     expect(m.html).toContain("text-align:right");
-    expect(m.html).toContain('dir="ltr" style="color:#0f5c5c">https://dentvideo.com/app');
+    expect(m.html).toContain('dir="ltr" class="dv-link" style="color:#0f5c5c">https://dentvideo.com/app');
     expect(m.subject).toContain("5");
     const ja = readyEmail({ kind: "week", counts: { ready: 5, flagged: 0 }, clinicName: "さくら歯科", language: "ja", appUrl: "u" })!;
     expect(ja.subject).toBe("新しい動画5本のご確認をお願いします");
