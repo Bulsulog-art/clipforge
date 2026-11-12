@@ -72,6 +72,25 @@ export function voiceFor<V extends string>(language: string | undefined, voice: 
   return VOICE_SWAP[(language ?? "").toLowerCase().slice(0, 2)]?.[voice] ?? voice;
 }
 
+/**
+ * Speaking rate per language, applied after synthesis (ffmpeg atempo, pitch
+ * unchanged — audio-master.ts) so it costs nothing and works for any voice.
+ *
+ * Measured rates of tts-1-hd on the clinic scripts (voice-eval, "Voice" in
+ * docs/AUTONOMOUS_PLAN.md): en 2.93 and es 2.94 words/s — about 175 words a
+ * minute, a presenter's pace, not a dentist's in the chair; de 2.62; tr 2.04
+ * (Turkish words are long; that is already unhurried). The factors bring en
+ * and es to ~2.7 words/s (~160 a minute) and German to ~2.5. Languages with
+ * no measurement stay at 1, and so does gpt-4o-mini-tts, which was measured
+ * 8-12% slower than tts-1-hd already and is told its pace in the brief.
+ */
+const TEMPO: Record<string, number> = { en: 0.93, es: 0.92, de: 0.96 };
+
+export function speakingTempo(language: string | undefined, model: string | undefined = DEFAULT_TTS_MODEL): number {
+  if (model && !model.startsWith("tts-1")) return 1;
+  return TEMPO[(language ?? "").toLowerCase().slice(0, 2)] ?? 1;
+}
+
 export type VoiceConfig = { model: string; instructions?: string };
 
 export function resolveVoice(language: string | undefined, env: Record<string, string | undefined> = process.env): VoiceConfig {
