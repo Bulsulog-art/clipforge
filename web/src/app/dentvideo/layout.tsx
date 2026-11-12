@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   // DentVideo pages that set none of their own (sign-up, app, 404): pages
   // with a canonical set it themselves.
   alternates: {},
+  // ClipForge's keywords ("AI video clipping", "OpusClip alternative" …) are not DentVideo's.
+  keywords: null,
   openGraph: {
     siteName: "DentVideo",
     type: "website",
