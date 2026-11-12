@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
-import { dvAdmin } from "@/lib/dentvid/supabase";
+import { dvAdmin, dvServer } from "@/lib/dentvid/supabase";
 import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
 import { geoCountry } from "@/lib/dentvid/events";
@@ -29,8 +30,9 @@ import { resetEmail } from "@/lib/dentvid/reset-email";
 // (lib/dentvid/turnstile; off unless TURNSTILE_SECRET_KEY and
 // NEXT_PUBLIC_TURNSTILE_SITE_KEY are set).
 //
-// An address that already has an account gets the same answer as a new one
-// ({ ok: true }), so the form does not tell strangers who has an account.
+// An address that already has an account gets { ok: true, existing: true }:
+// the form says so plainly (a clinic that forgot it had signed up must not be
+// left at a dead end) and offers sign-in / reset.
 // If it is a DentVideo account, its mailbox gets a password-reset link
 // (counted against the reset limits): the owner of an address someone else
 // signed up with first reclaims it by resetting the password
@@ -104,13 +106,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: err.createFailed }, { status: 500 });
     }
     await mailExistingOwner(body.email, locale);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, existing: true });
   }
   // Funnel: no email, no user id — just that an account was made, in which language.
   void recordEvent("signup_completed", { locale, props: body.attribution, geo: geoCountry(req.headers) });
   // The code email. Not fatal if it fails: the plan step asks for one again.
   if (created?.user) await sendVerificationCode({ userId: created.user.id, email: body.email, language: locale });
-  return NextResponse.json({ ok: true });
+  // Open the session here and set the dv-auth cookie on this response, so the
+  // new clinic is signed in without a second request from the browser (that
+  // second call failed on some phones — private tabs, flaky mobile networks,
+  // password managers rewriting the field). The browser falls back to signing
+  // in itself only if this did not work.
+  const signedIn = await signInHere(body.email, body.password);
+  return NextResponse.json({ ok: true, signedIn });
+}
+
+/** Signs the new account in on the server; the session cookie rides on this response. */
+async function signInHere(email: string, password: string): Promise<boolean> {
+  try {
+    const { error } = await dvServer(await cookies()).auth.signInWithPassword({ email, password });
+    if (error) console.error("[dentvideo signup] server sign-in failed", error.message);
+    return !error;
+  } catch (e) {
+    console.error("[dentvideo signup] server sign-in failed", (e as Error).message);
+    return false;
+  }
 }
 
 /**
