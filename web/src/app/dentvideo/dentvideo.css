@@ -310,3 +310,34 @@ html:has(.dv) {
 .dv :lang(ar) p:not(.dv-display) {
   line-height: 1.85;
 }
+
+/* ---------- Landing micro-interactions ----------
+ * Cards settle into place as they scroll in. Pure CSS (scroll-driven
+ * animations): no script, no observer, nothing in browsers without support,
+ * and nothing at all for visitors who ask for reduced motion. Content is
+ * never hidden: it starts at 55% opacity, so a missed animation still reads.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    :where(.dv) .dv-reveal {
+      animation: dv-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+@keyframes dv-reveal {
+  from {
+    opacity: 0.55;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The phone row of sample videos scrolls sideways without a scrollbar track under the phones. */
+:where(.dv) #samples ul::-webkit-scrollbar {
+  display: none;
+}

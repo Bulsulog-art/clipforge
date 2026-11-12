@@ -27,6 +27,9 @@ import { landingJsonLd } from "@/lib/dentvid/seo";
 import { DV_FOUNDING, DV_TIERS, foundingOfferOpen } from "@/lib/dentvid/billing";
 import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
+import { SampleVideo } from "./sample-video";
+import { CountryRules, FeedStory } from "./landing-showcase";
+import { SHOWCASE } from "@/content/dentvideo-showcase";
 import { Teaser } from "./teaser";
 import { LandingView, TrackedLink } from "./track";
 import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
@@ -196,7 +199,7 @@ const PROBLEM_ICONS = [Clock3, TriangleAlert, BadgeCheck];
 function Problem({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   return (
-    <section className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6 sm:pb-32">
       <div className="grid gap-4 md:grid-cols-3">
         {c.problem.map((p, i) => {
           const Icon = PROBLEM_ICONS[i] ?? BadgeCheck;
@@ -206,15 +209,18 @@ function Problem({ locale }: { locale: Locale }) {
               key={p.title}
               className={
                 last
-                  ? "dv-grain relative overflow-hidden rounded-[1.25rem] bg-dv-teal p-7 text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)]"
-                  : "dv-card p-7"
+                  ? "dv-grain relative overflow-hidden rounded-[1.25rem] bg-dv-teal p-6 md:p-7 text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)]"
+                  : "dv-card p-6 md:p-7"
               }
             >
-              <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${last ? "bg-white/10 text-[#bfe3dc] ring-1 ring-white/15" : "bg-dv-sand text-dv-teal ring-1 ring-dv-line"}`}>
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <h2 className={`mt-5 text-lg font-semibold tracking-tight ${last ? "text-white" : "text-dv-ink"}`}>{p.title}</h2>
-              <p className={`mt-2 leading-relaxed ${last ? "text-[#cfe2df]" : "text-dv-body"}`}>{p.text}</p>
+              {/* Phones: icon beside the title, so the three cards read as one block rather than a long scroll. */}
+              <div className="flex items-center gap-3 md:block">
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${last ? "bg-white/10 text-[#bfe3dc] ring-1 ring-white/15" : "bg-dv-sand text-dv-teal ring-1 ring-dv-line"}`}>
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <h2 className={`text-lg font-semibold tracking-tight md:mt-5 ${last ? "text-white" : "text-dv-ink"}`}>{p.title}</h2>
+              </div>
+              <p className={`mt-3 leading-relaxed md:mt-2 ${last ? "text-[#cfe2df]" : "text-dv-body"}`}>{p.text}</p>
             </div>
           );
         })}
@@ -330,7 +336,7 @@ function How({ locale }: { locale: Locale }) {
         {c.how.steps.map((s, i) => {
           const Visual = STEP_VISUALS[i] ?? ClinicVisual;
           return (
-            <li key={s.title} className="dv-card flex flex-col overflow-hidden">
+            <li key={s.title} className="dv-card dv-reveal flex flex-col overflow-hidden">
               <div aria-hidden="true" className="relative flex h-48 items-center justify-center overflow-hidden bg-gradient-to-b from-dv-sand to-[#f8f4ee]">
                 <div className="dv-grid absolute inset-0 opacity-70" />
                 <div className="relative w-full">
@@ -356,35 +362,38 @@ function Samples({ locale }: { locale: Locale }) {
   // No sample week in this language yet: the live preview right below shows the videos instead.
   if (!week) return null;
   return (
-    <section id="samples" className="dv-grain relative overflow-hidden border-y border-dv-line bg-dv-sand">
+    // No film grain here: the sideways-scrolling row below is its own compositing layer on phones and
+    // showed as a lighter, grain-free rectangle on the grained sand.
+    <section id="samples" className="relative overflow-hidden border-y border-dv-line bg-dv-sand">
       <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
-          <H2>{c.samples.heading}</H2>
+          <div>
+            <H2>{c.samples.heading}</H2>
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-dv-teal ring-1 ring-dv-line">
+              <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              {c.samples.note}
+            </p>
+          </div>
           <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.samples.text}</p>
         </div>
         {/* On phones this row scrolls sideways, so keyboard users can focus and scroll it too. */}
-        <ul tabIndex={0} aria-label={c.samples.heading} className="-mx-4 mt-12 flex snap-x rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dv-teal snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
-          {week.map(({ slug, name, seconds }) => (
-            <li key={slug} className="w-[72%] shrink-0 snap-center sm:w-auto">
-              <PhoneFrame className="mx-auto max-w-[18rem]">
-                <video
-                  src={sampleSrc(locale, slug, "mp4")}
-                  poster={sampleSrc(locale, slug, "jpg")}
-                  controls
-                  playsInline
-                  preload="none"
-                  aria-label={name}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
+        <ul tabIndex={0} aria-label={c.samples.heading} className="-mx-4 mt-12 flex snap-x rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dv-teal snap-mandatory scroll-px-4 gap-5 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
+          {week.map(({ slug, name, seconds }, i) => (
+            <li key={slug} className="w-[72%] shrink-0 snap-start sm:w-auto">
+              <PhoneFrame className="mx-auto max-w-[18rem]" tightShadow>
+                <SampleVideo src={sampleSrc(locale, slug, "mp4")} poster={sampleSrc(locale, slug, "jpg")} title={name} playLabel={c.video.play} />
               </PhoneFrame>
-              <div className="mx-auto mt-5 flex max-w-[18rem] items-start justify-between gap-3">
-                <p className="text-[0.9375rem] font-semibold leading-snug text-dv-ink">{name}</p>
-                <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs font-medium tabular-nums text-dv-muted ring-1 ring-dv-line">{duration(seconds)}</span>
+              <div className="mx-auto mt-5 max-w-[18rem]">
+                <p className="flex items-center gap-2 text-xs font-medium text-dv-muted">
+                  <span>{SHOWCASE[locale].videoOf.replace("{n}", String(i + 1))}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="tabular-nums" dir="ltr">{duration(seconds)}</span>
+                </p>
+                <p className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-dv-ink">{name}</p>
               </div>
             </li>
           ))}
         </ul>
-        <p className="mt-8 text-sm text-dv-muted">{c.samples.note}</p>
       </div>
     </section>
   );
@@ -407,7 +416,7 @@ function Checks({ locale }: { locale: Locale }) {
           {c.checks.items.map((it, i) => {
             const Icon = CHECK_ICONS[i] ?? ShieldCheck;
             return (
-              <div key={it.title} className="rounded-[1.25rem] bg-white/[0.06] p-7 ring-1 ring-inset ring-white/10 backdrop-blur-sm">
+              <div key={it.title} className="dv-reveal rounded-[1.25rem] bg-white/[0.06] p-7 ring-1 ring-inset ring-white/10 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8fd1c6]/15 text-[#bfe3dc]">
                     <Icon className="h-5 w-5" aria-hidden="true" />
@@ -422,6 +431,7 @@ function Checks({ locale }: { locale: Locale }) {
             );
           })}
         </div>
+        <CountryRules locale={locale} />
       </div>
     </section>
   );
@@ -451,14 +461,14 @@ function Compare({ locale }: { locale: Locale }) {
           <thead>
             <tr>
               <td className="p-0" />
-              <th scope="col" className="bg-dv-teal px-6 pb-5 pt-6 text-base font-semibold tracking-tight text-white">
+              <th scope="col" className="bg-dv-teal px-6 pb-5 pt-6 text-start text-base font-semibold tracking-tight text-white">
                 <span className="flex items-center gap-2">
                   <BadgeCheck className="h-5 w-5 text-[#bfe3dc]" aria-hidden="true" />
                   {us}
                 </span>
               </th>
               {others.map((col) => (
-                <th key={col} scope="col" className="px-6 pb-5 pt-6 text-base font-semibold tracking-tight text-dv-ink">
+                <th key={col} scope="col" className="px-6 pb-5 pt-6 text-start text-base font-semibold tracking-tight text-dv-ink">
                   {col}
                 </th>
               ))}
@@ -467,7 +477,7 @@ function Compare({ locale }: { locale: Locale }) {
           <tbody>
             {c.rows.map((r) => (
               <tr key={r.label} className="border-t border-dv-line">
-                <th scope="row" className="px-6 py-5 align-top text-sm font-semibold text-dv-ink">{r.label}</th>
+                <th scope="row" className="px-6 py-5 text-start align-top text-sm font-semibold text-dv-ink">{r.label}</th>
                 <td className="border-t border-dv-teal/10 bg-dv-teal-50 px-6 py-5 align-top">
                   <span className="flex items-start gap-2.5 text-[0.9375rem] font-medium leading-snug text-dv-ink">
                     <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
@@ -534,27 +544,30 @@ function Pricing({ locale }: { locale: Locale }) {
         <p className="mx-auto mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{p.text}</p>
       </div>
 
+      {/* The founding offer, stated once above the cards in a calm, light band: a fact, not an alarm. */}
       {founding && (
-        <div className="dv-grain relative mx-auto mt-12 flex max-w-3xl flex-col items-center gap-3 overflow-hidden rounded-[1.25rem] bg-dv-teal px-6 py-5 text-center text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)] sm:flex-row sm:gap-4 sm:text-start">
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#f7f1e7] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-dv-teal-900">
+        <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center gap-2.5 rounded-2xl bg-white/80 px-5 py-4 text-center ring-1 ring-dv-teal/20 backdrop-blur sm:flex-row sm:gap-4 sm:rounded-full sm:py-2.5 sm:ps-2.5 sm:text-start" data-founding-banner>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {p.foundingBadge}
           </span>
-          <p className="text-[1.0625rem] font-semibold leading-snug text-white">{p.founding}</p>
+          <p className="text-[0.9375rem] font-semibold leading-snug text-dv-ink">{p.founding}</p>
         </div>
       )}
 
-      <ul className="mt-10 grid gap-5 md:grid-cols-3">
+      <ul className="mt-12 grid gap-5 md:grid-cols-3 md:items-stretch">
         {p.tiers.map((tier, i) => {
           const featured = i === 1;
           return (
             <li
               key={tier.name}
-              className={`dv-card relative flex flex-col p-7 ${featured ? "ring-2 ring-dv-teal md:-my-3 md:py-10" : ""}`}
+              data-tier={i === 0 ? "starter" : "practice"}
+              className={`dv-card dv-reveal relative flex flex-col p-7 transition-shadow duration-300 hover:shadow-[0_0_0_1px_rgba(15,92,92,0.25),0_24px_48px_-24px_rgba(15,92,92,0.35)] ${featured ? "ring-2 ring-dv-teal md:-my-3 md:py-10" : ""}`}
             >
               {featured && (
                 <span className="absolute -top-3 start-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgba(15,92,92,0.8)]">
-                  {p.recommended}
+                  {/* While the founding offer is open, the badge says why this card's price is lower — not just "recommended". */}
+                  {i === foundingTier ? p.foundingBadge : p.recommended}
                 </span>
               )}
               <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
@@ -607,12 +620,15 @@ function Pricing({ locale }: { locale: Locale }) {
         <GroupCard locale={locale} />
       </ul>
 
-      <p className="mt-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-dv-muted">
-        <Check className="h-4 w-4 text-dv-teal" aria-hidden="true" />
-        <span>{c.teaser.note}</span>
-        <span aria-hidden="true">·</span>
-        <span>{p.note}</span>
-      </p>
+      {/* Two short facts, each with its own tick, so neither line starts with a stray separator on a phone. */}
+      <ul className="mt-10 flex flex-col items-center gap-2 text-center text-sm text-dv-muted sm:flex-row sm:justify-center sm:gap-6">
+        {[c.teaser.note, p.note].map((t) => (
+          <li key={t} className="flex items-start gap-2 text-start">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
+            <span>{t}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -652,12 +668,15 @@ function Trust({ locale }: { locale: Locale }) {
         {t.items.map((it, i) => {
           const Icon = TRUST_ICONS[i] ?? ShieldCheck;
           return (
-            <li key={it.title} className="dv-card p-6">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dv-sand text-dv-teal ring-1 ring-dv-line">
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <h3 className="mt-4 font-semibold tracking-tight text-dv-ink">{it.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-dv-body">{it.text}</p>
+            <li key={it.title} className="dv-card p-5 sm:p-6">
+              {/* Phones: icon beside the title (four cards stack, so each is kept short); from sm: icon above. */}
+              <div className="flex items-center gap-3 sm:block">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-dv-sand text-dv-teal ring-1 ring-dv-line">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <h3 className="font-semibold tracking-tight text-dv-ink sm:mt-4">{it.title}</h3>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-dv-body sm:mt-2">{it.text}</p>
             </li>
           );
         })}
@@ -681,7 +700,9 @@ function Guides({ locale }: { locale: Locale }) {
   const guides = guidesFor(locale);
   if (guides.length === 0) return null;
   return (
-    <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6 sm:pb-32">
+    // After the FAQ: reading for later, just above the footer.
+    <section id="guides" className="border-t border-dv-line">
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
       <h2 className="dv-display text-[2rem] leading-tight sm:text-[2.5rem]">{c.guidesHeading}</h2>
       <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {guides.map((g) => (
@@ -691,11 +712,13 @@ function Guides({ locale }: { locale: Locale }) {
                 <span className="font-semibold leading-snug text-dv-ink">{g.h1}</span>
                 <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
               </span>
-              <span className="mt-3 block text-sm leading-relaxed text-dv-body">{g.description}</span>
+              {/* Two lines on a phone: the title is the link, the rest is on the guide itself. */}
+              <span className="mt-3 line-clamp-2 text-sm leading-relaxed text-dv-body sm:line-clamp-3">{g.description}</span>
             </Link>
           </li>
         ))}
       </ul>
+      </div>
     </section>
   );
 }
@@ -732,17 +755,23 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
       <LandingView locale={locale} />
+      {/*
+        The order tells one story: what it is (hero) → why (problem) → the real output (samples) → what it
+        does to a clinic's profile → how → try it with your logo → why it is safe (checks, country rules) →
+        the alternatives → price → who is behind it → questions → guides for later.
+      */}
       <Hero locale={locale} />
       <Problem locale={locale} />
-      <How locale={locale} />
       <Samples locale={locale} />
+      <FeedStory locale={locale} />
+      <How locale={locale} />
       <Teaser locale={locale} copy={LANDING[locale].teaser} href={dvHref(`/dentvideo/start?lang=${locale}`)} />
       <Checks locale={locale} />
       <Compare locale={locale} />
       <Pricing locale={locale} />
       <Trust locale={locale} />
-      <Guides locale={locale} />
       <Faq locale={locale} />
+      <Guides locale={locale} />
       <LanguageSwitcher current={locale} label={appText(locale).chrome.language} />
     </main>
   );

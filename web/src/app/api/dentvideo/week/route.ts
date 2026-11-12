@@ -4,6 +4,7 @@ import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
+import { noteEnqueueFailure } from "@/lib/dentvid/ops-server";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { WEEK_VIDEOS, weekJobId } from "@/lib/dentvid/week-job";
 import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS } from "@/lib/dentvid/job-options";
@@ -40,7 +41,8 @@ export async function POST() {
       }
     }
     await dentvidQueue.add("week", { clinicId: clinic.id, count: WEEK_VIDEOS, week }, { jobId, ...FIRST_WEEK_JOB_OPTS });
-  } catch {
+  } catch (e) {
+    await noteEnqueueFailure("week-button", "week", e, clinic.id);
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });
   }
   return NextResponse.json({ ok: true, week });

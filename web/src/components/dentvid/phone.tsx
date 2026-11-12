@@ -7,7 +7,24 @@ import { Pause, Play } from "lucide-react";
  * A device frame around real DentVideo output. Pure CSS, no image assets:
  * titanium-style rim, side buttons, dynamic island, 9:16 screen.
  */
-export function PhoneFrame({ children, className = "", compact = false }: { children: React.ReactNode; className?: string; compact?: boolean }) {
+export function PhoneFrame({
+  children,
+  className = "",
+  compact = false,
+  tightShadow = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  compact?: boolean;
+  /**
+   * A short shadow below the sm breakpoint, for phones inside a sideways-scrolling row: a scroll
+   * container clips vertically too, and the long default shadow showed as a grey rectangle.
+   */
+  tightShadow?: boolean;
+}) {
+  const shadow = tightShadow
+    ? "shadow-[0_14px_22px_-14px_rgba(8,46,45,0.55)] sm:shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]"
+    : "shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]";
   // `compact`: a small phone below the lg breakpoint (the hero's first screen on phones), full size from lg up.
   const r = compact
     ? {
@@ -23,7 +40,7 @@ export function PhoneFrame({ children, className = "", compact = false }: { chil
       <span aria-hidden="true" className="absolute -left-[3px] top-[18%] h-[7%] w-[3px] rounded-l bg-[#2b3634]" />
       <span aria-hidden="true" className="absolute -left-[3px] top-[28%] h-[11%] w-[3px] rounded-l bg-[#2b3634]" />
       <span aria-hidden="true" className="absolute -right-[3px] top-[24%] h-[14%] w-[3px] rounded-r bg-[#2b3634]" />
-      <div className={`${r.outer} bg-gradient-to-b from-[#3a4644] via-[#1b2523] to-[#2f3b39] p-[3px] shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]`}>
+      <div className={`${r.outer} bg-gradient-to-b from-[#3a4644] via-[#1b2523] to-[#2f3b39] p-[3px] ${shadow}`}>
         <div className={`${r.mid} bg-[#0b1110]`}>
           <div className={`relative aspect-[9/16] overflow-hidden ${r.screen} bg-[#0b3f3e]`}>
             {children}
@@ -72,7 +89,8 @@ export function HeroVideo({ src, poster, title, labels }: { src: string; poster:
         muted
         loop
         playsInline
-        preload="metadata"
+        // Nothing is fetched before play(): the poster is the first paint, and with reduced motion the video never loads unasked.
+        preload="none"
         aria-label={title}
         className="absolute inset-0 h-full w-full object-cover"
       />

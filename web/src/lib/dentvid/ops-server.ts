@@ -116,6 +116,15 @@ export function noteServerError(route: string): Promise<void> {
   return spike("5xx", t, (count) => alerts.errorSpike({ kind: "5xx", count, threshold: t, sample: route.slice(0, 120) }));
 }
 
+/**
+ * A job could not be put on the worker's queue (Redis unreachable, usually).
+ * Logged, and the owner hears once a day per place (and clinic). Never throws.
+ */
+export async function noteEnqueueFailure(where: string, job: string, err: unknown, clinicId?: string | null): Promise<void> {
+  console.error(`[dentvideo queue] could not queue ${job} (${where})`, clinicId ?? "", (err as Error)?.message ?? String(err));
+  await raiseOwnerAlert(alerts.enqueueFailed({ where, job, error: cleanError(err), clinic: clinicId ? { id: clinicId } : undefined }));
+}
+
 /** A Dodo webhook call with a bad signature; a burst means a rotated secret or someone poking. */
 export function noteWebhookSignatureFailure(): Promise<void> {
   const t = thresholds(process.env).webhookSigPerHour;
