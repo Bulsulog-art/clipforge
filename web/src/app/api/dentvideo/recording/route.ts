@@ -5,6 +5,7 @@ import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
+import { noteEnqueueFailure } from "@/lib/dentvid/ops-server";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { isOwnRecordingPath } from "@/lib/dentvid/paths";
 import { RECORDING_JOB_OPTS } from "@/lib/dentvid/job-options";
@@ -41,7 +42,8 @@ export async function POST(req: Request) {
   const path = parsed.data.path;
   try {
     await dentvidQueue.add("recording", { clinicId: clinic.id, sourcePath: path }, { jobId: `rec:${path}`, ...RECORDING_JOB_OPTS });
-  } catch {
+  } catch (e) {
+    await noteEnqueueFailure("recording-upload", "recording", e, clinic.id);
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });
   }
   return NextResponse.json({ ok: true });

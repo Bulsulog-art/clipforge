@@ -251,6 +251,9 @@ export async function sendEmail(to: string, msg: { subject: string; html: string
   const entry = opts.log === undefined ? emailLogFromKey(opts.idempotencyKey) : opts.log;
   const key = process.env.RESEND_API_KEY;
   if (!key) {
+    // Every clinic email is failing: say so in the logs and count it like any other failure.
+    console.error("dentvideo email not sent: RESEND_API_KEY is not set");
+    await noteOps("RESEND_API_KEY is not set");
     await logSend(entry, false, "RESEND_API_KEY is not set");
     return false;
   }
