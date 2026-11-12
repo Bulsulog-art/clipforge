@@ -28,6 +28,7 @@ import { DV_FOUNDING, DV_TIERS, foundingOfferOpen } from "@/lib/dentvid/billing"
 import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
 import { Teaser } from "./teaser";
+import { DeferredVideo } from "./deferred-video";
 import { LandingView, TrackedLink } from "./track";
 import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
 import { LEGAL_KINDS } from "@/content/legal/types";
@@ -367,7 +368,7 @@ function Samples({ locale }: { locale: Locale }) {
           {week.map(({ slug, name, seconds }) => (
             <li key={slug} className="w-[72%] shrink-0 snap-center sm:w-auto">
               <PhoneFrame className="mx-auto max-w-[18rem]">
-                <video
+                <DeferredVideo
                   src={sampleSrc(locale, slug, "mp4")}
                   poster={sampleSrc(locale, slug, "jpg")}
                   controls
