@@ -138,6 +138,18 @@ describe("DentVideo public pages: browser bundle", () => {
     expect(kb(g.client)).toBeLessThan(400);
   });
 
+  it("the middleware (run on every request) does not bundle the content modules", () => {
+    const seen = new Set<string>();
+    const walk = (f: string) => {
+      if (seen.has(f)) return;
+      seen.add(f);
+      for (const [, to] of imports(f)) if (to) walk(to);
+    };
+    walk(path.join(SRC, "middleware.ts"));
+    const files = [...seen].map(rel);
+    for (const c of SERVER_ONLY_CONTENT) expect(files, c).not.toContain(c);
+  });
+
   it("the header and footer get their words as one small table, not the content modules", () => {
     const json = JSON.stringify(chromeText());
     // Every language, passed once per page (React de-duplicates it between header and footer).

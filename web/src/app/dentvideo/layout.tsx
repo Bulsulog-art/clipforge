@@ -6,8 +6,11 @@ import { DvFooter, DvHeader, type CommercialNav } from "@/components/dentvid/chr
 import { chromeText } from "@/lib/dentvid/chrome-text";
 import "./dentvideo.css";
 
-const sans = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], variable: "--dv-font-sans", display: "swap" });
-const serif = Instrument_Serif({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--dv-font-serif", display: "swap" });
+// `subsets` decides what is preloaded; every unicode-range slice is declared either way. Only Latin is
+// preloaded: Latin Extended (Turkish ş ğ ı, Polish ł ą ę …) is fetched by the pages whose text has those
+// letters, instead of by every visitor ahead of the page's own scripts and styles.
+const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--dv-font-sans", display: "swap" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--dv-font-serif", display: "swap" });
 
 export const metadata: Metadata = {
   // Share images and other relative URLs resolve on dentvideo.com, not the ClipForge host.
