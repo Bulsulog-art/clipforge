@@ -132,9 +132,8 @@ export function useClinicDraft({
     if (logo) {
       // A new, versioned name each time (no overwrite), signed by the server
       // after its checks; the server deletes the previous logo once saved.
+      // The server checks the session when it signs the upload (api/dentvideo/upload-url).
       const db = dvBrowser();
-      const { data: u } = await db.auth.getUser();
-      if (!u.user) throw new Error(text.errors.signIn);
       const up = await requestUpload("logo", logo, text.errors.invalidLogo).catch((e: Error) => {
         throw new Error(fmt(text.form.logoFailed, { message: e.message }));
       });
