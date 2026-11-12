@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CHECKOUT_CODE, DODO_DISCOUNT_BUTTON, checkoutNext } from "@/content/dentvideo-checkout-code";
 import { dateLocale } from "@/lib/dentvid/app-ui";
 import { ArrowRight, BadgeCheck, Check, Mail } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
@@ -63,6 +64,8 @@ export function PlanPanel({
   const [verifyFor, setVerifyFor] = useState<string | null>(null);
   /** The plan that was chosen when checkout asked for the code: checkout resumes with it once confirmed. */
   const [pending, setPending] = useState<{ tier: DvTier; interval: DvInterval } | null>(null);
+  /** A payment link that needs the code typed on Dodo's page (no API checkout): shown before leaving. */
+  const [typeCode, setTypeCode] = useState<{ url: string; code: string; copied: boolean } | null>(null);
 
   const lead = state === "paused" ? t.leadPaused : state === "cancelled" ? t.leadCancelled : t.leadTrial;
 
@@ -77,8 +80,19 @@ export function PlanPanel({
         body: JSON.stringify({ plan: tier, interval: chosen, ...(code.trim() ? { code: code.trim() } : {}) }),
       });
       const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string; code?: string; email?: string };
-      if (res.ok && body.url) {
-        window.location.href = body.url;
+      const next = res.ok ? checkoutNext(body) : { kind: "none" as const };
+      if (next.kind === "go") {
+        window.location.href = next.url;
+        return;
+      }
+      // A payment link cannot carry the discount: say how to apply it there before leaving.
+      if (next.kind === "typeCode") {
+        setTypeCode({ url: next.url, code: next.code, copied: false });
+        void navigator.clipboard?.writeText(next.code).then(
+          () => setTypeCode((s) => (s ? { ...s, copied: true } : s)),
+          () => {},
+        );
+        setBusy(null);
         return;
       }
       // The address is not confirmed yet (lib/dentvid/verify-email): the code card.
@@ -229,6 +243,7 @@ export function PlanPanel({
           {error}
         </p>
       )}
+      {typeCode && <TypeCodeCard locale={locale} {...typeCode} onCopied={() => setTypeCode({ ...typeCode, copied: true })} onBack={() => setTypeCode(null)} />}
       {verifyFor !== null && (
         <div className="mt-5">
           <VerifyCard
@@ -267,6 +282,58 @@ export function PlanPanel({
         <CheckoutConsent locale={locale} />
       </div>
     </section>
+  );
+}
+
+/** Before a payment link that cannot carry the discount: the code, how to apply it on Dodo's page, and the way on. */
+function TypeCodeCard({
+  locale,
+  url,
+  code,
+  copied,
+  onCopied,
+  onBack,
+}: {
+  locale: Locale;
+  url: string;
+  code: string;
+  copied: boolean;
+  onCopied: () => void;
+  onBack: () => void;
+}) {
+  const c = CHECKOUT_CODE[locale];
+  const card = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    card.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    card.current?.focus();
+  }, []);
+  const [before, after = ""] = c.body.replace("{button}", DODO_DISCOUNT_BUTTON).split("{code}");
+  return (
+    <div ref={card} tabIndex={-1} role="region" aria-labelledby="dv-type-code-title" className="mt-5 rounded-2xl bg-[#fdf1dc] p-5 ring-1 ring-[#f0dcb5] outline-none sm:p-6" data-testid="dv-type-code">
+      <h3 id="dv-type-code-title" className="font-semibold text-dv-ink">{c.title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-dv-body">
+        {before}
+        <code dir="ltr" className="rounded bg-white px-1.5 py-0.5 font-mono font-semibold text-dv-ink">{code}</code>
+        {after}
+      </p>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => void navigator.clipboard?.writeText(code).then(onCopied, () => {})}
+          className="dv-btn dv-btn-secondary px-5 py-3 text-sm !text-dv-teal"
+        >
+          {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : null}
+          {copied ? c.copied : c.copy}
+        </button>
+        <a href={url} className="dv-btn dv-btn-primary group px-5 py-3 text-sm">
+          {c.go}
+          <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+        </a>
+        <button type="button" onClick={onBack} className="min-h-11 rounded-md px-1 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
+          {c.back}
+        </button>
+      </div>
+    </div>
   );
 }
 
