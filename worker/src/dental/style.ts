@@ -50,9 +50,9 @@ const DID_YOU_KNOW = w(
   "did you know|wussten sie|weißt du(?!,? was)|¿?sabías que|¿?sabía usted|¿?sabías|biliyor muydunuz|biliyor musunuz|biliyor muydun|saviez-vous|le saviez-vous|lo sapeva|lo sapevi|sapevi che|sabia que|sabias que|czy wiesz|czy wiedzą państwo|هل تعلم|هل تعلمون",
 );
 const TEXTBOOK = [
-  w("^what (is|are) "),
-  w("^was (ist|sind) "),
-  w("^¿?qu[ée] (es|son) (el|la|los|las|un|una) "),
+  /^what (is|are)\s/i,
+  /^was (ist|sind)\s/iu,
+  /^¿?qu[ée] (es|son) (el|la|los|las|un|una)\s/iu,
   /(?<![\p{L}])nedir\s*\?*\s*$/iu,
   w("^qu'est-ce que|^che cos'è|^o que é|^czym jest|^ما هو|^ما هي"),
   /とは(何|なに)/u,
