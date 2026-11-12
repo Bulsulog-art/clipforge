@@ -10,6 +10,7 @@ import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { dvHref } from "@/lib/dentvid/host";
+import { equivalentPath } from "@/lib/dentvid/lang-switch";
 import { LEGAL_NAV, isLegalKind, legalPath } from "@/content/legal/nav";
 import { LEGAL_KINDS } from "@/content/legal/types";
 import { OPERATOR } from "@/content/guides/operator";
@@ -249,7 +250,7 @@ function MobileMenu({
             {LOCALES.map((l) => (
               <li key={l}>
                 <Link
-                  href={dvHref(LANDING_PATH[l])}
+                  href={dvHref(equivalentPath(path ?? "", l))}
                   hrefLang={l}
                   lang={l}
                   dir={dirOf(l)}
@@ -308,7 +309,7 @@ export function DvFooter({ guideLocales, commercial }: Props & { commercial?: Co
             <ul className="space-y-3.5">
               {LOCALES.map((l) => (
                 <li key={l}>
-                  <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} dir={dirOf(l)} className={l === locale ? "rounded-md font-semibold text-white" : link}>
+                  <Link href={dvHref(equivalentPath(path, l))} hrefLang={l} lang={l} dir={dirOf(l)} className={l === locale ? "rounded-md font-semibold text-white" : link}>
                     {LANGUAGE_NAME[l]}
                   </Link>
                 </li>

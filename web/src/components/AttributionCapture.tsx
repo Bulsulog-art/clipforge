@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isDentvideoHost } from "@/lib/dentvid/host";
 
 /**
  * Two-step attribution capture:
@@ -21,9 +22,20 @@ import { createClient } from "@/lib/supabase/client";
 const LS_KEY = "clipforge.attribution";
 const LS_SUBMITTED_KEY = "clipforge.attribution.submitted";
 
+/**
+ * ClipForge's attribution only. DentVideo (dentvideo.com, or /dentvideo on
+ * this host) has its own (lib/dentvid/attribution), its own login, and must
+ * not get ClipForge's Supabase client started on its pages.
+ */
+export function isClipforgePage(host: string, pathname: string): boolean {
+  if (isDentvideoHost(host)) return false;
+  return !(pathname === "/dentvideo" || pathname.startsWith("/dentvideo/"));
+}
+
 export function AttributionCapture() {
   useEffect(() => {
     try {
+      if (!isClipforgePage(window.location.hostname, window.location.pathname)) return;
       captureUtmFromUrl();
       void submitIfReady();
     } catch {

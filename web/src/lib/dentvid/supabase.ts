@@ -14,8 +14,28 @@ export const DV_SUPABASE_ANON = ANON;
 export const COOKIE_NAME = "dv-auth";
 export const BUCKET = "dentvid";
 
-export function dvBrowser() {
-  return createBrowserClient(URL, ANON, { cookieOptions: { name: COOKIE_NAME } });
+type DvBrowserClient = ReturnType<typeof createBrowserClient>;
+let browserClient: DvBrowserClient | null = null;
+
+/**
+ * DentVideo's browser client — one per page, kept here.
+ *
+ * Never @supabase/ssr's shared singleton: that cache holds ONE client per
+ * page whatever the URL, and the root layout's ClipForge code (UTM capture)
+ * creates ClipForge's client first whenever a visitor arrived with a
+ * referrer or UTM tags. dvBrowser() then returned ClipForge's client:
+ * sign-in went to the wrong project ("wrong email or password"), the logo
+ * upload asked to sign in again, and reset links failed as "expired".
+ */
+export function dvBrowser(): DvBrowserClient {
+  if (typeof window === "undefined") return createBrowserClient(URL, ANON, { cookieOptions: { name: COOKIE_NAME }, isSingleton: false });
+  browserClient ??= createBrowserClient(URL, ANON, { cookieOptions: { name: COOKIE_NAME }, isSingleton: false });
+  return browserClient;
+}
+
+/** Tests only: forget the cached client. */
+export function resetDvBrowserForTests() {
+  browserClient = null;
 }
 
 type CookieStore = {
