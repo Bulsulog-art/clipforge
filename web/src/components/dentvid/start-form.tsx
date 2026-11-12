@@ -118,13 +118,13 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
         captchaBox.current?.reset();
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error ?? errors.createFailed);
-        // The answer is the same whether or not the address already had an
-        // account (the server does not say). Sign in: a new account, or a
-        // returning one with its own password, gets in; otherwise the message
-        // offers sign-in and reset without saying which case it was.
-        if ((await signIn(addr)) || (await wait(1200).then(() => signIn(addr)))) return goIn(true);
+        // A new account comes back already signed in (the server set the
+        // session cookie). An address that already had an account: try its
+        // password, else say plainly that the account exists.
+        if (body.signedIn) return goIn(true);
+        if ((await signIn(addr)) || (await wait(1200).then(() => signIn(addr)))) return goIn(!body.existing);
         setMode("signin");
-        throw new Error(a.signInFailedAfterSignup);
+        throw new Error(body.existing ? a.accountExists : a.signInFailedAfterSignup);
       }
       if (!(await signIn(addr))) throw new Error(t.wrongPassword);
       goIn(false);

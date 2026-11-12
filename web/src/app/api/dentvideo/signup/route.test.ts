@@ -33,7 +33,18 @@ vi.mock("@/lib/rate-limit-server", async () => {
     limitChecks: async (cs: { key: string }[]) => ({ ok: !run(cs), remaining: 0, retryAfterSec: 0 }),
   };
 });
+let serverSignIns: { email: string; password: string }[] = [];
+let serverSignInFails = false;
+vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }) }));
 vi.mock("@/lib/dentvid/supabase", () => ({
+  dvServer: () => ({
+    auth: {
+      signInWithPassword: async (c: { email: string; password: string }) => {
+        serverSignIns.push(c);
+        return { error: serverSignInFails ? { message: "network" } : null };
+      },
+    },
+  }),
   dvAdmin: () => ({
     auth: {
       admin: {
@@ -58,6 +69,8 @@ async function signup(extra: Record<string, unknown> = {}, headers: Record<strin
 }
 
 beforeEach(() => {
+  serverSignIns = [];
+  serverSignInFails = false;
   created.length = 0;
   mails.length = 0;
   checks.length = 0;
@@ -82,18 +95,19 @@ describe("POST /api/dentvideo/signup", () => {
   });
 
   it("creates the account with the DentVideo marker in app_metadata (server-only), not user_metadata", async () => {
-    expect(await signup()).toEqual({ status: 200, body: { ok: true } });
+    expect(await signup()).toEqual({ status: 200, body: { ok: true, signedIn: true } });
     expect(created).toHaveLength(1);
     expect(created[0]).toMatchObject({ email: "dr@clinic.example", email_confirm: true, app_metadata: { product: "dentvideo" } });
     expect(created[0]).not.toHaveProperty("user_metadata");
     expect(sendCode).toHaveBeenCalledTimes(1);
   });
 
-  it("answers an address that already has an account exactly like a new one, and mails a DentVideo owner a reset link", async () => {
+  it("tells the form an address already has an account, and mails a DentVideo owner a reset link", async () => {
     const fresh = await signup();
     existing = { app_metadata: { product: "dentvideo" } };
     const again = await signup({ password: "someoneelse" });
-    expect(again).toEqual(fresh);
+    expect(fresh.body).toEqual({ ok: true, signedIn: true });
+    expect(again).toEqual({ status: 200, body: { ok: true, existing: true } });
     expect(mails).toEqual([{ to: "dr@clinic.example", subject: expect.stringContaining("DentVideo") }]);
     // Counted against the reset mail limits for that address.
     expect(checks).toContain("rl:reset:email:dr@clinic.example");
@@ -101,16 +115,16 @@ describe("POST /api/dentvideo/signup", () => {
 
   it("does not mail another Liman app's user, nor one whose only DentVideo claim is user_metadata", async () => {
     existing = { app_metadata: { product: "aires" } };
-    expect((await signup()).body).toEqual({ ok: true });
+    expect((await signup()).body).toEqual({ ok: true, existing: true });
     existing = { app_metadata: {}, user_metadata: { product: "dentvideo" } };
-    expect((await signup()).body).toEqual({ ok: true });
+    expect((await signup()).body).toEqual({ ok: true, existing: true });
     expect(mails).toEqual([]);
   });
 
   it("stops mailing an existing address once its reset limit is spent", async () => {
     existing = { app_metadata: { product: "dentvideo" } };
     limitedKey = "rl:reset:email:dr@clinic.example";
-    expect((await signup()).body).toEqual({ ok: true });
+    expect((await signup()).body).toEqual({ ok: true, existing: true });
     expect(mails).toEqual([]);
   });
 
@@ -132,7 +146,7 @@ describe("POST /api/dentvideo/signup", () => {
     expect((await signup({ turnstile: "bad" })).body).toMatchObject({ code: "turnstile" });
     expect(created).toHaveLength(0);
     fetchMock.mockImplementation(async () => new Response(JSON.stringify({ success: true })));
-    expect(await signup({ turnstile: "good" })).toEqual({ status: 200, body: { ok: true } });
+    expect(await signup({ turnstile: "good" })).toEqual({ status: 200, body: { ok: true, signedIn: true } });
     expect(created).toHaveLength(1);
   });
 
@@ -140,5 +154,29 @@ describe("POST /api/dentvideo/signup", () => {
     expect((await signup({ website: "http://spam" })).status).toBe(400);
     expect((await signup({ elapsedMs: 10 })).status).toBe(400);
     expect(created).toHaveLength(0);
+  });
+});
+
+
+describe("signs a new account in on the server", () => {
+  it("opens the session and tells the form it is signed in", async () => {
+    const r = await signup();
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ ok: true, signedIn: true });
+    expect(serverSignIns).toEqual([{ email: "dr@clinic.example", password: "longenough" }]);
+  });
+
+  it("still answers ok when the server sign-in fails, so the form can try itself", async () => {
+    serverSignInFails = true;
+    const r = await signup();
+    expect(r.body).toMatchObject({ ok: true, signedIn: false });
+  });
+
+  it("says plainly that an address already has an account, and does not sign it in", async () => {
+    existing = { app_metadata: { product: "dentvideo" } };
+    const r = await signup();
+    expect(r.body).toMatchObject({ ok: true, existing: true });
+    expect(r.body.signedIn).toBeUndefined();
+    expect(serverSignIns).toEqual([]);
   });
 });

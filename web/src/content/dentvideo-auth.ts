@@ -17,6 +17,8 @@ export type AuthCopy = {
   backToSignIn: string;
   /** After sign-up, when signing in fails: never says whether the address already had an account. */
   signInFailedAfterSignup: string;
+  /** Sign-up with an address that already has a login. */
+  accountExists: string;
   /** Sign-up consent line (shown by default; DENTVIDEO_LEGAL_PAGES=off hides it); {terms} and {privacy} become links. */
   consent: string;
   termsLink: string;
@@ -40,6 +42,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "If an account exists for this email, the link is on its way. It works for one hour — check your spam folder too.",
     backToSignIn: "Back to sign in",
     signInFailedAfterSignup: "We couldn't sign you in with this email and password. If you already have an account, sign in below or reset your password.",
+    accountExists: "There is already an account with this email. Sign in below with your password. If you don't remember it, reset it — if this is a DentVideo account, we have also emailed you a reset link.",
     consent: "By creating an account, you agree to the {terms} and the {privacy}.",
     termsLink: "Terms of Service",
     privacyLink: "Privacy Policy",
@@ -67,6 +70,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Bu e-postayla bir hesap varsa bağlantı yolda. Bir saat geçerli — spam klasörünüze de bakın.",
     backToSignIn: "Girişe dön",
     signInFailedAfterSignup: "Bu e-posta ve şifreyle giriş yapamadık. Zaten bir hesabınız varsa aşağıdan giriş yapın ya da şifrenizi sıfırlayın.",
+    accountExists: "Bu e-postayla zaten bir hesap var. Aşağıdan şifrenizle giriş yapın. Şifrenizi hatırlamıyorsanız sıfırlayın; bu bir DentVideo hesabıysa size sıfırlama bağlantısı da gönderdik.",
     consent: "Hesap oluşturarak {terms} ve {privacy} metinlerini kabul etmiş olursunuz.",
     termsLink: "Kullanım Koşulları",
     privacyLink: "Gizlilik Politikası",
@@ -94,6 +98,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Falls ein Konto mit dieser Adresse existiert, ist der Link unterwegs. Er gilt eine Stunde — bitte prüfen Sie auch den Spam-Ordner.",
     backToSignIn: "Zurück zur Anmeldung",
     signInFailedAfterSignup: "Mit dieser E-Mail-Adresse und diesem Passwort konnten wir Sie nicht anmelden. Wenn Sie bereits ein Konto haben, melden Sie sich unten an oder setzen Sie Ihr Passwort zurück.",
+    accountExists: "Mit dieser E-Mail-Adresse gibt es bereits ein Konto. Melden Sie sich unten mit Ihrem Passwort an. Falls Sie es vergessen haben, setzen Sie es zurück – bei einem DentVideo-Konto haben wir Ihnen bereits einen Link dafür geschickt.",
     consent: "Mit dem Anlegen eines Kontos stimmen Sie den {terms} und der {privacy} zu.",
     termsLink: "Nutzungsbedingungen",
     privacyLink: "Datenschutzerklärung",
@@ -121,6 +126,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Si existe una cuenta con este correo, el enlace va en camino. Es válido durante una hora; revisa también la carpeta de spam.",
     backToSignIn: "Volver a iniciar sesión",
     signInFailedAfterSignup: "No pudimos iniciar sesión con este correo y esta contraseña. Si ya tienes una cuenta, inicia sesión abajo o restablece tu contraseña.",
+    accountExists: "Ya existe una cuenta con este correo. Inicia sesión abajo con tu contraseña. Si no la recuerdas, restablécela: si es una cuenta de DentVideo, ya te hemos enviado un enlace.",
     consent: "Al crear una cuenta, aceptas los {terms} y la {privacy}.",
     termsLink: "Términos del servicio",
     privacyLink: "Política de privacidad",
@@ -148,6 +154,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Si un compte existe pour cet e-mail, le lien est en route. Il est valable une heure — pensez à vérifier vos spams.",
     backToSignIn: "Retour à la connexion",
     signInFailedAfterSignup: "Nous n'avons pas pu vous connecter avec cet e-mail et ce mot de passe. Si vous avez déjà un compte, connectez-vous ci-dessous ou réinitialisez votre mot de passe.",
+    accountExists: "Un compte existe déjà avec cet e-mail. Connectez-vous ci-dessous avec votre mot de passe. Si vous l'avez oublié, réinitialisez-le : s'il s'agit d'un compte DentVideo, nous vous avons déjà envoyé un lien.",
     consent: "En créant un compte, vous acceptez les {terms} et la {privacy}.",
     termsLink: "Conditions d'utilisation",
     privacyLink: "Politique de confidentialité",
@@ -175,6 +182,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "このメールアドレスのアカウントがある場合は、リンクをお送りしました。有効期限は1時間です。迷惑メールフォルダもご確認ください。",
     backToSignIn: "ログイン画面に戻る",
     signInFailedAfterSignup: "このメールアドレスとパスワードではログインできませんでした。すでにアカウントをお持ちの場合は、下からログインするか、パスワードを再設定してください。",
+    accountExists: "このメールアドレスのアカウントはすでにあります。下からパスワードでログインしてください。パスワードをお忘れの場合は再設定してください。DentVideoのアカウントであれば、再設定用のリンクもメールでお送りしました。",
     consent: "アカウントを作成すると、{terms}と{privacy}に同意したものとみなされます。",
     termsLink: "利用規約",
     privacyLink: "プライバシーポリシー",
@@ -202,6 +210,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "إن كان هناك حساب بهذا البريد الإلكتروني فالرابط في طريقه إليكم. يبقى صالحاً لمدة ساعة، ويُرجى التحقق من مجلد الرسائل غير المرغوب فيها أيضاً.",
     backToSignIn: "العودة إلى تسجيل الدخول",
     signInFailedAfterSignup: "تعذّر تسجيل دخولكم بهذا البريد الإلكتروني وكلمة المرور. إن كان لديكم حساب بالفعل، فسجّلوا الدخول أدناه أو أعيدوا تعيين كلمة المرور.",
+    accountExists: "يوجد حساب بهذا البريد الإلكتروني بالفعل. سجّلوا الدخول أدناه بكلمة المرور. إن نسيتموها فأعيدوا تعيينها، وإن كان حساب DentVideo فقد أرسلنا إليكم رابط إعادة التعيين.",
     consent: "بإنشاء حساب، توافقون على {terms} و{privacy}.",
     termsLink: "شروط الخدمة",
     privacyLink: "سياسة الخصوصية",
@@ -229,6 +238,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Jeśli istnieje konto z tym adresem, link jest już w drodze. Jest ważny przez godzinę — prosimy sprawdzić też folder spam.",
     backToSignIn: "Wróć do logowania",
     signInFailedAfterSignup: "Nie udało się zalogować tym adresem e-mail i hasłem. Jeśli mają już Państwo konto, prosimy zalogować się poniżej lub zresetować hasło.",
+    accountExists: "Konto z tym adresem e-mail już istnieje. Prosimy zalogować się poniżej hasłem. Jeśli go Państwo nie pamiętają, prosimy je zresetować – jeśli to konto DentVideo, wysłaliśmy już link.",
     consent: "Zakładając konto, akceptują Państwo {terms} oraz {privacy}.",
     termsLink: "Regulamin",
     privacyLink: "Politykę prywatności",
