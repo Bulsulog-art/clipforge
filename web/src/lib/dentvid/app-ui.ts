@@ -228,3 +228,120 @@ export function deleteConfirmOk(typed: string, clinicName: string | null | undef
   if (!t) return false;
   return [deletePhrase(clinicName, email), email ?? ""].some((p) => norm(p).length > 0 && norm(p) === t);
 }
+
+/* ---------------- Review and posting ---------------- */
+
+const undecided = (i: LibraryItem) => {
+  const c = cardState(i);
+  return c === "look" || c === "review";
+};
+
+/** Videos the full-screen review steps through: those of one week with a video to watch, in the week's order. */
+export function reviewQueue(items: LibraryItem[]): LibraryItem[] {
+  return items.filter((i) => {
+    const c = cardState(i);
+    return c === "look" || c === "review" || c === "approved" || c === "declined" || c === "updating";
+  });
+}
+
+/** Where the review opens: the first video still waiting for a decision, else the first one. */
+export function firstToReview(queue: LibraryItem[]): number {
+  return Math.max(0, queue.findIndex(undecided));
+}
+
+/** After a decision: the next video still waiting (wrapping round), or -1 when every one is decided. */
+export function nextUndecided(queue: LibraryItem[], from: number): number {
+  for (let k = 1; k <= queue.length; k++) {
+    const n = (from + k) % queue.length;
+    if (undecided(queue[n])) return n;
+  }
+  return -1;
+}
+
+/** Why a video was declined: one tap each (their words live in the dictionary). */
+export const DECLINE_REASONS = ["wrong", "notUs", "look", "other"] as const;
+export type DeclineReason = (typeof DECLINE_REASONS)[number];
+
+/**
+ * The note stored with a decline (dentvid_items.approval_note, at most 500
+ * characters, shown to the team on the clinic's admin page): the reason as a
+ * stable tag readable in any language, then the dentist's own words.
+ */
+export function declineNote(reason: DeclineReason | null, text: string): string | undefined {
+  const words = text.replace(/\s+/g, " ").trim();
+  const note = [reason ? `[${reason}]` : "", words].filter(Boolean).join(" ");
+  return note ? note.slice(0, 500) : undefined;
+}
+
+/** A horizontal swipe, read in the page's direction: "next", "previous", or null (too short, or mostly vertical). */
+export function swipeStep(dx: number, dy: number, rtl: boolean): "next" | "previous" | null {
+  if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return null;
+  return (rtl ? dx > 0 : dx < 0) ? "next" : "previous";
+}
+
+/** What the clinic ticked as posted, on this device: item id → the item's week. */
+export type PostedMarks = Record<string, string>;
+export const POSTED_KEY = "dv-posted-v1";
+const POSTED_MAX = 300;
+
+/** The stored marks, ignoring anything malformed. */
+export function parsePosted(raw: string | null | undefined): PostedMarks {
+  try {
+    const o = JSON.parse(raw ?? "{}") as unknown;
+    if (!o || typeof o !== "object" || Array.isArray(o)) return {};
+    const out: PostedMarks = {};
+    for (const [k, v] of Object.entries(o as Record<string, unknown>)) {
+      if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && k.length > 0 && k.length <= 64) out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Tick or untick one video; past a few hundred marks the oldest weeks fall off. */
+export function togglePosted(marks: PostedMarks, id: string, week: string, on: boolean): PostedMarks {
+  const next = { ...marks };
+  if (on) next[id] = week;
+  else delete next[id];
+  const entries = Object.entries(next);
+  if (entries.length <= POSTED_MAX) return next;
+  // The tick just made always stays; the rest keep their newest weeks.
+  const rest = entries.filter(([k]) => k !== id).sort(([, a], [, b]) => (a < b ? 1 : a > b ? -1 : 0));
+  return Object.fromEntries([...(on ? [[id, week] as [string, string]] : []), ...rest].slice(0, POSTED_MAX));
+}
+
+/** This week's posting checklist: approved videos, and how many of them are ticked. */
+export function postingProgress(thisWeek: LibraryItem[], marks: PostedMarks): { total: number; posted: number } {
+  const approved = thisWeek.filter((i) => cardState(i) === "approved");
+  return { total: approved.length, posted: approved.filter((i) => marks[i.id]).length };
+}
+
+/**
+ * Weeks in a row with at least one video ticked as posted, counting back from
+ * this week — or from last week while this week has none yet, so a streak is
+ * not "lost" on Monday morning before anything is posted.
+ */
+export function postingStreak(marks: PostedMarks, currentWeek: string): number {
+  const weeks = new Set(Object.values(marks));
+  const start = Date.parse(`${currentWeek}T00:00:00Z`);
+  if (Number.isNaN(start)) return 0;
+  const key = (n: number) => new Date(start - n * 7 * 86_400_000).toISOString().slice(0, 10);
+  let n = weeks.has(key(0)) ? 0 : 1;
+  let streak = 0;
+  while (weeks.has(key(n))) {
+    streak += 1;
+    n += 1;
+  }
+  return streak;
+}
+
+/** The apps the "post it" step has tips for, in the order shown. */
+export const POST_PLATFORMS = ["instagram", "tiktok", "facebook", "whatsapp"] as const;
+export type PostPlatform = (typeof POST_PLATFORMS)[number];
+
+/** The tab's title with the number of videos waiting, so a pinned tab or home-screen app shows there is something to do. */
+export function titleWithCount(title: string, waiting: number): string {
+  const base = title.replace(/^\(\d+\)\s+/, "");
+  return waiting > 0 ? `(${waiting}) ${base}` : base;
+}
