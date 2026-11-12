@@ -12,7 +12,6 @@ import {
   AbsoluteFill,
   Composition,
   Img,
-  OffthreadVideo,
   Sequence,
   continueRender,
   delayRender,
@@ -46,10 +45,11 @@ export const C = {
 const SERIF = '"Instrument Serif", "Noto Serif Display", Georgia, serif';
 const SANS = '"Plus Jakarta Sans", "Inter", Arial, sans-serif';
 
-// Fonts come from the staged public folder (web/assets/fonts, OFL).
-const fontHandle = typeof document !== "undefined" ? delayRender("brand fonts", { timeoutInMilliseconds: 120_000 }) : null;
-if (typeof document !== "undefined") {
-  Promise.all(
+// Fonts come from the staged public folder (web/assets/fonts, OFL). Loaded per render tab from a
+// component (a module-level delayRender hangs the extra tabs renderMedia opens at concurrency > 1).
+let fontsLoading: Promise<unknown> | undefined;
+const loadFonts = () =>
+  (fontsLoading ??= Promise.all(
     [
       ["Instrument Serif", "fonts/InstrumentSerif-Regular.ttf", "400"],
       ["Plus Jakarta Sans", "fonts/PlusJakartaSans-SemiBold.ttf", "600"],
@@ -58,10 +58,18 @@ if (typeof document !== "undefined") {
       await face.load();
       document.fonts.add(face);
     }),
-  )
-    .catch((e) => console.error("font load failed", e))
-    .finally(() => fontHandle !== null && continueRender(fontHandle));
-}
+  ).catch((e) => console.error("font load failed", e)));
+
+const WithFonts = <P extends object>(C: React.FC<P>): React.FC<P> => {
+  const Wrapped: React.FC<P> = (props) => {
+    const [handle] = React.useState(() => delayRender("brand fonts", { timeoutInMilliseconds: 120_000 }));
+    React.useEffect(() => {
+      void loadFonts().then(() => continueRender(handle));
+    }, [handle]);
+    return <C {...props} />;
+  };
+  return Wrapped;
+};
 
 const ease = (frame: number, from: number, len = 14) =>
   interpolate(frame, [from, from + len], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: (t) => 1 - Math.pow(1 - t, 3) });
@@ -131,7 +139,7 @@ export const ClinicReel: React.FC<ClinicReelProps> = ({ plan, voiceoverSrc, logo
 
 export type Beat =
   | { type: "type"; seconds: number; kicker?: string; lines: string[]; accent?: number[]; dark?: boolean; small?: string }
-  | { type: "screen"; seconds: number; kicker: string; caption: string; src: string; from?: number; rate?: number }
+  | { type: "screen"; seconds: number; kicker: string; caption: string; src: string; frames?: number; from?: number; rate?: number }
   | { type: "end"; seconds: number; lines: string[]; url: string; small?: string };
 
 export type ExplainerProps = { beats: Beat[] };
@@ -245,7 +253,11 @@ const BeatView: React.FC<{ beat: Beat; len: number }> = ({ beat, len }) => {
           }}
         >
           <div style={{ width: "100%", height: "100%", borderRadius: 80, overflow: "hidden", background: "#fff", position: "relative" }}>
-            <OffthreadVideo src={staticFile(beat.src)} muted startFrom={Math.round((beat.from ?? 0) * fps)} playbackRate={beat.rate ?? 1} style={{ width: "100%", display: "block" }} />
+            {/* The recording as a JPEG sequence (render-social-kit.mts): no video decoder in the render path. */}
+            <Img
+              src={staticFile(`${beat.src}/${String(Math.min(beat.frames ?? 1, 1 + Math.floor(((beat.from ?? 0) + (frame / fps) * (beat.rate ?? 1)) * 30))).padStart(5, "0")}.jpg`)}
+              style={{ width: "100%", display: "block" }}
+            />
           </div>
         </div>
       </AbsoluteFill>
@@ -458,7 +470,7 @@ const Root: React.FC = () => (
   <>
     <Composition
       id="ClinicReel"
-      component={ClinicReel}
+      component={WithFonts(ClinicReel)}
       fps={FPS}
       width={1080}
       height={1920}
@@ -468,7 +480,7 @@ const Root: React.FC = () => (
     />
     <Composition
       id="Explainer"
-      component={Explainer}
+      component={WithFonts(Explainer)}
       fps={FPS}
       width={1080}
       height={1920}
@@ -476,10 +488,10 @@ const Root: React.FC = () => (
       defaultProps={{ beats: [] } as ExplainerProps}
       calculateMetadata={({ props }) => ({ durationInFrames: Math.max(1, explainerFrames(props.beats)) })}
     />
-    <Composition id="Cover" component={Cover} fps={FPS} width={1080} height={1920} durationInFrames={1} defaultProps={{ dark: true, kicker: "", title: "", screenSrc: "", num: "" } as CoverProps} />
-    <Composition id="Highlight" component={Highlight} fps={FPS} width={1080} height={1920} durationInFrames={1} defaultProps={{ icon: "play" } as HighlightProps} />
-    <Composition id="Avatar" component={Avatar} fps={FPS} width={1080} height={1080} durationInFrames={1} />
-    <Composition id="Banner" component={Banner} fps={FPS} width={1584} height={396} durationInFrames={1} defaultProps={{ line: "", sub: "", shots: [] } as BannerProps} />
+    <Composition id="Cover" component={WithFonts(Cover)} fps={FPS} width={1080} height={1920} durationInFrames={1} defaultProps={{ dark: true, kicker: "", title: "", screenSrc: "", num: "" } as CoverProps} />
+    <Composition id="Highlight" component={WithFonts(Highlight)} fps={FPS} width={1080} height={1920} durationInFrames={1} defaultProps={{ icon: "play" } as HighlightProps} />
+    <Composition id="Avatar" component={WithFonts(Avatar)} fps={FPS} width={1080} height={1080} durationInFrames={1} />
+    <Composition id="Banner" component={WithFonts(Banner)} fps={FPS} width={1584} height={396} durationInFrames={1} defaultProps={{ line: "", sub: "", shots: [] } as BannerProps} />
   </>
 );
 

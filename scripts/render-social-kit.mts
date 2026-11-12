@@ -72,7 +72,7 @@ export const POSTS: Post[] = [
     coverShot: "landing.png",
     beats: [
       { type: "type", seconds: 3.2, kicker: "Diş klinikleri için", lines: ["Her pazartesi", "beş kısa", "hasta videosu."], accent: [2] },
-      { type: "screen", seconds: 7, kicker: "dentvideo.com/tr", caption: "Seslendirilmiş, altyazılı, kliniğinizin renklerinde.", src: "captures/landing.mp4", from: 0.3 },
+      { type: "screen", seconds: 7, kicker: "dentvideo.com/tr", caption: "Seslendirilmiş, altyazılı, kliniğinizin renklerinde.", src: "captures/landing", from: 0.3 },
       {
         type: "type",
         seconds: 3.8,
@@ -95,9 +95,9 @@ export const POSTS: Post[] = [
     coverShot: "preview.png",
     beats: [
       { type: "type", seconds: 2.8, kicker: "Nasıl çalışır?", lines: ["Üç adım.", "Bir kez", "iki dakika."], accent: [0] },
-      { type: "screen", seconds: 6, kicker: "1 · Kliniğiniz", caption: "Adınız, hizmetleriniz, logonuz ve renginiz.", src: "captures/clinic.mp4", from: 0.3 },
-      { type: "screen", seconds: 7.6, kicker: "2 · Canlı önizleme", caption: "Ödemeden önce videolarınızı kendi renginizle görün.", src: "captures/preview.mp4", from: 0.3 },
-      { type: "screen", seconds: 6.2, kicker: "3 · Onay", caption: "Her pazartesi yeni videolar: izleyin, onaylayın, paylaşın.", src: "captures/app.mp4", from: 0.3 },
+      { type: "screen", seconds: 6, kicker: "1 · Kliniğiniz", caption: "Adınız, hizmetleriniz, logonuz ve renginiz.", src: "captures/clinic", from: 0.3 },
+      { type: "screen", seconds: 7.6, kicker: "2 · Canlı önizleme", caption: "Ödemeden önce videolarınızı kendi renginizle görün.", src: "captures/preview", from: 0.3 },
+      { type: "screen", seconds: 6.2, kicker: "3 · Onay", caption: "Her pazartesi yeni videolar: izleyin, onaylayın, paylaşın.", src: "captures/app", from: 0.3 },
       { type: "end", seconds: 3.6, lines: ["Kendi önizlemenizi", "görün."], url: "dentvideo.com/tr", small: "İlk 100 kliniğe kurucu fiyatı: Practice planı 12 ay boyunca aylık $49" },
     ],
   },
@@ -117,7 +117,7 @@ export const POSTS: Post[] = [
         lines: ["“Acısız.”", "“Garantili.”", "“Bembeyaz.”"],
         small: "Sağlık hizmetleri tanıtımında bu sözcükler kurallara aykırı olabilir.",
       },
-      { type: "screen", seconds: 7.4, kicker: "Uygulamada", caption: "Göz atılması gereken videoda nedeni kartın üzerinde yazar.", src: "captures/check.mp4", from: 0.3 },
+      { type: "screen", seconds: 7.4, kicker: "Uygulamada", caption: "Göz atılması gereken videoda nedeni kartın üzerinde yazar.", src: "captures/check", from: 0.3 },
       { type: "type", seconds: 4.2, kicker: "DentVideo'da yok", lines: ["Avatar doktor.", "Sahte hasta.", "Otomatik paylaşım."], accent: [2], small: "Hasta sayısı vaadi de yok." },
       { type: "end", seconds: 3.6, lines: ["Dikkatli bir filtre;", "son söz hekimin."], url: "dentvideo.com/tr", small: "Hukuki danışmanlık değildir." },
     ],
@@ -386,8 +386,14 @@ async function main() {
   const capturesDir = path.join(work, "captures");
   const base = flag("--capture");
   if (base) await capture(base.replace(/\/$/, ""), capturesDir);
+  const captureFrames: Record<string, number> = {};
   for (const id of ["landing", "clinic", "preview", "app", "check"]) {
-    await fs.copyFile(path.join(capturesDir, `${id}.mp4`), path.join(pub, "captures", `${id}.mp4`));
+    // As a JPEG sequence at the phone screen's width: the explainer draws frame by frame, no video decoder.
+    const seq = path.join(pub, "captures", id);
+    await fs.rm(seq, { recursive: true, force: true });
+    await fs.mkdir(seq, { recursive: true });
+    await run("ffmpeg", ["-v", "error", "-y", "-i", path.join(capturesDir, `${id}.mp4`), "-vf", "fps=30,scale=624:-2", "-q:v", "3", path.join(seq, "%05d.jpg")]);
+    captureFrames[`captures/${id}`] = (await fs.readdir(seq)).length;
     await run("ffmpeg", ["-v", "error", "-y", "-ss", "0.5", "-i", path.join(capturesDir, `${id}.mp4`), "-frames:v", "1", path.join(pub, "stills", `${id}.png`)]);
   }
 
@@ -460,7 +466,7 @@ async function main() {
       await renderStill({ ...common, composition: comp, inputProps: props, output: path.join(live, screen), frame: 60, imageFormat: "png" });
       report.push(`${name}: ${fit.note}; backgrounds ${bgs.join(", ") || "none"}`);
     } else {
-      props = { beats: post.beats };
+      props = { beats: post.beats.map((b) => (b.type === "screen" ? { ...b, frames: captureFrames[b.src as string] } : b)) };
       compId = "Explainer";
       screen = `stills/${post.coverShot}`;
     }
