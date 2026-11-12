@@ -12,9 +12,10 @@
  *   dv:cost:daily                                   hash: day → cents (heartbeat.ts)
  *   dv:ops:dispatch:<monday>                        the weekly dispatch marker (schedule.ts)
  *   dv:ops:alerts:<day>                             owner alerts raised that day (ops-alert.ts)
+ *   dv:monitor:{last,history,state}                 the synthetic monitor (worker/src/dentvid/synthetic.ts)
  */
 
-export const QUEUES = ["dentvid", "dentvid-mail", "video-pipeline", "generate", "publish", "derivative"] as const;
+export const QUEUES = ["dentvid", "dentvid-mail", "crons", "video-pipeline", "generate", "publish", "derivative"] as const;
 export type QueueName = (typeof QUEUES)[number];
 /** Queues whose failed jobs the panel may retry. */
 export const RETRYABLE_QUEUES: readonly QueueName[] = ["dentvid", "dentvid-mail"];
@@ -302,3 +303,128 @@ export function costOver(byDay: Map<string, number>, days: number, now: Date): n
   }
   return Math.round(sum * 100) / 100;
 }
+
+/* ---------------------------------------------------------------- monitor */
+
+/** Written by the worker's synthetic monitor (worker/src/dentvid/synthetic.ts). */
+export const MONITOR_LAST_KEY = "dv:monitor:last";
+export const MONITOR_HISTORY_KEY = "dv:monitor:history";
+export const MONITOR_STATE_KEY = "dv:monitor:state";
+/** The monitor runs every 15 minutes; a last run older than this means it is not running. */
+export const MONITOR_STALE_MS = 35 * 60_000;
+
+export type MonitorCheck = { name: string; label: string; ok: boolean; ms: number; status: number | null; error: string | null; skipped: string | null };
+export type MonitorRunView = { at: string; ms: number; ok: boolean; results: MonitorCheck[] };
+export type MonitorHistoryEntry = { at: string; ms: number; ok: boolean; failed: string[]; ran: number };
+export type MonitorCheckState = { fails: number; since: string | null; alertedAt: string | null; lastOkAt: string | null };
+
+export type MonitorView = {
+  last: MonitorRunView | null;
+  /** Newest first. */
+  history: MonitorHistoryEntry[];
+  state: Record<string, MonitorCheckState>;
+  /** "never" (no run recorded), "stale" (no run for 35 min), "failing", "ok". */
+  status: "never" | "stale" | "failing" | "ok";
+  /** Share of runs in the last 24 h with every check passing, in % (null with no runs). */
+  uptime24h: number | null;
+  runs24h: number;
+};
+
+const str = (v: unknown) => (typeof v === "string" ? v : null);
+const isoOk = (v: unknown): v is string => typeof v === "string" && Number.isFinite(Date.parse(v));
+
+export function parseMonitorRun(raw: string | null | undefined): MonitorRunView | null {
+  if (!raw) return null;
+  try {
+    const p = JSON.parse(raw) as Record<string, unknown>;
+    if (!isoOk(p.at) || !Array.isArray(p.results)) return null;
+    const results = p.results
+      .filter((r): r is Record<string, unknown> => !!r && typeof r === "object" && typeof (r as { name?: unknown }).name === "string")
+      .map((r) => ({
+        name: String(r.name).slice(0, 40),
+        label: (str(r.label) ?? String(r.name)).slice(0, 80),
+        ok: r.ok === true,
+        ms: n(r.ms),
+        status: typeof r.status === "number" ? r.status : null,
+        error: str(r.error)?.slice(0, 300) ?? null,
+        skipped: str(r.skipped)?.slice(0, 200) ?? null,
+      }));
+    return { at: p.at, ms: n(p.ms), ok: p.ok === true, results };
+  } catch {
+    return null;
+  }
+}
+
+/** The history list (oldest first in Redis), newest first. */
+export function parseMonitorHistory(list: string[] | null | undefined): MonitorHistoryEntry[] {
+  const out: MonitorHistoryEntry[] = [];
+  for (const raw of list ?? []) {
+    try {
+      const p = JSON.parse(raw) as Record<string, unknown>;
+      if (!isoOk(p.at)) continue;
+      out.push({ at: p.at, ms: n(p.ms), ok: p.ok === true, failed: Array.isArray(p.failed) ? p.failed.filter((f): f is string => typeof f === "string").slice(0, 20) : [], ran: n(p.ran) });
+    } catch {
+      // skip
+    }
+  }
+  return out.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+export function parseMonitorState(raw: string | null | undefined): Record<string, MonitorCheckState> {
+  if (!raw) return {};
+  try {
+    const p = JSON.parse(raw) as { checks?: Record<string, Record<string, unknown>> };
+    const out: Record<string, MonitorCheckState> = {};
+    for (const [k, v] of Object.entries(p.checks ?? {})) {
+      if (!v || typeof v !== "object") continue;
+      out[k] = { fails: n(v.fails), since: isoOk(v.since) ? v.since : null, alertedAt: isoOk(v.alertedAt) ? v.alertedAt : null, lastOkAt: isoOk(v.lastOkAt) ? v.lastOkAt : null };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+export function monitorView(last: MonitorRunView | null, history: MonitorHistoryEntry[], state: Record<string, MonitorCheckState>, now: Date): MonitorView {
+  const day = history.filter((h) => now.getTime() - Date.parse(h.at) <= 86_400_000);
+  const status: MonitorView["status"] = !last ? "never" : now.getTime() - Date.parse(last.at) > MONITOR_STALE_MS ? "stale" : last.ok ? "ok" : "failing";
+  return {
+    last,
+    history,
+    state,
+    status,
+    uptime24h: day.length ? Math.round((day.filter((h) => h.ok).length / day.length) * 1000) / 10 : null,
+    runs24h: day.length,
+  };
+}
+
+export type MonitorIncident = { check: string; from: string; to: string; runs: number; ongoing: boolean };
+
+/**
+ * Failure periods per check from the history, newest first: from the first
+ * run in which the check failed to the last, ended by the next run in which
+ * every check passed. (The compact history keeps only the failed names, so a
+ * run that skipped a check — the hourly Dodo one — cannot end its period.)
+ */
+export function monitorIncidents(history: MonitorHistoryEntry[]): MonitorIncident[] {
+  const oldestFirst = [...history].sort((a, b) => a.at.localeCompare(b.at));
+  const open = new Map<string, MonitorIncident>();
+  const out: MonitorIncident[] = [];
+  for (const h of oldestFirst) {
+    for (const c of h.failed) {
+      const cur = open.get(c);
+      if (cur) {
+        cur.to = h.at;
+        cur.runs += 1;
+      } else open.set(c, { check: c, from: h.at, to: h.at, runs: 1, ongoing: false });
+    }
+    if (h.ok) {
+      out.push(...open.values());
+      open.clear();
+    }
+  }
+  for (const i of open.values()) out.push({ ...i, ongoing: true });
+  return out.sort((a, b) => b.to.localeCompare(a.to));
+}
+
+export const emptyMonitor = (): MonitorView => ({ last: null, history: [], state: {}, status: "never", uptime24h: null, runs24h: 0 });

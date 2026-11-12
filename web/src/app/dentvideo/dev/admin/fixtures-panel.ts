@@ -3,7 +3,7 @@ import type { AdminData } from "@/lib/dentvid/admin-server";
 import type { ClinicDetail, DetailItem, OverviewData, SystemData } from "@/lib/dentvid/admin-loaders";
 import type { EmailLogRow, EmailSendRow, PaymentRow, SubRow } from "@/lib/dentvid/admin-ops";
 import type { SystemSnapshot } from "@/lib/dentvid/admin-system-server";
-import { lastDispatch, nextDispatch, dispatchWeek, parseHeartbeats, workerHealth } from "@/lib/dentvid/admin-system";
+import { lastDispatch, nextDispatch, dispatchWeek, monitorView, parseHeartbeats, workerHealth, type MonitorCheck, type MonitorHistoryEntry, type MonitorRunView, type MonitorView } from "@/lib/dentvid/admin-system";
 import { SAMPLES, rng } from "./fixtures";
 
 /**
@@ -33,6 +33,7 @@ export function fixtureSystem(now: Date, data: AdminData, opts: { staleRenderSer
     queues: [
       { name: "dentvid", waiting: 0, pausedJobs: 0, active: 1, prioritized: 3, delayed: 0, failed: 2, completed: 412, waitingChildren: 0, paused: false, queued: 3 },
       { name: "dentvid-mail", waiting: 0, pausedJobs: 0, active: 0, prioritized: 0, delayed: 14, failed: 1, completed: 188, waitingChildren: 0, paused: false, queued: 0 },
+      { name: "crons", waiting: 0, pausedJobs: 0, active: 0, prioritized: 0, delayed: 1, failed: 0, completed: 200, waitingChildren: 0, paused: false, queued: 0 },
       { name: "video-pipeline", waiting: 0, pausedJobs: 0, active: 0, prioritized: 0, delayed: 0, failed: 0, completed: 0, waitingChildren: 0, paused: false, queued: 0 },
       { name: "generate", waiting: 0, pausedJobs: 0, active: 0, prioritized: 0, delayed: 0, failed: 0, completed: 0, waitingChildren: 0, paused: false, queued: 0 },
       { name: "publish", waiting: 0, pausedJobs: 0, active: 0, prioritized: 0, delayed: 0, failed: 0, completed: 0, waitingChildren: 0, paused: false, queued: 0 },
@@ -93,7 +94,41 @@ export function fixtureSystem(now: Date, data: AdminData, opts: { staleRenderSer
       { at: iso(t - 2.4 * DAY), severity: "high", title: "Dodo: dispute.opened on a DentVideo payment (clinic paused)", key: "billing-dispute:pay_8Hk2", clinic: "Dentpark İzmir" },
     ],
     costByDay: Array.from({ length: 30 }, (_, i) => [new Date(t - i * DAY).toISOString().slice(0, 10), Math.round((2 + ((i * 7) % 9)) * 100) / 100] as [string, number]).reverse(),
+    monitor: fixtureMonitor(now),
   };
+}
+
+/** The synthetic monitor: a sign-up outage last night (recovered), the Dodo link failing once just now. */
+export function fixtureMonitor(now: Date): MonitorView {
+  const t = now.getTime();
+  const iso = (ms: number) => new Date(ms).toISOString();
+  const slot = 15 * 60_000;
+  const lastAt = Math.floor((t - 4 * 60_000) / slot) * slot;
+  const check = (name: string, label: string, ms: number, extra: Partial<MonitorCheck> = {}): MonitorCheck => ({ name, label, ok: true, ms, status: 200, error: null, skipped: null, ...extra });
+  const last: MonitorRunView = {
+    at: iso(lastAt),
+    ms: 2140,
+    ok: false,
+    results: [
+      check("page-home", "Home page (/)", 182),
+      check("page-tr", "Turkish page (/tr)", 175),
+      check("page-start", "Sign-up page (/start)", 140),
+      check("page-privacy", "Privacy page (/privacy)", 96),
+      check("page-guide", "Guide page", 121),
+      check("signup", "Sign-up", 980),
+      check("cleanup", "Monitor account clean-up", 0),
+      check("liman-auth", "Liman auth", 44),
+      check("liman-rest", "Liman database API", 51),
+      check("dodo", "Dodo checkout link", 612, { ok: false, status: 307, error: "checkout link goes to Dodo's error page (/error/not-found) — product missing or archived?" }),
+    ],
+  };
+  const history: MonitorHistoryEntry[] = Array.from({ length: 96 * 3 }, (_, i) => {
+    const at = lastAt - i * slot;
+    const hoursAgo = (t - at) / 3600_000;
+    const failed = i === 0 ? ["dodo"] : hoursAgo > 9 && hoursAgo < 10.6 ? ["signup"] : [];
+    return { at: iso(at), ms: 1800 + ((i * 37) % 700), ok: failed.length === 0, failed, ran: i % 4 === 0 ? 10 : 9 };
+  });
+  return monitorView(last, history, { dodo: { fails: 1, since: iso(lastAt), alertedAt: null, lastOkAt: iso(lastAt - 4 * slot) } }, now);
 }
 
 export function fixtureSubs(now: Date, clinics: AdminClinic[]): SubRow[] {

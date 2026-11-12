@@ -47,6 +47,15 @@ export const SAMPLES: Record<string, OwnerAlert> = {
   renderSpike: alerts.errorSpike({ kind: "render", count: 5, threshold: 5, sample: "render crashed: Chromium OOM" }),
   serverSpike: alerts.errorSpike({ kind: "5xx", count: 10, threshold: 10, sample: "/api/dentvideo/week" }),
   newPaying: alerts.newPayingClinic({ clinic: CLINIC, interval: "month", returning: false }),
+  monitorDown: alerts.monitorDown({
+    incident: "signup:2026-11-09T06:45",
+    reminder: false,
+    checks: [{ label: "Sign-up", since: "2026-11-09T06:45:00.000Z", fails: 2, error: "no session cookie (dv-auth) on the sign-up response", hint: "Try signing up on /start yourself." }],
+  }),
+  monitorRecovered: alerts.monitorRecovered({ incident: "signup:2026-11-09T06:45", checks: [{ label: "Sign-up", since: "2026-11-09T06:45:00.000Z", minutes: 30 }] }),
+  signupBroken: alerts.signupBroken({ step: "server_sign_in", error: "Invalid login credentials" }),
+  enqueueFailed: alerts.enqueueFailed({ where: "payment", job: "week", error: "connect ECONNREFUSED", clinic: CLINIC }),
+  welcomeNotSent: alerts.welcomeNotSent({ clinic: CLINIC, result: "failed" }),
 };
 
 describe("every alert says what happened, which clinic, what was done, what to do", () => {

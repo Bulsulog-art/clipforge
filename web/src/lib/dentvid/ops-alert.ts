@@ -75,6 +75,7 @@ export class MemoryOpsStore implements OpsStore {
   async del(key: string): Promise<void> {
     this.check();
     this.kv.delete(key);
+    this.lists.delete(key);
   }
 }
 
@@ -657,6 +658,97 @@ export const alerts = {
       what: [`${a.used} of ${a.clinics} founding seats are taken.`],
       done: ["Checkout and the app stopped offering the founding price automatically."],
       todo: ["Set DENTVIDEO_FOUNDING_OFFER=off on the web app so the static landing pages stop showing the banner, and disable the code in Dodo."],
+    };
+  },
+
+  /**
+   * The synthetic monitor (worker/src/dentvid/synthetic.ts): a live check of
+   * dentvideo.com failed twice in a row (or is still failing — a reminder).
+   * `incident` makes the key unique per incident; the monitor decides when to raise.
+   */
+  monitorDown(a: { incident: string; reminder: boolean; checks: { label: string; since: string; fails: number; error: string; hint: string }[] }): OwnerAlert {
+    const labels = a.checks.map((c) => c.label).join(", ");
+    const hm = (iso: string) => iso.slice(0, 16).replace("T", " ");
+    return {
+      key: `monitor_down:${a.incident}`,
+      severity: "urgent",
+      titleTr: a.reminder ? `Hâlâ çalışmıyor: ${labels}` : `Canlı kontrol başarısız: ${labels}`,
+      titleEn: a.reminder ? `Still failing: ${labels}` : `Live check failing: ${labels}`,
+      what: a.checks.map((c) => `${c.label} has failed since ${hm(c.since)} UTC (${c.fails} checks in a row, every 15 min): ${c.error}`),
+      done: [
+        "Nothing automatic can fix this — the monitor only looks, from the worker's server, like a clinic would.",
+        "You get one “recovered” email when it passes again, and a reminder every 6 hours while it stays down.",
+      ],
+      todo: [...new Set(a.checks.map((c) => c.hint))],
+    };
+  },
+
+  monitorRecovered(a: { incident: string; checks: { label: string; since: string; minutes: number }[] }): OwnerAlert {
+    const labels = a.checks.map((c) => c.label).join(", ");
+    return {
+      key: `monitor_up:${a.incident}`,
+      severity: "good",
+      titleTr: `Tekrar çalışıyor: ${labels}`,
+      titleEn: `Recovered: ${labels}`,
+      what: a.checks.map((c) => `${c.label} passes again, after about ${c.minutes} min down (since ${c.since.slice(0, 16).replace("T", " ")} UTC).`),
+      done: ["The monitor keeps checking every 15 minutes."],
+      todo: ["If clinics may have hit the error meanwhile (sign-up, sign-in), look at new sign-ups in /dentvideo/admin."],
+    };
+  },
+
+  signupBroken(a: { step: "create_account" | "server_sign_in" | "verification_code"; error: string }): OwnerAlert {
+    const what = {
+      create_account: "A new clinic could not create its account: Liman refused to create the login.",
+      server_sign_in: "A new clinic's account was created, but signing it in on the server failed right after.",
+      verification_code: "A new clinic's account was created, but its email verification code could not be issued or sent — it cannot pay until it gets one.",
+    }[a.step];
+    return {
+      key: `signup_broken:${a.step}`,
+      severity: "urgent",
+      titleTr: "Kayıt akışında hata",
+      titleEn: "Sign-up is failing for clinics",
+      what: [what],
+      facts: [["Step", a.step], ["Error", a.error]],
+      done: [
+        a.step === "server_sign_in" ? "The browser tried to sign in by itself as a fallback; if that also failed, the clinic saw “please sign in”." : "The clinic saw an error or a “send the code again” button.",
+      ],
+      todo: [
+        "Try signing up yourself on /start in a private tab now.",
+        a.step === "verification_code"
+          ? "Check REDIS_URL and DENTVIDEO_VERIFY_SECRET (or DENTVID_SERVICE_ROLE_KEY) on the web app, and Resend."
+          : "Check Liman (auth container) and the web app's NEXT_PUBLIC_DENTVID_SUPABASE_* settings.",
+      ],
+    };
+  },
+
+  enqueueFailed(a: { where: string; job: string; error: string; clinic?: ClinicRef }): OwnerAlert {
+    return {
+      key: `enqueue_failed:${a.where}${a.clinic ? `:${a.clinic.id}` : ""}`,
+      severity: "urgent",
+      titleTr: "İş kuyruğa eklenemedi",
+      titleEn: "A job could not be queued",
+      clinic: a.clinic,
+      what: [`The web app could not put a “${a.job}” job on the worker's queue (${a.where}). Usually Redis is unreachable from the web app.`],
+      facts: [["Error", a.error]],
+      done: [
+        a.job === "week" && a.where === "payment"
+          ? "The plan is active; the first-week watchdog re-queues the week within 45 minutes once Redis is back."
+          : "The clinic was told it could not start and may try again.",
+      ],
+      todo: ["Check Redis (REDIS_URL on the web app) and the /dentvideo/admin/system page.", ...(a.clinic ? ["When Redis is back, check this clinic got its videos; queue the week from its admin page if not."] : [])],
+    };
+  },
+
+  welcomeNotSent(a: { clinic: ClinicRef; result: string }): OwnerAlert {
+    return {
+      key: `welcome_not_sent:${a.clinic.id}`,
+      severity: "warning",
+      titleTr: "Hoş geldin e-postası gönderilemedi",
+      titleEn: "A new customer's welcome email was not sent",
+      clinic: a.clinic,
+      what: [`The welcome email to a clinic that just paid did not go out (${a.result}).`],
+      done: ["The payment and plan are recorded; the first week is being made."],
+      todo: [`Send a short personal welcome${a.clinic.email ? ` to ${a.clinic.email}` : ""}, and check Resend.`],
     };
   },
 

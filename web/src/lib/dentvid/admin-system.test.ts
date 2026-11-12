@@ -18,6 +18,12 @@ import {
   parseJobHash,
   parseQueueCounts,
   workerHealth,
+  monitorIncidents,
+  monitorView,
+  parseMonitorHistory,
+  parseMonitorRun,
+  parseMonitorState,
+  QUEUES,
   type PipelineReply,
 } from "./admin-system";
 import { readSystem } from "./admin-system-server";
@@ -165,6 +171,9 @@ describe("readSystem", () => {
       "dv:worker:heartbeats": { "h:1": JSON.stringify({ host: "h", at: new Date(NOW.getTime() - 20_000).toISOString(), roles: ["dentvid"] }) },
       "dv:cost:daily": { "2026-11-10": "300" },
       "dv:spend:usd:day:2026-11-11": "125",
+      "dv:monitor:last": JSON.stringify({ at: "2026-11-11T09:45:00.000Z", ms: 2100, ok: false, results: [{ name: "signup", label: "Sign-up", ok: false, ms: 900, status: 200, error: "no session cookie" }] }),
+      "dv:monitor:history": [JSON.stringify({ at: "2026-11-11T09:30:00.000Z", ms: 2000, ok: false, failed: ["signup"], ran: 9 }), JSON.stringify({ at: "2026-11-11T09:45:00.000Z", ms: 2100, ok: false, failed: ["signup"], ran: 9 })],
+      "dv:monitor:state": JSON.stringify({ checks: { signup: { fails: 2, since: "2026-11-11T09:30:00.000Z", alertedAt: "2026-11-11T09:45:00.000Z" } } }),
     };
     const pipeline = () => {
       const cmds: [string, string][] = [];
@@ -194,6 +203,11 @@ describe("readSystem", () => {
     expect(s.failed[0]).toMatchObject({ id: "j1", name: "week", failedReason: "boom" });
     expect(s.health).toBe("up");
     expect(Object.fromEntries(s.costByDay)).toEqual({ "2026-11-10": 3, "2026-11-11": 1.25 });
+    expect(s.monitor.status).toBe("failing");
+    expect(s.monitor.last?.results[0]).toMatchObject({ name: "signup", ok: false, error: "no session cookie" });
+    expect(s.monitor.history.map((h) => h.at)).toEqual(["2026-11-11T09:45:00.000Z", "2026-11-11T09:30:00.000Z"]);
+    expect(s.monitor.state.signup).toMatchObject({ fails: 2, since: "2026-11-11T09:30:00.000Z" });
+    expect(s.monitor.uptime24h).toBe(0);
     // Nothing that writes.
     expect([...used].every((c) => ["llen", "zcard", "hget", "zrevrange", "lrange", "hgetall", "get", "hmget"].includes(c))).toBe(true);
   });
@@ -257,5 +271,51 @@ describe("no admin code in the browser", () => {
   it("no client component imports the admin modules or the service-role client", () => {
     const client = roots.flatMap((r) => files(path.resolve(r))).filter((f) => /\.tsx?$/.test(f) && /^\s*["']use client["']/m.test(readFileSync(f, "utf8")));
     for (const f of client) expect(readFileSync(f, "utf8"), f).not.toMatch(/admin-(server|loaders|signed|actions|system-server|audit)|dvAdmin\(/);
+  });
+});
+
+describe("the synthetic monitor on the system page", () => {
+  const run = (at: string, ok: boolean, failed: string[] = []) => JSON.stringify({ at, ms: 1000, ok, failed, ran: 9 });
+
+  it("the crons queue (the monitor's) is listed", () => {
+    expect(QUEUES).toContain("crons");
+  });
+
+  it("parses runs defensively", () => {
+    expect(parseMonitorRun(null)).toBeNull();
+    expect(parseMonitorRun("{bad")).toBeNull();
+    expect(parseMonitorRun(JSON.stringify({ at: "nope", results: [] }))).toBeNull();
+    const r = parseMonitorRun(JSON.stringify({ at: "2026-11-11T09:45:00.000Z", ms: 5, ok: true, results: [{ name: "dodo", ok: true, ms: 3, skipped: "checked hourly" }, { nope: 1 }] }));
+    expect(r?.results).toEqual([{ name: "dodo", label: "dodo", ok: true, ms: 3, status: null, error: null, skipped: "checked hourly" }]);
+    expect(parseMonitorHistory(["x", run("2026-11-11T09:00:00.000Z", true)])).toHaveLength(1);
+    expect(parseMonitorState("x")).toEqual({});
+  });
+
+  it("status: never / stale after 35 min / failing / ok, and the 24 h pass rate", () => {
+    const h = parseMonitorHistory([run("2026-11-10T09:00:00.000Z", false, ["signup"]), run("2026-11-11T09:15:00.000Z", false, ["signup"]), run("2026-11-11T09:30:00.000Z", true), run("2026-11-11T09:45:00.000Z", true), run("2026-11-11T09:50:00.000Z", true)]);
+    const last = (at: string, ok: boolean) => ({ at, ms: 1, ok, results: [] });
+    expect(monitorView(null, [], {}, NOW).status).toBe("never");
+    expect(monitorView(last("2026-11-11T09:20:00.000Z", true), h, {}, NOW).status).toBe("stale");
+    expect(monitorView(last("2026-11-11T09:45:00.000Z", false), h, {}, NOW).status).toBe("failing");
+    const v = monitorView(last("2026-11-11T09:45:00.000Z", true), h, {}, NOW);
+    expect(v.status).toBe("ok");
+    // The run 25 h ago is outside the window: 3 of 4 pass.
+    expect(v.runs24h).toBe(4);
+    expect(v.uptime24h).toBe(75);
+  });
+
+  it("incidents: consecutive failing runs per check, ended by an all-clear run; the last one may be ongoing", () => {
+    const h = parseMonitorHistory([
+      run("2026-11-11T06:00:00.000Z", false, ["signup"]),
+      run("2026-11-11T06:15:00.000Z", false, ["signup", "page-home"]),
+      run("2026-11-11T06:30:00.000Z", true),
+      run("2026-11-11T08:00:00.000Z", false, ["dodo"]),
+      run("2026-11-11T08:15:00.000Z", false, ["dodo"]),
+    ]);
+    expect(monitorIncidents(h)).toEqual([
+      { check: "dodo", from: "2026-11-11T08:00:00.000Z", to: "2026-11-11T08:15:00.000Z", runs: 2, ongoing: true },
+      { check: "signup", from: "2026-11-11T06:00:00.000Z", to: "2026-11-11T06:15:00.000Z", runs: 2, ongoing: false },
+      { check: "page-home", from: "2026-11-11T06:15:00.000Z", to: "2026-11-11T06:15:00.000Z", runs: 1, ongoing: false },
+    ]);
   });
 });
