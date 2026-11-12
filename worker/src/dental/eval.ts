@@ -1,7 +1,13 @@
 /**
  * The agents' report card.
  *
- *   npx tsx src/dental/eval.ts [--per 4] [--out ./dental-eval] [--only tr,de]
+ *   OPENAI_API_KEY=… npx tsx src/dental/eval.ts [--per 4] [--out ./dental-eval] [--only tr,de] [--max-usd 5]
+ *
+ * --max-usd is a hard spend cap (default 5): every chat call, the judge's
+ * included, is metered, and once the bill reaches the cap no further call
+ * is made — the clinics still running stop, and the report covers what was
+ * finished. Calls already in flight finish, so the real total can overshoot
+ * by at most one call per clinic running in parallel (cents).
  *
  * A fixed panel of clinics (ten countries and languages, different tones
  * and forms of address) is run through the whole agent chain without
@@ -16,10 +22,16 @@
  *                     that language, or like a translated leaflet (1-5)
  *   spread            distinct services covered by the ready videos
  *
+ *   rubric            the deterministic script rubric (rubric.ts, free):
+ *                     hook, clarity, accuracy, native, compliance, cta and
+ *                     the week's variety, 1-5 each
+ *
  * The point is to change a prompt and see the numbers move, instead of
  * reading three outputs and deciding it "feels better". Results land in
  * <out>/report.md and <out>/eval.json, one row per video, with the reasons
- * for every rewrite and rejection.
+ * for every rewrite and rejection, and <out>/scripts.json — every ready
+ * script in fixture form, so `offline-eval.ts --fixtures <out>/scripts.json`
+ * re-grades a paid run for free after any rubric change.
  */
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -31,6 +43,8 @@ import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { patientSearches } from "./questions.js";
 import { totalSeconds } from "../remotion/scene-plan.js";
 import { planText, produceVideo, type VideoPackage } from "./week.js";
+import { gradeWeek, type RubricScene, type RubricScript } from "./rubric.js";
+import type { WeekVoice } from "./memory.js";
 
 export const PANEL: ClinicProfile[] = [
   { name: "Gülüş Ağız ve Diş Sağlığı", city: "İzmir", country: "TR", language: "tr", tone: "warm", address: "formal",
@@ -98,6 +112,11 @@ export type EvalRow = {
   narration?: string;
   /** The plan's length before it is stretched to the voice, in seconds. */
   planSeconds?: number;
+  /** Deterministic rubric (rubric.ts): per-script mean of six dimensions, and the clinic week's variety. */
+  rubric?: number;
+  variety?: number;
+  /** The script in fixture form (offline-eval.ts). */
+  script?: RubricScript;
 };
 
 export function summarise(rows: EvalRow[]) {
@@ -112,6 +131,7 @@ export function summarise(rows: EvalRow[]) {
       firstPass: avg(rs.map((r) => (r.status === "ready" && r.rewrites === 0 ? 1 : 0))),
       hook: avg(ok.map((r) => r.hookScore ?? 0)),
       voice: avg(ok.map((r) => r.voiceScore ?? 0)),
+      rubric: avg(ok.map((r) => r.rubric ?? 0)),
       services: new Set(ok.map((r) => r.service.toLowerCase())).size,
       videos: rs.length,
     };
@@ -122,6 +142,8 @@ export function summarise(rows: EvalRow[]) {
     firstPass: avg(rows.map((r) => (r.status === "ready" && r.rewrites === 0 ? 1 : 0))),
     hook: avg(ready.map((r) => r.hookScore ?? 0)),
     voice: avg(ready.map((r) => r.voiceScore ?? 0)),
+    rubric: avg(ready.map((r) => r.rubric ?? 0)),
+    variety: avg(ready.map((r) => r.variety ?? 0)),
     byLang,
   };
 }
@@ -130,11 +152,11 @@ export function reportMarkdown(rows: EvalRow[], s: ReturnType<typeof summarise>,
   const lines = [
     `# DentVideo agent eval — ${when}`,
     "",
-    `**${s.videos} videos** · ready ${pct(s.readyRate)} · first pass ${pct(s.firstPass)} · hook ${s.hook}/5 · voice ${s.voice}/5`,
+    `**${s.videos} videos** · ready ${pct(s.readyRate)} · first pass ${pct(s.firstPass)} · hook ${s.hook}/5 · voice ${s.voice}/5 · rubric ${s.rubric}/5 · variety ${s.variety}/5`,
     "",
-    "| Language | Ready | First pass | Hook | Voice | Services | Videos |",
-    "|---|---|---|---|---|---|---|",
-    ...s.byLang.map((l) => `| ${l.language} | ${pct(l.readyRate)} | ${pct(l.firstPass)} | ${l.hook} | ${l.voice} | ${l.services} | ${l.videos} |`),
+    "| Language | Ready | First pass | Hook | Voice | Rubric | Services | Videos |",
+    "|---|---|---|---|---|---|---|---|",
+    ...s.byLang.map((l) => `| ${l.language} | ${pct(l.readyRate)} | ${pct(l.firstPass)} | ${l.hook} | ${l.voice} | ${l.rubric} | ${l.services} | ${l.videos} |`),
     "",
     "## Videos",
     "",
@@ -143,6 +165,7 @@ export function reportMarkdown(rows: EvalRow[], s: ReturnType<typeof summarise>,
     lines.push(`### [${r.status}${r.stage ? `:${r.stage}` : ""}] ${r.language} · ${r.topic}`);
     if (r.hook) lines.push(`- Hook (${r.hookScore}/5): ${r.hook} — ${r.hookWhy}`);
     if (r.voiceScore) lines.push(`- Voice ${r.voiceScore}/5 — ${r.voiceWhy}`);
+    if (r.rubric) lines.push(`- Rubric ${r.rubric}/5 (week variety ${r.variety}/5)`);
     lines.push(`- Rewrites: ${r.rewrites}`);
     for (const n of r.notes.slice(0, 6)) lines.push(`  - ${n}`);
     lines.push("");
@@ -180,11 +203,45 @@ export function usageCost(usage: Usage): number | undefined {
   return Math.round(usd * 10000) / 10000;
 }
 
-/** Counts every chat completion's tokens by model, without touching the agents. */
-export function meterClient(client: OpenAI, usage: Usage): OpenAI {
+export class SpendCapError extends Error {
+  constructor(public usd: number, public cap: number) {
+    super(`eval spend cap reached: $${usd} of $${cap} — stopping`);
+  }
+}
+
+/**
+ * A spend cap over one or more usage meters. `check` throws once the
+ * metered cost reaches the cap; it refuses to run at all when a model's
+ * price is unknown, because then the cost cannot be capped.
+ */
+export function spendCap(cap: number, ...meters: Usage[]) {
+  const total = () => {
+    const merged: Usage = {};
+    for (const m of meters)
+      for (const [model, u] of Object.entries(m)) {
+        const t = (merged[model] ??= { calls: 0, input: 0, output: 0 });
+        t.calls += u.calls;
+        t.input += u.input;
+        t.output += u.output;
+      }
+    return usageCost(merged);
+  };
+  return {
+    total,
+    check(model: string) {
+      if (!PRICES[model]) throw new Error(`no price for model "${model}" in PRICES — cannot enforce --max-usd; add it to eval.ts`);
+      const usd = total() ?? 0;
+      if (usd >= cap) throw new SpendCapError(usd, cap);
+    },
+  };
+}
+
+/** Counts every chat completion's tokens by model, without touching the agents; `beforeCall` may veto a call (the spend cap). */
+export function meterClient(client: OpenAI, usage: Usage, beforeCall?: (model: string) => void): OpenAI {
   const completions = client.chat.completions;
   const create = completions.create.bind(completions) as (body: unknown, opts?: unknown) => Promise<unknown>;
   (completions as unknown as { create: unknown }).create = async (body: { model: string }, opts?: unknown) => {
+    beforeCall?.(body.model);
     const res = (await create(body, opts)) as OpenAI.Chat.ChatCompletion;
     const u = (usage[body.model] ??= { calls: 0, input: 0, output: 0 });
     u.calls++;
@@ -197,10 +254,43 @@ export function meterClient(client: OpenAI, usage: Usage): OpenAI {
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
+/** A ready package in fixture form, for the rubric and offline-eval.ts. */
+export function scriptOf(profile: ClinicProfile, topic: Topic, pkg: Extract<VideoPackage, { status: "ready" }>): RubricScript {
+  return {
+    id: `${profile.language}-${topic.title}`.slice(0, 80),
+    language: profile.language,
+    country: profile.country,
+    address: profile.address,
+    topic: { title: topic.title, hook: topic.hook, service: topic.service, pillar: topic.pillar, question: topic.question },
+    scenes: pkg.plan.scenes as unknown as RubricScene[],
+    narration: pkg.plan.voiceover?.text ?? null,
+    caption: pkg.copy.caption,
+  };
+}
+
+/** Fills in the rubric columns for one clinic's rows (variety is graded across its week). */
+export function addRubric(rows: EvalRow[]): EvalRow[] {
+  const ready = rows.filter((r) => r.script);
+  if (!ready.length) return rows;
+  const week = gradeWeek(ready.map((r) => r.script!));
+  ready.forEach((r, i) => {
+    r.rubric = week.scripts[i].overall;
+    r.variety = week.variety;
+  });
+  return rows;
+}
+
 async function evalClinic(client: OpenAI, judgeClient: OpenAI, profile: ClinicProfile, per: number): Promise<EvalRow[]> {
   const patientSearchList = process.env.EVAL_SEARCHES ? await patientSearches(profile.services, profile.language, profile.country) : [];
-  const topics = await sharpenHooks(client, profile, await planWeek(client, profile, { count: per, patientSearches: patientSearchList }));
+  let topics: Topic[];
+  try {
+    topics = await sharpenHooks(client, profile, await planWeek(client, profile, { count: per, patientSearches: patientSearchList }));
+  } catch (err) {
+    if (err instanceof SpendCapError) return [];
+    throw err;
+  }
   const rows: EvalRow[] = [];
+  const week: WeekVoice = { openers: [], closings: [] };
   for (const topic of topics) {
     const notes: string[] = [];
     let rewrites = 0;
@@ -213,8 +303,10 @@ async function evalClinic(client: OpenAI, judgeClient: OpenAI, profile: ClinicPr
     };
     let pkg: VideoPackage;
     try {
-      pkg = await produceVideo({ client, log }, profile, topic);
+      pkg = await produceVideo({ client, log }, profile, topic, new Set(), week);
     } catch (err) {
+      // Out of budget: stop this clinic, keep what is finished.
+      if (err instanceof SpendCapError) break;
       rows.push(base(profile, topic, { status: "rejected", stage: "error", rewrites, notes: [...notes, (err as Error).message] }));
       continue;
     }
@@ -225,7 +317,13 @@ async function evalClinic(client: OpenAI, judgeClient: OpenAI, profile: ClinicPr
     const hookScene = pkg.plan.scenes.find((s) => s.kind === "hook");
     const hook = hookScene && "text" in hookScene ? hookScene.text : topic.hook;
     const narration = pkg.plan.voiceover?.text ?? planText(pkg.plan);
-    const verdict = await judge(judgeClient, profile, hook, narration);
+    let verdict: z.infer<typeof judgeSchema>;
+    try {
+      verdict = await judge(judgeClient, profile, hook, narration);
+    } catch (err) {
+      if (err instanceof SpendCapError) break;
+      throw err;
+    }
     rows.push(
       base(profile, topic, {
         status: "ready",
@@ -238,10 +336,11 @@ async function evalClinic(client: OpenAI, judgeClient: OpenAI, profile: ClinicPr
         voiceWhy: verdict.voiceWhy,
         narration,
         planSeconds: totalSeconds(pkg.plan),
+        script: scriptOf(profile, topic, pkg),
       }),
     );
   }
-  return rows;
+  return addRubric(rows);
 }
 
 function base(profile: ClinicProfile, topic: Topic, rest: Omit<EvalRow, "clinic" | "language" | "topic" | "service">): EvalRow {
@@ -256,12 +355,16 @@ async function main() {
   const per = Number(arg("per") ?? 4);
   const out = path.resolve(arg("out") ?? "dental-eval");
   const only = arg("only")?.split(",");
+  const maxUsd = Number(arg("max-usd") ?? 5);
+  if (!(maxUsd > 0)) throw new Error("--max-usd must be a positive number of dollars");
   const fetchOpt = { fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] };
   // Production calls are metered; the judge runs on its own client so its
   // tokens (the eval's cost, not a video's) stay out of the bill.
   const usage: Usage = {};
-  const client = meterClient(new OpenAI(fetchOpt), usage);
-  const judgeClient = new OpenAI(fetchOpt);
+  const judgeUsage: Usage = {};
+  const cap = spendCap(maxUsd, usage, judgeUsage);
+  const client = meterClient(new OpenAI(fetchOpt), usage, (m) => cap.check(m));
+  const judgeClient = meterClient(new OpenAI(fetchOpt), judgeUsage, (m) => cap.check(m));
   const panel = PANEL.filter((p) => !only || only.includes(p.language));
 
   // Clinics run in parallel; each clinic's videos run in order, as in production.
@@ -278,12 +381,19 @@ async function main() {
     usd,
     usdPerVideo: usd === undefined ? undefined : Math.round((usd / rows.length) * 10000) / 10000,
     usdPerReadyVideo: usd === undefined || !readyCount ? undefined : Math.round((usd / readyCount) * 10000) / 10000,
+    judgeUsage,
+    totalUsdIncludingJudge: cap.total(),
+    maxUsd,
     minutes: Math.round((Date.now() - started) / 600) / 100,
   };
   const when = new Date().toISOString().slice(0, 16).replace("T", " ");
   await fs.mkdir(out, { recursive: true });
   await fs.writeFile(path.join(out, "eval.json"), JSON.stringify({ when, summary: s, costs, rows }, null, 2));
   await fs.writeFile(path.join(out, "report.md"), reportMarkdown(rows, s, when));
+  await fs.writeFile(
+    path.join(out, "scripts.json"),
+    JSON.stringify(rows.filter((r) => r.script).map((r) => ({ ...r.script, week: r.clinic, source: `live eval ${when}` })), null, 2),
+  );
   console.log(reportMarkdown(rows, s, when).split("## Videos")[0]);
   console.log(JSON.stringify(costs, null, 2));
 }

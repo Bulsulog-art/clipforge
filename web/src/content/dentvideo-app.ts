@@ -90,6 +90,47 @@ export type AppText = {
     shareHint: string;
     decline: string;
     undo: string;
+    /** The full-screen review: one big vertical player, swipe or arrows between the week's videos, decide in place. */
+    review: {
+      start: string;
+      watch: string;
+      title: string;
+      position: string;
+      previous: string;
+      next: string;
+      swipeHint: string;
+      allDone: string;
+      openPost: string;
+      postedBadge: string;
+    };
+    /** Declining with a reason; the note reaches the team (dentvid_items.approval_note). */
+    declineForm: {
+      title: string;
+      lead: string;
+      reasons: { wrong: string; notUs: string; look: string; other: string };
+      noteLabel: string;
+      notePlaceholder: string;
+      submit: string;
+      cancel: string;
+      done: string;
+    };
+    /** The "post it" step for an approved video. */
+    post: {
+      title: string;
+      format: string;
+      captionLabel: string;
+      tipsTitle: string;
+      platforms: { instagram: string; tiktok: string; facebook: string; whatsapp: string };
+      tips: { instagram: [string, string, string]; tiktok: [string, string, string]; facebook: [string, string, string]; whatsapp: [string, string, string] };
+      markPosted: string;
+      posted: string;
+      progress: string;
+      allPosted: string;
+      streak: string;
+      streakOne: string;
+      deviceNote: string;
+      postNext: string;
+    };
     /** "Background photos": the picker under each generated video. */
     photos: {
       title: string;
@@ -313,7 +354,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "This week's videos aren't made yet",
       startLead: "New videos arrive every Monday. If they're not here yet, you can start them now — it takes about 15 minutes.",
       shareTitle: "All approved — time to post",
-      shareLead: "Tap Share on a video. The caption is copied for you to paste.",
+      shareLead: "Tap “Post it” on a video: share or download it, copy the caption and follow the steps for each app.",
       idleTitle: "Nothing to do this week",
       idleLead: "Your next videos arrive on Monday.",
       emptyTitle: "No videos yet",
@@ -370,6 +411,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Caption copied — choose Instagram or TikTok, then paste it.",
       decline: "Decline",
       undo: "Undo",
+      review: {
+        start: "Watch and approve",
+        watch: "Watch this week's videos",
+        title: "This week's videos",
+        position: "{n} of {total}",
+        previous: "Previous video",
+        next: "Next video",
+        swipeHint: "Swipe for the next video",
+        allDone: "Every video is decided. Now post the approved ones.",
+        openPost: "Post it",
+        postedBadge: "Posted",
+      },
+      declineForm: {
+        title: "Why are you declining it?",
+        lead: "Your note goes to our team together with the video.",
+        reasons: {
+          wrong: "Something is wrong or unclear",
+          notUs: "Not a topic for our clinic",
+          look: "Doesn't look right",
+          other: "Something else",
+        },
+        noteLabel: "What should change? (optional)",
+        notePlaceholder: "For example: we don't offer this treatment",
+        submit: "Decline this video",
+        cancel: "Cancel",
+        done: "Declined. Your note is with our team.",
+      },
+      post: {
+        title: "Post it",
+        format: "A vertical MP4 — the format Reels, TikTok, Facebook and WhatsApp Status take.",
+        captionLabel: "Caption and hashtags",
+        tipsTitle: "How to post on",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "WhatsApp Status",
+        },
+        tips: {
+          instagram: ["Open Instagram, tap + and choose Reel.", "Pick the video from your gallery.", "Paste the caption and share."],
+          tiktok: ["Open TikTok and tap +.", "Pick the video from your gallery.", "Paste the caption and post."],
+          facebook: ["Switch to your clinic's Page, not your own profile.", "Create a Reel and pick the video.", "Paste the caption and share."],
+          whatsapp: ["Open WhatsApp and go to Updates.", "Add a status and pick the video from your gallery.", "Add a short line, such as “Questions? Message us.”, and send."],
+        },
+        markPosted: "Mark as posted",
+        posted: "Posted",
+        progress: "{n} of {total} posted this week",
+        allPosted: "All of this week's videos are posted.",
+        streak: "{n} weeks in a row",
+        streakOne: "Posted this week",
+        deviceNote: "Your ticks are saved on this device.",
+        postNext: "Post the next one",
+      },
       photos: {
         title: "Background photos",
         hint: "Tap 1–4 photos to rotate behind the text. Your video is re-made with them.",
@@ -619,7 +713,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "Die Videos dieser Woche sind noch nicht erstellt",
       startLead: "Neue Videos kommen jeden Montag. Sind sie noch nicht da, können Sie sie jetzt starten – das dauert etwa 15 Minuten.",
       shareTitle: "Alles freigegeben – Zeit zum Posten",
-      shareLead: "Tippen Sie bei einem Video auf „Teilen“. Der Beitragstext wird für Sie kopiert.",
+      shareLead: "Tippen Sie bei einem Video auf „Posten“: teilen oder herunterladen, Text kopieren und den Schritten für die jeweilige App folgen.",
       idleTitle: "Diese Woche ist nichts mehr zu tun",
       idleLead: "Ihre nächsten Videos kommen am Montag.",
       emptyTitle: "Noch keine Videos",
@@ -676,6 +770,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Text kopiert – Instagram oder TikTok wählen und einfügen.",
       decline: "Ablehnen",
       undo: "Rückgängig",
+      review: {
+        start: "Ansehen und freigeben",
+        watch: "Videos dieser Woche ansehen",
+        title: "Videos dieser Woche",
+        position: "{n} von {total}",
+        previous: "Vorheriges Video",
+        next: "Nächstes Video",
+        swipeHint: "Wischen Sie zum nächsten Video",
+        allDone: "Über jedes Video ist entschieden. Jetzt die freigegebenen posten.",
+        openPost: "Posten",
+        postedBadge: "Gepostet",
+      },
+      declineForm: {
+        title: "Warum lehnen Sie es ab?",
+        lead: "Ihre Notiz geht zusammen mit dem Video an unser Team.",
+        reasons: {
+          wrong: "Etwas ist falsch oder unklar",
+          notUs: "Kein Thema für unsere Praxis",
+          look: "Sieht nicht gut aus",
+          other: "Etwas anderes",
+        },
+        noteLabel: "Was soll sich ändern? (optional)",
+        notePlaceholder: "Zum Beispiel: Diese Behandlung bieten wir nicht an",
+        submit: "Video ablehnen",
+        cancel: "Abbrechen",
+        done: "Abgelehnt. Ihre Notiz ist bei unserem Team.",
+      },
+      post: {
+        title: "Posten",
+        format: "Ein Hochformat-MP4 – das Format für Reels, TikTok, Facebook und den WhatsApp-Status.",
+        captionLabel: "Text und Hashtags",
+        tipsTitle: "So posten Sie auf",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "WhatsApp-Status",
+        },
+        tips: {
+          instagram: ["Instagram öffnen, auf + tippen und Reel wählen.", "Das Video aus Ihrer Galerie wählen.", "Den Text einfügen und teilen."],
+          tiktok: ["TikTok öffnen und auf + tippen.", "Das Video aus Ihrer Galerie wählen.", "Den Text einfügen und posten."],
+          facebook: ["Zur Seite Ihrer Praxis wechseln, nicht zum eigenen Profil.", "Ein Reel erstellen und das Video wählen.", "Den Text einfügen und teilen."],
+          whatsapp: ["WhatsApp öffnen und zu „Aktuelles“ gehen.", "Einen Status hinzufügen und das Video aus der Galerie wählen.", "Eine kurze Zeile wie „Fragen? Schreiben Sie uns.“ ergänzen und senden."],
+        },
+        markPosted: "Als gepostet markieren",
+        posted: "Gepostet",
+        progress: "{n} von {total} diese Woche gepostet",
+        allPosted: "Alle Videos dieser Woche sind gepostet.",
+        streak: "{n} Wochen in Folge",
+        streakOne: "Diese Woche gepostet",
+        deviceNote: "Ihre Häkchen werden auf diesem Gerät gespeichert.",
+        postNext: "Das nächste posten",
+      },
       photos: {
         title: "Hintergrundfotos",
         hint: "Tippen Sie 1–4 Fotos an, die hinter dem Text wechseln. Das Video wird damit neu erstellt.",
@@ -928,7 +1075,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "Los vídeos de esta semana aún no están hechos",
       startLead: "Los vídeos nuevos llegan cada lunes. Si aún no están, puedes empezarlos ahora: tarda unos 15 minutos.",
       shareTitle: "Todo aprobado: es hora de publicar",
-      shareLead: "Pulsa «Compartir» en un vídeo. El texto se copia para que lo pegues.",
+      shareLead: "Pulsa «Publicar» en un vídeo: compártelo o descárgalo, copia el texto y sigue los pasos de cada app.",
       idleTitle: "No hay nada pendiente esta semana",
       idleLead: "Tus próximos vídeos llegan el lunes.",
       emptyTitle: "Aún no hay vídeos",
@@ -985,6 +1132,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Texto copiado: elige Instagram o TikTok y pégalo.",
       decline: "Descartar",
       undo: "Deshacer",
+      review: {
+        start: "Ver y aprobar",
+        watch: "Ver los vídeos de esta semana",
+        title: "Vídeos de esta semana",
+        position: "{n} de {total}",
+        previous: "Vídeo anterior",
+        next: "Vídeo siguiente",
+        swipeHint: "Desliza para ver el siguiente vídeo",
+        allDone: "Ya has decidido sobre todos los vídeos. Ahora publica los aprobados.",
+        openPost: "Publicar",
+        postedBadge: "Publicado",
+      },
+      declineForm: {
+        title: "¿Por qué lo rechazas?",
+        lead: "Tu nota llega a nuestro equipo junto con el vídeo.",
+        reasons: {
+          wrong: "Algo es incorrecto o poco claro",
+          notUs: "No es un tema para nuestra clínica",
+          look: "No se ve bien",
+          other: "Otra cosa",
+        },
+        noteLabel: "¿Qué debería cambiar? (opcional)",
+        notePlaceholder: "Por ejemplo: no ofrecemos este tratamiento",
+        submit: "Rechazar este vídeo",
+        cancel: "Cancelar",
+        done: "Rechazado. Tu nota ya está con nuestro equipo.",
+      },
+      post: {
+        title: "Publicar",
+        format: "Un MP4 vertical, el formato que usan Reels, TikTok, Facebook y los estados de WhatsApp.",
+        captionLabel: "Texto y hashtags",
+        tipsTitle: "Cómo publicar en",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "Estado de WhatsApp",
+        },
+        tips: {
+          instagram: ["Abre Instagram, toca + y elige Reel.", "Elige el vídeo de tu galería.", "Pega el texto y compártelo."],
+          tiktok: ["Abre TikTok y toca +.", "Elige el vídeo de tu galería.", "Pega el texto y publícalo."],
+          facebook: ["Cambia a la página de tu clínica, no a tu perfil personal.", "Crea un reel y elige el vídeo.", "Pega el texto y compártelo."],
+          whatsapp: ["Abre WhatsApp y ve a Novedades.", "Añade un estado y elige el vídeo de tu galería.", "Añade una frase corta, como «¿Dudas? Escríbenos.», y envíalo."],
+        },
+        markPosted: "Marcar como publicado",
+        posted: "Publicado",
+        progress: "{n} de {total} publicados esta semana",
+        allPosted: "Todos los vídeos de esta semana están publicados.",
+        streak: "{n} semanas seguidas",
+        streakOne: "Publicado esta semana",
+        deviceNote: "Tus marcas se guardan en este dispositivo.",
+        postNext: "Publicar el siguiente",
+      },
       photos: {
         title: "Fotos de fondo",
         hint: "Toque de 1 a 4 fotos para que roten detrás del texto. El vídeo se vuelve a crear con ellas.",
@@ -1237,7 +1437,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "Bu haftanın videoları henüz hazırlanmadı",
       startLead: "Yeni videolar her pazartesi gelir. Henüz gelmediyse şimdi başlatabilirsiniz; yaklaşık 15 dakika sürer.",
       shareTitle: "Hepsi onaylandı — paylaşma zamanı",
-      shareLead: "Bir videoda “Paylaş”a dokunun. Açıklama yapıştırmanız için kopyalanır.",
+      shareLead: "Bir videoda “Paylaş”a dokunun: paylaşın ya da indirin, açıklamayı kopyalayın ve her uygulamanın adımlarını izleyin.",
       idleTitle: "Bu hafta yapılacak bir şey yok",
       idleLead: "Sonraki videolarınız pazartesi gelir.",
       emptyTitle: "Henüz video yok",
@@ -1294,6 +1494,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Açıklama kopyalandı — Instagram'ı veya TikTok'u seçip yapıştırın.",
       decline: "Reddet",
       undo: "Geri al",
+      review: {
+        start: "İzle ve onayla",
+        watch: "Bu haftanın videolarını izleyin",
+        title: "Bu haftanın videoları",
+        position: "{n} / {total}",
+        previous: "Önceki video",
+        next: "Sonraki video",
+        swipeHint: "Sonraki video için kaydırın",
+        allDone: "Tüm videolar için karar verdiniz. Şimdi onayladıklarınızı paylaşın.",
+        openPost: "Paylaş",
+        postedBadge: "Paylaşıldı",
+      },
+      declineForm: {
+        title: "Neden reddediyorsunuz?",
+        lead: "Notunuz videoyla birlikte ekibimize iletilir.",
+        reasons: {
+          wrong: "Yanlış ya da belirsiz bir şey var",
+          notUs: "Kliniğimize uygun bir konu değil",
+          look: "Görünüşü iyi değil",
+          other: "Başka bir neden",
+        },
+        noteLabel: "Ne değişmeli? (isteğe bağlı)",
+        notePlaceholder: "Örneğin: Bu tedaviyi sunmuyoruz",
+        submit: "Bu videoyu reddet",
+        cancel: "Vazgeç",
+        done: "Reddedildi. Notunuz ekibimize iletildi.",
+      },
+      post: {
+        title: "Paylaşın",
+        format: "Dikey MP4 — Reels, TikTok, Facebook ve WhatsApp Durum'un kullandığı format.",
+        captionLabel: "Açıklama ve etiketler",
+        tipsTitle: "Nasıl paylaşılır:",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "WhatsApp Durum",
+        },
+        tips: {
+          instagram: ["Instagram'ı açın, + simgesine dokunup Reels'i seçin.", "Videoyu galerinizden seçin.", "Açıklamayı yapıştırıp paylaşın."],
+          tiktok: ["TikTok'u açıp + simgesine dokunun.", "Videoyu galerinizden seçin.", "Açıklamayı yapıştırıp yayınlayın."],
+          facebook: ["Kişisel profilinize değil, kliniğinizin sayfasına geçin.", "Bir Reel oluşturup videoyu seçin.", "Açıklamayı yapıştırıp paylaşın."],
+          whatsapp: ["WhatsApp'ı açıp Güncellemeler sekmesine gidin.", "Durum ekleyip videoyu galerinizden seçin.", "“Sorularınız için bize yazın.” gibi kısa bir not ekleyip gönderin."],
+        },
+        markPosted: "Paylaşıldı olarak işaretle",
+        posted: "Paylaşıldı",
+        progress: "Bu hafta {total} videodan {n} tanesi paylaşıldı",
+        allPosted: "Bu haftanın tüm videoları paylaşıldı.",
+        streak: "Üst üste {n} hafta",
+        streakOne: "Bu hafta paylaşıldı",
+        deviceNote: "İşaretleriniz bu cihazda saklanır.",
+        postNext: "Sıradakini paylaşın",
+      },
       photos: {
         title: "Arka plan fotoğrafları",
         hint: "Metnin arkasında dönecek 1–4 fotoğrafa dokunun. Videonuz bunlarla yeniden hazırlanır.",
@@ -1546,7 +1799,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "Les vidéos de cette semaine ne sont pas encore créées",
       startLead: "Les nouvelles vidéos arrivent chaque lundi. Si elles ne sont pas encore là, vous pouvez les lancer maintenant : comptez environ 15 minutes.",
       shareTitle: "Tout est validé : place à la publication",
-      shareLead: "Touchez « Partager » sur une vidéo. Le texte est copié, il ne reste qu'à le coller.",
+      shareLead: "Touchez « Publier » sur une vidéo : partagez-la ou téléchargez-la, copiez la légende et suivez les étapes de chaque application.",
       idleTitle: "Rien à faire cette semaine",
       idleLead: "Vos prochaines vidéos arrivent lundi.",
       emptyTitle: "Pas encore de vidéos",
@@ -1603,6 +1856,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Texte copié : choisissez Instagram ou TikTok, puis collez-le.",
       decline: "Refuser",
       undo: "Annuler",
+      review: {
+        start: "Regarder et approuver",
+        watch: "Voir les vidéos de la semaine",
+        title: "Les vidéos de la semaine",
+        position: "{n} sur {total}",
+        previous: "Vidéo précédente",
+        next: "Vidéo suivante",
+        swipeHint: "Balayez pour la vidéo suivante",
+        allDone: "Vous avez statué sur chaque vidéo. Publiez maintenant celles que vous avez approuvées.",
+        openPost: "Publier",
+        postedBadge: "Publiée",
+      },
+      declineForm: {
+        title: "Pourquoi la refusez-vous ?",
+        lead: "Votre note est transmise à notre équipe avec la vidéo.",
+        reasons: {
+          wrong: "Quelque chose est faux ou peu clair",
+          notUs: "Pas un sujet pour notre cabinet",
+          look: "Le rendu ne convient pas",
+          other: "Autre chose",
+        },
+        noteLabel: "Que faudrait-il changer ? (facultatif)",
+        notePlaceholder: "Par exemple : nous ne proposons pas ce soin",
+        submit: "Refuser cette vidéo",
+        cancel: "Annuler",
+        done: "Refusée. Votre note est transmise à notre équipe.",
+      },
+      post: {
+        title: "Publier",
+        format: "Un MP4 vertical, le format des Reels, de TikTok, de Facebook et du statut WhatsApp.",
+        captionLabel: "Légende et hashtags",
+        tipsTitle: "Publier sur",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "Statut WhatsApp",
+        },
+        tips: {
+          instagram: ["Ouvrez Instagram, touchez + et choisissez Reel.", "Choisissez la vidéo dans votre galerie.", "Collez la légende et partagez."],
+          tiktok: ["Ouvrez TikTok et touchez +.", "Choisissez la vidéo dans votre galerie.", "Collez la légende et publiez."],
+          facebook: ["Passez sur la Page de votre cabinet, pas sur votre profil personnel.", "Créez un Reel et choisissez la vidéo.", "Collez la légende et partagez."],
+          whatsapp: ["Ouvrez WhatsApp et allez dans Actus.", "Ajoutez un statut et choisissez la vidéo dans votre galerie.", "Ajoutez une courte phrase, comme « Une question ? Écrivez-nous. », puis envoyez."],
+        },
+        markPosted: "Marquer comme publiée",
+        posted: "Publiée",
+        progress: "{n} sur {total} publiées cette semaine",
+        allPosted: "Toutes les vidéos de la semaine sont publiées.",
+        streak: "{n} semaines d'affilée",
+        streakOne: "Publiée cette semaine",
+        deviceNote: "Vos coches sont enregistrées sur cet appareil.",
+        postNext: "Publier la suivante",
+      },
       photos: {
         title: "Photos d'arrière-plan",
         hint: "Touchez 1 à 4 photos qui défileront derrière le texte. La vidéo est refaite avec elles.",
@@ -1859,7 +2165,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "今週の動画はまだ制作されていません",
       startLead: "新しい動画は毎週月曜日に届きます。まだ届いていない場合は、今すぐ制作を始められます。15分ほどかかります。",
       shareTitle: "すべて承認済みです。投稿しましょう",
-      shareLead: "動画の「共有」をタップしてください。キャプションはコピーされるので、貼り付けるだけです。",
+      shareLead: "動画の「投稿する」をタップしてください。共有またはダウンロードし、キャプションをコピーして、アプリごとの手順に沿って投稿できます。",
       idleTitle: "今週の作業はありません",
       idleLead: "次の動画は月曜日に届きます。",
       emptyTitle: "まだ動画はありません",
@@ -1916,6 +2222,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "キャプションをコピーしました。InstagramかTikTokを選んで、貼り付けてください。",
       decline: "見送る",
       undo: "元に戻す",
+      review: {
+        start: "見て承認する",
+        watch: "今週の動画を見る",
+        title: "今週の動画",
+        position: "{n} / {total}",
+        previous: "前の動画",
+        next: "次の動画",
+        swipeHint: "スワイプで次の動画へ",
+        allDone: "すべての動画を確認しました。承認した動画を投稿しましょう。",
+        openPost: "投稿する",
+        postedBadge: "投稿済み",
+      },
+      declineForm: {
+        title: "見送る理由を教えてください",
+        lead: "メモは動画と一緒に担当チームに届きます。",
+        reasons: {
+          wrong: "誤り・分かりにくい点がある",
+          notUs: "当院に合わないテーマ",
+          look: "見た目が合わない",
+          other: "その他",
+        },
+        noteLabel: "どこを変えればよいですか？（任意）",
+        notePlaceholder: "例：この治療は行っていません",
+        submit: "この動画を見送る",
+        cancel: "キャンセル",
+        done: "見送りました。メモは担当チームに届いています。",
+      },
+      post: {
+        title: "投稿する",
+        format: "縦長のMP4です。リール、TikTok、Facebook、WhatsAppステータスで使える形式です。",
+        captionLabel: "キャプションとハッシュタグ",
+        tipsTitle: "投稿の手順",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "WhatsAppステータス",
+        },
+        tips: {
+          instagram: ["Instagramを開き、＋をタップしてリールを選びます。", "ギャラリーから動画を選びます。", "キャプションを貼り付けてシェアします。"],
+          tiktok: ["TikTokを開き、＋をタップします。", "ギャラリーから動画を選びます。", "キャプションを貼り付けて投稿します。"],
+          facebook: ["個人のプロフィールではなく、医院のページに切り替えます。", "リールを作成し、動画を選びます。", "キャプションを貼り付けてシェアします。"],
+          whatsapp: ["WhatsAppを開き、「アップデート」に進みます。", "ステータスを追加し、ギャラリーから動画を選びます。", "「ご質問はメッセージでどうぞ」などの一言を添えて送信します。"],
+        },
+        markPosted: "投稿済みにする",
+        posted: "投稿済み",
+        progress: "今週は{total}本中{n}本を投稿済み",
+        allPosted: "今週の動画はすべて投稿済みです。",
+        streak: "{n}週連続",
+        streakOne: "今週は投稿済み",
+        deviceNote: "チェックはこの端末に保存されます。",
+        postNext: "次の動画を投稿する",
+      },
       photos: {
         title: "背景の写真",
         hint: "文字の背景に表示する写真を1〜4枚選んでください。選んだ写真で動画を作り直します。",
@@ -2162,7 +2521,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "لم تُعَدّ فيديوهات هذا الأسبوع بعد",
       startLead: "تصل فيديوهات جديدة كل يوم اثنين. وإن لم تصل بعد، يمكنكم بدء إعدادها الآن، ويستغرق ذلك نحو 15 دقيقة.",
       shareTitle: "اعتُمد كل شيء، حان وقت النشر",
-      shareLead: "اضغطوا «مشاركة» على الفيديو. سيُنسخ النص المرافق لتلصقوه.",
+      shareLead: "اضغطوا «انشروه» على الفيديو: شاركوه أو نزّلوه، وانسخوا النص، واتبعوا خطوات كل تطبيق.",
       idleTitle: "لا شيء مطلوب هذا الأسبوع",
       idleLead: "تصل فيديوهاتكم التالية يوم الاثنين.",
       emptyTitle: "لا فيديوهات بعد",
@@ -2219,6 +2578,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "نُسخ النص. اختاروا إنستغرام أو تيك توك ثم الصقوه.",
       decline: "رفض",
       undo: "تراجع",
+      review: {
+        start: "شاهدوا ووافقوا",
+        watch: "شاهدوا فيديوهات هذا الأسبوع",
+        title: "فيديوهات هذا الأسبوع",
+        position: "{n} من {total}",
+        previous: "الفيديو السابق",
+        next: "الفيديو التالي",
+        swipeHint: "اسحبوا للانتقال إلى الفيديو التالي",
+        allDone: "اتخذتم قراركم في كل الفيديوهات. انشروا الآن ما وافقتم عليه.",
+        openPost: "انشروه",
+        postedBadge: "تم النشر",
+      },
+      declineForm: {
+        title: "لماذا ترفضونه؟",
+        lead: "تصل ملاحظتكم إلى فريقنا مع الفيديو.",
+        reasons: {
+          wrong: "فيه خطأ أو أمر غير واضح",
+          notUs: "موضوع لا يناسب عيادتنا",
+          look: "شكله غير مناسب",
+          other: "سبب آخر",
+        },
+        noteLabel: "ما الذي يجب تغييره؟ (اختياري)",
+        notePlaceholder: "مثال: لا نقدّم هذا العلاج",
+        submit: "رفض هذا الفيديو",
+        cancel: "إلغاء",
+        done: "تم الرفض. وصلت ملاحظتكم إلى فريقنا.",
+      },
+      post: {
+        title: "انشروه",
+        format: "ملف MP4 عمودي، وهو الصيغة التي تستخدمها Reels وTikTok وFacebook وحالة واتساب.",
+        captionLabel: "النص والوسوم",
+        tipsTitle: "طريقة النشر على",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "حالة واتساب",
+        },
+        tips: {
+          instagram: ["افتحوا Instagram، واضغطوا + واختاروا Reel.", "اختاروا الفيديو من معرض الصور.", "الصقوا النص وشاركوه."],
+          tiktok: ["افتحوا TikTok واضغطوا +.", "اختاروا الفيديو من معرض الصور.", "الصقوا النص وانشروه."],
+          facebook: ["انتقلوا إلى صفحة العيادة، لا إلى حسابكم الشخصي.", "أنشئوا Reel واختاروا الفيديو.", "الصقوا النص وشاركوه."],
+          whatsapp: ["افتحوا واتساب وانتقلوا إلى المستجدات.", "أضيفوا حالة واختاروا الفيديو من معرض الصور.", "أضيفوا سطراً قصيراً مثل «لأي سؤال، راسلونا.» ثم أرسلوا."],
+        },
+        markPosted: "تحديد كمنشور",
+        posted: "تم النشر",
+        progress: "نُشر {n} من {total} هذا الأسبوع",
+        allPosted: "نُشرت كل فيديوهات هذا الأسبوع.",
+        streak: "{n} أسابيع متتالية",
+        streakOne: "تم النشر هذا الأسبوع",
+        deviceNote: "تُحفظ علاماتكم على هذا الجهاز.",
+        postNext: "انشروا الفيديو التالي",
+      },
       photos: {
         title: "صور الخلفية",
         hint: "اختاروا من صورة إلى 4 صور تتناوب خلف النص، وسنعيد إعداد الفيديو بها.",
@@ -2466,7 +2878,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       startTitle: "Filmy na ten tydzień jeszcze nie powstały",
       startLead: "Nowe filmy przychodzą w każdy poniedziałek. Jeśli jeszcze ich nie ma, można je przygotować teraz; to potrwa około 15 minut.",
       shareTitle: "Wszystko zatwierdzone, czas publikować",
-      shareLead: "Prosimy dotknąć „Udostępnij” przy filmie. Opis zostanie skopiowany do wklejenia.",
+      shareLead: "Prosimy dotknąć „Opublikuj” przy filmie: udostępnić lub pobrać go, skopiować opis i wykonać kroki dla wybranej aplikacji.",
       idleTitle: "W tym tygodniu nie ma nic do zrobienia",
       idleLead: "Kolejne filmy przyjdą w poniedziałek.",
       emptyTitle: "Nie ma jeszcze filmów",
@@ -2523,6 +2935,59 @@ export const APP_TEXT: Record<Locale, AppText> = {
       shareHint: "Opis skopiowany. Wystarczy wybrać Instagram lub TikTok i go wkleić.",
       decline: "Odrzuć",
       undo: "Cofnij",
+      review: {
+        start: "Obejrzyj i zatwierdź",
+        watch: "Obejrzyj filmy z tego tygodnia",
+        title: "Filmy z tego tygodnia",
+        position: "{n} z {total}",
+        previous: "Poprzedni film",
+        next: "Następny film",
+        swipeHint: "Następny film po przesunięciu w bok",
+        allDone: "Każdy film ma już decyzję. Teraz można opublikować zatwierdzone.",
+        openPost: "Opublikuj",
+        postedBadge: "Opublikowany",
+      },
+      declineForm: {
+        title: "Dlaczego Państwo go odrzucają?",
+        lead: "Notatka trafi do naszego zespołu razem z filmem.",
+        reasons: {
+          wrong: "Coś jest błędne lub niejasne",
+          notUs: "To nie temat dla naszego gabinetu",
+          look: "Nie wygląda dobrze",
+          other: "Coś innego",
+        },
+        noteLabel: "Co należy zmienić? (opcjonalnie)",
+        notePlaceholder: "Na przykład: nie wykonujemy tego zabiegu",
+        submit: "Odrzuć ten film",
+        cancel: "Anuluj",
+        done: "Odrzucono. Notatka trafiła do naszego zespołu.",
+      },
+      post: {
+        title: "Opublikuj",
+        format: "Pionowy plik MP4 — format, którego używają Reels, TikTok, Facebook i status WhatsApp.",
+        captionLabel: "Opis i hashtagi",
+        tipsTitle: "Jak opublikować na",
+        platforms: {
+          instagram: "Instagram",
+          tiktok: "TikTok",
+          facebook: "Facebook",
+          whatsapp: "Status WhatsApp",
+        },
+        tips: {
+          instagram: ["Otworzyć Instagram, stuknąć + i wybrać Rolkę.", "Wybrać film z galerii.", "Wkleić opis i udostępnić."],
+          tiktok: ["Otworzyć TikTok i stuknąć +.", "Wybrać film z galerii.", "Wkleić opis i opublikować."],
+          facebook: ["Przełączyć się na stronę gabinetu, nie na profil prywatny.", "Utworzyć rolkę i wybrać film.", "Wkleić opis i udostępnić."],
+          whatsapp: ["Otworzyć WhatsApp i przejść do Aktualności.", "Dodać status i wybrać film z galerii.", "Dodać krótkie zdanie, np. „Pytania? Zapraszamy do kontaktu.”, i wysłać."],
+        },
+        markPosted: "Oznacz jako opublikowany",
+        posted: "Opublikowany",
+        progress: "Opublikowano {n} z {total} w tym tygodniu",
+        allPosted: "Wszystkie filmy z tego tygodnia są opublikowane.",
+        streak: "{n} tyg. z rzędu",
+        streakOne: "Opublikowano w tym tygodniu",
+        deviceNote: "Zaznaczenia są zapisane na tym urządzeniu.",
+        postNext: "Opublikuj następny",
+      },
       photos: {
         title: "Zdjęcia w tle",
         hint: "Prosimy wybrać od 1 do 4 zdjęć, które będą się zmieniać za tekstem. Film zostanie przygotowany ponownie.",
