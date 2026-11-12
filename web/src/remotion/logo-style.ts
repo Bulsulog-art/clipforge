@@ -61,6 +61,14 @@ export function logoBox(
 
 /** The corner mark: about the weight of a 110px square. */
 export const CORNER_LOGO = { area: 110 * 110, maxWidth: 250, maxHeight: 110 } as const;
+/**
+ * The corner mark in a 9:16 video. Larger than CORNER_LOGO (which the
+ * ClipForge overlay also uses): at 110px a wordmark's name came out ~14px
+ * tall on a phone — a smudge, not a clinic. 150px of area gives a
+ * three-to-one wordmark ~250×80, still small enough to never compete with
+ * the headline.
+ */
+export const VIDEO_CORNER_LOGO = { area: 150 * 150, maxWidth: 290, maxHeight: 120 } as const;
 /** The sign-off: the logo is the subject of the last frame. */
 export const CTA_LOGO = { area: 250 * 250, maxWidth: 600, maxHeight: 280 } as const;
 

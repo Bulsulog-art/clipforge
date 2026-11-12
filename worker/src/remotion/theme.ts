@@ -192,10 +192,51 @@ export const TYPE = {
   listItem: 52,
   label: 34,
   caption: 40,
+  /** The @handle on the sign-off: the one thing the viewer has to copy. */
+  handle: 44,
 } as const;
 
-/** Width text may use, in 1080-wide authoring units: the frame minus the 8.5% safe margin each side. */
-const TEXT_WIDTH = 1080 * (1 - 2 * 0.085);
+/**
+ * Where Instagram Reels and TikTok draw their own UI over a 9:16 video, as
+ * fractions of the frame: the header (account, "Reels", camera, search)
+ * across the top, the caption block, audio line and progress bar across the
+ * bottom, and the like/comment/share rail down the reading-end side (right in
+ * a left-to-right app, left in an Arabic one). The union of both apps'
+ * keep-out areas at 1080×1920. Nothing that has to be read may sit in them.
+ */
+export const SAFE_ZONES = { top: 0.12, bottom: 0.2, end: 0.115, start: 0.05 } as const;
+
+/** Breathing room between the platform UI and our type, as a fraction of the frame. */
+const SAFE_GAP = { y: 0.012, start: 0.025 } as const;
+
+export type SafeFrame = { top: number; bottom: number; start: number; end: number };
+
+/**
+ * The padding, in px, that keeps content clear of the platform UI. Portrait
+ * frames get the measured Reels/TikTok zones — deeper at the bottom than the
+ * top, wider on the rail side than the reading-start side — so the content's
+ * optical centre sits slightly above the frame's, where the eye lands.
+ * `start`/`end` are logical sides: the composition applies them as
+ * inline-start/end padding, so a right-to-left frame mirrors them for free.
+ * Square and landscape frames (feeds, YouTube) keep a plain margin.
+ */
+export function safeFrame(width: number, height: number): SafeFrame {
+  if (height <= width) {
+    return { top: height * 0.09, bottom: height * 0.09, start: width * 0.085, end: width * 0.085 };
+  }
+  return {
+    top: height * (SAFE_ZONES.top + SAFE_GAP.y),
+    bottom: height * (SAFE_ZONES.bottom + SAFE_GAP.y),
+    start: width * (SAFE_ZONES.start + SAFE_GAP.start),
+    end: width * SAFE_ZONES.end,
+  };
+}
+
+/** Width text may use, in 1080-wide authoring units: a portrait frame between its safe sides. */
+export const TEXT_WIDTH = (() => {
+  const f = safeFrame(1080, 1920);
+  return Math.floor(1080 - f.start - f.end);
+})();
 /** A generous average advance of one bold glyph, in ems. */
 const GLYPH_EM = 0.62;
 
@@ -275,6 +316,31 @@ export function contrastRatio(a: string, b: string): number {
   return (l1 + 0.05) / (l2 + 0.05);
 }
 
+/**
+ * The text colour to set on a fill: the first candidate that clears `min`
+ * against it, else whichever contrasts most. Candidates go in order of
+ * preference (the theme's own colours first), with white and near-black as
+ * the fallbacks that always exist — so a highlight or a chip in any clinic
+ * colour gets the most on-brand colour that is still readable.
+ */
+export function readableOn(fill: string, candidates: string[] = [], min = 4.5): string {
+  const all = [...candidates, "#FFFFFF", "#0B0D10"];
+  const pass = all.find((c) => contrastRatio(c, fill) >= min);
+  return pass ?? all.reduce((best, c) => (contrastRatio(c, fill) > contrastRatio(best, fill) ? c : best));
+}
+
+/**
+ * The least opacity of a `scrim` colour, laid over the worst pixel a photo or
+ * clip could put behind a letter, at which `text` still clears `min`. Plus a
+ * small margin for compression noise. 1 if even a solid scrim cannot.
+ */
+export function scrimAlpha(text: string, scrim: string, worstPixel: string, min = 4.5): number {
+  for (let a = 0; a <= 1.0001; a += 0.01) {
+    if (contrastRatio(text, mix(worstPixel, scrim, a)) >= min) return Math.min(1, Math.round((a + 0.04) * 100) / 100);
+  }
+  return 1;
+}
+
 /** The darker end of the gradient — the worst case text sits on. */
 export function worstBackground(t: Theme): string {
   const [from, to] = t.background;
@@ -313,6 +379,51 @@ export function hueDistance(a: string, b: string): number {
   return Number.isNaN(d) ? 0 : Math.min(d, 360 - d);
 }
 
+/** HSL (h in degrees, s and l 0–1) to hex. */
+export function hsl(h: number, s: number, l: number): string {
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return "#" + [0, 8, 4].map((n) => Math.round(f(n) * 255).toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+/** HSL saturation (0–1) of a hex colour. */
+export function saturation(hex: string): number {
+  const m = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(m.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  return max === min ? 0 : (max - min) / (1 - Math.abs(2 * l - 1));
+}
+
+/**
+ * The two background stops for a brand colour: its own hue taken deep, dark
+ * enough that white type clears 7.5:1 on the lighter stop.
+ *
+ * Mixing toward black (what this used to do) keeps a strong colour's
+ * character but drains a pale one: a blush-pink clinic got a grey-mauve frame
+ * and a pastel-blue one a slate grey — nobody's brand. Holding the hue and
+ * the saturation while lowering the lightness gives the pink clinic deep
+ * raspberry and the pale-blue one navy. Yellows are the exception: a dark
+ * yellow is olive, which reads as dirty, so they keep only a warm hint of
+ * their hue on a charcoal ground and carry the colour in the accent instead.
+ * A grey brand (no hue) gets a neutral charcoal.
+ */
+export function deepBrand(brand: string, fg = "#FFFFFF"): [string, string] {
+  const h = hue(brand);
+  if (Number.isNaN(h)) {
+    let deep = 0.62;
+    while (deep < 0.98 && contrastRatio(fg, mix(brand, "#05080A", deep - 0.18)) < 7.5) deep += 0.02;
+    return [mix(brand, "#05080A", Math.min(0.98, deep)), mix(brand, "#05080A", deep - 0.18)];
+  }
+  const yellow = h >= 42 && h <= 75;
+  const s = yellow ? 0.22 : Math.min(0.72, Math.max(0.3, saturation(brand)));
+  let l = 0.42;
+  while (l > 0.04 && contrastRatio(fg, hsl(h, s, l)) < 10) l -= 0.01;
+  return [hsl(h, Math.min(1, s * 1.05), l * 0.55), hsl(h, s, l)];
+}
+
 /**
  * The theme repainted in a clinic's brand colour, so every video reads as
  * theirs. The background is the brand hue taken deep (dark enough that white
@@ -332,11 +443,7 @@ export function brandTheme(base: Theme, brandHex?: string, accentHex?: string): 
   if (!brandHex || !/^#?[0-9a-fA-F]{6}$/.test(brandHex)) return base;
   const brand = `#${brandHex.replace("#", "").toUpperCase()}`;
   const fg = "#FFFFFF";
-  let deep = 0.62;
-  // The lighter stop is the one white type has to clear.
-  while (deep < 0.98 && contrastRatio(fg, mix(brand, "#05080A", deep - 0.18)) < 7.5) deep += 0.02;
-  const from = mix(brand, "#05080A", Math.min(0.98, deep));
-  const to = mix(brand, "#05080A", deep - 0.18);
+  const [from, to] = deepBrand(brand, fg);
   let lift = 0;
   let accent = brand;
   while (lift < 0.9 && contrastRatio(accent, to) < 4.5) {
