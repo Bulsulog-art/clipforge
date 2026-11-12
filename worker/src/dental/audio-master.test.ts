@@ -116,7 +116,8 @@ function silences(file: string): Array<[number, number]> {
   return parseSilences(log, dur).map((s) => [s.start, s.end]);
 }
 
-describe.skipIf(!hasFfmpeg)("masterNarration (ffmpeg)", () => {
+// Real ffmpeg renders: a few seconds each, much longer on a busy machine.
+describe.skipIf(!hasFfmpeg)("masterNarration (ffmpeg)", { timeout: 60_000 }, () => {
   it("hits -14 LUFS / -1 dBTP, trims the edges to the pads and caps the long pause", async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "master-"));
     const src = fakeNarration(dir);
