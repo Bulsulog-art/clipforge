@@ -473,7 +473,7 @@ export function PostPanel({
               <span aria-live="polite">{copied ? t.copied : t.copyCaption}</span>
             </button>
           </div>
-          <p className="max-h-24 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-dv-body">{post}</p>
+          <p className="max-h-40 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-dv-body">{post}</p>
         </div>
       )}
 
@@ -506,7 +506,7 @@ export function PostPanel({
               tabIndex={tab === k ? 0 : -1}
               onClick={() => setTab(k)}
               onKeyDown={(e) => onTabKey(e, n)}
-              className={`min-h-11 grow rounded-full px-3 text-sm font-medium ${tab === k ? "bg-white text-dv-ink shadow-sm" : "text-dv-body hover:text-dv-ink"}`}
+              className={`min-h-11 grow rounded-full px-3 text-sm font-medium sm:whitespace-nowrap ${tab === k ? "bg-white text-dv-ink shadow-sm" : "text-dv-body hover:text-dv-ink"}`}
             >
               {p.platforms[k]}
             </button>

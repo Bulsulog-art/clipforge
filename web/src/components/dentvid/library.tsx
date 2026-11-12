@@ -139,9 +139,21 @@ export function Library({
   const s = weekSummary(thisWeek);
 
   // The tab says how many videos are waiting, so a pinned tab (or the home-screen app) shows there is something to do.
+  // Next writes the page's <title> after hydration, so the count is re-applied whenever the title changes.
+  const waiting = s.look + s.review;
   useEffect(() => {
-    document.title = titleWithCount(document.title, s.look + s.review);
-  }, [s.look, s.review]);
+    const apply = () => {
+      const want = titleWithCount(document.title, waiting);
+      if (document.title !== want) document.title = want;
+    };
+    apply();
+    const obs = new MutationObserver(apply);
+    obs.observe(document.head, { subtree: true, childList: true, characterData: true });
+    return () => {
+      obs.disconnect();
+      document.title = titleWithCount(document.title, 0);
+    };
+  }, [waiting]);
 
   // While anything is being made or re-made, look again every 20 s so cards
   // change by themselves (not while the review is open: the video would reload).
