@@ -1,0 +1,1710 @@
+[
+ {
+  "id": "db-bd7448d2",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-tr-2026-11-02",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "hook": "Diş taşı temizliği yılda en az 2 kez olmalı.",
+   "title": "Diş Taşı Temizliği Sıklığı",
+   "pillar": "prevention",
+   "service": "diş taşı temizliği",
+   "question": "Diş taşı temizliği ne sıklıkla yapılmalı?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Diş taşı temizliği genellikle yılda 1 veya 2 kez önerilir.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Bu sıklık, kişisel ağız sağlığı durumunuza bağlı olarak değişebilir.",
+    "seconds": 4
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Daha az diş taşı birikimi olanlar için.",
+     "label": "Yılda 1 kez"
+    },
+    "right": {
+     "text": "Daha fazla diş taşı birikimi olanlar için.",
+     "label": "Yılda 2 kez"
+    },
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Diş hekiminiz, sizin için en uygun sıklığı belirleyecektir.",
+    "seconds": 3
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için kliniğimizle iletişime geçin veya bir kontrol randevusu alın.",
+    "seconds": 5
+   }
+  ],
+  "narration": "Diş taşı temizliği genellikle yılda 1 veya 2 kez önerilir. Bu sıklık, kişisel ağız sağlığı durumunuza bağlı olarak değişebilir. Daha az diş taşı birikimi olanlar için yılda 1 kez yeterli olabilir. Ancak, eğer diş taşı birikiminiz fazlaysa yılda 2 kez temizletmeniz önerilir. Diş hekiminiz, sizin için en uygun sıklığı belirleyecektir. Daha fazla bilgi için kliniğimizle iletişime geçin veya bir kontrol randevusu alın.",
+  "caption": "Diş taşı temizliği, genellikle yılda 1 veya 2 kez yapılması önerilmektedir. Bu sıklık, kişisel ağız sağlığı durumunuza bağlı olarak değişiklik gösterebilir. Eğer diş taşı birikiminiz azsa yılda 1 kez yeterli olabilir; fakat daha fazla birikim varsa yılda 2 kez temizletmeniz faydalı olacaktır. \n\nDiş hekiminiz, sizin için en uygun sıklığı belirleyecektir. Daha fazla bilgi almak ya da bir kontrol randevusu için kliniğimizle iletişime geçmenizi bekliyoruz! 😊"
+ },
+ {
+  "id": "db-9bc17970",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-tr-2026-11-02",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "hook": "Diş implantları 10 yıl ve daha fazlasını sürebilir.",
+   "title": "İmplantın Dayanıklılığı",
+   "pillar": "education",
+   "service": "implant",
+   "question": "Diş implantı ne kadar dayanır?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Diş implantları 10 yıl ve daha fazlasını sürebilir.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Diş implantları, doğru bakım ile uzun yıllar dayanabilir.",
+    "seconds": 3
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Diş implantları genellikle 10-15 yıl dayanır.",
+     "label": "Dayanıklılık"
+    },
+    "right": {
+     "text": "Bakım, ağız hijyeni ve genel sağlık durumu.",
+     "label": "Etkileyen Faktörler"
+    },
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Düzenli diş hekimi kontrolleri, implantlarınızın ömrünü uzatmanıza yardımcı olur.",
+    "seconds": 4
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Düzenli fırçalama",
+     "Ağız gargarası kullanma",
+     "Diş ipi kullanma"
+    ],
+    "heading": "İmplantın Dayanıklılığını Artırmak İçin",
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için bize ulaşın veya kontrol randevusu alın.",
+    "seconds": 4
+   }
+  ],
+  "narration": "Diş implantları, 10 yıl ve daha fazlasını sürebilir. Diş implantları, doğru bakım ile uzun yıllar dayanabilir. Genellikle 10-15 yıl dayanıyorlar. Ancak, bakım, ağız hijyeni ve genel sağlık durumu gibi faktörler bu süreyi etkileyebilir. Düzenli diş hekimi kontrolleri, implantlarınızın ömrünü uzatmanıza yardımcı olacaktır. İmplantın dayanıklılığını artırmak için düzenli fırçalama, ağız gargarası kullanma ve diş ipi kullanma önemlidir. Daha fazla bilgi için bize ulaşın veya kontrol randevusu alın.",
+  "caption": "Diş implantları, doğru bakım ile 10 yıl ve daha fazlasını sürebilir. Genellikle 10-15 yıl dayanma kapasitesine sahip olan bu implantların ömrü, ağız hijyeni, bakım ve genel sağlık durumu gibi faktörlere bağlıdır. 🦷\n\nDüzenli diş hekimi kontrolleri, implantlarınızın ömrünü uzatmanıza yardımcı olur. İmplantınızın dayanıklılığını artırmak için düzenli fırçalama, ağız gargarası kullanma ve diş ipi kullanmayı unutmayın. Daha fazla bilgi almak veya kontrol randevusu almak için bizimle iletişime geçebilirsiniz."
+ },
+ {
+  "id": "db-9220964c",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-tr-2026-11-02",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "hook": "Beyazlatma sonrası 48 saat dikkat etmelisiniz.",
+   "title": "Diş Beyazlatma Sonrası Bakım",
+   "pillar": "aftercare",
+   "service": "diş beyazlatma",
+   "question": "Beyazlatma sonrası dişlerime nasıl bakmalıyım?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Beyazlatma sonrası 48 saat dikkat etmelisiniz.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Beyazlatma sonrası dişlerinizin bakımına dikkat etmelisiniz.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Asidik içeceklerden kaçının.",
+     "Dişlerinizi nazikçe fırçalayın.",
+     "Diş ipi kullanarak diş aralarını temizleyin.",
+     "Beyazlatma sonrası 48 saat koyu içeceklerden uzak durun."
+    ],
+    "heading": "Beyazlatma sonrası yapılması gerekenler:",
+    "seconds": 6
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Dişlerinizin daha uzun süre beyaz kalmasına yardımcı olabilir.",
+     "label": "Doğru bakım:"
+    },
+    "right": {
+     "text": "Dişlerinizin renginin değişmesine neden olabilir.",
+     "label": "Yanlış bakım:"
+    },
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için bize danışın veya kontrol randevusu alın.",
+    "seconds": 5
+   }
+  ],
+  "narration": "Beyazlatma sonrası dişlerinizin bakımına dikkat etmelisiniz. Asidik içeceklerden kaçının. Dişlerinizi nazikçe fırçalayın. Diş ipi kullanarak diş aralarını temizleyin. Beyazlatma sonrası 48 saat koyu içeceklerden uzak durun. Doğru bakım yaparsanız dişlerinizin daha uzun süre beyaz kalmasına yardımcı olabilir. Yanlış bakım yaparsanız dişlerinizin renginin değişmesine neden olabilir. Daha fazla bilgi için bize danışın veya kontrol randevusu alın.",
+  "caption": "Diş beyazlatma işlemi sonrasında dişlerinize nasıl bakmalısınız? Öncelikle, beyazlatma sonrası ilk 48 saat boyunca asidik ve koyu içeceklerden uzak durmalısınız. Dişlerinizi nazikçe fırçalamak ve diş ipi kullanarak diş aralarını temizlemek de oldukça önemlidir. Bu basit adımlar, dişlerinizin daha uzun süre beyaz kalmasına yardımcı olabilir.\n\nUnutmayın, doğru bakım dişlerinizin rengini korurken, yanlış bakım dişlerinizin renginin değişmesine neden olabilir. Daha fazla bilgi almak veya kontrol randevusu almak için bize danışmaktan çekinmeyin. Sağlıklı gülüşler için buradayız! 😊"
+ },
+ {
+  "id": "db-519ca1f9",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-tr-2026-11-02",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "hook": "Diş implantı süreci 3 aşamada gerçekleşir.",
+   "title": "Diş İmplantı Süreci",
+   "pillar": "procedure",
+   "service": "implant",
+   "question": "Diş implantı süreci nasıl işler?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Diş implantı süreci 3 aşamada gerçekleşir.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "İlk aşama, implantın yerleştirilmesidir. Bu aşama, çene kemiğine bir vida yerleştirilmesini içerir.",
+    "seconds": 6
+   },
+   {
+    "kind": "list",
+    "items": [
+     "İkincisi, iyileşme sürecidir.",
+     "Son aşama, protez dişin yerleştirilmesidir."
+    ],
+    "heading": "Sonraki aşamalar:",
+    "seconds": 6
+   },
+   {
+    "kind": "statement",
+    "text": "Bu süreçte, her aşama uzman hekim tarafından takip edilir. Sonuçlar kişiden kişiye değişiklik gösterebilir.",
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için bizimle iletişime geçin veya randevu alın.",
+    "seconds": 4
+   }
+  ],
+  "narration": "Diş implantı süreci 3 aşamada gerçekleşir. İlk aşama, implantın yerleştirilmesidir. Bu aşama, çene kemiğine bir vida yerleştirilmesini içerir. İkincisi, iyileşme sürecidir. Son aşama, protez dişin yerleştirilmesidir. Bu süreçte, her aşama uzman hekim tarafından takip edilir. Sonuçlar kişiden kişiye değişiklik gösterebilir. Daha fazla bilgi için bizimle iletişime geçin veya randevu alın.",
+  "caption": "Diş implantı süreci 3 aşamada gerçekleşir. İlk olarak, çene kemiğine bir vida yerleştirilir. Bu, implantın yerleştirilmesi aşamasıdır. İkinci aşama ise iyileşme sürecidir. Son olarak, protez dişin yerleştirilmesi gerçekleşir. Her aşama, uzman hekimler tarafından titizlikle takip edilmektedir.\n\nSonuçlar kişiden kişiye değişiklik gösterebilir. Daha fazla bilgi için bizimle iletişime geçebilir veya randevu alabilirsiniz. 😊"
+ },
+ {
+  "id": "db-d531b138",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-tr-2026-11-02",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "hook": "Diş taşı, ağız sağlığınızı olumsuz etkiler.",
+   "title": "Diş Taşı ve Ağız Sağlığı",
+   "pillar": "education",
+   "service": "diş taşı temizliği",
+   "question": "Diş taşı sağlığımı nasıl etkiler?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Diş taşı, ağız sağlığınızı olumsuz etkiler.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Diş taşı, dişlerinizin etrafında birikir.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Diş eti iltihabına yol açabilir.",
+     "Ağız kokusuna sebep olabilir.",
+     "Dişlerin sararmasına neden olur."
+    ],
+    "heading": "Diş taşı sağlığınızı nasıl etkiler?",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Diş taşları, düzenli temizlik yapmadığınızda çoğalır.",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Diş ipi kullanmak önemli.",
+    "seconds": 4
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için bizimle iletişime geçin veya check-up randevusu alın.",
+    "seconds": 5
+   }
+  ],
+  "narration": "Diş taşı, ağız sağlığınızı olumsuz etkiler. Diş taşı, dişlerinizin etrafında birikir. Diş taşı sağlığınızı nasıl etkiler? Diş eti iltihabına yol açabilir. Ağız kokusuna sebep olabilir. Dişlerin sararmasına neden olur. Diş taşları, düzenli temizlik yapmadığınızda çoğalır. Diş ipi kullanmak önemli. Daha fazla bilgi için bizimle iletişime geçin veya check-up randevusu alın.",
+  "caption": "Diş taşı, ağız sağlığınızı olumsuz etkileyebilir. Dişlerinizin etrafında biriken diş taşları, diş eti iltihabına yol açabilir ve bu durum ağız kokusuna sebep olabilir. Ayrıca, dişlerin sararmasına neden olarak estetik açıdan da sorun yaratabilir.\n\nDiş taşlarının oluşumunu önlemek için düzenli temizlik yapmak ve diş ipi kullanmak oldukça önemlidir. Ağız sağlığınız için gerekli adımları atmak istiyorsanız, daha fazla bilgi için bizimle iletişime geçebilir veya bir check-up randevusu alabilirsiniz. 😊"
+ },
+ {
+  "id": "db-db5ffc60",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-de-2026-11-02",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "hook": "Ihre Zahnbürste verschleißt schneller als Sie denken.",
+   "title": "Richtige Zahnbürstenauswahl für professionelle Zahnreinigung",
+   "pillar": "prevention",
+   "service": "Professionelle Zahnreinigung",
+   "question": "Wie wähle ich die richtige Zahnbürste aus?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ihre Zahnbürste verschleißt schneller als Sie denken.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Die Wahl der richtigen Zahnbürste ist entscheidend für Ihre Zahngesundheit.",
+    "seconds": 5
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Bürstenkopfgröße",
+     "Bürstenhärte",
+     "Griffdesign"
+    ],
+    "heading": "Worauf Sie achten sollten:",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Weiche Borsten sind oft besser für das Zahnfleisch.",
+    "seconds": 3
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Erfordert mehr Geschick und Zeit.",
+     "label": "Manuelle Zahnbürste"
+    },
+    "right": {
+     "text": "Kann die Putztechnik erleichtern.",
+     "label": "Elektrische Zahnbürste"
+    },
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Fragen Sie uns oder buchen Sie einen Termin!",
+    "seconds": 4
+   }
+  ],
+  "narration": "Wissen Sie was? Ihre Zahnbürste verschleißt schneller, als Sie denken. Deshalb ist die Wahl der richtigen Zahnbürste für Ihre Zahngesundheit entscheidend. Achten Sie auf die Größe des Bürstenkopfs, die Härte der Borsten und das Griffdesign. Weiche Borsten sind oft besser für Ihr Zahnfleisch. Manuelle Zahnbürsten erfordern mehr Geschick, während elektrische Modelle die Putztechnik erleichtern können. Fragen Sie uns gerne oder buchen Sie einen Termin!",
+  "caption": "Wissen Sie was? Ihre Zahnbürste verschleißt schneller, als Sie denken. Deshalb ist die Wahl der richtigen Zahnbürste für Ihre Zahngesundheit entscheidend. \n\nAchten Sie auf die Größe des Bürstenkopfs, die Härte der Borsten und das Griffdesign. Weiche Borsten sind oft besser für Ihr Zahnfleisch. Manuelle Zahnbürsten erfordern mehr Geschick, während elektrische Modelle die Putztechnik erleichtern können. Fragen Sie uns gerne oder buchen Sie einen Termin! 🦷💙"
+ },
+ {
+  "id": "db-89beed2e",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-de-2026-11-02",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "hook": "Bleaching schwächt den Zahnschmelz? Der Mythos.",
+   "title": "Wahrheit über Bleaching und Zahnschmelz",
+   "pillar": "myth",
+   "service": "Bleaching",
+   "question": "Verdünnt Bleaching den Zahnschmelz?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Bleaching schwächt den Zahnschmelz? Der Mythos.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Bleaching kann bei richtiger Anwendung sicher sein.",
+    "seconds": 4
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Verändert die Farbe der Zähne.",
+     "label": "Bleaching"
+    },
+    "right": {
+     "text": "Bleibt intakt, wenn richtig durchgeführt.",
+     "label": "Zahnschmelz"
+    },
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Regelmäßige Zahnarztbesuche sind wichtig für die Zahngesundheit.",
+    "seconds": 4
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Vermeiden Sie stark gefärbte Lebensmittel.",
+     "Reinigen Sie Ihre Zähne sanft.",
+     "Befolgen Sie die Anweisungen Ihres Zahnarztes."
+    ],
+    "heading": "Nach dem Bleaching:",
+    "seconds": 6
+   },
+   {
+    "kind": "cta",
+    "text": "Haben Sie Fragen? Kontaktieren Sie uns oder buchen Sie einen Termin!",
+    "seconds": 4
+   }
+  ],
+  "narration": "Wissen Sie, ob Bleaching den Zahnschmelz schwächt? Ein Mythos, dem viele glauben. Bleaching kann bei richtiger Anwendung sicher sein. Es verändert die Farbe der Zähne, aber der Zahnschmelz bleibt intakt, wenn es richtig gemacht wird. Regelmäßige Zahnarztbesuche helfen dabei, Ihre Zahngesundheit zu erhalten. Nach dem Bleaching sollten Sie stark gefärbte Lebensmittel vermeiden, Ihre Zähne sanft reinigen und die Anweisungen Ihres Zahnarztes befolgen. Haben Sie Fragen? Kontaktieren Sie uns oder buchen Sie einen Termin!",
+  "caption": "Wissen Sie, ob Bleaching den Zahnschmelz schwächt? Das ist ein Mythos, dem viele glauben. Bei richtiger Anwendung kann Bleaching sicher sein und verändert die Farbe Ihrer Zähne, ohne den Zahnschmelz zu schädigen.\n\nRegelmäßige Zahnarztbesuche sind entscheidend für Ihre Zahngesundheit. Nach dem Bleaching sollten Sie stark gefärbte Lebensmittel vermeiden, sanft Ihre Zähne reinigen und die Anweisungen Ihres Zahnarztes befolgen. Haben Sie Fragen? Kontaktieren Sie uns oder buchen Sie einen Termin! ☺️"
+ },
+ {
+  "id": "db-4c3cb78f",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-de-2026-11-02",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "hook": "Ihr Implantat: Ein Prozess in mehreren Schritten.",
+   "title": "Phasen der Implantation erklärt",
+   "pillar": "procedure",
+   "service": "Implantate",
+   "question": "Wie verläuft die Behandlung mit Implantaten?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ihr Implantat: Ein Prozess in mehreren Schritten.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Die Behandlung mit Implantaten verläuft in mehreren Phasen.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Beratung und Planung",
+     "Einsetzen des Implantats",
+     "Heilungsphase",
+     "Einsetzen des Zahnersatzes"
+    ],
+    "heading": "Phasen der Implantation:",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Jede Phase ist entscheidend für den Erfolg des Verfahrens.",
+    "seconds": 3
+   },
+   {
+    "kind": "cta",
+    "text": "Haben Sie Fragen? Fragen Sie uns oder buchen Sie einen Termin.",
+    "seconds": 5
+   }
+  ],
+  "narration": "Haben Sie sich schon mal gefragt, wie eine Implantatbehandlung eigentlich abläuft? Ihr Implantat: Ein Prozess in mehreren Schritten. Es beginnt mit Beratung und Planung, dann das Einsetzen des Implantats, gefolgt von der Heilungsphase und schließlich dem Einsetzen des Zahnersatzes. Jede Phase ist wichtig für ein gutes Ergebnis. Wenn Sie Fragen haben, sprechen Sie uns einfach an oder buchen Sie einen Termin.",
+  "caption": "Haben Sie sich schon mal gefragt, wie eine Implantatbehandlung eigentlich abläuft? Ihr Implantat ist ein Prozess in mehreren Schritten. Es beginnt mit der Beratung und Planung, gefolgt vom Einsetzen des Implantats, der Heilungsphase und schließlich dem Einsetzen des Zahnersatzes. Jede Phase ist entscheidend für den Erfolg des Verfahrens. \n\nWenn Sie Fragen haben, sprechen Sie uns einfach an oder buchen Sie einen Termin. 📅😊"
+ },
+ {
+  "id": "db-859faf81",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-de-2026-11-02",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "hook": "Ihre Wurzelbehandlung ist vorbei. Was jetzt?",
+   "title": "Wurzelbehandlung nach dem Eingriff: Was jetzt?",
+   "pillar": "aftercare",
+   "service": "Wurzelbehandlung",
+   "question": "Was sollte ich nach einer Wurzelbehandlung beachten?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ihre Wurzelbehandlung ist vorbei. Was jetzt?",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Es ist wichtig, auf Ihre Zähne zu achten.",
+    "seconds": 2
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Vermeiden Sie das Kauen auf der behandelten Seite bis zur endgültigen Füllung.",
+     "Halten Sie die Stelle sauber.",
+     "Befolgen Sie die Anweisungen Ihres Zahnarztes."
+    ],
+    "heading": "Was sollten Sie beachten?",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Die Empfindlichkeit kann in den ersten Tagen auftreten.",
+    "seconds": 3
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Regelmäßige Zahnpflege",
+     "label": "Vor der Behandlung:"
+    },
+    "right": {
+     "text": "Verstärkte Achtsamkeit",
+     "label": "Nach der Behandlung:"
+    },
+    "seconds": 4
+   },
+   {
+    "kind": "cta",
+    "text": "Haben Sie Fragen? Kontaktieren Sie uns oder buchen Sie einen Termin!",
+    "seconds": 4
+   }
+  ],
+  "narration": "Wissen Sie was? Ihre Wurzelbehandlung ist vorbei. Was jetzt? Es ist wichtig, dass Sie Ihre Zähne gut pflegen. Vermeiden Sie das Kauen auf der behandelten Seite, bis die endgültige Füllung oder Krone eingesetzt ist, und halten Sie die Stelle sauber. Befolgen Sie die Anweisungen Ihres Zahnarztes. Empfindlichkeit kann in den ersten Tagen auftreten. Haben Sie Fragen? Kontaktieren Sie uns gerne!",
+  "caption": "Ihre Wurzelbehandlung ist vorbei. Was jetzt? Es ist wichtig, dass Sie Ihre Zähne gut pflegen. Vermeiden Sie das Kauen auf der behandelten Seite, bis die endgültige Füllung oder Krone eingesetzt ist, und halten Sie die Stelle sauber. Befolgen Sie die Anweisungen Ihres Zahnarztes. \n\nBitte beachten Sie, dass in den ersten Tagen Empfindlichkeit auftreten kann. Bei Fragen stehen wir Ihnen jederzeit zur Verfügung. Buchen Sie gerne einen Termin für Ihre nächste Kontrolle! 😊"
+ },
+ {
+  "id": "db-e79cf97f",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-de-2026-11-02",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "hook": "Ihre Aligner im heißen Wasser? Lieber nicht.",
+   "title": "Aligner-Reinigung: Ein häufiges Missverständnis",
+   "pillar": "myth",
+   "service": "Aligner",
+   "question": "Sollte ich meine Aligner mit heißem Wasser reinigen?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ihre Aligner im heißen Wasser? Lieber nicht.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Heißes Wasser kann Ihre Aligner beschädigen.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Es ist besser, sie mit lauwarmem Wasser zu reinigen.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Lauwarmes Wasser verwenden",
+     "Milde Seife nutzen",
+     "Sanft bürsten"
+    ],
+    "heading": "So reinigen Sie Ihre Aligner:",
+    "seconds": 5
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Kann Aligner verformen",
+     "label": "Heißes Wasser"
+    },
+    "right": {
+     "text": "Schont die Aligner",
+     "label": "Lauwarmes Wasser"
+    },
+    "seconds": 4
+   },
+   {
+    "kind": "cta",
+    "text": "Haben Sie Fragen? Besuchen Sie uns oder buchen Sie einen Termin!",
+    "seconds": 4
+   }
+  ],
+  "narration": "Wissen Sie, ob heißes Wasser gut für Ihre Aligner ist? Eigentlich nicht. Heißes Wasser kann die Aligner beschädigen, das wollen wir vermeiden. Stattdessen sollten Sie lauwarmes Wasser nehmen. Einfach ein bisschen milde Seife dazu und sanft bürsten. So bleiben sie in Form. Haben Sie noch Fragen? Kommen Sie doch einfach vorbei oder vereinbaren Sie einen Termin!",
+  "caption": "Ihre Aligner im heißen Wasser? Lieber nicht. Heißes Wasser kann Ihre Aligner beschädigen. Verwenden Sie stattdessen lauwarmes Wasser, milde Seife und bürsten Sie sanft, um Ihre Aligner in Form zu halten. 🌊\n\nHaben Sie noch Fragen? Besuchen Sie uns in der Zahnpraxis Testhaus oder buchen Sie einen Termin zur Kontrolle. Ihr Lächeln ist uns wichtig! 😊"
+ },
+ {
+  "id": "db-b80228c4",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-es-2026-11-02",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "hook": "¿El blanqueamiento debilita tus dientes?",
+   "title": "¿Es cierto que el blanqueamiento daña tus dientes?",
+   "pillar": "myth",
+   "service": "Blanqueamiento",
+   "question": "¿El blanqueamiento dental afecta negativamente la salud de tus dientes?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "¿El blanqueamiento debilita tus dientes?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "El blanqueamiento generalmente no debilita tus dientes.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "El blanqueamiento dental puede causar sensibilidad temporal.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Generalmente no daña el esmalte si se hace correctamente.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Evita alimentos y bebidas de color fuerte por un par de días.",
+     "Sigue siempre las instrucciones de tu dentista."
+    ],
+    "heading": "Consejos para después del blanqueamiento:",
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "¿Tienes más preguntas? Pregunta en @clinicaprueba.",
+    "seconds": 3
+   }
+  ],
+  "narration": "¿Te has preguntado si el blanqueamiento debilita tus dientes? Pues mira, la verdad es que generalmente no los debilita. Eso sí, puede causar un poco de sensibilidad temporal. Pero tranquilo, generalmente no daña el esmalte si se hace bien. Después, evita comidas y bebidas con color fuerte y sigue las instrucciones de tu dentista. ¿Tienes más dudas? Pregunta en la clínica.",
+  "caption": "¿Te has preguntado si el blanqueamiento debilita tus dientes? Pues mira, la verdad es que generalmente no los debilita. Eso sí, puede causar un poco de sensibilidad temporal. Pero tranquilo, generalmente no daña el esmalte si se hace bien. 🦷\n\nDespués del blanqueamiento, evita comidas y bebidas con color fuerte y sigue las instrucciones de tu dentista. Si tienes más dudas, no dudes en preguntar en la clínica. ¡Estamos aquí para ayudarte! 🌟\n\n¿Listo para una revisión? Reserva tu cita y cuidemos juntos de tu sonrisa."
+ },
+ {
+  "id": "db-9759dd1f",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-es-2026-11-02",
+  "status": "flagged",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "hook": "El error que cometes después de la limpieza",
+   "title": "El error común al cepillarse después de una limpieza",
+   "pillar": "aftercare",
+   "service": "Limpieza dental",
+   "question": "¿Cómo debes cuidar tus dientes después de una limpieza dental?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "El error que cometes después de la limpieza",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "No cepilles inmediatamente después.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "No hay necesidad de esperar para cepillarse después de una limpieza dental profesional.",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "La sensibilidad puede ser normal después de la limpieza.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Evita alimentos muy calientes o fríos",
+     "Bebe agua para mantenerte hidratado"
+    ],
+    "heading": "Cuidados después de la limpieza",
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Pregunta en Clínica Dental Prueba o agenda tu cita.",
+    "seconds": 4
+   }
+  ],
+  "narration": "¿Sabes cuál es el error más común después de una limpieza dental? Mira, la verdad es que no hay necesidad de esperar para cepillarse después de una limpieza dental profesional. La sensibilidad es normal, así que cuida lo que comes y bebe agua para mantenerte hidratado. Si tienes dudas, pregunta en Clínica Dental Prueba o agenda tu cita.",
+  "caption": "¿Sabes cuál es el error más común después de una limpieza dental? 🤔 La verdad es que no hay necesidad de esperar para cepillarte después de una limpieza profesional. La sensibilidad puede ser normal, así que cuida lo que comes. Evita alimentos muy calientes o fríos y recuerda beber agua para mantenerte hidratado. \n\nSi tienes dudas o necesitas más consejos, ¡pregunta en Clínica Dental Prueba! No dudes en agendar tu cita para cuidar de tu sonrisa. 😊"
+ },
+ {
+  "id": "db-ddd3857e",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-es-2026-11-02",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "hook": "Tu sonrisa no se implanta de un día",
+   "title": "Tu implantación dental: el tiempo para una sonrisa nueva",
+   "pillar": "education",
+   "service": "Implantes",
+   "question": "¿Cuánto tiempo puede durar un tratamiento de implante dental?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Tu sonrisa no se implanta de un día",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "El tratamiento puede tomar de 3 a 6 meses.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "El proceso de implante dental puede durar entre 3 y 6 meses, dependiendo de cada persona. Es un viaje hacia tu nueva sonrisa.",
+    "seconds": 6
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Consulta inicial",
+     "Colocación del implante",
+     "Periodo de cicatrización",
+     "Colocación de la corona"
+    ],
+    "heading": "Fases del tratamiento",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Recuerda, cada caso es único. Es importante seguir las indicaciones de tu dentista para un resultado óptimo.",
+    "seconds": 6
+   },
+   {
+    "kind": "cta",
+    "text": "¿Tienes dudas? Pregunta a Clínica Dental Prueba o reserva tu cita.",
+    "seconds": 4
+   }
+  ],
+  "narration": "¿Te has preguntado cuánto tarda realmente un implante dental? Pues mira, no es de un día para otro. El tratamiento suele durar entre 3 y 6 meses, dependiendo de cada persona. Primero, hay una consulta inicial, luego la colocación del implante, un periodo de cicatrización y finalmente la corona. Recuerda, cada caso es único. Si tienes dudas, pregunta en Clínica Dental Prueba o reserva tu cita. ¡Nos vemos pronto!",
+  "caption": "¿Te has preguntado cuánto tiempo dura un tratamiento de implante dental? 🦷 Tu sonrisa no se implanta de un día para otro. El proceso puede tomar entre 3 y 6 meses, y cada caso es único. Primero, tendrás una consulta inicial, luego se coloca el implante, seguido de un periodo de cicatrización y, al final, la colocación de la corona.\n\nRecuerda siempre seguir las indicaciones de tu dentista para obtener el mejor resultado. Si tienes más dudas, pregunta en Clínica Dental Prueba o reserva tu cita. ¡Estamos aquí para ayudarte a sonreír! 😊"
+ },
+ {
+  "id": "db-748d11aa",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-es-2026-11-02",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "hook": "Ese escalofrío al morder el helado...",
+   "title": "Esa molestia al comer frío ¿será endodoncia?",
+   "pillar": "education",
+   "service": "Endodoncia",
+   "question": "¿Cuándo se necesita una endodoncia?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ese escalofrío al morder el helado...",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Puede ser señal de un problema dental.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Si sientes dolor al comer frío, podría ser un signo de daño en el nervio.",
+    "seconds": 4
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "text": "Puede indicar que necesitas endodoncia.",
+     "label": "Dolor persistente"
+    },
+    "right": {
+     "text": "A menudo no requiere tratamiento.",
+     "label": "Sensibilidad temporal"
+    },
+    "seconds": 5
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Dolor intenso al morder.",
+     "Cambio en el color del diente.",
+     "Inflamación o hinchazón en las encías."
+    ],
+    "heading": "¿Cuándo considerar una endodoncia?",
+    "seconds": 6
+   },
+   {
+    "kind": "statement",
+    "text": "Siempre consulta a tu dentista para recibir un diagnóstico adecuado.",
+    "seconds": 3
+   },
+   {
+    "kind": "cta",
+    "text": "Pregunta a Clínica Dental Prueba o agenda tu revisión.",
+    "seconds": 4
+   }
+  ],
+  "narration": "¿Te da un escalofrío al morder el helado? Podría ser señal de un problema dental. Si sientes dolor al comer frío, podría ser un signo de daño en el nervio. Un dolor persistente puede indicar que necesitas una endodoncia, mientras que la sensibilidad temporal suele no requerir tratamiento. Considera una endodoncia si hay dolor intenso al morder, cambio en el color del diente o inflamación en las encías. Siempre consulta a tu dentista para un diagnóstico adecuado. Pregunta en Clínica Dental Prueba o agenda tu revisión.",
+  "caption": "¿Te da un escalofrío al morder el helado? 🥶 Eso podría ser señal de un problema dental. Si sientes dolor al comer frío, puede ser un signo de daño en el nervio. Un dolor persistente puede ser una señal de que podrías necesitar una endodoncia. Pero si solo es sensibilidad temporal, a menudo no requiere tratamiento. \n\nConsidera una endodoncia si experimentas dolor intenso al morder, un cambio en el color del diente, o inflamación en las encías. Siempre es mejor consultar a tu dentista para un diagnóstico adecuado. ¡Pregunta en Clínica Dental Prueba o agenda tu revisión! 😊"
+ },
+ {
+  "id": "db-47a1be9c",
+  "source": "dentvid_items (production run, week of 2026-11-02)",
+  "week": "db-es-2026-11-02",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "hook": "Tu cepillo quiere jubilarse, ¿lo sabías?",
+   "title": "Tu cepillo de dientes caduca en 3 meses",
+   "pillar": "prevention",
+   "service": "Limpieza dental",
+   "question": "¿Cada cuánto tiempo debes cambiar tu cepillo de dientes?"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Tu cepillo quiere jubilarse, ¿lo sabías?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Cámbialo cada 3 meses.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "Debes cambiar tu cepillo de dientes cada 3 meses. Así mantienes una buena higiene.",
+    "seconds": 4
+   },
+   {
+    "kind": "list",
+    "items": [
+     "Las cerdas se desgastan.",
+     "Bacterias pueden acumularse.",
+     "Efectividad disminuye."
+    ],
+    "heading": "¿Por qué es importante?",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Si has estado enfermo, cámbialo antes. Tu salud bucal es clave.",
+    "seconds": 4
+   },
+   {
+    "kind": "cta",
+    "text": "¿Tienes dudas? Pregunta en Clínica Dental Prueba o agenda tu revisión.",
+    "seconds": 5
+   }
+  ],
+  "narration": "¿Sabías que tu cepillo quiere jubilarse cada tres meses? Sí, cada tres meses toca cambiarlo. Así mantienes una buena higiene. Las cerdas se desgastan, las bacterias pueden acumularse y su efectividad baja. Y si has estado enfermo, mejor cámbialo antes. Tu salud bucal es clave. ¿Tienes dudas? Pregunta en Clínica Dental Prueba o agenda tu revisión. ¡Estamos aquí para ayudarte!",
+  "caption": "¿Sabías que tu cepillo quiere jubilarse cada tres meses? 🪥 Cada tres meses toca cambiarlo para mantener una buena higiene. Las cerdas se desgastan y las bacterias pueden acumularse, así que es importante no dejarlo pasar. Si has estado enfermo, cámbialo antes. Tu salud bucal es clave.\n\n¿Tienes dudas? Pregunta en Clínica Dental Prueba o agenda tu revisión. ¡Estamos aquí para ayudarte! 😊"
+ },
+ {
+  "id": "preview-tr-aligners-seffaf-plak-tedavisi-islem",
+  "source": "web/public/dentvideo/preview/tr/aligners-seffaf-plak-tedavisi-islem.json",
+  "week": "preview-tr",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "title": "Şeffaf plak tedavisi - İşlem",
+   "hook": "Şeffaf plaklar nasıl takılıp çıkarılır?",
+   "service": "aligners"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Şeffaf plaklar nasıl takılıp çıkarılır?",
+    "seconds": 3.4
+   },
+   {
+    "kind": "footage",
+    "caption": "Şeffaf plaklar, sizin için nasıl uygulanır?",
+    "seconds": 4.5
+   },
+   {
+    "kind": "statement",
+    "text": "Şeffaf plak tedavisinde, öncelikle dişlerinizi kontrol ederiz. Bu, size en uygun plakları hazırlamak için önemlidir.",
+    "seconds": 6.8
+   },
+   {
+    "kind": "list",
+    "heading": "Nasıl Uygulanır?",
+    "items": [
+     "Özel ölçümler alınır.",
+     "Dijital tasarım yapılır.",
+     "Plaklar hazırlanır.",
+     "Sizlere uygun şekilde teslim edilir."
+    ],
+    "seconds": 6.8
+   },
+   {
+    "kind": "statement",
+    "text": "Plaklarınızı günlük olarak 20-22 saat takmanız önerilir. Bu, tedavi sürecinin etkili olmasını sağlar.",
+    "seconds": 6.8
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için bizimle iletişime geçin ya da randevu alın!",
+    "seconds": 5.6
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-tr-children-cocuk-dis-hekimligi-onleme",
+  "source": "web/public/dentvideo/preview/tr/children-cocuk-dis-hekimligi-onleme.json",
+  "week": "preview-tr",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "title": "Çocuk diş hekimliği - Önleme",
+   "hook": "Çocuklarınızın diş çürüğünü nasıl önlersiniz?",
+   "service": "children"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Çocuklarınızın diş çürüğünü nasıl önlersiniz?",
+    "seconds": 3.4
+   },
+   {
+    "kind": "footage",
+    "caption": "Düzenli diş fırçalama önemlidir.",
+    "seconds": 3.4
+   },
+   {
+    "kind": "statement",
+    "text": "Çocuklar için günde iki kez diş fırçalamak önerilir. Bu, diş çürüklerini önlemeye yardımcı olabilir.",
+    "seconds": 5.6
+   },
+   {
+    "kind": "list",
+    "heading": "Diş sağlığını korumak için yapabilecekleriniz:",
+    "items": [
+     "Şekerli yiyecekleri azaltın.",
+     "Diş ipi kullanmayı öğretin.",
+     "Düzenli diş hekimi kontrolleri yaptırın."
+    ],
+    "seconds": 6.7
+   },
+   {
+    "kind": "statement",
+    "text": "Florürlü diş macunu kullanmak, dişlerinizi güçlendirebilir. Ancak, kullanırken miktarına dikkat edin.",
+    "seconds": 5.6
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için kliniğimizle iletişime geçin veya randevu alın.",
+    "seconds": 4.5
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-tr-cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t",
+  "source": "web/public/dentvideo/preview/tr/cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t.json",
+  "week": "preview-tr",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "title": "Diş Taşı Temizliği: Sağlıklı Bir Gülümseme İçin Temel",
+   "hook": "Diş taşı diş etlerinizi sessizce nasıl tehdit eder?",
+   "service": "cleaning"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Diş taşı diş etlerinizi sessizce nasıl tehdit eder?",
+    "seconds": 3.6
+   },
+   {
+    "kind": "footage",
+    "caption": "Diş taşı temizliği diş sağlığınız için önemlidir.",
+    "seconds": 4.9
+   },
+   {
+    "kind": "statement",
+    "text": "Diş taşı, diş etlerinizi tehdit eder ve zamanla iltihaplanabilir.",
+    "seconds": 6.1
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Diş Taşı",
+     "text": "Bakteri birikimi."
+    },
+    "right": {
+     "label": "Sağlıklı Dişler",
+     "text": "Daha az risk."
+    },
+    "seconds": 6.1
+   },
+   {
+    "kind": "statement",
+    "text": "Temizlenmediğinde, diş eti hastalığına yol açabilir.",
+    "seconds": 4.9
+   },
+   {
+    "kind": "list",
+    "heading": "Diş taşı temizliğinin faydaları:",
+    "items": [
+     "Diş eti sağlığını korur.",
+     "Ağız kokusunu azaltır.",
+     "Diş çürüğünü önlemeye yardımcı olabilir."
+    ],
+    "seconds": 7.3
+   },
+   {
+    "kind": "cta",
+    "text": "Diş taşı temizliği hakkında daha fazla bilgi için bize ulaşın!",
+    "seconds": 4.9
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-tr-implant-implant-tedavisi-sonrasi-bakim",
+  "source": "web/public/dentvideo/preview/tr/implant-implant-tedavisi-sonrasi-bakim.json",
+  "week": "preview-tr",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "title": "İmplant tedavisi - Sonrası bakım",
+   "hook": "İmplant sonrası nelere dikkat etmelisiniz?",
+   "service": "implant"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "İmplant sonrası nelere dikkat etmelisiniz?",
+    "seconds": 3.6
+   },
+   {
+    "kind": "footage",
+    "caption": "Ağız bakımınıza dikkat edin.",
+    "seconds": 4.8
+   },
+   {
+    "kind": "statement",
+    "text": "İlk 24 saat boyunca, ağzınızı durulamayın veya tükürmeyin.",
+    "seconds": 6
+   },
+   {
+    "kind": "statement",
+    "text": "Diş etlerinizin iyileşmesi için ilk 24 saat boyunca sert yiyeceklerden kaçının.",
+    "seconds": 6
+   },
+   {
+    "kind": "list",
+    "heading": "İmplant sonrası dikkat edilmesi gerekenler:",
+    "items": [
+     "Nazik tuzlu su ile gargara yapabilirsiniz.",
+     "Diş hekiminizin talimatlarına uyun.",
+     "Sert yiyeceklerden kaçının."
+    ],
+    "seconds": 7.2
+   },
+   {
+    "kind": "cta",
+    "text": "Sorularınız için bize ulaşın veya randevu alın!",
+    "seconds": 4.8
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-tr-implant-implant-tedavisinin-asamalari",
+  "source": "web/public/dentvideo/preview/tr/implant-implant-tedavisinin-asamalari.json",
+  "week": "preview-tr",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "title": "İmplant Tedavisinin Aşamaları",
+   "hook": "İlk randevuda implant bitmiyor!",
+   "service": "implant"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "İlk randevuda implant bitmiyor!",
+    "seconds": 3.2
+   },
+   {
+    "kind": "footage",
+    "caption": "İmplant tedavisinin aşamaları.",
+    "seconds": 4.2
+   },
+   {
+    "kind": "statement",
+    "text": "İmplant tedavisi genellikle birkaç aşamadan oluşur.",
+    "seconds": 2.6
+   },
+   {
+    "kind": "list",
+    "heading": "Aşamalar:",
+    "items": [
+     "İlk muayene ve planlama",
+     "Cerrahi yerleştirme",
+     "İyileşme süreci",
+     "Dişin yapılması"
+    ],
+    "seconds": 5.3
+   },
+   {
+    "kind": "statement",
+    "text": "Her aşama, diş hekiminizin önerilerine göre ilerler.",
+    "seconds": 3.2
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için bize ulaşın veya randevu alın.",
+    "seconds": 4.2
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-tr-whitening-dis-beyazlatma-mit",
+  "source": "web/public/dentvideo/preview/tr/whitening-dis-beyazlatma-mit.json",
+  "week": "preview-tr",
+  "status": "ready",
+  "language": "tr",
+  "country": "TR",
+  "address": "formal",
+  "topic": {
+   "title": "Diş beyazlatma - Mit",
+   "hook": "Beyazlatma sonrası dişler daha hassas mı olur?",
+   "service": "whitening"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Beyazlatma sonrası dişler daha hassas mı olur?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Diş beyazlatma diş minenizi inceltmez.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "Diş beyazlatma işlemi, diş minenizi inceltmez. Ancak, geçici hassasiyet görülebilir.",
+    "seconds": 6
+   },
+   {
+    "kind": "list",
+    "heading": "Sonuçlar",
+    "items": [
+     "Dişlerinizin tonu açılır.",
+     "Geçici hassasiyet yaşanabilir.",
+     "Diş minesine zarar vermesi beklenmez."
+    ],
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Hassasiyet genellikle beyazlatma sonrası birkaç gün sürebilir.",
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Daha fazla bilgi için {handle} ile iletişime geçin veya randevu alın.",
+    "seconds": 6
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-de-aligners-aligner-richtig-pflegen",
+  "source": "web/public/dentvideo/preview/de/aligners-aligner-richtig-pflegen.json",
+  "week": "preview-de",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "title": "Aligner richtig pflegen",
+   "hook": "Ihre Aligner verfärben sich?",
+   "service": "aligners"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ihre Aligner verfärben sich?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Reinigen Sie Ihre Aligner täglich.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "Reinigen Sie Ihre Aligner täglich mit milder Seife und Wasser.",
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Vermeiden Sie heiße Flüssigkeiten, da sie das Material beschädigen können.",
+    "seconds": 5
+   },
+   {
+    "kind": "list",
+    "heading": "Tipps zur Pflege Ihrer Aligner",
+    "items": [
+     "Spülen Sie sie nach dem Essen aus.",
+     "Verwenden Sie keine starken Reinigungsmittel.",
+     "Bewahren Sie sie in der Box auf, wenn Sie sie nicht tragen."
+    ],
+    "seconds": 6
+   },
+   {
+    "kind": "cta",
+    "text": "Fragen Sie uns gerne oder vereinbaren Sie einen Termin!",
+    "seconds": 4
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-de-aligners-wie-aligner-wirklich-funktionieren",
+  "source": "web/public/dentvideo/preview/de/aligners-wie-aligner-wirklich-funktionieren.json",
+  "week": "preview-de",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "title": "Wie Aligner wirklich funktionieren",
+   "hook": "Hätten Sie gedacht, dass Aligner so wirken?",
+   "service": "aligners"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Hätten Sie gedacht, dass Aligner so wirken?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Aligner korrigieren Ihre Zähne.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "Aligner sind durchsichtige Schienen, die Ihre Zähne sanft bewegen.",
+    "seconds": 5
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Bewegung",
+     "text": "Aligner üben Druck auf bestimmte Zähne aus."
+    },
+    "right": {
+     "label": "Anpassung",
+     "text": "Sie werden regelmäßig gewechselt, um die nächsten Schritte zu planen."
+    },
+    "seconds": 6
+   },
+   {
+    "kind": "statement",
+    "text": "Sie sollten die Aligner täglich 20 bis 22 Stunden tragen.",
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Haben Sie Fragen? Fragen Sie uns oder buchen Sie einen Termin!",
+    "seconds": 6
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-de-children-kinderzahnheilkunde-zahnarztangst-vermeiden",
+  "source": "web/public/dentvideo/preview/de/children-kinderzahnheilkunde-zahnarztangst-vermeiden.json",
+  "week": "preview-de",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "title": "Kinderzahnheilkunde: Zahnarztangst vermeiden",
+   "hook": "Kinder und Zahnarzt? Kein Grund zur Panik!",
+   "service": "children"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Kinder und Zahnarzt? Kein Grund zur Panik!",
+    "seconds": 3.3
+   },
+   {
+    "kind": "footage",
+    "caption": "Wir verstehen die Ängste von Kindern.",
+    "seconds": 4.4
+   },
+   {
+    "kind": "statement",
+    "text": "Wir nehmen uns Zeit, um mit den Kindern zu sprechen.",
+    "seconds": 3.3
+   },
+   {
+    "kind": "statement",
+    "text": "Unser Team verwendet spielerische Erklärungen, um den Besuch zu erleichtern.",
+    "seconds": 4.4
+   },
+   {
+    "kind": "list",
+    "heading": "So gehen wir mit Angst um:",
+    "items": [
+     "Ein kinderfreundliches Umfeld",
+     "Beruhigende Gespräche",
+     "Interaktive Spiele",
+     "Belohnungen nach der Behandlung"
+    ],
+    "seconds": 5.5
+   },
+   {
+    "kind": "cta",
+    "text": "Haben Sie Fragen? Besuchen Sie uns oder buchen Sie einen Termin!",
+    "seconds": 4.4
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-de-cleaning-regelma-ige-reinigung-verlangert-zahngesundheit",
+  "source": "web/public/dentvideo/preview/de/cleaning-regelma-ige-reinigung-verlangert-zahngesundheit.json",
+  "week": "preview-de",
+  "status": "ready",
+  "language": "de",
+  "country": "DE",
+  "address": "formal",
+  "topic": {
+   "title": "Regelmäßige Reinigung verlängert Zahngesundheit",
+   "hook": "Ihre Zahnreinigung alle 6 Monate wichtig?",
+   "service": "cleaning"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ihre Zahnreinigung alle 6 Monate wichtig?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Regelmäßige Reinigung unterstützt Ihre Zahngesundheit.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "Eine professionelle Zahnreinigung entfernt Plaque und Zahnstein.",
+    "seconds": 5
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Regelmäßige Reinigung",
+     "text": "Verbessert die Mundhygiene."
+    },
+    "right": {
+     "label": "Selbstreinigung",
+     "text": "Kann nicht alles entfernen."
+    },
+    "seconds": 5
+   },
+   {
+    "kind": "statement",
+    "text": "Sie kann helfen, Karies und Zahnfleischprobleme zu vermeiden.",
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Fragen Sie uns oder buchen Sie Ihren Termin!",
+    "seconds": 4
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-es-children-cuidado-de-dientes-en-ninos",
+  "source": "web/public/dentvideo/preview/es/children-cuidado-de-dientes-en-ninos.json",
+  "week": "preview-es",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "title": "Cuidado de dientes en niños",
+   "hook": "Primer diente, ¿y ahora qué?",
+   "service": "children"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Primer diente, ¿y ahora qué?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Limpieza diaria es clave.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Empieza limpiando sus dientes desde el primer diente.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "heading": "Consejos para cuidar sus dientes:",
+    "items": [
+     "Usa un cepillo suave.",
+     "Aplica una pequeña cantidad de pasta dental.",
+     "Cepilla por lo menos dos veces al día.",
+     "Hazlo divertido para ellos."
+    ],
+    "seconds": 6
+   },
+   {
+    "kind": "statement",
+    "text": "Visita al dentista cada seis meses para chequeos.",
+    "seconds": 3
+   },
+   {
+    "kind": "cta",
+    "text": "¿Tienes preguntas? ¡Consulta con nosotros o agenda tu cita!",
+    "seconds": 4
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-es-cleaning-lo-que-no-debes-hacer-tras-una-limpieza-dental",
+  "source": "web/public/dentvideo/preview/es/cleaning-lo-que-no-debes-hacer-tras-una-limpieza-dental.json",
+  "week": "preview-es",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "title": "Lo que no debes hacer tras una limpieza dental",
+   "hook": "Sales de la limpieza y haces esto.",
+   "service": "cleaning"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Sales de la limpieza y haces esto.",
+    "sub": "Ojo con lo que comes hoy.",
+    "seconds": 2.5
+   },
+   {
+    "kind": "footage",
+    "caption": "Hoy conviene evitar lo muy caliente o muy ácido si notas sensibilidad.",
+    "seconds": 3.5
+   },
+   {
+    "kind": "statement",
+    "text": "Después de una limpieza dental, lo normal es que no necesites hacer nada especial. Si notas las encías sensibles o los dientes un poco reactivos, elige comida suave y evita lo que te moleste ese mismo día.",
+    "seconds": 5.5
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Mejor hoy",
+     "text": "agua, comida templada y cepillado suave"
+    },
+    "right": {
+     "label": "Si te da sensibilidad",
+     "text": "muy caliente, muy frío o ácido"
+    },
+    "seconds": 4.5
+   },
+   {
+    "kind": "list",
+    "heading": "En general, tras la limpieza:",
+    "items": [
+     "No hace falta una dieta especial.",
+     "Si molesta, baja el ritmo con lo muy caliente o frío.",
+     "Sigue las indicaciones de tu dentista si te dio alguna."
+    ],
+    "seconds": 5.5
+   },
+   {
+    "kind": "statement",
+    "text": "La sensibilidad suele ser pasajera. Si dura más de lo esperado o notas algo que te preocupa, consulta con tu clínica.",
+    "seconds": 3.5
+   },
+   {
+    "kind": "cta",
+    "text": "¿Tienes dudas? Escríbenos o pide revisión.",
+    "seconds": 2.5
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-es-gum-por-que-sangran-las-encias-al-cepillarte",
+  "source": "web/public/dentvideo/preview/es/gum-por-que-sangran-las-encias-al-cepillarte.json",
+  "week": "preview-es",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "title": "¿Por qué sangran las encías al cepillarte?",
+   "hook": "Si sangra al cepillarte, ¿lo estás normalizando?",
+   "service": "gum"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Si sangra al cepillarte, ¿lo estás normalizando?",
+    "seconds": 3
+   },
+   {
+    "kind": "footage",
+    "caption": "Puede ser una señal de encías inflamadas.",
+    "seconds": 3.5
+   },
+   {
+    "kind": "statement",
+    "text": "No siempre es normal. Si te pasa con frecuencia, suele indicar irritación o inflamación de las encías.",
+    "seconds": 4.5
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "A veces",
+     "text": "Un cepillado fuerte o encías sensibles"
+    },
+    "right": {
+     "label": "Si se repite",
+     "text": "Suele valer la pena una revisión"
+    },
+    "seconds": 4.5
+   },
+   {
+    "kind": "list",
+    "heading": "Lo más común es esto:",
+    "items": [
+     "placa acumulada",
+     "cepillado agresivo",
+     "hilo dental mal usado",
+     "sarro bajo la encía"
+    ],
+    "seconds": 6
+   },
+   {
+    "kind": "statement",
+    "text": "También puede pasar si llevas tiempo sin una limpieza o si tus encías ya están inflamadas.",
+    "seconds": 4.5
+   },
+   {
+    "kind": "statement",
+    "text": "Si además notas dolor, mal aliento o encías que se ven hinchadas, conviene que te revisen.",
+    "seconds": 4.5
+   },
+   {
+    "kind": "cta",
+    "text": "¿Te sangran las encías? Escríbenos o pide tu revisión.",
+    "seconds": 3
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-es-gum-tratamiento-de-encias-sensible",
+  "source": "web/public/dentvideo/preview/es/gum-tratamiento-de-encias-sensible.json",
+  "week": "preview-es",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "title": "Tratamiento de encías sensible",
+   "hook": "Tras el tratamiento, tus encías necesitan esto.",
+   "service": "gum"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Tras el tratamiento, tus encías necesitan esto.",
+    "seconds": 4
+   },
+   {
+    "kind": "footage",
+    "caption": "Limpia suavemente tus encías.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "Es importante que limpies tus encías con cuidado.",
+    "seconds": 2.5
+   },
+   {
+    "kind": "statement",
+    "text": "Usa un cepillo de cerdas suaves para evitar irritación.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "heading": "Consejos para el cuidado:",
+    "items": [
+     "Evita alimentos duros y calientes",
+     "Haz enjuagues suaves con agua tibia",
+     "Sigue siempre las indicaciones de tu dentista"
+    ],
+    "seconds": 5
+   },
+   {
+    "kind": "cta",
+    "text": "Pregunta a nuestra clínica o agenda tu revisión.",
+    "seconds": 4
+   }
+  ],
+  "narration": null,
+  "caption": null
+ },
+ {
+  "id": "preview-es-whitening-blanqueamiento-dental-y-sensibilidad",
+  "source": "web/public/dentvideo/preview/es/whitening-blanqueamiento-dental-y-sensibilidad.json",
+  "week": "preview-es",
+  "status": "ready",
+  "language": "es",
+  "country": "ES",
+  "address": "informal",
+  "topic": {
+   "title": "Blanqueamiento dental y sensibilidad",
+   "hook": "Blanqueamiento: ¿causa sensibilidad o es un mito?",
+   "service": "whitening"
+  },
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Blanqueamiento: ¿causa sensibilidad o es un mito?",
+    "seconds": 4
+   },
+   {
+    "kind": "footage",
+    "caption": "Puede causar sensibilidad temporal.",
+    "seconds": 3
+   },
+   {
+    "kind": "statement",
+    "text": "El blanqueamiento dental puede causar sensibilidad en algunas personas.",
+    "seconds": 4
+   },
+   {
+    "kind": "statement",
+    "text": "Sin embargo, no todos experimentan esta sensibilidad.",
+    "seconds": 3
+   },
+   {
+    "kind": "list",
+    "heading": "¿Por qué ocurre?",
+    "items": [
+     "Productos blanqueadores pueden irritar nervios.",
+     "Duración del tratamiento puede influir.",
+     "Condición previa de los dientes afecta.",
+     "La sensibilidad suele ser temporal."
+    ],
+    "seconds": 6
+   },
+   {
+    "kind": "cta",
+    "text": "¿Tienes dudas? Pregunta en nuestra clínica o agenda tu revisión.",
+    "seconds": 5
+   }
+  ],
+  "narration": null,
+  "caption": null
+ }
+]
