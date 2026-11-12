@@ -216,8 +216,20 @@ One helper, `ops-alert.ts`, byte-identical in `worker/src/dentvid/` and `web/src
 | 5xx spiking | web `instrumentation.ts` (`onRequestError`) + webhook 5xx | ≥ 10 / hour (`DENTVID_ALERT_5XX_PER_HOUR`) |
 | New paying clinic (good news) / a clinic came back | web `billing-webhook.ts` | at once · `new_paying:<clinic>` |
 | Spend guard refusals (existing) | worker `spend-guard.ts` | per reason per day (unchanged), now through the same helper |
+| Live check failing / still failing / recovered | worker `synthetic.ts` (every 15 min) | 2 failures in a row → one email for all failing checks; reminder every 6 h; one "recovered" email · `monitor_down:…`, `monitor_up:…` |
+| Sign-up failing for clinics | web `signup` route | at once, once a day per step (`create_account`, `server_sign_in`, `verification_code`) · `signup_broken:<step>` |
+| A job could not be queued | web: payment webhook (first week), week button, recording upload, restyle | at once · `enqueue_failed:<where>[:<clinic>]` |
+| Welcome email not sent to a new customer | web `billing-webhook.ts` | at once · `welcome_not_sent:<clinic>` |
 
 **Daily digest** — 08:30 Europe/Istanbul (worker scheduler `dentvid-digest` → `POST /api/internal/dentvideo/digest`), only if anything happened in the last 24 h, once per day: sign-ups, new paying clinics, MRR and its 24 h delta (snapshot `dv:ops:mrr`), paying clinics, lost/at-risk clinics, weeks delivered/failed, emails sent/failed, alerts raised.
+
+### Synthetic monitor and smoke test
+
+Every 15 minutes (BullMQ queue `crons`, scheduler `dentvid-synthetic-monitor`, on the worker with the `crons` role) `worker/src/dentvid/synthetic.ts` checks dentvideo.com from the server: `/`, `/tr`, `/start`, `/privacy` and a guide (200 + expected text); a sign-up as `e2e-monitor+<ts>@bulsulabs.com` that must come back signed in with a `dv-auth` session **issued by Liman** and accepted by Liman (the account is then deleted with the service role; a failed delete is retried next run); Liman `auth/v1/health` and `rest/v1`; the Dodo hosted checkout link (hourly — each call opens an abandoned checkout session; every run while it is failing). Results: `dv:monitor:last`, `dv:monitor:history` (3 days), `dv:monitor:state`, shown under **Live checks** on `/dentvideo/admin/system`.
+
+`e2e-monitor…` addresses are never emailed (verification code, existing-account reset link) nor counted in the funnel, whoever signs up with them. With `x-dv-monitor: $DENTVIDEO_MONITOR_TOKEN` the sign-up skips the per-IP / per-address limits, the bot brake and Turnstile for those addresses only, and returns the new user id.
+
+Browser smoke test (sign-up → clinic step → sign-out → sign-in from a referrer + UTM, account deleted at the end): `bash scripts/dentvideo-smoke.sh` (`SMOKE_URL`, `DENTVIDEO_MONITOR_TOKEN`, `SMOKE_DEVICE`; exit code 1 on failure, screenshot printed).
 
 **Kill switch**: `DENTVID_OWNER_ALERTS=off` — alerts are only logged and the digest is not sent (self-healing keeps working). Counters live in Redis under `dv:ops:*` / `dv:alert:*` (TTL ≤ 3 days); no database migration.
 
@@ -257,6 +269,12 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `DENTVID_COST_TOPUP_USD` | worker | `0.30` | budget for topping up a thin week |
 | `DENTVIDEO_EMAIL_FROM` | worker (optional) | `DentVideo <hello@dentvideo.com>` | sender |
 | `DENTVIDEO_EMAIL_REPLY_TO` | web (optional) | `hello@dentvideo.com` | reply-to on every DentVideo email |
+| `DENTVIDEO_MONITOR_TOKEN` | worker + web (same value, ≥ 16 chars) | — (monitor sign-ups then hit the normal per-IP limits and fail) | lets the synthetic monitor / smoke test sign up `e2e-monitor…` addresses every 15 min |
+| `DENTVIDEO_MONITOR` | worker | on | `off` = no synthetic monitor (its scheduler is removed) |
+| `DENTVIDEO_MONITOR_URL` | worker | `DENTVIDEO_APP_URL`, else `https://dentvideo.com` | site the monitor checks |
+| `DENTVIDEO_MONITOR_GUIDE_PATH` | worker | `/guides/instagram-videos-for-dentists` | the guide page checked |
+| `DENTVIDEO_MONITOR_DODO_LINK` / `_DODO_EVERY_MIN` | worker | live starter-monthly buy link / `60` | checkout link checked (`off` = skip) and how often |
+| `DENTVIDEO_MONITOR_EMAIL_DOMAIN` | worker | `bulsulabs.com` | domain of the monitor's throwaway addresses |
 | `DENTVIDEO_UNSUBSCRIBE_SECRET` | web | falls back to `WORKER_INTERNAL_TOKEN` | signs unsubscribe links; changing it invalidates links already sent |
 | `DENTVIDEO_LIFECYCLE_EMAILS` | web | on | `off` = no welcome / reminder emails |
 | `DENTVIDEO_LIFECYCLE_MAX_PER_RUN` | web | `50` | reminders per hourly run |
