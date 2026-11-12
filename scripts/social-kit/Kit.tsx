@@ -80,6 +80,7 @@ export type ClinicReelProps = {
   plan: ScenePlan;
   voiceoverSrc: string;
   logoSrc?: string;
+  logoStyle?: { treatment: "light" | "dark" | "none"; aspect: number };
   backgroundSrcs?: string[];
   /** "ÖRNEK VİDEO · DentVideo ile hazırlandı" */
   label: string;
@@ -87,13 +88,13 @@ export type ClinicReelProps = {
   url: string;
 };
 
-export const ClinicReel: React.FC<ClinicReelProps> = ({ plan, voiceoverSrc, logoSrc, backgroundSrcs, label, url }) => {
+export const ClinicReel: React.FC<ClinicReelProps> = ({ plan, voiceoverSrc, logoSrc, logoStyle, backgroundSrcs, label, url }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const urlIn = ease(frame, durationInFrames - 4 * FPS, 12);
   return (
     <AbsoluteFill>
-      <ClipForgeVideo plan={plan} footage={{}} voiceoverSrc={voiceoverSrc} watermark={false} logoSrc={logoSrc} backgroundSrcs={backgroundSrcs} />
+      <ClipForgeVideo plan={plan} footage={{}} voiceoverSrc={voiceoverSrc} watermark={false} logoSrc={logoSrc} logoStyle={logoStyle} backgroundSrcs={backgroundSrcs} />
       {/* Below the Reels header (top ~13%), opposite the clinic's corner logo. */}
       <div style={{ position: "absolute", top: 268, left: 64, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 14 }}>
         <div

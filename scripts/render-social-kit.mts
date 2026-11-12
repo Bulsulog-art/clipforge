@@ -402,7 +402,7 @@ async function main() {
   for (const f of ["InstrumentSerif-Regular.ttf", "PlusJakartaSans-SemiBold.ttf"]) await fs.copyFile(path.join(root, "web/assets/fonts", f), path.join(pub, "fonts", f));
   // The sample clinics' logos: a monogram in the clinic colour (drawn here, deliberately plain).
   for (const [lang, s] of Object.entries(SAMPLE)) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><circle cx="120" cy="120" r="112" fill="${s.color}"/><circle cx="120" cy="120" r="96" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><text x="120" y="158" text-anchor="middle" font-family="Noto Serif Display, Georgia, serif" font-size="118" fill="#fff">${s.initial}</text></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240"><circle cx="120" cy="120" r="112" fill="${s.color}"/><circle cx="120" cy="120" r="96" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><text x="120" y="158" text-anchor="middle" font-family="Noto Serif Display, Georgia, serif" font-size="118" fill="#fff">${s.initial}</text></svg>`;
     await fs.writeFile(path.join(pub, "logos", `${lang}.svg`), svg);
   }
 
@@ -455,6 +455,8 @@ async function main() {
         plan: { ...fit.plan, language: post.lang, brandColor: s.color.slice(1).toUpperCase() },
         voiceoverSrc: `audio/${path.basename(fit.audio === mp3 ? `${post.id}.mp3` : fit.audio)}`,
         logoSrc: `logos/${post.lang}.svg`,
+        // A round mark that brings its own background: no chip, square box (as dental/logo.ts would decide).
+        logoStyle: { treatment: "none", aspect: 1 },
         backgroundSrcs: bgs.map((b: string) => `bg/${b}.jpg`),
         label: s.label,
         url: s.url,
