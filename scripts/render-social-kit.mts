@@ -411,7 +411,8 @@ async function main() {
   // The bundle copied public/ when it was built; files staged from here on go into its own copy.
   const live = path.join(serveUrl, "public");
   for (const d of ["audio", "bg", "stills"]) await fs.mkdir(path.join(live, d), { recursive: true });
-  const common = { serveUrl, browserExecutable: BROWSER ?? null } as const;
+  // Generous timeouts: this renders on shared dev boxes where a tab can wait a long time for a frame.
+  const common = { serveUrl, browserExecutable: BROWSER ?? null, timeoutInMilliseconds: 180_000 } as const;
   const report: string[] = [];
 
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -464,7 +465,8 @@ async function main() {
       screen = `stills/${post.coverShot}`;
     }
     const mp4 = path.join(outDir, "reels", `${name}.mp4`);
-    if (!skipVideo) {
+    // Resumable: a reel already rendered is kept (delete it, or pass --force, to render it again).
+    if (!skipVideo && (args.includes("--force") || !existsSync(mp4))) {
       const composition = await selectComposition({ ...common, id: compId, inputProps: props });
       await renderMedia({ ...common, composition, inputProps: props, codec: "h264", crf: 20, outputLocation: mp4, concurrency: Number(process.env.KIT_CONCURRENCY ?? 2), audioCodec: "aac" });
       console.log(`rendered ${name} ${(composition.durationInFrames / FPS).toFixed(1)} s`);

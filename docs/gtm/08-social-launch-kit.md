@@ -262,8 +262,8 @@ compliance line, not decoration.
 | Name (≤30, searchable) | `DentVideo · Klinik videoları` (28) |
 | Category | Software company (Yazılım şirketi) |
 | Profile picture | `profile/avatar-1080.png` |
-| Bio, TR (≤150) | Diş klinikleri için haftalık hasta bilgilendirme videoları. Her metin iki kez kontrol edilir, hekim onaylar. Klinik videoları örnektir. (138) |
-| Bio, EN (≤150) | Weekly patient-education videos for dental clinics. Every script checked twice; the dentist approves. Clinic videos here are samples. (136) |
+| Bio, TR (≤150) | Diş klinikleri için haftalık hasta bilgilendirme videoları. Her metin iki kez kontrol edilir, hekim onaylar. Klinik videoları örnektir. (135) |
+| Bio, EN (≤150) | Weekly patient-education videos for dental clinics. Every script checked twice; the dentist approves. Clinic videos here are samples. (133) |
 | Link 1 (label "Önizleme") | `https://dentvideo.com/tr?utm_source=instagram&utm_medium=bio&utm_campaign=tr-launch` |
 | Link 2, optional ("Vista previa") | `https://dentvideo.com/es?utm_source=instagram&utm_medium=bio&utm_campaign=es-launch` |
 | Link 3, optional ("Vorschau") | `https://dentvideo.com/de?utm_source=instagram&utm_medium=bio&utm_campaign=de-launch` |

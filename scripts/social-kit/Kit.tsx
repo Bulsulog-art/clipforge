@@ -47,7 +47,7 @@ const SERIF = '"Instrument Serif", "Noto Serif Display", Georgia, serif';
 const SANS = '"Plus Jakarta Sans", "Inter", Arial, sans-serif';
 
 // Fonts come from the staged public folder (web/assets/fonts, OFL).
-const fontHandle = typeof document !== "undefined" ? delayRender("brand fonts") : null;
+const fontHandle = typeof document !== "undefined" ? delayRender("brand fonts", { timeoutInMilliseconds: 120_000 }) : null;
 if (typeof document !== "undefined") {
   Promise.all(
     [
