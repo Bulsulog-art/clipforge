@@ -225,7 +225,7 @@ describe("the code email", () => {
     expect(tr.html).toContain('lang="tr" dir="ltr"');
     const ar = codeEmail({ language: "ar", code: "048213" });
     expect(ar.html).toContain('dir="rtl"');
-    expect(ar.html).toContain('<span dir="ltr" style="font-family');
+    expect(ar.html).toMatch(/<span dir="ltr"[^>]*style="font-family:'SF Mono'/);
     expect(codeEmail({ language: "it", code: "111111" }).subject).toBe("111111 is your DentVideo code");
   });
 });

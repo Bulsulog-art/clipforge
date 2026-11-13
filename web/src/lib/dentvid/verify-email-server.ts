@@ -3,6 +3,7 @@ import { kvStore } from "@/lib/rate-limit-server";
 import { sendEmail } from "./email";
 import { DV_SUPABASE_ANON, DV_SUPABASE_URL, dvAdmin } from "./supabase";
 import { codeEmail } from "./verify-email-message";
+import { isMonitorEmail } from "./monitor-account";
 import { isEmailVerified, issueCode, verifiedAppMetadata, verifySecret, type IssueResult, type VerifyKv, type VerifyMethod } from "./verify-email";
 
 /**
@@ -21,6 +22,8 @@ export async function sendVerificationCode(args: {
   kv?: VerifyKv;
   send?: typeof sendEmail;
 }): Promise<SendCodeResult> {
+  // Synthetic-monitor and smoke-test accounts (lib/dentvid/monitor-account) never get mail.
+  if (isMonitorEmail(args.email)) return { ok: true };
   const secret = verifySecret();
   if (!secret) return { ok: false, reason: "unavailable" };
   let issued: IssueResult;

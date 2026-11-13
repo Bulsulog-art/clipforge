@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryOpsStore, _resetLocalOnce, digestHasNews, renderDigest, weekStateKey, type Mail } from "./ops-alert";
-import { _setOpsForTests, noteServerError, readWeekDelay } from "./ops-server";
+import { _setOpsForTests, noteEnqueueFailure, noteServerError, readWeekDelay } from "./ops-server";
 import { sendEmail } from "./email";
 import { buildDigest } from "./ops-digest";
 import { clinicFindings, delayNote, nextAction } from "./app-ui";
@@ -73,6 +73,29 @@ describe("5xx spike", () => {
     expect(mails).toHaveLength(1);
     expect(mails[0].subject).toMatch(/Server errors \(5xx\) spiking/);
     expect(mails[0].text).toContain("/api/dentvideo/week");
+  });
+});
+
+describe("a job that could not be queued", () => {
+  it("is logged and the owner hears once a day per place and clinic", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    await noteEnqueueFailure("week-button", "week", new Error("connect ECONNREFUSED 10.0.0.5:6379"), "c-1");
+    await noteEnqueueFailure("week-button", "week", new Error("connect ECONNREFUSED 10.0.0.5:6379"), "c-1");
+    await noteEnqueueFailure("week-button", "week", new Error("again"), "c-2");
+    expect(err).toHaveBeenCalledTimes(3);
+    err.mockRestore();
+    expect(mails).toHaveLength(2);
+    expect(mails[0].subject).toBe("[DentVideo] ACİL: İş kuyruğa eklenemedi / URGENT: A job could not be queued");
+    expect(mails[0].text).toContain("connect ECONNREFUSED 10.0.0.5:6379");
+    expect(mails[0].text).toContain("(week-button)");
+  });
+
+  it("an email that cannot be sent for want of RESEND_API_KEY is logged and counted, not silent", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await sendEmail("a@x.example", { subject: "s", html: "h", text: "t" })).toBe(false);
+    expect(err).toHaveBeenCalledWith("dentvideo email not sent: RESEND_API_KEY is not set");
+    err.mockRestore();
+    expect([...store.kv.keys()].some((k) => k.startsWith("dv:ops:count:email_fail:"))).toBe(true);
   });
 });
 

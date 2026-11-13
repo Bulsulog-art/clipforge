@@ -63,6 +63,8 @@ const AT_RISK_ONLY = new Set(["payment.failed", "subscription.past_due"]);
 /** Refunds and disputes: logged, the owner told; a chargeback pauses the clinic. */
 const MONEY_BACK = /^(refund|dispute)\./;
 const CHARGEBACK = new Set(["dispute.opened", "dispute.accepted", "dispute.lost"]);
+/** Welcome results that mean a paying clinic got no welcome because something broke (not "already sent", "test account"…; without RESEND_API_KEY no alert could be sent either). */
+const WELCOME_PROBLEM = new Set(["failed", "migration missing"]);
 
 async function tell(db: SupabaseClient, deps: DvWebhookDeps, clinicId: string, make: (c: ClinicRef) => OwnerAlert): Promise<void> {
   try {
@@ -247,7 +249,9 @@ export async function isDentvideoMoneyBackEvent(evt: { type?: string; data?: Dod
     if (!apiKey) return false;
     const p = await dodoGetPayment({ apiKey }, d.payment_id);
     return isDentvideoEvent({ metadata: p.metadata, brand_id: p.brand_id, product_cart: p.product_cart });
-  } catch {
+  } catch (e) {
+    // Unknown: treated as not ours (ClipForge's handler acknowledges it). Logged so a DentVideo refund is not lost silently.
+    console.error("[dodo:dentvideo] could not tell whether a refund/dispute is DentVideo's", evt.type, d.payment_id, (e as Error).message);
     return false;
   }
 }
@@ -422,6 +426,8 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
     } catch (e) {
       firstWeek = "failed";
       console.error("[dodo:dentvideo] could not queue the first week", clinic.id, (e as Error).message);
+      // The first-week watchdog re-queues it once Redis is back — but a brand-new customer is waiting: the owner hears now.
+      await tell(db, deps, clinic.id, (c) => alerts.enqueueFailed({ where: "payment", job: "week", error: cleanError(e), clinic: c }));
     }
   }
 
@@ -435,6 +441,11 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
       welcomeEmail = "failed";
       console.error("[dodo:dentvideo] welcome email failed", clinic.id, (e as Error).message);
     }
+    if (welcomeEmail && WELCOME_PROBLEM.has(welcomeEmail)) {
+      console.error("[dodo:dentvideo] welcome email not sent", clinic.id, welcomeEmail);
+      const result = welcomeEmail;
+      await tell(db, deps, clinic.id, (c) => alerts.welcomeNotSent({ clinic: c, result }));
+    }
   }
 
   // Founding seats: the owner hears once when the 100th is taken (checkout and the app close the offer themselves).
@@ -442,8 +453,9 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
     try {
       const f = await (deps.founding ?? loadFoundingState)(db);
       if (!f.open && f.left === 0) await (deps.alert ?? raiseOwnerAlert)(alerts.foundingFull({ used: f.used, clinics: DV_FOUNDING.clinics }));
-    } catch {
-      // best effort
+    } catch (e) {
+      // Best effort: checkout and the app close the offer by themselves.
+      console.error("[dodo:dentvideo] founding seat count failed", (e as Error).message);
     }
   }
 

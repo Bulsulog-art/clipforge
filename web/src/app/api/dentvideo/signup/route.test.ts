@@ -15,6 +15,13 @@ vi.mock("@/lib/dentvid/events-server", () => ({
     recorded.push(a);
   },
 }));
+const ownerAlerts: { key: string; facts?: [string, string][] }[] = [];
+vi.mock("@/lib/dentvid/ops-server", () => ({
+  raiseOwnerAlert: async (a: { key: string; facts?: [string, string][] }) => {
+    ownerAlerts.push(a);
+    return "sent";
+  },
+}));
 vi.mock("@/lib/dentvid/verify-email-server", () => ({ sendVerificationCode: (...a: unknown[]) => sendCode(...(a as [])) }));
 vi.mock("@/lib/dentvid/email", () => ({
   sendEmail: async (to: string, msg: { subject: string }) => {
@@ -35,6 +42,7 @@ vi.mock("@/lib/rate-limit-server", async () => {
 });
 let serverSignIns: { email: string; password: string }[] = [];
 let serverSignInFails = false;
+let createFails: string | null = null;
 vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }) }));
 vi.mock("@/lib/dentvid/supabase", () => ({
   dvServer: () => ({
@@ -49,6 +57,7 @@ vi.mock("@/lib/dentvid/supabase", () => ({
     auth: {
       admin: {
         createUser: async (attrs: Record<string, unknown>) => {
+          if (createFails) return { data: { user: null }, error: { message: createFails } };
           if (existing) return { data: { user: null }, error: { message: "A user with this email address has already been registered" } };
           created.push(attrs);
           return { data: { user: { id: "new-user", email: attrs.email } }, error: null };
@@ -77,6 +86,10 @@ beforeEach(() => {
   existing = null;
   limitedKey = null;
   sendCode.mockClear();
+  sendCode.mockImplementation(async () => ({ ok: true as const }));
+  ownerAlerts.length = 0;
+  recorded.length = 0;
+  createFails = null;
   vi.stubEnv("TURNSTILE_SECRET_KEY", "");
   vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "");
 });
@@ -178,5 +191,91 @@ describe("signs a new account in on the server", () => {
     expect(r.body).toMatchObject({ ok: true, existing: true });
     expect(r.body.signedIn).toBeUndefined();
     expect(serverSignIns).toEqual([]);
+  });
+});
+
+const TOKEN = "monitor-token-0123456789abcdef";
+const MONITOR = "e2e-monitor+1731400000000abc@bulsulabs.com";
+
+describe("the synthetic monitor's sign-ups (e2e-monitor+…)", () => {
+  it("with the token: no client limits, no bot brake, no email, no funnel event, and the user id back", async () => {
+    vi.stubEnv("DENTVIDEO_MONITOR_TOKEN", TOKEN);
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "0x-secret");
+    vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "0x-site");
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ success: false })));
+    vi.stubGlobal("fetch", fetchMock);
+    limitedKey = "rl:signup:ip:203.0.113.9";
+    const r = await signup({ email: MONITOR, elapsedMs: undefined }, { "x-dv-monitor": TOKEN });
+    expect(r).toEqual({ status: 200, body: { ok: true, signedIn: true, userId: "new-user" } });
+    expect(checks).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(sendCode).not.toHaveBeenCalled();
+    expect(recorded).toEqual([]);
+    expect(mails).toEqual([]);
+    expect(serverSignIns).toHaveLength(1);
+  });
+
+  it("without the token (or a wrong one) a monitor address goes through every brake — but is still never emailed", async () => {
+    vi.stubEnv("DENTVIDEO_MONITOR_TOKEN", TOKEN);
+    const r = await signup({ email: MONITOR }, { "x-dv-monitor": "monitor-token-wrong-0000000000" });
+    expect(r).toEqual({ status: 200, body: { ok: true, signedIn: true } });
+    expect(checks).toContain("rl:signup:ip:203.0.113.9");
+    expect(checks).toContain("rl:signup:global");
+    expect(sendCode).not.toHaveBeenCalled();
+    expect(recorded).toEqual([]);
+    limitedKey = "rl:signup:ip:203.0.113.9";
+    expect((await signup({ email: MONITOR })).status).toBe(429);
+  });
+
+  it("the token does nothing for a real address", async () => {
+    vi.stubEnv("DENTVIDEO_MONITOR_TOKEN", TOKEN);
+    limitedKey = "rl:signup:ip:203.0.113.9";
+    expect((await signup({}, { "x-dv-monitor": TOKEN })).status).toBe(429);
+    limitedKey = null;
+    const ok = await signup({ elapsedMs: 10 }, { "x-dv-monitor": TOKEN });
+    expect(ok.status).toBe(400);
+    const fine = await signup({}, { "x-dv-monitor": TOKEN });
+    expect(fine.body).toEqual({ ok: true, signedIn: true });
+    expect(sendCode).toHaveBeenCalledTimes(1);
+  });
+
+  it("an existing monitor address gets no reset mail", async () => {
+    existing = { app_metadata: { product: "dentvideo" } };
+    expect((await signup({ email: MONITOR })).body).toEqual({ ok: true, existing: true });
+    expect(mails).toEqual([]);
+  });
+});
+
+describe("a step that fails for a real clinic is logged and the owner is told", () => {
+  it("account creation refused", async () => {
+    createFails = "Database error saving new user";
+    expect((await signup()).status).toBe(500);
+    expect(ownerAlerts.map((a) => a.key)).toEqual(["signup_broken:create_account"]);
+    expect(ownerAlerts[0].facts).toContainEqual(["Error", "Database error saving new user"]);
+  });
+
+  it("server sign-in failed right after the account was made", async () => {
+    serverSignInFails = true;
+    expect((await signup()).body).toEqual({ ok: true, signedIn: false });
+    expect(ownerAlerts.map((a) => a.key)).toEqual(["signup_broken:server_sign_in"]);
+  });
+
+  it("the verification code could not be issued or sent", async () => {
+    sendCode.mockImplementation(async () => ({ ok: false, reason: "unavailable" }) as never);
+    expect((await signup()).body).toEqual({ ok: true, signedIn: true });
+    expect(ownerAlerts.map((a) => a.key)).toEqual(["signup_broken:verification_code"]);
+    ownerAlerts.length = 0;
+    sendCode.mockImplementation(async () => {
+      throw new Error("redis down");
+    });
+    expect((await signup()).body).toEqual({ ok: true, signedIn: true });
+    expect(ownerAlerts.map((a) => a.key)).toEqual(["signup_broken:verification_code"]);
+  });
+
+  it("nothing is raised when all is well, nor for monitor accounts", async () => {
+    await signup();
+    serverSignInFails = true;
+    await signup({ email: MONITOR });
+    expect(ownerAlerts).toEqual([]);
   });
 });

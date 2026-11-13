@@ -6,7 +6,7 @@
  *   WORKER_QUEUES   comma-separated list of what to run; unset or "all" = everything.
  *                   Names: video-pipeline, generate, publish, derivative,
  *                   dentvid (DentVideo renders), dentvid-mail (DentVideo email,
- *                   watchdogs, digest), crons (trend snapshot, cost monitor,
+ *                   watchdogs, digest), crons (synthetic monitor, trend snapshot, cost monitor,
  *                   metrics, stuck-job reaper, parked-job resume).
  *   DENTVID_RENDER_CONCURRENCY=0
  *                   this process takes no DentVideo renders (the main box,

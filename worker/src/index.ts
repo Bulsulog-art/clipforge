@@ -27,6 +27,7 @@ import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
 import { runMetricsSnapshot } from "./jobs/metrics-snapshot.js";
 import { runCostMonitor } from "./jobs/cost-monitor.js";
 import { startHeartbeat } from "./dentvid/heartbeat.js";
+import { MONITOR_SCHEDULE, monitorConfig, runMonitor } from "./dentvid/synthetic.js";
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -226,6 +227,34 @@ if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
   }
 }
 
+// The synthetic monitor (dentvid/synthetic.ts): every 15 minutes, the live
+// site checked from this server the way a clinic would use it — pages,
+// sign-up (a throwaway e2e-monitor account, deleted again), Liman, the Dodo
+// checkout link. Results in Redis for /dentvideo/admin/system; the owner is
+// emailed after 2 failures in a row, and once more when it recovers.
+// Its own small "crons" queue: a job scheduler runs it once per slot however
+// many processes have the crons role, and never behind a Monday of renders.
+const cronsQueue = new Queue("crons", { connection });
+const cronsWorker = new Worker(
+  "crons",
+  async (job) => {
+    if (job.name === "synthetic-monitor") {
+      const run = await runMonitor({ fetch, store: opsStore(), alert: ownerAlert, config: monitorConfig(), log: (level, msg, extra) => logger[level](extra ?? {}, `dentvid: ${msg}`) });
+      return { ok: run.ok, failed: run.results.filter((r) => !r.ok && !r.skipped).map((r) => r.name) };
+    }
+    throw new Error(`unknown crons job ${job.name}`);
+  },
+  { connection, autorun: ROLES.has("crons"), concurrency: 1, removeOnComplete: { count: 200 }, removeOnFail: { count: 200 } },
+);
+cronsWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err: err.message }, "crons job failed"));
+if (ROLES.has("crons") && process.env.DENTVIDEO_MONITOR !== "off") {
+  cronsQueue
+    .upsertJobScheduler("dentvid-synthetic-monitor", MONITOR_SCHEDULE, { name: "synthetic-monitor", data: {} })
+    .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: monitor scheduler setup failed"));
+} else if (process.env.DENTVIDEO_MONITOR === "off") {
+  cronsQueue.removeJobScheduler("dentvid-synthetic-monitor").catch(() => {});
+}
+
 // Parked dentvid jobs go back on the queue once the spend guard has room
 // again (cap raised, clinic count readable again, pause lifted, Redis back,
 // next day / month) — checked every DENTVID_PARK_RESUME_MIN minutes (15), so
@@ -312,6 +341,8 @@ async function shutdown(signal: string) {
     dentvidQueue.close(),
     dentvidMailWorker.close(),
     dentvidMailQueue.close(),
+    cronsWorker.close(),
+    cronsQueue.close(),
   ]);
   await Sentry.flush(2000);
   await connection.quit();
