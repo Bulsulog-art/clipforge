@@ -52,6 +52,27 @@ export function resolveStep(i: StepInput): StepResolution {
 }
 
 /**
+ * Dodo statuses that mean "nothing was paid". Dodo's payment link sends the
+ * clinic back to its one redirect_url (/app?billing=success) whatever
+ * happened, appending `status` (and payment_id / subscription_id): a declined
+ * card comes back as ?billing=success&status=failed. Unknown or pending
+ * statuses ("processing", "requires_customer_action") keep the success path:
+ * the webhook may still activate the plan.
+ */
+const DODO_NOT_PAID = new Set(["failed", "cancelled", "canceled", "expired", "requires_payment_method"]);
+
+/**
+ * The ?billing= the app should act on after a return from Dodo: a payment
+ * that did not go through counts as a cancelled checkout (back to the plans,
+ * "nothing was charged"), never as "payment received".
+ */
+export function billingReturn(billing: string | null | undefined, status: string | null | undefined): string | undefined {
+  const s = (status ?? "").trim().toLowerCase();
+  if (billing === "success" && DODO_NOT_PAID.has(s)) return "cancelled";
+  return billing ?? undefined;
+}
+
+/**
  * The app home for a clinic: should a not-yet-paying visitor be sent back
  * into the funnel? Yes, unless they are just back from paying (the webhook
  * may still be on its way) or have videos from before the free week ended

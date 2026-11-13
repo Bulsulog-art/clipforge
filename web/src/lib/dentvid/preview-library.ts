@@ -8,6 +8,7 @@
  * (scripts/build-dentvideo-preview.mts), and every visitor replays them.
  */
 import { PREVIEW_MANIFEST, type PreviewEntry as BuiltEntry } from "./preview-manifest";
+import { isRtl } from "@/remotion/script";
 
 /** A library video. `narrated: false` marks a silent one (no .mp3 beside its plan). */
 export type PreviewEntry = BuiltEntry & { narrated?: boolean };
@@ -45,6 +46,18 @@ export const PREVIEW_LIBRARY: Record<PreviewLanguage, PreviewEntry[]> = PREVIEW_
 /** The library language for a clinic language; one we have no videos in falls back to English. */
 export function libraryLanguage(language: string): PreviewLanguage {
   return (PREVIEW_LANGUAGES as readonly string[]).includes(language) ? (language as PreviewLanguage) : "en";
+}
+
+/**
+ * Which top corner of the phone the preview's mute / play buttons sit in:
+ * the one the clinic's logo is NOT in. The composition puts the logo top
+ * right, mirrored to top left in a right-to-left (Arabic) video
+ * (remotion/Video.tsx ClinicLogo); buttons in the same corner would cover the
+ * very logo the preview is there to show. Physical sides on purpose — the
+ * video's direction decides, not the page's.
+ */
+export function previewControlsSide(language: string): "left" | "right" {
+  return isRtl(libraryLanguage(language)) ? "right" : "left";
 }
 
 /**

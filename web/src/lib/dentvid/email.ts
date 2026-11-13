@@ -10,6 +10,7 @@
  */
 
 import { renderEmail, type Brand, type Rendered, type Thumb } from "./email-layout";
+import { lifecycleText } from "@/content/dentvideo-lifecycle";
 
 export type ReadyKind = "week" | "recording";
 export type ReadyCounts = { ready: number; flagged: number };
@@ -228,6 +229,8 @@ export function readyEmail(args: {
     button: { label: c.button, url: args.appUrl },
     secondary: args.approveUrl && args.counts.ready > 0 ? { ask: c.approveAsk, label: c.approveAll, url: args.approveUrl } : undefined,
     afterButton: [c.approval],
+    // Signed like every other DentVideo email ("The DentVideo team", in the clinic's language).
+    signoff: lifecycleText(lang).copy.signoff,
     footer: c.footer,
     brand: { ...args.brand, name },
   });

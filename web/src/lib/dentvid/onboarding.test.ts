@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { appSendsToFunnel, asStep, resolveStep, showFirstWeek } from "./onboarding";
+import { appSendsToFunnel, asStep, billingReturn, resolveStep, showFirstWeek } from "./onboarding";
+
+describe("return from Dodo's payment link", () => {
+  // The link has one redirect_url (/app?billing=success); Dodo appends &status= with the outcome.
+  it("treats a declined or abandoned payment as a cancelled checkout, not 'payment received'", () => {
+    for (const status of ["failed", "cancelled", "expired", "requires_payment_method", "FAILED"]) {
+      expect(billingReturn("success", status)).toBe("cancelled");
+    }
+    // …so a clinic with nothing yet goes back to the plans with the "nothing was charged" note.
+    expect(appSendsToFunnel("trial", billingReturn("success", "failed"), 0)).toBe(true);
+    expect(showFirstWeek({ plan: "trial", billing: billingReturn("success", "failed"), madeThisWeek: false, everMade: false })).toBe(false);
+  });
+
+  it("keeps the success path for a payment that went through or is still being confirmed", () => {
+    for (const status of ["succeeded", "active", "processing", "requires_customer_action", undefined, ""]) {
+      expect(billingReturn("success", status)).toBe("success");
+    }
+    expect(billingReturn("cancelled", undefined)).toBe("cancelled");
+    expect(billingReturn(undefined, "failed")).toBeUndefined();
+  });
+});
 
 const step = (s: string) => ({ kind: "step", step: s });
 

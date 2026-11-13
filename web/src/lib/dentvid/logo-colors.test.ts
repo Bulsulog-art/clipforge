@@ -1,5 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { accentFor, logoColors } from "./logo-colors";
+import { accentFor, isDecodableImage, logoColors } from "./logo-colors";
+
+describe("a chosen logo file that is not a picture", () => {
+  const blob = new Blob(["this is not an image"], { type: "image/png" });
+
+  it("is refused when the browser cannot decode it (a renamed document keeps the old logo)", async () => {
+    expect(await isDecodableImage(blob, async () => Promise.reject(new Error("The source image could not be decoded.")))).toBe(false);
+    expect(await isDecodableImage(blob, async () => ({ width: 0, height: 0 }))).toBe(false);
+  });
+
+  it("is accepted when it decodes, and the bitmap is released", async () => {
+    let closed = false;
+    expect(await isDecodableImage(blob, async () => ({ width: 400, height: 200, close: () => (closed = true) }))).toBe(true);
+    expect(closed).toBe(true);
+  });
+
+  it("gives a browser without createImageBitmap the benefit of the doubt", async () => {
+    expect(await isDecodableImage(blob, undefined)).toBe(true);
+  });
+});
 
 type Rgba = [number, number, number, number];
 

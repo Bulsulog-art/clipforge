@@ -24,6 +24,8 @@ import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export type ClinicByEmail = { clinicId: string } | { problem: "no clinic" | "several clinics" | "lookup failed" };
+
 export type DvWebhookResult = { status: 200 | 500; body: Record<string, unknown> };
 
 export type DvWebhookEvent = { type: string; data: DodoEventData; timestamp?: unknown };
@@ -51,6 +53,11 @@ export type DvWebhookDeps = {
   dodoStatus?: (subscriptionId: string) => Promise<string | null>;
   /** Self-serve billing portal available (DODO_API_KEY set). */
   selfServe?: boolean;
+  /**
+   * The clinic whose owner has this email — for an event without clinic metadata.
+   * Exactly one DentVideo clinic owner, or the reason none was picked (default: Liman's auth admin API).
+   */
+  clinicByEmail?: (db: SupabaseClient, email: string) => Promise<ClinicByEmail>;
   now?: () => Date;
 };
 
@@ -59,6 +66,8 @@ const AT_RISK_ONLY = new Set(["payment.failed", "subscription.past_due"]);
 /** Refunds and disputes: logged, the owner told; a chargeback pauses the clinic. */
 const MONEY_BACK = /^(refund|dispute)\./;
 const CHARGEBACK = new Set(["dispute.opened", "dispute.accepted", "dispute.lost"]);
+/** The clinic won the dispute: a pause that came only from the chargeback is lifted. */
+const DISPUTE_WON = "dispute.won";
 /** Welcome results that mean a paying clinic got no welcome because something broke (not "already sent", "test account"…; without RESEND_API_KEY no alert could be sent either). */
 const WELCOME_PROBLEM = new Set(["failed", "migration missing"]);
 
@@ -83,6 +92,30 @@ async function paymentMail(db: SupabaseClient, clinicId: string, kind: PaymentPr
   const store = await webOpsStore().catch(() => null);
   const claim = async (key: string) => (store ? store.setNx(key, 3 * 86_400).catch(() => true) : true);
   return sendPaymentProblem({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig(), claim }, clinicId, kind, fix);
+}
+
+/**
+ * The one DentVideo clinic whose owner's login has this email (Liman's auth
+ * admin API; GoTrue keeps one account per address). DentVideo accounts only
+ * (membership.ts) — Liman holds other apps' users too.
+ */
+export async function clinicByOwnerEmail(db: SupabaseClient, email: string): Promise<ClinicByEmail> {
+  const want = email.trim().toLowerCase();
+  const { isDentvideoUser } = await import("./membership");
+  const owners: string[] = [];
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await db.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) return { problem: "lookup failed" };
+    const users = data?.users ?? [];
+    for (const u of users) if ((u.email ?? "").trim().toLowerCase() === want && isDentvideoUser(u)) owners.push(u.id);
+    if (users.length < 1000) break;
+  }
+  if (!owners.length) return { problem: "no clinic" };
+  const { data: clinics, error } = await db.from("dentvid_clinics").select("id").in("owner_id", owners).limit(3);
+  if (error) return { problem: "lookup failed" };
+  const ids = ((clinics ?? []) as { id: string }[]).map((c) => c.id);
+  if (ids.length === 1) return { clinicId: ids[0] };
+  return { problem: ids.length ? "several clinics" : "no clinic" };
 }
 
 async function queueWeek(db: SupabaseClient, clinicId: string): Promise<FirstWeekResult> {
@@ -199,7 +232,10 @@ async function paymentSucceeded(db: SupabaseClient, evt: DvWebhookEvent, deps: D
   if (d.subscription_id) {
     const prev = await subs.get(d.subscription_id);
     // Only a subscription we have not seen: "pending" until its activation arrives (blocks a second checkout meanwhile).
-    if (prev === null) await subs.put(ledgerRow(clinic.id, d.subscription_id, "pending", d, prev, dvEventTime(evt) ?? (deps.now?.() ?? new Date()).toISOString(), evt.type));
+    // No event time: a payment is not a subscription status, and Dodo often stamps the first
+    // payment.succeeded a moment AFTER subscription.active — an event time here made that
+    // activation look stale, and a clinic that had just paid was never switched on.
+    if (prev === null) await subs.put({ ...ledgerRow(clinic.id, d.subscription_id, "pending", d, prev, "", evt.type), last_event_at: null });
   }
   return { status: 200, body: { ok: true, app: "dentvideo", recorded: evt.type } };
 }
@@ -213,13 +249,36 @@ async function moneyBack(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhoo
   console.warn("[dodo:dentvideo] money back event", evt.type, d.payment_id ?? "", clinic?.id ?? "no clinic");
   if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: "no clinic", event: evt.type } };
   let paused = false;
+  let resumed = false;
+  const now = deps.now?.() ?? new Date();
+  // The ledger row of the subscription the clinic's access comes from (undefined: no ledger).
+  const subId = clinic.dodo_subscription_id ?? null;
+  const current = subId ? await subs.get(subId) : null;
   if (CHARGEBACK.has(evt.type) && clinic.plan === "active") {
-    const { error } = await db.from("dentvid_clinics").update({ plan: "paused", updated_at: new Date().toISOString() }).eq("id", clinic.id);
+    const { error } = await db.from("dentvid_clinics").update({ plan: "paused", updated_at: now.toISOString() }).eq("id", clinic.id);
     if (error) return { status: 500, body: { error: error.message } };
     paused = true;
+    // Remembered on the subscription: the app then says "payment under review, write to us" instead of
+    // offering a plan (the subscription is still live at Dodo — a new plan would be a second one), and a
+    // won dispute knows the pause was only the chargeback's.
+    if (current) await subs.put({ ...current, status: "disputed" });
+  } else if (evt.type === DISPUTE_WON && clinic.plan === "paused" && subId && current?.status === "disputed") {
+    // Paused only by this chargeback (an on_hold / lapse since would have overwritten "disputed").
+    const live = await (deps.dodoStatus ?? liveDodoStatus)(subId);
+    if (!live || live === "active") {
+      const { error } = await db.from("dentvid_clinics").update({ plan: "active", updated_at: now.toISOString() }).eq("id", clinic.id).eq("plan", "paused");
+      if (error) return { status: 500, body: { error: error.message } };
+      await subs.put({ ...current, status: "active" });
+      resumed = true;
+      try {
+        await (deps.enqueueWeek ?? queueWeek)(db, clinic.id);
+      } catch (e) {
+        console.error("[dodo:dentvideo] could not queue the week after a won dispute", clinic.id, (e as Error).message);
+      }
+    }
   }
-  await tell(db, deps, clinic.id, (c) => alerts.billingDispute({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, paymentId: d.payment_id ?? null, paused }));
-  return { status: 200, body: { ok: true, app: "dentvideo", event: evt.type, paused } };
+  await tell(db, deps, clinic.id, (c) => alerts.billingDispute({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, paymentId: d.payment_id ?? null, paused, resumed }));
+  return { status: 200, body: { ok: true, app: "dentvideo", event: evt.type, paused, ...(resumed ? { resumed } : {}) } };
 }
 
 /** A DentVideo event the route could not process (500 or exception): the owner is told once a day per event type. */
@@ -283,8 +342,23 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   if (!t) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
 
   const metaOwner = typeof d.metadata?.owner_id === "string" ? d.metadata.owner_id : null;
-  const found = await clinicFor(db, d, subs);
+  let found = await clinicFor(db, d, subs);
   if (found.error) return { status: 500, body: { error: found.error } };
+  if (!found.row && !metaClinicOf(d)) {
+    // No clinic metadata (a subscription made in the Dodo dashboard, a plain payment link…) and not one we
+    // know: the customer's email, only when exactly one DentVideo clinic owner has it. Never a guess.
+    const email = (d.customer?.email ?? "").trim();
+    const byEmail: ClinicByEmail = email ? await (deps.clinicByEmail ?? clinicByOwnerEmail)(db, email).catch(() => ({ problem: "lookup failed" as const })) : { problem: "no clinic" };
+    if ("clinicId" in byEmail) {
+      found = await findClinic(db, "id", byEmail.clinicId);
+      if (found.error) return { status: 500, body: { error: found.error } };
+    } else {
+      const reason = email ? byEmail.problem : ("no email" as const);
+      console.warn("[dodo:dentvideo] event without clinic metadata matched no clinic", evt.type, t.subscriptionId, reason);
+      await (deps.alert ?? raiseOwnerAlert)(alerts.unmatchedBillingEvent({ event: evt.type, subscriptionId: t.subscriptionId, email: email || null, reason })).catch(() => {});
+      return { status: 200, body: { ok: true, app: "dentvideo", ignored: "no clinic", match: reason } };
+    }
+  }
   const clinic = found.row;
   if (!clinic) {
     console.warn("[dodo:dentvideo] no clinic for event", evt.type, t.subscriptionId);
@@ -301,8 +375,9 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   const stamp = eventAt ?? now.toISOString();
   const record = (status: string) => (ledger ? subs.put(ledgerRow(clinic.id, t.subscriptionId, status, d, prev, stamp, evt.type)) : Promise.resolve(false));
 
-  // 1. Out of order: an older event never undoes a newer one.
-  if (prev && isStaleEvent(prev.last_event_at, eventAt)) {
+  // 1. Out of order: an older event never undoes a newer one. A "pending" row only says a
+  // payment arrived (rows written before that rule may carry the payment's time): never stale against it.
+  if (prev && prev.status !== "pending" && isStaleEvent(prev.last_event_at, eventAt)) {
     console.warn("[dodo:dentvideo] stale event ignored", evt.type, t.subscriptionId, eventAt, prev.last_event_at);
     return { status: 200, body: { ok: true, app: "dentvideo", ignored: "stale" } };
   }

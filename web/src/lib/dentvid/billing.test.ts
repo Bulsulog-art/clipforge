@@ -90,6 +90,15 @@ describe("buildDvCheckout", () => {
     });
   });
 
+  it("forces the checkout into each of DentVideo's eight languages (all are Dodo checkout languages); anything else is left to Dodo", () => {
+    for (const locale of ["en", "de", "es", "tr", "fr", "ja", "ar", "pl"]) {
+      const r = buildDvCheckout({ tier: "starter", interval: "month", clinicId: CLINIC, ownerId: OWNER, locale }, {});
+      expect(r.ok && r.body.customization).toEqual({ force_language: locale });
+    }
+    const other = buildDvCheckout({ tier: "starter", interval: "month", clinicId: CLINIC, ownerId: OWNER, locale: "xx" }, {});
+    expect(other.ok && other.body).not.toHaveProperty("customization");
+  });
+
   it("applies no discount code by default on any plan, whatever the old founding env vars say", () => {
     const oldEnv = { ...ENV, DENTVIDEO_FOUNDING_OFFER: "1", DENTVIDEO_FOUNDING_CODE: "KURUCU100" };
     for (const [tier, interval] of [["starter", "month"], ["practice", "month"]] as const) {
@@ -221,6 +230,13 @@ describe("plan transitions", () => {
 
   it("a first payment that fails leaves an unpaid clinic unpaid", () => {
     expect(applyTransition(trial, dvTransition("subscription.failed", d, {})!)).toBeNull();
+  });
+
+  it("a subscription that is cancelled or expires before it ever activated leaves an unpaid clinic unpaid (not 'cancelled')", () => {
+    // Otherwise the clinic is told its plan was cancelled, its activation emails stop, and the same
+    // subscription activating later would be refused as a "late activation".
+    expect(applyTransition(trial, dvTransition("subscription.cancelled", d, {})!)).toBeNull();
+    expect(applyTransition(trial, dvTransition("subscription.expired", d, {})!)).toBeNull();
   });
 });
 

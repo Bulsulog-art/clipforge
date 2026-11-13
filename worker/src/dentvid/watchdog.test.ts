@@ -226,3 +226,41 @@ describe("watchdog thresholds leave room for the queue", () => {
     expect(FIRST_WEEK_SCHEDULE.pattern).toBe("*/15 * * * *");
   });
 });
+
+describe("supabaseWatchDb — who should have a week", () => {
+  const rows = [
+    { id: "a", plan: "active", admin_paused_at: null },
+    { id: "p", plan: "active", admin_paused_at: "2026-11-10T10:00:00Z" },
+    { id: "b", plan: "active" },
+  ];
+  const db = {
+    from: () => ({
+      select: () => ({
+        eq: (_col: string, v: string) => ({
+          order: () => ({ range: async () => ({ data: rows.filter((r) => r.plan === v), error: null }) }),
+          maybeSingle: async () => ({ data: rows.find((r) => r.id === v) ?? null, error: null }),
+        }),
+      }),
+    }),
+  };
+
+  it("a clinic the owner paused is not 'missing' on Saturday (no false dispatch alert) and not active for the first-week watchdog", async () => {
+    const { supabaseWatchDb } = await import("./watchdog.js");
+    const w = supabaseWatchDb(db as never);
+    expect(await w.activeClinicIds()).toEqual(["a", "b"]);
+    expect(await w.isActive("p")).toBe(false);
+    expect(await w.isActive("a")).toBe(true);
+    expect(await w.isActive("nope")).toBe(false);
+  });
+
+  it("with only paused clinics the Saturday check raises nothing", async () => {
+    const { supabaseWatchDb } = await import("./watchdog.js");
+    const paused = supabaseWatchDb({ from: () => ({ select: () => ({ eq: () => ({ order: () => ({ range: async () => ({ data: [rows[1]], error: null }) }) }) }) }) } as never);
+    const alert = vi.fn(async () => "sent" as const);
+    const queue = { getJob: vi.fn(async () => null), add: vi.fn(async () => ({})) };
+    const res = await checkMondayDispatch({ db: { ...paused, weekMade: async () => new Set<string>() } as never, queue, store: new MemoryOpsStore(), alert, now: at("2026-11-14T19:30:00Z") });
+    expect(res.active).toBe(0);
+    expect(alert).not.toHaveBeenCalled();
+    expect(queue.add).not.toHaveBeenCalled();
+  });
+});

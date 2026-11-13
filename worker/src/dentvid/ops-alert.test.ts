@@ -56,6 +56,8 @@ export const SAMPLES: Record<string, OwnerAlert> = {
   signupBroken: alerts.signupBroken({ step: "server_sign_in", error: "Invalid login credentials" }),
   enqueueFailed: alerts.enqueueFailed({ where: "payment", job: "week", error: "connect ECONNREFUSED", clinic: CLINIC }),
   welcomeNotSent: alerts.welcomeNotSent({ clinic: CLINIC, result: "failed" }),
+  recordingFailed: alerts.recordingFailed({ clinic: CLINIC, attempts: 2, error: "OpenAI 500", jobId: "rec:x" }),
+  cronFailed: alerts.cronFailed({ job: "watchdog-monday", error: "fetch failed", attempts: 3 }),
 };
 
 describe("every alert says what happened, which clinic, what was done, what to do", () => {
@@ -132,6 +134,31 @@ describe("delivery: one email per incident per day, never a storm", () => {
     store.down = true;
     for (let i = 0; i < 5; i++) await deliverAlert(deps(), SAMPLES.emailFailures);
     expect(sent).toHaveLength(1);
+  });
+
+  it("an alert whose email failed is not swallowed for the day: the next raise sends it", async () => {
+    let up = false;
+    const flaky = Object.assign(async (m: { subject: string; text: string; html: string }) => (up ? (sent.push(m), true) : false), { configured: true });
+    expect(await deliverAlert({ store, send: flaky, now: () => NOW }, SAMPLES.weekFailed)).toBe("failed");
+    up = true;
+    expect(await deliverAlert({ store, send: flaky, now: () => NOW }, SAMPLES.weekFailed)).toBe("sent");
+    expect(await deliverAlert({ store, send: flaky, now: () => NOW }, SAMPLES.weekFailed)).toBe("deduped");
+    expect(sent).toHaveLength(1);
+    // Logged once for the digest, not once per attempt.
+    expect((await store.list(ALERT_LOG_KEY("2026-11-09"))).length).toBe(1);
+  });
+
+  it("an incident muted by the hourly cap is delivered when raised again next hour", async () => {
+    const env = { DENTVID_ALERT_MAX_PER_HOUR: "1" };
+    await deliverAlert(deps(env), { ...SAMPLES.renderSpike, key: "first" });
+    expect(await deliverAlert(deps(env), SAMPLES.weekFailed)).toBe("muted");
+    expect(await deliverAlert(deps(env, new Date("2026-11-09T08:05:00Z")), SAMPLES.weekFailed)).toBe("sent");
+  });
+
+  it("no transport configured: the key is kept (no point retrying every raise)", async () => {
+    const none = Object.assign(async () => false, { configured: false });
+    expect(await deliverAlert({ store, send: none, now: () => NOW }, SAMPLES.onHold)).toBe("failed");
+    expect(await deliverAlert({ store, send: none, now: () => NOW }, SAMPLES.onHold)).toBe("deduped");
   });
 
   it("a failing transport reports 'failed' and never throws", async () => {

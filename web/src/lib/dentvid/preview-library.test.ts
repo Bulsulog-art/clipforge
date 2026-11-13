@@ -1,9 +1,33 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { formatHandle, libraryLanguage, personalisePlan, pickPreviews, serviceCategory, PREVIEW_LANGUAGES, PREVIEW_LIBRARY } from "./preview-library";
+import { formatHandle, libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, serviceCategory, PREVIEW_LANGUAGES, PREVIEW_LIBRARY } from "./preview-library";
 import { splitServices, SERVICE_HINTS } from "./service-hints";
 import { parseScenePlan } from "@/remotion/scene-plan";
+import { isRtl } from "@/remotion/script";
+
+describe("preview player controls", () => {
+  // The composition's logo: top right, mirrored to top left in a right-to-left video (remotion/Video.tsx).
+  const logoSide = (lang: string) => (isRtl(lang) ? "left" : "right");
+
+  it("never sit in the corner the clinic's logo is in, in any preview language", () => {
+    for (const lang of PREVIEW_LANGUAGES) expect(previewControlsSide(lang)).not.toBe(logoSide(lang));
+    expect(previewControlsSide("ar")).toBe("right");
+    expect(previewControlsSide("en")).toBe("left");
+    expect(previewControlsSide("ja")).toBe("left");
+  });
+
+  it("follow the video's language, not the page's — an English clinic on an Arabic page still has its logo top right", () => {
+    // Italian / Portuguese clinics are previewed with the English library.
+    expect(previewControlsSide("it")).toBe("left");
+  });
+
+  it("are placed by the player from the helper, with physical sides (not start/end, which flip with the page)", () => {
+    const src = fs.readFileSync(path.join(__dirname, "../../components/dentvid/live-preview-player.tsx"), "utf8");
+    expect(src).toContain("previewControlsSide(lang)");
+    expect(src).not.toMatch(/absolute end-4 top-14/);
+  });
+});
 
 const PUBLIC = path.resolve(__dirname, "../../../public/dentvideo/preview");
 

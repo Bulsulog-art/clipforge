@@ -14,6 +14,7 @@ import { paymentProblemEmail } from "./lifecycle-email";
 import { clinicProfileSchema } from "./profile";
 import { showFirstWeek } from "./onboarding";
 import { restyleStatus, RESTYLE_STALE_MS } from "./restyle";
+import { checkoutBlockMessage, loadAppBillingPanel } from "./billing-state";
 
 const NOW = new Date("2026-11-09T12:00:00Z");
 const sub = (over: Partial<DvSubRecord>): DvSubRecord => ({ dodo_subscription_id: "sub_1", clinic_id: "c", status: "active", ...over });
@@ -49,6 +50,14 @@ describe("checkoutBlock (C3: never two live subscriptions)", () => {
     expect(checkoutBlock({ clinic: { plan: "paused", dodo_subscription_id: "sub_1" }, subs: [sub({ status: "failed", updated_at: "2026-10-01T00:00:00Z" })], now: NOW })).toBeNull();
     expect(checkoutBlock({ clinic: { plan: "paused", dodo_subscription_id: "sub_1" }, subs: [sub({ status: "on_hold", updated_at: "2026-10-01T00:00:00Z" })], dodoStatus: "expired", now: NOW })).toBeNull();
     expect(checkoutBlock({ clinic: { plan: "trial", dodo_subscription_id: "sub_1" }, subs: null, dodoStatus: "active", now: NOW })).toEqual({ code: "pending" });
+  });
+
+  it("a chargeback (subscription 'disputed') → under review, write to us — even while Dodo still calls the subscription active", () => {
+    const disputed = [sub({ status: "disputed", updated_at: NOW.toISOString() })];
+    expect(checkoutBlock({ clinic: { plan: "paused", dodo_subscription_id: "sub_1" }, subs: disputed, now: NOW })).toEqual({ code: "disputed" });
+    expect(checkoutBlock({ clinic: { plan: "paused", dodo_subscription_id: "sub_1" }, subs: disputed, dodoStatus: "active", now: NOW })).toEqual({ code: "disputed" });
+    // Once the subscription has ended at Dodo, a new plan is safe again.
+    expect(checkoutBlock({ clinic: { plan: "paused", dodo_subscription_id: "sub_1" }, subs: disputed, dodoStatus: "cancelled", now: NOW })).toBeNull();
   });
 
   it("without the ledger: a paused clinic with a subscription → update the card; a trial or cancelled one may buy", () => {
@@ -175,5 +184,20 @@ describe("M4: a stuck restyle can be retried", () => {
     expect(restyleStatus("queued", new Date(now - RESTYLE_STALE_MS - 1000).toISOString(), now)).toBe("failed");
     expect(restyleStatus("failed", null, now)).toBe("failed");
     expect(restyleStatus(null, null, now)).toBeNull();
+  });
+});
+
+describe("what the app shows instead of the plan picker", () => {
+  it("a clinic paused by DentVideo (admin) is told so — never offered a plan", async () => {
+    expect(await loadAppBillingPanel({ id: "c", plan: "active", adminPaused: true }, null, NOW)).toEqual({ kind: "admin_paused" });
+    expect(await loadAppBillingPanel({ id: "c", plan: "active" }, null, NOW)).toEqual({ kind: "plans" });
+  });
+
+  it("a refused checkout for a disputed payment says to write to us, in every language", () => {
+    for (const lang of BILLING_LANGUAGES) {
+      const m = checkoutBlockMessage({ code: "disputed" }, lang, { selfServe: true, alreadySubscribed: "x" });
+      expect(m, lang).toContain("hello@dentvideo.com");
+      expect(m, lang).not.toMatch(/\{\w+\}/);
+    }
   });
 });

@@ -61,6 +61,16 @@ export function PlanPanel({
 
   const lead = state === "paused" ? t.leadPaused : state === "cancelled" ? t.leadCancelled : t.leadTrial;
 
+  // Back from Dodo with the browser's Back button: Safari (and Chrome, where it may) restores this page
+  // from the back-forward cache as it was left — "Opening checkout…" with every button disabled.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setBusy(null);
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
   async function choose(tier: DvTier, chosen: DvInterval) {
     setBusy(tier);
     setError(null);

@@ -206,6 +206,16 @@ describe("requeue this week", () => {
     };
     expect(await runAdminAction({ action: "requeue_week", clinicId: CLINIC }, down.actionDeps)).toMatchObject({ outcome: "error", code: "queue_down" });
   });
+
+  it("refuses a clinic without an active plan instead of a 'queued' that the worker silently skips", async () => {
+    for (const plan of ["trial", "paused", "cancelled"]) {
+      const t = deps({ dentvid_clinics: [clinicRow({ plan })], dentvid_items: [{ id: ITEM, clinic_id: CLINIC, kind: "generated", status: "flagged", plan: {} }] });
+      expect((await runAdminAction({ action: "requeue_week", clinicId: CLINIC }, t.actionDeps)).code).toBe("not_paying");
+      expect((await runAdminAction({ action: "retry_video", itemId: ITEM }, t.actionDeps)).code).toBe("not_paying");
+      expect(t.added).toEqual([]);
+      expect(t.writes).toEqual([]);
+    }
+  });
 });
 
 describe("retry a video", () => {

@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from "lucide
 import { ClipForgeVideo } from "@/remotion/Video";
 import { FPS, totalFrames, type ScenePlan } from "@/remotion/scene-plan";
 import { analyseLogoUrl, accentFor, type LogoColors } from "@/lib/dentvid/logo-colors";
-import { libraryLanguage, personalisePlan, pickPreviews, type PreviewEntry } from "@/lib/dentvid/preview-library";
+import { libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, type PreviewEntry } from "@/lib/dentvid/preview-library";
 import { fmt, type AppText } from "@/content/dentvideo-app";
 import { PhoneFrame } from "./phone";
 import { trackDv } from "@/lib/dentvid/events-client";
@@ -106,6 +106,7 @@ export default function LivePreviewPlayer({
   demoToken?: string;
 }) {
   const lang = libraryLanguage(profile.language);
+  const controlsSide = previewControlsSide(lang);
   const servicesKey = profile.services.join("\u0000");
   const entries: PreviewEntry[] = useMemo(
     () => pickPreviews(servicesKey ? servicesKey.split("\u0000") : [], lang, 3),
@@ -458,7 +459,8 @@ export default function LivePreviewPlayer({
             </div>
           ) : null}
 
-          <div className="absolute end-4 top-14 z-10 flex gap-2">
+          {/* In the top corner the clinic's logo is not in (top right; top left in an Arabic video) — never over it. */}
+          <div className={`absolute ${controlsSide === "left" ? "left-4" : "right-4"} top-14 z-10 flex gap-2`} data-controls-side={controlsSide}>
             {silent ? null : (
               <button
                 type="button"
