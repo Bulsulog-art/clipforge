@@ -1,6 +1,6 @@
 -- ============================================================
 -- DentVideo security audit fixes on Liman — NOT applied automatically.
--- Requires 0001–0011. Apply by hand (Liman SQL editor or psql), then run the
+-- Requires 0001–0011 (0012, the posted-at column, is independent). Apply by hand (Liman SQL editor or psql), then run the
 -- checks at the bottom. Idempotent; safe to run twice. Nothing here changes
 -- data; it changes three helper functions, adds one trigger and narrows grants.
 --
