@@ -5,7 +5,7 @@ import type { GuideCategory } from "@/content/guides/types";
 import { readingMinutes } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { ENTITY } from "@/content/guides/entity";
-import { guidesIndexJsonLd } from "@/lib/dentvid/seo-guides";
+import { guidesIndexJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 import { CommercialLinks } from "./solution-page";
@@ -21,7 +21,7 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
 
   return (
     <main lang={locale} dir={dirOf(locale)}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guidesIndexJsonLd(locale)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(guidesIndexJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />

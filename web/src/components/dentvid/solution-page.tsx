@@ -6,7 +6,7 @@ import { reviewedDate, sectionId } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { solutionPath, solutionsFor, type SolutionPage } from "@/content/solutions";
 import { SOLUTION_UI } from "@/content/solutions/ui";
-import { solutionJsonLd } from "@/lib/dentvid/seo-guides";
+import { solutionJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, Byline, GuideCta, HtmlLang, RichText, SectionTableView } from "./guide-parts";
 import { GuideScriptFont } from "./font-guide";
@@ -28,7 +28,7 @@ export function SolutionView({ p }: { p: SolutionPage }) {
 
   return (
     <main lang={L} dir={dirOf(L)}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(solutionJsonLd(p)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(solutionJsonLd(p)) }} />
       <HtmlLang locale={L} />
       <GuideScriptFont locale={L} />
 

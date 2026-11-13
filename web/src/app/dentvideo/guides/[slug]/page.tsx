@@ -6,6 +6,7 @@ import { GUIDES, LANDING_PATH, LANGUAGE_NAME, dirOf, findGuide, guidePath } from
 import { readingMinutes, relatedGuides, reviewedDate, sectionId, translationsOf } from "@/content/guides/text";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
+import { jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, Byline, GuideCta, HtmlLang, RichText, SectionTableView, formatDate } from "@/components/dentvid/guide-parts";
 import { GuideScriptFont } from "@/components/dentvid/font-guide";
@@ -42,7 +43,7 @@ export default async function GuidePage({ params }: Props) {
 
   return (
     <main lang={L} dir={dirOf(L)}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guideJsonLd(g)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(guideJsonLd(g)) }} />
       <HtmlLang locale={L} />
       <GuideScriptFont locale={L} />
 
