@@ -10,6 +10,15 @@
  */
 export const DV_AUTH_COOKIE = "dv-auth";
 
+/**
+ * How every DentVideo Supabase client (browser, server, middleware) writes the
+ * session cookie. Secure in production: the session never travels over plain
+ * HTTP, even on a first visit typed without https://. (Browsers accept Secure
+ * cookies from http://localhost, so a local production build still works.)
+ * Not HttpOnly: the browser client must read it to call Liman directly.
+ */
+export const DV_COOKIE_OPTIONS = { name: DV_AUTH_COOKIE, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" };
+
 export function hasDvSessionCookie(cookieHeader: string | null | undefined): boolean {
   if (!cookieHeader) return false;
   return cookieHeader.split(";").some((part) => {

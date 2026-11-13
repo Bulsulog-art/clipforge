@@ -213,8 +213,9 @@ describe("plan transitions", () => {
     expect(applyTransition(after, renewed)).toEqual({ plan: "active", dodo_subscription_id: sub, plan_tier: "practice", plan_renews_at: "2027-01-08T10:00:00Z" });
   });
 
-  it("tier falls back to metadata when the product is unknown", () => {
-    expect(dvTransition("subscription.active", { ...d, product_id: "pdt_unknown", metadata: { app: "dentvideo", plan: "group" } }, {})?.tier).toBe("group");
+  it("takes the tier only from the product: metadata.plan is the buyer's to set", () => {
+    expect(dvTransition("subscription.active", { ...d, product_id: "pdt_unknown", metadata: { app: "dentvideo", plan: "group" } }, {})?.tier).toBeNull();
+    expect(dvTransition("subscription.active", { ...d, product_id: "pdt_0NrVahwZsINvy3TNz2H35", metadata: { app: "dentvideo", plan: "practice" } }, {})?.tier).toBe("starter");
   });
 
   it("cancel and hold apply to the current subscription", () => {

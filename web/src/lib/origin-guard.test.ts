@@ -46,3 +46,18 @@ describe("Dodo webhook", () => {
     expect(isBadOrigin({ ...base, pathname: "/api/dodo/webhook" })).toBe(false);
   });
 });
+
+describe("DentVideo routes", () => {
+  it("keep the Origin check when a bearer header is sent (they authenticate by cookie only)", () => {
+    for (const pathname of ["/api/dentvideo/account/delete", "/api/dentvideo/join", "/api/dentvideo/checkout"]) {
+      expect(isBadOrigin({ ...base, pathname, authorization: "Bearer anything" }), pathname).toBe(true);
+      expect(isBadOrigin({ ...base, pathname, authorization: "Bearer anything", origin: "https://evil.example" }), pathname).toBe(true);
+      expect(isBadOrigin({ ...base, pathname, authorization: "Bearer anything", origin: "https://dentvideo.com" }), pathname).toBe(false);
+    }
+  });
+
+  it("leave the worker's internal calls and the signed unsubscribe link alone", () => {
+    expect(isBadOrigin({ ...base, pathname: "/api/internal/dentvideo/notify", authorization: "Bearer worker-token" })).toBe(false);
+    expect(isBadOrigin({ ...base, pathname: "/api/dentvideo/unsubscribe" })).toBe(false);
+  });
+});

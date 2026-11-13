@@ -79,8 +79,54 @@ export type AccountExport = {
   clinic: Row | null;
   videos: (Row & { links: { video?: string; thumbnail?: string; source?: string } })[];
   files: { path: string; size: number | null; content_type: string | null; url: string | null }[];
+  /**
+   * What DentVideo keeps about the clinic in tables only the server reads
+   * (service role): its Dodo subscriptions and payments, the emails sent to it,
+   * and its funnel events. Empty lists when there is no clinic or a table is
+   * not there yet; null when it could not be read (the export says so).
+   */
+  records: AccountRecords | null;
   note: string;
 };
+
+export type AccountRecords = {
+  subscriptions: Row[];
+  payments: Row[];
+  emails: Row[];
+  email_sends: Row[];
+  events: Row[];
+};
+
+/** The service-role tables an export reads, and the columns it keeps (never another clinic's, never internal ids of others). */
+const RECORD_TABLES: { key: keyof AccountRecords; table: string; columns: string; order: string }[] = [
+  { key: "subscriptions", table: "dentvid_subscriptions", columns: "dodo_subscription_id, clinic_id, status, product, tier, interval, discount_id, founding, period_end, last_event_at, last_event_type, created_at, updated_at", order: "created_at" },
+  { key: "payments", table: "dentvid_payments", columns: "dodo_payment_id, clinic_id, dodo_subscription_id, created_at", order: "created_at" },
+  { key: "emails", table: "dentvid_email_log", columns: "clinic_id, kind, sent_at", order: "sent_at" },
+  { key: "email_sends", table: "dentvid_email_sends", columns: "clinic_id, kind, language, status, error, created_at", order: "created_at" },
+  { key: "events", table: "dentvid_events", columns: "clinic_id, name, locale, props, created_at", order: "created_at" },
+];
+
+/** A table that is not there yet (migration not applied): PostgREST / Postgres "undefined table". */
+const missingRelation = (e: { code?: string; message?: string } | null) =>
+  !!e && (e.code === "42P01" || e.code === "PGRST205" || /relation .* does not exist|Could not find the table/i.test(e.message ?? ""));
+
+/**
+ * The clinic's rows in the service-role tables, read with `admin` and scoped
+ * to this one clinic id (taken from the owner's own RLS-checked clinic row).
+ */
+export async function loadAccountRecords(admin: SupabaseClient, clinicId: string | null): Promise<AccountRecords> {
+  const out: AccountRecords = { subscriptions: [], payments: [], emails: [], email_sends: [], events: [] };
+  if (!clinicId || !UUID.test(clinicId)) return out;
+  for (const t of RECORD_TABLES) {
+    const { data, error } = await admin.from(t.table).select(t.columns).eq("clinic_id", clinicId).order(t.order, { ascending: true }).limit(5000);
+    if (error) {
+      if (missingRelation(error)) continue;
+      throw new Error(`${t.table}: ${error.message}`);
+    }
+    out[t.key] = ((data ?? []) as unknown as Row[]).filter((r) => String(r.clinic_id).toLowerCase() === clinicId.toLowerCase());
+  }
+  return out;
+}
 
 /**
  * Everything DentVideo holds about the signed-in clinic, as one JSON
@@ -93,6 +139,8 @@ export async function buildAccountExport(
   db: SupabaseClient,
   user: { id: string; email?: string | null; created_at?: string | null },
   now: Date = new Date(),
+  /** Reads the service-role tables (loadAccountRecords); omitted → `records` is null. */
+  records?: (clinicId: string | null) => Promise<AccountRecords>,
 ): Promise<AccountExport> {
   const owner = assertOwnerId(user.id);
   const [{ data: clinic, error: ce }, { data: items, error: ie }] = await Promise.all([
@@ -116,6 +164,13 @@ export async function buildAccountExport(
     for (const s of signed ?? []) if (s.path && s.signedUrl && isOwnPath(s.path, owner)) urls.set(s.path, s.signedUrl);
   }
   const link = (p: unknown) => (typeof p === "string" ? urls.get(p) : undefined);
+  const clinicId = clinicRow && typeof clinicRow.id === "string" ? clinicRow.id : null;
+  const extra = records
+    ? await records(clinicId).catch((e: Error) => {
+        console.error("[dentvideo account] export records unavailable", e.message);
+        return null;
+      })
+    : null;
 
   return {
     format: "dentvideo-export/1",
@@ -137,7 +192,8 @@ export async function buildAccountExport(
       const f = files.find((x) => x.path === p);
       return { path: p, size: f?.size ?? null, content_type: f?.contentType ?? null, url: urls.get(p) ?? null };
     }),
-    note: "Download links expire at links_expire_at. Export again from Settings for fresh links.",
+    records: extra,
+    note: "Download links expire at links_expire_at. Export again from Settings for fresh links. records: your subscriptions and payments as our payment provider reported them, the emails we sent you, and your usage events.",
   };
 }
 

@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { NextRequest, NextResponse } from "next/server";
-import { hasDvSessionCookie, DV_AUTH_COOKIE } from "./session-cookie";
+import { hasDvSessionCookie, DV_COOKIE_OPTIONS } from "./session-cookie";
 import { publicCacheControl } from "./cache-policy";
 
 /**
@@ -43,7 +43,7 @@ export async function withFreshDvSession(req: NextRequest, build: () => NextResp
   const anon = process.env.NEXT_PUBLIC_DENTVID_SUPABASE_ANON_KEY;
   if (!url || !anon) return res;
   const db = createServerClient(url, anon, {
-    cookieOptions: { name: DV_AUTH_COOKIE },
+    cookieOptions: DV_COOKIE_OPTIONS,
     cookies: {
       getAll: () => req.cookies.getAll(),
       setAll: (all: CookieToSet[]) => {

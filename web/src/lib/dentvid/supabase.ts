@@ -1,6 +1,6 @@
 import { createBrowserClient, createServerClient, type CookieOptions } from "@supabase/ssr";
 import { createClient as createAdmin } from "@supabase/supabase-js";
-import { DV_AUTH_COOKIE } from "./session-cookie";
+import { DV_AUTH_COOKIE, DV_COOKIE_OPTIONS } from "./session-cookie";
 
 /**
  * DentVideo's own Supabase — Liman (self-hosted). Separate from ClipForge's
@@ -29,8 +29,8 @@ let browserClient: DvBrowserClient | null = null;
  * upload asked to sign in again, and reset links failed as "expired".
  */
 export function dvBrowser(): DvBrowserClient {
-  if (typeof window === "undefined") return createBrowserClient(URL, ANON, { cookieOptions: { name: COOKIE_NAME }, isSingleton: false });
-  browserClient ??= createBrowserClient(URL, ANON, { cookieOptions: { name: COOKIE_NAME }, isSingleton: false });
+  if (typeof window === "undefined") return createBrowserClient(URL, ANON, { cookieOptions: DV_COOKIE_OPTIONS, isSingleton: false });
+  browserClient ??= createBrowserClient(URL, ANON, { cookieOptions: DV_COOKIE_OPTIONS, isSingleton: false });
   return browserClient;
 }
 
@@ -46,7 +46,7 @@ type CookieStore = {
 
 export function dvServer(cookieStore: CookieStore) {
   return createServerClient(URL, ANON, {
-    cookieOptions: { name: COOKIE_NAME },
+    cookieOptions: DV_COOKIE_OPTIONS,
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (all: { name: string; value: string; options: CookieOptions }[]) => {
