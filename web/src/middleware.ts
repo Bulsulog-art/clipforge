@@ -4,6 +4,7 @@ import { allowedOrigins, isBadOrigin } from "@/lib/origin-guard";
 import { routeForHost } from "@/lib/dentvid/host";
 import { publicCacheControl } from "@/lib/dentvid/cache-policy";
 import { TOO_MANY, requestLocale } from "@/lib/dentvid/request-locale";
+import { shouldRefreshDvSession, withFreshDvSession } from "@/lib/dentvid/session-refresh";
 import { API_GLOBAL_PER_IP, MemoryStore, clientIp, slidingWindow } from "@/lib/rate-limit";
 
 // A cheap first line against floods of /api requests: a per-IP sliding
@@ -39,6 +40,10 @@ export async function middleware(req: NextRequest) {
   if (route.kind === "rewrite") {
     const url = req.nextUrl.clone();
     url.pathname = route.path;
+    // A signed-in clinic's page: refresh an expired dv-auth session first (lib/dentvid/session-refresh).
+    if (shouldRefreshDvSession(route.path, req.method, req.headers.get("cookie"))) {
+      return withFreshDvSession(req, () => NextResponse.rewrite(url, { request: { headers: req.headers } }));
+    }
     const res = NextResponse.rewrite(url);
     // The marketing pages are the same for everyone: a CDN may keep them (lib/dentvid/cache-policy).
     const cache = publicCacheControl(route.path, req.method);
@@ -66,6 +71,11 @@ export async function middleware(req: NextRequest) {
     const pub = NextResponse.next({ request: req });
     pub.headers.set("Cache-Control", dvCache);
     return pub;
+  }
+
+  // DentVideo's per-person pages on this host: DentVideo's session, not ClipForge's.
+  if (shouldRefreshDvSession(req.nextUrl.pathname, req.method, req.headers.get("cookie"))) {
+    return withFreshDvSession(req, () => NextResponse.next({ request: req }));
   }
 
   let res = NextResponse.next({ request: req });
