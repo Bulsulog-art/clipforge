@@ -6,7 +6,8 @@ import { APP_TEXT } from "@/content/dentvideo-app";
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const ITEM = "9d1e2f3a-4b5c-4d6e-8f7a-1b2c3d4e5f6a";
 
-let item: { id: string; owner_id: string; status: string; approval: string; clinic_id: string };
+let item: { id: string; owner_id: string; status: string; approval: string; clinic_id: string; posted_at?: string | null };
+let dbError: { code?: string; message: string } | null = null;
 let filters: [string, string, unknown][];
 
 vi.mock("@/lib/dentvid/auth", () => ({
@@ -20,6 +21,7 @@ vi.mock("@/lib/dentvid/auth", () => ({
           eq: (k: string, v: unknown) => (filters.push(["eq", k, v]), q),
           in: (k: string, v: unknown) => (filters.push(["in", k, v]), q),
           select: async () => {
+            if (dbError) return { data: null, error: dbError };
             const match = filters.every(([op, k, v]) => {
               const have = (item as Record<string, unknown>)[k];
               return op === "eq" ? have === v : (v as unknown[]).includes(have);
@@ -48,6 +50,7 @@ async function patch(body: unknown) {
 beforeEach(() => {
   filters = [];
   item = { id: ITEM, owner_id: OWNER, status: "ready", approval: "pending", clinic_id: "c1" };
+  dbError = null;
 });
 
 describe("PATCH /api/dentvideo/items/[id]", () => {
@@ -68,5 +71,33 @@ describe("PATCH /api/dentvideo/items/[id]", () => {
       expect(r.status, status).toBe(409);
       expect(item.approval).toBe("pending");
     }
+  });
+
+  it("ticks an approved video as posted, and unticks it", async () => {
+    item = { ...item, approval: "approved" };
+    const r = await patch({ posted: true });
+    expect(r).toEqual({ status: 200, body: { ok: true, stored: true } });
+    expect(typeof item.posted_at).toBe("string");
+    filters = [];
+    await patch({ posted: false });
+    expect(item.posted_at).toBeNull();
+  });
+
+  it("never ticks a video that is not approved, and a tick never changes the decision", async () => {
+    const r = await patch({ posted: true });
+    expect(r.status).toBe(409);
+    expect(item.posted_at).toBeUndefined();
+    expect(item.approval).toBe("pending");
+    // A body with both is a decision, never a tick.
+    filters = [];
+    expect((await patch({ posted: true, approval: "approved" })).status).toBe(200);
+    expect(item.approval).toBe("approved");
+    expect(item.posted_at).toBeUndefined();
+  });
+
+  it("before 0012 is applied, the tick answers stored: false (the app keeps it in the browser)", async () => {
+    item = { ...item, approval: "approved" };
+    dbError = { code: "PGRST204", message: "Could not find the 'posted_at' column of 'dentvid_items' in the schema cache" };
+    expect(await patch({ posted: true })).toEqual({ status: 200, body: { ok: true, stored: false } });
   });
 });

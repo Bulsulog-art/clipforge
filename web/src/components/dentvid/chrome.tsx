@@ -17,7 +17,7 @@ import { LEGAL_KINDS } from "@/content/legal/types";
 import { OPERATOR } from "@/content/guides/operator";
 import { DvLogo } from "./mark";
 import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
-import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
+import { appTab, isFunnel, isPostPage, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
 import { hasDvSessionCookie } from "@/lib/dentvid/session-cookie";
 
 /** Fired when a page sets the interface language, so the header follows at once. */
@@ -111,7 +111,7 @@ export function DvHeader({ guideLocales, text }: Props) {
   const path = usePathname() ?? "";
   const tab = appTab(path);
   if (tab) return <AppHeader t={text[locale]} locale={locale} ready={ready} tab={tab} />;
-  return <SiteHeader t={text[locale]} locale={locale} ready={ready} quiet={isFunnel(path)} />;
+  return <SiteHeader t={text[locale]} locale={locale} ready={ready} quiet={isFunnel(path) || isPostPage(path)} />;
 }
 
 /** The site header; `quiet` (the sign-up wizard) keeps only the logo, so the next step is the only way on. */

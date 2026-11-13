@@ -4,6 +4,7 @@ import type { LibraryItem } from "@/components/dentvid/library";
 import { chosenPhotoIds, cleanPhotoIds, suggestBackgrounds, SUGGEST_MAX } from "./backgrounds";
 import { clinicFindings } from "./app-ui";
 import { restyleStatus } from "./restyle";
+import { postTexts } from "./posting";
 
 type Row = {
   id: string;
@@ -12,7 +13,9 @@ type Row = {
   approval: LibraryItem["approval"];
   title: string;
   week_of: string;
-  copy: { caption?: string; hashtags?: string[] } | null;
+  copy: { caption?: string; hashtags?: string[]; post?: unknown } | null;
+  /** 0012_dentvid_posted.sql; absent on a database without it. */
+  posted_at?: string | null;
   findings: string[] | null;
   video_path: string | null;
   thumb_path: string | null;
@@ -75,6 +78,8 @@ export async function loadItems(db: SupabaseClient, ownerId: string): Promise<{ 
     week_of: r.week_of,
     caption: r.copy?.caption,
     hashtags: r.copy?.hashtags,
+    post: postTexts(r.copy) ?? undefined,
+    postedAt: "posted_at" in r ? (r.posted_at ?? null) : undefined,
     findings: clinicFindings(r.findings),
     videoUrl: r.video_path ? urls.get(r.video_path) : undefined,
     thumbUrl: r.thumb_path ? urls.get(r.thumb_path) : undefined,
