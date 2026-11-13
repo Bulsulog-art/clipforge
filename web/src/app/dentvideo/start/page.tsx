@@ -12,7 +12,8 @@ import { asLocale } from "@/lib/dentvid/locale";
 import { dvLocale } from "@/lib/dentvid/locale-server";
 import { dvSession } from "@/lib/dentvid/auth";
 import { signedOutMode } from "@/lib/dentvid/start-mode";
-import { STEP_COOKIE, resolveStep } from "@/lib/dentvid/onboarding";
+import { STEP_COOKIE, needsPlanHistory, resolveStep } from "@/lib/dentvid/onboarding";
+import { clinicReachedPlan } from "@/lib/dentvid/events-server";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { isEmailVerified } from "@/lib/dentvid/verify-email";
 import { legalPagesOn } from "@/lib/dentvid/legal";
@@ -72,13 +73,17 @@ export default async function StartPage({ searchParams }: Props) {
   // From a personalised demo link (?demo= or the dv-demo cookie): a clinic without a name yet starts from the demo.
   const demoToken = profile?.name ? null : demoTokenFrom(sp.demo, cookieStore.get(DEMO_COOKIE)?.value);
   const demo = demoToken ? await loadActiveDemo(demoToken) : null;
-  const where = resolveStep({
+  const stepInput = {
     signedIn: true,
     hasClinic: !!clinic,
     plan: (clinic as { plan?: string } | null)?.plan ?? null,
     requested: sp.step,
     reached: cookieStore.get(STEP_COOKIE)?.value,
-  });
+  };
+  // The cookie is per browser and cleared on sign-out: a clinic that saw the plans
+  // before is also recognised from its recorded plan-step events.
+  const reachedPlan = clinic && needsPlanHistory(stepInput) ? await clinicReachedPlan(clinic.id as string) : false;
+  const where = resolveStep({ ...stepInput, reachedPlan });
   if (where.kind === "app") redirect(dvHref("/dentvideo/app"));
   const step = where.step === "account" ? "clinic" : where.step;
 

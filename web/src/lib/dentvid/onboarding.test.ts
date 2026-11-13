@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { appSendsToFunnel, asStep, billingReturn, resolveStep, showFirstWeek } from "./onboarding";
+import { appSendsToFunnel, asStep, billingReturn, needsPlanHistory, resolveStep, showFirstWeek } from "./onboarding";
+import { PLAN_REACHED_EVENTS, clinicReachedPlan } from "./events-server";
 
 describe("return from Dodo's payment link", () => {
   // The link has one redirect_url (/app?billing=success); Dodo appends &status= with the outcome.
@@ -43,6 +44,28 @@ describe("wizard step resolution", () => {
     expect(resolveStep({ signedIn: true, hasClinic: true, plan: "trial", reached: "nonsense" })).toEqual(step("preview"));
   });
 
+  it("after signing out and in again (the step cookie is gone), a clinic that saw the plans resumes there", () => {
+    // Sign-out clears dv-step; the clinic's recorded plan visit still says how far it got.
+    expect(resolveStep({ signedIn: true, hasClinic: true, plan: "trial", reached: null, reachedPlan: true })).toEqual(step("plan"));
+    expect(resolveStep({ signedIn: true, hasClinic: true, plan: null, reachedPlan: true })).toEqual(step("plan"));
+    expect(resolveStep({ signedIn: true, hasClinic: true, plan: "trial", reached: null, reachedPlan: false })).toEqual(step("preview"));
+    // Never past what was done: no clinic, no plan step.
+    expect(resolveStep({ signedIn: true, hasClinic: false, reachedPlan: true })).toEqual(step("clinic"));
+    // A link that asks for a step still wins.
+    expect(resolveStep({ signedIn: true, hasClinic: true, plan: "trial", requested: "clinic", reachedPlan: true })).toEqual(step("clinic"));
+  });
+
+  it("looks the history up only when it decides something", () => {
+    expect(needsPlanHistory({ signedIn: true, hasClinic: true, plan: "trial" })).toBe(true);
+    expect(needsPlanHistory({ signedIn: true, hasClinic: true, plan: null, reached: "preview" })).toBe(true);
+    expect(needsPlanHistory({ signedIn: true, hasClinic: true, plan: "trial", reached: "plan" })).toBe(false);
+    expect(needsPlanHistory({ signedIn: true, hasClinic: true, plan: "trial", requested: "preview" })).toBe(false);
+    expect(needsPlanHistory({ signedIn: true, hasClinic: true, plan: "trial", requested: "nonsense" })).toBe(true);
+    expect(needsPlanHistory({ signedIn: true, hasClinic: false })).toBe(false);
+    expect(needsPlanHistory({ signedIn: false, hasClinic: true })).toBe(false);
+    expect(needsPlanHistory({ signedIn: true, hasClinic: true, plan: "active" })).toBe(false);
+  });
+
   it("an explicit step wins when it is allowed (back links, edits)", () => {
     expect(resolveStep({ signedIn: true, hasClinic: true, plan: "trial", requested: "clinic", reached: "plan" })).toEqual(step("clinic"));
     expect(resolveStep({ signedIn: true, hasClinic: true, plan: "trial", requested: "plan" })).toEqual(step("plan"));
@@ -80,5 +103,39 @@ describe("app home for an unpaid clinic", () => {
     expect(showFirstWeek({ plan: "active", madeThisWeek: false, everMade: true })).toBe(false); // an ordinary week
     expect(showFirstWeek({ plan: "trial", madeThisWeek: false, everMade: false })).toBe(false);
     expect(showFirstWeek({ plan: "paused", billing: "success", madeThisWeek: false, everMade: true })).toBe(false);
+  });
+});
+
+/** A stand-in for the service-role client: records the query, answers with `rows` or `error`. */
+function fakeDb(answer: { data?: unknown[] | null; error?: { code?: string; message?: string } | null } | Error) {
+  const calls: Record<string, unknown> = {};
+  const q = {
+    select: (c: string) => ((calls.select = c), q),
+    eq: (k: string, v: string) => ((calls.eq = [k, v]), q),
+    in: (k: string, v: string[]) => ((calls.in = [k, v]), q),
+    limit: (n: number) => {
+      calls.limit = n;
+      return answer instanceof Error ? Promise.reject(answer) : Promise.resolve({ data: answer.data ?? null, error: answer.error ?? null });
+    },
+  };
+  const db = { from: (t: string) => ((calls.from = t), q) };
+  return { db: db as never, calls };
+}
+
+describe("the clinic's recorded plan visit", () => {
+  const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
+
+  it("asks for one plan-step event of this clinic", async () => {
+    const { db, calls } = fakeDb({ data: [{ id: 1 }] });
+    expect(await clinicReachedPlan(CLINIC, db)).toBe(true);
+    expect(calls).toEqual({ from: "dentvid_events", select: "id", eq: ["clinic_id", CLINIC], in: ["name", [...PLAN_REACHED_EVENTS]], limit: 1 });
+    expect(PLAN_REACHED_EVENTS).toContain("plan_viewed");
+  });
+
+  it("no event, an error or no backend: not known, so the cookie decides", async () => {
+    expect(await clinicReachedPlan(CLINIC, fakeDb({ data: [] }).db)).toBe(false);
+    expect(await clinicReachedPlan(CLINIC, fakeDb({ error: { message: "boom" } }).db)).toBe(false);
+    expect(await clinicReachedPlan(CLINIC, fakeDb(new Error("down")).db)).toBe(false);
+    expect(await clinicReachedPlan("", fakeDb({ data: [{ id: 1 }] }).db)).toBe(false);
   });
 });

@@ -121,6 +121,13 @@
   border-color: var(--dv-teal);
   box-shadow: 0 0 0 4px rgba(15, 92, 92, 0.14);
 }
+/* A field the form refused (components/dentvid/validating-form.tsx); its message sits under it. */
+:where(.dv) .dv-field[aria-invalid="true"] {
+  border-color: #a12a2a;
+}
+:where(.dv) .dv-field[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 4px rgba(161, 42, 42, 0.14);
+}
 
 /* Fine film grain over tinted surfaces (SVG turbulence, no image request). */
 :where(.dv) .dv-grain {

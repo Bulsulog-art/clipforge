@@ -1,5 +1,6 @@
 import { createBrowserClient, createServerClient, type CookieOptions } from "@supabase/ssr";
 import { createClient as createAdmin } from "@supabase/supabase-js";
+import { DV_AUTH_COOKIE } from "./session-cookie";
 
 /**
  * DentVideo's own Supabase — Liman (self-hosted). Separate from ClipForge's
@@ -11,7 +12,7 @@ const ANON = process.env.NEXT_PUBLIC_DENTVID_SUPABASE_ANON_KEY ?? "";
 /** For a browser upload with progress (XMLHttpRequest), which the SDK's fetch cannot report. */
 export const DV_SUPABASE_URL = URL;
 export const DV_SUPABASE_ANON = ANON;
-export const COOKIE_NAME = "dv-auth";
+export const COOKIE_NAME = DV_AUTH_COOKIE;
 export const BUCKET = "dentvid";
 
 type DvBrowserClient = ReturnType<typeof createBrowserClient>;

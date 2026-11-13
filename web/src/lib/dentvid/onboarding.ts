@@ -26,11 +26,30 @@ export type StepInput = {
   plan?: DvPlanState | string | null;
   /** ?step= in the URL (a back link, or the wizard's own navigation). */
   requested?: string | null;
-  /** The furthest step reached before (STEP_COOKIE). */
+  /** The furthest step reached before (STEP_COOKIE) — this browser only, and cleared on sign-out. */
   reached?: string | null;
+  /**
+   * The clinic is on record as having reached the plan step (a plan_viewed,
+   * plan_clicked or checkout_opened event with its id: events-server
+   * clinicReachedPlan). Survives sign-out and a change of device.
+   */
+  reachedPlan?: boolean;
 };
 
 export type StepResolution = { kind: "step"; step: OnboardingStep } | { kind: "app" };
+
+/**
+ * Does /start need to look up whether the clinic reached the plan step?
+ * Only when that is the one thing still undecided: a signed-in, not-paying
+ * clinic with no step asked for and no "plan" cookie in this browser.
+ */
+export function needsPlanHistory(i: Omit<StepInput, "reachedPlan">): boolean {
+  if (!i.signedIn || !i.hasClinic) return false;
+  if (i.plan && i.plan !== "trial") return false;
+  const requested = asStep(i.requested);
+  if (requested && requested !== "account") return false;
+  return asStep(i.reached) !== "plan";
+}
 
 /**
  * Where /start puts a visitor.
@@ -39,7 +58,8 @@ export type StepResolution = { kind: "step"; step: OnboardingStep } | { kind: "a
  *   which shows its library and, when needed, the plans.
  * - Otherwise the step asked for, if it is one they may be on (never past
  *   what they have done: no preview without a clinic), else where they left
- *   off: the plan step if they got that far, else the preview.
+ *   off: the plan step if they got that far (this browser's cookie, or the
+ *   clinic's recorded plan visit), else the preview.
  */
 export function resolveStep(i: StepInput): StepResolution {
   if (!i.signedIn) return { kind: "step", step: "account" };
@@ -48,7 +68,7 @@ export function resolveStep(i: StepInput): StepResolution {
   const requested = asStep(i.requested);
   if (requested && requested !== "account" && stepIndex(requested) <= stepIndex(furthest)) return { kind: "step", step: requested };
   if (!i.hasClinic) return { kind: "step", step: "clinic" };
-  return { kind: "step", step: asStep(i.reached) === "plan" ? "plan" : "preview" };
+  return { kind: "step", step: asStep(i.reached) === "plan" || i.reachedPlan ? "plan" : "preview" };
 }
 
 /**

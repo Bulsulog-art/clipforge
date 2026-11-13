@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
+import { heroSeek, heroSrc, type HeroLoop } from "@/lib/dentvid/hero-loop";
 
 /**
  * A device frame around real DentVideo output. Pure CSS, no image assets:
@@ -57,10 +58,54 @@ export function PhoneFrame({
 /**
  * Muted, looping sample video for the hero. Autoplays only when the visitor
  * has not asked for reduced motion; always has a visible pause/play control.
+ * With a `loop` it starts on the hook (the poster's frame), jumps over the
+ * sample's dark scene and turns back before the closing fade
+ * (lib/dentvid/hero-loop.ts); the video box never changes size.
  */
-export function HeroVideo({ src, poster, title, labels }: { src: string; poster: string; title: string; labels: { play: string; pause: string } }) {
+export function HeroVideo({
+  src,
+  poster,
+  title,
+  labels,
+  loop,
+}: {
+  src: string;
+  poster: string;
+  title: string;
+  labels: { play: string; pause: string };
+  loop?: HeroLoop;
+}) {
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || !loop) return;
+    const check = () => {
+      const to = heroSeek(v.currentTime, v.duration, loop);
+      if (to !== null) v.currentTime = to;
+    };
+    const ended = () => {
+      v.currentTime = loop.start;
+      void v.play().catch(() => {});
+    };
+    v.addEventListener("ended", ended);
+    v.addEventListener("timeupdate", check);
+    // Every painted frame where the browser can say so (timeupdate alone fires only ~4 times a second).
+    type FrameVideo = HTMLVideoElement & { requestVideoFrameCallback?: (cb: () => void) => number; cancelVideoFrameCallback?: (id: number) => void };
+    const fv = v as FrameVideo;
+    let frame: number | undefined;
+    const tick = () => {
+      check();
+      frame = fv.requestVideoFrameCallback?.(tick);
+    };
+    frame = fv.requestVideoFrameCallback?.(tick);
+    return () => {
+      v.removeEventListener("ended", ended);
+      v.removeEventListener("timeupdate", check);
+      if (frame !== undefined) fv.cancelVideoFrameCallback?.(frame);
+    };
+  }, [loop]);
 
   useEffect(() => {
     const v = ref.current;
@@ -84,10 +129,11 @@ export function HeroVideo({ src, poster, title, labels }: { src: string; poster:
     <>
       <video
         ref={ref}
-        src={src}
+        src={heroSrc(src, loop)}
         poster={poster}
         muted
-        loop
+        // With a hero loop the component loops (from the hook, not from the fade-in); otherwise the browser does.
+        loop={!loop}
         playsInline
         // Nothing is fetched before play(): the poster is the first paint, and with reduced motion the video never loads unasked.
         preload="none"
@@ -117,7 +163,8 @@ export function PreviewPlaceholder() {
         <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-[#123b3a] to-[#0b2423]" />
       </PhoneFrame>
       <p className="mt-4 text-sm">&nbsp;</p>
-      <p className="mt-0.5 text-xs">&nbsp;</p>
+      {/* Two lines: the title and "Sample 1 of 3 from your week of 5" often wrap. */}
+      <p className="mt-0.5 min-h-8 text-xs">&nbsp;</p>
     </div>
   );
 }

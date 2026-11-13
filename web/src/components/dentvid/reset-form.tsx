@@ -6,6 +6,7 @@ import { dvHref } from "@/lib/dentvid/host";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 import { authText } from "@/content/dentvideo-auth";
 import { DvIcon } from "./mark";
+import { FieldError, ValidatingForm } from "./validating-form";
 import { passwordTooLong, resetSaveOutcome } from "@/lib/dentvid/password";
 import { dirOf, type Locale } from "@/content/dentvideo";
 
@@ -81,7 +82,7 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
         ) : (
           <>
             <p className="mt-3 text-center leading-relaxed text-dv-body">{t.resetLead}</p>
-            <form onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+            <ValidatingForm locale={locale} onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
               <label className="block">
                 <span className="text-sm font-semibold text-dv-ink">{t.newPassword}</span>
                 <input
@@ -89,19 +90,21 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
                   dir="ltr"
                   required
                   minLength={8}
+                  data-field="password"
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="dv-field"
                   disabled={phase !== "ready"}
                 />
+                <FieldError name="password" />
               </label>
               {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
               {phase === "saved" && <p className="rounded-xl bg-[#e6f2ef] px-4 py-3 text-sm text-[#0f5c5c]" role="status">{t.saved}</p>}
               <button type="submit" disabled={phase !== "ready"} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
                 {t.savePassword}
               </button>
-            </form>
+            </ValidatingForm>
           </>
         )}
       </div>

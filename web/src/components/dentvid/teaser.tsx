@@ -17,15 +17,33 @@ const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePre
 });
 
 /**
- * True once `ref` is within `margin` of the viewport. The live preview (the
- * Remotion player, its fonts and narration: several hundred KB) is half-way
- * down the landing, so it is fetched as the visitor scrolls towards it rather
- * than competing with the hero on first load. The margin is about two
- * screens, so the player has settled (it sizes itself once mounted) before
- * it scrolls into view.
+ * True once `ref` is within `margin` of the viewport and the page itself has
+ * finished loading. The live preview (the Remotion player, its fonts and
+ * narration: several hundred KB) sits right under the hero, so it would
+ * otherwise start at once and compete with the hero's text and video on a
+ * phone's first load; it waits for the load event and an idle moment
+ * instead. The margin is about two screens, so the player has settled (it
+ * sizes itself once mounted, in the placeholder's box) before it scrolls
+ * into view.
  */
 function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "1600px"): boolean {
   const [near, setNear] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    let idle: number | undefined;
+    const go = () => {
+      const ric = (window as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+      if (ric) idle = ric(() => setLoaded(true), { timeout: 1500 });
+      else idle = window.setTimeout(() => setLoaded(true), 200);
+    };
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+    return () => {
+      window.removeEventListener("load", go);
+      const cic = (window as { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+      if (idle !== undefined) (cic ?? window.clearTimeout)(idle);
+    };
+  }, []);
   useEffect(() => {
     const el = ref.current;
     if (!el || near) return;
@@ -39,7 +57,7 @@ function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "160
     io.observe(el);
     return () => io.disconnect();
   }, [ref, margin, near]);
-  return near;
+  return near && loaded;
 }
 
 const COLOURS = ["#0f5c5c", "#1f4e79", "#2e7d6b", "#b6774f", "#8a3b4a", "#24303a"];
@@ -133,8 +151,13 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
   return (
     <section id="try" aria-labelledby="try-heading" className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10 opacity-70" />
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-24 sm:px-6 sm:py-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-16">
-        <div className="min-w-0">
+      {/*
+        Right under the hero, where its "See your preview" button lands. Phones: what this is, the preview
+        itself (already playing in the default look), then the fields that make it the clinic's own and the
+        way on to the account. From lg: text and fields on the left, the phone beside them.
+      */}
+      <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-8 px-4 pb-24 pt-10 [grid-template-areas:'text'_'phone'_'form'] sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-y-0 lg:[grid-template-areas:'text_phone'_'form_phone']">
+        <div className="min-w-0 [grid-area:text] lg:self-end">
           <p className="inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pe-3.5 ps-2 text-sm font-medium text-dv-teal ring-1 ring-dv-line">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal-50">
               <ImagePlus className="h-3 w-3" aria-hidden="true" />
@@ -145,8 +168,10 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
             {copy.heading}
           </h2>
           <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{copy.text}</p>
+        </div>
 
-          <div className="dv-card mt-8 grid gap-5 p-5 sm:p-6">
+        <div className="min-w-0 [grid-area:form] lg:self-start">
+          <div className="dv-card grid gap-5 p-5 sm:p-6 lg:mt-8">
             <label className="block text-sm font-semibold text-dv-ink">
               {copy.name}
               <input value={name} onChange={(e) => {
@@ -220,9 +245,9 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative [grid-area:phone]">
           <div aria-hidden="true" className="absolute left-1/2 top-1/2 -z-10 h-[24rem] w-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30 blur-3xl transition-colors duration-500" style={{ background: color }} />
-          <div ref={previewBox} className="mx-auto w-full max-w-[16rem] sm:max-w-[18rem]">
+          <div ref={previewBox} className="mx-auto w-full max-w-[14.5rem] sm:max-w-[18rem]">
             {showPreview ? (
               <LivePreview
                 profile={{

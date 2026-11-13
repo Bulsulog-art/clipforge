@@ -18,6 +18,7 @@ import { OPERATOR } from "@/content/guides/operator";
 import { DvLogo } from "./mark";
 import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
 import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
+import { hasDvSessionCookie } from "@/lib/dentvid/session-cookie";
 
 /** Fired when a page sets the interface language, so the header follows at once. */
 const LANG_EVENT = "dv-lang";
@@ -66,6 +67,36 @@ function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; re
   return { locale: remembered ?? "en", ready };
 }
 
+/**
+ * Is a DentVideo session cookie present in this browser? Read once in the
+ * browser, never from the server: the marketing pages stay static and
+ * cacheable, and nobody waits on an auth call. False until then (and on the
+ * server), so a new visitor's first paint already says "Sign in".
+ */
+function useSignedIn(): boolean {
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    try {
+      setSignedIn(hasDvSessionCookie(document.cookie));
+    } catch {
+      // cookies blocked: treat as signed out
+    }
+  }, []);
+  return signedIn;
+}
+
+/**
+ * The header's account button. "Open app" read like an app download to a
+ * new visitor (from Instagram, say) and led to the sign-up form; signed out
+ * it is "Sign in" and opens the sign-in form. A clinic with a session keeps
+ * "Open app" and goes straight to its videos.
+ */
+export function accountLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords, "openApp" | "signIn">): { href: string; label: string } {
+  return signedIn
+    ? { href: "/dentvideo/app", label: t.openApp }
+    : { href: `/dentvideo/start?mode=signin&lang=${locale}`, label: t.signIn };
+}
+
 /** `text`: the header's and footer's words in every language (lib/dentvid/chrome-text, built by the layout). */
 type Props = { guideLocales: Record<string, Locale>; text: ChromeText };
 
@@ -98,6 +129,7 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
     return () => window.removeEventListener("scroll", on);
   }, []);
   const [open, setOpen] = useState(false);
+  const account = accountLink(useSignedIn(), locale, t);
   const navLink =
     "hidden rounded-full px-3.5 py-2 font-medium text-dv-body transition-colors hover:bg-dv-sand-200/70 hover:text-dv-ink md:inline-block";
   const links = [
@@ -127,8 +159,8 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
             {links.map((l) => (
               <Link key={l.href} href={l.href} className={navLink}>{l.label}</Link>
             ))}
-            <Link href={dvHref("/dentvideo/app")} className="dv-btn dv-btn-primary ms-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
-              {t.openApp}
+            <Link href={dvHref(account.href)} data-account-link className="dv-btn dv-btn-primary ms-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
+              {account.label}
             </Link>
             <MobileMenu locale={locale} links={links} label={t.menu} languageLabel={t.language} open={open} setOpen={setOpen} />
           </nav>
@@ -139,8 +171,8 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
 }
 
 /**
- * Below the md breakpoint the header has room for the logo and "Open app"
- * only; the other links and the languages open from this button, as a sheet
+ * Below the md breakpoint the header has room for the logo and the account
+ * button ("Sign in", or "Open app" when signed in) only; the other links and the languages open from this button, as a sheet
  * under the header. Escape or the button closes it and returns focus to the
  * button; Tab stays inside while it is open; any link closes it.
  */
@@ -277,6 +309,7 @@ export type CommercialNav = Partial<Record<Locale, { href: string; label: string
 
 export function DvFooter({ guideLocales, text, commercial }: Props & { commercial?: CommercialNav }) {
   const { locale, ready } = useDvLocale(guideLocales);
+  const signedIn = useSignedIn();
   const path = usePathname() ?? "";
   const t = text[locale];
   if (appTab(path) || isFunnel(path)) return <AppFooter t={t} locale={locale} ready={ready} />;
@@ -302,8 +335,8 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
                 <li key={p.href}><Link href={dvHref(p.href)} className={link}>{p.label}</Link></li>
               ))}
               <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{t.about}</Link></li>
-              <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>
-              {/* Returning clinics: straight to the sign-in form rather than sign-up. */}
+              {/* As in the header: "Open app" for a browser with a session; everyone else signs in (never the sign-up form). */}
+              {signedIn && <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>}
               <li><Link href={dvHref(`/dentvideo/start?mode=signin&lang=${locale}`)} className={link}>{t.signIn}</Link></li>
             </ul>
             <ul className="space-y-3.5">
@@ -369,13 +402,9 @@ function AppHeader({ t, locale, ready, tab }: { t: ChromeWords; locale: Locale; 
 
   async function signOut() {
     setLeaving(true);
-    try {
-      // The Supabase client loads when someone signs out, not with every page's header.
-      const { dvBrowser } = await import("@/lib/dentvid/supabase");
-      await dvBrowser().auth.signOut();
-    } catch {
-      /* signed out locally either way */
-    }
+    // Everywhere, by the server (lib/dentvid/sign-out-client); loaded on click, not with every page's header.
+    const { signOutDentvideo } = await import("@/lib/dentvid/sign-out-client");
+    await signOutDentvideo();
     window.location.assign(dvHref("/dentvideo/start"));
   }
 

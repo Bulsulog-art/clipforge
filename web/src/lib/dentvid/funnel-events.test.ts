@@ -47,6 +47,15 @@ describe("funnel events", () => {
     expect(parseClientEvent(JSON.stringify({ name: "cta_clicked", props: { where: "https://evil.example/x" } }))?.props).toEqual({});
   });
 
+  it("the hero's \"See your preview\" is its own step, before the sign-up buttons", () => {
+    expect(parseClientEvent(JSON.stringify({ name: "try_clicked", props: { where: "hero" } }))?.props).toEqual({ where: "hero" });
+    expect(parseClientEvent(JSON.stringify({ name: "try_clicked", props: { where: "pricing" } }))?.props).toEqual({});
+    const order = FUNNEL.map((f) => f.key);
+    expect(order.indexOf("try")).toBeLessThan(order.indexOf("teaser"));
+    expect(order.indexOf("teaser")).toBeLessThan(order.indexOf("cta"));
+    expect(order.indexOf("cta")).toBeLessThan(order.indexOf("signupStart"));
+  });
+
   it("preview_played / preview_completed say where: landing or wizard", () => {
     for (const name of ["preview_played", "preview_completed"]) {
       expect(parseClientEvent(JSON.stringify({ name, props: { where: "wizard" } }))?.props).toEqual({ where: "wizard" });

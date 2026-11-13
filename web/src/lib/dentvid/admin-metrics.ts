@@ -232,14 +232,17 @@ export function dailyCounts(dates: string[], days: number, now = new Date()): nu
 export type FunnelStepDef = { key: string; event: DvEventName; label: string; where?: Record<string, unknown> };
 
 /**
- * The funnel in order, one row per step a visitor takes. Wizard preview
+ * The funnel in order, one row per step a visitor takes. The hero's main
+ * button leads to the landing's own preview first (try_clicked), and the
+ * sign-up buttons come after it (cta_clicked). Wizard preview
  * starts are a different moment (after sign-up), so "teaser" counts only the
  * landing's own preview.
  */
 export const FUNNEL: FunnelStepDef[] = [
   { key: "visit", event: "landing_view", label: "Landing views" },
-  { key: "cta", event: "cta_clicked", label: "Clicked a sign-up button" },
+  { key: "try", event: "try_clicked", label: "Clicked “See your preview” (no account)" },
   { key: "teaser", event: "preview_started", label: "Tried the landing preview", where: { where: "landing" } },
+  { key: "cta", event: "cta_clicked", label: "Clicked a sign-up button" },
   { key: "signupStart", event: "signup_started", label: "Started the sign-up form" },
   { key: "signup", event: "signup_completed", label: "Signed up" },
   { key: "clinic", event: "clinic_saved", label: "Clinic saved" },

@@ -513,7 +513,7 @@ export default function LivePreviewPlayer({
 
       <p className="mt-4 text-center text-sm font-semibold text-dv-ink">{text.caption}</p>
       {entry ? (
-        <p className="mt-0.5 text-center text-xs text-dv-muted" aria-live="polite">
+        <p className="mt-0.5 min-h-8 text-center text-xs text-dv-muted" aria-live="polite">
           {entry.title} · {fmt(text.videoOf, { n: index + 1, total: entries.length })}
         </p>
       ) : null}

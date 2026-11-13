@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  ArrowDown,
   ArrowRight,
   ArrowUpRight,
   AudioWaveform,
@@ -30,7 +31,7 @@ import { SampleVideo } from "./sample-video";
 import { CountryRules, FeedStory } from "./landing-showcase";
 import { SHOWCASE } from "@/content/dentvideo-showcase";
 import { Teaser } from "./teaser";
-import { LandingView, TrackedLink } from "./track";
+import { LandingView, TrackedLink, TryLink } from "./track";
 import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
 import { LEGAL_KINDS } from "@/content/legal/types";
 import { HtmlLang } from "./guide-parts";
@@ -83,17 +84,20 @@ function Hero({ locale }: { locale: Locale }) {
 
         <div className="min-w-0 [grid-area:cta] lg:mt-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <TrackedLink href={dvHref(`/dentvideo/start?lang=${locale}`)} locale={locale} where="hero" className="dv-btn dv-btn-primary group px-7 py-4 text-base">
+            {/* Down to the no-account preview right below the hero; the sign-up is the next step from there. */}
+            <TryLink locale={locale} className="dv-btn dv-btn-primary group px-7 py-4 text-base">
               {c.hero.cta}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-            </TrackedLink>
+              <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" aria-hidden="true" />
+            </TryLink>
             {/* Phones: the sample video right below already shows how it works; one clear action in the first screen. */}
             <div className="hidden sm:block">
               <a href="#how" className="dv-btn dv-btn-secondary px-6 py-4 text-base">{chrome.howItWorks}</a>
             </div>
           </div>
           <p className="mt-3 text-sm text-dv-muted">
-            <span className="font-semibold text-dv-ink">{c.pricing.from}</span>
+            <span className="font-semibold text-dv-ink">{c.hero.ctaHint}</span>
+            <span aria-hidden="true"> · </span>
+            <span>{c.pricing.from}</span>
           </p>
         </div>
 
@@ -112,7 +116,7 @@ function Hero({ locale }: { locale: Locale }) {
           <div className="relative mx-auto w-full lg:w-[18.5rem]">
             <PhoneFrame compact>
               {hero ? (
-                <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} />
+                <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} loop={hero.hero} />
               ) : (
                 <DrawnVideo locale={locale} />
               )}
@@ -717,16 +721,17 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <HtmlLang locale={locale} />
       <LandingView locale={locale} />
       {/*
-        The order tells one story: what it is (hero) → why (problem) → the real output (samples) → what it
-        does to a clinic's profile → how → try it with your logo → why it is safe (checks, country rules) →
-        the alternatives → price → who is behind it → questions → guides for later.
+        The order tells one story: what it is (hero) → see it with your own logo, no account (the hero's main
+        button lands here) → why (problem) → the real output (samples) → what it does to a clinic's profile →
+        how → why it is safe (checks, country rules) → the alternatives → price → who is behind it →
+        questions → guides for later.
       */}
       <Hero locale={locale} />
+      <Teaser locale={locale} copy={LANDING[locale].teaser} href={dvHref(`/dentvideo/start?lang=${locale}`)} />
       <Problem locale={locale} />
       <Samples locale={locale} />
       <FeedStory locale={locale} />
       <How locale={locale} />
-      <Teaser locale={locale} copy={LANDING[locale].teaser} href={dvHref(`/dentvideo/start?lang=${locale}`)} />
       <Checks locale={locale} />
       <Compare locale={locale} />
       <Pricing locale={locale} />

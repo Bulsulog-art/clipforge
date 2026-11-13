@@ -9,6 +9,7 @@ import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { accentFor, analyseLogoFile, isDecodableImage, type LogoColors } from "@/lib/dentvid/logo-colors";
 import { LogoPreview } from "./logo-preview";
+import { FieldError, ValidatingForm } from "./validating-form";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, splitServices } from "@/lib/dentvid/service-hints";
 import { requestUpload } from "@/lib/dentvid/upload-client";
@@ -212,7 +213,8 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
   const name = (
     <label className={`${label} sm:col-span-2`}>
       {t.clinicName}
-      <input required value={p.name} onChange={set("name")} autoComplete="organization" className="dv-field" />
+      <input required data-field="name" value={p.name} onChange={set("name")} autoComplete="organization" className="dv-field" />
+      <FieldError name="name" />
     </label>
   );
   const city = (
@@ -243,7 +245,8 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
   const services = (
     <label className={`${label} sm:col-span-2`}>
       {t.services}
-      <textarea required rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
+      <textarea required data-field="services" rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
+      <FieldError name="services" />
       <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
     </label>
   );
@@ -261,7 +264,8 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
   const booking = (
     <label className={`${label} sm:col-span-2`}>
       {t.booking}
-      <input type="url" dir="ltr" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
+      <input type="url" dir="ltr" data-field="bookingUrl" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
+      <FieldError name="bookingUrl" />
     </label>
   );
 
@@ -465,7 +469,7 @@ export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
   const section = "dv-card p-5 sm:p-7";
   const heading = "mb-5 text-lg font-semibold text-dv-ink";
   return (
-    <form onSubmit={submit} className="grid gap-6" onChange={() => setSaved(false)}>
+    <ValidatingForm locale={locale} onSubmit={submit} className="grid gap-6" onChange={() => setSaved(false)}>
       <section aria-labelledby="clinic-details" className={section}>
         <h2 id="clinic-details" className={heading}>{text.settings.clinicHeading}</h2>
         <ClinicDetailsFields draft={draft} locale={locale} />
@@ -485,6 +489,6 @@ export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
           </p>
         </div>
       </div>
-    </form>
+    </ValidatingForm>
   );
 }
