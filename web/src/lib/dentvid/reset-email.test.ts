@@ -35,8 +35,8 @@ describe("resetEmail", () => {
     expect(m.subject).toBe("إعادة تعيين كلمة مرور DentVideo");
     expect(m.html).toContain('lang="ar" dir="rtl"');
     expect(m.html).toContain('<body dir="rtl"');
-    expect(m.html).toMatch(/<p dir="ltr"[^>]*>https:\/\/dentvideo\.com\/reset/);
-    expect(m.html).toContain('<span dir="ltr">Dent');
+    expect(m.html).toMatch(/<a href="https:\/\/dentvideo\.com\/reset[^"]*" dir="ltr"[^>]*>https:\/\/dentvideo\.com\/reset/);
+    expect(m.html).toMatch(/<span dir="ltr"[^>]*>Dent/);
   });
 
   it("an unknown language gets English, marked as English", () => {
