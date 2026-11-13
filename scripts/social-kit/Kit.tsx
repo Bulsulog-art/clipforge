@@ -446,10 +446,10 @@ export const Banner: React.FC<BannerProps> = ({ line, sub, shots }) => (
         key={s}
         style={{
           position: "absolute",
-          left: 1150 + i * 150,
-          top: 44 + (i % 2) * 34,
-          width: 150,
-          height: 325,
+          left: 1130 + i * 148,
+          top: 40 + (i % 2) * 30,
+          width: 160,
+          height: 286, // 9:16 inside the 5 px bezel
           borderRadius: 26,
           background: "#121c1b",
           padding: 5,

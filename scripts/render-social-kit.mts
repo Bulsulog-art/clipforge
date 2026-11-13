@@ -214,7 +214,7 @@ async function fitReel(plan: ScenePlan, mp3: string, out: string): Promise<{ pla
 
 // MARK: capture (Playwright, 390 px)
 
-async function capture(baseUrl: string, dir: string) {
+async function capture(baseUrl: string, dir: string, only?: string[]) {
   const pwPath = process.env.PLAYWRIGHT_MODULE ?? "/opt/node-tools/node_modules/playwright/index.mjs";
   const { chromium } = (await import(pwPath)) as typeof import("playwright");
   await fs.mkdir(dir, { recursive: true });
@@ -269,10 +269,10 @@ async function capture(baseUrl: string, dir: string) {
     },
     check: async (p) => {
       await p.goto(`${baseUrl}/dentvideo/dev/app?lang=tr`, { waitUntil: "networkidle" });
-      await smoothBy(p, 690, 10);
+      await smoothBy(p, 560, 10);
       await settle(p);
       await p.waitForTimeout(1600);
-      await smoothBy(p, 250, 1200);
+      await smoothBy(p, 130, 1200);
       await p.waitForTimeout(3600);
     },
   };
@@ -309,9 +309,10 @@ async function capture(baseUrl: string, dir: string) {
     await cdp.send("Page.startScreencast", { format: "jpeg", quality: 92, maxWidth: 1170, maxHeight: 2532, everyNthFrame: 1 });
     rec = { cdp, frames };
   }
-  await fs.rm(dir, { recursive: true, force: true });
+  if (!only) await fs.rm(dir, { recursive: true, force: true });
   await fs.mkdir(dir, { recursive: true });
   for (const [id, flow] of Object.entries(flows)) {
+    if (only && !only.includes(id)) continue;
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, locale: "tr-TR" });
     // tsx (esbuild keepNames) wraps functions passed to page.evaluate in __name(); give the page one.
     await ctx.addInitScript({ content: "globalThis.__name = (f) => f;" });
@@ -385,7 +386,8 @@ async function main() {
 
   const capturesDir = path.join(work, "captures");
   const base = flag("--capture");
-  if (base) await capture(base.replace(/\/$/, ""), capturesDir);
+  // --flows check,app: re-record only those screens.
+  if (base) await capture(base.replace(/\/$/, ""), capturesDir, flag("--flows")?.split(","));
   const captureFrames: Record<string, number> = {};
   for (const id of ["landing", "clinic", "preview", "app", "check"]) {
     // As a JPEG sequence at the phone screen's width: the explainer draws frame by frame, no video decoder.

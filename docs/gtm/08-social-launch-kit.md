@@ -29,6 +29,8 @@ cd web && DENTVIDEO_DEV_PREVIEW=1 npx next dev -p 3000      # plus the dummy env
 # 2. render (from worker/, like the other scripts)
 cd worker && npx tsx ../scripts/render-social-kit.mts ~/social-kit --capture http://localhost:3000
 #    --only tr-beyazlatma,kontrol   one or a few posts   --skip-video   covers only
+#    --flows check                  with --capture: re-record only those screens
+#    reels already in reels/ are kept (resumable); delete one or pass --force to render it again
 ```
 
 ## Ground rules this kit keeps (and you must keep when you edit captions)
