@@ -10,6 +10,8 @@ vi.mock("next/navigation", () => ({
 
 import { RecordView } from "./app-screens";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
+import { appText } from "@/content/dentvideo-app";
+import { LOCALES } from "@/content/dentvideo";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -28,5 +30,17 @@ describe("record screen for a Starter clinic", () => {
     const html = renderToStaticMarkup(<RecordView locale="en" cards={[]} plan={starter} />);
     expect(html).toContain("mailto:");
     expect(html).not.toContain('data-testid="starter-upgrade"');
+  });
+
+  it("its intro does not talk through filming cards (Practice only), in every language; Practice keeps the full intro", () => {
+    const esc = (x: string) => renderToStaticMarkup(<>{x}</>);
+    for (const locale of LOCALES) {
+      const t = appText(locale).record;
+      const html = renderToStaticMarkup(<RecordView locale={locale} cards={[]} plan={starter} selfServe />);
+      expect(html, locale).toContain(esc(t.starterIntro));
+      expect(html, locale).not.toContain(esc(t.lead));
+      const practice = renderToStaticMarkup(<RecordView locale={locale} cards={[]} plan={{ ...starter, tier: "practice" }} selfServe />);
+      expect(practice, locale).toContain(esc(t.lead));
+    }
   });
 });

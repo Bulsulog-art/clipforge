@@ -619,7 +619,7 @@ export const alerts = {
     };
   },
 
-  billingDispute(a: { clinic: ClinicRef; event: string; paymentId?: string | null; paused: boolean }): OwnerAlert {
+  billingDispute(a: { clinic: ClinicRef; event: string; paymentId?: string | null; paused: boolean; resumed?: boolean }): OwnerAlert {
     const dispute = a.event.startsWith("dispute.");
     return {
       key: `billing_dispute:${a.clinic.id}:${a.event}:${a.paymentId ?? ""}`,
@@ -628,10 +628,40 @@ export const alerts = {
       titleEn: dispute ? "Chargeback / payment dispute" : "Refund",
       clinic: a.clinic,
       what: [`Dodo sent ${a.event}${a.paymentId ? ` for payment ${a.paymentId}` : ""} (${tierLabel(a.clinic)}).`],
-      done: [a.paused ? "The clinic was paused: no new weeks are made while the payment is disputed." : "The clinic's plan was not changed."],
-      todo: dispute
-        ? ["Answer the dispute in Dodo with the delivery evidence (videos made, emails sent).", "If the dispute is withdrawn or won and the clinic should carry on, re-activate its plan in /dentvideo/admin."]
-        : ["Check the refund in Dodo matches what you agreed with the clinic."],
+      done: [
+        a.resumed
+          ? "The dispute was won: the clinic had been paused only by this chargeback, so its plan is active again and this week's videos were queued."
+          : a.paused
+            ? "The clinic was paused: no new weeks are made while the payment is disputed. Its app says the payment is under review and asks it to write to us (no plan picker, so no second subscription)."
+            : "The clinic's plan was not changed.",
+      ],
+      todo: a.resumed
+        ? []
+        : dispute
+          ? ["Answer the dispute in Dodo with the delivery evidence (videos made, emails sent).", "If the dispute is withdrawn and the clinic should carry on, re-activate its plan in /dentvideo/admin (a won dispute does this by itself)."]
+          : ["Check the refund in Dodo matches what you agreed with the clinic."],
+    };
+  },
+
+  /** A DentVideo subscription event with no clinic metadata that could not be matched to exactly one clinic by the customer's email. */
+  unmatchedBillingEvent(a: { event: string; subscriptionId: string; email: string | null; reason: "no clinic" | "several clinics" | "no email" | "lookup failed" }): OwnerAlert {
+    return {
+      key: `unmatched_billing:${a.subscriptionId}:${a.event}`,
+      severity: "urgent",
+      titleTr: "Ödeme hiçbir klinikle eşleşmedi",
+      titleEn: "A DentVideo payment matched no clinic",
+      what: [
+        `Dodo sent ${a.event} for subscription ${a.subscriptionId} without DentVideo's clinic metadata (e.g. made in the Dodo dashboard or a plain payment link).`,
+        a.reason === "several clinics"
+          ? `More than one DentVideo clinic belongs to the customer's email (${a.email ?? "?"}), so none was picked.`
+          : a.reason === "no clinic"
+            ? `No DentVideo clinic owner has the customer's email (${a.email ?? "?"}).`
+            : a.reason === "no email"
+              ? "The event carries no customer email to look the clinic up by."
+              : `Looking the clinic up by the customer's email (${a.email ?? "?"}) failed.`,
+      ],
+      done: ["Nothing was changed: the webhook never guesses which clinic a payment is for."],
+      todo: ["Find the clinic in /dentvideo/admin and set its plan by hand (or ask Dodo to replay the event once the subscription carries metadata.clinic_id).", "If nobody should be paying, refund the subscription in Dodo."],
     };
   },
 

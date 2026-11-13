@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { handleDentvideoEvent, type DvWebhookDeps } from "./billing-webhook";
+import { clinicByOwnerEmail, handleDentvideoEvent, type DvWebhookDeps } from "./billing-webhook";
 import type { DvSubRecord } from "./billing";
 import type { SubscriptionStore } from "./subscriptions";
 import type { OwnerAlert } from "./ops-alert";
@@ -281,5 +281,126 @@ describe("historic founding seats (the offer is closed)", () => {
     const subs = memorySubs();
     await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1", undefined, { discount_id: "dsc_1" }), deps({ subs }));
     expect(subs.rows.get("sub_1")).toMatchObject({ founding: false, tier: "practice", interval: "month", discount_id: "dsc_1" });
+  });
+});
+
+describe("chargebacks: under review, and lifted when the dispute is won", () => {
+  const disputeOpen = { type: "dispute.opened", data: { payment_id: "pay_1" } };
+  const disputeWon = { type: "dispute.won", data: { payment_id: "pay_1" } };
+  const ledger = (status: string) => {
+    const subs = memorySubs([{ dodo_subscription_id: "sub_1", clinic_id: CLINIC, status, tier: "practice", last_event_at: "2026-11-01T00:00:00.000Z" }]);
+    subs.payments.set("pay_1", { clinic_id: CLINIC, dodo_subscription_id: "sub_1" });
+    return subs;
+  };
+
+  it("a chargeback pauses the clinic and marks its subscription 'disputed'; a won dispute switches it back on and queues the week", async () => {
+    const f = fakeDb(paying());
+    const subs = ledger("active");
+    let d = deps({ subs });
+    await handleDentvideoEvent(f.db, disputeOpen, d);
+    expect(f.clinic.plan).toBe("paused");
+    expect(subs.rows.get("sub_1")).toMatchObject({ status: "disputed", last_event_at: "2026-11-01T00:00:00.000Z" });
+
+    d = deps({ subs, dodoStatus: async () => "active" });
+    const r = await handleDentvideoEvent(f.db, disputeWon, d);
+    expect(r.body).toMatchObject({ resumed: true });
+    expect(f.clinic.plan).toBe("active");
+    expect(subs.rows.get("sub_1")?.status).toBe("active");
+    expect(d.enqueueWeek).toHaveBeenCalledTimes(1);
+    // The owner is still told.
+    expect(d.raised[0]).toMatchObject({ titleEn: "Chargeback / payment dispute" });
+    expect(d.raised[0].done.join(" ")).toMatch(/dispute was won/);
+  });
+
+  it("a won dispute does not switch on a clinic paused for another reason (its card failed since)", async () => {
+    const f = fakeDb({ ...paying(), plan: "paused" });
+    const d = deps({ subs: ledger("on_hold") });
+    const r = await handleDentvideoEvent(f.db, disputeWon, d);
+    expect(r.body).not.toHaveProperty("resumed");
+    expect(f.clinic.plan).toBe("paused");
+    expect(d.enqueueWeek).not.toHaveBeenCalled();
+    expect(d.raised).toHaveLength(1);
+  });
+
+  it("nor one whose subscription Dodo no longer has active", async () => {
+    const f = fakeDb({ ...paying(), plan: "paused" });
+    const d = deps({ subs: ledger("disputed"), dodoStatus: async () => "cancelled" });
+    await handleDentvideoEvent(f.db, disputeWon, d);
+    expect(f.clinic.plan).toBe("paused");
+  });
+});
+
+describe("events without clinic metadata: the customer's email, only when it is unambiguous", () => {
+  const noMeta = (type: string) => {
+    const e = evt(type, "sub_dash", "2026-11-13T10:00:00Z");
+    return { ...e, data: { ...e.data, metadata: { app: "dentvideo" }, customer: { email: "Dr@Clinic.example" } } };
+  };
+
+  it("exactly one DentVideo clinic owner has the email: that clinic is activated", async () => {
+    const f = fakeDb(unpaid());
+    const clinicByEmail = vi.fn(async () => ({ clinicId: CLINIC }));
+    const d = deps({ clinicByEmail });
+    await handleDentvideoEvent(f.db, noMeta("subscription.active"), d);
+    expect(clinicByEmail).toHaveBeenCalledWith(f.db, "Dr@Clinic.example");
+    expect(f.clinic).toMatchObject({ plan: "active", dodo_subscription_id: "sub_dash" });
+    expect(d.enqueueWeek).toHaveBeenCalledTimes(1);
+  });
+
+  it("several clinics (or none) for the email: nothing is changed and the owner is alerted — never a guess", async () => {
+    for (const problem of ["several clinics", "no clinic", "lookup failed"] as const) {
+      const f = fakeDb(unpaid());
+      const d = deps({ clinicByEmail: async () => ({ problem }) });
+      const r = await handleDentvideoEvent(f.db, noMeta("subscription.active"), d);
+      expect(r).toMatchObject({ status: 200, body: { ignored: "no clinic", match: problem } });
+      expect(f.clinic.plan).toBe("trial");
+      expect(d.raised.map((a) => a.key)).toEqual([`unmatched_billing:sub_dash:subscription.active`]);
+      expect(d.raised[0].severity).toBe("urgent");
+    }
+  });
+
+  it("no email on the event: alerted too", async () => {
+    const f = fakeDb(unpaid());
+    const clinicByEmail = vi.fn();
+    const e = noMeta("subscription.active");
+    const d = deps({ clinicByEmail });
+    await handleDentvideoEvent(f.db, { ...e, data: { ...e.data, customer: null } }, d);
+    expect(clinicByEmail).not.toHaveBeenCalled();
+    expect(d.raised[0].what.join(" ")).toMatch(/no customer email/);
+  });
+
+  it("an event that does carry clinic metadata never falls back to the email", async () => {
+    const f = fakeDb(unpaid());
+    const clinicByEmail = vi.fn();
+    await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1"), deps({ clinicByEmail }));
+    expect(clinicByEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe("clinicByOwnerEmail (the default lookup)", () => {
+  const dv = { product: "dentvideo" };
+  const lookupDb = (users: { id: string; email: string; app_metadata: Record<string, unknown> }[], clinics: { id: string; owner_id: string }[]) =>
+    ({
+      auth: { admin: { listUsers: async () => ({ data: { users }, error: null }) } },
+      from: () => {
+        let owners: string[] = [];
+        const q = {
+          select: () => q,
+          in: (_k: string, v: string[]) => ((owners = v), q),
+          limit: async () => ({ data: clinics.filter((c) => owners.includes(c.owner_id)), error: null }),
+        };
+        return q;
+      },
+    }) as unknown as SupabaseClient;
+
+  it("matches the email case-insensitively, DentVideo accounts only, and only one clinic", async () => {
+    const users = [
+      { id: "u1", email: "dr@clinic.example", app_metadata: dv },
+      { id: "u2", email: "other@clinic.example", app_metadata: dv },
+    ];
+    expect(await clinicByOwnerEmail(lookupDb(users, [{ id: CLINIC, owner_id: "u1" }]), "DR@clinic.example ")).toEqual({ clinicId: CLINIC });
+    // A ClipForge login with that email is not a DentVideo clinic owner.
+    expect(await clinicByOwnerEmail(lookupDb([{ id: "u1", email: "dr@clinic.example", app_metadata: {} }], [{ id: CLINIC, owner_id: "u1" }]), "dr@clinic.example")).toEqual({ problem: "no clinic" });
+    expect(await clinicByOwnerEmail(lookupDb(users, [{ id: CLINIC, owner_id: "u1" }, { id: "c2", owner_id: "u1" }]), "dr@clinic.example")).toEqual({ problem: "several clinics" });
+    expect(await clinicByOwnerEmail(lookupDb(users, []), "dr@clinic.example")).toEqual({ problem: "no clinic" });
   });
 });

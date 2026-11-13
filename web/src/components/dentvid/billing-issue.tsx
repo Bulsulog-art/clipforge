@@ -12,12 +12,16 @@ const fill = (s: string, vars: Record<string, string>) => s.replace(/\{(\w+)\}/g
 export type BillingIssue =
   | { kind: "update_payment"; selfServe: boolean }
   | { kind: "pending" }
+  | { kind: "disputed" }
+  | { kind: "admin_paused" }
   | { kind: "cancelled_pending"; until: string };
 
 /**
  * Shown instead of the plan picker when buying a plan would be wrong: the
  * subscription is on hold (update the card — a new plan would charge twice),
- * a payment is still being confirmed, or a cancelled plan is still paid up.
+ * a payment is still being confirmed, or a cancelled plan is still paid up —
+ * and the two states where only we can help: a payment under review
+ * (chargeback) and a clinic paused by DentVideo from the admin panel.
  */
 export function BillingIssuePanel({ locale, issue, clinicName, keepVideos = false }: { locale: Locale; issue: BillingIssue; clinicName?: string; keepVideos?: boolean }) {
   const c = billingText(locale).copy.panel;
@@ -41,17 +45,25 @@ export function BillingIssuePanel({ locale, issue, clinicName, keepVideos = fals
     setBusy(false);
   }
 
-  const title = issue.kind === "update_payment" ? c.title : issue.kind === "pending" ? c.pendingTitle : c.cancelledTitle;
-  const body =
+  const vars = { email: DV_SUPPORT_EMAIL };
+  const [title, body] =
     issue.kind === "update_payment"
-      ? c.body
+      ? [c.title, c.body]
       : issue.kind === "pending"
-        ? c.pendingBody
-        : fill(c.cancelledBody, {
-            email: DV_SUPPORT_EMAIL,
-            date: new Intl.DateTimeFormat(dateLocale(locale), { dateStyle: "long", timeZone: "UTC" }).format(new Date(issue.until)),
-          });
-  const mail = mailtoHref(c.emailSubject, clinicName ? `${clinicName}\n\n` : undefined);
+        ? [c.pendingTitle, c.pendingBody]
+        : issue.kind === "disputed"
+          ? [c.disputedTitle, fill(c.disputedBody, vars)]
+          : issue.kind === "admin_paused"
+            ? [c.adminPausedTitle, fill(c.adminPausedBody, vars)]
+            : [
+                c.cancelledTitle,
+                fill(c.cancelledBody, {
+                  ...vars,
+                  date: new Intl.DateTimeFormat(dateLocale(locale), { dateStyle: "long", timeZone: "UTC" }).format(new Date(issue.until)),
+                }),
+              ];
+  const contactOnly = issue.kind === "disputed" || issue.kind === "admin_paused";
+  const mail = mailtoHref(contactOnly ? c.contactSubject : c.emailSubject, clinicName ? `${clinicName}\n\n` : undefined);
 
   return (
     <section aria-labelledby="billing-issue-title" className="dv-card p-6 sm:p-8">
@@ -72,6 +84,14 @@ export function BillingIssuePanel({ locale, issue, clinicName, keepVideos = fals
             </a>
           )}
           <span className="text-sm text-dv-muted">{DV_SUPPORT_EMAIL}</span>
+        </div>
+      )}
+      {contactOnly && (
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <a href={mail} className="dv-btn dv-btn-primary px-5 py-3 text-sm" data-testid="billing-contact">
+            <Mail className="h-4 w-4" aria-hidden="true" />
+            {DV_SUPPORT_EMAIL}
+          </a>
         </div>
       )}
       {issue.kind === "cancelled_pending" && (

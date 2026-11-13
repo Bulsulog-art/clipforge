@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EMAIL_LANGUAGES, readyEmail } from "./email";
 import { LANGUAGES } from "./profile";
+import { lifecycleText } from "@/content/dentvideo-lifecycle";
 
 describe("readyEmail", () => {
   it("speaks every language a clinic can choose", () => {
@@ -23,6 +24,16 @@ describe("readyEmail", () => {
     expect(m.html.match(/href="https:\/\/dentvideo\.com\/app"/g)).toHaveLength(2);
     expect(m.html).not.toContain("markiert"); // no flagged line when nothing is flagged
     expect(readyEmail({ kind: "week", counts: { ready: 1, flagged: 0 }, clinicName: "x", language: "nl", appUrl: "u" })!.html).toContain('<html lang="en" dir="ltr">');
+  });
+  it("is signed by the DentVideo team in every language, like the other emails", () => {
+    for (const language of EMAIL_LANGUAGES) {
+      const signoff = lifecycleText(language).copy.signoff;
+      for (const kind of ["week", "recording"] as const) {
+        const m = readyEmail({ kind, counts: { ready: 2, flagged: 1 }, clinicName: "x", language, appUrl: "https://dentvideo.com/app" })!;
+        expect(m.text, `${language}/${kind}`).toContain(signoff);
+      }
+    }
+    expect(readyEmail({ kind: "week", counts: { ready: 1, flagged: 0 }, clinicName: "x", language: "en", appUrl: "u" })!.text).toContain("The DentVideo team");
   });
   it("sends nothing when nothing was made, and falls back to English", () => {
     expect(readyEmail({ kind: "week", counts: { ready: 0, flagged: 0 }, clinicName: "x", language: "tr", appUrl: "u" })).toBeNull();

@@ -5,7 +5,7 @@ import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { noteEnqueueFailure } from "@/lib/dentvid/ops-server";
-import { loadClinicPlan } from "@/lib/dentvid/plan";
+import { adminPausedMessage, loadClinicPlan } from "@/lib/dentvid/plan";
 import { WEEK_VIDEOS, weekJobId } from "@/lib/dentvid/week-job";
 import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS } from "@/lib/dentvid/job-options";
 
@@ -21,7 +21,10 @@ export async function POST() {
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
   // No free week: videos are made only for a paying clinic. A clinic that has
   // not paid yet ("trial") sees the live preview and chooses a plan first.
-  if (!(await loadClinicPlan(db, clinic.id)).canMake) return NextResponse.json({ error: err.planRequired, needsPlan: true }, { status: 402 });
+  const plan = await loadClinicPlan(db, clinic.id);
+  // Paused by DentVideo (admin panel): the worker would skip the week, so say so instead of promising videos.
+  if (plan.adminPaused) return NextResponse.json({ error: adminPausedMessage((clinic.profile as { language?: string } | undefined)?.language), code: "admin_paused" }, { status: 423 });
+  if (!plan.canMake) return NextResponse.json({ error: err.planRequired, needsPlan: true }, { status: 402 });
 
   // From Saturday evening, the coming Monday's week (the weekend batch's).
   const week = deliveryWeek();

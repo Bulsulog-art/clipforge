@@ -19,6 +19,8 @@ export type BillingCopy = {
     updateHowPortal: string;
     updateHowEmail: string;
     cancelledPending: string;
+    /** A chargeback is open on the clinic's subscription: no new plan, write to us. */
+    disputed: string;
   };
   panel: {
     title: string;
@@ -33,6 +35,12 @@ export type BillingCopy = {
     cancelledBody: string;
     pendingTitle: string;
     pendingBody: string;
+    disputedTitle: string;
+    disputedBody: string;
+    /** The owner paused the clinic from the admin panel. */
+    adminPausedTitle: string;
+    adminPausedBody: string;
+    contactSubject: string;
   };
   email: {
     failedSubject: string;
@@ -58,6 +66,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "open Plan and billing in Settings.",
       updateHowEmail: "write to {email} and we'll send you a secure link.",
       cancelledPending: "Your plan was cancelled and is paid until {date}. To start again before then, write to {email} so you aren't charged twice.",
+      disputed: "A payment on your account is under review, so a new plan can't be bought right now. Please write to {email} and we'll sort it out with you.",
     },
     panel: {
       title: "Please update your payment",
@@ -72,6 +81,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "It is paid until {date}. To start again before then, write to {email} — we'll restart it without charging you twice.",
       pendingTitle: "We're confirming your payment",
       pendingBody: "This usually takes a minute or two. Please refresh shortly — there is no need to pay again.",
+      disputedTitle: "A payment is under review",
+      disputedBody: "A payment for your plan was disputed with your bank or card provider, so new weekly videos are paused while it is reviewed. Please don't buy a new plan — write to {email} and we'll sort it out with you.",
+      adminPausedTitle: "Your videos are paused by DentVideo",
+      adminPausedBody: "We've paused new weekly videos for your clinic for now. Your plan and your videos are safe. Please write to {email} and we'll explain and get you going again.",
+      contactSubject: "My DentVideo account",
     },
     email: {
       failedSubject: "Your DentVideo payment didn't go through",
@@ -95,6 +109,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "Öffnen Sie in den Einstellungen „Plan und Abrechnung“.",
       updateHowEmail: "Schreiben Sie an {email}, wir senden Ihnen einen sicheren Link.",
       cancelledPending: "Ihr Plan wurde gekündigt und ist bis {date} bezahlt. Wenn Sie vorher wieder starten möchten, schreiben Sie an {email}, damit Sie nicht doppelt bezahlen.",
+      disputed: "Eine Zahlung auf Ihrem Konto wird gerade geprüft, daher kann im Moment kein neuer Plan gekauft werden. Bitte schreiben Sie an {email}, wir klären das gemeinsam mit Ihnen.",
     },
     panel: {
       title: "Bitte aktualisieren Sie Ihre Zahlung",
@@ -109,6 +124,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "Er ist bis {date} bezahlt. Wenn Sie vorher wieder starten möchten, schreiben Sie an {email} — wir starten ihn neu, ohne doppelt abzurechnen.",
       pendingTitle: "Wir bestätigen Ihre Zahlung",
       pendingBody: "Das dauert meist ein bis zwei Minuten. Bitte laden Sie die Seite gleich neu — Sie müssen nicht erneut bezahlen.",
+      disputedTitle: "Eine Zahlung wird geprüft",
+      disputedBody: "Eine Zahlung für Ihren Plan wurde bei Ihrer Bank oder Ihrem Kartenanbieter beanstandet, daher sind neue Wochenvideos pausiert, solange sie geprüft wird. Bitte kaufen Sie keinen neuen Plan — schreiben Sie an {email}, wir klären das gemeinsam mit Ihnen.",
+      adminPausedTitle: "Ihre Videos sind von DentVideo pausiert",
+      adminPausedBody: "Wir haben neue Wochenvideos für Ihre Praxis vorerst pausiert. Ihr Plan und Ihre Videos bleiben erhalten. Bitte schreiben Sie an {email}, wir erklären Ihnen den Grund und starten wieder.",
+      contactSubject: "Mein DentVideo-Konto",
     },
     email: {
       failedSubject: "Ihre DentVideo-Zahlung ging nicht durch",
@@ -132,6 +152,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "abre Plan y facturación en Ajustes.",
       updateHowEmail: "escribe a {email} y te enviaremos un enlace seguro.",
       cancelledPending: "Tu plan se canceló y está pagado hasta el {date}. Si quieres volver a empezar antes, escribe a {email} para no pagar dos veces.",
+      disputed: "Un pago de tu cuenta está en revisión, así que ahora no se puede contratar un plan nuevo. Escríbenos a {email} y lo resolvemos contigo.",
     },
     panel: {
       title: "Actualiza tu pago",
@@ -146,6 +167,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "Está pagado hasta el {date}. Si quieres volver a empezar antes, escribe a {email} y lo reactivaremos sin cobrarte dos veces.",
       pendingTitle: "Estamos confirmando tu pago",
       pendingBody: "Suele tardar uno o dos minutos. Actualiza la página en un momento; no hace falta pagar de nuevo.",
+      disputedTitle: "Un pago está en revisión",
+      disputedBody: "Un pago de tu plan se ha reclamado ante tu banco o el emisor de tu tarjeta, así que los vídeos semanales nuevos están en pausa mientras se revisa. No contrates un plan nuevo: escríbenos a {email} y lo resolvemos contigo.",
+      adminPausedTitle: "DentVideo ha pausado tus vídeos",
+      adminPausedBody: "Hemos pausado por ahora los vídeos semanales nuevos de tu clínica. Tu plan y tus vídeos están a salvo. Escríbenos a {email} y te explicamos el motivo para volver a ponerlos en marcha.",
+      contactSubject: "Mi cuenta de DentVideo",
     },
     email: {
       failedSubject: "Tu pago de DentVideo no se completó",
@@ -169,6 +195,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "Ayarlar'da Plan ve faturalandırma bölümünü açın.",
       updateHowEmail: "{email} adresine yazın, size güvenli bir bağlantı gönderelim.",
       cancelledPending: "Planınız iptal edildi ve {date} tarihine kadar ödenmiş durumda. Daha önce yeniden başlamak isterseniz, iki kez ödeme yapmamak için {email} adresine yazın.",
+      disputed: "Hesabınızdaki bir ödeme inceleniyor, bu yüzden şu anda yeni bir plan satın alınamıyor. Lütfen {email} adresine yazın, birlikte çözelim.",
     },
     panel: {
       title: "Lütfen ödemenizi güncelleyin",
@@ -183,6 +210,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "{date} tarihine kadar ödenmiş durumda. Daha önce yeniden başlamak isterseniz {email} adresine yazın — iki kez ücret almadan yeniden başlatalım.",
       pendingTitle: "Ödemenizi doğruluyoruz",
       pendingBody: "Bu genellikle bir iki dakika sürer. Lütfen birazdan sayfayı yenileyin — tekrar ödeme yapmanıza gerek yok.",
+      disputedTitle: "Bir ödeme inceleniyor",
+      disputedBody: "Planınıza ait bir ödemeye bankanız veya kart sağlayıcınız üzerinden itiraz edildi; inceleme sürerken yeni haftalık videolar duraklatıldı. Lütfen yeni bir plan satın almayın — {email} adresine yazın, birlikte çözelim.",
+      adminPausedTitle: "Videolarınız DentVideo tarafından duraklatıldı",
+      adminPausedBody: "Kliniğiniz için yeni haftalık videoları şimdilik duraklattık. Planınız ve videolarınız güvende. Lütfen {email} adresine yazın; nedenini açıklayıp yeniden başlatalım.",
+      contactSubject: "DentVideo hesabım",
     },
     email: {
       failedSubject: "DentVideo ödemeniz gerçekleşmedi",
@@ -206,6 +238,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "ouvrez Formule et facturation dans les Réglages.",
       updateHowEmail: "écrivez à {email} et nous vous enverrons un lien sécurisé.",
       cancelledPending: "Votre formule a été résiliée et elle est payée jusqu’au {date}. Pour recommencer avant, écrivez à {email} afin de ne pas payer deux fois.",
+      disputed: "Un paiement de votre compte est en cours d'examen : vous ne pouvez donc pas souscrire de nouvelle formule pour le moment. Écrivez-nous à {email} et nous réglerons cela avec vous.",
     },
     panel: {
       title: "Merci de mettre à jour votre paiement",
@@ -220,6 +253,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "Elle est payée jusqu’au {date}. Pour recommencer avant, écrivez à {email} — nous la relancerons sans vous facturer deux fois.",
       pendingTitle: "Nous confirmons votre paiement",
       pendingBody: "Cela prend en général une à deux minutes. Actualisez la page dans un instant — inutile de payer à nouveau.",
+      disputedTitle: "Un paiement est en cours d'examen",
+      disputedBody: "Un paiement de votre formule a été contesté auprès de votre banque ou de l'émetteur de votre carte : les nouvelles vidéos hebdomadaires sont donc en pause pendant l'examen. Ne souscrivez pas de nouvelle formule — écrivez-nous à {email} et nous réglerons cela avec vous.",
+      adminPausedTitle: "Vos vidéos ont été mises en pause par DentVideo",
+      adminPausedBody: "Nous avons mis en pause, pour l'instant, les nouvelles vidéos hebdomadaires de votre cabinet. Votre formule et vos vidéos sont conservées. Écrivez-nous à {email} : nous vous expliquerons pourquoi et relancerons tout.",
+      contactSubject: "Mon compte DentVideo",
     },
     email: {
       failedSubject: "Votre paiement DentVideo n’a pas abouti",
@@ -243,6 +281,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "設定の「プランとお支払い」を開いてください。",
       updateHowEmail: "{email} までご連絡いただければ、安全なリンクをお送りします。",
       cancelledPending: "プランは解約済みで、{date}までお支払い済みです。それより前に再開したい場合は、二重請求を避けるため {email} までご連絡ください。",
+      disputed: "お客様のアカウントのお支払いを確認中のため、現在は新しいプランをお申し込みいただけません。{email} までご連絡ください。一緒に解決いたします。",
     },
     panel: {
       title: "お支払い情報を更新してください",
@@ -257,6 +296,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "{date}までお支払い済みです。それより前に再開したい場合は {email} までご連絡ください。二重請求なしで再開します。",
       pendingTitle: "お支払いを確認しています",
       pendingBody: "通常1〜2分で完了します。少ししてからページを更新してください。再度お支払いいただく必要はありません。",
+      disputedTitle: "お支払いを確認中です",
+      disputedBody: "プランのお支払いについて、銀行またはカード会社に異議申し立てが行われました。確認が終わるまで、新しい週次動画の制作を一時停止しています。新しいプランはお申し込みにならず、{email} までご連絡ください。一緒に解決いたします。",
+      adminPausedTitle: "DentVideoが動画の制作を一時停止しています",
+      adminPausedBody: "現在、貴院の新しい週次動画の制作を一時停止しています。プランと動画はそのまま保持されます。{email} までご連絡いただければ、理由をご説明し、再開のお手続きをいたします。",
+      contactSubject: "DentVideoのアカウントについて",
     },
     email: {
       failedSubject: "DentVideoのお支払いが完了しませんでした",
@@ -280,6 +324,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "افتح «الخطة والفوترة» في الإعدادات.",
       updateHowEmail: "راسلنا على {email} وسنرسل لك رابطًا آمنًا.",
       cancelledPending: "تم إلغاء خطتك وهي مدفوعة حتى {date}. إذا أردت البدء من جديد قبل ذلك، راسلنا على {email} حتى لا تدفع مرتين.",
+      disputed: "إحدى الدفعات على حسابكم قيد المراجعة، لذا لا يمكن شراء باقة جديدة الآن. يُرجى مراسلتنا على {email} وسنحلّ الأمر معكم.",
     },
     panel: {
       title: "يرجى تحديث بيانات الدفع",
@@ -294,6 +339,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "الخطة مدفوعة حتى {date}. إذا أردت البدء من جديد قبل ذلك، راسلنا على {email} — سنعيد تشغيلها دون أن تدفع مرتين.",
       pendingTitle: "نؤكد دفعتك الآن",
       pendingBody: "يستغرق ذلك عادة دقيقة أو دقيقتين. يرجى تحديث الصفحة بعد قليل — لا داعي للدفع مرة أخرى.",
+      disputedTitle: "إحدى الدفعات قيد المراجعة",
+      disputedBody: "تم الاعتراض على دفعة لباقتكم لدى البنك أو مُصدر البطاقة، لذا أوقفنا الفيديوهات الأسبوعية الجديدة مؤقتاً أثناء المراجعة. يُرجى عدم شراء باقة جديدة، وراسلونا على {email} وسنحلّ الأمر معكم.",
+      adminPausedTitle: "أوقفت DentVideo فيديوهاتكم مؤقتاً",
+      adminPausedBody: "أوقفنا الفيديوهات الأسبوعية الجديدة لعيادتكم مؤقتاً. باقتكم وفيديوهاتكم محفوظة. يُرجى مراسلتنا على {email} وسنوضّح السبب ونعيد التشغيل.",
+      contactSubject: "حسابي في DentVideo",
     },
     email: {
       failedSubject: "لم تتم دفعتك في DentVideo",
@@ -317,6 +367,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "otwórz Plan i płatności w Ustawieniach.",
       updateHowEmail: "napisz na {email}, a wyślemy Ci bezpieczny link.",
       cancelledPending: "Twój plan został anulowany i jest opłacony do {date}. Jeśli chcesz wznowić go wcześniej, napisz na {email}, aby nie zapłacić dwa razy.",
+      disputed: "Jedna z płatności na Państwa koncie jest weryfikowana, dlatego teraz nie można kupić nowego planu. Prosimy o wiadomość na {email} — wspólnie to wyjaśnimy.",
     },
     panel: {
       title: "Zaktualizuj płatność",
@@ -331,6 +382,11 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       cancelledBody: "Jest opłacony do {date}. Jeśli chcesz wznowić go wcześniej, napisz na {email} — uruchomimy go ponownie bez podwójnej opłaty.",
       pendingTitle: "Potwierdzamy Twoją płatność",
       pendingBody: "Zwykle trwa to minutę lub dwie. Odśwież stronę za chwilę — nie trzeba płacić ponownie.",
+      disputedTitle: "Płatność jest weryfikowana",
+      disputedBody: "Płatność za Państwa plan została zakwestionowana w banku lub u wydawcy karty, dlatego na czas weryfikacji nowe cotygodniowe filmy są wstrzymane. Prosimy nie kupować nowego planu — wystarczy napisać na {email}, a wspólnie to wyjaśnimy.",
+      adminPausedTitle: "DentVideo wstrzymało Państwa filmy",
+      adminPausedBody: "Na razie wstrzymaliśmy nowe cotygodniowe filmy dla Państwa gabinetu. Plan i filmy pozostają bezpieczne. Prosimy o wiadomość na {email} — wyjaśnimy powód i wznowimy pracę.",
+      contactSubject: "Moje konto DentVideo",
     },
     email: {
       failedSubject: "Płatność za DentVideo nie przeszła",

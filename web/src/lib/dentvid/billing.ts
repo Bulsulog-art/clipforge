@@ -141,6 +141,9 @@ export type DvCheckoutInput = {
   locale?: string | null;
 };
 
+/** DentVideo's languages that Dodo's checkout can be forced into (customization.force_language). All eight are supported. */
+export const DV_CHECKOUT_LANGUAGES = ["en", "de", "es", "tr", "fr", "ja", "ar", "pl"] as const;
+
 export type DvCheckoutPlan =
   | { ok: true; body: Record<string, unknown>; productId: string; discount: string | null }
   | { ok: false; reason: "unavailable" | "contact_sales" };
@@ -163,7 +166,9 @@ export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env):
 
   const discount = normaliseCode(input.code);
   const base = dvBaseUrl(env);
-  const lang = input.locale && /^(en|de|es|tr|fr)$/.test(input.locale) ? input.locale : null;
+  // Every DentVideo language is a Dodo checkout language (docs.dodopayments.com/features/checkout#supported-languages:
+  // ar, de, en, es, fr, ja, pl, tr among them), so the checkout speaks the clinic's language, not the browser's.
+  const lang = input.locale && (DV_CHECKOUT_LANGUAGES as readonly string[]).includes(input.locale) ? input.locale : null;
 
   const body: Record<string, unknown> = {
     product_cart: [{ product_id: productId, quantity: 1 }],
@@ -327,8 +332,9 @@ export function needsPlan(plan: DvPlanState | string | null | undefined): boolea
  * A Dodo subscription's status as we last applied it (dentvid_subscriptions,
  * migration 0007). "pending" = a payment arrived before the activation;
  * "lapsed" = our nightly reconciliation found no renewal past the grace.
+ * "disputed" = a chargeback paused the clinic (billing-webhook moneyBack); dispute.won lifts it.
  */
-export type DvSubStatus = "pending" | "active" | "on_hold" | "paused" | "cancelled" | "expired" | "failed" | "lapsed";
+export type DvSubStatus = "pending" | "active" | "on_hold" | "paused" | "cancelled" | "expired" | "failed" | "lapsed" | "disputed";
 
 /** Statuses after which Dodo will not charge again (a fresh checkout is safe). */
 export const DV_SUB_ENDED: ReadonlySet<string> = new Set(["cancelled", "expired", "failed"]);
@@ -409,6 +415,7 @@ export type DvCheckoutBlock =
   | { code: "active" }
   | { code: "pending" }
   | { code: "payment_update" }
+  | { code: "disputed" }
   | { code: "cancelled_pending"; until: string };
 
 /**
@@ -420,6 +427,7 @@ export type DvCheckoutBlock =
  *   pending              paid / activated at Dodo within the last 30 min,
  *                        our webhook not applied yet
  *   payment_update       on hold / paused: update the card, don't buy again
+ *   disputed             a chargeback paused the clinic: write to us, don't buy again
  *   cancelled_pending    cancelled, but the paid period has not run out
  *
  * `subs` is null when the ledger table is missing (0007 not applied): then
@@ -439,6 +447,10 @@ export function checkoutBlock(args: {
   if (clinic.plan === "active") return { code: "active" };
   const currentId = clinic.dodo_subscription_id ?? null;
   const live = currentId ? args.dodoStatus ?? null : null;
+  // A chargeback paused the clinic while its subscription stays live at Dodo (Dodo still says "active"):
+  // a new plan would be a second subscription, and "we're confirming your payment" would not be true.
+  const disputed = !!subs && !!currentId && subs.some((r) => r.dodo_subscription_id === currentId && r.status === "disputed");
+  if (disputed && !(live && DV_SUB_ENDED.has(live))) return { code: "disputed" };
   if (live === "active") return { code: "pending" };
   if (live === "on_hold" || live === "paused") return { code: "payment_update" };
   const currentEnded = !!live && DV_SUB_ENDED.has(live);
