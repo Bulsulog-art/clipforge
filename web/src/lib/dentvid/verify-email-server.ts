@@ -3,6 +3,8 @@ import { kvStore } from "@/lib/rate-limit-server";
 import { sendEmail } from "./email";
 import { DV_SUPABASE_ANON, DV_SUPABASE_URL, dvAdmin } from "./supabase";
 import { codeEmail } from "./verify-email-message";
+import { isDentvideoUser } from "./membership";
+import { joinDentvideo } from "./join";
 import { isMonitorEmail } from "./monitor-account";
 import { isEmailVerified, issueCode, verifiedAppMetadata, verifySecret, type IssueResult, type VerifyKv, type VerifyMethod } from "./verify-email";
 
@@ -56,6 +58,8 @@ export type ExchangeDeps = {
   markVerified: (userId: string, email: string, method: VerifyMethod) => Promise<boolean>;
   /** End every other session of this user (the access token's own stays). */
   signOutOthers: (accessToken: string) => Promise<void>;
+  /** Add DentVideo to an account another app made with this address (lib/dentvid/join). */
+  join: (userId: string) => Promise<boolean>;
 };
 
 const exchangeDeps: ExchangeDeps = {
@@ -70,6 +74,7 @@ const exchangeDeps: ExchangeDeps = {
     const { error } = await dvAdmin().auth.admin.signOut(accessToken, "others");
     if (error) console.error("[dentvideo reset] could not end other sessions", error.message);
   },
+  join: (userId) => joinDentvideo(userId),
 };
 
 /**
@@ -86,6 +91,9 @@ const exchangeDeps: ExchangeDeps = {
 export async function exchangeRecovery(tokenHash: string, deps: ExchangeDeps = exchangeDeps) {
   const { session, user } = await deps.verify(tokenHash);
   if (!session || !user) return null;
+  // The link was opened from this address's mailbox: an account another app
+  // made with it may now use DentVideo too.
+  if (!isDentvideoUser(user)) await deps.join(user.id);
   let verified = isEmailVerified(user);
   if (!verified && user.email) {
     verified = await deps.markVerified(user.id, user.email, "reset");
