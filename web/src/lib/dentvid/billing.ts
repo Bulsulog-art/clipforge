@@ -12,8 +12,15 @@
 
 export const DV_TIERS = ["starter", "practice", "group"] as const;
 export type DvTier = (typeof DV_TIERS)[number];
+/**
+ * Billing intervals a subscription can have. Only "month" is sold
+ * (DV_OFFERED_INTERVALS); "year" stays a known interval so a legacy Practice
+ * yearly subscription still maps in the webhook and in admin revenue maths.
+ */
 export const DV_INTERVALS = ["month", "year"] as const;
 export type DvInterval = (typeof DV_INTERVALS)[number];
+/** The only interval offered: monthly. There is no yearly billing. */
+export const DV_OFFERED_INTERVALS = ["month"] as const satisfies readonly DvInterval[];
 export type DvPlanState = "trial" | "active" | "paused" | "cancelled";
 
 /**
@@ -27,12 +34,21 @@ export function isSelfServeTier(tier: string | null | undefined): boolean {
   return (DV_SELF_SERVE_TIERS as readonly string[]).includes(tier ?? "");
 }
 
-/** Owner-approved list prices in whole USD (docs/POSITIONING.md §6). Group has none: it is sold by contact. */
+/**
+ * Owner-approved list prices in whole USD (docs/POSITIONING.md §6), monthly
+ * only. Group has none: it is sold by contact.
+ */
 export const DV_PRICES_USD: Record<DvTier, Partial<Record<DvInterval, number>>> = {
-  starter: { month: 49 },
-  practice: { month: 99, year: 990 },
+  starter: { month: 29 },
+  practice: { month: 49 },
   group: {},
 };
+
+/**
+ * What the legacy yearly products charged, for internal revenue maths only
+ * (admin MRR) should an old yearly subscription still exist. Never shown or sold.
+ */
+export const DV_LEGACY_YEARLY_USD: Partial<Record<DvTier, number>> = { practice: 990 };
 
 /**
  * What the legacy Group product charges, for internal revenue maths only
@@ -40,7 +56,11 @@ export const DV_PRICES_USD: Record<DvTier, Partial<Record<DvInterval, number>>> 
  */
 export const DV_LEGACY_GROUP_MONTHLY_USD = 279;
 
-/** Founding offer: Practice monthly at this price for 12 months, first 100 clinics. */
+/**
+ * The former founding offer (Practice monthly at $49 for 12 months, code
+ * KURUCU100, first 100 clinics). It is closed: nothing offers or applies it.
+ * Kept only so admin can still recognise historic founding subscriptions.
+ */
 export const DV_FOUNDING = { tier: "practice" as DvTier, interval: "month" as DvInterval, priceUsd: 49, months: 12, clinics: 100 };
 
 export const DV_BRAND_ID_DEFAULT = "brnd_0NrVafyQGNiKOz0caOKgm";
@@ -49,12 +69,10 @@ export const DV_BRAND_ID_DEFAULT = "brnd_0NrVafyQGNiKOz0caOKgm";
 export const DV_PRODUCTS: { tier: DvTier; interval: DvInterval; env: string; fallback: string | null }[] = [
   { tier: "starter", interval: "month", env: "DENTVIDEO_DODO_PRODUCT_STARTER_MONTHLY", fallback: "pdt_0NrVahwZsINvy3TNz2H35" },
   { tier: "practice", interval: "month", env: "DENTVIDEO_DODO_PRODUCT_PRACTICE_MONTHLY", fallback: "pdt_0NrVai0xqpQKU8H3Zj3QN" },
-  // Group is not sold (Contact us): its id stays only so a stray Group payment still maps in the webhook.
+  // Not sold (Group is Contact us; there is no yearly billing): these ids stay
+  // only so a stray Group or old yearly payment still maps in the webhook.
   { tier: "group", interval: "month", env: "DENTVIDEO_DODO_PRODUCT_GROUP_MONTHLY", fallback: "pdt_0NrVai5ZNwqFoSZbcfV8S" },
   { tier: "practice", interval: "year", env: "DENTVIDEO_DODO_PRODUCT_PRACTICE_YEARLY", fallback: "pdt_0NrVaiBrxhFhPrt8IbdSu" },
-  // Not created in Dodo yet: offered only once their env var is set.
-  { tier: "starter", interval: "year", env: "DENTVIDEO_DODO_PRODUCT_STARTER_YEARLY", fallback: null },
-  { tier: "group", interval: "year", env: "DENTVIDEO_DODO_PRODUCT_GROUP_YEARLY", fallback: null },
 ];
 
 type Env = Record<string, string | undefined>;
@@ -77,11 +95,11 @@ export function dvPlanForProduct(productId: string | null | undefined, env: Env 
   return null;
 }
 
-/** Which tier/interval pairs can be bought right now (self-serve, a product id and a list price exist). */
+/** Which tier/interval pairs can be bought right now (self-serve, monthly, a product id and a list price exist). */
 export function dvAvailablePlans(env: Env = process.env): { tier: DvTier; interval: DvInterval; priceUsd: number }[] {
   const out: { tier: DvTier; interval: DvInterval; priceUsd: number }[] = [];
   for (const tier of DV_SELF_SERVE_TIERS) {
-    for (const interval of DV_INTERVALS) {
+    for (const interval of DV_OFFERED_INTERVALS) {
       const priceUsd = DV_PRICES_USD[tier][interval];
       if (priceUsd && dvProductId(tier, interval, env)) out.push({ tier, interval, priceUsd });
     }
@@ -89,15 +107,7 @@ export function dvAvailablePlans(env: Env = process.env): { tier: DvTier; interv
   return out;
 }
 
-/**
- * Whether the founding offer is applied by default. On unless
- * DENTVIDEO_FOUNDING_OFFER is "0"/"false"/"off" — flip it when the 100 are taken.
- */
-export function foundingOfferOpen(env: Env = process.env): boolean {
-  const v = env.DENTVIDEO_FOUNDING_OFFER?.trim().toLowerCase();
-  return !(v === "0" || v === "false" || v === "off" || v === "closed");
-}
-
+/** The former founding code — admin only, to count its historic uses at Dodo. Never applied at checkout. */
 export function foundingCode(env: Env = process.env): string {
   return env.DENTVIDEO_FOUNDING_CODE?.trim() || "KURUCU100";
 }
@@ -132,7 +142,7 @@ export type DvCheckoutInput = {
 };
 
 export type DvCheckoutPlan =
-  | { ok: true; body: Record<string, unknown>; productId: string; discount: string | null; autoDiscount: boolean }
+  | { ok: true; body: Record<string, unknown>; productId: string; discount: string | null }
   | { ok: false; reason: "unavailable" | "contact_sales" };
 
 /**
@@ -141,15 +151,17 @@ export type DvCheckoutPlan =
  * product_cart, customer.email, discount_codes, metadata (copied onto the
  * subscription and every webhook about it), return_url, cancel_url,
  * customization.force_language.
+ *
+ * Only monthly self-serve plans are sold. No discount code is ever applied by
+ * default: discount_codes is sent only when the clinic typed a code itself.
  */
 export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env): DvCheckoutPlan {
   if (!isSelfServeTier(input.tier)) return { ok: false, reason: "contact_sales" };
   const productId = dvProductId(input.tier, input.interval, env);
-  if (!productId || !DV_PRICES_USD[input.tier][input.interval]) return { ok: false, reason: "unavailable" };
+  const offered = (DV_OFFERED_INTERVALS as readonly string[]).includes(input.interval);
+  if (!offered || !productId || !DV_PRICES_USD[input.tier][input.interval]) return { ok: false, reason: "unavailable" };
 
-  const typed = normaliseCode(input.code);
-  const founding = input.tier === DV_FOUNDING.tier && input.interval === DV_FOUNDING.interval && foundingOfferOpen(env);
-  const discount = typed ?? (founding ? foundingCode(env) : null);
+  const discount = normaliseCode(input.code);
   const base = dvBaseUrl(env);
   const lang = input.locale && /^(en|de|es|tr|fr)$/.test(input.locale) ? input.locale : null;
 
@@ -162,7 +174,7 @@ export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env):
     cancel_url: `${base}/app?billing=cancelled`,
     ...(lang ? { customization: { force_language: lang } } : {}),
   };
-  return { ok: true, body, productId, discount, autoDiscount: !typed && !!discount };
+  return { ok: true, body, productId, discount };
 }
 
 /**
@@ -171,7 +183,7 @@ export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env):
  * checkout.dodopayments.com/buy/{product_id}?quantity=1&email=…&disableEmail=true
  * &redirect_url=…&metadata_<key>=… (metadata lands on the subscription and its
  * webhooks exactly like the API checkout's). A discount code is typed by the
- * clinic in Dodo's checkout; the plan panel shows the founding code to use.
+ * clinic in Dodo's checkout, if they have one.
  */
 export function buildDvStaticLink(plan: Extract<DvCheckoutPlan, { ok: true }>, env: Env = process.env): string {
   const host = (env.DODO_ENVIRONMENT ?? "").trim() === "live" ? "https://checkout.dodopayments.com" : "https://test.checkout.dodopayments.com";
@@ -374,7 +386,7 @@ export type DvSubRecord = {
 };
 
 /**
- * Did this subscription use the founding offer? Practice monthly with a
+ * Did this subscription use the (now closed) founding offer? Practice monthly with a
  * discount on it — the discount id must match DENTVIDEO_FOUNDING_DISCOUNT_ID
  * when that is set; without it any discount counts (seats are then counted
  * conservatively, never under-counted).
@@ -447,28 +459,4 @@ export function checkoutBlock(args: {
   // No ledger: the clinic row alone. A paused clinic still has a subscription Dodo may retry.
   if (clinic.plan === "paused" && currentId && !currentEnded) return { code: "payment_update" };
   return null;
-}
-
-/* ---------------------------------------------------------- founding seats */
-
-export type FoundingState = {
-  /** The offer may be shown and applied. */
-  open: boolean;
-  used: number;
-  left: number;
-  /** Counted from recorded subscriptions (0007): honest enough to show "N left". */
-  reliable: boolean;
-};
-
-/**
- * The founding offer's state from the seats used: closed by the env switch,
- * or once DV_FOUNDING.clinics seats are taken. `recorded` is the number of
- * clinics whose subscription used the founding discount (null when the
- * ledger is missing); `estimate` is active Practice clinics (always known).
- * The larger of the two is used, so the offer never stays open past 100.
- */
-export function foundingState(recorded: number | null, estimate: number, env: Env = process.env): FoundingState {
-  const used = Math.max(0, Math.floor(Math.max(recorded ?? 0, estimate)));
-  const left = Math.max(0, DV_FOUNDING.clinics - used);
-  return { open: foundingOfferOpen(env) && left > 0, used, left, reliable: recorded !== null && recorded >= estimate };
 }

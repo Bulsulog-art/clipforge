@@ -21,7 +21,7 @@ import {
 import { sitemapUrls, sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 import { INDEXNOW_KEY } from "@/lib/dentvid/indexnow";
-import { DV_FOUNDING, DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -126,8 +126,8 @@ describe("guide library", () => {
     expect(text).not.toMatch(MONEY);
   });
 
-  it("the About price fact states the configured plans, founding offer and live preview in every language", () => {
-    const allowed = new Set<number>([DV_FOUNDING.priceUsd]);
+  it("the About price fact states the configured monthly plans and live preview in every language — no yearly price, no founding offer", () => {
+    const allowed = new Set<number>();
     for (const tier of DV_TIERS) for (const v of Object.values(DV_PRICES_USD[tier])) if (v) allowed.add(v);
     for (const l of LOCALES) {
       const price = ENTITY[l].facts.find((f) => PRICE_LABELS.includes(f.label));
@@ -139,10 +139,10 @@ describe("guide library", () => {
       for (const tier of DV_SELF_SERVE_TIERS) expect(v, `${l} ${tier}`).toContain(String(DV_PRICES_USD[tier].month));
       // Group is Contact us: the fact sends groups to the address, with no price.
       expect(v, l).toContain("hello@dentvideo.com");
-      expect(v, l).toContain(String(DV_PRICES_USD.practice.year));
-      expect(v, l).toContain(String(DV_FOUNDING.clinics));
+      expect(v, l).not.toMatch(/990|\b100\b|KURUCU/);
+      expect(figures.sort((a, b) => a - b), l).toEqual([29, 29, 49]);
     }
-    expect(llmsTxt()).toContain("Paid plans from $49/month");
+    expect(llmsTxt()).toContain("Paid plans from $29/month: Starter $29/month, Practice $49/month.");
   });
 });
 
@@ -228,8 +228,8 @@ describe("structured data", () => {
       // Google's SoftwareApplication rich result needs a priced offer: the self-serve plans only (Group is Contact us).
       const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown>[] }[]).find((n) => n["@type"] === "SoftwareApplication");
       expect(app?.offers, l).toMatchObject([
-        { "@type": "Offer", name: "Starter", price: 49, priceCurrency: "USD" },
-        { "@type": "Offer", name: "Practice", price: 99, priceCurrency: "USD" },
+        { "@type": "Offer", name: "Starter", price: 29, priceCurrency: "USD" },
+        { "@type": "Offer", name: "Practice", price: 49, priceCurrency: "USD" },
       ]);
     }
   });

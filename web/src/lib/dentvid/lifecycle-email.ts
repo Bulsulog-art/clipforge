@@ -11,21 +11,20 @@ import { CONTACT_EMAIL, COLORS, FONT, esc, renderEmail, type Brand, type Rendere
  *   start           day 0 — finish your preview
  *   sample          day 1 — here is your clinic's sample (its preview's titles)
  *   objections      day 3 — answers to the three common objections
- *   offer           day 7 — the founding offer, only while seats are left
  *   payment problem payment.failed / subscription.on_hold (transactional)
  *   not posted      paying clinic, nothing shared yet this week
  *   monthly         paying clinic, last month in three numbers
  *
  * and the unsubscribe page. Marketing mail (everything but welcome and the
  * payment problem) carries the unsubscribe link and the operator's postal
- * address. Pure: no I/O, no environment — prices, the founding offer and
- * the counts come in as arguments.
+ * address. Pure: no I/O, no environment — prices and the counts come in
+ * as arguments.
  */
 
 export { CONTACT_EMAIL };
 export type { Rendered };
 
-/** "$49" in the reader's language — the same format the plan screen uses (Arabic keeps "$49"). */
+/** "$29" in the reader's language — the same format the plan screen uses (Arabic keeps "$29"). */
 export function usd(lang: string, amount: number): string {
   return new Intl.NumberFormat(lang === "ar" ? "en-US" : lang, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
 }
@@ -144,34 +143,6 @@ export function objectionsEmail(args: NudgeArgs & { fromUsd: number }): Rendered
     ],
     button: { label: s.button, url: args.url },
     afterButton: [c.contact],
-    ...marketing(lang, c, args, c.nudgeFooter),
-  });
-}
-
-export type OfferTerms =
-  | { open: true; priceUsd: number; thenUsd: number; months: number; clinics: number; code: string }
-  | { open: false; fromUsd: number };
-
-/** Founding seats left, shown only when counted from recorded subscriptions (billing.ts FoundingState.reliable). */
-export type Seats = { left: number; reliable: boolean } | null;
-
-/** Day 7, the last one: the founding offer. Only while it is open — the caller sends nothing otherwise. */
-export function offerEmail(args: NudgeArgs & { offer: Extract<OfferTerms, { open: true }>; seats?: Seats }): Rendered {
-  const { lang, copy: c } = lifecycleText(args.language);
-  const clinic = clinicLabel(args.clinicName);
-  const o = args.offer;
-  const s = c.offer;
-  const vars = { price: usd(lang, o.priceUsd), then: usd(lang, o.thenUsd), months: o.months, clinics: o.clinics, code: o.code, left: args.seats?.left ?? 0 };
-  const seats = args.seats && args.seats.reliable && args.seats.left > 0 && args.seats.left <= o.clinics ? fill(s.seats, vars) : null;
-  return renderEmail({
-    lang,
-    subject: fill(s.subject, vars),
-    preheader: fill(s.preheader, vars),
-    title: s.title,
-    hello: tidy(fill(c.hello, { clinic })),
-    blocks: [{ kind: "p", text: s.body }, { kind: "panel", text: fill(s.terms, vars) }, ...(seats ? [{ kind: "p" as const, text: seats }] : [])],
-    button: { label: s.button, url: args.url },
-    afterButton: [s.last, c.contact],
     ...marketing(lang, c, args, c.nudgeFooter),
   });
 }

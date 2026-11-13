@@ -118,12 +118,12 @@ describe("Group is Contact us", () => {
       const landing = JSON.stringify(landingJsonLd(l));
       const app = (landingJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[]).find((n) => n["@type"] === "SoftwareApplication");
       expect(app?.offers?.map((o) => o.name), l).toEqual(["Starter", "Practice"]);
-      expect(app?.offers?.map((o) => o.price), l).toEqual([49, 99]);
+      expect(app?.offers?.map((o) => o.price), l).toEqual([29, 49]);
       expect(promisesIn(landing), l).toEqual([]);
       expect(landing, l).not.toMatch(/"name":"Group"/);
       const about = aboutJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[];
       const aboutOffers = about.find((n) => n["@type"] === "SoftwareApplication")?.offers;
-      expect(aboutOffers?.map((o) => [o.name, o.price]), l).toEqual([["Starter", 49], ["Practice", 99]]);
+      expect(aboutOffers?.map((o) => [o.name, o.price]), l).toEqual([["Starter", 29], ["Practice", 49]]);
     }
   });
 });
@@ -167,7 +167,6 @@ describe("rendered pages offer no Group checkout", () => {
           state: "trial",
           // Whatever the server passes, Group is never a priced, clickable plan.
           options: [...dvAvailablePlans({}), { tier: "group", interval: "month", priceUsd: 279 }],
-          founding: { priceUsd: 49 },
         }),
       );
       expect(panel, l).not.toMatch(GROUP_CHECKOUT);
@@ -180,6 +179,17 @@ describe("rendered pages offer no Group checkout", () => {
       expect(panel.match(/<button type="button"[^>]*class="dv-btn group w-full/g)?.length, l).toBe(2);
       // A legacy Group subscriber still sees the plan's name.
       expect(html(createElement(PlanStatus, { locale: l, state: "active", tier: "group", renewsAt: null })), l).toContain("Group");
+    }
+  });
+
+  it("the app's plan picker shows Starter $29 and Practice $49 a month — no yearly toggle, no founding offer", () => {
+    for (const l of LOCALES) {
+      // Even if a stray yearly option reached it, the panel shows monthly prices only.
+      const panel = html(createElement(PlanPanel, { locale: l, state: "trial", options: [...dvAvailablePlans({}), { tier: "practice", interval: "year", priceUsd: 990 }] }));
+      const prices = [...panel.matchAll(/dv-figure[^>]*>([^<]+)</g)].map((m) => m[1].replace(/\D/g, ""));
+      expect(prices, l).toEqual(["29", "49"]);
+      expect(panel, l).not.toMatch(/990|aria-pressed|KURUCU/);
+      expect(panel, l).toContain(APP_TEXT[l].billing.perMonth);
     }
   });
 });

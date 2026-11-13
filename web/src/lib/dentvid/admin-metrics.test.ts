@@ -40,20 +40,20 @@ const ev = (name: string, opts: Partial<AdminEvent> & { daysAgo?: number } = {})
 
 describe("MRR", () => {
   it("prices each active clinic at its tier's list price", () => {
-    expect(clinicMrr({ plan: "active", plan_tier: "starter" })).toBe(49);
-    expect(clinicMrr({ plan: "active", plan_tier: "practice" })).toBe(99);
+    expect(clinicMrr({ plan: "active", plan_tier: "starter" })).toBe(29);
+    expect(clinicMrr({ plan: "active", plan_tier: "practice" })).toBe(49);
     expect(clinicMrr({ plan: "active", plan_tier: "group" })).toBe(279);
   });
 
-  it("applies the founding price only to Practice monthly known to use the code", () => {
+  it("a historic founding Practice subscription still counts at the founding price (now equal to the list price)", () => {
     expect(clinicMrr({ plan: "active", plan_tier: "practice" }, { founding: true })).toBe(49);
     expect(clinicMrr({ plan: "active", plan_tier: "group" }, { founding: true })).toBe(279);
     expect(clinicMrr({ plan: "active", plan_tier: "practice" }, { founding: true, interval: "year" })).toBe(82.5);
   });
 
-  it("yearly is ÷ 12, and only where a yearly price exists", () => {
+  it("a legacy yearly subscription is its old yearly price ÷ 12, and only where one existed (nothing yearly is sold)", () => {
     expect(clinicMrr({ plan: "active", plan_tier: "practice" }, { interval: "year" })).toBe(990 / 12);
-    expect(clinicMrr({ plan: "active", plan_tier: "starter" }, { interval: "year" })).toBe(49);
+    expect(clinicMrr({ plan: "active", plan_tier: "starter" }, { interval: "year" })).toBe(29);
   });
 
   it("not active or unknown tier → 0", () => {
@@ -81,8 +81,8 @@ describe("MRR", () => {
     const r = revenue(clinics, billingHints(events));
     expect(r.payingByTier).toEqual({ starter: 1, practice: 3, group: 1, unknown: 1 });
     expect(r.paying).toBe(6);
-    // 49 + 99 + 49 (founding) + 82.5 (yearly) + 279 + 0 (unknown tier)
-    expect(r.mrrUsd).toBe(558.5);
+    // 29 + 49 + 49 (historic founding) + 82.5 (legacy yearly) + 279 + 0 (unknown tier)
+    expect(r.mrrUsd).toBe(488.5);
     expect(r.founding).toBe(1);
     expect(r.yearly).toBe(1);
   });

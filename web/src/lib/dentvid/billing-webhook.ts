@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  DV_FOUNDING,
   DV_SUB_ENDED,
   applyTransition,
   dvEventSubStatus,
@@ -15,13 +14,12 @@ import {
   type DvInterval,
   type DvSubRecord,
   type DvTier,
-  type FoundingState,
 } from "./billing";
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
 import { recordEvent } from "./events-server";
 import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert";
 import { clinicRefFor, markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
-import { loadFoundingState, supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
+import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
 import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -51,8 +49,6 @@ export type DvWebhookDeps = {
    * switches a clinic on.
    */
   dodoStatus?: (subscriptionId: string) => Promise<string | null>;
-  /** Founding seats (to tell the owner once the offer is full). */
-  founding?: (db: SupabaseClient) => Promise<FoundingState>;
   /** Self-serve billing portal available (DODO_API_KEY set). */
   selfServe?: boolean;
   now?: () => Date;
@@ -445,17 +441,6 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
       console.error("[dodo:dentvideo] welcome email not sent", clinic.id, welcomeEmail);
       const result = welcomeEmail;
       await tell(db, deps, clinic.id, (c) => alerts.welcomeNotSent({ clinic: c, result }));
-    }
-  }
-
-  // Founding seats: the owner hears once when the 100th is taken (checkout and the app close the offer themselves).
-  if (update.plan === "active" && from !== "active" && t.tier === DV_FOUNDING.tier) {
-    try {
-      const f = await (deps.founding ?? loadFoundingState)(db);
-      if (!f.open && f.left === 0) await (deps.alert ?? raiseOwnerAlert)(alerts.foundingFull({ used: f.used, clinics: DV_FOUNDING.clinics }));
-    } catch (e) {
-      // Best effort: checkout and the app close the offer by themselves.
-      console.error("[dodo:dentvideo] founding seat count failed", (e as Error).message);
     }
   }
 

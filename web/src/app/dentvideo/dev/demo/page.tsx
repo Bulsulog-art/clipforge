@@ -28,7 +28,7 @@ const CLINIC: Record<Locale, { name: string; city: string; country: string }> = 
  *   /dentvideo/dev/demo?lang=ar&logo=0     without a logo
  *   /dentvideo/dev/demo?admin=1            /admin/demos with a few demos
  */
-export default async function DemoPreviewPage({ searchParams }: { searchParams: Promise<{ lang?: string; logo?: string; admin?: string; founding?: string }> }) {
+export default async function DemoPreviewPage({ searchParams }: { searchParams: Promise<{ lang?: string; logo?: string; admin?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const locale = asLocale(sp.lang) ?? "en";
@@ -54,13 +54,12 @@ export default async function DemoPreviewPage({ searchParams }: { searchParams: 
       url: `https://dentvideo.com/${l}/d/${["Ab3dE5fG7hJ", "Kq9WmZ2xT4p", "Rt5Yu8Io1Pa", "Zx7Cv3Bn6Mq"][i]}`,
       stats: { views: [7, 2, 0, 1][i], played: [5, 1, 0, 0][i], ctaClicks: [2, 0, 0, 0][i], signups: [1, 0, 0, 0][i], paid: [1, 0, 0, 0][i] },
     }));
-    return <AdminDemos available={sp.admin !== "missing"} demos={rows} now={now.toISOString()} backHref="/dentvideo/dev/admin" foundingOpen />;
+    return <AdminDemos available={sp.admin !== "missing"} demos={rows} now={now.toISOString()} backHref="/dentvideo/dev/admin" />;
   }
   return (
     <DemoPage
       locale={locale}
       demo={{ token: "Ab3dE5fG7hJ", clinicName: c.name, city: c.city, country: c.country, language: locale, colour: "#1f4e79", hasLogo: sp.logo !== "0", campaign: "tr-launch" }}
-      foundingOpen={sp.founding !== "0"}
       logoSrc="/dentvideo/icon-512.png"
     />
   );

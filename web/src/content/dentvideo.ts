@@ -58,7 +58,7 @@ export type LandingContent = {
    * true risk-reducers under the CTA (points). No prices here — the "from"
    * price comes from `pricing.from`.
    */
-  hero: { eyebrow: string; h1: string; lead: string; cta: string; note: string; points: [string, string, string] };
+  hero: { eyebrow: string; h1: string; lead: string; cta: string; points: [string, string, string] };
   mock: { hook: string; caption: string; label: string };
   /** Labels for the hero video's play/pause control. */
   video: { play: string; pause: string };
@@ -74,19 +74,9 @@ export type LandingContent = {
     text: string;
     cta: string;
     perMonth: string;
-    /** "From $49/month": the lowest list price, shown in the hero next to the CTA. */
+    /** "From $29/month": the lowest list price, shown in the hero next to the CTA. */
     from: string;
     recommended: string;
-    foundingBadge: string;
-    /** The founding offer, in the owner's words. */
-    founding: string;
-    /** Practice billed yearly. */
-    yearly: string;
-    /**
-     * On the Practice card while the founding offer is open: the founding
-     * price, the list price it replaces (shown struck through) and when it ends.
-     */
-    foundingCard: { price: string; listPrice: string; note: string };
     note: string;
     /**
      * Starter, Practice — always in this order. Group (multi-location) is not
@@ -129,7 +119,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Five patient-education videos for your clinic, every Monday.",
       lead: "Narrated, captioned and in your clinic's colours. Every script is checked for health-advertising rules and clinical accuracy before you see it. You approve, then share.",
       cta: "See your preview",
-      note: "Founding price for the first 100 clinics, fixed for your first 12 months.",
       points: ["Monthly plan, no contract — cancel anytime", "See your own branded preview before you pay", "First week ready about 15 minutes after you subscribe"],
     },
     mock: { hook: "Does whitening damage enamel?", caption: "When it is supervised, usually not.", label: "Ready for your review" },
@@ -176,17 +165,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "Before you pay, watch a live preview of how your own videos will look — your logo, your colours, your clinic's name. Then choose a plan: monthly, cancel anytime. Your first week of videos is made right after payment.",
       cta: "See your preview",
       perMonth: "/month",
-      from: "From $49/month",
+      from: "From $29/month",
       recommended: "Recommended",
-      foundingBadge: "Founding offer",
-      founding: "Practice for $49/month for 12 months — first 100 clinics",
-      yearly: "or $990 a year — 12 months for the price of 10",
-      foundingCard: { price: "$49", listPrice: "$99", note: "With the founding offer: $49/month for your first 12 months, then $99/month." },
       note: "Prices in USD. Taxes may apply.",
       tiers: [
         {
           name: "Starter",
-          price: "$49",
+          price: "$29",
           blurb: "For a single clinic getting started.",
           features: [
             "Five narrated, captioned videos every Monday",
@@ -196,7 +181,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "$99",
+          price: "$49",
           blurb: "For clinics that want their own faces on screen.",
           features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Filming cards for your own clips"],
         },
@@ -238,8 +223,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Which languages are supported?", a: "English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic and Polish, with formal or informal address as your clinic prefers." },
       { q: "How soon do I get my first videos?", a: "About 15 minutes after you subscribe, your first week of five videos is ready in the app, and we email you. After that, a new week arrives every Monday." },
       { q: "Who approves the videos before they go out?", a: "You do. Our reviewers check every script for health-advertising rules and clinical accuracy, and anything that needs your eye is marked with the reason. Nothing is published without you: you share each approved video yourself." },
-      { q: "Can I cancel? Is there a contract?", a: "There is no contract and no minimum term. You can cancel anytime in Settings; you keep access until the end of the period you paid for, and the videos you downloaded stay yours. With the founding offer, your price stays fixed for your first 12 months while the subscription runs." },
-      { q: "Can I see my videos before I pay?", a: "Yes. Create an account, describe your clinic and you see a live preview of how your videos will look with your own logo, colours and name, right in your browser. If you like it, choose a plan: your first week of videos is made right after payment, and we email you when it is ready. Plans are monthly, you can cancel anytime, and the first clinics to join get a founding price." },
+      { q: "Can I cancel? Is there a contract?", a: "There is no contract and no minimum term. You can cancel anytime in Settings; you keep access until the end of the period you paid for, and the videos you downloaded stay yours." },
+      { q: "Can I see my videos before I pay?", a: "Yes. Create an account, describe your clinic and you see a live preview of how your videos will look with your own logo, colours and name, right in your browser. If you like it, choose a plan: your first week of videos is made right after payment, and we email you when it is ready. Plans are monthly and you can cancel anytime." },
     ],
   },
 
@@ -255,7 +240,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Fünf Aufklärungsvideos für Ihre Praxis, jeden Montag.",
       lead: "Vertont, untertitelt und in Ihren Praxisfarben. Jedes Skript wird auf Werberecht und fachliche Richtigkeit geprüft, bevor Sie es sehen. Sie geben frei und teilen.",
       cta: "Ihre Vorschau ansehen",
-      note: "Gründungspreis für die ersten 100 Praxen, fest für Ihre ersten 12 Monate.",
       points: ["Monatlich, ohne Vertragsbindung — jederzeit kündbar", "Ihre eigene Vorschau sehen, bevor Sie zahlen", "Erste Woche etwa 15 Minuten nach der Buchung fertig"],
     },
     mock: { hook: "Schadet Bleaching dem Zahnschmelz?", caption: "Unter zahnärztlicher Aufsicht in der Regel nicht.", label: "Bereit zur Prüfung" },
@@ -302,17 +286,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "Bevor Sie zahlen, sehen Sie in einer Live-Vorschau, wie Ihre eigenen Videos aussehen — mit Ihrem Logo, Ihren Farben und dem Namen Ihrer Praxis. Dann wählen Sie einen Tarif: monatlich, jederzeit kündbar. Ihre erste Woche Videos entsteht direkt nach der Zahlung.",
       cta: "Ihre Vorschau ansehen",
       perMonth: "/Monat",
-      from: "Ab 49 $/Monat",
+      from: "Ab 29 $/Monat",
       recommended: "Empfohlen",
-      foundingBadge: "Gründungsangebot",
-      founding: "Practice für 49 $/Monat, 12 Monate lang — für die ersten 100 Praxen",
-      yearly: "oder 990 $ im Jahr — 12 Monate zum Preis von 10",
-      foundingCard: { price: "49 $", listPrice: "99 $", note: "Mit dem Gründungsangebot: 49\u00a0$/Monat in den ersten 12 Monaten, danach 99\u00a0$/Monat." },
       note: "Preise in USD, ggf. zzgl. Steuern.",
       tiers: [
         {
           name: "Starter",
-          price: "49 $",
+          price: "29 $",
           blurb: "Für eine Praxis, die einfach anfangen will.",
           features: [
             "Jeden Montag fünf vertonte, untertitelte Videos",
@@ -322,7 +302,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "99 $",
+          price: "49 $",
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
           features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Drehkarten für Ihre eigenen Clips"],
         },
@@ -364,8 +344,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Welche Sprachen gibt es?", a: "Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Türkisch, Japanisch, Arabisch und Polnisch — mit „Sie“ oder „du“, wie Ihre Praxis es möchte." },
       { q: "Wann bekomme ich meine ersten Videos?", a: "Etwa 15 Minuten nach der Buchung ist Ihre erste Woche mit fünf Videos in der App bereit, und wir schicken Ihnen eine E-Mail. Danach kommt jeden Montag eine neue Woche." },
       { q: "Wer gibt die Videos frei, bevor sie veröffentlicht werden?", a: "Sie. Unsere Prüfer kontrollieren jedes Skript auf Werberecht und fachliche Richtigkeit, und alles, was Ihren Blick braucht, ist mit Begründung markiert. Nichts wird ohne Sie veröffentlicht: Jedes freigegebene Video teilen Sie selbst." },
-      { q: "Kann ich kündigen? Gibt es eine Vertragsbindung?", a: "Es gibt keine Vertragsbindung und keine Mindestlaufzeit. Sie können jederzeit in den Einstellungen kündigen; der Zugang bleibt bis zum Ende des bezahlten Zeitraums, und heruntergeladene Videos gehören weiter Ihnen. Mit dem Gründungsangebot bleibt Ihr Preis in den ersten 12 Monaten fest, solange das Abo läuft." },
-      { q: "Kann ich meine Videos sehen, bevor ich zahle?", a: "Ja. Legen Sie ein Konto an und beschreiben Sie Ihre Praxis — dann sehen Sie direkt im Browser eine Live-Vorschau, wie Ihre Videos mit Ihrem eigenen Logo, Ihren Farben und Ihrem Namen aussehen. Wenn sie Ihnen gefällt, wählen Sie einen Tarif: Ihre erste Woche Videos entsteht direkt nach der Zahlung, und wir schicken Ihnen eine E-Mail, sobald sie fertig ist. Die Tarife sind monatlich und jederzeit kündbar; die ersten Praxen erhalten einen Gründungspreis." },
+      { q: "Kann ich kündigen? Gibt es eine Vertragsbindung?", a: "Es gibt keine Vertragsbindung und keine Mindestlaufzeit. Sie können jederzeit in den Einstellungen kündigen; der Zugang bleibt bis zum Ende des bezahlten Zeitraums, und heruntergeladene Videos gehören weiter Ihnen." },
+      { q: "Kann ich meine Videos sehen, bevor ich zahle?", a: "Ja. Legen Sie ein Konto an und beschreiben Sie Ihre Praxis — dann sehen Sie direkt im Browser eine Live-Vorschau, wie Ihre Videos mit Ihrem eigenen Logo, Ihren Farben und Ihrem Namen aussehen. Wenn sie Ihnen gefällt, wählen Sie einen Tarif: Ihre erste Woche Videos entsteht direkt nach der Zahlung, und wir schicken Ihnen eine E-Mail, sobald sie fertig ist. Die Tarife sind monatlich und jederzeit kündbar." },
     ],
   },
 
@@ -381,7 +361,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Cinco vídeos educativos para tu clínica, cada lunes.",
       lead: "Narrados, subtitulados y con los colores de tu clínica. Cada guion se revisa según las normas de publicidad sanitaria y su exactitud clínica antes de que lo veas. Tú apruebas y compartes.",
       cta: "Ver tu vista previa",
-      note: "Precio fundador para las primeras 100 clínicas, fijo durante tus primeros 12 meses.",
       points: ["Plan mensual sin permanencia: cancela cuando quieras", "Ve tu propia vista previa antes de pagar", "Tu primera semana, lista unos 15 minutos después de suscribirte"],
     },
     mock: { hook: "¿El blanqueamiento daña el esmalte?", caption: "Bajo supervisión, normalmente no.", label: "Listo para revisar" },
@@ -428,17 +407,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "Antes de pagar, ves una vista previa en directo de cómo serán tus propios vídeos: tu logo, tus colores, el nombre de tu clínica. Después eliges un plan: mensual y cancelas cuando quieras. Tu primera semana de vídeos se crea justo después del pago.",
       cta: "Ver tu vista previa",
       perMonth: "/mes",
-      from: "Desde 49 $/mes",
+      from: "Desde 29 $/mes",
       recommended: "Recomendado",
-      foundingBadge: "Oferta fundadora",
-      founding: "Practice por 49 $/mes durante 12 meses — primeras 100 clínicas",
-      yearly: "o 990 $ al año: 12 meses al precio de 10",
-      foundingCard: { price: "49 $", listPrice: "99 $", note: "Con la oferta fundadora: 49\u00a0$/mes durante los primeros 12 meses y, después, 99\u00a0$/mes." },
       note: "Precios en USD. Pueden aplicarse impuestos.",
       tiers: [
         {
           name: "Starter",
-          price: "49 $",
+          price: "29 $",
           blurb: "Para una clínica que quiere empezar.",
           features: [
             "Cinco vídeos narrados y subtitulados cada lunes",
@@ -448,7 +423,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "99 $",
+          price: "49 $",
           blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
           features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Fichas de grabación para tus propios clips"],
         },
@@ -490,8 +465,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "¿Qué idiomas hay?", a: "Español, inglés, alemán, francés, italiano, portugués, turco, japonés, árabe y polaco, con trato de tú o de usted, como prefiera tu clínica." },
       { q: "¿Cuándo recibo mis primeros vídeos?", a: "Unos 15 minutos después de suscribirte, tu primera semana de cinco vídeos está lista en la app y te avisamos por correo. Después, cada lunes llega una semana nueva." },
       { q: "¿Quién aprueba los vídeos antes de publicarlos?", a: "Tú. Nuestros revisores comprueban cada guion según las normas de publicidad sanitaria y su exactitud clínica, y lo que necesita tu atención queda marcado con el motivo. Nada se publica sin ti: compartes tú cada vídeo aprobado." },
-      { q: "¿Puedo cancelar? ¿Hay permanencia?", a: "No hay contrato ni permanencia mínima. Puedes cancelar cuando quieras desde Ajustes; mantienes el acceso hasta el final del periodo pagado y los vídeos que descargaste siguen siendo tuyos. Con la oferta fundadora, tu precio se mantiene fijo durante los primeros 12 meses mientras la suscripción siga activa." },
-      { q: "¿Puedo ver mis vídeos antes de pagar?", a: "Sí. Crea una cuenta, describe tu clínica y verás en el navegador una vista previa en directo de cómo serán tus vídeos con tu propio logo, tus colores y tu nombre. Si te gusta, elige un plan: tu primera semana de vídeos se crea justo después del pago y te avisamos por correo cuando esté lista. Los planes son mensuales, puedes cancelar cuando quieras y las primeras clínicas en unirse tienen un precio fundador." },
+      { q: "¿Puedo cancelar? ¿Hay permanencia?", a: "No hay contrato ni permanencia mínima. Puedes cancelar cuando quieras desde Ajustes; mantienes el acceso hasta el final del periodo pagado y los vídeos que descargaste siguen siendo tuyos." },
+      { q: "¿Puedo ver mis vídeos antes de pagar?", a: "Sí. Crea una cuenta, describe tu clínica y verás en el navegador una vista previa en directo de cómo serán tus vídeos con tu propio logo, tus colores y tu nombre. Si te gusta, elige un plan: tu primera semana de vídeos se crea justo después del pago y te avisamos por correo cuando esté lista. Los planes son mensuales y puedes cancelar cuando quieras." },
     ],
   },
 
@@ -507,7 +482,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Kliniğiniz için her pazartesi beş hasta bilgilendirme videosu.",
       lead: "Seslendirilmiş, altyazılı ve kliniğinizin renklerinde. Her metin, siz görmeden önce sağlıkta tanıtım kurallarına ve klinik doğruluğa göre kontrol edilir. Siz onaylar, paylaşırsınız.",
       cta: "Önizlemenizi görün",
-      note: "İlk 100 kliniğe kurucu fiyatı; ilk 12 ayınız boyunca sabit.",
       points: ["Aylık plan, taahhüt yok — istediğiniz zaman iptal", "Ödemeden önce kendi önizlemenizi görün", "İlk haftanız abonelikten yaklaşık 15 dakika sonra hazır"],
     },
     mock: { hook: "Diş beyazlatma mineye zarar verir mi?", caption: "Hekim kontrolünde genellikle hayır.", label: "İncelemenize hazır" },
@@ -554,17 +528,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "Ödeme yapmadan önce kendi videolarınızın nasıl görüneceğini canlı önizlemede görün: logonuz, renkleriniz, kliniğinizin adı. Sonra bir plan seçin: aylık ödenir, istediğiniz zaman iptal edebilirsiniz. İlk haftanızın videoları ödemenin hemen ardından hazırlanır.",
       cta: "Önizlemenizi görün",
       perMonth: "/ay",
-      from: "Aylık $49'dan başlayan fiyatlar",
+      from: "Aylık $29'dan başlayan fiyatlar",
       recommended: "Önerilen",
-      foundingBadge: "Kurucu teklifi",
-      founding: "12 ay boyunca aylık $49 ile Practice — ilk 100 klinik için",
-      yearly: "ya da yıllık $990 — 10 ay fiyatına 12 ay",
-      foundingCard: { price: "$49", listPrice: "$99", note: "Kurucu teklifiyle ilk 12 ay aylık $49, sonrasında aylık $99." },
       note: "Fiyatlar USD cinsindendir. Vergiler eklenebilir.",
       tiers: [
         {
           name: "Starter",
-          price: "$49",
+          price: "$29",
           blurb: "Yeni başlayan tek bir klinik için.",
           features: [
             "Her pazartesi beş seslendirilmiş, altyazılı video",
@@ -574,7 +544,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "$99",
+          price: "$49",
           blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
           features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Kendi videolarınız için çekim kartları"],
         },
@@ -616,8 +586,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Hangi diller destekleniyor?", a: "Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, İtalyanca, Portekizce, Japonca, Arapça ve Lehçe; kliniğinizin tercihine göre “siz” ya da “sen” hitabıyla." },
       { q: "İlk videolarımı ne zaman alırım?", a: "Abone olduktan yaklaşık 15 dakika sonra beş videoluk ilk haftanız uygulamada hazır olur ve size e-posta göndeririz. Sonrasında her pazartesi yeni bir hafta gelir." },
       { q: "Videoları yayımlanmadan önce kim onaylıyor?", a: "Siz. Denetçilerimiz her metni sağlıkta tanıtım kurallarına ve klinik doğruluğa göre kontrol eder; dikkatinizi gerektiren her şey gerekçesiyle işaretlenir. Hiçbir şey siz olmadan yayımlanmaz: onayladığınız her videoyu kendiniz paylaşırsınız." },
-      { q: "İptal edebilir miyim? Taahhüt var mı?", a: "Sözleşme ya da asgari süre taahhüdü yoktur. Ayarlar'dan istediğiniz zaman iptal edebilirsiniz; ödediğiniz dönemin sonuna kadar erişiminiz sürer ve indirdiğiniz videolar sizde kalır. Kurucu teklifinde fiyatınız, abonelik devam ettiği sürece ilk 12 ay boyunca sabit kalır." },
-      { q: "Ödeme yapmadan önce videolarımı görebilir miyim?", a: "Evet. Bir hesap açıp kliniğinizi tanıttığınızda, videolarınızın kendi logonuz, renkleriniz ve adınızla nasıl görüneceğini doğrudan tarayıcınızda canlı önizlemede görürsünüz. Beğenirseniz bir plan seçin: ilk haftanızın videoları ödemenin hemen ardından hazırlanır ve hazır olduğunda size e-posta göndeririz. Planlar aylıktır, istediğiniz zaman iptal edebilirsiniz; ilk katılan klinikler kurucu fiyatından yararlanır." },
+      { q: "İptal edebilir miyim? Taahhüt var mı?", a: "Sözleşme ya da asgari süre taahhüdü yoktur. Ayarlar'dan istediğiniz zaman iptal edebilirsiniz; ödediğiniz dönemin sonuna kadar erişiminiz sürer ve indirdiğiniz videolar sizde kalır." },
+      { q: "Ödeme yapmadan önce videolarımı görebilir miyim?", a: "Evet. Bir hesap açıp kliniğinizi tanıttığınızda, videolarınızın kendi logonuz, renkleriniz ve adınızla nasıl görüneceğini doğrudan tarayıcınızda canlı önizlemede görürsünüz. Beğenirseniz bir plan seçin: ilk haftanızın videoları ödemenin hemen ardından hazırlanır ve hazır olduğunda size e-posta göndeririz. Planlar aylıktır, istediğiniz zaman iptal edebilirsiniz." },
     ],
   },
 
@@ -633,7 +603,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Cinq vidéos d'information patient pour votre cabinet, chaque lundi.",
       lead: "Commentées, sous-titrées et à vos couleurs. Chaque script est vérifié au regard des règles de communication en santé et de l'exactitude clinique avant de vous parvenir. Vous validez, puis partagez.",
       cta: "Voir votre aperçu",
-      note: "Tarif fondateur pour les 100 premiers cabinets, fixe pendant vos 12 premiers mois.",
       points: ["Mensuel, sans engagement — résiliable à tout moment", "Votre propre aperçu avant de payer", "Première semaine prête environ 15 minutes après l'abonnement"],
     },
     mock: { hook: "Le blanchiment abîme-t-il l'émail ?", caption: "Encadré par un dentiste, en général non.", label: "Prête pour validation" },
@@ -680,17 +649,13 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "Avant de payer, découvrez un aperçu en direct de vos propres vidéos : votre logo, vos couleurs, le nom de votre cabinet. Choisissez ensuite une formule : mensuelle, résiliable à tout moment. Votre première semaine de vidéos est réalisée dès le paiement.",
       cta: "Voir votre aperçu",
       perMonth: "/mois",
-      from: "À partir de 49 $/mois",
+      from: "À partir de 29 $/mois",
       recommended: "Recommandée",
-      foundingBadge: "Offre fondateurs",
-      founding: "Practice à 49 $/mois pendant 12 mois — pour les 100 premiers cabinets",
-      yearly: "ou 990 $ par an — 12 mois pour le prix de 10",
-      foundingCard: { price: "49 $", listPrice: "99 $", note: "Avec l'offre fondateurs : 49\u00a0$/mois pendant les 12 premiers mois, puis 99\u00a0$/mois." },
       note: "Prix en USD, taxes éventuelles en sus.",
       tiers: [
         {
           name: "Starter",
-          price: "49 $",
+          price: "29 $",
           blurb: "Pour un cabinet qui veut se lancer simplement.",
           features: [
             "Cinq vidéos commentées et sous-titrées chaque lundi",
@@ -700,7 +665,7 @@ export const LANDING: Record<Locale, LandingContent> = {
         },
         {
           name: "Practice",
-          price: "99 $",
+          price: "49 $",
           blurb: "Pour les cabinets qui veulent apparaître eux-mêmes à l'écran.",
           features: [
             "Tout ce qu'inclut Starter",
@@ -746,8 +711,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Quelles langues sont disponibles ?", a: "Français, anglais, allemand, espagnol, italien, portugais, turc, japonais, arabe et polonais, avec vouvoiement ou tutoiement selon votre cabinet." },
       { q: "Quand vais-je recevoir mes premières vidéos ?", a: "Environ 15 minutes après votre abonnement, votre première semaine de cinq vidéos est prête dans l'application et nous vous prévenons par e-mail. Ensuite, une nouvelle semaine arrive chaque lundi." },
       { q: "Qui valide les vidéos avant leur diffusion ?", a: "Vous. Nos relecteurs vérifient chaque script au regard des règles de communication en santé et de l'exactitude clinique, et tout ce qui mérite votre attention est signalé avec la raison. Rien n'est publié sans vous : vous partagez vous-même chaque vidéo validée." },
-      { q: "Puis-je résilier ? Y a-t-il un engagement ?", a: "Il n'y a ni contrat ni durée minimale. Vous pouvez résilier à tout moment dans les Paramètres ; vous gardez l'accès jusqu'à la fin de la période payée, et les vidéos téléchargées restent à vous. Avec l'offre fondateurs, votre tarif reste fixe pendant vos 12 premiers mois tant que l'abonnement est actif." },
-      { q: "Puis-je voir mes vidéos avant de payer ?", a: "Oui. Créez un compte, décrivez votre cabinet et vous verrez, directement dans le navigateur, un aperçu en direct de vos vidéos avec votre logo, vos couleurs et votre nom. S'il vous convient, choisissez une formule : votre première semaine de vidéos est réalisée dès le paiement, et nous vous prévenons par e-mail quand elle est prête. Les formules sont mensuelles, résiliables à tout moment, et les premiers cabinets inscrits bénéficient d'un tarif fondateur." },
+      { q: "Puis-je résilier ? Y a-t-il un engagement ?", a: "Il n'y a ni contrat ni durée minimale. Vous pouvez résilier à tout moment dans les Paramètres ; vous gardez l'accès jusqu'à la fin de la période payée, et les vidéos téléchargées restent à vous." },
+      { q: "Puis-je voir mes vidéos avant de payer ?", a: "Oui. Créez un compte, décrivez votre cabinet et vous verrez, directement dans le navigateur, un aperçu en direct de vos vidéos avec votre logo, vos couleurs et votre nom. S'il vous convient, choisissez une formule : votre première semaine de vidéos est réalisée dès le paiement, et nous vous prévenons par e-mail quand elle est prête. Les formules sont mensuelles et résiliables à tout moment." },
     ],
   },
   // Japanese: です・ます throughout, no あなた; the clinic is addressed as 院長先生 / 医院.
@@ -764,7 +729,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "毎週月曜日、医院のための患者向け説明動画を5本。",
       lead: "ナレーションと字幕付きで、医院のカラーに合わせて制作します。すべての原稿は、お手元に届く前に医療広告ガイドラインと臨床的な正確さの観点でチェック。院長先生は承認して共有するだけです。",
       cta: "自院のプレビューを見る",
-      note: "先着100院の先行導入価格は、最初の12か月間据え置きです。",
       points: ["月単位の契約・縛りなし・いつでも解約可能", "お支払いの前に自院のプレビューを確認", "最初の1週間分はお申し込みから約15分で完成"],
     },
     mock: { hook: "歯ぐきから血が出るのはなぜ？", caption: "多くは、歯ぐきの炎症のサインです。", label: "ご確認をお待ちしています" },
@@ -811,23 +775,19 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "お支払いの前に、医院のロゴ・カラー・医院名で実際の動画がどう仕上がるかを、ライブプレビューでご確認いただけます。そのうえでプランをお選びください。月単位の契約で、いつでも解約できます。初週の動画は、お支払いの完了後すぐに制作を始めます。",
       cta: "自院のプレビューを見る",
       perMonth: "/月",
-      from: "月額$49から",
+      from: "月額$29から",
       recommended: "おすすめ",
-      foundingBadge: "先行導入価格",
-      founding: "Practiceプランを12か月間 月額$49で — 先着100院",
-      yearly: "または年額$990（10か月分の料金で12か月）",
-      foundingCard: { price: "$49", listPrice: "$99", note: "先行導入価格では、最初の12か月は月額$49、13か月目以降は月額$99です。" },
       note: "価格は米ドル建てです。別途税金がかかる場合があります。",
       tiers: [
         {
           name: "Starter",
-          price: "$49",
+          price: "$29",
           blurb: "まずは始めてみたい1医院に。",
           features: ["毎週月曜日、ナレーションと字幕付きの動画5本", "広告表現と臨床的な正確性をチェック", "すべての動画に医院のロゴとカラー"],
         },
         {
           name: "Practice",
-          price: "$99",
+          price: "$49",
           blurb: "院長先生ご自身も動画に登場したい医院に。",
           features: ["Starterのすべての内容", "ご自身で撮影した動画を字幕付きクリップに", "撮影用の台本カード"],
         },
@@ -869,8 +829,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "対応している言語は？", a: "日本語、英語、ドイツ語、スペイン語、フランス語、イタリア語、ポルトガル語、トルコ語、アラビア語、ポーランド語の10言語です。日本語の動画は、です・ます調の丁寧な語り口でお作りします。" },
       { q: "最初の動画はいつ届きますか？", a: "お申し込みから約15分で、最初の1週間分（5本）がアプリに用意され、メールでお知らせします。その後は毎週月曜日に新しい1週間分が届きます。" },
       { q: "公開前に動画を承認するのは誰ですか？", a: "院長先生ご自身です。すべての原稿を医療広告ガイドラインと臨床的な正確さの観点でチェックし、ご確認いただきたい点は理由とともに表示します。承認なしに公開されることはなく、承認した動画は院長先生ご自身で共有していただきます。" },
-      { q: "解約できますか？契約期間の縛りはありますか？", a: "契約期間の縛りや最低利用期間はありません。設定からいつでも解約でき、お支払い済みの期間の終わりまでご利用いただけます。ダウンロードした動画はそのままお使いいただけます。先行導入価格は、ご契約が続く限り最初の12か月間据え置きです。" },
-      { q: "お支払いの前に、動画を確認できますか？", a: "はい。アカウントを作成して医院の情報を入力すると、医院のロゴ・カラー・医院名で動画がどう仕上がるかを、ブラウザ上のライブプレビューでご確認いただけます。気に入っていただけたら、プランをお選びください。初週の動画はお支払い後すぐに制作を始め、準備ができたらメールでお知らせします。月単位の契約でいつでも解約でき、先着の医院には先行導入価格をご用意しています。" },
+      { q: "解約できますか？契約期間の縛りはありますか？", a: "契約期間の縛りや最低利用期間はありません。設定からいつでも解約でき、お支払い済みの期間の終わりまでご利用いただけます。ダウンロードした動画はそのままお使いいただけます。" },
+      { q: "お支払いの前に、動画を確認できますか？", a: "はい。アカウントを作成して医院の情報を入力すると、医院のロゴ・カラー・医院名で動画がどう仕上がるかを、ブラウザ上のライブプレビューでご確認いただけます。気に入っていただけたら、プランをお選びください。初週の動画はお支払い後すぐに制作を始め、準備ができたらメールでお知らせします。月単位の契約で、いつでも解約できます。" },
     ],
   },
 
@@ -889,7 +849,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "خمسة فيديوهات توعوية لعيادتكم، كل يوم اثنين.",
       lead: "بتعليق صوتي وترجمة نصية وبألوان عيادتكم. نراجع كل نص وفق ضوابط الإعلان الصحي والدقة السريرية قبل أن يصلكم، وما عليكم إلا الموافقة ثم المشاركة.",
       cta: "شاهدوا معاينة عيادتكم",
-      note: "سعر المؤسسين لأول 100 عيادة، ثابت طوال أول 12 شهراً.",
       points: ["اشتراك شهري بلا عقد، يمكن إلغاؤه في أي وقت", "شاهدوا معاينة عيادتكم قبل الدفع", "أسبوعكم الأول جاهز بعد نحو 15 دقيقة من الاشتراك"],
     },
     mock: { hook: "هل يضرّ التبييض بمينا الأسنان؟", caption: "تحت إشراف طبيب الأسنان، غالباً لا.", label: "جاهز لمراجعتكم" },
@@ -936,23 +895,19 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "قبل الدفع، شاهدوا معاينة حية لفيديوهاتكم أنتم: بشعاركم وألوانكم واسم عيادتكم. ثم اختاروا باقة باشتراك شهري يمكن إلغاؤه في أي وقت. ويبدأ إعداد أسبوعكم الأول فور الدفع.",
       cta: "شاهدوا معاينة عيادتكم",
       perMonth: "شهرياً",
-      from: "ابتداءً من $49 شهرياً",
+      from: "ابتداءً من $29 شهرياً",
       recommended: "موصى بها",
-      foundingBadge: "سعر المؤسسين",
-      founding: "باقة Practice بسعر $49 شهرياً لمدة 12 شهراً، لأول 100 عيادة",
-      yearly: "أو $990 سنوياً: 12 شهراً بسعر 10",
-      foundingCard: { price: "$49", listPrice: "$99", note: "بسعر المؤسسين: $49 شهرياً لأول 12 شهراً، ثم $99 شهرياً." },
       note: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب.",
       tiers: [
         {
           name: "Starter",
-          price: "$49",
+          price: "$29",
           blurb: "لعيادة واحدة تبدأ للتو.",
           features: ["خمسة فيديوهات بتعليق صوتي ونص على الشاشة كل يوم اثنين", "مراجعة لضوابط الإعلان والدقة السريرية", "شعاركم وألوان هويتكم في كل فيديو"],
         },
         {
           name: "Practice",
-          price: "$99",
+          price: "$49",
           blurb: "للعيادات التي تريد أن يظهر أطباؤها بأنفسهم.",
           features: ["كل ما في Starter", "تسجيلاتكم الخاصة تتحوّل إلى مقاطع قصيرة مع النص", "بطاقات تصوير لمقاطعكم الخاصة"],
         },
@@ -994,8 +949,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "ما اللغات المتاحة؟", a: "العربية والإنجليزية والفرنسية والألمانية والإسبانية والإيطالية والبرتغالية والتركية واليابانية والبولندية. نكتب الفيديوهات العربية بفصحى مبسّطة قريبة من لغة وسائل التواصل في الخليج، ونخاطب المشاهدين بصيغة الجمع التي تشمل الرجال والنساء." },
       { q: "متى نحصل على أول فيديوهاتنا؟", a: "بعد نحو 15 دقيقة من الاشتراك يكون أسبوعكم الأول من خمسة فيديوهات جاهزاً في التطبيق، ونرسل إليكم بريداً بذلك. بعدها يصلكم أسبوع جديد كل يوم اثنين." },
       { q: "من يوافق على الفيديوهات قبل نشرها؟", a: "أنتم. يراجع المراجعون كل نص وفق ضوابط الإعلان الصحي والدقة السريرية، وكل ما يحتاج إلى نظركم يُعلَّم مع ذكر السبب. لا يُنشر شيء من دونكم: أنتم من يشارك كل فيديو بعد الموافقة عليه." },
-      { q: "هل يمكننا الإلغاء؟ هل يوجد عقد؟", a: "لا يوجد عقد ولا مدة التزام دنيا. يمكنكم الإلغاء في أي وقت من الإعدادات، ويبقى وصولكم حتى نهاية الفترة المدفوعة، وتبقى الفيديوهات التي نزّلتموها لكم. مع عرض المؤسسين يبقى سعركم ثابتاً طوال أول 12 شهراً ما دام الاشتراك مستمراً." },
-      { q: "هل يمكننا رؤية فيديوهاتنا قبل الدفع؟", a: "نعم. أنشئوا حساباً وصِفوا عيادتكم، فتشاهدون في متصفحكم معاينة حية لفيديوهاتكم بشعاركم وألوانكم واسم عيادتكم. وإن أعجبتكم، اختاروا باقة: يبدأ إعداد أسبوعكم الأول فور الدفع، ونرسل إليكم بريداً حين يجهز. الاشتراك شهري ويمكن إلغاؤه في أي وقت، وأول العيادات المنضمّة تحصل على سعر المؤسسين." },
+      { q: "هل يمكننا الإلغاء؟ هل يوجد عقد؟", a: "لا يوجد عقد ولا مدة التزام دنيا. يمكنكم الإلغاء في أي وقت من الإعدادات، ويبقى وصولكم حتى نهاية الفترة المدفوعة، وتبقى الفيديوهات التي نزّلتموها لكم." },
+      { q: "هل يمكننا رؤية فيديوهاتنا قبل الدفع؟", a: "نعم. أنشئوا حساباً وصِفوا عيادتكم، فتشاهدون في متصفحكم معاينة حية لفيديوهاتكم بشعاركم وألوانكم واسم عيادتكم. وإن أعجبتكم، اختاروا باقة: يبدأ إعداد أسبوعكم الأول فور الدفع، ونرسل إليكم بريداً حين يجهز. الاشتراك شهري ويمكن إلغاؤه في أي وقت." },
     ],
   },
 
@@ -1013,7 +968,6 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Pięć filmów edukacyjnych dla Państwa gabinetu, w każdy poniedziałek.",
       lead: "Z lektorem, napisami i w kolorach gabinetu. Każdy scenariusz sprawdzamy pod kątem zasad reklamy w ochronie zdrowia i poprawności klinicznej, zanim go Państwo zobaczą. Wystarczy zatwierdzić i udostępnić.",
       cta: "Pokaż mój podgląd",
-      note: "Cena założycielska dla pierwszych 100 gabinetów, stała przez pierwsze 12 miesięcy.",
       points: ["Plan miesięczny bez umowy terminowej — rezygnacja w każdej chwili", "Własny podgląd przed zapłatą", "Pierwszy tydzień gotowy ok. 15 minut po wykupieniu planu"],
     },
     mock: { hook: "Czy wybielanie niszczy szkliwo?", caption: "Pod kontrolą dentysty zwykle nie.", label: "Gotowe do akceptacji" },
@@ -1060,23 +1014,19 @@ export const LANDING: Record<Locale, LandingContent> = {
       text: "Zanim Państwo zapłacą, zobaczą Państwo na żywo, jak będą wyglądać filmy gabinetu: z Państwa logo, kolorami i nazwą. Potem wybór planu: rozliczenie miesięczne, rezygnacja w dowolnym momencie. Pierwszy tydzień filmów powstaje zaraz po płatności.",
       cta: "Pokaż mój podgląd",
       perMonth: "/mies.",
-      from: "Od 49 $ miesięcznie",
+      from: "Od 29 $ miesięcznie",
       recommended: "Polecany",
-      foundingBadge: "Oferta założycielska",
-      founding: "Practice za 49 $ miesięcznie przez 12 miesięcy dla pierwszych 100 gabinetów",
-      yearly: "lub 990 $ rocznie: 12 miesięcy w cenie 10",
-      foundingCard: { price: "49 $", listPrice: "99 $", note: "W ofercie założycielskiej: 49\u00a0$ miesięcznie przez pierwsze 12 miesięcy, potem 99\u00a0$ miesięcznie." },
       note: "Ceny w USD. Mogą zostać doliczone podatki.",
       tiers: [
         {
           name: "Starter",
-          price: "49 $",
+          price: "29 $",
           blurb: "Dla jednego gabinetu na dobry początek.",
           features: ["Pięć filmów z lektorem i napisami co poniedziałek", "Kontrola zasad reklamy i poprawności klinicznej", "Logo i kolory gabinetu w każdym filmie"],
         },
         {
           name: "Practice",
-          price: "99 $",
+          price: "49 $",
           blurb: "Dla gabinetów, które chcą same pokazać się w kadrze.",
           features: ["Wszystko z planu Starter", "Państwa własne nagrania jako klipy z napisami", "Karty z podpowiedziami do własnych nagrań"],
         },
@@ -1118,8 +1068,8 @@ export const LANDING: Record<Locale, LandingContent> = {
       { q: "Jakie języki są dostępne?", a: "Polski, angielski, niemiecki, hiszpański, francuski, włoski, portugalski, turecki, japoński i arabski, z formą „Państwo” albo „ty”, zależnie od stylu gabinetu." },
       { q: "Kiedy dostaniemy pierwsze filmy?", a: "Około 15 minut po wykupieniu planu pierwszy tydzień — pięć filmów — czeka w aplikacji, a my wysyłamy e-mail. Potem nowy tydzień przychodzi w każdy poniedziałek." },
       { q: "Kto zatwierdza filmy przed publikacją?", a: "Państwo. Nasi recenzenci sprawdzają każdy scenariusz pod kątem zasad reklamy w ochronie zdrowia i poprawności klinicznej, a wszystko, co wymaga Państwa uwagi, jest oznaczone z podaniem powodu. Nic nie zostaje opublikowane bez Państwa: każdy zatwierdzony film udostępniają Państwo sami." },
-      { q: "Czy można zrezygnować? Czy jest umowa terminowa?", a: "Nie ma umowy terminowej ani minimalnego okresu. Rezygnacja jest możliwa w każdej chwili w Ustawieniach; dostęp zostaje do końca opłaconego okresu, a pobrane filmy pozostają Państwa. W ofercie założycielskiej cena pozostaje stała przez pierwsze 12 miesięcy, dopóki trwa subskrypcja." },
-      { q: "Czy możemy zobaczyć filmy przed zapłatą?", a: "Tak. Po założeniu konta i opisaniu gabinetu zobaczą Państwo w przeglądarce podgląd na żywo: jak będą wyglądać filmy z logo, kolorami i nazwą gabinetu. Jeśli się spodoba, wystarczy wybrać plan. Pierwszy tydzień filmów powstaje zaraz po płatności, a gdy będzie gotowy, wyślemy e-mail. Plany są miesięczne, z możliwością rezygnacji w dowolnym momencie, a pierwsze gabinety otrzymują cenę założycielską." },
+      { q: "Czy można zrezygnować? Czy jest umowa terminowa?", a: "Nie ma umowy terminowej ani minimalnego okresu. Rezygnacja jest możliwa w każdej chwili w Ustawieniach; dostęp zostaje do końca opłaconego okresu, a pobrane filmy pozostają Państwa." },
+      { q: "Czy możemy zobaczyć filmy przed zapłatą?", a: "Tak. Po założeniu konta i opisaniu gabinetu zobaczą Państwo w przeglądarce podgląd na żywo: jak będą wyglądać filmy z logo, kolorami i nazwą gabinetu. Jeśli się spodoba, wystarczy wybrać plan. Pierwszy tydzień filmów powstaje zaraz po płatności, a gdy będzie gotowy, wyślemy e-mail. Plany są miesięczne, z możliwością rezygnacji w dowolnym momencie." },
     ],
   },
 };

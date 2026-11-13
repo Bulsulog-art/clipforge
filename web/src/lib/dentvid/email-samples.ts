@@ -1,11 +1,10 @@
 import { readyEmail } from "./email";
 import type { Rendered } from "./email-layout";
-import { lowestMonthlyUsd, offerTerms } from "./lifecycle";
+import { lowestMonthlyUsd } from "./lifecycle";
 import {
   monthlyEmail,
   notPostedEmail,
   objectionsEmail,
-  offerEmail,
   paymentProblemEmail,
   sampleEmail,
   startEmail,
@@ -27,7 +26,6 @@ export const SAMPLE_KINDS = [
   "start",
   "sample",
   "objections",
-  "offer",
   "ready",
   "ready-recording",
   "not-posted",
@@ -49,7 +47,6 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
   const nudge = { language, clinicName, unsubscribeUrl: UNSUB, brand };
   const preview = `${BASE}/start?step=preview&lang=${language}`;
   const plan = `${BASE}/start?step=plan&lang=${language}`;
-  const offer = offerTerms({});
   switch (kind) {
     case "code":
       return codeEmail({ language, code: "482913" });
@@ -63,9 +60,6 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
       return sampleEmail({ ...nudge, url: preview, titles: pickPreviews(["Implants", "Teeth whitening", "Cleanings"], language).map((e) => e.title) });
     case "objections":
       return objectionsEmail({ ...nudge, url: plan, fromUsd: lowestMonthlyUsd() });
-    case "offer":
-      if (!offer.open) throw new Error("sample offer must be open");
-      return offerEmail({ ...nudge, url: plan, offer, seats: { left: 63, reliable: true } });
     case "ready":
     case "ready-recording":
       return readyEmail({

@@ -46,8 +46,8 @@ UTM: `https://dentvideo.com/es?utm_source=[linkedin|instagram|email|partner]&utm
 > Puede ver en el navegador cómo quedaría un vídeo con su logo, antes de pagar nada (2 minutos):
 > https://dentvideo.com/es?utm_source=linkedin&utm_medium=dm&utm_campaign=es-founding
 >
-> Para las primeras 100 clínicas hay precio de fundadora: el plan Practice a 49 $ al mes durante 12 meses (precio
-> normal 99 $). Mensual, sin permanencia. No hay prueba gratuita, a propósito: en su lugar ve la vista previa con su
+> Los planes empiezan en 29 $ al mes (Practice, con sus propias grabaciones: 49 $).
+> Mensual, sin permanencia. No hay prueba gratuita, a propósito: en su lugar ve la vista previa con su
 > propia marca. Si quiere, se lo enseño en una videollamada de 15 minutos.
 
 **Único recordatorio (5–7 días, solo si había respondido):**
@@ -64,7 +64,7 @@ UTM: `https://dentvideo.com/es?utm_source=[linkedin|instagram|email|partner]&utm
 > revisados para no chocar con la publicidad sanitaria y con el logo de la clínica. ¿Le gustaría ver cómo quedaría uno
 > con su logo? Si no, no pasa nada.
 
-**Si dice que sí:** enlace con UTM + frase del precio de fundadora como arriba.
+**Si dice que sí:** enlace con UTM + frase del precio como arriba.
 
 **"¿Es legal?"** → "El contenido educativo es lo que la normativa permite con más claridad; quitamos precios,
 descuentos, 'sin dolor', garantías y antes/después. Pero no somos un despacho de abogados: la última palabra la tiene la

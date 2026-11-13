@@ -127,7 +127,7 @@ don't offer (health-advertising and clinical review on every line).
 | "AI content looks fake." | The narration is a synthetic voice. There are no avatar doctors or patients, stock footage shows objects only, and the clinic's own brand is on every video. Recording 5 minutes of yourself gives the most personal clips. |
 | "I don't have time." | Two minutes of setup, then a few minutes on Mondays: an email arrives, you approve everything in one tap and share from your phone. |
 | "Do you post for me?" | Not automatically yet (it waits on Meta/TikTok app review). Sharing from the phone is one tap. |
-| "Can I see it before I pay?" | Yes: after sign-up you describe your clinic and see a live preview of your own videos with your logo and colours, in the browser. Then choose a plan; the first week is made right after payment. Monthly, cancel anytime, founding price for early clinics. |
+| "Can I see it before I pay?" | Yes: after sign-up you describe your clinic and see a live preview of your own videos with your logo and colours, in the browser. Then choose a plan; the first week is made right after payment. Monthly, cancel anytime, from $29/month. |
 
 ## 6. Pricing recommendation
 
@@ -148,12 +148,17 @@ don't offer (health-advertising and clinical review on every line).
 
 | Market | Starter | Practice | Group | Practice annual |
 | --- | --- | --- | --- | --- |
-| US | $49 | $99 | Contact us | $990 |
+| US | $29 | $49 | Contact us | none (monthly only) |
 | UK | £35 | £59 | £169 | £590 |
 | DE / FR / ES / IT / PT (EUR) | €39 | €69 | €189 | €690 |
 | TR | 590 TL | 1,090 TL | 2,990 TL | 10,900 TL |
 
-**Owner decision (2026-11-08, revised the same day): US list prices raised to Starter $49, Practice $99 (yearly $990)** — at $39/$69 the product read as cheap next to agencies charging $500–3,000/month, and health buyers read very low prices as low quality. The site sells in USD only for now; the UK/EUR/TR rows are the earlier proposal and need revisiting before local-currency pricing goes live.
+**Owner decision (2026-11-13): US list prices are Starter $29/month and Practice $49/month, monthly only.** Features are
+unchanged. Yearly billing is removed (no yearly price, no monthly/yearly toggle, no yearly product offered; the legacy
+Dodo Practice yearly product id stays in `web/src/lib/dentvid/billing.ts` only so a stray old payment still maps in the
+webhook, and admin MRR still counts a legacy yearly subscription at $990 ÷ 12). The founding offer is removed too (see
+below). This supersedes the 2026-11-08 decision that follows.
+**Earlier owner decision (2026-11-08, revised the same day; superseded 2026-11-13): US list prices raised to Starter $49, Practice $99 (yearly $990)** — at $39/$69 the product read as cheap next to agencies charging $500–3,000/month, and health buyers read very low prices as low quality. The site sells in USD only for now; the UK/EUR/TR rows are the earlier proposal and need revisiting before local-currency pricing goes live.
 **Owner decision (2026-11-10): Group is "Contact us", not a self-serve plan.** Multi-location does not exist in the
 product yet (one clinic per account, no per-location approvers or dashboard), so selling "up to 3 locations" was a promise
 the product could not keep. Everywhere Group appears (landing pricing in all 8 languages, the app's plan picker and
@@ -168,17 +173,20 @@ Unit cost of a Practice clinic (~20 videos/month): ~$1.40 OpenAI (text ~$1.10, v
 Turkey is priced for local purchasing power. Net minimum wage in 2026 is 28,075 TL, and local agencies charge 8.6–65k TL/mo.
 Review TL prices every 6 months because of inflation. A Turkish clinic billing foreign patients can pay the EUR price for EN/DE output.
 
-### Founding-clinic offer (the "$50" answer)
+### Founding-clinic offer — removed (owner decision, 2026-11-13)
 
-- **The first 100 clinics get Practice at $49/month for 12 months** (half of the $99 list price; Dodo code KURUCU100, 50.51% off Practice monthly, 12 cycles, 100 uses),
-  as long as they stay subscribed. In return they agree to a 15-minute feedback call. If they consent explicitly, we may name them on the site later.
+- **There is no founding offer any more.** It was: the first 100 clinics get Practice at $49/month for 12 months (Dodo code
+  KURUCU100). Practice now costs $49/month for everyone, so the offer is gone everywhere: no banner, badge, struck-through
+  price, seat counter, "first 100 clinics" copy or day-7 offer email, and checkout applies no discount code by default
+  (a code the clinic types itself is still passed to Dodo). Admin still recognises historic founding subscriptions in MRR.
+  Disable the KURUCU100 code in Dodo so it cannot be typed by hand.
 - **No free week (owner decision, 2026-11-08).** Nothing is generated before payment: zero abuse, zero API spend before money.
   The funnel is sign up → describe the clinic → **live preview** of its own branded videos in a phone frame (drawn in the
   browser, zero cost) → choose a plan → pay (Dodo) → the first real week is queued by the payment webhook and arrives in
   about 15 minutes, with the usual "ready" email.
-- The site now says: see your own branded videos before you pay (a live preview with your logo and colours), monthly,
-  cancel anytime, founding price for the first 100 clinics. **The owner must confirm two things before launch:** (a) "no minimum term" and (b) the founding figures. The site's
-  content test (`dentvideo.test.ts`) forbids currency figures, so add prices deliberately when they are set.
+- The site now says: see your own branded videos before you pay (a live preview with your logo and colours), plans from
+  $29/month, monthly, cancel anytime. The site's content test (`dentvideo.test.ts`) allows currency figures only in the
+  pricing section, and only the prices in `billing.ts`.
 
 ### ROI maths (for sales conversations, not for the site)
 
@@ -186,7 +194,7 @@ These figures are revenue, not profit. Assume about 50% margin after lab, implan
 
 | Market | One single-tooth implant with crown (patient price) | Practice annual | Implant cases per year to cover it (at 50% margin) |
 | --- | --- | --- | --- |
-| US | $4,000–5,000 typical case value ([Dandy](https://www.meetdandy.com/articles/whats-the-lifetime-value-of-a-dental-patient)) | $890 | ~0.4 |
+| US | $4,000–5,000 typical case value ([Dandy](https://www.meetdandy.com/articles/whats-the-lifetime-value-of-a-dental-patient)) | $588 (12 × $49; no yearly plan) | ~0.3 |
 | UK | £2,000–3,500 ([Acibadem guide](https://acibademinternational.com/patient-guides/dental-implants-cost-in-turkey/)) | £690 | ~0.5 |
 | DE | €1,800–3,500; patient's own share usually over €1,500 ([deutschland-rechner](https://www.deutschland-rechner.de/zahnimplantat-kosten-rechner)) | €790 | ~0.6 |
 | FR | €1,500–2,500 per tooth (Jul 2026) ([Goodassur](https://goodassur.com/mutuelle-sante/remboursement/implant-dentaire), [Selectra](https://selectra.info/assurance/mutuelle-sante/remboursement/implant-dentaire)) | €790 | ~0.8 |
@@ -214,7 +222,7 @@ karşılar" ("a single implant patient usually covers **about** a year of DentVi
 - **Be honest about AI:** don't imply a human dentist wrote or voiced the videos. Don't say "no AI". Don't claim that stock footage never
   shows people unless the filter keeps it true. Today it is limited to object shots, and the dentist's approval is still required.
 - **No "auto-posting"** until the Meta/TikTok integrations are approved and live.
-- **No "permanent price".** The founding lock is 12 months unless the owner decides otherwise.
+- **No "permanent price" or price lock.** There is no founding price any more; list prices may change with 30 days' notice (Terms).
 
 ## Sources (by topic)
 

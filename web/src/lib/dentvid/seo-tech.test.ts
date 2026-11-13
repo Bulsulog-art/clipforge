@@ -124,8 +124,8 @@ describe("structured data", () => {
       if (!app) continue;
       const offers = app.offers as { "@type": string; name: string; price: number; priceCurrency: string; priceSpecification: Record<string, unknown> }[];
       expect(offers.map((o) => [o["@type"], o.name, o.price, o.priceCurrency]), p.path).toEqual([
-        ["Offer", "Starter", 49, "USD"],
-        ["Offer", "Practice", 99, "USD"],
+        ["Offer", "Starter", 29, "USD"],
+        ["Offer", "Practice", 49, "USD"],
       ]);
       for (const o of offers) expect(o.priceSpecification, p.path).toMatchObject({ "@type": "UnitPriceSpecification", billingDuration: "P1M", price: o.price });
     }

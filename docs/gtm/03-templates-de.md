@@ -44,7 +44,7 @@ UTM: `https://dentvideo.com/de?utm_source=[linkedin|instagram|brief|partner]&utm
 > Sie können vorab im Browser sehen, wie ein Video mit Ihrem Logo aussieht (2 Minuten, ohne Zahlung):
 > https://dentvideo.com/de?utm_source=linkedin&utm_medium=dm&utm_campaign=dach-founding
 >
-> Für die ersten 100 Praxen gilt ein Gründungspreis: Practice für 49 $ im Monat, 12 Monate lang (regulär 99 $).
+> Die Tarife beginnen bei 29 $ im Monat (Practice mit Ihren eigenen Aufnahmen: 49 $).
 > Monatlich kündbar, keine Mindestlaufzeit. Eine kostenlose Testphase gibt es bewusst nicht – stattdessen die Vorschau
 > mit Ihren eigenen Farben. Gern zeige ich es Ihnen auch in 15 Minuten per Video-Call.
 
@@ -64,7 +64,7 @@ In DACH zuerst **öffentlich** interagieren (ein fachlich sinnvoller Kommentar u
 > Formulierungen geprüft. Darf ich Ihnen zeigen, wie so ein Video mit Ihrem Logo aussehen würde? Wenn nicht, kein
 > Problem.
 
-**Bei „Ja":** Vorschau-Link mit UTM (`utm_source=instagram&utm_medium=dm`) + Gründungspreis-Satz wie oben.
+**Bei „Ja":** Vorschau-Link mit UTM (`utm_source=instagram&utm_medium=dm`) + Preis-Satz wie oben.
 
 **„Ist das rechtssicher?"** → „Wir prüfen jedes Skript auf die typischen Fallstricke des HWG und der Berufsordnung,
 aber wir sind keine Kanzlei: Die Freigabe und Verantwortung liegt bei der Praxis, deshalb geht nichts ohne Ihr OK
@@ -85,8 +85,8 @@ ob die Praxis Werbung ausdrücklich ablehnt (Website/Impressum, Briefkasten-Hinw
 > heilmittelwerberechtlich heikle Aussagen und fachliche Richtigkeit geprüft. Sie geben frei, Ihr Team teilt mit einem
 > Fingertipp. Keine Rechtsberatung, kein automatisches Posten.
 >
-> Mit dem QR-Code sehen Sie in zwei Minuten eine Vorschau mit Ihrem eigenen Logo – ohne Zahlung. Für die ersten 100
-> Praxen gilt 12 Monate lang ein Gründungspreis von 49 $ statt 99 $ pro Monat, monatlich kündbar.
+> Mit dem QR-Code sehen Sie in zwei Minuten eine Vorschau mit Ihrem eigenen Logo – ohne Zahlung. Die Tarife
+> beginnen bei 29 $ im Monat, monatlich kündbar.
 >
 > Wenn Sie keine weiteren Informationen von uns wünschen, genügt eine kurze Nachricht an hello@dentvideo.com.
 >

@@ -90,13 +90,12 @@ export const DE: LegalText = {
             {
               list: [
                 "Starter: {starter} pro Monat.",
-                "Practice: {practice} pro Monat oder {practiceYear} pro Jahr.",
+                "Practice: {practice} pro Monat.",
                 "Group (Praxisgruppen und Praxen mit mehreren Standorten): individuelle Bedingungen nach Vereinbarung — Kontakt {email}. Group kann nicht auf der Website gekauft werden.",
-                "Gründungsangebot: Practice monatlich für {foundingPrice} pro Monat in Ihren ersten {foundingMonths} Monaten, nur für die ersten {foundingClinics} Praxen. Nach diesen {foundingMonths} Monaten läuft das Abonnement zum regulären Practice-Preis von {practice} pro Monat weiter, sofern Sie nicht kündigen. Das Angebot endet, sobald {foundingClinics} Praxen es genutzt haben.",
               ],
             },
             "Zahlungen wickelt Dodo Payments ab, das als Händler (Merchant of Record) und autorisierter Wiederverkäufer handelt: Es verkauft Ihnen das Abonnement, belastet Ihr Zahlungsmittel, erscheint auf Ihrer Kartenabrechnung, berechnet und erhebt anfallende Steuern und stellt Ihre Rechnung aus. Für den Kauf gelten zusätzlich die Käuferbedingungen von Dodo Payments. Wir sehen Ihre vollständigen Kartendaten nie.",
-            "Abonnements verlängern sich am Ende jedes Abrechnungszeitraums (monatlich oder jährlich) automatisch, bis sie gekündigt werden. Schlägt eine Zahlung fehl, können wir neue Videos pausieren, bis sie geklärt ist.",
+            "Abonnements verlängern sich am Ende jedes monatlichen Abrechnungszeitraums automatisch, bis sie gekündigt werden. Schlägt eine Zahlung fehl, können wir neue Videos pausieren, bis sie geklärt ist.",
             "Wir können Listenpreise ändern. Wir informieren Sie mindestens 30 Tage vorher per E-Mail; ein neuer Preis gilt erst ab Ihrer nächsten Verlängerung nach dieser Mitteilung.",
           ],
         },
@@ -279,19 +278,19 @@ export const DE: LegalText = {
 
     refunds: {
       title: "Erstattungsrichtlinie",
-      description: "Wie Kündigung und Erstattungen bei DentVideo-Abonnements funktionieren, einschließlich des Gründungsangebots.",
+      description: "Wie Kündigung und Erstattungen bei DentVideo-Abonnements funktionieren.",
       intro: ["Diese Richtlinie ist Teil unserer [Nutzungsbedingungen](terms). Kurz gesagt: jederzeit kündbar, Zugang bis zum Ende des bezahlten Zeitraums, und wenn der Dienst versagt hat, machen wir es wieder gut."],
       sections: [
         {
           heading: "1. Kündigen",
           blocks: [
-            "Sie können jederzeit in den Einstellungen (Abrechnung verwalten) oder per E-Mail an {email} kündigen. Die Kündigung stoppt die nächste Verlängerung; sie wird zum Ende des bereits bezahlten Monats- oder Jahreszeitraums wirksam, bis dahin behalten Sie vollen Zugang. Heruntergeladene Videos bleiben Ihre. Das Löschen Ihres Kontos kündigt das Abonnement ebenfalls, und zwar sofort.",
+            "Sie können jederzeit in den Einstellungen (Abrechnung verwalten) oder per E-Mail an {email} kündigen. Die Kündigung stoppt die nächste Verlängerung; sie wird zum Ende des bereits bezahlten Monatszeitraums wirksam, bis dahin behalten Sie vollen Zugang. Heruntergeladene Videos bleiben Ihre. Das Löschen Ihres Kontos kündigt das Abonnement ebenfalls, und zwar sofort.",
           ],
         },
         {
           heading: "2. Keine anteiligen Erstattungen",
           blocks: [
-            "Den ungenutzten Teil eines begonnenen Zeitraums (monatlich oder jährlich) erstatten wir nicht, außer wenn das Gesetz eine Erstattung verlangt oder der Dienst wie unten beschrieben versagt hat. Wechseln Sie den Tarif, wird die Differenz für den Rest des laufenden Zeitraums sofort berechnet oder gutgeschrieben.",
+            "Den ungenutzten Teil eines begonnenen Monatszeitraums erstatten wir nicht, außer wenn das Gesetz eine Erstattung verlangt oder der Dienst wie unten beschrieben versagt hat. Wechseln Sie den Tarif, wird die Differenz für den Rest des laufenden Zeitraums sofort berechnet oder gutgeschrieben.",
           ],
         },
         {
@@ -301,19 +300,13 @@ export const DE: LegalText = {
           ],
         },
         {
-          heading: "4. Gründungsangebot",
-          blocks: [
-            "Das Gründungsangebot gibt den ersten {foundingClinics} Praxen den Practice-Tarif für {foundingPrice} pro Monat für {foundingMonths} Monate, monatlich bezahlt. Nach diesen {foundingMonths} Monaten läuft dasselbe Abonnement zum regulären Practice-Preis von {practice} pro Monat weiter, sofern Sie nicht kündigen. Der Gründungspreis ist an dieses Abonnement gebunden: Kündigen Sie, endet er und ist möglicherweise nicht erneut verfügbar.",
-          ],
-        },
-        {
-          heading: "5. Wie Erstattungen gezahlt werden",
+          heading: "4. Wie Erstattungen gezahlt werden",
           blocks: [
             "Dodo Payments ist bei jedem DentVideo-Kauf Händler (Merchant of Record); Erstattungen zahlt daher Dodo Payments auf das ursprüngliche Zahlungsmittel, einschließlich der auf den erstatteten Betrag erhobenen Steuer. Wenden Sie sich zuerst an uns unter {email}; Sie können sich nach den Käuferbedingungen auch an Dodo Payments wenden. Bis Ihre Bank die Erstattung anzeigt, kann es einige Tage dauern.",
           ],
         },
         {
-          heading: "6. Ihre gesetzlichen Rechte",
+          heading: "5. Ihre gesetzlichen Rechte",
           blocks: [
             "DentVideo wird an Unternehmen und Fachleute verkauft. Wo zwingendes Recht Ihnen dennoch ein Widerrufs- oder Erstattungsrecht gibt, gilt es zusätzlich zu dieser Richtlinie.",
           ],

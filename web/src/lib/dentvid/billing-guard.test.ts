@@ -4,7 +4,6 @@ import {
   checkoutBlock,
   dvEventSubStatus,
   dvEventTime,
-  foundingState,
   isStaleEvent,
   usedFounding,
   type DvSubRecord,
@@ -79,15 +78,7 @@ describe("event ordering helpers (H6)", () => {
   });
 });
 
-describe("founding seats (H7)", () => {
-  it("closes at 100, by the larger of recorded and estimated seats, and by the env switch", () => {
-    expect(foundingState(99, 10, {})).toEqual({ open: true, used: 99, left: 1, reliable: true });
-    expect(foundingState(100, 10, {})).toMatchObject({ open: false, left: 0 });
-    expect(foundingState(null, 100, {})).toMatchObject({ open: false, reliable: false });
-    expect(foundingState(5, 40, {})).toMatchObject({ open: true, used: 40, reliable: false });
-    expect(foundingState(5, 5, { DENTVIDEO_FOUNDING_OFFER: "off" }).open).toBe(false);
-  });
-
+describe("historic founding seats (the offer is closed)", () => {
   it("only Practice monthly with a discount counts as a founding seat (and the configured discount, when set)", () => {
     expect(usedFounding("practice", "month", "dsc_1", {})).toBe(true);
     expect(usedFounding("practice", "year", "dsc_1", {})).toBe(false);
@@ -96,13 +87,13 @@ describe("founding seats (H7)", () => {
     expect(usedFounding("practice", "month", "dsc_other", { DENTVIDEO_FOUNDING_DISCOUNT_ID: "dsc_1" })).toBe(false);
   });
 
-  it("a closed offer means a checkout without the founding code, at the unchanged list price", () => {
+  it("checkout never applies the founding code any more, whatever the old env switch says", () => {
     const input = { tier: "practice" as const, interval: "month" as const, clinicId: "c", ownerId: "o" };
-    const open = buildDvCheckout(input, {});
-    const closed = buildDvCheckout(input, { DENTVIDEO_FOUNDING_OFFER: "off" });
-    expect(open.ok && open.discount).toBe("KURUCU100");
-    expect(closed.ok && closed.discount).toBeNull();
-    expect(closed.ok && closed.productId).toBe(open.ok && open.productId);
+    const plain = buildDvCheckout(input, {});
+    const oldOn = buildDvCheckout(input, { DENTVIDEO_FOUNDING_OFFER: "1" });
+    expect(plain.ok && plain.discount).toBeNull();
+    expect(oldOn.ok && oldOn.discount).toBeNull();
+    expect(oldOn.ok && oldOn.productId).toBe(plain.ok && plain.productId);
   });
 });
 

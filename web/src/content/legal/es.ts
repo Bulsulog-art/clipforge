@@ -90,13 +90,12 @@ export const ES: LegalText = {
             {
               list: [
                 "Starter: {starter} al mes.",
-                "Practice: {practice} al mes o {practiceYear} al año.",
+                "Practice: {practice} al mes.",
                 "Group (grupos y clínicas con varias sedes): condiciones a medida por acuerdo — contacto {email}. Group no se puede comprar en la web.",
-                "Oferta fundadora: Practice mensual a {foundingPrice} al mes durante tus primeros {foundingMonths} meses, solo para las primeras {foundingClinics} clínicas. Tras esos {foundingMonths} meses la suscripción continúa al precio normal de Practice, {practice} al mes, salvo que la canceles. La oferta termina cuando {foundingClinics} clínicas la hayan contratado.",
               ],
             },
             "Los pagos los gestiona Dodo Payments, que actúa como comerciante registrado (merchant of record) y revendedor autorizado: te vende la suscripción, cobra tu medio de pago, aparece en el extracto de tu tarjeta, calcula y cobra los impuestos aplicables y emite tu factura. A la compra se aplican además las condiciones para compradores de Dodo Payments. Nunca vemos los datos completos de tu tarjeta.",
-            "Las suscripciones se renuevan automáticamente al final de cada periodo (mensual o anual) hasta que se cancelan. Si un pago falla, podemos pausar los vídeos nuevos hasta que se resuelva.",
+            "Las suscripciones se renuevan automáticamente al final de cada periodo mensual hasta que se cancelan. Si un pago falla, podemos pausar los vídeos nuevos hasta que se resuelva.",
             "Podemos cambiar los precios de lista. Te avisaremos por correo con al menos 30 días de antelación, y el nuevo precio solo se aplica desde tu siguiente renovación tras ese aviso.",
           ],
         },
@@ -279,19 +278,19 @@ export const ES: LegalText = {
 
     refunds: {
       title: "Política de reembolsos",
-      description: "Cómo funcionan la cancelación y los reembolsos de las suscripciones de DentVideo, incluida la oferta fundadora.",
+      description: "Cómo funcionan la cancelación y los reembolsos de las suscripciones de DentVideo.",
       intro: ["Esta política forma parte de nuestros [Términos del servicio](terms). En resumen: cancela cuando quieras, conservas el acceso hasta el final del periodo pagado y, si el servicio falló, lo solucionamos."],
       sections: [
         {
           heading: "1. Cancelar",
           blocks: [
-            "Puedes cancelar en cualquier momento en Ajustes (Gestionar facturación) o escribiendo a {email}. La cancelación detiene la siguiente renovación; surte efecto al final del periodo mensual o anual ya pagado y mantienes el acceso completo hasta entonces. Los vídeos descargados siguen siendo tuyos. Eliminar tu cuenta también cancela la suscripción, de inmediato.",
+            "Puedes cancelar en cualquier momento en Ajustes (Gestionar facturación) o escribiendo a {email}. La cancelación detiene la siguiente renovación; surte efecto al final del periodo mensual ya pagado y mantienes el acceso completo hasta entonces. Los vídeos descargados siguen siendo tuyos. Eliminar tu cuenta también cancela la suscripción, de inmediato.",
           ],
         },
         {
           heading: "2. Sin reembolsos parciales",
           blocks: [
-            "No reembolsamos la parte no usada de un periodo ya iniciado, mensual o anual, salvo que la ley exija un reembolso o el servicio haya fallado como se describe abajo. Si cambias de plan, la diferencia por el resto del periodo en curso se cobra o se abona al momento.",
+            "No reembolsamos la parte no usada de un periodo mensual ya iniciado, salvo que la ley exija un reembolso o el servicio haya fallado como se describe abajo. Si cambias de plan, la diferencia por el resto del periodo en curso se cobra o se abona al momento.",
           ],
         },
         {
@@ -301,19 +300,13 @@ export const ES: LegalText = {
           ],
         },
         {
-          heading: "4. Oferta fundadora",
-          blocks: [
-            "La oferta fundadora da a las primeras {foundingClinics} clínicas el plan Practice a {foundingPrice} al mes durante {foundingMonths} meses, con pago mensual. Tras esos {foundingMonths} meses, la misma suscripción continúa al precio normal de Practice, {practice} al mes, salvo que la canceles. El precio fundador está ligado a esa suscripción: si la cancelas, termina y puede que no vuelva a estar disponible.",
-          ],
-        },
-        {
-          heading: "5. Cómo se pagan los reembolsos",
+          heading: "4. Cómo se pagan los reembolsos",
           blocks: [
             "Dodo Payments es el comerciante registrado en cada compra de DentVideo, por lo que los reembolsos los paga Dodo Payments al medio de pago original, incluidos los impuestos cobrados sobre el importe reembolsado. Escríbenos primero a {email}; también puedes dirigirte a Dodo Payments según sus condiciones para compradores. Tu banco puede tardar unos días en mostrar el reembolso.",
           ],
         },
         {
-          heading: "6. Tus derechos legales",
+          heading: "5. Tus derechos legales",
           blocks: [
             "DentVideo se vende a empresas y profesionales. Si aun así la ley imperativa te concede un derecho de desistimiento o de reembolso, ese derecho se aplica además de esta política.",
           ],

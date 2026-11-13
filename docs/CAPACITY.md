@@ -18,7 +18,7 @@ queue priorities and the point at which rendering has to move to its own server.
   Monday payer now waits for at most the one week already rendering (~12 min), not for 100 of them.
 - **One shared 2-core box carries ~120 paying clinics if many are in New Zealand/Australia, ~135 if most are
   in Europe/Türkiye** (at a planning load of 75 %). **Plan the render server at 80 paying clinics; it is
-  required before 120.** The founding offer (100 clinics) should not fill on one box. The worker logs a
+  required before 120.** The launch goal of 100 paying clinics should not fill on one box. The worker logs a
   warning at dispatch when its projection says a deadline will be missed.
 - Marketing pages are now prerendered and sent with
   `Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400`; the app, sign-in, checkout

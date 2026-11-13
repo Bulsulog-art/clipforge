@@ -1,6 +1,6 @@
 import { LOCALES, type Locale } from "../dentvideo";
 import { OPERATOR } from "../guides/entity";
-import { DV_FOUNDING, DV_PRICES_USD } from "@/lib/dentvid/billing";
+import { DV_PRICES_USD } from "@/lib/dentvid/billing";
 import { LEGAL_KINDS, type LegalKind, type LegalText } from "./types";
 import { EN } from "./en";
 import { DE } from "./de";
@@ -45,10 +45,6 @@ export function legalTokens(locale: Locale): Record<string, string> {
     companyEmail: OPERATOR.companyEmail,
     starter: usd(DV_PRICES_USD.starter.month),
     practice: usd(DV_PRICES_USD.practice.month),
-    practiceYear: usd(DV_PRICES_USD.practice.year),
-    foundingPrice: usd(DV_FOUNDING.priceUsd),
-    foundingMonths: String(DV_FOUNDING.months),
-    foundingClinics: String(DV_FOUNDING.clinics),
   };
 }
 

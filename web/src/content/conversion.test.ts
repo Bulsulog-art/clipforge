@@ -11,7 +11,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LANDING, LOCALES, type Locale } from "./dentvideo";
 import { APP_TEXT } from "./dentvideo-app";
 import { DentVideoLanding } from "@/components/dentvid/landing";
-import { DV_FOUNDING, DV_PRICES_USD } from "@/lib/dentvid/billing";
+import { DV_PRICES_USD } from "@/lib/dentvid/billing";
 import { LEGAL_KINDS } from "./legal/types";
 import { legalPath } from "./legal/nav";
 
@@ -32,7 +32,7 @@ const NEW_FAQ = 3;
 function newCopy(l: Locale): string[] {
   const c = LANDING[l];
   const faq = c.faq.slice(-1 - NEW_FAQ, -1).flatMap((f) => [f.q, f.a]);
-  return [c.hero.h1, c.hero.lead, c.hero.note, ...c.hero.points, c.pricing.from, c.trust.heading, c.trust.legal, ...c.trust.items.flatMap((i) => [i.title, i.text]), ...faq];
+  return [c.hero.h1, c.hero.lead, ...c.hero.points, c.pricing.from, c.trust.heading, c.trust.legal, ...c.trust.items.flatMap((i) => [i.title, i.text]), ...faq];
 }
 
 /**
@@ -91,11 +91,10 @@ describe("conversion copy, every language", () => {
     for (const s of newCopy(l)) for (const re of BANNED[l]) expect(s, `${l} ${re}`).not.toMatch(re);
   });
 
-  it.each(LOCALES)("%s: the risk-reducers are the true ones — cancel anytime, preview before paying, founding price for 12 months", (l) => {
+  it.each(LOCALES)("%s: the risk-reducers are the true ones — cancel anytime, preview before paying; no founding offer any more", (l) => {
     const c = LANDING[l];
     expect(c.hero.points[0]).toMatch(CANCEL[l]);
-    expect(c.hero.note).toContain(String(DV_FOUNDING.clinics));
-    expect(c.hero.note).toContain(String(DV_FOUNDING.months));
+    expect(c.hero).not.toHaveProperty("note");
     // No figure that is not a fact we state elsewhere: the 15 minutes is the plan step's own promise
     // (Japanese also writes "1週間分", one week's worth).
     for (const m of c.hero.points.join(" ").match(/\d+/g) ?? []) expect(["15", "1"]).toContain(m);
@@ -117,7 +116,8 @@ describe("conversion copy, every language", () => {
     expect(first.a).toContain("15");
     expect(approve.q.length).toBeGreaterThan(5);
     expect(`${cancel.q} ${cancel.a}`).toMatch(CANCEL[l]);
-    expect(cancel.a).toContain(String(DV_FOUNDING.months));
+    // The former founding offer ("price fixed for 12 months") is gone from the answer.
+    expect(cancel.a).not.toMatch(/12/);
   });
 });
 

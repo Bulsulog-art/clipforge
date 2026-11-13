@@ -11,11 +11,11 @@ import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentv
 import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
 import { recordEvent } from "@/lib/dentvid/events-server";
 import { geoCountry } from "@/lib/dentvid/events";
-import { adminOrNull, checkoutBlockMessage, foundingForApp, foundingFullMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
-import { markFoundingClosed } from "@/lib/dentvid/subscriptions";
+import { adminOrNull, checkoutBlockMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
 
 // POST /api/dentvideo/checkout — open a Dodo hosted checkout for the signed-in
-// clinic owner's plan. The clinic and owner ride along in metadata, which
+// clinic owner's plan (monthly only; no discount code is applied unless the
+// clinic typed one). The clinic and owner ride along in metadata, which
 // Dodo copies onto the subscription; /api/dodo/webhook reads it back.
 
 const Body = z.object({
@@ -62,9 +62,6 @@ export async function POST(req: Request) {
 
   if (!parsed.success) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
 
-  // The founding offer closes by itself at 100 seats: then the checkout is at list price, as the app shows.
-  const founding = await foundingForApp(admin);
-  const env = founding.open ? process.env : { ...process.env, DENTVIDEO_FOUNDING_OFFER: "off" };
   const built = buildDvCheckout({
     tier: parsed.data.plan,
     interval: parsed.data.interval,
@@ -73,14 +70,14 @@ export async function POST(req: Request) {
     ownerId: user.id,
     email: user.email,
     locale: language,
-  }, env);
+  });
   if (!built.ok) return built.reason === "contact_sales" ? contactSales(await dvLocale(language)) : NextResponse.json({ error: err.invalidPlan }, { status: 400 });
   // Funnel: a checkout URL was handed to the clinic (fire-and-forget).
-  const opened = (url: string, via: "api" | "link", founding: boolean) => {
+  const opened = (url: string, via: "api" | "link") => {
     void recordEvent("checkout_opened", {
       locale: language,
       clinicId: clinic.id as string,
-      props: { tier: parsed.data.plan, interval: parsed.data.interval, founding, via },
+      props: { tier: parsed.data.plan, interval: parsed.data.interval, via },
       geo: geoCountry(req.headers),
     });
     return url;
@@ -90,24 +87,15 @@ export async function POST(req: Request) {
   // Without an API key, Dodo's static payment link does the same job (same
   // product, metadata and return URL); the clinic types any code in Dodo.
   const apiKey = process.env.DODO_API_KEY?.trim();
-  if (!apiKey) return NextResponse.json({ url: opened(buildDvStaticLink(built), "link", built.autoDiscount), code: built.discount });
+  if (!apiKey) return NextResponse.json({ url: opened(buildDvStaticLink(built), "link"), code: built.discount });
 
   try {
-    return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: built.body }), "api", built.autoDiscount) });
+    return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: built.body }), "api") });
   } catch (e) {
-    // The founding code was applied for the clinic and Dodo refused it (its uses are gone, or it was
-    // switched off): never charge the list price silently while the page showed the founding price.
-    // The offer is closed for everyone now; the clinic sees the real price and chooses again.
-    if (built.autoDiscount && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {
-      console.warn("[dentvideo checkout] founding code refused by Dodo; closing the offer", e.status);
-      await markFoundingClosed().catch(() => {});
-      return NextResponse.json({ error: foundingFullMessage(language), code: "founding_full" }, { status: 409 });
-    } else {
-      console.error("[dentvideo checkout] dodo checkout failed", (e as Error).message);
-      // A code the clinic typed that Dodo refuses: say so rather than "try again".
-      if (built.discount && !built.autoDiscount && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {
-        return NextResponse.json({ error: err.invalidCode }, { status: 400 });
-      }
+    console.error("[dentvideo checkout] dodo checkout failed", (e as Error).message);
+    // A code the clinic typed that Dodo refuses: say so rather than "try again".
+    if (built.discount && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {
+      return NextResponse.json({ error: err.invalidCode }, { status: 400 });
     }
     return NextResponse.json({ error: err.checkoutFailed }, { status: 502 });
   }

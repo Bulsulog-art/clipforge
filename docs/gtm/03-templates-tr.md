@@ -39,7 +39,7 @@ Linklerde UTM: `https://dentvideo.com/tr?utm_source=[instagram|linkedin|partner]
 > Harika. Buradan kliniğinizi tanımlayınca (ad, şehir, logo) videonun önizlemesi telefon çerçevesinde açılıyor:
 > https://dentvideo.com/tr?utm_source=linkedin&utm_medium=dm&utm_campaign=tr-founding
 >
-> Bilgi olarak: ilk 100 klinik için kurucu fiyatı var — Practice paketi 12 ay boyunca aylık 49 $ (normal fiyatı 99 $).
+> Bilgi olarak: paketler aylık 29 $'dan başlıyor (kendi çektiğiniz kayıtların da işlendiği Practice paketi aylık 49 $).
 > Aylık, taahhüt yok, istediğiniz zaman iptal. Ücretsiz deneme yok; onun yerine ödemeden önce kendi videonuzu
 > görüyorsunuz. Sorunuz olursa buradan yazın, 10 dakikalık bir görüntülü görüşme de yapabiliriz.
 
@@ -62,11 +62,11 @@ Linklerde UTM: `https://dentvideo.com/tr?utm_source=[instagram|linkedin|partner]
 
 > Teşekkürler! Şu sayfada kliniğinizi kısaca tanımlayınca kendi logonuz ve renklerinizle önizleme açılıyor (2 dk):
 > https://dentvideo.com/tr?utm_source=instagram&utm_medium=dm&utm_campaign=tr-founding
-> Her pazartesi 5 video geliyor; hekim onaylıyor, telefondan tek dokunuşla paylaşıyorsunuz. İlk 100 klinik için Practice
-> paketi 12 ay boyunca aylık 49 $ (normalde 99 $). Takıldığınız yer olursa buradan yazın.
+> Her pazartesi 5 video geliyor; hekim onaylıyor, telefondan tek dokunuşla paylaşıyorsunuz. Paketler aylık 29 $'dan
+> başlıyor. Takıldığınız yer olursa buradan yazın.
 
-**"Fiyat ne?" derse:** Starter aylık 49 $, Practice aylık 99 $ (yıllık 990 $); Practice'te hekimin kendi çektiği
-kayıtlardan altyazılı klipler de var. Kurucu fiyatı: ilk 100 klinik Practice'i 12 ay 49 $'a alıyor. Aylık, taahhüt yok.
+**"Fiyat ne?" derse:** Starter aylık 29 $, Practice aylık 49 $; Practice'te hekimin kendi çektiği kayıtlardan
+altyazılı klipler de var. Aylık, taahhüt yok.
 
 **"Deneme var mı?" derse:** "Ücretsiz deneme yok, bilinçli bir tercih: onun yerine ödemeden önce kendi logonuz ve
 renklerinizle önizlemeyi görüyorsunuz. Ödemeden sonra ilk haftanın videoları yaklaşık 15 dakikada hazır oluyor ve

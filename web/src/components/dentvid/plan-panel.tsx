@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { CHECKOUT_CODE, DODO_DISCOUNT_BUTTON, checkoutNext } from "@/content/dentvideo-checkout-code";
 import { dateLocale } from "@/lib/dentvid/app-ui";
-import { ArrowRight, BadgeCheck, Check, Mail } from "lucide-react";
+import { ArrowRight, Check, Mail } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
-import { DV_FOUNDING, DV_SELF_SERVE_TIERS, type DvInterval, type DvPlanState, type DvTier } from "@/lib/dentvid/billing";
+import { DV_SELF_SERVE_TIERS, type DvInterval, type DvPlanState, type DvTier } from "@/lib/dentvid/billing";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
-import { billingText } from "@/content/dentvideo-billing";
 import { VerifyCard } from "./verify-email";
 import { CheckoutConsent } from "./consent-line";
 import { trackDv } from "@/lib/dentvid/events-client";
@@ -28,24 +27,19 @@ export function usd(locale: Locale, amount: number) {
   return new Intl.NumberFormat(locale === "ar" ? "en-US" : locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
 }
 
-/** A price inside a sentence, isolated so right-to-left text cannot reorder it ("US$ 39", not "$US 39"). */
-const inText = (s: string) => `\u2068${s}\u2069`;
-
-/** "Choose your plan": Starter and Practice, Group as Contact us, a monthly/yearly toggle, the founding offer. */
+/** "Choose your plan": Starter and Practice (monthly), Group as Contact us. */
 export function PlanPanel({
   locale,
   state,
   options,
-  founding,
   bare = false,
   keepVideos = false,
   onNeedsVerification,
 }: {
   locale: Locale;
   state: DvPlanState;
+  /** The monthly plans on sale (billing.ts dvAvailablePlans). */
   options: PlanOption[];
-  /** Founding price when the offer is open (Practice monthly), else null; `left` only when counted reliably. */
-  founding: { priceUsd: number; code?: string; left?: number } | null;
   /** Inside the onboarding wizard the step has its own heading: keep the panel's title for screen readers only. */
   bare?: boolean;
   /** Paused or cancelled with videos in the library: say they stay, and can still be shared. */
@@ -55,8 +49,6 @@ export function PlanPanel({
 }) {
   const text = appText(locale);
   const t = text.billing;
-  const hasYearly = options.some((o) => o.interval === "year");
-  const [interval, setIv] = useState<DvInterval>("month");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<DvTier | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -125,79 +117,24 @@ export function PlanPanel({
           <p className="mt-2 text-dv-body">{lead}</p>
           {keepVideos && state !== "trial" && <p className="mt-2 text-sm text-dv-muted">{t.keepVideos}</p>}
         </div>
-        {hasYearly && (
-          <div role="group" aria-label={`${t.monthly} / ${t.yearly}`} className="inline-flex rounded-full bg-dv-sand p-1 ring-1 ring-inset ring-dv-line">
-            {(["month", "year"] as const).map((iv) => (
-              <button
-                key={iv}
-                type="button"
-                aria-pressed={interval === iv}
-                onClick={() => setIv(iv)}
-                className={`min-h-11 rounded-full px-4 py-2 text-sm font-semibold transition ${interval === iv ? "bg-white text-dv-ink shadow-[0_1px_3px_rgba(20,33,31,0.12)]" : "text-dv-muted hover:text-dv-ink"}`}
-              >
-                {iv === "month" ? t.monthly : t.yearly}
-                {iv === "year" && <span className="ms-1.5 text-xs font-medium text-dv-teal">{t.yearlySave}</span>}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
-
-      {founding && interval === "month" && (
-        <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl bg-dv-teal px-4 py-3 text-sm font-semibold text-white">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f1e7] px-2.5 py-0.5 text-xs uppercase tracking-[0.08em] text-dv-teal-900">
-            <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            {t.foundingBadge}
-          </span>
-          {fmt(t.foundingLine, { price: inText(usd(locale, founding.priceUsd)) })}
-          {founding.code && (
-            <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs">
-              {/* Only the code is monospaced: a monospace face has no Japanese or Arabic. */}
-              {t.foundingCodeLine.split("{code}")[0]}
-              <code dir="ltr" className="font-mono">{founding.code}</code>
-              {t.foundingCodeLine.split("{code}")[1] ?? ""}
-            </span>
-          )}
-          {typeof founding.left === "number" && founding.left > 0 && (
-            <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs">
-              {billingText(locale).copy.seatsLeft.replace("{left}", String(founding.left)).replace("{total}", String(DV_FOUNDING.clinics))}
-            </span>
-          )}
-        </p>
-      )}
 
       <ul className="mt-6 grid gap-4 md:grid-cols-3">
         {TIERS.map((tier) => {
-          const exact = options.find((o) => o.tier === tier && o.interval === interval);
-          const monthly = options.find((o) => o.tier === tier && o.interval === "month");
-          const opt = exact ?? monthly;
+          const opt = options.find((o) => o.tier === tier && o.interval === "month");
           if (!opt) return null;
           const featured = tier === "practice";
-          const foundingHere = !!founding && featured && opt.interval === "month";
           const copy = t.tiers[tier];
           return (
             <li key={tier} className={`relative flex flex-col rounded-[1.25rem] bg-white p-6 ring-1 ring-dv-line ${featured ? "ring-2 ring-dv-teal" : ""}`}>
               {featured && (
-                <span className="absolute -top-3 start-6 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white">{foundingHere ? t.foundingBadge : t.recommended}</span>
+                <span className="absolute -top-3 start-6 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white">{t.recommended}</span>
               )}
               <h3 className="font-semibold text-dv-ink">{copy.name}</h3>
               <p className="mt-1 text-sm text-dv-muted">{copy.blurb}</p>
               <p className="mt-5 flex flex-wrap items-baseline gap-x-2">
-                {foundingHere && founding ? (
-                  <>
-                    <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink">{usd(locale, founding.priceUsd)}</span>
-                    <span className="text-sm font-medium text-dv-muted">{t.perMonth}</span>
-                    <s className="text-sm text-dv-muted">{usd(locale, opt.priceUsd)}</s>
-                  </>
-                ) : (
-                  <>
-                    <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink">{usd(locale, opt.priceUsd)}</span>
-                    <span className="text-sm font-medium text-dv-muted">{opt.interval === "year" ? t.perYear : t.perMonth}</span>
-                  </>
-                )}
-              </p>
-              <p className="mt-1 min-h-[1.25rem] text-xs text-dv-muted">
-                {foundingHere ? fmt(t.foundingThen, { price: inText(usd(locale, opt.priceUsd)) }) : interval === "year" && opt.interval === "month" ? t.monthlyOnly : ""}
+                <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink">{usd(locale, opt.priceUsd)}</span>
+                <span className="text-sm font-medium text-dv-muted">{t.perMonth}</span>
               </p>
               <ul className="mt-4 space-y-2.5 border-t border-dv-line pt-4">
                 {copy.features.map((f) => (
@@ -276,7 +213,7 @@ export function PlanPanel({
             />
           </label>
         </details>
-        <p className="text-xs text-dv-muted">{interval === "year" ? t.fineprintYearly : t.fineprint}</p>
+        <p className="text-xs text-dv-muted">{t.fineprint}</p>
       </div>
       <div className="mt-3">
         <CheckoutConsent locale={locale} />

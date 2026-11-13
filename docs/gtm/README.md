@@ -1,8 +1,8 @@
 # DentVideo go-to-market kit: the first 100 paying clinics
 
 Written 2026-11-11 for Bulsu Labs (BLS AI Automation DOO, Podgorica). Two people, little money, no free trial, no
-reviews yet. The goal is **100 paying clinics**. The founding offer (Practice at $49/month for 12 months, first 100
-clinics) is the only real urgency we have, so we use it and nothing else.
+reviews yet. The goal is **100 paying clinics**. There is no discount and no founding offer (removed 2026-11-13): plans are
+Starter $29/month and Practice $49/month, and we invent no urgency.
 
 | File | What it is |
 | --- | --- |
@@ -37,8 +37,8 @@ rules and clinical accuracy before the dentist approves. (148)
 | Languages | Videos in 10 languages (EN, DE, ES, FR, IT, PT, TR, JA, AR, PL); website in 8 (EN, DE, ES, TR, FR, JA, AR, PL) |
 | The check | Every script and caption is checked twice: once for health-advertising rules, once for clinical accuracy. It is a careful filter, not legal advice. |
 | Who decides | The dentist approves every video. DentVideo does not post by itself; the clinic shares approved videos from its phone. |
-| Prices (USD) | Starter $49/month. Practice $99/month or $990/year (adds the dentist's own recordings turned into captioned clips). Group: contact us (hello@dentvideo.com). Monthly, no minimum term. |
-| Founding offer | Practice at $49/month for 12 months for the first 100 clinics. Applied automatically at checkout while seats last (code `KURUCU100` in Dodo; `foundingSeats()` in `/admin` shows how many are left). |
+| Prices (USD) | Starter $29/month. Practice $49/month (adds the dentist's own recordings turned into captioned clips). Group: contact us (hello@dentvideo.com). Monthly only (no yearly plan), no minimum term. |
+| Discounts | None. The founding offer (code `KURUCU100`) was removed on 2026-11-13; checkout applies no code by default. |
 | Before paying | A live preview of the clinic's own branded video (logo + colours) in the browser. **No free trial, no free week.** |
 | Not done | No avatar doctors, no fake patients, no auto-posting, no promised patient numbers. |
 
@@ -49,8 +49,8 @@ rules and clinical accuracy before the dentist approves. (148)
 2. **No outcome or legal promises:** not "more patients", "fill your chair", "100% compliant", "HWG-sicher",
    "yasaya tam uyumlu", "garantizado".
 3. **No professional body named as a partner or endorser** unless it has agreed in writing.
-4. **The only urgency is the true one:** the founding price is for the first 100 clinics. Say how many seats are left only
-   if you read it from `/admin` that day. No countdown timers, no "today only".
+4. **No invented urgency:** there is no limited offer, so there are no "seats left". No countdown timers, no
+   "today only".
 5. **No disparaging named competitors or agencies.** Compare with categories ("an agency", "doing it yourself").
 6. **One personalised first line per message.** A template sent unedited is spam, and in the EU it is also the thing
    regulators fine.

@@ -10,7 +10,7 @@ const toggled: [string, boolean][] = [];
 
 vi.mock("@/lib/dentvid/auth", () => ({ dvSession: async () => ({ user, db: {} }) }));
 vi.mock("@/lib/rate-limit-server", () => ({ limitChecks: async () => ({ ok: true, remaining: 1, retryAfterSec: 0 }) }));
-vi.mock("@/lib/dentvid/billing-state", () => ({ adminOrNull: async () => null, foundingForApp: async () => ({ open: true }) }));
+vi.mock("@/lib/dentvid/billing-state", () => ({ adminOrNull: async () => null }));
 vi.mock("@/lib/dentvid/demos-server", () => ({
   createDemo: async (input: Record<string, unknown>, logo: { ext: string; bytes: Uint8Array } | null, by: string) => {
     created.push({ input, logo, by });
@@ -66,7 +66,8 @@ describe("creating a demo", () => {
     expect(m.ask).toContain("Merhaba Gülümse Diş Kliniği ekibi");
     expect(m.ask).not.toContain("https://");
     expect(m.link).toContain(r.body.url as string);
-    expect(m.link).toContain("kurucu fiyatı");
+    expect(m.link).toContain("aylık $29'dan başlıyor");
+    expect(m.link).not.toContain("kurucu");
     expect(created[0]).toMatchObject({ input: { clinicName: "Gülümse Diş Kliniği", country: "TR", language: "tr", campaign: "tr-launch" }, logo: null, by: ADMIN });
   });
 

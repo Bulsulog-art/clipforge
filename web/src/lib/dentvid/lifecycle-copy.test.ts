@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { LIFECYCLE_COPY, LIFECYCLE_LANGUAGES, lifecycleText } from "@/content/dentvideo-lifecycle";
 import { LOCALES } from "@/content/dentvideo";
-import { monthLabel, objectionsEmail, offerEmail, sampleEmail, startEmail, unsubscribePage, usd, welcomeEmail } from "./lifecycle-email";
-import { lowestMonthlyUsd, offerTerms } from "./lifecycle";
-import { DV_FOUNDING, DV_PRICES_USD } from "./billing";
+import { monthLabel, objectionsEmail, sampleEmail, startEmail, unsubscribePage, usd, welcomeEmail } from "./lifecycle-email";
+import { lowestMonthlyUsd } from "./lifecycle";
+import { DV_PRICES_USD } from "./billing";
 import { SAMPLE_KINDS, sampleEmailFor } from "./email-samples";
 import { EMAIL_LANGUAGES } from "./email";
 
@@ -53,11 +53,12 @@ describe("lifecycle copy parity", () => {
     for (const lang of LIFECYCLE_LANGUAGES) for (const [k, v] of leaves(LIFECYCLE_COPY[lang])) for (const b of banned) expect(v, `${lang}.${k}`).not.toMatch(b);
   });
 
-  it("the only scarcity is the founding cap, and it is a placeholder filled from the real count", () => {
+  it("no founding offer, discount code or seat count anywhere in the lifecycle copy", () => {
     for (const lang of LIFECYCLE_LANGUAGES) {
-      const seats = LIFECYCLE_COPY[lang].offer.seats;
-      expect(placeholders(seats), lang).toEqual(["clinics", "left"]);
-      expect(seats, lang).not.toMatch(/\d/);
+      expect(Object.keys(LIFECYCLE_COPY[lang]), lang).not.toContain("offer");
+      for (const [k, v] of leaves(LIFECYCLE_COPY[lang])) {
+        expect(v, `${lang}.${k}`).not.toMatch(/KURUCU|\{(code|left|clinics|months|then)\}|founding|\bGründungs|fundador|kurucu|fondateur|創業|先行導入|المؤسسين|założyciel/i);
+      }
     }
   });
 
@@ -103,7 +104,7 @@ describe("every email, every language", () => {
 
   it("marketing mail carries unsubscribe and the postal address; transactional mail does not unsubscribe", () => {
     for (const lang of LOCALES) {
-      for (const kind of ["start", "sample", "objections", "offer", "not-posted", "monthly"] as const) {
+      for (const kind of ["start", "sample", "objections", "not-posted", "monthly"] as const) {
         const m = sampleEmailFor(kind, lang);
         expect(m.html, `${lang} ${kind}`).toContain("/api/dentvideo/unsubscribe?t=");
         expect(m.text, `${lang} ${kind}`).toContain("/api/dentvideo/unsubscribe?t=");
@@ -122,12 +123,10 @@ describe("every email, every language", () => {
 
 describe("activation emails", () => {
   const unsub = "https://dentvideo.com/api/dentvideo/unsubscribe?t=x.y";
-  const open = offerTerms({});
 
-  it("takes the offer terms from billing.ts, never hard-coded", () => {
-    expect(open).toEqual({ open: true, priceUsd: DV_FOUNDING.priceUsd, thenUsd: DV_PRICES_USD.practice.month, months: DV_FOUNDING.months, clinics: DV_FOUNDING.clinics, code: "KURUCU100" });
-    expect(offerTerms({ DENTVIDEO_FOUNDING_OFFER: "off" })).toEqual({ open: false, fromUsd: DV_PRICES_USD.starter.month });
+  it("takes the starting price from billing.ts, never hard-coded: Starter's $29", () => {
     expect(lowestMonthlyUsd()).toBe(DV_PRICES_USD.starter.month);
+    expect(lowestMonthlyUsd()).toBe(29);
   });
 
   it("day 0 links to the preview; the clinic name is escaped", () => {
@@ -155,18 +154,13 @@ describe("activation emails", () => {
     }
   });
 
-  it("day 7 shows the seats left only when the count is reliable", () => {
-    if (!open.open) throw new Error("offer closed in test env");
-    const base = { language: "en", clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, offer: open };
-    expect(offerEmail({ ...base, seats: { left: 37, reliable: true } }).text).toContain("Founding places still open: 37 of 100.");
-    expect(offerEmail({ ...base, seats: { left: 37, reliable: false } }).text).not.toContain("Founding places");
-    expect(offerEmail({ ...base, seats: null }).text).not.toContain("Founding places");
-    expect(offerEmail({ ...base, seats: { left: 0, reliable: true } }).text).not.toContain("Founding places");
-    const m = offerEmail({ ...base, seats: null });
-    expect(m.subject).toBe("Founding offer: Practice for $49/month for 12 months");
-    expect(m.text).toContain("then $99/month");
-    expect(m.text).toContain("KURUCU100");
-    expect(m.text).toContain("This is the last reminder we'll send.");
+  it("there is no day-7 offer email any more", () => {
+    expect(SAMPLE_KINDS as readonly string[]).not.toContain("offer");
+    for (const lang of LOCALES) {
+      const m = sampleEmailFor("objections", lang);
+      expect(m.text, lang).toContain(usd(lang, 29));
+      expect(m.text, lang).not.toMatch(/KURUCU|\$\s?99\b|\b99\s?\$|990/);
+    }
   });
 
   it("the welcome is transactional and links the library", () => {

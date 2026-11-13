@@ -162,15 +162,22 @@ describe("legal pages", () => {
     }
   });
 
-  it("states prices from billing and the founding offer plainly", () => {
+  it("states prices from billing plainly: monthly only, no founding offer", () => {
     const t = text(page("refunds", "en")) + text(page("terms", "en"));
-    expect(t).toContain("Starter: $49 per month");
-    expect(t).toContain("Practice: $99 per month, or $990 per year");
-    expect(t).toContain("$49 per month for 12 months");
-    expect(t).toContain("first 100 clinics");
-    expect(t).toContain("regular Practice price of $99 per month");
+    expect(t).toContain("Starter: $29 per month.");
+    expect(t).toContain("Practice: $49 per month.");
     expect(t).toMatch(/Group cannot be bought on the website/);
     expect(t).toMatch(/merchant of record/);
+    for (const [l, k] of LEGAL_PAGES) {
+      const all = text(page(k, l));
+      expect(all, `${l} ${k}`).not.toMatch(/990|founding|\bGründungs|fundador|kurucu|fondateur|創業|المؤسسين|założyciel|\{\w+\}/i);
+    }
+    for (const l of LOCALES) {
+      const terms = text(page("terms", l));
+      expect(terms, l).toContain("$29");
+      expect(terms, l).toContain("$49");
+      expect(terms, l).not.toMatch(/\$\s?99\b|\b99\s?\$/);
+    }
   });
 
   it("makes no certification claims", () => {
@@ -286,7 +293,7 @@ describe("consent", () => {
 
   it("the plan step (checkout) names the Terms, the Refund Policy and the merchant of record", () => {
     for (const l of LOCALES) {
-      const h = html(createElement(PlanPanel, { locale: l, state: "trial", options: dvAvailablePlans({}), founding: { priceUsd: 49 } }));
+      const h = html(createElement(PlanPanel, { locale: l, state: "trial", options: dvAvailablePlans({}) }));
       expect(h, l).toContain('data-testid="dv-checkout-consent"');
       expect(h).toContain(`href="${legalPath("terms", l)}"`);
       expect(h).toContain(`href="${legalPath("refunds", l)}"`);

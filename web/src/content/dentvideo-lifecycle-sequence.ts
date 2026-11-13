@@ -6,23 +6,20 @@
  *
  *   start       day 0   finish your preview
  *   sample      day 1   here is your clinic's sample (the preview's own titles)
- *   objections  day 3   answers to the three common objections
- *   offer       day 7   the founding offer, only while seats are left
+ *   objections  day 3   answers to the three common objections (the last one)
  *
  * Honest by rule: only what the product does and the site already says
  * (checked videos, nothing published without approval, about 15 minutes,
- * every Monday, monthly and cancel anytime). No free trial, no invented
- * deadline; the only scarcity is the real founding cap, with the real count.
- * The offer terms and "why us" lines are the ones reviewed for the earlier
- * reminders.
+ * every Monday, monthly and cancel anytime). No free trial, no discount, no
+ * invented deadline or scarcity. The "why us" lines are the ones reviewed for
+ * the earlier reminders.
  *
- * Placeholders: {clinic} {price} {then} {months} {clinics} {code} {from} {left} {n} {month} {days}.
+ * Placeholders: {clinic} {from} {n} {month} {days}.
  */
 export type SequenceCopy = {
   start: { subject: string; preheader: string; title: string; body: string; next: string; button: string };
   sample: { subject: string; preheader: string; title: string; intro: string; outro: string; whyUs: string; button: string };
   objections: { subject: string; preheader: string; title: string; intro: string; qa: { q: string; a: string }[]; button: string };
-  offer: { subject: string; preheader: string; title: string; body: string; terms: string; seats: string; last: string; button: string };
   notPosted: { subject: string; preheader: string; title: string; approved: string; pending: string; how: string; gentle: string; button: string; footer: string };
   monthly: { subject: string; preheader: string; title: string; intro: string; made: string; approved: string; shared: string; sharedNone: string; sharedSome: string; button: string; footer: string };
   approvePage: {
@@ -71,16 +68,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
         { q: "I don't have time for another tool.", a: "We write, narrate, caption and check every video. New ones arrive every Monday; you only watch, approve and tap Share." },
         { q: "What does it cost, and am I tied in?", a: "Plans start at {from}/month. Monthly, cancel anytime." },
       ],
-      button: "Choose a plan",
-    },
-    offer: {
-      subject: "Founding offer: Practice for {price}/month for {months} months",
-      preheader: "For the first {clinics} clinics, applied at checkout.",
-      title: "The founding offer",
-      body: "Staying visible takes regular posts, and they are the first thing to slip in a busy week. DentVideo makes them for you, every Monday.",
-      terms: "The founding offer gives the first {clinics} clinics the Practice plan for {price}/month for {months} months, then {then}/month. It is applied automatically at checkout (code {code}). Monthly, cancel anytime.",
-      seats: "Founding places still open: {left} of {clinics}.",
-      last: "This is the last reminder we'll send.",
       button: "Choose a plan",
     },
     notPosted: {
@@ -153,16 +140,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       ],
       button: "Tarif wählen",
     },
-    offer: {
-      subject: "Gründungsangebot: Practice für {price}/Monat, {months} Monate lang",
-      preheader: "Für die ersten {clinics} Praxen, automatisch im Checkout.",
-      title: "Das Gründungsangebot",
-      body: "Sichtbarkeit braucht regelmäßige Beiträge – und genau die bleiben in vollen Wochen als Erstes liegen. DentVideo erstellt sie für Sie, jeden Montag.",
-      terms: "Mit dem Gründungsangebot erhalten die ersten {clinics} Praxen den Practice-Tarif für {price}/Monat, {months} Monate lang, danach {then}/Monat. Es wird im Checkout automatisch angewendet (Code {code}). Monatlich, jederzeit kündbar.",
-      seats: "Noch freie Gründungsplätze: {left} von {clinics}.",
-      last: "Das ist unsere letzte Erinnerung.",
-      button: "Tarif wählen",
-    },
     notPosted: {
       subject: "Ihre Videos für diese Woche warten",
       preheader: "Ein Video zu posten geht schnell.",
@@ -231,16 +208,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
         { q: "No tengo tiempo para otra herramienta.", a: "Nosotros escribimos, narramos, subtitulamos y revisamos cada vídeo. Cada lunes llegan nuevos; tú solo los ves, los apruebas y tocas Compartir." },
         { q: "¿Cuánto cuesta? ¿Hay permanencia?", a: "Planes desde {from}/mes. Mensual, cancela cuando quieras." },
       ],
-      button: "Elegir un plan",
-    },
-    offer: {
-      subject: "Oferta fundadora: Practice por {price}/mes durante {months} meses",
-      preheader: "Para las primeras {clinics} clínicas, se aplica al pagar.",
-      title: "La oferta fundadora",
-      body: "Mantenerse visible exige publicar con regularidad, y es lo primero que se queda atrás en una semana llena. DentVideo lo prepara por ti, cada lunes.",
-      terms: "La oferta fundadora da a las primeras {clinics} clínicas el plan Practice por {price}/mes durante {months} meses; después, {then}/mes. Se aplica automáticamente al pagar (código {code}). Mensual, cancela cuando quieras.",
-      seats: "Plazas fundadoras libres: {left} de {clinics}.",
-      last: "Este es el último recordatorio que te enviamos.",
       button: "Elegir un plan",
     },
     notPosted: {
@@ -313,16 +280,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       ],
       button: "Plan seçin",
     },
-    offer: {
-      subject: "Kurucu teklifi: {months} ay boyunca aylık {price} ile Practice",
-      preheader: "İlk {clinics} klinik için, ödeme sırasında otomatik uygulanır.",
-      title: "Kurucu teklifi",
-      body: "Görünür kalmak düzenli paylaşım ister; yoğun bir haftada ilk aksayan da budur. DentVideo bu paylaşımları her pazartesi sizin için hazırlar.",
-      terms: "Kurucu teklifiyle ilk {clinics} klinik, Practice planını {months} ay boyunca aylık {price} ile kullanır; sonrasında aylık {then}. Teklif ödeme sırasında otomatik uygulanır ({code} kodu). Aylık, istediğiniz zaman iptal.",
-      seats: "Açık kurucu yeri: {clinics} yerden {left} tanesi.",
-      last: "Bu, göndereceğimiz son hatırlatma.",
-      button: "Plan seçin",
-    },
     notPosted: {
       subject: "Bu haftanın videoları sizi bekliyor",
       preheader: "Bir video paylaşmak hızlıdır.",
@@ -391,16 +348,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
         { q: "Je n'ai pas le temps pour un outil de plus.", a: "Nous écrivons, mettons en voix, sous-titrons et vérifions chaque vidéo. De nouvelles arrivent chaque lundi ; vous n'avez qu'à regarder, valider et toucher Partager." },
         { q: "Combien ça coûte, et y a-t-il un engagement ?", a: "Formules dès {from}/mois. Mensuel, résiliable à tout moment." },
       ],
-      button: "Choisir une formule",
-    },
-    offer: {
-      subject: "Offre fondateurs : Practice à {price}/mois pendant {months} mois",
-      preheader: "Pour les {clinics} premiers cabinets, appliquée au paiement.",
-      title: "L'offre fondateurs",
-      body: "Rester visible demande de publier régulièrement, et c'est la première chose qui saute dans une semaine chargée. DentVideo s'en charge pour vous, chaque lundi.",
-      terms: "L'offre fondateurs donne aux {clinics} premiers cabinets la formule Practice à {price}/mois pendant {months} mois, puis {then}/mois. Elle s'applique automatiquement au paiement (code {code}). Mensuel, résiliable à tout moment.",
-      seats: "Places fondateurs encore libres : {left} sur {clinics}.",
-      last: "C'est le dernier rappel que nous vous envoyons.",
       button: "Choisir une formule",
     },
     notPosted: {
@@ -473,16 +420,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       ],
       button: "プランを選ぶ",
     },
-    offer: {
-      subject: "先行導入価格：Practiceプランが{months}か月間 月額{price}",
-      preheader: "先着{clinics}院限定。お支払い時に自動で適用されます。",
-      title: "先行導入価格のご案内",
-      body: "医院の認知を保つには定期的な投稿が欠かせませんが、忙しい週には真っ先に後回しになりがちです。DentVideoが毎週月曜日に、その投稿をご用意します。",
-      terms: "先行導入価格では、先着{clinics}院がPracticeプランを{months}か月間 月額{price}でご利用いただけます（その後は月額{then}）。お支払い時に自動で適用されます（コード：{code}）。月単位の契約で、いつでも解約できます。",
-      seats: "先行導入枠の残り：{clinics}院中 {left}院",
-      last: "ご案内はこれが最後です。",
-      button: "プランを選ぶ",
-    },
     notPosted: {
       subject: "今週の動画が届いています",
       preheader: "投稿はすぐに済みます。",
@@ -553,16 +490,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       ],
       button: "اختيار باقة",
     },
-    offer: {
-      subject: "سعر المؤسسين: باقة Practice بسعر {price} شهرياً لمدة {months} شهراً",
-      preheader: "لأول {clinics} عيادة، ويُطبَّق تلقائياً عند الدفع.",
-      title: "عرض المؤسسين",
-      body: "يتطلب الحضور الدائم نشراً منتظماً، وهو أول ما يتأخر في الأسابيع المزدحمة. يُعدّه DentVideo لكم كل يوم اثنين.",
-      terms: "يمنح سعر المؤسسين أول {clinics} عيادة باقة Practice بسعر {price} شهرياً لمدة {months} شهراً، ثم {then} شهرياً. يُطبَّق تلقائياً عند الدفع (الرمز {code}). اشتراك شهري يمكن إلغاؤه في أي وقت.",
-      seats: "المقاعد المتبقية للمؤسسين: {left} من {clinics}.",
-      last: "هذا آخر تذكير نرسله إليكم.",
-      button: "اختيار باقة",
-    },
     notPosted: {
       subject: "فيديوهات هذا الأسبوع بانتظاركم",
       preheader: "نشر فيديو واحد لا يستغرق وقتاً.",
@@ -631,16 +558,6 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
         { q: "Nie mam czasu na kolejne narzędzie.", a: "Piszemy, nagrywamy lektora, dodajemy napisy i sprawdzamy każdy film. Nowe pojawiają się w każdy poniedziałek; Państwo tylko oglądają, akceptują i dotykają „Udostępnij”." },
         { q: "Ile to kosztuje i czy jest umowa na czas określony?", a: "Plany od {from}/mies. Rozliczenie miesięczne, rezygnacja w dowolnym momencie." },
       ],
-      button: "Wybierz plan",
-    },
-    offer: {
-      subject: "Oferta założycielska: Practice za {price}/mies. przez {months} miesięcy",
-      preheader: "Dla pierwszych {clinics} gabinetów, naliczana automatycznie przy płatności.",
-      title: "Oferta założycielska",
-      body: "Widoczność wymaga regularnych publikacji, a to one jako pierwsze przepadają w pracowitym tygodniu. DentVideo przygotowuje je dla Państwa w każdy poniedziałek.",
-      terms: "Oferta założycielska daje pierwszym {clinics} gabinetom plan Practice za {price}/mies. przez {months} miesięcy, potem {then}/mies. Jest naliczana automatycznie przy płatności (kod {code}). Rozliczenie miesięczne, rezygnacja w dowolnym momencie.",
-      seats: "Wolne miejsca założycielskie: {left} z {clinics}.",
-      last: "To nasze ostatnie przypomnienie.",
       button: "Wybierz plan",
     },
     notPosted: {

@@ -18,7 +18,7 @@ export const LEGAL_KINDS = ["terms", "privacy", "refunds", "dpa", "imprint"] as 
 export type LegalKind = (typeof LEGAL_KINDS)[number];
 
 /** The date the legal texts last changed in substance. */
-export const LEGAL_UPDATED = "2026-11-11";
+export const LEGAL_UPDATED = "2026-11-13";
 
 /** Providers that process personal data for DentVideo (the DPA's sub-processor list). */
 export const SUBPROCESSOR_IDS = ["hostinger", "openai", "resend", "dodo"] as const;
