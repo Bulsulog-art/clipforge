@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Settings() {
   const { db, user } = await dvSession();
-  if (!user) redirect(dvHref("/dentvideo/start"));
+  if (!user) redirect(dvHref("/dentvideo/start?mode=signin"));
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path").eq("owner_id", user.id).maybeSingle();
   if (!clinic) redirect(dvHref("/dentvideo/start?step=clinic"));
   const profile = (clinic?.profile ?? undefined) as Partial<ClinicProfile> | undefined;

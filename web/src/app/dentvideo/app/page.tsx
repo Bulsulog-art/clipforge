@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string }> }) {
   const { db, user } = await dvSession();
-  if (!user) redirect(dvHref("/dentvideo/start"));
+  if (!user) redirect(dvHref("/dentvideo/start?mode=signin"));
 
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path").eq("owner_id", user.id).maybeSingle();
   // No clinic yet: the onboarding wizard describes it (and shows the preview).
