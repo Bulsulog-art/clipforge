@@ -180,4 +180,22 @@ Replaying the before scripts through the new post-checks: **9 of 9 would have be
 - **Pronunciation**: tts-1-hd has no SSML or lexicon, so the lexicon is the respelling table in `speech-text.ts`. A TTS → transcription round trip (18 clips) showed that only "PZR" failed ("Eine PZR dauert…" was heard as "Dann passiert er…"). PZR and KFO are now spelled out. Aligner, Bleaching, Veneers, All-on-4, E.max and the Turkish terms were read correctly as written, and respelling made them worse, so they stay as written.
 - **Rubric** sees the new failure classes (`repeats_itself`, `spoken_tic`, `caption_copies_narration`, `tr_steering`, `cta_template`, `cta_names_clinic`). The baseline snapshot moves from 4.12 to 4.01, and agreement with the hand grades stays at r = 0.70.
 
-<!-- AFTER -->
+### After: partial, because the OpenAI org ran out of credits
+
+The re-run of the same three weeks stopped on `insufficient_quota` / `credit_balance_exhausted` (it was the org's balance, not this run's $3 cap: the ledger was at $0.66). The strategist and hook editor had already finished for all 15 planned topics. Every script, narration and caption call failed. So the *planning* layer can be compared, and the writing layer cannot yet:
+
+| | Hook (planned, human 1–5) | Services covered by the planned topics |
+|---|---|---|
+| TR | 2.33 → **3.6** | 3 implant-side topics → **5 topics on 5 different services** |
+| DE | 2.67 → **3.6** | 3 → 4 services, skipping PZR (covered in history) |
+| EN-GB | 3.00 → **3.8** | 3 → 5, including the two never covered in history |
+
+New hooks include "Zirkonyumdan sonra ilk yudum neden sızlar?", "Diş eti çekilmesinin tek nedeni fırça değil.", "Feste Zähne täuschen bei Parodontitis oft." and "That pink in the sink after brushing…". Still weak: "Diese kleinen Erhebungen bei Alignern stören viele." (a dangling "Diese"), and two TR takeaways that still lean on "değişir". One EN takeaway pushed urgency ("book it before…"); the "no urgency topics" rule was added after that run.
+
+To finish the comparison once the org has credits (about $0.40–0.60 at the measured cost):
+
+```bash
+cd worker
+OPENAI_API_KEY=… npx tsx src/bench/quality-week.ts --out ../qw/after --ledger ../qw/ledger.json --label after --memory full
+OPENAI_API_KEY=… npx tsx src/bench/quality-week.ts --out ../qw/before --ledger ../qw/ledger.json --label before --memory titles   # on main, for the baseline
+```
