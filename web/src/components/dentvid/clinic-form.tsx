@@ -10,7 +10,7 @@ import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { accentFor, analyseLogoFile, isDecodableImage, type LogoColors } from "@/lib/dentvid/logo-colors";
 import { LogoPreview } from "./logo-preview";
 import type { PreviewProfile } from "./live-preview";
-import { SERVICE_HINTS, exampleServices, splitServices } from "@/lib/dentvid/service-hints";
+import { SERVICE_HINTS, exampleServices, hasService, splitServices, suggestedServices, toggleService } from "@/lib/dentvid/service-hints";
 import { requestUpload } from "@/lib/dentvid/upload-client";
 import { readAttribution } from "@/lib/dentvid/attribution";
 
@@ -240,12 +240,35 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
       </select>
     </label>
   );
+  // The usual treatments one tap away: typing a comma-separated list on a phone is where clinics stalled.
   const services = (
-    <label className={`${label} sm:col-span-2`}>
-      {t.services}
-      <textarea required rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
-      <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
-    </label>
+    <div className="sm:col-span-2">
+      <label className={label}>
+        {t.services}
+        <textarea required rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
+        <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
+      </label>
+      <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label={t.servicesQuick} data-service-chips>
+        <span className="text-xs font-medium text-dv-muted">{t.servicesQuick}</span>
+        {suggestedServices(p.language).map((s) => {
+          const on = hasService(p.services, s);
+          return (
+            <button
+              key={s}
+              type="button"
+              aria-pressed={on}
+              onClick={() => draft.update("services", toggleService(p.services, s, p.language))}
+              className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition ${
+                on ? "bg-dv-teal text-white ring-dv-teal" : "bg-white text-dv-ink ring-dv-line hover:ring-dv-teal"
+              }`}
+            >
+              <span aria-hidden="true">{on ? "✓" : "+"}</span>
+              {s}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
   const tone = (
     <label className={label}>
