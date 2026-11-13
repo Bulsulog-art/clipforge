@@ -299,18 +299,30 @@ export const ALERT_LOG_KEY = (day: string) => `dv:ops:alerts:${day}`;
  * Send one alert to the owner unless: alerts are switched off; this incident
  * key was already sent today; or more than `maxPerHour` alerts went out this
  * clock hour (then one "muted" note, then silence until the next hour).
- * Every alert raised (sent or not) is logged for the daily digest. Never throws.
+ * Every alert raised (sent or not) is logged once per key and day for the
+ * daily digest. An alert that was muted or whose email failed does not use up
+ * its key: the next time the incident is raised (next hour, next run) it is
+ * sent, so a Resend outage or a noisy hour never hides an incident for the
+ * rest of the day. Never throws.
  */
 export async function deliverAlert(deps: AlertDeps, a: OwnerAlert): Promise<DeliverResult> {
   const env = deps.env ?? {};
   const now = deps.now?.() ?? new Date();
   const log = deps.log ?? (() => {});
   const day = dayOf(now);
+  const dedupeKey = `dv:alert:${a.key}:${day}`;
+  // Give the key back so a later raise of the same incident is delivered.
+  const release = async () => {
+    localOnce.delete(dedupeKey);
+    if (deps.store) await safe(() => deps.store!.del(dedupeKey), undefined);
+  };
+  let claimed = false;
   try {
     log("warn", `owner alert: ${a.titleEn}`, { key: a.key, clinicId: a.clinic?.id, severity: a.severity });
     if (!alertsEnabled(env)) return "disabled";
-    if (!(await once(deps.store, `dv:alert:${a.key}:${day}`, 2 * DAY, now))) return "deduped";
-    if (deps.store) {
+    if (!(await once(deps.store, dedupeKey, 2 * DAY, now))) return "deduped";
+    claimed = true;
+    if (deps.store && (await safe(() => deps.store!.setNx(`dv:alertlog:${a.key}:${day}`, 2 * DAY), false))) {
       const entry = JSON.stringify({ at: now.toISOString(), severity: a.severity, title: a.titleEn, key: a.key, clinic: a.clinic?.name ?? a.clinic?.id ?? null });
       await safe(() => deps.store!.push(ALERT_LOG_KEY(day), entry, 3 * DAY, 200), undefined);
     }
@@ -318,15 +330,22 @@ export async function deliverAlert(deps: AlertDeps, a: OwnerAlert): Promise<Deli
     const sentThisHour = deps.store ? await safe(() => deps.store!.incr(`dv:alert:hour:${hourOf(now)}`, 2 * 3600), 0) : 0;
     if (sentThisHour > max) {
       if (sentThisHour === max + 1) {
-        await deps.send(renderAlert(mutedAlert(max)));
+        await safe(() => deps.send(renderAlert(mutedAlert(max))), false);
       }
       log("error", "owner alert muted (hourly cap)", { key: a.key });
+      await release();
       return "muted";
     }
     const ok = await deps.send(renderAlert(a));
+    if (!ok) {
+      log("error", "owner alert not delivered", { key: a.key });
+      // No transport configured at all: keep the key (retrying cannot help, and the log has it).
+      if ((deps.send as { configured?: boolean }).configured !== false) await release();
+    }
     return ok ? "sent" : "failed";
   } catch (e) {
     log("error", "owner alert failed", { key: a.key, err: (e as Error).message });
+    if (claimed) await release();
     return "failed";
   }
 }
@@ -737,6 +756,50 @@ export const alerts = {
       what: [`The welcome email to a clinic that just paid did not go out (${a.result}).`],
       done: ["The payment and plan are recorded; the first week is being made."],
       todo: [`Send a short personal welcome${a.clinic.email ? ` to ${a.clinic.email}` : ""}, and check Resend.`],
+    };
+  },
+
+  recordingFailed(a: { clinic: ClinicRef; attempts: number; error: string; jobId: string }): OwnerAlert {
+    return {
+      key: `recording_failed:${a.jobId}`,
+      severity: "urgent",
+      titleTr: "Hekimin kaydı işlenemedi",
+      titleEn: "A dentist's own recording could not be processed",
+      clinic: a.clinic,
+      what: [`The recording this clinic uploaded could not be turned into clips after ${a.attempts} attempt(s).`],
+      facts: [
+        ["Error", a.error],
+        ["Job", a.jobId],
+      ],
+      done: ["Retried automatically where it made sense.", "No email went to the clinic; nothing new appears in its library."],
+      todo: [
+        "Look at the error and the worker logs.",
+        "When fixed, retry the job from /dentvideo/admin/system (failed jobs) — or ask the clinic to upload it again.",
+      ],
+    };
+  },
+
+  cronFailed(a: { job: string; error: string; attempts?: number }): OwnerAlert {
+    const what: Record<string, string> = {
+      "watchdog-monday": "The Saturday check that every paying clinic has its week did not run, so a missed weekly batch would go unnoticed.",
+      "watchdog-first-week": "The check that newly paid clinics get their first week did not run.",
+      "billing-reconcile": "The nightly billing reconciliation with Dodo did not run: lapsed subscriptions are not being caught.",
+      digest: "The daily digest could not be built or sent.",
+      lifecycle: "The hourly lifecycle emails (reminders to unpaid clinics) did not run.",
+      dispatch: "The Saturday weekly dispatch failed: paying clinics' weeks may not be queued.",
+    };
+    return {
+      key: `cron_failed:${a.job}`,
+      severity: a.job === "dispatch" || a.job === "watchdog-monday" || a.job === "billing-reconcile" ? "urgent" : "warning",
+      titleTr: "Zamanlanmış bir iş başarısız oldu",
+      titleEn: `Scheduled job failed: ${a.job}`,
+      what: [what[a.job] ?? `The scheduled job “${a.job}” failed.`],
+      facts: [["Error", a.error], ...(a.attempts ? ([["Attempts", String(a.attempts)]] as [string, string][]) : [])],
+      done: ["Logged. It runs again at its next scheduled time."],
+      todo: [
+        "Check the worker logs and /dentvideo/admin/system (failed jobs on the dentvid-mail queue).",
+        "Usual causes: Liman (database) or the web app unreachable from the worker, or WORKER_INTERNAL_TOKEN differs between them.",
+      ],
     };
   },
 
