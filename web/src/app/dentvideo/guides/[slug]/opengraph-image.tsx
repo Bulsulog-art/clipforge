@@ -1,6 +1,6 @@
 import { GUIDES, findGuide } from "@/content/dentvideo";
 import { OG_SIZE } from "@/lib/dentvid/og";
-import { guideOgImage } from "@/lib/dentvid/og-guide";
+import { guideOgImage } from "@/lib/dentvid/og-page";
 
 // One share card per guide, rendered at build time.
 export const dynamicParams = false;

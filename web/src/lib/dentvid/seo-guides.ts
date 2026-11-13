@@ -8,6 +8,7 @@ import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { plainText, reviewedDate, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
+import { LANDING } from "@/content/dentvideo";
 import { LEGAL, LEGAL_KINDS, LEGAL_UPDATED, legalPath, type LegalKind } from "@/content/legal";
 
 /**
@@ -31,8 +32,19 @@ export const OG_LOCALE: Record<Locale, string> = {
 /** Further og:locale values a landing also serves (the Arabic one is for the whole Gulf). */
 export const OG_ALTERNATE_LOCALES: Partial<Record<Locale, string[]>> = { ar: ["ar_SA"] };
 
-/** The date the site's non-guide pages last changed in substance. */
+/** When the sample videos on the landings and product pages were published (ISO 8601 with a time zone, as Google asks). */
+export const SAMPLE_UPLOAD_DATE = "2026-11-08T09:00:00+00:00";
+
+/** The date the site's non-guide pages last changed in substance (the floor for every lastmod). */
 export const SITE_UPDATED = "2026-11-08";
+/**
+ * The sitemap's lastmod for the landings and the About pages: the day their
+ * copy last changed in substance (git history of content/dentvideo.ts and
+ * content/guides/entity.ts). Move these when that copy changes, not for a
+ * footer link or a style tweak, so search engines can keep trusting lastmod.
+ */
+export const LANDING_UPDATED = "2026-11-11"; // conversion pass: new hero, risk-reducers, trust facts (#85)
+export const ABOUT_UPDATED = "2026-11-10"; // Group became "Contact us": price facts rewritten (#80)
 
 // Stable node ids, so every page's graph describes the same organisation and product.
 export const ORG_ID = `${PUBLISHER_URL}/#organization`;
@@ -58,7 +70,44 @@ export function organizationNode() {
       addressCountry: OPERATOR.countryCode,
     },
     foundingLocation: { "@type": "Place", name: `${OPERATOR.city}, ${OPERATOR.country}` },
+    // The brand mark (a square image, as Google asks of an Organization logo) and where to write.
+    logo: { "@type": "ImageObject", url: absoluteUrl("/dentvideo/icon-512.png"), width: 512, height: 512 },
+    contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: OPERATOR.productEmail, availableLanguage: [...LOCALES] },
+    brand: { "@type": "Brand", name: "DentVideo" },
   };
+}
+
+/**
+ * <script type="application/ld+json"> content: JSON with "<" escaped, so no
+ * text in it (a guide title, an FAQ answer) can close the script element.
+ */
+export function jsonLdHtml(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+/**
+ * What can be bought, one Offer per self-serve plan (Starter, Practice), each a
+ * monthly price. Group is "Contact us": no price is published, so it is no Offer.
+ */
+export function planOffers(locale: Locale) {
+  const c = LANDING[locale];
+  return DV_SELF_SERVE_TIERS.map((tier, i) => {
+    const price = DV_PRICES_USD[tier].month as number;
+    return {
+      "@type": "Offer",
+      name: c.pricing.tiers[i].name,
+      price,
+      priceCurrency: "USD",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price,
+        priceCurrency: "USD",
+        billingDuration: "P1M",
+        referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+      },
+      url: `${absoluteUrl(LANDING_PATH[locale])}#pricing`,
+    };
+  });
 }
 
 /** The guides' author and reviewer: a team at Bulsu Labs (no invented individual credentials). */
@@ -89,11 +138,6 @@ export function websiteNode(locale: Locale) {
   };
 }
 
-const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
-
-/** Self-serve monthly list prices only: Group is "Contact us" and is not an offer. */
-const monthlyPrices = () => DV_SELF_SERVE_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number");
-
 export function softwareNode(locale: Locale) {
   const e = ENTITY[locale];
   return {
@@ -111,16 +155,14 @@ export function softwareNode(locale: Locale) {
     inLanguage: [...VIDEO_LANGUAGES],
     audience: { "@type": "BusinessAudience", audienceType: "Dental clinics and dentists" },
     publisher: { "@id": ORG_ID },
-    // Google requires a price on a SoftwareApplication offer: the plans' monthly range, from billing.
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: "USD",
-      lowPrice: Math.min(...monthlyPrices()),
-      highPrice: Math.max(...monthlyPrices()),
-      offerCount: monthlyPrices().length,
-      description: e.facts.find((f) => PRICE_LABELS.includes(f.label))?.value,
-    },
+    // Google requires a price on a SoftwareApplication offer: the self-serve plans, from billing.
+    offers: planOffers(locale),
   };
+}
+
+/** An FAQPage node for the questions a page shows; none when it shows none (an empty FAQPage is invalid). */
+function faqNodes(faq: { q: string; a: string }[], locale: Locale) {
+  return faq.length ? [faqNode(faq, locale)] : [];
 }
 
 function faqNode(faq: { q: string; a: string }[], locale: Locale) {
@@ -169,10 +211,8 @@ export function guideAlternates(g: Guide): Record<string, string> | undefined {
   return paths && absolute(paths);
 }
 
-/** The landing's share card for a language (hubs and About pages reuse it). */
-function landingOgImage(locale: Locale): string {
-  return absoluteUrl(`${LANDING_PATH[locale]}/opengraph-image`);
-}
+// Every page's share card comes from the opengraph-image.tsx next to it (lib/dentvid/og-page.tsx):
+// a card with that page's own title in its language, not the landing's.
 
 export function guideOgImagePath(g: Guide): string {
   return `${guidePath(g)}/opengraph-image`;
@@ -257,7 +297,7 @@ export function guideJsonLd(g: Guide) {
       ...(reviewedDate(g) ? { lastReviewed: reviewedDate(g) } : {}),
       reviewedBy: editorialTeam(g.locale),
     },
-    faqNode(g.faq, g.locale),
+    ...faqNodes(g.faq, g.locale),
     breadcrumb([
       { name: "DentVideo", path: LANDING_PATH[g.locale] },
       { name: ui.breadcrumbGuides, path: GUIDES_INDEX_PATH[g.locale] },
@@ -289,8 +329,8 @@ export function guidesIndexMetadata(locale: Locale): Metadata {
     title: { absolute: ui.index.title },
     description: ui.index.description,
     alternates: { canonical: url, languages: guidesIndexAlternates() },
-    openGraph: { title: ui.index.h1, description: ui.index.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale], images: [landingOgImage(locale)] },
-    twitter: { card: "summary_large_image", title: ui.index.h1, description: ui.index.description, images: [landingOgImage(locale)] },
+    openGraph: { title: ui.index.h1, description: ui.index.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale] },
+    twitter: { card: "summary_large_image", title: ui.index.h1, description: ui.index.description },
   };
 }
 
@@ -337,8 +377,8 @@ export function aboutMetadata(locale: Locale): Metadata {
     title: { absolute: e.meta.title },
     description: e.meta.description,
     alternates: { canonical: url, languages: aboutAlternates() },
-    openGraph: { title: e.meta.title, description: e.meta.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale], images: [landingOgImage(locale)] },
-    twitter: { card: "summary_large_image", title: e.meta.title, description: e.meta.description, images: [landingOgImage(locale)] },
+    openGraph: { title: e.meta.title, description: e.meta.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale] },
+    twitter: { card: "summary_large_image", title: e.meta.title, description: e.meta.description },
   };
 }
 
@@ -360,7 +400,7 @@ export function aboutJsonLd(locale: Locale) {
       },
       { ...organizationNode(), brand: { "@type": "Brand", name: "DentVideo" } },
       softwareNode(locale),
-      faqNode(e.faq, locale),
+      ...faqNodes(e.faq, locale),
       breadcrumb([
         { name: "DentVideo", path: LANDING_PATH[locale] },
         { name: GUIDE_UI[locale].about, path: ABOUT_PATH[locale] },
@@ -385,8 +425,8 @@ export function legalMetadata(kind: LegalKind, locale: Locale): Metadata {
     title: { absolute: title },
     description: doc.description,
     alternates: { canonical: url, languages: legalAlternates(kind) },
-    openGraph: { title, description: doc.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale], images: [landingOgImage(locale)] },
-    twitter: { card: "summary_large_image", title, description: doc.description, images: [landingOgImage(locale)] },
+    openGraph: { title, description: doc.description, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale] },
+    twitter: { card: "summary_large_image", title, description: doc.description },
   };
 }
 
@@ -427,9 +467,9 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
   const dateOf = (g: Guide) => g.updated ?? g.published ?? SITE_UPDATED;
   const latestGuide = (l: Locale) => guidesFor(l).map(dateOf).reduce((a, b) => (b > a ? b : a), SITE_UPDATED);
   return [
-    ...LOCALES.map((l) => ({ path: LANDING_PATH[l], lastmod: SITE_UPDATED, priority: l === "en" ? "1.0" : "0.9", alternates: perLocaleAltPaths(LANDING_PATH) })),
+    ...LOCALES.map((l) => ({ path: LANDING_PATH[l], lastmod: LANDING_UPDATED, priority: l === "en" ? "1.0" : "0.9", alternates: perLocaleAltPaths(LANDING_PATH) })),
     ...GUIDE_HUB_LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES) })),
-    ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: SITE_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
+    ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: ABOUT_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
     ...SOLUTIONS.map((p) => ({ path: solutionPath(p), lastmod: p.updated ?? p.published, priority: "0.8", alternates: solutionAltPaths(p) })),
     ...LEGAL_KINDS.flatMap((k) => LOCALES.map((l) => ({ path: legalPath(k, l), lastmod: LEGAL_UPDATED, priority: "0.3", alternates: perLocaleAltPaths(legalPaths(k)) }))),
@@ -470,9 +510,8 @@ export function solutionMetadata(p: SolutionPage): Metadata {
       siteName: "DentVideo",
       locale: OG_LOCALE[p.locale],
       ...(OG_ALTERNATE_LOCALES[p.locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[p.locale] } : {}),
-      images: [landingOgImage(p.locale)],
     },
-    twitter: { card: "summary_large_image", title, description: p.seoDescription, images: [landingOgImage(p.locale)] },
+    twitter: { card: "summary_large_image", title, description: p.seoDescription },
   };
 }
 
@@ -500,7 +539,7 @@ export function solutionJsonLd(p: SolutionPage) {
       },
       organizationNode(),
       softwareNode(p.locale),
-      faqNode(p.faq, p.locale),
+      ...faqNodes(p.faq, p.locale),
       breadcrumb([
         { name: "DentVideo", path: LANDING_PATH[p.locale] },
         { name: p.nav, path: solutionPath(p) },
@@ -512,7 +551,7 @@ export function solutionJsonLd(p: SolutionPage) {
         description: `${ui.samplesHeading}. ${ui.samplesNote}`,
         thumbnailUrl: absoluteUrl(sampleSrc(p.locale, v.slug, "jpg")),
         contentUrl: absoluteUrl(sampleSrc(p.locale, v.slug, "mp4")),
-        uploadDate: "2026-11-08",
+        uploadDate: SAMPLE_UPLOAD_DATE,
         duration: `PT${v.seconds}S`,
         inLanguage: p.locale,
         publisher: { "@id": ORG_ID },

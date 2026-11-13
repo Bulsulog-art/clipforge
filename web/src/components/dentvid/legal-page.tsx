@@ -16,7 +16,7 @@ import {
   type LegalBlock,
   type LegalKind,
 } from "@/content/legal";
-import { legalJsonLd } from "@/lib/dentvid/seo-guides";
+import { legalJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, HtmlLang } from "./guide-parts";
 
@@ -164,7 +164,7 @@ export function LegalPage({ kind, locale }: { kind: LegalKind; locale: Locale })
   const [before, after] = (t.ui.prevails ?? "").split("{english}");
   return (
     <main lang={locale} dir={dirOf(locale)} data-legal={kind}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(legalJsonLd(kind, locale)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(legalJsonLd(kind, locale)) }} />
       <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />

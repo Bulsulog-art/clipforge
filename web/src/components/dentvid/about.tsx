@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { LANDING_PATH, dirOf, hasGuides, type Locale } from "@/content/dentvideo";
 import { ENTITY } from "@/content/guides/entity";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
-import { aboutJsonLd } from "@/lib/dentvid/seo-guides";
+import { aboutJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 import { CommercialLinks } from "./solution-page";
@@ -15,7 +15,7 @@ export function AboutPage({ locale }: { locale: Locale }) {
   const ui = GUIDE_UI[locale];
   return (
     <main lang={locale} dir={dirOf(locale)}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd(locale)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(aboutJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
