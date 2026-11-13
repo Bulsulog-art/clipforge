@@ -3,21 +3,21 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuides, type Locale } from "@/content/dentvideo";
-import { appText } from "@/content/dentvideo-app";
+// Only the small languages module and the words the layout passes in: this file ships on every DentVideo
+// page, and the content modules (landing copy, guides, the app's interface) must stay out of its bundle.
+import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuideHub as hasGuides, type Locale } from "@/content/dentvideo-locales";
+import type { ChromeText, ChromeWords } from "@/lib/dentvid/chrome-text";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
-import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
-import { SOLUTION_UI } from "@/content/solutions/ui";
+import { ABOUT_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { dvHref } from "@/lib/dentvid/host";
 import { equivalentPath } from "@/lib/dentvid/lang-switch";
-import { LEGAL_NAV, isLegalKind, legalPath } from "@/content/legal/nav";
+import { isLegalKind, legalPath } from "@/content/legal/nav";
 import { LEGAL_KINDS } from "@/content/legal/types";
 import { OPERATOR } from "@/content/guides/operator";
 import { DvLogo } from "./mark";
 import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
 import { appTab, isFunnel, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
-import { dvBrowser } from "@/lib/dentvid/supabase";
 
 /** Fired when a page sets the interface language, so the header follows at once. */
 const LANG_EVENT = "dv-lang";
@@ -66,19 +66,19 @@ function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; re
   return { locale: remembered ?? "en", ready };
 }
 
-type Props = { guideLocales: Record<string, Locale> };
+/** `text`: the header's and footer's words in every language (lib/dentvid/chrome-text, built by the layout). */
+type Props = { guideLocales: Record<string, Locale>; text: ChromeText };
 
-export function DvHeader({ guideLocales }: Props) {
+export function DvHeader({ guideLocales, text }: Props) {
   const { locale, ready } = useDvLocale(guideLocales);
   const path = usePathname() ?? "";
   const tab = appTab(path);
-  if (tab) return <AppHeader locale={locale} ready={ready} tab={tab} />;
-  return <SiteHeader locale={locale} ready={ready} quiet={isFunnel(path)} />;
+  if (tab) return <AppHeader t={text[locale]} locale={locale} ready={ready} tab={tab} />;
+  return <SiteHeader t={text[locale]} locale={locale} ready={ready} quiet={isFunnel(path)} />;
 }
 
 /** The site header; `quiet` (the sign-up wizard) keeps only the logo, so the next step is the only way on. */
-function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; quiet: boolean }) {
-  const t = appText(locale).chrome;
+function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Locale; ready: boolean; quiet: boolean }) {
   const home = LANDING_PATH[locale];
   // Until the visitor's language is known on the app screens, keep the space
   // but not the English words.
@@ -104,7 +104,7 @@ function SiteHeader({ locale, ready, quiet }: { locale: Locale; ready: boolean; 
     { href: dvHref(`${home}#how`), label: t.howItWorks },
     { href: dvHref(`${home}#pricing`), label: t.pricing },
     // As on the desktop: only languages that have guides link to them.
-    ...(hasGuides(locale) ? [{ href: dvHref(GUIDES_INDEX_PATH[locale]), label: GUIDE_UI[locale].guides }] : []),
+    ...(hasGuides(locale) ? [{ href: dvHref(GUIDES_INDEX_PATH[locale]), label: t.guides }] : []),
   ];
   return (
     <header
@@ -275,11 +275,11 @@ function MobileMenu({
 /** The commercial pages per language, as small href/label pairs (the layout passes them, so their text stays on the server). */
 export type CommercialNav = Partial<Record<Locale, { href: string; label: string }[]>>;
 
-export function DvFooter({ guideLocales, commercial }: Props & { commercial?: CommercialNav }) {
+export function DvFooter({ guideLocales, text, commercial }: Props & { commercial?: CommercialNav }) {
   const { locale, ready } = useDvLocale(guideLocales);
   const path = usePathname() ?? "";
-  if (appTab(path) || isFunnel(path)) return <AppFooter locale={locale} ready={ready} />;
-  const t = appText(locale).chrome;
+  const t = text[locale];
+  if (appTab(path) || isFunnel(path)) return <AppFooter t={t} locale={locale} ready={ready} />;
   const home = LANDING_PATH[locale];
   const link = "rounded-md text-[#c9d9d5] transition-colors hover:text-white";
   return (
@@ -297,14 +297,14 @@ export function DvFooter({ guideLocales, commercial }: Props & { commercial?: Co
             <ul className="space-y-3.5">
               <li><Link href={dvHref(`${home}#how`)} className={link}>{t.howItWorks}</Link></li>
               <li><Link href={dvHref(`${home}#pricing`)} className={link}>{t.pricing}</Link></li>
-              {hasGuides(locale) && <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{GUIDE_UI[locale].guides}</Link></li>}
+              {hasGuides(locale) && <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{t.guides}</Link></li>}
               {(commercial?.[locale] ?? []).map((p) => (
                 <li key={p.href}><Link href={dvHref(p.href)} className={link}>{p.label}</Link></li>
               ))}
-              <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{GUIDE_UI[locale].about}</Link></li>
+              <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{t.about}</Link></li>
               <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>
               {/* Returning clinics: straight to the sign-in form rather than sign-up. */}
-              <li><Link href={dvHref(`/dentvideo/start?mode=signin&lang=${locale}`)} className={link}>{SOLUTION_UI[locale].signIn}</Link></li>
+              <li><Link href={dvHref(`/dentvideo/start?mode=signin&lang=${locale}`)} className={link}>{t.signIn}</Link></li>
             </ul>
             <ul className="space-y-3.5">
               {LOCALES.map((l) => (
@@ -317,11 +317,11 @@ export function DvFooter({ guideLocales, commercial }: Props & { commercial?: Co
             </ul>
           </div>
         </div>
-        <nav aria-label={LEGAL_NAV[locale].legal} className={`mt-14 border-t border-white/10 pt-6 ${ready ? "" : "invisible"}`}>
+        <nav aria-label={t.legal} className={`mt-14 border-t border-white/10 pt-6 ${ready ? "" : "invisible"}`}>
           <ul className="flex flex-wrap gap-x-5 gap-y-2 text-xs" data-testid="dv-legal-links">
             {LEGAL_KINDS.map((k) => (
               <li key={k}>
-                <Link href={dvHref(legalPath(k, locale))} className={link}>{LEGAL_NAV[locale].nav[k]}</Link>
+                <Link href={dvHref(legalPath(k, locale))} className={link}>{t.legalNav[k]}</Link>
               </li>
             ))}
           </ul>
@@ -356,8 +356,7 @@ const TABS: { key: AppTab; href: string; Icon: typeof Video }[] = [
  * sign-out. On a phone the screens sit in a row of equal tabs under the logo,
  * each a full thumb's width.
  */
-function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab: AppTab }) {
-  const t = appText(locale).chrome;
+function AppHeader({ t, locale, ready, tab }: { t: ChromeWords; locale: Locale; ready: boolean; tab: AppTab }) {
   const [leaving, setLeaving] = useState(false);
   // As on the site: <html> speaks the app's language, right to left in Arabic.
   useEffect(() => {
@@ -371,6 +370,8 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
   async function signOut() {
     setLeaving(true);
     try {
+      // The Supabase client loads when someone signs out, not with every page's header.
+      const { dvBrowser } = await import("@/lib/dentvid/supabase");
       await dvBrowser().auth.signOut();
     } catch {
       /* signed out locally either way */
@@ -430,8 +431,7 @@ function AppHeader({ locale, ready, tab }: { locale: Locale; ready: boolean; tab
 }
 
 /** Inside the app: one calm line — the compliance promise and where to write. */
-function AppFooter({ locale, ready }: { locale: Locale; ready: boolean }) {
-  const t = appText(locale).chrome;
+function AppFooter({ t, locale, ready }: { t: ChromeWords; locale: Locale; ready: boolean }) {
   return (
     <footer lang={locale} dir={dirOf(locale)} className={`border-t border-dv-line bg-dv-sand/60 ${ready ? "" : "invisible"}`}>
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-dv-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -443,11 +443,11 @@ function AppFooter({ locale, ready }: { locale: Locale; ready: boolean }) {
           </a>
         </p>
       </div>
-      <nav aria-label={LEGAL_NAV[locale].legal} className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+      <nav aria-label={t.legal} className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
         <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-dv-muted" data-testid="dv-legal-links">
           {LEGAL_KINDS.map((k) => (
             <li key={k}>
-              <Link href={dvHref(legalPath(k, locale))} className="underline-offset-4 hover:text-dv-ink hover:underline">{LEGAL_NAV[locale].nav[k]}</Link>
+              <Link href={dvHref(legalPath(k, locale))} className="underline-offset-4 hover:text-dv-ink hover:underline">{t.legalNav[k]}</Link>
             </li>
           ))}
         </ul>

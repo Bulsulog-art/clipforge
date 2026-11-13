@@ -21,7 +21,8 @@ export const metadata: Metadata = { title: "App preview", robots: { index: false
  *
  * library states: mixed (default: this week to review + last week approved),
  *   between (this week not made yet), empty (paid, nothing ever made),
- *   first-week (just paid), paused, cancelled, trial (no plan, old videos), updating
+ *   first-week (just paid), paused, cancelled, trial (no plan, old videos), updating,
+ *   posting (this week all approved: the post-it step and the posting checklist)
  * settings states: active (default), paused, trial
  *   &delay=retrying|delayed adds the worker's "taking a little longer" note (library, first-week)
  *   &billing=email shows the path without DODO_API_KEY (default: self-serve);
@@ -81,6 +82,9 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
     planState = state;
     items = all.filter((i) => i.week_of === lastWeek);
     madeThisWeek = false;
+  } else if (state === "posting") {
+    // Everything this week decided and approved: the "post it" step with the week's checklist.
+    items = all.filter((i) => i.status !== "working" && i.status !== "rejected").map((i) => (i.week_of === thisWeek ? { ...i, approval: "approved" as const, status: "ready" as const, findings: [] } : i));
   } else if (state === "updating") {
     items = all.map((i, n) => (n === 0 && i.photos ? { ...i, photos: { ...i.photos, status: "queued" as const } } : i));
   }

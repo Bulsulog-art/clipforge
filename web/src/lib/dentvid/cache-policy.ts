@@ -1,4 +1,5 @@
-import { LOCALES } from "@/content/dentvideo";
+// The small languages module, not content/dentvideo: this runs in the middleware, on every request.
+import { LOCALES } from "@/content/dentvideo-locales";
 
 /**
  * Which DentVideo pages a shared cache (a CDN, a proxy) may keep, and for how long.

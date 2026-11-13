@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { isDentvideoHost } from "@/lib/dentvid/host";
 
 /**
@@ -72,6 +71,9 @@ async function submitIfReady() {
   const raw = localStorage.getItem(LS_KEY);
   if (!raw) return;
 
+  // Loaded only here, with something to submit: this component sits in the root layout, so a static
+  // import would put ClipForge's Supabase client in every page's JavaScript, DentVideo's included.
+  const { createClient } = await import("@/lib/supabase/client");
   const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) return;   // wait until user signs in

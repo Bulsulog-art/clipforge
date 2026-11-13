@@ -25,6 +25,7 @@ import { OPERATOR } from "./guides/entity";
 import { LEGAL, LEGAL_KINDS, LEGAL_NAV, LEGAL_PAGES, LEGAL_UPDATED, SUBPROCESSOR_IDS, legalPath, legalPlain, parseLegal, type LegalBlock, type LegalKind } from "./legal";
 import { LegalPage } from "@/components/dentvid/legal-page";
 import { DvFooter, pathLocale } from "@/components/dentvid/chrome";
+import { chromeText } from "@/lib/dentvid/chrome-text";
 import { StartForm } from "@/components/dentvid/start-form";
 import { PlanPanel } from "@/components/dentvid/plan-panel";
 import { dvAvailablePlans } from "@/lib/dentvid/billing";
@@ -210,7 +211,7 @@ describe("legal pages: routes, links, sitemap, metadata", () => {
   it("the footer links all five legal pages in the page's language, on site and app pages", async () => {
     for (const l of LOCALES) {
       nav.path = l === "en" ? "/dentvideo" : `/dentvideo/${l}`;
-      const h = html(createElement(DvFooter, { guideLocales: {} }));
+      const h = html(createElement(DvFooter, { guideLocales: {}, text: chromeText() }));
       for (const k of LEGAL_KINDS) {
         expect(h, `${l} ${k}`).toContain(`href="${legalPath(k, l)}"`);
         expect(text(h)).toContain(LEGAL_NAV[l].nav[k]);
@@ -218,7 +219,7 @@ describe("legal pages: routes, links, sitemap, metadata", () => {
       expect(text(h)).toContain(OPERATOR.shortName);
     }
     nav.path = "/dentvideo/app";
-    const app = html(createElement(DvFooter, { guideLocales: {} }));
+    const app = html(createElement(DvFooter, { guideLocales: {}, text: chromeText() }));
     for (const k of LEGAL_KINDS) expect(app).toContain(`href="${legalPath(k, "en")}"`);
   });
 

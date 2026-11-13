@@ -12,7 +12,7 @@ import { produceWeek, type VideoPackage } from "../dental/week.js";
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
-import { prepareVoiceover } from "../remotion/voiceover.js";
+import { prepareNarration } from "../dental/narration-audio.js";
 import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { afterRerender, rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
@@ -330,9 +330,10 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           onVideoError: (e) => noteRenderFailure(e).catch(() => {}),
           render: async (plan, topic) => {
             const dir = await fs.mkdtemp(path.join(workDir, "v-"));
-            const voice = await prepareVoiceover(plan, dir, {
+            const voice = await prepareNarration(plan, dir, profile.language, {
               ...resolveVoice(profile.language),
               onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
+              onMasterError: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: narration mastering failed, used the plain voice"),
             }).catch((e) => {
               logger.warn({ err: (e as Error).message, topic: topic.title }, "dentvid: voiceover failed");
               return { plan, voiceoverPath: undefined };
@@ -551,7 +552,10 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
     const plan: ScenePlan = profile.brandColor
       ? { ...stored, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
       : stored;
-    const voice = await prepareVoiceover(plan, workDir, resolveVoice(profile.language)).catch((e) => {
+    const voice = await prepareNarration(plan, workDir, profile.language, {
+      ...resolveVoice(profile.language),
+      onMasterError: (e) => logger.warn({ err: e.message, itemId: item.id }, "dentvid: restyle narration mastering failed, used the plain voice"),
+    }).catch((e) => {
       logger.warn({ err: (e as Error).message, itemId: item.id }, "dentvid: restyle voiceover failed");
       return { plan, voiceoverPath: undefined };
     });

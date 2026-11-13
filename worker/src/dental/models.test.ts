@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DEFAULT_AGENT_MODEL, DEFAULT_REVIEW_MODEL, JUDGE_MODEL, resolveModels } from "./llm.js";
 import { params } from "../lib/model-params.js";
-import { resolveVoice, voiceFor, voiceInstructions } from "./voice.js";
+import { resolveVoice, speakingTempo, voiceFor, voiceInstructions } from "./voice.js";
 import { wer } from "./voice-eval.js";
 
 vi.mock("../steps/tts.js", () => ({ synthesizeSpeech: vi.fn() }));
@@ -127,5 +127,17 @@ describe("voice per language", () => {
     expect(voiceFor("ar", "nova")).toBe("shimmer");
     expect(voiceFor("ja", "nova")).toBe("nova");
     expect(voiceFor("pl", "onyx")).toBe("onyx");
+  });
+});
+
+describe("speakingTempo", () => {
+  it("slows the measured-fast languages on tts-1-hd only", () => {
+    expect(speakingTempo("en")).toBe(0.93);
+    expect(speakingTempo("es", "tts-1-hd")).toBe(0.92);
+    expect(speakingTempo("DE")).toBe(0.96);
+    expect(speakingTempo("tr")).toBe(1);
+    expect(speakingTempo("ja")).toBe(1);
+    expect(speakingTempo(undefined)).toBe(1);
+    expect(speakingTempo("en", "gpt-4o-mini-tts")).toBe(1);
   });
 });

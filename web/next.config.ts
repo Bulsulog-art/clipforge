@@ -80,6 +80,14 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
         ],
       },
+      {
+        // DentVideo's sample videos and posters, the live preview's plans and narration, and the
+        // background photos: static files a browser may keep for a day (Next serves public/ with
+        // max-age=0, so every repeat visit revalidated each one). Not immutable: their names carry
+        // no hash, so a re-render under the same name is picked up within a day.
+        source: "/dentvideo/:dir(samples|preview|backgrounds)/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
     ];
   },
 };

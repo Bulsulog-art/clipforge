@@ -131,3 +131,57 @@ describe("enqueueFirstWeek", () => {
     expect(add).not.toHaveBeenCalled();
   });
 });
+
+describe("payment webhook → silent failures reach the owner", () => {
+  const quiet = () => vi.spyOn(console, "error").mockImplementation(() => {});
+  const clinicRef = async (_db: SupabaseClient, id: string) => ({ id, name: "Gülüş Dental" });
+  const keysOf = (alert: { mock: { calls: unknown[][] } }) => alert.mock.calls.map((c) => (c[0] as { key: string }).key);
+
+  it("a first week that could not be queued raises an alert naming the clinic", async () => {
+    const err = quiet();
+    const alert = vi.fn(async (_a: unknown) => "sent");
+    const r = await handleDentvideoEvent(fakeDb(unpaid()).db, active(), {
+      enqueueWeek: async () => {
+        throw new Error("connect ECONNREFUSED 127.0.0.1:6379");
+      },
+      sendWelcome: async () => "sent",
+      alert,
+      clinicRef,
+    });
+    err.mockRestore();
+    expect(r.body).toMatchObject({ firstWeek: "failed" });
+    expect(keysOf(alert)).toContain(`enqueue_failed:payment:${CLINIC}`);
+  });
+
+  it("a welcome email that failed raises a heads-up; one already sent or to a test account does not", async () => {
+    for (const [result, expected] of [
+      ["failed", true],
+      ["migration missing", true],
+      ["already sent", false],
+      ["test account", false],
+      ["sent", false],
+    ] as const) {
+      const err = quiet();
+      const alert = vi.fn(async (_a: unknown) => "sent");
+      await handleDentvideoEvent(fakeDb(unpaid()).db, active(), { enqueueWeek: async () => "queued" as const, sendWelcome: async () => result, alert, clinicRef });
+      err.mockRestore();
+      expect(keysOf(alert).includes(`welcome_not_sent:${CLINIC}`), result).toBe(expected);
+    }
+  });
+
+  it("a welcome that threw is reported too", async () => {
+    const err = quiet();
+    const alert = vi.fn(async (_a: unknown) => "sent");
+    const r = await handleDentvideoEvent(fakeDb(unpaid()).db, active(), {
+      enqueueWeek: async () => "queued" as const,
+      sendWelcome: async () => {
+        throw new Error("lifecycle store down");
+      },
+      alert,
+      clinicRef,
+    });
+    err.mockRestore();
+    expect(r.body).toMatchObject({ welcomeEmail: "failed" });
+    expect(keysOf(alert)).toContain(`welcome_not_sent:${CLINIC}`);
+  });
+});

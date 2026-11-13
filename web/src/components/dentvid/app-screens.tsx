@@ -80,7 +80,7 @@ export function AppHomeView({
           <header>
             <p className="text-sm font-medium text-dv-muted">{clinicName || t.yourClinic}</p>
             <Heading className="dv-display mt-1 text-[2.5rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</Heading>
-            <p className="mt-3 flex max-w-3xl items-start gap-2 text-sm leading-relaxed text-dv-muted">
+            <p className="mt-3 hidden max-w-3xl items-start gap-2 text-sm leading-relaxed text-dv-muted sm:flex">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
               {t.lead}
             </p>
