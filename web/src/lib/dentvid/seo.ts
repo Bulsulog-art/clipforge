@@ -3,7 +3,6 @@ import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { LANDING, LANDING_PATH, LOCALES, HREFLANG, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { dentvideoSitemapEntries } from "./seo-guides";
-import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 
 /** hreflang map for the landings: every locale plus x-default (English). */
 export function landingAlternates(): Record<string, string> {
@@ -14,7 +13,7 @@ export function landingAlternates(): Record<string, string> {
 }
 
 import { ALTERNATE_NAMES, SAME_AS } from "@/content/guides/entity";
-import { OG_ALTERNATE_LOCALES, OG_LOCALE, ORG_ID, organizationNode, softwareId, websiteNode } from "./seo-guides";
+import { OG_ALTERNATE_LOCALES, OG_LOCALE, ORG_ID, SAMPLE_UPLOAD_DATE, organizationNode, planOffers, softwareId, websiteNode } from "./seo-guides";
 
 export function landingMetadata(locale: Locale): Metadata {
   const c = LANDING[locale];
@@ -66,16 +65,10 @@ export function landingJsonLd(locale: Locale) {
         description: c.meta.description,
         url: absoluteUrl(LANDING_PATH[locale]),
         // Only what can be bought: Group is "Contact us", so it has no Offer (no price published that is not sold).
-        offers: DV_SELF_SERVE_TIERS.map((tier, i) => ({
-          "@type": "Offer",
-          name: c.pricing.tiers[i].name,
-          price: DV_PRICES_USD[tier].month,
-          priceCurrency: "USD",
-          description: c.pricing.text,
-        })),
+        offers: planOffers(locale),
         publisher: PUBLISHER,
       },
-      { ...faqPage(c.faq), inLanguage: locale },
+      ...(c.faq.length ? [{ ...faqPage(c.faq), inLanguage: locale }] : []),
       // The sample week shown on this landing, in this landing's language.
       ...(samplesFor(locale) ?? []).map((v) => ({
         "@type": "VideoObject",
@@ -83,7 +76,7 @@ export function landingJsonLd(locale: Locale) {
         description: `${c.samples.heading} — DentVideo`,
         thumbnailUrl: absoluteUrl(sampleSrc(locale, v.slug, "jpg")),
         contentUrl: absoluteUrl(sampleSrc(locale, v.slug, "mp4")),
-        uploadDate: "2026-11-08",
+        uploadDate: SAMPLE_UPLOAD_DATE,
         duration: `PT${v.seconds}S`,
         inLanguage: locale,
         publisher: PUBLISHER,

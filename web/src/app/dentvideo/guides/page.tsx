@@ -4,8 +4,8 @@ import { guidesIndexMetadata } from "@/lib/dentvid/seo-guides";
 
 // English guides hub (dentvideo.com/guides); other languages: [locale]/guides.
 export const metadata: Metadata = guidesIndexMetadata("en");
-// The same HTML for every visitor: prerendered once at build (the DentVideo 404
-// boundary reads a cookie, which would otherwise render this page per request).
+// The same HTML for every visitor: prerendered once at build (kept explicit; the DentVideo 404
+// boundary no longer reads request data, see app/dentvideo/not-found.tsx).
 export const dynamic = "force-static";
 
 export default function EnglishGuidesIndex() {

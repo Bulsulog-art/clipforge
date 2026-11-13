@@ -121,8 +121,9 @@ describe("Group is Contact us", () => {
       expect(app?.offers?.map((o) => o.price), l).toEqual([49, 99]);
       expect(promisesIn(landing), l).toEqual([]);
       expect(landing, l).not.toMatch(/"name":"Group"/);
-      const about = aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown> }[];
-      expect(about.find((n) => n["@type"] === "SoftwareApplication")?.offers, l).toMatchObject({ lowPrice: 49, highPrice: 99, offerCount: 2 });
+      const about = aboutJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[];
+      const aboutOffers = about.find((n) => n["@type"] === "SoftwareApplication")?.offers;
+      expect(aboutOffers?.map((o) => [o.name, o.price]), l).toEqual([["Starter", 49], ["Practice", 99]]);
     }
   });
 });
