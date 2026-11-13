@@ -266,9 +266,11 @@ describe("the orchestrator", () => {
   it("runs the week: strategist topics → packages, rendering when asked", async () => {
     const other: Topic = { ...TOPIC, title: "Implant aftercare", service: "implants", pillar: "aftercare" };
     const offMenu: Topic = { ...TOPIC, title: "Braces 101", service: "orthodontics", pillar: "education" };
+    // The second video closes differently: a closing that echoes the first is sent back (week.ts scriptProblems).
+    const second = { ...clean, scenes: clean.scenes.map((s) => (s.kind === "cta" ? { ...s, text: "Ask about implant aftercare at your visit" } : s)) } as ScenePlan;
     const { client } = fakeClient({
       topics: [TOPIC, other, offMenu],
-      plans: [clean, clean],
+      plans: [clean, second],
       reviews: ["pass", "pass", "pass", "pass"],
       copies: [
         { caption: "Supervised whitening is considered safe. Book a check-up.", hashtags: ["dentist", "izmir", "whitening"] },

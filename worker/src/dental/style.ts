@@ -180,7 +180,22 @@ const GENERIC_CTA = w(
   "for more information|contact us|daha fazla bilgi|bizimle iletişime geçin|bize ulaşın|für weitere informationen|kontaktieren sie uns|para más información|contáctanos|contáctenos|pour plus d'informations|contactez-nous|per maggiori informazioni|contattaci|para mais informações|contacte-nos|skontaktuj|لمزيد من المعلومات|お問い合わせください",
 );
 /** In Türkiye the close must not send the viewer to this clinic (RG 33075: informative only). */
-const TR_STEERING = w("randevu al\\p{L}*|bize ulaş\\p{L}*|kliniğimiz\\p{L}*|iletişime geçin|bizi arayın|bize yazın");
+const TR_STEERING = w(
+  // Booking verbs in every polite form ("randevu alın", "randevu planlayabilirsiniz",
+  // "kontrol randevusu oluşturabilirsiniz", "muayene planlayabilirsiniz" — the last
+  // two were seen live in captions), and sending the viewer to this clinic.
+  "randevu(su|nuzu)? (al|planla|oluştur|ayarla)\\p{L}*|muayene (planla|ayarla)\\p{L}*|bize ulaş\\p{L}*|kliniğimiz\\p{L}*|iletişime geç\\p{L}*|bizi ara\\p{L}*|bize yaz\\p{L}*|bize sor\\p{L}*|bize danış\\p{L}*|bize gel\\p{L}*",
+);
+
+/**
+ * Anything in a Turkish text that sends the viewer to book or to this
+ * clinic. The closing line was checked for it; the caption and the narration
+ * were not, and the caption writer was even told to "end with a soft call to
+ * book" — so Turkish captions ended "kontrol randevusu planlayabilirsiniz".
+ */
+export function trSteering(text: string): string | undefined {
+  return text.match(new RegExp(TR_STEERING.source, "giu"))?.[0];
+}
 
 export type CtaFinding = { code: "missing" | "pressure" | "exclamation" | "generic" | "steering"; detail: string };
 
@@ -209,9 +224,136 @@ export const BLOCKING_CTA = new Set<CtaFinding["code"]>(["pressure", "steering"]
  */
 export function ctaGuide(country: string | undefined, address: "formal" | "informal" = "formal"): string {
   const c = (country ?? "").toUpperCase();
+  // The guide used to give ONE example sentence, and the planner copied it
+  // word for word into every video of the week (live run, Nov 2026: three of
+  // three Turkish closings were the example verbatim). So it describes the
+  // move and names the subject-specific part; the post-check rejects a copy.
+  const shared = `Write it fresh for THIS video: name its subject (the implant, the aligners, the bleeding gums…) so it could not close any other video. Never copy an example sentence, never the same wording as the clinic's other videos this week, never the clinic's name (the handle is shown on screen), no exclamation mark, no urgency.`;
   if (c === "TR")
-    return `The closing line only informs: invite the viewer to ask their own dentist at their next check-up (e.g. "Merak ettiğiniz bir şey varsa bir sonraki kontrolünüzde hekiminize sorabilirsiniz."). Never "randevu alın", "bize ulaşın", "iletişime geçin", "kliniğimiz", no exclamation mark, no urgency — Türkiye's rules (RG 33075) forbid steering viewers to a clinic.`;
-  return `The closing line is one calm, specific sentence tied to THIS video's subject (e.g. ${address === "informal" ? `"Notice it too? Mention it at your next check-up."` : `"If this sounds familiar, mention it at your next check-up."`}), in the clinic's language. It may invite the viewer to ask the clinic or book a check-up, but never with urgency ("now", "today", "don't wait"), never an exclamation mark, never a generic "for more information, contact us", and never the same wording as the clinic's other videos this week.`;
+    return `The closing line only informs: it points the viewer to their own dentist (hekiminiz) — e.g. a question worth asking at the next check-up, or that their dentist can say what applies to them. ${shared} Never "randevu alın/planlayın", "muayene planlayın", "bize ulaşın/yazın/sorun", "iletişime geçin", "kliniğimiz" — Türkiye's rules (RG 33075) forbid steering viewers to book or to a clinic.`;
+  return `The closing line is one calm, specific sentence tied to THIS video's subject — e.g. ${address === "informal" ? "a sign worth mentioning at your next check-up, or a question to bring to your dentist or hygienist" : "a sign worth mentioning at the next check-up, or a question to bring to the dentist"} — in the clinic's language. It may invite the viewer to ask the practice or book a check-up, but never a generic "for more information, contact us". ${shared}`;
+}
+
+/**
+ * Closings the prompts used to give as examples, per market. A closing that
+ * is one of them was copied, not written (Nov 2026: three of three Turkish
+ * closings were the first one, verbatim); the post-check sends it back and
+ * the rubric marks it down.
+ */
+export function ctaTemplates(country: string | undefined): string[] {
+  return (country ?? "").toUpperCase() === "TR"
+    ? ["Merak ettiğiniz bir şey varsa bir sonraki kontrolünüzde hekiminize sorabilirsiniz."]
+    : ["Notice it too? Mention it at your next check-up.", "If this sounds familiar, mention it at your next check-up."];
+}
+
+// ---------------------------------------------------------------------------
+// Repetition inside one script
+
+const tok = (s: string) => new Set(s.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((t) => t.length > 2));
+/** Token overlap (Jaccard) of two lines, 0-1. */
+export function overlap(a: string, b: string): number {
+  const A = tok(a);
+  const B = tok(b);
+  if (!A.size || !B.size) return 0;
+  let n = 0;
+  for (const t of A) if (B.has(t)) n++;
+  return n / (A.size + B.size - n);
+}
+
+/**
+ * A recap heading: the planner kept ending the body with a "Kısaca / Kurz
+ * gesagt / What to do" list that restated the scenes above it (live run:
+ * 7 of 9 scripts), which costs 4-6 seconds and says nothing new.
+ */
+const RECAP = w(
+  "kısaca|kısa cevap|özetle|özet|sonuç olarak|kurz gesagt|zusammengefasst|zusammenfassung|fazit|auf einen blick|in short|in a nutshell|to sum up|summary|recap|the short answer|en resumen|resumiendo|en bref|en résumé|in breve|riassumendo|em resumo|resumindo|w skrócie|podsumowując|باختصار|まとめ",
+);
+
+/**
+ * Lines on screen that say the same thing twice: two lines with most of their
+ * words in common, or a recap heading. The takeaway restated as a scene, then
+ * again as a list item, was the most common flaw of the Nov 2026 live run
+ * ("Mit Alignern ist Wasser die sichere Wahl." / "Mit Alignern am besten nur
+ * Wasser trinken." / "Nur Wasser mit Alignern").
+ */
+/** Long function words that would make two unrelated lines look alike. */
+const FUNCTION_WORDS = new Set(
+  (
+    "your yours this that these those with from have will they them then than when what more also just into very been were about there their " +
+    "eine einen einem einer nicht auch oder wenn dann sich sind wird kann ihre ihren ihrem ihrer ihnen mehr noch schon sehr beim nach über unter dass " +
+    "daha için gibi kadar sonra önce bile veya ancak çünkü bunu olan olarak sizin sizi size " +
+    "para como pero esto esta este tiene puede donde cuando"
+  ).split(" "),
+);
+
+export function repeatedScreen(lines: string[], skip: (string | undefined)[] = []): string[] {
+  const out: string[] = [];
+  const recap = lines.find((l) => RECAP.test(l) && l.split(/\s+/).length <= 4);
+  if (recap) out.push(`"${recap}" is a recap of what the video already showed`);
+  // The hook (which the body answers) and the closing are allowed to echo the
+  // body; body lines are not allowed to echo each other. A paraphrase shares
+  // most of the shorter line's words ("Nur Wasser mit Alignern" ⊂ "Mit
+  // Alignern am besten nur Wasser trinken"), so either measure counts.
+  const long = lines.filter((l) => tok(l).size >= 3 && !skip.includes(l));
+  // Content words only (longer than 3 letters), so "die", "mit", "ve" do not make two lines look alike.
+  const content = (s: string) => new Set([...tok(s)].filter((t) => t.length > 3 && !FUNCTION_WORDS.has(t)));
+  const contained = (a: string, b: string) => {
+    const A = content(a);
+    const B = content(b);
+    if (Math.min(A.size, B.size) < 2) return 0;
+    let n = 0;
+    for (const t of A) if (B.has(t)) n++;
+    return n / Math.min(A.size, B.size);
+  };
+  for (let i = 0; i < long.length; i++)
+    for (let j = i + 1; j < long.length; j++)
+      if (overlap(long[i], long[j]) >= 0.5 || contained(long[i], long[j]) >= 0.75) {
+        out.push(`"${long[j].slice(0, 60)}" repeats "${long[i].slice(0, 60)}"`);
+        return out;
+      }
+  return out;
+}
+
+/**
+ * Tag questions bolted onto a statement ("…olmaz, değil mi?", "…, oder?").
+ * The Turkish spoken cues used to list "değil mi?" as a natural link, and the
+ * narrator put it at the end of a closing claim — it sounds unsure of itself,
+ * and on a medical fact it sounds like a trick question.
+ */
+const TAG_QUESTION = w("değil mi\\s*\\?|öyle değil mi\\s*\\?|oder\\s*\\?|nicht wahr\\s*\\?|gell\\s*\\?|right\\s*\\?|isn't it\\s*\\?|¿verdad\\s*\\?|verdad\\s*\\?|n'est-ce pas\\s*\\?|vero\\s*\\?|não é\\s*\\?|prawda\\s*\\?");
+/** A bare "No." answering the hook: medicine is rarely absolute (the hook rules say "not quite"). */
+const BARE_NO = /(^|[.!?]\s+)(no|nope|nein|hayır|non|nie|لا)\s*[.!]/iu;
+
+export function spokenTics(text: string): string[] {
+  const out: string[] = [];
+  const t = text.match(TAG_QUESTION);
+  if (t) out.push(`tag question "${t[0]}" — say it as a plain statement`);
+  const n = text.match(BARE_NO);
+  if (n) out.push(`a bare "${n[2]}." — medicine is rarely absolute; say "not quite" / "usually not" with the reason`);
+  return out;
+}
+
+/** The clinic's name said in the closing (and so in every video's last line). */
+export function namesClinic(text: string, clinicName: string): boolean {
+  const flat = (s: string) => s.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const words = flat(clinicName).split(" ").filter(Boolean);
+  const t = ` ${flat(text)} `;
+  // Its first two words together ("elm tree", "bogazici implant"), or a long
+  // proper name in it ("viktualienmarkt") — never a dental word on its own,
+  // which every script says ("implant", "dental").
+  const generic = /^(dental|dentist\w*|clinic\w*|klinik\w*|praxis|zahnpraxis|zahnarzt\w*|agiz|dis|sagligi|family|care|studio|center|centre|merkezi|implant\w*|smile\w*)$/u;
+  const phrase = words.length >= 2 ? `${words[0]} ${words[1]}` : "";
+  const proper = words.filter((x) => x.length >= 8 && !generic.test(x));
+  return (!!phrase && t.includes(` ${phrase} `)) || proper.some((x) => t.includes(` ${x}`));
+}
+
+/** Share of the caption's sentences lifted from the narration (the caption should add, not repeat). */
+export function copiedShare(caption: string, narration: string): number {
+  const split = (s: string) => s.split(/(?<=[.!?。？！])\s+|\n+/u).map((x) => x.trim()).filter((x) => tok(x).size >= 4);
+  const cs = split(caption);
+  const ns = split(narration);
+  if (!cs.length || !ns.length) return 0;
+  return cs.filter((c) => ns.some((n) => overlap(c, n) >= 0.7)).length / cs.length;
 }
 
 // ---------------------------------------------------------------------------

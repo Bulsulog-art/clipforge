@@ -112,3 +112,46 @@ export function weekVoiceBrief(v: WeekVoice | undefined): string {
     .filter(Boolean)
     .join("\n");
 }
+
+/** A stored item as the week job reads it back (dentvid_items: title, topic, week_of, status). */
+export type PastItemRow = { title?: unknown; topic?: unknown; week_of?: unknown; status?: unknown };
+
+const str = (v: unknown, max = 200): string | undefined => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
+
+/**
+ * The clinic's history for the strategist, from its stored items: title,
+ * hook, service, pillar, question and week. This is what turns on the full
+ * memory (services covered in the last four weeks, recent hooks and hook
+ * shapes) instead of the title filter alone. Rows that never reached the
+ * clinic (rejected, failed) are left out: they were not posted, so they do
+ * not count as covered. Oldest first, as memoryBrief and clinicMemory
+ * expect. The topic column is jsonb the agents wrote, so every field is
+ * checked, never trusted.
+ */
+export function historyFromRows(rows: PastItemRow[]): PastTopic[] {
+  const out: PastTopic[] = [];
+  for (const r of rows) {
+    if (r.status === "rejected" || r.status === "failed") continue;
+    const t = (r.topic && typeof r.topic === "object" && !Array.isArray(r.topic) ? r.topic : {}) as Record<string, unknown>;
+    const title = str(r.title) ?? str(t.title);
+    if (!title) continue;
+    const weekOf = str(r.week_of, 40);
+    const hook = str(t.hook);
+    const service = str(t.service, 80);
+    const pillar = str(t.pillar, 40);
+    const question = str(t.question);
+    out.push({
+      title,
+      ...(hook ? { hook } : {}),
+      ...(service ? { service } : {}),
+      ...(pillar ? { pillar } : {}),
+      ...(question ? { question } : {}),
+      ...(weekOf && !Number.isNaN(Date.parse(weekOf)) ? { weekOf } : {}),
+    });
+  }
+  // Oldest first; undated rows (none in practice: week_of is not null) go first, in their order.
+  return out
+    .map((h, i) => ({ h, i, t: h.weekOf ? Date.parse(h.weekOf) : -8.64e15 }))
+    .sort((a, b) => a.t - b.t || a.i - b.i)
+    .map((x) => x.h);
+}

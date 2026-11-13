@@ -5,7 +5,7 @@ import { addressRule, type ClinicProfile } from "./profile.js";
 import { AVOID_WORDS } from "./compliance.js";
 import { exampleFor } from "./examples.js";
 import { weekVoiceBrief, type WeekVoice } from "./memory.js";
-import { marketRules, speechTarget } from "./locale.js";
+import { marketRules, speechTarget, variantRule } from "./locale.js";
 import type { Topic } from "./strategist.js";
 import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 
@@ -28,8 +28,11 @@ import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
  * clinic's choice and stays; the register is what changes.
  */
 export const SPOKEN_CUES: Record<string, string> = {
-  tr: `Konuşma Türkçesi: kısa cümleler, "-ebilirsiniz", "aslında", "şöyle", "değil mi?" gibi doğal bağlaçlar — ama her biri en fazla bir kez ve hiçbiri açılış kalıbı olarak değil. Yazı dili kalıplarından kaçının: "gerçekleştirilir", "sağlanmaktadır", "mevcuttur", "önem arz eder", "oldukça önemlidir", "-mektedir". "Daha fazla bilgi için" ve "Unutmayın" demeyin.`,
-  de: `Gesprochenes Deutsch: kurze Sätze, Alltagswörter, ruhig mal ein "ehrlich gesagt" oder "das heißt" — aber höchstens einmal, und nie als Einstieg. Fangen Sie NIE mit "Wissen Sie was?" an. Kein Behörden- oder Prospektdeutsch ("erfolgt", "gewährleistet", "im Rahmen von", "Es ist wichtig, dass", "Ihr Lächeln ist uns wichtig").`,
+  // Described, not listed: a cue that names a phrase gets that phrase in
+  // every script. The old Turkish cue offered "değil mi?" and the Nov 2026
+  // live run ended two of three narrations with a bolted-on "…, değil mi?".
+  tr: `Konuşma Türkçesi, bir diş hekiminin koltuktaki hastasına anlattığı gibi: kısa ve orta cümleler, gündelik kelimeler, kesin olmayan yerde "-ebilir/-abilir". Yazı dili ve çeviri kokan kalıplar yok: "gerçekleştirilir", "sağlanmaktadır", "mevcuttur", "önem arz eder", "oldukça önemlidir", "-mektedir", "söz konusu", İngilizceden birebir çevrilmiş ifadeler ("bölge sakin görünüyorsa", "yumuşak başlama"). Cümle sonuna "değil mi?" eklemeyin; soru sadece açılışta, gerçek bir soru olarak. Hastanın kelimesini seçin: belirsizse "film" değil "röntgen". "Daha fazla bilgi için" ve "Unutmayın" demeyin.`,
+  de: `Gesprochenes Deutsch, wie eine Zahnärztin am Behandlungsstuhl erklärt: kurze und mittlere Sätze, Alltagswörter, Verben statt Substantivketten, ein Fachwort nur mit kurzer Erklärung. Keine angehängten Rückfragen ("…, oder?", "…, nicht wahr?") und kein Einstieg mit "Wissen Sie was?". Kein Behörden-, Prospekt- oder Übersetzungsdeutsch ("erfolgt", "gewährleistet", "im Rahmen von", "Es ist wichtig, dass", "Ihr Lächeln ist uns wichtig", schiefe Bilder wie "Kaffee pausiert").`,
   es: `Español hablado y cercano: frases cortas, alguna muletilla natural ("la verdad", "o sea") como mucho una vez y nunca para abrir. NUNCA empieces con "Pues mira, la verdad es que" ni con "¿Te has preguntado…?". Nada de folleto ("se lleva a cabo", "cabe destacar", "tu salud bucal es clave", "estamos aquí para ayudarte", "un viaje hacia tu nueva sonrisa").`,
   fr: `Français parlé : phrases courtes, un "en fait" ou "du coup" au plus une fois, jamais en ouverture. Pas de style brochure ("il convient de", "s'effectue", "n'hésitez pas").`,
   it: `Italiano parlato e vicino: frasi brevi, un "in pratica" o "quindi" al massimo una volta, mai in apertura. Niente stile da opuscolo ("viene effettuato", "si raccomanda di", "non esiti a").`,
@@ -64,7 +67,10 @@ export function narrationBrief(profile: ClinicProfile, topic: Topic, plan: Scene
   return [
     `Video: "${topic.title}" — answers the patient question "${topic.question}".` + (topic.takeaway ? ` The one thing the viewer should remember: "${topic.takeaway}"` : ""),
     `On screen, in order:\n${screenPoints(plan).map((p) => `- ${p}`).join("\n")}`,
-    `Write about ${target} (±15%).`,
+    // The narrator ran 21-33% long on every German and English script of the
+    // Nov 2026 live run; the render then stretches the video to the voice, so
+    // a long narration is a slow video. A ceiling, not just a target.
+    `Write about ${target} — never more than ${speechTarget(totalSeconds(plan) * 1.1, profile.language)}.`,
     weekVoiceBrief(week),
     fixes.length ? `A reviewer required: ${fixes.join(" | ")}` : "",
     previous && fixes.length ? `Your previous narration — keep it and change only what the reviewer required:\n${previous}` : "",
@@ -91,8 +97,10 @@ How it must sound:
 - One person talking to one patient across the chair. Tone: ${profile.tone}. ${addressRule(profile)} Formal address can still be warm: everyday words, not brochure language.
 - ${SPOKEN_CUES[profile.language] ?? SPOKEN_CUES.en}
 - Open by saying the hook in your own spoken words, in the first sentence (it must land in the first two seconds) — as a question or a moment the viewer recognises, not as a headline. Never open with a stock filler phrase.
-- Short and medium sentences mixed. Connect points with spoken links ("and here's the thing", "that's why", "so"), never "firstly/secondly" and never read a list as a list.
-- Each sentence adds something new. Do not repeat a word or idea you already said.
+- Short and medium sentences mixed, none longer than about ${profile.language === "tr" || profile.language === "de" ? 12 : 15} words — a voice reads this, and long sentences lose the listener. Connect points with spoken links, never "firstly/secondly" and never read a list as a list.
+- Each sentence adds something new. Do not repeat a word or idea you already said, and do not restate the takeaway at the end.
+- No tag questions bolted onto statements ("…, right?", "…, değil mi?", "…, oder?") and never a bare "No." — say "not quite" / "usually not" and why.
+- Never say the clinic's name; say "we" / "us" if you need to.${variantRule(profile) ? `\n- ${variantRule(profile)}` : ""}
 - Do not read the screen out: say each point differently from how it is written on screen.
 - End with the closing line's idea in your own words — a light, friendly nudge, no pressure, no urgency, no exclamation mark.${profile.country.toUpperCase() === "TR" ? " In Türkiye, only point to asking their own dentist at a check-up; never tell viewers to contact or book with this clinic." : ""}
 Content rules (a clinical and a compliance reviewer read this next):

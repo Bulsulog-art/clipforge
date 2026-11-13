@@ -3,7 +3,7 @@ import { z } from "zod";
 import { agentJson, REVIEW_MODEL } from "./llm.js";
 import { PILLARS, addressRule, type ClinicProfile } from "./profile.js";
 import { scanHardRules } from "./compliance.js";
-import { hookLimit, marketRules, speechUnits } from "./locale.js";
+import { hookLimit, marketRules, speechUnits, variantRule } from "./locale.js";
 import { hookExamples } from "./examples.js";
 import { BLOCKING_HOOK, hookProblems, hookShape } from "./style.js";
 import { dropRepeats, memoryBrief, type PastTopic } from "./memory.js";
@@ -74,7 +74,8 @@ Rules:
   Native hooks in this clinic's language, for sound and shape: ${hookExamples(profile.language).map((h) => `"${h}"`).join(" ")}
 The examples above show shapes only — do not reuse their subjects or wording.
 - Vary the hook shapes across the week (question, moment, mistake, myth, surprising fact): at most two plain questions.
-- "takeaway": the one sentence the viewer should remember, in the clinic's language, hedged where outcomes vary ("Brush, spit, don't rinse." / "Wait about 30 minutes after something acidic before brushing.").${marketRules(profile.country) ? `\n- ${marketRules(profile.country)}` : ""}
+- A hook must make sense heard once, on its own: it names the subject in the patient's words (implant, aligners, bleaching, gums, baby teeth), never a dangling "this/these…" without the thing, never a word with two meanings ("film" for an X-ray).
+- "takeaway": the one sentence the viewer should remember, in the clinic's language, hedged where outcomes vary ("Brush, spit, don't rinse." / "Wait about 30 minutes after something acidic before brushing."). It is something concrete the viewer can DO, NOTICE or KNOW — a habit, a sign, a reason, a typical sequence. "It varies from person to person" or "your dentist decides" is never the takeaway (that is one hedge inside the video); a week of "it depends" videos teaches nothing. Never build a topic or takeaway on urgency to book ("can't wait", "book it before it gets worse"): for emergencies the takeaway is what to do and which signs need a dentist promptly.${variantRule(profile) ? `\n- ${variantRule(profile)}` : ""}${marketRules(profile.country) ? `\n- ${marketRules(profile.country)}` : ""}
 Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service", "takeaway" } ] }`,
     user:
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""} (${profile.country}).\n` +
@@ -145,7 +146,8 @@ For each topic: write 4 different hooks, then pick the one a patient scrolling t
 A strong hook:
 - is ${hookLimit(profile.language).text}, specific and concrete — a moment, a mistake, a surprising fact or a myth;
 - opens a question the video answers; it never gives the answer away;
-- sounds like something a person would say out loud in ${profile.language}, not a headline or a translation;
+- makes sense heard once, with no context: it names the subject in the patient's own words (implant, aligners, bleaching, gums…), never a dangling "this/these…" and never a word with two meanings ("film" for an X-ray);
+- sounds like something a person would say out loud in ${profile.language}, not a headline or a translation — if a native speaker would have to read it twice, it scores 1;
 - ${addressRule(profile)}
 - uses the shapes of these native hooks (never their subjects or words): ${hookExamples(profile.language).map((h) => `"${h}"`).join(" ")}
 Never: anything suggesting dentists or clinics get things wrong ("What do dentists often skip?") — the clinic itself posts this; a textbook question ("What is X?"), a "Did you know?" opener in any language ("Lo sapeva?", "Wussten Sie?", "¿Sabías que?", "Biliyor muydunuz?"), a topic label or "Topic: description" line ("Your implant: a multi-step process"), a listicle ("3 tips…"), absolutes ("never", "always", "No!"), promises, prices, "best", fear.

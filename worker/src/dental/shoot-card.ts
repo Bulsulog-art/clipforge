@@ -2,6 +2,7 @@ import type OpenAI from "openai";
 import { z } from "zod";
 import { agentJson } from "./llm.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
+import { marketRules } from "./locale.js";
 import type { Topic } from "./strategist.js";
 
 /**
@@ -38,7 +39,11 @@ export async function writeShootCard(
 Everything in the clinic's language. Plain, spoken sentences the dentist can say naturally — not a script to read word for word.
 - opening: the first sentence to say, built on the hook.
 - points: 2-5 talking points, each one idea, accurate and hedged where outcomes vary. Medication or home-remedy advice must say to follow the dentist's instructions.
-- closing: one sentence inviting viewers to ask or book a check-up (no prices, offers or guarantees).
+- closing: ${
+      profile.country.toUpperCase() === "TR"
+        ? `one sentence pointing viewers to their own dentist (hekiminiz) for what applies to them — Türkiye's rules (RG 33075) allow information only: never "randevu alın/planlayın", "bize yazın/ulaşın/sorun", "kliniğimiz" (no prices, offers or guarantees).`
+        : "one sentence inviting viewers to ask or book a check-up, calmly (no prices, offers, guarantees or urgency)."
+    }${marketRules(profile.country) ? `\n- ${marketRules(profile.country)}` : ""}
 - avoid: what NOT to say for this topic (promises, prices, naming patients, …).
 - setup: 1-4 practical filming tips (vertical, eye level, quiet room, window light, …).
 - minutes: suggested length, usually 2-5.

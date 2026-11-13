@@ -78,7 +78,7 @@ async function main() {
             const dir = path.join(outDir, slug(topic.title));
             await fs.mkdir(dir, { recursive: true });
             const voice = await prepareNarration(plan, dir, profile.language, {
-              ...resolveVoice(profile.language),
+              ...resolveVoice(profile.language, process.env, profile.country),
               onFallback: (e) => console.warn(`  ! tts model failed, used tts-1-hd: ${e.message}`),
               onMasterError: (e) => console.warn(`  ! narration mastering failed, used the plain voice: ${e.message}`),
             });
