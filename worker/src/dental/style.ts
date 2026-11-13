@@ -276,6 +276,16 @@ const RECAP = w(
  * ("Mit Alignern ist Wasser die sichere Wahl." / "Mit Alignern am besten nur
  * Wasser trinken." / "Nur Wasser mit Alignern").
  */
+/** Long function words that would make two unrelated lines look alike. */
+const FUNCTION_WORDS = new Set(
+  (
+    "your yours this that these those with from have will they them then than when what more also just into very been were about there their " +
+    "eine einen einem einer nicht auch oder wenn dann sich sind wird kann ihre ihren ihrem ihrer ihnen mehr noch schon sehr beim nach über unter dass " +
+    "daha için gibi kadar sonra önce bile veya ancak çünkü bunu olan olarak sizin sizi size " +
+    "para como pero esto esta este tiene puede donde cuando"
+  ).split(" "),
+);
+
 export function repeatedScreen(lines: string[], skip: (string | undefined)[] = []): string[] {
   const out: string[] = [];
   const recap = lines.find((l) => RECAP.test(l) && l.split(/\s+/).length <= 4);
@@ -285,9 +295,12 @@ export function repeatedScreen(lines: string[], skip: (string | undefined)[] = [
   // most of the shorter line's words ("Nur Wasser mit Alignern" ⊂ "Mit
   // Alignern am besten nur Wasser trinken"), so either measure counts.
   const long = lines.filter((l) => tok(l).size >= 3 && !skip.includes(l));
+  // Content words only (longer than 3 letters), so "die", "mit", "ve" do not make two lines look alike.
+  const content = (s: string) => new Set([...tok(s)].filter((t) => t.length > 3 && !FUNCTION_WORDS.has(t)));
   const contained = (a: string, b: string) => {
-    const A = tok(a);
-    const B = tok(b);
+    const A = content(a);
+    const B = content(b);
+    if (Math.min(A.size, B.size) < 2) return 0;
     let n = 0;
     for (const t of A) if (B.has(t)) n++;
     return n / Math.min(A.size, B.size);

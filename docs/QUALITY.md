@@ -116,7 +116,68 @@ At the recorded $0.034 per ready video, 15 videos come to about $0.50 plus the j
 
 ## Follow-ups outside this change
 
-- `worker/src/dentvid/jobs.ts` passes only past **titles** (`select("title")`). Selecting `title, topic, week_of` and passing `history: rows.map(r => ({ title: r.title, ...r.topic, weekOf: r.week_of }))` to `produceWeek` would turn on the full memory: hooks, services and the four-week window. Titles alone already drive the repeat filter.
+- ~~`jobs.ts` passes only past titles~~ — done in round 2 (below).
 - Calibrate `SPOKEN_RATE` (`style.ts`) against real voice-over durations from a rendered week.
 - Extend `RAMADAN` in `calendar.ts` past 2028.
 - Native speakers should review the TR/ES/DE reference scripts once. They were written to native standard, but a dentist in each market is the final judge.
+
+## Round 2 (Nov 2026): a real week for three clinics
+
+Three fixed clinics, one small week each (3 videos, full production chain, no render), reviewed by hand as a native speaker would:
+
+- **TR** — implant clinic in İstanbul (İmplant, kemik tozu/sinüs kaldırma, tek seansta implant, diş eti, zirkonyum), formal.
+- **DE** — prophylaxis and aligner practice in München (PZR, Aligner, Parodontitis-Prophylaxe, Kinderprophylaxe, Bleaching), formal.
+- **EN-GB** — family practice in Reading (check-ups, children, hygienist, fillings, emergencies), informal.
+
+Each clinic has a few weeks of made-up history (titles, hooks, services, weeks). The bench is `worker/src/bench/quality-week.ts`, with a spend ledger shared across runs.
+
+### Human rubric (8 dimensions, 1–5)
+
+| Dim | 5 | 1 |
+|---|---|---|
+| Accuracy | Mainstream, hedged, gives the *main* clinical reason | Wrong, unsafe or contradictory |
+| Hook (first 2 s) | Names the subject in patient words, opens a loop, makes sense heard once | Confusing, ambiguous, or gives the answer away |
+| Naturalness | A dentist talking: spoken register, no translationese, no tics, sentences short enough for TTS | Garbled or translated |
+| One message | One concrete takeaway the viewer can repeat; every scene serves it | "It depends", or several competing points |
+| CTA | Calm, specific to this video, legal in the market, unlike the week's other closings | Urgent, salesy, or steering (TR) |
+| Compliance | Nothing a regulator could flag in screen, narration **and** caption | A hard violation |
+| Length | Narration fits the plan (±15%), 20–40 s; lines readable in 3–4 s; ≤ 6–7 scenes | Walls of text |
+| Repetition | No line said twice, no recap, caption adds rather than repeats; no repeat of history or the week | The same point 3+ times; repeats a past video |
+
+### Before (main, history = past titles only, as `jobs.ts` passed it)
+
+| | Accuracy | Hook | Natural | Message | CTA | Compliance | Length | Repetition | **Mean** |
+|---|---|---|---|---|---|---|---|---|---|
+| TR (3) | 3.67 | 2.33 | 2.00 | 3.00 | 3.33 | 4.33 | 2.67 | 2.00 | **2.92** |
+| DE (3) | 3.00 | 2.67 | 2.33 | 3.67 | 4.00 | 5.00 | 3.00 | 2.00 | **3.21** |
+| EN-GB (3) | 4.00 | 3.00 | 3.67 | 3.67 | 3.00 | 5.00 | 3.33 | 2.33 | **3.50** |
+
+What a harsh native reader saw (the automatic rubric scored the same scripts 4.5–4.9, because it did not yet look for most of this):
+
+1. **Every script repeated itself.** The takeaway appeared as a statement, again in a 150-character line, then once more in a closing "Kısaca / Kısa cevap / Kurz gesagt / What to do / Why they matter" list (7 of 9 scripts). The DE aligner script said "only water" four times.
+2. **All three Turkish closings were the prompt's example, word for word** ("Merak ettiğiniz bir şey varsa bir sonraki kontrolünüzde hekiminize sorabilirsiniz."). All three English closings named the clinic.
+3. **Turkish captions steered to booking** ("kontrol randevusu planlayabilirsiniz", "muayene planlayabilirsiniz"): the caption writer was told to "end with a soft call to book a check-up" in every market, against RG 33075. Each TR shoot card also needed 1–3 compliance rewrites for the same reason.
+4. **Tics taught by the prompt**: the Turkish spoken cues listed "değil mi?", and two of three narrations ended a claim with "…, değil mi?". The German one answered its hook with a bare "Nein."
+5. **Hooks that do not parse on first hearing**: "Filmlerde görülen eksik kemik, herkeste aynı çıkmaz." ("film" = X-ray or movie), "Diese ersten 24 Stunden nach dem Bleaching…", "Bleeding when you brush? Keep going there?".
+6. **"It depends" takeaways**: all three Turkish videos concluded that it varies by person and the dentist decides, which teaches nothing.
+7. **Translationese**: "Kaffee pausiert also kurz", "bölge sakin görünüyorsa", "Yumuşak başlama: kontrollü çiğneme olur".
+8. **Accuracy gaps**: the aligner video gave staining and "material stress" as the reasons for water-only, and missed the main one (sugar or acid held against the teeth under the tray). The bleaching video said "the first hours" on screen and "24 to 48 hours" in the narration.
+9. **Narration ran 21–33% longer than the plan** in DE and EN, so the render stretched every video to the voice.
+10. **History was never used**: `jobs.ts` read `select("title")` with no order, so the strategist's memory never saw hooks, services or weeks. The three TR topics were all "implant, it depends on your bone".
+
+Replaying the before scripts through the new post-checks: **9 of 9 would have been sent back**, each with an exact fix (`postcheck-before` in the run folder).
+
+### What changed (root causes, not outputs)
+
+- **History wired** (`dentvid/jobs.ts`, `memory.ts historyFromRows`): the job reads `title, topic, week_of, status`, newest weeks first, and passes `history` (oldest first, rejected and failed rows left out, every jsonb field checked) to `produceWeek`. The top-up passes the same history plus this week's usable videos. Titles still feed the repeat filter.
+- **Say it once** (`style.ts repeatedScreen`, brief): recap headings and body lines that restate each other are sent back. So are lines over 110 characters and more than 7 scenes. The brief bans recaps and bare "No." answers.
+- **Fresh closings** (`ctaGuide`, `ctaTemplates`): the guide describes the move instead of giving a sentence to copy. A closing that echoes a template or an earlier closing of the week, or that names the clinic, is sent back.
+- **Türkiye: information only, everywhere** (`trSteering`, `captionProblems`, copywriter, shoot card): booking verbs in every polite form are caught in the closing, narration and caption. The TR caption and shoot card now point to the viewer's own dentist, and TR captions get no booking link. Elsewhere, captions may not paste the narration.
+- **Spoken cues describe, never list** (`narrate.ts`): no tag questions, no bare "No.", a sentence-length cap for TTS (12 words TR/DE, 15 otherwise), a word ceiling of target +10%, and never the clinic's name.
+- **Strategist and hook editor**: a hook must make sense heard once and name its subject. A takeaway must be something to do, notice or know, never "it depends". No urgency topics.
+- **Clinical guide**: aligners (water only, and why), implant healing before full load.
+- **UK** (`locale.ts`): CAP Code / GDC rules for GB, which had none, and the market's variety of the language (British English for GB/IE, Swiss German without ß, pt-PT/pt-BR). The site's rules badges gain the UK.
+- **Pronunciation**: tts-1-hd has no SSML or lexicon, so the lexicon is the respelling table in `speech-text.ts`. A TTS → transcription round trip (18 clips) showed that only "PZR" failed ("Eine PZR dauert…" was heard as "Dann passiert er…"). PZR and KFO are now spelled out. Aligner, Bleaching, Veneers, All-on-4, E.max and the Turkish terms were read correctly as written, and respelling made them worse, so they stay as written.
+- **Rubric** sees the new failure classes (`repeats_itself`, `spoken_tic`, `caption_copies_narration`, `tr_steering`, `cta_template`, `cta_names_clinic`). The baseline snapshot moves from 4.12 to 4.01, and agreement with the hand grades stays at r = 0.70.
+
+<!-- AFTER -->

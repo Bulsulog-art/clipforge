@@ -121,9 +121,9 @@ describe("rubric over the baseline (fixtures)", () => {
     expect(scripts).toHaveLength(30);
     const { summary } = gradeCorpus(scripts, (s) => (s as { week?: string }).week ?? "all");
     // The baseline the prompt changes are measured against (docs/QUALITY.md).
-    // 4.12 before round 2 (docs/QUALITY.md); 4.00 since the rubric also sees repeated lines, spoken tics,
+    // 4.12 before round 2 (docs/QUALITY.md); 4.01 since the rubric also sees repeated lines, spoken tics,
     // captions that copy the narration and Turkish captions that steer to booking.
-    expect(summary.overall).toBe(4);
+    expect(summary.overall).toBe(4.01);
     expect(summary.byDimension.variety).toBe(3.03);
     expect(summary.topFindings[0]).toEqual({ code: "same_cta", count: 25 });
     const agree = agreement(scripts, await loadHandGrades());
