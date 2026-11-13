@@ -106,7 +106,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "Ülkenizin kuralları da",
-      text: "Her metin, sağlık tanıtımına ilişkin genel kurallara göre kontrol edilir. Bu pazarlarda kontrolcü ayrıca ülkenin kendi kurallarını da uygular:",
+      text: "Her metin, sağlık tanıtımına ilişkin genel kurallara göre kontrol edilir. Bu pazarlarda denetçimiz ülkenin kendi kurallarını da uygular:",
       gulf: "Körfez ülkeleri",
       note: "Bir hukuk bürosu değiliz ve onayınız olmadan hiçbir şey yayınlanmaz. Alışılmadık durumları meslek kuruluşunuza danışın.",
     },

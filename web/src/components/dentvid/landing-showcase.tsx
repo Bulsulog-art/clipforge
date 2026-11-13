@@ -200,17 +200,20 @@ function PosterReel({ locale, slug }: { locale: Locale; slug: string }) {
   );
 }
 
-/** The drawn profile header: avatar, the demo clinic's name, three stat placeholders (no numbers on purpose). */
+/**
+ * The drawn profile header: avatar, the demo clinic's name, three stat placeholders (no numbers on purpose).
+ * On a phone the name column is ~85px wide: a long single word ("Stomatologiczny") hyphenates or wraps, never gets cut.
+ */
 function ProfileHead({ name, muted }: { name: string; muted?: boolean }) {
   return (
-    <div className="flex items-center gap-2.5 px-3 pb-3 pt-3.5 sm:gap-3 sm:px-4">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full p-[2px] sm:h-11 sm:w-11 ${muted ? "bg-[#ddd5c8]" : "bg-gradient-to-tr from-[#b6774f] via-[#8fd1c6] to-[#0f5c5c]"}`}>
+    <div className="flex items-center gap-2 px-3 pb-3 pt-3.5 sm:gap-3 sm:px-4">
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-[2px] sm:h-11 sm:w-11 ${muted ? "bg-[#ddd5c8]" : "bg-gradient-to-tr from-[#b6774f] via-[#8fd1c6] to-[#0f5c5c]"}`}>
         <span className="flex h-full w-full items-center justify-center rounded-full bg-white">
           <span className="h-3 w-3 rounded-[4px] bg-dv-teal sm:h-3.5 sm:w-3.5" />
         </span>
       </span>
       <div className="min-w-0 flex-1">
-        <p className="line-clamp-2 text-[0.6875rem] font-semibold leading-tight text-dv-ink sm:line-clamp-1 sm:text-[0.8125rem]">{name}</p>
+        <p className="line-clamp-3 hyphens-auto text-[0.6875rem] [overflow-wrap:anywhere] font-semibold leading-tight text-dv-ink sm:line-clamp-1 sm:text-[0.8125rem]">{name}</p>
         <div className="mt-1.5 flex gap-1.5">
           {[0, 1, 2].map((k) => (
             <span key={k} className="h-1.5 flex-1 rounded-full bg-dv-ink/10" />

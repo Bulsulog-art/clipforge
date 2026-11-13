@@ -276,6 +276,10 @@ html:has(.dv) {
   .dv :lang(ja) :is(h1, h2, h3, summary, .dv-h3) {
     word-break: auto-phrase;
   }
+  /* Short lines too: list items, buttons and labels broke inside words (プレ|ビュー, お申し込|み). */
+  .dv :lang(ja) :is(li, .dv-btn, label, dt, figcaption) {
+    word-break: auto-phrase;
+  }
 }
 .dv .dv-h1:lang(ja) {
   max-width: 13em;

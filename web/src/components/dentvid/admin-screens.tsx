@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CircleCheck, ExternalLink } from "lucide-react";
-import { DV_FOUNDING } from "@/lib/dentvid/billing";
-import { billingHints, foundingSeats, lastRuns, revenue, runState, type AdminClinic, type ClinicRun } from "@/lib/dentvid/admin-metrics";
+import { billingHints, withLedgerHints, foundingHistoric, FOUNDING_SOURCE_LABEL, lastRuns, revenue, runState, type AdminClinic, type ClinicRun } from "@/lib/dentvid/admin-metrics";
 import { RANGE_PRESETS, filterClinics, filterVideos, isProblemVideo, qs, type ClinicFilter, type DateRange, type ClinicRowView, type VideoFilter } from "@/lib/dentvid/admin-filters";
 import { billingIssues, foundingFromLedger, openProblems, periodStats, LIVE_SUB, type EmailLogRow, type EmailSendRow, type PaymentRow, type SubRow, type BillingIssue } from "@/lib/dentvid/admin-ops";
 import { RETRYABLE_QUEUES, monitorIncidents, type MonitorView, type QueueStats } from "@/lib/dentvid/admin-system";
@@ -42,10 +41,13 @@ function RunCell({ run }: { run: ClinicRun | undefined }) {
 
 export function AdminOverview({ data, ...c }: Common & { data: OverviewData }) {
   const now = new Date(data.now);
-  const hints = billingHints(data.events);
+  const hints = data.subsTable ? withLedgerHints(billingHints(data.events), data.subs) : billingHints(data.events);
   const rev = revenue(data.clinics, hints);
-  const ledgerSeats = data.subsTable && data.subs.length ? foundingFromLedger(data.subs) : null;
-  const seats = ledgerSeats ? { ...ledgerSeats, source: "ledger" as const } : foundingSeats(data.clinics, data.dodoFoundingUses);
+  const founding = foundingHistoric({
+    ledgerUsed: data.subsTable && data.subs.length ? foundingFromLedger(data.subs).used : null,
+    dodoUses: data.dodoFoundingUses,
+    fromEvents: rev.founding,
+  });
   const periods = ([1, 7, 30] as const).map((d) => ({ d, s: periodStats(data.events, data.clinics, d, now) }));
   const problems = openProblems({
     items: data.items,
@@ -92,13 +94,13 @@ export function AdminOverview({ data, ...c }: Common & { data: OverviewData }) {
       <Section title="Business" id="business">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat label="MRR" value={usd(rev.mrrUsd)} sub={`${rev.paying} paying${rev.founding ? ` · ${rev.founding} founding` : ""}${rev.yearly ? ` · ${rev.yearly} yearly` : ""}`} tone="teal" />
-          <Stat label="Paying clinics" value={int(rev.paying)} sub={`Starter ${rev.payingByTier.starter} · Practice ${rev.payingByTier.practice} · Group ${rev.payingByTier.group}`} />
           <Stat
-            label="Founding seats left"
-            value={`${seats.left} / ${DV_FOUNDING.clinics}`}
-            sub={seats.source === "ledger" ? "From the subscription ledger" : seats.source === "dodo" ? "From Dodo's discount usage" : "Estimated (active Practice clinics)"}
-            tone={seats.left <= 10 ? "amber" : undefined}
+            label="Paying clinics"
+            value={int(rev.paying)}
+            sub={`Starter ${rev.payingByTier.starter} · Practice ${rev.payingByTier.practice} · Group ${rev.payingByTier.group}${rev.payingByTier.unknown ? ` · ${rev.payingByTier.unknown} unknown tier (not in MRR)` : ""}`}
+            tone={rev.payingByTier.unknown ? "amber" : undefined}
           />
+          <Stat label="Founding (offer closed)" value={int(founding.count)} sub={`Historic subscriptions, ${FOUNDING_SOURCE_LABEL[founding.source]}. Nothing new is sold at founding.`} />
           <Stat
             label="API spend (OpenAI)"
             value={usd(data.cost.today, 2)}
@@ -779,7 +781,11 @@ export function AdminBilling({
     >
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Live subscriptions" value={subs ? int(live) : "—"} />
-        <Stat label="Founding seats used" value={ledger ? `${ledger.used} / ${DV_FOUNDING.clinics}` : dodoFoundingUses !== null ? `${dodoFoundingUses} / ${DV_FOUNDING.clinics}` : "—"} sub={dodoFoundingUses !== null ? `Dodo code uses: ${dodoFoundingUses}` : "ledger count"} />
+        <Stat
+          label="Founding (offer closed)"
+          value={ledger ? int(ledger.used) : dodoFoundingUses !== null ? int(dodoFoundingUses) : "—"}
+          sub={`Historic, ${ledger ? "live in the ledger" : "Dodo code uses"}${ledger && dodoFoundingUses !== null ? ` · Dodo code uses: ${dodoFoundingUses}` : ""}`}
+        />
         <Stat label="Duplicates" value={int(issues.filter((i) => i.kind === "duplicate").length)} tone={issues.some((i) => i.kind === "duplicate") ? "red" : "teal"} />
         <Stat label="Payment issues" value={int(issues.filter((i) => i.kind !== "duplicate").length)} tone={issues.some((i) => i.kind !== "duplicate") ? "amber" : "teal"} />
       </div>

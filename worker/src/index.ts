@@ -28,6 +28,17 @@ import { runMetricsSnapshot } from "./jobs/metrics-snapshot.js";
 import { runCostMonitor } from "./jobs/cost-monitor.js";
 import { startHeartbeat } from "./dentvid/heartbeat.js";
 import { MONITOR_SCHEDULE, monitorConfig, runMonitor } from "./dentvid/synthetic.js";
+import { assertRunOk, CRON_JOB_OPTS, failureAlert, type FailedJob } from "./dentvid/job-failures.js";
+
+/** Tell the owner about a failed job that matters (dentvid/job-failures.ts). Never throws. */
+function alertOnFailure(queue: "dentvid" | "dentvid-mail", job: FailedJob | undefined, err: Error) {
+  const f = failureAlert(queue, job, err, { spendRefusal: err instanceof SpendRefusedError });
+  if (!f) return;
+  void (async () => {
+    if (f.kind === "cron") await ownerAlert(f.alert);
+    else await ownerAlert(f.build(await clinicRef(dentvidDb(), f.clinicId)));
+  })().catch(() => {});
+}
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -153,11 +164,13 @@ const dentvidQueue = new Queue("dentvid", { connection });
 const stopHeartbeat = startHeartbeat(connection, { roles: ROLES, renderConcurrency: DENTVID_CONCURRENCY });
 if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
   dentvidQueue
-    .upsertJobScheduler("dentvid-monday", DISPATCH_SCHEDULE, { name: "dispatch", data: {} })
+    .upsertJobScheduler("dentvid-monday", DISPATCH_SCHEDULE, { name: "dispatch", data: {}, opts: CRON_JOB_OPTS })
     .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: scheduler setup failed"));
 }
 dentvidWorker.on("failed", (job, err) => {
   logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed");
+  // The Saturday dispatch and a dentist's recording: the owner hears about a final failure.
+  alertOnFailure("dentvid", job, err);
   // runDentvidWeek alerts on its own final failure; a job that died with the
   // process (OOM, restart — "stalled") never reached that code, so tell the owner here.
   if (job?.name === "week" && /stalled/i.test(err.message) && job.attemptsMade >= (job.opts.attempts ?? 1)) {
@@ -194,12 +207,13 @@ configureReadyMail(dentvidMailQueue);
 const dentvidMailWorker = new Worker(
   "dentvid-mail",
   async (job) => {
-    if (job.name === "lifecycle") return await runLifecycle();
+    // {ok:false} (web app down, token mismatch) is a failure: retried, then the owner is told.
+    if (job.name === "lifecycle") return assertRunOk("lifecycle", await runLifecycle());
     if (job.name === "notify") {
       const d = job.data as ReadyMailJob;
       return await notifyReady(d.clinicId, d.kind, { ready: d.ready, flagged: d.flagged });
     }
-    if (job.name === "digest") return await runDigest();
+    if (job.name === "digest") return assertRunOk("digest", await runDigest());
     if (job.name === "billing-reconcile") return await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), alert: ownerAlert });
     if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
       const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };
@@ -209,9 +223,16 @@ const dentvidMailWorker = new Worker(
   },
   { connection, autorun: ROLES.has("dentvid-mail"), concurrency: 1, removeOnComplete: { count: 200 }, removeOnFail: { count: 200 } },
 );
+// Before: a watchdog, reconcile, digest or lifecycle run that threw just sat in
+// BullMQ's failed list — no log, no alert. Now: logged, and the owner is told
+// once its retries are spent (one email per job a day).
+dentvidMailWorker.on("failed", (job, err) => {
+  logger.error({ jobId: job?.id, name: job?.name, err: err.message }, "dentvid-mail job failed");
+  alertOnFailure("dentvid-mail", job, err);
+});
 if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
   dentvidMailQueue
-    .upsertJobScheduler("dentvid-lifecycle", LIFECYCLE_SCHEDULE, { name: "lifecycle", data: {} })
+    .upsertJobScheduler("dentvid-lifecycle", LIFECYCLE_SCHEDULE, { name: "lifecycle", data: {}, opts: CRON_JOB_OPTS })
     .catch((e) => logger.error({ err: (e as Error).message }, "dentvid: lifecycle scheduler setup failed"));
   // Watchdogs (dentvid/watchdog.ts) and the owner's daily digest — on this light
   // queue, so they never wait behind a Monday of renders.
@@ -222,7 +243,7 @@ if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
     ["dentvid-billing-reconcile", RECONCILE_SCHEDULE, "billing-reconcile"],
   ] as const) {
     dentvidMailQueue
-      .upsertJobScheduler(id, schedule, { name, data: {} })
+      .upsertJobScheduler(id, schedule, { name, data: {}, opts: CRON_JOB_OPTS })
       .catch((e) => logger.error({ err: (e as Error).message, id }, "dentvid: scheduler setup failed"));
   }
 }

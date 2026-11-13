@@ -311,7 +311,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "How it works",
       pricing: "Pricing",
       openApp: "Open app",
-      footer: "Content is reviewed by software and approved by your dentist before publishing.",
+      footer: "Every script is checked by software, and nothing is published until you approve it.",
     },
     start: {
       metaTitle: "Start",
@@ -661,7 +661,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "So funktioniert's",
       pricing: "Preise",
       openApp: "Zur App",
-      footer: "Inhalte werden softwaregestützt geprüft und vor der Veröffentlichung von Ihrer Zahnärztin oder Ihrem Zahnarzt freigegeben.",
+      footer: "Jedes Skript wird softwaregestützt geprüft, und nichts wird veröffentlicht, bevor Sie es freigeben.",
     },
     start: {
       metaTitle: "Start",
@@ -1014,7 +1014,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "Cómo funciona",
       pricing: "Precios",
       openApp: "Abrir la app",
-      footer: "El contenido lo revisa un software y lo aprueba tu dentista antes de publicarse.",
+      footer: "Cada guion lo revisa un software, y nada se publica hasta que tú lo apruebas.",
     },
     start: {
       metaTitle: "Empezar",
@@ -1367,7 +1367,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "Nasıl çalışır",
       pricing: "Fiyatlandırma",
       openApp: "Uygulamayı aç",
-      footer: "İçerikler yazılımla kontrol edilir ve yayınlanmadan önce diş hekiminizin onayından geçer.",
+      footer: "Her metin yazılımla kontrol edilir; siz onaylamadan hiçbir şey yayınlanmaz.",
     },
     start: {
       metaTitle: "Başlayın",
@@ -1720,7 +1720,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "Comment ça marche",
       pricing: "Tarifs",
       openApp: "Ouvrir l'app",
-      footer: "Les contenus sont vérifiés par un logiciel puis validés par votre dentiste avant publication.",
+      footer: "Chaque script est vérifié par un logiciel, et rien n'est publié sans votre validation.",
     },
     start: {
       metaTitle: "Commencer",
@@ -2424,7 +2424,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "كيف يعمل",
       pricing: "الأسعار",
       openApp: "افتحوا التطبيق",
-      footer: "يُراجَع المحتوى آلياً ويعتمده طبيب الأسنان لديكم قبل النشر.",
+      footer: "يُراجَع كل نص آلياً، ولا يُنشر شيء قبل موافقتكم.",
     },
     start: {
       metaTitle: "ابدؤوا",
@@ -2772,7 +2772,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "Jak to działa",
       pricing: "Cennik",
       openApp: "Otwórz aplikację",
-      footer: "Treści są sprawdzane przez oprogramowanie i zatwierdzane przez lekarza dentystę przed publikacją.",
+      footer: "Każdy scenariusz jest sprawdzany przez oprogramowanie i nic nie zostaje opublikowane bez Państwa zatwierdzenia.",
     },
     start: {
       metaTitle: "Start",

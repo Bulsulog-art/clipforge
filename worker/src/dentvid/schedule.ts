@@ -140,6 +140,27 @@ export function weekMinutes(env: Record<string, string | undefined> = process.en
 /** Measured: docs/CAPACITY.md (5 renders on 2 cores + OpenAI time). */
 export const WEEK_MINUTES_DEFAULT = 12;
 
+/** Rows per request: PostgREST caps a response (Liman: 1000 rows), so lists are read page by page. */
+export const ACTIVE_PAGE = 1000;
+
+/**
+ * Every clinic with plan = 'active', page by page (ordered by id so pages do
+ * not overlap). A single select would stop silently at the server's row cap,
+ * and every clinic past it would get no week, no watchdog and no reconcile.
+ * Throws on a database error.
+ */
+export async function activeClinicRows<T = ClinicRow>(db: Pick<SupabaseClient, "from">, columns = "*", page = ACTIVE_PAGE): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; from < 200_000; from += page) {
+    const { data, error } = await db.from("dentvid_clinics").select(columns).eq("plan", "active").order("id", { ascending: true }).range(from, from + page - 1);
+    if (error) throw new Error(`active clinics: ${error.message}`);
+    const rows = (data ?? []) as T[];
+    out.push(...rows);
+    if (rows.length < page) break;
+  }
+  return out;
+}
+
 export async function dispatchWeeks(
   db: SupabaseClient,
   queue: Pick<Queue, "add">,
@@ -148,10 +169,11 @@ export async function dispatchWeeks(
   workers = 1,
 ): Promise<number> {
   // "*": admin_paused_at (0010) may not exist yet on a given database.
-  const { data: clinics, error } = await db.from("dentvid_clinics").select("*").eq("plan", "active");
-  if (error) throw new Error(`dispatch: ${error.message}`);
+  const clinics = await activeClinicRows<ClinicRow>(db).catch((e: Error) => {
+    throw new Error(`dispatch: ${e.message}`);
+  });
   const week = deliveryWeek(now);
-  const batch = planBatch((clinics ?? []) as ClinicRow[], week, now);
+  const batch = planBatch(clinics, week, now);
   for (const b of batch) {
     const data: WeekJobData = { clinicId: b.clinicId, count: 5, week, batch: true };
     await queue.add("week", data, { jobId: weekJobId(b.clinicId, week), ...batchWeekJobOpts(b.hoursToDeadline) });
