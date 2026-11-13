@@ -5,13 +5,15 @@ import type { Metadata } from "next";
 import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LOCALES, guidePath } from "@/content/dentvideo";
 import { LEGAL_KINDS, legalPath } from "@/content/legal";
 import { SOLUTIONS, solutionPath } from "@/content/solutions";
-import { ABOUT_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
+import { ABOUT_PATH, CHECKER_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { dvUrl } from "./host";
 import { landingJsonLd, landingMetadata } from "./seo";
 import {
   SAMPLE_UPLOAD_DATE,
   aboutJsonLd,
   aboutMetadata,
+  checkerJsonLd,
+  checkerMetadata,
   dentvideoSitemapEntries,
   guideJsonLd,
   guideMetadata,
@@ -32,6 +34,7 @@ const PAGES: { path: string; meta: Metadata; ld: unknown }[] = [
   ...LOCALES.map((l) => ({ path: LANDING_PATH[l], meta: landingMetadata(l), ld: landingJsonLd(l) })),
   ...GUIDE_HUB_LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], meta: guidesIndexMetadata(l), ld: guidesIndexJsonLd(l) })),
   ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], meta: aboutMetadata(l), ld: aboutJsonLd(l) })),
+  ...LOCALES.map((l) => ({ path: CHECKER_PATH[l], meta: checkerMetadata(l), ld: checkerJsonLd(l) })),
   ...GUIDES.map((g) => ({ path: guidePath(g), meta: guideMetadata(g), ld: guideJsonLd(g) })),
   ...SOLUTIONS.map((p) => ({ path: solutionPath(p), meta: solutionMetadata(p), ld: solutionJsonLd(p) })),
   ...LEGAL_KINDS.flatMap((k) => LOCALES.map((l) => ({ path: legalPath(k, l), meta: legalMetadata(k, l), ld: legalJsonLd(k, l) }))),

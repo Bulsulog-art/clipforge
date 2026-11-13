@@ -1,0 +1,1617 @@
+[
+ {
+  "input": "Whitening can make teeth a few shades lighter for many people; ask your dentist whether it suits you.",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "Diş taşı temizliği diş eti sağlığını korumaya yardımcı olabilir; hekiminize danışın.",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "Brush before and after meals and floss once a day.",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "Children's permanent teeth usually start coming in around age six.",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "Kalıcı dolgu bir sonraki randevuda yapılır.",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "Professionelle Zahnreinigung kann helfen, Zahnfleischentzündungen vorzubeugen.",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "Guaranteed painless whitening, 50% off this month only! The best dentist in town. Our patients say it's life-changing. See our before and after photos.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "Guaranteed",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "painless",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "The best dentist",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "50% off",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "before and after",
+    "why": "Before/after results imply an outcome every patient will get."
+   },
+   {
+    "rule": "testimonial",
+    "match": "Our patients say",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "guarantee",
+    "start": 0,
+    "end": 10,
+    "match": "Guaranteed"
+   },
+   {
+    "rule": "absolute",
+    "start": 11,
+    "end": 19,
+    "match": "painless"
+   },
+   {
+    "rule": "price",
+    "start": 31,
+    "end": 38,
+    "match": "50% off"
+   },
+   {
+    "rule": "superlative",
+    "start": 56,
+    "end": 72,
+    "match": "The best dentist"
+   },
+   {
+    "rule": "testimonial",
+    "start": 82,
+    "end": 98,
+    "match": "Our patients say"
+   },
+   {
+    "rule": "before_after",
+    "start": 127,
+    "end": 143,
+    "match": "before and after"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "guarantee",
+    "start": 0,
+    "end": 10,
+    "match": "Guaranteed"
+   },
+   {
+    "rule": "absolute",
+    "start": 11,
+    "end": 19,
+    "match": "painless"
+   },
+   {
+    "rule": "price",
+    "start": 31,
+    "end": 38,
+    "match": "50% off"
+   },
+   {
+    "rule": "superlative",
+    "start": 56,
+    "end": 72,
+    "match": "The best dentist"
+   },
+   {
+    "rule": "testimonial",
+    "start": 82,
+    "end": 98,
+    "match": "Our patients say"
+   },
+   {
+    "rule": "before_after",
+    "start": 127,
+    "end": 143,
+    "match": "before and after"
+   }
+  ]
+ },
+ {
+  "input": "Risk-free implants that last forever, 100% success. Cures gum disease. $99 special offer, limited time.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "Risk-free",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "100%",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "price",
+    "match": "special offer",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "cure",
+    "match": "Cures",
+    "why": "Claiming to cure or eliminate a condition overstates what treatment can promise."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "guarantee",
+    "start": 0,
+    "end": 9,
+    "match": "Risk-free"
+   },
+   {
+    "rule": "absolute",
+    "start": 29,
+    "end": 36,
+    "match": "forever"
+   },
+   {
+    "rule": "absolute",
+    "start": 38,
+    "end": 42,
+    "match": "100%"
+   },
+   {
+    "rule": "cure",
+    "start": 52,
+    "end": 57,
+    "match": "Cures"
+   },
+   {
+    "rule": "price",
+    "start": 71,
+    "end": 73,
+    "match": "$9"
+   },
+   {
+    "rule": "price",
+    "start": 75,
+    "end": 88,
+    "match": "special offer"
+   },
+   {
+    "rule": "price",
+    "start": 90,
+    "end": 102,
+    "match": "limited time"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "guarantee",
+    "start": 0,
+    "end": 9,
+    "match": "Risk-free"
+   },
+   {
+    "rule": "absolute",
+    "start": 29,
+    "end": 36,
+    "match": "forever"
+   },
+   {
+    "rule": "absolute",
+    "start": 38,
+    "end": 42,
+    "match": "100%"
+   },
+   {
+    "rule": "cure",
+    "start": 52,
+    "end": 57,
+    "match": "Cures"
+   },
+   {
+    "rule": "price",
+    "start": 71,
+    "end": 73,
+    "match": "$9"
+   },
+   {
+    "rule": "price",
+    "start": 75,
+    "end": 88,
+    "match": "special offer"
+   },
+   {
+    "rule": "price",
+    "start": 90,
+    "end": 102,
+    "match": "limited time"
+   }
+  ]
+ },
+ {
+  "input": "Don't wait until it's too late — you could lose your teeth. Book now before the offer ends. 5-star reviews!",
+  "scan": [
+   {
+    "rule": "testimonial",
+    "match": "5-star",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "testimonial",
+    "start": 92,
+    "end": 98,
+    "match": "5-star"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "fear",
+    "start": 0,
+    "end": 30,
+    "match": "Don't wait until it's too late"
+   },
+   {
+    "rule": "fear",
+    "start": 33,
+    "end": 58,
+    "match": "you could lose your teeth"
+   },
+   {
+    "rule": "fear",
+    "start": 60,
+    "end": 75,
+    "match": "Book now before"
+   },
+   {
+    "rule": "testimonial",
+    "start": 92,
+    "end": 98,
+    "match": "5-star"
+   }
+  ]
+ },
+ {
+  "input": "Ağrısız implant tedavisi, %100 garantili sonuç! İstanbul'un en iyi diş kliniği. Kampanya: beyazlatmada indirim, 12 taksit. Öncesi sonrası fotoğraflarımıza bakın, hasta yorumları sayfamızda.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "garantili",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "Ağrısız",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "en iyi diş kliniği",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "Kampanya",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "Öncesi sonrası",
+    "why": "Before/after results imply an outcome every patient will get."
+   },
+   {
+    "rule": "testimonial",
+    "match": "hasta yorumları",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 7,
+    "match": "Ağrısız"
+   },
+   {
+    "rule": "guarantee",
+    "start": 31,
+    "end": 40,
+    "match": "garantili"
+   },
+   {
+    "rule": "superlative",
+    "start": 60,
+    "end": 78,
+    "match": "en iyi diş kliniği"
+   },
+   {
+    "rule": "price",
+    "start": 80,
+    "end": 88,
+    "match": "Kampanya"
+   },
+   {
+    "rule": "price",
+    "start": 103,
+    "end": 110,
+    "match": "indirim"
+   },
+   {
+    "rule": "price",
+    "start": 115,
+    "end": 121,
+    "match": "taksit"
+   },
+   {
+    "rule": "before_after",
+    "start": 123,
+    "end": 137,
+    "match": "Öncesi sonrası"
+   },
+   {
+    "rule": "testimonial",
+    "start": 162,
+    "end": 177,
+    "match": "hasta yorumları"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 7,
+    "match": "Ağrısız"
+   },
+   {
+    "rule": "guarantee",
+    "start": 31,
+    "end": 40,
+    "match": "garantili"
+   },
+   {
+    "rule": "superlative",
+    "start": 60,
+    "end": 78,
+    "match": "en iyi diş kliniği"
+   },
+   {
+    "rule": "price",
+    "start": 80,
+    "end": 88,
+    "match": "Kampanya"
+   },
+   {
+    "rule": "price",
+    "start": 103,
+    "end": 110,
+    "match": "indirim"
+   },
+   {
+    "rule": "price",
+    "start": 115,
+    "end": 121,
+    "match": "taksit"
+   },
+   {
+    "rule": "before_after",
+    "start": 123,
+    "end": 137,
+    "match": "Öncesi sonrası"
+   },
+   {
+    "rule": "testimonial",
+    "start": 162,
+    "end": 177,
+    "match": "hasta yorumları"
+   }
+  ]
+ },
+ {
+  "input": "Ömür boyu kalıcı gülüş, kesin sonuç. Geç olmadan hemen randevu alın! Diş eti hastalıklarını önler.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "kalıcı",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 9,
+    "match": "Ömür boyu"
+   },
+   {
+    "rule": "absolute",
+    "start": 10,
+    "end": 16,
+    "match": "kalıcı"
+   },
+   {
+    "rule": "absolute",
+    "start": 24,
+    "end": 35,
+    "match": "kesin sonuç"
+   },
+   {
+    "rule": "absolute",
+    "start": 92,
+    "end": 97,
+    "match": "önler"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 9,
+    "match": "Ömür boyu"
+   },
+   {
+    "rule": "absolute",
+    "start": 10,
+    "end": 16,
+    "match": "kalıcı"
+   },
+   {
+    "rule": "absolute",
+    "start": 24,
+    "end": 35,
+    "match": "kesin sonuç"
+   },
+   {
+    "rule": "fear",
+    "start": 37,
+    "end": 48,
+    "match": "Geç olmadan"
+   },
+   {
+    "rule": "fear",
+    "start": 49,
+    "end": 67,
+    "match": "hemen randevu alın"
+   },
+   {
+    "rule": "absolute",
+    "start": 92,
+    "end": 97,
+    "match": "önler"
+   }
+  ]
+ },
+ {
+  "input": "Ücretsiz muayene fırsatı, 1500 TL'den başlayan fiyatlarla.",
+  "scan": [
+   {
+    "rule": "price",
+    "match": "0 TL",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "price",
+    "start": 0,
+    "end": 16,
+    "match": "Ücretsiz muayene"
+   },
+   {
+    "rule": "price",
+    "start": 17,
+    "end": 24,
+    "match": "fırsatı"
+   },
+   {
+    "rule": "price",
+    "start": 29,
+    "end": 33,
+    "match": "0 TL"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "price",
+    "start": 0,
+    "end": 16,
+    "match": "Ücretsiz muayene"
+   },
+   {
+    "rule": "price",
+    "start": 17,
+    "end": 24,
+    "match": "fırsatı"
+   },
+   {
+    "rule": "price",
+    "start": 29,
+    "end": 33,
+    "match": "0 TL"
+   }
+  ]
+ },
+ {
+  "input": "Schmerzfreie Behandlung mit Erfolgsgarantie! Die beste Zahnarztpraxis in München. Vorher-Nachher-Bilder und Patientenstimmen. 20 % Rabatt mit Gutschein.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "Erfolgsgarantie",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "Schmerzfreie",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "beste Zahnarztpraxis",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "Rabatt",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "Vorher-Nachher",
+    "why": "Before/after results imply an outcome every patient will get."
+   },
+   {
+    "rule": "testimonial",
+    "match": "Patientenstimmen",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 12,
+    "match": "Schmerzfreie"
+   },
+   {
+    "rule": "guarantee",
+    "start": 28,
+    "end": 43,
+    "match": "Erfolgsgarantie"
+   },
+   {
+    "rule": "superlative",
+    "start": 49,
+    "end": 69,
+    "match": "beste Zahnarztpraxis"
+   },
+   {
+    "rule": "before_after",
+    "start": 82,
+    "end": 96,
+    "match": "Vorher-Nachher"
+   },
+   {
+    "rule": "testimonial",
+    "start": 108,
+    "end": 124,
+    "match": "Patientenstimmen"
+   },
+   {
+    "rule": "price",
+    "start": 126,
+    "end": 137,
+    "match": "20 % Rabatt"
+   },
+   {
+    "rule": "price",
+    "start": 142,
+    "end": 151,
+    "match": "Gutschein"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 12,
+    "match": "Schmerzfreie"
+   },
+   {
+    "rule": "guarantee",
+    "start": 28,
+    "end": 43,
+    "match": "Erfolgsgarantie"
+   },
+   {
+    "rule": "superlative",
+    "start": 49,
+    "end": 69,
+    "match": "beste Zahnarztpraxis"
+   },
+   {
+    "rule": "before_after",
+    "start": 82,
+    "end": 96,
+    "match": "Vorher-Nachher"
+   },
+   {
+    "rule": "testimonial",
+    "start": 108,
+    "end": 124,
+    "match": "Patientenstimmen"
+   },
+   {
+    "rule": "price",
+    "start": 126,
+    "end": 137,
+    "match": "20 % Rabatt"
+   },
+   {
+    "rule": "price",
+    "start": 142,
+    "end": 151,
+    "match": "Gutschein"
+   }
+  ]
+ },
+ {
+  "input": "Bleaching wirkt dauerhaft und verhindert Karies. Warten Sie nicht länger, bevor es zu spät ist.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "dauerhaft",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 16,
+    "end": 25,
+    "match": "dauerhaft"
+   },
+   {
+    "rule": "absolute",
+    "start": 30,
+    "end": 40,
+    "match": "verhindert"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 16,
+    "end": 25,
+    "match": "dauerhaft"
+   },
+   {
+    "rule": "absolute",
+    "start": 30,
+    "end": 40,
+    "match": "verhindert"
+   },
+   {
+    "rule": "fear",
+    "start": 49,
+    "end": 72,
+    "match": "Warten Sie nicht länger"
+   },
+   {
+    "rule": "fear",
+    "start": 74,
+    "end": 94,
+    "match": "bevor es zu spät ist"
+   }
+  ]
+ },
+ {
+  "input": "Implantes sin dolor, resultados garantizados. La mejor clínica dental de Madrid. Antes y después de nuestros pacientes. Descuento del 30% y 2x1 en limpiezas.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "garantizados",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "sin dolor",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "La mejor clínica",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "Descuento",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "Antes y después",
+    "why": "Before/after results imply an outcome every patient will get."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 10,
+    "end": 19,
+    "match": "sin dolor"
+   },
+   {
+    "rule": "guarantee",
+    "start": 32,
+    "end": 44,
+    "match": "garantizados"
+   },
+   {
+    "rule": "superlative",
+    "start": 46,
+    "end": 62,
+    "match": "La mejor clínica"
+   },
+   {
+    "rule": "before_after",
+    "start": 81,
+    "end": 96,
+    "match": "Antes y después"
+   },
+   {
+    "rule": "price",
+    "start": 120,
+    "end": 129,
+    "match": "Descuento"
+   },
+   {
+    "rule": "price",
+    "start": 140,
+    "end": 143,
+    "match": "2x1"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 10,
+    "end": 19,
+    "match": "sin dolor"
+   },
+   {
+    "rule": "guarantee",
+    "start": 32,
+    "end": 44,
+    "match": "garantizados"
+   },
+   {
+    "rule": "superlative",
+    "start": 46,
+    "end": 62,
+    "match": "La mejor clínica"
+   },
+   {
+    "rule": "before_after",
+    "start": 81,
+    "end": 96,
+    "match": "Antes y después"
+   },
+   {
+    "rule": "price",
+    "start": 120,
+    "end": 129,
+    "match": "Descuento"
+   },
+   {
+    "rule": "price",
+    "start": 140,
+    "end": 143,
+    "match": "2x1"
+   }
+  ]
+ },
+ {
+  "input": "Ortodoncia para siempre, solución definitiva. No esperes más, podrías perder tus dientes.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "para siempre",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 11,
+    "end": 23,
+    "match": "para siempre"
+   },
+   {
+    "rule": "absolute",
+    "start": 25,
+    "end": 44,
+    "match": "solución definitiva"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 11,
+    "end": 23,
+    "match": "para siempre"
+   },
+   {
+    "rule": "absolute",
+    "start": 25,
+    "end": 44,
+    "match": "solución definitiva"
+   },
+   {
+    "rule": "fear",
+    "start": 46,
+    "end": 60,
+    "match": "No esperes más"
+   },
+   {
+    "rule": "fear",
+    "start": 62,
+    "end": 88,
+    "match": "podrías perder tus dientes"
+   }
+  ]
+ },
+ {
+  "input": "Blanchiment sans douleur garanti, le meilleur cabinet de Lyon. Photos avant/après et témoignages. Offre spéciale, consultation gratuite.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "garanti",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "sans douleur",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "le meilleur cabinet",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "Offre spéciale",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "avant/après",
+    "why": "Before/after results imply an outcome every patient will get."
+   },
+   {
+    "rule": "testimonial",
+    "match": "témoignages",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 12,
+    "end": 24,
+    "match": "sans douleur"
+   },
+   {
+    "rule": "guarantee",
+    "start": 25,
+    "end": 32,
+    "match": "garanti"
+   },
+   {
+    "rule": "superlative",
+    "start": 34,
+    "end": 53,
+    "match": "le meilleur cabinet"
+   },
+   {
+    "rule": "before_after",
+    "start": 70,
+    "end": 81,
+    "match": "avant/après"
+   },
+   {
+    "rule": "testimonial",
+    "start": 85,
+    "end": 96,
+    "match": "témoignages"
+   },
+   {
+    "rule": "price",
+    "start": 98,
+    "end": 112,
+    "match": "Offre spéciale"
+   },
+   {
+    "rule": "price",
+    "start": 127,
+    "end": 135,
+    "match": "gratuite"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 12,
+    "end": 24,
+    "match": "sans douleur"
+   },
+   {
+    "rule": "guarantee",
+    "start": 25,
+    "end": 32,
+    "match": "garanti"
+   },
+   {
+    "rule": "superlative",
+    "start": 34,
+    "end": 53,
+    "match": "le meilleur cabinet"
+   },
+   {
+    "rule": "before_after",
+    "start": 70,
+    "end": 81,
+    "match": "avant/après"
+   },
+   {
+    "rule": "testimonial",
+    "start": 85,
+    "end": 96,
+    "match": "témoignages"
+   },
+   {
+    "rule": "price",
+    "start": 98,
+    "end": 112,
+    "match": "Offre spéciale"
+   },
+   {
+    "rule": "price",
+    "start": 127,
+    "end": 135,
+    "match": "gratuite"
+   }
+  ]
+ },
+ {
+  "input": "Résultat à vie. N'attendez plus, avant qu'il ne soit trop tard.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "à vie",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 9,
+    "end": 14,
+    "match": "à vie"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 9,
+    "end": 14,
+    "match": "à vie"
+   },
+   {
+    "rule": "fear",
+    "start": 16,
+    "end": 31,
+    "match": "N'attendez plus"
+   },
+   {
+    "rule": "fear",
+    "start": 33,
+    "end": 62,
+    "match": "avant qu'il ne soit trop tard"
+   }
+  ]
+ },
+ {
+  "input": "Bezbolesne leczenie z gwarancją! Najlepszy gabinet w Warszawie. Efekty przed i po, opinie pacjentów. Promocja: rabat 20%, konsultacja za darmo.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "gwarancją",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "Bezbolesne",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "Najlepszy gabinet",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "Promocja",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "przed i po",
+    "why": "Before/after results imply an outcome every patient will get."
+   },
+   {
+    "rule": "testimonial",
+    "match": "opinie pacjentów",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 10,
+    "match": "Bezbolesne"
+   },
+   {
+    "rule": "guarantee",
+    "start": 22,
+    "end": 31,
+    "match": "gwarancją"
+   },
+   {
+    "rule": "superlative",
+    "start": 33,
+    "end": 50,
+    "match": "Najlepszy gabinet"
+   },
+   {
+    "rule": "before_after",
+    "start": 71,
+    "end": 81,
+    "match": "przed i po"
+   },
+   {
+    "rule": "testimonial",
+    "start": 83,
+    "end": 99,
+    "match": "opinie pacjentów"
+   },
+   {
+    "rule": "price",
+    "start": 101,
+    "end": 109,
+    "match": "Promocja"
+   },
+   {
+    "rule": "price",
+    "start": 111,
+    "end": 116,
+    "match": "rabat"
+   },
+   {
+    "rule": "price",
+    "start": 134,
+    "end": 142,
+    "match": "za darmo"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 10,
+    "match": "Bezbolesne"
+   },
+   {
+    "rule": "guarantee",
+    "start": 22,
+    "end": 31,
+    "match": "gwarancją"
+   },
+   {
+    "rule": "superlative",
+    "start": 33,
+    "end": 50,
+    "match": "Najlepszy gabinet"
+   },
+   {
+    "rule": "before_after",
+    "start": 71,
+    "end": 81,
+    "match": "przed i po"
+   },
+   {
+    "rule": "testimonial",
+    "start": 83,
+    "end": 99,
+    "match": "opinie pacjentów"
+   },
+   {
+    "rule": "price",
+    "start": 101,
+    "end": 109,
+    "match": "Promocja"
+   },
+   {
+    "rule": "price",
+    "start": 111,
+    "end": 116,
+    "match": "rabat"
+   },
+   {
+    "rule": "price",
+    "start": 134,
+    "end": 142,
+    "match": "za darmo"
+   }
+  ]
+ },
+ {
+  "input": "Licówki na zawsze. Nie czekaj dłużej — zanim będzie za późno.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "na zawsze",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 8,
+    "end": 17,
+    "match": "na zawsze"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 8,
+    "end": 17,
+    "match": "na zawsze"
+   },
+   {
+    "rule": "fear",
+    "start": 19,
+    "end": 36,
+    "match": "Nie czekaj dłużej"
+   },
+   {
+    "rule": "fear",
+    "start": 39,
+    "end": 60,
+    "match": "zanim będzie za późno"
+   }
+  ]
+ },
+ {
+  "input": "علاج بدون ألم ونتائج مضمونة 100%! أفضل عيادة أسنان في دبي. صور قبل وبعد وآراء المرضى. خصم 30% وعرض خاص لفترة محدودة.",
+  "scan": [
+   {
+    "rule": "guarantee",
+    "match": "مضمونة",
+    "why": "Results cannot be guaranteed in healthcare."
+   },
+   {
+    "rule": "absolute",
+    "match": "100%",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "أفضل عيادة",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "خصم",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "قبل وبعد",
+    "why": "Before/after results imply an outcome every patient will get."
+   },
+   {
+    "rule": "testimonial",
+    "match": "وآراء المرضى",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 5,
+    "end": 13,
+    "match": "بدون ألم"
+   },
+   {
+    "rule": "guarantee",
+    "start": 21,
+    "end": 27,
+    "match": "مضمونة"
+   },
+   {
+    "rule": "absolute",
+    "start": 28,
+    "end": 32,
+    "match": "100%"
+   },
+   {
+    "rule": "superlative",
+    "start": 34,
+    "end": 44,
+    "match": "أفضل عيادة"
+   },
+   {
+    "rule": "before_after",
+    "start": 63,
+    "end": 71,
+    "match": "قبل وبعد"
+   },
+   {
+    "rule": "testimonial",
+    "start": 72,
+    "end": 84,
+    "match": "وآراء المرضى"
+   },
+   {
+    "rule": "price",
+    "start": 86,
+    "end": 89,
+    "match": "خصم"
+   },
+   {
+    "rule": "price",
+    "start": 94,
+    "end": 102,
+    "match": "وعرض خاص"
+   },
+   {
+    "rule": "price",
+    "start": 103,
+    "end": 115,
+    "match": "لفترة محدودة"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 5,
+    "end": 13,
+    "match": "بدون ألم"
+   },
+   {
+    "rule": "guarantee",
+    "start": 21,
+    "end": 27,
+    "match": "مضمونة"
+   },
+   {
+    "rule": "absolute",
+    "start": 28,
+    "end": 32,
+    "match": "100%"
+   },
+   {
+    "rule": "superlative",
+    "start": 34,
+    "end": 44,
+    "match": "أفضل عيادة"
+   },
+   {
+    "rule": "before_after",
+    "start": 63,
+    "end": 71,
+    "match": "قبل وبعد"
+   },
+   {
+    "rule": "testimonial",
+    "start": 72,
+    "end": 84,
+    "match": "وآراء المرضى"
+   },
+   {
+    "rule": "price",
+    "start": 86,
+    "end": 89,
+    "match": "خصم"
+   },
+   {
+    "rule": "price",
+    "start": 94,
+    "end": 102,
+    "match": "وعرض خاص"
+   },
+   {
+    "rule": "price",
+    "start": 103,
+    "end": 115,
+    "match": "لفترة محدودة"
+   }
+  ]
+ },
+ {
+  "input": "ابتسامة مدى الحياة ونتائج فورية. لا تنتظروا أكثر، قبل فوات الأوان احجزوا الآن.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "مدى الحياة",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 8,
+    "end": 18,
+    "match": "مدى الحياة"
+   },
+   {
+    "rule": "absolute",
+    "start": 19,
+    "end": 31,
+    "match": "ونتائج فورية"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 8,
+    "end": 18,
+    "match": "مدى الحياة"
+   },
+   {
+    "rule": "absolute",
+    "start": 19,
+    "end": 31,
+    "match": "ونتائج فورية"
+   },
+   {
+    "rule": "fear",
+    "start": 33,
+    "end": 48,
+    "match": "لا تنتظروا أكثر"
+   },
+   {
+    "rule": "fear",
+    "start": 50,
+    "end": 65,
+    "match": "قبل فوات الأوان"
+   },
+   {
+    "rule": "fear",
+    "start": 66,
+    "end": 77,
+    "match": "احجزوا الآن"
+   }
+  ]
+ },
+ {
+  "input": "تنظيف الأسنان قبل وبعد الأكل مفيد، ويمكن أن يساعد على الوقاية من التسوس.",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ },
+ {
+  "input": "無痛治療で絶対安心！地域No.1の歯科医院。ビフォーアフター写真と患者様の声をご覧ください。初回無料カウンセリング、ホワイトニング半額キャンペーン。",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "無痛",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   },
+   {
+    "rule": "superlative",
+    "match": "No.1",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "price",
+    "match": "初回無料",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   },
+   {
+    "rule": "before_after",
+    "match": "ビフォーアフター",
+    "why": "Before/after results imply an outcome every patient will get."
+   },
+   {
+    "rule": "testimonial",
+    "match": "患者様の声",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 2,
+    "match": "無痛"
+   },
+   {
+    "rule": "absolute",
+    "start": 5,
+    "end": 9,
+    "match": "絶対安心"
+   },
+   {
+    "rule": "superlative",
+    "start": 12,
+    "end": 16,
+    "match": "No.1"
+   },
+   {
+    "rule": "before_after",
+    "start": 22,
+    "end": 30,
+    "match": "ビフォーアフター"
+   },
+   {
+    "rule": "testimonial",
+    "start": 33,
+    "end": 38,
+    "match": "患者様の声"
+   },
+   {
+    "rule": "price",
+    "start": 46,
+    "end": 50,
+    "match": "初回無料"
+   },
+   {
+    "rule": "price",
+    "start": 65,
+    "end": 67,
+    "match": "半額"
+   },
+   {
+    "rule": "price",
+    "start": 67,
+    "end": 73,
+    "match": "キャンペーン"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 2,
+    "match": "無痛"
+   },
+   {
+    "rule": "absolute",
+    "start": 5,
+    "end": 9,
+    "match": "絶対安心"
+   },
+   {
+    "rule": "superlative",
+    "start": 12,
+    "end": 16,
+    "match": "No.1"
+   },
+   {
+    "rule": "before_after",
+    "start": 22,
+    "end": 30,
+    "match": "ビフォーアフター"
+   },
+   {
+    "rule": "testimonial",
+    "start": 33,
+    "end": 38,
+    "match": "患者様の声"
+   },
+   {
+    "rule": "price",
+    "start": 46,
+    "end": 50,
+    "match": "初回無料"
+   },
+   {
+    "rule": "price",
+    "start": 65,
+    "end": 67,
+    "match": "半額"
+   },
+   {
+    "rule": "price",
+    "start": 67,
+    "end": 73,
+    "match": "キャンペーン"
+   }
+  ]
+ },
+ {
+  "input": "永久に白い歯を。手遅れになる前に今すぐ予約を。",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "永久",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 2,
+    "match": "永久"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 2,
+    "match": "永久"
+   },
+   {
+    "rule": "fear",
+    "start": 8,
+    "end": 11,
+    "match": "手遅れ"
+   },
+   {
+    "rule": "fear",
+    "start": 16,
+    "end": 21,
+    "match": "今すぐ予約"
+   }
+  ]
+ },
+ {
+  "input": "永久歯は6歳頃から生えてきます。",
+  "scan": [],
+  "spans": [],
+  "checker": []
+ }
+]

@@ -9,7 +9,7 @@ import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuideHub as hasGuides, 
 import type { ChromeText, ChromeWords } from "@/lib/dentvid/chrome-text";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
-import { ABOUT_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
+import { ABOUT_PATH, CHECKER_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { dvHref } from "@/lib/dentvid/host";
 import { equivalentPath } from "@/lib/dentvid/lang-switch";
 import { isLegalKind, legalPath } from "@/content/legal/nav";
@@ -43,14 +43,20 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   if (parts[0] === "d" && parts.length === 2) return "en";
   if (parts[1] === "d" && parts.length === 3 && (LOCALES as readonly string[]).includes(parts[0])) return parts[0] as Locale;
   // English guides hub and About: /guides, /about.
-  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about" || isLegalKind(parts[0]))) return "en";
+  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about" || parts[0] === CHECKER_SLUG || isLegalKind(parts[0]))) return "en";
   // Guides (/guides/<slug>) and commercial pages (/videos/<slug>) each have one language.
   if (parts[0] === "guides" || parts[0] === "videos") return guideLocales[parts[1] ?? ""] ?? null;
   if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
   // A landing (/tr), or its guides hub or About page (/tr/guides).
   // … or one of its legal pages (/tr/terms).
-  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about" || isLegalKind(parts[1]))) ? (parts[0] as Locale) : null;
+  // … or its ad checker (/tr/ad-checker).
+  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about" || parts[1] === CHECKER_SLUG || isLegalKind(parts[1])))
+    ? (parts[0] as Locale)
+    : null;
 }
+
+/** The free ad checker's last path segment, the same in every language. */
+const CHECKER_SLUG = CHECKER_PATH.en.split("/").pop();
 
 function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; ready: boolean } {
   const fromPath = pathLocale(usePathname() ?? "", guideLocales);
@@ -137,6 +143,8 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
     { href: dvHref(`${home}#pricing`), label: t.pricing },
     // As on the desktop: only languages that have guides link to them.
     ...(hasGuides(locale) ? [{ href: dvHref(GUIDES_INDEX_PATH[locale]), label: t.guides }] : []),
+    // The free ad checker, in every language; in the bar from the lg breakpoint (four links do not fit at md), always in the phone menu and the footer.
+    { href: dvHref(CHECKER_PATH[locale]), label: t.checker, wide: true },
   ];
   return (
     <header
@@ -157,7 +165,7 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
         {!quiet && (
           <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
             {links.map((l) => (
-              <Link key={l.href} href={l.href} className={navLink}>{l.label}</Link>
+              <Link key={l.href} href={l.href} className={"wide" in l ? navLink.replace("md:inline-block", "whitespace-nowrap lg:inline-block") : navLink}>{l.label}</Link>
             ))}
             <Link href={dvHref(account.href)} data-account-link className="dv-btn dv-btn-primary ms-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
               {account.label}
@@ -331,6 +339,7 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
               <li><Link href={dvHref(`${home}#how`)} className={link}>{t.howItWorks}</Link></li>
               <li><Link href={dvHref(`${home}#pricing`)} className={link}>{t.pricing}</Link></li>
               {hasGuides(locale) && <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{t.guides}</Link></li>}
+              <li><Link href={dvHref(CHECKER_PATH[locale])} className={link}>{t.checker}</Link></li>
               {(commercial?.[locale] ?? []).map((p) => (
                 <li key={p.href}><Link href={dvHref(p.href)} className={link}>{p.label}</Link></li>
               ))}
