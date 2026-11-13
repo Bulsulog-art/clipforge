@@ -48,7 +48,10 @@ export function isBadOrigin(req: {
   if (!req.pathname.startsWith("/api")) return false;
   if (!MUTATION_METHODS.has(req.method)) return false;
   if (WEBHOOK_PATHS.some((p) => req.pathname.startsWith(p))) return false;
-  if (hasBearerToken(req.authorization)) return false;
+  // DentVideo's routes read the session from the dv-auth COOKIE and ignore any
+  // Authorization header, and DentVideo has no native app: a bearer header must
+  // not switch their Origin check off. (Its worker calls /api/internal/dentvideo/*.)
+  if (hasBearerToken(req.authorization) && !req.pathname.startsWith("/api/dentvideo/")) return false;
   const origin = req.origin ?? "";
   return !origin || !req.allowed.includes(origin);
 }

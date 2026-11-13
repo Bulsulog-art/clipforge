@@ -260,9 +260,10 @@ const PAUSE = new Set(["subscription.on_hold", "subscription.failed", "subscript
 export function dvTransition(type: string, d: DodoEventData, env: Env = process.env): DvTransition | null {
   const sub = d.subscription_id;
   if (!sub || !type.startsWith("subscription.")) return null;
-  const tierFromProduct = dvPlanForProduct(d.product_id, env)?.tier ?? null;
-  const metaTier = typeof d.metadata?.plan === "string" && (DV_TIERS as readonly string[]).includes(d.metadata.plan) ? (d.metadata.plan as DvTier) : null;
-  const tier = tierFromProduct ?? metaTier;
+  // The tier is what was actually bought: the product, which Dodo signs. Never
+  // metadata.plan — checkout metadata is set by whoever opens the payment link
+  // (a static link takes any metadata_<key> in its query string).
+  const tier = dvPlanForProduct(d.product_id, env)?.tier ?? null;
   const renewsAt = d.next_billing_date ?? null;
 
   if (ACTIVATE.has(type) || (type === "subscription.plan_changed" && d.status === "active")) {

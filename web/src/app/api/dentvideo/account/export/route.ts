@@ -3,13 +3,16 @@ import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
-import { buildAccountExport } from "@/lib/dentvid/account";
+import { buildAccountExport, loadAccountRecords } from "@/lib/dentvid/account";
+import { dvAdmin } from "@/lib/dentvid/supabase";
 import { accountErrors, ownClinic } from "@/lib/dentvid/account-route";
 
 // POST /api/dentvideo/account/export — everything DentVideo holds about the
 // signed-in clinic as one JSON file (GDPR art. 15/20, KVKK md. 11): profile,
-// plan, every video's script/caption/review, and 24-hour download links for
-// the files in its storage folder. Reads use the owner's own client (RLS).
+// plan, every video's script/caption/review, 24-hour download links for
+// the files in its storage folder, and its billing / email / event records.
+// Reads use the owner's own client (RLS), except those records (service role,
+// scoped to the owner's clinic id).
 
 export async function POST() {
   const { db, user } = await dvSession();
@@ -24,7 +27,11 @@ export async function POST() {
   if (limited) return limited;
 
   try {
-    const data = await buildAccountExport(db, { id: user.id, email: user.email, created_at: user.created_at });
+    // Billing, email and event records live in service-role tables: read them with the
+    // service role, scoped to the clinic id of the owner's own (RLS-checked) row.
+    const data = await buildAccountExport(db, { id: user.id, email: user.email, created_at: user.created_at }, new Date(), (clinicId) =>
+      loadAccountRecords(dvAdmin(), clinicId),
+    );
     const day = data.exported_at.slice(0, 10);
     return new NextResponse(JSON.stringify(data, null, 2), {
       status: 200,

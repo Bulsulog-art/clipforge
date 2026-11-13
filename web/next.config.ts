@@ -46,9 +46,13 @@ const nextConfig: NextConfig = {
     // RevenueCat, and our CDN. Inline scripts are allowed for Next's
     // bootstrap & React hydration ('self' + 'unsafe-inline' is the
     // pragmatic Next.js default — tighten with nonces post-launch).
+    // 'unsafe-eval' only for `next dev` (React's dev tooling evaluates code);
+    // a production build runs without it, so an injected string can never be
+    // turned into code through eval / new Function.
+    const evalSrc = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.sentry.io${extra(turnstile)}`,
+      `script-src 'self' 'unsafe-inline'${evalSrc} https://*.sentry.io${extra(turnstile)}`,
       ...(turnstile ? [`frame-src 'self' ${turnstile}`] : []),
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",

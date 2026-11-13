@@ -684,6 +684,28 @@ export const alerts = {
     };
   },
 
+  /**
+   * A signed Dodo event whose buyer-set metadata does not add up: a DentVideo
+   * activation for a product that is not a DentVideo plan, or metadata naming
+   * a clinic its owner id does not match. Checkout metadata is typed by
+   * whoever opens the (static) payment link, so the webhook never acts on it.
+   */
+  suspiciousBillingEvent(a: { event: string; subscriptionId: string; productId: string | null; reason: "not a DentVideo product" | "owner mismatch" }): OwnerAlert {
+    return {
+      key: `suspicious_billing:${a.subscriptionId}:${a.event}`,
+      severity: "urgent",
+      titleTr: "Şüpheli DentVideo ödemesi yok sayıldı",
+      titleEn: "A suspicious DentVideo payment was ignored",
+      what: [
+        a.reason === "not a DentVideo product"
+          ? `Dodo sent ${a.event} for subscription ${a.subscriptionId} marked as DentVideo, but its product (${a.productId ?? "none"}) is not a DentVideo plan. Someone may have bought a cheaper product with DentVideo's checkout metadata.`
+          : `Dodo sent ${a.event} for subscription ${a.subscriptionId} whose metadata names a clinic that its owner id does not match.`,
+      ],
+      done: ["Nothing was changed: no clinic was switched on, paused or credited."],
+      todo: ["Look the subscription up in Dodo. If it is not a genuine DentVideo purchase, refund or cancel it there."],
+    };
+  },
+
   accessLapsed(a: { clinic: ClinicRef; renewsAt: string; dodoStatus?: string | null }): OwnerAlert {
     return {
       key: `lapsed:${a.clinic.id}:${a.renewsAt.slice(0, 10)}`,

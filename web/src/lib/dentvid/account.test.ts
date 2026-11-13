@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { assertOwnerId, auditRef, buildAccountExport, confirmMatches, deleteDentvideoAccount, isOwnPath, listOwnerFiles, type DodoDeps } from "./account";
+import { assertOwnerId, auditRef, buildAccountExport, confirmMatches, deleteDentvideoAccount, isOwnPath, listOwnerFiles, loadAccountRecords, type DodoDeps } from "./account";
 
 const A = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const B = "9f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f";
@@ -310,5 +310,67 @@ describe("buildAccountExport", () => {
     const out = await buildAccountExport(s.db, { id: A });
     expect(out.clinic).toBeNull();
     expect(JSON.stringify(out)).not.toContain(B);
+  });
+});
+
+describe("export: billing, email and event records (GDPR art. 15)", () => {
+  /** The service-role tables, with a row of another clinic in each; `leaky` ignores the clinic filter. */
+  function serviceDb(opts: { leaky?: boolean; missing?: string[] } = {}) {
+    const tables: Record<string, Row[]> = {
+      dentvid_subscriptions: [
+        { dodo_subscription_id: "sub_A", clinic_id: CLINIC_A, status: "active", tier: "practice" },
+        { dodo_subscription_id: "sub_B", clinic_id: CLINIC_B, status: "active", tier: "starter" },
+      ],
+      dentvid_payments: [
+        { dodo_payment_id: "pay_A", clinic_id: CLINIC_A },
+        { dodo_payment_id: "pay_B", clinic_id: CLINIC_B },
+      ],
+      dentvid_email_log: [{ clinic_id: CLINIC_A, kind: "welcome", sent_at: "2026-11-01T00:00:00Z" }, { clinic_id: CLINIC_B, kind: "welcome" }],
+      dentvid_email_sends: [{ clinic_id: CLINIC_A, kind: "ready", status: "sent" }, { clinic_id: CLINIC_B, kind: "ready", status: "sent" }],
+      dentvid_events: [{ clinic_id: CLINIC_A, name: "clinic_saved", props: {} }, { clinic_id: CLINIC_B, name: "clinic_saved", props: {} }],
+    };
+    const asked: string[] = [];
+    const from = (table: string) => {
+      const filters: [string, unknown][] = [];
+      const q = {
+        select: () => q,
+        order: () => q,
+        limit: () => q,
+        eq: (k: string, v: unknown) => (filters.push([k, v]), q),
+        then(resolve: (v: unknown) => void) {
+          asked.push(`${table} ${JSON.stringify(filters)}`);
+          if (opts.missing?.includes(table)) return resolve({ data: null, error: { code: "42P01", message: `relation "public.${table}" does not exist` } });
+          const rows = opts.leaky ? tables[table] : tables[table].filter((r) => filters.every(([k, v]) => r[k] === v));
+          return resolve({ data: rows, error: null });
+        },
+      };
+      return q;
+    };
+    return { db: { from } as unknown as SupabaseClient, asked };
+  }
+
+  it("adds the clinic's subscriptions, payments, emails and events — scoped to its own clinic id", async () => {
+    const s = fakeSupabase();
+    const svc = serviceDb({ leaky: true }); // even if every read returned every clinic's rows
+    const out = await buildAccountExport(s.db, { id: A }, new Date(), (clinicId) => loadAccountRecords(svc.db, clinicId));
+    expect(out.records?.subscriptions.map((r) => r.dodo_subscription_id)).toEqual(["sub_A"]);
+    expect(out.records?.payments.map((r) => r.dodo_payment_id)).toEqual(["pay_A"]);
+    expect(out.records?.emails).toHaveLength(1);
+    expect(out.records?.email_sends).toHaveLength(1);
+    expect(out.records?.events).toHaveLength(1);
+    expect(svc.asked.every((q) => q.includes(CLINIC_A))).toBe(true);
+    const text = JSON.stringify(out);
+    expect(text).not.toContain(CLINIC_B);
+    expect(text).not.toContain("sub_B");
+  });
+
+  it("skips a table that is not migrated yet, and reads nothing without a clinic", async () => {
+    const svc = serviceDb({ missing: ["dentvid_email_sends"] });
+    const r = await loadAccountRecords(svc.db, CLINIC_A);
+    expect(r.email_sends).toEqual([]);
+    expect(r.subscriptions).toHaveLength(1);
+    const none = serviceDb();
+    expect(await loadAccountRecords(none.db, null)).toEqual({ subscriptions: [], payments: [], emails: [], email_sends: [], events: [] });
+    expect(none.asked).toEqual([]);
   });
 });
