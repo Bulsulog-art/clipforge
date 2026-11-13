@@ -17,3 +17,26 @@ export const splitServices = (s: string) => s.split(/[,，、،\n]/).map((x) => 
 
 /** The first few example services for a language. */
 export const exampleServices = (language: string, n = 3) => splitServices(SERVICE_HINTS[language] ?? SERVICE_HINTS.en).slice(0, n);
+
+/** The separator a clinic would type between services in this language. */
+const JOINER: Record<string, string> = { ja: "、", ar: "، " };
+
+/** The example services for a language, offered as one-tap suggestions under the services field. */
+export const suggestedServices = (language: string) => splitServices(SERVICE_HINTS[language] ?? SERVICE_HINTS.en);
+
+/** Case-insensitive, also for the Turkish dotted İ ("İmplant" = "implant"). */
+const key = (s: string) => s.trim().toLowerCase().replace(/̇/g, "");
+const sameService = (a: string, b: string) => key(a) === key(b);
+
+/** Is this service already in what the clinic typed? */
+export const hasService = (typed: string, service: string) => splitServices(typed).some((s) => sameService(s, service));
+
+/**
+ * Add a suggested service to the services field, or take it out if it is
+ * already there. Everything else the clinic typed is kept as it is.
+ */
+export function toggleService(typed: string, service: string, language: string): string {
+  const list = splitServices(typed);
+  const next = list.some((s) => sameService(s, service)) ? list.filter((s) => !sameService(s, service)) : [...list, service.trim()];
+  return next.join(JOINER[language] ?? ", ");
+}

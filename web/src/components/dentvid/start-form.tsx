@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { dvHref } from "@/lib/dentvid/host";
 import { dirOf, type Locale } from "@/content/dentvideo-locales";
 import { appText } from "@/content/dentvideo-app";
@@ -31,6 +32,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Bot brakes (lib/dentvid/bot-check): a honeypot field people never see,
@@ -186,22 +188,41 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
             <FieldError name="email" />
           </label>
           {mode !== "forgot" && (
-          <label className="block">
-            <span className="text-sm font-semibold text-dv-ink">{t.password}</span>
-            <input
-              type="password"
-              dir="ltr"
-              required
-              minLength={8}
-              data-field="password"
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={field}
-            />
+          <div>
+            {/* On a phone a mistyped new password only shows up at the next sign-in: let them look at it. */}
+            <div className="relative">
+            <label className="block">
+              <span className="text-sm font-semibold text-dv-ink">{t.password}</span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  dir="ltr"
+                  required
+                  minLength={8}
+                  data-field="password"
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${field} !pr-12`}
+                />
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-pressed={showPassword}
+              aria-label={showPassword ? a.hidePassword : a.showPassword}
+              title={showPassword ? a.hidePassword : a.showPassword}
+              className="absolute bottom-[3px] right-1 flex h-11 w-11 items-center justify-center rounded-full text-dv-muted hover:text-dv-teal"
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
+            </button>
+            </div>
+            {/* Under the field, outside the box the eye button is anchored to. */}
             <FieldError name="password" />
             {mode === "signup" && <span className="mt-2 block text-xs text-dv-muted">{t.passwordHint}</span>}
-          </label>
+          </div>
           )}
           {mode === "signup" && (
             <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>

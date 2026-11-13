@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useId, useState } from "react";
+import { createContext, useCallback, useContext, useId, useRef, useState } from "react";
 import type { Locale } from "@/content/dentvideo-locales";
 import { validationText } from "@/content/dentvideo-validation";
 import { fieldError, fieldState } from "@/lib/dentvid/form-validation";
@@ -21,7 +21,7 @@ import { fieldError, fieldState } from "@/lib/dentvid/form-validation";
  */
 
 type Errors = Record<string, string>;
-const Ctx = createContext<{ errors: Errors; base: string } | null>(null);
+const Ctx = createContext<{ errors: Errors; base: string; clear: (key: string) => void } | null>(null);
 
 const errorId = (base: string, key: string) => `${base}-${key}-error`;
 
@@ -34,9 +34,21 @@ type FormProps = Omit<React.FormHTMLAttributes<HTMLFormElement>, "onSubmit" | "n
 export function ValidatingForm({ locale, onSubmit, onInput, children, ...rest }: FormProps) {
   const [errors, setErrors] = useState<Errors>({});
   const base = useId();
+  const formRef = useRef<HTMLFormElement>(null);
+  // For a value set without typing (a treatment chip): drop that field's message and its marks.
+  const clear = useCallback((key: string) => {
+    const el = formRef.current?.querySelector(`[data-field="${CSS.escape(key)}"]`);
+    if (el) unmark(el);
+    setErrors((all) => {
+      if (!all[key]) return all;
+      const { [key]: _gone, ...others } = all;
+      return others;
+    });
+  }, []);
   return (
-    <Ctx.Provider value={{ errors, base }}>
+    <Ctx.Provider value={{ errors, base, clear }}>
       <form
+        ref={formRef}
         {...rest}
         noValidate
         onInput={(e) => {
@@ -94,6 +106,13 @@ function checkForm(form: HTMLFormElement, locale: Locale, base: string): { error
   }
   return { errors, first };
 }
+
+/** Clears one field's message when its value changes without an input event (a no-op outside a ValidatingForm). */
+export function useClearFieldError(): (key: string) => void {
+  const ctx = useContext(Ctx);
+  return ctx?.clear ?? noop;
+}
+const noop = () => {};
 
 /** The message for one field, under it (nothing while the field is fine, or outside a ValidatingForm). */
 export function FieldError({ name }: { name: string }) {

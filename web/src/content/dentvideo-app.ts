@@ -153,6 +153,8 @@ export type AppText = {
     informal: string;
     services: string;
     servicesHelp: string;
+    /** Label before the one-tap service suggestions. */
+    servicesQuick: string;
     tone: string;
     tones: { warm: string; expert: string; calm: string; playful: string };
     handle: string;
@@ -481,6 +483,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "Informal (du, tú, tu, sen)",
       services: "Services you offer",
       servicesHelp: "Comma-separated. Videos are only ever made about these.",
+      servicesQuick: "Quick add:",
       tone: "Tone",
       tones: { warm: "Warm", expert: "Expert", calm: "Calm", playful: "Playful" },
       handle: "Instagram / TikTok handle",
@@ -831,6 +834,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "Persönlich (du, tú, tu, sen)",
       services: "Ihre Leistungen",
       servicesHelp: "Durch Kommas getrennt. Videos entstehen nur zu diesen Leistungen.",
+      servicesQuick: "Schnell hinzufügen:",
       tone: "Tonalität",
       tones: { warm: "Herzlich", expert: "Fachlich", calm: "Ruhig", playful: "Locker" },
       handle: "Instagram- / TikTok-Name",
@@ -1184,6 +1188,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "De tú (du, tú, tu, sen)",
       services: "Servicios que ofreces",
       servicesHelp: "Separados por comas. Los vídeos solo tratan estos servicios.",
+      servicesQuick: "Añadir rápido:",
       tone: "Tono",
       tones: { warm: "Cercano", expert: "Experto", calm: "Tranquilo", playful: "Desenfadado" },
       handle: "Usuario de Instagram / TikTok",
@@ -1537,6 +1542,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "Samimi (du, tú, tu, sen)",
       services: "Sunduğunuz hizmetler",
       servicesHelp: "Virgülle ayırın. Videolar yalnızca bu hizmetler hakkında hazırlanır.",
+      servicesQuick: "Hızlıca ekleyin:",
       tone: "Üslup",
       tones: { warm: "Sıcak", expert: "Uzman", calm: "Sakin", playful: "Eğlenceli" },
       handle: "Instagram / TikTok kullanıcı adı",
@@ -1890,6 +1896,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "Tutoiement (du, tú, tu, sen)",
       services: "Soins que vous proposez",
       servicesHelp: "Séparés par des virgules. Les vidéos ne portent que sur ces soins.",
+      servicesQuick: "Ajout rapide :",
       tone: "Ton",
       tones: { warm: "Chaleureux", expert: "Expert", calm: "Posé", playful: "Détendu" },
       handle: "Compte Instagram / TikTok",
@@ -2247,6 +2254,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "やわらかめ（です・ます、親しみのある語り口）",
       services: "行っている診療",
       servicesHelp: "読点（、）またはカンマで区切って入力してください。動画は、ここに挙げた診療についてだけ作られます。",
+      servicesQuick: "ワンタップで追加：",
       tone: "トーン",
       tones: { warm: "あたたかく", expert: "専門的に", calm: "落ち着いて", playful: "親しみやすく" },
       handle: "Instagram / TikTok のアカウント名",
@@ -2594,6 +2602,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "ودّية (أنتم، بصيغة الجمع)",
       services: "الخدمات التي تقدّمونها",
       servicesHelp: "افصلوا بينها بفاصلة. لا تُعدّ الفيديوهات إلا عن هذه الخدمات.",
+      servicesQuick: "إضافة سريعة:",
       tone: "الأسلوب",
       tones: { warm: "دافئ", expert: "متخصص", calm: "هادئ", playful: "مرح" },
       handle: "حساب إنستغرام / تيك توك",
@@ -2942,6 +2951,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       informal: "Bezpośrednio (ty)",
       services: "Wykonywane zabiegi",
       servicesHelp: "Oddzielone przecinkami. Filmy powstają wyłącznie na te tematy.",
+      servicesQuick: "Szybko dodaj:",
       tone: "Ton",
       tones: { warm: "Ciepły", expert: "Ekspercki", calm: "Spokojny", playful: "Swobodny" },
       handle: "Konto na Instagramie / TikToku",
