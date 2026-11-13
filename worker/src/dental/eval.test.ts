@@ -18,7 +18,7 @@ describe("eval", () => {
     expect(s.readyRate).toBe(0.75);
     expect(s.firstPass).toBe(0.5);
     const tr = s.byLang.find((l) => l.language === "tr")!;
-    expect(tr).toMatchObject({ readyRate: 0.67, firstPass: 0.33, hook: 3, voice: 3.5, services: 2, videos: 3 });
-    expect(reportMarkdown(rows, s, "now")).toContain("| tr | 67% | 33% | 3 | 3.5 | 2 | 3 |");
+    expect(tr).toMatchObject({ readyRate: 0.67, firstPass: 0.33, hook: 3, voice: 3.5, rubric: 0, services: 2, videos: 3 });
+    expect(reportMarkdown(rows, s, "now")).toContain("| tr | 67% | 33% | 3 | 3.5 | 0 | 2 | 3 |");
   });
 });

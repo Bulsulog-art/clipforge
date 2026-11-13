@@ -17,7 +17,7 @@ import { clinicProfileSchema } from "./profile.js";
 import { produceWeek } from "./week.js";
 import { clipsFromRecording } from "./recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
-import { prepareVoiceover } from "../remotion/voiceover.js";
+import { prepareNarration } from "./narration-audio.js";
 import { resolveVoice } from "./voice.js";
 
 // Node's built-in fetch, not the SDK's bundled node-fetch: the built-in one
@@ -77,9 +77,10 @@ async function main() {
         ? async (plan, topic) => {
             const dir = path.join(outDir, slug(topic.title));
             await fs.mkdir(dir, { recursive: true });
-            const voice = await prepareVoiceover(plan, dir, {
+            const voice = await prepareNarration(plan, dir, profile.language, {
               ...resolveVoice(profile.language),
               onFallback: (e) => console.warn(`  ! tts model failed, used tts-1-hd: ${e.message}`),
+              onMasterError: (e) => console.warn(`  ! narration mastering failed, used the plain voice: ${e.message}`),
             });
             const res = await renderPlan({
               plan: voice.plan,

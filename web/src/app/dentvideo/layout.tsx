@@ -3,10 +3,14 @@ import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import { GUIDES, LOCALES, type Locale } from "@/content/dentvideo";
 import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { DvFooter, DvHeader, type CommercialNav } from "@/components/dentvid/chrome";
+import { chromeText } from "@/lib/dentvid/chrome-text";
 import "./dentvideo.css";
 
-const sans = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], variable: "--dv-font-sans", display: "swap" });
-const serif = Instrument_Serif({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--dv-font-serif", display: "swap" });
+// `subsets` decides what is preloaded; every unicode-range slice is declared either way. Only Latin is
+// preloaded: Latin Extended (Turkish ş ğ ı, Polish ł ą ę …) is fetched by the pages whose text has those
+// letters, instead of by every visitor ahead of the page's own scripts and styles.
+const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--dv-font-sans", display: "swap" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--dv-font-serif", display: "swap" });
 
 export const metadata: Metadata = {
   // Share images and other relative URLs resolve on dentvideo.com, not the ClipForge host.
@@ -56,15 +60,18 @@ export const viewport: Viewport = { themeColor: "#faf7f2" };
 // Each guide and each commercial page is written in one language; the header and footer follow it.
 const GUIDE_LOCALES: Record<string, Locale> = Object.fromEntries([...GUIDES, ...SOLUTIONS].map((g) => [g.slug, g.locale]));
 
+// The header's and footer's words in every language: passed down, so the content modules they come from stay on the server.
+const CHROME_TEXT = chromeText();
+
 // The footer links every language's commercial pages (only their paths and short labels reach the browser).
 const COMMERCIAL: CommercialNav = Object.fromEntries(LOCALES.map((l) => [l, solutionsFor(l).map((p) => ({ href: solutionPath(p), label: p.nav }))]));
 
 export default function DentVideoLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`dv ${sans.variable} ${serif.variable} flex min-h-screen flex-col bg-dv-paper text-dv-ink antialiased`}>
-      <DvHeader guideLocales={GUIDE_LOCALES} />
+      <DvHeader guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} />
       <div className="flex-1">{children}</div>
-      <DvFooter guideLocales={GUIDE_LOCALES} commercial={COMMERCIAL} />
+      <DvFooter guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} commercial={COMMERCIAL} />
     </div>
   );
 }

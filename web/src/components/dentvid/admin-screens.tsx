@@ -4,7 +4,7 @@ import { DV_FOUNDING } from "@/lib/dentvid/billing";
 import { billingHints, foundingSeats, lastRuns, revenue, runState, type AdminClinic, type ClinicRun } from "@/lib/dentvid/admin-metrics";
 import { RANGE_PRESETS, filterClinics, filterVideos, isProblemVideo, qs, type ClinicFilter, type DateRange, type ClinicRowView, type VideoFilter } from "@/lib/dentvid/admin-filters";
 import { billingIssues, foundingFromLedger, openProblems, periodStats, LIVE_SUB, type EmailLogRow, type EmailSendRow, type PaymentRow, type SubRow, type BillingIssue } from "@/lib/dentvid/admin-ops";
-import { RETRYABLE_QUEUES, type QueueStats } from "@/lib/dentvid/admin-system";
+import { RETRYABLE_QUEUES, monitorIncidents, type MonitorView, type QueueStats } from "@/lib/dentvid/admin-system";
 import type { OverviewData, SystemData } from "@/lib/dentvid/admin-loaders";
 import type { AdminData, SpendState } from "@/lib/dentvid/admin-server";
 import { FunnelAndSources, type FunnelQuery } from "./admin-dashboard";
@@ -393,6 +393,8 @@ export function AdminSystem({ data, ...c }: Common & { data: SystemData }) {
       warnings={s.available ? [] : [s.error ?? "Redis not reachable."]}
       {...c}
     >
+      {s.available && <LiveChecks m={s.monitor} now={now} />}
+
       <Section title="Worker" id="worker" lead="Each process writes a heartbeat every minute; older than 3 minutes is shown as down.">
         {s.heartbeats.length === 0 ? (
           <Warn>No heartbeat found. A worker older than this panel does not write one yet — deploy the worker.</Warn>
@@ -524,7 +526,7 @@ export function AdminSystem({ data, ...c }: Common & { data: SystemData }) {
               <tr key={`${a.at}-${i}`}>
                 <td className="whitespace-nowrap text-xs">{when(a.at)}</td>
                 <td>
-                  <Badge tone={a.severity === "critical" || a.severity === "high" ? "red" : a.severity === "warning" ? "amber" : "grey"}>{a.severity}</Badge>
+                  <Badge tone={alertTone(a.severity)}>{a.severity}</Badge>
                 </td>
                 <th scope="row" className="font-normal text-dv-ink">
                   {a.title}
@@ -536,6 +538,103 @@ export function AdminSystem({ data, ...c }: Common & { data: SystemData }) {
         )}
       </Section>
     </AdminShell>
+  );
+}
+
+/** Owner-alert severities (ops-alert.ts: urgent / warning / good; older entries: critical / high). */
+export const alertTone = (severity: string): "red" | "amber" | "teal" | "grey" =>
+  severity === "urgent" || severity === "critical" || severity === "high" ? "red" : severity === "warning" ? "amber" : severity === "good" ? "teal" : "grey";
+
+const MONITOR_STATUS: Record<MonitorView["status"], { label: string; tone: "red" | "amber" | "teal" | undefined }> = {
+  ok: { label: "all passing", tone: "teal" },
+  failing: { label: "failing", tone: "red" },
+  stale: { label: "not running", tone: "amber" },
+  never: { label: "no runs yet", tone: undefined },
+};
+
+/**
+ * The synthetic monitor (worker/src/dentvid/synthetic.ts): the last run's
+ * checks, the last 24 hours as a strip (one mark per 15-minute run, oldest
+ * left) and the failure periods of the last 3 days.
+ */
+function LiveChecks({ m, now }: { m: MonitorView; now: Date }) {
+  const st = MONITOR_STATUS[m.status];
+  const strip = m.history.slice(0, 96).reverse();
+  const incidents = monitorIncidents(m.history).slice(0, 20);
+  const labels = new Map((m.last?.results ?? []).map((r) => [r.name, r.label]));
+  return (
+    <Section
+      title="Live checks"
+      id="monitor"
+      lead="Every 15 minutes the worker loads the key pages, signs up a throwaway account (deleted again), and checks Liman and the Dodo checkout link — as a clinic would. Two failures in a row email you; so does the recovery."
+    >
+      {m.status === "never" ? (
+        <Warn>No monitor run recorded yet. It runs on a worker with the crons role once this version is deployed (turn off with DENTVIDEO_MONITOR=off).</Warn>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Stat label="Now" value={st.label} tone={st.tone} sub={m.last ? `${m.last.results.filter((r) => !r.ok && !r.skipped).length} failing of ${m.last.results.filter((r) => !r.skipped).length} run` : undefined} />
+            <Stat label="Last run" value={m.last ? ago(m.last.at, now) : "—"} sub={m.last ? `${when(m.last.at)} · ${(m.last.ms / 1000).toFixed(1)} s` : undefined} tone={m.status === "stale" ? "amber" : undefined} />
+            <Stat label="Passing, 24 h" value={m.uptime24h === null ? "—" : `${m.uptime24h}%`} sub={`${m.runs24h} runs`} tone={m.uptime24h !== null && m.uptime24h < 99 ? "amber" : undefined} />
+            <Stat label="Incidents, 3 days" value={int(incidents.length)} sub={incidents.some((i) => i.ongoing) ? "one is ongoing" : "none ongoing"} tone={incidents.some((i) => i.ongoing) ? "red" : undefined} />
+          </div>
+          {strip.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-1 text-xs text-dv-muted">Last 24 hours, oldest left — each mark is one run</p>
+              <ol className="flex h-6 items-stretch gap-px" aria-label="Monitor runs, last 24 hours">
+                {strip.map((h) => (
+                  <li
+                    key={h.at}
+                    title={`${when(h.at)} — ${h.ok ? "all passing" : `failed: ${h.failed.map((f) => labels.get(f) ?? f).join(", ")}`}`}
+                    className={`min-w-[2px] flex-1 rounded-[1px] ${h.ok ? "bg-dv-teal/70" : "bg-[#b42318]"}`}
+                  >
+                    <span className="sr-only">{`${when(h.at)} ${h.ok ? "passing" : `failed: ${h.failed.join(", ")}`}`}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+          {m.last && (
+            <div className="mt-4">
+              <Table caption="Last monitor run" head={["Check", "Result", "Time", "Failing since", "Detail"]} minWidth="40rem">
+                {m.last.results.map((r) => {
+                  const since = m.state[r.name]?.since;
+                  return (
+                    <tr key={r.name} data-ok={r.ok ? "1" : "0"}>
+                      <th scope="row" className="whitespace-nowrap font-medium text-dv-ink">
+                        {r.label}
+                      </th>
+                      <td>{r.skipped ? <Badge tone="grey">skipped</Badge> : r.ok ? <Badge tone="teal">ok</Badge> : <Badge tone="red">failed</Badge>}</td>
+                      <td className="whitespace-nowrap tabular-nums text-xs">{r.skipped ? "—" : `${r.ms} ms`}</td>
+                      <td className="whitespace-nowrap text-xs">{!r.ok && since ? `${when(since)} (${ago(since, now)})` : "—"}</td>
+                      <td className="break-words text-xs text-dv-body">{r.error ?? r.skipped ?? (r.status ? `HTTP ${r.status}` : "")}</td>
+                    </tr>
+                  );
+                })}
+              </Table>
+            </div>
+          )}
+          <div className="mt-4">
+            {incidents.length === 0 ? (
+              <AllClear>No failures in the last 3 days.</AllClear>
+            ) : (
+              <Table caption="Monitor incidents" head={["Check", "From", "To", "Runs"]} minWidth="30rem">
+                {incidents.map((i) => (
+                  <tr key={`${i.check}-${i.from}`}>
+                    <th scope="row" className="font-medium text-dv-ink">
+                      {labels.get(i.check) ?? i.check}
+                    </th>
+                    <td className="whitespace-nowrap text-xs">{when(i.from)}</td>
+                    <td className="whitespace-nowrap text-xs">{i.ongoing ? <Badge tone="red">ongoing</Badge> : when(i.to)}</td>
+                    <td className="tabular-nums">{i.runs}</td>
+                  </tr>
+                ))}
+              </Table>
+            )}
+          </div>
+        </>
+      )}
+    </Section>
   );
 }
 

@@ -15,6 +15,9 @@ import { verifyTurnstile } from "@/lib/dentvid/turnstile";
 import { dvUrl } from "@/lib/dentvid/host";
 import { sendEmail } from "@/lib/dentvid/email";
 import { resetEmail } from "@/lib/dentvid/reset-email";
+import { MONITOR_HEADER, isMonitorEmail, monitorAuthorised } from "@/lib/dentvid/monitor-account";
+import { raiseOwnerAlert } from "@/lib/dentvid/ops-server";
+import { alerts, cleanError } from "@/lib/dentvid/ops-alert";
 
 // Liman has public sign-up disabled (it hosts other apps too), so DentVideo
 // accounts are created here with the service role, already "confirmed" in
@@ -39,6 +42,15 @@ import { resetEmail } from "@/lib/dentvid/reset-email";
 // (lib/dentvid/verify-email-server exchangeRecovery). The browser then tries
 // to sign in; with a different password that fails and the form offers
 // sign-in / reset without saying whether the account exists.
+//
+// The synthetic monitor and the smoke test (lib/dentvid/monitor-account)
+// sign up as e2e-monitor+…@ addresses: those are never emailed nor counted
+// in the funnel, and with the monitor token they skip the per-client brakes
+// and get the new user id back (so the monitor can delete the account).
+//
+// A step that fails for a real clinic (account not created, server sign-in
+// failed, no verification code) is logged and the owner is alerted (once a
+// day per step; lib/dentvid/ops-alert signupBroken).
 const Body = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
   password: z.string().min(8).max(200),
@@ -57,40 +69,32 @@ const Body = z.object({
 export async function POST(req: Request) {
   const err = await dvErrors();
   const ip = clientIp(req.headers);
+  const clientLimits = [
+    { key: `rl:signup:ip:${ip}`, rule: LIMITS.signupIp },
+    { key: `rl:signup:ipday:${ip}`, rule: LIMITS.signupIpDay },
+    { key: `rl:signup:net:${networkOf(ip)}`, rule: LIMITS.signupNetDay },
+  ];
+  const withToken = monitorAuthorised(req.headers.get(MONITOR_HEADER));
   // Per client first: these are the real brake.
-  const limited = await rateLimited(
-    [
-      { key: `rl:signup:ip:${ip}`, rule: LIMITS.signupIp },
-      { key: `rl:signup:ipday:${ip}`, rule: LIMITS.signupIpDay },
-      { key: `rl:signup:net:${networkOf(ip)}`, rule: LIMITS.signupNetDay },
-    ],
-    () => err.tooMany,
-  );
-  if (limited) return limited;
+  if (!withToken) {
+    const limited = await rateLimited(clientLimits, () => err.tooMany);
+    if (limited) return limited;
+  }
 
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: err.badSignup }, { status: 400 });
   const body = parsed.data;
-  const bot = botSignup({ honeypot: body.website, elapsedMs: body.elapsedMs });
-  if (bot) {
-    console.warn("[dentvideo signup] refused as automated", bot, ip);
-    return NextResponse.json({ error: err.createFailed }, { status: 400 });
+  const testAccount = isMonitorEmail(body.email);
+  // The token only ever helps a monitor address.
+  const monitor = withToken && testAccount;
+  if (withToken && !monitor) {
+    const limited = await rateLimited(clientLimits, () => err.tooMany);
+    if (limited) return limited;
   }
-  const human = await verifyTurnstile(body.turnstile, ip);
-  if (!human.ok) {
-    if (human.reason !== "missing") console.warn("[dentvideo signup] turnstile", human.reason);
-    return NextResponse.json({ error: err.createFailed, code: "turnstile" }, { status: 400 });
+  if (!monitor) {
+    const refused = await brakes(body, ip, err);
+    if (refused) return refused;
   }
-
-  // Per address and the global backstop: counted only for requests that got this far.
-  const later = await rateLimited(
-    [
-      { key: `rl:signup:email:${body.email}`, rule: LIMITS.signupEmail },
-      { key: "rl:signup:global", rule: LIMITS.signupGlobal },
-    ],
-    () => err.tooMany,
-  );
-  if (later) return later;
 
   const locale = asLocale(body.locale) ?? (await dvLocale().catch(() => "en" as const));
   const { data: created, error } = await dvAdmin().auth.admin.createUser({
@@ -103,33 +107,71 @@ export async function POST(req: Request) {
     const exists = /already|registered|exists/i.test(error.message);
     if (!exists) {
       console.error("[dentvideo signup] createUser failed", error.message);
+      if (!testAccount) ownerHears("create_account", error.message);
       return NextResponse.json({ error: err.createFailed }, { status: 500 });
     }
-    await mailExistingOwner(body.email, locale);
+    if (!testAccount) await mailExistingOwner(body.email, locale);
     return NextResponse.json({ ok: true, existing: true });
   }
-  // Funnel: no email, no user id — just that an account was made, in which language.
-  void recordEvent("signup_completed", { locale, props: body.attribution, geo: geoCountry(req.headers) });
-  // The code email. Not fatal if it fails: the plan step asks for one again.
-  if (created?.user) await sendVerificationCode({ userId: created.user.id, email: body.email, language: locale });
+  if (!testAccount) {
+    // Funnel: no email, no user id — just that an account was made, in which language.
+    void recordEvent("signup_completed", { locale, props: body.attribution, geo: geoCountry(req.headers) });
+    // The code email. Not fatal if it fails: the plan step asks for one again — but the owner hears about it.
+    if (created?.user) {
+      const code = await sendVerificationCode({ userId: created.user.id, email: body.email, language: locale }).catch((e: Error) => ({ ok: false as const, reason: e.message }));
+      if (!code.ok && code.reason !== "cooldown" && code.reason !== "pending") {
+        console.error("[dentvideo signup] verification code not sent", code.reason);
+        ownerHears("verification_code", code.reason);
+      }
+    }
+  }
   // Open the session here and set the dv-auth cookie on this response, so the
   // new clinic is signed in without a second request from the browser (that
   // second call failed on some phones — private tabs, flaky mobile networks,
   // password managers rewriting the field). The browser falls back to signing
   // in itself only if this did not work.
-  const signedIn = await signInHere(body.email, body.password);
-  return NextResponse.json({ ok: true, signedIn });
+  const signIn = await signInHere(body.email, body.password);
+  if (!signIn.ok && !testAccount) ownerHears("server_sign_in", signIn.error);
+  return NextResponse.json({ ok: true, signedIn: signIn.ok, ...(monitor && created?.user ? { userId: created.user.id } : {}) });
+}
+
+/** Tell the owner a sign-up step failed for a real clinic (once a day per step). Never throws, never waits. */
+function ownerHears(step: "create_account" | "server_sign_in" | "verification_code", error: string) {
+  void raiseOwnerAlert(alerts.signupBroken({ step, error: cleanError(error) })).catch(() => {});
+}
+
+/** Bot brakes and the per-address / global limits. A response when refused. */
+async function brakes(body: z.infer<typeof Body>, ip: string, err: Awaited<ReturnType<typeof dvErrors>>): Promise<NextResponse | null> {
+  const bot = botSignup({ honeypot: body.website, elapsedMs: body.elapsedMs });
+  if (bot) {
+    console.warn("[dentvideo signup] refused as automated", bot, ip);
+    return NextResponse.json({ error: err.createFailed }, { status: 400 });
+  }
+  const human = await verifyTurnstile(body.turnstile, ip);
+  if (!human.ok) {
+    if (human.reason !== "missing") console.warn("[dentvideo signup] turnstile", human.reason);
+    return NextResponse.json({ error: err.createFailed, code: "turnstile" }, { status: 400 });
+  }
+
+  // Per address and the global backstop: counted only for requests that got this far.
+  return rateLimited(
+    [
+      { key: `rl:signup:email:${body.email}`, rule: LIMITS.signupEmail },
+      { key: "rl:signup:global", rule: LIMITS.signupGlobal },
+    ],
+    () => err.tooMany,
+  );
 }
 
 /** Signs the new account in on the server; the session cookie rides on this response. */
-async function signInHere(email: string, password: string): Promise<boolean> {
+async function signInHere(email: string, password: string): Promise<{ ok: boolean; error: string }> {
   try {
     const { error } = await dvServer(await cookies()).auth.signInWithPassword({ email, password });
     if (error) console.error("[dentvideo signup] server sign-in failed", error.message);
-    return !error;
+    return { ok: !error, error: error?.message ?? "" };
   } catch (e) {
     console.error("[dentvideo signup] server sign-in failed", (e as Error).message);
-    return false;
+    return { ok: false, error: (e as Error).message };
   }
 }
 

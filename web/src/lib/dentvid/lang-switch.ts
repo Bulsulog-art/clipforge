@@ -1,4 +1,4 @@
-import { LANDING_PATH, LOCALES, hasGuides, type Locale } from "@/content/dentvideo";
+import { LANDING_PATH, LOCALES, hasGuideHub as hasGuides, type Locale } from "@/content/dentvideo-locales";
 import { ABOUT_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { isLegalKind, legalPath } from "@/content/legal/nav";
 

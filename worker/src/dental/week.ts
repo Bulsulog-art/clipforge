@@ -14,6 +14,21 @@ import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { AFTERCARE_GUIDE, reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
 import { inspectVideo, type QaReport } from "../steps/qa.js";
+import { exampleBlock, exampleFor } from "./examples.js";
+import {
+  BLOCKING_CTA,
+  BLOCKING_HOOK,
+  clinicalFlags,
+  ctaGuide,
+  ctaProblems,
+  fillerHits,
+  hookProblems,
+  NARRATION_SECONDS,
+  numbersIn,
+  spokenSeconds,
+} from "./style.js";
+import { mixedAddress, screenLines, type RubricScene } from "./rubric.js";
+import { firstSentence, weekVoiceBrief, type PastTopic, type WeekVoice } from "./memory.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -102,13 +117,18 @@ export function planText(plan: ScenePlan): string {
   return out.filter(Boolean).join("\n");
 }
 
-export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[] = []): string {
+export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[] = [], week?: WeekVoice): string {
+  const example = exampleFor(profile, topic);
   return [
     `An educational ${profile.language} video for the dental clinic "${profile.name}".`,
     `Topic: ${topic.title}. It answers the patient question: "${topic.question}".`,
+    topic.takeaway
+      ? `The ONE takeaway, which every scene serves and the viewer should be able to repeat: "${topic.takeaway}". Anything that does not serve it (a second tip list, general check-up advice) stays out.`
+      : `Build the video on ONE takeaway the viewer could repeat to a friend; anything that does not serve it stays out.`,
     `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
     `Include narration exactly in this shape: "voiceover": { "text": "<the full narration, every sentence>", "voice": "nova" } (voice may be "nova" or "onyx"). The text is natural spoken ${profile.language}, same form of address, covering the same points as the screen. It should sound like a friendly dentist talking to one patient: varied sentences, contractions where the language uses them, every sentence adding something new, no word or idea repeated, never list items read out. About ${speechRate(profile.language).perSecond} ${speechRate(profile.language).unit === "characters" ? "Japanese characters" : "words"} per second of video.`,
-    `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta.`,
+    `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta. The scene right after the hook starts answering what the hook asked. At most 3 items in a list.`,
+    `Sound: say it the way a dentist would say it across the chair, not a leaflet. Never generic filler ("for more information", "your smile deserves…", "we're here to help", "don't hesitate to") in any language.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
@@ -117,8 +137,10 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     marketRules(profile.country) ? `This market's advertising rules: ${marketRules(profile.country)}` : "",
     `Never invent statistics or percentages ("80% of patients…"); say "most people" or leave it out. A number is allowed only for a guideline interval or timeframe (every 6 months, the first 48 hours).`,
     `Include exactly ONE footage scene with stock footage — { "kind": "footage", "source": { "type": "stock", "query": "..." }, "caption": "<one short line of the answer>", "seconds": 3-4 } — placed right after the hook or in the middle, so the video is not only text. The query: 2-4 English words for an object or action you can film (e.g. "teeth whitening tray", "dental floss close up", "child brushing teeth"), never a generic "dentist office" — objects only, no people, no clinic or treatment scenes.`,
-    `End with a cta scene inviting the viewer to ask the clinic or book a check-up` +
-      (profile.handle ? `. Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : "."),
+    `End with a cta scene. ${ctaGuide(profile.country, profile.address)}` +
+      (profile.handle ? ` Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : ""),
+    weekVoiceBrief(week),
+    example ? exampleBlock(example) : "",
     isUnspaced(profile.language)
       ? `On-screen length limits (Japanese characters are twice as wide as Latin letters): hook at most 20 characters, every list item at most 18, the cta at most 24, other lines at most 50. Use Japanese punctuation (、。「」) and no spaces between words. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`
       : `On-screen length limits: hook and every list item and the cta at most 80 characters; other lines at most 200. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`,
@@ -202,12 +224,45 @@ export function narrationProblems(plan: ScenePlan, language?: string): string[] 
   return [];
 }
 
+/**
+ * The deterministic post-check: what a pattern can see is wrong with a
+ * script, phrased as fixes for the writer. It runs before any paid reviewer
+ * (a failing draft goes straight back with these), so it only lists clear
+ * failures: a hook shape the judge always marks down, urgency or (in
+ * Türkiye) steering in the closing line, AI filler, a narration a Reel
+ * cannot hold, numbers the narration invented, procedure mix-ups and mixed
+ * forms of address. Softer issues are only scored (rubric.ts).
+ */
+export function scriptProblems(plan: ScenePlan, profile: Pick<ClinicProfile, "language" | "country">): string[] {
+  const out: string[] = [];
+  const scenes = plan.scenes as unknown as RubricScene[];
+  const hook = scenes.find((s) => s.kind === "hook")?.text ?? "";
+  for (const p of hookProblems(hook, profile.language)) if (BLOCKING_HOOK.has(p.code)) out.push(`hook: ${p.detail} — rewrite it as a specific moment, mistake, myth or surprising fact that opens a question`);
+  for (const p of ctaProblems(scenes.find((s) => s.kind === "cta")?.text, profile.country)) if (BLOCKING_CTA.has(p.code)) out.push(`cta: ${p.detail} — ${ctaGuide(profile.country)}`);
+  const screen = screenLines(scenes).join("\n");
+  const narration = plan.voiceover?.text ?? "";
+  const filler = fillerHits(`${screen}\n${narration}`, profile.language);
+  if (filler.length) out.push(`remove generic filler, say something specific to this topic instead: ${filler.map((f) => `"${f}"`).join(", ")}`);
+  if (narration) {
+    const sec = spokenSeconds(narration, profile.language);
+    if (sec > NARRATION_SECONDS.max) out.push(`the narration takes about ${Math.round(sec)} s to say; cut it to under ${NARRATION_SECONDS.idealMax} s — one takeaway, fewer points`);
+    const onScreen = numbersIn(screen);
+    const added = [...numbersIn(narration)].filter((n) => !onScreen.has(n));
+    if (added.length) out.push(`the narration states numbers that are not on screen (${added.join(", ")}): say only what the screen says`);
+  }
+  for (const c of clinicalFlags(`${screen}\n${narration}`)) out.push(`clinical: ${c}`);
+  if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);
+  return out;
+}
+
 export async function produceVideo(
   deps: WeekDeps,
   profile: ClinicProfile,
   topic: Topic,
   /** Stock queries already used this week, so no two videos share a shot. */
   usedFootage: Set<string> = new Set(),
+  /** How this week's earlier videos opened and closed, so this one does not repeat them. Updated when the video is ready. */
+  week: WeekVoice = { openers: [], closings: [] },
 ): Promise<VideoPackage> {
   const script = await reviewed(
     deps,
@@ -221,7 +276,7 @@ export async function produceVideo(
       // fixed one sentence and introduced new problems elsewhere (eval:
       // most rejections were a third, different objection).
       const brief =
-        scriptBrief(profile, topic, fixes) +
+        scriptBrief(profile, topic, fixes, week) +
         (previous && fixes.length
           ? `\nThis is a revision. Keep the previous version below — its structure, scenes and wording — and change ONLY what the reviewer required:\n${JSON.stringify({ scenes: previous.scenes, voiceover: previous.voiceover })}`
           : "");
@@ -231,15 +286,19 @@ export async function produceVideo(
       // The planner's voice-over reads like a leaflet; the narrator rewrites
       // it from the screen text alone, so the reviews below still see one story.
       if (!plan.voiceover) return plan;
-      const text = await narrate(deps.client, profile, topic, plan, fixes, previous?.voiceover?.text).catch(() => plan.voiceover!.text);
+      const text = await narrate(deps.client, profile, topic, plan, fixes, previous?.voiceover?.text, week).catch(() => plan.voiceover!.text);
       return { ...plan, voiceover: { ...plan.voiceover, text } };
     },
     planText,
     (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
     profile,
-    (plan) => narrationProblems(plan, profile.language),
+    (plan) => [...narrationProblems(plan, profile.language), ...scriptProblems(plan, profile)],
   );
   if (!script.ok) return { status: "rejected", topic, stage: "script", reasons: script.rejected };
+  // Remember how this one opened and closed, for the rest of the week.
+  if (script.value.voiceover?.text) week.openers.push(firstSentence(script.value.voiceover.text));
+  const closing = script.value.scenes.find((s) => s.kind === "cta");
+  if (closing && "text" in closing) week.closings.push(closing.text);
 
   // The caption is written FROM the approved script, and reviewed against
   // it, so the two cannot disagree (seen live: "age 1" vs "6 months").
@@ -317,16 +376,25 @@ export async function produceVideo(
 export async function produceWeek(
   deps: WeekDeps,
   profile: ClinicProfile,
-  opts: { count?: number; avoidTitles?: string[] } = {},
+  opts: {
+    count?: number;
+    avoidTitles?: string[];
+    /** The clinic's past topics with hooks/services/dates, when the caller has them (better than titles alone). */
+    history?: PastTopic[];
+    /** The day the week is planned, for seasonal hooks; defaults to now. */
+    today?: Date;
+  } = {},
 ): Promise<VideoPackage[]> {
   const want = Math.max(1, opts.count ?? 5);
   // Plan spares: a topic the reviewers reject is replaced, so the clinic
   // still gets the week it pays for instead of a gap.
   const patientSearches = deps.searches ? await deps.searches(profile).catch(() => []) : [];
   deps.log?.("patient searches", { count: patientSearches.length });
-  const topics = await sharpenHooks(deps.client, profile, await planWeek(deps.client, profile, { ...opts, count: want + 2, patientSearches }));
+  const recentHooks = (opts.history ?? []).map((h) => h.hook).filter((h): h is string => !!h);
+  const topics = await sharpenHooks(deps.client, profile, await planWeek(deps.client, profile, { ...opts, count: want + 2, patientSearches }), recentHooks);
   const out: VideoPackage[] = [];
   const usedFootage = new Set<string>();
+  const week: WeekVoice = { openers: [], closings: [] };
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.
   for (const topic of topics) {
     if (out.filter((p) => p.status === "ready").length >= want) break;
@@ -337,7 +405,7 @@ export async function produceWeek(
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= VIDEO_ATTEMPTS; attempt++) {
       try {
-        out.push(await produceVideo(deps, profile, topic, usedFootage));
+        out.push(await produceVideo(deps, profile, topic, usedFootage, week));
         lastError = undefined;
         break;
       } catch (e) {

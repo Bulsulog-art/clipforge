@@ -7,6 +7,7 @@ import { GUIDE_UI } from "./guides/ui";
 import { SOLUTIONS } from "./solutions";
 import { SOLUTION_UI } from "./solutions/ui";
 import { EMAIL_LANGUAGES, readyEmail } from "@/lib/dentvid/email";
+import { SAMPLE_KINDS, sampleEmailFor } from "@/lib/dentvid/email-samples";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 
 /**
@@ -127,6 +128,10 @@ describe("no free-trial claims anywhere", () => {
       for (const kind of ["week", "recording"] as const) {
         const m = readyEmail({ kind, counts: { ready: 4, flagged: 1 }, clinicName: "Clinic", language, appUrl: "https://dentvideo.com/app" });
         expect(claimsIn(`${m?.subject} ${m?.text}`), `${language} ${kind}`).toEqual([]);
+      }
+      for (const kind of SAMPLE_KINDS) {
+        const m = sampleEmailFor(kind, language);
+        expect(claimsIn(`${m.subject} ${m.text}`), `${language} ${kind}`).toEqual([]);
       }
     }
   });

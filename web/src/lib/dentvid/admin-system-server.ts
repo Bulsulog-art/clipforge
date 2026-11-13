@@ -4,21 +4,30 @@ import {
   COUNT_COMMANDS,
   HEARTBEAT_KEY,
   JOB_FIELDS,
+  MONITOR_HISTORY_KEY,
+  MONITOR_LAST_KEY,
+  MONITOR_STATE_KEY,
   QUEUES,
   costByDay,
   dispatchWeek,
+  emptyMonitor,
   isStuck,
   lastDispatch,
+  monitorView,
   nextDispatch,
   parseAlerts,
   parseDispatch,
   parseHeartbeats,
   parseJobHash,
+  parseMonitorHistory,
+  parseMonitorRun,
+  parseMonitorState,
   parseQueueCounts,
   workerHealth,
   type DispatchMarker,
   type HeartbeatView,
   type JobInfo,
+  type MonitorView,
   type OpsAlert,
   type PipelineReply,
   type QueueStats,
@@ -43,6 +52,8 @@ export type SystemSnapshot = {
   nextBatch: { at: string; week: string };
   alerts: OpsAlert[];
   costByDay: [string, number][];
+  /** The synthetic monitor's last run and history. */
+  monitor: MonitorView;
 };
 
 const DAY = 86_400_000;
@@ -62,6 +73,7 @@ export function emptySnapshot(now: Date, error?: string): SystemSnapshot {
     nextBatch: { at: next.toISOString(), week: dispatchWeek(next) },
     alerts: [],
     costByDay: [],
+    monitor: emptyMonitor(),
   };
 }
 
@@ -116,6 +128,9 @@ export async function readSystem(now = new Date(), opts: { failedPerQueue?: numb
     for (const d of days) p.lrange(`dv:ops:alerts:${d}`, 0, -1);
     p.hgetall(COST_DAILY_KEY);
     for (const d of days) p.get(`dv:spend:usd:day:${d}`);
+    p.get(MONITOR_LAST_KEY);
+    p.lrange(MONITOR_HISTORY_KEY, 0, -1);
+    p.get(MONITOR_STATE_KEY);
     const res = ((await p.exec()) ?? []) as PipelineReply[];
 
     let i = 0;
@@ -132,6 +147,9 @@ export async function readSystem(now = new Date(), opts: { failedPerQueue?: numb
     const alertLists = take(days.length).map((x) => (x[1] as string[] | null) ?? []);
     const costHash = take(1)[0]?.[1] as Record<string, string> | null;
     const live = Object.fromEntries(days.map((d) => [d, (take(1)[0]?.[1] as string | null) ?? null]));
+    const monitorLast = parseMonitorRun(take(1)[0]?.[1] as string | null);
+    const monitorHistory = parseMonitorHistory(take(1)[0]?.[1] as string[] | null);
+    const monitorState = parseMonitorState(take(1)[0]?.[1] as string | null);
 
     const failed = (await Promise.all(failedIds.map(({ q, ids }) => jobs(redis, q, ids)))).flat().sort((a, b) => (b.finishedAt ?? "").localeCompare(a.finishedAt ?? ""));
     const active = (await Promise.all(activeIds.map(({ q, ids }) => jobs(redis, q, ids)))).flat();
@@ -147,6 +165,7 @@ export async function readSystem(now = new Date(), opts: { failedPerQueue?: numb
       nextBatch: { at: next.toISOString(), week: dispatchWeek(next) },
       alerts: parseAlerts(alertLists),
       costByDay: [...costByDay(costHash, live).entries()].sort((a, b) => a[0].localeCompare(b[0])),
+      monitor: monitorView(monitorLast, monitorHistory, monitorState, now),
     };
   })();
   const timeout = new Promise<SystemSnapshot>((resolve) => setTimeout(() => resolve(emptySnapshot(now, "Redis did not answer in time.")), 2500));

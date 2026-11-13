@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
 import { AttributionCapture } from "@/components/AttributionCapture";
+import { AppToaster } from "@/components/AppToaster";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+// Not preloaded: this layout is shared with DentVideo, whose pages use their own faces (app/dentvideo/layout)
+// and would otherwise fetch Inter first, ahead of the fonts they actually paint with. ClipForge's
+// stylesheet still names Inter, so its pages load it as soon as the CSS arrives.
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap", preload: false });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -59,7 +62,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Renders nothing visible. */}
         <AttributionCapture />
         {children}
-        <Toaster richColors position="top-center" />
+        {/* ClipForge's toasts; nothing (and no sonner download) on DentVideo pages. */}
+        <AppToaster />
       </body>
     </html>
   );
