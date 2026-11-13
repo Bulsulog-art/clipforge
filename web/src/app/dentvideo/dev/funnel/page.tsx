@@ -54,7 +54,7 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
     );
   }
   const step = asStep(sp.step) ?? "account";
-  if (step === "account") return <StartForm locale={locale} remember={false} legal={legalPagesOn()} />;
+  if (step === "account") return <StartForm locale={locale} remember legal={legalPagesOn()} />;
   const demo = sp.empty
     ? undefined
     : {
