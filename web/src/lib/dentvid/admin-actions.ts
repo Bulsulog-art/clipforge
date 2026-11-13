@@ -84,6 +84,7 @@ export const ACTION_MESSAGES = {
   week_running: "This week is being made right now; nothing changed.",
   week_made: "This week is already made. Retry single videos instead.",
   clinic_paused: "The clinic is paused from this panel; unpause it first.",
+  not_paying: "The clinic has no active plan: the worker makes nothing for it (no API spend before payment). Nothing was queued.",
   no_clinic: "No such clinic.",
   queue_down: "The queue could not be reached (Redis). Nothing was queued.",
   video_requeued: "The video will be re-rendered (front of the line).",
@@ -158,6 +159,8 @@ async function requeueWeek(deps: ActionDeps, clinicId: string): Promise<ActionRe
   const c = await clinic(deps, clinicId);
   if (!c) return refused("no_clinic", clinicId);
   if (c.admin_paused_at) return refused("clinic_paused", clinicId);
+  // The worker skips a clinic without an active plan; queuing would "succeed" and make nothing.
+  if (c.plan !== "active") return refused("not_paying", clinicId, `plan ${c.plan}`);
   const week = deliveryWeek(deps.now?.() ?? new Date());
   const jobId = weekJobId(clinicId, week);
   try {
@@ -194,6 +197,7 @@ async function retryVideo(deps: ActionDeps, itemId: string): Promise<ActionResul
   if (!item) return refused("no_item");
   const c = await clinic(deps, item.clinic_id);
   if (c?.admin_paused_at) return refused("clinic_paused", item.clinic_id);
+  if (c && c.plan !== "active") return refused("not_paying", item.clinic_id, `plan ${c.plan}`);
   const now = (deps.now?.() ?? new Date()).toISOString();
   try {
     if (item.kind === "generated" && item.plan && typeof item.plan === "object") {

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
+import { activeClinicRows } from "./schedule.js";
 import { alerts, type ClinicRef, type DeliverResult, type OwnerAlert } from "./ops-alert.js";
 
 /**
@@ -99,9 +100,9 @@ export async function reconcileBilling(deps: ReconcileDeps): Promise<ReconcileRe
 export function supabaseReconcileDb(db: SupabaseClient): ReconcileDb {
   return {
     async activeClinics() {
-      const { data, error } = await db.from("dentvid_clinics").select("id, plan_renews_at, dodo_subscription_id").eq("plan", "active").limit(5000);
-      if (error) throw new Error(`reconcile: ${error.message}`);
-      return (data ?? []) as ActiveClinic[];
+      return activeClinicRows<ActiveClinic>(db, "id, plan_renews_at, dodo_subscription_id").catch((e: Error) => {
+        throw new Error(`reconcile: ${e.message}`);
+      });
     },
     async setPlan(c, plan) {
       let q = db.from("dentvid_clinics").update({ plan, updated_at: new Date().toISOString() }).eq("id", c.id).eq("plan", "active");

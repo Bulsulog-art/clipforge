@@ -43,13 +43,14 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const admin = await adminOrNull();
   // ?billing=success shows "being made" only with evidence of a payment (or right after the return from checkout).
   const seen = billing === "success" && plan.plan === "trial" && !madeThisWeek ? await paymentSeen(clinic.id, admin) : true;
-  const firstWeek = showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed"), paymentSeen: seen });
+  // Paused by DentVideo (admin): nothing is being made, so never "your first week is being made".
+  const firstWeek = !plan.adminPaused && showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed"), paymentSeen: seen });
   // A run that is being retried or is delayed: the library says so calmly (never an error).
   const weekDelay = plan.canMake ? await readWeekDelay(clinic.id, week) : null;
   const b = appText(locale).billing;
   const notice = billing === "cancelled" ? b.cancelled : null;
   // Not paying: the plan picker — unless buying would double-charge (on hold → update the card, payment being confirmed, cancelled but paid up).
-  const panel = plan.canMake ? null : await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin);
+  const panel = plan.canMake ? null : await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin);
 
   return (
     <AppHomeView

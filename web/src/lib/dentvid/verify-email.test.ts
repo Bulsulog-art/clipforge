@@ -182,6 +182,7 @@ describe("password reset proves ownership", () => {
       verify: async () => ({ session, user: { id: USER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } } }),
       markVerified,
       signOutOthers,
+      join: async () => true,
     });
     expect(r).toEqual({ access_token: "at", refresh_token: "rt", verified: true });
     expect(markVerified).toHaveBeenCalledWith(USER, "dr@clinic.example", "reset");
@@ -195,6 +196,7 @@ describe("password reset proves ownership", () => {
       signOutOthers: async () => {
         throw new Error("down");
       },
+      join: async () => true,
     });
     expect(r).toMatchObject({ verified: true });
   });
@@ -202,7 +204,7 @@ describe("password reset proves ownership", () => {
   it("an invalid or used token proves nothing", async () => {
     const markVerified = vi.fn(async () => true);
     const signOutOthers = vi.fn(async () => {});
-    expect(await exchangeRecovery("bad", { verify: async () => ({ session: null, user: null }), markVerified, signOutOthers })).toBeNull();
+    expect(await exchangeRecovery("bad", { verify: async () => ({ session: null, user: null }), markVerified, signOutOthers, join: async () => true })).toBeNull();
     expect(markVerified).not.toHaveBeenCalled();
     expect(signOutOthers).not.toHaveBeenCalled();
   });
@@ -211,9 +213,32 @@ describe("password reset proves ownership", () => {
     const markVerified = vi.fn(async () => true);
     const signOutOthers = vi.fn(async () => {});
     const user = { id: USER, email: "dr@clinic.example", app_metadata: verifiedAppMetadata("dr@clinic.example", "code") };
-    expect(await exchangeRecovery("h", { verify: async () => ({ session, user }), markVerified, signOutOthers })).toMatchObject({ verified: true });
+    expect(await exchangeRecovery("h", { verify: async () => ({ session, user }), markVerified, signOutOthers, join: async () => true })).toMatchObject({ verified: true });
     expect(markVerified).not.toHaveBeenCalled();
     expect(signOutOthers).not.toHaveBeenCalled();
+  });
+});
+
+describe("a reset link lets an account another app made with the address into DentVideo", () => {
+  const session = { access_token: "at", refresh_token: "rt" };
+  const base = { markVerified: async () => true, signOutOthers: async () => {} };
+
+  it("adds DentVideo to an account no DentVideo marker is on", async () => {
+    const join = vi.fn(async () => true);
+    await exchangeRecovery("h", { ...base, join, verify: async () => ({ session, user: { id: USER, email: "dr@clinic.example", app_metadata: { provider: "email" } } }) });
+    expect(join).toHaveBeenCalledWith(USER);
+  });
+
+  it("leaves a DentVideo account as it is", async () => {
+    const join = vi.fn(async () => true);
+    await exchangeRecovery("h", { ...base, join, verify: async () => ({ session, user: { id: USER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } } }) });
+    expect(join).not.toHaveBeenCalled();
+  });
+
+  it("an invalid token joins nothing", async () => {
+    const join = vi.fn(async () => true);
+    await exchangeRecovery("bad", { ...base, join, verify: async () => ({ session: null, user: null }) });
+    expect(join).not.toHaveBeenCalled();
   });
 });
 

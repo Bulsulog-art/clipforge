@@ -6,7 +6,7 @@ import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { noteEnqueueFailure } from "@/lib/dentvid/ops-server";
-import { loadClinicPlan } from "@/lib/dentvid/plan";
+import { adminPausedMessage, loadClinicPlan } from "@/lib/dentvid/plan";
 import { isOwnRecordingPath } from "@/lib/dentvid/paths";
 import { RECORDING_JOB_OPTS } from "@/lib/dentvid/job-options";
 
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
   if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
   // No free week: recordings are processed only for a paying clinic.
   const plan = await loadClinicPlan(db, clinic.id);
+  if (plan.adminPaused) return NextResponse.json({ error: adminPausedMessage((clinic.profile as { language?: string } | undefined)?.language), code: "admin_paused" }, { status: 423 });
   if (!plan.canMake) return NextResponse.json({ error: err.planRequired, needsPlan: true }, { status: 402 });
   // Own recordings are a Practice/Group feature (as sold on the pricing page).
   if (plan.plan === "active" && plan.tier === "starter") return NextResponse.json({ error: err.recordingsNeedPractice, needsPlan: true }, { status: 402 });

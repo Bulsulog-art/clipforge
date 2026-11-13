@@ -11,6 +11,7 @@ import { botSignup } from "@/lib/dentvid/bot-check";
 import { asLocale } from "@/lib/dentvid/locale";
 import { sendVerificationCode } from "@/lib/dentvid/verify-email-server";
 import { DV_PRODUCT, isDentvideoUser } from "@/lib/dentvid/membership";
+import { joinDentvideo } from "@/lib/dentvid/join";
 import { verifyTurnstile } from "@/lib/dentvid/turnstile";
 import { dvUrl } from "@/lib/dentvid/host";
 import { sendEmail } from "@/lib/dentvid/email";
@@ -110,7 +111,16 @@ export async function POST(req: Request) {
       if (!testAccount) ownerHears("create_account", error.message);
       return NextResponse.json({ error: err.createFailed }, { status: 500 });
     }
-    if (!testAccount) await mailExistingOwner(body.email, locale);
+    if (!testAccount) {
+      // The address already has a login — maybe made by another app on Liman
+      // with the same address. The right password proves the account is
+      // theirs: sign in here and add DentVideo to it. Otherwise mail the
+      // address a reset link, which proves it from the mailbox instead.
+      if ((await signInHere(body.email, body.password)).ok && (await joinSignedIn())) {
+        return NextResponse.json({ ok: true, existing: true, signedIn: true });
+      }
+      await mailExistingOwner(body.email, locale);
+    }
     return NextResponse.json({ ok: true, existing: true });
   }
   if (!testAccount) {
@@ -163,6 +173,18 @@ async function brakes(body: z.infer<typeof Body>, ip: string, err: Awaited<Retur
   );
 }
 
+/** The account just signed in here becomes a DentVideo account (it proved its password). */
+async function joinSignedIn(): Promise<boolean> {
+  try {
+    const { data } = await dvServer(await cookies()).auth.getUser();
+    if (!data?.user) return false;
+    return isDentvideoUser(data.user) || (await joinDentvideo(data.user.id));
+  } catch (e) {
+    console.error("[dentvideo signup] join failed", (e as Error).message);
+    return false;
+  }
+}
+
 /** Signs the new account in on the server; the session cookie rides on this response. */
 async function signInHere(email: string, password: string): Promise<{ ok: boolean; error: string }> {
   try {
@@ -176,10 +198,11 @@ async function signInHere(email: string, password: string): Promise<{ ok: boolea
 }
 
 /**
- * Someone signed up with an address that already has a login. If it is a
- * DentVideo account, mail it a password-reset link (within the reset
- * limits): the real owner can get in, or take the address back from whoever
- * registered it first. Other apps' accounts on Liman get nothing.
+ * Someone signed up with an address that already has a login (DentVideo's or
+ * another app's on Liman) and the password did not match. Mail it a
+ * password-reset link (within the reset limits): the real owner gets in from
+ * the mailbox — opening the link also adds DentVideo to another app's
+ * account — or takes the address back from whoever registered it first.
  */
 async function mailExistingOwner(email: string, language: string): Promise<void> {
   try {
@@ -190,7 +213,7 @@ async function mailExistingOwner(email: string, language: string): Promise<void>
     if (!ok.ok) return;
     const { data, error } = await dvAdmin().auth.admin.generateLink({ type: "recovery", email });
     const hashed = data?.properties?.hashed_token;
-    if (error || !hashed || !isDentvideoUser(data?.user)) return;
+    if (error || !hashed || !data?.user) return;
     const link = dvUrl(`/dentvideo/reset?token_hash=${encodeURIComponent(hashed)}&lang=${encodeURIComponent(language)}`);
     if (!(await sendEmail(email, resetEmail({ language, link })))) console.error("[dentvideo signup] reset email for an existing account not sent");
   } catch (e) {

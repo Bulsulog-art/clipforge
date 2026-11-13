@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDentvideoOnly, isDentvideoUser, withoutDentvideo } from "./membership";
+import { isDentvideoOnly, isDentvideoUser, joinDentvideoPatch, withoutDentvideo } from "./membership";
 
 const dv = (extra: Record<string, unknown> = {}, user_metadata: Record<string, unknown> = {}) => ({
   email: "dr@clinic.example",
@@ -53,5 +53,28 @@ describe("withoutDentvideo", () => {
     expect(withoutDentvideo({ product: "aires", products: ["aires", "dentvideo"] })).toEqual({ products: ["aires"] });
     expect(withoutDentvideo({ products: ["dentvideo"] })).toEqual({ products: null });
     expect(withoutDentvideo(null)).toEqual({});
+  });
+});
+
+describe("joinDentvideoPatch (an existing Liman account joins DentVideo)", () => {
+  it("marks an account no app has claimed", () => {
+    expect(joinDentvideoPatch({ provider: "email", providers: ["email"] })).toEqual({ product: "dentvideo" });
+    expect(joinDentvideoPatch(null)).toEqual({ product: "dentvideo" });
+  });
+  it("never overwrites another app's product; adds to the list instead", () => {
+    expect(joinDentvideoPatch({ product: "clipforge" })).toEqual({ products: ["dentvideo"] });
+    expect(joinDentvideoPatch({ product: "clipforge", products: ["other"] })).toEqual({ products: ["other", "dentvideo"] });
+  });
+  it("leaves a DentVideo account alone", () => {
+    expect(joinDentvideoPatch({ product: "dentvideo" })).toBeNull();
+    expect(joinDentvideoPatch({ product: "clipforge", products: ["dentvideo"] })).toBeNull();
+  });
+  it("the patched account counts as DentVideo, and leaving undoes it", () => {
+    for (const app of [{}, { product: "clipforge" }, { product: "clipforge", products: ["x"] }] as Record<string, unknown>[]) {
+      const joined = { ...app, ...joinDentvideoPatch(app) };
+      expect(isDentvideoUser({ app_metadata: joined })).toBe(true);
+      const left = { ...joined, ...withoutDentvideo(joined) };
+      expect(isDentvideoUser({ app_metadata: left })).toBe(false);
+    }
   });
 });
