@@ -12,6 +12,7 @@ import { BUCKET, dvAdmin } from "@/lib/dentvid/supabase";
 import { LOGO_MAX_BYTES } from "@/lib/dentvid/storage-quota";
 import { copyDemoLogoTo, loadDemoRow } from "@/lib/dentvid/demos-server";
 import { isDemoActive } from "@/lib/dentvid/demos";
+import { sniffImage } from "@/lib/dentvid/safe-image-fetch";
 
 const Body = z.object({
   profile: clinicProfileSchema,
@@ -35,6 +36,13 @@ async function objectSize(path: string): Promise<number | null> {
   if (!hit) return null;
   const size = (hit.metadata as { size?: number } | null)?.size;
   return typeof size === "number" ? size : 0;
+}
+
+/** Whether the stored object starts like a PNG, JPEG or WebP (already bounded by LOGO_MAX_BYTES). Throws when it cannot be read. */
+async function isStoredImage(path: string): Promise<boolean> {
+  const { data, error } = await dvAdmin().storage.from(BUCKET).download(path);
+  if (error || !data) throw new Error(error?.message ?? "logo not readable");
+  return sniffImage(new Uint8Array(await data.slice(0, 16).arrayBuffer())) !== null;
 }
 
 export async function POST(req: Request) {
@@ -77,6 +85,12 @@ export async function POST(req: Request) {
       if (size > LOGO_MAX_BYTES) {
         await dvAdmin().storage.from(BUCKET).remove([newLogo]);
         return NextResponse.json({ error: err.invalidLogo, code: "size" }, { status: 400 });
+      }
+      // Nor can it check what was uploaded: the file must really be a PNG, JPEG or WebP
+      // (its first bytes), not just named like one. The worker checks again at render time.
+      if (!(await isStoredImage(newLogo))) {
+        await dvAdmin().storage.from(BUCKET).remove([newLogo]);
+        return NextResponse.json({ error: err.invalidLogo, code: "type" }, { status: 400 });
       }
     } catch (e) {
       console.error("dentvideo clinic: logo check failed", (e as Error).message);

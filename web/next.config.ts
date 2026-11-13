@@ -85,8 +85,13 @@ const nextConfig: NextConfig = {
         // background photos: static files a browser may keep for a day (Next serves public/ with
         // max-age=0, so every repeat visit revalidated each one). Not immutable: their names carry
         // no hash, so a re-render under the same name is picked up within a day.
+        // no-transform: already-compressed media must reach the browser byte for byte (a
+        // compressed copy breaks the player's range requests — lib/dentvid/media-prefetch.ts).
+        // RFC 9111 proxies and CDNs honour it; Traefik's compress middleware does not, which
+        // is why the player never fetch()es media. Proxy-side, the compress middleware should
+        // also get excludedcontenttypes=audio/mpeg,video/mp4,image/jpeg,image/png,image/webp.
         source: "/dentvideo/:dir(samples|preview|backgrounds)/:path*",
-        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800, no-transform" }],
       },
     ];
   },
