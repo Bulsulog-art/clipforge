@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DV_AUTH_COOKIE, hasDvSessionCookie } from "./session-cookie";
 import { COOKIE_NAME } from "./supabase";
 
@@ -19,5 +19,19 @@ describe("DentVideo session cookie", () => {
     expect(hasDvSessionCookie("dv-auth=")).toBe(false);
     expect(hasDvSessionCookie("dv-auth-code-verifier=x; dv-step=plan")).toBe(false);
     expect(hasDvSessionCookie("sb-xyz-auth-token=x; dv-authx=1; xdv-auth=1")).toBe(false);
+  });
+});
+
+describe("DentVideo session cookie options", () => {
+  it("are Secure and SameSite=Lax in a production build", async () => {
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      const { DV_COOKIE_OPTIONS } = await import("./session-cookie");
+      expect(DV_COOKIE_OPTIONS).toMatchObject({ name: "dv-auth", secure: true, sameSite: "lax", path: "/" });
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 });

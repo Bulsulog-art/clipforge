@@ -153,10 +153,33 @@ async function findClinic(db: SupabaseClient, by: "id" | "dodo_subscription_id",
 
 const metaClinicOf = (d: DodoEventData) => (typeof d.metadata?.clinic_id === "string" && UUID.test(d.metadata.clinic_id) ? d.metadata.clinic_id : null);
 
-/** The clinic an event is about: metadata first, then the stored subscription id, then the payment index. */
-async function clinicFor(db: SupabaseClient, d: DodoEventData, subs: SubscriptionStore): Promise<{ row: ClinicRow | null; error: string | null }> {
+type FoundClinic = { row: ClinicRow | null; error: string | null; untrusted?: boolean };
+
+/**
+ * May an event act on a clinic it found through its checkout metadata?
+ *
+ * Metadata is not proof of anything: the checkout puts clinic_id and owner_id
+ * there, but a Dodo static payment link accepts any metadata_<key> in its URL,
+ * so a buyer can name any clinic. The event is trusted for that clinic only
+ * when the metadata's owner id is the clinic's owner (both ids come from our
+ * own checkout and are never shown to anyone else), or the subscription is
+ * already the clinic's own.
+ */
+export function metadataMatchesClinic(d: DodoEventData, clinic: { owner_id: string; dodo_subscription_id?: string | null }): boolean {
+  const metaOwner = typeof d.metadata?.owner_id === "string" ? d.metadata.owner_id.toLowerCase() : null;
+  if (metaOwner && metaOwner === String(clinic.owner_id).toLowerCase()) return true;
+  return !!d.subscription_id && clinic.dodo_subscription_id === d.subscription_id;
+}
+
+/**
+ * The clinic an event is about: metadata first, then the stored subscription id, then the payment index.
+ * A clinic named by metadata that does not match its owner (metadataMatchesClinic) comes back
+ * `untrusted`: callers ignore the event and tell the owner.
+ */
+async function clinicFor(db: SupabaseClient, d: DodoEventData, subs: SubscriptionStore): Promise<FoundClinic> {
   const metaClinic = metaClinicOf(d);
-  let found = metaClinic ? await findClinic(db, "id", metaClinic) : { row: null, error: null };
+  let found: FoundClinic = metaClinic ? await findClinic(db, "id", metaClinic) : { row: null, error: null };
+  if (found.row && !metadataMatchesClinic(d, found.row)) return { ...found, untrusted: true };
   if (!found.row && !found.error && d.subscription_id) found = await findClinic(db, "dodo_subscription_id", d.subscription_id);
   if (!found.row && !found.error && d.subscription_id) {
     const rec = await subs.get(d.subscription_id);
@@ -167,6 +190,15 @@ async function clinicFor(db: SupabaseClient, d: DodoEventData, subs: Subscriptio
     if (p) found = await findClinic(db, "id", p.clinic_id);
   }
   return found;
+}
+
+/** An event refused for its metadata: logged, the owner told, acknowledged (a retry would not change it). */
+async function refuseSuspicious(evt: DvWebhookEvent, deps: DvWebhookDeps, reason: "not a DentVideo product" | "owner mismatch"): Promise<DvWebhookResult> {
+  const d = evt.data ?? {};
+  const ref = d.subscription_id ?? d.payment_id ?? "unknown";
+  console.warn("[dodo:dentvideo] suspicious event ignored", evt.type, ref, reason);
+  await (deps.alert ?? raiseOwnerAlert)(alerts.suspiciousBillingEvent({ event: evt.type, subscriptionId: ref, productId: d.product_id ?? null, reason })).catch(() => {});
+  return { status: 200, body: { ok: true, app: "dentvideo", ignored: reason } };
 }
 
 const metaInterval = (d: DodoEventData): DvInterval | null => (d.metadata?.interval === "month" || d.metadata?.interval === "year" ? d.metadata.interval : null);
@@ -205,6 +237,7 @@ function ledgerRow(
 async function atRiskOnly(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhookDeps, subs: SubscriptionStore): Promise<DvWebhookResult> {
   const d = evt.data ?? {};
   const found = await clinicFor(db, d, subs);
+  if (found.untrusted) return refuseSuspicious(evt, deps, "owner mismatch");
   const clinic = found.row;
   if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
   // A first payment that failed at checkout: the clinic saw it there; it has no plan to lose.
@@ -226,6 +259,7 @@ async function atRiskOnly(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebho
 async function paymentSucceeded(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhookDeps, subs: SubscriptionStore): Promise<DvWebhookResult> {
   const d = evt.data ?? {};
   const found = await clinicFor(db, d, subs);
+  if (found.untrusted) return refuseSuspicious(evt, deps, "owner mismatch");
   const clinic = found.row;
   if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
   if (d.payment_id) await subs.recordPayment(d.payment_id, clinic.id, d.subscription_id ?? null);
@@ -245,6 +279,7 @@ async function moneyBack(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhoo
   const d = evt.data ?? {};
   const found = await clinicFor(db, d, subs);
   if (found.error) return { status: 500, body: { error: found.error } };
+  if (found.untrusted) return refuseSuspicious(evt, deps, "owner mismatch");
   const clinic = found.row;
   console.warn("[dodo:dentvideo] money back event", evt.type, d.payment_id ?? "", clinic?.id ?? "no clinic");
   if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: "no clinic", event: evt.type } };
@@ -341,9 +376,9 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   if (!t && AT_RISK_ONLY.has(evt.type)) return atRiskOnly(db, evt, deps, subs);
   if (!t) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
 
-  const metaOwner = typeof d.metadata?.owner_id === "string" ? d.metadata.owner_id : null;
   let found = await clinicFor(db, d, subs);
   if (found.error) return { status: 500, body: { error: found.error } };
+  if (found.untrusted) return refuseSuspicious(evt, deps, "owner mismatch");
   if (!found.row && !metaClinicOf(d)) {
     // No clinic metadata (a subscription made in the Dodo dashboard, a plain payment link…) and not one we
     // know: the customer's email, only when exactly one DentVideo clinic owner has it. Never a guess.
@@ -364,12 +399,10 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
     console.warn("[dodo:dentvideo] no clinic for event", evt.type, t.subscriptionId);
     return { status: 200, body: { ok: true, app: "dentvideo", ignored: "no clinic" } };
   }
-  if (metaOwner && clinic.owner_id !== metaOwner) {
-    console.warn("[dodo:dentvideo] clinic/owner mismatch", evt.type, t.subscriptionId);
-    return { status: 200, body: { ok: true, app: "dentvideo", ignored: "owner mismatch" } };
-  }
-
   const prev = await subs.get(t.subscriptionId); // undefined: no ledger
+  // Only a DentVideo plan switches a clinic on. metadata.app = "dentvideo" routes an event here,
+  // but a buyer can put it on any product of the shared Dodo business, a cheaper one included.
+  if (t.kind === "activate" && !dvPlanForProduct(d.product_id ?? prev?.product ?? null)) return refuseSuspicious(evt, deps, "not a DentVideo product");
   const ledger = prev !== undefined;
   const reported = dvEventSubStatus(evt.type, d) ?? (t.kind === "activate" ? "active" : t.plan);
   const stamp = eventAt ?? now.toISOString();

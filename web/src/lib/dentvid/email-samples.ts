@@ -13,6 +13,9 @@ import {
 import { pickPreviews } from "./preview-library";
 import { resetEmail } from "./reset-email";
 import { codeEmail } from "./verify-email-message";
+import { videoRows } from "./ready-notice";
+import { samplePostTexts } from "./posting-samples";
+import { asLocale } from "./locale";
 
 /**
  * Every email DentVideo sends, rendered with sample data — for the dev
@@ -70,6 +73,7 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
         appUrl: `${BASE}/app`,
         thumbs: ["Proper brushing", "Whitening myths", "Caring for aligners", "Kids' teeth"].map((title) => ({ url: IMG, title, href: `${BASE}/app` })),
         approveUrl: `${BASE}/api/dentvideo/approve?t=${CLINIC}.2026-11-09.1790000000.sample-signature`,
+        videos: kind === "ready" ? sampleVideos(language) : undefined,
         brand,
       })!;
     case "not-posted":
@@ -80,4 +84,21 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
     case "payment-hold":
       return paymentProblemEmail({ language, clinicName, kind: kind === "payment-failed" ? "failed" : "on_hold", fix: "portal", appUrl: `${BASE}/app`, brand });
   }
+}
+
+/** The week's five videos as the ready email lists them: four ready (approve & share), one flagged for a look. */
+function sampleVideos(language: string) {
+  const texts = samplePostTexts(asLocale(language) ?? "en");
+  const titles = ["Proper brushing", "Whitening myths", "Caring for aligners", "Kids' teeth", "Bleeding gums"];
+  const items = titles.map((title, n) => ({
+    id: `00000000-0000-4000-8000-00000000000${n + 1}`,
+    title,
+    week_of: "2026-11-09",
+    thumb_path: `sample/${n}.jpg`,
+    status: n === 3 ? "flagged" : "ready",
+    approval: "pending",
+    kind: "generated",
+    copy: { post: { instagram: texts.instagram, short: texts.short } },
+  }));
+  return videoRows(items, { week: "2026-11-09", language, base: BASE, clinicId: CLINIC, secret: "sample-secret", thumbUrl: () => IMG, now: new Date("2026-11-09T06:00:00Z") });
 }

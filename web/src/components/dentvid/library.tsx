@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Check, CheckCheck, CircleCheck, Flame, Loader2, Play, RotateCcw, Send, Sparkles } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, CheckCheck, ChevronRight, Circle, CircleCheck, Flame, Loader2, Play, RotateCcw, Send, Sparkles } from "lucide-react";
 import { BackgroundPicker } from "./background-picker";
 import { DeclineForm, postText, ReviewPlayer, usePosted, type Decide } from "./review-player";
 import type { Locale } from "@/content/dentvideo";
@@ -24,6 +24,8 @@ import {
   type CardState,
   type PostedMarks,
 } from "@/lib/dentvid/app-ui";
+import { slotLabel, weekSchedule, type PostTexts } from "@/lib/dentvid/posting";
+import { postingText } from "@/content/dentvideo-posting";
 
 export type LibraryItem = {
   id: string;
@@ -37,6 +39,10 @@ export type LibraryItem = {
   findings: string[];
   videoUrl?: string;
   thumbUrl?: string;
+  /** Ready-to-paste Instagram and TikTok / Shorts texts (lib/dentvid/posting.ts postTexts). */
+  post?: PostTexts;
+  /** When the clinic ticked it as posted; null = not posted; undefined = not stored on this database (0012 not applied). */
+  postedAt?: string | null;
   /** Background photos (generated videos only): library ids offered, those in use, and a pending re-render. */
   photos?: { suggested: string[]; chosen: string[]; status?: "queued" | "failed" };
 };
@@ -93,7 +99,7 @@ export function Library({
   const text = appText(locale);
   const t = text.library;
   const router = useRouter();
-  const posted = usePosted();
+  const posted = usePosted(items);
 
   // Decisions show at once (optimistic) and go back if they did not save; a refresh brings the server's word.
   const [decided, setDecided] = useState<Record<string, LibraryItem["approval"]>>({});
@@ -132,6 +138,14 @@ export function Library({
   };
 
   const groups = groupByWeek(view);
+  // A suggested day and time for each of this week's videos, spread Monday–Friday (posting.ts).
+  const slots = useMemo(() => {
+    const out = new Map<string, string>();
+    // Oldest first (the library lists newest first), generated videos only — the same order as the email.
+    const made = view.filter((i) => i.kind === "generated").reverse();
+    for (const [id, slot] of weekSchedule(made, currentWeek, locale)) out.set(id, slotLabel(slot, locale));
+    return out;
+  }, [view, currentWeek, locale]);
   const thisWeek = view.filter((i) => i.week_of === currentWeek);
   const notMade = view.filter((i) => i.status === "rejected");
   const delay = delayNote(weekDelay, thisWeek);
@@ -176,6 +190,8 @@ export function Library({
           thisWeek={thisWeek}
           delay={delay}
           marks={posted.marks}
+          slots={slots}
+          synced={posted.synced}
           currentWeek={currentWeek}
           onReview={() => openReview(currentWeek)}
           onPost={(id) => openReview(currentWeek, id)}
@@ -202,6 +218,8 @@ export function Library({
                   item={item}
                   t={t}
                   posted={!!posted.marks[item.id]}
+                  slot={slots.get(item.id)}
+                  locale={locale}
                   decide={decide}
                   onChanged={() => router.refresh()}
                   onOpen={() => openReview(g.week, item.id)}
@@ -247,6 +265,7 @@ export function Library({
         decide={decide}
         posted={posted.marks}
         onPosted={(item, on) => posted.toggle(item.id, item.week_of, on)}
+        slots={slots}
       />
     </div>
   );
@@ -259,6 +278,8 @@ export function NextStep({
   thisWeek,
   delay = null,
   marks = {},
+  slots,
+  synced = false,
   currentWeek,
   onReview,
   onPost,
@@ -268,6 +289,10 @@ export function NextStep({
   thisWeek: LibraryItem[];
   delay?: "retrying" | "delayed" | null;
   marks?: PostedMarks;
+  /** Suggested posting time per video id. */
+  slots?: Map<string, string>;
+  /** Posted ticks are stored on the account (0012), not only in this browser. */
+  synced?: boolean;
   currentWeek: string;
   onReview: () => void;
   onPost: (id: string) => void;
@@ -385,7 +410,21 @@ export function NextStep({
           </button>
         )}
       </div>
-      {action === "share" && progress.total > 0 && <PostingChecklist t={t.post} progress={progress} streak={streak} />}
+      {action === "share" && progress.total > 0 && (
+        <PostingChecklist
+          t={t.post}
+          locale={locale}
+          progress={progress}
+          streak={streak}
+          synced={synced}
+          plan={thisWeek
+            .filter((i) => cardState(i) === "approved")
+            // In posting order (Monday first): the schedule map is built Monday → Friday.
+            .sort((a, b) => slotOrder(slots, a.id) - slotOrder(slots, b.id))
+            .map((i) => ({ id: i.id, title: i.title, slot: slots?.get(i.id), posted: !!marks[i.id] }))}
+          onPost={onPost}
+        />
+      )}
       {message && (
         <p role={message.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-4 py-3 text-sm ${message.kind === "error" ? "bg-[#fbeaea] text-[#8a1f1f]" : "bg-dv-teal-50 text-dv-teal"}`}>
           {message.text}
@@ -395,9 +434,33 @@ export function NextStep({
   );
 }
 
+/** Where a video falls in the week's posting order (unscheduled ones last). */
+function slotOrder(slots: Map<string, string> | undefined, id: string): number {
+  const n = slots ? [...slots.keys()].indexOf(id) : -1;
+  return n < 0 ? Number.MAX_SAFE_INTEGER : n;
+}
+
 /** The week's posting checklist: a bar, "2 of 4 posted this week", and the streak once there is one. */
-function PostingChecklist({ t, progress, streak }: { t: AppText["library"]["post"]; progress: { total: number; posted: number }; streak: number }) {
+function PostingChecklist({
+  t,
+  locale,
+  progress,
+  streak,
+  synced,
+  plan,
+  onPost,
+}: {
+  t: AppText["library"]["post"];
+  locale: Locale;
+  progress: { total: number; posted: number };
+  streak: number;
+  synced: boolean;
+  /** The week's approved videos in posting order, each with its suggested time. */
+  plan: { id: string; title: string; slot?: string; posted: boolean }[];
+  onPost: (id: string) => void;
+}) {
   const label = fmt(t.progress, { n: progress.posted, total: progress.total });
+  const ps = postingText(locale);
   return (
     <div className="mt-5 border-t border-dv-line pt-4">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -414,7 +477,22 @@ function PostingChecklist({ t, progress, streak }: { t: AppText["library"]["post
           <span key={n} className={`h-2 flex-1 rounded-full ${n < progress.posted ? "bg-dv-teal" : "bg-dv-sand-200"}`} />
         ))}
       </div>
-      <p className="mt-2 text-xs text-dv-muted">{t.deviceNote}</p>
+      <ol className="mt-4 divide-y divide-dv-line rounded-2xl bg-white/70 ring-1 ring-inset ring-dv-line">
+        {plan.map((v) => (
+          <li key={v.id}>
+            <button type="button" onClick={() => onPost(v.id)} className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-start hover:bg-dv-sand/60">
+              {v.posted ? <CircleCheck className="h-5 w-5 shrink-0 fill-dv-teal text-white" aria-hidden="true" /> : <Circle className="h-5 w-5 shrink-0 text-dv-edge" aria-hidden="true" />}
+              <span className="min-w-0 flex-1">
+                <span className={`block truncate text-sm font-medium ${v.posted ? "text-dv-muted line-through decoration-dv-edge" : "text-dv-ink"}`}>{v.title}</span>
+                {v.slot && <span className="block text-xs text-dv-muted">{fmt(ps.suggested, { slot: v.slot })}</span>}
+              </span>
+              <span className="sr-only">{v.posted ? t.posted : t.markPosted}</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-dv-muted rtl:-scale-x-100" aria-hidden="true" />
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-2 text-xs text-dv-muted">{synced ? ps.syncedNote : t.deviceNote}</p>
     </div>
   );
 }
@@ -426,10 +504,15 @@ function ItemCard({
   decide,
   onChanged,
   onOpen,
+  slot,
+  locale,
 }: {
   item: LibraryItem;
   t: AppText["library"];
   posted: boolean;
+  /** Suggested posting day and time ("Tue 12:30"), this week's videos only. */
+  slot?: string;
+  locale: Locale;
   decide: Decide;
   onChanged: () => void;
   onOpen: () => void;
@@ -499,6 +582,12 @@ function ItemCard({
           </p>
           <h3 className="mt-2 text-[0.9375rem] font-semibold leading-snug text-dv-ink [overflow-wrap:anywhere]">{item.title}</h3>
           <p className="mt-1 text-xs text-dv-muted">{item.kind === "recording" ? t.fromRecording : t.madeForYou}</p>
+          {slot && (state === "review" || state === "look" || state === "approved") && !posted && (
+            <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-dv-teal">
+              <CalendarClock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              {fmt(postingText(locale).suggested, { slot })}
+            </p>
+          )}
           {state === "making" && <p className="mt-2 text-sm text-dv-body">{t.makingNote}</p>}
           {state === "updating" && <p className="mt-2 text-sm text-dv-body">{t.photos.updating}</p>}
           {state === "failed" && <p className="mt-2 text-sm text-dv-body">{t.failedNote}</p>}

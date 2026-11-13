@@ -288,3 +288,16 @@ export const ABOUT_PATH: Record<Locale, string> = {
   ar: "/dentvideo/ar/about",
   pl: "/dentvideo/pl/about",
 };
+
+/** Where the checker lives, per language (in-app paths; dvHref/dvUrl make them public). Small, so the header and footer can link to it. */
+export const CHECKER_PATH: Record<Locale, string> = {
+  en: "/dentvideo/ad-checker",
+  de: "/dentvideo/de/ad-checker",
+  es: "/dentvideo/es/ad-checker",
+  tr: "/dentvideo/tr/ad-checker",
+  fr: "/dentvideo/fr/ad-checker",
+  ja: "/dentvideo/ja/ad-checker",
+  ar: "/dentvideo/ar/ad-checker",
+  pl: "/dentvideo/pl/ad-checker",
+};
+

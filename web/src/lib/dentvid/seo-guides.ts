@@ -10,6 +10,7 @@ import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 import { LANDING } from "@/content/dentvideo";
 import { LEGAL, LEGAL_KINDS, LEGAL_UPDATED, legalPath, type LegalKind } from "@/content/legal";
+import { CHECKER, CHECKER_PATH, CHECKER_UPDATED } from "@/content/dentvideo-checker";
 
 /**
  * Metadata, structured data and sitemap entries for the guide library, the
@@ -457,6 +458,90 @@ export function legalJsonLd(kind: LegalKind, locale: Locale) {
   };
 }
 
+/* ---------- Free ad checker (/ad-checker) ---------- */
+
+export function checkerAlternates(): Record<string, string> {
+  return absolute(perLocaleAltPaths(CHECKER_PATH));
+}
+
+/** The checker's <title>: its SEO title plus " · DentVideo" when that still fits. */
+export function checkerSeoTitle(locale: Locale): string {
+  const t = CHECKER[locale].seoTitle;
+  return `${t}${BRAND_SUFFIX}`.length <= SEO_TITLE_MAX ? `${t}${BRAND_SUFFIX}` : t;
+}
+
+export function checkerMetadata(locale: Locale): Metadata {
+  const c = CHECKER[locale];
+  const url = absoluteUrl(CHECKER_PATH[locale]);
+  const title = checkerSeoTitle(locale);
+  return {
+    title: { absolute: title },
+    description: c.seoDescription,
+    alternates: { canonical: url, languages: checkerAlternates() },
+    openGraph: {
+      title: c.h1,
+      description: c.seoDescription,
+      url,
+      type: "website",
+      siteName: "DentVideo",
+      locale: OG_LOCALE[locale],
+      ...(OG_ALTERNATE_LOCALES[locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[locale] } : {}),
+    },
+    twitter: { card: "summary_large_image", title: c.h1, description: c.seoDescription },
+  };
+}
+
+/**
+ * The checker as a free WebApplication (no sign-up, runs in the browser),
+ * its FAQ, and its place in the site.
+ */
+export function checkerJsonLd(locale: Locale) {
+  const c = CHECKER[locale];
+  const url = absoluteUrl(CHECKER_PATH[locale]);
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": `${url}#app`,
+        name: c.h1,
+        alternateName: c.nav,
+        description: c.seoDescription,
+        url,
+        inLanguage: locale,
+        applicationCategory: "BusinessApplication",
+        applicationSubCategory: "Health-advertising compliance checker",
+        operatingSystem: "Any (runs in the web browser)",
+        browserRequirements: "Requires JavaScript.",
+        isAccessibleForFree: true,
+        offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
+        audience: { "@type": "BusinessAudience", audienceType: "Dentists and dental clinics" },
+        publisher: { "@id": ORG_ID },
+        isPartOf: { "@id": websiteId() },
+      },
+      {
+        "@type": "WebPage",
+        "@id": url,
+        url,
+        name: c.h1,
+        description: c.seoDescription,
+        inLanguage: locale,
+        dateModified: CHECKER_UPDATED,
+        mainEntity: { "@id": `${url}#app` },
+        isPartOf: { "@id": websiteId() },
+        about: { "@id": softwareId() },
+        publisher: { "@id": ORG_ID },
+      },
+      organizationNode(),
+      faqNode(c.faq, locale),
+      breadcrumb([
+        { name: "DentVideo", path: LANDING_PATH[locale] },
+        { name: c.nav, path: CHECKER_PATH[locale] },
+      ]),
+    ],
+  };
+}
+
 /* ---------- Sitemap ---------- */
 
 /** A sitemap entry; `alternates` maps hreflang codes to in-app paths of true translations. */
@@ -470,6 +555,7 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
     ...LOCALES.map((l) => ({ path: LANDING_PATH[l], lastmod: LANDING_UPDATED, priority: l === "en" ? "1.0" : "0.9", alternates: perLocaleAltPaths(LANDING_PATH) })),
     ...GUIDE_HUB_LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES) })),
     ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: ABOUT_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
+    ...LOCALES.map((l) => ({ path: CHECKER_PATH[l], lastmod: CHECKER_UPDATED, priority: "0.8", alternates: perLocaleAltPaths(CHECKER_PATH) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
     ...SOLUTIONS.map((p) => ({ path: solutionPath(p), lastmod: p.updated ?? p.published, priority: "0.8", alternates: solutionAltPaths(p) })),
     ...LEGAL_KINDS.flatMap((k) => LOCALES.map((l) => ({ path: legalPath(k, l), lastmod: LEGAL_UPDATED, priority: "0.3", alternates: perLocaleAltPaths(legalPaths(k)) }))),
