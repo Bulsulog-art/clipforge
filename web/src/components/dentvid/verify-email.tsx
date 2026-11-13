@@ -93,6 +93,12 @@ export const VerifyCard = forwardRef<VerifyCardHandle, Props>(function VerifyCar
     if (busy) return;
     const digits = value.replace(/\D/g, "");
     if (digits.length !== DIGITS) {
+      // A wrong code clears the field: a tap on the button right after must not
+      // swap "the code does not match" for "enter the 6 digits".
+      if (!digits && error) {
+        inputRef.current?.focus();
+        return;
+      }
       setError(v.malformed);
       inputRef.current?.focus();
       return;

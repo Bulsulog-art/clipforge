@@ -10,6 +10,9 @@ import type { Locale } from "./dentvideo";
 
 export type AuthCopy = {
   forgot: string;
+  /** The eye button on the password field (aria-label). */
+  showPassword: string;
+  hidePassword: string;
   forgotTitle: string;
   forgotLead: string;
   sendLink: string;
@@ -38,6 +41,8 @@ export type AuthCopy = {
 const COPY: Record<Locale, AuthCopy> = {
   en: {
     forgot: "Forgot your password?",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
     forgotTitle: "Reset your password",
     forgotLead: "Enter the email you signed up with. We'll send you a link to choose a new password.",
     sendLink: "Send the link",
@@ -67,6 +72,8 @@ const COPY: Record<Locale, AuthCopy> = {
   },
   tr: {
     forgot: "Şifrenizi mi unuttunuz?",
+    showPassword: "Şifreyi göster",
+    hidePassword: "Şifreyi gizle",
     forgotTitle: "Şifrenizi sıfırlayın",
     forgotLead: "Kayıt olduğunuz e-postayı yazın. Yeni şifre belirlemeniz için bir bağlantı gönderelim.",
     sendLink: "Bağlantıyı gönder",
@@ -96,6 +103,8 @@ const COPY: Record<Locale, AuthCopy> = {
   },
   de: {
     forgot: "Passwort vergessen?",
+    showPassword: "Passwort anzeigen",
+    hidePassword: "Passwort verbergen",
     forgotTitle: "Passwort zurücksetzen",
     forgotLead: "Geben Sie die E-Mail-Adresse Ihres Kontos ein. Wir senden Ihnen einen Link, um ein neues Passwort festzulegen.",
     sendLink: "Link senden",
@@ -125,6 +134,8 @@ const COPY: Record<Locale, AuthCopy> = {
   },
   es: {
     forgot: "¿Olvidaste tu contraseña?",
+    showPassword: "Mostrar contraseña",
+    hidePassword: "Ocultar contraseña",
     forgotTitle: "Restablece tu contraseña",
     forgotLead: "Escribe el correo con el que te registraste. Te enviaremos un enlace para elegir una contraseña nueva.",
     sendLink: "Enviar el enlace",
@@ -154,6 +165,8 @@ const COPY: Record<Locale, AuthCopy> = {
   },
   fr: {
     forgot: "Mot de passe oublié ?",
+    showPassword: "Afficher le mot de passe",
+    hidePassword: "Masquer le mot de passe",
     forgotTitle: "Réinitialiser votre mot de passe",
     forgotLead: "Indiquez l'e-mail de votre compte. Nous vous enverrons un lien pour choisir un nouveau mot de passe.",
     sendLink: "Envoyer le lien",
@@ -183,6 +196,8 @@ const COPY: Record<Locale, AuthCopy> = {
   },
   ja: {
     forgot: "パスワードをお忘れですか？",
+    showPassword: "パスワードを表示",
+    hidePassword: "パスワードを隠す",
     forgotTitle: "パスワードの再設定",
     forgotLead: "ご登録のメールアドレスを入力してください。新しいパスワードを設定するためのリンクをお送りします。",
     sendLink: "リンクを送信する",
@@ -212,6 +227,8 @@ const COPY: Record<Locale, AuthCopy> = {
   },
   ar: {
     forgot: "نسيتم كلمة المرور؟",
+    showPassword: "إظهار كلمة المرور",
+    hidePassword: "إخفاء كلمة المرور",
     forgotTitle: "إعادة تعيين كلمة المرور",
     forgotLead: "أدخلوا البريد الإلكتروني الذي سجّلتم به، وسنرسل إليكم رابطاً لاختيار كلمة مرور جديدة.",
     sendLink: "إرسال الرابط",
@@ -241,6 +258,8 @@ const COPY: Record<Locale, AuthCopy> = {
   },
   pl: {
     forgot: "Nie pamiętają Państwo hasła?",
+    showPassword: "Pokaż hasło",
+    hidePassword: "Ukryj hasło",
     forgotTitle: "Resetowanie hasła",
     forgotLead: "Prosimy podać adres e-mail użyty przy rejestracji. Wyślemy link do ustawienia nowego hasła.",
     sendLink: "Wyślij link",

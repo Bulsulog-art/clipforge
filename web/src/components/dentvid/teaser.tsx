@@ -130,6 +130,23 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
 
   const palette = [...new Set([...swatches, ...COLOURS])].slice(0, 7);
 
+  const cta = (
+    <>
+      <Link
+        href={href}
+        onClick={() => {
+          carry();
+          trackDv("cta_clicked", { locale, props: { where: "teaser" } });
+        }}
+        data-cta="teaser"
+        className="dv-btn dv-btn-primary group w-full px-7 py-4 text-base">
+        {copy.cta}
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
+      </Link>
+      <p className="-mt-1 text-center text-xs text-dv-muted">{copy.note}</p>
+    </>
+  );
+
   return (
     <section id="try" aria-labelledby="try-heading" className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10 opacity-70" />
@@ -205,18 +222,9 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                 </span>
               </div>
             </div>
-            <Link
-              href={href}
-              onClick={() => {
-                carry();
-                trackDv("cta_clicked", { locale, props: { where: "teaser" } });
-              }}
-              data-cta="teaser"
-              className="dv-btn dv-btn-primary group w-full px-7 py-4 text-base">
-              {copy.cta}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-            </Link>
-            <p className="-mt-1 text-center text-xs text-dv-muted">{copy.note}</p>
+            {/* Side by side (lg), the button sits under the fields; on a phone the preview is below the
+                form, so the button comes after the preview: the visitor scrolls past their own video first. */}
+            <div className="hidden lg:grid lg:gap-5">{cta}</div>
           </div>
         </div>
 
@@ -238,6 +246,7 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
               <PreviewPlaceholder />
             )}
           </div>
+          <div className="mx-auto mt-8 grid max-w-md gap-4 lg:hidden">{cta}</div>
         </div>
       </div>
     </section>
