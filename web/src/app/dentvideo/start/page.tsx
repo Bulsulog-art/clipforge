@@ -3,8 +3,9 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { dvHref } from "@/lib/dentvid/host";
 import { StartForm } from "@/components/dentvid/start-form";
-import { Onboarding } from "@/components/dentvid/onboarding";
+import { LazyOnboarding as Onboarding } from "@/components/dentvid/onboarding-lazy";
 import { RememberLocale } from "@/components/dentvid/chrome";
+import { LazyScriptFont } from "@/components/dentvid/font-lazy";
 import { appText } from "@/content/dentvideo-app";
 import { LANDING_PATH } from "@/content/dentvideo";
 import { asLocale } from "@/lib/dentvid/locale";
@@ -55,7 +56,12 @@ export default async function StartPage({ searchParams }: Props) {
 
   if (!user) {
     const locale = fromLink ?? (await dvLocale());
-    return <StartForm locale={locale} remember={fromLink !== null} legal={legalPagesOn()} />;
+    return (
+      <>
+        <LazyScriptFont locale={locale} />
+        <StartForm locale={locale} remember={fromLink !== null} legal={legalPagesOn()} />
+      </>
+    );
   }
 
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path, plan").eq("owner_id", user.id).maybeSingle();
@@ -81,6 +87,7 @@ export default async function StartPage({ searchParams }: Props) {
   return (
     <>
       <RememberLocale locale={locale} />
+      <LazyScriptFont locale={locale} />
       <Onboarding
         locale={locale}
         step={step}

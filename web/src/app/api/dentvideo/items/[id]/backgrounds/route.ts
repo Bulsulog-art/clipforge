@@ -5,6 +5,7 @@ import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
+import { noteEnqueueFailure } from "@/lib/dentvid/ops-server";
 import { RESTYLE_JOB_OPTS } from "@/lib/dentvid/job-options";
 import { cleanPhotoIds, MAX_PHOTOS, withBackgrounds } from "@/lib/dentvid/backgrounds";
 import { restyleStatus } from "@/lib/dentvid/restyle";
@@ -68,7 +69,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // Ahead of the weekend batch: the clinic is looking at "updating…" (job-options.ts).
       { jobId: `restyle:${id}:${Date.now()}`, ...RESTYLE_JOB_OPTS },
     );
-  } catch {
+  } catch (e) {
+    await noteEnqueueFailure("restyle", "restyle", e, typeof item.clinic_id === "string" ? item.clinic_id : null);
     // Not queued: say so on the card instead of "updating…" forever.
     await db.from("dentvid_items").update({ restyle_status: "failed" }).eq("id", id).eq("owner_id", user.id);
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });

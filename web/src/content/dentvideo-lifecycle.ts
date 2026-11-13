@@ -1,20 +1,22 @@
+import { SEQUENCE_COPY, type SequenceCopy } from "./dentvideo-lifecycle-sequence";
+
 /**
- * Lifecycle email copy: the welcome after the first payment, the two
- * reminders to a clinic that saw its preview but has not paid, and the
- * unsubscribe page. One entry per site language, all with the same shape and
- * the same {placeholders} (lifecycle-copy.test.ts checks this).
+ * Lifecycle email copy: the welcome after the first payment, the shared
+ * pieces (greeting, sign-off, footers, unsubscribe) and the unsubscribe page.
+ * The activation sequence and the paying-clinic emails are in
+ * dentvideo-lifecycle-sequence.ts; both are merged into LIFECYCLE_COPY. One
+ * entry per site language, all with the same shape and the same
+ * {placeholders} (lifecycle-copy.test.ts checks this).
  *
- * The reminders follow the owner's order: their problem → the outcome → why
- * us → why now. Claims stay inside what the product does and the site
- * already says (checked videos, nothing published without approval, about
- * 15 minutes, every Monday, monthly and cancel anytime). No guarantees, no
- * promised patients, no invented scarcity: the founding offer is described
- * exactly as billing.ts defines it, and only while it is open.
+ * Claims stay inside what the product does and the site already says
+ * (checked videos, nothing published without approval, about 15 minutes,
+ * every Monday, monthly and cancel anytime). No guarantees, no promised
+ * patients, no invented scarcity.
  *
- * Placeholders: {clinic} {email} {price} {then} {months} {clinics} {code} {from}.
+ * Placeholders: {clinic} {email}.
  */
 
-export type LifecycleCopy = {
+export type LifecycleBase = {
   hello: string;
   signoff: string;
   contact: string;
@@ -28,28 +30,6 @@ export type LifecycleCopy = {
     steps: { title: string; body: string }[];
     button: string;
     footer: string;
-  };
-  preview: {
-    subject: string;
-    preheader: string;
-    problem: string;
-    outcome: string;
-    whyUs: string;
-    whyNow: string;
-    button: string;
-  };
-  offer: {
-    subjectOpen: string;
-    subjectClosed: string;
-    preheaderOpen: string;
-    preheaderClosed: string;
-    problem: string;
-    outcome: string;
-    whyUs: string;
-    whyNowOpen: string;
-    whyNowClosed: string;
-    last: string;
-    button: string;
   };
   unsubPage: {
     confirmTitle: string;
@@ -65,12 +45,14 @@ export type LifecycleCopy = {
   };
 };
 
-export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
+export type LifecycleCopy = LifecycleBase & SequenceCopy;
+
+const BASE_COPY: Record<string, LifecycleBase> = {
   en: {
     hello: "Hello {clinic},",
     signoff: "The DentVideo team",
     contact: "Questions? Just reply to this email.",
-    nudgeFooter: "You get this email because you started setting up DentVideo for your clinic. We send at most two reminders.",
+    nudgeFooter: "You get this email because you started setting up DentVideo for your clinic. We send at most four short emails, and stop as soon as you choose a plan.",
     unsubscribeAsk: "Don't want reminders?",
     unsubscribe: "Unsubscribe",
     welcome: {
@@ -86,34 +68,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Open my library",
       footer: "You get this email because your clinic subscribed to DentVideo.",
     },
-    preview: {
-      subject: "Your branded video preview is waiting",
-      preheader: "Patient videos with your logo and colours — your preview is saved.",
-      problem: "Patients ask the same questions every week, and there is rarely time to film the answers.",
-      outcome: "Your preview shows what DentVideo makes for you: short, captioned patient-education videos with your logo and colours, ready to post.",
-      whyUs: "Every video is checked for clinical accuracy and health-advertising rules, and nothing is published until you approve it.",
-      whyNow: "Your preview is saved. Choose a plan and your first week of videos is made in about 15 minutes.",
-      button: "See my preview",
-    },
-    offer: {
-      subjectOpen: "Founding offer: Practice for {price}/month for {months} months",
-      subjectClosed: "Your DentVideo preview is still saved",
-      preheaderOpen: "For the first {clinics} clinics, applied at checkout.",
-      preheaderClosed: "Plans from {from}/month. Monthly, cancel anytime.",
-      problem: "Staying visible takes regular posts, and they are the first thing to slip in a busy week.",
-      outcome: "With DentVideo, new patient-education videos arrive every Monday — about the services you offer, in your language.",
-      whyUs: "We write, narrate, caption and check each one. You only watch and approve.",
-      whyNowOpen: "The founding offer gives the first {clinics} clinics the Practice plan for {price}/month for {months} months, then {then}/month. It is applied automatically at checkout (code {code}). Monthly, cancel anytime.",
-      whyNowClosed: "Plans start at {from}/month. Monthly, cancel anytime.",
-      last: "This is the last reminder we'll send.",
-      button: "Choose a plan",
-    },
     unsubPage: {
       confirmTitle: "Unsubscribe from reminders?",
-      confirmBody: "You'll stop getting reminder emails from DentVideo. If you choose a plan later, we'll still email you when your videos are ready.",
+      confirmBody: "You'll stop getting reminders, weekly nudges and monthly summaries from DentVideo. Emails about your account, payments and ready videos still arrive.",
       confirmButton: "Unsubscribe",
       title: "You're unsubscribed",
-      body: "We won't send you any more reminders. If you choose a plan later, we'll still email you when your videos are ready.",
+      body: "Done. We won't send you any more reminders or summaries. Emails about your account, payments and ready videos still arrive.",
       invalidTitle: "This link doesn't work",
       invalidBody: "Write to {email} and we'll unsubscribe you by hand.",
       errorTitle: "That didn't save",
@@ -125,7 +85,7 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     hello: "Guten Tag, {clinic},",
     signoff: "Ihr DentVideo-Team",
     contact: "Fragen? Antworten Sie einfach auf diese E-Mail.",
-    nudgeFooter: "Sie erhalten diese E-Mail, weil Sie begonnen haben, DentVideo für Ihre Praxis einzurichten. Wir erinnern höchstens zweimal.",
+    nudgeFooter: "Sie erhalten diese E-Mail, weil Sie begonnen haben, DentVideo für Ihre Praxis einzurichten. Wir schicken höchstens vier kurze E-Mails und hören auf, sobald Sie einen Tarif wählen.",
     unsubscribeAsk: "Keine Erinnerungen mehr?",
     unsubscribe: "Abmelden",
     welcome: {
@@ -141,34 +101,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Meine Bibliothek öffnen",
       footer: "Sie erhalten diese E-Mail, weil Ihre Praxis DentVideo abonniert hat.",
     },
-    preview: {
-      subject: "Ihre Videovorschau im Praxis-Design wartet",
-      preheader: "Patientenvideos mit Ihrem Logo und Ihren Farben – Ihre Vorschau ist gespeichert.",
-      problem: "Patientinnen und Patienten stellen jede Woche dieselben Fragen – und für Videos mit den Antworten fehlt meist die Zeit.",
-      outcome: "Ihre Vorschau zeigt, was DentVideo für Sie erstellt: kurze Aufklärungsvideos mit Untertiteln, Ihrem Logo und Ihren Farben, bereit zum Posten.",
-      whyUs: "Jedes Video wird auf fachliche Richtigkeit und Heilmittelwerberecht geprüft, und nichts wird ohne Ihre Freigabe veröffentlicht.",
-      whyNow: "Ihre Vorschau ist gespeichert. Wählen Sie einen Tarif, und Ihre erste Woche Videos entsteht in etwa 15 Minuten.",
-      button: "Meine Vorschau ansehen",
-    },
-    offer: {
-      subjectOpen: "Gründungsangebot: Practice für {price}/Monat, {months} Monate lang",
-      subjectClosed: "Ihre DentVideo-Vorschau ist noch gespeichert",
-      preheaderOpen: "Für die ersten {clinics} Praxen, automatisch im Checkout.",
-      preheaderClosed: "Tarife ab {from}/Monat. Monatlich, jederzeit kündbar.",
-      problem: "Sichtbarkeit braucht regelmäßige Beiträge – und genau die bleiben in vollen Wochen als Erstes liegen.",
-      outcome: "Mit DentVideo liegen jeden Montag neue Aufklärungsvideos bereit – zu den Leistungen Ihrer Praxis, in Ihrer Sprache.",
-      whyUs: "Wir schreiben, vertonen, untertiteln und prüfen jedes Video. Sie sehen es sich nur an und geben es frei.",
-      whyNowOpen: "Mit dem Gründungsangebot erhalten die ersten {clinics} Praxen den Practice-Tarif für {price}/Monat, {months} Monate lang, danach {then}/Monat. Es wird im Checkout automatisch angewendet (Code {code}). Monatlich, jederzeit kündbar.",
-      whyNowClosed: "Tarife ab {from}/Monat. Monatlich, jederzeit kündbar.",
-      last: "Das ist unsere letzte Erinnerung.",
-      button: "Tarif wählen",
-    },
     unsubPage: {
       confirmTitle: "Von Erinnerungen abmelden?",
-      confirmBody: "Sie erhalten dann keine Erinnerungen mehr von DentVideo. Wenn Sie später einen Tarif wählen, erhalten Sie weiterhin eine E-Mail, sobald Ihre Videos fertig sind.",
+      confirmBody: "Sie erhalten dann keine Erinnerungen und Monatsübersichten mehr von DentVideo. E-Mails zu Ihrem Konto, zu Zahlungen und zu fertigen Videos kommen weiterhin.",
       confirmButton: "Abmelden",
       title: "Sie sind abgemeldet",
-      body: "Wir schicken Ihnen keine Erinnerungen mehr. Wenn Sie später einen Tarif wählen, erhalten Sie weiterhin eine E-Mail, sobald Ihre Videos fertig sind.",
+      body: "Erledigt. Wir schicken Ihnen keine Erinnerungen und Übersichten mehr. E-Mails zu Ihrem Konto, zu Zahlungen und zu fertigen Videos kommen weiterhin.",
       invalidTitle: "Dieser Link funktioniert nicht",
       invalidBody: "Schreiben Sie an {email}, dann melden wir Sie von Hand ab.",
       errorTitle: "Das hat nicht geklappt",
@@ -180,7 +118,7 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     hello: "Hola, {clinic}:",
     signoff: "El equipo de DentVideo",
     contact: "¿Dudas? Responde a este correo.",
-    nudgeFooter: "Recibes este correo porque empezaste a configurar DentVideo para tu clínica. Enviamos como máximo dos recordatorios.",
+    nudgeFooter: "Recibes este correo porque empezaste a configurar DentVideo para tu clínica. Enviamos como máximo cuatro correos breves y paramos en cuanto eliges un plan.",
     unsubscribeAsk: "¿No quieres recordatorios?",
     unsubscribe: "Darse de baja",
     welcome: {
@@ -196,34 +134,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Abrir mi biblioteca",
       footer: "Recibes este correo porque tu clínica se ha suscrito a DentVideo.",
     },
-    preview: {
-      subject: "Tu vista previa con tu marca te está esperando",
-      preheader: "Vídeos para pacientes con tu logo y tus colores: tu vista previa está guardada.",
-      problem: "Los pacientes hacen las mismas preguntas cada semana, y casi nunca hay tiempo para grabar las respuestas.",
-      outcome: "Tu vista previa muestra lo que DentVideo crea para ti: vídeos educativos cortos, con subtítulos, tu logo y tus colores, listos para publicar.",
-      whyUs: "Cada vídeo se revisa en precisión clínica y normas de publicidad sanitaria, y no se publica nada sin tu aprobación.",
-      whyNow: "Tu vista previa está guardada. Elige un plan y tu primera semana de vídeos estará lista en unos 15 minutos.",
-      button: "Ver mi vista previa",
-    },
-    offer: {
-      subjectOpen: "Oferta fundadora: Practice por {price}/mes durante {months} meses",
-      subjectClosed: "Tu vista previa de DentVideo sigue guardada",
-      preheaderOpen: "Para las primeras {clinics} clínicas, se aplica al pagar.",
-      preheaderClosed: "Planes desde {from}/mes. Mensual, cancela cuando quieras.",
-      problem: "Mantenerse visible exige publicar con regularidad, y es lo primero que se queda atrás en una semana llena.",
-      outcome: "Con DentVideo, cada lunes llegan vídeos educativos nuevos: sobre los servicios que ofreces y en tu idioma.",
-      whyUs: "Nosotros escribimos, narramos, subtitulamos y revisamos cada uno. Tú solo los ves y los apruebas.",
-      whyNowOpen: "La oferta fundadora da a las primeras {clinics} clínicas el plan Practice por {price}/mes durante {months} meses; después, {then}/mes. Se aplica automáticamente al pagar (código {code}). Mensual, cancela cuando quieras.",
-      whyNowClosed: "Planes desde {from}/mes. Mensual, cancela cuando quieras.",
-      last: "Este es el último recordatorio que te enviamos.",
-      button: "Elegir un plan",
-    },
     unsubPage: {
       confirmTitle: "¿Darte de baja de los recordatorios?",
-      confirmBody: "Dejarás de recibir recordatorios de DentVideo. Si más adelante eliges un plan, te seguiremos avisando cuando tus vídeos estén listos.",
+      confirmBody: "Dejarás de recibir recordatorios y resúmenes mensuales de DentVideo. Los correos sobre tu cuenta, tus pagos y tus vídeos listos seguirán llegando.",
       confirmButton: "Darme de baja",
       title: "Te has dado de baja",
-      body: "No te enviaremos más recordatorios. Si más adelante eliges un plan, te seguiremos avisando cuando tus vídeos estén listos.",
+      body: "Hecho. No te enviaremos más recordatorios ni resúmenes. Los correos sobre tu cuenta, tus pagos y tus vídeos listos seguirán llegando.",
       invalidTitle: "Este enlace no funciona",
       invalidBody: "Escribe a {email} y te daremos de baja a mano.",
       errorTitle: "No se ha podido guardar",
@@ -235,7 +151,7 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     hello: "Merhaba {clinic},",
     signoff: "DentVideo ekibi",
     contact: "Sorunuz mu var? Bu e-postayı yanıtlamanız yeterli.",
-    nudgeFooter: "Bu e-postayı, kliniğiniz için DentVideo kurulumuna başladığınız için alıyorsunuz. En fazla iki hatırlatma göndeririz.",
+    nudgeFooter: "Bu e-postayı, kliniğiniz için DentVideo kurulumuna başladığınız için alıyorsunuz. En fazla dört kısa e-posta göndeririz ve bir plan seçtiğiniz anda dururuz.",
     unsubscribeAsk: "Hatırlatma istemiyor musunuz?",
     unsubscribe: "Abonelikten çık",
     welcome: {
@@ -251,34 +167,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Kütüphanemi aç",
       footer: "Bu e-postayı kliniğiniz DentVideo'ya abone olduğu için alıyorsunuz.",
     },
-    preview: {
-      subject: "Kliniğinize özel video önizlemeniz sizi bekliyor",
-      preheader: "Logonuz ve renklerinizle hasta videoları — önizlemeniz kayıtlı.",
-      problem: "Hastalar her hafta aynı soruları soruyor; cevapları videoya çekmeye ise çoğu zaman vakit kalmıyor.",
-      outcome: "Önizlemeniz, DentVideo'nun sizin için neler hazırladığını gösteriyor: logonuz ve renklerinizle, altyazılı, paylaşmaya hazır kısa hasta bilgilendirme videoları.",
-      whyUs: "Her video klinik doğruluk ve sağlık reklamı kurallarına göre kontrol edilir; siz onaylamadan hiçbir şey yayınlanmaz.",
-      whyNow: "Önizlemeniz kayıtlı. Bir plan seçtiğinizde ilk haftanızın videoları yaklaşık 15 dakikada hazırlanır.",
-      button: "Önizlememi gör",
-    },
-    offer: {
-      subjectOpen: "Kurucu teklifi: {months} ay boyunca aylık {price} ile Practice",
-      subjectClosed: "DentVideo önizlemeniz hâlâ kayıtlı",
-      preheaderOpen: "İlk {clinics} klinik için, ödeme sırasında otomatik uygulanır.",
-      preheaderClosed: "Planlar aylık {from} ile başlar. Aylık, istediğiniz zaman iptal.",
-      problem: "Görünür kalmak düzenli paylaşım ister; yoğun bir haftada ilk aksayan da bu olur.",
-      outcome: "DentVideo ile her pazartesi yeni hasta bilgilendirme videoları hazır olur — sunduğunuz tedavilerle ilgili, kendi dilinizde.",
-      whyUs: "Her videoyu biz yazar, seslendirir, altyazılar ve kontrol ederiz. Siz yalnızca izler ve onaylarsınız.",
-      whyNowOpen: "Kurucu teklifiyle ilk {clinics} klinik, Practice planını {months} ay boyunca aylık {price} ile kullanır; sonrasında aylık {then}. Teklif ödeme sırasında otomatik uygulanır ({code} kodu). Aylık, istediğiniz zaman iptal.",
-      whyNowClosed: "Planlar aylık {from} ile başlar. Aylık, istediğiniz zaman iptal.",
-      last: "Bu, göndereceğimiz son hatırlatma.",
-      button: "Plan seçin",
-    },
     unsubPage: {
       confirmTitle: "Hatırlatmalardan çıkmak istiyor musunuz?",
-      confirmBody: "DentVideo'dan artık hatırlatma e-postası almazsınız. İleride bir plan seçerseniz, videolarınız hazır olduğunda yine e-posta alırsınız.",
+      confirmBody: "DentVideo'dan artık hatırlatma ve aylık özet almayacaksınız. Hesabınız, ödemeleriniz ve hazır videolarınızla ilgili e-postalar gelmeye devam eder.",
       confirmButton: "Abonelikten çık",
       title: "Abonelikten çıktınız",
-      body: "Size artık hatırlatma göndermeyeceğiz. İleride bir plan seçerseniz, videolarınız hazır olduğunda yine e-posta alırsınız.",
+      body: "Tamam. Artık hatırlatma ve özet göndermeyeceğiz. Hesabınız, ödemeleriniz ve hazır videolarınızla ilgili e-postalar gelmeye devam eder.",
       invalidTitle: "Bu bağlantı çalışmıyor",
       invalidBody: "{email} adresine yazın, aboneliğinizi elle sonlandıralım.",
       errorTitle: "Kaydedilemedi",
@@ -290,7 +184,7 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     hello: "Bonjour {clinic},",
     signoff: "L'équipe DentVideo",
     contact: "Une question ? Répondez simplement à cet e-mail.",
-    nudgeFooter: "Vous recevez cet e-mail car vous avez commencé à configurer DentVideo pour votre cabinet. Nous envoyons au plus deux rappels.",
+    nudgeFooter: "Vous recevez cet e-mail car vous avez commencé à configurer DentVideo pour votre cabinet. Nous envoyons au plus quatre courts e-mails, et nous arrêtons dès que vous choisissez une formule.",
     unsubscribeAsk: "Vous ne souhaitez plus de rappels ?",
     unsubscribe: "Se désabonner",
     welcome: {
@@ -306,34 +200,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Ouvrir ma bibliothèque",
       footer: "Vous recevez cet e-mail car votre cabinet est abonné à DentVideo.",
     },
-    preview: {
-      subject: "Votre aperçu vidéo à vos couleurs vous attend",
-      preheader: "Des vidéos patients avec votre logo et vos couleurs : votre aperçu est enregistré.",
-      problem: "Les patients posent les mêmes questions chaque semaine, et il reste rarement du temps pour filmer les réponses.",
-      outcome: "Votre aperçu montre ce que DentVideo réalise pour vous : de courtes vidéos d'information patient, sous-titrées, avec votre logo et vos couleurs, prêtes à publier.",
-      whyUs: "Chaque vidéo est vérifiée sur le plan clinique et au regard des règles de publicité en santé, et rien n'est publié sans votre accord.",
-      whyNow: "Votre aperçu est enregistré. Choisissez une formule et votre première semaine de vidéos est prête en 15 minutes environ.",
-      button: "Voir mon aperçu",
-    },
-    offer: {
-      subjectOpen: "Offre fondateurs : Practice à {price}/mois pendant {months} mois",
-      subjectClosed: "Votre aperçu DentVideo est toujours enregistré",
-      preheaderOpen: "Pour les {clinics} premiers cabinets, appliquée au paiement.",
-      preheaderClosed: "Formules dès {from}/mois. Mensuel, résiliable à tout moment.",
-      problem: "Rester visible demande de publier régulièrement, et c'est la première chose qui passe à la trappe quand la semaine est chargée.",
-      outcome: "Avec DentVideo, de nouvelles vidéos d'information patient arrivent chaque lundi, sur les soins que vous proposez, dans votre langue.",
-      whyUs: "Nous écrivons, mettons en voix, sous-titrons et vérifions chaque vidéo. Vous n'avez qu'à regarder et valider.",
-      whyNowOpen: "L'offre fondateurs donne aux {clinics} premiers cabinets la formule Practice à {price}/mois pendant {months} mois, puis {then}/mois. Elle s'applique automatiquement au paiement (code {code}). Mensuel, résiliable à tout moment.",
-      whyNowClosed: "Formules dès {from}/mois. Mensuel, résiliable à tout moment.",
-      last: "C'est le dernier rappel que nous vous envoyons.",
-      button: "Choisir une formule",
-    },
     unsubPage: {
       confirmTitle: "Se désabonner des rappels ?",
-      confirmBody: "Vous ne recevrez plus de rappels de DentVideo. Si vous choisissez une formule plus tard, nous vous écrirons toujours quand vos vidéos seront prêtes.",
+      confirmBody: "Vous ne recevrez plus de rappels ni de récapitulatifs mensuels de DentVideo. Les e-mails concernant votre compte, vos paiements et vos vidéos prêtes continueront d'arriver.",
       confirmButton: "Me désabonner",
       title: "Désabonnement confirmé",
-      body: "Nous ne vous enverrons plus de rappels. Si vous choisissez une formule plus tard, nous vous écrirons toujours quand vos vidéos seront prêtes.",
+      body: "C'est fait. Nous ne vous enverrons plus de rappels ni de récapitulatifs. Les e-mails concernant votre compte, vos paiements et vos vidéos prêtes continueront d'arriver.",
       invalidTitle: "Ce lien ne fonctionne pas",
       invalidBody: "Écrivez à {email} et nous vous désabonnerons manuellement.",
       errorTitle: "L'enregistrement a échoué",
@@ -345,7 +217,7 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     hello: "{clinic} ご担当者様",
     signoff: "DentVideo チーム",
     contact: "ご不明な点は、このメールにそのままご返信ください。",
-    nudgeFooter: "このメールは、医院のDentVideo設定を始められた方にお送りしています。リマインドは最大2回までです。",
+    nudgeFooter: "このメールは、医院のDentVideo設定を始められた方にお送りしています。お送りするのは最大4通までで、プランをお選びいただいた時点で停止します。",
     unsubscribeAsk: "リマインドが不要な場合は",
     unsubscribe: "配信停止",
     welcome: {
@@ -361,34 +233,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "ライブラリを開く",
       footer: "このメールは、DentVideoをご契約の医院にお送りしています。",
     },
-    preview: {
-      subject: "医院オリジナルの動画プレビューをご用意しています",
-      preheader: "ロゴと医院カラー入りの患者さん向け動画。プレビューは保存されています。",
-      problem: "患者さんからは毎週同じ質問が寄せられますが、その答えを動画にする時間はなかなか取れません。",
-      outcome: "プレビューでは、DentVideoが制作する動画をご覧いただけます。医院のロゴとカラーを使った字幕付きの短い説明動画で、そのまま投稿できます。",
-      whyUs: "すべての動画は臨床的な正確性と医療広告の観点からチェックし、承認されるまで何も公開されません。",
-      whyNow: "プレビューは保存されています。プランをお選びいただくと、初週の動画が15分ほどで完成します。",
-      button: "プレビューを見る",
-    },
-    offer: {
-      subjectOpen: "先行導入価格：Practiceプランが{months}か月間 月額{price}",
-      subjectClosed: "DentVideoのプレビューは保存されています",
-      preheaderOpen: "先着{clinics}院限定。お支払い時に自動で適用されます。",
-      preheaderClosed: "プランは月額{from}から。月単位で、いつでも解約できます。",
-      problem: "医院を知ってもらうには定期的な投稿が欠かせませんが、忙しい週にはまず後回しになりがちです。",
-      outcome: "DentVideoなら、貴院の診療内容に合わせた患者さん向けの説明動画が、毎週月曜日に貴院の言語で届きます。",
-      whyUs: "台本・ナレーション・字幕・チェックはすべて私たちが行います。先生はご覧になって承認するだけです。",
-      whyNowOpen: "先行導入価格では、先着{clinics}院がPracticeプランを{months}か月間 月額{price}でご利用いただけます（その後は月額{then}）。お支払い時に自動で適用されます（コード：{code}）。月単位の契約で、いつでも解約できます。",
-      whyNowClosed: "プランは月額{from}からご用意しています。月単位の契約で、いつでも解約できます。",
-      last: "ご案内はこれが最後です。",
-      button: "プランを選ぶ",
-    },
     unsubPage: {
       confirmTitle: "リマインドメールの配信を停止しますか？",
-      confirmBody: "DentVideoからのリマインドメールが届かなくなります。後日プランをお選びいただいた場合も、動画の完成をお知らせするメールは引き続きお届けします。",
+      confirmBody: "DentVideoからのリマインドと月間レポートが届かなくなります。アカウント、お支払い、動画の完成に関するメールは引き続きお送りします。",
       confirmButton: "配信を停止する",
       title: "配信を停止しました",
-      body: "今後、リマインドメールはお送りしません。後日プランをお選びいただいた場合も、動画の完成をお知らせするメールは引き続きお届けします。",
+      body: "配信を停止しました。今後、リマインドとレポートはお送りしません。アカウント、お支払い、動画の完成に関するメールは引き続きお送りします。",
       invalidTitle: "このリンクは無効です",
       invalidBody: "{email} までご連絡いただければ、手動で配信を停止いたします。",
       errorTitle: "保存できませんでした",
@@ -400,7 +250,7 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     hello: "مرحباً {clinic}،",
     signoff: "فريق DentVideo",
     contact: "لديكم سؤال؟ يكفي الرد على هذه الرسالة.",
-    nudgeFooter: "تصلكم هذه الرسالة لأنكم بدأتم إعداد DentVideo لعيادتكم. نرسل تذكيرين على الأكثر.",
+    nudgeFooter: "تصلكم هذه الرسالة لأنكم بدأتم إعداد DentVideo لعيادتكم. نرسل أربع رسائل قصيرة على الأكثر، ونتوقف فور اختياركم باقة.",
     unsubscribeAsk: "لا ترغبون في التذكيرات؟",
     unsubscribe: "إلغاء الاشتراك",
     welcome: {
@@ -416,34 +266,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "فتح مكتبتي",
       footer: "تصلكم هذه الرسالة لأن عيادتكم مشتركة في DentVideo.",
     },
-    preview: {
-      subject: "معاينة فيديوهات عيادتكم بهويتها بانتظاركم",
-      preheader: "فيديوهات للمرضى بشعاركم وألوانكم، والمعاينة محفوظة.",
-      problem: "يطرح المرضى الأسئلة نفسها كل أسبوع، ونادراً ما يتوفر الوقت لتصوير الإجابات.",
-      outcome: "تُظهر معاينتكم ما يُعدّه DentVideo لكم: فيديوهات توعوية قصيرة مع النص على الشاشة، بشعاركم وألوانكم، جاهزة للنشر.",
-      whyUs: "كل فيديو يُراجَع للدقة السريرية وضوابط الإعلان الصحي، ولا يُنشر شيء قبل اعتمادكم.",
-      whyNow: "معاينتكم محفوظة. اختاروا باقة، وسيكون أسبوعكم الأول من الفيديوهات جاهزاً خلال نحو 15 دقيقة.",
-      button: "عرض المعاينة",
-    },
-    offer: {
-      subjectOpen: "سعر المؤسسين: باقة Practice بسعر {price} شهرياً لمدة {months} شهراً",
-      subjectClosed: "معاينة DentVideo الخاصة بكم ما زالت محفوظة",
-      preheaderOpen: "لأول {clinics} عيادة، ويُطبَّق تلقائياً عند الدفع.",
-      preheaderClosed: "الباقات تبدأ من {from} شهرياً. اشتراك شهري يمكن إلغاؤه في أي وقت.",
-      problem: "الحضور الدائم يحتاج إلى نشر منتظم، وهو أول ما يتأخر في الأسابيع المزدحمة.",
-      outcome: "مع DentVideo تصلكم كل يوم اثنين فيديوهات توعوية جديدة عن الخدمات التي تقدّمونها، وبلغتكم.",
-      whyUs: "نكتب كل فيديو ونسجّل صوته ونضيف النص ونراجعه، وما عليكم إلا المشاهدة والاعتماد.",
-      whyNowOpen: "يمنح سعر المؤسسين أول {clinics} عيادة باقة Practice بسعر {price} شهرياً لمدة {months} شهراً، ثم {then} شهرياً. يُطبَّق تلقائياً عند الدفع (الرمز {code}). اشتراك شهري يمكن إلغاؤه في أي وقت.",
-      whyNowClosed: "الباقات تبدأ من {from} شهرياً. اشتراك شهري يمكن إلغاؤه في أي وقت.",
-      last: "هذا آخر تذكير نرسله إليكم.",
-      button: "اختيار باقة",
-    },
     unsubPage: {
       confirmTitle: "إلغاء الاشتراك في التذكيرات؟",
-      confirmBody: "لن تصلكم بعد ذلك رسائل التذكير من DentVideo. وإذا اخترتم باقة لاحقاً، فسنراسلكم عند جاهزية فيديوهاتكم.",
+      confirmBody: "لن تصلكم بعد الآن التذكيرات والملخصات الشهرية من DentVideo. أما الرسائل المتعلقة بحسابكم ومدفوعاتكم وجاهزية فيديوهاتكم فستستمر.",
       confirmButton: "إلغاء الاشتراك",
       title: "تم إلغاء اشتراككم",
-      body: "لن نرسل إليكم أي تذكيرات بعد الآن. وإذا اخترتم باقة لاحقاً، فسنراسلكم عند جاهزية فيديوهاتكم.",
+      body: "تم. لن نرسل إليكم أي تذكيرات أو ملخصات بعد الآن. أما الرسائل المتعلقة بحسابكم ومدفوعاتكم وجاهزية فيديوهاتكم فستستمر.",
       invalidTitle: "هذا الرابط لا يعمل",
       invalidBody: "راسلونا على {email} وسنلغي اشتراككم يدوياً.",
       errorTitle: "تعذّر الحفظ",
@@ -455,7 +283,7 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     hello: "Dzień dobry, zespole {clinic}!",
     signoff: "Zespół DentVideo",
     contact: "Pytania? Wystarczy odpowiedzieć na tę wiadomość.",
-    nudgeFooter: "Otrzymują Państwo tę wiadomość, ponieważ rozpoczęli Państwo konfigurację DentVideo dla gabinetu. Wysyłamy najwyżej dwa przypomnienia.",
+    nudgeFooter: "Otrzymują Państwo tę wiadomość, ponieważ rozpoczęli Państwo konfigurację DentVideo dla gabinetu. Wysyłamy najwyżej cztery krótkie wiadomości i przestajemy, gdy tylko wybiorą Państwo plan.",
     unsubscribeAsk: "Nie chcą Państwo przypomnień?",
     unsubscribe: "Wypisz się",
     welcome: {
@@ -471,34 +299,12 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
       button: "Otwórz bibliotekę",
       footer: "Otrzymują Państwo tę wiadomość, ponieważ gabinet subskrybuje DentVideo.",
     },
-    preview: {
-      subject: "Czeka na Państwa podgląd filmów w barwach gabinetu",
-      preheader: "Filmy dla pacjentów z Państwa logo i kolorami — podgląd jest zapisany.",
-      problem: "Pacjenci co tydzień zadają te same pytania, a na nagranie odpowiedzi rzadko starcza czasu.",
-      outcome: "Podgląd pokazuje, co DentVideo dla Państwa przygotuje: krótkie filmy edukacyjne z napisami, logo i kolorami gabinetu, gotowe do publikacji.",
-      whyUs: "Każdy film jest sprawdzany pod kątem poprawności klinicznej i zasad reklamy medycznej, a nic nie zostanie opublikowane bez Państwa akceptacji.",
-      whyNow: "Podgląd jest zapisany. Po wyborze planu pierwszy tydzień filmów będzie gotowy w około 15 minut.",
-      button: "Zobacz podgląd",
-    },
-    offer: {
-      subjectOpen: "Oferta założycielska: Practice za {price}/mies. przez {months} miesięcy",
-      subjectClosed: "Państwa podgląd DentVideo wciąż jest zapisany",
-      preheaderOpen: "Dla pierwszych {clinics} gabinetów, naliczana automatycznie przy płatności.",
-      preheaderClosed: "Plany od {from}/mies. Rozliczenie miesięczne, rezygnacja w dowolnym momencie.",
-      problem: "Widoczność wymaga regularnych publikacji, a w pracowitym tygodniu to one najszybciej schodzą na dalszy plan.",
-      outcome: "Z DentVideo w każdy poniedziałek czekają nowe filmy edukacyjne — o usługach gabinetu, w Państwa języku.",
-      whyUs: "Piszemy, nagrywamy lektora, dodajemy napisy i sprawdzamy każdy film. Państwo tylko oglądają i akceptują.",
-      whyNowOpen: "Oferta założycielska daje pierwszym {clinics} gabinetom plan Practice za {price}/mies. przez {months} miesięcy, potem {then}/mies. Jest naliczana automatycznie przy płatności (kod {code}). Rozliczenie miesięczne, rezygnacja w dowolnym momencie.",
-      whyNowClosed: "Plany od {from}/mies. Rozliczenie miesięczne, rezygnacja w dowolnym momencie.",
-      last: "To nasze ostatnie przypomnienie.",
-      button: "Wybierz plan",
-    },
     unsubPage: {
       confirmTitle: "Wypisać się z przypomnień?",
-      confirmBody: "Nie będą Państwo już otrzymywać przypomnień od DentVideo. Jeśli później wybiorą Państwo plan, nadal napiszemy, gdy filmy będą gotowe.",
+      confirmBody: "Nie będą Państwo otrzymywać przypomnień ani miesięcznych podsumowań od DentVideo. Wiadomości o koncie, płatnościach i gotowych filmach nadal będą przychodzić.",
       confirmButton: "Wypisz mnie",
       title: "Wypisanie potwierdzone",
-      body: "Nie będziemy już wysyłać przypomnień. Jeśli później wybiorą Państwo plan, nadal napiszemy, gdy filmy będą gotowe.",
+      body: "Gotowe. Nie wyślemy już przypomnień ani podsumowań. Wiadomości o koncie, płatnościach i gotowych filmach nadal będą przychodzić.",
       invalidTitle: "Ten link nie działa",
       invalidBody: "Prosimy napisać na {email} — wypiszemy Państwa ręcznie.",
       errorTitle: "Nie udało się zapisać",
@@ -507,6 +313,10 @@ export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = {
     },
   },
 };
+
+export const LIFECYCLE_COPY: Record<string, LifecycleCopy> = Object.fromEntries(
+  Object.entries(BASE_COPY).map(([lang, base]) => [lang, { ...base, ...SEQUENCE_COPY[lang] }]),
+);
 
 export const LIFECYCLE_LANGUAGES = Object.keys(LIFECYCLE_COPY);
 
