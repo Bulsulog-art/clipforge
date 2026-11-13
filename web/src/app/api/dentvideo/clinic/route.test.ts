@@ -8,6 +8,9 @@ let row: Record<string, unknown> | null;
 /** Simulates the 0004 trigger (before 0008): a versioned logo name is quietly refused. */
 let oldTrigger = false;
 let objects: Map<string, number>;
+/** Stored bytes, when a test cares; anything else reads as a PNG. */
+let contents: Map<string, Uint8Array>;
+const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 73, 72, 68, 82]);
 const removed: string[] = [];
 const adminUpdates: Record<string, unknown>[] = [];
 
@@ -57,6 +60,10 @@ vi.mock("@/lib/dentvid/supabase", () => ({
           const p = `${prefix}/${opts.search}`;
           return { data: objects.has(p) ? [{ name: opts.search, id: "x", metadata: { size: objects.get(p) } }] : [], error: null };
         },
+        download: async (p: string) => {
+          if (!objects.has(p)) return { data: null, error: { message: "Object not found" } };
+          return { data: new Blob([new Uint8Array(contents.get(p) ?? PNG)]), error: null };
+        },
         remove: async (paths: string[]) => {
           removed.push(...paths);
           for (const p of paths) objects.delete(p);
@@ -82,6 +89,7 @@ beforeEach(() => {
     [`${OWNER}/logo.png`, 1000],
     [`${OWNER}/logo-1731081600000.png`, 2000],
   ]);
+  contents = new Map();
   removed.length = 0;
   adminUpdates.length = 0;
 });
@@ -114,5 +122,24 @@ describe("POST /api/dentvideo/clinic — replacing the logo", () => {
     expect((await save({ logoPath: `${OWNER}/logo-1731081600001.png` })).body).toMatchObject({ code: "size" });
     expect(removed).toEqual([`${OWNER}/logo-1731081600001.png`]);
     expect(row!.logo_path).toBe(`${OWNER}/logo.png`);
+  });
+
+  it("refuses (and deletes) a file named like a logo that is not an image, keeping the old logo", async () => {
+    const key = `${OWNER}/logo-1731081600002.png`;
+    objects.set(key, 900);
+    contents.set(key, new TextEncoder().encode("<!DOCTYPE html><html>not a logo</html>"));
+    const r = await save({ logoPath: key });
+    expect(r.status).toBe(400);
+    expect(r.body).toMatchObject({ code: "type", error: APP_TEXT.en.errors.invalidLogo });
+    expect(removed).toEqual([key]);
+    expect(row!.logo_path).toBe(`${OWNER}/logo.png`);
+  });
+
+  it("accepts a JPEG or WebP by its bytes, whatever its extension", async () => {
+    const key = `${OWNER}/logo-1731081600003.png`;
+    objects.set(key, 900);
+    contents.set(key, new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 16, 74, 70, 73, 70, 0, 1]));
+    expect((await save({ logoPath: key })).status).toBe(200);
+    expect(row!.logo_path).toBe(key);
   });
 });

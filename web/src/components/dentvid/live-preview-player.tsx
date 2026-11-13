@@ -11,6 +11,7 @@ import { libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, ty
 import { fmt, type AppText } from "@/content/dentvideo-app";
 import { PhoneFrame } from "./phone";
 import { trackDv } from "@/lib/dentvid/events-client";
+import { prefetchMedia } from "@/lib/dentvid/media-prefetch";
 import type { PreviewProfile } from "./live-preview";
 
 /**
@@ -72,9 +73,14 @@ function loadPlan(lang: string, id: string): Promise<ScenePlan> {
   return p;
 }
 
-/** Warms the HTTP cache for the next video's narration so the swipe starts at once. */
+/**
+ * Warms the HTTP cache for the next video's narration so the swipe starts at
+ * once — through an audio element, not fetch(): a fetch() got a compressed
+ * copy from the proxy that the player's range requests then failed to decode
+ * (lib/dentvid/media-prefetch.ts).
+ */
 function prefetchAudio(lang: string, id: string) {
-  void fetch(`${BASE}/${lang}/${id}.mp3`).catch(() => {});
+  prefetchMedia(`${BASE}/${lang}/${id}.mp3`);
 }
 
 function useDebounced<T>(value: T, ms: number): T {

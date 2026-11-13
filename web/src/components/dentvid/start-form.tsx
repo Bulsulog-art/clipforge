@@ -164,7 +164,8 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
         <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
         <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
 
-        <form onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+        {/* method/action only matter when this page's JS never ran (chunks gone after a deploy): reload, never a GET with the fields in the URL. */}
+        <form onSubmit={submit} method="post" action="/api/dentvideo/reload" className="dv-card mt-9 space-y-5 p-6 sm:p-8">
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
             <input
