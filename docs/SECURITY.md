@@ -228,6 +228,7 @@ One helper, `ops-alert.ts`, byte-identical in `worker/src/dentvid/` and `web/src
 | Sign-up failing for clinics | web `signup` route | at once, once a day per step (`create_account`, `server_sign_in`, `verification_code`) · `signup_broken:<step>` |
 | A job could not be queued | web: payment webhook (first week), week button, recording upload, restyle | at once · `enqueue_failed:<where>[:<clinic>]` |
 | Welcome email not sent to a new customer | web `billing-webhook.ts` | at once · `welcome_not_sent:<clinic>` |
+| Hot lead (good news): a demo link was first opened / its preview first played / its CTA first clicked / a clinic signed up from it | web `demo/view`, `event`, `clinic` routes via `hot-leads-server.ts` | once per demo and step **ever** (gate `dv:hotlead:<token>:<step>`, 70 days) · never for bots/link-preview fetchers (`hot-leads.ts` `isBotUserAgent`) or a signed-in admin · at most `DENTVID_HOT_LEAD_MAX_PER_DAY` (20) a day and `DENTVID_HOT_LEAD_MAX_PER_HOUR` (4) an hour; sign-ups always alert · `hot_lead:<token>:<step>` |
 
 **Daily digest** — 08:30 Europe/Istanbul (worker scheduler `dentvid-digest` → `POST /api/internal/dentvideo/digest`), only if anything happened in the last 24 h, once per day: sign-ups, new paying clinics, MRR and its 24 h delta (snapshot `dv:ops:mrr`), paying clinics, lost/at-risk clinics, weeks delivered/failed, emails sent/failed, alerts raised.
 

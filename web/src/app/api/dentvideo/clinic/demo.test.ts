@@ -14,6 +14,13 @@ let row: Record<string, unknown> | null;
 let demo: Record<string, unknown> | null;
 const copies: [string, string][] = [];
 const events: [string, Record<string, unknown>][] = [];
+const hot: Record<string, unknown>[] = [];
+vi.mock("@/lib/dentvid/hot-leads-server", () => ({
+  raiseHotLead: async (input: Record<string, unknown>) => {
+    hot.push(input);
+    return "sent";
+  },
+}));
 
 vi.mock("@/lib/dentvid/auth", () => ({
   dvSession: async () => ({
@@ -72,6 +79,8 @@ beforeEach(() => {
   demo = { token: TOKEN, logo_path: `demos/${TOKEN}.png`, disabled: false, expires_at: new Date(Date.now() + 86_400_000).toISOString() };
   copies.length = 0;
   events.length = 0;
+  hot.length = 0;
+  delete process.env.DENTVIDEO_ADMIN_USER_IDS;
 });
 
 describe("clinic save from a demo link", () => {
@@ -81,6 +90,16 @@ describe("clinic save from a demo link", () => {
     expect(row!.logo_path).toBe(`${OWNER}/logo-1762862400000.png`);
     expect(events[0][0]).toBe("clinic_saved");
     expect(events[0][1].props).toMatchObject({ ...attribution, demo: TOKEN, country: "TR", language: "tr" });
+    // The owner hears about the sign-up from the demo (once per demo: the gate is in raiseHotLead).
+    expect(hot).toEqual([{ token: TOKEN, step: "signup", demo: expect.objectContaining({ token: TOKEN }), clinicId: "c1" }]);
+  });
+
+  it("no hot-lead alert without a demo, or when the owner signs up to test his own demo", async () => {
+    expect(await save({})).toBe(200);
+    expect(hot).toEqual([]);
+    process.env.DENTVIDEO_ADMIN_USER_IDS = OWNER;
+    expect(await save({ demoToken: TOKEN })).toBe(200);
+    expect(hot).toEqual([]);
   });
 
   it("keeps a logo the clinic chose or already has", async () => {
@@ -101,6 +120,7 @@ describe("clinic save from a demo link", () => {
     expect(await save({ demoToken: "Zx7Cv3Bn6Mq" })).toBe(200);
     expect(copies).toEqual([]);
     expect(events[0][1].props).not.toHaveProperty("demo");
+    expect(hot).toEqual([]);
     expect(await save({ demoToken: "../../etc" })).toBe(400);
   });
 });

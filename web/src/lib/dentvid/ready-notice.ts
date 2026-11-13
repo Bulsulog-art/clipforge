@@ -5,7 +5,11 @@ import { approveUrl } from "./approve-link";
 import { EMAIL_IMAGE_TTL_S, isTestEmail, lifecycleConfig } from "./lifecycle";
 import { BUCKET } from "./supabase";
 import { unsubscribeSecret } from "./unsubscribe-token";
-import type { Thumb } from "./email-layout";
+import type { Thumb, VideoRow } from "./email-layout";
+import { postLinkUrl } from "./post-link";
+import { leadSentence, postTexts, slotLabel, weekSchedule } from "./posting";
+import { asLocale } from "./locale";
+import { postingText } from "@/content/dentvideo-posting";
 
 /**
  * "Your videos are ready" to a clinic's owner, in the clinic's language. Used
@@ -16,12 +20,39 @@ import type { Thumb } from "./email-layout";
  * For a week: up to four posters of the week's videos (generated videos only;
  * a recording can show people, so it never gets thumbnails) and a signed
  * one-tap approve link (approve-link.ts) for the videos that are ready.
+ * Each of the week's videos is listed with its poster, the start of its
+ * ready-to-post caption, its suggested posting day and its own link: "Approve
+ * & share" (post-link.ts, the same signed token scoped to one video) for a
+ * ready one, "Check it in the app" for one flagged for a look.
  * The clinic's logo and colour brand the email. Test accounts (e2e-…) get
  * nothing.
  */
 export type ReadyNoticeResult = { sent: boolean; reason?: "no clinic" | "no email" | "test account" | "nothing ready" | "send failed" };
 
-type ItemRow = { id: string; title: string | null; week_of: string; thumb_path: string | null; status: string };
+type ItemRow = { id: string; title: string | null; week_of: string; thumb_path: string | null; status: string; approval?: string; copy?: unknown; kind?: string };
+
+/** The rows of the email's video list, oldest first (the posting order), from the week's items. */
+export function videoRows(
+  items: ItemRow[],
+  args: { week: string; language: string; base: string; clinicId: string; secret: string | null; thumbUrl: (path: string) => string | undefined; now?: Date },
+): VideoRow[] {
+  const locale = asLocale(args.language) ?? "en";
+  const p = postingText(locale);
+  const schedule = weekSchedule(items.map((i) => ({ ...i, approval: i.approval ?? "pending" })), args.week, locale);
+  return items.slice(0, 6).map((i) => {
+    const caption = postTexts(i.copy as never)?.instagram.split(/\n\s*\n/)[0];
+    const slot = schedule.get(i.id);
+    const shareable = i.status === "ready" && i.approval !== "rejected" && !!args.secret;
+    return {
+      title: (i.title ?? "").slice(0, 80),
+      thumbUrl: i.thumb_path ? args.thumbUrl(i.thumb_path) : undefined,
+      caption: caption ? leadSentence(caption, 140) : undefined,
+      slot: slot ? p.email.postOn.replace("{slot}", slotLabel(slot, locale)) : undefined,
+      href: shareable ? postLinkUrl(args.base, args.clinicId, args.week, i.id, args.secret!, args.now) : `${args.base}/app`,
+      action: !shareable ? p.email.lookInApp : i.approval === "approved" ? p.email.share : p.email.approveShare,
+    };
+  });
+}
 
 /** The newest week with finished generated videos: its date, and its items. */
 export function latestWeek(rows: ItemRow[]): { week: string | null; items: ItemRow[] } {
@@ -60,6 +91,7 @@ export async function sendReadyNotice(
 
   let thumbs: Thumb[] = [];
   let approve: string | null = null;
+  let videos: VideoRow[] = [];
   let logoUrl: string | null = null;
   try {
     const paths: string[] = [];
@@ -68,13 +100,14 @@ export async function sendReadyNotice(
     if (kind === "week") {
       const { data } = await db
         .from("dentvid_items")
-        .select("id, title, week_of, thumb_path, status")
+        .select("id, title, week_of, thumb_path, status, approval, copy, created_at")
         .eq("clinic_id", clinicId)
         .eq("kind", "generated")
         .order("week_of", { ascending: false })
+        .order("created_at", { ascending: true })
         .limit(24);
       ({ week, items } = latestWeek((data ?? []) as ItemRow[]));
-      for (const i of items.slice(0, 4)) if (i.thumb_path) paths.push(i.thumb_path);
+      for (const i of items.slice(0, 6)) if (i.thumb_path) paths.push(i.thumb_path);
     }
     if (typeof clinic.logo_path === "string") paths.push(clinic.logo_path);
     const urls = new Map<string, string>();
@@ -89,6 +122,7 @@ export async function sendReadyNotice(
     logoUrl = typeof clinic.logo_path === "string" ? (urls.get(clinic.logo_path) ?? null) : null;
     const secret = unsubscribeSecret();
     if (week && secret && counts.ready > 0) approve = approveUrl(new URL(base).origin, clinicId, week, secret, opts.now);
+    if (week) videos = videoRows(items, { week, language: profile.language ?? "en", base, clinicId, secret, thumbUrl: (path) => urls.get(path), now: opts.now });
   } catch (e) {
     // Images and the approve link are extras: the email goes without them.
     console.warn("[dentvideo] ready email extras unavailable", (e as Error).message);
@@ -102,6 +136,7 @@ export async function sendReadyNotice(
     appUrl: `${base}/app`,
     thumbs,
     approveUrl: approve,
+    videos,
     brand: { logoUrl, color: profile.brandColor ?? null },
   });
   if (!msg) return { sent: false, reason: "nothing ready" };

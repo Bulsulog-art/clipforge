@@ -18,9 +18,21 @@ vi.mock("@/lib/rate-limit-server", () => ({
     return { ok: limitOk, remaining: 0, retryAfterSec: 1 };
   },
 }));
+const ADMIN = "7d3f1c2a-9b8e-4f6d-a1c2-3e4f5a6b7c8d";
+const DEMO = "Ab3dE5fG7hJ";
+const SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1";
+let sessionId = "u1";
+const hot: Record<string, unknown>[] = [];
+vi.mock("@/lib/dentvid/hot-leads-server", async (orig) => ({
+  ...(await orig<typeof import("@/lib/dentvid/hot-leads-server")>()),
+  raiseHotLead: async (input: Record<string, unknown>) => {
+    hot.push(input);
+    return "sent";
+  },
+}));
 vi.mock("@/lib/dentvid/auth", () => ({
   dvSession: async () => ({
-    user: { id: "u1", email: "dr@clinic.example" },
+    user: { id: sessionId, email: "dr@clinic.example" },
     db: {
       from: () => {
         const q = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: { id: CLINIC }, error: null }) };
@@ -30,16 +42,47 @@ vi.mock("@/lib/dentvid/auth", () => ({
   }),
 }));
 
-const post = async (body: string) => {
+const post = async (body: string, ua = SAFARI) => {
   const { POST } = await import("./route");
-  return POST(new Request("https://dentvideo.com/api/dentvideo/event", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9" }, body }));
+  return POST(new Request("https://dentvideo.com/api/dentvideo/event", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9", "user-agent": ua }, body }));
 };
 
 describe("POST /api/dentvideo/event", () => {
   beforeEach(() => {
     inserted.length = 0;
     checked.length = 0;
+    hot.length = 0;
     limitOk = true;
+    sessionId = "u1";
+    process.env.DENTVIDEO_ADMIN_USER_IDS = ADMIN;
+  });
+
+  it("a demo page's play and CTA clicks are stored and raise a hot-lead alert (each step)", async () => {
+    await post(JSON.stringify({ name: "demo_preview_played", locale: "tr", props: { demo: DEMO } }));
+    await post(JSON.stringify({ name: "demo_cta_clicked", locale: "tr", props: { demo: DEMO, where: "start" } }));
+    await post(JSON.stringify({ name: "demo_cta_clicked", locale: "tr", props: { demo: DEMO, where: "question" } }));
+    expect(inserted).toHaveLength(3);
+    expect(hot).toEqual([
+      { token: DEMO, step: "played" },
+      { token: DEMO, step: "cta_start" },
+      { token: DEMO, step: "cta_question" },
+    ]);
+    // Other events never raise one.
+    await post(JSON.stringify({ name: "landing_view", props: { utm_content: DEMO } }));
+    expect(hot).toHaveLength(3);
+  });
+
+  it("demo events from bots or the signed-in owner are not stored and alert nobody; without a demo token they are dropped", async () => {
+    await post(JSON.stringify({ name: "demo_preview_played", props: { demo: DEMO } }), "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)");
+    await post(JSON.stringify({ name: "demo_cta_clicked", props: { demo: DEMO, where: "start" } }), "python-requests/2.32.3");
+    await post(JSON.stringify({ name: "demo_cta_clicked", props: { where: "start" } }));
+    sessionId = ADMIN;
+    await post(JSON.stringify({ name: "demo_preview_played", props: { demo: DEMO } }));
+    expect(inserted).toEqual([]);
+    expect(hot).toEqual([]);
+    // Ordinary events still count from anyone (a bot's landing_view is the dashboard's business).
+    await post(JSON.stringify({ name: "landing_view" }), "curl/8.5.0");
+    expect(inserted).toHaveLength(1);
   });
 
   it("stores an allowed browser event, sanitised, without IP", async () => {

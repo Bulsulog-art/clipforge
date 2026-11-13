@@ -3,6 +3,8 @@ import { DV_CLINIC_CLIENT_EVENTS, DV_EVENT_MAX_BYTES, geoCountry, parseClientEve
 import { insertEventRow, readCapped } from "@/lib/dentvid/events-server";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { limitChecks } from "@/lib/rate-limit-server";
+import { hotStepForEvent } from "@/lib/dentvid/hot-leads";
+import { demoRequestSkip, raiseHotLead } from "@/lib/dentvid/hot-leads-server";
 
 /**
  * POST /api/dentvideo/event — first-party funnel events from the browser
@@ -52,6 +54,13 @@ export async function POST(req: Request) {
   ]);
   if (!second.ok) return NO_CONTENT();
 
+  // A demo page's play / CTA click: not from a bot or the owner testing his own demo
+  // (they would skew /admin/demos), and the first one raises a hot-lead alert.
+  const step = hotStepForEvent(row.name, row.props);
+  const demoToken = typeof row.props.demo === "string" ? row.props.demo : null;
+  if (step && (!demoToken || (await demoRequestSkip(req)))) return NO_CONTENT();
+
   await insertEventRow(row);
+  if (step && demoToken) void raiseHotLead({ token: demoToken, step });
   return NO_CONTENT();
 }

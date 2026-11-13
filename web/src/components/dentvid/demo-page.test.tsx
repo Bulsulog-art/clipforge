@@ -89,11 +89,11 @@ describe("the admin demo page", () => {
     const { default: Page } = await import("@/app/dentvideo/admin/demos/page");
     for (const u of [null, { id: "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e" }]) {
       sessionUser = u;
-      await expect(Page()).rejects.toThrow("NEXT_NOT_FOUND");
+      await expect(Page({})).rejects.toThrow("NEXT_NOT_FOUND");
     }
     // An admin without the table (or backend) sees the "apply 0009" notice, not an error.
     sessionUser = { id: "7d3f1c2a-9b8e-4f6d-a1c2-3e4f5a6b7c8d" };
-    const h = renderToStaticMarkup(await Page());
+    const h = renderToStaticMarkup(await Page({}));
     expect(h).toContain('data-testid="demos-missing"');
     expect(h).toContain("0009_dentvid_demos.sql");
   });

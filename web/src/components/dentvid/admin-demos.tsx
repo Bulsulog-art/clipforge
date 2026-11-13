@@ -3,16 +3,28 @@ import { ArrowLeft } from "lucide-react";
 import { LANGUAGE_NAME, LOCALES } from "@/content/dentvideo";
 import { demoMessages } from "@/content/dentvideo-demo";
 import { DEMO_DEFAULT_CAMPAIGN, DEMO_PALETTE, demoLanguage, isDemoActive, type DemoRow, type DemoStats } from "@/lib/dentvid/demos";
+import { isHotDemo, type DemoSort } from "@/lib/dentvid/hot-leads";
 import { CopyButton, DemoForm, DisableButton } from "./admin-demo-form";
 
 /**
  * The owner's demo links (/admin/demos): create one, copy its link and the
  * two messages, and see per demo what happened — views, previews played,
- * CTA clicks, sign-ups and paid clinics. Server rendered; the form and the
+ * CTA clicks, sign-ups and paid clinics, and which are Hot (activity in the
+ * last 48 hours; listed first unless sorted by newest). Server rendered; the form and the
  * buttons are the only client parts. Used by the real page and the dev harness.
  */
 
-export type AdminDemoRow = DemoRow & { url: string; stats: DemoStats };
+export type AdminDemoRow = DemoRow & { url: string; stats: DemoStats; lastActivityAt?: string | null };
+
+/** "12 min ago", "5 h ago", "3 d ago" — the owner reads it at a glance. */
+export function ago(iso: string, now: Date): string {
+  const min = Math.max(0, Math.round((now.getTime() - Date.parse(iso)) / 60_000));
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const h = Math.round(min / 60);
+  if (h < 48) return `${h} h ago`;
+  return `${Math.round(h / 24)} d ago`;
+}
 
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 
@@ -23,6 +35,8 @@ export function AdminDemos({
   backHref,
   warning,
   purged = 0,
+  sort = "hot",
+  sortHrefs,
 }: {
   available: boolean;
   demos: AdminDemoRow[];
@@ -30,12 +44,15 @@ export function AdminDemos({
   backHref: string;
   warning?: string;
   purged?: number;
+  sort?: DemoSort;
+  sortHrefs?: Record<DemoSort, string>;
 }) {
   const at = new Date(now);
   const totals = demos.reduce(
     (t, d) => ({ views: t.views + d.stats.views, played: t.played + d.stats.played, signups: t.signups + d.stats.signups, paid: t.paid + d.stats.paid }),
     { views: 0, played: 0, signups: 0, paid: 0 },
   );
+  const hotCount = demos.filter((d) => isHotDemo(d.lastActivityAt, at)).length;
   return (
     <main lang="en" className="relative isolate overflow-hidden" data-testid="admin-demos">
       <div aria-hidden="true" className="dv-grid absolute inset-x-0 top-0 -z-10 h-[28rem]" />
@@ -80,7 +97,22 @@ export function AdminDemos({
                 <h2 id="demo-list" className="dv-display text-[1.75rem] leading-tight text-dv-ink sm:text-[2rem]">
                   Sent demos
                 </h2>
+                {sortHrefs && (
+                  <nav aria-label="Sort demos" className="flex items-center gap-1 text-sm" data-testid="demo-sort">
+                    {(["hot", "new"] as const).map((s) => (
+                      <Link
+                        key={s}
+                        href={sortHrefs[s]}
+                        aria-current={sort === s ? "page" : undefined}
+                        className={`inline-flex min-h-9 items-center rounded-full px-3 ${sort === s ? "bg-dv-ink font-semibold text-white" : "text-dv-teal hover:underline"}`}
+                      >
+                        {s === "hot" ? "Hot first" : "Newest first"}
+                      </Link>
+                    ))}
+                  </nav>
+                )}
                 <p className="text-sm text-dv-muted">
+                  {hotCount ? `${hotCount} hot · ` : ""}
                   {demos.length} demos · {totals.views} views · {totals.played} played · {totals.signups} sign-ups · {totals.paid} paid
                   {purged ? ` · ${purged} expired removed` : ""}
                 </p>
@@ -89,12 +121,13 @@ export function AdminDemos({
                 <p className="dv-card mt-4 p-6 text-sm text-dv-body">No demos yet. Create the first one above.</p>
               ) : (
                 <div className="dv-card mt-4 overflow-x-auto">
-                  <table className="w-full min-w-[56rem] text-left text-sm">
+                  <table className="w-full min-w-[62rem] text-left text-sm">
                     <thead className="text-xs uppercase tracking-[0.06em] text-dv-muted">
                       <tr className="border-b border-dv-line">
                         <th className="px-4 py-3 font-semibold">Clinic</th>
                         <th className="px-3 py-3 font-semibold">Lang · campaign</th>
                         <th className="px-3 py-3 font-semibold">Created · expires</th>
+                        <th className="px-3 py-3 font-semibold">Last activity</th>
                         <th className="px-3 py-3 text-right font-semibold">Views</th>
                         <th className="px-3 py-3 text-right font-semibold">Played</th>
                         <th className="px-3 py-3 text-right font-semibold">CTA</th>
@@ -106,13 +139,19 @@ export function AdminDemos({
                     <tbody>
                       {demos.map((d) => {
                         const live = isDemoActive(d, at);
+                        const hot = isHotDemo(d.lastActivityAt, at);
                         const msgs = demoMessages(demoLanguage(d.language), d.clinic_name, d.url);
                         return (
-                          <tr key={d.token} className="border-b border-dv-line align-top last:border-0" data-token={d.token}>
+                          <tr key={d.token} className={`border-b border-dv-line align-top last:border-0 ${hot ? "bg-[#fff6ec]" : ""}`} data-token={d.token} data-hot={hot ? "1" : undefined}>
                             <td className="px-4 py-3">
                               <span className="flex items-center gap-2 font-semibold text-dv-ink">
                                 <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-full" style={{ background: d.colour ?? "#0f5c5c" }} />
                                 {d.clinic_name}
+                                {hot && (
+                                  <span className="rounded-full bg-[#c2410c] px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white" data-testid="hot-badge">
+                                    Hot
+                                  </span>
+                                )}
                               </span>
                               <span className="block text-xs text-dv-muted">
                                 {[d.city, d.country].filter(Boolean).join(", ") || "—"}
@@ -128,6 +167,15 @@ export function AdminDemos({
                               <span className={`mt-1 block text-xs font-semibold ${live ? "text-dv-teal" : "text-[#8a1f1f]"}`}>
                                 {d.disabled ? "Off" : live ? "Live" : "Expired"}
                               </span>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap text-dv-body" data-testid="last-activity">
+                              {d.lastActivityAt ? (
+                                <time dateTime={d.lastActivityAt} title={d.lastActivityAt} className={hot ? "font-semibold text-[#c2410c]" : ""}>
+                                  {ago(d.lastActivityAt, at)}
+                                </time>
+                              ) : (
+                                "—"
+                              )}
                             </td>
                             <td className="px-3 py-3 text-right tabular-nums">
                               {d.stats.views}
@@ -153,7 +201,8 @@ export function AdminDemos({
                 </div>
               )}
               <p className="mt-3 text-xs text-dv-muted">
-                Views: counted once per visitor and hour, from the page itself (link-preview bots do not count). Sign-ups: clinics saved from this demo (its token rides
+                Views: counted once per visitor and hour, from the page itself — link-preview bots, crawlers, scripts and your own visits while signed in do
+                not count. Hot: a view, play, CTA click or sign-up in the last 48 hours (you also get an email the first time each happens). Sign-ups: clinics saved from this demo (its token rides
                 along as utm_content and as the demo cookie). Paid: those clinics that ever paid.
               </p>
             </section>

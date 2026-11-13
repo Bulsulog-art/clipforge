@@ -37,20 +37,33 @@ export function DemoView({ token, campaign, locale }: { token: string; campaign:
     try {
       captureAttribution({ utm_source: "demo", utm_medium: "dm", utm_campaign: campaign, utm_content: token });
       rememberDemo(token);
+      // Automated browsers (headless scanners, test tools) are not a clinic looking.
+      if (navigator.webdriver) return;
       const key = `dv-demo-view:${token}`;
-      try {
-        if (sessionStorage.getItem(key)) return;
-        sessionStorage.setItem(key, "1");
-      } catch {
-        // storage blocked: count it anyway (the server limits repeats)
-      }
-      void fetch("/api/dentvideo/demo/view", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token, locale }),
-        keepalive: true,
-        credentials: "same-origin",
-      }).catch(() => {});
+      const send = () => {
+        try {
+          if (sessionStorage.getItem(key)) return;
+          sessionStorage.setItem(key, "1");
+        } catch {
+          // storage blocked: count it anyway (the server limits repeats)
+        }
+        void fetch("/api/dentvideo/demo/view", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ token, locale }),
+          keepalive: true,
+          credentials: "same-origin",
+        }).catch(() => {});
+      };
+      // A prerendered or background tab is not a view until someone looks at it.
+      if (document.visibilityState === "visible") return send();
+      const onVisible = () => {
+        if (document.visibilityState !== "visible") return;
+        document.removeEventListener("visibilitychange", onVisible);
+        send();
+      };
+      document.addEventListener("visibilitychange", onVisible);
+      return () => document.removeEventListener("visibilitychange", onVisible);
     } catch {
       // never break the page
     }

@@ -38,6 +38,13 @@ export type Brand = {
 
 export type Thumb = { url: string; title: string; href: string };
 
+/**
+ * One video in the "your week is ready" email: its poster, title, the start
+ * of its ready-to-post caption, when to post it, and one link — "Approve &
+ * share" (the signed one-video page), "Save & share", or "Check it in the app".
+ */
+export type VideoRow = { title: string; thumbUrl?: string | null; caption?: string; slot?: string; href: string; action: string };
+
 export type Block =
   | { kind: "p"; text: string; muted?: boolean }
   | { kind: "list"; items: string[] }
@@ -46,7 +53,8 @@ export type Block =
   | { kind: "qa"; items: { q: string; a: string }[] }
   | { kind: "code"; code: string }
   | { kind: "stats"; items: { value: string; label: string }[] }
-  | { kind: "thumbs"; items: Thumb[] };
+  | { kind: "thumbs"; items: Thumb[] }
+  | { kind: "videos"; heading?: string; items: VideoRow[] };
 
 export type EmailSpec = {
   lang: string;
@@ -241,6 +249,30 @@ function blockHtml(b: Block, ctx: { accent: string; rtl: boolean; align: string 
           .join("") +
         `</tr></table>`
       );
+    case "videos":
+      return (
+        (b.heading ? `<p class="dv-ink" style="margin:4px 0 10px;font-size:16px;line-height:24px;font-weight:700;color:${COLORS.ink}">${esc(b.heading)}</p>` : "") +
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px">` +
+        b.items
+          .map((v) => {
+            const img = v.thumbUrl && /^https:\/\//.test(v.thumbUrl)
+              ? `<a href="${esc(v.href)}" style="text-decoration:none"><img src="${esc(v.thumbUrl)}" alt="" width="72" style="display:block;width:72px;height:128px;border-radius:8px;border:0;object-fit:cover;background:${COLORS.panel}"></a>`
+              : `<div class="dv-panel" style="width:72px;height:128px;border-radius:8px;background:${COLORS.panel}"></div>`;
+            const pad = rtl ? "padding:0 14px 0 0" : "padding:0 0 0 14px";
+            return (
+              `<tr><td style="padding:0 0 14px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
+              `<td width="72" valign="top">${img}</td>` +
+              `<td valign="top" style="${pad};text-align:${align}">` +
+              `<p class="dv-ink" style="margin:0 0 4px;font-size:15px;line-height:21px;font-weight:700;color:${COLORS.ink}">${esc(v.title)}</p>` +
+              (v.slot ? `<p class="dv-muted" style="margin:0 0 4px;font-size:13px;line-height:18px;color:${COLORS.muted}">${esc(v.slot)}</p>` : "") +
+              (v.caption ? `<p class="dv-body" dir="auto" style="margin:0 0 8px;font-size:13px;line-height:19px;color:${COLORS.body}">${esc(v.caption)}</p>` : "") +
+              `<a href="${esc(v.href)}" class="dv-link" style="display:inline-block;padding:8px 14px;border-radius:8px;background:${accent};color:#ffffff;font-size:14px;line-height:18px;font-weight:600;text-decoration:none">${esc(v.action)}</a>` +
+              `</td></tr></table></td></tr>`
+            );
+          })
+          .join("") +
+        `</table>`
+      );
     case "thumbs":
       return (
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px"><tr><td style="font-size:0;line-height:0;text-align:${align}">` +
@@ -273,6 +305,8 @@ function blockText(b: Block): string {
       return b.items.map((s) => `${s.value} — ${s.label}`).join("\n");
     case "thumbs":
       return b.items.map((t) => `• ${t.title}`).join("\n");
+    case "videos":
+      return [b.heading ?? "", ...b.items.map((v) => [`• ${v.title}${v.slot ? ` (${v.slot})` : ""}`, v.caption ? `  ${v.caption}` : "", `  ${v.action}: ${v.href}`].filter(Boolean).join("\n"))].filter(Boolean).join("\n\n");
   }
 }
 

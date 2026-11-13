@@ -16,6 +16,7 @@ import { prepareNarration } from "../dental/narration-audio.js";
 import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { afterRerender, rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
+import { withPostKit } from "./post-kit.js";
 import { notifyReady, sendReadyAtCivilHour } from "./notify.js";
 import { shouldRun, validWeek, weekOf } from "./schedule.js";
 import { clinicTimeZone } from "./timezone.js";
@@ -383,7 +384,8 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
       for (const pkg of pkgs) {
         if (pkg.status === "ready" && pkg.videoPath) {
           const stored = await storeWithRetry(db, ownerId, pkg.videoPath);
-          if (stored) rows.push(rowFromPackage(pkg, ids, stored));
+          // The ready-to-paste Instagram / Shorts texts (post-kit.ts: deterministic, no model call).
+          if (stored) rows.push(withPostKit(rowFromPackage(pkg, ids, stored), profile));
           // A video we could not store is not shown as a card that never loads.
           else rows.push(rowFromPackage({ status: "rejected", topic: pkg.topic, stage: "copy", reasons: [], error: "could not store the video file" }, ids));
         } else {
@@ -511,7 +513,7 @@ export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: stri
       const stored = clip.videoPath
         ? await storeVideo(db, ownerId, clip.videoPath, clip.thumbPath).catch(() => undefined)
         : undefined;
-      rows.push(rowFromClip(clip, { clinicId: job.clinicId, ownerId, sourcePath: job.sourcePath }, stored));
+      rows.push(withPostKit(rowFromClip(clip, { clinicId: job.clinicId, ownerId, sourcePath: job.sourcePath }, stored), profile));
     }
     await insert(db, rows);
     await notifyReady(job.clinicId, "recording", {

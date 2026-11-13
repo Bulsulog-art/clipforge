@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { AlertTriangle, Check, ChevronLeft, ChevronRight, CircleCheck, Copy, Download, Loader2, RotateCcw, Share2, X } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, ChevronLeft, ChevronRight, CircleCheck, Download, Loader2, RotateCcw, Share2, X } from "lucide-react";
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
-import { trackDv } from "@/lib/dentvid/events-client";
+import { postingText } from "@/content/dentvideo-posting";
+import { postTexts, type PostTexts } from "@/lib/dentvid/posting";
+import { CaptionTabs, useSaveAndCopy } from "./share-kit";
 import {
   cardState,
   DECLINE_REASONS,
@@ -15,7 +17,6 @@ import {
   parsePosted,
   swipeStep,
   togglePosted,
-  videoFileName,
   type DeclineReason,
   type PostedMarks,
   type PostPlatform,
@@ -32,22 +33,46 @@ import type { LibraryItem } from "./library";
 
 export type Decide = (id: string, approval: LibraryItem["approval"], note?: string) => Promise<boolean>;
 
-export function postText(item: Pick<LibraryItem, "caption" | "hashtags">): string {
+/** The Instagram caption for a video: the worker's post kit, or the caption and hashtags of older videos. */
+export function postText(item: Pick<LibraryItem, "caption" | "hashtags" | "post">): string {
+  if (item.post?.instagram) return item.post.instagram;
   return [item.caption ?? "", (item.hashtags ?? []).map((h) => `#${h}`).join(" ")].filter(Boolean).join("\n\n");
 }
 
-/** The posted ticks, kept in this browser (they are the clinic's own checklist, not a record anyone else needs). */
-export function usePosted() {
-  const [marks, setMarks] = useState<PostedMarks>({});
+/** Both texts for the caption tabs (Instagram, TikTok / Shorts), or null when the video has none. */
+export function postTextsOf(item: Pick<LibraryItem, "caption" | "hashtags" | "post">): PostTexts | null {
+  if (item.post) return item.post;
+  return postTexts({ caption: item.caption, hashtags: item.hashtags });
+}
+
+/**
+ * The posted ticks. Kept on the clinic's account (dentvid_items.posted_at,
+ * 0012) so the phone and the desktop agree, and in this browser too — which
+ * is all there is on a database without 0012 (`synced` stays false).
+ */
+export function usePosted(items: Pick<LibraryItem, "id" | "week_of" | "postedAt">[] = []) {
+  const [local, setLocal] = useState<PostedMarks>({});
+  const [off, setOff] = useState<Record<string, true>>({});
+  const [stored, setStored] = useState<boolean | null>(null);
   useEffect(() => {
     try {
-      setMarks(parsePosted(localStorage.getItem(POSTED_KEY)));
+      setLocal(parsePosted(localStorage.getItem(POSTED_KEY)));
     } catch {
       /* storage unavailable: ticks last for this visit */
     }
   }, []);
+  const server: PostedMarks = {};
+  for (const i of items) if (i.postedAt) server[i.id] = i.week_of;
+  const marks: PostedMarks = Object.fromEntries(Object.entries({ ...server, ...local }).filter(([id]) => !off[id]));
+  const synced = stored ?? items.some((i) => i.postedAt !== undefined);
   function toggle(id: string, week: string, on: boolean) {
-    setMarks((cur) => {
+    setOff((o) => {
+      const next = { ...o };
+      if (on) delete next[id];
+      else next[id] = true;
+      return next;
+    });
+    setLocal((cur) => {
       const next = togglePosted(cur, id, week, on);
       try {
         localStorage.setItem(POSTED_KEY, JSON.stringify(next));
@@ -56,8 +81,14 @@ export function usePosted() {
       }
       return next;
     });
+    void fetch(`/api/dentvideo/items/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ posted: on }) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b: { stored?: boolean } | null) => {
+        if (b && typeof b.stored === "boolean") setStored(b.stored);
+      })
+      .catch(() => {});
   }
-  return { marks, toggle };
+  return { marks, toggle, synced };
 }
 
 export function ReviewPlayer({
@@ -69,8 +100,11 @@ export function ReviewPlayer({
   decide,
   posted,
   onPosted,
+  slots,
 }: {
   locale: Locale;
+  /** Suggested posting day and time per video id ("Tue 12:30"). */
+  slots?: Map<string, string>;
   /** The videos stepped through (one week's), already showing any decision made here. */
   queue: LibraryItem[];
   /** The one on screen; -1 when the player is closed. */
@@ -206,6 +240,7 @@ export function ReviewPlayer({
             decide={decide}
             posted={!!posted[item.id]}
             onPosted={(on) => onPosted(item, on)}
+            slot={slots?.get(item.id)}
           />
         </div>
       )}
@@ -223,6 +258,7 @@ export function ReviewPanel({
   decide,
   posted,
   onPosted,
+  slot,
 }: {
   locale: Locale;
   item: LibraryItem;
@@ -232,10 +268,20 @@ export function ReviewPanel({
   decide: Decide;
   posted: boolean;
   onPosted: (on: boolean) => void;
+  slot?: string;
 }) {
   const text = appText(locale);
   const t = text.library;
+  const p = postingText(locale);
   const state = cardState(item);
+  // One share for the panel, so "Approve + save" and the post step after it are the same tap and the same file.
+  const share = useSaveAndCopy({
+    videoUrl: item.videoUrl,
+    title: item.title,
+    text: postText(item),
+    prefetch: state === "review" || state === "approved",
+    labels: { sharedHint: p.sharedHint, downloadedHint: p.downloadedHint, failed: t.shareFailed },
+  });
   const [declining, setDeclining] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -243,6 +289,16 @@ export function ReviewPanel({
   const [justDecided, setJustDecided] = useState(false);
   const decided = state === "approved" || state === "declined" || state === "updating";
   const allDone = justDecided && decided && queue.length > 1 && nextUndecided(queue, index) < 0;
+
+  /** Approve and share in the same tap: the decision saves in the background while the share sheet opens. */
+  function approveAndShare() {
+    void share.run(() => {
+      setJustDecided(true);
+      void decide(item.id, "approved").then((ok) => {
+        if (!ok) setMessage({ kind: "error", text: t.actionFailed });
+      });
+    });
+  }
 
   async function choose(approval: LibraryItem["approval"], note?: string) {
     setBusy(true);
@@ -284,15 +340,24 @@ export function ReviewPanel({
           (declining ? (
             <DeclineForm t={t.declineForm} busy={busy} onCancel={() => setDeclining(false)} onSubmit={(note) => choose("rejected", note)} />
           ) : (
-            <div className="mt-4 flex gap-2">
-              <button type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn dv-btn-secondary px-5 py-3">
-                {t.decline}
-              </button>
-              <button type="button" disabled={busy} onClick={() => choose("approved")} className="dv-btn dv-btn-primary flex-1 px-5 py-3">
-                {busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-                {t.approve}
-              </button>
-            </div>
+            <>
+              {state === "review" && item.videoUrl && (
+                <button type="button" disabled={busy || share.busy} onClick={approveAndShare} className="dv-btn dv-btn-primary mt-4 w-full px-5 py-3">
+                  {share.busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Share2 className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />}
+                  {p.approveSaveCopy}
+                </button>
+              )}
+              <div className={`${state === "review" && item.videoUrl ? "mt-2" : "mt-4"} flex gap-2`}>
+                <button type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn dv-btn-secondary px-5 py-3">
+                  {t.decline}
+                </button>
+                <button type="button" disabled={busy} onClick={() => choose("approved")} className={`dv-btn flex-1 px-5 py-3 ${state === "review" && item.videoUrl ? "dv-btn-secondary !text-dv-teal" : "dv-btn-primary"}`}>
+                  {busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
+                  {t.approve}
+                </button>
+              </div>
+              {slot && <SlotLine label={fmt(p.suggested, { slot })} />}
+            </>
           ))}
 
         {state === "declined" && (
@@ -316,7 +381,17 @@ export function ReviewPanel({
         )}
 
         {(state === "approved" || state === "updating") && (
-          <PostPanel locale={locale} item={item} posted={posted} onPosted={onPosted} onUndo={() => choose("pending")} undoBusy={busy} />
+          <PostPanel
+            locale={locale}
+            item={item}
+            posted={posted}
+            onPosted={onPosted}
+            onUndo={() => choose("pending")}
+            undoBusy={busy}
+            share={share}
+            slot={slot}
+            onNext={queue.length > 1 && index < queue.length - 1 ? () => onIndex(index + 1) : undefined}
+          />
         )}
       </div>
     </section>
@@ -390,7 +465,23 @@ export function DeclineForm({ t, busy, onCancel, onSubmit }: { t: AppText["libra
   );
 }
 
-/** "Post it": the file, the words and the steps, then a tick for the week's checklist. */
+/** "Best time: Tue 12:30" — when this video is suggested to go out, in the clinic's local time. */
+export function SlotLine({ label }: { label: string }) {
+  return (
+    <p className="mt-3 flex items-center gap-1.5 text-sm text-dv-body">
+      <CalendarClock className="h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
+      {label}
+    </p>
+  );
+}
+
+type Share = ReturnType<typeof useSaveAndCopy>;
+
+/**
+ * "Post it": one tap saves the video and copies the caption, the Instagram
+ * and TikTok / Shorts texts, the suggested time, then a tick for the week's
+ * checklist.
+ */
 export function PostPanel({
   locale,
   item,
@@ -398,6 +489,9 @@ export function PostPanel({
   onPosted,
   onUndo,
   undoBusy = false,
+  share: given,
+  slot,
+  onNext,
 }: {
   locale: Locale;
   item: LibraryItem;
@@ -405,26 +499,27 @@ export function PostPanel({
   onPosted: (on: boolean) => void;
   onUndo?: () => void;
   undoBusy?: boolean;
+  /** The panel's share (ReviewPanel), so a file fetched for "approve + save" is reused. */
+  share?: Share;
+  slot?: string;
+  onNext?: () => void;
 }) {
   const text = appText(locale);
   const t = text.library;
   const p = t.post;
-  const share = useShare(item, t);
-  const post = postText(item);
-  const [copied, setCopied] = useState(false);
+  const ps = postingText(locale);
+  const own = useSaveAndCopy({
+    videoUrl: item.videoUrl,
+    title: item.title,
+    text: postText(item),
+    prefetch: !given,
+    labels: { sharedHint: ps.sharedHint, downloadedHint: ps.downloadedHint, failed: t.shareFailed },
+  });
+  const share = given ?? own;
+  const texts = postTextsOf(item);
   const [tab, setTab] = useState<PostPlatform>("instagram");
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const id = useId();
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(post);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* the text is on screen to copy by hand */
-    }
-  }
 
   function onTabKey(e: React.KeyboardEvent, n: number) {
     const rtl = dirOf(locale) === "rtl";
@@ -441,17 +536,17 @@ export function PostPanel({
       <h3 className="sr-only lg:not-sr-only lg:font-dv-serif lg:font-normal lg:mb-3 lg:text-[1.75rem] lg:leading-tight">{p.title}</h3>
 
       <div className="flex gap-2">
-        <button type="button" disabled={share.busy || !item.videoUrl} onClick={share.run} className="dv-btn dv-btn-primary flex-1 px-5 py-3">
+        <button type="button" disabled={share.busy || !item.videoUrl} onClick={() => void share.run()} className="dv-btn dv-btn-primary flex-1 px-5 py-3">
           {share.busy ? (
             <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-          ) : share.mode === "desktop" ? (
+          ) : share.method === "download" ? (
             <Download className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <Share2 className="h-4 w-4" aria-hidden="true" />
+            <Share2 className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
           )}
-          {share.busy ? t.preparing : share.state === "again" ? t.tapAgain : share.mode === "desktop" ? t.shareDesktop : t.share}
+          {share.busy ? t.preparing : share.again ? t.tapAgain : share.method === "download" ? ps.downloadAndCopy : ps.saveAndCopy}
         </button>
-        {share.mode === "phone" && (
+        {share.method === "share-file" && (
           <button type="button" onClick={share.download} aria-label={t.download} title={t.download} className="dv-btn dv-btn-secondary w-12 shrink-0 px-0 !text-dv-teal">
             <Download className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -463,29 +558,27 @@ export function PostPanel({
           {share.note.text}
         </p>
       )}
+      {slot && <SlotLine label={fmt(ps.suggested, { slot })} />}
 
-      {post && (
-        <div className="mt-3 rounded-2xl bg-dv-sand/60 px-3 pb-3 pt-1 ring-1 ring-inset ring-dv-line">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold">{p.captionLabel}</p>
-            <button type="button" onClick={copy} className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-dv-teal hover:bg-white">
-              {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-              <span aria-live="polite">{copied ? t.copied : t.copyCaption}</span>
-            </button>
-          </div>
-          <p className="max-h-40 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-dv-body">{post}</p>
-        </div>
-      )}
+      {texts && <CaptionTabs texts={texts} locale={locale} />}
 
-      <button
-        type="button"
-        aria-pressed={posted}
-        onClick={() => onPosted(!posted)}
-        className={`dv-btn mt-3 w-full px-5 py-3 ${posted ? "bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/30" : "dv-btn-secondary"}`}
-      >
-        <CircleCheck className={`h-5 w-5 ${posted ? "fill-dv-teal text-white" : "text-dv-muted"}`} aria-hidden="true" />
-        {posted ? p.posted : p.markPosted}
-      </button>
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          aria-pressed={posted}
+          onClick={() => onPosted(!posted)}
+          className={`dv-btn flex-1 px-5 py-3 ${posted ? "bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/30" : "dv-btn-secondary"}`}
+        >
+          <CircleCheck className={`h-5 w-5 ${posted ? "fill-dv-teal text-white" : "text-dv-muted"}`} aria-hidden="true" />
+          {posted ? p.posted : p.markPosted}
+        </button>
+        {onNext && (
+          <button type="button" onClick={onNext} className="dv-btn dv-btn-secondary shrink-0 px-4 py-3 !text-dv-teal">
+            {ps.nextVideo}
+            <ChevronRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+          </button>
+        )}
+      </div>
 
       <div className="mt-5">
         <p className="text-sm font-semibold" id={`${id}-tips`}>
@@ -532,111 +625,4 @@ export function PostPanel({
       )}
     </div>
   );
-}
-
-/**
- * Sharing the file itself. On a phone that can share files: the caption goes
- * to the clipboard and the share sheet opens with the video attached
- * (Instagram, TikTok, WhatsApp…). Phones only open the sheet straight after a
- * tap; when fetching the video took too long, the button asks for one more
- * tap. Elsewhere: the MP4 downloads and the caption is copied.
- */
-export function useShare(item: LibraryItem, t: AppText["library"]) {
-  const [mode, setMode] = useState<"phone" | "desktop">("desktop");
-  const [busy, setBusy] = useState(false);
-  const [state, setState] = useState<"idle" | "again">("idle");
-  const [note, setNote] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
-  const file = useRef<File | null>(null);
-  const timer = useRef<number | null>(null);
-  const name = videoFileName(item.title);
-  const post = postText(item);
-
-  useEffect(() => {
-    try {
-      const probe = new File([new Blob()], "x.mp4", { type: "video/mp4" });
-      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [probe] })) setMode("phone");
-    } catch {
-      /* desktop */
-    }
-    return () => {
-      if (timer.current) window.clearTimeout(timer.current);
-    };
-  }, []);
-
-  function flash(n: { kind: "ok" | "error"; text: string }) {
-    setNote(n);
-    if (timer.current) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setNote(null), 8000);
-  }
-
-  async function load(): Promise<File> {
-    if (file.current) return file.current;
-    const res = await fetch(item.videoUrl!);
-    if (!res.ok) throw new Error(String(res.status));
-    const blob = await res.blob();
-    file.current = new File([blob], name, { type: blob.type || "video/mp4" });
-    return file.current;
-  }
-
-  function save(f: File) {
-    const url = URL.createObjectURL(f);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 10_000);
-  }
-
-  async function run() {
-    if (!item.videoUrl) return;
-    trackDv("video_shared", { props: { method: mode === "phone" ? "share" : "download" } });
-    // The clipboard first, while the tap still counts.
-    if (post) await navigator.clipboard?.writeText(post).catch(() => {});
-    if (mode === "desktop") {
-      setBusy(true);
-      try {
-        save(await load());
-        flash({ kind: "ok", text: t.shareDesktopHint });
-      } catch {
-        window.open(item.videoUrl, "_blank", "noopener");
-      }
-      setBusy(false);
-      return;
-    }
-    let f = file.current;
-    if (!f) {
-      setBusy(true);
-      try {
-        f = await load();
-      } catch {
-        setBusy(false);
-        flash({ kind: "error", text: t.shareFailed });
-        return;
-      }
-      setBusy(false);
-    }
-    try {
-      await navigator.share({ files: [f], text: post });
-      setState("idle");
-      flash({ kind: "ok", text: t.shareHint });
-    } catch (e) {
-      const n = (e as Error).name;
-      if (n === "AbortError") setState("idle");
-      else if (n === "NotAllowedError") setState("again");
-      else flash({ kind: "error", text: t.shareFailed });
-    }
-  }
-
-  async function download() {
-    trackDv("video_shared", { props: { method: "download" } });
-    try {
-      save(await load());
-    } catch {
-      window.open(item.videoUrl, "_blank", "noopener");
-    }
-  }
-
-  return { mode, busy, state, note, run, download };
 }

@@ -4,6 +4,7 @@ import { LEGAL, LEGAL_KINDS, legalPath, operatorAddress } from "@/content/legal"
 import { guideMarkdown, reviewedDate, solutionMarkdown } from "@/content/guides/text";
 import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { dentvideoPublicUrl } from "./host";
 
 /**
@@ -66,6 +67,7 @@ function languageIndex(l: Locale): string[] {
     `- [DentVideo — ${LANGUAGE_NAME[l]}](${abs(LANDING_PATH[l])}): landing page`,
     `- [${ENTITY[l].h1}](${abs(ABOUT_PATH[l])}): ${ENTITY[l].definition}`,
     ...solutionsFor(l).map((p) => `- [${p.h1}](${abs(solutionPath(p))}): ${p.seoDescription}`),
+    `- [${CHECKER[l].h1}](${abs(CHECKER_PATH[l])}): ${CHECKER[l].seoDescription}`,
   ];
   if (GUIDE_HUB_LOCALES.includes(l)) {
     lines.push(`- [${GUIDE_UI[l].index.h1}](${abs(GUIDES_INDEX_PATH[l])}): ${GUIDE_UI[l].index.description}`);
