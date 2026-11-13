@@ -10,6 +10,7 @@ import { fmtAuth, verifyText } from "@/content/dentvideo-auth";
 import { checkCode, isEmailVerified, normalizeEmail, pendingCode, verifySecret, VERIFY_RULES } from "@/lib/dentvid/verify-email";
 import { markEmailVerified, sendVerificationCode, type SendCodeResult } from "@/lib/dentvid/verify-email-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
+import { isDentvideoOnly } from "@/lib/dentvid/membership";
 import { geoCountry } from "@/lib/dentvid/events";
 
 // POST /api/dentvideo/verify-email — the signed-in owner proves they receive
@@ -96,6 +97,11 @@ export async function POST(req: Request) {
   const limited = await rateLimited([{ key: `rl:verify:change:user:${user.id}`, rule: LIMITS.verifyChangeUser }, ...sendChecks(body.email)], () => v.failed);
   if (limited) return limited;
   if (body.email !== email) {
+    // Liman is shared: an account another app made (and that joined DentVideo
+    // with its password) logs in to that app with this address too. Changing
+    // it here would silently change that app's login, so only a login that is
+    // DentVideo's alone may be corrected (lib/dentvid/membership).
+    if (!isDentvideoOnly(user)) return json({ error: v.sharedLogin, reason: "shared" }, 409);
     const { error } = await dvAdmin().auth.admin.updateUserById(user.id, { email: body.email, email_confirm: true });
     if (error) {
       const taken = /already|registered|exists|duplicate/i.test(error.message);

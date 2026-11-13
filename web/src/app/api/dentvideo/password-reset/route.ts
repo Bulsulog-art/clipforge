@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
 import { dvErrors } from "@/lib/dentvid/locale-server";
+import { appText } from "@/content/dentvideo-app";
+import { asLocale } from "@/lib/dentvid/locale";
 import { dvUrl } from "@/lib/dentvid/host";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
@@ -28,12 +30,15 @@ const Body = z.object({
 const MIN = 60;
 
 export async function POST(req: Request) {
-  const err = await dvErrors();
+  const raw = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  // Errors ("too many attempts") in the form's language; the form shows them.
+  const asked = asLocale(typeof raw?.locale === "string" ? raw.locale : null);
+  const err = asked ? appText(asked).errors : await dvErrors();
   const ip = clientIp(req.headers);
-  const parsed = Body.safeParse(await req.json().catch(() => null));
+  const parsed = Body.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: err.badSignup }, { status: 400 });
   const { email } = parsed.data;
-  const language = parsed.data.locale ?? "en";
+  const language = asked ?? "en";
 
   const limited = await rateLimited(
     [

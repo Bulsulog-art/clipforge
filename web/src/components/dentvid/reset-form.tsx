@@ -6,6 +6,7 @@ import { dvHref } from "@/lib/dentvid/host";
 import { dvBrowser } from "@/lib/dentvid/supabase";
 import { authText } from "@/content/dentvideo-auth";
 import { DvIcon } from "./mark";
+import { passwordTooLong, resetSaveOutcome } from "@/lib/dentvid/password";
 import { dirOf, type Locale } from "@/content/dentvideo";
 
 type Phase = "checking" | "ready" | "invalid" | "saving" | "saved";
@@ -49,11 +50,13 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 8) return setError(t.tooShort);
+    if (passwordTooLong(password)) return setError(t.passwordTooLong);
     setError(null);
     setPhase("saving");
     const { error: e2 } = await dvBrowser().auth.updateUser({ password });
-    if (e2) {
-      setError(t.linkInvalid);
+    const outcome = resetSaveOutcome(e2);
+    if (outcome !== "saved") {
+      setError(outcome === "tooLong" ? t.passwordTooLong : t.linkInvalid);
       setPhase("ready");
       return;
     }
