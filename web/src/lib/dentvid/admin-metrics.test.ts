@@ -3,7 +3,8 @@ import {
   billingHints,
   clinicMrr,
   dailyCounts,
-  foundingSeats,
+  foundingHistoric,
+  withLedgerHints,
   funnel,
   funnelByLocale,
   growth,
@@ -130,11 +131,27 @@ describe("growth, conversion and churn", () => {
     expect(g.conversion30d).toBeNull();
   });
 
-  it("founding seats from Dodo when known, else active Practice clinics", () => {
-    const clinics = [clinic("a", "active", "practice"), clinic("b", "active", "practice"), clinic("c", "active", "group"), clinic("d", "cancelled", "practice")];
-    expect(foundingSeats(clinics, null)).toEqual({ left: 98, used: 2, source: "estimate" });
-    expect(foundingSeats(clinics, 37)).toEqual({ left: 63, used: 37, source: "dodo" });
-    expect(foundingSeats(clinics, 140)).toEqual({ left: 0, used: 140, source: "dodo" });
+  it("MRR follows the subscription ledger's interval and founding flag over checkout-event guesses", () => {
+    const clinics = [clinic("a", "active", "practice"), clinic("b", "active", "practice")];
+    const ev = new Map([["a", { interval: "month" as const, founding: true }], ["b", { interval: "month" as const }]]);
+    const h = withLedgerHints(ev, [
+      { clinic_id: "a", status: "active", interval: "month", founding: false, created_at: "2026-10-01T00:00:00Z" },
+      { clinic_id: "b", status: "active", interval: "year", founding: false, created_at: "2026-10-01T00:00:00Z" },
+      { clinic_id: "b", status: "cancelled", interval: "month", founding: true, created_at: "2026-11-01T00:00:00Z" },
+    ]);
+    const r = revenue(clinics, h);
+    expect(r.founding).toBe(0);
+    expect(r.yearly).toBe(1);
+    expect(r.mrrUsd).toBe(49 + 990 / 12);
+  });
+
+  it("founding is closed: a historic count (ledger, else Dodo, else checkout events) — never every active Practice clinic", () => {
+    expect(foundingHistoric({ ledgerUsed: 4, dodoUses: 37, fromEvents: 1 })).toEqual({ count: 4, source: "ledger" });
+    expect(foundingHistoric({ ledgerUsed: null, dodoUses: 37.9, fromEvents: 1 })).toEqual({ count: 37, source: "dodo" });
+    // Before: no Dodo key → "used" = every active Practice clinic, so each new $49 Practice sign-up ate a seat of a closed offer.
+    const clinics = [clinic("a", "active", "practice"), clinic("b", "active", "practice")];
+    const rev = revenue(clinics, new Map());
+    expect(foundingHistoric({ ledgerUsed: null, dodoUses: null, fromEvents: rev.founding })).toEqual({ count: 0, source: "events" });
   });
 
   it("daily counts land in the right UTC day, oldest first", () => {

@@ -144,6 +144,12 @@ describe("overview", () => {
     expect(periodStats(events, clinics, 7, NOW)).toEqual({ visitors: 2, signups: 1, previews: 2, checkouts: 1, paid: 1 });
     expect(periodStats(events, clinics, 30, NOW)).toMatchObject({ visitors: 3, signups: 2 });
   });
+  it("sign-ups are accounts created, not only clinics that got as far as saving their profile", () => {
+    const events = [ev("signup_completed", 1), ev("signup_completed", 2), ev("signup_completed", 3), ev("clinic_saved", 1, {}, A)];
+    expect(periodStats(events, [{ created_at: ago(1) }], 7, NOW).signups).toBe(3);
+    // Events blocked by an ad blocker: never fewer than the clinic rows.
+    expect(periodStats([], [{ created_at: ago(1) }, { created_at: ago(2) }], 7, NOW).signups).toBe(2);
+  });
 
   it("lists every open problem with the screen that fixes it; nothing when all is well", () => {
     const sys = { available: true, health: "up" as const, queues: [], stuck: [] };

@@ -121,6 +121,27 @@ describe("H6: late and out-of-order webhooks", () => {
     expect(f.clinic.plan).toBe("cancelled");
   });
 
+  it("a first payment.succeeded stamped after its subscription.active (and delivered first) does not make the activation stale", async () => {
+    const f = fakeDb(unpaid());
+    const subs = memorySubs();
+    const d = deps({ subs });
+    // Dodo: subscription.active at :00, payment.succeeded at :02 — the payment is delivered first.
+    await handleDentvideoEvent(f.db, { type: "payment.succeeded", timestamp: "2026-11-13T10:00:02Z", data: { ...evt("x", "sub_1").data, payment_id: "pay_1" } }, d);
+    expect(subs.rows.get("sub_1")).toMatchObject({ status: "pending", last_event_at: null });
+    const r = await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1", "2026-11-13T10:00:00Z"), d);
+    expect(r.body).not.toMatchObject({ ignored: "stale" });
+    expect(f.clinic).toMatchObject({ plan: "active", plan_tier: "practice", dodo_subscription_id: "sub_1" });
+    expect(d.enqueueWeek).toHaveBeenCalledTimes(1);
+    expect(subs.rows.get("sub_1")).toMatchObject({ status: "active", last_event_at: "2026-11-13T10:00:00.000Z" });
+  });
+
+  it("a pending row written with the payment's time (before the fix) is not used to call an activation stale", async () => {
+    const f = fakeDb(unpaid());
+    const subs = memorySubs([{ dodo_subscription_id: "sub_1", clinic_id: CLINIC, status: "pending", last_event_at: "2026-11-13T10:00:02.000Z", last_event_type: "payment.succeeded" }]);
+    await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1", "2026-11-13T10:00:00Z"), deps({ subs }));
+    expect(f.clinic.plan).toBe("active");
+  });
+
   it("a newer activation is applied, and Dodo's live status can veto one", async () => {
     const f = fakeDb({ ...paying(), plan: "paused" });
     const subs = memorySubs([{ dodo_subscription_id: "sub_1", clinic_id: CLINIC, status: "on_hold", last_event_at: "2026-11-10T12:00:00.000Z" }]);

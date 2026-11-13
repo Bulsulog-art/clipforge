@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { APPROVE_TTL_DAYS, approveToken, approveUrl, handleApprove, verifyApproveToken, type ApproveItem, type ApproveStore } from "./approve-link";
 import { unsubscribeToken, verifyUnsubscribeToken } from "./unsubscribe-token";
-import { latestWeek } from "./ready-notice";
+import { latestWeek, readyEmailBase } from "./ready-notice";
 
 const CLINIC = "7d1c6a0e-3b2f-4e5d-9a8b-1c2d3e4f5a6b";
 const WEEK = "2026-11-09";
@@ -80,5 +80,13 @@ describe("ready email: the latest finished week", () => {
     const { week, items } = latestWeek([r("a", "2026-11-02", "ready"), r("b", "2026-11-09", "ready"), r("c", "2026-11-09", "flagged"), r("d", "2026-11-16", "queued")]);
     expect(week).toBe("2026-11-09");
     expect(items.map((i) => i.id)).toEqual(["b", "c"]);
+  });
+});
+
+describe("ready email: links are absolute", () => {
+  it("uses the DentVideo URL, else the app URL's /dentvideo, else https://dentvideo.com — never a relative path", () => {
+    expect(readyEmailBase({ NEXT_PUBLIC_DENTVIDEO_URL: "https://dentvideo.com/" })).toBe("https://dentvideo.com");
+    expect(readyEmailBase({ NEXT_PUBLIC_APP_URL: "https://clipforge.example" })).toBe("https://clipforge.example/dentvideo");
+    expect(readyEmailBase({})).toBe("https://dentvideo.com");
   });
 });

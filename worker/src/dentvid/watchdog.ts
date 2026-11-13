@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { batchWeekJobOpts, DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, type WeekJobData } from "./job-options.js";
-import { deliveryWeek, dispatchKey, weekJobId } from "./schedule.js";
+import { activeClinicRows, deliveryWeek, dispatchKey, shouldRun, weekJobId, type ClinicRow } from "./schedule.js";
 import { alerts, thresholds, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
 
 /**
@@ -32,6 +32,7 @@ export const FIRST_WEEK_SCHEDULE = { pattern: "*/15 * * * *", tz: "UTC" } as con
 export const PAID_LIST_KEY = "dv:ops:paid";
 
 export interface WatchDb {
+  /** Clinics that should have a week: paying and not paused by the owner (schedule.ts shouldRun). */
   activeClinicIds(): Promise<string[]>;
   /** First payments (payment_succeeded with first = true) since a time. */
   firstPayments(since: Date): Promise<{ clinicId: string; paidAt: string }[]>;
@@ -196,9 +197,9 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
 export function supabaseWatchDb(db: SupabaseClient): WatchDb {
   return {
     async activeClinicIds() {
-      const { data, error } = await db.from("dentvid_clinics").select("id").eq("plan", "active");
-      if (error) throw new Error(`active clinics: ${error.message}`);
-      return (data ?? []).map((r) => r.id as string);
+      // "*": admin_paused_at (0010) may not exist yet. A clinic the owner paused gets no
+      // week from the dispatch, so it must not count as "missing" here either.
+      return (await activeClinicRows<ClinicRow>(db)).filter(shouldRun).map((r) => r.id);
     },
     async firstPayments(since) {
       const { data, error } = await db
@@ -228,8 +229,10 @@ export function supabaseWatchDb(db: SupabaseClient): WatchDb {
       return new Set((data ?? []).map((r) => r.clinic_id as string));
     },
     async isActive(clinicId) {
-      const { data } = await db.from("dentvid_clinics").select("plan").eq("id", clinicId).maybeSingle();
-      return (data as { plan?: string } | null)?.plan === "active";
+      // Paused by the owner counts as not active: no re-queue, no "first week late" alert.
+      const { data } = await db.from("dentvid_clinics").select("*").eq("id", clinicId).maybeSingle();
+      const row = data as { plan?: string; admin_paused_at?: string | null } | null;
+      return !!row && shouldRun({ plan: row.plan ?? "", admin_paused_at: row.admin_paused_at });
     },
     async clinic(clinicId) {
       const { data } = await db.from("dentvid_clinics").select("id, profile, plan_tier").eq("id", clinicId).maybeSingle();

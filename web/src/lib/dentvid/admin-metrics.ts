@@ -68,6 +68,29 @@ export function billingHints(events: AdminEvent[]): Map<string, BillingHint> {
 }
 
 /**
+ * Event hints corrected by the subscription ledger (dentvid_subscriptions,
+ * written by the Dodo webhook): for a clinic with a live subscription there,
+ * its recorded interval and founding flag win over what the checkout event
+ * guessed (a typed code that Dodo did not apply, a checkout never finished).
+ */
+export function withLedgerHints(
+  hints: Map<string, BillingHint>,
+  subs: { clinic_id: string; status: string; interval?: string | null; founding?: boolean | null; updated_at?: string | null; created_at: string }[],
+): Map<string, BillingHint> {
+  const out = new Map(hints);
+  const live = subs
+    .filter((s) => ["active", "pending", "on_hold", "paused"].includes(s.status))
+    .sort((a, b) => (a.updated_at ?? a.created_at).localeCompare(b.updated_at ?? b.created_at));
+  for (const s of live) {
+    const h: BillingHint = { ...(out.get(s.clinic_id) ?? {}) };
+    if (s.interval === "month" || s.interval === "year") h.interval = s.interval;
+    if (typeof s.founding === "boolean") h.founding = s.founding;
+    out.set(s.clinic_id, h);
+  }
+  return out;
+}
+
+/**
  * Monthly recurring revenue of one clinic in USD: its tier's monthly list
  * price; a legacy yearly subscription (no longer sold) at its old yearly
  * price ÷ 12; the historic founding price for Practice monthly when the
@@ -178,15 +201,20 @@ export function growth(clinics: AdminClinic[], now = new Date()): Growth {
   };
 }
 
-/** Founding seats left: from Dodo's discount usage when known, else estimated from active Practice clinics. */
-export function foundingSeats(clinics: AdminClinic[], dodoUses: number | null): { left: number; used: number; source: "dodo" | "estimate" } {
-  if (dodoUses !== null && Number.isFinite(dodoUses)) {
-    const used = Math.max(0, Math.floor(dodoUses));
-    return { left: Math.max(0, DV_FOUNDING.clinics - used), used, source: "dodo" };
-  }
-  const used = clinics.filter((c) => c.plan === "active" && c.plan_tier === DV_FOUNDING.tier).length;
-  return { left: Math.max(0, DV_FOUNDING.clinics - used), used, source: "estimate" };
+/**
+ * Historic founding subscriptions. The founding offer is closed (2026-11-13):
+ * there are no seats "left" any more, and an active Practice clinic is not a
+ * founding one (it pays the list price, which now equals the old founding
+ * price). Counted from the subscription ledger when it has rows, else Dodo's
+ * code uses, else clinics whose checkout used the code (events).
+ */
+export function foundingHistoric(args: { ledgerUsed: number | null; dodoUses: number | null; fromEvents: number }): { count: number; source: "ledger" | "dodo" | "events" } {
+  if (args.ledgerUsed !== null && Number.isFinite(args.ledgerUsed)) return { count: Math.max(0, args.ledgerUsed), source: "ledger" };
+  if (args.dodoUses !== null && Number.isFinite(args.dodoUses)) return { count: Math.max(0, Math.floor(args.dodoUses)), source: "dodo" };
+  return { count: Math.max(0, args.fromEvents), source: "events" };
 }
+
+export const FOUNDING_SOURCE_LABEL = { ledger: "from the subscription ledger", dodo: "Dodo code uses", events: "from checkout events" } as const;
 
 /** Counts per UTC day for the last `days` days, oldest first. */
 export function dailyCounts(dates: string[], days: number, now = new Date()): number[] {

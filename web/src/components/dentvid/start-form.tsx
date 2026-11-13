@@ -70,7 +70,11 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
     // The Supabase client is loaded when it is needed, not with the page.
     const { dvBrowser } = await import("@/lib/dentvid/supabase");
     const { error: e } = await dvBrowser().auth.signInWithPassword({ email: addr, password });
-    return !e;
+    if (e) return false;
+    // An account another app made with this address joins DentVideo now that
+    // its password is proven (api/dentvideo/join; a no-op for DentVideo accounts).
+    await fetch("/api/dentvideo/join", { method: "POST" }).catch(() => null);
+    return true;
   }
 
   function goIn(isNew: boolean) {
@@ -122,7 +126,7 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
         // A new account comes back already signed in (the server set the
         // session cookie). An address that already had an account: try its
         // password, else say plainly that the account exists.
-        if (body.signedIn) return goIn(true);
+        if (body.signedIn) return goIn(!body.existing);
         if ((await signIn(addr)) || (await wait(1200).then(() => signIn(addr)))) return goIn(!body.existing);
         setMode("signin");
         throw new Error(body.existing ? a.accountExists : a.signInFailedAfterSignup);

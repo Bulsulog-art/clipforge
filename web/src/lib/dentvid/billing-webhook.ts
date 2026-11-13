@@ -199,7 +199,10 @@ async function paymentSucceeded(db: SupabaseClient, evt: DvWebhookEvent, deps: D
   if (d.subscription_id) {
     const prev = await subs.get(d.subscription_id);
     // Only a subscription we have not seen: "pending" until its activation arrives (blocks a second checkout meanwhile).
-    if (prev === null) await subs.put(ledgerRow(clinic.id, d.subscription_id, "pending", d, prev, dvEventTime(evt) ?? (deps.now?.() ?? new Date()).toISOString(), evt.type));
+    // No event time: a payment is not a subscription status, and Dodo often stamps the first
+    // payment.succeeded a moment AFTER subscription.active — an event time here made that
+    // activation look stale, and a clinic that had just paid was never switched on.
+    if (prev === null) await subs.put({ ...ledgerRow(clinic.id, d.subscription_id, "pending", d, prev, "", evt.type), last_event_at: null });
   }
   return { status: 200, body: { ok: true, app: "dentvideo", recorded: evt.type } };
 }
@@ -301,8 +304,9 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   const stamp = eventAt ?? now.toISOString();
   const record = (status: string) => (ledger ? subs.put(ledgerRow(clinic.id, t.subscriptionId, status, d, prev, stamp, evt.type)) : Promise.resolve(false));
 
-  // 1. Out of order: an older event never undoes a newer one.
-  if (prev && isStaleEvent(prev.last_event_at, eventAt)) {
+  // 1. Out of order: an older event never undoes a newer one. A "pending" row only says a
+  // payment arrived (rows written before that rule may carry the payment's time): never stale against it.
+  if (prev && prev.status !== "pending" && isStaleEvent(prev.last_event_at, eventAt)) {
     console.warn("[dodo:dentvideo] stale event ignored", evt.type, t.subscriptionId, eventAt, prev.last_event_at);
     return { status: 200, body: { ok: true, app: "dentvideo", ignored: "stale" } };
   }

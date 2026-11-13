@@ -48,7 +48,7 @@ describe("backoff", () => {
 
 describe("the weekly dispatch uses the shared options and leaves a mark for the watchdog", () => {
   it("queues each active clinic with the week's retries, the coming Monday in the data, and records the run", async () => {
-    const db = { from: () => ({ select: () => ({ eq: async () => ({ data: [{ id: "a", plan: "active" }, { id: "b", plan: "active" }], error: null }) }) }) };
+    const db = { from: () => ({ select: () => ({ eq: () => ({ order: () => ({ range: async () => ({ data: [{ id: "a", plan: "active" }, { id: "b", plan: "active" }], error: null }) }) }) }) }) };
     const add = vi.fn(async () => ({}));
     const store = new MemoryOpsStore();
     const now = new Date("2026-11-14T18:00:00Z"); // Saturday 18:00 UTC

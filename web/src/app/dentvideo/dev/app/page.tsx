@@ -56,7 +56,7 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
   if (screen === "record") {
     const plan = demoPlan("active", state === "starter" ? "starter" : "practice");
     const cards = state === "nocards" ? [] : demoCards(locale);
-    return <RecordView locale={locale} cards={cards} plan={plan} />;
+    return <RecordView locale={locale} cards={cards} plan={plan} selfServe={sp.billing !== "email"} />;
   }
 
   const thisWeek = weekOf();

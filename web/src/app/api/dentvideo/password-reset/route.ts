@@ -7,7 +7,6 @@ import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { sendEmail } from "@/lib/dentvid/email";
 import { resetEmail } from "@/lib/dentvid/reset-email";
-import { isDentvideoUser } from "@/lib/dentvid/membership";
 
 // POST /api/dentvideo/password-reset — email a "choose a new password" link.
 //
@@ -16,6 +15,10 @@ import { isDentvideoUser } from "@/lib/dentvid/membership";
 // Resend in the clinic's language. The link opens /reset, which exchanges the
 // token for a session in the browser. The answer is the same whether or not
 // the account exists, so the form can't be used to discover who has one.
+//
+// An account another app made with the same address (Liman is shared) gets
+// the link too: opening it from that mailbox proves the address is theirs,
+// and the exchange then adds DentVideo to the account (lib/dentvid/join).
 
 const Body = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
@@ -46,10 +49,7 @@ export async function POST(req: Request) {
   try {
     const { data, error } = await dvAdmin().auth.admin.generateLink({ type: "recovery", email });
     const hashed = data?.properties?.hashed_token;
-    // Only DentVideo accounts: Liman also holds other apps' users. The marker
-    // is app_metadata (server-only), not user_metadata (user-editable).
-    const isDentVideo = isDentvideoUser(data?.user);
-    if (!error && hashed && isDentVideo) {
+    if (!error && hashed && data?.user) {
       const link = dvUrl(`/dentvideo/reset?token_hash=${encodeURIComponent(hashed)}&lang=${encodeURIComponent(language)}`);
       const sent = await sendEmail(email, resetEmail({ language, link }));
       if (!sent) console.error("[dentvideo reset] email not sent");
