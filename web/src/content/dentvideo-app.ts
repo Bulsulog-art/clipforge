@@ -209,6 +209,8 @@ export type AppText = {
     nextHeading: string;
     next: [string, string, string];
     starterTitle: string;
+    /** The page's intro on Starter: no filming cards (they come with Practice). */
+    starterIntro: string;
     starterLead: string;
     starterCta: string;
     starterSubject: string;
@@ -547,6 +549,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "What happens next",
       next: ["We cut your recording into short clips with captions and your logo.", "Each clip is checked; anything worth a second look is marked, with the reason.", "We email you when they're ready — usually within 10 minutes."],
       starterTitle: "Your own recordings come with the Practice plan",
+      starterIntro: "Patients trust the dentist they can see.",
       starterLead: "Patients like to see the dentist they will meet. On Practice, you upload a short recording and we cut it into captioned clips in your colours.",
       starterCta: "Write to us to switch to Practice",
       starterSubject: "Switch my DentVideo plan to Practice",
@@ -899,6 +902,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "So geht es weiter",
       next: ["Wir schneiden Ihre Aufnahme in kurze Clips mit Untertiteln und Ihrem Logo.", "Jeder Clip wird geprüft; was einen zweiten Blick verdient, wird mit Grund markiert.", "Sie bekommen eine E-Mail, sobald alles fertig ist – meist innerhalb von 10 Minuten."],
       starterTitle: "Eigene Aufnahmen gehören zum Tarif Practice",
+      starterIntro: "Patienten vertrauen der Zahnärztin oder dem Zahnarzt, den sie sehen.",
       starterLead: "Patientinnen und Patienten sehen gern, wer sie behandeln wird. Mit Practice laden Sie eine kurze Aufnahme hoch, und wir schneiden daraus Clips mit Untertiteln in Ihren Farben.",
       starterCta: "Für einen Wechsel zu Practice schreiben",
       starterSubject: "DentVideo-Tarif auf Practice umstellen",
@@ -1251,6 +1255,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Qué pasa después",
       next: ["Cortamos tu grabación en clips breves con subtítulos y tu logo.", "Revisamos cada clip; lo que merezca una segunda mirada se marca con el motivo.", "Te avisamos por correo cuando estén listos, normalmente en unos 10 minutos."],
       starterTitle: "Tus propias grabaciones van con el plan Practice",
+      starterIntro: "Los pacientes confían en el dentista al que pueden ver.",
       starterLead: "A los pacientes les gusta ver al dentista que los va a atender. Con Practice subes una grabación corta y la convertimos en clips con subtítulos y tus colores.",
       starterCta: "Escríbenos para pasar a Practice",
       starterSubject: "Cambiar mi plan de DentVideo a Practice",
@@ -1603,6 +1608,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Sonra ne olacak?",
       next: ["Kaydınızı altyazılı ve logolu kısa kliplere ayırırız.", "Her klip kontrol edilir; ikinci kez bakılması gereken bir şey varsa nedeniyle birlikte işaretlenir.", "Hazır olduklarında size e-posta göndeririz; genellikle 10 dakika içinde."],
       starterTitle: "Kendi kayıtlarınız Practice planına dahildir",
+      starterIntro: "Hastalar görebildikleri hekime güvenir.",
       starterLead: "Hastalar kendilerini tedavi edecek hekimi görmek ister. Practice planında kısa bir kayıt yüklersiniz, biz de onu renklerinizle altyazılı kliplere dönüştürürüz.",
       starterCta: "Practice'e geçmek için bize yazın",
       starterSubject: "DentVideo planımı Practice'e geçirmek istiyorum",
@@ -1955,6 +1961,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Et ensuite ?",
       next: ["Nous découpons votre enregistrement en clips courts, sous-titrés et avec votre logo.", "Chaque clip est vérifié ; ce qui mérite un second regard est signalé, avec la raison.", "Nous vous écrivons dès qu'ils sont prêts, en général sous 10 minutes."],
       starterTitle: "Vos propres enregistrements sont inclus dans la formule Practice",
+      starterIntro: "Les patients font confiance au dentiste qu'ils voient.",
       starterLead: "Les patients aiment voir le dentiste qui va les soigner. Avec Practice, vous envoyez un court enregistrement et nous en faisons des clips sous-titrés à vos couleurs.",
       starterCta: "Nous écrire pour passer à Practice",
       starterSubject: "Passer ma formule DentVideo à Practice",
@@ -2308,6 +2315,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "このあとの流れ",
       next: ["撮影した動画を、字幕とロゴ入りの短いクリップに分けます。", "各クリップをチェックし、確認が必要な箇所には理由を添えて印を付けます。", "完成したらメールでお知らせします。通常10分ほどです。"],
       starterTitle: "ご自身で撮影した動画は、Practiceプランでご利用いただけます",
+      starterIntro: "患者さんは、顔の見える先生に安心感を覚えます。",
       starterLead: "患者さんは、実際に診てもらう先生の顔を見たいものです。Practiceプランでは、短い動画をアップロードしていただくと、医院のカラーで字幕付きのクリップに仕上げます。",
       starterCta: "Practiceへの変更をメールで依頼する",
       starterSubject: "DentVideoのプランをPracticeに変更したい",
@@ -2654,6 +2662,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "ما الذي يحدث بعد ذلك",
       next: ["نقسّم تسجيلكم إلى مقاطع قصيرة مع النص وشعاركم.", "نراجع كل مقطع، وما يستحق نظرة ثانية نعلّمه مع السبب.", "نرسل إليكم بريداً حين تجهز، عادةً خلال 10 دقائق."],
       starterTitle: "تسجيلاتكم الخاصة متاحة في باقة Practice",
+      starterIntro: "يثق المرضى بالطبيب الذي يرونه.",
       starterLead: "يحب المرضى أن يروا الطبيب الذي سيقابلونه. في باقة Practice ترفعون تسجيلاً قصيراً، ونحوّله إلى مقاطع مع النص بألوانكم.",
       starterCta: "راسلونا للانتقال إلى Practice",
       starterSubject: "نقل باقة DentVideo إلى Practice",
@@ -3001,6 +3010,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Co dalej",
       next: ["Dzielimy nagranie na krótkie klipy z napisami i logo gabinetu.", "Każdy klip jest sprawdzany; to, co warto przejrzeć ponownie, oznaczamy wraz z powodem.", "Gdy będą gotowe, wyślemy e-mail, zwykle w ciągu 10 minut."],
       starterTitle: "Własne nagrania są dostępne w planie Practice",
+      starterIntro: "Pacjenci ufają dentyście, którego mogą zobaczyć.",
       starterLead: "Pacjenci chcą zobaczyć dentystę, do którego przyjdą. W planie Practice wystarczy przesłać krótkie nagranie, a my zamienimy je w klipy z napisami w kolorach gabinetu.",
       starterCta: "Napisz do nas, by przejść na Practice",
       starterSubject: "Zmiana planu DentVideo na Practice",

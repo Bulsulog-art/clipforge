@@ -8,6 +8,7 @@ import type { ClinicPlan } from "@/lib/dentvid/plan";
 import type { LibraryItem } from "@/components/dentvid/library";
 import { AppHomeView, RecordView, SettingsView, type ShootCard } from "@/components/dentvid/app-screens";
 import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
+import type { BillingIssue } from "@/components/dentvid/billing-issue";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "App preview", robots: { index: false, follow: false } };
@@ -22,7 +23,8 @@ export const metadata: Metadata = { title: "App preview", robots: { index: false
  * library states: mixed (default: this week to review + last week approved),
  *   between (this week not made yet), empty (paid, nothing ever made),
  *   first-week (just paid), paused, cancelled, trial (no plan, old videos), updating,
- *   posting (this week all approved: the post-it step and the posting checklist)
+ *   posting (this week all approved: the post-it step and the posting checklist),
+ *   admin-paused (paused by DentVideo from the admin panel), disputed (a chargeback under review)
  * settings states: active (default), paused, trial
  *   &delay=retrying|delayed adds the worker's "taking a little longer" note (library, first-week)
  *   &billing=email shows the path without DODO_API_KEY (default: self-serve);
@@ -66,7 +68,19 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
   let planState: ClinicPlan["plan"] = "active";
   let firstWeek = false;
   let madeThisWeek = true;
-  if (state === "between") {
+  let plan: ClinicPlan | null = null;
+  let billingIssue: BillingIssue | null = null;
+  if (state === "admin-paused") {
+    plan = { ...demoPlan("active"), canMake: false, adminPaused: true };
+    billingIssue = { kind: "admin_paused" };
+    items = all.filter((i) => i.week_of === lastWeek);
+    madeThisWeek = false;
+  } else if (state === "disputed") {
+    plan = demoPlan("paused");
+    billingIssue = { kind: "disputed" };
+    items = all.filter((i) => i.week_of === lastWeek);
+    madeThisWeek = false;
+  } else if (state === "between") {
     items = all.filter((i) => i.week_of === lastWeek);
     madeThisWeek = false;
   } else if (state === "empty") {
@@ -90,7 +104,8 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
     <AppHomeView
       locale={locale}
       clinicName={demoProfile(locale).name}
-      plan={demoPlan(planState)}
+      plan={plan ?? demoPlan(planState)}
+      billingIssue={billingIssue}
       items={items}
       firstWeek={firstWeek}
       madeThisWeek={madeThisWeek}

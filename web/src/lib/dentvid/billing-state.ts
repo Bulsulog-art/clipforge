@@ -57,6 +57,8 @@ export function checkoutBlockMessage(block: DvCheckoutBlock, language: string | 
       return r.pending;
     case "payment_update":
       return fill(r.updatePayment, { how: fill(opts.selfServe ? r.updateHowPortal : r.updateHowEmail, vars) });
+    case "disputed":
+      return fill(r.disputed, vars);
     case "cancelled_pending":
       return fill(r.cancelledPending, { ...vars, date: formatDate(block.until, lang) });
   }
@@ -128,14 +130,19 @@ export type AppBillingPanel =
   | { kind: "plans" }
   | { kind: "update_payment"; selfServe: boolean }
   | { kind: "pending" }
+  | { kind: "disputed" }
+  | { kind: "admin_paused" }
   | { kind: "cancelled_pending"; until: string };
 
 /** Paused on a card problem → "update your payment", not "choose a plan" (a new plan would charge twice). */
-export async function loadAppBillingPanel(clinic: ClinicBillingRow, admin: SupabaseClient | null, now = new Date()): Promise<AppBillingPanel> {
+export async function loadAppBillingPanel(clinic: ClinicBillingRow & { adminPaused?: boolean }, admin: SupabaseClient | null, now = new Date()): Promise<AppBillingPanel> {
+  // Paused by the owner from the admin panel: say so honestly (never "choose a plan" to a paying clinic).
+  if (clinic.adminPaused) return { kind: "admin_paused" };
   if (clinic.plan === "active") return { kind: "plans" };
   const block = await loadCheckoutBlock(clinic, admin, now);
   if (!block || block.code === "active") return { kind: "plans" };
   if (block.code === "payment_update") return { kind: "update_payment", selfServe: !!dodoApiKey() };
   if (block.code === "pending") return { kind: "pending" };
+  if (block.code === "disputed") return { kind: "disputed" };
   return { kind: "cancelled_pending", until: block.until };
 }

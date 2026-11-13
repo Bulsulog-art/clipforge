@@ -27,7 +27,7 @@ export default async function Settings() {
   const locale = await dvLocale(profile?.language);
   const [plan, logoUrl] = await Promise.all([clinic ? loadClinicPlan(db, clinic.id) : null, logoSignedUrl(db, clinic?.logo_path as string | null | undefined)]);
   const admin = await adminOrNull();
-  const panel = plan && !plan.canMake ? await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin) : null;
+  const panel = plan && !plan.canMake ? await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin) : null;
   return (
     <SettingsView
       locale={locale}

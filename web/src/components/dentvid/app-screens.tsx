@@ -217,7 +217,8 @@ export function RecordView({
         {t.backToVideos}
       </Link>
       <h1 className="dv-display mt-2 text-balance text-[2.5rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
-      <p className="mt-3 max-w-2xl leading-relaxed text-dv-body">{t.lead}</p>
+      {/* The full intro talks the dentist through "these cards"; Starter has no filming cards. */}
+      <p className="mt-3 max-w-2xl leading-relaxed text-dv-body">{starter ? t.starterIntro : t.lead}</p>
 
       {starter ? (
         <section className="dv-card relative isolate mt-8 overflow-hidden p-6 sm:p-8">
