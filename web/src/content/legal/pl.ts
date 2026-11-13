@@ -90,13 +90,12 @@ export const PL: LegalText = {
             {
               list: [
                 "Starter: {starter} miesięcznie.",
-                "Practice: {practice} miesięcznie lub {practiceYear} rocznie.",
+                "Practice: {practice} miesięcznie.",
                 "Group (grupy i gabinety z wieloma lokalizacjami): indywidualne warunki po uzgodnieniu — kontakt {email}. Planu Group nie można kupić na stronie.",
-                "Oferta założycielska: Practice miesięcznie za {foundingPrice} przez pierwsze {foundingMonths} miesięcy, tylko dla pierwszych {foundingClinics} gabinetów. Po tych {foundingMonths} miesiącach subskrypcja trwa dalej w zwykłej cenie Practice, {practice} miesięcznie, chyba że ją Państwo anulują. Oferta kończy się, gdy skorzysta z niej {foundingClinics} gabinetów.",
               ],
             },
             "Płatności obsługuje Dodo Payments, które działa jako sprzedawca (merchant of record) i autoryzowany odsprzedawca: sprzedaje Państwu subskrypcję, obciąża środek płatności, widnieje na wyciągu z karty, nalicza i pobiera należne podatki oraz wystawia fakturę. Do zakupu stosuje się także warunki dla kupujących Dodo Payments. Nigdy nie widzimy pełnych danych karty.",
-            "Subskrypcje odnawiają się automatycznie na koniec każdego okresu rozliczeniowego (miesięcznego lub rocznego) aż do anulowania. Jeśli płatność się nie powiedzie, możemy wstrzymać nowe filmy do czasu jej uregulowania.",
+            "Subskrypcje odnawiają się automatycznie na koniec każdego miesięcznego okresu rozliczeniowego aż do anulowania. Jeśli płatność się nie powiedzie, możemy wstrzymać nowe filmy do czasu jej uregulowania.",
             "Możemy zmieniać ceny cennikowe. Poinformujemy o tym e-mailem co najmniej 30 dni wcześniej, a nowa cena obowiązuje dopiero od najbliższego odnowienia po tym powiadomieniu.",
           ],
         },
@@ -279,19 +278,19 @@ export const PL: LegalText = {
 
     refunds: {
       title: "Polityka zwrotów",
-      description: "Jak działa anulowanie i zwroty w subskrypcjach DentVideo, w tym w ofercie założycielskiej.",
+      description: "Jak działa anulowanie i zwroty w subskrypcjach DentVideo.",
       intro: ["Ta polityka jest częścią naszego [Regulaminu](terms). W skrócie: można anulować w każdej chwili, dostęp trwa do końca opłaconego okresu, a jeśli usługa zawiodła, naprawimy to."],
       sections: [
         {
           heading: "1. Anulowanie",
           blocks: [
-            "Mogą Państwo anulować w każdej chwili w Ustawieniach (Zarządzaj płatnościami) lub pisząc na {email}. Anulowanie zatrzymuje kolejne odnowienie; działa na koniec już opłaconego okresu miesięcznego lub rocznego, a do tego czasu dostęp pozostaje pełny. Pobrane filmy pozostają Państwa. Usunięcie konta również anuluje subskrypcję, ze skutkiem natychmiastowym.",
+            "Mogą Państwo anulować w każdej chwili w Ustawieniach (Zarządzaj płatnościami) lub pisząc na {email}. Anulowanie zatrzymuje kolejne odnowienie; działa na koniec już opłaconego okresu miesięcznego, a do tego czasu dostęp pozostaje pełny. Pobrane filmy pozostają Państwa. Usunięcie konta również anuluje subskrypcję, ze skutkiem natychmiastowym.",
           ],
         },
         {
           heading: "2. Brak zwrotów za część okresu",
           blocks: [
-            "Nie zwracamy niewykorzystanej części rozpoczętego okresu, miesięcznego lub rocznego, chyba że wymaga tego prawo albo usługa zawiodła w sposób opisany niżej. Przy zmianie planu różnica za resztę bieżącego okresu jest od razu pobierana lub zaliczana na Państwa korzyść.",
+            "Nie zwracamy niewykorzystanej części rozpoczętego okresu miesięcznego, chyba że wymaga tego prawo albo usługa zawiodła w sposób opisany niżej. Przy zmianie planu różnica za resztę bieżącego okresu jest od razu pobierana lub zaliczana na Państwa korzyść.",
           ],
         },
         {
@@ -301,19 +300,13 @@ export const PL: LegalText = {
           ],
         },
         {
-          heading: "4. Oferta założycielska",
-          blocks: [
-            "Oferta założycielska daje pierwszym {foundingClinics} gabinetom plan Practice za {foundingPrice} miesięcznie przez {foundingMonths} miesięcy, płatny co miesiąc. Po tych {foundingMonths} miesiącach ta sama subskrypcja trwa dalej w zwykłej cenie Practice, {practice} miesięcznie, chyba że ją Państwo anulują. Cena założycielska jest związana z tą subskrypcją: po anulowaniu wygasa i może nie być ponownie dostępna.",
-          ],
-        },
-        {
-          heading: "5. Jak wypłacane są zwroty",
+          heading: "4. Jak wypłacane są zwroty",
           blocks: [
             "Sprzedawcą (merchant of record) przy każdym zakupie DentVideo jest Dodo Payments, dlatego zwroty wypłaca Dodo Payments na pierwotny środek płatności, łącznie z podatkiem pobranym od zwracanej kwoty. Prosimy najpierw napisać do nas na {email}; można też zwrócić się do Dodo Payments na podstawie jego warunków dla kupujących. Bank może potrzebować kilku dni, by pokazać zwrot.",
           ],
         },
         {
-          heading: "6. Prawa ustawowe",
+          heading: "5. Prawa ustawowe",
           blocks: [
             "DentVideo jest sprzedawane firmom i profesjonalistom. Jeśli mimo to bezwzględnie obowiązujące przepisy przyznają Państwu prawo odstąpienia lub zwrotu, przysługuje ono niezależnie od tej polityki.",
           ],

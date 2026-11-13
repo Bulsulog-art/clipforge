@@ -3,7 +3,6 @@ import { dvAdmin } from "@/lib/dentvid/supabase";
 import { sendEmail } from "@/lib/dentvid/email";
 import { workerAuthorised } from "@/lib/dentvid/internal-auth";
 import { lifecycleConfig, runNudges, runPaying, supabaseLifecycleStore } from "@/lib/dentvid/lifecycle";
-import { loadFoundingState } from "@/lib/dentvid/subscriptions";
 import { LIMITS } from "@/lib/rate-limit";
 import { limitChecks, rateLimited } from "@/lib/rate-limit-server";
 
@@ -22,11 +21,7 @@ export async function POST(req: Request) {
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ stopped: "no email key" });
 
   const db = dvAdmin();
-  // The day-7 email names the founding offer only while seats are left (closed at 100 automatically),
-  // and shows how many are left only when that count comes from recorded subscriptions.
-  const founding = await loadFoundingState(db);
-  const env = founding.open ? process.env : { ...process.env, DENTVIDEO_FOUNDING_OFFER: "off" };
-  const config = { ...lifecycleConfig(env), seats: { left: founding.left, reliable: founding.reliable } };
+  const config = lifecycleConfig();
   const store = supabaseLifecycleStore(db);
   const allow = async () => (await limitChecks([{ key: "rl:lifecycle:global", rule: LIMITS.lifecycleGlobal }])).ok;
   const activation = await runNudges({ store, send: sendEmail, allow, config });

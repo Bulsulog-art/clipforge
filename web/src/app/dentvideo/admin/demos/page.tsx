@@ -4,7 +4,6 @@ import { requireAdmin } from "@/lib/dentvid/admin-server";
 import { listDemos, loadDemoActivity, purgeExpiredDemos } from "@/lib/dentvid/demos-server";
 import { demoLanguage, demoPath, demoStats } from "@/lib/dentvid/demos";
 import { dvHref, dvUrl } from "@/lib/dentvid/host";
-import { adminOrNull, foundingForApp } from "@/lib/dentvid/billing-state";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Demo links", robots: { index: false, follow: false } };
@@ -21,7 +20,6 @@ export default async function AdminDemosPage() {
   const list = await listDemos();
   const activity = await loadDemoActivity(list.demos);
   const stats = demoStats(list.demos, activity.events, activity.clinics);
-  const founding = await foundingForApp(await adminOrNull()).catch(() => ({ open: false }));
   const demos = list.demos.map((d) => ({
     ...d,
     url: dvUrl(demoPath(d.token, demoLanguage(d.language))),
@@ -33,7 +31,6 @@ export default async function AdminDemosPage() {
       demos={demos}
       now={now.toISOString()}
       backHref={dvHref("/dentvideo/admin")}
-      foundingOpen={founding.open}
       warning={list.error}
       purged={purged}
     />

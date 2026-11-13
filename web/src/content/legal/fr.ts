@@ -90,13 +90,12 @@ export const FR: LegalText = {
             {
               list: [
                 "Starter : {starter} par mois.",
-                "Practice : {practice} par mois ou {practiceYear} par an.",
+                "Practice : {practice} par mois.",
                 "Group (groupes et cabinets multisites) : conditions sur mesure par accord — contact {email}. Group ne peut pas être acheté sur le site.",
-                "Offre fondateur : Practice mensuel à {foundingPrice} par mois pendant vos {foundingMonths} premiers mois, réservé aux {foundingClinics} premiers cabinets. Après ces {foundingMonths} mois, l'abonnement continue au prix normal de Practice, {practice} par mois, sauf résiliation. L'offre prend fin lorsque {foundingClinics} cabinets en ont bénéficié.",
               ],
             },
             "Les paiements sont gérés par Dodo Payments, qui agit en tant que marchand officiel (merchant of record) et revendeur autorisé : il vous vend l'abonnement, débite votre moyen de paiement, apparaît sur votre relevé de carte, calcule et perçoit les taxes applicables et émet votre facture. Les conditions acheteur de Dodo Payments s'appliquent aussi à l'achat. Nous ne voyons jamais vos données de carte complètes.",
-            "Les abonnements se renouvellent automatiquement à la fin de chaque période (mensuelle ou annuelle) jusqu'à leur résiliation. Si un paiement échoue, nous pouvons suspendre les nouvelles vidéos jusqu'à régularisation.",
+            "Les abonnements se renouvellent automatiquement à la fin de chaque période mensuelle jusqu'à leur résiliation. Si un paiement échoue, nous pouvons suspendre les nouvelles vidéos jusqu'à régularisation.",
             "Nous pouvons modifier les prix catalogue. Nous vous prévenons par e-mail au moins 30 jours à l'avance, et un nouveau prix ne s'applique qu'à partir de votre prochain renouvellement après ce préavis.",
           ],
         },
@@ -279,19 +278,19 @@ export const FR: LegalText = {
 
     refunds: {
       title: "Politique de remboursement",
-      description: "Comment fonctionnent la résiliation et les remboursements des abonnements DentVideo, y compris l'offre fondateur.",
+      description: "Comment fonctionnent la résiliation et les remboursements des abonnements DentVideo.",
       intro: ["Cette politique fait partie de nos [Conditions d'utilisation](terms). En bref : résiliez quand vous voulez, gardez l'accès jusqu'à la fin de la période payée, et si le service a fait défaut, nous rectifions."],
       sections: [
         {
           heading: "1. Résilier",
           blocks: [
-            "Vous pouvez résilier à tout moment dans les Réglages (Gérer la facturation) ou en écrivant à {email}. La résiliation arrête le prochain renouvellement ; elle prend effet à la fin de la période mensuelle ou annuelle déjà payée, et vous gardez un accès complet jusque-là. Les vidéos téléchargées restent les vôtres. La suppression de votre compte résilie aussi l'abonnement, immédiatement.",
+            "Vous pouvez résilier à tout moment dans les Réglages (Gérer la facturation) ou en écrivant à {email}. La résiliation arrête le prochain renouvellement ; elle prend effet à la fin de la période mensuelle déjà payée, et vous gardez un accès complet jusque-là. Les vidéos téléchargées restent les vôtres. La suppression de votre compte résilie aussi l'abonnement, immédiatement.",
           ],
         },
         {
           heading: "2. Pas de remboursement au prorata",
           blocks: [
-            "Nous ne remboursons pas la partie non utilisée d'une période commencée, mensuelle ou annuelle, sauf si la loi exige un remboursement ou si le service a fait défaut comme décrit ci-dessous. Si vous changez de formule, la différence pour le reste de la période en cours est facturée ou créditée immédiatement.",
+            "Nous ne remboursons pas la partie non utilisée d'une période mensuelle commencée, sauf si la loi exige un remboursement ou si le service a fait défaut comme décrit ci-dessous. Si vous changez de formule, la différence pour le reste de la période en cours est facturée ou créditée immédiatement.",
           ],
         },
         {
@@ -301,19 +300,13 @@ export const FR: LegalText = {
           ],
         },
         {
-          heading: "4. Offre fondateur",
-          blocks: [
-            "L'offre fondateur donne aux {foundingClinics} premiers cabinets la formule Practice à {foundingPrice} par mois pendant {foundingMonths} mois, payée mensuellement. Après ces {foundingMonths} mois, le même abonnement continue au prix normal de Practice, {practice} par mois, sauf résiliation. Le prix fondateur est lié à cet abonnement : si vous résiliez, il prend fin et pourrait ne plus être proposé.",
-          ],
-        },
-        {
-          heading: "5. Comment les remboursements sont versés",
+          heading: "4. Comment les remboursements sont versés",
           blocks: [
             "Dodo Payments est le marchand officiel de chaque achat DentVideo ; les remboursements sont donc versés par Dodo Payments sur le moyen de paiement d'origine, y compris les taxes perçues sur le montant remboursé. Écrivez-nous d'abord à {email} ; vous pouvez aussi vous adresser à Dodo Payments selon ses conditions acheteur. Votre banque peut mettre quelques jours à afficher le remboursement.",
           ],
         },
         {
-          heading: "6. Vos droits légaux",
+          heading: "5. Vos droits légaux",
           blocks: [
             "DentVideo est vendu aux entreprises et aux professionnels. Si une loi impérative vous accorde néanmoins un droit de rétractation ou de remboursement, ce droit s'applique en plus de cette politique.",
           ],

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DV_FOUNDING, foundingState, type DvSubRecord, type FoundingState } from "./billing";
+import type { DvSubRecord } from "./billing";
 
 /**
  * The subscription ledger (dentvid_subscriptions) and payment index
@@ -39,8 +39,6 @@ export interface SubscriptionStore {
   recordPayment(paymentId: string, clinicId: string, subscriptionId: string | null): Promise<void>;
   /** The clinic a Dodo payment belongs to; null if unknown or the table is missing. */
   paymentClinic(paymentId: string): Promise<{ clinic_id: string; dodo_subscription_id: string | null } | null>;
-  /** Distinct clinics that used the founding offer; null if the ledger is unavailable. */
-  foundingClinics(): Promise<number | null>;
 }
 
 const COLS = "dodo_subscription_id, clinic_id, status, product, tier, interval, discount_id, founding, period_end, last_event_at, last_event_type, updated_at";
@@ -109,88 +107,5 @@ export function supabaseSubscriptionStore(db: SupabaseClient): SubscriptionStore
         return null;
       }
     },
-    async foundingClinics() {
-      try {
-        const { data, error } = await db.from("dentvid_subscriptions").select("clinic_id").eq("founding", true).limit(DV_FOUNDING.clinics * 3);
-        if (error) {
-          warnOnce("dentvid_subscriptions", error);
-          return null;
-        }
-        return new Set((data ?? []).map((r) => (r as { clinic_id: string }).clinic_id)).size;
-      } catch (e) {
-        warnOnce("dentvid_subscriptions", e as Error);
-        return null;
-      }
-    },
   };
-}
-
-/** Active Practice clinics: the founding estimate when nothing better is recorded. Throws on error. */
-async function activePracticeClinics(db: SupabaseClient): Promise<number> {
-  const { count, error } = await db
-    .from("dentvid_clinics")
-    .select("id", { count: "exact", head: true })
-    .eq("plan", "active")
-    .eq("plan_tier", DV_FOUNDING.tier);
-  if (error) throw new Error(error.message);
-  return count ?? 0;
-}
-
-/** Set when Dodo refused the founding code at checkout: its uses are gone, whatever we counted. */
-const FOUNDING_CLOSED_KEY = "dv:founding:closed";
-
-async function foundingClosedFlag(): Promise<boolean> {
-  try {
-    const { webOpsStore } = await import("./ops-server");
-    return !!(await (await webOpsStore())?.get(FOUNDING_CLOSED_KEY));
-  } catch {
-    return false;
-  }
-}
-
-/** Dodo refused the founding code: close the offer everywhere (30 days, or until DENTVIDEO_FOUNDING_OFFER says otherwise) and tell the owner. */
-export async function markFoundingClosed(): Promise<void> {
-  cache = null;
-  try {
-    const { webOpsStore, raiseOwnerAlert } = await import("./ops-server");
-    await (await webOpsStore())?.set(FOUNDING_CLOSED_KEY, new Date().toISOString(), 30 * 86_400);
-    const { alerts } = await import("./ops-alert");
-    await raiseOwnerAlert(alerts.foundingFull({ used: DV_FOUNDING.clinics, clinics: DV_FOUNDING.clinics }));
-  } catch {
-    // best effort
-  }
-}
-
-let cache: { at: number; state: FoundingState } | null = null;
-const CACHE_MS = 60_000;
-
-/** For tests. */
-export function _resetFoundingCache() {
-  cache = null;
-}
-
-/**
- * The founding offer as checkout and the app should present it: closed once
- * 100 seats are used (or by DENTVIDEO_FOUNDING_OFFER). Cached for a minute.
- * If the clinics cannot even be counted, the offer stays as the env says but
- * is marked unreliable (no "N left" is shown).
- */
-export async function loadFoundingState(db: SupabaseClient, env: Record<string, string | undefined> = process.env, now = Date.now()): Promise<FoundingState> {
-  if (cache && now - cache.at < CACHE_MS) return cache.state;
-  if (await foundingClosedFlag()) {
-    const state = { ...foundingState(null, DV_FOUNDING.clinics, env), reliable: false };
-    cache = { at: now, state };
-    return state;
-  }
-  let estimate: number;
-  try {
-    estimate = await activePracticeClinics(db);
-  } catch (e) {
-    console.warn("[dentvideo] founding seats: could not count clinics", (e as Error).message);
-    return { ...foundingState(null, 0, env), reliable: false };
-  }
-  const recorded = await supabaseSubscriptionStore(db).foundingClinics();
-  const state = foundingState(recorded, estimate, env);
-  cache = { at: now, state };
-  return state;
 }

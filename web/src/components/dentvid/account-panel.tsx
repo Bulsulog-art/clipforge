@@ -261,7 +261,7 @@ export function AccountPanel({
 
   const [labelBefore, labelAfter = ""] = t.deleteTypeLabel.split("{name}");
   const tierName = (tier: DvTier) => planTierName(locale, tier);
-  const priceLine = (o: PlanOption) => `${usd(locale, o.priceUsd)} ${o.interval === "year" ? text.billing.perYear : text.billing.perMonth}`;
+  const priceLine = (o: PlanOption) => `${usd(locale, o.priceUsd)} ${text.billing.perMonth}`;
 
   if (part === "billing") {
     return (

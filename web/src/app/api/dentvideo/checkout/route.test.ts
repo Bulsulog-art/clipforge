@@ -84,7 +84,7 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("opens a live Dodo checkout for the plan with the founding code and metadata", async () => {
+  it("opens a live Dodo checkout for the plan with metadata and no discount code", async () => {
     fetchMock.mockResolvedValueOnce(ok());
     const res = await call({ plan: "practice", interval: "month" });
     expect(res).toEqual({ status: 200, body: { url: "https://checkout.dodopayments.com/session/cks_1" } });
@@ -93,21 +93,29 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(sent(0)).toMatchObject({
       product_cart: [{ product_id: "pdt_0NrVai0xqpQKU8H3Zj3QN", quantity: 1 }],
       customer: { email: "dr@clinic.example" },
-      discount_codes: ["KURUCU100"],
       metadata: { app: "dentvideo", clinic_id: CLINIC, owner_id: OWNER, plan: "practice" },
       return_url: "https://dentvideo.com/app?billing=success",
       customization: { force_language: "de" },
     });
+    expect(sent(0)).not.toHaveProperty("discount_codes");
   });
 
-  it("never charges list price silently when Dodo refuses the founding code: says the offer is full", async () => {
-    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ message: "discount usage limit reached" }), { status: 422 })).mockResolvedValueOnce(ok());
-    const res = await call({ plan: "practice", interval: "month" });
-    expect(res.status).toBe(409);
-    expect(res.body.code).toBe("founding_full");
-    expect(String(res.body.error)).toMatch(/^Das Gründungsangebot .* 99\s\$\/Monat/);
-    expect(sent(0).discount_codes).toEqual(["KURUCU100"]);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+  it("no founding code is applied any more, even with the old env switch on", async () => {
+    vi.stubEnv("DENTVIDEO_FOUNDING_OFFER", "1");
+    vi.stubEnv("DENTVIDEO_FOUNDING_CODE", "KURUCU100");
+    for (const _ of ["starter", "practice"]) fetchMock.mockResolvedValueOnce(ok());
+    for (const plan of ["starter", "practice"]) {
+      expect((await call({ plan, interval: "month" })).status, plan).toBe(200);
+    }
+    for (let i = 0; i < 2; i++) expect(sent(i)).not.toHaveProperty("discount_codes");
+  });
+
+  it("refuses yearly billing: there is no yearly plan", async () => {
+    for (const plan of ["starter", "practice"]) {
+      const res = await call({ plan, interval: "year" });
+      expect(res, plan).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.invalidPlan } });
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("refuses a second subscription while the clinic's current one is on hold: update the card instead", async () => {
@@ -194,7 +202,8 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(u.searchParams.get("metadata_app")).toBe("dentvideo");
     expect(u.searchParams.get("metadata_plan")).toBe("practice");
     expect(u.searchParams.get("redirect_url")).toMatch(/\/app\?billing=success$/);
-    expect(code).toBe("KURUCU100");
+    // No code to type on Dodo's page: nothing is applied by default.
+    expect(code).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

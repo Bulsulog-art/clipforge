@@ -93,13 +93,12 @@ export const EN: LegalText = {
             {
               list: [
                 "Starter: {starter} per month.",
-                "Practice: {practice} per month, or {practiceYear} per year.",
+                "Practice: {practice} per month.",
                 "Group (groups and multi-location practices): custom terms by agreement — contact {email}. Group cannot be bought on the website.",
-                "Founding offer: Practice monthly at {foundingPrice} per month for your first {foundingMonths} months, for the first {foundingClinics} clinics only. After those {foundingMonths} months the subscription continues at the regular Practice price of {practice} per month unless you cancel. The offer ends once {foundingClinics} clinics have taken it.",
               ],
             },
             "Payments are handled by Dodo Payments, which acts as merchant of record and authorised reseller: it sells you the subscription, charges your payment method, appears on your card statement, calculates and collects any applicable taxes and issues your invoice. Dodo Payments' buyer terms also apply to the purchase. We never see your full card details.",
-            "Subscriptions renew automatically at the end of each billing period (monthly or yearly) until cancelled. If a payment fails, we may pause new videos until it is resolved.",
+            "Subscriptions renew automatically at the end of each monthly billing period until cancelled. If a payment fails, we may pause new videos until it is resolved.",
             "We may change list prices. We will tell you at least 30 days in advance by email, and a new price applies only from your next renewal after that notice.",
           ],
         },
@@ -288,19 +287,19 @@ export const EN: LegalText = {
 
     refunds: {
       title: "Refund Policy",
-      description: "How cancelling and refunds work for DentVideo subscriptions, including the founding offer.",
+      description: "How cancelling and refunds work for DentVideo subscriptions.",
       intro: ["This policy is part of our [Terms of Service](terms). In short: cancel any time, keep access until the end of the period you paid for, and if the service failed, we make it right."],
       sections: [
         {
           heading: "1. Cancelling",
           blocks: [
-            "You can cancel at any time in Settings (Manage billing) or by writing to {email}. Cancellation stops the next renewal; it takes effect at the end of the monthly or yearly period you have already paid for, and you keep full access until then. Videos you have downloaded stay yours. Deleting your account also cancels the subscription, at once.",
+            "You can cancel at any time in Settings (Manage billing) or by writing to {email}. Cancellation stops the next renewal; it takes effect at the end of the monthly period you have already paid for, and you keep full access until then. Videos you have downloaded stay yours. Deleting your account also cancels the subscription, at once.",
           ],
         },
         {
           heading: "2. No partial-period refunds",
           blocks: [
-            "We do not refund the unused part of a period that has started, monthly or yearly, except where the law requires a refund or where the service failed as described below. If you switch plans, the difference for the rest of the current period is charged or credited straight away.",
+            "We do not refund the unused part of a monthly period that has started, except where the law requires a refund or where the service failed as described below. If you switch plans, the difference for the rest of the current period is charged or credited straight away.",
           ],
         },
         {
@@ -310,19 +309,13 @@ export const EN: LegalText = {
           ],
         },
         {
-          heading: "4. Founding offer",
-          blocks: [
-            "The founding offer gives the first {foundingClinics} clinics the Practice plan at {foundingPrice} per month for {foundingMonths} months, paid monthly. After those {foundingMonths} months the same subscription continues at the regular Practice price of {practice} per month unless you cancel. The founding price is tied to that subscription: if you cancel, it ends and may not be available again.",
-          ],
-        },
-        {
-          heading: "5. How refunds are paid",
+          heading: "4. How refunds are paid",
           blocks: [
             "Dodo Payments is the merchant of record for every DentVideo purchase, so refunds are paid by Dodo Payments to the original payment method, including any tax it collected on the refunded amount. Ask us first at {email}; you can also contact Dodo Payments under its buyer terms. Your bank may take several days to show the refund.",
           ],
         },
         {
-          heading: "6. Your statutory rights",
+          heading: "5. Your statutory rights",
           blocks: [
             "DentVideo is sold to businesses and professionals. Where mandatory law nevertheless gives you a right to cancel or to a refund, that right applies in addition to this policy.",
           ],

@@ -24,7 +24,6 @@ import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { appText } from "@/content/dentvideo-app";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { landingJsonLd } from "@/lib/dentvid/seo";
-import { DV_FOUNDING, DV_TIERS, foundingOfferOpen } from "@/lib/dentvid/billing";
 import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
 import { SampleVideo } from "./sample-video";
@@ -95,12 +94,6 @@ function Hero({ locale }: { locale: Locale }) {
           </div>
           <p className="mt-3 text-sm text-dv-muted">
             <span className="font-semibold text-dv-ink">{c.pricing.from}</span>
-            {foundingOfferOpen() && (
-              <>
-                <span aria-hidden="true"> · </span>
-                {c.hero.note}
-              </>
-            )}
           </p>
         </div>
 
@@ -533,9 +526,6 @@ function Pricing({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   const p = c.pricing;
   const start = dvHref(`/dentvideo/start?lang=${locale}`);
-  const founding = foundingOfferOpen();
-  // The card the founding price applies to (Practice) says so itself, not only the banner above.
-  const foundingTier = founding ? DV_TIERS.indexOf(DV_FOUNDING.tier) : -1;
   return (
     <section id="pricing" className="relative isolate mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
       <div aria-hidden="true" className="absolute left-1/2 top-16 -z-10 h-72 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
@@ -543,17 +533,6 @@ function Pricing({ locale }: { locale: Locale }) {
         <H2 className="mx-auto max-w-2xl">{p.heading}</H2>
         <p className="mx-auto mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{p.text}</p>
       </div>
-
-      {/* The founding offer, stated once above the cards in a calm, light band: a fact, not an alarm. */}
-      {founding && (
-        <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center gap-2.5 rounded-2xl bg-white/80 px-5 py-4 text-center ring-1 ring-dv-teal/20 backdrop-blur sm:flex-row sm:gap-4 sm:rounded-full sm:py-2.5 sm:ps-2.5 sm:text-start" data-founding-banner>
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white">
-            <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            {p.foundingBadge}
-          </span>
-          <p className="text-[0.9375rem] font-semibold leading-snug text-dv-ink">{p.founding}</p>
-        </div>
-      )}
 
       <ul className="mt-12 grid gap-5 md:grid-cols-3 md:items-stretch">
         {p.tiers.map((tier, i) => {
@@ -566,33 +545,15 @@ function Pricing({ locale }: { locale: Locale }) {
             >
               {featured && (
                 <span className="absolute -top-3 start-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgba(15,92,92,0.8)]">
-                  {/* While the founding offer is open, the badge says why this card's price is lower — not just "recommended". */}
-                  {i === foundingTier ? p.foundingBadge : p.recommended}
+                  {p.recommended}
                 </span>
               )}
               <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
               <p className="mt-1 text-sm leading-relaxed text-dv-muted">{tier.blurb}</p>
-              {i === foundingTier ? (
-                <>
-                  <p className="mt-6 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <span dir="ltr" className="dv-display dv-figure whitespace-nowrap text-[3.25rem] leading-none text-dv-ink">{p.foundingCard.price}</span>
-                    {/* The list price, struck through; the note below says it in words for screen readers. */}
-                    <s dir="ltr" aria-hidden="true" className="dv-figure whitespace-nowrap text-xl font-medium text-dv-muted decoration-dv-muted/70 decoration-2">
-                      {p.foundingCard.listPrice}
-                    </s>
-                    <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
-                  </p>
-                  <p className="mt-3 rounded-xl bg-dv-teal-50 px-3 py-2 text-sm font-medium leading-snug text-dv-teal-900 ring-1 ring-inset ring-dv-teal/15">
-                    {p.foundingCard.note}
-                  </p>
-                </>
-              ) : (
-                <p className="mt-6 flex items-baseline gap-1">
-                  <span dir="ltr" className="dv-display dv-figure text-[3.25rem] leading-none text-dv-ink">{tier.price}</span>
-                  <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
-                </p>
-              )}
-              {featured && <p className="mt-2 text-sm font-medium text-dv-teal">{p.yearly}</p>}
+              <p className="mt-6 flex items-baseline gap-1">
+                <span dir="ltr" className="dv-display dv-figure text-[3.25rem] leading-none text-dv-ink">{tier.price}</span>
+                <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
+              </p>
               <ul className="mt-6 space-y-3 border-t border-dv-line pt-6">
                 {tier.features.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-[0.9375rem] leading-snug text-dv-body">

@@ -42,7 +42,7 @@ const decode = (h: string) => h.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').
 describe("the demo page", () => {
   it("renders in every language, with the clinic's name, the facts and a CTA that carries the demo", () => {
     for (const l of LOCALES) {
-      const h = decode(renderToStaticMarkup(<DemoPage locale={l} demo={demo(l)} foundingOpen />));
+      const h = decode(renderToStaticMarkup(<DemoPage locale={l} demo={demo(l)} />));
       expect(h, l).toContain(`lang="${l}"`);
       expect(h, l).toContain(`dir="${l === "ar" ? "rtl" : "ltr"}"`);
       expect(h, l).toContain(fillDemo(DEMO_COPY[l].headline, { name: "Klinik Örnek" }));
@@ -55,10 +55,14 @@ describe("the demo page", () => {
     }
   });
 
-  it("states the founding price only while the offer is open", () => {
-    const closed = decode(renderToStaticMarkup(<DemoPage locale="tr" demo={demo("tr")} foundingOpen={false} />));
-    expect(closed).not.toContain(DEMO_COPY.tr.facts.founding);
-    expect(closed).toContain(DEMO_COPY.tr.facts.from);
+  it("states the starting price ($29, Starter) and no founding offer, in every language", () => {
+    for (const l of LOCALES) {
+      const h = decode(renderToStaticMarkup(<DemoPage locale={l} demo={demo(l)} />));
+      expect(h, l).toContain(DEMO_COPY[l].facts.from);
+      expect(DEMO_COPY[l].facts.from.match(/\d+/g), l).toEqual(["29"]);
+      expect(Object.keys(DEMO_COPY[l].facts), l).not.toContain("founding");
+      expect(h, l).not.toMatch(/\b99\b|990|founding|kurucu|\bGründungs|fundador|fondateur|創業|المؤسسين|założyciel/i);
+    }
   });
 
   it("is never indexed or followed, and a missing demo is the 404", () => {
@@ -67,7 +71,7 @@ describe("the demo page", () => {
       expect(m.robots).toMatchObject({ index: false, follow: false });
     }
     expect(demoMetadata("tr", demo("tr")).title).toBe("Klinik Örnek için bir önizleme");
-    expect(() => renderToStaticMarkup(<DemoPage locale="tr" demo={null} foundingOpen />)).toThrow("NEXT_NOT_FOUND");
+    expect(() => renderToStaticMarkup(<DemoPage locale="tr" demo={null} />)).toThrow("NEXT_NOT_FOUND");
   });
 });
 
@@ -103,7 +107,6 @@ describe("sign-up prefill", () => {
           locale="tr"
           step="clinic"
           plans={[]}
-          founding={null}
           demo={{ token: "Ab3dE5fG7hJ", profile: { name: "Klinik Örnek", city: "İzmir", country: "TR", language: "tr", brandColor: "#1f4e79" }, logoUrl: "/api/dentvideo/demo/Ab3dE5fG7hJ/logo" }}
         />,
       ),
@@ -118,7 +121,6 @@ describe("sign-up prefill", () => {
           locale="tr"
           step="clinic"
           plans={[]}
-          founding={null}
           initial={{ name: "Kendi Adım", country: "TR", language: "tr", services: ["İmplant"] }}
           demo={{ token: "Ab3dE5fG7hJ", profile: { name: "Klinik Örnek", language: "tr" } }}
         />,

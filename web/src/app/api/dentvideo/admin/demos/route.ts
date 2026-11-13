@@ -6,7 +6,6 @@ import { createDemo, setDemoDisabled } from "@/lib/dentvid/demos-server";
 import { ImageFetchError, checkImageBytes, fetchImageSafely, type FetchedImage } from "@/lib/dentvid/safe-image-fetch";
 import { dvUrl } from "@/lib/dentvid/host";
 import { demoMessages } from "@/content/dentvideo-demo";
-import { adminOrNull, foundingForApp } from "@/lib/dentvid/billing-state";
 import { LIMITS } from "@/lib/rate-limit";
 import { limitChecks } from "@/lib/rate-limit-server";
 
@@ -109,12 +108,11 @@ export async function POST(req: Request) {
   if (!saved.ok) return NextResponse.json({ error: saved.error }, { status: saved.missing ? 503 : 500 });
 
   const url = dvUrl(demoPath(saved.demo.token, input.language));
-  const founding = await foundingForApp(await adminOrNull()).catch(() => ({ open: false }));
   return NextResponse.json({
     token: saved.demo.token,
     url,
     expiresAt: saved.demo.expires_at,
-    messages: demoMessages(input.language, input.clinicName, url, founding.open),
+    messages: demoMessages(input.language, input.clinicName, url),
   });
 }
 

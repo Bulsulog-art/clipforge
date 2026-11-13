@@ -21,7 +21,6 @@ export function AdminDemos({
   demos,
   now,
   backHref,
-  foundingOpen,
   warning,
   purged = 0,
 }: {
@@ -29,7 +28,6 @@ export function AdminDemos({
   demos: AdminDemoRow[];
   now: string;
   backHref: string;
-  foundingOpen: boolean;
   warning?: string;
   purged?: number;
 }) {
@@ -108,7 +106,7 @@ export function AdminDemos({
                     <tbody>
                       {demos.map((d) => {
                         const live = isDemoActive(d, at);
-                        const msgs = demoMessages(demoLanguage(d.language), d.clinic_name, d.url, foundingOpen);
+                        const msgs = demoMessages(demoLanguage(d.language), d.clinic_name, d.url);
                         return (
                           <tr key={d.token} className="border-b border-dv-line align-top last:border-0" data-token={d.token}>
                             <td className="px-4 py-3">

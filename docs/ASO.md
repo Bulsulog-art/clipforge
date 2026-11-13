@@ -22,9 +22,8 @@ review-only with no setup), cut the matching lines before submitting.
    (after the 2025 Epic ruling) and in some other regions under separate entitlements. Decide the model before
    submission and re-read the current guideline 3.1. Consequences for metadata:
    - The listings name the plans but **show no prices**. Prices go in the IAP products, and Apple shows them on the page.
-   - **Do not put the founding code `KURUCU100` or "$39 for 12 months" in store metadata** unless the offer exists as an
-     App Store offer code or Play promo code. Promotional text is the place for it then. An alternative promo line is
-     at the end of this file.
+   - **No discount codes or special offers in store metadata.** There is no founding offer any more (removed
+     2026-11-13).
    - Apple asks for working links to Terms of Use (EULA) and the Privacy Policy. **`https://dentvideo.com/terms` and
      `https://dentvideo.com/privacy` do not exist yet.** They are placeholders in every description. Create them, or
      replace the URLs, before submission.
@@ -185,7 +184,7 @@ STRAIGHT ANSWERS
 PLANS
 See a live preview with your logo and colors before you subscribe.
 • Starter: five checked videos every Monday, plus filming cards.
-• Practice: everything in Starter, your own recordings turned into captioned clips, and your logo and brand colors in every video. Monthly or yearly.
+• Practice: everything in Starter, your own recordings turned into captioned clips, and your logo and brand colors in every video. Monthly.
 • Group: for groups and multi-location practices. Contact us and we'll set it up with you.
 
 Terms of Use: https://dentvideo.com/terms
@@ -251,7 +250,7 @@ STRAIGHT ANSWERS
 PLANS
 See a live preview with your logo and colours before you subscribe.
 • Starter: five checked videos every Monday, plus filming cards.
-• Practice: everything in Starter, your own recordings turned into captioned clips, and your logo and brand colours in every video. Monthly or yearly.
+• Practice: everything in Starter, your own recordings turned into captioned clips, and your logo and brand colours in every video. Monthly.
 • Group: for groups and multi-site practices. Contact us and we'll set it up with you.
 
 Terms of Use: https://dentvideo.com/terms
@@ -317,7 +316,7 @@ OFFEN GESAGT
 TARIFE
 Vor dem Abschluss sehen Sie eine Live-Vorschau mit Ihrem Logo und Ihren Farben.
 • Starter: jeden Montag fünf geprüfte Videos, dazu Drehkarten.
-• Practice: alles aus Starter, eigene Aufnahmen als untertitelte Clips sowie Logo und Praxisfarben in jedem Video. Monatlich oder jährlich.
+• Practice: alles aus Starter, eigene Aufnahmen als untertitelte Clips sowie Logo und Praxisfarben in jedem Video. Monatlich.
 • Group: für Praxisgruppen mit mehreren Standorten. Sprechen Sie uns an, wir richten es mit Ihnen ein.
 
 Nutzungsbedingungen: https://dentvideo.com/terms
@@ -383,7 +382,7 @@ CON CLARIDAD
 PLANES
 Antes de suscribirte ves una vista previa en directo con tu logo y tus colores.
 • Starter: cinco vídeos revisados cada lunes y tarjetas de grabación.
-• Practice: todo lo de Starter, tus propias grabaciones convertidas en clips con subtítulos y tu logo y colores en cada vídeo. Mensual o anual.
+• Practice: todo lo de Starter, tus propias grabaciones convertidas en clips con subtítulos y tu logo y colores en cada vídeo. Mensual.
 • Group: para grupos y clínicas con varios centros. Escríbenos y lo configuramos contigo.
 
 Condiciones de uso: https://dentvideo.com/terms
@@ -449,7 +448,7 @@ CON CLARIDAD
 PLANES
 Antes de suscribirse verá una vista previa en vivo con su logo y sus colores.
 • Starter: cinco videos revisados cada lunes y tarjetas de grabación.
-• Practice: todo lo de Starter, sus propias grabaciones convertidas en clips con subtítulos y su logo y colores en cada video. Mensual o anual.
+• Practice: todo lo de Starter, sus propias grabaciones convertidas en clips con subtítulos y su logo y colores en cada video. Mensual.
 • Group: para grupos y clínicas con varias sucursales. Escríbenos y lo configuramos contigo.
 
 Términos de uso: https://dentvideo.com/terms
@@ -515,7 +514,7 @@ AÇIKÇA SÖYLEYELİM
 PAKETLER
 Abone olmadan önce logonuz ve renklerinizle canlı bir önizleme görürsünüz.
 • Starter: her pazartesi beş denetlenmiş video ve çekim kartları.
-• Practice: Starter'daki her şey, kendi kayıtlarınızdan altyazılı klipler, her videoda logonuz ve kurumsal renkleriniz. Aylık ya da yıllık.
+• Practice: Starter'daki her şey, kendi kayıtlarınızdan altyazılı klipler, her videoda logonuz ve kurumsal renkleriniz. Aylık.
 • Group: gruplar ve çok şubeli klinikler için. Bize ulaşın, kurulumu sizinle birlikte yapalım.
 
 Kullanım koşulları: https://dentvideo.com/terms
@@ -581,7 +580,7 @@ EN TOUTE TRANSPARENCE
 FORMULES
 Avant de vous abonner, vous voyez un aperçu en direct avec votre logo et vos couleurs.
 • Starter : cinq vidéos vérifiées chaque lundi et des fiches de tournage.
-• Practice : tout Starter, vos propres enregistrements transformés en extraits sous-titrés, votre logo et vos couleurs dans chaque vidéo. Mensuel ou annuel.
+• Practice : tout Starter, vos propres enregistrements transformés en extraits sous-titrés, votre logo et vos couleurs dans chaque vidéo. Mensuel.
 • Group : pour les groupes et les cabinets à plusieurs sites. Contactez-nous, nous le mettons en place avec vous.
 
 Conditions d'utilisation : https://dentvideo.com/terms
@@ -647,7 +646,7 @@ IN TUTTA CHIAREZZA
 PIANI
 Prima di abbonarti vedi un'anteprima dal vivo con il tuo logo e i tuoi colori.
 • Starter: cinque video verificati ogni lunedì e schede di ripresa.
-• Practice: tutto Starter, le tue registrazioni trasformate in clip sottotitolate, il tuo logo e i tuoi colori in ogni video. Mensile o annuale.
+• Practice: tutto Starter, le tue registrazioni trasformate in clip sottotitolate, il tuo logo e i tuoi colori in ogni video. Mensile.
 • Group: per gruppi e studi con più sedi. Contattaci e lo configuriamo insieme a te.
 
 Termini di utilizzo: https://dentvideo.com/terms
@@ -713,7 +712,7 @@ SEM RODEIOS
 PLANOS
 Antes de assinar, você vê uma prévia ao vivo com o seu logo e as suas cores.
 • Starter: cinco vídeos revisados toda segunda e cartões de gravação.
-• Practice: tudo do Starter, as suas gravações transformadas em clipes legendados e o seu logo e cores em cada vídeo. Mensal ou anual.
+• Practice: tudo do Starter, as suas gravações transformadas em clipes legendados e o seu logo e cores em cada vídeo. Mensal.
 • Group: para grupos e clínicas com várias unidades. Fale com a gente e configuramos tudo com você.
 
 Termos de uso: https://dentvideo.com/terms
@@ -779,7 +778,7 @@ COM FRANQUEZA
 PLANOS
 Antes de subscrever, vê uma pré-visualização em direto com o seu logótipo e as suas cores.
 • Starter: cinco vídeos verificados todas as segundas e cartões de gravação.
-• Practice: tudo o que o Starter inclui, as suas gravações transformadas em clipes legendados e o seu logótipo e cores em cada vídeo. Mensal ou anual.
+• Practice: tudo o que o Starter inclui, as suas gravações transformadas em clipes legendados e o seu logótipo e cores em cada vídeo. Mensal.
 • Group: para grupos e clínicas com várias unidades. Fale connosco e configuramos tudo consigo.
 
 Termos de utilização: https://dentvideo.com/terms
@@ -796,16 +795,6 @@ O DentVideo é um produto da Bulsu Labs.
 4. Aprove a semana com um toque (28)
 5. Partilhe com um toque, texto pronto (35)
 6. Grave 5 minutos e receba os clipes (34)
-
-## Alternative promotional text (only if the founding offer exists as a store offer)
-
-Use this only when the founding offer can actually be redeemed in that store, as an App Store offer code or a Play promo
-code. Otherwise keep the default promotional text above.
-
-- en: `Founding offer for the first 100 clinics: Practice at the Starter price for 12 months. See a live preview with your logo first.` (127)
-- tr: `İlk 100 kliniğe kurucu teklifi: 12 ay boyunca Starter fiyatına Practice. Önce logonuzla canlı önizlemeyi görün.` (111)
-
-Count again if you edit them.
 
 ## Before submission (checklist)
 

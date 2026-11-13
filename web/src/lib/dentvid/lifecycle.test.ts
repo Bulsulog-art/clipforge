@@ -109,31 +109,27 @@ function sender() {
 const allowAll = async () => true;
 
 describe("scheduler: which activation email is due (fake clock)", () => {
-  const due = (h: number, logs: LogRow[] = [], over: Partial<ClinicForMail> = {}, opts = {}) => dueNudges([clinic(1, { created_at: ago(h), ...over })], logs, NOW, opts);
+  const due = (h: number, logs: LogRow[] = [], over: Partial<ClinicForMail> = {}) => dueNudges([clinic(1, { created_at: ago(h), ...over })], logs, NOW);
   const sentAt = (kind: string, h: number): LogRow => ({ clinic_id: id(1), kind, sent_at: ago(h) });
 
-  it("day 0 / 1 / 3 / 7 windows, nothing before 2 h or after 14 days", () => {
+  it("day 0 / 1 / 3 windows, nothing before 2 h or from day 7 on (the former day-7 founding offer is gone)", () => {
     expect(due(1.9)).toEqual([]);
     expect(due(2)).toEqual([{ clinicId: id(1), kind: "nudge_start" }]);
     expect(due(30)).toEqual([{ clinicId: id(1), kind: "nudge_preview" }]);
     expect(due(80)).toEqual([{ clinicId: id(1), kind: "nudge_objections" }]);
-    expect(due(170)).toEqual([{ clinicId: id(1), kind: "nudge_offer" }]);
+    expect(due(170)).toEqual([]);
+    expect(NUDGE_RULES.lastUntilH).toBe(7 * 24);
     expect(due(NUDGE_RULES.lastUntilH)).toEqual([]);
-    expect(SEQUENCE.map((s) => s.kind)).toEqual(["nudge_start", "nudge_preview", "nudge_objections", "nudge_offer"]);
+    expect(SEQUENCE.map((s) => s.kind)).toEqual(["nudge_start", "nudge_preview", "nudge_objections"]);
   });
 
   it("no catch-up burst, never backwards, never twice, at least GAP_H apart", () => {
     // First seen at 80 h with nothing sent: only day 3, not days 0 and 1 as well.
     expect(due(80).map((d) => d.kind)).toEqual(["nudge_objections"]);
     expect(due(30, [sentAt("nudge_preview", 2)])).toEqual([]);
-    expect(due(80, [sentAt("nudge_offer", 1)])).toEqual([]);
+    expect(due(30, [sentAt("nudge_objections", 21)])).toEqual([]);
     expect(due(80, [sentAt("nudge_preview", GAP_H - 1)])).toEqual([]);
     expect(due(80, [sentAt("nudge_preview", GAP_H)])).toEqual([{ clinicId: id(1), kind: "nudge_objections" }]);
-  });
-
-  it("day 7 only while founding seats are left", () => {
-    expect(due(170, [], {}, { offerOpen: false })).toEqual([]);
-    expect(due(170, [], {}, { offerOpen: true })).toHaveLength(1);
   });
 
   it("respects quiet hours in the clinic's own zone", () => {
@@ -159,8 +155,8 @@ describe("scheduler: which activation email is due (fake clock)", () => {
       await runNudges({ store: m.store, send, allow: allowAll, now, config: cfg() });
       if (sent.length > before) at.push(h);
     }
-    expect(at).toEqual([2, 24, 72, 168]);
-    expect(m.log.map((l) => l.kind)).toEqual(["nudge_start", "nudge_preview", "nudge_objections", "nudge_offer"]);
+    expect(at).toEqual([2, 24, 72]);
+    expect(m.log.map((l) => l.kind)).toEqual(["nudge_start", "nudge_preview", "nudge_objections"]);
     for (const s of sent) expect(s.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
   });
 
@@ -307,25 +303,24 @@ describe("runNudges: sending", () => {
     warn.mockRestore();
   });
 
-  it("day 7 carries the founding offer from billing.ts while open, and is not sent at all once closed", async () => {
+  it("day 7 sends nothing: no founding offer email, whatever the old env switch says", async () => {
     const created = ago(170);
-    const open = memoryStore([clinic(1, { created_at: created, profile: { name: "Smile", language: "en" } })]);
-    const a = sender();
-    await runNudges({ store: open.store, send: a.send, allow: allowAll, now: NOW, config: { ...cfg(), seats: { left: 41, reliable: true } } });
-    expect(a.sent[0].subject).toBe("Founding offer: Practice for $49/month for 12 months");
-    expect(a.sent[0].text).toContain("first 100 clinics");
-    expect(a.sent[0].text).toContain("then $99/month");
-    expect(a.sent[0].text).toContain("KURUCU100");
-    expect(a.sent[0].text).toContain("41 of 100");
-    expect(a.sent[0].html).toContain("https://dentvideo.com/start?step=plan&amp;lang=en");
-
-    const closed = memoryStore([clinic(1, { created_at: created, profile: { name: "Smile", language: "en" } })]);
-    const b = sender();
-    const closedCfg = lifecycleConfig({ NEXT_PUBLIC_DENTVIDEO_URL: "https://dentvideo.com", DENTVIDEO_UNSUBSCRIBE_SECRET: "s", DENTVIDEO_FOUNDING_OFFER: "off" });
-    const r = await runNudges({ store: closed.store, send: b.send, allow: allowAll, now: NOW, config: closedCfg });
-    expect(b.sent).toHaveLength(0);
+    const m = memoryStore([clinic(1, { created_at: created, profile: { name: "Smile", language: "en" } })]);
+    const { send, sent } = sender();
+    const oldCfg = lifecycleConfig({ NEXT_PUBLIC_DENTVIDEO_URL: "https://dentvideo.com", DENTVIDEO_UNSUBSCRIBE_SECRET: "s", DENTVIDEO_FOUNDING_OFFER: "1" });
+    const r = await runNudges({ store: m.store, send, allow: allowAll, now: NOW, config: oldCfg });
+    expect(sent).toHaveLength(0);
     expect(r.due).toBe(0);
-    expect(closed.log).toHaveLength(0);
+    expect(m.log).toHaveLength(0);
+  });
+
+  it("day 3 states the real starting price: Starter's $29", async () => {
+    const m = memoryStore([clinic(1, { created_at: ago(80), profile: { name: "Smile", language: "en" } })]);
+    const { send, sent } = sender();
+    await runNudges({ store: m.store, send, allow: allowAll, now: NOW, config: cfg() });
+    expect(sent).toHaveLength(1);
+    expect(sent[0].text).toContain("Plans start at $29/month");
+    expect(sent[0].text).not.toMatch(/KURUCU|\$99|\$990|founding/i);
   });
 
   it("skips (without failing the run) a kind the database does not allow yet (migration 0011)", async () => {

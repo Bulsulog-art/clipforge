@@ -165,8 +165,8 @@ describe("daily digest from rows", () => {
     });
     expect(d.signups).toBe(2);
     expect(d.newPaying).toEqual([{ name: "Gülüş Dental", tier: "practice", country: "TR" }]);
-    // Founding Practice ($49) + Starter ($49).
-    expect(d.mrrUsd).toBe(98);
+    // Historic founding Practice ($49) + Starter ($29).
+    expect(d.mrrUsd).toBe(78);
     expect(d.paying).toBe(2);
     expect(d.churned).toEqual([{ name: "Clínica Sol", to: "cancelled" }]);
     expect(d.weeksDelivered).toBe(1);
@@ -174,7 +174,7 @@ describe("daily digest from rows", () => {
     expect(d.weeksFailed).toBe(1);
     expect(d.period).toBe("Sun 8 Nov 08:30 → Mon 9 Nov 08:30 (Istanbul)");
     const m = renderDigest(d);
-    expect(m.subject).toContain("MRR $98 (+$49)");
+    expect(m.subject).toContain("MRR $78 (+$29)");
     expect(m.text).toContain("Emails sent: 12 (1 failed)");
   });
 

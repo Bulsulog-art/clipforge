@@ -78,7 +78,7 @@ full list of the 40 provincial chambers should be taken from TDB's site.
 
 | # | Organisation | URL | Angle | Status |
 | --- | --- | --- | --- | --- |
-| 40 | Dental Tribune Türkiye | https://tr.dental-tribune.com | Guest article on the 2025 regulation; product news when the founding cohort fills | Verified |
+| 40 | Dental Tribune Türkiye | https://tr.dental-tribune.com | Guest article on the 2025 regulation; product news once the first 100 clinics are on board | Verified |
 | 41 | Medikal Akademi (health news) | https://www.medikalakademi.com.tr | Covers dentistry associations; guest article / news | Verified |
 | 42 | Medikal Akademi — Diş Hekimliği group | https://www.medikalakademi.com.tr/gruplar/dis-hekimligi/ | Dentist community; answer questions, disclose founder role | Verified |
 | 43 | TDB Dergisi (e-journal) | https://www.tdb.org.tr/tdb/v2/yayinlar/TDB_e-dergi/TDBD206.pdf | Practice-management article | Verified |

@@ -1,22 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
-import { DV_FOUNDING, DV_PRICES_USD, DV_SELF_SERVE_TIERS, dvBaseUrl, foundingCode, foundingOfferOpen } from "./billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS, dvBaseUrl } from "./billing";
 import {
   CONTACT_EMAIL,
   monthlyEmail,
   notPostedEmail,
   objectionsEmail,
-  offerEmail,
   paymentProblemEmail,
   sampleEmail,
   startEmail,
   welcomeEmail,
   type MonthStats,
-  type OfferTerms,
   type PaymentFix,
   type PaymentProblemKind,
   type Rendered,
-  type Seats,
 } from "./lifecycle-email";
 import type { Brand } from "./email-layout";
 import type { SendOptions } from "./email";
@@ -38,10 +35,11 @@ import { weekOf } from "./week";
  *   nudge_start       [2 h, 24 h)   day 0  finish your preview
  *   nudge_preview     [24 h, 72 h)  day 1  here is your clinic's sample
  *   nudge_objections  [72 h, 7 d)   day 3  the three common objections
- *   nudge_offer       [7 d, 14 d)   day 7  founding offer — only while seats
- *                                          are left; otherwise nothing
  *
- * At most four, ever, at least GAP_H apart. The sequence stops the moment the
+ * (A day-7 "nudge_offer" carried the former founding offer; it is no longer
+ * sent. The kind stays in NudgeKind for the rows already logged.)
+ *
+ * At most three, ever, at least GAP_H apart. The sequence stops the moment the
  * clinic pays (plan leaves "trial"), opts out (email_opt_out_at) or is
  * deleted — each is re-checked right before every send.
  *
@@ -137,7 +135,6 @@ export const SEQUENCE: { kind: NudgeKind; afterH: number; untilH: number }[] = [
   { kind: "nudge_start", afterH: 2, untilH: 24 },
   { kind: "nudge_preview", afterH: 24, untilH: 72 },
   { kind: "nudge_objections", afterH: 72, untilH: 7 * 24 },
-  { kind: "nudge_offer", afterH: 7 * 24, untilH: 14 * 24 },
 ];
 /** Two activation emails are never closer than this. */
 export const GAP_H = 20;
@@ -151,10 +148,9 @@ export const zoneOf = (c: Pick<ClinicForMail, "profile">) => clinicTimeZone(c.pr
 
 /**
  * Which activation email is due now for each clinic. Pure — the scheduler's
- * whole decision. `offerOpen`: founding seats are left (day 7 is skipped
- * otherwise, never replaced by something else).
+ * whole decision.
  */
-export function dueNudges(clinics: ClinicForMail[], logs: LogRow[], now: Date, opts: { offerOpen?: boolean } = {}): { clinicId: string; kind: NudgeKind }[] {
+export function dueNudges(clinics: ClinicForMail[], logs: LogRow[], now: Date): { clinicId: string; kind: NudgeKind }[] {
   const t = now.getTime();
   const sent = new Map<string, Map<string, number>>();
   for (const l of logs) {
@@ -176,7 +172,6 @@ export function dueNudges(clinics: ClinicForMail[], logs: LogRow[], now: Date, o
     if (SEQUENCE.slice(i + 1).some((s) => mine.has(s.kind))) continue;
     const last = Math.max(-Infinity, ...SEQUENCE.map((s) => mine.get(s.kind) ?? -Infinity));
     if (Number.isFinite(last) && (t - last) / H < GAP_H) continue;
-    if (step.kind === "nudge_offer" && opts.offerOpen === false) continue;
     if (!inSendWindow(now, zoneOf(c))) continue;
     out.push({ clinicId: c.id, kind: step.kind });
   }
@@ -190,28 +185,10 @@ export type LifecycleConfig = {
   /** Origin the /api routes answer on. */
   apiOrigin: string;
   secret: string | null;
-  offer: OfferTerms;
-  /** Founding seats left (from loadFoundingState); null when unknown. */
-  seats?: Seats;
   maxPerRun: number;
 };
 
 type Env = Record<string, string | undefined>;
-
-/** The founding offer exactly as billing.ts has it; when it is closed, the lowest monthly list price. */
-export function offerTerms(env: Env = process.env): OfferTerms {
-  if (foundingOfferOpen(env)) {
-    return {
-      open: true,
-      priceUsd: DV_FOUNDING.priceUsd,
-      thenUsd: DV_PRICES_USD[DV_FOUNDING.tier][DV_FOUNDING.interval] ?? DV_FOUNDING.priceUsd,
-      months: DV_FOUNDING.months,
-      clinics: DV_FOUNDING.clinics,
-      code: foundingCode(env),
-    };
-  }
-  return { open: false, fromUsd: lowestMonthlyUsd() };
-}
 
 /** The lowest self-serve monthly list price ("plans from …"). */
 export function lowestMonthlyUsd(): number {
@@ -232,8 +209,6 @@ export function lifecycleConfig(env: Env = process.env): LifecycleConfig {
     base: /^https?:\/\//.test(base) ? base : "https://dentvideo.com",
     apiOrigin,
     secret: unsubscribeSecret(env),
-    offer: offerTerms(env),
-    seats: null,
     maxPerRun: Math.max(1, Math.min(500, Number(env.DENTVIDEO_LIFECYCLE_MAX_PER_RUN) || 50)),
   };
 }
@@ -274,7 +249,8 @@ export function renderNudge(cfg: LifecycleConfig, clinic: ClinicForMail, kind: N
     case "nudge_objections":
       return objectionsEmail({ ...base, url: plan, fromUsd: lowestMonthlyUsd() });
     case "nudge_offer":
-      return cfg.offer.open ? offerEmail({ ...base, url: plan, offer: cfg.offer, seats: cfg.seats }) : null;
+      // The former founding offer: no longer sent.
+      return null;
   }
 }
 
@@ -385,7 +361,7 @@ export async function runNudges(deps: RunDeps): Promise<RunResult> {
   try {
     const clinics = await store.trialClinics(new Date(now.getTime() - NUDGE_RULES.lastUntilH * H), new Date(now.getTime() - NUDGE_RULES.firstAfterH * H), 300);
     const logs = clinics.length ? await store.logs(clinics.map((c) => c.id)) : [];
-    const due = dueNudges(clinics, logs, now, { offerOpen: cfg.offer.open });
+    const due = dueNudges(clinics, logs, now);
     res.due = due.length;
     for (const d of due) {
       const clinic = clinics.find((c) => c.id === d.clinicId)!;

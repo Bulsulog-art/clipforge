@@ -31,9 +31,8 @@ clinical accuracy before the dentist approves. (148)
 > avatar doctors and promises no patient numbers; its checks are a careful filter, not legal advice. DentVideo is made
 > by Bulsu Labs.
 
-**Pricing text:** Starter $49/month. Practice $99/month or $990/year. Group: contact us. Monthly, no minimum term. A live
-preview of your own branded video before you pay. Founding offer: Practice at $49/month for 12 months for the first 100
-clinics. *(Never tick "free trial" or "free version" on any directory.)*
+**Pricing text:** Starter $29/month. Practice $49/month. Group: contact us. Monthly, no minimum term. A live
+preview of your own branded video before you pay. *(Never tick "free trial" or "free version" on any directory.)*
 
 **Key features (bullet list for G2/Capterra/OMR/SaaSHub):**
 1. Five narrated, captioned 9:16 videos every Monday
@@ -83,8 +82,8 @@ Patient Education.
 > What we don't do, on purpose: no avatar doctors, no fake patients, no auto-posting, no promised patient numbers. The
 > check is a careful filter, not legal advice; the dentist always has the last word.
 >
-> No free trial either — instead you see a live preview of your own branded video before paying. The first 100 clinics
-> get the Practice plan at $49/month for 12 months.
+> No free trial either — instead you see a live preview of your own branded video before paying. Plans start at
+> $29/month.
 >
 > We're a two-person team, and DentVideo is new, so you won't find reviews yet. We'd love your feedback — especially if
 > you've ever done marketing for a clinic: what would make you trust a tool with your practice's name?
@@ -105,7 +104,7 @@ Patient Education.
 - **Short description:** the Short (≤160) text.
 - **Full description:** the Long description + Pricing text.
 - **Features:** the 9 key features.
-- **Pricing:** Starter $49/month; Practice $99/month ($990/year); Group: contact. Free trial: **No**. Free version: **No**.
+- **Pricing:** Starter $29/month; Practice $49/month; Group: contact. Free trial: **No**. Free version: **No**.
 - **Deployment:** Web (cloud), iOS/Android web app via browser. **Languages supported:** EN, DE, ES, FR, IT, PT, TR, JA,
   AR, PL (videos).
 - **Screenshots:** 6 from the ASO set (`docs/ASO.md`), demo clinic only.
@@ -125,7 +124,7 @@ Patient Education.
 - **Tagline:** Weekly patient-education videos for dental clinics
 - **Description:** Long description + Pricing text.
 - **Categories:** Social Media Marketing, Video Creation, Healthcare.
-- **Pricing:** Paid; starts at $49/month; no free trial.
+- **Pricing:** Paid; starts at $29/month; no free trial.
 
 ## OMR Reviews (DACH, in German)
 
@@ -140,8 +139,8 @@ Patient Education.
   > vom Smartphone geteilt. Im Practice-Tarif werden eigene Aufnahmen zu untertitelten Clips. Zehn Sprachen, Sie oder
   > Du. Kein automatisches Posten, keine Avatar-Ärzte, keine Versprechen zu Patientenzahlen. Die Prüfung ist ein
   > sorgfältiger Filter, keine Rechtsberatung.
-- **Preise:** Starter 49 $/Monat · Practice 99 $/Monat oder 990 $/Jahr · Group auf Anfrage · monatlich kündbar ·
-  Gründungsangebot: Practice 12 Monate für 49 $/Monat für die ersten 100 Praxen · keine kostenlose Testphase, dafür
+- **Preise:** Starter 29 $/Monat · Practice 49 $/Monat · Group auf Anfrage · monatlich kündbar ·
+  keine kostenlose Testphase, dafür
   Live-Vorschau mit eigenem Logo vor der Zahlung.
 - **Kategorien:** Social-Media-Management, Video-Marketing.
 
@@ -160,7 +159,7 @@ Patient Education.
   > What we don't do: avatar doctors, fake patients, auto-posting, or promises of patient numbers. Our checks are a
   > careful filter, not legal advice; the clinic always has the last word.
   >
-  > Plans from $49/month; the first 100 clinics get Practice at $49/month for 12 months. DentVideo is made by Bulsu Labs
+  > Plans from $29/month, monthly, no minimum term. DentVideo is made by Bulsu Labs
   > (BLS AI Automation DOO, Podgorica, Montenegro). dentvideo.com
 - **Industry:** Software Development · **Company size:** 2–10 · **Specialties:** patient education, dental marketing,
   social media video, health-advertising compliance, multilingual content.

@@ -6,10 +6,9 @@ import { OPERATOR } from "./guides/operator";
  * message the owner sends with it, in every site language.
  *
  * Rules (the same as the landing's):
- * - only true facts: the list price ($49 Starter), the founding offer exactly
- *   as it is sold (Practice at $49/month for the first 12 months, first 100
- *   clinics — shown only while it is open), no contract, approval before
- *   anything is posted, scripts checked against the country's rules;
+ * - only true facts: the lowest list price ($29/month, Starter), no contract,
+ *   approval before anything is posted, scripts checked against the
+ *   country's rules; no discounts or special offers;
  * - no fake urgency, no countdowns, no "only today";
  * - the message asks for permission first and sends the link only after a
  *   yes; it says how to stop further messages.
@@ -24,7 +23,7 @@ export type DemoCopy = {
   lead: string;
   points: [string, string, string];
   factsTitle: string;
-  facts: { from: string; founding: string; cancel: string; approve: string; rules: string };
+  facts: { from: string; cancel: string; approve: string; rules: string };
   cta: string;
   ctaNote: string;
   ask: string;
@@ -34,7 +33,7 @@ export type DemoCopy = {
   /** The first message: asks whether the link may be sent. */
   dmAsk: string;
   /** After a yes: the link and the facts. */
-  dmLink: { thanks: string; facts: string; founding: string; close: string };
+  dmLink: { thanks: string; facts: string; close: string };
 };
 
 export const DEMO_SENDER = OPERATOR.director.split(" ")[0];
@@ -52,8 +51,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "The facts",
     facts: {
-      from: "From $49/month.",
-      founding: "Founding price: Practice for $49/month for your first 12 months — for the first 100 clinics.",
+      from: "From $29/month.",
       cancel: "No contract — cancel anytime.",
       approve: "You approve every video before it is posted.",
       rules: "Every script is checked against the health-advertising rules of your country.",
@@ -68,8 +66,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "Hi {name} team, I'm {sender} from DentVideo. We make short patient-education videos for dental clinics. I put together a small preview in your clinic's colours — may I send you the link? If it's not for you, no problem at all: just say so and I won't message again.",
     dmLink: {
       thanks: "Thank you! Here is the preview (no sign-up): {url}",
-      facts: "Five videos every Monday; nothing is shared without your approval. Plans start at $49/month, no contract.",
-      founding: "For the first 100 clinics there is a founding price: Practice for $49/month for the first 12 months.",
+      facts: "Five videos every Monday; nothing is shared without your approval. Plans start at $29/month, no contract.",
       close: "Happy to answer any questions here.",
     },
   },
@@ -85,8 +82,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "Kısaca",
     facts: {
-      from: "Aylık $49'dan başlayan fiyatlar.",
-      founding: "Kurucu fiyatı: ilk 100 klinik için Practice, ilk 12 ay aylık $49.",
+      from: "Aylık $29'dan başlayan fiyatlar.",
       cancel: "Sözleşme yok — istediğiniz zaman iptal edebilirsiniz.",
       approve: "Her video, paylaşılmadan önce sizin onayınızdan geçer.",
       rules: "Her metin, ülkenizin sağlık reklamı kurallarına göre kontrol edilir.",
@@ -101,8 +97,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "Merhaba {name} ekibi, ben DentVideo'dan {sender}. Diş klinikleri için kısa hasta bilgilendirme videoları hazırlıyoruz. Kliniğiniz için, kendi renklerinizle küçük bir önizleme hazırladım — linkini göndermemi ister misiniz? İlginizi çekmezse hiç sorun değil; haber vermeniz yeterli, bir daha yazmam.",
     dmLink: {
       thanks: "Teşekkürler! Önizleme burada (kayıt gerekmez): {url}",
-      facts: "Her pazartesi beş video; onayınız olmadan hiçbir şey paylaşılmaz. Fiyatlar aylık $49'dan başlıyor, sözleşme yok.",
-      founding: "İlk 100 klinik için kurucu fiyatı var: Practice, ilk 12 ay aylık $49.",
+      facts: "Her pazartesi beş video; onayınız olmadan hiçbir şey paylaşılmaz. Fiyatlar aylık $29'dan başlıyor, sözleşme yok.",
       close: "Sorunuz olursa buradan yazabilirsiniz.",
     },
   },
@@ -118,8 +113,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "Die Fakten",
     facts: {
-      from: "Ab 49 $/Monat.",
-      founding: "Gründungspreis: Practice für 49 $/Monat in den ersten 12 Monaten – für die ersten 100 Praxen.",
+      from: "Ab 29 $/Monat.",
       cancel: "Kein Vertrag – jederzeit kündbar.",
       approve: "Jedes Video wird erst nach Ihrer Freigabe geteilt.",
       rules: "Jedes Skript wird anhand der Werberegeln für Heilberufe in Ihrem Land geprüft.",
@@ -134,8 +128,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "Guten Tag, liebes Team von {name}, ich bin {sender} von DentVideo. Wir erstellen kurze Aufklärungsvideos für Zahnarztpraxen. Ich habe eine kleine Vorschau in Ihren Praxisfarben vorbereitet – darf ich Ihnen den Link schicken? Falls kein Interesse besteht, ist das völlig in Ordnung: Ein kurzes Nein genügt, und ich melde mich nicht wieder.",
     dmLink: {
       thanks: "Danke! Hier ist die Vorschau (ohne Anmeldung): {url}",
-      facts: "Jeden Montag fünf Videos; nichts wird ohne Ihre Freigabe geteilt. Ab 49 $/Monat, ohne Vertrag.",
-      founding: "Für die ersten 100 Praxen gibt es einen Gründungspreis: Practice für 49 $/Monat in den ersten 12 Monaten.",
+      facts: "Jeden Montag fünf Videos; nichts wird ohne Ihre Freigabe geteilt. Ab 29 $/Monat, ohne Vertrag.",
       close: "Bei Fragen schreiben Sie mir gern hier.",
     },
   },
@@ -151,8 +144,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "Los datos",
     facts: {
-      from: "Desde 49 $/mes.",
-      founding: "Precio fundador: Practice por 49 $/mes durante los primeros 12 meses, para las primeras 100 clínicas.",
+      from: "Desde 29 $/mes.",
       cancel: "Sin contrato: cancele cuando quiera.",
       approve: "Usted aprueba cada vídeo antes de publicarlo.",
       rules: "Cada guion se revisa según las normas de publicidad sanitaria de su país.",
@@ -167,8 +159,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "Hola, equipo de {name}: soy {sender}, de DentVideo. Hacemos vídeos cortos de educación para pacientes para clínicas dentales. He preparado una pequeña vista previa con los colores de su clínica, ¿les puedo enviar el enlace? Si no les interesa, no pasa nada: díganmelo y no vuelvo a escribir.",
     dmLink: {
       thanks: "¡Gracias! Aquí está la vista previa (sin registro): {url}",
-      facts: "Cinco vídeos cada lunes; nada se comparte sin su aprobación. Desde 49 $/mes, sin contrato.",
-      founding: "Para las primeras 100 clínicas hay un precio fundador: Practice por 49 $/mes durante los primeros 12 meses.",
+      facts: "Cinco vídeos cada lunes; nada se comparte sin su aprobación. Desde 29 $/mes, sin contrato.",
       close: "Si tienen alguna pregunta, escríbanme por aquí.",
     },
   },
@@ -184,8 +175,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "L'essentiel",
     facts: {
-      from: "À partir de 49 $/mois.",
-      founding: "Prix fondateur : Practice à 49 $/mois pendant les 12 premiers mois, pour les 100 premiers cabinets.",
+      from: "À partir de 29 $/mois.",
       cancel: "Sans engagement : résiliable à tout moment.",
       approve: "Vous validez chaque vidéo avant sa publication.",
       rules: "Chaque script est vérifié selon les règles de publicité en santé de votre pays.",
@@ -200,8 +190,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "Bonjour à l'équipe de {name}, je suis {sender}, de DentVideo. Nous réalisons de courtes vidéos d'information patient pour les cabinets dentaires. J'ai préparé un petit aperçu aux couleurs de votre cabinet : puis-je vous envoyer le lien ? Si cela ne vous intéresse pas, aucun souci — dites-le-moi simplement et je ne vous écrirai plus.",
     dmLink: {
       thanks: "Merci ! Voici l'aperçu (sans inscription) : {url}",
-      facts: "Cinq vidéos chaque lundi ; rien n'est partagé sans votre validation. À partir de 49 $/mois, sans engagement.",
-      founding: "Pour les 100 premiers cabinets, il existe un prix fondateur : Practice à 49 $/mois pendant les 12 premiers mois.",
+      facts: "Cinq vidéos chaque lundi ; rien n'est partagé sans votre validation. À partir de 29 $/mois, sans engagement.",
       close: "Pour toute question, écrivez-moi ici.",
     },
   },
@@ -217,8 +206,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "ポイント",
     facts: {
-      from: "月額49ドルから。",
-      founding: "創業メンバー価格：先着100医院は、Practiceプランが最初の12か月間 月額49ドル。",
+      from: "月額29ドルから。",
       cancel: "契約の縛りなし。いつでも解約できます。",
       approve: "すべての動画は、公開前に先生ご自身が承認します。",
       rules: "すべての原稿を、貴院がある国の医療広告ルールに沿ってチェックします。",
@@ -233,8 +221,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "{name}の皆さま、はじめまして。DentVideoの{sender}と申します。歯科医院向けに、患者さん向けの短い解説動画を制作しています。貴院のカラーで小さなプレビューを作ってみたのですが、リンクをお送りしてもよろしいでしょうか？ご興味がなければ、その旨お知らせいただければ、今後ご連絡はいたしません。",
     dmLink: {
       thanks: "ありがとうございます！プレビューはこちらです（登録不要）：{url}",
-      facts: "毎週月曜日に5本。承認なしに共有されることはありません。料金は月額49ドルから、契約の縛りはありません。",
-      founding: "先着100医院には創業メンバー価格があり、Practiceプランが最初の12か月間 月額49ドルです。",
+      facts: "毎週月曜日に5本。承認なしに共有されることはありません。料金は月額29ドルから、契約の縛りはありません。",
       close: "ご質問があれば、こちらにお気軽にどうぞ。",
     },
   },
@@ -250,8 +237,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "باختصار",
     facts: {
-      from: "ابتداءً من 49 دولارًا شهريًا.",
-      founding: "سعر المؤسسين: خطة Practice بـ 49 دولارًا شهريًا لأول 12 شهرًا، لأول 100 عيادة.",
+      from: "ابتداءً من 29 دولارًا شهريًا.",
       cancel: "دون عقد، ويمكن الإلغاء في أي وقت.",
       approve: "توافقون على كل فيديو قبل نشره.",
       rules: "يُراجَع كل نص وفق قواعد الإعلان الصحي في بلدكم.",
@@ -266,8 +252,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "مرحبًا فريق {name}، أنا {sender} من DentVideo. نُعدّ فيديوهات قصيرة لتوعية المرضى لعيادات الأسنان. جهّزت معاينة صغيرة بألوان عيادتكم — هل تسمحون لي بإرسال الرابط؟ إن لم يكن الأمر يهمكم فلا مشكلة إطلاقًا، يكفي أن تخبروني ولن أراسلكم مجددًا.",
     dmLink: {
       thanks: "شكرًا لكم! هذه هي المعاينة (دون تسجيل): {url}",
-      facts: "خمسة فيديوهات كل يوم اثنين، ولا يُشارَك شيء دون موافقتكم. الأسعار تبدأ من 49 دولارًا شهريًا، دون عقد.",
-      founding: "لأول 100 عيادة سعر المؤسسين: خطة Practice بـ 49 دولارًا شهريًا خلال أول 12 شهرًا.",
+      facts: "خمسة فيديوهات كل يوم اثنين، ولا يُشارَك شيء دون موافقتكم. الأسعار تبدأ من 29 دولارًا شهريًا، دون عقد.",
       close: "لأي سؤال، راسلوني هنا.",
     },
   },
@@ -283,8 +268,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     ],
     factsTitle: "Najważniejsze",
     facts: {
-      from: "Od 49 $ miesięcznie.",
-      founding: "Cena założycielska: Practice za 49 $ miesięcznie przez pierwsze 12 miesięcy — dla pierwszych 100 gabinetów.",
+      from: "Od 29 $ miesięcznie.",
       cancel: "Bez umowy — można zrezygnować w każdej chwili.",
       approve: "Każdy film zatwierdzają Państwo przed publikacją.",
       rules: "Każdy scenariusz jest sprawdzany pod kątem zasad reklamy usług medycznych w Państwa kraju.",
@@ -299,8 +283,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       "Dzień dobry, zespół {name}! Nazywam się {sender} i piszę z DentVideo. Tworzymy krótkie filmy edukacyjne dla pacjentów gabinetów stomatologicznych. Przygotowałem mały podgląd w kolorach Państwa gabinetu — czy mogę przesłać link? Jeśli to nie dla Państwa, nie ma problemu: wystarczy krótka odpowiedź, a nie napiszę ponownie.",
     dmLink: {
       thanks: "Dziękuję! Oto podgląd (bez rejestracji): {url}",
-      facts: "Pięć filmów co poniedziałek; nic nie jest udostępniane bez Państwa zgody. Od 49 $ miesięcznie, bez umowy.",
-      founding: "Dla pierwszych 100 gabinetów jest cena założycielska: Practice za 49 $ miesięcznie przez pierwsze 12 miesięcy.",
+      facts: "Pięć filmów co poniedziałek; nic nie jest udostępniane bez Państwa zgody. Od 29 $ miesięcznie, bez umowy.",
       close: "W razie pytań proszę pisać tutaj.",
     },
   },
@@ -314,11 +297,10 @@ export function fillDemo(s: string, vars: { name?: string; url?: string }): stri
 }
 
 /** The two messages the owner sends: first the permission question, then (after a yes) the link. */
-export function demoMessages(locale: Locale, name: string, url: string, foundingOpen: boolean): { ask: string; link: string } {
+export function demoMessages(locale: Locale, name: string, url: string): { ask: string; link: string } {
   const t = DEMO_COPY[locale];
-  const link = [t.dmLink.thanks, t.dmLink.facts, foundingOpen ? t.dmLink.founding : null, t.dmLink.close]
-    .filter(Boolean)
-    .map((s) => fillDemo(s!, { name, url }))
+  const link = [t.dmLink.thanks, t.dmLink.facts, t.dmLink.close]
+    .map((s) => fillDemo(s, { name, url }))
     .join("\n\n");
   return { ask: fillDemo(t.dmAsk, { name, url }), link };
 }

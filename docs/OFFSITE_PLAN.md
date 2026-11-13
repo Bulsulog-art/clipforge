@@ -157,8 +157,8 @@ Don't spend more than a day on it.
   > your colours. Each script is checked for health-advertising rules and clinical accuracy. You approve in one tap. 7
   > languages. (242)
 - **Links:** https://dentvideo.com, plus the app links once live.
-- **Pricing field:** Paid. Mention the live branded preview before payment and the founding offer (Practice at the Starter
-  price for 12 months for the first 100 clinics, code `KURUCU100`) in the first comment, not in the tagline.
+- **Pricing field:** Paid. Mention the live branded preview before payment and the prices (Starter $29/month,
+  Practice $49/month, monthly) in the first comment, not in the tagline.
 - **Launch timing:** 00:01 Pacific, Tuesday to Thursday. Product Hunt forbids asking for upvotes: tell people "we're live,
   feedback welcome", never "please upvote". The owner must be online to reply for the first 6–8 hours.
 
@@ -179,8 +179,8 @@ Don't spend more than a day on it.
 > What we don't do, on purpose: no avatar doctors, no fake patients, no promised patient numbers, no auto-posting. The
 > check is a careful filter, not legal advice. The dentist always has the last word.
 >
-> Seven languages: EN, DE, ES, FR, IT, PT, TR. Paid plans, with a live preview of your own branded video before you pay.
-> The first 100 clinics get Practice at the Starter price for 12 months with code KURUCU100.
+> Seven languages: EN, DE, ES, FR, IT, PT, TR. Paid plans from $29/month, with a live preview of your own branded video
+> before you pay.
 >
 > I'd love feedback, especially from anyone who has done marketing for a clinic: what would make you trust this with your
 > practice's name?

@@ -90,13 +90,12 @@ export const TR: LegalText = {
             {
               list: [
                 "Starter: aylık {starter}.",
-                "Practice: aylık {practice} veya yıllık {practiceYear}.",
+                "Practice: aylık {practice}.",
                 "Group (klinik grupları ve çok şubeli muayenehaneler): anlaşmaya göre özel koşullar — iletişim {email}. Group web sitesinden satın alınamaz.",
-                "Kurucu teklifi: Practice aylık planı ilk {foundingMonths} ay boyunca aylık {foundingPrice}, yalnızca ilk {foundingClinics} klinik için. Bu {foundingMonths} aydan sonra abonelik, iptal etmezseniz Practice'in normal fiyatı olan aylık {practice} ile devam eder. Teklif, {foundingClinics} klinik kullandığında sona erer.",
               ],
             },
             "Ödemeleri, satıcı (merchant of record) ve yetkili yeniden satıcı olarak hareket eden Dodo Payments yürütür: aboneliği size o satar, ödeme aracınızdan tahsil eder, kart ekstrenizde o görünür, geçerli vergileri hesaplayıp tahsil eder ve faturanızı düzenler. Satın alma için Dodo Payments'ın alıcı koşulları da geçerlidir. Kart bilgilerinizin tamamını hiçbir zaman görmeyiz.",
-            "Abonelikler iptal edilene kadar her fatura döneminin (aylık veya yıllık) sonunda otomatik olarak yenilenir. Bir ödeme başarısız olursa, sorun çözülene kadar yeni videoları durdurabiliriz.",
+            "Abonelikler iptal edilene kadar her aylık fatura döneminin sonunda otomatik olarak yenilenir. Bir ödeme başarısız olursa, sorun çözülene kadar yeni videoları durdurabiliriz.",
             "Liste fiyatlarını değiştirebiliriz. En az 30 gün önceden e-postayla bildiririz; yeni fiyat yalnızca bu bildirimden sonraki ilk yenilemeden itibaren uygulanır.",
           ],
         },
@@ -279,19 +278,19 @@ export const TR: LegalText = {
 
     refunds: {
       title: "İade Politikası",
-      description: "DentVideo aboneliklerinde iptal ve iadelerin nasıl işlediği, kurucu teklifi dahil.",
+      description: "DentVideo aboneliklerinde iptal ve iadelerin nasıl işlediği.",
       intro: ["Bu politika [Kullanım Koşullarımızın](terms) parçasıdır. Kısaca: istediğiniz zaman iptal edin, ödediğiniz dönemin sonuna kadar erişiminiz sürer ve hizmet aksadıysa bunu telafi ederiz."],
       sections: [
         {
           heading: "1. İptal",
           blocks: [
-            "İstediğiniz zaman Ayarlar'dan (Ödemeyi yönet) veya {email} adresine yazarak iptal edebilirsiniz. İptal bir sonraki yenilemeyi durdurur; zaten ödediğiniz aylık veya yıllık dönemin sonunda geçerli olur ve o zamana kadar tam erişiminiz sürer. İndirdiğiniz videolar sizde kalır. Hesabınızı silmek de aboneliği hemen iptal eder.",
+            "İstediğiniz zaman Ayarlar'dan (Ödemeyi yönet) veya {email} adresine yazarak iptal edebilirsiniz. İptal bir sonraki yenilemeyi durdurur; zaten ödediğiniz aylık dönemin sonunda geçerli olur ve o zamana kadar tam erişiminiz sürer. İndirdiğiniz videolar sizde kalır. Hesabınızı silmek de aboneliği hemen iptal eder.",
           ],
         },
         {
           heading: "2. Kısmi dönem iadesi yok",
           blocks: [
-            "Başlamış bir dönemin (aylık veya yıllık) kullanılmayan kısmını, kanun iade gerektirmedikçe veya hizmet aşağıda anlatıldığı gibi aksamadıkça iade etmeyiz. Plan değiştirirseniz, mevcut dönemin kalanı için fark hemen tahsil edilir veya alacak olarak yansıtılır.",
+            "Başlamış bir aylık dönemin kullanılmayan kısmını, kanun iade gerektirmedikçe veya hizmet aşağıda anlatıldığı gibi aksamadıkça iade etmeyiz. Plan değiştirirseniz, mevcut dönemin kalanı için fark hemen tahsil edilir veya alacak olarak yansıtılır.",
           ],
         },
         {
@@ -301,19 +300,13 @@ export const TR: LegalText = {
           ],
         },
         {
-          heading: "4. Kurucu teklifi",
-          blocks: [
-            "Kurucu teklifi, ilk {foundingClinics} kliniğe Practice planını {foundingMonths} ay boyunca aylık {foundingPrice} fiyatla, aylık ödemeli olarak sunar. Bu {foundingMonths} aydan sonra aynı abonelik, iptal etmezseniz Practice'in normal fiyatı olan aylık {practice} ile devam eder. Kurucu fiyatı o aboneliğe bağlıdır: iptal ederseniz sona erer ve tekrar sunulmayabilir.",
-          ],
-        },
-        {
-          heading: "5. İadeler nasıl ödenir",
+          heading: "4. İadeler nasıl ödenir",
           blocks: [
             "Her DentVideo satın alımında satıcı (merchant of record) Dodo Payments'tır; bu nedenle iadeleri, iade edilen tutar üzerinden tahsil ettiği vergi dahil, orijinal ödeme yöntemine Dodo Payments yapar. Önce bize {email} adresinden yazın; alıcı koşulları uyarınca Dodo Payments'a da başvurabilirsiniz. İadenin bankanızda görünmesi birkaç gün sürebilir.",
           ],
         },
         {
-          heading: "6. Yasal haklarınız",
+          heading: "5. Yasal haklarınız",
           blocks: [
             "DentVideo işletmelere ve profesyonellere satılır. Emredici hukuk size yine de bir cayma veya iade hakkı tanıyorsa, bu hak bu politikaya ek olarak geçerlidir.",
           ],

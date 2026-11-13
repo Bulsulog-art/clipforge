@@ -19,7 +19,6 @@ export type BillingCopy = {
     updateHowPortal: string;
     updateHowEmail: string;
     cancelledPending: string;
-    foundingFull: string;
   };
   panel: {
     title: string;
@@ -35,7 +34,6 @@ export type BillingCopy = {
     pendingTitle: string;
     pendingBody: string;
   };
-  seatsLeft: string;
   email: {
     failedSubject: string;
     holdSubject: string;
@@ -60,7 +58,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "open Plan and billing in Settings.",
       updateHowEmail: "write to {email} and we'll send you a secure link.",
       cancelledPending: "Your plan was cancelled and is paid until {date}. To start again before then, write to {email} so you aren't charged twice.",
-      foundingFull: "The founding offer has just been taken by the first clinics. Practice is {price}/month — please choose again to continue.",
     },
     panel: {
       title: "Please update your payment",
@@ -76,7 +73,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "We're confirming your payment",
       pendingBody: "This usually takes a minute or two. Please refresh shortly — there is no need to pay again.",
     },
-    seatsLeft: "{left} of {total} founding spots left",
     email: {
       failedSubject: "Your DentVideo payment didn't go through",
       holdSubject: "Your DentVideo videos are paused — please update your payment",
@@ -99,7 +95,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "Öffnen Sie in den Einstellungen „Plan und Abrechnung“.",
       updateHowEmail: "Schreiben Sie an {email}, wir senden Ihnen einen sicheren Link.",
       cancelledPending: "Ihr Plan wurde gekündigt und ist bis {date} bezahlt. Wenn Sie vorher wieder starten möchten, schreiben Sie an {email}, damit Sie nicht doppelt bezahlen.",
-      foundingFull: "Das Gründungsangebot ist gerade an die ersten Praxen vergeben. Practice kostet {price}/Monat — bitte wählen Sie erneut, um fortzufahren.",
     },
     panel: {
       title: "Bitte aktualisieren Sie Ihre Zahlung",
@@ -115,7 +110,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "Wir bestätigen Ihre Zahlung",
       pendingBody: "Das dauert meist ein bis zwei Minuten. Bitte laden Sie die Seite gleich neu — Sie müssen nicht erneut bezahlen.",
     },
-    seatsLeft: "Noch {left} von {total} Gründungsplätzen frei",
     email: {
       failedSubject: "Ihre DentVideo-Zahlung ging nicht durch",
       holdSubject: "Ihre DentVideo-Videos sind pausiert — bitte Zahlung aktualisieren",
@@ -138,7 +132,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "abre Plan y facturación en Ajustes.",
       updateHowEmail: "escribe a {email} y te enviaremos un enlace seguro.",
       cancelledPending: "Tu plan se canceló y está pagado hasta el {date}. Si quieres volver a empezar antes, escribe a {email} para no pagar dos veces.",
-      foundingFull: "La oferta fundadora acaba de agotarse con las primeras clínicas. Practice cuesta {price}/mes; vuelve a elegir para continuar.",
     },
     panel: {
       title: "Actualiza tu pago",
@@ -154,7 +147,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "Estamos confirmando tu pago",
       pendingBody: "Suele tardar uno o dos minutos. Actualiza la página en un momento; no hace falta pagar de nuevo.",
     },
-    seatsLeft: "Quedan {left} de {total} plazas fundadoras",
     email: {
       failedSubject: "Tu pago de DentVideo no se completó",
       holdSubject: "Tus vídeos de DentVideo están en pausa: actualiza tu pago",
@@ -177,7 +169,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "Ayarlar'da Plan ve faturalandırma bölümünü açın.",
       updateHowEmail: "{email} adresine yazın, size güvenli bir bağlantı gönderelim.",
       cancelledPending: "Planınız iptal edildi ve {date} tarihine kadar ödenmiş durumda. Daha önce yeniden başlamak isterseniz, iki kez ödeme yapmamak için {email} adresine yazın.",
-      foundingFull: "Kurucu teklifi ilk klinikler tarafından az önce doldu. Practice aylık {price} — devam etmek için lütfen yeniden seçin.",
     },
     panel: {
       title: "Lütfen ödemenizi güncelleyin",
@@ -193,7 +184,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "Ödemenizi doğruluyoruz",
       pendingBody: "Bu genellikle bir iki dakika sürer. Lütfen birazdan sayfayı yenileyin — tekrar ödeme yapmanıza gerek yok.",
     },
-    seatsLeft: "{total} kurucu yerden {left} tanesi kaldı",
     email: {
       failedSubject: "DentVideo ödemeniz gerçekleşmedi",
       holdSubject: "DentVideo videolarınız durduruldu — lütfen ödemenizi güncelleyin",
@@ -216,7 +206,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "ouvrez Formule et facturation dans les Réglages.",
       updateHowEmail: "écrivez à {email} et nous vous enverrons un lien sécurisé.",
       cancelledPending: "Votre formule a été résiliée et elle est payée jusqu’au {date}. Pour recommencer avant, écrivez à {email} afin de ne pas payer deux fois.",
-      foundingFull: "L’offre fondatrice vient d’être prise par les premiers cabinets. Practice coûte {price}/mois — merci de choisir à nouveau pour continuer.",
     },
     panel: {
       title: "Merci de mettre à jour votre paiement",
@@ -232,7 +221,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "Nous confirmons votre paiement",
       pendingBody: "Cela prend en général une à deux minutes. Actualisez la page dans un instant — inutile de payer à nouveau.",
     },
-    seatsLeft: "Plus que {left} places fondatrices sur {total}",
     email: {
       failedSubject: "Votre paiement DentVideo n’a pas abouti",
       holdSubject: "Vos vidéos DentVideo sont en pause — merci de mettre à jour votre paiement",
@@ -255,7 +243,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "設定の「プランとお支払い」を開いてください。",
       updateHowEmail: "{email} までご連絡いただければ、安全なリンクをお送りします。",
       cancelledPending: "プランは解約済みで、{date}までお支払い済みです。それより前に再開したい場合は、二重請求を避けるため {email} までご連絡ください。",
-      foundingFull: "創業メンバー特典は最初のクリニックで締め切りとなりました。Practiceは月額{price}です。続けるにはもう一度お選びください。",
     },
     panel: {
       title: "お支払い情報を更新してください",
@@ -271,7 +258,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "お支払いを確認しています",
       pendingBody: "通常1〜2分で完了します。少ししてからページを更新してください。再度お支払いいただく必要はありません。",
     },
-    seatsLeft: "創業メンバー枠 残り{left}/{total}",
     email: {
       failedSubject: "DentVideoのお支払いが完了しませんでした",
       holdSubject: "DentVideoの動画を一時停止しています。お支払い情報を更新してください",
@@ -294,7 +280,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "افتح «الخطة والفوترة» في الإعدادات.",
       updateHowEmail: "راسلنا على {email} وسنرسل لك رابطًا آمنًا.",
       cancelledPending: "تم إلغاء خطتك وهي مدفوعة حتى {date}. إذا أردت البدء من جديد قبل ذلك، راسلنا على {email} حتى لا تدفع مرتين.",
-      foundingFull: "انتهى عرض المؤسسين للتو مع أولى العيادات. خطة Practice بسعر {price} شهريًا — يرجى الاختيار مرة أخرى للمتابعة.",
     },
     panel: {
       title: "يرجى تحديث بيانات الدفع",
@@ -310,7 +295,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "نؤكد دفعتك الآن",
       pendingBody: "يستغرق ذلك عادة دقيقة أو دقيقتين. يرجى تحديث الصفحة بعد قليل — لا داعي للدفع مرة أخرى.",
     },
-    seatsLeft: "تبقّى {left} من {total} من مقاعد المؤسسين",
     email: {
       failedSubject: "لم تتم دفعتك في DentVideo",
       holdSubject: "فيديوهات DentVideo متوقفة مؤقتًا — يرجى تحديث الدفع",
@@ -333,7 +317,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updateHowPortal: "otwórz Plan i płatności w Ustawieniach.",
       updateHowEmail: "napisz na {email}, a wyślemy Ci bezpieczny link.",
       cancelledPending: "Twój plan został anulowany i jest opłacony do {date}. Jeśli chcesz wznowić go wcześniej, napisz na {email}, aby nie zapłacić dwa razy.",
-      foundingFull: "Oferta założycielska właśnie się wyczerpała. Practice kosztuje {price}/miesiąc — wybierz ponownie, aby kontynuować.",
     },
     panel: {
       title: "Zaktualizuj płatność",
@@ -349,7 +332,6 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       pendingTitle: "Potwierdzamy Twoją płatność",
       pendingBody: "Zwykle trwa to minutę lub dwie. Odśwież stronę za chwilę — nie trzeba płacić ponownie.",
     },
-    seatsLeft: "Zostało {left} z {total} miejsc założycielskich",
     email: {
       failedSubject: "Płatność za DentVideo nie przeszła",
       holdSubject: "Filmy DentVideo są wstrzymane — zaktualizuj płatność",

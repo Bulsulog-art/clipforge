@@ -649,18 +649,6 @@ export const alerts = {
     };
   },
 
-  foundingFull(a: { used: number; clinics: number }): OwnerAlert {
-    return {
-      key: "founding_full",
-      severity: "good",
-      titleTr: "Kurucu teklifi doldu",
-      titleEn: "The founding offer is full",
-      what: [`${a.used} of ${a.clinics} founding seats are taken.`],
-      done: ["Checkout and the app stopped offering the founding price automatically."],
-      todo: ["Set DENTVIDEO_FOUNDING_OFFER=off on the web app so the static landing pages stop showing the banner, and disable the code in Dodo."],
-    };
-  },
-
   /**
    * The synthetic monitor (worker/src/dentvid/synthetic.ts): a live check of
    * dentvideo.com failed twice in a row (or is still failing — a reminder).

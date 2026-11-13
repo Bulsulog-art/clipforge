@@ -185,26 +185,29 @@ describe("landing layout contract", () => {
     for (const n of [1, 2, 3]) expect(page).toContain(SHOWCASE[l].videoOf.replace("{n}", String(n)));
   });
 
-  it.each(LOCALES)("%s: pricing is clear — the founding card says it is the founding offer, Group is contact-only, no dark patterns", (l) => {
+  it.each(LOCALES)("%s: pricing is clear — Starter and Practice at their monthly list prices, Practice recommended, Group is contact-only, no dark patterns", (l) => {
     const page = html(l);
     const pricing = page.slice(page.indexOf('id="pricing"'), page.indexOf('id="trust"'));
     const p = LANDING[l].pricing;
+    const starter = pricing.slice(pricing.indexOf('data-tier="starter"'), pricing.indexOf('data-tier="practice"'));
     const practice = pricing.slice(pricing.indexOf('data-tier="practice"'), pricing.indexOf('data-tier="group"'));
-    expect(practice).toContain(p.foundingBadge);
-    expect(practice).toContain(p.foundingCard.listPrice);
+    expect(starter).toContain(p.tiers[0].price);
+    expect(practice).toContain(p.tiers[1].price);
+    expect(practice).toContain(p.recommended);
+    // No founding banner, no struck-through price, no yearly line.
+    expect(pricing).not.toContain("data-founding-banner");
+    expect(pricing).not.toMatch(/<s[\s>]/);
+    expect(pricing).not.toMatch(/990/);
     expect(pricing).toContain('data-tier="group"');
     expect(pricing.slice(pricing.indexOf('data-tier="group"'))).toContain("mailto:hello@dentvideo.com");
     expect(page).not.toMatch(/countdown|only \d+ (left|spots)|hurry|expires in/i);
   });
 
-  it("with the founding offer closed, Practice is simply recommended at its list price", () => {
-    vi.stubEnv("DENTVIDEO_FOUNDING_OFFER", "closed");
+  it("the old founding env switch changes nothing on the page", () => {
+    const before = html("en");
+    vi.stubEnv("DENTVIDEO_FOUNDING_OFFER", "1");
     try {
-      const page = html("en");
-      expect(page).not.toContain("data-founding-banner");
-      const practice = page.slice(page.indexOf('data-tier="practice"'), page.indexOf('data-tier="group"'));
-      expect(practice).toContain(LANDING.en.pricing.recommended);
-      expect(practice).not.toContain(LANDING.en.pricing.foundingBadge);
+      expect(html("en")).toBe(before);
     } finally {
       vi.unstubAllEnvs();
     }

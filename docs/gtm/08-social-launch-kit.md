@@ -43,8 +43,8 @@ cd worker && npx tsx ../scripts/render-social-kit.mts ~/social-kit --capture htt
    check is mentioned.
 4. **The narration is a synthetic voice** (the landing's own FAQ says so). Turn on Instagram's **AI label** for the 9
    sample Reels (Advanced settings → "Add AI label") and keep the line in the caption. The 3 explainers have no voice.
-5. Prices only as in `docs/gtm/README.md`: Starter $49/month; founding offer = Practice at $49/month for 12 months for
-   the first 100 clinics. Never a countdown, never "only N left" unless read from `/admin` that day.
+5. Prices only as in `docs/gtm/README.md`: Starter $29/month; Practice $49/month; no discount, no founding offer.
+   Never a countdown, never "only N left".
 6. Sample videos are **general information, not a substitute for an examination** — each caption says that too.
 
 ## The 12 posts (posting order)
@@ -127,8 +127,8 @@ compliance line, not decoration.
 > 2. Canlı önizleme: videolarınızın kendi renginizle nasıl görüneceğini ödeme yapmadan önce görün.
 > 3. Her pazartesi yeni videolar gelir: izleyin, onaylayın, telefonunuzdan paylaşın.
 >
-> Ücretsiz deneme yok; onun yerine ödemeden önce kendi önizlemeniz var. Aylık plan, taahhüt yok. İlk 100 kliniğe
-> kurucu fiyatı: Practice planı 12 ay boyunca aylık $49.
+> Ücretsiz deneme yok; onun yerine ödemeden önce kendi önizlemeniz var. Aylık plan, taahhüt yok. Planlar aylık
+> $29'dan başlıyor.
 >
 > Ekrandaki klinik adı örnektir.
 >
@@ -280,7 +280,7 @@ Use the TR bio while Türkiye is the focus; switch to EN when ES/DE outreach sta
 | `highlight-ornekler` (play) | Örnekler | Each sample Reel shared to Stories, with the "örnek" sticker text |
 | `highlight-nasil` (steps) | Nasıl? | Explainer 04, then three Stories: clinic → preview → approve |
 | `highlight-kontrol` (shield) | Kontrol | Explainer 07; a Story with "dikkatli bir filtre, hukuki danışmanlık değil" |
-| `highlight-fiyat` (tag) | Fiyat | Starter $49/ay; Practice $99/ay; kurucu teklifi (ilk 100 klinik, Practice 12 ay $49/ay); ücretsiz deneme yok, önizleme var |
+| `highlight-fiyat` (tag) | Fiyat | Starter $29/ay; Practice $49/ay; ücretsiz deneme yok, önizleme var |
 | `highlight-sss` (question) | SSS | 3–5 answers copied from the landing FAQ, word for word |
 | `highlight-diller` (globe) | Diller | One Story per language sample (TR, ES, DE): "10 dilde video" |
 
@@ -303,8 +303,7 @@ Use the TR bio while Türkiye is the focus; switch to EN when ES/DE outreach sta
 > Videos in 10 languages. We're starting with clinics in Türkiye, then Spain, Mexico and the German-speaking countries.
 >
 > There's no free trial. Instead, you can see a live preview of your own clinic's video, with your logo and colours,
-> before paying. Plans start at $49/month, monthly, no minimum term. The first 100 clinics get the Practice plan at
-> $49/month for 12 months.
+> before paying. Plans start at $29/month, monthly, no minimum term.
 >
 > We're a two-person team at Bulsu Labs, so there are no reviews yet — you'd be one of our first clinics. If you work in
 > or with a dental clinic, we'd value honest feedback: what would make you trust a tool with your practice's name?
@@ -329,8 +328,7 @@ Attach explainer 01 (`reels/01-dentvideo-nedir.mp4`) or the banner image.
 > Videolar 10 dilde. Türkiye'deki kliniklerle başlıyoruz.
 >
 > Ücretsiz deneme yok; onun yerine ödeme yapmadan önce kendi kliniğinizin logosu ve renkleriyle canlı önizlemeyi
-> görebilirsiniz. Planlar aylık $49'dan başlıyor, aylık, taahhütsüz. İlk 100 klinik, Practice planını 12 ay boyunca
-> aylık $49'a kullanır.
+> görebilirsiniz. Planlar aylık $29'dan başlıyor, aylık, taahhütsüz.
 >
 > Bulsu Labs'te iki kişilik bir ekibiz; henüz yorum ya da referansımız yok — ilk kliniklerimizden biri olursunuz. Bir
 > diş kliniğinde ya da kliniklerle çalışıyorsanız dürüst görüşünüzü çok isteriz: kliniğinizin adını bir araca emanet

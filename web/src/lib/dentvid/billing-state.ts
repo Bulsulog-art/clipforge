@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { billingText } from "@/content/dentvideo-billing";
 import { fill } from "@/content/dentvideo-lifecycle";
-import { CONTACT_EMAIL, usd } from "./lifecycle-email";
-import { checkoutBlock, DV_FOUNDING, DV_PRICES_USD, foundingOfferOpen, type DvCheckoutBlock, type DvSubRecord, type FoundingState } from "./billing";
-import { loadFoundingState, supabaseSubscriptionStore } from "./subscriptions";
+import { CONTACT_EMAIL } from "./lifecycle-email";
+import { checkoutBlock, type DvCheckoutBlock, type DvSubRecord } from "./billing";
+import { supabaseSubscriptionStore } from "./subscriptions";
 import { dodoApiKey, dodoGetSubscription } from "./dodo-account";
 
 /**
@@ -70,17 +70,6 @@ export function formatDate(iso: string, lang: string): string {
   } catch {
     return iso.slice(0, 10);
   }
-}
-
-export function foundingFullMessage(language: string | null | undefined): string {
-  const { lang, copy } = billingText(language);
-  return fill(copy.refuse.foundingFull, { price: usd(lang, DV_PRICES_USD[DV_FOUNDING.tier][DV_FOUNDING.interval] ?? 0) });
-}
-
-/** The founding offer as the app should present it (closed at 100 seats); env-only when there is no backend. */
-export async function foundingForApp(admin: SupabaseClient | null): Promise<FoundingState> {
-  if (!admin) return { open: foundingOfferOpen(), used: 0, left: DV_FOUNDING.clinics, reliable: false };
-  return loadFoundingState(admin);
 }
 
 /** How long after a payment event the "being made" screen may show for a clinic that is not active yet. */

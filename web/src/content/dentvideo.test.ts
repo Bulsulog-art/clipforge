@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GUIDES, GUIDE_HUB_LOCALES, LANDING, LANDING_PATH, LOCALES, dirOf, guidePath, guidesFor } from "./dentvideo";
 import { dentvideoPaths, guideJsonLd, landingAlternates, landingJsonLd } from "@/lib/dentvid/seo";
-import { DV_FOUNDING, DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
 
 /** Shape of a value: object keys and array lengths, recursively. */
 function shape(v: unknown): unknown {
@@ -60,7 +60,7 @@ describe("DentVideo landing content", () => {
   it("pricing shows only the configured USD prices, in every locale", () => {
     const allowed = new Set<number>();
     for (const tier of DV_TIERS) for (const v of Object.values(DV_PRICES_USD[tier])) if (v) allowed.add(v);
-    allowed.add(DV_FOUNDING.priceUsd);
+    expect([...allowed].sort((a, b) => a - b)).toEqual([29, 49]);
     for (const l of LOCALES) {
       const p = LANDING[l].pricing;
       const text = JSON.stringify(p);
@@ -71,29 +71,19 @@ describe("DentVideo landing content", () => {
       // Starter, Practice at their monthly list prices, in that order (Group is Contact us: no price).
       expect(p.tiers, l).toHaveLength(DV_SELF_SERVE_TIERS.length);
       DV_SELF_SERVE_TIERS.forEach((tier, i) => expect(p.tiers[i].price.replace(/\D/g, ""), `${l} ${tier}`).toBe(String(DV_PRICES_USD[tier].month)));
-      expect(p.founding, l).toContain(String(DV_FOUNDING.priceUsd));
-      expect(p.founding, l).toContain(String(DV_FOUNDING.months));
-      expect(p.founding, l).toContain(String(DV_FOUNDING.clinics));
-      expect(p.yearly, l).toContain(String(DV_PRICES_USD.practice.year));
+      // "From …" is the lowest monthly list price (Starter).
+      expect(p.from.replace(/\D/g, ""), l).toBe(String(DV_PRICES_USD.starter.month));
     }
   });
 
-  it("the founding offer's card shows its price, the list price after it, and for how long — in every locale", () => {
-    const digits = (s: string) => s.replace(/\D/g, "");
-    const tier = DV_TIERS.indexOf(DV_FOUNDING.tier);
-    const list = DV_PRICES_USD[DV_FOUNDING.tier][DV_FOUNDING.interval];
+  it("no founding offer, no yearly billing and no discount anywhere on the landings, in every locale", () => {
+    const FOUNDING = /founding|\bgründungs|fundador|kurucu|fondateur|創業|先行導入|المؤسسين|założyciel|KURUCU100/i;
+    const YEARLY = /990|yearly|\/year|a year|jährlich|im jahr|anual|al año|yıllık|annuel|par an|年額|سنوي|rocznie/i;
     for (const l of LOCALES) {
-      const p = LANDING[l].pricing;
-      const card = p.foundingCard;
-      expect(digits(card.price), l).toBe(String(DV_FOUNDING.priceUsd));
-      expect(digits(card.listPrice), l).toBe(String(list));
-      // The struck-through list price is the one printed on that card when the offer is closed.
-      expect(card.listPrice, l).toBe(p.tiers[tier].price);
-      // Same currency notation as the rest of the locale ("$49" or "49 $").
-      expect(card.price.replace(/\d+/, "#"), l).toBe(card.listPrice.replace(/\d+/, "#"));
-      // Honest: the note names the founding price, how long it lasts, and what it is after.
-      const figures = [...card.note.matchAll(/\d+/g)].map((m) => Number(m[0]));
-      expect(figures, l).toEqual(expect.arrayContaining([DV_FOUNDING.priceUsd, DV_FOUNDING.months, list]));
+      const text = JSON.stringify(LANDING[l]);
+      expect(text, l).not.toMatch(FOUNDING);
+      expect(JSON.stringify(LANDING[l].pricing), l).not.toMatch(YEARLY);
+      expect(Object.keys(LANDING[l].pricing).sort(), l).toEqual(["cta", "from", "heading", "note", "perMonth", "recommended", "text", "tiers"]);
     }
   });
 

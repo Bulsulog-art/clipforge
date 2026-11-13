@@ -8,9 +8,9 @@ import { appText } from "@/content/dentvideo-app";
 import { AppHomeView } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { appSendsToFunnel, showFirstWeek } from "@/lib/dentvid/onboarding";
-import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
+import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { readWeekDelay } from "@/lib/dentvid/ops-server";
-import { adminOrNull, foundingForApp, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
+import { adminOrNull, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
 
 export const dynamic = "force-dynamic";
 
@@ -47,10 +47,7 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const b = appText(locale).billing;
   const notice = billing === "cancelled" ? b.cancelled : null;
   // Not paying: the plan picker — unless buying would double-charge (on hold → update the card, payment being confirmed, cancelled but paid up).
-  const [panel, founding] = await Promise.all([
-    plan.canMake ? null : loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin),
-    foundingForApp(admin),
-  ]);
+  const panel = plan.canMake ? null : await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin);
 
   return (
     <AppHomeView
@@ -64,7 +61,6 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
       weekDelay={weekDelay}
       notice={notice}
       plans={dvAvailablePlans()}
-      founding={founding.open ? { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode(), ...(founding.reliable ? { left: founding.left } : {}) } : null}
       billingIssue={panel && panel.kind !== "plans" ? panel : null}
     />
   );

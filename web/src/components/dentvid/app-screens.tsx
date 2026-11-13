@@ -22,7 +22,6 @@ import { RecordUpload } from "./record-upload";
  * fake data, so what is reviewed there is what clinics see.
  */
 
-type Founding = { priceUsd: number; code?: string; left?: number } | null;
 
 const MAIN = "mx-auto px-4 pb-20 pt-6 sm:px-6 sm:pt-10";
 
@@ -35,7 +34,6 @@ export function AppHomeView({
   madeThisWeek,
   notice,
   plans,
-  founding,
   currentWeek,
   pollMs,
   weekDelay = null,
@@ -49,7 +47,6 @@ export function AppHomeView({
   madeThisWeek: boolean;
   notice: string | null;
   plans: PlanOption[];
-  founding: Founding;
   /** Monday of this week (YYYY-MM-DD). */
   currentWeek: string;
   pollMs?: number;
@@ -90,7 +87,7 @@ export function AppHomeView({
               {billingIssue ? (
                 <BillingIssuePanel locale={locale} issue={billingIssue} clinicName={clinicName} keepVideos={items.length > 0} />
               ) : (
-                <PlanPanel locale={locale} state={plan.plan} options={plans} founding={founding} keepVideos={items.length > 0} />
+                <PlanPanel locale={locale} state={plan.plan} options={plans} keepVideos={items.length > 0} />
               )}
             </div>
           )}
@@ -117,7 +114,6 @@ export function SettingsView({
   logoUrl,
   plan,
   plans,
-  founding,
   selfServe = false,
   initialDialog = null,
   accountEmail = null,
@@ -131,7 +127,6 @@ export function SettingsView({
   logoUrl?: string | null;
   plan: ClinicPlan | null;
   plans: PlanOption[];
-  founding: Founding;
   /** DODO_API_KEY is set on the server: billing portal and plan change are self-serve (else the email card). */
   selfServe?: boolean;
   /** Dev preview only: open the delete dialog on load. */
@@ -170,7 +165,7 @@ export function SettingsView({
               {billingIssue ? (
                 <BillingIssuePanel locale={locale} issue={billingIssue} clinicName={profile?.name} />
               ) : (
-                <PlanPanel locale={locale} state={plan.plan} options={plans} founding={founding} />
+                <PlanPanel locale={locale} state={plan.plan} options={plans} />
               )}
             </div>
           )}

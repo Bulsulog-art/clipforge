@@ -48,7 +48,6 @@ type Props = {
   /** Signed URL of the saved logo. */
   logoUrl?: string | null;
   plans: PlanOption[];
-  founding: { priceUsd: number; code?: string; left?: number } | null;
   /** Back from Dodo without paying. */
   checkoutCancelled?: boolean;
   /** The signed-in account's address and whether it is confirmed (lib/dentvid/verify-email). */
@@ -70,7 +69,7 @@ type Props = {
  * is kept in the URL (?step=) and the furthest one in a cookie, so a
  * returning visitor lands where they left off (lib/dentvid/onboarding.ts).
  */
-export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, founding, checkoutCancelled, account, autoSendCode = true, demo }: Props) {
+export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, checkoutCancelled, account, autoSendCode = true, demo }: Props) {
   const t = appText(locale).onboarding;
   // A demo fills only a clinic that has no name yet; what the clinic saved always wins.
   const fromDemo = demo && !initial?.name ? demo : undefined;
@@ -145,7 +144,6 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
             locale={locale}
             preview={draft.preview}
             plans={plans}
-            founding={founding}
             cancelled={!!checkoutCancelled}
             onEdit={() => go("preview")}
             account={account}
@@ -272,7 +270,6 @@ function PlanStep({
   locale,
   preview,
   plans,
-  founding,
   cancelled,
   onEdit,
   account,
@@ -281,7 +278,6 @@ function PlanStep({
   locale: Locale;
   preview: PreviewProfile;
   plans: PlanOption[];
-  founding: { priceUsd: number; code?: string; left?: number } | null;
   cancelled: boolean;
   onEdit: () => void;
   account?: { email: string; verified: boolean };
@@ -340,7 +336,6 @@ function PlanStep({
           locale={locale}
           state="trial"
           options={plans}
-          founding={founding}
           bare
           onNeedsVerification={
             account

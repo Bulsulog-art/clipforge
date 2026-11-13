@@ -3,7 +3,7 @@
  * rows already loaded — so the maths (MRR, conversion, churn, funnel rates)
  * is unit-tested and the dev harness can feed fake rows to the same code.
  */
-import { DV_FOUNDING, DV_LEGACY_GROUP_MONTHLY_USD, DV_PRICES_USD, DV_TIERS, type DvInterval, type DvTier } from "./billing";
+import { DV_FOUNDING, DV_LEGACY_GROUP_MONTHLY_USD, DV_LEGACY_YEARLY_USD, DV_PRICES_USD, DV_TIERS, type DvInterval, type DvTier } from "./billing";
 import type { DvEventName } from "./events";
 
 export type AdminClinic = {
@@ -68,17 +68,18 @@ export function billingHints(events: AdminEvent[]): Map<string, BillingHint> {
 }
 
 /**
- * Monthly recurring revenue of one clinic in USD: its tier's list price
- * (yearly ÷ 12), or the founding price for Practice monthly when the clinic
- * is known to have checked out with the founding code. Not active → 0.
+ * Monthly recurring revenue of one clinic in USD: its tier's monthly list
+ * price; a legacy yearly subscription (no longer sold) at its old yearly
+ * price ÷ 12; the historic founding price for Practice monthly when the
+ * clinic is known to have checked out with the founding code. Not active → 0.
  * Unknown tier (billing columns not migrated) → 0, counted separately.
  */
 export function clinicMrr(c: Pick<AdminClinic, "plan" | "plan_tier">, hint: BillingHint = {}): number {
   if (c.plan !== "active") return 0;
   const tier = (DV_TIERS as readonly string[]).includes(c.plan_tier ?? "") ? (c.plan_tier as DvTier) : null;
   if (!tier) return 0;
-  const interval: DvInterval = hint.interval === "year" && DV_PRICES_USD[tier].year ? "year" : "month";
-  if (interval === "year") return (DV_PRICES_USD[tier].year ?? 0) / 12;
+  const interval: DvInterval = hint.interval === "year" && DV_LEGACY_YEARLY_USD[tier] ? "year" : "month";
+  if (interval === "year") return (DV_LEGACY_YEARLY_USD[tier] ?? 0) / 12;
   if (hint.founding && tier === DV_FOUNDING.tier) return DV_FOUNDING.priceUsd;
   // Group has no public price (Contact us); a legacy Group subscription is counted at what it charges.
   if (tier === "group") return DV_LEGACY_GROUP_MONTHLY_USD;
@@ -105,7 +106,7 @@ export function revenue(clinics: AdminClinic[], hints: Map<string, BillingHint> 
     payingByTier[tier]++;
     const h = hints.get(c.id) ?? {};
     mrr += clinicMrr(c, h);
-    if (tier !== "unknown" && h.interval === "year" && DV_PRICES_USD[tier].year) yearly++;
+    if (tier !== "unknown" && h.interval === "year" && DV_LEGACY_YEARLY_USD[tier]) yearly++;
     else if (tier === DV_FOUNDING.tier && h.founding) founding++;
   }
   const paying = payingByTier.starter + payingByTier.practice + payingByTier.group + payingByTier.unknown;

@@ -25,8 +25,8 @@ month 2).
 
 ## Before Day 1 (one afternoon, both)
 
-- [ ] Confirm in Dodo that the founding offer is applied automatically to Practice monthly and how many uses remain;
-      check `foundingSeats()` on `/admin` matches.
+- [ ] Confirm in Dodo that the checkout shows Starter $29/month and Practice $49/month with no discount applied, and
+      that the old founding code `KURUCU100` is disabled.
 - [ ] Make the **DentVideo Instagram business account** credible: bio with the one-liner, link with UTM, 9+ sample
       Reels from the demo clinic in TR/DE/ES.
 - [ ] Both founders' LinkedIn: headline "Founder, DentVideo (Bulsu Labs)", banner, About = short definition.
@@ -58,7 +58,7 @@ month 2).
 
 | Day | A | B |
 | --- | --- | --- |
-| Mon–Fri daily | Same volume as week 2. Ask every clinic that has used DentVideo ≥ 7 days for a 15-minute feedback call (part of the founding deal). | Partner follow-ups; sign the first 1–2 partners (terms in 06). |
+| Mon–Fri daily | Same volume as week 2. Ask every clinic that has used DentVideo ≥ 7 days for a 15-minute feedback call (a request, not a condition). | Partner follow-ups; sign the first 1–2 partners (terms in 06). |
 | Tue | Be online 09:00–17:00 CET for Product Hunt comments. | **Product Hunt launch** 00:01 PT (09:01 CET) with the kit in 05. No upvote begging: "we're live, feedback welcome". |
 | Thu | First TR webinar, if an oda accepted (otherwise run our own Instagram Live on "yönetmelik sonrası ne paylaşılır"). | Meta ads test: TR 150 TL/day and MX 150 MXN/day for 7 days, to `/tr` and `/es` with UTMs (`utm_medium=paid`). |
 
@@ -85,8 +85,7 @@ The dashboard already has these (`web/src/lib/dentvid/admin-metrics.ts`); filter
 
 | Dashboard item | What it tells you | Healthy in month 1 | Act when |
 | --- | --- | --- | --- |
-| Founding seats left (`foundingSeats`) | The only real urgency; quote it truthfully | falls by ~1/day | Seats < 20 → prepare the post-founding offer and copy |
-| MRR / revenue (`revenue`) | Money | ≥ $1,470 MRR (30 × $49) by day 30 | Flat for 5 days → change channel mix |
+| MRR / revenue (`revenue`) | Money | ≥ 30 paying clinics (≈ $870–1,470 MRR at $29–49) by day 30 | Flat for 5 days → change channel mix |
 | Funnel: Landing views → Tried the preview | Is the landing convincing? | ≥ 15% of visits from outreach | < 8% → test hero + preview CTA |
 | Signed up → Clinic saved → Saw their preview | Onboarding friction | ≥ 70% each step | A step < 50% → watch 3 session replays, fix copy |
 | Saw their preview → Clicked a plan → Opened checkout → **Paid** | Does the preview sell? | Preview → Paid ≥ 25% | < 15% → offer a 10-min call to every previewer, then fix the preview |

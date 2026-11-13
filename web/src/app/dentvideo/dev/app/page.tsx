@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Locale } from "@/content/dentvideo";
 import { asLocale } from "@/lib/dentvid/locale";
 import { weekOf } from "@/lib/dentvid/week";
-import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
+import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
 import type { LibraryItem } from "@/components/dentvid/library";
 import { AppHomeView, RecordView, SettingsView, type ShootCard } from "@/components/dentvid/app-screens";
@@ -36,7 +36,6 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
   const screen = sp.screen ?? "library";
   const state = sp.state ?? "";
   const plans = dvAvailablePlans();
-  const founding = { priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() };
 
   if (screen === "settings") {
     const planState = state === "paused" || state === "trial" ? state : "active";
@@ -48,7 +47,6 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
         logoUrl={null}
         plan={demoPlan(planState)}
         plans={plans}
-        founding={founding}
         selfServe={sp.billing !== "email"}
         initialDialog={sp.dialog === "delete" ? "delete" : null}
       />
@@ -99,7 +97,6 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
       currentWeek={thisWeek}
       notice={null}
       plans={plans}
-      founding={founding}
       pollMs={3_600_000}
       weekDelay={sp.delay === "retrying" || sp.delay === "delayed" ? sp.delay : null}
     />

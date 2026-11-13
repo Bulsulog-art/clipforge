@@ -39,12 +39,12 @@ export function demoMetadata(locale: Locale, demo: PublicDemo | null): Metadata 
   };
 }
 
-export function DemoPage({ locale, demo, foundingOpen, logoSrc }: { locale: Locale; demo: PublicDemo | null; foundingOpen: boolean; /** Dev harness: a static logo instead of the stored copy. */ logoSrc?: string }) {
+export function DemoPage({ locale, demo, logoSrc }: { locale: Locale; demo: PublicDemo | null; /** Dev harness: a static logo instead of the stored copy. */ logoSrc?: string }) {
   if (!demo) notFound();
   const t = DEMO_COPY[locale];
   const name = demo.clinicName;
   const colour = demo.colour;
-  const facts = [t.facts.from, foundingOpen ? t.facts.founding : null, t.facts.cancel, t.facts.approve, t.facts.rules].filter((x): x is string => !!x);
+  const facts = [t.facts.from, t.facts.cancel, t.facts.approve, t.facts.rules];
   const mailHref = `mailto:${OPERATOR.productEmail}?subject=${encodeURIComponent(fillDemo(t.mailSubject, { name }))}`;
   const profile = {
     name,

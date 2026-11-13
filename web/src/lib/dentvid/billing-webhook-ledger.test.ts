@@ -58,7 +58,6 @@ function memorySubs(rows: DvSubRecord[] = []): SubscriptionStore & { rows: Map<s
     put: async (r) => (map.set(r.dodo_subscription_id, { ...map.get(r.dodo_subscription_id), ...r, updated_at: new Date().toISOString() }), true),
     recordPayment: async (p, c, s) => void payments.set(p, { clinic_id: c, dodo_subscription_id: s }),
     paymentClinic: async (p) => payments.get(p) ?? null,
-    foundingClinics: async () => [...map.values()].filter((r) => r.founding).length,
   };
 }
 
@@ -89,7 +88,6 @@ function deps(over: Partial<DvWebhookDeps> = {}) {
     sendPaymentMail: vi.fn(async () => "sent"),
     markPaid: vi.fn(async () => {}),
     dodoStatus: async () => null,
-    founding: async () => ({ open: true, used: 1, left: 99, reliable: true }),
     selfServe: false,
     ...over,
   };
@@ -248,18 +246,19 @@ describe("refunds and disputes", () => {
   });
 });
 
-describe("founding seats", () => {
-  it("the owner is told when the 100th founding seat is taken", async () => {
+describe("historic founding seats (the offer is closed)", () => {
+  it("a Practice activation raises no founding-seat alert any more", async () => {
     const f = fakeDb(unpaid());
-    const d = deps({ founding: async () => ({ open: false, used: 100, left: 0, reliable: true }) });
+    const d = deps();
     await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1", undefined, { discount_id: "dsc_1" }), d);
-    expect(d.raised.map((a) => a.key)).toContain("founding_full");
+    expect(f.clinic.plan).toBe("active");
+    expect(d.raised.map((a) => a.key)).not.toContain("founding_full");
   });
 
-  it("records the founding discount on the subscription", async () => {
+  it("records a typed discount without calling it founding", async () => {
     const f = fakeDb(unpaid());
     const subs = memorySubs();
     await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1", undefined, { discount_id: "dsc_1" }), deps({ subs }));
-    expect(subs.rows.get("sub_1")).toMatchObject({ founding: true, tier: "practice", interval: "month", discount_id: "dsc_1" });
+    expect(subs.rows.get("sub_1")).toMatchObject({ founding: false, tier: "practice", interval: "month", discount_id: "dsc_1" });
   });
 });

@@ -7,7 +7,7 @@ import { asLocale } from "@/lib/dentvid/locale";
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { asStep } from "@/lib/dentvid/onboarding";
 import { legalPagesOn } from "@/lib/dentvid/legal";
-import { DV_FOUNDING, dvAvailablePlans, foundingCode } from "@/lib/dentvid/billing";
+import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
 
 const DEMO_CLINIC: Record<Locale, { name: string; city: string; country: string }> = {
@@ -72,7 +72,6 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
       step={step}
       initial={demo}
       plans={dvAvailablePlans()}
-      founding={{ priceUsd: DV_FOUNDING.priceUsd, code: foundingCode() }}
       checkoutCancelled={false}
       account={{ email: DEMO_EMAIL[locale], verified: sp.verified === "1" }}
       autoSendCode={false}
