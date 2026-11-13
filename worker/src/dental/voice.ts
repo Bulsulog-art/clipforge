@@ -45,13 +45,15 @@ const LANGUAGE_NOTES: Record<string, string> = {
   ja: "Natural standard Japanese (Tokyo accent) with correct pitch accent; polite です・ます, soft and reassuring. Read dental terms correctly (歯周病, 歯石, 根管治療, 知覚過敏, マウスピース矯正).",
 };
 
-export function voiceInstructions(language: string): string {
+const BRITISH = new Set(["GB", "UK", "IE", "AU", "NZ"]);
+
+export function voiceInstructions(language: string, country?: string): string {
   const lang = language.toLowerCase();
-  const name = LANGUAGE_NAMES[lang] ?? language;
+  const name = (lang === "en" && BRITISH.has((country ?? "").toUpperCase()) ? "British English (standard Southern British)" : undefined) ?? LANGUAGE_NAMES[lang] ?? language;
   return [
     `Speak native ${name}.`,
     "You are a warm, calm dentist speaking to one patient. Natural, unhurried pace with small pauses between ideas; reassuring, never salesy or announcer-like.",
-    LANGUAGE_NOTES[lang] ?? `Pronounce dental terms correctly in ${name}.`,
+    (lang === "en" && BRITISH.has((country ?? "").toUpperCase()) ? "Relaxed British English, like talking to one patient in the chair; British pronunciation of dental terms (hygienist, check-up)." : undefined) ?? LANGUAGE_NOTES[lang] ?? `Pronounce dental terms correctly in ${name}.`,
   ].join(" ");
 }
 
@@ -93,11 +95,11 @@ export function speakingTempo(language: string | undefined, model: string | unde
 
 export type VoiceConfig = { model: string; instructions?: string };
 
-export function resolveVoice(language: string | undefined, env: Record<string, string | undefined> = process.env): VoiceConfig {
+export function resolveVoice(language: string | undefined, env: Record<string, string | undefined> = process.env, country?: string): VoiceConfig {
   const lang = (language ?? "").toLowerCase();
   const perLang = lang ? env[`DENTVID_TTS_MODEL_${lang.toUpperCase()}`]?.trim() : undefined;
   const model = perLang || env.DENTVID_TTS_MODEL?.trim() || DEFAULT_TTS_MODEL;
   // tts-1 / tts-1-hd ignore instructions; the steerable models get one.
   if (model.startsWith("tts-1") || !lang) return { model };
-  return { model, instructions: voiceInstructions(lang) };
+  return { model, instructions: voiceInstructions(lang, country) };
 }

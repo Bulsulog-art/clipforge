@@ -35,7 +35,11 @@ const abbr = (map: Record<string, string>, flags = "gu"): Rule[] =>
 /** Abbreviations a TTS voice reads letter by letter or skips. */
 const ABBREVIATIONS: Partial<Record<Lang, Record<string, string>>> = {
   tr: { "Dr.": "Doktor", "Dt.": "Diş hekimi", "Prof.": "Profesör", "Doç.": "Doçent", "Uzm.": "Uzman", "vb.": "ve benzeri", "vs.": "vesaire", "örn.": "örneğin", "yak.": "yaklaşık", "bkz.": "bakınız", "DSÖ": "Dünya Sağlık Örgütü" },
-  de: { "Dr.": "Doktor", "Prof.": "Professor", "z. B.": "zum Beispiel", "d. h.": "das heißt", "u. a.": "unter anderem", "bzw.": "beziehungsweise", "usw.": "und so weiter", "ca.": "circa", "evtl.": "eventuell", "ggf.": "gegebenenfalls", "inkl.": "inklusive", "sog.": "sogenannte", "WHO": "Weltgesundheitsorganisation" },
+  // PZR: tts-1-hd read "Eine PZR dauert…" as "Dann passiert er…" (round trip
+  // through gpt-4o-transcribe, Nov 2026); the written-out form is what a
+  // patient understands anyway. Aligner, Bleaching and Veneers were read
+  // correctly as written, and respelled they got worse, so they stay.
+  de: { PZR: "professionelle Zahnreinigung", KFO: "Kieferorthopädie", "Dr.": "Doktor", "Prof.": "Professor", "z. B.": "zum Beispiel", "d. h.": "das heißt", "u. a.": "unter anderem", "bzw.": "beziehungsweise", "usw.": "und so weiter", "ca.": "circa", "evtl.": "eventuell", "ggf.": "gegebenenfalls", "inkl.": "inklusive", "sog.": "sogenannte", "WHO": "Weltgesundheitsorganisation" },
   es: { "Dra.": "doctora", "Dr.": "doctor", "p. ej.": "por ejemplo", "etc.": "etcétera", "aprox.": "aproximadamente", "Uds.": "ustedes", "Ud.": "usted", "OMS": "Organización Mundial de la Salud" },
   en: { "Dr.": "Doctor", "e.g.": "for example", "i.e.": "that is", "etc.": "et cetera", "vs.": "versus", "approx.": "approximately", "WHO": "World Health Organization" },
   fr: { "p. ex.": "par exemple", "etc.": "et cetera", "env.": "environ" },

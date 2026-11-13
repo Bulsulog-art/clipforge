@@ -121,7 +121,9 @@ describe("rubric over the baseline (fixtures)", () => {
     expect(scripts).toHaveLength(30);
     const { summary } = gradeCorpus(scripts, (s) => (s as { week?: string }).week ?? "all");
     // The baseline the prompt changes are measured against (docs/QUALITY.md).
-    expect(summary.overall).toBe(4.12);
+    // 4.12 before round 2 (docs/QUALITY.md); 4.00 since the rubric also sees repeated lines, spoken tics,
+    // captions that copy the narration and Turkish captions that steer to booking.
+    expect(summary.overall).toBe(4);
     expect(summary.byDimension.variety).toBe(3.03);
     expect(summary.topFindings[0]).toEqual({ code: "same_cta", count: 25 });
     const agree = agreement(scripts, await loadHandGrades());
@@ -283,7 +285,7 @@ describe("deterministic post-check (week.ts scriptProblems)", () => {
   it("briefs the writer with the takeaway, the market's CTA rule and a reference script", () => {
     const brief = scriptBrief(PROFILE, { title: "Beyazlatma", pillar: "myth", question: "q", hook: "h", service: "Diş beyazlatma", takeaway: "Hassasiyet genellikle geçicidir." }, [], { openers: ["Bakın, şöyle."], closings: [] });
     expect(brief).toMatch(/ONE takeaway.*Hassasiyet genellikle geçicidir/);
-    expect(brief).toMatch(/Never "randevu alın"/);
+    expect(brief).toMatch(/Never "randevu alın/);
     expect(brief).toMatch(/REFERENCE — the standard to match/);
     expect(brief).toMatch(/Earlier videos this week opened with: "Bakın, şöyle\."/);
   });
@@ -293,10 +295,12 @@ describe("deterministic post-check (week.ts scriptProblems)", () => {
       { title: "Kanal sonrası", pillar: "aftercare", question: "Kanal sonrası ne yapmalı?", hook: "Kanal bitti ama diş daha hazır değil.", service: "Kanal tedavisi" },
       { title: "Beyazlatma ve kahve", pillar: "myth", question: "Beyazlatmadan sonra kahve içilir mi?", hook: "Beyazlatmadan sonra ilk kahve…", service: "Diş beyazlatma" },
     ];
+    let planned = 0;
     const { client, calls } = agentClient((system) => {
       if (system.startsWith("You plan short")) return { topics };
       if (system.startsWith("You are the editor")) throw new Error("skip");
-      if (system.startsWith("You write scene plans")) return plan("Size özel talimatları hekiminize sorun.", GOOD_NARRATION);
+      // Each video closes differently (a closing that echoes an earlier one is sent back).
+      if (system.startsWith("You write scene plans")) return plan(++planned === 1 ? "Size özel talimatları hekiminize sorun." : "Kahve konusunu kontrolde hekiminizle konuşabilirsiniz.", GOOD_NARRATION);
       if (system.startsWith("You are the dentist")) return { text: GOOD_NARRATION };
       if (system.startsWith("You review") || system.startsWith("You are a careful general dentist")) return { verdict: "pass", issues: [] };
       if (system.startsWith("You write the Instagram")) return { caption: "Kanal sonrası ilk günler hakkında kısa bilgi.", hashtags: ["dis", "izmir", "kanal"] };

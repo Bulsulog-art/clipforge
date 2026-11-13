@@ -38,13 +38,18 @@ const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const inserted: Record<string, unknown>[] = [];
 let uploadFailures = 0;
+/** What the clinic already has in dentvid_items (newest week first, as the query orders it). */
+let pastItems: Record<string, unknown>[] = [];
+const selects: { table: string; cols: string }[] = [];
+const orders: { table: string; col: string; ascending: boolean }[] = [];
 
 function fakeDb() {
   const from = (table: string) => {
     const q: Record<string, unknown> = {};
-    q.select = () => q;
+    q.select = (cols?: string) => (selects.push({ table, cols: cols ?? "*" }), q);
     q.eq = () => q;
-    q.limit = async () => ({ data: [] });
+    q.order = (col: string, o?: { ascending?: boolean }) => (orders.push({ table, col, ascending: o?.ascending !== false }), q);
+    q.limit = async () => ({ data: table === "dentvid_items" ? pastItems : [] });
     q.maybeSingle = async () => ({
       data: table === "dentvid_clinics" ? { id: CLINIC, plan: "active", plan_tier: "practice", profile: { name: "Gülüş Dental", country: "TR" } } : null,
       error: null,
@@ -96,6 +101,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   inserted.length = 0;
   uploadFailures = 0;
+  pastItems = [];
+  selects.length = 0;
+  orders.length = 0;
   _setStoreRetryMs(0);
   _resetLocalOnce();
   ops = new MemoryOpsStore();
@@ -166,6 +174,35 @@ describe("a week that heals itself", () => {
     expect(lost).toHaveLength(3);
     for (const row of lost) expect(row.findings).toEqual([]);
     expect(mails).toEqual([]);
+  });
+
+  it("the clinic's history (title, topic, week) reaches the strategist, oldest first, not just past titles", async () => {
+    pastItems = [
+      { title: "Diş eti kanaması", topic: { title: "Diş eti kanaması", hook: "Fırçalarken kanıyor mu?", service: "Diş eti tedavisi", pillar: "myth", question: "Kanama normal mi?" }, week_of: "2026-11-09", status: "ready" },
+      { title: "Reddedilen konu", topic: { title: "Reddedilen konu", hook: "x", service: "İmplant" }, week_of: "2026-11-09", status: "rejected" },
+      { title: "İmplant ömrü", topic: { title: "İmplant ömrü", hook: "İmplant ömür boyu mu?", service: "İmplant" }, week_of: "2026-10-26", status: "flagged" },
+    ];
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(selects).toContainEqual({ table: "dentvid_items", cols: expect.stringMatching(/title.*topic.*week_of/) });
+    expect(orders).toContainEqual({ table: "dentvid_items", col: "week_of", ascending: false });
+    const [, , opts] = produceWeek.mock.calls[0] as [unknown, unknown, { avoidTitles: string[]; history: { title: string; hook?: string; service?: string; weekOf?: string }[] }];
+    // Every past title still feeds the repeat filter, rejected ones included.
+    expect(opts.avoidTitles).toEqual(["Diş eti kanaması", "Reddedilen konu", "İmplant ömrü"]);
+    // The memory gets hooks, services and weeks of what the clinic actually received, oldest first.
+    expect(opts.history).toEqual([
+      { title: "İmplant ömrü", hook: "İmplant ömür boyu mu?", service: "İmplant", weekOf: "2026-10-26" },
+      { title: "Diş eti kanaması", hook: "Fırçalarken kanıyor mu?", service: "Diş eti tedavisi", pillar: "myth", question: "Kanama normal mi?", weekOf: "2026-11-09" },
+    ]);
+  });
+
+  it("the top-up's history includes this week's usable videos", async () => {
+    produceWeek
+      .mockResolvedValueOnce([{ ...ready("a"), topic: { title: "a", hook: "Hook A?", service: "implants" } }, broken("b"), broken("c")])
+      .mockResolvedValueOnce([ready("f"), ready("g")]);
+    await runDentvidWeek({ clinicId: CLINIC, count: 3 }, { attempts: 4 });
+    const [, , opts] = produceWeek.mock.calls[1] as [unknown, unknown, { history: { title: string; hook?: string; weekOf?: string }[] }];
+    expect(opts.history).toEqual([{ title: "a", hook: "Hook A?", service: "implants", weekOf: week }]);
   });
 
   it("the top-up respects the spend guard: refused → delivered thin, owner told once", async () => {

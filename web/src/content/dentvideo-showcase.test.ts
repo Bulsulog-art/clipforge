@@ -120,6 +120,7 @@ describe("country rules: only markets the reviewer is really briefed for", () =>
       GULF: /DHA[\s\S]*DoH Abu Dhabi, MOHAP and Saudi MOH/,
       PL: /Kodeks Etyki Lekarskiej \(2025, art\. 71\)/,
       SG: /Healthcare Services \(Advertisement\) Regulations 2021/,
+      GB: /CAP Code \(enforced by the ASA\) and the GDC/,
     };
     for (const m of RULE_MARKETS) expect(body, m.code).toMatch(named[m.code]);
   });

@@ -9,6 +9,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { clinicProfileSchema, type ClinicProfile } from "../dental/profile.js";
 import { produceWeek, type VideoPackage } from "../dental/week.js";
+import { historyFromRows, type PastItemRow, type PastTopic } from "../dental/memory.js";
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
@@ -340,11 +341,23 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
     const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, job.clinicId, workDir);
-    const { data: past } = await db.from("dentvid_items").select("title").eq("clinic_id", job.clinicId).limit(200);
+    // The clinic's last 200 items, newest weeks first: titles for the repeat
+    // filter, and topic + week for the strategist's memory (services covered
+    // lately, recent hooks and their shapes — dental/memory.ts). Before, only
+    // titles were read (in no particular order), so the memory saw no hooks,
+    // services or dates at all.
+    const { data: past } = await db
+      .from("dentvid_items")
+      .select("title, topic, week_of, status")
+      .eq("clinic_id", job.clinicId)
+      .order("week_of", { ascending: false })
+      .limit(200);
+    const pastRows = (past ?? []) as PastItemRow[];
+    const history = historyFromRows(pastRows);
     const want = job.count ?? 5;
     const ids = { clinicId: job.clinicId, ownerId };
 
-    const produce = (count: number, avoidTitles: string[]) =>
+    const produce = (count: number, avoidTitles: string[], history: PastTopic[]) =>
       produceWeek(
         {
           client: new OpenAI(),
@@ -354,7 +367,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           render: async (plan, topic) => {
             const dir = await fs.mkdtemp(path.join(workDir, "v-"));
             const voice = await prepareNarration(plan, dir, profile.language, {
-              ...resolveVoice(profile.language),
+              ...resolveVoice(profile.language, process.env, profile.country),
               onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
               onMasterError: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: narration mastering failed, used the plain voice"),
             }).catch((e) => {
@@ -375,7 +388,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           },
         },
         profile,
-        { count, avoidTitles },
+        { count, avoidTitles, history },
       );
 
     const toRows = async (pkgs: VideoPackage[]): Promise<ItemRow[]> => {
@@ -393,8 +406,8 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
       return rows;
     };
 
-    const avoid = (past ?? []).map((p) => p.title as string);
-    const rows = await toRows(await produce(want, avoid));
+    const avoid = pastRows.map((p) => p.title).filter((t): t is string => typeof t === "string");
+    const rows = await toRows(await produce(want, avoid, history));
 
     // Top-up: a thin week gets extra topics (one round, within the spend guard's caps).
     let toppedUp = 0;
@@ -403,7 +416,9 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     if (usable() < enough) {
       const d = await spend.guard.reserve("topup", job.clinicId);
       if (d.ok) {
-        const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)]).catch((e) => {
+        // This week's usable videos count as history too, so the top-up neither repeats them nor piles onto their services.
+        const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => ({ title: r.title, topic: r.topic, week_of: week, status: r.status })));
+        const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)], [...history, ...thisWeek]).catch((e) => {
           logger.warn({ clinicId: job.clinicId, err: (e as Error).message }, "dentvid: top-up failed");
           return [] as VideoPackage[];
         });
@@ -576,7 +591,7 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       ? { ...stored, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
       : stored;
     const voice = await prepareNarration(plan, workDir, profile.language, {
-      ...resolveVoice(profile.language),
+      ...resolveVoice(profile.language, process.env, profile.country),
       onMasterError: (e) => logger.warn({ err: e.message, itemId: item.id }, "dentvid: restyle narration mastering failed, used the plain voice"),
     }).catch((e) => {
       logger.warn({ err: (e as Error).message, itemId: item.id }, "dentvid: restyle voiceover failed");

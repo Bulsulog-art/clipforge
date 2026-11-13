@@ -128,6 +128,26 @@ export function marketLanguage(country: string | undefined, language?: string): 
 }
 
 /**
+ * Which variety of the language this market writes. A UK practice's video
+ * in American English ("color", "checkup", "pediatric") reads as imported
+ * the moment a British parent sees it; a Swiss one with "ß" likewise.
+ * Empty when the language has one written standard for the market.
+ */
+export function variantRule(p: { language?: string; country?: string }): string {
+  const lang = (p.language ?? "").toLowerCase().slice(0, 2);
+  const c = (p.country ?? "").toUpperCase();
+  if (lang === "en") {
+    if (["GB", "UK", "IE"].includes(c))
+      return `Write British English (${c === "IE" ? "Ireland" : "UK"}): British spelling (colour, realise, centre, paediatric) and words (check-up, mum, nappy, dental practice, hygienist) — never American forms (color, checkup, pediatric, dental office).`;
+    if (["AU", "NZ"].includes(c)) return `Write ${c === "AU" ? "Australian" : "New Zealand"} English: British spelling (colour, realise, paediatric) and local words (check-up, mum).`;
+    if (["US", "CA"].includes(c)) return `Write ${c === "CA" ? "Canadian" : "American"} English${c === "CA" ? " (colour, centre; check-up)" : " (color, center, checkup, pediatric)"}.`;
+  }
+  if (lang === "pt") return c === "BR" ? "Write Brazilian Portuguese (você, ônibus, registro)." : "Write European Portuguese (tu/você as Portugal uses them, facto, registo) — never Brazilian forms.";
+  if (lang === "de" && c === "CH") return `Write Swiss Standard German: "ss" instead of "ß" everywhere (Grüsse, gross), Swiss words where natural (Zahnarztpraxis, Dentalhygienikerin).`;
+  return "";
+}
+
+/**
  * Each market's own advertising rules, in the words a writer and a reviewer
  * can act on. Told to the writers up front and to the compliance reviewer
  * with the text. Sources: docs/MARKETS.md (MHLW 医療広告ガイドライン; DHA
@@ -139,6 +159,21 @@ export function marketLanguage(country: string | undefined, language?: string): 
  */
 export function marketRules(country: string | undefined): string {
   const c = (country ?? "").toUpperCase();
+  // United Kingdom — the CAP Code (ASA), section 3 (misleading advertising:
+  // claims must be substantiated) and section 12 (medicines, medical devices,
+  // health-related products: 12.1 objective evidence, 12.12 prescription-only
+  // medicines may not be advertised to the public — botulinum toxin is one)
+  // https://www.asa.org.uk/codes-and-rulings/advertising-codes/non-broadcast-code.html;
+  // GDC Standards for the Dental Team 1.3.3 (advertising must be accurate,
+  // not misleading) and the GDC guidance on advertising (only a dentist on a
+  // GDC specialist list may be called a specialist)
+  // https://www.gdc-uk.org/standards-guidance/standards-and-guidance/standards-for-the-dental-team
+  if (c === "GB")
+    return [
+      "United Kingdom — the CAP Code (enforced by the ASA) and the GDC's Standards for the Dental Team and guidance on advertising: information must be accurate, evidence-based and not misleading (CAP 3, 12.1; GDC 1.3.3);",
+      "no guaranteed or certain results, no 'painless' or 'risk-free', no superlatives or comparisons with other practices, never call a dentist a 'specialist' unless they are on a GDC specialist list,",
+      "never promote prescription-only medicines such as anti-wrinkle (botulinum toxin) injections (CAP 12.12), no before/after results or patient testimonials, no price-led or time-limited offers, nothing that frightens the viewer into treatment.",
+    ].join(" ");
   if (c === "JP")
     return [
       "Japan — 医療法 and the MHLW 医療広告ガイドライン apply to a clinic's own social posts:",

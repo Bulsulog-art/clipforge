@@ -24,7 +24,14 @@ import { scanHardRules } from "./compliance.js";
 import { speechUnits } from "./locale.js";
 import {
   clinicalFlags,
+  copiedShare,
   ctaProblems,
+  ctaTemplates,
+  namesClinic,
+  overlap,
+  repeatedScreen,
+  spokenTics,
+  trSteering,
   fillerHits,
   hookBudget,
   hookProblems,
@@ -67,6 +74,8 @@ export type RubricScript = {
   scenes: RubricScene[];
   narration?: string | null;
   caption?: string | null;
+  /** The clinic's name, when known: a closing that says it is marked down. */
+  clinic?: string;
 };
 
 export type ScriptGrade = {
@@ -184,6 +193,7 @@ export function gradeScript(s: RubricScript): ScriptGrade {
       break;
     }
   }
+  for (const r of repeatedScreen(screen, [hookOf(s), ctaOf(s)]).slice(0, 2)) add("clarity", 1, "repeats_itself", r);
   for (let i = 1; i < s.scenes.length; i++)
     if (s.scenes[i].kind === "statement" && s.scenes[i - 1].kind === "statement") {
       add("clarity", 1, "statement_run", "two statement scenes in a row — the brief asks for a list or compare between");
@@ -228,6 +238,8 @@ export function gradeScript(s: RubricScript): ScriptGrade {
     }
   }
   if (mixedAddress(everything, language)) add("native", 2, "mixed_address", "formal and informal address mixed");
+  for (const t of spokenTics(`${screenText}\n${narration}`)) add("native", 1, "spoken_tic", t);
+  if (s.caption && narration && copiedShare(s.caption, narration) >= 0.5) add("native", 1, "caption_copies_narration", "the caption repeats the narration sentence by sentence");
 
   // ---- compliance
   for (const h of scanHardRules(everything)) add("compliance", 4, `hard_${h.rule}`, `"${h.match}" — ${h.why}`);
@@ -235,6 +247,11 @@ export function gradeScript(s: RubricScript): ScriptGrade {
     add("compliance", 1, "fear", "fear framing — explain risks calmly");
   if (/(necesitas|necesita|you need|brauchen sie|brauchst du|ihtiyacınız var)\s+(una |a |eine |)?(endodoncia|root canal|wurzelbehandlung|kanal tedavisi|implant\p{L}*)/iu.test(everything))
     add("compliance", 1, "diagnoses_viewer", "tells the viewer they need a treatment");
+  if (s.country.toUpperCase() === "TR") {
+    // The closing line is graded under cta; steering anywhere else (caption, narration) is a compliance finding.
+    const steer = trSteering([narration, s.caption ?? ""].join("\n"));
+    if (steer) add("compliance", 2, "tr_steering", `"${steer}" steers the viewer to book or to the clinic (RG 33075)`);
+  }
   if (s.country.toUpperCase() === "TR" && /(uzman hekim|uzman doktor|uzmanlarımız)/iu.test(everything))
     add("compliance", 1, "specialist_claim", '"uzman" implies a specialist title the clinic may not hold');
   if (s.country.toUpperCase() === "MX" && /cofepris/iu.test(everything)) add("compliance", 2, "cofepris_number", "never write a COFEPRIS legend or number");
@@ -244,6 +261,8 @@ export function gradeScript(s: RubricScript): ScriptGrade {
     const sev: Severity = p.code === "missing" || p.code === "pressure" ? 2 : 1;
     add("cta", sev, `cta_${p.code}`, p.detail);
   }
+  if (cta && ctaTemplates(s.country).some((t) => overlap(t, cta) >= 0.6)) add("cta", 1, "cta_template", `the closing line is the prompt's example, copied: "${cta}"`);
+  if (cta && s.clinic && namesClinic(cta, s.clinic)) add("cta", 1, "cta_names_clinic", "the closing line names the clinic (the handle is on screen; every video ends the same way)");
 
   const scores = {
     hook: score(f, "hook"),

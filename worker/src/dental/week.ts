@@ -8,7 +8,7 @@ import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
-import { isUnspaced, marketRules, speechRate, speechTarget, speechUnits } from "./locale.js";
+import { isUnspaced, marketRules, speechRate, speechTarget, speechUnits, variantRule } from "./locale.js";
 import { voiceFor } from "./voice.js";
 import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { AFTERCARE_GUIDE, reviewAccuracy, type AccuracyResult } from "./accuracy.js";
@@ -19,6 +19,13 @@ import {
   BLOCKING_CTA,
   BLOCKING_HOOK,
   clinicalFlags,
+  copiedShare,
+  ctaTemplates,
+  namesClinic,
+  overlap,
+  repeatedScreen,
+  spokenTics,
+  trSteering,
   ctaGuide,
   ctaProblems,
   fillerHits,
@@ -128,6 +135,8 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
     `Include narration exactly in this shape: "voiceover": { "text": "<the full narration, every sentence>", "voice": "nova" } (voice may be "nova" or "onyx"). The text is natural spoken ${profile.language}, same form of address, covering the same points as the screen. It should sound like a friendly dentist talking to one patient: varied sentences, contractions where the language uses them, every sentence adding something new, no word or idea repeated, never list items read out. About ${speechRate(profile.language).perSecond} ${speechRate(profile.language).unit === "characters" ? "Japanese characters" : "words"} per second of video.`,
     `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta. The scene right after the hook starts answering what the hook asked. At most 3 items in a list.`,
+    `Every scene says something NEW. Never restate the takeaway or an earlier scene in other words, and never end the body with a recap or summary list ("Kısaca", "Kurz gesagt", "In short", "What to do") — the viewer just saw it. One short sentence per on-screen line: statements under 90 characters, list items under 6 words. Never answer the hook with a bare "No." / "Nein." / "Hayır." — say "not quite" / "usually not" and why.`,
+    variantRule(profile),
     `Sound: say it the way a dentist would say it across the chair, not a leaflet. Never generic filler ("for more information", "your smile deserves…", "we're here to help", "don't hesitate to") in any language.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
@@ -143,7 +152,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     example ? exampleBlock(example) : "",
     isUnspaced(profile.language)
       ? `On-screen length limits (Japanese characters are twice as wide as Latin letters): hook at most 20 characters, every list item at most 18, the cta at most 24, other lines at most 50. Use Japanese punctuation (、。「」) and no spaces between words. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`
-      : `On-screen length limits: hook and every list item and the cta at most 80 characters; other lines at most 200. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`,
+      : `On-screen length limits: hook and every list item and the cta at most 80 characters; other lines at most ${SCREEN_LINE_MAX - 20} — a viewer has 3-4 seconds to read each. When a reviewer's fix is longer, shorten it to fit — keep its meaning, not its length.`,
     fixes.length ? `A compliance or clinical reviewer required these changes: ${fixes.join(" | ")}` : "",
   ]
     .filter(Boolean)
@@ -233,14 +242,37 @@ export function narrationProblems(plan: ScenePlan, language?: string): string[] 
  * cannot hold, numbers the narration invented, procedure mix-ups and mixed
  * forms of address. Softer issues are only scored (rubric.ts).
  */
-export function scriptProblems(plan: ScenePlan, profile: Pick<ClinicProfile, "language" | "country">): string[] {
+export function scriptProblems(
+  plan: ScenePlan,
+  profile: Pick<ClinicProfile, "language" | "country"> & { name?: string },
+  /** How this week's earlier videos closed: a closing that echoes one is sent back. */
+  week?: WeekVoice,
+): string[] {
   const out: string[] = [];
   const scenes = plan.scenes as unknown as RubricScene[];
   const hook = scenes.find((s) => s.kind === "hook")?.text ?? "";
   for (const p of hookProblems(hook, profile.language)) if (BLOCKING_HOOK.has(p.code)) out.push(`hook: ${p.detail} — rewrite it as a specific moment, mistake, myth or surprising fact that opens a question`);
-  for (const p of ctaProblems(scenes.find((s) => s.kind === "cta")?.text, profile.country)) if (BLOCKING_CTA.has(p.code)) out.push(`cta: ${p.detail} — ${ctaGuide(profile.country)}`);
-  const screen = screenLines(scenes).join("\n");
+  const cta = scenes.find((s) => s.kind === "cta")?.text;
+  for (const p of ctaProblems(cta, profile.country)) if (BLOCKING_CTA.has(p.code)) out.push(`cta: ${p.detail} — ${ctaGuide(profile.country)}`);
+  if (cta) {
+    const echo = [...(week?.closings ?? []), ...ctaTemplates(profile.country)].find((c) => overlap(c, cta) >= 0.6);
+    if (echo) out.push(`cta: "${cta}" repeats "${echo}" — write a closing line about THIS video's subject, in different words`);
+    if (profile.name && namesClinic(cta, profile.name)) out.push(`cta: do not name the clinic in the closing line ("us" is enough; the handle is on screen)`);
+  }
+  const lines = screenLines(scenes);
+  const screen = lines.join("\n");
   const narration = plan.voiceover?.text ?? "";
+  for (const r of repeatedScreen(lines, [hook, cta])) out.push(`say each point once: ${r} — cut the repeat and keep the scene that says it best`);
+  if (!isUnspaced(profile.language)) {
+    const dense = lines.find((l) => l.length > SCREEN_LINE_MAX);
+    if (dense) out.push(`on-screen line too long to read in a Reel (${dense.length} characters, max ${SCREEN_LINE_MAX}): "${dense.slice(0, 60)}…" — one short sentence per scene`);
+  }
+  if (scenes.length > MAX_SCENES) out.push(`${scenes.length} scenes — at most ${MAX_SCENES} (hook, 2-4 answer scenes, cta): drop the weakest`);
+  for (const t of spokenTics(`${screen}\n${narration}`)) out.push(t);
+  if ((profile.country ?? "").toUpperCase() === "TR") {
+    const s = trSteering(narration);
+    if (s) out.push(`narration: "${s}" steers the viewer to book or to the clinic — RG 33075 allows information only; point to their own dentist instead`);
+  }
   const filler = fillerHits(`${screen}\n${narration}`, profile.language);
   if (filler.length) out.push(`remove generic filler, say something specific to this topic instead: ${filler.map((f) => `"${f}"`).join(", ")}`);
   if (narration) {
@@ -252,6 +284,27 @@ export function scriptProblems(plan: ScenePlan, profile: Pick<ClinicProfile, "la
   }
   for (const c of clinicalFlags(`${screen}\n${narration}`)) out.push(`clinical: ${c}`);
   if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);
+  return out;
+}
+
+/** Longest on-screen line a viewer reads in a 3-4 second scene (Latin scripts; ~14 words). */
+export const SCREEN_LINE_MAX = 110;
+/** Hook, 2-4 answer scenes, footage, cta. */
+export const MAX_SCENES = 7;
+
+/**
+ * Deterministic checks for the caption, before its reviewers: in Türkiye
+ * nothing that steers to booking or to the clinic; everywhere, not the
+ * narration pasted again.
+ */
+export function captionProblems(caption: string, narration: string | undefined, country: string | undefined): string[] {
+  const out: string[] = [];
+  if ((country ?? "").toUpperCase() === "TR") {
+    const s = trSteering(caption);
+    if (s) out.push(`"${s}" steers the viewer to book or to the clinic — RG 33075 allows information only; end by pointing to their own dentist (hekiminize sorabilirsiniz)`);
+  }
+  if (narration && copiedShare(caption, narration) >= 0.5)
+    out.push(`the caption repeats the narration sentence by sentence — the viewer just heard it; open with the one takeaway, add one line of context, then the closing`);
   return out;
 }
 
@@ -292,7 +345,7 @@ export async function produceVideo(
     planText,
     (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
     profile,
-    (plan) => [...narrationProblems(plan, profile.language), ...scriptProblems(plan, profile)],
+    (plan) => [...narrationProblems(plan, profile.language), ...scriptProblems(plan, profile, week)],
   );
   if (!script.ok) return { status: "rejected", topic, stage: "script", reasons: script.rejected };
   // Remember how this one opened and closed, for the rest of the week.
@@ -311,6 +364,7 @@ export async function produceVideo(
     (c) => `${c.caption}\n${c.hashtags.join(" ")}`,
     (c) => reviewAccuracy(deps.client, profile, topic, { script: facts, caption: c.caption }),
     profile,
+    (c) => captionProblems(c.caption, script.value.voiceover?.text, profile.country),
   );
   if (!post.ok) return { status: "rejected", topic, stage: "copy", reasons: post.rejected };
 
