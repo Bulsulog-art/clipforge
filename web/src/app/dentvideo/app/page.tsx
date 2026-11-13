@@ -7,7 +7,7 @@ import { dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
 import { AppHomeView } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
-import { appSendsToFunnel, showFirstWeek } from "@/lib/dentvid/onboarding";
+import { appSendsToFunnel, billingReturn, showFirstWeek } from "@/lib/dentvid/onboarding";
 import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { readWeekDelay } from "@/lib/dentvid/ops-server";
 import { adminOrNull, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: appText(await dvLocale()).home.metaTitle, robots: { index: false } };
 }
 
-export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string }> }) {
+export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string; status?: string }> }) {
   const { db, user } = await dvSession();
   if (!user) redirect(dvHref("/dentvideo/start"));
 
@@ -28,7 +28,9 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const profile = (clinic.profile ?? {}) as { name?: string; language?: string };
   const locale = await dvLocale(profile.language);
 
-  const [{ items }, plan, { billing }] = await Promise.all([loadItems(db, user.id), loadClinicPlan(db, clinic.id), searchParams]);
+  const [{ items }, plan, sp] = await Promise.all([loadItems(db, user.id), loadClinicPlan(db, clinic.id), searchParams]);
+  // Dodo returns to ?billing=success whatever happened and says how it went in &status= (a declined card is "failed").
+  const billing = billingReturn(sp.billing, sp.status);
   // Not paid yet, and nothing to show: back to the preview / plans.
   if (appSendsToFunnel(plan.plan, billing, items.length)) {
     redirect(dvHref(billing === "cancelled" ? "/dentvideo/start?step=plan&billing=cancelled" : "/dentvideo/start"));

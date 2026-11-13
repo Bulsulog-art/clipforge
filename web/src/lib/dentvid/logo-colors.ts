@@ -197,6 +197,29 @@ export function accentFor(brandColor: string, colors: Pick<LogoColors, "suggeste
 const SIDE = 160;
 
 /** Reads a chosen file in the browser. Resolves undefined if it cannot be read. */
+/**
+ * Is this file a picture the browser can actually draw? The picker's
+ * `accept` is only a hint and the upload is checked by its name and declared
+ * type alone, so a renamed document, a cut-off download or a HEIC with a .png
+ * name would otherwise replace the clinic's good logo with one that draws
+ * nothing — in the preview and in every video. A browser without
+ * createImageBitmap is given the benefit of the doubt.
+ */
+export async function isDecodableImage(
+  file: Blob,
+  decode: ((b: Blob) => Promise<{ width: number; height: number; close?: () => void }>) | undefined = typeof createImageBitmap === "function" ? (b) => createImageBitmap(b) : undefined,
+): Promise<boolean> {
+  if (!decode) return true;
+  try {
+    const bitmap = await decode(file);
+    const ok = bitmap.width > 0 && bitmap.height > 0;
+    bitmap.close?.();
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function analyseLogoFile(file: Blob): Promise<LogoColors | undefined> {
   try {
     const bitmap = await createImageBitmap(file);
