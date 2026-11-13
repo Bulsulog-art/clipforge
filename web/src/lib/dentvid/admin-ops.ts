@@ -67,7 +67,14 @@ const step = (key: string) => FUNNEL.find((s) => s.key === key)!;
 
 export type PeriodStats = { visitors: number; signups: number; previews: number; checkouts: number; paid: number };
 
-/** Visitors, sign-ups, previews watched, checkouts and payments in the last `days` days. */
+/**
+ * Visitors, sign-ups, previews watched, checkouts and payments in the last `days` days.
+ * Sign-ups are accounts created (signup_completed), not clinic rows: a clinic
+ * row exists only once the wizard saves the clinic, so counting rows hid
+ * everyone who signed up and stopped before that (production, 13 Nov 2026:
+ * 9 sign-ups in a week, 0 clinic rows). The larger of the two is shown, so a
+ * blocked analytics beacon cannot make it smaller than the rows we have.
+ */
 export function periodStats(events: AdminEvent[], clinics: Pick<AdminClinic, "created_at">[], days: number, now: Date): PeriodStats {
   const since = now.getTime() - days * DAY;
   const evs = events.filter((e) => {
@@ -76,7 +83,13 @@ export function periodStats(events: AdminEvent[], clinics: Pick<AdminClinic, "cr
   });
   return {
     visitors: stepCount(evs, step("visit")),
-    signups: clinics.filter((c) => Date.parse(c.created_at) > since).length,
+    signups: Math.max(
+      stepCount(evs, step("signup")),
+      clinics.filter((c) => {
+        const t = Date.parse(c.created_at);
+        return t > since && t <= now.getTime();
+      }).length,
+    ),
     previews: stepCount(evs, step("preview")) + stepCount(evs, step("teaser")),
     checkouts: stepCount(evs, step("checkout")),
     paid: stepCount(evs, step("paid")),

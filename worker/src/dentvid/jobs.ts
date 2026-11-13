@@ -238,7 +238,10 @@ async function insert(db: SupabaseClient, rows: ItemRow[]) {
  */
 async function paying(db: SupabaseClient, clinicId: string, kind: string): Promise<boolean> {
   // "*": admin_paused_at (0010_dentvid_admin.sql) may not exist yet on a given database.
-  const { data } = await db.from("dentvid_clinics").select("*").eq("id", clinicId).maybeSingle();
+  const { data, error } = await db.from("dentvid_clinics").select("*").eq("id", clinicId).maybeSingle();
+  // Liman unreachable is not "not paying": skipping here would complete the job
+  // with nothing made (and its job id would block the week). Fail so it is retried.
+  if (error) throw new TransientWeekError(`clinic ${clinicId} could not be read (service unavailable): ${error.message}`);
   const row = (data ?? null) as { plan?: string; admin_paused_at?: string | null } | null;
   if (row && shouldRun({ plan: row.plan ?? "", admin_paused_at: row.admin_paused_at })) return true;
   logger.warn({ clinicId, plan: row?.plan ?? null, adminPaused: !!row?.admin_paused_at, kind }, "dentvid: skipped — clinic has no active plan or is paused by the owner");

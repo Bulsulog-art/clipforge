@@ -4,7 +4,8 @@ import { DV_FOUNDING } from "@/lib/dentvid/billing";
 import {
   billingHints,
   dailyCounts,
-  foundingSeats,
+  foundingHistoric,
+  FOUNDING_SOURCE_LABEL,
   clinicCountries,
   funnel,
   funnelByCountry,
@@ -164,7 +165,7 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
   const hints = billingHints(data.events);
   const rev = revenue(data.clinics, hints);
   const g = growth(data.clinics, now);
-  const seats = foundingSeats(data.clinics, data.dodoFoundingUses);
+  const founding = foundingHistoric({ ledgerUsed: null, dodoUses: data.dodoFoundingUses, fromEvents: rev.founding });
   const signupSeries = dailyCounts(data.clinics.map((c) => c.created_at), 30, now);
   const runs = lastRuns(data.items);
   const totals = runTotals(runs);
@@ -283,17 +284,10 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
             }
           />
           <Tile
-            label="Founding seats left"
-            value={
-              <span className="flex items-baseline gap-2">
-                {seats.left}
-                <span className="text-sm font-medium text-dv-muted">of {DV_FOUNDING.clinics}</span>
-              </span>
-            }
-            sub={seats.source === "dodo" ? `Code used ${seats.used}× (from Dodo)` : `Estimated: ${seats.used} active Practice clinics (no Dodo key)`}
-          >
-            <Meter value={seats.used} max={DV_FOUNDING.clinics} tone={seats.left <= 10 ? "amber" : "teal"} />
-          </Tile>
+            label="Founding (offer closed)"
+            value={founding.count}
+            sub={`Historic founding subscriptions, ${FOUNDING_SOURCE_LABEL[founding.source]}. The offer is closed; nothing new is sold at founding.`}
+          />
         </section>
 
         <FunnelAndSources

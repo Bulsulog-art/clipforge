@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { clinicsToRun, deliveryWeek, dispatchWeeks, DISPATCH_SCHEDULE, isPaying, planBatch, projectedLate, validWeek, waves, weekOf, type ClinicRow } from "./schedule.js";
+import { activeClinicRows, clinicsToRun, deliveryWeek, dispatchWeeks, DISPATCH_SCHEDULE, isPaying, planBatch, projectedLate, validWeek, waves, weekOf, type ClinicRow } from "./schedule.js";
 import { notifyReady } from "./notify.js";
 
 describe("monday dispatch", () => {
@@ -71,12 +71,27 @@ describe("the weekend batch, in waves by time zone", () => {
   });
 
   it("queues every paying clinic's week stamped with the coming Monday, flagged as batch, ordered by deadline", async () => {
-    const db = { from: () => ({ select: (cols: string) => (expect(cols).toBe("*"), { eq: async () => ({ data: clinics.filter((c) => c.plan === "active"), error: null }) }) }) };
+    const db = pagedDb(clinics);
     const add = vi.fn(async () => ({}));
     expect(await dispatchWeeks(db as never, { add } as never, SAT)).toBe(7);
     const calls = add.mock.calls as unknown as [string, { clinicId: string; week: string; batch: boolean }, { jobId: string; priority: number }][];
     expect(calls.every(([name, data, opts]) => name === "week" && data.week === "2026-11-16" && data.batch === true && opts.jobId === `week:${data.clinicId}:2026-11-16`)).toBe(true);
     expect(calls.find(([, d]) => d.clinicId === "tky")![2].priority).toBeLessThan(calls.find(([, d]) => d.clinicId === "nyc")![2].priority);
+  });
+
+  it("reads every active clinic past the server's 1000-row cap — none is silently left without a week", async () => {
+    const many: ClinicRow[] = Array.from({ length: 2345 }, (_, i) => ({ id: `c${String(i).padStart(5, "0")}`, plan: i % 10 === 0 ? "trial" : "active" }));
+    const db = pagedDb(many, 1000);
+    const rows = await activeClinicRows(db as never);
+    expect(rows.length).toBe(many.filter((c) => c.plan === "active").length);
+    expect(new Set(rows.map((r) => r.id)).size).toBe(rows.length);
+    const add = vi.fn(async () => ({}));
+    expect(await dispatchWeeks(db as never, { add } as never, SAT)).toBe(rows.length);
+  });
+
+  it("a database error stops the dispatch loudly (the job fails and is retried / watched), never a silent zero", async () => {
+    const db = { from: () => ({ select: () => ({ eq: () => ({ order: () => ({ range: async () => ({ data: null, error: { message: "fetch failed" } }) }) }) }) }) };
+    await expect(dispatchWeeks(db as never, { add: vi.fn() } as never, SAT)).rejects.toThrow(/dispatch: active clinics: fetch failed/);
   });
 
   it("projects which clinics would miss their morning at a given speed — the signal to add a render server", () => {
@@ -103,3 +118,21 @@ describe("notifyReady", () => {
     expect(await notifyReady("c1", "week", { ready: 1, flagged: 0 }, f as unknown as typeof fetch)).toBe(false);
   });
 });
+
+/** supabase-js's select().eq().order().range(), with a server row cap like PostgREST's db-max-rows. */
+function pagedDb(rows: ClinicRow[], cap = 1000) {
+  return {
+    from: () => ({
+      select: () => ({
+        eq: (_col: string, v: string) => ({
+          order: () => ({
+            range: async (a: number, b: number) => {
+              const all = rows.filter((r) => r.plan === v).sort((x, y) => x.id.localeCompare(y.id));
+              return { data: all.slice(a, Math.min(b + 1, a + cap)), error: null };
+            },
+          }),
+        }),
+      }),
+    }),
+  };
+}
