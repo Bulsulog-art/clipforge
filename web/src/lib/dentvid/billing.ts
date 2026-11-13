@@ -393,8 +393,10 @@ export type DvSubRecord = {
  */
 export function usedFounding(tier: DvTier | null | undefined, interval: string | null | undefined, discountId: string | null | undefined, env: Env = process.env): boolean {
   if (tier !== DV_FOUNDING.tier || interval !== DV_FOUNDING.interval || !discountId) return false;
+  // The founding offer has ended (2026-11-13): a discount counts as founding only when it is the
+  // configured founding discount. Subscriptions already marked founding keep the flag (billing-webhook).
   const want = env.DENTVIDEO_FOUNDING_DISCOUNT_ID?.trim();
-  return !want || want === discountId;
+  return !!want && want === discountId;
 }
 
 /* ------------------------------------------------------- checkout refusal */

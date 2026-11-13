@@ -255,10 +255,10 @@ describe("historic founding seats (the offer is closed)", () => {
     expect(d.raised.map((a) => a.key)).not.toContain("founding_full");
   });
 
-  it("records the founding discount on the subscription", async () => {
+  it("records a typed discount without calling it founding", async () => {
     const f = fakeDb(unpaid());
     const subs = memorySubs();
     await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1", undefined, { discount_id: "dsc_1" }), deps({ subs }));
-    expect(subs.rows.get("sub_1")).toMatchObject({ founding: true, tier: "practice", interval: "month", discount_id: "dsc_1" });
+    expect(subs.rows.get("sub_1")).toMatchObject({ founding: false, tier: "practice", interval: "month", discount_id: "dsc_1" });
   });
 });

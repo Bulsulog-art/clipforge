@@ -80,7 +80,9 @@ describe("event ordering helpers (H6)", () => {
 
 describe("historic founding seats (the offer is closed)", () => {
   it("only Practice monthly with a discount counts as a founding seat (and the configured discount, when set)", () => {
-    expect(usedFounding("practice", "month", "dsc_1", {})).toBe(true);
+    // The offer has ended: an arbitrary typed code no longer counts as founding.
+    expect(usedFounding("practice", "month", "dsc_1", {})).toBe(false);
+    expect(usedFounding("practice", "month", "dsc_1", { DENTVIDEO_FOUNDING_DISCOUNT_ID: "dsc_1" })).toBe(true);
     expect(usedFounding("practice", "year", "dsc_1", {})).toBe(false);
     expect(usedFounding("starter", "month", "dsc_1", {})).toBe(false);
     expect(usedFounding("practice", "month", null, {})).toBe(false);
