@@ -1,17 +1,17 @@
 // GENERATED from worker/src/remotion/Video.tsx by scripts/sync-remotion.mjs — do not edit here.
 // Edit the worker file and re-run the script; web/src/remotion/sync.test.ts checks they match.
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan";
 import type { ScenePlan } from "./scene-plan";
-import { brandTheme, localizeTheme, theme as resolveTheme } from "./theme";
+import { brandTheme, localizeTheme, safeFrame, theme as resolveTheme } from "./theme";
 import { isRtl } from "./script";
 import { sceneWindows, windowOpacity, type SceneWindow } from "./animation";
 import { SceneView } from "./scenes/index";
 import { Watermark } from "./Watermark";
 import { LogoMark } from "./LogoMark";
-import { CORNER_LOGO, logoStyleSchema, type LogoStyle } from "./logo-style";
+import { VIDEO_CORNER_LOGO, logoStyleSchema, type LogoStyle } from "./logo-style";
 import type { Theme } from "./theme";
 import { BackgroundLayer, PhotoBackdrop } from "./background-layer";
 import { photoTheme } from "./photo-overlay";
@@ -167,6 +167,9 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
   rtl,
 }) => {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const safe = safeFrame(width, height);
+  const side = Math.round(width * 0.06);
   const opacity =
     hideFrom === undefined
       ? 1
@@ -174,8 +177,9 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
   if (opacity <= 0) return null;
   return (
     // Mirrored in a right-to-left video: the mark sits at the reading start's opposite corner, top left.
-    <div style={{ position: "absolute", top: 260, ...(rtl ? { left: 64 } : { right: 64 }), opacity }}>
-      <LogoMark src={src} style={style} theme={theme} size={CORNER_LOGO} />
+    // Its top edge on the safe line under the platform header (theme.ts SAFE_ZONES).
+    <div style={{ position: "absolute", top: safe.top, ...(rtl ? { left: side } : { right: side }), opacity }}>
+      <LogoMark src={src} style={style} theme={theme} size={VIDEO_CORNER_LOGO} />
     </div>
   );
 };

@@ -139,6 +139,50 @@ export function visualLength(text: string): number {
   return n;
 }
 
+/** A word reduced to what emphasis is matched on: letters and digits, lower-cased. */
+function bare(s: string): string {
+  return s.normalize("NFC").toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+}
+
+/**
+ * Which layout units (layoutUnits) of a headline carry the plan's emphasis,
+ * and which of them run on into the next — so consecutive emphasised words
+ * share ONE highlight bar instead of a row of separate chips.
+ *
+ * Spaced scripts match the phrase as a whole, word for word and in order,
+ * ignoring case and punctuation ("قد يعني" in Arabic): a short word of a
+ * phrase ("لم", "is") is not lit up everywhere else it occurs.
+ * Japanese has no words to match, and the planner's emphasis is a phrase that
+ * the segmenter may have cut differently, so a unit is marked when it contains
+ * an emphasis phrase of 2+ characters, or is wholly contained in one.
+ *
+ * Runs are in logical (reading) order; a right-to-left frame draws them right
+ * to left without any change here.
+ */
+export function emphasisRuns(units: string[], emphasis: string[] | undefined, spaced: boolean): { on: boolean; joinNext: boolean }[] {
+  const terms = (emphasis ?? []).map((e) => e.trim()).filter(Boolean);
+  let mask: boolean[];
+  if (spaced) {
+    // Every word, with the unit it belongs to (a glued widow pair is one unit, two words).
+    const words = units.flatMap((u, i) => u.split(/\s+/).map((w) => ({ w: bare(w), unit: i })));
+    mask = units.map(() => false);
+    for (const term of terms) {
+      const seq = term.split(/\s+/).map(bare).filter(Boolean);
+      if (!seq.length) continue;
+      for (let i = 0; i + seq.length <= words.length; i++) {
+        if (seq.every((t, k) => words[i + k].w === t)) for (let k = 0; k < seq.length; k++) mask[words[i + k].unit] = true;
+      }
+    }
+  } else {
+    const phrases = terms.map(bare).filter((t) => [...t].length >= 2);
+    mask = units.map((u) => {
+      const b = bare(u);
+      return b.length > 0 && phrases.some((t) => b.includes(t) || ([...b].length >= 2 && t.includes(b)));
+    });
+  }
+  return mask.map((on, i) => ({ on, joinNext: on && i + 1 < mask.length && mask[i + 1] }));
+}
+
 /**
  * CSS for blocks of plain text (list rows, body copy): Japanese breaks
  * between phrases (Chrome's auto-phrase, keyed on lang="ja"), and never

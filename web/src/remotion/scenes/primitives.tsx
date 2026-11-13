@@ -3,9 +3,9 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import type { Theme } from "../theme";
-import { backgroundCss, fitText, fitsOneLine, leading, tracking } from "../theme";
-import { PHRASE_BREAK, layoutUnits, visualLength } from "../script";
-import { entrance, wordsVisible } from "../animation";
+import { backgroundCss, fitText, fitsOneLine, leading, readableOn, safeFrame, tracking, type SafeFrame } from "../theme";
+import { PHRASE_BREAK, emphasisRuns, layoutUnits, visualLength } from "../script";
+import { entrance, highlightStarts, sweep, wordsVisible } from "../animation";
 import { usePhotoBackdrop } from "../background-layer";
 
 /**
@@ -28,15 +28,20 @@ export function useScale(): number {
   return width / BASE_WIDTH;
 }
 
-/** Safe margins. Phone UI eats the outer edges of a 9:16 frame. */
-export function useSafeArea(): { x: number; y: number } {
+/**
+ * Safe margins, in px: clear of the header, the caption block and the action
+ * rail that Reels and TikTok draw over a 9:16 frame (theme.ts SAFE_ZONES).
+ * `start`/`end` are logical — apply them with safePadding() so an Arabic
+ * frame mirrors them.
+ */
+export function useSafeArea(): SafeFrame {
   const { width, height } = useVideoConfig();
-  const vertical = height > width;
-  return {
-    x: width * 0.085,
-    // Captions, usernames and buttons sit over the top and bottom of a reel.
-    y: vertical ? height * 0.14 : height * 0.09,
-  };
+  return safeFrame(width, height);
+}
+
+/** The safe frame as CSS padding, with the sides as inline-start/end. */
+export function safePadding(f: SafeFrame): React.CSSProperties {
+  return { paddingTop: f.top, paddingBottom: f.bottom, paddingInlineStart: f.start, paddingInlineEnd: f.end };
 }
 
 export const Backdrop: React.FC<{ theme: Theme; children: React.ReactNode }> = ({
@@ -58,7 +63,7 @@ export const Backdrop: React.FC<{ theme: Theme; children: React.ReactNode }> = (
       />
       <AbsoluteFill
         style={{
-          padding: `${safe.y}px ${safe.x}px`,
+          ...safePadding(safe),
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -106,13 +111,20 @@ export function guardWidow(words: string[], size?: number): { text: string; inde
 /**
  * Display type. Optionally reveals word by word, which holds attention far
  * better than a whole line fading in at once.
+ *
+ * Lines are balanced (CSS text-wrap: balance, measured on the real glyphs by
+ * the browser) so a headline breaks into lines of even length instead of a
+ * full line and a stray word. Words in `emphasis` get a highlighter: once a
+ * word has landed, a bar in the accent colour sweeps across it from the
+ * reading start (right in Arabic) and the word turns to the colour that reads
+ * on that bar (readableOn). Consecutive emphasised words sweep as one stroke.
  */
 export const DisplayText: React.FC<{
   text: string;
   theme: Theme;
   frame: number;
   size: number;
-  /** Words drawn in the accent colour. Matched case-insensitively. */
+  /** Words drawn on an accent highlighter. Matched case-insensitively. */
   emphasis?: string[];
   byWord?: boolean;
   delay?: number;
@@ -123,8 +135,15 @@ export const DisplayText: React.FC<{
   // Words, or for Japanese short phrases (script.ts): the units the line may wrap between.
   const { units: words, spaced } = layoutUnits(text);
   const visible = byWord ? wordsVisible(frame, words.length, 3, delay) : words.length;
-  const emphasised = new Set((emphasis ?? []).flatMap((e) => e.toLowerCase().split(/\s+/)));
   const fitted = fitText(size, text);
+  const items = spaced ? guardWidow(words, fitted) : words.map((t, index) => ({ text: t, index }));
+  // Emphasis is matched per drawn item (a glued widow pair counts as one).
+  const runs = emphasisRuns(items.map((it) => it.text), emphasis, spaced);
+  const landed = items.map((it) => (byWord ? delay + it.index * 3 : delay) + 12);
+  const starts = highlightStarts(runs, landed);
+  const ink = readableOn(theme.accent, [theme.onAccent, theme.foreground]);
+  const lineHeight = leading(theme, 1.08);
+  const rtl = theme.script === "arabic";
 
   return (
     <div
@@ -132,41 +151,76 @@ export const DisplayText: React.FC<{
         fontFamily: theme.displayFont,
         fontSize: fitted * scale,
         fontWeight: weight,
-        lineHeight: leading(theme, 1.08),
+        // Line gap comes from line height now that lines wrap as text.
+        lineHeight: lineHeight + 0.1,
         letterSpacing: tracking(theme, theme.uppercaseDisplay ? "0.01em" : "-0.02em"),
         textTransform: theme.uppercaseDisplay ? "uppercase" : "none",
         color: theme.foreground,
         // "start", not "left": right-aligned in an Arabic (dir=rtl) frame.
         textAlign: align === "center" ? "center" : "start",
-        display: "flex",
-        flexWrap: "wrap",
-        // Japanese phrases sit flush against each other; spaces only where the language has them.
-        gap: `${0.16 * fitted * scale}px ${spaced ? 0.26 * fitted * scale : 0}px`,
-        justifyContent: align === "center" ? "center" : "flex-start",
-      }}
+        textWrap: "balance",
+        // Japanese phrases are separate inline blocks with no space between;
+        // a line may break between any two of them.
+        wordBreak: spaced ? "normal" : "keep-all",
+      } as React.CSSProperties}
     >
-      {(spaced ? guardWidow(words, fitted) : words.map((t, index) => ({ text: t, index }))).map(({ text: word, index: i }) => {
+      {items.map(({ text: word, index: i }, k) => {
         const shown = i < visible;
         const anim = entrance(frame, {
           delay: byWord ? delay + i * 3 : delay,
           duration: 14,
           distance: 22,
         });
-        const isAccent = emphasised.has(word.toLowerCase().replace(/[^\p{L}\p{N}]/gu, ""));
+        const run = runs[k];
+        const p = run.on && starts[k] !== undefined ? sweep(frame, starts[k]!, 9) : 0;
         return (
-          <span
-            key={`${word}-${i}`}
-            style={{
-              opacity: shown ? anim.opacity : 0,
-              transform: `translateY(${anim.translateY * scale}px)`,
-              color: isAccent ? theme.accent : theme.foreground,
-              display: "inline-block",
-              // A glued pair must not be split again by the wrap it exists to prevent.
-              whiteSpace: "pre",
-            }}
-          >
-            {word}
-          </span>
+          <React.Fragment key={`${word}-${i}`}>
+            {k > 0 && spaced ? " " : null}
+            <span
+              style={{
+                opacity: shown ? anim.opacity : 0,
+                transform: `translateY(${anim.translateY * scale}px)`,
+                display: "inline-block",
+                position: "relative",
+                // A glued pair must not be split again by the wrap it exists to prevent.
+                whiteSpace: "pre",
+              }}
+            >
+              {run.on ? (
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    insetBlock: "0.02em -0.04em",
+                    insetInlineStart: "-0.12em",
+                    // A run is one stroke: the bar reaches across the space to the next word.
+                    insetInlineEnd: run.joinNext && spaced ? "-0.3em" : "-0.12em",
+                    borderRadius: Math.min(theme.radius, 18) * scale,
+                    background: theme.accent,
+                    transform: `scaleX(${p})`,
+                    // The sweep starts where reading starts: left, or right in Arabic.
+                    transformOrigin: rtl ? "right center" : "left center",
+                  }}
+                />
+              ) : null}
+              <span style={{ position: "relative" }}>{word}</span>
+              {run.on && p > 0 ? (
+                // The word again in the ink colour, uncovered by the same sweep, so
+                // the colour changes exactly where the bar has reached.
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    color: ink,
+                    clipPath: rtl ? `inset(0 0 0 ${(1 - p) * 100}%)` : `inset(0 ${(1 - p) * 100}% 0 0)`,
+                  }}
+                >
+                  {word}
+                </span>
+              ) : null}
+            </span>
+          </React.Fragment>
         );
       })}
     </div>
@@ -241,7 +295,9 @@ export const Surface: React.FC<{
   children: React.ReactNode;
   padding?: number;
   grow?: boolean;
-}> = ({ theme, frame, delay = 0, children, padding = 36, grow = false }) => {
+  /** Marks the block that carries the point (the answer side of a comparison) with an accent edge. */
+  accent?: boolean;
+}> = ({ theme, frame, delay = 0, children, padding = 36, grow = false, accent = false }) => {
   const scale = useScale();
   const anim = entrance(frame, { delay, duration: 18, distance: 34 });
   return (
@@ -249,6 +305,7 @@ export const Surface: React.FC<{
       style={{
         background: theme.surface,
         border: `${Math.max(1, 2 * scale)}px solid ${theme.border}`,
+        ...(accent ? { borderInlineStart: `${8 * scale}px solid ${theme.accent}` } : {}),
         borderRadius: theme.radius * scale,
         padding: padding * scale,
         opacity: anim.opacity,

@@ -135,6 +135,35 @@ export function wordsVisible(frame: number, total: number, perWord = 3, delay = 
 }
 
 /**
+ * Progress (0–1) of a highlighter sweeping across a word: eased in and out,
+ * so the bar accelerates off the start and settles at the end like a pen
+ * stroke, rather than sliding at constant speed.
+ */
+export function sweep(frame: number, start: number, duration = 9): number {
+  return easeInOut(enterProgress(frame, start, duration));
+}
+
+/** Frames one highlighted word waits for the one before it in the same run. */
+export const SWEEP_STEP = 6;
+
+/**
+ * When each emphasised word's highlighter starts. A word is swept once it
+ * has landed (`landed[i]`); consecutive emphasised words (a run, see
+ * script.ts emphasisRuns) sweep one after another as a single stroke, each
+ * starting SWEEP_STEP frames after the previous one at the earliest.
+ * undefined for words without emphasis.
+ */
+export function highlightStarts(runs: { on: boolean; joinNext: boolean }[], landed: number[]): (number | undefined)[] {
+  const out: (number | undefined)[] = [];
+  runs.forEach((r, i) => {
+    if (!r.on) return void out.push(undefined);
+    const prev = i > 0 && runs[i - 1].joinNext ? out[i - 1] : undefined;
+    out.push(prev === undefined ? landed[i] : Math.max(landed[i], prev + SWEEP_STEP));
+  });
+  return out;
+}
+
+/**
  * A number counting up to its target. Eases out, so it decelerates into the
  * final value instead of stopping dead.
  */

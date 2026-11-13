@@ -1,15 +1,15 @@
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
 import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
-import { brandTheme, localizeTheme, theme as resolveTheme } from "./theme.js";
+import { brandTheme, localizeTheme, safeFrame, theme as resolveTheme } from "./theme.js";
 import { isRtl } from "./script.js";
 import { sceneWindows, windowOpacity, type SceneWindow } from "./animation.js";
 import { SceneView } from "./scenes/index.js";
 import { Watermark } from "./Watermark.js";
 import { LogoMark } from "./LogoMark.js";
-import { CORNER_LOGO, logoStyleSchema, type LogoStyle } from "./logo-style.js";
+import { VIDEO_CORNER_LOGO, logoStyleSchema, type LogoStyle } from "./logo-style.js";
 import type { Theme } from "./theme.js";
 import { BackgroundLayer, PhotoBackdrop } from "./background-layer.js";
 import { photoTheme } from "./photo-overlay.js";
@@ -165,6 +165,9 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
   rtl,
 }) => {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const safe = safeFrame(width, height);
+  const side = Math.round(width * 0.06);
   const opacity =
     hideFrom === undefined
       ? 1
@@ -172,8 +175,9 @@ const ClinicLogo: React.FC<{ src: string; style?: LogoStyle; theme: Theme; hideF
   if (opacity <= 0) return null;
   return (
     // Mirrored in a right-to-left video: the mark sits at the reading start's opposite corner, top left.
-    <div style={{ position: "absolute", top: 260, ...(rtl ? { left: 64 } : { right: 64 }), opacity }}>
-      <LogoMark src={src} style={style} theme={theme} size={CORNER_LOGO} />
+    // Its top edge on the safe line under the platform header (theme.ts SAFE_ZONES).
+    <div style={{ position: "absolute", top: safe.top, ...(rtl ? { left: side } : { right: side }), opacity }}>
+      <LogoMark src={src} style={style} theme={theme} size={VIDEO_CORNER_LOGO} />
     </div>
   );
 };

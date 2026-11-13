@@ -2,7 +2,7 @@ import React from "react";
 import { useVideoConfig } from "remotion";
 import type { Theme } from "../theme.js";
 import { PHRASE_BREAK } from "../script.js";
-import { TYPE, leading } from "../theme.js";
+import { TYPE, leading, readableOn } from "../theme.js";
 import { entrance, drift } from "../animation.js";
 import { Backdrop, DisplayText, BodyText, Label, Surface, AccentRule, useScale } from "./primitives.js";
 import type { Scene } from "../scene-plan.js";
@@ -30,6 +30,7 @@ export const HookScene: React.FC<Props<"hook">> = ({ scene, theme, frame }) => (
       size={TYPE.hook}
       byWord
       delay={4}
+      weight={900}
     />
     {scene.sub ? (
       <BodyText text={scene.sub} theme={theme} frame={frame} delay={18} size={TYPE.body} />
@@ -134,15 +135,16 @@ export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: L
           <div
             style={{
               fontFamily: theme.bodyFont,
-              fontSize: TYPE.label * scale,
+              // A handle is what the viewer has to type: large enough to read in one glance.
+              fontSize: TYPE.handle * scale,
               fontWeight: 700,
-              letterSpacing: "0.06em",
+              letterSpacing: "0.02em",
               // A handle is Latin and left-to-right even in an Arabic frame ("@clinic", not "clinic@").
               direction: "ltr",
               unicodeBidi: "isolate",
-              color: theme.onAccent,
+              color: readableOn(theme.accent, [theme.onAccent]),
               background: theme.accent,
-              padding: `${16 * scale}px ${34 * scale}px`,
+              padding: `${18 * scale}px ${40 * scale}px`,
               borderRadius: 999,
               marginTop: logo ? 8 * scale : 0,
               opacity: chip.opacity,
@@ -183,7 +185,7 @@ export const CompareScene: React.FC<Props<"compare">> = ({ scene, theme, frame }
         }}
       >
         {sides.map((side, i) => (
-          <Surface key={i} theme={theme} frame={frame} delay={side.delay} grow>
+          <Surface key={i} theme={theme} frame={frame} delay={side.delay} grow accent={i === 1}>
             <Label
               text={side.label}
               theme={theme}
