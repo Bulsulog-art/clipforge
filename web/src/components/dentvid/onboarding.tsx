@@ -13,6 +13,7 @@ import { VerifiedNote, VerifyCard, type VerifyCardHandle } from "./verify-email"
 import type { PreviewProfile } from "./live-preview";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { Stepper } from "./stepper";
+import { FieldError, ValidatingForm } from "./validating-form";
 import { dvHref } from "@/lib/dentvid/host";
 
 export { Stepper };
@@ -168,14 +169,11 @@ export function FunnelAccount({ locale, email }: { locale: Locale; email: string
   const [leaving, setLeaving] = useState(false);
   async function signOut() {
     setLeaving(true);
+    const { signOutDentvideo } = await import("@/lib/dentvid/sign-out-client");
+    await signOutDentvideo();
     try {
-      const { dvBrowser } = await import("@/lib/dentvid/supabase");
-      await dvBrowser().auth.signOut();
-    } catch {
-      /* signed out locally either way */
-    }
-    try {
-      // The next account on this browser starts from its own step.
+      // The next account on this browser starts from its own step (a returning
+      // clinic resumes from its recorded progress: lib/dentvid/onboarding resolveStep).
       document.cookie = `${STEP_COOKIE}=; path=/; max-age=0; samesite=lax`;
     } catch {
       // cookies blocked
@@ -228,7 +226,7 @@ function ClinicStep({ locale, draft, onDone }: { locale: Locale; draft: ClinicDr
   return (
     <>
       <StepHeader title={t.clinicTitle} lead={t.clinicLead} />
-      <form onSubmit={submit} className="mt-10 grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-14">
+      <ValidatingForm locale={locale} onSubmit={submit} className="mt-10 grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-14">
         <div className="dv-card p-5 sm:p-8">
           <ClinicDetailsFields draft={draft} locale={locale} moreLabel={t.moreDetails} />
           <div className="mt-8 border-t border-dv-line pt-7">
@@ -250,7 +248,7 @@ function ClinicStep({ locale, draft, onDone }: { locale: Locale; draft: ClinicDr
             <LivePreview profile={draft.preview} />
           </div>
         </aside>
-      </form>
+      </ValidatingForm>
     </>
   );
 }
@@ -274,12 +272,13 @@ function PreviewStep({ locale, draft, onBack, onDone }: { locale: Locale; draft:
           <p className="mx-auto mt-6 max-w-sm text-center text-xs leading-relaxed text-dv-muted">{t.previewNote}</p>
         </div>
 
-        <form onSubmit={next} className="dv-card p-5 sm:p-8">
+        <ValidatingForm locale={locale} onSubmit={next} className="dv-card p-5 sm:p-8">
           <h2 className="dv-display text-[1.875rem] leading-tight">{t.previewControls}</h2>
           <div className="mt-6 grid gap-5">
             <label className="block text-sm font-semibold text-dv-ink">
               {f.clinicName}
-              <input required value={draft.p.name} onChange={draft.set("name")} className="dv-field" />
+              <input required data-field="name" value={draft.p.name} onChange={draft.set("name")} className="dv-field" />
+              <FieldError name="name" />
             </label>
             <div className="grid gap-5 sm:grid-cols-2">
               <HandleField draft={draft} t={f} />
@@ -298,7 +297,7 @@ function PreviewStep({ locale, draft, onBack, onDone }: { locale: Locale; draft:
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
             {t.editDetails}
           </button>
-        </form>
+        </ValidatingForm>
       </div>
     </>
   );

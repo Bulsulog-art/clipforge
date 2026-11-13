@@ -45,6 +45,39 @@ export function recordEvent(
   return insertEventRow(row, opts.db).catch(() => false);
 }
 
+/**
+ * The events that show a clinic got as far as the plan step: it saw the
+ * plans, clicked one, or was handed a checkout. Recorded with its clinic id
+ * (the event route looks it up from the session; checkout_opened is
+ * server-side), so they outlive the dv-step cookie that sign-out clears and
+ * follow the clinic to another device.
+ */
+export const PLAN_REACHED_EVENTS: readonly DvEventName[] = ["plan_viewed", "plan_clicked", "checkout_opened"];
+
+/**
+ * Has this clinic ever reached the plan step (lib/dentvid/onboarding
+ * resolveStep's `reachedPlan`)? False when it cannot tell — the table is
+ * missing, the backend is slow or down — so /start falls back to the cookie.
+ */
+export async function clinicReachedPlan(clinicId: string, db?: SupabaseClient): Promise<boolean> {
+  if (!clinicId || Date.now() < missingUntil) return false;
+  try {
+    const client = db ?? (await import("./supabase")).dvAdmin();
+    const query = Promise.resolve(
+      client.from("dentvid_events").select("id").eq("clinic_id", clinicId).in("name", [...PLAN_REACHED_EVENTS]).limit(1),
+    ) as Promise<{ data: unknown[] | null; error: { code?: string; message?: string } | null }>;
+    const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) => setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), TIMEOUT_MS));
+    const { data, error } = await Promise.race([query, timeout]);
+    if (error) {
+      if (missingTable(error)) missingUntil = Date.now() + MISSING_BACKOFF_MS;
+      return false;
+    }
+    return (data?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** The body as text, or null once it passes `max` bytes (the declared length is not trusted). */
 export async function readCapped(req: Request, max: number): Promise<string | null> {
   const declared = Number(req.headers.get("content-length") ?? "0");

@@ -17,6 +17,7 @@
 
 export const DV_EVENTS = [
   "landing_view",
+  "try_clicked",
   "cta_clicked",
   "preview_started",
   "signup_started",
@@ -46,6 +47,7 @@ export type DvEventName = (typeof DV_EVENTS)[number];
  */
 export const DV_CLIENT_EVENTS: readonly DvEventName[] = [
   "landing_view",
+  "try_clicked",
   "cta_clicked",
   "preview_started",
   "signup_started",
@@ -88,6 +90,8 @@ const DEMO: Rule = { kind: "token" };
 
 export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
   landing_view: { utm_source: { kind: "slug" }, utm_medium: { kind: "slug" }, utm_campaign: { kind: "slug" }, ref: { kind: "host" } },
+  // "See your preview" in the hero: down to the no-account preview (#try), not into the sign-up.
+  try_clicked: { where: { kind: "enum", values: ["hero"] } },
   cta_clicked: { where: { kind: "enum", values: DV_CTA_WHERE } },
   preview_started: { where: PREVIEW_WHERE },
   signup_started: {},

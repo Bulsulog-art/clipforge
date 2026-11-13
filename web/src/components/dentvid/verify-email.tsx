@@ -2,6 +2,7 @@
 
 import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { CheckCircle2, MailCheck } from "lucide-react";
+import { FieldError, ValidatingForm } from "./validating-form";
 import type { Locale } from "@/content/dentvideo";
 import { fmtAuth, verifyText } from "@/content/dentvideo-auth";
 import { readAttribution } from "@/lib/dentvid/attribution";
@@ -251,19 +252,21 @@ export const VerifyCard = forwardRef<VerifyCardHandle, Props>(function VerifyCar
           </p>
         </form>
       ) : (
-        <form className="mt-5" onSubmit={change}>
+        <ValidatingForm locale={locale} className="mt-5" onSubmit={change}>
           <label className="block text-sm font-semibold text-dv-ink">
             {v.newEmailLabel}
             <input
               type="email"
               dir="ltr"
               required
+              data-field="newEmail"
               autoComplete="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               className="dv-field"
               autoFocus
             />
+            <FieldError name="newEmail" />
           </label>
           <div className="mt-3 flex flex-wrap gap-3">
             <button type="submit" disabled={busy !== null} className="dv-btn dv-btn-primary px-6 py-3 text-sm">
@@ -280,7 +283,7 @@ export const VerifyCard = forwardRef<VerifyCardHandle, Props>(function VerifyCar
               {v.cancel}
             </button>
           </div>
-        </form>
+        </ValidatingForm>
       )}
 
       <div aria-live="polite" className="empty:hidden">

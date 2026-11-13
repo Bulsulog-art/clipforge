@@ -9,6 +9,7 @@ import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { accentFor, analyseLogoFile, isDecodableImage, type LogoColors } from "@/lib/dentvid/logo-colors";
 import { LogoPreview } from "./logo-preview";
+import { FieldError, ValidatingForm, useClearFieldError } from "./validating-form";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, hasService, splitServices, suggestedServices, toggleService } from "@/lib/dentvid/service-hints";
 import { requestUpload } from "@/lib/dentvid/upload-client";
@@ -209,10 +210,12 @@ const label = "block text-sm font-semibold text-dv-ink";
 export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: ClinicDraft; locale: Locale; moreLabel?: string }) {
   const t = appText(locale).form;
   const { p, set } = draft;
+  const clearError = useClearFieldError();
   const name = (
     <label className={`${label} sm:col-span-2`}>
       {t.clinicName}
-      <input required value={p.name} onChange={set("name")} autoComplete="organization" className="dv-field" />
+      <input required data-field="name" value={p.name} onChange={set("name")} autoComplete="organization" className="dv-field" />
+      <FieldError name="name" />
     </label>
   );
   const city = (
@@ -245,7 +248,8 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
     <div className="sm:col-span-2">
       <label className={label}>
         {t.services}
-        <textarea required rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
+        <textarea required data-field="services" rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
+        <FieldError name="services" />
         <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
       </label>
       <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label={t.servicesQuick} data-service-chips>
@@ -257,7 +261,11 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
               key={s}
               type="button"
               aria-pressed={on}
-              onClick={() => draft.update("services", toggleService(p.services, s, p.language))}
+              onClick={() => {
+                draft.update("services", toggleService(p.services, s, p.language));
+                // A tap fills the field without an input event: clear its "please fill this in".
+                clearError("services");
+              }}
               className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition ${
                 on ? "bg-dv-teal text-white ring-dv-teal" : "bg-white text-dv-ink ring-dv-line hover:ring-dv-teal"
               }`}
@@ -284,7 +292,8 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
   const booking = (
     <label className={`${label} sm:col-span-2`}>
       {t.booking}
-      <input type="url" dir="ltr" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
+      <input type="url" dir="ltr" data-field="bookingUrl" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
+      <FieldError name="bookingUrl" />
     </label>
   );
 
@@ -488,7 +497,7 @@ export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
   const section = "dv-card p-5 sm:p-7";
   const heading = "mb-5 text-lg font-semibold text-dv-ink";
   return (
-    <form onSubmit={submit} className="grid gap-6" onChange={() => setSaved(false)}>
+    <ValidatingForm locale={locale} onSubmit={submit} className="grid gap-6" onChange={() => setSaved(false)}>
       <section aria-labelledby="clinic-details" className={section}>
         <h2 id="clinic-details" className={heading}>{text.settings.clinicHeading}</h2>
         <ClinicDetailsFields draft={draft} locale={locale} />
@@ -508,6 +517,6 @@ export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
           </p>
         </div>
       </div>
-    </form>
+    </ValidatingForm>
   );
 }

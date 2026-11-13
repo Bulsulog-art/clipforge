@@ -12,6 +12,7 @@ import { DvIcon } from "./mark";
 import { Stepper } from "./stepper";
 import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "./turnstile-widget";
 import { ConsentLine } from "./consent-line";
+import { FieldError, ValidatingForm } from "./validating-form";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
 import { rememberDemo } from "@/lib/dentvid/demo-cookie";
@@ -167,13 +168,15 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
         <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
 
         {/* method/action only matter when this page's JS never ran (chunks gone after a deploy): reload, never a GET with the fields in the URL. */}
-        <form onSubmit={submit} method="post" action="/api/dentvideo/reload" className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+        {/* The form checks its fields itself and says what is wrong in the page's language (not the browser's bubble). */}
+        <ValidatingForm locale={locale} onSubmit={submit} method="post" action="/api/dentvideo/reload" className="dv-card mt-9 space-y-5 p-6 sm:p-8">
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
             <input
               type="email"
               dir="ltr"
               required
+              data-field="email"
               autoComplete="email"
               value={email}
               onChange={(e) => {
@@ -182,6 +185,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
               }}
               className={field}
             />
+            <FieldError name="email" />
           </label>
           {mode !== "forgot" && (
           <div>
@@ -194,6 +198,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
                   dir="ltr"
                   required
                   minLength={8}
+                  data-field="password"
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -214,6 +219,8 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
               {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
             </div>
+            {/* Under the field, outside the box the eye button is anchored to. */}
+            <FieldError name="password" />
             {mode === "signup" && <span className="mt-2 block text-xs text-dv-muted">{t.passwordHint}</span>}
           </div>
           )}
@@ -245,7 +252,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
               {a.forgot}
             </button>
           )}
-        </form>
+        </ValidatingForm>
 
         <button
           type="button"

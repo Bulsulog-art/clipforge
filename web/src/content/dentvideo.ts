@@ -58,7 +58,16 @@ export type LandingContent = {
    * true risk-reducers under the CTA (points). No prices here — the "from"
    * price comes from `pricing.from`.
    */
-  hero: { eyebrow: string; h1: string; lead: string; cta: string; points: [string, string, string] };
+  hero: {
+    eyebrow: string;
+    h1: string;
+    lead: string;
+    /** The main button: down to the landing's own preview (#try), no account. */
+    cta: string;
+    /** Beside the "from" price under the button: the preview needs no account. */
+    ctaHint: string;
+    points: [string, string, string];
+  };
   mock: { hook: string; caption: string; label: string };
   /** Labels for the hero video's play/pause control. */
   video: { play: string; pause: string };
@@ -84,7 +93,10 @@ export type LandingContent = {
      */
     tiers: [PricingTier, PricingTier];
   };
-  /** "Try it with your logo": a small live preview on the landing that leads to /start. */
+  /**
+   * "Try it with your logo": a small live preview on the landing, no account
+   * needed. Its button (`cta`) says plainly that creating the account comes next.
+   */
   teaser: {
     eyebrow: string;
     heading: string;
@@ -119,6 +131,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Five patient-education videos for your clinic, every Monday.",
       lead: "Narrated, captioned and in your clinic's colours. Every script is checked for health-advertising rules and clinical accuracy before you see it. You approve, then share.",
       cta: "See your preview",
+      ctaHint: "No account needed",
       points: ["Monthly plan, no contract — cancel anytime", "See your own branded preview before you pay", "First week ready about 15 minutes after you subscribe"],
     },
     mock: { hook: "Does whitening damage enamel?", caption: "When it is supervised, usually not.", label: "Ready for your review" },
@@ -195,7 +208,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "Your clinic",
       logo: "Add your logo",
       color: "Brand colour",
-      cta: "Continue to your full preview",
+      cta: "Continue: create your account",
       note: "Monthly, cancel anytime. You pay only when you choose a plan.",
     },
     trust: {
@@ -240,6 +253,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Fünf Aufklärungsvideos für Ihre Praxis, jeden Montag.",
       lead: "Vertont, untertitelt und in Ihren Praxisfarben. Jedes Skript wird auf Werberecht und fachliche Richtigkeit geprüft, bevor Sie es sehen. Sie geben frei und teilen.",
       cta: "Ihre Vorschau ansehen",
+      ctaHint: "Ohne Konto",
       points: ["Monatlich, ohne Vertragsbindung — jederzeit kündbar", "Ihre eigene Vorschau sehen, bevor Sie zahlen", "Erste Woche etwa 15 Minuten nach der Buchung fertig"],
     },
     mock: { hook: "Schadet Bleaching dem Zahnschmelz?", caption: "Unter zahnärztlicher Aufsicht in der Regel nicht.", label: "Bereit zur Prüfung" },
@@ -316,7 +330,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "Ihre Praxis",
       logo: "Logo hinzufügen",
       color: "Markenfarbe",
-      cta: "Weiter zur vollständigen Vorschau",
+      cta: "Weiter: Konto erstellen",
       note: "Monatlich, jederzeit kündbar. Sie zahlen erst, wenn Sie einen Tarif wählen.",
     },
     trust: {
@@ -361,6 +375,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Cinco vídeos educativos para tu clínica, cada lunes.",
       lead: "Narrados, subtitulados y con los colores de tu clínica. Cada guion se revisa según las normas de publicidad sanitaria y su exactitud clínica antes de que lo veas. Tú apruebas y compartes.",
       cta: "Ver tu vista previa",
+      ctaHint: "Sin crear cuenta",
       points: ["Plan mensual sin permanencia: cancela cuando quieras", "Ve tu propia vista previa antes de pagar", "Tu primera semana, lista unos 15 minutos después de suscribirte"],
     },
     mock: { hook: "¿El blanqueamiento daña el esmalte?", caption: "Bajo supervisión, normalmente no.", label: "Listo para revisar" },
@@ -437,7 +452,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "Tu clínica",
       logo: "Añade tu logo",
       color: "Color de marca",
-      cta: "Ver la vista previa completa",
+      cta: "Continuar: crea tu cuenta",
       note: "Mensual, cancela cuando quieras. Solo pagas cuando eliges un plan.",
     },
     trust: {
@@ -482,6 +497,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Kliniğiniz için her pazartesi beş hasta bilgilendirme videosu.",
       lead: "Seslendirilmiş, altyazılı ve kliniğinizin renklerinde. Her metin, siz görmeden önce sağlıkta tanıtım kurallarına ve klinik doğruluğa göre kontrol edilir. Siz onaylar, paylaşırsınız.",
       cta: "Önizlemenizi görün",
+      ctaHint: "Hesap gerekmez",
       points: ["Aylık plan, taahhüt yok — istediğiniz zaman iptal", "Ödemeden önce kendi önizlemenizi görün", "İlk haftanız abonelikten yaklaşık 15 dakika sonra hazır"],
     },
     mock: { hook: "Diş beyazlatma mineye zarar verir mi?", caption: "Hekim kontrolünde genellikle hayır.", label: "İncelemenize hazır" },
@@ -558,7 +574,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "Kliniğiniz",
       logo: "Logonuzu ekleyin",
       color: "Marka rengi",
-      cta: "Tam önizlemeye devam edin",
+      cta: "Devam: hesabınızı oluşturun",
       note: "Aylık ödeme, istediğiniz zaman iptal. Yalnızca plan seçtiğinizde ödersiniz.",
     },
     trust: {
@@ -603,6 +619,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Cinq vidéos d'information patient pour votre cabinet, chaque lundi.",
       lead: "Commentées, sous-titrées et à vos couleurs. Chaque script est vérifié au regard des règles de communication en santé et de l'exactitude clinique avant de vous parvenir. Vous validez, puis partagez.",
       cta: "Voir votre aperçu",
+      ctaHint: "Sans créer de compte",
       points: ["Mensuel, sans engagement — résiliable à tout moment", "Votre propre aperçu avant de payer", "Première semaine prête environ 15 minutes après l'abonnement"],
     },
     mock: { hook: "Le blanchiment abîme-t-il l'émail ?", caption: "Encadré par un dentiste, en général non.", label: "Prête pour validation" },
@@ -683,7 +700,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "Votre cabinet",
       logo: "Ajouter votre logo",
       color: "Couleur de marque",
-      cta: "Continuer vers l'aperçu complet",
+      cta: "Continuer : créez votre compte",
       note: "Mensuel, résiliable à tout moment. Vous ne payez qu'en choisissant une formule.",
     },
     trust: {
@@ -729,6 +746,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "毎週月曜日、医院のための患者向け説明動画を5本。",
       lead: "ナレーションと字幕付きで、医院のカラーに合わせて制作します。すべての原稿は、お手元に届く前に医療広告ガイドラインと臨床的な正確さの観点でチェック。院長先生は承認して共有するだけです。",
       cta: "自院のプレビューを見る",
+      ctaHint: "アカウント登録は不要です",
       points: ["月単位の契約・縛りなし・いつでも解約可能", "お支払いの前に自院のプレビューを確認", "最初の1週間分はお申し込みから約15分で完成"],
     },
     mock: { hook: "歯ぐきから血が出るのはなぜ？", caption: "多くは、歯ぐきの炎症のサインです。", label: "ご確認をお待ちしています" },
@@ -801,7 +819,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "〇〇歯科クリニック",
       logo: "ロゴを追加",
       color: "ブランドカラー",
-      cta: "プレビューの続きを見る",
+      cta: "アカウントを作成して続ける",
       note: "月単位の契約で、いつでも解約できます。お支払いはプランを選んだときだけです。",
     },
     trust: {
@@ -849,6 +867,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "خمسة فيديوهات توعوية لعيادتكم، كل يوم اثنين.",
       lead: "بتعليق صوتي وترجمة نصية وبألوان عيادتكم. نراجع كل نص وفق ضوابط الإعلان الصحي والدقة السريرية قبل أن يصلكم، وما عليكم إلا الموافقة ثم المشاركة.",
       cta: "شاهدوا معاينة عيادتكم",
+      ctaHint: "دون إنشاء حساب",
       points: ["اشتراك شهري بلا عقد، يمكن إلغاؤه في أي وقت", "شاهدوا معاينة عيادتكم قبل الدفع", "أسبوعكم الأول جاهز بعد نحو 15 دقيقة من الاشتراك"],
     },
     mock: { hook: "هل يضرّ التبييض بمينا الأسنان؟", caption: "تحت إشراف طبيب الأسنان، غالباً لا.", label: "جاهز لمراجعتكم" },
@@ -921,7 +940,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "عيادتكم",
       logo: "أضيفوا شعاركم",
       color: "لون الهوية",
-      cta: "تابعوا إلى المعاينة الكاملة",
+      cta: "تابعوا بإنشاء حسابكم",
       note: "اشتراك شهري يمكن إلغاؤه في أي وقت. لا تدفعون إلا عند اختيار باقة.",
     },
     trust: {
@@ -968,6 +987,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       h1: "Pięć filmów edukacyjnych dla Państwa gabinetu, w każdy poniedziałek.",
       lead: "Z lektorem, napisami i w kolorach gabinetu. Każdy scenariusz sprawdzamy pod kątem zasad reklamy w ochronie zdrowia i poprawności klinicznej, zanim go Państwo zobaczą. Wystarczy zatwierdzić i udostępnić.",
       cta: "Pokaż mój podgląd",
+      ctaHint: "Bez zakładania konta",
       points: ["Plan miesięczny bez umowy terminowej — rezygnacja w każdej chwili", "Własny podgląd przed zapłatą", "Pierwszy tydzień gotowy ok. 15 minut po wykupieniu planu"],
     },
     mock: { hook: "Czy wybielanie niszczy szkliwo?", caption: "Pod kontrolą dentysty zwykle nie.", label: "Gotowe do akceptacji" },
@@ -1040,7 +1060,7 @@ export const LANDING: Record<Locale, LandingContent> = {
       namePlaceholder: "Państwa gabinet",
       logo: "Dodaj logo",
       color: "Kolor marki",
-      cta: "Przejdź do pełnego podglądu",
+      cta: "Dalej: załóż konto",
       note: "Rozliczenie miesięczne, rezygnacja w dowolnym momencie. Płatność dopiero po wyborze planu.",
     },
     trust: {

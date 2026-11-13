@@ -147,6 +147,8 @@ describe("landing layout contract", () => {
     };
     const order = [
       at("<h1"),
+      // The no-account preview, right under the hero (the hero's main button scrolls to it).
+      at('id="try"'),
       at(LANDING[l].problem[0].title),
       at('id="samples"'),
       at("data-feed-story"),

@@ -25,7 +25,8 @@ describe("POST /api/dentvideo/reload — a form submitted without its JavaScript
 describe("the sign-up form never submits natively as a GET", () => {
   it("posts to the reload route when its JavaScript did not run", () => {
     const src = readFileSync(path.join(__dirname, "../../../../components/dentvid/start-form.tsx"), "utf8");
-    const form = src.match(/<form\b[^>]*>/)?.[0] ?? "";
+    // A ValidatingForm (components/dentvid/validating-form) renders a plain <form> with these attributes.
+    const form = src.match(/<(?:form|ValidatingForm)\b[^>]*>/)?.[0] ?? "";
     expect(form).toContain('method="post"');
     expect(form).toContain('action="/api/dentvideo/reload"');
     expect(form).toContain("onSubmit={submit}");

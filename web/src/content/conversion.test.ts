@@ -32,7 +32,7 @@ const NEW_FAQ = 3;
 function newCopy(l: Locale): string[] {
   const c = LANDING[l];
   const faq = c.faq.slice(-1 - NEW_FAQ, -1).flatMap((f) => [f.q, f.a]);
-  return [c.hero.h1, c.hero.lead, ...c.hero.points, c.pricing.from, c.trust.heading, c.trust.legal, ...c.trust.items.flatMap((i) => [i.title, i.text]), ...faq];
+  return [c.hero.h1, c.hero.lead, c.hero.ctaHint, c.teaser.cta, ...c.hero.points, c.pricing.from, c.trust.heading, c.trust.legal, ...c.trust.items.flatMap((i) => [i.title, i.text]), ...faq];
 }
 
 /**
@@ -134,9 +134,18 @@ describe("landing page structure", () => {
     expect(cta).toBeGreaterThan(h1);
     expect(points).toBeGreaterThan(cta);
     expect(video).toBeGreaterThan(points);
-    // The hero CTA goes to the sign-up in the page's language; so does every pricing CTA.
+    // The hero CTA goes down to the no-account preview, which sits right after the hero; the
+    // preview's own button and every pricing CTA go to the sign-up in the page's language.
     const heroLink = page.slice(page.lastIndexOf("<a ", cta), page.indexOf(">", cta));
-    expect(heroLink).toMatch(new RegExp(`href="[^"]*/start\\?lang=${l}"`));
+    expect(heroLink).toContain('href="#try"');
+    const tryAt = page.indexOf('id="try"');
+    expect(tryAt).toBeGreaterThan(video);
+    expect(page.indexOf("</section>", video)).toBeLessThan(tryAt);
+    expect(page.indexOf(LANDING[l].problem[0].title.replace(/'/g, "&#x27;"))).toBeGreaterThan(tryAt);
+    const teaser = page.indexOf('data-cta="teaser"');
+    const teaserLink = page.slice(page.lastIndexOf("<a ", teaser), page.indexOf(">", teaser));
+    expect(teaserLink).toMatch(new RegExp(`href="[^"]*/start\\?lang=${l}"`));
+    expect(page).toContain(LANDING[l].hero.ctaHint);
     expect((page.match(/data-cta="pricing"/g) ?? []).length).toBe(2);
     expect(page).toContain(LANDING[l].pricing.from.replace(/'/g, "&#x27;"));
   });
