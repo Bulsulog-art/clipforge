@@ -42,6 +42,15 @@ vi.mock("@/lib/rate-limit-server", async () => {
 });
 let serverSignIns: { email: string; password: string }[] = [];
 let serverSignInFails = false;
+/** The password an existing account really has; null = the sign-up's password is wrong for it. */
+let existingPassword: string | null = null;
+const joined: string[] = [];
+vi.mock("@/lib/dentvid/join", () => ({
+  joinDentvideo: async (id: string) => {
+    joined.push(id);
+    return true;
+  },
+}));
 let createFails: string | null = null;
 vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }) }));
 vi.mock("@/lib/dentvid/supabase", () => ({
@@ -49,8 +58,10 @@ vi.mock("@/lib/dentvid/supabase", () => ({
     auth: {
       signInWithPassword: async (c: { email: string; password: string }) => {
         serverSignIns.push(c);
+        if (existing && c.password !== existingPassword) return { error: { message: "Invalid login credentials" } };
         return { error: serverSignInFails ? { message: "network" } : null };
       },
+      getUser: async () => ({ data: { user: existing ? { id: "existing-user", ...existing } : { id: "new-user", app_metadata: { product: "dentvideo" } } } }),
     },
   }),
   dvAdmin: () => ({
@@ -80,6 +91,8 @@ async function signup(extra: Record<string, unknown> = {}, headers: Record<strin
 beforeEach(() => {
   serverSignIns = [];
   serverSignInFails = false;
+  existingPassword = null;
+  joined.length = 0;
   created.length = 0;
   mails.length = 0;
   checks.length = 0;
@@ -126,12 +139,28 @@ describe("POST /api/dentvideo/signup", () => {
     expect(checks).toContain("rl:reset:email:dr@clinic.example");
   });
 
-  it("does not mail another Liman app's user, nor one whose only DentVideo claim is user_metadata", async () => {
+  it("another Liman app's account with the wrong password gets a reset link (the mailbox proves it), and is not joined", async () => {
     existing = { app_metadata: { product: "aires" } };
     expect((await signup()).body).toEqual({ ok: true, existing: true });
     existing = { app_metadata: {}, user_metadata: { product: "dentvideo" } };
     expect((await signup()).body).toEqual({ ok: true, existing: true });
+    expect(mails).toHaveLength(2);
+    expect(joined).toEqual([]);
+  });
+
+  it("another Liman app's account with its right password is signed in and joins DentVideo", async () => {
+    existing = { app_metadata: { product: "aires" } };
+    existingPassword = "longenough";
+    expect((await signup()).body).toEqual({ ok: true, existing: true, signedIn: true });
+    expect(joined).toEqual(["existing-user"]);
     expect(mails).toEqual([]);
+  });
+
+  it("a DentVideo account with its right password is simply signed in", async () => {
+    existing = { app_metadata: { product: "dentvideo" } };
+    existingPassword = "longenough";
+    expect((await signup()).body).toEqual({ ok: true, existing: true, signedIn: true });
+    expect(joined).toEqual([]);
   });
 
   it("stops mailing an existing address once its reset limit is spent", async () => {
@@ -185,12 +214,12 @@ describe("signs a new account in on the server", () => {
     expect(r.body).toMatchObject({ ok: true, signedIn: false });
   });
 
-  it("says plainly that an address already has an account, and does not sign it in", async () => {
+  it("says plainly that an address already has an account, and does not sign it in with a wrong password", async () => {
     existing = { app_metadata: { product: "dentvideo" } };
     const r = await signup();
     expect(r.body).toMatchObject({ ok: true, existing: true });
     expect(r.body.signedIn).toBeUndefined();
-    expect(serverSignIns).toEqual([]);
+    expect(joined).toEqual([]);
   });
 });
 

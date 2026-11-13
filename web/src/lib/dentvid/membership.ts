@@ -97,3 +97,21 @@ export function withoutDentvideo(app: Record<string, unknown> | null | undefined
   }
   return patch;
 }
+
+/**
+ * The app_metadata patch that adds DentVideo to an existing Liman account
+ * (one made by another app with the same address), or null when it is
+ * already a DentVideo account. Another app's `product` is never overwritten:
+ * DentVideo then goes into the `products` list, which the database's
+ * dentvid_is_member (migration 0008) also reads.
+ *
+ * Only call it once the person has proved the account is theirs: the
+ * account's password, or a reset link opened from its mailbox.
+ */
+export function joinDentvideoPatch(app: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
+  const a = app ?? {};
+  if (productsOf(a).includes(DV_PRODUCT)) return null;
+  if (typeof a.product !== "string" || !a.product) return { product: DV_PRODUCT };
+  const list = Array.isArray(a.products) ? a.products.filter((p): p is string => typeof p === "string" && !!p) : [];
+  return { products: [...list, DV_PRODUCT] };
+}

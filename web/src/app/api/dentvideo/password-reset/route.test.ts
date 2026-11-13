@@ -33,11 +33,12 @@ describe("POST /api/dentvideo/password-reset", () => {
     expect(mails).toEqual(["dr@clinic.example"]);
   });
 
-  it("does not mail other apps' users, even if they wrote product=dentvideo into their own user_metadata", async () => {
+  it("mails an account another app made with the address (opening the link proves the mailbox), and nobody for an unknown address", async () => {
     user = { app_metadata: { product: "aires" }, user_metadata: { product: "dentvideo" } };
     expect(await reset()).toEqual({ status: 200, body: { ok: true } });
+    expect(mails).toHaveLength(1);
     user = null;
     expect(await reset()).toEqual({ status: 200, body: { ok: true } });
-    expect(mails).toEqual([]);
+    expect(mails).toHaveLength(1);
   });
 });
