@@ -13,6 +13,7 @@ import { VerifiedNote, VerifyCard, type VerifyCardHandle } from "./verify-email"
 import type { PreviewProfile } from "./live-preview";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { Stepper } from "./stepper";
+import { dvHref } from "@/lib/dentvid/host";
 
 export { Stepper };
 
@@ -137,6 +138,7 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
       <div aria-hidden="true" className="absolute -end-40 top-0 -z-10 h-[30rem] w-[30rem] rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6 sm:pt-12">
         <Stepper locale={locale} current={step} />
+        {account && <FunnelAccount locale={locale} email={account.email} />}
         {step === "clinic" && <ClinicStep locale={locale} draft={draft} onDone={() => go("preview")} />}
         {step === "preview" && <PreviewStep locale={locale} draft={draft} onBack={() => go("clinic")} onDone={() => go("plan")} />}
         {step === "plan" && (
@@ -152,6 +154,42 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
         )}
       </div>
     </main>
+  );
+}
+
+/**
+ * Who is signed in, and a way out. The funnel's header keeps only the logo,
+ * and the app header (with its sign-out) is for paying clinics: before this,
+ * a clinic that signed up with the wrong address, or on a shared practice
+ * computer, could not sign out at all until it paid.
+ */
+export function FunnelAccount({ locale, email }: { locale: Locale; email: string }) {
+  const t = appText(locale).chrome;
+  const [leaving, setLeaving] = useState(false);
+  async function signOut() {
+    setLeaving(true);
+    try {
+      const { dvBrowser } = await import("@/lib/dentvid/supabase");
+      await dvBrowser().auth.signOut();
+    } catch {
+      /* signed out locally either way */
+    }
+    try {
+      // The next account on this browser starts from its own step.
+      document.cookie = `${STEP_COOKIE}=; path=/; max-age=0; samesite=lax`;
+    } catch {
+      // cookies blocked
+    }
+    window.location.assign(dvHref(`/dentvideo/start?mode=signin&lang=${encodeURIComponent(locale)}`));
+  }
+  return (
+    <p className="mt-3 flex flex-wrap items-center justify-center gap-x-2 text-sm text-dv-muted">
+      <span dir="ltr" className="max-w-full truncate">{email}</span>
+      <span aria-hidden="true">·</span>
+      <button type="button" onClick={signOut} disabled={leaving} className="inline-flex min-h-11 items-center rounded-md px-1 font-medium text-dv-teal underline-offset-4 hover:underline disabled:opacity-60">
+        {leaving ? t.signingOut : t.signOut}
+      </button>
+    </p>
   );
 }
 

@@ -11,6 +11,7 @@ import { LANDING_PATH } from "@/content/dentvideo";
 import { asLocale } from "@/lib/dentvid/locale";
 import { dvLocale } from "@/lib/dentvid/locale-server";
 import { dvSession } from "@/lib/dentvid/auth";
+import { signedOutMode } from "@/lib/dentvid/start-mode";
 import { STEP_COOKIE, resolveStep } from "@/lib/dentvid/onboarding";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { isEmailVerified } from "@/lib/dentvid/verify-email";
@@ -23,7 +24,7 @@ import { demoLogoSrc } from "@/lib/dentvid/demos";
 
 export const dynamic = "force-dynamic";
 
-type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: string; demo?: string }> };
+type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: string; demo?: string; mode?: string }> };
 
 /**
  * The paid funnel: 1 account → 2 clinic → 3 live preview → 4 plan and pay.
@@ -60,7 +61,7 @@ export default async function StartPage({ searchParams }: Props) {
     return (
       <>
         <LazyScriptFont locale={locale} />
-        <StartForm locale={locale} remember legal={legalPagesOn()} />
+        <StartForm locale={locale} remember legal={legalPagesOn()} initialMode={signedOutMode(new URLSearchParams({ ...(sp.mode ? { mode: sp.mode } : {}), ...(sp.step ? { step: sp.step } : {}) }))} />
       </>
     );
   }
