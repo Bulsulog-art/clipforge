@@ -56,10 +56,12 @@ export default async function StartPage({ searchParams }: Props) {
 
   if (!user) {
     const locale = fromLink ?? (await dvLocale());
+    // Always announce the language the form is drawn in, so the header and footer
+    // (which choose theirs in the browser) match it — also when it came from Accept-Language.
     return (
       <>
         <LazyScriptFont locale={locale} />
-        <StartForm locale={locale} remember={fromLink !== null} legal={legalPagesOn()} />
+        <StartForm locale={locale} remember legal={legalPagesOn()} />
       </>
     );
   }
