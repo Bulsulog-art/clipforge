@@ -11,6 +11,7 @@ import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, Byline, GuideCta, HtmlLang, RichText, SectionTableView, formatDate } from "@/components/dentvid/guide-parts";
 import { GuideScriptFont } from "@/components/dentvid/font-guide";
 import { CommercialLinks } from "@/components/dentvid/solution-page";
+import { CheckerCallout } from "@/components/dentvid/checker-callout";
 import { commercialPageForGuide } from "@/content/solutions";
 
 // Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
@@ -137,6 +138,12 @@ export default async function GuidePage({ params }: Props) {
               ))}
             </section>
           ))}
+
+          {g.category === "rules" && (
+            <div className="mt-14">
+              <CheckerCallout locale={L} />
+            </div>
+          )}
 
           {commercial && (
             <div className="mt-14">
