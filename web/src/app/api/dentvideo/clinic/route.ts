@@ -13,6 +13,8 @@ import { LOGO_MAX_BYTES } from "@/lib/dentvid/storage-quota";
 import { copyDemoLogoTo, loadDemoRow } from "@/lib/dentvid/demos-server";
 import { isDemoActive } from "@/lib/dentvid/demos";
 import { sniffImage } from "@/lib/dentvid/safe-image-fetch";
+import { isAdminUser } from "@/lib/dentvid/admin";
+import { raiseHotLead } from "@/lib/dentvid/hot-leads-server";
 
 const Body = z.object({
   profile: clinicProfileSchema,
@@ -141,5 +143,7 @@ export async function POST(req: Request) {
     clinicId: data.id as string,
     geo: geoCountry(req.headers),
   });
+  // A clinic signed up from a demo link: the warmest lead there is (once per demo; not the owner testing).
+  if (demo && !isAdminUser(user.id)) void raiseHotLead({ token: demo.token, step: "signup", demo, clinicId: data.id as string });
   return NextResponse.json({ id: data.id });
 }

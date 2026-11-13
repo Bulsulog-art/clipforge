@@ -833,6 +833,64 @@ export const alerts = {
     };
   },
 
+  /**
+   * A prospect engaged with a personalised demo link (web/src/lib/dentvid/hot-leads.ts
+   * decides when: one alert per demo and step, ever, under a daily cap).
+   */
+  hotLead(a: {
+    token: string;
+    step: "viewed" | "played" | "cta_start" | "cta_question" | "signup";
+    clinicName: string;
+    city?: string | null;
+    country?: string | null;
+    campaign: string;
+    views: number;
+    at: string;
+    url: string;
+    clinicId?: string | null;
+  }): OwnerAlert {
+    const step = {
+      viewed: { tr: "demoyu açtı", en: "opened the demo", what: "opened their personalised demo for the first time" },
+      played: { tr: "önizlemeyi oynattı", en: "played the preview", what: "played the preview video on their demo" },
+      cta_start: { tr: "“Bu ayarlarla başla”ya tıkladı", en: "clicked “Start”", what: "clicked “Start with these settings” — they are on the sign-up page now" },
+      cta_question: { tr: "“Soru sor”a tıkladı", en: "clicked “Ask a question”", what: "clicked “Ask a question” on their demo — an email to you may be on its way" },
+      signup: { tr: "demodan kaydoldu", en: "signed up from the demo", what: "created an account and saved their clinic from the demo" },
+    }[a.step];
+    const next = {
+      viewed: ["Bugün arayın ya da WhatsApp'tan yazın: “Demonuzu gördünüz mü? 2 dakikada anlatayım.”", "Call today or write on WhatsApp while the demo is fresh in their mind."],
+      played: ["Bugün arayın / WhatsApp'tan yazın — önizlemeyi izlediler, en sıcak an bu.", "Call or WhatsApp today: they watched the preview, this is the warmest moment."],
+      cta_start: ["Bir saat içinde WhatsApp'tan yazın: kayıtta takıldıkları bir yer var mı?", "WhatsApp them within the hour in case they got stuck signing up."],
+      cta_question: ["Gelen kutunuza bakın ve hemen yanıtlayın; e-posta gelmezse bugün arayın.", "Check your inbox and answer right away; if no email arrives, call them today."],
+      signup: ["Bugün arayın: hoş geldiniz deyin, planı ve ilk haftayı birlikte seçin.", "Call today: welcome them and help pick the plan for their first week."],
+    }[a.step];
+    const where = [a.city, a.country].filter((x) => x && String(x).trim()).join(", ");
+    let local = a.at;
+    try {
+      local = `${new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Istanbul", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(a.at))} (Istanbul)`;
+    } catch {
+      // keep the ISO time
+    }
+    return {
+      key: `hot_lead:${a.token}:${a.step}`,
+      severity: "good",
+      titleTr: `Sıcak aday: ${a.clinicName} ${step.tr}`,
+      titleEn: `Hot lead: ${a.clinicName} ${step.en}`,
+      what: [`${a.clinicName}${where ? ` (${where})` : ""} ${step.what}.`],
+      facts: [
+        ["Klinik / Clinic", a.clinicName],
+        ["Şehir / City", where || "—"],
+        ["Kampanya / Campaign", a.campaign],
+        ["Adım / Step", `${step.tr} / ${step.en}`],
+        ["Görüntülenme / Views", String(a.views)],
+        ["Zaman / Time", local],
+        ["Demo", a.url],
+        ...(a.clinicId ? ([["Clinic ID", a.clinicId]] as [string, string][]) : []),
+      ],
+      done: ["Nothing automatic — this is the moment for a personal follow-up. You get this alert once per demo and step."],
+      todo: next,
+    };
+  },
+
   raw(a: { key: string; severity?: Severity; subject: string; text: string }): OwnerAlert {
     // Older alert sites (spend guard) that already wrote their own text.
     const lines = a.text.split("\n").filter((l) => l.trim() !== "");

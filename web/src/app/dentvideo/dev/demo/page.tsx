@@ -5,6 +5,7 @@ import { AdminDemos, type AdminDemoRow } from "@/components/dentvid/admin-demos"
 import { asLocale } from "@/lib/dentvid/locale";
 import type { Locale } from "@/content/dentvideo";
 import { DEMO_PALETTE } from "@/lib/dentvid/demos";
+import { asDemoSort, sortDemos } from "@/lib/dentvid/hot-leads";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Demo link preview", robots: DEMO_ROBOTS };
@@ -28,7 +29,7 @@ const CLINIC: Record<Locale, { name: string; city: string; country: string }> = 
  *   /dentvideo/dev/demo?lang=ar&logo=0     without a logo
  *   /dentvideo/dev/demo?admin=1            /admin/demos with a few demos
  */
-export default async function DemoPreviewPage({ searchParams }: { searchParams: Promise<{ lang?: string; logo?: string; admin?: string }> }) {
+export default async function DemoPreviewPage({ searchParams }: { searchParams: Promise<{ lang?: string; logo?: string; admin?: string; sort?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const locale = asLocale(sp.lang) ?? "en";
@@ -53,8 +54,19 @@ export default async function DemoPreviewPage({ searchParams }: { searchParams: 
       last_viewed_at: i === 2 ? null : d(-1),
       url: `https://dentvideo.com/${l}/d/${["Ab3dE5fG7hJ", "Kq9WmZ2xT4p", "Rt5Yu8Io1Pa", "Zx7Cv3Bn6Mq"][i]}`,
       stats: { views: [7, 2, 0, 1][i], played: [5, 1, 0, 0][i], ctaClicks: [2, 0, 0, 0][i], signups: [1, 0, 0, 0][i], paid: [1, 0, 0, 0][i] },
+      lastActivityAt: [new Date(now.getTime() - 3 * 3600_000).toISOString(), d(-1), null, d(-6)][i],
     }));
-    return <AdminDemos available={sp.admin !== "missing"} demos={rows} now={now.toISOString()} backHref="/dentvideo/dev/admin" />;
+    const sort = asDemoSort(sp.sort);
+    return (
+      <AdminDemos
+        available={sp.admin !== "missing"}
+        demos={sortDemos(rows.map((r) => ({ ...r, lastActivityAt: r.lastActivityAt ?? null })), sort, now)}
+        now={now.toISOString()}
+        backHref="/dentvideo/dev/admin"
+        sort={sort}
+        sortHrefs={{ hot: "/dentvideo/dev/demo?admin=1", new: "/dentvideo/dev/demo?admin=1&sort=new" }}
+      />
+    );
   }
   return (
     <DemoPage
