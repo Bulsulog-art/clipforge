@@ -286,8 +286,9 @@ export type ClinicBilling = {
  */
 export function applyTransition(current: ClinicBilling, t: DvTransition): Partial<ClinicBilling> | null {
   if (t.kind === "deactivate" && current.dodo_subscription_id && current.dodo_subscription_id !== t.subscriptionId) return null;
-  if (t.kind === "deactivate" && current.plan === "trial" && !current.dodo_subscription_id && t.plan === "paused") {
-    // A first payment that never went through: the clinic simply stays unpaid.
+  if (t.kind === "deactivate" && current.plan === "trial" && !current.dodo_subscription_id) {
+    // A first payment that never went through (failed, on hold, or a checkout subscription
+    // cancelled / expired before it activated): the clinic simply stays unpaid.
     return null;
   }
   const next: Partial<ClinicBilling> = { plan: t.plan, dodo_subscription_id: t.subscriptionId };

@@ -239,10 +239,21 @@ async function insert(db: SupabaseClient, rows: ItemRow[]) {
 async function paying(db: SupabaseClient, clinicId: string, kind: string): Promise<boolean> {
   // "*": admin_paused_at (0010_dentvid_admin.sql) may not exist yet on a given database.
   const { data } = await db.from("dentvid_clinics").select("*").eq("id", clinicId).maybeSingle();
-  const row = (data ?? null) as { plan?: string; admin_paused_at?: string | null } | null;
+  const row = (data ?? null) as { plan?: string; plan_tier?: string | null; admin_paused_at?: string | null } | null;
+  if (kind === "recording" && row && !recordingsIncluded(row.plan_tier)) {
+    // Own recordings are a Practice/Group feature (web: storage-quota canRecord, /api/dentvideo/recording).
+    // A job queued before a downgrade to Starter must not be transcribed and rendered.
+    logger.warn({ clinicId, tier: row.plan_tier }, "dentvid: recording skipped — the clinic's plan has no own recordings (Starter)");
+    return false;
+  }
   if (row && shouldRun({ plan: row.plan ?? "", admin_paused_at: row.admin_paused_at })) return true;
   logger.warn({ clinicId, plan: row?.plan ?? null, adminPaused: !!row?.admin_paused_at, kind }, "dentvid: skipped — clinic has no active plan or is paused by the owner");
   return false;
+}
+
+/** Does this plan tier include the dentist's own recordings? Starter does not (same rule as the web's canRecord). */
+export function recordingsIncluded(tier: string | null | undefined): boolean {
+  return tier !== "starter";
 }
 
 /** Fewer usable videos than this and the week is topped up with extra topics. */
