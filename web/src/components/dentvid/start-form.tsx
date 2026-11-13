@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { dvHref } from "@/lib/dentvid/host";
-import { dvBrowser } from "@/lib/dentvid/supabase";
-import { dirOf, type Locale } from "@/content/dentvideo";
+import { dirOf, type Locale } from "@/content/dentvideo-locales";
 import { appText } from "@/content/dentvideo-app";
 import { authText } from "@/content/dentvideo-auth";
 import { announceLocale } from "./chrome";
 import { DvIcon } from "./mark";
-import { Stepper } from "./onboarding";
+import { Stepper } from "./stepper";
 import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "./turnstile-widget";
 import { ConsentLine } from "./consent-line";
 import { trackDv } from "@/lib/dentvid/events-client";
@@ -68,6 +67,8 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   async function signIn(addr: string): Promise<boolean> {
+    // The Supabase client is loaded when it is needed, not with the page.
+    const { dvBrowser } = await import("@/lib/dentvid/supabase");
     const { error: e } = await dvBrowser().auth.signInWithPassword({ email: addr, password });
     return !e;
   }

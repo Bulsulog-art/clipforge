@@ -18,50 +18,20 @@
 import type { GuideExtras, SectionExtras } from "./guides/types";
 import { GUIDE_LIBRARY, mergeGuides } from "./guides";
 
-export const LOCALES = ["en", "de", "es", "tr", "fr", "ja", "ar", "pl"] as const;
-export type Locale = (typeof LOCALES)[number];
+import {
+  HREFLANG,
+  LANDING_PATH,
+  LANGUAGE_NAME,
+  LOCALES,
+  OWN_ROUTE_LOCALES,
+  RTL_LOCALES,
+  SHARED_ROUTE_LOCALES,
+  dirOf,
+  type Locale,
+} from "./dentvideo-locales";
 
-/** Locales written right to left: their pages carry dir="rtl" and mirror their layout. */
-export const RTL_LOCALES: readonly Locale[] = ["ar"];
-export function dirOf(locale: Locale): "rtl" | "ltr" {
-  return RTL_LOCALES.includes(locale) ? "rtl" : "ltr";
-}
-
-/**
- * Locales whose pages live in their own route folder (app/dentvideo/ja, /ar)
- * so that only they load a Japanese or Arabic web font; the other languages
- * share app/dentvideo/[locale].
- */
-export const OWN_ROUTE_LOCALES: readonly Locale[] = ["ja", "ar"];
-
-/** The languages served by app/dentvideo/[locale]: not English (the root) and not the own-route ones. */
-export const SHARED_ROUTE_LOCALES: Locale[] = LOCALES.filter((l) => l !== "en" && !OWN_ROUTE_LOCALES.includes(l));
-
-export const LANDING_PATH: Record<Locale, string> = {
-  en: "/dentvideo",
-  de: "/dentvideo/de",
-  es: "/dentvideo/es",
-  tr: "/dentvideo/tr",
-  fr: "/dentvideo/fr",
-  ja: "/dentvideo/ja",
-  ar: "/dentvideo/ar",
-  pl: "/dentvideo/pl",
-};
-
-/** Each language's own name, for the language switcher. */
-export const LANGUAGE_NAME: Record<Locale, string> = {
-  en: "English",
-  de: "Deutsch",
-  es: "Español",
-  tr: "Türkçe",
-  fr: "Français",
-  ja: "日本語",
-  ar: "العربية",
-  pl: "Polski",
-};
-
-/** BCP-47 tags for hreflang. */
-export const HREFLANG: Record<Locale, string> = { en: "en", de: "de", es: "es", tr: "tr", fr: "fr", ja: "ja", ar: "ar", pl: "pl" };
+// The languages themselves live in a small module of their own, so the browser can have them without this file.
+export { HREFLANG, LANDING_PATH, LANGUAGE_NAME, LOCALES, OWN_ROUTE_LOCALES, RTL_LOCALES, SHARED_ROUTE_LOCALES, dirOf, type Locale };
 
 export type Faq = { q: string; a: string };
 
