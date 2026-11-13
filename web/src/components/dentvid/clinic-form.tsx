@@ -7,7 +7,7 @@ import { dvBrowser, BUCKET } from "@/lib/dentvid/supabase";
 import { LANGUAGES, type ClinicProfile } from "@/lib/dentvid/profile";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
-import { accentFor, analyseLogoFile, type LogoColors } from "@/lib/dentvid/logo-colors";
+import { accentFor, analyseLogoFile, isDecodableImage, type LogoColors } from "@/lib/dentvid/logo-colors";
 import { LogoPreview } from "./logo-preview";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, splitServices } from "@/lib/dentvid/service-hints";
@@ -80,6 +80,9 @@ export function useClinicDraft({
   const [logoUrl, setLogoUrl] = useState<string | null>(savedLogoUrl ?? null);
   const [colors, setColors] = useState<LogoColors | null>(null);
   const [dirty, setDirty] = useState(false);
+  /** A chosen file that is not a usable picture (the previous logo stays). */
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const invalidLogo = text.errors.invalidLogo;
   const latest = useRef<File | null>(null);
   const objectUrl = useRef<string | null>(null);
   useEffect(() => () => {
@@ -111,6 +114,12 @@ export function useClinicDraft({
 
   /** A new logo: show it now, read its colours and suggest the brand colour from it. The clinic can still pick any. */
   const chooseLogo = useCallback(async (file: File | null) => {
+    setLogoError(null);
+    // Not a picture the browser can draw: say so and keep the logo there was (never upload it).
+    if (file && !(await isDecodableImage(file))) {
+      setLogoError(invalidLogo);
+      return;
+    }
     latest.current = file;
     setLogo(file);
     setColors(null);
@@ -124,7 +133,7 @@ export function useClinicDraft({
     if (!found || latest.current !== file) return;
     setColors(found);
     if (found.suggested) setP((prev) => ({ ...prev, brandColor: found.suggested! }));
-  }, [savedLogoUrl]);
+  }, [savedLogoUrl, invalidLogo]);
 
   /** Upload a new logo (if any) and save the profile. Throws with a message for the clinic. */
   async function save(): Promise<void> {
@@ -181,7 +190,7 @@ export function useClinicDraft({
     tone: p.tone,
   };
 
-  return { p, set, update, logo, logoUrl, colors, chooseLogo, save, dirty, preview, savedLogo: !!savedLogoUrl };
+  return { p, set, update, logo, logoUrl, logoError, colors, chooseLogo, save, dirty, preview, savedLogo: !!savedLogoUrl };
 }
 
 export type ClinicDraft = ReturnType<typeof useClinicDraft>;
@@ -358,6 +367,11 @@ export function BrandFields({ draft, locale, showLogoPreview = false }: { draft:
             />
           </label>
         </span>
+        {draft.logoError && (
+          <span role="alert" className="mt-1.5 block text-xs font-medium text-[#8a1f1f]" data-testid="dv-logo-error">
+            {draft.logoError}
+          </span>
+        )}
         {draft.savedLogo && !logo && <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.logoSaved}</span>}
       </div>
 
