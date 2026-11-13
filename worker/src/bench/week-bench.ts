@@ -3,6 +3,7 @@
  *
  *   cd worker && npx tsx src/bench/week-bench.ts [--lang en] [--videos 5]
  *        [--concurrency N] [--preset veryfast] [--no-footage] [--nice 10] [--out DIR]
+ *        [--entry PATH]   bundle another copy of the compositions (before/after a change)
  *
  *   # the production box has 2 cores: pin the benchmark to two
  *   taskset -c 0,1 npx tsx src/bench/week-bench.ts
@@ -37,7 +38,7 @@ import { BACKGROUND_LIBRARY } from "../dentvid/backgrounds/library.js";
 import { backgroundSrc } from "../dentvid/backgrounds/suggest.js";
 import { withNicedChildren } from "../dentvid/nice.js";
 
-type Args = { lang: string; videos: number; concurrency: number; preset?: string; footage: boolean; out?: string; nice: number };
+type Args = { lang: string; videos: number; concurrency: number; preset?: string; footage: boolean; out?: string; nice: number; entry: string };
 
 function parseArgs(argv: string[]): Args {
   const get = (name: string) => {
@@ -53,6 +54,8 @@ function parseArgs(argv: string[]): Args {
     out: get("out"),
     // As a weekend batch week runs (dentvid/nice.ts): 10. 0 = normal priority.
     nice: Number(get("nice") ?? 0),
+    // Another copy of the compositions (e.g. main's, via git archive) to compare against.
+    entry: path.resolve(get("entry") ?? "src/remotion/index.ts"),
   };
 }
 
@@ -196,7 +199,7 @@ async function main() {
   sampler.start();
 
   const t0 = Date.now();
-  await getBundle(path.resolve(process.cwd(), "src/remotion/index.ts"));
+  await getBundle(args.entry);
   const bundleSec = (Date.now() - t0) / 1000;
   console.log(`bundle: ${bundleSec.toFixed(1)} s (once per worker process)`);
 
@@ -218,6 +221,9 @@ async function main() {
         userAssets: clip ? [clip] : [],
         concurrency: args.concurrency,
         tuning,
+        entryPoint: args.entry,
+        // The narration lives in the preview library, outside the job's work dir.
+        assetRoots: [path.dirname(v.mp3)],
         onWarn: (m) => console.warn(`  warn: ${m}`),
       }),
     );
