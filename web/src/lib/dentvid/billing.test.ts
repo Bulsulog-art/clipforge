@@ -222,6 +222,13 @@ describe("plan transitions", () => {
   it("a first payment that fails leaves an unpaid clinic unpaid", () => {
     expect(applyTransition(trial, dvTransition("subscription.failed", d, {})!)).toBeNull();
   });
+
+  it("a subscription that is cancelled or expires before it ever activated leaves an unpaid clinic unpaid (not 'cancelled')", () => {
+    // Otherwise the clinic is told its plan was cancelled, its activation emails stop, and the same
+    // subscription activating later would be refused as a "late activation".
+    expect(applyTransition(trial, dvTransition("subscription.cancelled", d, {})!)).toBeNull();
+    expect(applyTransition(trial, dvTransition("subscription.expired", d, {})!)).toBeNull();
+  });
 });
 
 describe("access", () => {

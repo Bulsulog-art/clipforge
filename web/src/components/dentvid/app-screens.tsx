@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { dvHref } from "@/lib/dentvid/host";
-import { ArrowLeft, Mail, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { dirOf, type Locale } from "@/content/dentvideo";
-import { appText } from "@/content/dentvideo-app";
+import { appText, fmt } from "@/content/dentvideo-app";
+import { accountText } from "@/content/dentvideo-account";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
 import { DV_SUPPORT_EMAIL, mailtoHref, quote } from "@/lib/dentvid/app-ui";
@@ -192,7 +193,18 @@ export function SettingsView({
 
 export type ShootCard = { opening: string; points: string[]; closing: string; avoid?: string[]; setup?: string[]; minutes?: number };
 
-export function RecordView({ locale, cards, plan }: { locale: Locale; cards: { title: string; card: ShootCard }[]; plan?: ClinicPlan | null }) {
+export function RecordView({
+  locale,
+  cards,
+  plan,
+  selfServe = false,
+}: {
+  locale: Locale;
+  cards: { title: string; card: ShootCard }[];
+  plan?: ClinicPlan | null;
+  /** DODO_API_KEY is set: a Starter clinic switches to Practice itself in Settings instead of writing to us. */
+  selfServe?: boolean;
+}) {
   const text = appText(locale);
   const t = text.record;
   // Own recordings are part of Practice and Group; Starter sees what it would get instead of an upload that fails.
@@ -215,11 +227,21 @@ export function RecordView({ locale, cards, plan }: { locale: Locale; cards: { t
           </span>
           <h2 className="dv-display mt-4 text-balance text-[1.875rem] leading-tight text-dv-ink">{t.starterTitle}</h2>
           <p className="mt-2 max-w-2xl leading-relaxed text-dv-body">{t.starterLead}</p>
-          <a href={mailtoHref(t.starterSubject)} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto">
-            <Mail className="h-4 w-4" aria-hidden="true" />
-            {t.starterCta}
-          </a>
-          <p className="mt-3 text-sm text-dv-muted">{DV_SUPPORT_EMAIL}</p>
+          {selfServe ? (
+            // The plan change is self-serve (Settings → Plan and billing): no email round trip.
+            <Link href={dvHref("/dentvideo/app/settings#billing-title")} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto" data-testid="starter-upgrade">
+              <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
+              {fmt(accountText(locale).changeTo, { tier: text.billing.tiers.practice.name })}
+            </Link>
+          ) : (
+            <>
+              <a href={mailtoHref(t.starterSubject)} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto">
+                <Mail className="h-4 w-4" aria-hidden="true" />
+                {t.starterCta}
+              </a>
+              <p className="mt-3 text-sm text-dv-muted">{DV_SUPPORT_EMAIL}</p>
+            </>
+          )}
         </section>
       ) : (
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">

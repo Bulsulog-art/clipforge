@@ -27,6 +27,7 @@ vi.mock("./notify.js", () => ({ notifyReady: vi.fn(async () => true) }));
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const updates: unknown[] = [];
+let clinicTier: string | null = null;
 
 /** Enough of supabase-js for the guard paths: an active clinic and one generated item. */
 function fakeDb() {
@@ -35,7 +36,7 @@ function fakeDb() {
     q.select = () => q;
     q.eq = () => q;
     q.limit = async () => ({ data: [] });
-    q.maybeSingle = async () => ({ data: table === "dentvid_clinics" ? { plan: "active" } : null, error: null });
+    q.maybeSingle = async () => ({ data: table === "dentvid_clinics" ? { plan: "active", plan_tier: clinicTier } : null, error: null });
     q.single = async () =>
       table === "dentvid_items"
         ? { data: { id: "item-1", clinic_id: CLINIC, owner_id: OWNER, kind: "generated", plan: { scenes: [] }, video_path: null, thumb_path: null }, error: null }
@@ -60,6 +61,7 @@ const { MemoryParkStore } = await import("./park.js");
 beforeEach(() => {
   vi.clearAllMocks();
   updates.length = 0;
+  clinicTier = null;
 });
 
 describe("dentvid jobs behind the spend guard", () => {
@@ -106,5 +108,14 @@ describe("dentvid jobs behind the spend guard", () => {
     expect(prepareVoiceover).not.toHaveBeenCalled();
     expect(renderPlan).not.toHaveBeenCalled();
     expect(updates).toContainEqual(expect.objectContaining({ restyle_status: "failed" }));
+  });
+
+  it("a recording for a Starter clinic (e.g. queued before a downgrade) is skipped before any spend", async () => {
+    clinicTier = "starter";
+    const park = new MemoryParkStore();
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => guardConfig({})), park, alert: vi.fn(async () => true) });
+    expect(await runDentvidRecording({ clinicId: CLINIC, sourcePath: `${OWNER}/recordings/1.mp4` }, { jobId: "rec:2" })).toEqual({ clips: 0 });
+    expect(clipsFromRecording).not.toHaveBeenCalled();
+    expect(openaiCtor).not.toHaveBeenCalled();
   });
 });

@@ -7,6 +7,7 @@ import { dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
 import { RecordView, type ShootCard } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
+import { dodoApiKey } from "@/lib/dentvid/dodo-account";
 
 export const dynamic = "force-dynamic";
 
@@ -30,5 +31,6 @@ export default async function RecordPage() {
   // Starter has no own recordings: the page shows what Practice adds instead of an upload that would be refused.
   const plan = clinic ? await loadClinicPlan(db, clinic.id) : null;
 
-  return <RecordView locale={locale} cards={cards} plan={plan} />;
+  // Only whether a key exists reaches the page — never the key.
+  return <RecordView locale={locale} cards={cards} plan={plan} selfServe={!!dodoApiKey()} />;
 }

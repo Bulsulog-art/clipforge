@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { readyEmail, sendEmail } from "./email";
 import { recordEvent } from "./events-server";
 import { approveUrl } from "./approve-link";
-import { EMAIL_IMAGE_TTL_S, isTestEmail } from "./lifecycle";
+import { EMAIL_IMAGE_TTL_S, isTestEmail, lifecycleConfig } from "./lifecycle";
 import { BUCKET } from "./supabase";
 import { unsubscribeSecret } from "./unsubscribe-token";
 import type { Thumb } from "./email-layout";
@@ -30,8 +30,14 @@ export function latestWeek(rows: ItemRow[]): { week: string | null; items: ItemR
   return { week, items: week ? done.filter((r) => r.week_of === week) : [] };
 }
 
-function dentvideoBase(): string {
-  return (process.env.NEXT_PUBLIC_DENTVIDEO_URL || `${(process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "")}/dentvideo`).replace(/\/+$/, "");
+/**
+ * The absolute base the email links to — the same as every other DentVideo
+ * email (lifecycleConfig: NEXT_PUBLIC_DENTVIDEO_URL, else the app URL's
+ * /dentvideo, else https://dentvideo.com). Never a relative "/dentvideo":
+ * an email client cannot open that, and the approve link was dropped with it.
+ */
+export function readyEmailBase(env: Record<string, string | undefined> = process.env): string {
+  return lifecycleConfig(env).base;
 }
 
 export async function sendReadyNotice(
@@ -50,7 +56,7 @@ export async function sendReadyNotice(
   const profile = (clinic.profile ?? {}) as { name?: string; language?: string; brandColor?: string };
   // Funnel: the worker finished a week (or a recording) for this clinic. Not for an owner's resend.
   if (opts.recordFunnel !== false) void recordEvent("week_ready", { db, clinicId, locale: profile.language, props: { kind, ...counts } });
-  const base = dentvideoBase();
+  const base = readyEmailBase();
 
   let thumbs: Thumb[] = [];
   let approve: string | null = null;
@@ -82,7 +88,7 @@ export async function sendReadyNotice(
       .map((i) => ({ url: urls.get(i.thumb_path!)!, title: (i.title ?? "").slice(0, 60), href: `${base}/app` }));
     logoUrl = typeof clinic.logo_path === "string" ? (urls.get(clinic.logo_path) ?? null) : null;
     const secret = unsubscribeSecret();
-    if (week && secret && counts.ready > 0) approve = approveUrl(new URL(base || "https://dentvideo.com").origin, clinicId, week, secret, opts.now);
+    if (week && secret && counts.ready > 0) approve = approveUrl(new URL(base).origin, clinicId, week, secret, opts.now);
   } catch (e) {
     // Images and the approve link are extras: the email goes without them.
     console.warn("[dentvideo] ready email extras unavailable", (e as Error).message);
