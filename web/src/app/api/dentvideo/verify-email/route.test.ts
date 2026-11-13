@@ -105,4 +105,15 @@ describe("POST /api/dentvideo/verify-email", () => {
     expect(await call({ action: "change", email: "other@clinic.example" })).toMatchObject({ body: { verified: true } });
     expect(updates).toHaveLength(0);
   });
+
+  it("never changes the address of a login another app on Liman also uses", async () => {
+    // Joined DentVideo with its password: not verified yet, so the code card offers "change email".
+    user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "otherapp", products: ["dentvideo"] } };
+    const res = await call({ action: "change", email: "new@clinic.example", locale: "de" });
+    expect(res).toMatchObject({ status: 409, body: { error: VERIFY_COPY.de.sharedLogin, reason: "shared" } });
+    expect(updates).toHaveLength(0);
+    expect(user.email).toBe("dr@clinic.example");
+    // Re-sending the code to the address it has is still fine.
+    expect(await call({ action: "change", email: "dr@clinic.example" })).toMatchObject({ status: 200, body: { ok: true } });
+  });
 });

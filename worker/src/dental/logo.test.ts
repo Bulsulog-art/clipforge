@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { analyseLogo, analyseLogoPixels, brandFromLogo, dominantColours, logoStyleOf, type Rgba } from "./logo.js";
+import { analyseLogo, analyseLogoPixels, brandFromLogo, dominantColours, logoStyleOf, readyLogo, sniffLogo, type Rgba } from "./logo.js";
 import { hueDistance } from "../remotion/theme.js";
 
 /** A synthetic logo: a background, and rectangles of colour drawn on it. */
@@ -243,5 +243,68 @@ describe.skipIf(!hasFfmpeg)("analyseLogo (ffmpeg decode)", () => {
     const file = path.join(dir, "nope.png");
     fs.writeFileSync(file, "not an image");
     await expect(analyseLogo(file)).rejects.toThrow();
+  });
+});
+
+describe("sniffLogo", () => {
+  const bytes = (...b: number[]) => new Uint8Array(b);
+  it("knows PNG, JPEG and WebP by their first bytes, and nothing else", () => {
+    expect(sniffLogo(bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0))).toBe("png");
+    expect(sniffLogo(bytes(0xff, 0xd8, 0xff, 0xe0))).toBe("jpeg");
+    expect(sniffLogo(bytes(0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4, 0x57, 0x45, 0x42, 0x50))).toBe("webp");
+    // A WAV is RIFF too.
+    expect(sniffLogo(bytes(0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4, 0x57, 0x41, 0x56, 0x45))).toBeNull();
+    expect(sniffLogo(new TextEncoder().encode("<svg xmlns='http://www.w3.org/2000/svg'/>"))).toBeNull();
+    expect(sniffLogo(new TextEncoder().encode("%PDF-1.7"))).toBeNull();
+    expect(sniffLogo(new TextEncoder().encode("<!DOCTYPE html>"))).toBeNull();
+    expect(sniffLogo(bytes())).toBeNull();
+  });
+});
+
+describe("readyLogo", () => {
+  let dir: string;
+  beforeAll(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "ready-logo-"));
+  });
+  afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const never = async (): Promise<never> => {
+    throw new Error("must not be analysed");
+  };
+
+  it("writes nothing for bytes that are not an image (an HTML page saved as logo.png)", async () => {
+    const r = await readyLogo(new TextEncoder().encode("<html>not a logo</html>"), dir, never);
+    expect(r).toEqual({ ok: false, reason: "not-an-image" });
+    expect(fs.readdirSync(dir)).toEqual([]);
+  });
+
+  it("drops a file with image magic bytes that does not decode, and removes it", async () => {
+    const r = await readyLogo(new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]), dir, async () => {
+      throw new Error("Invalid data found when processing input");
+    });
+    expect(r).toMatchObject({ ok: false, reason: "undecodable" });
+    expect(fs.readdirSync(dir)).toEqual([]);
+  });
+
+  it.skipIf(!hasFfmpeg)("names the file by what it is: a JPEG uploaded as logo.png is kept as logo.jpg", async () => {
+    const src = path.join(dir, "src.jpg");
+    execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "color=c=0x1A7F8C:s=120x60", "-frames:v", "1", src]);
+    const bytes = fs.readFileSync(src);
+    fs.rmSync(src);
+    const r = await readyLogo(bytes, dir);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(path.basename(r.file)).toBe("logo.jpg");
+    expect(r.analysis.aspect).toBeCloseTo(2, 5);
+    fs.rmSync(r.file);
+  });
+
+  it.skipIf(!hasFfmpeg)("drops a truncated PNG ffmpeg cannot decode", async () => {
+    const src = path.join(dir, "src.png");
+    execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "color=c=red:s=64x64", "-frames:v", "1", src]);
+    const bytes = fs.readFileSync(src).subarray(0, 20);
+    fs.rmSync(src);
+    const r = await readyLogo(bytes, dir);
+    expect(r).toMatchObject({ ok: false, reason: "undecodable" });
+    expect(fs.readdirSync(dir)).toEqual([]);
   });
 });

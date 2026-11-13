@@ -23,7 +23,7 @@ import { classifyFailure, isLastAttempt, TransientWeekError } from "./retry.js";
 import { clinicRef, noteRenderFailure, ownerAlert, setWeekDelay } from "./ops.js";
 import { alerts, cleanError } from "./ops-alert.js";
 import { patientSearches } from "../dental/questions.js";
-import { analyseLogo, brandFromLogo, logoStyleOf } from "../dental/logo.js";
+import { brandFromLogo, logoStyleOf, readyLogo, type LogoAnalysis } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
 import { UnrecoverableError } from "bullmq";
 import { alertRefusal, sendOwnerAlert, SpendGuard, type AlertSender, type RefusalReason, type SpendOp } from "./spend-guard.js";
@@ -133,15 +133,26 @@ export function jobWeek(job: Pick<WeekJob, "week">, now = new Date()): string {
 export type RestyleJob = { itemId: string };
 export type RecordingJob = { clinicId: string; sourcePath: string };
 
-/** Logo uploads the worker will read: the storage key's extension decides the local file name. */
-const LOGO_EXT = /\.(png|jpe?g|webp)$/i;
+/**
+ * The owner's logo key: `<uid>/logo.<ext>` (before migration 0008) or the
+ * versioned `<uid>/logo-<ms>.<ext>` the web has written since (web
+ * lib/dentvid/paths.ts). The extension only gates the key; the local file is
+ * named by what the bytes turn out to be (dental/logo.ts readyLogo).
+ */
+const LOGO_KEY = /^logo(?:-\d{10,16})?\.(png|jpe?g|webp)$/i;
+
+export function isOwnerLogoKey(key: string | null | undefined, ownerId: string): key is string {
+  return ownedKey(key, ownerId) && key.split("/").length === 2 && LOGO_KEY.test(key.slice(ownerId.length + 1));
+}
 
 /**
  * The clinic, its validated profile and — only from the storage object at
  * the owner's logo key — a local logo file inside `workDir`. Nothing in the
  * profile can point the renderers at a file or URL (dental/profile.ts).
+ * A logo that is not a real, decodable image is left out (with a warning):
+ * the videos are made without it rather than failing or showing a broken box.
  */
-async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string) {
+export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string) {
   const { data, error } = await db
     .from("dentvid_clinics")
     .select("id, owner_id, profile, logo_path")
@@ -151,43 +162,41 @@ async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string)
   const profile: ClinicProfile = clinicProfileSchema.parse(data.profile);
   const ownerId = data.owner_id as string;
   let logoPath: string | undefined;
+  let logoStyle: LogoStyle | undefined;
   const key = data.logo_path as string | null;
-  if (key && (!ownedKey(key, ownerId) || !key.startsWith(`${ownerId}/logo.`) || !LOGO_EXT.test(key))) {
+  if (key && !isOwnerLogoKey(key, ownerId)) {
     logger.warn({ clinicId }, "dentvid: logo_path is not the owner's logo key; ignored");
   } else if (key) {
     const { data: blob } = await db.storage.from(BUCKET).download(key);
     if (blob && blob.size > MAX_LOGO_BYTES) {
       logger.warn({ clinicId, bytes: blob.size }, "dentvid: logo too large, ignored");
     } else if (blob) {
-      const local = path.join(workDir, `logo${path.extname(key).toLowerCase()}`);
-      await fs.writeFile(local, Buffer.from(await blob.arrayBuffer()));
-      logoPath = local;
+      const ready = await readyLogo(new Uint8Array(await blob.arrayBuffer()), workDir);
+      if (ready.ok) {
+        logoPath = ready.file;
+        logoStyle = brandWithLogo(profile, ready.analysis, clinicId);
+      } else {
+        logger.warn({ clinicId, reason: ready.reason, err: ready.detail }, "dentvid: logo is not a usable image; rendering without it");
+      }
     }
   }
-  const logoStyle = logoPath ? await brandWithLogo(profile, logoPath, clinicId) : undefined;
   return { ownerId, profile, logoPath, logoStyle };
 }
 
 /**
- * Reads the logo once per job: its colours fill a brand colour the clinic
+ * The logo, read once per job: its colours fill a brand colour the clinic
  * left empty and supply the accent; its shape and brightness decide how it
- * is drawn. A logo that cannot be read costs nothing but the defaults.
+ * is drawn.
  */
-async function brandWithLogo(profile: ClinicProfile, logoPath: string, clinicId: string): Promise<LogoStyle | undefined> {
-  try {
-    const analysis = await analyseLogo(logoPath);
-    const brand = brandFromLogo(profile.brandColor, analysis);
-    if (brand.brandColor) profile.brandColor = brand.brandColor;
-    if (brand.brandAccent) profile.brandAccent = brand.brandAccent;
-    logger.info(
-      { clinicId, treatment: analysis.treatment, brandColor: profile.brandColor, brandAccent: profile.brandAccent },
-      "dentvid: logo analysed",
-    );
-    return logoStyleOf(analysis);
-  } catch (e) {
-    logger.warn({ clinicId, err: (e as Error).message }, "dentvid: logo analysis failed");
-    return undefined;
-  }
+function brandWithLogo(profile: ClinicProfile, analysis: LogoAnalysis, clinicId: string): LogoStyle {
+  const brand = brandFromLogo(profile.brandColor, analysis);
+  if (brand.brandColor) profile.brandColor = brand.brandColor;
+  if (brand.brandAccent) profile.brandAccent = brand.brandAccent;
+  logger.info(
+    { clinicId, treatment: analysis.treatment, brandColor: profile.brandColor, brandAccent: profile.brandAccent },
+    "dentvid: logo analysed",
+  );
+  return logoStyleOf(analysis);
 }
 
 async function upload(db: SupabaseClient, key: string, file: string, contentType: string) {

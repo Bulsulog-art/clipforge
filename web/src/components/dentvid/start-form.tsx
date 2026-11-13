@@ -6,7 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { dvHref } from "@/lib/dentvid/host";
 import { dirOf, type Locale } from "@/content/dentvideo-locales";
 import { appText } from "@/content/dentvideo-app";
-import { authText } from "@/content/dentvideo-auth";
+import { authText, verifyText } from "@/content/dentvideo-auth";
 import { announceLocale } from "./chrome";
 import { DvIcon } from "./mark";
 import { Stepper } from "./stepper";
@@ -15,17 +15,19 @@ import { ConsentLine } from "./consent-line";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
 import { rememberDemo } from "@/lib/dentvid/demo-cookie";
+import { passwordTooLong } from "@/lib/dentvid/password";
+import { resetRequestOutcome, signedOutMode, stepAfterSignIn } from "@/lib/dentvid/start-mode";
 
 /**
  * `legal`: show the consent line linking to the Terms and Privacy Policy (on
  * by default; DENTVIDEO_LEGAL_PAGES=off hides it, read by the server page).
  */
-export function StartForm({ locale, remember, legal = true }: { locale: Locale; remember: boolean; legal?: boolean }) {
+export function StartForm({ locale, remember, legal = true, initialMode = "signup" }: { locale: Locale; remember: boolean; legal?: boolean; initialMode?: "signup" | "signin" | "forgot" }) {
   const t = appText(locale).start;
   const errors = appText(locale).errors;
   const a = authText(locale);
   const router = useRouter();
-  const [mode, setMode] = useState<"signup" | "signin" | "forgot">("signup");
+  const [mode, setMode] = useState<"signup" | "signin" | "forgot">(initialMode);
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,8 +51,9 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
   // /start?mode=signin or ?mode=forgot (e.g. from an expired reset link).
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    const m = q.get("mode");
-    if (m === "signin" || m === "forgot") setMode(m);
+    // A link into the funnel or the app (an email's "choose your plan", a
+    // bookmark of /app) is followed by someone who already has an account.
+    setMode(signedOutMode(q));
     // From a demo link ("Start with these settings"): the clinic step fills itself from it after sign-up.
     const demo = q.get("demo");
     if (demo) rememberDemo(demo);
@@ -82,7 +85,8 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
   function goIn(isNew: boolean) {
     // Into the funnel: a new account describes its clinic next; a returning
     // one lands where it left off (or in the app, once it pays).
-    router.push(dvHref(isNew ? "/dentvideo/start?step=clinic" : "/dentvideo/start"));
+    const step = isNew ? "clinic" : stepAfterSignIn(new URLSearchParams(window.location.search));
+    router.push(dvHref(step ? `/dentvideo/start?step=${step}` : "/dentvideo/start"));
     router.refresh();
   }
 
@@ -95,15 +99,19 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
     const addr = email.trim().toLowerCase();
     try {
       if (mode === "forgot") {
-        await fetch("/api/dentvideo/password-reset", {
+        const res = await fetch("/api/dentvideo/password-reset", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ email: addr, locale }),
         }).catch(() => null);
+        // "The link is on its way" only when it is (lib/dentvid/start-mode).
+        const sent = await resetRequestOutcome(res, verifyText(locale).failed);
+        if (!sent.ok) throw new Error(sent.error);
         setNotice(a.sent);
         return;
       }
       if (mode === "signup") {
+        if (passwordTooLong(password)) throw new Error(a.passwordTooLong);
         // Password managers fill the form instantly; wait out the bot brake
         // instead of refusing a real person.
         const elapsed = Date.now() - openedAt.current;
@@ -158,7 +166,8 @@ export function StartForm({ locale, remember, legal = true }: { locale: Locale; 
         <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
         <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
 
-        <form onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+        {/* method/action only matter when this page's JS never ran (chunks gone after a deploy): reload, never a GET with the fields in the URL. */}
+        <form onSubmit={submit} method="post" action="/api/dentvideo/reload" className="dv-card mt-9 space-y-5 p-6 sm:p-8">
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
             <input

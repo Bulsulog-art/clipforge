@@ -3,6 +3,9 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { dvAdmin, dvServer } from "@/lib/dentvid/supabase";
 import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
+import { appText } from "@/content/dentvideo-app";
+import { authText } from "@/content/dentvideo-auth";
+import { passwordTooLong } from "@/lib/dentvid/password";
 import { recordEvent } from "@/lib/dentvid/events-server";
 import { geoCountry } from "@/lib/dentvid/events";
 import { LIMITS, clientIp, networkOf } from "@/lib/rate-limit";
@@ -68,7 +71,11 @@ const Body = z.object({
 });
 
 export async function POST(req: Request) {
-  const err = await dvErrors();
+  // The form names its language: errors answer in it (the cookie or the
+  // browser's language only when the body names none).
+  const raw = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  const asked = asLocale(typeof raw?.locale === "string" ? raw.locale : null);
+  const err = asked ? appText(asked).errors : await dvErrors();
   const ip = clientIp(req.headers);
   const clientLimits = [
     { key: `rl:signup:ip:${ip}`, rule: LIMITS.signupIp },
@@ -82,9 +89,14 @@ export async function POST(req: Request) {
     if (limited) return limited;
   }
 
-  const parsed = Body.safeParse(await req.json().catch(() => null));
+  const parsed = Body.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: err.badSignup }, { status: 400 });
   const body = parsed.data;
+  // Liman (GoTrue, bcrypt) refuses passwords over 72 bytes: say so, instead of
+  // "could not create the account" and an alert to the owner.
+  if (passwordTooLong(body.password)) {
+    return NextResponse.json({ error: authText(asked ?? (await dvLocale().catch(() => "en"))).passwordTooLong, code: "password_too_long" }, { status: 400 });
+  }
   const testAccount = isMonitorEmail(body.email);
   // The token only ever helps a monitor address.
   const monitor = withToken && testAccount;

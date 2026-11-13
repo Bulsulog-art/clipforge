@@ -33,6 +33,8 @@ export type AuthCopy = {
   saved: string;
   linkInvalid: string;
   tooShort: string;
+  /** Liman refuses passwords over 72 bytes (lib/dentvid/password). */
+  passwordTooLong: string;
   email: { subject: string; hello: string; body: string; button: string; ignore: string; footer: string };
 };
 
@@ -47,7 +49,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "If an account exists for this email, the link is on its way. It works for one hour — check your spam folder too.",
     backToSignIn: "Back to sign in",
     signInFailedAfterSignup: "We couldn't sign you in with this email and password. If you already have an account, sign in below or reset your password.",
-    accountExists: "There is already an account with this email. Sign in below with your password. If you don't remember it, reset it — if this is a DentVideo account, we have also emailed you a reset link.",
+    accountExists: "There is already an account with this email. Sign in below with your password. If you don't remember it, use “Forgot your password?” — we have also emailed a reset link to this address.",
     consent: "By creating an account, you agree to the {terms} and the {privacy}.",
     termsLink: "Terms of Service",
     privacyLink: "Privacy Policy",
@@ -58,6 +60,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "Password saved. Taking you to your clinic…",
     linkInvalid: "This link has expired or was already used. Ask for a new one.",
     tooShort: "Use at least 8 characters.",
+    passwordTooLong: "Use at most 72 characters for the password (fewer with accented letters).",
     email: {
       subject: "Reset your DentVideo password",
       hello: "Hello,",
@@ -77,7 +80,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Bu e-postayla bir hesap varsa bağlantı yolda. Bir saat geçerli — spam klasörünüze de bakın.",
     backToSignIn: "Girişe dön",
     signInFailedAfterSignup: "Bu e-posta ve şifreyle giriş yapamadık. Zaten bir hesabınız varsa aşağıdan giriş yapın ya da şifrenizi sıfırlayın.",
-    accountExists: "Bu e-postayla zaten bir hesap var. Aşağıdan şifrenizle giriş yapın. Şifrenizi hatırlamıyorsanız sıfırlayın; bu bir DentVideo hesabıysa size sıfırlama bağlantısı da gönderdik.",
+    accountExists: "Bu e-postayla zaten bir hesap var. Aşağıdan şifrenizle giriş yapın. Şifrenizi hatırlamıyorsanız “Şifrenizi mi unuttunuz?” bağlantısını kullanın; bu adrese bir sıfırlama bağlantısı da gönderdik.",
     consent: "Hesap oluşturarak {terms} ve {privacy} metinlerini kabul etmiş olursunuz.",
     termsLink: "Kullanım Koşulları",
     privacyLink: "Gizlilik Politikası",
@@ -88,6 +91,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "Şifre kaydedildi. Kliniğinize yönlendiriliyorsunuz…",
     linkInvalid: "Bu bağlantının süresi dolmuş ya da daha önce kullanılmış. Yeni bir bağlantı isteyin.",
     tooShort: "En az 8 karakter kullanın.",
+    passwordTooLong: "Şifre en fazla 72 karakter olabilir (Türkçe harflerle biraz daha az).",
     email: {
       subject: "DentVideo şifrenizi sıfırlayın",
       hello: "Merhaba,",
@@ -107,7 +111,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Falls ein Konto mit dieser Adresse existiert, ist der Link unterwegs. Er gilt eine Stunde — bitte prüfen Sie auch den Spam-Ordner.",
     backToSignIn: "Zurück zur Anmeldung",
     signInFailedAfterSignup: "Mit dieser E-Mail-Adresse und diesem Passwort konnten wir Sie nicht anmelden. Wenn Sie bereits ein Konto haben, melden Sie sich unten an oder setzen Sie Ihr Passwort zurück.",
-    accountExists: "Mit dieser E-Mail-Adresse gibt es bereits ein Konto. Melden Sie sich unten mit Ihrem Passwort an. Falls Sie es vergessen haben, setzen Sie es zurück – bei einem DentVideo-Konto haben wir Ihnen bereits einen Link dafür geschickt.",
+    accountExists: "Mit dieser E-Mail-Adresse gibt es bereits ein Konto. Melden Sie sich unten mit Ihrem Passwort an. Falls Sie es vergessen haben, klicken Sie auf „Passwort vergessen?“ – wir haben Ihnen außerdem einen Link zum Zurücksetzen an diese Adresse geschickt.",
     consent: "Mit dem Anlegen eines Kontos stimmen Sie den {terms} und der {privacy} zu.",
     termsLink: "Nutzungsbedingungen",
     privacyLink: "Datenschutzerklärung",
@@ -118,6 +122,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "Passwort gespeichert. Sie werden zu Ihrer Praxis weitergeleitet …",
     linkInvalid: "Dieser Link ist abgelaufen oder wurde bereits verwendet. Fordern Sie einen neuen an.",
     tooShort: "Bitte mindestens 8 Zeichen verwenden.",
+    passwordTooLong: "Das Passwort darf höchstens 72 Zeichen lang sein (mit Umlauten etwas weniger).",
     email: {
       subject: "Ihr DentVideo-Passwort zurücksetzen",
       hello: "Guten Tag,",
@@ -137,7 +142,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Si existe una cuenta con este correo, el enlace va en camino. Es válido durante una hora; revisa también la carpeta de spam.",
     backToSignIn: "Volver a iniciar sesión",
     signInFailedAfterSignup: "No pudimos iniciar sesión con este correo y esta contraseña. Si ya tienes una cuenta, inicia sesión abajo o restablece tu contraseña.",
-    accountExists: "Ya existe una cuenta con este correo. Inicia sesión abajo con tu contraseña. Si no la recuerdas, restablécela: si es una cuenta de DentVideo, ya te hemos enviado un enlace.",
+    accountExists: "Ya existe una cuenta con este correo. Inicia sesión abajo con tu contraseña. Si no la recuerdas, usa «¿Olvidaste tu contraseña?»; también te hemos enviado un enlace para restablecerla a este correo.",
     consent: "Al crear una cuenta, aceptas los {terms} y la {privacy}.",
     termsLink: "Términos del servicio",
     privacyLink: "Política de privacidad",
@@ -148,6 +153,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "Contraseña guardada. Te llevamos a tu clínica…",
     linkInvalid: "Este enlace ha caducado o ya se usó. Pide uno nuevo.",
     tooShort: "Usa al menos 8 caracteres.",
+    passwordTooLong: "La contraseña puede tener como máximo 72 caracteres (algo menos con tildes).",
     email: {
       subject: "Restablece tu contraseña de DentVideo",
       hello: "Hola:",
@@ -167,7 +173,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Si un compte existe pour cet e-mail, le lien est en route. Il est valable une heure — pensez à vérifier vos spams.",
     backToSignIn: "Retour à la connexion",
     signInFailedAfterSignup: "Nous n'avons pas pu vous connecter avec cet e-mail et ce mot de passe. Si vous avez déjà un compte, connectez-vous ci-dessous ou réinitialisez votre mot de passe.",
-    accountExists: "Un compte existe déjà avec cet e-mail. Connectez-vous ci-dessous avec votre mot de passe. Si vous l'avez oublié, réinitialisez-le : s'il s'agit d'un compte DentVideo, nous vous avons déjà envoyé un lien.",
+    accountExists: "Un compte existe déjà avec cet e-mail. Connectez-vous ci-dessous avec votre mot de passe. Si vous l'avez oublié, utilisez « Mot de passe oublié ? » : nous avons aussi envoyé un lien de réinitialisation à cette adresse.",
     consent: "En créant un compte, vous acceptez les {terms} et la {privacy}.",
     termsLink: "Conditions d'utilisation",
     privacyLink: "Politique de confidentialité",
@@ -178,6 +184,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "Mot de passe enregistré. Redirection vers votre cabinet…",
     linkInvalid: "Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau.",
     tooShort: "Utilisez au moins 8 caractères.",
+    passwordTooLong: "Le mot de passe peut contenir au plus 72 caractères (un peu moins avec des accents).",
     email: {
       subject: "Réinitialisez votre mot de passe DentVideo",
       hello: "Bonjour,",
@@ -197,7 +204,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "このメールアドレスのアカウントがある場合は、リンクをお送りしました。有効期限は1時間です。迷惑メールフォルダもご確認ください。",
     backToSignIn: "ログイン画面に戻る",
     signInFailedAfterSignup: "このメールアドレスとパスワードではログインできませんでした。すでにアカウントをお持ちの場合は、下からログインするか、パスワードを再設定してください。",
-    accountExists: "このメールアドレスのアカウントはすでにあります。下からパスワードでログインしてください。パスワードをお忘れの場合は再設定してください。DentVideoのアカウントであれば、再設定用のリンクもメールでお送りしました。",
+    accountExists: "このメールアドレスのアカウントはすでにあります。下からパスワードでログインしてください。パスワードをお忘れの場合は「パスワードをお忘れですか？」から再設定できます。このアドレスには再設定用のリンクもお送りしました。",
     consent: "アカウントを作成すると、{terms}と{privacy}に同意したものとみなされます。",
     termsLink: "利用規約",
     privacyLink: "プライバシーポリシー",
@@ -208,6 +215,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "パスワードを保存しました。医院のページに移動しています…",
     linkInvalid: "このリンクは有効期限が切れているか、すでに使用されています。もう一度リンクをお申し込みください。",
     tooShort: "8文字以上で入力してください。",
+    passwordTooLong: "パスワードは半角英数字72文字以内にしてください（日本語などの文字はもっと少なくなります）。",
     email: {
       subject: "DentVideoのパスワード再設定",
       hello: "DentVideoをご利用いただきありがとうございます。",
@@ -227,7 +235,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "إن كان هناك حساب بهذا البريد الإلكتروني فالرابط في طريقه إليكم. يبقى صالحاً لمدة ساعة، ويُرجى التحقق من مجلد الرسائل غير المرغوب فيها أيضاً.",
     backToSignIn: "العودة إلى تسجيل الدخول",
     signInFailedAfterSignup: "تعذّر تسجيل دخولكم بهذا البريد الإلكتروني وكلمة المرور. إن كان لديكم حساب بالفعل، فسجّلوا الدخول أدناه أو أعيدوا تعيين كلمة المرور.",
-    accountExists: "يوجد حساب بهذا البريد الإلكتروني بالفعل. سجّلوا الدخول أدناه بكلمة المرور. إن نسيتموها فأعيدوا تعيينها، وإن كان حساب DentVideo فقد أرسلنا إليكم رابط إعادة التعيين.",
+    accountExists: "يوجد حساب بهذا البريد الإلكتروني بالفعل. سجّلوا الدخول أدناه بكلمة المرور. إن نسيتموها فاستخدموا «نسيتم كلمة المرور؟»، وقد أرسلنا أيضاً رابط إعادة التعيين إلى هذا العنوان.",
     consent: "بإنشاء حساب، توافقون على {terms} و{privacy}.",
     termsLink: "شروط الخدمة",
     privacyLink: "سياسة الخصوصية",
@@ -238,6 +246,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "تم حفظ كلمة المرور. جارٍ نقلكم إلى صفحة عيادتكم…",
     linkInvalid: "انتهت صلاحية هذا الرابط أو سبق استخدامه. اطلبوا رابطاً جديداً.",
     tooShort: "استخدموا 8 أحرف على الأقل.",
+    passwordTooLong: "يجب ألا تزيد كلمة المرور على 72 حرفاً لاتينياً (وأقل من ذلك بالحروف العربية).",
     email: {
       subject: "إعادة تعيين كلمة مرور DentVideo",
       hello: "مرحباً،",
@@ -257,7 +266,7 @@ const COPY: Record<Locale, AuthCopy> = {
     sent: "Jeśli istnieje konto z tym adresem, link jest już w drodze. Jest ważny przez godzinę — prosimy sprawdzić też folder spam.",
     backToSignIn: "Wróć do logowania",
     signInFailedAfterSignup: "Nie udało się zalogować tym adresem e-mail i hasłem. Jeśli mają już Państwo konto, prosimy zalogować się poniżej lub zresetować hasło.",
-    accountExists: "Konto z tym adresem e-mail już istnieje. Prosimy zalogować się poniżej hasłem. Jeśli go Państwo nie pamiętają, prosimy je zresetować – jeśli to konto DentVideo, wysłaliśmy już link.",
+    accountExists: "Konto z tym adresem e-mail już istnieje. Prosimy zalogować się poniżej hasłem. Jeśli go Państwo nie pamiętają, prosimy użyć opcji „Nie pamiętają Państwo hasła?” – na ten adres wysłaliśmy też link do zresetowania hasła.",
     consent: "Zakładając konto, akceptują Państwo {terms} oraz {privacy}.",
     termsLink: "Regulamin",
     privacyLink: "Politykę prywatności",
@@ -268,6 +277,7 @@ const COPY: Record<Locale, AuthCopy> = {
     saved: "Hasło zapisane. Przechodzimy do Państwa gabinetu…",
     linkInvalid: "Ten link wygasł lub został już użyty. Prosimy poprosić o nowy.",
     tooShort: "Hasło musi mieć co najmniej 8 znaków.",
+    passwordTooLong: "Hasło może mieć najwyżej 72 znaki (z polskimi znakami nieco mniej).",
     email: {
       subject: "Reset hasła do DentVideo",
       hello: "Dzień dobry,",
@@ -316,6 +326,8 @@ export type VerifyCopy = {
   none: string;
   malformed: string;
   emailTaken: string;
+  /** "Change email" on a login another app on Liman also uses. */
+  sharedLogin: string;
   failed: string;
   checkoutBlocked: string;
   email: {
@@ -351,6 +363,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "No code is waiting for this address. Send a new one.",
     malformed: "Enter the 6 digits from the email.",
     emailTaken: "Another account already uses this email.",
+    sharedLogin: "This email is also your login for another app, so it can't be changed here. Enter the code we sent to it.",
     failed: "That didn't work. Please try again in a moment.",
     checkoutBlocked: "Please confirm your email first: enter the 6-digit code we sent you.",
     email: {
@@ -383,6 +396,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "Für diese Adresse liegt kein Code vor. Fordern Sie einen neuen an.",
     malformed: "Geben Sie die 6 Ziffern aus der E-Mail ein.",
     emailTaken: "Diese E-Mail-Adresse wird bereits von einem anderen Konto verwendet.",
+    sharedLogin: "Diese E-Mail-Adresse ist auch Ihr Login für eine andere App und kann hier nicht geändert werden. Geben Sie den Code ein, den wir an sie geschickt haben.",
     failed: "Das hat nicht geklappt. Bitte versuchen Sie es gleich noch einmal.",
     checkoutBlocked: "Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse: Geben Sie den 6-stelligen Code ein, den wir Ihnen gesendet haben.",
     email: {
@@ -415,6 +429,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "No hay ningún código pendiente para este correo. Pide uno nuevo.",
     malformed: "Escribe los 6 dígitos del correo.",
     emailTaken: "Otra cuenta ya usa este correo.",
+    sharedLogin: "Este correo también es tu acceso a otra aplicación, así que no se puede cambiar aquí. Escribe el código que te enviamos.",
     failed: "No ha funcionado. Inténtalo de nuevo en un momento.",
     checkoutBlocked: "Primero confirma tu correo: escribe el código de 6 dígitos que te hemos enviado.",
     email: {
@@ -447,6 +462,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "Bu adres için bekleyen bir kod yok. Yeni bir kod isteyin.",
     malformed: "E-postadaki 6 haneyi girin.",
     emailTaken: "Bu e-posta başka bir hesapta kullanılıyor.",
+    sharedLogin: "Bu e-posta başka bir uygulamada da giriş adresiniz olduğu için burada değiştirilemez. Bu adrese gönderdiğimiz kodu girin.",
     failed: "Olmadı. Lütfen biraz sonra tekrar deneyin.",
     checkoutBlocked: "Önce e-postanızı doğrulayın: size gönderdiğimiz 6 haneli kodu girin.",
     email: {
@@ -479,6 +495,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "Aucun code en attente pour cette adresse. Demandez-en un nouveau.",
     malformed: "Saisissez les 6 chiffres reçus par e-mail.",
     emailTaken: "Un autre compte utilise déjà cet e-mail.",
+    sharedLogin: "Cet e-mail sert aussi d'identifiant pour une autre application : il ne peut pas être modifié ici. Saisissez le code que nous y avons envoyé.",
     failed: "Cela n'a pas fonctionné. Réessayez dans un instant.",
     checkoutBlocked: "Confirmez d'abord votre e-mail : saisissez le code à 6 chiffres que nous vous avons envoyé.",
     email: {
@@ -511,6 +528,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "このアドレスに有効なコードがありません。新しいコードをお送りください。",
     malformed: "メールに記載の6桁の数字を入力してください。",
     emailTaken: "このメールアドレスは別のアカウントで使われています。",
+    sharedLogin: "このメールアドレスは別のアプリのログインにも使われているため、ここでは変更できません。お送りしたコードを入力してください。",
     failed: "うまくいきませんでした。少し時間をおいて、もう一度お試しください。",
     checkoutBlocked: "先にメールアドレスの確認をお願いします。お送りした6桁のコードを入力してください。",
     email: {
@@ -543,6 +561,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "لا يوجد رمز بانتظار هذا العنوان. اطلبوا رمزاً جديداً.",
     malformed: "أدخلوا الأرقام الستة الواردة في الرسالة.",
     emailTaken: "هذا البريد الإلكتروني مستخدم في حساب آخر.",
+    sharedLogin: "هذا البريد هو أيضاً بيانات دخولكم إلى تطبيق آخر، لذا لا يمكن تغييره هنا. أدخلوا الرمز الذي أرسلناه إليه.",
     failed: "لم ينجح ذلك. يُرجى المحاولة مجدداً بعد قليل.",
     checkoutBlocked: "يُرجى تأكيد بريدكم الإلكتروني أولاً: أدخلوا الرمز المكوّن من 6 أرقام الذي أرسلناه إليكم.",
     email: {
@@ -575,6 +594,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     none: "Dla tego adresu nie czeka żaden kod. Prosimy poprosić o nowy.",
     malformed: "Prosimy wpisać 6 cyfr z wiadomości e-mail.",
     emailTaken: "Ten adres e-mail jest już używany przez inne konto.",
+    sharedLogin: "Ten adres e-mail jest też loginem do innej aplikacji, więc nie można go tu zmienić. Prosimy wpisać kod, który na niego wysłaliśmy.",
     failed: "Nie udało się. Prosimy spróbować ponownie za chwilę.",
     checkoutBlocked: "Prosimy najpierw potwierdzić adres e-mail — wystarczy wpisać 6-cyfrowy kod, który wysłaliśmy.",
     email: {

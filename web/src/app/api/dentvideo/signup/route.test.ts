@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_TEXT } from "@/content/dentvideo-app";
+import { AUTH_COPY } from "@/content/dentvideo-auth";
 
 const created: Record<string, unknown>[] = [];
 const mails: { to: string; subject: string }[] = [];
@@ -112,6 +113,20 @@ afterEach(() => {
 });
 
 describe("POST /api/dentvideo/signup", () => {
+  it("refuses a password over 72 bytes plainly, in the form's language, without creating anything or alerting the owner", async () => {
+    // Liman (bcrypt) refuses it: before, this was a 500 "could not create the account" and an owner alert.
+    const res = await signup({ password: "Ab1-".repeat(20), locale: "de" });
+    expect(res).toEqual({ status: 400, body: { error: AUTH_COPY.de.passwordTooLong, code: "password_too_long" } });
+    expect(created).toHaveLength(0);
+    expect(ownerAlerts).toHaveLength(0);
+    expect((await signup({ password: "a".repeat(72) })).status).toBe(200);
+  });
+
+  it("answers errors in the language the form sends", async () => {
+    expect(await signup({ email: "not-an-email", locale: "ar" })).toEqual({ status: 400, body: { error: APP_TEXT.ar.errors.badSignup } });
+    expect(await signup({ email: "not-an-email", locale: undefined })).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.badSignup } });
+  });
+
   it("records signup_completed with the tab's first-touch source and the edge country (no email, no user id)", async () => {
     recorded.length = 0;
     const attribution = { utm_source: "instagram", utm_medium: "dm", utm_campaign: "tr-launch" };

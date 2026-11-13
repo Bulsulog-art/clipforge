@@ -4,6 +4,7 @@ import { AttributionCapture } from "@/components/AttributionCapture";
 import { AppToaster } from "@/components/AppToaster";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
+import { CHUNK_RELOAD_SCRIPT } from "@/lib/chunk-reload";
 
 // Not preloaded: this layout is shared with DentVideo, whose pages use their own faces (app/dentvideo/layout)
 // and would otherwise fetch Inter first, ahead of the fonts they actually paint with. ClipForge's
@@ -56,6 +57,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Reloads once when this page's chunks are gone after a deploy (lib/chunk-reload). Before Next's scripts. */}
+        <script id="chunk-reload" dangerouslySetInnerHTML={{ __html: CHUNK_RELOAD_SCRIPT }} />
+      </head>
       <body className={`${inter.variable} font-sans`}>
         {/* Captures UTM params + referrer at first landing and POSTs
             to /api/account/attribution once the user has a session.
