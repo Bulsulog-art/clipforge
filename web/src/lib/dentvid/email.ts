@@ -9,7 +9,8 @@
  * identified from — the library is behind the clinic's login.
  */
 
-import { renderEmail, type Brand, type Rendered, type Thumb } from "./email-layout";
+import { renderEmail, type Brand, type Rendered, type Thumb, type VideoRow } from "./email-layout";
+import { postingText } from "@/content/dentvideo-posting";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
 
 export type ReadyKind = "week" | "recording";
@@ -207,6 +208,12 @@ export function readyEmail(args: {
   thumbs?: Thumb[];
   /** The signed one-tap approve page (approve-link.ts); only when something is ready to approve. */
   approveUrl?: string | null;
+  /**
+   * The week's videos, each with its poster, caption preview, suggested
+   * posting time and its own "Approve & share" link (post-link.ts). Shown in
+   * place of the poster grid when given.
+   */
+  videos?: VideoRow[];
   brand?: Brand;
 }): Rendered | null {
   const total = args.counts.ready + args.counts.flagged;
@@ -217,7 +224,8 @@ export function readyEmail(args: {
   const subject = week ? c.weekSubject(total) : c.recordingSubject(total);
   const body = week ? c.weekBody : c.recordingBody;
   const lines = [args.counts.ready > 0 ? c.readyLine(args.counts.ready) : "", args.counts.flagged > 0 ? c.flaggedLine(args.counts.flagged) : ""].filter(Boolean);
-  const thumbs = week ? (args.thumbs ?? []).filter((t) => /^https:\/\//.test(t.url)).slice(0, 4) : [];
+  const videos = week ? (args.videos ?? []).filter((v) => /^https?:\/\//.test(v.href)).slice(0, 6) : [];
+  const thumbs = week && !videos.length ? (args.thumbs ?? []).filter((t) => /^https:\/\//.test(t.url)).slice(0, 4) : [];
   const name = args.clinicName.replace(/\s+/g, " ").trim().slice(0, 80);
   return renderEmail({
     lang,
@@ -225,7 +233,12 @@ export function readyEmail(args: {
     preheader: `${body} ${c.approval}`,
     title: week ? c.weekTitle : c.recordingTitle,
     hello: c.hello(name).replace(/\s+([,،:])/g, "$1"),
-    blocks: [{ kind: "p", text: body }, ...(thumbs.length ? [{ kind: "thumbs" as const, items: thumbs }] : []), { kind: "list", items: lines }],
+    blocks: [
+      { kind: "p", text: body },
+      ...(videos.length ? [{ kind: "videos" as const, heading: postingText(lang).email.heading, items: videos }] : []),
+      ...(thumbs.length ? [{ kind: "thumbs" as const, items: thumbs }] : []),
+      { kind: "list", items: lines },
+    ],
     button: { label: c.button, url: args.appUrl },
     secondary: args.approveUrl && args.counts.ready > 0 ? { ask: c.approveAsk, label: c.approveAll, url: args.approveUrl } : undefined,
     afterButton: [c.approval],

@@ -12,6 +12,7 @@ import { LOCALES, type Locale } from "@/content/dentvideo";
 import { APP_TEXT, fmt } from "@/content/dentvideo-app";
 import { Library, NextStep, type LibraryItem } from "./library";
 import { DeclineForm, PostPanel, ReviewPanel, postText } from "./review-player";
+import { POSTING_TEXT } from "@/content/dentvideo-posting";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -115,18 +116,37 @@ describe("posting", () => {
   it.each(LOCALES)("%s: the caption and hashtags in the clinic's words, and steps for each app", (l: Locale) => {
     const p = APP_TEXT[l].library.post;
     const a = item({ approval: "approved", caption: "Zwei Minuten.", hashtags: ["zahnarzt"] });
-    const h = html(<PostPanel locale={l} item={a} posted={false} onPosted={() => {}} />);
+    const ps = POSTING_TEXT[l];
+    const h = html(<PostPanel locale={l} item={a} posted={false} onPosted={() => {}} slot="Tue 12:30" />);
     expect(h).toContain("Zwei Minuten.\n\n#zahnarzt");
-    expect(h).toContain(p.captionLabel);
     expect(h).toContain(p.markPosted);
     expect(h).toContain('aria-pressed="false"');
     for (const name of Object.values(p.platforms)) expect(h).toContain(name);
-    expect(h.match(/role="tab"/g)).toHaveLength(4);
+    // Two caption tabs (Instagram, TikTok · Shorts) and four app-tip tabs.
+    expect(h).toContain(ps.short);
+    expect(h).toContain(ps.copy);
+    expect(h.match(/role="tab"/g)).toHaveLength(6);
     expect(h).toContain('role="tabpanel"');
     // Instagram is open first.
     for (const step of p.tips.instagram) expect(h).toContain(step);
     // Without a share sheet (the server render), the button downloads and copies.
-    expect(h).toContain(APP_TEXT[l].library.shareDesktop);
+    expect(h).toContain(ps.downloadAndCopy);
+    expect(h).toContain(ps.suggested.replace("{slot}", "Tue 12:30"));
+  });
+
+  it.each(LOCALES)("%s: a video waiting for approval offers approve + save + copy in one tap", (l: Locale) => {
+    const r = item({ approval: "pending", caption: "Zwei Minuten.", hashtags: ["zahnarzt"] });
+    const h = html(<ReviewPanel locale={l} item={r} queue={[r]} index={0} onIndex={() => {}} decide={noop} posted={false} onPosted={() => {}} slot="Tue 12:30" />);
+    expect(h).toContain(POSTING_TEXT[l].approveSaveCopy);
+    expect(h).toContain(APP_TEXT[l].library.approve);
+    expect(h).toContain(POSTING_TEXT[l].suggested.replace("{slot}", "Tue 12:30"));
+  });
+
+  it("uses the worker's post kit when the video has one", () => {
+    const k = item({ approval: "approved", caption: "c", hashtags: ["x"], post: { instagram: "IG text\n\n#a #b", short: "Short #a" } });
+    expect(postText(k)).toBe("IG text\n\n#a #b");
+    const h = html(<PostPanel locale="en" item={k} posted={false} onPosted={() => {}} />);
+    expect(h).toContain("IG text");
   });
 
   it("joins caption and hashtags the way they are pasted", () => {

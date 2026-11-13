@@ -33,6 +33,13 @@ export function isFunnel(pathname: string): boolean {
   return parts[0] === "start" || (parts[0] === "dev" && parts[1] === "funnel");
 }
 
+/** The email's one-video "approve & share" page (/post, and its dev preview): a quiet header too, the page is the one task. */
+export function isPostPage(pathname: string): boolean {
+  const all = pathname.split("/").filter(Boolean);
+  const parts = all[0] === "dentvideo" ? all.slice(1) : all;
+  return parts[0] === "post" || (parts[0] === "dev" && parts[1] === "post");
+}
+
 /** Typographic quotes as each language writes them. */
 const QUOTES: Record<Locale, [string, string]> = {
   en: ["“", "”"],

@@ -8,6 +8,7 @@ import type { ClinicPlan } from "@/lib/dentvid/plan";
 import type { LibraryItem } from "@/components/dentvid/library";
 import { AppHomeView, RecordView, SettingsView, type ShootCard } from "@/components/dentvid/app-screens";
 import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
+import { samplePostTexts } from "@/lib/dentvid/posting-samples";
 import type { BillingIssue } from "@/components/dentvid/billing-issue";
 
 export const dynamic = "force-dynamic";
@@ -96,7 +97,9 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
     madeThisWeek = false;
   } else if (state === "posting") {
     // Everything this week decided and approved: the "post it" step with the week's checklist.
-    items = all.filter((i) => i.status !== "working" && i.status !== "rejected").map((i) => (i.week_of === thisWeek ? { ...i, approval: "approved" as const, status: "ready" as const, findings: [] } : i));
+    items = all.filter((i) => i.status !== "working" && i.status !== "rejected").map((i) => (i.week_of === thisWeek ? { ...i, approval: "approved" as const, status: "ready" as const, findings: [] } : i))
+      // One already ticked as posted (stored on the account), so the week's progress shows.
+      .map((i) => (i.id === "t1" ? { ...i, postedAt: new Date().toISOString() } : i));
   } else if (state === "updating") {
     items = all.map((i, n) => (n === 0 && i.photos ? { ...i, photos: { ...i.photos, status: "queued" as const } } : i));
   }
@@ -245,6 +248,9 @@ function demoItems(locale: Locale, thisWeek: string, lastWeek: string): LibraryI
     week_of: week,
     caption: c.caption,
     hashtags: c.tags,
+    // The worker's post kit (Instagram + TikTok / Shorts texts); postedAt null = ticks are stored on the account (0012).
+    post: samplePostTexts(locale),
+    postedAt: null,
     findings: [],
     ...media(n),
     photos: photos(n),
