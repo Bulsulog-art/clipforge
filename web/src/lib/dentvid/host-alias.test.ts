@@ -19,6 +19,16 @@ describe("aliasFor: guessed dentvideo.com addresses", () => {
     expect(aliasFor("/en", "")).toBe("/");
   });
 
+  it("sends /samples, /demo and /contact guesses to the samples section and the imprint", () => {
+    expect(aliasFor("/samples", "")).toBe("/#samples");
+    expect(aliasFor("/demo", "?utm_source=x")).toBe("/?utm_source=x#samples");
+    expect(aliasFor("/de/examples", "")).toBe("/de#samples");
+    expect(aliasFor("/how-it-works", "")).toBe("/#how");
+    expect(aliasFor("/contact", "")).toBe("/imprint");
+    expect(aliasFor("/tr/contact-us", "")).toBe("/tr/imprint");
+    expect(aliasFor("/de/impressum", "")).toBe("/de/imprint");
+  });
+
   it("leaves real pages alone", () => {
     for (const p of ["/", "/start", "/tr", "/de/guides", "/guides/pricing-guide", "/app", "/post", "/reset", "/ad-checker"]) expect(aliasFor(p, ""), p).toBeNull();
   });
