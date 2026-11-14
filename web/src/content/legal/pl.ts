@@ -50,7 +50,7 @@ export const PL: LegalText = {
   docs: {
     terms: {
       title: "Regulamin",
-      description: "Warunki korzystania z DentVideo, usługi filmów edukacyjnych dla pacjentów gabinetów stomatologicznych, prowadzonej przez BLS AI Automation DOO (Bulsu Labs), Podgorica, Czarnogóra.",
+      description: "Regulamin DentVideo, usługi filmów dla pacjentów gabinetów stomatologicznych, prowadzonej przez BLS AI Automation DOO (Bulsu Labs), Podgorica, Czarnogóra.",
       intro: [
         "Niniejszy regulamin jest umową między {legalName} („my”), która prowadzi DentVideo pod marką {brand}, a gabinetem lub lekarzem, który zakłada konto DentVideo („Państwo”). Zakładając konto lub opłacając plan, akceptują Państwo regulamin. Akceptując go w imieniu gabinetu, potwierdzają Państwo umocowanie do jego reprezentowania.",
         "Napisaliśmy go prostym językiem. Jeśli coś jest niejasne, prosimy o wiadomość na {email} przed wykupieniem subskrypcji.",

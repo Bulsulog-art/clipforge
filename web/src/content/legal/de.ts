@@ -50,7 +50,7 @@ export const DE: LegalText = {
   docs: {
     terms: {
       title: "Nutzungsbedingungen",
-      description: "Die Bedingungen für DentVideo, den Dienst für Patientenaufklärungsvideos für Zahnarztpraxen, betrieben von BLS AI Automation DOO (Bulsu Labs), Podgorica, Montenegro.",
+      description: "Nutzungsbedingungen von DentVideo, Aufklärungsvideos für Zahnarztpraxen, betrieben von BLS AI Automation DOO (Bulsu Labs), Podgorica, Montenegro.",
       intro: [
         "Diese Bedingungen sind der Vertrag zwischen {legalName} („wir“), die DentVideo unter der Marke {brand} betreibt, und der Praxis oder Fachperson, die ein DentVideo-Konto anlegt („Sie“). Mit dem Anlegen eines Kontos oder der Zahlung eines Tarifs akzeptieren Sie sie. Wenn Sie sie für eine Praxis akzeptieren, bestätigen Sie, dass Sie diese Praxis vertreten dürfen.",
         "Wir haben sie in einfacher Sprache geschrieben. Wenn etwas unklar ist, schreiben Sie vor dem Abschluss an {email}.",

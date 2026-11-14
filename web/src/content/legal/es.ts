@@ -50,7 +50,7 @@ export const ES: LegalText = {
   docs: {
     terms: {
       title: "Términos del servicio",
-      description: "Las condiciones de uso de DentVideo, el servicio de vídeos educativos para pacientes de clínicas dentales, operado por BLS AI Automation DOO (Bulsu Labs), Podgorica, Montenegro.",
+      description: "Condiciones de uso de DentVideo, vídeos educativos para clínicas dentales, operado por BLS AI Automation DOO (Bulsu Labs), Podgorica, Montenegro.",
       intro: [
         "Estos términos son el acuerdo entre {legalName} («nosotros»), que gestiona DentVideo con la marca {brand}, y la clínica o el profesional que crea una cuenta de DentVideo («tú»). Al crear una cuenta o pagar un plan los aceptas. Si los aceptas en nombre de una clínica, confirmas que puedes obligarla.",
         "Los hemos escrito en lenguaje sencillo. Si algo no está claro, escribe a {email} antes de suscribirte.",

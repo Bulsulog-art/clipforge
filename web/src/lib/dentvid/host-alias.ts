@@ -8,7 +8,10 @@
  * Kept out of lib/dentvid/host.ts, which ships to the browser with every
  * DentVideo page (dvHref): only the middleware needs this.
  */
-const ALIAS = /^(?:\/(en|de|es|tr|fr|ja|ar|pl))?\/(pricing|plans|prices|login|log-in|signin|sign-in|signup|sign-up|register|start)\/?$/i;
+const ALIAS = /^(?:\/(en|de|es|tr|fr|ja|ar|pl))?\/(pricing|plans|prices|login|log-in|signin|sign-in|signup|sign-up|register|start|samples|examples|demo|features|how-it-works|contact|contact-us|impressum|company)\/?$/i;
+
+/** Landing sections a guessed address names: /samples → the landing's sample videos. */
+const SECTION: Record<string, string> = { samples: "samples", examples: "samples", demo: "samples", features: "how", "how-it-works": "how" };
 
 /** The dentvideo.com path (with query and hash) a guessed address should go to, or null when it is not one. */
 export function aliasFor(pathname: string, search: string): string | null {
@@ -21,7 +24,11 @@ export function aliasFor(pathname: string, search: string): string | null {
   const what = m[2].toLowerCase();
   // "/start" without a prefix is the real sign-up page.
   if (what === "start" && !locale) return null;
-  if (what === "pricing" || what === "plans" || what === "prices") return `${!locale || locale === "en" ? "/" : `/${locale}`}${qs()}#pricing`;
+  const home = !locale || locale === "en" ? "/" : `/${locale}`;
+  if (what === "pricing" || what === "plans" || what === "prices") return `${home}${qs()}#pricing`;
+  if (SECTION[what]) return `${home}${qs()}#${SECTION[what]}`;
+  // Contact details (email, company, address) are on the imprint, in every language.
+  if (/^(contact|contact-us|impressum|company)$/.test(what)) return `${!locale || locale === "en" ? "" : `/${locale}`}/imprint${qs()}`;
   if (/^(login|log-in|signin|sign-in)$/.test(what)) q.set("mode", "signin");
   if (locale && !q.has("lang")) q.set("lang", locale);
   return `/start${qs()}`;
