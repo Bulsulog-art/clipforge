@@ -105,6 +105,8 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("cure", /cure/i, "can help treat"),
     r("fear", /lose|cost/i, "left untreated, it can get worse over time"),
     r("fear", /too late|wait|book/i, "If you notice this, ask your dentist at your next visit."),
+    // A made-up deadline: no deadline at all.
+    r("fear", /only|limited|end|expire|last|hurry|act|while|left|remaining|filling|running|going|miss/i, "Whenever it suits you, ask us about an appointment."),
   ],
   tr: [
     r("absolute", /ağrısız|acısız/i, "lokal anestezi altında, çoğu hasta için konforlu"),
@@ -121,6 +123,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("cure", /tedavi|iyileştirir|geçer|yok eder/i, "tedavisine yardımcı olabilir"),
     r("fear", /kaybed/i, "tedavi edilmezse zamanla ilerleyebilir"),
     r("fear", /geç olmadan|randevu|kaçırmayın|beklemeyin/i, "Bu belirtiyi fark ederseniz diş hekiminize danışabilirsiniz."),
+    r("fear", /fırsat|şans|sadece|yalnızca|özel|son gün|acele|kontenjan|tükenmeden/i, "Size uygun bir zamanda randevu için bize sorabilirsiniz."),
   ],
   de: [
     r("absolute", /schmerzfrei|schmerzlos/i, "unter örtlicher Betäubung, für die meisten gut verträglich"),
@@ -135,6 +138,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("testimonial", /patienten|erfahrungsbericht|dankschreiben|bewertung/i, "Fragen, die uns Patientinnen und Patienten oft stellen"),
     r("cure", /heil/i, "kann bei der Behandlung helfen"),
     r("fear", /zu spät|warten|termin|buchen|verlieren/i, "Wenn Ihnen das auffällt, sprechen Sie uns beim nächsten Termin an."),
+    r("fear", /heute|chance|kurze zeit|angebot|vorrat|plätze|begrenzt/i, "Wann immer es Ihnen passt: Fragen Sie uns nach einem Termin."),
   ],
   es: [
     r("absolute", /sin dolor|indoloro/i, "con anestesia local, cómodo para la mayoría de pacientes"),
@@ -150,6 +154,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("cure", /cura/i, "puede ayudar a tratar"),
     r("fear", /perder/i, "si no se trata, puede empeorar con el tiempo"),
     r("fear", /tarde|esper/i, "Si notas esto, consúltalo con tu dentista."),
+    r("fear", /hoy|oportunidad|plazas|oferta|prisa|pierdas|agotar/i, "Cuando te venga bien, pregúntanos por una cita en la clínica."),
   ],
   fr: [
     r("absolute", /sans douleur/i, "sous anesthésie locale, confortable pour la plupart des patients"),
@@ -164,6 +169,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("cure", /guéri/i, "peut aider à traiter"),
     r("fear", /perdre/i, "sans traitement, cela peut s'aggraver avec le temps"),
     r("fear", /tard|attendez/i, "Si vous remarquez ce signe, parlez-en à votre dentiste."),
+    r("fear", /aujourd|seulement|uniquement|chance|limitée|dépêchez|manquez|offre|épuisement/i, "Quand cela vous convient, demandez-nous un rendez-vous."),
   ],
   pl: [
     r("absolute", /bezbolesn|bez (żadnego )?bólu/i, "w znieczuleniu miejscowym, komfortowo dla większości pacjentów"),
@@ -178,6 +184,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("cure", /wylecz|leczy/i, "może pomóc w leczeniu"),
     r("fear", /stracić|stracisz/i, "nieleczone może z czasem się nasilać"),
     r("fear", /późno|czekaj/i, "Jeśli zauważysz ten objaw, porozmawiaj z dentystą."),
+    r("fear", /tylko|szansa|ograniczon|miejsc|oferta|pospiesz|przegap/i, "Gdy będzie Ci wygodnie, zapytaj nas o termin wizyty."),
   ],
   ar: [
     r("absolute", /ألم|مؤلم/, "تحت التخدير الموضعي، ومريح لمعظم المرضى"),
@@ -194,6 +201,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("cure", /يشفي|تشفي|شفاء|نهائي|يقضي|تقضي/, "قد يساعد في العلاج"),
     r("fear", /تفقد/, "إذا لم يُعالج فقد يتفاقم مع الوقت"),
     r("fear", /فوات|تنتظر|احجز/, "إذا لاحظتم ذلك، استشيروا طبيب الأسنان."),
+    r("fear", /فرصة|فقط|تفوت|محدودة|سارع|ينتهي/, "اسألونا عن موعد في الوقت الذي يناسبكم."),
   ],
   ja: [
     r("absolute", /無痛|痛くない|痛みのない|痛みゼロ/, "痛みに配慮し、局所麻酔を使って行います（感じ方には個人差があります）"),

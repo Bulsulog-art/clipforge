@@ -305,15 +305,28 @@ export function findHardSpans(text: string, rules: readonly Rule[] = HARD_RULES)
 }
 
 /**
- * Fear and pressure: frightening the reader into booking. Not part of
- * HARD_RULES (the compliance agent's model judges tone in context, and
- * scanHardRules must not change); the public checker adds it, with phrases
- * narrow enough to mean only that.
+ * Fear and pressure: frightening the reader into booking, or rushing them
+ * with a made-up deadline ("this month only", "offer ends soon", "last
+ * chance"). Not part of HARD_RULES (the compliance agent's model judges tone
+ * in context, and scanHardRules must not change); the public checker adds
+ * it, with phrases narrow enough to mean only that.
  */
 export const FEAR_RULE: Rule = {
   id: "fear",
-  why: "Frightening the reader or pressing them to book now is restricted in health advertising.",
+  why: "Frightening the reader, pressing them to book now or inventing a deadline is restricted in health advertising.",
   patterns: [
+    // False urgency, one line per language. The price rule already has "limited time",
+    // "sınırlı süre", "nur diesen Monat", "solo este mes", "por tiempo limitado" and "لفترة محدودة".
+    w("(today|tonight|this (week|weekend|month)) only|only (today|tonight|this (week|weekend|month))|for (one|this) (day|week|month) only|limited[- ]time (only|offer|deal)|(offer|deal|promo|promotion|sale|discount|special|price)s? (ends?|expires?) (soon|today|tonight|tomorrow|this (week|weekend|month)|on \\p{L}+day)|last chance|(?<!don'?t )hurry( up)?|act (now|fast|quickly)|while (spots|slots|places|appointments|stocks?|supplies) last|only \\d+ (spots|slots|places|appointments|openings) (left|remaining)|(spots|slots|places|appointments) (are )?(filling up|running out|going fast)|limited (spots|slots|places|availability)|don'?t miss (out|this (offer|deal|chance))"),
+    w("son fırsat|son şans|(sadece|yalnızca) bu (ay|hafta)|(sadece|yalnızca) bugün|bu aya özel|bugüne özel|son gün\\p{L}*|acele edin|sınırlı kontenjan|kontenjan(lar)? dolmadan|tükenmeden"),
+    w("nur (noch )?heute|letzte chance|nur für kurze zeit|zeitlich begrenzte\\p{L}* angebot\\p{L}*|angebot (endet|gilt nur)|solange (der vorrat reicht|plätze frei sind)|begrenzte (plätze|termine)|nur noch \\d+ (plätze|termine)"),
+    w("(solo|sólo) hoy|última oportunidad|plazas limitadas|quedan pocas plazas|(la )?oferta (termina|acaba|finaliza)|date prisa|no te lo pierdas|hasta agotar (existencias|plazas)"),
+    w("aujourd'hui seulement|seulement aujourd'hui|(ce mois-ci|cette semaine) seulement|uniquement (ce mois-ci|cette semaine|aujourd'hui)|dernière chance|offre limitée|(pour une )?durée limitée|places limitées|dépêchez-vous|ne (le )?manquez pas|l'offre (se termine|prend fin)|jusqu'à épuisement"),
+    w("tylko (dziś|dzisiaj|w tym (miesiącu|tygodniu)|przez (ten miesiąc|ten tydzień))|ostatnia szansa|ograniczon\\p{L}* liczb\\p{L}* miejsc|liczba miejsc ograniczona|oferta (kończy się|ważna tylko|ograniczona)|pospiesz(cie)? się|nie przegap\\p{L}*"),
+    w("(só|somente|apenas) hoje|última chance|vagas limitadas|não perca"),
+    w("solo oggi|ultima occasione|per un tempo limitato|posti limitati|affrettat[iei]|non perdere"),
+    a("آخر فرصة|الفرصة الأخيرة|اليوم فقط|(هذا الشهر|هذا الأسبوع) فقط|لا تفوت\\p{L}*|(أماكن|مقاعد) محدودة|سارع\\p{L}*|(العرض )?ينتهي (العرض|قريباً|قريبا|اليوم)"),
+    j("期間限定|本日限り|今月(限り|だけ|末まで)|今週(限り|だけ)|先着(順|\\d+名)|残りわずか|お急ぎ|今だけ|お見逃しなく|締め?切り間近"),
     w("before it'?s too late|(you )?could lose (all )?your teeth|(could|will) cost you your teeth|don'?t wait (any longer|until it'?s too late)|book (now|today)( before)?"),
     w("(çok )?geç olmadan|dişlerinizi kaybedebilirsiniz|dişlerinizi kaybetmeden|hemen randevu al\\p{L}*|kaçırmayın|daha fazla beklemeyin"),
     w("bevor es zu spät ist|warten sie nicht (länger|zu lange)|jetzt sofort (einen )?termin\\p{L}*|jetzt (einen )?termin (buchen|vereinbaren|sichern)|jetzt buchen|ihre zähne verlieren"),

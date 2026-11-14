@@ -30,6 +30,9 @@ const INPUTS = [
   "Guaranteed painless whitening, 50% off this month only! The best dentist in town. Our patients say it's life-changing. See our before and after photos.",
   "Risk-free implants that last forever, 100% success. Cures gum disease. $99 special offer, limited time.",
   "Don't wait until it's too late — you could lose your teeth. Book now before the offer ends. 5-star reviews!",
+  // False urgency (checker only: scan and spans stay empty)
+  "Last chance: our whitening offer ends soon, only 3 spots left this week. Limited time only!",
+  "Beyazlatmada son fırsat! Nur heute. Última oportunidad. Dernière chance. Ostatnia szansa. آخر فرصة. 期間限定。",
   // Turkish
   "Ağrısız implant tedavisi, %100 garantili sonuç! İstanbul'un en iyi diş kliniği. Kampanya: beyazlatmada indirim, 12 taksit. Öncesi sonrası fotoğraflarımıza bakın, hasta yorumları sayfamızda.",
   "Ömür boyu kalıcı gülüş, kesin sonuç. Geç olmadan hemen randevu alın! Diş eti hastalıklarını önler.",

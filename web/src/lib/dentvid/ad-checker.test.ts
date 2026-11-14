@@ -30,6 +30,39 @@ describe("ad checker: engine", () => {
     }
   });
 
+  it("flags false urgency (a made-up deadline) in every language, with a calm fix", () => {
+    for (const [t, match, lang] of [
+      ["Whitening, this month only!", "this month only", "en"],
+      ["Limited time only: implant consultations.", "Limited time only", "en"],
+      ["Our offer ends soon, so call us.", "offer ends soon", "en"],
+      ["Last chance for a spring check-up.", "Last chance", "en"],
+      ["Only 3 spots left this week.", "Only 3 spots left", "en"],
+      ["Hurry, the deal expires tomorrow.", "Hurry", "en"],
+      ["Beyazlatmada son fırsat, sadece bu ay.", "son fırsat", "tr"],
+      ["Nur heute: Prophylaxe in unserer Praxis.", "Nur heute", "de"],
+      ["Última oportunidad para tu limpieza dental.", "Última oportunidad", "es"],
+      ["Dernière chance pour votre détartrage.", "Dernière chance", "fr"],
+      ["Ostatnia szansa na przegląd w gabinecie.", "Ostatnia szansa", "pl"],
+      ["آخر فرصة لتبييض الأسنان.", "آخر فرصة", "ar"],
+      ["期間限定のホワイトニング。", "期間限定", "ja"],
+    ] as const) {
+      const fear = checkText(t).find((h) => h.rule === "fear");
+      expect(fear?.match, t).toBe(match);
+      expect(fear?.fix, t).toBeTruthy();
+      expect(guessLanguage(fear!.fix!), `${t} → ${fear!.fix}`).toBe(lang);
+    }
+  });
+
+  it("does not mistake ordinary time words for pressure", () => {
+    for (const t of [
+      "The numbness ends soon after the appointment.",
+      "Don't hurry your brushing: two minutes, twice a day.",
+      "Only this tooth needs a filling.",
+      "Die Wirkung ist zeitlich begrenzt.",
+      "Last week we talked about flossing.",
+    ]) expect(checkText(t).filter((h) => h.rule === "fear"), t).toEqual([]);
+  });
+
   it("leaves hedged, educational text alone", () => {
     for (const t of [
       "Whitening can make teeth a few shades lighter for many people; ask your dentist whether it suits you.",
