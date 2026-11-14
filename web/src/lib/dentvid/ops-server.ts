@@ -151,6 +151,20 @@ export async function readWeekDelay(clinicId: string, week: string): Promise<Wee
   }
 }
 
+/**
+ * A week that had failed for good ("delayed") was queued again from the app:
+ * the library says "taking a little longer, retrying" until the worker
+ * clears or updates the note (same key and TTL as worker ops.ts setWeekDelay).
+ */
+export async function markWeekRetrying(clinicId: string, week: string): Promise<void> {
+  try {
+    const store = await webOpsStore();
+    if (store && (await store.get(weekStateKey(clinicId, week)))) await store.set(weekStateKey(clinicId, week), "retrying", 8 * 86_400);
+  } catch {
+    // best effort: the worker writes the note again when the run ends
+  }
+}
+
 /** Name, country, tier and the account email, for an alert. Never throws: an id is enough. */
 export async function clinicRefFor(db: SupabaseClient, clinicId: string): Promise<ClinicRef> {
   try {

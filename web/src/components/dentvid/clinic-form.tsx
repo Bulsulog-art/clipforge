@@ -234,7 +234,9 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
       </select>
     </label>
   );
-  const address = (
+  // English has no formal/informal "you": the choice (labelled "Sie / du") only puzzled English clinics, and the
+  // videos read the same either way. The stored value is kept, so switching the language back shows it again.
+  const address = p.language === "en" ? null : (
     <label className={label}>
       {t.address}
       <select value={p.address} onChange={set("address")} className="dv-field">

@@ -254,6 +254,36 @@ describe("a week that heals itself", () => {
     expect(mails[0].text).toMatch(/permanent error/);
   });
 
+  it("the AI account is out of credit (OpenAI 429 insufficient_quota) → not retried, 'delayed', the week budget given back", async () => {
+    const store = new MemoryGuardStore();
+    configureSpend({ guard: new SpendGuard(store, () => guardConfig({})), alert: vi.fn(async () => true) });
+    const quota = Object.assign(new Error("429 You exceeded your current quota, please check your plan and billing details."), {
+      status: 429,
+      code: "insufficient_quota",
+      type: "insufficient_quota",
+    });
+    produceWeek.mockRejectedValue(quota);
+    // First attempt of four: still not retried — BullMQ would only hit the same closed door.
+    await expect(runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(UnrecoverableError);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+    expect(inserted).toEqual([]);
+    expect(mails).toHaveLength(1);
+    expect(mails[0].text).toMatch(/permanent error/);
+    expect(mails[0].text).toMatch(/exceeded your current quota/);
+    // Nothing was spent: every counter is back at zero, so the clinic's retry is not refused for it.
+    expect([...store.values.values()].every((v) => v === 0)).toBe(true);
+    // Several retries during the outage never use up the clinic's weekly runs.
+    for (let i = 0; i < 8; i++) await runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 0, attempts: 4 }).catch(() => {});
+    expect(produceWeek).toHaveBeenCalledTimes(9);
+  });
+
+  it("every video refused by the provider mid-week → not retried in minutes (permanent), nothing stored", async () => {
+    produceWeek.mockResolvedValue(["a", "b", "c"].map((t) => ({ ...broken(t), error: "429 You exceeded your current quota, please check your plan and billing details." })));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 3 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(UnrecoverableError);
+    expect(inserted).toEqual([]);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+  });
+
   it("render failures past the hourly threshold raise one spike alert", async () => {
     configureOps({ store: ops, send: async (m) => (mails.push(m), true), env: { DENTVID_ALERT_RENDER_FAIL_PER_HOUR: "3" } });
     // Each produceWeek call reports its video errors through onVideoError.

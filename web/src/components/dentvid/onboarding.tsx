@@ -52,6 +52,8 @@ type Props = {
   plans: PlanOption[];
   /** Back from Dodo without paying. */
   checkoutCancelled?: boolean;
+  /** …because the card was refused (not abandoned): "your payment didn't go through". */
+  paymentFailed?: boolean;
   /** The signed-in account's address and whether it is confirmed (lib/dentvid/verify-email). */
   account?: { email: string; verified: boolean };
   /** Dev harness: show the code card without asking the server for a code. */
@@ -71,7 +73,7 @@ type Props = {
  * is kept in the URL (?step=) and the furthest one in a cookie, so a
  * returning visitor lands where they left off (lib/dentvid/onboarding.ts).
  */
-export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, checkoutCancelled, account, autoSendCode = true, demo }: Props) {
+export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans, checkoutCancelled, paymentFailed, account, autoSendCode = true, demo }: Props) {
   const t = appText(locale).onboarding;
   // A demo fills only a clinic that has no name yet; what the clinic saved always wins.
   const fromDemo = demo && !initial?.name ? demo : undefined;
@@ -126,6 +128,7 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
       const url = new URL(window.location.href);
       url.searchParams.set("step", next);
       url.searchParams.delete("billing");
+      url.searchParams.delete("payment");
       window.history.replaceState(null, "", url.toString());
     } catch {
       // ignore
@@ -148,6 +151,7 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
             preview={draft.preview}
             plans={plans}
             cancelled={!!checkoutCancelled}
+            declined={!!paymentFailed}
             onEdit={() => go("preview")}
             account={account}
             autoSendCode={autoSendCode}
@@ -308,6 +312,7 @@ function PlanStep({
   preview,
   plans,
   cancelled,
+  declined,
   onEdit,
   account,
   autoSendCode,
@@ -316,6 +321,7 @@ function PlanStep({
   preview: PreviewProfile;
   plans: PlanOption[];
   cancelled: boolean;
+  declined: boolean;
   onEdit: () => void;
   account?: { email: string; verified: boolean };
   autoSendCode: boolean;
@@ -330,7 +336,7 @@ function PlanStep({
       <StepHeader title={t.planTitle} lead={t.planLead} />
       {cancelled && (
         <p role="status" className="mx-auto mt-8 max-w-3xl rounded-xl bg-[#fdf1dc] px-4 py-3 text-center text-sm text-[#7a4b00]">
-          {t.cancelled}
+          {declined ? appText(locale).billing.paymentFailed : t.cancelled}
         </p>
       )}
       <div className="mx-auto mt-10 flex max-w-3xl items-center gap-4 rounded-2xl bg-white/80 p-3 pe-4 ring-1 ring-dv-line backdrop-blur">

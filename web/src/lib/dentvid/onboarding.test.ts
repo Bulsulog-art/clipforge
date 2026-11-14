@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appSendsToFunnel, asStep, billingReturn, needsPlanHistory, resolveStep, showFirstWeek } from "./onboarding";
+import { appSendsToFunnel, asStep, billingReturn, needsPlanHistory, paymentDeclined, resolveStep, showFirstWeek } from "./onboarding";
 import { PLAN_REACHED_EVENTS, clinicReachedPlan } from "./events-server";
 
 describe("return from Dodo's payment link", () => {
@@ -11,6 +11,13 @@ describe("return from Dodo's payment link", () => {
     // …so a clinic with nothing yet goes back to the plans with the "nothing was charged" note.
     expect(appSendsToFunnel("trial", billingReturn("success", "failed"), 0)).toBe(true);
     expect(showFirstWeek({ plan: "trial", billing: billingReturn("success", "failed"), madeThisWeek: false, everMade: false })).toBe(false);
+  });
+
+  it("tells a declined card apart from an abandoned checkout", () => {
+    expect(paymentDeclined("success", "failed")).toBe(true);
+    expect(paymentDeclined("success", "Requires_Payment_Method")).toBe(true);
+    for (const status of ["cancelled", "expired", "succeeded", "processing", undefined]) expect(paymentDeclined("success", status)).toBe(false);
+    expect(paymentDeclined("cancelled", "failed")).toBe(false);
   });
 
   it("keeps the success path for a payment that went through or is still being confirmed", () => {

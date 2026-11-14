@@ -43,6 +43,8 @@ export type AppText = {
     delayRetrying: string;
     /** It failed after every retry; the owner has been alerted. Honest, calm. */
     delayDelayed: string;
+    /** The button under delayDelayed: queue the week again (api/dentvideo/week). */
+    retryNow: string;
     startTitle: string;
     startLead: string;
     shareTitle: string;
@@ -253,6 +255,8 @@ export type AppText = {
     fineprint: string;
     success: string;
     cancelled: string;
+    /** Back from Dodo with a declined / failed payment (lib/dentvid/onboarding billingReturn). */
+    paymentFailed: string;
     needPlan: string;
     settingsHeading: string;
     /** Self-serve tiers only: Group is "Contact us" (content/dentvideo-group.ts). */
@@ -349,6 +353,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "It takes about 15 minutes. This page updates by itself, and we'll email you when they're ready.",
       delayRetrying: "Taking a little longer than usual — we're retrying automatically. You don't need to do anything.",
       delayDelayed: "This week's videos are delayed. We've been alerted and are on it — we'll email you as soon as they're ready.",
+      retryNow: "Try again now",
       startTitle: "This week's videos aren't made yet",
       startLead: "New videos arrive every Monday. If they're not here yet, you can start them now — it takes about 15 minutes.",
       shareTitle: "All approved — time to post",
@@ -598,6 +603,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "Prices in USD. Taxes may apply. Monthly, cancel anytime. Secure payment by Dodo Payments.",
       success: "Thank you! Your plan is being activated — this can take a minute.",
       cancelled: "Checkout was cancelled. Nothing was charged.",
+      paymentFailed: "Your payment didn't go through, so nothing was charged. You can try again or use another card.",
       needPlan: "Choose a plan to make more videos",
       settingsHeading: "Plan and billing",
       tiers: {
@@ -700,6 +706,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "Das dauert etwa 15 Minuten. Diese Seite aktualisiert sich von selbst, und Sie bekommen eine E-Mail, sobald alles fertig ist.",
       delayRetrying: "Dauert etwas länger als sonst – wir versuchen es automatisch erneut. Sie müssen nichts tun.",
       delayDelayed: "Die Videos dieser Woche verzögern sich. Wir sind informiert und kümmern uns darum – Sie bekommen eine E-Mail, sobald sie fertig sind.",
+      retryNow: "Jetzt erneut versuchen",
       startTitle: "Die Videos dieser Woche sind noch nicht erstellt",
       startLead: "Neue Videos kommen jeden Montag. Sind sie noch nicht da, können Sie sie jetzt starten – das dauert etwa 15 Minuten.",
       shareTitle: "Alles freigegeben – Zeit zum Posten",
@@ -952,6 +959,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "Preise in USD, ggf. zzgl. Steuern. Monatlich, jederzeit kündbar. Sichere Zahlung über Dodo Payments.",
       success: "Vielen Dank! Ihr Tarif wird aktiviert — das kann eine Minute dauern.",
       cancelled: "Der Checkout wurde abgebrochen. Es wurde nichts berechnet.",
+      paymentFailed: "Die Zahlung ist nicht durchgegangen, es wurde nichts berechnet. Versuchen Sie es erneut oder mit einer anderen Karte.",
       needPlan: "Tarif wählen, um weitere Videos zu erstellen",
       settingsHeading: "Tarif und Abrechnung",
       tiers: {
@@ -1054,6 +1062,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "Tarda unos 15 minutos. Esta página se actualiza sola y te avisaremos por correo cuando estén listos.",
       delayRetrying: "Está tardando un poco más de lo normal: lo reintentamos automáticamente. No tienes que hacer nada.",
       delayDelayed: "Los vídeos de esta semana se retrasan. Ya estamos avisados y trabajando en ello; te escribiremos en cuanto estén listos.",
+      retryNow: "Intentarlo de nuevo",
       startTitle: "Los vídeos de esta semana aún no están hechos",
       startLead: "Los vídeos nuevos llegan cada lunes. Si aún no están, puedes empezarlos ahora: tarda unos 15 minutos.",
       shareTitle: "Todo aprobado: es hora de publicar",
@@ -1306,6 +1315,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "Precios en USD. Pueden aplicarse impuestos. Mensual, cancela cuando quieras. Pago seguro con Dodo Payments.",
       success: "¡Gracias! Estamos activando tu plan; puede tardar un minuto.",
       cancelled: "Has cancelado el pago. No se ha cobrado nada.",
+      paymentFailed: "El pago no se ha completado, así que no se ha cobrado nada. Puedes intentarlo de nuevo o usar otra tarjeta.",
       needPlan: "Elige un plan para crear más vídeos",
       settingsHeading: "Plan y facturación",
       tiers: {
@@ -1408,6 +1418,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "Yaklaşık 15 dakika sürer. Bu sayfa kendiliğinden yenilenir; videolar hazır olunca size e-posta göndeririz.",
       delayRetrying: "Her zamankinden biraz uzun sürüyor — otomatik olarak yeniden deniyoruz. Sizin bir şey yapmanıza gerek yok.",
       delayDelayed: "Bu haftanın videoları gecikti. Ekibimiz haberdar ve ilgileniyor; hazır olur olmaz size e-posta göndereceğiz.",
+      retryNow: "Şimdi tekrar dene",
       startTitle: "Bu haftanın videoları henüz hazırlanmadı",
       startLead: "Yeni videolar her pazartesi gelir. Henüz gelmediyse şimdi başlatabilirsiniz; yaklaşık 15 dakika sürer.",
       shareTitle: "Hepsi onaylandı — paylaşma zamanı",
@@ -1660,6 +1671,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "Fiyatlar USD cinsindendir. Vergiler eklenebilir. Aylık, istediğiniz zaman iptal. Güvenli ödeme Dodo Payments ile.",
       success: "Teşekkürler! Planınız etkinleştiriliyor — bu bir dakika sürebilir.",
       cancelled: "Ödeme iptal edildi. Herhangi bir ücret alınmadı.",
+      paymentFailed: "Ödemeniz gerçekleşmedi, hiçbir ücret alınmadı. Tekrar deneyebilir veya başka bir kart kullanabilirsiniz.",
       needPlan: "Daha fazla video için bir plan seçin",
       settingsHeading: "Plan ve faturalandırma",
       tiers: {
@@ -1762,6 +1774,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "Comptez environ 15 minutes. Cette page se met à jour toute seule, et nous vous écrivons dès qu'elles sont prêtes.",
       delayRetrying: "C'est un peu plus long que d'habitude — nous réessayons automatiquement. Vous n'avez rien à faire.",
       delayDelayed: "Les vidéos de cette semaine ont du retard. Nous sommes prévenus et nous nous en occupons — nous vous écrivons dès qu'elles sont prêtes.",
+      retryNow: "Réessayer maintenant",
       startTitle: "Les vidéos de cette semaine ne sont pas encore créées",
       startLead: "Les nouvelles vidéos arrivent chaque lundi. Si elles ne sont pas encore là, vous pouvez les lancer maintenant : comptez environ 15 minutes.",
       shareTitle: "Tout est validé : place à la publication",
@@ -2014,6 +2027,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "Prix en USD, taxes éventuelles en sus. Mensuel, résiliable à tout moment. Paiement sécurisé par Dodo Payments.",
       success: "Merci ! Votre formule est en cours d'activation — cela peut prendre une minute.",
       cancelled: "Le paiement a été annulé. Rien n'a été débité.",
+      paymentFailed: "Le paiement n'a pas abouti : rien n'a été débité. Vous pouvez réessayer ou utiliser une autre carte.",
       needPlan: "Choisissez une formule pour créer d'autres vidéos",
       settingsHeading: "Formule et facturation",
       tiers: {
@@ -2120,6 +2134,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "15分ほどかかります。このページは自動で更新され、完成したらメールでお知らせします。",
       delayRetrying: "いつもより少し時間がかかっています。自動で再試行していますので、操作は不要です。",
       delayDelayed: "今週の動画の作成が遅れています。担当者が対応中です。完成しだいメールでお知らせします。",
+      retryNow: "もう一度試す",
       startTitle: "今週の動画はまだ制作されていません",
       startLead: "新しい動画は毎週月曜日に届きます。まだ届いていない場合は、今すぐ制作を始められます。15分ほどかかります。",
       shareTitle: "すべて承認済みです。投稿しましょう",
@@ -2369,6 +2384,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "価格は米ドル建てです。別途税金がかかる場合があります。月単位の契約で、いつでも解約できます。お支払いはDodo Paymentsが安全に処理します。",
       success: "ありがとうございます。プランを有効にしています。1分ほどかかる場合があります。",
       cancelled: "お支払いは完了していません。料金は発生していません。",
+      paymentFailed: "お支払いが完了しなかったため、料金は発生していません。もう一度お試しいただくか、別のカードをご利用ください。",
       needPlan: "動画を制作するには、プランをお選びください",
       settingsHeading: "プランとお支払い",
       tiers: {
@@ -2468,6 +2484,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "يستغرق ذلك نحو 15 دقيقة. تتحدّث هذه الصفحة تلقائياً، ونرسل إليكم بريداً حين تجهز.",
       delayRetrying: "يستغرق الأمر وقتاً أطول قليلاً من المعتاد — نعيد المحاولة تلقائياً. لا حاجة لأي إجراء منكم.",
       delayDelayed: "تأخّرت فيديوهات هذا الأسبوع. فريقنا على علم ويعمل على ذلك، وسنرسل إليكم بريداً حين تجهز.",
+      retryNow: "حاولوا مرة أخرى الآن",
       startTitle: "لم تُعَدّ فيديوهات هذا الأسبوع بعد",
       startLead: "تصل فيديوهات جديدة كل يوم اثنين. وإن لم تصل بعد، يمكنكم بدء إعدادها الآن، ويستغرق ذلك نحو 15 دقيقة.",
       shareTitle: "اعتُمد كل شيء، حان وقت النشر",
@@ -2717,6 +2734,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب. اشتراك شهري يمكن إلغاؤه في أي وقت. الدفع الآمن عبر Dodo Payments.",
       success: "شكراً لكم! نفعّل باقتكم الآن، وقد يستغرق ذلك دقيقة.",
       cancelled: "أُلغيت عملية الدفع ولم يُخصم أي مبلغ.",
+      paymentFailed: "لم تتم عملية الدفع، ولم يُخصم أي مبلغ. يمكنكم المحاولة مرة أخرى أو استخدام بطاقة أخرى.",
       needPlan: "اختاروا باقة لإعداد المزيد من الفيديوهات",
       settingsHeading: "الباقة والفوترة",
       tiers: {
@@ -2817,6 +2835,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       makingLead: "To potrwa około 15 minut. Strona odświeża się sama, a gdy filmy będą gotowe, wyślemy e-mail.",
       delayRetrying: "Trwa to nieco dłużej niż zwykle — ponawiamy automatycznie. Nie muszą Państwo nic robić.",
       delayDelayed: "Filmy na ten tydzień są opóźnione. Wiemy o tym i już nad tym pracujemy — wyślemy e-mail, gdy będą gotowe.",
+      retryNow: "Ponów próbę teraz",
       startTitle: "Filmy na ten tydzień jeszcze nie powstały",
       startLead: "Nowe filmy przychodzą w każdy poniedziałek. Jeśli jeszcze ich nie ma, można je przygotować teraz; to potrwa około 15 minut.",
       shareTitle: "Wszystko zatwierdzone, czas publikować",
@@ -3066,6 +3085,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       fineprint: "Ceny w USD. Mogą zostać doliczone podatki. Rozliczenie miesięczne, rezygnacja w dowolnym momencie. Bezpieczna płatność przez Dodo Payments.",
       success: "Dziękujemy! Aktywujemy plan; to może potrwać minutę.",
       cancelled: "Płatność została anulowana. Nic nie pobrano.",
+      paymentFailed: "Płatność nie została zrealizowana, więc nic nie pobrano. Można spróbować ponownie lub użyć innej karty.",
       needPlan: "Aby przygotować kolejne filmy, prosimy wybrać plan",
       settingsHeading: "Plan i płatności",
       tiers: {

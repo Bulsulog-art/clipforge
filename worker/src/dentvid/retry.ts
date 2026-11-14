@@ -57,9 +57,27 @@ function statusOf(e: unknown): number | null {
   return typeof s === "number" ? s : null;
 }
 
+/**
+ * The AI provider refused before doing any work, for a reason on our side
+ * that no retry within the hour fixes: the account is out of credit
+ * (OpenAI sends this as HTTP 429 with code "insufficient_quota", so the
+ * status alone reads as a rate limit), a billing hard limit, or a bad key.
+ * Nothing was spent, so the job's spend reservation is given back
+ * (jobs.ts) and the week is not retried four times against a closed door.
+ */
+export function providerRefused(e: unknown): boolean {
+  const o = (e ?? {}) as { code?: unknown; type?: unknown; error?: { code?: unknown; type?: unknown } | null };
+  const codes = [o.code, o.type, o.error?.code, o.error?.type].filter((c): c is string => typeof c === "string");
+  if (codes.some((c) => /^(insufficient_quota|billing_hard_limit_reached|billing_not_active|invalid_api_key|account_deactivated)$/i.test(c))) return true;
+  const msg = `${(e as Error)?.message ?? ""}`;
+  return /\binsufficient[_ ]quota\b|exceeded your current quota|billing[_ ]hard[_ ]limit|\bincorrect api key\b|\binvalid[_ ]api[_ ]key\b/i.test(msg);
+}
+
 export function classifyFailure(e: unknown): FailureKind {
   if (e instanceof TransientWeekError) return "transient";
   if (e instanceof UnrecoverableError) return "permanent";
+  // Before the status: an out-of-credit account answers 429, like a rate limit.
+  if (providerRefused(e)) return "permanent";
   const status = statusOf(e);
   if (status !== null) {
     if (status === 408 || status === 409 || status === 425 || status === 429 || status >= 500) return "transient";

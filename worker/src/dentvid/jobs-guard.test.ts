@@ -30,6 +30,8 @@ const updates: unknown[] = [];
 /** When set, reading the clinic fails the way supabase-js reports Liman being down. */
 let clinicReadError: { message: string } | null = null;
 let clinicTier: string | null = null;
+let itemPlan: unknown = { scenes: [] };
+let clinicProfile: unknown = {};
 
 /** Enough of supabase-js for the guard paths: an active clinic and one generated item. */
 function fakeDb() {
@@ -42,8 +44,8 @@ function fakeDb() {
       table === "dentvid_clinics" && clinicReadError ? { data: null, error: clinicReadError } : { data: table === "dentvid_clinics" ? { plan: "active", plan_tier: clinicTier } : null, error: null };
     q.single = async () =>
       table === "dentvid_items"
-        ? { data: { id: "item-1", clinic_id: CLINIC, owner_id: OWNER, kind: "generated", plan: { scenes: [] }, video_path: null, thumb_path: null }, error: null }
-        : { data: { id: CLINIC, owner_id: OWNER, profile: {}, logo_path: null }, error: null };
+        ? { data: { id: "item-1", clinic_id: CLINIC, owner_id: OWNER, kind: "generated", plan: itemPlan, video_path: null, thumb_path: null }, error: null }
+        : { data: { id: CLINIC, owner_id: OWNER, profile: clinicProfile, logo_path: null }, error: null };
     q.update = (row: unknown) => {
       updates.push(row);
       return { eq: () => ({ then: (ok: () => void) => Promise.resolve().then(ok) }) };
@@ -66,6 +68,8 @@ beforeEach(() => {
   updates.length = 0;
   clinicReadError = null;
   clinicTier = null;
+  itemPlan = { scenes: [] };
+  clinicProfile = {};
 });
 
 describe("dentvid jobs behind the spend guard", () => {
@@ -112,6 +116,26 @@ describe("dentvid jobs behind the spend guard", () => {
     expect(prepareVoiceover).not.toHaveBeenCalled();
     expect(renderPlan).not.toHaveBeenCalled();
     expect(updates).toContainEqual(expect.objectContaining({ restyle_status: "failed" }));
+  });
+
+  it("restyle whose narration fails (e.g. the AI account is out of credit) → fails and keeps the narrated video, never a silent one", async () => {
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => guardConfig({})), alert: vi.fn(async () => true) });
+    itemPlan = {
+      title: "Whitening",
+      aspect: "9:16",
+      theme: "midnight",
+      scenes: [
+        { kind: "hook", text: "Whiter teeth, safely", seconds: 3 },
+        { kind: "statement", text: "Ask us how", seconds: 4 },
+      ],
+      voiceover: { text: "Whiter teeth, safely. Ask us how.", voice: "nova" },
+    };
+    clinicProfile = { name: "QA Dental", country: "US", language: "en", services: ["Teeth whitening"] };
+    prepareVoiceover.mockRejectedValue(Object.assign(new Error("429 You exceeded your current quota"), { status: 429, code: "insufficient_quota" }));
+    await expect(runDentvidRestyle({ itemId: "item-1" })).rejects.toThrow(/narrated video is kept/);
+    expect(renderPlan).not.toHaveBeenCalled();
+    expect(updates).toContainEqual(expect.objectContaining({ restyle_status: "failed" }));
+    expect(updates).not.toContainEqual(expect.objectContaining({ video_path: expect.anything() }));
   });
 
   it("Liman down when the week starts → the job fails transiently (retried), it does not complete as skipped", async () => {

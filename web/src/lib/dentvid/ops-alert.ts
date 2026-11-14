@@ -453,7 +453,7 @@ export const alerts = {
       facts: [["Error", a.error]],
       done: [
         a.permanent ? "Not retried: the error will not go away by itself." : `Retried automatically ${Math.max(0, a.attempts - 1)} time(s) with growing waits.`,
-        "The clinic's library shows a calm “your videos are delayed, we're on it” note — no error text.",
+        "The clinic's library shows a calm “your videos are delayed, we're on it” note — no error text — and a “Try again now” button that queues the week once more (the spend guard still caps the runs).",
         "No email went to the clinic.",
       ],
       todo: [
