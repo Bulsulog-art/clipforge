@@ -1,7 +1,8 @@
 import { GUIDES, LANDING_PATH, findGuide, guidePath, type Guide, type Locale } from "../dentvideo";
-import { ABOUT_PATH, GUIDES_INDEX_PATH } from "./ui";
+import { ABOUT_PATH, CHECKER_PATH, GUIDES_INDEX_PATH } from "./ui";
 import { findSolution, solutionPath, type SolutionPage } from "../solutions";
 import type { SectionTable } from "./types";
+import { sampleSrc, samplesFor, type SampleVideo } from "../dentvideo-samples";
 
 /** A piece of guide text: plain, or an inline link written as [label](target). */
 export type Inline = { kind: "text"; text: string } | { kind: "link"; label: string; target: string };
@@ -45,6 +46,8 @@ export function resolveTarget(target: string, locale: Locale): string | null {
       return ABOUT_PATH[locale];
     case "start":
       return `/dentvideo/start?lang=${locale}`;
+    case "checker":
+      return CHECKER_PATH[locale];
     case "video": {
       const p = findSolution(arg);
       return p ? solutionPath(p) : null;
@@ -174,6 +177,12 @@ export function translationsOf(g: Guide): Guide[] {
   return GUIDES.filter((o) => o.topic === g.topic);
 }
 
+/** The sample video a guide embeds, if it names one that exists in its own language. */
+export function guideSample(g: Pick<Guide, "locale" | "sample">): SampleVideo | undefined {
+  if (!g.sample) return undefined;
+  return samplesFor(g.locale)?.find((v) => v.slug === g.sample);
+}
+
 /** A guide as Markdown, with absolute links, for llms-full.txt. */
 export function guideMarkdown(g: Guide, abs: (path: string) => string): string {
   const link = (t: string) =>
@@ -185,6 +194,8 @@ export function guideMarkdown(g: Guide, abs: (path: string) => string): string {
   if (g.updated) lines.push(`Updated: ${g.updated}`);
   const reviewed = reviewedDate(g);
   if (reviewed) lines.push(`Last reviewed: ${reviewed} by the DentVideo editorial team (Bulsu Labs)`);
+  const sample = guideSample(g);
+  if (sample) lines.push(`Sample video: "${sample.name}" (${sample.seconds} s, a real DentVideo video for a demo clinic): ${abs(sampleSrc(g.locale, sample.slug, "mp4"))}`);
   lines.push("", link(g.intro), "");
   for (const s of g.sections) {
     lines.push(`### ${s.heading}`, "");

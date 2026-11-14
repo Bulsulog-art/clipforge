@@ -11,7 +11,7 @@ import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 import { CommercialLinks } from "./solution-page";
 import { solutionsFor } from "@/content/solutions";
 
-const ORDER: GuideCategory[] = ["ideas", "video", "rules", "tools"];
+const ORDER: GuideCategory[] = ["ideas", "treatments", "video", "rules", "tools"];
 
 /** The guides hub for one language: every guide, grouped by what it helps with. */
 export function GuidesIndex({ locale }: { locale: Locale }) {

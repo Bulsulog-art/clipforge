@@ -5,8 +5,9 @@ import { ALTERNATE_NAMES, ENTITY, OPERATOR, PUBLISHER_NAME, PUBLISHER_URL, SAME_
 import { SOLUTIONS, solutionPath, solutionTranslations, type SolutionPage } from "@/content/solutions";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
-import { plainText, reviewedDate, translationsOf } from "@/content/guides/text";
+import { guideSample, plainText, reviewedDate, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { GUIDE_SAMPLE_UI } from "@/content/guides/ui-sample";
 import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 import { LANDING } from "@/content/dentvideo";
 import { LEGAL, LEGAL_KINDS, LEGAL_UPDATED, legalPath, type LegalKind } from "@/content/legal";
@@ -305,6 +306,23 @@ export function guideJsonLd(g: Guide) {
       { name: g.h1, path: guidePath(g) },
     ]),
   ];
+  const sample = guideSample(g);
+  if (sample) {
+    // The sample video shown under the intro: real DentVideo output for a demo clinic, on the guide's topic.
+    graph.push({
+      "@type": "VideoObject",
+      "@id": `${url}#video`,
+      name: sample.name,
+      description: `${GUIDE_SAMPLE_UI[g.locale].heading}. ${GUIDE_SAMPLE_UI[g.locale].note}`,
+      thumbnailUrl: absoluteUrl(sampleSrc(g.locale, sample.slug, "jpg")),
+      contentUrl: absoluteUrl(sampleSrc(g.locale, sample.slug, "mp4")),
+      uploadDate: SAMPLE_UPLOAD_DATE,
+      duration: `PT${sample.seconds}S`,
+      inLanguage: g.locale,
+      publisher: { "@id": ORG_ID },
+      isPartOf: { "@id": `${url}#article` },
+    });
+  }
   if (g.howTo) {
     graph.push({
       "@type": "HowTo",

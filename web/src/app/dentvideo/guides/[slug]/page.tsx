@@ -3,8 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Check, ExternalLink, Plus } from "lucide-react";
 import { GUIDES, LANDING_PATH, LANGUAGE_NAME, dirOf, findGuide, guidePath } from "@/content/dentvideo";
-import { readingMinutes, relatedGuides, reviewedDate, sectionId, translationsOf } from "@/content/guides/text";
+import { guideSample, readingMinutes, relatedGuides, reviewedDate, sectionId, translationsOf } from "@/content/guides/text";
+import { sampleSrc } from "@/content/dentvideo-samples";
+import { PhoneFrame } from "@/components/dentvid/phone";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { GUIDE_SAMPLE_UI } from "@/content/guides/ui-sample";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
 import { jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
@@ -41,6 +44,8 @@ export default async function GuidePage({ params }: Props) {
   const date = g.updated ?? g.published;
   // The commercial page this guide's reader most likely wants next (descriptive anchor, same language).
   const commercial = commercialPageForGuide(g);
+  // A real DentVideo sample on the guide's topic, in its language (loads nothing until played).
+  const sample = guideSample(g);
 
   return (
     <main lang={L} dir={dirOf(L)}>
@@ -80,6 +85,29 @@ export default async function GuidePage({ params }: Props) {
         </header>
 
         <div className="mx-auto max-w-3xl px-4 pb-8 pt-4 sm:px-6">
+          {sample && (
+            <figure aria-labelledby="guide-sample" className="mt-8 flex flex-col items-center gap-6 rounded-2xl bg-dv-sand/70 p-5 ring-1 ring-dv-line sm:flex-row sm:items-start sm:p-6">
+              <PhoneFrame tightShadow className="w-[11.5rem] shrink-0">
+                <video
+                  src={sampleSrc(L, sample.slug, "mp4")}
+                  poster={sampleSrc(L, sample.slug, "jpg")}
+                  controls
+                  playsInline
+                  preload="none"
+                  aria-label={sample.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </PhoneFrame>
+              <figcaption className="text-start">
+                <p id="guide-sample" className="text-xs font-semibold uppercase tracking-[0.14em] text-dv-muted">
+                  {GUIDE_SAMPLE_UI[L].heading}
+                </p>
+                <p className="mt-3 text-lg font-semibold leading-snug text-dv-ink">{sample.name}</p>
+                <p className="mt-3 text-sm leading-relaxed text-dv-muted">{GUIDE_SAMPLE_UI[L].note}</p>
+              </figcaption>
+            </figure>
+          )}
+
           {g.sections.length > 3 && (
             <nav aria-label={ui.onThisPage} className="mt-8 rounded-2xl bg-dv-sand/70 p-5 ring-1 ring-dv-line sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-dv-muted">{ui.onThisPage}</p>

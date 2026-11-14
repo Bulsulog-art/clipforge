@@ -245,7 +245,7 @@ describe("commercial pages: hreflang, sitemap, structured data, answer engines",
       expect(txt).toContain(`(https://dentvideo.com/videos/${p.slug})`);
       expect(full).toContain(`## ${p.h1}`);
     }
-    expect(full).not.toMatch(/\]\((guide|guides|landing|about|start|video):/);
+    expect(full).not.toMatch(/\]\((guide|guides|landing|about|start|video|checker):/);
   });
 
   it("the header and footer know a commercial page's language from its path", async () => {

@@ -339,6 +339,7 @@ export const GUIDES_ES: Guide[] = [
       },
     ],
     faq: [
+      { q: "¿Cada cuánto conviene publicar estas ideas?", a: "Importa más un ritmo que tu equipo pueda mantener todo el año que un número alto. La guía [¿cada cuánto debe publicar una clínica dental?](guide:cada-cuanto-publicar-clinica-dental) propone ritmos según tu tiempo y explica dónde ver las horas activas de tus seguidores." },
       { q: "¿Hay un plan listo para todo el año?", a: "Sí: nuestro [calendario de contenidos para clínicas dentales](guide:calendario-contenidos-clinica-dental) propone un tema educativo para cada una de las 52 semanas, con fechas como el Día Mundial de la Salud Bucodental, el 20 de marzo." },
       { q: "¿Qué debe publicar una clínica dental en Instagram?", a: "Respuestas cortas a preguntas de pacientes, explicaciones claras de tratamientos, consejos de cuidado y presentaciones del equipo, siempre informativas, prudentes y sin promesas." },
       { q: "¿Cuántas publicaciones por semana?", a: "Una a tres por semana es asumible para la mayoría de clínicas. La constancia importa más que la frecuencia." },

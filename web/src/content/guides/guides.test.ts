@@ -281,7 +281,7 @@ describe("answer-engine files", () => {
       expect(txt).toContain(`## ${g.h1}`);
       expect(txt).toContain(g.sections[g.sections.length - 1].heading);
     }
-    expect(txt).not.toMatch(/\]\((guide|guides|landing|about|start):/);
+    expect(txt).not.toMatch(/\]\((guide|guides|landing|about|start|checker):/);
   });
 });
 

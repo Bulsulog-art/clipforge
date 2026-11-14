@@ -8,6 +8,7 @@
  *   [label](landing:)       the DentVideo landing in the guide's language
  *   [label](about:)         the About page in the guide's language
  *   [label](start:)         the sign-up (live preview, then a plan)
+ *   [label](checker:)       the free "Is my post allowed?" ad checker in the guide's language
  *   [label](https://…)      an external source
  */
 
@@ -34,7 +35,7 @@ export type SectionTable = {
 export type GuideSource = { label: string; url: string };
 
 /** What a guide is about, for grouping on the guides index and choosing related guides. */
-export type GuideCategory = "rules" | "ideas" | "video" | "tools";
+export type GuideCategory = "rules" | "ideas" | "video" | "tools" | "treatments";
 
 export type GuideExtras = {
   /**
@@ -64,6 +65,13 @@ export type GuideExtras = {
   reviewed?: string;
   /** Official texts and bodies the guide relies on. */
   sources?: GuideSource[];
+  /**
+   * The slug of a sample video in the guide's own language
+   * (content/dentvideo-samples.ts) that answers a question the guide covers.
+   * Shown under the intro and emitted as a VideoObject. Only where a real
+   * sample on the topic exists; never another language's video.
+   */
+  sample?: string;
   /** Step-by-step instructions, emitted as HowTo structured data. */
   howTo?: { name: string; steps: { name: string; text: string }[] };
 };

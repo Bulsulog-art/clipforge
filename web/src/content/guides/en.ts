@@ -233,6 +233,7 @@ export const GUIDES_EN: Guide[] = [
       },
     ],
     faq: [
+      { q: "Are there video ideas for specific treatments?", a: "Yes. We have treatment guides with topics, a script structure and wording to avoid for [dental implants](guide:dental-implant-patient-education-videos), [clear aligners](guide:clear-aligner-patient-education-videos), [teeth whitening](guide:teeth-whitening-patient-education-videos), [children's dentistry](guide:pediatric-dental-patient-education-videos), [gum disease](guide:gum-disease-patient-education-videos) and [root canal treatment](guide:root-canal-patient-education-videos)." },
       { q: "How long should a patient-education video be?", a: "Short enough to watch in one go: about 30 to 90 seconds for one topic. Longer explanations work better split into several videos, one per step." },
       { q: "Does a video replace the consent conversation?", a: "No. Consent comes from a conversation with the dentist, documented as your rules require. A video prepares and reminds." },
       { q: "Should the dentist appear in the videos?", a: "When possible, yes. Patients trust the person who will treat them; narrated videos are a good fallback for busy weeks." },
@@ -466,6 +467,7 @@ export const GUIDES_EN: Guide[] = [
       },
     ],
     faq: [
+      { q: "How often should a dental clinic post these ideas?", a: "A rhythm your team can keep all year matters more than a big number. Our guide on [how often a dental practice should post, and when](guide:how-often-should-a-dental-practice-post) suggests rhythms by the time you have and shows how to find your followers' active hours." },
       { q: "Is there a ready-made plan for a whole year?", a: "Yes: our [dental social media content calendar](guide:dental-social-media-content-calendar) gives one educational topic for each of the 52 weeks, tied to dates such as World Oral Health Day on 20 March." },
       { q: "What should a dental practice post on Instagram?", a: "Short answers to patient questions, clear explanations of treatments, aftercare tips and introductions to the team — informative, carefully worded and free of promises." },
       { q: "How many posts a week?", a: "One to three a week is manageable for most practices. Consistency matters more than frequency." },

@@ -430,3 +430,36 @@ index and llms-full.txt tables and review dates.
 - A named professional reviewer per market (TR, DE, ES, FR, UK/US, JA, AR, PL) — then add a real reviewer line.
 - Re-check the Turkish regulation's article numbers against the official Resmî Gazete text and add them.
 - Quarterly: bump `reviewed` only after actually re-checking each rules guide's sources.
+
+---
+
+## 11. Treatment pages, posting rhythm and GEO pass (2026-11-14, branch `claude/seo-geo-push`)
+
+Research (Google Suggest, ~140 seeds, en/tr/de/es): per-treatment *video* queries in TR/DE/ES are mostly patient intent
+("implant tedavisi videosu", "wurzelbehandlung ablauf video"); the dentist-side demand is "<treatment> patient education",
+"<treatment> social media post / marketing ideas", "Parodontitis Aufklärung", "Wurzelbehandlung Angstpatienten",
+"kanal tedavisi korkusu", "Bleaching Werbung". Frequency/timing ("wie oft posten instagram unternehmen", "instagram
+paylaşım saatleri", "cada cuanto publicar en instagram") has strong generic demand with weak, unsourced answers.
+
+New pages (22, category `treatments` or `ideas`, each ≥ 900 words, risky → safer wording table, ad-checker link, FAQ):
+
+| topic (hreflang group) | en | de | tr | es |
+| --- | --- | --- | --- | --- |
+| treatment-implants | dental-implant-patient-education-videos | implantat-aufklaerungsvideos-zahnarztpraxis | implant-hasta-bilgilendirme-videolari | — |
+| treatment-aligners | clear-aligner-patient-education-videos | aligner-aufklaerungsvideos-zahnarztpraxis | seffaf-plak-hasta-bilgilendirme-videolari | — |
+| treatment-whitening | teeth-whitening-patient-education-videos | bleaching-aufklaerungsvideos-zahnarztpraxis | dis-beyazlatma-bilgilendirme-videolari | — |
+| treatment-kids | pediatric-dental-patient-education-videos | kinderzahnheilkunde-videos-zahnarztpraxis | cocuk-dis-sagligi-bilgilendirme-videolari | — |
+| treatment-gum-disease | gum-disease-patient-education-videos | parodontitis-aufklaerungsvideos-zahnarztpraxis | dis-eti-hastaligi-bilgilendirme-videolari | — |
+| treatment-root-canal | root-canal-patient-education-videos | wurzelbehandlung-aufklaerungsvideos-zahnarztpraxis | kanal-tedavisi-bilgilendirme-videolari | — |
+| posting-frequency | how-often-should-a-dental-practice-post | wie-oft-sollte-eine-zahnarztpraxis-posten | dis-klinigi-ne-siklikla-paylasim-yapmali | cada-cuanto-publicar-clinica-dental |
+
+- `sample` on a guide embeds a real sample video **of its own language** (8 pages) and emits a VideoObject; pages without a
+  matching sample get none (tested). To add one, render a sample in that language and list it in `dentvideo-samples.ts`.
+- New link target `[label](checker:)` → the ad checker in the guide's language.
+- Older patient-education and post-ideas guides link to the new pages from an FAQ entry (no orphans; tested).
+- robots.txt (`lib/dentvid/robots.ts`) names GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot,
+  Claude-User, PerplexityBot, Perplexity-User, Google-Extended, Applebot-Extended, Bingbot, CCBot, Meta-ExternalAgent,
+  Amazonbot, DuckAssistBot, MistralAI-User with an explicit Allow (each group repeats the private-path Disallows).
+- llms.txt / llms-full.txt open with "Quick answers" (price from billing: Starter $29, Practice $49, monthly, no yearly
+  plan, no founding price; live preview; free ad checker; no auto-posting; no avatars; operator) and list the treatment pages.
+- Next: ES and FR treatment pages (same topic keys), more samples per language, GSC review of the new queries at week 6.
