@@ -34,7 +34,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     index: {
       title: "Dental clinic guides: social media, videos, ad rules · DentVideo",
       description:
-        "Practical guides for dentists: what to post on Instagram and TikTok, how to film patient-education videos, and what health-advertising rules allow in the UK, the US and elsewhere.",
+        "Practical guides for dentists: what to post on Instagram and TikTok, how to film patient-education videos and what health-advertising rules allow.",
       h1: "Guides for dental clinics",
       lead: "Practical, hedged and sourced: what to post, how to film it in five minutes, and which advertising rules to check before you publish.",
     },
@@ -64,7 +64,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     index: {
       title: "Zahnarzt-Ratgeber: Social Media, Videos, Werberecht · DentVideo",
       description:
-        "Praktische Ratgeber für Zahnärztinnen und Zahnärzte: was Sie auf Instagram posten, wie Sie Aufklärungsvideos drehen und was HWG und Berufsordnung in Deutschland, Österreich und der Schweiz erlauben.",
+        "Ratgeber für Zahnarztpraxen: was Sie auf Instagram posten, wie Sie Aufklärungsvideos drehen und was HWG und Berufsordnung in DACH erlauben.",
       h1: "Ratgeber für Zahnarztpraxen",
       lead: "Praktisch, vorsichtig formuliert und mit Quellen: was Sie posten, wie Sie es in fünf Minuten drehen und welche Werberegeln Sie vorher prüfen sollten.",
     },
@@ -94,7 +94,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     index: {
       title: "Guías dentales: redes sociales, vídeos y publicidad · DentVideo",
       description:
-        "Guías prácticas para dentistas: qué publicar en Instagram y TikTok, cómo grabar vídeos educativos para pacientes y qué permite la normativa de publicidad sanitaria en España.",
+        "Guías para dentistas: qué publicar en Instagram y TikTok, cómo grabar vídeos para pacientes y qué permite la normativa de publicidad sanitaria en España.",
       h1: "Guías para clínicas dentales",
       lead: "Prácticas, prudentes y con fuentes: qué publicar, cómo grabarlo en cinco minutos y qué normas de publicidad revisar antes de publicar.",
     },
@@ -124,7 +124,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     index: {
       title: "Diş kliniği rehberleri: sosyal medya, video, tanıtım · DentVideo",
       description:
-        "Diş hekimleri için pratik rehberler: Instagram ve TikTok'ta ne paylaşılır, hasta bilgilendirme videosu nasıl çekilir ve Türkiye'deki sağlık tanıtım yönetmeliği neye izin verir.",
+        "Diş hekimleri için rehberler: Instagram ve TikTok'ta ne paylaşılır, hasta bilgilendirme videosu nasıl çekilir, sağlık tanıtım yönetmeliği neye izin verir.",
       h1: "Diş klinikleri için rehberler",
       lead: "Pratik, temkinli ve kaynaklı: ne paylaşacağınız, beş dakikada nasıl çekeceğiniz ve yayınlamadan önce hangi tanıtım kurallarını kontrol etmeniz gerektiği.",
     },
@@ -154,7 +154,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     index: {
       title: "Guides dentaires : réseaux sociaux, vidéos, règles · DentVideo",
       description:
-        "Guides pratiques pour chirurgiens-dentistes : quoi publier sur Instagram et TikTok, comment tourner des vidéos d'information patient et ce que permet le code de déontologie en France.",
+        "Guides pour chirurgiens-dentistes : quoi publier sur Instagram et TikTok, comment tourner des vidéos patient et ce que permet le code de déontologie.",
       h1: "Guides pour cabinets dentaires",
       lead: "Pratiques, prudents et sourcés : quoi publier, comment le tourner en cinq minutes et quelles règles de communication vérifier avant de publier.",
     },
@@ -241,7 +241,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     about: "O DentVideo",
     index: {
       title: "Poradniki dla gabinetów: social media i reklama · DentVideo",
-      description: "Praktyczne poradniki dla lekarzy dentystów: co publikować na Instagramie, Facebooku i TikToku, jak akceptować posty i na co pozwala Kodeks Etyki Lekarskiej.",
+      description: "Poradniki dla lekarzy dentystów: co publikować na Instagramie, Facebooku i TikToku, jak akceptować posty i na co pozwala Kodeks Etyki Lekarskiej.",
       h1: "Poradniki dla gabinetów stomatologicznych",
       lead: "Praktycznie, ostrożnie i ze źródłami: co publikować, jak zorganizować akceptację w gabinecie i jakie zasady reklamy sprawdzić przed publikacją.",
     },

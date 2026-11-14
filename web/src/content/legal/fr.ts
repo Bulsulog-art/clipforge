@@ -50,7 +50,7 @@ export const FR: LegalText = {
   docs: {
     terms: {
       title: "Conditions d'utilisation",
-      description: "Les conditions d'utilisation de DentVideo, le service de vidéos d'information patients pour cabinets dentaires, exploité par BLS AI Automation DOO (Bulsu Labs), Podgorica, Monténégro.",
+      description: "Conditions d'utilisation de DentVideo, vidéos patient pour cabinets dentaires, exploité par BLS AI Automation DOO (Bulsu Labs), Podgorica, Monténégro.",
       intro: [
         "Ces conditions constituent le contrat entre {legalName} (« nous »), qui exploite DentVideo sous la marque {brand}, et le cabinet ou le professionnel qui crée un compte DentVideo (« vous »). En créant un compte ou en payant une formule, vous les acceptez. Si vous les acceptez pour un cabinet, vous confirmez être habilité à l'engager.",
         "Nous les avons rédigées simplement. Si quelque chose n'est pas clair, écrivez à {email} avant de vous abonner.",
@@ -316,7 +316,7 @@ export const FR: LegalText = {
 
     dpa: {
       title: "Accord de sous-traitance des données",
-      description: "L'accord de sous-traitance de DentVideo au titre de l'article 28 du RGPD : ce que nous traitons pour les cabinets, comment, et la liste des sous-traitants ultérieurs.",
+      description: "L'accord de sous-traitance de DentVideo (article 28 du RGPD) : ce que nous traitons pour les cabinets, comment, et nos sous-traitants ultérieurs.",
       intro: [
         "Cet accord de sous-traitance (« DPA ») fait partie des [Conditions d'utilisation](terms) entre le cabinet (« responsable de traitement ») et {legalName} (« sous-traitant »). Il s'applique dès que des contenus que le cabinet place dans DentVideo contiennent des données personnelles dont le cabinet est responsable. Il est conclu par l'acceptation des Conditions ; aucune signature n'est nécessaire. Sur demande, nous le fournissons aussi signé.",
       ],

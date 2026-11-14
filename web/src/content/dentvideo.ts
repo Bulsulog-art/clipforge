@@ -367,7 +367,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     meta: {
       title: "DentVideo — vídeos educativos para clínicas dentales",
       description:
-        "Cada lunes, cinco vídeos educativos con voz y subtítulos, con los colores de tu clínica y revisados en publicidad sanitaria y precisión clínica. Tú apruebas.",
+        "Cada lunes, cinco vídeos con voz y subtítulos, con los colores de tu clínica y revisados en publicidad sanitaria y precisión clínica. Tú apruebas.",
       ogDescription: "Cinco vídeos para pacientes cada lunes, revisados antes de que los veas. Tú solo apruebas.",
     },
     hero: {
@@ -489,7 +489,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     meta: {
       title: "DentVideo — diş klinikleri için hasta bilgilendirme videoları",
       description:
-        "Her pazartesi kliniğinizin renklerinde beş seslendirilmiş hasta bilgilendirme videosu; tanıtım kuralları ve klinik doğruluk açısından denetlenir. Onay sizde.",
+        "Her pazartesi klinik renklerinizde beş seslendirilmiş hasta bilgilendirme videosu; tanıtım kuralları ve klinik doğruluk açısından denetlenir. Onay sizde.",
       ogDescription: "Her pazartesi beş hasta videosu, siz görmeden denetlenmiş. Size yalnızca onaylamak kalır.",
     },
     hero: {
@@ -611,7 +611,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     meta: {
       title: "DentVideo — vidéos d'information patient pour cabinets dentaires",
       description:
-        "Chaque lundi, cinq vidéos d'information patient commentées, à vos couleurs, vérifiées selon les règles de communication et l'exactitude clinique. Vous validez.",
+        "Chaque lundi, cinq vidéos patient commentées, à vos couleurs, vérifiées selon les règles de communication et l'exactitude clinique. Vous validez.",
       ogDescription: "Cinq vidéos patient chaque lundi, vérifiées avant que vous les voyiez. Vous n'avez qu'à valider.",
     },
     hero: {
@@ -979,7 +979,7 @@ export const LANDING: Record<Locale, LandingContent> = {
     meta: {
       title: "DentVideo — filmy dla pacjentów gabinetów stomatologicznych",
       description:
-        "Co poniedziałek pięć filmów dla pacjentów z lektorem, w kolorach gabinetu, sprawdzonych pod kątem reklamy medycznej i wiedzy klinicznej. Wystarczy zatwierdzić.",
+        "Co poniedziałek pięć filmów dla pacjentów z lektorem, w kolorach gabinetu, sprawdzonych pod kątem reklamy medycznej i wiedzy klinicznej. Ty zatwierdzasz.",
       ogDescription: "Pięć filmów dla pacjentów co poniedziałek, sprawdzonych, zanim Państwo je zobaczą. Wystarczy zatwierdzić.",
     },
     hero: {

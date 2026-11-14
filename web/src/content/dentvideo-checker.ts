@@ -129,7 +129,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "Before-and-after", why: "Before-and-after results imply every patient will get the same outcome.", tip: "Explain what the treatment involves, step by step." },
         testimonial: { name: "Testimonial or review", why: "Patient testimonials, star ratings and celebrity endorsements are restricted in health advertising in many markets.", tip: "Answer a question patients often ask instead." },
         cure: { name: "Cure claim", why: "Claiming to cure or eliminate a condition overstates what treatment can promise.", tip: "Say the treatment “can help treat” or “can help relieve”." },
-        fear: { name: "Fear or pressure", why: "Frightening people or pushing them to book now is restricted in health advertising.", tip: "Describe the sign calmly and suggest asking the dentist." },
+        fear: { name: "Fear or pressure", why: "Frightening people, pushing them to book now or inventing a deadline (“this month only”) is restricted in health advertising.", tip: "Describe the sign calmly and suggest asking the dentist." },
       },
       cta: {
         title: "Want five videos a week already checked like this?",
@@ -219,7 +219,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "Öncesi-sonrası", why: "Öncesi-sonrası sonuçlar, her hastanın aynı sonucu alacağı izlenimini verir ve talep yaratır.", tip: "Tedavinin adım adım nasıl yapıldığını anlatın." },
         testimonial: { name: "Hasta yorumu ya da teşekkür", why: "Hasta teşekkür ve memnuniyet ifadeleriyle tanıtım yapılamaz; mahremiyet riski de taşır.", tip: "Bunun yerine hastaların sık sorduğu bir soruyu yanıtlayın." },
         cure: { name: "İyileştirme iddiası", why: "Bir hastalığı tamamen iyileştireceğini ya da yok edeceğini söylemek tedavinin vaat edebileceğini aşar.", tip: "“Tedavisine yardımcı olabilir” deyin." },
-        fear: { name: "Korkutma ya da yönlendirme", why: "İzleyeni korkutmak ya da “hemen randevu alın” diye acele ettirmek yönlendirici tanıtım sayılabilir.", tip: "Belirtiyi sakin anlatın, hekime danışmayı önerin." },
+        fear: { name: "Korkutma ya da yönlendirme", why: "İzleyeni korkutmak ya da “hemen randevu alın” diye ya da “son fırsat” gibi uydurma bir süreyle acele ettirmek yönlendirici tanıtım sayılabilir.", tip: "Belirtiyi sakin anlatın, hekime danışmayı önerin." },
       },
       cta: {
         title: "Haftada beş video, her biri böyle kontrol edilmiş olarak gelsin mi?",
@@ -309,7 +309,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "Vorher-Nachher", why: "Vorher-Nachher-Ergebnisse suggerieren, dass jeder Patient dasselbe erreicht; § 11 HWG schränkt sie ein.", tip: "Erklären Sie Schritt für Schritt, wie die Behandlung abläuft." },
         testimonial: { name: "Patientenstimme oder Bewertung", why: "Äußerungen Dritter, Patientenstimmen und Erfahrungsberichte zu Werbezwecken schränkt § 11 HWG ein.", tip: "Beantworten Sie stattdessen eine Frage, die Patienten oft stellen." },
         cure: { name: "Heilversprechen", why: "Zu versprechen, dass eine Behandlung heilt oder etwas beseitigt, geht über das hinaus, was sie zusagen kann.", tip: "Sagen Sie „kann bei der Behandlung helfen“." },
-        fear: { name: "Angst oder Druck", why: "Werbung, die Angst macht oder zur sofortigen Buchung drängt, ist in der Heilmittelwerbung eingeschränkt.", tip: "Beschreiben Sie das Anzeichen ruhig und empfehlen Sie, es in der Praxis anzusprechen." },
+        fear: { name: "Angst oder Druck", why: "Werbung, die Angst macht, zur sofortigen Buchung drängt oder eine Frist erfindet („nur heute“), ist in der Heilmittelwerbung eingeschränkt.", tip: "Beschreiben Sie das Anzeichen ruhig und empfehlen Sie, es in der Praxis anzusprechen." },
       },
       cta: {
         title: "Fünf Videos pro Woche, schon so geprüft?",
@@ -399,7 +399,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "Antes y después", why: "El antes y después sugiere que todos los pacientes obtendrán el mismo resultado.", tip: "Explica paso a paso en qué consiste el tratamiento." },
         testimonial: { name: "Testimonio u opinión", why: "Los testimonios de pacientes y de famosos están restringidos en la publicidad sanitaria; el Tribunal Supremo avaló prohibir famosos en anuncios de clínicas dentales.", tip: "Responde mejor a una pregunta que los pacientes hacen a menudo." },
         cure: { name: "Promesa de curación", why: "Prometer una curación definitiva va más allá de lo que un tratamiento puede asegurar.", tip: "Di que el tratamiento “puede ayudar a tratar”." },
-        fear: { name: "Miedo o presión", why: "Asustar o meter prisa para pedir cita (“no esperes más”) no es información prudente.", tip: "Describe el síntoma con calma y sugiere consultarlo con el dentista." },
+        fear: { name: "Miedo o presión", why: "Asustar, meter prisa para pedir cita (“no esperes más”) o inventar un plazo (“última oportunidad”) no es información prudente.", tip: "Describe el síntoma con calma y sugiere consultarlo con el dentista." },
       },
       cta: {
         title: "¿Quieres cinco vídeos a la semana ya revisados así?",
@@ -489,7 +489,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "Avant/après", why: "Un avant/après laisse croire que chaque patient obtiendra le même résultat.", tip: "Expliquez le déroulement du traitement, étape par étape." },
         testimonial: { name: "Témoignage ou avis", why: "Les témoignages de tiers ne peuvent pas servir à la communication du chirurgien-dentiste.", tip: "Répondez plutôt à une question que vos patients posent souvent." },
         cure: { name: "Promesse de guérison", why: "Promettre de guérir ou d'éliminer un problème dépasse ce qu'un soin peut garantir.", tip: "Dites que le traitement « peut aider à traiter »." },
-        fear: { name: "Peur ou pression", why: "Faire peur ou pousser à prendre rendez-vous tout de suite incite à des soins, ce que la déontologie proscrit.", tip: "Décrivez le signe calmement et suggérez d'en parler au dentiste." },
+        fear: { name: "Peur ou pression", why: "Faire peur, pousser à prendre rendez-vous tout de suite ou inventer une échéance (« dernière chance ») incite à des soins, ce que la déontologie proscrit.", tip: "Décrivez le signe calmement et suggérez d'en parler au dentiste." },
       },
       cta: {
         title: "Cinq vidéos par semaine, déjà vérifiées ainsi ?",
@@ -574,7 +574,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "ビフォーアフター", why: "術前術後の写真は、誰もが同じ結果になるような印象を与えます。", tip: "治療の一般的な流れを説明しましょう。" },
         testimonial: { name: "体験談・口コミ", why: "治療の内容や効果に関する患者さんの体験談は、医療広告では広告できない事項とされています。", tip: "患者さんからよくいただく質問に答える形にしましょう。" },
         cure: { name: "「完治」などの表現", why: "「完治」「必ず治る」は治療が約束できる範囲を超えています。", tip: "「治療に役立つことがあります」と表現しましょう。" },
-        fear: { name: "不安をあおる表現", why: "「手遅れ」「今すぐ予約」など、不安をあおったり受診を急がせたりする表現は避けるべきです。", tip: "症状を落ち着いて説明し、歯科医師への相談をすすめましょう。" },
+        fear: { name: "不安をあおる表現", why: "「手遅れ」「今すぐ予約」「期間限定」など、不安をあおったり受診を急がせたりする表現は避けるべきです。", tip: "症状を落ち着いて説明し、歯科医師への相談をすすめましょう。" },
       },
       cta: {
         title: "このチェック済みの動画を、週に5本。",
@@ -659,7 +659,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "قبل وبعد", why: "صور النتائج «قبل وبعد» توحي بأن كل مريض سيحصل على النتيجة نفسها.", tip: "اشرحوا خطوات العلاج كما تتم عادةً." },
         testimonial: { name: "آراء المرضى", why: "شهادات المرضى وتقييمات النجوم مقيدة في الإعلان الطبي، وقد تكشف هوية المريض.", tip: "أجيبوا بدلاً من ذلك عن سؤال يطرحه المرضى كثيراً." },
         cure: { name: "وعد بالشفاء", why: "الوعد بشفاء تام أو علاج نهائي يتجاوز ما يمكن أن يعد به أي علاج.", tip: "قولوا إن العلاج «قد يساعد في العلاج»." },
-        fear: { name: "تخويف أو استعجال", why: "تخويف المشاهد أو استعجاله للحجز («احجزوا الآن») ليس معلومة هادئة ومتوازنة.", tip: "صفوا العَرَض بهدوء واقترحوا استشارة طبيب الأسنان." },
+        fear: { name: "تخويف أو استعجال", why: "تخويف المشاهد أو استعجاله للحجز («احجزوا الآن») أو اختلاق مهلة («آخر فرصة») ليس معلومة هادئة ومتوازنة.", tip: "صفوا العَرَض بهدوء واقترحوا استشارة طبيب الأسنان." },
       },
       cta: {
         title: "خمسة فيديوهات أسبوعياً، مفحوصة بهذه الطريقة مسبقاً؟",
@@ -749,7 +749,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         before_after: { name: "Przed i po", why: "Efekty „przed i po” sugerują, że każdy pacjent uzyska ten sam wynik.", tip: "Wyjaśnij krok po kroku, jak wygląda zabieg." },
         testimonial: { name: "Opinia pacjenta", why: "Opinie i referencje pacjentów użyte w reklamie są ryzykowne i mogą naruszać prywatność.", tip: "Odpowiedz raczej na pytanie, które pacjenci często zadają." },
         cure: { name: "Obietnica wyleczenia", why: "Obietnica całkowitego wyleczenia wykracza poza to, co leczenie może zapewnić.", tip: "Napisz, że leczenie „może pomóc w leczeniu”." },
-        fear: { name: "Straszenie lub presja", why: "Straszenie albo poganianie do zapisu („nie czekaj”) nie jest rzetelną informacją.", tip: "Opisz objaw spokojnie i zaproponuj rozmowę z dentystą." },
+        fear: { name: "Straszenie lub presja", why: "Straszenie, poganianie do zapisu („nie czekaj”) albo wymyślony termin („ostatnia szansa”) nie jest rzetelną informacją.", tip: "Opisz objaw spokojnie i zaproponuj rozmowę z dentystą." },
       },
       cta: {
         title: "Pięć filmów tygodniowo, sprawdzonych już w ten sposób?",

@@ -133,6 +133,12 @@
     "match": "50% off"
    },
    {
+    "rule": "fear",
+    "start": 39,
+    "end": 54,
+    "match": "this month only"
+   },
+   {
     "rule": "superlative",
     "start": 56,
     "end": 72,
@@ -306,6 +312,112 @@
     "start": 92,
     "end": 98,
     "match": "5-star"
+   }
+  ]
+ },
+ {
+  "input": "Last chance: our whitening offer ends soon, only 3 spots left this week. Limited time only!",
+  "scan": [
+   {
+    "rule": "price",
+    "match": "Limited time",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "price",
+    "start": 73,
+    "end": 85,
+    "match": "Limited time"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "fear",
+    "start": 0,
+    "end": 11,
+    "match": "Last chance"
+   },
+   {
+    "rule": "fear",
+    "start": 27,
+    "end": 42,
+    "match": "offer ends soon"
+   },
+   {
+    "rule": "fear",
+    "start": 44,
+    "end": 61,
+    "match": "only 3 spots left"
+   },
+   {
+    "rule": "fear",
+    "start": 73,
+    "end": 90,
+    "match": "Limited time only"
+   }
+  ]
+ },
+ {
+  "input": "Beyazlatmada son fırsat! Nur heute. Última oportunidad. Dernière chance. Ostatnia szansa. آخر فرصة. 期間限定。",
+  "scan": [
+   {
+    "rule": "price",
+    "match": "fırsat",
+    "why": "Prices, discounts and promotions in health advertising are banned or restricted in many markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "price",
+    "start": 17,
+    "end": 23,
+    "match": "fırsat"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "fear",
+    "start": 13,
+    "end": 23,
+    "match": "son fırsat"
+   },
+   {
+    "rule": "fear",
+    "start": 25,
+    "end": 34,
+    "match": "Nur heute"
+   },
+   {
+    "rule": "fear",
+    "start": 36,
+    "end": 54,
+    "match": "Última oportunidad"
+   },
+   {
+    "rule": "fear",
+    "start": 56,
+    "end": 71,
+    "match": "Dernière chance"
+   },
+   {
+    "rule": "fear",
+    "start": 73,
+    "end": 88,
+    "match": "Ostatnia szansa"
+   },
+   {
+    "rule": "fear",
+    "start": 90,
+    "end": 98,
+    "match": "آخر فرصة"
+   },
+   {
+    "rule": "fear",
+    "start": 100,
+    "end": 104,
+    "match": "期間限定"
    }
   ]
  },
