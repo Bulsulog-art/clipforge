@@ -47,12 +47,10 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   // Guides (/guides/<slug>) and commercial pages (/videos/<slug>) each have one language.
   if (parts[0] === "guides" || parts[0] === "videos") return guideLocales[parts[1] ?? ""] ?? null;
   if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
-  // A landing (/tr), or its guides hub or About page (/tr/guides).
-  // … or one of its legal pages (/tr/terms).
-  // … or its ad checker (/tr/ad-checker).
-  return parts.length === 1 || (parts.length === 2 && (parts[1] === "guides" || parts[1] === "about" || parts[1] === CHECKER_SLUG || isLegalKind(parts[1])))
-    ? (parts[0] as Locale)
-    : null;
+  // Everything under a language prefix is in that language: a landing (/tr), its guides hub,
+  // About, legal pages and ad checker (/tr/guides, /tr/terms, /tr/ad-checker) — and the
+  // 404 for a mistyped /tr/… address, whose message is Turkish, so its header and footer are too.
+  return parts[0] as Locale;
 }
 
 /** The free ad checker's last path segment, the same in every language. */

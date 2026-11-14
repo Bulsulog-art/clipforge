@@ -16,6 +16,20 @@ describe("ad checker: engine", () => {
     expect(hits.find((h) => h.rule === "absolute")?.fix).toBe("comfortable for most patients, with local anaesthesia");
   });
 
+  it("flags a plain call to book now in English and German, as it does in Turkish", () => {
+    for (const [t, match] of [
+      ["The best dentist in town — book now, results guaranteed.", "book now"],
+      ["Book today!", "Book today"],
+      ["Der beste Zahnarzt der Stadt — jetzt buchen.", "jetzt buchen"],
+      ["Jetzt Termin vereinbaren!", "Jetzt Termin vereinbaren"],
+      ["Garantili sonuç — hemen randevu alın.", "hemen randevu alın"],
+    ] as const) {
+      const fear = checkText(t).find((h) => h.rule === "fear");
+      expect(fear?.match, t).toBe(match);
+      expect(fear?.fix, t).toBeTruthy();
+    }
+  });
+
   it("leaves hedged, educational text alone", () => {
     for (const t of [
       "Whitening can make teeth a few shades lighter for many people; ask your dentist whether it suits you.",

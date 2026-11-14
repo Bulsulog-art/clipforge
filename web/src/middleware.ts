@@ -1,7 +1,8 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { allowedOrigins, isBadOrigin } from "@/lib/origin-guard";
-import { routeForHost } from "@/lib/dentvid/host";
+import { isDentvideoHost, routeForHost } from "@/lib/dentvid/host";
+import { aliasFor } from "@/lib/dentvid/host-alias";
 import { publicCacheControl } from "@/lib/dentvid/cache-policy";
 import { TOO_MANY, requestLocale } from "@/lib/dentvid/request-locale";
 import { shouldRefreshDvSession, withFreshDvSession } from "@/lib/dentvid/session-refresh";
@@ -27,6 +28,13 @@ export async function middleware(req: NextRequest) {
         : "Too many requests";
       return NextResponse.json({ error }, { status: 429, headers: { "Retry-After": String(r.retryAfterSec) } });
     }
+  }
+
+  // Guessed addresses on dentvideo.com (/pricing, /login, /tr/start …) go to the page that answers them (lib/dentvid/host-alias).
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  if (isDentvideoHost(host) && !host?.toLowerCase().startsWith("www.")) {
+    const alias = aliasFor(req.nextUrl.pathname, req.nextUrl.search);
+    if (alias) return NextResponse.redirect(`https://dentvideo.com${alias}`, 308);
   }
 
   // dentvideo.com is served from the /dentvideo section (lib/dentvid/host).

@@ -134,7 +134,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("before_after", /vorher/i, "wie die Behandlung Schritt für Schritt abläuft"),
     r("testimonial", /patienten|erfahrungsbericht|dankschreiben|bewertung/i, "Fragen, die uns Patientinnen und Patienten oft stellen"),
     r("cure", /heil/i, "kann bei der Behandlung helfen"),
-    r("fear", /zu spät|warten|termin|verlieren/i, "Wenn Ihnen das auffällt, sprechen Sie uns beim nächsten Termin an."),
+    r("fear", /zu spät|warten|termin|buchen|verlieren/i, "Wenn Ihnen das auffällt, sprechen Sie uns beim nächsten Termin an."),
   ],
   es: [
     r("absolute", /sin dolor|indoloro/i, "con anestesia local, cómodo para la mayoría de pacientes"),

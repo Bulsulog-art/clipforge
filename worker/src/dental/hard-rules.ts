@@ -314,9 +314,9 @@ export const FEAR_RULE: Rule = {
   id: "fear",
   why: "Frightening the reader or pressing them to book now is restricted in health advertising.",
   patterns: [
-    w("before it'?s too late|(you )?could lose (all )?your teeth|(could|will) cost you your teeth|don'?t wait (any longer|until it'?s too late)|book (now|today) before"),
+    w("before it'?s too late|(you )?could lose (all )?your teeth|(could|will) cost you your teeth|don'?t wait (any longer|until it'?s too late)|book (now|today)( before)?"),
     w("(çok )?geç olmadan|dişlerinizi kaybedebilirsiniz|dişlerinizi kaybetmeden|hemen randevu al\\p{L}*|kaçırmayın|daha fazla beklemeyin"),
-    w("bevor es zu spät ist|warten sie nicht (länger|zu lange)|jetzt sofort (einen )?termin\\p{L}*|ihre zähne verlieren"),
+    w("bevor es zu spät ist|warten sie nicht (länger|zu lange)|jetzt sofort (einen )?termin\\p{L}*|jetzt (einen )?termin (buchen|vereinbaren|sichern)|jetzt buchen|ihre zähne verlieren"),
     w("antes de que sea (demasiado )?tarde|no esperes? más|(podrías|puedes|podría|puede) perder (tus|sus) dientes"),
     w("avant qu'il (ne )?soit trop tard|n'attendez plus|(pourriez|risquez de) perdre vos dents"),
     w("zanim będzie za późno|nie czekaj(cie)? dłużej|(możesz|możecie) stracić zęby"),

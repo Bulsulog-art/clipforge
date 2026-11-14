@@ -307,7 +307,9 @@ describe("header/footer language on the new pages", () => {
     expect(pathLocale("/pl/guides", g)).toBe("pl");
     expect(pathLocale("/guides/madha-tanshur-iyadat-al-asnan", g)).toBe("ar");
     expect(pathLocale("/dentvideo/app", g)).toBeNull();
-    expect(pathLocale("/dentvideo/de/whatever", g)).toBeNull();
+    // A mistyped address under /de shows the German 404: header and footer in German too.
+    expect(pathLocale("/dentvideo/de/whatever", g)).toBe("de");
+    expect(pathLocale("/dentvideo/whatever", g)).toBeNull();
   });
 });
 
