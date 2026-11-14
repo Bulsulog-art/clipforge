@@ -50,7 +50,7 @@ export const EN: LegalText = {
   docs: {
     terms: {
       title: "Terms of Service",
-      description: "The terms for using DentVideo, the patient-education video service for dental clinics, operated by BLS AI Automation DOO (Bulsu Labs), Podgorica, Montenegro.",
+      description: "The terms for using DentVideo, the patient-education video service for dental clinics, run by BLS AI Automation DOO (Bulsu Labs), Podgorica, Montenegro.",
       intro: [
         "These terms are the agreement between {legalName} (\"we\", \"us\"), which runs DentVideo under its brand {brand}, and the clinic or professional who creates a DentVideo account (\"you\"). By creating an account or paying for a plan you accept them. If you accept them for a clinic, you confirm that you may bind that clinic.",
         "We have written them in plain language. If anything is unclear, write to {email} before you subscribe.",
