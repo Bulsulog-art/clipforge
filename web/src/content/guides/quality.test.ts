@@ -185,7 +185,7 @@ describe("new pages: hreflang, sitemap and llms.txt", () => {
     const txt = llmsTxt();
     expect(txt).toContain("## Editorial policy");
     expect(txt).toContain("not legal advice");
-    expect(txt).not.toMatch(/\]\((guide|guides|landing|about|start|video):/);
+    expect(txt).not.toMatch(/\]\((guide|guides|landing|about|start|video|checker):/);
     for (const l of LOCALES) {
       const head = txt.indexOf(`(${l})\n- [DentVideo`);
       expect(head, l).toBeGreaterThan(0);

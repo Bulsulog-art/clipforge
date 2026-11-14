@@ -15,6 +15,10 @@ import { CALENDAR_TR } from "./calendar-tr";
 import { EDUCATION_JA } from "./education-ja";
 import { EDUCATION_AR } from "./education-ar";
 import { EDUCATION_PL } from "./education-pl";
+import { TREATMENTS_EN } from "./treatments-en";
+import { TREATMENTS_DE } from "./treatments-de";
+import { TREATMENTS_TR } from "./treatments-tr";
+import { POSTING_RHYTHM_DE, POSTING_RHYTHM_EN, POSTING_RHYTHM_ES, POSTING_RHYTHM_TR } from "./posting-rhythm";
 
 // Only type imports from ../dentvideo here and in the per-language files, so
 // content/dentvideo.ts can import this module without a runtime cycle.
@@ -23,14 +27,21 @@ import { EDUCATION_PL } from "./education-pl";
 export const GUIDE_LIBRARY: Guide[] = [
   ...GUIDES_TR,
   CALENDAR_TR,
+  POSTING_RHYTHM_TR,
+  ...TREATMENTS_TR,
   ...GUIDES_DE,
   CALENDAR_DE,
+  POSTING_RHYTHM_DE,
+  ...TREATMENTS_DE,
   ...GUIDES_ES,
   CALENDAR_ES,
+  POSTING_RHYTHM_ES,
   ...GUIDES_FR,
   CALENDAR_FR,
   ...GUIDES_EN,
   CALENDAR_EN,
+  POSTING_RHYTHM_EN,
+  ...TREATMENTS_EN,
   ...GUIDES_JA,
   EDUCATION_JA,
   ...GUIDES_AR,

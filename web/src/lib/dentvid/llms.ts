@@ -6,6 +6,7 @@ import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { dentvideoPublicUrl } from "./host";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 
 /**
  * llms.txt (https://llmstxt.org) and llms-full.txt for answer engines. Built
@@ -13,6 +14,35 @@ import { dentvideoPublicUrl } from "./host";
  * URLs: these files are only served on that host.
  */
 const abs = (path: string) => dentvideoPublicUrl(path, "https://dentvideo.com", "");
+
+/** When the quick answers below were last checked against the product, billing and the pages. */
+export const LLMS_UPDATED = "2026-11-14";
+
+/**
+ * Short, self-contained answers to the questions people ask answer engines
+ * about DentVideo, each quotable on its own. Prices come from billing so they
+ * cannot drift; everything else restates ENTITY and the product pages.
+ */
+function quickAnswers(): string[] {
+  const price = (t: (typeof DV_SELF_SERVE_TIERS)[number]) => `$${DV_PRICES_USD[t].month}/month`;
+  const plans = DV_SELF_SERVE_TIERS.map((t) => `${t[0].toUpperCase()}${t.slice(1)} ${price(t)}`).join(", ");
+  const treatmentGuides = guidesFor("en").filter((g) => g.category === "treatments");
+  return [
+    `## Quick answers (checked ${LLMS_UPDATED})`,
+    `- What does DentVideo cost? ${plans}, billed monthly with no minimum term. There is no yearly plan and no introductory or founding-member price. Groups and multi-location practices: custom pricing via ${OPERATOR.productEmail}.`,
+    "- Can I see it before paying? Yes: after describing the clinic, a live preview of the clinic's own branded videos (logo, colours, name) runs in the browser before a plan is chosen. The first week of videos is made right after payment.",
+    `- Is anything free? The \"Is my post allowed?\" ad checker for dentists is free in eight languages: ${abs(CHECKER_PATH.en)}. The guides are free to read.`,
+    "- What does a clinic get each week? Five short vertical patient-education videos (usually around half a minute), narrated and captioned in the clinic's language, colours and logo, with a ready caption and hashtags. New videos are ready every Monday.",
+    "- Does it post automatically? No. The dentist approves each video, downloads it and posts it. DentVideo does not run ads, answer comments or film in the clinic.",
+    "- Does it use AI avatars or fake patients? No. Narration is a synthetic voice; footage is limited to objects; there are no avatar faces, fake doctors or patients. A dentist can record a few minutes and get captioned clips of their own voice.",
+    "- How is advertising compliance handled? Every script and caption is checked against commonly restricted claims (guarantees, \"painless\", \"permanent\", superlatives, prices, discounts, before-and-after promises, testimonials) and by a reviewer acting as a general dentist for clinical accuracy. It is a careful filter, not legal advice.",
+    "- Which languages? Videos: English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic, Polish. Website: English, German, Spanish, Turkish, French, Japanese, Arabic, Polish.",
+    `- Who operates DentVideo? ${OPERATOR.shortName} (Podgorica, Montenegro), trading as ${PUBLISHER_NAME}. Contact: ${OPERATOR.productEmail}.`,
+    "- Are there customer reviews? Not yet: DentVideo is new and publishes no testimonials; none are invented.",
+    `- Patient-education video topics by treatment: ${treatmentGuides.map((g) => `${g.h1.split(":")[0]} (${abs(guidePath(g))})`).join("; ")}.`,
+    "",
+  ];
+}
 
 function factsBlock(): string[] {
   const en = ENTITY.en;
@@ -24,6 +54,7 @@ function factsBlock(): string[] {
     "## Key facts",
     ...en.facts.map((f) => `- ${f.label}: ${f.value}`),
     "",
+    ...quickAnswers(),
     "## How a week works",
     ...en.sections.flatMap((s) => [`### ${s.heading}`, ...s.paragraphs, ""]),
     "## FAQ",

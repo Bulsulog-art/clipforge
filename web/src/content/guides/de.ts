@@ -328,6 +328,7 @@ export const GUIDES_DE: Guide[] = [
       },
     ],
     faq: [
+      { q: "Wie oft sollte eine Zahnarztpraxis diese Ideen posten?", a: "Ein Rhythmus, den Ihr Team das ganze Jahr hält, zählt mehr als eine große Zahl. Der Ratgeber [Wie oft sollte eine Zahnarztpraxis posten — und wann?](guide:wie-oft-sollte-eine-zahnarztpraxis-posten) schlägt Rhythmen nach verfügbarer Zeit vor und zeigt, wo Sie die aktiven Zeiten Ihrer Follower finden." },
       { q: "Gibt es einen fertigen Plan für ein ganzes Jahr?", a: "Ja: Unser [Redaktionsplan für die Zahnarztpraxis](guide:redaktionsplan-social-media-zahnarztpraxis) enthält 52 Wochenthemen, abgestimmt auf Termine wie den Tag der Zahngesundheit am 25. September." },
       { q: "Was sollte eine Zahnarztpraxis auf Instagram posten?", a: "Kurze Antworten auf Patientenfragen, verständliche Erklärungen von Behandlungen, Pflegetipps und Vorstellungen des Teams — sachlich, vorsichtig formuliert und ohne Versprechen." },
       { q: "Wie oft sollte eine Praxis posten?", a: "Ein bis drei Beiträge pro Woche sind für die meisten Praxen gut machbar. Regelmäßigkeit ist wichtiger als Häufigkeit." },
@@ -431,6 +432,7 @@ export const GUIDES_DE: Guide[] = [
       },
     ],
     faq: [
+      { q: "Gibt es Videoideen für einzelne Behandlungen?", a: "Ja. Eigene Ratgeber mit Themen, Skriptaufbau und heiklen Aussagen gibt es zu [Implantaten](guide:implantat-aufklaerungsvideos-zahnarztpraxis), [Alignern](guide:aligner-aufklaerungsvideos-zahnarztpraxis), [Bleaching](guide:bleaching-aufklaerungsvideos-zahnarztpraxis), [Kinderzahnheilkunde](guide:kinderzahnheilkunde-videos-zahnarztpraxis), [Parodontitis](guide:parodontitis-aufklaerungsvideos-zahnarztpraxis) und [Wurzelbehandlung](guide:wurzelbehandlung-aufklaerungsvideos-zahnarztpraxis)." },
       { q: "Wie lang sollte ein Aufklärungsvideo sein?", a: "Für ein Thema reichen meist 30 bis 90 Sekunden. Längere Behandlungsverläufe teilen Sie in mehrere kurze Videos, je eines pro Schritt." },
       { q: "Ersetzt ein Video das Aufklärungsgespräch?", a: "Nein. Die Aufklärung vor einem Eingriff erfolgt mündlich im Gespräch mit der Zahnärztin. Videos bereiten vor und erinnern, sie ersetzen das Gespräch nicht." },
       { q: "Darf ich Aufklärungsvideos auf Instagram zeigen?", a: "Ja, solange sie sachlich informieren und keine Erfolgsversprechen, Rabatte oder Patientenstimmen enthalten. In Social Media gilt das Werberecht." },

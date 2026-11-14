@@ -336,6 +336,7 @@ export const GUIDES_TR: Guide[] = [
       },
     ],
     faq: [
+      { q: "Bu fikirler ne sıklıkla paylaşılmalı?", a: "Ekibinizin bütün yıl sürdürebileceği bir ritim, büyük bir sayıdan daha önemlidir. [Diş kliniği ne sıklıkla paylaşım yapmalı?](guide:dis-klinigi-ne-siklikla-paylasim-yapmali) rehberimiz ayırabildiğiniz zamana göre ritimler önerir ve takipçilerinizin aktif saatlerini nerede bulacağınızı gösterir." },
       { q: "Bütün yıl için hazır bir plan var mı?", a: "Evet: [diş kliniği sosyal medya içerik takvimi](guide:dis-klinigi-sosyal-medya-icerik-takvimi) rehberimiz 52 haftanın her biri için bir bilgilendirme konusu önerir; 20 Mart ve 22 Kasım gibi tarihler de takvimde yer alır." },
       { q: "Diş kliniği Instagram'da ne paylaşmalı?", a: "Hasta sorularının kısa yanıtları, tedavilerin anlaşılır anlatımı, tedavi sonrası bakım ipuçları ve ekip tanıtımı. Tümü bilgilendirici, temkinli ve yönlendirmesiz olmalıdır." },
       { q: "Diş hekimi Instagram'da hasta fotoğrafı paylaşabilir mi?", a: "Ancak hastanın belgelenmiş açık rızasıyla ve tanıtım kurallarına uygun biçimde. Öncesi-sonrası görselleri yönetmelik açısından tartışmalı olduğundan paylaşmadan önce odanıza danışın." },
@@ -442,6 +443,7 @@ export const GUIDES_TR: Guide[] = [
       },
     ],
     faq: [
+      { q: "Tek tek tedaviler için video fikirleri var mı?", a: "Evet. Konu listesi, senaryo yapısı ve kaçınılacak ifadelerle ayrı rehberlerimiz var: [implant](guide:implant-hasta-bilgilendirme-videolari), [şeffaf plak](guide:seffaf-plak-hasta-bilgilendirme-videolari), [diş beyazlatma](guide:dis-beyazlatma-bilgilendirme-videolari), [çocuk diş sağlığı](guide:cocuk-dis-sagligi-bilgilendirme-videolari), [diş eti hastalığı](guide:dis-eti-hastaligi-bilgilendirme-videolari) ve [kanal tedavisi](guide:kanal-tedavisi-bilgilendirme-videolari)." },
       { q: "Hasta bilgilendirme videosu ne kadar uzun olmalı?", a: "Tek bir konu için 30–90 saniye çoğu zaman yeterlidir. Uzun bir tedavi süreci, her biri bir aşamayı anlatan birkaç kısa videoya bölünebilir." },
       { q: "Bilgilendirme videosu aydınlatılmış onamın yerine geçer mi?", a: "Hayır. Aydınlatılmış onam hekim ile hasta arasındaki görüşme ve imzalı belgeyle alınır. Video bu görüşmeyi destekler ve hatırlatır." },
       { q: "Bilgilendirme videoları sosyal medyada paylaşılabilir mi?", a: "Evet, bilgilendirici ve temkinli oldukları sürece. Fiyat, kampanya, sonuç vaadi ve hasta teşekkürü içermemelidir." },
