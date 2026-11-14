@@ -1,5 +1,17 @@
 import type { NextConfig } from "next";
 
+// ClipForge's own Supabase (NEXT_PUBLIC_SUPABASE_URL). *.supabase.co is
+// always allowed below; a self-hosted origin (Liman) is added from the env.
+function selfHostedSupabase(): URL | null {
+  try {
+    const u = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL) : null;
+    return u && !u.hostname.endsWith(".supabase.co") ? u : null;
+  } catch {
+    return null;
+  }
+}
+const cfSupabase = selfHostedSupabase();
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // No "X-Powered-By: Next.js" banner.
@@ -15,6 +27,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "cdn.clipforge.bulsulabs.com" },
       { protocol: "https", hostname: "img.youtube.com" },
+      ...(cfSupabase ? [{ protocol: "https" as const, hostname: cfSupabase.hostname }] : []),
     ],
   },
   async rewrites() {
@@ -38,6 +51,10 @@ const nextConfig: NextConfig = {
     } catch {
       liman = "";
     }
+    // ClipForge's own data on a self-hosted origin (after the move to Liman
+    // it is usually the same origin as DentVideo's; listed once).
+    const cf = cfSupabase && cfSupabase.origin !== liman ? cfSupabase.origin : "";
+    const cfWs = cf.startsWith("https://") ? cf.replace(/^https:/, "wss:") : "";
     const limanWs = liman.startsWith("https://") ? liman.replace(/^https:/, "wss:") : "";
     const extra = (...xs: string[]) => xs.filter(Boolean).map((x) => ` ${x}`).join("");
     // Cloudflare Turnstile on the DentVideo sign-up form, only when configured.
@@ -56,11 +73,11 @@ const nextConfig: NextConfig = {
       ...(turnstile ? [`frame-src 'self' ${turnstile}`] : []),
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      `img-src 'self' data: blob: https://*.supabase.co https://cdn.clipforge.bulsulabs.com https://img.youtube.com${extra(liman)}`,
+      `img-src 'self' data: blob: https://*.supabase.co https://cdn.clipforge.bulsulabs.com https://img.youtube.com${extra(liman, cf)}`,
       // data: for the live preview's player, which unlocks its audio tags with a silent data: mp3.
-      `media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob: data:${extra(liman)}`,
+      `media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob: data:${extra(liman, cf)}`,
       // OpenAI and fal.ai are called server-side only, so they are not listed.
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://api.revenuecat.com${extra(liman, limanWs, turnstile)}`,
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://api.revenuecat.com${extra(liman, limanWs, cf, cfWs, turnstile)}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -46,6 +46,8 @@ async function main() {
       password,
       email_confirm: true,
       user_metadata: { role: "apple_reviewer" },
+      // ClipForge's membership marker on a shared auth (Liman); see web/src/lib/clipforge-membership.ts.
+      app_metadata: { product: "clipforge" },
     });
     if (error || !data?.user) throw error ?? new Error("createUser returned no user");
     userId = data.user.id;

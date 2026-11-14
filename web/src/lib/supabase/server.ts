@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
+import { ensureClipforgeProfile } from "./clipforge-profile";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
@@ -15,7 +16,7 @@ export async function createClient() {
   const hdrs = await headers();
   const auth = hdrs.get("authorization");
 
-  return createServerClient(
+  const client = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -37,6 +38,19 @@ export async function createClient() {
       },
     },
   );
+
+  // Every ClipForge route and page learns who is signed in through
+  // getUser(). On Liman, whose auth.users several apps share, that is also
+  // where a first-time user gets their clipforge.profiles row (no auth
+  // trigger there; see ./clipforge-profile.ts).
+  const getUser = client.auth.getUser.bind(client.auth);
+  client.auth.getUser = (async (jwt?: string) => {
+    const res = await getUser(jwt);
+    if (res.data.user) await ensureClipforgeProfile(res.data.user, createServiceClient());
+    return res;
+  }) as typeof client.auth.getUser;
+
+  return client;
 }
 
 export function createServiceClient() {

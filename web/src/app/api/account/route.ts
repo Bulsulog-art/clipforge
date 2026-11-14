@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { isClipforgeOnly, leaveClipforgePatch } from "@/lib/clipforge-membership";
 
 /**
  * DELETE /api/account — permanently delete the authenticated user.
@@ -18,6 +19,11 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
  *
  * The user is signed out by Supabase as part of the delete. iOS app handles
  * the local-state cleanup on its side.
+ *
+ * Shared logins (Liman): when the auth user also belongs to another app
+ * (lib/clipforge-membership isClipforgeOnly), the login is kept. ClipForge
+ * deletes its profile row instead (same cascade through every ClipForge
+ * table) and takes its marker off app_metadata.
  */
 export async function DELETE() {
   const supabase = await createClient();
@@ -81,6 +87,20 @@ export async function DELETE() {
       }
     }),
   );
+
+  if (!isClipforgeOnly(user)) {
+    // Another app uses this login: remove only ClipForge's data and marker.
+    const { error: profErr } = await svc.from("profiles").delete().eq("id", userId);
+    if (profErr) {
+      return NextResponse.json(
+        { error: `Account deletion failed: ${profErr.message}` },
+        { status: 500 },
+      );
+    }
+    const patch = leaveClipforgePatch(user.app_metadata);
+    if (patch) await svc.auth.admin.updateUserById(userId, { app_metadata: patch });
+    return NextResponse.json({ deleted: true });
+  }
 
   // Delete the auth user. Supabase cascades the deletion through the FK on
   // clipforge.profiles → which itself cascades through every child table.
