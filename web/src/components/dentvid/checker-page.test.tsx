@@ -77,6 +77,13 @@ describe("ad checker page", () => {
     expect(pathLocale("/ar/ad-checker", {})).toBe("ar");
   });
 
+  it("a mistyped address under a language prefix keeps that language's header and footer (its 404 is localized)", () => {
+    expect(pathLocale("/tr/does-not-exist", {})).toBe("tr");
+    expect(pathLocale("/dentvideo/de/a/b", {})).toBe("de");
+    expect(pathLocale("/does-not-exist", {})).toBeNull();
+    expect(pathLocale("/start", {})).toBeNull();
+  });
+
   it("the header and footer can name it in every language", () => {
     const t = chromeText();
     for (const l of LOCALES) expect(t[l].checker).toBe(CHECKER[l].nav);

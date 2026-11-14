@@ -10,6 +10,7 @@ import { clientIp, LIMITS } from "@/lib/rate-limit";
 import { limitChecks } from "@/lib/rate-limit-server";
 import { postingText } from "@/content/dentvideo-posting";
 import { PostNow } from "@/components/dentvid/post-now";
+import { RememberLocale } from "@/components/dentvid/chrome";
 import { ArabicFont } from "@/components/dentvid/font-ar";
 import { JapaneseFont } from "@/components/dentvid/font-ja";
 
@@ -21,7 +22,10 @@ import { JapaneseFont } from "@/components/dentvid/font-ja";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: postingText("en").page.metaTitle, robots: { index: false, follow: false }, referrer: "no-referrer" };
+  // The tab title in the visitor's language (the signed link is only read once, by the page).
+  const h = await headers();
+  const locale = asLocale(requestLocale(h.get("cookie"), h.get("accept-language"))) ?? "en";
+  return { title: postingText(locale).page.metaTitle, robots: { index: false, follow: false }, referrer: "no-referrer" };
 }
 
 export default async function PostPage({ searchParams }: { searchParams: Promise<{ t?: string; v?: string }> }) {
@@ -41,6 +45,9 @@ export default async function PostPage({ searchParams }: { searchParams: Promise
   }
   return (
     <>
+      {/* The page speaks the clinic's language (from the signed link): the header and footer follow it,
+          also in a phone's fresh in-app browser that has never seen dentvideo.com. */}
+      <RememberLocale locale={view.locale} />
       <JapaneseFont />
       <ArabicFont />
       <PostNow view={view} token={sp.t ?? ""} appUrl={appUrl} ttlDays={APPROVE_TTL_DAYS} />
