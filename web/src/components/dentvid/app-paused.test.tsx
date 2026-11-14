@@ -10,6 +10,7 @@ vi.mock("next/navigation", () => ({
 
 import { AppHomeView, SettingsView } from "./app-screens";
 import { billingText } from "@/content/dentvideo-billing";
+import { appText } from "@/content/dentvideo-app";
 import { LOCALES } from "@/content/dentvideo";
 import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { loadClinicPlan, type ClinicPlan } from "@/lib/dentvid/plan";
@@ -50,6 +51,13 @@ describe("states only DentVideo can resolve: an honest panel, a way to write to 
       expect(html, locale).toContain(c.disputedBody.replace("{email}", "hello@dentvideo.com"));
       expect(html, locale).not.toContain("$29");
     }
+  });
+
+  it("settings ask how to address patients only where the language has a choice (never for English videos)", () => {
+    const formal = appText("en").form.formal;
+    const settings = (language: string) => decode(renderToStaticMarkup(<SettingsView locale="en" profile={{ name: "Smile", country: "US", language: language as "en", services: ["Cleanings"] }} plan={pausedByUs} plans={plans} selfServe billingIssue={{ kind: "admin_paused" }} />));
+    expect(settings("en")).not.toContain(formal);
+    expect(settings("de")).toContain(formal);
   });
 
   it("the settings screen shows the same panel instead of the plans", () => {

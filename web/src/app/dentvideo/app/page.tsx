@@ -7,9 +7,10 @@ import { dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
 import { AppHomeView } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
-import { appSendsToFunnel, billingReturn, showFirstWeek } from "@/lib/dentvid/onboarding";
+import { appSendsToFunnel, billingReturn, paymentDeclined, showFirstWeek } from "@/lib/dentvid/onboarding";
 import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { readWeekDelay } from "@/lib/dentvid/ops-server";
+import { weekDelivered } from "@/lib/dentvid/week-job";
 import { adminOrNull, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
 
 export const dynamic = "force-dynamic";
@@ -31,15 +32,18 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const [{ items }, plan, sp] = await Promise.all([loadItems(db, user.id), loadClinicPlan(db, clinic.id), searchParams]);
   // Dodo returns to ?billing=success whatever happened and says how it went in &status= (a declined card is "failed").
   const billing = billingReturn(sp.billing, sp.status);
+  // A refused card is not a cancelled checkout: say what happened.
+  const declined = paymentDeclined(sp.billing, sp.status);
   // Not paid yet, and nothing to show: back to the preview / plans.
   if (appSendsToFunnel(plan.plan, billing, items.length)) {
-    redirect(dvHref(billing === "cancelled" ? "/dentvideo/start?step=plan&billing=cancelled" : "/dentvideo/start"));
+    redirect(dvHref(billing === "cancelled" ? `/dentvideo/start?step=plan&billing=cancelled${declined ? "&payment=failed" : ""}` : "/dentvideo/start"));
   }
 
   // "This week" is the week being delivered: from the Saturday-evening batch on, the coming Monday's.
   const week = deliveryWeek();
   const generated = items.filter((i) => i.kind === "generated");
-  const madeThisWeek = generated.some((i) => i.week_of === week && i.status !== "failed");
+  // Only usable videos count: a week that ended with nothing but rejected topics can be made again (api/dentvideo/week).
+  const madeThisWeek = weekDelivered(items, week);
   const admin = await adminOrNull();
   // ?billing=success shows "being made" only with evidence of a payment (or right after the return from checkout).
   const seen = billing === "success" && plan.plan === "trial" && !madeThisWeek ? await paymentSeen(clinic.id, admin) : true;
@@ -48,7 +52,7 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   // A run that is being retried or is delayed: the library says so calmly (never an error).
   const weekDelay = plan.canMake ? await readWeekDelay(clinic.id, week) : null;
   const b = appText(locale).billing;
-  const notice = billing === "cancelled" ? b.cancelled : null;
+  const notice = billing === "cancelled" ? (declined ? b.paymentFailed : b.cancelled) : null;
   // Not paying: the plan picker — unless buying would double-charge (on hold → update the card, payment being confirmed, cancelled but paid up).
   const panel = plan.canMake ? null : await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin);
 

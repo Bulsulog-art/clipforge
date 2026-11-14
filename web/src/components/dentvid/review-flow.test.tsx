@@ -48,6 +48,24 @@ describe("the week's review", () => {
     expect(h).not.toContain("autoplay");
   });
 
+  it.each(LOCALES)("%s: a week that failed for good says so calmly and offers to try again; one being retried does not", (l: Locale) => {
+    const h = APP_TEXT[l].home;
+    const delayed = html(<Library locale={l} items={[]} canStartWeek={false} currentWeek={WEEK} weekDelay="delayed" />);
+    expect(delayed).toContain(h.delayDelayed);
+    expect(delayed).toContain(h.retryNow);
+    const retrying = html(<Library locale={l} items={[]} canStartWeek={false} currentWeek={WEEK} weekDelay="retrying" />);
+    expect(retrying).toContain(h.delayRetrying);
+    expect(retrying).not.toContain(h.retryNow);
+  });
+
+  it.each(LOCALES)("%s: a paid week that delivered nothing usable (only rejected topics) offers to make it, not 'nothing to do'", (l: Locale) => {
+    const h = APP_TEXT[l].home;
+    const out = html(<Library locale={l} items={[item({ status: "rejected", videoUrl: undefined })]} canStartWeek currentWeek={WEEK} />);
+    expect(out).toContain(h.startTitle);
+    expect(out).toContain(APP_TEXT[l].library.makeWeek);
+    expect(out).not.toContain(h.idleTitle);
+  });
+
   it.each(LOCALES)("%s: when everything is approved, the posting checklist shows the week's progress", (l: Locale) => {
     const t = APP_TEXT[l].library;
     const a = item({ approval: "approved" });

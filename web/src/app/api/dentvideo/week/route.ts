@@ -4,9 +4,9 @@ import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
-import { noteEnqueueFailure } from "@/lib/dentvid/ops-server";
+import { markWeekRetrying, noteEnqueueFailure } from "@/lib/dentvid/ops-server";
 import { adminPausedMessage, loadClinicPlan } from "@/lib/dentvid/plan";
-import { WEEK_VIDEOS, weekJobId } from "@/lib/dentvid/week-job";
+import { USABLE_STATUSES, WEEK_VIDEOS, weekJobId, weekRunFor } from "@/lib/dentvid/week-job";
 import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS } from "@/lib/dentvid/job-options";
 
 // Start this week's videos. One run per clinic per week: the job id is the
@@ -29,21 +29,30 @@ export async function POST() {
   // From Saturday evening, the coming Monday's week (the weekend batch's).
   const week = deliveryWeek();
   const jobId = weekJobId(clinic.id, week);
+  // Videos this week the clinic can use: a week that ended with only rejected topics may be made again.
+  const { count: usable } = await db
+    .from("dentvid_items")
+    .select("id", { count: "exact", head: true })
+    .eq("clinic_id", clinic.id)
+    .eq("kind", "generated")
+    .eq("week_of", week)
+    .in("status", [...USABLE_STATUSES]);
   try {
     // Say so when the week is already made or in progress, instead of
     // promising videos that will not come. A failed run may be retried.
     const existing = await dentvidQueue.getJob(jobId);
-    if (existing) {
-      const state = await existing.getState();
-      if (state === "failed") await existing.remove();
-      else if (state === "completed") return NextResponse.json({ error: err.weekMade }, { status: 409 });
-      else {
-        // Waiting in the weekend batch: the dentist is waiting now, so it goes first.
-        if (state === "waiting" || state === "prioritized") await existing.changePriority({ priority: DENTVID_PRIORITY.firstWeek }).catch(() => {});
-        return NextResponse.json({ ok: true, week, already: true });
-      }
+    const state = existing ? await existing.getState() : null;
+    const run = weekRunFor(state, usable ?? 0);
+    if (run === "made") return NextResponse.json({ error: err.weekMade }, { status: 409 });
+    if (run === "running") {
+      // Waiting in the weekend batch: the dentist is waiting now, so it goes first.
+      if (state === "waiting" || state === "prioritized") await existing!.changePriority({ priority: DENTVID_PRIORITY.firstWeek }).catch(() => {});
+      return NextResponse.json({ ok: true, week, already: true });
     }
+    if (run === "requeue") await existing!.remove();
     await dentvidQueue.add("week", { clinicId: clinic.id, count: WEEK_VIDEOS, week }, { jobId, ...FIRST_WEEK_JOB_OPTS });
+    // A week that had failed for good said "delayed": it is being made again now.
+    if (run === "requeue") await markWeekRetrying(clinic.id, week);
   } catch (e) {
     await noteEnqueueFailure("week-button", "week", e, clinic.id);
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });

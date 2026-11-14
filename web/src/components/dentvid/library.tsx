@@ -403,6 +403,13 @@ export function NextStep({
             {working ? t.starting : t.makeWeek}
           </button>
         )}
+        {/* Every attempt failed (e.g. a provider outage on our side): never a dead end — the clinic can queue it again. */}
+        {action === "making" && delay === "delayed" && (
+          <button type="button" onClick={startWeek} disabled={working} className="dv-btn dv-btn-secondary w-full shrink-0 px-6 py-3 !text-dv-teal lg:w-auto">
+            {working ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <RotateCcw className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />}
+            {working ? t.starting : h.retryNow}
+          </button>
+        )}
         {action === "share" && nextToPost && (
           <button type="button" onClick={() => onPost(nextToPost.id)} className="dv-btn dv-btn-primary w-full shrink-0 px-6 py-3.5 text-base lg:w-auto">
             <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />

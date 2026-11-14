@@ -30,6 +30,22 @@ describe("SpendGuard", () => {
     expect((await g.reserve("week", "other-clinic")).ok).toBe(true);
   });
 
+  it("gives a released week run back (a week the provider refused at once), never below zero", async () => {
+    const store = new MemoryGuardStore();
+    const g = new SpendGuard(store, () => cfg({ maxWeeksPerClinicWeek: 1 }));
+    expect((await g.reserve("week", CLINIC)).ok).toBe(true);
+    expect((await g.reserve("week", CLINIC)).ok).toBe(false);
+    expect(await g.release("week", CLINIC)).toBe(true);
+    expect((await g.reserve("week", CLINIC)).ok).toBe(true);
+    await g.release("week", CLINIC);
+    await g.release("week", CLINIC);
+    expect([...store.values.values()].every((v) => v === 0)).toBe(true);
+    // No store, or a store that is down: nothing to give back, and no throw.
+    expect(await new SpendGuard(null).release("week", CLINIC)).toBe(false);
+    store.down = true;
+    expect(await g.release("week", CLINIC)).toBe(false);
+  });
+
   it("enforces the global daily $ ceiling across clinics", async () => {
     const g = new SpendGuard(new MemoryGuardStore(), () => cfg({ dailyUsd: 1, costUsd: { week: 0.5, restyle: 0.03, recording: 0.5, topup: 0.3 } }));
     expect((await g.reserve("week", "a")).ok).toBe(true);

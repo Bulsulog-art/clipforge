@@ -93,6 +93,16 @@ export function billingReturn(billing: string | null | undefined, status: string
 }
 
 /**
+ * A return from Dodo where the card was tried and refused (not an abandoned
+ * checkout): the clinic is told "your payment didn't go through", not
+ * "checkout was cancelled" — they did not cancel anything.
+ */
+const DODO_DECLINED = new Set(["failed", "requires_payment_method"]);
+export function paymentDeclined(billing: string | null | undefined, status: string | null | undefined): boolean {
+  return billing === "success" && DODO_DECLINED.has((status ?? "").trim().toLowerCase());
+}
+
+/**
  * The app home for a clinic: should a not-yet-paying visitor be sent back
  * into the funnel? Yes, unless they are just back from paying (the webhook
  * may still be on its way) or have videos from before the free week ended

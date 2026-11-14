@@ -24,7 +24,9 @@ import { alerts } from "./ops-alert.js";
  * Costs are estimates per operation, deliberately on the high side (see
  * COST_DEFAULTS and docs/SECURITY.md): the guard caps the bill, it is not
  * the bill. Reservations are not given back when a job fails half-way —
- * by then the money is usually spent.
+ * by then the money is usually spent — except a week whose very first call
+ * the provider refused (out of credit, bad key: retry.ts providerRefused),
+ * which spent nothing (SpendGuard.release).
  *
  * What a refusal does is up to the job (jobs.ts): the Monday week and a
  * dentist's recording are parked (kept, retried automatically once there is
@@ -124,6 +126,8 @@ export interface GuardStore {
   reserve(counters: Counter[], dryRun?: boolean): Promise<number>;
   /** SET key NX EX ttl — true when created (alert de-duplication). */
   once(key: string, ttlSec: number): Promise<boolean>;
+  /** Take back what `reserve` added (never below zero). */
+  release?(counters: Counter[]): Promise<void>;
 }
 
 export type RefusalReason =
@@ -245,6 +249,26 @@ export class SpendGuard {
     return { ok: false, reason: c.reason, detail: `${op} for clinic ${clinicId} would exceed ${c.reason} (cap ${unit})` };
   }
 
+  /**
+   * Give a reservation back. Only for a job that provably spent nothing —
+   * the provider refused its very first call (retry.ts providerRefused: out
+   * of credit, bad key) — so a clinic's retries after the outage are not
+   * refused for weeks that never ran. Best effort; never throws.
+   */
+  async release(op: SpendOp, clinicId: string, opts: { now?: Date } = {}): Promise<boolean> {
+    if (!this.store?.release) return false;
+    const base = this.cfg();
+    // The caps do not matter for a release; the keys and amounts are what reserve used.
+    const counters = countersFor(op, clinicId, base, opts.now);
+    try {
+      await this.store.release(counters);
+      return true;
+    } catch (e) {
+      logger.warn({ op, clinicId, err: (e as Error).message }, "dentvid: spend reservation not released");
+      return false;
+    }
+  }
+
   /** True once per key per ttl (Redis), or once per process per ttl when Redis is down. */
   async once(key: string, ttlSec: number): Promise<boolean> {
     if (this.store) {
@@ -294,7 +318,22 @@ export class RedisGuardStore implements GuardStore {
   async once(key: string, ttlSec: number): Promise<boolean> {
     return (await this.r.set(key, "1", "EX", ttlSec, "NX")) === "OK";
   }
+  async release(counters: Counter[]): Promise<void> {
+    if (this.r.status !== "ready") throw new Error(`redis ${this.r.status}`);
+    await this.r.eval(RELEASE_LUA, counters.length, ...counters.map((c) => c.key), ...counters.map((c) => String(c.by)));
+  }
 }
+
+const RELEASE_LUA = `
+for i = 1, #KEYS do
+  local cur = tonumber(redis.call("GET", KEYS[i]) or "0")
+  if cur > 0 then
+    local by = math.min(cur, tonumber(ARGV[i]))
+    redis.call("DECRBY", KEYS[i], by)
+  end
+end
+return 0
+`;
 
 /** For tests (and a sanity reference for the Lua script). */
 export class MemoryGuardStore implements GuardStore {
@@ -309,6 +348,10 @@ export class MemoryGuardStore implements GuardStore {
     }
     if (!dryRun) for (const c of counters) this.values.set(c.key, (this.values.get(c.key) ?? 0) + c.by);
     return -1;
+  }
+  async release(counters: Counter[]): Promise<void> {
+    if (this.down) throw new Error("store down");
+    for (const c of counters) this.values.set(c.key, Math.max(0, (this.values.get(c.key) ?? 0) - c.by));
   }
   async once(key: string): Promise<boolean> {
     if (this.down) throw new Error("store down");

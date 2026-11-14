@@ -25,7 +25,7 @@ import { demoLogoSrc } from "@/lib/dentvid/demos";
 
 export const dynamic = "force-dynamic";
 
-type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: string; demo?: string; mode?: string }> };
+type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: string; payment?: string; demo?: string; mode?: string }> };
 
 /**
  * The paid funnel: 1 account → 2 clinic → 3 live preview → 4 plan and pay.
@@ -100,6 +100,7 @@ export default async function StartPage({ searchParams }: Props) {
         logoUrl={logoUrl}
         plans={dvAvailablePlans()}
         checkoutCancelled={sp.billing === "cancelled"}
+        paymentFailed={sp.billing === "cancelled" && sp.payment === "failed"}
         account={user.email ? { email: user.email, verified: isEmailVerified(user) } : undefined}
         demo={
           demo

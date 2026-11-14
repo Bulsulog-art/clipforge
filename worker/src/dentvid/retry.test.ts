@@ -29,6 +29,10 @@ describe("retry classification", () => {
     ["clinic missing", err("clinic 123 not found: ")],
     ["broken profile", err('ZodError: [{"code":"invalid_type","expected":"string","received":"undefined"}]')],
     ["quota", err("You exceeded your current quota: insufficient_quota")],
+    // What the OpenAI SDK actually throws when the account is out of credit: a 429, like a rate limit.
+    ["out of credit (OpenAI 429 insufficient_quota)", Object.assign(err("429 You exceeded your current quota, please check your plan and billing details.", 429), { code: "insufficient_quota", type: "insufficient_quota" })],
+    ["out of credit (code only)", Object.assign(err("429 status code (no body)", 429), { code: "insufficient_quota" })],
+    ["billing hard limit", Object.assign(err("Billing hard limit has been reached", 400), { code: "billing_hard_limit_reached" })],
     ["unrecoverable", new UnrecoverableError("recording path outside the owner's folder")],
   ])("%s → permanent", (_n, e) => expect(classifyFailure(e)).toBe("permanent"));
 });

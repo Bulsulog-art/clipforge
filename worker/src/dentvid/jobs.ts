@@ -21,7 +21,7 @@ import { withPostKit } from "./post-kit.js";
 import { notifyReady, sendReadyAtCivilHour } from "./notify.js";
 import { shouldRun, validWeek, weekOf } from "./schedule.js";
 import { clinicTimeZone } from "./timezone.js";
-import { classifyFailure, isLastAttempt, TransientWeekError } from "./retry.js";
+import { classifyFailure, isLastAttempt, providerRefused, TransientWeekError } from "./retry.js";
 import { clinicRef, noteRenderFailure, ownerAlert, setWeekDelay } from "./ops.js";
 import { alerts, cleanError } from "./ops-alert.js";
 import { patientSearches } from "../dental/questions.js";
@@ -305,6 +305,12 @@ export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<W
       throw e;
     }
     const kind = classifyFailure(e);
+    if (providerRefused(e) && !(e instanceof TransientWeekError)) {
+      // The provider refused the week's first call (out of credit, bad key):
+      // nothing was spent, so the clinic's week budget is given back and its
+      // retry after the outage is not refused by the spend guard.
+      await spend.guard.release("week", job.clinicId).catch(() => false);
+    }
     if (kind === "transient" && !last) {
       logger.warn({ clinicId: job.clinicId, attempt: (ctx.attemptsMade ?? 0) + 1, err: (e as Error).message }, "dentvid: week failed — will retry");
       await setWeekDelay(job.clinicId, week, "retrying");
@@ -436,7 +442,10 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     const technical = rows.filter((r) => r.status === "rejected" && r.error);
     if (usable() === 0 && technical.length > 0) {
       // Nothing to show and it was not the reviewers: store nothing, run again later.
-      throw new TransientWeekError(`zero usable videos (${technical.length} technical failures; last: ${technical.at(-1)!.error})`);
+      const detail = `${technical.length} technical failures; last: ${technical.at(-1)!.error}`;
+      // Every video was refused by the provider (out of credit mid-week): retrying in minutes would not help.
+      if (technical.every((r) => providerRefused({ message: r.error }))) throw new Error(`zero usable videos — the AI provider refused (${detail})`);
+      throw new TransientWeekError(`zero usable videos (${detail})`);
     }
 
     // Stamped with the week the job was queued for, not the day it happens to run (a Sunday job finishing Monday).
@@ -596,6 +605,10 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       ...resolveVoice(profile.language, process.env, profile.country),
       onMasterError: (e) => logger.warn({ err: e.message, itemId: item.id }, "dentvid: restyle narration mastering failed, used the plain voice"),
     }).catch((e) => {
+      // The stored video is narrated: replacing it with a silent one would be
+      // worse than no update. Fail instead — the old video stays and the card
+      // says the update did not work (it can be tried again).
+      if (plan.voiceover?.text?.trim()) throw new Error(`restyle voiceover failed; the narrated video is kept: ${(e as Error).message}`);
       logger.warn({ err: (e as Error).message, itemId: item.id }, "dentvid: restyle voiceover failed");
       return { plan, voiceoverPath: undefined };
     });
