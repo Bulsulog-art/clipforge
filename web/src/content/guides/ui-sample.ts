@@ -7,7 +7,7 @@ import type { Locale } from "../dentvideo";
  * guide page and the JSON-LD need these words.
  */
 export const GUIDE_SAMPLE_UI: Record<Locale, { heading: string; note: string }> = {
-  en: { heading: "A DentVideo sample on this topic", note: "Real DentVideo output for a demo clinic, unedited. Your videos are made in your language, colours and tone." },
+  en: { heading: "A DentVideo sample on this topic", note: "Real DentVideo output for a demo clinic, unedited. Your videos are made in your language, colors and tone." },
   de: { heading: "Ein DentVideo-Beispiel zu diesem Thema", note: "Echtes DentVideo-Video für eine Demo-Praxis, unbearbeitet. Ihre Videos entstehen in Ihrer Sprache, Ihren Farben und Ihrem Ton." },
   es: { heading: "Un vídeo de DentVideo sobre este tema", note: "Vídeo real de DentVideo para una clínica de demostración, sin editar. Los tuyos se hacen en tu idioma, colores y tono." },
   tr: { heading: "Bu konuda bir DentVideo örneği", note: "Demo klinik için gerçek DentVideo videosu, düzenlenmeden. Sizinkiler kendi dilinizde, renklerinizde ve üslubunuzda hazırlanır." },

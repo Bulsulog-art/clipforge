@@ -133,7 +133,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Want five videos a week already checked like this?",
-        text: "DentVideo writes, narrates and captions five short patient-education videos a week in your language and colours. Every script passes these same rules and a second, closer review before you see it — and nothing is published without your approval.",
+        text: "DentVideo writes, narrates and captions five short patient-education videos a week in your language and colors. Every script passes these same rules and a second, closer review before you see it — and nothing is published without your approval.",
         button: "See your preview",
         secondary: "How DentVideo works",
       },
@@ -168,7 +168,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "Can a dentist say “painless” in an ad?",
-        a: "It is one of the words regulators object to most, because nobody can promise every patient a treatment without discomfort. Describe what you do instead: “with local anaesthesia; most patients feel only mild sensitivity afterwards”.",
+        a: "It is one of the words regulators object to most, because nobody can promise every patient a treatment without discomfort. Describe what you do instead: “with local anesthesia; most patients feel only mild sensitivity afterwards”.",
       },
       {
         q: "Does a clean result mean my post is compliant?",
@@ -724,7 +724,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       "Wklej opis posta z Instagrama, akapit ze strony gabinetu albo tekst reklamy. Sprawdzarka zaznacza sformułowania, do których zasady reklamy medycznej mają najczęściej zastrzeżenia — gwarancje, określenia absolutne jak „bezbolesny”, superlatywy, ceny i rabaty, efekty „przed i po”, opinie pacjentów, obietnice wyleczenia i straszenie — i dla każdego proponuje spokojniejsze sformułowanie. Działa w przeglądarce: tekst nie jest nigdzie wysyłany.",
     queries: ["reklama gabinetu stomatologicznego zasady", "czy dentysta może się reklamować", "kodeks etyki lekarskiej reklama dentysta", "co dentysta może publikować na Instagramie", "bezbolesne leczenie reklama zakaz"],
     ui: {
-      label: "Twój post, tekst ze strony lub reklama",
+      label: "Post, tekst ze strony lub reklama",
       placeholder: "Wklej tekst tutaj, np. „Bezbolesne leczenie, rabat 20% — najlepszy gabinet w mieście!”",
       sample: "Bezbolesne leczenie z gwarancją efektu! Najlepszy gabinet w Warszawie. Promocja: rabat 20% i konsultacja za darmo. Zobacz efekty przed i po oraz opinie pacjentów. Nie czekaj dłużej!",
       trySample: "Wypróbuj przykład",
@@ -735,16 +735,16 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       resultsHeading: "Wynik",
       found: "Ryzykowne sformułowania: {n}",
       cleanTitle: "Nie znaleziono ryzykownych sformułowań",
-      cleanText: "W tekście nie ma żadnego ze sformułowań, które zna ta sprawdzarka. To dobry znak, a nie zgoda: przed publikacją przeczytaj tekst jeszcze raz pod kątem obietnic, zdjęć i danych pacjentów.",
+      cleanText: "W tekście nie ma żadnego ze sformułowań, które zna ta sprawdzarka. To dobry znak, a nie zgoda: przed publikacją warto przeczytać tekst jeszcze raz pod kątem obietnic, zdjęć i danych pacjentów.",
       why: "Dlaczego",
       instead: "Zamiast tego",
       tip: "Jak to poprawić",
-      yourText: "Twój tekst z zaznaczonymi ryzykownymi miejscami",
+      yourText: "Tekst z zaznaczonymi ryzykownymi miejscami",
       quotes: ["„", "”"],
       rules: {
         guarantee: { name: "Gwarancja", why: "Efektu leczenia nie da się zagwarantować; gwarancja wprowadza w błąd.", tip: "Napisz, że efekty są różne, a lekarz omawia korzyści i ryzyko." },
         absolute: { name: "Określenie absolutne", why: "Bezbolesny, na zawsze, 100% czy „zapobiega” obiecują efekt, którego nikt nie zapewni każdemu pacjentowi.", tip: "Złagodź: „może pomóc”, „u większości pacjentów”, „przy dobrej higienie”." },
-        superlative: { name: "Superlatyw lub porównanie", why: "„Najlepszy” czy „nr 1” są nieweryfikowalne i porównują Cię z innymi gabinetami, czego Kodeks Etyki Lekarskiej nie dopuszcza.", tip: "Podaj fakty: co oferujesz, gdzie i kto to robi." },
+        superlative: { name: "Superlatyw lub porównanie", why: "„Najlepszy” czy „nr 1” są nieweryfikowalne i porównują gabinet z innymi, czego Kodeks Etyki Lekarskiej nie dopuszcza.", tip: "Podaj fakty: co oferujesz, gdzie i kto to robi." },
         price: { name: "Cena, rabat lub promocja", why: "Rabaty, promocje i darmowe oferty zamieniają informację w zachętę handlową.", tip: "Usuń ceny i zachęty handlowe; zaproś do pytań podczas wizyty." },
         before_after: { name: "Przed i po", why: "Efekty „przed i po” sugerują, że każdy pacjent uzyska ten sam wynik.", tip: "Wyjaśnij krok po kroku, jak wygląda zabieg." },
         testimonial: { name: "Opinia pacjenta", why: "Opinie i referencje pacjentów użyte w reklamie są ryzykowne i mogą naruszać prywatność.", tip: "Odpowiedz raczej na pytanie, które pacjenci często zadają." },
@@ -753,7 +753,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Pięć filmów tygodniowo, sprawdzonych już w ten sposób?",
-        text: "DentVideo pisze, nagrywa lektorem i opatruje napisami pięć krótkich filmów edukacyjnych tygodniowo, w Twoim języku i kolorach. Każdy scenariusz przechodzi te same zasady i drugą, dokładniejszą kontrolę, zanim go zobaczysz, a nic nie jest publikowane bez Twojej zgody.",
+        text: "DentVideo pisze, nagrywa lektorem i opatruje napisami pięć krótkich filmów edukacyjnych tygodniowo, w Państwa języku i kolorach gabinetu. Każdy scenariusz przechodzi te same zasady i drugą, dokładniejszą kontrolę, zanim go Państwo zobaczą, a nic nie jest publikowane bez Państwa zgody.",
         button: "Zobacz podgląd",
         secondary: "Jak działa DentVideo",
       },

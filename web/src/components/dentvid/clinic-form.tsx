@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { dvBrowser, BUCKET } from "@/lib/dentvid/supabase";
 import { LANGUAGES, type ClinicProfile } from "@/lib/dentvid/profile";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
@@ -12,7 +11,7 @@ import { LogoPreview } from "./logo-preview";
 import { FieldError, ValidatingForm, useClearFieldError } from "./validating-form";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, hasService, splitServices, suggestedServices, toggleService } from "@/lib/dentvid/service-hints";
-import { requestUpload } from "@/lib/dentvid/upload-client";
+import { uploadLogo } from "@/lib/dentvid/upload-client";
 import { readAttribution } from "@/lib/dentvid/attribution";
 
 const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "PL", "JP", "SG", "AE", "SA", "QA", "KW", "BH", "OM", "CA", "AU"];
@@ -140,20 +139,12 @@ export function useClinicDraft({
   async function save(): Promise<void> {
     let newLogo: string | undefined;
     if (logo) {
-      // A new, versioned name each time (no overwrite), signed by the server
-      // after its checks; the server deletes the previous logo once saved.
-      // The server checks the session when it signs the upload (api/dentvideo/upload-url).
-      const db = dvBrowser();
-      const up = await requestUpload("logo", logo, text.errors.invalidLogo).catch((e: Error) => {
+      // A new, versioned name each time (no overwrite). The file goes through
+      // the server, which checks the session, its real size and bytes, and the
+      // quota (api/dentvideo/logo); it deletes the previous logo once saved.
+      newLogo = await uploadLogo(logo, text.errors.invalidLogo).catch((e: Error) => {
         throw new Error(fmt(text.form.logoFailed, { message: e.message }));
       });
-      newLogo = up.path;
-      const { error: upErr } = await db.storage.from(BUCKET).uploadToSignedUrl(up.path, up.token, logo, { contentType: up.contentType });
-      if (upErr) {
-        // Older storage servers without signed uploads: the same path directly (storage policy applies).
-        const { error: direct } = await db.storage.from(BUCKET).upload(up.path, logo, { contentType: up.contentType });
-        if (direct) throw new Error(fmt(text.form.logoFailed, { message: upErr.message }));
-      }
     }
     const profile = {
       name: p.name,
