@@ -258,7 +258,7 @@ export const GUIDES_PL: Guide[] = [
       { q: "Czy jest gotowa lista tematów filmów edukacyjnych?", a: "Tak: w poradniku [filmy edukacyjne dla pacjentów gabinetu stomatologicznego](guide:filmy-edukacyjne-dla-pacjentow-gabinet-stomatologiczny) jest lista tematów według kategorii i budowa krótkiego filmu w czterech krokach." },
       {
         q: "Jak często publikować?",
-        a: "Regularność jest ważniejsza niż liczba postów. Od jednego do trzech krótkich filmów tygodniowo w stałe dni to realny cel dla większości gabinetów.",
+        a: "Regularność jest ważniejsza niż liczba postów. Od jednego do trzech krótkich filmów tygodniowo w stałe dni to realny cel dla większości gabinetów. Rytmy i pory publikacji opisuje poradnik [jak często publikować](guide:jak-czesto-publikowac-gabinet-stomatologiczny).",
       },
       {
         q: "Czy lekarz dentysta musi występować w filmach?",

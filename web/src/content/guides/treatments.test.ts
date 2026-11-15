@@ -75,9 +75,9 @@ describe("treatment pages", () => {
 });
 
 describe("posting-rhythm guide", () => {
-  it("exists in en, de, es and tr as one hreflang group, with no invented figures", () => {
+  it("exists in en, de, es, tr, fr and pl as one hreflang group, with no invented figures", () => {
     const group = GUIDES.filter((g) => g.topic === "posting-frequency");
-    expect(group.map((g) => g.locale).sort()).toEqual(["de", "en", "es", "tr"]);
+    expect(group.map((g) => g.locale).sort()).toEqual(["de", "en", "es", "fr", "pl", "tr"]);
     for (const g of group) expect(JSON.stringify(g), g.slug).not.toMatch(/\d\s?%|\b(study|studie|estudio|araştırma) (shows|zeigt|muestra|gösteriyor)/i);
   });
 });
