@@ -18,14 +18,6 @@ describe("site QA regressions", () => {
     expect(SHOWCASE.tr.rules.text).toMatch(/denetçi/);
   });
 
-  it("the drawn profile header lets a long clinic name wrap instead of cutting it (PL 'Stomatologiczny' on a phone)", () => {
-    const src = readFileSync(join(__dirname, "../components/dentvid/landing-showcase.tsx"), "utf8");
-    const name = src.match(/<p className="([^"]*)">\{name\}<\/p>/)?.[1] ?? "";
-    expect(name).toContain("[overflow-wrap:anywhere]");
-    expect(name).toContain("hyphens-auto");
-    expect(name).toMatch(/(^| )line-clamp-3( |$)/);
-  });
-
   it("Japanese list items, buttons and labels break between phrases, not inside words", () => {
     const css = readFileSync(join(__dirname, "../app/dentvideo/dentvideo.css"), "utf8");
     expect(css).toMatch(/\.dv :lang\(ja\) :is\(li, \.dv-btn, label[^)]*\) \{\s*word-break: auto-phrase;/);

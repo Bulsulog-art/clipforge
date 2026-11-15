@@ -74,7 +74,7 @@ export const DV_CLIENT_EVENTS: readonly DvEventName[] = [
 export const DV_CLINIC_CLIENT_EVENTS: readonly DvEventName[] = ["preview_step_viewed", "plan_viewed", "plan_clicked", "video_shared"];
 
 /** Where a call-to-action into the sign-up sits (cta_clicked). */
-export const DV_CTA_WHERE = ["hero", "teaser", "pricing", "faq", "header", "guide", "solution"] as const;
+export const DV_CTA_WHERE = ["hero", "teaser", "pricing", "faq", "header", "guide", "solution", "final"] as const;
 export type DvCtaWhere = (typeof DV_CTA_WHERE)[number];
 
 export type DvProps = Record<string, string | number | boolean>;
