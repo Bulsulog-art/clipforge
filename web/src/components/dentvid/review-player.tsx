@@ -337,6 +337,17 @@ export function ReviewPanel({
           </div>
         )}
 
+        {/* The caption is part of what is approved: readable before the decision, folded so the buttons stay in reach. */}
+        {(state === "look" || state === "review") && !declining && item.caption && (
+          <details className="group/cap mt-3 rounded-xl bg-dv-sand/60 text-sm ring-1 ring-inset ring-dv-line">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 font-medium text-dv-ink [&::-webkit-details-marker]:hidden">
+              {t.captionAndHashtags}
+              <ChevronRight className="h-4 w-4 shrink-0 text-dv-muted transition-transform group-open/cap:rotate-90 rtl:-scale-x-100 rtl:group-open/cap:-rotate-90" aria-hidden="true" />
+            </summary>
+            <p dir="auto" className="whitespace-pre-line px-3 pb-3 text-start text-dv-body">{postText(item)}</p>
+          </details>
+        )}
+
         {(state === "look" || state === "review") &&
           (declining ? (
             <DeclineForm t={t.declineForm} busy={busy} onCancel={() => setDeclining(false)} onSubmit={(note) => choose("rejected", note)} />

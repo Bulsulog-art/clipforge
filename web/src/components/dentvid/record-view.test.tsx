@@ -54,13 +54,17 @@ describe("record screen for a Starter clinic", () => {
     expect(html).not.toContain('data-testid="starter-upgrade"');
   });
 
-  it("its intro does not talk through filming cards (Practice only), in every language; Practice keeps the full intro", () => {
+  it("the page is the upsell (its heading and one sentence, no filming intro), in every language; Practice keeps the full intro", () => {
     const esc = (x: string) => renderToStaticMarkup(<>{x}</>);
     for (const locale of LOCALES) {
       const t = appText(locale).record;
       const html = renderToStaticMarkup(<RecordView locale={locale} cards={[]} plan={starter} selfServe />);
-      expect(html, locale).toContain(esc(t.starterIntro));
+      expect(html, locale).toMatch(new RegExp(`<h1[^>]*>${esc(t.starterTitle).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</h1>`));
+      expect(html, locale).toContain(esc(t.starterLead));
       expect(html, locale).not.toContain(esc(t.lead));
+      expect(html, locale).not.toContain(esc(t.title));
+      // No "back to videos" link: the Videos tab is always visible.
+      expect(html, locale).not.toContain(esc(t.backToVideos));
       const practice = renderToStaticMarkup(<RecordView locale={locale} cards={[]} plan={{ ...starter, tier: "practice" }} selfServe />);
       expect(practice, locale).toContain(esc(t.lead));
     }

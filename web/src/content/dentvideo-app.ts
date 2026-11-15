@@ -36,7 +36,6 @@ export type AppText = {
     reviewOne: string;
     reviewMany: string;
     reviewLead: string;
-    lookLead: string;
     makingTitle: string;
     makingLead: string;
     /** A week run failed for a passing reason and is being retried (worker: dv:weekstate). Calm, no error text. */
@@ -52,13 +51,13 @@ export type AppText = {
     idleTitle: string;
     idleLead: string;
     emptyTitle: string;
-    summary: { look: string; review: string; making: string; approved: string };
+    /** Under the hero: "2 of 5 approved" (this week's decided videos). */
+    approvedOf: string;
     metaTitle: string;
     setupTitle: string;
     setupLead: string;
     yourClinic: string;
     title: string;
-    lead: string;
     settings: string;
   };
   library: {
@@ -80,7 +79,6 @@ export type AppText = {
     starting: string;
     started: string;
     fromRecording: string;
-    madeForYou: string;
     whatToCheck: string;
     captionAndHashtags: string;
     copyCaption: string;
@@ -214,9 +212,8 @@ export type AppText = {
     backToVideos: string;
     nextHeading: string;
     next: [string, string, string];
+    /** On Starter (or no plan) the record page is this upsell: its heading and one sentence. */
     starterTitle: string;
-    /** The page's intro on Starter: no filming cards (they come with Practice). */
-    starterIntro: string;
     starterLead: string;
     starterCta: string;
     starterSubject: string;
@@ -350,7 +347,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "1 video is waiting for your approval",
       reviewMany: "{n} videos are waiting for your approval",
       reviewLead: "Watch each one and approve it. Nothing is published until you do.",
-      lookLead: "Videos marked for a look show the reason on the card.",
       makingTitle: "Your videos are being made",
       makingLead: "It takes about 15 minutes. This page updates by itself, and we'll email you when they're ready.",
       delayRetrying: "Taking a little longer than usual — we're retrying automatically. You don't need to do anything.",
@@ -363,18 +359,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "Nothing to do this week",
       idleLead: "Your next videos arrive on Monday.",
       emptyTitle: "No videos yet",
-      summary: {
-        look: "{n} to look at",
-        review: "{n} to approve",
-        making: "{n} being made",
-        approved: "{n} approved",
-      },
+      approvedOf: "{n} of {total} approved",
       metaTitle: "Your videos",
       setupTitle: "Tell us about your clinic",
       setupLead: "Two minutes, once. Your videos are written in your language, about the services you offer, in your colors.",
       yourClinic: "Your clinic",
       title: "Your videos",
-      lead: "Every video is software-checked for clinical accuracy and health-advertising rules, and measured for sound and picture. Nothing is published until you approve it.",
       settings: "Clinic settings",
     },
     library: {
@@ -404,7 +394,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "Starting…",
       started: "This week's videos are being made. It takes about 15 minutes — they will appear here.",
       fromRecording: "From your recording",
-      madeForYou: "Made for you",
       whatToCheck: "What to check before posting",
       captionAndHashtags: "Caption and hashtags",
       copyCaption: "Copy caption",
@@ -565,7 +554,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "What happens next",
       next: ["We cut your recording into short clips with captions and your logo.", "Software checks each clip; anything worth a second look is marked, with the reason.", "We email you when they're ready — usually within 10 minutes."],
       starterTitle: "Your own recordings come with the Practice plan",
-      starterIntro: "Patients trust the dentist they can see.",
       starterLead: "Patients like to see the dentist they will meet. On Practice, you upload a short recording and we cut it into captioned clips in your colors.",
       starterCta: "Write to us to switch to Practice",
       starterSubject: "Switch my DentVideo plan to Practice",
@@ -706,7 +694,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "1 Video wartet auf Ihre Freigabe",
       reviewMany: "{n} Videos warten auf Ihre Freigabe",
       reviewLead: "Sehen Sie sich jedes Video an und geben Sie es frei. Veröffentlicht wird erst danach.",
-      lookLead: "Bei markierten Videos steht der Grund direkt auf der Karte.",
       makingTitle: "Ihre Videos werden erstellt",
       makingLead: "Das dauert etwa 15 Minuten. Diese Seite aktualisiert sich von selbst, und Sie bekommen eine E-Mail, sobald alles fertig ist.",
       delayRetrying: "Dauert etwas länger als sonst – wir versuchen es automatisch erneut. Sie müssen nichts tun.",
@@ -719,18 +706,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "Diese Woche ist nichts mehr zu tun",
       idleLead: "Ihre nächsten Videos kommen am Montag.",
       emptyTitle: "Noch keine Videos",
-      summary: {
-        look: "{n} bitte ansehen",
-        review: "{n} zur Freigabe",
-        making: "{n} in Arbeit",
-        approved: "{n} freigegeben",
-      },
+      approvedOf: "{n} von {total} freigegeben",
       metaTitle: "Ihre Videos",
       setupTitle: "Erzählen Sie uns von Ihrer Praxis",
       setupLead: "Zwei Minuten, nur einmal. Ihre Videos entstehen in Ihrer Sprache, zu Ihren Leistungen und in Ihren Farben.",
       yourClinic: "Ihre Praxis",
       title: "Ihre Videos",
-      lead: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft und auf Ton und Bild kontrolliert. Veröffentlicht wird nichts ohne Ihre Freigabe.",
       settings: "Praxiseinstellungen",
     },
     library: {
@@ -760,7 +741,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "Wird gestartet …",
       started: "Die Videos dieser Woche werden erstellt. Das dauert etwa 15 Minuten – sie erscheinen dann hier.",
       fromRecording: "Aus Ihrer Aufnahme",
-      madeForYou: "Für Sie erstellt",
       whatToCheck: "Vor dem Posten bitte prüfen",
       captionAndHashtags: "Beitragstext und Hashtags",
       copyCaption: "Text kopieren",
@@ -924,7 +904,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "So geht es weiter",
       next: ["Wir schneiden Ihre Aufnahme in kurze Clips mit Untertiteln und Ihrem Logo.", "Jeder Clip wird softwaregestützt geprüft; was einen zweiten Blick verdient, wird mit Grund markiert.", "Sie bekommen eine E-Mail, sobald alles fertig ist – meist innerhalb von 10 Minuten."],
       starterTitle: "Eigene Aufnahmen gehören zum Tarif Practice",
-      starterIntro: "Patienten vertrauen Gesichtern, die sie kennen.",
       starterLead: "Patientinnen und Patienten sehen gern, wer sie behandeln wird. Mit Practice laden Sie eine kurze Aufnahme hoch, und wir schneiden daraus Clips mit Untertiteln in Ihren Farben.",
       starterCta: "Für einen Wechsel zu Practice schreiben",
       starterSubject: "DentVideo-Tarif auf Practice umstellen",
@@ -1065,7 +1044,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "1 vídeo espera tu aprobación",
       reviewMany: "{n} vídeos esperan tu aprobación",
       reviewLead: "Mira cada uno y apruébalo. No se publica nada hasta que lo hagas.",
-      lookLead: "Los vídeos marcados para revisar muestran el motivo en la tarjeta.",
       makingTitle: "Estamos creando tus vídeos",
       makingLead: "Tarda unos 15 minutos. Esta página se actualiza sola y te avisaremos por correo cuando estén listos.",
       delayRetrying: "Está tardando un poco más de lo normal: lo reintentamos automáticamente. No tienes que hacer nada.",
@@ -1078,18 +1056,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "No hay nada pendiente esta semana",
       idleLead: "Tus próximos vídeos llegan el lunes.",
       emptyTitle: "Aún no hay vídeos",
-      summary: {
-        look: "{n} para revisar",
-        review: "{n} por aprobar",
-        making: "{n} en preparación",
-        approved: "{n} aprobados",
-      },
+      approvedOf: "{n} de {total} aprobados",
       metaTitle: "Tus vídeos",
       setupTitle: "Cuéntanos sobre tu clínica",
       setupLead: "Dos minutos, una sola vez. Tus vídeos se escriben en tu idioma, sobre los servicios que ofreces y con tus colores.",
       yourClinic: "Tu clínica",
       title: "Tus vídeos",
-      lead: "Un software revisa cada vídeo en precisión clínica y normas de publicidad sanitaria, y se comprueba su sonido e imagen. No se publica nada sin tu aprobación.",
       settings: "Ajustes de la clínica",
     },
     library: {
@@ -1119,7 +1091,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "Empezando…",
       started: "Estamos creando los vídeos de esta semana. Tarda unos 15 minutos y aparecerán aquí.",
       fromRecording: "De tu grabación",
-      madeForYou: "Hecho para ti",
       whatToCheck: "Qué revisar antes de publicar",
       captionAndHashtags: "Texto y hashtags",
       copyCaption: "Copiar texto",
@@ -1283,7 +1254,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Qué pasa después",
       next: ["Cortamos tu grabación en clips breves con subtítulos y tu logo.", "Un software revisa cada clip; lo que merezca una segunda mirada se marca con el motivo.", "Te avisamos por correo cuando estén listos, normalmente en unos 10 minutos."],
       starterTitle: "Tus propias grabaciones van con el plan Practice",
-      starterIntro: "Los pacientes confían en el dentista al que pueden ver.",
       starterLead: "A los pacientes les gusta ver al dentista que los va a atender. Con Practice subes una grabación corta y la convertimos en clips con subtítulos y tus colores.",
       starterCta: "Escríbenos para pasar a Practice",
       starterSubject: "Cambiar mi plan de DentVideo a Practice",
@@ -1424,7 +1394,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "1 video onayınızı bekliyor",
       reviewMany: "{n} video onayınızı bekliyor",
       reviewLead: "Her birini izleyip onaylayın. Siz onaylamadan hiçbir şey yayınlanmaz.",
-      lookLead: "Göz atılması gereken videolarda nedeni kartın üzerinde yazar.",
       makingTitle: "Videolarınız hazırlanıyor",
       makingLead: "Yaklaşık 15 dakika sürer. Bu sayfa kendiliğinden yenilenir; videolar hazır olunca size e-posta göndeririz.",
       delayRetrying: "Her zamankinden biraz uzun sürüyor — otomatik olarak yeniden deniyoruz. Sizin bir şey yapmanıza gerek yok.",
@@ -1437,18 +1406,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "Bu hafta yapılacak bir şey yok",
       idleLead: "Sonraki videolarınız pazartesi gelir.",
       emptyTitle: "Henüz video yok",
-      summary: {
-        look: "{n} göz atılacak",
-        review: "{n} onay bekliyor",
-        making: "{n} hazırlanıyor",
-        approved: "{n} onaylandı",
-      },
+      approvedOf: "{total} videodan {n} tanesi onaylandı",
       metaTitle: "Videolarınız",
       setupTitle: "Kliniğinizi tanıyalım",
       setupLead: "Yalnızca bir kez, iki dakika. Videolarınız sizin dilinizde, sunduğunuz hizmetler hakkında ve sizin renklerinizle hazırlanır.",
       yourClinic: "Kliniğiniz",
       title: "Videolarınız",
-      lead: "Her video klinik doğruluk ve sağlıkta tanıtım kurallarına göre yazılımla kontrol edilir; ses ve görüntüsü ölçülür. Siz onaylamadan hiçbir şey yayınlanmaz.",
       settings: "Klinik ayarları",
     },
     library: {
@@ -1478,7 +1441,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "Başlatılıyor…",
       started: "Bu haftanın videoları hazırlanıyor. Yaklaşık 15 dakika sürer; hazır olunca burada görünecek.",
       fromRecording: "Kendi kaydınızdan",
-      madeForYou: "Sizin için hazırlandı",
       whatToCheck: "Paylaşmadan önce kontrol edin",
       captionAndHashtags: "Açıklama ve etiketler",
       copyCaption: "Açıklamayı kopyala",
@@ -1642,7 +1604,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Sonra ne olacak?",
       next: ["Kaydınızı altyazılı ve logolu kısa kliplere ayırırız.", "Her klip yazılımla kontrol edilir; ikinci kez bakılması gereken bir şey varsa nedeniyle birlikte işaretlenir.", "Hazır olduklarında size e-posta göndeririz; genellikle 10 dakika içinde."],
       starterTitle: "Kendi kayıtlarınız Practice planına dahildir",
-      starterIntro: "Hastalar yüzünü tanıdıkları hekime güvenir.",
       starterLead: "Hastalar kendilerini tedavi edecek hekimi görmek ister. Practice planında kısa bir kayıt yüklersiniz, biz de onu renklerinizle altyazılı kliplere dönüştürürüz.",
       starterCta: "Practice'e geçmek için bize yazın",
       starterSubject: "DentVideo planımı Practice'e geçirmek istiyorum",
@@ -1783,7 +1744,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "1 vidéo attend votre validation",
       reviewMany: "{n} vidéos attendent votre validation",
       reviewLead: "Regardez chacune et validez-la. Rien n'est publié avant.",
-      lookLead: "Pour les vidéos à revoir, la raison est indiquée sur la carte.",
       makingTitle: "Vos vidéos sont en préparation",
       makingLead: "Comptez environ 15 minutes. Cette page se met à jour toute seule, et nous vous écrivons dès qu'elles sont prêtes.",
       delayRetrying: "C'est un peu plus long que d'habitude — nous réessayons automatiquement. Vous n'avez rien à faire.",
@@ -1796,18 +1756,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "Rien à faire cette semaine",
       idleLead: "Vos prochaines vidéos arrivent lundi.",
       emptyTitle: "Pas encore de vidéos",
-      summary: {
-        look: "{n} à revoir",
-        review: "{n} à valider",
-        making: "{n} en préparation",
-        approved: "{n} validées",
-      },
+      approvedOf: "{n} sur {total} approuvées",
       metaTitle: "Vos vidéos",
       setupTitle: "Parlez-nous de votre cabinet",
       setupLead: "Deux minutes, une seule fois. Vos vidéos sont écrites dans votre langue, sur les soins que vous proposez, à vos couleurs.",
       yourClinic: "Votre cabinet",
       title: "Vos vidéos",
-      lead: "Chaque vidéo est vérifiée par logiciel sur le plan clinique et au regard des règles de publicité en santé, et contrôlée pour le son et l'image. Rien n'est publié sans votre accord.",
       settings: "Réglages du cabinet",
     },
     library: {
@@ -1837,7 +1791,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "Lancement…",
       started: "Les vidéos de la semaine sont en préparation. Comptez environ 15 minutes : elles apparaîtront ici.",
       fromRecording: "Tirée de votre enregistrement",
-      madeForYou: "Réalisée pour vous",
       whatToCheck: "À vérifier avant de publier",
       captionAndHashtags: "Texte et hashtags",
       copyCaption: "Copier le texte",
@@ -2001,7 +1954,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Et ensuite ?",
       next: ["Nous découpons votre enregistrement en clips courts, sous-titrés et avec votre logo.", "Chaque clip est vérifié par logiciel ; ce qui mérite un second regard est signalé, avec la raison.", "Nous vous écrivons dès qu'ils sont prêts, en général sous 10 minutes."],
       starterTitle: "Vos propres enregistrements sont inclus dans la formule Practice",
-      starterIntro: "Les patients font confiance au dentiste qu'ils voient.",
       starterLead: "Les patients aiment voir le dentiste qui va les soigner. Avec Practice, vous envoyez un court enregistrement et nous en faisons des clips sous-titrés à vos couleurs.",
       starterCta: "Nous écrire pour passer à Practice",
       starterSubject: "Passer ma formule DentVideo à Practice",
@@ -2142,7 +2094,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "1本の動画が承認をお待ちしています",
       reviewMany: "{n}本の動画が承認をお待ちしています",
       reviewLead: "1本ずつご覧になり、承認してください。承認されるまで、何も公開されません。",
-      lookLead: "確認が必要な動画には、カードに理由が表示されています。",
       makingTitle: "動画を制作しています",
       makingLead: "15分ほどかかります。このページは自動で更新され、完成したらメールでお知らせします。",
       delayRetrying: "いつもより少し時間がかかっています。自動で再試行していますので、操作は不要です。",
@@ -2155,18 +2106,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "今週の作業はありません",
       idleLead: "次の動画は月曜日に届きます。",
       emptyTitle: "まだ動画はありません",
-      summary: {
-        look: "要確認 {n}本",
-        review: "承認待ち {n}本",
-        making: "制作中 {n}本",
-        approved: "承認済み {n}本",
-      },
+      approvedOf: "{total}本中{n}本を承認済み",
       metaTitle: "動画",
       setupTitle: "医院について教えてください",
       setupLead: "最初に一度だけ、2分ほどです。動画は医院の言語で、実際に行っている診療について、医院のカラーで作られます。",
       yourClinic: "医院",
       title: "動画",
-      lead: "すべての動画は、臨床的な正確性と医療広告の観点からソフトウェアでチェックし、音声と映像も計測しています。承認されるまで、何も公開されません。",
       settings: "医院の設定",
     },
     library: {
@@ -2196,7 +2141,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "開始しています…",
       started: "今週の動画を制作しています。15分ほどで、ここに表示されます。",
       fromRecording: "撮影した動画から",
-      madeForYou: "DentVideoが制作",
       whatToCheck: "投稿前のご確認ポイント",
       captionAndHashtags: "キャプションとハッシュタグ",
       copyCaption: "キャプションをコピー",
@@ -2357,7 +2301,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "このあとの流れ",
       next: ["撮影した動画を、字幕とロゴ入りの短いクリップに分けます。", "各クリップをソフトウェアでチェックし、確認が必要な箇所には理由を添えて印を付けます。", "完成したらメールでお知らせします。通常10分ほどです。"],
       starterTitle: "ご自身で撮影した動画は、Practiceプランでご利用いただけます",
-      starterIntro: "患者さんは、顔の見える先生に安心感を覚えます。",
       starterLead: "患者さんは、実際に診てもらう先生の顔を見たいものです。Practiceプランでは、短い動画をアップロードしていただくと、医院のカラーで字幕付きのクリップに仕上げます。",
       starterCta: "Practiceへの変更をメールで依頼する",
       starterSubject: "DentVideoのプランをPracticeに変更したい",
@@ -2499,7 +2442,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "فيديو واحد بانتظار اعتمادكم",
       reviewMany: "فيديوهات بانتظار اعتمادكم: {n}",
       reviewLead: "شاهدوا كل فيديو واعتمدوه. لا يُنشر شيء قبل اعتمادكم.",
-      lookLead: "الفيديوهات التي تحتاج نظرة منكم يظهر السبب على بطاقتها.",
       makingTitle: "نُعِدّ فيديوهاتكم الآن",
       makingLead: "يستغرق ذلك نحو 15 دقيقة. تتحدّث هذه الصفحة تلقائياً، ونرسل إليكم بريداً حين تجهز.",
       delayRetrying: "يستغرق الأمر وقتاً أطول قليلاً من المعتاد — نعيد المحاولة تلقائياً. لا حاجة لأي إجراء منكم.",
@@ -2512,18 +2454,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "لا شيء مطلوب هذا الأسبوع",
       idleLead: "تصل فيديوهاتكم التالية يوم الاثنين.",
       emptyTitle: "لا فيديوهات بعد",
-      summary: {
-        look: "للمراجعة: {n}",
-        review: "للاعتماد: {n}",
-        making: "قيد الإعداد: {n}",
-        approved: "معتمدة: {n}",
-      },
+      approvedOf: "تمت الموافقة على {n} من {total}",
       metaTitle: "فيديوهاتكم",
       setupTitle: "أخبرونا عن عيادتكم",
       setupLead: "دقيقتان، مرة واحدة. تُكتب فيديوهاتكم بلغتكم، عن الخدمات التي تقدّمونها، وبألوانكم.",
       yourClinic: "عيادتكم",
       title: "فيديوهاتكم",
-      lead: "كل فيديو يُراجَع آلياً للدقة السريرية وضوابط الإعلان الصحي، ويُقاس صوته وصورته. لا يُنشر شيء قبل اعتمادكم.",
       settings: "إعدادات العيادة",
     },
     library: {
@@ -2553,7 +2489,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "جارٍ البدء…",
       started: "نُعِدّ فيديوهات هذا الأسبوع الآن. يستغرق ذلك نحو 15 دقيقة، وستظهر هنا.",
       fromRecording: "من تسجيلكم",
-      madeForYou: "أُعدّ لكم",
       whatToCheck: "ما يُستحسن التحقق منه قبل النشر",
       captionAndHashtags: "النص المرافق والوسوم",
       copyCaption: "نسخ النص",
@@ -2714,7 +2649,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "ما الذي يحدث بعد ذلك",
       next: ["نقسّم تسجيلكم إلى مقاطع قصيرة مع النص وشعاركم.", "نراجع كل مقطع آلياً، وما يستحق نظرة ثانية نعلّمه مع السبب.", "نرسل إليكم بريداً حين تجهز، عادةً خلال 10 دقائق."],
       starterTitle: "تسجيلاتكم الخاصة متاحة في باقة Practice",
-      starterIntro: "يثق المرضى بالطبيب الذي يرونه.",
       starterLead: "يحب المرضى أن يروا الطبيب الذي سيقابلونه. في باقة Practice ترفعون تسجيلاً قصيراً، ونحوّله إلى مقاطع مع النص بألوانكم.",
       starterCta: "راسلونا للانتقال إلى Practice",
       starterSubject: "نقل باقة DentVideo إلى Practice",
@@ -2857,7 +2791,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       reviewOne: "1 film czeka na Państwa akceptację",
       reviewMany: "Filmy czekające na akceptację: {n}",
       reviewLead: "Prosimy obejrzeć każdy film i go zatwierdzić. Nic nie zostanie opublikowane bez Państwa zgody.",
-      lookLead: "Przy filmach oznaczonych do przejrzenia powód widać na karcie.",
       makingTitle: "Państwa filmy są w przygotowaniu",
       makingLead: "To potrwa około 15 minut. Strona odświeża się sama, a gdy filmy będą gotowe, wyślemy e-mail.",
       delayRetrying: "Trwa to nieco dłużej niż zwykle — ponawiamy automatycznie. Nie muszą Państwo nic robić.",
@@ -2870,18 +2803,12 @@ export const APP_TEXT: Record<Locale, AppText> = {
       idleTitle: "W tym tygodniu nie ma nic do zrobienia",
       idleLead: "Kolejne filmy przyjdą w poniedziałek.",
       emptyTitle: "Nie ma jeszcze filmów",
-      summary: {
-        look: "Do przejrzenia: {n}",
-        review: "Do zatwierdzenia: {n}",
-        making: "W przygotowaniu: {n}",
-        approved: "Zatwierdzone: {n}",
-      },
+      approvedOf: "Zatwierdzone: {n} z {total}",
       metaTitle: "Państwa filmy",
       setupTitle: "Prosimy opowiedzieć o gabinecie",
       setupLead: "Dwie minuty, jeden raz. Filmy powstają w Państwa języku, o zabiegach, które Państwo wykonują, w kolorach gabinetu.",
       yourClinic: "Państwa gabinet",
       title: "Państwa filmy",
-      lead: "Każdy film jest sprawdzany przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy medycznej, a jego dźwięk i obraz są mierzone. Nic nie zostanie opublikowane bez Państwa akceptacji.",
       settings: "Ustawienia gabinetu",
     },
     library: {
@@ -2911,7 +2838,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       starting: "Uruchamianie…",
       started: "Filmy na ten tydzień są w przygotowaniu. To potrwa około 15 minut; pojawią się tutaj.",
       fromRecording: "Z Państwa nagrania",
-      madeForYou: "Przygotowane dla Państwa",
       whatToCheck: "Co sprawdzić przed publikacją",
       captionAndHashtags: "Opis i hashtagi",
       copyCaption: "Kopiuj opis",
@@ -3072,7 +2998,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       nextHeading: "Co dalej",
       next: ["Dzielimy nagranie na krótkie klipy z napisami i logo gabinetu.", "Każdy klip jest sprawdzany przez oprogramowanie; to, co warto przejrzeć ponownie, oznaczamy wraz z powodem.", "Gdy będą gotowe, wyślemy e-mail, zwykle w ciągu 10 minut."],
       starterTitle: "Własne nagrania są dostępne w planie Practice",
-      starterIntro: "Pacjenci ufają dentyście, którego mogą zobaczyć.",
       starterLead: "Pacjenci chcą zobaczyć dentystę, do którego przyjdą. W planie Practice wystarczy przesłać krótkie nagranie, a my zamienimy je w klipy z napisami w kolorach gabinetu.",
       starterCta: "Napisz do nas, by przejść na Practice",
       starterSubject: "Zmiana planu DentVideo na Practice",
