@@ -1,6 +1,6 @@
 import type { Guide } from "../dentvideo";
 
-// "How often and when should a dental clinic post?" in four markets, each
+// "How often and when should a dental clinic post?" in six markets, each
 // written for its own readers (not translated line by line). No invented
 // statistics or "magic hours": the honest answer is a rhythm the clinic can
 // keep, and timing read from the clinic's own audience data. Same topic key,
@@ -372,7 +372,206 @@ const ES: Guide = {
   ],
 };
 
+const DATES_2 = { published: "2026-11-15", updated: "2026-11-15", reviewed: "2026-11-15" } as const;
+
+const FR: Guide = {
+  locale: "fr",
+  slug: "frequence-publication-cabinet-dentaire",
+  topic: "posting-frequency",
+  category: "ideas",
+  ...DATES_2,
+  title: "À quelle fréquence un cabinet dentaire doit-il publier sur les réseaux sociaux, et à quelle heure ?",
+  seoTitle: "Cabinet dentaire : à quelle fréquence publier ?",
+  seoDescription: "Un rythme de publication tenable pour un cabinet dentaire : combien de posts par semaine, à quelle heure selon vos abonnés, et dans le respect de l'Ordre.",
+  description: "Une réponse honnête sur la fréquence et l'horaire de publication : des rythmes selon votre temps, vos statistiques plutôt que des tableaux génériques, et chaque post dans le cadre déontologique.",
+  h1: "À quelle fréquence un cabinet dentaire doit-il publier, et quand ?",
+  intro:
+    "Aucune plateforme n'exige ni ne récompense un nombre précis de publications pour tous les comptes. Pour la plupart des cabinets dentaires, un rythme d'une à trois publications par semaine, tenu toute l'année, fonctionne mieux que quelques semaines de posts quotidiens suivies d'un long silence. Le bon horaire est celui où vos propres abonnés sont connectés : Instagram, Facebook, TikTok et YouTube l'indiquent dans leurs statistiques.",
+  sections: [
+    {
+      heading: "Existe-t-il un nombre idéal de publications par semaine ?",
+      paragraphs: [
+        "Pas de nombre universel. Les plateformes modifient régulièrement la façon dont elles diffusent les contenus et ne publient aucune fréquence obligatoire pour les comptes professionnels. Les conseils du type « publiez tous les jours » ou « trois fois par semaine » sont des règles empiriques d'agences, pas des lois mesurées, et beaucoup de ces sources vendent elles-mêmes des prestations de publication.",
+        "Ce qui tient, c'est plus simple : un compte qui publie régulièrement donne à ses abonnés une raison de revenir, et un compte muet depuis des mois paraît abandonné au patient qui le découvre. La vraie question n'est donc pas « combien faut-il publier ? », mais « que pouvons-nous tenir chaque semaine sans rogner sur la qualité ni sur la déontologie ? ».",
+      ],
+    },
+    {
+      heading: "Quel rythme correspond au temps dont dispose votre cabinet ?",
+      paragraphs: ["Partez du temps réel que votre équipe peut y consacrer. Un petit rythme tenu un an vaut mieux qu'un rythme ambitieux abandonné au bout d'un mois."],
+      table: {
+        caption: "Rythmes de publication pour un cabinet dentaire, selon le temps disponible",
+        columns: ["Temps par semaine", "Rythme réaliste", "Concrètement"],
+        rows: [
+          ["Moins d'une heure", "Une publication par semaine", "Une courte vidéo d'information patient, en alternant les thèmes"],
+          ["Deux à trois heures", "Deux ou trois publications, plus quelques stories", "Deux vidéos qui répondent à des questions de patients et une publication sur l'équipe ou le cabinet"],
+          ["Une assistante avec un créneau dédié", "Trois à cinq publications, des stories la plupart des jours", "Une vidéo par jour ouvré, entre prévention, déroulé des soins et équipe"],
+          ["Des vidéos préparées pour vous", "Cinq vidéos par semaine parmi lesquelles choisir", "Validation le lundi, programmation, et vos propres extraits quand vous avez le temps"],
+        ],
+        note: "Ce sont des repères de travail, pas des règles des plateformes. Ajustez après un mois selon ce que vos abonnés ont réellement regardé.",
+      },
+      after: [
+        "Quel que soit votre choix, planifiez-le. Le [calendrier éditorial sur 52 semaines](guide:calendrier-editorial-cabinet-dentaire) propose un thème par semaine pour toute l'année, et les [idées de contenu Instagram pour cabinet dentaire](guide:idees-contenu-instagram-cabinet-dentaire) aident à varier les formats.",
+      ],
+    },
+    {
+      heading: "À quelle heure un cabinet dentaire doit-il publier ?",
+      paragraphs: [
+        "Les tableaux de « meilleurs horaires » font la moyenne de millions de comptes, de tous secteurs et de tous fuseaux. Vos abonnés sont surtout des patients de votre ville, avec leurs propres habitudes : vos statistiques sont un guide plus fiable. Chaque grande plateforme les montre aux comptes professionnels :",
+      ],
+      list: [
+        "Instagram : dans le tableau de bord professionnel, les statistiques de l'audience indiquent les jours et heures où vos abonnés sont le plus actifs.",
+        "Facebook : Meta Business Suite montre quand les abonnés de votre Page sont en ligne et permet de programmer les publications.",
+        "TikTok : avec un compte professionnel, les statistiques affichent l'activité des abonnés heure par heure.",
+        "YouTube : le rapport Audience de YouTube Studio indique quand vos spectateurs sont sur YouTube.",
+      ],
+      after: [
+        "Tant que vous n'avez pas assez de données, testez des créneaux qui collent à la journée des patients (avant le travail, à midi, en soirée) et comparez après quatre à six semaines. Ne changez qu'un paramètre à la fois.",
+      ],
+    },
+    {
+      heading: "Quels formats publier chaque semaine ?",
+      paragraphs: [
+        "La vidéo verticale courte est le format que les plateformes montrent le plus aux personnes qui ne vous suivent pas encore : c'est souvent par elle que de nouveaux patients découvrent un cabinet. Les stories entretiennent le lien au quotidien, les carrousels et les photos conviennent aux informations pratiques que l'on garde de côté.",
+        "Les vidéos d'information patient sont le format le plus sûr et le plus utile : elles répondent à une vraie question, servent même à ceux qui ne prendront jamais rendez-vous, et évitent les contenus les plus sensibles pour l'Ordre (avant/après, témoignages, mise en avant commerciale). Notre guide des [vidéos d'information patient](guide:videos-information-patient-dentaire) détaille les sujets et la méthode.",
+      ],
+    },
+    {
+      heading: "Publier plus souvent change-t-il les règles ?",
+      paragraphs: [
+        "Non, mais cela multiplie les occasions d'erreur. Depuis le décret du 22 décembre 2020, le chirurgien-dentiste peut communiquer des informations au public, à condition qu'elles soient loyales, honnêtes et non comparatives, et l'exercice de la profession comme un commerce reste interdit. Cela vaut pour la première publication du mois comme pour la vingtième. Un rythme soutenu demande donc une vérification rapide et systématique avant chaque post : pas de promesse de résultat, pas de « sans douleur », pas de comparaison avec d'autres cabinets, pas de photo de patient sans consentement écrit, pas de témoignage.",
+        "Le guide sur la [communication du chirurgien-dentiste sur les réseaux sociaux](guide:communication-chirurgien-dentiste-reseaux-sociaux) reprend les textes et les recommandations de l'Ordre, et notre [vérificateur gratuit « Ma publication est-elle autorisée ? »](checker:) donne un premier avis sur une légende en quelques secondes. Ce n'est pas un conseil juridique.",
+      ],
+    },
+    {
+      heading: "Comment tenir un rythme sans y passer la semaine ?",
+      ordered: true,
+      paragraphs: ["Les cabinets qui publient encore au bout d'un an regroupent le travail au lieu de publier au fil de l'eau :"],
+      list: [
+        "Choisir les thèmes de la semaine en une fois, idéalement à partir des questions posées au fauteuil la semaine précédente.",
+        "Préparer ou valider toutes les publications de la semaine en une seule séance.",
+        "Relire chaque légende au regard des règles déontologiques avant de programmer.",
+        "Programmer avec les outils des plateformes, pour que rien ne dépende de la mémoire de quelqu'un.",
+        "Une fois par mois, regarder ce que les abonnés ont vu et enregistré, puis ajuster thèmes et horaires.",
+      ],
+      after: [
+        "[DentVideo](landing:) a été conçu pour ce rythme : chaque lundi, cinq vidéos d'information patient commentées et sous-titrées, vérifiées par logiciel sur l'exactitude clinique et les règles de communication, vous attendent. Le travail hebdomadaire se limite à valider et programmer ; DentVideo ne publie rien à votre place. [Voyez un aperçu avec votre logo](start:) avant de choisir une formule.",
+      ],
+    },
+  ],
+  faq: [
+    { q: "Un cabinet dentaire doit-il publier tous les jours ?", a: "Pas forcément. Publier chaque jour n'aide que si la qualité et le respect de la déontologie suivent. Pour la plupart des cabinets, une à trois bonnes publications par semaine tenues toute l'année font davantage qu'un mois de posts quotidiens." },
+    { q: "À quelle heure publier sur Instagram pour un dentiste ?", a: "Quand vos abonnés sont le plus actifs, ce qu'Instagram indique dans les statistiques du tableau de bord professionnel. Sans données, testez avant le travail, à midi et en soirée, puis comparez au bout de quelques semaines." },
+    { q: "Faut-il publier le week-end ?", a: "Si vos abonnés sont actifs à ce moment-là, oui : une publication programmée ne demande personne au cabinet. Vérifiez vos statistiques, les habitudes du week-end varient beaucoup d'un cabinet à l'autre." },
+    { q: "Les publications sponsorisées sont-elles possibles ?", a: "Une publication payée pour être mise en avant peut être considérée comme de la publicité, ce que la déontologie des chirurgiens-dentistes encadre strictement. Renseignez-vous auprès de votre conseil départemental de l'Ordre avant d'en faire." },
+  ],
+  sources: [
+    { label: "Légifrance — Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" },
+    {
+      label: "Ordre national des chirurgiens-dentistes — Communication professionnelle des chirurgiens-dentistes (recommandations)",
+      url: "https://www.ordre-chirurgiens-dentistes.fr/pour-le-chirurgien-dentiste/communication-professionnelle-des-chirurgiens-dentistes/",
+    },
+  ],
+};
+
+const PL: Guide = {
+  locale: "pl",
+  slug: "jak-czesto-publikowac-gabinet-stomatologiczny",
+  topic: "posting-frequency",
+  category: "ideas",
+  ...DATES_2,
+  title: "Jak często gabinet stomatologiczny powinien publikować w mediach społecznościowych i o jakiej porze?",
+  seoTitle: "Jak często publikować w gabinecie stomatologicznym?",
+  seoDescription: "Rytm publikacji, który gabinet stomatologiczny utrzyma: ile postów tygodniowo, o jakiej porze według własnych statystyk i jak zostać w granicach etyki.",
+  description: "Uczciwa odpowiedź na pytanie o częstotliwość i porę publikacji: rytmy według dostępnego czasu, własne statystyki zamiast ogólnych tabel i każdy post w granicach etyki zawodowej.",
+  h1: "Jak często gabinet stomatologiczny powinien publikować, i kiedy?",
+  intro:
+    "Nie ma liczby postów, której platformy wymagają albo którą nagradzają w każdym koncie. W większości gabinetów stomatologicznych lepiej sprawdza się rytm od jednego do czterech postów tygodniowo, utrzymany przez cały rok, niż kilka tygodni codziennych publikacji, a potem cisza. Właściwa pora to ta, w której są online Państwa obserwujący: Instagram, Facebook, TikTok i YouTube pokazują to w statystykach.",
+  sections: [
+    {
+      heading: "Czy istnieje idealna liczba postów tygodniowo?",
+      paragraphs: [
+        "Nie ma jednej uniwersalnej. Platformy regularnie zmieniają sposób wyświetlania treści i nie podają obowiązkowej częstotliwości dla kont firmowych. Rady w rodzaju „publikuj codziennie” czy „trzy razy w tygodniu” to reguły kciuka agencji, a nie zmierzone prawa, i wiele takich źródeł samo sprzedaje usługi publikowania.",
+        "Sprawdza się coś prostszego: konto, które publikuje regularnie, daje obserwującym powód, by wracać, a konto milczące od miesięcy wygląda na porzucone, gdy trafi na nie pacjent. Lepsze pytanie brzmi więc nie „ile jest idealnie?”, tylko „co damy radę utrzymać co tydzień bez obniżania jakości i bez ryzyka etycznego?”.",
+      ],
+    },
+    {
+      heading: "Jaki rytm pasuje do czasu, którym dysponuje gabinet?",
+      paragraphs: ["Proszę zacząć od godzin, które zespół naprawdę może poświęcić. Skromny rytm utrzymany przez rok daje więcej niż ambitny plan porzucony po miesiącu."],
+      table: {
+        caption: "Rytmy publikacji dla gabinetu stomatologicznego według dostępnego czasu",
+        columns: ["Czas w tygodniu", "Realistyczny rytm", "Jak to wygląda"],
+        rows: [
+          ["Mniej niż godzina", "Jeden post tygodniowo", "Krótki film edukacyjny, za każdym razem na inny temat"],
+          ["Dwie–trzy godziny", "Dwa–trzy posty tygodniowo i kilka relacji", "Dwa filmy odpowiadające na pytania pacjentów i jeden post o zespole lub gabinecie"],
+          ["Osoba z zespołu z zaplanowanym czasem", "Trzy–pięć postów, relacje w większość dni", "Film w każdy dzień roboczy: profilaktyka, przebieg leczenia, zespół"],
+          ["Filmy przygotowywane dla gabinetu", "Pięć filmów tygodniowo do wyboru", "Akceptacja w poniedziałek, zaplanowanie publikacji, własne nagrania, gdy jest czas"],
+        ],
+        note: "To robocze propozycje, nie zasady platform. Po miesiącu warto je dopasować do tego, co obserwujący faktycznie oglądali.",
+      },
+      after: [
+        "Niezależnie od wyboru warto mieć plan. Poradnik [co publikować w gabinecie stomatologicznym](guide:co-publikowac-gabinet-stomatologiczny) podsuwa tematy i formaty, a [filmy edukacyjne dla pacjentów](guide:filmy-edukacyjne-dla-pacjentow-gabinet-stomatologiczny) pokazują, jak je przygotować. Wszystkie poradniki są w [spisie poradników](guides:).",
+      ],
+    },
+    {
+      heading: "O jakiej porze publikować?",
+      paragraphs: [
+        "Ogólne tabele „najlepszych godzin” uśredniają miliony kont z różnych branż i stref czasowych. Państwa obserwujący to głównie pacjenci z okolicy, z własnym rytmem dnia, więc lepszym przewodnikiem są statystyki gabinetu. Każda duża platforma udostępnia je kontom firmowym:",
+      ],
+      list: [
+        "Instagram: w panelu profesjonalnym statystyki odbiorców pokazują dni i godziny największej aktywności obserwujących.",
+        "Facebook: Meta Business Suite pokazuje, kiedy obserwujący stronę są online, i pozwala zaplanować posty.",
+        "TikTok: konto firmowe ma statystyki aktywności obserwujących w poszczególnych godzinach.",
+        "YouTube: raport Odbiorcy w YouTube Studio pokazuje, kiedy widzowie są na YouTube.",
+      ],
+      after: [
+        "Dopóki danych jest mało, proszę testować pory pasujące do dnia pacjentów (przed pracą, w porze lunchu, wieczorem) i porównać wyniki po czterech–sześciu tygodniach, zmieniając jedną rzecz naraz.",
+      ],
+    },
+    {
+      heading: "Jakie formaty publikować co tydzień?",
+      paragraphs: [
+        "Krótki pionowy film to format, który platformy najczęściej pokazują osobom jeszcze niezaobserwowanym, więc to głównie przez niego nowi pacjenci trafiają na gabinet. Relacje podtrzymują kontakt na co dzień, a karuzele i zdjęcia sprawdzają się przy praktycznych informacjach, które ktoś chce zapisać.",
+        "Filmy edukacyjne dla pacjentów są najbezpieczniejszym i najbardziej użytecznym formatem: odpowiadają na prawdziwe pytanie, przydają się nawet tym, którzy nigdy się nie zapiszą, i omijają treści najbardziej ryzykowne etycznie, czyli zdjęcia „przed i po”, opinie pacjentów i promocje.",
+      ],
+    },
+    {
+      heading: "Czy częstsze publikowanie zmienia zasady?",
+      paragraphs: [
+        "Nie, ale zwiększa liczbę okazji do błędu. Od 1 stycznia 2025 r. art. 71 Kodeksu Etyki Lekarskiej pozwala lekarzowi dentyście informować o usługach zgodnie z zasadami etyki, a art. 14 ustawy o działalności leczniczej nadal wymaga, by informacje podmiotu leczniczego nie miały cech reklamy. Dotyczy to pierwszego posta w miesiącu tak samo jak dwudziestego. Przy częstszym rytmie potrzebna jest więc szybka, powtarzalna kontrola przed każdą publikacją: bez obietnic efektów, bez porównań z innymi gabinetami, bez promocji i cen jako zachęty, bez opinii pacjentów i bez zdjęć pacjentów bez pisemnej zgody.",
+        "Szczegóły opisujemy w poradniku o [reklamie gabinetu stomatologicznego i Kodeksie Etyki Lekarskiej](guide:reklama-gabinetu-stomatologicznego-kodeks-etyki), a nasz [sprawdzacz „Czy mój post jest dozwolony?”](checker:) daje pierwszą ocenę opisu w kilka sekund. To nie jest porada prawna.",
+      ],
+    },
+    {
+      heading: "Jak utrzymać rytm, żeby nie zajmował całego tygodnia?",
+      ordered: true,
+      paragraphs: ["Gabinety, które publikują jeszcze po roku, zwykle grupują pracę zamiast publikować na bieżąco:"],
+      list: [
+        "Wybrać tematy na cały tydzień naraz, najlepiej z pytań zadanych przez pacjentów na fotelu w poprzednim tygodniu.",
+        "Przygotować albo zaakceptować wszystkie posty tygodnia podczas jednego posiedzenia.",
+        "Sprawdzić każdy opis pod kątem zasad etyki i reklamy przed zaplanowaniem.",
+        "Zaplanować publikacje narzędziami samych platform, żeby nic nie zależało od pamięci.",
+        "Raz w miesiącu sprawdzić, co obserwujący oglądali i zapisywali, i dopasować tematy oraz pory.",
+      ],
+      after: [
+        "[DentVideo](landing:) powstało właśnie z myślą o takim rytmie: w każdy poniedziałek czeka pięć filmów edukacyjnych z lektorem i napisami, sprawdzonych przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy. Cotygodniowa praca to akceptacja i zaplanowanie; DentVideo niczego nie publikuje za gabinet. [Proszę zobaczyć podgląd z logo gabinetu](start:) przed wyborem planu.",
+      ],
+    },
+  ],
+  faq: [
+    { q: "Czy gabinet stomatologiczny powinien publikować codziennie?", a: "Niekoniecznie. Codzienne posty pomagają tylko wtedy, gdy nie cierpi na tym jakość ani zgodność z zasadami etyki. W większości gabinetów jeden do czterech dobrych postów tygodniowo przez cały rok daje więcej niż miesiąc codziennych publikacji." },
+    { q: "O której godzinie dentysta powinien publikować na Instagramie?", a: "Wtedy, gdy obserwujący gabinet są najbardziej aktywni, co Instagram pokazuje w statystykach panelu profesjonalnego. Bez danych warto testować poranek, porę lunchu i wieczór, a po kilku tygodniach porównać wyniki." },
+    { q: "Czy publikować w weekendy?", a: "Jeśli obserwujący są wtedy aktywni, tak: zaplanowany post nie wymaga nikogo w gabinecie. Warto sprawdzić statystyki, bo weekendowe nawyki bardzo się różnią." },
+    { q: "Czy płatne promowanie postów jest dozwolone?", a: "Płatne promowanie może zostać uznane za reklamę, a informacje podmiotu leczniczego nie mogą mieć jej cech. Przed promowaniem postów warto zapytać okręgową izbę lekarską lub prawnika." },
+  ],
+  sources: [
+    { label: "Ustawa z 15 kwietnia 2011 r. o działalności leczniczej, tekst jednolity Dz.U. 2026 poz. 156 (art. 14) — eli.gov.pl", url: "https://eli.gov.pl/eli/DU/2026/156" },
+    { label: "Naczelna Izba Lekarska — komentarz do art. 71 Kodeksu Etyki Lekarskiej (styczeń 2025)", url: "https://nil.org.pl/uploaded_files/art_1736325594_komentarz-art71.pdf" },
+  ],
+};
+
 export const POSTING_RHYTHM_EN = EN;
 export const POSTING_RHYTHM_DE = DE;
 export const POSTING_RHYTHM_TR = TR;
 export const POSTING_RHYTHM_ES = ES;
+export const POSTING_RHYTHM_FR = FR;
+export const POSTING_RHYTHM_PL = PL;

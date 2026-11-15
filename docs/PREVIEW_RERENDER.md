@@ -173,6 +173,15 @@ preview until a good one is rendered and added to the selection.
 Spend: $1.45 metered across 24 runs (chat at `eval.ts PRICES` plus narration at a
 per-character ceiling), against a $4 cap.
 
+## Fifth pass (15.11.2026): on-screen fixes from the known-mistakes register
+
+No API call. The flawed text was fixed in each sample's saved `render-plan.json`. The video was then re-rendered locally with Remotion, reusing the original `voiceover.master.wav` (no LLM, no TTS). It was compressed and given a new poster exactly as above, and checked frame by frame against the published version.
+
+- `es/limpieza-dental`: "Llega al borde de la encía." became "La limpieza llega al borde de la encía." (KM-16). Same timing, so the hero skip still holds. -14.3 LUFS.
+- `fr/blanchiment-email`: the cards "Évitez café et thé" and "Évitez vin rouge" now read "Évitez le café et le thé" and "Évitez le vin rouge" (KM-17). -14.7 LUFS.
+
+These still need a paid re-render, because the flaw is spoken: `de/aligner-verfaerbung` ("im Tray", KM-18), the `fr/blanchiment-email` narration ("évitez café, thé, vin rouge", KM-17), and the TR preview `aligners-seffaf-plak-ve-icecekler` ("rengi hemen dönmeye başladı mı?", KM-19). See `docs/KNOWN_MISTAKES.md`.
+
 ## Not changed on purpose
 
 - `worker/src/dental/fixtures/baseline-scripts.json`: the November 2026 baseline

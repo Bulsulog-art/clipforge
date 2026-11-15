@@ -111,7 +111,7 @@ export const GUIDES_FR: Guide[] = [
       },
     ],
     faq: [
-      { q: "À quelle fréquence un cabinet dentaire doit-il publier des vidéos ?", a: "La régularité compte plus que le volume. Une à trois vidéos d'information courtes par semaine restent réalistes pour la plupart des cabinets." },
+      { q: "À quelle fréquence un cabinet dentaire doit-il publier des vidéos ?", a: "La régularité compte plus que le volume. Une à trois vidéos d'information courtes par semaine restent réalistes pour la plupart des cabinets. Le détail, horaires compris, est dans [notre guide sur la fréquence de publication](guide:frequence-publication-cabinet-dentaire)." },
       { q: "Quelle durée pour une vidéo Instagram ?", a: "Pour répondre à une question, 20 à 60 secondes suffisent le plus souvent. Les sujets longs se découpent en plusieurs vidéos d'une question chacune." },
       { q: "Puis-je montrer des cas de patients ?", a: "Uniquement avec un consentement écrit, et avec prudence : un avant/après ou un témoignage peut être perçu comme une promesse ou un procédé publicitaire. Renseignez-vous auprès de l'Ordre avant de publier." },
       { q: "Le praticien doit-il apparaître dans les vidéos ?", a: "Si possible, oui : les patients font confiance à la personne qui va les soigner. Les vidéos narrées complètent bien les semaines sans tournage." },
@@ -347,7 +347,7 @@ export const GUIDES_FR: Guide[] = [
     faq: [
       { q: "Existe-t-il un plan prêt pour toute l'année ?", a: "Oui : notre [calendrier éditorial pour cabinet dentaire](guide:calendrier-editorial-cabinet-dentaire) propose un thème d'information pour chacune des 52 semaines, calé sur des dates comme la journée mondiale de la santé bucco-dentaire, le 20 mars." },
       { q: "Que publier sur l'Instagram d'un cabinet dentaire ?", a: "Des réponses courtes aux questions des patients, des explications claires des soins, des conseils après les soins et des présentations de l'équipe, toujours informatives, prudentes et sans promesse." },
-      { q: "Combien de publications par semaine ?", a: "Une à trois par semaine restent réalistes pour la plupart des cabinets. La régularité compte plus que la fréquence." },
+      { q: "Combien de publications par semaine ?", a: "Une à trois par semaine restent réalistes pour la plupart des cabinets. La régularité compte plus que la fréquence ; notre guide [à quelle fréquence publier](guide:frequence-publication-cabinet-dentaire) propose des rythmes selon votre temps." },
       { q: "Faut-il un contenu différent pour TikTok ?", a: "En général non. La même vidéo verticale sous-titrée fonctionne sur Reels, TikTok et YouTube Shorts ; adaptez le texte." },
       { q: "Puis-je organiser un jeu-concours ?", a: "Les jeux-concours et cadeaux relèvent du procédé commercial, incompatible avec l'exercice de la profession. Mieux vaut s'en abstenir." },
       { q: "Faut-il répondre aux commentaires ?", a: "Oui, aimablement et de façon générale. Ne répondez pas publiquement à une question sur un cas personnel : proposez un rendez-vous ou le téléphone du cabinet." },

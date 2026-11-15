@@ -245,3 +245,7 @@ Same three clinics, three videos each, deterministic checks on the ready videos 
 - **Spend on the CLI.** `cli.ts` meters chat calls, prints the run's spend and takes `--max-usd`.
 
 Samples and the Turkish preview re-rendered with these: docs/PREVIEW_RERENDER.md, fourth pass.
+
+## Known mistakes register
+
+Every mistake found in a rendered video is listed in `docs/KNOWN_MISTAKES.md` with its verbatim text and the check that now catches it. Most checks live in `worker/src/dental/known-mistakes.ts` (run by `scriptProblems` and `captionProblems`, mirrored to web). The rule: a new mistake gets a row and a check before the next release.

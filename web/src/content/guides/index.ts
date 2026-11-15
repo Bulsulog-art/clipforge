@@ -18,7 +18,8 @@ import { EDUCATION_PL } from "./education-pl";
 import { TREATMENTS_EN } from "./treatments-en";
 import { TREATMENTS_DE } from "./treatments-de";
 import { TREATMENTS_TR } from "./treatments-tr";
-import { POSTING_RHYTHM_DE, POSTING_RHYTHM_EN, POSTING_RHYTHM_ES, POSTING_RHYTHM_TR } from "./posting-rhythm";
+import { POSTING_RHYTHM_DE, POSTING_RHYTHM_EN, POSTING_RHYTHM_ES, POSTING_RHYTHM_FR, POSTING_RHYTHM_PL, POSTING_RHYTHM_TR } from "./posting-rhythm";
+import { TIKTOK_EN } from "./tiktok";
 
 // Only type imports from ../dentvideo here and in the per-language files, so
 // content/dentvideo.ts can import this module without a runtime cycle.
@@ -38,9 +39,11 @@ export const GUIDE_LIBRARY: Guide[] = [
   POSTING_RHYTHM_ES,
   ...GUIDES_FR,
   CALENDAR_FR,
+  POSTING_RHYTHM_FR,
   ...GUIDES_EN,
   CALENDAR_EN,
   POSTING_RHYTHM_EN,
+  TIKTOK_EN,
   ...TREATMENTS_EN,
   ...GUIDES_JA,
   EDUCATION_JA,
@@ -48,6 +51,7 @@ export const GUIDE_LIBRARY: Guide[] = [
   EDUCATION_AR,
   ...GUIDES_PL,
   EDUCATION_PL,
+  POSTING_RHYTHM_PL,
 ];
 
 /**
