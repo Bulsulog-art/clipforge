@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BUCKET } from "./supabase";
 import { isOwnPath, listOwnerFiles, type OwnerFile } from "./account";
+import { oversizedLogos } from "./upload-slots";
 
 /**
  * Removes storage left behind by accounts that never paid, so sign-ups
@@ -12,7 +13,8 @@ import { isOwnPath, listOwnerFiles, type OwnerFile } from "./account";
  *     older than the minimum age goes;
  *   - an unpaid account (no clinic row, or plan = "trial"): every object
  *     older than the minimum age goes, except the clinic's current logo
- *     (the preview and the sign-up wizard still show it);
+ *     (the preview and the sign-up wizard still show it); a "logo" larger
+ *     than the logo limit goes at once, whatever its age (audit 2026-11-15);
  *   - a clinic that is or was paying (active, paused, cancelled): nothing —
  *     retention of paid content is the owner's decision (docs/SECURITY.md).
  * An object without a creation time is kept.
@@ -39,13 +41,15 @@ export function planOwnerCleanup(state: OwnerState, now: Date, minAgeDays = CLEA
   const reason = paying ? "paying" : !state.clinic && !state.userExists ? "no account" : "unpaid";
   if (paying) return { ownerId: owner, reason, remove: [], keep: state.files.length, bytes: 0 };
   const cutoff = now.getTime() - minAgeDays * 86_400_000;
+  // A "logo" over the logo limit can never be saved (POST /clinic refuses it): it goes at once, whatever its age.
+  const oversized = new Set(oversizedLogos(state.files, state.clinic?.logo_path));
   const remove: string[] = [];
   let bytes = 0;
   for (const f of state.files) {
     if (!isOwnPath(f.path, owner)) continue;
     if (state.clinic?.logo_path && f.path === state.clinic.logo_path) continue;
     const t = f.createdAt ? Date.parse(f.createdAt) : NaN;
-    if (!Number.isFinite(t) || t > cutoff) continue;
+    if (!oversized.has(f.path) && (!Number.isFinite(t) || t > cutoff)) continue;
     remove.push(f.path);
     bytes += f.size ?? 0;
   }

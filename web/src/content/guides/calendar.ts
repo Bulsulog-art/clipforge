@@ -49,11 +49,11 @@ export const CALENDAR_EN: Guide = {
     {
       heading: "Which dates belong in a dental calendar?",
       paragraphs: [
-        "Awareness dates give a post a reason to exist on that day and are easy to plan around. Use the ones run by recognised organisations, and check the organiser's site for this year's theme:",
+        "Awareness dates give a post a reason to exist on that day and are easy to plan around. Use the ones run by recognized organizations, and check the organizer's site for this year's theme:",
       ],
       table: {
         caption: "Recurring oral-health dates for US and UK clinics",
-        columns: ["When", "Observance", "Organiser", "Where"],
+        columns: ["When", "Observance", "Organizer", "Where"],
         rows: [
           ["February", "National Children's Dental Health Month", "American Dental Association", "United States"],
           ["20 March", "World Oral Health Day", "FDI World Dental Federation", "Worldwide"],
@@ -61,7 +61,7 @@ export const CALENDAR_EN: Guide = {
           ["Late August to September", "Back to school", "—", "Everywhere: lunchboxes, sports mouthguards, orthodontic checks"],
           ["31 October", "Halloween", "—", "US and UK: sweets and timing"],
         ],
-        note: "Dates and themes change; confirm them on the organisers' pages listed under Sources.",
+        note: "Dates and themes change; confirm them on the organizers' pages listed under Sources.",
       },
     },
     {
@@ -118,7 +118,7 @@ export const CALENDAR_EN: Guide = {
         "Week 36 — Cleaning around braces.",
         "Week 37 — Gum disease: from gingivitis to periodontitis, and why early care matters.",
         "Week 38 — Diabetes and gum health.",
-        "Week 39 — Behind the scenes: how instruments are cleaned and sterilised.",
+        "Week 39 — Behind the scenes: how instruments are cleaned and sterilized.",
       ],
     },
     {
@@ -151,7 +151,7 @@ export const CALENDAR_EN: Guide = {
       heading: "Which format fits which week?",
       paragraphs: [
         "Three formats cover almost every topic. A 20–40 second talking-head answer from the dentist works for questions (“does whitening damage enamel?”). A narrated explainer with captions works for procedures (implants, root canals). A short behind-the-scenes clip works for team and hygiene weeks. More on making them in [Instagram videos for dentists](guide:instagram-videos-for-dentists), and more single-post ideas in [dental social media post ideas](guide:dental-social-media-post-ideas).",
-        "[DentVideo](landing:) turns a calendar like this into five narrated, captioned videos a week in your language and colours, checks every script for commonly restricted advertising claims and for clinical accuracy, and waits for your approval before anything is downloaded. [See a live preview with your own logo](start:).",
+        "[DentVideo](landing:) turns a calendar like this into five narrated, captioned videos a week in your language and colors, checks every script for commonly restricted advertising claims and for clinical accuracy, and waits for your approval before anything is downloaded. [See a live preview with your own logo](start:).",
       ],
     },
   ],

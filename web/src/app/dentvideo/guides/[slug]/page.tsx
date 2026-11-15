@@ -110,7 +110,7 @@ export default async function GuidePage({ params }: Props) {
                 {findExample(L, sample.slug) && (
                   <p className="mt-3">
                     {/* The sample's own page: what it covers, its on-screen text, and every other example. */}
-                    <Link href={dvHref(examplePath({ locale: L, slug: sample.slug }))} className="inline-flex items-center gap-1.5 text-sm font-semibold text-dv-teal underline-offset-4 hover:underline">
+                    <Link href={dvHref(examplePath({ locale: L, slug: sample.slug }))} className="-my-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-dv-teal underline-offset-4 hover:underline">
                       {EXAMPLES_UI[L].seeAll}
                       <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
                     </Link>
@@ -123,11 +123,12 @@ export default async function GuidePage({ params }: Props) {
           {g.sections.length > 3 && (
             <nav aria-label={ui.onThisPage} className="mt-8 rounded-2xl bg-dv-sand/70 p-5 ring-1 ring-dv-line sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-dv-muted">{ui.onThisPage}</p>
-              <ol className="mt-3 grid gap-x-8 gap-y-2 text-[0.9375rem] sm:grid-cols-2">
+              {/* Each entry is a full 44px row on touch screens; with a mouse (lg) the list sits tighter. */}
+              <ol className="mt-2 grid gap-x-8 text-[0.9375rem] sm:grid-cols-2 lg:mt-3 lg:gap-y-2">
                 {g.sections.map((s, i) => (
-                  <li key={s.heading} className="flex gap-2.5">
+                  <li key={s.heading} className="flex items-baseline gap-2.5">
                     <span className="w-5 shrink-0 text-end font-semibold tabular-nums text-dv-teal">{i + 1}</span>
-                    <a href={`#${sectionId(s.heading, i)}`} className="text-dv-body underline-offset-4 hover:text-dv-ink hover:underline">
+                    <a href={`#${sectionId(s.heading, i)}`} className="flex min-h-11 flex-1 items-center rounded-md py-1.5 leading-snug text-dv-body underline-offset-4 hover:text-dv-ink hover:underline lg:block lg:min-h-0 lg:flex-none lg:py-0">
                       {s.heading}
                     </a>
                   </li>
@@ -232,9 +233,9 @@ export default async function GuidePage({ params }: Props) {
           )}
 
           {translations.length > 0 && (
-            <p className="mt-10 flex flex-wrap gap-x-4 gap-y-2 text-sm text-dv-muted">
+            <p className="mt-10 flex flex-wrap gap-x-4 text-sm text-dv-muted lg:gap-y-2">
               {translations.map((o) => (
-                <Link key={o.slug} href={dvHref(guidePath(o))} hrefLang={o.locale} lang={o.locale} className="inline-block rounded-md py-0.5 font-medium text-dv-teal underline-offset-4 hover:underline">
+                <Link key={o.slug} href={dvHref(guidePath(o))} hrefLang={o.locale} lang={o.locale} className="inline-flex min-h-11 items-center rounded-md font-medium lg:min-h-0 lg:py-0.5 text-dv-teal underline-offset-4 hover:underline">
                   {LANGUAGE_NAME[o.locale]}
                 </Link>
               ))}

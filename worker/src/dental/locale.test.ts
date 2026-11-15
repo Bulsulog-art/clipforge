@@ -29,7 +29,8 @@ describe("locale", () => {
     expect(marketRules("SA")).toMatch(/Saudi Arabia/);
     expect(marketRules("PL")).toMatch(/Kodeks Etyki Lekarskiej/);
     expect(marketRules("SG")).toMatch(/testimonials/);
-    expect(marketRules("US")).toBe("");
+    expect(marketRules("US")).toMatch(/ADA Code of Ethics/);
+    expect(marketRules("ZZ")).toBe("");
     expect(captionRules("JP")).toMatch(/自由診療/);
     expect(captionRules("AE")).toBe("");
   });
@@ -38,7 +39,7 @@ describe("locale", () => {
     expect(marketRules("TR")).toMatch(/33075/);
     expect(marketRules("TR")).toMatch(/öncesi-sonrası/);
     expect(marketRules("TR")).toMatch(/fear-inducing/);
-    expect(marketRules("DE")).toMatch(/§ 11 HWG/);
+    expect(marketRules("DE")).toMatch(/§ 11 Abs\. 1 S\. 3 Nr\. 1 HWG/);
     expect(marketRules("DE")).toMatch(/I ZR 170\/24/);
     expect(marketRules("DE")).toMatch(/Berufsordnung/);
     expect(marketRules("AT")).toMatch(/§ 35 Zahnärztegesetz/);

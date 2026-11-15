@@ -198,13 +198,14 @@ export function LegalPage({ kind, locale }: { kind: LegalKind; locale: Locale })
         ))}
 
         <nav aria-label={nav.legal} className="mt-16 border-t border-dv-line pt-6">
-          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          {/* Touch screens: each link a full 44px row (they were ~18px tall); tighter with a mouse (lg). */}
+          <ul className="flex flex-wrap gap-x-5 text-sm lg:gap-y-2">
             {LEGAL_KINDS.map((k) => (
-              <li key={k}>
+              <li key={k} className="flex min-h-11 items-center lg:block lg:min-h-0">
                 {k === kind ? (
                   <span aria-current="page" className="font-semibold text-dv-ink">{nav.nav[k]}</span>
                 ) : (
-                  <Link href={dvHref(legalPath(k, locale))} className={linkCls}>{nav.nav[k]}</Link>
+                  <Link href={dvHref(legalPath(k, locale))} className={`${linkCls} inline-flex min-h-11 items-center lg:inline lg:min-h-0`}>{nav.nav[k]}</Link>
                 )}
               </li>
             ))}

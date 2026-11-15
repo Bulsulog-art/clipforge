@@ -13,7 +13,7 @@ describe("ad checker: engine", () => {
   it("flags the classic risky post and offers a fix in its language", () => {
     const hits = checkText("Guaranteed painless whitening, 50% off! The best dentist in town.");
     expect(hits.map((h) => h.rule)).toEqual(["guarantee", "absolute", "price", "superlative"]);
-    expect(hits.find((h) => h.rule === "absolute")?.fix).toBe("comfortable for most patients, with local anaesthesia");
+    expect(hits.find((h) => h.rule === "absolute")?.fix).toBe("comfortable for most patients, with local anesthesia");
   });
 
   it("flags a plain call to book now in English and German, as it does in Turkish", () => {
