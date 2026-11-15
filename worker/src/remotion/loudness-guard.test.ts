@@ -49,7 +49,7 @@ describe.skipIf(!hasFfmpeg)("enforceLoudness on a real mp4", () => {
     execFileSync("ffmpeg", [
       "-v", "error", "-y",
       "-f", "lavfi", "-i", "color=c=0x0E7490:s=108x192:d=4:r=30",
-      "-f", "lavfi", "-i", "anoisesrc=d=4:c=pink:a=0.5",
+      "-f", "lavfi", "-i", "anoisesrc=d=4:c=pink:a=0.5:seed=1",
       "-af", `volume=${db}dB`, "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", file,
     ]);
     return file;
@@ -67,5 +67,7 @@ describe.skipIf(!hasFfmpeg)("enforceLoudness on a real mp4", () => {
     const videoAfter = execFileSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name,width,height,nb_frames", "-of", "csv=p=0", file]).toString();
     expect(videoAfter).toBe(videoBefore);
     fs.rmSync(dir, { recursive: true, force: true });
-  });
+    // Real ffmpeg: an encode plus up to three loudness passes. Vitest's 5 s default
+    // was too tight when the full suite runs alongside other work.
+  }, 60_000);
 });
