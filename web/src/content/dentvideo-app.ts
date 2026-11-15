@@ -85,7 +85,8 @@ export type AppText = {
     copyCaption: string;
     copied: string;
     approve: string;
-    approveAll: string;
+    /** The bulk approve button, by count: `countText(approveAll, n, locale)`. */
+    approveAll: CountText;
     download: string;
     share: string;
     shareHint: string;
@@ -407,7 +408,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Copy caption",
       copied: "Copied",
       approve: "Approve",
-      approveAll: "Approve all {n} ready videos",
+      approveAll: { one: "Approve video", two: "Approve both videos", other: "Approve all {n} videos" },
       download: "Download",
       share: "Share",
       shareHint: "Caption copied — choose Instagram or TikTok, then paste it.",
@@ -758,7 +759,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Text kopieren",
       copied: "Kopiert",
       approve: "Freigeben",
-      approveAll: "Alle {n} fertigen Videos freigeben",
+      approveAll: { one: "Video freigeben", two: "Beide Videos freigeben", other: "Alle {n} Videos freigeben" },
       download: "Herunterladen",
       share: "Teilen",
       shareHint: "Text kopiert – Instagram oder TikTok wählen und einfügen.",
@@ -1112,7 +1113,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Copiar texto",
       copied: "Copiado",
       approve: "Aprobar",
-      approveAll: "Aprobar los {n} vídeos listos",
+      approveAll: { one: "Aprobar el vídeo", two: "Aprobar los dos vídeos", other: "Aprobar los {n} vídeos" },
       download: "Descargar",
       share: "Compartir",
       shareHint: "Texto copiado: elige Instagram o TikTok y pégalo.",
@@ -1466,7 +1467,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Açıklamayı kopyala",
       copied: "Kopyalandı",
       approve: "Onayla",
-      approveAll: "Hazır {n} videonun hepsini onayla",
+      approveAll: { one: "Videoyu onayla", two: "İki videoyu da onayla", other: "{n} videonun hepsini onayla" },
       download: "İndir",
       share: "Paylaş",
       shareHint: "Açıklama kopyalandı — Instagram'ı veya TikTok'u seçip yapıştırın.",
@@ -1820,7 +1821,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Copier le texte",
       copied: "Copié",
       approve: "Valider",
-      approveAll: "Valider les {n} vidéos prêtes",
+      approveAll: { one: "Valider la vidéo", two: "Valider les deux vidéos", other: "Valider les {n} vidéos" },
       download: "Télécharger",
       share: "Partager",
       shareHint: "Texte copié : choisissez Instagram ou TikTok, puis collez-le.",
@@ -2174,7 +2175,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "キャプションをコピー",
       copied: "コピーしました",
       approve: "承認する",
-      approveAll: "準備ができた{n}本をまとめて承認",
+      approveAll: { one: "動画を承認", two: "2本とも承認", other: "{n}本すべて承認" },
       download: "ダウンロード",
       share: "共有",
       shareHint: "キャプションをコピーしました。InstagramかTikTokを選んで、貼り付けてください。",
@@ -2526,7 +2527,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "نسخ النص",
       copied: "نُسخ",
       approve: "اعتماد",
-      approveAll: "اعتماد كل الفيديوهات الجاهزة ({n})",
+      approveAll: { one: "اعتماد الفيديو", two: "اعتماد الفيديوهين كليهما", other: "اعتماد الفيديوهات الـ{n} كلها" },
       download: "تنزيل",
       share: "مشاركة",
       shareHint: "نُسخ النص. اختاروا إنستغرام أو تيك توك ثم الصقوه.",
@@ -2879,7 +2880,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       copyCaption: "Kopiuj opis",
       copied: "Skopiowano",
       approve: "Zatwierdź",
-      approveAll: "Zatwierdź wszystkie gotowe ({n})",
+      approveAll: { one: "Zatwierdź film", two: "Zatwierdź oba filmy", few: "Zatwierdź wszystkie {n} filmy", other: "Zatwierdź wszystkie {n} filmów" },
       download: "Pobierz",
       share: "Udostępnij",
       shareHint: "Opis skopiowany. Wystarczy wybrać Instagram lub TikTok i go wkleić.",
@@ -3142,6 +3143,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
 /** Fills `{name}` placeholders. */
 export function fmt(text: string, vars: Record<string, string | number>): string {
   return text.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
+}
+
+/**
+ * A label that changes with a count. `one` and `two` are said differently in
+ * every language ("Approve video", "Approve both videos"); from three on, the
+ * language's plural category (Intl.PluralRules: Polish "few" for 3-4, 22-24…)
+ * picks the form, falling back to `other`.
+ */
+export type CountText = { one: string; two: string; few?: string; many?: string; other: string };
+
+export function countText(text: CountText, n: number, locale: string): string {
+  if (n === 1) return fmt(text.one, { n });
+  if (n === 2) return fmt(text.two, { n });
+  const cat = new Intl.PluralRules(locale).select(n);
+  return fmt((cat === "few" || cat === "many" ? text[cat] : undefined) ?? text.other, { n });
 }
 
 export function appText(locale: Locale): AppText {

@@ -78,6 +78,19 @@ function blockShape(b: LegalBlock): string {
 }
 
 describe("legal pages", () => {
+  it("names the in-page document list apart from the footer's Legal navigation, in every language", () => {
+    const attr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+    for (const l of LOCALES) {
+      const { documents } = LEGAL_NAV[l];
+      expect(documents.trim(), l).not.toBe("");
+      expect(documents, l).not.toBe(chromeText()[l].legal);
+      expect(documents, l).not.toBe(LEGAL_NAV[l].legal);
+      const h = page("terms", l);
+      expect(h, l).toContain(`<nav aria-label="${attr(documents)}"`);
+      expect(h, l).not.toContain(`<nav aria-label="${attr(chromeText()[l].legal)}"`);
+    }
+  });
+
   it("every language has every document with the English structure", () => {
     for (const l of LOCALES) {
       for (const k of LEGAL_KINDS) {

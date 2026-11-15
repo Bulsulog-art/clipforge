@@ -12,8 +12,8 @@ import { EXAMPLES } from "@/content/dentvideo-examples";
  * here with its register id, and nowhere else may carry one.
  */
 const LIVE_FLAWS: Record<string, string[]> = {
-  // Spoken too ("Darum im Tray nur Wasser"): needs a new narration (docs/KNOWN_MISTAKES.md KM-18).
-  "de/aligner-verfaerbung": ["KM-18"],
+  // Empty since 15.11.2026: the DE aligner (KM-18), the FR whitening narration (KM-17)
+  // and the TR aligner preview (KM-19) were re-voiced and re-rendered.
 };
 
 type Scene = { kind: string; text?: string; heading?: string; caption?: string; sub?: string; context?: string; items?: string[]; left?: { label?: string; text?: string }; right?: { label?: string; text?: string } };
@@ -57,10 +57,12 @@ describe("known mistakes on the site", () => {
     }
   });
 
-  it("the re-rendered ES and FR cards are the fixed ones", () => {
+  it("the re-rendered ES, FR and DE cards are the fixed ones", () => {
     const text = (slug: string) => EXAMPLES.find((e) => e.slug === slug)!.onScreen.join("\n");
     expect(text("limpieza-dental")).toContain("La limpieza llega al borde de la encía.");
     expect(text("blanchiment-email")).toContain("évitez le café et le thé");
+    expect(text("aligner-verfaerbung")).toContain("mit Schiene nur Wasser");
+    expect(text("aligner-verfaerbung")).not.toMatch(/\bTray\b/);
     expect(scanKnownMistakes({ screen: ["Llega al borde de la encía.", "Évitez vin rouge"] }, "es").map((h) => h.id)).toEqual(["KM-16"]);
   });
 });
