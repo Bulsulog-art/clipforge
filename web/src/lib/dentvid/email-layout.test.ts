@@ -43,7 +43,56 @@ describe("email template", () => {
     expect(m.html).toContain("text-align:right");
     expect(m.html).toMatch(/<span dir="ltr"[^>]*>123 456/);
     expect(m.html).toMatch(/href="https:\/\/dentvideo\.com\/app" dir="ltr"/);
-    expect(m.text).toBe("عنوان\n\n123 456\n\n• أ\n• ب\n\nزر: https://dentvideo.com/app\n\n—\nتذييل\n؟ إلغاء: https://dentvideo.com/api/dentvideo/unsubscribe?t=a");
+    expect(m.text).toBe(
+      "عنوان\n\n123 456\n\n• أ\n• ب\n\nزر: https://dentvideo.com/app\n\n" +
+        "لديكم سؤال أو تعديل؟ يكفي الرد على هذه الرسالة. يقرأ أحد أفراد فريقنا كل رسالة تصل إلى hello@dentvideo.com.\n\n" +
+        "—\nتذييل\n؟ إلغاء: https://dentvideo.com/api/dentvideo/unsubscribe?t=a\nDentVideo · BLS AI Automation DOO · Neznanih Junaka 60, 81000 Podgorica, الجبل الأسود",
+    );
+  });
+
+  it("works in Outlook: a fixed-width ghost table, a VML button, Arial instead of Times", () => {
+    const m = renderEmail({ lang: "en", subject: "S", preheader: "P", blocks: [], button: { label: "Go", url: "https://dentvideo.com/app" }, footer: "F" });
+    expect(m.html).toContain('<!--[if mso]><table role="presentation" width="600"');
+    expect(m.html).toMatch(/<v:roundrect [^>]*href="https:\/\/dentvideo\.com\/app"[^>]*fillcolor="#0f5c5c"/);
+    expect(m.html).toContain("<!--[if !mso]><!-->");
+    expect(m.html).toMatch(/<!--\[if mso\]><style>[^<]*font-family:Arial/);
+  });
+
+  it("every email ends with a human help line and the company's address; a body that says it already can drop the line", () => {
+    const base = { subject: "S", preheader: "P", blocks: [], footer: "F" };
+    for (const lang of ["en", "tr", "de", "ar"]) {
+      const m = renderEmail({ ...base, lang });
+      expect(m.html, lang).toContain('href="mailto:hello@dentvideo.com"');
+      expect(m.text, lang).toContain("hello@dentvideo.com");
+      expect(m.text, lang).toContain("BLS AI Automation DOO · Neznanih Junaka 60, 81000 Podgorica");
+    }
+    expect(renderEmail({ ...base, lang: "en", help: false }).html).not.toContain("mailto:");
+  });
+
+  it("dark mode keeps a white label on the clinic-coloured video buttons", () => {
+    const m = renderEmail({
+      lang: "en",
+      subject: "S",
+      preheader: "P",
+      blocks: [{ kind: "videos", items: [{ title: "T", href: "https://dentvideo.com/p", action: "Approve & share" }] }],
+      footer: "F",
+    });
+    expect(m.html).toMatch(/<a href="https:\/\/dentvideo\.com\/p" class="dv-chip"/);
+    expect(m.html).toContain(".dv-chip{color:#ffffff!important}");
+  });
+
+  it("a secondary action can be an outlined button, never a second filled one", () => {
+    const m = renderEmail({
+      lang: "en",
+      subject: "S",
+      preheader: "P",
+      blocks: [],
+      button: { label: "Main", url: "https://dentvideo.com/a" },
+      secondary: { ask: "Or", label: "Second", url: "https://dentvideo.com/b", style: "button" },
+      footer: "F",
+    });
+    expect(m.html.match(/class="dv-btn" bgcolor/g)).toHaveLength(1);
+    expect(m.html).toMatch(/class="dv-btn2"[^>]*border:2px solid #0f5c5c/);
   });
 });
 

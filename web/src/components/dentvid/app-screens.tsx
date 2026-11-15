@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { dvHref } from "@/lib/dentvid/host";
-import { ArrowLeft, ArrowLeftRight, Mail, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeftRight, Mail } from "lucide-react";
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
 import { accountText } from "@/content/dentvideo-account";
@@ -17,6 +17,7 @@ import { BillingIssuePanel, type BillingIssue } from "./billing-issue";
 import { ClinicForm } from "./clinic-form";
 import { AccountPanel } from "./account-panel";
 import { RecordUpload } from "./record-upload";
+import { HelpContact } from "./help-contact";
 
 /**
  * The screens of the signed-in app, as plain views of their data. The pages
@@ -67,7 +68,8 @@ export function AppHomeView({
   const text = appText(locale);
   const t = text.home;
   const onlyFirstWeek = firstWeek && items.length === 0;
-  const Heading = firstWeek ? "h2" : "h1";
+  // With a plan, "this week" (status + one action) is the page and its heading; without one, the plan comes first.
+  const locked = !plan.canMake && !firstWeek;
   return (
     <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-6xl`}>
       <RememberLocale locale={locale} />
@@ -77,21 +79,19 @@ export function AppHomeView({
         </p>
       )}
       {firstWeek && (
-        <div className={onlyFirstWeek ? "" : "mb-12"}>
+        <div className={onlyFirstWeek ? "" : "mb-10"}>
           <FirstWeek locale={locale} paid={plan.plan === "active"} pollMs={pollMs} delay={weekDelay} week={currentWeek} job={firstWeekJob} />
         </div>
       )}
       {!onlyFirstWeek && (
         <>
-          <header>
-            <p className="text-sm font-medium text-dv-muted">{clinicName || t.yourClinic}</p>
-            <Heading className="dv-display mt-1 text-[2.5rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</Heading>
-            <p className="mt-3 hidden max-w-3xl items-start gap-2 text-sm leading-relaxed text-dv-muted sm:flex">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
-              {t.lead}
-            </p>
-          </header>
-          {!plan.canMake && !firstWeek && (
+          {locked && (
+            <header>
+              <p className="text-sm font-medium text-dv-muted">{clinicName || t.yourClinic}</p>
+              <h1 className="dv-display mt-1 text-[2.25rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
+            </header>
+          )}
+          {locked && (
             <div className="mt-8">
               {billingIssue ? (
                 <BillingIssuePanel locale={locale} issue={billingIssue} clinicName={clinicName} keepVideos={items.length > 0} />
@@ -100,7 +100,7 @@ export function AppHomeView({
               )}
             </div>
           )}
-          <div className="mt-8">
+          <div className={locked ? "mt-8" : ""}>
             <Library
               locale={locale}
               items={items}
@@ -109,6 +109,8 @@ export function AppHomeView({
               currentWeek={currentWeek}
               weekDelay={weekDelay}
               country={country}
+              clinicName={clinicName || t.yourClinic}
+              heroLevel={firstWeek ? 2 : 1}
             />
           </div>
         </>
@@ -128,9 +130,12 @@ export function SettingsView({
   initialDialog = null,
   accountEmail = null,
   billingIssue = null,
+  clinicId = null,
 }: {
   locale: Locale;
   profile?: Partial<ClinicProfile>;
+  /** The clinic's id, prefilled in the Help & contact email so support finds the account. */
+  clinicId?: string | null;
   /** The login's address (the delete dialog accepts it when the clinic has no name). */
   accountEmail?: string | null;
   logoPath?: string | null;
@@ -151,14 +156,14 @@ export function SettingsView({
   return (
     <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-3xl`}>
       <RememberLocale locale={locale} />
-      <h1 className="dv-display text-[2.5rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
+      <h1 className="dv-display text-[2.25rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
       <p className="mt-2 text-dv-body">{t.lead}</p>
       <div className="mt-8">
         <ClinicForm locale={locale} initial={profile} logoPath={logoPath} logoUrl={logoUrl} submitLabel={t.save} />
       </div>
       {plan && (
         <section aria-labelledby="billing-title" className="mt-14 border-t border-dv-line pt-10">
-          <h2 id="billing-title" className="dv-display text-[2rem] leading-tight text-dv-ink">{b.settingsHeading}</h2>
+          <h2 id="billing-title" className="text-xl font-semibold text-dv-ink">{b.settingsHeading}</h2>
           <div className="mt-4">
             <PlanStatus locale={locale} state={plan.plan} tier={plan.tier} renewsAt={plan.renewsAt} />
           </div>
@@ -196,6 +201,7 @@ export function SettingsView({
         </section>
       )}
       <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} accountEmail={accountEmail} initialDialog={initialDialog} />
+      <HelpContact locale={locale} clinicId={clinicId} clinicName={profile?.name} />
     </main>
   );
 }
@@ -225,43 +231,33 @@ export function RecordView({
   return (
     <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-5xl`}>
       <RememberLocale locale={locale} />
-      <Link href={dvHref("/dentvideo/app")} className="-ms-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-sm font-medium text-dv-teal hover:underline">
-        <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
-        {t.backToVideos}
-      </Link>
-      <h1 className="dv-display mt-2 text-balance text-[2.5rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
-      {/* The full intro talks the dentist through "these cards"; Starter has no filming cards. */}
-      <p className="mt-3 max-w-2xl leading-relaxed text-dv-body">{starter ? t.starterIntro : t.lead}</p>
+      {/* No "back to videos" link: the Videos tab is always right above. On Starter the page is the upsell itself. */}
+      <h1 className="dv-display text-balance text-[2.25rem] leading-[1.05] text-dv-ink sm:text-5xl">{starter ? t.starterTitle : t.title}</h1>
+      <p className="mt-3 max-w-2xl leading-relaxed text-dv-body">{starter ? t.starterLead : t.lead}</p>
 
       {starter ? (
-        <section className="dv-card relative isolate mt-8 overflow-hidden p-6 sm:p-8">
-          <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10 opacity-60" />
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/15">
-            <UserRound className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <h2 className="dv-display mt-4 text-balance text-[1.875rem] leading-tight text-dv-ink">{t.starterTitle}</h2>
-          <p className="mt-2 max-w-2xl leading-relaxed text-dv-body">{t.starterLead}</p>
+        <div className="mt-6">
           {!onStarter ? (
-            <Link href={dvHref("/dentvideo/app#plans")} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto" data-testid="choose-plan">
+            <Link href={dvHref("/dentvideo/app#plans")} className="dv-btn dv-btn-primary w-full px-6 py-3 sm:w-auto" data-testid="choose-plan">
               <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
               {fmt(text.billing.choose, { tier: text.billing.tiers.practice.name })}
             </Link>
           ) : selfServe ? (
             // The plan change is self-serve (Settings → Plan and billing): no email round trip.
-            <Link href={dvHref("/dentvideo/app/settings#billing-title")} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto" data-testid="starter-upgrade">
+            <Link href={dvHref("/dentvideo/app/settings#billing-title")} className="dv-btn dv-btn-primary w-full px-6 py-3 sm:w-auto" data-testid="starter-upgrade">
               <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
               {fmt(accountText(locale).changeTo, { tier: text.billing.tiers.practice.name })}
             </Link>
           ) : (
             <>
-              <a href={mailtoHref(t.starterSubject)} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto">
+              <a href={mailtoHref(t.starterSubject)} className="dv-btn dv-btn-primary w-full px-6 py-3 sm:w-auto">
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 {t.starterCta}
               </a>
               <p className="mt-3 text-sm text-dv-muted">{DV_SUPPORT_EMAIL}</p>
             </>
           )}
-        </section>
+        </div>
       ) : (
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
           <RecordUpload locale={locale} />

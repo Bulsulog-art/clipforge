@@ -19,15 +19,17 @@ import { SEQUENCE_COPY, type SequenceCopy } from "./dentvideo-lifecycle-sequence
 export type LifecycleBase = {
   hello: string;
   signoff: string;
-  contact: string;
   nudgeFooter: string;
   unsubscribeAsk: string;
   unsubscribe: string;
   welcome: {
     subject: string;
     preheader: string;
+    title: string;
     intro: string;
     steps: { title: string; body: string }[];
+    /** The "reply to this email" panel; replaces the shared help line in the welcome. */
+    help: string;
     button: string;
     footer: string;
   };
@@ -51,20 +53,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   en: {
     hello: "Hello {clinic},",
     signoff: "The DentVideo team",
-    contact: "Questions? Just reply to this email.",
     nudgeFooter: "You get this email because you started setting up DentVideo for your clinic. We send at most four short emails, and stop as soon as you choose a plan.",
     unsubscribeAsk: "Don't want reminders?",
     unsubscribe: "Unsubscribe",
     welcome: {
-      subject: "Welcome to DentVideo, {clinic}",
-      preheader: "Your first videos are being made now — about 15 minutes.",
-      intro: "Thank you for choosing DentVideo. Here is what happens next.",
+      subject: "Welcome to DentVideo: here's what happens next",
+      preheader: "Your first videos are on their way (about 15 minutes). Here's how review, approval and posting work.",
+      title: "Welcome, you're all set",
+      intro: "Thank you for choosing DentVideo. Your plan is active. Here is what happens next:",
       steps: [
-        { title: "Your first week: about 15 minutes", body: "We're making this week's videos now. We'll email you as soon as they're ready for your review." },
-        { title: "Then every Monday", body: "New videos arrive in your library each Monday, software-checked and waiting for your approval, and an email lets you know." },
-        { title: "Approve, then share", body: "Watch each video and approve it — nothing is published until you do. Tap Share and the caption is copied for you to paste." },
-        { title: "We're here", body: "Questions, changes or feedback: reply to this email or write to {email}." },
+        { title: "Today: your first videos", body: "We're making this week's videos now. It usually takes about 15 minutes, and we'll email you the moment they're ready." },
+        { title: "Review and approve", body: "Open each video in your library and watch it. Every video has had a software-assisted check for clinical accuracy and health-advertising rules, and you approve each one with a tap. Nothing is published until you do." },
+        { title: "Post it yourself", body: "On an approved video, tap Share: the caption is copied, ready to paste into Instagram, Facebook or wherever you post. Each video comes with a suggested day and time. DentVideo never posts for you." },
+        { title: "Then every Monday", body: "A new week of videos arrives in your library every Monday, and we email you when it's ready." },
       ],
+      help: "Questions, a video to change, or feedback? Reply to this email. It reaches a real person at {email}.",
       button: "Open my library",
       footer: "You get this email because your clinic subscribed to DentVideo.",
     },
@@ -84,20 +87,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   de: {
     hello: "Guten Tag, {clinic},",
     signoff: "Ihr DentVideo-Team",
-    contact: "Fragen? Antworten Sie einfach auf diese E-Mail.",
     nudgeFooter: "Sie erhalten diese E-Mail, weil Sie begonnen haben, DentVideo für Ihre Praxis einzurichten. Wir schicken höchstens vier kurze E-Mails und hören auf, sobald Sie einen Tarif wählen.",
     unsubscribeAsk: "Keine Erinnerungen mehr?",
     unsubscribe: "Abmelden",
     welcome: {
-      subject: "Willkommen bei DentVideo, {clinic}",
-      preheader: "Ihre ersten Videos entstehen gerade – in etwa 15 Minuten.",
-      intro: "Ihr Tarif ist aktiv – vielen Dank für Ihr Vertrauen. So geht es weiter.",
+      subject: "Willkommen bei DentVideo: so geht es weiter",
+      preheader: "Ihre ersten Videos entstehen gerade (etwa 15 Minuten). So funktionieren Prüfung, Freigabe und Posten.",
+      title: "Willkommen, alles ist bereit",
+      intro: "Vielen Dank für Ihr Vertrauen. Ihr Tarif ist aktiv. So geht es weiter:",
       steps: [
-        { title: "Ihre erste Woche: etwa 15 Minuten", body: "Die Videos dieser Woche entstehen gerade. Sobald sie zur Freigabe bereitstehen, schicken wir Ihnen eine E-Mail." },
-        { title: "Danach jeden Montag", body: "Jeden Montag liegen neue, softwaregestützt geprüfte Videos zur Freigabe in Ihrer Bibliothek – eine E-Mail sagt Ihnen Bescheid." },
-        { title: "Freigeben, dann teilen", body: "Sehen Sie sich jedes Video an und geben Sie es frei – ohne Ihre Freigabe wird nichts veröffentlicht. Tippen Sie auf „Teilen“, und die Bildunterschrift wird für Sie kopiert." },
-        { title: "Wir sind für Sie da", body: "Fragen, Änderungswünsche oder Feedback: Antworten Sie auf diese E-Mail oder schreiben Sie an {email}." },
+        { title: "Heute: Ihre ersten Videos", body: "Die Videos dieser Woche entstehen gerade. Das dauert meist etwa 15 Minuten; sobald sie fertig sind, bekommen Sie eine E-Mail." },
+        { title: "Ansehen und freigeben", body: "Öffnen Sie jedes Video in Ihrer Bibliothek und sehen Sie es sich an. Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft; freigeben können Sie es mit einem Tippen. Ohne Ihre Freigabe wird nichts veröffentlicht." },
+        { title: "Selbst posten", body: "Tippen Sie bei einem freigegebenen Video auf „Teilen“: Die Bildunterschrift wird kopiert und ist bereit zum Einfügen in Instagram, Facebook oder wo immer Sie posten. Zu jedem Video schlagen wir einen Tag und eine Uhrzeit vor. DentVideo postet nie für Sie." },
+        { title: "Danach jeden Montag", body: "Jeden Montag kommt eine neue Woche Videos in Ihre Bibliothek, und wir schicken Ihnen eine E-Mail, sobald sie bereitsteht." },
       ],
+      help: "Fragen, ein Video, das geändert werden soll, oder Feedback? Antworten Sie auf diese E-Mail. Sie erreicht unter {email} einen Menschen.",
       button: "Meine Bibliothek öffnen",
       footer: "Sie erhalten diese E-Mail, weil Ihre Praxis DentVideo abonniert hat.",
     },
@@ -117,20 +121,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   es: {
     hello: "Hola, {clinic}:",
     signoff: "El equipo de DentVideo",
-    contact: "¿Dudas? Responde a este correo.",
     nudgeFooter: "Recibes este correo porque empezaste a configurar DentVideo para tu clínica. Enviamos como máximo cuatro correos breves y paramos en cuanto eliges un plan.",
     unsubscribeAsk: "¿No quieres recordatorios?",
     unsubscribe: "Darse de baja",
     welcome: {
-      subject: "Te damos la bienvenida a DentVideo, {clinic}",
-      preheader: "Tus primeros vídeos se están creando: unos 15 minutos.",
-      intro: "Gracias por elegir DentVideo. Esto es lo que pasa ahora.",
+      subject: "Te damos la bienvenida a DentVideo",
+      preheader: "Tus primeros vídeos ya se están creando (unos 15 minutos). Así funcionan la revisión, la aprobación y la publicación.",
+      title: "Todo listo para empezar",
+      intro: "Gracias por elegir DentVideo. Tu plan está activo. Esto es lo que pasa ahora:",
       steps: [
-        { title: "Tu primera semana: unos 15 minutos", body: "Estamos creando los vídeos de esta semana. Te escribiremos en cuanto estén listos para revisar." },
-        { title: "Después, cada lunes", body: "Cada lunes llegan a tu biblioteca vídeos nuevos, revisados por software y a la espera de tu aprobación, y te avisamos por correo." },
-        { title: "Aprueba y comparte", body: "Mira cada vídeo y apruébalo: no se publica nada sin tu aprobación. Toca Compartir y el texto se copia para que lo pegues." },
-        { title: "Estamos aquí", body: "Dudas, cambios o comentarios: responde a este correo o escribe a {email}." },
+        { title: "Hoy: tus primeros vídeos", body: "Estamos creando los vídeos de esta semana. Suele tardar unos 15 minutos y te escribimos en cuanto estén listos." },
+        { title: "Revisa y aprueba", body: "Abre cada vídeo en tu biblioteca y míralo. Cada vídeo pasa una revisión asistida por software de exactitud clínica y normas de publicidad sanitaria, y tú lo apruebas con un toque. No se publica nada sin tu aprobación." },
+        { title: "Publícalo tú", body: "En un vídeo aprobado, toca Compartir: el texto se copia, listo para pegarlo en Instagram, Facebook o donde publiques. Cada vídeo trae un día y una hora sugeridos. DentVideo nunca publica por ti." },
+        { title: "Después, cada lunes", body: "Cada lunes llega a tu biblioteca una nueva semana de vídeos, y te avisamos por correo cuando está lista." },
       ],
+      help: "¿Dudas, un vídeo que cambiar o comentarios? Responde a este correo: lo lee una persona en {email}.",
       button: "Abrir mi biblioteca",
       footer: "Recibes este correo porque tu clínica se ha suscrito a DentVideo.",
     },
@@ -150,20 +155,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   tr: {
     hello: "Merhaba {clinic},",
     signoff: "DentVideo ekibi",
-    contact: "Sorunuz mu var? Bu e-postayı yanıtlamanız yeterli.",
     nudgeFooter: "Bu e-postayı, kliniğiniz için DentVideo kurulumuna başladığınız için alıyorsunuz. En fazla dört kısa e-posta göndeririz ve bir plan seçtiğiniz anda dururuz.",
     unsubscribeAsk: "Hatırlatma istemiyor musunuz?",
     unsubscribe: "Abonelikten çık",
     welcome: {
-      subject: "DentVideo'ya hoş geldiniz, {clinic}",
-      preheader: "İlk videolarınız şu anda hazırlanıyor — yaklaşık 15 dakika.",
-      intro: "DentVideo'yu seçtiğiniz için teşekkürler. Bundan sonra olacaklar:",
+      subject: "DentVideo'ya hoş geldiniz: sırada ne var",
+      preheader: "İlk videolarınız hazırlanıyor (yaklaşık 15 dakika). İnceleme, onay ve paylaşım böyle işler.",
+      title: "Hoş geldiniz, her şey hazır",
+      intro: "DentVideo'yu seçtiğiniz için teşekkürler. Planınız aktif. Bundan sonra olacaklar:",
       steps: [
-        { title: "İlk haftanız: yaklaşık 15 dakika", body: "Bu haftanın videolarını şu anda hazırlıyoruz. İncelemeye hazır olduklarında size e-posta göndereceğiz." },
-        { title: "Sonra her pazartesi", body: "Her pazartesi kütüphanenize yazılımla kontrol edilmiş, onayınızı bekleyen yeni videolar gelir; size de e-postayla haber veririz." },
-        { title: "Önce onay, sonra paylaşım", body: "Her videoyu izleyip onaylayın — siz onaylamadan hiçbir şey yayınlanmaz. Paylaş'a dokunduğunuzda açıklama metni yapıştırmanız için kopyalanır." },
-        { title: "Buradayız", body: "Sorular, değişiklikler ya da geri bildirim için bu e-postayı yanıtlayın veya {email} adresine yazın." },
+        { title: "Bugün: ilk videolarınız", body: "Bu haftanın videolarını şu anda hazırlıyoruz. Genellikle yaklaşık 15 dakika sürer; hazır olur olmaz size e-posta göndeririz." },
+        { title: "İnceleyin ve onaylayın", body: "Kütüphanenizdeki her videoyu açıp izleyin. Her video, klinik doğruluk ve sağlık reklamı kuralları açısından yazılım destekli bir kontrolden geçer; onayı tek dokunuşla siz verirsiniz. Siz onaylamadan hiçbir şey yayınlanmaz." },
+        { title: "Paylaşımı siz yaparsınız", body: "Onaylı bir videoda Paylaş'a dokunun: açıklama metni kopyalanır ve Instagram, Facebook ya da paylaştığınız her yere yapıştırılmaya hazır olur. Her video için önerilen bir gün ve saat de gösteririz. DentVideo sizin adınıza paylaşım yapmaz." },
+        { title: "Sonra her pazartesi", body: "Her pazartesi kütüphanenize yeni haftanın videoları gelir; hazır olduğunda size e-postayla haber veririz." },
       ],
+      help: "Sorunuz, değişmesini istediğiniz bir video ya da geri bildiriminiz mi var? Bu e-postayı yanıtlayın; {email} adresine gelen mesajı bir ekip üyemiz okur.",
       button: "Kütüphanemi aç",
       footer: "Bu e-postayı kliniğiniz DentVideo'ya abone olduğu için alıyorsunuz.",
     },
@@ -183,20 +189,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   fr: {
     hello: "Bonjour {clinic},",
     signoff: "L'équipe DentVideo",
-    contact: "Une question ? Répondez simplement à cet e-mail.",
     nudgeFooter: "Vous recevez cet e-mail car vous avez commencé à configurer DentVideo pour votre cabinet. Nous envoyons au plus quatre courts e-mails, et nous arrêtons dès que vous choisissez une formule.",
     unsubscribeAsk: "Vous ne souhaitez plus de rappels ?",
     unsubscribe: "Se désabonner",
     welcome: {
-      subject: "Bienvenue chez DentVideo, {clinic}",
-      preheader: "Vos premières vidéos sont en cours de réalisation : environ 15 minutes.",
-      intro: "Merci d'avoir choisi DentVideo. Voici la suite.",
+      subject: "Bienvenue chez DentVideo : voici la suite",
+      preheader: "Vos premières vidéos sont en cours (environ 15 minutes). Voici comment les regarder, les valider et les publier.",
+      title: "Bienvenue, tout est prêt",
+      intro: "Merci d'avoir choisi DentVideo. Votre formule est active. Voici la suite :",
       steps: [
-        { title: "Votre première semaine : environ 15 minutes", body: "Nous réalisons en ce moment les vidéos de cette semaine. Nous vous écrivons dès qu'elles sont prêtes à être validées." },
-        { title: "Puis chaque lundi", body: "Chaque lundi, de nouvelles vidéos vérifiées par logiciel arrivent dans votre bibliothèque pour validation, et un e-mail vous prévient." },
-        { title: "Validez, puis partagez", body: "Regardez chaque vidéo et validez-la : rien n'est publié sans votre accord. Touchez Partager et la légende est copiée, prête à coller." },
-        { title: "Nous sommes là", body: "Questions, modifications ou remarques : répondez à cet e-mail ou écrivez à {email}." },
+        { title: "Aujourd'hui : vos premières vidéos", body: "Nous réalisons en ce moment les vidéos de cette semaine. Cela prend en général environ 15 minutes, et nous vous écrivons dès qu'elles sont prêtes." },
+        { title: "Regardez et validez", body: "Ouvrez chaque vidéo dans votre bibliothèque et regardez-la. Chaque vidéo passe une vérification assistée par logiciel (exactitude clinique et règles de publicité en santé), puis vous la validez d'un geste. Rien n'est publié sans votre accord." },
+        { title: "Publiez vous-même", body: "Sur une vidéo validée, touchez Partager : la légende est copiée, prête à coller sur Instagram, Facebook ou ailleurs. Chaque vidéo est accompagnée d'un jour et d'une heure suggérés. DentVideo ne publie jamais à votre place." },
+        { title: "Puis chaque lundi", body: "Chaque lundi, une nouvelle semaine de vidéos arrive dans votre bibliothèque, et un e-mail vous prévient." },
       ],
+      help: "Une question, une vidéo à modifier ou une remarque ? Répondez à cet e-mail : une vraie personne le lit à {email}.",
       button: "Ouvrir ma bibliothèque",
       footer: "Vous recevez cet e-mail car votre cabinet est abonné à DentVideo.",
     },
@@ -216,20 +223,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   ja: {
     hello: "{clinic} ご担当者様",
     signoff: "DentVideo チーム",
-    contact: "ご不明な点は、このメールにそのままご返信ください。",
     nudgeFooter: "このメールは、医院のDentVideo設定を始められた方にお送りしています。お送りするのは最大4通までで、プランをお選びいただいた時点で停止します。",
     unsubscribeAsk: "リマインドが不要な場合は",
     unsubscribe: "配信停止",
     welcome: {
-      subject: "{clinic} 様、DentVideoへようこそ",
-      preheader: "最初の動画を制作中です（15分ほど）。",
-      intro: "DentVideoをお選びいただき、ありがとうございます。今後の流れをご案内します。",
+      subject: "DentVideoへようこそ：今後の流れのご案内",
+      preheader: "最初の動画を制作中です（15分ほど）。確認・承認・投稿の流れをご案内します。",
+      title: "ご準備が整いました",
+      intro: "DentVideoをお選びいただき、ありがとうございます。プランが有効になりました。今後の流れは次のとおりです。",
       steps: [
-        { title: "初週の動画：15分ほど", body: "今週の動画をただいま制作しています。ご確認いただける状態になりましたら、メールでお知らせします。" },
-        { title: "その後は毎週月曜日", body: "毎週月曜日に、ソフトウェアでチェックした新しい動画がライブラリに届きます。先生の承認をお待ちしていることをメールでお知らせします。" },
-        { title: "承認してから共有", body: "各動画をご覧になり、承認してください。承認されるまで何も公開されません。「共有」をタップすると、キャプションがコピーされます。" },
-        { title: "いつでもご相談ください", body: "ご質問・変更のご希望・ご意見は、このメールへのご返信か {email} までお寄せください。" },
+        { title: "本日：最初の動画", body: "今週の動画をただいま制作しています。通常15分ほどで完成し、完成次第メールでお知らせします。" },
+        { title: "確認して承認", body: "ライブラリで各動画を開いてご覧ください。すべての動画は、臨床的な正確さと医療広告のルールについてソフトウェアによるチェックを受けています。承認はワンタップで、先生が承認されるまで何も公開されません。" },
+        { title: "投稿は先生ご自身で", body: "承認済みの動画で「共有」をタップすると、キャプションがコピーされ、InstagramやFacebookなどにそのまま貼り付けられます。各動画には投稿のおすすめ日時も表示されます。DentVideoが代わりに投稿することはありません。" },
+        { title: "その後は毎週月曜日", body: "毎週月曜日に新しい1週間分の動画がライブラリに届き、準備ができるとメールでお知らせします。" },
       ],
+      help: "ご質問、動画の修正のご希望、ご意見は、このメールにご返信ください。{email} に届いたメッセージはスタッフが拝読します。",
       button: "ライブラリを開く",
       footer: "このメールは、DentVideoをご契約の医院にお送りしています。",
     },
@@ -249,20 +257,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   ar: {
     hello: "مرحباً {clinic}،",
     signoff: "فريق DentVideo",
-    contact: "لديكم سؤال؟ يكفي الرد على هذه الرسالة.",
     nudgeFooter: "تصلكم هذه الرسالة لأنكم بدأتم إعداد DentVideo لعيادتكم. نرسل أربع رسائل قصيرة على الأكثر، ونتوقف فور اختياركم باقة.",
     unsubscribeAsk: "لا ترغبون في التذكيرات؟",
     unsubscribe: "إلغاء الاشتراك",
     welcome: {
-      subject: "أهلاً بكم في DentVideo، {clinic}",
-      preheader: "يجري الآن إعداد أول فيديوهاتكم، خلال نحو 15 دقيقة.",
-      intro: "شكراً لاختياركم DentVideo. إليكم ما سيحدث بعد ذلك.",
+      subject: "أهلاً بكم في DentVideo: الخطوات التالية",
+      preheader: "يجري إعداد أول فيديوهاتكم (نحو 15 دقيقة). إليكم كيف تتم المراجعة والاعتماد والنشر.",
+      title: "أهلاً بكم، كل شيء جاهز",
+      intro: "شكراً لاختياركم DentVideo. باقتكم مفعّلة، وإليكم ما سيحدث بعد ذلك:",
       steps: [
-        { title: "أسبوعكم الأول: نحو 15 دقيقة", body: "نُعدّ الآن فيديوهات هذا الأسبوع، وسنراسلكم فور جاهزيتها للمراجعة." },
-        { title: "ثم كل يوم اثنين", body: "تصل إلى مكتبتكم كل يوم اثنين فيديوهات جديدة بعد مراجعتها آلياً، بانتظار اعتمادكم، مع رسالة تُعلمكم بذلك." },
-        { title: "اعتمدوا ثم شاركوا", body: "شاهدوا كل فيديو واعتمدوه، فلا يُنشر شيء قبل اعتمادكم. اضغطوا «مشاركة» فيُنسخ النص المرافق لتلصقوه." },
-        { title: "نحن هنا", body: "للأسئلة أو التعديلات أو الملاحظات: ردّوا على هذه الرسالة أو راسلونا على {email}." },
+        { title: "اليوم: أول فيديوهاتكم", body: "نُعدّ الآن فيديوهات هذا الأسبوع. يستغرق ذلك عادةً نحو 15 دقيقة، وسنراسلكم فور جاهزيتها." },
+        { title: "شاهدوا واعتمدوا", body: "افتحوا كل فيديو في مكتبتكم وشاهدوه. يخضع كل فيديو لفحص بمساعدة البرمجيات للدقة السريرية وقواعد الإعلان الصحي، وتعتمدونه بلمسة واحدة. لا يُنشر شيء قبل اعتمادكم." },
+        { title: "انشروا بأنفسكم", body: "اضغطوا «مشاركة» على فيديو معتمد فيُنسخ النص المرافق جاهزاً للصقه في Instagram أو Facebook أو أي منصة تنشرون عليها. ونقترح لكل فيديو يوماً وساعة للنشر. لا ينشر DentVideo شيئاً نيابةً عنكم." },
+        { title: "ثم كل يوم اثنين", body: "يصل إلى مكتبتكم كل يوم اثنين أسبوع جديد من الفيديوهات، ونراسلكم عند جاهزيته." },
       ],
+      help: "لديكم سؤال أو فيديو تريدون تعديله أو ملاحظة؟ ردّوا على هذه الرسالة، فيقرؤها أحد أفراد فريقنا على {email}.",
       button: "فتح مكتبتي",
       footer: "تصلكم هذه الرسالة لأن عيادتكم مشتركة في DentVideo.",
     },
@@ -282,20 +291,21 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   pl: {
     hello: "Dzień dobry, zespole {clinic}!",
     signoff: "Zespół DentVideo",
-    contact: "Pytania? Wystarczy odpowiedzieć na tę wiadomość.",
     nudgeFooter: "Otrzymują Państwo tę wiadomość, ponieważ rozpoczęli Państwo konfigurację DentVideo dla gabinetu. Wysyłamy najwyżej cztery krótkie wiadomości i przestajemy, gdy tylko wybiorą Państwo plan.",
     unsubscribeAsk: "Nie chcą Państwo przypomnień?",
     unsubscribe: "Wypisz się",
     welcome: {
-      subject: "Witamy w DentVideo, {clinic}",
-      preheader: "Pierwsze filmy właśnie powstają — około 15 minut.",
-      intro: "Dziękujemy za wybór DentVideo. Oto, co będzie dalej.",
+      subject: "Witamy w DentVideo: co dalej",
+      preheader: "Pierwsze filmy właśnie powstają (około 15 minut). Oto jak wygląda przegląd, akceptacja i publikacja.",
+      title: "Witamy, wszystko gotowe",
+      intro: "Dziękujemy za wybór DentVideo. Plan jest aktywny. Oto, co będzie dalej:",
       steps: [
-        { title: "Pierwszy tydzień: około 15 minut", body: "Właśnie przygotowujemy filmy na ten tydzień. Gdy będą gotowe do przejrzenia, wyślemy Państwu e-mail." },
-        { title: "Potem co poniedziałek", body: "W każdy poniedziałek w Państwa bibliotece pojawiają się nowe filmy sprawdzone przez oprogramowanie, czekające na Państwa akceptację, a my dajemy znać e-mailem." },
-        { title: "Najpierw akceptacja, potem publikacja", body: "Proszę obejrzeć i zaakceptować każdy film — bez Państwa akceptacji nic nie zostanie opublikowane. Po dotknięciu „Udostępnij” opis zostaje skopiowany do wklejenia." },
-        { title: "Jesteśmy do dyspozycji", body: "Pytania, zmiany lub uwagi: wystarczy odpowiedzieć na tę wiadomość lub napisać na {email}." },
+        { title: "Dziś: pierwsze filmy", body: "Właśnie przygotowujemy filmy na ten tydzień. Zwykle trwa to około 15 minut, a gdy będą gotowe, od razu wyślemy e-mail." },
+        { title: "Obejrzeć i zaakceptować", body: "Prosimy otworzyć i obejrzeć każdy film w bibliotece. Każdy film przechodzi wspomaganą przez oprogramowanie kontrolę poprawności klinicznej i zasad reklamy usług medycznych, a akceptacja to jedno dotknięcie. Bez Państwa akceptacji nic nie zostanie opublikowane." },
+        { title: "Publikacja po Państwa stronie", body: "Przy zaakceptowanym filmie wystarczy dotknąć „Udostępnij”: opis zostaje skopiowany i jest gotowy do wklejenia na Instagramie, Facebooku lub w innym miejscu. Do każdego filmu proponujemy dzień i godzinę publikacji. DentVideo nigdy nie publikuje za Państwa." },
+        { title: "Potem co poniedziałek", body: "W każdy poniedziałek w bibliotece pojawia się nowy tydzień filmów, a my dajemy znać e-mailem." },
       ],
+      help: "Pytania, film do zmiany lub uwagi? Wystarczy odpowiedzieć na tę wiadomość: pod adresem {email} czyta ją człowiek.",
       button: "Otwórz bibliotekę",
       footer: "Otrzymują Państwo tę wiadomość, ponieważ gabinet subskrybuje DentVideo.",
     },

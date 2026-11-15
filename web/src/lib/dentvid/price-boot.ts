@@ -2,8 +2,8 @@
 // in the root layout's <head>, app/layout.tsx).
 //
 // The pages are CDN-cached, so the server cannot know the visitor; <PriceRegion> asks the IP-based
-// country after hydration and swaps the visible variant. Where that swap changed the text ("$79" →
-// "2.490 TL") the hero's price line could wrap differently and push the first screen down (a layout
+// country after hydration and swaps the visible variant. Where that swap changed the text ("$49" →
+// "1.490 TL") the hero's price line could wrap differently and push the first screen down (a layout
 // shift of ~0.15 on a phone reading the English landing from Türkiye). This script makes the guess
 // guessCountry() makes without the IP — the time zone, else the page's language (<html lang>, which
 // is server-rendered) — before the body is parsed, so the IP answer only moves anything when it

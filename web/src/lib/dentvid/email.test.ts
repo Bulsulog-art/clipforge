@@ -19,9 +19,12 @@ describe("readyEmail", () => {
     const m = readyEmail({ kind: "week", counts: { ready: 5, flagged: 0 }, clinicName: "Praxis", language: "de", appUrl: "https://dentvideo.com/app" })!;
     expect(m.html).toContain('<html lang="de" dir="ltr">');
     expect(m.html).toContain('<meta charset="utf-8">');
-    expect(m.html).toMatch(/display:none[^>]*>die Patientenvideos dieser Woche/);
+    // The inbox line says what is waiting (not the first sentence of the body again).
+    expect(m.html).toMatch(/display:none[^>]*>5 bereit zur Freigabe\. Nichts wird veröffentlicht/);
     expect(m.html).toContain('bgcolor="#0f5c5c"');
-    expect(m.html.match(/href="https:\/\/dentvideo\.com\/app"/g)).toHaveLength(2);
+    // Outlook's VML button, everyone else's button, and the link written out under it.
+    expect(m.html).toContain("<v:roundrect");
+    expect(m.html.match(/href="https:\/\/dentvideo\.com\/app"/g)).toHaveLength(3);
     expect(m.html).not.toContain("markiert"); // no flagged line when nothing is flagged
     expect(readyEmail({ kind: "week", counts: { ready: 1, flagged: 0 }, clinicName: "x", language: "nl", appUrl: "u" })!.html).toContain('<html lang="en" dir="ltr">');
   });

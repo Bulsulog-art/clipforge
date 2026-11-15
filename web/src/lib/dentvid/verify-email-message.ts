@@ -13,7 +13,9 @@ export function codeEmail(args: { language: string; code: string }): Rendered {
   return renderEmail({
     lang,
     subject,
-    preheader: `${c.body} ${c.expires}`,
+    // Not the body: in German and Polish it continues the greeting in lower case.
+    preheader: `${c.expires} ${c.ignore}`,
+    title: c.title,
     hello: c.hello,
     blocks: [
       { kind: "p", text: c.body },

@@ -41,11 +41,11 @@ describe("DentVideo products", () => {
     expect(dvPlanForProduct("pdt_clipforge", env)).toBeNull();
   });
 
-  it("offers exactly Starter $79/month and Practice $149/month (€79/€149, 2.490/4.490 TL) — monthly only, Group is Contact us", () => {
-    expect(DV_PRICES_USD).toEqual({ starter: { month: 79 }, practice: { month: 149 }, group: {} });
+  it("offers exactly Starter $49/month and Practice $79/month (€49/€79, 1.490/2.490 TL) — monthly only, Group is Contact us", () => {
+    expect(DV_PRICES_USD).toEqual({ starter: { month: 49 }, practice: { month: 79 }, group: {} });
     expect(dvAvailablePlans({})).toEqual([
-      { tier: "starter", interval: "month", priceUsd: 79, prices: { USD: 79, EUR: 79, TRY: 2490 } },
-      { tier: "practice", interval: "month", priceUsd: 149, prices: { USD: 149, EUR: 149, TRY: 4490 } },
+      { tier: "starter", interval: "month", priceUsd: 49, prices: { USD: 49, EUR: 49, TRY: 1490 } },
+      { tier: "practice", interval: "month", priceUsd: 79, prices: { USD: 79, EUR: 79, TRY: 2490 } },
     ]);
     // Even with every yearly / Group product id configured, nothing yearly and no Group is offered.
     const env = {
@@ -53,7 +53,7 @@ describe("DentVideo products", () => {
       DENTVIDEO_DODO_PRODUCT_STARTER_YEARLY: "pdt_starter_year",
       DENTVIDEO_DODO_PRODUCT_PRACTICE_YEARLY: "pdt_practice_year",
     };
-    expect(dvAvailablePlans(env).map((p) => `${p.tier}:${p.interval}:${p.priceUsd}`)).toEqual(["starter:month:79", "practice:month:149"]);
+    expect(dvAvailablePlans(env).map((p) => `${p.tier}:${p.interval}:${p.priceUsd}`)).toEqual(["starter:month:49", "practice:month:79"]);
   });
 
   it("the legacy Practice yearly product still maps in the webhook, but is never sold", () => {

@@ -36,17 +36,17 @@ import {
  * (pricing_mode "by_currency"), all tax-exclusive, in minor units.
  */
 const DODO = {
-  pdt_0NrVahwZsINvy3TNz2H35: { USD: 7900, EUR: 7900, TRY: 249000 },
-  pdt_0NrVai0xqpQKU8H3Zj3QN: { USD: 14900, EUR: 14900, TRY: 449000 },
+  pdt_0NrVahwZsINvy3TNz2H35: { USD: 4900, EUR: 4900, TRY: 149000 },
+  pdt_0NrVai0xqpQKU8H3Zj3QN: { USD: 7900, EUR: 7900, TRY: 249000 },
 } as const;
 
 describe("list prices", () => {
-  it("are the decided prices, monthly only: $79 / €79 / 2.490 TL and $149 / €149 / 4.490 TL", () => {
-    expect(DV_LIST_PRICES).toEqual({ starter: { USD: 79, EUR: 79, TRY: 2490 }, practice: { USD: 149, EUR: 149, TRY: 4490 } });
+  it("are the decided prices, monthly only: $49 / €49 / 1.490 TL and $79 / €79 / 2.490 TL", () => {
+    expect(DV_LIST_PRICES).toEqual({ starter: { USD: 49, EUR: 49, TRY: 1490 }, practice: { USD: 79, EUR: 79, TRY: 2490 } });
     expect(DV_BASE_CURRENCY).toBe("USD");
     expect(DV_PRICES_USD.starter.month).toBe(DV_LIST_PRICES.starter.USD);
     expect(DV_PRICES_USD.practice.month).toBe(DV_LIST_PRICES.practice.USD);
-    expect(dvLowestPrice("TRY")).toBe(2490);
+    expect(dvLowestPrice("TRY")).toBe(1490);
   });
 
   it("match what Dodo is configured to charge, per product and currency (minor units)", () => {
@@ -111,13 +111,13 @@ describe("currency selection", () => {
 });
 
 describe("formatting", () => {
-  it("reads naturally in each language; TL is always '2.490 TL'", () => {
-    expect(formatDvPrice("en", "USD", 79)).toBe("$79");
-    expect(formatDvPrice("en", "EUR", 79)).toBe("€79");
-    expect(formatDvPrice("de", "EUR", 149).replace(/\s/g, " ")).toBe("149 €");
-    expect(formatDvPrice("ar", "USD", 79)).toBe("$79");
+  it("reads naturally in each language; TL is always '1.490 TL'", () => {
+    expect(formatDvPrice("en", "USD", 49)).toBe("$49");
+    expect(formatDvPrice("en", "EUR", 49)).toBe("€49");
+    expect(formatDvPrice("de", "EUR", 79).replace(/\s/g, " ")).toBe("79 €");
+    expect(formatDvPrice("ar", "USD", 49)).toBe("$49");
+    for (const l of LOCALES) expect(formatDvPrice(l, "TRY", 1490), l).toBe("1.490 TL");
     for (const l of LOCALES) expect(formatDvPrice(l, "TRY", 2490), l).toBe("2.490 TL");
-    for (const l of LOCALES) expect(formatDvPrice(l, "TRY", 4490), l).toBe("4.490 TL");
   });
 });
 

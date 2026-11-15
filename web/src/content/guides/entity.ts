@@ -1,7 +1,7 @@
 import type { Faq, Locale } from "../dentvideo";
 import { DV_CURRENCIES, dvTierPrice } from "@/lib/dentvid/pricing";
 
-/** "$79 / €79 / 2.490 TL": a tier's list price in every billing currency, from pricing.ts (never typed here). */
+/** "$49 / €49 / 1.490 TL": a tier's list price in every billing currency, from pricing.ts (never typed here). */
 const PRICE = {
   starter: DV_CURRENCIES.map((c) => dvTierPrice("en", "starter", c)).join(" / "),
   practice: DV_CURRENCIES.map((c) => dvTierPrice("en", "practice", c)).join(" / "),

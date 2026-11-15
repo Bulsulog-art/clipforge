@@ -211,3 +211,67 @@ describe("reasons a clinic reads", () => {
     expect(h).not.toMatch(/quality:|of silence|repeats/);
   });
 });
+
+describe("a calm home: one status, one action", () => {
+  const LAST = "2026-11-02";
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  it.each(LOCALES)("%s: the hero is the page's heading, with the clinic, one progress line and no pill per state", (l: Locale) => {
+    const home = APP_TEXT[l].home;
+    const h = html(
+      <Library
+        locale={l}
+        clinicName="Smile Studio"
+        items={[item(), item(), item({ status: "flagged", reasons: ["wording"] }), item({ approval: "approved" }), item({ status: "working", videoUrl: undefined })]}
+        canStartWeek={false}
+        currentWeek={WEEK}
+      />,
+    );
+    expect(h).toMatch(new RegExp(`<h1[^>]*>${esc(fmt(home.reviewMany, { n: 3 }))}</h1>`));
+    expect(h).toContain("Smile Studio");
+    expect(h).toContain(fmt(home.approvedOf, { n: 1, total: 5 }));
+    expect(h.match(/<h1/g)).toHaveLength(1);
+    // One primary button in the hero; "approve all" is the quiet option.
+    const hero = h.slice(0, h.indexOf("</section>"));
+    expect(hero.match(/dv-btn-primary/g)).toHaveLength(1);
+    expect(hero).toContain(fmt(APP_TEXT[l].library.approveAll, { n: 2 }));
+    expect(h).not.toMatch(/\{\w+\}/);
+  });
+
+  it("under the first-week card the hero steps down to h2", () => {
+    const h = html(<Library locale="en" heroLevel={2} items={[item()]} canStartWeek={false} currentWeek={WEEK} />);
+    expect(h).not.toContain("<h1");
+    expect(h).toContain(`<h2 class="dv-display`);
+  });
+
+  it("older weeks fold into one line each; the newest week stays open", () => {
+    const h = html(<Library locale="en" items={[item({ title: "This one" }), item({ week_of: LAST, approval: "approved", title: "Old one" })]} canStartWeek={false} currentWeek={WEEK} />);
+    expect(h).toContain(APP_TEXT.en.library.review.title);
+    // Last week is a closed disclosure (its cards are still there to open and post).
+    expect(h).toMatch(/<details class="group\/week[^"]*"><summary[^>]*>.*Last week/s);
+    expect(h).not.toMatch(/<details[^>]*open/);
+    expect(h).toContain("Old one");
+  });
+
+  it("a card says nothing filler: no 'made for you', no posting time before approval, one disclosure for caption and photos", () => {
+    const photos = { suggested: ["a", "b"], chosen: [] };
+    const h = html(<Library locale="en" items={[item({ photos }), item({ kind: "recording" })]} canStartWeek={false} currentWeek={WEEK} />);
+    const t = APP_TEXT.en.library;
+    expect(h).not.toContain("Made for you");
+    expect(h).toContain(t.fromRecording);
+    expect(h).not.toContain("Best time");
+    expect(h).toContain(`${t.captionAndHashtags} · ${t.photos.title}`);
+  });
+
+  it("a video still being made has no empty caption row", () => {
+    const h = html(<Library locale="en" items={[item({ status: "working", videoUrl: undefined })]} canStartWeek={false} currentWeek={WEEK} />);
+    expect(h).not.toContain(APP_TEXT.en.library.captionAndHashtags);
+  });
+
+  it.each(LOCALES)("%s: the caption can be read in the review before approving it", (l: Locale) => {
+    const r = item({ approval: "pending", caption: "Zwei Minuten.", hashtags: ["zahnarzt"] });
+    const h = html(<ReviewPanel locale={l} item={r} queue={[r]} index={0} onIndex={() => {}} decide={noop} posted={false} onPosted={() => {}} />);
+    expect(h).toContain(APP_TEXT[l].library.captionAndHashtags);
+    expect(h).toContain("Zwei Minuten.\n\n#zahnarzt");
+  });
+});

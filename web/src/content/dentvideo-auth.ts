@@ -333,6 +333,8 @@ export type VerifyCopy = {
   email: {
     /** {code} */
     subject: string;
+    /** The big line at the top of the email. */
+    title: string;
     hello: string;
     body: string;
     expires: string;
@@ -368,6 +370,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "Please confirm your email first: enter the 6-digit code we sent you.",
     email: {
       subject: "{code} is your DentVideo code",
+      title: "Confirm your email address",
       hello: "Hello,",
       body: "Enter this code on dentvideo.com to confirm your email address:",
       expires: "The code works for 15 minutes.",
@@ -401,6 +404,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse: Geben Sie den 6-stelligen Code ein, den wir Ihnen gesendet haben.",
     email: {
       subject: "{code} ist Ihr DentVideo-Code",
+      title: "Bestätigen Sie Ihre E-Mail-Adresse",
       hello: "Guten Tag,",
       body: "geben Sie diesen Code auf dentvideo.com ein, um Ihre E-Mail-Adresse zu bestätigen:",
       expires: "Der Code gilt 15 Minuten.",
@@ -434,6 +438,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "Primero confirma tu correo: escribe el código de 6 dígitos que te hemos enviado.",
     email: {
       subject: "{code} es tu código de DentVideo",
+      title: "Confirma tu correo electrónico",
       hello: "Hola:",
       body: "Escribe este código en dentvideo.com para confirmar tu correo electrónico:",
       expires: "El código es válido durante 15 minutos.",
@@ -467,6 +472,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "Önce e-postanızı doğrulayın: size gönderdiğimiz 6 haneli kodu girin.",
     email: {
       subject: "DentVideo kodunuz: {code}",
+      title: "E-posta adresinizi doğrulayın",
       hello: "Merhaba,",
       body: "E-posta adresinizi doğrulamak için bu kodu dentvideo.com'da girin:",
       expires: "Kod 15 dakika geçerlidir.",
@@ -500,6 +506,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "Confirmez d'abord votre e-mail : saisissez le code à 6 chiffres que nous vous avons envoyé.",
     email: {
       subject: "{code} est votre code DentVideo",
+      title: "Confirmez votre adresse e-mail",
       hello: "Bonjour,",
       body: "Saisissez ce code sur dentvideo.com pour confirmer votre adresse e-mail :",
       expires: "Le code est valable 15 minutes.",
@@ -533,6 +540,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "先にメールアドレスの確認をお願いします。お送りした6桁のコードを入力してください。",
     email: {
       subject: "DentVideoの確認コード：{code}",
+      title: "メールアドレスの確認",
       hello: "DentVideoをご利用いただきありがとうございます。",
       body: "dentvideo.com で次のコードを入力し、メールアドレスの確認を完了してください。",
       expires: "このコードの有効期限は15分です。",
@@ -566,6 +574,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "يُرجى تأكيد بريدكم الإلكتروني أولاً: أدخلوا الرمز المكوّن من 6 أرقام الذي أرسلناه إليكم.",
     email: {
       subject: "رمز DentVideo الخاص بكم: {code}",
+      title: "تأكيد بريدكم الإلكتروني",
       hello: "مرحباً،",
       body: "أدخلوا هذا الرمز على dentvideo.com لتأكيد بريدكم الإلكتروني:",
       expires: "الرمز صالح لمدة 15 دقيقة.",
@@ -599,6 +608,7 @@ const VERIFY: Record<Locale, VerifyCopy> = {
     checkoutBlocked: "Prosimy najpierw potwierdzić adres e-mail — wystarczy wpisać 6-cyfrowy kod, który wysłaliśmy.",
     email: {
       subject: "{code} — kod DentVideo",
+      title: "Potwierdzenie adresu e-mail",
       hello: "Dzień dobry,",
       body: "prosimy wpisać ten kod na dentvideo.com, aby potwierdzić adres e-mail:",
       expires: "Kod jest ważny przez 15 minut.",
