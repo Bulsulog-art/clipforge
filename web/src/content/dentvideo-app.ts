@@ -166,6 +166,11 @@ export type AppText = {
     closingLineHelp: string;
     /** Why a closing line cannot go out, one calm sentence per reason (lib/dentvid/closing-line.ts); {max} in `length`. */
     closingLineReasons: Record<ClosingLineReason, string>;
+    /** Who narrates the videos (profile.narratorVoice), settings only. */
+    narratorVoice: string;
+    narratorFemale: string;
+    narratorMale: string;
+    narratorVoiceHelp: string;
     brandColor: string;
     logo: string;
     logoSaved: string;
@@ -495,6 +500,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "Booking link (optional)",
       closingLine: "Closing line for captions (optional)",
       closingLineHelp: "One calm sentence added under your captions, for example “Questions about your gums? Bring them to your next check-up.” If it is empty, your posts use our own closing lines.",
+      narratorVoice: "Narrator voice",
+      narratorFemale: "Female",
+      narratorMale: "Male",
+      narratorVoiceHelp: "The voice that reads your new videos.",
       closingLineReasons: { booking: "In your country a post may inform but not steer people to book or to your clinic. Try a question they could bring to their next check-up.", claim: "It makes a promise health advertising rules don't allow (for example a guarantee, “painless” or a price).", market: "It uses wording your country's advertising rules don't allow.", pressure: "It sounds urgent. A calm line without “today” or “don't wait” works better.", exclamation: "Please leave out the exclamation mark: it reads as a sales push.", generic: "It is a general “contact us” line. Name something specific to your patients instead.", length: "Please keep it under {max} characters." },
       brandColor: "Brand color",
       logo: "Logo (PNG with a transparent background works best)",
@@ -846,6 +855,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "Link zur Terminbuchung (optional)",
       closingLine: "Schlusssatz unter den Beiträgen (optional)",
       closingLineHelp: "Ein ruhiger Satz unter Ihren Beitragstexten, zum Beispiel „Fragen zum Zahnfleisch? Sprechen Sie sie bei der nächsten Kontrolle an.“ Bleibt das Feld leer, verwenden Ihre Beiträge unsere eigenen Schlusssätze.",
+      narratorVoice: "Stimme im Video",
+      narratorFemale: "Weiblich",
+      narratorMale: "Männlich",
+      narratorVoiceHelp: "Die Stimme, die Ihre neuen Videos spricht.",
       closingLineReasons: { booking: "In Ihrem Land darf ein Beitrag informieren, aber nicht zur Terminbuchung oder in Ihre Praxis lenken. Versuchen Sie eine Frage für die nächste Kontrolle.", claim: "Der Satz verspricht etwas, das die Regeln für Gesundheitswerbung nicht erlauben (zum Beispiel eine Garantie, „schmerzfrei“ oder einen Preis).", market: "Der Satz enthält eine Formulierung, die die Werberegeln Ihres Landes nicht erlauben.", pressure: "Der Satz klingt nach Eile. Ohne „heute noch“ oder „nicht warten“ wirkt er ruhiger.", exclamation: "Bitte ohne Ausrufezeichen: Es wirkt wie Verkaufsdruck.", generic: "Das ist ein allgemeines „Kontaktieren Sie uns“. Nennen Sie lieber etwas Konkretes für Ihre Patienten.", length: "Bitte unter {max} Zeichen bleiben." },
       brandColor: "Markenfarbe",
       logo: "Logo (am besten PNG mit transparentem Hintergrund)",
@@ -1200,6 +1213,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "Enlace para pedir cita (opcional)",
       closingLine: "Frase de cierre para los textos (opcional)",
       closingLineHelp: "Una frase tranquila al final de tus textos, por ejemplo «¿Dudas sobre tus encías? Coméntalas en tu próxima revisión». Si la dejas vacía, tus publicaciones usan nuestras propias frases de cierre.",
+      narratorVoice: "Voz de la narración",
+      narratorFemale: "Femenina",
+      narratorMale: "Masculina",
+      narratorVoiceHelp: "La voz que narra tus nuevos vídeos.",
       closingLineReasons: { booking: "En tu país una publicación puede informar, pero no dirigir a pedir cita ni a tu clínica. Prueba con una pregunta para la próxima revisión.", claim: "Promete algo que las normas de publicidad sanitaria no permiten (por ejemplo una garantía, «sin dolor» o un precio).", market: "Usa palabras que las normas de publicidad de tu país no permiten.", pressure: "Suena a prisa. Sin «hoy mismo» ni «no esperes» queda más tranquila.", exclamation: "Mejor sin signos de exclamación: suenan a venta.", generic: "Es un «contáctanos» genérico. Menciona algo concreto para tus pacientes.", length: "Que no pase de {max} caracteres." },
       brandColor: "Color de marca",
       logo: "Logo (mejor en PNG con fondo transparente)",
@@ -1554,6 +1571,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "Randevu bağlantısı (isteğe bağlı)",
       closingLine: "Gönderi metinlerinin kapanış cümlesi (isteğe bağlı)",
       closingLineHelp: "Gönderi metinlerinizin sonuna eklenen sakin bir cümle, örneğin “Diş etlerinizle ilgili sorularınızı bir sonraki kontrolünüzde hekiminize sorabilirsiniz.” Boş bırakırsanız gönderilerde kendi kapanış cümlelerimiz kullanılır.",
+      narratorVoice: "Seslendirme",
+      narratorFemale: "Kadın sesi",
+      narratorMale: "Erkek sesi",
+      narratorVoiceHelp: "Yeni videolarınızı seslendiren ses.",
       closingLineReasons: { booking: "Türkiye'de bir gönderi bilgi verebilir ama randevuya ya da kliniğinize yönlendiremez (RG 33075). Bir sonraki kontrolde hekime sorulabilecek bir soruya yer verebilirsiniz.", claim: "Sağlık tanıtımı kurallarının izin vermediği bir vaat içeriyor (örneğin garanti, “ağrısız” ya da fiyat).", market: "Ülkenizin tanıtım kurallarının izin vermediği bir ifade içeriyor.", pressure: "Acele ettiren bir ifade var. “Hemen” ya da “beklemeyin” olmadan daha sakin durur.", exclamation: "Ünlem işareti olmadan yazın: satış baskısı gibi okunur.", generic: "Genel bir “bize ulaşın” cümlesi. Hastalarınız için somut bir şeyden söz edin.", length: "Lütfen {max} karakteri geçmesin." },
       brandColor: "Marka rengi",
       logo: "Logo (en iyisi şeffaf arka planlı PNG)",
@@ -1908,6 +1929,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "Lien de prise de rendez-vous (facultatif)",
       closingLine: "Phrase de fin pour les légendes (facultatif)",
       closingLineHelp: "Une phrase calme ajoutée sous vos légendes, par exemple « Une question sur vos gencives ? Posez-la lors de votre prochain contrôle. » Si le champ reste vide, vos publications utilisent nos propres phrases de fin.",
+      narratorVoice: "Voix off",
+      narratorFemale: "Féminine",
+      narratorMale: "Masculine",
+      narratorVoiceHelp: "La voix qui raconte vos nouvelles vidéos.",
       closingLineReasons: { booking: "Dans votre pays, une publication peut informer mais pas inciter à prendre rendez-vous ni orienter vers votre cabinet. Essayez une question à poser lors du prochain contrôle.", claim: "Elle contient une promesse que les règles de publicité en santé n'autorisent pas (par exemple une garantie, « sans douleur » ou un prix).", market: "Elle contient une formulation que les règles publicitaires de votre pays n'autorisent pas.", pressure: "Elle donne une impression d'urgence. Sans « dès aujourd'hui » ni « n'attendez pas », elle sera plus sereine.", exclamation: "Merci d'enlever le point d'exclamation : il donne un ton commercial.", generic: "C'est un « contactez-nous » générique. Mentionnez plutôt quelque chose de concret pour vos patients.", length: "Merci de rester sous {max} caractères." },
       brandColor: "Couleur de marque",
       logo: "Logo (idéalement un PNG à fond transparent)",
@@ -2262,6 +2287,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "予約ページのURL（任意）",
       closingLine: "投稿文の締めの一文（任意）",
       closingLineHelp: "投稿文の最後に添える落ち着いた一文です。例：「歯ぐきのことで気になる点は、次回の定期検診でご相談ください。」空欄の場合は、こちらで用意した締めの一文を使います。",
+      narratorVoice: "ナレーションの声",
+      narratorFemale: "女性",
+      narratorMale: "男性",
+      narratorVoiceHelp: "新しい動画を読み上げる声です。",
       closingLineReasons: { booking: "お住まいの国では、投稿で情報を伝えることはできても、予約や医院への誘導はできません。次回の検診で聞ける質問の形にしてみてください。", claim: "医療広告のルールで認められていない表現（保証、「痛くない」、料金など）が含まれています。", market: "お住まいの国の広告ルールで認められていない表現が含まれています。", pressure: "急がせる表現があります。「今すぐ」などを使わない方が落ち着いた印象になります。", exclamation: "感嘆符は外してください。売り込みのように見えます。", generic: "一般的な「お問い合わせください」になっています。患者さんに向けた具体的な内容にしてみてください。", length: "{max}文字以内にしてください。" },
       brandColor: "ブランドカラー",
       logo: "ロゴ（背景が透明なPNGがおすすめです）",
@@ -2614,6 +2643,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "رابط الحجز (اختياري)",
       closingLine: "جملة ختامية للمنشورات (اختياري)",
       closingLineHelp: "جملة هادئة تُضاف في نهاية نصوص منشوراتكم، مثل: «هل لديكم سؤال عن اللثة؟ اطرحوه في فحصكم القادم.» إذا تُرك الحقل فارغًا، تستخدم منشوراتكم جملنا الختامية.",
+      narratorVoice: "صوت الراوي",
+      narratorFemale: "صوت نسائي",
+      narratorMale: "صوت رجالي",
+      narratorVoiceHelp: "الصوت الذي يروي فيديوهاتكم الجديدة.",
       closingLineReasons: { booking: "في بلدكم يجوز للمنشور أن يقدّم معلومات، لا أن يوجّه إلى الحجز أو إلى عيادتكم. جرّبوا سؤالًا يمكن طرحه في الفحص القادم.", claim: "تتضمن وعدًا لا تسمح به قواعد الإعلان الصحي (مثل ضمان أو «بلا ألم» أو سعر).", market: "تتضمن صياغة لا تسمح بها قواعد الإعلان في بلدكم.", pressure: "فيها استعجال. تبدو أهدأ من دون «الآن» أو «لا تنتظروا».", exclamation: "يُرجى حذف علامة التعجب، فهي توحي بضغط البيع.", generic: "هذه جملة عامة مثل «تواصلوا معنا». اذكروا شيئًا محددًا لمرضاكم بدلًا منها.", length: "يُرجى ألّا تتجاوز {max} حرفًا." },
       brandColor: "لون الهوية",
       logo: "الشعار (يُفضّل ملف PNG بخلفية شفافة)",
@@ -2967,6 +3000,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       booking: "Link do rezerwacji (opcjonalnie)",
       closingLine: "Zdanie na koniec opisu posta (opcjonalnie)",
       closingLineHelp: "Jedno spokojne zdanie dodawane na końcu opisów, na przykład „Pytania o dziąsła? Warto zadać je podczas najbliższej kontroli.” Jeśli pole zostanie puste, posty kończą się naszymi zdaniami.",
+      narratorVoice: "Głos lektora",
+      narratorFemale: "Kobiecy",
+      narratorMale: "Męski",
+      narratorVoiceHelp: "Głos, który czyta nowe filmy.",
       closingLineReasons: { booking: "W Państwa kraju post może informować, ale nie może kierować do umawiania wizyt ani do Państwa gabinetu. Prosimy spróbować pytania, które pacjent może zadać na kontroli.", claim: "Zawiera obietnicę, na którą nie pozwalają zasady reklamy w ochronie zdrowia (np. gwarancję, „bezbolesny” albo cenę).", market: "Zawiera sformułowanie, na które nie pozwalają zasady reklamy w Państwa kraju.", pressure: "Brzmi ponaglająco. Bez „teraz” czy „nie czekaj” będzie spokojniej.", exclamation: "Prosimy bez wykrzyknika: brzmi jak sprzedaż.", generic: "To ogólne „skontaktuj się z nami”. Lepiej napisać coś konkretnego dla pacjentów.", length: "Prosimy zmieścić się w {max} znakach." },
       brandColor: "Kolor marki",
       logo: "Logo (najlepiej PNG z przezroczystym tłem)",

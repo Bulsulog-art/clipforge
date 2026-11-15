@@ -19,6 +19,10 @@ export const LANGUAGES = [
   { code: "pl", label: "Polski" },
 ] as const;
 
+/** The narrator choices in clinic settings (worker/src/dental/profile.ts narratorVoice). */
+export const NARRATOR_VOICES = ["female", "male"] as const;
+export type NarratorVoice = (typeof NARRATOR_VOICES)[number];
+
 /** Free text the agents read: no control characters, nothing that looks like a URL or a file path. */
 const NO_URL = /(:\/\/|^\s*(file|data|javascript):|^\s*[/~\\]|\.\.[/\\])/i;
 const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
@@ -70,6 +74,11 @@ export const clinicProfileSchema = z.object({
    * the same rules the worker applies (it falls back to its own line).
    */
   closingLine: text(4, CLOSING_LINE_MAX).optional(),
+  /**
+   * Who narrates the videos (settings only). Unset means female, as in the
+   * worker (dental/voice.ts narratorOf). 0022 adds it to the database guard.
+   */
+  narratorVoice: z.enum(NARRATOR_VOICES).optional(),
 });
 
 export type ClinicProfile = z.infer<typeof clinicProfileSchema>;

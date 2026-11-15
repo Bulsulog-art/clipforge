@@ -14,7 +14,7 @@ import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
 import { prepareNarration } from "../dental/narration-audio.js";
-import { resolveVoice } from "../dental/voice.js";
+import { narratorOf, openaiVoiceFor, resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { afterRerender, rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
 import { reasonText } from "./reasons.js";
@@ -29,6 +29,7 @@ import { patientSearches } from "../dental/questions.js";
 import { brandFromLogo, logoStyleOf, readyLogo, type LogoAnalysis } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
 import { UnrecoverableError } from "bullmq";
+import type { TtsProvider } from "../dental/elevenlabs.js";
 import { alertRefusal, sendOwnerAlert, SpendGuard, type AlertSender, type RefusalReason, type SpendOp } from "./spend-guard.js";
 import type { ParkStore } from "./park.js";
 import { probeDuration } from "../lib/media-input.js";
@@ -65,6 +66,19 @@ let spend: SpendDeps = { guard: new SpendGuard(null), park: null, alert: sendOwn
 
 export function configureSpend(deps: Partial<SpendDeps> & { guard: SpendGuard }): void {
   spend = { park: null, alert: sendOwnerAlert, ...deps };
+}
+
+/**
+ * Log what one narration cost (characters × the provider's rate) and meter
+ * the characters in Redis (spend-guard.ts recordTts). Never throws.
+ */
+async function meterNarration(voice: { voiceoverPath?: string; ttsProvider?: TtsProvider; ttsChars?: number; voiceModel?: string }, clinicId: string, extra: Record<string, unknown>): Promise<void> {
+  if (!voice.ttsProvider || !voice.ttsChars) return;
+  const m = await spend.guard.recordTts(voice.ttsProvider, voice.ttsChars, clinicId).catch(() => null);
+  logger.info(
+    { clinicId, provider: voice.ttsProvider, model: voice.voiceModel, chars: voice.ttsChars, estUsd: m ? Math.round(m.usd * 10000) / 10000 : undefined, ...extra },
+    "dentvid: narration tts metered",
+  );
 }
 
 /** The job was refused by the spend guard and parked (or refused outright); BullMQ must not retry it. */
@@ -381,13 +395,15 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           render: async (plan, topic) => {
             const dir = await fs.mkdtemp(path.join(workDir, "v-"));
             const voice = await prepareNarration(plan, dir, profile.language, {
-              ...resolveVoice(profile.language, process.env, profile.country),
+              ...resolveVoice(profile.language, process.env, profile.country, narratorOf(profile)),
               onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
+              onProviderFallback: (e) => logger.warn({ err: e.message, topic: topic.title, clinicId: job.clinicId }, "dentvid: elevenlabs tts failed, narrated with openai"),
               onMasterError: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: narration mastering failed, used the plain voice"),
             }).catch((e) => {
               logger.warn({ err: (e as Error).message, topic: topic.title }, "dentvid: voiceover failed");
               return { plan, voiceoverPath: undefined };
             });
+            await meterNarration(voice, job.clinicId, { topic: topic.title });
             const res = await renderPlan({
               plan: voice.plan,
               voiceoverSrc: voice.voiceoverPath,
@@ -610,8 +626,11 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
     const plan: ScenePlan = profile.brandColor
       ? { ...stored, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
       : stored;
-    const voice = await prepareNarration(plan, workDir, profile.language, {
-      ...resolveVoice(profile.language, process.env, profile.country),
+    // Re-voiced with the clinic's current narrator choice (settings), as a new week would be.
+    const voiced: ScenePlan = plan.voiceover ? { ...plan, voiceover: { ...plan.voiceover, voice: openaiVoiceFor(profile.language, narratorOf(profile)) } } : plan;
+    const voice = await prepareNarration(voiced, workDir, profile.language, {
+      ...resolveVoice(profile.language, process.env, profile.country, narratorOf(profile)),
+      onProviderFallback: (e) => logger.warn({ err: e.message, itemId: item.id, clinicId }, "dentvid: restyle elevenlabs tts failed, narrated with openai"),
       onMasterError: (e) => logger.warn({ err: e.message, itemId: item.id }, "dentvid: restyle narration mastering failed, used the plain voice"),
     }).catch((e) => {
       // The stored video is narrated: replacing it with a silent one would be
@@ -621,6 +640,7 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       logger.warn({ err: (e as Error).message, itemId: item.id }, "dentvid: restyle voiceover failed");
       return { plan, voiceoverPath: undefined };
     });
+    await meterNarration(voice, clinicId, { itemId: item.id });
     const res = await renderPlan({
       plan: voice.plan,
       voiceoverSrc: voice.voiceoverPath,

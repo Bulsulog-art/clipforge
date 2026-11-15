@@ -13,6 +13,8 @@
  * Whatever is configured, a failure falls back to tts-1-hd without
  * instructions (prepareVoiceover), so a model outage costs tone, not the video.
  */
+import { resolveEleven, type ElevenConfig, type NarratorGender } from "./elevenlabs.js";
+
 export const DEFAULT_TTS_MODEL = "tts-1-hd";
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -70,6 +72,19 @@ const VOICE_SWAP: Record<string, Record<string, "shimmer" | "echo">> = {
   ar: { nova: "shimmer", onyx: "echo" },
 };
 
+/** The OpenAI voice for the clinic's narrator choice (profile.narratorVoice), before the per-language swap. */
+export const OPENAI_NARRATOR: Record<NarratorGender, "nova" | "onyx"> = { female: "nova", male: "onyx" };
+
+/** The clinic's narrator: female unless it chose male in settings. */
+export function narratorOf(profile: { narratorVoice?: NarratorGender }): NarratorGender {
+  return profile.narratorVoice === "male" ? "male" : "female";
+}
+
+/** The OpenAI voice that speaks for this narrator in this language. */
+export function openaiVoiceFor(language: string | undefined, gender: NarratorGender): "nova" | "onyx" | "shimmer" | "echo" {
+  return voiceFor(language, OPENAI_NARRATOR[gender]);
+}
+
 export function voiceFor<V extends string>(language: string | undefined, voice: V): V | "shimmer" | "echo" {
   return VOICE_SWAP[(language ?? "").toLowerCase().slice(0, 2)]?.[voice] ?? voice;
 }
@@ -93,13 +108,25 @@ export function speakingTempo(language: string | undefined, model: string | unde
   return TEMPO[(language ?? "").toLowerCase().slice(0, 2)] ?? 1;
 }
 
-export type VoiceConfig = { model: string; instructions?: string };
+/**
+ * `model`/`instructions` are the OpenAI settings (always there: OpenAI is
+ * the provider, or the fallback when ElevenLabs cannot speak). `eleven` is
+ * set only when DENTVID_TTS_PROVIDER=elevenlabs (dental/elevenlabs.ts).
+ */
+export type VoiceConfig = { model: string; instructions?: string; eleven?: ElevenConfig };
 
-export function resolveVoice(language: string | undefined, env: Record<string, string | undefined> = process.env, country?: string): VoiceConfig {
+export function resolveVoice(
+  language: string | undefined,
+  env: Record<string, string | undefined> = process.env,
+  country?: string,
+  narrator: NarratorGender = "female",
+): VoiceConfig {
   const lang = (language ?? "").toLowerCase();
   const perLang = lang ? env[`DENTVID_TTS_MODEL_${lang.toUpperCase()}`]?.trim() : undefined;
   const model = perLang || env.DENTVID_TTS_MODEL?.trim() || DEFAULT_TTS_MODEL;
+  const eleven = resolveEleven(lang || undefined, narrator, env);
+  const extra = eleven ? { eleven } : {};
   // tts-1 / tts-1-hd ignore instructions; the steerable models get one.
-  if (model.startsWith("tts-1") || !lang) return { model };
-  return { model, instructions: voiceInstructions(lang, country) };
+  if (model.startsWith("tts-1") || !lang) return { model, ...extra };
+  return { model, instructions: voiceInstructions(lang, country), ...extra };
 }

@@ -116,16 +116,17 @@ export async function POST(req: Request) {
   const first = await db.from("dentvid_clinics").upsert(row, { onConflict: "owner_id" }).select("id, logo_path").single();
   let data = first.data;
   let error: { message: string; code?: string } | null = first.error;
-  // Before migration 0021 the 0007 profile guard does not know "closingLine"
-  // and refuses the whole owner write (23514). The line was checked above
-  // (shape and market rules), so the rest is saved as the owner and the line
-  // added with the service role, as the logo path is below.
-  if (error?.code === "23514" && body.profile.closingLine) {
-    const { closingLine, ...rest } = body.profile;
+  // Before migration 0021 the 0007 profile guard does not know "closingLine",
+  // and before 0022 it does not know "narratorVoice": either refuses the whole
+  // owner write (23514). Both were checked above (shape, and market rules for
+  // the line), so the rest is saved as the owner and those keys added with the
+  // service role, as the logo path is below.
+  const { closingLine, narratorVoice, ...rest } = body.profile;
+  if (error?.code === "23514" && (closingLine || narratorVoice)) {
     const retry = await db.from("dentvid_clinics").upsert({ ...row, profile: rest }, { onConflict: "owner_id" }).select("id, logo_path").single();
     data = retry.data;
     error = retry.error;
-    if (!error) error = (await dvAdmin().from("dentvid_clinics").update({ profile: { ...rest, closingLine } }).eq("owner_id", user.id)).error;
+    if (!error) error = (await dvAdmin().from("dentvid_clinics").update({ profile: body.profile }).eq("owner_id", user.id)).error;
   }
   if (error || !data) {
     console.error("dentvideo clinic save failed", error?.message);

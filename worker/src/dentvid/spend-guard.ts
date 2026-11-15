@@ -2,9 +2,11 @@ import type IORedis from "ioredis";
 import { logger } from "../logger.js";
 import { ownerAlert } from "./ops.js";
 import { alerts } from "./ops-alert.js";
+import { elevenSurchargePerVideoUsd, ttsCostUsd, type TtsProvider } from "../dental/elevenlabs.js";
 
 /**
- * Hard spend guards for DentVideo's metered work (OpenAI text, TTS, Whisper).
+ * Hard spend guards for DentVideo's metered work (OpenAI text, TTS — OpenAI
+ * or ElevenLabs — and Whisper).
  *
  * Every dentvid job that can call a paid API reserves its estimated cost
  * here BEFORE the first call. A reservation is all-or-nothing across:
@@ -75,12 +77,25 @@ function num(v: string | undefined, fallback: number): number {
   return v !== undefined && v.trim() !== "" && Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
+/**
+ * Narrations each operation synthesises, for the ElevenLabs surcharge: a week
+ * is 5 videos, a top-up up to 3 more, a restyle re-voices one; a recording
+ * keeps the dentist's own voice.
+ */
+export const TTS_VIDEOS_PER_OP: Record<SpendOp, number> = { week: 5, restyle: 1, recording: 0, topup: 3 };
+
 export function guardConfig(env: Record<string, string | undefined> = process.env): GuardConfig {
+  // With DENTVID_TTS_PROVIDER=elevenlabs a narration costs more than the
+  // tts-1-hd estimate in COST_DEFAULTS; the difference is added to each
+  // default, so the same Redis counters cap ElevenLabs spend too. An explicit
+  // DENTVID_COST_*_USD is taken as the whole estimate and left as it is.
+  const extra = elevenSurchargePerVideoUsd(env);
+  const cost = (op: SpendOp, v: string | undefined) => num(v, Math.round((COST_DEFAULTS[op] + extra * TTS_VIDEOS_PER_OP[op]) * 100) / 100);
   const costUsd: Record<SpendOp, number> = {
-    week: num(env.DENTVID_COST_WEEK_USD, COST_DEFAULTS.week),
-    restyle: num(env.DENTVID_COST_RESTYLE_USD, COST_DEFAULTS.restyle),
-    recording: num(env.DENTVID_COST_RECORDING_USD, COST_DEFAULTS.recording),
-    topup: num(env.DENTVID_COST_TOPUP_USD, COST_DEFAULTS.topup),
+    week: cost("week", env.DENTVID_COST_WEEK_USD),
+    restyle: cost("restyle", env.DENTVID_COST_RESTYLE_USD),
+    recording: cost("recording", env.DENTVID_COST_RECORDING_USD),
+    topup: cost("topup", env.DENTVID_COST_TOPUP_USD),
   };
   return {
     paused: env.DENTVID_PAUSE_GENERATION === "1" || env.DENTVID_PAUSE_GENERATION === "true",
@@ -89,7 +104,9 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
     monthlyUsd: num(env.DENTVID_MONTHLY_USD_CAP, 300),
     // A Monday whose week needed all 4 attempts (retry.ts) and a top-up each
     // time: 4 × 0.50 + 4 × 0.30 = $3.20, plus a recording or a few restyles.
-    clinicDailyUsd: num(env.DENTVID_CLINIC_DAILY_USD_CAP, 5),
+    // With ElevenLabs the same Monday costs more; the default grows with the
+    // estimates (never below $5) so a retrying clinic is not parked for it.
+    clinicDailyUsd: num(env.DENTVID_CLINIC_DAILY_USD_CAP, Math.max(5, Math.round((4 * (costUsd.week + costUsd.topup) + costUsd.recording + 5 * costUsd.restyle) * 100) / 100)),
     // Monday's 4 automatic attempts (retry.ts WEEK_ATTEMPTS) + a manual re-run or a first week.
     maxWeeksPerClinicWeek: num(env.DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 6),
     maxRestylesPerClinicDay: num(env.DENTVID_MAX_RESTYLES_PER_CLINIC_DAY, 10),
@@ -128,6 +145,8 @@ export interface GuardStore {
   once(key: string, ttlSec: number): Promise<boolean>;
   /** Take back what `reserve` added (never below zero). */
   release?(counters: Counter[]): Promise<void>;
+  /** INCRBY with a TTL set on first write; metering only, never a cap. */
+  add?(key: string, by: number, ttlSec: number): Promise<void>;
 }
 
 export type RefusalReason =
@@ -269,6 +288,26 @@ export class SpendGuard {
     }
   }
 
+  /**
+   * Meter one narration: characters sent to the provider that spoke, per
+   * month globally and per clinic per day (`dv:tts:chars:*`), and the
+   * estimated cost. The reservation above already budgeted it; this is the
+   * measured side, for reconciling the estimate with the ElevenLabs plan's
+   * character quota. Best effort; never throws.
+   */
+  async recordTts(provider: TtsProvider, chars: number, clinicId: string, now = new Date()): Promise<{ chars: number; usd: number }> {
+    const usd = ttsCostUsd(chars, provider);
+    if (!this.store?.add || !(chars > 0)) return { chars, usd };
+    const day = dayOf(now);
+    try {
+      await this.store.add(`dv:tts:chars:${provider}:month:${day.slice(0, 7)}`, chars, 40 * DAY);
+      await this.store.add(`dv:tts:chars:${provider}:clinic:${clinicId}:${day}`, chars, 8 * DAY);
+    } catch (e) {
+      logger.warn({ provider, chars, clinicId, err: (e as Error).message }, "dentvid: tts characters not metered");
+    }
+    return { chars, usd };
+  }
+
   /** True once per key per ttl (Redis), or once per process per ttl when Redis is down. */
   async once(key: string, ttlSec: number): Promise<boolean> {
     if (this.store) {
@@ -318,11 +357,21 @@ export class RedisGuardStore implements GuardStore {
   async once(key: string, ttlSec: number): Promise<boolean> {
     return (await this.r.set(key, "1", "EX", ttlSec, "NX")) === "OK";
   }
+  async add(key: string, by: number, ttlSec: number): Promise<void> {
+    if (this.r.status !== "ready") throw new Error(`redis ${this.r.status}`);
+    await this.r.eval(ADD_LUA, 1, key, String(by), String(ttlSec));
+  }
   async release(counters: Counter[]): Promise<void> {
     if (this.r.status !== "ready") throw new Error(`redis ${this.r.status}`);
     await this.r.eval(RELEASE_LUA, counters.length, ...counters.map((c) => c.key), ...counters.map((c) => String(c.by)));
   }
 }
+
+const ADD_LUA = `
+redis.call("INCRBY", KEYS[1], ARGV[1])
+if redis.call("TTL", KEYS[1]) < 0 then redis.call("EXPIRE", KEYS[1], ARGV[2]) end
+return 0
+`;
 
 const RELEASE_LUA = `
 for i = 1, #KEYS do
@@ -352,6 +401,10 @@ export class MemoryGuardStore implements GuardStore {
   async release(counters: Counter[]): Promise<void> {
     if (this.down) throw new Error("store down");
     for (const c of counters) this.values.set(c.key, Math.max(0, (this.values.get(c.key) ?? 0) - c.by));
+  }
+  async add(key: string, by: number): Promise<void> {
+    if (this.down) throw new Error("store down");
+    this.values.set(key, (this.values.get(key) ?? 0) + by);
   }
   async once(key: string): Promise<boolean> {
     if (this.down) throw new Error("store down");
