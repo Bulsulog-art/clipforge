@@ -13,6 +13,26 @@ export async function dvLocale(clinicLanguage?: string | null): Promise<Locale> 
   });
 }
 
+/**
+ * The signed-in clinic's language (its profile), for what the app's pages
+ * show before they render — the browser tab title (generateMetadata). The
+ * pages themselves use the clinic's language, so the tab must too; without a
+ * session or clinic it is dvLocale() (cookie / browser).
+ */
+export async function clinicLocale(): Promise<Locale> {
+  try {
+    const { dvSession } = await import("./auth");
+    const { db, user } = await dvSession();
+    if (user) {
+      const { data } = await db.from("dentvid_clinics").select("profile").eq("owner_id", user.id).maybeSingle();
+      return dvLocale((data?.profile as { language?: string } | null | undefined)?.language);
+    }
+  } catch {
+    // no session store / database: the visitor's language
+  }
+  return dvLocale();
+}
+
 /** API error messages in the visitor's language. */
 export async function dvErrors(clinicLanguage?: string | null) {
   return appText(await dvLocale(clinicLanguage)).errors;

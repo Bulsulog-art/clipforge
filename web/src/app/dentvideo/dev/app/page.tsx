@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
 import type { Locale } from "@/content/dentvideo";
 import { asLocale } from "@/lib/dentvid/locale";
@@ -12,7 +13,7 @@ import { samplePostTexts } from "@/lib/dentvid/posting-samples";
 import type { BillingIssue } from "@/components/dentvid/billing-issue";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "App preview", robots: { index: false, follow: false } };
+export const generateMetadata = (): Metadata => devPreviewMeta("App preview");
 
 /**
  * Dev-only: the signed-in app's screens from realistic fake data (real
@@ -97,7 +98,7 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
     madeThisWeek = false;
   } else if (state === "posting") {
     // Everything this week decided and approved: the "post it" step with the week's checklist.
-    items = all.filter((i) => i.status !== "working" && i.status !== "rejected").map((i) => (i.week_of === thisWeek ? { ...i, approval: "approved" as const, status: "ready" as const, findings: [] } : i))
+    items = all.filter((i) => i.status !== "working" && i.status !== "rejected").map((i) => (i.week_of === thisWeek ? { ...i, approval: "approved" as const, status: "ready" as const, reasons: [] } : i))
       // One already ticked as posted (stored on the account), so the week's progress shows.
       .map((i) => (i.id === "t1" ? { ...i, postedAt: new Date().toISOString() } : i));
   } else if (state === "updating") {
@@ -158,71 +159,55 @@ const SAMPLES: Partial<Record<Locale, string[]>> = {
   tr: ["dis-tasi-temizligi", "beyazlatma-hassasiyet", "implant-asamalari"],
 };
 
-type Copy = { titles: string[]; caption: string; tags: string[]; finding: string; rejected: string; rejectedWhy: string };
+type Copy = { titles: string[]; caption: string; tags: string[]; rejected: string };
 const COPY: Record<Locale, Copy> = {
   en: {
     titles: ["The right way to brush", "Whitening myths, busted", "Caring for clear aligners", "What happens at a check-up", "Bleeding gums: when to come in"],
     caption: "Two minutes, twice a day — and angle the brush towards the gum line. Questions? Ask us at your next visit.",
     tags: ["dentist", "oralhealth", "brushing"],
-    finding: "Says “whiter in one visit” — results vary; consider “visibly lighter for many patients”.",
     rejected: "Implants for everyone over 60",
-    rejectedWhy: "The topic would need an individual diagnosis; a general video could mislead.",
   },
   de: {
     titles: ["Richtig Zähne putzen", "Bleaching: Mythen im Check", "Aligner richtig pflegen", "Was bei der Kontrolle passiert", "Zahnfleischbluten: wann zu uns?"],
     caption: "Zwei Minuten, zweimal täglich – und die Bürste leicht zum Zahnfleisch neigen. Fragen? Sprechen Sie uns beim nächsten Termin an.",
     tags: ["zahnarzt", "zahngesundheit", "zahnpflege"],
-    finding: "Formulierung „in einer Sitzung strahlend weiß“ – Ergebnisse sind individuell; besser „bei vielen Patienten sichtbar heller“.",
     rejected: "Implantate für alle über 60",
-    rejectedWhy: "Das Thema setzt eine individuelle Diagnose voraus; ein allgemeines Video könnte irreführen.",
   },
   es: {
     titles: ["Cómo cepillarte bien", "Mitos del blanqueamiento", "Cuidar tus alineadores", "Qué pasa en una revisión", "Encías que sangran: cuándo venir"],
     caption: "Dos minutos, dos veces al día, con el cepillo inclinado hacia la encía. ¿Dudas? Pregúntanos en tu próxima visita.",
     tags: ["dentista", "saludbucal", "cepillado"],
-    finding: "Dice «blanco en una sesión»: los resultados varían; mejor «visiblemente más claro en muchos pacientes».",
     rejected: "Implantes para todos los mayores de 60",
-    rejectedWhy: "El tema requiere un diagnóstico individual; un vídeo general podría confundir.",
   },
   fr: {
     titles: ["Bien se brosser les dents", "Blanchiment : idées reçues", "Entretenir ses aligneurs", "Ce qui se passe au contrôle", "Gencives qui saignent : quand venir"],
     caption: "Deux minutes, deux fois par jour, brosse inclinée vers la gencive. Une question ? Parlons-en à votre prochain rendez-vous.",
     tags: ["dentiste", "santebucco", "brossage"],
-    finding: "« Blanc en une séance » : les résultats varient ; préférez « visiblement plus clair chez de nombreux patients ».",
     rejected: "Des implants pour tous après 60 ans",
-    rejectedWhy: "Le sujet suppose un diagnostic individuel ; une vidéo générale pourrait induire en erreur.",
   },
   ja: {
     titles: ["歯石とクリーニング", "歯ぐきからの出血", "子どもの仕上げみがき", "定期検診で行うこと", "正しい歯みがきの方法"],
     caption: "歯みがきは1日2回、歯と歯ぐきの境目を意識して。気になることは、次回のご来院時にお気軽にご相談ください。",
     tags: ["歯医者", "歯科医院", "歯みがき"],
-    finding: "「必ずきれいになる」という表現があります。効果には個人差があるため、「きれいにしやすくなります」などへの言い換えをおすすめします。",
     rejected: "60歳以上の方すべてにインプラント",
-    rejectedWhy: "個別の診断が必要なテーマのため、一般向けの動画では誤解を招くおそれがあります。",
   },
   ar: {
     titles: ["تنظيف الجير", "نزيف اللثة", "تفريش أسنان الأطفال", "ماذا يحدث في الفحص الدوري؟", "الطريقة الصحيحة للتفريش"],
     caption: "دقيقتان، مرتين يومياً، مع إمالة الفرشاة نحو اللثة. لأي سؤال، تحدّثوا معنا في زيارتكم القادمة.",
     tags: ["طبيب_أسنان", "صحة_الفم", "تفريش_الأسنان"],
-    finding: "ورد تعبير «أسنان بيضاء من أول جلسة»، والنتائج تختلف من شخص لآخر؛ يُفضّل «أفتح لدى كثير من المرضى».",
     rejected: "زراعة الأسنان لكل من تجاوز الستين",
-    rejectedWhy: "يحتاج هذا الموضوع إلى تشخيص فردي، وقد يكون الفيديو العام مضلّلاً.",
   },
   pl: {
     titles: ["Kamień nazębny i higienizacja", "Krwawienie dziąseł", "Szczotkowanie zębów u dzieci", "Co dzieje się na przeglądzie", "Jak dobrze szczotkować zęby"],
     caption: "Dwie minuty, dwa razy dziennie, ze szczoteczką skierowaną lekko w stronę dziąseł. Pytania? Zapraszamy na kolejną wizytę.",
     tags: ["dentysta", "zdrowiezebow", "higienajamyustnej"],
-    finding: "Pada sformułowanie „białe zęby po jednej wizycie”; efekty są indywidualne, lepiej: „u wielu pacjentów wyraźnie jaśniejsze”.",
     rejected: "Implanty dla wszystkich po 60. roku życia",
-    rejectedWhy: "Temat wymaga indywidualnej diagnozy; ogólny film mógłby wprowadzać w błąd.",
   },
   tr: {
     titles: ["Diş taşı temizliği neden önemli?", "Beyazlatma ve hassasiyet", "İmplant tedavisinin aşamaları", "Kontrolde neler oluyor?", "Diş eti kanaması: ne zaman gelmeli?"],
     caption: "Günde iki kez, ikişer dakika — fırçayı diş etine doğru hafifçe eğin. Sorularınız için bir sonraki randevunuzda bize sorun.",
     tags: ["dishekimi", "agizsagligi", "disfircalama"],
-    finding: "“Tek seansta bembeyaz” deniyor — sonuçlar kişiye göre değişir; “birçok hastada belirgin şekilde daha açık” daha uygun.",
     rejected: "60 yaş üstü herkese implant",
-    rejectedWhy: "Bu konu kişisel muayene gerektirir; genel bir video yanıltıcı olabilir.",
   },
 };
 
@@ -251,17 +236,17 @@ function demoItems(locale: Locale, thisWeek: string, lastWeek: string): LibraryI
     // The worker's post kit (Instagram + TikTok / Shorts texts); postedAt null = ticks are stored on the account (0012).
     post: samplePostTexts(locale),
     postedAt: null,
-    findings: [],
+    reasons: [],
     ...media(n),
     photos: photos(n),
   });
   return [
     { ...base("t1", 0, thisWeek) },
-    { ...base("t2", 1, thisWeek), status: "flagged", findings: [c.finding] },
+    { ...base("t2", 1, thisWeek), status: "flagged", reasons: ["wording"] },
     { ...base("t3", 2, thisWeek) },
     { ...base("t4", 3, thisWeek), status: "working", videoUrl: undefined, thumbUrl: undefined, photos: undefined },
     { ...base("t5", 4, thisWeek), approval: "approved" },
-    { ...base("t6", 0, thisWeek), title: c.rejected, status: "rejected", findings: [c.rejectedWhy], videoUrl: undefined, thumbUrl: undefined, photos: undefined },
+    { ...base("t6", 0, thisWeek), title: c.rejected, status: "rejected", reasons: ["skipped"], videoUrl: undefined, thumbUrl: undefined, photos: undefined },
     { ...base("l1", 3, lastWeek), approval: "approved" },
     { ...base("l2", 4, lastWeek), approval: "approved", kind: "recording", photos: undefined },
     { ...base("l3", 1, lastWeek), approval: "approved" },

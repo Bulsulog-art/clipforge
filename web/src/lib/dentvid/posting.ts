@@ -8,7 +8,9 @@
  *                   older videos the caption + hashtags as before. Nothing
  *                   here calls a model.
  *   weekSchedule    a suggested day and time for each of the week's videos,
- *                   spread Monday–Friday, in the clinic's local clock time
+ *                   spread Monday–Friday, in the clinic's local clock time —
+ *                   from the clinic's country (not the UI language) and the
+ *                   week's videos themselves (not their approvals)
  *   shareMethod     how "Save video + copy caption" works on this device
  *   isMissingColumn whether a write failed only because a migration (0012
  *                   posted_at) is not applied yet
@@ -62,6 +64,32 @@ const TIMES: Record<Locale, { lunch: string; evening: string }> = {
   pl: { lunch: "12:30", evening: "19:00" },
 };
 
+/**
+ * The same by the clinic's country, which decides when its patients scroll —
+ * a Spanish-speaking clinic in the US posts on US time, an English UI in
+ * Germany does not move a German clinic's slots. Unlisted countries fall back
+ * to the language's times.
+ */
+const COUNTRY_TIMES: Record<string, Locale> = {
+  GB: "en", IE: "en", US: "en", CA: "en", AU: "en", NZ: "en", ZA: "en",
+  DE: "de", AT: "de", CH: "de", LU: "de",
+  ES: "es", MX: "es", AR: "es", CO: "es", CL: "es", PE: "es",
+  FR: "fr", BE: "fr", MC: "fr",
+  TR: "tr",
+  JP: "ja",
+  SA: "ar", AE: "ar", QA: "ar", KW: "ar", BH: "ar", OM: "ar", JO: "ar", EG: "ar", MA: "ar",
+  PL: "pl",
+};
+
+/** Where the clinic is: its country (profile.country) first, its language as the fallback. */
+export type Place = Locale | { country?: string | null; locale: Locale };
+
+export function postingTimes(place: Place): { lunch: string; evening: string } {
+  const { country, locale } = typeof place === "string" ? { country: null, locale: place } : place;
+  const byCountry = country ? COUNTRY_TIMES[country.trim().toUpperCase()] : undefined;
+  return TIMES[byCountry ?? locale] ?? TIMES.en;
+}
+
 export type Slot = { date: string; weekday: number; time: string };
 
 /**
@@ -77,8 +105,8 @@ export function spreadDays(n: number): number[] {
 }
 
 /** Lunch and evening alternate through the week, so two videos on one day never share a time. */
-export function slotsFor(week: string, n: number, locale: Locale): Slot[] {
-  const t = TIMES[locale] ?? TIMES.en;
+export function slotsFor(week: string, n: number, place: Place): Slot[] {
+  const t = postingTimes(place);
   const monday = Date.parse(`${week}T00:00:00Z`);
   if (Number.isNaN(monday)) return [];
   const seen = new Map<number, number>();
@@ -91,14 +119,18 @@ export function slotsFor(week: string, n: number, locale: Locale): Slot[] {
 }
 
 /**
- * A slot for each postable video of one week (ready or flagged, not
- * declined), in the order they were made — so a slot does not move when the
- * dentist approves another video.
+ * A slot for each postable video of one week (ready or flagged; a declined
+ * one gets none). Deterministic: the slots are spread over every made video
+ * of the week, declined ones included, in a fixed order (the video id), so
+ * approving or declining a video — or the order a screen lists them in —
+ * never moves another video's slot; the times follow the clinic's country.
  */
-export function weekSchedule<T extends { id: string; status: string; approval: string; week_of: string }>(items: T[], week: string, locale: Locale): Map<string, Slot> {
-  const list = items.filter((i) => i.week_of === week && (i.status === "ready" || i.status === "flagged") && i.approval !== "rejected");
-  const slots = slotsFor(week, list.length, locale);
-  return new Map(list.map((i, n) => [i.id, slots[n]]));
+export function weekSchedule<T extends { id: string; status: string; approval: string; week_of: string }>(items: T[], week: string, place: Place): Map<string, Slot> {
+  const made = items
+    .filter((i) => i.week_of === week && (i.status === "ready" || i.status === "flagged"))
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const slots = slotsFor(week, made.length, place);
+  return new Map(made.flatMap((i, n) => (i.approval === "rejected" ? [] : [[i.id, slots[n]] as [string, Slot]])));
 }
 
 /** "Tue 12:30" / "Sal 12:30" / "火 12:15" in the clinic's language. */

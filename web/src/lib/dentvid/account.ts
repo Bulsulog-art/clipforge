@@ -260,7 +260,7 @@ const notFound = (e: { status?: number; message?: string; code?: string } | null
  *   5. the login — Liman is shared with other apps, so the auth user is
  *      deleted only when it is DentVideo's alone (lib/dentvid/membership
  *      isDentvideoOnly: app_metadata.product = "dentvideo" and no other app's
- *      marker). Otherwise only DentVideo's app_metadata keys (product,
+ *      marker). Otherwise only DentVideo's app_metadata keys (product, internal,
  *      email_verified_*) are removed and the login stays for the other app.
  *
  * Idempotent: every step is a no-op on what is already gone, so a retry

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
 import { DemoPage, DEMO_ROBOTS } from "@/components/dentvid/demo-page";
 import { AdminDemos, type AdminDemoRow } from "@/components/dentvid/admin-demos";
@@ -8,7 +9,7 @@ import { DEMO_PALETTE } from "@/lib/dentvid/demos";
 import { asDemoSort, sortDemos } from "@/lib/dentvid/hot-leads";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Demo link preview", robots: DEMO_ROBOTS };
+export const generateMetadata = (): Metadata => devPreviewMeta("Demo link preview", DEMO_ROBOTS);
 
 const CLINIC: Record<Locale, { name: string; city: string; country: string }> = {
   en: { name: "Riverside Dental", city: "Bristol", country: "GB" },

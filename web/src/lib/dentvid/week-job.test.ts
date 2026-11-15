@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weekDelivered, weekRunFor } from "./week-job";
+import { missingVideos, weekDelivered, weekRunFor } from "./week-job";
 
 describe("the 'make this week' / 'try again' button", () => {
   it("queues a week that has no job and nothing delivered", () => {
@@ -15,10 +15,22 @@ describe("the 'make this week' / 'try again' button", () => {
     expect(weekRunFor("completed", 0)).toBe("requeue");
   });
 
-  it("never makes a second week once there are usable videos, whatever the job's state (completed jobs are dropped after a day)", () => {
-    expect(weekRunFor("completed", 3)).toBe("made");
-    expect(weekRunFor("failed", 1)).toBe("made");
+  it("never makes a second week once all five are there, whatever the job's state (completed jobs are dropped after a day)", () => {
+    expect(weekRunFor("completed", 5)).toBe("made");
+    expect(weekRunFor("failed", 5)).toBe("made");
     expect(weekRunFor(null, 5)).toBe("made");
+    expect(weekRunFor(null, 7)).toBe("made");
+  });
+
+  it("a finished week short of five (topics turned down) is made up with the missing videos only — not 409 'already done'", () => {
+    expect(weekRunFor("completed", 3)).toBe("topup");
+    expect(weekRunFor("failed", 1)).toBe("topup");
+    expect(weekRunFor(null, 4)).toBe("topup");
+    expect(missingVideos(3)).toBe(2);
+    expect(missingVideos(4)).toBe(1);
+    expect(missingVideos(6)).toBe(0);
+    // While a run is going, nothing new.
+    expect(weekRunFor("active", 3)).toBe("running");
   });
 
   it("leaves a run that is waiting or being made alone", () => {

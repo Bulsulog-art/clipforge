@@ -270,7 +270,7 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 - HSTS `max-age=63072000; includeSubDomains; preload` ✔. Added `Cross-Origin-Opener-Policy: same-origin-allow-popups`, removed `X-Powered-By`.
 - `script-src` keeps `'unsafe-inline'` (Next's inline bootstrap); `'unsafe-eval'` is sent only by `next dev` — no production chunk uses `eval` / `new Function` (audit 2026-11-13). *Open*: moving to nonces is a separate change.
 - The `dv-auth` session cookie is `Secure; SameSite=Lax` in production (`DV_COOKIE_OPTIONS`, lib/dentvid/session-cookie.ts). It cannot be HttpOnly: the browser client reads it to call Liman.
-- noindex: `/app/*`, `/start`, `/preview-demo`, `/dev/funnel` carry `robots: noindex`; `/dev/funnel` 404s unless `DENTVIDEO_DEV_PREVIEW=1` (never set it in production); dentvideo.com `robots.txt` now also disallows `/dev/`.
+- noindex: `/app/*`, `/start`, `/preview-demo`, `/dev/funnel` carry `robots: noindex`; `/dev/*` and `/preview-demo` 404 unless `DENTVIDEO_DEV_PREVIEW=1` (never set it in production), and private pages (admin, dev previews) show the generic "Page not found" title to anyone who gets the 404 (lib/dentvid/private-meta); dentvideo.com `robots.txt` now also disallows `/dev/`.
 - Secrets in client bundles: the production build was grepped for service-role keys, Resend/OpenAI/Dodo keys and `WORKER_INTERNAL_TOKEN` — none (only `NEXT_PUBLIC_*` values, which are public by design).
 - Error messages: webhook grant failures and `/api/health` probes no longer echo database / network error text.
 

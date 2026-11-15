@@ -51,7 +51,7 @@ export function SampleVideo({ src, poster, title, playLabel }: { src: string; po
           className="group absolute inset-0 z-10 flex items-end justify-center bg-gradient-to-t from-black/35 via-transparent to-transparent pb-8"
         >
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-dv-teal-900 shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)] ring-1 ring-white/60 backdrop-blur transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
-            <Play className="ms-0.5 h-5 w-5" fill="currentColor" aria-hidden="true" />
+            <Play className="ml-0.5 h-5 w-5" fill="currentColor" aria-hidden="true" />
           </span>
         </button>
       )}

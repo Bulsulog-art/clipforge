@@ -6,7 +6,8 @@ import { MemoryOpsStore, _resetLocalOnce, digestHasNews, renderDigest, weekState
 import { _setOpsForTests, noteEnqueueFailure, noteServerError, readWeekDelay } from "./ops-server";
 import { sendEmail } from "./email";
 import { buildDigest } from "./ops-digest";
-import { clinicFindings, delayNote, nextAction } from "./app-ui";
+import { delayNote, nextAction } from "./app-ui";
+import { clinicReasons } from "./reasons";
 import { WEEK_JOB_OPTS } from "./week-job";
 import type { LibraryItem } from "@/components/dentvid/library";
 import type { AdminEvent } from "./admin-metrics";
@@ -102,7 +103,7 @@ describe("a job that could not be queued", () => {
 
 describe("the library's delay note", () => {
   const item = (status: LibraryItem["status"], extra: Partial<LibraryItem> = {}): LibraryItem =>
-    ({ id: Math.random().toString(36), kind: "generated", status, approval: "pending", title: "t", week_of: "2026-11-09", findings: [], videoUrl: "https://x/v.mp4", ...extra }) as LibraryItem;
+    ({ id: Math.random().toString(36), kind: "generated", status, approval: "pending", title: "t", week_of: "2026-11-09", reasons: [], videoUrl: "https://x/v.mp4", ...extra }) as LibraryItem;
 
   it("reads the worker's week state; nothing else gets through", async () => {
     expect(await readWeekDelay("c1", "2026-11-09")).toBeNull();
@@ -124,11 +125,9 @@ describe("the library's delay note", () => {
   });
 
   it("technical failures never reach the clinic", () => {
-    expect(clinicFindings(["could not produce: 429 Rate limit reached", "the video file is missing", "mentions a guarantee", "quality: the narration is silent"])).toEqual([
-      "mentions a guarantee",
-      "quality: the narration is silent",
-    ]);
-    expect(clinicFindings(null)).toEqual([]);
+    expect(clinicReasons(["could not produce: 429 Rate limit reached", "the video file is missing", "mentions a guarantee", "quality: the narration is silent"], "flagged")).toEqual(["audio"]);
+    expect(clinicReasons(["the video file is missing"], "flagged")).toEqual([]);
+    expect(clinicReasons(null)).toEqual([]);
   });
 });
 

@@ -34,11 +34,11 @@ type ItemRow = { id: string; title: string | null; week_of: string; thumb_path: 
 /** The rows of the email's video list, oldest first (the posting order), from the week's items. */
 export function videoRows(
   items: ItemRow[],
-  args: { week: string; language: string; base: string; clinicId: string; secret: string | null; thumbUrl: (path: string) => string | undefined; now?: Date },
+  args: { week: string; language: string; country?: string | null; base: string; clinicId: string; secret: string | null; thumbUrl: (path: string) => string | undefined; now?: Date },
 ): VideoRow[] {
   const locale = asLocale(args.language) ?? "en";
   const p = postingText(locale);
-  const schedule = weekSchedule(items.map((i) => ({ ...i, approval: i.approval ?? "pending" })), args.week, locale);
+  const schedule = weekSchedule(items.map((i) => ({ ...i, approval: i.approval ?? "pending" })), args.week, { country: args.country, locale });
   return items.slice(0, 6).map((i) => {
     const caption = postTexts(i.copy as never)?.instagram.split(/\n\s*\n/)[0];
     const slot = schedule.get(i.id);
@@ -122,7 +122,7 @@ export async function sendReadyNotice(
     logoUrl = typeof clinic.logo_path === "string" ? (urls.get(clinic.logo_path) ?? null) : null;
     const secret = unsubscribeSecret();
     if (week && secret && counts.ready > 0) approve = approveUrl(new URL(base).origin, clinicId, week, secret, opts.now);
-    if (week) videos = videoRows(items, { week, language: profile.language ?? "en", base, clinicId, secret, thumbUrl: (path) => urls.get(path), now: opts.now });
+    if (week) videos = videoRows(items, { week, language: profile.language ?? "en", country: (profile as { country?: string }).country ?? null, base, clinicId, secret, thumbUrl: (path) => urls.get(path), now: opts.now });
   } catch (e) {
     // Images and the approve link are extras: the email goes without them.
     console.warn("[dentvideo] ready email extras unavailable", (e as Error).message);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { adminMeta } from "@/lib/dentvid/private-meta";
 import { AdminDemos } from "@/components/dentvid/admin-demos";
 import { requireAdmin } from "@/lib/dentvid/admin-server";
 import { listDemos, loadDemoActivity, purgeExpiredDemos } from "@/lib/dentvid/demos-server";
@@ -7,7 +8,9 @@ import { asDemoSort, demoLastActivity, sortDemos } from "@/lib/dentvid/hot-leads
 import { dvHref, dvUrl } from "@/lib/dentvid/host";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Demo links", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return adminMeta("Demo links");
+}
 
 /**
  * Personalised demo links for outreach. 404 for everyone but the admins in

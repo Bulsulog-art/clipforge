@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appSendsToFunnel, asStep, billingReturn, needsPlanHistory, paymentDeclined, resolveStep, showFirstWeek } from "./onboarding";
+import { FIRST_WEEK_SLOW_MS, firstWeekStuck } from "./first-week-state";
 import { PLAN_REACHED_EVENTS, clinicReachedPlan } from "./events-server";
 
 describe("return from Dodo's payment link", () => {
@@ -144,5 +145,25 @@ describe("the clinic's recorded plan visit", () => {
     expect(await clinicReachedPlan(CLINIC, fakeDb({ error: { message: "boom" } }).db)).toBe(false);
     expect(await clinicReachedPlan(CLINIC, fakeDb(new Error("down")).db)).toBe(false);
     expect(await clinicReachedPlan("", fakeDb({ data: [{ id: 1 }] }).db)).toBe(false);
+  });
+});
+
+describe("first week: when the card offers 'try again'", () => {
+  const now = 1_000_000_000;
+  const min = 60_000;
+  it("not while waiting the promised ~15 minutes", () => {
+    expect(firstWeekStuck({ paid: true, job: { state: "active", createdAt: now - 15 * min }, seenSince: now - 15 * min, now })).toBe(false);
+  });
+  it("after 30 minutes since the job was queued (or the card first seen)", () => {
+    expect(firstWeekStuck({ paid: true, job: { state: "waiting", createdAt: now - FIRST_WEEK_SLOW_MS - 1 }, seenSince: now, now })).toBe(true);
+    expect(firstWeekStuck({ paid: true, job: undefined, seenSince: now - 31 * min, now })).toBe(true);
+  });
+  it("when the job is missing (after a short grace) or failed", () => {
+    expect(firstWeekStuck({ paid: true, job: { state: null, createdAt: null }, seenSince: now - 30_000, now })).toBe(false);
+    expect(firstWeekStuck({ paid: true, job: { state: null, createdAt: null }, seenSince: now - 3 * min, now })).toBe(true);
+    expect(firstWeekStuck({ paid: true, job: { state: "failed", createdAt: now }, seenSince: now, now })).toBe(true);
+  });
+  it("never before the payment is confirmed", () => {
+    expect(firstWeekStuck({ paid: false, job: { state: null, createdAt: null }, seenSince: now - 60 * min, now })).toBe(false);
   });
 });

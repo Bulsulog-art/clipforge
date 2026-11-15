@@ -15,7 +15,7 @@ import { limitChecks, rateLimited } from "@/lib/rate-limit-server";
 import { botSignup } from "@/lib/dentvid/bot-check";
 import { asLocale } from "@/lib/dentvid/locale";
 import { sendVerificationCode } from "@/lib/dentvid/verify-email-server";
-import { DV_PRODUCT, isDentvideoUser } from "@/lib/dentvid/membership";
+import { isDentvideoUser, signupAppMetadata } from "@/lib/dentvid/membership";
 import { joinDentvideo } from "@/lib/dentvid/join";
 import { verifyTurnstile } from "@/lib/dentvid/turnstile";
 import { dvUrl } from "@/lib/dentvid/host";
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
     password: body.password,
     email_confirm: true,
     // Server-only metadata: the account stays internal for its whole life (events, ad conversions).
-    app_metadata: { product: DV_PRODUCT, ...(internal ? { internal: true } : {}) },
+    app_metadata: signupAppMetadata(internal),
   });
   if (error) {
     const exists = /already|registered|exists/i.test(error.message);
