@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { checkAll, type Check, type CounterStore, type LimitResult } from "./rate-limit";
 import type { ReplayStore } from "./webhook-replay";
 import { MemoryKv, type VerifyKv } from "./dentvid/verify-email";
+import type { SlotStore } from "./dentvid/upload-slots";
 
 /**
  * Redis-backed limits for the API routes (REDIS_URL — the same Redis as the
@@ -97,6 +98,23 @@ export function replayStore(): ReplayStore | null {
     set: async (key, value, ttlSec) => {
       await r.set(key, value, "EX", ttlSec);
     },
+    del: async (key) => {
+      await r.del(key);
+    },
+  };
+}
+
+/**
+ * Pending signed-upload slots (lib/dentvid/upload-slots) on the same
+ * connection. Null without Redis or while it is not ready: the cap is then
+ * skipped, like the rate limits (capacity limits fail open).
+ */
+export async function uploadSlotStore(): Promise<SlotStore | null> {
+  const r = await readyRedis();
+  if (!r || r.status !== "ready") return null;
+  return {
+    get: (key) => r.get(key),
+    setNx: async (key, value, ttlSec) => (await r.set(key, value, "EX", ttlSec, "NX")) === "OK",
     del: async (key) => {
       await r.del(key);
     },

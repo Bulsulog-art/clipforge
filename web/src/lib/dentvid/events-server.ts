@@ -80,9 +80,15 @@ export async function clinicReachedPlan(clinicId: string, db?: SupabaseClient): 
 
 /** The body as text, or null once it passes `max` bytes (the declared length is not trusted). */
 export async function readCapped(req: Request, max: number): Promise<string | null> {
+  const bytes = await readCappedBytes(req, max);
+  return bytes === null ? null : new TextDecoder().decode(bytes);
+}
+
+/** The body as bytes, or null once it passes `max` bytes (the declared length is not trusted). */
+export async function readCappedBytes(req: Request, max: number): Promise<Uint8Array | null> {
   const declared = Number(req.headers.get("content-length") ?? "0");
   if (declared > max) return null;
-  if (!req.body) return "";
+  if (!req.body) return new Uint8Array();
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];
   let size = 0;
@@ -102,7 +108,7 @@ export async function readCapped(req: Request, max: number): Promise<string | nu
     all.set(c, at);
     at += c.byteLength;
   }
-  return new TextDecoder().decode(all);
+  return all;
 }
 
 /** For tests. */
