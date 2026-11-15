@@ -63,12 +63,12 @@ export function dvLowestPrice(currency: DvCurrency): number {
 
 /** The short tax line after "/month", in the page's language. */
 export const DV_TAX_LABEL: Record<Locale, Record<DvTaxKind, string>> = {
-  en: { tr: "+ KDV", eu: "+ VAT", other: "+ applicable tax" },
-  de: { tr: "zzgl. KDV", eu: "zzgl. MwSt.", other: "zzgl. anfallender Steuern" },
-  es: { tr: "+ KDV", eu: "+ IVA", other: "+ impuestos aplicables" },
-  tr: { tr: "+ KDV", eu: "+ KDV (AB)", other: "+ geçerli vergiler" },
-  fr: { tr: "+ KDV", eu: "+ TVA", other: "+ taxes applicables" },
-  ja: { tr: "＋KDV（税別）", eu: "＋VAT（税別）", other: "（税別）" },
-  ar: { tr: "+ ضريبة KDV", eu: "+ ضريبة القيمة المضافة", other: "+ الضرائب المطبّقة" },
-  pl: { tr: "+ KDV", eu: "+ VAT", other: "+ obowiązujące podatki" },
+  en: { tr: "+ applicable tax", eu: "+ VAT", other: "+ applicable tax" },
+  de: { tr: "zzgl. anfallender Steuern", eu: "zzgl. MwSt.", other: "zzgl. anfallender Steuern" },
+  es: { tr: "+ impuestos aplicables", eu: "+ IVA", other: "+ impuestos aplicables" },
+  tr: { tr: "+ geçerli vergiler", eu: "+ KDV (AB)", other: "+ geçerli vergiler" },
+  fr: { tr: "+ taxes applicables", eu: "+ TVA", other: "+ taxes applicables" },
+  ja: { tr: "（税別）", eu: "＋VAT（税別）", other: "（税別）" },
+  ar: { tr: "+ الضرائب المطبّقة", eu: "+ ضريبة القيمة المضافة", other: "+ الضرائب المطبّقة" },
+  pl: { tr: "+ obowiązujące podatki", eu: "+ VAT", other: "+ obowiązujące podatki" },
 };

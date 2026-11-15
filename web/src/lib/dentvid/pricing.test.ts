@@ -65,13 +65,14 @@ describe("currency selection", () => {
     for (const c of [null, undefined, "", "XXX", "1A"]) expect(dvCurrencyForCountry(c), String(c)).toBe("USD");
   });
 
-  it("the tax line: KDV in Türkiye, VAT in every EU country (even when billed in USD), else applicable tax", () => {
+  it("the tax line: applicable tax in Türkiye, VAT in every EU country (even when billed in USD), else applicable tax", () => {
     expect(dvPriceContext("TR")).toEqual({ currency: "TRY", tax: "tr" });
     expect(dvPriceContext("DE")).toEqual({ currency: "EUR", tax: "eu" });
     expect(dvPriceContext("PL")).toEqual({ currency: "USD", tax: "eu" });
     expect(dvPriceContext("US")).toEqual({ currency: "USD", tax: "other" });
     expect(dvPriceContext(null)).toEqual({ currency: "USD", tax: "other" });
-    expect(DV_TAX_LABEL.en).toEqual({ tr: "+ KDV", eu: "+ VAT", other: "+ applicable tax" });
+    // Dodo adds no KDV for Türkiye today (checkout preview, 2026-11-15), so TR says "applicable tax", not KDV.
+    expect(DV_TAX_LABEL.en).toEqual({ tr: "+ applicable tax", eu: "+ VAT", other: "+ applicable tax" });
     for (const l of LOCALES) for (const k of ["tr", "eu", "other"] as const) expect(DV_TAX_LABEL[l][k].trim(), `${l} ${k}`).not.toBe("");
   });
 
