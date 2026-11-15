@@ -8,6 +8,7 @@
  * Pure and dependency-free so it is tested directly.
  */
 import { hookLimit, isUnspaced, speechUnits } from "./locale.js";
+import { isClickbait } from "./known-mistakes.js";
 
 const L = "[\\p{L}\\p{N}]";
 /** Word-bounded, case-insensitive, Unicode-aware (\b only knows ASCII). */
@@ -75,7 +76,7 @@ const TENSION = w(
   "mistake|error|fehler|hata\\p{L}*|erreur|errore|erro|błąd|this\\.?$|esto\\.?$|ceci|das hier|işte|\\p{L}+m[ıiuü]yor|but|yet|though|than you think|not quite|not always|usually not|here's why|ama|ancak|fakat|aslında|sandığınızdan|sandığından|değil|aber|doch|obwohl|als sie denken|als du denkst|lieber nicht|nicht ganz|nicht immer|pero|aunque|de lo que crees|de lo que cree|no siempre|no del todo|mais|pourtant|pas (tout à fait|toujours|si vite)|però|eppure|non (sempre|proprio)|mas|porém|nem sempre|ale|jednak|nie zawsze|لكن|ليس دائماً|でも|実は|とは限らない",
 );
 
-export type HookFinding = { code: "did_you_know" | "textbook" | "listicle" | "label" | "flat_no" | "gives_answer" | "flat_statement" | "too_long"; detail: string };
+export type HookFinding = { code: "did_you_know" | "textbook" | "listicle" | "label" | "flat_no" | "gives_answer" | "flat_statement" | "too_long" | "clickbait"; detail: string };
 
 /**
  * What is wrong with a hook, deterministically. Empty means "no known
@@ -89,6 +90,8 @@ export function hookProblems(hook: string, language: string | undefined): HookFi
   if (LISTICLE.test(h)) out.push({ code: "listicle", detail: `listicle label: ${h}` });
   if (LABEL.test(h) && !/\?\s*$/.test(h.split(":")[0])) out.push({ code: "label", detail: `"Topic: description" label: ${h}` });
   if (FLAT_NO.test(h)) out.push({ code: "flat_no", detail: `flat "No!" — say "not quite" / "usually not": ${h}` });
+  // "Der Grund überrascht." (DE aligner render, Nov 2026; docs/KNOWN_MISTAKES.md KM-10).
+  if (isClickbait(h)) out.push({ code: "clickbait", detail: `clickbait — promises a surprise instead of naming the subject: ${h}` });
   const open = /[?？؟…]|\.\.\.|—|–/.test(h) || TENSION.test(h);
   if (!open) {
     // A number in a closed statement is usually the answer ("3 aşamada gerçekleşir.").
@@ -100,7 +103,7 @@ export function hookProblems(hook: string, language: string | undefined): HookFi
 }
 
 /** Problems that make a hook unusable (the editor drops such candidates; the post-check sends them back). */
-export const BLOCKING_HOOK = new Set<HookFinding["code"]>(["did_you_know", "textbook", "listicle", "label", "flat_no", "too_long"]);
+export const BLOCKING_HOOK = new Set<HookFinding["code"]>(["did_you_know", "textbook", "listicle", "label", "flat_no", "too_long", "clickbait"]);
 
 export function hookShape(hook: string): HookShape {
   const h = hook.trim();

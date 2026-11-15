@@ -39,6 +39,7 @@ import {
 import { mixedAddress, screenLines, type RubricScene } from "./rubric.js";
 import { firstSentence, weekVoiceBrief, type PastTopic, type WeekVoice } from "./memory.js";
 import { droppedHedges, hedgeRatio, notQuite, offRegister, overHedged, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
+import { knownMistakeFix, scanKnownMistakes } from "./known-mistakes.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -301,7 +302,10 @@ export function scriptProblems(
     if (sec > NARRATION_SECONDS.max) out.push(`the narration takes about ${Math.round(sec)} s to say; cut it to under ${NARRATION_SECONDS.idealMax} s — one takeaway, fewer points`);
     const onScreen = numbersIn(screen);
     const added = [...numbersIn(narration)].filter((n) => !onScreen.has(n));
-    if (added.length) out.push(`the narration states numbers that are not on screen (${added.join(", ")}): say only what the screen says`);
+    // TR aligner topic, Nov 2026 (docs/KNOWN_MISTAKES.md KM-22): the reviewer asked for
+    // "20–22 saat", this check refused it in the narration alone, and the topic was lost.
+    if (added.length)
+      out.push(`the narration states numbers that are not on screen (${added.join(", ")}): say only what the screen says — if a reviewer asked for the number, put it on screen as well`);
   }
   for (const c of clinicalFlags(`${screen}\n${narration}`)) out.push(`clinical: ${c}`);
   for (const c of practiceClaims(`${screen}\n${narration}`, profile.language, knownFacts(profile)))
@@ -327,6 +331,10 @@ export function scriptProblems(
     out.push(`"${afterHook}" answers "${hook}" with "${notQuite(profile.language)}", but the hook states no belief to deny — start the answer directly`);
   for (const o of offRegister(`${screen}\n${narration}`, profile.language)) out.push(`"${o}" is a stock opener or too casual for a practice's feed — say it plainly`);
   if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);
+  // Every mistake seen in a render so far (docs/KNOWN_MISTAKES.md). A clickbait
+  // hook is already sent back above (hookProblems), so it is not listed twice.
+  const known = scanKnownMistakes({ hook, screen: lines.filter((l) => l !== hook), narration }, profile.language);
+  for (const k of known) if (!(k.code === "clickbait" && k.where === "hook")) out.push(knownMistakeFix(k));
   return out;
 }
 
@@ -516,6 +524,7 @@ export function captionProblems(
       out.push(`"${c}" states something about this practice that it never told us (an amenity, equipment, hours, an after-hours line) — leave it out`);
     for (const w of wrongLanguage([caption], profile.language)) out.push(`"${w}" is not in ${profile.language} — the whole caption is in the video's language`);
     for (const o of offRegister(caption, profile.language)) out.push(`"${o}" is too casual for a practice's feed — say it plainly`);
+    for (const k of scanKnownMistakes({ caption }, profile.language)) out.push(knownMistakeFix(k));
   }
   if ((country ?? "").toUpperCase() === "TR") {
     const s = trSteering(caption);

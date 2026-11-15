@@ -29,6 +29,9 @@ const FILES = [
   // A clinic's own closing line: the settings form and the clinic API route
   // refuse what the worker would ignore (dentvid/post-kit.ts softCta).
   ["closing-line.ts", "closing-line.ts"],
+  // Mistakes seen in rendered videos (docs/KNOWN_MISTAKES.md): the web tests
+  // run them over the live preview library and the examples pages.
+  ["known-mistakes.ts", "known-mistakes.ts"],
 ];
 
 function mirror(source, from) {
