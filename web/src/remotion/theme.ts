@@ -489,3 +489,31 @@ export function brandTheme(base: Theme, brandHex?: string, accentHex?: string): 
     border: "rgba(255,255,255,0.14)",
   };
 }
+
+// MARK: - Market warning (Disclaimer.tsx)
+
+/** How long the warning stays up at the end, at least: two sentences need time to read. */
+export const DISCLAIMER_SECONDS = 6;
+
+/** The frame the warning appears on: the last scene's start, or earlier so it stays up DISCLAIMER_SECONDS. */
+export function disclaimerFrom(lastSceneFrom: number, durationInFrames: number, fps: number): number {
+  return Math.max(0, Math.min(lastSceneFrom, durationInFrames - Math.round(DISCLAIMER_SECONDS * fps)));
+}
+
+/**
+ * How the on-screen warning band looks (Disclaimer.tsx), in 1080-wide
+ * authoring units. Shared with the dentist-recording clips, which are cut
+ * with ffmpeg rather than Remotion (steps/captions.ts buildDisclaimerASS
+ * draws the same band with libass).
+ */
+export const DISCLAIMER_STYLE = {
+  /** Opacity of the black band behind the text. */
+  bandOpacity: 0.62,
+  radius: 14,
+  padX: 18,
+  padY: 12,
+  lineHeight: 1.3,
+  fontWeight: 500,
+  /** Frames the band takes to fade in. */
+  fadeFrames: 8,
+} as const;

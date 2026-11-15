@@ -1,14 +1,11 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { TYPE, safeFrame, type Theme } from "./theme.js";
+import { DISCLAIMER_SECONDS, DISCLAIMER_STYLE, TYPE, disclaimerFrom, safeFrame, type Theme } from "./theme.js";
 
-/** How long the warning stays up at the end, at least: two sentences need time to read. */
-export const DISCLAIMER_SECONDS = 6;
-
-/** The frame the warning appears on: the last scene's start, or earlier so it stays up DISCLAIMER_SECONDS. */
-export function disclaimerFrom(lastSceneFrom: number, durationInFrames: number, fps: number): number {
-  return Math.max(0, Math.min(lastSceneFrom, durationInFrames - Math.round(DISCLAIMER_SECONDS * fps)));
-}
+// The timing and look live in theme.ts (no React, no Remotion) so the
+// dentist-recording clips, cut with ffmpeg, draw the same band
+// (steps/captions.ts buildDisclaimerASS).
+export { DISCLAIMER_SECONDS, DISCLAIMER_STYLE, disclaimerFrom };
 
 /**
  * A warning a market requires on screen (plan.disclaimer; Türkiye: RG 33075
@@ -21,7 +18,7 @@ export const Disclaimer: React.FC<{ text: string; theme: Theme; from: number }> 
   const { width, height } = useVideoConfig();
   const safe = safeFrame(width, height);
   const scale = width / 1080;
-  const opacity = interpolate(frame, [from, from + 8], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const opacity = interpolate(frame, [from, from + DISCLAIMER_STYLE.fadeFrames], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   if (frame < from) return null;
   return (
     <AbsoluteFill
@@ -38,12 +35,12 @@ export const Disclaimer: React.FC<{ text: string; theme: Theme; from: number }> 
         style={{
           fontFamily: theme.bodyFont,
           fontSize: TYPE.label * scale,
-          lineHeight: 1.3,
-          fontWeight: 500,
+          lineHeight: DISCLAIMER_STYLE.lineHeight,
+          fontWeight: DISCLAIMER_STYLE.fontWeight,
           color: "#FFFFFF",
-          background: "rgba(0,0,0,0.62)",
-          borderRadius: 14 * scale,
-          padding: `${12 * scale}px ${18 * scale}px`,
+          background: `rgba(0,0,0,${DISCLAIMER_STYLE.bandOpacity})`,
+          borderRadius: DISCLAIMER_STYLE.radius * scale,
+          padding: `${DISCLAIMER_STYLE.padY * scale}px ${DISCLAIMER_STYLE.padX * scale}px`,
           textAlign: "center",
         }}
       >

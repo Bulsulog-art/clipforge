@@ -1,5 +1,6 @@
 import type { Word } from "./transcribe.js";
 import { resolveAspect, type AspectSpec } from "../aspect.js";
+import { DISCLAIMER_SECONDS, DISCLAIMER_STYLE, TYPE, safeFrame } from "../remotion/theme.js";
 
 const NICHE_STYLES: Record<string, { fill: string; outline: string; highlight: string }> = {
   motivation: { fill: "FFFFFF", outline: "000000", highlight: "FF3366" },
@@ -286,6 +287,64 @@ Style: Hook,Inter Bold,${fontSize},&H00${fillBgr},&H00${highlightBgr},&H00${outl
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,${assTime(0)},${assTime(hookEnd)},Hook,,0,0,0,,{\\fad(200,300)\\t(0,250,\\fscx105\\fscy105)\\t(250,500,\\fscx100\\fscy100)}${lines}`;
+}
+
+/** Frames per second of the recording clips (render.ts outputs -r 30). */
+const CLIP_FPS = 30;
+
+/**
+ * A warning a market requires on screen (Türkiye: RG 33075 md. 7/1-k;
+ * dental/mandatory-notice.ts) for the dentist-recording clips, which are cut
+ * with ffmpeg and not drawn by Remotion. The same band as the generated
+ * videos' Disclaimer.tsx (theme.ts DISCLAIMER_STYLE): white text, small but
+ * legible, on a 62% black box, fading in, up for the last DISCLAIMER_SECONDS
+ * (the whole clip when it is shorter). Placed inside the platform-safe frame
+ * and just above the word-by-word caption line, so neither covers the other;
+ * the hook at the top is gone by then (it leaves after 3.4 s, clips are 12 s+).
+ */
+export function buildDisclaimerASS(
+  text: string,
+  durationSec: number,
+  aspectId?: string,
+  /** The caption style the clip uses, so the band sits clear of its line. */
+  captionStyleId?: string,
+): string {
+  const aspect = resolveAspect(aspectId);
+  const scale = aspect.w / 1080;
+  const safe = safeFrame(aspect.w, aspect.h);
+  const fontSize = Math.round(TYPE.label * scale);
+  const pad = Math.round(DISCLAIMER_STYLE.padY * scale);
+  const cap = resolveCaptionStyle(captionStyleId);
+  // The caption line's top edge (one line: WrapStyle 2 never wraps), plus a gap.
+  const aboveCaptions = aspect.captionMarginV + Math.round(cap.fontSize * 1.25) + cap.outlineWidth * 2 + Math.round(24 * scale);
+  const marginV = Math.round(Math.max(safe.bottom, aboveCaptions)) + pad;
+  const side = Math.round(DISCLAIMER_STYLE.padX * scale);
+  const marginL = Math.round(safe.start) + side;
+  const marginR = Math.round(safe.end) + side;
+  const from = Math.max(0, durationSec - DISCLAIMER_SECONDS);
+  // ASS alpha is transparency: 00 opaque, FF clear. BorderStyle 4 (libass
+  // 0.17+, Debian bookworm's libass9) draws ONE box behind the whole event in
+  // BackColour, padded by Outline; BorderStyle 3 drew a box per line and the
+  // semi-transparent boxes overlapped into darker stripes. The glyph outline
+  // itself is kept invisible (OutlineColour FF), as in Disclaimer.tsx.
+  const boxAlpha = Math.round((1 - DISCLAIMER_STYLE.bandOpacity) * 255).toString(16).toUpperCase().padStart(2, "0");
+  const fadeMs = Math.round((DISCLAIMER_STYLE.fadeFrames / CLIP_FPS) * 1000);
+  const body = escape(text.replace(/\s+/g, " ").trim());
+  return `[Script Info]
+ScriptType: v4.00+
+PlayResX: ${aspect.w}
+PlayResY: ${aspect.h}
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Disclaimer,Inter,${fontSize},&H00FFFFFF,&H00FFFFFF,&HFF000000,&H${boxAlpha}000000,0,0,0,0,100,100,0,0,4,${pad},0,2,${marginL},${marginR},${marginV},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 2,${assTime(from)},${assTime(durationSec + 1)},Disclaimer,,0,0,0,,{\\fad(${fadeMs},0)}${body}
+`;
 }
 
 const HOOK_FONT_SIZE = 96;

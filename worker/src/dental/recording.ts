@@ -13,6 +13,7 @@ import { writePostCopy, type PostCopy } from "./copywriter.js";
 import type { ClinicProfile } from "./profile.js";
 import { analyseLogo, logoStyleOf } from "./logo.js";
 import type { Topic } from "./strategist.js";
+import { screenNotice, withCaptionNotice } from "./mandatory-notice.js";
 
 /**
  * The recording agent: the dentist's own video in, branded clips out.
@@ -62,6 +63,17 @@ export function spokenText(t: Transcript, start: number, end: number): string {
     .join(" ")
     .replace(/\s+([,.!?;:])/g, "$1")
     .trim();
+}
+
+/**
+ * The warning a market requires on screen for this clip (Türkiye: RG 33075
+ * md. 7/1-k), or undefined — the same rule as the generated videos
+ * (mandatory-notice.ts screenNotice: procedure topics, and anything unclear).
+ * A recording's subject is what the dentist actually said, so the spoken
+ * text is read along with the shoot-card topic (or the model's hook).
+ */
+export function clipScreenNotice(country: string | undefined, topic: Pick<Topic, "service" | "title" | "question">, spoken: string): string | undefined {
+  return screenNotice(country, { ...topic, question: `${topic.question} ${spoken}` });
 }
 
 export function findingsOf(c: ComplianceResult, a: AccuracyResult): string[] {
@@ -125,7 +137,10 @@ export async function clipsFromRecording(
     if (hookHits.length) findings.push(`hook removed — "${m.hook}": ${hookHits.map((h) => h.why).join(" ")}`);
 
     // The caption may only say what the dentist said.
-    const copy = await writePostCopy(deps.client, profile, { ...clipTopic, hook: hook || clipTopic.question }, [], spoken);
+    const written = await writePostCopy(deps.client, profile, { ...clipTopic, hook: hook || clipTopic.question }, [], spoken);
+    // The market's required sentence under the caption, as for the generated videos (week.ts).
+    const copy: PostCopy = { ...written, caption: withCaptionNotice(written.caption, profile.country) };
+    const disclaimer = clipScreenNotice(profile.country, clipTopic, spoken);
 
     let clipVideo: string | undefined;
     let clipThumb: string | undefined;
@@ -146,6 +161,7 @@ export async function clipsFromRecording(
         faceCropX,
         workDir: deps.workDir,
         watermark: false,
+        disclaimer,
         accentHex: profile.brandColor,
         branding: logoPath
           ? { localLogoPath: logoPath, position: "top-right", opacity: logoStyle ? 1 : 0.9, style: logoStyle }
