@@ -358,6 +358,9 @@ describe("a reflexive 'Not quite' after a hook that denies nothing", () => {
     };
     expect(scriptProblems(withFootage("Your gumline after brushing? Take a look.", "Aim at the gumline.", "Not quite. Tilt the brush toward the gums."), us).join("\n")).toMatch(/states no belief to deny/);
     expect(scriptProblems(p("Brushing twice a day and still missing spots?", "Not quite if you only scrub the middle of the teeth."), us).join("\n")).toMatch(/inside a sentence/);
+    const tr = { language: "tr" as const, country: "TR", name: "Demo Diş Kliniği" };
+    expect(scriptProblems(p("Fırçalasanız da diş taşı neden kalıyor?", "Pek sayılmaz; sertleşen tabakayı fırça çıkaramaz."), tr).join("\n")).toMatch(/states no belief to deny/);
+    expect(scriptProblems(p("Beyazlatma mineyi inceltir mi?", "Pek sayılmaz: hekim kontrolünde mine genelde incelmez."), tr).join("\n")).not.toMatch(/states no belief to deny/);
     expect(offRegister("Sensitivity can feel zippy, then settle down.", "en")).toEqual(["zippy"]);
   });
 });

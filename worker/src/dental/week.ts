@@ -331,7 +331,10 @@ export function scriptProblems(
   const [asking, ...after] = hook.split(/[?？؟]/u);
   const asked = asking.trim().split(/\s+/u).filter(Boolean).length;
   const tail = after.join(" ").trim().toLocaleLowerCase();
-  const belief = /[?？؟]/u.test(hook) && asked >= 3 && (!tail || tail.includes(nq));
+  // "Why/how …?" asks for an explanation, it states nothing to deny either
+  // (TR cleaning render, Nov 2026: "Fırçalasanız da diş taşı neden kalıyor?" → "Pek sayılmaz;").
+  const why = /(?<![\p{L}])(why|how|what|warum|wieso|weshalb|wie|was|neden|niye|nasıl|niçin|por qué|cómo|qué|pourquoi|comment|perché|come|por que|como|dlaczego|jak|czemu)(?![\p{L}])/iu.test(asking);
+  const belief = /[?？؟]/u.test(hook) && asked >= 3 && !why && (!tail || tail.includes(nq));
   if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && (!belief || /\b(mistake|fehler|hata|error)\b/i.test(hook)))
     out.push(`"${afterHook}" answers "${hook}" with "${notQuite(profile.language)}", but the hook states no belief to deny — start the answer directly`);
   for (const o of offRegister(`${screen}\n${narration}`, profile.language)) out.push(`"${o}" is a stock opener or too casual for a practice's feed — say it plainly`);

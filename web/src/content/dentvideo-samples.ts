@@ -30,13 +30,13 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Demo Dental Studio (US)
   en: [
     { slug: "whitening-myths-debunked", name: "Teeth whitening hurting your enamel? Hold on.", seconds: 21, hero: { start: 0.9, skip: [[6.1, 8.9]] } },
-    { slug: "caring-for-clear-aligners", name: "That funky smell from your aligners? Avoid it this way.", seconds: 21 },
-    { slug: "proper-brushing-technique", name: "Missing spots when you brush? Here's a clue.", seconds: 20 },
+    { slug: "caring-for-clear-aligners", name: "Aligners smelling off by evening?", seconds: 22 },
+    { slug: "proper-brushing-technique", name: "Your toothbrush skips one spot every morning.", seconds: 27 },
   ],
   // Demo Zahnarztpraxis (DE), Sie
   de: [
     { slug: "bleaching-zahnschmelz", name: "Bleaching heißt nicht gleich schwacher Zahnschmelz.", seconds: 28, hero: { start: 0.9, skip: [[7.2, 10.8]] } },
-    { slug: "aligner-verfaerbung", name: "Ihre Aligner verfärben sich?", seconds: 27 },
+    { slug: "aligner-verfaerbung", name: "Kaffee drin? Aligner sehen es sofort.", seconds: 28 },
     { slug: "kinder-zahnarztangst", name: "Ihr Kind spürt Ihre Nervosität sofort.", seconds: 30 },
   ],
   // Clínica Dental Demo (ES), tú
@@ -47,9 +47,9 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   ],
   // Demo Diş Kliniği (TR), siz
   tr: [
-    { slug: "implant-asamalari", name: "İmplant günü bitiyor, süreç daha bitmiyor.", seconds: 25, hero: { start: 0.9, skip: [[6.2, 10.0]] } },
-    { slug: "dis-tasi-temizligi", name: "Diş taşı sadece görüntü meselesi değil.", seconds: 34 },
-    { slug: "beyazlatma-hassasiyet", name: "Beyazlatmadan sonra gelen o diş sızısı…", seconds: 26 },
+    { slug: "implant-asamalari", name: "İmplant yapıldı ama diş daha hazır değil.", seconds: 30, hero: { start: 0.9, skip: [] } },
+    { slug: "dis-tasi-temizligi", name: "Fırçalasanız da diş taşı neden kalıyor?", seconds: 23 },
+    { slug: "beyazlatma-hassasiyet", name: "Beyazlatmadan sonra gelen o diş sızısı…", seconds: 24 },
   ],
   // Cabinet Dentaire Démo (FR), vous
   fr: [
