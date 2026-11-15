@@ -143,28 +143,16 @@ route, week top-up / re-run, checkout currency/country, the email test-sink, sig
 verify / reset limits, CSRF, SSRF, IDOR across clinics, admin authz, headers/CSP,
 cache poisoning, and Liman RLS exercised live from a normal user's position. No new
 code or DB change was warranted — the app-layer round-2 surface is sound. One
-**critical infrastructure exposure** was found and one business-logic note is recorded
-below.
+business-logic note is recorded below; a suspected Studio exposure turned out to be a
+test artifact (details below).
 
-- **Liman Supabase Studio / platform API is reachable without authentication**
-  (critical — owner/infra fix, NOT a code fix): `https://liman.bulsulabs.com/api/platform/*`,
-  `/project/default` and in particular `POST /api/platform/pg-meta/default/query` answer
-  **200 with no credentials** (confirmed by a raw unauthenticated request:
-  `current_user = supabase_admin`, `is_superuser = on`, and a live `select count(*) from
-  auth.users`). That endpoint runs **arbitrary SQL as the database superuser**, which
-  bypasses every RLS policy, grant and guard trigger documented here and reaches **all
-  ~8 apps** on the shared Liman (auth.users, every clinic, storage, billing). The data
-  APIs are correctly gated (`/rest/v1`, `/auth/v1`, `/storage/v1`, `/pg/` all return 401
-  "No API key found"); only the **Studio app and its pg-meta service** are open. The
-  profile endpoint returns the default `johndoe@supabase.io` identity, i.e. the Studio
-  dashboard has **no auth configured** and Kong is not protecting those routes. Coolify
-  by contrast is locked (`/` → 302 login, `/api/v1/version` → 401). **Fix now:** put the
-  Studio routes behind authentication (Kong `basic-auth`/`key-auth`, or Cloudflare Access),
-  or do not expose Studio on the public internet at all — bind it to localhost / a VPN and
-  reach it over an SSH tunnel, and firewall the box so only the reverse proxy is public.
-  Until then, treat the Liman database as fully compromised-capable by anyone who finds
-  the host. This single issue dominates the whole threat model; nothing in the application
-  or in any migration can mitigate it (a superuser ignores revokes and RLS).
+- **Liman Studio / platform API — checked, NOT exposed** (✔): a first probe from the
+  audit sandbox got 200 from `POST /api/platform/pg-meta/default/query`, but that sandbox's
+  egress proxy injects the dashboard's basic-auth credentials for liman.bulsulabs.com.
+  Re-tested from the VPS itself without any credentials (2026-11-15): `/`,
+  `/api/platform/pg-meta/default/query`, `/api/platform/profile`,
+  `/api/platform/projects/default` and `/project/default` all return **401**. Studio
+  stays behind basic auth; keep it that way (and keep the dashboard password strong).
 - **Data isolation re-verified live** (✔, no change): impersonating an authenticated
   clinic owner (JWT `role=authenticated`, `sub=<owner>`), a read of another owner's
   `dentvid_items` / `dentvid_clinics` returns **0 rows** and an UPDATE of another owner's
@@ -400,21 +388,6 @@ Every DentVideo variable the code reads (web and worker) is listed, with its def
 The compose file loads both services from `web/.env`, so in Coolify add them to the shared env.
 
 ## 6. Owner checklist (only you can do these — highest impact first)
-
-00. **CRITICAL — lock down Liman's Supabase Studio / platform API (do this first).**
-   `https://liman.bulsulabs.com/api/platform/*` (including `pg-meta/default/query`),
-   `/project/default` and `/api/platform/profile` currently answer **without any
-   authentication**; `pg-meta` runs arbitrary SQL as the `supabase_admin` superuser, which
-   bypasses every RLS policy, grant and trigger in `supabase/liman/*.sql` and reaches every
-   app on the shared instance (audit 2026-11-15 round 2). The data APIs are fine
-   (`/rest/v1`, `/auth/v1`, `/storage/v1` require the `apikey`); only Studio and its
-   pg-meta service are open. Fix: put the Studio routes behind auth (Kong `basic-auth`, or
-   Cloudflare Access), **or** stop exposing Studio publicly — bind it to localhost / a VPN,
-   reach it over an SSH tunnel, and firewall the VPS so only the reverse proxy is internet-
-   facing. Then set a real `DASHBOARD_USERNAME`/`DASHBOARD_PASSWORD` (or equivalent) so the
-   default `johndoe@supabase.io` identity no longer answers. Rotate anything that may have
-   been exposed while open, including the service-role key. This is the single highest-
-   impact item and no code or migration can substitute for it.
 
 0. **Auth/storage audit fixes (H2–H5) — in this order:**
    1. Run the backfill (dry run, then `--apply`); it is additive and safe before or after the deploy, but must run **before** step 3:
