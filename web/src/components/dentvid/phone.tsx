@@ -112,7 +112,18 @@ export function HeroVideo({
     if (!v) return;
     v.muted = true;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    v.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    // Started once the page has loaded: the video is ~0.9 MB, and fetched at hydration it shared a slow
+    // phone connection with the fonts, the styles and the rest of the page. The poster shows until then.
+    const start = () => {
+      if (!v.paused) return;
+      v.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    };
+    if (document.readyState === "complete") {
+      start();
+      return;
+    }
+    window.addEventListener("load", start, { once: true });
+    return () => window.removeEventListener("load", start);
   }, []);
 
   function toggle() {
