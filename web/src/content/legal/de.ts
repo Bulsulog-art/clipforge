@@ -197,6 +197,7 @@ export const DE: LegalText = {
                 "Abrechnung: Tarif, Abostatus, Verlängerungsdatum und die Abo-, Kunden- und Zahlungsreferenzen von Dodo Payments. Kartendaten verarbeitet Dodo Payments; sie erreichen uns nie.",
                 "E-Mails: welche Service-E-Mails wir an Ihre Praxis gesendet haben und ob Sie Erinnerungen abbestellt haben.",
                 "Nutzungsereignisse: eine kleine eigene Aufzeichnung von Schritten wie „Startseite angesehen“ oder „Tarif gewählt“, mit Seitensprache, Kampagnen-Tags (utm) und dem Host der verweisenden Website. Sie enthalten keine Cookie-ID, keine IP-Adresse, keine Browserdaten und keinen Namen oder E-Mail-Adresse.",
+                "Anzeigenklicks: Wenn Sie über eine unserer Google-Anzeigen auf dentvideo.com kommen, die Klick-Kennung, die Google an den Link anhängt (gclid, gbraid oder wbraid), und der Zeitpunkt des Klicks. Legen Sie danach ein Konto an, speichern wir sie zu Ihrem Konto. In der EU/im EWR, im Vereinigten Königreich und in der Schweiz nur, wenn Sie es in der Abfrage erlauben, die diesen Besuchern angezeigt wird.",
                 "Technische Daten: Ihre IP-Adresse und Anfragedaten werden verarbeitet, um Seiten auszuliefern, den Dienst zu sichern und Missbrauch zu begrenzen (kurzlebige Zähler für Ratenbegrenzung).",
               ],
             },
@@ -205,7 +206,7 @@ export const DE: LegalText = {
         {
           heading: "3. Cookies und Browserspeicher",
           blocks: [
-            "Wir nutzen nur, was der Dienst braucht: Sitzungs-Cookies für die Anmeldung, ein Cookie für Ihre Sprache, ein Cookie für Ihren Fortschritt bei der Registrierung und kurzlebigen Browserspeicher während der Registrierung. Wir nutzen keine Werbe- oder Analyse-Cookies Dritter.",
+            "Wir nutzen nur, was der Dienst braucht: Sitzungs-Cookies für die Anmeldung, ein Cookie für Ihre Sprache, ein Cookie für Ihren Fortschritt bei der Registrierung und kurzlebigen Browserspeicher während der Registrierung. Wir nutzen keine Werbe- oder Analyse-Cookies Dritter. Kommen Sie über eine unserer Google-Anzeigen, speichert der Browserspeicher dieser Website außerdem die Klick-Kennung der Anzeige für bis zu 90 Tage – in der EU/im EWR, im Vereinigten Königreich und in der Schweiz erst, nachdem Sie es erlaubt haben; lehnen Sie ab, wird sie nicht gespeichert. Wir laden keine Werbe- oder Analyse-Skripte Dritter (kein Google-Tag).",
           ],
         },
         {
@@ -219,9 +220,10 @@ export const DE: LegalText = {
                 "Verstehen, welche Seiten und Kanäle Praxen bringen, mit den anonymen Nutzungsereignissen oben (berechtigte Interessen).",
                 "Erinnerungen an eine nicht abgeschlossene Registrierung, abbestellbar per Link (berechtigte Interessen).",
                 "Erfüllung gesetzlicher Pflichten, etwa Buchhaltungs- und Steuerunterlagen (rechtliche Verpflichtung, Art. 6 Abs. 1 lit. c DSGVO).",
+                "Um zu messen, welche unserer Google-Anzeigen zu Registrierungen und zahlenden Praxen führen: Wird ein Konto angelegt oder zahlt eine Praxis zum ersten Mal, melden wir dieses Ereignis mit der Klick-Kennung an Google Ads (Einwilligung in der EU/im EWR, im Vereinigten Königreich und in der Schweiz; sonst berechtigte Interessen).",
               ],
             },
-            "Wir verkaufen keine personenbezogenen Daten, nutzen sie nicht für Werbung und trainieren mit Ihren Uploads oder Videos keine KI-Modelle.",
+            "Wir verkaufen keine personenbezogenen Daten, nutzen sie weder für gezielte Werbung noch für Werbeprofile und trainieren mit Ihren Uploads oder Videos keine KI-Modelle.",
           ],
         },
         {
@@ -230,6 +232,7 @@ export const DE: LegalText = {
             "Wir arbeiten mit wenigen Anbietern. Jeder erhält nur, was er für seine Aufgabe braucht:",
             { subprocessors: true },
             "Außerdem fragen wir allgemeine Suchbegriffe (etwa einen Behandlungsnamen und eine Sprache) bei den öffentlichen Suchvorschlägen von Google und in der Stock-Video-Bibliothek von Pexels ab. Diese Anfragen enthalten keine personenbezogenen Daten. Datenbank, Logins und Dateiablage laufen auf unserer eigenen Installation der Open-Source-Software Supabase auf unserem Server; Supabase Inc. erhält die Daten nicht.",
+            "Kommen Sie über eine unserer Google-Anzeigen, übermitteln wir Google Ads (Google) die Klick-Kennung, welche Conversion eingetreten ist (Konto angelegt oder erste Zahlung), wann, und einen festen Wert, den wir ihr zuordnen. Wir laden diese Daten selbst hoch: Auf unseren Seiten läuft kein Google-Skript, und wir übermitteln Google keinen Namen, keine E-Mail-Adresse und keine Zahlungsdaten. Google verarbeitet sie nach seinen eigenen Werbebedingungen und seiner Datenschutzerklärung.",
           ],
         },
         {
@@ -248,6 +251,7 @@ export const DE: LegalText = {
                 "Rechnungen und Zahlungsbelege: bewahrt Dodo Payments als Händler nach eigenen gesetzlichen Pflichten auf, und wir, soweit Buchhaltungs- und Steuerrecht es verlangen.",
                 "Zähler für Ratenbegrenzung: Minuten bis Stunden.",
                 "Praxen, die wir mit einer persönlichen Demo ansprechen: Wir erstellen die Demo selbst aus öffentlichen Geschäftsangaben (Praxisname, Ort, Land, Markenfarbe und Logo) und bewahren sie bis zu 60 Tage auf, sofern sich die Praxis nicht registriert. Wenn Sie eine Demo früher löschen lassen möchten, schreiben Sie an {email}.",
+                "Klick-Kennungen aus Anzeigen und die damit erfassten Conversions: Löschung 90 Tage nach dem Klick. Was wir Google Ads bereits gemeldet haben, bewahrt Google nach seinen eigenen Richtlinien auf.",
               ],
             },
           ],
@@ -255,7 +259,7 @@ export const DE: LegalText = {
         {
           heading: "8. Ihre Rechte",
           blocks: [
-            "Je nach anwendbarem Recht können Sie Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und eine Kopie in einem übertragbaren Format verlangen und einer auf berechtigte Interessen gestützten Verarbeitung widersprechen. Ihr Konto können Sie selbst in den Einstellungen löschen. Schreiben Sie an {email}; wir antworten innerhalb eines Monats.",
+            "Je nach anwendbarem Recht können Sie Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und eine Kopie in einem übertragbaren Format verlangen und einer auf berechtigte Interessen gestützten Verarbeitung widersprechen. Ihr Konto können Sie selbst in den Einstellungen löschen. Schreiben Sie an {email}; wir antworten innerhalb eines Monats. Ihre Einwilligung zur Anzeigenmessung können Sie jederzeit widerrufen, indem Sie an {email} schreiben oder vor der Registrierung die Daten dieser Website in Ihrem Browser löschen; wir löschen dann die gespeicherte Klick-Kennung. Der Widerruf berührt nicht die Rechtmäßigkeit der bis dahin erfolgten Verarbeitung.",
             "Sie können sich auch bei einer Datenschutzaufsichtsbehörde beschweren: in Montenegro bei der Agentur für den Schutz personenbezogener Daten und den freien Zugang zu Informationen; in der EU/im EWR bei der Behörde in Ihrem Land; im Vereinigten Königreich beim Information Commissioner's Office; in der Türkei bei der Datenschutzbehörde (KVKK).",
             "Wir wenden das montenegrinische Datenschutzrecht an und, soweit sie auf unsere Verarbeitung anwendbar sind, die Datenschutz-Grundverordnung der EU (DSGVO), die UK GDPR und das türkische Gesetz Nr. 6698 zum Schutz personenbezogener Daten (KVKK).",
           ],

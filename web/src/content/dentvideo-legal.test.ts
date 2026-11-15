@@ -180,6 +180,24 @@ describe("legal pages", () => {
     }
   });
 
+  it("privacy: says plainly that ad click ids are recorded and conversions sent to Google Ads, with consent, 90-day retention and no ad scripts", () => {
+    for (const l of LOCALES) {
+      const t = text(page("privacy", l));
+      // The click identifiers by name, Google Ads as the recipient, 90 days.
+      for (const s of ["gclid", "gbraid", "wbraid", "90"]) expect(t, `${l}: ${s}`).toContain(s);
+      expect(t, l).toMatch(l === "ja" ? /Google広告/ : /Google Ads/);
+    }
+    const en = text(page("privacy", "en"));
+    expect(en).toContain("consent in the EU/EEA, the UK and Switzerland; legitimate interests elsewhere");
+    expect(en).toContain("account created, or first payment");
+    expect(en).toContain("We load no third-party advertising or analytics scripts (no Google tag)");
+    expect(en).toContain("deleted 90 days after the click");
+    expect(en).toContain("withdraw your consent to ad measurement");
+    // The old blanket claim would now be untrue.
+    expect(en).not.toContain("we do not use it for advertising");
+    expect(LEGAL_UPDATED >= "2026-11-15").toBe(true);
+  });
+
   it("makes no certification claims", () => {
     for (const [l, k] of LEGAL_PAGES) {
       const t = text(page(k, l));

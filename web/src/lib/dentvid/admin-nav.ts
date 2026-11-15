@@ -14,6 +14,8 @@ export const ADMIN_SECTIONS = [
   { key: "funnel", label: "Funnel & sources", path: "/funnel" },
   // Built separately (personalised demo links); always linked.
   { key: "demos", label: "Demos", path: "/demos" },
+  // Google Ads offline conversions (lib/dentvid/ad-conversions): pending rows and the upload CSV.
+  { key: "ads", label: "Ad conversions", path: "/ads" },
 ] as const;
 export type AdminSection = (typeof ADMIN_SECTIONS)[number]["key"];
 

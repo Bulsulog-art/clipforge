@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { dodoLookup, reconcileBilling, RENEWAL_GRACE_MS, type ActiveClinic, type ReconcileDb } from "./reconcile.js";
+import { dodoLookup, purgeAdData, reconcileBilling, RENEWAL_GRACE_MS, type ActiveClinic, type ReconcileDb } from "./reconcile.js";
 import type { OwnerAlert } from "./ops-alert.js";
 
 const NOW = new Date("2026-11-20T03:17:00Z");
@@ -81,5 +81,21 @@ describe("nightly billing reconciliation", () => {
     expect(await look("../payments")).toBeNull();
     expect(await look("sub_1")).toEqual({ status: "active", next_billing_date: "2026-12-01T00:00:00Z" });
     expect((fetchImpl.mock.calls[0] as unknown[])[0]).toBe("https://live.dodopayments.com/subscriptions/sub_1");
+  });
+});
+
+describe("ad click retention purge", () => {
+  it("runs the 0019 SQL function and returns rows deleted; never throws", async () => {
+    const rpc = vi.fn(async () => ({ data: 3, error: null }));
+    expect(await purgeAdData({ rpc } as never)).toBe(3);
+    expect(rpc).toHaveBeenCalledWith("dentvid_purge_ad_data");
+    expect(await purgeAdData({ rpc: async () => ({ data: null, error: { message: "function does not exist" } }) } as never)).toBeNull();
+    expect(
+      await purgeAdData({
+        rpc: async () => {
+          throw new Error("network");
+        },
+      } as never),
+    ).toBeNull();
   });
 });

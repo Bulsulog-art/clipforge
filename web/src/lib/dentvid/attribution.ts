@@ -12,6 +12,10 @@ import { externalReferrerHost } from "./events";
  * by the wizard — makes them the clinic's first touch, so its payment is
  * credited to the source on /admin (admin-metrics clinicSources).
  *
+ * Every DentVideo page captures (components/dentvid/ad-consent AdCapture,
+ * mounted by the DentVideo layout), so a visit that starts on /examples, a
+ * /videos page, a guide or the ad checker keeps its source into /start.
+ *
  * Only the allow-listed tags are kept, as short slugs or a host name; the
  * server sanitises them again (events.ts). Nothing is stored when a visit
  * has neither tags nor an outside referrer, and a later source never
@@ -19,7 +23,7 @@ import { externalReferrerHost } from "./events";
  */
 
 export const ATTR_KEY = "dv-attr";
-export const ATTR_FIELDS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "ref"] as const;
+export const ATTR_FIELDS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref"] as const;
 export type Attribution = Partial<Record<(typeof ATTR_FIELDS)[number], string>>;
 
 const SLUG = /^[a-z0-9][a-z0-9._-]{0,39}$/;
@@ -32,6 +36,9 @@ export function attributionFrom(search: string, referrer: string, ownHost: strin
     const v = q.get(k)?.trim().toLowerCase().slice(0, 40);
     if (v && SLUG.test(v)) out[k] = v;
   }
+  // utm_term (an ad's keyword): spaces become hyphens; anything that is still not a plain slug (non-Latin letters…) is dropped.
+  const term = termSlug(q.get("utm_term"));
+  if (term && Object.keys(out).length > 0) out.utm_term = term;
   // utm_content keeps its case: a demo link puts its token there (lib/dentvid/demos).
   const content = q.get("utm_content")?.trim().slice(0, 40);
   if (content && Object.keys(out).length > 0 && /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/.test(content)) out.utm_content = content;
@@ -40,6 +47,12 @@ export function attributionFrom(search: string, referrer: string, ownHost: strin
     if (ref) out.ref = ref;
   }
   return out;
+}
+
+/** A keyword as a short slug ("dental video" → "dental-video"), or undefined. */
+export function termSlug(raw: string | null | undefined): string | undefined {
+  const v = raw?.trim().toLowerCase().replace(/[\s+]+/g, "-").slice(0, 40);
+  return v && SLUG.test(v) ? v : undefined;
 }
 
 type Store = Pick<Storage, "getItem" | "setItem">;

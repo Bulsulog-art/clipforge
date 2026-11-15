@@ -4,6 +4,7 @@ import { GUIDES, LOCALES, type Locale } from "@/content/dentvideo";
 import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { DvFooter, DvHeader, type CommercialNav } from "@/components/dentvid/chrome";
 import { chromeText } from "@/lib/dentvid/chrome-text";
+import { AdCapture } from "@/components/dentvid/ad-consent";
 import "./dentvideo.css";
 
 // `subsets` decides what is preloaded; every unicode-range slice is declared either way. Only Latin is
@@ -72,6 +73,8 @@ export default function DentVideoLayout({ children }: { children: React.ReactNod
       <DvHeader guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} />
       <div className="flex-1">{children}</div>
       <DvFooter guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} commercial={COMMERCIAL} />
+      {/* First-touch source on every entry page, and the ad-click consent prompt (paid EU visitors only). */}
+      <AdCapture />
     </div>
   );
 }

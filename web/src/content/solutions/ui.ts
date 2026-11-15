@@ -9,6 +9,8 @@ export type SolutionUi = {
   preview: string;
   /** Secondary link: the landing's plans. */
   pricing: string;
+  /** Under the CTA: the landing's no-account preview (#try) — the primary button goes straight to account creation. */
+  tryPreview: string;
   /** Heading above the related guides. */
   readNext: string;
   /** Heading of the block that links the commercial pages (hubs, About, guides). */
@@ -25,6 +27,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "Demo clinic. Real DentVideo output, unedited. Yours are made in your language, colours and tone.",
     preview: "See your preview",
     pricing: "Plans and pricing",
+    tryPreview: "Or try the preview first, no account needed",
     readNext: "Guides to read next",
     forClinics: "DentVideo for dental clinics",
     signIn: "Sign in",
@@ -35,6 +38,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "Demo-Praxis. Echte DentVideo-Videos, unbearbeitet. Ihre entstehen in Ihrer Sprache, Ihren Farben und Ihrem Ton.",
     preview: "Ihre Vorschau ansehen",
     pricing: "Tarife und Preise",
+    tryPreview: "Oder erst die Vorschau testen, ohne Konto",
     readNext: "Passende Ratgeber",
     forClinics: "DentVideo für Zahnarztpraxen",
     signIn: "Anmelden",
@@ -45,6 +49,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "Clínica de demostración. Vídeos reales de DentVideo, sin editar. Los tuyos se hacen en tu idioma, colores y tono.",
     preview: "Ver tu vista previa",
     pricing: "Planes y precios",
+    tryPreview: "O prueba antes la vista previa, sin crear cuenta",
     readNext: "Guías relacionadas",
     forClinics: "DentVideo para clínicas dentales",
     signIn: "Iniciar sesión",
@@ -55,6 +60,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "Demo klinik. Gerçek DentVideo videoları, düzenlenmeden. Sizinkiler kendi dilinizde, renklerinizde ve üslubunuzda hazırlanır.",
     preview: "Önizlemenizi görün",
     pricing: "Planlar ve fiyatlar",
+    tryPreview: "Ya da önce hesap açmadan önizlemeyi deneyin",
     readNext: "İlgili rehberler",
     forClinics: "Diş klinikleri için DentVideo",
     signIn: "Giriş yap",
@@ -65,6 +71,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "Cabinet de démonstration. Vidéos DentVideo réelles, non retouchées. Les vôtres sont faites dans votre langue, vos couleurs et votre ton.",
     preview: "Voir votre aperçu",
     pricing: "Formules et tarifs",
+    tryPreview: "Ou essayez d'abord l'aperçu, sans compte",
     readNext: "Guides à lire ensuite",
     forClinics: "DentVideo pour les cabinets dentaires",
     signIn: "Se connecter",
@@ -75,6 +82,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "デモ医院の動画です。DentVideoが作成したものを無編集で掲載しています。貴院の動画は、貴院の言語・カラー・話し方で作成されます。",
     preview: "プレビューを見る",
     pricing: "プランと料金",
+    tryPreview: "アカウント不要のプレビューを先に試す",
     readNext: "あわせて読みたいガイド",
     forClinics: "歯科医院のためのDentVideo",
     signIn: "ログイン",
@@ -85,6 +93,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "عيادة تجريبية. فيديوهات حقيقية من DentVideo دون أي تعديل. فيديوهاتكم تُعَدّ بلغتكم وألوانكم وأسلوبكم.",
     preview: "شاهدوا المعاينة",
     pricing: "الخطط والأسعار",
+    tryPreview: "أو جرّبوا المعاينة أولاً دون إنشاء حساب",
     readNext: "أدلة ذات صلة",
     forClinics: "DentVideo لعيادات الأسنان",
     signIn: "تسجيل الدخول",
@@ -95,6 +104,7 @@ export const SOLUTION_UI: Record<Locale, SolutionUi> = {
     samplesNote: "Gabinet demonstracyjny. Prawdziwe filmy DentVideo, bez obróbki. Państwa filmy powstają w Państwa języku, kolorach i tonie.",
     preview: "Pokaż mój podgląd",
     pricing: "Plany i ceny",
+    tryPreview: "Albo najpierw podgląd, bez zakładania konta",
     readNext: "Poradniki na dalszą lekturę",
     forClinics: "DentVideo dla gabinetów stomatologicznych",
     signIn: "Zaloguj się",

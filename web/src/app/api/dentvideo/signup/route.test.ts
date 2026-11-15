@@ -16,6 +16,13 @@ vi.mock("@/lib/dentvid/events-server", () => ({
     recorded.push(a);
   },
 }));
+const adClicks: unknown[][] = [];
+vi.mock("@/lib/dentvid/ad-conversions-server", () => ({
+  recordSignupClick: async (...a: unknown[]) => {
+    adClicks.push(a);
+    return "recorded";
+  },
+}));
 const ownerAlerts: { key: string; facts?: [string, string][] }[] = [];
 vi.mock("@/lib/dentvid/ops-server", () => ({
   raiseOwnerAlert: async (a: { key: string; facts?: [string, string][] }) => {
@@ -103,6 +110,7 @@ beforeEach(() => {
   sendCode.mockImplementation(async () => ({ ok: true as const }));
   ownerAlerts.length = 0;
   recorded.length = 0;
+  adClicks.length = 0;
   createFails = null;
   vi.stubEnv("TURNSTILE_SECRET_KEY", "");
   vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "");
@@ -133,6 +141,35 @@ describe("POST /api/dentvideo/signup", () => {
     await signup({ attribution }, { "cf-ipcountry": "TR" });
     expect(recorded).toEqual([["signup_completed", { locale: "de", props: attribution, geo: "TR" }]]);
     expect(JSON.stringify(recorded)).not.toContain("clinic.example");
+  });
+
+  it("a sign-up from a Google ad keeps the click against the new account (dv_signup); never on the funnel event", async () => {
+    const at = Date.now() - 60_000;
+    const attribution = { utm_source: "google", utm_medium: "cpc", utm_campaign: "tr-search-core" };
+    // Türkiye: no prompt needed.
+    await signup({ attribution, adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "cf-ipcountry": "TR" });
+    expect(adClicks).toEqual([["new-user", { type: "gclid", id: "TEST123", at, consent: "not_required" }]]);
+    expect(recorded).toEqual([["signup_completed", { locale: "de", props: attribution, geo: "TR" }]]);
+    expect(JSON.stringify(recorded)).not.toContain("TEST123");
+
+    // Germany: only with consent; a browser claiming "not_required" is ignored.
+    adClicks.length = 0;
+    await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "cf-ipcountry": "DE" });
+    await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } });
+    expect(adClicks).toEqual([]);
+    await signup({ adClick: { type: "gbraid", id: "TEST123abc", at, consent: "granted" } }, { "cf-ipcountry": "DE" });
+    expect(adClicks).toEqual([["new-user", { type: "gbraid", id: "TEST123abc", at, consent: "granted" }]]);
+
+    // A malformed click is dropped; the sign-up itself still succeeds.
+    adClicks.length = 0;
+    expect((await signup({ adClick: { type: "gclid", id: "<x>", at, consent: "granted" } }, { "cf-ipcountry": "TR" })).status).toBe(200);
+    expect(adClicks).toEqual([]);
+  });
+
+  it("an existing account or a monitor sign-up records no ad conversion", async () => {
+    existing = { app_metadata: { product: "dentvideo" } };
+    await signup({ adClick: { type: "gclid", id: "TEST123", at: Date.now(), consent: "granted" } }, { "cf-ipcountry": "DE" });
+    expect(adClicks).toEqual([]);
   });
 
   it("creates the account with the DentVideo marker in app_metadata (server-only), not user_metadata", async () => {
