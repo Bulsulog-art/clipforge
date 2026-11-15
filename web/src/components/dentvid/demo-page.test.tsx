@@ -59,8 +59,8 @@ describe("the demo page", () => {
   it("states the starting price (Starter's, in the clinic's billing currency) and no founding offer, in every language", () => {
     for (const l of LOCALES) {
       const h = decode(renderToStaticMarkup(<DemoPage locale={l} demo={demo(l)} />));
-      // A Turkish clinic: 2.490 TL, whatever the page's language; a clinic in Germany: €79; elsewhere $79.
-      expect(h, l).toContain(fillDemo(DEMO_COPY[l].facts.from, { price: "2.490 TL" }));
+      // A Turkish clinic: 1.490 TL, whatever the page's language; a clinic in Germany: €49; elsewhere $49.
+      expect(h, l).toContain(fillDemo(DEMO_COPY[l].facts.from, { price: "1.490 TL" }));
       const de = decode(renderToStaticMarkup(<DemoPage locale={l} demo={{ ...demo(l), country: "DE" }} />));
       expect(de, l).toContain(fillDemo(DEMO_COPY[l].facts.from, { price: dvTierPrice(l, "starter", "EUR") }));
       const us = decode(renderToStaticMarkup(<DemoPage locale={l} demo={{ ...demo(l), country: "US" }} />));

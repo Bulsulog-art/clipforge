@@ -107,7 +107,7 @@ describe("new pages are linked, listed and crawlable", () => {
   it("llms.txt opens with quick answers that state the current plans and nothing retired", () => {
     const txt = llmsTxt();
     const qa = txt.slice(txt.indexOf("## Quick answers"), txt.indexOf("## How a week works"));
-    expect(qa).toContain("Starter $79 / €79 / 2.490 TL, Practice $149 / €149 / 4.490 TL a month, excluding tax");
+    expect(qa).toContain("Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 2.490 TL a month, excluding tax");
     expect(qa).toContain("no discount or discount code");
     expect(qa).toContain("no yearly plan");
     expect(qa).toContain("hello@dentvideo.com");

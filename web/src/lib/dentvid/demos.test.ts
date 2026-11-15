@@ -229,9 +229,9 @@ describe("the messages", () => {
       expect(m.ask, l).not.toMatch(/\{(name|url|sender)\}/);
       expect(m.link, l).toContain("https://dentvideo.com/x/d/Ab3dE5fG7hJ");
       // The only price is the starting one: Starter's, in the clinic's billing currency.
-      expect(m.link.match(/\d+(?=\s?(?:US)?\$|\s?USD|ドル|\s?دولار)|(?<=\$)\d+/g), l).toEqual(["79"]);
+      expect(m.link.match(/\d+(?=\s?(?:US)?\$|\s?USD|ドル|\s?دولار)|(?<=\$)\d+/g), l).toEqual(["49"]);
       expect(m.link, l).not.toContain("{price}");
-      expect(demoMessages(l, "Klinik X", "https://x", "TR").link, l).toContain("2.490 TL");
+      expect(demoMessages(l, "Klinik X", "https://x", "TR").link, l).toContain("1.490 TL");
       expect(demoMessages(l, "Klinik X", "https://x", "AT").link, l).toContain(dvTierPrice(l, "starter", "EUR"));
       expect(m.link, l).not.toMatch(/founding|kurucu|\bGründungs|fundador|fondateur|創業|المؤسسين|założyciel/i);
       expect(Object.keys(DEMO_COPY[l].dmLink), l).toEqual(["thanks", "facts", "close"]);

@@ -118,13 +118,13 @@ describe("Group is Contact us", () => {
       // One Starter and one Practice offer per listed currency (USD first; seo-guides planOffers).
       const usd = app?.offers?.filter((o) => (o as { priceCurrency?: string }).priceCurrency === "USD");
       expect(usd?.map((o) => o.name), l).toEqual(["Starter", "Practice"]);
-      expect(usd?.map((o) => o.price), l).toEqual([79, 149]);
+      expect(usd?.map((o) => o.price), l).toEqual([49, 79]);
       expect(new Set(app?.offers?.map((o) => o.name)), l).toEqual(new Set(["Starter", "Practice"]));
       expect(promisesIn(landing), l).toEqual([]);
       expect(landing, l).not.toMatch(/"name":"Group"/);
       const about = aboutJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[];
       const aboutOffers = about.find((n) => n["@type"] === "SoftwareApplication")?.offers;
-      expect(aboutOffers?.filter((o) => (o as { priceCurrency?: string }).priceCurrency === "USD").map((o) => [o.name, o.price]), l).toEqual([["Starter", 79], ["Practice", 149]]);
+      expect(aboutOffers?.filter((o) => (o as { priceCurrency?: string }).priceCurrency === "USD").map((o) => [o.name, o.price]), l).toEqual([["Starter", 49], ["Practice", 79]]);
     }
   });
 });
@@ -183,12 +183,12 @@ describe("rendered pages offer no Group checkout", () => {
     }
   });
 
-  it("the app's plan picker shows Starter $79 and Practice $149 a month — no yearly toggle, no founding offer, no code field", () => {
+  it("the app's plan picker shows Starter $49 and Practice $79 a month — no yearly toggle, no founding offer, no code field", () => {
     for (const l of LOCALES) {
       // Even if a stray yearly option reached it, the panel shows monthly prices only.
       const panel = html(createElement(PlanPanel, { locale: l, state: "trial", options: [...dvAvailablePlans({}), { tier: "practice", interval: "year", priceUsd: 990, prices: { USD: 990, EUR: 990, TRY: 990 } }] }));
       const prices = [...panel.matchAll(/dv-figure[^>]*>([^<]+)</g)].map((m) => m[1].replace(/\D/g, ""));
-      expect(prices, l).toEqual(["79", "149"]);
+      expect(prices, l).toEqual(["49", "79"]);
       expect(panel, l).not.toMatch(/990|aria-pressed|KURUCU|<input|<details/);
       expect(panel, l).toContain(APP_TEXT[l].billing.perMonth);
     }

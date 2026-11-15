@@ -31,7 +31,7 @@ describe("JSON-LD offers: the page's local currency next to USD", () => {
   });
 
   it("Turkish pages list the lira prices, euro-language pages the euro prices", () => {
-    expect(appOffers(landingJsonLd("tr")).filter((o) => o.priceCurrency === "TRY").map((o) => o.price)).toEqual([2490, 4490]);
-    for (const l of ["de", "es", "fr"] as const) expect(appOffers(landingJsonLd(l)).filter((o) => o.priceCurrency === "EUR").map((o) => o.price), l).toEqual([79, 149]);
+    expect(appOffers(landingJsonLd("tr")).filter((o) => o.priceCurrency === "TRY").map((o) => o.price)).toEqual([1490, 2490]);
+    for (const l of ["de", "es", "fr"] as const) expect(appOffers(landingJsonLd(l)).filter((o) => o.priceCurrency === "EUR").map((o) => o.price), l).toEqual([49, 79]);
   });
 });

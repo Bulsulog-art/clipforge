@@ -44,7 +44,7 @@ UTM: `https://dentvideo.com/de?utm_source=[linkedin|instagram|brief|partner]&utm
 > Sie können vorab im Browser sehen, wie ein Video mit Ihrem Logo aussieht (2 Minuten, ohne Zahlung):
 > https://dentvideo.com/de?utm_source=linkedin&utm_medium=dm&utm_campaign=dach-founding
 >
-> Die Tarife beginnen bei 29 $ im Monat (Practice mit Ihren eigenen Aufnahmen: 49 $).
+> Die Tarife beginnen bei 49 € im Monat (Practice mit Ihren eigenen Aufnahmen: 79 €), zzgl. MwSt.
 > Monatlich kündbar, keine Mindestlaufzeit. Eine kostenlose Testphase gibt es bewusst nicht – stattdessen die Vorschau
 > mit Ihren eigenen Farben. Gern zeige ich es Ihnen auch in 15 Minuten per Video-Call.
 
@@ -86,7 +86,7 @@ ob die Praxis Werbung ausdrücklich ablehnt (Website/Impressum, Briefkasten-Hinw
 > Fingertipp. Keine Rechtsberatung, kein automatisches Posten.
 >
 > Mit dem QR-Code sehen Sie in zwei Minuten eine Vorschau mit Ihrem eigenen Logo – ohne Zahlung. Die Tarife
-> beginnen bei 29 $ im Monat, monatlich kündbar.
+> beginnen bei 49 € im Monat, monatlich kündbar.
 >
 > Wenn Sie keine weiteren Informationen von uns wünschen, genügt eine kurze Nachricht an hello@dentvideo.com.
 >

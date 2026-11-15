@@ -140,9 +140,9 @@ describe("guide library", () => {
       for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
       // Group is priced per location: the fact sends groups to the address, with no number.
       expect(v, l).toContain("hello@dentvideo.com");
-      expect(v, l).not.toMatch(/990|\b100\b|KURUCU|\b29\b|\b49\b/);
+      expect(v, l).not.toMatch(/990|\b100\b|KURUCU|\b29\b|\b149\b|4[.,]490/);
     }
-    expect(llmsTxt()).toContain("Starter $79 / €79 / 2.490 TL, Practice $149 / €149 / 4.490 TL");
+    expect(llmsTxt()).toContain("Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 2.490 TL");
   });
 });
 
@@ -228,8 +228,8 @@ describe("structured data", () => {
       // Google's SoftwareApplication rich result needs a priced offer: the self-serve plans only (Group is Contact us).
       const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown>[] }[]).find((n) => n["@type"] === "SoftwareApplication");
       expect(app?.offers?.filter((o) => o.priceCurrency === "USD"), l).toMatchObject([
-        { "@type": "Offer", name: "Starter", price: 79, priceCurrency: "USD" },
-        { "@type": "Offer", name: "Practice", price: 149, priceCurrency: "USD" },
+        { "@type": "Offer", name: "Starter", price: 49, priceCurrency: "USD" },
+        { "@type": "Offer", name: "Practice", price: 79, priceCurrency: "USD" },
       ]);
     }
   });

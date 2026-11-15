@@ -1,7 +1,7 @@
 # 6. Referral and partner programme (description only — nothing is built)
 
 Two programmes, both cheap because DentVideo's unit cost is ~$4.60 per clinic per month (`POSITIONING.md` §6): a free
-month costs us ~$5 of real money and $29–49 of forgone revenue, paid only after the new clinic has paid.
+month costs us ~$5 of real money and $49–79 of forgone revenue, paid only after the new clinic has paid.
 
 ## A. Clinic → clinic: "Bir ay sizden, bir ay bizden" / "Give a month, get a month"
 
@@ -44,7 +44,7 @@ already paid twice. Cheaper than any paid channel.
 **Offer (pick one per partner, decide before the first call):**
 1. **Affiliate:** 20% of what the referred clinic pays, for its first 12 months, paid monthly once the balance is ≥ $50
    (bank transfer/Wise against the partner's invoice to BLS AI Automation DOO).
-2. **Reseller / white-label-lite (agencies):** the agency buys Practice seats at a volume price below the $49 list price
+2. **Reseller / white-label-lite (agencies):** the agency buys Practice seats at a volume price below the $79 list price
    (for 5+ clinics; the figure is the owner's call) and bills its clients itself; videos still carry the *clinic's*
    brand, never the agency's or ours, and the clinic's dentist still approves every video.
 

@@ -21,7 +21,7 @@ export const LEGAL: Record<Locale, LegalText> = { en: EN, de: DE, es: ES, tr: TR
 /** Every legal page as [locale, kind]. */
 export const LEGAL_PAGES: [Locale, LegalKind][] = LOCALES.flatMap((l) => LEGAL_KINDS.map((k) => [l, k] as [Locale, LegalKind]));
 
-/** "$79 / €79 / 2.490 TL": a tier's list price in every billing currency (pricing.ts), for the Terms. */
+/** "$49 / €49 / 1.490 TL": a tier's list price in every billing currency (pricing.ts), for the Terms. */
 const listPrices = (tier: DvPricedTier, locale: Locale) => DV_CURRENCIES.map((c) => formatDvPrice(locale, c, DV_LIST_PRICES[tier][c])).join(" / ");
 
 /** The one-line postal address, with the country in the page's language. */
