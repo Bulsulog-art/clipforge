@@ -11,6 +11,9 @@ import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { adminOrNull, loadAppBillingPanel } from "@/lib/dentvid/billing-state";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { dodoApiKey } from "@/lib/dentvid/dodo-account";
+import { dvBaseUrl } from "@/lib/dentvid/billing";
+import { referralLink, referralProgramOn } from "@/lib/dentvid/referrals";
+import { ensureReferralCode, referralSummary } from "@/lib/dentvid/referrals-server";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +30,10 @@ export default async function Settings() {
   const locale = await dvLocale(profile?.language);
   const [plan, logoUrl] = await Promise.all([clinic ? loadClinicPlan(db, clinic.id) : null, logoSignedUrl(db, clinic?.logo_path as string | null | undefined)]);
   const admin = await adminOrNull();
+  // "Give a month, get a month": only while the referral discount exists at Dodo (env) and 0018 is applied.
+  const code = admin && referralProgramOn() ? await ensureReferralCode(admin, clinic.id).catch(() => null) : null;
+  const summary = code && admin ? await referralSummary(admin, clinic.id).catch(() => null) : null;
+  const referral = code ? { code, link: referralLink(dvBaseUrl(), code), summary } : null;
   const panel = plan && !plan.canMake ? await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin) : null;
   return (
     <SettingsView
@@ -40,6 +47,7 @@ export default async function Settings() {
       // Only whether a key exists reaches the page — never the key.
       selfServe={!!dodoApiKey()}
       accountEmail={user.email ?? null}
+      referral={referral}
     />
   );
 }

@@ -217,6 +217,8 @@ export type DodoEventData = {
   product_cart?: { product_id: string; quantity?: number }[] | null;
   /** The discount applied to the subscription / payment, when any (Dodo puts the id, not the code). */
   discount_id?: string | null;
+  /** Amount charged, in minor units (payments). */
+  total_amount?: number | null;
   /** Refunds and disputes. */
   dispute_id?: string | null;
   refund_id?: string | null;

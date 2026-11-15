@@ -12,6 +12,7 @@ import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
 import { recordEvent } from "@/lib/dentvid/events-server";
 import { geoCountry } from "@/lib/dentvid/events";
 import { adminOrNull, checkoutBlockMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
+import { checkoutReferralCode } from "@/lib/dentvid/referrals";
 
 // POST /api/dentvideo/checkout — open a Dodo hosted checkout for the signed-in
 // clinic owner's plan (monthly only; no discount code is applied unless the
@@ -62,15 +63,28 @@ export async function POST(req: Request) {
 
   if (!parsed.success) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
 
-  const built = buildDvCheckout({
-    tier: parsed.data.plan,
-    interval: parsed.data.interval,
-    code: parsed.data.code,
-    clinicId: clinic.id,
-    ownerId: user.id,
-    email: user.email,
-    locale: language,
-  });
+  // A clinic referred by another clinic (0018) gets the referral discount on its first checkout,
+  // unless it typed a code itself. Read separately: before 0018 the column does not exist.
+  let referralCode: string | null = null;
+  if (admin) {
+    const { data: ref } = await admin.from("dentvid_clinics").select("referred_by_code").eq("id", clinic.id).maybeSingle();
+    referralCode = checkoutReferralCode(
+      { plan: clinic.plan as string, dodo_subscription_id: (clinic as { dodo_subscription_id?: string | null }).dodo_subscription_id ?? null, referred_by_code: (ref as { referred_by_code?: string | null } | null)?.referred_by_code ?? null },
+      parsed.data.code,
+    );
+  }
+
+  const checkoutFor = (code: string | null | undefined) =>
+    buildDvCheckout({
+      tier: parsed.data.plan,
+      interval: parsed.data.interval,
+      code,
+      clinicId: clinic.id,
+      ownerId: user.id,
+      email: user.email,
+      locale: language,
+    });
+  const built = checkoutFor(parsed.data.code || referralCode);
   if (!built.ok) return built.reason === "contact_sales" ? contactSales(await dvLocale(language)) : NextResponse.json({ error: err.invalidPlan }, { status: 400 });
   // Funnel: a checkout URL was handed to the clinic (fire-and-forget).
   const opened = (url: string, via: "api" | "link") => {
@@ -92,6 +106,19 @@ export async function POST(req: Request) {
   try {
     return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: built.body }), "api") });
   } catch (e) {
+    // The referral discount was added by us, not typed: if Dodo refuses it (expired, used up), the clinic still gets a checkout.
+    if (referralCode && built.discount === referralCode && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {
+      console.warn("[dentvideo checkout] referral discount refused by Dodo, checkout without it", e.status);
+      const plain = checkoutFor(null);
+      if (plain.ok) {
+        try {
+          return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: plain.body }), "api") });
+        } catch (e2) {
+          console.error("[dentvideo checkout] dodo checkout failed", (e2 as Error).message);
+          return NextResponse.json({ error: err.checkoutFailed }, { status: 502 });
+        }
+      }
+    }
     console.error("[dentvideo checkout] dodo checkout failed", (e as Error).message);
     // A code the clinic typed that Dodo refuses: say so rather than "try again".
     if (built.discount && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {

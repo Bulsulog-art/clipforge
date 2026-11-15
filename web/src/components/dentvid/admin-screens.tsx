@@ -8,6 +8,7 @@ import type { OverviewData, SystemData } from "@/lib/dentvid/admin-loaders";
 import type { AdminData, SpendState } from "@/lib/dentvid/admin-server";
 import { FunnelAndSources, type FunnelQuery } from "./admin-dashboard";
 import type { SystemSnapshot } from "@/lib/dentvid/admin-system-server";
+import { REFERRAL, rewardState, type RewardRow } from "@/lib/dentvid/referrals";
 import { ActionForm, AdminShell, AllClear, Badge, Chip, Empty, FilterForm, PlanBadge, Section, Select, Stat, StatusBadge, Table, TextInput, Warn, ago, day, int, usd, when, type AdminLinks, type Viewer } from "./admin-ui";
 
 /** The Dodo dashboard (billing changes happen there, never in this panel). */
@@ -55,6 +56,7 @@ export function AdminOverview({ data, ...c }: Common & { data: OverviewData }) {
     emailFailures: data.emailFailures,
     billing: billingIssues(data.subs, data.clinics),
     parked: data.spend.parked.length,
+    referralsDue: data.referralsDue ?? 0,
     now,
   });
   const rows: { label: string; key: "visitors" | "signups" | "previews" | "checkouts" | "paid" }[] = [
@@ -746,6 +748,7 @@ export function AdminBilling({
   payments,
   clinics,
   issues,
+  referrals = null,
   dodoFoundingUses,
   alerts,
   warnings,
@@ -756,6 +759,8 @@ export function AdminBilling({
   payments: PaymentRow[] | null;
   clinics: AdminClinic[];
   issues: BillingIssue[];
+  /** Referral rewards (0018); null when the table is missing. */
+  referrals?: RewardRow[] | null;
   dodoFoundingUses: number | null;
   alerts: SystemSnapshot["alerts"];
   warnings: string[];
@@ -826,6 +831,8 @@ export function AdminBilling({
         )}
       </Section>
 
+      <ReferralRewards rewards={referrals} names={names} now={new Date(now)} dodo={dodo} {...c} />
+
       <Section title="Subscriptions" id="subs">
         {subs === null ? (
           <Warn>The subscription ledger (0007) is not on this database.</Warn>
@@ -880,6 +887,80 @@ export function AdminBilling({
         )}
       </Section>
     </AdminShell>
+  );
+}
+
+const REWARD_TONE: Record<string, "teal" | "grey" | "amber" | "red"> = { due: "amber", held: "grey", applied: "teal", void: "red", capped: "red" };
+
+/**
+ * Referral free months ("give a month, get a month", lib/dentvid/referrals): recorded by the webhook when a
+ * referred clinic's first payment succeeds, held for the refund window, then due. Applying one is manual in
+ * Dodo — e.g. move the referrer's next billing date one month later, or refund one month's charge — and then
+ * marked here (audited).
+ */
+function ReferralRewards({ rewards, names, now, dodo, viewer, back, links }: Common & { rewards: RewardRow[] | null; names: Map<string, string>; now: Date; dodo: string }) {
+  const rows = (rewards ?? []).map((r) => ({ r, state: rewardState(r, now) }));
+  const due = rows.filter((x) => x.state === "due");
+  return (
+    <Section
+      title="Referral free months"
+      id="referrals"
+      lead={`A referrer earns ${REFERRAL.rewardMonths} free month when a clinic it referred pays; held ${REFERRAL.holdDays} days for refunds, at most ${REFERRAL.capPerYear} a year. Apply a due month in Dodo by hand, then mark it here.`}
+    >
+      {rewards === null ? (
+        <Warn>The referral tables (0018) are not on this database.</Warn>
+      ) : rows.length === 0 ? (
+        <Empty>No referred clinic has paid yet.</Empty>
+      ) : (
+        <>
+          {due.length === 0 && <AllClear>Nothing to apply right now.</AllClear>}
+          <Table caption="Referral rewards" head={["Referrer", "Referred clinic", "State", "First paid", "Due from", "Code", "Note", ""]} minWidth="62rem">
+            {rows.slice(0, 300).map(({ r, state }) => (
+              <tr key={r.id ?? `${r.referrer_clinic_id}-${r.referred_clinic_id}`}>
+                <th scope="row" className="max-w-[12rem] truncate">
+                  <Link href={links.clinic(r.referrer_clinic_id)} className="font-medium text-dv-ink hover:text-dv-teal hover:underline">
+                    {names.get(r.referrer_clinic_id) ?? "clinic"}
+                  </Link>
+                </th>
+                <td className="max-w-[12rem] truncate">{r.referred_clinic_id ? names.get(r.referred_clinic_id) ?? "clinic" : "(deleted)"}</td>
+                <td>
+                  <Badge tone={REWARD_TONE[state] ?? "grey"}>{state}</Badge>
+                </td>
+                <td className="whitespace-nowrap text-xs">{day(r.first_paid_at)}</td>
+                <td className="whitespace-nowrap text-xs">{day(r.eligible_at)}</td>
+                <td className="font-mono text-[0.6875rem]">{r.code}</td>
+                <td className="max-w-[14rem] truncate text-xs text-dv-muted">{r.applied_note ?? r.void_reason ?? ""}</td>
+                <td>
+                  {state === "due" && r.id ? (
+                    <ActionForm
+                      viewer={viewer}
+                      action="referral_applied"
+                      fields={{ clinicId: r.referrer_clinic_id, rewardId: String(r.id) }}
+                      back={back}
+                      label="Mark applied"
+                      explain={
+                        <>
+                          First give {names.get(r.referrer_clinic_id) ?? "the referrer"} one free month in the{" "}
+                          <a href={dodo} target="_blank" rel="noopener noreferrer" className="text-dv-teal underline">
+                            Dodo dashboard
+                          </a>
+                          . <strong>This does not change billing</strong>; it records that you did.
+                        </>
+                      }
+                    >
+                      <label className="grid gap-1 text-xs font-medium text-dv-muted">
+                        What you did in Dodo
+                        <input name="note" required minLength={3} maxLength={300} className="min-h-9 rounded-lg border border-dv-line bg-white px-2 text-sm text-dv-ink" />
+                      </label>
+                    </ActionForm>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </Table>
+        </>
+      )}
+    </Section>
   );
 }
 

@@ -81,8 +81,84 @@ export function captureAttribution(visit: Attribution, s: Store | null = store()
 /** Capture from the current page (landing, /start, guides). Never throws. */
 export function captureFromLocation(): Attribution {
   try {
+    captureReferralFromLocation();
     return captureAttribution(attributionFrom(window.location.search, document.referrer, window.location.hostname));
   } catch {
     return {};
+  }
+}
+
+/* ------------------------------------------------------- clinic referral */
+
+/**
+ * A clinic's referral link is dentvideo.com/?ref=DVXXXXXX (lib/dentvid/referrals).
+ * The code is kept in this browser (localStorage, 30 days — a dentist sent the
+ * link by a colleague often signs up days later) and sent with the clinic step
+ * (clinic-form → /api/dentvideo/clinic), where the server checks it against
+ * the codes it issued and attaches it to the clinic row once, before the first
+ * payment. Anything that is not shaped like one of our codes is ignored here,
+ * so ?ref=producthunt and the like never become a referral. The first code
+ * wins until it expires.
+ */
+export const REFERRAL_KEY = "dv-ref";
+export const REFERRAL_TTL_MS = 30 * 86_400_000;
+/** DV + 6 characters without 0/O/1/I. Must match supabase/liman/0018 and referrals.ts. */
+export const REFERRAL_CODE = /^DV[2-9A-HJ-NP-Z]{6}$/;
+
+/** A referral code as typed or linked, normalised — or null when it is not one of ours. */
+export function normaliseReferralCode(v: string | null | undefined): string | null {
+  const c = (v ?? "").trim().toUpperCase();
+  return REFERRAL_CODE.test(c) ? c : null;
+}
+
+/** The referral code in a page's query string (?ref=), or null. */
+export function referralFrom(search: string): string | null {
+  try {
+    return normaliseReferralCode(new URLSearchParams(search).get("ref"));
+  } catch {
+    return null;
+  }
+}
+
+function localStore(): Store | null {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** The referral code this browser came with, unless it has expired. */
+export function readReferral(s: Store | null = localStore(), now = Date.now()): string | null {
+  try {
+    const raw = s?.getItem(REFERRAL_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as { code?: unknown; at?: unknown };
+    const at = typeof v.at === "number" ? v.at : NaN;
+    if (!Number.isFinite(at) || now - at > REFERRAL_TTL_MS || now < at - 60_000) return null;
+    return typeof v.code === "string" ? normaliseReferralCode(v.code) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Keep a referral code for this browser, unless an unexpired one is already kept (first wins). Returns what is kept. */
+export function captureReferral(code: string | null, s: Store | null = localStore(), now = Date.now()): string | null {
+  const had = readReferral(s, now);
+  if (had || !code) return had;
+  try {
+    s?.setItem(REFERRAL_KEY, JSON.stringify({ code, at: now }));
+  } catch {
+    // storage blocked: no referral, nothing else breaks
+  }
+  return code;
+}
+
+/** Capture ?ref= from the current page. Never throws. */
+export function captureReferralFromLocation(): string | null {
+  try {
+    return captureReferral(referralFrom(window.location.search));
+  } catch {
+    return null;
   }
 }
