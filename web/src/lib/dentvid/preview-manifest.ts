@@ -163,44 +163,37 @@ export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | 
     {
       "id": "cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t",
       "category": "cleaning",
-      "service": "Diş taşı temizliği",
-      "title": "Diş Taşı Temizliği: Sağlıklı Bir Gülümseme İçin Temel",
-      "seconds": 37.8
+      "service": "diş taşı temizliği",
+      "title": "Diş Taşı Temizliği",
+      "seconds": 34.4
     },
     {
       "id": "whitening-dis-beyazlatma-mit",
       "category": "whitening",
-      "service": "Diş beyazlatma",
-      "title": "Diş beyazlatma - Mit",
-      "seconds": 29
-    },
-    {
-      "id": "aligners-seffaf-plak-tedavisi-islem",
-      "category": "aligners",
-      "service": "Şeffaf plak tedavisi",
-      "title": "Şeffaf plak tedavisi - İşlem",
-      "seconds": 33.9
+      "service": "diş beyazlatma",
+      "title": "Diş Beyazlatma ve Hassasiyet",
+      "seconds": 26.3
     },
     {
       "id": "implant-implant-tedavisinin-asamalari",
       "category": "implant",
-      "service": "İmplant tedavisi",
+      "service": "implant",
       "title": "İmplant Tedavisinin Aşamaları",
-      "seconds": 22.7
+      "seconds": 25.2
     },
     {
       "id": "children-cocuk-dis-hekimligi-onleme",
       "category": "children",
-      "service": "Çocuk diş hekimliği",
-      "title": "Çocuk diş hekimliği - Önleme",
-      "seconds": 29.2
+      "service": "çocuk diş hekimliği",
+      "title": "Çocuklarda Çürükten Korunma",
+      "seconds": 25.5
     },
     {
       "id": "implant-implant-tedavisi-sonrasi-bakim",
       "category": "implant",
-      "service": "İmplant tedavisi",
-      "title": "İmplant tedavisi - Sonrası bakım",
-      "seconds": 32.4
+      "service": "implant",
+      "title": "İmplant Tedavisi Sonrası Bakım",
+      "seconds": 29.3
     }
   ],
   "ja": [
