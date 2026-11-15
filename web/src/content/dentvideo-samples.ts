@@ -40,33 +40,33 @@ export type SampleWeek = readonly [SampleVideo, SampleVideo, SampleVideo];
 export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Demo Dental Studio (US)
   en: [
-    { slug: "whitening-myths-debunked", name: "Teeth whitening hurting your enamel? Hold on.", seconds: 21, hero: { start: 0.9, skip: [[6.1, 8.9]] }, topic: "Whitening and enamel" },
+    { slug: "whitening-myths-debunked", name: "Whitening your teeth? Not as harsh as you think.", seconds: 25, hero: { start: 0.9, skip: [[6.8, 9.9]] }, topic: "Whitening and enamel" },
     { slug: "caring-for-clear-aligners", name: "Aligners smelling off by evening?", seconds: 22, topic: "Caring for clear aligners" },
     { slug: "proper-brushing-technique", name: "Your toothbrush skips one spot every morning.", seconds: 27, topic: "Brushing technique" },
   ],
   // Demo Zahnarztpraxis (DE), Sie
   de: [
     { slug: "bleaching-zahnschmelz", name: "Bleaching heißt nicht gleich schwacher Zahnschmelz.", seconds: 28, hero: { start: 0.9, skip: [[7.2, 10.8]] }, topic: "Bleaching und Zahnschmelz" },
-    { slug: "aligner-verfaerbung", name: "Kaffee drin? Aligner sehen es sofort.", seconds: 28, topic: "Verfärbungen bei Alignern" },
+    { slug: "aligner-verfaerbung", name: "Kaffee macht Aligner schneller gelb als gedacht.", seconds: 27, topic: "Verfärbungen bei Alignern" },
     { slug: "kinder-zahnarztangst", name: "Ihr Kind spürt Ihre Nervosität sofort.", seconds: 30, topic: "Kinder mit Zahnarztangst" },
   ],
   // Clínica Dental Demo (ES), tú
   es: [
-    { slug: "limpieza-dental", name: "Tu cepillo no lo hace todo — esto sí.", seconds: 30, hero: { start: 0.9, skip: [[4.3, 10.8]] }, topic: "Limpieza dental profesional", legacy: true },
-    { slug: "primer-diente", name: "Primer diente, ¿y ahora qué?", seconds: 22, topic: "El primer diente", legacy: true },
-    { slug: "cuidado-encias", name: "Tras el tratamiento, tus encías necesitan esto.", seconds: 22, topic: "Cuidado de las encías", legacy: true },
+    { slug: "limpieza-dental", name: "Ese sarro junto a la encía…", seconds: 24, hero: { start: 0.9, skip: [[4.3, 7.6]] }, topic: "Limpieza dental profesional" },
+    { slug: "primer-diente", name: "Asoma el primer diente… ¿ya lo cepillas?", seconds: 24, topic: "El primer diente" },
+    { slug: "cuidado-encias", name: "Tus encías tratadas también necesitan cepillo.", seconds: 28, topic: "Cuidado de las encías" },
   ],
   // Demo Diş Kliniği (TR), siz
   tr: [
     { slug: "implant-asamalari", name: "İmplant yapıldı ama diş daha hazır değil.", seconds: 30, hero: { start: 0.9, skip: [] }, topic: "İmplant aşamaları" },
-    { slug: "dis-tasi-temizligi", name: "Fırçalasanız da diş taşı neden kalıyor?", seconds: 23, topic: "Diş taşı temizliği" },
+    { slug: "dis-tasi-temizligi", name: "Diş eti kanaması bazen diş taşıyla başlar.", seconds: 26, topic: "Diş taşı temizliği" },
     { slug: "beyazlatma-hassasiyet", name: "Beyazlatmadan sonra gelen o diş sızısı…", seconds: 24, topic: "Beyazlatma ve hassasiyet" },
   ],
   // Cabinet Dentaire Démo (FR), vous
   fr: [
-    { slug: "gencives-qui-saignent", name: "Gencives qui saignent : le signe d'alerte.", seconds: 27, hero: { start: 0.9, skip: [[2.8, 7.3]] }, topic: "Gencives qui saignent", legacy: true },
-    { slug: "blanchiment-email", name: "Blanchiment et l'émail : la vérité.", seconds: 32, topic: "Blanchiment et émail", legacy: true },
-    { slug: "detartrage", name: "L'ennemi invisible de votre brosse à dents...", seconds: 35, topic: "Le détartrage", legacy: true },
+    { slug: "gencives-qui-saignent", name: "Ce saignement quand vous vous brossez les dents…", seconds: 27, hero: { start: 0.9, skip: [[10.4, 14.5]] }, topic: "Gencives qui saignent" },
+    { slug: "blanchiment-email", name: "Le blanchiment fragilise vraiment l’émail ?", seconds: 26, topic: "Blanchiment et émail" },
+    { slug: "detartrage", name: "Vous brossez bien, mais le tartre reste.", seconds: 21, topic: "Le détartrage" },
   ],
   // デモ歯科クリニック (Tokyo), です・ます
   ja: [

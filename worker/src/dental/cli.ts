@@ -13,6 +13,10 @@
  * (top corner, and large on the sign-off), so samples look like a paying
  * clinic's videos.
  *
+ * --max-usd: stop making chat calls once the metered spend reaches this many
+ * dollars (eval.ts spendCap). Every run prints what it spent (chat tokens at
+ * eval.ts PRICES, plus the narration at a per-character ceiling).
+ *
  * Needs OPENAI_API_KEY; --render also needs the Remotion browser (present in
  * the worker image) and uses PEXELS_API_KEY for stock footage when set.
  * Writes one folder per video: plan.json, caption.txt, checks.json and,
@@ -33,12 +37,27 @@ import { renderPlan } from "../remotion/render-plan.js";
 import { prepareNarration } from "./narration-audio.js";
 import { resolveVoice } from "./voice.js";
 import { readyLogo, logoStyleOf } from "./logo.js";
+import { meterClient, spendCap, usageCost, type Usage } from "./eval.js";
+
+/** tts-1-hd is $30 per million characters; gpt-4o-mini-tts (billed per token) stays under $15/M. */
+const TTS_USD_PER_CHAR: Record<string, number> = { "tts-1-hd": 30e-6, "tts-1": 15e-6, "gpt-4o-mini-tts": 15e-6 };
 
 // Node's built-in fetch, not the SDK's bundled node-fetch: the built-in one
 // honours HTTPS_PROXY (with NODE_USE_ENV_PROXY=1), so the CLI runs behind a
 // proxy as well as directly.
+const usage: Usage = {};
+let ttsUsd = 0;
 function openaiClient(): OpenAI {
-  return new OpenAI({ fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] });
+  const client = new OpenAI({ fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] });
+  const maxUsd = Number(arg("max-usd") ?? Infinity);
+  const cap = spendCap(maxUsd, usage);
+  return meterClient(client, usage, Number.isFinite(maxUsd) ? (m) => cap.check(m) : undefined);
+}
+
+function spendLine(): string {
+  const chat = usageCost(usage);
+  const calls = Object.values(usage).reduce((n, u) => n + u.calls, 0);
+  return `spend: chat ${chat === undefined ? "unknown (model without a price)" : `$${chat.toFixed(4)}`} in ${calls} calls, narration ~$${ttsUsd.toFixed(4)}`;
 }
 
 function arg(name: string): string | undefined {
@@ -100,8 +119,10 @@ async function main() {
         ? async (plan, topic) => {
             const dir = path.join(outDir, slug(topic.title));
             await fs.mkdir(dir, { recursive: true });
+            const voiceCfg = resolveVoice(profile.language, process.env, profile.country);
+            ttsUsd += (plan.voiceover?.text.length ?? 0) * (TTS_USD_PER_CHAR[voiceCfg.model] ?? 30e-6);
             const voice = await prepareNarration(plan, dir, profile.language, {
-              ...resolveVoice(profile.language, process.env, profile.country),
+              ...voiceCfg,
               onFallback: (e) => console.warn(`  ! tts model failed, used tts-1-hd: ${e.message}`),
               onMasterError: (e) => console.warn(`  ! narration mastering failed, used the plain voice: ${e.message}`),
             });
@@ -143,9 +164,11 @@ async function main() {
   }
   await fs.writeFile(path.join(outDir, "week.json"), JSON.stringify(week, null, 2));
   console.log(`\n${week.filter((w) => w.status === "ready").length}/${week.length} ready → ${outDir}`);
+  console.log(spendLine());
 }
 
 main().catch((e) => {
   console.error(e);
+  console.error(spendLine());
   process.exit(1);
 });
