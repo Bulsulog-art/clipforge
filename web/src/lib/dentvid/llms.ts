@@ -26,7 +26,7 @@ export const LLMS_UPDATED = "2026-11-15";
  * cannot drift; everything else restates ENTITY and the product pages.
  */
 function quickAnswers(): string[] {
-  // "$79 / €79 / 2.490 TL": every list currency (pricing.ts), so no market reads a converted guess.
+  // "$49 / €49 / 1.490 TL": every list currency (pricing.ts), so no market reads a converted guess.
   const price = (t: (typeof DV_SELF_SERVE_TIERS)[number]) => DV_CURRENCIES.map((c) => dvTierPrice("en", t, c)).join(" / ");
   const plans = DV_SELF_SERVE_TIERS.map((t) => `${t[0].toUpperCase()}${t.slice(1)} ${price(t)}`).join(", ");
   const treatmentGuides = guidesFor("en").filter((g) => g.category === "treatments");

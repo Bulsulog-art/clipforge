@@ -126,11 +126,11 @@ describe("activation emails", () => {
 
   it("takes the starting price from pricing.ts, never hard-coded, in the clinic's billing currency: Starter's", () => {
     expect(lowestMonthlyUsd()).toBe(DV_PRICES_USD.starter.month);
-    expect(lowestMonthlyUsd()).toBe(79);
-    expect(lowestMonthlyFor("US")).toEqual({ currency: "USD", amount: 79 });
-    expect(lowestMonthlyFor(null)).toEqual({ currency: "USD", amount: 79 });
-    expect(lowestMonthlyFor("DE")).toEqual({ currency: "EUR", amount: 79 });
-    expect(lowestMonthlyFor("TR")).toEqual({ currency: "TRY", amount: 2490 });
+    expect(lowestMonthlyUsd()).toBe(49);
+    expect(lowestMonthlyFor("US")).toEqual({ currency: "USD", amount: 49 });
+    expect(lowestMonthlyFor(null)).toEqual({ currency: "USD", amount: 49 });
+    expect(lowestMonthlyFor("DE")).toEqual({ currency: "EUR", amount: 49 });
+    expect(lowestMonthlyFor("TR")).toEqual({ currency: "TRY", amount: 1490 });
   });
 
   it("day 0 links to the preview; the clinic name is escaped", () => {
@@ -155,8 +155,8 @@ describe("activation emails", () => {
       const m = objectionsEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, from: { currency: "USD", amount: 59 } });
       expect(LIFECYCLE_COPY[lang].objections.qa, lang).toHaveLength(3);
       expect(m.text, lang).toContain(money(lang, { currency: "USD", amount: 59 }));
-      const tl = objectionsEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, from: { currency: "TRY", amount: 2490 } });
-      expect(tl.text, lang).toContain("2.490 TL");
+      const tl = objectionsEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, from: { currency: "TRY", amount: 1490 } });
+      expect(tl.text, lang).toContain("1.490 TL");
     }
   });
 
@@ -165,7 +165,7 @@ describe("activation emails", () => {
     for (const lang of LOCALES) {
       const m = sampleEmailFor("objections", lang);
       expect(m.text, lang).toContain(money(lang, lowestMonthlyFor(lang === "tr" ? "TR" : lang === "de" ? "DE" : null)));
-      expect(m.text, lang).not.toMatch(/KURUCU|\b29\b|\b49\b|990/);
+      expect(m.text, lang).not.toMatch(/KURUCU|\b29\b|\b149\b|4[.,]490|990/);
     }
   });
 

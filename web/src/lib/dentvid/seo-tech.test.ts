@@ -135,8 +135,8 @@ describe("structured data", () => {
       const offers = app.offers as { "@type": string; name: string; price: number; priceCurrency: string; priceSpecification: Record<string, unknown> }[];
       // USD on every page; a TRY or EUR pair after it on Turkish / German, Spanish, French pages (jsonld-offers.test.ts).
       expect(offers.filter((o) => o.priceCurrency === "USD").map((o) => [o["@type"], o.name, o.price, o.priceCurrency]), p.path).toEqual([
-        ["Offer", "Starter", 79, "USD"],
-        ["Offer", "Practice", 149, "USD"],
+        ["Offer", "Starter", 49, "USD"],
+        ["Offer", "Practice", 79, "USD"],
       ]);
       expect(new Set(offers.map((o) => o.name)), p.path).toEqual(new Set(["Starter", "Practice"]));
       for (const o of offers) expect(o.priceSpecification, p.path).toMatchObject({ "@type": "UnitPriceSpecification", billingDuration: "P1M", price: o.price, priceCurrency: o.priceCurrency, valueAddedTaxIncluded: false });

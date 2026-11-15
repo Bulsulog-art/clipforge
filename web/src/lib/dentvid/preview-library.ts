@@ -46,23 +46,16 @@ export type PreviewLanguage = (typeof PREVIEW_LANGUAGES)[number];
  * the corrected on-screen text, until they are re-rendered with
  * scripts/build-dentvideo-preview.mts. Then take them off this list.
  *
- * Türkiye (Nov 2026): every Turkish sample was narrated with a closing that
- * steers the viewer to book or to the clinic ("Sorularınız için bize ulaşın
- * veya randevu alın!"), which RG 33075 does not allow (information only;
- * hard-rules.ts MARKET_HARD_RULES TR "booking"). The on-screen closings were
- * rewritten to point to the viewer's own dentist; the audio could not be.
- * Silent rather than hidden: hiding them would leave the Turkish preview
- * with no videos at all. docs/PREVIEW_RERENDER.md has the list and the steps.
+ * Türkiye (Nov 2026): every Turkish sample used to be narrated with a
+ * closing that steers the viewer to book or to the clinic ("Sorularınız
+ * için bize ulaşın veya randevu alın!"), which RG 33075 does not allow
+ * (information only; hard-rules.ts MARKET_HARD_RULES TR "booking"). They
+ * were held here, silent, until re-rendered (15.11.2026) with the current
+ * pipeline; the build now refuses a Turkish narration that trips a TR rule.
+ * docs/PREVIEW_RERENDER.md has the history.
  */
 export const NARRATION_HELD: Partial<Record<PreviewLanguage, readonly string[]>> = {
-  tr: [
-    "cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t",
-    "whitening-dis-beyazlatma-mit",
-    "aligners-seffaf-plak-tedavisi-islem",
-    "implant-implant-tedavisinin-asamalari",
-    "children-cocuk-dis-hekimligi-onleme",
-    "implant-implant-tedavisi-sonrasi-bakim",
-  ],
+  tr: [],
 };
 
 /** The whole library: reviewed, narrated videos in every preview language (held narrations silent). */

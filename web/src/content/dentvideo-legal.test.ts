@@ -165,8 +165,8 @@ describe("legal pages", () => {
 
   it("states prices from billing plainly: monthly only, no founding offer", () => {
     const t = text(page("refunds", "en")) + text(page("terms", "en"));
-    expect(t).toContain("Starter: $79 / €79 / 2.490 TL per month.");
-    expect(t).toContain("Practice: $149 / €149 / 4.490 TL per month.");
+    expect(t).toContain("Starter: $49 / €49 / 1.490 TL per month.");
+    expect(t).toContain("Practice: $79 / €79 / 2.490 TL per month.");
     expect(t).toMatch(/excluding tax\. You pay in the currency of your billing country/);
     expect(t).toMatch(/Group cannot be bought on the website/);
     expect(t).toMatch(/merchant of record/);
@@ -178,7 +178,8 @@ describe("legal pages", () => {
       const terms = text(page("terms", l));
       // Every list price in every billing currency, exactly as pricing.ts (and Dodo) has it.
       for (const tier of ["starter", "practice"] as const) for (const c of DV_CURRENCIES) expect(terms, `${l} ${tier} ${c}`).toContain(dvTierPrice(l, tier, c).replace(/\s+/g, " "));
-      expect(terms, l).not.toMatch(/\$\s?(29|49)\b|\b(29|49)\s?\$/);
+      // No retired price (old $29, old Practice $149 / 4.490 TL).
+      expect(terms, l).not.toMatch(/\$\s?(29|149)\b|\b(29|149)\s?[$€]|4[.,]490/);
       expect(terms, l).not.toMatch(/\$\s?99\b|\b99\s?\$/);
     }
   });
