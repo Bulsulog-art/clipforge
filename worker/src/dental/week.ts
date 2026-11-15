@@ -10,6 +10,7 @@ import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
 import { isUnspaced, marketRules, speechRate, speechTarget, speechUnits, variantRule } from "./locale.js";
 import { voiceFor } from "./voice.js";
+import { screenNotice, withCaptionNotice } from "./mandatory-notice.js";
 import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { AFTERCARE_GUIDE, reviewAccuracy, type AccuracyResult } from "./accuracy.js";
 import { shootCardText, writeShootCard, type ShootCard } from "./shoot-card.js";
@@ -398,8 +399,13 @@ export async function produceVideo(
   const relevant = matchingBackgrounds(bgInput);
   const chosen = defaultBackgrounds(suggestedBackgrounds.filter((id) => relevant.has(id)), totalSeconds(guarded)).map(backgroundSrc);
   // The renderer needs the language for fonts, line breaking and direction (RTL for Arabic).
+  // A market's required on-screen warning (Türkiye, RG 33075 md. 7/1-k) is
+  // set by code alone: whatever the planner put there is dropped.
+  const { disclaimer: _planned, ...unwarned } = guarded;
+  const notice = screenNotice(profile.country, topic);
   const withLang: ScenePlan = {
-    ...guarded,
+    ...unwarned,
+    ...(notice ? { disclaimer: notice } : {}),
     language: profile.language,
     ...(guarded.voiceover ? { voiceover: { ...guarded.voiceover, voice: voiceFor(profile.language, guarded.voiceover.voice) } } : {}),
   };
@@ -419,7 +425,8 @@ export async function produceVideo(
     topic,
     plan: safe,
     suggestedBackgrounds,
-    copy: post.value,
+    // The reviewed caption, plus the sentence a market requires under every post (Türkiye: RG 33075 md. 7/1-k).
+    copy: { ...post.value, caption: withCaptionNotice(post.value.caption, profile.country) },
     checks: { script: script.checks, copy: post.checks },
     shootCard,
     videoPath,

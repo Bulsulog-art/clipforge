@@ -4,6 +4,8 @@
  * own advertising rules. Research and sources: docs/MARKETS.md.
  */
 
+import { marketCode } from "./hard-rules.js";
+
 /** Han ideographs, kana, Hangul — scripts written without spaces between words (Hangul aside). */
 export const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 
@@ -158,7 +160,8 @@ export function variantRule(p: { language?: string; country?: string }): string 
  * sources are cited next to each market below.
  */
 export function marketRules(country: string | undefined): string {
-  const c = (country ?? "").toUpperCase();
+  // "UK" and "GB" are the same market (hard-rules.ts marketCode).
+  const c = marketCode(country);
   // United Kingdom — the CAP Code (ASA), section 3 (misleading advertising:
   // claims must be substantiated) and section 12 (medicines, medical devices,
   // health-related products: 12.1 objective evidence, 12.12 prescription-only
@@ -214,7 +217,9 @@ export function marketRules(country: string | undefined): string {
       "the video must be purely informative (bilgilendirme) and must not create demand or steer the viewer to this clinic or a treatment (no \"hemen randevu alın\", \"kaçırmayın\", no urgency),",
       "no price, ücret, indirim, kampanya, taksit, hediye or free offers, no superiority or firsts (en iyi, ilk ve tek, lider, bir numara) and no comparison with other clinics or doctors,",
       "no öncesi-sonrası (before/after) results, no patient thank-you, satisfaction or review content (hasta yorumları, teşekkür mesajları), no guarantee or certain result (garantili, kesin sonuç, ömür boyu, acısız),",
-      "and nothing fear-inducing: never frighten the viewer into treatment; explain risks calmly and hedged.",
+      "and nothing fear-inducing: never frighten the viewer into treatment; explain risks calmly and hedged;",
+      "never present the post as sponsored, paid or a collaboration (sponsorlu, reklam, iş birliği: md. 5/1-i, 7/1-j), never ask viewers to like, comment on or reshare it (comments, likes and reshares are to be closed: md. 7/1-ğ), no çekiliş, yarışma or gifts (md. 5/1-l),",
+      "and never show or describe an identifiable patient. The warning sentence md. 7/1-k requires is added automatically; do not write it yourself.",
     ].join(" ");
   // Germany — Heilmittelwerbegesetz: § 3 (irreführende Werbung, e.g. success
   // presented as certain) https://www.gesetze-im-internet.de/heilmwerbg/__3.html,
@@ -234,18 +239,21 @@ export function marketRules(country: string | undefined): string {
     return [
       "Germany — Heilmittelwerbegesetz (HWG) and the dental Berufsordnung of the Landeszahnärztekammer: factual information is allowed; sachlich unangemessene, anpreisende, irreführende or vergleichende Werbung is not;",
       "§ 3 HWG: never suggest that success is certain or that a treatment has no risks or side effects (no garantiert, schmerzfrei, risikofrei, dauerhaft as a promise);",
-      "§ 7 HWG: no Rabatte, Gutscheine, Gewinnspiele, Werbegaben or free offers; § 11 HWG: no Vorher-Nachher comparisons of aesthetic procedures without medical need (the BGH, I ZR 170/24, counts hyaluron injections that reshape nose or chin as such procedures), no patient testimonials or third-party statements used to advertise, nothing that frightens the viewer;",
+      "§ 7 HWG: no Rabatte, Gutscheine, Gewinnspiele, Werbegaben or free offers; § 11 Abs. 1 S. 3 Nr. 1 HWG: no Vorher-Nachher comparisons for operative plastisch-chirurgische Eingriffe without medical need (the BGH, I ZR 170/24, counts hyaluron injections that reshape nose or chin as such procedures; DentVideo shows no before/after at all), § 11 Abs. 1 S. 1 Nr. 11: no Dank-, Anerkennungs- or Empfehlungsschreiben or other third-party statements used to advertise (DentVideo uses none), Nr. 3: no Krankengeschichten that could lead the viewer to a false self-diagnosis, Nr. 9: the post's purpose must be recognisable (no disguised advertising), Nr. 12: never address children under 14 directly — speak to the parents; nothing that frightens the viewer;",
       "§ 12 HWG: do not advertise treating the diseases listed in the HWG annex (e.g. cancer, notifiable infections, addiction) — explaining a check-up is fine, promising to treat them is not;",
       "no superlatives or comparisons with other practices (beste Praxis, Nr. 1, führend), and never call the dentist a Spezialist unless it is a recognised title (Fachzahnarzt).",
     ].join(" ");
-  // Austria — Zahnärztegesetz § 35 (no unwahre, unsachliche, diskriminierende
-  // or standesschädigende Anpreisung oder Werbung)
+  // Austria — Zahnärztegesetz § 35 Abs. 2 (no unwahre, unsachliche,
+  // diskriminierende or standesschädigende Anpreisung oder Werbung); Abs. 4
+  // extends the ban to "sonstige natürliche und juristische Personen", i.e.
+  // to whoever writes the post (text checked at
+  // https://www.jusline.at/gesetz/zaeg/paragraf/35, 15.11.2026)
   // https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20004372&Paragraf=35
   // and the Werberichtlinie of the Österreichische Zahnärztekammer
   // https://www.zahnaerztekammer.at/
   if (c === "AT")
     return [
-      "Austria — § 35 Zahnärztegesetz (ZÄG) and the Werberichtlinie of the Österreichische Zahnärztekammer: dentists must refrain from any unwahre, unsachliche, diskriminierende or standesschädigende Anpreisung or Werbung;",
+      "Austria — § 35 Zahnärztegesetz (ZÄG) and the Werberichtlinie of the Österreichische Zahnärztekammer: dentists must refrain from any unwahre, unsachliche, diskriminierende or das Ansehen des Berufsstandes beeinträchtigende Anpreisung or Werbung (§ 35 Abs. 2, which binds anyone who writes it for them too: Abs. 4);",
       "keep it factual and educational: no guarantees or promised results, no superlatives or comparisons with other dentists, no prices framed as inducements, discounts, vouchers or competitions, no patient testimonials or before/after results, nothing that frightens the viewer.",
     ].join(" ");
   // Switzerland — Medizinalberufegesetz (MedBG, SR 811.11) Art. 40 lit. d:
@@ -293,6 +301,28 @@ export function marketRules(country: string | undefined): string {
       "no antes y después or patient testimonials presented as typical results, no celebrities, no superlatives or comparisons with other clinics (el mejor, número uno),",
       "no prices framed as inducements (descuentos, promociones, 2x1, meses sin intereses), and never write, invent or imply a COFEPRIS permit or aviso number (\"autorizado por COFEPRIS\") — health-service advertising may need one, and only the clinic can add it.",
     ].join(" ");
+  // United States — ADA Principles of Ethics and Code of Professional
+  // Conduct (2025), § 5.F (no false or misleading advertising, "including
+  // via social media"), 5.F.2 (no unjustified expectation about results, no
+  // unsubstantiated superiority), 5.F.7 (social media: no safety/efficacy
+  // claims without scientific evidence; paid partnerships disclosed), 5.H
+  // (specialist announcements)
+  // https://www.ada.org/-/media/project/ada-organization/ada/ada-org/files/about/2025_code_of_ethics_full.pdf;
+  // FTC Act § 5 (15 U.S.C. § 45, deceptive acts); FTC Endorsement Guides,
+  // 16 CFR Part 255 (255.2: a consumer endorsement implies typical results)
+  // https://www.ecfr.gov/current/title-16/chapter-I/subchapter-B/part-255;
+  // FTC Trade Regulation Rule on Consumer Reviews and Testimonials, 16 CFR
+  // Part 465 (in force 21.10.2024; 465.2: no fake or AI-written reviews or
+  // testimonials) https://www.ecfr.gov/current/title-16/chapter-I/subchapter-D/part-465.
+  // State dental boards (e.g. Texas 22 TAC ch. 108 subch. E, California B&P
+  // § 651) add rules that differ by state; DentVideo does not encode them.
+  if (c === "US")
+    return [
+      "United States — the ADA Code of Ethics (§ 5.F: no false or misleading advertising, including on social media), the FTC Act and the FTC's Endorsement Guides and Consumer Reviews and Testimonials Rule (16 CFR 255, 465), and the state dental board's advertising rules:",
+      "nothing that creates an unjustified expectation about results (no guaranteed, painless, permanent or risk-free as a promise), no claims that the practice is better than other dentists, no safety or efficacy claims beyond mainstream scientific evidence (ADA 5.F.7),",
+      "never call the dentist a 'specialist' or 'board-certified' (ADA 5.H: only for recognised specialties and qualified dentists — the clinic adds it if true), never write or invent a patient review, testimonial or star rating (16 CFR 465.2), no before/after results,",
+      "no price-led or time-limited offers, and never show or describe an identifiable patient (HIPAA).",
+    ].join(" ");
   return "";
 }
 
@@ -303,7 +333,10 @@ export function marketRules(country: string | undefined): string {
  * caption points to the clinic for them and names the risks.
  */
 export function captionRules(country: string | undefined): string {
-  const c = (country ?? "").toUpperCase();
+  const c = marketCode(country);
+  // RG 33075 md. 7/1-k — the warning is appended by code (mandatory-notice.ts), word for word.
+  if (c === "TR")
+    return "Do not write the regulation's warning sentence (\"Her cerrahi veya girişimsel işlemde…\") or any similar disclaimer: it is added under the caption automatically, word for word. Never ask viewers to like, comment or share.";
   // Reglamento LGS en Materia de Publicidad art. 79 — see marketRules("MX").
   if (c === "MX")
     return "Do not write any COFEPRIS permit or aviso number, \"autorizado por COFEPRIS\" or similar legend — if the clinic's advertising needs one, the clinic adds its own. No prices or promotions.";
