@@ -154,6 +154,49 @@ export const OBSERVANCES: Observance[] = [
     window: fixed(12, 8, 12, 30),
   },
   {
+    // Thanksgiving: fourth Thursday of November. Holiday meals mean grazing
+    // all afternoon, pecan pie and nuts; a cracked tooth over a long weekend.
+    id: "us-thanksgiving",
+    countries: ["US"],
+    name: { en: "Thanksgiving" },
+    angle: "grazing on pie and snacks all afternoon vs. with the meal; cracking nuts or hard candy with teeth; what to do if a tooth chips over the long weekend",
+    window: (y) => {
+      const nov1 = new Date(Date.UTC(y, 10, 1)).getUTCDay();
+      const day = 1 + ((4 - nov1 + 7) % 7) + 21;
+      return { start: d(y, 11, day - 9), end: d(y, 11, day) };
+    },
+  },
+  {
+    // The question US patients search every November–December ("use dental
+    // benefits before end of year"). Many plans run on the calendar year, but
+    // not all, so it is explained, never pushed.
+    id: "us-plan-year",
+    countries: ["US"],
+    name: { en: "End of the dental plan year" },
+    angle: "how a dental plan year usually works (annual maximum, what resets, that many but not all plans follow the calendar year) and that checking your own plan is worth five minutes — information only, never 'use it or lose it' urgency, no prices",
+    window: fixed(11, 1, 12, 20),
+  },
+  {
+    // The Bonusheft: a check-up entry each calendar year raises the statutory
+    // insurance subsidy for dentures and crowns later. Patients ask about it
+    // before the year ends.
+    id: "de-bonusheft",
+    countries: ["DE"],
+    name: { en: "The Bonusheft before the year ends", de: "Bonusheft zum Jahresende" },
+    angle: "what the Bonusheft is and that the yearly check-up entry counts per calendar year — explained calmly, without percentages unless certain, never as urgency to book",
+    window: fixed(11, 1, 12, 20),
+  },
+  {
+    // Cold, dry winter air and hot drinks: the twinge from cold air on a walk
+    // is one of the most searched winter tooth questions in TR and DE.
+    id: "winter-sensitivity",
+    countries: ["TR", "DE", "AT", "CH", "PL", "FR", "IT", "GB", "US", "CA"],
+    name: { en: "Winter cold", tr: "Kış soğukları", de: "Winterkälte" },
+    angle: "why cold air or a hot drink can make teeth twinge, what usually helps (sensitive toothpaste, gentle brushing) and which signs are worth showing a dentist",
+    // Spans the new year: the window "of" year y runs from mid-November y-1 to mid-February y.
+    window: (y) => ({ start: d(y - 1, 11, 15), end: d(y, 2, 15) }),
+  },
+  {
     id: "new-year-habits",
     countries: "*",
     name: { en: "New year", tr: "Yeni yıl", de: "Neues Jahr", es: "Año nuevo" },
@@ -192,7 +235,7 @@ export function seasonalBrief(country: string, language: string, date: Date = ne
   const up = upcomingObservances(country, language, date);
   if (!up.length) return "";
   return [
-    `Coming up for this clinic's market (optional): ${up.map((u) => `${u.name} (${u.start}–${u.end}): ${u.angle}`).join("; ")}.`,
-    `Tie AT MOST ONE video to it, only if it fits one of the clinic's services, and only educationally — never an offer, discount, giveaway or "special" around the date. Name the occasion in the hook or first line so the timing is the reason to watch. Skip it if a recent video already covered the same angle.`,
+    `This week in the clinic's market: ${up.map((u) => `${u.name} (${u.start}–${u.end}): ${u.angle}`).join("; ")}.`,
+    `Patients notice a practice that talks about what is happening now: when one of these fits a service the clinic offers, build ONE video of the week on it. Tie AT MOST ONE video to it, only if it fits one of the clinic's services, and only educationally — never an offer, discount, giveaway or "special" around the date. Name the occasion in the hook or first line so the timing is the reason to watch. Skip it if a recent video already covered the same angle.`,
   ].join(" ");
 }

@@ -31,8 +31,8 @@ export type DvPricedTier = "starter" | "practice";
 
 /** Owner-approved monthly list prices, in whole units of each currency. */
 export const DV_LIST_PRICES: Record<DvPricedTier, Record<DvCurrency, number>> = {
-  starter: { USD: 79, EUR: 79, TRY: 2490 },
-  practice: { USD: 149, EUR: 149, TRY: 4490 },
+  starter: { USD: 49, EUR: 49, TRY: 1490 },
+  practice: { USD: 79, EUR: 79, TRY: 2490 },
 };
 
 /** A list price in Dodo's smallest unit (cents, kuruş): what the Dodo product / localized rule must hold. */
@@ -41,9 +41,9 @@ export function dodoMinorAmount(tier: DvPricedTier, currency: DvCurrency): numbe
 }
 
 /**
- * "$79", "79 €", "€79", "2.490 TL" in the reader's language. Turkish lira is
- * always written "2.490 TL" (how Turkish B2B prices read, and the memo's
- * copy), never "₺2.490". Arabic pages keep Western digits and the symbol
+ * "$49", "49 €", "€49", "1.490 TL" in the reader's language. Turkish lira is
+ * always written "1.490 TL" (how Turkish B2B prices read, and the memo's
+ * copy), never "₺1.490". Arabic pages keep Western digits and the symbol
  * first, as the landing always did.
  */
 export function formatDvPrice(locale: string, currency: DvCurrency, amount: number): string {

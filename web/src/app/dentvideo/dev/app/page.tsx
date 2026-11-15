@@ -53,6 +53,7 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
         plans={plans}
         selfServe={sp.billing !== "email"}
         initialDialog={sp.dialog === "delete" ? "delete" : null}
+        clinicId="00000000-0000-4000-8000-000000000001"
       />
     );
   }

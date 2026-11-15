@@ -11,7 +11,8 @@ export function resetEmail(args: { language: string; link: string }): Rendered {
   return renderEmail({
     lang,
     subject: c.subject,
-    preheader: c.body,
+    // German and Polish continue the greeting in lower case; the inbox line starts a sentence.
+    preheader: c.body.charAt(0).toUpperCase() + c.body.slice(1),
     title: c.subject,
     hello: c.hello,
     blocks: [{ kind: "p", text: c.body }],

@@ -24,7 +24,11 @@ export const SceneView: React.FC<{
   footageSrc?: string;
   /** The client's logo, already resolved; the sign-off shows it large. */
   logo?: { src: string; style?: LogoStyle };
-}> = ({ scene, theme, frame, durationInFrames, footageSrc, logo }) => {
+  /** The clinic's name, for the sign-off. */
+  clinic?: string;
+  /** A required notice is drawn at the foot of the frame (Disclaimer.tsx); the sign-off makes room for it. */
+  notice?: boolean;
+}> = ({ scene, theme, frame, durationInFrames, footageSrc, logo, clinic, notice }) => {
   switch (scene.kind) {
     case "hook":
       return <HookScene scene={scene} theme={theme} frame={frame} />;
@@ -33,7 +37,7 @@ export const SceneView: React.FC<{
     case "quote":
       return <QuoteScene scene={scene} theme={theme} frame={frame} />;
     case "cta":
-      return <CtaScene scene={scene} theme={theme} frame={frame} logo={logo} />;
+      return <CtaScene scene={scene} theme={theme} frame={frame} logo={logo} clinic={clinic} notice={notice} />;
     case "compare":
       return <CompareScene scene={scene} theme={theme} frame={frame} />;
     case "list":

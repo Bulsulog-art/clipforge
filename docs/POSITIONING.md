@@ -127,7 +127,7 @@ don't offer (health-advertising and clinical review on every line).
 | "AI content looks fake." | The narration is a synthetic voice. There are no avatar doctors or patients, stock footage shows objects only, and the clinic's own brand is on every video. Recording 5 minutes of yourself gives the most personal clips. |
 | "I don't have time." | Two minutes of setup, then a few minutes on Mondays: an email arrives, you approve everything in one tap and share from your phone. |
 | "Do you post for me?" | Not automatically yet (it waits on Meta/TikTok app review). Sharing from the phone is one tap. |
-| "Can I see it before I pay?" | Yes: after sign-up you describe your clinic and see a live preview of your own videos with your logo and colours, in the browser. Then choose a plan; the first week is made right after payment. Monthly, cancel anytime, from $29/month. |
+| "Can I see it before I pay?" | Yes: after sign-up you describe your clinic and see a live preview of your own videos with your logo and colours, in the browser. Then choose a plan; the first week is made right after payment. Monthly, cancel anytime, from $49/month. |
 
 ## 6. Pricing recommendation
 
@@ -148,12 +148,16 @@ don't offer (health-advertising and clinical review on every line).
 
 | Market | Starter | Practice | Group | Practice annual |
 | --- | --- | --- | --- | --- |
-| US | $29 | $49 | Contact us | none (monthly only) |
+| US | $49 | $79 | Contact us | none (monthly only) |
 | UK | £35 | £59 | £169 | £590 |
 | DE / FR / ES / IT / PT (EUR) | €39 | €69 | €189 | €690 |
 | TR | 590 TL | 1,090 TL | 2,990 TL | 10,900 TL |
 
-**Owner decision (2026-11-13): US list prices are Starter $29/month and Practice $49/month, monthly only.** Features are
+**Owner decision (2026-11-15, final): Starter $49 / €49 / 1.490 TL a month, Practice $79 / €79 / 2.490 TL a month.** Monthly,
+cancel anytime, tax extra where applicable, no discounts. EUR applies in the euro area and TL in Türkiye
+(`web/src/lib/dentvid/pricing.ts`, the single source); the EUR and TL rows above are the earlier proposal. This supersedes
+the 2026-11-13 decision that follows.
+**Earlier owner decision (2026-11-13; superseded 2026-11-15): US list prices are Starter $29/month and Practice $49/month, monthly only.** Features are
 unchanged. Yearly billing is removed (no yearly price, no monthly/yearly toggle, no yearly product offered; the legacy
 Dodo Practice yearly product id stays in `web/src/lib/dentvid/billing.ts` only so a stray old payment still maps in the
 webhook, and admin MRR still counts a legacy yearly subscription at $990 ÷ 12). The founding offer is removed too (see
@@ -176,7 +180,7 @@ Review TL prices every 6 months because of inflation. A Turkish clinic billing f
 ### Founding-clinic offer — removed (owner decision, 2026-11-13)
 
 - **There is no founding offer any more.** It was: the first 100 clinics get Practice at $49/month for 12 months (Dodo code
-  KURUCU100). Practice now costs $49/month for everyone, so the offer is gone everywhere: no banner, badge, struck-through
+  KURUCU100). There is no discount of any kind any more, so the offer is gone everywhere: no banner, badge, struck-through
   price, seat counter, "first 100 clinics" copy or day-7 offer email, and checkout applies no discount code by default
   (a code the clinic types itself is still passed to Dodo). Admin still recognises historic founding subscriptions in MRR.
   Disable the KURUCU100 code in Dodo so it cannot be typed by hand.
@@ -185,21 +189,21 @@ Review TL prices every 6 months because of inflation. A Turkish clinic billing f
   browser, zero cost) → choose a plan → pay (Dodo) → the first real week is queued by the payment webhook and arrives in
   about 15 minutes, with the usual "ready" email.
 - The site now says: see your own branded videos before you pay (a live preview with your logo and colours), plans from
-  $29/month, monthly, cancel anytime. The site's content test (`dentvideo.test.ts`) allows currency figures only in the
+  $49/month, monthly, cancel anytime. The site's content test (`dentvideo.test.ts`) allows currency figures only in the
   pricing section, and only the prices in `billing.ts`.
 
 ### ROI maths (for sales conversations, not for the site)
 
-These figures are revenue, not profit. Assume about 50% margin after lab, implant and chair costs. Even then, one case covers the annual plan in most markets.
+These figures are revenue, not profit. Assume about 50% margin after lab, implant and chair costs. Even then, one to a few cases cover a year of Practice.
 
-| Market | One single-tooth implant with crown (patient price) | Practice annual | Implant cases per year to cover it (at 50% margin) |
+| Market | One single-tooth implant with crown (patient price) | Practice, 12 months | Implant cases per year to cover it (at 50% margin) |
 | --- | --- | --- | --- |
-| US | $4,000–5,000 typical case value ([Dandy](https://www.meetdandy.com/articles/whats-the-lifetime-value-of-a-dental-patient)) | $588 (12 × $49; no yearly plan) | ~0.3 |
+| US | $4,000–5,000 typical case value ([Dandy](https://www.meetdandy.com/articles/whats-the-lifetime-value-of-a-dental-patient)) | $948 (12 × $79; no yearly plan) | ~0.4 |
 | UK | £2,000–3,500 ([Acibadem guide](https://acibademinternational.com/patient-guides/dental-implants-cost-in-turkey/)) | £690 | ~0.5 |
-| DE | €1,800–3,500; patient's own share usually over €1,500 ([deutschland-rechner](https://www.deutschland-rechner.de/zahnimplantat-kosten-rechner)) | €790 | ~0.6 |
-| FR | €1,500–2,500 per tooth (Jul 2026) ([Goodassur](https://goodassur.com/mutuelle-sante/remboursement/implant-dentaire), [Selectra](https://selectra.info/assurance/mutuelle-sante/remboursement/implant-dentaire)) | €790 | ~0.8 |
-| ES | ~€1,430–1,550 average ([123.clinic](https://www.123.clinic/fr/trouver-une-clinique/implant-dentaire/espagne), Selectra) | €790 | ~1.0 |
-| TR | ~13,500–20,000 TL typical; premium brands 34–39k TL ([Redent](https://www.redentklinik.com/implant-fiyati-ne-kadar/), [Doktorsitesi](https://www.doktorsitesi.com/blog/makale/tek-dis-implant-fiyati)) | 12,900 TL | ~1.5–2 |
+| DE | €1,800–3,500; patient's own share usually over €1,500 ([deutschland-rechner](https://www.deutschland-rechner.de/zahnimplantat-kosten-rechner)) | €948 (12 × €79) | ~0.5–1 |
+| FR | €1,500–2,500 per tooth (Jul 2026) ([Goodassur](https://goodassur.com/mutuelle-sante/remboursement/implant-dentaire), [Selectra](https://selectra.info/assurance/mutuelle-sante/remboursement/implant-dentaire)) | €948 | ~0.8–1.3 |
+| ES | ~€1,430–1,550 average ([123.clinic](https://www.123.clinic/fr/trouver-une-clinique/implant-dentaire/espagne), Selectra) | €948 | ~1.3 |
+| TR | ~13,500–20,000 TL typical; premium brands 34–39k TL ([Redent](https://www.redentklinik.com/implant-fiyati-ne-kadar/), [Doktorsitesi](https://www.doktorsitesi.com/blog/makale/tek-dis-implant-fiyati)) | 29,880 TL (12 × 2.490 TL) | ~3–4.5 |
 
 Patient lifetime value is far higher than a single case. General-practice benchmarks are around $10,000 including recalls and referrals
 ([AGD](https://www.agd.org/blog/the-daily-grind/2018/02/12/what-is-the-lifetime-value-of-a-dental-patient), [DoctorLogic](https://doctorlogic.com/blog/how-to-calculate-the-lifetime-value-of-dental-patients)).

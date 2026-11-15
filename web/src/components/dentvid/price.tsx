@@ -28,12 +28,12 @@ function Variants({ render }: { render: (c: DvCurrency) => React.ReactNode }) {
   );
 }
 
-/** "$79", "79 €", "2.490 TL": a tier's monthly list price. */
+/** "$49", "49 €", "1.490 TL": a tier's monthly list price. */
 export function TierPrice({ locale, tier }: { locale: Locale; tier: DvPricedTier }) {
   return <Variants render={(c) => dvTierPrice(locale, tier, c)} />;
 }
 
-/** A sentence with a {price} slot filled with the lowest monthly list price ("From $79/month"). */
+/** A sentence with a {price} slot filled with the lowest monthly list price ("From $49/month"). */
 export function FromPrice({ locale, template }: { locale: Locale; template: string }) {
   const [before, after = ""] = template.split("{price}");
   return (

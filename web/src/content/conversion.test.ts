@@ -12,6 +12,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LANDING, LOCALES, type Locale } from "./dentvideo";
 import { APP_TEXT } from "./dentvideo-app";
 import { DentVideoLanding } from "@/components/dentvid/landing";
+import { DV_PRICES_USD } from "@/lib/dentvid/billing";
 import { LEGAL_KINDS } from "./legal/types";
 import { legalPath } from "./legal/nav";
 import { OPERATOR } from "./guides/operator";
@@ -142,6 +143,7 @@ describe("landing copy, every language", () => {
     expect(c.compare.cost.ours).toContain("{starter}");
     expect(c.compare.cost.ours).toContain("{practice}");
     expect(c.compare.cost.ours.match(/\d/)).toBeNull();
+    expect(DV_PRICES_USD.starter.month).toBe(49);
   });
 
   it.each(LOCALES)("%s: trust facts match the legal pages", (l) => {

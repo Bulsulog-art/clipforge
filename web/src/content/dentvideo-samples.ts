@@ -40,7 +40,7 @@ export type SampleWeek = readonly [SampleVideo, SampleVideo, SampleVideo];
 export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Demo Dental Studio (US)
   en: [
-    { slug: "whitening-myths-debunked", name: "Whitening thins your enamel? Not quite.", seconds: 27, hero: { start: 0.9, skip: [] }, topic: "Whitening and enamel", legacy: true },
+    { slug: "whitening-myths-debunked", name: "Teeth whitening hurting your enamel? Hold on.", seconds: 21, hero: { start: 0.9, skip: [[6.1, 8.9]] }, topic: "Whitening and enamel" },
     { slug: "caring-for-clear-aligners", name: "That funky smell from your aligners? Avoid it this way.", seconds: 21, topic: "Caring for clear aligners", legacy: true },
     { slug: "proper-brushing-technique", name: "Missing spots when you brush? Here's a clue.", seconds: 20, topic: "Brushing technique", legacy: true },
   ],
@@ -48,7 +48,7 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   de: [
     { slug: "bleaching-zahnschmelz", name: "Bleaching heißt nicht gleich schwacher Zahnschmelz.", seconds: 28, hero: { start: 0.9, skip: [[7.2, 10.8]] }, topic: "Bleaching und Zahnschmelz" },
     { slug: "aligner-verfaerbung", name: "Ihre Aligner verfärben sich?", seconds: 27, topic: "Verfärbungen bei Alignern", legacy: true },
-    { slug: "kinder-zahnarztangst", name: "Kinder und Zahnarzt? Kein Grund zur Panik!", seconds: 25, topic: "Kinder mit Zahnarztangst", legacy: true },
+    { slug: "kinder-zahnarztangst", name: "Ihr Kind spürt Ihre Nervosität sofort.", seconds: 30, topic: "Kinder mit Zahnarztangst" },
   ],
   // Clínica Dental Demo (ES), tú
   es: [

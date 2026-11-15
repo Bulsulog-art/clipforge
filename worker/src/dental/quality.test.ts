@@ -188,7 +188,7 @@ describe("seasonal hooks (calendar.ts)", () => {
   });
 
   it("offers each market its own dates, in the clinic's language", () => {
-    expect(upcomingObservances("TR", "tr", new Date("2026-11-12")).map((o) => o.id)).toEqual(["tr-agiz-dis-sagligi-haftasi"]);
+    expect(upcomingObservances("TR", "tr", new Date("2026-11-12")).map((o) => o.id)).toEqual(["tr-agiz-dis-sagligi-haftasi", "winter-sensitivity"]);
     expect(upcomingObservances("DE", "de", new Date("2026-09-20")).map((o) => o.id)).toEqual(expect.arrayContaining(["de-tag-der-zahngesundheit", "back-to-school"]));
     expect(upcomingObservances("ES", "es", new Date("2026-03-15"))[0].name).toMatch(/Día Mundial de la Salud Bucodental/);
     expect(upcomingObservances("TR", "tr", new Date("2027-02-10")).map((o) => o.id)).toContain("ramadan");

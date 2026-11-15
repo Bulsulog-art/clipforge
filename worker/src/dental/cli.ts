@@ -3,12 +3,15 @@
  *
  *   npx tsx src/dental/cli.ts <profile.json> [--count 5] [--render] [--out ./dental-out]
  *   npx tsx src/dental/cli.ts <profile.json> --recording dentist.mp4 [--count 3] [--out dir]
- *   npx tsx src/dental/cli.ts <profile.json> --topics topics.json --render [--out dir]
+ *   npx tsx src/dental/cli.ts <profile.json> --topics topics.json --render [--out dir] [--logo logo.png]
  *
  * --topics: a JSON array of topics (strategist.ts topicSchema) made instead of
  * the strategist's plan — how the sample videos are re-rendered
  * (docs/PREVIEW_RERENDER.md). Each still gets the hook editor, the writers and
  * every review.
+ * --logo: the clinic's logo (PNG/JPEG/WebP), drawn as a week job draws it
+ * (top corner, and large on the sign-off), so samples look like a paying
+ * clinic's videos.
  *
  * Needs OPENAI_API_KEY; --render also needs the Remotion browser (present in
  * the worker image) and uses PEXELS_API_KEY for stock footage when set.
@@ -29,6 +32,7 @@ import { clipsFromRecording } from "./recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { prepareNarration } from "./narration-audio.js";
 import { resolveVoice } from "./voice.js";
+import { readyLogo, logoStyleOf } from "./logo.js";
 
 // Node's built-in fetch, not the SDK's bundled node-fetch: the built-in one
 // honours HTTPS_PROXY (with NODE_USE_ENV_PROXY=1), so the CLI runs behind a
@@ -79,6 +83,12 @@ async function main() {
     return;
   }
 
+  const logoArg = arg("logo");
+  const logo = logoArg ? await readyLogo(new Uint8Array(await fs.readFile(path.resolve(logoArg))), outDir) : undefined;
+  if (logo && !logo.ok) console.warn(`  ! logo not used: ${logo.reason}`);
+  const logoSrc = logo?.ok ? logo.file : undefined;
+  const logoStyle = logo?.ok ? logoStyleOf(logo.analysis) : undefined;
+
   const week = await produceWeek(
     {
       // Node's built-in fetch, not the SDK's bundled node-fetch: the built-in
@@ -104,6 +114,9 @@ async function main() {
               workDir: dir,
               outputPath: path.join(dir, "video.mp4"),
               pexelsApiKey: process.env.PEXELS_API_KEY,
+              logoSrc,
+              logoStyle,
+              assetRoots: [outDir],
               onWarn: (m) => console.warn(`  ! ${m}`),
             });
             return res.outputPath;
