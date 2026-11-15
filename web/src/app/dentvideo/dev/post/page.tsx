@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RememberLocale } from "@/components/dentvid/chrome";
 import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
 import { asLocale } from "@/lib/dentvid/locale";
@@ -42,5 +43,11 @@ export default async function PostPreview({ searchParams }: { searchParams: Prom
             slot: slotLabel(slot, locale),
           },
         };
-  return <PostNow view={view} token="dev" appUrl="/dentvideo/dev/app" ttlDays={APPROVE_TTL_DAYS} endpoint="/dentvideo/dev/post/stub" />;
+  // As on the real page: the header and footer speak the clinic's language.
+  return (
+    <>
+      <RememberLocale locale={view.locale} />
+      <PostNow view={view} token="dev" appUrl="/dentvideo/dev/app" ttlDays={APPROVE_TTL_DAYS} endpoint="/dentvideo/dev/post/stub" />
+    </>
+  );
 }

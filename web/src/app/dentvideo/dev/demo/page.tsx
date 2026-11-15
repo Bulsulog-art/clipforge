@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
+import { RememberLocale } from "@/components/dentvid/chrome";
 import { DemoPage, DEMO_ROBOTS } from "@/components/dentvid/demo-page";
 import { AdminDemos, type AdminDemoRow } from "@/components/dentvid/admin-demos";
 import { asLocale } from "@/lib/dentvid/locale";
@@ -69,11 +70,15 @@ export default async function DemoPreviewPage({ searchParams }: { searchParams: 
       />
     );
   }
+  // The real page (/tr/d/<token>) speaks its language from the address; this preview tells the header and footer.
   return (
-    <DemoPage
-      locale={locale}
-      demo={{ token: "Ab3dE5fG7hJ", clinicName: c.name, city: c.city, country: c.country, language: locale, colour: "#1f4e79", hasLogo: sp.logo !== "0", campaign: "tr-launch" }}
-      logoSrc="/dentvideo/icon-512.png"
-    />
+    <>
+      <RememberLocale locale={locale} />
+      <DemoPage
+        locale={locale}
+        demo={{ token: "Ab3dE5fG7hJ", clinicName: c.name, city: c.city, country: c.country, language: locale, colour: "#1f4e79", hasLogo: sp.logo !== "0", campaign: "tr-launch" }}
+        logoSrc="/dentvideo/icon-512.png"
+      />
+    </>
   );
 }

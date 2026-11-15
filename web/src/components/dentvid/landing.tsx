@@ -313,7 +313,9 @@ function How({ locale }: { locale: Locale }) {
       <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8 lg:mt-14 lg:gap-12">
         {h.steps.map((s, i) => (
           // Phones: the words beside a small real screen; from md: the screen above the words.
-          <li key={s.title} className="grid grid-cols-[minmax(0,1fr)_7.5rem] items-start gap-5 md:grid-cols-1 md:gap-7">
+          // content-start: a step whose text runs shorter than its neighbour's must not stretch its rows, or its
+          // number and title drop below the others' (the three columns share one row height).
+          <li key={s.title} className="grid grid-cols-[minmax(0,1fr)_7.5rem] content-start items-start gap-5 md:grid-cols-1 md:gap-7">
             <Screen locale={locale} name={SHOTS[i]} alt={h.shots[i]} className="order-2 w-full md:order-none md:mx-auto md:max-w-[14rem]" />
             <div>
               <span aria-hidden="true" className="dv-display dv-figure text-[2.5rem] leading-none text-dv-teal">{i + 1}</span>
