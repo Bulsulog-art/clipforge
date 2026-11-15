@@ -40,6 +40,7 @@ export default async function Settings() {
       // Only whether a key exists reaches the page — never the key.
       selfServe={!!dodoApiKey()}
       accountEmail={user.email ?? null}
+      clinicId={clinic.id as string}
     />
   );
 }

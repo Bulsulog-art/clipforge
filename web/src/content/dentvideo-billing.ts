@@ -89,7 +89,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "Your DentVideo payment didn't go through",
-      holdSubject: "Your DentVideo videos are paused — please update your payment",
+      holdSubject: "Action needed: your DentVideo videos are paused",
       preheader: "One quick step and your weekly videos carry on.",
       hello: "Hello {clinic},",
       failedBody: "We tried to charge your card for DentVideo and the payment didn't go through. Your plan is still running for now, and the payment will be tried again.",
@@ -132,7 +132,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "Ihre DentVideo-Zahlung ging nicht durch",
-      holdSubject: "Ihre DentVideo-Videos sind pausiert — bitte Zahlung aktualisieren",
+      holdSubject: "Ihre DentVideo-Videos sind pausiert",
       preheader: "Ein kurzer Schritt, und Ihre Wochenvideos gehen weiter.",
       hello: "Guten Tag {clinic},",
       failedBody: "Wir wollten Ihre Karte für DentVideo belasten, aber die Zahlung ging nicht durch. Ihr Tarif läuft vorerst weiter, und die Zahlung wird erneut versucht.",
@@ -175,7 +175,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "Tu pago de DentVideo no se completó",
-      holdSubject: "Tus vídeos de DentVideo están en pausa: actualiza tu pago",
+      holdSubject: "Tus vídeos de DentVideo están en pausa",
       preheader: "Un paso rápido y tus vídeos semanales siguen llegando.",
       hello: "Hola, {clinic}:",
       failedBody: "Intentamos cobrar DentVideo en tu tarjeta y el pago no se completó. Por ahora tu plan sigue activo y el cobro se intentará de nuevo.",
@@ -218,7 +218,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "DentVideo ödemeniz gerçekleşmedi",
-      holdSubject: "DentVideo videolarınız durduruldu — lütfen ödemenizi güncelleyin",
+      holdSubject: "DentVideo videolarınız durduruldu: ödeme gerekli",
       preheader: "Kısa bir adım, haftalık videolarınız devam etsin.",
       hello: "Merhaba {clinic},",
       failedBody: "DentVideo için kartınızdan ödeme almaya çalıştık ama ödeme gerçekleşmedi. Planınız şimdilik devam ediyor ve ödeme yeniden denenecek.",
@@ -261,7 +261,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "Votre paiement DentVideo n’a pas abouti",
-      holdSubject: "Vos vidéos DentVideo sont en pause — merci de mettre à jour votre paiement",
+      holdSubject: "Vos vidéos DentVideo sont en pause",
       preheader: "Une étape rapide et vos vidéos hebdomadaires continuent.",
       hello: "Bonjour {clinic},",
       failedBody: "Nous avons tenté de débiter votre carte pour DentVideo et le paiement n’a pas abouti. Votre formule continue pour l’instant et le paiement sera retenté.",
@@ -304,7 +304,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "DentVideoのお支払いが完了しませんでした",
-      holdSubject: "DentVideoの動画を一時停止しています。お支払い情報を更新してください",
+      holdSubject: "DentVideo：お支払い情報の更新をお願いします",
       preheader: "簡単な手続きで、週次動画がまた届きます。",
       hello: "{clinic}様、",
       failedBody: "DentVideoのご利用料金をカードに請求しましたが、お支払いが完了しませんでした。プランは現在も継続中で、お支払いは再度試行されます。",
@@ -347,7 +347,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "لم تتم دفعتكم في DentVideo",
-      holdSubject: "فيديوهات DentVideo متوقفة مؤقتاً — يُرجى تحديث الدفع",
+      holdSubject: "فيديوهات DentVideo متوقفة: يُرجى تحديث الدفع",
       preheader: "خطوة سريعة وتستمر فيديوهاتكم الأسبوعية.",
       hello: "مرحباً {clinic}،",
       failedBody: "حاولنا تحصيل رسوم DentVideo من بطاقتكم ولم تتم الدفعة. باقتكم ما زالت سارية حالياً، وستُعاد محاولة الدفع.",
@@ -390,7 +390,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
     },
     email: {
       failedSubject: "Płatność za DentVideo nie przeszła",
-      holdSubject: "Filmy DentVideo są wstrzymane — prosimy zaktualizować płatność",
+      holdSubject: "Filmy DentVideo wstrzymane: prosimy o płatność",
       preheader: "Jeden szybki krok i cotygodniowe filmy wracają.",
       hello: "Dzień dobry, {clinic},",
       failedBody: "Próbowaliśmy obciążyć kartę za DentVideo, ale płatność nie przeszła. Plan na razie działa dalej, a płatność zostanie ponowiona.",

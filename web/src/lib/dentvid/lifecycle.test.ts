@@ -359,7 +359,7 @@ describe("welcome after the first payment", () => {
     expect(await sendWelcome({ store: m.store, send, config: cfg() }, id(1))).toBe("sent");
     expect(await sendWelcome({ store: m.store, send, config: cfg() }, id(1))).toBe("already sent");
     expect(sent).toHaveLength(1);
-    expect(sent[0].subject).toBe("Willkommen bei DentVideo, Praxis Mitte");
+    expect(sent[0].subject).toBe("Willkommen bei DentVideo: so geht es weiter");
     expect(sent[0].html).toContain('href="https://dentvideo.com/app"');
     expect(sent[0].headers).toBeUndefined();
   });

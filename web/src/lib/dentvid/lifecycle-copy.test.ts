@@ -116,6 +116,49 @@ describe("every email, every language", () => {
     }
   });
 
+  it("inbox-ready: subject at most 50 characters, a preheader that adds something, no shorteners, mostly text", () => {
+    for (const lang of LOCALES) {
+      for (const kind of SAMPLE_KINDS) {
+        const m = sampleEmailFor(kind, lang);
+        const at = `${lang} ${kind}`;
+        expect([...m.subject].length, `${at}: ${m.subject}`).toBeLessThanOrEqual(50);
+        expect(m.subject, at).not.toMatch(/!{2,}|\bfree\b|\bURGENT\b|^\s*(RE|FW):/i);
+        const pre = /class="dv-pre"[^>]*>([^<]*?)(?:&#847;|<)/.exec(m.html)?.[1]?.trim() ?? "";
+        expect(pre.length, at).toBeGreaterThan(10);
+        expect(pre, at).not.toBe(m.subject);
+        for (const [, href] of m.html.matchAll(/href="([^"]+)"/g)) expect(href, at).not.toMatch(/bit\.ly|tinyurl|t\.co\/|goo\.gl|ow\.ly|rebrand\.ly|lnkd\.in/);
+        // Images are a handful of posters at most; the words carry the message (and survive images off).
+        const imgs = m.html.match(/<img /g)?.length ?? 0;
+        expect(imgs, at).toBeLessThanOrEqual(6);
+        expect(m.text.length, at).toBeGreaterThan(200 + imgs * 60);
+        // Every email says how to reach a person.
+        expect(m.text, at).toContain("hello@dentvideo.com");
+      }
+    }
+  });
+
+  it("the welcome says what happens next: first videos timing, review and approve, posting, Mondays, how to reach us", () => {
+    for (const lang of LOCALES) {
+      const m = sampleEmailFor("welcome", lang);
+      const w = LIFECYCLE_COPY[lang].welcome;
+      expect(w.steps, lang).toHaveLength(4);
+      expect(w.steps[0].body, lang).toMatch(/15/);
+      expect(w.help, lang).toContain("{email}");
+      expect(m.text, lang).toContain("hello@dentvideo.com");
+      expect(m.text, lang).toContain("https://dentvideo.com/app");
+      expect(m.subject, lang).not.toContain("Smile & Co"); // short, never cut off by a long clinic name
+    }
+    expect(sampleEmailFor("welcome", "en").text).toMatch(/software-assisted check[\s\S]*approve[\s\S]*Share[\s\S]*Monday/);
+  });
+
+  it("the ready email lets the dentist act in one tap: a per-video action and an approve-all button", () => {
+    for (const lang of LOCALES) {
+      const m = sampleEmailFor("ready", lang);
+      expect(m.html, lang).toMatch(/class="dv-chip"/);
+      expect(m.html, lang).toMatch(/class="dv-btn2"[\s\S]*\/api\/dentvideo\/approve\?t=/);
+    }
+  });
+
   it("each email has at most one primary button", () => {
     for (const kind of SAMPLE_KINDS) expect(sampleEmailFor(kind, "en").html.match(/class="dv-btn" bgcolor/g)?.length ?? 0, kind).toBeLessThanOrEqual(1);
   });

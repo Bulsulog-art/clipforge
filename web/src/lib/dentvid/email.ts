@@ -48,8 +48,8 @@ const COPY: Record<string, Copy> = {
     footer: "You get this email because your clinic uses DentVideo.",
     weekTitle: "This week's videos are ready",
     recordingTitle: "Your clips are ready",
-    approveAsk: "Already happy with them?",
-    approveAll: "Approve all ready videos in one tap",
+    approveAsk: "Already happy with the ready ones?",
+    approveAll: "Approve all ready videos",
   },
   de: {
     weekSubject: (n) => `${n} neue Videos warten auf Ihre Freigabe`,
@@ -65,7 +65,7 @@ const COPY: Record<string, Copy> = {
     weekTitle: "Die Videos dieser Woche sind fertig",
     recordingTitle: "Ihre Clips sind fertig",
     approveAsk: "Schon zufrieden?",
-    approveAll: "Alle fertigen Videos mit einem Klick freigeben",
+    approveAll: "Alle fertigen Videos freigeben",
   },
   es: {
     weekSubject: (n) => `${n} vídeos nuevos esperan tu revisión`,
@@ -81,7 +81,7 @@ const COPY: Record<string, Copy> = {
     weekTitle: "Los vídeos de esta semana están listos",
     recordingTitle: "Tus clips están listos",
     approveAsk: "¿Ya te convencen?",
-    approveAll: "Aprobar todos los vídeos listos con un toque",
+    approveAll: "Aprobar todos los vídeos listos",
   },
   fr: {
     weekSubject: (n) => `${n} nouvelles vidéos attendent votre validation`,
@@ -97,7 +97,7 @@ const COPY: Record<string, Copy> = {
     weekTitle: "Les vidéos de la semaine sont prêtes",
     recordingTitle: "Vos clips sont prêts",
     approveAsk: "Elles vous conviennent déjà ?",
-    approveAll: "Valider toutes les vidéos prêtes en un clic",
+    approveAll: "Valider toutes les vidéos prêtes",
   },
   it: {
     weekSubject: (n) => `${n} nuovi video attendono la Sua approvazione`,
@@ -113,7 +113,7 @@ const COPY: Record<string, Copy> = {
     weekTitle: "I video di questa settimana sono pronti",
     recordingTitle: "Le Sue clip sono pronte",
     approveAsk: "Le vanno già bene?",
-    approveAll: "Approvare tutti i video pronti con un tocco",
+    approveAll: "Approvare tutti i video pronti",
   },
   pt: {
     weekSubject: (n) => `${n} vídeos novos aguardam a tua revisão`,
@@ -129,23 +129,23 @@ const COPY: Record<string, Copy> = {
     weekTitle: "Os vídeos desta semana estão prontos",
     recordingTitle: "Os teus clipes estão prontos",
     approveAsk: "Já estão do teu agrado?",
-    approveAll: "Aprovar todos os vídeos prontos com um toque",
+    approveAll: "Aprovar todos os vídeos prontos",
   },
   tr: {
     weekSubject: (n) => `${n} yeni video onayınızı bekliyor`,
     recordingSubject: (n) => `Kaydınızdan ${n} klip hazır`,
     hello: (c) => `Merhaba ${c},`,
-    weekBody: "Bu haftanın hasta bilgilendirme videoları hazırlandı ve yazılımla kontrol edildi; son karar sizindir.",
+    weekBody: "Bu haftanın hasta bilgilendirme videoları hazırlandı ve yazılım destekli kontrolden geçti; son karar sizin.",
     recordingBody: "Kaydınızı altyazılı kısa kliplere dönüştürdük.",
     readyLine: (n) => `${n} video onaya hazır`,
-    flaggedLine: (n) => `${n} video kısa bir göz atma için işaretlendi (nedeniyle birlikte)`,
+    flaggedLine: (n) => `${n} video kısa bir kontrol bekliyor (nedenini gösteriyoruz)`,
     approval: "Siz onaylamadan hiçbir şey yayınlanmaz.",
     button: "Videoları inceleyin",
     footer: "Bu e-postayı kliniğiniz DentVideo kullandığı için alıyorsunuz.",
     weekTitle: "Bu haftanın videoları hazır",
     recordingTitle: "Klipleriniz hazır",
-    approveAsk: "Hepsini beğendiyseniz:",
-    approveAll: "Hazır videoların tümünü tek dokunuşla onaylayın",
+    approveAsk: "Hazır olanları zaten beğendiyseniz:",
+    approveAll: "Hazır videoların tümünü onaylayın",
   },
   ja: {
     weekSubject: (n) => `新しい動画${n}本のご確認をお願いします`,
@@ -177,7 +177,7 @@ const COPY: Record<string, Copy> = {
     weekTitle: "فيديوهات هذا الأسبوع جاهزة",
     recordingTitle: "مقاطعكم جاهزة",
     approveAsk: "راضون عنها بالفعل؟",
-    approveAll: "اعتماد كل الفيديوهات الجاهزة بلمسة واحدة",
+    approveAll: "اعتماد كل الفيديوهات الجاهزة",
   },
   pl: {
     weekSubject: (n) => `Nowe filmy czekają na Państwa akceptację: ${n}`,
@@ -193,7 +193,7 @@ const COPY: Record<string, Copy> = {
     weekTitle: "Filmy na ten tydzień są gotowe",
     recordingTitle: "Państwa klipy są gotowe",
     approveAsk: "Wszystko się zgadza?",
-    approveAll: "Zaakceptuj wszystkie gotowe filmy jednym kliknięciem",
+    approveAll: "Zaakceptuj wszystkie gotowe filmy",
   },
 };
 
@@ -231,17 +231,20 @@ export function readyEmail(args: {
   return renderEmail({
     lang,
     subject,
-    preheader: `${body} ${c.approval}`,
+    // The inbox line says what is waiting, not the first sentence again.
+    preheader: `${lines.join(" · ")}. ${c.approval}`,
     title: week ? c.weekTitle : c.recordingTitle,
     hello: c.hello(name).replace(/\s+([,،:])/g, "$1"),
     blocks: [
       { kind: "p", text: body },
+      // What is waiting comes first; each video then has its own one-tap action.
+      { kind: "list", items: lines },
       ...(videos.length ? [{ kind: "videos" as const, heading: postingText(lang).email.heading, items: videos }] : []),
       ...(thumbs.length ? [{ kind: "thumbs" as const, items: thumbs }] : []),
-      { kind: "list", items: lines },
     ],
     button: { label: c.button, url: args.appUrl },
-    secondary: args.approveUrl && args.counts.ready > 0 ? { ask: c.approveAsk, label: c.approveAll, url: args.approveUrl } : undefined,
+    // "Approve all" opens the signed approve page (one confirming tap there; never a flagged video).
+    secondary: args.approveUrl && args.counts.ready > 0 ? { ask: c.approveAsk, label: c.approveAll, url: args.approveUrl, style: "button" } : undefined,
     afterButton: [c.approval],
     // Signed like every other DentVideo email ("The DentVideo team", in the clinic's language).
     signoff: lifecycleText(lang).copy.signoff,
