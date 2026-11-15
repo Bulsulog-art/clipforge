@@ -26,7 +26,7 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path").eq("owner_id", user.id).maybeSingle();
   // No clinic yet: the onboarding wizard describes it (and shows the preview).
   if (!clinic) redirect(dvHref("/dentvideo/start?step=clinic"));
-  const profile = (clinic.profile ?? {}) as { name?: string; language?: string };
+  const profile = (clinic.profile ?? {}) as { name?: string; language?: string; country?: string };
   const locale = await dvLocale(profile.language);
 
   const [{ items }, plan, sp] = await Promise.all([loadItems(db, user.id), loadClinicPlan(db, clinic.id), searchParams]);
@@ -60,6 +60,7 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
     <AppHomeView
       locale={locale}
       clinicName={profile.name}
+      country={profile.country}
       plan={plan}
       items={items}
       firstWeek={firstWeek}

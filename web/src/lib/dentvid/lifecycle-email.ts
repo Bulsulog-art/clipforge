@@ -3,6 +3,10 @@ import { billingText } from "@/content/dentvideo-billing";
 import { LOCALES, type Locale } from "@/content/dentvideo";
 import { operatorAddress } from "@/content/legal";
 import { CONTACT_EMAIL, COLORS, FONT, esc, renderEmail, type Brand, type Rendered } from "./email-layout";
+import { formatDvPrice, type DvCurrency } from "./pricing";
+
+/** An amount in a list currency (pricing.ts). */
+export type DvMoney = { currency: DvCurrency; amount: number };
 
 /**
  * Lifecycle emails, rendered in the shared template (email-layout.ts):
@@ -24,9 +28,9 @@ import { CONTACT_EMAIL, COLORS, FONT, esc, renderEmail, type Brand, type Rendere
 export { CONTACT_EMAIL };
 export type { Rendered };
 
-/** "$29" in the reader's language — the same format the plan screen uses (Arabic keeps "$29"). */
-export function usd(lang: string, amount: number): string {
-  return new Intl.NumberFormat(lang === "ar" ? "en-US" : lang, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
+/** "$79", "79 €", "2.490 TL" in the reader's language — the same format the plan screen uses (pricing.ts). */
+export function money(lang: string, price: DvMoney): string {
+  return formatDvPrice(lang, price.currency, price.amount);
 }
 
 /** A clinic name fit for a subject line and a greeting. */
@@ -126,11 +130,11 @@ export function sampleEmail(args: NudgeArgs & { titles: string[] }): Rendered {
 }
 
 /** Day 3: accuracy, time, cost — the three things that stop a dentist. */
-export function objectionsEmail(args: NudgeArgs & { fromUsd: number }): Rendered {
+export function objectionsEmail(args: NudgeArgs & { from: DvMoney }): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
   const clinic = clinicLabel(args.clinicName);
   const s = c.objections;
-  const vars = { from: usd(lang, args.fromUsd) };
+  const vars = { from: money(lang, args.from) };
   return renderEmail({
     lang,
     subject: s.subject,

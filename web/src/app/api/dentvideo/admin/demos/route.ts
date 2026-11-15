@@ -112,7 +112,7 @@ export async function POST(req: Request) {
     token: saved.demo.token,
     url,
     expiresAt: saved.demo.expires_at,
-    messages: demoMessages(input.language, input.clinicName, url),
+    messages: demoMessages(input.language, input.clinicName, url, input.country),
   });
 }
 

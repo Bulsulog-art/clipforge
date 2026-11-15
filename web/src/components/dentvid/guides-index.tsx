@@ -41,7 +41,7 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
           </div>
         )}
         <p className="mt-6 max-w-3xl">
-          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex items-center gap-1.5 text-[1.0625rem] font-semibold text-dv-teal underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal" data-testid="hub-examples-link">
+          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex min-h-11 items-center gap-1.5 text-[1.0625rem] font-semibold text-dv-teal underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal" data-testid="hub-examples-link">
             {EXAMPLES_UI[locale].seeAll}
             <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
           </Link>

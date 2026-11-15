@@ -146,3 +146,25 @@ export function dodoLookup(env: Record<string, string | undefined> = process.env
     }
   };
 }
+
+/**
+ * Retention for Google Ads click ids (web migration 0019, privacy policy:
+ * 90 days): runs public.dentvid_purge_ad_data() after the nightly reconcile.
+ * Best effort — never fails the job (before 0019 is applied the function is
+ * missing and this only logs). Returns rows deleted, or null when it could not run.
+ */
+export async function purgeAdData(db: Pick<SupabaseClient, "rpc">): Promise<number | null> {
+  try {
+    const { data, error } = await db.rpc("dentvid_purge_ad_data");
+    if (error) {
+      logger.warn({ err: error.message }, "dentvid: ad click retention purge did not run");
+      return null;
+    }
+    const n = typeof data === "number" ? data : Number(data) || 0;
+    if (n > 0) logger.info({ deleted: n }, "dentvid: ad click ids older than 90 days deleted");
+    return n;
+  } catch (e) {
+    logger.warn({ err: (e as Error).message }, "dentvid: ad click retention purge did not run");
+    return null;
+  }
+}

@@ -3,8 +3,9 @@ import { DV_SUPPORT_EMAIL, mailtoHref } from "@/lib/dentvid/app-ui";
 
 /**
  * Group (groups and multi-location practices) is not sold self-serve: there
- * is no multi-location product to sell yet, so no price, no checkout and no
- * feature list. Every place that shows the Group tier — the landing pricing,
+ * is no multi-location product to sell yet, so no number, no checkout and no
+ * feature list: "Priced per location" and a contact button. Every place
+ * that shows the Group tier — the landing pricing,
  * the in-app plan picker, settings, About / llms.txt — shows this instead: a
  * "Contact us" mail with a subject in the page's language.
  *
@@ -13,7 +14,7 @@ import { DV_SUPPORT_EMAIL, mailtoHref } from "@/lib/dentvid/app-ui";
 export type GroupContact = {
   /** The tier's name, as on the other cards. */
   name: string;
-  /** Where the price would be: "custom", never a number. */
+  /** Where the price would be: "Priced per location", never a number (quoted as Practice × locations, no volume discount). */
   price: string;
   /** One honest sentence. */
   text: string;
@@ -26,56 +27,56 @@ export type GroupContact = {
 export const GROUP_CONTACT: Record<Locale, GroupContact> = {
   en: {
     name: "Group",
-    price: "Custom pricing",
-    text: "For groups and multi-location practices — tell us your locations and we'll set it up with you.",
+    price: "Priced per location",
+    text: "For groups and multi-location practices: tell us your locations and we'll set them up with you.",
     cta: "Contact us",
     subject: "DentVideo for multiple practices",
   },
   de: {
     name: "Group",
-    price: "Individueller Preis",
-    text: "Für Praxisgruppen und Praxen mit mehreren Standorten – nennen Sie uns Ihre Standorte, und wir richten es gemeinsam mit Ihnen ein.",
+    price: "Preis pro Standort",
+    text: "Für Praxisgruppen und Praxen mit mehreren Standorten: Nennen Sie uns Ihre Standorte, wir richten alles mit Ihnen ein.",
     cta: "Kontakt aufnehmen",
     subject: "DentVideo für mehrere Praxen",
   },
   es: {
     name: "Group",
-    price: "Precio a medida",
-    text: "Para grupos y clínicas con varias sedes: cuéntanos qué sedes tienes y lo configuramos contigo.",
+    price: "Precio por sede",
+    text: "Para grupos y clínicas con varias sedes: cuéntanos qué sedes tienes y las configuramos contigo.",
     cta: "Contáctanos",
     subject: "DentVideo para varias clínicas",
   },
   tr: {
     name: "Group",
-    price: "Size özel fiyat",
+    price: "Şube başına fiyatlandırılır",
     text: "Gruplar ve birden fazla şubesi olan klinikler için: şubelerinizi bize yazın, kurulumu sizinle birlikte yapalım.",
-    cta: "Bize ulaşın",
+    cta: "Bize yazın",
     subject: "Birden fazla klinik için DentVideo",
   },
   fr: {
     name: "Group",
-    price: "Tarif sur mesure",
-    text: "Pour les groupes et les cabinets à plusieurs sites : indiquez-nous vos sites et nous le mettons en place avec vous.",
+    price: "Tarif par site",
+    text: "Pour les groupes et les cabinets à plusieurs sites : indiquez-nous vos sites et nous les mettons en place avec vous.",
     cta: "Nous contacter",
     subject: "DentVideo pour plusieurs cabinets",
   },
   ja: {
     name: "Group",
-    price: "個別のお見積もり",
+    price: "拠点ごとの料金",
     text: "グループや複数の拠点をお持ちの医院向け。拠点についてお知らせいただければ、一緒に設定を進めます。",
     cta: "お問い合わせ",
     subject: "複数医院でのDentVideo導入について",
   },
   ar: {
     name: "Group",
-    price: "سعر حسب الطلب",
+    price: "السعر حسب عدد الفروع",
     text: "للمجموعات والعيادات متعددة الفروع: أخبرونا بفروعكم وسنُعِدّ الخدمة معكم.",
     cta: "تواصلوا معنا",
     subject: "DentVideo لعدة عيادات",
   },
   pl: {
     name: "Group",
-    price: "Wycena indywidualna",
+    price: "Cena za placówkę",
     text: "Dla sieci i gabinetów z kilkoma placówkami: prosimy napisać nam o swoich placówkach, a skonfigurujemy wszystko razem z Państwem.",
     cta: "Skontaktuj się z nami",
     subject: "DentVideo dla kilku gabinetów",

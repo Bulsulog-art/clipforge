@@ -256,7 +256,7 @@ export const HARD_RULES: Rule[] = [
   },
 ];
 
-export type HardHit = { rule: RuleId; match: string; why: string };
+export type HardHit = { rule: RuleId | MarketRuleId; match: string; why: string };
 
 /** Deterministic scan. Pure, so it is tested directly. */
 export function scanHardRules(text: string): HardHit[] {
@@ -340,3 +340,129 @@ export const FEAR_RULE: Rule = {
 
 /** The rules the public checker runs: the hard rules plus fear and pressure. */
 export const CHECKER_RULES: readonly Rule[] = [...HARD_RULES, FEAR_RULE];
+
+/**
+ * Market packs: deterministic checks for rules that belong to one country
+ * (or a few), on top of HARD_RULES. Only what a phrase can show is checked
+ * here; the rest of each market's rules is prompt text the writers and the
+ * reviewer get (locale.ts marketRules). A hit sends the text back for a
+ * rewrite, as a HARD_RULES hit does: the writers cannot know whether a
+ * clinic really holds a specialist title or a COFEPRIS permit, so they must
+ * not claim one — the clinic can add a claim it can prove, under its own
+ * responsibility. This is a conservative filter, not a legal opinion.
+ *
+ * Not part of the public checker (it does not know the reader's market).
+ */
+export type MarketRuleId = "sponsored" | "engagement" | "giveaway" | "specialist" | "children" | "pom" | "permit";
+export type MarketRule = { id: MarketRuleId; why: string; patterns: RegExp[] };
+
+/** The market a country code stands for: "UK" is how people write Great Britain. */
+export function marketCode(country: string | undefined): string {
+  const c = (country ?? "").trim().toUpperCase();
+  return c === "UK" ? "GB" : c;
+}
+
+// Self-claims to be a specialist, per language. Referral sentences ("your
+// dentist may refer you to a specialist", "an einen Spezialisten
+// überweisen") are education, not a claim, and do not match.
+const SPECIALIST_EN = "(our|we are|we're|i am|i'm)\\s+((resident|in-house|leading|expert|dental|implant|cosmetic|smile|gum|orthodontic)\\s+)*specialists?|specialist\\s+(dental\\s+)?(clinic|practice|centre|center|team)|(implant|cosmetic|smile|whitening|veneer|invisalign|aligner)\\s+(dentistry\\s+)?specialists?";
+const SPECIALIST_DE = "(unser\\p{L}*|ihr(e|en)?|wir sind|ich bin|als)\\s+(\\p{L}+\\s+){0,2}spezialist\\p{L}*|(implantat|implantologie|parodontologie|ästhetik|bleaching|angst|wurzel|endo|zahnersatz|aligner)\\p{L}*spezialist\\p{L}*|(wir sind|ich bin|unsere praxis ist|die praxis ist)\\s+(\\p{L}+\\s+){0,3}spezialisiert";
+const SPECIALIST_FR = "(notre|nos|je suis|nous sommes)\\s+(\\p{L}+\\s+){0,2}spécialistes?|cabinet spécialisé";
+const SPECIALIST_IT = "(il nostro|i nostri|siamo|sono)\\s+(\\p{L}+\\s+){0,2}specialist[ia]|studio specializzato";
+
+const MARKET_SPECIALIST_DACH: MarketRule = {
+  id: "specialist",
+  // DE: MBO-Z § 21 / Landesberufsordnungen (Spezialist only with proven
+  // expertise, Fachzahnarzt is the recognised title); AT: § 35 Abs. 2 ZÄG
+  // (unwahre or unsachliche Anpreisung); CH: Art. 40 lit. d MedBG
+  // (objective, not misleading) and the federal/SSO Weiterbildungstitel.
+  why: "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40).",
+  patterns: [w(SPECIALIST_DE), w(SPECIALIST_FR), w(SPECIALIST_IT)],
+};
+
+export const MARKET_HARD_RULES: Readonly<Record<string, readonly MarketRule[]>> = {
+  // Türkiye — Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri
+  // Hakkında Yönetmelik, RG 12.11.2025 no. 33075. Generic HARD_RULES already
+  // cover price/discount/campaign/taksit (md. 5/1-m), patient thanks and
+  // satisfaction (5/1-e, 7/1-ğ), superlatives, "garanti" and öncesi-sonrası.
+  TR: [
+    {
+      id: "sponsored",
+      why: "Paid, sponsored or boosted promotion is not allowed for clinics and dentists in Türkiye (RG 33075 md. 5/1-i, 7/1-j).",
+      patterns: [w("sponsorlu\\p{L}*|sponsor(umuz|luğunda)|ücretli (iş ?birliği|ortaklık|tanıtım|reklam)\\p{L}*|reklamdır|(?<=#)(reklam|işbirliği|sponsor)|öne çıkarılmış gönderi")],
+    },
+    {
+      id: "engagement",
+      why: "Visual posts must not invite likes, comments or reshares; under RG 33075 md. 7/1-ğ they are to be closed on the post.",
+      patterns: [w("yorum(lara|larda|lar(ı|a)|unuzu|da)? (yaz\\p{L}*|bırak\\p{L}*|belirt\\p{L}*)|yorum yap\\p{L}*|beğen(meyi|in|ip|mek)\\p{L}*|(bu )?(videoyu|gönderiyi) (paylaş|kaydet)\\p{L}*|paylaşmayı unutma\\p{L}*")],
+    },
+    {
+      id: "giveaway",
+      why: "Raffles, prize draws and gifts used to promote health services are not allowed (RG 33075 md. 5/1-l).",
+      patterns: [w("çekiliş\\p{L}*|kura ile|yarışma\\p{L}*|ödül kazan\\p{L}*")],
+    },
+  ],
+  // Germany — HWG § 11 Abs. 1 S. 1 Nr. 12: no advertising aimed exclusively
+  // or mainly at children under 14 (https://dejure.org/gesetze/HWG/11.html).
+  DE: [
+    MARKET_SPECIALIST_DACH,
+    {
+      id: "children",
+      why: "Advertising for treatments aimed mainly at children under 14 is not allowed (§ 11 Abs. 1 S. 1 Nr. 12 HWG): speak to the parents.",
+      patterns: [w("(liebe|hallo|hey) (kinder|kids)|kinder,? aufgepasst|hey kids")],
+    },
+  ],
+  AT: [MARKET_SPECIALIST_DACH],
+  CH: [MARKET_SPECIALIST_DACH],
+  // United Kingdom — GDC Standards 1.3.3 and the GDC guidance on advertising
+  // (only dentists on a GDC specialist list may be called specialists); CAP
+  // Code 12.12: prescription-only medicines and treatments may not be
+  // advertised to the public (botulinum toxin is one).
+  GB: [
+    {
+      id: "specialist",
+      why: "Only a dentist on a GDC specialist list may be described as a specialist (GDC guidance on advertising); the writer cannot verify that, so the clinic adds it if true.",
+      patterns: [w(SPECIALIST_EN)],
+    },
+    {
+      id: "pom",
+      why: "Prescription-only medicines such as botulinum toxin may not be advertised to the public (CAP Code 12.12).",
+      patterns: [w("botox|botulinum\\p{L}*|anti-?wrinkle (injection|treatment)s?|wrinkle[- ]relaxing (injection|treatment)s?")],
+    },
+  ],
+  // United States — ADA Code of Ethics (2025) 5.H: "specialist" only for the
+  // recognised specialties and qualified dentists; 5.F/5.F.2: no misleading
+  // representation of qualifications. State boards add their own rules.
+  US: [
+    {
+      id: "specialist",
+      why: "Announcing as a specialist or board-certified is limited to recognised specialties and qualified dentists (ADA Code 5.H, 5.F.2; state board rules); the writer cannot verify that, so the clinic adds it if true.",
+      patterns: [w(`${SPECIALIST_EN}|board[- ]certified`)],
+    },
+  ],
+  // Mexico — Reglamento de la LGS en Materia de Publicidad art. 79: health-
+  // service advertising may need a COFEPRIS permit or aviso; only the clinic
+  // knows whether it has one. Never invent or imply one.
+  MX: [
+    {
+      id: "permit",
+      why: "A COFEPRIS permit or aviso number may only be written by the clinic that holds it (Reglamento LGS en Materia de Publicidad art. 79).",
+      patterns: [w("(autorizad[oa]s?|aprobad[oa]s?|avalad[oa]s?|registrad[oa]s?|certificad[oa]s?) por (la )?cofepris|cofepris\\s*[:#]?\\s*(n[º°o]\\.?\\s*|núm\\p{L}*\\.?\\s*|número\\s*)?\\d+|(permiso|aviso) de publicidad\\s*[:#]?\\s*(n[º°o]\\.?\\s*|núm\\p{L}*\\.?\\s*|número\\s*)?\\d+")],
+    },
+  ],
+};
+
+/** The market's own deterministic checks (none for most markets). One hit per rule, like scanHardRules. */
+export function scanMarketRules(text: string, country: string | undefined): HardHit[] {
+  const hits: HardHit[] = [];
+  for (const rule of MARKET_HARD_RULES[marketCode(country)] ?? []) {
+    for (const re of rule.patterns) {
+      const m = text.match(re);
+      if (m) {
+        hits.push({ rule: rule.id, match: m[0], why: rule.why });
+        break;
+      }
+    }
+  }
+  return hits;
+}

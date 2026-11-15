@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
 import { LANDING_PATH, dirOf, type Locale } from "@/content/dentvideo";
-import { DEMO_COPY, fillDemo } from "@/content/dentvideo-demo";
+import { DEMO_COPY, demoFromPrice, fillDemo } from "@/content/dentvideo-demo";
 import { OPERATOR } from "@/content/guides/operator";
 import { demoLogoSrc, demoStartPath, type PublicDemo } from "@/lib/dentvid/demos";
 import { dvHref } from "@/lib/dentvid/host";
@@ -44,7 +44,8 @@ export function DemoPage({ locale, demo, logoSrc }: { locale: Locale; demo: Publ
   const t = DEMO_COPY[locale];
   const name = demo.clinicName;
   const colour = demo.colour;
-  const facts = [t.facts.from, t.facts.cancel, t.facts.approve, t.facts.rules];
+  // The price in the currency this clinic's country is billed in (the demo's country, else the page's language).
+  const facts = [fillDemo(t.facts.from, { price: demoFromPrice(locale, demo.country) }), t.facts.cancel, t.facts.approve, t.facts.rules];
   const mailHref = `mailto:${OPERATOR.productEmail}?subject=${encodeURIComponent(fillDemo(t.mailSubject, { name }))}`;
   const profile = {
     name,

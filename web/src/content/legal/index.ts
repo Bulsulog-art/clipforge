@@ -1,6 +1,6 @@
 import { LOCALES, type Locale } from "../dentvideo";
 import { OPERATOR } from "../guides/entity";
-import { DV_PRICES_USD } from "@/lib/dentvid/billing";
+import { DV_CURRENCIES, DV_LIST_PRICES, formatDvPrice, type DvPricedTier } from "@/lib/dentvid/pricing";
 import { LEGAL_KINDS, type LegalKind, type LegalText } from "./types";
 import { EN } from "./en";
 import { DE } from "./de";
@@ -21,7 +21,8 @@ export const LEGAL: Record<Locale, LegalText> = { en: EN, de: DE, es: ES, tr: TR
 /** Every legal page as [locale, kind]. */
 export const LEGAL_PAGES: [Locale, LegalKind][] = LOCALES.flatMap((l) => LEGAL_KINDS.map((k) => [l, k] as [Locale, LegalKind]));
 
-const usd = (n: number | undefined) => (typeof n === "number" ? `$${n.toLocaleString("en-US")}` : "");
+/** "$79 / €79 / 2.490 TL": a tier's list price in every billing currency (pricing.ts), for the Terms. */
+const listPrices = (tier: DvPricedTier, locale: Locale) => DV_CURRENCIES.map((c) => formatDvPrice(locale, c, DV_LIST_PRICES[tier][c])).join(" / ");
 
 /** The one-line postal address, with the country in the page's language. */
 export function operatorAddress(locale: Locale): string {
@@ -43,8 +44,8 @@ export function legalTokens(locale: Locale): Record<string, string> {
     director: OPERATOR.director,
     email: OPERATOR.productEmail,
     companyEmail: OPERATOR.companyEmail,
-    starter: usd(DV_PRICES_USD.starter.month),
-    practice: usd(DV_PRICES_USD.practice.month),
+    starter: listPrices("starter", locale),
+    practice: listPrices("practice", locale),
   };
 }
 

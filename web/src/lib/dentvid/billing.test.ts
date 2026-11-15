@@ -12,7 +12,8 @@ import {
   dvTransition,
   isDentvideoEvent,
   needsPlan,
-  normaliseCode,
+  buildDvStaticLink,
+  DV_CHECKOUT_FEATURE_FLAGS,
   type ClinicBilling,
 } from "./billing";
 
@@ -40,11 +41,11 @@ describe("DentVideo products", () => {
     expect(dvPlanForProduct("pdt_clipforge", env)).toBeNull();
   });
 
-  it("offers exactly Starter $29/month and Practice $49/month — monthly only, Group is Contact us", () => {
-    expect(DV_PRICES_USD).toEqual({ starter: { month: 29 }, practice: { month: 49 }, group: {} });
+  it("offers exactly Starter $79/month and Practice $149/month (€79/€149, 2.490/4.490 TL) — monthly only, Group is Contact us", () => {
+    expect(DV_PRICES_USD).toEqual({ starter: { month: 79 }, practice: { month: 149 }, group: {} });
     expect(dvAvailablePlans({})).toEqual([
-      { tier: "starter", interval: "month", priceUsd: 29 },
-      { tier: "practice", interval: "month", priceUsd: 49 },
+      { tier: "starter", interval: "month", priceUsd: 79, prices: { USD: 79, EUR: 79, TRY: 2490 } },
+      { tier: "practice", interval: "month", priceUsd: 149, prices: { USD: 149, EUR: 149, TRY: 4490 } },
     ]);
     // Even with every yearly / Group product id configured, nothing yearly and no Group is offered.
     const env = {
@@ -52,7 +53,7 @@ describe("DentVideo products", () => {
       DENTVIDEO_DODO_PRODUCT_STARTER_YEARLY: "pdt_starter_year",
       DENTVIDEO_DODO_PRODUCT_PRACTICE_YEARLY: "pdt_practice_year",
     };
-    expect(dvAvailablePlans(env).map((p) => `${p.tier}:${p.interval}:${p.priceUsd}`)).toEqual(["starter:month:29", "practice:month:49"]);
+    expect(dvAvailablePlans(env).map((p) => `${p.tier}:${p.interval}:${p.priceUsd}`)).toEqual(["starter:month:79", "practice:month:149"]);
   });
 
   it("the legacy Practice yearly product still maps in the webhook, but is never sold", () => {
@@ -75,14 +76,18 @@ describe("DentVideo products", () => {
 });
 
 describe("buildDvCheckout", () => {
-  it("Practice monthly: no discount code by default, with metadata and return URL", () => {
-    const r = buildDvCheckout({ ...base, tier: "practice", interval: "month", locale: "tr" }, ENV);
+  it("Practice monthly: list price only, no discount field, billing country and currency, metadata and return URL", () => {
+    const r = buildDvCheckout({ ...base, tier: "practice", interval: "month", locale: "tr", country: "tr" }, ENV);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.discount).toBeNull();
+    expect(r.currency).toBe("TRY");
+    expect(r.country).toBe("TR");
     expect(r.body).toEqual({
       product_cart: [{ product_id: "pdt_0NrVai0xqpQKU8H3Zj3QN", quantity: 1 }],
       customer: { email: "dr@clinic.example" },
+      billing_address: { country: "TR" },
+      billing_currency: "TRY",
+      feature_flags: { allow_discount_code: false, allow_tax_id: true, allow_currency_selection: false },
       metadata: { app: "dentvideo", clinic_id: CLINIC, owner_id: OWNER, plan: "practice", interval: "month" },
       return_url: "https://dentvideo.com/app?billing=success",
       cancel_url: "https://dentvideo.com/app?billing=cancelled",
@@ -99,18 +104,57 @@ describe("buildDvCheckout", () => {
     expect(other.ok && other.body).not.toHaveProperty("customization");
   });
 
-  it("applies no discount code by default on any plan, whatever the old founding env vars say", () => {
-    const oldEnv = { ...ENV, DENTVIDEO_FOUNDING_OFFER: "1", DENTVIDEO_FOUNDING_CODE: "KURUCU100" };
-    for (const [tier, interval] of [["starter", "month"], ["practice", "month"]] as const) {
+  it("never sends a discount code and always hides Dodo's discount field, on every plan, country and env", () => {
+    const oldEnv = { ...ENV, DENTVIDEO_FOUNDING_OFFER: "1", DENTVIDEO_FOUNDING_CODE: "KURUCU100", DENTVIDEO_FOUNDING_DISCOUNT_ID: "dsc_1" };
+    // A caller that still passes a "code" (an old client) gets no further than the type: it is dropped, never forwarded.
+    const legacy = { code: "KURUCU100" } as unknown as Record<string, never>;
+    for (const tier of ["starter", "practice"] as const) {
       for (const env of [ENV, oldEnv, {}]) {
-        const r = buildDvCheckout({ ...base, tier, interval }, env);
-        expect(r.ok, `${tier}/${interval}`).toBe(true);
-        if (r.ok) {
-          expect(r.discount).toBeNull();
+        for (const country of [null, "US", "DE", "TR", "PL", "GB"]) {
+          const r = buildDvCheckout({ ...base, ...legacy, tier, interval: "month", country }, env);
+          expect(r.ok, `${tier}/${country}`).toBe(true);
+          if (!r.ok) continue;
           expect("discount_codes" in r.body).toBe(false);
+          expect(JSON.stringify(r.body)).not.toMatch(/KURUCU|discount_codes|DV_FOUNDING/i);
+          expect(r.body.feature_flags).toEqual(DV_CHECKOUT_FEATURE_FLAGS);
+          expect((r.body.feature_flags as Record<string, boolean>).allow_discount_code).toBe(false);
+          expect((r.body.feature_flags as Record<string, boolean>).allow_tax_id).toBe(true);
         }
       }
     }
+  });
+
+  it("billing currency follows the clinic's country: EUR in the euro area, TRY in Türkiye, USD elsewhere and when unknown", () => {
+    const cur = (country: string | null) => {
+      const r = buildDvCheckout({ ...base, tier: "starter", interval: "month", country }, ENV);
+      return r.ok ? [r.body.billing_currency, (r.body.billing_address as { country?: string } | undefined)?.country ?? null] : null;
+    };
+    expect(cur("DE")).toEqual(["EUR", "DE"]);
+    expect(cur("es")).toEqual(["EUR", "ES"]);
+    expect(cur("AT")).toEqual(["EUR", "AT"]);
+    expect(cur("TR")).toEqual(["TRY", "TR"]);
+    expect(cur("US")).toEqual(["USD", "US"]);
+    expect(cur("PL")).toEqual(["USD", "PL"]);
+    expect(cur("GB")).toEqual(["USD", "GB"]);
+    expect(cur(null)).toEqual(["USD", null]);
+    expect(cur("not a country")).toEqual(["USD", null]);
+  });
+
+  it("the payment link (no API key) carries the same country and currency, no currency picker and no discount field", () => {
+    const r = buildDvCheckout({ ...base, tier: "practice", interval: "month", country: "DE" }, ENV);
+    if (!r.ok) throw new Error("unavailable");
+    const url = new URL(buildDvStaticLink(r, { DODO_ENVIRONMENT: "live" }));
+    expect(url.origin + url.pathname).toBe("https://checkout.dodopayments.com/buy/pdt_0NrVai0xqpQKU8H3Zj3QN");
+    expect(url.searchParams.get("country")).toBe("DE");
+    expect(url.searchParams.get("paymentCurrency")).toBe("EUR");
+    expect(url.searchParams.get("showCurrencySelector")).toBe("false");
+    expect(url.searchParams.get("showDiscounts")).toBe("false");
+    expect(url.searchParams.get("metadata_clinic_id")).toBe(CLINIC);
+    const usd = buildDvCheckout({ ...base, tier: "starter", interval: "month" }, ENV);
+    if (!usd.ok) throw new Error("unavailable");
+    const u2 = new URL(buildDvStaticLink(usd, {}));
+    expect(u2.searchParams.has("country")).toBe(false);
+    expect(u2.searchParams.get("paymentCurrency")).toBe("USD");
   });
 
   it("checks out the plan's own monthly product", () => {
@@ -125,32 +169,22 @@ describe("buildDvCheckout", () => {
     }
   });
 
-  it("a code the clinic typed is sent, normalised", () => {
-    const r = buildDvCheckout({ ...base, tier: "practice", interval: "month", code: "  welcome10 " }, ENV);
-    expect(r.ok && r.body.discount_codes).toEqual(["WELCOME10"]);
-    expect(r.ok && r.discount).toBe("WELCOME10");
-    const s = buildDvCheckout({ ...base, tier: "starter", interval: "month", code: "start5" }, ENV);
-    expect(s.ok && s.body.discount_codes).toEqual(["START5"]);
-  });
-
-  it("ignores implausible codes (no code is substituted) and unknown locales", () => {
-    const r = buildDvCheckout({ ...base, tier: "practice", interval: "month", code: "bad code!", locale: "it" }, { ...ENV, DENTVIDEO_FOUNDING_CODE: "FOUNDERS" });
-    expect(r.ok && r.body.discount_codes).toBeUndefined();
+  it("leaves unknown locales to Dodo", () => {
+    const r = buildDvCheckout({ ...base, tier: "practice", interval: "month", locale: "it" }, ENV);
     expect(r.ok && r.body.customization).toBeUndefined();
-    expect(normaliseCode("x".repeat(41))).toBeNull();
   });
 
   it("refuses plans that are not sold: no yearly billing, even with a yearly product configured", () => {
     expect(buildDvCheckout({ ...base, tier: "starter", interval: "year" }, ENV)).toEqual({ ok: false, reason: "unavailable" });
     expect(buildDvCheckout({ ...base, tier: "practice", interval: "year" }, ENV)).toEqual({ ok: false, reason: "unavailable" });
     const env = { ...ENV, DENTVIDEO_DODO_PRODUCT_STARTER_YEARLY: "pdt_starter_year" };
-    expect(buildDvCheckout({ ...base, tier: "starter", interval: "year", code: "x" }, env)).toEqual({ ok: false, reason: "unavailable" });
+    expect(buildDvCheckout({ ...base, tier: "starter", interval: "year" }, env)).toEqual({ ok: false, reason: "unavailable" });
   });
 
-  it("refuses Group, monthly or yearly, even with a code or a configured product: it is Contact us", () => {
+  it("refuses Group, monthly or yearly, even with a configured product: it is Contact us", () => {
     const env = { ...ENV, DENTVIDEO_DODO_PRODUCT_GROUP_YEARLY: "pdt_group_year" };
     for (const interval of ["month", "year"] as const) {
-      expect(buildDvCheckout({ ...base, tier: "group", interval, code: "group5" }, env)).toEqual({ ok: false, reason: "contact_sales" });
+      expect(buildDvCheckout({ ...base, tier: "group", interval }, env)).toEqual({ ok: false, reason: "contact_sales" });
     }
   });
 

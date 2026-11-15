@@ -86,7 +86,7 @@ export const ES: LegalText = {
         {
           heading: "6. Planes, precios y pago",
           blocks: [
-            "DentVideo se paga por adelantado; no hay prueba gratuita. Antes de pagar ves una vista previa en directo de vídeos con el nombre, los colores y el logo de tu clínica. Planes actuales, en dólares estadounidenses:",
+            "DentVideo se paga por adelantado; no hay prueba gratuita. Antes de pagar ves una vista previa en directo de vídeos con el nombre, los colores y el logo de tu clínica. Precios de lista mensuales actuales, impuestos no incluidos. Pagas en la moneda de tu país de facturación: euros en la zona euro, liras turcas en Turquía y dólares estadounidenses en el resto:",
             {
               list: [
                 "Starter: {starter} al mes.",
@@ -197,6 +197,7 @@ export const ES: LegalText = {
                 "Facturación: tu plan, estado de la suscripción, fecha de renovación y las referencias de suscripción, cliente y pago de Dodo Payments. Los datos de la tarjeta los gestiona Dodo Payments y nunca nos llegan.",
                 "Correos: qué correos del servicio hemos enviado a tu clínica y si te has dado de baja de los recordatorios.",
                 "Eventos de uso: un pequeño registro propio de pasos como «página vista» o «plan elegido», con el idioma de la página, las etiquetas de campaña (utm) y el dominio de la web de procedencia. No guardan ningún ID de cookie, dirección IP, datos del navegador, nombre ni correo.",
+                "Clics en anuncios: si llegas a dentvideo.com desde uno de nuestros anuncios de Google, el identificador de clic que Google añade al enlace (gclid, gbraid o wbraid) y la hora del clic. Si después creas una cuenta, lo guardamos con tu cuenta. En la UE/EEE, el Reino Unido y Suiza, solo si lo permites en el aviso que se muestra a estos visitantes.",
                 "Datos técnicos: tu dirección IP y los datos de la solicitud se tratan para servir las páginas, proteger el servicio y limitar abusos (contadores de límite de peticiones de corta duración).",
               ],
             },
@@ -205,7 +206,7 @@ export const ES: LegalText = {
         {
           heading: "3. Cookies y almacenamiento del navegador",
           blocks: [
-            "Usamos solo lo que el servicio necesita: cookies de sesión para el acceso, una cookie que recuerda tu idioma, una cookie que recuerda hasta dónde llegaste en el registro y almacenamiento temporal del navegador durante el registro. No usamos cookies publicitarias ni de analítica de terceros.",
+            "Usamos solo lo que el servicio necesita: cookies de sesión para el acceso, una cookie que recuerda tu idioma, una cookie que recuerda hasta dónde llegaste en el registro y almacenamiento temporal del navegador durante el registro. No usamos cookies publicitarias ni de analítica de terceros. Si llegas desde uno de nuestros anuncios de Google, el almacenamiento del navegador de este sitio guarda además el identificador de clic del anuncio hasta 90 días; en la UE/EEE, el Reino Unido y Suiza, solo después de que lo permitas, y si lo rechazas no se guarda. No cargamos scripts publicitarios ni de analítica de terceros (ninguna etiqueta de Google).",
           ],
         },
         {
@@ -219,9 +220,10 @@ export const ES: LegalText = {
                 "Saber qué páginas y canales atraen clínicas, con los eventos de uso anónimos indicados (interés legítimo).",
                 "Enviar recordatorios sobre un registro sin terminar, que puedes detener con el enlace de baja (interés legítimo).",
                 "Cumplir obligaciones legales, como los registros contables y fiscales (obligación legal).",
+                "Medir qué anuncios nuestros de Google traen registros y clínicas que pagan: cuando se crea una cuenta o una clínica paga por primera vez, comunicamos ese evento con el identificador de clic a Google Ads (consentimiento en la UE/EEE, el Reino Unido y Suiza; interés legítimo en los demás casos).",
               ],
             },
-            "No vendemos datos personales, no los usamos para publicidad y no usamos lo que subes ni tus vídeos para entrenar modelos de IA.",
+            "No vendemos datos personales, no los usamos para segmentar publicidad ni para crear perfiles publicitarios, y no usamos lo que subes ni tus vídeos para entrenar modelos de IA.",
           ],
         },
         {
@@ -230,6 +232,7 @@ export const ES: LegalText = {
             "Trabajamos con pocos proveedores. Cada uno recibe solo lo que necesita para su tarea:",
             { subprocessors: true },
             "También consultamos términos de búsqueda generales (como el nombre de un tratamiento y un idioma) en las sugerencias de búsqueda públicas de Google y en la biblioteca de vídeos de archivo de Pexels. Estas consultas no contienen datos personales. La base de datos, los accesos y el almacenamiento de archivos funcionan en nuestra propia instalación del software de código abierto Supabase en nuestro servidor; Supabase Inc. no recibe los datos.",
+            "Si llegaste desde uno de nuestros anuncios de Google, enviamos a Google Ads (Google) el identificador de clic, qué conversión se produjo (cuenta creada o primer pago), cuándo y un valor fijo que le asignamos. Lo subimos nosotros mismos: en nuestras páginas no se ejecuta ningún script de Google y no enviamos a Google ningún nombre, correo electrónico ni dato de pago. Google lo trata según sus propias condiciones publicitarias y su política de privacidad.",
           ],
         },
         {
@@ -248,6 +251,7 @@ export const ES: LegalText = {
                 "Facturas y registros de pago: los conserva Dodo Payments como comerciante registrado según sus propias obligaciones legales, y nosotros en la medida en que lo exija la normativa contable y fiscal.",
                 "Contadores de límite de peticiones: de minutos a horas.",
                 "Clínicas a las que contactamos con una demo personalizada: creamos la demo nosotros a partir de información comercial pública (nombre de la clínica, ciudad, país, color de marca y logotipo) y la conservamos hasta 60 días, salvo que la clínica se registre. Para que borremos una demo antes, escriba a {email}.",
+                "Identificadores de clic de anuncios y las conversiones registradas con ellos: se eliminan 90 días después del clic. Lo que ya hemos comunicado a Google Ads lo conserva Google según sus propias políticas.",
               ],
             },
           ],
@@ -255,7 +259,7 @@ export const ES: LegalText = {
         {
           heading: "8. Tus derechos",
           blocks: [
-            "Según la ley que te sea aplicable, puedes pedirnos acceso a tus datos, rectificación, supresión, limitación del tratamiento y una copia en formato portable, y oponerte al tratamiento basado en intereses legítimos. Puedes eliminar tu cuenta tú mismo en Ajustes. Escribe a {email}; respondemos en el plazo de un mes.",
+            "Según la ley que te sea aplicable, puedes pedirnos acceso a tus datos, rectificación, supresión, limitación del tratamiento y una copia en formato portable, y oponerte al tratamiento basado en intereses legítimos. Puedes eliminar tu cuenta tú mismo en Ajustes. Escribe a {email}; respondemos en el plazo de un mes. Puedes retirar tu consentimiento a la medición de anuncios en cualquier momento escribiendo a {email} o, antes de registrarte, borrando los datos de este sitio en tu navegador; entonces eliminamos el identificador de clic que tengamos. La retirada no afecta a lo realizado antes.",
             "También puedes reclamar ante una autoridad de protección de datos: en Montenegro, la Agencia de Protección de Datos Personales y Libre Acceso a la Información; en la UE/EEE, la autoridad de tu país (en España, la AEPD); en el Reino Unido, la Information Commissioner's Office; en Turquía, la Autoridad de Protección de Datos Personales (KVKK).",
             "Aplicamos la ley de protección de datos personales de Montenegro y, cuando se aplican a nuestro tratamiento, el Reglamento General de Protección de Datos de la UE (RGPD), el UK GDPR y la Ley n.º 6698 de Turquía sobre protección de datos personales (KVKK).",
           ],

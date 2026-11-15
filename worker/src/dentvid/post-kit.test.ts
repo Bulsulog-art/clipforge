@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { captionNotice } from "../dental/mandatory-notice.js";
 import { buildPostKit, firstSentence, localTags, postHashtags, postKitProblems, softCta, tagWord, trimClosing, withPostKit } from "./post-kit.js";
 import { scanHardRules } from "../dental/compliance.js";
 import { ctaProblems } from "../dental/style.js";
@@ -109,8 +110,11 @@ describe("texts", () => {
       expect(tags.length).toBeLessThanOrEqual(10);
       expect(tags.every((t) => t.startsWith("#"))).toBe(true);
       expect(kit.short.split("\n")[0]).toContain(kit.cta);
-      expect(kit.short.split("\n")[1].split(" ")).toHaveLength(3);
-      expect(kit.short.length).toBeLessThanOrEqual(260);
+      expect(kit.short.split("\n").at(-1)!.split(" ")).toHaveLength(3);
+      // Türkiye adds the RG 33075 md. 7/1-k warning as its own line (mandatory-notice.ts).
+      const notice = captionNotice(s.profile.country);
+      if (notice) expect(kit.short.split("\n")[1]).toBe(notice);
+      expect(kit.short.length).toBeLessThanOrEqual(260 + (notice ? notice.length + 1 : 0));
       expect(postKitProblems(kit, s.profile.country)).toEqual([]);
       expect(scanHardRules(kit.instagram)).toEqual([]);
       expect(scanHardRules(kit.short)).toEqual([]);

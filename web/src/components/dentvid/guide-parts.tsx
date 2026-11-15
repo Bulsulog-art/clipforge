@@ -34,16 +34,18 @@ export function RichText({ text, locale }: { text: string; locale: Locale }) {
 export function Breadcrumbs({ items }: { items: { name: string; href?: string }[] }) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-1.5 text-sm text-dv-muted">
+      {/* One line: the current page (always last) is cut with an ellipsis rather than wrapping a lone chevron onto a second line. */}
+      <ol className="flex items-center gap-1.5 text-sm text-dv-muted">
         {items.map((it, i) => (
-          <li key={i} className="flex items-center gap-1.5">
+          <li key={i} className={`flex items-center gap-1.5 ${it.href ? "shrink-0" : "min-w-0"}`}>
             {i > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 rtl:-scale-x-100" aria-hidden="true" />}
             {it.href ? (
-              <Link href={dvHref(it.href)} className="-my-0.5 inline-block rounded-md py-0.5 font-medium text-dv-teal underline-offset-4 hover:underline">
+              // A 44px-tall tap area without moving the line: the padding is taken back by the negative margin.
+              <Link href={dvHref(it.href)} className="-my-3 inline-flex min-h-11 items-center whitespace-nowrap rounded-md font-medium text-dv-teal underline-offset-4 hover:underline">
                 {it.name}
               </Link>
             ) : (
-              <span aria-current="page" className="line-clamp-1">{it.name}</span>
+              <span aria-current="page" className="truncate">{it.name}</span>
             )}
           </li>
         ))}
@@ -66,7 +68,7 @@ export function GuideCta({ locale }: { locale: Locale }) {
           {t.button}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
         </Link>
-        <Link href={dvHref(`${LANDING_PATH[locale]}#how`)} className="rounded-md font-semibold text-[#8fd1c6] underline-offset-4 hover:underline">
+        <Link href={dvHref(`${LANDING_PATH[locale]}#how`)} className="inline-flex min-h-11 items-center rounded-md font-semibold text-[#8fd1c6] underline-offset-4 hover:underline">
           {t.more}
         </Link>
       </div>

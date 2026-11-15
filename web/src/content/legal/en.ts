@@ -89,7 +89,7 @@ export const EN: LegalText = {
         {
           heading: "6. Plans, prices and payment",
           blocks: [
-            "DentVideo is paid in advance; there is no free trial. Before you pay, you can see a live preview of videos in your clinic's name, colours and logo. Current plans, in US dollars:",
+            "DentVideo is paid in advance; there is no free trial. Before you pay, you can see a live preview of videos in your clinic's name, colours and logo. Current monthly list prices, excluding tax. You pay in the currency of your billing country: euros in the euro area, Turkish lira in Türkiye, US dollars everywhere else:",
             {
               list: [
                 "Starter: {starter} per month.",
@@ -203,6 +203,7 @@ export const EN: LegalText = {
                 "Billing: your plan, subscription status, renewal date and the Dodo Payments subscription, customer and payment references. Card details are handled by Dodo Payments and never reach us.",
                 "Emails: a record of which service emails we sent to your clinic, and whether you unsubscribed from reminders.",
                 "Usage events: a small first-party record of steps such as \"landing page viewed\" or \"plan chosen\", with the page language, campaign tags (utm) and the referring website's host. These events store no cookie ID, no IP address, no browser details and no name or email.",
+                "Ad clicks: if you reach dentvideo.com from one of our Google ads, the click identifier Google adds to the link (gclid, gbraid or wbraid) and the time of the click. If you then create an account, we store it with your account. In the EU/EEA, the UK and Switzerland we keep it only if you allow it in the prompt shown to these visitors.",
                 "Technical data: your IP address and request details are processed to deliver pages, keep the service secure and limit abuse (short-lived rate-limit counters).",
               ],
             },
@@ -211,7 +212,7 @@ export const EN: LegalText = {
         {
           heading: "3. Cookies and browser storage",
           blocks: [
-            "We use only what the service needs: login session cookies, a cookie that remembers your language, a cookie that remembers how far you got in sign-up, and short-lived browser storage while you sign up. We use no advertising or third-party analytics cookies.",
+            "We use only what the service needs: login session cookies, a cookie that remembers your language, a cookie that remembers how far you got in sign-up, and short-lived browser storage while you sign up. We use no advertising or third-party analytics cookies. If you came from one of our Google ads, this site's own browser storage also keeps the ad click identifier for up to 90 days — in the EU/EEA, the UK and Switzerland only after you allow it; if you decline, it is not stored. We load no third-party advertising or analytics scripts (no Google tag).",
           ],
         },
         {
@@ -225,9 +226,10 @@ export const EN: LegalText = {
                 "To understand which pages and channels bring clinics, using the anonymous usage events above (legitimate interests).",
                 "To send reminders about an unfinished sign-up, which you can stop with the unsubscribe link (legitimate interests).",
                 "To meet legal obligations, such as accounting and tax records (legal obligation).",
+                "To measure which of our Google ads bring sign-ups and paying clinics: when an account is created or a clinic pays for the first time, we report that event with the ad click identifier to Google Ads (consent in the EU/EEA, the UK and Switzerland; legitimate interests elsewhere).",
               ],
             },
-            "We do not sell personal data, we do not use it for advertising, and we do not use your uploads or videos to train AI models.",
+            "We do not sell personal data, we do not use it to target advertising or to build advertising profiles, and we do not use your uploads or videos to train AI models.",
           ],
         },
         {
@@ -236,6 +238,7 @@ export const EN: LegalText = {
             "We use a small number of providers. Each receives only what it needs for its task:",
             { subprocessors: true },
             "We also look up general search terms (such as a treatment name and language) in Google's public search suggestions and in the Pexels stock-video library. These requests contain no personal data. Our database, logins and file storage run on our own installation of the open-source Supabase software on our server; Supabase Inc. does not receive the data.",
+            "If you came from one of our Google ads, we send Google Ads (Google) the ad click identifier, which conversion happened (account created, or first payment), when, and a fixed value we assign to it. We upload this ourselves: no Google script runs on our pages, and we send Google no name, email address or payment details. Google processes it under its own advertising terms and privacy policy.",
           ],
         },
         {
@@ -254,6 +257,7 @@ export const EN: LegalText = {
                 "Invoices and payment records: kept by Dodo Payments as merchant of record under its own legal obligations, and by us as far as accounting and tax law requires.",
                 "Rate-limit counters: minutes to hours.",
                 "Clinics we contact with a personalised demo: we create the demo ourselves from public business information (clinic name, city, country, brand colour and logo) and keep it for up to 60 days, unless the clinic signs up. To have a demo deleted sooner, write to {email}.",
+                "Ad click identifiers and the conversions recorded with them: deleted 90 days after the click. What we have already reported to Google Ads is kept by Google under its own policies.",
               ],
             },
           ],
@@ -261,7 +265,7 @@ export const EN: LegalText = {
         {
           heading: "8. Your rights",
           blocks: [
-            "Depending on the law that applies to you, you can ask us for access to your data, correction, deletion, restriction, a copy in a portable format, and you can object to processing based on legitimate interests. You can delete your account yourself in Settings. Write to {email}; we answer within one month.",
+            "Depending on the law that applies to you, you can ask us for access to your data, correction, deletion, restriction, a copy in a portable format, and you can object to processing based on legitimate interests. You can delete your account yourself in Settings. Write to {email}; we answer within one month. You can withdraw your consent to ad measurement at any time by writing to {email}, or before you sign up by clearing this site's data in your browser; we then delete the click identifier we hold. Withdrawal does not affect what was done before it.",
             "You can also complain to a data protection authority: in Montenegro the Agency for Personal Data Protection and Free Access to Information; in the EU/EEA the authority in your country; in the UK the Information Commissioner's Office; in Türkiye the Personal Data Protection Authority (KVKK).",
             "We apply Montenegro's law on personal data protection and, where they apply to our processing, the EU General Data Protection Regulation (GDPR), the UK GDPR and Türkiye's Law No. 6698 on the Protection of Personal Data (KVKK).",
           ],

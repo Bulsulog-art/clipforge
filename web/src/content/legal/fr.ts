@@ -86,7 +86,7 @@ export const FR: LegalText = {
         {
           heading: "6. Formules, prix et paiement",
           blocks: [
-            "DentVideo se paie d'avance ; il n'y a pas d'essai gratuit. Avant de payer, vous voyez un aperçu en direct de vidéos aux nom, couleurs et logo de votre cabinet. Formules actuelles, en dollars américains :",
+            "DentVideo se paie d'avance ; il n'y a pas d'essai gratuit. Avant de payer, vous voyez un aperçu en direct de vidéos aux nom, couleurs et logo de votre cabinet. Prix catalogue mensuels actuels, hors taxes. Vous payez dans la devise de votre pays de facturation : en euros dans la zone euro, en livres turques en Turquie, en dollars américains partout ailleurs :",
             {
               list: [
                 "Starter : {starter} par mois.",
@@ -197,6 +197,7 @@ export const FR: LegalText = {
                 "Facturation : votre formule, le statut de l'abonnement, la date de renouvellement et les références d'abonnement, de client et de paiement de Dodo Payments. Les données de carte sont traitées par Dodo Payments et ne nous parviennent jamais.",
                 "E-mails : les e-mails de service envoyés à votre cabinet et votre éventuelle désinscription des rappels.",
                 "Événements d'usage : un petit journal interne d'étapes comme « page d'accueil vue » ou « formule choisie », avec la langue de la page, les balises de campagne (utm) et le domaine du site d'origine. Ils ne contiennent ni identifiant de cookie, ni adresse IP, ni données de navigateur, ni nom ou e-mail.",
+                "Clics sur nos annonces : si vous arrivez sur dentvideo.com depuis l'une de nos annonces Google, l'identifiant de clic que Google ajoute au lien (gclid, gbraid ou wbraid) et l'heure du clic. Si vous créez ensuite un compte, nous l'enregistrons avec votre compte. Dans l'UE/EEE, au Royaume-Uni et en Suisse, uniquement si vous l'autorisez dans la question affichée à ces visiteurs.",
                 "Données techniques : votre adresse IP et les données de requête sont traitées pour afficher les pages, sécuriser le service et limiter les abus (compteurs de limitation de courte durée).",
               ],
             },
@@ -205,7 +206,7 @@ export const FR: LegalText = {
         {
           heading: "3. Cookies et stockage du navigateur",
           blocks: [
-            "Nous n'utilisons que ce dont le service a besoin : des cookies de session pour la connexion, un cookie qui mémorise votre langue, un cookie qui mémorise votre progression dans l'inscription et un stockage temporaire du navigateur pendant l'inscription. Nous n'utilisons aucun cookie publicitaire ni de mesure d'audience tiers.",
+            "Nous n'utilisons que ce dont le service a besoin : des cookies de session pour la connexion, un cookie qui mémorise votre langue, un cookie qui mémorise votre progression dans l'inscription et un stockage temporaire du navigateur pendant l'inscription. Nous n'utilisons aucun cookie publicitaire ni de mesure d'audience tiers. Si vous venez de l'une de nos annonces Google, le stockage du navigateur propre à ce site conserve aussi l'identifiant de clic de l'annonce pendant 90 jours au plus ; dans l'UE/EEE, au Royaume-Uni et en Suisse, seulement après votre accord, et rien n'est conservé si vous refusez. Nous ne chargeons aucun script publicitaire ou de mesure d'audience tiers (pas de balise Google).",
           ],
         },
         {
@@ -219,9 +220,10 @@ export const FR: LegalText = {
                 "Comprendre quelles pages et quels canaux amènent des cabinets, grâce aux événements d'usage anonymes ci-dessus (intérêt légitime).",
                 "Envoyer des rappels concernant une inscription inachevée, que vous pouvez arrêter via le lien de désinscription (intérêt légitime).",
                 "Respecter nos obligations légales, comme la tenue des registres comptables et fiscaux (obligation légale).",
+                "Mesurer quelles annonces Google nous apportent des inscriptions et des cabinets payants : lorsqu'un compte est créé ou qu'un cabinet paie pour la première fois, nous transmettons cet événement avec l'identifiant de clic à Google Ads (consentement dans l'UE/EEE, au Royaume-Uni et en Suisse ; intérêts légitimes ailleurs).",
               ],
             },
-            "Nous ne vendons pas de données personnelles, ne les utilisons pas à des fins publicitaires et n'utilisons ni vos envois ni vos vidéos pour entraîner des modèles d'IA.",
+            "Nous ne vendons pas de données personnelles, ne les utilisons ni pour cibler de la publicité ni pour constituer des profils publicitaires, et n'utilisons ni vos envois ni vos vidéos pour entraîner des modèles d'IA.",
           ],
         },
         {
@@ -230,6 +232,7 @@ export const FR: LegalText = {
             "Nous travaillons avec peu de prestataires. Chacun ne reçoit que ce dont il a besoin pour sa tâche :",
             { subprocessors: true },
             "Nous interrogeons aussi des termes de recherche généraux (comme le nom d'un soin et une langue) dans les suggestions de recherche publiques de Google et dans la banque de vidéos Pexels. Ces requêtes ne contiennent aucune donnée personnelle. La base de données, les connexions et le stockage des fichiers fonctionnent sur notre propre installation du logiciel libre Supabase sur notre serveur ; Supabase Inc. ne reçoit pas les données.",
+            "Si vous êtes venu par l'une de nos annonces Google, nous envoyons à Google Ads (Google) l'identifiant de clic, la conversion qui a eu lieu (compte créé ou premier paiement), sa date et une valeur fixe que nous lui attribuons. Nous l'importons nous-mêmes : aucun script Google ne s'exécute sur nos pages et nous n'envoyons à Google ni nom, ni adresse e-mail, ni données de paiement. Google les traite selon ses propres conditions publicitaires et sa politique de confidentialité.",
           ],
         },
         {
@@ -248,6 +251,7 @@ export const FR: LegalText = {
                 "Factures et justificatifs de paiement : conservés par Dodo Payments en tant que marchand officiel selon ses propres obligations légales, et par nous dans la mesure exigée par le droit comptable et fiscal.",
                 "Compteurs de limitation : de quelques minutes à quelques heures.",
                 "Cabinets que nous contactons avec une démo personnalisée : nous créons nous-mêmes la démo à partir d'informations professionnelles publiques (nom du cabinet, ville, pays, couleur de marque et logo) et la conservons 60 jours au plus, sauf si le cabinet s'inscrit. Pour faire supprimer une démo plus tôt, écrivez à {email}.",
+                "Identifiants de clic publicitaire et conversions enregistrées avec eux : supprimés 90 jours après le clic. Ce que nous avons déjà transmis à Google Ads est conservé par Google selon ses propres règles.",
               ],
             },
           ],
@@ -255,7 +259,7 @@ export const FR: LegalText = {
         {
           heading: "8. Vos droits",
           blocks: [
-            "Selon la loi qui vous est applicable, vous pouvez demander l'accès à vos données, leur rectification, leur effacement, la limitation du traitement et une copie dans un format portable, et vous opposer à un traitement fondé sur l'intérêt légitime. Vous pouvez supprimer vous-même votre compte dans les Réglages. Écrivez à {email} ; nous répondons dans un délai d'un mois.",
+            "Selon la loi qui vous est applicable, vous pouvez demander l'accès à vos données, leur rectification, leur effacement, la limitation du traitement et une copie dans un format portable, et vous opposer à un traitement fondé sur l'intérêt légitime. Vous pouvez supprimer vous-même votre compte dans les Réglages. Écrivez à {email} ; nous répondons dans un délai d'un mois. Vous pouvez retirer à tout moment votre consentement à la mesure publicitaire en écrivant à {email} ou, avant de vous inscrire, en effaçant les données de ce site dans votre navigateur ; nous supprimons alors l'identifiant de clic que nous détenons. Le retrait n'affecte pas ce qui a été fait auparavant.",
             "Vous pouvez aussi saisir une autorité de protection des données : au Monténégro, l'Agence pour la protection des données personnelles et le libre accès à l'information ; dans l'UE/EEE, l'autorité de votre pays (en France, la CNIL) ; au Royaume-Uni, l'Information Commissioner's Office ; en Turquie, l'Autorité de protection des données personnelles (KVKK).",
             "Nous appliquons la loi monténégrine sur la protection des données personnelles et, lorsqu'ils s'appliquent à nos traitements, le règlement général sur la protection des données de l'UE (RGPD), le UK GDPR et la loi turque n° 6698 sur la protection des données personnelles (KVKK).",
           ],

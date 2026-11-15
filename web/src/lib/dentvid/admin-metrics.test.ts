@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   billingHints,
   clinicMrr,
+  clinicMrrLocal,
+  DV_MRR_USD_PER,
   dailyCounts,
   foundingHistoric,
   withLedgerHints,
@@ -41,9 +43,22 @@ const ev = (name: string, opts: Partial<AdminEvent> & { daysAgo?: number } = {})
 
 describe("MRR", () => {
   it("prices each active clinic at its tier's list price", () => {
-    expect(clinicMrr({ plan: "active", plan_tier: "starter" })).toBe(29);
-    expect(clinicMrr({ plan: "active", plan_tier: "practice" })).toBe(49);
+    expect(clinicMrr({ plan: "active", plan_tier: "starter" })).toBe(79);
+    expect(clinicMrr({ plan: "active", plan_tier: "practice" })).toBe(149);
     expect(clinicMrr({ plan: "active", plan_tier: "group" })).toBe(279);
+  });
+
+  it("prices a clinic in its billing currency (EUR in the euro area, TL in Türkiye), with a rough USD figure", () => {
+    expect(clinicMrrLocal({ plan: "active", plan_tier: "starter", profile: { country: "DE" } })).toEqual({ currency: "EUR", amount: 79 });
+    expect(clinicMrrLocal({ plan: "active", plan_tier: "practice", profile: { country: "TR" } })).toEqual({ currency: "TRY", amount: 4490 });
+    expect(clinicMrrLocal({ plan: "active", plan_tier: "practice", profile: { country: "US" } })).toEqual({ currency: "USD", amount: 149 });
+    expect(clinicMrr({ plan: "active", plan_tier: "starter", profile: { country: "ES" } })).toBeCloseTo(79 * DV_MRR_USD_PER.EUR);
+    const r = revenue([
+      { id: "1", created_at: ago(3), plan: "active", plan_tier: "starter", profile: { country: "DE" } },
+      { id: "2", created_at: ago(3), plan: "active", plan_tier: "practice", profile: { country: "TR" } },
+      { id: "3", created_at: ago(3), plan: "active", plan_tier: "practice", profile: { country: "US" } },
+    ]);
+    expect(r.mrrByCurrency).toEqual({ USD: 149, EUR: 79, TRY: 4490 });
   });
 
   it("a historic founding Practice subscription still counts at the founding price (now equal to the list price)", () => {
@@ -54,7 +69,7 @@ describe("MRR", () => {
 
   it("a legacy yearly subscription is its old yearly price ÷ 12, and only where one existed (nothing yearly is sold)", () => {
     expect(clinicMrr({ plan: "active", plan_tier: "practice" }, { interval: "year" })).toBe(990 / 12);
-    expect(clinicMrr({ plan: "active", plan_tier: "starter" }, { interval: "year" })).toBe(29);
+    expect(clinicMrr({ plan: "active", plan_tier: "starter" }, { interval: "year" })).toBe(79);
   });
 
   it("not active or unknown tier → 0", () => {
@@ -82,8 +97,8 @@ describe("MRR", () => {
     const r = revenue(clinics, billingHints(events));
     expect(r.payingByTier).toEqual({ starter: 1, practice: 3, group: 1, unknown: 1 });
     expect(r.paying).toBe(6);
-    // 29 + 49 + 49 (historic founding) + 82.5 (legacy yearly) + 279 + 0 (unknown tier)
-    expect(r.mrrUsd).toBe(488.5);
+    // 79 + 149 + 49 (historic founding) + 82.5 (legacy yearly) + 279 + 0 (unknown tier)
+    expect(r.mrrUsd).toBe(638.5);
     expect(r.founding).toBe(1);
     expect(r.yearly).toBe(1);
   });
@@ -142,7 +157,7 @@ describe("growth, conversion and churn", () => {
     const r = revenue(clinics, h);
     expect(r.founding).toBe(0);
     expect(r.yearly).toBe(1);
-    expect(r.mrrUsd).toBe(49 + 990 / 12);
+    expect(r.mrrUsd).toBe(149 + 990 / 12);
   });
 
   it("founding is closed: a historic count (ledger, else Dodo, else checkout events) — never every active Practice clinic", () => {

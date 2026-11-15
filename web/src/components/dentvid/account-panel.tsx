@@ -10,7 +10,7 @@ import { dvBrowser } from "@/lib/dentvid/supabase";
 import { deleteConfirmOk, deletePhrase, mailtoHref } from "@/lib/dentvid/app-ui";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
 import type { DvTier } from "@/lib/dentvid/billing";
-import { tierName as planTierName, usd, type PlanOption } from "./plan-panel";
+import { planPrice, planTax, tierName as planTierName, type PlanOption } from "./plan-panel";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 
 /**
@@ -119,6 +119,7 @@ export function AccountPanel({
   selfServe,
   plan,
   plans,
+  country,
   clinicName,
   accountEmail = null,
   initialDialog = null,
@@ -131,6 +132,8 @@ export function AccountPanel({
   selfServe: boolean;
   plan: ClinicPlan | null;
   plans: PlanOption[];
+  /** The clinic's country (profile.country): prices in the currency it is billed in. */
+  country?: string | null;
   clinicName: string;
   /** The login's address: what to type when the clinic has no name (as the server allows). */
   accountEmail?: string | null;
@@ -261,7 +264,7 @@ export function AccountPanel({
 
   const [labelBefore, labelAfter = ""] = t.deleteTypeLabel.split("{name}");
   const tierName = (tier: DvTier) => planTierName(locale, tier);
-  const priceLine = (o: PlanOption) => `${usd(locale, o.priceUsd)} ${text.billing.perMonth}`;
+  const priceLine = (o: PlanOption) => `${planPrice(locale, o, country)} ${text.billing.perMonth} ${planTax(locale, country)}`;
 
   if (part === "billing") {
     return (
@@ -291,8 +294,9 @@ export function AccountPanel({
                   <li key={o.tier} className={`flex flex-col rounded-2xl p-4 ring-1 ring-inset ${current ? "bg-dv-teal-50 ring-dv-teal/30" : "bg-white ring-dv-line"}`}>
                     <span className="text-sm font-semibold text-dv-ink">{tierName(o.tier)}</span>
                     <span className="mt-0.5 flex flex-wrap items-baseline gap-x-1 text-sm text-dv-muted">
-                      <span dir="ltr">{usd(locale, o.priceUsd)}</span>
+                      <span dir="ltr">{planPrice(locale, o, country)}</span>
                       <span className="text-xs">{text.billing.perMonth}</span>
+                      <span className="text-xs">{planTax(locale, country)}</span>
                     </span>
                     <div className="mt-3">
                       {current ? (

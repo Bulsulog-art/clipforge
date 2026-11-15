@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { DV_TAX_LABEL, dvTierPrice } from "@/lib/dentvid/pricing";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
@@ -121,6 +122,7 @@ describe("country rules: only markets the reviewer is really briefed for", () =>
       PL: /Kodeks Etyki Lekarskiej \(2025, art\. 71\)/,
       SG: /Healthcare Services \(Advertisement\) Regulations 2021/,
       GB: /CAP Code \(enforced by the ASA\) and the GDC/,
+      US: /ADA Code of Ethics \(§ 5\.F[\s\S]*FTC/,
     };
     for (const m of RULE_MARKETS) expect(body, m.code).toMatch(named[m.code]);
   });
@@ -194,8 +196,10 @@ describe("landing layout contract", () => {
     const p = LANDING[l].pricing;
     const starter = pricing.slice(pricing.indexOf('data-tier="starter"'), pricing.indexOf('data-tier="practice"'));
     const practice = pricing.slice(pricing.indexOf('data-tier="practice"'), pricing.indexOf('data-tier="group"'));
-    expect(starter).toContain(p.tiers[0].price);
-    expect(practice).toContain(p.tiers[1].price);
+    // The server-rendered page shows the USD list price (the browser swaps in EUR / TL where Dodo charges them).
+    expect(starter).toContain(dvTierPrice(l, "starter", "USD"));
+    expect(practice).toContain(dvTierPrice(l, "practice", "USD"));
+    expect(starter).toContain(DV_TAX_LABEL[l].other);
     expect(practice).toContain(p.recommended);
     // No founding banner, no struck-through price, no yearly line.
     expect(pricing).not.toContain("data-founding-banner");

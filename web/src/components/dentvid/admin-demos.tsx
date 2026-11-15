@@ -140,7 +140,7 @@ export function AdminDemos({
                       {demos.map((d) => {
                         const live = isDemoActive(d, at);
                         const hot = isHotDemo(d.lastActivityAt, at);
-                        const msgs = demoMessages(demoLanguage(d.language), d.clinic_name, d.url);
+                        const msgs = demoMessages(demoLanguage(d.language), d.clinic_name, d.url, d.country);
                         return (
                           <tr key={d.token} className={`border-b border-dv-line align-top last:border-0 ${hot ? "bg-[#fff6ec]" : ""}`} data-token={d.token} data-hot={hot ? "1" : undefined}>
                             <td className="px-4 py-3">

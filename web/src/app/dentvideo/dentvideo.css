@@ -352,3 +352,25 @@ html:has(.dv) {
 :where(.dv) #samples ul::-webkit-scrollbar {
   display: none;
 }
+
+/* Prices in the visitor's billing currency (components/dentvid/price.tsx):
+   every variant is server-rendered; USD and "+ applicable tax" show until
+   <PriceRegion> marks <html> with data-dv-cur / data-dv-tax. */
+.dv-cur-EUR,
+.dv-cur-TRY,
+.dv-tax-eu,
+.dv-tax-tr {
+  display: none;
+}
+html[data-dv-cur="EUR"] .dv-cur-USD,
+html[data-dv-cur="TRY"] .dv-cur-USD,
+html[data-dv-tax="eu"] .dv-tax-other,
+html[data-dv-tax="tr"] .dv-tax-other {
+  display: none;
+}
+html[data-dv-cur="EUR"] .dv-cur-EUR,
+html[data-dv-cur="TRY"] .dv-cur-TRY,
+html[data-dv-tax="eu"] .dv-tax-eu,
+html[data-dv-tax="tr"] .dv-tax-tr {
+  display: inline;
+}

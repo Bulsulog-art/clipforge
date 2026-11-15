@@ -4,6 +4,7 @@ import { GUIDES, LOCALES, type Locale } from "@/content/dentvideo";
 import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { DvFooter, DvHeader, type CommercialNav } from "@/components/dentvid/chrome";
 import { chromeText } from "@/lib/dentvid/chrome-text";
+import { AdCapture } from "@/components/dentvid/ad-consent";
 import "./dentvideo.css";
 
 // `subsets` decides what is preloaded; every unicode-range slice is declared either way. Only Latin is
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
   },
   title: { absolute: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
-    "DentVideo turns a dentist's five-minute phone recording into a week of captioned, compliant short videos — and writes, narrates and checks educational videos when there is no time to film.",
+    "DentVideo turns a dentist's five-minute phone recording into a week of captioned, rule-checked short videos — and writes, narrates and checks educational videos when there is no time to film.",
   applicationName: "DentVideo",
   // Optional search-console verification by meta tag (DNS TXT records are the preferred route; see docs/SEO_PLAN.md).
   ...(process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION || process.env.DENTVIDEO_BING_SITE_VERIFICATION
@@ -72,6 +73,8 @@ export default function DentVideoLayout({ children }: { children: React.ReactNod
       <DvHeader guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} />
       <div className="flex-1">{children}</div>
       <DvFooter guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} commercial={COMMERCIAL} />
+      {/* First-touch source on every entry page, and the ad-click consent prompt (paid EU visitors only). */}
+      <AdCapture />
     </div>
   );
 }

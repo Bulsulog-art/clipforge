@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { DV_CURRENCIES, dvTierPrice } from "@/lib/dentvid/pricing";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -164,8 +165,9 @@ describe("legal pages", () => {
 
   it("states prices from billing plainly: monthly only, no founding offer", () => {
     const t = text(page("refunds", "en")) + text(page("terms", "en"));
-    expect(t).toContain("Starter: $29 per month.");
-    expect(t).toContain("Practice: $49 per month.");
+    expect(t).toContain("Starter: $79 / €79 / 2.490 TL per month.");
+    expect(t).toContain("Practice: $149 / €149 / 4.490 TL per month.");
+    expect(t).toMatch(/excluding tax\. You pay in the currency of your billing country/);
     expect(t).toMatch(/Group cannot be bought on the website/);
     expect(t).toMatch(/merchant of record/);
     for (const [l, k] of LEGAL_PAGES) {
@@ -174,10 +176,29 @@ describe("legal pages", () => {
     }
     for (const l of LOCALES) {
       const terms = text(page("terms", l));
-      expect(terms, l).toContain("$29");
-      expect(terms, l).toContain("$49");
+      // Every list price in every billing currency, exactly as pricing.ts (and Dodo) has it.
+      for (const tier of ["starter", "practice"] as const) for (const c of DV_CURRENCIES) expect(terms, `${l} ${tier} ${c}`).toContain(dvTierPrice(l, tier, c).replace(/\s+/g, " "));
+      expect(terms, l).not.toMatch(/\$\s?(29|49)\b|\b(29|49)\s?\$/);
       expect(terms, l).not.toMatch(/\$\s?99\b|\b99\s?\$/);
     }
+  });
+
+  it("privacy: says plainly that ad click ids are recorded and conversions sent to Google Ads, with consent, 90-day retention and no ad scripts", () => {
+    for (const l of LOCALES) {
+      const t = text(page("privacy", l));
+      // The click identifiers by name, Google Ads as the recipient, 90 days.
+      for (const s of ["gclid", "gbraid", "wbraid", "90"]) expect(t, `${l}: ${s}`).toContain(s);
+      expect(t, l).toMatch(l === "ja" ? /Google広告/ : /Google Ads/);
+    }
+    const en = text(page("privacy", "en"));
+    expect(en).toContain("consent in the EU/EEA, the UK and Switzerland; legitimate interests elsewhere");
+    expect(en).toContain("account created, or first payment");
+    expect(en).toContain("We load no third-party advertising or analytics scripts (no Google tag)");
+    expect(en).toContain("deleted 90 days after the click");
+    expect(en).toContain("withdraw your consent to ad measurement");
+    // The old blanket claim would now be untrue.
+    expect(en).not.toContain("we do not use it for advertising");
+    expect(LEGAL_UPDATED >= "2026-11-15").toBe(true);
   });
 
   it("makes no certification claims", () => {

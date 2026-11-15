@@ -7,7 +7,8 @@ import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { EXAMPLES, EXAMPLES_PATH, EXAMPLES_UI, examplePath, examplesFor, sampleOf, type ExampleVideo } from "@/content/dentvideo-examples";
 import { dentvideoPublicUrl } from "./host";
-import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
+import { DV_SELF_SERVE_TIERS } from "./billing";
+import { DV_CURRENCIES, dvTierPrice } from "./pricing";
 
 /**
  * llms.txt (https://llmstxt.org) and llms-full.txt for answer engines. Built
@@ -25,16 +26,17 @@ export const LLMS_UPDATED = "2026-11-15";
  * cannot drift; everything else restates ENTITY and the product pages.
  */
 function quickAnswers(): string[] {
-  const price = (t: (typeof DV_SELF_SERVE_TIERS)[number]) => `$${DV_PRICES_USD[t].month}/month`;
+  // "$79 / €79 / 2.490 TL": every list currency (pricing.ts), so no market reads a converted guess.
+  const price = (t: (typeof DV_SELF_SERVE_TIERS)[number]) => DV_CURRENCIES.map((c) => dvTierPrice("en", t, c)).join(" / ");
   const plans = DV_SELF_SERVE_TIERS.map((t) => `${t[0].toUpperCase()}${t.slice(1)} ${price(t)}`).join(", ");
   const treatmentGuides = guidesFor("en").filter((g) => g.category === "treatments");
   return [
     `## Quick answers (checked ${LLMS_UPDATED})`,
-    `- What does DentVideo cost? ${plans}, billed monthly with no minimum term. There is no yearly plan and no introductory or founding-member price. Groups and multi-location practices: custom pricing via ${OPERATOR.productEmail}.`,
-    "- Can I see it before paying? Yes: after describing the clinic, a live preview of the clinic's own branded videos (logo, colours, name) runs in the browser before a plan is chosen. The first week of videos is made right after payment.",
+    `- What does DentVideo cost? ${plans} a month, excluding tax: US dollars in most countries, euros in the euro area, Turkish lira in Türkiye (the billing country decides). Billed monthly with no minimum term, cancel anytime. There is no yearly plan, no introductory price and no discount or discount code. Groups and multi-location practices: priced per location, via ${OPERATOR.productEmail}. Tax is added at checkout by Dodo Payments, the merchant of record.`,
+    "- Can I see it before paying? Yes: after describing the clinic, a live preview of the clinic's own branded videos (logo, colors, name) runs in the browser before a plan is chosen. The first week of videos is made right after payment.",
     `- Is anything free? The \"Is my post allowed?\" ad checker for dentists is free in eight languages: ${abs(CHECKER_PATH.en)}. The guides are free to read.`,
     `- Where can I see what the videos look like? Real sample videos, made for fictional demo clinics, three per language, each with a page describing what it covers: ${abs(EXAMPLES_PATH.en)} (also /de/examples, /es/examples, /tr/examples, /fr/examples, /ja/examples, /ar/examples, /pl/examples). They are shown as examples only, not offered for download or reuse.`,
-    "- What does a clinic get each week? Five short vertical patient-education videos (usually around half a minute), narrated and captioned in the clinic's language, colours and logo, with a ready caption and hashtags. New videos are ready every Monday.",
+    "- What does a clinic get each week? Five short vertical patient-education videos (usually around half a minute), narrated and captioned in the clinic's language, colors and logo, with a ready caption and hashtags. New videos are ready every Monday.",
     "- Does it post automatically? No. The dentist approves each video, downloads it and posts it. DentVideo does not run ads, answer comments or film in the clinic.",
     "- Does it use AI avatars or fake patients? No. Narration is a synthetic voice; footage is limited to objects; there are no avatar faces, fake doctors or patients. A dentist can record a few minutes and get captioned clips of their own voice.",
     "- How is advertising compliance handled? Every script and caption is checked against commonly restricted claims (guarantees, \"painless\", \"permanent\", superlatives, prices, discounts, before-and-after promises, testimonials) and by a reviewer acting as a general dentist for clinical accuracy. It is a careful filter, not legal advice.",

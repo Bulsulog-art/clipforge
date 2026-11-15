@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { CHECKOUT_CODE, DODO_DISCOUNT_BUTTON, checkoutNext } from "@/content/dentvideo-checkout-code";
+import { useEffect, useState } from "react";
 import { dateLocale } from "@/lib/dentvid/app-ui";
 import { ArrowRight, Check, Mail } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
-import { DV_SELF_SERVE_TIERS, type DvInterval, type DvPlanState, type DvTier } from "@/lib/dentvid/billing";
+import { DV_SELF_SERVE_TIERS, type DvInterval, type DvPlanOption, type DvPlanState, type DvTier } from "@/lib/dentvid/billing";
+import { DV_TAX_LABEL, dvPriceContext, formatDvPrice } from "@/lib/dentvid/pricing";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { VerifyCard } from "./verify-email";
 import { CheckoutConsent } from "./consent-line";
 import { trackDv } from "@/lib/dentvid/events-client";
 
-export type PlanOption = { tier: DvTier; interval: DvInterval; priceUsd: number };
+/** A plan on sale, with its list price in every currency (billing.ts dvAvailablePlans). */
+export type PlanOption = DvPlanOption;
 
 /** The cards a clinic can buy itself; Group follows them as a "Contact us" card. */
 const TIERS = DV_SELF_SERVE_TIERS;
@@ -22,9 +23,25 @@ export function tierName(locale: Locale, tier: DvTier): string {
   return tier === "group" ? GROUP_CONTACT[locale].name : appText(locale).billing.tiers[tier].name;
 }
 
-export function usd(locale: Locale, amount: number) {
-  // Arabic pages write "$39" as the landing does (Western digits, no right-to-left marks to reorder it).
-  return new Intl.NumberFormat(locale === "ar" ? "en-US" : locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
+/**
+ * A plan's monthly list price in the currency the clinic is charged in — its
+ * country picks it, exactly as the checkout tells Dodo (billing.ts
+ * buildDvCheckout) — e.g. "$79", "149 €", "2.490 TL".
+ */
+export function planPrice(locale: Locale, opt: Pick<PlanOption, "prices">, country: string | null | undefined): string {
+  const { currency } = dvPriceContext(country);
+  return formatDvPrice(locale, currency, opt.prices[currency]);
+}
+
+/** "+ VAT", "+ KDV", "+ applicable tax" for the clinic's country. */
+export function planTax(locale: Locale, country: string | null | undefined): string {
+  return DV_TAX_LABEL[locale][dvPriceContext(country).tax];
+}
+
+/** "USD", "EUR" or "TL" for the clinic's country: fills {currency} in the fine print. */
+export function planCurrencyWord(country: string | null | undefined): string {
+  const { currency } = dvPriceContext(country);
+  return currency === "TRY" ? "TL" : currency;
 }
 
 /** "Choose your plan": Starter and Practice (monthly), Group as Contact us. */
@@ -32,6 +49,7 @@ export function PlanPanel({
   locale,
   state,
   options,
+  country,
   bare = false,
   keepVideos = false,
   onNeedsVerification,
@@ -40,6 +58,8 @@ export function PlanPanel({
   state: DvPlanState;
   /** The monthly plans on sale (billing.ts dvAvailablePlans). */
   options: PlanOption[];
+  /** The clinic's country (profile.country): the currency shown is the one the checkout charges. */
+  country?: string | null;
   /** Inside the onboarding wizard the step has its own heading: keep the panel's title for screen readers only. */
   bare?: boolean;
   /** Paused or cancelled with videos in the library: say they stay, and can still be shared. */
@@ -49,15 +69,12 @@ export function PlanPanel({
 }) {
   const text = appText(locale);
   const t = text.billing;
-  const [code, setCode] = useState("");
   const [busy, setBusy] = useState<DvTier | null>(null);
   const [error, setError] = useState<string | null>(null);
   /** Inline code card (in the app, where the page has none): the address to confirm. */
   const [verifyFor, setVerifyFor] = useState<string | null>(null);
   /** The plan that was chosen when checkout asked for the code: checkout resumes with it once confirmed. */
   const [pending, setPending] = useState<{ tier: DvTier; interval: DvInterval } | null>(null);
-  /** A payment link that needs the code typed on Dodo's page (no API checkout): shown before leaving. */
-  const [typeCode, setTypeCode] = useState<{ url: string; code: string; copied: boolean } | null>(null);
 
   const lead = state === "paused" ? t.leadPaused : state === "cancelled" ? t.leadCancelled : t.leadTrial;
 
@@ -79,22 +96,12 @@ export function PlanPanel({
       const res = await fetch("/api/dentvideo/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan: tier, interval: chosen, ...(code.trim() ? { code: code.trim() } : {}) }),
+        body: JSON.stringify({ plan: tier, interval: chosen }),
       });
       const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string; code?: string; email?: string };
-      const next = res.ok ? checkoutNext(body) : { kind: "none" as const };
-      if (next.kind === "go") {
-        window.location.href = next.url;
-        return;
-      }
-      // A payment link cannot carry the discount: say how to apply it there before leaving.
-      if (next.kind === "typeCode") {
-        setTypeCode({ url: next.url, code: next.code, copied: false });
-        void navigator.clipboard?.writeText(next.code).then(
-          () => setTypeCode((s) => (s ? { ...s, copied: true } : s)),
-          () => {},
-        );
-        setBusy(null);
+      // Only ever a Dodo https URL: straight on to the payment page.
+      if (res.ok && typeof body.url === "string" && /^https:\/\//.test(body.url)) {
+        window.location.href = body.url;
         return;
       }
       // The address is not confirmed yet (lib/dentvid/verify-email): the code card.
@@ -143,8 +150,9 @@ export function PlanPanel({
               <h3 className="font-semibold text-dv-ink">{copy.name}</h3>
               <p className="mt-1 text-sm text-dv-muted">{copy.blurb}</p>
               <p className="mt-5 flex flex-wrap items-baseline gap-x-2">
-                <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink">{usd(locale, opt.priceUsd)}</span>
+                <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink" data-price={tier}>{planPrice(locale, opt, country)}</span>
                 <span className="text-sm font-medium text-dv-muted">{t.perMonth}</span>
+                <span className="text-xs font-medium text-dv-muted" data-tax>{planTax(locale, country)}</span>
               </p>
               <ul className="mt-4 space-y-2.5 border-t border-dv-line pt-4">
                 {copy.features.map((f) => (
@@ -190,7 +198,6 @@ export function PlanPanel({
           {error}
         </p>
       )}
-      {typeCode && <TypeCodeCard locale={locale} {...typeCode} onCopied={() => setTypeCode({ ...typeCode, copied: true })} onBack={() => setTypeCode(null)} />}
       {verifyFor !== null && (
         <div className="mt-5">
           <VerifyCard
@@ -207,80 +214,13 @@ export function PlanPanel({
         </div>
       )}
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-        <details className="text-sm">
-          <summary className="flex min-h-11 cursor-pointer items-center text-dv-teal">{t.haveCode}</summary>
-          <label className="mt-2 block max-w-xs text-xs font-medium text-dv-muted">
-            {t.codeLabel}
-            <input
-              dir="ltr"
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              maxLength={40}
-              autoComplete="off"
-              spellCheck={false}
-              className="dv-field font-mono text-sm uppercase tracking-wider"
-            />
-          </label>
-        </details>
-        <p className="text-xs text-dv-muted">{t.fineprint}</p>
+      <div className="mt-6">
+        <p className="text-xs text-dv-muted">{t.fineprint.replace("{currency}", planCurrencyWord(country))}</p>
       </div>
       <div className="mt-3">
         <CheckoutConsent locale={locale} />
       </div>
     </section>
-  );
-}
-
-/** Before a payment link that cannot carry the discount: the code, how to apply it on Dodo's page, and the way on. */
-function TypeCodeCard({
-  locale,
-  url,
-  code,
-  copied,
-  onCopied,
-  onBack,
-}: {
-  locale: Locale;
-  url: string;
-  code: string;
-  copied: boolean;
-  onCopied: () => void;
-  onBack: () => void;
-}) {
-  const c = CHECKOUT_CODE[locale];
-  const card = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    card.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-    card.current?.focus();
-  }, []);
-  const [before, after = ""] = c.body.replace("{button}", DODO_DISCOUNT_BUTTON).split("{code}");
-  return (
-    <div ref={card} tabIndex={-1} role="region" aria-labelledby="dv-type-code-title" className="mt-5 rounded-2xl bg-[#fdf1dc] p-5 ring-1 ring-[#f0dcb5] outline-none sm:p-6" data-testid="dv-type-code">
-      <h3 id="dv-type-code-title" className="font-semibold text-dv-ink">{c.title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-dv-body">
-        {before}
-        <code dir="ltr" className="rounded bg-white px-1.5 py-0.5 font-mono font-semibold text-dv-ink">{code}</code>
-        {after}
-      </p>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => void navigator.clipboard?.writeText(code).then(onCopied, () => {})}
-          className="dv-btn dv-btn-secondary px-5 py-3 text-sm !text-dv-teal"
-        >
-          {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : null}
-          {copied ? c.copied : c.copy}
-        </button>
-        <a href={url} className="dv-btn dv-btn-primary group px-5 py-3 text-sm">
-          {c.go}
-          <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
-        </a>
-        <button type="button" onClick={onBack} className="min-h-11 rounded-md px-1 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
-          {c.back}
-        </button>
-      </div>
-    </div>
   );
 }
 

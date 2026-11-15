@@ -42,7 +42,7 @@ async function call(body: unknown) {
 const sent = (i: number) => JSON.parse(fetchMock.mock.calls[i][1].body as string) as Record<string, unknown>;
 
 beforeEach(() => {
-  session = { user: { id: OWNER, email: "dr@clinic.example", app_metadata: verified }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de" } } };
+  session = { user: { id: OWNER, email: "dr@clinic.example", app_metadata: verified }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de", country: "DE" } } };
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("DODO_API_KEY", "sk_test");
@@ -84,7 +84,7 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("opens a live Dodo checkout for the plan with metadata and no discount code", async () => {
+  it("opens a live Dodo checkout for the plan: the clinic's billing country and currency, no discount field, metadata", async () => {
     fetchMock.mockResolvedValueOnce(ok());
     const res = await call({ plan: "practice", interval: "month" });
     expect(res).toEqual({ status: 200, body: { url: "https://checkout.dodopayments.com/session/cks_1" } });
@@ -96,8 +96,28 @@ describe("POST /api/dentvideo/checkout", () => {
       metadata: { app: "dentvideo", clinic_id: CLINIC, owner_id: OWNER, plan: "practice" },
       return_url: "https://dentvideo.com/app?billing=success",
       customization: { force_language: "de" },
+      billing_address: { country: "DE" },
+      billing_currency: "EUR",
+      feature_flags: { allow_discount_code: false, allow_tax_id: true, allow_currency_selection: false },
     });
     expect(sent(0)).not.toHaveProperty("discount_codes");
+  });
+
+  it("charges in the currency of the clinic's country: TRY for Türkiye, USD elsewhere or when unknown", async () => {
+    for (const [country, currency] of [["TR", "TRY"], ["US", "USD"], ["GB", "USD"], [undefined, "USD"]] as const) {
+      session.clinic = { id: CLINIC, plan: "trial", profile: { language: "en", ...(country ? { country } : {}) } };
+      fetchMock.mockResolvedValueOnce(ok());
+      expect((await call({ plan: "starter", interval: "month" })).status, String(country)).toBe(200);
+      const body = sent(fetchMock.mock.calls.length - 1);
+      expect(body.billing_currency, String(country)).toBe(currency);
+      expect(body.billing_address, String(country)).toEqual(country ? { country } : undefined);
+    }
+  });
+
+  it("accepts no discount code: a body with a code is refused and nothing reaches Dodo", async () => {
+    const res = await call({ plan: "starter", interval: "month", code: "KURUCU100" });
+    expect(res).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.invalidPlan } });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("no founding code is applied any more, even with the old env switch on", async () => {
@@ -125,7 +145,7 @@ describe("POST /api/dentvideo/checkout", () => {
     const res = await call({ plan: "practice", interval: "month" });
     expect(res.status).toBe(409);
     expect(res.body.code).toBe("payment_update");
-    expect(String(res.body.error)).toContain("Plan und Abrechnung");
+    expect(String(res.body.error)).toContain("Tarif und Abrechnung");
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/subscriptions\/sub_old$/);
   });
@@ -153,10 +173,10 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("says so when a typed code is refused, without retrying", async () => {
-    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ message: "invalid discount" }), { status: 422 }));
-    const res = await call({ plan: "starter", interval: "month", code: "nope10" });
-    expect(res).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.invalidCode } });
+  it("a Dodo refusal is a plain 'could not open checkout', never a discount-code message", async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ message: "bad request" }), { status: 422 }));
+    const res = await call({ plan: "starter", interval: "month" });
+    expect(res).toEqual({ status: 502, body: { error: APP_TEXT.en.errors.checkoutFailed } });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -195,15 +215,18 @@ describe("POST /api/dentvideo/checkout", () => {
     vi.stubEnv("DODO_ENVIRONMENT", "live");
     const res = await call({ plan: "practice", interval: "month" });
     expect(res.status).toBe(200);
-    const { url, code } = res.body as { url: string; code: string | null };
+    expect(Object.keys(res.body)).toEqual(["url"]);
+    const { url } = res.body as { url: string };
     const u = new URL(url);
     expect(u.origin).toBe("https://checkout.dodopayments.com");
     expect(u.pathname).toMatch(/^\/buy\/pdt_/);
     expect(u.searchParams.get("metadata_app")).toBe("dentvideo");
     expect(u.searchParams.get("metadata_plan")).toBe("practice");
     expect(u.searchParams.get("redirect_url")).toMatch(/\/app\?billing=success$/);
-    // No code to type on Dodo's page: nothing is applied by default.
-    expect(code).toBeNull();
+    // Same country and currency as the API checkout; Dodo's discount field hidden.
+    expect(u.searchParams.get("country")).toBe("DE");
+    expect(u.searchParams.get("paymentCurrency")).toBe("EUR");
+    expect(u.searchParams.get("showDiscounts")).toBe("false");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

@@ -8,21 +8,25 @@ import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink, isSelfServeTier } from "@/lib/dentvid/billing";
 import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentvideo-group";
-import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
+import { postDodoCheckout } from "@/lib/dodo";
 import { recordEvent } from "@/lib/dentvid/events-server";
 import { geoCountry } from "@/lib/dentvid/events";
 import { adminOrNull, checkoutBlockMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
 
 // POST /api/dentvideo/checkout — open a Dodo hosted checkout for the signed-in
-// clinic owner's plan (monthly only; no discount code is applied unless the
-// clinic typed one). The clinic and owner ride along in metadata, which
-// Dodo copies onto the subscription; /api/dodo/webhook reads it back.
+// clinic owner's plan (monthly only, always at list price: there are no
+// discount codes, and Dodo's code field is hidden). The clinic's country sets
+// the billing country and currency, so Dodo charges the price the plan step
+// showed. The clinic and owner ride along in metadata, which Dodo copies onto
+// the subscription; /api/dodo/webhook reads it back.
 
-const Body = z.object({
-  plan: z.enum(DV_TIERS),
-  interval: z.enum(DV_INTERVALS).default("month"),
-  code: z.string().max(60).optional().nullable(),
-});
+// Strict: a body with anything more (a "code", say) is refused, not quietly dropped.
+const Body = z
+  .object({
+    plan: z.enum(DV_TIERS),
+    interval: z.enum(DV_INTERVALS).default("month"),
+  })
+  .strict();
 
 export async function POST(req: Request) {
   const { db, user } = await dvSession();
@@ -38,7 +42,8 @@ export async function POST(req: Request) {
   if (limited) return limited;
 
   const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, plan, dodo_subscription_id").eq("owner_id", user.id).maybeSingle();
-  const language = (clinic?.profile as { language?: string } | undefined)?.language;
+  const profile = clinic?.profile as { language?: string; country?: string } | undefined;
+  const language = profile?.language;
   const err = await dvErrors(language);
   const parsed = Body.safeParse(await req.json().catch(() => null));
   // Group (multi-location) is "Contact us": no self-serve purchase, monthly or yearly.
@@ -65,7 +70,7 @@ export async function POST(req: Request) {
   const built = buildDvCheckout({
     tier: parsed.data.plan,
     interval: parsed.data.interval,
-    code: parsed.data.code,
+    country: profile?.country,
     clinicId: clinic.id,
     ownerId: user.id,
     email: user.email,
@@ -85,18 +90,14 @@ export async function POST(req: Request) {
 
   // The same Dodo account as ClipForge: DODO_API_KEY, DODO_ENVIRONMENT=live.
   // Without an API key, Dodo's static payment link does the same job (same
-  // product, metadata and return URL); the clinic types any code in Dodo.
+  // product, metadata, return URL, country and currency, no discount field).
   const apiKey = process.env.DODO_API_KEY?.trim();
-  if (!apiKey) return NextResponse.json({ url: opened(buildDvStaticLink(built), "link"), code: built.discount });
+  if (!apiKey) return NextResponse.json({ url: opened(buildDvStaticLink(built), "link") });
 
   try {
     return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: built.body }), "api") });
   } catch (e) {
     console.error("[dentvideo checkout] dodo checkout failed", (e as Error).message);
-    // A code the clinic typed that Dodo refuses: say so rather than "try again".
-    if (built.discount && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {
-      return NextResponse.json({ error: err.invalidCode }, { status: 400 });
-    }
     return NextResponse.json({ error: err.checkoutFailed }, { status: 502 });
   }
 }

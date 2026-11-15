@@ -35,3 +35,7 @@ assets/music/
 # Local agent worktrees
 .claude/worktrees/
 web/src/lib/dentvid/_e2e_cookie.mts
+
+# a symlinked node_modules (agent worktrees) must never be committed
+/web/node_modules
+/worker/node_modules

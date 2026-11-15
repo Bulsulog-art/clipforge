@@ -86,7 +86,7 @@ export const PL: LegalText = {
         {
           heading: "6. Plany, ceny i płatności",
           blocks: [
-            "DentVideo jest płatne z góry; nie ma darmowego okresu próbnego. Przed płatnością widzą Państwo podgląd na żywo filmów z nazwą, kolorami i logo gabinetu. Aktualne plany, w dolarach amerykańskich:",
+            "DentVideo jest płatne z góry; nie ma darmowego okresu próbnego. Przed płatnością widzą Państwo podgląd na żywo filmów z nazwą, kolorami i logo gabinetu. Aktualne miesięczne ceny katalogowe, bez podatków. Płacą Państwo w walucie kraju rozliczenia: w euro w strefie euro, w lirach tureckich w Turcji, w dolarach amerykańskich w pozostałych krajach:",
             {
               list: [
                 "Starter: {starter} miesięcznie.",
@@ -197,6 +197,7 @@ export const PL: LegalText = {
                 "Rozliczenia: plan, status subskrypcji, data odnowienia oraz identyfikatory subskrypcji, klienta i płatności w Dodo Payments. Dane karty obsługuje Dodo Payments; nigdy do nas nie trafiają.",
                 "E-maile: jakie wiadomości usługi wysłaliśmy do gabinetu i czy wypisali się Państwo z przypomnień.",
                 "Zdarzenia użycia: niewielki własny zapis kroków, takich jak „wyświetlono stronę” czy „wybrano plan”, z językiem strony, tagami kampanii (utm) i domeną strony odsyłającej. Nie zawierają identyfikatora cookie, adresu IP, danych przeglądarki, imienia ani e-maila.",
+                "Kliknięcia reklam: jeśli trafią Państwo na dentvideo.com z jednej z naszych reklam Google — identyfikator kliknięcia, który Google dodaje do linku (gclid, gbraid lub wbraid), oraz czas kliknięcia. Jeśli następnie założą Państwo konto, zapisujemy go przy koncie. W UE/EOG, Wielkiej Brytanii i Szwajcarii tylko wtedy, gdy wyrażą Państwo na to zgodę w pytaniu wyświetlanym tym odwiedzającym.",
                 "Dane techniczne: adres IP i dane żądania są przetwarzane, aby wyświetlać strony, chronić usługę i ograniczać nadużycia (krótkotrwałe liczniki limitów zapytań).",
               ],
             },
@@ -205,7 +206,7 @@ export const PL: LegalText = {
         {
           heading: "3. Pliki cookie i pamięć przeglądarki",
           blocks: [
-            "Używamy tylko tego, czego usługa potrzebuje: sesyjnych plików cookie do logowania, pliku cookie zapamiętującego język, pliku cookie zapamiętującego postęp rejestracji i krótkotrwałej pamięci przeglądarki podczas rejestracji. Nie używamy reklamowych ani analitycznych plików cookie podmiotów trzecich.",
+            "Używamy tylko tego, czego usługa potrzebuje: sesyjnych plików cookie do logowania, pliku cookie zapamiętującego język, pliku cookie zapamiętującego postęp rejestracji i krótkotrwałej pamięci przeglądarki podczas rejestracji. Nie używamy reklamowych ani analitycznych plików cookie podmiotów trzecich. Jeśli przyszli Państwo z jednej z naszych reklam Google, pamięć przeglądarki tej witryny przechowuje też identyfikator kliknięcia reklamy przez maksymalnie 90 dni — w UE/EOG, Wielkiej Brytanii i Szwajcarii dopiero po wyrażeniu zgody, a po odmowie nie jest zapisywany. Nie wczytujemy reklamowych ani analitycznych skryptów podmiotów trzecich (żadnego tagu Google).",
           ],
         },
         {
@@ -219,9 +220,10 @@ export const PL: LegalText = {
                 "Zrozumienie, które strony i kanały przyciągają gabinety, na podstawie anonimowych zdarzeń użycia opisanych wyżej (prawnie uzasadniony interes).",
                 "Przypomnienia o niedokończonej rejestracji, które można wyłączyć linkiem rezygnacji (prawnie uzasadniony interes).",
                 "Wypełnianie obowiązków prawnych, np. prowadzenie ksiąg i dokumentacji podatkowej (obowiązek prawny).",
+                "Aby mierzyć, które nasze reklamy Google przynoszą rejestracje i płacące gabinety: gdy powstaje konto lub gabinet płaci po raz pierwszy, zgłaszamy to zdarzenie wraz z identyfikatorem kliknięcia do Google Ads (zgoda w UE/EOG, Wielkiej Brytanii i Szwajcarii; prawnie uzasadniony interes w pozostałych przypadkach).",
               ],
             },
-            "Nie sprzedajemy danych osobowych, nie wykorzystujemy ich do reklamy i nie trenujemy modeli AI na Państwa treściach ani filmach.",
+            "Nie sprzedajemy danych osobowych, nie wykorzystujemy ich do targetowania reklam ani tworzenia profili reklamowych i nie trenujemy modeli AI na Państwa treściach ani filmach.",
           ],
         },
         {
@@ -230,6 +232,7 @@ export const PL: LegalText = {
             "Współpracujemy z niewielką liczbą dostawców. Każdy otrzymuje tylko to, czego potrzebuje do swojego zadania:",
             { subprocessors: true },
             "Wyszukujemy też ogólne hasła (np. nazwę zabiegu i język) w publicznych podpowiedziach wyszukiwania Google i w bibliotece materiałów wideo Pexels. Te zapytania nie zawierają danych osobowych. Baza danych, logowanie i przechowywanie plików działają na naszej własnej instalacji oprogramowania open source Supabase na naszym serwerze; Supabase Inc. nie otrzymuje danych.",
+            "Jeśli przyszli Państwo z jednej z naszych reklam Google, przekazujemy Google Ads (Google) identyfikator kliknięcia, informację, jaka konwersja nastąpiła (założenie konta lub pierwsza płatność), kiedy, oraz stałą wartość, którą jej przypisujemy. Przesyłamy to sami: na naszych stronach nie działa żaden skrypt Google i nie przekazujemy Google imienia i nazwiska, adresu e-mail ani danych płatniczych. Google przetwarza te dane zgodnie z własnymi warunkami reklamowymi i polityką prywatności.",
           ],
         },
         {
@@ -248,6 +251,7 @@ export const PL: LegalText = {
                 "Faktury i dokumenty płatności: przechowuje je Dodo Payments jako sprzedawca zgodnie z własnymi obowiązkami prawnymi, a my w zakresie wymaganym przez przepisy rachunkowe i podatkowe.",
                 "Liczniki limitów zapytań: od minut do godzin.",
                 "Gabinety, z którymi kontaktujemy się z indywidualnym demo: demo tworzymy sami na podstawie publicznych informacji o firmie (nazwa gabinetu, miasto, kraj, kolor marki i logo) i przechowujemy je najwyżej 60 dni, chyba że gabinet się zarejestruje. Aby usunąć demo wcześniej, prosimy napisać na {email}.",
+                "Identyfikatory kliknięć reklam i zarejestrowane z nimi konwersje: usuwane 90 dni po kliknięciu. To, co już przekazaliśmy Google Ads, Google przechowuje zgodnie z własnymi zasadami.",
               ],
             },
           ],
@@ -255,7 +259,7 @@ export const PL: LegalText = {
         {
           heading: "8. Prawa",
           blocks: [
-            "Zależnie od prawa, które Państwa dotyczy, mogą Państwo żądać dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania i kopii w formacie umożliwiającym przeniesienie, a także sprzeciwić się przetwarzaniu opartemu na prawnie uzasadnionym interesie. Konto mogą Państwo usunąć samodzielnie w Ustawieniach. Prosimy pisać na {email}; odpowiadamy w ciągu miesiąca.",
+            "Zależnie od prawa, które Państwa dotyczy, mogą Państwo żądać dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania i kopii w formacie umożliwiającym przeniesienie, a także sprzeciwić się przetwarzaniu opartemu na prawnie uzasadnionym interesie. Konto mogą Państwo usunąć samodzielnie w Ustawieniach. Prosimy pisać na {email}; odpowiadamy w ciągu miesiąca. Zgodę na pomiar reklam mogą Państwo w każdej chwili wycofać, pisząc na {email} albo — przed rejestracją — usuwając dane tej witryny w przeglądarce; wtedy usuwamy przechowywany identyfikator kliknięcia. Wycofanie zgody nie wpływa na wcześniejsze przetwarzanie.",
             "Mogą Państwo także złożyć skargę do organu ochrony danych: w Czarnogórze do Agencji Ochrony Danych Osobowych i Swobodnego Dostępu do Informacji; w UE/EOG do organu w swoim kraju (w Polsce do Prezesa UODO); w Wielkiej Brytanii do Information Commissioner's Office; w Turcji do Urzędu Ochrony Danych Osobowych (KVKK).",
             "Stosujemy czarnogórskie przepisy o ochronie danych osobowych oraz, w zakresie, w jakim mają zastosowanie do naszego przetwarzania, ogólne rozporządzenie UE o ochronie danych (RODO), UK GDPR i turecką ustawę nr 6698 o ochronie danych osobowych (KVKK).",
           ],

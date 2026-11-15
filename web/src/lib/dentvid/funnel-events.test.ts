@@ -107,6 +107,23 @@ describe("first-touch attribution", () => {
     expect(attributionFrom("?utm_source=<script>", "", "dentvideo.com")).toEqual({});
   });
 
+  it("keeps a paid search click's campaign and keyword (utm_term as a slug), never its click id", () => {
+    const ad = "?gclid=Cj0KCQiA_test&utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=dental+video&utm_content=123-456";
+    expect(attributionFrom(ad, "https://www.google.com/", "dentvideo.com")).toEqual({
+      utm_source: "google",
+      utm_medium: "cpc",
+      utm_campaign: "tr-search-core",
+      utm_term: "dental-video",
+      utm_content: "123-456",
+    });
+    // A keyword that is not a plain slug (Turkish letters) is dropped; the rest stays.
+    expect(attributionFrom("?utm_source=google&utm_term=diş+kliniği", "", "dentvideo.com")).toEqual({ utm_source: "google" });
+    // Without a source, a lone keyword is not a source.
+    expect(attributionFrom("?utm_term=dental", "", "dentvideo.com")).toEqual({});
+    // The server keeps utm_term on any event, re-checked as a slug.
+    expect(buildEventRow({ name: "signup_completed", props: { utm_source: "google", utm_term: "dental-video", gclid: "Cj0KCQiA_test" } })?.props).toEqual({ utm_source: "google", utm_term: "dental-video" });
+  });
+
   it("keeps the first touch for the tab: later visits do not replace it", () => {
     const s = memoryStore();
     captureAttribution(attributionFrom(OUTREACH, "", "dentvideo.com"), s);

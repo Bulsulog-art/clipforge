@@ -19,7 +19,7 @@ import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatc
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
-import { dodoLookup, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
+import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
 import { jobWeek } from "./dentvid/jobs.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -214,7 +214,12 @@ const dentvidMailWorker = new Worker(
       return await notifyReady(d.clinicId, d.kind, { ready: d.ready, flagged: d.flagged });
     }
     if (job.name === "digest") return assertRunOk("digest", await runDigest());
-    if (job.name === "billing-reconcile") return await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), alert: ownerAlert });
+    if (job.name === "billing-reconcile") {
+      const result = await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), alert: ownerAlert });
+      // Nightly retention: Google Ads click ids older than 90 days (migration 0019; a no-op error before it is applied).
+      await purgeAdData(dentvidDb());
+      return result;
+    }
     if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
       const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };
       return job.name === "watchdog-monday" ? await checkMondayDispatch(deps) : await checkFirstWeeks(deps);

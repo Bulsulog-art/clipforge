@@ -92,7 +92,7 @@ export type RewriteLang = "en" | "tr" | "de" | "es" | "fr" | "pl" | "ar" | "ja";
  */
 export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
   en: [
-    r("absolute", /painless|pain[- ]free/i, "comfortable for most patients, with local anaesthesia"),
+    r("absolute", /painless|pain[- ]free/i, "comfortable for most patients, with local anesthesia"),
     r("absolute", /forever|lifetime|permanent/i, "can last many years with good care"),
     r("absolute", /prevents/i, "can help prevent"),
     r("guarantee", /risk[- ]free/i, "we explain the benefits and risks before you decide"),
