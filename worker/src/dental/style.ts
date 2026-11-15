@@ -171,51 +171,10 @@ export function registerHits(text: string, language: string | undefined): string
 // ---------------------------------------------------------------------------
 // The call to action
 
-/** Urgency and pressure — banned in every market's rules and in good taste. */
-const PRESSURE = w(
-  "now|today|hurry|don't wait|do not wait|limited|last chance|right away|hemen|şimdi|bugün|kaçırmayın|acele|son fırsat|beklemeyin|jetzt|sofort|heute noch|nicht warten|warten sie nicht|nur noch|schnell|ya mismo|ahora mismo|hoy mismo|no esperes|no espere|date prisa|corre|últimas plazas|maintenant|dès aujourd'hui|n'attendez pas|subito|oggi stesso|non aspettare|já|agora|não esperes|não espere|teraz|dziś|nie czekaj|الآن|فوراً|لا تنتظروا|今すぐ|お急ぎ",
-);
-/** Generic, interchangeable closings that say nothing about this video. */
-const GENERIC_CTA = w(
-  "for more information|contact us|daha fazla bilgi|bizimle iletişime geçin|bize ulaşın|für weitere informationen|kontaktieren sie uns|para más información|contáctanos|contáctenos|pour plus d'informations|contactez-nous|per maggiori informazioni|contattaci|para mais informações|contacte-nos|skontaktuj|لمزيد من المعلومات|お問い合わせください",
-);
-/** In Türkiye the close must not send the viewer to this clinic (RG 33075: informative only). */
-const TR_STEERING = w(
-  // Booking verbs in every polite form ("randevu alın", "randevu planlayabilirsiniz",
-  // "kontrol randevusu oluşturabilirsiniz", "muayene planlayabilirsiniz" — the last
-  // two were seen live in captions), and sending the viewer to this clinic.
-  "randevu(su|nuzu)? (al|planla|oluştur|ayarla)\\p{L}*|muayene (planla|ayarla)\\p{L}*|bize ulaş\\p{L}*|kliniğimiz\\p{L}*|iletişime geç\\p{L}*|bizi ara\\p{L}*|bize yaz\\p{L}*|bize sor\\p{L}*|bize danış\\p{L}*|bize gel\\p{L}*",
-);
-
-/**
- * Anything in a Turkish text that sends the viewer to book or to this
- * clinic. The closing line was checked for it; the caption and the narration
- * were not, and the caption writer was even told to "end with a soft call to
- * book" — so Turkish captions ended "kontrol randevusu planlayabilirsiniz".
- */
-export function trSteering(text: string): string | undefined {
-  return text.match(new RegExp(TR_STEERING.source, "giu"))?.[0];
-}
-
-export type CtaFinding = { code: "missing" | "pressure" | "exclamation" | "generic" | "steering"; detail: string };
-
-export function ctaProblems(cta: string | undefined, country: string | undefined): CtaFinding[] {
-  if (!cta?.trim()) return [{ code: "missing", detail: "no closing call to action" }];
-  const out: CtaFinding[] = [];
-  const m = cta.match(PRESSURE);
-  if (m) out.push({ code: "pressure", detail: `urgency in the CTA: "${m[0]}"` });
-  if (/[!！]/.test(cta)) out.push({ code: "exclamation", detail: "exclamation mark in the CTA reads as a sales push" });
-  const g = cta.match(GENERIC_CTA);
-  if (g) out.push({ code: "generic", detail: `generic closing: "${g[0]}"` });
-  if ((country ?? "").toUpperCase() === "TR") {
-    const s = cta.match(TR_STEERING);
-    if (s) out.push({ code: "steering", detail: `steers the viewer to the clinic ("${s[0]}") — RG 33075 allows information only` });
-  }
-  return out;
-}
-
-/** The CTA findings the post-check acts on (the rest only lower the score). */
-export const BLOCKING_CTA = new Set<CtaFinding["code"]>(["pressure", "steering"]);
+// The closing-line checks live in closing-line.ts, which the web app mirrors
+// (scripts/sync-hard-rules.mjs) so a clinic's own closing line is judged by
+// the same rules in the settings form as in the worker.
+export { BLOCKING_CTA, ctaProblems, trSteering, type CtaFinding } from "./closing-line.js";
 
 /**
  * How the closing line should sound in this market, told to the writers.

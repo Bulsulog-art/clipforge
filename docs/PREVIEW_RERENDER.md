@@ -40,8 +40,8 @@ brand look, as in the earlier samples. Demo clinic: "Demo Diş Kliniği",
      add one back: render a TR aligner topic, add it to the selection, rebuild.
 2. **Landing samples and example pages** (`web/public/dentvideo/samples/tr/`):
    `implant-asamalari` (hero), `dis-tasi-temizligi`, `beyazlatma-hassasiyet`
-   are the same renders as the preview's implant-stages, cleaning and whitening
-   videos, compressed to the samples' size (~240 kbps video, AAC 96 kbps).
+   were the same renders as the preview's implant-stages, cleaning and whitening
+   videos (re-rendered again in the third pass below, with dental photos), compressed to the samples' size (~240 kbps video, AAC 96 kbps).
    `dentvideo-samples.ts` (`name`, `seconds`, `hero`) and
    `dentvideo-examples.ts` (`summary`, `onScreen`, including the md. 7/1-k
    line) were rewritten from the new videos.
@@ -82,11 +82,28 @@ narration at -14 LUFS, the practice-fact and language checks in `week.ts`):
 `dentvideo-samples.ts` (`name`, `seconds`, `hero`) and `dentvideo-examples.ts`
 (`summary`, `onScreen`) were rewritten from the new videos.
 
-**Still old (render budget of the pass used up):** `en/caring-for-clear-aligners`,
-`en/proper-brushing-technique`, `de/aligner-verfaerbung`. The two English ones
-were rendered too but not published: both answered a hook that denied nothing
-with a reflexive "Not quite." ("Brushing twice and missing the gumline? / Not
-quite."), which `week.ts scriptProblems` now sends back. Re-render them with:
+## Third pass (15.11.2026): the last old samples and the Turkish week
+
+Re-rendered with the pipeline as of this pass (dental-only photos, logo and
+clinic name on the sign-off, mastered narration, the stricter "not quite" and
+Turkish hedging checks). 8 renders, 6 published:
+
+| Sample | Now | Checked |
+|---|---|---|
+| `tr/implant-asamalari` (TR hero) | "İmplant yapıldı ama diş daha hazır değil." 30 s; instrument tray, implant screw, treatment chair; "DK" logo, "Demo Diş Kliniği", @demodisklinigi; md. 7/1-k notice; no booking push | 1080x1920, -14.4 LUFS, hook on frame 0. No dark scene any more, so the hero loop skips nothing. A first render was not published: its card read "Asıl parça iyileşmeden gelir." (before healing), the opposite of the narration |
+| `tr/dis-tasi-temizligi` | "Fırçalasanız da diş taşı neden kalıyor?" 23 s; toothbrush photos | -14.4 LUFS. Known flaw: "Pek sayılmaz;" after a why-question; the check now sends that back (`week.ts`, wh-question), but the budget was used up |
+| `tr/beyazlatma-hassasiyet` | "Beyazlatmadan sonra gelen o diş sızısı…" 24 s; whitening tray, chair | -14.5 LUFS. Narration hedges one sentence of eight (was 5 of 6 in the bench) |
+| `en/caring-for-clear-aligners` | "Aligners smelling off by evening?" 22 s; aligner case | -14.2 LUFS; no "Not quite" |
+| `en/proper-brushing-technique` | "Your toothbrush skips one spot every morning." 27 s; toothbrushes | -14.6 LUFS. A first render ("Your gumline after brushing? Take a look." → "Not quite if you only scrub…") was not published; the check now catches it |
+| `de/aligner-verfaerbung` | "Kaffee drin? Aligner sehen es sofort." 28 s; aligner case, glass | -14.5 LUFS. Known flaw: a reflexive "Nicht ganz:" after the hook; the check now sends it back. A second render was rejected by the pipeline (a repeated line) |
+
+Not re-rendered: `en/whitening-myths-debunked` (EN hero) still says "Sensitivity
+can feel zippy" (render cap reached). The Turkish **live preview library**
+(`web/public/dentvideo/preview/tr/`) is still the earlier pass; the samples are
+no longer the same renders as the preview's.
+
+Inputs for this pass: a TR demo profile ("Demo Diş Kliniği", İzmir, formal,
+#0F5C5C) and topics written per sample, run as below.
 
 ```bash
 cd worker

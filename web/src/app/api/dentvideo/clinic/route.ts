@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { clinicProfileSchema } from "@/lib/dentvid/profile";
+import { closingLineMessage } from "@/lib/dentvid/closing-line-message";
 import { dvSession } from "@/lib/dentvid/auth";
-import { dvErrors } from "@/lib/dentvid/locale-server";
+import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
 import { isOwnLogoPath } from "@/lib/dentvid/paths";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
@@ -64,6 +65,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: field ? `${err.invalidProfile} (${field})` : err.invalidProfile }, { status: 400 });
   }
   const body = parsed.data;
+  // A closing line the clinic's market rules refuse is not stored: the worker
+  // would ignore it anyway, and the clinic would never know why.
+  const closingRefused = body.profile.closingLine ? closingLineMessage(body.profile.closingLine, body.profile.country, await dvLocale(body.profile.language)) : null;
+  if (closingRefused) return NextResponse.json({ error: closingRefused, field: "closingLine", code: "closing_line" }, { status: 400 });
   if (body.logoPath && !isOwnLogoPath(body.logoPath, user.id)) {
     return NextResponse.json({ error: err.invalidLogo }, { status: 400 });
   }
@@ -108,9 +113,22 @@ export async function POST(req: Request) {
     ...(body.logoPath !== undefined ? { logo_path: body.logoPath } : {}),
     updated_at: new Date().toISOString(),
   };
-  const { data, error } = await db.from("dentvid_clinics").upsert(row, { onConflict: "owner_id" }).select("id, logo_path").single();
-  if (error) {
-    console.error("dentvideo clinic save failed", error.message);
+  const first = await db.from("dentvid_clinics").upsert(row, { onConflict: "owner_id" }).select("id, logo_path").single();
+  let data = first.data;
+  let error: { message: string; code?: string } | null = first.error;
+  // Before migration 0021 the 0007 profile guard does not know "closingLine"
+  // and refuses the whole owner write (23514). The line was checked above
+  // (shape and market rules), so the rest is saved as the owner and the line
+  // added with the service role, as the logo path is below.
+  if (error?.code === "23514" && body.profile.closingLine) {
+    const { closingLine, ...rest } = body.profile;
+    const retry = await db.from("dentvid_clinics").upsert({ ...row, profile: rest }, { onConflict: "owner_id" }).select("id, logo_path").single();
+    data = retry.data;
+    error = retry.error;
+    if (!error) error = (await dvAdmin().from("dentvid_clinics").update({ profile: { ...rest, closingLine } }).eq("owner_id", user.id)).error;
+  }
+  if (error || !data) {
+    console.error("dentvideo clinic save failed", error?.message);
     return NextResponse.json({ error: err.saveFailed }, { status: 500 });
   }
 

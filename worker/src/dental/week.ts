@@ -38,7 +38,7 @@ import {
 } from "./style.js";
 import { mixedAddress, screenLines, type RubricScene } from "./rubric.js";
 import { firstSentence, weekVoiceBrief, type PastTopic, type WeekVoice } from "./memory.js";
-import { droppedHedges, notQuite, offRegister, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
+import { droppedHedges, hedgeRatio, notQuite, offRegister, overHedged, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -127,6 +127,21 @@ export function planText(plan: ScenePlan): string {
   return out.filter(Boolean).join("\n");
 }
 
+/**
+ * Turkish over-hedges: "-ebilir" is a verb ending, so "hedge where outcomes
+ * vary" turned into "-ebilir" on nearly every verb. Facts that every dentist
+ * would state flatly sounded unsure, and the video read like a disclaimer.
+ * Plain still never means a promise: the compliance rules stay as they are.
+ */
+export function hedgingRule(language: string | undefined): string {
+  if ((language ?? "").toLowerCase().slice(0, 2) !== "tr") return "";
+  return [
+    `Turkish hedging: "-ebilir/-abilir", "olabilir", "genelde" go ONLY where the outcome really differs from person to person (how long sensitivity lasts, whether a side effect comes, how many sessions). At most one or two such sentences per video.`,
+    `What the treatment is, what is well established and what to do are said plainly: "Diş taşı fırçayla çıkmaz; temizliği hekim yapar." "Beyazlatmadan sonraki ilk günlerde koyu renkli içecekleri sınırlayın." "Hassasiyet beyazlatmanın bilinen bir yan etkisidir." — not "çıkmayabilir", "sınırlamak faydalı olabilir", "görülebilir".`,
+    `Plain is not absolute: never "kesin", "garanti", "hiç ağrımaz", "tamamen zararsız", "kalıcı" or a promised result.`,
+  ].join(" ");
+}
+
 export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[] = [], week?: WeekVoice): string {
   const example = exampleFor(profile, topic);
   return [
@@ -143,6 +158,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Sound: say it the way a dentist would say it across the chair, not a leaflet. Never generic filler ("for more information", "your smile deserves…", "we're here to help", "don't hesitate to") in any language.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually") — and the on-screen line keeps the same qualifier as the narration: if the voice says "usually", the card says it too. One qualifier per claim; instructions and plain facts are said plainly, not hedged.`,
+    hedgingRule(profile.language),
     practiceFactsRule(profile),
     `Every word on screen is in ${profile.language}: never an English "Not quite." or "Here's why", or any other language's words, on a ${profile.language} card.`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
@@ -294,9 +310,32 @@ export function scriptProblems(
   for (const w of wrongLanguage([...lines, narration], profile.language)) out.push(`"${w}" is not in ${profile.language} — write it in the video's language`);
   // "Rinsing aligners with water? That's the mistake." → "Not quite. Rinse them…": the
   // answer contradicts a hook that made no claim to deny (EN sample render, Nov 2026).
-  const afterHook = lines[lines.indexOf(hook) + 1] ?? "";
+  // The answer is the first line after the hook that is not a footage caption
+  // (EN brushing render, Nov 2026: hook, footage, then "Not quite if you only…").
+  const captions = new Set(scenes.filter((s) => s.kind === "footage").map((s) => s.caption).filter(Boolean));
+  const afterHook = lines.slice(lines.indexOf(hook) + 1).find((l) => !captions.has(l)) ?? "";
   const nq = notQuite(profile.language).toLocaleLowerCase();
-  if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && (!/[?？؟]/u.test(hook) || /\b(mistake|fehler|hata|error)\b/i.test(hook)))
+  // "Not quite" anywhere but at the start of a line is a garbled answer ("Not
+  // quite if you only scrub the middle of the teeth.", "…, not quite.").
+  const garbled = lines.find((l) => {
+    const low = l.toLocaleLowerCase();
+    if (l === hook || !low.includes(nq)) return false;
+    return !low.startsWith(nq) || /^\s*\p{L}/u.test(low.slice(nq.length));
+  });
+  if (garbled) out.push(`"${garbled}" uses "${notQuite(profile.language)}" inside a sentence — it only ever opens the answer to a hook that states a belief; otherwise say the point directly`);
+  // A belief needs a few words: "Kaffee drin? Aligner sehen es sofort." asks
+  // about a moment, so "Nicht ganz:" after it denies nothing (DE sample, Nov 2026).
+  // The question has to be the belief: a hook that goes on after it ("Your
+  // gumline after brushing? Take a look.") asks the viewer to look, it does not
+  // state something to deny, unless what follows is the denial itself.
+  const [asking, ...after] = hook.split(/[?？؟]/u);
+  const asked = asking.trim().split(/\s+/u).filter(Boolean).length;
+  const tail = after.join(" ").trim().toLocaleLowerCase();
+  // "Why/how …?" asks for an explanation, it states nothing to deny either
+  // (TR cleaning render, Nov 2026: "Fırçalasanız da diş taşı neden kalıyor?" → "Pek sayılmaz;").
+  const why = /(?<![\p{L}])(why|how|what|warum|wieso|weshalb|wie|was|neden|niye|nasıl|niçin|por qué|cómo|qué|pourquoi|comment|perché|come|por que|como|dlaczego|jak|czemu)(?![\p{L}])/iu.test(asking);
+  const belief = /[?？؟]/u.test(hook) && asked >= 3 && !why && (!tail || tail.includes(nq));
+  if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && (!belief || /\b(mistake|fehler|hata|error)\b/i.test(hook)))
     out.push(`"${afterHook}" answers "${hook}" with "${notQuite(profile.language)}", but the hook states no belief to deny — start the answer directly`);
   for (const o of offRegister(`${screen}\n${narration}`, profile.language)) out.push(`"${o}" is a stock opener or too casual for a practice's feed — say it plainly`);
   if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);
@@ -323,6 +362,22 @@ export function softScriptProblems(plan: ScenePlan, profile: Pick<ClinicProfile,
     if (stacked) out.push(`narration: ${stacked}`);
   }
   return out;
+}
+
+/**
+ * The narrator's own check before anyone reviews the draft: a narration that
+ * hedges most sentences (TR whitening, Nov 2026 bench: "-ebilir" in 5 of 6)
+ * gets ONE edit asking it to say the established facts plainly. Whichever
+ * version hedges less is kept, so this can only lower the hedging, and it
+ * never costs the video (the reviewers still judge the result). Runs on every
+ * draft, unlike softScriptProblems, because a rewrite for another reason can
+ * pile the qualifiers back on.
+ */
+export async function lessHedged(text: string, rewrite: (fix: string) => Promise<string>, language: string | undefined): Promise<string> {
+  const fix = overHedged(text, language);
+  if (!fix) return text;
+  const second = await rewrite(`narration: ${fix}`).catch(() => text);
+  return second.trim() && hedgeRatio(second, language).ratio < hedgeRatio(text, language).ratio ? second : text;
 }
 
 /**
@@ -442,7 +497,9 @@ export async function produceVideo(
       // it from the screen text alone, so the reviews below still see one story.
       const deduped = dropEchoes(plan);
       if (!deduped.voiceover) return deduped;
-      const text = await narrate(deps.client, profile, topic, deduped, fixes, previous?.voiceover?.text, week).catch(() => deduped.voiceover!.text);
+      let text = await narrate(deps.client, profile, topic, deduped, fixes, previous?.voiceover?.text, week).catch(() => deduped.voiceover!.text);
+      const first = text;
+      text = await lessHedged(first, (fix) => narrate(deps.client, profile, topic, deduped, [...fixes, fix], first, week), profile.language);
       return { ...deduped, voiceover: { ...deduped.voiceover, text } };
     },
     planText,

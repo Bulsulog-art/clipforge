@@ -7,6 +7,8 @@ const OTHER = "9f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f";
 let row: Record<string, unknown> | null;
 /** Simulates the 0004 trigger (before 0008): a versioned logo name is quietly refused. */
 let oldTrigger = false;
+/** Simulates the 0007 profile guard before 0021: an owner write with "closingLine" is refused (23514). */
+let oldGuard = false;
 let objects: Map<string, number>;
 /** Stored bytes, when a test cares; anything else reads as a PNG. */
 let contents: Map<string, Uint8Array>;
@@ -28,6 +30,8 @@ vi.mock("@/lib/dentvid/auth", () => ({
           maybeSingle: async () => ({ data: row, error: null }),
           upsert: (r: Record<string, unknown>) => ((upsert = r), q),
           single: async () => {
+            if (oldGuard && (upsert?.profile as Record<string, unknown> | undefined)?.closingLine !== undefined)
+              return { data: null, error: { code: "23514", message: "dentvid: clinic profile rejected (unknown key or invalid value)" } };
             const next = { ...(row ?? { id: "c1" }), ...upsert! };
             if (oldTrigger && typeof next.logo_path === "string" && !LEGACY.test(next.logo_path)) next.logo_path = row?.logo_path ?? null;
             row = next;
@@ -39,7 +43,7 @@ vi.mock("@/lib/dentvid/auth", () => ({
     },
   }),
 }));
-vi.mock("@/lib/dentvid/locale-server", () => ({ dvErrors: async () => APP_TEXT.en.errors }));
+vi.mock("@/lib/dentvid/locale-server", () => ({ dvErrors: async () => APP_TEXT.en.errors, dvLocale: async (l?: string) => (l === "tr" ? "tr" : "en") }));
 vi.mock("@/lib/rate-limit-server", () => ({ rateLimited: async () => null }));
 vi.mock("@/lib/dentvid/events-server", () => ({ recordEvent: async () => {} }));
 vi.mock("@/lib/dentvid/supabase", () => ({
@@ -85,6 +89,7 @@ async function save(extra: Record<string, unknown>) {
 beforeEach(() => {
   row = { id: "c1", owner_id: OWNER, logo_path: `${OWNER}/logo.png` };
   oldTrigger = false;
+  oldGuard = false;
   objects = new Map([
     [`${OWNER}/logo.png`, 1000],
     [`${OWNER}/logo-1731081600000.png`, 2000],
@@ -141,5 +146,49 @@ describe("POST /api/dentvideo/clinic — replacing the logo", () => {
     contents.set(key, new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 16, 74, 70, 73, 70, 0, 1]));
     expect((await save({ logoPath: key })).status).toBe(200);
     expect(row!.logo_path).toBe(key);
+  });
+});
+
+describe("POST /api/dentvideo/clinic — the clinic's own closing line", () => {
+  const tr = { name: "Körfez Diş", country: "TR", language: "tr", services: ["İmplant"], tone: "warm", address: "formal" };
+
+  it("stores a calm closing line with the profile", async () => {
+    const closingLine = "Questions about your gums? Bring them to your next check-up.";
+    const r = await save({ profile: { ...profile, closingLine } });
+    expect(r.status).toBe(200);
+    expect((row!.profile as Record<string, unknown>).closingLine).toBe(closingLine);
+  });
+
+  it("refuses a Turkish line that steers viewers to book, calmly and in Turkish, storing nothing", async () => {
+    row = { id: "c1", owner_id: OWNER, profile: tr };
+    const r = await save({ profile: { ...tr, closingLine: "Hemen randevu alın, kliniğimizde sizi bekliyoruz" } });
+    expect(r.status).toBe(400);
+    expect(r.body.code).toBe("closing_line");
+    expect(r.body.field).toBe("closingLine");
+    expect(String(r.body.error)).toContain(APP_TEXT.tr.form.closingLineReasons.booking);
+    expect(String(r.body.error)).not.toMatch(/!/);
+    expect((row!.profile as Record<string, unknown>).closingLine).toBeUndefined();
+  });
+
+  it("lets the same informative line through in Türkiye that the worker would use", async () => {
+    const closingLine = "Diş etlerinizle ilgili sorularınızı bir sonraki kontrolünüzde hekiminize sorabilirsiniz.";
+    expect((await save({ profile: { ...tr, closingLine } })).status).toBe(200);
+    expect((row!.profile as Record<string, unknown>).closingLine).toBe(closingLine);
+  });
+
+  it("refuses a guarantee or an exclamation anywhere, and a line over the limit", async () => {
+    expect((await save({ profile: { ...profile, closingLine: "Painless treatment, guaranteed results." } })).body.code).toBe("closing_line");
+    expect((await save({ profile: { ...profile, closingLine: "Ask us about your gums at your next visit!" } })).body.code).toBe("closing_line");
+    expect((await save({ profile: { ...profile, closingLine: "a".repeat(121) } })).status).toBe(400);
+  });
+
+  it("works before migration 0021: the profile is saved as the owner and the line added with the service role", async () => {
+    oldGuard = true;
+    const closingLine = "Questions about your gums? Bring them to your next check-up.";
+    const r = await save({ profile: { ...profile, closingLine } });
+    expect(r.status).toBe(200);
+    expect(adminUpdates).toHaveLength(1);
+    expect((row!.profile as Record<string, unknown>).closingLine).toBe(closingLine);
+    expect((row!.profile as Record<string, unknown>).name).toBe("Riverside Dental");
   });
 });

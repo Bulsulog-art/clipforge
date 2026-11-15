@@ -7,6 +7,7 @@
  * Forms of address follow the landing pages: German Sie, Spanish tú,
  * French vous, Turkish siz, Japanese です・ます, Arabic plural أنتم, Polish Państwo. `{name}` placeholders are filled by `fmt`.
  */
+import type { ClosingLineReason } from "@/lib/dentvid/closing-line";
 import type { Locale } from "./dentvideo";
 
 export type AppText = {
@@ -159,6 +160,11 @@ export type AppText = {
     tones: { warm: string; expert: string; calm: string; playful: string };
     handle: string;
     booking: string;
+    /** The clinic's own closing line under its captions (profile.closingLine). */
+    closingLine: string;
+    closingLineHelp: string;
+    /** Why a closing line cannot go out, one calm sentence per reason (lib/dentvid/closing-line.ts); {max} in `length`. */
+    closingLineReasons: Record<ClosingLineReason, string>;
     brandColor: string;
     logo: string;
     logoSaved: string;
@@ -279,6 +285,8 @@ export type AppText = {
     accountExists: string;
     createFailed: string;
     saveFailed: string;
+    /** A closing line the market rules refuse; {reason} is one of form.closingLineReasons. */
+    closingLine: string;
     planRequired: string;
     recordingsNeedPractice: string;
     alreadySubscribed: string;
@@ -484,6 +492,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "Warm", expert: "Expert", calm: "Calm", playful: "Playful" },
       handle: "Instagram / TikTok handle",
       booking: "Booking link (optional)",
+      closingLine: "Closing line for captions (optional)",
+      closingLineHelp: "One calm sentence added under your captions, for example “Questions about your gums? Bring them to your next check-up.” If it is empty, your posts use our own closing lines.",
+      closingLineReasons: { booking: "In your country a post may inform but not steer people to book or to your clinic. Try a question they could bring to their next check-up.", claim: "It makes a promise health advertising rules don't allow (for example a guarantee, “painless” or a price).", market: "It uses wording your country's advertising rules don't allow.", pressure: "It sounds urgent. A calm line without “today” or “don't wait” works better.", exclamation: "Please leave out the exclamation mark: it reads as a sales push.", generic: "It is a general “contact us” line. Name something specific to your patients instead.", length: "Please keep it under {max} characters." },
       brandColor: "Brand color",
       logo: "Logo (PNG with a transparent background works best)",
       logoSaved: "A logo is already saved.",
@@ -633,6 +644,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "An account with this email already exists. Sign in instead.",
       createFailed: "Could not create the account. Please try again.",
       saveFailed: "Could not save. Please try again.",
+      closingLine: "The closing line needs a small change before we can save: {reason}",
       planRequired: "Choose a plan to have your videos made — your first week starts right after payment.",
       recordingsNeedPractice: "Your own recordings are part of the Practice plan. Upgrade to turn your recording into clips.",
       alreadySubscribed: "Your plan is already active.",
@@ -831,6 +843,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "Herzlich", expert: "Fachlich", calm: "Ruhig", playful: "Locker" },
       handle: "Instagram- / TikTok-Name",
       booking: "Link zur Terminbuchung (optional)",
+      closingLine: "Schlusssatz unter den Beiträgen (optional)",
+      closingLineHelp: "Ein ruhiger Satz unter Ihren Beitragstexten, zum Beispiel „Fragen zum Zahnfleisch? Sprechen Sie sie bei der nächsten Kontrolle an.“ Bleibt das Feld leer, verwenden Ihre Beiträge unsere eigenen Schlusssätze.",
+      closingLineReasons: { booking: "In Ihrem Land darf ein Beitrag informieren, aber nicht zur Terminbuchung oder in Ihre Praxis lenken. Versuchen Sie eine Frage für die nächste Kontrolle.", claim: "Der Satz verspricht etwas, das die Regeln für Gesundheitswerbung nicht erlauben (zum Beispiel eine Garantie, „schmerzfrei“ oder einen Preis).", market: "Der Satz enthält eine Formulierung, die die Werberegeln Ihres Landes nicht erlauben.", pressure: "Der Satz klingt nach Eile. Ohne „heute noch“ oder „nicht warten“ wirkt er ruhiger.", exclamation: "Bitte ohne Ausrufezeichen: Es wirkt wie Verkaufsdruck.", generic: "Das ist ein allgemeines „Kontaktieren Sie uns“. Nennen Sie lieber etwas Konkretes für Ihre Patienten.", length: "Bitte unter {max} Zeichen bleiben." },
       brandColor: "Markenfarbe",
       logo: "Logo (am besten PNG mit transparentem Hintergrund)",
       logoSaved: "Ein Logo ist bereits gespeichert.",
@@ -983,6 +998,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Zu dieser E-Mail-Adresse gibt es schon ein Konto. Bitte melden Sie sich an.",
       createFailed: "Das Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
       saveFailed: "Speichern hat nicht geklappt. Bitte versuchen Sie es erneut.",
+      closingLine: "Der Schlusssatz braucht vor dem Speichern eine kleine Änderung: {reason}",
       planRequired: "Wählen Sie einen Tarif, damit Ihre Videos erstellt werden — Ihre erste Woche beginnt direkt nach der Zahlung.",
       recordingsNeedPractice: "Eigene Aufnahmen sind im Tarif Practice enthalten. Wechseln Sie den Tarif, um Ihre Aufnahme in Clips zu verwandeln.",
       alreadySubscribed: "Ihr Tarif ist bereits aktiv.",
@@ -1181,6 +1197,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "Cercano", expert: "Experto", calm: "Tranquilo", playful: "Desenfadado" },
       handle: "Usuario de Instagram / TikTok",
       booking: "Enlace para pedir cita (opcional)",
+      closingLine: "Frase de cierre para los textos (opcional)",
+      closingLineHelp: "Una frase tranquila al final de tus textos, por ejemplo «¿Dudas sobre tus encías? Coméntalas en tu próxima revisión». Si la dejas vacía, tus publicaciones usan nuestras propias frases de cierre.",
+      closingLineReasons: { booking: "En tu país una publicación puede informar, pero no dirigir a pedir cita ni a tu clínica. Prueba con una pregunta para la próxima revisión.", claim: "Promete algo que las normas de publicidad sanitaria no permiten (por ejemplo una garantía, «sin dolor» o un precio).", market: "Usa palabras que las normas de publicidad de tu país no permiten.", pressure: "Suena a prisa. Sin «hoy mismo» ni «no esperes» queda más tranquila.", exclamation: "Mejor sin signos de exclamación: suenan a venta.", generic: "Es un «contáctanos» genérico. Menciona algo concreto para tus pacientes.", length: "Que no pase de {max} caracteres." },
       brandColor: "Color de marca",
       logo: "Logo (mejor en PNG con fondo transparente)",
       logoSaved: "Ya hay un logo guardado.",
@@ -1333,6 +1352,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Ya existe una cuenta con este correo. Inicia sesión.",
       createFailed: "No se pudo crear la cuenta. Inténtalo de nuevo.",
       saveFailed: "No se pudo guardar. Inténtalo de nuevo.",
+      closingLine: "La frase de cierre necesita un pequeño cambio antes de guardar: {reason}",
       planRequired: "Elige un plan para que creemos tus vídeos: tu primera semana empieza justo después del pago.",
       recordingsNeedPractice: "Tus propias grabaciones están en el plan Practice. Cambia de plan para convertir tu grabación en clips.",
       alreadySubscribed: "Tu plan ya está activo.",
@@ -1531,6 +1551,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "Sıcak", expert: "Uzman", calm: "Sakin", playful: "Eğlenceli" },
       handle: "Instagram / TikTok kullanıcı adı",
       booking: "Randevu bağlantısı (isteğe bağlı)",
+      closingLine: "Gönderi metinlerinin kapanış cümlesi (isteğe bağlı)",
+      closingLineHelp: "Gönderi metinlerinizin sonuna eklenen sakin bir cümle, örneğin “Diş etlerinizle ilgili sorularınızı bir sonraki kontrolünüzde hekiminize sorabilirsiniz.” Boş bırakırsanız gönderilerde kendi kapanış cümlelerimiz kullanılır.",
+      closingLineReasons: { booking: "Türkiye'de bir gönderi bilgi verebilir ama randevuya ya da kliniğinize yönlendiremez (RG 33075). Bir sonraki kontrolde hekime sorulabilecek bir soruya yer verebilirsiniz.", claim: "Sağlık tanıtımı kurallarının izin vermediği bir vaat içeriyor (örneğin garanti, “ağrısız” ya da fiyat).", market: "Ülkenizin tanıtım kurallarının izin vermediği bir ifade içeriyor.", pressure: "Acele ettiren bir ifade var. “Hemen” ya da “beklemeyin” olmadan daha sakin durur.", exclamation: "Ünlem işareti olmadan yazın: satış baskısı gibi okunur.", generic: "Genel bir “bize ulaşın” cümlesi. Hastalarınız için somut bir şeyden söz edin.", length: "Lütfen {max} karakteri geçmesin." },
       brandColor: "Marka rengi",
       logo: "Logo (en iyisi şeffaf arka planlı PNG)",
       logoSaved: "Kayıtlı bir logonuz var.",
@@ -1683,6 +1706,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Bu e-posta adresiyle zaten bir hesap var. Lütfen giriş yapın.",
       createFailed: "Hesap oluşturulamadı. Lütfen tekrar deneyin.",
       saveFailed: "Kaydedilemedi. Lütfen tekrar deneyin.",
+      closingLine: "Kaydetmeden önce kapanış cümlesinde küçük bir değişiklik gerekiyor: {reason}",
       planRequired: "Videolarınızın hazırlanması için bir plan seçin — ilk haftanız ödemenin hemen ardından başlar.",
       recordingsNeedPractice: "Kendi kayıtlarınız Practice planına dahildir. Kaydınızı kliplere dönüştürmek için planınızı yükseltin.",
       alreadySubscribed: "Planınız zaten aktif.",
@@ -1881,6 +1905,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "Chaleureux", expert: "Expert", calm: "Posé", playful: "Détendu" },
       handle: "Compte Instagram / TikTok",
       booking: "Lien de prise de rendez-vous (facultatif)",
+      closingLine: "Phrase de fin pour les légendes (facultatif)",
+      closingLineHelp: "Une phrase calme ajoutée sous vos légendes, par exemple « Une question sur vos gencives ? Posez-la lors de votre prochain contrôle. » Si le champ reste vide, vos publications utilisent nos propres phrases de fin.",
+      closingLineReasons: { booking: "Dans votre pays, une publication peut informer mais pas inciter à prendre rendez-vous ni orienter vers votre cabinet. Essayez une question à poser lors du prochain contrôle.", claim: "Elle contient une promesse que les règles de publicité en santé n'autorisent pas (par exemple une garantie, « sans douleur » ou un prix).", market: "Elle contient une formulation que les règles publicitaires de votre pays n'autorisent pas.", pressure: "Elle donne une impression d'urgence. Sans « dès aujourd'hui » ni « n'attendez pas », elle sera plus sereine.", exclamation: "Merci d'enlever le point d'exclamation : il donne un ton commercial.", generic: "C'est un « contactez-nous » générique. Mentionnez plutôt quelque chose de concret pour vos patients.", length: "Merci de rester sous {max} caractères." },
       brandColor: "Couleur de marque",
       logo: "Logo (idéalement un PNG à fond transparent)",
       logoSaved: "Un logo est déjà enregistré.",
@@ -2033,6 +2060,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Un compte existe déjà avec cet e-mail. Connectez-vous.",
       createFailed: "Le compte n'a pas pu être créé. Merci de réessayer.",
       saveFailed: "L'enregistrement a échoué. Merci de réessayer.",
+      closingLine: "La phrase de fin demande une petite modification avant l'enregistrement : {reason}",
       planRequired: "Choisissez une formule pour que vos vidéos soient réalisées : votre première semaine démarre dès le paiement.",
       recordingsNeedPractice: "Vos propres enregistrements font partie de la formule Practice. Changez de formule pour transformer votre enregistrement en clips.",
       alreadySubscribed: "Votre formule est déjà active.",
@@ -2231,6 +2259,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "あたたかく", expert: "専門的に", calm: "落ち着いて", playful: "親しみやすく" },
       handle: "Instagram / TikTok のアカウント名",
       booking: "予約ページのURL（任意）",
+      closingLine: "投稿文の締めの一文（任意）",
+      closingLineHelp: "投稿文の最後に添える落ち着いた一文です。例：「歯ぐきのことで気になる点は、次回の定期検診でご相談ください。」空欄の場合は、こちらで用意した締めの一文を使います。",
+      closingLineReasons: { booking: "お住まいの国では、投稿で情報を伝えることはできても、予約や医院への誘導はできません。次回の検診で聞ける質問の形にしてみてください。", claim: "医療広告のルールで認められていない表現（保証、「痛くない」、料金など）が含まれています。", market: "お住まいの国の広告ルールで認められていない表現が含まれています。", pressure: "急がせる表現があります。「今すぐ」などを使わない方が落ち着いた印象になります。", exclamation: "感嘆符は外してください。売り込みのように見えます。", generic: "一般的な「お問い合わせください」になっています。患者さんに向けた具体的な内容にしてみてください。", length: "{max}文字以内にしてください。" },
       brandColor: "ブランドカラー",
       logo: "ロゴ（背景が透明なPNGがおすすめです）",
       logoSaved: "ロゴは登録済みです。",
@@ -2380,6 +2411,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "このメールアドレスのアカウントはすでにあります。ログインしてください。",
       createFailed: "アカウントを作成できませんでした。もう一度お試しください。",
       saveFailed: "保存できませんでした。もう一度お試しください。",
+      closingLine: "保存する前に、締めの一文を少しだけ直してください：{reason}",
       planRequired: "動画を制作するには、プランをお選びください。初週の動画はお支払い後すぐに制作を始めます。",
       recordingsNeedPractice: "ご自身で撮影した動画の編集は、Practiceプランの機能です。クリップを作るには、プランを変更してください。",
       alreadySubscribed: "プランはすでに有効です。",
@@ -2579,6 +2611,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "دافئ", expert: "متخصص", calm: "هادئ", playful: "مرح" },
       handle: "حساب إنستغرام / تيك توك",
       booking: "رابط الحجز (اختياري)",
+      closingLine: "جملة ختامية للمنشورات (اختياري)",
+      closingLineHelp: "جملة هادئة تُضاف في نهاية نصوص منشوراتكم، مثل: «هل لديكم سؤال عن اللثة؟ اطرحوه في فحصكم القادم.» إذا تُرك الحقل فارغًا، تستخدم منشوراتكم جملنا الختامية.",
+      closingLineReasons: { booking: "في بلدكم يجوز للمنشور أن يقدّم معلومات، لا أن يوجّه إلى الحجز أو إلى عيادتكم. جرّبوا سؤالًا يمكن طرحه في الفحص القادم.", claim: "تتضمن وعدًا لا تسمح به قواعد الإعلان الصحي (مثل ضمان أو «بلا ألم» أو سعر).", market: "تتضمن صياغة لا تسمح بها قواعد الإعلان في بلدكم.", pressure: "فيها استعجال. تبدو أهدأ من دون «الآن» أو «لا تنتظروا».", exclamation: "يُرجى حذف علامة التعجب، فهي توحي بضغط البيع.", generic: "هذه جملة عامة مثل «تواصلوا معنا». اذكروا شيئًا محددًا لمرضاكم بدلًا منها.", length: "يُرجى ألّا تتجاوز {max} حرفًا." },
       brandColor: "لون الهوية",
       logo: "الشعار (يُفضّل ملف PNG بخلفية شفافة)",
       logoSaved: "لديكم شعار محفوظ.",
@@ -2728,6 +2763,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "يوجد حساب بهذا البريد الإلكتروني. سجّلوا الدخول بدلاً من ذلك.",
       createFailed: "تعذّر إنشاء الحساب. حاولوا مرة أخرى.",
       saveFailed: "تعذّر الحفظ. حاولوا مرة أخرى.",
+      closingLine: "تحتاج الجملة الختامية إلى تعديل بسيط قبل الحفظ: {reason}",
       planRequired: "اختاروا باقة لإعداد فيديوهاتكم، فأسبوعكم الأول يبدأ فور الدفع.",
       recordingsNeedPractice: "التسجيلات الخاصة جزء من باقة Practice. انتقلوا إليها لتحويل تسجيلكم إلى مقاطع.",
       alreadySubscribed: "باقتكم فعّالة بالفعل.",
@@ -2928,6 +2964,9 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tones: { warm: "Ciepły", expert: "Ekspercki", calm: "Spokojny", playful: "Swobodny" },
       handle: "Konto na Instagramie / TikToku",
       booking: "Link do rezerwacji (opcjonalnie)",
+      closingLine: "Zdanie na koniec opisu posta (opcjonalnie)",
+      closingLineHelp: "Jedno spokojne zdanie dodawane na końcu opisów, na przykład „Pytania o dziąsła? Warto zadać je podczas najbliższej kontroli.” Jeśli pole zostanie puste, posty kończą się naszymi zdaniami.",
+      closingLineReasons: { booking: "W Państwa kraju post może informować, ale nie może kierować do umawiania wizyt ani do Państwa gabinetu. Prosimy spróbować pytania, które pacjent może zadać na kontroli.", claim: "Zawiera obietnicę, na którą nie pozwalają zasady reklamy w ochronie zdrowia (np. gwarancję, „bezbolesny” albo cenę).", market: "Zawiera sformułowanie, na które nie pozwalają zasady reklamy w Państwa kraju.", pressure: "Brzmi ponaglająco. Bez „teraz” czy „nie czekaj” będzie spokojniej.", exclamation: "Prosimy bez wykrzyknika: brzmi jak sprzedaż.", generic: "To ogólne „skontaktuj się z nami”. Lepiej napisać coś konkretnego dla pacjentów.", length: "Prosimy zmieścić się w {max} znakach." },
       brandColor: "Kolor marki",
       logo: "Logo (najlepiej PNG z przezroczystym tłem)",
       logoSaved: "Logo jest już zapisane.",
@@ -3077,6 +3116,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       accountExists: "Konto z tym adresem e-mail już istnieje. Prosimy się zalogować.",
       createFailed: "Nie udało się założyć konta. Prosimy spróbować ponownie.",
       saveFailed: "Nie udało się zapisać. Prosimy spróbować ponownie.",
+      closingLine: "Przed zapisaniem zdanie na koniec wymaga drobnej zmiany: {reason}",
       planRequired: "Aby filmy powstały, prosimy wybrać plan; pierwszy tydzień zaczyna się zaraz po płatności.",
       recordingsNeedPractice: "Własne nagrania są częścią planu Practice. Aby zamienić nagranie w klipy, prosimy zmienić plan.",
       alreadySubscribed: "Plan jest już aktywny.",

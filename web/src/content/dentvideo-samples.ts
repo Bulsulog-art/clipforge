@@ -41,13 +41,13 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Demo Dental Studio (US)
   en: [
     { slug: "whitening-myths-debunked", name: "Teeth whitening hurting your enamel? Hold on.", seconds: 21, hero: { start: 0.9, skip: [[6.1, 8.9]] }, topic: "Whitening and enamel" },
-    { slug: "caring-for-clear-aligners", name: "That funky smell from your aligners? Avoid it this way.", seconds: 21, topic: "Caring for clear aligners", legacy: true },
-    { slug: "proper-brushing-technique", name: "Missing spots when you brush? Here's a clue.", seconds: 20, topic: "Brushing technique", legacy: true },
+    { slug: "caring-for-clear-aligners", name: "Aligners smelling off by evening?", seconds: 22, topic: "Caring for clear aligners" },
+    { slug: "proper-brushing-technique", name: "Your toothbrush skips one spot every morning.", seconds: 27, topic: "Brushing technique" },
   ],
   // Demo Zahnarztpraxis (DE), Sie
   de: [
     { slug: "bleaching-zahnschmelz", name: "Bleaching heißt nicht gleich schwacher Zahnschmelz.", seconds: 28, hero: { start: 0.9, skip: [[7.2, 10.8]] }, topic: "Bleaching und Zahnschmelz" },
-    { slug: "aligner-verfaerbung", name: "Ihre Aligner verfärben sich?", seconds: 27, topic: "Verfärbungen bei Alignern", legacy: true },
+    { slug: "aligner-verfaerbung", name: "Kaffee drin? Aligner sehen es sofort.", seconds: 28, topic: "Verfärbungen bei Alignern" },
     { slug: "kinder-zahnarztangst", name: "Ihr Kind spürt Ihre Nervosität sofort.", seconds: 30, topic: "Kinder mit Zahnarztangst" },
   ],
   // Clínica Dental Demo (ES), tú
@@ -58,9 +58,9 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   ],
   // Demo Diş Kliniği (TR), siz
   tr: [
-    { slug: "implant-asamalari", name: "İmplant günü bitiyor, süreç daha bitmiyor.", seconds: 25, hero: { start: 0.9, skip: [[6.2, 10.0]] }, topic: "İmplant aşamaları" },
-    { slug: "dis-tasi-temizligi", name: "Diş taşı sadece görüntü meselesi değil.", seconds: 34, topic: "Diş taşı temizliği" },
-    { slug: "beyazlatma-hassasiyet", name: "Beyazlatmadan sonra gelen o diş sızısı…", seconds: 26, topic: "Beyazlatma ve hassasiyet" },
+    { slug: "implant-asamalari", name: "İmplant yapıldı ama diş daha hazır değil.", seconds: 30, hero: { start: 0.9, skip: [] }, topic: "İmplant aşamaları" },
+    { slug: "dis-tasi-temizligi", name: "Fırçalasanız da diş taşı neden kalıyor?", seconds: 23, topic: "Diş taşı temizliği" },
+    { slug: "beyazlatma-hassasiyet", name: "Beyazlatmadan sonra gelen o diş sızısı…", seconds: 24, topic: "Beyazlatma ve hassasiyet" },
   ],
   // Cabinet Dentaire Démo (FR), vous
   fr: [
