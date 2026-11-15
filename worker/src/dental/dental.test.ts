@@ -270,6 +270,19 @@ describe("the orchestrator", () => {
     }
   });
 
+  it("never ships a known mistake (docs/KNOWN_MISTAKES.md): sent back, and rejected if the writer keeps it", async () => {
+    const flawed = plan(["Whitening ruins enamel?", "Supervised whitening is usually considered safe for enamel.", "Avoid strong colors briefly"]);
+    const kept = fakeClient({ plans: [flawed, flawed, flawed], reviews: ["pass", "pass", "pass"] });
+    const pkg = await produceVideo({ client: kept.client }, PROFILE, TOPIC);
+    expect(pkg.status).toBe("rejected");
+    if (pkg.status === "rejected") expect(pkg.reasons.join(" ")).toMatch(/KM-13/);
+    // The reviewers were never asked: the deterministic check runs first.
+    expect(kept.calls.filter((c) => c.system.startsWith("You review"))).toHaveLength(0);
+    const fixed = fakeClient({ plans: [flawed, clean], reviews: ["pass", "pass"] });
+    expect((await produceVideo({ client: fixed.client }, PROFILE, TOPIC)).status).toBe("ready");
+    expect(fixed.calls.filter((c) => c.system.startsWith("You write scene plans"))[1].user).toMatch(/KM-13/);
+  });
+
   it("drops a topic the reviewer blocks, without a rewrite", async () => {
     const { client, calls } = fakeClient({ plans: [clean], reviews: ["block"] });
     const pkg = await produceVideo({ client }, PROFILE, TOPIC);
