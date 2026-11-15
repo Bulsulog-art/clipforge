@@ -64,10 +64,11 @@ function Hero({ locale }: { locale: Locale }) {
 
       {/*
         One grid, two arrangements. Phones: what it is (text), the CTA with the starting price, then a real
-        sample video beside the three risk-reducers — all in the first screen. From lg: text, CTA and points
+        sample video beside the three risk-reducers — all in the first screen. Tablets (md): text, CTA and points
+        beside a mid-size phone, so the phone is not a thumbnail in an empty corner. From lg: text, CTA and points
         on the left, the full-size phone on the right.
       */}
-      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_8.25rem] gap-x-4 gap-y-7 px-4 pb-20 pt-6 [grid-template-areas:'text_text'_'cta_cta'_'points_phone'] sm:grid-cols-[minmax(0,1fr)_10rem] sm:px-6 sm:pt-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-10 lg:gap-y-0 lg:pb-28 lg:pt-16 lg:[grid-template-areas:'._phone'_'text_phone'_'cta_phone'_'points_phone'_'._phone']">
+      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_8.25rem] gap-x-4 gap-y-7 px-4 pb-20 pt-6 [grid-template-areas:'text_text'_'cta_cta'_'points_phone'] sm:grid-cols-[minmax(0,1fr)_10rem] sm:px-6 sm:pt-14 md:grid-cols-[minmax(0,1fr)_14rem] md:gap-x-12 md:[grid-template-areas:'text_phone'_'cta_phone'_'points_phone'] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-10 lg:gap-y-0 lg:pb-28 lg:pt-16 lg:[grid-template-areas:'._phone'_'text_phone'_'cta_phone'_'points_phone'_'._phone']">
         <div className="min-w-0 [grid-area:text]">
           <p className="dv-rise inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pe-3.5 ps-2 text-sm font-medium text-dv-teal shadow-[0_1px_2px_rgba(20,33,31,0.05)] ring-1 ring-dv-line backdrop-blur">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal-50">
@@ -388,7 +389,7 @@ function Samples({ locale }: { locale: Locale }) {
                   <span className="tabular-nums" dir="ltr">{duration(seconds)}</span>
                 </p>
                 {/* Each sample has its own page: what it covers, its on-screen text, and how to get your own. */}
-                <Link href={dvHref(examplePath({ locale, slug }))} className="mt-1.5 block text-[0.9375rem] font-semibold leading-snug text-dv-ink underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal">
+                <Link href={dvHref(examplePath({ locale, slug }))} className="mt-0.5 block min-h-11 py-1 text-[0.9375rem] font-semibold leading-snug text-dv-ink underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal">
                   {name}
                 </Link>
               </div>
@@ -396,7 +397,7 @@ function Samples({ locale }: { locale: Locale }) {
           ))}
         </ul>
         <p className="mt-8 text-center sm:mt-10">
-          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex items-center gap-1.5 font-semibold text-dv-teal underline-offset-4 hover:underline" data-testid="landing-examples-link">
+          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex min-h-11 items-center gap-1.5 font-semibold text-dv-teal underline-offset-4 hover:underline" data-testid="landing-examples-link">
             {EXAMPLES_UI[locale].seeAll}
             <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
           </Link>
@@ -548,14 +549,15 @@ function Pricing({ locale }: { locale: Locale }) {
         <p className="mx-auto mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{p.text}</p>
       </div>
 
-      <ul className="mt-12 grid gap-5 md:grid-cols-3 md:items-stretch">
+      {/* Tablets: the two plans side by side and Group across under them (three columns were ~230px each); three from lg. */}
+      <ul className="mt-12 grid gap-5 md:grid-cols-2 md:items-stretch lg:grid-cols-3">
         {p.tiers.map((tier, i) => {
           const featured = i === 1;
           return (
             <li
               key={tier.name}
               data-tier={i === 0 ? "starter" : "practice"}
-              className={`dv-card dv-reveal relative flex flex-col p-7 transition-shadow duration-300 hover:shadow-[0_0_0_1px_rgba(15,92,92,0.25),0_24px_48px_-24px_rgba(15,92,92,0.35)] ${featured ? "ring-2 ring-dv-teal md:-my-3 md:py-10" : ""}`}
+              className={`dv-card dv-reveal relative flex flex-col p-7 transition-shadow duration-300 hover:shadow-[0_0_0_1px_rgba(15,92,92,0.25),0_24px_48px_-24px_rgba(15,92,92,0.35)] ${featured ? "ring-2 ring-dv-teal lg:-my-3 lg:py-10" : ""}`}
             >
               {featured && (
                 <span className="absolute -top-3 start-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgba(15,92,92,0.8)]">
@@ -563,7 +565,8 @@ function Pricing({ locale }: { locale: Locale }) {
                 </span>
               )}
               <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-dv-muted">{tier.blurb}</p>
+              {/* Two lines held from md up, so the prices of the side-by-side tiers sit on one line. */}
+              <p className="mt-1 text-sm leading-relaxed text-dv-muted md:min-h-[2lh]">{tier.blurb}</p>
               <p className="mt-6 flex items-baseline gap-1">
                 <span dir="ltr" className="dv-display dv-figure text-[3.25rem] leading-none text-dv-ink">{tier.price}</span>
                 <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
@@ -596,7 +599,7 @@ function Pricing({ locale }: { locale: Locale }) {
       </ul>
 
       {/* Two short facts, each with its own tick, so neither line starts with a stray separator on a phone. */}
-      <ul className="mt-10 flex flex-col items-center gap-2 text-center text-sm text-dv-muted sm:flex-row sm:justify-center sm:gap-6">
+      <ul className="mx-auto mt-10 flex w-fit max-w-full flex-col items-start gap-2 text-sm text-dv-muted sm:w-auto sm:flex-row sm:justify-center sm:gap-6">
         {[c.teaser.note, p.note].map((t) => (
           <li key={t} className="flex items-start gap-2 text-start">
             <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
@@ -612,7 +615,7 @@ function Pricing({ locale }: { locale: Locale }) {
 function GroupCard({ locale }: { locale: Locale }) {
   const g = GROUP_CONTACT[locale];
   return (
-    <li className="dv-card relative flex flex-col p-7" data-tier="group">
+    <li className="dv-card relative flex flex-col p-7 md:col-span-2 lg:col-span-1" data-tier="group">
       <h3 className="text-lg font-semibold text-dv-ink">{g.name}</h3>
       <p className="mt-6 dv-display text-[1.75rem] leading-tight text-dv-ink">{g.price}</p>
       <p className="mt-6 border-t border-dv-line pt-6 text-[0.9375rem] leading-relaxed text-dv-body">{g.text}</p>
@@ -657,10 +660,10 @@ function Trust({ locale }: { locale: Locale }) {
         })}
       </ul>
       <nav aria-label={t.legal} className="mt-6">
-        <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <p className="flex flex-wrap items-center gap-x-4 text-sm lg:gap-y-2">
           <span className="font-medium text-dv-muted">{t.legal}:</span>
           {LEGAL_KINDS.map((k) => (
-            <Link key={k} href={dvHref(legalPath(k, locale))} className="font-medium text-dv-teal underline-offset-4 hover:underline">
+            <Link key={k} href={dvHref(legalPath(k, locale))} className="inline-flex min-h-11 items-center rounded-md font-medium text-dv-teal underline-offset-4 hover:underline lg:min-h-0">
               {nav.nav[k]}
             </Link>
           ))}
@@ -760,9 +763,9 @@ export function LanguageSwitcher({ current, label }: { current: Locale; label: s
         {LOCALES.map((l) => (
           <li key={l}>
             {l === current ? (
-              <span lang={l} className="dv-chip inline-flex rounded-full bg-dv-teal px-3.5 py-1.5 font-semibold text-white" aria-current="page">{LANGUAGE_NAME[l]}</span>
+              <span lang={l} className="dv-chip inline-flex min-h-11 items-center rounded-full bg-dv-teal px-4 font-semibold text-white lg:min-h-9 lg:px-3.5" aria-current="page">{LANGUAGE_NAME[l]}</span>
             ) : (
-              <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} dir={dirOf(l)} className="dv-chip inline-flex rounded-full bg-white px-3.5 py-1.5 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge">
+              <Link href={dvHref(LANDING_PATH[l])} hrefLang={l} lang={l} dir={dirOf(l)} className="dv-chip inline-flex min-h-11 items-center rounded-full bg-white px-4 font-medium text-dv-body ring-1 ring-dv-line transition hover:text-dv-ink hover:ring-dv-edge lg:min-h-9 lg:px-3.5">
                 {LANGUAGE_NAME[l]}
               </Link>
             )}

@@ -247,10 +247,12 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                 </span>
               </div>
             </div>
-            {/* Side by side (lg), the button sits under the fields; on a phone the preview is below the
-                form, so the button comes after the preview: the visitor scrolls past their own video first. */}
+            {/* Side by side (lg), the button sits inside the card, under the fields. */}
             <div className="hidden lg:grid lg:gap-5">{cta}</div>
           </div>
+          {/* Phones and tablets: preview, then the fields, then the way on — the button never comes
+              before the fields it carries over. */}
+          <div className="mx-auto mt-6 grid max-w-md gap-4 lg:hidden">{cta}</div>
         </div>
 
         <div className="relative [grid-area:phone]">
@@ -271,7 +273,6 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
               <PreviewPlaceholder />
             )}
           </div>
-          <div className="mx-auto mt-8 grid max-w-md gap-4 lg:hidden">{cta}</div>
         </div>
       </div>
     </section>
