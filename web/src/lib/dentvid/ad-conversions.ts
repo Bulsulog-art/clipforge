@@ -9,15 +9,24 @@ import { CLICK_TTL_MS, consentRequired, validClick, type AdClick, type ClickCons
  * Two conversions, at most one of each per account (unique in the table, so
  * a replayed webhook or a retried sign-up never counts twice):
  *   dv_signup  5 USD    an account was created          (signup route)
- *   dv_paid    100 USD  the clinic's first payment       (Dodo webhook, first activation)
+ *   dv_paid    150 USD (clinic in Türkiye) / 250 USD (elsewhere): the clinic's
+ *              first payment (Dodo webhook, first activation). Roughly the
+ *              target cost per paying clinic per market at the 2026-11-15 prices
+ *              ($79/$149, €79/€149, 2.490/4.490 TL), so bidding values a TR
+ *              clinic below a EUR/USD one.
  * Both only for a visitor who came from a Google ad and whose click id we
  * may keep (consent in the EU/EEA/UK/CH), and only within 90 days of the click.
  */
 
 export const AD_CONVERSIONS = {
   dv_signup: { value: 5, currency: "USD" },
-  dv_paid: { value: 100, currency: "USD" },
+  dv_paid: { value: 250, currency: "USD" },
 } as const;
+
+/** dv_paid's value for the clinic's country (TR clinics pay in TL, about 60% of the EUR/USD price). */
+export function paidConversionValue(country: string | null | undefined): number {
+  return (country ?? "").trim().toUpperCase() === "TR" ? 150 : AD_CONVERSIONS.dv_paid.value;
+}
 export type AdConversionName = keyof typeof AD_CONVERSIONS;
 
 /** A stored conversion row (dentvid_ad_conversions, migration 0019). */
