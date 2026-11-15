@@ -197,6 +197,7 @@ export const TR: LegalText = {
                 "Ödeme: planınız, abonelik durumu, yenileme tarihi ve Dodo Payments abonelik, müşteri ve ödeme referansları. Kart bilgilerini Dodo Payments işler; bize hiç ulaşmaz.",
                 "E-postalar: kliniğinize hangi hizmet e-postalarını gönderdiğimiz ve hatırlatmalardan çıkıp çıkmadığınız.",
                 "Kullanım olayları: “ana sayfa görüntülendi” veya “plan seçildi” gibi adımların sayfa dili, kampanya etiketleri (utm) ve yönlendiren sitenin alan adıyla tutulan küçük, birinci taraf kaydı. Bu kayıtlar çerez kimliği, IP adresi, tarayıcı bilgisi, ad veya e-posta içermez.",
+                "Reklam tıklamaları: dentvideo.com'a Google reklamlarımızdan biri üzerinden gelirseniz, Google'ın bağlantıya eklediği tıklama kimliği (gclid, gbraid veya wbraid) ve tıklamanın zamanı. Ardından bir hesap oluşturursanız bunu hesabınızla birlikte saklarız. AB/AEA, Birleşik Krallık ve İsviçre'de yalnızca bu ziyaretçilere gösterilen soruda izin verirseniz.",
                 "Teknik veriler: IP adresiniz ve istek bilgileri sayfaları sunmak, hizmeti korumak ve kötüye kullanımı sınırlamak için işlenir (kısa ömürlü istek sınırı sayaçları).",
               ],
             },
@@ -205,7 +206,7 @@ export const TR: LegalText = {
         {
           heading: "3. Çerezler ve tarayıcı depolama",
           blocks: [
-            "Yalnızca hizmetin ihtiyaç duyduklarını kullanırız: oturum çerezleri, dilinizi hatırlayan bir çerez, kayıtta nereye kadar geldiğinizi hatırlayan bir çerez ve kayıt sırasında kısa ömürlü tarayıcı depolama. Reklam veya üçüncü taraf analiz çerezi kullanmayız.",
+            "Yalnızca hizmetin ihtiyaç duyduklarını kullanırız: oturum çerezleri, dilinizi hatırlayan bir çerez, kayıtta nereye kadar geldiğinizi hatırlayan bir çerez ve kayıt sırasında kısa ömürlü tarayıcı depolama. Reklam veya üçüncü taraf analiz çerezi kullanmayız. Google reklamlarımızdan biri üzerinden geldiyseniz, bu sitenin tarayıcı depolaması reklamın tıklama kimliğini de en fazla 90 gün saklar; AB/AEA, Birleşik Krallık ve İsviçre'de yalnızca siz izin verdikten sonra, reddederseniz hiç saklanmaz. Üçüncü taraf reklam veya analiz betiği yüklemeyiz (Google etiketi yoktur).",
           ],
         },
         {
@@ -219,9 +220,10 @@ export const TR: LegalText = {
                 "Yukarıdaki anonim kullanım olaylarıyla hangi sayfa ve kanalların klinik getirdiğini anlamak (meşru menfaat).",
                 "Tamamlanmamış bir kayıt için hatırlatma göndermek; abonelikten çıkma bağlantısıyla durdurabilirsiniz (meşru menfaat).",
                 "Muhasebe ve vergi kayıtları gibi hukuki yükümlülükleri yerine getirmek (hukuki yükümlülük).",
+                "Hangi Google reklamlarımızın kayıt ve ödeme yapan klinik getirdiğini ölçmek: bir hesap oluşturulduğunda veya bir klinik ilk kez ödeme yaptığında, bu olayı tıklama kimliğiyle birlikte Google Ads'e bildiririz (AB/AEA, Birleşik Krallık ve İsviçre'de rıza; diğer yerlerde meşru menfaat).",
               ],
             },
-            "Kişisel verileri satmayız, reklam için kullanmayız ve yüklediklerinizi veya videolarınızı yapay zekâ modellerini eğitmek için kullanmayız.",
+            "Kişisel verileri satmayız, reklam hedeflemesi veya reklam profili oluşturmak için kullanmayız ve yüklediklerinizi veya videolarınızı yapay zekâ modellerini eğitmek için kullanmayız.",
           ],
         },
         {
@@ -230,6 +232,7 @@ export const TR: LegalText = {
             "Az sayıda sağlayıcıyla çalışırız. Her biri yalnızca görevi için gerekeni alır:",
             { subprocessors: true },
             "Ayrıca genel arama terimlerini (bir tedavi adı ve dil gibi) Google'ın herkese açık arama önerilerinde ve Pexels stok video kitaplığında sorgularız. Bu sorgular kişisel veri içermez. Veritabanı, oturum açma ve dosya depolama, sunucumuzdaki açık kaynaklı Supabase yazılımının kendi kurulumumuzda çalışır; Supabase Inc. verileri almaz.",
+            "Google reklamlarımızdan biri üzerinden geldiyseniz, Google Ads'e (Google) tıklama kimliğini, hangi dönüşümün gerçekleştiğini (hesap oluşturuldu veya ilk ödeme), ne zaman gerçekleştiğini ve bizim belirlediğimiz sabit bir değeri göndeririz. Bunu kendimiz yükleriz: sayfalarımızda Google betiği çalışmaz ve Google'a ad, e-posta adresi veya ödeme bilgisi göndermeyiz. Google bu verileri kendi reklam koşulları ve gizlilik politikası kapsamında işler.",
           ],
         },
         {
@@ -248,6 +251,7 @@ export const TR: LegalText = {
                 "Faturalar ve ödeme kayıtları: satıcı olarak Dodo Payments kendi yasal yükümlülükleri uyarınca, biz de muhasebe ve vergi mevzuatının gerektirdiği ölçüde saklarız.",
                 "İstek sınırı sayaçları: dakikalardan saatlere.",
                 "Kişiye özel bir demoyla iletişime geçtiğimiz klinikler: demoyu herkese açık işletme bilgilerinden (klinik adı, şehir, ülke, marka rengi ve logo) kendimiz hazırlarız ve klinik kaydolmadıkça en fazla 60 gün saklarız. Bir demonun daha önce silinmesini isterseniz {email} adresine yazın.",
+                "Reklam tıklama kimlikleri ve bunlarla kaydedilen dönüşümler: tıklamadan 90 gün sonra silinir. Google Ads'e daha önce bildirdiklerimizi Google kendi politikalarına göre saklar.",
               ],
             },
           ],
@@ -255,7 +259,7 @@ export const TR: LegalText = {
         {
           heading: "8. Haklarınız",
           blocks: [
-            "Size uygulanan hukuka göre verilerinize erişim, düzeltme, silme, işlemenin kısıtlanması ve taşınabilir bir kopya talep edebilir, meşru menfaate dayanan işlemeye itiraz edebilirsiniz; KVKK'nın 11. maddesindeki haklar da buna dahildir. Hesabınızı Ayarlar'dan kendiniz silebilirsiniz. {email} adresine yazın; bir ay içinde yanıt veririz.",
+            "Size uygulanan hukuka göre verilerinize erişim, düzeltme, silme, işlemenin kısıtlanması ve taşınabilir bir kopya talep edebilir, meşru menfaate dayanan işlemeye itiraz edebilirsiniz; KVKK'nın 11. maddesindeki haklar da buna dahildir. Hesabınızı Ayarlar'dan kendiniz silebilirsiniz. {email} adresine yazın; bir ay içinde yanıt veririz. Reklam ölçümüne verdiğiniz izni istediğiniz zaman {email} adresine yazarak ya da kayıt olmadan önce tarayıcınızda bu sitenin verilerini silerek geri alabilirsiniz; bu durumda elimizdeki tıklama kimliğini sileriz. Geri alma, önceki işlemleri etkilemez.",
             "Bir veri koruma otoritesine de şikâyette bulunabilirsiniz: Karadağ'da Kişisel Verilerin Korunması ve Bilgiye Serbest Erişim Ajansı; AB/AEA'da ülkenizdeki otorite; Birleşik Krallık'ta Information Commissioner's Office; Türkiye'de Kişisel Verileri Koruma Kurumu (KVKK).",
             "Karadağ'ın kişisel verilerin korunmasına ilişkin kanununu ve işlememize uygulandıkları ölçüde AB Genel Veri Koruma Tüzüğü'nü (GDPR), UK GDPR'ı ve Türkiye'nin 6698 sayılı Kişisel Verilerin Korunması Kanunu'nu (KVKK) uygularız.",
           ],

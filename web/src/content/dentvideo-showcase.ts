@@ -200,7 +200,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
  * this list in step with that file). `rule` is the rule's own name, never
  * translated; "GULF" is the six GCC states that share one rule set there.
  */
-export type RuleMarket = { code: "TR" | "DE" | "AT" | "CH" | "ES" | "MX" | "JP" | "GULF" | "PL" | "SG" | "GB"; rule: string };
+export type RuleMarket = { code: "TR" | "DE" | "AT" | "CH" | "ES" | "MX" | "JP" | "GULF" | "PL" | "SG" | "GB" | "US"; rule: string };
 
 export const RULE_MARKETS: readonly RuleMarket[] = [
   { code: "TR", rule: "Tanıtım ve Bilgilendirme Yönetmeliği (2025)" },
@@ -214,11 +214,12 @@ export const RULE_MARKETS: readonly RuleMarket[] = [
   { code: "PL", rule: "Kodeks Etyki Lekarskiej, art. 71" },
   { code: "SG", rule: "HCS (Advertisement) Regulations 2021" },
   { code: "GB", rule: "CAP Code · GDC Standards" },
+  { code: "US", rule: "ADA Code § 5.F · FTC" },
 ];
 
 /** The page's own markets first (a Turkish page leads with Türkiye), then the rest in the order above. */
 const HOME_MARKETS: Record<Locale, RuleMarket["code"][]> = {
-  en: ["GB"],
+  en: ["GB", "US"],
   de: ["DE", "AT", "CH"],
   es: ["ES", "MX"],
   tr: ["TR"],

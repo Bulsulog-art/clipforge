@@ -122,6 +122,7 @@ describe("country rules: only markets the reviewer is really briefed for", () =>
       PL: /Kodeks Etyki Lekarskiej \(2025, art\. 71\)/,
       SG: /Healthcare Services \(Advertisement\) Regulations 2021/,
       GB: /CAP Code \(enforced by the ASA\) and the GDC/,
+      US: /ADA Code of Ethics \(§ 5\.F[\s\S]*FTC/,
     };
     for (const m of RULE_MARKETS) expect(body, m.code).toMatch(named[m.code]);
   });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_TEXT } from "@/content/dentvideo-app";
+import { MemorySlotStore } from "@/lib/dentvid/upload-slots";
 
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const MB = 1024 * 1024;
@@ -7,6 +8,7 @@ const MB = 1024 * 1024;
 let user: { id: string; email: string; app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> } | null;
 let clinic: Record<string, unknown> | null;
 let files: { path: string; size: number | null; contentType: string | null }[];
+let slots: MemorySlotStore | null;
 const signed: string[] = [];
 
 vi.mock("@/lib/dentvid/auth", () => ({
@@ -21,7 +23,7 @@ vi.mock("@/lib/dentvid/auth", () => ({
   }),
 }));
 vi.mock("@/lib/dentvid/locale-server", () => ({ dvErrors: async () => APP_TEXT.en.errors }));
-vi.mock("@/lib/rate-limit-server", () => ({ rateLimited: async () => null }));
+vi.mock("@/lib/rate-limit-server", () => ({ rateLimited: async () => null, uploadSlotStore: async () => slots }));
 vi.mock("@/lib/dentvid/account", () => ({ listOwnerFiles: async () => files }));
 vi.mock("@/lib/dentvid/supabase", () => ({
   BUCKET: "dentvid",
@@ -50,31 +52,33 @@ beforeEach(() => {
   user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } };
   clinic = { id: "c1", plan: "trial", plan_tier: null, profile: { language: "en" } };
   files = [];
+  slots = new MemorySlotStore();
   signed.length = 0;
 });
 
 describe("POST /api/dentvideo/upload-url", () => {
   it("needs a session and a DentVideo account (app_metadata, not user_metadata)", async () => {
     user = null;
-    expect((await ask(logo)).status).toBe(401);
+    expect((await ask(recording)).status).toBe(401);
     user = { id: OWNER, email: "x@y.example", app_metadata: {}, user_metadata: { product: "dentvideo" } };
-    expect((await ask(logo)).status).toBe(403);
+    expect((await ask(recording)).status).toBe(403);
     expect(signed).toEqual([]);
   });
 
-  it("signs a versioned logo path in the owner's folder for an unpaid clinic (and before the clinic exists)", async () => {
-    const r = await ask(logo);
-    expect(r.status).toBe(200);
-    expect(r.body.path).toMatch(new RegExp(`^${OWNER}/logo-\\d{13}\\.png$`));
-    expect(r.body).toMatchObject({ token: "tok", contentType: "image/png" });
-    clinic = null;
-    expect((await ask(logo)).status).toBe(200);
+  it("never signs a logo URL: logos go through /api/dentvideo/logo, where the server bounds the bytes", async () => {
+    // A signed URL takes up to the bucket's 500 MB whatever size was declared (audit 2026-11-15).
+    expect(await ask(logo)).toMatchObject({ status: 400, body: { code: "logo_route", error: APP_TEXT.en.errors.invalidLogo } });
+    clinic = { id: "c1", plan: "active", plan_tier: "practice" };
+    expect((await ask(logo)).status).toBe(400);
+    expect(signed).toEqual([]);
   });
 
   it("refuses recordings unless the clinic is active on Practice or Group", async () => {
     expect((await ask(recording)).body).toMatchObject({ needsPlan: true, error: APP_TEXT.en.errors.planRequired });
     clinic = { id: "c1", plan: "active", plan_tier: "starter" };
     expect(await ask(recording)).toMatchObject({ status: 402, body: { error: APP_TEXT.en.errors.recordingsNeedPractice } });
+    clinic = null;
+    expect(await ask(recording)).toMatchObject({ status: 400, body: { error: APP_TEXT.en.errors.setupFirst } });
     clinic = { id: "c1", plan: "active", plan_tier: "practice" };
     const ok = await ask(recording);
     expect(ok.status).toBe(200);
@@ -83,10 +87,34 @@ describe("POST /api/dentvideo/upload-url", () => {
   });
 
   it("refuses wrong types, oversize files and a full folder", async () => {
-    expect((await ask({ ...logo, contentType: "image/svg+xml" })).body).toMatchObject({ code: "type" });
-    expect((await ask({ ...logo, size: 6 * MB })).body).toMatchObject({ code: "size" });
-    files = Array.from({ length: 20 }, (_, i) => ({ path: `${OWNER}/logo-${i}.png`, size: 1000, contentType: "image/png" }));
-    expect(await ask(logo)).toMatchObject({ status: 413, body: { code: "quota" } });
+    clinic = { id: "c1", plan: "active", plan_tier: "practice" };
+    expect((await ask({ ...recording, contentType: "video/x-msvideo" })).body).toMatchObject({ code: "type" });
+    expect((await ask({ ...recording, size: 501 * MB })).body).toMatchObject({ code: "size" });
+    files = Array.from({ length: 3000 }, (_, i) => ({ path: `${OWNER}/w/${i}.mp4`, size: 1000, contentType: "video/mp4" }));
+    expect(await ask(recording)).toMatchObject({ status: 413, body: { code: "quota" } });
     expect(signed).toEqual([]);
+  });
+
+  it("holds only a few unused upload URLs per owner; one whose file arrived frees its slot", async () => {
+    clinic = { id: "c1", plan: "active", plan_tier: "practice" };
+    const paths: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      const r = await ask(recording);
+      expect(r.status).toBe(200);
+      paths.push(r.body.path as string);
+      await new Promise((ok) => setTimeout(ok, 2)); // distinct timestamped paths
+    }
+    // Before: 30 URLs per 10 minutes, each good for 500 MB, none counted by the quota until used.
+    expect(await ask(recording)).toMatchObject({ status: 429, body: { code: "pending" } });
+    expect(signed).toHaveLength(3);
+    files = [{ path: paths[0], size: 80 * MB, contentType: "video/quicktime" }];
+    expect((await ask(recording)).status).toBe(200);
+    expect(signed).toHaveLength(4);
+  });
+
+  it("without Redis the cap is skipped (fail open, like the rate limits)", async () => {
+    clinic = { id: "c1", plan: "active", plan_tier: "practice" };
+    slots = null;
+    for (let i = 0; i < 5; i++) expect((await ask(recording)).status).toBe(200);
   });
 });

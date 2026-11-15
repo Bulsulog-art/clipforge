@@ -10,6 +10,7 @@ import { isRtl } from "./script";
 import { sceneWindows, windowOpacity, type SceneWindow } from "./animation";
 import { SceneView } from "./scenes/index";
 import { Watermark } from "./Watermark";
+import { Disclaimer, disclaimerFrom } from "./Disclaimer";
 import { LogoMark } from "./LogoMark";
 import { VIDEO_CORNER_LOGO, logoStyleSchema, type LogoStyle } from "./logo-style";
 import type { Theme } from "./theme";
@@ -76,6 +77,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   const logo = logoSrc ? { src: asStatic(logoSrc), style: logoStyle } : undefined;
   // The sign-off shows the logo large; the corner mark steps aside for it.
   const ctaIndex = logo ? plan.scenes.findIndex((s) => s.kind === "cta") : -1;
+  const { fps, durationInFrames } = useVideoConfig();
 
   return (
     // lang picks the right glyph shapes (Japanese, not Chinese, kanji); dir
@@ -112,6 +114,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
       {/* Music sits well under narration; it is texture, not content. */}
       {musicSrc ? <Audio src={asStatic(musicSrc)} volume={voiceoverSrc ? 0.12 : 0.35} /> : null}
 
+      {plan.disclaimer ? <Disclaimer text={plan.disclaimer} theme={t} from={disclaimerFrom(windows[windows.length - 1].from, durationInFrames, fps)} /> : null}
       {watermark ? <Watermark theme={t} /> : null}
       {logo ? (
         <ClinicLogo

@@ -15,6 +15,7 @@ import { ConsentLine } from "./consent-line";
 import { FieldError, ValidatingForm } from "./validating-form";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
+import { readAdClick } from "@/lib/dentvid/ad-click";
 import { rememberDemo } from "@/lib/dentvid/demo-cookie";
 import { passwordTooLong } from "@/lib/dentvid/password";
 import { resetRequestOutcome, signedOutMode, stepAfterSignIn } from "@/lib/dentvid/start-mode";
@@ -117,6 +118,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
         // instead of refusing a real person.
         const elapsed = Date.now() - openedAt.current;
         if (elapsed < 2700) await wait(2700 - elapsed);
+        const adClick = readAdClick();
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -127,6 +129,8 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
             elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)),
             locale,
             attribution: readAttribution(),
+            // A Google ad click we may keep (consented, or no consent needed): see lib/dentvid/ad-click.
+            ...(adClick ? { adClick } : {}),
             ...(captcha ? { turnstile: captcha } : {}),
           }),
         });
@@ -164,8 +168,8 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
       )}
       <div className={`mx-auto flex max-w-md flex-col px-4 pb-24 sm:px-6 ${mode === "signup" ? "pt-10" : "pt-10 sm:pt-16"}`}>
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
-        <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
-        <p className="mt-3 text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
+        <h1 className="dv-display mt-6 text-balance text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
+        <p className="mt-3 text-pretty text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
 
         {/* method/action only matter when this page's JS never ran (chunks gone after a deploy): reload, never a GET with the fields in the URL. */}
         {/* The form checks its fields itself and says what is wrong in the page's language (not the browser's bubble). */}

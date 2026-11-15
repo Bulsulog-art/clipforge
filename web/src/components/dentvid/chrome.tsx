@@ -324,7 +324,9 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
   const t = text[locale];
   if (appTab(path) || isFunnel(path)) return <AppFooter t={t} locale={locale} ready={ready} />;
   const home = LANDING_PATH[locale];
-  const link = "rounded-md text-[#c9d9d5] transition-colors hover:text-white";
+  // Below lg (phones and tablets: touch) every footer link is a full 44px row; with a mouse they sit tighter.
+  const tap = "inline-flex min-h-11 min-w-11 items-center lg:min-h-0 lg:min-w-0";
+  const link = `${tap} rounded-md text-[#c9d9d5] transition-colors hover:text-white`;
   return (
     <footer lang={locale} dir={dirOf(locale)} className="dv-on-dark dv-grain relative overflow-hidden bg-dv-teal-950 text-[#c9d9d5]">
       <div aria-hidden="true" className="pointer-events-none absolute -top-48 left-1/2 h-96 w-[64rem] -translate-x-1/2 rounded-full bg-[#167269]/30 blur-3xl" />
@@ -336,8 +338,8 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
             </Link>
             <p className={`mt-6 text-sm leading-relaxed text-[#a9c3be] ${ready ? "" : "invisible"}`}>{t.footer}</p>
           </div>
-          <div className={`grid grid-cols-2 gap-x-16 text-sm ${ready ? "" : "invisible"}`}>
-            <ul className="space-y-3.5">
+          <div className={`grid grid-cols-2 gap-x-8 text-sm sm:gap-x-16 ${ready ? "" : "invisible"}`}>
+            <ul className="lg:space-y-3.5">
               <li><Link href={dvHref(`${home}#how`)} className={link}>{t.howItWorks}</Link></li>
               <li><Link href={dvHref(`${home}#pricing`)} className={link}>{t.pricing}</Link></li>
               {hasGuides(locale) && <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{t.guides}</Link></li>}
@@ -351,10 +353,10 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
               {signedIn && <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>}
               <li><Link href={dvHref(`/dentvideo/start?mode=signin&lang=${locale}`)} className={link}>{t.signIn}</Link></li>
             </ul>
-            <ul className="space-y-3.5">
+            <ul className="lg:space-y-3.5">
               {LOCALES.map((l) => (
                 <li key={l}>
-                  <Link href={dvHref(equivalentPath(path, l))} hrefLang={l} lang={l} dir={dirOf(l)} className={l === locale ? "rounded-md font-semibold text-white" : link}>
+                  <Link href={dvHref(equivalentPath(path, l))} hrefLang={l} lang={l} dir={dirOf(l)} className={l === locale ? `${tap} rounded-md font-semibold text-white` : link}>
                     {LANGUAGE_NAME[l]}
                   </Link>
                 </li>
@@ -362,8 +364,8 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
             </ul>
           </div>
         </div>
-        <nav aria-label={t.legal} className={`mt-14 border-t border-white/10 pt-6 ${ready ? "" : "invisible"}`}>
-          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-xs" data-testid="dv-legal-links">
+        <nav aria-label={t.legal} className={`mt-12 border-t border-white/10 pt-4 lg:mt-14 lg:pt-6 ${ready ? "" : "invisible"}`}>
+          <ul className="flex flex-wrap gap-x-5 text-[0.8125rem] lg:gap-y-2 lg:text-xs" data-testid="dv-legal-links">
             {LEGAL_KINDS.map((k) => (
               <li key={k}>
                 <Link href={dvHref(legalPath(k, locale))} className={link}>{t.legalNav[k]}</Link>
@@ -484,11 +486,11 @@ function AppFooter({ t, locale, ready }: { t: ChromeWords; locale: Locale; ready
           </a>
         </p>
       </div>
-      <nav aria-label={t.legal} className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
-        <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-dv-muted" data-testid="dv-legal-links">
+      <nav aria-label={t.legal} className="mx-auto max-w-6xl px-4 pb-6 sm:px-6 lg:pb-8">
+        <ul className="flex flex-wrap gap-x-4 text-[0.8125rem] text-dv-muted lg:gap-y-1.5 lg:text-xs" data-testid="dv-legal-links">
           {LEGAL_KINDS.map((k) => (
             <li key={k}>
-              <Link href={dvHref(legalPath(k, locale))} className="underline-offset-4 hover:text-dv-ink hover:underline">{t.legalNav[k]}</Link>
+              <Link href={dvHref(legalPath(k, locale))} className="inline-flex min-h-11 items-center rounded-md underline-offset-4 hover:text-dv-ink hover:underline lg:min-h-0">{t.legalNav[k]}</Link>
             </li>
           ))}
         </ul>

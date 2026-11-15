@@ -133,6 +133,7 @@ export const DV_ATTRIBUTION_PROPS: Record<string, Rule> = {
   utm_source: { kind: "slug" },
   utm_medium: { kind: "slug" },
   utm_campaign: { kind: "slug" },
+  utm_term: { kind: "slug" },
   utm_content: { kind: "content" },
   ref: { kind: "host" },
 };

@@ -131,11 +131,22 @@ describe("DentVideo public pages: browser bundle", () => {
       for (const p of NOT_ON_LOAD) expect([...g.packages], p).not.toContain(p);
     });
 
+    it(`${name}: captures attribution, but loads the ad-click consent code only for ad visitors`, () => {
+      const files = [...g.client].map(rel);
+      // The layout's AdCapture (first-touch source on every entry page) ships everywhere…
+      expect(files).toContain("components/dentvid/ad-consent.tsx");
+      expect(files).toContain("lib/dentvid/attribution.ts");
+      // …the click-id rules and the 8-language prompt are a separate chunk (dynamic import).
+      expect(files).not.toContain("components/dentvid/ad-consent-prompt.tsx");
+      expect(files).not.toContain("lib/dentvid/ad-click.ts");
+    });
+
     it(`${name}: client source stays within budget`, () => {
       // Our own modules in the page's browser bundle, before minification (React, Next and
       // lucide icons not counted). ~800 KB before the content modules were kept on the server.
       // 155: the server-rendered <html lang> root and the payment/retry states added ~0.3 KB.
-      expect(kb(g.client)).toBeLessThan(155);
+      // 160: ad-click attribution on every page and the per-currency price tags added ~2 KB of source.
+      expect(kb(g.client)).toBeLessThan(160);
     });
   }
 

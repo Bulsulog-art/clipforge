@@ -95,6 +95,27 @@ describe("payment webhook → first week", () => {
     expect(enqueueWeek).not.toHaveBeenCalled();
   });
 
+  it("records the Google Ads dv_paid conversion on a clinic's first payment only", async () => {
+    const enqueueWeek = vi.fn(async () => "queued" as const);
+    const adConversion = vi.fn(async () => "recorded");
+    const first = fakeDb(unpaid());
+    await handleDentvideoEvent(first.db, active(), { enqueueWeek, adConversion });
+    expect(adConversion).toHaveBeenCalledTimes(1);
+    expect(adConversion).toHaveBeenCalledWith(first.db, { id: CLINIC, owner_id: OWNER });
+    // The same activation again (now active), a renewal, and a clinic coming back: not a first payment.
+    await handleDentvideoEvent(first.db, active(), { enqueueWeek, adConversion });
+    await handleDentvideoEvent(first.db, { ...active(), type: "subscription.renewed", data: { ...active().data, next_billing_date: "2027-01-08T00:00:00Z" } }, { enqueueWeek, adConversion });
+    await handleDentvideoEvent(fakeDb({ ...unpaid(), plan: "cancelled", dodo_subscription_id: "sub_old" }).db, active("sub_new"), { enqueueWeek, adConversion });
+    expect(adConversion).toHaveBeenCalledTimes(1);
+  });
+
+  it("a failing ad conversion never fails the payment", async () => {
+    const { db, clinic } = fakeDb(unpaid());
+    const r = await handleDentvideoEvent(db, active(), { enqueueWeek: vi.fn(async () => "queued" as const), adConversion: vi.fn(async () => Promise.reject(new Error("db down"))) });
+    expect(r.status).toBe(200);
+    expect(clinic.plan).toBe("active");
+  });
+
   it("still acknowledges the payment when the queue is down", async () => {
     const { db, clinic } = fakeDb(unpaid());
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
