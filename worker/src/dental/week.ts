@@ -444,6 +444,12 @@ export async function produceWeek(
     history?: PastTopic[];
     /** The day the week is planned, for seasonal hooks; defaults to now. */
     today?: Date;
+    /**
+     * Given topics instead of the strategist's (re-rendering a known set, e.g.
+     * the sample videos: docs/PREVIEW_RERENDER.md). Their hooks still go
+     * through the hook editor; no spares are planned.
+     */
+    topics?: Topic[];
   } = {},
 ): Promise<VideoPackage[]> {
   const want = Math.max(1, opts.count ?? 5);
@@ -452,7 +458,8 @@ export async function produceWeek(
   const patientSearches = deps.searches ? await deps.searches(profile).catch(() => []) : [];
   deps.log?.("patient searches", { count: patientSearches.length });
   const recentHooks = (opts.history ?? []).map((h) => h.hook).filter((h): h is string => !!h);
-  const topics = await sharpenHooks(deps.client, profile, await planWeek(deps.client, profile, { ...opts, count: want + 2, patientSearches }), recentHooks);
+  const planned = opts.topics?.length ? opts.topics : await planWeek(deps.client, profile, { ...opts, count: want + 2, patientSearches });
+  const topics = await sharpenHooks(deps.client, profile, planned, recentHooks);
   const out: VideoPackage[] = [];
   const usedFootage = new Set<string>();
   const week: WeekVoice = { openers: [], closings: [] };

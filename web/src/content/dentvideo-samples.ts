@@ -35,7 +35,7 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   ],
   // Demo Zahnarztpraxis (DE), Sie
   de: [
-    { slug: "bleaching-zahnschmelz", name: "Ihr Zahnschmelz beim Bleaching in Gefahr?", seconds: 38, hero: { start: 0.9, skip: [[3.3, 8.4]] } },
+    { slug: "bleaching-zahnschmelz", name: "Bleaching heißt nicht gleich schwacher Zahnschmelz.", seconds: 28, hero: { start: 0.9, skip: [[7.2, 10.8]] } },
     { slug: "aligner-verfaerbung", name: "Ihre Aligner verfärben sich?", seconds: 27 },
     { slug: "kinder-zahnarztangst", name: "Kinder und Zahnarzt? Kein Grund zur Panik!", seconds: 25 },
   ],
@@ -47,9 +47,9 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   ],
   // Demo Diş Kliniği (TR), siz
   tr: [
-    { slug: "implant-asamalari", name: "İlk randevuda implant bitmiyor!", seconds: 23, hero: { start: 0.9, skip: [[3.0, 7.6]] } },
-    { slug: "dis-tasi-temizligi", name: "Diş taşı diş etlerinizi sessizce nasıl tehdit eder?", seconds: 38 },
-    { slug: "beyazlatma-hassasiyet", name: "Beyazlatma sonrası dişler daha hassas mı olur?", seconds: 29 },
+    { slug: "implant-asamalari", name: "İmplant günü bitiyor, süreç daha bitmiyor.", seconds: 25, hero: { start: 0.9, skip: [[6.2, 10.0]] } },
+    { slug: "dis-tasi-temizligi", name: "Diş taşı sadece görüntü meselesi değil.", seconds: 34 },
+    { slug: "beyazlatma-hassasiyet", name: "Beyazlatmadan sonra gelen o diş sızısı…", seconds: 26 },
   ],
   // Cabinet Dentaire Démo (FR), vous
   fr: [
@@ -71,7 +71,7 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   ],
   // Gabinet Stomatologiczny Demo (Kraków), Państwo
   pl: [
-    { slug: "wybielanie-przed-slubem", name: "Ślub za tydzień, a wybielanie teraz?", seconds: 33, hero: { start: 0.9, skip: [[2.5, 6.6]] } },
+    { slug: "wybielanie-przed-slubem", name: "Biały uśmiech na ślub? Termin ma znaczenie.", seconds: 24, hero: { start: 0.9, skip: [[6.6, 9.3]] } },
     { slug: "bol-po-lodach", name: "Ten ząb kłuje przy lodach?", seconds: 31 },
     { slug: "pierwsza-wizyta-dziecka", name: "Przed wizytą mówią Państwo „nie bój się”?", seconds: 32 },
   ],

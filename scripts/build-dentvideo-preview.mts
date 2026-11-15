@@ -4,7 +4,9 @@
  * a `dental/cli.ts` output folder per video (plan.json + voiceover.mp3,
  * with week.json beside them saying the package was "ready").
  *
- *   cd worker && npx tsx ../scripts/build-dentvideo-preview.mts <selection.json>
+ *   cd worker && npx tsx --tsconfig ../web/tsconfig.json ../scripts/build-dentvideo-preview.mts <selection.json>
+ *
+ * (--tsconfig: the web modules it imports use web's "@/…" path alias.)
  *
  * selection.json: { "<lang>": [{ "dir": "/abs/path/to/video-folder", "name": "Demo Clinic", "handle": "democlinic" }, ...] }
  * A title in a non-Latin script (Japanese, Arabic) has no ASCII slug: give the
@@ -12,10 +14,15 @@
  * that reads as a brief rather than a label (the player shows it).
  *
  * For each video:
- *   - the narration is loudness-normalised (-16 LUFS, as voiceover.ts does)
- *     and squeezed to mono 64 kbps — speech does not need more;
- *   - the plan is timed to that narration exactly as the worker times it
- *     (fitPlanToVoice), so the preview runs scene for scene like the render;
+ *   - the narration is the one the video carries: the mastered voice
+ *     (voiceover.master.wav: -14 LUFS / -1 dBTP, pauses shortened, the
+ *     language's tempo — narration-audio.ts), squeezed to mono 64 kbps —
+ *     speech does not need more. A folder from before mastering has only the
+ *     raw TTS (voiceover.mp3), which is loudness-normalised here instead;
+ *   - the plan is the one rendered (render-plan.json: timed to that voice,
+ *     cuts snapped to its pauses), so the preview runs scene for scene like
+ *     the video; without it, plan.json is timed to the voice exactly as the
+ *     worker times it (fitPlanToVoice);
  *   - the sample clinic's name and handle are replaced with {name}/{handle},
  *     filled with the visitor's at play time (preview-library.ts), and any
  *     narration that SAYS the sample clinic's name is refused — audio cannot
@@ -119,13 +126,22 @@ async function main() {
       if (!words) throw new Error(`${pick.dir}: "${title}" has no ASCII slug — add "slug" to the pick`);
       const id = `${category ?? "general"}-${words}`;
       const mp3 = path.join(OUT, lang, `${id}.mp3`);
+      const exists = (f: string) => fs.access(path.join(pick.dir, f)).then(() => true, () => false);
+      const mastered = await exists("voiceover.master.wav");
       await run("ffmpeg", [
-        "-v", "error", "-y", "-i", path.join(pick.dir, "voiceover.mp3"),
-        "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ac", "1", "-ar", "24000", "-c:a", "libmp3lame", "-b:a", "64k",
+        "-v", "error", "-y", "-i", path.join(pick.dir, mastered ? "voiceover.master.wav" : "voiceover.mp3"),
+        // Already mastered to the video's loudness; only the raw TTS needs normalising.
+        ...(mastered ? [] : ["-af", "loudnorm=I=-16:TP=-1.5:LRA=11"]),
+        "-ac", "1", "-ar", "24000", "-c:a", "libmp3lame", "-b:a", "64k",
         "-map_metadata", "-1", mp3,
       ]);
       const voice = await seconds(mp3);
-      const timed = fitPlanToVoice(parseScenePlan(raw), voice);
+      const rendered = (await exists("render-plan.json"))
+        ? (JSON.parse(await fs.readFile(path.join(pick.dir, "render-plan.json"), "utf8")) as ScenePlan)
+        : undefined;
+      if (rendered && JSON.stringify(rendered.scenes.map(({ seconds: _s, ...rest }) => rest)) !== JSON.stringify(raw.scenes.map(({ seconds: _s, ...rest }) => rest)))
+        throw new Error(`${pick.dir}: render-plan.json does not show the reviewed plan.json`);
+      const timed = fitPlanToVoice(parseScenePlan(rendered ?? raw), voice);
       const scenes = timed.scenes.map((s) => {
         const text = JSON.parse(tokenise(JSON.stringify(s), pick));
         // Footage: the caption on the brand background (no stock clip in the preview).
@@ -141,6 +157,8 @@ async function main() {
         theme: timed.theme,
         music: "none",
         ...(timed.language ? { language: timed.language } : {}),
+        // A market's required on-screen warning (Türkiye, RG 33075 md. 7/1-k) plays in the preview as in the video.
+        ...(timed.disclaimer ? { disclaimer: timed.disclaimer } : {}),
         scenes,
       };
       await fs.writeFile(path.join(OUT, lang, `${id}.json`), JSON.stringify(plan));

@@ -1,66 +1,68 @@
-# Turkish samples to re-render (RG 33075)
+# Turkish samples re-rendered (RG 33075)
 
-Status: open, since 15.11.2026.
+Status: done 15.11.2026, except the Turkish aligner preview (below).
 
 Türkiye's 2025 regulation on health-service promotion (Resmî Gazete 12.11.2025,
 no. 33075) allows information, not drawing patients in. Every Turkish sample we
-show was made before the pipeline enforced that, and each one closes by steering
+showed was made before the pipeline enforced that, and each one closed by steering
 the viewer to book or to the clinic, often with an exclamation mark
-("Sorularınız için bize ulaşın veya randevu alın!"). Today's pipeline would not
+("Sorularınız için bize ulaşın veya randevu alın!"). Today's pipeline does not
 produce these closings: the writers are told not to (`worker/src/dental/style.ts`
 `ctaGuide`, `copywriter.ts`, `locale.ts`), the post-checks in `week.ts`
-(`trSteering`) flag them in the narration and caption, and `hard-rules.ts` MARKET_HARD_RULES TR `booking` now flags
-them deterministically in every script, caption and recording clip.
+(`trSteering`) flag them in the narration and caption, and `hard-rules.ts`
+MARKET_HARD_RULES TR `booking` flags them deterministically in every script,
+caption and recording clip.
 
-Text in the repo has been fixed. Audio and video files cannot be fixed by hand and
-are listed below.
+## What was re-rendered (15.11.2026)
 
-## 1. Live preview library (`web/public/dentvideo/preview/tr/`)
+All with the current pipeline (`worker/src/dental/cli.ts --topics … --render`):
+mastered narration (-14 LUFS / -1 dBTP) and the loudness guard, safe areas, the
+hook on frame 0, cuts snapped to the narration's pauses, the on-screen md. 7/1-k
+warning on procedure topics, and every TR market rule. No stock footage
+(no Pexels key in the render box): footage scenes show their caption on the
+brand look, as in the earlier samples. Demo clinic: "Demo Diş Kliniği",
+@demodisklinigi.
 
-The on-screen text (`*.json`) was rewritten: each closing now points the viewer to
-their own dentist, and the one exclamation mark in a hook was removed. The
-narration (`*.mp3`) still says the old closing, so all six play **silent**
-(`web/src/lib/dentvid/preview-library.ts` `NARRATION_HELD`). They stay in the
-library because hiding them would leave the Turkish preview with no videos.
+1. **Live preview library** (`web/public/dentvideo/preview/tr/`), rebuilt with
+   `scripts/build-dentvideo-preview.mts`, same ids as before:
+   `cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t`,
+   `whitening-dis-beyazlatma-mit`, `implant-implant-tedavisinin-asamalari`,
+   `children-cocuk-dis-hekimligi-onleme`, `implant-implant-tedavisi-sonrasi-bakim`.
+   Every closing now points to the viewer's own dentist ("… hekiminiz söyler",
+   "… diş hekiminize sorabilirsiniz"), no exclamation marks. `NARRATION_HELD.tr`
+   is empty: they play with sound. The preview now uses the mastered narration and
+   the plan exactly as rendered, and keeps the on-screen warning.
+   - **Not re-made: `aligners-seffaf-plak-tedavisi-islem`.** Three attempts were
+     rejected by the reviewers (wear time "most of the day" vs 20–22 h, drinks
+     with aligners in, an 8-scene plan), so the topic was dropped rather than
+     retried further; the library has 5 Turkish videos. The social launch kit's
+     `tr-seffaf-plak` reel (`scripts/render-social-kit.mts`) is out with it. To
+     add one back: render a TR aligner topic, add it to the selection, rebuild.
+2. **Landing samples and example pages** (`web/public/dentvideo/samples/tr/`):
+   `implant-asamalari` (hero), `dis-tasi-temizligi`, `beyazlatma-hassasiyet`
+   are the same renders as the preview's implant-stages, cleaning and whitening
+   videos, compressed to the samples' size (~240 kbps video, AAC 96 kbps).
+   `dentvideo-samples.ts` (`name`, `seconds`, `hero`) and
+   `dentvideo-examples.ts` (`summary`, `onScreen`, including the md. 7/1-k
+   line) were rewritten from the new videos.
 
-| File (`.mp3`) | Closing the narration still says |
-| --- | --- |
-| `aligners-seffaf-plak-tedavisi-islem` | Daha fazla bilgi için bizimle iletişime geçin ya da randevu alın! |
-| `children-cocuk-dis-hekimligi-onleme` | Daha fazla bilgi için kliniğimizle iletişime geçin veya randevu alın. |
-| `cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t` | Diş taşı temizliği hakkında daha fazla bilgi için bize ulaşın! |
-| `implant-implant-tedavisi-sonrasi-bakim` | Sorularınız için bize ulaşın veya randevu alın! |
-| `implant-implant-tedavisinin-asamalari` | Daha fazla bilgi için bize ulaşın veya randevu alın. |
-| `whitening-dis-beyazlatma-mit` | Daha fazla bilgi için {handle} ile iletişime geçin veya randevu alın. |
+## How to re-render
 
-To fix: render a new Turkish demo week (`worker/src/dental/cli.ts --render`, a TR
-profile), then rebuild the library with `scripts/build-dentvideo-preview.mts`. The
-build now refuses a Turkish video whose narration or on-screen text trips a TR
-market rule or has an exclamation mark. Then empty `NARRATION_HELD.tr`.
+```bash
+cd worker
+# topics.json: an array of strategist.ts topics; profile.json: the demo clinic
+OPENAI_API_KEY=… npx tsx src/dental/cli.ts profile.json --topics topics.json --render --out /tmp/out
+# selection.json: see the header of scripts/build-dentvideo-preview.mts
+npx tsx --tsconfig ../web/tsconfig.json ../scripts/build-dentvideo-preview.mts selection.json
+```
 
-## 2. Landing samples and example pages (`web/public/dentvideo/samples/tr/`)
-
-These are finished `.mp4` files with the closing burned in and narrated. They are
-the Turkish hero video, the "sample week" on the Turkish landing, and the three
-`/tr/examples/<slug>` pages (`web/src/content/dentvideo-samples.ts`,
-`dentvideo-examples.ts`, whose `onScreen` lists transcribe the videos and so
-still quote the old closings).
-
-| File (`.mp4`) | Closing in the video |
-| --- | --- |
-| `implant-asamalari` (hero) | Daha fazla bilgi için bize ulaşın veya randevu alın. (hook: "İlk randevuda implant bitmiyor!") |
-| `dis-tasi-temizligi` | Diş taşı temizliği hakkında daha fazla bilgi için bize ulaşın! |
-| `beyazlatma-hassasiyet` | Daha fazla bilgi için iletişime geçin veya randevu alın. |
-
-They are still shown. Hiding them would remove the Turkish hero, the whole sample
-week and three indexed pages. These pages show DentVideo's own product to dentists
-and are labelled as a demo clinic's videos, so they are not a clinic's
-patient-facing promotion. But they contradict what the product promises, so they
-should be replaced first.
-
-To fix: render three new Turkish videos (procedure topics will also carry the
-on-screen md. 7/1-k warning). Replace the `.mp4`/`.jpg` files, update `name`,
-`seconds` and `hero` in `dentvideo-samples.ts`, and update `onScreen` and `summary`
-in `dentvideo-examples.ts` from the new videos.
+Outside the worker image, point Remotion at a local Chrome
+(`REMOTION_BROWSER_EXECUTABLE=/usr/bin/google-chrome REMOTION_CHROME_MODE=chrome-for-testing`).
+The render now refuses to start when the theme's fonts are missing
+(`worker/src/remotion/render-fonts.ts`), so a box without them fails loudly
+instead of producing a serif-fallback video (what happened to
+`de/bleaching-zahnschmelz` and `pl/wybielanie-przed-slubem`, both re-rendered
+the same day).
 
 ## Not changed on purpose
 

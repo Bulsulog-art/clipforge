@@ -122,7 +122,8 @@ export const POSTS: Post[] = [
       { type: "end", seconds: 3.6, lines: ["Dikkatli bir filtre;", "son söz hekimin."], url: "dentvideo.com/tr", small: "Hukuki danışmanlık değildir." },
     ],
   },
-  { kind: "clinic", id: "tr-seffaf-plak", lang: "tr", preview: "tr/aligners-seffaf-plak-tedavisi-islem", service: "Şeffaf plak", cover: "Şeffaf plak nasıl uygulanır?" },
+  // tr-seffaf-plak (reel 08) is out until the Turkish library has an aligner video again: its old
+  // narration closed with a booking CTA (RG 33075) and the re-render did not pass review (docs/PREVIEW_RERENDER.md).
   { kind: "clinic", id: "es-blanqueamiento", lang: "es", preview: "es/whitening-blanqueamiento-dental-y-sensibilidad", service: "Blanqueamiento dental", cover: "Blanqueamiento y sensibilidad" },
   { kind: "clinic", id: "tr-implant-bakim", lang: "tr", preview: "tr/implant-implant-tedavisi-sonrasi-bakim", service: "İmplant", cover: "İmplant sonrası bakım" },
   { kind: "clinic", id: "de-aligner-pflege", lang: "de", preview: "de/aligners-aligner-richtig-pflegen", service: "Aligner", cover: "Aligner richtig pflegen" },
