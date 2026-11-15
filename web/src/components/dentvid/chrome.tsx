@@ -17,7 +17,7 @@ import { LEGAL_KINDS } from "@/content/legal/types";
 import { OPERATOR } from "@/content/guides/operator";
 import { DvLogo } from "./mark";
 import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
-import { appTab, isFunnel, isPostPage, DV_SUPPORT_EMAIL, type AppTab } from "@/lib/dentvid/app-ui";
+import { appTab, isFunnel, isPostPage, DV_SUPPORT_EMAIL, mailtoHref, type AppTab } from "@/lib/dentvid/app-ui";
 import { hasDvSessionCookie } from "@/lib/dentvid/session-cookie";
 
 /** Fired when a page sets the interface language, so the header follows at once. */
@@ -485,7 +485,7 @@ function AppFooter({ t, locale, ready }: { t: ChromeWords; locale: Locale; ready
         <p className="max-w-xl">{t.footer}</p>
         <p>
           {t.help}{" "}
-          <a dir="ltr" href={`mailto:${DV_SUPPORT_EMAIL}`} className="font-medium text-dv-teal underline-offset-4 hover:underline">
+          <a dir="ltr" href={mailtoHref("DentVideo help")} className="font-medium text-dv-teal underline-offset-4 hover:underline">
             {DV_SUPPORT_EMAIL}
           </a>
         </p>

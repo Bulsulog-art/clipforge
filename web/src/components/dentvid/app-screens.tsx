@@ -17,6 +17,7 @@ import { BillingIssuePanel, type BillingIssue } from "./billing-issue";
 import { ClinicForm } from "./clinic-form";
 import { AccountPanel } from "./account-panel";
 import { RecordUpload } from "./record-upload";
+import { HelpContact } from "./help-contact";
 
 /**
  * The screens of the signed-in app, as plain views of their data. The pages
@@ -129,9 +130,12 @@ export function SettingsView({
   initialDialog = null,
   accountEmail = null,
   billingIssue = null,
+  clinicId = null,
 }: {
   locale: Locale;
   profile?: Partial<ClinicProfile>;
+  /** The clinic's id, prefilled in the Help & contact email so support finds the account. */
+  clinicId?: string | null;
   /** The login's address (the delete dialog accepts it when the clinic has no name). */
   accountEmail?: string | null;
   logoPath?: string | null;
@@ -197,6 +201,7 @@ export function SettingsView({
         </section>
       )}
       <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} accountEmail={accountEmail} initialDialog={initialDialog} />
+      <HelpContact locale={locale} clinicId={clinicId} clinicName={profile?.name} />
     </main>
   );
 }

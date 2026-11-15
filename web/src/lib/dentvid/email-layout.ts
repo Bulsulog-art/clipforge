@@ -5,12 +5,20 @@
  * nudge and the monthly summary — is built from these blocks, so they all
  * look, read and behave the same.
  *
- *   Mobile first   one column, at most 560 px, 16 px body text, a button that
+ *   Mobile first   one column, at most 600 px, 16 px body text, a button that
  *                  fills the width on a phone, 44 px+ tap targets.
  *   Mail clients   table layout and inline styles (Gmail strips <style> in
- *                  some views), a bgcolor button Outlook draws, no web fonts,
- *                  no background images, the link also written out in plain
- *                  sight under the button.
+ *                  some views), a fixed-width ghost table and a VML button for
+ *                  Outlook on Windows (which ignores max-width and
+ *                  border-radius), Arial forced in Outlook (it would fall back
+ *                  to Times), no web fonts, no background images, the link
+ *                  also written out in plain sight under the button.
+ *   Brand          the DentVideo mark (a play badge drawn in HTML, not an
+ *                  image, so it shows with images off) above a calm white
+ *                  card; one primary button, at most one outlined second one.
+ *   Help           every email ends with the same human line: reply to this
+ *                  email, a person reads it (content/dentvideo-support.ts),
+ *                  and the company's name and postal address.
  *   Dark mode      color-scheme "light dark" plus a prefers-color-scheme block
  *                  (and Outlook.com's [data-ogsc] hooks) that recolours the
  *                  page; the colours chosen survive Gmail's forced inversion.
@@ -26,6 +34,8 @@
  *
  * Pure: no I/O, no environment.
  */
+
+import { companyLine, fillSupport, supportText, SUPPORT_EMAIL } from "@/content/dentvideo-support";
 
 export type Brand = {
   /** The clinic's name, shown as the logo's alt text. */
@@ -67,22 +77,32 @@ export type EmailSpec = {
   blocks: Block[];
   /** The one action. */
   button?: { label: string; url: string };
-  /** A second, quieter way: "<ask> <label>" with the label as a link. */
-  secondary?: { ask: string; label: string; url: string };
+  /**
+   * A second, quieter way: "<ask> <label>" with the label as a link, or — with
+   * style "button" — an outlined button under the main one (never filled: the
+   * main button stays the one obvious action).
+   */
+  secondary?: { ask: string; label: string; url: string; style?: "link" | "button" };
+  /** A short line above the title ("This week · 9 Nov"). */
+  eyebrow?: string;
+  /**
+   * The help line under the sign-off. Defaults to the shared "reply to this
+   * email" line in the email's language; false leaves it out (when the body
+   * already says it).
+   */
+  help?: string | false;
   /** Small text under the button (e.g. "Nothing is published until you approve it"). */
   afterButton?: string[];
   signoff?: string;
   /** Why they get this email. */
   footer: string;
-  /** Postal address line (marketing mail). */
-  address?: string;
   unsubscribe?: { ask: string; label: string; url: string };
   brand?: Brand;
 };
 
 export type Rendered = { subject: string; html: string; text: string };
 
-export const CONTACT_EMAIL = "hello@dentvideo.com";
+export const CONTACT_EMAIL = SUPPORT_EMAIL;
 
 export const COLORS = {
   paper: "#f4f1ec",
@@ -163,11 +183,11 @@ const STYLE = `<style>
 body{margin:0!important;padding:0!important;width:100%!important}
 a{text-decoration:underline}
 @media (max-width:600px){
-.dv-card{padding:28px 20px!important}
-.dv-outer{padding:16px 8px!important}
-.dv-btn,.dv-btn a{display:block!important;width:100%!important;box-sizing:border-box;text-align:center!important}
+.dv-card{padding:30px 22px 26px!important}
+.dv-outer{padding:20px 10px!important}
+.dv-btn,.dv-btn a,.dv-btn2,.dv-btn2 a{display:block!important;width:100%!important;box-sizing:border-box;text-align:center!important}
 .dv-thumb{display:inline-block!important;width:50%!important}
-.dv-h1{font-size:22px!important;line-height:29px!important}
+.dv-h1{font-size:23px!important;line-height:30px!important}
 }
 @media (prefers-color-scheme:dark){
 .dv-bg{background:${DARK.paper}!important}
@@ -176,8 +196,11 @@ a{text-decoration:underline}
 .dv-body{color:${DARK.body}!important}
 .dv-muted{color:${DARK.muted}!important}
 .dv-panel{background:${DARK.panel}!important}
+.dv-rule{border-color:${DARK.line}!important}
 .dv-link{color:${DARK.link}!important}
 .dv-mark{color:${DARK.link}!important}
+.dv-btn2{border-color:${DARK.link}!important}
+.dv-chip{color:#ffffff!important}
 .dv-logo{background:#ffffff!important;border-radius:8px}
 }
 [data-ogsc] .dv-bg{background:${DARK.paper}!important}
@@ -187,7 +210,9 @@ a{text-decoration:underline}
 [data-ogsc] .dv-muted{color:${DARK.muted}!important}
 [data-ogsc] .dv-panel{background:${DARK.panel}!important}
 [data-ogsc] .dv-link{color:${DARK.link}!important}
-</style>`;
+[data-ogsc] .dv-chip{color:#ffffff!important}
+</style>
+<!--[if mso]><style>body,table,td,p,a,span,h1{font-family:Arial,Helvetica,sans-serif!important}</style><noscript><xml><o:OfficeDocumentSettings xmlns:o="urn:schemas-microsoft-com:office:office"><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->`;
 
 /* ------------------------------------------------------------------ blocks */
 
@@ -266,7 +291,7 @@ function blockHtml(b: Block, ctx: { accent: string; rtl: boolean; align: string 
               `<p class="dv-ink" style="margin:0 0 4px;font-size:15px;line-height:21px;font-weight:700;color:${COLORS.ink}">${esc(v.title)}</p>` +
               (v.slot ? `<p class="dv-muted" style="margin:0 0 4px;font-size:13px;line-height:18px;color:${COLORS.muted}">${esc(v.slot)}</p>` : "") +
               (v.caption ? `<p class="dv-body" dir="auto" style="margin:0 0 8px;font-size:13px;line-height:19px;color:${COLORS.body}">${esc(v.caption)}</p>` : "") +
-              `<a href="${esc(v.href)}" class="dv-link" style="display:inline-block;padding:8px 14px;border-radius:8px;background:${accent};color:#ffffff;font-size:14px;line-height:18px;font-weight:600;text-decoration:none">${esc(v.action)}</a>` +
+              `<a href="${esc(v.href)}" class="dv-chip" style="display:inline-block;padding:10px 16px;border-radius:999px;background:${accent};color:#ffffff;font-size:14px;line-height:18px;font-weight:600;text-decoration:none;mso-padding-alt:0">${esc(v.action)}</a>` +
               `</td></tr></table></td></tr>`
             );
           })
@@ -296,7 +321,7 @@ function blockText(b: Block): string {
     case "steps":
       return b.items.map((s, i) => `${i + 1}. ${s.title}\n   ${s.body}`).join("\n\n");
     case "panel":
-      return `✓ ${b.text}`;
+      return b.text;
     case "qa":
       return b.items.map((x) => `${x.q}\n${x.a}`).join("\n\n");
     case "code":
@@ -312,6 +337,32 @@ function blockText(b: Block): string {
 
 /* ------------------------------------------------------------------ render */
 
+/** The DentVideo mark: a teal play badge drawn in HTML (shows with images off) and the wordmark, always LTR. */
+function markRow(align: string, rtl: boolean): string {
+  const badge =
+    `<td width="30" height="30" align="center" valign="middle" bgcolor="${COLORS.teal}" style="width:30px;height:30px;border-radius:9px;background:${COLORS.teal};font-size:0;line-height:0">` +
+    `<div style="width:0;height:0;margin:0 0 0 3px;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:9px solid #ffffff;font-size:0;line-height:0;display:inline-block"></div></td>`;
+  const word = `<td valign="middle" style="${rtl ? "padding:0 10px 0 0" : "padding:0 0 0 10px"};font-family:${FONT};font-size:20px;line-height:24px;font-weight:700;letter-spacing:-0.3px"><span dir="ltr" class="dv-ink" style="color:${COLORS.ink}">Dent<span class="dv-mark" style="color:${COLORS.teal}">Video</span></span></td>`;
+  return `<tr><td style="padding:0 4px 20px;text-align:${align}"><table role="presentation" align="${align}" cellpadding="0" cellspacing="0" border="0"><tr>${badge}${word}</tr></table></td></tr>`;
+}
+
+/** The main button: a VML round rectangle for Outlook on Windows, a padded link in a coloured cell everywhere else. */
+function primaryButton(b: { label: string; url: string }, accent: string): string {
+  const url = esc(b.url);
+  const label = esc(b.label);
+  return (
+    `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${url}" style="height:52px;v-text-anchor:middle;width:320px" arcsize="22%" stroke="f" fillcolor="${accent}"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:17px;font-weight:bold">${label}</center></v:roundrect><![endif]-->` +
+    `<!--[if !mso]><!-->` +
+    `<table role="presentation" class="dv-btn" cellpadding="0" cellspacing="0" border="0" style="margin:10px 0 0"><tr><td class="dv-btn" bgcolor="${accent}" style="border-radius:12px;background:${accent};text-align:center"><a href="${url}" style="display:inline-block;min-width:220px;padding:16px 30px;font-family:${FONT};font-size:17px;font-weight:600;line-height:20px;color:#ffffff;text-decoration:none;border-radius:12px">${label}</a></td></tr></table>` +
+    `<!--<![endif]-->`
+  );
+}
+
+/** The second action as an outlined button: clearly secondary, still one tap. */
+function outlineButton(b: { label: string; url: string }, accent: string): string {
+  return `<table role="presentation" class="dv-btn2" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0 0;border:2px solid ${accent};border-radius:12px"><tr><td style="border-radius:10px;text-align:center"><a href="${esc(b.url)}" class="dv-link" style="display:inline-block;min-width:216px;padding:13px 28px;font-family:${FONT};font-size:16px;font-weight:600;line-height:20px;color:${accent};text-decoration:none;border-radius:10px">${esc(b.label)}</a></td></tr></table>`;
+}
+
 export function renderEmail(s: EmailSpec): Rendered {
   const rtl = s.lang === "ar";
   const dir = rtl ? "rtl" : "ltr";
@@ -319,46 +370,58 @@ export function renderEmail(s: EmailSpec): Rendered {
   const accent = accentColor(s.brand?.color);
   const logo = safeUrl(s.brand?.logoUrl);
   const ctx = { accent, rtl, align };
+  const chrome = supportText(s.lang).copy.email;
+  const help = s.help === false ? null : fillSupport(s.help ?? chrome.help, { email: CONTACT_EMAIL });
+  const company = companyLine(s.lang);
 
   const logoRow = logo
-    ? `<tr><td style="padding:0 0 20px;text-align:${align}"><img class="dv-logo" src="${esc(logo)}" alt="${esc(s.brand?.name || "")}" height="44" style="display:inline-block;height:44px;max-height:44px;width:auto;max-width:180px;border:0"></td></tr>`
+    ? `<tr><td style="padding:0 0 22px;text-align:${align}"><img class="dv-logo" src="${esc(logo)}" alt="${esc(s.brand?.name || "")}" height="44" style="display:inline-block;height:44px;max-height:44px;width:auto;max-width:180px;border:0"></td></tr>`
     : "";
+  const accentBar = `<tr><td style="padding:0 0 22px;text-align:${align}"><table role="presentation" align="${align}" cellpadding="0" cellspacing="0" border="0"><tr><td width="36" height="4" bgcolor="${accent}" style="width:36px;height:4px;border-radius:2px;background:${accent};font-size:0;line-height:0">&nbsp;</td></tr></table></td></tr>`;
   const button = s.button
-    ? `<table role="presentation" class="dv-btn" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 0"><tr><td class="dv-btn" bgcolor="${accent}" style="border-radius:10px;background:${accent};text-align:center"><a href="${esc(s.button.url)}" style="display:inline-block;min-width:200px;padding:15px 28px;font-family:${FONT};font-size:17px;font-weight:600;line-height:20px;color:#ffffff;text-decoration:none;border-radius:10px;mso-padding-alt:0">${esc(s.button.label)}</a></td></tr></table>` +
-      `<p class="dv-muted" style="margin:14px 0 0;font-size:12px;line-height:18px;color:${COLORS.muted};word-break:break-all;text-align:${align}"><a href="${esc(s.button.url)}" dir="ltr" class="dv-link" style="color:${accent}">${esc(s.button.url)}</a></p>`
+    ? primaryButton(s.button, accent) +
+      `<p class="dv-muted" style="margin:14px 0 0;font-size:12px;line-height:18px;color:${COLORS.muted};text-align:${align}">${esc(chrome.linkFallback)}<br><a href="${esc(s.button.url)}" dir="ltr" class="dv-link" style="color:${accent};word-break:break-all">${esc(s.button.url)}</a></p>`
     : "";
-  const second = s.secondary
-    ? `<p class="dv-body" style="margin:18px 0 0;font-size:15px;line-height:23px;color:${COLORS.body}">${esc(s.secondary.ask)} <a href="${esc(s.secondary.url)}" class="dv-link" style="color:${accent};font-weight:600;text-decoration:underline">${esc(s.secondary.label)}</a></p>`
+  const second = !s.secondary
+    ? ""
+    : s.secondary.style === "button"
+      ? `<p class="dv-body" style="margin:24px 0 0;font-size:15px;line-height:22px;color:${COLORS.body}">${esc(s.secondary.ask)}</p>${outlineButton(s.secondary, accent)}`
+      : `<p class="dv-body" style="margin:18px 0 0;font-size:15px;line-height:23px;color:${COLORS.body}">${esc(s.secondary.ask)} <a href="${esc(s.secondary.url)}" class="dv-link" style="color:${accent};font-weight:600;text-decoration:underline">${esc(s.secondary.label)}</a></p>`;
+  const after = (s.afterButton ?? []).map((t) => `<p class="dv-muted" style="margin:18px 0 0;font-size:14px;line-height:21px;color:${COLORS.muted}">${rich(t, accent)}</p>`).join("");
+  const helpRow = help
+    ? `<tr><td class="dv-rule" style="padding:22px 0 0;border-top:1px solid ${COLORS.line};text-align:${align}"><p class="dv-muted" style="margin:0;font-size:14px;line-height:21px;color:${COLORS.muted}">${rich(help, accent)}</p></td></tr>`
     : "";
-  const after = (s.afterButton ?? []).map((t) => `<p class="dv-muted" style="margin:16px 0 0;font-size:14px;line-height:21px;color:${COLORS.muted}">${rich(t, accent)}</p>`).join("");
   const unsub = s.unsubscribe
     ? `<br>${esc(s.unsubscribe.ask)} <a href="${esc(s.unsubscribe.url)}" class="dv-muted" style="color:${COLORS.muted};text-decoration:underline">${esc(s.unsubscribe.label)}</a>`
     : "";
-  const address = s.address ? `<br><span dir="ltr">DentVideo · ${esc(s.address)}</span>` : "";
 
   const html = `<!doctype html>
 <html lang="${esc(s.lang)}" dir="${dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="x-apple-disable-message-reformatting"><meta name="format-detection" content="telephone=no,date=no,address=no,email=no"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${esc(s.subject)}</title>${STYLE}</head>
 <body dir="${dir}" class="dv-bg" style="margin:0;padding:0;background:${COLORS.paper};font-family:${FONT};color:${COLORS.ink};-webkit-text-size-adjust:100%;text-align:${align}">
 ${preheader(s.preheader)}
-<table role="presentation" class="dv-bg" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${COLORS.paper}" style="background:${COLORS.paper}"><tr><td align="center" class="dv-outer" style="padding:32px 16px">
-<table role="presentation" dir="${dir}" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;text-align:${align}">
-<tr><td style="padding:0 6px 14px;font-family:${FONT};font-size:19px;font-weight:700;letter-spacing:-0.2px;text-align:${align}"><span dir="ltr" class="dv-ink" style="color:${COLORS.ink}">Dent<span class="dv-mark" style="color:${COLORS.teal}">Video</span></span></td></tr>
-<tr><td class="dv-card" bgcolor="${COLORS.card}" style="background:${COLORS.card};border:1px solid ${COLORS.line};border-top:4px solid ${accent};border-radius:16px;padding:32px 30px;font-family:${FONT};text-align:${align}">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${logoRow}<tr><td style="text-align:${align}">
-${s.title ? `<h1 class="dv-ink dv-h1" style="margin:0 0 16px;font-size:24px;line-height:31px;font-weight:700;letter-spacing:-0.3px;color:${COLORS.ink}">${esc(s.title)}</h1>` : ""}
+<table role="presentation" class="dv-bg" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${COLORS.paper}" style="background:${COLORS.paper}"><tr><td align="center" class="dv-outer" style="padding:36px 16px 40px">
+<!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" dir="${dir}" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;text-align:${align}">
+${markRow(align, rtl)}
+<tr><td class="dv-card" bgcolor="${COLORS.card}" style="background:${COLORS.card};border:1px solid ${COLORS.line};border-radius:18px;padding:38px 40px 32px;font-family:${FONT};text-align:${align}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${logoRow}${logo ? "" : accentBar}<tr><td style="padding:0 0 ${help ? "26px" : "0"};text-align:${align}">
+${s.eyebrow ? `<p class="dv-mark" style="margin:0 0 8px;font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.2px;color:${accent}">${esc(s.eyebrow)}</p>` : ""}
+${s.title ? `<h1 class="dv-ink dv-h1" style="margin:0 0 18px;font-size:26px;line-height:33px;font-weight:700;letter-spacing:-0.4px;color:${COLORS.ink}">${esc(s.title)}</h1>` : ""}
 ${s.hello ? `<p class="dv-body" style="margin:0 0 16px;font-size:16px;line-height:25px;color:${COLORS.body}">${esc(s.hello)}</p>` : ""}
 ${s.blocks.map((b) => blockHtml(b, ctx)).join("\n")}
 ${button}
 ${second}
 ${after}
-${s.signoff ? `<p class="dv-body" style="margin:24px 0 0;font-size:16px;line-height:24px;color:${COLORS.body}">${esc(s.signoff)}</p>` : ""}
-</td></tr></table>
+${s.signoff ? `<p class="dv-body" style="margin:26px 0 0;font-size:16px;line-height:24px;color:${COLORS.body}">${esc(s.signoff)}</p>` : ""}
+</td></tr>${helpRow}</table>
 </td></tr>
-<tr><td class="dv-muted" style="padding:18px 6px 0;font-size:12px;line-height:18px;color:${COLORS.muted};text-align:${align}">${esc(s.footer)}${unsub}${address}</td></tr>
+<tr><td class="dv-muted" style="padding:22px 8px 0;font-size:12px;line-height:18px;color:${COLORS.muted};text-align:${align}">${esc(s.footer)}${unsub}<br><span dir="ltr">${esc(company)}</span></td></tr>
 </table>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table></body></html>`;
 
   const text = [
+    s.eyebrow,
     s.title,
     s.hello,
     ...s.blocks.map(blockText),
@@ -366,7 +429,8 @@ ${s.signoff ? `<p class="dv-body" style="margin:24px 0 0;font-size:16px;line-hei
     s.secondary ? `${s.secondary.ask} ${s.secondary.label}: ${s.secondary.url}` : undefined,
     ...(s.afterButton ?? []),
     s.signoff,
-    ["—", s.footer, s.unsubscribe ? `${s.unsubscribe.ask} ${s.unsubscribe.label}: ${s.unsubscribe.url}` : "", s.address ? `DentVideo · ${s.address}` : ""].filter(Boolean).join("\n"),
+    help ?? undefined,
+    ["—", s.footer, s.unsubscribe ? `${s.unsubscribe.ask} ${s.unsubscribe.label}: ${s.unsubscribe.url}` : "", company].filter(Boolean).join("\n"),
   ]
     .filter((p): p is string => typeof p === "string" && p.trim() !== "")
     .join("\n\n");

@@ -52,21 +52,32 @@ export function postalAddress(lang: string): string {
   return operatorAddress(((LOCALES as readonly string[]).includes(lang) ? lang : "en") as Locale);
 }
 
-/** Welcome, right after the first payment: what happens next. Transactional. */
+/**
+ * Welcome, right after the first payment. Transactional. It answers the four
+ * things a new clinic wonders: when the first videos come (about 15 minutes,
+ * by email), how to review and approve (software-assisted check, you approve,
+ * nothing published before), how to post (Share copies the caption, a
+ * suggested time, we never post for you), and what then (every Monday) — and
+ * how to reach a person (reply, hello@dentvideo.com).
+ */
 export function welcomeEmail(args: { language: string; clinicName: string; appUrl: string; brand?: Brand }): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
   const clinic = clinicLabel(args.clinicName);
   const vars = { clinic, email: CONTACT_EMAIL };
   return renderEmail({
     lang,
-    subject: tidy(fill(c.welcome.subject, vars)).replace(/[,،]$/, ""),
+    subject: c.welcome.subject,
     preheader: c.welcome.preheader,
+    title: c.welcome.title,
     hello: tidy(fill(c.hello, vars)),
     blocks: [
       { kind: "p", text: fill(c.welcome.intro, vars) },
       { kind: "steps", items: c.welcome.steps.map((s) => ({ title: fill(s.title, vars), body: fill(s.body, vars) })) },
+      { kind: "panel", text: fill(c.welcome.help, vars) },
     ],
     button: { label: c.welcome.button, url: args.appUrl },
+    // The panel above already says how to reach us.
+    help: false,
     signoff: c.signoff,
     footer: c.welcome.footer,
     brand: { ...args.brand, name: clinic },
@@ -79,7 +90,6 @@ function marketing(lang: string, c: ReturnType<typeof lifecycleText>["copy"], ar
   return {
     signoff: c.signoff,
     footer,
-    address: postalAddress(lang),
     unsubscribe: { ask: c.unsubscribeAsk, label: c.unsubscribe, url: args.unsubscribeUrl },
     brand: { ...args.brand, name: clinicLabel(args.clinicName) },
   };
@@ -101,7 +111,6 @@ export function startEmail(args: NudgeArgs): Rendered {
       { kind: "p", text: s.next },
     ],
     button: { label: s.button, url: args.url },
-    afterButton: [c.contact],
     ...marketing(lang, c, args, c.nudgeFooter),
   });
 }
@@ -124,7 +133,6 @@ export function sampleEmail(args: NudgeArgs & { titles: string[] }): Rendered {
       { kind: "panel", text: s.whyUs },
     ],
     button: { label: s.button, url: args.url },
-    afterButton: [c.contact],
     ...marketing(lang, c, args, c.nudgeFooter),
   });
 }
@@ -146,7 +154,6 @@ export function objectionsEmail(args: NudgeArgs & { from: DvMoney }): Rendered {
       { kind: "qa", items: s.qa.map((x) => ({ q: x.q, a: fill(x.a, vars) })) },
     ],
     button: { label: s.button, url: args.url },
-    afterButton: [c.contact],
     ...marketing(lang, c, args, c.nudgeFooter),
   });
 }
@@ -223,10 +230,13 @@ export function paymentProblemEmail(args: { language: string; clinicName: string
   const what = args.kind === "failed" ? e.failedBody : e.holdBody;
   const how = fill(args.fix === "portal" ? e.fixPortal : args.fix === "checkout" ? e.fixCheckout : e.fixEmail, vars);
   const url = args.fix === "portal" ? `${args.appUrl}/settings#billing-title` : args.appUrl;
+  const subject = args.kind === "failed" ? e.failedSubject : e.holdSubject;
   return renderEmail({
     lang,
-    subject: args.kind === "failed" ? e.failedSubject : e.holdSubject,
+    subject,
     preheader: e.preheader,
+    // Said once, big, at the top: what happened.
+    title: subject,
     hello: tidy(fill(e.hello, vars)),
     blocks: [
       { kind: "p", text: what },
