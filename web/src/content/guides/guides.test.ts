@@ -227,7 +227,7 @@ describe("structured data", () => {
       expect(types).toEqual(expect.arrayContaining(["AboutPage", "Organization", "SoftwareApplication", "FAQPage"]));
       // Google's SoftwareApplication rich result needs a priced offer: the self-serve plans only (Group is Contact us).
       const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown>[] }[]).find((n) => n["@type"] === "SoftwareApplication");
-      expect(app?.offers, l).toMatchObject([
+      expect(app?.offers?.filter((o) => o.priceCurrency === "USD"), l).toMatchObject([
         { "@type": "Offer", name: "Starter", price: 79, priceCurrency: "USD" },
         { "@type": "Offer", name: "Practice", price: 149, priceCurrency: "USD" },
       ]);

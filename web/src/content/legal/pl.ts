@@ -198,7 +198,7 @@ export const PL: LegalText = {
                 "E-maile: jakie wiadomości usługi wysłaliśmy do gabinetu i czy wypisali się Państwo z przypomnień.",
                 "Zdarzenia użycia: niewielki własny zapis kroków, takich jak „wyświetlono stronę” czy „wybrano plan”, z językiem strony, tagami kampanii (utm) i domeną strony odsyłającej. Nie zawierają identyfikatora cookie, adresu IP, danych przeglądarki, imienia ani e-maila.",
                 "Kliknięcia reklam: jeśli trafią Państwo na dentvideo.com z jednej z naszych reklam Google — identyfikator kliknięcia, który Google dodaje do linku (gclid, gbraid lub wbraid), oraz czas kliknięcia. Jeśli następnie założą Państwo konto, zapisujemy go przy koncie. W UE/EOG, Wielkiej Brytanii i Szwajcarii tylko wtedy, gdy wyrażą Państwo na to zgodę w pytaniu wyświetlanym tym odwiedzającym.",
-                "Dane techniczne: adres IP i dane żądania są przetwarzane, aby wyświetlać strony, chronić usługę i ograniczać nadużycia (krótkotrwałe liczniki limitów zapytań).",
+                "Dane techniczne: adres IP i dane żądania są przetwarzane, aby wyświetlać strony, chronić usługę i ograniczać nadużycia (krótkotrwałe liczniki limitów zapytań). Aby pokazać ceny w Państwa walucie i ustalić, czy przed zapisaniem kliknięcia reklamy trzeba zapytać o zgodę, sprawdzamy jedynie kraj Państwa adresu IP w bazie danych na naszym własnym serwerze ({dbip}); w tym celu adres IP nie jest ani zapisywany, ani nikomu przekazywany.",
               ],
             },
           ],

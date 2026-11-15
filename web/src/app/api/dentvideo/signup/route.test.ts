@@ -16,6 +16,13 @@ vi.mock("@/lib/dentvid/events-server", () => ({
     recorded.push(a);
   },
 }));
+// The country comes from our own IP lookup (geo-ip.ts); a fake database: 88.255.1.1 is in TR, 194.25.3.4 in DE.
+vi.mock("@/lib/dentvid/geo-ip", async (orig) => {
+  const m = (await orig()) as typeof import("@/lib/dentvid/geo-ip");
+  const DB: Record<string, string> = { "88.255.1.1": "TR", "194.25.3.4": "DE" };
+  const reader = { get: (ip: string) => (DB[ip] ? { country: { iso_code: DB[ip] } } : null) };
+  return { ...m, requestCountry: (h: Headers, o: Parameters<typeof m.requestCountry>[1] = {}) => m.requestCountry(h, { ...o, reader }) };
+});
 const adClicks: unknown[][] = [];
 vi.mock("@/lib/dentvid/ad-conversions-server", () => ({
   recordSignupClick: async (...a: unknown[]) => {
@@ -135,10 +142,10 @@ describe("POST /api/dentvideo/signup", () => {
     expect(await signup({ email: "not-an-email", locale: undefined })).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.badSignup } });
   });
 
-  it("records signup_completed with the tab's first-touch source and the edge country (no email, no user id)", async () => {
+  it("records signup_completed with the tab's first-touch source and the country of the connecting address (no email, no user id)", async () => {
     recorded.length = 0;
     const attribution = { utm_source: "instagram", utm_medium: "dm", utm_campaign: "tr-launch" };
-    await signup({ attribution }, { "cf-ipcountry": "TR" });
+    await signup({ attribution }, { "x-forwarded-for": "88.255.1.1" });
     expect(recorded).toEqual([["signup_completed", { locale: "de", props: attribution, geo: "TR" }]]);
     expect(JSON.stringify(recorded)).not.toContain("clinic.example");
   });
@@ -147,28 +154,36 @@ describe("POST /api/dentvideo/signup", () => {
     const at = Date.now() - 60_000;
     const attribution = { utm_source: "google", utm_medium: "cpc", utm_campaign: "tr-search-core" };
     // Türkiye: no prompt needed.
-    await signup({ attribution, adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "cf-ipcountry": "TR" });
+    await signup({ attribution, adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "x-forwarded-for": "88.255.1.1" });
     expect(adClicks).toEqual([["new-user", { type: "gclid", id: "TEST123", at, consent: "not_required" }]]);
     expect(recorded).toEqual([["signup_completed", { locale: "de", props: attribution, geo: "TR" }]]);
     expect(JSON.stringify(recorded)).not.toContain("TEST123");
 
     // Germany: only with consent; a browser claiming "not_required" is ignored.
     adClicks.length = 0;
-    await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "cf-ipcountry": "DE" });
+    await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "x-forwarded-for": "194.25.3.4" });
     await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } });
     expect(adClicks).toEqual([]);
-    await signup({ adClick: { type: "gbraid", id: "TEST123abc", at, consent: "granted" } }, { "cf-ipcountry": "DE" });
+    // A spoofed country header does not turn a German visitor into a Turkish one (no prompt skipped).
+    for (const spoof of ["cf-ipcountry", "x-vercel-ip-country", "x-country-code"]) {
+      await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "x-forwarded-for": "194.25.3.4", [spoof]: "TR" });
+      await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { [spoof]: "TR" });
+    }
+    // Nor does a Turkish address written in front of the real one.
+    await signup({ adClick: { type: "gclid", id: "TEST123", at, consent: "not_required" } }, { "x-forwarded-for": "88.255.1.1, 194.25.3.4" });
+    expect(adClicks).toEqual([]);
+    await signup({ adClick: { type: "gbraid", id: "TEST123abc", at, consent: "granted" } }, { "x-forwarded-for": "194.25.3.4" });
     expect(adClicks).toEqual([["new-user", { type: "gbraid", id: "TEST123abc", at, consent: "granted" }]]);
 
     // A malformed click is dropped; the sign-up itself still succeeds.
     adClicks.length = 0;
-    expect((await signup({ adClick: { type: "gclid", id: "<x>", at, consent: "granted" } }, { "cf-ipcountry": "TR" })).status).toBe(200);
+    expect((await signup({ adClick: { type: "gclid", id: "<x>", at, consent: "granted" } }, { "x-forwarded-for": "88.255.1.1" })).status).toBe(200);
     expect(adClicks).toEqual([]);
   });
 
   it("an existing account or a monitor sign-up records no ad conversion", async () => {
     existing = { app_metadata: { product: "dentvideo" } };
-    await signup({ adClick: { type: "gclid", id: "TEST123", at: Date.now(), consent: "granted" } }, { "cf-ipcountry": "DE" });
+    await signup({ adClick: { type: "gclid", id: "TEST123", at: Date.now(), consent: "granted" } }, { "x-forwarded-for": "194.25.3.4" });
     expect(adClicks).toEqual([]);
   });
 

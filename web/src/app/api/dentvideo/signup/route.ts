@@ -7,7 +7,7 @@ import { appText } from "@/content/dentvideo-app";
 import { authText } from "@/content/dentvideo-auth";
 import { passwordTooLong } from "@/lib/dentvid/password";
 import { recordEvent } from "@/lib/dentvid/events-server";
-import { geoCountry } from "@/lib/dentvid/events";
+import { requestCountry } from "@/lib/dentvid/geo-ip";
 import { acceptableClick } from "@/lib/dentvid/ad-conversions";
 import { recordSignupClick } from "@/lib/dentvid/ad-conversions-server";
 import { LIMITS, clientIp, networkOf } from "@/lib/rate-limit";
@@ -144,10 +144,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, existing: true });
   }
   if (!testAccount) {
+    // The country from our own IP lookup (geo-ip.ts), never from a header the browser could set.
+    const geo = requestCountry(req.headers);
     // Funnel: no email, no user id — just that an account was made, in which language.
-    void recordEvent("signup_completed", { locale, props: body.attribution, geo: geoCountry(req.headers) });
+    void recordEvent("signup_completed", { locale, props: body.attribution, geo });
     // From a Google ad: keep the click against the account and count the sign-up conversion (never blocks the sign-up).
-    const click = acceptableClick(body.adClick, geoCountry(req.headers));
+    const click = acceptableClick(body.adClick, geo);
     if (click && created?.user) await recordSignupClick(created.user.id, click).catch(() => "failed");
     // The code email. Not fatal if it fails: the plan step asks for one again — but the owner hears about it.
     if (created?.user) {

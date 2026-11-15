@@ -271,6 +271,8 @@ export type AppText = {
     weekMade: string;
     invalidProfile: string;
     invalidLogo: string;
+    /** A logo over the size limit; {mb} is the limit in MB. */
+    logoTooLarge: string;
     invalidDecision: string;
     badSignup: string;
     /** 429: too many requests in a short time. */
@@ -633,6 +635,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "This week's videos are already made — they are in your library below. Next week's can be made from Monday.",
       invalidProfile: "Please check the clinic details and try again.",
       invalidLogo: "That logo could not be used. Please upload it again.",
+      logoTooLarge: "That logo is larger than {mb} MB. Please upload a smaller PNG, JPEG or WebP file.",
       invalidDecision: "That action is not available.",
       badSignup: "Enter a valid email and a password of at least 8 characters.",
       tooMany: "Too many attempts. Please wait a few minutes and try again.",
@@ -990,6 +993,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "Die Videos dieser Woche sind bereits fertig – Sie finden sie unten in Ihrer Bibliothek. Die nächsten können ab Montag erstellt werden.",
       invalidProfile: "Bitte prüfen Sie die Angaben zur Praxis und versuchen Sie es erneut.",
       invalidLogo: "Dieses Logo konnte nicht verwendet werden. Bitte laden Sie es erneut hoch.",
+      logoTooLarge: "Dieses Logo ist größer als {mb} MB. Bitte laden Sie eine kleinere PNG-, JPEG- oder WebP-Datei hoch.",
       invalidDecision: "Diese Aktion ist nicht möglich.",
       badSignup: "Bitte geben Sie eine gültige E-Mail-Adresse und ein Passwort mit mindestens 8 Zeichen ein.",
       tooMany: "Zu viele Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
@@ -1347,6 +1351,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "Los vídeos de esta semana ya están hechos: los tienes abajo, en tu biblioteca. Los de la próxima semana se pueden crear a partir del lunes.",
       invalidProfile: "Revisa los datos de la clínica e inténtalo de nuevo.",
       invalidLogo: "No pudimos usar ese logo. Súbelo de nuevo.",
+      logoTooLarge: "Ese logo pesa más de {mb} MB. Sube un archivo PNG, JPEG o WebP más pequeño.",
       invalidDecision: "Esa acción no está disponible.",
       badSignup: "Escribe un correo válido y una contraseña de al menos 8 caracteres.",
       tooMany: "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
@@ -1704,6 +1709,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "Bu haftanın videoları zaten hazır; aşağıda kitaplığınızda. Gelecek haftanınkiler pazartesiden itibaren hazırlanabilir.",
       invalidProfile: "Lütfen klinik bilgilerini kontrol edip tekrar deneyin.",
       invalidLogo: "Bu logo kullanılamadı. Lütfen yeniden yükleyin.",
+      logoTooLarge: "Bu logo {mb} MB'tan büyük. Lütfen daha küçük bir PNG, JPEG veya WebP dosyası yükleyin.",
       invalidDecision: "Bu işlem yapılamıyor.",
       badSignup: "Geçerli bir e-posta adresi ve en az 8 karakterlik bir şifre girin.",
       tooMany: "Çok fazla deneme yapıldı. Lütfen birkaç dakika bekleyip tekrar deneyin.",
@@ -2061,6 +2067,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "Les vidéos de la semaine sont déjà prêtes : elles sont dans votre bibliothèque ci-dessous. Celles de la semaine prochaine pourront être créées à partir de lundi.",
       invalidProfile: "Merci de vérifier les informations du cabinet et de réessayer.",
       invalidLogo: "Ce logo n'a pas pu être utilisé. Merci de l'envoyer à nouveau.",
+      logoTooLarge: "Ce logo dépasse {mb} Mo. Merci d'envoyer un fichier PNG, JPEG ou WebP plus léger.",
       invalidDecision: "Cette action n'est pas disponible.",
       badSignup: "Saisissez un e-mail valide et un mot de passe d'au moins 8 caractères.",
       tooMany: "Trop de tentatives. Merci de patienter quelques minutes avant de réessayer.",
@@ -2415,6 +2422,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "今週の動画はすでに制作済みで、下のライブラリにあります。来週分は月曜日から制作できます。",
       invalidProfile: "医院の情報をご確認のうえ、もう一度お試しください。",
       invalidLogo: "このロゴは使用できませんでした。もう一度アップロードしてください。",
+      logoTooLarge: "このロゴは{mb}MBを超えています。より小さいPNG・JPEG・WebPファイルをアップロードしてください。",
       invalidDecision: "この操作は実行できません。",
       badSignup: "正しいメールアドレスと、8文字以上のパスワードを入力してください。",
       tooMany: "短時間に試行が多すぎます。数分おいてから、もう一度お試しください。",
@@ -2770,6 +2778,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "فيديوهات هذا الأسبوع جاهزة بالفعل، وتجدونها في مكتبتكم أدناه. يمكن إعداد فيديوهات الأسبوع القادم ابتداءً من يوم الاثنين.",
       invalidProfile: "يُرجى مراجعة بيانات العيادة والمحاولة مرة أخرى.",
       invalidLogo: "تعذّر استخدام هذا الشعار. يُرجى رفعه مرة أخرى.",
+      logoTooLarge: "حجم هذا الشعار أكبر من {mb} ميغابايت. يُرجى رفع ملف PNG أو JPEG أو WebP أصغر.",
       invalidDecision: "هذا الإجراء غير متاح.",
       badSignup: "أدخلوا بريداً إلكترونياً صحيحاً وكلمة مرور من 8 أحرف على الأقل.",
       tooMany: "محاولات كثيرة خلال وقت قصير. انتظروا بضع دقائق ثم حاولوا مرة أخرى.",
@@ -3126,6 +3135,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       weekMade: "Filmy na ten tydzień są już gotowe i czekają w bibliotece poniżej. Filmy na kolejny tydzień można przygotować od poniedziałku.",
       invalidProfile: "Prosimy sprawdzić dane gabinetu i spróbować ponownie.",
       invalidLogo: "Nie udało się użyć tego logo. Prosimy przesłać je ponownie.",
+      logoTooLarge: "To logo jest większe niż {mb} MB. Prosimy przesłać mniejszy plik PNG, JPEG lub WebP.",
       invalidDecision: "Ta czynność jest niedostępna.",
       badSignup: "Prosimy podać poprawny e-mail i hasło o długości co najmniej 8 znaków.",
       tooMany: "Zbyt wiele prób w krótkim czasie. Prosimy odczekać kilka minut i spróbować ponownie.",

@@ -39,3 +39,6 @@ web/src/lib/dentvid/_e2e_cookie.mts
 # a symlinked node_modules (agent worktrees) must never be committed
 /web/node_modules
 /worker/node_modules
+
+# DB-IP country database, downloaded at build time (web/scripts/fetch-geoip.mjs)
+/web/geoip/

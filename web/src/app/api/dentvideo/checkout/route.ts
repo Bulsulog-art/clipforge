@@ -10,7 +10,7 @@ import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink, isSelfServe
 import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentvideo-group";
 import { postDodoCheckout } from "@/lib/dodo";
 import { recordEvent } from "@/lib/dentvid/events-server";
-import { geoCountry } from "@/lib/dentvid/events";
+import { requestCountry } from "@/lib/dentvid/geo-ip";
 import { adminOrNull, checkoutBlockMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
 
 // POST /api/dentvideo/checkout — open a Dodo hosted checkout for the signed-in
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
       locale: language,
       clinicId: clinic.id as string,
       props: { tier: parsed.data.plan, interval: parsed.data.interval, via },
-      geo: geoCountry(req.headers),
+      geo: requestCountry(req.headers),
     });
     return url;
   };
