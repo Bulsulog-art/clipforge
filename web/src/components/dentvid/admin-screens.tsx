@@ -93,7 +93,7 @@ export function AdminOverview({ data, ...c }: Common & { data: OverviewData }) {
 
       <Section title="Business" id="business">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label="MRR" value={usd(rev.mrrUsd)} sub={`${rev.paying} paying${rev.founding ? ` · ${rev.founding} founding` : ""}${rev.yearly ? ` · ${rev.yearly} yearly` : ""}`} tone="teal" />
+          <Stat label="MRR" value={usd(rev.mrrUsd)} sub={`${rev.paying} paying${rev.founding ? ` · ${rev.founding} founding` : ""}${rev.yearly ? ` · ${rev.yearly} yearly` : ""}${rev.mrrByCurrency.EUR || rev.mrrByCurrency.TRY ? ` · EUR ${rev.mrrByCurrency.EUR} · TL ${rev.mrrByCurrency.TRY} (est. in USD)` : ""}`} tone="teal" />
           <Stat
             label="Paying clinics"
             value={int(rev.paying)}

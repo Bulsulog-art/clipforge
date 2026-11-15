@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GUIDES, GUIDE_HUB_LOCALES, LANDING, LANDING_PATH, LOCALES, dirOf, guidePath, guidesFor } from "./dentvideo";
 import { dentvideoPaths, guideJsonLd, landingAlternates, landingJsonLd } from "@/lib/dentvid/seo";
-import { DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "@/lib/dentvid/billing";
 
 /** Shape of a value: object keys and array lengths, recursively. */
 function shape(v: unknown): unknown {
@@ -57,23 +57,25 @@ describe("DentVideo landing content", () => {
     expect(JSON.stringify(GUIDES)).not.toMatch(MONEY);
   });
 
-  it("pricing shows only the configured USD prices, in every locale", () => {
-    const allowed = new Set<number>();
-    for (const tier of DV_TIERS) for (const v of Object.values(DV_PRICES_USD[tier])) if (v) allowed.add(v);
-    expect([...allowed].sort((a, b) => a - b)).toEqual([29, 49]);
+  it("pricing copy holds no figure at all: every price comes from pricing.ts, so it cannot drift from Dodo", () => {
+    expect(DV_PRICES_USD).toEqual({ starter: { month: 79 }, practice: { month: 149 }, group: {} });
     for (const l of LOCALES) {
       const p = LANDING[l].pricing;
-      const text = JSON.stringify(p);
-      expect(text, l).not.toMatch(/[€£₺%]|TL/);
-      const figures = [...text.matchAll(/\$\s?(\d[\d,.]*)|(\d[\d,.]*)\s?\$/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
-      expect(figures.length, l).toBeGreaterThan(0);
-      for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
-      // Starter, Practice at their monthly list prices, in that order (Group is Contact us: no price).
+      expect(JSON.stringify(p), l).not.toMatch(MONEY);
+      expect(JSON.stringify(p), l).not.toMatch(/\b(29|49|79|149|2[.,]?490|4[.,]?490)\b/);
+      // Starter, Practice, in that order (Group is "Priced per location": no number).
       expect(p.tiers, l).toHaveLength(DV_SELF_SERVE_TIERS.length);
-      DV_SELF_SERVE_TIERS.forEach((tier, i) => expect(p.tiers[i].price.replace(/\D/g, ""), `${l} ${tier}`).toBe(String(DV_PRICES_USD[tier].month)));
-      // "From …" is the lowest monthly list price (Starter).
-      expect(p.from.replace(/\D/g, ""), l).toBe(String(DV_PRICES_USD.starter.month));
+      for (const t of p.tiers) expect(t.features, `${l} ${t.name}`).toHaveLength(5);
+      // "From {price}": filled with Starter's list price; the note names the currency.
+      expect(p.from.split("{price}"), l).toHaveLength(2);
+      expect(p.note.split("{currency}"), l).toHaveLength(2);
     }
+  });
+
+  it("the ROI line promises nothing about a year: one case is worth more than several months", () => {
+    const YEAR = /year|jahr|año|yıl|année|\ban de |年|سنة|عام|\brok/i;
+    for (const l of LOCALES) expect(LANDING[l].compare.roi, l).not.toMatch(YEAR);
+    expect(LANDING.en.compare.roi).toContain("several months of DentVideo");
   });
 
   it("no founding offer, no yearly billing and no discount anywhere on the landings, in every locale", () => {
@@ -83,7 +85,7 @@ describe("DentVideo landing content", () => {
       const text = JSON.stringify(LANDING[l]);
       expect(text, l).not.toMatch(FOUNDING);
       expect(JSON.stringify(LANDING[l].pricing), l).not.toMatch(YEARLY);
-      expect(Object.keys(LANDING[l].pricing).sort(), l).toEqual(["cta", "from", "heading", "note", "perMonth", "recommended", "text", "tiers"]);
+      expect(Object.keys(LANDING[l].pricing).sort(), l).toEqual(["cancel", "cta", "from", "heading", "note", "perMonth", "recommended", "text", "tiers"]);
     }
   });
 

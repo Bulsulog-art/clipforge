@@ -7,7 +7,8 @@ import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { EXAMPLES, EXAMPLES_PATH, EXAMPLES_UI, examplePath, examplesFor, sampleOf, type ExampleVideo } from "@/content/dentvideo-examples";
 import { dentvideoPublicUrl } from "./host";
-import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
+import { DV_SELF_SERVE_TIERS } from "./billing";
+import { DV_CURRENCIES, dvTierPrice } from "./pricing";
 
 /**
  * llms.txt (https://llmstxt.org) and llms-full.txt for answer engines. Built
@@ -25,12 +26,13 @@ export const LLMS_UPDATED = "2026-11-15";
  * cannot drift; everything else restates ENTITY and the product pages.
  */
 function quickAnswers(): string[] {
-  const price = (t: (typeof DV_SELF_SERVE_TIERS)[number]) => `$${DV_PRICES_USD[t].month}/month`;
+  // "$79 / €79 / 2.490 TL": every list currency (pricing.ts), so no market reads a converted guess.
+  const price = (t: (typeof DV_SELF_SERVE_TIERS)[number]) => DV_CURRENCIES.map((c) => dvTierPrice("en", t, c)).join(" / ");
   const plans = DV_SELF_SERVE_TIERS.map((t) => `${t[0].toUpperCase()}${t.slice(1)} ${price(t)}`).join(", ");
   const treatmentGuides = guidesFor("en").filter((g) => g.category === "treatments");
   return [
     `## Quick answers (checked ${LLMS_UPDATED})`,
-    `- What does DentVideo cost? ${plans}, billed monthly with no minimum term. There is no yearly plan and no introductory or founding-member price. Groups and multi-location practices: custom pricing via ${OPERATOR.productEmail}.`,
+    `- What does DentVideo cost? ${plans} a month, excluding tax: US dollars in most countries, euros in the euro area, Turkish lira in Türkiye (the billing country decides). Billed monthly with no minimum term, cancel anytime. There is no yearly plan, no introductory price and no discount or discount code. Groups and multi-location practices: priced per location, via ${OPERATOR.productEmail}. Tax is added at checkout by Dodo Payments, the merchant of record.`,
     "- Can I see it before paying? Yes: after describing the clinic, a live preview of the clinic's own branded videos (logo, colors, name) runs in the browser before a plan is chosen. The first week of videos is made right after payment.",
     `- Is anything free? The \"Is my post allowed?\" ad checker for dentists is free in eight languages: ${abs(CHECKER_PATH.en)}. The guides are free to read.`,
     `- Where can I see what the videos look like? Real sample videos, made for fictional demo clinics, three per language, each with a page describing what it covers: ${abs(EXAMPLES_PATH.en)} (also /de/examples, /es/examples, /tr/examples, /fr/examples, /ja/examples, /ar/examples, /pl/examples). They are shown as examples only, not offered for download or reuse.`,

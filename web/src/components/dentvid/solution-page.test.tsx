@@ -19,7 +19,8 @@ describe("/videos/* pages: price, terms and the no-account preview next to the m
       const html = decode(renderToStaticMarkup(<SolutionView p={p} />));
       const hero = html.slice(0, html.indexOf("</header>"));
       expect(hero, p.slug).toContain(`/dentvideo/start?lang=${l}`);
-      expect(hero, p.slug).toContain(LANDING[l].pricing.from);
+      expect(hero, p.slug).toContain(LANDING[l].pricing.from.split("{price}")[0].trim());
+      expect(hero, p.slug).not.toContain("{price}");
       expect(hero, p.slug).toContain(String(DV_PRICES_USD.starter.month));
       expect(hero, p.slug).toContain(LANDING[l].teaser.note);
       expect(hero, p.slug).toContain(`href="${LANDING_PATH[l]}#try"`);

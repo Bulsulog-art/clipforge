@@ -89,7 +89,7 @@ export const EN: LegalText = {
         {
           heading: "6. Plans, prices and payment",
           blocks: [
-            "DentVideo is paid in advance; there is no free trial. Before you pay, you can see a live preview of videos in your clinic's name, colours and logo. Current plans, in US dollars:",
+            "DentVideo is paid in advance; there is no free trial. Before you pay, you can see a live preview of videos in your clinic's name, colours and logo. Current monthly list prices, excluding tax. You pay in the currency of your billing country: euros in the euro area, Turkish lira in Türkiye, US dollars everywhere else:",
             {
               list: [
                 "Starter: {starter} per month.",

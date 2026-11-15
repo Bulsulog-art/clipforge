@@ -86,7 +86,7 @@ export const DE: LegalText = {
         {
           heading: "6. Tarife, Preise und Zahlung",
           blocks: [
-            "DentVideo wird im Voraus bezahlt; es gibt keine kostenlose Testphase. Vor der Zahlung sehen Sie eine Live-Vorschau von Videos mit Name, Farben und Logo Ihrer Praxis. Aktuelle Tarife in US-Dollar:",
+            "DentVideo wird im Voraus bezahlt; es gibt keine kostenlose Testphase. Vor der Zahlung sehen Sie eine Live-Vorschau von Videos mit Name, Farben und Logo Ihrer Praxis. Aktuelle monatliche Listenpreise, zzgl. Steuern. Sie zahlen in der Währung Ihres Rechnungslandes: Euro im Euroraum, Türkische Lira in der Türkei, US-Dollar überall sonst:",
             {
               list: [
                 "Starter: {starter} pro Monat.",

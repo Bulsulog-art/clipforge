@@ -29,7 +29,8 @@ vi.mock("@/lib/dentvid/supabase", () => ({
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LOCALES, type Locale } from "@/content/dentvideo";
-import { DEMO_COPY, fillDemo } from "@/content/dentvideo-demo";
+import { DEMO_COPY, demoFromPrice, fillDemo } from "@/content/dentvideo-demo";
+import { dvTierPrice } from "@/lib/dentvid/pricing";
 import { DemoPage, demoMetadata } from "./demo-page";
 import { Onboarding } from "./onboarding";
 import type { PublicDemo } from "@/lib/dentvid/demos";
@@ -46,7 +47,7 @@ describe("the demo page", () => {
       expect(h, l).toContain(`lang="${l}"`);
       expect(h, l).toContain(`dir="${l === "ar" ? "rtl" : "ltr"}"`);
       expect(h, l).toContain(fillDemo(DEMO_COPY[l].headline, { name: "Klinik Örnek" }));
-      for (const f of Object.values(DEMO_COPY[l].facts)) expect(h, l).toContain(f);
+      for (const f of Object.values(DEMO_COPY[l].facts)) expect(h, l).toContain(fillDemo(f, { price: demoFromPrice(l, "TR") }));
       expect(h, l).toContain(DEMO_COPY[l].cta);
       expect(h, l).toMatch(/href="[^"]*\/start\?lang=[a-z]{2}&demo=Ab3dE5fG7hJ&utm_source=demo&utm_medium=dm&utm_campaign=tr-launch&utm_content=Ab3dE5fG7hJ"/);
       expect(h, l).toContain('href="mailto:hello@dentvideo.com?subject=');
@@ -55,11 +56,17 @@ describe("the demo page", () => {
     }
   });
 
-  it("states the starting price ($29, Starter) and no founding offer, in every language", () => {
+  it("states the starting price (Starter's, in the clinic's billing currency) and no founding offer, in every language", () => {
     for (const l of LOCALES) {
       const h = decode(renderToStaticMarkup(<DemoPage locale={l} demo={demo(l)} />));
-      expect(h, l).toContain(DEMO_COPY[l].facts.from);
-      expect(DEMO_COPY[l].facts.from.match(/\d+/g), l).toEqual(["29"]);
+      // A Turkish clinic: 2.490 TL, whatever the page's language; a clinic in Germany: €79; elsewhere $79.
+      expect(h, l).toContain(fillDemo(DEMO_COPY[l].facts.from, { price: "2.490 TL" }));
+      const de = decode(renderToStaticMarkup(<DemoPage locale={l} demo={{ ...demo(l), country: "DE" }} />));
+      expect(de, l).toContain(fillDemo(DEMO_COPY[l].facts.from, { price: dvTierPrice(l, "starter", "EUR") }));
+      const us = decode(renderToStaticMarkup(<DemoPage locale={l} demo={{ ...demo(l), country: "US" }} />));
+      expect(us, l).toContain(fillDemo(DEMO_COPY[l].facts.from, { price: dvTierPrice(l, "starter", "USD") }));
+      expect(DEMO_COPY[l].facts.from.match(/\d+/g), l).toBeNull();
+      expect(h, l).not.toMatch(/\{price\}|\b29\b|\b49\b/);
       expect(Object.keys(DEMO_COPY[l].facts), l).not.toContain("founding");
       expect(h, l).not.toMatch(/\b99\b|990|founding|kurucu|\bGründungs|fundador|fondateur|創業|المؤسسين|założyciel/i);
     }

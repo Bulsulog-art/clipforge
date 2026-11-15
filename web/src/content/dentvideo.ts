@@ -7,8 +7,9 @@
  *
  * Rules for anything written here:
  * - describe only what the product does today;
- * - prices only in `pricing` (owner-approved USD list prices, kept in step with
- *   lib/dentvid/billing by dentvideo.test.ts); no statistics, no testimonials
+ * - no price figures at all: `pricing.from` holds a {price} slot that is filled
+ *   from lib/dentvid/pricing.ts (the list prices Dodo charges, per currency);
+ *   no statistics, no testimonials
  *   (the ROI maths lives in docs/POSITIONING.md);
  * - never promise patients or bookings; the ROI line stays hedged;
  * - advertising-rule content stays general and hedged and names only
@@ -49,14 +50,19 @@ export type Comparison = {
 
 export type TrustItem = { title: string; text: string };
 
-export type PricingTier = { name: string; price: string; blurb: string; features: [string, string, string] };
+/**
+ * A plan card. No price here: the figure comes from lib/dentvid/pricing.ts in
+ * the visitor's currency (components/dentvid/price.tsx), so the page can only
+ * ever show what Dodo charges.
+ */
+export type PricingTier = { name: string; blurb: string; features: [string, string, string, string, string] };
 
 export type LandingContent = {
   meta: { title: string; description: string; ogDescription: string };
   /**
    * The first screen: what you get and for whom (h1), how (lead), and three
    * true risk-reducers under the CTA (points). No prices here — the "from"
-   * price comes from `pricing.from`.
+   * price comes from `pricing.from` and lib/dentvid/pricing.ts.
    */
   hero: {
     eyebrow: string;
@@ -77,16 +83,23 @@ export type LandingContent = {
   samples: { heading: string; text: string; note: string };
   checks: { heading: string; items: { title: string; text: string }[] };
   compare: Comparison;
-  /** The plans. Currency figures are allowed here and nowhere else (dentvideo.test.ts). */
+  /**
+   * The plans. No figures: prices come from lib/dentvid/pricing.ts in the
+   * visitor's currency (USD in the server-rendered page, swapped in the
+   * browser for EUR or TL where that is what Dodo charges).
+   */
   pricing: {
     heading: string;
     text: string;
     cta: string;
     perMonth: string;
-    /** "From $29/month": the lowest list price, shown in the hero next to the CTA. */
+    /** "From {price}/month": {price} is Starter's list price; shown in the hero next to the CTA. */
     from: string;
     recommended: string;
+    /** Under the cards: {currency} is "USD", "EUR" or "TL"; prices exclude tax, Dodo is the merchant of record. */
     note: string;
+    /** Under the cards: monthly, how to cancel, access until the paid period ends. */
+    cancel: string;
     /**
      * Starter, Practice — always in this order. Group (multi-location) is not
      * sold self-serve: its card is "Contact us" (content/dentvideo-group.ts).
@@ -170,33 +183,40 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Consistency", values: ["Five videos every Monday, automatically", "As agreed in the contract", "Until the week gets busy"] },
         { label: "Video languages", values: ["Ten, written natively", "Usually one", "Yours"] },
       ],
-      roi: "We can't promise you patients — no one honestly can. But a single implant or aligner case is typically worth more than a year of DentVideo.",
+      roi: "We can't promise you patients, and no one honestly can. But a single implant or aligner case is typically worth more than several months of DentVideo.",
       roiNote: "Based on typical private fees for one implant or aligner treatment. Your fees and results will differ.",
     },
     pricing: {
-      heading: "See it first. Then choose a plan.",
-      text: "Before you pay, watch a live preview of how your own videos will look — your logo, your colors, your clinic's name. Then choose a plan: monthly, cancel anytime. Your first week of videos is made right after payment.",
+      heading: "Simple monthly plans. Every video checked.",
+      text: "Every plan brings five finished videos every Monday: scripted, narrated, captioned and in your clinic's colors, each checked for advertising rules and clinical accuracy before you see it. Watch a live preview with your own logo before you pay. Monthly, no contract. Your first week is ready about 15 minutes after you subscribe.",
       cta: "See your preview",
       perMonth: "/month",
-      from: "From $29/month",
+      from: "From {price}/month",
       recommended: "Recommended",
-      note: "Prices in USD. Taxes may apply.",
+      note: "Prices in {currency}, excluding tax. Checkout, tax and your invoice are handled by Dodo Payments, our merchant of record.",
+      cancel: "Monthly, cancel anytime in Settings. You keep access until the end of the period you paid for.",
       tiers: [
         {
           name: "Starter",
-          price: "$29",
-          blurb: "For a single clinic getting started.",
+          blurb: "Everything your clinic needs to post every week.",
           features: [
-            "Five narrated, captioned videos every Monday",
-            "Checked for advertising rules and clinical accuracy",
-            "Your logo and brand colors in every video",
+            "Five narrated, captioned videos every Monday: 20 or more a month",
+            "A ready-to-post caption and hashtags with every video",
+            "Topics from what patients in your country search, only for treatments you offer",
+            "Every script checked for advertising rules and clinical accuracy; nothing goes out without your approval",
+            "Your logo, colors and clinic name, in the language you choose (ten available)",
           ],
         },
         {
           name: "Practice",
-          price: "$49",
-          blurb: "For clinics that want their own faces on screen.",
-          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Filming cards for your own clips"],
+          blurb: "For clinics that want the dentist on screen, too.",
+          features: [
+            "Everything in Starter",
+            "Your own recordings turned into branded, captioned clips",
+            "Every clip reviewed, and your own words are never changed",
+            "Filming cards that tell you what to record",
+            "Upload straight from your phone, up to 500 MB per recording",
+          ],
         },
       ],
     },
@@ -292,33 +312,40 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Regelmäßigkeit", values: ["Fünf Videos, jeden Montag, automatisch", "Wie im Vertrag vereinbart", "Bis die Woche voll wird"] },
         { label: "Videosprachen", values: ["Zehn, muttersprachlich formuliert", "Meist eine", "Ihre"] },
       ],
-      roi: "Patienten können wir Ihnen nicht versprechen — das kann niemand ehrlich. Aber schon ein einzelner Implantat- oder Aligner-Fall ist in der Regel mehr wert als ein Jahr DentVideo.",
+      roi: "Patienten können wir Ihnen nicht versprechen; das kann niemand ehrlich. Aber schon ein einzelner Implantat- oder Aligner-Fall ist in der Regel mehr wert als mehrere Monate DentVideo.",
       roiNote: "Bezogen auf übliche Privathonorare für eine Implantat- oder Aligner-Behandlung. Ihre Honorare und Ergebnisse können abweichen.",
     },
     pricing: {
-      heading: "Erst ansehen. Dann Tarif wählen.",
-      text: "Bevor Sie zahlen, sehen Sie in einer Live-Vorschau, wie Ihre eigenen Videos aussehen — mit Ihrem Logo, Ihren Farben und dem Namen Ihrer Praxis. Dann wählen Sie einen Tarif: monatlich, jederzeit kündbar. Ihre erste Woche Videos entsteht direkt nach der Zahlung.",
+      heading: "Klare Monatstarife. Jedes Video geprüft.",
+      text: "Jeder Tarif liefert jeden Montag fünf fertige Videos: mit Skript, Vertonung, Untertiteln und in den Farben Ihrer Praxis, jedes vorab auf Werberecht und fachliche Richtigkeit geprüft. Sehen Sie vor der Zahlung eine Live-Vorschau mit Ihrem eigenen Logo. Monatlich, ohne Vertragsbindung. Ihre erste Woche ist etwa 15 Minuten nach dem Abschluss fertig.",
       cta: "Ihre Vorschau ansehen",
       perMonth: "/Monat",
-      from: "Ab 29 $/Monat",
+      from: "Ab {price} im Monat",
       recommended: "Empfohlen",
-      note: "Preise in USD, ggf. zzgl. Steuern.",
+      note: "Preise in {currency} zzgl. Umsatzsteuer, sofern sie anfällt. Zahlung, Steuern und Rechnung über Dodo Payments als Verkäufer (Merchant of Record).",
+      cancel: "Monatlich, jederzeit in den Einstellungen kündbar. Sie behalten den Zugang bis zum Ende des bezahlten Zeitraums.",
       tiers: [
         {
           name: "Starter",
-          price: "29 $",
-          blurb: "Für eine Praxis, die einfach anfangen will.",
+          blurb: "Alles, was Ihre Praxis braucht, um jede Woche zu posten.",
           features: [
-            "Jeden Montag fünf vertonte, untertitelte Videos",
-            "Geprüft auf Werberecht und fachliche Richtigkeit",
-            "Ihr Logo und Ihre Markenfarben in jedem Video",
+            "Jeden Montag fünf vertonte, untertitelte Videos: mindestens 20 im Monat",
+            "Zu jedem Video ein fertiger Beitragstext mit Hashtags",
+            "Themen aus dem, was Patienten in Ihrem Land suchen, nur zu Behandlungen, die Sie anbieten",
+            "Jedes Skript auf Werberecht und fachliche Richtigkeit geprüft; nichts wird ohne Ihre Freigabe geteilt",
+            "Mit Ihrem Logo, Ihren Farben und Ihrem Praxisnamen, in der Sprache Ihrer Wahl (zehn verfügbar)",
           ],
         },
         {
           name: "Practice",
-          price: "49 $",
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
-          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Drehkarten für Ihre eigenen Clips"],
+          features: [
+            "Alles aus Starter",
+            "Ihre eigenen Aufnahmen als gebrandete, untertitelte Clips",
+            "Jeder Clip geprüft; Ihre eigenen Worte werden nie verändert",
+            "Drehkarten, die Ihnen sagen, was Sie aufnehmen",
+            "Direkt vom Smartphone hochladen, bis 500 MB pro Aufnahme",
+          ],
         },
       ],
     },
@@ -414,33 +441,40 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Constancia", values: ["Cinco vídeos cada lunes, automáticamente", "Lo que diga el contrato", "Hasta que la semana se complica"] },
         { label: "Idiomas de los vídeos", values: ["Diez, redactados de forma nativa", "Normalmente uno", "El tuyo"] },
       ],
-      roi: "No podemos prometerte pacientes; nadie puede hacerlo con honestidad. Pero un solo caso de implante o de alineadores suele valer más que un año de DentVideo.",
+      roi: "No podemos prometerte pacientes; nadie puede hacerlo con honestidad. Pero un solo caso de implante o de alineadores suele valer más que varios meses de DentVideo.",
       roiNote: "Según los honorarios privados habituales de un tratamiento de implante o de alineadores. Tus honorarios y tus resultados pueden variar.",
     },
     pricing: {
-      heading: "Primero lo ves. Luego eliges plan.",
-      text: "Antes de pagar, ves una vista previa en directo de cómo serán tus propios vídeos: tu logo, tus colores, el nombre de tu clínica. Después eliges un plan: mensual y cancelas cuando quieras. Tu primera semana de vídeos se crea justo después del pago.",
+      heading: "Planes mensuales sencillos. Cada vídeo, revisado.",
+      text: "Cada plan incluye cinco vídeos terminados cada lunes: con guion, locución, subtítulos y los colores de tu clínica, y cada uno revisado según las normas de publicidad y la exactitud clínica antes de que lo veas. Mira una vista previa en directo con tu propio logo antes de pagar. Mensual, sin permanencia. Tu primera semana está lista unos 15 minutos después de suscribirte.",
       cta: "Ver tu vista previa",
       perMonth: "/mes",
-      from: "Desde 29 $/mes",
+      from: "Desde {price}/mes",
       recommended: "Recomendado",
-      note: "Precios en USD. Pueden aplicarse impuestos.",
+      note: "Precios en {currency}, impuestos no incluidos. El pago, los impuestos y tu factura los gestiona Dodo Payments, nuestro vendedor oficial (merchant of record).",
+      cancel: "Mensual, cancela cuando quieras en Ajustes. Mantienes el acceso hasta el final del periodo que has pagado.",
       tiers: [
         {
           name: "Starter",
-          price: "29 $",
-          blurb: "Para una clínica que quiere empezar.",
+          blurb: "Todo lo que tu clínica necesita para publicar cada semana.",
           features: [
-            "Cinco vídeos narrados y subtitulados cada lunes",
-            "Revisados según las normas de publicidad y la exactitud clínica",
-            "Tu logo y tus colores en cada vídeo",
+            "Cinco vídeos con locución y subtítulos cada lunes: 20 o más al mes",
+            "Un texto listo para publicar, con hashtags, en cada vídeo",
+            "Temas según lo que buscan los pacientes de tu país, solo de tratamientos que ofreces",
+            "Cada guion revisado según las normas de publicidad y la exactitud clínica; nada se publica sin tu aprobación",
+            "Tu logo, tus colores y el nombre de tu clínica, en el idioma que elijas (diez disponibles)",
           ],
         },
         {
           name: "Practice",
-          price: "49 $",
-          blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
-          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Fichas de grabación para tus propios clips"],
+          blurb: "Para clínicas que también quieren al dentista en pantalla.",
+          features: [
+            "Todo lo de Starter",
+            "Tus propias grabaciones convertidas en clips subtitulados con tu marca",
+            "Cada clip revisado; tus propias palabras nunca se cambian",
+            "Fichas de grabación que te dicen qué grabar",
+            "Súbelas directamente desde el móvil, hasta 500 MB por grabación",
+          ],
         },
       ],
     },
@@ -536,33 +570,40 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Süreklilik", values: ["Her pazartesi beş video, kendiliğinden", "Sözleşmede ne yazıyorsa", "Hafta yoğunlaşana kadar"] },
         { label: "Video dilleri", values: ["On dil, ana dilinde yazılmış", "Genellikle bir", "Sizin diliniz"] },
       ],
-      roi: "Size hasta sözü veremeyiz; bunu dürüstçe kimse veremez. Ama tek bir implant hastası çoğu zaman DentVideo'nun yaklaşık bir yıllık bedelini karşılar.",
+      roi: "Size hasta sözü veremeyiz; bunu dürüstçe kimse veremez. Ama tek bir implant hastası çoğu zaman DentVideo'nun birkaç aylık bedelinden fazlasını karşılar.",
       roiNote: "Tek diş implant tedavisinin yaygın özel muayenehane ücretlerine göre. Sizin ücretleriniz ve sonuçlarınız farklı olabilir.",
     },
     pricing: {
-      heading: "Önce görün. Sonra plan seçin.",
-      text: "Ödeme yapmadan önce kendi videolarınızın nasıl görüneceğini canlı önizlemede görün: logonuz, renkleriniz, kliniğinizin adı. Sonra bir plan seçin: aylık ödenir, istediğiniz zaman iptal edebilirsiniz. İlk haftanızın videoları ödemenin hemen ardından hazırlanır.",
+      heading: "Sade aylık planlar. Her video kontrol edilmiş.",
+      text: "Her planda her pazartesi beş hazır video: senaryosu yazılmış, seslendirilmiş, altyazılı ve kliniğinizin renklerinde. Her biri siz görmeden önce tanıtım kuralları ve klinik doğruluk açısından kontrol edilir. Ödemeden önce kendi logonuzla canlı önizlemeyi izleyin. Aylık ödenir, taahhüt yoktur. İlk haftanız, abone olduktan yaklaşık 15 dakika sonra hazırdır.",
       cta: "Önizlemenizi görün",
       perMonth: "/ay",
-      from: "Aylık $29'dan başlayan fiyatlar",
+      from: "Başlangıç fiyatı aylık {price}",
       recommended: "Önerilen",
-      note: "Fiyatlar USD cinsindendir. Vergiler eklenebilir.",
+      note: "Fiyatlar {currency} cinsindendir, vergiler hariçtir. Ödeme, vergi ve faturanız satıcı sıfatıyla (merchant of record) Dodo Payments tarafından yürütülür.",
+      cancel: "Aylık ödenir, Ayarlar'dan istediğiniz zaman iptal edebilirsiniz. Ödediğiniz dönemin sonuna kadar erişiminiz sürer.",
       tiers: [
         {
           name: "Starter",
-          price: "$29",
-          blurb: "Yeni başlayan tek bir klinik için.",
+          blurb: "Kliniğinizin her hafta paylaşım yapması için gereken her şey.",
           features: [
-            "Her pazartesi beş seslendirilmiş, altyazılı video",
-            "Reklam kuralları ve klinik doğruluk açısından kontrol edilir",
-            "Her videoda logonuz ve marka renkleriniz",
+            "Her pazartesi beş seslendirilmiş, altyazılı video: ayda en az 20 video",
+            "Her videoyla birlikte paylaşıma hazır açıklama metni ve hashtag'ler",
+            "Konular, ülkenizdeki hastaların aradıklarından ve yalnızca sunduğunuz tedavilerden seçilir",
+            "Her senaryo tanıtım kuralları ve klinik doğruluk açısından kontrol edilir; onayınız olmadan hiçbir şey paylaşılmaz",
+            "Logonuz, renkleriniz ve klinik adınızla, seçtiğiniz dilde (on dil arasından)",
           ],
         },
         {
           name: "Practice",
-          price: "$49",
-          blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
-          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Kendi videolarınız için çekim kartları"],
+          blurb: "Hekimin de ekranda olmasını isteyen klinikler için.",
+          features: [
+            "Starter'daki her şey",
+            "Kendi kayıtlarınızdan markalı, altyazılı klipler",
+            "Her klip kontrol edilir; sizin sözleriniz asla değiştirilmez",
+            "Ne çekeceğinizi anlatan çekim kartları",
+            "Doğrudan telefonunuzdan yükleyin; kayıt başına en fazla 500 MB",
+          ],
         },
       ],
     },
@@ -658,36 +699,39 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Régularité", values: ["Cinq vidéos chaque lundi, automatiquement", "Selon le contrat", "Jusqu'à ce que la semaine se charge"] },
         { label: "Langues des vidéos", values: ["Dix, rédigées nativement", "Souvent une seule", "La vôtre"] },
       ],
-      roi: "Nous ne pouvons pas vous promettre de patients ; personne ne le peut honnêtement. Mais un seul traitement implantaire ou par aligneurs vaut en général plus qu'une année de DentVideo.",
+      roi: "Nous ne pouvons pas vous promettre de patients ; personne ne le peut honnêtement. Mais un seul traitement implantaire ou par aligneurs vaut en général plus que plusieurs mois de DentVideo.",
       roiNote: "Sur la base des honoraires habituels d'un traitement implantaire ou par aligneurs. Vos honoraires et vos résultats peuvent différer.",
     },
     pricing: {
-      heading: "Voyez d'abord. Choisissez ensuite.",
-      text: "Avant de payer, découvrez un aperçu en direct de vos propres vidéos : votre logo, vos couleurs, le nom de votre cabinet. Choisissez ensuite une formule : mensuelle, résiliable à tout moment. Votre première semaine de vidéos est réalisée dès le paiement.",
+      heading: "Des formules mensuelles simples. Chaque vidéo vérifiée.",
+      text: "Chaque formule vous apporte cinq vidéos prêtes chaque lundi : scénarisées, commentées, sous-titrées et aux couleurs de votre cabinet, chacune vérifiée selon les règles de communication et l'exactitude clinique avant que vous ne la voyiez. Regardez un aperçu en direct avec votre propre logo avant de payer. Mensuel, sans engagement. Votre première semaine est prête environ 15 minutes après votre abonnement.",
       cta: "Voir votre aperçu",
       perMonth: "/mois",
-      from: "À partir de 29 $/mois",
+      from: "À partir de {price}/mois",
       recommended: "Recommandée",
-      note: "Prix en USD, taxes éventuelles en sus.",
+      note: "Prix en {currency}, hors taxes. Le paiement, les taxes et votre facture sont gérés par Dodo Payments, notre revendeur officiel (merchant of record).",
+      cancel: "Mensuel, résiliable à tout moment dans les Réglages. Vous gardez l'accès jusqu'à la fin de la période payée.",
       tiers: [
         {
           name: "Starter",
-          price: "29 $",
-          blurb: "Pour un cabinet qui veut se lancer simplement.",
+          blurb: "Tout ce dont votre cabinet a besoin pour publier chaque semaine.",
           features: [
-            "Cinq vidéos commentées et sous-titrées chaque lundi",
-            "Vérifiées selon les règles de communication et l'exactitude clinique",
-            "Votre logo et vos couleurs dans chaque vidéo",
+            "Cinq vidéos commentées et sous-titrées chaque lundi : 20 ou plus chaque mois",
+            "Un texte prêt à publier, avec hashtags, pour chaque vidéo",
+            "Des sujets tirés de ce que recherchent les patients de votre pays, uniquement pour les soins que vous proposez",
+            "Chaque script vérifié selon les règles de communication et l'exactitude clinique ; rien n'est publié sans votre validation",
+            "Votre logo, vos couleurs et le nom de votre cabinet, dans la langue de votre choix (dix disponibles)",
           ],
         },
         {
           name: "Practice",
-          price: "49 $",
-          blurb: "Pour les cabinets qui veulent apparaître eux-mêmes à l'écran.",
+          blurb: "Pour les cabinets qui veulent aussi voir le praticien à l'écran.",
           features: [
             "Tout ce qu'inclut Starter",
-            "Vos propres enregistrements transformés en clips sous-titrés",
-            "Fiches de tournage pour vos propres clips",
+            "Vos propres enregistrements transformés en clips sous-titrés à vos couleurs",
+            "Chaque clip vérifié ; vos propres mots ne sont jamais modifiés",
+            "Des fiches de tournage qui vous disent quoi filmer",
+            "Envoi direct depuis votre téléphone, jusqu'à 500 Mo par enregistrement",
           ],
         },
       ],
@@ -785,29 +829,40 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "継続性", values: ["毎週月曜日に5本、自動で", "契約内容による", "忙しくなるまで"] },
         { label: "動画の言語", values: ["10言語、それぞれ自然な文章で", "多くは1言語", "院長先生の言語"] },
       ],
-      roi: "患者さんが増えるとお約束することはできません。誠実にお約束できる人はいないはずです。ただ、インプラントやマウスピース矯正の自費診療1件は、一般的にDentVideoの1年分を上回ります。",
+      roi: "患者さんが増えるとお約束することはできません。誠実にお約束できる人はいないはずです。ただ、インプラントやマウスピース矯正の自費診療1件は、一般的にDentVideoの数か月分を上回ります。",
       roiNote: "インプラントやマウスピース矯正の一般的な自費診療の費用にもとづく目安です。実際の費用や結果は医院によって異なります。",
     },
     pricing: {
-      heading: "まずはご覧ください。プランはそのあとで。",
-      text: "お支払いの前に、医院のロゴ・カラー・医院名で実際の動画がどう仕上がるかを、ライブプレビューでご確認いただけます。そのうえでプランをお選びください。月単位の契約で、いつでも解約できます。初週の動画は、お支払いの完了後すぐに制作を始めます。",
+      heading: "シンプルな月額プラン。すべての動画をチェック済み。",
+      text: "どのプランでも、毎週月曜日に完成した動画が5本届きます。台本・ナレーション・字幕付きで医院のカラーに仕上げ、お手元に届く前に広告表現と臨床的な正確性をチェックしています。お支払いの前に、医院のロゴ入りのライブプレビューをご覧いただけます。月単位の契約で、契約期間の縛りはありません。初週の動画は、ご契約から約15分で仕上がります。",
       cta: "自院のプレビューを見る",
       perMonth: "/月",
-      from: "月額$29から",
+      from: "月額{price}から",
       recommended: "おすすめ",
-      note: "価格は米ドル建てです。別途税金がかかる場合があります。",
+      note: "価格は{currency}建て・税別です。決済、税金、請求書の発行は、販売者（Merchant of Record）であるDodo Paymentsが行います。",
+      cancel: "月単位の契約で、設定画面からいつでも解約できます。お支払い済みの期間の終わりまでご利用いただけます。",
       tiers: [
         {
           name: "Starter",
-          price: "$29",
-          blurb: "まずは始めてみたい1医院に。",
-          features: ["毎週月曜日、ナレーションと字幕付きの動画5本", "広告表現と臨床的な正確性をチェック", "すべての動画に医院のロゴとカラー"],
+          blurb: "毎週の発信に必要なものがすべてそろったプラン。",
+          features: [
+            "毎週月曜日、ナレーションと字幕付きの動画5本（月20本以上）",
+            "すべての動画に、そのまま使える投稿文とハッシュタグ",
+            "患者さんがお住まいの国で検索しているテーマから、貴院が提供する治療に限って選定",
+            "すべての台本を広告表現と臨床的な正確性でチェック。ご承認なしに公開されることはありません",
+            "医院のロゴ・カラー・医院名入り。言語は10言語からお選びいただけます",
+          ],
         },
         {
           name: "Practice",
-          price: "$49",
           blurb: "院長先生ご自身も動画に登場したい医院に。",
-          features: ["Starterのすべての内容", "ご自身で撮影した動画を字幕付きクリップに", "撮影用の台本カード"],
+          features: [
+            "Starterのすべての内容",
+            "ご自身で撮影した動画を、医院のブランドと字幕入りのクリップに",
+            "すべてのクリップをチェック。先生ご自身の言葉は一切変更しません",
+            "何を撮ればよいかがわかる撮影カード",
+            "スマートフォンから直接アップロード（1本あたり最大500 MB）",
+          ],
         },
       ],
     },
@@ -906,29 +961,40 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "الانتظام", values: ["خمسة فيديوهات كل يوم اثنين، تلقائياً", "حسب العقد", "حتى يزدحم الأسبوع"] },
         { label: "لغات الفيديو", values: ["عشر لغات، بصياغة طبيعية في كل منها", "لغة واحدة غالباً", "لغتكم"] },
       ],
-      roi: "لا نستطيع أن نعدكم بمرضى جدد، ولا أحد يستطيع ذلك بصدق. لكن حالة زراعة أو تقويم شفاف واحدة تزيد قيمتها عادةً على اشتراك عام كامل في DentVideo.",
+      roi: "لا نستطيع أن نعدكم بمرضى جدد، ولا أحد يستطيع ذلك بصدق. لكن حالة زراعة أو تقويم شفاف واحدة تزيد قيمتها عادةً على اشتراك عدة أشهر في DentVideo.",
       roiNote: "استناداً إلى الرسوم المعتادة في العيادات الخاصة لعلاج زراعة أو تقويم شفاف واحد. تختلف رسومكم ونتائجكم.",
     },
     pricing: {
-      heading: "شاهدوا أولاً، ثم اختاروا الباقة.",
-      text: "قبل الدفع، شاهدوا معاينة حية لفيديوهاتكم أنتم: بشعاركم وألوانكم واسم عيادتكم. ثم اختاروا باقة باشتراك شهري يمكن إلغاؤه في أي وقت. ويبدأ إعداد أسبوعكم الأول فور الدفع.",
+      heading: "باقات شهرية بسيطة، وكل فيديو مُراجَع.",
+      text: "تقدّم كل باقة خمسة فيديوهات جاهزة كل يوم اثنين: بنص مكتوب وتعليق صوتي ونص على الشاشة وبألوان عيادتكم، وكل منها مُراجَع وفق ضوابط الإعلان والدقة السريرية قبل أن يصلكم. شاهدوا معاينة حية بشعاركم قبل الدفع. اشتراك شهري بلا التزام. ويكون أسبوعكم الأول جاهزاً بعد نحو 15 دقيقة من الاشتراك.",
       cta: "شاهدوا معاينة عيادتكم",
       perMonth: "شهرياً",
-      from: "ابتداءً من $29 شهرياً",
+      from: "ابتداءً من {price} شهرياً",
       recommended: "موصى بها",
-      note: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب.",
+      note: "الأسعار بعملة {currency} ولا تشمل الضرائب. تتولى Dodo Payments، بصفتها البائع المسجَّل (merchant of record)، الدفع والضرائب وإصدار فاتورتكم.",
+      cancel: "اشتراك شهري يمكن إلغاؤه في أي وقت من الإعدادات، ويستمر وصولكم حتى نهاية الفترة المدفوعة.",
       tiers: [
         {
           name: "Starter",
-          price: "$29",
-          blurb: "لعيادة واحدة تبدأ للتو.",
-          features: ["خمسة فيديوهات بتعليق صوتي ونص على الشاشة كل يوم اثنين", "مراجعة لضوابط الإعلان والدقة السريرية", "شعاركم وألوان هويتكم في كل فيديو"],
+          blurb: "كل ما تحتاجه عيادتكم للنشر كل أسبوع.",
+          features: [
+            "خمسة فيديوهات بتعليق صوتي ونص على الشاشة كل يوم اثنين: 20 فيديو أو أكثر شهرياً",
+            "نص منشور جاهز مع الوسوم (الهاشتاغ) لكل فيديو",
+            "مواضيع مما يبحث عنه المرضى في بلدكم، وللعلاجات التي تقدّمونها فقط",
+            "مراجعة كل نص وفق ضوابط الإعلان والدقة السريرية، ولا يُنشر شيء دون موافقتكم",
+            "شعاركم وألوانكم واسم عيادتكم، باللغة التي تختارونها (من بين عشر لغات)",
+          ],
         },
         {
           name: "Practice",
-          price: "$49",
-          blurb: "للعيادات التي تريد أن يظهر أطباؤها بأنفسهم.",
-          features: ["كل ما في Starter", "تسجيلاتكم الخاصة تتحوّل إلى مقاطع قصيرة مع النص", "بطاقات تصوير لمقاطعكم الخاصة"],
+          blurb: "للعيادات التي تريد أن يظهر الطبيب على الشاشة أيضاً.",
+          features: [
+            "كل ما في Starter",
+            "تسجيلاتكم الخاصة تتحوّل إلى مقاطع بهويتكم مع النص على الشاشة",
+            "مراجعة كل مقطع، ولا تُغيَّر كلماتكم أبداً",
+            "بطاقات تصوير ترشدكم إلى ما تسجّلونه",
+            "الرفع مباشرة من الهاتف، حتى 500 ميغابايت لكل تسجيل",
+          ],
         },
       ],
     },
@@ -1026,29 +1092,40 @@ export const LANDING: Record<Locale, LandingContent> = {
         { label: "Regularność", values: ["Pięć filmów co poniedziałek, automatycznie", "Zgodnie z umową", "Do pierwszego pracowitego tygodnia"] },
         { label: "Języki filmów", values: ["Dziesięć, każdy pisany naturalnie", "Zwykle jeden", "Państwa język"] },
       ],
-      roi: "Nie możemy obiecać Państwu pacjentów; nikt nie może tego uczciwie zrobić. Ale jeden przypadek leczenia implantologicznego lub nakładkowego jest zwykle wart więcej niż rok DentVideo.",
+      roi: "Nie możemy obiecać Państwu pacjentów; nikt nie może tego uczciwie zrobić. Ale jeden przypadek leczenia implantologicznego lub nakładkowego jest zwykle wart więcej niż kilka miesięcy DentVideo.",
       roiNote: "Na podstawie typowych cen prywatnego leczenia implantologicznego lub nakładkowego. Państwa ceny i wyniki mogą się różnić.",
     },
     pricing: {
-      heading: "Najpierw podgląd. Potem wybór planu.",
-      text: "Zanim Państwo zapłacą, zobaczą Państwo na żywo, jak będą wyglądać filmy gabinetu: z Państwa logo, kolorami i nazwą. Potem wybór planu: rozliczenie miesięczne, rezygnacja w dowolnym momencie. Pierwszy tydzień filmów powstaje zaraz po płatności.",
+      heading: "Proste plany miesięczne. Każdy film sprawdzony.",
+      text: "Każdy plan to pięć gotowych filmów w każdy poniedziałek: ze scenariuszem, lektorem, napisami i w kolorach gabinetu, a każdy sprawdzony pod kątem zasad reklamy i poprawności klinicznej, zanim Państwo go zobaczą. Przed płatnością zobaczą Państwo podgląd na żywo z własnym logo. Rozliczenie miesięczne, bez umowy terminowej. Pierwszy tydzień jest gotowy około 15 minut po wykupieniu planu.",
       cta: "Pokaż mój podgląd",
       perMonth: "/mies.",
-      from: "Od 29 $ miesięcznie",
+      from: "Od {price} miesięcznie",
       recommended: "Polecany",
-      note: "Ceny w USD. Mogą zostać doliczone podatki.",
+      note: "Ceny w {currency}, bez podatków. Płatność, podatki i fakturę obsługuje Dodo Payments jako sprzedawca (merchant of record).",
+      cancel: "Rozliczenie miesięczne, rezygnacja w dowolnym momencie w Ustawieniach. Dostęp pozostaje do końca opłaconego okresu.",
       tiers: [
         {
           name: "Starter",
-          price: "29 $",
-          blurb: "Dla jednego gabinetu na dobry początek.",
-          features: ["Pięć filmów z lektorem i napisami co poniedziałek", "Kontrola zasad reklamy i poprawności klinicznej", "Logo i kolory gabinetu w każdym filmie"],
+          blurb: "Wszystko, czego gabinet potrzebuje, by publikować co tydzień.",
+          features: [
+            "Pięć filmów z lektorem i napisami co poniedziałek: co najmniej 20 w miesiącu",
+            "Gotowy opis posta z hashtagami do każdego filmu",
+            "Tematy z tego, czego szukają pacjenci w Państwa kraju, tylko o zabiegach, które Państwo wykonują",
+            "Każdy scenariusz sprawdzony pod kątem zasad reklamy i poprawności klinicznej; nic nie zostanie opublikowane bez Państwa zgody",
+            "Logo, kolory i nazwa gabinetu, w wybranym języku (dziesięć do wyboru)",
+          ],
         },
         {
           name: "Practice",
-          price: "49 $",
-          blurb: "Dla gabinetów, które chcą same pokazać się w kadrze.",
-          features: ["Wszystko z planu Starter", "Państwa własne nagrania jako klipy z napisami", "Karty z podpowiedziami do własnych nagrań"],
+          blurb: "Dla gabinetów, które chcą, by w kadrze pojawiał się też lekarz.",
+          features: [
+            "Wszystko z planu Starter",
+            "Państwa własne nagrania jako klipy z napisami w barwach gabinetu",
+            "Każdy klip sprawdzony; Państwa słowa nigdy nie są zmieniane",
+            "Karty z podpowiedziami, co nagrać",
+            "Przesyłanie prosto z telefonu, do 500 MB na nagranie",
+          ],
         },
       ],
     },

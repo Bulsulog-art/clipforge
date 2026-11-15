@@ -1,6 +1,6 @@
 import { readyEmail } from "./email";
 import type { Rendered } from "./email-layout";
-import { lowestMonthlyUsd } from "./lifecycle";
+import { lowestMonthlyFor } from "./lifecycle";
 import {
   monthlyEmail,
   notPostedEmail,
@@ -62,7 +62,8 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
     case "sample":
       return sampleEmail({ ...nudge, url: preview, titles: pickPreviews(["Implants", "Teeth whitening", "Cleanings"], language).map((e) => e.title) });
     case "objections":
-      return objectionsEmail({ ...nudge, url: plan, fromUsd: lowestMonthlyUsd() });
+      // The sample clinic sits in the reader's market: Türkiye for Turkish, Germany for German, else the USD markets.
+      return objectionsEmail({ ...nudge, url: plan, from: lowestMonthlyFor(language === "tr" ? "TR" : language === "de" ? "DE" : null) });
     case "ready":
     case "ready-recording":
       return readyEmail({

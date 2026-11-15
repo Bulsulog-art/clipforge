@@ -86,7 +86,7 @@ export const TR: LegalText = {
         {
           heading: "6. Planlar, fiyatlar ve ödeme",
           blocks: [
-            "DentVideo peşin ödenir; ücretsiz deneme yoktur. Ödemeden önce kliniğinizin adı, renkleri ve logosuyla videoların canlı ön izlemesini görürsünüz. Güncel planlar (ABD doları):",
+            "DentVideo peşin ödenir; ücretsiz deneme yoktur. Ödemeden önce kliniğinizin adı, renkleri ve logosuyla videoların canlı ön izlemesini görürsünüz. Güncel aylık liste fiyatları (vergiler hariç). Fatura ülkenizin para birimiyle ödersiniz: Türkiye'de Türk lirası, Euro Bölgesi'nde avro, diğer tüm ülkelerde ABD doları:",
             {
               list: [
                 "Starter: aylık {starter}.",

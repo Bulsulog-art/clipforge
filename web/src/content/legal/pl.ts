@@ -86,7 +86,7 @@ export const PL: LegalText = {
         {
           heading: "6. Plany, ceny i płatności",
           blocks: [
-            "DentVideo jest płatne z góry; nie ma darmowego okresu próbnego. Przed płatnością widzą Państwo podgląd na żywo filmów z nazwą, kolorami i logo gabinetu. Aktualne plany, w dolarach amerykańskich:",
+            "DentVideo jest płatne z góry; nie ma darmowego okresu próbnego. Przed płatnością widzą Państwo podgląd na żywo filmów z nazwą, kolorami i logo gabinetu. Aktualne miesięczne ceny katalogowe, bez podatków. Płacą Państwo w walucie kraju rozliczenia: w euro w strefie euro, w lirach tureckich w Turcji, w dolarach amerykańskich w pozostałych krajach:",
             {
               list: [
                 "Starter: {starter} miesięcznie.",

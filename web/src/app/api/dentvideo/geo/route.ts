@@ -3,21 +3,25 @@ import { geoCountry } from "@/lib/dentvid/events";
 import { consentRequired } from "@/lib/dentvid/ad-click";
 
 /**
- * GET /api/dentvideo/geo — does this visitor have to consent before an ad
- * click id is stored? Asked only by the browser of a visitor who arrived with
- * a gclid / gbraid / wbraid (components/dentvid/ad-consent), so the public
- * pages themselves stay the same cached HTML for everyone.
+ * GET /api/dentvideo/geo — two answers for the visitor's browser, from the
+ * edge's country header only (CF-IPCountry and the like, via geoCountry):
+ * never the IP, never a cookie.
  *
- * Reads only the edge's country header (Cloudflare CF-IPCountry and the
- * like, via geoCountry) — never the IP, never a cookie — and answers with a
- * yes/no, not the country. Unknown country → consent required.
+ *  - country: an ISO code or null. The public pages are CDN-cached and the
+ *    same for everyone; their price tags ask once per tab to show EUR or TL
+ *    where that is what Dodo charges (components/dentvid/price-region.tsx).
+ *  - consentRequired: must this visitor consent before an ad click id is
+ *    stored? Asked only by a visitor who arrived with a gclid / gbraid /
+ *    wbraid (components/dentvid/ad-consent-prompt). Unknown country → true.
+ *
+ * Cached in the browser only: the answer differs per visitor.
  */
 export const dynamic = "force-dynamic";
 
 export function GET(req: Request) {
+  const country = geoCountry(req.headers) ?? null;
   return NextResponse.json(
-    { consentRequired: consentRequired(geoCountry(req.headers)) },
-    // Per visitor: no shared cache may keep it, and it sets no cookie.
-    { headers: { "Cache-Control": "private, no-store", Vary: "CF-IPCountry" } },
+    { country, consentRequired: consentRequired(country ?? undefined) },
+    { headers: { "Cache-Control": "private, max-age=3600", Vary: "CF-IPCountry, X-Vercel-IP-Country, X-Country-Code" } },
   );
 }

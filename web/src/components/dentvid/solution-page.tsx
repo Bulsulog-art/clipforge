@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Check, Plus } from "lucide-react";
+import { FromPrice } from "./price";
 import { LANDING, LANDING_PATH, dirOf, findGuide, guidePath, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { reviewedDate, sectionId } from "@/content/guides/text";
@@ -52,7 +53,7 @@ export function SolutionView({ p }: { p: SolutionPage }) {
           </div>
           {/* The price and the terms next to the button (from the landing's own pricing copy), and the no-account preview. */}
           <p className="mt-4 text-sm leading-relaxed text-dv-body" data-solution-price>
-            <span className="font-semibold text-dv-ink">{LANDING[L].pricing.from}</span> · {LANDING[L].teaser.note}
+            <span className="font-semibold text-dv-ink"><FromPrice locale={L} template={LANDING[L].pricing.from} /></span> · {LANDING[L].teaser.note}
           </p>
           <p className="mt-2 text-sm">
             <Link href={dvHref(`${LANDING_PATH[L]}#try`)} className="font-medium text-dv-teal underline underline-offset-4 hover:decoration-2" data-solution-try>

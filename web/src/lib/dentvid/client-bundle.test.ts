@@ -145,7 +145,8 @@ describe("DentVideo public pages: browser bundle", () => {
       // Our own modules in the page's browser bundle, before minification (React, Next and
       // lucide icons not counted). ~800 KB before the content modules were kept on the server.
       // 155: the server-rendered <html lang> root and the payment/retry states added ~0.3 KB.
-      expect(kb(g.client)).toBeLessThan(155);
+      // 160: ad-click attribution on every page and the per-currency price tags added ~2 KB of source.
+      expect(kb(g.client)).toBeLessThan(160);
     });
   }
 

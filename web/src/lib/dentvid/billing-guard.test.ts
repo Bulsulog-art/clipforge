@@ -102,8 +102,8 @@ describe("historic founding seats (the offer is closed)", () => {
     const input = { tier: "practice" as const, interval: "month" as const, clinicId: "c", ownerId: "o" };
     const plain = buildDvCheckout(input, {});
     const oldOn = buildDvCheckout(input, { DENTVIDEO_FOUNDING_OFFER: "1" });
-    expect(plain.ok && plain.discount).toBeNull();
-    expect(oldOn.ok && oldOn.discount).toBeNull();
+    expect(plain.ok && "discount_codes" in plain.body).toBe(false);
+    expect(oldOn.ok && "discount_codes" in oldOn.body).toBe(false);
     expect(oldOn.ok && oldOn.productId).toBe(plain.ok && plain.productId);
   });
 });

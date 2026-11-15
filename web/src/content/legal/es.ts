@@ -86,7 +86,7 @@ export const ES: LegalText = {
         {
           heading: "6. Planes, precios y pago",
           blocks: [
-            "DentVideo se paga por adelantado; no hay prueba gratuita. Antes de pagar ves una vista previa en directo de vídeos con el nombre, los colores y el logo de tu clínica. Planes actuales, en dólares estadounidenses:",
+            "DentVideo se paga por adelantado; no hay prueba gratuita. Antes de pagar ves una vista previa en directo de vídeos con el nombre, los colores y el logo de tu clínica. Precios de lista mensuales actuales, impuestos no incluidos. Pagas en la moneda de tu país de facturación: euros en la zona euro, liras turcas en Turquía y dólares estadounidenses en el resto:",
             {
               list: [
                 "Starter: {starter} al mes.",

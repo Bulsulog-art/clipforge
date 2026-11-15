@@ -10,6 +10,8 @@
  * product ids as fallbacks.
  */
 
+import { DV_LIST_PRICES, dvCurrencyForCountry, normaliseCountry, type DvCurrency } from "./pricing";
+
 export const DV_TIERS = ["starter", "practice", "group"] as const;
 export type DvTier = (typeof DV_TIERS)[number];
 /**
@@ -35,12 +37,13 @@ export function isSelfServeTier(tier: string | null | undefined): boolean {
 }
 
 /**
- * Owner-approved list prices in whole USD (docs/POSITIONING.md §6), monthly
- * only. Group has none: it is sold by contact.
+ * Owner-approved list prices in whole USD, monthly only: the USD column of
+ * pricing.ts DV_LIST_PRICES (which also holds the EUR and TRY prices). Group
+ * has none: it is "Priced per location", sold by contact.
  */
 export const DV_PRICES_USD: Record<DvTier, Partial<Record<DvInterval, number>>> = {
-  starter: { month: 29 },
-  practice: { month: 49 },
+  starter: { month: DV_LIST_PRICES.starter.USD },
+  practice: { month: DV_LIST_PRICES.practice.USD },
   group: {},
 };
 
@@ -57,9 +60,10 @@ export const DV_LEGACY_YEARLY_USD: Partial<Record<DvTier, number>> = { practice:
 export const DV_LEGACY_GROUP_MONTHLY_USD = 279;
 
 /**
- * The former founding offer (Practice monthly at $49 for 12 months, code
- * KURUCU100, first 100 clinics). It is closed: nothing offers or applies it.
- * Kept only so admin can still recognise historic founding subscriptions.
+ * The former founding offer (Practice monthly at the old $49 list price for 12
+ * months, first 100 clinics). It is closed and no discount exists any more:
+ * nothing offers, shows or applies it. Kept only so admin can still recognise
+ * historic founding subscriptions in the ledger (dentvid_subscriptions.founding).
  */
 export const DV_FOUNDING = { tier: "practice" as DvTier, interval: "month" as DvInterval, priceUsd: 49, months: 12, clinics: 100 };
 
@@ -95,19 +99,22 @@ export function dvPlanForProduct(productId: string | null | undefined, env: Env 
   return null;
 }
 
+/** A plan on sale: its list price in every currency (pricing.ts); the screen picks the clinic's. */
+export type DvPlanOption = { tier: DvTier; interval: DvInterval; priceUsd: number; prices: Record<DvCurrency, number> };
+
 /** Which tier/interval pairs can be bought right now (self-serve, monthly, a product id and a list price exist). */
-export function dvAvailablePlans(env: Env = process.env): { tier: DvTier; interval: DvInterval; priceUsd: number }[] {
-  const out: { tier: DvTier; interval: DvInterval; priceUsd: number }[] = [];
+export function dvAvailablePlans(env: Env = process.env): DvPlanOption[] {
+  const out: DvPlanOption[] = [];
   for (const tier of DV_SELF_SERVE_TIERS) {
     for (const interval of DV_OFFERED_INTERVALS) {
       const priceUsd = DV_PRICES_USD[tier][interval];
-      if (priceUsd && dvProductId(tier, interval, env)) out.push({ tier, interval, priceUsd });
+      if (priceUsd && dvProductId(tier, interval, env)) out.push({ tier, interval, priceUsd, prices: { ...DV_LIST_PRICES[tier] } });
     }
   }
   return out;
 }
 
-/** The former founding code — admin only, to count its historic uses at Dodo. Never applied at checkout. */
+/** The former founding code — admin only, to count its historic uses at Dodo. Never offered or applied anywhere. */
 export function foundingCode(env: Env = process.env): string {
   return env.DENTVIDEO_FOUNDING_CODE?.trim() || "KURUCU100";
 }
@@ -123,18 +130,11 @@ export function dvBaseUrl(env: Env = process.env): string {
   return `${(env.NEXT_PUBLIC_APP_URL ?? "").trim().replace(/\/+$/, "")}/dentvideo`;
 }
 
-const CODE = /^[A-Za-z0-9_-]{1,40}$/;
-
-/** A discount code as typed by the clinic, normalised — or null if it is not a plausible code. */
-export function normaliseCode(code: string | null | undefined): string | null {
-  const c = (code ?? "").trim().toUpperCase();
-  return CODE.test(c) ? c : null;
-}
-
 export type DvCheckoutInput = {
   tier: DvTier;
   interval: DvInterval;
-  code?: string | null;
+  /** The clinic's country (profile.country, ISO 3166-1 alpha-2): sets the billing country and so the currency charged. */
+  country?: string | null;
   clinicId: string;
   ownerId: string;
   email?: string | null;
@@ -145,18 +145,37 @@ export type DvCheckoutInput = {
 export const DV_CHECKOUT_LANGUAGES = ["en", "de", "es", "tr", "fr", "ja", "ar", "pl"] as const;
 
 export type DvCheckoutPlan =
-  | { ok: true; body: Record<string, unknown>; productId: string; discount: string | null }
+  | { ok: true; body: Record<string, unknown>; productId: string; currency: DvCurrency; country: string | null }
   | { ok: false; reason: "unavailable" | "contact_sales" };
+
+/**
+ * Dodo checkout feature flags (docs.dodopayments.com/developer-resources/checkout-session,
+ * "Feature Flags"): DentVideo sells at list price only, so Dodo's discount-code
+ * field is hidden; a tax ID (VAT number) and business name may go on the
+ * invoice; the currency is the one the clinic was shown, not a picker.
+ */
+export const DV_CHECKOUT_FEATURE_FLAGS = {
+  allow_discount_code: false,
+  allow_tax_id: true,
+  allow_currency_selection: false,
+} as const;
 
 /**
  * The Dodo `POST /checkouts` body for a clinic's plan. Field names follow
  * https://docs.dodopayments.com/developer-resources/checkout-session:
- * product_cart, customer.email, discount_codes, metadata (copied onto the
- * subscription and every webhook about it), return_url, cancel_url,
- * customization.force_language.
+ * product_cart, customer.email, billing_address.country, billing_currency,
+ * feature_flags, metadata (copied onto the subscription and every webhook
+ * about it), return_url, cancel_url, customization.force_language.
  *
- * Only monthly self-serve plans are sold. No discount code is ever applied by
- * default: discount_codes is sent only when the clinic typed a code itself.
+ * Only monthly self-serve plans are sold, always at list price: no discount
+ * code is accepted, sent or typeable (DV_CHECKOUT_FEATURE_FLAGS).
+ *
+ * The price the clinic saw is the price Dodo charges: the clinic's country
+ * picks the currency (pricing.ts dvCurrencyForCountry), and both go to Dodo —
+ * the country as the billing country (tax), the currency as billing_currency,
+ * which selects the product's Localized Pricing rule (EUR, TRY) or its USD
+ * base price. Without billing_currency Dodo would pick a currency from the
+ * payer's IP (Adaptive Currency), which may not be what the clinic was shown.
  */
 export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env): DvCheckoutPlan {
   if (!isSelfServeTier(input.tier)) return { ok: false, reason: "contact_sales" };
@@ -164,7 +183,8 @@ export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env):
   const offered = (DV_OFFERED_INTERVALS as readonly string[]).includes(input.interval);
   if (!offered || !productId || !DV_PRICES_USD[input.tier][input.interval]) return { ok: false, reason: "unavailable" };
 
-  const discount = normaliseCode(input.code);
+  const country = normaliseCountry(input.country);
+  const currency = dvCurrencyForCountry(country);
   const base = dvBaseUrl(env);
   // Every DentVideo language is a Dodo checkout language (docs.dodopayments.com/features/checkout#supported-languages:
   // ar, de, en, es, fr, ja, pl, tr among them), so the checkout speaks the clinic's language, not the browser's.
@@ -173,13 +193,15 @@ export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env):
   const body: Record<string, unknown> = {
     product_cart: [{ product_id: productId, quantity: 1 }],
     ...(input.email ? { customer: { email: input.email } } : {}),
-    ...(discount ? { discount_codes: [discount] } : {}),
+    ...(country ? { billing_address: { country } } : {}),
+    billing_currency: currency,
+    feature_flags: { ...DV_CHECKOUT_FEATURE_FLAGS },
     metadata: { app: "dentvideo", clinic_id: input.clinicId, owner_id: input.ownerId, plan: input.tier, interval: input.interval },
     return_url: `${base}/app?billing=success`,
     cancel_url: `${base}/app?billing=cancelled`,
     ...(lang ? { customization: { force_language: lang } } : {}),
   };
-  return { ok: true, body, productId, discount };
+  return { ok: true, body, productId, currency, country };
 }
 
 /**
@@ -187,8 +209,9 @@ export function buildDvCheckout(input: DvCheckoutInput, env: Env = process.env):
  * https://docs.dodopayments.com/developer-resources/integration-guide :
  * checkout.dodopayments.com/buy/{product_id}?quantity=1&email=…&disableEmail=true
  * &redirect_url=…&metadata_<key>=… (metadata lands on the subscription and its
- * webhooks exactly like the API checkout's). A discount code is typed by the
- * clinic in Dodo's checkout, if they have one.
+ * webhooks exactly like the API checkout's). The same rules as the API
+ * checkout: the clinic's country and currency (paymentCurrency, no currency
+ * selector) and no discount field (showDiscounts=false).
  */
 export function buildDvStaticLink(plan: Extract<DvCheckoutPlan, { ok: true }>, env: Env = process.env): string {
   const host = (env.DODO_ENVIRONMENT ?? "").trim() === "live" ? "https://checkout.dodopayments.com" : "https://test.checkout.dodopayments.com";
@@ -198,6 +221,10 @@ export function buildDvStaticLink(plan: Extract<DvCheckoutPlan, { ok: true }>, e
     q.set("email", b.customer.email);
     q.set("disableEmail", "true");
   }
+  if (plan.country) q.set("country", plan.country);
+  q.set("paymentCurrency", plan.currency);
+  q.set("showCurrencySelector", "false");
+  q.set("showDiscounts", "false");
   q.set("redirect_url", b.return_url);
   for (const [k, v] of Object.entries(b.metadata)) q.set(`metadata_${k}`, String(v));
   return `${host}/buy/${plan.productId}?${q.toString()}`;

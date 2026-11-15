@@ -66,7 +66,8 @@ describe("creating a demo", () => {
     expect(m.ask).toContain("Merhaba Gülümse Diş Kliniği ekibi");
     expect(m.ask).not.toContain("https://");
     expect(m.link).toContain(r.body.url as string);
-    expect(m.link).toContain("aylık $29'dan başlıyor");
+    // A clinic in Türkiye: the TL list price its checkout charges.
+    expect(m.link).toContain("Başlangıç fiyatı aylık 2.490 TL");
     expect(m.link).not.toContain("kurucu");
     expect(created[0]).toMatchObject({ input: { clinicName: "Gülümse Diş Kliniği", country: "TR", language: "tr", campaign: "tr-launch" }, logo: null, by: ADMIN });
   });
