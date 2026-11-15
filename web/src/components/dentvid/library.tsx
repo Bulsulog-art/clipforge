@@ -6,7 +6,7 @@ import { AlertTriangle, CalendarClock, Check, CheckCheck, ChevronRight, Circle, 
 import { BackgroundPicker } from "./background-picker";
 import { DeclineForm, postText, ReviewPlayer, usePosted, type Decide } from "./review-player";
 import type { Locale } from "@/content/dentvideo";
-import { appText, fmt, type AppText } from "@/content/dentvideo-app";
+import { appText, countText, fmt, type AppText } from "@/content/dentvideo-app";
 import { reasonText } from "@/content/dentvideo-reasons";
 import type { ClinicReason } from "@/lib/dentvid/reasons";
 import {
@@ -429,7 +429,7 @@ export function NextStep({
             {toApprove.length > 1 && (
               <button type="button" onClick={approveAll} disabled={working} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium text-dv-teal underline-offset-4 hover:underline disabled:opacity-60">
                 {working ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <CheckCheck className="h-4 w-4" aria-hidden="true" />}
-                {working ? t.approving : fmt(t.approveAll, { n: toApprove.length })}
+                {working ? t.approving : countText(t.approveAll, toApprove.length, locale)}
               </button>
             )}
           </div>
