@@ -198,7 +198,7 @@ export function CaptionTabs({ texts, locale, onCopy }: { texts: PostTexts; local
           <span aria-live="polite">{copied ? p.copied : p.copy}</span>
         </button>
       </div>
-      <p id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${tab}`} dir="auto" className="mt-1 max-h-40 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-dv-body">
+      <p id={`${id}-panel`} role="tabpanel" tabIndex={0} aria-labelledby={`${id}-${tab}`} dir="auto" className="mt-1 max-h-40 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-dv-body">
         {text}
       </p>
     </div>

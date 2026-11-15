@@ -128,7 +128,7 @@ export default async function GuidePage({ params }: Props) {
                 {g.sections.map((s, i) => (
                   <li key={s.heading} className="flex items-baseline gap-2.5">
                     <span className="w-5 shrink-0 text-end font-semibold tabular-nums text-dv-teal">{i + 1}</span>
-                    <a href={`#${sectionId(s.heading, i)}`} className="flex min-h-11 flex-1 items-center rounded-md py-1.5 leading-snug text-dv-body underline-offset-4 hover:text-dv-ink hover:underline lg:block lg:min-h-0 lg:flex-none lg:py-0">
+                    <a href={`#${sectionId(s.heading, i)}`} className="flex min-h-11 min-w-0 flex-1 items-center rounded-md py-1.5 leading-snug text-dv-body underline-offset-4 hover:text-dv-ink hover:underline lg:block lg:min-h-0 lg:py-0">
                       {s.heading}
                     </a>
                   </li>

@@ -150,7 +150,7 @@ export function PlanPanel({
               <h3 className="font-semibold text-dv-ink">{copy.name}</h3>
               <p className="mt-1 text-sm text-dv-muted">{copy.blurb}</p>
               <p className="mt-5 flex flex-wrap items-baseline gap-x-2">
-                <span dir="ltr" className="dv-display dv-figure text-[2.75rem] leading-none text-dv-ink" data-price={tier}>{planPrice(locale, opt, country)}</span>
+                <span dir="ltr" className="dv-price text-[2.75rem] font-semibold leading-none tracking-tight text-dv-ink" data-price={tier}>{planPrice(locale, opt, country)}</span>
                 <span className="text-sm font-medium text-dv-muted">{t.perMonth}</span>
                 <span className="text-xs font-medium text-dv-muted" data-tax>{planTax(locale, country)}</span>
               </p>
@@ -178,7 +178,7 @@ export function PlanPanel({
         })}
         <li className="relative flex flex-col rounded-[1.25rem] bg-white p-6 ring-1 ring-dv-line" data-tier="group">
           <h3 className="font-semibold text-dv-ink">{GROUP_CONTACT[locale].name}</h3>
-          <p className="mt-5 dv-display text-[1.5rem] leading-tight text-dv-ink">{GROUP_CONTACT[locale].price}</p>
+          <p className="mt-5 text-xl font-semibold leading-snug text-dv-ink">{GROUP_CONTACT[locale].price}</p>
           <p className="mt-4 border-t border-dv-line pt-4 text-sm leading-relaxed text-dv-body">{GROUP_CONTACT[locale].text}</p>
           <div className="mt-auto pt-6">
             <a

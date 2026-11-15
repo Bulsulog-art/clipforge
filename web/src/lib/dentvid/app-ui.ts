@@ -45,7 +45,8 @@ const QUOTES: Record<Locale, [string, string]> = {
   en: ["“", "”"],
   de: ["„", "“"],
   es: ["«", "»"],
-  fr: ["« ", " »"],
+  // No-break spaces: a guillemet never ends up alone at a line end.
+  fr: ["«\u00a0", "\u00a0»"],
   tr: ["“", "”"],
   ja: ["「", "」"],
   ar: ["«", "»"],

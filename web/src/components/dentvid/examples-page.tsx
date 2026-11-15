@@ -82,10 +82,11 @@ function ExampleCard({ e, row = false }: { e: ExampleVideo; row?: boolean }) {
       {/* The poster only: the card links to the video's page, where it plays. */}
       {/* The `row` cards are the hub's first screen (the desktop LCP): fetched by the preload scanner, not lazily after layout. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading={row ? "eager" : "lazy"} decoding="async"className={`aspect-[9/16] rounded-xl bg-dv-sand object-cover ${row ? "w-24 shrink-0 sm:w-full" : "w-full"}`} />
+      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading={row ? "eager" : "lazy"} decoding="async" className={`aspect-[9/16] rounded-xl bg-dv-sand object-cover ${row ? "w-24 shrink-0 sm:w-full" : "w-full"}`} />
       <span className={`flex min-w-0 flex-1 flex-col ${row ? "sm:mt-4" : "mt-4"}`}>
         <span className="flex items-start justify-between gap-3">
-          <span className="font-semibold leading-snug text-dv-ink">{s.name}</span>
+          {/* min-w-0 + break-words: a long first word (Beyazlatmadan, Zahnschmelz) wraps inside the narrow two-up card instead of pushing the arrow out of it. */}
+          <span className="min-w-0 break-words font-semibold leading-snug text-dv-ink [hyphens:auto]">{s.name}</span>
           <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
         </span>
         <span className="mt-1 text-sm text-dv-muted">

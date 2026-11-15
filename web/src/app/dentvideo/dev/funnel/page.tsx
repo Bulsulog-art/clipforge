@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
+import { RememberLocale } from "@/components/dentvid/chrome";
 import { StartForm } from "@/components/dentvid/start-form";
 import { Onboarding } from "@/components/dentvid/onboarding";
 import { FirstWeek } from "@/components/dentvid/first-week";
@@ -50,6 +51,7 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
   if (sp.step === "first-week" || sp.step === "activating") {
     return (
       <main lang={locale} dir={dirOf(locale)} className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <RememberLocale locale={locale} />
         <FirstWeek locale={locale} paid={sp.step === "first-week"} pollMs={3_600_000} delay={sp.delay === "retrying" || sp.delay === "delayed" ? sp.delay : null} />
       </main>
     );
@@ -67,15 +69,19 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
         handle: "riverside.dental",
         brandColor: "B6774F",
       };
+  // As /start does: the header and footer speak the wizard's language.
   return (
-    <Onboarding
-      locale={locale}
-      step={step}
-      initial={demo}
-      plans={dvAvailablePlans()}
-      checkoutCancelled={false}
-      account={{ email: DEMO_EMAIL[locale], verified: sp.verified === "1" }}
-      autoSendCode={false}
-    />
+    <>
+      <RememberLocale locale={locale} />
+      <Onboarding
+        locale={locale}
+        step={step}
+        initial={demo}
+        plans={dvAvailablePlans()}
+        checkoutCancelled={false}
+        account={{ email: DEMO_EMAIL[locale], verified: sp.verified === "1" }}
+        autoSendCode={false}
+      />
+    </>
   );
 }

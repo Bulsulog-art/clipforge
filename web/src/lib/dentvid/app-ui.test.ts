@@ -113,7 +113,7 @@ describe("dates", () => {
 describe("text helpers", () => {
   it("quotes as each language does", () => {
     expect(quote("de", "Hallo")).toBe("„Hallo“");
-    expect(quote("fr", "Bonjour")).toBe("« Bonjour »");
+    expect(quote("fr", "Bonjour")).toBe("«\u00a0Bonjour\u00a0»");
     expect(quote("en", "Hi")).toBe("“Hi”");
   });
   it("builds a mailto link", () => {

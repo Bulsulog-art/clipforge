@@ -295,14 +295,14 @@ function MobileMenu({
                   href={dvHref(equivalentPath(path ?? "", l))}
                   hrefLang={l}
                   lang={l}
-                  dir={dirOf(l)}
                   onClick={close}
                   aria-current={l === locale ? "true" : undefined}
                   className={`flex min-h-12 items-center justify-between gap-2 rounded-2xl px-4 text-[0.9375rem] ring-1 transition-colors ${
                     l === locale ? "bg-dv-teal font-semibold text-white ring-dv-teal" : "bg-white font-medium text-dv-body ring-dv-line hover:text-dv-ink"
                   }`}
                 >
-                  {LANGUAGE_NAME[l]}
+                  {/* As in the footer: the name has its own direction, the pill follows the page's, so every name starts on the same side. */}
+                  <span dir={dirOf(l)}>{LANGUAGE_NAME[l]}</span>
                   {l === locale ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
                 </Link>
               </li>
@@ -360,8 +360,10 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
             <ul className="lg:space-y-3.5">
               {LOCALES.map((l) => (
                 <li key={l}>
-                  <Link href={dvHref(equivalentPath(path, l))} hrefLang={l} lang={l} dir={dirOf(l)} className={l === locale ? `${tap} rounded-md font-semibold text-white` : link}>
-                    {LANGUAGE_NAME[l]}
+                  {/* The name carries its own direction; the link keeps the page's, so a short RTL name (العربية) inside the
+                      44px tap box starts on the same edge as the others instead of being pushed to the far side. */}
+                  <Link href={dvHref(equivalentPath(path, l))} hrefLang={l} lang={l} className={l === locale ? `${tap} rounded-md font-semibold text-white` : link}>
+                    <span dir={dirOf(l)}>{LANGUAGE_NAME[l]}</span>
                   </Link>
                 </li>
               ))}

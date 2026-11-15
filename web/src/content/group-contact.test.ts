@@ -187,7 +187,7 @@ describe("rendered pages offer no Group checkout", () => {
     for (const l of LOCALES) {
       // Even if a stray yearly option reached it, the panel shows monthly prices only.
       const panel = html(createElement(PlanPanel, { locale: l, state: "trial", options: [...dvAvailablePlans({}), { tier: "practice", interval: "year", priceUsd: 990, prices: { USD: 990, EUR: 990, TRY: 990 } }] }));
-      const prices = [...panel.matchAll(/dv-figure[^>]*>([^<]+)</g)].map((m) => m[1].replace(/\D/g, ""));
+      const prices = [...panel.matchAll(/data-price="[^"]*"[^>]*>([^<]+)</g)].map((m) => m[1].replace(/\D/g, ""));
       expect(prices, l).toEqual(["49", "79"]);
       expect(panel, l).not.toMatch(/990|aria-pressed|KURUCU|<input|<details/);
       expect(panel, l).toContain(APP_TEXT[l].billing.perMonth);
