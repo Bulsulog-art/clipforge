@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { isDentvideoOnly, isDentvideoUser, joinDentvideoPatch, withoutDentvideo } from "./membership";
+import { DV_APP_METADATA_KEYS, isDentvideoOnly, isDentvideoUser, joinDentvideoPatch, signupAppMetadata, withoutDentvideo } from "./membership";
+import { verifiedAppMetadata } from "./verify-email";
 
 const dv = (extra: Record<string, unknown> = {}, user_metadata: Record<string, unknown> = {}) => ({
   email: "dr@clinic.example",
@@ -25,6 +26,21 @@ describe("isDentvideoOnly (may account deletion remove the shared login?)", () =
     expect(isDentvideoOnly(dv({}, { sub: "id", email: "dr@clinic.example", email_verified: true, phone_verified: false, product: "dentvideo" }))).toBe(true);
   });
 
+  it("yes for an internal (team / monitor) account: app_metadata.internal is DentVideo's own key", () => {
+    expect(isDentvideoOnly(dv({ internal: true }))).toBe(true);
+    expect(isDentvideoOnly(dv({ internal: true, email_verified_at: "x", email_verified_for: "dr@clinic.example", email_verified_via: "reset" }))).toBe(true);
+  });
+
+  it("every key DentVideo writes to app_metadata is one of its own (else its accounts look shared)", () => {
+    const written = [
+      ...Object.keys(signupAppMetadata(false)),
+      ...Object.keys(signupAppMetadata(true)),
+      ...Object.keys(verifiedAppMetadata("dr@clinic.example", "code")),
+    ];
+    for (const k of written) expect(DV_APP_METADATA_KEYS as readonly string[]).toContain(k);
+    expect(isDentvideoOnly({ ...dv(), app_metadata: { provider: "email", providers: ["email"], ...signupAppMetadata(true), ...verifiedAppMetadata("dr@clinic.example", "code") } })).toBe(true);
+  });
+
   it("no when anything says another app uses the login", () => {
     expect(isDentvideoOnly(dv({ products: ["dentvideo", "coz"] }))).toBe(false);
     expect(isDentvideoOnly(dv({ role: "admin" }))).toBe(false);
@@ -47,6 +63,10 @@ describe("withoutDentvideo", () => {
       email_verified_at: null,
       email_verified_for: null,
     });
+  });
+
+  it("takes the internal marker off too", () => {
+    expect(withoutDentvideo({ product: "aires", internal: true })).toEqual({ internal: null });
   });
 
   it("does not touch another app's product, and drops dentvideo from a products list", () => {

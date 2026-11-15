@@ -200,6 +200,8 @@ export type AppText = {
     firstWeekActivating: string;
     firstWeekSteps: { paid: string; writing: string; rendering: string; email: string };
     firstWeekStill: string;
+    /** The first week is taking much longer than the ~15 minutes promised (or its job went missing): calm, with "try again" (home.retryNow). */
+    firstWeekSlow: string;
     cancelled: string;
   };
   record: {
@@ -322,7 +324,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       howItWorks: "How it works",
       pricing: "Pricing",
       openApp: "Open app",
-      footer: "Every script is checked by software, and nothing is published until you approve it.",
+      footer: "Every script is software-checked, and nothing is published until you approve it.",
     },
     start: {
       metaTitle: "Start",
@@ -539,6 +541,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "An email to you when they are ready",
       },
       firstWeekStill: "Still working — this page refreshes by itself.",
+      firstWeekSlow: "This is taking longer than usual. You can try again — nothing will be made twice.",
       cancelled: "Checkout was canceled. Nothing was charged — your preview is still here.",
     },
     settings: {
@@ -894,6 +897,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "E-Mail an Sie, sobald sie fertig sind",
       },
       firstWeekStill: "Wird noch erstellt — diese Seite aktualisiert sich selbst.",
+      firstWeekSlow: "Das dauert länger als üblich. Sie können es erneut versuchen – es wird nichts doppelt erstellt.",
       cancelled: "Der Bezahlvorgang wurde abgebrochen. Es wurde nichts berechnet — Ihre Vorschau ist noch da.",
     },
     settings: {
@@ -1252,6 +1256,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "Te enviamos un correo cuando estén listos",
       },
       firstWeekStill: "Seguimos trabajando: esta página se actualiza sola.",
+      firstWeekSlow: "Está tardando más de lo habitual. Puedes intentarlo de nuevo: no se creará nada dos veces.",
       cancelled: "Has cancelado el pago. No se ha cobrado nada y tu vista previa sigue aquí.",
     },
     settings: {
@@ -1610,6 +1615,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "Hazır olduğunda size e-posta",
       },
       firstWeekStill: "Hâlâ hazırlanıyor — bu sayfa kendiliğinden yenilenir.",
+      firstWeekSlow: "Bu, her zamankinden uzun sürüyor. Tekrar deneyebilirsiniz; hiçbir şey iki kez hazırlanmaz.",
       cancelled: "Ödeme iptal edildi. Hiçbir ücret alınmadı — önizlemeniz burada duruyor.",
     },
     settings: {
@@ -1968,6 +1974,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "Un e-mail dès qu'elles sont prêtes",
       },
       firstWeekStill: "Toujours en cours — cette page se met à jour toute seule.",
+      firstWeekSlow: "Cela prend plus de temps que d'habitude. Vous pouvez réessayer — rien ne sera réalisé deux fois.",
       cancelled: "Le paiement a été annulé. Rien n'a été débité — votre aperçu est toujours là.",
     },
     settings: {
@@ -2326,6 +2333,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "完成したらメールでお知らせ",
       },
       firstWeekStill: "引き続き制作しています。このページは自動で更新されます。",
+      firstWeekSlow: "通常より時間がかかっています。もう一度お試しいただけます。同じ動画が二重に作られることはありません。",
       cancelled: "お支払いは完了していません。料金は発生しておらず、プレビューはそのまま残っています。",
     },
     settings: {
@@ -2682,6 +2690,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "بريد إلكتروني إليكم حين تجهز",
       },
       firstWeekStill: "ما زلنا نعمل، وتتحدّث هذه الصفحة تلقائياً.",
+      firstWeekSlow: "يستغرق الأمر وقتًا أطول من المعتاد. يمكنكم المحاولة مرة أخرى، ولن يُنشأ أي شيء مرتين.",
       cancelled: "أُلغيت عملية الدفع ولم يُخصم أي مبلغ، ومعاينتكم ما زالت هنا.",
     },
     settings: {
@@ -3039,6 +3048,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
         email: "E-mail, gdy filmy będą gotowe",
       },
       firstWeekStill: "Wciąż pracujemy; strona odświeża się sama.",
+      firstWeekSlow: "Trwa to dłużej niż zwykle. Mogą Państwo spróbować ponownie — nic nie powstanie dwa razy.",
       cancelled: "Płatność została anulowana. Nic nie pobrano, a podgląd nadal jest dostępny.",
     },
     settings: {

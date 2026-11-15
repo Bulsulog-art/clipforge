@@ -6,7 +6,7 @@ import { rateLimited } from "@/lib/rate-limit-server";
 import { dentvidQueue } from "@/lib/queue";
 import { markWeekRetrying, noteEnqueueFailure } from "@/lib/dentvid/ops-server";
 import { adminPausedMessage, loadClinicPlan } from "@/lib/dentvid/plan";
-import { USABLE_STATUSES, WEEK_VIDEOS, weekJobId, weekRunFor } from "@/lib/dentvid/week-job";
+import { USABLE_STATUSES, WEEK_VIDEOS, missingVideos, weekJobId, weekRunFor } from "@/lib/dentvid/week-job";
 import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS } from "@/lib/dentvid/job-options";
 
 // Start this week's videos. One run per clinic per week: the job id is the
@@ -37,6 +37,7 @@ export async function POST() {
     .eq("kind", "generated")
     .eq("week_of", week)
     .in("status", [...USABLE_STATUSES]);
+  let topup = 0;
   try {
     // Say so when the week is already made or in progress, instead of
     // promising videos that will not come. A failed run may be retried.
@@ -49,13 +50,17 @@ export async function POST() {
       if (state === "waiting" || state === "prioritized") await existing!.changePriority({ priority: DENTVID_PRIORITY.firstWeek }).catch(() => {});
       return NextResponse.json({ ok: true, week, already: true });
     }
-    if (run === "requeue") await existing!.remove();
-    await dentvidQueue.add("week", { clinicId: clinic.id, count: WEEK_VIDEOS, week }, { jobId, ...FIRST_WEEK_JOB_OPTS });
+    if ((run === "requeue" || run === "topup") && existing) await existing.remove();
+    // A short week (fewer than five usable) is made up with the missing videos only — the
+    // worker avoids every title already made, and its spend guard caps the run like any week.
+    if (run === "topup") topup = missingVideos(usable ?? 0);
+    const count = topup || WEEK_VIDEOS;
+    await dentvidQueue.add("week", { clinicId: clinic.id, count, week }, { jobId, ...FIRST_WEEK_JOB_OPTS });
     // A week that had failed for good said "delayed": it is being made again now.
     if (run === "requeue") await markWeekRetrying(clinic.id, week);
   } catch (e) {
     await noteEnqueueFailure("week-button", "week", e, clinic.id);
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });
   }
-  return NextResponse.json({ ok: true, week });
+  return NextResponse.json({ ok: true, week, ...(topup ? { topup } : {}) });
 }

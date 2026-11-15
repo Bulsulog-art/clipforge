@@ -6,7 +6,9 @@ import { appText, fmt } from "@/content/dentvideo-app";
 import { accountText } from "@/content/dentvideo-account";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
 import type { ClinicPlan } from "@/lib/dentvid/plan";
+import type { FirstWeekJob } from "@/lib/dentvid/first-week-state";
 import { DV_SUPPORT_EMAIL, mailtoHref, quote } from "@/lib/dentvid/app-ui";
+import { canRecord } from "@/lib/dentvid/storage-quota";
 import { Library, type LibraryItem } from "./library";
 import { RememberLocale } from "./chrome";
 import { FirstWeek } from "./first-week";
@@ -40,6 +42,7 @@ export function AppHomeView({
   pollMs,
   weekDelay = null,
   billingIssue = null,
+  firstWeekJob,
 }: {
   locale: Locale;
   clinicName?: string;
@@ -58,6 +61,8 @@ export function AppHomeView({
   weekDelay?: "retrying" | "delayed" | null;
   /** Instead of the plan picker: update the card / payment being confirmed / cancelled but paid up (lib/dentvid/billing-state). */
   billingIssue?: BillingIssue | null;
+  /** The first week's job in the queue (state null = missing; undefined = unknown), for the card's "try again". */
+  firstWeekJob?: FirstWeekJob;
 }) {
   const text = appText(locale);
   const t = text.home;
@@ -73,7 +78,7 @@ export function AppHomeView({
       )}
       {firstWeek && (
         <div className={onlyFirstWeek ? "" : "mb-12"}>
-          <FirstWeek locale={locale} paid={plan.plan === "active"} pollMs={pollMs} delay={weekDelay} />
+          <FirstWeek locale={locale} paid={plan.plan === "active"} pollMs={pollMs} delay={weekDelay} week={currentWeek} job={firstWeekJob} />
         </div>
       )}
       {!onlyFirstWeek && (
@@ -103,6 +108,7 @@ export function AppHomeView({
               canStartWeek={plan.canMake && !firstWeek && !madeThisWeek}
               currentWeek={currentWeek}
               weekDelay={weekDelay}
+              country={country}
             />
           </div>
         </>
@@ -210,8 +216,12 @@ export function RecordView({
 }) {
   const text = appText(locale);
   const t = text.record;
-  // Own recordings are part of Practice and Group; Starter sees what it would get instead of an upload that fails.
-  const starter = plan?.plan === "active" && plan.tier === "starter";
+  // Own recordings are part of Practice and Group. A clinic that cannot upload
+  // (Starter, or no active plan at all) sees what Practice adds instead of an
+  // upload form that is only refused after the file is picked.
+  const starter = !canRecord(plan?.plan, plan?.tier);
+  // Starter switches tier; a clinic with no plan chooses one (the plan panel on the videos page).
+  const onStarter = plan?.plan === "active";
   return (
     <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-5xl`}>
       <RememberLocale locale={locale} />
@@ -231,7 +241,12 @@ export function RecordView({
           </span>
           <h2 className="dv-display mt-4 text-balance text-[1.875rem] leading-tight text-dv-ink">{t.starterTitle}</h2>
           <p className="mt-2 max-w-2xl leading-relaxed text-dv-body">{t.starterLead}</p>
-          {selfServe ? (
+          {!onStarter ? (
+            <Link href={dvHref("/dentvideo/app#plans")} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto" data-testid="choose-plan">
+              <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
+              {fmt(text.billing.choose, { tier: text.billing.tiers.practice.name })}
+            </Link>
+          ) : selfServe ? (
             // The plan change is self-serve (Settings → Plan and billing): no email round trip.
             <Link href={dvHref("/dentvideo/app/settings#billing-title")} className="dv-btn dv-btn-primary mt-6 w-full px-6 py-3 sm:w-auto" data-testid="starter-upgrade">
               <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />

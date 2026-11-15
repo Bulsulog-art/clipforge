@@ -74,7 +74,8 @@ describe("POST /api/dentvideo/upload-url", () => {
   });
 
   it("refuses recordings unless the clinic is active on Practice or Group", async () => {
-    expect((await ask(recording)).body).toMatchObject({ needsPlan: true, error: APP_TEXT.en.errors.planRequired });
+    // No plan yet: the answer names Practice, not a generic "choose a plan" (QA: the 402 was misleading).
+    expect(await ask(recording)).toMatchObject({ status: 402, body: { needsPlan: true, error: APP_TEXT.en.errors.recordingsNeedPractice } });
     clinic = { id: "c1", plan: "active", plan_tier: "starter" };
     expect(await ask(recording)).toMatchObject({ status: 402, body: { error: APP_TEXT.en.errors.recordingsNeedPractice } });
     clinic = null;

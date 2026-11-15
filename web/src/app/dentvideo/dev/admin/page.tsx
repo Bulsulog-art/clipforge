@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
 import { AdminDashboard } from "@/components/dentvid/admin-dashboard";
 import { AdminBilling, AdminClinics, AdminEmails, AdminFunnelScreen, AdminOverview, AdminSystem, AdminVideos, videoPage } from "@/components/dentvid/admin-screens";
@@ -14,7 +15,7 @@ import { SAMPLES, demoData, emptyData } from "./fixtures";
 import { fixtureDetail, fixtureEmails, fixtureOverview, fixturePayments, fixtureSubs, fixtureSystem, fixtureSystemPage } from "./fixtures-panel";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Owner panel preview", robots: { index: false, follow: false } };
+export const generateMetadata = (): Metadata => devPreviewMeta("Owner panel preview");
 
 type SP = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";

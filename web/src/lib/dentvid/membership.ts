@@ -11,6 +11,8 @@
  *                                        and by scripts/dentvideo-backfill-app-metadata.mjs
  *                                        for accounts made before this change
  *   app_metadata.email_verified_at/for/via   proven ownership (lib/dentvid/verify-email)
+ *   app_metadata.internal = true          our own test / team accounts (lib/dentvid/internal-traffic,
+ *                                        set at sign-up): kept out of the funnel and ad conversions
  *
  * The database checks the same marker: migration 0008 limits the DentVideo
  * tables and storage to users whose app_metadata.product is "dentvideo".
@@ -20,8 +22,21 @@
 
 export const DV_PRODUCT = "dentvideo";
 
-/** The app_metadata keys DentVideo owns. Removed when a shared account leaves DentVideo. */
-export const DV_APP_METADATA_KEYS = ["product", "email_verified_at", "email_verified_for", "email_verified_via"] as const;
+/**
+ * The app_metadata keys DentVideo owns. Removed when a shared account leaves
+ * DentVideo, and the only keys (besides GoTrue's own) a DentVideo-only
+ * account may carry (isDentvideoOnly). Every key DentVideo writes to
+ * app_metadata must be listed here — a missing one makes every account that
+ * carries it look "shared": deletion would keep the login while saying it was
+ * removed, and change-email would be refused (membership.test.ts checks the
+ * writers' keys against this list).
+ */
+export const DV_APP_METADATA_KEYS = ["product", "email_verified_at", "email_verified_for", "email_verified_via", "internal"] as const;
+
+/** The app_metadata a new DentVideo sign-up gets (/api/dentvideo/signup). */
+export function signupAppMetadata(internal: boolean): Record<string, unknown> {
+  return { product: DV_PRODUCT, ...(internal ? { internal: true } : {}) };
+}
 
 export type AuthUserLike = {
   email?: string | null;

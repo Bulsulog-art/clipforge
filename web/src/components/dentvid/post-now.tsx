@@ -87,7 +87,7 @@ function Ready({ view, token, appUrl, endpoint }: { view: Extract<PostView, { st
       <div className="mt-3 overflow-hidden rounded-2xl bg-black">
         <video src={item.videoUrl} poster={item.thumbUrl} controls playsInline preload="metadata" aria-label={item.title} className="mx-auto aspect-[9/16] max-h-[42dvh] w-auto object-contain" />
       </div>
-      <h2 className="mt-3 font-semibold text-dv-ink [overflow-wrap:anywhere]">{item.title}</h2>
+      <h2 dir="auto" className="mt-3 font-semibold text-dv-ink [overflow-wrap:anywhere]">{item.title}</h2>
       {item.slot && (
         <p className="mt-1 flex items-center gap-1.5 text-sm text-dv-body">
           <CalendarClock className="h-4 w-4 text-dv-teal" aria-hidden="true" />

@@ -28,7 +28,7 @@ describe("rowFromPackage", () => {
       { videoPath: "u1/x.mp4" },
     );
     expect(row.status).toBe("flagged");
-    expect(row.findings[0]).toMatch(/quality: 23.6s of silence/);
+    expect(row.findings[0]).toBe("[dv:pause] quality: 23.6s of silence (max 3s)");
   });
 
   it("stores the suggested background photos, and nothing when there are none", () => {
@@ -44,7 +44,7 @@ describe("rowFromPackage", () => {
   it("a rejected topic is kept with its reasons", () => {
     const row = rowFromPackage({ status: "rejected", topic, stage: "script", reasons: ["guarantee"] } as never, ids);
     expect(row.status).toBe("rejected");
-    expect(row.findings).toEqual(["guarantee"]);
+    expect(row.findings).toEqual(["[dv:skipped] guarantee"]);
   });
 });
 
@@ -64,6 +64,14 @@ describe("rowFromClip", () => {
     expect(row.status).toBe("ready");
     expect(row.kind).toBe("recording");
     expect(row.source_path).toBe("u1/src.mp4");
+  });
+
+  it("codes a clip's findings (QA, removed hook, reviewer), and leaves the missing-file marker alone", () => {
+    const row = rowFromClip(
+      { ...(clip as object), findings: ["quality: no audio track", 'hook removed — "x": y', '"q": problem → fix'] } as never,
+      { ...ids, sourcePath: "s" },
+    );
+    expect(row.findings).toEqual(["[dv:audio] quality: no audio track", '[dv:opening] hook removed — "x": y', '[dv:wording] "q": problem → fix', "the video file is missing"]);
   });
 
   it("titles a clip without a hook from its first sentence", () => {

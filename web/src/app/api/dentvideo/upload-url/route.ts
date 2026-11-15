@@ -63,10 +63,9 @@ export async function POST(req: Request) {
 
   const decision = decideUpload({ kind: body.kind, plan: clinic?.plan as string | undefined, tier: clinic?.plan_tier as string | undefined, usage, size: body.size, contentType });
   if (!decision.ok) {
-    if (decision.reason === "plan") {
-      const starter = clinic?.plan === "active";
-      return NextResponse.json({ error: starter ? err.recordingsNeedPractice : err.planRequired, needsPlan: true }, { status: 402 });
-    }
+    // Only recordings are plan-gated: the answer names Practice, with or without a plan today
+    // (the record page shows the same upsell before any upload, so this is a fallback).
+    if (decision.reason === "plan") return NextResponse.json({ error: err.recordingsNeedPractice, needsPlan: true }, { status: 402 });
     if (decision.reason === "quota") return NextResponse.json({ error: err.invalidUpload, code: "quota" }, { status: 413 });
     return NextResponse.json({ error: err.invalidUpload, code: decision.reason }, { status: 400 });
   }

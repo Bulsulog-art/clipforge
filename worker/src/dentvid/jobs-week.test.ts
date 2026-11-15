@@ -176,6 +176,28 @@ describe("a week that heals itself", () => {
     expect(mails).toEqual([]);
   });
 
+  it("a week one short of the promised five (a topic the reviewers turned down) is topped up to five, no owner alert", async () => {
+    produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), ready("c"), ready("d"), reviewed("e")]).mockResolvedValueOnce([ready("f")]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(produceWeek).toHaveBeenCalledTimes(2);
+    const [, , opts] = produceWeek.mock.calls[1] as [unknown, unknown, { count: number; avoidTitles: string[] }];
+    expect(opts.count).toBe(1);
+    expect(opts.avoidTitles).toEqual(expect.arrayContaining(["a", "b", "c", "d", "e"]));
+    expect(r).toMatchObject({ ready: 5, rejected: 1, toppedUp: 1 });
+    // The turned-down topic is kept (with a code, not shown raw to the clinic).
+    expect(inserted.find((row) => row.title === "e")?.findings).toEqual(["[dv:skipped] mentions a guarantee"]);
+    expect(mails).toEqual([]);
+  });
+
+  it("a short week whose top-up the spend guard refuses is delivered as it is (four is not a thin week)", async () => {
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
+    produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), ready("c"), ready("d"), reviewed("e")]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+    expect(r).toMatchObject({ ready: 4, toppedUp: 0 });
+    expect(mails).toEqual([]);
+  });
+
   it("the clinic's history (title, topic, week) reaches the strategist, oldest first, not just past titles", async () => {
     pastItems = [
       { title: "Diş eti kanaması", topic: { title: "Diş eti kanaması", hook: "Fırçalarken kanıyor mu?", service: "Diş eti tedavisi", pillar: "myth", question: "Kanama normal mi?" }, week_of: "2026-11-09", status: "ready" },

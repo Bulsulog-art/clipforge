@@ -100,6 +100,13 @@ describe("POST /api/dentvideo/verify-email", () => {
     expect(await call({ action: "confirm", code: lastCode() })).toMatchObject({ body: { verified: true, email: "new@clinic.example" } });
   });
 
+  it("corrects the address of an internal (team / monitor) account: app_metadata.internal is DentVideo's own key", async () => {
+    user = { id: OWNER, email: "dr@clinic.example", app_metadata: { provider: "email", providers: ["email"], product: "dentvideo", internal: true } };
+    const changed = await call({ action: "change", email: "fixed@clinic.example" });
+    expect(changed).toMatchObject({ status: 200, body: { ok: true, email: "fixed@clinic.example" } });
+    expect(updates).toContainEqual({ email: "fixed@clinic.example", email_confirm: true });
+  });
+
   it("never swaps the address of a verified account", async () => {
     user!.app_metadata = { email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: "dr@clinic.example" };
     expect(await call({ action: "change", email: "other@clinic.example" })).toMatchObject({ body: { verified: true } });

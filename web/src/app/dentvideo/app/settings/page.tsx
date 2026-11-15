@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { dvHref } from "@/lib/dentvid/host";
 import { dvSession } from "@/lib/dentvid/auth";
-import { dvLocale } from "@/lib/dentvid/locale-server";
+import { clinicLocale, dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
 import { SettingsView } from "@/components/dentvid/app-screens";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
@@ -15,7 +15,7 @@ import { dodoApiKey } from "@/lib/dentvid/dodo-account";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: appText(await dvLocale()).settings.metaTitle, robots: { index: false } };
+  return { title: appText(await clinicLocale()).settings.metaTitle, robots: { index: false } };
 }
 
 export default async function Settings() {

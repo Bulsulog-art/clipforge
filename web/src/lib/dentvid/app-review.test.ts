@@ -21,7 +21,7 @@ const item = (over: Partial<LibraryItem> = {}): LibraryItem => ({
   approval: "pending",
   title: "t",
   week_of: "2026-11-09",
-  findings: [],
+  reasons: [],
   videoUrl: "/v.mp4",
   ...over,
 });

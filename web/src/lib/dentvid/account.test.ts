@@ -213,6 +213,15 @@ describe("deleteDentvideoAccount", () => {
     expect(JSON.stringify(log.mock.calls[0][0])).toContain("kept_shared");
   });
 
+  it("deletes the login of an internal account (app_metadata.internal is DentVideo's own key, not another app's)", async () => {
+    const s = fakeSupabase({
+      authUsers: { [A]: { app_metadata: { provider: "email", providers: ["email"], product: "dentvideo", internal: true, email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: "dr@a.example", email_verified_via: "code" } } },
+    });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} });
+    expect(res).toMatchObject({ ok: true, userDeleted: true, loginKept: false });
+    expect(s.users.has(A)).toBe(false);
+  });
+
   it("never deletes a login whose only DentVideo claim is user_metadata (anyone can write that)", async () => {
     const s = fakeSupabase({ authUsers: { [A]: { app_metadata: { provider: "email", providers: ["email"] }, user_metadata: { product: "dentvideo" } } } });
     const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} });
