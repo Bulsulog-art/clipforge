@@ -1,3 +1,4 @@
+import { isInternalEmail } from "./internal-traffic";
 /**
  * "Your videos are ready for your review" — the service email every paying
  * clinic gets — and the Resend sender all DentVideo mail goes through.
@@ -291,6 +292,20 @@ async function logSend(entry: EmailLog | null, ok: boolean, error: string | null
   }
 }
 
+/**
+ * Test and QA addresses (qa+…, e2e…, dvq…+…, e2e-monitor+…) don't exist as
+ * mailboxes: real sends to them bounce and hurt dentvideo.com's sender
+ * reputation. They go to Resend's test sink instead, which always "delivers"
+ * without a real mailbox. DENTVID_TEST_EMAIL_PATTERNS adds patterns
+ * (comma-separated, same syntax as the internal-traffic patterns).
+ */
+export const TEST_EMAIL_PATTERNS: readonly string[] = ["qa+*@*", "e2e*@*", "dvq*+*@*", "e2e-monitor+*@*"];
+export const TEST_EMAIL_SINK = "delivered@resend.dev";
+export function deliveryAddress(to: string, env: Record<string, string | undefined> = process.env): string {
+  const extra = (env.DENTVID_TEST_EMAIL_PATTERNS ?? "").split(",").map((p) => p.trim()).filter(Boolean);
+  return isInternalEmail(to, [...TEST_EMAIL_PATTERNS, ...extra]) ? TEST_EMAIL_SINK : to;
+}
+
 /** Sends through Resend. Returns false (never throws) when it cannot. */
 export async function sendEmail(to: string, msg: { subject: string; html: string; text: string }, opts: SendOptions = {}): Promise<boolean> {
   const entry = opts.log === undefined ? emailLogFromKey(opts.idempotencyKey) : opts.log;
@@ -314,7 +329,7 @@ export async function sendEmail(to: string, msg: { subject: string; html: string
       },
       body: JSON.stringify({
         from,
-        to: [to],
+        to: [deliveryAddress(to)],
         reply_to: replyTo,
         subject: msg.subject,
         html: msg.html,
