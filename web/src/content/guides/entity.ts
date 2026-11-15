@@ -269,7 +269,7 @@ const BASE: Record<Locale, EntityFacts> = {
   },
   ja: {
     meta: {
-      title: "DentVideoとは？歯科医院向け動画アプリの概要",
+      title: "DentVideoとは？　歯科医院向け動画アプリの概要",
       description:
         "DentVideoはBulsu Labsのウェブアプリ。歯科医院向けにナレーション付きの短い説明動画を10言語で制作し、臨床的な正確性と医療広告の観点からチェックします。",
     },
