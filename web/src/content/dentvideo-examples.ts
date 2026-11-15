@@ -81,7 +81,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
   en: {
     nav: "Examples",
     seoTitle: "Dental patient education video examples",
-    seoDescription: "Watch patient-education videos DentVideo made for demo dental clinics in eight languages: narrated, captioned and checked before anyone sees them.",
+    seoDescription: "Watch patient-education videos DentVideo made for demo dental clinics in eight languages: narrated, captioned and software-checked.",
     h1: "Patient-education video examples for dental clinics",
     intro:
       "These are real videos DentVideo made for fictional demo clinics, three per language, unedited apart from compression for the web. Each one answers a question patients ask, with narration, captions and a short checklist. A clinic that subscribes gets five new videos like these every week, with its own name, logo, colors and language.",
@@ -97,7 +97,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seeAll: "See all example videos",
     cta: {
       title: "Get videos like this every week with your clinic's name, logo and language",
-      text: "DentVideo writes, narrates and captions five short patient-education videos a week about the treatments you offer, checks each one for advertising rules and clinical accuracy, and you approve every video before it is used.",
+      text: "DentVideo writes, narrates and captions five short patient-education videos a week about the treatments you offer, software-checks each one for advertising rules and clinical accuracy, and you approve every video before it is used.",
       button: "See your preview",
       secondary: "Plans and pricing",
     },
@@ -123,7 +123,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
   de: {
     nav: "Beispiele",
     seoTitle: "Patientenvideos für Zahnarztpraxen: Beispiele",
-    seoDescription: "Sehen Sie Patientenvideos, die DentVideo für Demo-Praxen in acht Sprachen erstellt hat: vertont, untertitelt und geprüft, bevor jemand sie sieht.",
+    seoDescription: "Sehen Sie Patientenvideos, die DentVideo für Demo-Praxen in acht Sprachen erstellt hat: vertont, untertitelt, softwaregestützt geprüft.",
     h1: "Beispiele für Patientenvideos aus der Zahnarztpraxis",
     intro:
       "Das sind echte Videos, die DentVideo für fiktive Demo-Praxen erstellt hat, drei pro Sprache, unbearbeitet bis auf die Komprimierung fürs Web. Jedes beantwortet eine Frage, die Patienten stellen – mit Sprecherstimme, Untertiteln und einer kurzen Checkliste. Eine Praxis mit Abo erhält jede Woche fünf neue Videos dieser Art, mit eigenem Namen, Logo, eigenen Farben und in ihrer Sprache.",
@@ -165,7 +165,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
   es: {
     nav: "Ejemplos",
     seoTitle: "Vídeos educativos para pacientes dentales: ejemplos",
-    seoDescription: "Mira vídeos para pacientes que DentVideo hizo para clínicas dentales de demostración en ocho idiomas: narrados, subtitulados y revisados.",
+    seoDescription: "Mira vídeos para pacientes que DentVideo hizo para clínicas dentales de demostración en ocho idiomas: narrados, subtitulados y revisados por software.",
     h1: "Ejemplos de vídeos educativos para pacientes de clínicas dentales",
     intro:
       "Son vídeos reales que DentVideo hizo para clínicas de demostración ficticias, tres por idioma, sin editar salvo la compresión para la web. Cada uno responde a una pregunta que hacen los pacientes, con narración, subtítulos y una breve lista de consejos. Una clínica suscrita recibe cada semana cinco vídeos nuevos como estos, con su nombre, logo, colores e idioma.",
@@ -181,7 +181,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seeAll: "Ver todos los vídeos de ejemplo",
     cta: {
       title: "Recibe vídeos como este cada semana con el nombre, el logo y el idioma de tu clínica",
-      text: "DentVideo escribe, narra y subtitula cinco vídeos cortos para pacientes cada semana sobre los tratamientos que ofreces, revisa cada uno según las normas de publicidad sanitaria y la exactitud clínica, y tú apruebas cada vídeo antes de usarlo.",
+      text: "DentVideo escribe, narra y subtitula cinco vídeos cortos para pacientes cada semana sobre los tratamientos que ofreces, revisa cada uno con software según las normas de publicidad sanitaria y la exactitud clínica, y tú apruebas cada vídeo antes de usarlo.",
       button: "Ver tu vista previa",
       secondary: "Planes y precios",
     },
@@ -207,7 +207,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
   tr: {
     nav: "Örnekler",
     seoTitle: "Diş kliniği hasta bilgilendirme videosu örnekleri",
-    seoDescription: "DentVideo'nun demo diş klinikleri için sekiz dilde hazırladığı hasta bilgilendirme videolarını izleyin: seslendirilmiş, altyazılı ve kontrol edilmiş.",
+    seoDescription: "DentVideo'nun demo diş klinikleri için sekiz dilde hazırladığı hasta bilgilendirme videolarını izleyin: seslendirilmiş, altyazılı, yazılımla kontrollü.",
     h1: "Diş klinikleri için hasta bilgilendirme videosu örnekleri",
     intro:
       "Bunlar DentVideo'nun kurgusal demo klinikler için hazırladığı gerçek videolar; her dilde üç tane, web için sıkıştırma dışında düzenlenmeden. Her biri hastaların sorduğu bir soruyu seslendirme, altyazı ve kısa bir kontrol listesiyle yanıtlar. Abone olan bir klinik her hafta bunlar gibi beş yeni video alır; kendi adı, logosu, renkleri ve diliyle.",
@@ -223,7 +223,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seeAll: "Tüm örnek videoları görün",
     cta: {
       title: "Bunun gibi videoları her hafta kliniğinizin adı, logosu ve diliyle alın",
-      text: "DentVideo, sunduğunuz tedaviler hakkında her hafta beş kısa hasta bilgilendirme videosu yazar, seslendirir ve altyazılar; her birini tanıtım kuralları ve klinik doğruluk açısından kontrol eder. Her videoyu kullanılmadan önce siz onaylarsınız.",
+      text: "DentVideo, sunduğunuz tedaviler hakkında her hafta beş kısa hasta bilgilendirme videosu yazar, seslendirir ve altyazılar; her birini tanıtım kuralları ve klinik doğruluk açısından yazılımla kontrol eder. Her videoyu kullanılmadan önce siz onaylarsınız.",
       button: "Önizlemenizi görün",
       secondary: "Paketler ve fiyatlar",
     },
@@ -265,7 +265,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seeAll: "Voir toutes les vidéos d'exemple",
     cta: {
       title: "Recevez chaque semaine des vidéos comme celle-ci, au nom, au logo et dans la langue de votre cabinet",
-      text: "DentVideo écrit, commente et sous-titre chaque semaine cinq courtes vidéos d'information patient sur les soins que vous proposez, vérifie chacune au regard des règles de communication et de l'exactitude clinique, et vous validez chaque vidéo avant son utilisation.",
+      text: "DentVideo écrit, commente et sous-titre chaque semaine cinq courtes vidéos d'information patient sur les soins que vous proposez, vérifie chacune par logiciel au regard des règles de communication et de l'exactitude clinique, et vous validez chaque vidéo avant son utilisation.",
       button: "Voir votre aperçu",
       secondary: "Formules et tarifs",
     },
@@ -291,7 +291,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
   ja: {
     nav: "動画サンプル",
     seoTitle: "歯科医院の患者さん向け説明動画サンプル",
-    seoDescription: "DentVideoがデモ歯科医院のために8言語で制作した患者さん向け説明動画をご覧いただけます。ナレーション、字幕、内容チェック済みの状態です。",
+    seoDescription: "DentVideoがデモ歯科医院のために8言語で制作した患者さん向け説明動画をご覧いただけます。ナレーション、字幕、ソフトウェアでの内容チェック済みです。",
     h1: "歯科医院向け・患者さん説明動画のサンプル",
     intro:
       "DentVideoが架空のデモ医院のために制作した実際の動画です。各言語3本ずつ、Web用の圧縮以外は手を加えていません。どの動画も患者さんがよく尋ねる疑問に、ナレーション・字幕・短い要点で答えます。ご契約の医院には、医院名・ロゴ・カラー・言語に合わせた新しい動画を毎週5本お届けします。",
@@ -307,7 +307,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seeAll: "動画サンプルをすべて見る",
     cta: {
       title: "このような動画を毎週、医院名・ロゴ・言語に合わせてお届けします",
-      text: "DentVideoは、医院で行っている診療について患者さん向けの短い動画を毎週5本、原稿・ナレーション・字幕まで制作し、医療広告のルールと医学的な正確さを1本ずつ確認します。使う前に、すべての動画を先生ご自身で承認していただきます。",
+      text: "DentVideoは、医院で行っている診療について患者さん向けの短い動画を毎週5本、原稿・ナレーション・字幕まで制作し、医療広告のルールと医学的な正確さを1本ずつソフトウェアで確認します。使う前に、すべての動画を先生ご自身で承認していただきます。",
       button: "プレビューを見る",
       secondary: "プランと料金",
     },
@@ -333,7 +333,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
   ar: {
     nav: "أمثلة",
     seoTitle: "أمثلة فيديوهات توعية المرضى لعيادات الأسنان",
-    seoDescription: "شاهدوا فيديوهات توعوية أعدّها DentVideo لعيادات أسنان تجريبية بثماني لغات: بتعليق صوتي ونص على الشاشة، وبعد المراجعة.",
+    seoDescription: "شاهدوا فيديوهات توعوية أعدّها DentVideo لعيادات أسنان تجريبية بثماني لغات: بتعليق صوتي ونص على الشاشة، وبعد المراجعة الآلية.",
     h1: "أمثلة على فيديوهات توعية المرضى لعيادات الأسنان",
     intro:
       "هذه فيديوهات حقيقية أعدّها DentVideo لعيادات تجريبية غير حقيقية، ثلاثة لكل لغة، دون أي تعديل سوى ضغطها للويب. كل فيديو يجيب عن سؤال يطرحه المرضى، بتعليق صوتي ونص على الشاشة وقائمة قصيرة من النصائح. العيادة المشتركة تتلقى كل أسبوع خمسة فيديوهات جديدة مثلها، باسمها وشعارها وألوانها ولغتها.",
@@ -349,7 +349,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seeAll: "شاهدوا كل الفيديوهات النموذجية",
     cta: {
       title: "احصلوا على فيديوهات مثل هذا كل أسبوع باسم عيادتكم وشعارها ولغتها",
-      text: "يكتب DentVideo كل أسبوع خمسة فيديوهات توعوية قصيرة عن العلاجات التي تقدمونها، ويضيف لها التعليق الصوتي والنص على الشاشة، ويراجع كل فيديو وفق قواعد الإعلان الصحي والدقة الطبية، وأنتم توافقون على كل فيديو قبل استخدامه.",
+      text: "يكتب DentVideo كل أسبوع خمسة فيديوهات توعوية قصيرة عن العلاجات التي تقدمونها، ويضيف لها التعليق الصوتي والنص على الشاشة، ويراجع كل فيديو آلياً وفق قواعد الإعلان الصحي والدقة الطبية، وأنتم توافقون على كل فيديو قبل استخدامه.",
       button: "شاهدوا المعاينة",
       secondary: "الباقات والأسعار",
     },
@@ -391,7 +391,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seeAll: "Zobacz wszystkie przykładowe filmy",
     cta: {
       title: "Takie filmy co tydzień, z nazwą, logo i w języku Państwa gabinetu",
-      text: "DentVideo co tydzień pisze, nagrywa lektorem i opisuje napisami pięć krótkich filmów dla pacjentów o zabiegach, które Państwo wykonują, sprawdza każdy pod kątem zasad reklamy i poprawności klinicznej, a Państwo zatwierdzają każdy film przed użyciem.",
+      text: "DentVideo co tydzień pisze, nagrywa lektorem i opisuje napisami pięć krótkich filmów dla pacjentów o zabiegach, które Państwo wykonują, sprawdza każdy oprogramowaniem pod kątem zasad reklamy i poprawności klinicznej, a Państwo zatwierdzają każdy film przed użyciem.",
       button: "Zobacz podgląd",
       secondary: "Plany i ceny",
     },

@@ -322,6 +322,10 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
   const signedIn = useSignedIn();
   const path = usePathname() ?? "";
   const t = text[locale];
+  // Sign-up (/start?lang=tr) is reached in the visitor's language, which only the browser knows here:
+  // until then, keep the footer's space but send no words, so the page's HTML never carries an English
+  // footer under a Turkish or German form (crawlers, link previews, slow scripts).
+  if (isFunnel(path) && !ready) return <footer aria-hidden="true" className="invisible min-h-40 border-t border-dv-line bg-dv-sand/60" />;
   if (appTab(path) || isFunnel(path)) return <AppFooter t={t} locale={locale} ready={ready} />;
   const home = LANDING_PATH[locale];
   // Below lg (phones and tablets: touch) every footer link is a full 44px row; with a mouse they sit tighter.

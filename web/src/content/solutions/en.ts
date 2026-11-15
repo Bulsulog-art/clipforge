@@ -6,8 +6,8 @@ export const SOLUTIONS_EN: SolutionPage[] = [
     slug: "ai-dental-video-maker",
     kind: "product",
     nav: "AI dental videos",
-    anchor: "AI dental videos made for your clinic and checked before you see them",
-    blurb: "Five narrated, captioned patient-education videos a week in your colours, checked for advertising rules and clinical accuracy.",
+    anchor: "AI dental videos made for your clinic and software-checked before you see them",
+    blurb: "Five narrated, captioned patient-education videos a week in your colours, software-checked for advertising rules and clinical accuracy.",
     queries: [
       "ai dental videos",
       "dental ai video generator",
@@ -20,10 +20,10 @@ export const SOLUTIONS_EN: SolutionPage[] = [
     ],
     seoTitle: "AI Dental Video Maker for Clinics",
     seoDescription:
-      "Five narrated, captioned dental videos a week in your clinic's colours, written for patients and checked for ad rules and clinical accuracy. You approve.",
-    h1: "AI dental videos for your clinic, checked before you see them",
+      "Five narrated, captioned dental videos a week in your clinic's colours, written for patients, software-checked for ad rules and accuracy. You approve.",
+    h1: "AI dental videos for your clinic, software-checked before you see them",
     intro:
-      "DentVideo is an AI dental video maker built for clinics, not a general video generator. Every week it writes, narrates and captions five short patient-education videos about the treatments you offer, in your language, colours and logo, then checks each script for health-advertising rules and clinical accuracy. Nothing is published until the dentist approves it.",
+      "DentVideo is an AI dental video maker built for clinics, not a general video generator. Every week it writes, narrates and captions five short patient-education videos about the treatments you offer, in your language, colours and logo, then runs each script through software checks for health-advertising rules and clinical accuracy. Nothing is published until the dentist approves it.",
     sections: [
       {
         heading: "What your clinic gets each week",
@@ -42,15 +42,15 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         heading: "Why not a general AI video generator?",
         paragraphs: [
           "General AI video tools are good at producing something quickly: an avatar reading a script, stock clips, a template. For a dental clinic that is where the work starts, not where it ends. Someone still has to choose topics that match your treatments, write a script that is clinically sound, and keep out the words health-advertising rules restrict — “painless”, guarantees, prices, discounts, before-and-after promises, testimonials.",
-          "DentVideo was built around that second part. There are no avatar faces, fake doctors or stock patients: footage is limited to objects, and every video carries your own logo and colours. The scripts are written for your country's patients and checked twice before they reach you. If you want to compare the options side by side, read [DentVideo vs an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
+          "DentVideo was built around that second part. There are no avatar faces, fake doctors or stock patients: footage is limited to objects, and every video carries your own logo and colours. The scripts are written for your country's patients and software-checked twice before they reach you. If you want to compare the options side by side, read [DentVideo vs an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
         ],
       },
       {
         heading: "How every video is checked",
-        paragraphs: ["Each script and caption goes through three checks before it reaches your inbox. What fails is rewritten or not made."],
+        paragraphs: ["Each script and caption goes through three software checks before it reaches your inbox. What fails is rewritten or not made."],
         list: [
           "Advertising rules: commonly restricted claims are caught in ten languages — guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises and testimonials.",
-          "Clinical accuracy: a reviewer acting as a general dentist checks each statement against mainstream guidance, and that advice belongs to the right procedure.",
+          "Clinical accuracy: software set up to think like a general dentist checks each statement against mainstream guidance, and that advice belongs to the right procedure.",
           "Sound and picture: narration present and audible, no silent gaps or black frames, the right size for the platform.",
         ],
         after: [
@@ -137,7 +137,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       "An honest comparison for dental clinics: what an agency, Canva, ChatGPT and DentVideo each give you, the time they take and who checks the ad rules.",
     h1: "DentVideo, an agency, Canva or ChatGPT: which fits your clinic's videos?",
     intro:
-      "All four can help a dental clinic post videos, but they do different jobs. An agency does the work for you and charges for its time; Canva gives you templates to design yourself; ChatGPT drafts text and ideas; DentVideo makes five checked patient-education videos a week for you to approve. The right choice depends on your budget, your time and who checks the health-advertising rules.",
+      "All four can help a dental clinic post videos, but they do different jobs. An agency does the work for you and charges for its time; Canva gives you templates to design yourself; ChatGPT drafts text and ideas; DentVideo makes five software-checked patient-education videos a week for you to approve. The right choice depends on your budget, your time and who checks the health-advertising rules.",
     table: {
       caption: "Videos for a dental clinic: four ways to get them",
       columns: ["DentVideo", "Social media agency", "Canva", "ChatGPT"],
@@ -145,8 +145,8 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         { label: "What you get", values: ["Five finished, narrated and captioned videos a week", "Whatever the contract covers: often posts, filming, ads, comments", "Templates and an editor; you make the video", "Text: ideas, scripts, captions"] },
         { label: "Your time each week", values: ["A few minutes to watch and approve", "Briefings, feedback rounds, sign-offs", "Hours to write, design, record and edit", "Prompting, checking, then making the video elsewhere"] },
         { label: "Who picks topics", values: ["From your treatments and what patients search", "The agency's calendar, agreed with you", "You", "You, with suggestions"] },
-        { label: "Health-advertising check", values: ["Every script and caption, before you see it", "Depends on the agency — ask", "Up to you", "Up to you"] },
-        { label: "Clinical accuracy check", values: ["A reviewer acting as a general dentist", "Depends on the agency", "Up to you", "Up to you; it can be wrong"] },
+        { label: "Health-advertising check", values: ["Every script and caption, software-checked before you see it", "Depends on the agency — ask", "Up to you", "Up to you"] },
+        { label: "Clinical accuracy check", values: ["Software set up to think like a general dentist; you decide", "Depends on the agency", "Up to you", "Up to you; it can be wrong"] },
         { label: "Your own face on screen", values: ["Record a few minutes; clips cut for you", "Usually, with on-site filming", "If you film and edit it", "No"] },
         { label: "Commitment", values: ["Monthly, no minimum term", "Often a retainer with a minimum term", "Subscription design tool", "General AI subscription"] },
       ],
@@ -174,7 +174,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       {
         heading: "When DentVideo fits",
         paragraphs: [
-          "DentVideo fits a clinic that wants to post regularly, does not have hours each week, and wants the risky words kept out before anything reaches the dentist. You get [five finished AI dental videos a week](video:ai-dental-video-maker), checked for advertising rules and clinical accuracy, and you approve each one. It does not run ads, film in your clinic or post for you — if you need that too, an agency can post DentVideo's videos alongside its own work. [See a live preview with your own logo](start:) before deciding.",
+          "DentVideo fits a clinic that wants to post regularly, does not have hours each week, and wants the risky words kept out before anything reaches the dentist. You get [five finished AI dental videos a week](video:ai-dental-video-maker), software-checked for advertising rules and clinical accuracy, and you approve each one. It does not run ads, film in your clinic or post for you — if you need that too, an agency can post DentVideo's videos alongside its own work. [See a live preview with your own logo](start:) before deciding.",
         ],
       },
       {

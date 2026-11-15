@@ -6,15 +6,15 @@ export const SOLUTIONS_FR: SolutionPage[] = [
     slug: "videos-traitements-cabinet-dentaire",
     kind: "product",
     nav: "Vidéos pour cabinet dentaire",
-    anchor: "des vidéos qui présentent les traitements de votre cabinet dentaire, vérifiées avant que vous les voyiez",
-    blurb: "Cinq vidéos d'information patient par semaine, commentées et sous-titrées à vos couleurs, vérifiées selon les règles de communication et l'exactitude clinique.",
+    anchor: "des vidéos qui présentent les traitements de votre cabinet dentaire, vérifiées par logiciel avant que vous les voyiez",
+    blurb: "Cinq vidéos d'information patient par semaine, commentées et sous-titrées à vos couleurs, vérifiées par logiciel selon les règles de communication et l'exactitude clinique.",
     queries: ["vidéo présentation cabinet dentaire et ses traitements", "cabinet dentaire video", "video salle d'attente dentiste", "dentiste reseaux sociaux", "marketing dentaire"],
     seoTitle: "Vidéos de présentation des soins dentaires",
     seoDescription:
-      "Cinq vidéos d'information patient par semaine, commentées et sous-titrées à vos couleurs, sur les soins de votre cabinet, vérifiées puis validées par vous.",
+      "Cinq vidéos d'information patient par semaine sur vos soins, commentées, sous-titrées, à vos couleurs, vérifiées par logiciel puis validées par vous.",
     h1: "Des vidéos qui présentent les traitements de votre cabinet dentaire, chaque semaine",
     intro:
-      "DentVideo est une application web qui réalise chaque semaine cinq courtes vidéos d'information patient pour votre cabinet dentaire : écrites, commentées et sous-titrées, à votre logo et à vos couleurs, uniquement sur les soins que vous proposez. Chaque script est vérifié selon les règles de communication des chirurgiens-dentistes et l'exactitude clinique. Rien n'est publié sans la validation du praticien.",
+      "DentVideo est une application web qui réalise chaque semaine cinq courtes vidéos d'information patient pour votre cabinet dentaire : écrites, commentées et sous-titrées, à votre logo et à vos couleurs, uniquement sur les soins que vous proposez. Chaque script est vérifié par logiciel selon les règles de communication des chirurgiens-dentistes et l'exactitude clinique. Rien n'est publié sans la validation du praticien.",
     sections: [
       {
         heading: "Ce que votre cabinet reçoit chaque semaine",
@@ -36,10 +36,10 @@ export const SOLUTIONS_FR: SolutionPage[] = [
       },
       {
         heading: "Comment chaque vidéo est vérifiée",
-        paragraphs: ["Chaque script et chaque texte passent trois contrôles avant de vous parvenir. Ce qui échoue est réécrit ou n'est pas réalisé."],
+        paragraphs: ["Chaque script et chaque texte passent trois contrôles logiciels avant de vous parvenir. Ce qui échoue est réécrit ou n'est pas réalisé."],
         list: [
           "Règles de communication : les affirmations souvent restreintes sont repérées dans dix langues.",
-          "Exactitude clinique : un relecteur dans le rôle d'un omnipraticien confronte chaque affirmation aux recommandations courantes.",
+          "Exactitude clinique : un logiciel paramétré comme un omnipraticien confronte chaque affirmation aux recommandations courantes.",
           "Son et image : voix présente et audible, pas de silence ni d'image noire, bon format.",
         ],
         after: ["Ce contrôle est un filtre attentif, pas un conseil juridique : le praticien reste responsable de ce qu'il publie."],

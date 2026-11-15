@@ -58,7 +58,7 @@ const BASE: Record<Locale, EntityFacts> = {
     meta: {
       title: "What is DentVideo? The dental video app, explained",
       description:
-        "DentVideo by Bulsu Labs makes short, narrated patient-education videos for dental clinics in ten languages, checked for accuracy and advertising rules.",
+        "DentVideo by Bulsu Labs makes short, narrated patient-education videos for dental clinics in ten languages, software-checked for accuracy and ad rules.",
     },
     h1: "What is DentVideo?",
     definition:
@@ -68,7 +68,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Who it is for", value: "Dentists and dental clinics that want to post regularly without filming every week or hiring an agency." },
       { label: "Languages", value: "English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic and Polish, with formal or informal address." },
       { label: "What a clinic gets", value: "Five short educational videos a week answering real patient questions, narrated and captioned in the clinic's colors and logo, with a ready caption and hashtags. A dentist can also record five minutes of themselves and get short captioned clips of their own voice." },
-      { label: "How content is checked", value: "Software checks every script and caption twice: once against commonly restricted advertising claims (guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises, testimonials) and once by a reviewer acting as a general dentist against mainstream clinical guidance. What fails is rewritten or not made. The dentist's own words are never changed; a clip worth a second look is marked with the reason." },
+      { label: "How content is checked", value: "Software checks every script and caption twice: once against commonly restricted advertising claims (guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises, testimonials) and once against mainstream clinical guidance, with the software set up to think like a general dentist. What fails is rewritten or not made. The dentist's own words are never changed; a clip worth a second look is marked with the reason." },
       { label: "Who decides", value: "The dentist. Nothing is published until the clinic approves it, and DentVideo does not post to social networks itself: the clinic downloads approved videos and posts them." },
       { label: "Legal status of the checks", value: "A careful filter, not legal advice. The clinic remains responsible for what it publishes and should check its national rules." },
       { label: "Price", value: `Paid plans, monthly, excluding tax: Starter ${PRICE.starter}, Practice ${PRICE.practice} (US dollars in most countries, euros in the euro area, Turkish lira in Türkiye: the billing country decides). Groups and multi-location practices: priced per location — contact us at hello@dentvideo.com. No discounts. Monthly, with no minimum term. Before paying, a clinic sees a live preview of its own branded videos with its logo and colors; its first week of videos is made right after payment.` },
@@ -80,7 +80,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "Why DentVideo exists",
         paragraphs: [
           "Patients tend to choose a dentist they feel they already know, and short videos are one of the easiest ways for them to get to know you. But posting every week takes time a clinic rarely has, and health advertising is regulated: a single “painless”, a discount or a before-and-after promise can break the rules in many countries. General video tools do not know the difference.",
-          "DentVideo was built to make the regular part easy and the risky part visible: the videos are made for you, checked the way a careful colleague would check them, and the final word stays with the dentist.",
+          "DentVideo was built to make the regular part easy and the risky part visible: the videos are made for you, software-checked for the points a careful colleague would look at, and the final word stays with the dentist.",
         ],
       },
       {
@@ -102,7 +102,7 @@ const BASE: Record<Locale, EntityFacts> = {
     meta: {
       title: "Was ist DentVideo? Die Video-App für Zahnarztpraxen",
       description:
-        "DentVideo von Bulsu Labs erstellt kurze, vertonte Aufklärungsvideos für Zahnarztpraxen in zehn Sprachen, geprüft auf Richtigkeit und Werberecht.",
+        "DentVideo von Bulsu Labs erstellt kurze, vertonte Aufklärungsvideos für Zahnarztpraxen in zehn Sprachen, softwaregestützt auf Werberecht geprüft.",
     },
     h1: "Was ist DentVideo?",
     definition:
@@ -112,7 +112,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Für wen", value: "Zahnärztinnen, Zahnärzte und Praxen, die regelmäßig posten möchten, ohne jede Woche zu drehen oder eine Agentur zu beauftragen." },
       { label: "Sprachen", value: "Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Türkisch, Japanisch, Arabisch und Polnisch, mit Sie oder Du." },
       { label: "Was die Praxis bekommt", value: "Fünf kurze Aufklärungsvideos pro Woche zu echten Patientenfragen, vertont und untertitelt, mit Logo und Praxisfarben, inklusive fertigem Beitragstext und Hashtags. Wer fünf Minuten selbst spricht, bekommt daraus kurze untertitelte Clips mit der eigenen Stimme." },
-      { label: "Wie geprüft wird", value: "Software prüft jedes Skript und jeden Beitragstext zweimal: auf häufig verbotene Werbeaussagen (Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen) und durch einen Prüfer in der Rolle eines Allgemeinzahnarztes auf fachliche Richtigkeit. Was durchfällt, wird umgeschrieben oder nicht erstellt. Eigene Aufnahmen werden nie verändert; Auffälliges wird mit Begründung markiert." },
+      { label: "Wie geprüft wird", value: "Software prüft jedes Skript und jeden Beitragstext zweimal: auf häufig verbotene Werbeaussagen (Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen) und, in der Rolle eines Allgemeinzahnarztes, auf fachliche Richtigkeit. Was durchfällt, wird umgeschrieben oder nicht erstellt. Eigene Aufnahmen werden nie verändert; Auffälliges wird mit Begründung markiert." },
       { label: "Wer entscheidet", value: "Die Praxis. Nichts wird veröffentlicht, bevor sie es freigibt, und DentVideo postet nicht selbst: Freigegebene Videos werden heruntergeladen und von der Praxis gepostet." },
       { label: "Rechtlicher Stellenwert", value: "Ein sorgfältiger Filter, keine Rechtsberatung. Verantwortlich für Veröffentlichungen bleibt die Praxis." },
       { label: "Preis", value: `Monatliche Tarife zzgl. Steuern: Starter ${PRICE.starter}, Practice ${PRICE.practice} (Euro im Euroraum, Türkische Lira in der Türkei, sonst US-Dollar: das Rechnungsland entscheidet). Praxisgruppen und Praxen mit mehreren Standorten: Preis pro Standort, auf Anfrage an hello@dentvideo.com. Keine Rabatte. Monatlich, ohne Mindestlaufzeit. Vor der Zahlung sieht eine Praxis eine Live-Vorschau ihrer eigenen Videos mit Logo und Farben; die erste Woche Videos entsteht direkt nach der Zahlung.` },
@@ -124,7 +124,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "Warum es DentVideo gibt",
         paragraphs: [
           "Patienten wählen gern eine Praxis, die sie schon ein wenig zu kennen glauben — kurze Videos sind dafür einer der einfachsten Wege. Doch jede Woche zu posten kostet Zeit, und Werbung für Heilbehandlungen ist reguliert: Ein „schmerzfrei“, ein Rabatt oder ein Vorher-Nachher-Versprechen kann gegen das Heilmittelwerbegesetz oder die Berufsordnung verstoßen. Allgemeine Video-Tools kennen diesen Unterschied nicht.",
-          "DentVideo macht den regelmäßigen Teil einfach und den riskanten Teil sichtbar: Die Videos werden für Sie erstellt, so geprüft, wie eine sorgfältige Kollegin prüfen würde, und das letzte Wort hat die Praxis.",
+          "DentVideo macht den regelmäßigen Teil einfach und den riskanten Teil sichtbar: Die Videos werden für Sie erstellt, softwaregestützt auf das geprüft, worauf eine sorgfältige Kollegin achten würde, und das letzte Wort hat die Praxis.",
         ],
       },
       {
@@ -146,7 +146,7 @@ const BASE: Record<Locale, EntityFacts> = {
     meta: {
       title: "¿Qué es DentVideo? La app de vídeos para dentistas",
       description:
-        "DentVideo, de Bulsu Labs, crea vídeos educativos cortos y narrados para clínicas dentales en diez idiomas, revisados en precisión y publicidad sanitaria.",
+        "DentVideo, de Bulsu Labs, crea vídeos educativos cortos y narrados para clínicas dentales en diez idiomas, revisados por software.",
     },
     h1: "¿Qué es DentVideo?",
     definition:
@@ -156,7 +156,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Para quién", value: "Dentistas y clínicas dentales que quieren publicar con regularidad sin grabar cada semana ni contratar una agencia." },
       { label: "Idiomas", value: "Español, inglés, alemán, francés, italiano, portugués, turco, japonés, árabe y polaco, con trato de usted o de tú." },
       { label: "Qué recibe la clínica", value: "Cinco vídeos educativos cortos a la semana que responden preguntas reales de pacientes, narrados y subtitulados con el logo y los colores de la clínica, con texto y hashtags listos. Si el dentista graba cinco minutos hablando, recibe clips cortos subtitulados con su propia voz." },
-      { label: "Cómo se revisa", value: "Un software revisa cada guion y cada texto dos veces: frente a las afirmaciones publicitarias que suelen estar restringidas (garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios) y mediante un revisor que actúa como dentista general frente a las guías clínicas habituales. Lo que no pasa se reescribe o no se hace. Las grabaciones propias nunca se modifican; lo que merece otra mirada se marca con el motivo." },
+      { label: "Cómo se revisa", value: "Un software revisa cada guion y cada texto dos veces: frente a las afirmaciones publicitarias que suelen estar restringidas (garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios) y, con el criterio de un dentista general, frente a las guías clínicas habituales. Lo que no pasa se reescribe o no se hace. Las grabaciones propias nunca se modifican; lo que merece otra mirada se marca con el motivo." },
       { label: "Quién decide", value: "La clínica. Nada se publica sin su aprobación, y DentVideo no publica en redes por sí mismo: la clínica descarga los vídeos aprobados y los publica." },
       { label: "Valor jurídico", value: "Un filtro cuidadoso, no asesoramiento jurídico. La clínica sigue siendo responsable de lo que publica." },
       { label: "Precio", value: `Planes mensuales, impuestos no incluidos: Starter ${PRICE.starter}, Practice ${PRICE.practice} (euros en la zona euro, liras turcas en Turquía y dólares estadounidenses en el resto: decide el país de facturación). Grupos y clínicas con varias sedes: precio por sede; escríbenos a hello@dentvideo.com. Sin descuentos. Mensuales y sin permanencia. Antes de pagar, la clínica ve una vista previa en directo de sus propios vídeos con su logo y sus colores; su primera semana de vídeos se crea justo después del pago.` },
@@ -168,7 +168,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "Por qué existe DentVideo",
         paragraphs: [
           "Los pacientes suelen elegir un dentista al que sienten que ya conocen, y los vídeos cortos son una de las formas más sencillas de conseguirlo. Pero publicar cada semana lleva tiempo, y la publicidad sanitaria está regulada: un “sin dolor”, un descuento o una promesa de antes y después puede incumplir las normas. Las herramientas de vídeo genéricas no distinguen esos matices.",
-          "DentVideo hace fácil la parte regular y visible la parte arriesgada: los vídeos se hacen por ti, se revisan como lo haría un colega cuidadoso y la última palabra es del dentista.",
+          "DentVideo hace fácil la parte regular y visible la parte arriesgada: los vídeos se hacen por ti, un software revisa lo que miraría un colega cuidadoso y la última palabra es del dentista.",
         ],
       },
       {
@@ -190,7 +190,7 @@ const BASE: Record<Locale, EntityFacts> = {
     meta: {
       title: "DentVideo nedir? Diş klinikleri için video uygulaması",
       description:
-        "DentVideo, diş klinikleri için on dilde seslendirmeli hasta bilgilendirme videoları üretir; her video doğruluk ve tanıtım kurallarına göre denetlenir.",
+        "DentVideo, diş klinikleri için on dilde seslendirmeli hasta bilgilendirme videoları üretir; her video tanıtım kurallarına göre yazılımla denetlenir.",
     },
     h1: "DentVideo nedir?",
     definition:
@@ -200,7 +200,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Kimin için", value: "Her hafta çekim yapmadan ya da ajansla çalışmadan düzenli paylaşım yapmak isteyen diş hekimleri ve diş klinikleri." },
       { label: "Diller", value: "Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, İtalyanca, Portekizce, Japonca, Arapça ve Lehçe; “siz” ya da “sen” hitabıyla." },
       { label: "Klinik ne alır", value: "Haftada beş kısa bilgilendirme videosu: gerçek hasta sorularını yanıtlar, seslendirilmiş ve altyazılıdır, kliniğin logosu ve renkleriyle hazırlanır, açıklama metni ve etiketleriyle gelir. Hekim beş dakikalık bir kayıt yaparsa, kendi sesinden kısa altyazılı klipler de hazırlanır." },
-      { label: "Nasıl denetlenir", value: "Yazılım her senaryoyu ve metni iki kez denetler: sıkça kısıtlanan tanıtım ifadelerine karşı (garanti, “acısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaatleri, hasta yorumları) ve genel diş hekimi rolündeki bir denetçiyle yaygın klinik bilgiye karşı. Geçemeyen yeniden yazılır ya da üretilmez. Hekimin kendi sözleri asla değiştirilmez; dikkat gerektiren bir klip gerekçesiyle işaretlenir." },
+      { label: "Nasıl denetlenir", value: "Yazılım her senaryoyu ve metni iki kez denetler: sıkça kısıtlanan tanıtım ifadelerine karşı (garanti, “acısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaatleri, hasta yorumları) ve genel diş hekimi gözüyle yaygın klinik bilgiye karşı. Geçemeyen yeniden yazılır ya da üretilmez. Hekimin kendi sözleri asla değiştirilmez; dikkat gerektiren bir klip gerekçesiyle işaretlenir." },
       { label: "Kim karar verir", value: "Klinik. Onaylanmadan hiçbir şey yayınlanmaz ve DentVideo sosyal ağlarda kendisi paylaşım yapmaz: klinik onayladığı videoları indirir ve kendisi paylaşır." },
       { label: "Hukuki niteliği", value: "Özenli bir filtre; hukuki danışmanlık değildir. Yayınlanan içerikten klinik sorumludur." },
       { label: "Ücret", value: `Aylık planlar, vergiler hariç: Starter ${PRICE.starter}, Practice ${PRICE.practice} (Türkiye'de Türk lirası, Euro Bölgesi'nde avro, diğer ülkelerde ABD doları: fatura ülkesi belirler). Gruplar ve birden fazla şubesi olan klinikler: şube başına fiyatlandırılır; hello@dentvideo.com adresine yazın. İndirim yoktur. Aylık, asgari süre yok. Klinik, ödeme yapmadan önce kendi videolarının logosu ve renkleriyle canlı önizlemesini görür; ilk haftanın videoları ödemenin hemen ardından hazırlanır.` },
@@ -212,7 +212,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "DentVideo neden var",
         paragraphs: [
           "Hastalar çoğu zaman zaten tanıdığını hissettiği hekimi seçer; kısa videolar bunun en kolay yollarından biridir. Ancak her hafta paylaşım yapmak zaman ister ve Türkiye'de sağlık hizmetlerinde tanıtım sıkı kurallara bağlıdır: tek bir “acısız”, bir indirim ya da öncesi-sonrası vaadi yönetmeliğe aykırı olabilir. Genel video araçları bu farkı bilmez.",
-          "DentVideo düzenli kısmı kolaylaştırır, riskli kısmı görünür kılar: videolar sizin için hazırlanır, özenli bir meslektaşın bakacağı gibi denetlenir ve son söz hekimde kalır.",
+          "DentVideo düzenli kısmı kolaylaştırır, riskli kısmı görünür kılar: videolar sizin için hazırlanır, özenli bir meslektaşın bakacağı noktalar yazılımla denetlenir ve son söz hekimde kalır.",
         ],
       },
       {
@@ -234,7 +234,7 @@ const BASE: Record<Locale, EntityFacts> = {
     meta: {
       title: "Qu'est-ce que DentVideo ? L'appli vidéo des dentistes",
       description:
-        "DentVideo, de Bulsu Labs, crée de courtes vidéos d'information patient narrées pour cabinets dentaires en dix langues, vérifiées avant validation.",
+        "DentVideo, de Bulsu Labs, crée de courtes vidéos d'information patient narrées pour cabinets dentaires en dix langues, vérifiées par logiciel.",
     },
     h1: "Qu'est-ce que DentVideo ?",
     definition:
@@ -244,7 +244,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Pour qui", value: "Les chirurgiens-dentistes et cabinets qui veulent publier régulièrement sans filmer chaque semaine ni passer par une agence." },
       { label: "Langues", value: "Français, anglais, allemand, espagnol, italien, portugais, turc, japonais, arabe et polonais, avec vouvoiement ou tutoiement." },
       { label: "Ce que reçoit le cabinet", value: "Cinq courtes vidéos d'information par semaine répondant à de vraies questions de patients, narrées et sous-titrées aux couleurs et avec le logo du cabinet, avec un texte et des hashtags prêts. Un praticien qui s'enregistre cinq minutes reçoit de courts extraits sous-titrés avec sa propre voix." },
-      { label: "Comment c'est vérifié", value: "Un logiciel vérifie chaque script et chaque texte deux fois : face aux allégations publicitaires couramment encadrées (garanties, « sans douleur », « définitif », superlatifs, prix, réductions, promesses avant-après, témoignages) et par un relecteur agissant comme un omnipraticien face aux recommandations cliniques courantes. Ce qui échoue est réécrit ou n'est pas produit. Vos propres enregistrements ne sont jamais modifiés ; ce qui mérite un second regard est signalé avec la raison." },
+      { label: "Comment c'est vérifié", value: "Un logiciel vérifie chaque script et chaque texte deux fois : face aux allégations publicitaires couramment encadrées (garanties, « sans douleur », « définitif », superlatifs, prix, réductions, promesses avant-après, témoignages) et, comme le ferait un omnipraticien, face aux recommandations cliniques courantes. Ce qui échoue est réécrit ou n'est pas produit. Vos propres enregistrements ne sont jamais modifiés ; ce qui mérite un second regard est signalé avec la raison." },
       { label: "Qui décide", value: "Le cabinet. Rien n'est publié sans sa validation, et DentVideo ne publie pas lui-même sur les réseaux : le cabinet télécharge les vidéos validées et les publie." },
       { label: "Portée juridique", value: "Un filtre attentif, pas un conseil juridique. Le cabinet reste responsable de ce qu'il publie." },
       { label: "Prix", value: `Formules mensuelles, hors taxes : Starter ${PRICE.starter}, Practice ${PRICE.practice} (en euros dans la zone euro, en livres turques en Turquie, en dollars américains ailleurs : le pays de facturation décide). Groupes et cabinets à plusieurs sites : tarif par site, sur demande à hello@dentvideo.com. Aucune remise. Mensuelles, sans engagement. Avant de payer, le cabinet voit un aperçu en direct de ses propres vidéos, à son logo et à ses couleurs ; sa première semaine de vidéos est réalisée dès le paiement.` },
@@ -256,7 +256,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "Pourquoi DentVideo existe",
         paragraphs: [
           "Les patients choisissent volontiers un praticien qu'ils ont l'impression de déjà connaître, et les vidéos courtes sont l'un des moyens les plus simples d'y parvenir. Mais publier chaque semaine prend du temps, et la communication des chirurgiens-dentistes est encadrée : un « sans douleur », une réduction ou une promesse avant-après peut contrevenir au code de déontologie. Les outils vidéo génériques ne font pas la différence.",
-          "DentVideo rend la partie régulière simple et la partie risquée visible : les vidéos sont faites pour vous, vérifiées comme le ferait un confrère attentif, et le dernier mot reste au praticien.",
+          "DentVideo rend la partie régulière simple et la partie risquée visible : les vidéos sont faites pour vous, vérifiées par logiciel sur les points qu'examinerait un confrère attentif, et le dernier mot reste au praticien.",
         ],
       },
       {
@@ -278,17 +278,17 @@ const BASE: Record<Locale, EntityFacts> = {
     meta: {
       title: "DentVideoとは？　歯科医院向け動画アプリの概要",
       description:
-        "DentVideoはBulsu Labsのウェブアプリ。歯科医院向けにナレーション付きの短い説明動画を10言語で制作し、臨床的な正確性と医療広告の観点からチェックします。",
+        "DentVideoはBulsu Labsのウェブアプリ。歯科医院向けにナレーション付きの短い説明動画を10言語で制作し、臨床的な正確性と医療広告の観点からソフトウェアでチェックします。",
     },
     h1: "DentVideoとは",
     definition:
-      "DentVideoは、歯科医院のための患者さん向け説明動画を制作するウェブアプリです。ナレーションと字幕を付け、医院のカラーで仕上げた短い動画を作り、院長先生が承認する前に、すべての台本を臨床的な正確性と医療広告の観点からチェックします。提供はBulsu Labsです。",
+      "DentVideoは、歯科医院のための患者さん向け説明動画を制作するウェブアプリです。ナレーションと字幕を付け、医院のカラーで仕上げた短い動画を作り、院長先生が承認する前に、すべての台本を臨床的な正確性と医療広告の観点からソフトウェアでチェックします。提供はBulsu Labsです。",
     facts: [
       { label: "サービスの内容", value: "歯科医院のSNS、ウェブサイト、待合室で使える短い説明動画を制作するウェブアプリ（SaaS）です。" },
       { label: "対象", value: "毎週撮影したり代理店に依頼したりせずに、定期的に発信を続けたい歯科医師・歯科医院。" },
       { label: "言語", value: "日本語、英語、ドイツ語、スペイン語、フランス語、イタリア語、ポルトガル語、トルコ語、アラビア語、ポーランド語。日本語はです・ます調で作ります。" },
       { label: "医院に届くもの", value: "患者さんの実際の疑問に答える短い説明動画を毎週5本。ナレーションと字幕付きで、医院のロゴとカラー入り。キャプションとハッシュタグも用意します。院長先生が5分ほどお話しになった動画からは、ご本人の声による字幕付きの短いクリップも作れます。" },
-      { label: "チェックのしくみ", value: "すべての台本とキャプションを、ソフトウェアが2回チェックします。1回目は、一般に規制されやすい広告表現（効果の保証、「痛くない」「永久」、最上級の表現、料金、割引、ビフォーアフター、体験談）について。2回目は、一般歯科医の立場で確認するレビュアーが、標準的な臨床の知見に照らして確認します。基準を満たさないものは書き直すか、制作しません。院長先生ご自身の言葉は変更せず、確認が必要なクリップには理由を添えて印を付けます。" },
+      { label: "チェックのしくみ", value: "すべての台本とキャプションを、ソフトウェアが2回チェックします。1回目は、一般に規制されやすい広告表現（効果の保証、「痛くない」「永久」、最上級の表現、料金、割引、ビフォーアフター、体験談）について。2回目は、一般歯科医の視点で、標準的な臨床の知見に照らして確認します。基準を満たさないものは書き直すか、制作しません。院長先生ご自身の言葉は変更せず、確認が必要なクリップには理由を添えて印を付けます。" },
       { label: "判断するのは", value: "院長先生です。医院が承認するまで何も公開されず、DentVideoがSNSに投稿することもありません。承認した動画は医院がダウンロードして投稿します。" },
       { label: "チェックの位置づけ", value: "丁寧なフィルターであり、法的助言ではありません。公開する内容の責任は医院にあり、国内のルールのご確認をお願いしています。" },
       { label: "料金", value: `有料プラン（月額・税別）：Starter ${PRICE.starter}、Practice ${PRICE.practice}（ユーロ圏はユーロ、トルコはトルコリラ、その他の国は米ドル。通貨は請求先の国で決まります）。グループや複数拠点の医院は拠点ごとの料金です（hello@dentvideo.com までお問い合わせください）。割引はありません。月単位の契約で、最低契約期間はありません。お支払いの前に、医院のロゴとカラーで仕上げた動画のライブプレビューを確認でき、初週の動画はお支払い後すぐに制作されます。` },
@@ -300,7 +300,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "DentVideoをつくった理由",
         paragraphs: [
           "患者さんは、すでに知っていると感じる歯科医院を選ぶ傾向があり、短い動画はそのための手軽な方法のひとつです。ただ、毎週投稿を続けるには時間がかかり、医療広告にはルールがあります。「痛くない」の一言や割引、ビフォーアフターは、医療広告ガイドライン上の問題になりえます。一般的な動画ツールは、その違いを知りません。",
-          "DentVideoは、続ける部分を簡単にし、気をつけるべき部分を見えるようにするためにつくりました。動画は医院のために制作し、注意深い同僚が確認するようにチェックし、最終的な判断は院長先生に委ねます。",
+          "DentVideoは、続ける部分を簡単にし、気をつけるべき部分を見えるようにするためにつくりました。動画は医院のために制作し、注意深い同僚が確認するような点をソフトウェアでチェックし、最終的な判断は院長先生に委ねます。",
         ],
       },
       {
@@ -312,7 +312,7 @@ const BASE: Record<Locale, EntityFacts> = {
       },
     ],
     faq: [
-      { q: "DentVideoとは何ですか？", a: "歯科医院のためのウェブアプリです。ナレーションと字幕付きの短い患者さん向け説明動画を10言語で制作し、院長先生の承認の前に、臨床的な正確性と医療広告の観点から1本ずつチェックします。" },
+      { q: "DentVideoとは何ですか？", a: "歯科医院のためのウェブアプリです。ナレーションと字幕付きの短い患者さん向け説明動画を10言語で制作し、院長先生の承認の前に、臨床的な正確性と医療広告の観点から1本ずつソフトウェアでチェックします。" },
       { q: "DentVideoはどこが提供していますか？", a: "Bulsu Labsです。" },
       { q: "InstagramやTikTokに自動で投稿されますか？", a: "されません。医院が動画を1本ずつ承認し、キャプションとハッシュタグとともにダウンロードして、ご自身で投稿します。" },
       { q: "DentVideoのチェックは法的助言にあたりますか？", a: "あたりません。一般に規制されやすい表現を検出し、確認が必要な箇所に印を付けますが、ルールは国によって異なり、変わることもあります。公開する内容の責任は医院にあります。" },
@@ -332,7 +332,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "لمن", value: "أطباء الأسنان وعيادات الأسنان الذين يريدون النشر بانتظام دون تصوير كل أسبوع أو التعاقد مع وكالة." },
       { label: "اللغات", value: "العربية والإنجليزية والألمانية والإسبانية والفرنسية والإيطالية والبرتغالية والتركية واليابانية والبولندية، مع مخاطبة رسمية أو ودّية. العربية بفصحى مبسّطة وبصيغة الجمع." },
       { label: "ما تحصل عليه العيادة", value: "خمسة فيديوهات توعوية قصيرة أسبوعياً تجيب عن أسئلة حقيقية يطرحها المرضى، بتعليق صوتي ونص على الشاشة وبشعار العيادة وألوانها، مع نص مرافق ووسوم جاهزة. ويمكن لطبيب الأسنان تسجيل خمس دقائق لنفسه للحصول على مقاطع قصيرة بصوته." },
-      { label: "كيف تتم المراجعة", value: "يراجع البرنامج كل نص وكل تعليق مرتين: مرة مقابل الادعاءات الإعلانية المقيّدة عادةً (الضمانات، و«بدون ألم»، و«دائم»، وصيغ التفضيل، والأسعار، والخصومات، ووعود قبل وبعد، وشهادات المرضى)، ومرة عبر مراجِع يعمل بعين طبيب أسنان عام مقابل الإرشادات السريرية المعتمدة. ما لا يجتاز المراجعة يُعاد كتابته أو لا يُعدّ. ولا تُغيَّر كلمات الطبيب نفسه أبداً، وما يستحق نظرة ثانية يُعلَّم مع السبب." },
+      { label: "كيف تتم المراجعة", value: "يراجع البرنامج كل نص وكل تعليق مرتين: مرة مقابل الادعاءات الإعلانية المقيّدة عادةً (الضمانات، و«بدون ألم»، و«دائم»، وصيغ التفضيل، والأسعار، والخصومات، ووعود قبل وبعد، وشهادات المرضى)، ومرة بعين طبيب أسنان عام مقابل الإرشادات السريرية المعتمدة. ما لا يجتاز المراجعة يُعاد كتابته أو لا يُعدّ. ولا تُغيَّر كلمات الطبيب نفسه أبداً، وما يستحق نظرة ثانية يُعلَّم مع السبب." },
       { label: "من يقرّر", value: "طبيب الأسنان. لا يُنشر شيء قبل أن تعتمده العيادة، ولا ينشر DentVideo على الشبكات الاجتماعية بنفسه: تنزّل العيادة الفيديوهات المعتمدة وتنشرها." },
       { label: "الصفة القانونية للمراجعة", value: "مرشّح دقيق، وليست استشارة قانونية. تبقى العيادة مسؤولة عمّا تنشره وعن تصاريح الإعلان المطلوبة لديها، وعليها التحقق من الضوابط المحلية." },
       { label: "السعر", value: `باقات مدفوعة شهرية دون الضرائب: Starter بسعر ${PRICE.starter}، وPractice بسعر ${PRICE.practice} (باليورو في منطقة اليورو، وبالليرة التركية في تركيا، وبالدولار الأمريكي في سائر البلدان، بحسب بلد الفوترة). المجموعات والعيادات متعددة الفروع: السعر حسب عدد الفروع، تواصلوا معنا على hello@dentvideo.com. لا توجد خصومات. اشتراك شهري دون حد أدنى للمدة. قبل الدفع تشاهد العيادة معاينة حية لفيديوهاتها بشعارها وألوانها، ويُعدّ أسبوعها الأول فور الدفع.` },
@@ -344,7 +344,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "لماذا وُجد DentVideo",
         paragraphs: [
           "يميل المرضى إلى اختيار طبيب أسنان يشعرون أنهم يعرفونه، والفيديوهات القصيرة من أسهل الطرق لذلك. لكن النشر كل أسبوع يحتاج وقتاً نادراً ما تملكه العيادة، والإعلان الصحي منظَّم: كلمة مثل «بدون ألم» أو خصم أو وعد قبل وبعد قد يخالف معايير الجهات الصحية. وأدوات الفيديو العامة لا تعرف هذا الفرق.",
-          "صُمّم DentVideo ليجعل الجزء المتكرر سهلاً والجزء الحساس واضحاً: تُعدّ الفيديوهات لكم، وتُراجَع كما يراجعها زميل حريص، وتبقى الكلمة الأخيرة لطبيب الأسنان.",
+          "صُمّم DentVideo ليجعل الجزء المتكرر سهلاً والجزء الحساس واضحاً: تُعدّ الفيديوهات لكم، ويراجع البرنامج آلياً ما كان سيراجعه زميل حريص، وتبقى الكلمة الأخيرة لطبيب الأسنان.",
         ],
       },
       {
@@ -366,7 +366,7 @@ const BASE: Record<Locale, EntityFacts> = {
     meta: {
       title: "Czym jest DentVideo? Aplikacja wideo dla stomatologów",
       description:
-        "DentVideo (Bulsu Labs) tworzy krótkie filmy edukacyjne z lektorem dla gabinetów stomatologicznych w 10 językach, sprawdzane klinicznie i pod kątem reklamy.",
+        "DentVideo (Bulsu Labs) tworzy krótkie filmy edukacyjne z lektorem dla gabinetów stomatologicznych w 10 językach, sprawdzane przez oprogramowanie.",
     },
     h1: "Czym jest DentVideo?",
     definition:
@@ -376,7 +376,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Dla kogo", value: "Dla lekarzy dentystów i gabinetów, które chcą regularnie publikować bez cotygodniowego nagrywania i bez agencji." },
       { label: "Języki", value: "Polski, angielski, niemiecki, hiszpański, francuski, włoski, portugalski, turecki, japoński i arabski, z formą „Państwo” albo „ty”." },
       { label: "Co otrzymuje gabinet", value: "Pięć krótkich filmów edukacyjnych tygodniowo, odpowiadających na prawdziwe pytania pacjentów, z lektorem i napisami, z logo i w kolorach gabinetu, z gotowym opisem i hashtagami. Lekarz dentysta może też nagrać pięć minut z własnym udziałem i otrzymać krótkie klipy z napisami, mówione własnym głosem." },
-      { label: "Jak działa kontrola", value: "Oprogramowanie sprawdza każdy scenariusz i opis dwukrotnie: raz pod kątem twierdzeń reklamowych, które zwykle są ograniczane (gwarancje, „bezbolesny”, „trwały”, superlatywy, ceny, rabaty, obietnice przed i po, opinie pacjentów), i raz przez recenzenta w roli lekarza dentysty ogólnego, który porównuje treść z aktualną wiedzą kliniczną. To, co nie przechodzi kontroli, jest pisane od nowa albo nie powstaje. Słowa samego lekarza nigdy nie są zmieniane; klip, który warto przejrzeć ponownie, zostaje oznaczony wraz z powodem." },
+      { label: "Jak działa kontrola", value: "Oprogramowanie sprawdza każdy scenariusz i opis dwukrotnie: raz pod kątem twierdzeń reklamowych, które zwykle są ograniczane (gwarancje, „bezbolesny”, „trwały”, superlatywy, ceny, rabaty, obietnice przed i po, opinie pacjentów), i raz w roli lekarza dentysty ogólnego, porównując treść z aktualną wiedzą kliniczną. To, co nie przechodzi kontroli, jest pisane od nowa albo nie powstaje. Słowa samego lekarza nigdy nie są zmieniane; klip, który warto przejrzeć ponownie, zostaje oznaczony wraz z powodem." },
       { label: "Kto decyduje", value: "Lekarz dentysta. Nic nie zostaje opublikowane bez akceptacji gabinetu, a DentVideo samo niczego nie publikuje w mediach społecznościowych: gabinet pobiera zatwierdzone filmy i publikuje je sam." },
       { label: "Charakter prawny kontroli", value: "Staranny filtr, a nie porada prawna. Za publikowane treści odpowiada gabinet, który powinien sprawdzić obowiązujące go zasady." },
       { label: "Cena", value: `Płatne plany miesięczne, bez podatków: Starter ${PRICE.starter}, Practice ${PRICE.practice} (w euro w strefie euro, w lirach tureckich w Turcji, w dolarach amerykańskich w pozostałych krajach: decyduje kraj rozliczenia). Sieci i gabinety z kilkoma placówkami: cena za placówkę, na zapytanie pod adresem hello@dentvideo.com. Bez rabatów. Rozliczenie miesięczne, bez minimalnego okresu umowy. Przed płatnością gabinet widzi podgląd na żywo własnych filmów z logo i kolorami; pierwszy tydzień filmów powstaje zaraz po płatności.` },
@@ -388,7 +388,7 @@ const BASE: Record<Locale, EntityFacts> = {
         heading: "Dlaczego powstało DentVideo",
         paragraphs: [
           "Pacjenci chętnie wybierają dentystę, którego mają wrażenie, że już znają, a krótkie filmy to jeden z najprostszych sposobów, by do tego doprowadzić. Jednak cotygodniowe publikowanie wymaga czasu, a informowanie o usługach medycznych podlega zasadom: jedno „bezbolesny”, rabat czy obietnica przed i po mogą je naruszać. Ogólne narzędzia do wideo nie znają tej różnicy.",
-          "DentVideo ułatwia regularną część pracy i uwidacznia część ryzykowną: filmy powstają za Państwa, są sprawdzane tak, jak sprawdziłby je uważny kolega po fachu, a ostatnie słowo należy do lekarza dentysty.",
+          "DentVideo ułatwia regularną część pracy i uwidacznia część ryzykowną: filmy powstają za Państwa, oprogramowanie sprawdza w nich to, na co zwróciłby uwagę uważny kolega po fachu, a ostatnie słowo należy do lekarza dentysty.",
         ],
       },
       {

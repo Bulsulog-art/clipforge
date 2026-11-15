@@ -6,8 +6,8 @@ export const SOLUTIONS_DE: SolutionPage[] = [
     slug: "zahnarztpraxis-videos-ki",
     kind: "product",
     nav: "Videos für Zahnarztpraxen",
-    anchor: "Aufklärungsvideos für Ihre Zahnarztpraxis, mit KI erstellt und vor der Freigabe geprüft",
-    blurb: "Fünf vertonte, untertitelte Aufklärungsvideos pro Woche in Ihren Praxisfarben, geprüft auf Werberecht und fachliche Richtigkeit.",
+    anchor: "Aufklärungsvideos für Ihre Zahnarztpraxis, mit KI erstellt und vor der Freigabe softwaregestützt geprüft",
+    blurb: "Fünf vertonte, untertitelte Aufklärungsvideos pro Woche in Ihren Praxisfarben, softwaregestützt geprüft auf Werberecht und fachliche Richtigkeit.",
     queries: [
       "zahnarzt videos",
       "zahnarztpraxis video",
@@ -19,10 +19,10 @@ export const SOLUTIONS_DE: SolutionPage[] = [
     ],
     seoTitle: "Videos für Zahnarztpraxen, mit KI erstellt",
     seoDescription:
-      "Fünf vertonte, untertitelte Aufklärungsvideos pro Woche in Ihren Praxisfarben, geprüft auf HWG-Risiken und fachliche Richtigkeit. Sie geben frei.",
-    h1: "Videos für Ihre Zahnarztpraxis: mit KI erstellt, vor der Freigabe geprüft",
+      "Fünf vertonte, untertitelte Aufklärungsvideos pro Woche in Ihren Praxisfarben, softwaregestützt auf HWG-Risiken und Richtigkeit geprüft. Sie geben frei.",
+    h1: "Videos für Ihre Zahnarztpraxis: mit KI erstellt, vor der Freigabe softwaregestützt geprüft",
     intro:
-      "DentVideo ist eine Web-App, die für Zahnarztpraxen jede Woche fünf kurze Aufklärungsvideos erstellt: geschrieben, vertont und untertitelt, in Ihren Praxisfarben und mit Ihrem Logo, nur zu Leistungen, die Sie anbieten. Jedes Skript wird auf typische Werberisiken nach Heilmittelwerbegesetz und Berufsordnung sowie auf fachliche Richtigkeit geprüft. Veröffentlicht wird nichts ohne Ihre Freigabe.",
+      "DentVideo ist eine Web-App, die für Zahnarztpraxen jede Woche fünf kurze Aufklärungsvideos erstellt: geschrieben, vertont und untertitelt, in Ihren Praxisfarben und mit Ihrem Logo, nur zu Leistungen, die Sie anbieten. Jedes Skript wird softwaregestützt auf typische Werberisiken nach Heilmittelwerbegesetz und Berufsordnung sowie auf fachliche Richtigkeit geprüft. Veröffentlicht wird nichts ohne Ihre Freigabe.",
     sections: [
       {
         heading: "Was Ihre Praxis jede Woche bekommt",
@@ -44,10 +44,10 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       },
       {
         heading: "So wird jedes Video geprüft",
-        paragraphs: ["Jedes Skript und jeder Beitragstext durchläuft drei Prüfungen, bevor er Sie erreicht. Was durchfällt, wird umgeschrieben oder nicht erstellt."],
+        paragraphs: ["Jedes Skript und jeder Beitragstext durchläuft drei softwaregestützte Prüfungen, bevor er Sie erreicht. Was durchfällt, wird umgeschrieben oder nicht erstellt."],
         list: [
           "Werberecht: häufig unzulässige Aussagen werden abgefangen — Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen.",
-          "Fachliche Richtigkeit: ein Prüfer in der Rolle eines Allgemeinzahnarztes gleicht jede Aussage mit gängigen Leitlinien ab.",
+          "Fachliche Richtigkeit: eine Software in der Rolle eines Allgemeinzahnarztes gleicht jede Aussage mit gängigen Leitlinien ab.",
           "Ton und Bild: Sprache vorhanden und verständlich, keine stillen Lücken oder schwarzen Bilder, richtiges Format.",
         ],
         after: [
@@ -112,7 +112,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       "Ehrlicher Vergleich für Zahnarztpraxen: was Agentur, Canva, ChatGPT und DentVideo leisten, wie viel Zeit sie kosten und wer das Werberecht prüft.",
     h1: "DentVideo, Agentur, Canva oder ChatGPT: was passt zu den Videos Ihrer Praxis?",
     intro:
-      "Alle vier können einer Zahnarztpraxis zu Videos verhelfen, aber sie erledigen verschiedene Aufgaben. Eine Agentur übernimmt die Arbeit und berechnet ihre Zeit; Canva liefert Vorlagen zum Selbstgestalten; ChatGPT entwirft Texte und Ideen; DentVideo erstellt pro Woche fünf geprüfte Aufklärungsvideos zur Freigabe. Was passt, hängt von Budget, Zeit und der Frage ab, wer das Werberecht prüft.",
+      "Alle vier können einer Zahnarztpraxis zu Videos verhelfen, aber sie erledigen verschiedene Aufgaben. Eine Agentur übernimmt die Arbeit und berechnet ihre Zeit; Canva liefert Vorlagen zum Selbstgestalten; ChatGPT entwirft Texte und Ideen; DentVideo erstellt pro Woche fünf softwaregestützt geprüfte Aufklärungsvideos zur Freigabe. Was passt, hängt von Budget, Zeit und der Frage ab, wer das Werberecht prüft.",
     table: {
       caption: "Videos für eine Zahnarztpraxis: vier Wege",
       columns: ["DentVideo", "Social-Media-Agentur", "Canva", "ChatGPT"],
@@ -120,8 +120,8 @@ export const SOLUTIONS_DE: SolutionPage[] = [
         { label: "Was Sie bekommen", values: ["Fünf fertige, vertonte und untertitelte Videos pro Woche", "Was der Vertrag umfasst: oft Beiträge, Dreh, Anzeigen, Community", "Vorlagen und Editor; das Video machen Sie", "Text: Ideen, Skripte, Beitragstexte"] },
         { label: "Ihre Zeit pro Woche", values: ["Ein paar Minuten zum Ansehen und Freigeben", "Briefings, Feedbackrunden, Abnahmen", "Stunden für Text, Gestaltung, Aufnahme, Schnitt", "Prompten, prüfen, dann das Video anderswo bauen"] },
         { label: "Wer wählt Themen", values: ["Aus Ihren Leistungen und Patientenfragen", "Redaktionsplan der Agentur, mit Ihnen abgestimmt", "Sie", "Sie, mit Vorschlägen"] },
-        { label: "Prüfung auf Werberecht", values: ["Jedes Skript und jeder Text, bevor Sie es sehen", "Je nach Agentur — fragen Sie nach", "Ihre Aufgabe", "Ihre Aufgabe"] },
-        { label: "Fachliche Prüfung", values: ["Prüfer in der Rolle eines Allgemeinzahnarztes", "Je nach Agentur", "Ihre Aufgabe", "Ihre Aufgabe; Fehler sind möglich"] },
+        { label: "Prüfung auf Werberecht", values: ["Jedes Skript und jeder Text, softwaregestützt, bevor Sie es sehen", "Je nach Agentur — fragen Sie nach", "Ihre Aufgabe", "Ihre Aufgabe"] },
+        { label: "Fachliche Prüfung", values: ["Software in der Rolle eines Allgemeinzahnarztes; Sie entscheiden", "Je nach Agentur", "Ihre Aufgabe", "Ihre Aufgabe; Fehler sind möglich"] },
         { label: "Ihr eigenes Gesicht", values: ["Ein paar Minuten aufnehmen; Clips werden geschnitten", "Meist, mit Dreh vor Ort", "Wenn Sie selbst drehen und schneiden", "Nein"] },
         { label: "Bindung", values: ["Monatlich, ohne Mindestlaufzeit", "Oft Pauschale mit Mindestlaufzeit", "Abo für ein Design-Tool", "Abo für einen KI-Assistenten"] },
       ],

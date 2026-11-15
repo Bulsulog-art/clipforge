@@ -133,7 +133,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Want five videos a week already checked like this?",
-        text: "DentVideo writes, narrates and captions five short patient-education videos a week in your language and colors. Every script passes these same rules and a second, closer review before you see it — and nothing is published without your approval.",
+        text: "DentVideo writes, narrates and captions five short patient-education videos a week in your language and colors. Every script passes these same rules and a second, closer software check before you see it — and nothing is published without your approval.",
         button: "See your preview",
         secondary: "How DentVideo works",
       },
@@ -180,7 +180,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "How does this relate to DentVideo?",
-        a: "DentVideo makes short patient-education videos for dental clinics. Every script passes these same rules, then a closer review that reads the whole text, before the clinic approves anything.",
+        a: "DentVideo makes short patient-education videos for dental clinics. Every script passes these same rules, then a closer software check that reads the whole text, before the clinic approves anything.",
       },
     ],
   },
@@ -223,7 +223,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Haftada beş video, her biri böyle kontrol edilmiş olarak gelsin mi?",
-        text: "DentVideo, kliniğiniz için haftada beş kısa hasta bilgilendirme videosunu Türkçe yazar, seslendirir ve altyazılar. Her senaryo bu kurallardan ve daha dikkatli ikinci bir incelemeden geçer; onayınız olmadan hiçbir şey yayınlanmaz.",
+        text: "DentVideo, kliniğiniz için haftada beş kısa hasta bilgilendirme videosunu Türkçe yazar, seslendirir ve altyazılar. Her senaryo bu kurallardan ve yazılımın daha dikkatli ikinci bir kontrolünden geçer; onayınız olmadan hiçbir şey yayınlanmaz.",
         button: "Önizlemenizi görün",
         secondary: "DentVideo nasıl çalışır",
       },
@@ -313,7 +313,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Fünf Videos pro Woche, schon so geprüft?",
-        text: "DentVideo schreibt, vertont und untertitelt fünf kurze Aufklärungsvideos pro Woche in Ihrer Sprache und Ihren Farben. Jedes Skript durchläuft genau diese Regeln und eine zweite, genauere Prüfung, bevor Sie es sehen — und nichts erscheint ohne Ihre Freigabe.",
+        text: "DentVideo schreibt, vertont und untertitelt fünf kurze Aufklärungsvideos pro Woche in Ihrer Sprache und Ihren Farben. Jedes Skript durchläuft genau diese Regeln und eine zweite, genauere softwaregestützte Prüfung, bevor Sie es sehen — und nichts erscheint ohne Ihre Freigabe.",
         button: "Ihre Vorschau ansehen",
         secondary: "So funktioniert DentVideo",
       },
@@ -360,7 +360,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "Was hat das mit DentVideo zu tun?",
-        a: "DentVideo erstellt kurze Aufklärungsvideos für Zahnarztpraxen. Jedes Skript durchläuft diese Regeln und eine genauere Prüfung des ganzen Textes, bevor die Praxis etwas freigibt.",
+        a: "DentVideo erstellt kurze Aufklärungsvideos für Zahnarztpraxen. Jedes Skript durchläuft diese Regeln und eine genauere softwaregestützte Prüfung des ganzen Textes, bevor die Praxis etwas freigibt.",
       },
     ],
   },
@@ -403,7 +403,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "¿Quieres cinco vídeos a la semana ya revisados así?",
-        text: "DentVideo escribe, pone voz y subtitula cinco vídeos educativos cortos a la semana en tu idioma y tus colores. Cada guion pasa estas mismas reglas y una segunda revisión más atenta antes de que lo veas, y nada se publica sin tu aprobación.",
+        text: "DentVideo escribe, pone voz y subtitula cinco vídeos educativos cortos a la semana en tu idioma y tus colores. Cada guion pasa estas mismas reglas y una segunda revisión de software más atenta antes de que lo veas, y nada se publica sin tu aprobación.",
         button: "Ver tu vista previa",
         secondary: "Cómo funciona DentVideo",
       },
@@ -450,7 +450,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "¿Qué relación tiene con DentVideo?",
-        a: "DentVideo crea vídeos educativos cortos para clínicas dentales. Cada guion pasa estas reglas y una revisión más atenta del texto completo antes de que la clínica apruebe nada.",
+        a: "DentVideo crea vídeos educativos cortos para clínicas dentales. Cada guion pasa estas reglas y una revisión de software más atenta del texto completo antes de que la clínica apruebe nada.",
       },
     ],
   },
@@ -493,7 +493,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Cinq vidéos par semaine, déjà vérifiées ainsi ?",
-        text: "DentVideo écrit, met en voix et sous-titre cinq courtes vidéos d'information patient par semaine, dans votre langue et vos couleurs. Chaque script passe ces mêmes règles et une seconde relecture plus attentive avant que vous le voyiez, et rien n'est publié sans votre accord.",
+        text: "DentVideo écrit, met en voix et sous-titre cinq courtes vidéos d'information patient par semaine, dans votre langue et vos couleurs. Chaque script passe ces mêmes règles et une seconde vérification logicielle plus attentive avant que vous le voyiez, et rien n'est publié sans votre accord.",
         button: "Voir votre aperçu",
         secondary: "Comment fonctionne DentVideo",
       },
@@ -535,7 +535,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "Quel lien avec DentVideo ?",
-        a: "DentVideo réalise de courtes vidéos d'information patient pour les cabinets dentaires. Chaque script passe ces règles puis une relecture plus attentive du texte entier, avant que le cabinet n'approuve quoi que ce soit.",
+        a: "DentVideo réalise de courtes vidéos d'information patient pour les cabinets dentaires. Chaque script passe ces règles puis une vérification logicielle plus attentive du texte entier, avant que le cabinet n'approuve quoi que ce soit.",
       },
     ],
   },
@@ -578,7 +578,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "このチェック済みの動画を、週に5本。",
-        text: "DentVideoは、患者さん向けの短い説明動画を週に5本、医院の言語と色で作成し、ナレーションと字幕を付けます。すべての台本はこのルールと、より丁寧な二次チェックを通ってから届き、医院の承認なしに公開されることはありません。",
+        text: "DentVideoは、患者さん向けの短い説明動画を週に5本、医院の言語と色で作成し、ナレーションと字幕を付けます。すべての台本はこのルールと、ソフトウェアによるより丁寧な二次チェックを通ってから届き、医院の承認なしに公開されることはありません。",
         button: "プレビューを見る",
         secondary: "DentVideoのしくみ",
       },
@@ -620,7 +620,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "DentVideoとはどう関係していますか？",
-        a: "DentVideoは歯科医院向けに患者さん向けの短い説明動画を作るサービスです。すべての台本はこのルールと、文章全体を読む二次チェックを通ってから医院に届きます。",
+        a: "DentVideoは歯科医院向けに患者さん向けの短い説明動画を作るサービスです。すべての台本はこのルールと、文章全体を読むソフトウェアの二次チェックを通ってから医院に届きます。",
       },
     ],
   },
@@ -663,7 +663,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "خمسة فيديوهات أسبوعياً، مفحوصة بهذه الطريقة مسبقاً؟",
-        text: "تكتب DentVideo خمسة فيديوهات توعوية قصيرة أسبوعياً بلغتكم وألوان عيادتكم، مع التعليق الصوتي والنص المكتوب. يمر كل نص بهذه القواعد نفسها وبمراجعة ثانية أدق قبل أن تروه، ولا يُنشر شيء دون موافقتكم.",
+        text: "تكتب DentVideo خمسة فيديوهات توعوية قصيرة أسبوعياً بلغتكم وألوان عيادتكم، مع التعليق الصوتي والنص المكتوب. يمر كل نص بهذه القواعد نفسها وبمراجعة آلية ثانية أدق قبل أن تروه، ولا يُنشر شيء دون موافقتكم.",
         button: "شاهدوا المعاينة",
         secondary: "كيف تعمل DentVideo",
       },
@@ -710,7 +710,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "ما علاقة ذلك بـ DentVideo؟",
-        a: "تصنع DentVideo فيديوهات توعوية قصيرة لعيادات الأسنان. يمر كل نص بهذه القواعد ثم بمراجعة أدق للنص كاملاً قبل أن توافق العيادة على أي شيء.",
+        a: "تصنع DentVideo فيديوهات توعوية قصيرة لعيادات الأسنان. يمر كل نص بهذه القواعد ثم بمراجعة آلية أدق للنص كاملاً قبل أن توافق العيادة على أي شيء.",
       },
     ],
   },
@@ -753,7 +753,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Pięć filmów tygodniowo, sprawdzonych już w ten sposób?",
-        text: "DentVideo pisze, nagrywa lektorem i opatruje napisami pięć krótkich filmów edukacyjnych tygodniowo, w Państwa języku i kolorach gabinetu. Każdy scenariusz przechodzi te same zasady i drugą, dokładniejszą kontrolę, zanim go Państwo zobaczą, a nic nie jest publikowane bez Państwa zgody.",
+        text: "DentVideo pisze, nagrywa lektorem i opatruje napisami pięć krótkich filmów edukacyjnych tygodniowo, w Państwa języku i kolorach gabinetu. Każdy scenariusz przechodzi te same zasady i drugą, dokładniejszą kontrolę oprogramowania, zanim go Państwo zobaczą, a nic nie jest publikowane bez Państwa zgody.",
         button: "Zobacz podgląd",
         secondary: "Jak działa DentVideo",
       },
@@ -795,7 +795,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "Jaki to ma związek z DentVideo?",
-        a: "DentVideo tworzy krótkie filmy edukacyjne dla gabinetów stomatologicznych. Każdy scenariusz przechodzi te zasady i dokładniejszą kontrolę całego tekstu, zanim gabinet cokolwiek zatwierdzi.",
+        a: "DentVideo tworzy krótkie filmy edukacyjne dla gabinetów stomatologicznych. Każdy scenariusz przechodzi te zasady i dokładniejszą kontrolę całego tekstu przez oprogramowanie, zanim gabinet cokolwiek zatwierdzi.",
       },
     ],
   },

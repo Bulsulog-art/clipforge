@@ -6,15 +6,15 @@ export const SOLUTIONS_TR: SolutionPage[] = [
     slug: "dis-klinigi-sosyal-medya-videolari",
     kind: "product",
     nav: "Diş kliniği videoları",
-    anchor: "diş kliniğiniz için her hafta hazırlanan, siz görmeden denetlenen sosyal medya videoları",
-    blurb: "Kliniğinizin renklerinde, seslendirilmiş ve altyazılı beş hasta bilgilendirme videosu; tanıtım kuralları ve klinik doğruluk açısından denetlenir.",
+    anchor: "diş kliniğiniz için her hafta hazırlanan, siz görmeden yazılımla kontrol edilen sosyal medya videoları",
+    blurb: "Kliniğinizin renklerinde, seslendirilmiş ve altyazılı beş hasta bilgilendirme videosu; tanıtım kuralları ve klinik doğruluk açısından yazılımla kontrol edilir.",
     queries: ["diş kliniği sosyal medya", "diş hekimi sosyal medya", "diş kliniği instagram", "diş kliniği tanıtım videosu", "diş hekimi videoları", "diş kliniği yapay zeka"],
     seoTitle: "Diş Kliniği Sosyal Medya Videoları",
     seoDescription:
-      "Her hafta kliniğinizin renklerinde beş seslendirilmiş, altyazılı hasta bilgilendirme videosu; tanıtım kuralları ve klinik doğruluk denetimli. Onay sizde.",
-    h1: "Diş kliniğiniz için sosyal medya videoları: her hafta hazır, siz görmeden denetlenmiş",
+      "Her hafta kliniğinizin renklerinde beş seslendirilmiş, altyazılı hasta bilgilendirme videosu; tanıtım kuralları yazılımla kontrol edilir. Onay sizde.",
+    h1: "Diş kliniğiniz için sosyal medya videoları: her hafta hazır, siz görmeden yazılımla kontrol edilmiş",
     intro:
-      "DentVideo, diş klinikleri için her hafta beş kısa hasta bilgilendirme videosu hazırlayan bir web uygulamasıdır: metni yazılır, seslendirilir ve altyazılanır; kliniğinizin logosu ve renkleriyle, yalnızca sunduğunuz tedaviler hakkında. Her metin, sağlık hizmetlerinde tanıtım kuralları ve klinik doğruluk açısından denetlenir. Diş hekimi onaylamadan hiçbir şey yayımlanmaz.",
+      "DentVideo, diş klinikleri için her hafta beş kısa hasta bilgilendirme videosu hazırlayan bir web uygulamasıdır: metni yazılır, seslendirilir ve altyazılanır; kliniğinizin logosu ve renkleriyle, yalnızca sunduğunuz tedaviler hakkında. Her metin, sağlık hizmetlerinde tanıtım kuralları ve klinik doğruluk açısından yazılımla kontrol edilir. Diş hekimi onaylamadan hiçbir şey yayımlanmaz.",
     sections: [
       {
         heading: "Kliniğiniz her hafta ne alır?",
@@ -36,10 +36,10 @@ export const SOLUTIONS_TR: SolutionPage[] = [
       },
       {
         heading: "Her video nasıl denetlenir?",
-        paragraphs: ["Her metin ve paylaşım yazısı size ulaşmadan önce üç kontrolden geçer. Geçemeyen yeniden yazılır ya da hiç üretilmez."],
+        paragraphs: ["Her metin ve paylaşım yazısı size ulaşmadan önce üç yazılım kontrolünden geçer. Geçemeyen yeniden yazılır ya da hiç üretilmez."],
         list: [
           "Tanıtım kuralları: sık kısıtlanan ifadeler yakalanır — garanti, “ağrısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumları.",
-          "Klinik doğruluk: genel diş hekimi rolündeki bir denetleyici her ifadeyi yaygın klinik kılavuzlarla karşılaştırır.",
+          "Klinik doğruluk: genel diş hekimi rolünde çalışan bir yazılım denetçisi her ifadeyi yaygın klinik kılavuzlarla karşılaştırır.",
           "Ses ve görüntü: seslendirme var ve duyuluyor, sessiz boşluk ya da siyah kare yok, boyut doğru.",
         ],
         after: [
@@ -104,7 +104,7 @@ export const SOLUTIONS_TR: SolutionPage[] = [
       "Diş klinikleri için dürüst karşılaştırma: ajans, Canva, ChatGPT ve DentVideo ne sunar, ne kadar zaman alır, tanıtım kurallarını kim denetler.",
     h1: "DentVideo, ajans, Canva mı ChatGPT mi: kliniğinizin videolarına hangisi uyar?",
     intro:
-      "Dördü de bir diş kliniğinin video paylaşmasına yardım edebilir ama farklı işler yapar. Ajans işi sizin yerinize yapar ve zamanını ücretlendirir; Canva kendiniz tasarlamanız için şablon verir; ChatGPT metin ve fikir taslağı çıkarır; DentVideo her hafta onayınıza sunulan beş denetlenmiş bilgilendirme videosu hazırlar. Doğru seçim bütçenize, zamanınıza ve tanıtım kurallarını kimin denetlediğine bağlıdır.",
+      "Dördü de bir diş kliniğinin video paylaşmasına yardım edebilir ama farklı işler yapar. Ajans işi sizin yerinize yapar ve zamanını ücretlendirir; Canva kendiniz tasarlamanız için şablon verir; ChatGPT metin ve fikir taslağı çıkarır; DentVideo her hafta onayınıza sunulan, yazılımla kontrol edilmiş beş bilgilendirme videosu hazırlar. Doğru seçim bütçenize, zamanınıza ve tanıtım kurallarını kimin denetlediğine bağlıdır.",
     table: {
       caption: "Diş kliniği videoları: dört yol",
       columns: ["DentVideo", "Sosyal medya ajansı", "Canva", "ChatGPT"],
@@ -112,8 +112,8 @@ export const SOLUTIONS_TR: SolutionPage[] = [
         { label: "Ne alırsınız", values: ["Her hafta beş bitmiş, seslendirilmiş, altyazılı video", "Sözleşmenin kapsadığı iş: paylaşım, çekim, reklam, yorum yönetimi", "Şablon ve editör; videoyu siz yaparsınız", "Metin: fikir, senaryo, paylaşım yazısı"] },
         { label: "Haftalık zamanınız", values: ["İzleyip onaylamak için birkaç dakika", "Brif, revizyon turları, onaylar", "Yazmak, tasarlamak, çekmek, kurgulamak için saatler", "Komut yazmak, kontrol etmek, videoyu başka yerde yapmak"] },
         { label: "Konuları kim seçer", values: ["Tedavilerinizden ve hastaların aradıklarından", "Ajansın içerik takvimi, sizinle birlikte", "Siz", "Siz, önerilerle"] },
-        { label: "Tanıtım kuralları denetimi", values: ["Her metin, siz görmeden önce", "Ajansa bağlı — sorun", "Size kalır", "Size kalır"] },
-        { label: "Klinik doğruluk denetimi", values: ["Genel diş hekimi rolündeki bir denetleyici", "Ajansa bağlı", "Size kalır", "Size kalır; hata yapabilir"] },
+        { label: "Tanıtım kuralları denetimi", values: ["Her metin, siz görmeden önce yazılımla", "Ajansa bağlı — sorun", "Size kalır", "Size kalır"] },
+        { label: "Klinik doğruluk denetimi", values: ["Genel diş hekimi rolünde bir yazılım denetçisi; karar sizde", "Ajansa bağlı", "Size kalır", "Size kalır; hata yapabilir"] },
         { label: "Kendi yüzünüz", values: ["Birkaç dakika kayıt; klipler hazırlanır", "Genellikle, klinikte çekimle", "Kendiniz çekip kurgularsanız", "Hayır"] },
         { label: "Taahhüt", values: ["Aylık, taahhütsüz", "Çoğu zaman taahhütlü aylık ücret", "Tasarım aracı aboneliği", "Yapay zekâ asistanı aboneliği"] },
       ],
