@@ -139,11 +139,12 @@ describe("no free-trial claims anywhere", () => {
   it("the new promise is there instead: a live preview before paying, CTA to /start", () => {
     for (const l of LOCALES) {
       const c = LANDING[l];
-      expect(c.hero.cta, l).toBe(c.pricing.cta);
+      expect(c.hero.cta, l).toBe(c.final.cta);
       expect(c.faq.length, l).toBe(LANDING.en.faq.length);
       expect(c.teaser.cta.trim().length, l).toBeGreaterThan(0);
     }
-    expect(LANDING.en.hero.cta).toBe("See your preview");
-    expect(LANDING.en.faq.at(-1)?.q).toBe("Can I see my videos before I pay?");
+    expect(LANDING.en.hero.cta).toBe("See it with your logo");
+    expect(LANDING.en.teaser.note).toContain("full preview of your week");
+    expect(LANDING.en.before.items[0].text).toContain("before you choose a plan");
   });
 });

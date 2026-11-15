@@ -16,12 +16,12 @@ describe("DentVideo landing content", () => {
     for (const l of LOCALES) expect(shape(LANDING[l]), l).toEqual(en);
   });
 
-  it("search snippets fit: titles up to 65 characters, descriptions 70–160", () => {
+  it("search snippets fit: titles up to 65 characters, descriptions 70–155", () => {
     for (const l of LOCALES) {
       const { title, description } = LANDING[l].meta;
       expect(title.length, `${l} title`).toBeLessThanOrEqual(65);
       expect(description.length, `${l} description`).toBeGreaterThanOrEqual(70);
-      expect(description.length, `${l} description`).toBeLessThanOrEqual(160);
+      expect(description.length, `${l} description`).toBeLessThanOrEqual(155);
     }
   });
 
@@ -49,9 +49,11 @@ describe("DentVideo landing content", () => {
   const MONEY = /[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL)/;
 
   it("states no prices or invented numbers outside the pricing section", () => {
+    // The one exception: the sourced agency range in the comparison's cost row (pricing memo §1.1).
     const withoutPricing = LOCALES.map((l) => {
-      const { pricing: _pricing, ...rest } = LANDING[l];
-      return JSON.stringify(rest);
+      const { pricing: _pricing, compare, ...rest } = LANDING[l];
+      const { cost, ...table } = compare;
+      return JSON.stringify(rest) + JSON.stringify(table) + JSON.stringify({ ...cost, agency: "" });
     }).join("");
     expect(withoutPricing).not.toMatch(MONEY);
     expect(JSON.stringify(GUIDES)).not.toMatch(MONEY);
@@ -74,8 +76,16 @@ describe("DentVideo landing content", () => {
 
   it("the ROI line promises nothing about a year: one case is worth more than several months", () => {
     const YEAR = /year|jahr|año|yıl|année|\ban de |年|سنة|عام|\brok/i;
-    for (const l of LOCALES) expect(LANDING[l].compare.roi, l).not.toMatch(YEAR);
-    expect(LANDING.en.compare.roi).toContain("several months of DentVideo");
+    for (const l of LOCALES) expect(LANDING[l].value.roi, l).not.toMatch(YEAR);
+    expect(LANDING.en.value.roi).toContain("several months of DentVideo");
+  });
+
+  it("the agency figures appear only where they are sourced (TR, DE) and say quotes differ", () => {
+    for (const l of LOCALES) {
+      const hasFigure = /\d/.test(LANDING[l].compare.cost.agency);
+      expect(hasFigure, l).toBe(l === "tr" || l === "de");
+      expect(LANDING[l].compare.source.length, l).toBeGreaterThan(20);
+    }
   });
 
   it("no founding offer, no yearly billing and no discount anywhere on the landings, in every locale", () => {

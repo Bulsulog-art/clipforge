@@ -14,7 +14,7 @@ export async function dentvideoOgImage(locale: Locale) {
   const c = LANDING[locale];
   const sample = samplesFor(locale)?.[0];
   const [f, poster] = await Promise.all([
-    cardFonts(locale, [c.hero.h1, c.meta.ogDescription, c.mock.caption]),
+    cardFonts(locale, [c.hero.h1, c.meta.ogDescription, c.mock.ready]),
     sample ? readFile(join(process.cwd(), "public", sampleSrc(locale, sample.slug, "jpg"))) : Promise.resolve(null),
   ]);
   const posterUri = poster ? `data:image/jpeg;base64,${poster.toString("base64")}` : null;
@@ -106,7 +106,7 @@ export async function dentvideoOgImage(locale: Locale) {
                   color: "#ffffff",
                 }}
               >
-                {f.words ? <CardText text={c.mock.caption} locale={locale} style={{ fontFamily: f.body, fontSize: 26, lineHeight: 1.45, width: 196 }} /> : null}
+                {f.words ? <CardText text={c.mock.ready} locale={locale} style={{ fontFamily: f.body, fontSize: 26, lineHeight: 1.45, width: 196 }} /> : null}
                 <div style={{ display: "flex", marginTop: 18, width: 56, height: 5, borderRadius: 3, background: "#8fd1c6" }} />
               </div>
             )}

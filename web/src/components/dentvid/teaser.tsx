@@ -157,31 +157,25 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
           trackDv("cta_clicked", { locale, props: { where: "teaser" } });
         }}
         data-cta="teaser"
-        className="dv-btn dv-btn-primary group w-full px-7 py-4 text-base">
+        className="dv-btn dv-btn-primary w-full px-7 py-4 text-base">
         {copy.cta}
-        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
+        <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
       </Link>
-      <p className="-mt-1 text-center text-xs text-dv-muted">{copy.note}</p>
+      <p className="-mt-1 text-center text-sm leading-relaxed text-dv-muted">{copy.note}</p>
     </>
   );
 
   return (
-    <section id="try" aria-labelledby="try-heading" className="relative isolate overflow-hidden">
-      <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10 opacity-70" />
+    <section id="try" aria-labelledby="try-heading" className="relative isolate scroll-mt-16 overflow-hidden border-t border-dv-line bg-white/60">
       {/*
         Right under the hero, where its "See your preview" button lands. Phones: what this is, the preview
         itself (already playing in the default look), then the fields that make it the clinic's own and the
         way on to the account. From lg: text and fields on the left, the phone beside them.
       */}
-      <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-8 px-4 pb-24 pt-10 [grid-template-areas:'text'_'phone'_'form'] sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-y-0 lg:[grid-template-areas:'text_phone'_'form_phone']">
+      <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-8 px-4 py-16 [grid-template-areas:'text'_'phone'_'form'] sm:px-6 sm:py-24 lg:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-y-0 lg:[grid-template-areas:'text_phone'_'form_phone']">
         <div className="min-w-0 [grid-area:text] lg:self-end">
-          <p className="inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pe-3.5 ps-2 text-sm font-medium text-dv-teal ring-1 ring-dv-line">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal-50">
-              <ImagePlus className="h-3 w-3" aria-hidden="true" />
-            </span>
-            {copy.eyebrow}
-          </p>
-          <h2 id="try-heading" className="dv-display mt-5 text-balance text-[2.375rem] leading-[1.05] sm:text-5xl lg:text-[3.5rem]">
+          <p className="dv-eyebrow">{copy.eyebrow}</p>
+          <h2 id="try-heading" className="dv-display dv-h2 mt-4 text-balance text-[2.125rem] leading-[1.08] text-dv-ink sm:text-[2.75rem] lg:text-[3.25rem]">
             {copy.heading}
           </h2>
           <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{copy.text}</p>
@@ -256,7 +250,6 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
         </div>
 
         <div className="relative [grid-area:phone]">
-          <div aria-hidden="true" className="absolute left-1/2 top-1/2 -z-10 h-[24rem] w-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30 blur-3xl transition-colors duration-500" style={{ background: color }} />
           <div ref={previewBox} className="mx-auto w-full max-w-[14.5rem] sm:max-w-[18rem]">
             {showPreview ? (
               <LivePreview

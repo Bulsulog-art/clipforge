@@ -38,6 +38,39 @@
   font-feature-settings: "kern", "liga";
 }
 
+/* The one eyebrow style: small caps in teal, no pill, no icon. */
+:where(.dv) .dv-eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  color: var(--dv-teal);
+}
+/* Text links that are actions (secondary to the one primary button on a screen). */
+:where(.dv) .dv-link {
+  color: var(--dv-teal);
+  text-decoration-line: underline;
+  text-decoration-color: rgba(15, 92, 92, 0.3);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease;
+}
+:where(.dv) .dv-link:hover {
+  text-decoration-color: currentColor;
+}
+/* Prices: the sans, tabular figures (never the display serif). */
+:where(.dv) .dv-price {
+  font-family: var(--dv-font-sans), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+/* German and Turkish run long: let body text hyphenate where the page says which language it is. */
+.dv :lang(de) :is(p, li, dd, td),
+.dv :lang(pl) :is(p, li, dd, td) {
+  hyphens: auto;
+}
+
 /* Buttons */
 :where(.dv) .dv-btn {
   display: inline-flex;
@@ -157,8 +190,9 @@
 
 /* Gentle entrance and float, only when motion is welcome. */
 @media (prefers-reduced-motion: no-preference) {
+  /* The page's one entrance: the hero copy rises once, never from invisible (it holds the LCP text). */
   :where(.dv) .dv-rise {
-    animation: dv-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation: dv-rise 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
   :where(.dv) .dv-rise-2 {
     animation: dv-rise 0.8s 0.12s cubic-bezier(0.2, 0.7, 0.2, 1) both;
@@ -175,8 +209,8 @@
 }
 @keyframes dv-rise {
   from {
-    opacity: 0;
-    transform: translateY(14px);
+    opacity: 0.4;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;

@@ -158,6 +158,9 @@ const SAMPLES: Partial<Record<Locale, string[]>> = {
   es: ["limpieza-dental", "cuidado-encias", "primer-diente"],
   fr: ["detartrage", "blanchiment-email", "gencives-qui-saignent"],
   tr: ["dis-tasi-temizligi", "beyazlatma-hassasiyet", "implant-asamalari"],
+  ja: ["tsumetai-mono-de-shimiru", "mouthpiece-shokuji", "ha-ga-nuketa-mama"],
+  ar: ["tafrish-qawi", "nazif-allitha", "qahwa-baad-altabyid"],
+  pl: ["bol-po-lodach", "wybielanie-przed-slubem", "pierwsza-wizyta-dziecka"],
 };
 
 type Copy = { titles: string[]; caption: string; tags: string[]; rejected: string };
