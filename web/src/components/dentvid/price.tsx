@@ -1,7 +1,6 @@
 import type { Locale } from "@/content/dentvideo-locales";
 import { DV_CURRENCIES, DV_TAX_LABEL, dvLowestPrice, dvTierPrice, formatDvPrice, type DvCurrency, type DvPricedTier, type DvTaxKind } from "@/lib/dentvid/pricing";
-import { priceBootScript } from "@/lib/dentvid/price-boot";
-import { PriceRegion as AskGeo } from "./price-region";
+import { PriceRegion } from "./price-region";
 
 /**
  * Prices on the public pages, in the currency the visitor will be charged in.
@@ -66,16 +65,4 @@ export function CurrencyNote({ template }: { template: string }) {
   return <Variants render={(c) => template.replace("{currency}", c === "TRY" ? "TL" : c)} />;
 }
 
-/**
- * Place before the page's first price. An inline script sets <html data-dv-cur> from the time zone
- * while the page is parsed (lib/dentvid/price-boot.ts), so the first paint is already in the likely
- * currency; the client component then confirms it with the IP-based country.
- */
-export function PriceRegion({ locale }: { locale: Locale }) {
-  return (
-    <>
-      <script dangerouslySetInnerHTML={{ __html: priceBootScript(locale) }} />
-      <AskGeo locale={locale} />
-    </>
-  );
-}
+export { PriceRegion };

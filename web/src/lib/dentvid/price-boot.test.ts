@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { LOCALES } from "@/content/dentvideo";
-import { priceBootScript } from "./price-boot";
+import { PRICE_BOOT_SCRIPT } from "./price-boot";
 import { dvPriceContext, guessCountry } from "./price-region";
 
 /** Runs the inline script against a fake <html> and time zone; returns what it set. */
 function run(locale: string, timeZone: string, preset: Record<string, string> = {}) {
   const dataset: Record<string, string> = { ...preset };
   const fakeIntl = { DateTimeFormat: () => ({ resolvedOptions: () => ({ timeZone }) }) };
-  new Function("document", "Intl", priceBootScript(locale))({ documentElement: { dataset } }, fakeIntl);
+  new Function("document", "Intl", PRICE_BOOT_SCRIPT)({ documentElement: { dataset, lang: locale } }, fakeIntl);
   return dataset;
 }
 
@@ -30,6 +30,8 @@ describe("price boot script: the pre-paint currency is guessCountry() without th
 
   it("never overrides a currency already set, and never throws", () => {
     expect(run("en", "Europe/Istanbul", { dvCur: "USD", dvTax: "other" })).toEqual({ dvCur: "USD", dvTax: "other" });
-    expect(() => new Function("document", "Intl", priceBootScript("tr"))({ documentElement: { dataset: {} } }, {})).not.toThrow();
+    expect(() => new Function("document", "Intl", PRICE_BOOT_SCRIPT)({ documentElement: { dataset: {}, lang: "tr" } }, {})).not.toThrow();
+    // ClipForge's pages (lang="en") and unknown languages: only a TR / EU time zone sets anything.
+    expect(run("xx", "America/New_York")).toEqual({});
   });
 });

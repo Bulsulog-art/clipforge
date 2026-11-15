@@ -549,6 +549,8 @@ function Pricing({ locale }: { locale: Locale }) {
   const start = dvHref(`/dentvideo/start?lang=${locale}`);
   return (
     <section id="pricing" className="relative isolate mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
+      {/* Shows EUR / TL instead of USD where that is what Dodo charges the visitor (the hero's "from" price too). */}
+      <PriceRegion locale={locale} />
       <div aria-hidden="true" className="absolute left-1/2 top-16 -z-10 h-72 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
       <div className="text-center">
         <H2 className="mx-auto max-w-2xl">{p.heading}</H2>
@@ -747,9 +749,6 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
     <main lang={locale} dir={dirOf(locale)}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
-      {/* Shows EUR / TL instead of USD where that is what Dodo charges the visitor. Before the hero's
-          "from" price, so its currency is set before the first paint (no layout shift when it changes). */}
-      <PriceRegion locale={locale} />
       <LandingView locale={locale} />
       {/*
         The order tells one story: what it is (hero) → see it with your own logo, no account (the hero's main
