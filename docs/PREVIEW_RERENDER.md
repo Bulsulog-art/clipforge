@@ -180,7 +180,21 @@ No API call. The flawed text was fixed in each sample's saved `render-plan.json`
 - `es/limpieza-dental`: "Llega al borde de la encía." became "La limpieza llega al borde de la encía." (KM-16). Same timing, so the hero skip still holds. -14.3 LUFS.
 - `fr/blanchiment-email`: the cards "Évitez café et thé" and "Évitez vin rouge" now read "Évitez le café et le thé" and "Évitez le vin rouge" (KM-17). -14.7 LUFS.
 
-These still need a paid re-render, because the flaw is spoken: `de/aligner-verfaerbung` ("im Tray", KM-18), the `fr/blanchiment-email` narration ("évitez café, thé, vin rouge", KM-17), and the TR preview `aligners-seffaf-plak-ve-icecekler` ("rengi hemen dönmeye başladı mı?", KM-19). See `docs/KNOWN_MISTAKES.md`.
+These still needed a paid re-render, because the flaw is spoken; done in the sixth pass below.
+
+## Sixth pass (15.11.2026): the spoken known mistakes, TTS only
+
+The three samples whose narration carried a register mistake were fixed without generating a new script. For each, the reviewed `plan.json` of the published render was corrected, `scanKnownMistakes` and `week.ts scriptProblems` were run on it (no hit), and only the narration was synthesised again with `prepareNarration` (tts-1-hd, nova, mastered, cuts snapped to the new pauses). The render plan kept the original's brand colour, logo and backgrounds, and the video was rendered with `renderPlan` as `cli.ts --render` does. Compressed and postered as in the third pass.
+
+| Sample | Fix | Now |
+|---|---|---|
+| `de/aligner-verfaerbung` (KM-18) | "Im Tray" / "Ohne Tray" → "Mit Schiene" / "Ohne Schiene"; "Nur Wasser im Tray" → "Mit Schiene nur Wasser"; spoken "Darum im Tray nur Wasser, vorher ausspülen," → "Darum mit Schiene nur Wasser, vor dem Einsetzen ausspülen," | Hook unchanged ("Kaffee macht Aligner schneller gelb als gedacht."), 28 s, -14.3 LUFS |
+| `fr/blanchiment-email` (KM-17) | spoken "évitez café, thé, vin rouge, et suivez" → "évitez le café, le thé et le vin rouge, et suivez" (cards as in the fifth pass) | Hook unchanged ("Le blanchiment fragilise vraiment l’émail ?"), 27 s, -14.5 LUFS |
+| TR preview `aligners-seffaf-plak-ve-icecekler` (KM-19) | spoken "plağınızın rengi hemen dönmeye başladı mı?" → "plağınız hemen renk aldı mı?" | Hook unchanged, 25.7 s, -14.5 LUFS; library rebuilt with `build-dentvideo-preview.mts` (only this video changed) |
+
+Checked: a contact sheet per video (hook, every scene, the sign-off; dental photos only: aligner case, glass, aligner, whitening tray, chair; the TR md. 7/1-k notice), and a local Whisper transcript of each new narration, which has the corrected words. A first render of all three came out on the light default look because `plan.json` has no `brandColor` (the week adds it at render time); it was not published, and the published renders carry the clinics' colours like the originals.
+
+Spend: narration only, 1,199 characters at the tts-1-hd ceiling ($30/M): **$0.036** against a $0.60 cap. No chat call.
 
 ## Not changed on purpose
 

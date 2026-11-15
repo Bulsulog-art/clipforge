@@ -204,7 +204,7 @@ export function LegalPage({ kind, locale }: { kind: LegalKind; locale: Locale })
           </section>
         ))}
 
-        <nav aria-label={nav.legal} className="mt-16 border-t border-dv-line pt-6">
+        <nav aria-label={nav.documents} className="mt-16 border-t border-dv-line pt-6">
           {/* Touch screens: each link a full 44px row (they were ~18px tall); tighter with a mouse (lg). */}
           <ul className="flex flex-wrap gap-x-5 text-sm lg:gap-y-2">
             {LEGAL_KINDS.map((k) => (

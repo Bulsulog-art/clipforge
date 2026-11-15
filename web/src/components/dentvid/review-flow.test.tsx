@@ -9,7 +9,7 @@ vi.mock("next/navigation", () => ({
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LOCALES, type Locale } from "@/content/dentvideo";
-import { APP_TEXT, fmt } from "@/content/dentvideo-app";
+import { APP_TEXT, countText, fmt } from "@/content/dentvideo-app";
 import { Library, NextStep, type LibraryItem } from "./library";
 import { DeclineForm, PostPanel, ReviewPanel, postText } from "./review-player";
 import { POSTING_TEXT } from "@/content/dentvideo-posting";
@@ -42,7 +42,7 @@ describe("the week's review", () => {
     const t = APP_TEXT[l].library;
     const h = html(<Library locale={l} items={[item(), item(), item({ status: "flagged", reasons: ["wording"] }), item({ approval: "approved" })]} canStartWeek={false} currentWeek={WEEK} />);
     expect(h).toContain(t.review.start);
-    expect(h).toContain(fmt(APP_TEXT[l].library.approveAll, { n: 2 }));
+    expect(h).toContain(countText(APP_TEXT[l].library.approveAll, 2, l));
     expect(h).toContain(t.review.openPost);
     expect(h).toContain(t.whatToCheck);
     // The player is closed until a video is opened: no video element for it yet.
@@ -234,7 +234,7 @@ describe("a calm home: one status, one action", () => {
     // One primary button in the hero; "approve all" is the quiet option.
     const hero = h.slice(0, h.indexOf("</section>"));
     expect(hero.match(/dv-btn-primary/g)).toHaveLength(1);
-    expect(hero).toContain(fmt(APP_TEXT[l].library.approveAll, { n: 2 }));
+    expect(hero).toContain(countText(APP_TEXT[l].library.approveAll, 2, l));
     expect(h).not.toMatch(/\{\w+\}/);
   });
 
@@ -273,5 +273,27 @@ describe("a calm home: one status, one action", () => {
     const h = html(<ReviewPanel locale={l} item={r} queue={[r]} index={0} onIndex={() => {}} decide={noop} posted={false} onPosted={() => {}} />);
     expect(h).toContain(APP_TEXT[l].library.captionAndHashtags);
     expect(h).toContain("Zwei Minuten.\n\n#zahnarzt");
+  });
+});
+
+describe("the bulk approve button reads naturally for any count", () => {
+  const label = (l: Locale, n: number) => countText(APP_TEXT[l].library.approveAll, n, l);
+  it("English: one, both, all n", () => {
+    expect(label("en", 1)).toBe("Approve video");
+    expect(label("en", 2)).toBe("Approve both videos");
+    expect(label("en", 5)).toBe("Approve all 5 videos");
+  });
+  it("Polish follows its plural rules (3-4 filmy, 5+ filmów, 22 filmy)", () => {
+    expect(label("pl", 2)).toBe("Zatwierdź oba filmy");
+    expect(label("pl", 3)).toBe("Zatwierdź wszystkie 3 filmy");
+    expect(label("pl", 5)).toBe("Zatwierdź wszystkie 5 filmów");
+    expect(label("pl", 22)).toBe("Zatwierdź wszystkie 22 filmy");
+  });
+  it.each(LOCALES)("%s: no leftover placeholder, no 'ready', and 1, 2 and many differ", (l: Locale) => {
+    const [one, two, five] = [label(l, 1), label(l, 2), label(l, 5)];
+    for (const s of [one, two, five]) expect(s).not.toMatch(/\{\w+\}/);
+    expect(new Set([one, two, five]).size).toBe(3);
+    expect(one).not.toMatch(/\d/);
+    expect(five).toContain("5");
   });
 });

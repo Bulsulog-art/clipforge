@@ -197,7 +197,7 @@
   "status": "published",
   "language": "tr",
   "country": "TR",
-  "source": "r4/out-tr-al2/şeffaf-plak-ve-içecekler",
+  "source": "km2/out-tr/şeffaf-plak-ve-içecekler (the reviewed plan with the register fix, narration re-synthesised by TTS only, 2026-11-15)",
   "scenes": [
    {
     "kind": "hook",
@@ -230,10 +230,8 @@
     "text": "Şeffaf plak için size özel kuralı hekiminiz söyleyebilir."
    }
   ],
-  "narration": "Çayı yudumladınız, plağınızın rengi hemen dönmeye başladı mı? Şeffaf plak takılıyken yalnızca su için. Çay, kahve, meyve suyu ve diğer şekerli, asitli ya da sıcak içeceklerde plağı çıkarın. Bunlar altında kalırsa mine aşınması, çürük ve leke riski artar. İçtikten sonra dişlerinizi temizleyin, ardından plağı yeniden takın. Size özel kuralı kontrolünüzde hekiminiz söyler.",
-  "known": [
-   "KM-19"
-  ]
+  "narration": "Çayı yudumladınız, plağınız hemen renk aldı mı? Şeffaf plak takılıyken yalnızca su için. Çay, kahve, meyve suyu ve diğer şekerli, asitli ya da sıcak içeceklerde plağı çıkarın. Bunlar altında kalırsa mine aşınması, çürük ve leke riski artar. İçtikten sonra dişlerinizi temizleyin, ardından plağı yeniden takın. Size özel kuralı kontrolünüzde hekiminiz söyler.",
+  "known": []
  },
  {
   "id": "en/caring-for-clear-aligners",
@@ -387,7 +385,7 @@
   "status": "published",
   "language": "de",
   "country": "DE",
-  "source": "r4/out-de-al3/verfärbte-aligner",
+  "source": "km2/out-de/verfärbte-aligner (the reviewed plan with the register fix, narration re-synthesised by TTS only, 2026-11-15)",
   "scenes": [
    {
     "kind": "hook",
@@ -404,11 +402,11 @@
    {
     "kind": "compare",
     "left": {
-     "label": "Im Tray",
+     "label": "Mit Schiene",
      "text": "Getränke färben und belasten den Kunststoff."
     },
     "right": {
-     "label": "Ohne Tray",
+     "label": "Ohne Schiene",
      "text": "Zähne und Schiene lassen sich leichter sauber halten."
     }
    },
@@ -416,7 +414,7 @@
     "kind": "list",
     "heading": "So bleiben sie klar",
     "items": [
-     "Nur Wasser im Tray",
+     "Mit Schiene nur Wasser",
      "Ausspülen vor dem Einsetzen",
      "Nach dem Essen Zähne putzen"
     ]
@@ -430,10 +428,8 @@
     "text": "Fragen Sie bei der Kontrolle nach Flecken an Ihren Alignern."
    }
   ],
-  "narration": "Kennen Sie das? Kaffee macht Aligner oft schneller gelb, als man denkt. Meist stecken Farbe und Beläge dahinter. Beides setzt sich leicht fest. Mit Schiene können Getränke den Kunststoff verfärben und belasten. Ohne Schiene bleibt es meist leichter sauber. Darum im Tray nur Wasser, vorher ausspülen, nach dem Essen putzen. Halten Sie sich an unsere Hinweise und fragen Sie bei der Kontrolle nach Flecken.",
-  "known": [
-   "KM-18"
-  ]
+  "narration": "Kennen Sie das? Kaffee macht Aligner oft schneller gelb, als man denkt. Meist stecken Farbe und Beläge dahinter. Beides setzt sich leicht fest. Mit Schiene können Getränke den Kunststoff verfärben und belasten. Ohne Schiene bleibt es meist leichter sauber. Darum mit Schiene nur Wasser, vor dem Einsetzen ausspülen, nach dem Essen putzen. Halten Sie sich an unsere Hinweise und fragen Sie bei der Kontrolle nach Flecken.",
+  "known": []
  },
  {
   "id": "de/bleaching-zahnschmelz",
@@ -791,7 +787,7 @@
   "status": "published",
   "language": "fr",
   "country": "FR",
-  "source": "r4/out-fr1-b/blanchiment-et-émail (cards fixed and re-rendered without LLM/TTS, 2026-11-15; the narration still says \"évitez café, thé, vin rouge\")",
+  "source": "km2/out-fr/blanchiment-et-émail (the reviewed plan with the register fix, narration re-synthesised by TTS only, 2026-11-15)",
   "scenes": [
    {
     "kind": "hook",
@@ -834,10 +830,8 @@
     "text": "Si la sensibilité dure, demandez quel protocole de blanchiment vous convient."
    }
   ],
-  "narration": "Le blanchiment, ça fragilise vraiment l’émail ? Pas tout à fait. Ça agit surtout sur les pigments. Quand c’est fait ou encadré par un dentiste, l’émail n’est généralement pas abîmé. Le résultat attendu, ce sont des dents plus claires. L’effet le plus courant, c’est une sensibilité passagère. Ensuite, évitez café, thé, vin rouge, et suivez bien les consignes. Si ça dure, on voit ensemble ce qui vous convient.",
-  "known": [
-   "KM-17"
-  ]
+  "narration": "Le blanchiment, ça fragilise vraiment l’émail ? Pas tout à fait. Ça agit surtout sur les pigments. Quand c’est fait ou encadré par un dentiste, l’émail n’est généralement pas abîmé. Le résultat attendu, ce sont des dents plus claires. L’effet le plus courant, c’est une sensibilité passagère. Ensuite, évitez le café, le thé et le vin rouge, et suivez bien les consignes. Si ça dure, on voit ensemble ce qui vous convient.",
+  "known": []
  },
  {
   "id": "fr/detartrage",
