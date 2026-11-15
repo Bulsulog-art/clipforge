@@ -82,6 +82,19 @@ function FlagShapes({ code }: { code: RuleMarket["code"] }) {
           <rect y="10" width="30" height="10" fill="#DC143C" />
         </>
       );
+    case "GB":
+      // Union Flag, simplified (the red saltire is not counterchanged at this size).
+      return (
+        <>
+          <rect width="30" height="20" fill="#012169" />
+          <path d="M0 0L30 20M30 0L0 20" stroke="#fff" strokeWidth="4" />
+          <path d="M0 0L30 20M30 0L0 20" stroke="#C8102E" strokeWidth="1.4" />
+          <rect x="12" width="6" height="20" fill="#fff" />
+          <rect y="7" width="30" height="6" fill="#fff" />
+          <rect x="13.25" width="3.5" height="20" fill="#C8102E" />
+          <rect y="8.25" width="30" height="3.5" fill="#C8102E" />
+        </>
+      );
     case "SG":
       return (
         <>

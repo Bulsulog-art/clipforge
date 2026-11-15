@@ -54,7 +54,7 @@ function Cta({ locale, where }: { locale: Locale; where: string }) {
           {ui.cta.button}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
         </Link>
-        <Link href={dvHref(`${LANDING_PATH[locale]}#pricing`)} className="rounded-md text-sm font-semibold text-[#8fd1c6] underline-offset-4 hover:underline">
+        <Link href={dvHref(`${LANDING_PATH[locale]}#pricing`)} className="inline-flex min-h-11 items-center rounded-md text-sm font-semibold text-[#8fd1c6] underline-offset-4 hover:underline">
           {ui.cta.secondary}
         </Link>
       </div>
@@ -66,19 +66,30 @@ function Seconds({ locale, seconds }: { locale: Locale; seconds: number }) {
   return <span className="tabular-nums">{EXAMPLES_UI[locale].seconds.replace("{s}", String(Math.round(seconds)))}</span>;
 }
 
-function ExampleCard({ e }: { e: ExampleVideo }) {
+/**
+ * `row`: on phones the poster sits beside the title (a full-width 9:16 poster per card made the
+ * hub's first three videos over two thousand pixels tall); from sm up it stacks like the others.
+ */
+function ExampleCard({ e, row = false }: { e: ExampleVideo; row?: boolean }) {
   const s = sampleOf(e);
   return (
-    <Link href={dvHref(examplePath(e))} className="dv-card group flex h-full flex-col overflow-hidden p-4" lang={e.locale} dir={dirOf(e.locale)}>
+    <Link
+      href={dvHref(examplePath(e))}
+      className={`dv-card group flex h-full overflow-hidden p-4 ${row ? "items-center gap-4 sm:flex-col sm:items-stretch sm:gap-0" : "flex-col"}`}
+      lang={e.locale}
+      dir={dirOf(e.locale)}
+    >
       {/* The poster only: the card links to the video's page, where it plays. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading="lazy" decoding="async" className="aspect-[9/16] w-full rounded-xl bg-dv-sand object-cover" />
-      <span className="mt-4 flex items-start justify-between gap-3">
-        <span className="font-semibold leading-snug text-dv-ink">{s.name}</span>
-        <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100" aria-hidden="true" />
-      </span>
-      <span className="mt-1 text-sm text-dv-muted">
-        <Seconds locale={e.locale} seconds={s.seconds} />
+      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading="lazy" decoding="async" className={`aspect-[9/16] rounded-xl bg-dv-sand object-cover ${row ? "w-24 shrink-0 sm:w-full" : "w-full"}`} />
+      <span className={`flex min-w-0 flex-1 flex-col ${row ? "sm:mt-4" : "mt-4"}`}>
+        <span className="flex items-start justify-between gap-3">
+          <span className="font-semibold leading-snug text-dv-ink">{s.name}</span>
+          <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
+        </span>
+        <span className="mt-1 text-sm text-dv-muted">
+          <Seconds locale={e.locale} seconds={s.seconds} />
+        </span>
       </span>
     </Link>
   );
@@ -113,7 +124,7 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
           <ul className="grid gap-5 sm:grid-cols-3" data-testid="examples-own">
             {mine.map((e) => (
               <li key={e.slug}>
-                <ExampleCard e={e} />
+                <ExampleCard e={e} row />
               </li>
             ))}
           </ul>
@@ -234,7 +245,7 @@ export function ExampleView({ e }: { e: ExampleVideo }) {
             <ul className="mt-3 flex flex-wrap gap-3">
               {translations.map((o) => (
                 <li key={o.slug}>
-                  <Link href={dvHref(examplePath(o))} hrefLang={o.locale} lang={o.locale} dir={dirOf(o.locale)} className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-dv-teal ring-1 ring-dv-line hover:ring-dv-teal">
+                  <Link href={dvHref(examplePath(o))} hrefLang={o.locale} lang={o.locale} dir={dirOf(o.locale)} className="inline-flex min-h-11 items-center rounded-2xl bg-white px-4 py-2 text-sm font-semibold leading-snug text-dv-teal ring-1 ring-dv-line transition-shadow hover:ring-dv-teal">
                     {LANGUAGE_NAME[o.locale]}: {sampleOf(o).name}
                   </Link>
                 </li>
@@ -251,8 +262,8 @@ export function ExampleView({ e }: { e: ExampleVideo }) {
                 <ExampleCard e={o} />
               </li>
             ))}
-            <li className="flex">
-              <Link href={dvHref(EXAMPLES_PATH[L])} className="dv-card flex w-full items-center justify-center p-5 text-center font-semibold text-dv-teal">
+            <li className="col-span-2 flex sm:col-span-1">
+              <Link href={dvHref(EXAMPLES_PATH[L])} className="dv-card flex min-h-14 w-full items-center justify-center p-5 text-center font-semibold text-dv-teal">
                 {ui.seeAll}
               </Link>
             </li>
