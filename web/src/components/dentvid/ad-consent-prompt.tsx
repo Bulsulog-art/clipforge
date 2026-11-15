@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchDvGeo } from "@/lib/dentvid/geo-client";
 import { clickFrom, declineAdClick, declinedInTab, readAdClick, storeAdClick, type ClickType } from "@/lib/dentvid/ad-click";
+import { isInternalBrowser } from "@/lib/dentvid/internal-flag";
 
 /**
  * The Google Ads click id and its consent prompt. Loaded on demand by
@@ -68,6 +69,8 @@ export function AdConsent() {
     try {
       const click = clickFrom(window.location.search);
       if (!click) return;
+      // Internal traffic (owner, QA, e2e; lib/dentvid/internal-flag): never keep an ad click — QA used test gclids.
+      if (isInternalBrowser()) return;
       // Already stored (a reload of the ad's URL) or declined in this tab: do not ask again.
       if (readAdClick()?.id === click.id || declinedInTab()) return;
       const at = Date.now();

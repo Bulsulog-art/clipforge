@@ -6,6 +6,7 @@ import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { limitChecks } from "@/lib/rate-limit-server";
 import { hotStepForEvent } from "@/lib/dentvid/hot-leads";
 import { demoRequestSkip, raiseHotLead } from "@/lib/dentvid/hot-leads-server";
+import { isInternalUser } from "@/lib/dentvid/internal-traffic";
 
 /**
  * POST /api/dentvideo/event — first-party funnel events from the browser
@@ -40,6 +41,8 @@ export async function POST(req: Request) {
       if (user) {
         const { data } = await db.from("dentvid_clinics").select("id").eq("owner_id", user.id).maybeSingle();
         row.clinic_id = (data?.id as string | undefined) ?? null;
+        // The session is read anyway: an internal account tags its events even from an unflagged browser.
+        if (isInternalUser(user)) row.props.internal = true;
       }
     } catch {
       // no session / backend: the event still counts, without a clinic

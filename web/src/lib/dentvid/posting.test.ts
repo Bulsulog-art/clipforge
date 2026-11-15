@@ -47,7 +47,7 @@ describe("schedule", () => {
     expect(slotsFor("bad", 3, "en")).toEqual([]);
   });
 
-  it("gives each postable video of the week a slot, in the order they were made; declined and failed ones get none", () => {
+  it("gives each postable video of the week a slot; declined and failed ones get none", () => {
     const items = [
       { id: "a", status: "ready", approval: "pending", week_of: "2026-11-09" },
       { id: "b", status: "flagged", approval: "pending", week_of: "2026-11-09" },
@@ -58,7 +58,28 @@ describe("schedule", () => {
     ];
     const m = weekSchedule(items, "2026-11-09", "en");
     expect([...m.keys()]).toEqual(["a", "b", "d"]);
-    expect([...m.values()].map((s) => s.weekday)).toEqual([0, 2, 4]);
+    expect([...m.values()].map((s) => s.weekday)).toEqual([0, 1, 4]);
+  });
+
+  it("is stable: approving or declining a video, or listing them in another order, moves no other slot", () => {
+    const W = "2026-11-09";
+    const base = ["e1", "c3", "a9", "b2", "d4"].map((id) => ({ id, status: "ready", approval: "pending", week_of: W }));
+    const before = weekSchedule(base, W, { country: "DE", locale: "de" });
+    const decided = base.map((i, n) => ({ ...i, approval: n === 0 ? "rejected" : n === 1 ? "approved" : "pending" }));
+    const after = weekSchedule([...decided].reverse(), W, { country: "DE", locale: "de" });
+    for (const [id, slot] of after) expect(slot).toEqual(before.get(id));
+    expect(after.has("e1")).toBe(false);
+  });
+
+  it("times follow the clinic's country, not the interface language", () => {
+    const W = "2026-11-09";
+    const items = [{ id: "a", status: "ready", approval: "pending", week_of: W }, { id: "b", status: "ready", approval: "pending", week_of: W }];
+    // A German clinic reading the app in English still gets German times; a Spanish-speaking clinic in the US gets US times.
+    expect([...weekSchedule(items, W, { country: "DE", locale: "en" }).values()]).toEqual([...weekSchedule(items, W, { country: "DE", locale: "de" }).values()]);
+    expect([...weekSchedule(items, W, { country: "US", locale: "es" }).values()].map((s) => s.time)).toEqual([...weekSchedule(items, W, "en").values()].map((s) => s.time));
+    expect([...weekSchedule(items, W, { country: "ES", locale: "en" }).values()]).toEqual([...weekSchedule(items, W, "es").values()]);
+    // Unknown country: the language decides.
+    expect([...weekSchedule(items, W, { country: "ZZ", locale: "tr" }).values()]).toEqual([...weekSchedule(items, W, "tr").values()]);
   });
 
   it("labels a slot with the weekday in the clinic's language", () => {

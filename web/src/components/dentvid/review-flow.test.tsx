@@ -13,6 +13,7 @@ import { APP_TEXT, fmt } from "@/content/dentvideo-app";
 import { Library, NextStep, type LibraryItem } from "./library";
 import { DeclineForm, PostPanel, ReviewPanel, postText } from "./review-player";
 import { POSTING_TEXT } from "@/content/dentvideo-posting";
+import { REASON_TEXT } from "@/content/dentvideo-reasons";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -27,7 +28,7 @@ const item = (over: Partial<LibraryItem> = {}): LibraryItem => ({
   week_of: WEEK,
   caption: "Two minutes, twice a day.",
   hashtags: ["dentist", "brushing"],
-  findings: [],
+  reasons: [],
   videoUrl: "/v.mp4",
   thumbUrl: "/v.jpg",
   ...over,
@@ -39,7 +40,7 @@ const noop = async () => true;
 describe("the week's review", () => {
   it.each(LOCALES)("%s: the library offers to watch and approve, and approved cards lead to posting", (l: Locale) => {
     const t = APP_TEXT[l].library;
-    const h = html(<Library locale={l} items={[item(), item(), item({ status: "flagged", findings: ["Check the claim"] }), item({ approval: "approved" })]} canStartWeek={false} currentWeek={WEEK} />);
+    const h = html(<Library locale={l} items={[item(), item(), item({ status: "flagged", reasons: ["wording"] }), item({ approval: "approved" })]} canStartWeek={false} currentWeek={WEEK} />);
     expect(h).toContain(t.review.start);
     expect(h).toContain(fmt(APP_TEXT[l].library.approveAll, { n: 2 }));
     expect(h).toContain(t.review.openPost);
@@ -89,11 +90,11 @@ describe("the week's review", () => {
 
   it.each(LOCALES)("%s: a video waiting for a decision shows approve and decline, with what to check", (l: Locale) => {
     const t = APP_TEXT[l].library;
-    const it1 = item({ status: "flagged", findings: ["Says “whiter in one visit”"] });
+    const it1 = item({ status: "flagged", reasons: ["pause"] });
     const h = html(<ReviewPanel locale={l} item={it1} queue={[it1]} index={0} onIndex={() => {}} decide={noop} posted={false} onPosted={() => {}} />);
     expect(h).toContain(t.approve);
     expect(h).toContain(t.decline);
-    expect(h).toContain("Says “whiter in one visit”");
+    expect(h).toContain(REASON_TEXT[l].pause);
     expect(h).toContain(t.state.look);
   });
 
@@ -182,5 +183,31 @@ describe("the new words", () => {
       for (const s of steps) expect(s.trim().length).toBeGreaterThan(5);
     }
     expect(p.platforms.whatsapp).toMatch(/WhatsApp|واتساب/);
+  });
+});
+
+describe("right-to-left", () => {
+  it("play icons are never mirrored (media controls stay LTR), and content titles carry dir=auto", () => {
+    const h = html(<Library locale="ar" items={[item({ title: "Tut Zahnreinigung weh?" }), item({ status: "flagged" })]} canStartWeek={false} currentWeek={WEEK} />);
+    expect(h).not.toMatch(/lucide-play[^"]*"[^>]*rtl:-scale-x-100|rtl:-scale-x-100[^"]*"[^>]*lucide-play/);
+    expect(h).not.toMatch(/<svg[^>]*class="[^"]*lucide-play[^"]*rtl:-scale-x-100/);
+    expect(h).toContain("lucide-play");
+    expect(h).toMatch(/<h3 dir="auto"[^>]*>Tut Zahnreinigung weh\?<\/h3>/);
+  });
+});
+
+describe("reasons a clinic reads", () => {
+  it.each(LOCALES)("%s: flagged and not-made items show the localized reason, never the raw note", (l: Locale) => {
+    const h = html(
+      <Library
+        locale={l}
+        items={[item({ status: "flagged", reasons: ["pause"] }), item({ status: "rejected", title: "Topic X", reasons: ["skipped"], videoUrl: undefined })]}
+        canStartWeek={false}
+        currentWeek={WEEK}
+      />,
+    );
+    expect(h).toContain(REASON_TEXT[l].pause);
+    expect(h).toContain(REASON_TEXT[l].skipped);
+    expect(h).not.toMatch(/quality:|of silence|repeats/);
   });
 });

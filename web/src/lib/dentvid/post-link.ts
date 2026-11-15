@@ -48,7 +48,7 @@ export type PostItem = {
 };
 
 export interface PostLinkStore {
-  clinic(id: string): Promise<{ plan: string; language: string | null } | null>;
+  clinic(id: string): Promise<{ plan: string; language: string | null; country?: string | null } | null>;
   /** The clinic's generated videos of that week, oldest first (for the posting schedule). */
   week(clinicId: string, week: string): Promise<PostItem[]>;
   /** Approves exactly this video if it is still ready + pending in that clinic and week; true when it changed. */
@@ -86,7 +86,7 @@ export async function loadPostView(t: string | null | undefined, v: string | nul
   const urls = await deps.store.signed([item.video_path, ...(item.thumb_path ? [item.thumb_path] : [])], POST_PAGE_URL_TTL_S);
   const videoUrl = urls.get(item.video_path);
   if (!videoUrl) return { state: "nothing", locale };
-  const slot = weekSchedule(items, tok.week, locale).get(item.id);
+  const slot = weekSchedule(items, tok.week, { country: clinic.country, locale }).get(item.id);
   return {
     state: "ready",
     locale,
@@ -137,7 +137,8 @@ export function supabasePostLinkStore(db: Db, bucket: string): PostLinkStore {
     async clinic(id) {
       const { data } = await db.from("dentvid_clinics").select("plan, profile").eq("id", id).maybeSingle();
       if (!data) return null;
-      return { plan: String(data.plan), language: ((data.profile ?? {}) as { language?: string }).language ?? null };
+      const profile = (data.profile ?? {}) as { language?: string; country?: string };
+      return { plan: String(data.plan), language: profile.language ?? null, country: profile.country ?? null };
     },
     async week(clinicId, week) {
       // "*": posted_at (0012) may not exist yet.

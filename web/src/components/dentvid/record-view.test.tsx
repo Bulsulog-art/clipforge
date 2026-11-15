@@ -17,6 +17,28 @@ import { LOCALES } from "@/content/dentvideo";
 
 const starter: ClinicPlan = { plan: "active", tier: "starter", renewsAt: null, canMake: true };
 
+describe("record screen for a clinic with no plan", () => {
+  it.each([null, { plan: "trial", tier: null, renewsAt: null, canMake: false }, { plan: "cancelled", tier: "practice", renewsAt: null, canMake: false }] as (ClinicPlan | null)[])(
+    "shows the Practice upsell before any upload UI (%o)",
+    (plan) => {
+      const t = appText("en").record;
+      const html = renderToStaticMarkup(<RecordView locale="en" cards={[]} plan={plan} selfServe />);
+      expect(html).toContain(t.starterTitle);
+      expect(html).toContain('data-testid="choose-plan"');
+      expect(html).toMatch(/href="[^"]*\/app#plans"/);
+      expect(html).toContain("Choose Practice");
+      // No upload form: nothing to pick a file with.
+      expect(html).not.toContain('type="file"');
+    },
+  );
+
+  it("a Practice clinic gets the upload form", () => {
+    const html = renderToStaticMarkup(<RecordView locale="en" cards={[]} plan={{ plan: "active", tier: "practice", renewsAt: null, canMake: true }} />);
+    expect(html).toContain('type="file"');
+    expect(html).not.toContain('data-testid="choose-plan"');
+  });
+});
+
 describe("record screen for a Starter clinic", () => {
   it("with self-serve billing, the upgrade goes to Settings → Plan and billing (no email round trip)", () => {
     const html = renderToStaticMarkup(<RecordView locale="de" cards={[]} plan={starter} selfServe />);

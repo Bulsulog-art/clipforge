@@ -2,7 +2,8 @@ import { AdminClinics } from "@/components/dentvid/admin-screens";
 import { requireAdmin } from "@/lib/dentvid/admin-server";
 import { loadClinicsList } from "@/lib/dentvid/admin-loaders";
 import { parseClinicFilter } from "@/lib/dentvid/admin-filters";
-import { backPath, flashOf, siteAdminLinks } from "@/lib/dentvid/admin-links";
+import { backPath, flashOf, internalView, siteAdminLinks } from "@/lib/dentvid/admin-links";
+import { includeInternalParam } from "@/lib/dentvid/internal-traffic";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,8 @@ export const dynamic = "force-dynamic";
 export default async function AdminClinicsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const viewer = await requireAdmin();
   const sp = await searchParams;
-  const data = await loadClinicsList();
+  // Internal accounts' clinics (owner, QA, e2e) are left out unless ?internal=1.
+  const data = await loadClinicsList(new Date(), { includeInternal: includeInternalParam(sp.internal) });
   return (
     <AdminClinics
       now={data.now}
@@ -21,6 +23,7 @@ export default async function AdminClinicsPage({ searchParams }: { searchParams:
       viewer={viewer}
       flash={flashOf(sp)}
       back={backPath("/dentvideo/admin/clinics", sp)}
+      internal={internalView("/dentvideo/admin/clinics", sp, data.internal)}
     />
   );
 }

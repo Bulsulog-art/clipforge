@@ -16,6 +16,7 @@ import { FieldError, ValidatingForm } from "./validating-form";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
 import { readAdClick } from "@/lib/dentvid/ad-click";
+import { isInternalBrowser } from "@/lib/dentvid/internal-flag";
 import { rememberDemo } from "@/lib/dentvid/demo-cookie";
 import { passwordTooLong } from "@/lib/dentvid/password";
 import { resetRequestOutcome, signedOutMode, stepAfterSignIn } from "@/lib/dentvid/start-mode";
@@ -118,7 +119,9 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
         // instead of refusing a real person.
         const elapsed = Date.now() - openedAt.current;
         if (elapsed < 2700) await wait(2700 - elapsed);
-        const adClick = readAdClick();
+        // Internal traffic (owner, QA, e2e): the account is marked internal and no ad click is sent (lib/dentvid/internal-flag).
+        const internal = isInternalBrowser();
+        const adClick = internal ? null : readAdClick();
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -131,6 +134,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
             attribution: readAttribution(),
             // A Google ad click we may keep (consented, or no consent needed): see lib/dentvid/ad-click.
             ...(adClick ? { adClick } : {}),
+            ...(internal ? { internal: true } : {}),
             ...(captcha ? { turnstile: captcha } : {}),
           }),
         });

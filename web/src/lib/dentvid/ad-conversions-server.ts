@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { CLICK_ID, CLICK_TYPES, type AdClick, type ClickConsent, type ClickType } from "./ad-click";
 import { AD_CONVERSIONS, paidConversionValue, withinWindow, type AdConversionName, type AdConversionRow } from "./ad-conversions";
 import { dvAdmin } from "./supabase";
+import { ownerIsInternal } from "./internal-server";
 
 /**
  * The database side of ad measurement (migration 0019): one click per
@@ -93,8 +94,15 @@ export async function recordSignupClick(ownerId: string, click: AdClick, now = n
  * A clinic's first payment (billing-webhook, first activation): the paid
  * conversion, if its owner came from an ad click we still hold.
  */
-export async function recordPaidConversion(db: SupabaseClient, clinic: { id: string; owner_id: string }, now = new Date()): Promise<"recorded" | "no click" | "outside window" | "failed"> {
+export async function recordPaidConversion(
+  db: SupabaseClient,
+  clinic: { id: string; owner_id: string },
+  now = new Date(),
+  isInternal: (db: SupabaseClient, ownerId: string) => Promise<boolean> = ownerIsInternal,
+): Promise<"recorded" | "no click" | "outside window" | "internal" | "failed"> {
   try {
+    // Internal traffic (owner, QA, e2e; lib/dentvid/internal-traffic) never reaches Google Ads — even with a click stored.
+    if (await isInternal(db, clinic.owner_id)) return "internal";
     const { data, error } = await db.from(CLICKS).select("click_type, click_id, consent, clicked_at").eq("owner_id", clinic.owner_id).maybeSingle();
     if (error) {
       if (!missing(error)) console.warn("[dentvideo ads] click lookup failed", error.message);

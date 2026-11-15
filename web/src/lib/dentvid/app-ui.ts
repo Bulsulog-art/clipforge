@@ -139,16 +139,6 @@ export function delayNote(delay: "retrying" | "delayed" | null | undefined, this
   return s.look + s.review + s.approved > 0 ? null : delay;
 }
 
-/**
- * What a clinic may read about a video: the reviewers' reasons. Technical
- * failures are recorded for the owner only (dentvid_items.error); this also
- * hides the ones older rows still carry in their findings.
- */
-const TECHNICAL = [/^could not produce:/i, /^the video file is missing$/i, /^could not store/i];
-export function clinicFindings(findings: string[] | null | undefined): string[] {
-  return (findings ?? []).filter((f) => typeof f === "string" && !TECHNICAL.some((r) => r.test(f.trim())));
-}
-
 /** Ready videos that one tap can approve. Ones marked for a look are left out on purpose — they need the dentist's eyes. */
 export function approvableIds(items: LibraryItem[]): string[] {
   return items.filter((i) => cardState(i) === "review").map((i) => i.id);

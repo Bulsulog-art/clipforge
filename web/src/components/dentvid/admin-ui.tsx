@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, CircleCheck, Info } from "lucide-react";
 import { ADMIN_SECTIONS, type AdminSection } from "@/lib/dentvid/admin-nav";
 import { ACTION_MESSAGES, isActionCode, type ActionCode } from "@/lib/dentvid/admin-actions";
+import { InternalMark } from "./internal-mark";
 
 /**
  * Building blocks of the owner admin panel: the shell (navigation, flash,
@@ -40,6 +41,29 @@ export const ACTION_URL = "/api/dentvideo/admin/action";
 
 export type Viewer = { email: string; csrf: string };
 
+/** The internal-traffic switch of a data screen (lib/dentvid/internal-traffic; admin-links internalView). */
+export type InternalView = { included: boolean; excluded: { clinics: number; events: number; items: number }; includeHref: string; excludeHref: string };
+
+/** "Internal traffic: excluded (…) · include" — internal traffic is left out unless asked for. */
+export function InternalSwitch({ view }: { view: InternalView }) {
+  const { excluded: x } = view;
+  const counted = [x.events ? `${int(x.events)} events` : "", x.clinics ? `${int(x.clinics)} clinics` : ""].filter(Boolean).join(", ");
+  return (
+    <p className="mt-4 flex flex-wrap items-center gap-2 text-xs text-dv-muted" data-internal={view.included ? "included" : "excluded"}>
+      <span>
+        Internal traffic (owner, QA, e2e, monitor):{" "}
+        <strong className="font-semibold text-dv-ink">{view.included ? "included" : `excluded${counted ? ` (${counted})` : ""}`}</strong>
+      </span>
+      <Chip href={view.excludeHref} on={!view.included}>
+        Exclude
+      </Chip>
+      <Chip href={view.includeHref} on={view.included}>
+        Include
+      </Chip>
+    </p>
+  );
+}
+
 export function AdminShell({
   active,
   title,
@@ -50,8 +74,10 @@ export function AdminShell({
   flash,
   warnings = [],
   right,
+  internal,
   children,
 }: {
+  internal?: InternalView;
   active: AdminSection;
   title: string;
   lead?: React.ReactNode;
@@ -67,6 +93,8 @@ export function AdminShell({
   const good = code && /^(week_queued|week_promoted|video_requeued|recording_requeued|ready_sent|comp_recorded|paused|unpaused|job_retried)$/.test(code);
   return (
     <main lang="en" className="relative isolate min-h-screen overflow-x-hidden" data-admin={active}>
+      {/* Only admins see this shell: their browser is internal traffic (lib/dentvid/internal-flag). */}
+      <InternalMark />
       <div aria-hidden="true" className="dv-grid absolute inset-x-0 top-0 -z-10 h-[20rem]" />
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-5 sm:px-6 sm:pt-8">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-dv-muted">
@@ -114,6 +142,7 @@ export function AdminShell({
           </div>
           {right}
         </header>
+        {internal && <InternalSwitch view={internal} />}
         {children}
       </div>
     </main>

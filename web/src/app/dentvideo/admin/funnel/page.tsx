@@ -3,7 +3,8 @@ import { loadAdminData, requireAdmin } from "@/lib/dentvid/admin-server";
 import { parseRange } from "@/lib/dentvid/admin-filters";
 import { asCountryFilter } from "@/lib/dentvid/admin-metrics";
 import { asLocale } from "@/lib/dentvid/locale";
-import { backPath, flashOf, siteAdminLinks } from "@/lib/dentvid/admin-links";
+import { backPath, flashOf, internalView, siteAdminLinks } from "@/lib/dentvid/admin-links";
+import { includeInternalParam } from "@/lib/dentvid/internal-traffic";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,8 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
   const now = new Date();
   const range = parseRange(sp, now);
   const eventDays = Math.ceil((now.getTime() - range.from.getTime()) / 86_400_000) + 1;
-  const data = await loadAdminData(now, { eventDays });
+  // Internal traffic (owner, QA, e2e, monitor) is left out unless ?internal=1.
+  const data = await loadAdminData(now, { eventDays, includeInternal: includeInternalParam(sp.internal) });
   return (
     <AdminFunnelScreen
       data={data}
@@ -27,6 +29,7 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
       viewer={viewer}
       flash={flashOf(sp)}
       back={backPath("/dentvideo/admin/funnel", sp)}
+      internal={internalView("/dentvideo/admin/funnel", sp, data.internal)}
     />
   );
 }

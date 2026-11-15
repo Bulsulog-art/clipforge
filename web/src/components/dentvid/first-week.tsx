@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Loader2, Mail, RotateCcw } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
+import { firstWeekStuck, type FirstWeekJob } from "@/lib/dentvid/first-week-state";
 
 /**
  * Right after payment: "your first week is being made". The payment webhook
@@ -18,12 +19,18 @@ export function FirstWeek({
   paid,
   pollMs = 10_000,
   delay = null,
+  week,
+  job,
 }: {
   locale: Locale;
   paid: boolean;
   pollMs?: number;
   /** The first week's run is being retried / is delayed: one calm, honest line. */
   delay?: "retrying" | "delayed" | null;
+  /** The week being made (YYYY-MM-DD): this browser remembers when it first showed the card for it. */
+  week?: string;
+  /** The week's job as the server saw it (state null = not in the queue; undefined = the queue could not be asked). */
+  job?: FirstWeekJob;
 }) {
   const t = appText(locale).onboarding;
   const h = appText(locale).home;
@@ -46,9 +53,27 @@ export function FirstWeek({
   async function retry() {
     setRetrying(true);
     await fetch("/api/dentvideo/week", { method: "POST" }).catch(() => null);
+    // A fresh wait starts now: the "try again" goes away until it is slow again.
+    seenSince.current = Date.now();
+    remember(week, seenSince.current);
+    setStuck(false);
     router.refresh();
     setRetrying(false);
   }
+
+  // Much longer than the ~15 minutes promised, or the job went missing: a calm
+  // note and the same "try again" (lib/dentvid/onboarding firstWeekStuck).
+  // Worked out after mount (it depends on the clock and this browser's memory).
+  const seenSince = useRef<number | null>(null);
+  const [stuck, setStuck] = useState(false);
+  useEffect(() => {
+    if (seenSince.current === null) seenSince.current = recall(week) ?? remember(week, Date.now());
+    const check = () => setStuck(firstWeekStuck({ paid, job, seenSince: seenSince.current ?? Date.now(), now: Date.now() }));
+    check();
+    const id = window.setInterval(check, 30_000);
+    return () => window.clearInterval(id);
+  }, [paid, job, week]);
+  const showSlow = paid && stuck && delay !== "delayed";
 
   const steps: { key: keyof typeof t.firstWeekSteps; state: "done" | "now" | "next" }[] = [
     { key: "paid", state: paid ? "done" : "now" },
@@ -81,6 +106,15 @@ export function FirstWeek({
           )}
         </div>
       )}
+      {showSlow && (
+        <div role="status" data-testid="first-week-slow" className="mt-4 flex max-w-2xl flex-col gap-3 rounded-xl bg-dv-sand px-4 py-3 text-sm leading-relaxed text-dv-body ring-1 ring-inset ring-dv-line sm:flex-row sm:items-center sm:justify-between">
+          <p>{t.firstWeekSlow}</p>
+          <button type="button" onClick={retry} disabled={retrying} className="dv-btn dv-btn-secondary shrink-0 px-4 py-2 text-sm !text-dv-teal">
+            {retrying ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <RotateCcw className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />}
+            {h.retryNow}
+          </button>
+        </div>
+      )}
       <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map(({ key, state }) => (
           <li
@@ -106,4 +140,24 @@ export function FirstWeek({
       </ol>
     </section>
   );
+}
+
+/** When this browser first showed the card for this week (per-browser convenience; the clock fallback is the mount). */
+const SEEN_KEY = "dv-first-week-seen";
+function recall(week: string | undefined): number | null {
+  try {
+    const raw = window.localStorage.getItem(SEEN_KEY);
+    const v = raw ? (JSON.parse(raw) as { week?: string; at?: number }) : null;
+    return v && v.week === (week ?? "") && typeof v.at === "number" ? v.at : null;
+  } catch {
+    return null;
+  }
+}
+function remember(week: string | undefined, at: number): number {
+  try {
+    window.localStorage.setItem(SEEN_KEY, JSON.stringify({ week: week ?? "", at }));
+  } catch {
+    // storage blocked: the mount time is used
+  }
+  return at;
 }

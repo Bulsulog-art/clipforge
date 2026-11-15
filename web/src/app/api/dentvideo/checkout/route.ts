@@ -10,6 +10,7 @@ import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink, isSelfServe
 import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentvideo-group";
 import { postDodoCheckout } from "@/lib/dodo";
 import { recordEvent } from "@/lib/dentvid/events-server";
+import { isInternalUser } from "@/lib/dentvid/internal-traffic";
 import { requestCountry } from "@/lib/dentvid/geo-ip";
 import { adminOrNull, checkoutBlockMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
 
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
       clinicId: clinic.id as string,
       props: { tier: parsed.data.plan, interval: parsed.data.interval, via },
       geo: requestCountry(req.headers),
+      internal: isInternalUser(user),
     });
     return url;
   };

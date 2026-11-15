@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
 import { asLocale } from "@/lib/dentvid/locale";
 import { weekOf } from "@/lib/dentvid/week";
@@ -8,7 +9,7 @@ import { PostNow } from "@/components/dentvid/post-now";
 import { samplePost } from "@/lib/dentvid/posting-samples";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Post page preview", robots: { index: false, follow: false } };
+export const generateMetadata = (): Metadata => devPreviewMeta("Post page preview");
 
 /**
  * Dev-only: the email's "approve & share" page with a real sample video.

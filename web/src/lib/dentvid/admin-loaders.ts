@@ -47,10 +47,10 @@ export type OverviewData = AdminData & {
   cost: { today: number; d7: number; d30: number; tracked: boolean };
 };
 
-export async function loadOverview(now = new Date()): Promise<OverviewData> {
+export async function loadOverview(now = new Date(), opts: { includeInternal?: boolean } = {}): Promise<OverviewData> {
   const c = db();
   const [data, system, subs, sends] = await Promise.all([
-    loadAdminData(now),
+    loadAdminData(now, { includeInternal: opts.includeInternal }),
     readSystem(now),
     c ? rows<SubRow>(c.from("dentvid_subscriptions").select("*").order("updated_at", { ascending: false }).limit(2000)) : Promise.resolve({ rows: [], missing: true } as Q<SubRow>),
     c
@@ -71,16 +71,17 @@ export async function loadOverview(now = new Date()): Promise<OverviewData> {
 
 /* ---------------------------------------------------------------- clinics */
 
-export type ClinicsData = { now: string; rows: ClinicRowView[]; warnings: string[] };
+export type ClinicsData = { now: string; rows: ClinicRowView[]; warnings: string[]; internal?: AdminData["internal"] };
 
-export async function loadClinicsList(now = new Date()): Promise<ClinicsData> {
-  const data = await loadAdminData(now, { eventDays: 90, itemDays: 60 });
+export async function loadClinicsList(now = new Date(), opts: { includeInternal?: boolean } = {}): Promise<ClinicsData> {
+  const data = await loadAdminData(now, { eventDays: 90, itemDays: 60, includeInternal: opts.includeInternal });
   const activity = lastActivity(data.clinics, data.events, data.items);
   const sources = clinicSources(data.events);
   const runs = lastRuns(data.items);
   return {
     now: data.now,
     warnings: data.warnings,
+    internal: data.internal,
     rows: data.clinics.map((c) => ({ ...c, lastActivity: activity.get(c.id) ?? null, source: sources.get(c.id) ?? null, run: runs.get(c.id) })),
   };
 }

@@ -7,6 +7,8 @@ import { BackgroundPicker } from "./background-picker";
 import { DeclineForm, postText, ReviewPlayer, usePosted, type Decide } from "./review-player";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
+import { reasonText } from "@/content/dentvideo-reasons";
+import type { ClinicReason } from "@/lib/dentvid/reasons";
 import {
   approvableIds,
   cardState,
@@ -36,7 +38,8 @@ export type LibraryItem = {
   week_of: string;
   caption?: string;
   hashtags?: string[];
-  findings: string[];
+  /** Why it needs a look (or was not made), as codes the card shows in the clinic's language (lib/dentvid/reasons.ts). Never the team's raw notes. */
+  reasons: ClinicReason[];
   videoUrl?: string;
   thumbUrl?: string;
   /** Ready-to-paste Instagram and TikTok / Shorts texts (lib/dentvid/posting.ts postTexts). */
@@ -85,7 +88,10 @@ export function Library({
   locked = false,
   currentWeek,
   weekDelay = null,
+  country = null,
 }: {
+  /** The clinic's country (profile.country): suggested posting times follow it, not the UI language. */
+  country?: string | null;
   items: LibraryItem[];
   canStartWeek: boolean;
   locale: Locale;
@@ -143,9 +149,9 @@ export function Library({
     const out = new Map<string, string>();
     // Oldest first (the library lists newest first), generated videos only — the same order as the email.
     const made = view.filter((i) => i.kind === "generated").reverse();
-    for (const [id, slot] of weekSchedule(made, currentWeek, locale)) out.set(id, slotLabel(slot, locale));
+    for (const [id, slot] of weekSchedule(made, currentWeek, { country, locale })) out.set(id, slotLabel(slot, locale));
     return out;
-  }, [view, currentWeek, locale]);
+  }, [view, currentWeek, locale, country]);
   const thisWeek = view.filter((i) => i.week_of === currentWeek);
   const notMade = view.filter((i) => i.status === "rejected");
   const delay = delayNote(weekDelay, thisWeek);
@@ -241,11 +247,11 @@ export function Library({
             <ul className="mt-3 space-y-3">
               {notMade.map((i) => (
                 <li key={i.id} className="rounded-xl bg-white p-4 ring-1 ring-dv-line">
-                  <p className="font-medium text-dv-ink">{i.title}</p>
-                  {i.findings.length > 0 && (
+                  <p dir="auto" className="text-start font-medium text-dv-ink">{i.title}</p>
+                  {i.reasons.length > 0 && (
                     <ul className="mt-1.5 list-disc space-y-1 ps-5 text-sm text-dv-body">
-                      {i.findings.slice(0, 4).map((f, n) => (
-                        <li key={n}>{f}</li>
+                      {i.reasons.slice(0, 4).map((r) => (
+                        <li key={r}>{reasonText(locale, r)}</li>
                       ))}
                     </ul>
                   )}
@@ -386,7 +392,7 @@ export function NextStep({
         {action === "review" && (
           <div className="flex w-full shrink-0 flex-col gap-2 lg:w-auto">
             <button type="button" onClick={onReview} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
-              <Play className="h-4 w-4 fill-current rtl:-scale-x-100" aria-hidden="true" />
+              <Play className="h-4 w-4 fill-current" aria-hidden="true" />
               {t.review.start}
             </button>
             {toApprove.length > 1 && (
@@ -490,7 +496,7 @@ function PostingChecklist({
             <button type="button" onClick={() => onPost(v.id)} className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-start hover:bg-dv-sand/60">
               {v.posted ? <CircleCheck className="h-5 w-5 shrink-0 fill-dv-teal text-white" aria-hidden="true" /> : <Circle className="h-5 w-5 shrink-0 text-dv-edge" aria-hidden="true" />}
               <span className="min-w-0 flex-1">
-                <span className={`block truncate text-sm font-medium ${v.posted ? "text-dv-muted line-through decoration-dv-edge" : "text-dv-ink"}`}>{v.title}</span>
+                <span dir="auto" className={`block truncate text-start text-sm font-medium ${v.posted ? "text-dv-muted line-through decoration-dv-edge" : "text-dv-ink"}`}>{v.title}</span>
                 {v.slot && <span className="block text-xs text-dv-muted">{fmt(ps.suggested, { slot: v.slot })}</span>}
               </span>
               <span className="sr-only">{v.posted ? t.posted : t.markPosted}</span>
@@ -558,7 +564,7 @@ function ItemCard({
             )}
             <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/35 to-transparent">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-dv-teal shadow-lg transition group-hover:scale-105">
-                <Play className="ms-0.5 h-5 w-5 fill-current rtl:-scale-x-100" aria-hidden="true" />
+                <Play className="ml-0.5 h-5 w-5 fill-current" aria-hidden="true" />
               </span>
             </span>
           </button>
@@ -587,7 +593,7 @@ function ItemCard({
               </span>
             )}
           </p>
-          <h3 className="mt-2 text-[0.9375rem] font-semibold leading-snug text-dv-ink [overflow-wrap:anywhere]">{item.title}</h3>
+          <h3 dir="auto" className="mt-2 text-start text-[0.9375rem] font-semibold leading-snug text-dv-ink [overflow-wrap:anywhere]">{item.title}</h3>
           <p className="mt-1 text-xs text-dv-muted">{item.kind === "recording" ? t.fromRecording : t.madeForYou}</p>
           {slot && (state === "review" || state === "look" || state === "approved") && !posted && (
             <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-dv-teal">
@@ -601,12 +607,12 @@ function ItemCard({
         </div>
       </div>
 
-      {item.findings.length > 0 && state !== "making" && state !== "failed" && (
+      {item.reasons.length > 0 && state !== "making" && state !== "failed" && (
         <div className={`mx-3 mb-3 rounded-xl p-3 text-sm sm:mx-4 ${state === "look" ? "bg-[#fdf6ea]" : "bg-dv-sand/70"}`}>
           <p className="font-semibold text-[#7a4b00]">{t.whatToCheck}</p>
           <ul className="mt-1.5 list-disc space-y-1 ps-5 text-[#5c4a2a]">
-            {item.findings.slice(0, 6).map((f, i) => (
-              <li key={i}>{f}</li>
+            {item.reasons.slice(0, 6).map((r) => (
+              <li key={r}>{reasonText(locale, r)}</li>
             ))}
           </ul>
         </div>

@@ -46,12 +46,18 @@ export function weekDelivered(items: { kind: string; week_of: string; status: st
  *            AI provider being out of credit), or it completed without one
  *            usable video → remove it and queue it again (the worker's spend
  *            guard still caps how many runs a clinic gets in a week)
- *   made     the week has usable videos → nothing new
+ *   topup    the run is over with some usable videos but fewer than the
+ *            promised WEEK_VIDEOS (topics the reviewers turned down, and the
+ *            worker's own top-up could not fill them) → queue a run for the
+ *            missing count only (the spend guard caps it like any week run)
+ *   made     the week has all its videos → nothing new
  *   running  waiting or being made → nothing new
  */
-export type WeekRun = "queue" | "requeue" | "made" | "running";
+export type WeekRun = "queue" | "requeue" | "topup" | "made" | "running";
 export function weekRunFor(state: string | null | undefined, usableThisWeek: number): WeekRun {
-  if (usableThisWeek > 0 && (!state || state === "completed" || state === "failed")) return "made";
+  const over = !state || state === "completed" || state === "failed";
+  if (usableThisWeek >= WEEK_VIDEOS && over) return "made";
+  if (usableThisWeek > 0 && over) return "topup";
   if (!state) return "queue";
   if (state === "failed" || state === "completed") return "requeue";
   return "running";
@@ -61,6 +67,11 @@ export function weekRunFor(state: string | null | undefined, usableThisWeek: num
 export type WeekQueue = {
   add(name: string, data: WeekJobData, opts: Record<string, unknown>): Promise<unknown>;
 };
+
+/** How many videos a top-up run makes: the ones missing from the promised week. */
+export function missingVideos(usableThisWeek: number): number {
+  return Math.max(0, WEEK_VIDEOS - Math.max(0, usableThisWeek));
+}
 
 export type FirstWeekResult = "queued" | "made";
 

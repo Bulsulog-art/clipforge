@@ -29,7 +29,7 @@ The **name must match exactly** what the CSV says:
 
 | Name | Value | Count | Click-through window | Primary | Recorded when |
 |---|---|---|---|---|---|
-| `dv_signup` | 5 USD (fixed) | One | 30 days | yes | an account is created (`/api/dentvideo/signup`) |
+| `dv_signup` | 5 USD (fixed) | One | 90 days | yes | an account is created (`/api/dentvideo/signup`) |
 | `dv_paid` | 150 USD (clinic in TR) / 250 USD (elsewhere) | One | 90 days | yes | the clinic's first activation (Dodo webhook, `first = true`) |
 
 At most one of each per account (unique in the table): webhook replays and retried sign-ups never double count.
@@ -88,7 +88,9 @@ Deleting an account deletes its rows (`on delete cascade`).
    DevTools → Application: `localStorage["dv-ad-click"]` holds `{"type":"gclid","id":"TEST123",…}` and
    `sessionStorage["dv-attr"]` the UTM tags. No cookie was set by the page.
 3. Click through to `/start` and create an account with a throwaway address you control (not an
-   `e2e-monitor+…` address: those are skipped on purpose). DevTools → Network → `signup` request body
+   `e2e-monitor+…`, `qa+…` or company-domain address, nor one in `DENTVID_INTERNAL_EMAIL_PATTERNS`: internal
+   accounts are skipped on purpose — see §7). The private window matters: a browser you have ever signed in
+   to as the owner or QA carries `localStorage["dv-internal"]` and keeps no ad click. DevTools → Network → `signup` request body
    carries `attribution` and `adClick`.
 4. `/admin/ads` shows a pending `dv_signup` row for `gclid: TEST123`; `/admin/funnel` shows the sign-up under
    `google / cpc / tr-search-core`.
@@ -97,7 +99,37 @@ Deleting an account deletes its rows (`on delete cascade`).
 6. After launch, the first real rows confirm the chain: Uploads diagnostics in Google Ads should show them as
    imported within a day.
 
-## 7. Never
+## 7. Internal traffic (owner, QA, e2e, monitor)
+
+Before launch ~88% of funnel events were ours, and QA runs used real ad tags (`google / cpc / de-search-core`,
+test gclids). Internal traffic is now marked where it starts (`web/src/lib/dentvid/internal-traffic.ts`):
+
+- **Accounts.** Internal when the email matches a pattern — built-in: `*@bulsulabs.com`, `*@dentvideo.com`,
+  `e2e-monitor+*@*`, `e2e*@*`, `qa+*@*`, `dvq*+*@*`, plus `DENTVID_INTERNAL_EMAIL_PATTERNS` (comma-separated;
+  personal addresses go **only** there, never in the repo) — or when `app_metadata.internal = true`. Sign-up
+  sets that marker for pattern matches, the synthetic monitor (it sends `internal: true`) and any sign-up from
+  an internally flagged browser.
+- **Browsers.** `localStorage["dv-internal"] = "1"`. Set when an internal account or an admin is signed in
+  (the wizard, the app, the admin panel), or by `?dv_internal=1` **while signed in as one** (the server checks;
+  a bare link marks nobody). Stays after sign-out. `?dv_internal=0` removes it. The browser smoke test sets it.
+- **Events.** Tagged `props.internal = true` by the browser (flagged) and by the server (internal account).
+  `/admin`, `/admin/clinics`, `/admin/funnel` and the daily digest leave internal traffic out by default —
+  tagged events, internal owners' clinics and their events — with an "Include" switch (`?internal=1`).
+- **Ads.** An internal browser never keeps a click id; an internal sign-up stores no click and records no
+  `dv_signup`; an internal owner's first payment records no `dv_paid`.
+
+"Internal" is a measurement label, never a permission: it can only take someone out of the numbers.
+
+Before ads start (and after changing the patterns), see how much existing data is internal with the read-only
+report `scripts/dentvideo-internal-report.sql` (pass the env list with `-v extra=…`). It writes nothing.
+Anonymous events from before tagging existed cannot be classified by account; the Nov 2026 analysis used a
+±30 min window around internal sign-ins plus landing bursts — treat older "real" landing views as an upper
+bound.
+
+QA agents: sign in once with a `qa+…` account (or open any page with `?dv_internal=1` while signed in as one)
+before browsing anonymously with ad tags.
+
+## 8. Never
 
 No gtag / Google tag, no Meta pixel, no third-party scripts, no ad cookies. No click ids in the generic
 funnel events (`events.ts` has no rule for them). No discounts, coupons or referral offers in ads.

@@ -1,5 +1,6 @@
 import type { VideoPackage } from "../dental/week.js";
 import type { RecordedClip } from "../dental/recording.js";
+import { clipFinding, qaFinding, tagReason } from "./reasons.js";
 
 /**
  * How agent output becomes a dentvid_items row. Pure, so the mapping — and
@@ -49,12 +50,14 @@ export function rowFromPackage(
       status: "rejected",
       title: pkg.topic.title,
       topic: pkg.topic,
-      // Reviewer reasons are for the dentist; a technical error is not.
-      findings: pkg.reasons,
+      // Reviewer reasons are internal English for the team: stored with a
+      // code (reasons.ts) the app turns into a calm sentence in the clinic's
+      // language. A technical error is for the owner only.
+      findings: pkg.reasons.map((r) => tagReason("skipped", r)),
       ...(pkg.error ? { error: pkg.error.slice(0, 500) } : {}),
     };
   }
-  const qaIssues = pkg.qa && !pkg.qa.ok ? pkg.qa.issues.map((i) => `quality: ${i}`) : [];
+  const qaIssues = pkg.qa && !pkg.qa.ok ? pkg.qa.issues.map(qaFinding) : [];
   // A package meant to be rendered that has no stored video is not ready.
   const missingVideo = stored ? [] : [MISSING_VIDEO];
   const findings = [...qaIssues, ...missingVideo];
@@ -82,7 +85,8 @@ export function rowFromClip(
   ids: { clinicId: string; ownerId: string; sourcePath: string },
   stored?: { videoPath: string; thumbPath?: string },
 ): ItemRow {
-  const findings = stored ? clip.findings : [...clip.findings, MISSING_VIDEO];
+  const coded = clip.findings.map((f) => clipFinding(f, [MISSING_VIDEO]));
+  const findings = stored ? coded : [...coded, MISSING_VIDEO];
   return {
     clinic_id: ids.clinicId,
     owner_id: ids.ownerId,

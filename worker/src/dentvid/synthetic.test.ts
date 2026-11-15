@@ -160,7 +160,8 @@ describe("a healthy run", () => {
     const signup = w.calls.find((c) => c.url.endsWith("/api/dentvideo/signup"))!;
     expect((signup.init?.headers as Record<string, string>)["x-dv-monitor"]).toBe("mon-token");
     expect((signup.init?.headers as Record<string, string>).origin).toBe(BASE);
-    expect(JSON.parse(String(signup.init?.body))).toMatchObject({ website: "", elapsedMs: 6000 });
+    // …and marks the account internal traffic (app_metadata.internal: never in the funnel, never an ad conversion).
+    expect(JSON.parse(String(signup.init?.body))).toMatchObject({ website: "", elapsedMs: 6000, internal: true });
     expect(JSON.parse(String(signup.init?.body)).email).toMatch(/^e2e-monitor\+\d+[0-9a-f]+@bulsulabs\.com$/);
     // The account is deleted with the service role.
     const del = w.calls.find((c) => c.init?.method === "DELETE")!;

@@ -3,20 +3,24 @@ import { redirect } from "next/navigation";
 import { dvHref } from "@/lib/dentvid/host";
 import { deliveryWeek, dvSession } from "@/lib/dentvid/auth";
 import { loadItems } from "@/lib/dentvid/items";
-import { dvLocale } from "@/lib/dentvid/locale-server";
+import { clinicLocale, dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
 import { AppHomeView } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
 import { appSendsToFunnel, billingReturn, paymentDeclined, showFirstWeek } from "@/lib/dentvid/onboarding";
 import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { readWeekDelay } from "@/lib/dentvid/ops-server";
-import { weekDelivered } from "@/lib/dentvid/week-job";
+import { weekDelivered, weekJobId } from "@/lib/dentvid/week-job";
+import { dentvidQueue } from "@/lib/queue";
+import type { FirstWeekJob } from "@/lib/dentvid/first-week-state";
 import { adminOrNull, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
+import { marksBrowserInternal } from "@/lib/dentvid/internal-traffic";
+import { InternalMark } from "@/components/dentvid/internal-mark";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: appText(await dvLocale()).home.metaTitle, robots: { index: false } };
+  return { title: appText(await clinicLocale()).home.metaTitle, robots: { index: false } };
 }
 
 export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string; status?: string }> }) {
@@ -51,25 +55,43 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const firstWeek = !plan.adminPaused && showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed"), paymentSeen: seen });
   // A run that is being retried or is delayed: the library says so calmly (never an error).
   const weekDelay = plan.canMake ? await readWeekDelay(clinic.id, week) : null;
+  // The first week's job, so a card that waits far longer than promised can offer "try again".
+  const firstWeekJob = firstWeek && plan.plan === "active" ? await readWeekJob(clinic.id, week) : undefined;
   const b = appText(locale).billing;
   const notice = billing === "cancelled" ? (declined ? b.paymentFailed : b.cancelled) : null;
   // Not paying: the plan picker — unless buying would double-charge (on hold → update the card, payment being confirmed, cancelled but paid up).
   const panel = plan.canMake ? null : await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin);
 
   return (
-    <AppHomeView
-      locale={locale}
-      clinicName={profile.name}
-      country={profile.country}
-      plan={plan}
-      items={items}
-      firstWeek={firstWeek}
-      madeThisWeek={madeThisWeek}
-      currentWeek={week}
-      weekDelay={weekDelay}
-      notice={notice}
-      plans={dvAvailablePlans()}
-      billingIssue={panel && panel.kind !== "plans" ? panel : null}
-    />
+    <>
+      {/* Owner / QA / e2e signed in: this browser is internal traffic from now on (lib/dentvid/internal-flag). */}
+      {marksBrowserInternal(user) && <InternalMark />}
+      <AppHomeView
+        locale={locale}
+        clinicName={profile.name}
+        country={profile.country}
+        plan={plan}
+        items={items}
+        firstWeek={firstWeek}
+        madeThisWeek={madeThisWeek}
+        currentWeek={week}
+        weekDelay={weekDelay}
+        firstWeekJob={firstWeekJob}
+        notice={notice}
+        plans={dvAvailablePlans()}
+        billingIssue={panel && panel.kind !== "plans" ? panel : null}
+      />
+    </>
   );
+}
+
+/** The week's job state and when it was queued; undefined when the queue does not answer within 1.5 s. */
+async function readWeekJob(clinicId: string, week: string): Promise<FirstWeekJob> {
+  const ask = (async (): Promise<FirstWeekJob> => {
+    const job = await dentvidQueue.getJob(weekJobId(clinicId, week));
+    if (!job) return { state: null, createdAt: null };
+    return { state: await job.getState(), createdAt: typeof job.timestamp === "number" ? job.timestamp : null };
+  })().catch(() => undefined);
+  const timeout = new Promise<undefined>((r) => setTimeout(() => r(undefined), 1_500));
+  return Promise.race([ask, timeout]);
 }

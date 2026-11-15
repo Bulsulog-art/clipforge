@@ -15,7 +15,7 @@ import { limitChecks, rateLimited } from "@/lib/rate-limit-server";
 import { botSignup } from "@/lib/dentvid/bot-check";
 import { asLocale } from "@/lib/dentvid/locale";
 import { sendVerificationCode } from "@/lib/dentvid/verify-email-server";
-import { DV_PRODUCT, isDentvideoUser } from "@/lib/dentvid/membership";
+import { isDentvideoUser, signupAppMetadata } from "@/lib/dentvid/membership";
 import { joinDentvideo } from "@/lib/dentvid/join";
 import { verifyTurnstile } from "@/lib/dentvid/turnstile";
 import { dvUrl } from "@/lib/dentvid/host";
@@ -24,6 +24,7 @@ import { resetEmail } from "@/lib/dentvid/reset-email";
 import { MONITOR_HEADER, isMonitorEmail, monitorAuthorised } from "@/lib/dentvid/monitor-account";
 import { raiseOwnerAlert } from "@/lib/dentvid/ops-server";
 import { alerts, cleanError } from "@/lib/dentvid/ops-alert";
+import { isInternalEmail } from "@/lib/dentvid/internal-traffic";
 
 // Liman has public sign-up disabled (it hosts other apps too), so DentVideo
 // accounts are created here with the service role, already "confirmed" in
@@ -54,6 +55,14 @@ import { alerts, cleanError } from "@/lib/dentvid/ops-alert";
 // in the funnel, and with the monitor token they skip the per-client brakes
 // and get the new user id back (so the monitor can delete the account).
 //
+// Internal traffic (lib/dentvid/internal-traffic): an address matching the
+// internal patterns, a monitor address, or a browser flagged internal
+// (body.internal, from localStorage dv-internal) makes an internal account:
+// app_metadata.internal = true, its funnel event is tagged internal, and no
+// ad click is kept nor any Google Ads conversion recorded for it — ever,
+// including its later payment (billing-webhook → recordPaidConversion).
+// The browser's claim can only take an account OUT of the measurement.
+//
 // A step that fails for a real clinic (account not created, server sign-in
 // failed, no verification code) is logged and the owner is alerted (once a
 // day per step; lib/dentvid/ops-alert signupBroken).
@@ -76,6 +85,8 @@ const Body = z.object({
    * Checked again here (acceptableClick) against the request's own country.
    */
   adClick: z.object({ type: z.string().max(10), id: z.string().max(200), at: z.number(), consent: z.string().max(20) }).optional(),
+  /** The browser is flagged internal (lib/dentvid/internal-flag): owner, QA, e2e tooling, the monitor. */
+  internal: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -118,11 +129,13 @@ export async function POST(req: Request) {
   }
 
   const locale = asLocale(body.locale) ?? (await dvLocale().catch(() => "en" as const));
+  const internal = testAccount || body.internal === true || isInternalEmail(body.email);
   const { data: created, error } = await dvAdmin().auth.admin.createUser({
     email: body.email,
     password: body.password,
     email_confirm: true,
-    app_metadata: { product: DV_PRODUCT },
+    // Server-only metadata: the account stays internal for its whole life (events, ad conversions).
+    app_metadata: signupAppMetadata(internal),
   });
   if (error) {
     const exists = /already|registered|exists/i.test(error.message);
@@ -147,9 +160,10 @@ export async function POST(req: Request) {
     // The country from our own IP lookup (geo-ip.ts), never from a header the browser could set.
     const geo = requestCountry(req.headers);
     // Funnel: no email, no user id — just that an account was made, in which language.
-    void recordEvent("signup_completed", { locale, props: body.attribution, geo });
+    void recordEvent("signup_completed", { locale, props: body.attribution, geo, ...(internal ? { internal } : {}) });
     // From a Google ad: keep the click against the account and count the sign-up conversion (never blocks the sign-up).
-    const click = acceptableClick(body.adClick, geo);
+    // Never for internal traffic: QA runs used real ad tags and test gclids.
+    const click = internal ? null : acceptableClick(body.adClick, geo);
     if (click && created?.user) await recordSignupClick(created.user.id, click).catch(() => "failed");
     // The code email. Not fatal if it fails: the plan step asks for one again — but the owner hears about it.
     if (created?.user) {

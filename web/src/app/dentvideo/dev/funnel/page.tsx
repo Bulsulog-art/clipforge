@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { devPreviewMeta } from "@/lib/dentvid/private-meta";
 import { notFound } from "next/navigation";
 import { StartForm } from "@/components/dentvid/start-form";
 import { Onboarding } from "@/components/dentvid/onboarding";
@@ -33,7 +34,7 @@ const DEMO_EMAIL: Record<Locale, string> = {
 };
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Funnel preview", robots: { index: false, follow: false } };
+export const generateMetadata = (): Metadata => devPreviewMeta("Funnel preview");
 
 /**
  * Dev-only: every step of the onboarding wizard without a session, for

@@ -17,6 +17,7 @@ import { prepareNarration } from "../dental/narration-audio.js";
 import { resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { afterRerender, rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
+import { reasonText } from "./reasons.js";
 import { withPostKit } from "./post-kit.js";
 import { notifyReady, sendReadyAtCivilHour } from "./notify.js";
 import { shouldRun, validWeek, weekOf } from "./schedule.js";
@@ -270,7 +271,11 @@ export function recordingsIncluded(tier: string | null | undefined): boolean {
   return tier !== "starter";
 }
 
-/** Fewer usable videos than this and the week is topped up with extra topics. */
+/**
+ * Fewer usable videos than this after the top-up and the owner hears about a
+ * thin week. (The top-up itself runs whenever the week is short of what was
+ * promised — five — not only below this.)
+ */
 export const MIN_USABLE_VIDEOS = 3;
 
 export type WeekCtx = { jobId?: string; attemptsMade?: number; attempts?: number };
@@ -282,8 +287,10 @@ const usableRow = (r: ItemRow) => (r.status === "ready" || r.status === "flagged
  * A paying clinic's week, made to heal itself before anyone is told:
  *  - each video that fails for a technical reason is re-attempted once (week.ts);
  *  - a finished video that fails to upload is uploaded once more;
- *  - fewer than MIN_USABLE_VIDEOS usable → extra topics top the week up
- *    (one round, budgeted as a "topup" by the spend guard);
+ *  - fewer usable videos than promised (job.count, five) → extra topics top
+ *    the week up to the promised count (one round, budgeted as a "topup" by
+ *    the spend guard — refused, the week is delivered as it is); still fewer
+ *    than MIN_USABLE_VIDEOS afterwards → the owner gets a "thin week" alert;
  *  - nothing usable and the failures were technical → nothing is stored and
  *    the job fails with a transient error, so BullMQ runs it again later
  *    (WEEK_JOB_OPTS: 4 attempts, 2/4/8 min apart);
@@ -417,11 +424,13 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     const avoid = pastRows.map((p) => p.title).filter((t): t is string => typeof t === "string");
     const rows = await toRows(await produce(want, avoid, history));
 
-    // Top-up: a thin week gets extra topics (one round, within the spend guard's caps).
+    // Top-up: a week short of the promised count (topics the reviewers turned
+    // down) gets extra topics for the missing ones — one round, within the
+    // spend guard's caps.
     let toppedUp = 0;
     const usable = () => rows.filter(usableRow).length;
     const enough = Math.min(MIN_USABLE_VIDEOS, want);
-    if (usable() < enough) {
+    if (usable() < want) {
       const d = await spend.guard.reserve("topup", job.clinicId);
       if (d.ok) {
         // This week's usable videos count as history too, so the top-up neither repeats them nor piles onto their services.
@@ -460,7 +469,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           week,
           usable: usable(),
           wanted: want,
-          reasons: rows.filter((r) => r.status === "rejected").map((r) => (r.error ? cleanError(r.error) : r.findings.join("; ") || "rejected by review")),
+          reasons: rows.filter((r) => r.status === "rejected").map((r) => (r.error ? cleanError(r.error) : r.findings.map(reasonText).join("; ") || "rejected by review")),
         }),
       ).catch(() => "failed");
     }

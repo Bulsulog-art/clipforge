@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { adminMeta } from "@/lib/dentvid/private-meta";
 import { AdminAds } from "@/components/dentvid/admin-ads";
 import { requireAdmin } from "@/lib/dentvid/admin-server";
 import { flashOf, siteAdminLinks } from "@/lib/dentvid/admin-links";
 import { listAdConversions, purgeAdData } from "@/lib/dentvid/ad-conversions-server";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Ad conversions", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return adminMeta("Ad conversions");
+}
 
 /**
  * Google Ads offline conversions (docs/ADS_TRACKING.md). 404 for everyone but

@@ -5,6 +5,7 @@ import { AlertTriangle, CalendarClock, Check, ChevronLeft, ChevronRight, CircleC
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { postingText } from "@/content/dentvideo-posting";
+import { reasonText } from "@/content/dentvideo-reasons";
 import { postTexts, type PostTexts } from "@/lib/dentvid/posting";
 import { CaptionTabs, useSaveAndCopy } from "./share-kit";
 import {
@@ -168,7 +169,7 @@ export function ReviewPlayer({
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{item.title}</p>
+                <p dir="auto" className="truncate text-start text-sm font-semibold">{item.title}</p>
                 <p className="text-xs text-white/75" aria-live="polite">
                   {fmt(r.position, { n: index + 1, total: queue.length })}
                 </p>
@@ -323,14 +324,14 @@ export function ReviewPanel({
     <section className={`${declining ? "max-h-[72dvh]" : "max-h-[48dvh]"} shrink-0 overflow-y-auto rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-dv-ink sm:px-6 lg:max-h-none lg:rounded-none lg:py-8`}>
       <div className="mx-auto max-w-xl">
         <StateChip state={state} posted={posted} t={t} />
-        <h2 className="sr-only text-lg font-semibold leading-snug [overflow-wrap:anywhere] lg:not-sr-only lg:mt-2">{item.title}</h2>
+        <h2 dir="auto" className="sr-only text-start text-lg font-semibold leading-snug [overflow-wrap:anywhere] lg:not-sr-only lg:mt-2">{item.title}</h2>
 
-        {item.findings.length > 0 && (state === "look" || state === "review") && (
+        {item.reasons.length > 0 && (state === "look" || state === "review") && (
           <div className="mt-3 rounded-xl bg-[#fdf6ea] p-3 text-sm">
             <p className="font-semibold text-[#7a4b00]">{t.whatToCheck}</p>
             <ul className="mt-1 list-disc space-y-1 ps-5 text-[#5c4a2a]">
-              {item.findings.slice(0, 6).map((f, n) => (
-                <li key={n}>{f}</li>
+              {item.reasons.slice(0, 6).map((r) => (
+                <li key={r}>{reasonText(locale, r)}</li>
               ))}
             </ul>
           </div>

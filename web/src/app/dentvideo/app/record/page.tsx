@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { dvHref } from "@/lib/dentvid/host";
 import { dvSession } from "@/lib/dentvid/auth";
 import { loadItems } from "@/lib/dentvid/items";
-import { dvLocale } from "@/lib/dentvid/locale-server";
+import { clinicLocale, dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
 import { RecordView, type ShootCard } from "@/components/dentvid/app-screens";
 import { loadClinicPlan } from "@/lib/dentvid/plan";
@@ -12,7 +12,7 @@ import { dodoApiKey } from "@/lib/dentvid/dodo-account";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: appText(await dvLocale()).record.metaTitle, robots: { index: false } };
+  return { title: appText(await clinicLocale()).record.metaTitle, robots: { index: false } };
 }
 
 export default async function RecordPage() {

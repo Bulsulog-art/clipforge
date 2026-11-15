@@ -6,6 +6,8 @@ import { alertsEnabled, alertsLastDay, digestHasNews, renderDigest, resendSender
 import { webOpsStore } from "@/lib/dentvid/ops-server";
 import { buildDigest, type DigestClinic } from "@/lib/dentvid/ops-digest";
 import type { AdminEvent } from "@/lib/dentvid/admin-metrics";
+import { withoutInternal } from "@/lib/dentvid/internal-traffic";
+import { loadInternalUserIds } from "@/lib/dentvid/internal-server";
 
 /**
  * Called daily at 08:30 Istanbul by the worker (BullMQ job "digest",
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
   const doneKey = `dv:ops:digest:${day}`;
   if (store && (await store.get(doneKey).catch(() => null))) return NextResponse.json({ sent: false, reason: "already ran today" });
 
-  const { data: clinicRows, error: cErr } = await db.from("dentvid_clinics").select("id, created_at, updated_at, plan, plan_tier, dodo_subscription_id, profile").limit(10_000);
+  const { data: clinicRows, error: cErr } = await db.from("dentvid_clinics").select("id, owner_id, created_at, updated_at, plan, plan_tier, dodo_subscription_id, profile").limit(10_000);
   if (cErr) return NextResponse.json({ error: cErr.message }, { status: 500 });
   const evRes = await db
     .from("dentvid_events")
@@ -38,13 +40,18 @@ export async function POST(req: Request) {
     .order("created_at", { ascending: false })
     .limit(10_000);
   const eventsTable = !missingTable(evRes.error);
+  // Internal traffic (owner, QA, e2e, monitor; lib/dentvid/internal-traffic) is not news: tagged events and internal owners' clinics are left out.
+  const real = withoutInternal(
+    { clinics: (clinicRows ?? []) as (DigestClinic & { owner_id?: string })[], events: (evRes.data ?? []) as AdminEvent[], items: [] as { clinic_id: string }[] },
+    (await loadInternalUserIds(db)) ?? new Set(),
+  );
 
   const prevRaw = store ? await store.get(MRR_KEY).catch(() => null) : null;
   const prev = prevRaw ? (JSON.parse(prevRaw) as { usd: number; at: string }) : null;
   const data = buildDigest({
     now,
-    clinics: (clinicRows ?? []) as DigestClinic[],
-    events: (evRes.data ?? []) as AdminEvent[],
+    clinics: real.clinics,
+    events: real.events,
     eventsTable,
     alerts: await alertsLastDay(store, now),
     emailsSent: await sumLastDay(store, "email_sent", now),
