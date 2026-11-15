@@ -13,7 +13,7 @@ import { FieldError, ValidatingForm, useClearFieldError } from "./validating-for
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, hasService, splitServices, suggestedServices, toggleService } from "@/lib/dentvid/service-hints";
 import { requestUpload } from "@/lib/dentvid/upload-client";
-import { readAttribution, readReferral } from "@/lib/dentvid/attribution";
+import { readAttribution } from "@/lib/dentvid/attribution";
 
 const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "PL", "JP", "SG", "AE", "SA", "QA", "KW", "BH", "OM", "CA", "AU"];
 
@@ -171,7 +171,7 @@ export function useClinicDraft({
       method: "POST",
       headers: { "content-type": "application/json" },
       // The tab's first-touch source rides along, so the clinic's payment can be credited to it (/admin Sources).
-      body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}), attribution: readAttribution(), ...(demoToken ? { demoToken } : {}), referralCode: readReferral() ?? undefined }),
+      body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}), attribution: readAttribution(), ...(demoToken ? { demoToken } : {}) }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error ?? text.errors.saveFailed);

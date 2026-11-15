@@ -15,7 +15,6 @@ import { isDemoActive } from "@/lib/dentvid/demos";
 import { sniffImage } from "@/lib/dentvid/safe-image-fetch";
 import { isAdminUser } from "@/lib/dentvid/admin";
 import { raiseHotLead } from "@/lib/dentvid/hot-leads-server";
-import { attachReferral } from "@/lib/dentvid/referrals-server";
 
 const Body = z.object({
   profile: clinicProfileSchema,
@@ -28,11 +27,6 @@ const Body = z.object({
    * demo's logo is copied into the owner's folder, so nothing is retyped.
    */
   demoToken: z.string().regex(/^[A-Za-z0-9]{10,12}$/).optional(),
-  /**
-   * Another clinic's referral code this browser came with (?ref=, lib/dentvid/attribution).
-   * Checked and attached by the server only (referrals-server attachReferral): once, before the first payment, never the clinic's own.
-   */
-  referralCode: z.string().max(20).optional(),
 });
 
 /** Size of one object in the owner's folder, null when it is not there. */
@@ -140,16 +134,6 @@ export async function POST(req: Request) {
     } catch (e) {
       // The save stands; the orphan is picked up by scripts/dentvideo-storage-cleanup.mjs.
       console.warn("dentvideo clinic: previous logo not removed", (e as Error).message);
-    }
-  }
-
-  if (body.referralCode) {
-    try {
-      const r = await attachReferral(dvAdmin(), data.id as string, body.referralCode);
-      if (!r.ok && r.reason !== "already_referred" && r.reason !== "already_paid") console.info("[dentvideo referral] not attached", data.id, r.reason);
-    } catch (e) {
-      // The clinic is saved; a referral that could not be attached never fails the step.
-      console.warn("[dentvideo referral] attach failed", (e as Error).message);
     }
   }
 

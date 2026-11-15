@@ -105,8 +105,6 @@ export function openProblems(args: {
   emailFailures: number | null;
   billing: BillingIssue[];
   parked: number;
-  /** Referral free months past their refund window, waiting to be applied in Dodo (0018). */
-  referralsDue?: number;
   now: Date;
 }): Problem[] {
   const out: Problem[] = [];
@@ -130,6 +128,5 @@ export function openProblems(args: {
   if (dup) out.push({ key: "duplicates", label: "Clinics with duplicate subscriptions", count: dup, section: "billing", tone: "red" });
   const pay = args.billing.filter((b) => b.kind !== "duplicate").length;
   if (pay) out.push({ key: "payments", label: "Payment issues", count: pay, section: "billing", tone: "amber" });
-  if (args.referralsDue) out.push({ key: "referrals", label: "Referral free months to apply in Dodo", count: args.referralsDue, section: "billing", query: "#referrals", tone: "amber" });
   return out;
 }

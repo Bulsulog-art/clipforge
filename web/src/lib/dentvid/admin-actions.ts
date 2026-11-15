@@ -19,7 +19,7 @@ import type { ReadyNoticeResult } from "./ready-notice";
  * request would go.
  */
 
-export const ADMIN_ACTIONS = ["requeue_week", "retry_video", "resend_ready", "comp_month", "pause", "unpause", "retry_job", "referral_applied"] as const;
+export const ADMIN_ACTIONS = ["requeue_week", "retry_video", "resend_ready", "comp_month", "pause", "unpause", "retry_job"] as const;
 export type AdminActionName = (typeof ADMIN_ACTIONS)[number];
 
 export type ActionInput =
@@ -29,9 +29,7 @@ export type ActionInput =
   | { action: "comp_month"; clinicId: string; months: number; note: string }
   | { action: "pause"; clinicId: string; note: string }
   | { action: "unpause"; clinicId: string }
-  | { action: "retry_job"; queue: QueueName; jobId: string }
-  /** The referrer's free month (dentvid_referral_rewards, 0018) was applied in Dodo by hand. */
-  | { action: "referral_applied"; clinicId: string; rewardId: number; note: string };
+  | { action: "retry_job"; queue: QueueName; jobId: string };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const uuid = (v: unknown): string | null => (typeof v === "string" && UUID.test(v.trim()) ? v.trim().toLowerCase() : null);
@@ -62,13 +60,6 @@ export function parseAction(form: Record<string, unknown>): ActionInput | null {
       const itemId = uuid(form.itemId);
       return itemId ? { action: a, itemId } : null;
     }
-    case "referral_applied": {
-      const clinicId = uuid(form.clinicId);
-      const rewardId = Number(form.rewardId);
-      const n = note(form.note);
-      // Says what was done in Dodo (e.g. "next billing date moved to 12 Jan"), so the audit log explains the month.
-      return clinicId && Number.isSafeInteger(rewardId) && rewardId > 0 && n.length >= 3 ? { action: a, clinicId, rewardId, note: n } : null;
-    }
     case "retry_job": {
       const q = form.queue;
       const jobId = form.jobId;
@@ -83,7 +74,6 @@ export function parseAction(form: Record<string, unknown>): ActionInput | null {
 export function actionTarget(a: ActionInput): { clinicId: string | null; target: string | null } {
   if (a.action === "retry_video") return { clinicId: null, target: a.itemId };
   if (a.action === "retry_job") return { clinicId: null, target: `${a.queue}/${a.jobId}` };
-  if (a.action === "referral_applied") return { clinicId: a.clinicId, target: `referral_reward/${a.rewardId}` };
   return { clinicId: a.clinicId, target: null };
 }
 
@@ -107,13 +97,10 @@ export const ACTION_MESSAGES = {
   no_email: "The clinic's owner has no email address.",
   send_failed: "The email could not be sent (see Emails).",
   comp_recorded: "Recorded. Now apply the credit in the Dodo dashboard — this panel does not change billing.",
-  referral_marked: "The referral month is marked as applied. (This panel does not change billing — it must already be done in Dodo.)",
-  referral_not_due: "That referral month is not due (still in its refund window, already applied, void or capped).",
   paused: "Paused: no new weeks, recordings or re-renders until unpaused. Billing is unchanged (pause it in Dodo if needed).",
   unpaused: "Unpaused: the clinic is back in the weekly batch.",
   not_paused: "The clinic was not paused.",
   needs_migration: "Apply supabase/liman/0010_dentvid_admin.sql first.",
-  needs_referral_migration: "Apply supabase/liman/0018_dentvid_referrals.sql first.",
   job_retried: "The failed job was put back on its queue.",
   job_not_failed: "That job is not in the failed state any more.",
   no_job: "No such job (it may have been cleaned up).",
@@ -278,21 +265,6 @@ async function retryJob(deps: ActionDeps, queue: QueueName, jobId: string): Prom
   }
 }
 
-/** Mark a due referral month as applied: only a pending reward of this referrer whose hold has passed. */
-async function markReferralApplied(deps: ActionDeps, clinicId: string, rewardId: number, why: string): Promise<ActionResult> {
-  const now = (deps.now?.() ?? new Date()).toISOString();
-  const { data, error } = await deps.db
-    .from("dentvid_referral_rewards")
-    .update({ status: "applied", applied_at: now, applied_note: why, updated_at: now })
-    .eq("id", rewardId)
-    .eq("referrer_clinic_id", clinicId)
-    .eq("status", "pending")
-    .lte("eligible_at", now)
-    .select("id");
-  if (error) return missingSchema(error) ? refused("needs_referral_migration", clinicId) : { outcome: "error", code: "error", clinicId, detail: error.message };
-  return (data ?? []).length ? ok("referral_marked", clinicId, `reward ${rewardId}: ${why}`) : refused("referral_not_due", clinicId);
-}
-
 export async function runAdminAction(a: ActionInput, deps: ActionDeps): Promise<ActionResult> {
   try {
     switch (a.action) {
@@ -313,8 +285,6 @@ export async function runAdminAction(a: ActionInput, deps: ActionDeps): Promise<
         return await setPause(deps, a.clinicId, false, "");
       case "retry_job":
         return await retryJob(deps, a.queue, a.jobId);
-      case "referral_applied":
-        return await markReferralApplied(deps, a.clinicId, a.rewardId, a.note);
     }
   } catch (e) {
     return { outcome: "error", code: "error", detail: (e as Error).message };
