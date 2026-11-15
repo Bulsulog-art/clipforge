@@ -65,7 +65,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       updatePayment: "Your subscription is on hold because a payment didn't go through. Please update your card instead of buying a new plan, so you aren't charged twice: {how}",
       updateHowPortal: "open Plan and billing in Settings.",
       updateHowEmail: "write to {email} and we'll send you a secure link.",
-      cancelledPending: "Your plan was cancelled and is paid until {date}. To start again before then, write to {email} so you aren't charged twice.",
+      cancelledPending: "Your plan was canceled and is paid until {date}. To start again before then, write to {email} so you aren't charged twice.",
       disputed: "A payment on your account is under review, so a new plan can't be bought right now. Please write to {email} and we'll sort it out with you.",
     },
     panel: {
@@ -77,7 +77,7 @@ export const BILLING_COPY: Record<string, BillingCopy> = {
       emailSubject: "Update my DentVideo payment",
       opening: "Opening…",
       failed: "That didn't work. Please try again, or write to {email}.",
-      cancelledTitle: "Your plan has been cancelled",
+      cancelledTitle: "Your plan has been canceled",
       cancelledBody: "It is paid until {date}. To start again before then, write to {email} — we'll restart it without charging you twice.",
       pendingTitle: "We're confirming your payment",
       pendingBody: "This usually takes a minute or two. Please refresh shortly — there is no need to pay again.",

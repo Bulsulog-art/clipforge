@@ -144,7 +144,7 @@ export function parseDemoInput(raw: Record<string, unknown>): { ok: true; value:
   if (!(LOCALES as readonly string[]).includes(lang)) return { ok: false, error: "Choose one of the site languages." };
   let colour = CLEAN(raw.colour, 7).toLowerCase();
   if (colour && !colour.startsWith("#")) colour = `#${colour}`;
-  if (colour && !/^#[0-9a-f]{6}$/.test(colour)) return { ok: false, error: "Brand colour must be a hex colour like #0f5c5c." };
+  if (colour && !/^#[0-9a-f]{6}$/.test(colour)) return { ok: false, error: "Brand color must be a hex color like #0f5c5c." };
   const logoUrl = CLEAN(raw.logoUrl, 500);
   if (logoUrl && !/^https:\/\//i.test(logoUrl)) return { ok: false, error: "Logo URL must start with https://." };
   const campaign = CLEAN(raw.campaign, 40).toLowerCase() || DEMO_DEFAULT_CAMPAIGN;

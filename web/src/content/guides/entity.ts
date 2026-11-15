@@ -55,16 +55,16 @@ const BASE: Record<Locale, EntityFacts> = {
     },
     h1: "What is DentVideo?",
     definition:
-      "DentVideo is a web app for dental clinics that makes short patient-education videos — narrated, captioned and in the clinic's colours — and checks every script for clinical accuracy and health-advertising rules before the dentist approves it. It is made by Bulsu Labs.",
+      "DentVideo is a web app for dental clinics that makes short patient-education videos — narrated, captioned and in the clinic's colors — and checks every script for clinical accuracy and health-advertising rules before the dentist approves it. It is made by Bulsu Labs.",
     facts: [
       { label: "What it is", value: "A web app (software as a service) that makes short educational videos for dental clinics' social media, website and waiting room." },
       { label: "Who it is for", value: "Dentists and dental clinics that want to post regularly without filming every week or hiring an agency." },
       { label: "Languages", value: "English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic and Polish, with formal or informal address." },
-      { label: "What a clinic gets", value: "Five short educational videos a week answering real patient questions, narrated and captioned in the clinic's colours and logo, with a ready caption and hashtags. A dentist can also record five minutes of themselves and get short captioned clips of their own voice." },
+      { label: "What a clinic gets", value: "Five short educational videos a week answering real patient questions, narrated and captioned in the clinic's colors and logo, with a ready caption and hashtags. A dentist can also record five minutes of themselves and get short captioned clips of their own voice." },
       { label: "How content is checked", value: "Software checks every script and caption twice: once against commonly restricted advertising claims (guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises, testimonials) and once by a reviewer acting as a general dentist against mainstream clinical guidance. What fails is rewritten or not made. The dentist's own words are never changed; a clip worth a second look is marked with the reason." },
       { label: "Who decides", value: "The dentist. Nothing is published until the clinic approves it, and DentVideo does not post to social networks itself: the clinic downloads approved videos and posts them." },
       { label: "Legal status of the checks", value: "A careful filter, not legal advice. The clinic remains responsible for what it publishes and should check its national rules." },
-      { label: "Price", value: "Paid plans from $29/month: Starter $29/month, Practice $49/month. Groups and multi-location practices: custom pricing — contact us at hello@dentvideo.com. Monthly, with no minimum term. Before paying, a clinic sees a live preview of its own branded videos with its logo and colours; its first week of videos is made right after payment." },
+      { label: "Price", value: "Paid plans from $29/month: Starter $29/month, Practice $49/month. Groups and multi-location practices: custom pricing — contact us at hello@dentvideo.com. Monthly, with no minimum term. Before paying, a clinic sees a live preview of its own branded videos with its logo and colors; its first week of videos is made right after payment." },
       { label: "Publisher", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Website", value: "dentvideo.com — in English, German, Spanish, Turkish, French, Japanese, Arabic and Polish." },
     ],
@@ -79,7 +79,7 @@ const BASE: Record<Locale, EntityFacts> = {
       {
         heading: "How a week works",
         paragraphs: [
-          "A clinic describes itself once: language, services, tone, colours and logo. Videos are only ever about the services the clinic offers. Each week DentVideo plans five topics from those services and the questions patients ask, writes and narrates the videos, captions them, and puts them through the checks. The dentist watches, approves or declines each one and downloads the approved videos with a caption and hashtags.",
+          "A clinic describes itself once: language, services, tone, colors and logo. Videos are only ever about the services the clinic offers. Each week DentVideo plans five topics from those services and the questions patients ask, writes and narrates the videos, captions them, and puts them through the checks. The dentist watches, approves or declines each one and downloads the approved videos with a caption and hashtags.",
           "When the dentist has five minutes, a filming card suggests what to say; DentVideo cuts the recording into short captioned clips with the clinic's logo. Patients usually trust the person who will treat them most, so these clips are the strongest videos a clinic can post.",
         ],
       },

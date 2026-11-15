@@ -133,7 +133,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       cta: {
         title: "Want five videos a week already checked like this?",
-        text: "DentVideo writes, narrates and captions five short patient-education videos a week in your language and colours. Every script passes these same rules and a second, closer review before you see it — and nothing is published without your approval.",
+        text: "DentVideo writes, narrates and captions five short patient-education videos a week in your language and colors. Every script passes these same rules and a second, closer review before you see it — and nothing is published without your approval.",
         button: "See your preview",
         secondary: "How DentVideo works",
       },
@@ -168,7 +168,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
       },
       {
         q: "Can a dentist say “painless” in an ad?",
-        a: "It is one of the words regulators object to most, because nobody can promise every patient a treatment without discomfort. Describe what you do instead: “with local anaesthesia; most patients feel only mild sensitivity afterwards”.",
+        a: "It is one of the words regulators object to most, because nobody can promise every patient a treatment without discomfort. Describe what you do instead: “with local anesthesia; most patients feel only mild sensitivity afterwards”.",
       },
       {
         q: "Does a clean result mean my post is compliant?",

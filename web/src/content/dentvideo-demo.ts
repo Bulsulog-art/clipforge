@@ -43,7 +43,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     metaTitle: "A preview for {name}",
     eyebrow: "Made for {name}",
     headline: "{name}, this is what your Monday videos could look like",
-    lead: "A sample week in your colours and with your logo, playing right here. No sign-up needed.",
+    lead: "A sample week in your colors and with your logo, playing right here. No sign-up needed.",
     points: [
       "Five narrated, captioned patient-education videos every Monday.",
       "Record five minutes on your phone — or we write and narrate the topics for you.",
@@ -57,13 +57,13 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
       rules: "Every script is checked against the health-advertising rules of your country.",
     },
     cta: "Start with these settings",
-    ctaNote: "Your clinic name, colour and logo are already filled in.",
+    ctaNote: "Your clinic name, color and logo are already filled in.",
     ask: "Ask a question",
     mailSubject: "Question about DentVideo ({name})",
-    sample: "These are sample videos from our library, shown in your colours. Your real videos are about the treatments you offer.",
+    sample: "These are sample videos from our library, shown in your colors. Your real videos are about the treatments you offer.",
     privacy: "We made this page for {name} from public business information. It is deleted after 60 days. To have it removed sooner, write to hello@dentvideo.com.",
     dmAsk:
-      "Hi {name} team, I'm {sender} from DentVideo. We make short patient-education videos for dental clinics. I put together a small preview in your clinic's colours — may I send you the link? If it's not for you, no problem at all: just say so and I won't message again.",
+      "Hi {name} team, I'm {sender} from DentVideo. We make short patient-education videos for dental clinics. I put together a small preview in your clinic's colors — may I send you the link? If it's not for you, no problem at all: just say so and I won't message again.",
     dmLink: {
       thanks: "Thank you! Here is the preview (no sign-up): {url}",
       facts: "Five videos every Monday; nothing is shared without your approval. Plans start at $29/month, no contract.",

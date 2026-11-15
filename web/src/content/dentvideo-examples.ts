@@ -84,8 +84,8 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seoDescription: "Watch patient-education videos DentVideo made for demo dental clinics in eight languages: narrated, captioned and checked before anyone sees them.",
     h1: "Patient-education video examples for dental clinics",
     intro:
-      "These are real videos DentVideo made for fictional demo clinics, three per language, unedited apart from compression for the web. Each one answers a question patients ask, with narration, captions and a short checklist. A clinic that subscribes gets five new videos like these every week, with its own name, logo, colours and language.",
-    demoNote: "Made for a fictional demo clinic: the name, handle and colours on screen are the demo clinic's, not a real practice's.",
+      "These are real videos DentVideo made for fictional demo clinics, three per language, unedited apart from compression for the web. Each one answers a question patients ask, with narration, captions and a short checklist. A clinic that subscribes gets five new videos like these every week, with its own name, logo, colors and language.",
+    demoNote: "Made for a fictional demo clinic: the name, handle and colors on screen are the demo clinic's, not a real practice's.",
     viewOnly: "Shown here as an example of DentVideo's output. These videos are not offered for download or reuse.",
     disclaimer: "General information, not a substitute for a dental consultation.",
     summaryHeading: "What the video covers",
@@ -104,7 +104,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     faq: [
       {
         q: "Can my clinic use these example videos?",
-        a: "No. They were made for fictional demo clinics and are shown here only as examples of what DentVideo makes. A subscribing clinic gets its own new videos every week, with its own name, logo, colours and language, about the treatments it offers.",
+        a: "No. They were made for fictional demo clinics and are shown here only as examples of what DentVideo makes. A subscribing clinic gets its own new videos every week, with its own name, logo, colors and language, about the treatments it offers.",
       },
       {
         q: "Were these videos edited by hand?",
@@ -112,7 +112,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
       },
       {
         q: "Do the videos show patients or AI avatars?",
-        a: "No. The narration is a synthetic voice; the picture shows text, objects and the clinic's colours. There are no avatar faces, actors or patients.",
+        a: "No. The narration is a synthetic voice; the picture shows text, objects and the clinic's colors. There are no avatar faces, actors or patients.",
       },
       {
         q: "Which languages can the videos be in?",
@@ -433,7 +433,7 @@ export const EXAMPLES: ExampleVideo[] = [
       "Teeth whitening products can actually be safe for your enamel.",
       "Myth: whitening ruins your enamel. Fact: whitening can be safe with proper use.",
       "Most people experience only temporary sensitivity after whitening.",
-      "Aftercare tips: avoid strongly coloured foods and drinks for a day or two; follow your dentist's instructions.",
+      "Aftercare tips: avoid strongly colored foods and drinks for a day or two; follow your dentist's instructions.",
       "Got questions? Ask us or book a check-up!",
     ],
   },
