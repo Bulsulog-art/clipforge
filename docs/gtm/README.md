@@ -2,7 +2,7 @@
 
 Written 2026-11-11 for Bulsu Labs (BLS AI Automation DOO, Podgorica). Two people, little money, no free trial, no
 reviews yet. The goal is **100 paying clinics**. There is no discount and no founding offer (removed 2026-11-13): plans are
-Starter $29/month and Practice $49/month, and we invent no urgency.
+Starter $49/month and Practice $79/month (€49 / €79, 1.490 TL / 2.490 TL), and we invent no urgency.
 
 | File | What it is |
 | --- | --- |
@@ -37,7 +37,7 @@ rules and clinical accuracy before the dentist approves. (148)
 | Languages | Videos in 10 languages (EN, DE, ES, FR, IT, PT, TR, JA, AR, PL); website in 8 (EN, DE, ES, TR, FR, JA, AR, PL) |
 | The check | Every script and caption is checked twice: once for health-advertising rules, once for clinical accuracy. It is a careful filter, not legal advice. |
 | Who decides | The dentist approves every video. DentVideo does not post by itself; the clinic shares approved videos from its phone. |
-| Prices (USD) | Starter $29/month. Practice $49/month (adds the dentist's own recordings turned into captioned clips). Group: contact us (hello@dentvideo.com). Monthly only (no yearly plan), no minimum term. |
+| Prices | Starter $49 / €49 / 1.490 TL a month. Practice $79 / €79 / 2.490 TL a month (adds the dentist's own recordings turned into captioned clips). Group: contact us (hello@dentvideo.com). Monthly only (no yearly plan), no minimum term, tax extra where applicable. |
 | Discounts | None. The founding offer (code `KURUCU100`) was removed on 2026-11-13; checkout applies no code by default. |
 | Before paying | A live preview of the clinic's own branded video (logo + colours) in the browser. **No free trial, no free week.** |
 | Not done | No avatar doctors, no fake patients, no auto-posting, no promised patient numbers. |
