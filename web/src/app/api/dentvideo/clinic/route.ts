@@ -7,9 +7,10 @@ import { isOwnLogoPath } from "@/lib/dentvid/paths";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
-import { geoCountry } from "@/lib/dentvid/events";
+import { requestCountry } from "@/lib/dentvid/geo-ip";
 import { BUCKET, dvAdmin } from "@/lib/dentvid/supabase";
 import { LOGO_MAX_BYTES } from "@/lib/dentvid/storage-quota";
+import { fmt } from "@/content/dentvideo-app";
 import { copyDemoLogoTo, loadDemoRow } from "@/lib/dentvid/demos-server";
 import { isDemoActive } from "@/lib/dentvid/demos";
 import { sniffImage } from "@/lib/dentvid/safe-image-fetch";
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
       if (size === null) return NextResponse.json({ error: err.invalidLogo }, { status: 400 });
       if (size > LOGO_MAX_BYTES) {
         await dvAdmin().storage.from(BUCKET).remove([newLogo]);
-        return NextResponse.json({ error: err.invalidLogo, code: "size" }, { status: 400 });
+        return NextResponse.json({ error: fmt(err.logoTooLarge, { mb: LOGO_MAX_BYTES / (1024 * 1024) }), code: "size" }, { status: 400 });
       }
       // Nor can it check what was uploaded: the file must really be a PNG, JPEG or WebP
       // (its first bytes), not just named like one. The worker checks again at render time.
@@ -141,7 +142,7 @@ export async function POST(req: Request) {
     locale: body.profile.language,
     props: { ...(body.attribution ?? {}), ...(demo ? { demo: demo.token } : {}), country: body.profile.country, language: body.profile.language },
     clinicId: data.id as string,
-    geo: geoCountry(req.headers),
+    geo: requestCountry(req.headers),
   });
   // A clinic signed up from a demo link: the warmest lead there is (once per demo; not the owner testing).
   if (demo && !isAdminUser(user.id)) void raiseHotLead({ token: demo.token, step: "signup", demo, clinicId: data.id as string });

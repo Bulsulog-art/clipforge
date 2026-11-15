@@ -38,13 +38,15 @@ A conversion is recorded only when the visitor came with a click id we may keep,
 ## 3. Consent (what the visitor sees)
 
 - Organic visitors (no `gclid` / `gbraid` / `wbraid` in the URL): nothing. No prompt, no extra request.
-- Ad click from the **EU/EEA, UK or Switzerland**, or when the edge sends no country header: a small prompt in the
-  page's language — "Allow measuring which ad brought you? Used only to count our ad results, never sold." —
-  with equal Accept / Decline. Accept → the click id is kept in this site's `localStorage` (`dv-ad-click`,
+- Ad click from the **EU/EEA, UK or Switzerland**, or when the country is unknown: a small prompt in the
+  page's language that names the recipient — "May we tell Google Ads which ad brought you? Only to measure our
+  ads: we keep the ad click ID for 90 days and send it to Google if you sign up or subscribe. Never sold." (TR
+  copy also says the transfer is abroad) — with equal Accept / Decline and a link to privacy §5 ("Who receives it"). Accept → the click id is kept in this site's `localStorage` (`dv-ad-click`,
   max 90 days). Decline → it is dropped; the visit still counts by its UTM tags.
 - Ad click from elsewhere (e.g. **TR**): no prompt; the id is kept (legitimate interests, privacy policy §4).
-- The country comes from `GET /api/dentvideo/geo`, which reads `CF-IPCountry` (Cloudflare) or the like and
-  answers only `{ consentRequired }`. The server checks again at sign-up: from a consent country (or unknown),
+- The country comes from `GET /api/dentvideo/geo`: our own server looks up the connecting address (last
+  `X-Forwarded-For` hop, appended by Traefik) in a local DB-IP country database (`web/src/lib/dentvid/geo-ip.ts`);
+  client-sent `CF-IPCountry` and the like are ignored. It answers `{ country, consentRequired }`, never the IP. The server checks again at sign-up: from a consent country (or unknown),
   only a click marked `granted` is stored.
 - CSV column **Ad User Data** is `GRANTED` for visitors who accepted; empty where no prompt applied.
   **Ad Personalization** is always empty (we never ask for it).

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { APP_TEXT } from "@/content/dentvideo-app";
+import { APP_TEXT, fmt } from "@/content/dentvideo-app";
 
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const MB = 1024 * 1024;
@@ -83,8 +83,17 @@ describe("POST /api/dentvideo/logo", () => {
 
   it("refuses a body over 5 MB while reading it, whatever Content-Length says", async () => {
     // Before: a signed "logo" URL took up to the bucket's 500 MB.
-    expect(await send(png(5 * MB + 1))).toMatchObject({ status: 413, body: { code: "size", error: APP_TEXT.en.errors.invalidLogo } });
+    expect(await send(png(5 * MB + 1))).toMatchObject({ status: 413, body: { code: "size", maxBytes: 5 * MB, error: "That logo is larger than 5 MB. Please upload a smaller PNG, JPEG or WebP file." } });
     expect(uploaded).toEqual([]);
+  });
+
+  it("says in every language that the logo is too large and states the 5 MB limit", () => {
+    for (const [l, t] of Object.entries(APP_TEXT)) {
+      const msg = fmt(t.errors.logoTooLarge, { mb: 5 });
+      expect(t.errors.logoTooLarge, l).toContain("{mb}");
+      expect(msg, l).toMatch(/5\s?(MB|Mo|ميغابايت)/);
+      expect(msg, l).not.toBe(t.errors.invalidLogo);
+    }
   });
 
   it("refuses bytes that are not the image type they claim (SVG, HTML, a mismatched type, empty)", async () => {

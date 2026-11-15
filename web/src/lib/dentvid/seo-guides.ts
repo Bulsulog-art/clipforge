@@ -8,7 +8,8 @@ import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { guideSample, plainText, reviewedDate, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { GUIDE_SAMPLE_UI } from "@/content/guides/ui-sample";
-import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
+import { DV_SELF_SERVE_TIERS } from "./billing";
+import { DV_LIST_PRICES, type DvCurrency } from "./pricing";
 import { LANDING } from "@/content/dentvideo";
 import { LEGAL, LEGAL_KINDS, LEGAL_UPDATED, legalPath, type LegalKind } from "@/content/legal";
 import { CHECKER, CHECKER_PATH, CHECKER_UPDATED } from "@/content/dentvideo-checker";
@@ -101,31 +102,48 @@ export function jsonLdHtml(data: unknown): string {
 }
 
 /**
- * What can be bought, one Offer per self-serve plan (Starter, Practice), each a
- * monthly USD list price, excluding tax (the page's server-rendered price; EUR
- * and TL are shown in the browser where Dodo charges them). Group is "Priced
- * per location": no number is published, so it is no Offer.
+ * The currency a page's language is mostly read in, besides USD: Turkish
+ * pages in lira, German / Spanish / French pages in euros (what Dodo charges
+ * in Türkiye and the euro area — pricing.ts). Other languages: USD only.
+ */
+export const OFFER_LOCAL_CURRENCY: Partial<Record<Locale, Exclude<DvCurrency, "USD">>> = { tr: "TRY", de: "EUR", es: "EUR", fr: "EUR" };
+
+/** The currencies a page's offers are listed in: USD (the base price) first, then the page's local one. */
+export function offerCurrencies(locale: Locale): DvCurrency[] {
+  const local = OFFER_LOCAL_CURRENCY[locale];
+  return local ? ["USD", local] : ["USD"];
+}
+
+/**
+ * What can be bought, one Offer per self-serve plan (Starter, Practice) and
+ * currency: the monthly list price from pricing.ts (the numbers Dodo
+ * charges), excluding tax. USD everywhere, plus TRY on Turkish pages and EUR
+ * on German, Spanish and French ones — separate Offer objects, so each price
+ * keeps its own priceCurrency. Group is "Priced per location": no number is
+ * published, so it is no Offer.
  */
 export function planOffers(locale: Locale) {
   const c = LANDING[locale];
-  return DV_SELF_SERVE_TIERS.map((tier, i) => {
-    const price = DV_PRICES_USD[tier].month as number;
-    return {
-      "@type": "Offer",
-      name: c.pricing.tiers[i].name,
-      price,
-      priceCurrency: "USD",
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
+  return offerCurrencies(locale).flatMap((currency) =>
+    DV_SELF_SERVE_TIERS.map((tier, i) => {
+      const price = DV_LIST_PRICES[tier][currency];
+      return {
+        "@type": "Offer",
+        name: c.pricing.tiers[i].name,
         price,
-        priceCurrency: "USD",
-        billingDuration: "P1M",
-        valueAddedTaxIncluded: false,
-        referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
-      },
-      url: `${absoluteUrl(LANDING_PATH[locale])}#pricing`,
-    };
-  });
+        priceCurrency: currency,
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price,
+          priceCurrency: currency,
+          billingDuration: "P1M",
+          valueAddedTaxIncluded: false,
+          referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+        },
+        url: `${absoluteUrl(LANDING_PATH[locale])}#pricing`,
+      };
+    }),
+  );
 }
 
 /** The guides' author and reviewer: a team at Bulsu Labs (no invented individual credentials). */

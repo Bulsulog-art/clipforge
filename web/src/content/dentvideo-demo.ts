@@ -5,7 +5,7 @@ import { countryFromLocale, dvCurrencyForCountry, dvLowestPrice, formatDvPrice }
 /**
  * The lowest monthly list price ("from …") for a demo's clinic: in the
  * currency its country is billed in (the demo's country, else the page's
- * language: /tr → TL, /de and /es → EUR), exactly what its checkout charges.
+ * language: /tr → TL, /de, /es and /fr → EUR), exactly what its checkout charges.
  */
 export function demoFromPrice(locale: Locale, country?: string | null): string {
   const currency = dvCurrencyForCountry(country || countryFromLocale(locale));

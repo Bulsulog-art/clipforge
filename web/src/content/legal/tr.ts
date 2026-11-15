@@ -198,7 +198,7 @@ export const TR: LegalText = {
                 "E-postalar: kliniğinize hangi hizmet e-postalarını gönderdiğimiz ve hatırlatmalardan çıkıp çıkmadığınız.",
                 "Kullanım olayları: “ana sayfa görüntülendi” veya “plan seçildi” gibi adımların sayfa dili, kampanya etiketleri (utm) ve yönlendiren sitenin alan adıyla tutulan küçük, birinci taraf kaydı. Bu kayıtlar çerez kimliği, IP adresi, tarayıcı bilgisi, ad veya e-posta içermez.",
                 "Reklam tıklamaları: dentvideo.com'a Google reklamlarımızdan biri üzerinden gelirseniz, Google'ın bağlantıya eklediği tıklama kimliği (gclid, gbraid veya wbraid) ve tıklamanın zamanı. Ardından bir hesap oluşturursanız bunu hesabınızla birlikte saklarız. AB/AEA, Birleşik Krallık ve İsviçre'de yalnızca bu ziyaretçilere gösterilen soruda izin verirseniz.",
-                "Teknik veriler: IP adresiniz ve istek bilgileri sayfaları sunmak, hizmeti korumak ve kötüye kullanımı sınırlamak için işlenir (kısa ömürlü istek sınırı sayaçları).",
+                "Teknik veriler: IP adresiniz ve istek bilgileri sayfaları sunmak, hizmeti korumak ve kötüye kullanımı sınırlamak için işlenir (kısa ömürlü istek sınırı sayaçları). Fiyatları para biriminizde göstermek ve bir reklam tıklamasını saklamadan önce izin isteyip istemeyeceğimizi belirlemek için IP adresinizin yalnızca ülkesini kendi sunucumuzdaki bir veritabanından buluruz ({dbip}); bunun için IP adresi saklanmaz ve hiçbir yere gönderilmez.",
               ],
             },
           ],

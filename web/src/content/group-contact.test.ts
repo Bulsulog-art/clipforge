@@ -115,13 +115,16 @@ describe("Group is Contact us", () => {
     for (const l of LOCALES) {
       const landing = JSON.stringify(landingJsonLd(l));
       const app = (landingJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[]).find((n) => n["@type"] === "SoftwareApplication");
-      expect(app?.offers?.map((o) => o.name), l).toEqual(["Starter", "Practice"]);
-      expect(app?.offers?.map((o) => o.price), l).toEqual([79, 149]);
+      // One Starter and one Practice offer per listed currency (USD first; seo-guides planOffers).
+      const usd = app?.offers?.filter((o) => (o as { priceCurrency?: string }).priceCurrency === "USD");
+      expect(usd?.map((o) => o.name), l).toEqual(["Starter", "Practice"]);
+      expect(usd?.map((o) => o.price), l).toEqual([79, 149]);
+      expect(new Set(app?.offers?.map((o) => o.name)), l).toEqual(new Set(["Starter", "Practice"]));
       expect(promisesIn(landing), l).toEqual([]);
       expect(landing, l).not.toMatch(/"name":"Group"/);
       const about = aboutJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[];
       const aboutOffers = about.find((n) => n["@type"] === "SoftwareApplication")?.offers;
-      expect(aboutOffers?.map((o) => [o.name, o.price]), l).toEqual([["Starter", 79], ["Practice", 149]]);
+      expect(aboutOffers?.filter((o) => (o as { priceCurrency?: string }).priceCurrency === "USD").map((o) => [o.name, o.price]), l).toEqual([["Starter", 79], ["Practice", 149]]);
     }
   });
 });

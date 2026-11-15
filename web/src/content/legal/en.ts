@@ -204,7 +204,7 @@ export const EN: LegalText = {
                 "Emails: a record of which service emails we sent to your clinic, and whether you unsubscribed from reminders.",
                 "Usage events: a small first-party record of steps such as \"landing page viewed\" or \"plan chosen\", with the page language, campaign tags (utm) and the referring website's host. These events store no cookie ID, no IP address, no browser details and no name or email.",
                 "Ad clicks: if you reach dentvideo.com from one of our Google ads, the click identifier Google adds to the link (gclid, gbraid or wbraid) and the time of the click. If you then create an account, we store it with your account. In the EU/EEA, the UK and Switzerland we keep it only if you allow it in the prompt shown to these visitors.",
-                "Technical data: your IP address and request details are processed to deliver pages, keep the service secure and limit abuse (short-lived rate-limit counters).",
+                "Technical data: your IP address and request details are processed to deliver pages, keep the service secure and limit abuse (short-lived rate-limit counters). To show prices in your currency and to know whether to ask before keeping an ad click, we look up only the country of your IP address in a database on our own server ({dbip}); for this the IP address is neither stored nor sent anywhere.",
               ],
             },
           ],

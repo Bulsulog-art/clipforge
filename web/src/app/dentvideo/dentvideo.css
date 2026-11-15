@@ -374,3 +374,27 @@ html[data-dv-tax="eu"] .dv-tax-eu,
 html[data-dv-tax="tr"] .dv-tax-tr {
   display: inline;
 }
+/* Before <PriceRegion> has run (no JS, a crawler, an ad reviewer), the page's
+   language picks the default: Turkish pages in TL, German / Spanish / French
+   pages in EUR + VAT (lib/dentvid/price-region.ts countryFromLocale). The
+   server renders <html lang>; once data-dv-cur is set, the rules above win. */
+html:lang(tr):not([data-dv-cur]) .dv-cur-USD,
+html:lang(de):not([data-dv-cur]) .dv-cur-USD,
+html:lang(es):not([data-dv-cur]) .dv-cur-USD,
+html:lang(fr):not([data-dv-cur]) .dv-cur-USD,
+html:lang(tr):not([data-dv-tax]) .dv-tax-other,
+html:lang(de):not([data-dv-tax]) .dv-tax-other,
+html:lang(es):not([data-dv-tax]) .dv-tax-other,
+html:lang(fr):not([data-dv-tax]) .dv-tax-other {
+  display: none;
+}
+html:lang(tr):not([data-dv-cur]) .dv-cur-TRY,
+html:lang(de):not([data-dv-cur]) .dv-cur-EUR,
+html:lang(es):not([data-dv-cur]) .dv-cur-EUR,
+html:lang(fr):not([data-dv-cur]) .dv-cur-EUR,
+html:lang(tr):not([data-dv-tax]) .dv-tax-tr,
+html:lang(de):not([data-dv-tax]) .dv-tax-eu,
+html:lang(es):not([data-dv-tax]) .dv-tax-eu,
+html:lang(fr):not([data-dv-tax]) .dv-tax-eu {
+  display: inline;
+}

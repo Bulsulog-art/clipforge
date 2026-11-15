@@ -41,15 +41,16 @@ export function countryFromTimeZone(tz: string | null | undefined): string | nul
   return (tz && TZ[tz.split("/")[1] ?? ""]) || null;
 }
 
+// The page language's market (/tr → TL, /de /es /fr → EUR); also the no-JS default in dentvideo.css.
 export function countryFromLocale(locale: string): string | null {
-  return locale === "tr" ? "TR" : locale === "de" ? "DE" : locale === "es" ? "ES" : null;
+  return locale === "tr" ? "TR" : locale === "de" ? "DE" : locale === "es" ? "ES" : locale === "fr" ? "FR" : null;
 }
 
-// Display only: the edge's country, else the time zone (outside TR/EU → USD),
-// else, with no time zone, the page's language (/tr, /de, /es).
+// Display only: the server's IP-based country, else a TR/EU time zone, else
+// the page's language (a UTC or US-zoned reader of /tr — an ad reviewer, a
+// VPN — sees the TL the ad quoted), else USD.
 export function guessCountry(args: { geo?: string | null; timeZone?: string | null; locale: string }): string | null {
   const geo = normaliseCountry(args.geo);
   if (geo) return geo;
-  if (args.timeZone) return countryFromTimeZone(args.timeZone);
-  return countryFromLocale(args.locale);
+  return countryFromTimeZone(args.timeZone) ?? countryFromLocale(args.locale);
 }

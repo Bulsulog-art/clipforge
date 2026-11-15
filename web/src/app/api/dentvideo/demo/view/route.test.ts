@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// The country comes from our own IP lookup (geo-ip.ts); a fake database (203.0.113.9, the default visitor, is in TR).
+vi.mock("@/lib/dentvid/geo-ip", async (orig) => {
+  const m = (await orig()) as typeof import("@/lib/dentvid/geo-ip");
+  const DB: Record<string, string> = { "88.255.1.1": "TR", "194.25.3.4": "DE", "203.0.113.9": "TR" };
+  const reader = { get: (ip: string) => (DB[ip] ? { country: { iso_code: DB[ip] } } : null) };
+  return { ...m, requestCountry: (h: Headers, o: Parameters<typeof m.requestCountry>[1] = {}) => m.requestCountry(h, { ...o, reader }) };
+});
+
 let limitOk = true;
 const checks: string[][] = [];
 const counted: string[] = [];
@@ -43,7 +51,7 @@ async function view(body: unknown, ip = "203.0.113.9", ua: string | null = SAFAR
   const res = await POST(
     new Request("https://dentvideo.com/api/dentvideo/demo/view", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": ip, "cf-ipcountry": "TR", ...(ua !== null ? { "user-agent": ua } : {}) },
+      headers: { "content-type": "application/json", "x-forwarded-for": ip, ...(ua !== null ? { "user-agent": ua } : {}) },
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   );
