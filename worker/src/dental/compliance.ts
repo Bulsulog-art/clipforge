@@ -3,7 +3,7 @@ import { z } from "zod";
 import { agentJson, REVIEW_MODEL } from "./llm.js";
 import type { ClinicProfile } from "./profile.js";
 import { marketLanguage, marketLanguages, marketRules } from "./locale.js";
-import { scanHardRules, type HardHit } from "./hard-rules.js";
+import { scanHardRules, scanMarketRules, type HardHit } from "./hard-rules.js";
 
 /**
  * The compliance agent. Health advertising is regulated almost everywhere,
@@ -17,6 +17,10 @@ import { scanHardRules, type HardHit } from "./hard-rules.js";
  *     in essentially every market — guarantees, absolutes, superlatives,
  *     prices and discounts, before/after promises, testimonials, cures.
  *     A hit can never be waved through by the model.
+ *     Plus the clinic's market pack (hard-rules.ts MARKET_HARD_RULES): what
+ *     one country's rules make mechanically checkable (TR: sponsored framing,
+ *     like/comment invitations, raffles; GB/US/DACH: specialist claims; GB:
+ *     prescription-only medicines; DE: addressing children; MX: permit numbers).
  *  2. The model reviews the whole text for what patterns cannot see
  *     (implied guarantees, fear-mongering, diagnosing the viewer, patient
  *     details) and proposes compliant rewrites.
@@ -27,6 +31,11 @@ import { scanHardRules, type HardHit } from "./hard-rules.js";
 
 export {
   AVOID_WORDS,
+  MARKET_HARD_RULES,
+  marketCode,
+  scanMarketRules,
+  type MarketRule,
+  type MarketRuleId,
   CHECKER_RULES,
   FEAR_RULE,
   HARD_RULES,
@@ -85,7 +94,7 @@ export async function reviewCompliance(
   profile: Pick<ClinicProfile, "country" | "language">,
   text: string,
 ): Promise<ComplianceResult> {
-  const hard = scanHardRules(text);
+  const hard = [...scanHardRules(text), ...scanMarketRules(text, profile.country)];
   const review = await agentJson(client, {
     system: SYSTEM,
     user:

@@ -2,10 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import * as compliance from "./compliance.js";
-import { CHECKER_RULES, HARD_RULES, findHardSpans, scanHardRules } from "./hard-rules.js";
+import { CHECKER_RULES, HARD_RULES, MARKET_HARD_RULES, findHardSpans, scanHardRules, scanMarketRules } from "./hard-rules.js";
 
 /**
- * Golden cases for the hard rules. The same file is read by the web's mirror
+ * Golden cases for the hard rules and the market packs. The same file is read by the web's mirror
  * test (web/src/lib/dentvid/hard-rules.test.ts), so the free public checker
  * and the video pipeline are proven to flag exactly the same phrases.
  *
@@ -15,7 +15,14 @@ import { CHECKER_RULES, HARD_RULES, findHardSpans, scanHardRules } from "./hard-
  */
 const FILE = path.join(__dirname, "fixtures/hard-rules-golden.json");
 
-type Golden = { input: string; scan: ReturnType<typeof scanHardRules>; spans: ReturnType<typeof findHardSpans>; checker: ReturnType<typeof findHardSpans> };
+type Golden = {
+  input: string;
+  scan: ReturnType<typeof scanHardRules>;
+  spans: ReturnType<typeof findHardSpans>;
+  checker: ReturnType<typeof findHardSpans>;
+  /** Market packs (MARKET_HARD_RULES) that flag this input, by market. */
+  markets: Record<string, ReturnType<typeof scanMarketRules>>;
+};
 
 const INPUTS = [
   // Clean, hedged, educational
@@ -57,10 +64,21 @@ const INPUTS = [
   "無痛治療で絶対安心！地域No.1の歯科医院。ビフォーアフター写真と患者様の声をご覧ください。初回無料カウンセリング、ホワイトニング半額キャンペーン。",
   "永久に白い歯を。手遅れになる前に今すぐ予約を。",
   "永久歯は6歳頃から生えてきます。",
+  // Market packs (MARKET_HARD_RULES): Türkiye, DACH, UK/US, Mexico
+  "Bu içerik sponsorlu bir paylaşımdır. Sorularınızı yorumlara yazın, çekilişe katılın!",
+  "Her cerrahi veya girişimsel işlemde sonuçlar kişiden kişiye değişiklik gösterebilir. İşlem öncesinde hekiminizden detaylı görüş almanız önerilir.",
+  "Unser Team sind Spezialisten für Implantate. Hallo Kinder, heute lernt ihr Zähneputzen!",
+  "Nous sommes spécialistes des implants. Siamo specialisti in ortodonzia.",
+  "Our implant specialists also offer Botox. A board-certified team.",
+  "Your dentist may refer you to a specialist if a root canal is complex.",
+  "Clínica autorizada por COFEPRIS, aviso de publicidad No. 123456.",
 ];
 
+const MARKETS = Object.keys(MARKET_HARD_RULES);
+
 function compute(input: string): Golden {
-  return { input, scan: scanHardRules(input), spans: findHardSpans(input), checker: findHardSpans(input, CHECKER_RULES) };
+  const markets = Object.fromEntries(MARKETS.map((c) => [c, scanMarketRules(input, c)]).filter(([, hits]) => hits.length));
+  return { input, scan: scanHardRules(input), spans: findHardSpans(input), checker: findHardSpans(input, CHECKER_RULES), markets };
 }
 
 describe("hard rules: shared module", () => {
@@ -87,6 +105,9 @@ describe("hard rules: shared module", () => {
     const seen = new Set(golden.flatMap((g) => g.checker.map((s) => s.rule)));
     for (const r of CHECKER_RULES) expect(seen, r.id).toContain(r.id);
     for (const g of golden.slice(0, 7)) expect(g.checker, g.input).toEqual([]);
+    for (const g of golden.slice(0, 7)) expect(g.markets, g.input).toEqual({});
+    const marketSeen = new Set(golden.flatMap((g) => Object.values(g.markets).flat().map((h) => h.rule)));
+    for (const rules of Object.values(MARKET_HARD_RULES)) for (const r of rules) expect(marketSeen, r.id).toContain(r.id);
   });
 
   it("spans agree with scanHardRules: every rule it reports is highlighted at least once", () => {

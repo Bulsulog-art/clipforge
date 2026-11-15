@@ -199,7 +199,7 @@ describe("markets and voice", () => {
   it("UK rules exist and are stricter than none", () => {
     expect(marketRules("GB")).toMatch(/CAP Code/);
     expect(marketRules("GB")).toMatch(/specialist list/);
-    expect(marketRules("US")).toBe("");
+    expect(marketRules("US")).toMatch(/ADA Code/);
   });
   it("writes the market's variety", () => {
     expect(variantRule({ language: "en", country: "GB" })).toMatch(/British/);

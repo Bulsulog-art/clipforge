@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHECKER_RULES, findHardSpans, scanHardRules } from "./hard-rules";
+import { CHECKER_RULES, MARKET_HARD_RULES, findHardSpans, scanHardRules, scanMarketRules } from "./hard-rules";
 import golden from "./hard-rules-golden.json";
 
 /**
@@ -14,5 +14,7 @@ describe("hard rules in the browser = hard rules in the worker", () => {
     expect(scanHardRules(g.input)).toEqual(g.scan);
     expect(findHardSpans(g.input)).toEqual(g.spans);
     expect(findHardSpans(g.input, CHECKER_RULES)).toEqual(g.checker);
+    const markets = Object.fromEntries(Object.keys(MARKET_HARD_RULES).map((c) => [c, scanMarketRules(g.input, c)]).filter(([, hits]) => hits.length));
+    expect(markets).toEqual(g.markets);
   });
 });
