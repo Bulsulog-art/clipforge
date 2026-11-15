@@ -88,7 +88,13 @@ describe("currency selection", () => {
     expect(guessCountry({ geo: null, timeZone: "UTC", locale: "pl" })).toBeNull();
     // …a TR/EU zone still wins over the language, and a known IP country over both.
     expect(guessCountry({ geo: null, timeZone: "Europe/Berlin", locale: "tr" })).toBe("DE");
-    expect(guessCountry({ geo: "US", timeZone: "UTC", locale: "tr" })).toBe("US");
+    // An IP outside the TL/EUR markets (US reviewer, VPN) never turns /tr or /de into dollars…
+    expect(guessCountry({ geo: "US", timeZone: "UTC", locale: "tr" })).toBe("TR");
+    expect(guessCountry({ geo: "US", timeZone: "America/Los_Angeles", locale: "de" })).toBe("DE");
+    // …but it does decide on pages without a market of their own, and a TL/EUR IP decides everywhere.
+    expect(guessCountry({ geo: "US", timeZone: "Europe/Istanbul", locale: "en" })).toBe("US");
+    expect(guessCountry({ geo: "TR", timeZone: "UTC", locale: "de" })).toBe("TR");
+    expect(guessCountry({ geo: "AT", timeZone: "UTC", locale: "tr" })).toBe("AT");
     expect(guessCountry({ geo: null, timeZone: null, locale: "tr" })).toBe("TR");
     expect(guessCountry({ geo: null, timeZone: null, locale: "es" })).toBe("ES");
     expect(guessCountry({ geo: null, timeZone: null, locale: "en" })).toBeNull();

@@ -51,6 +51,10 @@ export function countryFromLocale(locale: string): string | null {
 // VPN — sees the TL the ad quoted), else USD.
 export function guessCountry(args: { geo?: string | null; timeZone?: string | null; locale: string }): string | null {
   const geo = normaliseCountry(args.geo);
-  if (geo) return geo;
-  return countryFromTimeZone(args.timeZone) ?? countryFromLocale(args.locale);
+  const page = countryFromLocale(args.locale);
+  // An IP in a TL/EUR market shows that market's price. An IP elsewhere (US, a VPN, Google's
+  // ad reviewer) does not override a TR or euro page: /tr keeps TL and /de keeps EUR, as the ads quote.
+  if (geo && (dvCurrencyForCountry(geo) !== "USD" || !page)) return geo;
+  if (geo && page) return page;
+  return countryFromTimeZone(args.timeZone) ?? page;
 }
