@@ -15,6 +15,9 @@ import { BillingIssuePanel, type BillingIssue } from "./billing-issue";
 import { ClinicForm } from "./clinic-form";
 import { AccountPanel } from "./account-panel";
 import { RecordUpload } from "./record-upload";
+import { ReferralCard } from "./referral-card";
+import { referralText } from "@/content/dentvideo-referral";
+import type { ReferralSummary } from "@/lib/dentvid/referrals";
 
 /**
  * The screens of the signed-in app, as plain views of their data. The pages
@@ -119,9 +122,12 @@ export function SettingsView({
   initialDialog = null,
   accountEmail = null,
   billingIssue = null,
+  referral = null,
 }: {
   locale: Locale;
   profile?: Partial<ClinicProfile>;
+  /** The clinic's referral link (lib/dentvid/referrals); null when the program is off or 0018 is missing. */
+  referral?: { code: string; link: string; summary: ReferralSummary | null } | null;
   /** The login's address (the delete dialog accepts it when the clinic has no name). */
   accountEmail?: string | null;
   logoPath?: string | null;
@@ -185,6 +191,14 @@ export function SettingsView({
           )}
           <AccountPanel part="billing" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} />
         </section>
+      )}
+      {referral && (
+        <ReferralCard
+          text={referralText(locale, { applied: referral.summary?.applied ?? 0, pending: (referral.summary?.held ?? 0) + (referral.summary?.due ?? 0) })}
+          code={referral.code}
+          link={referral.link}
+          showStats={!!referral.summary && referral.summary.applied + referral.summary.held + referral.summary.due > 0}
+        />
       )}
       <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} accountEmail={accountEmail} initialDialog={initialDialog} />
     </main>

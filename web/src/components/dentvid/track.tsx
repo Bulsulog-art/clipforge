@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import type { DvCtaWhere } from "@/lib/dentvid/events";
-import { attributionFrom, captureAttribution } from "@/lib/dentvid/attribution";
+import { attributionFrom, captureAttribution, captureReferralFromLocation } from "@/lib/dentvid/attribution";
 import { trackDv } from "@/lib/dentvid/events-client";
 
 /**
@@ -17,6 +17,8 @@ export function LandingView({ locale }: { locale: string }) {
       // This visit's own source (for the view), and the tab's first touch kept for the sign-up.
       const visit = attributionFrom(window.location.search, document.referrer, window.location.hostname);
       captureAttribution(visit);
+      // A clinic's referral link (?ref=DV……): kept for the sign-up's clinic step.
+      captureReferralFromLocation();
       trackDv("landing_view", { locale, props: visit, once: `landing:${locale}` });
     } catch {
       // never break the page

@@ -8,6 +8,7 @@ import { clinicSources, lastRuns, type AdminClinic, type AdminEvent, type AdminI
 import { lastActivity, type ClinicRowView, type VideoRow } from "./admin-filters";
 import { billingIssues, type EmailLogRow, type EmailSendRow, type PaymentRow, type SubRow } from "./admin-ops";
 import { costOver } from "./admin-system";
+import { rewardState, type RewardRow } from "./referrals";
 
 /**
  * What each admin screen shows, loaded with the service role on the server
@@ -45,17 +46,20 @@ export type OverviewData = AdminData & {
   subsTable: boolean;
   emailFailures: number | null;
   cost: { today: number; d7: number; d30: number; tracked: boolean };
+  /** Referral free months due (0 before 0018). */
+  referralsDue?: number;
 };
 
 export async function loadOverview(now = new Date()): Promise<OverviewData> {
   const c = db();
-  const [data, system, subs, sends] = await Promise.all([
+  const [data, system, subs, sends, rewards] = await Promise.all([
     loadAdminData(now),
     readSystem(now),
     c ? rows<SubRow>(c.from("dentvid_subscriptions").select("*").order("updated_at", { ascending: false }).limit(2000)) : Promise.resolve({ rows: [], missing: true } as Q<SubRow>),
     c
       ? rows<{ id: number }>(c.from("dentvid_email_sends").select("id").eq("status", "failed").gte("created_at", new Date(now.getTime() - 7 * DAY).toISOString()).limit(500))
       : Promise.resolve({ rows: [], missing: true } as Q<{ id: number }>),
+    c ? rows<RewardRow>(c.from("dentvid_referral_rewards").select("status, eligible_at").eq("status", "pending").limit(1000)) : Promise.resolve({ rows: [], missing: true } as Q<RewardRow>),
   ]);
   const byDay = new Map(system.costByDay);
   if (!byDay.size && data.spend.spentTodayUsd !== null) byDay.set(now.toISOString().slice(0, 10), data.spend.spentTodayUsd);
@@ -65,6 +69,7 @@ export async function loadOverview(now = new Date()): Promise<OverviewData> {
     subs: subs.rows,
     subsTable: !subs.missing,
     emailFailures: sends.missing ? null : sends.rows.length,
+    referralsDue: rewards.rows.filter((r) => rewardState(r, now) === "due").length,
     cost: { today: costOver(byDay, 1, now), d7: costOver(byDay, 7, now), d30: costOver(byDay, 30, now), tracked: system.costByDay.length > 0 },
   };
 }
@@ -215,6 +220,8 @@ export type BillingData = {
   payments: PaymentRow[] | null;
   clinics: AdminClinic[];
   issues: ReturnType<typeof billingIssues>;
+  /** Referral rewards (0018), newest first; null when the table is missing. */
+  referrals: RewardRow[] | null;
   dodoFoundingUses: number | null;
   alerts: SystemSnapshot["alerts"];
   warnings: string[];
@@ -222,21 +229,23 @@ export type BillingData = {
 
 export async function loadBilling(now = new Date()): Promise<BillingData> {
   const c = db();
-  if (!c) return { now: now.toISOString(), subs: null, payments: null, clinics: [], issues: [], dodoFoundingUses: null, alerts: [], warnings: ["DentVideo backend is not configured."] };
-  const [subs, payments, clinics, dodo, system] = await Promise.all([
+  if (!c) return { now: now.toISOString(), subs: null, payments: null, clinics: [], issues: [], referrals: null, dodoFoundingUses: null, alerts: [], warnings: ["DentVideo backend is not configured."] };
+  const [subs, payments, clinics, dodo, system, rewards] = await Promise.all([
     rows<SubRow>(c.from("dentvid_subscriptions").select("*").order("updated_at", { ascending: false }).limit(2000)),
     rows<PaymentRow>(c.from("dentvid_payments").select("*").order("created_at", { ascending: false }).limit(200)),
     rows<AdminClinic>(c.from("dentvid_clinics").select("*").limit(5000)),
     loadDodoFoundingUses(),
     readSystem(now),
+    rows<RewardRow>(c.from("dentvid_referral_rewards").select("*").order("first_paid_at", { ascending: false }).limit(500)),
   ]);
-  const warnings = [subs.missing ? "The subscription ledger (0007) is missing." : subs.error, payments.error, clinics.error].filter((x): x is string => !!x);
+  const warnings = [subs.missing ? "The subscription ledger (0007) is missing." : subs.error, payments.error, clinics.error, rewards.error].filter((x): x is string => !!x);
   return {
     now: now.toISOString(),
     subs: subs.missing ? null : subs.rows,
     payments: payments.missing ? null : payments.rows,
     clinics: clinics.rows,
     issues: billingIssues(subs.rows, clinics.rows),
+    referrals: rewards.missing ? null : rewards.rows,
     dodoFoundingUses: dodo,
     alerts: system.alerts,
     warnings,

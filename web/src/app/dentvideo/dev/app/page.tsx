@@ -52,6 +52,7 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
         plans={plans}
         selfServe={sp.billing !== "email"}
         initialDialog={sp.dialog === "delete" ? "delete" : null}
+        referral={{ code: "DV7K3M9Q", link: "https://dentvideo.com/?ref=DV7K3M9Q", summary: { held: 1, due: 0, applied: 1 } }}
       />
     );
   }
