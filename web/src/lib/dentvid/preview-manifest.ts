@@ -161,39 +161,39 @@ export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | 
   ],
   "tr": [
     {
-      "id": "cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t",
+      "id": "cleaning-dis-tasi-ve-dis-eti-kanamasi",
       "category": "cleaning",
-      "service": "diş taşı temizliği",
-      "title": "Diş Taşı Temizliği",
-      "seconds": 34.4
+      "service": "Diş taşı temizliği",
+      "title": "Diş Taşı ve Diş Eti Kanaması",
+      "seconds": 26.1
     },
     {
-      "id": "whitening-dis-beyazlatma-mit",
+      "id": "whitening-beyazlatma-sonrasi-hassasiyet",
       "category": "whitening",
-      "service": "diş beyazlatma",
-      "title": "Diş Beyazlatma ve Hassasiyet",
-      "seconds": 26.3
+      "service": "Diş beyazlatma",
+      "title": "Beyazlatma Sonrası Hassasiyet",
+      "seconds": 24.2
     },
     {
       "id": "implant-implant-tedavisinin-asamalari",
       "category": "implant",
-      "service": "implant",
+      "service": "İmplant",
       "title": "İmplant Tedavisinin Aşamaları",
-      "seconds": 25.2
+      "seconds": 29.5
     },
     {
-      "id": "children-cocuk-dis-hekimligi-onleme",
-      "category": "children",
-      "service": "çocuk diş hekimliği",
-      "title": "Çocuklarda Çürükten Korunma",
-      "seconds": 25.5
+      "id": "aligners-seffaf-plak-ve-icecekler",
+      "category": "aligners",
+      "service": "Şeffaf plak tedavisi",
+      "title": "Şeffaf Plak ve İçecekler",
+      "seconds": 27.3
     },
     {
-      "id": "implant-implant-tedavisi-sonrasi-bakim",
+      "id": "implant-implant-sonrasi-bakim",
       "category": "implant",
-      "service": "implant",
-      "title": "İmplant Tedavisi Sonrası Bakım",
-      "seconds": 29.3
+      "service": "İmplant",
+      "title": "İmplant Sonrası Bakım",
+      "seconds": 26.1
     }
   ],
   "ja": [

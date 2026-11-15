@@ -81,7 +81,18 @@ function wordSegmenter(): Intl.Segmenter | undefined {
  * line) — which is how Japanese headlines are set by hand.
  */
 export function layoutUnits(text: string): { units: string[]; spaced: boolean } {
-  if (scriptOfText(text) !== "cjk") return { units: text.split(/\s+/).filter(Boolean), spaced: true };
+  if (scriptOfText(text) !== "cjk") {
+    // French sets a space before : ; ! ? » and after «, and that space must not
+    // become a line break ("Pas tout à fait" / ": il agit…" in a French sample,
+    // Nov 2026): the mark is glued to its word, as a non-breaking space does.
+    const units: string[] = [];
+    for (const w of text.split(/\s+/).filter(Boolean)) {
+      const prev = units[units.length - 1];
+      if (prev !== undefined && (/^[:;!?»]+[.,]?$/u.test(w) || prev === "«")) units[units.length - 1] = `${prev} ${w}`;
+      else units.push(w);
+    }
+    return { units, spaced: true };
+  }
   const seg = wordSegmenter();
   const raw = seg
     ? [...seg.segment(text)].map((s) => s.segment)

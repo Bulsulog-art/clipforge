@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { droppedHedges, hedgeCount, hedgeRatio, offRegister, overHedged, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
 import { SPOKEN_CUES } from "./narrate.js";
-import { captionProblems, dropEchoes, hedgingRule, lessHedged, practiceFactsRule, scriptBrief, scriptProblems, softScriptProblems } from "./week.js";
+import { captionProblems, dropEchoes, hedgingRule, lessHedged, practiceFactsRule, scriptBrief, scriptProblems, softScriptProblems, withoutReflexiveNotQuite } from "./week.js";
 import { dentalQuery, guardFootage } from "./footage.js";
 import { finalHashtags } from "./copywriter.js";
 import { upcomingObservances, seasonalBrief } from "./calendar.js";
@@ -362,6 +362,59 @@ describe("a reflexive 'Not quite' after a hook that denies nothing", () => {
     expect(scriptProblems(p("Fırçalasanız da diş taşı neden kalıyor?", "Pek sayılmaz; sertleşen tabakayı fırça çıkaramaz."), tr).join("\n")).toMatch(/states no belief to deny/);
     expect(scriptProblems(p("Beyazlatma mineyi inceltir mi?", "Pek sayılmaz: hekim kontrolünde mine genelde incelmez."), tr).join("\n")).not.toMatch(/states no belief to deny/);
     expect(offRegister("Sensitivity can feel zippy, then settle down.", "en")).toEqual(["zippy"]);
+  });
+
+  // Fourth sample pass (Nov 2026): the writers kept "Pek sayılmaz;" / "Nicht ganz."
+  // through three rewrites out of three, and both topics were lost.
+  const plan = (hook: string, next: string, spoken: string) =>
+    ({
+      title: "t",
+      aspect: "9:16",
+      theme: "editorial",
+      music: "none",
+      scenes: [
+        { kind: "hook", text: hook, seconds: 3 },
+        { kind: "statement", text: next, seconds: 4 },
+        { kind: "list", heading: "Evde", items: ["Yumuşak fırça", "Diş ipi"], seconds: 4 },
+        { kind: "cta", text: "Diş taşı için size uygun olanı hekiminiz söyler.", seconds: 3 },
+      ],
+      voiceover: { text: spoken, voice: "nova" },
+    }) as unknown as ScenePlan;
+  it("is taken off the answer, on screen and in the narration, and the check then passes", () => {
+    const tr = { language: "tr" as const, country: "TR", name: "Demo Diş Kliniği" };
+    const fixed = withoutReflexiveNotQuite(
+      plan("Diş eti kanaması bazen diş taşıyla başlar.", "Pek sayılmaz; fırça diş taşını çıkaramaz.", "Diş eti kanaması bazen diş taşıyla başlar. Pek sayılmaz; fırça diş taşını çıkaramaz. İnce bir iş."),
+      "tr",
+    );
+    expect((fixed.scenes[1] as { text: string }).text).toBe("Fırça diş taşını çıkaramaz.");
+    expect(fixed.voiceover?.text).toBe("Diş eti kanaması bazen diş taşıyla başlar. Fırça diş taşını çıkaramaz. İnce bir iş.");
+    expect(scriptProblems(fixed, tr).join("\n")).not.toMatch(/Pek sayılmaz/);
+    const de = withoutReflexiveNotQuite(plan("Kaffee drin? Aligner sehen es sofort.", "Nicht ganz. Farbige Getränke setzen sich in der Schiene fest.", "Nicht ganz. Farbige Getränke setzen sich fest."), "de");
+    expect((de.scenes[1] as { text: string }).text).toBe("Farbige Getränke setzen sich in der Schiene fest.");
+    expect(de.voiceover?.text).toBe("Farbige Getränke setzen sich fest.");
+  });
+  it("stays when the hook states a belief, and a 'not quite' inside a sentence is left for the check", () => {
+    const belief = plan("Beyazlatma mineyi inceltir mi?", "Pek sayılmaz: hekim kontrolünde mine genelde incelmez.", "Pek sayılmaz: mine genelde incelmez.");
+    expect(withoutReflexiveNotQuite(belief, "tr")).toBe(belief);
+    const inside = plan("Brushing twice a day and still missing spots?", "Brush gently, not quite so hard.", "Brush gently.");
+    expect(withoutReflexiveNotQuite(inside, "en")).toBe(inside);
+  });
+  it("drops a footage caption that a later compare side repeats", () => {
+    const p = {
+      title: "t",
+      aspect: "9:16",
+      theme: "editorial",
+      music: "none",
+      scenes: [
+        { kind: "hook", text: "Mit Alignern Kaffee trinken? Die Schiene zeigt’s.", seconds: 3 },
+        { kind: "footage", source: { type: "stock", query: "clear aligner case" }, caption: "Mit Wasser bleibt die Schiene meist klarer.", seconds: 3 },
+        { kind: "compare", left: { label: "Mit Kaffee", text: "Farbe setzt sich fest" }, right: { label: "Mit Wasser", text: "Die Schiene bleibt meist klarer" }, seconds: 4 },
+        { kind: "cta", text: "Fragen Sie bei der Kontrolle nach Ihrer Aligner-Pflege.", seconds: 3 },
+      ],
+    } as unknown as ScenePlan;
+    const out = dropEchoes(p);
+    expect((out.scenes[1] as { caption?: string }).caption).toBeUndefined();
+    expect(out.scenes).toHaveLength(4);
   });
 });
 

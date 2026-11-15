@@ -1,6 +1,6 @@
 # Turkish samples re-rendered (RG 33075)
 
-Status: done 15.11.2026, except the Turkish aligner preview (below).
+Status: done 15.11.2026. The fourth pass (below) rebuilt the Turkish live preview with the current pipeline and brought the aligner video back.
 
 Türkiye's 2025 regulation on health-service promotion (Resmî Gazete 12.11.2025,
 no. 33075) allows information, not drawing patients in. Every Turkish sample we
@@ -32,7 +32,7 @@ brand look, as in the earlier samples. Demo clinic: "Demo Diş Kliniği",
    "… diş hekiminize sorabilirsiniz"), no exclamation marks. `NARRATION_HELD.tr`
    is empty: they play with sound. The preview now uses the mastered narration and
    the plan exactly as rendered, and keeps the on-screen warning.
-   - **Not re-made: `aligners-seffaf-plak-tedavisi-islem`.** Three attempts were
+   - **Not re-made then (back in the fourth pass): `aligners-seffaf-plak-tedavisi-islem`.** Three attempts were
      rejected by the reviewers (wear time "most of the day" vs 20–22 h, drinks
      with aligners in, an 8-scene plan), so the topic was dropped rather than
      retried further; the library has 5 Turkish videos. The social launch kit's
@@ -97,10 +97,10 @@ Turkish hedging checks). 8 renders, 6 published:
 | `en/proper-brushing-technique` | "Your toothbrush skips one spot every morning." 27 s; toothbrushes | -14.6 LUFS. A first render ("Your gumline after brushing? Take a look." → "Not quite if you only scrub…") was not published; the check now catches it |
 | `de/aligner-verfaerbung` | "Kaffee drin? Aligner sehen es sofort." 28 s; aligner case, glass | -14.5 LUFS. Known flaw: a reflexive "Nicht ganz:" after the hook; the check now sends it back. A second render was rejected by the pipeline (a repeated line) |
 
-Not re-rendered: `en/whitening-myths-debunked` (EN hero) still says "Sensitivity
-can feel zippy" (render cap reached). The Turkish **live preview library**
-(`web/public/dentvideo/preview/tr/`) is still the earlier pass; the samples are
-no longer the same renders as the preview's.
+Not re-rendered in this pass (both done in the fourth pass below):
+`en/whitening-myths-debunked` (EN hero) still said "Sensitivity can feel zippy",
+and the Turkish **live preview library** (`web/public/dentvideo/preview/tr/`)
+was still the earlier pass.
 
 Inputs for this pass: a TR demo profile ("Demo Diş Kliniği", İzmir, formal,
 #0F5C5C) and topics written per sample, run as below.
@@ -115,6 +115,63 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:9 SUPABASE_SERVICE_ROLE_KEY=unused OPE
 time; the two variables only satisfy that, nothing is called.) Compress to the
 samples' size: `ffmpeg -i video.mp4 -c:v libx264 -b:v 240k -maxrate 300k -bufsize 600k -c:a aac -b:a 96k -movflags +faststart`,
 poster `-ss 0.9 -frames:v 1 -vf scale=540:960`.
+
+## Fourth pass (15.11.2026): the known flaws, the EN hero, the Turkish preview, ES and FR
+
+Same pipeline, same demo clinics, run as in the third pass (`cli.ts … --render --logo`,
+compressed to ~240 kbps, poster at 0.9 s). Every render below was watched as a
+contact sheet (hook, each scene, the sign-off) before it was published.
+
+Two pipeline fixes came first, because the writers lost both known-flaw topics
+over two words, three rewrites out of three:
+
+- **A reflexive "not quite" is taken off, not only sent back.** After a hook that
+  states no belief ("Diş eti kanaması bazen diş taşıyla başlar." → "Pek sayılmaz;
+  fırça diş taşını çıkaramaz."), `week.ts withoutReflexiveNotQuite` drops the
+  opener on screen and at the start of a spoken sentence ("Fırça diş taşını
+  çıkaramaz."). The belief test is shared with the check (`notQuiteDeniesNothing`);
+  after a real belief ("Beyazlatma mineyi inceltir mi?") the answer keeps it.
+- **A footage caption that repeats a later line is dropped** (`dropEchoes`): the
+  German aligner topic was lost three times on the caption "Mit Wasser bleibt die
+  Schiene meist klarer." against the compare side "Mit Wasser: Die Schiene bleibt
+  meist klarer". Compare sides now count as said, too.
+- **French punctuation stays on its word** (`remotion/script.ts layoutUnits`, mirrored
+  to web): ":" ";" "!" "?" "»" are glued to the word before with a no-break space, so
+  "Pas tout à fait :" no longer wraps to a line starting with ":". `fr/blanchiment-email`
+  was re-rendered from its own render plan with this fix (no new text).
+- `cli.ts` meters every chat call and prints the run's spend (`--max-usd` caps it).
+
+| Sample | Now | Checked | Discarded renders |
+|---|---|---|---|
+| `tr/dis-tasi-temizligi` | "Diş eti kanaması bazen diş taşıyla başlar." 26 s; toothbrush photos | -14.3 LUFS; no "Pek sayılmaz"; md. 7/1-k notice; closes on the viewer's own dentist | 1 (lost at script: "Pek sayılmaz" kept three times, before the fix) |
+| `de/aligner-verfaerbung` | "Kaffee macht Aligner schneller gelb als gedacht." 27 s; aligner case, glass | -14.4 LUFS; no "Nicht ganz" | 3: two lost at script (the repeated caption; then reviewers on "Getränke rausnehmen"), one ready but its hook was clickbait ("Der Grund überrascht.") and its narration opener awkward |
+| `en/whitening-myths-debunked` (EN hero) | "Whitening your teeth? Not as harsh as you think." 25 s; whitening tray, chair; hero loop `start 0.9, skip [[6.8, 9.9]]` (the dark footage scene, luma 54-60 vs 78-91) | -14.3 LUFS; no "zippy", no "Not quite" | 2: a compare reading "Not the goal: Enamel thinning"; one with "Avoid strong colors briefly" |
+| `es/limpieza-dental` (ES hero) | "Ese sarro junto a la encía…" 24 s; hero `skip [[4.3, 7.6]]` | -14.3 LUFS; tú | 2: narration "Aquí lo retiramos el dentista o el higienista" (ungrammatical); one lost at script (repeat) |
+| `es/primer-diente` | "Asoma el primer diente… ¿ya lo cepillas?" 24 s | -14.4 LUFS; "muy poca pasta con flúor", the adult brushes if the child will not | 0 |
+| `es/cuidado-encias` | "Tus encías tratadas también necesitan cepillo." 28 s | -14.3 LUFS | 0 |
+| `fr/gencives-qui-saignent` (FR hero) | "Ce saignement quand vous vous brossez les dents…" 27 s; hero `skip [[10.4, 14.5]]` | -14.5 LUFS; vous; no booking push | 1 lost at script (reviewers: too reassuring, too directive) |
+| `fr/blanchiment-email` | "Le blanchiment fragilise vraiment l’émail ?" 26 s | -14.7 LUFS; "Pas tout à fait" answers a real belief | 1: "La dent, elle, reste en place." (meaningless) |
+| `fr/detartrage` | "Vous brossez bien, mais le tartre reste." 21 s | -14.4 LUFS | 0 |
+
+ES and FR are no longer `legacy`: every landing now shows current-style videos only.
+Demo clinics: "Clínica Dental Demo", Madrid, @clinicadentaldemo, "CD" logo (#2F5D8A);
+"Cabinet Dentaire Démo", Lyon, @cabinetdentairedemo, "CD" logo (#5B3F6B).
+
+**Turkish live preview library** rebuilt (`scripts/build-dentvideo-preview.mts`),
+5 videos, all current pipeline: the cleaning, whitening and implant-stages videos
+are the same renders as the TR samples; new are `implant-implant-sonrasi-bakim`
+("İmplant tamamlandı, bakım kısmı şimdi başlıyor.") and, back after being dropped,
+`aligners-seffaf-plak-ve-icecekler` ("Şeffaf plak çayla sandığınızdan çabuk renk
+alır.", only water with the aligner in, take it out for everything else). The topic
+was narrowed to drinks, because the wear-time question kept failing on "20–22 hours".
+**Children's prevention was dropped**: four renders, none publishable (a compare
+"Temizlik: Gece sonrası dişi hazırlar."; a hook about back molars over a video about
+night brushing; "burada başlıyor" with nothing to point at; one lost at script).
+A clinic that lists children's dentistry now sees other topics in the Turkish
+preview until a good one is rendered and added to the selection.
+
+Spend: $1.45 metered across 24 runs (chat at `eval.ts PRICES` plus narration at a
+per-character ceiling), against a $4 cap.
 
 ## Not changed on purpose
 

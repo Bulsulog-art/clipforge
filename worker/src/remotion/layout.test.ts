@@ -194,6 +194,13 @@ describe("emphasisRuns (highlighted words)", () => {
     expect(on(emphasisRuns(units, ["two minutes"], true))).toEqual([0, 0, 1, 1, 0, 0, 0]);
   });
 
+  it("keeps French high punctuation and guillemets on the word they belong to", () => {
+    expect(layoutUnits("Pas tout à fait : il agit surtout sur les pigments.").units).toEqual(["Pas", "tout", "à", "fait :", "il", "agit", "surtout", "sur", "les", "pigments."]);
+    expect(layoutUnits("« Blanc » ? Pas toujours !").units).toEqual(["« Blanc » ?", "Pas", "toujours !"]);
+    const { units } = layoutUnits("Le tartre : un dépôt durci.");
+    expect(on(emphasisRuns(units, ["dépôt durci"], true))).toEqual([0, 0, 0, 1, 1]);
+  });
+
   it("joins consecutive emphasised words into one run", () => {
     const runs = emphasisRuns(["Brush", "for", "two", "minutes", "daily"], ["two minutes"], true);
     expect(runs.map((r) => r.joinNext)).toEqual([false, false, true, false, false]);

@@ -323,11 +323,24 @@ export function scriptProblems(
     return !low.startsWith(nq) || /^\s*\p{L}/u.test(low.slice(nq.length));
   });
   if (garbled) out.push(`"${garbled}" uses "${notQuite(profile.language)}" inside a sentence — it only ever opens the answer to a hook that states a belief; otherwise say the point directly`);
-  // A belief needs a few words: "Kaffee drin? Aligner sehen es sofort." asks
-  // about a moment, so "Nicht ganz:" after it denies nothing (DE sample, Nov 2026).
-  // The question has to be the belief: a hook that goes on after it ("Your
-  // gumline after brushing? Take a look.") asks the viewer to look, it does not
-  // state something to deny, unless what follows is the denial itself.
+  if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && notQuiteDeniesNothing(hook, profile.language))
+    out.push(`"${afterHook}" answers "${hook}" with "${notQuite(profile.language)}", but the hook states no belief to deny — start the answer directly`);
+  for (const o of offRegister(`${screen}\n${narration}`, profile.language)) out.push(`"${o}" is a stock opener or too casual for a practice's feed — say it plainly`);
+  if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);
+  return out;
+}
+
+/**
+ * Whether "not quite" after this hook would deny nothing. A belief needs a few
+ * words: "Kaffee drin? Aligner sehen es sofort." asks about a moment, so
+ * "Nicht ganz:" after it denies nothing (DE sample, Nov 2026). The question has
+ * to be the belief: a hook that goes on after it ("Your gumline after
+ * brushing? Take a look.") asks the viewer to look, it does not state
+ * something to deny, unless what follows is the denial itself. A statement
+ * ("Diş eti kanaması bazen diş taşıyla başlar.") states the fact itself.
+ */
+export function notQuiteDeniesNothing(hook: string, language: string | undefined): boolean {
+  const nq = notQuite(language).toLocaleLowerCase();
   const [asking, ...after] = hook.split(/[?？؟]/u);
   const asked = asking.trim().split(/\s+/u).filter(Boolean).length;
   const tail = after.join(" ").trim().toLocaleLowerCase();
@@ -335,11 +348,53 @@ export function scriptProblems(
   // (TR cleaning render, Nov 2026: "Fırçalasanız da diş taşı neden kalıyor?" → "Pek sayılmaz;").
   const why = /(?<![\p{L}])(why|how|what|warum|wieso|weshalb|wie|was|neden|niye|nasıl|niçin|por qué|cómo|qué|pourquoi|comment|perché|come|por que|como|dlaczego|jak|czemu)(?![\p{L}])/iu.test(asking);
   const belief = /[?？؟]/u.test(hook) && asked >= 3 && !why && (!tail || tail.includes(nq));
-  if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && (!belief || /\b(mistake|fehler|hata|error)\b/i.test(hook)))
-    out.push(`"${afterHook}" answers "${hook}" with "${notQuite(profile.language)}", but the hook states no belief to deny — start the answer directly`);
-  for (const o of offRegister(`${screen}\n${narration}`, profile.language)) out.push(`"${o}" is a stock opener or too casual for a practice's feed — say it plainly`);
-  if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);
-  return out;
+  return !belief || /\b(mistake|fehler|hata|error)\b/i.test(hook);
+}
+
+const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Takes a reflexive "not quite" off the answer when the hook states no belief
+ * ("Diş eti kanaması bazen diş taşıyla başlar." → "Pek sayılmaz; fırça diş
+ * taşını çıkaramaz." becomes "Fırça diş taşını çıkaramaz."), on screen and at
+ * the start of a spoken sentence. The writers were told and still kept it in
+ * three rewrites out of three (TR cleaning and DE aligner samples, Nov 2026),
+ * and each time the topic was lost over two words. The rest of the line is the
+ * answer, so dropping the opener is the whole fix. A "not quite" inside a
+ * sentence is left for the check (scriptProblems) to send back.
+ */
+export function withoutReflexiveNotQuite(plan: ScenePlan, language: string | undefined): ScenePlan {
+  const scenes = plan.scenes as unknown as RubricScene[];
+  const hook = scenes.find((s) => s.kind === "hook")?.text ?? "";
+  if (!hook || !notQuiteDeniesNothing(hook, language)) return plan;
+  const nq = notQuite(language);
+  const opener = new RegExp(`^(\\s*)${escapeRe(nq)}\\s*[.;:,!…—–-]?\\s*(?=\\p{L})`, "iu");
+  const upper = (t: string) => t.charAt(0).toLocaleUpperCase(language) + t.slice(1);
+  const strip = (t: string) => (opener.test(t) ? upper(t.replace(opener, "")) : t);
+  const captions = new Set(scenes.filter((s) => s.kind === "footage").map((s) => s.caption).filter(Boolean));
+  const lines = screenLines(scenes);
+  const afterHook = lines.slice(lines.indexOf(hook) + 1).find((l) => !captions.has(l)) ?? "";
+  let changed = false;
+  const out = plan.scenes.map((sc) => {
+    if (sc.kind === "hook" || sc.kind === "cta" || !afterHook || !opener.test(afterHook)) return sc;
+    const r = { ...(sc as unknown as Record<string, unknown>) };
+    for (const k of ["text", "heading", "sub", "context"])
+      if (r[k] === afterHook) {
+        r[k] = strip(afterHook);
+        changed = true;
+      }
+    return r as unknown as typeof sc;
+  });
+  let voiceover = plan.voiceover;
+  if (voiceover?.text) {
+    const spoken = new RegExp(`(^|[.!?…]\\s+)${escapeRe(nq)}\\s*[.;:,!…—–-]?\\s*(\\p{L})`, "iu");
+    const text = voiceover.text.replace(spoken, (_m, pre: string, first: string) => pre + first.toLocaleUpperCase(language));
+    if (text !== voiceover.text) {
+      voiceover = { ...voiceover, text };
+      changed = true;
+    }
+  }
+  return changed ? { ...plan, scenes: out, voiceover } : plan;
 }
 
 /**
@@ -386,10 +441,16 @@ export async function lessHedged(text: string, rewrite: (fix: string) => Promise
  * repeats an earlier line. Seen in the bench: "Usually about 45 to 60
  * minutes." twice, which the post-check sent back three times in a row and
  * the topic was lost. Removing the echo is what the rewrite was asked to do.
+ * A footage caption is optional, so it goes when it repeats any body line,
+ * later ones included (DE aligner sample, Nov 2026: the caption "Mit Wasser
+ * bleibt die Schiene meist klarer." and the compare side "Mit Wasser: Die
+ * Schiene bleibt meist klarer", sent back three times in a row).
  */
 export function dropEchoes(plan: ScenePlan): ScenePlan {
   const seen: string[] = [];
-  const echoes = (t: string | undefined) => !!t && t.split(/\s+/).length >= 3 && seen.some((x) => linesEcho(x, t));
+  const echoes = (t: string | undefined, among: string[] = seen) => !!t && t.split(/\s+/).length >= 3 && among.some((x) => linesEcho(x, t));
+  const body = plan.scenes.filter((sc) => sc.kind !== "hook" && sc.kind !== "cta" && sc.kind !== "footage");
+  const bodyLines = screenLines(body as unknown as RubricScene[]);
   const scenes: ScenePlan["scenes"] = [];
   for (const sc of plan.scenes) {
     if (sc.kind === "hook" || sc.kind === "cta") {
@@ -397,7 +458,7 @@ export function dropEchoes(plan: ScenePlan): ScenePlan {
       continue;
     }
     if (sc.kind === "statement" && echoes(sc.text)) continue;
-    if (sc.kind === "footage" && sc.caption && echoes(sc.caption)) {
+    if (sc.kind === "footage" && sc.caption && (echoes(sc.caption) || echoes(sc.caption, bodyLines))) {
       const { caption: _drop, ...rest } = sc;
       scenes.push(rest as typeof sc);
       continue;
@@ -412,6 +473,7 @@ export function dropEchoes(plan: ScenePlan): ScenePlan {
     scenes.push(sc);
     const r = sc as unknown as RubricScene;
     for (const v of [r.text, r.caption, r.heading]) if (v) seen.push(v);
+    for (const side of [r.left, r.right]) if (side?.text) seen.push([side.label, side.text].filter(Boolean).join(": "));
   }
   return scenes.length === plan.scenes.length && scenes.every((x, i) => x === plan.scenes[i]) ? plan : { ...plan, scenes };
 }
@@ -495,12 +557,12 @@ export async function produceVideo(
       );
       // The planner's voice-over reads like a leaflet; the narrator rewrites
       // it from the screen text alone, so the reviews below still see one story.
-      const deduped = dropEchoes(plan);
+      const deduped = withoutReflexiveNotQuite(dropEchoes(plan), profile.language);
       if (!deduped.voiceover) return deduped;
       let text = await narrate(deps.client, profile, topic, deduped, fixes, previous?.voiceover?.text, week).catch(() => deduped.voiceover!.text);
       const first = text;
       text = await lessHedged(first, (fix) => narrate(deps.client, profile, topic, deduped, [...fixes, fix], first, week), profile.language);
-      return { ...deduped, voiceover: { ...deduped.voiceover, text } };
+      return withoutReflexiveNotQuite({ ...deduped, voiceover: { ...deduped.voiceover, text } }, profile.language);
     },
     planText,
     (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
