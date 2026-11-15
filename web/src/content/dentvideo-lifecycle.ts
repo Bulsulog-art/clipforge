@@ -9,7 +9,7 @@ import { SEQUENCE_COPY, type SequenceCopy } from "./dentvideo-lifecycle-sequence
  * {placeholders} (lifecycle-copy.test.ts checks this).
  *
  * Claims stay inside what the product does and the site already says
- * (checked videos, nothing published without approval, about 15 minutes,
+ * (software-checked videos, nothing published without approval, about 15 minutes,
  * every Monday, monthly and cancel anytime). No guarantees, no promised
  * patients, no invented scarcity.
  *
@@ -61,7 +61,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "Thank you for choosing DentVideo. Here is what happens next.",
       steps: [
         { title: "Your first week: about 15 minutes", body: "We're making this week's videos now. We'll email you as soon as they're ready for your review." },
-        { title: "Then every Monday", body: "New, checked videos arrive in your library each Monday, and an email lets you know." },
+        { title: "Then every Monday", body: "New videos arrive in your library each Monday, software-checked and waiting for your approval, and an email lets you know." },
         { title: "Approve, then share", body: "Watch each video and approve it — nothing is published until you do. Tap Share and the caption is copied for you to paste." },
         { title: "We're here", body: "Questions, changes or feedback: reply to this email or write to {email}." },
       ],
@@ -94,7 +94,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "Ihr Tarif ist aktiv – vielen Dank für Ihr Vertrauen. So geht es weiter.",
       steps: [
         { title: "Ihre erste Woche: etwa 15 Minuten", body: "Die Videos dieser Woche entstehen gerade. Sobald sie zur Freigabe bereitstehen, schicken wir Ihnen eine E-Mail." },
-        { title: "Danach jeden Montag", body: "Jeden Montag liegen neue, geprüfte Videos in Ihrer Bibliothek – eine E-Mail sagt Ihnen Bescheid." },
+        { title: "Danach jeden Montag", body: "Jeden Montag liegen neue, softwaregestützt geprüfte Videos zur Freigabe in Ihrer Bibliothek – eine E-Mail sagt Ihnen Bescheid." },
         { title: "Freigeben, dann teilen", body: "Sehen Sie sich jedes Video an und geben Sie es frei – ohne Ihre Freigabe wird nichts veröffentlicht. Tippen Sie auf „Teilen“, und die Bildunterschrift wird für Sie kopiert." },
         { title: "Wir sind für Sie da", body: "Fragen, Änderungswünsche oder Feedback: Antworten Sie auf diese E-Mail oder schreiben Sie an {email}." },
       ],
@@ -127,7 +127,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "Gracias por elegir DentVideo. Esto es lo que pasa ahora.",
       steps: [
         { title: "Tu primera semana: unos 15 minutos", body: "Estamos creando los vídeos de esta semana. Te escribiremos en cuanto estén listos para revisar." },
-        { title: "Después, cada lunes", body: "Cada lunes llegan a tu biblioteca vídeos nuevos y revisados, y te avisamos por correo." },
+        { title: "Después, cada lunes", body: "Cada lunes llegan a tu biblioteca vídeos nuevos, revisados por software y a la espera de tu aprobación, y te avisamos por correo." },
         { title: "Aprueba y comparte", body: "Mira cada vídeo y apruébalo: no se publica nada sin tu aprobación. Toca Compartir y el texto se copia para que lo pegues." },
         { title: "Estamos aquí", body: "Dudas, cambios o comentarios: responde a este correo o escribe a {email}." },
       ],
@@ -160,7 +160,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "DentVideo'yu seçtiğiniz için teşekkürler. Bundan sonra olacaklar:",
       steps: [
         { title: "İlk haftanız: yaklaşık 15 dakika", body: "Bu haftanın videolarını şu anda hazırlıyoruz. İncelemeye hazır olduklarında size e-posta göndereceğiz." },
-        { title: "Sonra her pazartesi", body: "Her pazartesi kütüphanenize yeni, kontrol edilmiş videolar gelir; size de e-postayla haber veririz." },
+        { title: "Sonra her pazartesi", body: "Her pazartesi kütüphanenize yazılımla kontrol edilmiş, onayınızı bekleyen yeni videolar gelir; size de e-postayla haber veririz." },
         { title: "Önce onay, sonra paylaşım", body: "Her videoyu izleyip onaylayın — siz onaylamadan hiçbir şey yayınlanmaz. Paylaş'a dokunduğunuzda açıklama metni yapıştırmanız için kopyalanır." },
         { title: "Buradayız", body: "Sorular, değişiklikler ya da geri bildirim için bu e-postayı yanıtlayın veya {email} adresine yazın." },
       ],
@@ -193,7 +193,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "Merci d'avoir choisi DentVideo. Voici la suite.",
       steps: [
         { title: "Votre première semaine : environ 15 minutes", body: "Nous réalisons en ce moment les vidéos de cette semaine. Nous vous écrivons dès qu'elles sont prêtes à être validées." },
-        { title: "Puis chaque lundi", body: "Chaque lundi, de nouvelles vidéos vérifiées arrivent dans votre bibliothèque, et un e-mail vous prévient." },
+        { title: "Puis chaque lundi", body: "Chaque lundi, de nouvelles vidéos vérifiées par logiciel arrivent dans votre bibliothèque pour validation, et un e-mail vous prévient." },
         { title: "Validez, puis partagez", body: "Regardez chaque vidéo et validez-la : rien n'est publié sans votre accord. Touchez Partager et la légende est copiée, prête à coller." },
         { title: "Nous sommes là", body: "Questions, modifications ou remarques : répondez à cet e-mail ou écrivez à {email}." },
       ],
@@ -226,7 +226,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "DentVideoをお選びいただき、ありがとうございます。今後の流れをご案内します。",
       steps: [
         { title: "初週の動画：15分ほど", body: "今週の動画をただいま制作しています。ご確認いただける状態になりましたら、メールでお知らせします。" },
-        { title: "その後は毎週月曜日", body: "毎週月曜日に、チェック済みの新しい動画がライブラリに届き、メールでお知らせします。" },
+        { title: "その後は毎週月曜日", body: "毎週月曜日に、ソフトウェアでチェックした新しい動画がライブラリに届きます。先生の承認をお待ちしていることをメールでお知らせします。" },
         { title: "承認してから共有", body: "各動画をご覧になり、承認してください。承認されるまで何も公開されません。「共有」をタップすると、キャプションがコピーされます。" },
         { title: "いつでもご相談ください", body: "ご質問・変更のご希望・ご意見は、このメールへのご返信か {email} までお寄せください。" },
       ],
@@ -259,7 +259,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "شكراً لاختياركم DentVideo. إليكم ما سيحدث بعد ذلك.",
       steps: [
         { title: "أسبوعكم الأول: نحو 15 دقيقة", body: "نُعدّ الآن فيديوهات هذا الأسبوع، وسنراسلكم فور جاهزيتها للمراجعة." },
-        { title: "ثم كل يوم اثنين", body: "تصل إلى مكتبتكم كل يوم اثنين فيديوهات جديدة بعد مراجعتها، مع رسالة تُعلمكم بذلك." },
+        { title: "ثم كل يوم اثنين", body: "تصل إلى مكتبتكم كل يوم اثنين فيديوهات جديدة بعد مراجعتها آلياً، بانتظار اعتمادكم، مع رسالة تُعلمكم بذلك." },
         { title: "اعتمدوا ثم شاركوا", body: "شاهدوا كل فيديو واعتمدوه، فلا يُنشر شيء قبل اعتمادكم. اضغطوا «مشاركة» فيُنسخ النص المرافق لتلصقوه." },
         { title: "نحن هنا", body: "للأسئلة أو التعديلات أو الملاحظات: ردّوا على هذه الرسالة أو راسلونا على {email}." },
       ],
@@ -292,7 +292,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       intro: "Dziękujemy za wybór DentVideo. Oto, co będzie dalej.",
       steps: [
         { title: "Pierwszy tydzień: około 15 minut", body: "Właśnie przygotowujemy filmy na ten tydzień. Gdy będą gotowe do przejrzenia, wyślemy Państwu e-mail." },
-        { title: "Potem co poniedziałek", body: "W każdy poniedziałek w Państwa bibliotece pojawiają się nowe, sprawdzone filmy, a my dajemy znać e-mailem." },
+        { title: "Potem co poniedziałek", body: "W każdy poniedziałek w Państwa bibliotece pojawiają się nowe filmy sprawdzone przez oprogramowanie, czekające na Państwa akceptację, a my dajemy znać e-mailem." },
         { title: "Najpierw akceptacja, potem publikacja", body: "Proszę obejrzeć i zaakceptować każdy film — bez Państwa akceptacji nic nie zostanie opublikowane. Po dotknięciu „Udostępnij” opis zostaje skopiowany do wklejenia." },
         { title: "Jesteśmy do dyspozycji", body: "Pytania, zmiany lub uwagi: wystarczy odpowiedzieć na tę wiadomość lub napisać na {email}." },
       ],
