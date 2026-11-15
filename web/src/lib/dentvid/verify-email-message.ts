@@ -14,13 +14,13 @@ export function codeEmail(args: { language: string; code: string }): Rendered {
     lang,
     subject,
     // Not the body: in German and Polish it continues the greeting in lower case.
-    preheader: `${c.expires} ${c.ignore}`,
+    preheader: c.expires,
     title: c.title,
     hello: c.hello,
     blocks: [
       { kind: "p", text: c.body },
-      { kind: "code", code: spaced },
-      { kind: "p", text: c.expires, muted: true },
+      // How long it works sits with the code itself; the "not you?" line stays quiet underneath.
+      { kind: "code", code: spaced, note: c.expires },
       { kind: "p", text: c.ignore, muted: true },
     ],
     footer: c.footer,

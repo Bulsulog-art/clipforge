@@ -66,7 +66,7 @@ describe("POST /api/dentvideo/verify-email", () => {
     const sent = await call({ action: "send", locale: "de" });
     expect(sent).toEqual({ status: 200, body: { ok: true, email: "dr@clinic.example", resendInSec: 60 } });
     expect(mails[0].to).toBe("dr@clinic.example");
-    expect(mails[0].subject).toMatch(/^\d{6} ist Ihr DentVideo-Code$/);
+    expect(mails[0].subject).toMatch(/^Ihr DentVideo-Bestätigungscode: \d{6}$/);
 
     const wrong = await call({ action: "confirm", code: lastCode() === "000000" ? "111111" : "000000" });
     expect(wrong.status).toBe(400);

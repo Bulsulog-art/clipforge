@@ -90,7 +90,7 @@ describe("runPaying", () => {
     const { send, sent } = sender();
     await runPaying({ store: m.store, send, allow: async () => true, now: MON, config: cfg() });
     expect(sent[0].subject).toBe("Your DentVideo month: October 2026");
-    expect(sent[0].text).toContain("16 — videos made");
+    expect(sent[0].text).toContain("videos made: 16");
     expect(sent[0].text).toContain("None were shared from the app yet.");
     const empty = memory([clinic(1)], {}, { made: 0, approved: 0, shared: 0 });
     const b = sender();

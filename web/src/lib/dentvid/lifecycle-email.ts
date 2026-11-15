@@ -243,7 +243,8 @@ export function paymentProblemEmail(args: { language: string; clinicName: string
       { kind: "panel", text: how },
     ],
     button: { label: e.button, url },
-    signoff: e.signoff,
+    // One signature in every DentVideo email (the billing copy has its own spelling of it in a few languages).
+    signoff: lifecycleText(lang).copy.signoff,
     footer: e.footer,
     brand: { ...args.brand, name: clinic },
   });

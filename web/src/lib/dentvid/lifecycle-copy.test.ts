@@ -160,7 +160,7 @@ describe("every email, every language", () => {
   });
 
   it("each email has at most one primary button", () => {
-    for (const kind of SAMPLE_KINDS) expect(sampleEmailFor(kind, "en").html.match(/class="dv-btn" bgcolor/g)?.length ?? 0, kind).toBeLessThanOrEqual(1);
+    for (const kind of SAMPLE_KINDS) expect(sampleEmailFor(kind, "en").html.match(/class="dv-btnc" bgcolor/g)?.length ?? 0, kind).toBeLessThanOrEqual(1);
   });
 });
 
@@ -231,5 +231,40 @@ describe("activation emails", () => {
     expect(unsubscribePage({ language: "de", state: "done", homeUrl: "https://dentvideo.com" })).toContain("Erledigt");
     expect(unsubscribePage({ language: "en", state: "confirm", homeUrl: "https://dentvideo.com", action: "/x" })).toContain("ready videos still arrive");
     expect(unsubscribePage({ language: "en", state: "invalid", homeUrl: "https://dentvideo.com" })).toContain("mailto:hello@dentvideo.com");
+  });
+});
+
+describe("every email looks and signs like DentVideo", () => {
+  it("each kind in each site language: the DentVideo mark, the serif headline, signed by the DentVideo team, the operator in the footer, no clinic restyling", () => {
+    for (const lang of LOCALES) {
+      for (const kind of SAMPLE_KINDS) {
+        const m = sampleEmailFor(kind, lang);
+        const at = `${lang} ${kind}`;
+        expect(m.html, at).toContain('src="https://dentvideo.com/dentvideo/email/mark.png" alt="DentVideo"');
+        expect(m.html, at).toMatch(/<h1 class="dv-ink dv-h1"/);
+        expect(m.text.replace(/’/g, "'"), at).toContain(LIFECYCLE_COPY[lang].signoff);
+        expect(m.text, at).toContain('"BLS AI AUTOMATION" DOO PODGORICA');
+        expect(m.text, at).toContain("DentVideo · hello@dentvideo.com");
+        // The sample clinic's colour (#2E7D6B) never replaces DentVideo teal.
+        expect(m.html.toLowerCase(), at).not.toContain("#2e7d6b");
+        if (m.html.includes("v:roundrect")) expect(m.html, at).toContain('bgcolor="#0f5c5c"');
+      }
+    }
+  });
+
+  it("the copy DentVideo writes in its emails has no em dashes (the sample captions are generated content, not ours)", () => {
+    for (const lang of LOCALES) {
+      for (const kind of ["code", "reset", "welcome", "payment-failed", "payment-hold"] as const) {
+        expect(sampleEmailFor(kind, lang).text, `${lang} ${kind}`).not.toContain("—");
+      }
+    }
+  });
+
+  it("the verification code is big, spaced and kept left to right, with how long it works next to it", () => {
+    for (const lang of LOCALES) {
+      const m = sampleEmailFor("code", lang);
+      expect(m.html, lang).toMatch(/<span dir="ltr" class="dv-code dv-mark"[^>]*font-size:40px[^>]*>482 913<\/span>/);
+      expect(m.subject, lang).toContain("482913");
+    }
   });
 });
