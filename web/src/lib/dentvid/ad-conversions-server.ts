@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CLICK_ID, CLICK_TYPES, type AdClick, type ClickConsent, type ClickType } from "./ad-click";
-import { AD_CONVERSIONS, withinWindow, type AdConversionName, type AdConversionRow } from "./ad-conversions";
+import { AD_CONVERSIONS, paidConversionValue, withinWindow, type AdConversionName, type AdConversionRow } from "./ad-conversions";
 import { dvAdmin } from "./supabase";
 
 /**
@@ -40,7 +40,7 @@ function storedClick(row: unknown): StoredClick | null {
   return { type: r.click_type as ClickType, id: r.click_id, consent: r.consent, clickedAt: r.clicked_at };
 }
 
-async function addConversion(c: SupabaseClient, ownerId: string, clinicId: string | null, name: AdConversionName, click: StoredClick, at: Date): Promise<"recorded" | "outside window" | "failed"> {
+async function addConversion(c: SupabaseClient, ownerId: string, clinicId: string | null, name: AdConversionName, click: StoredClick, at: Date, value?: number): Promise<"recorded" | "outside window" | "failed"> {
   if (!withinWindow(click.clickedAt, at)) return "outside window";
   const conv = AD_CONVERSIONS[name];
   const { error } = await c.from(CONVERSIONS).upsert(
@@ -49,7 +49,7 @@ async function addConversion(c: SupabaseClient, ownerId: string, clinicId: strin
       clinic_id: clinicId,
       conversion_name: name,
       conversion_time: at.toISOString(),
-      value: conv.value,
+      value: value ?? conv.value,
       currency: conv.currency,
       click_type: click.type,
       click_id: click.id,
@@ -102,7 +102,11 @@ export async function recordPaidConversion(db: SupabaseClient, clinic: { id: str
     }
     const click = storedClick(data);
     if (!click) return "no click";
-    return await addConversion(db, clinic.owner_id, clinic.id, "dv_paid", click, now);
+    if (!withinWindow(click.clickedAt, now)) return "outside window";
+    // The clinic's country sets the value (TR 150, elsewhere 250); unknown → 250.
+    const { data: row } = await db.from("dentvid_clinics").select("profile").eq("id", clinic.id).maybeSingle();
+    const country = (row as { profile?: { country?: string } } | null)?.profile?.country;
+    return await addConversion(db, clinic.owner_id, clinic.id, "dv_paid", click, now, paidConversionValue(country));
   } catch (e) {
     console.warn("[dentvideo ads] paid conversion failed", (e as Error).message);
     return "failed";
