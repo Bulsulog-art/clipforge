@@ -29,7 +29,7 @@ The **name must match exactly** what the CSV says:
 
 | Name | Value | Count | Click-through window | Primary | Recorded when |
 |---|---|---|---|---|---|
-| `dv_signup` | 5 USD (fixed) | One | 30 days | yes | an account is created (`/api/dentvideo/signup`) |
+| `dv_signup` | 5 USD (fixed) | One | 90 days | yes | an account is created (`/api/dentvideo/signup`) |
 | `dv_paid` | 150 USD (clinic in TR) / 250 USD (elsewhere) | One | 90 days | yes | the clinic's first activation (Dodo webhook, `first = true`) |
 
 At most one of each per account (unique in the table): webhook replays and retried sign-ups never double count.
