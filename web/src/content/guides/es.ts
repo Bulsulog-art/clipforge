@@ -492,7 +492,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo pedirlo sin incomodar al paciente",
         paragraphs: [
-          "El momento adecuado para pedir el consentimiento no es en el sillón ni con prisa, sino al terminar el tratamiento, con calma y por escrito. Explica en una frase para qué lo quieres (“nos ayuda a explicar el tratamiento a otros pacientes”), muestra exactamente qué imagen se usaría y deja claro que decir que no no cambia nada en su atención. Si duda, la respuesta es no.",
+          "El momento adecuado para pedir el consentimiento no es en el sillón ni con prisa, sino al terminar el tratamiento, con calma y por escrito. Explica en una frase para qué lo quieres (“nos ayuda a explicar el tratamiento a otros pacientes”), muestra exactamente qué imagen se usaría y deja claro que negarse no cambia nada en su atención. Si duda, la respuesta es no.",
           "Ofrece opciones intermedias: solo foto intraoral sin cara, sin nombre, solo en la web y no en redes. Muchos pacientes aceptan una versión limitada aunque no quieran aparecer de cuerpo entero en Instagram.",
         ],
       },

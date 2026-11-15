@@ -88,7 +88,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Reels, Stories and your profile: which video goes where",
         paragraphs: [
           "Reels are the likeliest way to reach people who do not follow you yet, so they suit question-and-answer videos. Stories disappear after 24 hours and are for everyday contact with existing followers: a moment from the clinic, a reminder, a poll. Pinned videos on your profile are what a new visitor sees first; three good candidates are an introduction to the dentist, “what happens at your first visit” and the most common question you get.",
-          "Organise Story Highlights by topic — “First visit”, “Aftercare”, “Children” — so patients find what they need in two taps.",
+          "Organize Story Highlights by topic — “First visit”, “Aftercare”, “Children” — so patients find what they need in two taps.",
         ],
       },
       {
@@ -102,7 +102,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Filming in five minutes",
         paragraphs: [],
         list: [
-          "Pick three or four questions and jot down two or three points for each; do not memorise a script.",
+          "Pick three or four questions and jot down two or three points for each; do not memorize a script.",
           "Phone vertical, at eye level, on a small tripod or holder.",
           "Face a window for soft light; never stand with the window behind you.",
           "Use a clip-on microphone if you can: sound matters more than picture.",
@@ -132,7 +132,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colours with your logo. Every script is checked twice — for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [See a live preview with your logo before you pay](start:).",
+          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colors with your logo. Every script is checked twice — for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [See a live preview with your logo before you pay](start:).",
         ],
       },
     ],
@@ -291,8 +291,8 @@ export const GUIDES_EN: Guide[] = [
             ["United States", "FTC Act Section 5; Endorsement Guides (16 CFR 255); reviews and testimonials rule (16 CFR 465); state dental board rules; ADA Code for members; HIPAA", "Truthful, substantiated claims; disclosed material connections; no fake or bought reviews; state-specific rules on guarantees, specialties and fee ads. [US guide](guide:dental-advertising-rules-us)"],
             ["Germany", "Heilmittelwerbegesetz (§§ 3, 7, 11 HWG); UWG; dental chambers' professional codes (§ 21 MBO-Z model)", "Factual information is allowed; boastful, misleading or comparative advertising is not; gifts and discounts only in narrow exceptions; before-and-after comparisons banned for non-medically necessary cosmetic procedures."],
             ["Austria / Switzerland", "§ 35 Zahnärztegesetz and the dental chamber's advertising guideline (AT); Art. 40 Medizinalberufegesetz (CH)", "Advertising must be objective, not misleading and not intrusive."],
-            ["Spain", "Real Decreto 1907/1996; Ley 14/1986 General de Sanidad; regional health-advertising rules; dental code of ethics", "Some regions require prior authorisation of health advertising; the Supreme Court has upheld a ban on using celebrities in dental clinic ads."],
-            ["France", "Code de la santé publique, art. R. 4127-215 and R. 4127-215-1 (decree of 22 December 2020); Ordre's recommendations", "Fair, honest, clear information that helps patients choose; no third-party testimonials, no comparisons with other dentists, nothing that encourages unnecessary care; dentistry may not be practised as a business."],
+            ["Spain", "Real Decreto 1907/1996; Ley 14/1986 General de Sanidad; regional health-advertising rules; dental code of ethics", "Some regions require prior authorization of health advertising; the Supreme Court has upheld a ban on using celebrities in dental clinic ads."],
+            ["France", "Code de la santé publique, art. R. 4127-215 and R. 4127-215-1 (decree of 22 December 2020); Ordre's recommendations", "Fair, honest, clear information that helps patients choose; no third-party testimonials, no comparisons with other dentists, nothing that encourages unnecessary care; dentistry may not be practiced as a business."],
             ["Türkiye", "Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik (Resmî Gazete, 12 November 2025, no. 33075)", "Advertising of health services is banned; promotion and information are limited. Prices, discounts, campaigns and patient thank-you posts are high-risk."],
             ["Japan", "Medical Care Act advertising rules and the MHLW 医療広告ガイドライン", "Patient testimonials about treatment may not be used in advertising; before-and-after photos and self-pay treatment information are allowed only with detailed explanation (treatment, usual cost, main risks and side effects)."],
             ["Poland", "Art. 14 of the Act on Medical Activity; art. 71 of the Code of Medical Ethics (from 1 January 2025)", "Information about services is allowed, but it may not have “the features of advertising”: keep posts factual and educational."],
@@ -308,7 +308,7 @@ export const GUIDES_EN: Guide[] = [
           caption: "Risky wording and a safer alternative",
           columns: ["Risky wording", "Why it is risky", "Safer wording"],
           rows: [
-            ["“Painless implants”", "An absolute claim about the patient's experience that cannot be substantiated", "“The procedure is done under local anaesthetic; most people feel some tenderness for a few days afterwards.”"],
+            ["“Painless implants”", "An absolute claim about the patient's experience that cannot be substantiated", "“The procedure is done under local anesthetic; most people feel some tenderness for a few days afterwards.”"],
             ["“Guaranteed whiter teeth”", "A guaranteed result; creates unjustified expectations", "“Results vary from person to person; we'll check first whether whitening suits you.”"],
             ["“Permanent” / “lasts a lifetime”", "Overstates durability", "“With good care and regular check-ups it can last many years.”"],
             ["“The best clinic in town”", "A superlative and an implied comparison with other clinics", "Verifiable facts: treatments offered, qualifications, languages spoken, opening hours"],
@@ -415,7 +415,7 @@ export const GUIDES_EN: Guide[] = [
         list: [
           "The dentist introduces themselves: areas of interest and how they work",
           "What happens at your first appointment",
-          "How we sterilise instruments (with no patients in shot)",
+          "How we sterilize instruments (with no patients in shot)",
           "Getting here, parking and accessibility",
           "What we do for nervous patients",
         ],
@@ -458,7 +458,7 @@ export const GUIDES_EN: Guide[] = [
         list: [
           "Week 1: “Is whitening bad for your teeth?” · “The first 24 hours after a filling” · Meet the dentist",
           "Week 2: “When are bleeding gums a worry?” · “Brushing technique” · Your first appointment",
-          "Week 3: “How long does an implant take?” · “What to eat after an extraction” · How we sterilise",
+          "Week 3: “How long does an implant take?” · “What to eat after an extraction” · How we sterilize",
           "Week 4: “When should my child first see a dentist?” · “Signs of teeth grinding” · Getting here",
         ],
         after: [
@@ -533,14 +533,14 @@ export const GUIDES_EN: Guide[] = [
           "The date the website was last updated",
         ],
         after: [
-          "Check the current wording of the guidance before relying on this list: the items above summarise it, and the GDC may revise it.",
+          "Check the current wording of the guidance before relying on this list: the items above summarize it, and the GDC may revise it.",
         ],
       },
       {
         heading: "Safer wording for common posts",
         paragraphs: [],
         list: [
-          "Instead of “pain-free root canals”: “Treatment is done under local anaesthetic. Most people feel some tenderness for a day or two afterwards.”",
+          "Instead of “pain-free root canals”: “Treatment is done under local anesthetic. Most people feel some tenderness for a day or two afterwards.”",
           "Instead of “Botox from …”: talk about facial-aesthetic consultations without naming the prescription medicine.",
           "Instead of “Manchester's leading implant specialist” (unless on the specialist list): “Dr Patel has a special interest in implant dentistry.”",
           "Instead of “results guaranteed”: “Results vary; we'll talk through what's realistic for you at your consultation.”",
@@ -564,7 +564,7 @@ export const GUIDES_EN: Guide[] = [
           "Does the post name or promote a prescription-only medicine?",
           "Are prices, if any, accurate and complete?",
           "Is anyone identifiable, and do we have their written consent?",
-          "Is a paid partnership clearly labelled as an ad?",
+          "Is a paid partnership clearly labeled as an ad?",
         ],
       },
       {
@@ -708,7 +708,7 @@ export const GUIDES_EN: Guide[] = [
       },
       {
         heading: "What the law expects",
-        paragraphs: ["In outline; always check the current rules where you practise:"],
+        paragraphs: ["In outline; always check the current rules where you practice:"],
         list: [
           "United States: patient images and stories are protected health information under HIPAA; marketing use generally requires a signed authorization that states what will be used, for what, and how to revoke it.",
           "United Kingdom: health information is special category data under UK GDPR, and the duty of confidentiality applies online. Explicit, informed consent is the usual basis for publishing; the GDC's guidance on social media points the same way.",
@@ -752,7 +752,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Alternatives that need no patient data",
         paragraphs: [
           "Most useful content does not need real patients at all: the dentist explaining to camera, models and typodonts, diagrams, animation and narrated videos. They are easier to produce, never have to be taken down when consent is withdrawn and raise no advertising questions. Ideas in [dental social media post ideas](guide:dental-social-media-post-ideas).",
-          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colours, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [See your own videos before you pay](start:).",
+          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colors, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [See your own videos before you pay](start:).",
         ],
       },
     ],
@@ -795,7 +795,7 @@ export const GUIDES_EN: Guide[] = [
           "Agency: handles planning, design and posting, and saves time. Often expensive, and not every agency knows health-advertising rules — promotions, giveaways and before-and-after carousels are standard elsewhere and risky for a dental practice.",
           "Freelance creator: more flexible and often more affordable, strong on filming and editing. Continuity depends on one person, and knowledge of the rules varies.",
           "In-house: nobody knows the practice and patients better, and the content sounds authentic. But time is short and patients always come first.",
-          "Software: produces regular content quickly and predictably. General tools do not know health-advertising rules; even with a specialised tool, the final check belongs to the dentist.",
+          "Software: produces regular content quickly and predictably. General tools do not know health-advertising rules; even with a specialized tool, the final check belongs to the dentist.",
         ],
       },
       {

@@ -176,7 +176,7 @@ const COPY: Record<string, Copy> = {
     weekTitle: "فيديوهات هذا الأسبوع جاهزة",
     recordingTitle: "مقاطعكم جاهزة",
     approveAsk: "راضون عنها بالفعل؟",
-    approveAll: "اعتماد كل الفيديوهات الجاهزة بنقرة واحدة",
+    approveAll: "اعتماد كل الفيديوهات الجاهزة بلمسة واحدة",
   },
   pl: {
     weekSubject: (n) => `Nowe filmy czekają na Państwa akceptację: ${n}`,

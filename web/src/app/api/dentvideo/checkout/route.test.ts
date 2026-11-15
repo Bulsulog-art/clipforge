@@ -125,7 +125,7 @@ describe("POST /api/dentvideo/checkout", () => {
     const res = await call({ plan: "practice", interval: "month" });
     expect(res.status).toBe(409);
     expect(res.body.code).toBe("payment_update");
-    expect(String(res.body.error)).toContain("Plan und Abrechnung");
+    expect(String(res.body.error)).toContain("Tarif und Abrechnung");
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/subscriptions\/sub_old$/);
   });
