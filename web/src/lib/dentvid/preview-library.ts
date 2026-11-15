@@ -40,8 +40,35 @@ export function serviceCategory(service: string): ServiceCategory | undefined {
 export const PREVIEW_LANGUAGES = ["en", "de", "es", "fr", "tr", "ja", "ar", "pl"] as const;
 export type PreviewLanguage = (typeof PREVIEW_LANGUAGES)[number];
 
-/** The whole library: reviewed, narrated videos in every preview language. */
-export const PREVIEW_LIBRARY: Record<PreviewLanguage, PreviewEntry[]> = PREVIEW_MANIFEST;
+/**
+ * Library videos whose narration (the .mp3, a recording we do not edit by
+ * hand) still SAYS a closing their market forbids: they play silent, with
+ * the corrected on-screen text, until they are re-rendered with
+ * scripts/build-dentvideo-preview.mts. Then take them off this list.
+ *
+ * Türkiye (Nov 2026): every Turkish sample was narrated with a closing that
+ * steers the viewer to book or to the clinic ("Sorularınız için bize ulaşın
+ * veya randevu alın!"), which RG 33075 does not allow (information only;
+ * hard-rules.ts MARKET_HARD_RULES TR "booking"). The on-screen closings were
+ * rewritten to point to the viewer's own dentist; the audio could not be.
+ * Silent rather than hidden: hiding them would leave the Turkish preview
+ * with no videos at all. docs/PREVIEW_RERENDER.md has the list and the steps.
+ */
+export const NARRATION_HELD: Partial<Record<PreviewLanguage, readonly string[]>> = {
+  tr: [
+    "cleaning-dis-tasi-temizligi-saglikli-bir-gulumseme-icin-t",
+    "whitening-dis-beyazlatma-mit",
+    "aligners-seffaf-plak-tedavisi-islem",
+    "implant-implant-tedavisinin-asamalari",
+    "children-cocuk-dis-hekimligi-onleme",
+    "implant-implant-tedavisi-sonrasi-bakim",
+  ],
+};
+
+/** The whole library: reviewed, narrated videos in every preview language (held narrations silent). */
+export const PREVIEW_LIBRARY: Record<PreviewLanguage, PreviewEntry[]> = Object.fromEntries(
+  PREVIEW_LANGUAGES.map((l) => [l, PREVIEW_MANIFEST[l].map((e): PreviewEntry => (NARRATION_HELD[l]?.includes(e.id) ? { ...e, narrated: false } : e))]),
+) as Record<PreviewLanguage, PreviewEntry[]>;
 
 /** The library language for a clinic language; one we have no videos in falls back to English. */
 export function libraryLanguage(language: string): PreviewLanguage {

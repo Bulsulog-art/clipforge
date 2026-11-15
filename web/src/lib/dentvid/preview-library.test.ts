@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { formatHandle, libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, serviceCategory, PREVIEW_LANGUAGES, PREVIEW_LIBRARY } from "./preview-library";
+import { formatHandle, libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, serviceCategory, NARRATION_HELD, PREVIEW_LANGUAGES, PREVIEW_LIBRARY } from "./preview-library";
+import { scanHardRules, scanMarketRules } from "./hard-rules";
 import { splitServices, SERVICE_HINTS } from "./service-hints";
 import { parseScenePlan } from "@/remotion/scene-plan";
 import { isRtl } from "@/remotion/script";
@@ -135,10 +136,32 @@ describe("the library on disk", () => {
     expect(() => parseScenePlan(plan)).not.toThrow();
     const mp3 = path.join(PUBLIC, l, `${e.id}.mp3`);
     if (e.narrated === false) {
-      expect(fs.existsSync(mp3)).toBe(false);
+      // A held narration stays on disk until the video is re-rendered; a silent video never had one.
+      expect(fs.existsSync(mp3)).toBe(Boolean(NARRATION_HELD[l]?.includes(e.id)));
       // A silent plan names its language, so the player sets lang/dir and the script's fonts.
       expect(plan.language).toBe(l);
     } else expect(fs.statSync(mp3).size).toBeGreaterThan(20_000);
+  });
+  it("holds only narrations that exist, and plays them silent", () => {
+    for (const [l, ids] of Object.entries(NARRATION_HELD) as [keyof typeof NARRATION_HELD, string[]][]) {
+      for (const id of ids) {
+        const e = PREVIEW_LIBRARY[l].find((x) => x.id === id);
+        expect(e, `${l}/${id}`).toBeDefined();
+        expect(e!.narrated).toBe(false);
+      }
+    }
+  });
+  // RG 33075: information only. The library's Turkish closings used to say
+  // "Sorularınız için bize ulaşın veya randevu alın!".
+  it.each(PREVIEW_LIBRARY.tr.map((e) => [e.id]))("tr/%s shows nothing that steers to booking or the clinic, and no exclamation mark", (id) => {
+    const plan = JSON.parse(fs.readFileSync(path.join(PUBLIC, "tr", `${id}.json`), "utf8")) as { scenes: Record<string, unknown>[] };
+    const text = plan.scenes
+      .flatMap((s) => [s.text, s.caption, s.heading, ...(Array.isArray(s.items) ? s.items : [])])
+      .filter((t): t is string => typeof t === "string")
+      .join("\n");
+    expect(scanMarketRules(text, "TR")).toEqual([]);
+    expect(scanHardRules(text)).toEqual([]);
+    expect(text).not.toMatch(/[!！]/);
   });
   // Eight languages of 5–6 narrated videos (~1.5 MB each); a visitor only ever loads three.
   it("stays small enough to ship (≤ 12 MB)", () => {

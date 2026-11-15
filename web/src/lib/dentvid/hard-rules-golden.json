@@ -642,7 +642,15 @@
     "match": "önler"
    }
   ],
-  "markets": {}
+  "markets": {
+   "TR": [
+    {
+     "rule": "booking",
+     "match": "randevu alın",
+     "why": "Health-service posts in Türkiye may inform but must not steer viewers to book or to contact the clinic (RG 33075: bilgilendirme only); point them to their own dentist instead."
+    }
+   ]
+  }
  },
  {
   "input": "Ücretsiz muayene fırsatı, 1500 TL'den başlayan fiyatlarla.",
@@ -1776,6 +1784,21 @@
      "rule": "giveaway",
      "match": "çekilişe",
      "why": "Raffles, prize draws and gifts used to promote health services are not allowed (RG 33075 md. 5/1-l)."
+    }
+   ]
+  }
+ },
+ {
+  "input": "Sorularınız için bize ulaşın veya randevu alın!",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {
+   "TR": [
+    {
+     "rule": "booking",
+     "match": "bize ulaşın",
+     "why": "Health-service posts in Türkiye may inform but must not steer viewers to book or to contact the clinic (RG 33075: bilgilendirme only); point them to their own dentist instead."
     }
    ]
   }

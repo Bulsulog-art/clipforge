@@ -66,6 +66,7 @@ const INPUTS = [
   "永久歯は6歳頃から生えてきます。",
   // Market packs (MARKET_HARD_RULES): Türkiye, DACH, UK/US, Mexico
   "Bu içerik sponsorlu bir paylaşımdır. Sorularınızı yorumlara yazın, çekilişe katılın!",
+  "Sorularınız için bize ulaşın veya randevu alın!",
   "Her cerrahi veya girişimsel işlemde sonuçlar kişiden kişiye değişiklik gösterebilir. İşlem öncesinde hekiminizden detaylı görüş almanız önerilir.",
   "Unser Team sind Spezialisten für Implantate. Hallo Kinder, heute lernt ihr Zähneputzen!",
   "Nous sommes spécialistes des implants. Siamo specialisti in ortodonzia.",

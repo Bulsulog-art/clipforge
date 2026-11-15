@@ -35,6 +35,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { parseScenePlan, totalSeconds, type ScenePlan } from "../worker/src/remotion/scene-plan.ts";
 import { fitPlanToVoice } from "../worker/src/remotion/voiceover.ts";
+import { scanMarketRules } from "../worker/src/dental/hard-rules.ts";
 // web/ is not an ESM package, so its module arrives as CommonJS: take the namespace.
 const webLib = await import("../web/src/lib/dentvid/preview-library.ts");
 const { serviceCategory, HANDLE_TOKEN, NAME_TOKEN } = ((webLib as { default?: typeof webLib }).default ?? webLib) as typeof webLib;
@@ -51,6 +52,9 @@ async function seconds(file: string): Promise<number> {
   const { stdout } = await run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]);
   return Number(stdout.trim());
 }
+
+/** A preview language's market, for its deterministic rules (hard-rules.ts MARKET_HARD_RULES). */
+const MARKET_OF: Record<string, string> = { tr: "TR" };
 
 /** "Demo" as the sample clinics write it: Latin, Japanese, Arabic. */
 const DEMO = /demo|デモ|ديمو/i;
@@ -98,6 +102,16 @@ async function main() {
       // A narrator often shortens the name ("عيادة ديمو", "デモ歯科"): the sample clinics are all "Demo" in some script.
       if (new RegExp(escape(pick.name), "i").test(spoken) || new RegExp(escape(pick.handle), "i").test(spoken) || DEMO.test(spoken))
         throw new Error(`${pick.dir}: the narration says the sample clinic's name`);
+      // The narration is audio: once built, a closing it SAYS cannot be fixed by
+      // editing the plan (Nov 2026: every Turkish sample said "… bize ulaşın veya
+      // randevu alın!", which RG 33075 does not allow — preview-library.ts NARRATION_HELD).
+      const market = MARKET_OF[lang];
+      if (market) {
+        const said = `${spoken}\n${JSON.stringify(raw.scenes)}`;
+        const hits = scanMarketRules(said, market).map((h) => `${h.rule} "${h.match}"`);
+        if (market === "TR" && /[!！]/.test(said)) hits.push("an exclamation mark");
+        if (hits.length) throw new Error(`${pick.dir}: ${hits.join(", ")} — not allowed in ${market}; pick or re-render another video`);
+      }
 
       const category = serviceCategory(pkg.topic.service);
       const title = pick.title ?? pkg.topic.title;

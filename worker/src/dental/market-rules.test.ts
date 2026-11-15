@@ -65,6 +65,15 @@ describe("market packs: deterministic checks", () => {
         ["Videoyu beğenmeyi ve kaydetmeyi unutmayın.", "engagement"],
         ["Bu videoyu paylaşın, sevdikleriniz de öğrensin.", "engagement"],
         ["Takipçilerimiz arasında çekiliş yapıyoruz.", "giveaway"],
+        // Booking CTAs and steering to the clinic (the TR preview library's old closings).
+        ["Sorularınız için bize ulaşın veya randevu alın!", "booking"],
+        ["Daha fazla bilgi için bizimle iletişime geçin ya da randevu alın.", "booking"],
+        ["Kontrol randevusu alabilirsiniz.", "booking"],
+        ["Randevunuzu hemen oluşturun.", "booking"],
+        ["Muayene planlayabilirsiniz.", "booking"],
+        ["Bizi arayın, size yardımcı olalım.", "booking"],
+        ["Sizi kliniğimizde bekliyoruz.", "booking"],
+        ["Detaylar için DM'den yazın.", "booking"],
       ],
       clean: [
         "Diş ipi, fırçanın ulaşamadığı yerleri temizlemeye yardımcı olabilir; hekiminize danışabilirsiniz.",
@@ -72,6 +81,13 @@ describe("market packs: deterministic checks", () => {
         "Bu bir reklam değil, bilgilendirmedir.",
         "Hasta yorumu değil, bilimsel bilgi: florürlü diş macunu çürük riskini azaltabilir.",
         TR_MANDATORY_NOTICE,
+        // Information that only mentions an appointment or a dentist: must not hit.
+        "Merak ettiklerinizi bir sonraki randevunuzda hekiminize sorun.",
+        "Merak ettiğiniz bir şey varsa bir sonraki kontrolünüzde hekiminize sorabilirsiniz.",
+        "Kalıcı dolgu bir sonraki randevuda yapılır; sonraki randevuyu ertelemeyin.",
+        "Ağrı artarsa hekiminizle iletişime geçin.",
+        "Randevu almadan önce sigortanızın neyi kapsadığını öğrenmek faydalı olabilir.",
+        "Yılda en az bir kez diş hekimi kontrolüne gidilmesi önerilir.",
       ],
     },
     {

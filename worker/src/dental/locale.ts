@@ -214,7 +214,7 @@ export function marketRules(country: string | undefined): string {
   if (c === "TR")
     return [
       "Türkiye — Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik (Resmî Gazete 12.11.2025, no. 33075): health services may not be advertised, only explained;",
-      "the video must be purely informative (bilgilendirme) and must not create demand or steer the viewer to this clinic or a treatment (no \"hemen randevu alın\", \"kaçırmayın\", no urgency),",
+      "the video must be purely informative (bilgilendirme) and must not create demand or steer the viewer to this clinic or a treatment (no \"randevu alın/alabilirsiniz\", \"bize ulaşın\", \"bizimle iletişime geçin\", \"sizi bekliyoruz\", \"kaçırmayın\", no urgency, no exclamation marks; close by pointing the viewer to their own dentist),",
       "no price, ücret, indirim, kampanya, taksit, hediye or free offers, no superiority or firsts (en iyi, ilk ve tek, lider, bir numara) and no comparison with other clinics or doctors,",
       "no öncesi-sonrası (before/after) results, no patient thank-you, satisfaction or review content (hasta yorumları, teşekkür mesajları), no guarantee or certain result (garantili, kesin sonuç, ömür boyu, acısız),",
       "and nothing fear-inducing: never frighten the viewer into treatment; explain risks calmly and hedged;",
