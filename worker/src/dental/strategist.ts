@@ -8,6 +8,7 @@ import { hookExamples } from "./examples.js";
 import { BLOCKING_HOOK, hookProblems, hookShape } from "./style.js";
 import { dropRepeats, memoryBrief, type PastTopic } from "./memory.js";
 import { seasonalBrief } from "./calendar.js";
+import { notQuite } from "./claims.js";
 
 /**
  * The strategist agent: a week of video ideas for one clinic.
@@ -61,6 +62,7 @@ Rules:
 - Write everything in the clinic's language.
 - "service" is copied exactly from the clinic's list, and the video is about THAT service — never a treatment the clinic does not list (no veneers under "implants").
 - Educational and accurate, mainstream dental guidance only. No prices, discounts, guarantees, superlatives, before/after promises or testimonials.
+- Make the week useful to THIS clinic's patients, now: build it on the real searches below when given, on what is happening this week in the market (season, awareness days), and on the situations a patient of a practice in the clinic's city brings to the chair (a twinge, a child's first visit, a question after a treatment). Never a definition topic ("What is pediatric dentistry?"): pick the concrete situation behind it. Never invent local facts about the city (statistics, water, events, regulations).
 - Mix the pillars across the week (${PILLARS.join(", ")}); never more than two of the same pillar.
 - Spread the week across the clinic's services: at most two videos about the same service, and never two that answer the same question in different words.
 - Hooks decide whether anyone watches. ${hookLimit(profile.language).text.replace(/^u/, "U")}, specific, and built on one of these:
@@ -70,7 +72,7 @@ Rules:
   * a relatable moment: "That sharp pain when you drink something cold?"
   Never a generic textbook question ("What is X?", "Is X important?", "How does X work?"), never a hook that suggests dentists or clinics get things wrong (the clinic posts it), never a bare topic label, never a listicle label ("3 tips for…", "5 things about…").
   Open a loop, do not close it: the hook raises the question and the video answers it. "Implant treatment happens in 3 stages." gives the answer away; "Your implant isn't done on day one — here's why." makes people stay.
-  Medicine is rarely absolute, and a reviewer will reject absolutes, so a myth hook challenges with "not quite" / "usually not", never a flat "No!".
+  Medicine is rarely absolute, and a reviewer will reject absolutes, so a myth hook challenges with "${notQuite(profile.language)}" (or "usually not", in the clinic's language), never a flat "No!" and never another language's words.
   Native hooks in this clinic's language, for sound and shape: ${hookExamples(profile.language).map((h) => `"${h}"`).join(" ")}
 The examples above show shapes only — do not reuse their subjects or wording.
 - Vary the hook shapes across the week (question, moment, mistake, myth, surprising fact): at most two plain questions.

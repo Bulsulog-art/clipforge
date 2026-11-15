@@ -60,10 +60,69 @@ const CTA_TR_MARKET = {
   informal: "Merak ettiğin bir şey varsa bir sonraki kontrolünde hekimine sorabilirsin.",
 };
 
-export function softCta(profile: Pick<ClinicProfile, "language" | "country" | "address">): string {
+/**
+ * More ways to say the same soft invitation. A dentist reviewing a sample
+ * week noticed that every post ended on the identical line; the kit now
+ * rotates by video (the first variant is the one above, so a kit built
+ * without a seed reads as before). Each variant is held to the same rules in
+ * the tests: hard rules, CTA rules, no steering in Türkiye.
+ */
+const CTA_MORE: Partial<Record<Lang, { formal: string; informal: string }[]>> = {
+  en: [
+    { formal: "If this raised a question for you, send us a message and we'll answer it.", informal: "If this raised a question for you, send us a message and we'll answer it." },
+    { formal: "Wondering how this applies to you? Ask us at your next visit.", informal: "Wondering how this applies to you? Ask us at your next visit." },
+  ],
+  de: [
+    { formal: "Wenn Sie dazu eine Frage haben, schreiben Sie uns gern.", informal: "Wenn du dazu eine Frage hast, schreib uns gern." },
+    { formal: "Wie das bei Ihnen aussieht, besprechen wir gern beim nächsten Termin.", informal: "Wie das bei dir aussieht, besprechen wir gern beim nächsten Termin." },
+  ],
+  es: [
+    { formal: "Si le ha surgido alguna duda, puede preguntarnos en su próxima visita.", informal: "Si te ha surgido alguna duda, puedes preguntarnos en tu próxima visita." },
+    { formal: "¿Quiere saber cómo aplica a su caso? Escríbanos y se lo explicamos.", informal: "¿Quieres saber cómo aplica a tu caso? Escríbenos y te lo explicamos." },
+  ],
+  fr: [{ formal: "Si cela vous pose une question, parlons-en lors de votre prochain rendez-vous.", informal: "Si ça te pose une question, parlons-en lors de ton prochain rendez-vous." }],
+  pl: [{ formal: "Jeśli to rodzi pytania, porozmawiajmy o tym przy następnej wizycie.", informal: "Jeśli to rodzi pytania, porozmawiajmy o tym przy następnej wizycie." }],
+};
+const CTA_TR_MORE = [
+  { formal: "Sizin için ne geçerli olduğunu en iyi kendi diş hekiminiz söyleyebilir.", informal: "Senin için ne geçerli olduğunu en iyi kendi diş hekimin söyleyebilir." },
+  { formal: "Bu konuda aklınıza takılanı bir sonraki muayenenizde hekiminize danışabilirsiniz.", informal: "Bu konuda aklına takılanı bir sonraki muayenende hekimine danışabilirsin." },
+];
+
+/** A stable index for a text: the same video always gets the same variant. */
+function pick(seed: string, n: number): number {
+  if (!seed || n <= 1) return 0;
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.codePointAt(0)!, 16777619);
+  return (h >>> 0) % n;
+}
+
+export function ctaVariants(profile: Pick<ClinicProfile, "language" | "country" | "address">): string[] {
   const form = profile.address === "informal" ? "informal" : "formal";
-  if ((profile.country ?? "").toUpperCase() === "TR") return CTA_TR_MARKET[form];
-  return CTA[langOf(profile.language)][form];
+  if ((profile.country ?? "").toUpperCase() === "TR") return [CTA_TR_MARKET, ...CTA_TR_MORE].map((c) => c[form]);
+  const l = langOf(profile.language);
+  return [CTA[l], ...(CTA_MORE[l] ?? [])].map((c) => c[form]);
+}
+
+/**
+ * The kit's closing invitation. A clinic's own closing line
+ * (profile.closingLine) is used when it passes the same rules as ours (hard
+ * rules, market rules, the CTA rules; in Türkiye nothing that steers to the
+ * clinic); otherwise one of ours, chosen by `seed` (the video's caption).
+ */
+export function softCta(profile: Pick<ClinicProfile, "language" | "country" | "address"> & { closingLine?: string }, seed = ""): string {
+  const own = profile.closingLine?.trim();
+  if (own && closingLineProblems(own, profile.country).length === 0) return own;
+  const all = ctaVariants(profile);
+  return all[pick(seed, all.length)];
+}
+
+/** Why a clinic's own closing line cannot go out as written (empty: it can). */
+export function closingLineProblems(line: string, country: string | undefined): string[] {
+  return [
+    ...scanHardRules(line).map((h) => `${h.rule}: "${h.match}"`),
+    ...scanMarketRules(line, country).map((h) => `${h.rule}: "${h.match}"`),
+    ...ctaProblems(line, country).filter((p) => BLOCKING_CTA.has(p.code) || p.code === "generic" || p.code === "exclamation").map((p) => `cta ${p.code}: ${p.detail}`),
+  ];
 }
 
 /** Topic tags that fit any dental education video, used to top a short list up to five. */
@@ -117,8 +176,13 @@ const tagCompliant = (h: string) => scanHardRules(h.replace(/_/g, " ")).length =
  * ones, the copywriter's topic tags, then generic dental tags if still short.
  */
 export function postHashtags(raw: string[], profile: Pick<ClinicProfile, "city" | "language">): string[] {
+  // Turkish and Polish tags are written without diacritics, like the local
+  // and generic ones ("#izmirdishekimi"): one spelling per post, not
+  // "#sütdişi" next to "#dishekimi".
+  const l = langOf(profile.language);
+  const spell = (h: string) => (l === "tr" || l === "pl" ? tagWord(cleanTag(h), l) : cleanTag(h));
   const own = raw.slice(0, 1).map(cleanTag);
-  const rest = raw.slice(1).map(cleanTag);
+  const rest = raw.slice(1).map(spell);
   const all = [...own, ...localTags(profile), ...rest, ...GENERIC_TAGS[langOf(profile.language)]];
   const out: string[] = [];
   for (const h of all) {
@@ -158,9 +222,9 @@ export function trimClosing(caption: string, language?: string): string {
 
 export function buildPostKit(
   copy: { caption: string; hashtags: string[] },
-  profile: Pick<ClinicProfile, "name" | "city" | "language" | "country" | "address">,
+  profile: Pick<ClinicProfile, "name" | "city" | "language" | "country" | "address"> & { closingLine?: string; bookingUrl?: string },
 ): PostKit {
-  const cta = softCta(profile);
+  const cta = softCta(profile, copy.caption);
   const hashtags = postHashtags(copy.hashtags, profile);
   // A required warning is a fixed line of the kit, never cut with the body.
   const notice = captionNotice(profile.country);
@@ -168,7 +232,11 @@ export function buildPostKit(
   const place = [profile.name, profile.city].map((s) => s?.replace(/\s+/g, " ").trim()).filter(Boolean).join(" · ");
   const tags = (list: string[]) => list.map((h) => `#${h}`).join(" ");
   // Instagram allows 2,200 characters; the body gives way, never the closing lines.
-  const tail = [notice ?? "", cta, place ? `📍 ${place}` : "", tags(hashtags)].filter(Boolean).join("\n\n");
+  // Where a viewer books, outside Türkiye (RG 33075: information only), when
+  // the clinic gave a link and the caption does not already carry it.
+  const booking =
+    profile.bookingUrl && (profile.country ?? "").toUpperCase() !== "TR" && !body.includes(profile.bookingUrl) ? `🔗 ${profile.bookingUrl}` : "";
+  const tail = [notice ?? "", cta, booking, place ? `📍 ${place}` : "", tags(hashtags)].filter(Boolean).join("\n\n");
   const room = 2200 - tail.length - 2;
   const instagram = `${body.length > room ? `${body.slice(0, room - 1).trimEnd()}…` : body}\n\n${tail}`;
   // Short: the opening sentence, the invitation and three tags (local first, then the topic).
@@ -193,7 +261,10 @@ export function postKitProblems(kit: PostKit, country: string | undefined): stri
  * caption (rejected topics) are returned as they are; a kit that cannot be
  * built never costs the clinic the video.
  */
-export function withPostKit(row: ItemRow, profile: Pick<ClinicProfile, "name" | "city" | "language" | "country" | "address">): ItemRow {
+export function withPostKit(
+  row: ItemRow,
+  profile: Pick<ClinicProfile, "name" | "city" | "language" | "country" | "address"> & { closingLine?: string; bookingUrl?: string },
+): ItemRow {
   const copy = row.copy as { caption?: unknown; hashtags?: unknown } | undefined;
   if (!copy || typeof copy.caption !== "string" || !copy.caption.trim()) return row;
   try {

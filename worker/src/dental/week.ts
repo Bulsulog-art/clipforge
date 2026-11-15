@@ -3,7 +3,7 @@ import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import { narrate } from "./narrate.js";
 import { AGENT_MODEL } from "./llm.js";
 import { guardFootage } from "./footage.js";
-import { backgroundSrc, defaultBackgrounds, matchingBackgrounds, suggestBackgrounds } from "../dentvid/backgrounds/suggest.js";
+import { backgroundSrc, startingBackgrounds, suggestBackgrounds } from "../dentvid/backgrounds/suggest.js";
 import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
@@ -29,6 +29,7 @@ import {
   trSteering,
   ctaGuide,
   ctaProblems,
+  linesEcho,
   fillerHits,
   hookProblems,
   NARRATION_SECONDS,
@@ -37,6 +38,7 @@ import {
 } from "./style.js";
 import { mixedAddress, screenLines, type RubricScene } from "./rubric.js";
 import { firstSentence, weekVoiceBrief, type PastTopic, type WeekVoice } from "./memory.js";
+import { droppedHedges, notQuite, offRegister, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -136,17 +138,19 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `The hook scene's text must be this line, word for word or tightened but never made more generic: "${topic.hook}".`,
     `Include narration exactly in this shape: "voiceover": { "text": "<the full narration, every sentence>", "voice": "nova" } (voice may be "nova" or "onyx"). The text is natural spoken ${profile.language}, same form of address, covering the same points as the screen. It should sound like a friendly dentist talking to one patient: varied sentences, contractions where the language uses them, every sentence adding something new, no word or idea repeated, never list items read out. About ${speechRate(profile.language).perSecond} ${speechRate(profile.language).unit === "characters" ? "Japanese characters" : "words"} per second of video.`,
     `Structure: hook → the answer in 2-4 varied scenes (never two "statement" scenes in a row; use a list or compare at least once) → cta. The scene right after the hook starts answering what the hook asked. At most 3 items in a list.`,
-    `Every scene says something NEW. Never restate the takeaway or an earlier scene in other words, and never end the body with a recap or summary list ("Kısaca", "Kurz gesagt", "In short", "What to do") — the viewer just saw it. One short sentence per on-screen line: statements under 90 characters, list items under 6 words. Never answer the hook with a bare "No." / "Nein." / "Hayır." — say "not quite" / "usually not" and why.`,
+    `Every scene says something NEW. Never restate the takeaway or an earlier scene in other words, and never end the body with a recap or summary list ("Kısaca", "Kurz gesagt", "In short", "What to do") — the viewer just saw it. One short sentence per on-screen line: statements under 90 characters, list items under 6 words. Only when the hook states a belief that is wrong, answer it with "${notQuite(profile.language)}" (never a bare "No." / "Nein." / "Hayır.") and why. After a hook that is a moment, a mistake or a question about what to do, go straight to the answer: a reflexive "${notQuite(profile.language)}" there reads as nonsense ("Missing the gumline? Not quite.").`,
     variantRule(profile),
     `Sound: say it the way a dentist would say it across the chair, not a leaflet. Never generic filler ("for more information", "your smile deserves…", "we're here to help", "don't hesitate to") in any language.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
-    `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually").`,
+    `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually") — and the on-screen line keeps the same qualifier as the narration: if the voice says "usually", the card says it too. One qualifier per claim; instructions and plain facts are said plainly, not hedged.`,
+    practiceFactsRule(profile),
+    `Every word on screen is in ${profile.language}: never an English "Not quite." or "Here's why", or any other language's words, on a ${profile.language} card.`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
     `Words the reviewers always reject — never use them on screen or in narration: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}.`,
     `Aftercare and instructions: only what dentists normally tell patients for THIS procedure, and say to follow the dentist's own instructions. Do not invent timeframes or extra restrictions. Reference:\n${AFTERCARE_GUIDE}`,
     marketRules(profile.country) ? `This market's advertising rules: ${marketRules(profile.country)}` : "",
     `Never invent statistics or percentages ("80% of patients…"); say "most people" or leave it out. A number is allowed only for a guideline interval or timeframe (every 6 months, the first 48 hours).`,
-    `Include exactly ONE footage scene with stock footage — { "kind": "footage", "source": { "type": "stock", "query": "..." }, "caption": "<one short line of the answer>", "seconds": 3-4 } — placed right after the hook or in the middle, so the video is not only text. The query: 2-4 English words for an object or action you can film (e.g. "teeth whitening tray", "dental floss close up", "child brushing teeth"), never a generic "dentist office" — objects only, no people, no clinic or treatment scenes.`,
+    `Include exactly ONE footage scene with stock footage — { "kind": "footage", "source": { "type": "stock", "query": "..." }, "caption": "<one short line of the answer>", "seconds": 3-4 } — placed right after the hook or in the middle, so the video is not only text. The query: 2-4 English words naming a DENTAL object you can film for THIS topic (e.g. "teeth whitening tray", "dental floss close up", "clear aligner case", "tooth model close up", "toothbrush and toothpaste") — never food, drinks, a sink or a room on its own, never a "dentist office", sign or logo, no people, no clinic or treatment scenes.`,
     `End with a cta scene. ${ctaGuide(profile.country, profile.address)}` +
       (profile.handle ? ` Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : ""),
     weekVoiceBrief(week),
@@ -245,7 +249,7 @@ export function narrationProblems(plan: ScenePlan, language?: string): string[] 
  */
 export function scriptProblems(
   plan: ScenePlan,
-  profile: Pick<ClinicProfile, "language" | "country"> & { name?: string },
+  profile: Pick<ClinicProfile, "language" | "country"> & { name?: string; city?: string; services?: string[] },
   /** How this week's earlier videos closed: a closing that echoes one is sent back. */
   week?: WeekVoice,
 ): string[] {
@@ -284,8 +288,92 @@ export function scriptProblems(
     if (added.length) out.push(`the narration states numbers that are not on screen (${added.join(", ")}): say only what the screen says`);
   }
   for (const c of clinicalFlags(`${screen}\n${narration}`)) out.push(`clinical: ${c}`);
+  for (const c of practiceClaims(`${screen}\n${narration}`, profile.language, knownFacts(profile)))
+    out.push(`"${c}" states something about this practice that it never told us (an amenity, a perk, equipment, hours, a phone line) — say what dentists generally do, or leave it out`);
+  // The hook is allowed to provoke (the body answers it); the claims are the rest.
+  for (const w of wrongLanguage([...lines, narration], profile.language)) out.push(`"${w}" is not in ${profile.language} — write it in the video's language`);
+  // "Rinsing aligners with water? That's the mistake." → "Not quite. Rinse them…": the
+  // answer contradicts a hook that made no claim to deny (EN sample render, Nov 2026).
+  const afterHook = lines[lines.indexOf(hook) + 1] ?? "";
+  const nq = notQuite(profile.language).toLocaleLowerCase();
+  if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && (!/[?？؟]/u.test(hook) || /\b(mistake|fehler|hata|error)\b/i.test(hook)))
+    out.push(`"${afterHook}" answers "${hook}" with "${notQuite(profile.language)}", but the hook states no belief to deny — start the answer directly`);
+  for (const o of offRegister(`${screen}\n${narration}`, profile.language)) out.push(`"${o}" is a stock opener or too casual for a practice's feed — say it plainly`);
   if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);
   return out;
+}
+
+/**
+ * Wording a first draft is sent back for once, but that never costs the
+ * clinic the video: a qualifier the screen dropped, hedging piled up. The
+ * fix is a matter of phrasing; when a rewrite does not get it, the reviewers
+ * still judge the script. (Blocking them lost three of five videos a week in
+ * the bench, mostly on near misses.)
+ */
+export function softScriptProblems(plan: ScenePlan, profile: Pick<ClinicProfile, "language">): string[] {
+  const scenes = plan.scenes as unknown as RubricScene[];
+  const hook = scenes.find((s) => s.kind === "hook")?.text ?? "";
+  const narration = plan.voiceover?.text ?? "";
+  const out: string[] = [];
+  // The hook is allowed to provoke (the body answers it); the claims are the rest.
+  for (const d of droppedHedges(screenLines(scenes).filter((l) => l !== hook), narration, profile.language))
+    out.push(`on screen "${d.line}" states as certain what the narration hedges ("${d.spoken}") — keep the same qualifier on screen`);
+  if (narration) {
+    const stacked = stackedHedges(narration, profile.language);
+    if (stacked) out.push(`narration: ${stacked}`);
+  }
+  return out;
+}
+
+/**
+ * Lines the planner wrote twice, removed before anyone reads the draft: a
+ * footage caption that repeats a statement, a statement or list item that
+ * repeats an earlier line. Seen in the bench: "Usually about 45 to 60
+ * minutes." twice, which the post-check sent back three times in a row and
+ * the topic was lost. Removing the echo is what the rewrite was asked to do.
+ */
+export function dropEchoes(plan: ScenePlan): ScenePlan {
+  const seen: string[] = [];
+  const echoes = (t: string | undefined) => !!t && t.split(/\s+/).length >= 3 && seen.some((x) => linesEcho(x, t));
+  const scenes: ScenePlan["scenes"] = [];
+  for (const sc of plan.scenes) {
+    if (sc.kind === "hook" || sc.kind === "cta") {
+      scenes.push(sc);
+      continue;
+    }
+    if (sc.kind === "statement" && echoes(sc.text)) continue;
+    if (sc.kind === "footage" && sc.caption && echoes(sc.caption)) {
+      const { caption: _drop, ...rest } = sc;
+      scenes.push(rest as typeof sc);
+      continue;
+    }
+    if (sc.kind === "list") {
+      const items = sc.items.filter((i) => !echoes(i));
+      const kept = items.length >= 2 && items.length < sc.items.length ? { ...sc, items } : sc;
+      scenes.push(kept);
+      seen.push(...kept.items);
+      continue;
+    }
+    scenes.push(sc);
+    const r = sc as unknown as RubricScene;
+    for (const v of [r.text, r.caption, r.heading]) if (v) seen.push(v);
+  }
+  return scenes.length === plan.scenes.length && scenes.every((x, i) => x === plan.scenes[i]) ? plan : { ...plan, scenes };
+}
+
+/** What the clinic told us about itself; a practice claim naming one of these is the clinic's own. */
+function knownFacts(p: { name?: string; city?: string; services?: string[] }): string {
+  return [p.name ?? "", p.city ?? "", ...(p.services ?? [])].join(" | ");
+}
+
+/**
+ * The writers know only the clinic's name, city and services. A sentence
+ * about what THIS practice has or does beyond that ("interactive games and
+ * small rewards", "our after-hours line") may be untrue, and the clinic would
+ * be publishing it about itself.
+ */
+export function practiceFactsRule(p: Pick<ClinicProfile, "services">): string {
+  return `About this practice you know ONLY its name, city and services (${p.services.join(", ")}). Never state anything else about it — no equipment, technology, amenities, games or rewards for children, atmosphere, team traits, opening hours, emergency or after-hours lines, languages, parking or payment options. Explain what dentists generally do ("your dentist can…"), not what "we" offer.`;
 }
 
 /** Longest on-screen line a viewer reads in a 3-4 second scene (Latin scripts; ~14 words). */
@@ -298,8 +386,20 @@ export const MAX_SCENES = 7;
  * nothing that steers to booking or to the clinic; everywhere, not the
  * narration pasted again.
  */
-export function captionProblems(caption: string, narration: string | undefined, country: string | undefined): string[] {
+export function captionProblems(
+  caption: string,
+  narration: string | undefined,
+  country: string | undefined,
+  /** The clinic, for the language and the practice-fact check; optional so older callers still work. */
+  profile?: Pick<ClinicProfile, "language"> & { name?: string; city?: string; services?: string[] },
+): string[] {
   const out: string[] = [];
+  if (profile) {
+    for (const c of practiceClaims(caption, profile.language, knownFacts(profile)))
+      out.push(`"${c}" states something about this practice that it never told us (an amenity, equipment, hours, an after-hours line) — leave it out`);
+    for (const w of wrongLanguage([caption], profile.language)) out.push(`"${w}" is not in ${profile.language} — the whole caption is in the video's language`);
+    for (const o of offRegister(caption, profile.language)) out.push(`"${o}" is too casual for a practice's feed — say it plainly`);
+  }
   if ((country ?? "").toUpperCase() === "TR") {
     const s = trSteering(caption);
     if (s) out.push(`"${s}" steers the viewer to book or to the clinic — RG 33075 allows information only; end by pointing to their own dentist (hekiminize sorabilirsiniz)`);
@@ -318,6 +418,7 @@ export async function produceVideo(
   /** How this week's earlier videos opened and closed, so this one does not repeat them. Updated when the video is ready. */
   week: WeekVoice = { openers: [], closings: [] },
 ): Promise<VideoPackage> {
+  let draftsChecked = 0;
   const script = await reviewed(
     deps,
     "script",
@@ -339,14 +440,20 @@ export async function produceVideo(
       );
       // The planner's voice-over reads like a leaflet; the narrator rewrites
       // it from the screen text alone, so the reviews below still see one story.
-      if (!plan.voiceover) return plan;
-      const text = await narrate(deps.client, profile, topic, plan, fixes, previous?.voiceover?.text, week).catch(() => plan.voiceover!.text);
-      return { ...plan, voiceover: { ...plan.voiceover, text } };
+      const deduped = dropEchoes(plan);
+      if (!deduped.voiceover) return deduped;
+      const text = await narrate(deps.client, profile, topic, deduped, fixes, previous?.voiceover?.text, week).catch(() => deduped.voiceover!.text);
+      return { ...deduped, voiceover: { ...deduped.voiceover, text } };
     },
     planText,
     (plan) => reviewAccuracy(deps.client, profile, topic, { script: planText(plan) }),
     profile,
-    (plan) => [...narrationProblems(plan, profile.language), ...scriptProblems(plan, profile, week)],
+    (plan) => [
+      ...narrationProblems(plan, profile.language),
+      ...scriptProblems(plan, profile, week),
+      // Wording fixes are asked for on the first draft only (softScriptProblems).
+      ...(draftsChecked++ === 0 ? softScriptProblems(plan, profile) : []),
+    ],
   );
   if (!script.ok) return { status: "rejected", topic, stage: "script", reasons: script.rejected };
   // Remember how this one opened and closed, for the rest of the week.
@@ -365,7 +472,7 @@ export async function produceVideo(
     (c) => `${c.caption}\n${c.hashtags.join(" ")}`,
     (c) => reviewAccuracy(deps.client, profile, topic, { script: facts, caption: c.caption }),
     profile,
-    (c) => captionProblems(c.caption, script.value.voiceover?.text, profile.country),
+    (c) => captionProblems(c.caption, script.value.voiceover?.text, profile.country, profile),
   );
   if (!post.ok) return { status: "rejected", topic, stage: "copy", reasons: post.rejected };
 
@@ -395,16 +502,26 @@ export async function produceVideo(
     language: profile.language,
   };
   const suggestedBackgrounds = suggestBackgrounds(bgInput);
-  // Only photos about this topic go in by default; with none, the video keeps its plain brand backdrop.
-  const relevant = matchingBackgrounds(bgInput);
-  const chosen = defaultBackgrounds(suggestedBackgrounds.filter((id) => relevant.has(id)), totalSeconds(guarded)).map(backgroundSrc);
+  // A new video starts with recognisably dental photos only (a toothbrush, an
+  // aligner case, a treatment chair), the topic's own first: a dentist read
+  // the library's mood and food stills (an apple and bread in an implant
+  // video) as filler. The clinic can still pick any suggestion by hand.
+  const chosen = startingBackgrounds(bgInput, totalSeconds(guarded)).map(backgroundSrc);
   // The renderer needs the language for fonts, line breaking and direction (RTL for Arabic).
   // A market's required on-screen warning (Türkiye, RG 33075 md. 7/1-k) is
   // set by code alone: whatever the planner put there is dropped.
   const { disclaimer: _planned, ...unwarned } = guarded;
   const notice = screenNotice(profile.country, topic);
+  // The clinic signs the video: its name on the sign-off (and in the corner
+  // when it has no logo), its handle from the profile rather than wherever
+  // the planner remembered to put it (Nov 2026: a TR video ended with no handle).
+  const signed = profile.handle
+    ? unwarned.scenes.map((s) => (s.kind === "cta" ? { ...s, handle: `@${profile.handle!.replace(/^@/, "")}` } : s))
+    : unwarned.scenes;
   const withLang: ScenePlan = {
     ...unwarned,
+    scenes: signed as ScenePlan["scenes"],
+    clinic: profile.name,
     ...(notice ? { disclaimer: notice } : {}),
     language: profile.language,
     ...(guarded.voiceover ? { voiceover: { ...guarded.voiceover, voice: voiceFor(profile.language, guarded.voiceover.voice) } } : {}),

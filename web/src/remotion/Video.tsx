@@ -76,7 +76,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
   const windows = sceneWindows(offsets, plan.scenes.map(sceneFrames));
   const logo = logoSrc ? { src: asStatic(logoSrc), style: logoStyle } : undefined;
   // The sign-off shows the logo large; the corner mark steps aside for it.
-  const ctaIndex = logo ? plan.scenes.findIndex((s) => s.kind === "cta") : -1;
+  const ctaIndex = logo || plan.clinic ? plan.scenes.findIndex((s) => s.kind === "cta") : -1;
   const { fps, durationInFrames } = useVideoConfig();
 
   return (
@@ -105,6 +105,8 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
               window={win}
               footageSrc={footage[String(i)]}
               logo={logo}
+              clinic={plan.clinic}
+              notice={!!plan.disclaimer}
             />
           </Sequence>
         );
@@ -125,8 +127,51 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
           hideFrom={ctaIndex >= 0 ? offsets[ctaIndex] : undefined}
           rtl={rtl}
         />
+      ) : plan.clinic ? (
+        <ClinicName name={plan.clinic} theme={t} hideFrom={ctaIndex >= 0 ? offsets[ctaIndex] : undefined} rtl={rtl} />
       ) : null}
     </AbsoluteFill>
+  );
+};
+
+/**
+ * A clinic with no logo still signs every frame: its name, small, where the
+ * logo would sit (under the platform header), on a quiet chip. Steps aside
+ * for the sign-off, which shows the name large.
+ */
+const ClinicName: React.FC<{ name: string; theme: Theme; hideFrom?: number; rtl?: boolean }> = ({ name, theme, hideFrom, rtl }) => {
+  const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const safe = safeFrame(width, height);
+  const side = Math.round(width * 0.06);
+  const scale = width / 1080;
+  const opacity =
+    hideFrom === undefined
+      ? 1
+      : interpolate(frame, [hideFrom - 4, hideFrom + 6], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  if (opacity <= 0) return null;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: safe.top,
+        ...(rtl ? { left: side } : { right: side }),
+        maxWidth: width * 0.6,
+        opacity,
+        fontFamily: theme.bodyFont,
+        fontSize: 30 * scale,
+        fontWeight: 600,
+        color: theme.onAccent,
+        background: theme.accent,
+        padding: `${10 * scale}px ${22 * scale}px`,
+        borderRadius: 999,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}
+    >
+      {name}
+    </div>
   );
 };
 
@@ -139,7 +184,9 @@ const FadingScene: React.FC<{
   window: SceneWindow;
   footageSrc?: string;
   logo?: { src: string; style?: LogoStyle };
-}> = ({ index, scene, theme, durationInFrames, window, footageSrc, logo }) => {
+  clinic?: string;
+  notice?: boolean;
+}> = ({ index, scene, theme, durationInFrames, window, footageSrc, logo, clinic, notice }) => {
   const frame = useCurrentFrame();
   // The opening scene is already in motion at frame 0 (animation.ts OPENING_HEAD_START).
   const clock = sceneClock(index, frame);
@@ -152,6 +199,8 @@ const FadingScene: React.FC<{
         durationInFrames={durationInFrames}
         footageSrc={footageSrc}
         logo={logo}
+        clinic={clinic}
+        notice={notice}
       />
     </AbsoluteFill>
   );

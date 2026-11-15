@@ -64,6 +64,41 @@ instead of producing a serif-fallback video (what happened to
 `de/bleaching-zahnschmelz` and `pl/wybielanie-przed-slubem`, both re-rendered
 the same day).
 
+## English and German samples (15.11.2026, second pass)
+
+A dentist's review of the landing samples found the English week and two German
+videos were still pre-fix renders: white text on a teal gradient, no photos, no
+logo, about -26 LUFS, and endings like "Got questions? Ask us or book a
+check-up!". The German children's video also claimed things about the practice
+("interaktive Spiele und kleine Belohnungen"). Re-rendered with the improved
+pipeline (dental photos only, clinic logo and name on the sign-off, mastered
+narration at -14 LUFS, the practice-fact and language checks in `week.ts`):
+
+- `en/whitening-myths-debunked` (EN hero; 21 s, -14.2 LUFS). Demo clinic "Demo
+  Dental Studio", Austin, @demodentalstudio, a "DS" logo.
+- `de/kinder-zahnarztangst` (30 s, -14.5 LUFS). "Demo Zahnarztpraxis",
+  München, @demozahnarztpraxis, a "DZ" logo. No statements about the practice.
+
+`dentvideo-samples.ts` (`name`, `seconds`, `hero`) and `dentvideo-examples.ts`
+(`summary`, `onScreen`) were rewritten from the new videos.
+
+**Still old (render budget of the pass used up):** `en/caring-for-clear-aligners`,
+`en/proper-brushing-technique`, `de/aligner-verfaerbung`. The two English ones
+were rendered too but not published: both answered a hook that denied nothing
+with a reflexive "Not quite." ("Brushing twice and missing the gumline? / Not
+quite."), which `week.ts scriptProblems` now sends back. Re-render them with:
+
+```bash
+cd worker
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:9 SUPABASE_SERVICE_ROLE_KEY=unused OPENAI_API_KEY=… \
+  npx tsx src/dental/cli.ts en-profile.json --topics en-topics.json --render --logo en-logo.png --out /tmp/out
+```
+
+(`cli.ts` imports the recording path, which builds a Supabase client at import
+time; the two variables only satisfy that, nothing is called.) Compress to the
+samples' size: `ffmpeg -i video.mp4 -c:v libx264 -b:v 240k -maxrate 300k -bufsize 600k -c:a aac -b:a 96k -movflags +faststart`,
+poster `-ss 0.9 -frames:v 1 -vf scale=540:960`.
+
 ## Not changed on purpose
 
 - `worker/src/dental/fixtures/baseline-scripts.json`: the November 2026 baseline

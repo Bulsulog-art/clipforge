@@ -178,6 +178,13 @@ export const scenePlanSchema = z.object({
    * drawn small near the end (Disclaimer.tsx). Absent: nothing drawn.
    */
   disclaimer: z.string().min(1).max(240).optional(),
+  /**
+   * The clinic's name, set by code from its profile (never by a model).
+   * Drawn on the sign-off under the logo, and small in the top corner for the
+   * whole video when the clinic has no logo, so every frame reads as theirs.
+   * Absent: as before.
+   */
+  clinic: z.string().trim().min(1).max(80).optional(),
 });
 
 export type ScenePlan = z.infer<typeof scenePlanSchema>;

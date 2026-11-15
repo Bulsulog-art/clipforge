@@ -199,3 +199,34 @@ cd worker
 OPENAI_API_KEY=… npx tsx src/bench/quality-week.ts --out ../qw/after --ledger ../qw/ledger.json --label after --memory full
 OPENAI_API_KEY=… npx tsx src/bench/quality-week.ts --out ../qw/before --ledger ../qw/ledger.json --label before --memory titles   # on main, for the baseline
 ```
+
+## Round 3 (Nov 2026): would a dentist proudly post it?
+
+One realistic week each for a general practice in İzmir (TR), a family practice in München (DE) and one in Austin, Texas (US), planned for Monday 16 November with real patient searches, plus a skeptical dentist's review of the published samples. The bench is `worker/src/bench/value-week.ts` (same spend ledger as round 2; `--render N` renders the first N videos the way a week job does, with a logo).
+
+What a dentist saw (before → what changed):
+
+| Seen | Fix | Where |
+|---|---|---|
+| An apple, a loaf of bread and a stone arch behind an implant video; a sink and towels for tartar; vegetables for bleaching (10 of 27 default photos were dental) | New videos start only with photos a viewer recognises as dental (toothbrush, aligner case, mirror and probe, instrument tray, implant screw, treatment chair), the topic's own first. Mood photos stay pickable by hand | `dentvid/backgrounds/suggest.ts` `DENTAL_PHOTOS`, `startingBackgrounds` |
+| Stock queries "white plate food", "ice pack on jaw" | A stock query must name a dental object; signs, logos, offices, food and people are replaced | `footage.ts dentalQuery` |
+| "Unser Team erklärt alles spielerisch … kleine Belohnungen"; "call our office or after-hours line" | The writers know only name, city and services, and are told so; sentences in the practice's voice that claim an amenity, perk, phone line, hours or equipment are sent back (script and caption) | `claims.ts practiceClaims`, `week.ts practiceFactsRule` |
+| Voice "genelde inceltmez", card "inceltmez" | First draft sent back when a card drops the narration's frequency qualifier; hedges piled up ("-ebilir" in most sentences) likewise | `claims.ts droppedHedges`, `stackedHedges` (soft: first draft only) |
+| "Not quite." on a Turkish card; a US caption opening "Lo importante: un filling y una crown…"; then "Pek sayılmaz:" on a German card | Each prompt names only its own language's "not quite"; lines in another language, or another language's "not quite", are sent back | `claims.ts wrongLanguage`, `NOT_QUITE` |
+| "Wissen Sie Kinder und Zahnarzt?", "Most folks", "funky", "zippy" | Off-register words and stock openers are sent back | `claims.ts offRegister` |
+| A planner line written twice lost the topic after three rewrites | Echoed lines are removed before review | `week.ts dropEchoes` |
+| Only "@handle" on the last frame (and once not even that) | The clinic's name on the sign-off under the logo, in the corner when there is no logo; the handle comes from the profile; the sign-off makes room for the TR notice | `scene-plan.ts clinic`, `Video.tsx`, `text-scenes.tsx` |
+| Every post kit ended with the same line; no booking link | Closing lines rotate per video; a clinic's own `closingLine` is used when it passes the same rules; the booking link outside Türkiye | `post-kit.ts softCta`, `closingLineProblems` |
+| Nothing seasonal in a November week | Thanksgiving, the US plan year, the Bonusheft and winter sensitivity, and the strategist builds one video on the week's occasion when it fits | `calendar.ts` |
+
+Same three clinics, three videos each, deterministic checks on the ready videos (`value-week.ts` output):
+
+| | Before | After |
+|---|---|---|
+| Ready / planned | 9 / 10 | 9 / 10 |
+| Default background photos that are dental | 10 / 27 | 27 / 27 |
+| Non-dental stock queries | 2 | 0 |
+| Claims about the practice it never made | 1 | 0 |
+| Lines in the wrong language | 2 | 1 (fixed after the run: `NOT_QUITE`) |
+| Narrations with stacked hedges | 2 | 1 |
+| Videos tied to this week (season, occasion) | 0 | 3 |
