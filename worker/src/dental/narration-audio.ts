@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fitPlanToVoice, prepareVoiceover, type VoiceOptions } from "../remotion/voiceover.js";
+import { fitPlanToVoice, prepareVoiceover, snapScenesToPauses, type VoiceOptions } from "../remotion/voiceover.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
-import { masterNarration, mixNarrationWithMusic, type MasterOptions } from "./audio-master.js";
+import { detectPauses, masterNarration, mixNarrationWithMusic, type MasterOptions } from "./audio-master.js";
 import { speechText } from "./speech-text.js";
 import { speakingTempo } from "./voice.js";
 
@@ -75,8 +75,15 @@ export async function prepareNarration(
       });
     }
     // Slower speech is longer: stretch the plan again (it never shrinks).
+    // Then move each cut into the pause between two sentences, so a card
+    // changes when the voice moves on, not halfway through a sentence.
+    const fitted = fitPlanToVoice(voice.plan, out.seconds);
+    const pauses = await detectPauses(mastered.path).catch((e: Error) => {
+      onMasterError?.(e);
+      return [];
+    });
     return {
-      plan: keepText(fitPlanToVoice(voice.plan, out.seconds)),
+      plan: keepText(snapScenesToPauses(fitted, pauses)),
       voiceoverPath: out.path,
       voiceSeconds: out.seconds,
       voiceModel: voice.voiceModel,

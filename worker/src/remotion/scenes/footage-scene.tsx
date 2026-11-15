@@ -30,7 +30,7 @@ export const FootageScene: React.FC<{
   src?: string;
 }> = ({ scene, theme, frame, durationInFrames, src }) => {
   const scale = useScale();
-  const safe = useSafeArea();
+  const safe = useSafeArea(theme);
   const { width, height } = useVideoConfig();
   const zoom = kenBurns(frame, durationInFrames);
   // A bare filename lives in the render's public directory; anything with a

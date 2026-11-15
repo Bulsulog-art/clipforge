@@ -7,7 +7,7 @@ import { scenePlanSchema, sceneFrames, sceneOffsets } from "./scene-plan";
 import type { ScenePlan } from "./scene-plan";
 import { brandTheme, localizeTheme, safeFrame, theme as resolveTheme } from "./theme";
 import { isRtl } from "./script";
-import { sceneWindows, windowOpacity, type SceneWindow } from "./animation";
+import { sceneClock, sceneWindows, windowOpacity, type SceneWindow } from "./animation";
 import { SceneView } from "./scenes/index";
 import { Watermark } from "./Watermark";
 import { LogoMark } from "./LogoMark";
@@ -96,6 +96,7 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
             layout="none"
           >
             <FadingScene
+              index={i}
               scene={scene}
               theme={sceneTheme}
               durationInFrames={durationInFrames}
@@ -128,20 +129,23 @@ export const ClipForgeVideo: React.FC<VideoProps> = ({
 
 /** Wraps a scene in its own fade so the component itself never thinks about it. */
 const FadingScene: React.FC<{
+  index: number;
   scene: ScenePlan["scenes"][number];
   theme: ReturnType<typeof resolveTheme>;
   durationInFrames: number;
   window: SceneWindow;
   footageSrc?: string;
   logo?: { src: string; style?: LogoStyle };
-}> = ({ scene, theme, durationInFrames, window, footageSrc, logo }) => {
+}> = ({ index, scene, theme, durationInFrames, window, footageSrc, logo }) => {
   const frame = useCurrentFrame();
+  // The opening scene is already in motion at frame 0 (animation.ts OPENING_HEAD_START).
+  const clock = sceneClock(index, frame);
   return (
     <AbsoluteFill style={{ opacity: windowOpacity(frame, window) }}>
       <SceneView
         scene={scene}
         theme={theme}
-        frame={frame}
+        frame={clock}
         durationInFrames={durationInFrames}
         footageSrc={footageSrc}
         logo={logo}

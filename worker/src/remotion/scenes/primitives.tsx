@@ -32,9 +32,10 @@ export function useScale(): number {
  * `start`/`end` are logical — apply them with safePadding() so an Arabic
  * frame mirrors them.
  */
-export function useSafeArea(): SafeFrame {
+export function useSafeArea(theme?: Pick<Theme, "script">): SafeFrame {
   const { width, height } = useVideoConfig();
-  return safeFrame(width, height);
+  // Arabic keeps clear of the rail on both sides (theme.ts safeFrame).
+  return safeFrame(width, height, { rtl: theme?.script === "arabic" });
 }
 
 /** The safe frame as CSS padding, with the sides as inline-start/end. */
@@ -47,7 +48,7 @@ export const Backdrop: React.FC<{ theme: Theme; children: React.ReactNode }> = (
   children,
 }) => {
   const scale = useScale();
-  const safe = useSafeArea();
+  const safe = useSafeArea(theme);
   // Over background photos the frame stays see-through; the photo layer
   // (background-layer.tsx) brings its own contrast-safe tint.
   const photo = usePhotoBackdrop();

@@ -11,6 +11,7 @@ import { resolveStockClips } from "./stock.js";
 import { stageBackgrounds } from "./backgrounds.js";
 import type { LogoStyle } from "./logo-style.js";
 import { renderTuning, type RenderTuning } from "./capacity.js";
+import { enforceLoudness, type LoudnessGuardResult } from "./loudness-guard.js";
 import { isInside, mediaRoots } from "../lib/media-input.js";
 
 /**
@@ -120,6 +121,8 @@ export type RenderPlanResult = {
   height: number;
   /** Scenes that asked for footage and did not get any. */
   missingFootage: number;
+  /** The finished file's loudness (and whether its audio was corrected); absent for a render without sound. */
+  loudness?: LoudnessGuardResult;
 };
 
 /**
@@ -364,12 +367,29 @@ async function renderStaged(
     onProgress: onProgress ? ({ progress }) => onProgress(progress) : undefined,
   });
 
+  // The file that gets posted is the one measured: -14 LUFS / -1 dBTP whatever
+  // path the audio took to get here (loudness-guard.ts). Best effort: a failed
+  // check leaves the render as it came out.
+  let loudness: LoudnessGuardResult | undefined;
+  if (stagedVoiceover || stagedMusic) {
+    loudness = await enforceLoudness(outputPath).catch((e: Error) => {
+      onWarn?.(`loudness check failed: ${e.message}`);
+      return undefined;
+    });
+    if (loudness?.corrected) {
+      onWarn?.(
+        `audio loudness corrected: ${loudness.before.I} LUFS / ${loudness.before.TP} dBTP -> ${loudness.after.I} LUFS / ${loudness.after.TP} dBTP`,
+      );
+    }
+  }
+
   return {
     outputPath,
     durationSec: totalSeconds(plan),
     width: composition.width,
     height: composition.height,
     missingFootage,
+    ...(loudness ? { loudness } : {}),
   };
 }
 

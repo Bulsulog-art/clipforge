@@ -20,7 +20,9 @@ type Props<K extends Scene["kind"]> = {
 /**
  * The hook. Everything downstream is wasted if this frame does not stop a
  * thumb, so it is the only scene that gets the largest type, the word-by-word
- * reveal and the full height of the frame to itself.
+ * reveal and the full height of the frame to itself. (As the opening scene it
+ * starts already in motion — Video.tsx, OPENING_HEAD_START — so frame 0 shows
+ * its first words.)
  */
 export const HookScene: React.FC<Props<"hook">> = ({ scene, theme, frame }) => (
   <Backdrop theme={theme}>

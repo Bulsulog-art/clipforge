@@ -194,6 +194,17 @@ export async function measureLoudness(file: string): Promise<{ I: number; TP: nu
   return { I: get(/I:\s+(-?[\d.]+) LUFS/), TP: get(/Peak:\s+(-?[\d.]+|-inf) dBFS/), LRA: get(/LRA:\s+(-?[\d.]+) LU/) };
 }
 
+/**
+ * The pauses in a finished narration (seconds from its start), for lining the
+ * scene cuts up with the speech (remotion/voiceover.ts snapScenesToPauses).
+ * Measured on the mastered file, whose timeline is the video's.
+ */
+export async function detectPauses(file: string, minSeconds = 0.05): Promise<Silence[]> {
+  const duration = await probeDuration(file);
+  const log = await ffmpeg(["-i", file, "-af", `silencedetect=n=-45dB:d=${minSeconds}`, "-f", "null", "-"]);
+  return parseSilences(log, duration);
+}
+
 async function analyse(input: string, target: LoudnessTarget) {
   const duration = await probeDuration(input);
   const log = await ffmpeg([

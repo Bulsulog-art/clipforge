@@ -190,16 +190,58 @@ describe("footage motion", () => {
 });
 
 describe("scene windows: a real cross-dissolve, never an empty frame at a cut", () => {
-  it("keeps one scene fully drawn at every frame between the first fade-in and the last fade-out", async () => {
-    const { sceneWindows, windowOpacity, CROSSFADE } = await import("./animation.js");
-    const frames = [90, 105, 150, 135, 150, 135, 90];
-    const offsets = frames.map((_, i) => frames.slice(0, i).reduce((a, b) => a + b, 0));
+  const frames = [90, 105, 150, 135, 150, 135, 90];
+  const offsets = frames.map((_, i) => frames.slice(0, i).reduce((a, b) => a + b, 0));
+  const total = frames.reduce((a, b) => a + b, 0);
+  const drawn = async () => {
+    const { sceneWindows, windowOpacity } = await import("./animation.js");
     const wins = sceneWindows(offsets, frames);
-    const total = frames.reduce((a, b) => a + b, 0);
+    return { wins, at: (f: number) => wins.map((w) => (f >= w.from && f < w.from + w.durationInFrames ? windowOpacity(f - w.from, w) : 0)) };
+  };
+
+  it("adds up to a fully drawn frame at every frame of the video, cuts included", async () => {
+    const { wins, at } = await drawn();
     expect(wins.at(-1)!.from + wins.at(-1)!.durationInFrames).toBe(total); // running time unchanged
-    for (let f = CROSSFADE; f < total - CROSSFADE; f++) {
-      const best = Math.max(...wins.map((w) => (f >= w.from && f < w.from + w.durationInFrames ? windowOpacity(f - w.from, w) : 0)));
-      expect(best, `frame ${f}`).toBe(1);
+    for (let f = 0; f < total; f++) {
+      const sum = at(f).reduce((a, b) => a + b, 0);
+      expect(sum, `frame ${f}`).toBeCloseTo(1, 9);
     }
+  });
+
+  it("never stacks two scenes at full strength: the outgoing one fades as the next comes in", async () => {
+    const { CROSSFADE } = await import("./animation.js");
+    const { at } = await drawn();
+    for (let f = 0; f < total; f++) {
+      const on = at(f).filter((o) => o > 0);
+      expect(on.length, `frame ${f}`).toBeLessThanOrEqual(2);
+      if (on.length === 2) expect(Math.min(...on), `frame ${f}`).toBeLessThan(1);
+    }
+    // Midway through a cut both are about half drawn.
+    const mid = offsets[1] - CROSSFADE / 2;
+    for (const o of at(mid).filter((x) => x > 0)) expect(o).toBeCloseTo(0.5, 5);
+  });
+
+  it("opens on a fully drawn first scene and holds the last one to the final frame (loops cut back to the hook)", async () => {
+    const { at } = await drawn();
+    expect(at(0)[0]).toBe(1);
+    expect(at(total - 1).at(-1)).toBe(1);
+  });
+});
+
+describe("the opening frame carries the hook", () => {
+  it("runs the first scene's clock ahead, and only the first scene's", async () => {
+    const { sceneClock, OPENING_HEAD_START } = await import("./animation.js");
+    expect(sceneClock(0, 0)).toBe(OPENING_HEAD_START);
+    expect(sceneClock(1, 0)).toBe(0);
+    expect(sceneClock(3, 42)).toBe(42);
+  });
+
+  it("shows the hook's first word fully at frame 0 and lands a 12-word hook within ~1.2 s", async () => {
+    const { sceneClock, wordsVisible, entrance } = await import("./animation.js");
+    // HookScene: words revealed 3 frames apart after a 4-frame delay, each entering over 14 frames.
+    const word = (i: number, f: number) => (i < wordsVisible(sceneClock(0, f), 12, 3, 4) ? entrance(sceneClock(0, f), { delay: 4 + i * 3, duration: 14 }).opacity : 0);
+    expect(word(0, 0)).toBeGreaterThan(0.9);
+    expect(word(1, 0)).toBeGreaterThan(0.5);
+    for (let i = 0; i < 12; i++) expect(word(i, 36), `word ${i}`).toBe(1);
   });
 });
