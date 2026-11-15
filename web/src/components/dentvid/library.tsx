@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CalendarClock, Check, CheckCheck, ChevronRight, Circle, CircleCheck, Flame, Loader2, Play, RotateCcw, Send, Sparkles } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, CheckCheck, ChevronRight, Circle, CircleCheck, Flame, Loader2, Play, RotateCcw, Send } from "lucide-react";
 import { BackgroundPicker } from "./background-picker";
 import { DeclineForm, postText, ReviewPlayer, usePosted, type Decide } from "./review-player";
 import type { Locale } from "@/content/dentvideo";
@@ -89,7 +89,13 @@ export function Library({
   currentWeek,
   weekDelay = null,
   country = null,
+  clinicName,
+  heroLevel = 1,
 }: {
+  /** Shown above "This week" (the hero is the top of the page). */
+  clinicName?: string;
+  /** The hero's title is the page's h1, unless the first-week card above it holds the h1. */
+  heroLevel?: 1 | 2;
   /** The clinic's country (profile.country): suggested posting times follow it, not the UI language. */
   country?: string | null;
   items: LibraryItem[];
@@ -199,6 +205,8 @@ export function Library({
           slots={slots}
           synced={posted.synced}
           currentWeek={currentWeek}
+          clinicName={clinicName}
+          level={heroLevel}
           onReview={() => openReview(currentWeek)}
           onPost={(id) => openReview(currentWeek, id)}
         />
@@ -208,41 +216,58 @@ export function Library({
         <p className="mt-8 rounded-2xl border border-dashed border-dv-edge p-8 text-center text-dv-body">{text.home.emptyTitle}</p>
       )}
 
-      {groups.map((g) => {
+      {groups.map((g, n) => {
         const ago = weeksAgo(g.week, currentWeek);
         const label = ago === 0 ? text.home.thisWeek : ago === 1 ? text.home.lastWeek : fmt(text.home.weekOf, { date: weekLabelDate(g.week, locale) });
+        const cards = (
+          <ul className="mt-4 grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {g.items.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                t={t}
+                posted={!!posted.marks[item.id]}
+                // Once the week is all approved, the checklist above carries the times: the cards stay quiet.
+                slot={action === "share" ? undefined : slots.get(item.id)}
+                locale={locale}
+                decide={decide}
+                onChanged={() => router.refresh()}
+                onOpen={() => openReview(g.week, item.id)}
+              />
+            ))}
+          </ul>
+        );
+        // The newest week is open; older weeks fold into one line each, so a phone is not a long scroll of last month.
+        if (n === 0)
+          return (
+            <section key={g.week} aria-labelledby={`week-${g.week}`} className="mt-10">
+              <h2 id={`week-${g.week}`} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-lg font-semibold text-dv-ink">{ago === 0 ? t.review.title : label}</span>
+                {ago === 1 && <span className="text-sm text-dv-muted">{weekLabelDate(g.week, locale)}</span>}
+              </h2>
+              {cards}
+            </section>
+          );
         return (
-          <section key={g.week} aria-labelledby={`week-${g.week}`} className="mt-10 first:mt-8">
-            <h2 id={`week-${g.week}`} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-dv-line pb-3">
-              <span className="text-lg font-semibold text-dv-ink">{label}</span>
+          <details key={g.week} className={`group/week border-t border-dv-line ${n === 1 ? "mt-10" : ""}`}>
+            <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden">
+              <ChevronRight className="h-4 w-4 shrink-0 text-dv-muted transition-transform group-open/week:rotate-90 rtl:-scale-x-100 rtl:group-open/week:-rotate-90" aria-hidden="true" />
+              <span className="text-base font-semibold text-dv-ink">{label}</span>
               {ago <= 1 && <span className="text-sm text-dv-muted">{weekLabelDate(g.week, locale)}</span>}
-            </h2>
-            <ul className="mt-5 grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {g.items.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  t={t}
-                  posted={!!posted.marks[item.id]}
-                  slot={slots.get(item.id)}
-                  locale={locale}
-                  decide={decide}
-                  onChanged={() => router.refresh()}
-                  onOpen={() => openReview(g.week, item.id)}
-                />
-              ))}
-            </ul>
-          </section>
+              <span className="ms-auto rounded-full bg-dv-sand px-2.5 py-0.5 text-xs font-semibold tabular-nums text-dv-body">{g.items.length}</span>
+            </summary>
+            <div className="pb-6">{cards}</div>
+          </details>
         );
       })}
 
       {notMade.length > 0 && (
-        <details className="group mt-10 rounded-2xl bg-white/60 ring-1 ring-dv-line">
-          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-dv-body hover:text-dv-ink">
+        <details className={`group/notmade border-y border-dv-line ${groups.length > 1 ? "-mt-px" : "mt-10"}`}>
+          <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 py-3 text-sm text-dv-muted hover:text-dv-ink [&::-webkit-details-marker]:hidden">
+            <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open/notmade:rotate-90 rtl:-scale-x-100 rtl:group-open/notmade:-rotate-90" aria-hidden="true" />
             {fmt(t.notMadeHeading, { n: notMade.length })}
-            <span aria-hidden="true" className="text-dv-muted transition-transform group-open:rotate-45">+</span>
           </summary>
-          <div className="px-4 pb-4">
+          <div className="pb-4">
             <p className="text-sm text-dv-muted">{t.notMadeLead}</p>
             <ul className="mt-3 space-y-3">
               {notMade.map((i) => (
@@ -287,11 +312,16 @@ export function NextStep({
   slots,
   synced = false,
   currentWeek,
+  clinicName,
+  level = 2,
   onReview,
   onPost,
 }: {
   locale: Locale;
   action: Exclude<ReturnType<typeof nextAction>, "locked">;
+  clinicName?: string;
+  /** 1 when the hero is the top of the page. */
+  level?: 1 | 2;
   thisWeek: LibraryItem[];
   delay?: "retrying" | "delayed" | null;
   marks?: PostedMarks;
@@ -346,57 +376,58 @@ export function NextStep({
     : action === "share" ? (progress.total > 0 && progress.posted === progress.total ? t.post.allPosted : h.shareTitle)
     : h.idleTitle;
   const lead =
-    // Japanese runs sentences together without a space.
-    action === "review" ? `${h.reviewLead}${s.look > 0 ? `${locale === "ja" ? "" : " "}${h.lookLead}` : ""}`
+    action === "review" ? h.reviewLead
     : action === "making" ? h.makingLead
     : action === "start" ? h.startLead
     : action === "share" ? h.shareLead
     : h.idleLead;
 
-  const chips = (
-    [
-      ["look", s.look, "bg-[#fdf1dc] text-[#7a4b00]"],
-      ["review", s.review, "bg-dv-teal-50 text-dv-teal"],
-      ["making", s.making + s.updating, "bg-dv-sand text-dv-body"],
-      ["approved", s.approved, "bg-dv-sand text-dv-body"],
-    ] as const
-  ).filter(([, n]) => n > 0);
+  // This week's videos as one quiet bar and line ("2 of 5 approved"), instead of a pill per state.
+  const total = s.look + s.review + s.making + s.updating + s.approved;
+  const Title = level === 1 ? "h1" : "h2";
 
   return (
-    <section aria-live="polite" className={`dv-card relative overflow-hidden p-5 sm:p-7 ${action === "review" ? "ring-1 ring-dv-teal/25" : ""}`}>
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="max-w-2xl">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-dv-teal">
-            {action === "making" ? (
+    <section className={`dv-card relative overflow-hidden p-5 sm:p-8 ${action === "review" ? "ring-1 ring-dv-teal/25" : ""}`}>
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0 max-w-2xl">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-dv-muted">
+            {action === "making" && (
               <span className="relative flex h-2 w-2" aria-hidden="true">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-dv-teal opacity-50 motion-reduce:animate-none" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-dv-teal" />
               </span>
-            ) : (
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             )}
-            {h.thisWeek}
+            {clinicName && (
+              <>
+                <span dir="auto" className="font-medium text-dv-ink">{clinicName}</span>
+                <span aria-hidden="true">·</span>
+              </>
+            )}
+            <span>{h.thisWeek}</span>
+            <span aria-hidden="true">·</span>
+            <span>{weekLabelDate(currentWeek, locale)}</span>
           </p>
-          <h2 className="dv-display mt-2 text-balance text-[1.75rem] leading-[1.1] text-dv-ink sm:text-[2.125rem]">{title}</h2>
-          <p className="mt-2 text-[0.9375rem] leading-relaxed text-dv-body">{delay ? (delay === "delayed" ? h.delayDelayed : h.delayRetrying) : lead}</p>
-          {chips.length > 0 && action !== "share" && (
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {chips.map(([k, n, cls]) => (
-                <li key={k} className={`rounded-full px-3 py-1 text-xs font-semibold ${cls}`}>
-                  {fmt(h.summary[k], { n })}
-                </li>
-              ))}
-            </ul>
+          <Title className="dv-display mt-2 text-balance text-[2rem] leading-[1.08] text-dv-ink sm:text-[2.5rem]">{title}</Title>
+          <p className="mt-2 max-w-xl text-[0.9375rem] leading-relaxed text-dv-body">{delay ? (delay === "delayed" ? h.delayDelayed : h.delayRetrying) : lead}</p>
+          {total > 1 && action !== "share" && (
+            <div className="mt-5 max-w-sm">
+              <div aria-hidden="true" className="flex gap-1">
+                {Array.from({ length: total }, (_, n) => (
+                  <span key={n} className={`h-1.5 flex-1 rounded-full ${n < s.approved ? "bg-dv-teal" : n < s.approved + s.look + s.review ? "bg-dv-teal/25" : "bg-dv-sand-200"}`} />
+                ))}
+              </div>
+              <p className="mt-2 text-xs font-medium tabular-nums text-dv-muted">{fmt(h.approvedOf, { n: s.approved, total })}</p>
+            </div>
           )}
         </div>
         {action === "review" && (
           <div className="flex w-full shrink-0 flex-col gap-2 lg:w-auto">
-            <button type="button" onClick={onReview} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
+            <button type="button" onClick={onReview} className="dv-btn dv-btn-primary w-full px-7 py-3.5 text-base lg:min-w-[15rem]">
               <Play className="h-4 w-4 fill-current" aria-hidden="true" />
               {t.review.start}
             </button>
             {toApprove.length > 1 && (
-              <button type="button" onClick={approveAll} disabled={working} className="dv-btn dv-btn-secondary w-full px-6 py-2.5 text-sm !text-dv-teal">
+              <button type="button" onClick={approveAll} disabled={working} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium text-dv-teal underline-offset-4 hover:underline disabled:opacity-60">
                 {working ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <CheckCheck className="h-4 w-4" aria-hidden="true" />}
                 {working ? t.approving : fmt(t.approveAll, { n: toApprove.length })}
               </button>
@@ -545,6 +576,7 @@ function ItemCard({
   }
 
   const playable = !!item.videoUrl && state !== "making" && state !== "failed";
+  const canRestyle = !!item.photos && playable && state !== "declined";
 
   return (
     <li className="dv-card flex flex-col overflow-hidden">
@@ -554,7 +586,7 @@ function ItemCard({
             type="button"
             onClick={onOpen}
             aria-label={fmt(t.play, { title: item.title })}
-            className="group relative aspect-[9/16] w-[6.5rem] shrink-0 overflow-hidden rounded-xl bg-dv-teal-950 sm:w-28"
+            className={`group relative aspect-[9/16] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-dv-teal-950 sm:w-24 ${state === "declined" ? "opacity-50 grayscale" : ""}`}
           >
             {item.thumbUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- a short-lived signed URL
@@ -563,13 +595,13 @@ function ItemCard({
               <video src={item.videoUrl} preload="metadata" muted playsInline className="h-full w-full object-cover" aria-hidden="true" tabIndex={-1} />
             )}
             <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/35 to-transparent">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-dv-teal shadow-lg transition group-hover:scale-105">
-                <Play className="ml-0.5 h-5 w-5 fill-current" aria-hidden="true" />
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-dv-teal shadow-lg transition group-hover:scale-105">
+                <Play className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true" />
               </span>
             </span>
           </button>
         ) : (
-          <div className="flex aspect-[9/16] w-[6.5rem] shrink-0 items-center justify-center rounded-xl bg-dv-sand ring-1 ring-inset ring-dv-line sm:w-28">
+          <div className="flex aspect-[9/16] w-[5.5rem] shrink-0 items-center justify-center rounded-xl bg-dv-sand ring-1 ring-inset ring-dv-line sm:w-24">
             {state === "failed" ? (
               <AlertTriangle className="h-6 w-6 text-[#8a1f1f]" aria-hidden="true" />
             ) : (
@@ -594,8 +626,9 @@ function ItemCard({
             )}
           </p>
           <h3 dir="auto" className="mt-2 text-start text-[0.9375rem] font-semibold leading-snug text-dv-ink [overflow-wrap:anywhere]">{item.title}</h3>
-          <p className="mt-1 text-xs text-dv-muted">{item.kind === "recording" ? t.fromRecording : t.madeForYou}</p>
-          {slot && (state === "review" || state === "look" || state === "approved") && !posted && (
+          {item.kind === "recording" && <p className="mt-1 text-xs text-dv-muted">{t.fromRecording}</p>}
+          {/* The posting time matters once it is approved, not before. */}
+          {slot && state === "approved" && !posted && (
             <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-dv-teal">
               <CalendarClock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               {fmt(postingText(locale).suggested, { slot })}
@@ -625,23 +658,23 @@ function ItemCard({
               <DeclineForm t={t.declineForm} busy={busy} onCancel={() => setDeclining(false)} onSubmit={(note) => choose("rejected", note)} />
             ) : (
               <div className="flex gap-2">
-                <button type="button" disabled={busy} onClick={() => choose("approved")} className="dv-btn dv-btn-primary flex-1 px-4 py-2.5 text-sm">
+                <button type="button" disabled={busy} onClick={() => choose("approved")} className="dv-btn dv-btn-secondary flex-1 px-4 py-2.5 text-sm !text-dv-teal">
                   <Check className="h-4 w-4" aria-hidden="true" />
                   {t.approve}
                 </button>
-                <button type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn dv-btn-secondary px-4 py-2.5 text-sm">
+                <button type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn px-4 py-2.5 text-sm font-medium text-dv-muted hover:bg-dv-sand hover:text-dv-ink">
                   {t.decline}
                 </button>
               </div>
             )
           ) : state === "declined" ? (
-            <button type="button" disabled={busy} onClick={() => choose("pending")} className="dv-btn dv-btn-secondary w-full px-4 py-2.5 text-sm">
+            <button type="button" disabled={busy} onClick={() => choose("pending")} className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-dv-muted hover:text-dv-ink disabled:opacity-60">
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
               {t.undo}
             </button>
           ) : (
             <div className="flex gap-2">
-              <button type="button" onClick={onOpen} className="dv-btn dv-btn-primary flex-1 px-4 py-2.5 text-sm">
+              <button type="button" onClick={onOpen} className="dv-btn dv-btn-secondary flex-1 px-4 py-2.5 text-sm !text-dv-teal">
                 <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
                 {t.review.openPost}
               </button>
@@ -658,29 +691,31 @@ function ItemCard({
         </div>
       )}
 
-      {(item.caption || (item.photos && playable)) && (
-        <div className="divide-y divide-dv-line border-t border-dv-line">
-          {item.caption && <CaptionDetails post={postText(item)} t={t} />}
-          {item.photos && playable && state !== "declined" && (
-            <div className="px-3 sm:px-4">
-              <BackgroundPicker itemId={item.id} photos={item.photos} t={t.photos} onChanged={onChanged} />
-            </div>
-          )}
-        </div>
+      {playable && (item.caption || canRestyle) && (
+        <details className="group/more border-t border-dv-line text-sm">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 text-dv-teal sm:px-4 [&::-webkit-details-marker]:hidden">
+            {item.caption && canRestyle ? `${t.captionAndHashtags} · ${t.photos.title}` : item.caption ? t.captionAndHashtags : t.photos.title}
+            <ChevronRight className="h-4 w-4 shrink-0 text-dv-muted transition-transform group-open/more:rotate-90 rtl:-scale-x-100 rtl:group-open/more:-rotate-90" aria-hidden="true" />
+          </summary>
+          <div className="divide-y divide-dv-line">
+            {item.caption && <CaptionText post={postText(item)} t={t} />}
+            {canRestyle && (
+              <div className="px-3 sm:px-4">
+                <BackgroundPicker itemId={item.id} photos={item.photos!} t={t.photos} onChanged={onChanged} />
+              </div>
+            )}
+          </div>
+        </details>
       )}
     </li>
   );
 }
 
-function CaptionDetails({ post, t }: { post: string; t: AppText["library"] }) {
+function CaptionText({ post, t }: { post: string; t: AppText["library"] }) {
   const [copied, setCopied] = useState(false);
   return (
-    <details className="group px-3 text-sm sm:px-4">
-      <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-dv-teal">
-        {t.captionAndHashtags}
-        <span aria-hidden="true" className="text-dv-muted transition-transform group-open:rotate-45">+</span>
-      </summary>
-      <p className="whitespace-pre-line text-dv-body">{post}</p>
+    <div className="px-3 pb-1 sm:px-4">
+      <p dir="auto" className="whitespace-pre-line text-start text-dv-body">{post}</p>
       <button
         type="button"
         onClick={async () => {
@@ -692,11 +727,11 @@ function CaptionDetails({ post, t }: { post: string; t: AppText["library"] }) {
             /* the text is on screen to copy by hand */
           }
         }}
-        className="mb-2 mt-1 inline-flex min-h-11 items-center gap-1.5 font-medium text-dv-teal underline-offset-4 hover:underline"
+        className="mb-1 mt-1 inline-flex min-h-11 items-center gap-1.5 font-medium text-dv-teal underline-offset-4 hover:underline"
       >
         {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : null}
-        {copied ? t.copied : t.copyCaption}
+        <span aria-live="polite">{copied ? t.copied : t.copyCaption}</span>
       </button>
-    </details>
+    </div>
   );
 }

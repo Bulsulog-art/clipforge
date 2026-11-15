@@ -28,7 +28,7 @@ export type DvMoney = { currency: DvCurrency; amount: number };
 export { CONTACT_EMAIL };
 export type { Rendered };
 
-/** "$79", "79 €", "2.490 TL" in the reader's language — the same format the plan screen uses (pricing.ts). */
+/** "$49", "49 €", "1.490 TL" in the reader's language — the same format the plan screen uses (pricing.ts). */
 export function money(lang: string, price: DvMoney): string {
   return formatDvPrice(lang, price.currency, price.amount);
 }

@@ -22,7 +22,7 @@ local push yet). The site and pipeline still accept clinics from all of them.
 | Criterion | Türkiye | Spain + Mexico | DACH | Gulf | Poland |
 | --- | --- | --- | --- | --- | --- |
 | Private clinics that can pay | 5 | 5 | 4 | 2 | 4 |
-| Willingness to pay $29–49 vs local alternatives | 4 | 3 (ES) / 4 (MX) | 5 | 5 | 2 |
+| Willingness to pay $49–79 vs local alternatives | 4 | 3 (ES) / 4 (MX) | 5 | 5 | 2 |
 | Pain the product solves (fear of rules + no time) | 5 | 3 | 5 | 4 | 3 |
 | Social-video habit of patients and clinics | 5 | 4 | 3 | 5 | 3 |
 | Our language/content advantage today | 5 | 4 | 4 | 3 | 2 |
@@ -51,7 +51,7 @@ DACH scores well on money and pain but worst on outreach; that is why it is #3 a
   ([DergiPark](https://dergipark.org.tr/tr/download/article-file/5121402)).
 - **Willingness to pay:** clinic social agencies charge 12–18k TL (12 posts) up to 40–65k TL/month (ZBT Media, in
   `POSITIONING.md`), ZBT's blog cites 20–60k TL packages ([ZBT Media](https://zbtmedia.com/hizmetler/klinik-sosyal-medya-ajansi)).
-  $29 is roughly 1,200–1,500 TL at 2026 rates ($49 for Practice: 2,000–2,500 TL): a fraction of the cheapest agency package. Owner-dentists of
+  Starter is 1.490 TL/month in Türkiye (Practice 2.490 TL): a fraction of the cheapest agency package. Owner-dentists of
   polyclinics are used to paying in USD/EUR for implants and software.
 - **Pain:** *Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik* (Resmî Gazete 12 Nov 2025)
   permits only informative content and bans advertising, prices, campaigns and before/after. Dentists want to keep
@@ -71,12 +71,12 @@ DACH scores well on money and pain but worst on outreach; that is why it is #3 a
   and says a third of traditional clinics will close as chains grow → independents need visibility.
   A Spanish study found ~24% of patients used social media at their last change of dentist, website first, Instagram
   second ([zm-online summary](https://www.zm-online.de/news/detail/ein-praxiswechsel-entscheidet-sich-online)).
-  Agencies €300–1,500/month (`POSITIONING.md`), so $29–49 is clearly cheaper but the gap is smaller than in DE.
+  Agencies €300–1,500/month (`POSITIONING.md`), so €49–79 is clearly cheaper but the gap is smaller than in DE.
 - **Mexico:** **76,188 dental offices ("Consultorios dentales") in DENUE 2026**, most with 0–10 staff; top states Estado de
   México 10,164, CDMX 7,467, Jalisco 4,794 ([Data México / INEGI DENUE](https://www.economia.gob.mx/datamexico/es/profile/industry/offices-of-dentists?redirect=true)).
   Social-media management from agencies runs ~5,000–22,000 MXN/month, sometimes 35,000+
   ([Cronoshare](https://www.cronoshare.com.mx/cuanto-cuesta/agencia-marketing-digital) **(directory estimate)**);
-  $29 ≈ 530 MXN ($49 ≈ 900 MXN). Clinics advertising health services need a COFEPRIS *aviso de publicidad*
+  $49 ≈ 900 MXN ($79 ≈ 1,450 MXN). Clinics advertising health services need a COFEPRIS *aviso de publicidad*
   ([COFEPRIS manual](https://www.gob.mx/cms/uploads/attachment/file/795383/Manual_Aviso_de_Publicidad.pdf)), so
   "checked, informative, you approve" resonates. Dental tourism (Tijuana, Cancún, CDMX) adds an English-video angle.
 - **Why together:** one language, our ES site and guides already exist, and Mexico's outreach rules let us test messages
@@ -91,7 +91,7 @@ DACH scores well on money and pain but worst on outreach; that is why it is #3 a
   and [ZWP e-paper](https://epaper.zwp-online.info/epaper/11424/export-article/28) **(secondary)**). Austria and
   Switzerland add more German-speaking practices with the same content (no current counts found).
 - **Willingness to pay:** German dental social agencies from €349/month with 3-month minimums, full service €500–2,500
-  (`POSITIONING.md`). $29–49 is an easy budget line; practices also routinely pay for software subscriptions.
+  (`POSITIONING.md`). $49–79 is an easy budget line; practices also routinely pay for software subscriptions.
 - **Pain:** § 11 HWG and the BGH (I ZR 170/24, 2025) / OLG Frankfurt before-and-after rulings; Abmahnungen are real
   money. A 2025 ZWP article on social media in dental practices is all about "Chancen, Grenzen" (limits)
   ([ZWP 07.08.2025](https://www.zwp-online.info/zwpnews/wirtschaft-und-recht/recht/social-media-in-der-zap-chancen-grenzen-und-praktische-tipps)).

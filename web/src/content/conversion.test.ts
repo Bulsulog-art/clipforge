@@ -105,7 +105,7 @@ describe("conversion copy, every language", () => {
   it.each(LOCALES)("%s: the starting price is Starter's monthly list price, filled in, never typed", (l) => {
     expect(LANDING[l].pricing.from.match(/\d+/g)).toBeNull();
     expect(LANDING[l].pricing.from).toContain("{price}");
-    expect(DV_PRICES_USD.starter.month).toBe(79);
+    expect(DV_PRICES_USD.starter.month).toBe(49);
   });
 
   it.each(LOCALES)("%s: trust facts match the legal pages", (l) => {

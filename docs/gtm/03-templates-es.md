@@ -46,7 +46,7 @@ UTM: `https://dentvideo.com/es?utm_source=[linkedin|instagram|email|partner]&utm
 > Puede ver en el navegador cómo quedaría un vídeo con su logo, antes de pagar nada (2 minutos):
 > https://dentvideo.com/es?utm_source=linkedin&utm_medium=dm&utm_campaign=es-founding
 >
-> Los planes empiezan en 29 $ al mes (Practice, con sus propias grabaciones: 49 $).
+> Los planes empiezan en 49 $ al mes (Practice, con sus propias grabaciones: 79 $).
 > Mensual, sin permanencia. No hay prueba gratuita, a propósito: en su lugar ve la vista previa con su
 > propia marca. Si quiere, se lo enseño en una videollamada de 15 minutos.
 
@@ -87,8 +87,7 @@ COFEPRIS, eso sigue siendo responsabilidad de la clínica."
 > Puede ver una vista previa con su propio logo en 2 minutos, sin pagar:
 > https://dentvideo.com/es?utm_source=email&utm_medium=email&utm_campaign=mx-founding
 >
-> Las primeras 100 clínicas tienen el plan Practice a 49 USD al mes durante 12 meses (normalmente 99 USD), mensual y sin
-> plazo forzoso.
+> Los planes empiezan en 49 USD al mes (Practice: 79 USD), mensual y sin plazo forzoso.
 >
 > Saludos cordiales,
 > [Nombre Apellido] · DentVideo (Bulsu Labs / BLS AI Automation DOO, Podgorica, Montenegro) · hello@dentvideo.com

@@ -58,11 +58,11 @@ describe("DentVideo landing content", () => {
   });
 
   it("pricing copy holds no figure at all: every price comes from pricing.ts, so it cannot drift from Dodo", () => {
-    expect(DV_PRICES_USD).toEqual({ starter: { month: 79 }, practice: { month: 149 }, group: {} });
+    expect(DV_PRICES_USD).toEqual({ starter: { month: 49 }, practice: { month: 79 }, group: {} });
     for (const l of LOCALES) {
       const p = LANDING[l].pricing;
       expect(JSON.stringify(p), l).not.toMatch(MONEY);
-      expect(JSON.stringify(p), l).not.toMatch(/\b(29|49|79|149|2[.,]?490|4[.,]?490)\b/);
+      expect(JSON.stringify(p), l).not.toMatch(/\b(29|49|79|149|1[.,]?490|2[.,]?490|4[.,]?490)\b/);
       // Starter, Practice, in that order (Group is "Priced per location": no number).
       expect(p.tiers, l).toHaveLength(DV_SELF_SERVE_TIERS.length);
       for (const t of p.tiers) expect(t.features, `${l} ${t.name}`).toHaveLength(5);

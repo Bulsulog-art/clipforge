@@ -47,13 +47,13 @@ describe("which clicks the server keeps", () => {
 });
 
 describe("Google Ads upload file", () => {
-  it("values: dv_signup 5 USD, dv_paid 250 USD (150 for a clinic in Türkiye)", () => {
-    expect(AD_CONVERSIONS).toEqual({ dv_signup: { value: 5, currency: "USD" }, dv_paid: { value: 250, currency: "USD" } });
-    expect(paidConversionValue("TR")).toBe(150);
-    expect(paidConversionValue(" tr ")).toBe(150);
-    expect(paidConversionValue("DE")).toBe(250);
-    expect(paidConversionValue("US")).toBe(250);
-    expect(paidConversionValue(null)).toBe(250);
+  it("values: dv_signup 5 USD, dv_paid 150 USD (100 for a clinic in Türkiye)", () => {
+    expect(AD_CONVERSIONS).toEqual({ dv_signup: { value: 5, currency: "USD" }, dv_paid: { value: 150, currency: "USD" } });
+    expect(paidConversionValue("TR")).toBe(100);
+    expect(paidConversionValue(" tr ")).toBe(100);
+    expect(paidConversionValue("DE")).toBe(150);
+    expect(paidConversionValue("US")).toBe(150);
+    expect(paidConversionValue(null)).toBe(150);
   });
 
   it("follows the click-conversion template: TimeZone line, header, UTC times", () => {
@@ -136,7 +136,7 @@ describe("recording conversions", () => {
     expect(await recordPaidConversion(db, { id: CLINIC, owner_id: OWNER }, NOW)).toBe("recorded");
     expect(calls[0].filters).toEqual([["owner_id", OWNER]]);
     expect(calls[1]).toMatchObject({ table: "dentvid_clinics", filters: [["id", CLINIC]] });
-    expect(calls[2].values).toMatchObject({ owner_id: OWNER, clinic_id: CLINIC, conversion_name: "dv_paid", value: 250, currency: "USD" });
+    expect(calls[2].values).toMatchObject({ owner_id: OWNER, clinic_id: CLINIC, conversion_name: "dv_paid", value: 150, currency: "USD" });
     expect(calls[2].options).toEqual({ onConflict: "owner_id,conversion_name", ignoreDuplicates: true });
   });
 
@@ -172,10 +172,10 @@ describe("recording conversions", () => {
     expect(await ownerIsInternal(db, null)).toBe(false);
   });
 
-  it("a first payment from a clinic in Türkiye is valued at 150 USD", async () => {
+  it("a first payment from a clinic in Türkiye is valued at 100 USD", async () => {
     const { db, calls } = fakeDb({ click_type: "gclid", click_id: click.id, consent: "granted", clicked_at: new Date(click.at).toISOString(), profile: { country: "TR" } });
     expect(await recordPaidConversion(db, { id: CLINIC, owner_id: OWNER }, NOW)).toBe("recorded");
-    expect(calls[2].values).toMatchObject({ conversion_name: "dv_paid", value: 150, currency: "USD" });
+    expect(calls[2].values).toMatchObject({ conversion_name: "dv_paid", value: 100, currency: "USD" });
   });
 
   it("no click, a stale click or a missing table: nothing recorded, nothing thrown", async () => {

@@ -217,7 +217,7 @@ Per run:
 
 **Risk seen:** 1 of 24 videos with the new writer was lost to a scene plan whose text ran over a length limit, even after the retry. The old configuration also lost one video (tr), to a reviewer rejection. The retry hint already names the limit. If this repeats in production, the next step is to have the planner shorten the text instead.
 
-**Cost:** text costs **$0.034 per ready video, up from $0.024** (+$0.010, +44%), with metered tokens and the judge excluded. That is about $0.05 more per clinic per 5-video week, which is negligible against the $39 Starter plan.
+**Cost:** text costs **$0.034 per ready video, up from $0.024** (+$0.010, +44%), with metered tokens and the judge excluded. That is about $0.05 more per clinic per 5-video week, which is negligible against the $49 Starter plan.
 - Prices per million tokens (input / output): gpt-4o-mini 0.15/0.60, gpt-4o 2.50/10, gpt-4.1-mini 0.40/1.60, gpt-4.1 2/8, gpt-5.4-mini 0.75/4.50, gpt-5.4 2.50/15.
 - The gpt-5.4 prices come from price aggregators, because platform.openai.com is outside this session's allowlist. Check them against the OpenAI invoice.
 - To roll back without a deploy: `DENTVID_AGENT_MODEL=gpt-4o-mini DENTVID_REVIEW_MODEL=gpt-4o`.

@@ -39,7 +39,7 @@ Linklerde UTM: `https://dentvideo.com/tr?utm_source=[instagram|linkedin|partner]
 > Harika. Buradan kliniğinizi tanımlayınca (ad, şehir, logo) videonun önizlemesi telefon çerçevesinde açılıyor:
 > https://dentvideo.com/tr?utm_source=linkedin&utm_medium=dm&utm_campaign=tr-founding
 >
-> Bilgi olarak: paketler aylık 29 $'dan başlıyor (kendi çektiğiniz kayıtların da işlendiği Practice paketi aylık 49 $).
+> Bilgi olarak: paketler aylık 1.490 TL'den başlıyor (kendi çektiğiniz kayıtların da işlendiği Practice paketi aylık 2.490 TL), vergiler hariç.
 > Aylık, taahhüt yok, istediğiniz zaman iptal. Ücretsiz deneme yok; onun yerine ödemeden önce kendi videonuzu
 > görüyorsunuz. Sorunuz olursa buradan yazın, 10 dakikalık bir görüntülü görüşme de yapabiliriz.
 
@@ -62,10 +62,10 @@ Linklerde UTM: `https://dentvideo.com/tr?utm_source=[instagram|linkedin|partner]
 
 > Teşekkürler! Şu sayfada kliniğinizi kısaca tanımlayınca kendi logonuz ve renklerinizle önizleme açılıyor (2 dk):
 > https://dentvideo.com/tr?utm_source=instagram&utm_medium=dm&utm_campaign=tr-founding
-> Her pazartesi 5 video geliyor; hekim onaylıyor, telefondan tek dokunuşla paylaşıyorsunuz. Paketler aylık 29 $'dan
+> Her pazartesi 5 video geliyor; hekim onaylıyor, telefondan tek dokunuşla paylaşıyorsunuz. Paketler aylık 1.490 TL'den
 > başlıyor. Takıldığınız yer olursa buradan yazın.
 
-**"Fiyat ne?" derse:** Starter aylık 29 $, Practice aylık 49 $; Practice'te hekimin kendi çektiği kayıtlardan
+**"Fiyat ne?" derse:** Starter aylık 1.490 TL, Practice aylık 2.490 TL (vergiler hariç); Practice'te hekimin kendi çektiği kayıtlardan
 altyazılı klipler de var. Aylık, taahhüt yok.
 
 **"Deneme var mı?" derse:** "Ücretsiz deneme yok, bilinçli bir tercih: onun yerine ödemeden önce kendi logonuz ve

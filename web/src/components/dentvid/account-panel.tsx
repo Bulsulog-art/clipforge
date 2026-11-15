@@ -371,44 +371,46 @@ export function AccountPanel({
 
   return (
     <>
+      {/* Rarely used, so one quiet card with two rows: export, then delete (still one tap away, never hidden). */}
       <section aria-labelledby="data-title" className="mt-14 border-t border-dv-line pt-10">
-        <h2 id="data-title" className="dv-display text-[2rem] leading-tight text-dv-ink">
+        <h2 id="data-title" className="text-xl font-semibold text-dv-ink">
           {t.dataTitle}
         </h2>
-        <div className="dv-card mt-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="max-w-xl">
-            <h3 className="font-semibold text-dv-ink">{t.exportTitle}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.exportLead}</p>
-            <ErrorLine msg={exportError} />
-            {exported && (
-              <p role="status" className="mt-2 text-sm text-dv-teal">
-                {t.exported}
-              </p>
-            )}
+        <div className="dv-card mt-4 divide-y divide-dv-line">
+          <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="max-w-xl">
+              <h3 className="font-semibold text-dv-ink">{t.exportTitle}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.exportLead}</p>
+              <ErrorLine msg={exportError} />
+              {exported && (
+                <p role="status" className="mt-2 text-sm text-dv-teal">
+                  {t.exported}
+                </p>
+              )}
+            </div>
+            <button type="button" onClick={exportData} disabled={exportBusy} aria-busy={exportBusy} className="dv-btn dv-btn-secondary shrink-0 self-start px-5 py-2.5 text-sm !text-dv-teal sm:self-center">
+              <Download className="h-4 w-4" aria-hidden="true" />
+              {exportBusy ? t.exporting : t.exportButton}
+            </button>
           </div>
-          <button type="button" onClick={exportData} disabled={exportBusy} aria-busy={exportBusy} className="dv-btn dv-btn-secondary shrink-0 px-5 py-2.5 text-sm !text-dv-teal">
-            <Download className="h-4 w-4" aria-hidden="true" />
-            {exportBusy ? t.exporting : t.exportButton}
-          </button>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-4 rounded-[1.25rem] border border-[#ecc9c9] bg-[#fdf6f6] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="max-w-xl">
-            <h3 className="font-semibold text-[#8a1f1f]">{t.deleteTitle}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.deleteLead}</p>
+          <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="max-w-xl">
+              <h3 className="font-semibold text-dv-ink">{t.deleteTitle}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.deleteLead}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setTyped("");
+                setDelError(null);
+                setDelOpen(true);
+              }}
+              className="dv-btn shrink-0 self-start border border-[#d9a3a3] bg-white px-5 py-2.5 text-sm font-semibold text-[#8a1f1f] hover:bg-[#fbeaea] sm:self-center"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+              {t.deleteButton}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setTyped("");
-              setDelError(null);
-              setDelOpen(true);
-            }}
-            className="dv-btn shrink-0 border border-[#d9a3a3] bg-white px-5 py-2.5 text-sm font-semibold text-[#8a1f1f] hover:bg-[#fbeaea]"
-          >
-            <Trash2 className="h-4 w-4" aria-hidden="true" />
-            {t.deleteButton}
-          </button>
         </div>
       </section>
 

@@ -25,7 +25,7 @@ month 2).
 
 ## Before Day 1 (one afternoon, both)
 
-- [ ] Confirm in Dodo that the checkout shows Starter $29/month and Practice $49/month with no discount applied, and
+- [ ] Confirm in Dodo that the checkout shows Starter $49/month and Practice $79/month (€49 / €79, 1.490 TL / 2.490 TL) with no discount applied, and
       that the old founding code `KURUCU100` is disabled.
 - [ ] Make the **DentVideo Instagram business account** credible: bio with the one-liner, link with UTM, 9+ sample
       Reels from the demo clinic in TR/DE/ES.
@@ -85,7 +85,7 @@ The dashboard already has these (`web/src/lib/dentvid/admin-metrics.ts`); filter
 
 | Dashboard item | What it tells you | Healthy in month 1 | Act when |
 | --- | --- | --- | --- |
-| MRR / revenue (`revenue`) | Money | ≥ 30 paying clinics (≈ $870–1,470 MRR at $29–49) by day 30 | Flat for 5 days → change channel mix |
+| MRR / revenue (`revenue`) | Money | ≥ 30 paying clinics (≈ $1,470–2,370 MRR at $49–79) by day 30 | Flat for 5 days → change channel mix |
 | Funnel: Landing views → Tried the preview | Is the landing convincing? | ≥ 15% of visits from outreach | < 8% → test hero + preview CTA |
 | Signed up → Clinic saved → Saw their preview | Onboarding friction | ≥ 70% each step | A step < 50% → watch 3 session replays, fix copy |
 | Saw their preview → Clicked a plan → Opened checkout → **Paid** | Does the preview sell? | Preview → Paid ≥ 25% | < 15% → offer a 10-min call to every previewer, then fix the preview |

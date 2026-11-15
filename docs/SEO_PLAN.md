@@ -460,6 +460,6 @@ New pages (22, category `treatments` or `ideas`, each ≥ 900 words, risky → s
 - robots.txt (`lib/dentvid/robots.ts`) names GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot,
   Claude-User, PerplexityBot, Perplexity-User, Google-Extended, Applebot-Extended, Bingbot, CCBot, Meta-ExternalAgent,
   Amazonbot, DuckAssistBot, MistralAI-User with an explicit Allow (each group repeats the private-path Disallows).
-- llms.txt / llms-full.txt open with "Quick answers" (price from billing: Starter $29, Practice $49, monthly, no yearly
+- llms.txt / llms-full.txt open with "Quick answers" (price from billing: Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 2.490 TL, monthly, no yearly
   plan, no founding price; live preview; free ad checker; no auto-posting; no avatars; operator) and list the treatment pages.
 - Next: ES and FR treatment pages (same topic keys), more samples per language, GSC review of the new queries at week 6.

@@ -26,7 +26,7 @@ export function tierName(locale: Locale, tier: DvTier): string {
 /**
  * A plan's monthly list price in the currency the clinic is charged in — its
  * country picks it, exactly as the checkout tells Dodo (billing.ts
- * buildDvCheckout) — e.g. "$79", "149 €", "2.490 TL".
+ * buildDvCheckout) — e.g. "$49", "79 €", "1.490 TL".
  */
 export function planPrice(locale: Locale, opt: Pick<PlanOption, "prices">, country: string | null | undefined): string {
   const { currency } = dvPriceContext(country);

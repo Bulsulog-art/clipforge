@@ -134,6 +134,75 @@ Liman is one self-hosted Supabase for ~8 apps; their users share `auth.users`.
 - **Logo uploads bounded** (high, fixed): logos now go through `POST /api/dentvideo/logo` (≤ 5 MB, magic bytes, real-size quota); `/upload-url` signs recordings only and holds at most 3 unused URLs per owner. Migration **0020** adds the 5 MB logo bound to the storage insert policy for the browser's direct-upload fallback (verify on staging first — see the file). `scripts/dentvideo-storage-cleanup.mts` now deletes oversized "logos" of unpaid accounts at once, whatever their age. *Open*: a separate logos bucket with a 5 MB `file_size_limit` would bound every upload path in storage itself.
 - **approval_note** is bounded (2000 chars) in the database by 0020.
 
+### Audit 2026-11-15 (round 2 — geo/IP, ad measurement, internal traffic, infra exposure)
+
+A second, deeper pass over everything added since round 1: `geo-ip.ts` and the
+`X-Forwarded-For` handling, the internal-traffic opt-in (`/api/dentvideo/internal`,
+`?dv_internal`), ad-click capture + consent + the `/admin/ads` CSV export, the logo
+route, week top-up / re-run, checkout currency/country, the email test-sink, sign-up /
+verify / reset limits, CSRF, SSRF, IDOR across clinics, admin authz, headers/CSP,
+cache poisoning, and Liman RLS exercised live from a normal user's position. No new
+code or DB change was warranted — the app-layer round-2 surface is sound. One
+business-logic note is recorded below; a suspected Studio exposure turned out to be a
+test artifact (details below).
+
+- **Liman Studio / platform API — checked, NOT exposed** (✔): a first probe from the
+  audit sandbox got 200 from `POST /api/platform/pg-meta/default/query`, but that sandbox's
+  egress proxy injects the dashboard's basic-auth credentials for liman.bulsulabs.com.
+  Re-tested from the VPS itself without any credentials (2026-11-15): `/`,
+  `/api/platform/pg-meta/default/query`, `/api/platform/profile`,
+  `/api/platform/projects/default` and `/project/default` all return **401**. Studio
+  stays behind basic auth; keep it that way (and keep the dashboard password strong).
+- **Data isolation re-verified live** (✔, no change): impersonating an authenticated
+  clinic owner (JWT `role=authenticated`, `sub=<owner>`), a read of another owner's
+  `dentvid_items` / `dentvid_clinics` returns **0 rows** and an UPDATE of another owner's
+  clinic touches **0 rows**. Grants, policies, the column-guard triggers
+  (`dentvid_items_guard_owner` resets every column except a 1–4 library-path
+  `plan.backgrounds` and, via `dentvid_items_guard_approval`, `approval`/`approval_note`
+  only while `status in (ready,flagged)`; `dentvid_clinics_guard_paths` pins `logo_path`
+  to `<uid>/logo…`), the storage insert policy (5 MB logo bound, `can_record` for
+  recordings, per-owner quota) and the `dentvid_is_member`/`dentvid_can_record` helpers
+  (authenticated + caller's own id only) are all **present on the live DB** — migrations
+  0013, 0019 and 0020 are applied. The ad tables (`dentvid_ad_clicks`,
+  `dentvid_ad_conversions`) have RLS on, no policies and no anon/authenticated grants:
+  service-role only. ✔
+- **Ad-click → `/admin/ads` CSV export — formula injection assessed, not exploitable**
+  (✔, no change): the export (`lib/dentvid/ad-conversions.ts conversionsCsv`) RFC-4180
+  escapes `",\r\n` but does not neutralise a leading `= + - @`. The only buyer-influenced
+  field is `click_id`, constrained to `^[A-Za-z0-9._-]{6,200}$` at **both** the app layer
+  (`CLICK_ID`, re-checked in `acceptableClick`) and the **database** (live CHECK
+  constraints on both ad tables), plus `currency ~ ^[A-Z]{3}$`; every other cell is a
+  constant (`dv_signup`/`dv_paid`, a UTC time, a number, `GRANTED`/empty). So `= + @ ( ) "
+  | !` can never reach a cell — only a leading `-`, which Excel/Sheets cannot turn into a
+  function call. A `'`/tab prefix was deliberately **not** added: this file is a
+  machine-read Google Ads offline-conversion upload where the gclid must be verbatim, so
+  neutralising it would silently drop real conversions. Export is admin-only
+  (`DENTVIDEO_ADMIN_USER_IDS`) behind same-origin + per-session CSRF.
+- **geo/IP, internal opt-in, checkout, logo, email sink, SSRF — reviewed, sound** (✔):
+  `clientIpForGeo` uses the **last** `X-Forwarded-For` hop (the one Traefik appends,
+  right in both the trust-forwarded and the default setups) and client `CF-IPCountry` /
+  `X-Vercel-IP-Country` / `X-Country-Code` are ignored unless `DENTVID_TRUST_EDGE_COUNTRY=1`;
+  the geo country is never taken from a request header the browser can set. `?dv_internal=1`
+  marks a browser internal **only** after `POST /api/dentvideo/internal` confirms a
+  signed-in internal/admin session, and the flag only removes an account from measurement
+  — it grants nothing. Checkout's body is `.strict()` (plan/interval only); the billing
+  country and currency come from the clinic's stored `profile.country`, never the request,
+  and the webhook derives the tier from the Dodo-signed product, never `metadata.plan`
+  (round-1 fix, still holds). The logo route caps the body at 5 MB while reading it,
+  checks magic bytes against the declared type, re-checks the quota on the real size and
+  picks the stored path. The email test-sink (`deliveryAddress`) only ever redirects
+  internal/test addresses to a fixed `delivered@resend.dev`; it cannot route another
+  person's mail. `fetchImageSafely` (demo logos, admin-only) is a model SSRF defence:
+  https-only, no credentials, port 443, full v4/v6 private/metadata blocklist, DNS pinned
+  to the checked address (rebinding-safe), hand-followed redirects re-checked, magic-byte
+  type check, no SVG.
+- **Price arbitrage via self-declared country** (suspected, by design — not changed):
+  billing currency follows `profile.country`, so a non-TR clinic that sets its country to
+  `TR` is charged the ~40 % cheaper TRY price. This is the intended self-serve model and
+  pricing is being edited by others right now, so it is left as a product decision; if it
+  matters, compare `profile.country` to the server geo-IP at checkout (accepting that
+  travellers / VPNs produce false positives) or rely on Dodo's card-country / fraud checks.
+
 ### Retention (owner decision — not automated)
 
 **Unpaid accounts (automated script, audit H4)**: `scripts/dentvideo-storage-cleanup.mts`
