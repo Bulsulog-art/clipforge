@@ -29,7 +29,7 @@ export type SampleWeek = readonly [SampleVideo, SampleVideo, SampleVideo];
 export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Demo Dental Studio (US)
   en: [
-    { slug: "whitening-myths-debunked", name: "Whitening thins your enamel? Not quite.", seconds: 27, hero: { start: 0.9, skip: [] } },
+    { slug: "whitening-myths-debunked", name: "Teeth whitening hurting your enamel? Hold on.", seconds: 21, hero: { start: 0.9, skip: [[6.1, 8.9]] } },
     { slug: "caring-for-clear-aligners", name: "That funky smell from your aligners? Avoid it this way.", seconds: 21 },
     { slug: "proper-brushing-technique", name: "Missing spots when you brush? Here's a clue.", seconds: 20 },
   ],
@@ -37,7 +37,7 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   de: [
     { slug: "bleaching-zahnschmelz", name: "Bleaching heißt nicht gleich schwacher Zahnschmelz.", seconds: 28, hero: { start: 0.9, skip: [[7.2, 10.8]] } },
     { slug: "aligner-verfaerbung", name: "Ihre Aligner verfärben sich?", seconds: 27 },
-    { slug: "kinder-zahnarztangst", name: "Kinder und Zahnarzt? Kein Grund zur Panik!", seconds: 25 },
+    { slug: "kinder-zahnarztangst", name: "Ihr Kind spürt Ihre Nervosität sofort.", seconds: 30 },
   ],
   // Clínica Dental Demo (ES), tú
   es: [

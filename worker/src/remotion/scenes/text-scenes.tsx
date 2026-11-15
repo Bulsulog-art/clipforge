@@ -98,11 +98,13 @@ export const QuoteScene: React.FC<Props<"quote">> = ({ scene, theme, frame }) =>
  * The close. Kept quiet on purpose: a call to action that shouts reads as an
  * advert and gets scrolled, and the ask is a single line either way.
  */
-export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: LogoStyle } }> = ({
+export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: LogoStyle }; clinic?: string; notice?: boolean }> = ({
   scene,
   theme,
   frame,
   logo,
+  clinic,
+  notice,
 }) => {
   const scale = useScale();
   const pulse = drift(frame, 70, 0.012);
@@ -112,7 +114,8 @@ export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: L
   const mark = entrance(frame, { delay: 8, duration: 22, distance: 34 });
   return (
     <Backdrop theme={theme}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 * scale }}>
+      {/* Lifted when a market's notice sits at the foot of the frame, so it never covers the handle (seen in a TR render). */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 * scale, marginBottom: notice ? 300 * scale : 0 }}>
         <DisplayText
           text={scene.text}
           theme={theme}
@@ -131,6 +134,26 @@ export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: L
             }}
           >
             <LogoMark src={logo.src} style={logo.style} theme={theme} size={CTA_LOGO} signOff />
+          </div>
+        ) : null}
+        {clinic ? (
+          // Who is talking: the clinic's name under its logo, so the last frame
+          // (the one a viewer pauses on) says whose video this is.
+          <div
+            style={{
+              fontFamily: theme.bodyFont,
+              fontSize: TYPE.handle * scale,
+              fontWeight: 600,
+              letterSpacing: "0.01em",
+              textAlign: "center",
+              maxWidth: "88%",
+              color: theme.foreground,
+              marginTop: logo ? 0 : 18 * scale,
+              opacity: mark.opacity,
+              transform: `translateY(${mark.translateY * scale}px)`,
+            }}
+          >
+            {clinic}
           </div>
         ) : null}
         {scene.handle ? (

@@ -209,7 +209,7 @@ describe("planText", () => {
 });
 
 describe("the orchestrator", () => {
-  const clean = plan(["Whitening ruins enamel?", "Supervised whitening is considered safe for enamel.", "Sensitivity can happen and usually fades."]);
+  const clean = plan(["Whitening ruins enamel?", "Supervised whitening is usually considered safe for enamel.", "Sensitivity can happen and usually fades."]);
 
   it("ships a video only after script and caption both pass review", async () => {
     const { client } = fakeClient({ plans: [clean], reviews: ["pass", "pass"] });
@@ -366,7 +366,7 @@ describe("the orchestrator", () => {
     const { client, calls } = fakeClient({ plans: [clean], reviews: ["pass", "pass"] });
     await produceVideo({ client }, PROFILE, TOPIC);
     const copyPrompt = calls.find((c) => c.system.startsWith("You write the Instagram"))!.user;
-    expect(copyPrompt).toContain("Supervised whitening is considered safe for enamel.");
+    expect(copyPrompt).toContain("Supervised whitening is usually considered safe for enamel.");
     const reviews = calls.filter((c) => c.system.startsWith("You are a careful general dentist"));
     // script → caption (against the script) → shoot card
     expect(reviews).toHaveLength(3);

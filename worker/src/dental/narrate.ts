@@ -99,7 +99,7 @@ How it must sound:
 - Open by saying the hook in your own spoken words, in the first sentence (it must land in the first two seconds) — as a question or a moment the viewer recognises, not as a headline. Never open with a stock filler phrase.
 - Short and medium sentences mixed, none longer than about ${profile.language === "tr" || profile.language === "de" ? 12 : 15} words — a voice reads this, and long sentences lose the listener. Connect points with spoken links, never "firstly/secondly" and never read a list as a list.
 - Each sentence adds something new. Do not repeat a word or idea you already said, and do not restate the takeaway at the end.
-- No tag questions bolted onto statements ("…, right?", "…, değil mi?", "…, oder?") and never a bare "No." — say "not quite" / "usually not" and why.
+- No tag questions bolted onto statements ("…, right?", "…, değil mi?", "…, oder?") and never a bare "No." — say "not quite" / "usually not" in your language and why.
 - Never say the clinic's name; say "we" / "us" if you need to.${variantRule(profile) ? `\n- ${variantRule(profile)}` : ""}
 - Do not read the screen out: say each point differently from how it is written on screen.
 - End with the closing line's idea in your own words — a light, friendly nudge, no pressure, no urgency, no exclamation mark.${profile.country.toUpperCase() === "TR" ? " In Türkiye, only point to asking their own dentist at a check-up; never tell viewers to contact or book with this clinic." : ""}

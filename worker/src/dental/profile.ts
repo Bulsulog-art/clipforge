@@ -78,6 +78,14 @@ export const clinicProfileSchema = z.object({
     .transform((c) => c.replace(/^#/, "").toUpperCase())
     .optional()
     .catch(undefined),
+  /**
+   * The clinic's own closing invitation for its posts ("Fragen? Rufen Sie uns
+   * unter … an."). Used by the post kit only when it passes the same rules as
+   * ours (dentvid/post-kit.ts closingLineProblems); otherwise ignored. Worker
+   * side only for now: the web form and the Liman profile guard (0007) do not
+   * offer it yet.
+   */
+  closingLine: text(4, 140).optional().catch(undefined),
   /** Where a viewer books. Goes in the caption, never on screen, never fetched. */
   bookingUrl: z.string().trim().regex(BOOKING_URL).optional().catch(undefined),
 });

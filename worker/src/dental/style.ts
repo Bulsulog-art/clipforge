@@ -286,6 +286,22 @@ const FUNCTION_WORDS = new Set(
   ).split(" "),
 );
 
+// Content words only (longer than 3 letters), so "die", "mit", "ve" do not make two lines look alike.
+const contentWords = (s: string) => new Set([...tok(s)].filter((t) => t.length > 3 && !FUNCTION_WORDS.has(t)));
+function contained(a: string, b: string): number {
+  const A = contentWords(a);
+  const B = contentWords(b);
+  if (Math.min(A.size, B.size) < 2) return 0;
+  let n = 0;
+  for (const t of A) if (B.has(t)) n++;
+  return n / Math.min(A.size, B.size);
+}
+
+/** Two on-screen lines that say the same thing (the measure repeatedScreen uses). */
+export function linesEcho(a: string, b: string): boolean {
+  return overlap(a, b) >= 0.5 || contained(a, b) >= 0.75;
+}
+
 export function repeatedScreen(lines: string[], skip: (string | undefined)[] = []): string[] {
   const out: string[] = [];
   const recap = lines.find((l) => RECAP.test(l) && l.split(/\s+/).length <= 4);
@@ -295,19 +311,9 @@ export function repeatedScreen(lines: string[], skip: (string | undefined)[] = [
   // most of the shorter line's words ("Nur Wasser mit Alignern" ⊂ "Mit
   // Alignern am besten nur Wasser trinken"), so either measure counts.
   const long = lines.filter((l) => tok(l).size >= 3 && !skip.includes(l));
-  // Content words only (longer than 3 letters), so "die", "mit", "ve" do not make two lines look alike.
-  const content = (s: string) => new Set([...tok(s)].filter((t) => t.length > 3 && !FUNCTION_WORDS.has(t)));
-  const contained = (a: string, b: string) => {
-    const A = content(a);
-    const B = content(b);
-    if (Math.min(A.size, B.size) < 2) return 0;
-    let n = 0;
-    for (const t of A) if (B.has(t)) n++;
-    return n / Math.min(A.size, B.size);
-  };
   for (let i = 0; i < long.length; i++)
     for (let j = i + 1; j < long.length; j++)
-      if (overlap(long[i], long[j]) >= 0.5 || contained(long[i], long[j]) >= 0.75) {
+      if (linesEcho(long[i], long[j])) {
         out.push(`"${long[j].slice(0, 60)}" repeats "${long[i].slice(0, 60)}"`);
         return out;
       }

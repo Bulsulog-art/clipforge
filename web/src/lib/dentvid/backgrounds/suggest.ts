@@ -228,3 +228,41 @@ export function defaultBackgrounds(suggested: string[], totalSeconds = 30): stri
   const n = totalSeconds >= 45 ? 4 : 3;
   return suggested.slice(0, n);
 }
+
+/**
+ * Photos in which a viewer recognises dentistry at a glance: a toothbrush,
+ * toothpaste, an aligner case, a dental mirror and probe, an instrument tray,
+ * an implant screw, a whitening tray, a treatment chair. Picked by eye from
+ * the library (Nov 2026). The rest of the library is mood (stones, plants,
+ * light on a wall) or food, and a dentist reviewing the samples read those as
+ * filler: "an apple, a bread loaf and a stone arch in the implant video; a
+ * sink and towels in the tartar video; an ice-cream bowl for whitening".
+ * Mood photos stay in the suggestions for a clinic to pick by hand; a new
+ * video only starts with these.
+ */
+export const DENTAL_PHOTOS: ReadonlySet<string> = new Set([
+  "aligners-02", "aligners-03", "cleaning-02", "clinic-01", "clinic-07", "clinic-13",
+  "hygiene-01", "hygiene-04", "hygiene-05", "hygiene-08", "hygiene-13", "hygiene-17",
+  "implants-03", "implants-04", "kids-01", "kids-02", "kids-18", "whitening-01",
+]);
+
+/** When nothing dental matches the topic: a treatment chair, a mirror and probe, a toothbrush — in that order. */
+const DENTAL_FALLBACK = ["clinic-13", "cleaning-02", "hygiene-13", "clinic-07", "hygiene-05", "clinic-01"];
+
+/**
+ * The photos a new video starts with: only recognisably dental ones (see
+ * DENTAL_PHOTOS), the topic's own first, topped up with general dental
+ * photos so a video is never only text on a gradient. Deterministic.
+ */
+export function startingBackgrounds(input: SuggestInput, totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+  const n = totalSeconds >= 45 ? 4 : 3;
+  const known = new Set(library.map((i) => i.id));
+  const relevant = matchingBackgrounds(input, library);
+  const onTopic = suggestBackgrounds(input, SUGGEST_MAX, library).filter((id) => relevant.has(id) && DENTAL_PHOTOS.has(id));
+  const out: string[] = [];
+  for (const id of [...onTopic, ...DENTAL_FALLBACK]) {
+    if (out.length >= n) break;
+    if (known.has(id) && !out.includes(id)) out.push(id);
+  }
+  return out;
+}
