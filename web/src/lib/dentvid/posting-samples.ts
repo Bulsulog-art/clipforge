@@ -14,7 +14,7 @@ const S: Record<Locale, Sample> = {
     clinic: "Riverside Dental",
     city: "Bristol",
     title: "Whitening myths, busted",
-    caption: "Whitening toothpaste polishes surface stains — it can't change the natural colour of your teeth.\n\nIf your teeth feel sensitive after whitening, that usually settles within a few days.",
+    caption: "Whitening toothpaste polishes surface stains — it can't change the natural color of your teeth.\n\nIf your teeth feel sensitive after whitening, that usually settles within a few days.",
     cta: "Questions about this? You're welcome to send us a message.",
     tags: ["riverside.dental", "bristol", "dentistbristol", "teethwhitening", "whiteningmyths", "dentist", "oralhealth"],
     video: "en/whitening-myths-debunked",

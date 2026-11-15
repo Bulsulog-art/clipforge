@@ -222,6 +222,35 @@ describe("the orchestrator", () => {
     }
   });
 
+  it("Türkiye: a procedure video carries the RG 33075 md. 7/1-k warning on screen and under the caption", async () => {
+    const { TR_MANDATORY_NOTICE } = await import("./mandatory-notice.js");
+    // The planner tries to set its own disclaimer: code decides, not the model.
+    const { client } = fakeClient({ plans: [{ ...clean, disclaimer: "made up" }], reviews: ["pass", "pass"] });
+    const pkg = await produceVideo({ client }, PROFILE, TOPIC);
+    expect(pkg.status).toBe("ready");
+    if (pkg.status !== "ready") return;
+    expect(pkg.plan.disclaimer).toBe(TR_MANDATORY_NOTICE);
+    expect(pkg.copy.caption.endsWith(`\n\n${TR_MANDATORY_NOTICE}`)).toBe(true);
+    expect(pkg.copy.caption.split(TR_MANDATORY_NOTICE)).toHaveLength(2);
+  });
+
+  it("Türkiye: a hygiene video carries the warning in the caption only; other markets carry none", async () => {
+    const { TR_MANDATORY_NOTICE } = await import("./mandatory-notice.js");
+    const hygiene: Topic = { ...TOPIC, title: "How long should you brush?", question: "Is two minutes of brushing enough?", service: "check-ups" };
+    const tr = await produceVideo({ client: fakeClient({ plans: [clean], reviews: ["pass", "pass"] }).client }, PROFILE, hygiene);
+    expect(tr.status).toBe("ready");
+    if (tr.status === "ready") {
+      expect(tr.plan.disclaimer).toBeUndefined();
+      expect(tr.copy.caption).toContain(TR_MANDATORY_NOTICE);
+    }
+    const gb = await produceVideo({ client: fakeClient({ plans: [{ ...clean, disclaimer: "made up" }], reviews: ["pass", "pass"] }).client }, { ...PROFILE, country: "GB" }, TOPIC);
+    expect(gb.status).toBe("ready");
+    if (gb.status === "ready") {
+      expect(gb.plan.disclaimer).toBeUndefined();
+      expect(gb.copy.caption).not.toContain(TR_MANDATORY_NOTICE);
+    }
+  });
+
   it("rewrites once with the reviewer's fixes, then ships", async () => {
     const { client, calls } = fakeClient({ plans: [clean, clean], reviews: ["revise", "pass", "pass"] });
     const pkg = await produceVideo({ client }, PROFILE, TOPIC);

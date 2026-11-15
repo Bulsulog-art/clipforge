@@ -1,4 +1,5 @@
-import { scanHardRules } from "../dental/compliance.js";
+import { scanHardRules, scanMarketRules } from "../dental/compliance.js";
+import { captionNotice, withoutNotice } from "../dental/mandatory-notice.js";
 import { ctaProblems, BLOCKING_CTA } from "../dental/style.js";
 import type { ClinicProfile } from "../dental/profile.js";
 import type { ItemRow } from "./rows.js";
@@ -12,10 +13,12 @@ import type { ItemRow } from "./rows.js";
  * except the fixed lines below, which are themselves checked here against
  * the same hard rules and CTA rules (tested in every language).
  *
- *   instagram  the caption + a soft, non-promotional invitation to ask +
- *              "📍 Clinic · City" + 5–10 hashtags, local ones first
+ *   instagram  the caption + the market's required warning, if any
+ *              (Türkiye: RG 33075 md. 7/1-k, mandatory-notice.ts) + a soft,
+ *              non-promotional invitation to ask + "📍 Clinic · City" +
+ *              5–10 hashtags, local ones first
  *   short      one line for TikTok / YouTube Shorts: the caption's first
- *              sentence, the same invitation, 3 hashtags
+ *              sentence, the same invitation, the required warning, 3 hashtags
  *
  * Stored inside dentvid_items.copy as `post` (jsonb, no migration); the web
  * app shows it and falls back to caption + hashtags for older videos.
@@ -159,22 +162,28 @@ export function buildPostKit(
 ): PostKit {
   const cta = softCta(profile);
   const hashtags = postHashtags(copy.hashtags, profile);
-  const body = trimClosing(copy.caption, profile.language);
+  // A required warning is a fixed line of the kit, never cut with the body.
+  const notice = captionNotice(profile.country);
+  const body = trimClosing(notice ? withoutNotice(copy.caption, notice) : copy.caption, profile.language);
   const place = [profile.name, profile.city].map((s) => s?.replace(/\s+/g, " ").trim()).filter(Boolean).join(" · ");
   const tags = (list: string[]) => list.map((h) => `#${h}`).join(" ");
   // Instagram allows 2,200 characters; the body gives way, never the closing lines.
-  const tail = [cta, place ? `📍 ${place}` : "", tags(hashtags)].filter(Boolean).join("\n\n");
+  const tail = [notice ?? "", cta, place ? `📍 ${place}` : "", tags(hashtags)].filter(Boolean).join("\n\n");
   const room = 2200 - tail.length - 2;
   const instagram = `${body.length > room ? `${body.slice(0, room - 1).trimEnd()}…` : body}\n\n${tail}`;
   // Short: the opening sentence, the invitation and three tags (local first, then the topic).
   const shortTags = [...localTags(profile).filter((h) => hashtags.includes(h)), ...hashtags.slice(1)].filter((h, i, a) => a.indexOf(h) === i).slice(0, 3);
-  const short = `${firstSentence(body)} ${cta}\n${tags(shortTags)}`.trim();
+  const short = `${firstSentence(body)} ${cta}${notice ? `\n${notice}` : ""}\n${tags(shortTags)}`.trim();
   return { v: 1, instagram, short, hashtags, cta };
 }
 
 /** What the fixed parts of a kit would get wrong: hard-rule hits and blocking CTA findings (tests run this for every market). */
 export function postKitProblems(kit: PostKit, country: string | undefined): string[] {
-  const out = scanHardRules(`${kit.cta}\n${kit.hashtags.join(" ")}`).map((h) => `${h.rule}: "${h.match}"`);
+  const fixed = `${kit.cta}\n${kit.hashtags.join(" ")}`;
+  const out = [...scanHardRules(fixed), ...scanMarketRules(fixed, country)].map((h) => `${h.rule}: "${h.match}"`);
+  // The market's required warning must be in both texts, word for word.
+  const notice = captionNotice(country);
+  if (notice && !(kit.instagram.includes(notice) && kit.short.includes(notice))) out.push(`notice missing: "${notice}"`);
   for (const p of ctaProblems(kit.cta, country)) if (BLOCKING_CTA.has(p.code) || p.code === "generic" || p.code === "exclamation") out.push(`cta ${p.code}: ${p.detail}`);
   return out;
 }

@@ -62,7 +62,7 @@ export type AccountText = {
 export const ACCOUNT_TEXT: Record<Locale, AccountText> = {
   en: {
     billingTitle: "Billing and invoices",
-    billingLead: "Cancel your plan, update your card or download invoices in our payment provider's secure portal. Cancelling stops the next payment; your videos stay in your library.",
+    billingLead: "Cancel your plan, update your card or download invoices in our payment provider's secure portal. Canceling stops the next payment; your videos stay in your library.",
     billingButton: "Manage billing",
     opening: "Opening…",
     changeTitle: "Change plan",
@@ -86,7 +86,7 @@ export const ACCOUNT_TEXT: Record<Locale, AccountText> = {
     deleteButton: "Delete my account…",
     deleteDialogTitle: "Delete your DentVideo account?",
     deleteDialogBody: "Everything is removed straight away: clinic details, all videos and recordings, your logo and your login. We cannot restore any of it. If you'd like a copy, download your data first.",
-    deleteSubApi: "Your subscription is cancelled at the same time, so no further payments are taken.",
+    deleteSubApi: "Your subscription is canceled at the same time, so no further payments are taken.",
     deleteSubEmail: "Your plan is still active. Please cancel it first — write to us and we'll do it the same day — then come back here to delete your account.",
     deleteTypeLabel: "To confirm, type your clinic name: {name}",
     deleteConfirm: "Delete everything",

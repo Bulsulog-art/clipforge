@@ -3,43 +3,50 @@
   "input": "Whitening can make teeth a few shades lighter for many people; ask your dentist whether it suits you.",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "Diş taşı temizliği diş eti sağlığını korumaya yardımcı olabilir; hekiminize danışın.",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "Brush before and after meals and floss once a day.",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "Children's permanent teeth usually start coming in around age six.",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "Kalıcı dolgu bir sonraki randevuda yapılır.",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "Professionelle Zahnreinigung kann helfen, Zahnfleischentzündungen vorzubeugen.",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "Guaranteed painless whitening, 50% off this month only! The best dentist in town. Our patients say it's life-changing. See our before and after photos.",
@@ -156,7 +163,8 @@
     "end": 143,
     "match": "before and after"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Risk-free implants that last forever, 100% success. Cures gum disease. $99 special offer, limited time.",
@@ -269,7 +277,8 @@
     "end": 102,
     "match": "limited time"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Don't wait until it's too late — you could lose your teeth. Book now before the offer ends. 5-star reviews!",
@@ -313,7 +322,8 @@
     "end": 98,
     "match": "5-star"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Last chance: our whitening offer ends soon, only 3 spots left this week. Limited time only!",
@@ -357,7 +367,8 @@
     "end": 90,
     "match": "Limited time only"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Beyazlatmada son fırsat! Nur heute. Última oportunidad. Dernière chance. Ostatnia szansa. آخر فرصة. 期間限定。",
@@ -419,7 +430,8 @@
     "end": 104,
     "match": "期間限定"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Ağrısız implant tedavisi, %100 garantili sonuç! İstanbul'un en iyi diş kliniği. Kampanya: beyazlatmada indirim, 12 taksit. Öncesi sonrası fotoğraflarımıza bakın, hasta yorumları sayfamızda.",
@@ -554,7 +566,8 @@
     "end": 177,
     "match": "hasta yorumları"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Ömür boyu kalıcı gülüş, kesin sonuç. Geç olmadan hemen randevu alın! Diş eti hastalıklarını önler.",
@@ -628,7 +641,8 @@
     "end": 97,
     "match": "önler"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Ücretsiz muayene fırsatı, 1500 TL'den başlayan fiyatlarla.",
@@ -678,7 +692,8 @@
     "end": 33,
     "match": "0 TL"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Schmerzfreie Behandlung mit Erfolgsgarantie! Die beste Zahnarztpraxis in München. Vorher-Nachher-Bilder und Patientenstimmen. 20 % Rabatt mit Gutschein.",
@@ -801,7 +816,8 @@
     "end": 151,
     "match": "Gutschein"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Bleaching wirkt dauerhaft und verhindert Karies. Warten Sie nicht länger, bevor es zu spät ist.",
@@ -851,7 +867,8 @@
     "end": 94,
     "match": "bevor es zu spät ist"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Implantes sin dolor, resultados garantizados. La mejor clínica dental de Madrid. Antes y después de nuestros pacientes. Descuento del 30% y 2x1 en limpiezas.",
@@ -957,7 +974,8 @@
     "end": 143,
     "match": "2x1"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Ortodoncia para siempre, solución definitiva. No esperes más, podrías perder tus dientes.",
@@ -1007,7 +1025,8 @@
     "end": 88,
     "match": "podrías perder tus dientes"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Blanchiment sans douleur garanti, le meilleur cabinet de Lyon. Photos avant/après et témoignages. Offre spéciale, consultation gratuite.",
@@ -1130,7 +1149,8 @@
     "end": 135,
     "match": "gratuite"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Résultat à vie. N'attendez plus, avant qu'il ne soit trop tard.",
@@ -1168,7 +1188,8 @@
     "end": 62,
     "match": "avant qu'il ne soit trop tard"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Bezbolesne leczenie z gwarancją! Najlepszy gabinet w Warszawie. Efekty przed i po, opinie pacjentów. Promocja: rabat 20%, konsultacja za darmo.",
@@ -1303,7 +1324,8 @@
     "end": 142,
     "match": "za darmo"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "Licówki na zawsze. Nie czekaj dłużej — zanim będzie za późno.",
@@ -1341,7 +1363,8 @@
     "end": 60,
     "match": "zanim będzie za późno"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "علاج بدون ألم ونتائج مضمونة 100%! أفضل عيادة أسنان في دبي. صور قبل وبعد وآراء المرضى. خصم 30% وعرض خاص لفترة محدودة.",
@@ -1488,7 +1511,8 @@
     "end": 115,
     "match": "لفترة محدودة"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "ابتسامة مدى الحياة ونتائج فورية. لا تنتظروا أكثر، قبل فوات الأوان احجزوا الآن.",
@@ -1544,13 +1568,15 @@
     "end": 77,
     "match": "احجزوا الآن"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "تنظيف الأسنان قبل وبعد الأكل مفيد، ويمكن أن يساعد على الوقاية من التسوس.",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
  },
  {
   "input": "無痛治療で絶対安心！地域No.1の歯科医院。ビフォーアフター写真と患者様の声をご覧ください。初回無料カウンセリング、ホワイトニング半額キャンペーン。",
@@ -1680,7 +1706,8 @@
     "end": 73,
     "match": "キャンペーン"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "永久に白い歯を。手遅れになる前に今すぐ予約を。",
@@ -1718,12 +1745,178 @@
     "end": 21,
     "match": "今すぐ予約"
    }
-  ]
+  ],
+  "markets": {}
  },
  {
   "input": "永久歯は6歳頃から生えてきます。",
   "scan": [],
   "spans": [],
-  "checker": []
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Bu içerik sponsorlu bir paylaşımdır. Sorularınızı yorumlara yazın, çekilişe katılın!",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {
+   "TR": [
+    {
+     "rule": "sponsored",
+     "match": "sponsorlu",
+     "why": "Paid, sponsored or boosted promotion is not allowed for clinics and dentists in Türkiye (RG 33075 md. 5/1-i, 7/1-j)."
+    },
+    {
+     "rule": "engagement",
+     "match": "yorumlara yazın",
+     "why": "Visual posts must not invite likes, comments or reshares; under RG 33075 md. 7/1-ğ they are to be closed on the post."
+    },
+    {
+     "rule": "giveaway",
+     "match": "çekilişe",
+     "why": "Raffles, prize draws and gifts used to promote health services are not allowed (RG 33075 md. 5/1-l)."
+    }
+   ]
+  }
+ },
+ {
+  "input": "Her cerrahi veya girişimsel işlemde sonuçlar kişiden kişiye değişiklik gösterebilir. İşlem öncesinde hekiminizden detaylı görüş almanız önerilir.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Unser Team sind Spezialisten für Implantate. Hallo Kinder, heute lernt ihr Zähneputzen!",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {
+   "DE": [
+    {
+     "rule": "specialist",
+     "match": "Unser Team sind Spezialisten",
+     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+    },
+    {
+     "rule": "children",
+     "match": "Hallo Kinder",
+     "why": "Advertising for treatments aimed mainly at children under 14 is not allowed (§ 11 Abs. 1 S. 1 Nr. 12 HWG): speak to the parents."
+    }
+   ],
+   "AT": [
+    {
+     "rule": "specialist",
+     "match": "Unser Team sind Spezialisten",
+     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+    }
+   ],
+   "CH": [
+    {
+     "rule": "specialist",
+     "match": "Unser Team sind Spezialisten",
+     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+    }
+   ]
+  }
+ },
+ {
+  "input": "Nous sommes spécialistes des implants. Siamo specialisti in ortodonzia.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {
+   "DE": [
+    {
+     "rule": "specialist",
+     "match": "Nous sommes spécialistes",
+     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+    }
+   ],
+   "AT": [
+    {
+     "rule": "specialist",
+     "match": "Nous sommes spécialistes",
+     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+    }
+   ],
+   "CH": [
+    {
+     "rule": "specialist",
+     "match": "Nous sommes spécialistes",
+     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+    }
+   ]
+  }
+ },
+ {
+  "input": "Our implant specialists also offer Botox. A board-certified team.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {
+   "GB": [
+    {
+     "rule": "specialist",
+     "match": "Our implant specialists",
+     "why": "Only a dentist on a GDC specialist list may be described as a specialist (GDC guidance on advertising); the writer cannot verify that, so the clinic adds it if true."
+    },
+    {
+     "rule": "pom",
+     "match": "Botox",
+     "why": "Prescription-only medicines such as botulinum toxin may not be advertised to the public (CAP Code 12.12)."
+    }
+   ],
+   "US": [
+    {
+     "rule": "specialist",
+     "match": "Our implant specialists",
+     "why": "Announcing as a specialist or board-certified is limited to recognised specialties and qualified dentists (ADA Code 5.H, 5.F.2; state board rules); the writer cannot verify that, so the clinic adds it if true."
+    }
+   ]
+  }
+ },
+ {
+  "input": "Your dentist may refer you to a specialist if a root canal is complex.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Clínica autorizada por COFEPRIS, aviso de publicidad No. 123456.",
+  "scan": [
+   {
+    "rule": "superlative",
+    "match": "No. 1",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "superlative",
+    "start": 53,
+    "end": 58,
+    "match": "No. 1"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "superlative",
+    "start": 53,
+    "end": 58,
+    "match": "No. 1"
+   }
+  ],
+  "markets": {
+   "MX": [
+    {
+     "rule": "permit",
+     "match": "autorizada por COFEPRIS",
+     "why": "A COFEPRIS permit or aviso number may only be written by the clinic that holds it (Reglamento LGS en Materia de Publicidad art. 79)."
+    }
+   ]
+  }
  }
 ]

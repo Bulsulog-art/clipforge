@@ -27,6 +27,7 @@ const FILES = [
   "Video.tsx",
   "LogoMark.tsx",
   "Watermark.tsx",
+  "Disclaimer.tsx",
   "animation.ts",
   "logo-style.ts",
   "scene-plan.ts",

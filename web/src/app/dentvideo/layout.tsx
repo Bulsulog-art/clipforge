@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   title: { absolute: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
-    "DentVideo turns a dentist's five-minute phone recording into a week of captioned, compliant short videos — and writes, narrates and checks educational videos when there is no time to film.",
+    "DentVideo turns a dentist's five-minute phone recording into a week of captioned, rule-checked short videos — and writes, narrates and checks educational videos when there is no time to film.",
   applicationName: "DentVideo",
   // Optional search-console verification by meta tag (DNS TXT records are the preferred route; see docs/SEO_PLAN.md).
   ...(process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION || process.env.DENTVIDEO_BING_SITE_VERIFICATION

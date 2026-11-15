@@ -53,7 +53,7 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     allGuides: "All guides",
     cta: {
       title: "A week of patient-education videos, checked before you see them",
-      text: "DentVideo writes, narrates and captions five short videos a week in your language and colours, checks each one for clinical accuracy and advertising rules, and waits for your approval. See a live preview with your own logo and colours before you pay.",
+      text: "DentVideo writes, narrates and captions five short videos a week in your language and colors, checks each one for clinical accuracy and advertising rules, and waits for your approval. See a live preview with your own logo and colors before you pay.",
       button: "See your preview",
       more: "How DentVideo works",
     },

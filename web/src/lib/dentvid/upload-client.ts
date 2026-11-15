@@ -38,6 +38,22 @@ export async function requestUpload(kind: UploadKind, file: { name: string; size
   return { path: body.path, token: body.token, contentType: body.contentType ?? uploadType(kind, file) };
 }
 
+/**
+ * The clinic's logo, through the server (POST /api/dentvideo/logo): it checks
+ * the real size and bytes and stores the file under a path it picks. Returns
+ * that path, for POST /api/dentvideo/clinic.
+ */
+export async function uploadLogo(file: Blob & { name: string; type: string }, fallbackError: string): Promise<string> {
+  const res = await fetch("/api/dentvideo/logo", {
+    method: "POST",
+    headers: { "content-type": uploadType("logo", file) },
+    body: file,
+  });
+  const body = (await res.json().catch(() => ({}))) as { path?: string; error?: string; needsPlan?: boolean };
+  if (!res.ok || !body.path) throw new UploadRefused(body.error ?? fallbackError, res.status, !!body.needsPlan);
+  return body.path;
+}
+
 /** Storage's signed-upload endpoint for this path and token (PUT the file body). */
 export function signedUploadEndpoint(path: string, token: string, base = DV_SUPABASE_URL): string {
   const p = path.split("/").map(encodeURIComponent).join("/");

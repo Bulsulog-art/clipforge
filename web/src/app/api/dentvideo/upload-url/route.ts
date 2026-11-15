@@ -3,21 +3,27 @@ import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
 import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
-import { rateLimited } from "@/lib/rate-limit-server";
+import { rateLimited, uploadSlotStore } from "@/lib/rate-limit-server";
 import { BUCKET, dvAdmin } from "@/lib/dentvid/supabase";
 import { isDentvideoUser } from "@/lib/dentvid/membership";
 import { listOwnerFiles } from "@/lib/dentvid/account";
-import { logoPathFor, recordingPathFor } from "@/lib/dentvid/paths";
+import { recordingPathFor } from "@/lib/dentvid/paths";
 import { decideUpload, extFor } from "@/lib/dentvid/storage-quota";
+import { claimUploadSlot } from "@/lib/dentvid/upload-slots";
 
-// POST /api/dentvideo/upload-url { kind, name, size, contentType } — a
-// one-time signed upload URL for the clinic's own storage folder.
+// POST /api/dentvideo/upload-url { kind: "recording", name, size, contentType }
+// — a one-time signed upload URL for the clinic's own storage folder.
 //
-// The server picks the path (versioned logo name, timestamped recording) and
-// signs it only after checking: a DentVideo account (app_metadata), a plan
-// that includes recordings for a recording, the type and size, and the
-// owner's storage quota (lib/dentvid/storage-quota). Migration 0008 applies
-// the same rules to direct uploads in the storage insert policy.
+// The server picks the path (timestamped recording) and signs it only after
+// checking: a DentVideo account (app_metadata), a plan that includes
+// recordings, the type and size, the owner's storage quota
+// (lib/dentvid/storage-quota), and that the owner does not already hold too
+// many unused upload URLs (lib/dentvid/upload-slots — a signed URL cannot
+// bound the real size, so unused URLs were a way past the quota). Migration
+// 0008 applies the same rules to direct uploads in the storage insert policy.
+//
+// Logos no longer come this way: POST /api/dentvideo/logo reads and checks
+// the bytes itself (a signed "logo" URL accepted up to the bucket's 500 MB).
 
 const Body = z.object({
   kind: z.enum(["logo", "recording"]),
@@ -39,13 +45,17 @@ export async function POST(req: Request) {
   if (!isDentvideoUser(user)) return NextResponse.json({ error: err.invalidUpload, code: "not_dentvideo" }, { status: 403 });
   const body = parsed.data;
   const contentType = body.contentType.toLowerCase();
-  if (body.kind === "recording" && !clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
+  // Logos go through POST /api/dentvideo/logo, where the server sees (and bounds) the bytes.
+  if (body.kind === "logo") return NextResponse.json({ error: err.invalidLogo, code: "logo_route" }, { status: 400 });
+  if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
 
   const admin = dvAdmin();
   let usage;
+  let stored: Set<string>;
   try {
     const files = await listOwnerFiles(admin, user.id);
     usage = { files: files.length, bytes: files.reduce((n, f) => n + (f.size ?? 0), 0) };
+    stored = new Set(files.map((f) => f.path));
   } catch (e) {
     console.error("[dentvideo upload] usage lookup failed", (e as Error).message);
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });
@@ -58,15 +68,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: starter ? err.recordingsNeedPractice : err.planRequired, needsPlan: true }, { status: 402 });
     }
     if (decision.reason === "quota") return NextResponse.json({ error: err.invalidUpload, code: "quota" }, { status: 413 });
-    return NextResponse.json({ error: body.kind === "logo" ? err.invalidLogo : err.invalidUpload, code: decision.reason }, { status: 400 });
+    return NextResponse.json({ error: err.invalidUpload, code: decision.reason }, { status: 400 });
   }
 
-  const ext = extFor(body.kind, body.name, contentType);
-  const path = body.kind === "logo" ? logoPathFor(user.id, ext) : recordingPathFor(user.id, ext);
+  const path = recordingPathFor(user.id, extFor(body.kind, body.name, contentType));
+  // Only a few unused upload URLs at a time: each one could carry the bucket's 500 MB.
+  if (!(await holdsSlot(user.id, path, stored))) {
+    return NextResponse.json({ error: err.tooMany, code: "pending" }, { status: 429, headers: { "Retry-After": "600" } });
+  }
   const { data, error } = await admin.storage.from(BUCKET).createSignedUploadUrl(path);
   if (error || !data?.token) {
     console.error("[dentvideo upload] could not sign", error?.message);
     return NextResponse.json({ error: err.couldNotStart }, { status: 503 });
   }
   return NextResponse.json({ path, token: data.token, contentType }, { headers: { "cache-control": "no-store" } });
+}
+
+/** Take a pending-upload slot. True when Redis cannot tell (capacity limits fail open, like the rate limits). */
+async function holdsSlot(ownerId: string, path: string, stored: Set<string>): Promise<boolean> {
+  try {
+    const store = await uploadSlotStore();
+    if (!store) return true;
+    return await claimUploadSlot(store, { ownerId, kind: "recording", path, stored });
+  } catch (e) {
+    console.warn("[dentvideo upload] slot store unavailable", (e as Error).message);
+    return true;
+  }
 }

@@ -172,6 +172,12 @@ export const scenePlanSchema = z.object({
    * phrases, not spaces; Arabic is laid out right to left. Absent: as before.
    */
   language: z.string().min(2).max(16).optional(),
+  /**
+   * A warning a market requires on screen, word for word (Türkiye: RG 33075
+   * md. 7/1-k; dental/mandatory-notice.ts). Set by code, never by a model;
+   * drawn small near the end (Disclaimer.tsx). Absent: nothing drawn.
+   */
+  disclaimer: z.string().min(1).max(240).optional(),
 });
 
 export type ScenePlan = z.infer<typeof scenePlanSchema>;
