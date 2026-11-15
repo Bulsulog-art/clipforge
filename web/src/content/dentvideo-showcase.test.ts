@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { DV_TAX_LABEL, dvTierPrice } from "@/lib/dentvid/pricing";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
@@ -194,8 +195,10 @@ describe("landing layout contract", () => {
     const p = LANDING[l].pricing;
     const starter = pricing.slice(pricing.indexOf('data-tier="starter"'), pricing.indexOf('data-tier="practice"'));
     const practice = pricing.slice(pricing.indexOf('data-tier="practice"'), pricing.indexOf('data-tier="group"'));
-    expect(starter).toContain(p.tiers[0].price);
-    expect(practice).toContain(p.tiers[1].price);
+    // The server-rendered page shows the USD list price (the browser swaps in EUR / TL where Dodo charges them).
+    expect(starter).toContain(dvTierPrice(l, "starter", "USD"));
+    expect(practice).toContain(dvTierPrice(l, "practice", "USD"));
+    expect(starter).toContain(DV_TAX_LABEL[l].other);
     expect(practice).toContain(p.recommended);
     // No founding banner, no struck-through price, no yearly line.
     expect(pricing).not.toContain("data-founding-banner");

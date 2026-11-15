@@ -1,12 +1,19 @@
 import type { Faq, Locale } from "../dentvideo";
+import { DV_CURRENCIES, dvTierPrice } from "@/lib/dentvid/pricing";
+
+/** "$79 / €79 / 2.490 TL": a tier's list price in every billing currency, from pricing.ts (never typed here). */
+const PRICE = {
+  starter: DV_CURRENCIES.map((c) => dvTierPrice("en", "starter", c)).join(" / "),
+  practice: DV_CURRENCIES.map((c) => dvTierPrice("en", "practice", c)).join(" / "),
+};
 
 /**
  * The facts about DentVideo itself, stated the same way everywhere: the About
  * pages, llms.txt, llms-full.txt and the structured data. Answer engines quote
  * what is stated plainly and consistently, so this is the one place to change
  * them. Same rules as the landing copy: only what the product does today, no
- * statistics, no testimonials; prices only in the "Price" fact, checked against
- * lib/dentvid/billing by guides.test.ts.
+ * statistics, no testimonials; prices only in the "Price" fact, filled from
+ * lib/dentvid/pricing (checked by guides.test.ts).
  */
 export type EntityFacts = {
   meta: { title: string; description: string };
@@ -64,7 +71,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "How content is checked", value: "Software checks every script and caption twice: once against commonly restricted advertising claims (guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises, testimonials) and once by a reviewer acting as a general dentist against mainstream clinical guidance. What fails is rewritten or not made. The dentist's own words are never changed; a clip worth a second look is marked with the reason." },
       { label: "Who decides", value: "The dentist. Nothing is published until the clinic approves it, and DentVideo does not post to social networks itself: the clinic downloads approved videos and posts them." },
       { label: "Legal status of the checks", value: "A careful filter, not legal advice. The clinic remains responsible for what it publishes and should check its national rules." },
-      { label: "Price", value: "Paid plans from $29/month: Starter $29/month, Practice $49/month. Groups and multi-location practices: custom pricing — contact us at hello@dentvideo.com. Monthly, with no minimum term. Before paying, a clinic sees a live preview of its own branded videos with its logo and colors; its first week of videos is made right after payment." },
+      { label: "Price", value: `Paid plans, monthly, excluding tax: Starter ${PRICE.starter}, Practice ${PRICE.practice} (US dollars in most countries, euros in the euro area, Turkish lira in Türkiye: the billing country decides). Groups and multi-location practices: priced per location — contact us at hello@dentvideo.com. No discounts. Monthly, with no minimum term. Before paying, a clinic sees a live preview of its own branded videos with its logo and colors; its first week of videos is made right after payment.` },
       { label: "Publisher", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Website", value: "dentvideo.com — in English, German, Spanish, Turkish, French, Japanese, Arabic and Polish." },
     ],
@@ -108,7 +115,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Wie geprüft wird", value: "Software prüft jedes Skript und jeden Beitragstext zweimal: auf häufig verbotene Werbeaussagen (Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen) und durch einen Prüfer in der Rolle eines Allgemeinzahnarztes auf fachliche Richtigkeit. Was durchfällt, wird umgeschrieben oder nicht erstellt. Eigene Aufnahmen werden nie verändert; Auffälliges wird mit Begründung markiert." },
       { label: "Wer entscheidet", value: "Die Praxis. Nichts wird veröffentlicht, bevor sie es freigibt, und DentVideo postet nicht selbst: Freigegebene Videos werden heruntergeladen und von der Praxis gepostet." },
       { label: "Rechtlicher Stellenwert", value: "Ein sorgfältiger Filter, keine Rechtsberatung. Verantwortlich für Veröffentlichungen bleibt die Praxis." },
-      { label: "Preis", value: "Tarife ab 29 $ im Monat: Starter 29 $, Practice 49 $. Praxisgruppen und Praxen mit mehreren Standorten: individueller Preis auf Anfrage an hello@dentvideo.com. Monatlich, ohne Mindestlaufzeit. Vor der Zahlung sieht eine Praxis eine Live-Vorschau ihrer eigenen Videos mit Logo und Farben; die erste Woche Videos entsteht direkt nach der Zahlung." },
+      { label: "Preis", value: `Monatliche Tarife zzgl. Steuern: Starter ${PRICE.starter}, Practice ${PRICE.practice} (Euro im Euroraum, Türkische Lira in der Türkei, sonst US-Dollar: das Rechnungsland entscheidet). Praxisgruppen und Praxen mit mehreren Standorten: Preis pro Standort, auf Anfrage an hello@dentvideo.com. Keine Rabatte. Monatlich, ohne Mindestlaufzeit. Vor der Zahlung sieht eine Praxis eine Live-Vorschau ihrer eigenen Videos mit Logo und Farben; die erste Woche Videos entsteht direkt nach der Zahlung.` },
       { label: "Anbieter", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Website", value: "dentvideo.com — auf Deutsch, Englisch, Spanisch, Türkisch, Französisch, Japanisch, Arabisch und Polnisch." },
     ],
@@ -152,7 +159,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Cómo se revisa", value: "Un software revisa cada guion y cada texto dos veces: frente a las afirmaciones publicitarias que suelen estar restringidas (garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios) y mediante un revisor que actúa como dentista general frente a las guías clínicas habituales. Lo que no pasa se reescribe o no se hace. Las grabaciones propias nunca se modifican; lo que merece otra mirada se marca con el motivo." },
       { label: "Quién decide", value: "La clínica. Nada se publica sin su aprobación, y DentVideo no publica en redes por sí mismo: la clínica descarga los vídeos aprobados y los publica." },
       { label: "Valor jurídico", value: "Un filtro cuidadoso, no asesoramiento jurídico. La clínica sigue siendo responsable de lo que publica." },
-      { label: "Precio", value: "Planes desde 29 $ al mes: Starter 29 $, Practice 49 $. Grupos y clínicas con varias sedes: precio a medida; escríbenos a hello@dentvideo.com. Mensuales y sin permanencia. Antes de pagar, la clínica ve una vista previa en directo de sus propios vídeos con su logo y sus colores; su primera semana de vídeos se crea justo después del pago." },
+      { label: "Precio", value: `Planes mensuales, impuestos no incluidos: Starter ${PRICE.starter}, Practice ${PRICE.practice} (euros en la zona euro, liras turcas en Turquía y dólares estadounidenses en el resto: decide el país de facturación). Grupos y clínicas con varias sedes: precio por sede; escríbenos a hello@dentvideo.com. Sin descuentos. Mensuales y sin permanencia. Antes de pagar, la clínica ve una vista previa en directo de sus propios vídeos con su logo y sus colores; su primera semana de vídeos se crea justo después del pago.` },
       { label: "Empresa", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Web", value: "dentvideo.com — en español, inglés, alemán, turco, francés, japonés, árabe y polaco." },
     ],
@@ -196,7 +203,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Nasıl denetlenir", value: "Yazılım her senaryoyu ve metni iki kez denetler: sıkça kısıtlanan tanıtım ifadelerine karşı (garanti, “acısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaatleri, hasta yorumları) ve genel diş hekimi rolündeki bir denetçiyle yaygın klinik bilgiye karşı. Geçemeyen yeniden yazılır ya da üretilmez. Hekimin kendi sözleri asla değiştirilmez; dikkat gerektiren bir klip gerekçesiyle işaretlenir." },
       { label: "Kim karar verir", value: "Klinik. Onaylanmadan hiçbir şey yayınlanmaz ve DentVideo sosyal ağlarda kendisi paylaşım yapmaz: klinik onayladığı videoları indirir ve kendisi paylaşır." },
       { label: "Hukuki niteliği", value: "Özenli bir filtre; hukuki danışmanlık değildir. Yayınlanan içerikten klinik sorumludur." },
-      { label: "Ücret", value: "Aylık $29'dan başlayan planlar: Starter $29, Practice $49. Gruplar ve birden fazla şubesi olan klinikler: size özel fiyat; hello@dentvideo.com adresine yazın. Aylık, asgari süre yok. Klinik, ödeme yapmadan önce kendi videolarının logosu ve renkleriyle canlı önizlemesini görür; ilk haftanın videoları ödemenin hemen ardından hazırlanır." },
+      { label: "Ücret", value: `Aylık planlar, vergiler hariç: Starter ${PRICE.starter}, Practice ${PRICE.practice} (Türkiye'de Türk lirası, Euro Bölgesi'nde avro, diğer ülkelerde ABD doları: fatura ülkesi belirler). Gruplar ve birden fazla şubesi olan klinikler: şube başına fiyatlandırılır; hello@dentvideo.com adresine yazın. İndirim yoktur. Aylık, asgari süre yok. Klinik, ödeme yapmadan önce kendi videolarının logosu ve renkleriyle canlı önizlemesini görür; ilk haftanın videoları ödemenin hemen ardından hazırlanır.` },
       { label: "Geliştiren", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Web sitesi", value: "dentvideo.com — Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, Japonca, Arapça ve Lehçe." },
     ],
@@ -240,7 +247,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Comment c'est vérifié", value: "Un logiciel vérifie chaque script et chaque texte deux fois : face aux allégations publicitaires couramment encadrées (garanties, « sans douleur », « définitif », superlatifs, prix, réductions, promesses avant-après, témoignages) et par un relecteur agissant comme un omnipraticien face aux recommandations cliniques courantes. Ce qui échoue est réécrit ou n'est pas produit. Vos propres enregistrements ne sont jamais modifiés ; ce qui mérite un second regard est signalé avec la raison." },
       { label: "Qui décide", value: "Le cabinet. Rien n'est publié sans sa validation, et DentVideo ne publie pas lui-même sur les réseaux : le cabinet télécharge les vidéos validées et les publie." },
       { label: "Portée juridique", value: "Un filtre attentif, pas un conseil juridique. Le cabinet reste responsable de ce qu'il publie." },
-      { label: "Prix", value: "Formules à partir de 29 $ par mois : Starter 29 $, Practice 49 $. Groupes et cabinets à plusieurs sites : tarif sur mesure, sur demande à hello@dentvideo.com. Mensuelles, sans engagement. Avant de payer, le cabinet voit un aperçu en direct de ses propres vidéos, à son logo et à ses couleurs ; sa première semaine de vidéos est réalisée dès le paiement." },
+      { label: "Prix", value: `Formules mensuelles, hors taxes : Starter ${PRICE.starter}, Practice ${PRICE.practice} (en euros dans la zone euro, en livres turques en Turquie, en dollars américains ailleurs : le pays de facturation décide). Groupes et cabinets à plusieurs sites : tarif par site, sur demande à hello@dentvideo.com. Aucune remise. Mensuelles, sans engagement. Avant de payer, le cabinet voit un aperçu en direct de ses propres vidéos, à son logo et à ses couleurs ; sa première semaine de vidéos est réalisée dès le paiement.` },
       { label: "Éditeur", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Site", value: "dentvideo.com — en français, anglais, allemand, espagnol, turc, japonais, arabe et polonais." },
     ],
@@ -284,7 +291,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "チェックのしくみ", value: "すべての台本とキャプションを、ソフトウェアが2回チェックします。1回目は、一般に規制されやすい広告表現（効果の保証、「痛くない」「永久」、最上級の表現、料金、割引、ビフォーアフター、体験談）について。2回目は、一般歯科医の立場で確認するレビュアーが、標準的な臨床の知見に照らして確認します。基準を満たさないものは書き直すか、制作しません。院長先生ご自身の言葉は変更せず、確認が必要なクリップには理由を添えて印を付けます。" },
       { label: "判断するのは", value: "院長先生です。医院が承認するまで何も公開されず、DentVideoがSNSに投稿することもありません。承認した動画は医院がダウンロードして投稿します。" },
       { label: "チェックの位置づけ", value: "丁寧なフィルターであり、法的助言ではありません。公開する内容の責任は医院にあり、国内のルールのご確認をお願いしています。" },
-      { label: "料金", value: "有料プランは月額$29から：Starter 月額$29、Practice 月額$49。グループや複数拠点の医院は個別のお見積もりです（hello@dentvideo.com までお問い合わせください）。月単位の契約で、最低契約期間はありません。お支払いの前に、医院のロゴとカラーで仕上げた動画のライブプレビューを確認でき、初週の動画はお支払い後すぐに制作されます。" },
+      { label: "料金", value: `有料プラン（月額・税別）：Starter ${PRICE.starter}、Practice ${PRICE.practice}（ユーロ圏はユーロ、トルコはトルコリラ、その他の国は米ドル。通貨は請求先の国で決まります）。グループや複数拠点の医院は拠点ごとの料金です（hello@dentvideo.com までお問い合わせください）。割引はありません。月単位の契約で、最低契約期間はありません。お支払いの前に、医院のロゴとカラーで仕上げた動画のライブプレビューを確認でき、初週の動画はお支払い後すぐに制作されます。` },
       { label: "提供元", value: "Bulsu Labs（bulsulabs.com）" },
       { label: "ウェブサイト", value: "dentvideo.com（日本語、英語、ドイツ語、スペイン語、トルコ語、フランス語、アラビア語、ポーランド語）" },
     ],
@@ -328,7 +335,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "كيف تتم المراجعة", value: "يراجع البرنامج كل نص وكل تعليق مرتين: مرة مقابل الادعاءات الإعلانية المقيّدة عادةً (الضمانات، و«بدون ألم»، و«دائم»، وصيغ التفضيل، والأسعار، والخصومات، ووعود قبل وبعد، وشهادات المرضى)، ومرة عبر مراجِع يعمل بعين طبيب أسنان عام مقابل الإرشادات السريرية المعتمدة. ما لا يجتاز المراجعة يُعاد كتابته أو لا يُعدّ. ولا تُغيَّر كلمات الطبيب نفسه أبداً، وما يستحق نظرة ثانية يُعلَّم مع السبب." },
       { label: "من يقرّر", value: "طبيب الأسنان. لا يُنشر شيء قبل أن تعتمده العيادة، ولا ينشر DentVideo على الشبكات الاجتماعية بنفسه: تنزّل العيادة الفيديوهات المعتمدة وتنشرها." },
       { label: "الصفة القانونية للمراجعة", value: "مرشّح دقيق، وليست استشارة قانونية. تبقى العيادة مسؤولة عمّا تنشره وعن تصاريح الإعلان المطلوبة لديها، وعليها التحقق من الضوابط المحلية." },
-      { label: "السعر", value: "باقات مدفوعة تبدأ من $29 شهرياً: Starter بسعر $29 شهرياً، وPractice بسعر $49 شهرياً. المجموعات والعيادات متعددة الفروع: سعر حسب الطلب، تواصلوا معنا على hello@dentvideo.com. اشتراك شهري دون حد أدنى للمدة. قبل الدفع تشاهد العيادة معاينة حية لفيديوهاتها بشعارها وألوانها، ويُعدّ أسبوعها الأول فور الدفع." },
+      { label: "السعر", value: `باقات مدفوعة شهرية دون الضرائب: Starter بسعر ${PRICE.starter}، وPractice بسعر ${PRICE.practice} (باليورو في منطقة اليورو، وبالليرة التركية في تركيا، وبالدولار الأمريكي في سائر البلدان، بحسب بلد الفوترة). المجموعات والعيادات متعددة الفروع: السعر حسب عدد الفروع، تواصلوا معنا على hello@dentvideo.com. لا توجد خصومات. اشتراك شهري دون حد أدنى للمدة. قبل الدفع تشاهد العيادة معاينة حية لفيديوهاتها بشعارها وألوانها، ويُعدّ أسبوعها الأول فور الدفع.` },
       { label: "الناشر", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "الموقع", value: "dentvideo.com بالعربية والإنجليزية والألمانية والإسبانية والتركية والفرنسية واليابانية والبولندية." },
     ],
@@ -372,7 +379,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Jak działa kontrola", value: "Oprogramowanie sprawdza każdy scenariusz i opis dwukrotnie: raz pod kątem twierdzeń reklamowych, które zwykle są ograniczane (gwarancje, „bezbolesny”, „trwały”, superlatywy, ceny, rabaty, obietnice przed i po, opinie pacjentów), i raz przez recenzenta w roli lekarza dentysty ogólnego, który porównuje treść z aktualną wiedzą kliniczną. To, co nie przechodzi kontroli, jest pisane od nowa albo nie powstaje. Słowa samego lekarza nigdy nie są zmieniane; klip, który warto przejrzeć ponownie, zostaje oznaczony wraz z powodem." },
       { label: "Kto decyduje", value: "Lekarz dentysta. Nic nie zostaje opublikowane bez akceptacji gabinetu, a DentVideo samo niczego nie publikuje w mediach społecznościowych: gabinet pobiera zatwierdzone filmy i publikuje je sam." },
       { label: "Charakter prawny kontroli", value: "Staranny filtr, a nie porada prawna. Za publikowane treści odpowiada gabinet, który powinien sprawdzić obowiązujące go zasady." },
-      { label: "Cena", value: "Płatne plany od 29 $ miesięcznie: Starter 29 $, Practice 49 $. Sieci i gabinety z kilkoma placówkami: wycena indywidualna na zapytanie pod adresem hello@dentvideo.com. Rozliczenie miesięczne, bez minimalnego okresu umowy. Przed płatnością gabinet widzi podgląd na żywo własnych filmów z logo i kolorami; pierwszy tydzień filmów powstaje zaraz po płatności." },
+      { label: "Cena", value: `Płatne plany miesięczne, bez podatków: Starter ${PRICE.starter}, Practice ${PRICE.practice} (w euro w strefie euro, w lirach tureckich w Turcji, w dolarach amerykańskich w pozostałych krajach: decyduje kraj rozliczenia). Sieci i gabinety z kilkoma placówkami: cena za placówkę, na zapytanie pod adresem hello@dentvideo.com. Bez rabatów. Rozliczenie miesięczne, bez minimalnego okresu umowy. Przed płatnością gabinet widzi podgląd na żywo własnych filmów z logo i kolorami; pierwszy tydzień filmów powstaje zaraz po płatności.` },
       { label: "Wydawca", value: "Bulsu Labs (bulsulabs.com)." },
       { label: "Strona", value: "dentvideo.com: po polsku, angielsku, niemiecku, hiszpańsku, turecku, francusku, japońsku i arabsku." },
     ],

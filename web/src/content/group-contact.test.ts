@@ -32,25 +32,22 @@ const html = (el: React.ReactElement) => renderToStaticMarkup(el);
  * number of locations — and every language says how to get in touch.
  */
 
-/** What Group used to promise, in every language: none of it exists. */
+/**
+ * What Group used to promise, in every language: none of it exists. ("Priced
+ * per location" with no number is the current, true wording: a Group is
+ * quoted as Practice × locations, by contact.)
+ */
 const OLD_GROUP_PROMISES: RegExp[] = [
   /\b279\b/,
   /\b2[.,]?790\b/,
   /up to (three|3) (locations|sites)/i,
-  /per location/i,
   /bis zu (drei|3) Standorte/i,
-  /pro Standort/i,
   /hasta (tres|3) sedes/i,
-  /por sede/i,
   /(üç|3) şube/i,
-  /şube başına/i,
   /jusqu'à (trois|3) sites/i,
-  /par site/i,
   /3拠点/,
   /حتى ثلاثة فروع/,
-  /لكل فرع/,
   /do (trzech|3) placówek/i,
-  /na placówkę/i,
 ];
 
 function promisesIn(text: string): string[] {
@@ -59,7 +56,8 @@ function promisesIn(text: string): string[] {
 
 describe("Group is Contact us", () => {
   it("every language has the contact copy, a CTA and a subject in that language", () => {
-    expect(GROUP_CONTACT.en.text).toBe("For groups and multi-location practices — tell us your locations and we'll set it up with you.");
+    expect(GROUP_CONTACT.en.text).toBe("For groups and multi-location practices: tell us your locations and we'll set them up with you.");
+    expect(GROUP_CONTACT.en.price).toBe("Priced per location");
     expect(GROUP_CONTACT.en.cta).toBe("Contact us");
     expect(GROUP_CONTACT.en.subject).toBe("DentVideo for multiple practices");
     for (const l of LOCALES) {
@@ -73,7 +71,7 @@ describe("Group is Contact us", () => {
         expect(g.subject, l).not.toBe(GROUP_CONTACT.en.subject);
         expect(g.price, l).not.toBe(GROUP_CONTACT.en.price);
       }
-      // Custom pricing, never a number; no promised count of locations.
+      // Priced per location, never a number; no promised count of locations.
       expect(g.price, l).not.toMatch(/\d/);
       expect(g.text, l).not.toMatch(/\d/);
       expect(promisesIn(JSON.stringify(g)), l).toEqual([]);
@@ -118,12 +116,12 @@ describe("Group is Contact us", () => {
       const landing = JSON.stringify(landingJsonLd(l));
       const app = (landingJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[]).find((n) => n["@type"] === "SoftwareApplication");
       expect(app?.offers?.map((o) => o.name), l).toEqual(["Starter", "Practice"]);
-      expect(app?.offers?.map((o) => o.price), l).toEqual([29, 49]);
+      expect(app?.offers?.map((o) => o.price), l).toEqual([79, 149]);
       expect(promisesIn(landing), l).toEqual([]);
       expect(landing, l).not.toMatch(/"name":"Group"/);
       const about = aboutJsonLd(l)["@graph"] as { "@type": string; offers?: { name: string; price: number }[] }[];
       const aboutOffers = about.find((n) => n["@type"] === "SoftwareApplication")?.offers;
-      expect(aboutOffers?.map((o) => [o.name, o.price]), l).toEqual([["Starter", 29], ["Practice", 49]]);
+      expect(aboutOffers?.map((o) => [o.name, o.price]), l).toEqual([["Starter", 79], ["Practice", 149]]);
     }
   });
 });
@@ -166,7 +164,7 @@ describe("rendered pages offer no Group checkout", () => {
           locale: l,
           state: "trial",
           // Whatever the server passes, Group is never a priced, clickable plan.
-          options: [...dvAvailablePlans({}), { tier: "group", interval: "month", priceUsd: 279 }],
+          options: [...dvAvailablePlans({}), { tier: "group", interval: "month", priceUsd: 279, prices: { USD: 279, EUR: 279, TRY: 9990 } }],
         }),
       );
       expect(panel, l).not.toMatch(GROUP_CHECKOUT);
@@ -182,13 +180,13 @@ describe("rendered pages offer no Group checkout", () => {
     }
   });
 
-  it("the app's plan picker shows Starter $29 and Practice $49 a month — no yearly toggle, no founding offer", () => {
+  it("the app's plan picker shows Starter $79 and Practice $149 a month — no yearly toggle, no founding offer, no code field", () => {
     for (const l of LOCALES) {
       // Even if a stray yearly option reached it, the panel shows monthly prices only.
-      const panel = html(createElement(PlanPanel, { locale: l, state: "trial", options: [...dvAvailablePlans({}), { tier: "practice", interval: "year", priceUsd: 990 }] }));
+      const panel = html(createElement(PlanPanel, { locale: l, state: "trial", options: [...dvAvailablePlans({}), { tier: "practice", interval: "year", priceUsd: 990, prices: { USD: 990, EUR: 990, TRY: 990 } }] }));
       const prices = [...panel.matchAll(/dv-figure[^>]*>([^<]+)</g)].map((m) => m[1].replace(/\D/g, ""));
-      expect(prices, l).toEqual(["29", "49"]);
-      expect(panel, l).not.toMatch(/990|aria-pressed|KURUCU/);
+      expect(prices, l).toEqual(["79", "149"]);
+      expect(panel, l).not.toMatch(/990|aria-pressed|KURUCU|<input|<details/);
       expect(panel, l).toContain(APP_TEXT[l].billing.perMonth);
     }
   });

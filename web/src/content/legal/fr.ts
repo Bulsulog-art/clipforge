@@ -86,7 +86,7 @@ export const FR: LegalText = {
         {
           heading: "6. Formules, prix et paiement",
           blocks: [
-            "DentVideo se paie d'avance ; il n'y a pas d'essai gratuit. Avant de payer, vous voyez un aperçu en direct de vidéos aux nom, couleurs et logo de votre cabinet. Formules actuelles, en dollars américains :",
+            "DentVideo se paie d'avance ; il n'y a pas d'essai gratuit. Avant de payer, vous voyez un aperçu en direct de vidéos aux nom, couleurs et logo de votre cabinet. Prix catalogue mensuels actuels, hors taxes. Vous payez dans la devise de votre pays de facturation : en euros dans la zone euro, en livres turques en Turquie, en dollars américains partout ailleurs :",
             {
               list: [
                 "Starter : {starter} par mois.",

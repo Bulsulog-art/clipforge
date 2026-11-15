@@ -5,6 +5,14 @@
  */
 import { DV_FOUNDING, DV_LEGACY_GROUP_MONTHLY_USD, DV_LEGACY_YEARLY_USD, DV_PRICES_USD, DV_TIERS, type DvInterval, type DvTier } from "./billing";
 import type { DvEventName } from "./events";
+import { DV_CURRENCIES, DV_LIST_PRICES, dvCurrencyForCountry, type DvCurrency } from "./pricing";
+
+/**
+ * Rough USD value of one unit of each list currency, for the dashboard's single
+ * MRR figure only (est., not a settlement rate: Dodo pays out what it settles).
+ * The exact per-currency amounts are in Revenue.mrrByCurrency.
+ */
+export const DV_MRR_USD_PER: Record<DvCurrency, number> = { USD: 1, EUR: 1.15, TRY: 0.021 };
 
 export type AdminClinic = {
   id: string;
@@ -91,28 +99,41 @@ export function withLedgerHints(
 }
 
 /**
- * Monthly recurring revenue of one clinic in USD: its tier's monthly list
- * price; a legacy yearly subscription (no longer sold) at its old yearly
- * price ÷ 12; the historic founding price for Practice monthly when the
- * clinic is known to have checked out with the founding code. Not active → 0.
- * Unknown tier (billing columns not migrated) → 0, counted separately.
+ * Monthly recurring revenue of one clinic, in the currency it is billed in:
+ * its tier's monthly list price in its country's currency (pricing.ts — EUR in
+ * the euro area, TL in Türkiye, USD elsewhere, as the checkout charges); a
+ * legacy yearly subscription (no longer sold) at its old USD yearly price ÷ 12;
+ * the historic founding price for Practice monthly when the clinic is known to
+ * have checked out with the (closed) founding code. Not active → 0. Unknown
+ * tier (billing columns not migrated) → 0, counted separately.
  */
-export function clinicMrr(c: Pick<AdminClinic, "plan" | "plan_tier">, hint: BillingHint = {}): number {
-  if (c.plan !== "active") return 0;
+export function clinicMrrLocal(c: Pick<AdminClinic, "plan" | "plan_tier" | "profile">, hint: BillingHint = {}): { currency: DvCurrency; amount: number } {
+  const usd = (amount: number) => ({ currency: "USD" as DvCurrency, amount });
+  if (c.plan !== "active") return usd(0);
   const tier = (DV_TIERS as readonly string[]).includes(c.plan_tier ?? "") ? (c.plan_tier as DvTier) : null;
-  if (!tier) return 0;
+  if (!tier) return usd(0);
   const interval: DvInterval = hint.interval === "year" && DV_LEGACY_YEARLY_USD[tier] ? "year" : "month";
-  if (interval === "year") return (DV_LEGACY_YEARLY_USD[tier] ?? 0) / 12;
-  if (hint.founding && tier === DV_FOUNDING.tier) return DV_FOUNDING.priceUsd;
-  // Group has no public price (Contact us); a legacy Group subscription is counted at what it charges.
-  if (tier === "group") return DV_LEGACY_GROUP_MONTHLY_USD;
-  return DV_PRICES_USD[tier].month ?? 0;
+  if (interval === "year") return usd((DV_LEGACY_YEARLY_USD[tier] ?? 0) / 12);
+  if (hint.founding && tier === DV_FOUNDING.tier) return usd(DV_FOUNDING.priceUsd);
+  // Group has no public price ("Priced per location"); a legacy Group subscription is counted at what it charges.
+  if (tier === "group") return usd(DV_LEGACY_GROUP_MONTHLY_USD);
+  const currency = dvCurrencyForCountry(c.profile?.country);
+  return { currency, amount: DV_LIST_PRICES[tier][currency] ?? DV_PRICES_USD[tier].month ?? 0 };
+}
+
+/** A clinic's MRR in USD: USD list prices as they are, EUR / TL at the rough rates of DV_MRR_USD_PER (est.). */
+export function clinicMrr(c: Pick<AdminClinic, "plan" | "plan_tier" | "profile">, hint: BillingHint = {}): number {
+  const { currency, amount } = clinicMrrLocal(c, hint);
+  return amount * DV_MRR_USD_PER[currency];
 }
 
 export type Revenue = {
   payingByTier: Record<DvTier | "unknown", number>;
   paying: number;
+  /** USD-equivalent (EUR and TL at rough rates, est.). */
   mrrUsd: number;
+  /** Exact list-price MRR per billing currency. */
+  mrrByCurrency: Record<DvCurrency, number>;
   /** Paying clinics counted at the founding price. */
   founding: number;
   yearly: number;
@@ -121,6 +142,7 @@ export type Revenue = {
 export function revenue(clinics: AdminClinic[], hints: Map<string, BillingHint> = new Map()): Revenue {
   const payingByTier: Revenue["payingByTier"] = { starter: 0, practice: 0, group: 0, unknown: 0 };
   let mrr = 0;
+  const byCurrency = Object.fromEntries(DV_CURRENCIES.map((c) => [c, 0])) as Record<DvCurrency, number>;
   let founding = 0;
   let yearly = 0;
   for (const c of clinics) {
@@ -128,12 +150,15 @@ export function revenue(clinics: AdminClinic[], hints: Map<string, BillingHint> 
     const tier = (DV_TIERS as readonly string[]).includes(c.plan_tier ?? "") ? (c.plan_tier as DvTier) : "unknown";
     payingByTier[tier]++;
     const h = hints.get(c.id) ?? {};
-    mrr += clinicMrr(c, h);
+    const local = clinicMrrLocal(c, h);
+    byCurrency[local.currency] += local.amount;
+    mrr += local.amount * DV_MRR_USD_PER[local.currency];
     if (tier !== "unknown" && h.interval === "year" && DV_LEGACY_YEARLY_USD[tier]) yearly++;
     else if (tier === DV_FOUNDING.tier && h.founding) founding++;
   }
   const paying = payingByTier.starter + payingByTier.practice + payingByTier.group + payingByTier.unknown;
-  return { payingByTier, paying, mrrUsd: Math.round(mrr * 100) / 100, founding, yearly };
+  for (const c of DV_CURRENCIES) byCurrency[c] = Math.round(byCurrency[c] * 100) / 100;
+  return { payingByTier, paying, mrrUsd: Math.round(mrr * 100) / 100, mrrByCurrency: byCurrency, founding, yearly };
 }
 
 /* ------------------------------------------------------- signups and plan */

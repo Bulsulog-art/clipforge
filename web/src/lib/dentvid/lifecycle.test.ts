@@ -314,12 +314,25 @@ describe("runNudges: sending", () => {
     expect(m.log).toHaveLength(0);
   });
 
-  it("day 3 states the real starting price: Starter's $29", async () => {
+  it("day 3 states the real starting price: Starter's $79", async () => {
     const m = memoryStore([clinic(1, { created_at: ago(80), profile: { name: "Smile", language: "en" } })]);
     const { send, sent } = sender();
     await runNudges({ store: m.store, send, allow: allowAll, now: NOW, config: cfg() });
     expect(sent).toHaveLength(1);
-    expect(sent[0].text).toContain("Plans start at $29/month");
+    expect(sent[0].text).toContain("Plans start at $79/month");
+  });
+
+  it("day 3 quotes the starting price in the clinic's billing currency (what its checkout charges)", async () => {
+    const m = memoryStore([
+      clinic(1, { created_at: ago(80), profile: { name: "Praxis", language: "de", country: "DE" } }),
+      clinic(2, { created_at: ago(80), profile: { name: "Klinik", language: "tr", country: "TR" } }),
+    ]);
+    const { send, sent } = sender();
+    await runNudges({ store: m.store, send, allow: allowAll, now: NOW, config: cfg() });
+    expect(sent).toHaveLength(2);
+    const texts = sent.map((x) => x.text).join("\n");
+    expect(texts).toMatch(/79\s?€/);
+    expect(texts).toContain("2.490 TL");
     expect(sent[0].text).not.toMatch(/KURUCU|\$99|\$990|founding/i);
   });
 

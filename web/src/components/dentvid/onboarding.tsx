@@ -149,6 +149,7 @@ export function Onboarding({ locale, step: initialStep, initial, logoUrl, plans,
           <PlanStep
             locale={locale}
             preview={draft.preview}
+            country={draft.p.country}
             plans={plans}
             cancelled={!!checkoutCancelled}
             declined={!!paymentFailed}
@@ -310,6 +311,7 @@ function PreviewStep({ locale, draft, onBack, onDone }: { locale: Locale; draft:
 function PlanStep({
   locale,
   preview,
+  country,
   plans,
   cancelled,
   declined,
@@ -319,6 +321,8 @@ function PlanStep({
 }: {
   locale: Locale;
   preview: PreviewProfile;
+  /** The clinic's country: the plan cards show the currency the checkout charges. */
+  country?: string | null;
   plans: PlanOption[];
   cancelled: boolean;
   declined: boolean;
@@ -379,6 +383,7 @@ function PlanStep({
           locale={locale}
           state="trial"
           options={plans}
+          country={country}
           bare
           onNeedsVerification={
             account

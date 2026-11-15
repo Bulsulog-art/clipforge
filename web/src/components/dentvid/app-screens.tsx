@@ -29,6 +29,7 @@ const MAIN = "mx-auto px-4 pb-20 pt-6 sm:px-6 sm:pt-10";
 export function AppHomeView({
   locale,
   clinicName,
+  country,
   plan,
   items,
   firstWeek,
@@ -42,6 +43,8 @@ export function AppHomeView({
 }: {
   locale: Locale;
   clinicName?: string;
+  /** The clinic's country (profile.country): the plan cards show the currency the checkout charges. */
+  country?: string | null;
   plan: ClinicPlan;
   items: LibraryItem[];
   firstWeek: boolean;
@@ -88,7 +91,7 @@ export function AppHomeView({
               {billingIssue ? (
                 <BillingIssuePanel locale={locale} issue={billingIssue} clinicName={clinicName} keepVideos={items.length > 0} />
               ) : (
-                <PlanPanel locale={locale} state={plan.plan} options={plans} keepVideos={items.length > 0} />
+                <PlanPanel locale={locale} state={plan.plan} options={plans} country={country} keepVideos={items.length > 0} />
               )}
             </div>
           )}
@@ -166,7 +169,7 @@ export function SettingsView({
               {billingIssue ? (
                 <BillingIssuePanel locale={locale} issue={billingIssue} clinicName={profile?.name} />
               ) : (
-                <PlanPanel locale={locale} state={plan.plan} options={plans} />
+                <PlanPanel locale={locale} state={plan.plan} options={plans} country={profile?.country} />
               )}
             </div>
           )}
@@ -183,7 +186,7 @@ export function SettingsView({
               </a>
             </div>
           )}
-          <AccountPanel part="billing" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} />
+          <AccountPanel part="billing" locale={locale} selfServe={selfServe} plan={plan} plans={plans} country={profile?.country} clinicName={profile?.name ?? ""} />
         </section>
       )}
       <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} accountEmail={accountEmail} initialDialog={initialDialog} />

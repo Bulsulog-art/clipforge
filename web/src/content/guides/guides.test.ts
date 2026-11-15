@@ -21,7 +21,8 @@ import {
 import { sitemapUrls, sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 import { INDEXNOW_KEY } from "@/lib/dentvid/indexnow";
-import { DV_PRICES_USD, DV_SELF_SERVE_TIERS, DV_TIERS } from "@/lib/dentvid/billing";
+import { DV_SELF_SERVE_TIERS } from "@/lib/dentvid/billing";
+import { DV_CURRENCIES, DV_LIST_PRICES, dvTierPrice } from "@/lib/dentvid/pricing";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -126,23 +127,22 @@ describe("guide library", () => {
     expect(text).not.toMatch(MONEY);
   });
 
-  it("the About price fact states the configured monthly plans and live preview in every language — no yearly price, no founding offer", () => {
-    const allowed = new Set<number>();
-    for (const tier of DV_TIERS) for (const v of Object.values(DV_PRICES_USD[tier])) if (v) allowed.add(v);
+  it("the About price fact states the configured monthly plans in every currency — no yearly price, no founding offer, no discount", () => {
     for (const l of LOCALES) {
       const price = ENTITY[l].facts.find((f) => PRICE_LABELS.includes(f.label));
       expect(price, l).toBeDefined();
       const v = price!.value;
-      expect(v, l).not.toMatch(/[€£₺%]|TL\b/);
-      const figures = [...v.matchAll(/\$\s?(\d[\d,.]*)|(\d[\d,.]*)\s?\$/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
+      // Every figure is a configured list price (USD, EUR or TL), and each tier shows all three.
+      for (const tier of DV_SELF_SERVE_TIERS) for (const c of DV_CURRENCIES) expect(v, `${l} ${tier} ${c}`).toContain(dvTierPrice("en", tier, c));
+      const figures = [...v.matchAll(/[$€]\s?(\d[\d,.]*)|(\d[\d,.]*)\s?(?:\$|€|TL\b)/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
+      const allowed = new Set(DV_SELF_SERVE_TIERS.flatMap((t) => DV_CURRENCIES.map((c) => DV_LIST_PRICES[t][c])));
+      expect(figures.length, l).toBe(6);
       for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
-      for (const tier of DV_SELF_SERVE_TIERS) expect(v, `${l} ${tier}`).toContain(String(DV_PRICES_USD[tier].month));
-      // Group is Contact us: the fact sends groups to the address, with no price.
+      // Group is priced per location: the fact sends groups to the address, with no number.
       expect(v, l).toContain("hello@dentvideo.com");
-      expect(v, l).not.toMatch(/990|\b100\b|KURUCU/);
-      expect(figures.sort((a, b) => a - b), l).toEqual([29, 29, 49]);
+      expect(v, l).not.toMatch(/990|\b100\b|KURUCU|\b29\b|\b49\b/);
     }
-    expect(llmsTxt()).toContain("Paid plans from $29/month: Starter $29/month, Practice $49/month.");
+    expect(llmsTxt()).toContain("Starter $79 / €79 / 2.490 TL, Practice $149 / €149 / 4.490 TL");
   });
 });
 
@@ -228,8 +228,8 @@ describe("structured data", () => {
       // Google's SoftwareApplication rich result needs a priced offer: the self-serve plans only (Group is Contact us).
       const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown>[] }[]).find((n) => n["@type"] === "SoftwareApplication");
       expect(app?.offers, l).toMatchObject([
-        { "@type": "Offer", name: "Starter", price: 29, priceCurrency: "USD" },
-        { "@type": "Offer", name: "Practice", price: 49, priceCurrency: "USD" },
+        { "@type": "Offer", name: "Starter", price: 79, priceCurrency: "USD" },
+        { "@type": "Offer", name: "Practice", price: 149, priceCurrency: "USD" },
       ]);
     }
   });

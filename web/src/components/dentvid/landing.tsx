@@ -28,6 +28,10 @@ import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
+import { CurrencyNote, FromPrice, PriceRegion, TaxSuffix, TierPrice } from "./price";
+
+/** The landing's plan cards, in order: Starter, Practice (Group follows as "Contact us"). */
+const TIER_IDS = ["starter", "practice"] as const;
 import { SampleVideo } from "./sample-video";
 import { CountryRules, FeedStory } from "./landing-showcase";
 import { SHOWCASE } from "@/content/dentvideo-showcase";
@@ -98,7 +102,9 @@ function Hero({ locale }: { locale: Locale }) {
           <p className="mt-3 text-sm text-dv-muted">
             <span className="font-semibold text-dv-ink">{c.hero.ctaHint}</span>
             <span aria-hidden="true"> · </span>
-            <span>{c.pricing.from}</span>
+            <span>
+              <FromPrice locale={locale} template={c.pricing.from} />
+            </span>
           </p>
         </div>
 
@@ -542,6 +548,8 @@ function Pricing({ locale }: { locale: Locale }) {
   const start = dvHref(`/dentvideo/start?lang=${locale}`);
   return (
     <section id="pricing" className="relative isolate mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
+      {/* Shows EUR / TL instead of USD where that is what Dodo charges the visitor (the hero's "from" price too). */}
+      <PriceRegion locale={locale} />
       <div aria-hidden="true" className="absolute left-1/2 top-16 -z-10 h-72 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
       <div className="text-center">
         <H2 className="mx-auto max-w-2xl">{p.heading}</H2>
@@ -554,7 +562,7 @@ function Pricing({ locale }: { locale: Locale }) {
           return (
             <li
               key={tier.name}
-              data-tier={i === 0 ? "starter" : "practice"}
+              data-tier={TIER_IDS[i]}
               className={`dv-card dv-reveal relative flex flex-col p-7 transition-shadow duration-300 hover:shadow-[0_0_0_1px_rgba(15,92,92,0.25),0_24px_48px_-24px_rgba(15,92,92,0.35)] ${featured ? "ring-2 ring-dv-teal md:-my-3 md:py-10" : ""}`}
             >
               {featured && (
@@ -564,9 +572,14 @@ function Pricing({ locale }: { locale: Locale }) {
               )}
               <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
               <p className="mt-1 text-sm leading-relaxed text-dv-muted">{tier.blurb}</p>
-              <p className="mt-6 flex items-baseline gap-1">
-                <span dir="ltr" className="dv-display dv-figure text-[3.25rem] leading-none text-dv-ink">{tier.price}</span>
+              <p className="mt-6 flex flex-wrap items-baseline gap-x-1">
+                <span dir="ltr" className="dv-display dv-figure text-[3.25rem] leading-none text-dv-ink">
+                  <TierPrice locale={locale} tier={TIER_IDS[i]} />
+                </span>
                 <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
+                <span className="text-xs font-medium text-dv-muted" data-tax>
+                  <TaxSuffix locale={locale} />
+                </span>
               </p>
               <ul className="mt-6 space-y-3 border-t border-dv-line pt-6">
                 {tier.features.map((f) => (
@@ -596,13 +609,17 @@ function Pricing({ locale }: { locale: Locale }) {
       </ul>
 
       {/* Two short facts, each with its own tick, so neither line starts with a stray separator on a phone. */}
-      <ul className="mt-10 flex flex-col items-center gap-2 text-center text-sm text-dv-muted sm:flex-row sm:justify-center sm:gap-6">
-        {[c.teaser.note, p.note].map((t) => (
-          <li key={t} className="flex items-start gap-2 text-start">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
-            <span>{t}</span>
-          </li>
-        ))}
+      <ul className="mx-auto mt-10 flex max-w-4xl flex-col items-center gap-2 text-center text-sm text-dv-muted sm:flex-row sm:items-start sm:justify-center sm:gap-6">
+        <li className="flex items-start gap-2 text-start">
+          <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
+          <span>{p.cancel}</span>
+        </li>
+        <li className="flex items-start gap-2 text-start">
+          <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
+          <span>
+            <CurrencyNote template={p.note} />
+          </span>
+        </li>
       </ul>
     </section>
   );

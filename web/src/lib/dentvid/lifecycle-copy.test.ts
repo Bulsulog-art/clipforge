@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { LIFECYCLE_COPY, LIFECYCLE_LANGUAGES, lifecycleText } from "@/content/dentvideo-lifecycle";
 import { LOCALES } from "@/content/dentvideo";
-import { monthLabel, objectionsEmail, sampleEmail, startEmail, unsubscribePage, usd, welcomeEmail } from "./lifecycle-email";
-import { lowestMonthlyUsd } from "./lifecycle";
+import { money, monthLabel, objectionsEmail, sampleEmail, startEmail, unsubscribePage, welcomeEmail } from "./lifecycle-email";
+import { lowestMonthlyFor, lowestMonthlyUsd } from "./lifecycle";
 import { DV_PRICES_USD } from "./billing";
 import { SAMPLE_KINDS, sampleEmailFor } from "./email-samples";
 import { EMAIL_LANGUAGES } from "./email";
@@ -124,9 +124,13 @@ describe("every email, every language", () => {
 describe("activation emails", () => {
   const unsub = "https://dentvideo.com/api/dentvideo/unsubscribe?t=x.y";
 
-  it("takes the starting price from billing.ts, never hard-coded: Starter's $29", () => {
+  it("takes the starting price from pricing.ts, never hard-coded, in the clinic's billing currency: Starter's", () => {
     expect(lowestMonthlyUsd()).toBe(DV_PRICES_USD.starter.month);
-    expect(lowestMonthlyUsd()).toBe(29);
+    expect(lowestMonthlyUsd()).toBe(79);
+    expect(lowestMonthlyFor("US")).toEqual({ currency: "USD", amount: 79 });
+    expect(lowestMonthlyFor(null)).toEqual({ currency: "USD", amount: 79 });
+    expect(lowestMonthlyFor("DE")).toEqual({ currency: "EUR", amount: 79 });
+    expect(lowestMonthlyFor("TR")).toEqual({ currency: "TRY", amount: 2490 });
   });
 
   it("day 0 links to the preview; the clinic name is escaped", () => {
@@ -148,9 +152,11 @@ describe("activation emails", () => {
 
   it("day 3 answers three objections with the real starting price", () => {
     for (const lang of LOCALES) {
-      const m = objectionsEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, fromUsd: 59 });
+      const m = objectionsEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, from: { currency: "USD", amount: 59 } });
       expect(LIFECYCLE_COPY[lang].objections.qa, lang).toHaveLength(3);
-      expect(m.text, lang).toContain(usd(lang, 59));
+      expect(m.text, lang).toContain(money(lang, { currency: "USD", amount: 59 }));
+      const tl = objectionsEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, from: { currency: "TRY", amount: 2490 } });
+      expect(tl.text, lang).toContain("2.490 TL");
     }
   });
 
@@ -158,8 +164,8 @@ describe("activation emails", () => {
     expect(SAMPLE_KINDS as readonly string[]).not.toContain("offer");
     for (const lang of LOCALES) {
       const m = sampleEmailFor("objections", lang);
-      expect(m.text, lang).toContain(usd(lang, 29));
-      expect(m.text, lang).not.toMatch(/KURUCU|\$\s?99\b|\b99\s?\$|990/);
+      expect(m.text, lang).toContain(money(lang, lowestMonthlyFor(lang === "tr" ? "TR" : lang === "de" ? "DE" : null)));
+      expect(m.text, lang).not.toMatch(/KURUCU|\b29\b|\b49\b|990/);
     }
   });
 

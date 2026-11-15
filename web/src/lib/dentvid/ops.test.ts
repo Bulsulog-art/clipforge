@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { DV_MRR_USD_PER } from "./admin-metrics";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryOpsStore, _resetLocalOnce, digestHasNews, renderDigest, weekStateKey, type Mail } from "./ops-alert";
@@ -165,8 +166,8 @@ describe("daily digest from rows", () => {
     });
     expect(d.signups).toBe(2);
     expect(d.newPaying).toEqual([{ name: "Gülüş Dental", tier: "practice", country: "TR" }]);
-    // Historic founding Practice ($49) + Starter ($29).
-    expect(d.mrrUsd).toBe(78);
+    // Historic founding Practice ($49) + Starter in the euro area (€79 at the rough EUR rate, est.).
+    expect(d.mrrUsd).toBe(Math.round((49 + 79 * DV_MRR_USD_PER.EUR) * 100) / 100);
     expect(d.paying).toBe(2);
     expect(d.churned).toEqual([{ name: "Clínica Sol", to: "cancelled" }]);
     expect(d.weeksDelivered).toBe(1);
@@ -174,7 +175,7 @@ describe("daily digest from rows", () => {
     expect(d.weeksFailed).toBe(1);
     expect(d.period).toBe("Sun 8 Nov 08:30 → Mon 9 Nov 08:30 (Istanbul)");
     const m = renderDigest(d);
-    expect(m.subject).toContain("MRR $78 (+$29)");
+    expect(m.subject).toContain("MRR $139.85 (+$90.85)");
     expect(m.text).toContain("Emails sent: 12 (1 failed)");
   });
 

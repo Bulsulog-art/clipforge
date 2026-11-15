@@ -250,8 +250,7 @@ export type AppText = {
     recommended: string;
     choose: string;
     opening: string;
-    haveCode: string;
-    codeLabel: string;
+    /** Under the plan cards: {currency} is "USD", "EUR" or "TL"; tax-exclusive, monthly, Dodo. */
     fineprint: string;
     success: string;
     cancelled: string;
@@ -283,7 +282,6 @@ export type AppText = {
     recordingsNeedPractice: string;
     alreadySubscribed: string;
     invalidPlan: string;
-    invalidCode: string;
     checkoutUnavailable: string;
     checkoutFailed: string;
   };
@@ -598,9 +596,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Recommended",
       choose: "Choose {tier}",
       opening: "Opening checkout…",
-      haveCode: "Have a discount code?",
-      codeLabel: "Discount code",
-      fineprint: "Prices in USD. Taxes may apply. Monthly, cancel anytime. Secure payment by Dodo Payments.",
+      fineprint: "Prices in {currency}, excluding tax. Monthly, cancel anytime. Secure payment by Dodo Payments.",
       success: "Thank you! Your plan is being activated — this can take a minute.",
       cancelled: "Checkout was canceled. Nothing was charged.",
       paymentFailed: "Your payment didn't go through, so nothing was charged. You can try again or use another card.",
@@ -609,17 +605,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "For a single clinic getting started.",
+          blurb: "Everything your clinic needs to post every week.",
           features: [
-            "Five narrated, captioned videos every Monday",
-            "Checked for advertising rules and clinical accuracy",
-            "Your logo and brand colors in every video",
+            "Five narrated, captioned videos every Monday: 20 or more a month",
+            "Every script checked for advertising rules and clinical accuracy; nothing goes out without your approval",
+            "Your logo, colors and clinic name in every video",
           ],
         },
         practice: {
           name: "Practice",
-          blurb: "For clinics that want their own faces on screen.",
-          features: ["Everything in Starter", "Your own recordings turned into captioned clips", "Filming cards for your own clips"],
+          blurb: "For clinics that want the dentist on screen, too.",
+          features: [
+            "Everything in Starter",
+            "Your own recordings turned into branded, captioned clips",
+            "Filming cards that tell you what to record",
+          ],
         },
       },
     },
@@ -643,7 +643,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "Your own recordings are part of the Practice plan. Upgrade to turn your recording into clips.",
       alreadySubscribed: "Your plan is already active.",
       invalidPlan: "That plan is not available.",
-      invalidCode: "That discount code could not be applied.",
       checkoutUnavailable: "Checkout is not available yet. Please try again shortly.",
       checkoutFailed: "Could not open checkout. Please try again.",
     },
@@ -954,9 +953,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Empfohlen",
       choose: "{tier} wählen",
       opening: "Checkout wird geöffnet …",
-      haveCode: "Haben Sie einen Rabattcode?",
-      codeLabel: "Rabattcode",
-      fineprint: "Preise in USD, ggf. zzgl. Steuern. Monatlich, jederzeit kündbar. Sichere Zahlung über Dodo Payments.",
+      fineprint: "Preise in {currency} zzgl. Steuern. Monatlich, jederzeit kündbar. Sichere Zahlung über Dodo Payments.",
       success: "Vielen Dank! Ihr Tarif wird aktiviert — das kann eine Minute dauern.",
       cancelled: "Der Checkout wurde abgebrochen. Es wurde nichts berechnet.",
       paymentFailed: "Die Zahlung ist nicht durchgegangen, es wurde nichts berechnet. Versuchen Sie es erneut oder mit einer anderen Karte.",
@@ -965,17 +962,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "Für eine Praxis, die einfach anfangen will.",
+          blurb: "Alles, was Ihre Praxis braucht, um jede Woche zu posten.",
           features: [
-            "Jeden Montag fünf vertonte, untertitelte Videos",
-            "Geprüft auf Werberecht und fachliche Richtigkeit",
-            "Ihr Logo und Ihre Markenfarben in jedem Video",
+            "Jeden Montag fünf vertonte, untertitelte Videos: mindestens 20 im Monat",
+            "Jedes Skript auf Werberecht und fachliche Richtigkeit geprüft; nichts wird ohne Ihre Freigabe geteilt",
+            "Ihr Logo, Ihre Farben und Ihr Praxisname in jedem Video",
           ],
         },
         practice: {
           name: "Practice",
           blurb: "Für Praxen, die selbst vor der Kamera stehen wollen.",
-          features: ["Alles aus Starter", "Ihre eigenen Aufnahmen als untertitelte Clips", "Drehkarten für Ihre eigenen Clips"],
+          features: [
+            "Alles aus Starter",
+            "Ihre eigenen Aufnahmen als gebrandete, untertitelte Clips",
+            "Drehkarten, die Ihnen sagen, was Sie aufnehmen",
+          ],
         },
       },
     },
@@ -999,7 +1000,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "Eigene Aufnahmen sind im Tarif Practice enthalten. Wechseln Sie den Tarif, um Ihre Aufnahme in Clips zu verwandeln.",
       alreadySubscribed: "Ihr Tarif ist bereits aktiv.",
       invalidPlan: "Dieser Tarif ist nicht verfügbar.",
-      invalidCode: "Dieser Rabattcode konnte nicht angewendet werden.",
       checkoutUnavailable: "Der Checkout ist noch nicht verfügbar. Bitte versuchen Sie es in Kürze erneut.",
       checkoutFailed: "Der Checkout konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.",
     },
@@ -1310,9 +1310,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Recomendado",
       choose: "Elegir {tier}",
       opening: "Abriendo el pago…",
-      haveCode: "¿Tienes un código de descuento?",
-      codeLabel: "Código de descuento",
-      fineprint: "Precios en USD. Pueden aplicarse impuestos. Mensual, cancela cuando quieras. Pago seguro con Dodo Payments.",
+      fineprint: "Precios en {currency}, impuestos no incluidos. Mensual, cancela cuando quieras. Pago seguro con Dodo Payments.",
       success: "¡Gracias! Estamos activando tu plan; puede tardar un minuto.",
       cancelled: "Has cancelado el pago. No se ha cobrado nada.",
       paymentFailed: "El pago no se ha completado, así que no se ha cobrado nada. Puedes intentarlo de nuevo o usar otra tarjeta.",
@@ -1321,17 +1319,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "Para una clínica que quiere empezar.",
+          blurb: "Todo lo que tu clínica necesita para publicar cada semana.",
           features: [
-            "Cinco vídeos narrados y subtitulados cada lunes",
-            "Revisados según las normas de publicidad y la exactitud clínica",
-            "Tu logo y tus colores en cada vídeo",
+            "Cinco vídeos con locución y subtítulos cada lunes: 20 o más al mes",
+            "Cada guion revisado según las normas de publicidad y la exactitud clínica; nada se publica sin tu aprobación",
+            "Tu logo, tus colores y el nombre de tu clínica en cada vídeo",
           ],
         },
         practice: {
           name: "Practice",
-          blurb: "Para clínicas que quieren salir ellas mismas en cámara.",
-          features: ["Todo lo de Starter", "Tus propias grabaciones convertidas en clips subtitulados", "Fichas de grabación para tus propios clips"],
+          blurb: "Para clínicas que también quieren al dentista en pantalla.",
+          features: [
+            "Todo lo de Starter",
+            "Tus propias grabaciones convertidas en clips subtitulados con tu marca",
+            "Fichas de grabación que te dicen qué grabar",
+          ],
         },
       },
     },
@@ -1355,7 +1357,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "Tus propias grabaciones están en el plan Practice. Cambia de plan para convertir tu grabación en clips.",
       alreadySubscribed: "Tu plan ya está activo.",
       invalidPlan: "Ese plan no está disponible.",
-      invalidCode: "No se pudo aplicar ese código de descuento.",
       checkoutUnavailable: "El pago aún no está disponible. Inténtalo de nuevo en un momento.",
       checkoutFailed: "No se pudo abrir el pago. Inténtalo de nuevo.",
     },
@@ -1666,9 +1667,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Önerilen",
       choose: "{tier} planını seç",
       opening: "Ödeme sayfası açılıyor…",
-      haveCode: "İndirim kodunuz var mı?",
-      codeLabel: "İndirim kodu",
-      fineprint: "Fiyatlar USD cinsindendir. Vergiler eklenebilir. Aylık, istediğiniz zaman iptal. Güvenli ödeme Dodo Payments ile.",
+      fineprint: "Fiyatlar {currency} cinsindendir, vergiler hariçtir. Aylık, istediğiniz zaman iptal. Güvenli ödeme Dodo Payments ile.",
       success: "Teşekkürler! Planınız etkinleştiriliyor — bu bir dakika sürebilir.",
       cancelled: "Ödeme iptal edildi. Herhangi bir ücret alınmadı.",
       paymentFailed: "Ödemeniz gerçekleşmedi, hiçbir ücret alınmadı. Tekrar deneyebilir veya başka bir kart kullanabilirsiniz.",
@@ -1677,17 +1676,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "Yeni başlayan tek bir klinik için.",
+          blurb: "Kliniğinizin her hafta paylaşım yapması için gereken her şey.",
           features: [
-            "Her pazartesi beş seslendirilmiş, altyazılı video",
-            "Reklam kuralları ve klinik doğruluk açısından kontrol edilir",
-            "Her videoda logonuz ve marka renkleriniz",
+            "Her pazartesi beş seslendirilmiş, altyazılı video: ayda en az 20 video",
+            "Her senaryo tanıtım kuralları ve klinik doğruluk açısından kontrol edilir; onayınız olmadan hiçbir şey paylaşılmaz",
+            "Her videoda logonuz, renkleriniz ve klinik adınız",
           ],
         },
         practice: {
           name: "Practice",
-          blurb: "Kameranın karşısına kendisi geçmek isteyen klinikler için.",
-          features: ["Starter'daki her şey", "Kendi kayıtlarınızdan altyazılı klipler", "Kendi videolarınız için çekim kartları"],
+          blurb: "Hekimin de ekranda olmasını isteyen klinikler için.",
+          features: [
+            "Starter'daki her şey",
+            "Kendi kayıtlarınızdan markalı, altyazılı klipler",
+            "Ne çekeceğinizi anlatan çekim kartları",
+          ],
         },
       },
     },
@@ -1711,7 +1714,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "Kendi kayıtlarınız Practice planına dahildir. Kaydınızı kliplere dönüştürmek için planınızı yükseltin.",
       alreadySubscribed: "Planınız zaten aktif.",
       invalidPlan: "Bu plan mevcut değil.",
-      invalidCode: "Bu indirim kodu uygulanamadı.",
       checkoutUnavailable: "Ödeme henüz kullanılamıyor. Lütfen biraz sonra tekrar deneyin.",
       checkoutFailed: "Ödeme sayfası açılamadı. Lütfen tekrar deneyin.",
     },
@@ -2022,9 +2024,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Recommandée",
       choose: "Choisir {tier}",
       opening: "Ouverture du paiement…",
-      haveCode: "Vous avez un code de réduction ?",
-      codeLabel: "Code de réduction",
-      fineprint: "Prix en USD, taxes éventuelles en sus. Mensuel, résiliable à tout moment. Paiement sécurisé par Dodo Payments.",
+      fineprint: "Prix en {currency}, hors taxes. Mensuel, résiliable à tout moment. Paiement sécurisé par Dodo Payments.",
       success: "Merci ! Votre formule est en cours d'activation — cela peut prendre une minute.",
       cancelled: "Le paiement a été annulé. Rien n'a été débité.",
       paymentFailed: "Le paiement n'a pas abouti : rien n'a été débité. Vous pouvez réessayer ou utiliser une autre carte.",
@@ -2033,20 +2033,20 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "Pour un cabinet qui veut se lancer simplement.",
+          blurb: "Tout ce dont votre cabinet a besoin pour publier chaque semaine.",
           features: [
-            "Cinq vidéos commentées et sous-titrées chaque lundi",
-            "Vérifiées selon les règles de communication et l'exactitude clinique",
-            "Votre logo et vos couleurs dans chaque vidéo",
+            "Cinq vidéos commentées et sous-titrées chaque lundi : 20 ou plus chaque mois",
+            "Chaque script vérifié selon les règles de communication et l'exactitude clinique ; rien n'est publié sans votre validation",
+            "Votre logo, vos couleurs et le nom de votre cabinet dans chaque vidéo",
           ],
         },
         practice: {
           name: "Practice",
-          blurb: "Pour les cabinets qui veulent apparaître eux-mêmes à l'écran.",
+          blurb: "Pour les cabinets qui veulent aussi voir le praticien à l'écran.",
           features: [
             "Tout ce qu'inclut Starter",
-            "Vos propres enregistrements transformés en clips sous-titrés",
-            "Fiches de tournage pour vos propres clips",
+            "Vos propres enregistrements transformés en clips sous-titrés à vos couleurs",
+            "Des fiches de tournage qui vous disent quoi filmer",
           ],
         },
       },
@@ -2071,7 +2071,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "Vos propres enregistrements font partie de la formule Practice. Changez de formule pour transformer votre enregistrement en clips.",
       alreadySubscribed: "Votre formule est déjà active.",
       invalidPlan: "Cette formule n'est pas disponible.",
-      invalidCode: "Ce code de réduction n'a pas pu être appliqué.",
       checkoutUnavailable: "Le paiement n'est pas encore disponible. Merci de réessayer dans un instant.",
       checkoutFailed: "Impossible d'ouvrir le paiement. Merci de réessayer.",
     },
@@ -2379,9 +2378,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "おすすめ",
       choose: "{tier}を選ぶ",
       opening: "お支払い画面を開いています…",
-      haveCode: "割引コードをお持ちですか？",
-      codeLabel: "割引コード",
-      fineprint: "価格は米ドル建てです。別途税金がかかる場合があります。月単位の契約で、いつでも解約できます。お支払いはDodo Paymentsが安全に処理します。",
+      fineprint: "価格は{currency}建て・税別です。月単位の契約で、いつでも解約できます。お支払いはDodo Paymentsが安全に処理します。",
       success: "ありがとうございます。プランを有効にしています。1分ほどかかる場合があります。",
       cancelled: "お支払いは完了していません。料金は発生していません。",
       paymentFailed: "お支払いが完了しなかったため、料金は発生していません。もう一度お試しいただくか、別のカードをご利用ください。",
@@ -2390,13 +2387,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "まずは始めてみたい1医院に。",
-          features: ["毎週月曜日、ナレーションと字幕付きの動画5本", "広告表現と臨床的な正確性をチェック", "すべての動画に医院のロゴとカラー"],
+          blurb: "毎週の発信に必要なものがすべてそろったプラン。",
+          features: [
+            "毎週月曜日、ナレーションと字幕付きの動画5本（月20本以上）",
+            "すべての台本を広告表現と臨床的な正確性でチェック。ご承認なしに公開されることはありません",
+            "すべての動画に医院のロゴ・カラー・医院名",
+          ],
         },
         practice: {
           name: "Practice",
           blurb: "院長先生ご自身も動画に登場したい医院に。",
-          features: ["Starterのすべての内容", "ご自身で撮影した動画を字幕付きクリップに", "撮影用の台本カード"],
+          features: [
+            "Starterのすべての内容",
+            "ご自身で撮影した動画を、医院のブランドと字幕入りのクリップに",
+            "何を撮ればよいかがわかる撮影カード",
+          ],
         },
       },
     },
@@ -2420,7 +2425,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "ご自身で撮影した動画の編集は、Practiceプランの機能です。クリップを作るには、プランを変更してください。",
       alreadySubscribed: "プランはすでに有効です。",
       invalidPlan: "このプランはご利用いただけません。",
-      invalidCode: "この割引コードは適用できませんでした。",
       checkoutUnavailable: "お支払い画面は現在ご利用いただけません。しばらくしてから、もう一度お試しください。",
       checkoutFailed: "お支払い画面を開けませんでした。もう一度お試しください。",
     },
@@ -2729,9 +2733,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "موصى بها",
       choose: "اختيار {tier}",
       opening: "جارٍ فتح صفحة الدفع…",
-      haveCode: "لديكم رمز ترويجي؟",
-      codeLabel: "الرمز الترويجي",
-      fineprint: "الأسعار بالدولار الأمريكي، وقد تُضاف الضرائب. اشتراك شهري يمكن إلغاؤه في أي وقت. الدفع الآمن عبر Dodo Payments.",
+      fineprint: "الأسعار بعملة {currency} ولا تشمل الضرائب. اشتراك شهري يمكن إلغاؤه في أي وقت. الدفع الآمن عبر Dodo Payments.",
       success: "شكراً لكم! نفعّل باقتكم الآن، وقد يستغرق ذلك دقيقة.",
       cancelled: "أُلغيت عملية الدفع ولم يُخصم أي مبلغ.",
       paymentFailed: "لم تتم عملية الدفع، ولم يُخصم أي مبلغ. يمكنكم المحاولة مرة أخرى أو استخدام بطاقة أخرى.",
@@ -2740,13 +2742,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "لعيادة واحدة تبدأ للتو.",
-          features: ["خمسة فيديوهات بتعليق صوتي ونص على الشاشة كل يوم اثنين", "مراجعة لضوابط الإعلان والدقة السريرية", "شعاركم وألوان هويتكم في كل فيديو"],
+          blurb: "كل ما تحتاجه عيادتكم للنشر كل أسبوع.",
+          features: [
+            "خمسة فيديوهات بتعليق صوتي ونص على الشاشة كل يوم اثنين: 20 فيديو أو أكثر شهرياً",
+            "مراجعة كل نص وفق ضوابط الإعلان والدقة السريرية، ولا يُنشر شيء دون موافقتكم",
+            "شعاركم وألوانكم واسم عيادتكم في كل فيديو",
+          ],
         },
         practice: {
           name: "Practice",
-          blurb: "للعيادات التي تريد أن يظهر أطباؤها بأنفسهم.",
-          features: ["كل ما في Starter", "تسجيلاتكم الخاصة تتحوّل إلى مقاطع قصيرة مع النص", "بطاقات تصوير لمقاطعكم الخاصة"],
+          blurb: "للعيادات التي تريد أن يظهر الطبيب على الشاشة أيضاً.",
+          features: [
+            "كل ما في Starter",
+            "تسجيلاتكم الخاصة تتحوّل إلى مقاطع بهويتكم مع النص على الشاشة",
+            "بطاقات تصوير ترشدكم إلى ما تسجّلونه",
+          ],
         },
       },
     },
@@ -2770,7 +2780,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "التسجيلات الخاصة جزء من باقة Practice. انتقلوا إليها لتحويل تسجيلكم إلى مقاطع.",
       alreadySubscribed: "باقتكم فعّالة بالفعل.",
       invalidPlan: "هذه الباقة غير متاحة.",
-      invalidCode: "تعذّر تطبيق هذا الرمز الترويجي.",
       checkoutUnavailable: "الدفع غير متاح حالياً. حاولوا مرة أخرى بعد قليل.",
       checkoutFailed: "تعذّر فتح صفحة الدفع. حاولوا مرة أخرى.",
     },
@@ -3080,9 +3089,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Polecany",
       choose: "Wybierz {tier}",
       opening: "Otwieranie płatności…",
-      haveCode: "Mają Państwo kod rabatowy?",
-      codeLabel: "Kod rabatowy",
-      fineprint: "Ceny w USD. Mogą zostać doliczone podatki. Rozliczenie miesięczne, rezygnacja w dowolnym momencie. Bezpieczna płatność przez Dodo Payments.",
+      fineprint: "Ceny w {currency}, bez podatków. Rozliczenie miesięczne, rezygnacja w dowolnym momencie. Bezpieczna płatność przez Dodo Payments.",
       success: "Dziękujemy! Aktywujemy plan; to może potrwać minutę.",
       cancelled: "Płatność została anulowana. Nic nie pobrano.",
       paymentFailed: "Płatność nie została zrealizowana, więc nic nie pobrano. Można spróbować ponownie lub użyć innej karty.",
@@ -3091,13 +3098,21 @@ export const APP_TEXT: Record<Locale, AppText> = {
       tiers: {
         starter: {
           name: "Starter",
-          blurb: "Dla jednego gabinetu na dobry początek.",
-          features: ["Pięć filmów z lektorem i napisami co poniedziałek", "Kontrola zasad reklamy i poprawności klinicznej", "Logo i kolory gabinetu w każdym filmie"],
+          blurb: "Wszystko, czego gabinet potrzebuje, by publikować co tydzień.",
+          features: [
+            "Pięć filmów z lektorem i napisami co poniedziałek: co najmniej 20 w miesiącu",
+            "Każdy scenariusz sprawdzony pod kątem zasad reklamy i poprawności klinicznej; nic nie zostanie opublikowane bez Państwa zgody",
+            "Logo, kolory i nazwa gabinetu w każdym filmie",
+          ],
         },
         practice: {
           name: "Practice",
-          blurb: "Dla gabinetów, które chcą same pokazać się w kadrze.",
-          features: ["Wszystko z planu Starter", "Państwa własne nagrania jako klipy z napisami", "Karty z podpowiedziami do własnych nagrań"],
+          blurb: "Dla gabinetów, które chcą, by w kadrze pojawiał się też lekarz.",
+          features: [
+            "Wszystko z planu Starter",
+            "Państwa własne nagrania jako klipy z napisami w barwach gabinetu",
+            "Karty z podpowiedziami, co nagrać",
+          ],
         },
       },
     },
@@ -3121,7 +3136,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recordingsNeedPractice: "Własne nagrania są częścią planu Practice. Aby zamienić nagranie w klipy, prosimy zmienić plan.",
       alreadySubscribed: "Plan jest już aktywny.",
       invalidPlan: "Ten plan jest niedostępny.",
-      invalidCode: "Nie udało się zastosować tego kodu rabatowego.",
       checkoutUnavailable: "Płatność nie jest jeszcze dostępna. Prosimy spróbować za chwilę.",
       checkoutFailed: "Nie udało się otworzyć płatności. Prosimy spróbować ponownie.",
     },

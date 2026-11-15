@@ -229,7 +229,10 @@ export function AdminDashboard({ data, days, locale, country = null, basePath, c
               </>
             }
           >
-            <p className="text-xs text-dv-muted">List prices × plan; yearly ÷ 12; founding price where the checkout used the code.</p>
+            <p className="text-xs text-dv-muted">
+              List prices × plan in each clinic&apos;s billing currency (EUR / TL converted at rough rates, est.); yearly ÷ 12; historic founding price where it applied.
+              {rev.mrrByCurrency.EUR || rev.mrrByCurrency.TRY ? ` By currency: USD ${rev.mrrByCurrency.USD} · EUR ${rev.mrrByCurrency.EUR} · TL ${rev.mrrByCurrency.TRY}.` : ""}
+            </p>
           </Tile>
           <Tile
             label="Paying clinics"

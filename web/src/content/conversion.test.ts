@@ -5,6 +5,7 @@ vi.mock("next/font/google", () => {
   const font = () => ({ className: "font", variable: "font", style: {} });
   return { IBM_Plex_Sans_Arabic: font, Noto_Sans_JP: font, Instrument_Serif: font, Plus_Jakarta_Sans: font };
 });
+import { dvTierPrice } from "@/lib/dentvid/pricing";
 import * as React from "react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -101,9 +102,10 @@ describe("conversion copy, every language", () => {
     expect(APP_TEXT[l].onboarding.planLead).toContain("15");
   });
 
-  it.each(LOCALES)("%s: the starting price is Starter's monthly list price", (l) => {
-    const figures = (LANDING[l].pricing.from.match(/\d+/g) ?? []).map(Number);
-    expect(figures).toEqual([DV_PRICES_USD.starter.month]);
+  it.each(LOCALES)("%s: the starting price is Starter's monthly list price, filled in, never typed", (l) => {
+    expect(LANDING[l].pricing.from.match(/\d+/g)).toBeNull();
+    expect(LANDING[l].pricing.from).toContain("{price}");
+    expect(DV_PRICES_USD.starter.month).toBe(79);
   });
 
   it.each(LOCALES)("%s: trust facts match the legal pages", (l) => {
@@ -147,7 +149,10 @@ describe("landing page structure", () => {
     expect(teaserLink).toMatch(new RegExp(`href="[^"]*/start\\?lang=${l}"`));
     expect(page).toContain(LANDING[l].hero.ctaHint);
     expect((page.match(/data-cta="pricing"/g) ?? []).length).toBe(2);
-    expect(page).toContain(LANDING[l].pricing.from.replace(/'/g, "&#x27;"));
+    // The hero's "from" line: the template around Starter's server-rendered USD price.
+    const [before] = LANDING[l].pricing.from.split("{price}");
+    if (before) expect(page).toContain(before.replace(/'/g, "&#x27;").trim());
+    expect(page).toContain(dvTierPrice(l, "starter", "USD"));
   });
 
   it.each(LOCALES)("%s: the trust section links every legal page and sits after pricing, before the FAQ", (l) => {

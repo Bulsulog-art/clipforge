@@ -102,7 +102,9 @@ export function jsonLdHtml(data: unknown): string {
 
 /**
  * What can be bought, one Offer per self-serve plan (Starter, Practice), each a
- * monthly price. Group is "Contact us": no price is published, so it is no Offer.
+ * monthly USD list price, excluding tax (the page's server-rendered price; EUR
+ * and TL are shown in the browser where Dodo charges them). Group is "Priced
+ * per location": no number is published, so it is no Offer.
  */
 export function planOffers(locale: Locale) {
   const c = LANDING[locale];
@@ -118,6 +120,7 @@ export function planOffers(locale: Locale) {
         price,
         priceCurrency: "USD",
         billingDuration: "P1M",
+        valueAddedTaxIncluded: false,
         referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
       },
       url: `${absoluteUrl(LANDING_PATH[locale])}#pricing`,

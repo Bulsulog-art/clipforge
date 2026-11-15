@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
 import { DV_PRICES_USD, DV_SELF_SERVE_TIERS, dvBaseUrl } from "./billing";
+import { dvCurrencyForCountry, dvLowestPrice } from "./pricing";
 import {
   CONTACT_EMAIL,
   monthlyEmail,
@@ -14,6 +15,7 @@ import {
   type PaymentFix,
   type PaymentProblemKind,
   type Rendered,
+  type DvMoney,
 } from "./lifecycle-email";
 import type { Brand } from "./email-layout";
 import type { SendOptions } from "./email";
@@ -190,9 +192,15 @@ export type LifecycleConfig = {
 
 type Env = Record<string, string | undefined>;
 
-/** The lowest self-serve monthly list price ("plans from …"). */
+/** The lowest self-serve monthly list price in USD ("plans from …"). */
 export function lowestMonthlyUsd(): number {
   return Math.min(...DV_SELF_SERVE_TIERS.map((t) => DV_PRICES_USD[t].month).filter((p): p is number => typeof p === "number"));
+}
+
+/** The lowest monthly list price in the currency the clinic's country is billed in (pricing.ts): what the plan step shows it. */
+export function lowestMonthlyFor(country: string | null | undefined): DvMoney {
+  const currency = dvCurrencyForCountry(country);
+  return { currency, amount: dvLowestPrice(currency) };
 }
 
 export function lifecycleConfig(env: Env = process.env): LifecycleConfig {
@@ -247,7 +255,7 @@ export function renderNudge(cfg: LifecycleConfig, clinic: ClinicForMail, kind: N
       return sampleEmail({ ...base, url: preview, titles });
     }
     case "nudge_objections":
-      return objectionsEmail({ ...base, url: plan, fromUsd: lowestMonthlyUsd() });
+      return objectionsEmail({ ...base, url: plan, from: lowestMonthlyFor(clinic.profile?.country) });
     case "nudge_offer":
       // The former founding offer: no longer sent.
       return null;
