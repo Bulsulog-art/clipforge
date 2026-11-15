@@ -219,15 +219,6 @@ export function suggestBackgrounds(input: SuggestInput, count = 16, library: Lib
   return picked;
 }
 
-/**
- * The photos a new video starts with: the top few suggestions, from more
- * than one category when the list allows. Three for a short video, four
- * from 45 seconds, so each photo holds for roughly ten to fifteen seconds.
- */
-export function defaultBackgrounds(suggested: string[], totalSeconds = 30): string[] {
-  const n = totalSeconds >= 45 ? 4 : 3;
-  return suggested.slice(0, n);
-}
 
 /**
  * Photos in which a viewer recognises dentistry at a glance: a toothbrush,
@@ -250,19 +241,33 @@ export const DENTAL_PHOTOS: ReadonlySet<string> = new Set([
 const DENTAL_FALLBACK = ["clinic-13", "cleaning-02", "hygiene-13", "clinic-07", "hygiene-05", "clinic-01"];
 
 /**
- * The photos a new video starts with: only recognisably dental ones (see
- * DENTAL_PHOTOS), the topic's own first, topped up with general dental
- * photos so a video is never only text on a gradient. Deterministic.
+ * The photos a new video starts with, from a ranked list of on-topic
+ * suggestions: only recognisably dental ones (see DENTAL_PHOTOS), the
+ * topic's own first, topped up with general dental photos so a video is
+ * never only text on a gradient. Three for a short video, four from 45
+ * seconds, so each photo holds for roughly ten to fifteen seconds.
+ *
+ * The web live preview calls this with the same ranked list the worker
+ * builds (suggestBackgrounds filtered by matchingBackgrounds), so the
+ * preview shows the photos a real week would get. Before Nov 2026 it was
+ * the top three suggestions, mood and food photos included.
  */
-export function startingBackgrounds(input: SuggestInput, totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+export function defaultBackgrounds(suggested: string[], totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
   const n = totalSeconds >= 45 ? 4 : 3;
   const known = new Set(library.map((i) => i.id));
-  const relevant = matchingBackgrounds(input, library);
-  const onTopic = suggestBackgrounds(input, SUGGEST_MAX, library).filter((id) => relevant.has(id) && DENTAL_PHOTOS.has(id));
   const out: string[] = [];
-  for (const id of [...onTopic, ...DENTAL_FALLBACK]) {
+  for (const id of [...suggested.filter((s) => DENTAL_PHOTOS.has(s)), ...DENTAL_FALLBACK]) {
     if (out.length >= n) break;
     if (known.has(id) && !out.includes(id)) out.push(id);
   }
   return out;
+}
+
+/**
+ * The photos a new video starts with (worker dental/week.ts): the ranked
+ * on-topic suggestions through defaultBackgrounds. Deterministic.
+ */
+export function startingBackgrounds(input: SuggestInput, totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+  const relevant = matchingBackgrounds(input, library);
+  return defaultBackgrounds(suggestBackgrounds(input, undefined, library).filter((id) => relevant.has(id)), totalSeconds, library);
 }

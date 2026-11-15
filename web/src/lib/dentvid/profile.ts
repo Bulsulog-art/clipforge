@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CLOSING_LINE_MAX } from "./closing-line";
 
 /**
  * The clinic profile the content agents read. Mirrors
@@ -62,6 +63,13 @@ export const clinicProfileSchema = z.object({
     .regex(/^#?[0-9a-fA-F]{6}$/)
     .transform((c) => c.replace(/^#/, "").toUpperCase())
     .optional(),
+  /**
+   * The clinic's own closing line under its captions. The shape is checked
+   * here (and by 0021 in the database); whether it may go out in the
+   * clinic's market is checked by the clinic route with closing-line.ts,
+   * the same rules the worker applies (it falls back to its own line).
+   */
+  closingLine: text(4, CLOSING_LINE_MAX).optional(),
 });
 
 export type ClinicProfile = z.infer<typeof clinicProfileSchema>;

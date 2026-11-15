@@ -3,8 +3,9 @@
  * bench/value-week.ts, Nov 2026), each pinned with the text that was seen.
  */
 import { describe, expect, it } from "vitest";
-import { droppedHedges, offRegister, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
-import { captionProblems, dropEchoes, practiceFactsRule, scriptBrief, scriptProblems, softScriptProblems } from "./week.js";
+import { droppedHedges, hedgeCount, hedgeRatio, offRegister, overHedged, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
+import { SPOKEN_CUES } from "./narrate.js";
+import { captionProblems, dropEchoes, hedgingRule, lessHedged, practiceFactsRule, scriptBrief, scriptProblems, softScriptProblems } from "./week.js";
 import { dentalQuery, guardFootage } from "./footage.js";
 import { finalHashtags } from "./copywriter.js";
 import { upcomingObservances, seasonalBrief } from "./calendar.js";
@@ -64,6 +65,55 @@ describe("hedging that piles up", () => {
   });
   it("accepts ordinary hedging", () => {
     expect(stackedHedges("Some sensitivity can happen and it usually fades within a few days. Brush gently. Ask your dentist.", "en")).toBeUndefined();
+  });
+});
+
+describe("Turkish over-hedging (TR whitening, 5 of 6 sentences)", () => {
+  const whitening =
+    "Beyazlatma sonrası ilk saatlerde yiyecek ve içecek seçimi önem taşıyabilir. İlk saatlerde renkli yiyecek ve içecekleri sınırlamak faydalı olabilir. Açık renkli, sade şeyler daha uygun olabilir. Yoğurt, peynir, sade ekmek genelde daha rahat seçeneklerdir. Koyu renkli içecekler ve soslar sınırlanabilir. Hassasiyet olursa hekiminize söyleyin; size uygun olanı kontrolünüzde o söyler.";
+  const plain =
+    "Beyazlatmadan sonraki ilk günlerde dişler renge daha açıktır. Koyu renkli içecekleri ve sosları bu günlerde sınırlayın. Yoğurt, peynir ve sade ekmek iyi seçeneklerdir. Hassasiyet olabilir, çoğu kişide birkaç günde geçer. Ne kadar beklemeniz gerektiğini hekiminize sorabilirsiniz.";
+  it("measures the ratio and names the hedged sentences in the fix", () => {
+    expect(hedgeRatio(whitening, "tr")).toMatchObject({ total: 6 });
+    expect(hedgeRatio(whitening, "tr").hedged).toHaveLength(5);
+    const fix = overHedged(whitening, "tr")!;
+    expect(fix).toMatch(/5 of 6/);
+    expect(fix).toMatch(/önem taşıyabilir/);
+    expect(fix).toMatch(/at most 2/);
+    // Plain, never absolute.
+    expect(fix).toMatch(/never add .*guaranteed.*garanti/);
+  });
+  it("lets a narration through that hedges only what varies", () => {
+    expect(overHedged(plain, "tr")).toBeUndefined();
+    expect(stackedHedges(plain, "tr")).toBeUndefined();
+  });
+  it("does not count an invitation to the viewer as a hedge", () => {
+    expect(hedgeCount("Hekiminize sorabilirsiniz.", "tr")).toBe(0);
+    expect(hedgeCount("Kanal tedavisinden sonra yiyebilirsin.", "tr")).toBe(0);
+    expect(hedgeCount("Hassasiyet görülebilir.", "tr")).toBe(1);
+  });
+  it("uses a lower bar in Turkish than elsewhere", () => {
+    const three = "Bu sızlama olabilir. Birkaç gün sürebilir. Soğuk içecekler artırabilir. Yumuşak fırça kullanın.";
+    expect(overHedged(three, "tr")).toMatch(/3 of 4/);
+    expect(overHedged("It can sting. It may last days. Cold drinks can make it worse. Use a soft brush.", "en")).toBeUndefined();
+  });
+  it("is told to the writer and the narrator, Turkish only", () => {
+    const tr = clinicProfileSchema.parse({ name: "Körfez Diş", country: "TR", language: "tr", services: ["Diş beyazlatma"] });
+    const brief = scriptBrief(tr, { title: "t", pillar: "education", question: "q?", hook: "h", service: "Diş beyazlatma" });
+    expect(brief).toContain(hedgingRule("tr"));
+    expect(hedgingRule("tr")).toMatch(/kesin.*garanti/);
+    expect(hedgingRule("en")).toBe("");
+    expect(SPOKEN_CUES.tr).toMatch(/yalnızca sonucun kişiden kişiye/);
+  });
+  it("the narrator edits an over-hedged draft once and keeps the less hedged version", async () => {
+    let calls = 0;
+    const out = await lessHedged(whitening, async (fix) => (calls++, expect(fix).toMatch(/^narration: 5 of 6/), plain), "tr");
+    expect(out).toBe(plain);
+    expect(calls).toBe(1);
+    // A rewrite that hedges as much is not taken; a fine draft is not rewritten.
+    expect(await lessHedged(whitening, async () => whitening.replace("sınırlanabilir", "sınırlanabilir, olabilir"), "tr")).toBe(whitening);
+    expect(await lessHedged(plain, async () => { throw new Error("not called"); }, "tr")).toBe(plain);
+    expect(await lessHedged(whitening, async () => { throw new Error("down"); }, "tr")).toBe(whitening);
   });
 });
 
@@ -299,5 +349,18 @@ describe("a reflexive 'Not quite' after a hook that denies nothing", () => {
     expect(scriptProblems(p("Rinsing aligners with water? That's the mistake.", "Not quite. Rinse them every time you take them out."), us).join("\n")).toMatch(/states no belief to deny/);
     expect(scriptProblems(p("Whitening thins your enamel? Not quite.", "Not quite. Dentists usually don't see enamel thinning."), us).join("\n")).not.toMatch(/states no belief to deny/);
     expect(offRegister("Sensitivity can feel zippy, then settle down.", "en")).toEqual(["zippy"]);
+  });
+});
+
+describe("a clinic's own closing line (settings form → profile → post kit)", () => {
+  it("gives the reasons the app shows, and the post kit uses only a line with none", async () => {
+    const { closingLineFindings, closingLineReasons } = await import("./closing-line.js");
+    expect(closingLineReasons("Hemen randevu alın!", "TR")).toEqual(["booking", "pressure", "exclamation"]);
+    expect(closingLineFindings("Diş etlerinizle ilgili sorularınızı bir sonraki kontrolünüzde hekiminize sorabilirsiniz.", "TR")).toEqual([]);
+    expect(closingLineReasons("Painless implants, guaranteed.", "US")).toContain("claim");
+    const own = "Fragen zum Zahnfleisch? Sprechen Sie sie bei der nächsten Kontrolle an.";
+    const profile = clinicProfileSchema.parse({ name: "Isartal", country: "DE", language: "de", services: ["PZR"], closingLine: own });
+    expect(softCta(profile)).toBe(own);
+    expect(softCta({ ...profile, closingLine: "Jetzt Termin buchen!" })).not.toMatch(/Jetzt/);
   });
 });

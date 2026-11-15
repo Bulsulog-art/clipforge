@@ -79,11 +79,12 @@ export const clinicProfileSchema = z.object({
     .optional()
     .catch(undefined),
   /**
-   * The clinic's own closing invitation for its posts ("Fragen? Rufen Sie uns
-   * unter … an."). Used by the post kit only when it passes the same rules as
-   * ours (dentvid/post-kit.ts closingLineProblems); otherwise ignored. Worker
-   * side only for now: the web form and the Liman profile guard (0007) do not
-   * offer it yet.
+   * The clinic's own closing line under its captions ("Fragen zum
+   * Zahnfleisch? Sprechen Sie sie bei der nächsten Kontrolle an."), set in the
+   * app's clinic settings. The app refuses a line the market rules would
+   * refuse (closing-line.ts, mirrored to web); the post kit checks again and
+   * falls back to ours when it does not pass (dentvid/post-kit.ts softCta).
+   * Owner writes need supabase/liman/0021_dentvid_closing_line.sql.
    */
   closingLine: text(4, 140).optional().catch(undefined),
   /** Where a viewer books. Goes in the caption, never on screen, never fetched. */

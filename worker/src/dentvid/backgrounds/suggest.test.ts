@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import fixtures from "./fixtures.json" with { type: "json" };
 import { BACKGROUND_LIBRARY } from "./library.js";
 import {
+  DENTAL_PHOTOS,
   SUGGEST_MAX,
   SUGGEST_MIN,
   backgroundId,
@@ -9,6 +10,7 @@ import {
   defaultBackgrounds,
   fold,
   matchingBackgrounds,
+  startingBackgrounds,
   suggestBackgrounds,
 } from "./suggest.js";
 
@@ -88,10 +90,31 @@ describe("helpers", () => {
     expect(backgroundId("/dentvideo/backgrounds/nope-99.jpg")).toBeUndefined();
   });
 
-  it("starts a video with three photos, four from 45 seconds", () => {
+  it("starts a video with three photos, four from 45 seconds, dental ones only", () => {
     const ids = suggestBackgrounds({});
-    expect(defaultBackgrounds(ids, 30)).toEqual(ids.slice(0, 3));
-    expect(defaultBackgrounds(ids, 60)).toEqual(ids.slice(0, 4));
+    expect(defaultBackgrounds(ids, 30)).toHaveLength(3);
+    expect(defaultBackgrounds(ids, 60)).toHaveLength(4);
+    expect(defaultBackgrounds(ids, 30).every((id) => DENTAL_PHOTOS.has(id))).toBe(true);
+    // The ranked list's dental photos lead, in its order.
+    const dental = ids.filter((id) => DENTAL_PHOTOS.has(id));
+    expect(defaultBackgrounds(ids, 30).slice(0, Math.min(3, dental.length))).toEqual(dental.slice(0, 3));
+  });
+
+  it("is what the web live preview calls, and gives exactly the worker's starting photos", () => {
+    const inputs = [
+      { topic: "Implant tedavisinin aşamaları", service: "İmplant", language: "tr" },
+      { topic: "Diş taşı temizliği", service: "Diş taşı temizliği", language: "tr" },
+      { topic: "Beyazlatma sonrası hassasiyet", service: "Diş beyazlatma", language: "tr" },
+      { topic: "Caring for clear aligners", service: "Clear aligners", language: "en" },
+      { topic: "Was hilft gegen Angst beim Zahnarzt?", service: "Angstpatienten", language: "de" },
+    ];
+    for (const input of inputs) {
+      const relevant = matchingBackgrounds(input);
+      // live-preview-player.tsx: defaultBackgrounds(suggestBackgrounds(input).filter(relevant), seconds)
+      const preview = defaultBackgrounds(suggestBackgrounds(input).filter((id) => relevant.has(id)), 30);
+      expect(preview, input.topic).toEqual(startingBackgrounds(input, 30));
+      expect(preview.every((id) => DENTAL_PHOTOS.has(id)), input.topic).toBe(true);
+    }
   });
 });
 

@@ -26,6 +26,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FILES = [
   ["hard-rules.ts", "hard-rules.ts"],
   ["fixtures/hard-rules-golden.json", "hard-rules-golden.json"],
+  // A clinic's own closing line: the settings form and the clinic API route
+  // refuse what the worker would ignore (dentvid/post-kit.ts softCta).
+  ["closing-line.ts", "closing-line.ts"],
 ];
 
 function mirror(source, from) {
@@ -34,7 +37,8 @@ function mirror(source, from) {
   const header =
     `// GENERATED from worker/src/dental/${from} by scripts/sync-hard-rules.mjs — do not edit here.\n` +
     `// Edit the worker file and re-run the script; web/src/lib/dentvid/hard-rules.sync.test.ts checks they match.\n`;
-  return header + source;
+  // Next resolves "./hard-rules", not the worker's ESM "./hard-rules.js".
+  return header + source.replace(/(from "\.\/[\w-]+)\.js"/g, '$1"');
 }
 
 const check = process.argv.includes("--check");

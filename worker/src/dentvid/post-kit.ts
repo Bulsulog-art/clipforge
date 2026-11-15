@@ -1,6 +1,7 @@
 import { scanHardRules, scanMarketRules } from "../dental/compliance.js";
 import { captionNotice, withoutNotice } from "../dental/mandatory-notice.js";
 import { ctaProblems, BLOCKING_CTA } from "../dental/style.js";
+import { closingLineFindings } from "../dental/closing-line.js";
 import type { ClinicProfile } from "../dental/profile.js";
 import type { ItemRow } from "./rows.js";
 
@@ -118,11 +119,7 @@ export function softCta(profile: Pick<ClinicProfile, "language" | "country" | "a
 
 /** Why a clinic's own closing line cannot go out as written (empty: it can). */
 export function closingLineProblems(line: string, country: string | undefined): string[] {
-  return [
-    ...scanHardRules(line).map((h) => `${h.rule}: "${h.match}"`),
-    ...scanMarketRules(line, country).map((h) => `${h.rule}: "${h.match}"`),
-    ...ctaProblems(line, country).filter((p) => BLOCKING_CTA.has(p.code) || p.code === "generic" || p.code === "exclamation").map((p) => `cta ${p.code}: ${p.detail}`),
-  ];
+  return closingLineFindings(line, country).map((f) => f.detail);
 }
 
 /** Topic tags that fit any dental education video, used to top a short list up to five. */

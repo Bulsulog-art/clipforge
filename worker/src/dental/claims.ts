@@ -123,10 +123,51 @@ function frequencyCount(s: string, l: string): number {
   return re ? (s.toLocaleLowerCase(l || "en").match(new RegExp(re.source, "gi")) ?? []).length : 0;
 }
 
+/**
+ * Turkish "-ebilir" addressed to the viewer ("hekiminize sorabilirsiniz",
+ * "yiyebilirsin") offers a possibility, it does not soften a claim; counting
+ * it made every polite closing look like a hedge.
+ */
+const TR_INVITATION = /(?:ebil|abil)ir(?:siniz|sınız|sin|sın|iz|ız|im|ım)$/u;
+
 export function hedgeCount(sentence: string, language: string | undefined): number {
-  const re = HEDGES[lang2(language)];
+  const l = lang2(language);
+  const re = HEDGES[l];
   if (!re) return 0;
-  return (sentence.toLocaleLowerCase(lang2(language) || "en").match(new RegExp(re.source, "gi")) ?? []).length;
+  const found = sentence.toLocaleLowerCase(l || "en").match(new RegExp(re.source, "gi")) ?? [];
+  return l === "tr" ? found.filter((w) => !TR_INVITATION.test(w)).length : found.length;
+}
+
+/** The narration sentences that carry a qualifier, out of all of them. */
+export function hedgeRatio(narration: string, language: string | undefined): { hedged: string[]; total: number; ratio: number } {
+  const l = lang2(language);
+  const sents = splitSentences(narration);
+  const hedged = HEDGES[l] ? sents.filter((s) => hedgeCount(s, l) > 0) : [];
+  return { hedged, total: sents.length, ratio: sents.length ? hedged.length / sents.length : 0 };
+}
+
+/**
+ * Most of the narration hedged, so a well-established fact sounds as unsure
+ * as a side effect that really varies. Turkish needs a lower bar: "-ebilir"
+ * is a verb ending, so a writer told to "hedge where outcomes vary" puts it
+ * on nearly every verb ("seçimi önem taşıyabilir … sınırlamak faydalı olabilir
+ * … daha uygun olabilir … sınırlanabilir", the TR whitening video of the Nov
+ * 2026 bench, 5 of 6 sentences). Returns the fix, naming the sentences.
+ */
+export function overHedged(narration: string, language: string | undefined): string | undefined {
+  const l = lang2(language);
+  const { hedged, total, ratio } = hedgeRatio(narration, l);
+  const tooMany = l === "tr" ? total >= 4 && ratio > 0.5 : total >= 5 && ratio > 0.6;
+  if (!tooMany) return undefined;
+  const keep = Math.max(1, Math.floor(total / 3));
+  const list = hedged
+    .slice(0, 4)
+    .map((s) => `"${s.length > 90 ? `${s.slice(0, 87)}…` : s}"`)
+    .join(", ");
+  return (
+    `${hedged.length} of ${total} narration sentences are hedged (${list}). Keep a qualifier on at most ${keep}, the ones whose outcome really varies from person to person (how long, how much, whether a side effect comes), ` +
+    `and say the rest plainly: what the treatment is, what is well established, what to do. Plain is not absolute: never add "always", "guaranteed", "no risk", "kesin", "garanti", "hiç" or a promise of a result`
+  );
 }
 
 const tokens = (s: string, l: string) =>
@@ -195,10 +236,7 @@ export function stackedHedges(narration: string, language: string | undefined): 
   // ordinary qualifiers in one sentence still read naturally ("some … can … usually").
   const double = sents.find((s) => hedgeCount(s, l) >= (l === "tr" ? 2 : 4));
   if (double) return `"${double}" stacks qualifiers — keep one per claim and say the rest plainly`;
-  const hedged = sents.filter((s) => hedgeCount(s, l) > 0).length;
-  if (sents.length >= 5 && hedged / sents.length > 0.6)
-    return `${hedged} of ${sents.length} narration sentences are hedged ("-ebilir", "can", "usually"): hedge only the claims that really vary, and say facts and instructions plainly`;
-  return undefined;
+  return overHedged(narration, l);
 }
 
 // ---------------------------------------------------------------------------

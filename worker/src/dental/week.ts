@@ -38,7 +38,7 @@ import {
 } from "./style.js";
 import { mixedAddress, screenLines, type RubricScene } from "./rubric.js";
 import { firstSentence, weekVoiceBrief, type PastTopic, type WeekVoice } from "./memory.js";
-import { droppedHedges, notQuite, offRegister, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
+import { droppedHedges, hedgeRatio, notQuite, offRegister, overHedged, practiceClaims, stackedHedges, wrongLanguage } from "./claims.js";
 
 /**
  * The orchestrator: one clinic profile in, a week of ready-to-post videos out.
@@ -127,6 +127,21 @@ export function planText(plan: ScenePlan): string {
   return out.filter(Boolean).join("\n");
 }
 
+/**
+ * Turkish over-hedges: "-ebilir" is a verb ending, so "hedge where outcomes
+ * vary" turned into "-ebilir" on nearly every verb. Facts that every dentist
+ * would state flatly sounded unsure, and the video read like a disclaimer.
+ * Plain still never means a promise: the compliance rules stay as they are.
+ */
+export function hedgingRule(language: string | undefined): string {
+  if ((language ?? "").toLowerCase().slice(0, 2) !== "tr") return "";
+  return [
+    `Turkish hedging: "-ebilir/-abilir", "olabilir", "genelde" go ONLY where the outcome really differs from person to person (how long sensitivity lasts, whether a side effect comes, how many sessions). At most one or two such sentences per video.`,
+    `What the treatment is, what is well established and what to do are said plainly: "Diş taşı fırçayla çıkmaz; temizliği hekim yapar." "Beyazlatmadan sonraki ilk günlerde koyu renkli içecekleri sınırlayın." "Hassasiyet beyazlatmanın bilinen bir yan etkisidir." — not "çıkmayabilir", "sınırlamak faydalı olabilir", "görülebilir".`,
+    `Plain is not absolute: never "kesin", "garanti", "hiç ağrımaz", "tamamen zararsız", "kalıcı" or a promised result.`,
+  ].join(" ");
+}
+
 export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[] = [], week?: WeekVoice): string {
   const example = exampleFor(profile, topic);
   return [
@@ -143,6 +158,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Sound: say it the way a dentist would say it across the chair, not a leaflet. Never generic filler ("for more information", "your smile deserves…", "we're here to help", "don't hesitate to") in any language.`,
     `Write every on-screen word in ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}`,
     `Accurate, mainstream dental guidance only, hedged where outcomes vary ("can", "usually") — and the on-screen line keeps the same qualifier as the narration: if the voice says "usually", the card says it too. One qualifier per claim; instructions and plain facts are said plainly, not hedged.`,
+    hedgingRule(profile.language),
     practiceFactsRule(profile),
     `Every word on screen is in ${profile.language}: never an English "Not quite." or "Here's why", or any other language's words, on a ${profile.language} card.`,
     `Never mention prices, discounts, guarantees, "painless", "permanent", "best", before/after results or patient stories.`,
@@ -326,6 +342,22 @@ export function softScriptProblems(plan: ScenePlan, profile: Pick<ClinicProfile,
 }
 
 /**
+ * The narrator's own check before anyone reviews the draft: a narration that
+ * hedges most sentences (TR whitening, Nov 2026 bench: "-ebilir" in 5 of 6)
+ * gets ONE edit asking it to say the established facts plainly. Whichever
+ * version hedges less is kept, so this can only lower the hedging, and it
+ * never costs the video (the reviewers still judge the result). Runs on every
+ * draft, unlike softScriptProblems, because a rewrite for another reason can
+ * pile the qualifiers back on.
+ */
+export async function lessHedged(text: string, rewrite: (fix: string) => Promise<string>, language: string | undefined): Promise<string> {
+  const fix = overHedged(text, language);
+  if (!fix) return text;
+  const second = await rewrite(`narration: ${fix}`).catch(() => text);
+  return second.trim() && hedgeRatio(second, language).ratio < hedgeRatio(text, language).ratio ? second : text;
+}
+
+/**
  * Lines the planner wrote twice, removed before anyone reads the draft: a
  * footage caption that repeats a statement, a statement or list item that
  * repeats an earlier line. Seen in the bench: "Usually about 45 to 60
@@ -442,7 +474,9 @@ export async function produceVideo(
       // it from the screen text alone, so the reviews below still see one story.
       const deduped = dropEchoes(plan);
       if (!deduped.voiceover) return deduped;
-      const text = await narrate(deps.client, profile, topic, deduped, fixes, previous?.voiceover?.text, week).catch(() => deduped.voiceover!.text);
+      let text = await narrate(deps.client, profile, topic, deduped, fixes, previous?.voiceover?.text, week).catch(() => deduped.voiceover!.text);
+      const first = text;
+      text = await lessHedged(first, (fix) => narrate(deps.client, profile, topic, deduped, [...fixes, fix], first, week), profile.language);
       return { ...deduped, voiceover: { ...deduped.voiceover, text } };
     },
     planText,

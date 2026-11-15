@@ -13,6 +13,8 @@ import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, hasService, splitServices, suggestedServices, toggleService } from "@/lib/dentvid/service-hints";
 import { uploadLogo } from "@/lib/dentvid/upload-client";
 import { readAttribution } from "@/lib/dentvid/attribution";
+import { CLOSING_LINE_MAX } from "@/lib/dentvid/closing-line";
+import { closingLineMessage, closingLineNote } from "@/lib/dentvid/closing-line-message";
 
 const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "PL", "JP", "SG", "AE", "SA", "QA", "KW", "BH", "OM", "CA", "AU"];
 
@@ -41,6 +43,8 @@ export type DraftFields = {
   address: ClinicProfile["address"];
   handle: string;
   bookingUrl: string;
+  /** The clinic's own closing line under its captions; "" for none. */
+  closingLine: string;
   brandColor: string;
 };
 
@@ -74,6 +78,7 @@ export function useClinicDraft({
     address: initial?.address ?? "formal",
     handle: initial?.handle ?? "",
     bookingUrl: initial?.bookingUrl ?? "",
+    closingLine: initial?.closingLine ?? "",
     brandColor: initial?.brandColor ? `#${initial.brandColor.replace(/^#/, "").toLowerCase()}` : "#0f5c5c",
   });
   const [logo, setLogo] = useState<File | null>(null);
@@ -137,6 +142,9 @@ export function useClinicDraft({
 
   /** Upload a new logo (if any) and save the profile. Throws with a message for the clinic. */
   async function save(): Promise<void> {
+    // Checked before any upload: the server refuses the same line with the same words.
+    const refused = p.closingLine.trim() ? closingLineMessage(p.closingLine, p.country, locale) : null;
+    if (refused) throw new Error(refused);
     let newLogo: string | undefined;
     if (logo) {
       // A new, versioned name each time (no overwrite). The file goes through
@@ -156,6 +164,7 @@ export function useClinicDraft({
       address: p.address,
       handle: p.handle || undefined,
       bookingUrl: p.bookingUrl || undefined,
+      closingLine: p.closingLine.trim() || undefined,
       brandColor: p.brandColor,
     };
     const res = await fetch("/api/dentvideo/clinic", {
@@ -325,7 +334,45 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
       {tone}
       <HandleField draft={draft} t={t} />
       {booking}
+      <ClosingLineField draft={draft} locale={locale} />
     </div>
+  );
+}
+
+/**
+ * The clinic's own closing line under its captions (settings only: the
+ * sign-up wizard keeps to what the first preview needs). Checked as the
+ * clinic types, against the same market rules the worker applies, and the
+ * reason is said calmly under the field; the save says it again if needed.
+ */
+export function ClosingLineField({ draft, locale }: { draft: ClinicDraft; locale: Locale }) {
+  const t = appText(locale).form;
+  const { p, set } = draft;
+  const line = p.closingLine.trim();
+  const note = line ? closingLineNote(line, p.country, locale) : null;
+  const left = CLOSING_LINE_MAX - p.closingLine.length;
+  return (
+    <label className={`${label} sm:col-span-2`}>
+      {t.closingLine}
+      <textarea
+        data-field="closingLine"
+        rows={2}
+        maxLength={CLOSING_LINE_MAX}
+        value={p.closingLine}
+        onChange={set("closingLine")}
+        aria-invalid={note ? true : undefined}
+        aria-describedby="dv-closing-line-help"
+        className="dv-field"
+      />
+      <span id="dv-closing-line-help" className="mt-1.5 flex items-start justify-between gap-3 text-xs font-normal">
+        {note ? (
+          <span role="status" className="text-[#8a1f1f]" data-testid="dv-closing-line-note">{note}</span>
+        ) : (
+          <span className="text-dv-muted">{t.closingLineHelp}</span>
+        )}
+        <span dir="ltr" aria-hidden="true" className={`shrink-0 tabular-nums ${left < 15 ? "text-dv-ink" : "text-dv-muted"}`}>{left}</span>
+      </span>
+    </label>
   );
 }
 
