@@ -21,8 +21,6 @@ import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert
 import { clinicRefFor, markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
 import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
 import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
-import { rewardDecision, voidOnMoneyBack } from "./referrals";
-import { supabaseReferralStore, type ReferralStore } from "./referrals-server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -47,8 +45,6 @@ export type DvWebhookDeps = {
   markPaid?: (clinicId: string) => Promise<void>;
   /** The subscription ledger (0007); the default degrades to "unknown" when the table is missing. */
   subs?: SubscriptionStore;
-  /** Clinic referrals (0018); the default skips everything when the migration is missing. */
-  referrals?: ReferralStore;
   /**
    * Dodo's live status of a subscription, when DODO_API_KEY is set (null:
    * no key or the call failed). Used to confirm an activation before it
@@ -275,49 +271,7 @@ async function paymentSucceeded(db: SupabaseClient, evt: DvWebhookEvent, deps: D
     // activation look stale, and a clinic that had just paid was never switched on.
     if (prev === null) await subs.put({ ...ledgerRow(clinic.id, d.subscription_id, "pending", d, prev, "", evt.type), last_event_at: null });
   }
-  let referral: string | undefined;
-  try {
-    referral = await referralReward(clinic.id, evt, deps.referrals ?? supabaseReferralStore(db), deps.now?.() ?? new Date());
-  } catch (e) {
-    // Retried by Dodo (the payment index and ledger writes above are idempotent): a referrer's month is not lost silently.
-    console.error("[dodo:dentvideo] referral reward not recorded", clinic.id, (e as Error).message);
-    return { status: 500, body: { error: "referral reward not recorded" } };
-  }
-  return { status: 200, body: { ok: true, app: "dentvideo", recorded: evt.type, ...(referral ? { referral } : {}) } };
-}
-
-/**
- * A referred clinic's successful payment: its referrer's free month, recorded
- * once (one row per referred clinic — a retried event or the next month's
- * payment finds the row and does nothing), held for the refund window.
- * Returns what happened, or undefined when the clinic was not referred.
- */
-async function referralReward(clinicId: string, evt: DvWebhookEvent, store: ReferralStore, now: Date): Promise<string | undefined> {
-  const d = evt.data ?? {};
-  const referral = await store.referralOf(clinicId);
-  if (!referral) return undefined; // not referred, or 0018 not applied
-  const existing = await store.rewardFor(clinicId);
-  if (existing !== null) return existing === undefined ? undefined : "exists";
-  const [referrerOwnerEmail, referredOwnerEmail, referrerRecent] = await Promise.all([
-    store.ownerEmail(referral.referrerClinicId),
-    store.ownerEmail(clinicId),
-    store.recentCount(referral.referrerClinicId, now),
-  ]);
-  const decision = rewardDecision({
-    referredClinicId: clinicId,
-    referral,
-    referrerOwnerEmail,
-    referredOwnerEmail,
-    payerEmail: d.customer?.email ?? null,
-    paymentId: d.payment_id ?? null,
-    subscriptionId: d.subscription_id ?? null,
-    amount: typeof d.total_amount === "number" ? d.total_amount : null,
-    paidAt: dvEventTime(evt) ?? now.toISOString(),
-    referrerRecent,
-  });
-  if (!decision.record) return decision.reason;
-  const r = await store.insertReward(decision.row);
-  return r === "created" ? `reward ${decision.row.status}` : r;
+  return { status: 200, body: { ok: true, app: "dentvideo", recorded: evt.type } };
 }
 
 /** refund.* / dispute.*: the owner hears about it; a chargeback pauses the clinic (no new weeks while disputed). */
@@ -358,25 +312,8 @@ async function moneyBack(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhoo
       }
     }
   }
-  // Money went back: the referrer's free month for this clinic is not earned (unless already applied — then the owner decides).
-  let referral: string | undefined;
-  try {
-    const store = deps.referrals ?? supabaseReferralStore(db);
-    const reward = await store.rewardFor(clinic.id);
-    const effect = reward ? voidOnMoneyBack(evt.type, reward) : null;
-    if (effect === "void") {
-      await store.voidReward(clinic.id, evt.type, now);
-      referral = "reward void";
-    } else if (effect === "already_applied") {
-      referral = "reward already applied";
-      console.warn("[dodo:dentvideo] money back after the referrer's free month was applied", clinic.id, evt.type);
-    }
-  } catch (e) {
-    console.error("[dodo:dentvideo] referral reward not voided", clinic.id, (e as Error).message);
-    return { status: 500, body: { error: "referral reward not voided" } };
-  }
   await tell(db, deps, clinic.id, (c) => alerts.billingDispute({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, paymentId: d.payment_id ?? null, paused, resumed }));
-  return { status: 200, body: { ok: true, app: "dentvideo", event: evt.type, paused, ...(resumed ? { resumed } : {}), ...(referral ? { referral } : {}) } };
+  return { status: 200, body: { ok: true, app: "dentvideo", event: evt.type, paused, ...(resumed ? { resumed } : {}) } };
 }
 
 /** A DentVideo event the route could not process (500 or exception): the owner is told once a day per event type. */

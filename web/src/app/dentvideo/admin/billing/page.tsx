@@ -17,7 +17,6 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
       payments={d.payments}
       clinics={d.clinics}
       issues={d.issues}
-      referrals={d.referrals}
       dodoFoundingUses={d.dodoFoundingUses}
       alerts={d.alerts}
       warnings={d.warnings}
