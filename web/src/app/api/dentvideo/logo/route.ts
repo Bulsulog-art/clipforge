@@ -8,9 +8,13 @@ import { isDentvideoUser } from "@/lib/dentvid/membership";
 import { listOwnerFiles } from "@/lib/dentvid/account";
 import { logoPathFor } from "@/lib/dentvid/paths";
 import { LOGO_MAX_BYTES, decideUpload } from "@/lib/dentvid/storage-quota";
+
+/** The logo limit in MB, as the error message states it. */
+const LOGO_MAX_MB = LOGO_MAX_BYTES / (1024 * 1024);
 import { ImageFetchError, checkImageBytes } from "@/lib/dentvid/safe-image-fetch";
 import { readCappedBytes } from "@/lib/dentvid/events-server";
 import { oversizedLogos } from "@/lib/dentvid/upload-slots";
+import { fmt } from "@/content/dentvideo-app";
 
 // POST /api/dentvideo/logo — the clinic's logo, sent through this server
 // (body = the image bytes, Content-Type = its type, at most 5 MB).
@@ -35,8 +39,11 @@ export async function POST(req: Request) {
   if (!isDentvideoUser(user)) return NextResponse.json({ error: err.invalidUpload, code: "not_dentvideo" }, { status: 403 });
 
   // A body over the limit is refused while it is read (the declared length is not trusted).
+  // Too big: say so, with the limit, in the clinic's language (not the generic "could not be used").
+  const tooLarge = () => NextResponse.json({ error: fmt(err.logoTooLarge, { mb: LOGO_MAX_MB }), code: "size", maxBytes: LOGO_MAX_BYTES }, { status: 413 });
   const bytes = await readCappedBytes(req, LOGO_MAX_BYTES).catch(() => null);
-  if (!bytes) return NextResponse.json({ error: err.invalidLogo, code: "size" }, { status: 413 });
+  if (!bytes) return tooLarge();
+  if (bytes.byteLength > LOGO_MAX_BYTES) return tooLarge();
   let image;
   try {
     image = checkImageBytes(bytes, req.headers.get("content-type"), LOGO_MAX_BYTES);
@@ -63,6 +70,7 @@ export async function POST(req: Request) {
   const usage = { files: files.length, bytes: files.reduce((n, f) => n + (f.size ?? 0), 0) };
   const decision = decideUpload({ kind: "logo", plan: clinic?.plan as string | undefined, tier: clinic?.plan_tier as string | undefined, usage, size: bytes.byteLength, contentType: image.contentType });
   if (!decision.ok) {
+    if (decision.reason === "size" && bytes.byteLength > LOGO_MAX_BYTES) return tooLarge();
     return NextResponse.json({ error: err.invalidLogo, code: decision.reason }, { status: decision.reason === "quota" ? 413 : 400 });
   }
 

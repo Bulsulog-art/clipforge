@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DV_CLIENT_EVENTS, DV_CLINIC_CLIENT_EVENTS, DV_EVENTS, buildEventRow, geoCountry, parseClientEvent } from "./events";
+import { DV_CLIENT_EVENTS, DV_CLINIC_CLIENT_EVENTS, DV_EVENTS, buildEventRow, parseClientEvent } from "./events";
 import { ATTR_KEY, attributionFrom, captureAttribution, readAttribution } from "./attribution";
 import { FUNNEL } from "./admin-metrics";
 
@@ -72,20 +72,11 @@ describe("funnel events", () => {
     expect(parseClientEvent(JSON.stringify({ name: "cta_clicked", props: { utm_source: "dr@clinic.com", utm_campaign: "+90 532 123 45 67" } }))?.props).toEqual({});
   });
 
-  it("the country comes from the edge header, never from the browser's body", () => {
+  it("the country comes from the server (geo-ip.ts), never from the browser's body", () => {
     expect(parseClientEvent(JSON.stringify({ name: "landing_view", props: { geo: "TR" } }))?.props).toEqual({});
     expect(parseClientEvent(JSON.stringify({ name: "landing_view" }), "TR")?.props).toEqual({ geo: "TR" });
     expect(buildEventRow({ name: "signup_completed", geo: "de" })?.props).toEqual({ geo: "DE" });
     expect(buildEventRow({ name: "signup_completed", geo: "Germany" })?.props).toEqual({});
-  });
-
-  it("geoCountry reads Cloudflare / Vercel / generic headers and ignores placeholders", () => {
-    expect(geoCountry(new Headers({ "cf-ipcountry": "tr" }))).toBe("TR");
-    expect(geoCountry(new Headers({ "x-vercel-ip-country": "DE" }))).toBe("DE");
-    expect(geoCountry(new Headers({ "x-country-code": "PL" }))).toBe("PL");
-    expect(geoCountry(new Headers({ "cf-ipcountry": "XX" }))).toBeUndefined();
-    expect(geoCountry(new Headers({ "cf-ipcountry": "T1" }))).toBeUndefined();
-    expect(geoCountry(new Headers())).toBeUndefined();
   });
 });
 

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { isDemoToken } from "@/lib/dentvid/demos";
 import { countDemoView } from "@/lib/dentvid/demos-server";
-import { geoCountry, sanitizeLocale } from "@/lib/dentvid/events";
+import { sanitizeLocale } from "@/lib/dentvid/events";
+import { requestCountry } from "@/lib/dentvid/geo-ip";
 import { readCapped, recordEvent } from "@/lib/dentvid/events-server";
 import { demoRequestSkip, raiseHotLead } from "@/lib/dentvid/hot-leads-server";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     await recordEvent("demo_viewed", {
       locale: sanitizeLocale(body.locale) ?? demo.language,
       props: { demo: token, utm_campaign: demo.campaign },
-      geo: geoCountry(req.headers),
+      geo: requestCountry(req.headers),
     });
     void raiseHotLead({ token, step: "viewed", demo, views: (demo.view_count ?? 0) + 1 });
   }

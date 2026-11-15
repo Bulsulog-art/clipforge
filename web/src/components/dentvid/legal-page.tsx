@@ -4,6 +4,7 @@ import { LANDING_PATH, dirOf, type Locale } from "@/content/dentvideo";
 import { OPERATOR } from "@/content/guides/entity";
 import {
   EMAIL_TOKENS,
+  LINK_TOKENS,
   LEGAL,
   LEGAL_KINDS,
   LEGAL_NAV,
@@ -38,6 +39,12 @@ function LegalInline({ text, locale }: { text: string; locale: Locale }) {
         if (EMAIL_TOKENS.has(p.name))
           return (
             <a key={i} href={`mailto:${p.value}`} dir="ltr" className={linkCls}>
+              {p.value}
+            </a>
+          );
+        if (p.name in LINK_TOKENS)
+          return (
+            <a key={i} href={LINK_TOKENS[p.name]} dir="ltr" className={linkCls} rel="noopener">
               {p.value}
             </a>
           );
@@ -188,8 +195,8 @@ export function LegalPage({ kind, locale }: { kind: LegalKind; locale: Locale })
         {doc.intro.map((p, i) => (
           <p key={i} className={`mt-8 ${bodyCls}`}><LegalInline text={p} locale={locale} /></p>
         ))}
-        {doc.sections.map((s) => (
-          <section key={s.heading} className="mt-12">
+        {doc.sections.map((s, i) => (
+          <section key={s.heading} id={`s${i + 1}`} className="mt-12 scroll-mt-24">
             <h2 className="text-[1.375rem] font-semibold leading-snug tracking-tight text-dv-ink sm:text-[1.5rem]">{s.heading}</h2>
             {s.blocks.map((b, i) => (
               <Block key={i} block={b} locale={locale} />

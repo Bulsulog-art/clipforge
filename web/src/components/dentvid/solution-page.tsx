@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Check, Plus } from "lucide-react";
-import { FromPrice } from "./price";
+import { FromPrice, PriceRegion } from "./price";
 import { LANDING, LANDING_PATH, dirOf, findGuide, guidePath, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { reviewedDate, sectionId } from "@/content/guides/text";
@@ -32,6 +32,8 @@ export function SolutionView({ p }: { p: SolutionPage }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(solutionJsonLd(p)) }} />
       <HtmlLang locale={L} />
       <GuideScriptFont locale={L} />
+      {/* Swaps the hero price to EUR / TL where that is what the visitor is charged (as on the landing). */}
+      <PriceRegion locale={L} />
 
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />

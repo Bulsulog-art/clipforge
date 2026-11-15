@@ -209,22 +209,8 @@ export type DvEventRow = { name: DvEventName; locale: string | null; props: DvPr
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * The visitor's country as the edge/proxy reports it (Cloudflare's
- * CF-IPCountry, Vercel's x-vercel-ip-country, or a generic x-country-code),
- * as an ISO code — never the IP itself. Undefined when no geo header is set
- * or it is a placeholder (XX unknown, T1 Tor).
- */
-export function geoCountry(headers: Headers): string | undefined {
-  for (const h of ["cf-ipcountry", "x-vercel-ip-country", "x-country-code"]) {
-    const v = headers.get(h)?.trim().toUpperCase();
-    if (v && /^[A-Z]{2}$/.test(v) && v !== "XX" && v !== "T1") return v;
-  }
-  return undefined;
-}
-
-/**
  * A row ready to insert, or null if the name is not allowed. `geo` (from
- * geoCountry, set by the server — never taken from a browser's body) is
+ * requestCountry in geo-ip.ts, set by the server — never taken from a browser's body) is
  * stored as props.geo on any event, so the dashboard can split the funnel
  * by country before a clinic has told us its own.
  */

@@ -198,7 +198,7 @@ export const FR: LegalText = {
                 "E-mails : les e-mails de service envoyés à votre cabinet et votre éventuelle désinscription des rappels.",
                 "Événements d'usage : un petit journal interne d'étapes comme « page d'accueil vue » ou « formule choisie », avec la langue de la page, les balises de campagne (utm) et le domaine du site d'origine. Ils ne contiennent ni identifiant de cookie, ni adresse IP, ni données de navigateur, ni nom ou e-mail.",
                 "Clics sur nos annonces : si vous arrivez sur dentvideo.com depuis l'une de nos annonces Google, l'identifiant de clic que Google ajoute au lien (gclid, gbraid ou wbraid) et l'heure du clic. Si vous créez ensuite un compte, nous l'enregistrons avec votre compte. Dans l'UE/EEE, au Royaume-Uni et en Suisse, uniquement si vous l'autorisez dans la question affichée à ces visiteurs.",
-                "Données techniques : votre adresse IP et les données de requête sont traitées pour afficher les pages, sécuriser le service et limiter les abus (compteurs de limitation de courte durée).",
+                "Données techniques : votre adresse IP et les données de requête sont traitées pour afficher les pages, sécuriser le service et limiter les abus (compteurs de limitation de courte durée). Pour afficher les prix dans votre devise et savoir s'il faut vous demander votre accord avant de conserver un clic publicitaire, nous déterminons uniquement le pays de votre adresse IP à l'aide d'une base de données sur notre propre serveur ({dbip}) ; pour cela, l'adresse IP n'est ni conservée ni transmise.",
               ],
             },
           ],

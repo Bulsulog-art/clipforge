@@ -76,12 +76,19 @@ describe("currency selection", () => {
     for (const l of LOCALES) for (const k of ["tr", "eu", "other"] as const) expect(DV_TAX_LABEL[l][k].trim(), `${l} ${k}`).not.toBe("");
   });
 
-  it("in the browser: the edge's country first, else the time zone, else (no time zone) the page's language", () => {
+  it("in the browser: the server's country first, else a TR/EU time zone, else the page's language", () => {
     expect(guessCountry({ geo: "de", timeZone: "Europe/Istanbul", locale: "tr" })).toBe("DE");
     expect(guessCountry({ geo: null, timeZone: "Europe/Istanbul", locale: "en" })).toBe("TR");
     expect(guessCountry({ geo: "XX!", timeZone: "Europe/Madrid", locale: "en" })).toBe("ES");
-    // A known zone outside Türkiye and the EU means USD, whatever the page's language.
-    expect(guessCountry({ geo: null, timeZone: "America/New_York", locale: "de" })).toBeNull();
+    // A zone outside Türkiye and the EU (UTC, America/*: an ad reviewer, a VPN) falls back to the page's language…
+    expect(guessCountry({ geo: null, timeZone: "America/New_York", locale: "de" })).toBe("DE");
+    expect(guessCountry({ geo: null, timeZone: "UTC", locale: "tr" })).toBe("TR");
+    expect(guessCountry({ geo: null, timeZone: "Etc/UTC", locale: "fr" })).toBe("FR");
+    expect(guessCountry({ geo: null, timeZone: "America/Los_Angeles", locale: "en" })).toBeNull();
+    expect(guessCountry({ geo: null, timeZone: "UTC", locale: "pl" })).toBeNull();
+    // …a TR/EU zone still wins over the language, and a known IP country over both.
+    expect(guessCountry({ geo: null, timeZone: "Europe/Berlin", locale: "tr" })).toBe("DE");
+    expect(guessCountry({ geo: "US", timeZone: "UTC", locale: "tr" })).toBe("US");
     expect(guessCountry({ geo: null, timeZone: null, locale: "tr" })).toBe("TR");
     expect(guessCountry({ geo: null, timeZone: null, locale: "es" })).toBe("ES");
     expect(guessCountry({ geo: null, timeZone: null, locale: "en" })).toBeNull();
