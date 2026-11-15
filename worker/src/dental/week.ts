@@ -310,9 +310,29 @@ export function scriptProblems(
   for (const w of wrongLanguage([...lines, narration], profile.language)) out.push(`"${w}" is not in ${profile.language} — write it in the video's language`);
   // "Rinsing aligners with water? That's the mistake." → "Not quite. Rinse them…": the
   // answer contradicts a hook that made no claim to deny (EN sample render, Nov 2026).
-  const afterHook = lines[lines.indexOf(hook) + 1] ?? "";
+  // The answer is the first line after the hook that is not a footage caption
+  // (EN brushing render, Nov 2026: hook, footage, then "Not quite if you only…").
+  const captions = new Set(scenes.filter((s) => s.kind === "footage").map((s) => s.caption).filter(Boolean));
+  const afterHook = lines.slice(lines.indexOf(hook) + 1).find((l) => !captions.has(l)) ?? "";
   const nq = notQuite(profile.language).toLocaleLowerCase();
-  if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && (!/[?？؟]/u.test(hook) || /\b(mistake|fehler|hata|error)\b/i.test(hook)))
+  // "Not quite" anywhere but at the start of a line is a garbled answer ("Not
+  // quite if you only scrub the middle of the teeth.", "…, not quite.").
+  const garbled = lines.find((l) => {
+    const low = l.toLocaleLowerCase();
+    if (l === hook || !low.includes(nq)) return false;
+    return !low.startsWith(nq) || /^\s*\p{L}/u.test(low.slice(nq.length));
+  });
+  if (garbled) out.push(`"${garbled}" uses "${notQuite(profile.language)}" inside a sentence — it only ever opens the answer to a hook that states a belief; otherwise say the point directly`);
+  // A belief needs a few words: "Kaffee drin? Aligner sehen es sofort." asks
+  // about a moment, so "Nicht ganz:" after it denies nothing (DE sample, Nov 2026).
+  // The question has to be the belief: a hook that goes on after it ("Your
+  // gumline after brushing? Take a look.") asks the viewer to look, it does not
+  // state something to deny, unless what follows is the denial itself.
+  const [asking, ...after] = hook.split(/[?？؟]/u);
+  const asked = asking.trim().split(/\s+/u).filter(Boolean).length;
+  const tail = after.join(" ").trim().toLocaleLowerCase();
+  const belief = /[?？؟]/u.test(hook) && asked >= 3 && (!tail || tail.includes(nq));
+  if (hook && afterHook.toLocaleLowerCase().startsWith(nq) && (!belief || /\b(mistake|fehler|hata|error)\b/i.test(hook)))
     out.push(`"${afterHook}" answers "${hook}" with "${notQuite(profile.language)}", but the hook states no belief to deny — start the answer directly`);
   for (const o of offRegister(`${screen}\n${narration}`, profile.language)) out.push(`"${o}" is a stock opener or too casual for a practice's feed — say it plainly`);
   if (mixedAddress(`${screen}\n${narration}`, profile.language)) out.push(`formal and informal address are mixed — use one form throughout`);

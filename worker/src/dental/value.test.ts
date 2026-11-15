@@ -348,6 +348,16 @@ describe("a reflexive 'Not quite' after a hook that denies nothing", () => {
       }) as unknown as ScenePlan;
     expect(scriptProblems(p("Rinsing aligners with water? That's the mistake.", "Not quite. Rinse them every time you take them out."), us).join("\n")).toMatch(/states no belief to deny/);
     expect(scriptProblems(p("Whitening thins your enamel? Not quite.", "Not quite. Dentists usually don't see enamel thinning."), us).join("\n")).not.toMatch(/states no belief to deny/);
+    const de = { language: "de" as const, country: "DE", name: "Demo Zahnarztpraxis" };
+    expect(scriptProblems(p("Kaffee drin? Aligner sehen es sofort.", "Nicht ganz: Meist färben sich Aligner durch Beläge und Getränke."), de).join("\n")).toMatch(/states no belief to deny/);
+    expect(scriptProblems(p("Bleaching macht den Zahnschmelz kaputt?", "Nicht ganz: Fachgerecht gemacht greift es den Schmelz meist nicht an."), de).join("\n")).not.toMatch(/states no belief to deny/);
+    const withFootage = (hook: string, caption: string, next: string) => {
+      const plan = p(hook, next) as unknown as { scenes: unknown[] };
+      plan.scenes.splice(1, 0, { kind: "footage", source: { type: "stock", query: "toothbrush close up" }, caption, seconds: 3 });
+      return plan as unknown as ScenePlan;
+    };
+    expect(scriptProblems(withFootage("Your gumline after brushing? Take a look.", "Aim at the gumline.", "Not quite. Tilt the brush toward the gums."), us).join("\n")).toMatch(/states no belief to deny/);
+    expect(scriptProblems(p("Brushing twice a day and still missing spots?", "Not quite if you only scrub the middle of the teeth."), us).join("\n")).toMatch(/inside a sentence/);
     expect(offRegister("Sensitivity can feel zippy, then settle down.", "en")).toEqual(["zippy"]);
   });
 });
