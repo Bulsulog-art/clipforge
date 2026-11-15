@@ -4,7 +4,8 @@ import { GUIDES, LOCALES } from "@/content/dentvideo";
 import { SOLUTIONS } from "@/content/solutions";
 import { LEGAL_KINDS } from "@/content/legal/types";
 import { landingMetadata } from "./seo";
-import { SEO_DESCRIPTION_MAX, aboutMetadata, checkerMetadata, guideMetadata, guidesIndexMetadata, legalMetadata, solutionMetadata } from "./seo-guides";
+import { EXAMPLES } from "@/content/dentvideo-examples";
+import { SEO_DESCRIPTION_MAX, aboutMetadata, checkerMetadata, exampleMetadata, examplesHubMetadata, guideMetadata, guidesIndexMetadata, legalMetadata, solutionMetadata } from "./seo-guides";
 
 /**
  * Every public DentVideo page's <meta name="description">: short enough for a
@@ -14,11 +15,13 @@ import { SEO_DESCRIPTION_MAX, aboutMetadata, checkerMetadata, guideMetadata, gui
 const pages: [string, Metadata][] = [
   ...GUIDES.map((g): [string, Metadata] => [`guide ${g.slug}`, guideMetadata(g)]),
   ...SOLUTIONS.map((s): [string, Metadata] => [`page ${s.slug}`, solutionMetadata(s)]),
+  ...EXAMPLES.map((e): [string, Metadata] => [`example ${e.locale}/${e.slug}`, exampleMetadata(e)]),
   ...LOCALES.flatMap((l): [string, Metadata][] => [
     [`${l} landing`, landingMetadata(l)],
     [`${l} guides hub`, guidesIndexMetadata(l)],
     [`${l} about`, aboutMetadata(l)],
     [`${l} ad checker`, checkerMetadata(l)],
+    [`${l} examples hub`, examplesHubMetadata(l)],
     ...LEGAL_KINDS.map((k): [string, Metadata] => [`${l} ${k}`, legalMetadata(k, l)]),
   ]),
 ];

@@ -33,6 +33,8 @@ const PUBLIC_PAGES: RegExp[] = [
   new RegExp(`^/dentvideo(?:/${LOCALE})?$`),
   // About and the guides hub, in every language.
   new RegExp(`^/dentvideo(?:/${LOCALE})?/(?:about|guides)$`),
+  // The examples showcase and one example video, in every language.
+  new RegExp(`^/dentvideo(?:/${LOCALE})?/examples(?:/${SLUG})?$`),
   // One guide, one video page.
   new RegExp(`^/dentvideo/(?:guides|videos)/${SLUG}$`),
   // Machine-readable site files.

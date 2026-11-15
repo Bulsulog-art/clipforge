@@ -10,6 +10,7 @@ import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
 import { CommercialLinks } from "./solution-page";
 import { solutionsFor } from "@/content/solutions";
+import { EXAMPLES_PATH, EXAMPLES_UI } from "@/content/dentvideo-examples";
 
 const ORDER: GuideCategory[] = ["ideas", "treatments", "video", "rules", "tools"];
 
@@ -39,6 +40,12 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
             <CommercialLinks locale={locale} pages={solutionsFor(locale)} />
           </div>
         )}
+        <p className="mt-6 max-w-3xl">
+          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex items-center gap-1.5 text-[1.0625rem] font-semibold text-dv-teal underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal" data-testid="hub-examples-link">
+            {EXAMPLES_UI[locale].seeAll}
+            <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+          </Link>
+        </p>
         {groups.map(({ c, items }) => (
           <section key={c} className="mt-14 sm:mt-16" aria-labelledby={`cat-${c}`}>
             <h2 id={`cat-${c}`} className="dv-display text-[2rem] leading-tight text-dv-ink sm:text-[2.5rem]">{ui.categories[c]}</h2>

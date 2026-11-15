@@ -19,10 +19,13 @@ describe("aliasFor: guessed dentvideo.com addresses", () => {
     expect(aliasFor("/en", "")).toBe("/");
   });
 
-  it("sends /samples, /demo and /contact guesses to the samples section and the imprint", () => {
-    expect(aliasFor("/samples", "")).toBe("/#samples");
+  it("sends /samples, /demo and /contact guesses to the examples, the samples section and the imprint", () => {
+    expect(aliasFor("/samples", "")).toBe("/examples");
+    expect(aliasFor("/tr/samples", "")).toBe("/tr/examples");
     expect(aliasFor("/demo", "?utm_source=x")).toBe("/?utm_source=x#samples");
-    expect(aliasFor("/de/examples", "")).toBe("/de#samples");
+    // The examples showcase is a real page in every language: never redirected.
+    expect(aliasFor("/examples", "")).toBeNull();
+    expect(aliasFor("/de/examples", "")).toBeNull();
     expect(aliasFor("/how-it-works", "")).toBe("/#how");
     expect(aliasFor("/contact", "")).toBe("/imprint");
     expect(aliasFor("/tr/contact-us", "")).toBe("/tr/imprint");

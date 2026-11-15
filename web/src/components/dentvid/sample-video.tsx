@@ -35,6 +35,8 @@ export function SampleVideo({ src, poster, title, playLabel }: { src: string; po
         src={src}
         poster={poster}
         controls={started}
+        controlsList="nodownload noremoteplayback"
+        disablePictureInPicture
         playsInline
         preload="none"
         aria-label={title}
