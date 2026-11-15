@@ -64,7 +64,7 @@ export const TREATMENTS_EN: Guide[] = [
             ["The stages of implant treatment", "Why it is several visits, not one", "Social media; implant page on your website"],
             ["Is an implant right for me?", "Assessment, X-rays or scans, gum health and bone", "Before the first consultation"],
             ["Implant, bridge or denture?", "The options in neutral terms, decided after an examination", "Website; consultation follow-up"],
-            ["The day of placement", "What happens in the chair, local anaesthetic, how long it takes", "Message to the patient before surgery"],
+            ["The day of placement", "What happens in the chair, local anesthetic, how long it takes", "Message to the patient before surgery"],
             ["The first week after placement", "Swelling, soft food, cleaning, when to call the clinic", "Aftercare message; waiting room"],
             ["Looking after an implant long term", "Cleaning, check-ups, why gums around implants need care too", "Social media; recall reminders"],
           ],
@@ -80,7 +80,7 @@ export const TREATMENTS_EN: Guide[] = [
           columns: ["Risky wording", "Why it is a problem", "Safer wording"],
           rows: [
             ["“Permanent teeth” or “teeth for life”", "Implants need maintenance and can fail; it is a promise of a result", "“Designed to be long-lasting with good care and regular check-ups”"],
-            ["“Painless implants”", "An absolute claim no clinic can guarantee for every patient", "“Placed under local anaesthetic; we explain what you may feel afterwards”"],
+            ["“Painless implants”", "An absolute claim no clinic can guarantee for every patient", "“Placed under local anesthetic; we explain what you may feel afterwards”"],
             ["“New teeth in one day” as a headline", "Misleading if it applies only to some cases and leaves out the healing phase", "“In some cases a temporary tooth can be fitted the same day — ask whether that applies to you”"],
             ["Before-and-after photos of a patient", "Restricted or banned for some treatments in several countries, and they need written consent", "An illustration or a model showing the stages"],
             ["Patient testimonials", "Restricted in many countries and covered by consumer law in others", "Explain the process in your own words"],
@@ -115,14 +115,14 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "How DentVideo makes implant videos for your clinic",
         paragraphs: [
-          "[DentVideo](landing:) plans videos only from the treatments you list. If you offer implants, implant topics such as the stages, suitability and aftercare come up in your weekly set alongside prevention topics. Each video is narrated and captioned in your language and colours, and each script is checked for the claims above — “permanent”, “painless”, guarantees, prices, before-and-after promises — and for clinical accuracy before you see it. Nothing is posted until you approve it. You can [see a live preview with your own logo](start:) before choosing a plan.",
+          "[DentVideo](landing:) plans videos only from the treatments you list. If you offer implants, implant topics such as the stages, suitability and aftercare come up in your weekly set alongside prevention topics. Each video is narrated and captioned in your language and colors, and each script is checked for the claims above — “permanent”, “painless”, guarantees, prices, before-and-after promises — and for clinical accuracy before you see it. Nothing is posted until you approve it. You can [see a live preview with your own logo](start:) before choosing a plan.",
         ],
       },
     ],
     faq: [
       {
         q: "Can I use implant animations from a manufacturer in my clinic's videos?",
-        a: "Often yes, if the manufacturer's licence allows it — check the terms. Be careful that the video does not turn into product promotion for an implant brand: in several countries promoting a medical device to the public has its own rules.",
+        a: "Often yes, if the manufacturer's license allows it — check the terms. Be careful that the video does not turn into product promotion for an implant brand: in several countries promoting a medical device to the public has its own rules.",
       },
       {
         q: "Should implant videos mention how long implants last?",
@@ -180,7 +180,7 @@ export const TREATMENTS_EN: Guide[] = [
             ["Wearing time, explained", "Why aligners only work while they are in", "Start-of-treatment message; social media"],
             ["Eating and drinking with aligners", "Take them out for anything but water, then brush", "Social media; waiting room"],
             ["Keeping aligners clean and fresh", "Rinsing, gentle cleaning, why hot water is a bad idea", "Start-of-treatment message"],
-            ["What attachments are for", "Small tooth-coloured shapes that help the aligner grip", "Before the attachment appointment"],
+            ["What attachments are for", "Small tooth-colored shapes that help the aligner grip", "Before the attachment appointment"],
             ["A new set feels tight", "Pressure is common for a day or two; when to call the clinic", "Social media; follow-up message"],
             ["Why a retainer comes next", "Teeth can move back; retainers keep the result", "End-of-treatment message"],
           ],
@@ -228,7 +228,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "How DentVideo makes aligner videos for your clinic",
         paragraphs: [
-          "The sample above is a real DentVideo video for a demo clinic. If you list clear aligners as a service, [DentVideo](landing:) plans aligner topics like these into your weekly set, writes and narrates them in your language and colours, and checks each script for absolute claims, promised timelines, brand promotion and clinical accuracy before you see it. You approve each one and post it yourself. [See a live preview with your logo](start:) before you pay.",
+          "The sample above is a real DentVideo video for a demo clinic. If you list clear aligners as a service, [DentVideo](landing:) plans aligner topics like these into your weekly set, writes and narrates them in your language and colors, and checks each script for absolute claims, promised timelines, brand promotion and clinical accuracy before you see it. You approve each one and post it yourself. [See a live preview with your logo](start:) before you pay.",
         ],
       },
     ],
@@ -269,7 +269,7 @@ export const TREATMENTS_EN: Guide[] = [
         list: [
           "Does whitening damage or thin the enamel?",
           "Why are my teeth sensitive after whitening, and how long does it last?",
-          "Will whitening change the colour of my crowns, veneers or fillings?",
+          "Will whitening change the color of my crowns, veneers or fillings?",
           "Is home whitening with trays from the clinic different from shop-bought kits?",
           "Can I drink coffee or red wine after whitening?",
           "How long does a whitening result last?",
@@ -305,7 +305,7 @@ export const TREATMENTS_EN: Guide[] = [
           caption: "Whitening wording: risky and safer",
           columns: ["Risky wording", "Why it is a problem", "Safer wording"],
           rows: [
-            ["“Eight shades whiter” or “Hollywood smile”", "A promised result that varies from person to person", "“How much lighter teeth become depends on their starting colour”"],
+            ["“Eight shades whiter” or “Hollywood smile”", "A promised result that varies from person to person", "“How much lighter teeth become depends on their starting color”"],
             ["“Instant results”", "Misleading when several sessions or days are usual", "“We explain how many sessions or days your treatment usually takes”"],
             ["“No sensitivity”", "Sensitivity is a common, usually temporary side effect", "“Some people feel temporary sensitivity; we explain how to manage it”"],
             ["Before-and-after photos", "Restricted for cosmetic treatments in several countries; need consent", "Explain with a shade guide or illustration"],
@@ -324,7 +324,7 @@ export const TREATMENTS_EN: Guide[] = [
           "Start with the myth or the question: “Whitening thins your enamel? Not quite.”",
           "Give the plain answer in one or two sentences, without a number of shades.",
           "Add the practical tip: what to avoid for the first days, or what helps with sensitivity.",
-          "Name the limit: crowns and fillings keep their colour; results vary.",
+          "Name the limit: crowns and fillings keep their color; results vary.",
           "Invite, don't sell: “Ask us whether whitening suits your teeth.”",
         ],
       },
@@ -339,7 +339,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "How DentVideo makes whitening videos for your clinic",
         paragraphs: [
-          "The sample above — “Whitening thins your enamel? Not quite.” — is a real DentVideo video for a demo clinic. If whitening is one of your services, [DentVideo](landing:) plans myth-busting and aftercare topics into your weekly set, narrated and captioned in your language and colours, and checks every script for promised shades, “instant” claims, price promotion and clinical accuracy before you see it. [See your own branded preview](start:) before you choose a plan.",
+          "The sample above — “Whitening thins your enamel? Not quite.” — is a real DentVideo video for a demo clinic. If whitening is one of your services, [DentVideo](landing:) plans myth-busting and aftercare topics into your weekly set, narrated and captioned in your language and colors, and checks every script for promised shades, “instant” claims, price promotion and clinical accuracy before you see it. [See your own branded preview](start:) before you choose a plan.",
         ],
       },
     ],
@@ -429,7 +429,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "How do you talk about dental fear in a video?",
         paragraphs: [
-          "Parents often say “don't be scared” or “it won't hurt” with good intentions, but both put the idea of fear and pain into the child's head. A short video for parents can suggest calmer language instead: describe what will happen in neutral words (“the dentist will count your teeth”), read a picture book about a dentist visit, let the child bring a favourite toy, and keep your own worries to yourself.",
+          "Parents often say “don't be scared” or “it won't hurt” with good intentions, but both put the idea of fear and pain into the child's head. A short video for parents can suggest calmer language instead: describe what will happen in neutral words (“the dentist will count your teeth”), read a picture book about a dentist visit, let the child bring a favorite toy, and keep your own worries to yourself.",
           "This is one of the most shared kinds of clinic video, because it helps parents directly — and it shows how your clinic treats children without a single image of one.",
         ],
       },
@@ -530,7 +530,7 @@ export const TREATMENTS_EN: Guide[] = [
             ["“Gum disease causes heart attacks”", "Overstates research that shows associations, not simple causes", "“Research links gum health with some general health conditions; ask us what that means for you”"],
             ["“You will lose your teeth”", "Fear-based and not true for every patient", "“Untreated, it can lead to loose teeth — treated early, it can often be managed well”"],
             ["“Cure gum disease for good”", "Periodontitis usually needs ongoing maintenance", "“Treatment and regular maintenance can keep it under control”"],
-            ["“Painless deep cleaning”", "An absolute claim about how a patient will feel", "“Usually done with local anaesthetic; we explain what to expect”"],
+            ["“Painless deep cleaning”", "An absolute claim about how a patient will feel", "“Usually done with local anesthetic; we explain what to expect”"],
           ],
         },
         after: [
@@ -552,7 +552,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "When should gum disease videos be posted?",
         paragraphs: [
-          "Gum health fits naturally into any month, and several countries hold gum health awareness days or months — the [content calendar](guide:dental-social-media-content-calendar) lists the dates for your market. Post the bleeding-gums video early in a series; it is the one most viewers recognise themselves in. Send the deep-clean video before scaling appointments and the maintenance video with recall reminders.",
+          "Gum health fits naturally into any month, and several countries hold gum health awareness days or months — the [content calendar](guide:dental-social-media-content-calendar) lists the dates for your market. Post the bleeding-gums video early in a series; it is the one most viewers recognize themselves in. Send the deep-clean video before scaling appointments and the maintenance video with recall reminders.",
           "Gum topics also balance a feed heavy on cosmetic treatments. Our [dental social media post ideas](guide:dental-social-media-post-ideas) guide shows a month that mixes prevention, treatment and the team.",
           "Hygienists are often the most natural presenters for gum topics. If a hygienist on your team is willing to record a few minutes, a clip of them showing an interdental brush on a model is more convincing than any graphic — and it puts a familiar face to the maintenance visits you are asking patients to keep.",
         ],
@@ -560,7 +560,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "How DentVideo makes gum disease videos",
         paragraphs: [
-          "[DentVideo](landing:) plans gum health topics into your weekly set from the services you offer, writes and narrates them in your language and colours, and checks every script for fear-based wording, overstated health claims, “painless” promises and clinical accuracy before you see it. No graphic images are used: footage is limited to objects. [See a live preview with your logo](start:) before you pay.",
+          "[DentVideo](landing:) plans gum health topics into your weekly set from the services you offer, writes and narrates them in your language and colors, and checks every script for fear-based wording, overstated health claims, “painless” promises and clinical accuracy before you see it. No graphic images are used: footage is limited to objects. [See a live preview with your logo](start:) before you pay.",
         ],
       },
     ],
@@ -616,7 +616,7 @@ export const TREATMENTS_EN: Guide[] = [
           columns: ["Video", "What it answers", "Where it helps most"],
           rows: [
             ["Why a root canal?", "Inflamed or infected pulp, and the aim of keeping the tooth", "Social media; website"],
-            ["What happens in the chair", "Local anaesthetic, cleaning the canals, filling and sealing", "Message before the appointment"],
+            ["What happens in the chair", "Local anesthetic, cleaning the canals, filling and sealing", "Message before the appointment"],
             ["One visit or two?", "Why it depends on the tooth and the infection", "Message before the appointment"],
             ["Why a crown often follows", "Protecting a back tooth after treatment", "Follow-up message"],
             ["The days afterwards", "Tenderness, chewing on the other side, when to call", "Aftercare message"],
@@ -633,11 +633,11 @@ export const TREATMENTS_EN: Guide[] = [
           caption: "Root canal wording: risky and safer",
           columns: ["Risky wording", "Why it is a problem", "Safer wording"],
           rows: [
-            ["“Painless root canals”", "An absolute claim no clinic can guarantee", "“Done under local anaesthetic — many patients say it feels similar to a filling”"],
+            ["“Painless root canals”", "An absolute claim no clinic can guarantee", "“Done under local anesthetic — many patients say it feels similar to a filling”"],
             ["“Saves your tooth forever”", "A promised, permanent result", "“The aim is to keep your own tooth; with a good restoration and care it can last a long time”"],
             ["“Root canal or lose your tooth!”", "Fear-based pressure", "“The alternative is usually removing the tooth; we explain both options”"],
             ["Graphic footage of an open tooth", "Distressing; adds to fear rather than reducing it", "An illustration of the tooth's layers"],
-            ["Patient quotes such as “didn't feel a thing”", "A testimonial, restricted in many countries", "Explain the anaesthetic in your own words"],
+            ["Patient quotes such as “didn't feel a thing”", "A testimonial, restricted in many countries", "Explain the anesthetic in your own words"],
           ],
         },
         after: [
@@ -668,14 +668,14 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "How DentVideo makes root canal videos",
         paragraphs: [
-          "If you offer endodontic treatment, [DentVideo](landing:) plans root canal topics into your weekly set, narrated and captioned in your language and colours. Every script is checked for “painless” and other absolute claims, fear-based wording, testimonials and clinical accuracy before you see it, and nothing is posted until you approve it. [See a live preview with your own logo](start:).",
+          "If you offer endodontic treatment, [DentVideo](landing:) plans root canal topics into your weekly set, narrated and captioned in your language and colors. Every script is checked for “painless” and other absolute claims, fear-based wording, testimonials and clinical accuracy before you see it, and nothing is posted until you approve it. [See a live preview with your own logo](start:).",
         ],
       },
     ],
     faq: [
       {
         q: "Can a dentist say a root canal doesn't hurt?",
-        a: "Avoid absolute promises such as “painless”. You can explain that treatment is done under local anaesthetic and that many patients describe it as similar to a filling, and that some tenderness afterwards is common.",
+        a: "Avoid absolute promises such as “painless”. You can explain that treatment is done under local anesthetic and that many patients describe it as similar to a filling, and that some tenderness afterwards is common.",
       },
       {
         q: "Should a root canal video mention extraction as an alternative?",
