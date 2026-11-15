@@ -40,7 +40,7 @@ export type SupportCopy = {
 export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   en: {
     email: {
-      help: "Questions or something to change? Just reply to this email. A real person reads every message at {email}.",
+      help: "Questions? Reply to this email or write to {email}. A person reads every message.",
       linkFallback: "Button not working? Open this link:",
       country: "Montenegro",
     },
@@ -56,7 +56,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   },
   de: {
     email: {
-      help: "Fragen oder Änderungswünsche? Antworten Sie einfach auf diese E-Mail. Unter {email} liest ein Mensch jede Nachricht.",
+      help: "Fragen? Antworten Sie auf diese E-Mail oder schreiben Sie an {email}. Jede Nachricht liest ein Mensch.",
       linkFallback: "Die Schaltfläche funktioniert nicht? Öffnen Sie diesen Link:",
       country: "Montenegro",
     },
@@ -72,7 +72,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   },
   es: {
     email: {
-      help: "¿Dudas o algo que cambiar? Responde a este correo. Una persona lee cada mensaje en {email}.",
+      help: "¿Alguna duda? Responde a este correo o escribe a {email}. Cada mensaje lo lee una persona.",
       linkFallback: "¿El botón no funciona? Abre este enlace:",
       country: "Montenegro",
     },
@@ -88,7 +88,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   },
   tr: {
     email: {
-      help: "Sorunuz ya da değiştirmek istediğiniz bir şey mi var? Bu e-postayı yanıtlamanız yeterli. {email} adresine gelen her mesajı bir ekip üyemiz okur.",
+      help: "Sorunuz mu var? Bu e-postayı yanıtlayın ya da {email} adresine yazın. Her mesajı bir ekip üyemiz okur.",
       linkFallback: "Düğme çalışmıyor mu? Bu bağlantıyı açın:",
       country: "Karadağ",
     },
@@ -104,7 +104,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   },
   fr: {
     email: {
-      help: "Une question ou une modification ? Répondez simplement à cet e-mail. Une vraie personne lit chaque message envoyé à {email}.",
+      help: "Une question ? Répondez à cet e-mail ou écrivez à {email}. Chaque message est lu par une personne.",
       linkFallback: "Le bouton ne fonctionne pas ? Ouvrez ce lien :",
       country: "Monténégro",
     },
@@ -120,7 +120,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   },
   ja: {
     email: {
-      help: "ご質問や変更のご希望は、このメールにそのままご返信ください。{email} に届いたメッセージは、すべてスタッフが拝読します。",
+      help: "ご不明な点は、このメールへのご返信、または {email} までお寄せください。すべてスタッフが拝読します。",
       linkFallback: "ボタンが動かない場合は、こちらのリンクを開いてください：",
       country: "モンテネグロ",
     },
@@ -136,7 +136,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   },
   ar: {
     email: {
-      help: "لديكم سؤال أو تعديل؟ يكفي الرد على هذه الرسالة. يقرأ أحد أفراد فريقنا كل رسالة تصل إلى {email}.",
+      help: "لديكم سؤال؟ ردّوا على هذه الرسالة أو راسلونا على {email}. يقرأ أحد أفراد فريقنا كل رسالة.",
       linkFallback: "الزر لا يعمل؟ افتحوا هذا الرابط:",
       country: "الجبل الأسود",
     },
@@ -152,7 +152,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
   },
   pl: {
     email: {
-      help: "Pytania lub zmiany? Wystarczy odpowiedzieć na tę wiadomość. Każdą wiadomość wysłaną na {email} czyta człowiek.",
+      help: "Mają Państwo pytania? Wystarczy odpowiedzieć na tę wiadomość lub napisać na {email}. Każdą wiadomość czyta człowiek.",
       linkFallback: "Przycisk nie działa? Proszę otworzyć ten link:",
       country: "Czarnogóra",
     },
@@ -179,7 +179,7 @@ export function supportText(language: string | null | undefined): { lang: Locale
 /** "DentVideo · BLS AI Automation DOO · Neznanih Junaka 60, 81000 Podgorica, Montenegro" — every email's footer. */
 export function companyLine(language: string | null | undefined): string {
   const { copy } = supportText(language);
-  return `DentVideo · ${OPERATOR.shortName} · ${OPERATOR.street}, ${OPERATOR.postalCode} ${OPERATOR.city}, ${copy.email.country}`;
+  return `${OPERATOR.legalName} · ${OPERATOR.street}, ${OPERATOR.postalCode} ${OPERATOR.city}, ${copy.email.country}`;
 }
 
 const fillVars = (s: string, vars: Record<string, string>) => s.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? vars[k] : m));

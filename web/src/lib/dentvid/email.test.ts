@@ -56,3 +56,30 @@ describe("deliveryAddress: test inboxes never get real mail", async () => {
     expect(deliveryAddress("tester+1@gmail.com", { DENTVID_TEST_EMAIL_PATTERNS: "tester+*@*" })).toBe(TEST_EMAIL_SINK);
   });
 });
+
+describe("sendEmail: from DentVideo, replies to hello@dentvideo.com, HTML and plain text", async () => {
+  const { sendEmail } = await import("./email");
+  const { vi, afterEach } = await import("vitest");
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+  it("posts one message to Resend with the DentVideo sender, reply-to, both parts and the test-address sink", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("DENTVIDEO_EMAIL_FROM", "");
+    vi.stubEnv("DENTVIDEO_EMAIL_REPLY_TO", "");
+    const calls: { url: string; body: Record<string, unknown> }[] = [];
+    vi.stubGlobal("fetch", async (url: string, init: { body: string }) => {
+      calls.push({ url, body: JSON.parse(init.body) });
+      return new Response("{}", { status: 200 });
+    });
+    const { sampleEmailFor } = await import("./email-samples");
+    const m = sampleEmailFor("code", "tr");
+    expect(await sendEmail("qa+x@bulsulabs.com", m, { log: null })).toBe(true);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe("https://api.resend.com/emails");
+    expect(calls[0].body).toMatchObject({ from: "DentVideo <hello@dentvideo.com>", reply_to: "hello@dentvideo.com", to: ["delivered@resend.dev"], subject: "DentVideo doğrulama kodunuz: 482913" });
+    expect(calls[0].body.html).toBe(m.html);
+    expect(calls[0].body.text).toBe(m.text);
+  });
+});

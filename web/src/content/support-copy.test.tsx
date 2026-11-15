@@ -42,7 +42,7 @@ describe("support copy (email help line, Help & contact)", () => {
   });
 
   it("the footer's company line names the operator and its address, country in the reader's language", () => {
-    expect(companyLine("en")).toBe("DentVideo · BLS AI Automation DOO · Neznanih Junaka 60, 81000 Podgorica, Montenegro");
+    expect(companyLine("en")).toBe('"BLS AI AUTOMATION" DOO PODGORICA · Neznanih Junaka 60, 81000 Podgorica, Montenegro');
     expect(companyLine("tr")).toContain("Karadağ");
     expect(supportText("pt").lang).toBe("en");
   });

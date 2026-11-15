@@ -245,12 +245,12 @@ describe("a reset link lets an account another app made with the address into De
 describe("the code email", () => {
   it("is in the visitor's language, carries the code, and flips for Arabic", () => {
     const tr = codeEmail({ language: "tr", code: "048213" });
-    expect(tr.subject).toBe("DentVideo kodunuz: 048213");
+    expect(tr.subject).toBe("DentVideo doğrulama kodunuz: 048213");
     expect(tr.text).toContain("048 213");
     expect(tr.html).toContain('lang="tr" dir="ltr"');
     const ar = codeEmail({ language: "ar", code: "048213" });
     expect(ar.html).toContain('dir="rtl"');
-    expect(ar.html).toMatch(/<span dir="ltr"[^>]*style="font-family:'SF Mono'/);
-    expect(codeEmail({ language: "it", code: "111111" }).subject).toBe("111111 is your DentVideo code");
+    expect(ar.html).toMatch(/<span dir="ltr" class="dv-code[^>]*>048 213</);
+    expect(codeEmail({ language: "it", code: "111111" }).subject).toBe("Your DentVideo verification code: 111111");
   });
 });
