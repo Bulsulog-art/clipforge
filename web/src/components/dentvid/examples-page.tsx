@@ -75,7 +75,7 @@ function ExampleCard({ e, row = false }: { e: ExampleVideo; row?: boolean }) {
   return (
     <Link
       href={dvHref(examplePath(e))}
-      className={`dv-card group flex h-full overflow-hidden p-4 ${row ? "items-center gap-4 sm:flex-col sm:items-stretch sm:gap-0" : "flex-col"}`}
+      className={`dv-card dv-lift group flex h-full overflow-hidden p-4 ${row ? "items-center gap-4 sm:flex-col sm:items-stretch sm:gap-0" : "flex-col"}`}
       lang={e.locale}
       dir={dirOf(e.locale)}
     >
@@ -144,7 +144,8 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
 
         <section className="mt-16" aria-labelledby="other-languages">
           <h2 id="other-languages" className="text-[1.5rem] font-semibold leading-snug tracking-tight text-dv-ink sm:text-[1.75rem]">{ui.moreHeading}</h2>
-          <div className="mt-6 space-y-10">
+          {/* Two languages side by side from lg: each row of three cards fills its half instead of leaving half the page empty. */}
+          <div className="mt-6 grid gap-x-10 gap-y-10 lg:grid-cols-2">
             {(Object.keys(EXAMPLES_PATH) as Locale[])
               .filter((l) => l !== locale && examplesFor(l).length > 0)
               .map((l) => (
@@ -152,7 +153,7 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
                   <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-dv-muted rtl:tracking-normal" lang={l}>
                     {LANGUAGE_NAME[l]}
                   </h3>
-                  <ul className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                  <ul className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
                     {examplesFor(l).map((e) => (
                       <li key={e.slug}>
                         <ExampleCard e={e} />

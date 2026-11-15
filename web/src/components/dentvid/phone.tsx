@@ -23,31 +23,34 @@ export function PhoneFrame({
    */
   tightShadow?: boolean;
 }) {
+  // Layered: a contact shadow, a mid shadow and a long soft ambient one, all tinted with the brand's deep teal.
   const shadow = tightShadow
-    ? "shadow-[0_14px_22px_-14px_rgba(8,46,45,0.55)] sm:shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]"
-    : "shadow-[0_50px_100px_-30px_rgba(8,46,45,0.55),0_30px_60px_-40px_rgba(8,46,45,0.6)]";
+    ? "shadow-[0_14px_22px_-14px_rgba(8,46,45,0.55)] sm:shadow-[0_2px_4px_rgba(8,46,45,0.12),0_24px_48px_-20px_rgba(8,46,45,0.4),0_60px_100px_-40px_rgba(8,46,45,0.45)]"
+    : "shadow-[0_2px_4px_rgba(8,46,45,0.12),0_24px_48px_-20px_rgba(8,46,45,0.4),0_60px_100px_-40px_rgba(8,46,45,0.45)]";
   // `compact`: a small phone below the lg breakpoint (the hero's first screen on phones), full size from lg up.
+  // A slimmer bezel than a real phone's at this size reads as more precise, and gives the video more of the frame.
   const r = compact
     ? {
-        outer: "rounded-[1.6rem] lg:rounded-[2.9rem]",
-        mid: "rounded-[1.5rem] p-[5px] lg:rounded-[2.75rem] lg:p-[9px]",
-        screen: "rounded-[1.2rem] lg:rounded-[2.2rem]",
-        island: "top-1.5 h-[10px] lg:top-2.5 lg:h-[22px]",
+        outer: "rounded-[1.6rem] lg:rounded-[2.75rem]",
+        mid: "rounded-[1.5rem] p-[4px] lg:rounded-[2.65rem] lg:p-[7px]",
+        screen: "rounded-[1.25rem] lg:rounded-[2.2rem]",
+        island: "top-1.5 h-[10px] lg:top-2.5 lg:h-[20px]",
       }
-    : { outer: "rounded-[2.9rem]", mid: "rounded-[2.75rem] p-[9px]", screen: "rounded-[2.2rem]", island: "top-2.5 h-[22px]" };
+    : { outer: "rounded-[2.75rem]", mid: "rounded-[2.65rem] p-[7px]", screen: "rounded-[2.2rem]", island: "top-2.5 h-[20px]" };
   return (
     <div className={`relative ${className}`}>
       {/* side buttons */}
-      <span aria-hidden="true" className="absolute -left-[3px] top-[18%] h-[7%] w-[3px] rounded-l bg-[#2b3634]" />
-      <span aria-hidden="true" className="absolute -left-[3px] top-[28%] h-[11%] w-[3px] rounded-l bg-[#2b3634]" />
-      <span aria-hidden="true" className="absolute -right-[3px] top-[24%] h-[14%] w-[3px] rounded-r bg-[#2b3634]" />
-      <div className={`${r.outer} bg-gradient-to-b from-[#3a4644] via-[#1b2523] to-[#2f3b39] p-[3px] ${shadow}`}>
-        <div className={`${r.mid} bg-[#0b1110]`}>
+      <span aria-hidden="true" className="absolute -left-[2px] top-[18%] h-[6%] w-[2px] rounded-l bg-[#5d6866]" />
+      <span aria-hidden="true" className="absolute -left-[2px] top-[27%] h-[10%] w-[2px] rounded-l bg-[#5d6866]" />
+      <span aria-hidden="true" className="absolute -right-[2px] top-[24%] h-[13%] w-[2px] rounded-r bg-[#5d6866]" />
+      {/* titanium rim: a light edge catching the light at the top, darker at the waist */}
+      <div className={`${r.outer} bg-[linear-gradient(160deg,#8a9694_0%,#3b4745_18%,#1c2624_55%,#4a5654_100%)] p-[2px] ${shadow}`}>
+        <div className={`${r.mid} bg-[#070b0a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]`}>
           <div className={`relative aspect-[9/16] overflow-hidden ${r.screen} bg-[#0b3f3e]`}>
             {children}
-            <span aria-hidden="true" className={`absolute left-1/2 ${r.island} w-[30%] -translate-x-1/2 rounded-full bg-black`} />
-            {/* glass sheen */}
-            <span aria-hidden="true" className={`pointer-events-none absolute inset-0 ${r.screen} bg-[linear-gradient(115deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0)_32%)]`} />
+            <span aria-hidden="true" className={`absolute left-1/2 ${r.island} w-[29%] -translate-x-1/2 rounded-full bg-black`} />
+            {/* glass sheen and a hairline where the glass meets the bezel */}
+            <span aria-hidden="true" className={`pointer-events-none absolute inset-0 ${r.screen} bg-[linear-gradient(115deg,rgba(255,255,255,0.09)_0%,rgba(255,255,255,0)_30%)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]`} />
           </div>
         </div>
       </div>

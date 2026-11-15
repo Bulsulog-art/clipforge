@@ -175,7 +175,7 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
       <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-8 px-4 py-16 [grid-template-areas:'text'_'phone'_'form'] sm:px-6 sm:py-24 lg:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-y-0 lg:[grid-template-areas:'text_phone'_'form_phone']">
         <div className="min-w-0 [grid-area:text] lg:self-end">
           <p className="dv-eyebrow">{copy.eyebrow}</p>
-          <h2 id="try-heading" className="dv-display dv-h2 mt-4 text-balance text-[2.125rem] leading-[1.08] text-dv-ink sm:text-[2.75rem] lg:text-[3.25rem]">
+          <h2 id="try-heading" className="dv-display dv-h2 mt-4 text-balance text-dv-ink">
             {copy.heading}
           </h2>
           <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{copy.text}</p>

@@ -56,7 +56,7 @@ function Eyebrow({ children, className = "" }: { children: React.ReactNode; clas
 /** Section heading in the display serif: H2 only (cards and prices stay in the sans). */
 function H2({ children, className = "", id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <h2 id={id} className={`dv-display dv-h2 text-balance text-[2.125rem] leading-[1.08] text-dv-ink sm:text-[2.75rem] lg:text-[3.25rem] ${className}`}>
+    <h2 id={id} className={`dv-display dv-h2 text-balance text-dv-ink ${className}`}>
       {children}
     </h2>
   );
@@ -105,7 +105,7 @@ function Hero({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   const hero = landingSamples(locale)[0];
   return (
-    <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#f6f1e9] to-dv-paper">
+    <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#f4efe6] via-[#f8f4ee] to-dv-paper">
       {/*
         Phones: what arrives, the main action and the price, then a large playing sample, then the three facts.
         From lg: the copy on the left, the phone on the right; the facts under the copy.
@@ -113,12 +113,13 @@ function Hero({ locale }: { locale: Locale }) {
       <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-4 pb-16 pt-8 [grid-template-areas:'text'_'phone'_'facts'] sm:px-6 sm:pt-14 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:grid-rows-[auto_1fr] lg:pb-28 lg:pt-20 lg:[grid-template-areas:'text_phone'_'facts_phone']">
         <div className="dv-rise min-w-0 [grid-area:text]">
           <Eyebrow>{c.hero.eyebrow}</Eyebrow>
-          <h1 className="dv-display dv-h1 mt-4 text-balance text-[2.5rem] leading-[1.05] text-dv-ink sm:text-[3.5rem] lg:text-[4.25rem] lg:leading-[1.02]">{c.hero.h1}</h1>
+          <h1 className="dv-display dv-h1 mt-4 text-balance text-dv-ink">{c.hero.h1}</h1>
           <p className="mt-5 max-w-[36rem] text-[1.0625rem] leading-relaxed text-dv-body sm:text-lg">{c.hero.lead}</p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
             {/* Down to the no-account logo preview right below the hero; the sign-up is the next step from there. */}
             <TryLink locale={locale} className="dv-btn dv-btn-primary px-7 py-4 text-base">
               {c.hero.cta}
+              <ArrowRight className="dv-nudge h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
             </TryLink>
             <a href="#samples" className="dv-link inline-flex min-h-11 items-center justify-center gap-1.5 font-semibold sm:justify-start">
               {c.hero.samplesLink}
@@ -136,28 +137,38 @@ function Hero({ locale }: { locale: Locale }) {
           </p>
         </div>
 
-        <ul className="min-w-0 space-y-3 border-t border-dv-line pt-6 [grid-area:facts] lg:self-start" data-hero-points>
+        {/* Three short facts: a column on phones, three equal columns under the copy from sm up. */}
+        <ul className="grid min-w-0 gap-3 border-t border-dv-line pt-6 [grid-area:facts] sm:grid-cols-3 sm:gap-6 lg:self-start" data-hero-points>
           {c.hero.facts.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-dv-ink">
+            <li key={f} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-dv-ink sm:gap-2.5 sm:text-sm">
               <Tick />
               {f}
             </li>
           ))}
         </ul>
 
-        <div className="relative mx-auto w-full max-w-[15.5rem] [grid-area:phone] sm:max-w-[17rem] lg:max-w-[19rem] lg:self-center">
+        <div className="relative mx-auto w-full max-w-[15.5rem] [grid-area:phone] sm:max-w-[17rem] lg:max-w-[19.5rem] lg:self-center">
+          {/* A soft halo and two hairline lens rings behind the phone (CSS only, no image). */}
+          <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 -z-10 aspect-square w-[150%] -translate-x-1/2 -translate-y-1/2">
+            <div className="dv-halo absolute inset-0 rounded-full" />
+            <div className="dv-rings absolute inset-[30%] max-sm:hidden" />
+          </div>
           <PhoneFrame>
             {hero ? (
               <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} loop={hero.hero} />
             ) : null}
           </PhoneFrame>
-          {/* The app's own words, beside the phone (from sm up; on a phone the video speaks for itself). */}
-          <p aria-hidden="true" className="dv-card absolute -start-28 top-[18%] hidden items-center gap-2 px-3.5 py-2.5 text-[0.8125rem] font-semibold text-dv-ink md:flex">
-            <span className="h-2 w-2 rounded-full bg-dv-teal" />
+          {/* The app's own words, beside the phone (from md up; on a phone the video speaks for itself). */}
+          <p aria-hidden="true" className="dv-glass-note absolute -start-32 top-[20%] hidden items-center gap-2.5 py-2 pe-4 ps-2 text-[0.8125rem] font-semibold text-dv-ink md:flex">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-dv-teal-50 ring-1 ring-inset ring-dv-teal/20">
+              <span className="h-2 w-2 rounded-full bg-dv-teal" />
+            </span>
             {c.mock.ready}
           </p>
-          <p aria-hidden="true" className="dv-card absolute -end-16 bottom-[16%] hidden items-center gap-2 px-3.5 py-2.5 text-[0.8125rem] font-semibold text-dv-ink md:flex">
-            <Check className="h-4 w-4 text-dv-teal" strokeWidth={3} />
+          <p aria-hidden="true" className="dv-glass-note absolute -end-20 bottom-[18%] hidden items-center gap-2.5 py-2 pe-4 ps-2 text-[0.8125rem] font-semibold text-dv-ink md:flex">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-dv-teal text-white">
+              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+            </span>
             {c.mock.copied}
           </p>
         </div>
@@ -183,11 +194,30 @@ function Monday({ locale }: { locale: Locale }) {
           <H2 id="monday-heading">{m.heading}</H2>
           <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{m.lead}</p>
           {shown && (
-            <div className="mt-12 hidden w-[15rem] lg:block">
-              <PhoneFrame tightShadow>
-                {/* eslint-disable-next-line @next/next/no-img-element -- the sample's own poster (540 × 960 JPEG) */}
-                <img src={sampleSrc(locale, shown.slug, "jpg")} alt={shown.name} width={540} height={960} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-              </PhoneFrame>
+            // The week as a small fanned stack: the sample in front, two of the others behind it (desktop only).
+            <div className="relative mt-14 hidden h-[27rem] w-[19rem] lg:block">
+              {week
+                .filter((v) => v.slug !== shown.slug)
+                .slice(0, 2)
+                .map((v, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element -- the samples' own posters (540 × 960 JPEG), decoration
+                  <img
+                    key={v.slug}
+                    src={sampleSrc(locale, v.slug, "jpg")}
+                    alt=""
+                    width={540}
+                    height={960}
+                    loading="lazy"
+                    decoding="async"
+                    className={`absolute top-6 w-[11rem] rounded-[1.5rem] object-cover opacity-90 shadow-[0_0_0_1px_rgba(20,33,31,0.08),0_24px_40px_-24px_rgba(8,46,45,0.5)] ${i === 0 ? "left-0 -rotate-6" : "right-0 rotate-6"}`}
+                  />
+                ))}
+              <div className="absolute left-1/2 top-0 w-[13rem] -translate-x-1/2">
+                <PhoneFrame tightShadow>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- the sample's own poster (540 × 960 JPEG) */}
+                  <img src={sampleSrc(locale, shown.slug, "jpg")} alt={shown.name} width={540} height={960} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+                </PhoneFrame>
+              </div>
             </div>
           )}
         </div>
@@ -284,19 +314,24 @@ function Value({ locale }: { locale: Locale }) {
   return (
     <Section id="value" labelledBy="value-heading">
       <H2 id="value-heading" className="max-w-3xl">{v.heading}</H2>
-      <div className="mt-10 grid gap-x-12 gap-y-9 sm:grid-cols-2 lg:mt-14 lg:gap-x-20 lg:gap-y-12">
-        {v.items.map((it) => (
-          <div key={it.title} className="border-t border-dv-teal/40 pt-5">
-            <h3 className="text-lg font-semibold leading-snug tracking-tight text-dv-ink">{it.title}</h3>
-            <p className="mt-2 max-w-[34rem] leading-relaxed text-dv-body">{it.text}</p>
+      {/* A small bento: four equal cards, then the honest ROI line across the full width on deep teal. */}
+      <div className="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-5 lg:mt-14">
+        {v.items.map((it, i) => (
+          <div key={it.title} className="dv-card flex gap-4 p-5 sm:flex-col sm:gap-5 sm:p-8">
+            <span aria-hidden="true" className="dv-index">{i + 1}</span>
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold leading-snug tracking-tight text-dv-ink">{it.title}</h3>
+              <p className="mt-2 max-w-[34rem] leading-relaxed text-dv-body">{it.text}</p>
+            </div>
           </div>
         ))}
+        {/* The ROI line: honest, no figures. */}
+        <figure className="dv-on-dark dv-grain relative overflow-hidden rounded-[1.25rem] bg-dv-teal-900 px-6 py-8 sm:col-span-2 sm:px-10 sm:py-11">
+          <div aria-hidden="true" className="pointer-events-none absolute -end-24 -top-32 -z-10 h-80 w-80 rounded-full bg-[#167269]/50 blur-3xl" />
+          <blockquote className="dv-display max-w-3xl text-balance text-[1.5rem] leading-[1.2] text-white sm:text-[2rem]">{v.roi}</blockquote>
+          <figcaption className="mt-4 max-w-2xl text-sm leading-relaxed text-[#b9d3ce]">{v.roiNote}</figcaption>
+        </figure>
       </div>
-      {/* The ROI line: honest, no figures. */}
-      <figure className="mt-12 rounded-[1.25rem] bg-dv-sand px-6 py-7 ring-1 ring-inset ring-dv-line sm:px-10 sm:py-9 lg:mt-16">
-        <blockquote className="dv-display max-w-3xl text-balance text-[1.5rem] leading-[1.2] text-dv-ink sm:text-[1.875rem]">{v.roi}</blockquote>
-        <figcaption className="mt-4 max-w-2xl text-sm leading-relaxed text-dv-muted">{v.roiNote}</figcaption>
-      </figure>
     </Section>
   );
 }
@@ -310,16 +345,19 @@ function How({ locale }: { locale: Locale }) {
   return (
     <Section id="how" labelledBy="how-heading" className="border-t border-dv-line">
       <H2 id="how-heading">{h.heading}</H2>
-      <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8 lg:mt-14 lg:gap-12">
+      <ol className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-3 lg:gap-6">
         {h.steps.map((s, i) => (
-          // Phones: the words beside a small real screen; from md: the screen above the words.
+          // Phones and tablets: the words beside a real screen; from lg: a card whose screen rises out of a tinted
+          // panel (dentvideo.css .dv-step), the words under it.
           // content-start: a step whose text runs shorter than its neighbour's must not stretch its rows, or its
           // number and title drop below the others' (the three columns share one row height).
-          <li key={s.title} className="grid grid-cols-[minmax(0,1fr)_7.5rem] content-start items-start gap-5 md:grid-cols-1 md:gap-7">
-            <Screen locale={locale} name={SHOTS[i]} alt={h.shots[i]} className="order-2 w-full md:order-none md:mx-auto md:max-w-[14rem]" />
-            <div>
-              <span aria-hidden="true" className="dv-display dv-figure text-[2.5rem] leading-none text-dv-teal">{i + 1}</span>
-              <h3 className="mt-3 text-lg font-semibold leading-snug tracking-tight text-dv-ink">{s.title}</h3>
+          <li key={s.title} className="dv-step grid grid-cols-[minmax(0,1fr)_7.5rem] content-start items-start gap-5 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center sm:gap-10 lg:grid-cols-1 lg:items-start lg:gap-0">
+            <div className="dv-step-panel order-2 lg:order-none">
+              <Screen locale={locale} name={SHOTS[i]} alt={h.shots[i]} className="w-full" />
+            </div>
+            <div className="sm:max-w-md lg:max-w-none lg:px-7 lg:pb-8 lg:pt-6">
+              <span aria-hidden="true" className="dv-index">{i + 1}</span>
+              <h3 className="mt-4 text-lg font-semibold leading-snug tracking-tight text-dv-ink">{s.title}</h3>
               <p className="mt-2 leading-relaxed text-dv-body">{s.text}</p>
             </div>
           </li>
@@ -366,12 +404,13 @@ function Control({ locale }: { locale: Locale }) {
 function Rules({ locale }: { locale: Locale }) {
   const r = LANDING[locale].rules;
   return (
-    <section id="rules" aria-labelledby="rules-heading" className="dv-on-dark scroll-mt-20 bg-dv-teal-900 text-[#f7f1e7]" data-rules>
+    <section id="rules" aria-labelledby="rules-heading" className="dv-on-dark dv-grain relative scroll-mt-20 overflow-hidden bg-dv-teal-900 text-[#f7f1e7]" data-rules>
+      <div aria-hidden="true" className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[56rem] -translate-x-1/2 rounded-full bg-[#167269]/40 blur-3xl" />
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-24 lg:py-28">
         <H2 id="rules-heading" className="max-w-3xl !text-white">{r.heading}</H2>
         <p className="mt-5 max-w-3xl text-[1.0625rem] leading-relaxed text-[#d5e6e2]">{r.lead}</p>
-        <div className="mt-8 grid gap-8 md:grid-cols-2 lg:mt-14 lg:gap-16">
-          <div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-5 lg:mt-14">
+          <div className="rounded-[1.25rem] bg-white/[0.06] p-6 ring-1 ring-inset ring-white/10 sm:p-8">
             <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-[#8fd1c6]">{r.doesHeading}</h3>
             <ul className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
               {r.does.map((d) => (
@@ -384,7 +423,7 @@ function Rules({ locale }: { locale: Locale }) {
               ))}
             </ul>
           </div>
-          <div>
+          <div className="rounded-[1.25rem] p-6 ring-1 ring-inset ring-white/10 sm:p-8">
             <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-[#8fd1c6]">{r.doesNotHeading}</h3>
             <ul className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
               {r.doesNot.map((d) => (
@@ -398,7 +437,7 @@ function Rules({ locale }: { locale: Locale }) {
             </ul>
           </div>
         </div>
-        <p className="mt-10 border-t border-white/15 pt-6 text-[0.9375rem] leading-relaxed text-[#d5e6e2]">{r.close}</p>
+        <p className="mt-8 text-[0.9375rem] leading-relaxed text-[#d5e6e2] lg:mt-10">{r.close}</p>
       </div>
     </section>
   );
@@ -559,18 +598,20 @@ function Pricing({ locale }: { locale: Locale }) {
           <p className="mx-auto mt-5 max-w-2xl text-[1.0625rem] leading-relaxed text-dv-body">{p.text}</p>
         </div>
 
-        {/* Tablets: the two plans side by side and Group across under them; three from lg. */}
-        <ul className="mt-10 grid gap-5 md:grid-cols-2 md:items-stretch lg:mt-14 lg:grid-cols-3">
+        {/* From md: the two plans side by side, Group as a slim row across under them (it has no price to compare). */}
+        <ul className="mx-auto mt-10 grid max-w-[60rem] gap-5 md:grid-cols-2 md:items-stretch lg:mt-14 lg:gap-6">
           {p.tiers.map((tier, i) => {
             const featured = i === 1;
             return (
-              <li key={tier.name} data-tier={TIER_IDS[i]} className={`dv-card relative flex flex-col p-7 ${featured ? "ring-2 ring-dv-teal" : ""}`}>
-                {featured && <span className="absolute -top-3 start-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white">{p.recommended}</span>}
-                <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
+              <li key={tier.name} data-tier={TIER_IDS[i]} className={`relative flex flex-col rounded-[1.5rem] p-7 sm:p-8 ${featured ? "dv-featured" : "dv-card"}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
+                  {featured && <span className="rounded-full bg-dv-teal-50 px-3 py-1 text-xs font-semibold text-dv-teal ring-1 ring-inset ring-dv-teal/25">{p.recommended}</span>}
+                </div>
                 {/* Held to the same height from md up, so the prices of the side-by-side plans sit on one line. */}
-                <p className="mt-1 text-sm leading-relaxed text-dv-muted md:min-h-[3lh]">{tier.blurb}</p>
+                <p className="mt-1 text-sm leading-relaxed text-dv-muted md:min-h-[2lh]">{tier.blurb}</p>
                 <p className="mt-5 flex flex-wrap items-baseline gap-x-1.5">
-                  <span dir="ltr" className="dv-price text-[2.75rem] font-semibold leading-none tracking-tight text-dv-ink">
+                  <span dir="ltr" className="dv-price text-[3rem] font-semibold leading-none tracking-tight text-dv-ink sm:text-[3.25rem]">
                     <TierPrice locale={locale} tier={TIER_IDS[i]} />
                   </span>
                   <span className="text-[0.9375rem] font-medium text-dv-muted">{p.perMonth}</span>
@@ -589,7 +630,7 @@ function Pricing({ locale }: { locale: Locale }) {
                 <div className="mt-auto pt-8">
                   <TrackedLink href={start} locale={locale} where="pricing" className={`dv-btn w-full px-5 py-3.5 text-[0.9375rem] ${featured ? "dv-btn-primary" : "dv-btn-secondary !text-dv-teal"}`}>
                     {p.cta}
-                    <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                    <ArrowRight className="dv-nudge h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
                   </TrackedLink>
                 </div>
               </li>
@@ -612,19 +653,22 @@ function Pricing({ locale }: { locale: Locale }) {
           </li>
         </ul>
 
-        <Scope locale={locale} />
+        {/* The fine print under the plans keeps the plans' width, so the whole block reads as one column. */}
+        <div className="mx-auto max-w-[60rem]">
+          <Scope locale={locale} />
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <Before locale={locale} />
-          <details className="group h-fit rounded-[1.25rem] bg-white/70 ring-1 ring-inset ring-dv-line" data-pricing-why>
-            <summary className="flex min-h-11 cursor-pointer items-start justify-between gap-6 p-6 text-lg font-semibold leading-snug text-dv-ink sm:p-8">
-              {c.pricingWhy.q}
-              <span aria-hidden="true" className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-200 group-open:rotate-45">
-                <Plus className="h-4 w-4" />
-              </span>
-            </summary>
-            <p className="-mt-2 px-6 pb-6 leading-relaxed text-dv-body sm:px-8 sm:pb-8">{c.pricingWhy.a}</p>
-          </details>
+          <div className="mt-6 grid gap-6">
+            <Before locale={locale} />
+            <details className="group h-fit rounded-[1.25rem] bg-white/70 ring-1 ring-inset ring-dv-line" data-pricing-why>
+              <summary className="flex min-h-11 cursor-pointer items-start justify-between gap-6 p-6 text-lg font-semibold leading-snug text-dv-ink sm:p-8">
+                {c.pricingWhy.q}
+                <span aria-hidden="true" className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-200 group-open:rotate-45">
+                  <Plus className="h-4 w-4" />
+                </span>
+              </summary>
+              <p className="-mt-2 px-6 pb-6 leading-relaxed text-dv-body sm:px-8 sm:pb-8">{c.pricingWhy.a}</p>
+            </details>
+          </div>
         </div>
       </div>
     </section>
@@ -635,12 +679,14 @@ function Pricing({ locale }: { locale: Locale }) {
 function GroupCard({ locale }: { locale: Locale }) {
   const g = GROUP_CONTACT[locale];
   return (
-    <li className="dv-card relative flex flex-col p-7 md:col-span-2 lg:col-span-1" data-tier="group">
-      <h3 className="text-lg font-semibold text-dv-ink">{g.name}</h3>
-      <p className="mt-5 text-xl font-semibold leading-snug text-dv-ink">{g.price}</p>
-      <p className="mt-6 border-t border-dv-line pt-6 text-[0.9375rem] leading-relaxed text-dv-body">{g.text}</p>
-      <div className="mt-auto pt-8">
-        <a href={groupMailto(locale)} className="dv-btn dv-btn-secondary w-full px-5 py-3.5 text-[0.9375rem] !text-dv-teal">
+    <li className="dv-card relative flex flex-col gap-5 p-7 sm:p-8 md:col-span-2 md:flex-row md:items-center md:gap-10" data-tier="group">
+      <div className="md:w-56 md:shrink-0">
+        <h3 className="text-lg font-semibold text-dv-ink">{g.name}</h3>
+        <p className="mt-1 text-[0.9375rem] font-semibold leading-snug text-dv-teal">{g.price}</p>
+      </div>
+      <p className="border-t border-dv-line pt-5 text-[0.9375rem] leading-relaxed text-dv-body md:flex-1 md:border-s md:border-t-0 md:ps-10 md:pt-0">{g.text}</p>
+      <div className="md:shrink-0">
+        <a href={groupMailto(locale)} className="dv-btn dv-btn-secondary w-full px-6 py-3.5 text-[0.9375rem] !text-dv-teal md:w-auto">
           <Mail className="h-4 w-4" aria-hidden="true" />
           {g.cta}
         </a>
@@ -689,7 +735,7 @@ function Before({ locale }: { locale: Locale }) {
   return (
     <div className="rounded-[1.25rem] bg-white/70 p-6 ring-1 ring-inset ring-dv-line sm:p-8" data-before>
       <h3 className="text-lg font-semibold text-dv-ink">{b.heading}</h3>
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-5 grid gap-x-10 gap-y-4 md:grid-cols-2">
         {b.items.map((it) => (
           <li key={it.title} className="flex gap-3 leading-relaxed text-dv-body">
             <Tick />
@@ -777,7 +823,16 @@ function Faq({ locale }: { locale: Locale }) {
   return (
     <Section id="faq" labelledBy="faq-heading" className="border-t border-dv-line" inner="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:gap-16">
       <div>
-        <H2 id="faq-heading" className="lg:sticky lg:top-28">{c.faqHeading}</H2>
+        <div className="lg:sticky lg:top-28">
+          <H2 id="faq-heading">{c.faqHeading}</H2>
+          {/* Who answers when the list does not: the same words and address as "Who is behind DentVideo". */}
+          <p className="mt-5 max-w-xs text-[0.9375rem] leading-relaxed text-dv-body">
+            {c.trust.contact}{" "}
+            <a href={`mailto:${OPERATOR.productEmail}`} className="dv-link font-semibold" dir="ltr">
+              {OPERATOR.productEmail}
+            </a>
+          </p>
+        </div>
       </div>
       <div className="divide-y divide-dv-line border-y border-dv-line">
         {c.faq.map((f, i) => (
@@ -800,13 +855,16 @@ function Final({ locale }: { locale: Locale }) {
   const f = LANDING[locale].final;
   return (
     <section aria-labelledby="final-heading" className="px-4 pb-16 sm:px-6 sm:pb-24" data-final>
-      <div className="mx-auto max-w-6xl rounded-[1.5rem] bg-dv-sand px-6 py-12 text-center ring-1 ring-inset ring-dv-line sm:px-10 sm:py-16">
-        <H2 id="final-heading" className="mx-auto max-w-2xl">{f.heading}</H2>
-        <p className="mx-auto mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{f.text}</p>
-        <TryLink locale={locale} where="final" className="dv-btn dv-btn-primary mt-8 px-7 py-4 text-base">
+      {/* The page's last word on deep teal: the one action again, with the price beside it. */}
+      <div className="dv-on-dark dv-grain relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] bg-dv-teal-900 px-6 py-14 text-center sm:px-10 sm:py-20">
+        <div aria-hidden="true" className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-96 w-[48rem] -translate-x-1/2 rounded-full bg-[#167269]/60 blur-3xl" />
+        <H2 id="final-heading" className="mx-auto max-w-2xl !text-white">{f.heading}</H2>
+        <p className="mx-auto mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-[#d5e6e2]">{f.text}</p>
+        <TryLink locale={locale} where="final" className="dv-btn dv-btn-light mt-9 px-7 py-4 text-base">
           {f.cta}
+          <ArrowRight className="dv-nudge h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
         </TryLink>
-        <p className="mt-4 text-sm text-dv-muted">
+        <p className="mt-5 text-sm text-[#a9c7c1]">
           <FromPrice locale={locale} template={f.small} />
         </p>
       </div>
