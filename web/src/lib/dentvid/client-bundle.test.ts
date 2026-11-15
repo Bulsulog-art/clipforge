@@ -139,6 +139,9 @@ describe("DentVideo public pages: browser bundle", () => {
       // …the click-id rules and the 8-language prompt are a separate chunk (dynamic import).
       expect(files).not.toContain("components/dentvid/ad-consent-prompt.tsx");
       expect(files).not.toContain("lib/dentvid/ad-click.ts");
+      // ?dv_internal= handling and the pattern rules are not on load (only the tiny flag reader, via events-client).
+      expect(files).not.toContain("lib/dentvid/internal-optin.ts");
+      expect(files).not.toContain("lib/dentvid/internal-traffic.ts");
     });
 
     it(`${name}: client source stays within budget`, () => {

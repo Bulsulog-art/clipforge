@@ -117,6 +117,19 @@ describe("server recording fails soft", () => {
     expect(insert).toHaveBeenCalledWith({ name: "checkout_opened", locale: "de", clinic_id: CLINIC, props: { tier: "practice", interval: "month", founding: true, via: "api" } });
   });
 
+  it("an internal account's server event carries props.internal = true (and nothing when not internal)", async () => {
+    const insert = vi.fn(async () => ({ error: null }));
+    const db = { from: vi.fn(() => ({ insert })) };
+    await recordEvent("signup_completed", { db: db as never, locale: "tr", props: { utm_source: "google", utm_medium: "cpc" }, internal: true });
+    await recordEvent("signup_completed", { db: db as never, locale: "tr", internal: false });
+    await recordEvent("signup_completed", { db: db as never, locale: "tr" });
+    expect(insert.mock.calls.map((c) => (c as unknown as [{ props: Record<string, unknown> }])[0].props)).toEqual([
+      { utm_source: "google", utm_medium: "cpc", internal: true },
+      {},
+      {},
+    ]);
+  });
+
   it("a missing table is not an error, and is not retried on every request", async () => {
     const insert = vi.fn(async () => ({ error: { code: "42P01", message: 'relation "public.dentvid_events" does not exist' } }));
     const db = { from: () => ({ insert }) };

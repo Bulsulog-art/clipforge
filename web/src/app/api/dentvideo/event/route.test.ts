@@ -22,6 +22,7 @@ const ADMIN = "7d3f1c2a-9b8e-4f6d-a1c2-3e4f5a6b7c8d";
 const DEMO = "Ab3dE5fG7hJ";
 const SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1";
 let sessionId = "u1";
+let sessionEmail = "dr@clinic.example";
 const hot: Record<string, unknown>[] = [];
 vi.mock("@/lib/dentvid/hot-leads-server", async (orig) => ({
   ...(await orig<typeof import("@/lib/dentvid/hot-leads-server")>()),
@@ -32,7 +33,7 @@ vi.mock("@/lib/dentvid/hot-leads-server", async (orig) => ({
 }));
 vi.mock("@/lib/dentvid/auth", () => ({
   dvSession: async () => ({
-    user: { id: sessionId, email: "dr@clinic.example" },
+    user: { id: sessionId, email: sessionEmail, app_metadata: {} },
     db: {
       from: () => {
         const q = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: { id: CLINIC }, error: null }) };
@@ -54,7 +55,24 @@ describe("POST /api/dentvideo/event", () => {
     hot.length = 0;
     limitOk = true;
     sessionId = "u1";
+    sessionEmail = "dr@clinic.example";
     process.env.DENTVIDEO_ADMIN_USER_IDS = ADMIN;
+  });
+
+  it("internal traffic: a flagged browser's events keep props.internal = true; an internal account's clinic events are tagged by the server", async () => {
+    await post(JSON.stringify({ name: "landing_view", locale: "de", props: { utm_source: "google", utm_medium: "cpc", utm_campaign: "de-search-core", internal: true } }));
+    // Only `true` is kept: nothing else rides on the flag.
+    await post(JSON.stringify({ name: "landing_view", props: { internal: "yes" } }));
+    await post(JSON.stringify({ name: "plan_viewed", props: {} }));
+    sessionEmail = "qa+checkout@bulsulabs.com";
+    await post(JSON.stringify({ name: "plan_viewed", props: {} }));
+    const props = (inserted as { name: string; props: Record<string, unknown> }[]).map((r) => [r.name, r.props.internal ?? null]);
+    expect(props).toEqual([
+      ["landing_view", true],
+      ["landing_view", null],
+      ["plan_viewed", null],
+      ["plan_viewed", true],
+    ]);
   });
 
   it("a demo page's play and CTA clicks are stored and raise a hot-lead alert (each step)", async () => {

@@ -13,6 +13,11 @@
  *   email, a name or a URL path cannot be stored by accident;
  * - anything that still looks like an email or a phone number is dropped;
  * - no IP, user agent or cookie id is ever part of an event.
+ *
+ * Internal traffic (lib/dentvid/internal-traffic): any event may carry
+ * props.internal = true — from an internally flagged browser
+ * (events-client) or set by the server for an internal account. Only `true`
+ * is stored; the admin views leave such events out by default.
  */
 
 export const DV_EVENTS = [
@@ -193,6 +198,8 @@ export function sanitizeProps(name: DvEventName, raw: unknown): DvProps {
     const v = clean(rule, (raw as Record<string, unknown>)[key]);
     if (v !== undefined) out[key] = v;
   }
+  // Internal traffic (owner, QA, monitor): only ever `true`, on any event.
+  if ((raw as Record<string, unknown>).internal === true) out.internal = true;
   return out;
 }
 
@@ -214,11 +221,13 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * stored as props.geo on any event, so the dashboard can split the funnel
  * by country before a clinic has told us its own.
  */
-export function buildEventRow(input: { name: unknown; locale?: unknown; props?: unknown; clinicId?: unknown; geo?: unknown }): DvEventRow | null {
+export function buildEventRow(input: { name: unknown; locale?: unknown; props?: unknown; clinicId?: unknown; geo?: unknown; internal?: boolean }): DvEventRow | null {
   if (!isDvEvent(input.name)) return null;
   const props = sanitizeProps(input.name, input.props);
   const geo = clean({ kind: "country" }, input.geo);
   if (typeof geo === "string") props.geo = geo;
+  // The server knows the account: an internal one tags the event whatever the props said.
+  if (input.internal === true) props.internal = true;
   return {
     name: input.name,
     locale: sanitizeLocale(input.locale),

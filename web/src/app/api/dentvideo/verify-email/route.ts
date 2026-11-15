@@ -10,6 +10,7 @@ import { fmtAuth, verifyText } from "@/content/dentvideo-auth";
 import { checkCode, isEmailVerified, normalizeEmail, pendingCode, verifySecret, VERIFY_RULES } from "@/lib/dentvid/verify-email";
 import { markEmailVerified, sendVerificationCode, type SendCodeResult } from "@/lib/dentvid/verify-email-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
+import { isInternalUser } from "@/lib/dentvid/internal-traffic";
 import { isDentvideoOnly } from "@/lib/dentvid/membership";
 import { requestCountry } from "@/lib/dentvid/geo-ip";
 
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
     }
     if (!(await markEmailVerified(user.id, email, "code"))) return json({ error: v.failed }, 503);
     // Funnel: the address was confirmed (no address, no user id stored).
-    void recordEvent("code_verified", { locale, props: body.attribution, geo: requestCountry(req.headers) });
+    void recordEvent("code_verified", { locale, props: body.attribution, geo: requestCountry(req.headers), internal: isInternalUser(user) });
     return json({ ok: true, verified: true, email });
   }
 

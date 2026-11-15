@@ -14,6 +14,9 @@ export function AdCapture() {
   const [Prompt, setPrompt] = useState<ComponentType | null>(null);
   useEffect(() => {
     captureFromLocation();
+    if (/[?&]dv_internal=/.test(window.location.search)) {
+      import("@/lib/dentvid/internal-optin").then((m) => m.applyInternalParam()).catch(() => {});
+    }
     if (/[?&](?:gclid|gbraid|wbraid)=/.test(window.location.search)) {
       import("./ad-consent-prompt").then((m) => setPrompt(() => m.AdConsent)).catch(() => {});
     }

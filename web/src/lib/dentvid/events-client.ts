@@ -1,5 +1,6 @@
 import type { DvEventName } from "./events";
 import { readAttribution } from "./attribution";
+import { isInternalBrowser } from "./internal-flag";
 
 /**
  * Send a funnel event from the browser — fire-and-forget. Never throws,
@@ -20,7 +21,8 @@ export function trackDv(name: DvEventName, opts: { locale?: string; props?: Reco
       }
     }
     // The tab's first-touch source rides along on every event (lib/dentvid/attribution).
-    const body = JSON.stringify({ name, locale: opts.locale, props: { ...readAttribution(), ...(opts.props ?? {}) } });
+    // Internal browser (owner, QA, e2e): tagged.
+    const body = JSON.stringify({ name, locale: opts.locale, props: { ...readAttribution(), ...(opts.props ?? {}), ...(isInternalBrowser() ? { internal: true } : {}) } });
     void fetch("/api/dentvideo/event", {
       method: "POST",
       headers: { "content-type": "application/json" },

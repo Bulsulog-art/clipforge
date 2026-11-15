@@ -8,13 +8,13 @@ import type { OverviewData, SystemData } from "@/lib/dentvid/admin-loaders";
 import type { AdminData, SpendState } from "@/lib/dentvid/admin-server";
 import { FunnelAndSources, type FunnelQuery } from "./admin-dashboard";
 import type { SystemSnapshot } from "@/lib/dentvid/admin-system-server";
-import { ActionForm, AdminShell, AllClear, Badge, Chip, Empty, FilterForm, PlanBadge, Section, Select, Stat, StatusBadge, Table, TextInput, Warn, ago, day, int, usd, when, type AdminLinks, type Viewer } from "./admin-ui";
+import { ActionForm, AdminShell, AllClear, Badge, Chip, Empty, FilterForm, PlanBadge, Section, Select, Stat, StatusBadge, Table, TextInput, Warn, ago, day, int, usd, when, type AdminLinks, type InternalView, type Viewer } from "./admin-ui";
 
 /** The Dodo dashboard (billing changes happen there, never in this panel). */
 export const dodoDashboard = (env: Record<string, string | undefined> = process.env) =>
   (env.DODO_DASHBOARD_URL || "https://app.dodopayments.com").replace(/\/+$/, "");
 
-type Common = { links: AdminLinks; viewer: Viewer; flash?: string | null; back: string };
+type Common = { links: AdminLinks; viewer: Viewer; flash?: string | null; back: string; internal?: InternalView };
 
 const LANGS = ["en", "de", "es", "fr", "it", "pt", "tr", "pl", "ja", "ar"].map((l) => [l, l.toUpperCase()] as [string, string]);
 
@@ -159,6 +159,7 @@ export function AdminClinics({ now, rows, filter, warnings, ...c }: Common & { n
   return (
     <AdminShell active="clinics" title="Clinics" lead={`${list.length} of ${rows.length} clinics`} now={now} warnings={warnings} {...c}>
       <FilterForm links={c.links} section="clinics" reset={c.links.section("clinics")}>
+        {c.internal?.included && <input type="hidden" name="internal" value="1" />}
         <TextInput name="q" label="Search" value={filter.q} placeholder="Name, id or subscription" />
         <Select
           name="plan"
@@ -901,6 +902,7 @@ export function AdminFunnelScreen({
       to: !q.days && custom ? range.to.toISOString().slice(0, 10) : undefined,
       locale: q.locale === undefined ? locale : q.locale,
       country: q.country === undefined ? country : q.country,
+      internal: c.internal?.included ? 1 : undefined,
     });
   };
   const href = (q: FunnelQuery) => c.links.section("funnel", params(q));
@@ -920,6 +922,7 @@ export function AdminFunnelScreen({
         ))}
         {locale && <input type="hidden" name="locale" value={locale} />}
         {country && <input type="hidden" name="country" value={country} />}
+        {c.internal?.included && <input type="hidden" name="internal" value="1" />}
         <label className="grid gap-0.5 text-dv-muted">
           From
           <input type="date" name="from" defaultValue={custom ? range.from.toISOString().slice(0, 10) : ""} className="min-h-9 rounded-lg border border-dv-line bg-white px-2 text-sm text-dv-ink" />
