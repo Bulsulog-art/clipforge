@@ -12,6 +12,8 @@ import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { readWeekDelay } from "@/lib/dentvid/ops-server";
 import { weekDelivered } from "@/lib/dentvid/week-job";
 import { adminOrNull, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
+import { marksBrowserInternal } from "@/lib/dentvid/internal-traffic";
+import { InternalMark } from "@/components/dentvid/internal-mark";
 
 export const dynamic = "force-dynamic";
 
@@ -57,19 +59,23 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const panel = plan.canMake ? null : await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin);
 
   return (
-    <AppHomeView
-      locale={locale}
-      clinicName={profile.name}
-      country={profile.country}
-      plan={plan}
-      items={items}
-      firstWeek={firstWeek}
-      madeThisWeek={madeThisWeek}
-      currentWeek={week}
-      weekDelay={weekDelay}
-      notice={notice}
-      plans={dvAvailablePlans()}
-      billingIssue={panel && panel.kind !== "plans" ? panel : null}
-    />
+    <>
+      {/* Owner / QA / e2e signed in: this browser is internal traffic from now on (lib/dentvid/internal-flag). */}
+      {marksBrowserInternal(user) && <InternalMark />}
+      <AppHomeView
+        locale={locale}
+        clinicName={profile.name}
+        country={profile.country}
+        plan={plan}
+        items={items}
+        firstWeek={firstWeek}
+        madeThisWeek={madeThisWeek}
+        currentWeek={week}
+        weekDelay={weekDelay}
+        notice={notice}
+        plans={dvAvailablePlans()}
+        billingIssue={panel && panel.kind !== "plans" ? panel : null}
+      />
+    </>
   );
 }

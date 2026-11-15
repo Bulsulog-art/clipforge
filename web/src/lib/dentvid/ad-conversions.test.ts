@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { AD_CONVERSIONS, paidConversionValue, acceptableClick, conversionsCsv, googleTime, rowsFor, withinWindow, type AdConversionRow } from "./ad-conversions";
 import { markExported, purgeAdData, recordPaidConversion, recordSignupClick } from "./ad-conversions-server";
 import { CLICK_TTL_MS } from "./ad-click";
+import { ownerIsInternal } from "./internal-server";
 
 const NOW = new Date("2026-11-15T10:00:00Z");
 const DAY = 86_400_000;
@@ -137,6 +138,38 @@ describe("recording conversions", () => {
     expect(calls[1]).toMatchObject({ table: "dentvid_clinics", filters: [["id", CLINIC]] });
     expect(calls[2].values).toMatchObject({ owner_id: OWNER, clinic_id: CLINIC, conversion_name: "dv_paid", value: 250, currency: "USD" });
     expect(calls[2].options).toEqual({ onConflict: "owner_id,conversion_name", ignoreDuplicates: true });
+  });
+
+  it("an internal owner's first payment never becomes a dv_paid conversion, even with a click stored", async () => {
+    const { db, calls } = fakeDb({ click_type: "gclid", click_id: click.id, consent: "granted", clicked_at: new Date(click.at).toISOString() });
+    const isInternal = vi.fn(async () => true);
+    expect(await recordPaidConversion(db, { id: CLINIC, owner_id: OWNER }, NOW, isInternal)).toBe("internal");
+    expect(isInternal).toHaveBeenCalledWith(db, OWNER);
+    expect(calls).toEqual([]);
+  });
+
+  it("the owner lookup: pattern or app_metadata.internal; a failed lookup counts as external (never blocks a real conversion)", async () => {
+    const users: Record<string, { email: string; app_metadata: Record<string, unknown> }> = {
+      qa: { email: "qa+pay@bulsulabs.com", app_metadata: {} },
+      flagged: { email: "x@example.org", app_metadata: { internal: true } },
+      clinic: { email: "dr@praxis.example", app_metadata: { product: "dentvideo" } },
+    };
+    const db = {
+      auth: {
+        admin: {
+          getUserById: async (id: string) => {
+            if (id === "boom") throw new Error("down");
+            return users[id] ? { data: { user: { id, ...users[id] } }, error: null } : { data: { user: null }, error: { message: "not found" } };
+          },
+        },
+      },
+    } as unknown as SupabaseClient;
+    expect(await ownerIsInternal(db, "qa")).toBe(true);
+    expect(await ownerIsInternal(db, "flagged")).toBe(true);
+    expect(await ownerIsInternal(db, "clinic")).toBe(false);
+    expect(await ownerIsInternal(db, "missing")).toBe(false);
+    expect(await ownerIsInternal(db, "boom")).toBe(false);
+    expect(await ownerIsInternal(db, null)).toBe(false);
   });
 
   it("a first payment from a clinic in Türkiye is valued at 150 USD", async () => {

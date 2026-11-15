@@ -227,7 +227,8 @@ export async function checkSignup(f: FetchLike, cfg: MonitorConfig, email: strin
       "user-agent": UA,
       ...(cfg.monitorToken ? { "x-dv-monitor": cfg.monitorToken } : {}),
     },
-    body: JSON.stringify({ email, password, website: "", elapsedMs: 6000, locale: "en" }),
+    // internal: the account is marked internal traffic (app_metadata.internal = true): never in the funnel, never an ad conversion.
+    body: JSON.stringify({ email, password, website: "", elapsedMs: 6000, locale: "en", internal: true }),
     redirect: "manual",
     signal: AbortSignal.timeout(cfg.timeoutMs),
   });

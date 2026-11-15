@@ -14,6 +14,8 @@ type Clinic = { id: string; owner_id: string; plan: string; plan_tier: string | 
  */
 function fakeDb(clinic: Clinic, itemsThisWeek = 0) {
   const updates: Record<string, unknown>[] = [];
+  /** Funnel events recorded through this client (dentvid_events). */
+  const events: { name: string; props: Record<string, unknown> }[] = [];
   const itemFilters: [string, string, unknown][] = [];
   const db = {
     from(table: string) {
@@ -22,6 +24,10 @@ function fakeDb(clinic: Clinic, itemsThisWeek = 0) {
       const q = {
         select: () => q,
         update: (p: Record<string, unknown>) => ((patch = p), q),
+        insert: (row: { name: string; props: Record<string, unknown> }) => {
+          if (table === "dentvid_events") events.push(row);
+          return q;
+        },
         eq: (k: string, v: unknown) => (filters.push(["eq", k, v]), q),
         neq: (k: string, v: unknown) => (filters.push(["neq", k, v]), q),
         maybeSingle: async () => {
@@ -43,7 +49,7 @@ function fakeDb(clinic: Clinic, itemsThisWeek = 0) {
       return q;
     },
   };
-  return { db: db as unknown as SupabaseClient, updates, itemFilters, clinic };
+  return { db: db as unknown as SupabaseClient, updates, itemFilters, clinic, events };
 }
 
 const unpaid = (): Clinic => ({ id: CLINIC, owner_id: OWNER, plan: "trial", plan_tier: null, dodo_subscription_id: null, plan_renews_at: null });
@@ -107,6 +113,25 @@ describe("payment webhook → first week", () => {
     await handleDentvideoEvent(first.db, { ...active(), type: "subscription.renewed", data: { ...active().data, next_billing_date: "2027-01-08T00:00:00Z" } }, { enqueueWeek, adConversion });
     await handleDentvideoEvent(fakeDb({ ...unpaid(), plan: "cancelled", dodo_subscription_id: "sub_old" }).db, active("sub_new"), { enqueueWeek, adConversion });
     expect(adConversion).toHaveBeenCalledTimes(1);
+  });
+
+  it("an internal owner's (QA, e2e, owner) first payment records no Google Ads conversion; a real one does", async () => {
+    const enqueueWeek = vi.fn(async () => "queued" as const);
+    const adConversion = vi.fn(async () => "recorded");
+    const ownerInternal = vi.fn(async () => true);
+    const qa = fakeDb(unpaid());
+    const r = await handleDentvideoEvent(qa.db, active(), { enqueueWeek, adConversion, ownerInternal });
+    expect(r.status).toBe(200);
+    expect(qa.clinic.plan).toBe("active");
+    expect(ownerInternal).toHaveBeenCalledWith(qa.db, OWNER);
+    expect(adConversion).not.toHaveBeenCalled();
+    // Its payment event is tagged internal, so the admin funnel leaves it out.
+    await vi.waitFor(() => expect(qa.events.map((e) => [e.name, e.props.internal])).toEqual([["payment_succeeded", true]]));
+    // The same payment for a real clinic.
+    const real = fakeDb(unpaid());
+    await handleDentvideoEvent(real.db, active(), { enqueueWeek, adConversion, ownerInternal: vi.fn(async () => false) });
+    expect(adConversion).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(real.events.map((e) => [e.name, e.props.internal ?? null])).toEqual([["payment_succeeded", null]]));
   });
 
   it("a failing ad conversion never fails the payment", async () => {

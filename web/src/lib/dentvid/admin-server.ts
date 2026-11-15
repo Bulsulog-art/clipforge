@@ -8,6 +8,8 @@ import { dvAdmin } from "./supabase";
 import { missingTable } from "./events-server";
 import { isEmailVerified } from "./verify-email";
 import type { AdminClinic, AdminEvent, AdminItem } from "./admin-metrics";
+import { withoutInternal, type InternalExcluded } from "./internal-traffic";
+import { loadInternalUserIds } from "./internal-server";
 
 /**
  * The owner dashboard's gate and data. Everyone who is not a signed-in
@@ -94,6 +96,12 @@ export type AdminData = {
   warnings: string[];
   /** Owner ids whose email is confirmed (lib/dentvid/verify-email); undefined when it could not be read. */
   verifiedOwners?: string[];
+  /**
+   * Internal traffic (lib/dentvid/internal-traffic): left out by default
+   * (`included` false) — tagged events, internal owners' clinics and their
+   * events and videos. `excluded` counts what was left out.
+   */
+  internal?: { included: boolean; excluded: InternalExcluded };
 };
 
 /** Which clinic owners confirmed their address. One admin call for up to 1000 users (Liman holds other apps' too). */
@@ -173,7 +181,7 @@ export async function loadDodoFoundingUses(): Promise<number | null> {
 }
 
 /** Everything the dashboard shows, loaded with the service role. Each source fails soft. */
-export async function loadAdminData(now = new Date(), opts: { eventDays?: number; itemDays?: number } = {}): Promise<AdminData> {
+export async function loadAdminData(now = new Date(), opts: { eventDays?: number; itemDays?: number; includeInternal?: boolean } = {}): Promise<AdminData> {
   const warnings: string[] = [];
   let db: SupabaseClient;
   try {
@@ -205,15 +213,23 @@ export async function loadAdminData(now = new Date(), opts: { eventDays?: number
   const eventsTable = !events.error;
   if (events.error && !missingTable(events.error)) warnings.push(`Events could not be read: ${events.error.message}`);
   const verifiedOwners = await loadVerifiedOwners(db, [...new Set(clinics.rows.map((c) => c.owner_id).filter((x): x is string => !!x))]);
+  const all = { clinics: clinics.rows, events: events.rows, items: items.rows };
+  let kept = all;
+  let excluded: InternalExcluded = { clinics: 0, events: 0, items: 0 };
+  if (!opts.includeInternal) {
+    const internalIds = await loadInternalUserIds(db);
+    // Users not listable: the event tags alone still apply.
+    if (!internalIds) warnings.push("Internal accounts could not be listed: only events tagged internal are left out.");
+    ({ excluded, ...kept } = withoutInternal(all, internalIds ?? new Set()));
+  }
   return {
     now: now.toISOString(),
-    clinics: clinics.rows,
-    events: events.rows,
-    items: items.rows,
+    ...kept,
     eventsTable,
     spend,
     dodoFoundingUses,
     warnings,
     verifiedOwners,
+    internal: { included: !!opts.includeInternal, excluded },
   };
 }

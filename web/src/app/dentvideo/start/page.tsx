@@ -18,6 +18,8 @@ import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { isEmailVerified } from "@/lib/dentvid/verify-email";
 import { legalPagesOn } from "@/lib/dentvid/legal";
 import type { ClinicProfile } from "@/lib/dentvid/profile";
+import { marksBrowserInternal } from "@/lib/dentvid/internal-traffic";
+import { InternalMark } from "@/components/dentvid/internal-mark";
 import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { DEMO_COOKIE, demoTokenFrom } from "@/lib/dentvid/demo-cookie";
 import { loadActiveDemo } from "@/lib/dentvid/demos-server";
@@ -93,6 +95,8 @@ export default async function StartPage({ searchParams }: Props) {
     <>
       <RememberLocale locale={locale} />
       <LazyScriptFont locale={locale} />
+      {/* Owner / QA / e2e signed in: this browser is internal traffic from now on (lib/dentvid/internal-flag). */}
+      {marksBrowserInternal(user) && <InternalMark />}
       <Onboarding
         locale={locale}
         step={step}

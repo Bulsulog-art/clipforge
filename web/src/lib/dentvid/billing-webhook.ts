@@ -18,6 +18,7 @@ import {
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
 import { recordEvent } from "./events-server";
 import { recordPaidConversion } from "./ad-conversions-server";
+import { ownerIsInternal } from "./internal-server";
 import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert";
 import { clinicRefFor, markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
 import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
@@ -46,6 +47,11 @@ export type DvWebhookDeps = {
   markPaid?: (clinicId: string) => Promise<void>;
   /** Record the Google Ads "dv_paid" conversion for a first payment (default: ad-conversions-server; best effort). */
   adConversion?: (db: SupabaseClient, clinic: { id: string; owner_id: string }) => Promise<string>;
+  /**
+   * Is the clinic's owner internal traffic (lib/dentvid/internal-traffic: owner, QA, e2e, monitor)?
+   * Internal owners never produce a Google Ads conversion, and their payment event is tagged internal.
+   */
+  ownerInternal?: (db: SupabaseClient, ownerId: string) => Promise<boolean>;
   /** The subscription ledger (0007); the default degrades to "unknown" when the table is missing. */
   subs?: SubscriptionStore;
   /**
@@ -505,10 +511,13 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
 
   // The owner hears about it: a new (or returning) paying clinic — good news, sent at once —
   // and a paying clinic whose subscription stopped (customer at risk).
+  // Internal traffic (owner, QA, e2e): looked up only when a payment lands, never on other events.
+  const internal = update.plan === "active" ? await (deps.ownerInternal ?? ownerIsInternal)(db, clinic.owner_id).catch(() => false) : false;
   if (to === "active" && from !== "active") {
     if (first) await (deps.markPaid ?? markPaid)(clinic.id).catch(() => {});
     // Google Ads offline conversion "dv_paid" when the owner came from an ad (one per account: a replay is a no-op).
-    if (first) await (deps.adConversion ?? recordPaidConversion)(db, { id: clinic.id, owner_id: clinic.owner_id }).catch(() => "failed");
+    // Never for an internal owner: a QA purchase must not reach Google Ads.
+    if (first && !internal) await (deps.adConversion ?? recordPaidConversion)(db, { id: clinic.id, owner_id: clinic.owner_id }).catch(() => "failed");
     await tell(db, deps, clinic.id, (c) =>
       alerts.newPayingClinic({
         clinic: { ...c, tier: c.tier ?? t.tier },
@@ -527,7 +536,7 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   // has already moved, and the app's "first week" screen asks for the week
   // again (idempotent, same job id) if this did not get through. A returning
   // clinic that already has this week's videos keeps them (enqueueFirstWeek).
-  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first, event: evt.type } });
+  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first, event: evt.type }, internal });
   let firstWeek: FirstWeekResult | "failed" | undefined;
   if (update.plan === "active" && from !== "active") {
     try {

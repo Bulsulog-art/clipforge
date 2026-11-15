@@ -181,6 +181,31 @@ describe("POST /api/dentvideo/signup", () => {
     expect(adClicks).toEqual([]);
   });
 
+  it("internal traffic: never an ad click or a dv_signup conversion; the account is marked internal (app_metadata) and its event tagged", async () => {
+    const at = Date.now() - 60_000;
+    const adClick = { type: "gclid", id: "TEST-QA-GCLID", at, consent: "not_required" };
+    const attribution = { utm_source: "google", utm_medium: "cpc", utm_campaign: "de-search-core" };
+    // An address matching the internal patterns (QA used real ad tags and test gclids)…
+    await signup({ email: "qa+ads@bulsulabs.com", attribution, adClick }, { "x-forwarded-for": "88.255.1.1" });
+    // …and an internally flagged browser with an ordinary-looking address.
+    await signup({ email: "owner.test@example.org", attribution, adClick, internal: true }, { "x-forwarded-for": "88.255.1.1" });
+    expect(adClicks).toEqual([]);
+    expect(created.map((c) => (c.app_metadata as Record<string, unknown>).internal)).toEqual([true, true]);
+    expect(recorded).toEqual([
+      ["signup_completed", { locale: "de", props: attribution, geo: "TR", internal: true }],
+      ["signup_completed", { locale: "de", props: attribution, geo: "TR", internal: true }],
+    ]);
+    // An address added by env (personal addresses live there, never in the repo).
+    vi.stubEnv("DENTVID_INTERNAL_EMAIL_PATTERNS", "owner.personal@example.net");
+    await signup({ email: "owner.personal@example.net", adClick }, { "x-forwarded-for": "88.255.1.1" });
+    expect(adClicks).toEqual([]);
+    // A real clinic from the same ad: kept, not internal. `internal: false` from a browser changes nothing.
+    await signup({ email: "dr@praxis.example", adClick, internal: false }, { "x-forwarded-for": "88.255.1.1" });
+    expect(adClicks).toEqual([["new-user", adClick]]);
+    expect(created.at(-1)?.app_metadata).toEqual({ product: "dentvideo" });
+    expect(recorded.at(-1)).toEqual(["signup_completed", { locale: "de", props: undefined, geo: "TR" }]);
+  });
+
   it("an existing account or a monitor sign-up records no ad conversion", async () => {
     existing = { app_metadata: { product: "dentvideo" } };
     await signup({ adClick: { type: "gclid", id: "TEST123", at: Date.now(), consent: "granted" } }, { "x-forwarded-for": "194.25.3.4" });

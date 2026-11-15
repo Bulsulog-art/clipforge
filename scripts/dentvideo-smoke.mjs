@@ -118,6 +118,15 @@ const deviceOpts = DEVICE === "desktop" ? { viewport: { width: 1280, height: 860
 const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
 const browser = await chromium.launch({ headless: !HEADED, ...(proxy ? { proxy: { server: proxy } } : {}) });
 const context = await browser.newContext({ ...deviceOpts, locale: "en-US" });
+// Internal traffic (web/src/lib/dentvid/internal-flag): every page of this run is tagged internal, the
+// sign-up marks the account internal (app_metadata.internal) and no ad click is ever kept from it.
+await context.addInitScript(() => {
+  try {
+    localStorage.setItem("dv-internal", "1");
+  } catch {
+    // storage blocked: the e2e-monitor address is internal by pattern anyway
+  }
+});
 const page = await context.newPage();
 page.setDefaultTimeout(STEP_MS);
 
@@ -169,6 +178,8 @@ try {
     if (res.status() !== 200 || !signupBody.ok) throw new Error(`sign-up answered HTTP ${res.status()} ${JSON.stringify(signupBody).slice(0, 200)}`);
     if (signupBody.existing) throw new Error("the fresh address was said to exist already");
     if (sent.attribution?.utm_source !== "smoke-test") throw new Error(`the UTM source did not reach the sign-up (attribution: ${JSON.stringify(sent.attribution ?? null)})`);
+    if (sent.internal !== true) throw new Error("the sign-up did not carry the internal-traffic flag (localStorage dv-internal)");
+    if (sent.adClick) throw new Error("an internally flagged browser sent an ad click with its sign-up");
     await page.waitForURL(/step=clinic/, { timeout: STEP_MS }).catch(async () => {
       throw new Error(`did not reach the clinic step (at ${page.url()}) ${await firstFailure()}`);
     });

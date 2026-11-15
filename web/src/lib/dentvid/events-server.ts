@@ -38,9 +38,17 @@ export async function insertEventRow(row: DvEventRow, db?: SupabaseClient): Prom
 /** Record a server-side event. Props go through the same allow-list as browser events. */
 export function recordEvent(
   name: DvEventName,
-  opts: { locale?: string | null; props?: Record<string, unknown>; clinicId?: string | null; db?: SupabaseClient; geo?: string } = {},
+  opts: {
+    locale?: string | null;
+    props?: Record<string, unknown>;
+    clinicId?: string | null;
+    db?: SupabaseClient;
+    geo?: string;
+    /** Internal traffic (lib/dentvid/internal-traffic): the account or browser is ours. Stored as props.internal = true. */
+    internal?: boolean;
+  } = {},
 ): Promise<boolean> {
-  const row = buildEventRow({ name, locale: opts.locale, props: opts.props, clinicId: opts.clinicId, geo: opts.geo });
+  const row = buildEventRow({ name, locale: opts.locale, props: opts.props, clinicId: opts.clinicId, geo: opts.geo, internal: opts.internal });
   if (!row) return Promise.resolve(false);
   return insertEventRow(row, opts.db).catch(() => false);
 }

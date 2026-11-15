@@ -7,6 +7,7 @@ import { isOwnLogoPath } from "@/lib/dentvid/paths";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { recordEvent } from "@/lib/dentvid/events-server";
+import { isInternalUser } from "@/lib/dentvid/internal-traffic";
 import { requestCountry } from "@/lib/dentvid/geo-ip";
 import { BUCKET, dvAdmin } from "@/lib/dentvid/supabase";
 import { LOGO_MAX_BYTES } from "@/lib/dentvid/storage-quota";
@@ -143,6 +144,7 @@ export async function POST(req: Request) {
     props: { ...(body.attribution ?? {}), ...(demo ? { demo: demo.token } : {}), country: body.profile.country, language: body.profile.language },
     clinicId: data.id as string,
     geo: requestCountry(req.headers),
+    internal: isInternalUser(user),
   });
   // A clinic signed up from a demo link: the warmest lead there is (once per demo; not the owner testing).
   if (demo && !isAdminUser(user.id)) void raiseHotLead({ token: demo.token, step: "signup", demo, clinicId: data.id as string });
