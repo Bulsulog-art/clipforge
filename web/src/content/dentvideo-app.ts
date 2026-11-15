@@ -370,7 +370,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "Two minutes, once. Your videos are written in your language, about the services you offer, in your colors.",
       yourClinic: "Your clinic",
       title: "Your videos",
-      lead: "Every video is checked for clinical accuracy and health-advertising rules, and measured for sound and picture. Nothing is published until you approve it.",
+      lead: "Every video is software-checked for clinical accuracy and health-advertising rules, and measured for sound and picture. Nothing is published until you approve it.",
       settings: "Clinic settings",
     },
     library: {
@@ -608,7 +608,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Everything your clinic needs to post every week.",
           features: [
             "Five narrated, captioned videos every Monday: 20 or more a month",
-            "Every script checked for advertising rules and clinical accuracy; nothing goes out without your approval",
+            "Every script software-checked for advertising rules and clinical accuracy; nothing goes out without your approval",
             "Your logo, colors and clinic name in every video",
           ],
         },
@@ -724,7 +724,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "Zwei Minuten, nur einmal. Ihre Videos entstehen in Ihrer Sprache, zu Ihren Leistungen und in Ihren Farben.",
       yourClinic: "Ihre Praxis",
       title: "Ihre Videos",
-      lead: "Jedes Video wird auf fachliche Richtigkeit und Heilmittelwerberecht geprüft und auf Ton und Bild kontrolliert. Veröffentlicht wird nichts ohne Ihre Freigabe.",
+      lead: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft und auf Ton und Bild kontrolliert. Veröffentlicht wird nichts ohne Ihre Freigabe.",
       settings: "Praxiseinstellungen",
     },
     library: {
@@ -965,7 +965,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Alles, was Ihre Praxis braucht, um jede Woche zu posten.",
           features: [
             "Jeden Montag fünf vertonte, untertitelte Videos: mindestens 20 im Monat",
-            "Jedes Skript auf Werberecht und fachliche Richtigkeit geprüft; nichts wird ohne Ihre Freigabe geteilt",
+            "Jedes Skript softwaregestützt auf Werberecht und fachliche Richtigkeit geprüft; nichts wird ohne Ihre Freigabe geteilt",
             "Ihr Logo, Ihre Farben und Ihr Praxisname in jedem Video",
           ],
         },
@@ -1081,7 +1081,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "Dos minutos, una sola vez. Tus vídeos se escriben en tu idioma, sobre los servicios que ofreces y con tus colores.",
       yourClinic: "Tu clínica",
       title: "Tus vídeos",
-      lead: "Cada vídeo se revisa en precisión clínica y normas de publicidad sanitaria, y se comprueba su sonido e imagen. No se publica nada sin tu aprobación.",
+      lead: "Un software revisa cada vídeo en precisión clínica y normas de publicidad sanitaria, y se comprueba su sonido e imagen. No se publica nada sin tu aprobación.",
       settings: "Ajustes de la clínica",
     },
     library: {
@@ -1322,7 +1322,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Todo lo que tu clínica necesita para publicar cada semana.",
           features: [
             "Cinco vídeos con locución y subtítulos cada lunes: 20 o más al mes",
-            "Cada guion revisado según las normas de publicidad y la exactitud clínica; nada se publica sin tu aprobación",
+            "Cada guion revisado por software según las normas de publicidad y la exactitud clínica; nada se publica sin tu aprobación",
             "Tu logo, tus colores y el nombre de tu clínica en cada vídeo",
           ],
         },
@@ -1438,7 +1438,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "Yalnızca bir kez, iki dakika. Videolarınız sizin dilinizde, sunduğunuz hizmetler hakkında ve sizin renklerinizle hazırlanır.",
       yourClinic: "Kliniğiniz",
       title: "Videolarınız",
-      lead: "Her video klinik doğruluk ve sağlıkta tanıtım kurallarına göre kontrol edilir; ses ve görüntüsü ölçülür. Siz onaylamadan hiçbir şey yayınlanmaz.",
+      lead: "Her video klinik doğruluk ve sağlıkta tanıtım kurallarına göre yazılımla kontrol edilir; ses ve görüntüsü ölçülür. Siz onaylamadan hiçbir şey yayınlanmaz.",
       settings: "Klinik ayarları",
     },
     library: {
@@ -1667,10 +1667,10 @@ export const APP_TEXT: Record<Locale, AppText> = {
       recommended: "Önerilen",
       choose: "{tier} planını seç",
       opening: "Ödeme sayfası açılıyor…",
-      fineprint: "Fiyatlar {currency} cinsindendir, vergiler hariçtir. Aylık, istediğiniz zaman iptal. Güvenli ödeme Dodo Payments ile.",
+      fineprint: "Fiyatlar {currency} cinsindendir, vergiler hariçtir. Aylık, istediğiniz zaman iptal. Güvenli ödeme Dodo Payments ile; kartınızın internet ve yurt dışı alışverişlerine açık olması gerekir.",
       success: "Teşekkürler! Planınız etkinleştiriliyor — bu bir dakika sürebilir.",
       cancelled: "Ödeme iptal edildi. Herhangi bir ücret alınmadı.",
-      paymentFailed: "Ödemeniz gerçekleşmedi, hiçbir ücret alınmadı. Tekrar deneyebilir veya başka bir kart kullanabilirsiniz.",
+      paymentFailed: "Ödemeniz gerçekleşmedi, hiçbir ücret alınmadı. Kartınızın internet ve yurt dışı alışverişlerine açık olduğunu bankanızın uygulamasından kontrol edip tekrar deneyebilir veya başka bir kart kullanabilirsiniz.",
       needPlan: "Daha fazla video için bir plan seçin",
       settingsHeading: "Plan ve faturalandırma",
       tiers: {
@@ -1679,7 +1679,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Kliniğinizin her hafta paylaşım yapması için gereken her şey.",
           features: [
             "Her pazartesi beş seslendirilmiş, altyazılı video: ayda en az 20 video",
-            "Her senaryo tanıtım kuralları ve klinik doğruluk açısından kontrol edilir; onayınız olmadan hiçbir şey paylaşılmaz",
+            "Her senaryo tanıtım kuralları ve klinik doğruluk açısından yazılımla kontrol edilir; onayınız olmadan hiçbir şey paylaşılmaz",
             "Her videoda logonuz, renkleriniz ve klinik adınız",
           ],
         },
@@ -1795,7 +1795,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "Deux minutes, une seule fois. Vos vidéos sont écrites dans votre langue, sur les soins que vous proposez, à vos couleurs.",
       yourClinic: "Votre cabinet",
       title: "Vos vidéos",
-      lead: "Chaque vidéo est vérifiée sur le plan clinique et au regard des règles de publicité en santé, et contrôlée pour le son et l'image. Rien n'est publié sans votre accord.",
+      lead: "Chaque vidéo est vérifiée par logiciel sur le plan clinique et au regard des règles de publicité en santé, et contrôlée pour le son et l'image. Rien n'est publié sans votre accord.",
       settings: "Réglages du cabinet",
     },
     library: {
@@ -2036,7 +2036,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Tout ce dont votre cabinet a besoin pour publier chaque semaine.",
           features: [
             "Cinq vidéos commentées et sous-titrées chaque lundi : 20 ou plus chaque mois",
-            "Chaque script vérifié selon les règles de communication et l'exactitude clinique ; rien n'est publié sans votre validation",
+            "Chaque script vérifié par logiciel selon les règles de communication et l'exactitude clinique ; rien n'est publié sans votre validation",
             "Votre logo, vos couleurs et le nom de votre cabinet dans chaque vidéo",
           ],
         },
@@ -2152,7 +2152,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "最初に一度だけ、2分ほどです。動画は医院の言語で、実際に行っている診療について、医院のカラーで作られます。",
       yourClinic: "医院",
       title: "動画",
-      lead: "すべての動画は、臨床的な正確性と医療広告の観点からチェックし、音声と映像も計測しています。承認されるまで、何も公開されません。",
+      lead: "すべての動画は、臨床的な正確性と医療広告の観点からソフトウェアでチェックし、音声と映像も計測しています。承認されるまで、何も公開されません。",
       settings: "医院の設定",
     },
     library: {
@@ -2390,7 +2390,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "毎週の発信に必要なものがすべてそろったプラン。",
           features: [
             "毎週月曜日、ナレーションと字幕付きの動画5本（月20本以上）",
-            "すべての台本を広告表現と臨床的な正確性でチェック。ご承認なしに公開されることはありません",
+            "すべての台本を広告表現と臨床的な正確性の観点からソフトウェアでチェック。ご承認なしに公開されることはありません",
             "すべての動画に医院のロゴ・カラー・医院名",
           ],
         },
@@ -2507,7 +2507,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "دقيقتان، مرة واحدة. تُكتب فيديوهاتكم بلغتكم، عن الخدمات التي تقدّمونها، وبألوانكم.",
       yourClinic: "عيادتكم",
       title: "فيديوهاتكم",
-      lead: "كل فيديو يُراجَع للدقة السريرية وضوابط الإعلان الصحي، ويُقاس صوته وصورته. لا يُنشر شيء قبل اعتمادكم.",
+      lead: "كل فيديو يُراجَع آلياً للدقة السريرية وضوابط الإعلان الصحي، ويُقاس صوته وصورته. لا يُنشر شيء قبل اعتمادكم.",
       settings: "إعدادات العيادة",
     },
     library: {
@@ -2745,7 +2745,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "كل ما تحتاجه عيادتكم للنشر كل أسبوع.",
           features: [
             "خمسة فيديوهات بتعليق صوتي ونص على الشاشة كل يوم اثنين: 20 فيديو أو أكثر شهرياً",
-            "مراجعة كل نص وفق ضوابط الإعلان والدقة السريرية، ولا يُنشر شيء دون موافقتكم",
+            "مراجعة آلية لكل نص وفق ضوابط الإعلان والدقة السريرية، ولا يُنشر شيء دون موافقتكم",
             "شعاركم وألوانكم واسم عيادتكم في كل فيديو",
           ],
         },
@@ -2863,7 +2863,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       setupLead: "Dwie minuty, jeden raz. Filmy powstają w Państwa języku, o zabiegach, które Państwo wykonują, w kolorach gabinetu.",
       yourClinic: "Państwa gabinet",
       title: "Państwa filmy",
-      lead: "Każdy film jest sprawdzany pod kątem poprawności klinicznej i zasad reklamy medycznej, a jego dźwięk i obraz są mierzone. Nic nie zostanie opublikowane bez Państwa akceptacji.",
+      lead: "Każdy film jest sprawdzany przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy medycznej, a jego dźwięk i obraz są mierzone. Nic nie zostanie opublikowane bez Państwa akceptacji.",
       settings: "Ustawienia gabinetu",
     },
     library: {
@@ -3101,7 +3101,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
           blurb: "Wszystko, czego gabinet potrzebuje, by publikować co tydzień.",
           features: [
             "Pięć filmów z lektorem i napisami co poniedziałek: co najmniej 20 w miesiącu",
-            "Każdy scenariusz sprawdzony pod kątem zasad reklamy i poprawności klinicznej; nic nie zostanie opublikowane bez Państwa zgody",
+            "Każdy scenariusz sprawdzony przez oprogramowanie pod kątem zasad reklamy i poprawności klinicznej; nic nie zostanie opublikowane bez Państwa zgody",
             "Logo, kolory i nazwa gabinetu w każdym filmie",
           ],
         },

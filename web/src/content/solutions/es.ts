@@ -6,15 +6,15 @@ export const SOLUTIONS_ES: SolutionPage[] = [
     slug: "videos-dentales-con-ia",
     kind: "product",
     nav: "Vídeos dentales con IA",
-    anchor: "vídeos dentales con IA hechos para tu clínica y revisados antes de que los veas",
-    blurb: "Cinco vídeos educativos a la semana, con voz, subtítulos y los colores de tu clínica, revisados en publicidad sanitaria y precisión clínica.",
+    anchor: "vídeos dentales con IA hechos para tu clínica y revisados por software antes de que los veas",
+    blurb: "Cinco vídeos educativos a la semana, con voz, subtítulos y los colores de tu clínica, revisados por software en publicidad sanitaria y precisión clínica.",
     queries: ["videos dentales con ia", "vídeos dentales para pacientes", "vídeos para dentistas", "videos para clinicas dentales", "ia para dentistas", "marketing para dentistas instagram"],
     seoTitle: "Vídeos dentales con IA para tu clínica",
     seoDescription:
-      "Cinco vídeos educativos a la semana con voz, subtítulos y los colores de tu clínica, revisados en publicidad sanitaria y precisión clínica. Tú apruebas.",
-    h1: "Vídeos dentales con IA para tu clínica, revisados antes de que los veas",
+      "Cinco vídeos educativos a la semana con voz, subtítulos y los colores de tu clínica, revisados por software en publicidad sanitaria. Tú apruebas.",
+    h1: "Vídeos dentales con IA para tu clínica, revisados por software antes de que los veas",
     intro:
-      "DentVideo es una aplicación web que crea cada semana cinco vídeos cortos de educación al paciente para tu clínica dental: escritos, narrados y subtitulados, con tu logo y tus colores, y solo sobre los tratamientos que ofreces. Cada guion se revisa frente a las normas de publicidad sanitaria y en precisión clínica. Nada se publica sin la aprobación del dentista.",
+      "DentVideo es una aplicación web que crea cada semana cinco vídeos cortos de educación al paciente para tu clínica dental: escritos, narrados y subtitulados, con tu logo y tus colores, y solo sobre los tratamientos que ofreces. Un software revisa cada guion frente a las normas de publicidad sanitaria y en precisión clínica. Nada se publica sin la aprobación del dentista.",
     sections: [
       {
         heading: "Qué recibe tu clínica cada semana",
@@ -36,10 +36,10 @@ export const SOLUTIONS_ES: SolutionPage[] = [
       },
       {
         heading: "Cómo se revisa cada vídeo",
-        paragraphs: ["Cada guion y cada texto pasa tres controles antes de llegarte. Lo que no pasa se reescribe o no se hace."],
+        paragraphs: ["Cada guion y cada texto pasa tres controles de software antes de llegarte. Lo que no pasa se reescribe o no se hace."],
         list: [
           "Publicidad sanitaria: se detectan las afirmaciones que suelen estar restringidas — garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios.",
-          "Precisión clínica: un revisor que actúa como dentista general contrasta cada afirmación con las guías habituales.",
+          "Precisión clínica: un software con el criterio de un dentista general contrasta cada afirmación con las guías habituales.",
           "Imagen y sonido: voz presente y audible, sin silencios ni fotogramas negros, en el formato correcto.",
         ],
         after: [
@@ -104,7 +104,7 @@ export const SOLUTIONS_ES: SolutionPage[] = [
       "Comparación honesta para clínicas dentales: qué ofrecen una agencia, Canva, ChatGPT y DentVideo, cuánto tiempo piden y quién revisa la publicidad.",
     h1: "DentVideo, una agencia, Canva o ChatGPT: ¿qué encaja con los vídeos de tu clínica?",
     intro:
-      "Los cuatro pueden ayudar a una clínica dental a publicar vídeos, pero hacen trabajos distintos. Una agencia lo hace por ti y cobra su tiempo; Canva te da plantillas para diseñar tú; ChatGPT redacta textos e ideas; DentVideo crea cinco vídeos educativos revisados a la semana para que los apruebes. La elección depende de tu presupuesto, tu tiempo y de quién revisa la publicidad sanitaria.",
+      "Los cuatro pueden ayudar a una clínica dental a publicar vídeos, pero hacen trabajos distintos. Una agencia lo hace por ti y cobra su tiempo; Canva te da plantillas para diseñar tú; ChatGPT redacta textos e ideas; DentVideo crea cinco vídeos educativos revisados por software a la semana para que los apruebes. La elección depende de tu presupuesto, tu tiempo y de quién revisa la publicidad sanitaria.",
     table: {
       caption: "Vídeos para una clínica dental: cuatro opciones",
       columns: ["DentVideo", "Agencia de redes", "Canva", "ChatGPT"],
@@ -112,8 +112,8 @@ export const SOLUTIONS_ES: SolutionPage[] = [
         { label: "Qué recibes", values: ["Cinco vídeos terminados, con voz y subtítulos, cada semana", "Lo que cubra el contrato: publicaciones, grabación, anuncios, comentarios", "Plantillas y un editor; el vídeo lo haces tú", "Texto: ideas, guiones, textos"] },
         { label: "Tu tiempo cada semana", values: ["Unos minutos para ver y aprobar", "Reuniones, rondas de cambios, aprobaciones", "Horas de redactar, diseñar, grabar y editar", "Escribir instrucciones, revisar y montar el vídeo en otro sitio"] },
         { label: "Quién elige los temas", values: ["A partir de tus tratamientos y lo que buscan los pacientes", "El calendario de la agencia, acordado contigo", "Tú", "Tú, con sugerencias"] },
-        { label: "Revisión de publicidad sanitaria", values: ["Cada guion y texto, antes de que lo veas", "Depende de la agencia: pregunta", "Cosa tuya", "Cosa tuya"] },
-        { label: "Revisión clínica", values: ["Un revisor que actúa como dentista general", "Depende de la agencia", "Cosa tuya", "Cosa tuya; puede equivocarse"] },
+        { label: "Revisión de publicidad sanitaria", values: ["Cada guion y texto, por software, antes de que lo veas", "Depende de la agencia: pregunta", "Cosa tuya", "Cosa tuya"] },
+        { label: "Revisión clínica", values: ["Un software con el criterio de un dentista general; decides tú", "Depende de la agencia", "Cosa tuya", "Cosa tuya; puede equivocarse"] },
         { label: "Tu propia cara", values: ["Grabas unos minutos y se cortan los clips", "Normalmente, con grabación en la clínica", "Si grabas y editas tú", "No"] },
         { label: "Compromiso", values: ["Mensual, sin permanencia", "A menudo cuota con permanencia", "Suscripción a una herramienta de diseño", "Suscripción a un asistente de IA"] },
       ],

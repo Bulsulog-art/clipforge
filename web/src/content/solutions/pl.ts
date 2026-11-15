@@ -6,15 +6,15 @@ export const SOLUTIONS_PL: SolutionPage[] = [
     slug: "filmy-marketing-stomatologiczny",
     kind: "product",
     nav: "Filmy dla gabinetu",
-    anchor: "filmy edukacyjne dla gabinetu stomatologicznego, przygotowywane co tydzień i sprawdzane przed akceptacją",
-    blurb: "Pięć filmów dla pacjentów tygodniowo, z lektorem, napisami i w kolorach gabinetu, sprawdzanych pod kątem zasad reklamy medycznej i wiedzy klinicznej.",
+    anchor: "filmy edukacyjne dla gabinetu stomatologicznego, przygotowywane co tydzień i sprawdzane przez oprogramowanie przed akceptacją",
+    blurb: "Pięć filmów dla pacjentów tygodniowo, z lektorem, napisami i w kolorach gabinetu, sprawdzanych przez oprogramowanie pod kątem zasad reklamy medycznej i wiedzy klinicznej.",
     queries: ["marketing stomatologiczny", "marketing w gabinecie stomatologicznym", "marketing gabinetu stomatologicznego", "marketing dla stomatologów", "filmy stomatologiczne", "reklama gabinetu stomatologicznego"],
     seoTitle: "Filmy dla gabinetu stomatologicznego",
     seoDescription:
-      "Pięć filmów edukacyjnych tygodniowo z lektorem i napisami, w kolorach Państwa gabinetu, sprawdzanych pod kątem zasad reklamy i wiedzy klinicznej.",
-    h1: "Filmy dla Państwa gabinetu stomatologicznego: co tydzień, sprawdzone przed akceptacją",
+      "Pięć filmów edukacyjnych tygodniowo z lektorem i napisami, w kolorach gabinetu, sprawdzanych przez oprogramowanie pod kątem zasad reklamy.",
+    h1: "Filmy dla Państwa gabinetu stomatologicznego: co tydzień, sprawdzone przez oprogramowanie przed akceptacją",
     intro:
-      "DentVideo to aplikacja internetowa, która co tydzień przygotowuje dla gabinetu stomatologicznego pięć krótkich filmów edukacyjnych dla pacjentów: pisze tekst, nagrywa lektora i dodaje napisy, z logo i w kolorach gabinetu, wyłącznie o zabiegach, które Państwo wykonują. Każdy scenariusz przechodzi kontrolę zgodności z zasadami reklamy medycznej i poprawności klinicznej. Nic nie zostaje opublikowane bez akceptacji lekarza dentysty.",
+      "DentVideo to aplikacja internetowa, która co tydzień przygotowuje dla gabinetu stomatologicznego pięć krótkich filmów edukacyjnych dla pacjentów: pisze tekst, nagrywa lektora i dodaje napisy, z logo i w kolorach gabinetu, wyłącznie o zabiegach, które Państwo wykonują. Każdy scenariusz przechodzi kontrolę oprogramowania pod kątem zasad reklamy medycznej i poprawności klinicznej. Nic nie zostaje opublikowane bez akceptacji lekarza dentysty.",
     sections: [
       {
         heading: "Co gabinet dostaje co tydzień",
@@ -36,10 +36,10 @@ export const SOLUTIONS_PL: SolutionPage[] = [
       },
       {
         heading: "Jak sprawdzany jest każdy film",
-        paragraphs: ["Każdy scenariusz i opis przechodzi trzy kontrole, zanim do Państwa trafi. To, co nie przejdzie, zostaje przepisane albo nie powstaje."],
+        paragraphs: ["Każdy scenariusz i opis przechodzi trzy kontrole oprogramowania, zanim do Państwa trafi. To, co nie przejdzie, zostaje przepisane albo nie powstaje."],
         list: [
           "Zasady reklamy: wychwytywane są sformułowania często ograniczane przez przepisy i kodeksy etyki.",
-          "Poprawność kliniczna: recenzent w roli lekarza dentysty ogólnego porównuje każde stwierdzenie z powszechnie przyjętymi zaleceniami.",
+          "Poprawność kliniczna: oprogramowanie ustawione w roli lekarza dentysty ogólnego porównuje każde stwierdzenie z powszechnie przyjętymi zaleceniami.",
           "Obraz i dźwięk: lektor obecny i słyszalny, bez cichych przerw i czarnych klatek, właściwy format.",
         ],
         after: ["Kontrola jest starannym filtrem, a nie poradą prawną. Odpowiedzialność za publikacje pozostaje po stronie gabinetu."],

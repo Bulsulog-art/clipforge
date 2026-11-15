@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "DentVideo — patient-education videos for dental clinics",
-    description: "Your dentist's own voice, cut into captioned short videos. Checked before you see them. Approved by you.",
+    description: "Your dentist's own voice, cut into captioned short videos. Software-checked before you see them. Approved by you.",
   },
   // The root layout's ClipForge canonical and share card must not leak onto
   // DentVideo pages that set none of their own (sign-up, app, 404): pages
@@ -32,11 +32,11 @@ export const metadata: Metadata = {
     siteName: "DentVideo",
     type: "website",
     title: "DentVideo — patient-education videos for dental clinics",
-    description: "Five patient videos every Monday, checked before you see them. You just approve.",
+    description: "Five patient videos every Monday, software-checked before you see them. You approve.",
   },
   title: { absolute: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
-    "DentVideo turns a dentist's five-minute phone recording into a week of captioned, rule-checked short videos — and writes, narrates and checks educational videos when there is no time to film.",
+    "DentVideo turns a dentist's five-minute phone recording into a week of captioned short videos, software-checked against advertising rules — and writes and narrates educational videos when there is no time to film.",
   applicationName: "DentVideo",
   // Optional search-console verification by meta tag (DNS TXT records are the preferred route; see docs/SEO_PLAN.md).
   ...(process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION || process.env.DENTVIDEO_BING_SITE_VERIFICATION

@@ -46,7 +46,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "Your country's rules, too",
-      text: "Every script is checked against the general health-advertising rules. For these markets, the reviewer is also briefed with the country's own rules:",
+      text: "Every script is software-checked against the general health-advertising rules. For these markets, the software also knows the country's own rules:",
       gulf: "Gulf states",
       note: "We are not a law firm, and nothing goes out without your approval. Check anything unusual with your professional body.",
     },
@@ -66,7 +66,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "Auch die Regeln Ihres Landes",
-      text: "Jedes Skript wird gegen die allgemeinen Regeln der Gesundheitswerbung geprüft. Für diese Märkte kennt der Prüfer zusätzlich die Regeln des jeweiligen Landes:",
+      text: "Jedes Skript wird softwaregestützt gegen die allgemeinen Regeln der Gesundheitswerbung geprüft. Für diese Märkte kennt die Software zusätzlich die Regeln des jeweiligen Landes:",
       gulf: "Golfstaaten",
       note: "Wir sind keine Kanzlei, und nichts geht ohne Ihre Freigabe hinaus. Klären Sie Ungewöhnliches mit Ihrer Kammer.",
     },
@@ -86,7 +86,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "También las normas de tu país",
-      text: "Cada guion se revisa con las normas generales de publicidad sanitaria. En estos mercados, el revisor aplica además las normas propias del país:",
+      text: "Un software revisa cada guion con las normas generales de publicidad sanitaria. En estos mercados, aplica además las normas propias del país:",
       gulf: "Países del Golfo",
       note: "No somos un despacho de abogados y nada se publica sin tu aprobación. Consulta lo que sea inusual con tu colegio profesional.",
     },
@@ -106,7 +106,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "Ülkenizin kuralları da",
-      text: "Her metin, sağlık tanıtımına ilişkin genel kurallara göre kontrol edilir. Bu pazarlarda denetçimiz ülkenin kendi kurallarını da uygular:",
+      text: "Her metin, sağlık tanıtımına ilişkin genel kurallara göre yazılımla kontrol edilir. Bu pazarlarda yazılım denetçimiz ülkenin kendi kurallarını da uygular:",
       gulf: "Körfez ülkeleri",
       note: "Bir hukuk bürosu değiliz ve onayınız olmadan hiçbir şey yayınlanmaz. Alışılmadık durumları meslek kuruluşunuza danışın.",
     },
@@ -126,7 +126,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "Les règles de votre pays aussi",
-      text: "Chaque script est vérifié selon les règles générales de la publicité en santé. Pour ces marchés, le relecteur applique en plus les règles propres au pays :",
+      text: "Chaque script est vérifié par logiciel selon les règles générales de la publicité en santé. Pour ces marchés, le logiciel applique en plus les règles propres au pays :",
       gulf: "Pays du Golfe",
       note: "Nous ne sommes pas un cabinet d'avocats, et rien n'est publié sans votre accord. Pour tout cas inhabituel, consultez votre ordre professionnel.",
     },
@@ -146,7 +146,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "国ごとのルールも",
-      text: "すべての台本を、医療広告に関する一般的なルールでチェックします。以下の国・地域では、その国のルールもチェック担当に組み込んでいます。",
+      text: "すべての台本を、医療広告に関する一般的なルールでソフトウェアがチェックします。以下の国・地域では、その国のルールもチェックに組み込んでいます。",
       gulf: "湾岸諸国",
       note: "当社は法律事務所ではありません。院長先生の承認なしに公開されることはありません。判断に迷う場合は所属の歯科医師会にご確認ください。",
     },
@@ -166,7 +166,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "وقواعد بلدكم أيضاً",
-      text: "يُراجَع كل نص وفق القواعد العامة للإعلان الصحي. وفي هذه الأسواق، يطبّق المراجِع أيضاً قواعد البلد نفسه:",
+      text: "يُراجَع كل نص آلياً وفق القواعد العامة للإعلان الصحي. وفي هذه الأسواق، يطبّق البرنامج أيضاً قواعد البلد نفسه:",
       gulf: "دول الخليج",
       note: "لسنا مكتب محاماة، ولا يُنشر شيء دون موافقتكم. راجعوا الجهة المهنية المختصة في أي حالة غير معتادة.",
     },
@@ -186,7 +186,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     },
     rules: {
       heading: "Także przepisy Państwa kraju",
-      text: "Każdy scenariusz jest sprawdzany według ogólnych zasad reklamy usług zdrowotnych. Na tych rynkach recenzent stosuje dodatkowo przepisy danego kraju:",
+      text: "Każdy scenariusz jest sprawdzany przez oprogramowanie według ogólnych zasad reklamy usług zdrowotnych. Na tych rynkach oprogramowanie stosuje dodatkowo przepisy danego kraju:",
       gulf: "Państwa Zatoki",
       note: "Nie jesteśmy kancelarią prawną i nic nie zostanie opublikowane bez Państwa zgody. Nietypowe przypadki prosimy skonsultować z izbą lekarską.",
     },

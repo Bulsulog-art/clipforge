@@ -251,6 +251,14 @@ describe("legal pages: routes, links, sitemap, metadata", () => {
     for (const k of LEGAL_KINDS) expect(app).toContain(`href="${legalPath(k, "en")}"`);
   });
 
+  it("the sign-up footer sends no English words before the visitor's language is known (/start?lang=tr)", () => {
+    nav.path = "/dentvideo/start";
+    const h = html(createElement(DvFooter, { guideLocales: {}, text: chromeText() }));
+    expect(h).toContain("<footer");
+    expect(text(h).trim()).toBe("");
+    nav.path = "/dentvideo";
+  });
+
   it("the sitemap lists every legal page with its translations", () => {
     const urls = sitemapUrls();
     for (const [l, k] of LEGAL_PAGES) expect(urls, `${l} ${k}`).toContain(`https://dentvideo.com${l === "en" ? "" : `/${l}`}/${k}`);
