@@ -47,7 +47,7 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Demo Zahnarztpraxis (DE), Sie
   de: [
     { slug: "bleaching-zahnschmelz", name: "Bleaching heißt nicht gleich schwacher Zahnschmelz.", seconds: 28, hero: { start: 0.9, skip: [[7.2, 10.8]] }, topic: "Bleaching und Zahnschmelz" },
-    { slug: "aligner-verfaerbung", name: "Kaffee macht Aligner schneller gelb als gedacht.", seconds: 27, topic: "Verfärbungen bei Alignern" },
+    { slug: "aligner-verfaerbung", name: "Kaffee macht Aligner schneller gelb als gedacht.", seconds: 28, topic: "Verfärbungen bei Alignern" },
     { slug: "kinder-zahnarztangst", name: "Ihr Kind spürt Ihre Nervosität sofort.", seconds: 30, topic: "Kinder mit Zahnarztangst" },
   ],
   // Clínica Dental Demo (ES), tú
@@ -65,7 +65,7 @@ export const SAMPLE_VIDEOS: Partial<Record<Locale, SampleWeek>> = {
   // Cabinet Dentaire Démo (FR), vous
   fr: [
     { slug: "gencives-qui-saignent", name: "Ce saignement quand vous vous brossez les dents…", seconds: 27, hero: { start: 0.9, skip: [[10.4, 14.5]] }, topic: "Gencives qui saignent" },
-    { slug: "blanchiment-email", name: "Le blanchiment fragilise vraiment l’émail ?", seconds: 26, topic: "Blanchiment et émail" },
+    { slug: "blanchiment-email", name: "Le blanchiment fragilise vraiment l’émail ?", seconds: 27, topic: "Blanchiment et émail" },
     { slug: "detartrage", name: "Vous brossez bien, mais le tartre reste.", seconds: 21, topic: "Le détartrage" },
   ],
   // デモ歯科クリニック (Tokyo), です・ます

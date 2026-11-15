@@ -186,7 +186,7 @@ export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | 
       "category": "aligners",
       "service": "Şeffaf plak tedavisi",
       "title": "Şeffaf Plak ve İçecekler",
-      "seconds": 27.3
+      "seconds": 25.7
     },
     {
       "id": "implant-implant-sonrasi-bakim",

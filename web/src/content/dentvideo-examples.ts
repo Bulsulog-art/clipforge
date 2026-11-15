@@ -508,8 +508,8 @@ export const EXAMPLES: ExampleVideo[] = [
       "Kaffee macht Aligner schneller gelb als gedacht.",
       "Meist sind Farbe und Belag der Grund.",
       "Beläge und Farbe setzen sich leicht fest.",
-      "Im Tray: Getränke färben und belasten den Kunststoff. Ohne Tray: Zähne und Schiene lassen sich leichter sauber halten.",
-      "So bleiben sie klar: nur Wasser im Tray; ausspülen vor dem Einsetzen; nach dem Essen Zähne putzen.",
+      "Mit Schiene: Getränke färben und belasten den Kunststoff. Ohne Schiene: Zähne und Schiene lassen sich leichter sauber halten.",
+      "So bleiben sie klar: mit Schiene nur Wasser; ausspülen vor dem Einsetzen; nach dem Essen Zähne putzen.",
       "Folgen Sie den Anweisungen Ihrer Zahnärztin oder Ihres Zahnarztes.",
       "Fragen Sie bei der Kontrolle nach Flecken an Ihren Alignern.",
     ],
@@ -676,7 +676,7 @@ export const EXAMPLES: ExampleVideo[] = [
     seoDescription: "Vidéo patient d'exemple : le blanchiment fragilise-t-il l'émail ? Ce qu'il fait, la sensibilité passagère et les consignes après le soin.",
     h1: "Le blanchiment abîme-t-il l'émail ? Une courte vidéo patient",
     summary:
-      "Une vidéo pour les patients qui envisagent un blanchiment. Elle explique que le produit agit surtout sur les pigments et qu'un blanchiment fait ou encadré par un dentiste n'abîme généralement pas l'émail, que l'effet secondaire le plus courant est une sensibilité passagère et que le dentiste adapte le soin aux dents et aux gencives. Après le soin, elle conseille d'éviter café, thé et vin rouge et de suivre les consignes du dentiste.",
+      "Une vidéo pour les patients qui envisagent un blanchiment. Elle explique que le produit agit surtout sur les pigments et qu'un blanchiment fait ou encadré par un dentiste n'abîme généralement pas l'émail, que l'effet secondaire le plus courant est une sensibilité passagère et que le dentiste adapte le soin aux dents et aux gencives. Après le soin, elle conseille d'éviter le café, le thé et le vin rouge et de suivre les consignes du dentiste.",
     onScreen: [
       "Le blanchiment fragilise vraiment l’émail ?",
       "Pas tout à fait : il agit surtout sur les pigments.",
