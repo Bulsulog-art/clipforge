@@ -17,6 +17,7 @@ import {
 } from "./billing";
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
 import { recordEvent } from "./events-server";
+import { recordPaidConversion } from "./ad-conversions-server";
 import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert";
 import { clinicRefFor, markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
 import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
@@ -43,6 +44,8 @@ export type DvWebhookDeps = {
   clinicRef?: (db: SupabaseClient, clinicId: string) => Promise<ClinicRef>;
   /** Tell the worker's first-week watchdog a clinic just paid for the first time (Redis marker). */
   markPaid?: (clinicId: string) => Promise<void>;
+  /** Record the Google Ads "dv_paid" conversion for a first payment (default: ad-conversions-server; best effort). */
+  adConversion?: (db: SupabaseClient, clinic: { id: string; owner_id: string }) => Promise<string>;
   /** The subscription ledger (0007); the default degrades to "unknown" when the table is missing. */
   subs?: SubscriptionStore;
   /**
@@ -504,6 +507,8 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   // and a paying clinic whose subscription stopped (customer at risk).
   if (to === "active" && from !== "active") {
     if (first) await (deps.markPaid ?? markPaid)(clinic.id).catch(() => {});
+    // Google Ads offline conversion "dv_paid" when the owner came from an ad (one per account: a replay is a no-op).
+    if (first) await (deps.adConversion ?? recordPaidConversion)(db, { id: clinic.id, owner_id: clinic.owner_id }).catch(() => "failed");
     await tell(db, deps, clinic.id, (c) =>
       alerts.newPayingClinic({
         clinic: { ...c, tier: c.tier ?? t.tier },

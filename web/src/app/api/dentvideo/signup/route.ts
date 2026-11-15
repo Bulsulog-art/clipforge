@@ -8,6 +8,8 @@ import { authText } from "@/content/dentvideo-auth";
 import { passwordTooLong } from "@/lib/dentvid/password";
 import { recordEvent } from "@/lib/dentvid/events-server";
 import { geoCountry } from "@/lib/dentvid/events";
+import { acceptableClick } from "@/lib/dentvid/ad-conversions";
+import { recordSignupClick } from "@/lib/dentvid/ad-conversions-server";
 import { LIMITS, clientIp, networkOf } from "@/lib/rate-limit";
 import { limitChecks, rateLimited } from "@/lib/rate-limit-server";
 import { botSignup } from "@/lib/dentvid/bot-check";
@@ -68,6 +70,12 @@ const Body = z.object({
   turnstile: z.string().max(2048).optional(),
   /** The tab's first-touch source (lib/dentvid/attribution); re-sanitised by the event allow-list. */
   attribution: z.record(z.string().max(80)).optional(),
+  /**
+   * The Google Ads click this visitor came from (lib/dentvid/ad-click), only
+   * when it may be kept: consented in the EU/EEA/UK/CH, or no prompt needed.
+   * Checked again here (acceptableClick) against the request's own country.
+   */
+  adClick: z.object({ type: z.string().max(10), id: z.string().max(200), at: z.number(), consent: z.string().max(20) }).optional(),
 });
 
 export async function POST(req: Request) {
@@ -138,6 +146,9 @@ export async function POST(req: Request) {
   if (!testAccount) {
     // Funnel: no email, no user id — just that an account was made, in which language.
     void recordEvent("signup_completed", { locale, props: body.attribution, geo: geoCountry(req.headers) });
+    // From a Google ad: keep the click against the account and count the sign-up conversion (never blocks the sign-up).
+    const click = acceptableClick(body.adClick, geoCountry(req.headers));
+    if (click && created?.user) await recordSignupClick(created.user.id, click).catch(() => "failed");
     // The code email. Not fatal if it fails: the plan step asks for one again — but the owner hears about it.
     if (created?.user) {
       const code = await sendVerificationCode({ userId: created.user.id, email: body.email, language: locale }).catch((e: Error) => ({ ok: false as const, reason: e.message }));

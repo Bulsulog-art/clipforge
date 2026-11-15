@@ -15,6 +15,7 @@ import { ConsentLine } from "./consent-line";
 import { FieldError, ValidatingForm } from "./validating-form";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
+import { readAdClick } from "@/lib/dentvid/ad-click";
 import { rememberDemo } from "@/lib/dentvid/demo-cookie";
 import { passwordTooLong } from "@/lib/dentvid/password";
 import { resetRequestOutcome, signedOutMode, stepAfterSignIn } from "@/lib/dentvid/start-mode";
@@ -117,6 +118,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
         // instead of refusing a real person.
         const elapsed = Date.now() - openedAt.current;
         if (elapsed < 2700) await wait(2700 - elapsed);
+        const adClick = readAdClick();
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -127,6 +129,8 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
             elapsedMs: Math.max(0, Math.round(Date.now() - openedAt.current)),
             locale,
             attribution: readAttribution(),
+            // A Google ad click we may keep (consented, or no consent needed): see lib/dentvid/ad-click.
+            ...(adClick ? { adClick } : {}),
             ...(captcha ? { turnstile: captcha } : {}),
           }),
         });
