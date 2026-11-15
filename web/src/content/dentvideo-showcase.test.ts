@@ -136,43 +136,9 @@ describe("country rules: only markets the reviewer is really briefed for", () =>
   });
 });
 
+// The section order of the landing is checked in conversion.test.ts ("the fifteen sections, in the brief's order").
 describe("landing layout contract", () => {
   const html = (l: Locale) => renderToStaticMarkup(createElement(DentVideoLanding, { locale: l }));
-
-  it.each(LOCALES)("%s: hero → problem → samples → profile story → how → … → pricing → trust → FAQ → guides", (l) => {
-    const page = html(l);
-    // From the h1 on: the JSON-LD above it repeats some of the same words (the FAQ questions).
-    const h1 = page.indexOf("<h1");
-    const at = (needle: string) => {
-      const i = page.indexOf(needle, h1);
-      expect(i, `${l}: ${needle}`).toBeGreaterThan(-1);
-      return i;
-    };
-    const order = [
-      at("<h1"),
-      // The no-account preview, right under the hero (the hero's main button scrolls to it).
-      at('id="try"'),
-      at(LANDING[l].problem[0].title),
-      at('id="samples"'),
-      at("data-feed-story"),
-      at('id="how"'),
-      at("data-country-rules"),
-      at('id="compare"'),
-      at('id="pricing"'),
-      at('id="trust"'),
-      at(LANDING[l].faq[0].q.replace(/'/g, "&#x27;")),
-      at('id="guides"'),
-    ];
-    expect([...order].sort((a, b) => a - b)).toEqual(order);
-  });
-
-  it.each(LOCALES)("%s: every country badge is on the page, with a flag", (l) => {
-    const page = html(l);
-    for (const m of RULE_MARKETS) {
-      expect(page, `${l} ${m.code}`).toContain(`data-market="${m.code}"`);
-      expect(page, `${l} ${m.code}`).toContain(`data-flag="${m.code}"`);
-    }
-  });
 
   it.each(LOCALES)("%s: no video downloads before it is asked for (preload none, poster set)", (l) => {
     const videos = html(l).match(/<video[^>]*>/g) ?? [];

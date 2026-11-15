@@ -31,14 +31,14 @@ export function LandingView({ locale }: { locale: string }) {
  * try_clicked, not cta_clicked (which stays "a button into the sign-up").
  * A plain in-page anchor, so it works before the page's JavaScript has run.
  */
-export function TryLink({ locale, className, children }: { locale: string; className?: string; children: React.ReactNode }) {
+export function TryLink({ locale, className, children, where = "hero" }: { locale: string; className?: string; children: React.ReactNode; where?: Extract<DvCtaWhere, "hero" | "final"> }) {
   return (
     <a
       href="#try"
       className={className}
-      data-cta="hero"
+      data-cta={where}
       onClick={(e) => {
-        trackDv("try_clicked", { locale, props: { where: "hero" } });
+        trackDv("try_clicked", { locale, props: { where } });
         const target = document.getElementById("try");
         if (!target || e.metaKey || e.ctrlKey || e.shiftKey) return;
         e.preventDefault();

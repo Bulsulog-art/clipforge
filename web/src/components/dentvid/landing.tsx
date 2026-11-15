@@ -1,409 +1,271 @@
 import Link from "next/link";
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUpRight,
-  AudioWaveform,
-  BadgeCheck,
-  Building2,
-  CalendarX2,
-  Check,
-  CreditCard,
-  Lock,
-  Clock3,
-  Download,
-  Mail,
-  MessageCircleQuestion,
-  Plus,
-  ShieldCheck,
-  Stethoscope,
-  TriangleAlert,
-  X,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, Mail, Minus, Plus } from "lucide-react";
 import { LANDING, LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
-import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
+import { landingSamples, sampleSrc } from "@/content/dentvideo-samples";
 import { EXAMPLES_PATH, EXAMPLES_UI, examplePath } from "@/content/dentvideo-examples";
 import { appText } from "@/content/dentvideo-app";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
+import { SHOWCASE } from "@/content/dentvideo-showcase";
+import { OPERATOR } from "@/content/guides/operator";
+import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
+import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { LEGAL_KINDS } from "@/content/legal/types";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
 import { HeroVideo, PhoneFrame } from "./phone";
 import { CurrencyNote, FromPrice, PriceRegion, TaxSuffix, TierPrice } from "./price";
+import { SampleVideo } from "./sample-video";
+import { Teaser } from "./teaser";
+import { LandingView, TrackedLink, TryLink } from "./track";
+import { HtmlLang } from "./guide-parts";
+
+/**
+ * The DentVideo landing, in every language. One story, in the order a careful
+ * owner-dentist asks it: what arrives (hero, every Monday, samples), will it
+ * look like my clinic (the logo preview, right under the hero), what changes,
+ * how, can it get me in trouble (control, rules), is it for me (fit, the
+ * alternatives), what does it cost and can I leave (pricing, scope, before you
+ * decide, who is behind it), questions, one last action.
+ *
+ * Everything here is a server component: static text, real images and the
+ * three small client islands that were already on the page (the hero video,
+ * the logo preview, the sample players). No motion beyond one entrance on the
+ * hero copy (dentvideo.css); no icon wells, no flags, no drawn mock-ups.
+ */
 
 /** The landing's plan cards, in order: Starter, Practice (Group follows as "Contact us"). */
 const TIER_IDS = ["starter", "practice"] as const;
-import { SampleVideo } from "./sample-video";
-import { CountryRules, FeedStory } from "./landing-showcase";
-import { SHOWCASE } from "@/content/dentvideo-showcase";
-import { Teaser } from "./teaser";
-import { LandingView, TrackedLink, TryLink } from "./track";
-import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
-import { LEGAL_KINDS } from "@/content/legal/types";
-import { HtmlLang } from "./guide-parts";
 
 const duration = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
-/** The ten production languages, as codes (shown in the "your clinic" visual). */
-const LANGUAGE_CODES = ["EN", "DE", "ES", "FR", "IT", "PT", "TR", "JA", "AR", "PL"];
+/** The three app screens shown in "How it works" (public/dentvideo/landing/<locale>/…), 9:16 like the phone. */
+const SHOTS = ["setup", "week", "card"] as const;
+const SHOT_W = 540;
+const SHOT_H = 960;
+const shotSrc = (locale: Locale, name: (typeof SHOTS)[number] | "review") => `/dentvideo/landing/${locale}/${name}.webp`;
 
-/** Section heading in the display serif. */
+/* ------------------------------------------------------------------ */
+/* Type                                                                  */
+/* ------------------------------------------------------------------ */
+
+/** The one eyebrow style: small caps in teal, no pill. */
+function Eyebrow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <p className={`dv-eyebrow ${className}`}>{children}</p>;
+}
+
+/** Section heading in the display serif: H2 only (cards and prices stay in the sans). */
 function H2({ children, className = "", id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <h2 id={id} className={`dv-display dv-h2 text-balance text-[2.375rem] leading-[1.05] sm:text-5xl lg:text-[3.5rem] ${className}`}>
+    <h2 id={id} className={`dv-display dv-h2 text-balance text-[2.125rem] leading-[1.08] text-dv-ink sm:text-[2.75rem] lg:text-[3.25rem] ${className}`}>
       {children}
     </h2>
   );
 }
 
+/** A section's shell: one idea per section, the same rhythm everywhere. */
+function Section({ id, labelledBy, className = "", inner = "", children }: { id?: string; labelledBy?: string; className?: string; inner?: string; children: React.ReactNode }) {
+  return (
+    <section id={id} aria-labelledby={labelledBy} className={`scroll-mt-20 ${className}`}>
+      <div className={`mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-24 lg:py-28 ${inner}`}>{children}</div>
+    </section>
+  );
+}
+
+function Tick({ className = "" }: { className?: string }) {
+  return (
+    <span aria-hidden="true" className={`mt-[0.2rem] flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/20 ${className}`}>
+      <Check className="h-3 w-3" strokeWidth={3} />
+    </span>
+  );
+}
+
+function Dash({ className = "" }: { className?: string }) {
+  return (
+    <span aria-hidden="true" className={`mt-[0.2rem] flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-[#f1ece4] text-dv-muted ring-1 ring-inset ring-dv-line ${className}`}>
+      <Minus className="h-3 w-3" strokeWidth={3} />
+    </span>
+  );
+}
+
+/** A real screen of the app, in the phone frame. Sized, lazy, never part of the first paint. */
+function Screen({ locale, name, alt, className = "" }: { locale: Locale; name: (typeof SHOTS)[number] | "review"; alt: string; className?: string }) {
+  return (
+    <PhoneFrame className={className} tightShadow>
+      {/* eslint-disable-next-line @next/next/no-img-element -- a fixed-size WebP; next/image would add a client hop for nothing */}
+      <img src={shotSrc(locale, name)} alt={alt} width={SHOT_W} height={SHOT_H} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full bg-white object-cover object-top" />
+    </PhoneFrame>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* §1 Hero                                                               */
+/* ------------------------------------------------------------------ */
+
 function Hero({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
-  const chrome = appText(locale).chrome;
-  const hero = samplesFor(locale)?.[0];
+  const hero = landingSamples(locale)[0];
   return (
-    <section className="relative isolate overflow-hidden">
-      {/* backdrop: faint grid + two soft glows */}
-      <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
-      <div aria-hidden="true" className="absolute -end-40 top-10 -z-10 h-[34rem] w-[34rem] rounded-full bg-[#cfe6e0] opacity-70 blur-3xl" />
-      <div aria-hidden="true" className="absolute -start-48 top-64 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#f3e3cc] opacity-60 blur-3xl" />
-
+    <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#f6f1e9] to-dv-paper">
       {/*
-        One grid, two arrangements. Phones: what it is (text), the CTA with the starting price, then a real
-        sample video beside the three risk-reducers — all in the first screen. Tablets (md): text, CTA and points
-        beside a mid-size phone, so the phone is not a thumbnail in an empty corner. From lg: text, CTA and points
-        on the left, the full-size phone on the right.
+        Phones: what arrives, the main action and the price, then a large playing sample, then the three facts.
+        From lg: the copy on the left, the phone on the right; the facts under the copy.
       */}
-      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_8.25rem] gap-x-4 gap-y-7 px-4 pb-20 pt-6 [grid-template-areas:'text_text'_'cta_cta'_'points_phone'] sm:grid-cols-[minmax(0,1fr)_10rem] sm:px-6 sm:pt-14 md:grid-cols-[minmax(0,1fr)_14rem] md:gap-x-12 md:[grid-template-areas:'text_phone'_'cta_phone'_'points_phone'] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-10 lg:gap-y-0 lg:pb-28 lg:pt-16 lg:[grid-template-areas:'._phone'_'text_phone'_'cta_phone'_'points_phone'_'._phone']">
-        <div className="min-w-0 [grid-area:text]">
-          <p className="dv-rise inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pe-3.5 ps-2 text-sm font-medium text-dv-teal shadow-[0_1px_2px_rgba(20,33,31,0.05)] ring-1 ring-dv-line backdrop-blur">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dv-teal-50">
-              <span className="h-1.5 w-1.5 rounded-full bg-dv-teal" />
-            </span>
-            {c.hero.eyebrow}
-          </p>
-          {/* Not animated in: the headline and the lead are the first screen's largest paints (LCP); a fade from
-              opacity 0 would hold them back until after hydration on slow phones. */}
-          <h1 className="dv-display dv-h1 mt-5 text-balance text-[2.25rem] leading-[1.04] text-dv-ink sm:mt-6 sm:text-[3.25rem] lg:max-w-[17ch] lg:text-[3.75rem] lg:leading-[1]">
-            {c.hero.h1}
-          </h1>
-          <p className="mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body sm:mt-6 sm:text-lg">{c.hero.lead}</p>
-        </div>
-
-        <div className="min-w-0 [grid-area:cta] lg:mt-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Down to the no-account preview right below the hero; the sign-up is the next step from there. */}
-            <TryLink locale={locale} className="dv-btn dv-btn-primary group px-7 py-4 text-base">
+      <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-4 pb-16 pt-8 [grid-template-areas:'text'_'phone'_'facts'] sm:px-6 sm:pt-14 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:grid-rows-[auto_1fr] lg:pb-28 lg:pt-20 lg:[grid-template-areas:'text_phone'_'facts_phone']">
+        <div className="dv-rise min-w-0 [grid-area:text]">
+          <Eyebrow>{c.hero.eyebrow}</Eyebrow>
+          <h1 className="dv-display dv-h1 mt-4 text-balance text-[2.5rem] leading-[1.05] text-dv-ink sm:text-[3.5rem] lg:text-[4.25rem] lg:leading-[1.02]">{c.hero.h1}</h1>
+          <p className="mt-5 max-w-[36rem] text-[1.0625rem] leading-relaxed text-dv-body sm:text-lg">{c.hero.lead}</p>
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+            {/* Down to the no-account logo preview right below the hero; the sign-up is the next step from there. */}
+            <TryLink locale={locale} className="dv-btn dv-btn-primary px-7 py-4 text-base">
               {c.hero.cta}
-              <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" aria-hidden="true" />
             </TryLink>
-            {/* Phones: the sample video right below already shows how it works; one clear action in the first screen. */}
-            <div className="hidden sm:block">
-              <a href="#how" className="dv-btn dv-btn-secondary px-6 py-4 text-base">{chrome.howItWorks}</a>
-            </div>
+            <a href="#samples" className="dv-link inline-flex min-h-11 items-center justify-center gap-1.5 font-semibold sm:justify-start">
+              {c.hero.samplesLink}
+              <span aria-hidden="true">↓</span>
+            </a>
           </div>
-          <p className="mt-3 text-sm text-dv-muted">
-            <span className="font-semibold text-dv-ink">{c.hero.ctaHint}</span>
+          <p className="mt-4 text-[0.9375rem] leading-relaxed text-dv-muted">
+            <span className="font-medium text-dv-ink">{c.hero.ctaHint}</span>
             <span aria-hidden="true"> · </span>
-            <span>
-              <FromPrice locale={locale} template={c.pricing.from} />
-            </span>
+            <a href="#pricing" className="underline decoration-dv-line underline-offset-4 hover:decoration-dv-teal">
+              <FromPrice locale={locale} template={c.pricing.from} /> <TaxSuffix locale={locale} />
+            </a>
+            <span aria-hidden="true"> · </span>
+            {c.hero.priceNote}
           </p>
         </div>
 
-        <ul className="min-w-0 space-y-3 self-center [grid-area:points] lg:mt-7 lg:self-start" data-hero-points>
-          {c.hero.points.map((pt) => (
-            <li key={pt} className="flex items-start gap-2.5 text-[0.9375rem] font-medium leading-snug text-dv-ink">
-              <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
-                <Check className="h-3 w-3" strokeWidth={3.5} />
-              </span>
-              {pt}
+        <ul className="min-w-0 space-y-3 border-t border-dv-line pt-6 [grid-area:facts] lg:self-start" data-hero-points>
+          {c.hero.facts.map((f) => (
+            <li key={f} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-dv-ink">
+              <Tick />
+              {f}
             </li>
           ))}
         </ul>
 
-        <div className="relative w-full self-center [grid-area:phone] lg:mx-auto lg:max-w-none">
-          <div className="relative mx-auto w-full lg:w-[18.5rem]">
-            <PhoneFrame compact>
-              {hero ? (
-                <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} loop={hero.hero} />
-              ) : (
-                <DrawnVideo locale={locale} />
-              )}
-            </PhoneFrame>
-          </div>
+        <div className="relative mx-auto w-full max-w-[15.5rem] [grid-area:phone] sm:max-w-[17rem] lg:max-w-[19rem] lg:self-center">
+          <PhoneFrame>
+            {hero ? (
+              <HeroVideo src={sampleSrc(locale, hero.slug, "mp4")} poster={sampleSrc(locale, hero.slug, "jpg")} title={hero.name} labels={c.video} loop={hero.hero} />
+            ) : null}
+          </PhoneFrame>
+          {/* The app's own words, beside the phone (from sm up; on a phone the video speaks for itself). */}
+          <p aria-hidden="true" className="dv-card absolute -start-28 top-[18%] hidden items-center gap-2 px-3.5 py-2.5 text-[0.8125rem] font-semibold text-dv-ink md:flex">
+            <span className="h-2 w-2 rounded-full bg-dv-teal" />
+            {c.mock.ready}
+          </p>
+          <p aria-hidden="true" className="dv-card absolute -end-16 bottom-[16%] hidden items-center gap-2 px-3.5 py-2.5 text-[0.8125rem] font-semibold text-dv-ink md:flex">
+            <Check className="h-4 w-4 text-dv-teal" strokeWidth={3} />
+            {c.mock.copied}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-          {/* The patient's question… (wide screens only: on a phone the small video speaks for itself) */}
-          <div aria-hidden="true" className="dv-float absolute -start-16 top-8 z-20 hidden w-max max-w-[13.5rem] lg:block">
-            <div className="dv-card flex items-start gap-2.5 p-3 pe-3.5">
-              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-dv-sand text-dv-teal">
-                <MessageCircleQuestion className="h-4 w-4" />
-              </span>
-              <p className="text-[0.8125rem] font-semibold leading-snug text-dv-ink">{c.mock.hook}</p>
+/* ------------------------------------------------------------------ */
+/* §3 What arrives every Monday                                          */
+/* ------------------------------------------------------------------ */
+
+function Monday({ locale }: { locale: Locale }) {
+  const m = LANDING[locale].monday;
+  const week = landingSamples(locale);
+  // A current-style sample other than the hero's where there is one (the older text-only ones come last).
+  const current = week.filter((v) => !v.legacy);
+  const shown = current[1] ?? current[0] ?? week[1];
+  return (
+    <Section id="monday" labelledBy="monday-heading" className="border-t border-dv-line">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">
+        <div>
+          <H2 id="monday-heading">{m.heading}</H2>
+          <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{m.lead}</p>
+          {shown && (
+            <div className="mt-12 hidden w-[15rem] lg:block">
+              <PhoneFrame tightShadow>
+                {/* eslint-disable-next-line @next/next/no-img-element -- the sample's own poster (540 × 960 JPEG) */}
+                <img src={sampleSrc(locale, shown.slug, "jpg")} alt={shown.name} width={540} height={960} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+              </PhoneFrame>
             </div>
-          </div>
-
-          {/* …answered, and checked before the dentist sees it. */}
-          <div className="dv-float-slow absolute -end-6 bottom-6 z-20 hidden w-[14.5rem] lg:block">
-            <div className="dv-card p-4">
-              <p className="flex items-center gap-2 text-[0.8125rem] font-semibold text-dv-ink">
-                <BadgeCheck className="h-[1.125rem] w-[1.125rem] text-dv-teal" aria-hidden="true" />
-                {c.mock.label}
-              </p>
-              <ul className="mt-3 space-y-2 border-t border-dv-line pt-3">
-                {c.checks.items.map((it) => (
-                  <li key={it.title} className="flex items-center gap-2 text-xs font-medium text-dv-body">
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
-                      <Check className="h-2.5 w-2.5" strokeWidth={3.5} aria-hidden="true" />
-                    </span>
-                    {it.title}
+          )}
+        </div>
+        <div>
+          <ol className="divide-y divide-dv-line border-y border-dv-line">
+            {m.items.map((it) => (
+              <li key={it.title} className="flex gap-3.5 py-3 sm:gap-4 sm:py-5">
+                <Tick />
+                <p className="text-[0.9375rem] leading-relaxed text-dv-body sm:text-[1.0625rem]">
+                  <strong className="font-semibold text-dv-ink">{it.title}</strong> {it.text}
+                </p>
+              </li>
+            ))}
+          </ol>
+          {week.length > 0 && (
+            <div className="mt-8 max-sm:hidden">
+              <p className="text-sm text-dv-muted">{m.exampleLabel}</p>
+              <ul className="mt-3 flex flex-wrap gap-2 text-sm">
+                {week.map((v) => (
+                  <li key={v.slug} className="rounded-lg bg-white px-3 py-1.5 font-medium text-dv-ink ring-1 ring-dv-line">
+                    {v.topic}
                   </li>
                 ))}
+                <li className="rounded-lg border border-dashed border-dv-edge px-3 py-1.5 font-medium text-dv-muted">{m.more}</li>
               </ul>
             </div>
-          </div>
+          )}
         </div>
       </div>
-    </section>
+    </Section>
   );
 }
 
-/**
- * The hero phone for a language without a sample week: a drawn frame in the
- * brand colours with the landing's own answer line, so the first screen is
- * entirely in the visitor's language. The live preview further down plays
- * real videos in it.
- */
-function DrawnVideo({ locale }: { locale: Locale }) {
-  const c = LANDING[locale];
-  return (
-    <div className="absolute inset-0 flex flex-col bg-gradient-to-b from-[#16706a] via-[#0f5c5c] to-[#0b3f3e] px-5 pb-8 pt-12 text-white">
-      <div className="flex gap-1">
-        {[1, 0.55, 0.3].map((o, i) => (
-          <span key={i} className="h-[3px] flex-1 rounded-full bg-white" style={{ opacity: o }} />
-        ))}
-      </div>
-      <div className="mt-6 flex items-center gap-2">
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
-          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#8fd1c6]" />
-        </span>
-        <span className="h-1.5 w-20 rounded-full bg-white/40" />
-      </div>
-      <div className="flex flex-1 flex-col justify-center">
-        <p className="dv-h3 text-balance text-[1.375rem] font-bold leading-snug">{c.mock.caption}</p>
-        <span className="mt-4 block h-1 w-12 rounded-full bg-[#8fd1c6]" />
-      </div>
-      <div className="space-y-2">
-        <span className="block h-1.5 w-4/5 rounded-full bg-white/35" />
-        <span className="block h-1.5 w-3/5 rounded-full bg-white/25" />
-      </div>
-    </div>
-  );
-}
-
-const PROBLEM_ICONS = [Clock3, TriangleAlert, BadgeCheck];
-
-function Problem({ locale }: { locale: Locale }) {
-  const c = LANDING[locale];
-  return (
-    <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6 sm:pb-32">
-      <div className="grid gap-4 md:grid-cols-3">
-        {c.problem.map((p, i) => {
-          const Icon = PROBLEM_ICONS[i] ?? BadgeCheck;
-          const last = i === c.problem.length - 1;
-          return (
-            <div
-              key={p.title}
-              className={
-                last
-                  ? "dv-grain relative overflow-hidden rounded-[1.25rem] bg-dv-teal p-6 md:p-7 text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)]"
-                  : "dv-card p-6 md:p-7"
-              }
-            >
-              {/* Phones: icon beside the title, so the three cards read as one block rather than a long scroll. */}
-              <div className="flex items-center gap-3 md:block">
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${last ? "bg-white/10 text-[#bfe3dc] ring-1 ring-white/15" : "bg-dv-sand text-dv-teal ring-1 ring-dv-line"}`}>
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <h2 className={`text-lg font-semibold tracking-tight md:mt-5 ${last ? "text-white" : "text-dv-ink"}`}>{p.title}</h2>
-              </div>
-              <p className={`mt-3 leading-relaxed md:mt-2 ${last ? "text-[#cfe2df]" : "text-dv-body"}`}>{p.text}</p>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-/* --- "How it works" visuals: no words, only the product's shapes. --- */
-
-function ClinicVisual() {
-  return (
-    <div className="dv-card mx-auto w-[85%] max-w-[16rem] p-4">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e9dfcf]">
-          <span className="h-3.5 w-3.5 rounded-[4px] bg-[#b6774f]" />
-        </span>
-        <div className="flex-1 space-y-1.5">
-          <span className="block h-2 w-3/4 rounded-full bg-dv-ink/80" />
-          <span className="block h-1.5 w-1/2 rounded-full bg-dv-ink/15" />
-        </div>
-      </div>
-      <div className="mt-4 flex gap-1.5">
-        {["#0f5c5c", "#8fd1c6", "#b6774f", "#efe7da"].map((c) => (
-          <span key={c} className="h-6 flex-1 rounded-md ring-1 ring-black/5" style={{ background: c }} />
-        ))}
-      </div>
-      <div className="mt-3 flex flex-wrap gap-1">
-        {LANGUAGE_CODES.map((l, i) => (
-          <span key={l} className={`rounded-md px-1.5 py-0.5 text-[0.625rem] font-semibold tracking-wide ${i === 0 ? "bg-dv-teal text-white" : "bg-dv-sand text-dv-muted"}`}>
-            {l}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function WeekVisual({ locale }: { locale: Locale }) {
-  const week = samplesFor(locale);
-  // Without a sample week every card is drawn.
-  const posters = week ? [week[1].slug, week[0].slug, week[2].slug] : [null, null, null];
-  return (
-    <div className="flex items-end justify-center">
-      {[0, 1, 2, 3, 4].map((i) => {
-        const slug = i >= 1 && i <= 3 ? posters[i - 1] : null;
-        const rot = [-10, -5, 0, 5, 10][i];
-        const lift = [10, 3, 0, 3, 10][i];
-        return (
-          <div
-            key={i}
-            className={`relative -mx-2.5 aspect-[9/16] w-[3.6rem] overflow-hidden rounded-xl bg-gradient-to-b from-[#1a6b66] to-[#0b3f3e] shadow-[0_10px_20px_-10px_rgba(8,46,45,0.6)] ring-2 ring-white sm:w-16 ${i === 2 ? "z-10 w-[4.25rem] sm:w-[4.6rem]" : ""}`}
-            style={{ transform: `rotate(${rot}deg) translateY(${lift}px)` }}
-          >
-            {slug ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={sampleSrc(locale, slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
-            ) : (
-              <span className="absolute inset-x-2 top-1/2 space-y-1">
-                <span className="block h-1 w-full rounded-full bg-white/70" />
-                <span className="block h-1 w-2/3 rounded-full bg-white/50" />
-              </span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function ApproveVisual({ locale }: { locale: Locale }) {
-  const poster = samplesFor(locale)?.[2];
-  return (
-    <div className="dv-card mx-auto flex w-[85%] max-w-[16rem] items-center gap-3 p-3">
-      <div className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-b from-[#1a6b66] to-[#0b3f3e]">
-        {poster ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={sampleSrc(locale, poster.slug, "jpg")} alt="" loading="lazy" className="h-full w-full object-cover" />
-        ) : (
-          <span className="absolute inset-x-2 top-1/2 space-y-1">
-            <span className="block h-1 w-full rounded-full bg-white/70" />
-            <span className="block h-1 w-2/3 rounded-full bg-white/50" />
-          </span>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <span className="block h-2 w-full rounded-full bg-dv-ink/75" />
-        <span className="mt-1.5 block h-1.5 w-2/3 rounded-full bg-dv-ink/15" />
-        <div className="mt-3 flex items-center gap-1.5">
-          <span className="flex h-7 flex-1 items-center justify-center rounded-full bg-dv-teal text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
-            <Check className="h-3.5 w-3.5" strokeWidth={3} />
-          </span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-dv-muted ring-1 ring-dv-line">
-            <X className="h-3.5 w-3.5" />
-          </span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-dv-muted ring-1 ring-dv-line">
-            <Download className="h-3.5 w-3.5" />
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const STEP_VISUALS: React.ComponentType<{ locale: Locale }>[] = [ClinicVisual, WeekVisual, ApproveVisual];
-
-function How({ locale }: { locale: Locale }) {
-  const c = LANDING[locale];
-  return (
-    <section id="how" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
-      <H2 className="max-w-2xl">{c.how.heading}</H2>
-      <ol className="mt-12 grid gap-5 md:grid-cols-3 lg:mt-16">
-        {c.how.steps.map((s, i) => {
-          const Visual = STEP_VISUALS[i] ?? ClinicVisual;
-          return (
-            <li key={s.title} className="dv-card dv-reveal flex flex-col overflow-hidden">
-              <div aria-hidden="true" className="relative flex h-48 items-center justify-center overflow-hidden bg-gradient-to-b from-dv-sand to-[#f8f4ee]">
-                <div className="dv-grid absolute inset-0 opacity-70" />
-                <div className="relative w-full">
-                  <Visual locale={locale} />
-                </div>
-              </div>
-              <div className="flex flex-1 flex-col p-7">
-                <span className="dv-display dv-figure text-[1.75rem] leading-none text-dv-teal">{String(i + 1).padStart(2, "0")}</span>
-                <h3 className="mt-4 text-lg font-semibold tracking-tight text-dv-ink">{s.title}</h3>
-                <p className="mt-2 leading-relaxed text-dv-body">{s.text}</p>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </section>
-  );
-}
+/* ------------------------------------------------------------------ */
+/* §4 Sample videos                                                      */
+/* ------------------------------------------------------------------ */
 
 function Samples({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
-  const week = samplesFor(locale);
-  // No sample week in this language yet: the live preview right below shows the videos instead.
-  if (!week) return null;
+  const week = landingSamples(locale);
+  if (week.length === 0) return null;
   return (
-    // No film grain here: the sideways-scrolling row below is its own compositing layer on phones and
-    // showed as a lighter, grain-free rectangle on the grained sand.
-    <section id="samples" className="relative overflow-hidden border-y border-dv-line bg-dv-sand">
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+    // The sideways-scrolling row below is its own compositing layer on phones: no grain on this section.
+    <section id="samples" aria-labelledby="samples-heading" className="scroll-mt-20 border-y border-dv-line bg-dv-sand">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-24 lg:py-28">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
           <div>
-            <H2>{c.samples.heading}</H2>
-            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-dv-teal ring-1 ring-dv-line">
-              <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              {c.samples.note}
+            <H2 id="samples-heading">{c.samples.heading}</H2>
+            <p className="mt-4 flex items-center gap-2 text-sm font-medium text-dv-muted">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-dv-teal" />
+              {c.samples.badge}
             </p>
           </div>
-          <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.samples.text}</p>
+          <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{c.samples.text}</p>
         </div>
         {/* On phones this row scrolls sideways, so keyboard users can focus and scroll it too. */}
-        <ul tabIndex={0} aria-label={c.samples.heading} className="-mx-4 mt-12 flex snap-x rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dv-teal snap-mandatory scroll-px-4 gap-5 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-16 lg:gap-12">
-          {week.map(({ slug, name, seconds }, i) => (
-            <li key={slug} className="w-[72%] shrink-0 snap-start sm:w-auto">
-              <PhoneFrame className="mx-auto max-w-[18rem]" tightShadow>
+        <ul tabIndex={0} aria-label={c.samples.heading} className="-mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto rounded-2xl px-4 pb-4 [scrollbar-width:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dv-teal sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:px-0 lg:mt-14 lg:gap-12">
+          {week.map(({ slug, name, seconds, topic }, i) => (
+            <li key={slug} className="w-[68%] shrink-0 snap-start sm:w-auto">
+              <PhoneFrame className="mx-auto max-w-[17rem]" tightShadow>
                 <SampleVideo src={sampleSrc(locale, slug, "mp4")} poster={sampleSrc(locale, slug, "jpg")} title={name} playLabel={c.video.play} />
               </PhoneFrame>
-              <div className="mx-auto mt-5 max-w-[18rem]">
-                <p className="flex items-center gap-2 text-xs font-medium text-dv-muted">
+              <div className="mx-auto mt-4 max-w-[17rem]">
+                {/* Each sample has its own page: what it covers, its on-screen text, and how to get your own. */}
+                <Link href={dvHref(examplePath({ locale, slug }))} className="block min-h-11 py-1 text-[0.9375rem] font-semibold leading-snug text-dv-ink underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal">
+                  {topic}
+                </Link>
+                <p className="text-[0.8125rem] text-dv-muted">
                   <span>{SHOWCASE[locale].videoOf.replace("{n}", String(i + 1))}</span>
-                  <span aria-hidden="true">·</span>
+                  <span aria-hidden="true"> · </span>
                   <span className="tabular-nums" dir="ltr">{duration(seconds)}</span>
                 </p>
-                {/* Each sample has its own page: what it covers, its on-screen text, and how to get your own. */}
-                <Link href={dvHref(examplePath({ locale, slug }))} className="mt-0.5 block min-h-11 py-1 text-[0.9375rem] font-semibold leading-snug text-dv-ink underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal">
-                  {name}
-                </Link>
               </div>
             </li>
           ))}
         </ul>
-        <p className="mt-8 text-center sm:mt-10">
-          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex min-h-11 items-center gap-1.5 font-semibold text-dv-teal underline-offset-4 hover:underline" data-testid="landing-examples-link">
+        <p className="mt-8 sm:mt-10">
+          <Link href={dvHref(EXAMPLES_PATH[locale])} className="dv-link inline-flex min-h-11 items-center gap-1.5 font-semibold" data-testid="landing-examples-link">
             {EXAMPLES_UI[locale].seeAll}
             <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
           </Link>
@@ -413,217 +275,356 @@ function Samples({ locale }: { locale: Locale }) {
   );
 }
 
-const CHECK_ICONS = [ShieldCheck, Stethoscope, AudioWaveform];
+/* ------------------------------------------------------------------ */
+/* §5 What changes for your clinic                                       */
+/* ------------------------------------------------------------------ */
 
-function Checks({ locale }: { locale: Locale }) {
-  const c = LANDING[locale];
+function Value({ locale }: { locale: Locale }) {
+  const v = LANDING[locale].value;
   return (
-    <section className="dv-on-dark dv-grain relative isolate overflow-hidden bg-dv-teal-900 text-[#f7f1e7]">
-      <div aria-hidden="true" className="absolute -start-32 -top-32 -z-10 h-[30rem] w-[30rem] rounded-full bg-[#167269] opacity-50 blur-3xl" />
-      <div aria-hidden="true" className="absolute -bottom-40 end-0 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#0f5c5c] opacity-70 blur-3xl" />
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-[#bfe3dc] ring-1 ring-white/15">
-          <ShieldCheck className="h-6 w-6" aria-hidden="true" />
-        </span>
-        <H2 className="mt-6 max-w-3xl text-white">{c.checks.heading}</H2>
-        <div className="mt-12 grid gap-4 md:grid-cols-3 lg:mt-16">
-          {c.checks.items.map((it, i) => {
-            const Icon = CHECK_ICONS[i] ?? ShieldCheck;
-            return (
-              <div key={it.title} className="dv-reveal rounded-[1.25rem] bg-white/[0.06] p-7 ring-1 ring-inset ring-white/10 backdrop-blur-sm">
-                <div className="flex items-center justify-between">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8fd1c6]/15 text-[#bfe3dc]">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
+    <Section id="value" labelledBy="value-heading">
+      <H2 id="value-heading" className="max-w-3xl">{v.heading}</H2>
+      <div className="mt-10 grid gap-x-12 gap-y-9 sm:grid-cols-2 lg:mt-14 lg:gap-x-20 lg:gap-y-12">
+        {v.items.map((it) => (
+          <div key={it.title} className="border-t border-dv-teal/40 pt-5">
+            <h3 className="text-lg font-semibold leading-snug tracking-tight text-dv-ink">{it.title}</h3>
+            <p className="mt-2 max-w-[34rem] leading-relaxed text-dv-body">{it.text}</p>
+          </div>
+        ))}
+      </div>
+      {/* The ROI line: honest, no figures. */}
+      <figure className="mt-12 rounded-[1.25rem] bg-dv-sand px-6 py-7 ring-1 ring-inset ring-dv-line sm:px-10 sm:py-9 lg:mt-16">
+        <blockquote className="dv-display max-w-3xl text-balance text-[1.5rem] leading-[1.2] text-dv-ink sm:text-[1.875rem]">{v.roi}</blockquote>
+        <figcaption className="mt-4 max-w-2xl text-sm leading-relaxed text-dv-muted">{v.roiNote}</figcaption>
+      </figure>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* §6 How it works                                                       */
+/* ------------------------------------------------------------------ */
+
+function How({ locale }: { locale: Locale }) {
+  const h = LANDING[locale].how;
+  return (
+    <Section id="how" labelledBy="how-heading" className="border-t border-dv-line">
+      <H2 id="how-heading">{h.heading}</H2>
+      <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8 lg:mt-14 lg:gap-12">
+        {h.steps.map((s, i) => (
+          // Phones: the words beside a small real screen; from md: the screen above the words.
+          <li key={s.title} className="grid grid-cols-[minmax(0,1fr)_7.5rem] items-start gap-5 md:grid-cols-1 md:gap-7">
+            <Screen locale={locale} name={SHOTS[i]} alt={h.shots[i]} className="order-2 w-full md:order-none md:mx-auto md:max-w-[14rem]" />
+            <div>
+              <span aria-hidden="true" className="dv-display dv-figure text-[2.5rem] leading-none text-dv-teal">{i + 1}</span>
+              <h3 className="mt-3 text-lg font-semibold leading-snug tracking-tight text-dv-ink">{s.title}</h3>
+              <p className="mt-2 leading-relaxed text-dv-body">{s.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* §7 You stay in control                                                */
+/* ------------------------------------------------------------------ */
+
+function Control({ locale }: { locale: Locale }) {
+  const c = LANDING[locale].control;
+  return (
+    <Section id="control" labelledBy="control-heading" className="bg-dv-sand" inner="grid gap-10 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:items-center lg:gap-20">
+      <div className="order-2 max-sm:hidden lg:order-none">
+        <Screen locale={locale} name="review" alt={LANDING[locale].how.shots[2]} className="mx-auto w-[11.5rem] sm:w-[15rem] lg:w-[17rem]" />
+      </div>
+      <div>
+        <H2 id="control-heading">{c.heading}</H2>
+        <p className="mt-4 text-[1.0625rem] font-medium text-dv-teal">{c.lead}</p>
+        <ul className="mt-6 grid gap-x-10 gap-y-3 sm:mt-8 sm:grid-cols-2 sm:gap-y-6">
+          {c.points.map((p) => (
+            <li key={p.title} className="flex gap-3">
+              <Tick />
+              {/* Phones: the six statements, read at a glance; the detail from sm up (and in the FAQ). */}
+              <p className="leading-relaxed text-dv-body">
+                <strong className="font-semibold text-dv-ink">{p.title}</strong> <span className="max-sm:hidden">{p.text}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* §8 Advertising rules, honestly — the one dark section                 */
+/* ------------------------------------------------------------------ */
+
+function Rules({ locale }: { locale: Locale }) {
+  const r = LANDING[locale].rules;
+  return (
+    <section id="rules" aria-labelledby="rules-heading" className="dv-on-dark scroll-mt-20 bg-dv-teal-900 text-[#f7f1e7]" data-rules>
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-24 lg:py-28">
+        <H2 id="rules-heading" className="max-w-3xl !text-white">{r.heading}</H2>
+        <p className="mt-5 max-w-3xl text-[1.0625rem] leading-relaxed text-[#d5e6e2]">{r.lead}</p>
+        <div className="mt-8 grid gap-8 md:grid-cols-2 lg:mt-14 lg:gap-16">
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-[#8fd1c6]">{r.doesHeading}</h3>
+            <ul className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
+              {r.does.map((d) => (
+                <li key={d} className="flex gap-3 text-[0.9375rem] leading-relaxed text-[#e8f1ef] sm:text-base">
+                  <span aria-hidden="true" className="mt-[0.2rem] flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-[#8fd1c6] text-dv-teal-900">
+                    <Check className="h-3 w-3" strokeWidth={3} />
                   </span>
-                  <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center rounded-full bg-[#8fd1c6] text-dv-teal-900">
-                    <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                  {d}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-[#8fd1c6]">{r.doesNotHeading}</h3>
+            <ul className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
+              {r.doesNot.map((d) => (
+                <li key={d} className="flex gap-3 text-[0.9375rem] leading-relaxed text-[#e8f1ef] sm:text-base">
+                  <span aria-hidden="true" className="mt-[0.2rem] flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full ring-1 ring-inset ring-white/40 text-white/80">
+                    <Minus className="h-3 w-3" strokeWidth={3} />
                   </span>
-                </div>
-                <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">{it.title}</h3>
-                <p className="mt-2 leading-relaxed text-[#cfe2df]">{it.text}</p>
-              </div>
-            );
-          })}
+                  {d}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <CountryRules locale={locale} />
+        <p className="mt-10 border-t border-white/15 pt-6 text-[0.9375rem] leading-relaxed text-[#d5e6e2]">{r.close}</p>
       </div>
     </section>
   );
 }
 
-/** "DentVideo vs an agency vs doing it yourself": a table from md up, one card per row on phones. */
+/* ------------------------------------------------------------------ */
+/* §9 Who it is for                                                      */
+/* ------------------------------------------------------------------ */
+
+function Fit({ locale }: { locale: Locale }) {
+  const f = LANDING[locale].fit;
+  return (
+    <Section id="fit" labelledBy="fit-heading">
+      <H2 id="fit-heading" className="max-w-3xl">{f.heading}</H2>
+      <div className="mt-10 grid gap-10 md:grid-cols-2 lg:mt-12 lg:gap-16">
+        <div>
+          <h3 className="text-lg font-semibold text-dv-ink">{f.yesHeading}</h3>
+          <ul className="mt-4 space-y-3.5">
+            {f.yes.map((y) => (
+              <li key={y} className="flex gap-3 leading-relaxed text-dv-body">
+                <Tick />
+                {y}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-dv-ink">{f.noHeading}</h3>
+          <ul className="mt-4 space-y-3.5">
+            {f.no.map((n) => (
+              <li key={n} className="flex gap-3 leading-relaxed text-dv-body">
+                <Dash />
+                {n}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* §10 Comparison                                                        */
+/* ------------------------------------------------------------------ */
+
+/** "{starter} or {practice} a month", with both list prices in the visitor's currency. */
+function TwoPrices({ locale, template }: { locale: Locale; template: string }) {
+  const parts = template.split(/(\{starter\}|\{practice\})/);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p === "{starter}" ? (
+          <span key={i} dir="ltr">
+            <TierPrice locale={locale} tier="starter" />
+          </span>
+        ) : p === "{practice}" ? (
+          <span key={i} dir="ltr">
+            <TierPrice locale={locale} tier="practice" />
+          </span>
+        ) : (
+          p
+        ),
+      )}
+    </>
+  );
+}
+
 function Compare({ locale }: { locale: Locale }) {
   const { compare: c } = LANDING[locale];
   const [us, ...others] = c.columns;
+  const rows = [
+    ...c.rows.map((r) => ({ label: r.label, ours: r.values[0] as React.ReactNode, rest: [r.values[1], r.values[2]] })),
+    { label: c.cost.label, ours: <TwoPrices locale={locale} template={c.cost.ours} />, rest: [c.cost.agency, c.cost.diy] },
+  ];
   return (
-    <section id="compare" aria-labelledby="compare-heading" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-24 sm:px-6 sm:pt-32">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+    <Section id="compare" labelledBy="compare-heading" className="border-t border-dv-line">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
         <H2 id="compare-heading">{c.heading}</H2>
-        <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body lg:justify-self-end">{c.text}</p>
+        <p className="max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{c.text}</p>
       </div>
 
       {/* md and up: a real table, DentVideo's column tinted. */}
-      <div className="dv-card mt-12 hidden overflow-hidden md:block lg:mt-16">
+      <div className="dv-card mt-10 hidden overflow-hidden md:block lg:mt-14">
         <table className="w-full table-fixed border-collapse text-start">
           <caption className="sr-only">{c.heading}</caption>
           <colgroup>
-            <col className="w-[22%]" />
+            <col className="w-[20%]" />
             <col className="w-[30%]" />
-            <col className="w-[24%]" />
-            <col className="w-[24%]" />
+            <col className="w-[25%]" />
+            <col className="w-[25%]" />
           </colgroup>
           <thead>
             <tr>
               <td className="p-0" />
-              <th scope="col" className="bg-dv-teal px-6 pb-5 pt-6 text-start text-base font-semibold tracking-tight text-white">
-                <span className="flex items-center gap-2">
-                  <BadgeCheck className="h-5 w-5 text-[#bfe3dc]" aria-hidden="true" />
-                  {us}
-                </span>
-              </th>
+              <th scope="col" className="bg-dv-teal px-6 py-5 text-start text-base font-semibold tracking-tight text-white">{us}</th>
               {others.map((col) => (
-                <th key={col} scope="col" className="px-6 pb-5 pt-6 text-start text-base font-semibold tracking-tight text-dv-ink">
-                  {col}
-                </th>
+                <th key={col} scope="col" className="px-6 py-5 text-start text-base font-semibold tracking-tight text-dv-ink">{col}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {c.rows.map((r) => (
+            {rows.map((r) => (
               <tr key={r.label} className="border-t border-dv-line">
                 <th scope="row" className="px-6 py-5 text-start align-top text-sm font-semibold text-dv-ink">{r.label}</th>
-                <td className="border-t border-dv-teal/10 bg-dv-teal-50 px-6 py-5 align-top">
-                  <span className="flex items-start gap-2.5 text-[0.9375rem] font-medium leading-snug text-dv-ink">
-                    <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
-                      <Check className="h-3 w-3" strokeWidth={3.5} />
-                    </span>
-                    {r.values[0]}
-                  </span>
-                </td>
-                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.values[1]}</td>
-                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.values[2]}</td>
+                <td className="bg-dv-teal-50 px-6 py-5 align-top text-[0.9375rem] font-medium leading-snug text-dv-ink">{r.ours}</td>
+                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.rest[0]}</td>
+                <td className="px-6 py-5 align-top text-[0.9375rem] leading-snug text-dv-body">{r.rest[1]}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Phones: one card per row, DentVideo first. */}
-      <ul className="mt-10 space-y-4 md:hidden">
-        {c.rows.map((r) => (
-          <li key={r.label} className="dv-card overflow-hidden">
-            <p className="px-5 pt-5 text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{r.label}</p>
-            <div className="mx-3 mt-3 rounded-xl bg-dv-teal-50 px-3 py-3 ring-1 ring-inset ring-dv-teal/10">
-              <p className="text-xs font-semibold text-dv-teal">{us}</p>
-              <p className="mt-1 flex items-start gap-2 text-[0.9375rem] font-medium leading-snug text-dv-ink">
-                <span aria-hidden="true" className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-dv-teal text-white">
-                  <Check className="h-2.5 w-2.5" strokeWidth={3.5} />
-                </span>
-                {r.values[0]}
-              </p>
-            </div>
-            <dl className="grid grid-cols-2 gap-4 px-5 pb-5 pt-4">
+      {/* Phones: one card per row, DentVideo first, the row label kept as text. */}
+      <ul className="mt-8 space-y-5 md:hidden">
+        {rows.map((r) => (
+          <li key={r.label} className="border-t border-dv-line pt-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-dv-muted">{r.label}</p>
+            <p className="mt-1.5 flex gap-2 text-[0.9375rem] font-semibold leading-snug text-dv-ink">
+              <Tick />
+              <span>
+                <span className="text-dv-teal">{us}: </span>
+                {r.ours}
+              </span>
+            </p>
+            <dl className="mt-2 grid grid-cols-2 gap-3 ps-7">
               {others.map((col, i) => (
                 <div key={col}>
                   <dt className="text-xs font-semibold text-dv-muted">{col}</dt>
-                  <dd className="mt-1 text-sm leading-snug text-dv-body">{r.values[i + 1]}</dd>
+                  <dd className="mt-0.5 text-sm leading-snug text-dv-body">{r.rest[i]}</dd>
                 </div>
               ))}
             </dl>
           </li>
         ))}
       </ul>
-
-      {/* The ROI line: honest, no figures. */}
-      <div className="dv-grain relative mt-6 overflow-hidden rounded-[1.25rem] bg-dv-teal p-7 text-[#f7f1e7] shadow-[0_24px_48px_-28px_rgba(15,92,92,0.8)] sm:p-9">
-        <p className="dv-display max-w-3xl text-balance text-[1.625rem] leading-[1.15] text-white sm:text-[2rem]">{c.roi}</p>
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#cfe2df]">{c.roiNote}</p>
-      </div>
-    </section>
+      <p className="mt-4 text-sm text-dv-muted">{c.source}</p>
+    </Section>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* §11 Pricing, with what is and is not included, §12 before you decide  */
+/* ------------------------------------------------------------------ */
 
 function Pricing({ locale }: { locale: Locale }) {
   const c = LANDING[locale];
   const p = c.pricing;
   const start = dvHref(`/dentvideo/start?lang=${locale}`);
   return (
-    <section id="pricing" className="relative isolate mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
+    <section id="pricing" aria-labelledby="pricing-heading" className="scroll-mt-20 border-t border-dv-line bg-gradient-to-b from-dv-paper to-[#f6f1e9]">
       {/* Shows EUR / TL instead of USD where that is what Dodo charges the visitor (the hero's "from" price too). */}
       <PriceRegion locale={locale} />
-      <div aria-hidden="true" className="absolute left-1/2 top-16 -z-10 h-72 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
-      <div className="text-center">
-        <H2 className="mx-auto max-w-2xl">{p.heading}</H2>
-        <p className="mx-auto mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{p.text}</p>
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-24 lg:py-28">
+        <div className="mx-auto max-w-3xl text-center">
+          <H2 id="pricing-heading">{p.heading}</H2>
+          <p className="mx-auto mt-5 max-w-2xl text-[1.0625rem] leading-relaxed text-dv-body">{p.text}</p>
+        </div>
+
+        {/* Tablets: the two plans side by side and Group across under them; three from lg. */}
+        <ul className="mt-10 grid gap-5 md:grid-cols-2 md:items-stretch lg:mt-14 lg:grid-cols-3">
+          {p.tiers.map((tier, i) => {
+            const featured = i === 1;
+            return (
+              <li key={tier.name} data-tier={TIER_IDS[i]} className={`dv-card relative flex flex-col p-7 ${featured ? "ring-2 ring-dv-teal" : ""}`}>
+                {featured && <span className="absolute -top-3 start-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white">{p.recommended}</span>}
+                <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
+                {/* Held to the same height from md up, so the prices of the side-by-side plans sit on one line. */}
+                <p className="mt-1 text-sm leading-relaxed text-dv-muted md:min-h-[3lh]">{tier.blurb}</p>
+                <p className="mt-5 flex flex-wrap items-baseline gap-x-1.5">
+                  <span dir="ltr" className="dv-price text-[2.75rem] font-semibold leading-none tracking-tight text-dv-ink">
+                    <TierPrice locale={locale} tier={TIER_IDS[i]} />
+                  </span>
+                  <span className="text-[0.9375rem] font-medium text-dv-muted">{p.perMonth}</span>
+                  <span className="text-xs font-medium text-dv-muted" data-tax>
+                    <TaxSuffix locale={locale} />
+                  </span>
+                </p>
+                <ul className="mt-6 space-y-3 border-t border-dv-line pt-6">
+                  {tier.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-[0.9375rem] leading-snug text-dv-body">
+                      <Tick />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto pt-8">
+                  <TrackedLink href={start} locale={locale} where="pricing" className={`dv-btn w-full px-5 py-3.5 text-[0.9375rem] ${featured ? "dv-btn-primary" : "dv-btn-secondary !text-dv-teal"}`}>
+                    {p.cta}
+                    <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                  </TrackedLink>
+                </div>
+              </li>
+            );
+          })}
+          <GroupCard locale={locale} />
+        </ul>
+
+        {/* Two short facts, each with its own tick, so neither line starts with a stray separator on a phone. */}
+        <ul className="mx-auto mt-8 flex max-w-4xl flex-col gap-2 text-sm text-dv-muted sm:flex-row sm:justify-center sm:gap-6">
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
+            <span>{p.cancel}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
+            <span>
+              <CurrencyNote template={p.note} />
+            </span>
+          </li>
+        </ul>
+
+        <Scope locale={locale} />
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <Before locale={locale} />
+          <details className="group h-fit rounded-[1.25rem] bg-white/70 ring-1 ring-inset ring-dv-line" data-pricing-why>
+            <summary className="flex min-h-11 cursor-pointer items-start justify-between gap-6 p-6 text-lg font-semibold leading-snug text-dv-ink sm:p-8">
+              {c.pricingWhy.q}
+              <span aria-hidden="true" className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-200 group-open:rotate-45">
+                <Plus className="h-4 w-4" />
+              </span>
+            </summary>
+            <p className="-mt-2 px-6 pb-6 leading-relaxed text-dv-body sm:px-8 sm:pb-8">{c.pricingWhy.a}</p>
+          </details>
+        </div>
       </div>
-
-      {/* Tablets: the two plans side by side and Group across under them (three columns were ~230px each); three from lg. */}
-      <ul className="mt-12 grid gap-5 md:grid-cols-2 md:items-stretch lg:grid-cols-3">
-        {p.tiers.map((tier, i) => {
-          const featured = i === 1;
-          return (
-            <li
-              key={tier.name}
-              data-tier={TIER_IDS[i]}
-              className={`dv-card dv-reveal relative flex flex-col p-7 transition-shadow duration-300 hover:shadow-[0_0_0_1px_rgba(15,92,92,0.25),0_24px_48px_-24px_rgba(15,92,92,0.35)] ${featured ? "ring-2 ring-dv-teal lg:-my-3 lg:py-10" : ""}`}
-            >
-              {featured && (
-                <span className="absolute -top-3 start-7 rounded-full bg-dv-teal px-3 py-1 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgba(15,92,92,0.8)]">
-                  {p.recommended}
-                </span>
-              )}
-              <h3 className="text-lg font-semibold text-dv-ink">{tier.name}</h3>
-              {/* Two lines held from md up, so the prices of the side-by-side tiers sit on one line. */}
-              <p className="mt-1 text-sm leading-relaxed text-dv-muted md:min-h-[2lh]">{tier.blurb}</p>
-              <p className="mt-6 flex flex-wrap items-baseline gap-x-1">
-                <span dir="ltr" className="dv-display dv-figure text-[3.25rem] leading-none text-dv-ink">
-                  <TierPrice locale={locale} tier={TIER_IDS[i]} />
-                </span>
-                <span className="text-sm font-medium text-dv-muted">{p.perMonth}</span>
-                <span className="text-xs font-medium text-dv-muted" data-tax>
-                  <TaxSuffix locale={locale} />
-                </span>
-              </p>
-              <ul className="mt-6 space-y-3 border-t border-dv-line pt-6">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-[0.9375rem] leading-snug text-dv-body">
-                    <span aria-hidden="true" className="mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/15">
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-auto pt-8">
-                <TrackedLink
-                  href={start}
-                  locale={locale}
-                  where="pricing"
-                  className={`dv-btn group w-full px-5 py-3.5 text-[0.9375rem] ${featured ? "dv-btn-primary" : "dv-btn-secondary !text-dv-teal"}`}
-                >
-                  {p.cta}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-                </TrackedLink>
-              </div>
-            </li>
-          );
-        })}
-        <GroupCard locale={locale} />
-      </ul>
-
-      {/* Two short facts, each with its own tick, so neither line starts with a stray separator on a phone. */}
-      <ul className="mx-auto mt-10 flex w-fit max-w-full flex-col items-start gap-2 text-sm text-dv-muted sm:w-auto sm:flex-row sm:justify-center sm:gap-6">
-        <li className="flex items-start gap-2 text-start">
-          <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
-          <span>{p.cancel}</span>
-        </li>
-        <li className="flex items-start gap-2 text-start">
-          <Check className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
-          <span>
-            <CurrencyNote template={p.note} />
-          </span>
-        </li>
-      </ul>
     </section>
   );
 }
@@ -634,7 +635,7 @@ function GroupCard({ locale }: { locale: Locale }) {
   return (
     <li className="dv-card relative flex flex-col p-7 md:col-span-2 lg:col-span-1" data-tier="group">
       <h3 className="text-lg font-semibold text-dv-ink">{g.name}</h3>
-      <p className="mt-6 dv-display text-[1.75rem] leading-tight text-dv-ink">{g.price}</p>
+      <p className="mt-5 text-xl font-semibold leading-snug text-dv-ink">{g.price}</p>
       <p className="mt-6 border-t border-dv-line pt-6 text-[0.9375rem] leading-relaxed text-dv-body">{g.text}</p>
       <div className="mt-auto pt-8">
         <a href={groupMailto(locale)} className="dv-btn dv-btn-secondary w-full px-5 py-3.5 text-[0.9375rem] !text-dv-teal">
@@ -646,36 +647,111 @@ function GroupCard({ locale }: { locale: Locale }) {
   );
 }
 
-const TRUST_ICONS = [Building2, CreditCard, Lock, CalendarX2];
+/** Right under the plans: what a clinic gets each week, and plainly what it does not. */
+function Scope({ locale }: { locale: Locale }) {
+  const s = LANDING[locale].scope;
+  return (
+    <div className="dv-card mt-12 p-6 sm:p-8 lg:mt-16" data-scope>
+      <h3 className="text-xl font-semibold tracking-tight text-dv-ink">{s.heading}</h3>
+      <div className="mt-6 grid gap-8 md:grid-cols-2 md:gap-12">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-dv-teal">{s.includedHeading}</p>
+          <ul className="mt-3 space-y-2.5">
+            {s.included.map((x) => (
+              <li key={x} className="flex gap-3 leading-snug text-dv-body">
+                <Tick />
+                {x}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-dv-muted">{s.excludedHeading}</p>
+          <ul className="mt-3 space-y-2.5">
+            {s.excluded.map((x) => (
+              <li key={x} className="flex gap-3 leading-snug text-dv-body">
+                <Dash />
+                {x}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Risk reversal from facts that already exist: no guarantee, refund or satisfaction offer (owner decision). */
+function Before({ locale }: { locale: Locale }) {
+  const b = LANDING[locale].before;
+  return (
+    <div className="rounded-[1.25rem] bg-white/70 p-6 ring-1 ring-inset ring-dv-line sm:p-8" data-before>
+      <h3 className="text-lg font-semibold text-dv-ink">{b.heading}</h3>
+      <ul className="mt-4 space-y-3">
+        {b.items.map((it) => (
+          <li key={it.title} className="flex gap-3 leading-relaxed text-dv-body">
+            <Tick />
+            <p>
+              <strong className="font-semibold text-dv-ink">{it.title}</strong> {it.text}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* §13 Who is behind DentVideo                                           */
+/* ------------------------------------------------------------------ */
 
 /**
  * Who runs DentVideo, who takes the money, what happens to the data, how to
- * leave — facts from the legal pages, with links to them. No testimonials,
- * logos or ratings: there are none yet, and invented ones are banned.
+ * leave, then patient data, the DPA and AI disclosure — facts from the legal
+ * pages only, with links to them. No testimonials, logos or ratings: there are
+ * none yet, and invented ones are banned.
  */
 function Trust({ locale }: { locale: Locale }) {
   const t = LANDING[locale].trust;
   const nav = LEGAL_NAV[locale];
   return (
-    <section id="trust" aria-labelledby="trust-heading" className="mx-auto max-w-6xl scroll-mt-24 px-4 pb-24 sm:px-6 sm:pb-32">
-      <h2 id="trust-heading" className="dv-display text-[2rem] leading-tight sm:text-[2.5rem]">{t.heading}</h2>
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {t.items.map((it, i) => {
-          const Icon = TRUST_ICONS[i] ?? ShieldCheck;
-          return (
-            <li key={it.title} className="dv-card p-5 sm:p-6">
-              {/* Phones: icon beside the title (four cards stack, so each is kept short); from sm: icon above. */}
-              <div className="flex items-center gap-3 sm:block">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-dv-sand text-dv-teal ring-1 ring-dv-line">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <h3 className="font-semibold tracking-tight text-dv-ink sm:mt-4">{it.title}</h3>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-dv-body sm:mt-2">{it.text}</p>
-            </li>
-          );
-        })}
+    <Section id="trust" labelledBy="trust-heading" className="border-t border-dv-line">
+      <H2 id="trust-heading">{t.heading}</H2>
+      <p className="mt-5 flex flex-wrap gap-x-6 gap-y-1 text-[0.9375rem] text-dv-body">
+        <span>
+          {t.director}: <span className="font-semibold text-dv-ink">{OPERATOR.director}</span>
+        </span>
+        <span>
+          {t.contact}{" "}
+          <a href={`mailto:${OPERATOR.productEmail}`} className="dv-link font-semibold" dir="ltr">
+            {OPERATOR.productEmail}
+          </a>
+        </span>
+      </p>
+      <ul className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+        {t.items.map((it) => (
+          <li key={it.title} className="border-t border-dv-teal/40 pt-5">
+            <h3 className="font-semibold tracking-tight text-dv-ink">{it.title}</h3>
+            <p className="mt-2 text-[0.9375rem] leading-relaxed text-dv-body">{it.text}</p>
+          </li>
+        ))}
       </ul>
+      <div className="mt-10 rounded-[1.25rem] bg-dv-sand p-6 ring-1 ring-inset ring-dv-line sm:p-8" data-trust-data>
+        <ul className="grid gap-8 md:grid-cols-3">
+          {t.data.map((d) => (
+            <li key={d.title}>
+              <h3 className="font-semibold tracking-tight text-dv-ink">{d.title}</h3>
+              <p className="mt-2 text-[0.9375rem] leading-relaxed text-dv-body">{d.text}</p>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6">
+          <Link href={dvHref(legalPath("dpa", locale))} className="dv-link inline-flex min-h-11 items-center gap-1.5 font-semibold">
+            {t.dpaLink}
+            <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+          </Link>
+        </p>
+      </div>
       <nav aria-label={t.legal} className="mt-6">
         <p className="flex flex-wrap items-center gap-x-4 text-sm lg:gap-y-2">
           <span className="font-medium text-dv-muted">{t.legal}:</span>
@@ -686,6 +762,52 @@ function Trust({ locale }: { locale: Locale }) {
           ))}
         </p>
       </nav>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* §14 FAQ, §15 final action                                             */
+/* ------------------------------------------------------------------ */
+
+function Faq({ locale }: { locale: Locale }) {
+  const c = LANDING[locale];
+  return (
+    <Section id="faq" labelledBy="faq-heading" className="border-t border-dv-line" inner="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:gap-16">
+      <div>
+        <H2 id="faq-heading" className="lg:sticky lg:top-28">{c.faqHeading}</H2>
+      </div>
+      <div className="divide-y divide-dv-line border-y border-dv-line">
+        {c.faq.map((f, i) => (
+          <details key={f.q} className="group" open={i === 0}>
+            <summary className="flex min-h-11 cursor-pointer items-start justify-between gap-6 py-5 text-start text-[1.0625rem] font-semibold leading-snug text-dv-ink">
+              {f.q}
+              <span aria-hidden="true" className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-200 group-open:rotate-45">
+                <Plus className="h-4 w-4" />
+              </span>
+            </summary>
+            <p className="-mt-1 max-w-2xl pb-6 pe-10 leading-relaxed text-dv-body">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function Final({ locale }: { locale: Locale }) {
+  const f = LANDING[locale].final;
+  return (
+    <section aria-labelledby="final-heading" className="px-4 pb-16 sm:px-6 sm:pb-24" data-final>
+      <div className="mx-auto max-w-6xl rounded-[1.5rem] bg-dv-sand px-6 py-12 text-center ring-1 ring-inset ring-dv-line sm:px-10 sm:py-16">
+        <H2 id="final-heading" className="mx-auto max-w-2xl">{f.heading}</H2>
+        <p className="mx-auto mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{f.text}</p>
+        <TryLink locale={locale} where="final" className="dv-btn dv-btn-primary mt-8 px-7 py-4 text-base">
+          {f.cta}
+        </TryLink>
+        <p className="mt-4 text-sm text-dv-muted">
+          <FromPrice locale={locale} template={f.small} />
+        </p>
+      </div>
     </section>
   );
 }
@@ -695,50 +817,27 @@ function Guides({ locale }: { locale: Locale }) {
   const guides = guidesFor(locale);
   if (guides.length === 0) return null;
   return (
-    // After the FAQ: reading for later, just above the footer.
+    // After the final action: reading for later, just above the footer.
     <section id="guides" className="border-t border-dv-line">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-      <h2 className="dv-display text-[2rem] leading-tight sm:text-[2.5rem]">{c.guidesHeading}</h2>
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {guides.map((g) => (
-          <li key={g.slug}>
-            <Link href={dvHref(guidePath(g))} className="dv-card group flex h-full flex-col p-6 transition-shadow hover:shadow-[0_0_0_1px_rgba(15,92,92,0.35),0_18px_40px_-20px_rgba(15,92,92,0.35)]">
-              <span className="flex items-start justify-between gap-4">
-                <span className="font-semibold leading-snug text-dv-ink">{g.h1}</span>
-                <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-              </span>
-              {/* Two lines on a phone: the title is the link, the rest is on the guide itself. */}
-              <span className="mt-3 line-clamp-2 text-sm leading-relaxed text-dv-body sm:line-clamp-3">{g.description}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      </div>
-    </section>
-  );
-}
-
-function Faq({ locale }: { locale: Locale }) {
-  const c = LANDING[locale];
-  return (
-    <section className="border-t border-dv-line">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-24 sm:px-6 sm:py-32 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-        <div>
-          <H2 className="lg:sticky lg:top-28">{c.faqHeading}</H2>
-        </div>
-        <div className="divide-y divide-dv-line border-y border-dv-line">
-          {c.faq.map((f, i) => (
-            <details key={f.q} className="group" open={i === 0}>
-              <summary className="flex cursor-pointer items-start justify-between gap-6 py-6 text-start text-[1.0625rem] font-semibold leading-snug text-dv-ink">
-                {f.q}
-                <span aria-hidden="true" className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-dv-teal ring-1 ring-dv-line transition-transform duration-300 group-open:rotate-45">
-                  <Plus className="h-4 w-4" />
-                </span>
-              </summary>
-              <p className="-mt-1 max-w-2xl pb-7 pe-12 leading-relaxed text-dv-body">{f.a}</p>
-            </details>
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+        <h2 className="text-xl font-semibold tracking-tight text-dv-ink">{c.guidesHeading}</h2>
+        <ul className="mt-6 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+          {guides.map((g, i) => (
+            // Phones: the first six (the page is long enough); the hub link below has them all.
+            <li key={g.slug} className={i >= 6 ? "max-sm:hidden" : undefined}>
+              <Link href={dvHref(guidePath(g))} className="group flex min-h-11 items-start justify-between gap-4 border-b border-dv-line py-3 text-[0.9375rem] font-medium leading-snug text-dv-ink hover:text-dv-teal">
+                <span>{g.h1}</span>
+                <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-dv-teal rtl:-scale-x-100" aria-hidden="true" />
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
+        <p className="mt-6">
+          <Link href={dvHref(GUIDES_INDEX_PATH[locale])} className="dv-link inline-flex min-h-11 items-center gap-1.5 font-semibold">
+            {GUIDE_UI[locale].allGuides}
+            <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+          </Link>
+        </p>
       </div>
     </section>
   );
@@ -750,23 +849,21 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
       <LandingView locale={locale} />
-      {/*
-        The order tells one story: what it is (hero) → see it with your own logo, no account (the hero's main
-        button lands here) → why (problem) → the real output (samples) → what it does to a clinic's profile →
-        how → why it is safe (checks, country rules) → the alternatives → price → who is behind it →
-        questions → guides for later.
-      */}
       <Hero locale={locale} />
       <Teaser locale={locale} copy={LANDING[locale].teaser} href={dvHref(`/dentvideo/start?lang=${locale}`)} />
-      <Problem locale={locale} />
+      <Monday locale={locale} />
       <Samples locale={locale} />
-      <FeedStory locale={locale} />
+      <Value locale={locale} />
       <How locale={locale} />
-      <Checks locale={locale} />
+      <Control locale={locale} />
+      <Rules locale={locale} />
       <Compare locale={locale} />
       <Pricing locale={locale} />
+      {/* After the plans (dentist review 2026-11-15: pricing sat ~13 phone screens down): beside "what is and is not included". */}
+      <Fit locale={locale} />
       <Trust locale={locale} />
       <Faq locale={locale} />
+      <Final locale={locale} />
       <Guides locale={locale} />
       <LanguageSwitcher current={locale} label={appText(locale).chrome.language} />
     </main>

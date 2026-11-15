@@ -50,7 +50,7 @@ describe("market copy rules (docs/MARKETS.md)", () => {
   });
 
   it("the advertising-rules FAQ names each market's regulator and the clinic's own responsibility", () => {
-    const rules = (l: Locale) => LANDING[l].faq[3].a;
+    const rules = (l: Locale) => LANDING[l].faq[1].a;
     expect(rules("ja")).toContain("厚生労働省");
     expect(rules("ja")).toContain("医療広告ガイドライン");
     expect(rules("ja")).toContain("院長先生の承認");
