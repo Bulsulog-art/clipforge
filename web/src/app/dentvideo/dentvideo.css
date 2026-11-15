@@ -14,6 +14,35 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* ---------- Design tokens (docs/BRAND.md, docs/SITE_RESEARCH.md) ----------
+ * One easing, one elevation ladder, one radius ladder. Components read these
+ * instead of repeating hand-tuned shadows.
+ */
+.dv {
+  --dv-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dv-radius-sm: 0.75rem;
+  --dv-radius: 1.25rem;
+  --dv-radius-lg: 1.75rem;
+  --dv-hair: rgba(20, 33, 31, 0.07);
+  --dv-shadow-1: 0 0 0 1px var(--dv-hair), 0 1px 2px rgba(20, 33, 31, 0.04);
+  --dv-shadow-2: 0 0 0 1px var(--dv-hair), 0 1px 2px rgba(20, 33, 31, 0.04), 0 12px 32px -16px rgba(20, 33, 31, 0.14);
+  --dv-shadow-3: 0 0 0 1px rgba(20, 33, 31, 0.08), 0 2px 4px rgba(20, 33, 31, 0.04), 0 24px 48px -20px rgba(20, 33, 31, 0.22);
+}
+
+/* Fluid display scale: one clamp() per level instead of three breakpoint jumps
+   (min at 390 px, max near 1440 px). Japanese and Arabic set their own sizes below. */
+:where(.dv) .dv-h1 {
+  font-size: clamp(2.5rem, 1.85rem + 2.6vw, 4.375rem);
+  line-height: 1.03;
+}
+:where(.dv) .dv-h2 {
+  font-size: clamp(2.125rem, 1.6rem + 1.9vw, 3.375rem);
+  line-height: 1.07;
+}
+:where(.dv) :is(p, li, dd, figcaption) {
+  text-wrap: pretty;
+}
+
 .dv ::selection {
   background: #cfe6e0;
   color: var(--dv-ink);
@@ -130,11 +159,97 @@
 /* Cards: hairline + layered soft shadow. */
 :where(.dv) .dv-card {
   background: #fff;
-  border-radius: 1.25rem;
+  border-radius: var(--dv-radius);
+  box-shadow: var(--dv-shadow-2);
+}
+/* A card that is a link (or holds one): it lifts a little on hover, never on touch. */
+@media (hover: hover) {
+  :where(.dv) .dv-lift {
+    transition: transform 0.35s var(--dv-ease), box-shadow 0.35s var(--dv-ease);
+  }
+  :where(.dv) .dv-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--dv-shadow-3);
+  }
+}
+/* Arrows inside a button or link nudge along the reading direction on hover. */
+:where(.dv) .dv-nudge {
+  transition: transform 0.25s var(--dv-ease);
+}
+:where(.dv) :is(a, button):hover .dv-nudge {
+  transform: translateX(3px);
+}
+:where(.dv) [dir="rtl"] :is(a, button):hover .dv-nudge,
+:where(.dv) :is(a, button)[dir="rtl"]:hover .dv-nudge {
+  transform: translateX(-3px) scaleX(-1);
+}
+
+/* A numbered marker (steps, value points): sans figures in a teal-tinted disc. */
+:where(.dv) .dv-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: #eef5f2;
+  color: var(--dv-teal);
+  box-shadow: inset 0 0 0 1px rgba(15, 92, 92, 0.18);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glass note beside a device (the hero's "ready for review"). */
+:where(.dv) .dv-glass-note {
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 9999px;
+  box-shadow: var(--dv-shadow-3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+}
+
+/* Concentric "lens" rings and a soft halo behind a device: calm and clinical, no image request. */
+:where(.dv) .dv-halo {
+  background:
+    radial-gradient(closest-side, rgba(143, 209, 198, 0.42), rgba(143, 209, 198, 0.12) 55%, transparent 100%);
+}
+:where(.dv) .dv-rings {
+  border-radius: 9999px;
   box-shadow:
-    0 0 0 1px rgba(20, 33, 31, 0.06),
-    0 1px 2px rgba(20, 33, 31, 0.04),
-    0 12px 32px -16px rgba(20, 33, 31, 0.14);
+    0 0 0 1px rgba(15, 92, 92, 0.1),
+    0 0 0 4.5rem rgba(255, 255, 255, 0.18),
+    0 0 0 calc(4.5rem + 1px) rgba(15, 92, 92, 0.08),
+    0 0 0 9rem rgba(255, 255, 255, 0.1),
+    0 0 0 calc(9rem + 1px) rgba(15, 92, 92, 0.06);
+}
+
+/* "How it works" steps: phones and tablets keep the words beside the screen; from lg each step is a
+   card whose real app screen rises from a tinted panel and is cropped by it. */
+@media (min-width: 1024px) {
+  :where(.dv) .dv-step {
+    background: #fff;
+    border-radius: var(--dv-radius-lg);
+    box-shadow: var(--dv-shadow-2);
+    overflow: hidden;
+  }
+  :where(.dv) .dv-step-panel {
+    position: relative;
+    height: 21rem;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 80% at 50% 0%, #ffffff 0%, rgba(255, 255, 255, 0) 60%),
+      linear-gradient(180deg, #eef5f2 0%, #f5efe6 100%);
+    box-shadow: inset 0 -1px 0 var(--dv-hair);
+  }
+  :where(.dv) .dv-step-panel > * {
+    position: absolute;
+    top: 2.25rem;
+    left: 50%;
+    width: 14rem;
+    transform: translateX(-50%);
+  }
 }
 
 /* Form fields */
@@ -242,6 +357,36 @@ html:has(.dv) {
 @media (prefers-reduced-motion: reduce) {
   html:has(.dv) {
     scroll-behavior: auto;
+  }
+}
+
+/* The recommended plan: a gradient hairline (padding-box / border-box, no extra element) and a teal-tinted lift. */
+:where(.dv) .dv-featured {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%) padding-box,
+    linear-gradient(160deg, #167269 0%, #8fd1c6 48%, #0f5c5c 100%) border-box;
+  box-shadow:
+    0 1px 2px rgba(11, 63, 62, 0.08),
+    0 30px 60px -30px rgba(15, 92, 92, 0.45),
+    0 14px 28px -18px rgba(15, 92, 92, 0.25);
+}
+
+/* Disclosures open with a short height transition where the browser can animate to auto
+   (::details-content + interpolate-size); elsewhere they open instantly, as before. */
+.dv details {
+  interpolate-size: allow-keywords;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dv details::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size 0.32s var(--dv-ease),
+      content-visibility 0.32s allow-discrete;
+  }
+  .dv details[open]::details-content {
+    block-size: auto;
   }
 }
 

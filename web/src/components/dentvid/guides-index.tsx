@@ -78,7 +78,7 @@ function GuideCard({ g, minutes }: { g: Guide; minutes: string }) {
   return (
     <Link
       href={dvHref(guidePath(g))}
-      className="dv-card group flex h-full flex-col p-6 transition-shadow hover:shadow-[0_0_0_1px_rgba(15,92,92,0.35),0_18px_40px_-20px_rgba(15,92,92,0.35)]"
+      className="dv-card dv-lift group flex h-full flex-col p-6"
     >
       <span className="flex items-start justify-between gap-4">
         <span className="text-[1.125rem] font-semibold leading-snug text-dv-ink">{g.h1}</span>

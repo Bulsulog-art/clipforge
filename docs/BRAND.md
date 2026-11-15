@@ -69,6 +69,17 @@ no saturated gradients; glows are large, blurred and low-opacity.
   `prefers-reduced-motion`; the hero video only autoplays (muted) when motion is allowed and always has a
   pause/play control.
 
+## Tokens (2026-11-15 premium pass, docs/SITE_RESEARCH.md)
+
+- Display sizes are fluid: `.dv-h1` `clamp(2.5rem, 1.85rem + 2.6vw, 4.375rem)`, `.dv-h2`
+  `clamp(2.125rem, 1.6rem + 1.9vw, 3.375rem)` (Japanese and Arabic keep their own sizes).
+- Elevation `--dv-shadow-1/2/3`, radius `--dv-radius-sm/-/lg`, easing `--dv-ease` on `.dv`.
+- `.dv-lift` (hover lift on link cards, hover-capable devices only), `.dv-nudge` (arrow nudge,
+  mirrored in RTL), `.dv-index` (numbered marker), `.dv-featured` (recommended plan: gradient
+  hairline), `.dv-glass-note` (blurred note beside a device), `.dv-halo` / `.dv-rings` (hero backdrop),
+  `.dv-step` / `.dv-step-panel` (How it works cards from lg).
+- `<details>` animate open with `::details-content` where supported, only without reduced motion.
+
 ## Research notes (what was applied)
 
 Patterns taken from high-star open-source landing work (cruip/open-react-template, magicui):
