@@ -9,7 +9,7 @@
  *   objections  day 3   answers to the three common objections (the last one)
  *
  * Honest by rule: only what the product does and the site already says
- * (checked videos, nothing published without approval, about 15 minutes,
+ * (software-checked videos, nothing published without approval, about 15 minutes,
  * every Monday, monthly and cancel anytime). No free trial, no discount, no
  * invented deadline or scarcity. The "why us" lines are the ones reviewed for
  * the earlier reminders.
@@ -55,7 +55,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Your sample videos",
       intro: "These are the videos in {clinic}'s preview, each with your logo and colors:",
       outro: "Every week you would get new videos like these, about your services, in your language.",
-      whyUs: "Every video is checked for clinical accuracy and health-advertising rules, and nothing is published until you approve it.",
+      whyUs: "Every video gets a software-assisted check for clinical accuracy and health-advertising rules; the final say is yours, and nothing is published until you approve it.",
       button: "Watch my sample videos",
     },
     objections: {
@@ -64,8 +64,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Three questions before you start",
       intro: "If something is holding you back, it is probably one of these.",
       qa: [
-        { q: "Is the content accurate, and is it allowed?", a: "Each video is checked for clinical accuracy and health-advertising rules before you see it. Nothing is published until you approve it: you stay in control." },
-        { q: "I don't have time for another tool.", a: "We write, narrate, caption and check every video. New ones arrive every Monday; you only watch, approve and tap Share." },
+        { q: "Is the content accurate, and is it allowed?", a: "Software checks each video for clinical accuracy and health-advertising rules before you see it. It is an automated check, not legal advice: the final say is yours, and nothing is published until you approve it." },
+        { q: "I don't have time for another tool.", a: "We write, narrate and caption every video, and software checks each one. New ones arrive every Monday; you only watch, approve and tap Share." },
         { q: "What does it cost, and am I tied in?", a: "Plans start at {from}/month. Monthly, cancel anytime." },
       ],
       button: "Choose a plan",
@@ -96,7 +96,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "Approve these videos?",
-      confirmBody: "They are made and checked. Approving marks them ready to post; nothing is posted for you.",
+      confirmBody: "They are made and software-checked; the final say is yours. Approving marks them ready to post; nothing is posted for you.",
       confirmButton: "Approve all",
       watchFirst: "Watch them in the app first",
       doneTitle: "Approved",
@@ -125,7 +125,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Ihre Beispielvideos",
       intro: "Diese Videos sind in der Vorschau von {clinic}, jedes mit Ihrem Logo und Ihren Farben:",
       outro: "Jede Woche bekämen Sie neue Videos wie diese – zu Ihren Leistungen, in Ihrer Sprache.",
-      whyUs: "Jedes Video wird auf fachliche Richtigkeit und Heilmittelwerberecht geprüft, und nichts wird ohne Ihre Freigabe veröffentlicht.",
+      whyUs: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft; das letzte Wort haben Sie, und nichts wird ohne Ihre Freigabe veröffentlicht.",
       button: "Beispielvideos ansehen",
     },
     objections: {
@@ -134,8 +134,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Drei Fragen vor dem Start",
       intro: "Falls Sie noch zögern, liegt es meist an einer dieser Fragen.",
       qa: [
-        { q: "Sind die Inhalte korrekt – und überhaupt erlaubt?", a: "Jedes Video wird auf fachliche Richtigkeit und Heilmittelwerberecht geprüft, bevor Sie es sehen. Ohne Ihre Freigabe wird nichts veröffentlicht – Sie behalten die Kontrolle." },
-        { q: "Ich habe keine Zeit für noch ein Tool.", a: "Wir schreiben, vertonen, untertiteln und prüfen jedes Video. Jeden Montag kommen neue; Sie sehen sie nur an, geben sie frei und tippen auf „Teilen“." },
+        { q: "Sind die Inhalte korrekt – und überhaupt erlaubt?", a: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft, bevor Sie es sehen. Das ist eine automatische Prüfung, keine Rechtsberatung: Das letzte Wort haben Sie, und ohne Ihre Freigabe wird nichts veröffentlicht." },
+        { q: "Ich habe keine Zeit für noch ein Tool.", a: "Wir schreiben, vertonen und untertiteln jedes Video, und jedes wird softwaregestützt geprüft. Jeden Montag kommen neue; Sie sehen sie nur an, geben sie frei und tippen auf „Teilen“." },
         { q: "Was kostet es, und binde ich mich?", a: "Tarife ab {from}/Monat. Monatlich, jederzeit kündbar." },
       ],
       button: "Tarif wählen",
@@ -166,7 +166,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "Diese Videos freigeben?",
-      confirmBody: "Sie sind erstellt und geprüft. Mit der Freigabe sind sie bereit zum Posten – wir posten nichts für Sie.",
+      confirmBody: "Sie sind erstellt und softwaregestützt geprüft; das letzte Wort haben Sie. Mit der Freigabe sind sie bereit zum Posten – wir posten nichts für Sie.",
       confirmButton: "Alle freigeben",
       watchFirst: "Erst in der App ansehen",
       doneTitle: "Freigegeben",
@@ -195,7 +195,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Tus vídeos de muestra",
       intro: "Estos son los vídeos de la vista previa de {clinic}, cada uno con tu logo y tus colores:",
       outro: "Cada semana recibirías vídeos nuevos como estos, sobre tus servicios y en tu idioma.",
-      whyUs: "Cada vídeo se revisa en precisión clínica y normas de publicidad sanitaria, y no se publica nada sin tu aprobación.",
+      whyUs: "Un software revisa cada vídeo en precisión clínica y normas de publicidad sanitaria; la última palabra es tuya y no se publica nada sin tu aprobación.",
       button: "Ver mis vídeos de muestra",
     },
     objections: {
@@ -204,8 +204,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Tres preguntas antes de empezar",
       intro: "Si algo te frena, seguramente es una de estas.",
       qa: [
-        { q: "¿El contenido es correcto? ¿Está permitido?", a: "Cada vídeo se revisa en precisión clínica y normas de publicidad sanitaria antes de que lo veas. No se publica nada sin tu aprobación: tú tienes el control." },
-        { q: "No tengo tiempo para otra herramienta.", a: "Nosotros escribimos, narramos, subtitulamos y revisamos cada vídeo. Cada lunes llegan nuevos; tú solo los ves, los apruebas y tocas Compartir." },
+        { q: "¿El contenido es correcto? ¿Está permitido?", a: "Un software revisa cada vídeo en precisión clínica y normas de publicidad sanitaria antes de que lo veas. Es una revisión automática, no asesoría legal: la última palabra es tuya y no se publica nada sin tu aprobación." },
+        { q: "No tengo tiempo para otra herramienta.", a: "Nosotros escribimos, narramos y subtitulamos cada vídeo, y un software revisa cada uno. Cada lunes llegan nuevos; tú solo los ves, los apruebas y tocas Compartir." },
         { q: "¿Cuánto cuesta? ¿Hay permanencia?", a: "Planes desde {from}/mes. Mensual, cancela cuando quieras." },
       ],
       button: "Elegir un plan",
@@ -236,7 +236,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "¿Aprobar estos vídeos?",
-      confirmBody: "Están hechos y revisados. Al aprobarlos quedan listos para publicar; no publicamos nada por ti.",
+      confirmBody: "Están hechos y revisados por software; la última palabra es tuya. Al aprobarlos quedan listos para publicar; no publicamos nada por ti.",
       confirmButton: "Aprobar todos",
       watchFirst: "Verlos antes en la app",
       doneTitle: "Aprobados",
@@ -265,7 +265,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Örnek videolarınız",
       intro: "{clinic} önizlemesindeki videolar şunlar; her biri logonuz ve renklerinizle:",
       outro: "Her hafta, hizmetleriniz hakkında ve kendi dilinizde bunlar gibi yeni videolar alırsınız.",
-      whyUs: "Her video klinik doğruluk ve sağlık reklamı kurallarına göre kontrol edilir; siz onaylamadan hiçbir şey yayınlanmaz.",
+      whyUs: "Her video klinik doğruluk ve sağlık reklamı kurallarına göre yazılımla kontrol edilir; son karar sizindir ve siz onaylamadan hiçbir şey yayınlanmaz.",
       button: "Örnek videolarımı izle",
     },
     objections: {
@@ -274,8 +274,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Başlamadan önce sorulan üç soru",
       intro: "Sizi durduran bir şey varsa, büyük ihtimalle bunlardan biridir.",
       qa: [
-        { q: "İçerik doğru mu, yayınlamakta sakınca var mı?", a: "Her video, siz görmeden önce klinik doğruluk ve sağlık reklamı kurallarına göre kontrol edilir. Siz onaylamadan hiçbir şey yayınlanmaz; kontrol sizdedir." },
-        { q: "Yeni bir araca ayıracak vaktim yok.", a: "Her videoyu biz yazar, seslendirir, altyazılar ve kontrol ederiz. Her pazartesi yenileri gelir; siz yalnızca izler, onaylar ve Paylaş'a dokunursunuz." },
+        { q: "İçerik doğru mu, yayınlamakta sakınca var mı?", a: "Her video, siz görmeden önce klinik doğruluk ve sağlık reklamı kurallarına göre yazılımla kontrol edilir. Bu otomatik bir kontroldür, hukuki danışmanlık değildir: son karar sizindir ve siz onaylamadan hiçbir şey yayınlanmaz." },
+        { q: "Yeni bir araca ayıracak vaktim yok.", a: "Her videoyu biz yazar, seslendirir ve altyazılarız; her biri yazılımla kontrol edilir. Her pazartesi yenileri gelir; siz yalnızca izler, onaylar ve Paylaş'a dokunursunuz." },
         { q: "Ücreti ne kadar, taahhüt var mı?", a: "Planlar aylık {from} ile başlar. Aylık, istediğiniz zaman iptal." },
       ],
       button: "Plan seçin",
@@ -306,7 +306,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "Bu videolar onaylansın mı?",
-      confirmBody: "Videolar hazırlandı ve kontrol edildi. Onayladığınızda paylaşıma hazır olarak işaretlenir; sizin yerinize hiçbir şey paylaşılmaz.",
+      confirmBody: "Videolar hazırlandı ve yazılımla kontrol edildi; son karar sizindir. Onayladığınızda paylaşıma hazır olarak işaretlenir; sizin yerinize hiçbir şey paylaşılmaz.",
       confirmButton: "Tümünü onayla",
       watchFirst: "Önce uygulamada izleyin",
       doneTitle: "Onaylandı",
@@ -335,7 +335,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Vos vidéos d'exemple",
       intro: "Voici les vidéos de l'aperçu de {clinic}, chacune avec votre logo et vos couleurs :",
       outro: "Chaque semaine, vous recevriez de nouvelles vidéos comme celles-ci, sur vos soins et dans votre langue.",
-      whyUs: "Chaque vidéo est vérifiée sur le plan clinique et au regard des règles de publicité en santé, et rien n'est publié sans votre accord.",
+      whyUs: "Chaque vidéo est vérifiée par logiciel sur le plan clinique et au regard des règles de publicité en santé ; le dernier mot vous revient, et rien n'est publié sans votre accord.",
       button: "Voir mes vidéos d'exemple",
     },
     objections: {
@@ -344,8 +344,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Trois questions avant de commencer",
       intro: "Si quelque chose vous retient, c'est sans doute l'une de celles-ci.",
       qa: [
-        { q: "Le contenu est-il exact, et autorisé ?", a: "Chaque vidéo est vérifiée sur le plan clinique et au regard des règles de publicité en santé avant que vous ne la voyiez. Rien n'est publié sans votre accord : vous gardez la main." },
-        { q: "Je n'ai pas le temps pour un outil de plus.", a: "Nous écrivons, mettons en voix, sous-titrons et vérifions chaque vidéo. De nouvelles arrivent chaque lundi ; vous n'avez qu'à regarder, valider et toucher Partager." },
+        { q: "Le contenu est-il exact, et autorisé ?", a: "Chaque vidéo est vérifiée par logiciel sur le plan clinique et au regard des règles de publicité en santé avant que vous ne la voyiez. C'est une vérification automatique, pas un conseil juridique : le dernier mot vous revient, et rien n'est publié sans votre accord." },
+        { q: "Je n'ai pas le temps pour un outil de plus.", a: "Nous écrivons, mettons en voix et sous-titrons chaque vidéo, et un logiciel vérifie chacune. De nouvelles arrivent chaque lundi ; vous n'avez qu'à regarder, valider et toucher Partager." },
         { q: "Combien ça coûte, et y a-t-il un engagement ?", a: "Formules dès {from}/mois. Mensuel, résiliable à tout moment." },
       ],
       button: "Choisir une formule",
@@ -376,7 +376,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "Valider ces vidéos ?",
-      confirmBody: "Elles sont réalisées et vérifiées. Les valider les rend prêtes à publier ; nous ne publions rien à votre place.",
+      confirmBody: "Elles sont réalisées et vérifiées par logiciel ; le dernier mot vous revient. Les valider les rend prêtes à publier ; nous ne publions rien à votre place.",
       confirmButton: "Tout valider",
       watchFirst: "Les regarder d'abord dans l'application",
       doneTitle: "Validées",
@@ -405,7 +405,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "サンプル動画",
       intro: "{clinic} のプレビューには、次の動画が入っています（いずれもロゴと医院カラー入り）：",
       outro: "ご契約後は毎週、診療内容に合わせたこのような新しい動画を、ご希望の言語でお届けします。",
-      whyUs: "すべての動画は臨床的な正確性と医療広告の観点からチェックし、承認されるまで何も公開されません。",
+      whyUs: "すべての動画は臨床的な正確性と医療広告の観点からソフトウェアでチェックします。最終判断は先生が行い、承認されるまで何も公開されません。",
       button: "サンプル動画を見る",
     },
     objections: {
@@ -414,8 +414,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "始める前によくいただく3つのご質問",
       intro: "導入を迷われている理由は、たいてい次のいずれかです。",
       qa: [
-        { q: "内容は正確ですか？　広告として問題ありませんか？", a: "すべての動画は、先生がご覧になる前に臨床的な正確性と医療広告の観点からチェックしています。承認されるまで何も公開されません。" },
-        { q: "新しいツールに割く時間がありません。", a: "台本・ナレーション・字幕・チェックはすべて私たちが行います。毎週月曜日に新しい動画が届き、先生はご覧になって承認し、「共有」をタップするだけです。" },
+        { q: "内容は正確ですか？　広告として問題ありませんか？", a: "すべての動画は、先生がご覧になる前に臨床的な正確性と医療広告の観点からソフトウェアでチェックしています。自動チェックであり、法的助言ではありません。最終判断は先生が行い、承認されるまで何も公開されません。" },
+        { q: "新しいツールに割く時間がありません。", a: "台本・ナレーション・字幕は私たちが用意し、各動画をソフトウェアでチェックします。毎週月曜日に新しい動画が届き、先生はご覧になって承認し、「共有」をタップするだけです。" },
         { q: "料金は？　契約期間の縛りはありますか？", a: "プランは月額{from}からご用意しています。月単位の契約で、いつでも解約できます。" },
       ],
       button: "プランを選ぶ",
@@ -446,7 +446,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "これらの動画を承認しますか？",
-      confirmBody: "制作とチェックは完了しています。承認すると投稿できる状態になります。私たちが代わりに投稿することはありません。",
+      confirmBody: "制作とソフトウェアによるチェックは完了しています。最終判断は先生が行います。承認すると投稿できる状態になります。私たちが代わりに投稿することはありません。",
       confirmButton: "すべて承認する",
       watchFirst: "先にアプリで確認する",
       doneTitle: "承認しました",
@@ -475,7 +475,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "فيديوهاتكم النموذجية",
       intro: "هذه الفيديوهات في معاينة {clinic}، وكلٌّ منها بشعاركم وألوانكم:",
       outro: "ستصلكم كل أسبوع فيديوهات جديدة مثلها، عن خدماتكم وبلغتكم.",
-      whyUs: "كل فيديو يُراجَع للدقة السريرية وضوابط الإعلان الصحي، ولا يُنشر شيء قبل اعتمادكم.",
+      whyUs: "كل فيديو يُراجَع آلياً للدقة السريرية وضوابط الإعلان الصحي، والقرار الأخير لكم، ولا يُنشر شيء قبل اعتمادكم.",
       button: "مشاهدة الفيديوهات النموذجية",
     },
     objections: {
@@ -484,8 +484,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "ثلاثة أسئلة قبل البدء",
       intro: "إن كان هناك ما يجعلكم تترددون، فهو على الأرجح أحد هذه الأسئلة.",
       qa: [
-        { q: "هل المحتوى دقيق؟ وهل نشره مسموح؟", a: "يُراجَع كل فيديو للدقة السريرية وضوابط الإعلان الصحي قبل أن تروه، ولا يُنشر شيء قبل اعتمادكم، فالقرار بيدكم دائماً." },
-        { q: "ليس لديّ وقت لأداة جديدة.", a: "نكتب كل فيديو ونسجّل صوته ونضيف النص ونراجعه. تصل فيديوهات جديدة كل يوم اثنين، وما عليكم إلا المشاهدة والاعتماد والضغط على «مشاركة»." },
+        { q: "هل المحتوى دقيق؟ وهل نشره مسموح؟", a: "يُراجَع كل فيديو آلياً للدقة السريرية وضوابط الإعلان الصحي قبل أن تروه. إنها مراجعة آلية وليست استشارة قانونية: القرار الأخير لكم، ولا يُنشر شيء قبل اعتمادكم." },
+        { q: "ليس لديّ وقت لأداة جديدة.", a: "نكتب كل فيديو ونسجّل صوته ونضيف النص، ويُراجَع كل منها آلياً. تصل فيديوهات جديدة كل يوم اثنين، وما عليكم إلا المشاهدة والاعتماد والضغط على «مشاركة»." },
         { q: "كم التكلفة؟ وهل هناك التزام؟", a: "الباقات تبدأ من {from} شهرياً. اشتراك شهري يمكن إلغاؤه في أي وقت." },
       ],
       button: "اختيار باقة",
@@ -516,7 +516,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "اعتماد هذه الفيديوهات؟",
-      confirmBody: "أُعدّت هذه الفيديوهات وروجعت. اعتمادها يجعلها جاهزة للنشر، ولن ننشر شيئاً نيابةً عنكم.",
+      confirmBody: "أُعدّت هذه الفيديوهات وروجعت آلياً، والقرار الأخير لكم. اعتمادها يجعلها جاهزة للنشر، ولن ننشر شيئاً نيابةً عنكم.",
       confirmButton: "اعتماد الكل",
       watchFirst: "مشاهدتها في التطبيق أولاً",
       doneTitle: "تم الاعتماد",
@@ -545,7 +545,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Państwa przykładowe filmy",
       intro: "Oto filmy z podglądu {clinic}, każdy z Państwa logo i kolorami:",
       outro: "Co tydzień otrzymywaliby Państwo nowe filmy takie jak te, o Państwa usługach i w Państwa języku.",
-      whyUs: "Każdy film jest sprawdzany pod kątem poprawności klinicznej i zasad reklamy medycznej, a nic nie zostanie opublikowane bez Państwa akceptacji.",
+      whyUs: "Każdy film jest sprawdzany przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy medycznej; ostatnie słowo należy do Państwa i nic nie zostanie opublikowane bez Państwa akceptacji.",
       button: "Obejrzyj przykładowe filmy",
     },
     objections: {
@@ -554,8 +554,8 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Trzy pytania przed startem",
       intro: "Jeśli coś Państwa powstrzymuje, to zapewne jedno z tych pytań.",
       qa: [
-        { q: "Czy treści są poprawne i czy wolno je publikować?", a: "Każdy film jest sprawdzany pod kątem poprawności klinicznej i zasad reklamy medycznej, zanim go Państwo zobaczą. Nic nie zostanie opublikowane bez Państwa akceptacji: decyzja zawsze należy do Państwa." },
-        { q: "Nie mam czasu na kolejne narzędzie.", a: "Piszemy, nagrywamy lektora, dodajemy napisy i sprawdzamy każdy film. Nowe pojawiają się w każdy poniedziałek; Państwo tylko oglądają, akceptują i dotykają „Udostępnij”." },
+        { q: "Czy treści są poprawne i czy wolno je publikować?", a: "Każdy film jest sprawdzany przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy medycznej, zanim go Państwo zobaczą. To automatyczna kontrola, a nie porada prawna. Nic nie zostanie opublikowane bez Państwa akceptacji: decyzja zawsze należy do Państwa." },
+        { q: "Nie mam czasu na kolejne narzędzie.", a: "Piszemy, nagrywamy lektora i dodajemy napisy do każdego filmu, a oprogramowanie sprawdza każdy z nich. Nowe pojawiają się w każdy poniedziałek; Państwo tylko oglądają, akceptują i dotykają „Udostępnij”." },
         { q: "Ile to kosztuje i czy jest umowa na czas określony?", a: "Plany od {from}/mies. Rozliczenie miesięczne, rezygnacja w dowolnym momencie." },
       ],
       button: "Wybierz plan",
@@ -586,7 +586,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     },
     approvePage: {
       confirmTitle: "Zaakceptować te filmy?",
-      confirmBody: "Filmy są gotowe i sprawdzone. Akceptacja oznacza je jako gotowe do publikacji; niczego nie publikujemy za Państwa.",
+      confirmBody: "Filmy są gotowe i sprawdzone przez oprogramowanie; ostatnie słowo należy do Państwa. Akceptacja oznacza je jako gotowe do publikacji; niczego nie publikujemy za Państwa.",
       confirmButton: "Zaakceptuj wszystkie",
       watchFirst: "Najpierw obejrzyj w aplikacji",
       doneTitle: "Zaakceptowano",

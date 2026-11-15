@@ -355,7 +355,7 @@ export const CHECKER_RULES: readonly Rule[] = [...HARD_RULES, FEAR_RULE];
  *
  * Not part of the public checker (it does not know the reader's market).
  */
-export type MarketRuleId = "sponsored" | "engagement" | "giveaway" | "specialist" | "children" | "pom" | "permit";
+export type MarketRuleId = "sponsored" | "engagement" | "giveaway" | "booking" | "specialist" | "children" | "pom" | "permit";
 export type MarketRule = { id: MarketRuleId; why: string; patterns: RegExp[] };
 
 /** The market a country code stands for: "UK" is how people write Great Britain. */
@@ -402,6 +402,30 @@ export const MARKET_HARD_RULES: Readonly<Record<string, readonly MarketRule[]>> 
       id: "giveaway",
       why: "Raffles, prize draws and gifts used to promote health services are not allowed (RG 33075 md. 5/1-l).",
       patterns: [w("çekiliş\\p{L}*|kura ile|yarışma\\p{L}*|ödül kazan\\p{L}*")],
+    },
+    {
+      id: "booking",
+      // The regulation allows information (bilgilendirme), not drawing patients
+      // in: a close that asks the viewer to book or to contact this clinic is
+      // what the writers are told not to write (style.ts ctaGuide/trSteering),
+      // and what the TR preview library still said ("Sorularınız için bize
+      // ulaşın veya randevu alın!", Nov 2026). Imperative and "-abilirsiniz"
+      // invitations only: "randevunuzda hekiminize sorun", "bir sonraki
+      // randevuda", "hekiminizle iletişime geçin" are information and pass.
+      why: "Health-service posts in Türkiye may inform but must not steer viewers to book or to contact the clinic (RG 33075: bilgilendirme only); point them to their own dentist instead.",
+      patterns: [
+        w(
+          [
+            "randevu(su|nuzu)? ((hemen|şimdi|bugün|online|kolayca|hızlıca) )?(al(ın|ınız|abilirsiniz|abilirsin|mak için|mayı unutmayın)|oluştur(un|unuz|abilirsiniz)|planla(yın|yınız|yabilirsiniz)|ayarla(yın|yabilirsiniz)|talep ed(in|ebilirsiniz))",
+            "muayene (planla|ayarla)(yın|yabilirsiniz)|muayeneye gel(in|ebilirsiniz)",
+            "bizi ara(yın|yabilirsiniz)|(hemen|şimdi|bugün) ara(yın|yabilirsiniz)",
+            "bize (ulaş(ın|abilirsiniz)|yaz(ın|abilirsiniz)|danış(ın|abilirsiniz)|sor(un|abilirsiniz)|gel(in|ebilirsiniz))",
+            "(bizimle|kliniğimizle|ekibimizle|merkezimizle) iletişime geç(in|ebilirsiniz)",
+            "sizi (kliniğimizde |kliniğimize |merkezimizde |muayenehanemizde )?bekliyoruz",
+            "dm(['’]den)? (yaz|at)(ın|abilirsiniz)|whatsapp(['’]tan)? (yaz|ulaş)(ın|abilirsiniz)",
+          ].join("|"),
+        ),
+      ],
     },
   ],
   // Germany — HWG § 11 Abs. 1 S. 1 Nr. 12: no advertising aimed exclusively
