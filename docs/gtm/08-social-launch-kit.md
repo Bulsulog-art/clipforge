@@ -58,7 +58,7 @@ cd worker && npx tsx ../scripts/render-social-kit.mts ~/social-kit --capture htt
 | 05 | `tr-cocuk` | Sample clinic | TR | Çocuklarda çürüğü önlemek | teal |
 | 06 | `tr-dis-tasi` | Sample clinic | TR | Diş taşı temizliği | teal |
 | 07 | `kontrol` | Explainer | TR | The two checks; what we don't do | paper (pinned) |
-| 08 | `tr-seffaf-plak` | Sample clinic | TR | Şeffaf plak nasıl uygulanır? | teal |
+| 08 | `tr-seffaf-plak` | Sample clinic | TR | Şeffaf plak nasıl uygulanır? | teal — **on hold**: no Turkish aligner video in the preview library since 15.11.2026 (docs/PREVIEW_RERENDER.md) |
 | 09 | `es-blanqueamiento` | Sample clinic | ES | Blanqueamiento y sensibilidad | teal |
 | 10 | `tr-implant-bakim` | Sample clinic | TR | İmplant sonrası bakım | teal |
 | 11 | `de-aligner-pflege` | Sample clinic | DE | Aligner richtig pflegen | teal |
@@ -176,7 +176,7 @@ compliance line, not decoration.
 >
 > #dişhekimi #dişkliniği #sağlıkiletişimi #klinikyönetimi #dişhekimliği
 
-### 08 · `tr-seffaf-plak` (TR, sample)
+### 08 · `tr-seffaf-plak` (TR, sample) — on hold, see the table above
 
 > Örnek video · Şeffaf plak nasıl uygulanır?
 >

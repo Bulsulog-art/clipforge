@@ -13,6 +13,7 @@ import type { LogoStyle } from "./logo-style.js";
 import { renderTuning, type RenderTuning } from "./capacity.js";
 import { enforceLoudness, type LoudnessGuardResult } from "./loudness-guard.js";
 import { isInside, mediaRoots } from "../lib/media-input.js";
+import { assertRenderFonts } from "./render-fonts.js";
 
 /**
  * Renders a scene plan to an mp4.
@@ -245,6 +246,9 @@ export async function resolveFootage(
 }
 
 export async function renderPlan(args: RenderPlanArgs): Promise<RenderPlanResult> {
+  // Before anything is bundled or staged: a box without the theme's fonts
+  // would not fail, it would draw the video in a fallback serif (render-fonts.ts).
+  await assertRenderFonts(args.plan, { onWarn: args.onWarn });
   // Bundle first: the staging directory lives inside the bundle, because that
   // is the only place the renderer's static server reads from.
   const serveUrl = await getBundle(args.entryPoint);
