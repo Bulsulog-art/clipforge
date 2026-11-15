@@ -40,3 +40,16 @@ describe("readyEmail", () => {
     expect(readyEmail({ kind: "recording", counts: { ready: 2, flagged: 0 }, clinicName: "x", language: "nl", appUrl: "u" })!.subject).toBe("2 clips from your recording are ready");
   });
 });
+
+describe("deliveryAddress: test inboxes never get real mail", async () => {
+  const { deliveryAddress, TEST_EMAIL_SINK } = await import("./email");
+  it("routes QA, e2e and monitor addresses to Resend's sink", () => {
+    for (const a of ["qa+appqa1@bulsulabs.com", "e2e-monitor+123@bulsulabs.com", "e2e7@example.com", "dvqa+x@bulsulabs.com"]) expect(deliveryAddress(a, {}), a).toBe(TEST_EMAIL_SINK);
+  });
+  it("keeps real clinics and the owner", () => {
+    for (const a of ["dr.ayse@klinik.com.tr", "hello@dentvideo.com", "owner@gmail.com", "quality@clinic.de"]) expect(deliveryAddress(a, {}), a).toBe(a);
+  });
+  it("extra patterns from DENTVID_TEST_EMAIL_PATTERNS", () => {
+    expect(deliveryAddress("tester+1@gmail.com", { DENTVID_TEST_EMAIL_PATTERNS: "tester+*@*" })).toBe(TEST_EMAIL_SINK);
+  });
+});
