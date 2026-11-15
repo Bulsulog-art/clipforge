@@ -5,6 +5,7 @@ import { guideMarkdown, reviewedDate, solutionMarkdown } from "@/content/guides/
 import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
+import { EXAMPLES, EXAMPLES_PATH, EXAMPLES_UI, examplePath, examplesFor, sampleOf, type ExampleVideo } from "@/content/dentvideo-examples";
 import { dentvideoPublicUrl } from "./host";
 import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 
@@ -16,7 +17,7 @@ import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 const abs = (path: string) => dentvideoPublicUrl(path, "https://dentvideo.com", "");
 
 /** When the quick answers below were last checked against the product, billing and the pages. */
-export const LLMS_UPDATED = "2026-11-14";
+export const LLMS_UPDATED = "2026-11-15";
 
 /**
  * Short, self-contained answers to the questions people ask answer engines
@@ -32,6 +33,7 @@ function quickAnswers(): string[] {
     `- What does DentVideo cost? ${plans}, billed monthly with no minimum term. There is no yearly plan and no introductory or founding-member price. Groups and multi-location practices: custom pricing via ${OPERATOR.productEmail}.`,
     "- Can I see it before paying? Yes: after describing the clinic, a live preview of the clinic's own branded videos (logo, colours, name) runs in the browser before a plan is chosen. The first week of videos is made right after payment.",
     `- Is anything free? The \"Is my post allowed?\" ad checker for dentists is free in eight languages: ${abs(CHECKER_PATH.en)}. The guides are free to read.`,
+    `- Where can I see what the videos look like? Real sample videos, made for fictional demo clinics, three per language, each with a page describing what it covers: ${abs(EXAMPLES_PATH.en)} (also /de/examples, /es/examples, /tr/examples, /fr/examples, /ja/examples, /ar/examples, /pl/examples). They are shown as examples only, not offered for download or reuse.`,
     "- What does a clinic get each week? Five short vertical patient-education videos (usually around half a minute), narrated and captioned in the clinic's language, colours and logo, with a ready caption and hashtags. New videos are ready every Monday.",
     "- Does it post automatically? No. The dentist approves each video, downloads it and posts it. DentVideo does not run ads, answer comments or film in the clinic.",
     "- Does it use AI avatars or fake patients? No. Narration is a synthetic voice; footage is limited to objects; there are no avatar faces, fake doctors or patients. A dentist can record a few minutes and get captioned clips of their own voice.",
@@ -99,6 +101,8 @@ function languageIndex(l: Locale): string[] {
     `- [${ENTITY[l].h1}](${abs(ABOUT_PATH[l])}): ${ENTITY[l].definition}`,
     ...solutionsFor(l).map((p) => `- [${p.h1}](${abs(solutionPath(p))}): ${p.seoDescription}`),
     `- [${CHECKER[l].h1}](${abs(CHECKER_PATH[l])}): ${CHECKER[l].seoDescription}`,
+    `- [${EXAMPLES_UI[l].h1}](${abs(EXAMPLES_PATH[l])}): ${EXAMPLES_UI[l].seoDescription}`,
+    ...examplesFor(l).map((e) => `  - [${sampleOf(e).name}](${abs(examplePath(e))}): ${e.seoDescription}`),
   ];
   if (GUIDE_HUB_LOCALES.includes(l)) {
     lines.push(`- [${GUIDE_UI[l].index.h1}](${abs(GUIDES_INDEX_PATH[l])}): ${GUIDE_UI[l].index.description}`);
@@ -110,6 +114,25 @@ function languageIndex(l: Locale): string[] {
   lines.push(`- Legal: ${LEGAL_KINDS.map((k) => `[${LEGAL[l].docs[k].title}](${abs(legalPath(k, l))})`).join(", ")}`);
   lines.push("");
   return lines;
+}
+
+/** One sample video's page as Markdown: what it covers and the text on screen (not a narration transcript). */
+function exampleMarkdown(e: ExampleVideo): string {
+  const ui = EXAMPLES_UI[e.locale];
+  const s = sampleOf(e);
+  return [
+    `## ${e.h1}`,
+    "",
+    `URL: ${abs(examplePath(e))} · Language: ${e.locale} · Length: ${Math.round(s.seconds)} s · On-screen hook: "${s.name}"`,
+    "",
+    e.summary,
+    "",
+    `${ui.onScreenHeading}:`,
+    ...e.onScreen.map((line) => `- ${line}`),
+    "",
+    `${ui.demoNote} ${ui.disclaimer}`,
+    "",
+  ].join("\n");
 }
 
 export function llmsTxt(): string {
@@ -140,6 +163,9 @@ export function llmsFullTxt(): string {
     "# What DentVideo makes, and how it compares",
     "",
     ...SOLUTIONS.map((p) => solutionMarkdown(p, abs)),
+    "# Example videos",
+    "",
+    ...EXAMPLES.map(exampleMarkdown),
     "# Guides",
     "",
     ...GUIDES.map((g) => guideMarkdown(g, abs)),

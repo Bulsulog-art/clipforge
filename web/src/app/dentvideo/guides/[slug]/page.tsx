@@ -5,6 +5,7 @@ import { ArrowUpRight, Check, ExternalLink, Plus } from "lucide-react";
 import { GUIDES, LANDING_PATH, LANGUAGE_NAME, dirOf, findGuide, guidePath } from "@/content/dentvideo";
 import { guideSample, readingMinutes, relatedGuides, reviewedDate, sectionId, translationsOf } from "@/content/guides/text";
 import { sampleSrc } from "@/content/dentvideo-samples";
+import { EXAMPLES_UI, examplePath, findExample } from "@/content/dentvideo-examples";
 import { PhoneFrame } from "@/components/dentvid/phone";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { GUIDE_SAMPLE_UI } from "@/content/guides/ui-sample";
@@ -92,6 +93,8 @@ export default async function GuidePage({ params }: Props) {
                   src={sampleSrc(L, sample.slug, "mp4")}
                   poster={sampleSrc(L, sample.slug, "jpg")}
                   controls
+                  controlsList="nodownload noremoteplayback"
+                  disablePictureInPicture
                   playsInline
                   preload="none"
                   aria-label={sample.name}
@@ -104,6 +107,15 @@ export default async function GuidePage({ params }: Props) {
                 </p>
                 <p className="mt-3 text-lg font-semibold leading-snug text-dv-ink">{sample.name}</p>
                 <p className="mt-3 text-sm leading-relaxed text-dv-muted">{GUIDE_SAMPLE_UI[L].note}</p>
+                {findExample(L, sample.slug) && (
+                  <p className="mt-3">
+                    {/* The sample's own page: what it covers, its on-screen text, and every other example. */}
+                    <Link href={dvHref(examplePath({ locale: L, slug: sample.slug }))} className="inline-flex items-center gap-1.5 text-sm font-semibold text-dv-teal underline-offset-4 hover:underline">
+                      {EXAMPLES_UI[L].seeAll}
+                      <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+                    </Link>
+                  </p>
+                )}
               </figcaption>
             </figure>
           )}

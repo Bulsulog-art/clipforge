@@ -69,6 +69,8 @@ export function SolutionView({ p }: { p: SolutionPage }) {
                       src={sampleSrc(L, slug, "mp4")}
                       poster={sampleSrc(L, slug, "jpg")}
                       controls
+                      controlsList="nodownload noremoteplayback"
+                      disablePictureInPicture
                       playsInline
                       preload="none"
                       aria-label={name}

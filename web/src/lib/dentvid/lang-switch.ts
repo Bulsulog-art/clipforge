@@ -1,5 +1,5 @@
 import { LANDING_PATH, LOCALES, hasGuideHub as hasGuides, type Locale } from "@/content/dentvideo-locales";
-import { ABOUT_PATH, CHECKER_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
+import { ABOUT_PATH, CHECKER_PATH, EXAMPLES_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { isLegalKind, legalPath } from "@/content/legal/nav";
 
 /**
@@ -21,6 +21,8 @@ export function equivalentPath(pathname: string, target: Locale): string {
   if (rest[0] === "guides") return guidesHub;
   if (rest.length === 1 && rest[0] === "about") return ABOUT_PATH[target];
   if (rest.length === 1 && CHECKER_PATH.en.endsWith(`/${rest[0]}`)) return CHECKER_PATH[target];
+  // The examples hub, and from one video (each language has its own videos) that language's hub.
+  if (rest.length <= 2 && EXAMPLES_PATH.en.endsWith(`/${rest[0]}`)) return EXAMPLES_PATH[target];
   if (rest.length === 1 && isLegalKind(rest[0])) return legalPath(rest[0], target);
   return LANDING_PATH[target];
 }

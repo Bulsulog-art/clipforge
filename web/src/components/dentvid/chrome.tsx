@@ -9,7 +9,7 @@ import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuideHub as hasGuides, 
 import type { ChromeText, ChromeWords } from "@/lib/dentvid/chrome-text";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
-import { ABOUT_PATH, CHECKER_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
+import { ABOUT_PATH, CHECKER_PATH, EXAMPLES_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { dvHref } from "@/lib/dentvid/host";
 import { equivalentPath } from "@/lib/dentvid/lang-switch";
 import { isLegalKind, legalPath } from "@/content/legal/nav";
@@ -43,7 +43,9 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   if (parts[0] === "d" && parts.length === 2) return "en";
   if (parts[1] === "d" && parts.length === 3 && (LOCALES as readonly string[]).includes(parts[0])) return parts[0] as Locale;
   // English guides hub and About: /guides, /about.
-  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about" || parts[0] === CHECKER_SLUG || isLegalKind(parts[0]))) return "en";
+  if (parts.length === 1 && (parts[0] === "guides" || parts[0] === "about" || parts[0] === CHECKER_SLUG || parts[0] === EXAMPLES_SLUG || isLegalKind(parts[0]))) return "en";
+  // English example videos: /examples/<slug>.
+  if (parts.length === 2 && parts[0] === EXAMPLES_SLUG) return "en";
   // Guides (/guides/<slug>) and commercial pages (/videos/<slug>) each have one language.
   if (parts[0] === "guides" || parts[0] === "videos") return guideLocales[parts[1] ?? ""] ?? null;
   if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
@@ -55,6 +57,8 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
 
 /** The free ad checker's last path segment, the same in every language. */
 const CHECKER_SLUG = CHECKER_PATH.en.split("/").pop();
+/** The examples showcase's segment, the same in every language. */
+const EXAMPLES_SLUG = EXAMPLES_PATH.en.split("/").pop();
 
 function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; ready: boolean } {
   const fromPath = pathLocale(usePathname() ?? "", guideLocales);
@@ -337,6 +341,7 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
               <li><Link href={dvHref(`${home}#how`)} className={link}>{t.howItWorks}</Link></li>
               <li><Link href={dvHref(`${home}#pricing`)} className={link}>{t.pricing}</Link></li>
               {hasGuides(locale) && <li><Link href={dvHref(GUIDES_INDEX_PATH[locale])} className={link}>{t.guides}</Link></li>}
+              <li><Link href={dvHref(EXAMPLES_PATH[locale])} className={link}>{t.examples}</Link></li>
               <li><Link href={dvHref(CHECKER_PATH[locale])} className={link}>{t.checker}</Link></li>
               {(commercial?.[locale] ?? []).map((p) => (
                 <li key={p.href}><Link href={dvHref(p.href)} className={link}>{p.label}</Link></li>

@@ -5,6 +5,7 @@ import { ENTITY } from "@/content/guides/entity";
 import { LEGAL, LEGAL_NAV, type LegalKind } from "@/content/legal";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { CHECKER } from "@/content/dentvideo-checker";
+import { EXAMPLES_UI, type ExampleVideo } from "@/content/dentvideo-examples";
 import type { SolutionPage } from "@/content/solutions";
 import { CardLogo, CardText, cardFonts, fitFontSize } from "./og-text";
 import { OG_SIZE } from "./og";
@@ -91,6 +92,8 @@ export const aboutCard = (locale: Locale): PageCard => ({ locale, label: GUIDE_U
 export const legalCard = (kind: LegalKind, locale: Locale): PageCard => ({ locale, label: LEGAL_NAV[locale].legal, title: LEGAL[locale].docs[kind].title });
 export const solutionCard = (p: SolutionPage): PageCard => ({ locale: p.locale, label: SOLUTION_UI[p.locale].forClinics, title: p.h1 });
 export const checkerCard = (locale: Locale): PageCard => ({ locale, label: CHECKER[locale].nav, title: CHECKER[locale].h1 });
+export const examplesCard = (locale: Locale): PageCard => ({ locale, label: EXAMPLES_UI[locale].nav, title: EXAMPLES_UI[locale].h1 });
+export const exampleCard = (e: ExampleVideo): PageCard => ({ locale: e.locale, label: EXAMPLES_UI[e.locale].nav, title: e.h1 });
 
 export function guideOgImage(g: Guide) {
   return pageOgImage(guideCard(g));

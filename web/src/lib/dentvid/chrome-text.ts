@@ -4,6 +4,7 @@ import { GUIDE_UI } from "@/content/guides/ui";
 import { SOLUTION_UI } from "@/content/solutions/ui";
 import { LEGAL_NAV } from "@/content/legal/nav";
 import { CHECKER } from "@/content/dentvideo-checker";
+import { EXAMPLES_UI } from "@/content/dentvideo-examples";
 import type { LegalKind } from "@/content/legal/types";
 
 /**
@@ -22,6 +23,8 @@ export type ChromeWords = AppText["chrome"] & {
   about: string;
   /** The free ad checker (/ad-checker). */
   checker: string;
+  /** The sample-video showcase (/examples). */
+  examples: string;
   signIn: string;
   legal: string;
   legalNav: Record<LegalKind, string>;
@@ -35,6 +38,7 @@ export function chromeWords(locale: Locale): ChromeWords {
     guides: GUIDE_UI[locale].guides,
     about: GUIDE_UI[locale].about,
     checker: CHECKER[locale].nav,
+    examples: EXAMPLES_UI[locale].nav,
     signIn: SOLUTION_UI[locale].signIn,
     legal: LEGAL_NAV[locale].legal,
     legalNav: LEGAL_NAV[locale].nav,

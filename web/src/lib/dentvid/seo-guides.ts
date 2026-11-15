@@ -12,6 +12,19 @@ import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "./billing";
 import { LANDING } from "@/content/dentvideo";
 import { LEGAL, LEGAL_KINDS, LEGAL_UPDATED, legalPath, type LegalKind } from "@/content/legal";
 import { CHECKER, CHECKER_PATH, CHECKER_UPDATED } from "@/content/dentvideo-checker";
+import {
+  EXAMPLES,
+  EXAMPLES_PATH,
+  EXAMPLES_UI,
+  EXAMPLES_UPDATED,
+  examplePath,
+  examplePosterSrc,
+  exampleTranslations,
+  exampleVideoSrc,
+  examplesFor,
+  sampleOf,
+  type ExampleVideo,
+} from "@/content/dentvideo-examples";
 
 /**
  * Metadata, structured data and sitemap entries for the guide library, the
@@ -574,6 +587,8 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
     ...GUIDE_HUB_LOCALES.map((l) => ({ path: GUIDES_INDEX_PATH[l], lastmod: latestGuide(l), priority: "0.8", alternates: perLocaleAltPaths(GUIDES_INDEX_PATH, GUIDE_HUB_LOCALES) })),
     ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: ABOUT_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
     ...LOCALES.map((l) => ({ path: CHECKER_PATH[l], lastmod: CHECKER_UPDATED, priority: "0.8", alternates: perLocaleAltPaths(CHECKER_PATH) })),
+    ...LOCALES.map((l) => ({ path: EXAMPLES_PATH[l], lastmod: EXAMPLES_UPDATED, priority: "0.8", alternates: perLocaleAltPaths(EXAMPLES_PATH) })),
+    ...EXAMPLES.map((e) => ({ path: examplePath(e), lastmod: EXAMPLES_UPDATED, priority: "0.7", alternates: exampleAltPaths(e) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
     ...SOLUTIONS.map((p) => ({ path: solutionPath(p), lastmod: p.updated ?? p.published, priority: "0.8", alternates: solutionAltPaths(p) })),
     ...LEGAL_KINDS.flatMap((k) => LOCALES.map((l) => ({ path: legalPath(k, l), lastmod: LEGAL_UPDATED, priority: "0.3", alternates: perLocaleAltPaths(legalPaths(k)) }))),
@@ -660,6 +675,170 @@ export function solutionJsonLd(p: SolutionPage) {
         inLanguage: p.locale,
         publisher: { "@id": ORG_ID },
       })),
+    ],
+  };
+}
+
+/* ---------- Examples showcase (/examples, /examples/<slug>) ---------- */
+
+/** A title plus " · DentVideo" when the whole still fits in SEO_TITLE_MAX. */
+function branded(t: string): string {
+  return `${t}${BRAND_SUFFIX}`.length <= SEO_TITLE_MAX ? `${t}${BRAND_SUFFIX}` : t;
+}
+
+/** ISO 8601 duration of a sample ("PT27S"). */
+function isoDuration(seconds: number): string {
+  return `PT${Math.round(seconds)}S`;
+}
+
+export function examplesHubSeoTitle(locale: Locale): string {
+  return branded(EXAMPLES_UI[locale].seoTitle);
+}
+
+export function examplesHubAlternates(): Record<string, string> {
+  return absolute(perLocaleAltPaths(EXAMPLES_PATH));
+}
+
+export function examplesHubMetadata(locale: Locale): Metadata {
+  const ui = EXAMPLES_UI[locale];
+  const url = absoluteUrl(EXAMPLES_PATH[locale]);
+  const title = examplesHubSeoTitle(locale);
+  return {
+    title: { absolute: title },
+    description: ui.seoDescription,
+    alternates: { canonical: url, languages: examplesHubAlternates() },
+    openGraph: {
+      title: ui.h1,
+      description: ui.seoDescription,
+      url,
+      type: "website",
+      siteName: "DentVideo",
+      locale: OG_LOCALE[locale],
+      ...(OG_ALTERNATE_LOCALES[locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[locale] } : {}),
+    },
+    // The share image is the page's own opengraph-image.tsx card.
+    twitter: { card: "summary_large_image", title: ui.h1, description: ui.seoDescription },
+  };
+}
+
+/** One example as a VideoObject (thumbnail, file, upload date, length, language). */
+export function exampleVideoNode(e: ExampleVideo) {
+  const url = absoluteUrl(examplePath(e));
+  const s = sampleOf(e);
+  return {
+    "@type": "VideoObject",
+    "@id": `${url}#video`,
+    name: s.name,
+    description: e.summary,
+    thumbnailUrl: absoluteUrl(examplePosterSrc(e)),
+    contentUrl: absoluteUrl(exampleVideoSrc(e)),
+    uploadDate: SAMPLE_UPLOAD_DATE,
+    duration: isoDuration(s.seconds),
+    inLanguage: e.locale,
+    isFamilyFriendly: true,
+    url,
+    publisher: { "@id": ORG_ID },
+  };
+}
+
+export function examplesHubJsonLd(locale: Locale) {
+  const ui = EXAMPLES_UI[locale];
+  const url = absoluteUrl(EXAMPLES_PATH[locale]);
+  const items = examplesFor(locale);
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": url,
+        url,
+        name: ui.h1,
+        description: ui.seoDescription,
+        inLanguage: locale,
+        dateModified: EXAMPLES_UPDATED,
+        isPartOf: { "@id": websiteId() },
+        about: { "@id": softwareId() },
+        publisher: { "@id": ORG_ID },
+        mainEntity: {
+          "@type": "ItemList",
+          numberOfItems: items.length,
+          itemListElement: items.map((e, i) => ({ "@type": "ListItem", position: i + 1, url: absoluteUrl(examplePath(e)), name: sampleOf(e).name })),
+        },
+      },
+      ...items.map(exampleVideoNode),
+      organizationNode(),
+      faqNode(ui.faq, locale),
+      breadcrumb([
+        { name: "DentVideo", path: LANDING_PATH[locale] },
+        { name: ui.nav, path: EXAMPLES_PATH[locale] },
+      ]),
+    ],
+  };
+}
+
+/** hreflang for an example page: the examples on the same topic in other languages (none without one). */
+export function exampleAltPaths(e: ExampleVideo): Record<string, string> | undefined {
+  const group = exampleTranslations(e);
+  if (group.length < 2) return undefined;
+  const languages: Record<string, string> = {};
+  for (const o of group) languages[HREFLANG[o.locale]] = examplePath(o);
+  // x-default: the English video where the topic has one, else the group's first (EXAMPLES order: market priority).
+  languages["x-default"] = examplePath(group.find((o) => o.locale === "en") ?? group[0]);
+  return languages;
+}
+
+export function exampleSeoTitle(e: ExampleVideo): string {
+  return branded(e.seoTitle);
+}
+
+export function exampleMetadata(e: ExampleVideo): Metadata {
+  const url = absoluteUrl(examplePath(e));
+  const alt = exampleAltPaths(e);
+  const title = exampleSeoTitle(e);
+  return {
+    title: { absolute: title },
+    description: e.seoDescription,
+    alternates: { canonical: url, ...(alt ? { languages: absolute(alt) } : {}) },
+    openGraph: {
+      title: e.h1,
+      description: e.seoDescription,
+      url,
+      type: "video.other",
+      siteName: "DentVideo",
+      locale: OG_LOCALE[e.locale],
+    },
+    // The share image is the page's own opengraph-image.tsx card.
+    twitter: { card: "summary_large_image", title: e.h1, description: e.seoDescription },
+  };
+}
+
+export function exampleJsonLd(e: ExampleVideo) {
+  const url = absoluteUrl(examplePath(e));
+  const ui = EXAMPLES_UI[e.locale];
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": url,
+        url,
+        name: e.h1,
+        description: e.seoDescription,
+        inLanguage: e.locale,
+        dateModified: EXAMPLES_UPDATED,
+        primaryImageOfPage: absoluteUrl(examplePosterSrc(e)),
+        mainEntity: { "@id": `${url}#video` },
+        isPartOf: { "@id": websiteId() },
+        about: { "@id": softwareId() },
+        publisher: { "@id": ORG_ID },
+      },
+      exampleVideoNode(e),
+      organizationNode(),
+      breadcrumb([
+        { name: "DentVideo", path: LANDING_PATH[e.locale] },
+        { name: ui.nav, path: EXAMPLES_PATH[e.locale] },
+        { name: e.h1, path: examplePath(e) },
+      ]),
     ],
   };
 }

@@ -289,6 +289,18 @@ export const ABOUT_PATH: Record<Locale, string> = {
   pl: "/dentvideo/pl/about",
 };
 
+/** The sample-video showcase (/examples), per language (in-app paths). Small, so the header, footer and landing can link to it. */
+export const EXAMPLES_PATH: Record<Locale, string> = {
+  en: "/dentvideo/examples",
+  de: "/dentvideo/de/examples",
+  es: "/dentvideo/es/examples",
+  tr: "/dentvideo/tr/examples",
+  fr: "/dentvideo/fr/examples",
+  ja: "/dentvideo/ja/examples",
+  ar: "/dentvideo/ar/examples",
+  pl: "/dentvideo/pl/examples",
+};
+
 /** Where the checker lives, per language (in-app paths; dvHref/dvUrl make them public). Small, so the header and footer can link to it. */
 export const CHECKER_PATH: Record<Locale, string> = {
   en: "/dentvideo/ad-checker",

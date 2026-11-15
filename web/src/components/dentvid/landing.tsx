@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { LANDING, LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
+import { EXAMPLES_PATH, EXAMPLES_UI, examplePath } from "@/content/dentvideo-examples";
 import { appText } from "@/content/dentvideo-app";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { landingJsonLd } from "@/lib/dentvid/seo";
@@ -386,11 +387,20 @@ function Samples({ locale }: { locale: Locale }) {
                   <span aria-hidden="true">·</span>
                   <span className="tabular-nums" dir="ltr">{duration(seconds)}</span>
                 </p>
-                <p className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-dv-ink">{name}</p>
+                {/* Each sample has its own page: what it covers, its on-screen text, and how to get your own. */}
+                <Link href={dvHref(examplePath({ locale, slug }))} className="mt-1.5 block text-[0.9375rem] font-semibold leading-snug text-dv-ink underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal">
+                  {name}
+                </Link>
               </div>
             </li>
           ))}
         </ul>
+        <p className="mt-8 text-center sm:mt-10">
+          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex items-center gap-1.5 font-semibold text-dv-teal underline-offset-4 hover:underline" data-testid="landing-examples-link">
+            {EXAMPLES_UI[locale].seeAll}
+            <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+          </Link>
+        </p>
       </div>
     </section>
   );

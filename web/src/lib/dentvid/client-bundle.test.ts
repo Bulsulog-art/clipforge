@@ -91,6 +91,16 @@ const PAGES: Record<string, string[]> = {
   guide: ["dentvideo/guides/[slug]/page.tsx", "dentvideo/guides/page.tsx"],
   commercial: ["dentvideo/videos/[slug]/page.tsx"],
   about: ["dentvideo/about/page.tsx"],
+  examples: [
+    "dentvideo/examples/page.tsx",
+    "dentvideo/examples/[slug]/page.tsx",
+    "dentvideo/[locale]/examples/page.tsx",
+    "dentvideo/[locale]/examples/[slug]/page.tsx",
+    "dentvideo/ar/examples/page.tsx",
+    "dentvideo/ar/examples/[slug]/page.tsx",
+    "dentvideo/ja/examples/page.tsx",
+    "dentvideo/ja/examples/[slug]/page.tsx",
+  ],
   checker: ["dentvideo/ad-checker/page.tsx", "dentvideo/[locale]/ad-checker/page.tsx", "dentvideo/ar/ad-checker/page.tsx", "dentvideo/ja/ad-checker/page.tsx"],
 };
 
@@ -103,6 +113,7 @@ const SERVER_ONLY_CONTENT = [
   "content/solutions/index.ts",
   "content/legal/index.ts",
   "content/dentvideo-checker.ts",
+  "content/dentvideo-examples.ts",
 ];
 /** Libraries the public pages never run on load. */
 const NOT_ON_LOAD = ["@supabase/supabase-js", "@supabase/ssr", "sonner", "remotion", "@remotion/player", "framer-motion", "@tanstack/react-query"];
