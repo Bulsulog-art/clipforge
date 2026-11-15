@@ -99,6 +99,25 @@ describe("canonical and hreflang on every public page", () => {
       expect(tw?.images, p.path).toBeUndefined();
     }
   });
+
+  it("gives every public page a title and meta description no other page uses", () => {
+    const titleOf = (m: Metadata) => {
+      const t = m.title as string | { absolute?: string; default?: string } | undefined;
+      return typeof t === "string" ? t : (t?.absolute ?? t?.default ?? "");
+    };
+    const dupes = (key: (m: Metadata) => string) => {
+      const seen = new Map<string, string>();
+      const out: string[] = [];
+      for (const p of PAGES) {
+        const v = key(p.meta).trim().toLowerCase();
+        if (seen.has(v)) out.push(`${p.path} = ${seen.get(v)}: ${v}`);
+        else seen.set(v, p.path);
+      }
+      return out;
+    };
+    expect(dupes(titleOf)).toEqual([]);
+    expect(dupes((m) => String(m.description ?? ""))).toEqual([]);
+  });
 });
 
 describe("structured data", () => {
