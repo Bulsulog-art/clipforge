@@ -84,8 +84,12 @@ function clientGraph(entries: string[]): Graph {
 const rel = (f: string) => path.relative(SRC, f);
 const kb = (files: Iterable<string>) => [...files].reduce((n, f) => n + fs.statSync(f).size, 0) / 1024;
 
-/** The root layout and DentVideo's layout wrap every page below. */
-const LAYOUTS = [path.join(APP, "layout.tsx"), path.join(APP, "dentvideo/layout.tsx")];
+/**
+ * The root layout and DentVideo's layout wrap every page below, and the 404 boundary's chunk is
+ * loaded with every one of them too (Next fetches a segment's not-found.tsx up front): it once
+ * pulled content/dentvideo.ts, ~200 KB of compressed JavaScript, into every DentVideo page.
+ */
+const LAYOUTS = [path.join(APP, "layout.tsx"), path.join(APP, "dentvideo/layout.tsx"), path.join(APP, "dentvideo/not-found.tsx")];
 const PAGES: Record<string, string[]> = {
   landing: ["dentvideo/page.tsx", "dentvideo/[locale]/page.tsx", "dentvideo/ar/layout.tsx", "dentvideo/ar/page.tsx", "dentvideo/ja/layout.tsx", "dentvideo/ja/page.tsx"],
   guide: ["dentvideo/guides/[slug]/page.tsx", "dentvideo/guides/page.tsx"],
@@ -149,7 +153,9 @@ describe("DentVideo public pages: browser bundle", () => {
       // lucide icons not counted). ~800 KB before the content modules were kept on the server.
       // 155: the server-rendered <html lang> root and the payment/retry states added ~0.3 KB.
       // 160: ad-click attribution on every page and the per-currency price tags added ~2 KB of source.
-      expect(kb(g.client)).toBeLessThan(160);
+      // 170: the 404 boundary (loaded with every page) is counted now, ~7 KB of source. Before it was
+      // counted, it shipped content/dentvideo.ts and the guide library: ~640 KB minified, unseen by this test.
+      expect(kb(g.client)).toBeLessThan(170);
     });
   }
 

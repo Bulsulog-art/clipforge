@@ -26,7 +26,7 @@ export function dvPriceContext(country: string | null | undefined): DvPriceConte
 }
 
 // Time zones in Türkiye and the EU (city → country), for when the edge sends no country.
-const TZ: Record<string, string> = Object.fromEntries(
+export const DV_TIME_ZONE_COUNTRY: Record<string, string> = Object.fromEntries(
   (
     "Istanbul TR,Berlin DE,Vienna AT,Madrid ES,Canary ES,Paris FR,Rome IT,Amsterdam NL,Brussels BE,Lisbon PT,Dublin IE," +
     "Helsinki FI,Athens GR,Luxembourg LU,Bratislava SK,Ljubljana SI,Tallinn EE,Riga LV,Vilnius LT,Malta MT,Nicosia CY," +
@@ -38,7 +38,7 @@ const TZ: Record<string, string> = Object.fromEntries(
 
 /** "Europe/Berlin" → DE (also Asia/Istanbul, Atlantic/Canary, Asia/Nicosia). */
 export function countryFromTimeZone(tz: string | null | undefined): string | null {
-  return (tz && TZ[tz.split("/")[1] ?? ""]) || null;
+  return (tz && DV_TIME_ZONE_COUNTRY[tz.split("/")[1] ?? ""]) || null;
 }
 
 // The page language's market (/tr → TL, /de /es /fr → EUR); also the no-JS default in dentvideo.css.

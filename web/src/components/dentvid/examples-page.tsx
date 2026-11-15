@@ -80,8 +80,9 @@ function ExampleCard({ e, row = false }: { e: ExampleVideo; row?: boolean }) {
       dir={dirOf(e.locale)}
     >
       {/* The poster only: the card links to the video's page, where it plays. */}
+      {/* The `row` cards are the hub's first screen (the desktop LCP): fetched by the preload scanner, not lazily after layout. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading="lazy" decoding="async" className={`aspect-[9/16] rounded-xl bg-dv-sand object-cover ${row ? "w-24 shrink-0 sm:w-full" : "w-full"}`} />
+      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading={row ? "eager" : "lazy"} decoding="async"className={`aspect-[9/16] rounded-xl bg-dv-sand object-cover ${row ? "w-24 shrink-0 sm:w-full" : "w-full"}`} />
       <span className={`flex min-w-0 flex-1 flex-col ${row ? "sm:mt-4" : "mt-4"}`}>
         <span className="flex items-start justify-between gap-3">
           <span className="font-semibold leading-snug text-dv-ink">{s.name}</span>

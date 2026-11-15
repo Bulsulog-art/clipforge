@@ -36,6 +36,20 @@ const POSTER_FRAME = 30;
 let fontsReady: Promise<void> | undefined;
 function loadFonts(): Promise<void> {
   if (fontsReady) return fontsReady;
+  // The root layout's next/font already declares "Inter" (the same Google Fonts variable face, latin and
+  // latin-ext slices) on every page. Declaring it a second time made document.fonts.load() fetch both
+  // copies: ~130 KB of duplicate fonts on every landing. Ours is only the fallback for a page without it.
+  const declared = [...document.fonts].some((f) => f.family.replace(/["']/g, "") === "Inter");
+  if (!declared) injectInter();
+  const timeout = new Promise<void>((r) => setTimeout(r, 2500));
+  fontsReady = Promise.race([
+    Promise.all(["500", "600", "700", "800", "900"].map((w) => document.fonts.load(`${w} 64px Inter`, "Aa ğşİçöüéñß"))).then(() => undefined),
+    timeout,
+  ]).catch(() => undefined);
+  return fontsReady;
+}
+
+function injectInter() {
   const style = document.createElement("style");
   style.dataset.dentvideoPreview = "fonts";
   style.textContent = [
@@ -48,12 +62,6 @@ function loadFonts(): Promise<void> {
     )
     .join("\n");
   document.head.appendChild(style);
-  const timeout = new Promise<void>((r) => setTimeout(r, 2500));
-  fontsReady = Promise.race([
-    Promise.all(["500", "600", "700", "800", "900"].map((w) => document.fonts.load(`${w} 64px Inter`, "Aa ğşİçöüéñß"))).then(() => undefined),
-    timeout,
-  ]).catch(() => undefined);
-  return fontsReady;
 }
 
 // MARK: - Library

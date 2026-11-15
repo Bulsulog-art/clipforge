@@ -5,6 +5,7 @@ import { AppToaster } from "@/components/AppToaster";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 import { CHUNK_RELOAD_SCRIPT } from "@/lib/chunk-reload";
+import { PRICE_BOOT_SCRIPT } from "@/lib/dentvid/price-boot";
 import { HtmlRoot } from "@/components/html-root";
 import { GUIDES } from "@/content/dentvideo";
 import { SOLUTIONS } from "@/content/solutions";
@@ -74,6 +75,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Reloads once when this page's chunks are gone after a deploy (lib/chunk-reload). Before Next's scripts. */}
         <script id="chunk-reload" dangerouslySetInnerHTML={{ __html: CHUNK_RELOAD_SCRIPT }} />
+        {/* DentVideo's prices: the likely currency on <html> before the first paint (lib/dentvid/price-boot). */}
+        <script id="dv-price-boot" dangerouslySetInnerHTML={{ __html: PRICE_BOOT_SCRIPT }} />
       </head>
       <body className={`${inter.variable} font-sans`}>
         {/* Captures UTM params + referrer at first landing and POSTs

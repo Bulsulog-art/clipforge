@@ -3,7 +3,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuides, type Locale } from "@/content/dentvideo";
+// dentvideo-locales, not content/dentvideo: this boundary's chunk loads on every DentVideo page, and the
+// content module (every language's landing copy and the whole guide library) is ~200 KB of compressed JS.
+import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuideHub as hasGuides, type Locale } from "@/content/dentvideo-locales";
 import { NOT_FOUND_COPY } from "@/content/dentvideo-404";
 import { GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { dvHref } from "@/lib/dentvid/host";
