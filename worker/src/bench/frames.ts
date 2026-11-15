@@ -17,7 +17,9 @@
  * anything that sits under the platform's own UI is obvious.
  * --entry PATH bundles another copy of the compositions (e.g. main's, checked
  * out with git archive) — the same frames, before and after a change.
- * --mp4 N also renders the first N videos in full (with narration) to <out>/<id>.mp4.
+ * --mp4 N also renders the first N videos in full to <out>/<id>.mp4, with the
+ * narration mastered and the cuts timed to it as a week job does, and prints
+ * the loudness of the finished file.
  *
  * No OpenAI calls, no network: plans, narration and photos are all in the repo.
  */
@@ -31,6 +33,8 @@ import { getBundle, renderPlan, stagingDir } from "../remotion/render-plan.js";
 import { parseScenePlan, sceneFrames, sceneOffsets, type ScenePlan } from "../remotion/scene-plan.js";
 import { stageBackgrounds } from "../remotion/backgrounds.js";
 import { SAFE_ZONES } from "../remotion/theme.js";
+import { fitPlanToVoice, snapScenesToPauses } from "../remotion/voiceover.js";
+import { detectPauses, masterNarration } from "../dental/audio-master.js";
 
 const ROOT = path.resolve(process.cwd(), "..");
 const HANDLE = "@brightsmiledental";
@@ -147,8 +151,11 @@ async function main() {
     const composition = await selectComposition({ serveUrl, id: "ClipForgeVideo", inputProps, puppeteerInstance: browser });
     const offsets = sceneOffsets(plan);
     // The hook mid-reveal, then every scene once its text has landed (and before the next fades in).
+    // Frame 0 (the feed preview and default cover) and the middle of the first cut too.
     const picks = [
+      { frame: 0, label: "first frame" },
       { frame: 10, label: "hook 0.33s" },
+      ...(offsets.length > 1 ? [{ frame: offsets[1] - 4, label: "mid-cut" }] : []),
       ...plan.scenes.map((sc, i) => ({ frame: offsets[i] + Math.min(sceneFrames(sc) - 10, Math.max(45, Math.round(sceneFrames(sc) * 0.7))), label: sc.kind })),
     ];
     const files: string[] = [];
@@ -167,18 +174,28 @@ async function main() {
     if (n < mp4) {
       const dir = await fs.mkdtemp(path.join(work, "v-"));
       const started = Date.now();
-      await renderPlan({
-        plan,
+      // The narration as a week job hands it over: mastered (-14 LUFS), the plan
+      // stretched to it and its cuts moved into the pauses — all local ffmpeg.
+      let voiced = plan;
+      let voice: string | undefined;
+      if (existsSync(mp3)) {
+        const m = await masterNarration(mp3, path.join(dir, "voiceover.master.wav"));
+        voiced = snapScenesToPauses(fitPlanToVoice(plan, m.seconds), await detectPauses(m.path));
+        voice = m.path;
+      }
+      const res = await renderPlan({
+        plan: voiced,
         workDir: dir,
         outputPath: path.join(out, `${s.key}.mp4`),
-        voiceoverSrc: existsSync(mp3) ? mp3 : undefined,
+        voiceoverSrc: voice,
         userAssets: [clip],
         logoSrc: logoFile,
         logoStyle: LOGO_STYLE,
         assetRoots: [path.dirname(mp3), work],
         entryPoint,
       });
-      console.log(`${s.key}.mp4 in ${((Date.now() - started) / 1000).toFixed(1)} s`);
+      const l = res.loudness?.after;
+      console.log(`${s.key}.mp4 in ${((Date.now() - started) / 1000).toFixed(1)} s${l ? `, ${l.I} LUFS / ${l.TP} dBTP${res.loudness?.corrected ? " (corrected)" : ""}` : ""}`);
     }
   }
   if (sheets.length > 1) execFileSync("montage", [...sheets, "-tile", "1x", "-geometry", "+0+4", "-background", "#111", path.join(out, "all.png")]);

@@ -5,10 +5,10 @@ vi.mock("../remotion/voiceover.js", async (orig) => ({
   ...(await orig<typeof import("../remotion/voiceover.js")>()),
   prepareVoiceover: vi.fn(),
 }));
-vi.mock("./audio-master.js", () => ({ masterNarration: vi.fn(), mixNarrationWithMusic: vi.fn() }));
+vi.mock("./audio-master.js", () => ({ masterNarration: vi.fn(), mixNarrationWithMusic: vi.fn(), detectPauses: vi.fn() }));
 
 const { prepareVoiceover } = await import("../remotion/voiceover.js");
-const { masterNarration, mixNarrationWithMusic } = await import("./audio-master.js");
+const { masterNarration, mixNarrationWithMusic, detectPauses } = await import("./audio-master.js");
 const { prepareNarration, speechPlan } = await import("./narration-audio.js");
 
 const plan = (text?: string): ScenePlan =>
@@ -27,11 +27,14 @@ const plan = (text?: string): ScenePlan =>
 const tts = vi.mocked(prepareVoiceover);
 const master = vi.mocked(masterNarration);
 const mix = vi.mocked(mixNarrationWithMusic);
+const pauses = vi.mocked(detectPauses);
 
 beforeEach(() => {
   tts.mockReset();
   master.mockReset();
   mix.mockReset();
+  pauses.mockReset();
+  pauses.mockResolvedValue([]);
   tts.mockImplementation(async (p) => ({ plan: p, voiceoverPath: "/w/voiceover.loud.mp3", voiceSeconds: 9, voiceModel: "tts-1-hd" }));
   master.mockImplementation(async (_in, out) => ({ path: out, seconds: 14, gainDb: 3, before: { I: -17, TP: -1, LRA: 3, thresh: -27 } }));
 });
@@ -61,6 +64,22 @@ describe("prepareNarration", () => {
     const r = await prepareNarration(plan("Brush twice a day."), "/w", "en");
     expect(r.voiceSeconds).toBe(14);
     expect(r.plan.scenes.reduce((a, s) => a + s.seconds, 0)).toBeGreaterThanOrEqual(14);
+  });
+  it("moves the cut between scenes into the pause between two sentences of the mastered voice", async () => {
+    // Plan stretched to 14.8 s (two 7.4 s scenes); the voice pauses between sentences at 6.1-6.6 s.
+    pauses.mockResolvedValueOnce([{ start: 6.1, end: 6.6 }]);
+    const r = await prepareNarration(plan("First sentence. Second one."), "/w", "en");
+    expect(pauses).toHaveBeenCalledWith("/w/voiceover.master.wav");
+    expect(r.plan.scenes[0].seconds).toBeCloseTo(6.45, 1);
+    expect(r.plan.scenes.reduce((a, s) => a + s.seconds, 0)).toBeCloseTo(14.8, 1);
+  });
+  it("a failed pause detection keeps the stretched timing", async () => {
+    pauses.mockRejectedValueOnce(new Error("no silencedetect"));
+    const onMasterError = vi.fn();
+    const r = await prepareNarration(plan("Floss daily."), "/w", "en", { onMasterError });
+    expect(r.voiceoverPath).toBe("/w/voiceover.master.wav");
+    expect(r.plan.scenes[0].seconds).toBeCloseTo(7.4, 1);
+    expect(onMasterError).toHaveBeenCalled();
   });
   it("uses the language's tempo for tts-1-hd, none for the steerable model", async () => {
     await prepareNarration(plan("Brush twice a day."), "/w", "es");

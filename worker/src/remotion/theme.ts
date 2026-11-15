@@ -203,8 +203,12 @@ export const TYPE = {
  * bottom, and the like/comment/share rail down the reading-end side (right in
  * a left-to-right app, left in an Arabic one). The union of both apps'
  * keep-out areas at 1080×1920. Nothing that has to be read may sit in them.
+ * In px at 1080×1920 (with SAFE_GAP): top 253, bottom 426, rail 124 — the
+ * ~250 / ~420 / ~120 a Reels/TikTok creative brief asks for. The bottom used
+ * to be 0.2 (407 px): a two-line Reels caption plus the audio line reaches
+ * ~415 px, so the last line of a bottom-anchored footage caption touched it.
  */
-export const SAFE_ZONES = { top: 0.12, bottom: 0.2, end: 0.115, start: 0.05 } as const;
+export const SAFE_ZONES = { top: 0.12, bottom: 0.21, end: 0.115, start: 0.05 } as const;
 
 /** Breathing room between the platform UI and our type, as a fraction of the frame. */
 const SAFE_GAP = { y: 0.012, start: 0.025 } as const;
@@ -217,18 +221,26 @@ export type SafeFrame = { top: number; bottom: number; start: number; end: numbe
  * top, wider on the rail side than the reading-start side — so the content's
  * optical centre sits slightly above the frame's, where the eye lands.
  * `start`/`end` are logical sides: the composition applies them as
- * inline-start/end padding, so a right-to-left frame mirrors them for free.
+ * inline-start/end padding.
+ *
+ * A right-to-left video keeps clear of the rail on BOTH sides. Which side the
+ * rail is on follows the viewer's app language, not the video's: an Arabic
+ * clinic's Reel is watched in English-language apps as often as in Arabic
+ * ones (Gulf, Europe), and there the rail is on the right — exactly where
+ * Arabic lines start. Mirroring the margins put the first words of every
+ * Arabic line under the like/comment buttons (frames bench, ar-aligners).
  * Square and landscape frames (feeds, YouTube) keep a plain margin.
  */
-export function safeFrame(width: number, height: number): SafeFrame {
+export function safeFrame(width: number, height: number, opts: { rtl?: boolean } = {}): SafeFrame {
   if (height <= width) {
     return { top: height * 0.09, bottom: height * 0.09, start: width * 0.085, end: width * 0.085 };
   }
+  const end = width * SAFE_ZONES.end;
   return {
     top: height * (SAFE_ZONES.top + SAFE_GAP.y),
     bottom: height * (SAFE_ZONES.bottom + SAFE_GAP.y),
-    start: width * (SAFE_ZONES.start + SAFE_GAP.start),
-    end: width * SAFE_ZONES.end,
+    start: opts.rtl ? end : width * (SAFE_ZONES.start + SAFE_GAP.start),
+    end,
   };
 }
 

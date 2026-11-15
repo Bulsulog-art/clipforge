@@ -46,6 +46,23 @@ describe("safe frame (Reels / TikTok UI)", () => {
     expect(f.start).toBeGreaterThanOrEqual(1080 * SAFE_ZONES.start);
   });
 
+  it("meets a Reels/TikTok creative brief in px at 1080×1920: top ≥ 250, bottom ≥ 420, rail ≥ 120", () => {
+    expect(f.top).toBeGreaterThanOrEqual(250);
+    expect(f.bottom).toBeGreaterThanOrEqual(420);
+    expect(f.end).toBeGreaterThanOrEqual(120);
+  });
+
+  it("keeps an Arabic frame clear of the rail on both sides (the rail follows the app's language, not the video's)", () => {
+    const rtl = safeFrame(1080, 1920, { rtl: true });
+    expect(rtl.start).toBeGreaterThanOrEqual(1080 * SAFE_ZONES.end); // inline-start is the right edge in Arabic
+    expect(rtl.end).toBeGreaterThanOrEqual(1080 * SAFE_ZONES.end);
+    expect(rtl.top).toBe(f.top);
+    expect(rtl.bottom).toBe(f.bottom);
+    expect(1080 - rtl.start - rtl.end).toBeGreaterThan(800); // still a readable column
+    // Square and landscape frames are symmetric already.
+    expect(safeFrame(1080, 1080, { rtl: true })).toEqual(safeFrame(1080, 1080));
+  });
+
   it("is deeper at the bottom (captions, audio line) than at the top, and wider on the rail side", () => {
     expect(f.bottom).toBeGreaterThan(f.top);
     expect(f.end).toBeGreaterThan(f.start);

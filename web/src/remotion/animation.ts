@@ -87,10 +87,24 @@ export function entrance(
  * Scenes used to fade out to the background and the next one fade in after
  * it, with the next scene's text still waiting on its entrance delay: about
  * 0.4 s of empty frame at every cut — a contact sheet caught one and it read
- * as a blank video. Now every scene after the first starts CROSSFADE frames
- * early, on top of the one before, and fades in over it; the outgoing scene
- * stays fully drawn underneath. Only the last scene fades out (the video's
- * end). Scene lengths and the total running time are unchanged.
+ * as a blank video. Then every scene after the first started CROSSFADE frames
+ * early and faded in on top of the one before, which stayed fully drawn
+ * underneath: no empty frame, but for those frames two blocks of type sat on
+ * top of each other at full strength (a frame grab of an Arabic sample shows
+ * a list heading fading in straight through the paragraph before it).
+ *
+ * Now the cut is a true dissolve: while the incoming scene fades in, the
+ * outgoing one fades out over the same frames on the mirrored curve, so the
+ * two opacities always add up to 1 — never an empty frame, never two
+ * full-strength texts. Two ends are special:
+ *  - the first scene does not fade in. Frame 0 is what a feed shows before
+ *    playback starts and what "cover from the first frame" picks, so it has
+ *    to carry the hook, not an empty background (every sample opened on 4-5
+ *    blank frames);
+ *  - the last scene does not fade out. Reels and TikTok loop: the loop should
+ *    hold the sign-off to the end and cut straight back to the hook, not
+ *    flash an empty frame in between.
+ * Scene lengths and the total running time are unchanged.
  */
 export const CROSSFADE = 8;
 
@@ -99,7 +113,7 @@ export type SceneWindow = { from: number; durationInFrames: number; fadeIn: bool
 export function sceneWindows(offsets: number[], frames: number[]): SceneWindow[] {
   return offsets.map((offset, i) => {
     const lead = i > 0 ? Math.min(CROSSFADE, offset) : 0;
-    return { from: offset - lead, durationInFrames: frames[i] + lead, fadeIn: true, fadeOut: i === offsets.length - 1 };
+    return { from: offset - lead, durationInFrames: frames[i] + lead, fadeIn: lead > 0, fadeOut: i < offsets.length - 1 };
   });
 }
 
@@ -107,8 +121,24 @@ export function sceneWindows(offsets: number[], frames: number[]): SceneWindow[]
 export function windowOpacity(frame: number, w: Pick<SceneWindow, "durationInFrames" | "fadeIn" | "fadeOut">, fade = CROSSFADE): number {
   if (w.durationInFrames <= fade * 2) return 1;
   const inP = w.fadeIn ? easeInOut(frame / fade) : 1;
+  // The mirror of the next scene's fade-in (easeInOut(1 - x) = 1 - easeInOut(x)): the two always sum to 1.
   const outP = w.fadeOut ? easeInOut((w.durationInFrames - frame) / fade) : 1;
   return Math.min(1, inP, outP);
+}
+
+/**
+ * Frames of head start the opening scene gets: its own clock runs this far
+ * ahead of the video's, so at frame 0 the hook's first words are already up
+ * and the opening frame reads as a headline, and a hook of up to 12 words
+ * has fully landed by about 1.2 s — inside the second or so a viewer gives a
+ * Reel before swiping. The samples' hooks opened on 4-5 empty frames and took
+ * 1.3-2 s to complete.
+ */
+export const OPENING_HEAD_START = 10;
+
+/** The frame a scene's own animation sees: the opening scene starts already in motion. */
+export function sceneClock(sceneIndex: number, frame: number): number {
+  return sceneIndex === 0 ? frame + OPENING_HEAD_START : frame;
 }
 
 export function sceneOpacity(
