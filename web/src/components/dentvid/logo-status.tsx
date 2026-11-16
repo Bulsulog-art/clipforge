@@ -4,6 +4,29 @@ import { LOGO_TEXT, logoNotes, logoProblemText, type LogoText } from "@/content/
 import { prepareLogo, type PreparedLogo } from "@/lib/dentvid/logo-prepare";
 import type { Locale } from "@/content/dentvideo-locales";
 
+/** The landing teaser's logo state (kept in the teaser, worded and toggled here, off its first load). */
+export type LogoState = { reading?: boolean; text?: LogoText; error?: string; prepared?: PreparedLogo; notes?: string[]; keep?: boolean };
+
+/** LogoStatus for the teaser: the white-background toggle lives here, not in the landing's own code. */
+export function TeaserLogoStatus({ st, set, show, locale }: { st: LogoState; set: (s: LogoState) => void; show: (f: File) => void; locale: Locale }) {
+  return (
+    <LogoStatus
+      text={LOGO_TEXT[locale]}
+      reading={st.reading}
+      error={st.error}
+      notes={st.notes}
+      cleaned={!!st.prepared?.cleaned && !!st.prepared.original}
+      keepBackground={!!st.keep}
+      onToggleBackground={async () => {
+        const f = st.keep ? st.prepared?.file : await st.prepared?.original?.();
+        if (!f) return;
+        set({ ...st, keep: !st.keep });
+        show(f);
+      }}
+    />
+  );
+}
+
 /** Prepares a chosen logo and words the outcome in the visitor's language (the landing loads this lazily). */
 export async function readLogo(file: File, locale: Locale): Promise<{ text: LogoText; error?: string; prepared?: PreparedLogo; notes: string[] }> {
   const text = LOGO_TEXT[locale];

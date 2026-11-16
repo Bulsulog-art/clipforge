@@ -6,17 +6,14 @@ import Link from "next/link";
 import { ArrowRight, ImagePlus } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { analyseLogoFile } from "@/lib/dentvid/logo-colors";
-import type { PreparedLogo } from "@/lib/dentvid/logo-prepare";
-import type { LogoText } from "@/content/dentvideo-logo";
-
-type LogoState = { reading?: boolean; text?: LogoText; error?: string; prepared?: PreparedLogo; notes?: string[]; keep?: boolean };
+import type { LogoState } from "./logo-status";
 import { TEASER_KEY } from "@/lib/dentvid/onboarding";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { exampleServices } from "@/lib/dentvid/service-hints";
 import { PreviewPlaceholder } from "./phone";
 
-// Loaded near the preview (warm for a chosen file), not with the page.
-const LogoStatus = dynamic(() => import("./logo-status").then((m) => m.LogoStatus), { ssr: false });
+// Loaded near the preview, not with the page.
+const LogoStatus = dynamic(() => import("./logo-status").then((m) => m.TeaserLogoStatus), { ssr: false });
 
 const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePreview), {
   ssr: false,
@@ -98,7 +95,6 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
   const previewBox = useRef<HTMLDivElement>(null);
   const showPreview = useNearViewport(previewBox);
   useEffect(() => void (showPreview && import("./logo-status")), [showPreview]);
-  /** The chosen logo, prepared (logo-prepare.ts). */
   const [st, setSt] = useState<LogoState>({});
   /** The logo as a data URL, read when chosen, so the hand-over on click is synchronous. */
   const [logoData, setLogoData] = useState<string | null>(null);
@@ -139,13 +135,12 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
     touch();
     if (!file) return;
     latest.current = file;
-    setSt((o) => ({ text: o.text, reading: true }));
+    setSt({ reading: true });
     const r = await (await import("./logo-status")).readLogo(file, locale);
     if (latest.current !== file) return;
-    // Refused: the old logo stays.
     if (r.error) latest.current = logo;
     setSt(r);
-    if (r.prepared) await showLogo(r.prepared.file);
+    if (r.prepared) showLogo(r.prepared.file);
   }
 
   /** Hand the choices to the wizard. Best effort: without storage the wizard simply starts empty. */
@@ -225,16 +220,8 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                     )}
                   </span>
                   <span className="max-w-[10rem] truncate text-sm font-normal text-dv-body">{logo ? logo.name : "PNG · JPG · SVG"}</span>
-                  {/* No HEIC: iPhones then hand over a JPEG. */}
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"
-                    className="sr-only"
-                    onChange={(e) => {
-                      void chooseLogo(e.target.files?.[0] ?? null);
-                      e.target.value = "";
-                    }}
-                  />
+                  {/* No HEIC: iPhones then send a JPEG. */}
+                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,.svg" className="sr-only" onChange={(e) => void chooseLogo(e.target.files?.[0] ?? null)} />
                 </span>
               </label>
               <div className="text-sm font-semibold text-dv-ink">
@@ -272,20 +259,7 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                 </span>
               </div>
             </div>
-            <LogoStatus
-              text={st.text}
-              reading={st.reading}
-              error={st.error}
-              notes={st.notes}
-              cleaned={!!st.prepared?.cleaned && !!st.prepared.original}
-              keepBackground={!!st.keep}
-              onToggleBackground={async () => {
-                const f = st.keep ? st.prepared?.file : await st.prepared?.original?.();
-                if (!f) return;
-                setSt({ ...st, keep: !st.keep });
-                showLogo(f);
-              }}
-            />
+            <LogoStatus st={st} set={setSt} show={showLogo} locale={locale} />
             {/* Side by side (lg), the button sits inside the card, under the fields. */}
             <div className="hidden lg:grid lg:gap-5">{cta}</div>
           </div>
@@ -316,4 +290,3 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
     </section>
   );
 }
-
