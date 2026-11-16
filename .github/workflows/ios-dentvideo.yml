@@ -178,8 +178,8 @@ jobs:
             device: "iPad Pro 13-inch (M5)"
             ios: "26"
           - leg: iphone-se-3-ios17
-            runner: macos-14
-            xcode: "16"
+            runner: macos-15
+            xcode: "16.4"
             device: "iPhone SE (3rd generation)"
             ios: "17"
     name: tests (${{ matrix.leg }})
@@ -197,6 +197,15 @@ jobs:
           [ -n "$X" ] || { ls /Applications | grep Xcode; exit 1; }
           sudo xcode-select -s "$X"
           xcodebuild -version
+
+      - name: iOS ${{ matrix.ios }} simulator runtime
+        run: |
+          if xcrun simctl list runtimes | grep -q "iOS ${{ matrix.ios }}\."; then exit 0; fi
+          # Not preinstalled on this image (iOS 17): download it once for this job (several GB).
+          for v in 17.5 17.4 17.2; do
+            xcodebuild -downloadPlatform iOS -buildVersion "$v" && break
+          done
+          xcrun simctl list runtimes
 
       - name: Generate project
         run: brew install xcodegen && xcodegen generate

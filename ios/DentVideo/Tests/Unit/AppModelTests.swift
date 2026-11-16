@@ -11,11 +11,14 @@ final class ScriptedTransport: HTTPTransport, @unchecked Sendable {
     init(_ handler: @escaping @Sendable (URLRequest) throws -> (Int, Any)) { self.handler = handler }
 
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
-        lock.lock(); log.append(request); lock.unlock()
+        record(request)
         let (status, body) = try handler(request)
-        let data = (body as? Data) ?? (try JSONSerialization.data(withJSONObject: body))
+        let data: Data
+        if let d = body as? Data { data = d } else { data = try JSONSerialization.data(withJSONObject: body) }
         return (data, HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!)
     }
+
+    private func record(_ r: URLRequest) { lock.lock(); log.append(r); lock.unlock() }
 
     var requests: [URLRequest] { lock.lock(); defer { lock.unlock() }; return log }
     func last(_ suffix: String) -> URLRequest? { requests.last { $0.url!.path.hasSuffix(suffix) } }
