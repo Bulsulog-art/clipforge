@@ -28,6 +28,8 @@ import {
 } from "@/lib/dentvid/app-ui";
 import { slotLabel, weekSchedule, type PostTexts } from "@/lib/dentvid/posting";
 import { postingText } from "@/content/dentvideo-posting";
+import type { HelpId } from "@/content/dentvideo-help-links";
+import { HelpLink } from "./help-link";
 
 export type LibraryItem = {
   id: string;
@@ -216,6 +218,7 @@ export function Library({
       {groups.length === 0 && action !== "locked" && (
         <section aria-labelledby="week-empty" className="mt-10">
           <h2 id="week-empty" className="text-lg font-semibold text-dv-ink">{t.review.title}</h2>
+          <HelpLink locale={locale} id="no-videos-this-week" />
           <ul aria-hidden="true" className="mt-4 grid max-w-4xl grid-cols-3 gap-3 sm:grid-cols-5 sm:gap-4">
             {Array.from({ length: 5 }, (_, n) => (
               <li key={n} className={`aspect-[9/16] rounded-2xl border border-dashed border-dv-edge bg-white/40 ${n > 2 ? "max-sm:hidden" : ""}`} />
@@ -281,6 +284,7 @@ export function Library({
           </summary>
           <div className="pb-4">
             <p className="text-sm text-dv-muted">{t.notMadeLead}</p>
+            <HelpLink locale={locale} id="topics" />
             <ul className="mt-3 space-y-3">
               {notMade.map((i) => (
                 <li key={i.id} className="rounded-xl bg-white p-4 ring-1 ring-dv-line">
@@ -421,6 +425,7 @@ export function NextStep({
           </p>
           <Title className="dv-display dv-h-page mt-2 text-dv-ink">{title}</Title>
           <p className="mt-2 max-w-xl text-[0.9375rem] leading-relaxed text-dv-body">{delay ? (delay === "delayed" ? h.delayDelayed : h.delayRetrying) : lead}</p>
+          <HelpLink locale={locale} id={heroHelp(action, delay)} className="mt-1" />
           {total > 1 && action !== "share" && (
             <div className="mt-5 max-w-sm">
               <div aria-hidden="true" className="flex gap-1">
@@ -491,6 +496,14 @@ export function NextStep({
 }
 
 /** Where a video falls in the week's posting order (unscheduled ones last). */
+/** The help answer for what the week card is asking of the clinic right now. */
+function heroHelp(action: string, delay: string | null | undefined): HelpId {
+  if (delay || action === "start" || action === "making") return "no-videos-this-week";
+  if (action === "review") return "approve";
+  if (action === "share") return "share";
+  return "first-videos";
+}
+
 function slotOrder(slots: Map<string, string> | undefined, id: string): number {
   const n = slots ? [...slots.keys()].indexOf(id) : -1;
   return n < 0 ? Number.MAX_SAFE_INTEGER : n;
@@ -648,7 +661,12 @@ function ItemCard({
           )}
           {state === "making" && <p className="mt-2 text-sm text-dv-body">{t.makingNote}</p>}
           {state === "updating" && <p className="mt-2 text-sm text-dv-body">{t.photos.updating}</p>}
-          {state === "failed" && <p className="mt-2 text-sm text-dv-body">{t.failedNote}</p>}
+          {state === "failed" && (
+            <>
+              <p className="mt-2 text-sm text-dv-body">{t.failedNote}</p>
+              <HelpLink locale={locale} id="no-videos-this-week" />
+            </>
+          )}
         </div>
       </div>
 
@@ -660,6 +678,7 @@ function ItemCard({
               <li key={r}>{reasonText(locale, r)}</li>
             ))}
           </ul>
+          <HelpLink locale={locale} id="needs-a-look" className="mt-1" />
         </div>
       )}
 

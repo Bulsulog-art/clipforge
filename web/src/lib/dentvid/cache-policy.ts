@@ -4,7 +4,7 @@ import { LOCALES } from "@/content/dentvideo-locales";
 /**
  * Which DentVideo pages a shared cache (a CDN, a proxy) may keep, and for how long.
  *
- * The marketing site — the landings in every language, about, the guides,
+ * The marketing site — the landings in every language, about, the guides, help,
  * the video pages, llms.txt, sitemap, robots — is the same HTML for every
  * visitor and is prerendered at build. Saying so lets a CDN in front of
  * dentvideo.com answer most visitors without touching the shared 2-core box
@@ -31,8 +31,8 @@ const SLUG = "[a-z0-9][a-z0-9-]{0,120}";
 const PUBLIC_PAGES: RegExp[] = [
   // Landings: /dentvideo, /dentvideo/de …
   new RegExp(`^/dentvideo(?:/${LOCALE})?$`),
-  // About and the guides hub, in every language.
-  new RegExp(`^/dentvideo(?:/${LOCALE})?/(?:about|guides)$`),
+  // About, the guides hub and the help center, in every language.
+  new RegExp(`^/dentvideo(?:/${LOCALE})?/(?:about|guides|help)$`),
   // The examples showcase and one example video, in every language.
   new RegExp(`^/dentvideo(?:/${LOCALE})?/examples(?:/${SLUG})?$`),
   // One guide, one video page.

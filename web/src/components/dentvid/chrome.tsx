@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 // Only the small languages module and the words the layout passes in: this file ships on every DentVideo
 // page, and the content modules (landing copy, guides, the app's interface) must stay out of its bundle.
-import { LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuideHub as hasGuides, type Locale } from "@/content/dentvideo-locales";
+import { HELP_PATH, LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuideHub as hasGuides, type Locale } from "@/content/dentvideo-locales";
 import type { ChromeText, ChromeWords } from "@/lib/dentvid/chrome-text";
 import { asLocale } from "@/lib/dentvid/locale";
 import { rememberedLocale, rememberLocale } from "@/lib/dentvid/lang-cookie";
@@ -353,6 +353,7 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
                 <li key={p.href}><Link href={dvHref(p.href)} className={link}>{p.label}</Link></li>
               ))}
               <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{t.about}</Link></li>
+              <li><Link href={dvHref(HELP_PATH[locale])} className={link}>{t.helpCenter}</Link></li>
               {/* As in the header: "Open app" for a browser with a session; everyone else signs in (never the sign-up form). */}
               {signedIn && <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>}
               <li><Link href={dvHref(`/dentvideo/start?mode=signin&lang=${locale}`)} className={link}>{t.signIn}</Link></li>
@@ -486,6 +487,10 @@ function AppFooter({ t, locale, ready }: { t: ChromeWords; locale: Locale; ready
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-dv-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="max-w-xl">{t.footer}</p>
         <p>
+          <Link href={dvHref(HELP_PATH[locale])} className="font-medium text-dv-teal underline-offset-4 hover:underline" data-testid="dv-app-help-center">
+            {t.helpCenter}
+          </Link>
+          <span aria-hidden="true"> · </span>
           {t.help}{" "}
           <a dir="ltr" href={mailtoHref("DentVideo help")} className="font-medium text-dv-teal underline-offset-4 hover:underline">
             {DV_SUPPORT_EMAIL}

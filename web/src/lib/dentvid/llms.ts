@@ -6,6 +6,7 @@ import { ANSWER_KINDS, SOLUTIONS, solutionPath, solutionsFor } from "@/content/s
 import { findClaim } from "@/content/solutions/claims";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
+import { HELP, HELP_PATH } from "@/content/help";
 import { EXAMPLES, EXAMPLES_PATH, EXAMPLES_UI, examplePath, examplesFor, sampleOf, type ExampleVideo } from "@/content/dentvideo-examples";
 import { dentvideoPublicUrl } from "./host";
 import { DV_SELF_SERVE_TIERS } from "./billing";
@@ -136,6 +137,7 @@ function languageIndex(l: Locale): string[] {
     `- [${CHECKER[l].h1}](${abs(CHECKER_PATH[l])}): ${CHECKER[l].seoDescription}`,
     `- [${EXAMPLES_UI[l].h1}](${abs(EXAMPLES_PATH[l])}): ${EXAMPLES_UI[l].seoDescription}`,
     ...examplesFor(l).map((e) => `  - [${sampleOf(e).name}](${abs(examplePath(e))}): ${e.seoDescription}`),
+    `- [${HELP[l].meta.title}](${abs(HELP_PATH[l])}): ${HELP[l].meta.description}`,
   ];
   if (GUIDE_HUB_LOCALES.includes(l)) {
     lines.push(`- [${GUIDE_UI[l].index.h1}](${abs(GUIDES_INDEX_PATH[l])}): ${GUIDE_UI[l].index.description}`);

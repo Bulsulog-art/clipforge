@@ -6,6 +6,7 @@ import { LEGAL_NAV } from "@/content/legal/nav";
 import { CHECKER } from "@/content/dentvideo-checker";
 import { EXAMPLES_UI } from "@/content/dentvideo-examples";
 import type { LegalKind } from "@/content/legal/types";
+import { HELP_LINK_TEXT } from "@/content/dentvideo-help-links";
 
 /**
  * The words the DentVideo header and footer show, in one language: the
@@ -25,6 +26,8 @@ export type ChromeWords = AppText["chrome"] & {
   checker: string;
   /** The sample-video showcase (/examples). */
   examples: string;
+  /** The help center (/help). */
+  helpCenter: string;
   signIn: string;
   legal: string;
   legalNav: Record<LegalKind, string>;
@@ -39,6 +42,7 @@ export function chromeWords(locale: Locale): ChromeWords {
     about: GUIDE_UI[locale].about,
     checker: CHECKER[locale].nav,
     examples: EXAMPLES_UI[locale].nav,
+    helpCenter: HELP_LINK_TEXT[locale].center,
     signIn: SOLUTION_UI[locale].signIn,
     legal: LEGAL_NAV[locale].legal,
     legalNav: LEGAL_NAV[locale].nav,

@@ -5,6 +5,7 @@ import { CreditCard, Mail } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { billingText } from "@/content/dentvideo-billing";
 import { DV_SUPPORT_EMAIL, dateLocale, mailtoHref } from "@/lib/dentvid/app-ui";
+import { HelpLink } from "./help-link";
 
 const fill = (s: string, vars: Record<string, string>) => s.replace(/\{(\w+)\}/g, (m, k: string) => vars[k] ?? m);
 
@@ -70,6 +71,8 @@ export function BillingIssuePanel({ locale, issue, clinicName, keepVideos = fals
       <h2 id="billing-issue-title" className="dv-display text-[2rem] leading-tight text-dv-ink">{title}</h2>
       <p className="mt-2 max-w-2xl text-dv-body">{body}</p>
       {keepVideos && <p className="mt-2 text-sm text-dv-muted">{c.keepVideos}</p>}
+      {issue.kind === "update_payment" && <HelpLink locale={locale} id="payment-failed" className="mt-2" />}
+      {issue.kind === "cancelled_pending" && <HelpLink locale={locale} id="after-cancel" className="mt-2" />}
       {issue.kind === "update_payment" && (
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {issue.selfServe ? (

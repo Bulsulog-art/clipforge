@@ -1,6 +1,8 @@
 import { LifeBuoy, Mail } from "lucide-react";
 import { dirOf, type Locale } from "@/content/dentvideo-locales";
 import { fillSupport, helpMailto, supportText, SUPPORT_EMAIL } from "@/content/dentvideo-support";
+import { HELP_LINK_TEXT, helpHref } from "@/content/dentvideo-help-links";
+import { dvHref } from "@/lib/dentvid/host";
 
 /**
  * "Help & contact": one small, self-contained card. A mailto to
@@ -15,6 +17,7 @@ import { fillSupport, helpMailto, supportText, SUPPORT_EMAIL } from "@/content/d
  */
 export function HelpContact({ locale, clinicId, clinicName }: { locale: Locale; clinicId?: string | null; clinicName?: string | null }) {
   const t = supportText(locale).copy.help;
+  const browse = HELP_LINK_TEXT[locale];
   const [before, after] = fillSupport(t.orWrite, { email: "\u0000" }).split("\u0000");
   return (
     <section id="help" aria-labelledby="help-title" lang={locale} dir={dirOf(locale)} className="mt-14 border-t border-dv-line pt-10">
@@ -25,6 +28,13 @@ export function HelpContact({ locale, clinicId, clinicName }: { locale: Locale; 
             {t.title}
           </h2>
           <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.lead}</p>
+          <p className="mt-2 text-sm leading-relaxed text-dv-body">
+            {browse.browse}{" "}
+            <a href={dvHref(helpHref(locale))} target="_blank" rel="noopener" className="font-medium text-dv-teal underline-offset-4 hover:underline" data-testid="dv-help-center">
+              {browse.center}
+            </a>
+            {/[:：]$/.test(browse.browse) ? "" : "."}
+          </p>
           <p className="mt-2 text-sm text-dv-muted">
             {before}
             <a dir="ltr" href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-dv-teal underline-offset-4 hover:underline">

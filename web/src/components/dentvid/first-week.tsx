@@ -6,6 +6,7 @@ import { Check, Loader2, Mail, RotateCcw } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText } from "@/content/dentvideo-app";
 import { firstWeekStuck, type FirstWeekJob } from "@/lib/dentvid/first-week-state";
+import { HelpLink } from "./help-link";
 
 /**
  * Right after payment: "your first week is being made". The payment webhook
@@ -95,6 +96,7 @@ export function FirstWeek({
       </p>
       <h1 className="dv-display dv-h-page mt-5 text-dv-ink">{t.firstWeekTitle}</h1>
       <p className="mt-3 max-w-2xl text-[1.0625rem] leading-relaxed text-dv-body">{t.firstWeekLead}</p>
+      <HelpLink locale={locale} id="first-videos" className="mt-2" />
       {paid && delay && (
         <div role="status" className="mt-4 flex max-w-2xl flex-col gap-3 rounded-xl bg-dv-sand px-4 py-3 text-sm leading-relaxed text-dv-body ring-1 ring-inset ring-dv-line sm:flex-row sm:items-center sm:justify-between">
           <p>{delay === "delayed" ? h.delayDelayed : h.delayRetrying}</p>

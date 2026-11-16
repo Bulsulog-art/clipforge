@@ -27,6 +27,7 @@ import {
   sampleOf,
   type ExampleVideo,
 } from "@/content/dentvideo-examples";
+import { HELP, HELP_ARTICLE_META, HELP_IDS, HELP_PATH, HELP_UPDATED, helpPlain } from "@/content/help";
 
 /**
  * Metadata, structured data and sitemap entries for the guide library, the
@@ -595,6 +596,88 @@ export function checkerJsonLd(locale: Locale) {
   };
 }
 
+/* ---------- Help center (/help) ---------- */
+
+export function helpAlternates(): Record<string, string> {
+  return absolute(perLocaleAltPaths(HELP_PATH));
+}
+
+export function helpMetadata(locale: Locale): Metadata {
+  const h = HELP[locale];
+  const url = absoluteUrl(HELP_PATH[locale]);
+  return {
+    title: { absolute: h.meta.title },
+    description: h.meta.description,
+    alternates: { canonical: url, languages: helpAlternates() },
+    openGraph: {
+      title: h.h1,
+      description: h.meta.description,
+      url,
+      type: "website",
+      siteName: "DentVideo",
+      locale: OG_LOCALE[locale],
+      ...(OG_ALTERNATE_LOCALES[locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[locale] } : {}),
+    },
+    // The share image is the page's own opengraph-image.tsx card.
+    twitter: { card: "summary_large_image", title: h.h1, description: h.meta.description },
+  };
+}
+
+/** One help answer as the page shows it, in plain text: its numbered steps, then its paragraphs. */
+export function helpAnswerText(locale: Locale, id: (typeof HELP_IDS)[number]): string {
+  const a = HELP[locale].articles[id];
+  const steps = (a.steps ?? []).map((s, i) => `${i + 1}. ${s}`);
+  return [...steps, ...helpPlain(a.a, OPERATOR.productEmail).split("\n\n")].join("\n");
+}
+
+/**
+ * The help center is one page of visible questions and answers: an FAQPage
+ * (every question with the answer exactly as shown), in the site, about the
+ * product, with its breadcrumb.
+ */
+export function helpJsonLd(locale: Locale) {
+  const h = HELP[locale];
+  const url = absoluteUrl(HELP_PATH[locale]);
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        "@id": url,
+        url,
+        name: h.h1,
+        description: h.meta.description,
+        inLanguage: locale,
+        dateModified: HELP_UPDATED,
+        isPartOf: { "@id": websiteId() },
+        about: { "@id": softwareId() },
+        publisher: { "@id": ORG_ID },
+        mainEntity: HELP_IDS.map((id) => ({
+          "@type": "Question",
+          "@id": `${url}#${id}`,
+          name: h.articles[id].q,
+          acceptedAnswer: { "@type": "Answer", text: helpAnswerText(locale, id) },
+        })),
+      },
+      organizationNode(),
+      breadcrumb([
+        { name: "DentVideo", path: LANDING_PATH[locale] },
+        { name: h.nav, path: HELP_PATH[locale] },
+      ]),
+    ],
+  };
+}
+
+/** Each help category in page order, with its answers (for the page and its tests). */
+export function helpSections(locale: Locale) {
+  const h = HELP[locale];
+  return (Object.keys(h.categories) as (keyof typeof h.categories)[]).map((c) => ({
+    category: c,
+    title: h.categories[c],
+    ids: HELP_IDS.filter((id) => HELP_ARTICLE_META[id].category === c),
+  }));
+}
+
 /* ---------- Sitemap ---------- */
 
 /** A sitemap entry; `alternates` maps hreflang codes to in-app paths of true translations. */
@@ -610,6 +693,7 @@ export function dentvideoSitemapEntries(): SitemapEntry[] {
     ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], lastmod: ABOUT_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(ABOUT_PATH) })),
     ...LOCALES.map((l) => ({ path: CHECKER_PATH[l], lastmod: CHECKER_UPDATED, priority: "0.8", alternates: perLocaleAltPaths(CHECKER_PATH) })),
     ...LOCALES.map((l) => ({ path: EXAMPLES_PATH[l], lastmod: EXAMPLES_UPDATED, priority: "0.8", alternates: perLocaleAltPaths(EXAMPLES_PATH) })),
+    ...LOCALES.map((l) => ({ path: HELP_PATH[l], lastmod: HELP_UPDATED, priority: "0.6", alternates: perLocaleAltPaths(HELP_PATH) })),
     ...EXAMPLES.map((e) => ({ path: examplePath(e), lastmod: EXAMPLES_UPDATED, priority: "0.7", alternates: exampleAltPaths(e) })),
     ...GUIDES.map((g) => ({ path: guidePath(g), lastmod: dateOf(g), priority: "0.7", alternates: guideAltPaths(g) })),
     ...SOLUTIONS.map((p) => ({ path: solutionPath(p), lastmod: p.updated ?? p.published, priority: "0.8", alternates: solutionAltPaths(p) })),
