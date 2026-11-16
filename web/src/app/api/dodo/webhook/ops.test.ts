@@ -118,7 +118,8 @@ describe("payment webhook → owner alerts", () => {
 
   it("a paying clinic cancels → customer at risk, with a suggested action", async () => {
     clinics[0] = { ...clinics[0], plan: "active", plan_tier: "practice", dodo_subscription_id: "sub_dv_1" };
-    await post(signed(dvEvent("subscription.cancelled")));
+    // No paid-through date: cancelled at once (with a future one it stays active until then: lib/dentvid/reliability.test.ts F9).
+    await post(signed(dvEvent("subscription.cancelled", { next_billing_date: null })));
     expect(mails).toHaveLength(1);
     expect(mails[0].subject).toMatch(/DİKKAT: Müşteri aboneliği durdu \/ HEADS-UP: Customer subscription stopped — Gülüş Dental/);
     expect(mails[0].text).toMatch(/active → cancelled/);

@@ -174,6 +174,7 @@ describe("readSystem", () => {
       "dv:monitor:last": JSON.stringify({ at: "2026-11-11T09:45:00.000Z", ms: 2100, ok: false, results: [{ name: "signup", label: "Sign-up", ok: false, ms: 900, status: 200, error: "no session cookie" }] }),
       "dv:monitor:history": [JSON.stringify({ at: "2026-11-11T09:30:00.000Z", ms: 2000, ok: false, failed: ["signup"], ran: 9 }), JSON.stringify({ at: "2026-11-11T09:45:00.000Z", ms: 2100, ok: false, failed: ["signup"], ran: 9 })],
       "dv:monitor:state": JSON.stringify({ checks: { signup: { fails: 2, since: "2026-11-11T09:30:00.000Z", alertedAt: "2026-11-11T09:45:00.000Z" } } }),
+      "dv:ops:delivery": JSON.stringify({ at: new Date(NOW.getTime() - 30 * 60_000).toISOString(), payingClinics: 3, due: 3, delivered: 2, late: [{ clinicId: "c1", week: "2026-11-09", deadline: "x", jobState: "missing", requeued: true }], lastDelivered: { c1: "2026-11-02" }, behind: ["c1"], failedJobs: { c1: 2 }, stuckJobs: {} }),
     };
     const pipeline = () => {
       const cmds: [string, string][] = [];
@@ -208,6 +209,9 @@ describe("readSystem", () => {
     expect(s.monitor.history.map((h) => h.at)).toEqual(["2026-11-11T09:45:00.000Z", "2026-11-11T09:30:00.000Z"]);
     expect(s.monitor.state.signup).toMatchObject({ fails: 2, since: "2026-11-11T09:30:00.000Z" });
     expect(s.monitor.uptime24h).toBe(0);
+    // The delivery watchdog's report, for the daily sweep (docs/RELIABILITY.md).
+    expect(s.delivery).toMatchObject({ payingClinics: 3, behind: ["c1"], failedJobs: { c1: 2 }, stale: false });
+    expect(s.delivery?.late[0]).toMatchObject({ clinicId: "c1", jobState: "missing" });
     // Nothing that writes.
     expect([...used].every((c) => ["llen", "zcard", "hget", "zrevrange", "lrange", "hgetall", "get", "hmget"].includes(c))).toBe(true);
   });

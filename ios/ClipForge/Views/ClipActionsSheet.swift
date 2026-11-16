@@ -37,8 +37,10 @@ struct ClipActionsSheet: View {
                 VStack(alignment: .leading, spacing: 24) {
                     creditsBadge
 
-                    publishSection
-                    Divider().background(Color.hairline)
+                    if FeatureGates.socialPublishing {
+                        publishSection
+                        Divider().background(Color.hairline)
+                    }
 
                     Section_h("🌍 Translate captions (2 credits)")
                     VStack(alignment: .leading, spacing: 12) {

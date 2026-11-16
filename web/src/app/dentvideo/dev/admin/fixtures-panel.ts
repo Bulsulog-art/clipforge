@@ -95,6 +95,19 @@ export function fixtureSystem(now: Date, data: AdminData, opts: { staleRenderSer
     ],
     costByDay: Array.from({ length: 30 }, (_, i) => [new Date(t - i * DAY).toISOString().slice(0, 10), Math.round((2 + ((i * 7) % 9)) * 100) / 100] as [string, number]).reverse(),
     monitor: fixtureMonitor(now),
+    // The delivery watchdog's last hourly report: one clinic behind (the failed one above).
+    delivery: {
+      at: new Date(now.getTime() - 20 * 60_000).toISOString(),
+      payingClinics: paying.length,
+      due: 0,
+      delivered: 0,
+      late: [],
+      lastDelivered: Object.fromEntries(paying.map((c) => [c.id, last.week])),
+      behind: failedClinic ? [failedClinic] : [],
+      failedJobs: failedClinic ? { [failedClinic]: 1 } : {},
+      stuckJobs: {},
+      stale: false,
+    },
   };
 }
 

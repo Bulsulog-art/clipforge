@@ -167,7 +167,7 @@ export function SettingsView({
         <section aria-labelledby="billing-title" className="mt-14 border-t border-dv-line pt-10">
           <h2 id="billing-title" className="text-xl font-semibold text-dv-ink">{b.settingsHeading}</h2>
           <div className="mt-4">
-            <PlanStatus locale={locale} state={plan.plan} tier={plan.tier} renewsAt={plan.renewsAt} />
+            <PlanStatus locale={locale} state={plan.plan} tier={plan.tier} renewsAt={plan.renewsAt} endsAt={plan.endsAt ?? null} />
           </div>
           {plan.plan === "trial" && (
             <p className="mt-3 text-sm text-dv-body">

@@ -211,11 +211,13 @@ private struct ClipCard: View {
                 accessibilityLabel: clip.isFavorite == true ? "Unfavorite" : "Favorite",
                 action: onToggleFavorite
             )
-            actionButton(systemImage: "paperplane.fill",
-                         tint: .brand,
-                         glow: true,
-                         accessibilityLabel: "Publish to channels",
-                         action: onPublish)
+            if FeatureGates.socialPublishing {
+                actionButton(systemImage: "paperplane.fill",
+                             tint: .brand,
+                             glow: true,
+                             accessibilityLabel: "Publish to channels",
+                             action: onPublish)
+            }
             actionButton(systemImage: "sparkles",
                          tint: .white,
                          glow: false,

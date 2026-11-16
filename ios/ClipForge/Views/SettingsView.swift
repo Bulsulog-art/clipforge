@@ -65,10 +65,12 @@ struct SettingsView: View {
                     } label: {
                         Label("Voice clones · Plus", systemImage: "waveform.badge.mic")
                     }
-                    Button {
-                        showPublishHistory = true
-                    } label: {
-                        Label("Publish history", systemImage: "paperplane.circle")
+                    if FeatureGates.socialPublishing {
+                        Button {
+                            showPublishHistory = true
+                        } label: {
+                            Label("Publish history", systemImage: "paperplane.circle")
+                        }
                     }
                     Button {
                         showStats = true

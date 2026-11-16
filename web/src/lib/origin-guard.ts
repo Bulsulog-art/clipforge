@@ -37,6 +37,13 @@ export function hasBearerToken(authorization: string | null): boolean {
   return /^Bearer\s+\S+/i.test(authorization ?? "");
 }
 
+/**
+ * DentVideo routes the iOS app calls with its Supabase access token. Each uses
+ * dvSession(), which verifies the bearer token and ignores the cookie when one
+ * is sent. Exact shapes only: a new DentVideo route stays cookie + Origin.
+ */
+const DENTVIDEO_NATIVE = [/^\/api\/dentvideo\/items\/[0-9a-f-]{36}$/i, /^\/api\/dentvideo\/account\/delete$/];
+
 /** True when the request must be refused before any route runs. */
 export function isBadOrigin(req: {
   pathname: string;
@@ -48,10 +55,14 @@ export function isBadOrigin(req: {
   if (!req.pathname.startsWith("/api")) return false;
   if (!MUTATION_METHODS.has(req.method)) return false;
   if (WEBHOOK_PATHS.some((p) => req.pathname.startsWith(p))) return false;
-  // DentVideo's routes read the session from the dv-auth COOKIE and ignore any
-  // Authorization header, and DentVideo has no native app: a bearer header must
-  // not switch their Origin check off. (Its worker calls /api/internal/dentvideo/*.)
-  if (hasBearerToken(req.authorization) && !req.pathname.startsWith("/api/dentvideo/")) return false;
+  // DentVideo's routes read the session from the dv-auth COOKIE, so a bearer
+  // header must not switch their Origin check off — except the few the DentVideo
+  // iOS app calls, which authenticate the bearer token itself (dvSession) and
+  // never fall back to the cookie. (Its worker calls /api/internal/dentvideo/*.)
+  if (hasBearerToken(req.authorization)) {
+    if (!req.pathname.startsWith("/api/dentvideo/")) return false;
+    if (DENTVIDEO_NATIVE.some((re) => re.test(req.pathname))) return false;
+  }
   const origin = req.origin ?? "";
   return !origin || !req.allowed.includes(origin);
 }

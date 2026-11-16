@@ -133,9 +133,9 @@ export function noteWebhookSignatureFailure(): Promise<void> {
 
 /** Read by the worker's first-week watchdog next to the payment_succeeded event (either may be missing). */
 export const PAID_LIST_KEY = "dv:ops:paid";
-export async function markPaid(clinicId: string, at = new Date()): Promise<void> {
+export async function markPaid(clinicId: string, at = new Date(), returning = false): Promise<void> {
   try {
-    await (await webOpsStore())?.push(PAID_LIST_KEY, JSON.stringify({ clinicId, paidAt: at.toISOString() }), 3 * 86_400, 500);
+    await (await webOpsStore())?.push(PAID_LIST_KEY, JSON.stringify({ clinicId, paidAt: at.toISOString(), ...(returning ? { returning: true } : {}) }), 3 * 86_400, 500);
   } catch {
     // best effort
   }

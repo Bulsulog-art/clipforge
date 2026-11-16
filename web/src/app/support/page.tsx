@@ -24,14 +24,12 @@ export default function SupportPage() {
         <a href="mailto:info@bulsulabs.com">info@bulsulabs.com</a> and we will refund manually.
       </p>
 
-      <h2>The YouTube link I pasted is not loading</h2>
-      <p>Make sure the link is:</p>
-      <ul>
-        <li>Public (not unlisted, not private)</li>
-        <li>Hosted on youtube.com, youtu.be, or tiktok.com (we only accept those)</li>
-        <li>Under 60 minutes long</li>
-        <li>Not region-restricted from EU/US</li>
-      </ul>
+      <h2>Can I paste a YouTube link?</h2>
+      <p>
+        No. YouTube blocks downloads from our servers, so YouTube links are refused straight away.
+        Download the video (for your own content, YouTube Studio &rarr; Content &rarr; Download) and
+        upload the file instead. TikTok links are accepted; uploads work best.
+      </p>
 
       <h2>How do I cancel my Plus subscription?</h2>
       <p>
