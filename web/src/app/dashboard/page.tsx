@@ -166,8 +166,8 @@ function EmptyState() {
         href="/studio/new"
         icon={<Scissors className="h-5 w-5" aria-hidden="true" />}
         title="Cut a long video into clips"
-        body="Paste a YouTube or TikTok link, or upload a file. We find the moments worth posting, caption them and get them ready to publish."
-        cta="Paste a link"
+        body="Upload a long video (or paste a TikTok link). We find the moments worth posting, caption them and get them ready to publish."
+        cta="Upload a video"
       />
       </div>
 

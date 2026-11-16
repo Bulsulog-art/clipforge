@@ -56,9 +56,9 @@ export default function LandingPage() {
         <p
           className="mx-auto mt-6 max-w-2xl animate-slide-up text-lg text-muted-foreground [animation-delay:160ms] [animation-fill-mode:backwards]"
         >
-          Drop a YouTube link or upload your podcast — ClipForge finds the moments people share,
-          adds animated word-by-word captions and scroll-stopping hooks, then posts them to
-          TikTok, Reels and Shorts on autopilot.
+          Upload your podcast or long video — ClipForge finds the moments people share,
+          adds animated word-by-word captions and scroll-stopping hooks, and hands you clips
+          ready to post on TikTok, Reels and Shorts.
         </p>
         <div className="mt-10 flex animate-slide-up items-center justify-center gap-4 [animation-delay:240ms] [animation-fill-mode:backwards]">
           <Link

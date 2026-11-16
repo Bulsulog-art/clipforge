@@ -26,7 +26,7 @@ export type SeoPage = {
 const HOW_IT_WORKS = [
   {
     title: "Upload the long video",
-    body: "Drop in an MP4 or MOV, or paste a YouTube link. Free accounts take sources up to 5 minutes; Plus takes up to 90.",
+    body: "Drop in an MP4 or MOV (or paste a TikTok link). Free accounts take sources up to 5 minutes; Plus takes up to 90.",
   },
   {
     title: "ClipForge picks the moments",
@@ -103,15 +103,15 @@ export const SEO_PAGES: SeoPage[] = [
       "Shorts are the cheapest way to send new viewers to your long videos. ClipForge takes the long video, finds the moments that work alone, and gives you vertical, captioned clips ready to upload as Shorts.",
     steps: HOW_IT_WORKS,
     points: [
-      "Paste a YouTube link or upload the file",
+      "Upload the file you published to YouTube",
       "Up to 12 clips of 25–70 seconds, best first",
       "A written hook and caption suggestion for each clip",
       "9:16 framing that follows the face, not a centre crop",
     ],
     body: [
       {
-        heading: "If the YouTube link is blocked",
-        text: "YouTube sometimes refuses automated downloads. When that happens ClipForge tells you so; download the video from YouTube Studio and upload the file instead — the result is the same.",
+        heading: "Why upload instead of a YouTube link",
+        text: "YouTube blocks downloads from our servers, so ClipForge takes the file rather than the link. Download your video from YouTube Studio (Content → Download) and upload it — the result is the same.",
       },
       {
         heading: "Clip length",

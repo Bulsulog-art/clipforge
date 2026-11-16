@@ -81,7 +81,7 @@ struct NewProjectSheet: View {
 
                 Section("Video source") {
                     HStack(spacing: 8) {
-                        TextField("YouTube or TikTok URL", text: $url)
+                        TextField("TikTok URL", text: $url)
                             .textInputAutocapitalization(.never)
                             .keyboardType(.URL)
                             .autocorrectionDisabled()
@@ -107,8 +107,12 @@ struct NewProjectSheet: View {
                             .buttonStyle(.borderless)
                         }
                     }
-                    if !url.isEmpty && !SourceURL.isValid(url) {
-                        Label("Paste a YouTube or TikTok link", systemImage: "exclamationmark.triangle.fill")
+                    if SourceURL.isYouTube(url) {
+                        Label("YouTube blocks downloads from our servers, so YouTube links can't be imported. Download the video and upload the file instead.", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    } else if !url.isEmpty && !SourceURL.isValid(url) {
+                        Label("Paste a TikTok link", systemImage: "exclamationmark.triangle.fill")
                             .font(.caption2)
                             .foregroundStyle(.orange)
                     }

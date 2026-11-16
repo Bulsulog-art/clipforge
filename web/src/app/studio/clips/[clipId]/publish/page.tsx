@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { SOCIAL_PUBLISHING } from "@/lib/features";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PublishForm } from "@/components/publish-form";
@@ -14,6 +15,8 @@ export default async function PublishClipPage({
   params: Promise<{ clipId: string }>;
 }) {
   const { clipId } = await params;
+  // Posting is off until it works in production (lib/features).
+  if (!SOCIAL_PUBLISHING) notFound();
   const supabase = await createClient();
   const {
     data: { user },

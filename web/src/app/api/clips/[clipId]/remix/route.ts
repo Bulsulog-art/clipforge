@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isYouTubeSourceUrl, YOUTUBE_BLOCKED_MESSAGE } from "@/lib/source-url";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { videoQueue } from "@/lib/queue";
 
@@ -46,6 +47,10 @@ export async function POST(
     .maybeSingle();
   if (!srcJob) {
     return NextResponse.json({ error: "Source job missing" }, { status: 410 });
+  }
+  // YouTube blocks downloads from our servers: a remix of a YouTube job would fail.
+  if (srcJob.source_type === "youtube" || isYouTubeSourceUrl((srcJob.source_url as string | null) ?? "")) {
+    return NextResponse.json({ error: YOUTUBE_BLOCKED_MESSAGE, code: "youtube_blocked" }, { status: 422 });
   }
 
   // 3. Insert a NEW job_id pointing at the same source. status='queued'
