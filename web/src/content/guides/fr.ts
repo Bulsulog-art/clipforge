@@ -449,6 +449,7 @@ export const GUIDES_FR: Guide[] = [
       { q: "Puis-je publier ces vidéos sur Instagram ?", a: "Oui, si elles informent avec prudence et ne contiennent ni promesse de résultat, ni réduction, ni témoignage. Les règles de communication de la profession s'appliquent." },
       { q: "La vidéo de salle d'attente doit-elle avoir du son ?", a: "Non. Sous-titrée, elle se comprend sans le son et gêne moins en salle d'attente." },
       { q: "Qui doit relire les vidéos ?", a: "Un praticien doit regarder chaque vidéo avant publication, en particulier les consignes de suivi, qui doivent correspondre au protocole de votre cabinet." },
+      { q: "Existe-t-il un exemple pour un traitement précis ?", a: "Oui : le guide sur les [vidéos d'information patient sur le blanchiment](guide:blanchiment-dentaire-videos-information-patient) détaille les questions des patients, six sujets de vidéos et les formulations à éviter." },
       { q: "Par quelles vidéos commencer ?", a: "Par les sujets les plus demandés et les plus anxiogènes : consignes après extraction, dévitalisation, étapes d'un implant et premier rendez-vous." },
     ],
     sources: [LEGIFRANCE, ONCD, RGPD],

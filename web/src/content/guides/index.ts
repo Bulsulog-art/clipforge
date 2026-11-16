@@ -18,7 +18,21 @@ import { EDUCATION_PL } from "./education-pl";
 import { TREATMENTS_EN } from "./treatments-en";
 import { TREATMENTS_DE } from "./treatments-de";
 import { TREATMENTS_TR } from "./treatments-tr";
-import { POSTING_RHYTHM_DE, POSTING_RHYTHM_EN, POSTING_RHYTHM_ES, POSTING_RHYTHM_FR, POSTING_RHYTHM_PL, POSTING_RHYTHM_TR } from "./posting-rhythm";
+import { TREATMENTS_JA } from "./treatments-ja";
+import { TREATMENTS_AR } from "./treatments-ar";
+import { TREATMENTS_PL } from "./treatments-pl";
+import { TREATMENTS_FR } from "./treatments-fr";
+import { TREATMENTS_ES } from "./treatments-es";
+import {
+  POSTING_RHYTHM_AR,
+  POSTING_RHYTHM_DE,
+  POSTING_RHYTHM_EN,
+  POSTING_RHYTHM_ES,
+  POSTING_RHYTHM_FR,
+  POSTING_RHYTHM_JA,
+  POSTING_RHYTHM_PL,
+  POSTING_RHYTHM_TR,
+} from "./posting-rhythm";
 import { TIKTOK_EN } from "./tiktok";
 
 // Only type imports from ../dentvideo here and in the per-language files, so
@@ -37,9 +51,11 @@ export const GUIDE_LIBRARY: Guide[] = [
   ...GUIDES_ES,
   CALENDAR_ES,
   POSTING_RHYTHM_ES,
+  ...TREATMENTS_ES,
   ...GUIDES_FR,
   CALENDAR_FR,
   POSTING_RHYTHM_FR,
+  ...TREATMENTS_FR,
   ...GUIDES_EN,
   CALENDAR_EN,
   POSTING_RHYTHM_EN,
@@ -47,11 +63,16 @@ export const GUIDE_LIBRARY: Guide[] = [
   ...TREATMENTS_EN,
   ...GUIDES_JA,
   EDUCATION_JA,
+  POSTING_RHYTHM_JA,
+  ...TREATMENTS_JA,
   ...GUIDES_AR,
   EDUCATION_AR,
+  POSTING_RHYTHM_AR,
+  ...TREATMENTS_AR,
   ...GUIDES_PL,
   EDUCATION_PL,
   POSTING_RHYTHM_PL,
+  ...TREATMENTS_PL,
 ];
 
 /**
