@@ -1,6 +1,6 @@
 import SwiftUI
 import UIKit
-import UserNotifications
+@preconcurrency import UserNotifications
 import DentVideoCore
 
 /// The web's essential settings, plus this phone's notifications. The plan is shown read-only:

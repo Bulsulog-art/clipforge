@@ -1,6 +1,6 @@
 import Foundation
 import UIKit
-import UserNotifications
+@preconcurrency import UserNotifications
 import DentVideoCore
 
 /// Push (the server's "your week is ready") and local posting reminders.

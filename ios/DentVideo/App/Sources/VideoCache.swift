@@ -52,24 +52,22 @@ actor VideoCache {
     /// Keep the given ids; drop old files and trim to the size limit, oldest first.
     func prune(keeping ids: Set<String>) {
         let keep = Set(ids.map(Self.fileName(for:)))
-        let fm = FileManager.default
-        guard let files = try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) else { return }
-        var entries: [(URL, Date, Int64)] = files.compactMap { u in
-            let v = try? u.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
-            return (u, v?.contentModificationDate ?? .distantPast, Int64(v?.fileSize ?? 0))
-        }
+        guard let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) else { return }
         let now = Date()
-        entries.removeAll { (u, date, _) in
+        var kept: [(url: URL, date: Date, size: Int64)] = []
+        for u in files {
+            let v = try? u.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+            let date = v?.contentModificationDate ?? .distantPast
             if !keep.contains(u.lastPathComponent) || now.timeIntervalSince(date) > maxAge {
-                try? fm.removeItem(at: u)
-                return true
+                try? FileManager.default.removeItem(at: u)
+            } else {
+                kept.append((u, date, Int64(v?.fileSize ?? 0)))
             }
-            return false
         }
-        var total = entries.reduce(Int64(0)) { $0 + $1.2 }
-        for (u, _, size) in entries.sorted(by: { $0.1 < $1.1 }) where total > maxBytes {
-            try? fm.removeItem(at: u)
-            total -= size
+        var total = kept.reduce(Int64(0)) { $0 + $1.size }
+        for entry in kept.sorted(by: { $0.date < $1.date }) where total > maxBytes {
+            try? FileManager.default.removeItem(at: entry.url)
+            total -= entry.size
         }
     }
 
