@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import { LANGUAGES, type ClinicProfile, type NarratorVoice } from "@/lib/dentvid/profile";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
-import { accentFor, analyseLogoFile, isDecodableImage, type LogoColors } from "@/lib/dentvid/logo-colors";
+import { accentFor, analyseLogoFile, type LogoColors } from "@/lib/dentvid/logo-colors";
+import { prepareLogo, type PreparedLogo } from "@/lib/dentvid/logo-prepare";
+import { LOGO_TEXT, logoNotes, logoProblemText } from "@/content/dentvideo-logo";
+import { LogoStatus } from "./logo-status";
 import { LogoPreview } from "./logo-preview";
 import { FieldError, ValidatingForm, useClearFieldError } from "./validating-form";
 import type { PreviewProfile } from "./live-preview";
@@ -120,28 +123,62 @@ export function useClinicDraft({
   const set = (k: keyof DraftFields) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     update(k, e.target.value as never);
 
-  /** A new logo: show it now, read its colours and suggest the brand colour from it. The clinic can still pick any. */
-  const chooseLogo = useCallback(async (file: File | null) => {
-    setLogoError(null);
-    // Not a picture the browser can draw: say so and keep the logo there was (never upload it).
-    if (file && !(await isDecodableImage(file))) {
-      setLogoError(invalidLogo);
-      return;
-    }
+  /** The chosen file, prepared (logo-prepare.ts): scaled, a white background removed, saved as PNG. */
+  const [prepared, setPrepared] = useState<PreparedLogo | null>(null);
+  const [keepBackground, setKeepBackground] = useState(false);
+  const [logoReading, setLogoReading] = useState(false);
+  const [logoNotesList, setLogoNotes] = useState<string[]>([]);
+  const logoText = LOGO_TEXT[locale];
+
+  /** Shows one version of the logo and reads its colours; it is what will be uploaded. */
+  const showLogo = useCallback(async (file: File) => {
     latest.current = file;
     setLogo(file);
     setColors(null);
     setDirty(true);
     if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
-    objectUrl.current = file ? URL.createObjectURL(file) : null;
-    setLogoUrl(objectUrl.current ?? savedLogoUrl ?? null);
-    if (!file) return;
+    objectUrl.current = URL.createObjectURL(file);
+    setLogoUrl(objectUrl.current);
     const found = await analyseLogoFile(file);
     // A second file chosen while the first was being read wins.
     if (!found || latest.current !== file) return;
     setColors(found);
     if (found.suggested) setP((prev) => ({ ...prev, brandColor: found.suggested! }));
-  }, [savedLogoUrl, invalidLogo]);
+  }, []);
+
+  /**
+   * A new logo: prepared in the browser (any size or format a clinic has),
+   * shown now, its colours suggested. Not a usable picture: say why in the
+   * clinic's language and keep the logo there was (never upload it).
+   */
+  const chooseLogo = useCallback(async (file: File | null) => {
+    setLogoError(null);
+    setLogoNotes([]);
+    if (!file) return;
+    const pending = file;
+    latest.current = pending;
+    setLogoReading(true);
+    const result = await prepareLogo(file);
+    if (latest.current !== pending) return;
+    setLogoReading(false);
+    if (!result.ok) {
+      latest.current = null;
+      setLogoError(result.problem === "unreadable" ? invalidLogo : logoProblemText(logoText, result.problem));
+      return;
+    }
+    setPrepared(result);
+    setKeepBackground(false);
+    setLogoNotes(logoNotes(logoText, result));
+    await showLogo(result.file);
+  }, [invalidLogo, logoText, showLogo]);
+
+  const toggleBackground = useCallback(async () => {
+    const keep = !keepBackground;
+    const file = keep ? await prepared?.original?.() : prepared?.file;
+    if (!file) return;
+    setKeepBackground(keep);
+    void showLogo(file);
+  }, [prepared, keepBackground, showLogo]);
 
   /** Upload a new logo (if any) and save the profile. Throws with a message for the clinic. */
   async function save(): Promise<void> {
@@ -197,7 +234,15 @@ export function useClinicDraft({
     tone: p.tone,
   };
 
-  return { p, set, update, logo, logoUrl, logoError, colors, chooseLogo, save, dirty, preview, savedLogo: !!savedLogoUrl };
+  const logoStatus = {
+    text: logoText,
+    reading: logoReading,
+    notes: logoNotesList,
+    cleaned: !!logo && !!prepared?.cleaned && !!prepared.original,
+    keepBackground,
+    onToggleBackground: toggleBackground,
+  };
+  return { p, set, update, logo, logoUrl, logoError, colors, chooseLogo, save, dirty, preview, savedLogo: !!savedLogoUrl, logoStatus };
 }
 
 export type ClinicDraft = ReturnType<typeof useClinicDraft>;
@@ -479,21 +524,24 @@ export function BrandFields({ draft, locale, showLogoPreview = false }: { draft:
           {/* A styled picker: the native control would speak the browser's language, not the clinic's. */}
           <label htmlFor="dv-logo" className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[0.875rem] border border-dashed border-dv-edge bg-white px-4 py-3 transition focus-within:border-dv-teal focus-within:shadow-[0_0_0_4px_rgba(15,92,92,0.14)] hover:border-dv-teal">
             <ImagePlus className="h-5 w-5 shrink-0 text-dv-teal" aria-hidden="true" />
-            <span className="min-w-0 truncate text-sm font-normal text-dv-body">{logo ? logo.name : "PNG · JPG · WEBP"}</span>
+            <span className="min-w-0 truncate text-sm font-normal text-dv-body">{logo ? logo.name : "PNG · JPG · SVG"}</span>
+            {/* Any format a clinic has is turned into a PNG first (logo-prepare.ts). HEIC is left out of
+                the list on purpose: iPhones then hand over a JPEG. */}
             <input
               id="dv-logo"
               type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(e) => void draft.chooseLogo(e.target.files?.[0] ?? null)}
+              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"
+              onChange={(e) => {
+                void draft.chooseLogo(e.target.files?.[0] ?? null);
+                e.target.value = "";
+              }}
               className="sr-only"
             />
           </label>
         </span>
-        {draft.logoError && (
-          <span role="alert" className="mt-1.5 block text-xs font-medium text-[#8a1f1f]" data-testid="dv-logo-error">
-            {draft.logoError}
-          </span>
-        )}
+        <span className="mt-3.5 block">
+          <LogoStatus {...draft.logoStatus} error={draft.logoError} />
+        </span>
         {draft.savedLogo && !logo && <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.logoSaved}</span>}
       </div>
 

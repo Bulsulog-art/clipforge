@@ -269,6 +269,22 @@ select o.name, o.created_at, (o.metadata->>'size')::bigint as bytes
 
 ---
 
+### Round: logo files in the live preview (2026-11-16)
+
+Every chosen logo is now decoded and re-encoded in the browser before the preview draws it or it is
+uploaded (`web/src/lib/dentvid/logo-prepare.ts`). Tests: `logo-prepare.test.ts`.
+
+| Finding | Severity | Fixed | Test |
+|---|---|---|---|
+| SVG logos: rasterised only through `<img>` (no script, no external fetch in that context) after `sanitizeSvg` strips doctype/entities (no external entity, no "billion laughs"), script, foreignObject, iframe/object/embed, animation (`set`/`animate` can rewrite `href`), `on*` handlers, `javascript:`, non-local `href`/`src`, external `url()` and `@import`. SVG is never stored and never reaches the worker. | info (defence in depth) | yes | "sanitizeSvg (security)": hostile file keeps no script/handler/external reference; Illustrator entities inlined; nested entities not expanded |
+| First version of the SVG element stripper used a lazy regex: 20 000 unclosed `<script ` took ~10 s (tab freeze, self-inflicted only). Replaced by a single linear pass; input capped at 5 M chars. | low | yes | "is quick on hostile input (no catastrophic backtracking)" |
+| File type decided from the bytes, not the name: a PDF or text renamed `.png` is refused with a message; HEIC gets its own message; a corrupted file no longer reaches the composition (Remotion's `<Img>` stops the whole player on a load error; the player now only passes a logo it could decode, and has an `errorFallback` with retry). | low (broken preview) | yes | "sniffImage", "prepareLogo refuses before decoding anything" |
+| Files up to 25 MB are read; the result is a PNG/JPEG/WebP of at most 1024 px and 5 MB, so the server limits (`api/dentvideo/logo`) are unchanged and still enforced. | info | n/a | "sizes" |
+
+Checked and safe: the malicious SVG fixture (script, `onload`, `<image href=https://…>`, `@import`, external entity) ran no
+script and made no request in Chromium (Playwright, `window.__pwned` unset, zero requests to the fixture's host), before
+and after the change.
+
 ## 2. Spend guards (worker)
 
 `worker/src/dentvid/spend-guard.ts`, wired in `worker/src/dentvid/jobs.ts` and `worker/src/index.ts`.

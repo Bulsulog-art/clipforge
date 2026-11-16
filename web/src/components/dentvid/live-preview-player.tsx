@@ -7,12 +7,13 @@ import { ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from "lucide
 import { ClipForgeVideo } from "@/remotion/Video";
 import { FPS, totalFrames, type ScenePlan } from "@/remotion/scene-plan";
 import { analyseLogoUrl, accentFor, type LogoColors } from "@/lib/dentvid/logo-colors";
-import { libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, type PreviewEntry } from "@/lib/dentvid/preview-library";
+import { libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, servicesWithoutSample, type PreviewEntry } from "@/lib/dentvid/preview-library";
 import { fmt, type AppText } from "@/content/dentvideo-app";
 import { PhoneFrame } from "./phone";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { prefetchMedia } from "@/lib/dentvid/media-prefetch";
 import type { PreviewProfile } from "./live-preview";
+import { LOGO_TEXT } from "@/content/dentvideo-logo";
 
 /**
  * The player half of LivePreview, loaded on its own (next/dynamic) so the
@@ -91,6 +92,21 @@ function prefetchAudio(lang: string, id: string) {
   prefetchMedia(`${BASE}/${lang}/${id}.mp3`);
 }
 
+/**
+ * Can the browser draw this logo at all? Remotion's <Img> stops the whole
+ * player when an image fails to load, so a logo that does not decode (a cut-off
+ * download, a cross-origin file gone missing) is left out of the video rather
+ * than taking the preview down with it.
+ */
+function canDraw(url: string): Promise<boolean> {
+  const img = new Image();
+  img.src = url;
+  return img.decode().then(
+    () => img.naturalWidth > 0 && img.naturalHeight > 0,
+    () => false,
+  );
+}
+
 function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value);
   useEffect(() => {
@@ -98,6 +114,13 @@ function useDebounced<T>(value: T, ms: number): T {
     return () => clearTimeout(t);
   }, [value, ms]);
   return v;
+}
+
+/** A clinic's own words, quoted the way its language quotes. */
+const QUOTES: Record<string, [string, string]> = { de: ["„", "“"], pl: ["„", "”"], fr: ["« ", " »"], es: ["«", "»"], ar: ["«", "»"], ja: ["「", "」"] };
+function quote(lang: string, s: string): string {
+  const [a, b] = QUOTES[lang] ?? ["“", "”"];
+  return `${a}${s}${b}`;
 }
 
 // MARK: - Component
@@ -127,16 +150,25 @@ export default function LivePreviewPlayer({
     [servicesKey, lang],
   );
 
+  // Only where the clinic chose its own services (the wizard): the landing uses example ones.
+  const missing = useMemo(
+    () => (track === "wizard" && servicesKey ? servicesWithoutSample(servicesKey.split("\u0000"), lang) : []),
+    [track, servicesKey, lang],
+  );
+
   const [index, setIndex] = useState(0);
   const entry = entries[Math.min(index, entries.length - 1)];
   useEffect(() => setIndex(0), [entries]);
 
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  /** Bumped by "Try again": refetches what failed (failed plans are not cached). */
+  const [attempt, setAttempt] = useState(0);
   const [raw, setRaw] = useState<ScenePlan | undefined>();
   useEffect(() => {
     if (!entry) return;
     let live = true;
+    setFailed(false);
     Promise.all([loadPlan(lang, entry.id), loadFonts()])
       .then(([p]) => {
         if (!live) return;
@@ -153,18 +185,19 @@ export default function LivePreviewPlayer({
     return () => {
       live = false;
     };
-  }, [entry, entries, index, lang]);
+  }, [entry, entries, index, lang, attempt]);
 
   // The look: colour and logo settle for a moment before the frame repaints,
   // so dragging a colour picker or typing a hex does not thrash the player.
   const brandInput = useDebounced(profile.brandColor && HEX.test(profile.brandColor) ? profile.brandColor : undefined, 180);
-  const logoUrl = useDebounced(profile.logoUrl || undefined, 180);
-  const [logo, setLogo] = useState<{ url: string; colors?: LogoColors } | undefined>();
+  // A logo changes once per choice, not continuously: no wait, it is drawn as soon as it is read.
+  const logoUrl = profile.logoUrl || undefined;
+  const [logo, setLogo] = useState<{ url: string; colors?: LogoColors; drawable: boolean } | undefined>();
   useEffect(() => {
     if (!logoUrl) return setLogo(undefined);
     let live = true;
     // Same reading the clinic form does (and the worker mirrors): chip, crop, colours.
-    void analyseLogoUrl(logoUrl).then((colors) => live && setLogo({ url: logoUrl, colors }));
+    void Promise.all([canDraw(logoUrl), analyseLogoUrl(logoUrl)]).then(([drawable, colors]) => live && setLogo({ url: logoUrl, colors, drawable }));
     return () => {
       live = false;
     };
@@ -210,7 +243,7 @@ export default function LivePreviewPlayer({
             // A public-folder path: the composition's staticFile() makes it /dentvideo/preview/…
             // A silent library video (narrated: false) has no narration file.
             ...(entry.narrated === false ? {} : { voiceoverSrc: `${BASE.slice(1)}/${lang}/${entry.id}.mp3` }),
-            logoSrc: logo?.url === logoUrl ? logoUrl : undefined,
+            logoSrc: logo?.url === logoUrl && logo?.drawable ? logoUrl : undefined,
             logoStyle: colors ? { treatment: colors.treatment, aspect: colors.aspect, ...(colors.crop ? { crop: colors.crop } : {}) } : undefined,
           }
         : undefined,
@@ -397,6 +430,7 @@ export default function LivePreviewPlayer({
   // The page's direction (Arabic pages are right to left): there the next video lies to the left.
   const isRtl = () => (rootRef.current ? getComputedStyle(rootRef.current).direction === "rtl" : false);
   const silent = entry?.narrated === false;
+  const retryText = (LOGO_TEXT[profile.language as keyof typeof LOGO_TEXT] ?? LOGO_TEXT.en).retry;
 
   return (
     <div ref={rootRef} className={`mx-auto w-full max-w-[300px] ${className}`}>
@@ -411,7 +445,16 @@ export default function LivePreviewPlayer({
         ) : null}
         <PhoneFrame>
           {failed ? (
-            <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-white/80">{text.failed}</div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-[#123b3a] to-[#0b2423] p-6 text-center text-sm text-white/85" role="alert">
+              <p>{text.failed}</p>
+              <button
+                type="button"
+                onClick={() => setAttempt((a) => a + 1)}
+                className="dv-btn h-11 bg-white px-5 text-sm font-semibold text-dv-ink hover:bg-white/90"
+              >
+                {retryText}
+              </button>
+            </div>
           ) : inputProps && ready ? (
             <div
               // The Player lays out its scaled canvas left to right; on an Arabic page it would sit off
@@ -426,7 +469,7 @@ export default function LivePreviewPlayer({
               }}
             >
               <Player
-                key={`${lang}/${entry.id}`}
+                key={`${lang}/${entry.id}/${attempt}`}
                 ref={playerRef}
                 component={ClipForgeVideo}
                 // Bulsu Labs has two people, so Remotion's free licence applies
@@ -449,13 +492,22 @@ export default function LivePreviewPlayer({
                 // reduced motion, or the moment before autoplay starts — show a real frame
                 // of this video in the clinic's look, not the composition's empty first frame.
                 renderPoster={renderPoster}
+                // Anything the composition cannot draw: the same calm message and a retry, never a stack trace.
+                errorFallback={() => (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[#0b2423] p-6 text-center text-sm text-white/85">
+                    <p>{text.failed}</p>
+                    <button type="button" onClick={() => setAttempt((a) => a + 1)} className="dv-btn h-11 bg-white px-5 text-sm font-semibold text-dv-ink">
+                      {retryText}
+                    </button>
+                  </div>
+                )}
                 showPosterWhenUnplayed
                 showPosterWhenPaused={atStart}
               />
             </div>
           ) : (
             <div className="absolute inset-0 flex animate-pulse items-end justify-center bg-gradient-to-b from-[#123b3a] to-[#0b2423] pb-16 text-xs text-white/70">
-              {text.loading}
+              <span role="status">{text.loading}</span>
             </div>
           )}
 
@@ -523,6 +575,11 @@ export default function LivePreviewPlayer({
       {entry ? (
         <p className="mt-0.5 min-h-8 text-center text-xs text-dv-muted" aria-live="polite">
           {entry.title} · {fmt(text.videoOf, { n: index + 1, total: entries.length })}
+        </p>
+      ) : null}
+      {missing.length ? (
+        <p className="mx-auto mt-1 max-w-[18rem] text-center text-xs leading-relaxed text-dv-muted" data-testid="dv-preview-no-sample">
+          {fmt(text.noSample, { services: missing.map((m) => quote(lang, m)).join(", ") })}
         </p>
       ) : null}
       <style>{`@keyframes dvPreviewGlow{0%{opacity:0}25%{opacity:.9}100%{opacity:0}}.dv-preview-glow{animation:dvPreviewGlow 1.1s ease-out forwards}@media (prefers-reduced-motion: reduce){.dv-preview-glow{animation:none;opacity:0}}`}</style>

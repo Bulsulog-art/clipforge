@@ -6,10 +6,17 @@ import Link from "next/link";
 import { ArrowRight, ImagePlus } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { analyseLogoFile } from "@/lib/dentvid/logo-colors";
+import type { PreparedLogo } from "@/lib/dentvid/logo-prepare";
+import type { LogoText } from "@/content/dentvideo-logo";
+
+type LogoState = { reading?: boolean; text?: LogoText; error?: string; prepared?: PreparedLogo; notes?: string[]; keep?: boolean };
 import { TEASER_KEY } from "@/lib/dentvid/onboarding";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { exampleServices } from "@/lib/dentvid/service-hints";
 import { PreviewPlaceholder } from "./phone";
+
+// Loaded near the preview (warm for a chosen file), not with the page.
+const LogoStatus = dynamic(() => import("./logo-status").then((m) => m.LogoStatus), { ssr: false });
 
 const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePreview), {
   ssr: false,
@@ -90,6 +97,9 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
   const [swatches, setSwatches] = useState<string[]>([]);
   const previewBox = useRef<HTMLDivElement>(null);
   const showPreview = useNearViewport(previewBox);
+  useEffect(() => void (showPreview && import("./logo-status")), [showPreview]);
+  /** The chosen logo, prepared (logo-prepare.ts). */
+  const [st, setSt] = useState<LogoState>({});
   /** The logo as a data URL, read when chosen, so the hand-over on click is synchronous. */
   const [logoData, setLogoData] = useState<string | null>(null);
   const latest = useRef<File | null>(null);
@@ -105,14 +115,13 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
     if (logoUrl) URL.revokeObjectURL(logoUrl);
   }, [logoUrl]);
 
-  async function chooseLogo(file: File | null) {
-    touch();
+  /** Shows a version of the logo; reads its colours. */
+  async function showLogo(file: File) {
     latest.current = file;
     setLogo(file);
     setSwatches([]);
-    setLogoUrl(file ? URL.createObjectURL(file) : null);
+    setLogoUrl(URL.createObjectURL(file));
     setLogoData(null);
-    if (!file) return;
     if (file.size <= MAX_CARRY) {
       const r = new FileReader();
       r.onload = () => {
@@ -124,6 +133,19 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
     if (!found || latest.current !== file) return;
     setSwatches(found.swatches.slice(0, 4));
     if (found.suggested) setColor(found.suggested);
+  }
+
+  async function chooseLogo(file: File | null) {
+    touch();
+    if (!file) return;
+    latest.current = file;
+    setSt((o) => ({ text: o.text, reading: true }));
+    const r = await (await import("./logo-status")).readLogo(file, locale);
+    if (latest.current !== file) return;
+    // Refused: the old logo stays.
+    if (r.error) latest.current = logo;
+    setSt(r);
+    if (r.prepared) await showLogo(r.prepared.file);
   }
 
   /** Hand the choices to the wizard. Best effort: without storage the wizard simply starts empty. */
@@ -202,8 +224,17 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                       <ImagePlus className="h-4 w-4 text-dv-teal" aria-hidden="true" />
                     )}
                   </span>
-                  <span className="max-w-[10rem] truncate text-sm font-normal text-dv-body">{logo ? logo.name : "PNG · JPG · WEBP"}</span>
-                  <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(e) => void chooseLogo(e.target.files?.[0] ?? null)} />
+                  <span className="max-w-[10rem] truncate text-sm font-normal text-dv-body">{logo ? logo.name : "PNG · JPG · SVG"}</span>
+                  {/* No HEIC: iPhones then hand over a JPEG. */}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"
+                    className="sr-only"
+                    onChange={(e) => {
+                      void chooseLogo(e.target.files?.[0] ?? null);
+                      e.target.value = "";
+                    }}
+                  />
                 </span>
               </label>
               <div className="text-sm font-semibold text-dv-ink">
@@ -241,6 +272,20 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
                 </span>
               </div>
             </div>
+            <LogoStatus
+              text={st.text}
+              reading={st.reading}
+              error={st.error}
+              notes={st.notes}
+              cleaned={!!st.prepared?.cleaned && !!st.prepared.original}
+              keepBackground={!!st.keep}
+              onToggleBackground={async () => {
+                const f = st.keep ? st.prepared?.file : await st.prepared?.original?.();
+                if (!f) return;
+                setSt({ ...st, keep: !st.keep });
+                showLogo(f);
+              }}
+            />
             {/* Side by side (lg), the button sits inside the card, under the fields. */}
             <div className="hidden lg:grid lg:gap-5">{cta}</div>
           </div>
@@ -271,3 +316,4 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
     </section>
   );
 }
+

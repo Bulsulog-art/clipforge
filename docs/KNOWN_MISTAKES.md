@@ -77,6 +77,7 @@ Status values:
 | KM-48 | all | The last frame showed only "@handle", or nothing | The clinic did not sign its video | Name set by code on the sign-off · `week.ts`, `Video.tsx` · value.test.ts "the clinic signs its video" | caught |
 | KM-49 | all | Every post kit ended with the same line | Repetition across a clinic's feed | `softCta` rotation · `dentvid/post-kit.ts` · value.test.ts "post kit closings" | caught |
 | KM-50 | TR | Captions "kontrol randevusu planlayabilirsiniz", "muayene planlayabilirsiniz" | Steering in the caption (RG 33075) | `captionProblems` / `trSteering` · `week.ts` · quality-round2.test.ts "sends a steering caption back…" | caught |
+| KM-51 | all | A teal emblem with a white tooth inside (about 40% white) was put on the dark chip in the corner; its teal lettering sank into the dark chip (live preview torture test, 2026-11-16) | The dark chip is for a mark that does not read on white. The old rule counted every pixel that read on the dark chip, white ones included, so a mark drawn for a letterhead lost | `chipFor` (dark only when under half the mark reads on white) · `worker/src/dental/logo.ts`, mirrored in `web/src/lib/dentvid/logo-colors.ts` · logo.test.ts "a teal emblem with a large white shape inside keeps the light chip", logo-colors.test.ts "the chip, as the worker decides it" | caught |
 
 ## Live samples still carrying a flaw
 

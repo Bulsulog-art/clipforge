@@ -86,6 +86,22 @@ describe("analyseLogoPixels", () => {
     expect(a.palette.map((c) => c.share).reduce((s, x) => s + x, 0)).toBeCloseTo(1, 5);
   });
 
+  it("a teal emblem with a large white shape inside keeps the light chip it was drawn for", () => {
+    // 60% teal, 40% white inside: the white used to win the dark chip and sink the teal.
+    const a = analyseLogoPixels(
+      image(100, 100, CLEAR, [
+        { x: 0, y: 0, w: 100, h: 100, c: [14, 107, 116, 255] },
+        { x: 20, y: 0, w: 60, h: 66, c: WHITE },
+      ]),
+    );
+    expect(a.treatment).toBe("light");
+  });
+
+  it("a white wordmark with a small coloured dot still gets the dark chip", () => {
+    const a = analyseLogoPixels(image(100, 40, CLEAR, [{ x: 0, y: 0, w: 80, h: 40, c: WHITE }, { x: 80, y: 0, w: 20, h: 40, c: TEAL }]));
+    expect(a.treatment).toBe("dark");
+  });
+
   it("a grey and black logo has no brand colour — greys are not characterful", () => {
     const a = analyseLogoPixels(
       image(100, 40, CLEAR, [

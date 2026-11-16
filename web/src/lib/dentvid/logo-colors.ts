@@ -151,16 +151,11 @@ export function logoColors(data: Uint8ClampedArray | Uint8Array, width: number, 
 
   let treatment: LogoTreatment = "none";
   if (!bg) {
+    // As the worker (dental/logo.ts chipFor): the dark chip only for a mark that does not read on white.
     const mark = ink.length ? ink : opaque;
-    const darkChip = lum([13, 26, 30]);
     let onLight = 0;
-    let onDark = 0;
-    for (const p of mark) {
-      const l = lum(p);
-      if (contrast(l, 1) >= 2) onLight++;
-      if (contrast(l, darkChip) >= 2) onDark++;
-    }
-    treatment = onDark > onLight * 1.15 ? "dark" : "light";
+    for (const p of mark) if (contrast(lum(p), 1) >= 2) onLight++;
+    treatment = mark.length && onLight * 2 < mark.length ? "dark" : "light";
   }
 
   return {
