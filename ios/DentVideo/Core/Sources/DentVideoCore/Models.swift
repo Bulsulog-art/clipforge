@@ -176,7 +176,7 @@ public struct ShootCard: Codable, Sendable, Equatable, Hashable {
     public var minutes: Double?
 }
 
-public struct LibraryItem: Codable, Sendable, Equatable, Identifiable {
+public struct VideoItem: Codable, Sendable, Equatable, Identifiable {
     public var id: String
     public var kind: ItemKind
     public var status: ItemStatus
@@ -247,8 +247,8 @@ public struct LibraryItem: Codable, Sendable, Equatable, Identifiable {
 
 public struct ItemsResponse: Codable, Sendable, Equatable {
     public var currentWeek: String
-    public var items: [LibraryItem]
-    public init(currentWeek: String, items: [LibraryItem]) {
+    public var items: [VideoItem]
+    public init(currentWeek: String, items: [VideoItem]) {
         self.currentWeek = currentWeek
         self.items = items
     }

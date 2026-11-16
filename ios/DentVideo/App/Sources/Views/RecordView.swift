@@ -28,7 +28,7 @@ struct RecordView: View {
         .map { $0 }
     }
 
-    private var clips: [LibraryItem] { model.items.filter { $0.kind == .recording } }
+    private var clips: [VideoItem] { model.items.filter { $0.kind == .recording } }
 
     var body: some View {
         NavigationStack {

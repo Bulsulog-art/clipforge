@@ -3,7 +3,7 @@ import XCTest
 
 final class PostKitTests: XCTestCase {
     func testUsesTheServersPostKit() {
-        let i = LibraryItem(id: "a", status: .ready, approval: .approved, title: "t", weekOf: "2026-11-16", caption: "ignored", post: PostTexts(instagram: "IG text", short: "Short text"))
+        let i = VideoItem(id: "a", status: .ready, approval: .approved, title: "t", weekOf: "2026-11-16", caption: "ignored", post: PostTexts(instagram: "IG text", short: "Short text"))
         XCTAssertEqual(PostKit.text(for: i, network: .instagram), "IG text")
         XCTAssertEqual(PostKit.text(for: i, network: .short), "Short text")
     }

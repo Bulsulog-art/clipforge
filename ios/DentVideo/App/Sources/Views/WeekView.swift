@@ -10,9 +10,9 @@ struct WeekView: View {
     @State private var showEarlier = false
 
     private var sections: [WeekBoard.Section] { WeekBoard.sections(model.items) }
-    private var thisWeek: [LibraryItem] { sections.first(where: { $0.week == model.currentWeek })?.items ?? [] }
+    private var thisWeek: [VideoItem] { sections.first(where: { $0.week == model.currentWeek })?.items ?? [] }
     private var earlier: [WeekBoard.Section] { sections.filter { $0.week < model.currentWeek } }
-    private var candidates: [LibraryItem] { WeekBoard.approveAllCandidates(model.items, week: model.currentWeek) }
+    private var candidates: [VideoItem] { WeekBoard.approveAllCandidates(model.items, week: model.currentWeek) }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -145,7 +145,7 @@ struct WeekView: View {
 
 /// One video in the list: poster, title, state, suggested time.
 struct VideoCard: View {
-    let item: LibraryItem
+    let item: VideoItem
     var compact = false
     @Environment(\.dynamicTypeSize) private var type
 

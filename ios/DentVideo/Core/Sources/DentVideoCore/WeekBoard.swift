@@ -37,7 +37,7 @@ public enum WeekBoard {
         case making, review, look, approved, posted, declined, failed, notMade
     }
 
-    public static func state(of i: LibraryItem) -> CardState {
+    public static func state(of i: VideoItem) -> CardState {
         switch i.status {
         case .queued, .working, .unknown: return .making
         case .failed: return .failed
@@ -52,7 +52,7 @@ public enum WeekBoard {
     }
 
     /// Ready (not flagged), undecided videos of a week: what "Approve all ready" approves.
-    public static func approveAllCandidates(_ items: [LibraryItem], week: String) -> [LibraryItem] {
+    public static func approveAllCandidates(_ items: [VideoItem], week: String) -> [VideoItem] {
         items.filter { $0.weekOf == week && $0.status == .ready && $0.approval == .pending }
     }
 
@@ -64,7 +64,7 @@ public enum WeekBoard {
     }
 
     /// Finished videos of a week and how far the dentist is with them (declined ones do not count).
-    public static func progress(_ items: [LibraryItem], week: String) -> Progress {
+    public static func progress(_ items: [VideoItem], week: String) -> Progress {
         let made = items.filter { $0.weekOf == week && ($0.status == .ready || $0.status == .flagged) && $0.approval != .rejected }
         let approved = made.filter { $0.approval == .approved }
         return Progress(total: made.count, approved: approved.count, posted: approved.filter(\.isPosted).count, waiting: made.count - approved.count)
@@ -72,12 +72,12 @@ public enum WeekBoard {
 
     public struct Section: Equatable, Sendable, Identifiable {
         public var week: String
-        public var items: [LibraryItem]
+        public var items: [VideoItem]
         public var id: String { week }
     }
 
     /// Weeks newest first; within a week, the posting order (by slot, then title).
-    public static func sections(_ items: [LibraryItem]) -> [Section] {
+    public static func sections(_ items: [VideoItem]) -> [Section] {
         let byWeek = Dictionary(grouping: items, by: \.weekOf)
         return byWeek.keys.sorted(by: >).map { w in
             Section(week: w, items: byWeek[w]!.sorted { a, b in
@@ -92,7 +92,7 @@ public enum WeekBoard {
     }
 
     /// The next approved, unposted video with a slot at or after `now` (the reminders' list).
-    public static func upcomingPosts(_ items: [LibraryItem]) -> [LibraryItem] {
+    public static func upcomingPosts(_ items: [VideoItem]) -> [VideoItem] {
         items.filter { $0.approval == .approved && !$0.isPosted && $0.slot != nil && $0.kind == .generated }
             .sorted { ($0.slot!.date, $0.slot!.time) < ($1.slot!.date, $1.slot!.time) }
     }

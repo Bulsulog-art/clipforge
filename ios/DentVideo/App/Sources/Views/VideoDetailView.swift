@@ -11,7 +11,7 @@ struct VideoDetailView: View {
     @State private var posting = false
     @State private var busy = false
 
-    private var item: LibraryItem? { model.items.first { $0.id == itemID } }
+    private var item: VideoItem? { model.items.first { $0.id == itemID } }
 
     var body: some View {
         Group {
@@ -25,7 +25,7 @@ struct VideoDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func content(_ item: LibraryItem) -> some View {
+    private func content(_ item: VideoItem) -> some View {
         let state = WeekBoard.state(of: item)
         return ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -62,7 +62,7 @@ struct VideoDetailView: View {
         .sheet(isPresented: $posting) { PostSheet(item: item) }
     }
 
-    @ViewBuilder private func notes(_ item: LibraryItem, state: WeekBoard.CardState) -> some View {
+    @ViewBuilder private func notes(_ item: VideoItem, state: WeekBoard.CardState) -> some View {
         switch state {
         case .look:
             VStack(alignment: .leading, spacing: 8) {
@@ -88,7 +88,7 @@ struct VideoDetailView: View {
         }
     }
 
-    @ViewBuilder private func actions(_ item: LibraryItem, state: WeekBoard.CardState) -> some View {
+    @ViewBuilder private func actions(_ item: VideoItem, state: WeekBoard.CardState) -> some View {
         VStack(spacing: 10) {
             switch state {
             case .review, .look:
@@ -130,7 +130,7 @@ struct VideoDetailView: View {
 
 /// The player: the cached file when the phone has it, else the signed stream.
 struct PlayerCard: View {
-    let item: LibraryItem
+    let item: VideoItem
     @State private var player: AVPlayer?
 
     var body: some View {
@@ -181,7 +181,7 @@ struct PlayerController: UIViewControllerRepresentable {
 
 /// Decline with an optional note for the DentVideo team (500 characters, as on the web).
 struct DeclineSheet: View {
-    let item: LibraryItem
+    let item: VideoItem
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     @State private var note = ""

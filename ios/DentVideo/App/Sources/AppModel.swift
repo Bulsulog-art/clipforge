@@ -19,7 +19,7 @@ final class AppModel {
 
     var phase: Phase = .launching
     var me: Me?
-    var items: [LibraryItem] = []
+    var items: [VideoItem] = []
     var currentWeek: String = WeekBoard.deliveryWeek()
     var isRefreshing = false
     var isOffline = false
@@ -134,19 +134,19 @@ final class AppModel {
 
     // MARK: Decisions
 
-    func approve(_ item: LibraryItem) async {
+    func approve(_ item: VideoItem) async {
         await change(item.id, to: { $0.approval = .approved }) { try await self.api.decide(itemID: item.id, approval: .approved) }
         if let u = item.videoUrl { Task { _ = try? await VideoCache.shared.file(for: item.id, from: u) } }
         await Notifications.scheduleReminders(for: items)
     }
 
-    func decline(_ item: LibraryItem, note: String?) async {
+    func decline(_ item: VideoItem, note: String?) async {
         await change(item.id, to: { $0.approval = .rejected }) { try await self.api.decide(itemID: item.id, approval: .rejected, note: note) }
         await Notifications.scheduleReminders(for: items)
     }
 
     /// Back to "waiting for your decision" (the web's undo).
-    func undoDecision(_ item: LibraryItem) async {
+    func undoDecision(_ item: VideoItem) async {
         await change(item.id, to: { $0.approval = .pending; $0.postedAt = nil }) { try await self.api.decide(itemID: item.id, approval: .pending) }
         await Notifications.scheduleReminders(for: items)
     }
@@ -170,13 +170,13 @@ final class AppModel {
         }
     }
 
-    func setPosted(_ item: LibraryItem, _ posted: Bool) async {
+    func setPosted(_ item: VideoItem, _ posted: Bool) async {
         let stamp = ISO8601DateFormatter().string(from: Date())
         await change(item.id, to: { $0.postedAt = posted ? stamp : nil }) { try await self.api.setPosted(itemID: item.id, posted: posted) }
         await Notifications.scheduleReminders(for: items)
     }
 
-    private func change(_ id: String, to mutate: (inout LibraryItem) -> Void, call: @escaping () async throws -> Void) async {
+    private func change(_ id: String, to mutate: (inout VideoItem) -> Void, call: @escaping () async throws -> Void) async {
         guard let i = items.firstIndex(where: { $0.id == id }) else { return }
         let before = items[i]
         mutate(&items[i])
@@ -272,7 +272,7 @@ final class AppModel {
 
 extension AppModel {
     /// Sample data for SwiftUI previews and screenshots: a German clinic with a ready week.
-    static func preview(items: [LibraryItem] = PreviewData.items, plan: PlanInfo = PreviewData.plan) -> AppModel {
+    static func preview(items: [VideoItem] = PreviewData.items, plan: PlanInfo = PreviewData.plan) -> AppModel {
         let m = AppModel(store: PreviewData.EmptyStore(), transport: PreviewData.OfflineTransport(), uploads: UploadCenter())
         m.phase = .signedIn
         m.me = Me(user: AccountUser(id: "preview", email: "praxis@example.com"), clinic: Clinic(id: "c", profile: PreviewData.profile, logoUrl: nil), plan: plan, locale: "en", currentWeek: PreviewData.week)

@@ -6,11 +6,11 @@ import DentVideoCore
 /// then one tap opens Instagram, TikTok or the share sheet. Nothing is posted by DentVideo; the
 /// clinic posts from its own accounts.
 struct PostSheet: View {
-    let item: LibraryItem
+    let item: VideoItem
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
-    @State private var network: Network = .instagram
+    @State private var network: PostNetwork = .instagram
     @State private var file: URL?
     @State private var assetID: String?
     @State private var step: Step = .idle
@@ -19,15 +19,15 @@ struct PostSheet: View {
     enum Step: Equatable { case idle, preparing, ready }
 
     private var text: String { PostKit.text(for: item, network: network) }
-    private var current: LibraryItem { model.items.first { $0.id == item.id } ?? item }
+    private var current: VideoItem { model.items.first { $0.id == item.id } ?? item }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Picker(L("post.network"), selection: $network) {
-                        Text("Instagram").tag(Network.instagram)
-                        Text(L("post.short")).tag(Network.short)
+                        Text("Instagram").tag(PostNetwork.instagram)
+                        Text(L("post.short")).tag(PostNetwork.short)
                     }
                     .pickerStyle(.segmented)
 

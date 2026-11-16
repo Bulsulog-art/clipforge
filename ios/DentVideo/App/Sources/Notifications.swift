@@ -28,7 +28,7 @@ enum Notifications {
     static let reminderPrefix = "post-"
 
     /// One reminder per approved, unposted video, at its suggested time (or the chosen time on that day).
-    static func scheduleReminders(for items: [LibraryItem], now: Date = Date()) async {
+    static func scheduleReminders(for items: [VideoItem], now: Date = Date()) async {
         let center = UNUserNotificationCenter.current()
         let pending = await center.pendingNotificationRequests().map(\.identifier).filter { $0.hasPrefix(reminderPrefix) }
         center.removePendingNotificationRequests(withIdentifiers: pending)

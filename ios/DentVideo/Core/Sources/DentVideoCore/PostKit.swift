@@ -1,7 +1,7 @@
 import Foundation
 
 /// The networks the post sheet prepares a text for.
-public enum Network: String, CaseIterable, Sendable {
+public enum PostNetwork: String, CaseIterable, Sendable {
     /// Instagram Reels (and Facebook): the full caption with hashtags.
     case instagram
     /// TikTok and YouTube Shorts: one sentence and three hashtags.
@@ -12,7 +12,7 @@ public enum Network: String, CaseIterable, Sendable {
 public enum PostKit {
     /// The ready-to-paste text. The server's post kit when there is one, else built from the caption
     /// and hashtags exactly as the web does for older videos.
-    public static func text(for item: LibraryItem, network: Network) -> String {
+    public static func text(for item: VideoItem, network: PostNetwork) -> String {
         if let post = item.post {
             return network == .instagram ? post.instagram : post.short
         }
