@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { billingText } from "@/content/dentvideo-billing";
 import { fill } from "@/content/dentvideo-lifecycle";
 import { CONTACT_EMAIL } from "./lifecycle-email";
-import { checkoutBlock, type DvCheckoutBlock, type DvSubRecord } from "./billing";
+import { checkoutBlock, planEndsAt, type DvCheckoutBlock, type DvSubRecord } from "./billing";
 import { supabaseSubscriptionStore } from "./subscriptions";
 import { dodoApiKey, dodoGetSubscription } from "./dodo-account";
 
@@ -39,10 +39,23 @@ async function liveStatus(subscriptionId: string | null | undefined): Promise<st
 }
 
 export async function loadCheckoutBlock(clinic: ClinicBillingRow, admin: SupabaseClient | null, now = new Date()): Promise<DvCheckoutBlock | null> {
-  if (clinic.plan === "active") return { code: "active" };
+  if (clinic.plan === "active") {
+    const subs = admin && clinic.dodo_subscription_id ? await supabaseSubscriptionStore(admin).forClinic(clinic.id) : null;
+    return checkoutBlock({ clinic, subs, now });
+  }
   const subs: DvSubRecord[] | null = admin ? await supabaseSubscriptionStore(admin).forClinic(clinic.id) : null;
   const dodoStatus = clinic.dodo_subscription_id ? await liveStatus(clinic.dodo_subscription_id) : null;
   return checkoutBlock({ clinic, subs, dodoStatus, now });
+}
+
+/** When an active clinic's cancelled plan ends (null: it renews as usual, or the ledger is not readable). */
+export async function loadPlanEnd(clinic: ClinicBillingRow, admin: SupabaseClient | null, now = new Date()): Promise<string | null> {
+  if (clinic.plan !== "active" || !admin || !clinic.dodo_subscription_id) return null;
+  try {
+    return planEndsAt(clinic, await supabaseSubscriptionStore(admin).forClinic(clinic.id), now);
+  } catch {
+    return null;
+  }
 }
 
 /** The sentence a refused checkout answers with, in the clinic's language. */

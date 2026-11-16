@@ -503,12 +503,12 @@ export const alerts = {
     };
   },
 
-  firstWeekLate(a: { clinic: ClinicRef; paidAt: string; minutes: number; requeued: boolean; jobState: string }): OwnerAlert {
+  firstWeekLate(a: { clinic: ClinicRef; paidAt: string; minutes: number; requeued: boolean; jobState: string; returning?: boolean }): OwnerAlert {
     return {
       key: `first_week_late:${a.clinic.id}`,
       severity: "urgent",
-      titleTr: "Yeni müşterinin ilk haftası gecikti",
-      titleEn: "First week not delivered 2 h after payment",
+      titleTr: a.returning ? "Geri dönen müşterinin haftası gecikti" : "Yeni müşterinin ilk haftası gecikti",
+      titleEn: a.returning ? "Week not delivered 2 h after a clinic came back" : "First week not delivered 2 h after payment",
       clinic: a.clinic,
       what: [`This clinic paid ${a.minutes} minutes ago (${a.paidAt.slice(0, 16).replace("T", " ")} UTC) and still has no videos.`],
       facts: [["Job state", a.jobState]],
@@ -839,6 +839,57 @@ export const alerts = {
     };
   },
 
+  weekLate(a: { clinic: ClinicRef; week: string; deadline: string; jobState: string; requeued: boolean }): OwnerAlert {
+    return {
+      key: `week_late:${a.clinic.id}:${a.week}`,
+      severity: "urgent",
+      titleTr: "Pazartesi teslimatı kaçtı",
+      titleEn: "A paying clinic's Monday week is late",
+      clinic: a.clinic,
+      what: [`The week of ${a.week} was due by ${a.deadline.slice(0, 16).replace("T", " ")} UTC (Monday 07:00 in the clinic's time zone) and is not in its library.`],
+      facts: [["Job state", a.jobState]],
+      done: [
+        a.requeued ? "The week was put back on the queue at the front (same job id scheme; the week job never makes a delivered week twice)." : "The job is queued or running; it was not re-queued.",
+        "The clinic's library says its videos are taking a little longer — no error text.",
+      ],
+      todo: [
+        "Check /dentvideo/admin/system: is the worker up, is the queue long, is a job failing or parked by the spend guard?",
+        `If it will not be there today, a short personal note${a.clinic.email ? ` to ${a.clinic.email}` : ""}.`,
+      ],
+    };
+  },
+
+  parkedDropped(a: { clinic: ClinicRef; job: string; jobId: string; reason: string; parkedAt: string }): OwnerAlert {
+    return {
+      key: `parked_dropped:${a.jobId}`,
+      severity: "urgent",
+      titleTr: "Bekletilen iş 7 gün sonra düşürüldü",
+      titleEn: "A parked job was dropped after 7 days",
+      clinic: a.clinic,
+      what: [`A ${a.job} the spend guard parked on ${a.parkedAt.slice(0, 10)} (${a.reason}) never got room to run and was dropped: this paying clinic did not get it.`],
+      facts: [["Job", a.jobId]],
+      done: ["Removed from the parked list. The clinic's library says the week is delayed."],
+      todo: ["Check the spend caps (/dentvideo/admin/system) and why they stayed full for a week.", "Queue the week again from the clinic's admin page once there is room, and consider a note to the clinic."],
+    };
+  },
+
+  readyEmailFailed(a: { clinic: ClinicRef; week: string; attempts: number; error: string }): OwnerAlert {
+    return {
+      key: `ready_email_failed:${a.clinic.id}:${a.week}`,
+      severity: "warning",
+      titleTr: "“Videolar hazır” e-postası gönderilemedi",
+      titleEn: "A clinic's “videos ready” email was not sent",
+      clinic: a.clinic,
+      what: [`The week of ${a.week} is in this clinic's library, but the email telling the dentist could not be sent after ${a.attempts} attempt(s).`],
+      facts: [["Error", a.error]],
+      done: ["Retried for about two and a half hours.", "The videos are stored and visible in the clinic's library; nothing is lost."],
+      todo: [
+        "Check Resend (domain, API key, quota) and that the worker can reach the web app (WORKER_INTERNAL_TOKEN).",
+        `If the clinic has not opened its library, a short personal note${a.clinic.email ? ` to ${a.clinic.email}` : ""} that its week is ready.`,
+      ],
+    };
+  },
+
   cronFailed(a: { job: string; error: string; attempts?: number }): OwnerAlert {
     const what: Record<string, string> = {
       "watchdog-monday": "The Saturday check that every paying clinic has its week did not run, so a missed weekly batch would go unnoticed.",
@@ -847,10 +898,11 @@ export const alerts = {
       digest: "The daily digest could not be built or sent.",
       lifecycle: "The hourly lifecycle emails (reminders to unpaid clinics) did not run.",
       dispatch: "The Saturday weekly dispatch failed: paying clinics' weeks may not be queued.",
+      "watchdog-delivery": "The hourly check that every paying clinic got its Monday week did not run, so a late week would go unnoticed.",
     };
     return {
       key: `cron_failed:${a.job}`,
-      severity: a.job === "dispatch" || a.job === "watchdog-monday" || a.job === "billing-reconcile" ? "urgent" : "warning",
+      severity: a.job === "dispatch" || a.job === "watchdog-monday" || a.job === "watchdog-delivery" || a.job === "billing-reconcile" ? "urgent" : "warning",
       titleTr: "Zamanlanmış bir iş başarısız oldu",
       titleEn: `Scheduled job failed: ${a.job}`,
       what: [what[a.job] ?? `The scheduled job “${a.job}” failed.`],

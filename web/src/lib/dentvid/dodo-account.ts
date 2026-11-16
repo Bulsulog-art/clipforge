@@ -22,6 +22,8 @@ export type DodoSubscription = {
   status: string;
   product_id?: string | null;
   cancel_at_next_billing_date?: boolean | null;
+  /** The end of the period paid for (a cancelled subscription keeps access until then). */
+  next_billing_date?: string | null;
   customer?: { customer_id?: string | null } | null;
   metadata?: Record<string, unknown> | null;
 };
