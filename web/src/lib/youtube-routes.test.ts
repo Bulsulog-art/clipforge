@@ -62,6 +62,14 @@ describe("YouTube jobs on retry and remix", () => {
     expect(queued).toHaveLength(1);
   });
 
+  it("remix of a TikTok link once saved as youtube still runs", async () => {
+    job = { ...base, source_type: "youtube", source_url: "https://www.tiktok.com/@a/video/1" };
+    const res = await remix(new Request("https://x/api/clips/c1/remix", { method: "POST" }), { params: Promise.resolve({ clipId: "c1" }) });
+    expect(res.status).toBeLessThan(300);
+    expect(writes).toContain("insert video_jobs");
+    expect(queued).toHaveLength(1);
+  });
+
   it("remix is refused before a new job is inserted", async () => {
     job = { ...base, source_type: "youtube", source_url: "https://www.youtube.com/watch?v=abc" };
     const res = await remix(new Request("https://x/api/clips/c1/remix", { method: "POST" }), { params: Promise.resolve({ clipId: "c1" }) });
