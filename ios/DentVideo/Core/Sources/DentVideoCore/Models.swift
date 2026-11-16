@@ -38,12 +38,26 @@ public struct Me: Codable, Sendable, Equatable {
     public var plan: PlanInfo?
     public var locale: String
     public var currentWeek: String
+
+    public init(user: AccountUser, clinic: Clinic?, plan: PlanInfo?, locale: String, currentWeek: String) {
+        self.user = user
+        self.clinic = clinic
+        self.plan = plan
+        self.locale = locale
+        self.currentWeek = currentWeek
+    }
 }
 
 public struct Clinic: Codable, Sendable, Equatable {
     public var id: String
     public var profile: ClinicProfile
     public var logoUrl: URL?
+
+    public init(id: String, profile: ClinicProfile, logoUrl: URL?) {
+        self.id = id
+        self.profile = profile
+        self.logoUrl = logoUrl
+    }
 }
 
 /// Exactly the keys the server's profile schema accepts (web/src/lib/dentvid/profile.ts).
@@ -114,6 +128,15 @@ public struct PlanInfo: Codable, Sendable, Equatable {
     public var adminPaused: Bool
     public var recordings: Bool
     public var renewsAt: String?
+
+    public init(state: PlanState, tier: String?, canMake: Bool, adminPaused: Bool, recordings: Bool, renewsAt: String?) {
+        self.state = state
+        self.tier = tier
+        self.canMake = canMake
+        self.adminPaused = adminPaused
+        self.recordings = recordings
+        self.renewsAt = renewsAt
+    }
 }
 
 public enum ItemKind: String, Codable, Sendable {
@@ -174,6 +197,15 @@ public struct ShootCard: Codable, Sendable, Equatable, Hashable {
     public var avoid: [String]?
     public var setup: [String]?
     public var minutes: Double?
+
+    public init(opening: String, points: [String], closing: String, avoid: [String]? = nil, setup: [String]? = nil, minutes: Double? = nil) {
+        self.opening = opening
+        self.points = points
+        self.closing = closing
+        self.avoid = avoid
+        self.setup = setup
+        self.minutes = minutes
+    }
 }
 
 public struct VideoItem: Codable, Sendable, Equatable, Identifiable {

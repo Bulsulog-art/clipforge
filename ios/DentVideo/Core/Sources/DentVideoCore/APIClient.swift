@@ -221,7 +221,7 @@ public actor APIClient {
         }
     }
 
-    static let decoder = JSONDecoder()
+    static var decoder: JSONDecoder { JSONDecoder() }
 
     static func check(_ data: Data, _ r: HTTPURLResponse) throws -> Data {
         if (200..<300).contains(r.statusCode) { return data }

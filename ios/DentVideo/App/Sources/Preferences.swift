@@ -2,7 +2,7 @@ import Foundation
 
 /// Per-phone settings (UserDefaults). The clinic's settings live on the server.
 enum Prefs {
-    private static let d = UserDefaults.standard
+    private static var d: UserDefaults { .standard }
 
     /// "Your week is ready" push on this phone (sent to the server with the device token).
     static var readyPush: Bool {
