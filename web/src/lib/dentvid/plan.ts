@@ -21,6 +21,8 @@ export type ClinicPlan = {
    * makes nothing for it, so the app must not offer "make this week" or show "being made".
    */
   adminPaused?: boolean;
+  /** Cancelled but paid until this date (set by the page from the ledger: billing-state.ts loadPlanEnd). */
+  endsAt?: string | null;
 };
 
 const STATES = new Set(["trial", "active", "paused", "cancelled"]);

@@ -169,7 +169,8 @@ describe("POST /api/dodo/webhook", () => {
 
   it("finds the clinic by subscription id when metadata is missing (brand routes it)", async () => {
     liman.rows.dentvid_clinics[0] = { ...liman.rows.dentvid_clinics[0], plan: "active", dodo_subscription_id: "sub_dv_1" };
-    const res = await post(signed(dvEvent("subscription.cancelled", { metadata: {}, status: "cancelled" })));
+    // No paid-through date: cancelled at once (a future date keeps it active until then — lib/dentvid/reliability.test.ts F9).
+    const res = await post(signed(dvEvent("subscription.cancelled", { metadata: {}, status: "cancelled", next_billing_date: null })));
     expect(res.status).toBe(200);
     expect(liman.rows.dentvid_clinics[0].plan).toBe("cancelled");
     expect(cloud.calls).toHaveLength(0);

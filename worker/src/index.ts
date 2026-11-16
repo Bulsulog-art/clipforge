@@ -18,6 +18,7 @@ import { alerts, cleanError, resendSender } from "./dentvid/ops-alert.js";
 import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
 import { checkWeekDelivery, DELIVERY_SCHEDULE, supabaseDeliveryDb } from "./dentvid/delivery.js";
+import { endPaidUpPlans, supabasePlanEndDb } from "./dentvid/plan-end.js";
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
 import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
@@ -227,7 +228,9 @@ const dentvidMailWorker = new Worker(
     }
     if (job.name === "watchdog-delivery") {
       const r = await checkWeekDelivery({ db: supabaseDeliveryDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert });
-      return { due: r.due, delivered: r.delivered, late: r.late.length, behind: r.behind.length };
+      // Same hour: cancelled plans whose paid period is over become cancelled (dentvid/plan-end.ts).
+      const ended = await endPaidUpPlans(supabasePlanEndDb(dentvidDb()));
+      return { due: r.due, delivered: r.delivered, late: r.late.length, behind: r.behind.length, plansEnded: ended.ended.length };
     }
     if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
       const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };

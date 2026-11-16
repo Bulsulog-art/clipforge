@@ -434,6 +434,36 @@ export function usedFounding(tier: DvTier | null | undefined, interval: string |
   return !!want && want === discountId;
 }
 
+/* ------------------------------------------------- cancelled, paid until */
+
+/** Subscription statuses that end it, after which a clinic keeps access only until its paid-through date. */
+export const DV_SUB_ENDING: ReadonlySet<string> = new Set(["cancelled", "expired"]);
+
+/**
+ * The date an active clinic's plan ends, or null when it renews as usual.
+ *
+ * A cancelled (or expired) subscription whose paid period has not run out
+ * keeps the clinic active until that date (docs/RELIABILITY.md F9; the app and
+ * docs/SUPPORT.md promise access until the end of the period paid for). The
+ * webhook records it as the clinic's plan_renews_at and on the subscription's
+ * ledger row (status cancelled/expired, period_end); the worker's hourly check
+ * switches the clinic to cancelled at that date. A newer subscription becoming
+ * the clinic's current one clears it (the ledger row is then not the current one).
+ */
+export function planEndsAt(clinic: { plan: string; dodo_subscription_id?: string | null }, subs: DvSubRecord[] | null | undefined, now = new Date()): string | null {
+  if (clinic.plan !== "active" || !clinic.dodo_subscription_id || !subs) return null;
+  const cur = subs.find((r) => r.dodo_subscription_id === clinic.dodo_subscription_id);
+  if (!cur || !DV_SUB_ENDING.has(String(cur.status)) || !cur.period_end) return null;
+  const end = Date.parse(cur.period_end);
+  return Number.isFinite(end) && end > now.getTime() ? new Date(end).toISOString() : null;
+}
+
+/** A paid-through date that is still ahead of `now` (ISO), or null when missing, unreadable or past. */
+export function futurePaidThrough(date: string | null | undefined, now: Date): string | null {
+  const t = date ? Date.parse(date) : Number.NaN;
+  return Number.isFinite(t) && t > now.getTime() ? new Date(t).toISOString() : null;
+}
+
 /* ------------------------------------------------------- checkout refusal */
 
 /** How long a paid-but-not-yet-active subscription blocks a second checkout. */
@@ -472,7 +502,12 @@ export function checkoutBlock(args: {
 }): DvCheckoutBlock | null {
   const now = (args.now ?? new Date()).getTime();
   const { clinic, subs } = args;
-  if (clinic.plan === "active") return { code: "active" };
+  if (clinic.plan === "active") {
+    // Cancelled but still in its paid period: the same answer as before the F9 change (write to us
+    // to restart without paying twice), not "you already have a plan".
+    const ends = planEndsAt(clinic, subs, new Date(now));
+    return ends ? { code: "cancelled_pending", until: ends } : { code: "active" };
+  }
   const currentId = clinic.dodo_subscription_id ?? null;
   const live = currentId ? args.dodoStatus ?? null : null;
   // A chargeback paused the clinic while its subscription stays live at Dodo (Dodo still says "active"):

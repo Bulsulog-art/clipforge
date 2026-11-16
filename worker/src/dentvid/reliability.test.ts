@@ -9,6 +9,8 @@ import { MemoryParkStore, resumeParked, PARK_MAX_AGE_MS } from "./park.js";
 import { failureAlert, MAIL_CRONS } from "./job-failures.js";
 import { notifyReadyChecked, READY_MAIL_JOB_OPTS, readyMailJobId, sendReadyAtCivilHour } from "./notify.js";
 import type { SpendGuard } from "./spend-guard.js";
+import { endPaidUpPlans, type EndingSub, type PlanEndDb } from "./plan-end.js";
+import { reconcileBilling, type ActiveClinic, type ReconcileDb } from "./reconcile.js";
 
 /**
  * The post-purchase chain's failure modes (docs/RELIABILITY.md), worker side.
@@ -312,5 +314,71 @@ describe("F3 a clinic back from on hold / cancelled is watched like a first paym
     const r = await checkFirstWeeks({ db: db({ weekMade: async () => new Set(["back"]) }), queue: q, store, alert, now: new Date("2026-11-18T12:01:00Z"), env: {} });
     expect(r.requeued).toEqual([]);
     expect(raised).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------- F9 cancelled, paid until */
+
+describe("F9 a cancelled plan ends at the end of its paid period, not before", () => {
+  const END = "2026-12-10T00:00:00.000Z";
+  function planDb(rows: EndingSub[], clinics: Record<string, { plan: string; sub: string }>) {
+    const db: PlanEndDb & { updates: number } = {
+      updates: 0,
+      endedSince: async (since, now) => rows.filter((r) => Date.parse(r.period_end) >= since.getTime() && Date.parse(r.period_end) <= now.getTime()),
+      endPlan: async (clinicId, sub) => {
+        const c = clinics[clinicId];
+        if (!c || c.plan !== "active" || c.sub !== sub) return false;
+        c.plan = "cancelled";
+        db.updates++;
+        return true;
+      },
+    };
+    return db;
+  }
+
+  it("transition at the end date: active until then, cancelled after", async () => {
+    const clinics = { c1: { plan: "active", sub: "sub_1" } };
+    const db = planDb([{ dodo_subscription_id: "sub_1", clinic_id: "c1", status: "cancelled", period_end: END }], clinics);
+    expect((await endPaidUpPlans(db, new Date("2026-12-09T23:00:00Z"))).ended).toEqual([]);
+    expect(clinics.c1.plan).toBe("active");
+    expect((await endPaidUpPlans(db, new Date("2026-12-10T00:41:00Z"))).ended).toEqual(["c1"]);
+    expect(clinics.c1.plan).toBe("cancelled");
+  });
+
+  it("idempotent: a second run (or a second worker) changes nothing", async () => {
+    const clinics = { c1: { plan: "active", sub: "sub_1" } };
+    const db = planDb([{ dodo_subscription_id: "sub_1", clinic_id: "c1", status: "expired", period_end: END }], clinics);
+    const at = new Date("2026-12-10T01:41:00Z");
+    await endPaidUpPlans(db, at);
+    expect((await endPaidUpPlans(db, at)).ended).toEqual([]);
+    expect(db.updates).toBe(1);
+  });
+
+  it("re-subscribed before the end: the clinic is on a new subscription and is never cancelled", async () => {
+    const clinics = { c1: { plan: "active", sub: "sub_2" } };
+    const db = planDb([{ dodo_subscription_id: "sub_1", clinic_id: "c1", status: "cancelled", period_end: END }], clinics);
+    expect((await endPaidUpPlans(db, new Date("2026-12-11T00:00:00Z"))).ended).toEqual([]);
+    expect(clinics.c1.plan).toBe("active");
+  });
+
+  it("ledger unavailable: nothing to do (the webhook cancels at once without it)", async () => {
+    expect(await endPaidUpPlans({ endedSince: async () => null, endPlan: async () => true }, new Date())).toEqual({ checked: 0, ended: [] });
+  });
+
+  it("the nightly reconcile does not cut the paid tail when Dodo says cancelled; it does after the date", async () => {
+    const moved: string[] = [];
+    const clinic: ActiveClinic = { id: "c1", plan_renews_at: END, dodo_subscription_id: "sub_1" };
+    const db: ReconcileDb = {
+      activeClinics: async () => [clinic],
+      setPlan: async (_c, plan) => (moved.push(plan), true),
+      setRenewsAt: async () => {},
+      markLedger: async () => {},
+      clinic: async (id) => ({ id }),
+    };
+    const dodo = async () => ({ status: "cancelled", next_billing_date: END });
+    await reconcileBilling({ db, dodo, alert: async () => "sent", now: new Date("2026-11-25T03:17:00Z") });
+    expect(moved).toEqual([]);
+    await reconcileBilling({ db, dodo, alert: async () => "sent", now: new Date("2026-12-11T03:17:00Z") });
+    expect(moved).toEqual(["cancelled"]);
   });
 });

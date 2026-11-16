@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   DV_SUB_ENDED,
+  DV_SUB_ENDING,
   applyTransition,
+  futurePaidThrough,
   dvEventSubStatus,
   dvEventTime,
   dvPlanForProduct,
@@ -60,6 +62,11 @@ export type DvWebhookDeps = {
    * switches a clinic on.
    */
   dodoStatus?: (subscriptionId: string) => Promise<string | null>;
+  /**
+   * The end of the period a subscription is paid through, read from Dodo (GET /subscriptions/{id},
+   * next_billing_date) when DODO_API_KEY is set; null otherwise. Used only when a cancel event carries no date.
+   */
+  paidThrough?: (subscriptionId: string) => Promise<string | null>;
   /** Self-serve billing portal available (DODO_API_KEY set). */
   selfServe?: boolean;
   /**
@@ -162,6 +169,18 @@ async function liveDodoStatus(subscriptionId: string): Promise<string | null> {
     return (await dodoGetSubscription({ apiKey }, subscriptionId)).status ?? null;
   } catch (e) {
     console.warn("[dodo:dentvideo] could not confirm subscription with Dodo", (e as Error).message);
+    return null;
+  }
+}
+
+async function livePaidThrough(subscriptionId: string): Promise<string | null> {
+  const { dodoApiKey, dodoGetSubscription } = await import("./dodo-account");
+  const apiKey = dodoApiKey();
+  if (!apiKey) return null;
+  try {
+    return (await dodoGetSubscription({ apiKey }, subscriptionId)).next_billing_date ?? null;
+  } catch (e) {
+    console.warn("[dodo:dentvideo] could not read the paid-through date from Dodo", (e as Error).message);
     return null;
   }
 }
@@ -503,6 +522,33 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
       const { error } = await db.from("dentvid_clinics").update(move).eq("id", clinic.id);
       if (error) return { status: 500, body: { error: error.message } };
       return { status: 200, body: { ok: true, app: "dentvideo", plan: "active", movedTo: alt.dodo_subscription_id } };
+    }
+  }
+
+  // 6. Cancelled (or expired) while the period it paid for is still running: the clinic keeps
+  // its weeks until that date (the app and docs/SUPPORT.md promise it), whenever Dodo sends the
+  // event. The date is stored as plan_renews_at and on the ledger row (period_end, status
+  // cancelled/expired) — billing.ts planEndsAt reads it back; the worker's hourly check
+  // (worker/src/dentvid/plan-end.ts) switches the clinic to cancelled at that date. No date, or
+  // one already past: cancelled now, as before. Needs the ledger (0007) to remember the end.
+  if (t.kind === "deactivate" && t.plan === "cancelled" && ledger && clinic.plan === "active" && clinic.dodo_subscription_id === t.subscriptionId) {
+    const end = futurePaidThrough(d.next_billing_date ?? (await (deps.paidThrough ?? livePaidThrough)(t.subscriptionId).catch(() => null)), now);
+    if (end) {
+      // First word of the cancellation (a repeat, or cancelled then expired, changes nothing new).
+      const firstNotice = !prev || !DV_SUB_ENDING.has(String(prev.status));
+      const changed = clinic.plan_renews_at !== end;
+      if (changed) {
+        const { error } = await db.from("dentvid_clinics").update({ plan_renews_at: end, updated_at: now.toISOString() }).eq("id", clinic.id).eq("plan", "active");
+        if (error) return { status: 500, body: { error: error.message } };
+      }
+      // Ledger after the clinic row: a failed clinic update (500, Dodo retries) leaves no half-recorded end.
+      await subs.put({ ...ledgerRow(clinic.id, t.subscriptionId, reported, d, prev, stamp, evt.type), period_end: end });
+      if (firstNotice) {
+        await tell(db, deps, clinic.id, (c) =>
+          alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from: "active", to: `active until ${end.slice(0, 10)}, then cancelled` }),
+        );
+      }
+      return { status: 200, body: { ok: true, app: "dentvideo", plan: "active", endsAt: end, ...(changed || firstNotice ? {} : { unchanged: true }) } };
     }
   }
 

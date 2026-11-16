@@ -91,8 +91,14 @@ Nightly 03:17 UTC reconcile: Dodo status (with DODO_API_KEY) or renews_at + 3 da
 ### 2.5 Cancellation and re-subscribe
 
 ```
-Dodo ── subscription.cancelled / expired ──> plan=cancelled (current subscription only; a late cancel of an
-        old subscription never switches off a clinic that re-subscribed); owner "at risk"
+Dodo ── subscription.cancelled / expired (current subscription only; a late cancel of an old one is ignored)
+        paid-through date = event next_billing_date, else GET /subscriptions/{id} (DODO_API_KEY)
+        ├─ in the future (and ledger 0007 present) → plan stays active, plan_renews_at = end,
+        │    ledger status cancelled/expired + period_end = end; owner "at risk" once;
+        │    app settings: "Your plan ends on {date}. You keep getting your weekly videos until then."
+        │    Monday weeks keep coming. Hourly (with watchdog-delivery) plan-end.ts: end passed → plan=cancelled
+        │    (conditional on still active on that subscription → idempotent). Reconcile never cuts the tail early.
+        └─ missing / past / no ledger → plan=cancelled at once
 Clinic ── new checkout ──> refused while a subscription is live/pending (checkoutBlock) ──> new subscription.active
         ──> plan=active, week queued (F1), watched (F3), "a clinic came back" to the owner, no second welcome
 ```
@@ -150,7 +156,7 @@ week queued (bounded, alerted if it cannot be queued — NEW), watched (F3).
 | 20 | Spend cap hit | week parked, owner alerted, library "taking longer", resumed every 15 min | unchanged; **after 7 days it was dropped with only a log line** → now owner alert + library "delayed" | worker `reliability.test.ts` F6 |
 | 21 | Partial week (3 of 5) | top-up round; <3 usable → thin-week alert; the button tops up the missing ones | unchanged — OK; a re-run never overshoots 5 (#8) | `jobs-week.test.ts` |
 | 22 | Renewal fails then succeeds | on_hold → paused (+clinic email); renewal → active + week (now actually made, #6) | fixed via #6/#7 | `reliability.test.ts` F1, F3 |
-| 23 | Cancellation at period end vs immediate | `subscription.cancelled` → `cancelled` at once, whatever `next_billing_date` says | **unchanged — owner decision (§5.1)** | `reliability.test.ts` F9 |
+| 23 | Cancellation at period end vs immediate | `subscription.cancelled` → `cancelled` at once, whatever `next_billing_date` says (the app said "paid until {date}" but no weeks came) | **F9:** future paid-through date → active until then, "ends on {date}" in settings, cancelled hourly after the date; past/missing date → at once; re-subscribing clears it; duplicates idempotent | web `reliability.test.ts` F9, `plan-ends.test.tsx`; worker `reliability.test.ts` F9, `reconcile.test.ts` |
 | 24 | Plan change Starter ↔ Practice | tier from the signed product on `plan_changed`; no extra week | unchanged — OK | `billing-webhook-plan-change.test.ts` |
 | 25 | Recording upload failure | owner alerted on final failure; the clinic sees nothing new | unchanged — see §5.3 | `job-failures.test.ts` |
 | 26 | Dispute won while Redis is down | week enqueue could hang; failure only logged | bounded, owner alerted, watched (#7) | covered by F2/F3 code path |
@@ -174,6 +180,13 @@ week queued (bounded, alerted if it cannot be queued — NEW), watched (F3).
 - **F7** `jobs.ts` insert retried with backoff + jitter.
 - **F8** `jobs.ts` `videosToMake`: a run makes `min(requested, 5 − usable already)`; 0 → no spend.
 - **F10** `jobs.ts`: clinic deleted mid-run → uploaded files removed, nothing stored.
+- **F9** cancelled but paid until a date: `billing-webhook.ts` step 6 (date from the event or
+  Dodo's subscription), `billing.ts` `planEndsAt` / `checkoutBlock` (a second checkout still gets
+  the "paid until, write to us" answer), `billing-state.ts` `loadPlanEnd`, settings `PlanStatus`
+  "ends on" copy in all 8 languages (`content/dentvideo-app.ts` `billing.ends`), worker
+  `plan-end.ts` (hourly end), `reconcile.ts` (keeps the tail). No migration: the end lives in
+  `plan_renews_at` and the 0007 ledger row (`status`, `period_end`); without 0007 a cancel is
+  immediate as before.
 - `scripts/dentvideo-delivery-report.sql`: read-only Liman view of the same facts.
 
 `ops-alert.ts` stays byte-identical in web and worker (new: `weekLate`, `parkedDropped`,
@@ -181,19 +194,15 @@ week queued (bounded, alerted if it cannot be queued — NEW), watched (F3).
 
 ## 5. Owner decisions and open items
 
-1. **Cancellation timing (F9).** Today `subscription.cancelled` stops the clinic at once. The app
-   then says "Your plan has been canceled. It is paid until {date}" and `docs/SUPPORT.md` promises
-   access "until the end of the period you've paid for" — but no weeks are made in that period.
-   This is correct only if Dodo sends `subscription.cancelled` at the period end
-   (`cancel_at_next_billing_date`). Check one cancelled subscription in the Dodo dashboard
-   (read-only): if `cancelled` arrives at the moment of cancelling with a future
-   `next_billing_date`, decide whether to keep weeks coming until then. Proposed implementation
-   (not done, needs new "ends on {date}" copy in 8 languages): on `cancelled` with a future
-   `next_billing_date`, keep `plan=active` with `plan_renews_at` = that date and ledger
-   `cancelled`; reconcile cuts it at that date; the plan panel says "ends on" instead of "renews on".
+1. **Cancellation (F9) — done on the owner's direction.** A clinic keeps its weeks to the end of
+   the paid period. Two edges: a Saturday batch run for a clinic whose period ends on Sunday still
+   makes that Monday's week (the clinic gets one week more, never less); and an owner who refunds
+   a cancelled clinic and wants access to stop now should pause it in `/dentvideo/admin`.
 2. **Deploy order.** Web and worker both changed. The new `activated` event prop and Redis
    `returning` flag are additive (old worker ignores them; new worker reads old rows as before).
-   Deploy the worker to start the hourly delivery watchdog; no env change, no migration.
+   Deploy the worker to start the hourly delivery watchdog and the plan-end check; no env change,
+   no migration. Deploy web and worker together: the web keeps cancelled-but-paid clinics active and
+   the worker's hourly check is what ends them.
 3. **Recording failures are invisible to the clinic** (#25). The owner is alerted, but the library
    shows nothing pending. Needs a small UI state (a "processing / could not process" card) — a
    feature-level change for the app agent; not done here.
