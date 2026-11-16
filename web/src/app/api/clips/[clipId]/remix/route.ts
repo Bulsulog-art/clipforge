@@ -49,7 +49,8 @@ export async function POST(
     return NextResponse.json({ error: "Source job missing" }, { status: 410 });
   }
   // YouTube blocks downloads from our servers: a remix of a YouTube job would fail.
-  if (srcJob.source_type === "youtube" || isYouTubeSourceUrl((srcJob.source_url as string | null) ?? "")) {
+  // The URL decides, not source_type: TikTok links were once saved as "youtube".
+  if (isYouTubeSourceUrl((srcJob.source_url as string | null) ?? "")) {
     return NextResponse.json({ error: YOUTUBE_BLOCKED_MESSAGE, code: "youtube_blocked" }, { status: 422 });
   }
 

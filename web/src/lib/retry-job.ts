@@ -58,8 +58,9 @@ export type RetryableJob = Pick<
 >;
 
 export function planRetry(job: RetryableJob): RetryPlan {
-  // A YouTube job fails again on our servers: say so instead of queueing it.
-  if (job.source_type === "youtube" || isYouTubeSourceUrl(job.source_url ?? "")) {
+  // A YouTube link fails again on our servers: say so instead of queueing it.
+  // The URL decides, not source_type: TikTok links were once saved as "youtube".
+  if (isYouTubeSourceUrl(job.source_url ?? "")) {
     return { queue: null, error: YOUTUBE_BLOCKED_MESSAGE };
   }
   if (job.source_type === "generate") {

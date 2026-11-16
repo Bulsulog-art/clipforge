@@ -112,6 +112,10 @@ describe("a YouTube job", () => {
     expect(planRetry({ ...yt, source_type: "tiktok_url", source_url: "https://youtu.be/abc" }).queue).toBeNull();
   });
 
+  it("a TikTok link once saved as source_type youtube still retries", () => {
+    expect(planRetry({ ...yt, source_url: "https://www.tiktok.com/@a/video/1" }).queue).toBe("video");
+  });
+
   it("a TikTok job still retries", () => {
     expect(planRetry({ ...yt, source_type: "tiktok_url", source_url: "https://www.tiktok.com/@a/video/1" }).queue).toBe("video");
   });
