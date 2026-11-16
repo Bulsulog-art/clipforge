@@ -41,6 +41,8 @@ export default async function PostPreview({ searchParams }: { searchParams: Prom
             posted: false,
             texts: demo.texts,
             slot: slotLabel(slot, locale),
+            // The share kit's subtitle file, as the real page builds it from stored cues.
+            srt: "1\n00:00:00,250 --> 00:00:02,900\n" + demo.title + "\n",
           },
         };
   // As on the real page: the header and footer speak the clinic's language.

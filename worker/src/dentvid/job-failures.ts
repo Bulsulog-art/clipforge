@@ -20,7 +20,7 @@ import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert
 /** Scheduled jobs and the retries their scheduler gives them (index.ts upsertJobScheduler). */
 export const CRON_JOB_OPTS = { attempts: 3, backoff: { type: "exponential" as const, delay: 5 * 60_000 } };
 
-export const MAIL_CRONS = new Set(["watchdog-monday", "watchdog-first-week", "watchdog-delivery", "billing-reconcile", "digest", "lifecycle"]);
+export const MAIL_CRONS = new Set(["watchdog-monday", "watchdog-first-week", "watchdog-delivery", "billing-reconcile", "digest", "lifecycle", "retention"]);
 
 export type FailedJob = {
   name: string;

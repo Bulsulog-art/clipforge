@@ -246,7 +246,8 @@ export const FR: LegalText = {
           blocks: [
             {
               list: [
-                "Compte, profil du cabinet, envois et vidéos : tant que votre compte existe. Lorsque vous supprimez votre compte dans les Réglages, nous supprimons immédiatement de nos systèmes en production vos fichiers, vidéos, profil du cabinet et références de facturation, ainsi que vos identifiants, sauf si vous les utilisez aussi pour une autre application de {brand}. Les copies dans les sauvegardes du serveur sont écrasées au fil de leur rotation ; au plus tard 30 jours après la suppression, nous ne conservons plus aucune donnée DentVideo sur votre compte, sauf ce qui est indiqué ci-dessous. Nous ne restaurons pas de comptes supprimés à partir des sauvegardes.",
+                "Vidéos, enregistrements, fichiers de sous-titres et autres envois : tant que votre formule est active, puis 90 jours après sa fin, pour que vous puissiez encore les regarder et les télécharger. Ils sont ensuite supprimés ; nous vous écrivons 14 jours puis 1 jour avant. Si vous reprenez une formule avant, tout est conservé.",
+                "Compte, profil du cabinet et logo : tant que votre compte existe. Lorsque vous supprimez votre compte dans les Réglages, nous supprimons immédiatement de nos systèmes en production vos fichiers, vidéos, profil du cabinet et références de facturation, ainsi que vos identifiants, sauf si vous les utilisez aussi pour une autre application de {brand}. Les copies dans les sauvegardes du serveur sont écrasées au fil de leur rotation ; au plus tard 30 jours après la suppression, nous ne conservons plus aucune donnée DentVideo sur votre compte, sauf ce qui est indiqué ci-dessous. Nous ne restaurons pas de comptes supprimés à partir des sauvegardes.",
                 "Événements d'usage : conservés comme statistiques anonymes ; la suppression de votre compte supprime leur lien avec votre cabinet.",
                 "Factures et justificatifs de paiement : conservés par Dodo Payments en tant que marchand officiel selon ses propres obligations légales, et par nous dans la mesure exigée par le droit comptable et fiscal.",
                 "Compteurs de limitation : de quelques minutes à quelques heures.",
@@ -391,7 +392,7 @@ export const FR: LegalText = {
         {
           heading: "9. Effacement à la fin",
           blocks: [
-            "Le cabinet peut télécharger ses vidéos à tout moment. Lorsqu'il supprime son compte, nous effaçons immédiatement ses données de nos systèmes en production ; les copies dans les sauvegardes sont écrasées au fil de leur rotation et, au plus tard sous 30 jours, plus aucune donnée du cabinet ne reste chez nous, sauf obligation légale de conservation.",
+            "Le cabinet peut télécharger ses vidéos tant que sa formule est active et pendant 90 jours après sa fin ; passés ces 90 jours, nous supprimons ses vidéos et envois, et le cabinet reçoit un e-mail 14 jours puis 1 jour avant. Lorsqu'il supprime son compte, nous effaçons immédiatement ses données de nos systèmes en production ; les copies dans les sauvegardes sont écrasées au fil de leur rotation et, au plus tard sous 30 jours, plus aucune donnée du cabinet ne reste chez nous, sauf obligation légale de conservation.",
           ],
         },
         {

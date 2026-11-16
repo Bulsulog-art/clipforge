@@ -30,6 +30,7 @@ import { slotLabel, weekSchedule, type PostTexts } from "@/lib/dentvid/posting";
 import { postingText } from "@/content/dentvideo-posting";
 import type { HelpId } from "@/content/dentvideo-help-links";
 import { HelpLink } from "./help-link";
+import { ChangeNote, ChangeRequest, TopicRequests, type ChangeView, type TopicView } from "./clinic-requests";
 
 export type LibraryItem = {
   id: string;
@@ -50,6 +51,10 @@ export type LibraryItem = {
   postedAt?: string | null;
   /** Background photos (generated videos only): library ids offered, those in use, and a pending re-render. */
   photos?: { suggested: string[]; chosen: string[]; status?: "queued" | "failed" };
+  /** The latest "Ask for a change" on this video (0025), when there is one. */
+  change?: ChangeView;
+  /** A subtitle file can be downloaded for it (stored cues, 0025). */
+  subtitles?: boolean;
 };
 
 const CHIP: Record<Exclude<CardState, "notMade">, string> = {
@@ -61,6 +66,9 @@ const CHIP: Record<Exclude<CardState, "notMade">, string> = {
   approved: "bg-dv-teal text-white ring-dv-teal",
   declined: "bg-dv-sand text-dv-muted ring-dv-line",
 };
+
+/** "Ask for a change" is being made for this video (the card says so, and the page looks again every 20 s). */
+const changeRunning = (i: LibraryItem) => i.change?.status === "queued" || i.change?.status === "working";
 
 async function patchApproval(id: string, approval: LibraryItem["approval"], note?: string): Promise<boolean> {
   try {
@@ -93,7 +101,10 @@ export function Library({
   country = null,
   clinicName,
   heroLevel = 1,
+  topics,
 }: {
+  /** The clinic's topic suggestions (null: not available on this database; undefined: not shown). */
+  topics?: TopicView[] | null;
   /** Shown above "This week" (the hero is the top of the page). */
   clinicName?: string;
   /** The hero's title is the page's h1, unless the first-week card above it holds the h1. */
@@ -187,7 +198,7 @@ export function Library({
   // change by themselves (not while the review is open: the video would reload).
   const busy = items.some((i) => {
     const c = cardState(i);
-    return c === "making" || c === "updating";
+    return c === "making" || c === "updating" || changeRunning(i);
   }) || !!delay;
   useEffect(() => {
     if (!busy || review) return;
@@ -275,6 +286,12 @@ export function Library({
           </details>
         );
       })}
+
+      {!locked && topics !== undefined && topics !== null && (
+        <div className="mt-10">
+          <TopicRequests locale={locale} initial={topics} />
+        </div>
+      )}
 
       {notMade.length > 0 && (
         <details className={`group/notmade border-y border-dv-line ${groups.length > 1 ? "-mt-px" : "mt-10"}`}>
@@ -586,7 +603,8 @@ function ItemCard({
   onChanged: () => void;
   onOpen: () => void;
 }) {
-  const state = cardState(item) as Exclude<CardState, "notMade">;
+  // A change being made reads like a photo update: "updating" until the new version is in.
+  const state = (changeRunning(item) && cardState(item) !== "making" ? "updating" : cardState(item)) as Exclude<CardState, "notMade">;
   const [busy, setBusy] = useState(false);
   const [declining, setDeclining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -602,6 +620,9 @@ function ItemCard({
 
   const playable = !!item.videoUrl && state !== "making" && state !== "failed";
   const canRestyle = !!item.photos && playable && state !== "declined";
+  const changing = changeRunning(item);
+  // A video we made (it has a stored plan, so it has photos): one change at a time, never while it is being re-made.
+  const canChange = !!item.photos && playable && state !== "updating" && !changing;
 
   return (
     <li className="dv-card dv-lift flex flex-col overflow-hidden">
@@ -660,7 +681,8 @@ function ItemCard({
             </p>
           )}
           {state === "making" && <p className="mt-2 text-sm text-dv-body">{t.makingNote}</p>}
-          {state === "updating" && <p className="mt-2 text-sm text-dv-body">{t.photos.updating}</p>}
+          {state === "updating" && !changing && <p className="mt-2 text-sm text-dv-body">{t.photos.updating}</p>}
+          {state !== "making" && state !== "failed" && <ChangeNote locale={locale} change={item.change} approval={item.approval} />}
           {state === "failed" && (
             <>
               <p className="mt-2 text-sm text-dv-body">{t.failedNote}</p>
@@ -682,7 +704,7 @@ function ItemCard({
         </div>
       )}
 
-      {playable && (
+      {playable && !changing && (
         <div className="mt-auto px-3 pb-3 sm:px-4 sm:pb-4">
           {state === "review" || state === "look" ? (
             declining ? (
@@ -719,6 +741,7 @@ function ItemCard({
               {error}
             </p>
           )}
+          {canChange && <ChangeRequest locale={locale} itemId={item.id} onQueued={onChanged} />}
         </div>
       )}
 

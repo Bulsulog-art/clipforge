@@ -236,6 +236,8 @@ describe("every authenticated mobile route refuses requests without a valid Dent
     ["POST", "clinic", () => import("./clinic/route") as never, { profile: { name: "X", country: "DE", language: "de", services: ["implants"] } }],
     ["POST", "account/delete", () => import("./account/delete/route") as never, { confirm: "DELETE" }],
     ["POST", "session/signout", () => import("./session/signout/route") as never, {}],
+    ["GET", "topic-requests", () => import("./topic-requests/route") as never],
+    ["POST", "topic-requests", () => import("./topic-requests/route") as never, { text: "How long does sensitivity last?" }],
   ];
   const attempts: [string, { token?: string; cookie?: string; auth?: string }][] = [
     ["no header", {}],
@@ -260,6 +262,21 @@ describe("every authenticated mobile route refuses requests without a valid Dent
       expect(revoked).toEqual([]);
     });
   }
+  it("POST items/{id}/change, GET items/{id}/subtitles, DELETE topic-requests/{id}", async () => {
+    const change = await import("./items/[id]/change/route");
+    const subs = await import("./items/[id]/subtitles/route");
+    const topic = await import("./topic-requests/[id]/route");
+    const before = JSON.stringify(db);
+    for (const [label, a] of attempts) {
+      const ctx = { params: Promise.resolve({ id: ITEM_A }) };
+      expect((await change.POST(req(`items/${ITEM_A}/change`, { method: "POST", body: { note: "Shorter please" }, ...a }), ctx)).status, label).toBe(401);
+      expect((await subs.GET(req(`items/${ITEM_A}/subtitles`, { ...a }), ctx)).status, label).toBe(401);
+      expect((await topic.DELETE(req(`topic-requests/${ITEM_A}`, { method: "DELETE", ...a }), ctx)).status, label).toBe(401);
+    }
+    expect(JSON.stringify(db)).toBe(before);
+    expect(queued).toEqual([]);
+  });
+
   it("PATCH items/{id}", async () => {
     const { PATCH } = await import("./items/[id]/route");
     for (const [label, a] of attempts) {

@@ -246,7 +246,8 @@ export const ES: LegalText = {
           blocks: [
             {
               list: [
-                "Cuenta, perfil de la clínica, archivos subidos y vídeos: mientras exista tu cuenta. Cuando eliminas tu cuenta en Ajustes, borramos de inmediato de nuestros sistemas activos tus archivos, vídeos, el perfil de la clínica y las referencias de facturación, y tu acceso salvo que también lo uses para otra app de {brand}. Las copias en las copias de seguridad del servidor se sobrescriben al rotar; a más tardar 30 días después de la eliminación no conservamos datos de DentVideo sobre tu cuenta, salvo lo indicado abajo. No restauramos cuentas eliminadas desde copias de seguridad.",
+                "Vídeos, grabaciones, archivos de subtítulos y otros archivos subidos: mientras tu plan esté activo y durante 90 días después de que termine, para que puedas seguir viéndolos y descargándolos. Después se borran; te escribimos 14 días y 1 día antes. Si vuelves a elegir un plan antes, se conserva todo.",
+                "Cuenta, perfil de la clínica y logotipo: mientras exista tu cuenta. Cuando eliminas tu cuenta en Ajustes, borramos de inmediato de nuestros sistemas activos tus archivos, vídeos, el perfil de la clínica y las referencias de facturación, y tu acceso salvo que también lo uses para otra app de {brand}. Las copias en las copias de seguridad del servidor se sobrescriben al rotar; a más tardar 30 días después de la eliminación no conservamos datos de DentVideo sobre tu cuenta, salvo lo indicado abajo. No restauramos cuentas eliminadas desde copias de seguridad.",
                 "Eventos de uso: se conservan como estadística anónima; al eliminar tu cuenta se elimina su vínculo con tu clínica.",
                 "Facturas y registros de pago: los conserva Dodo Payments como comerciante registrado según sus propias obligaciones legales, y nosotros en la medida en que lo exija la normativa contable y fiscal.",
                 "Contadores de límite de peticiones: de minutos a horas.",
@@ -391,7 +392,7 @@ export const ES: LegalText = {
         {
           heading: "9. Supresión al final",
           blocks: [
-            "La clínica puede descargar sus vídeos en cualquier momento. Cuando elimina su cuenta, borramos sus datos de nuestros sistemas activos de inmediato; las copias en copias de seguridad se sobrescriben al rotar y, a más tardar en 30 días, no conservamos datos de la clínica, salvo que la ley exija conservarlos.",
+            "La clínica puede descargar sus vídeos mientras su plan esté activo y durante 90 días después de que termine; pasados esos 90 días borramos sus vídeos y archivos subidos, y le escribimos 14 días y 1 día antes. Cuando elimina su cuenta, borramos sus datos de nuestros sistemas activos de inmediato; las copias en copias de seguridad se sobrescriben al rotar y, a más tardar en 30 días, no conservamos datos de la clínica, salvo que la ley exija conservarlos.",
           ],
         },
         {

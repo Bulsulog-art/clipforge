@@ -8,7 +8,7 @@ import OpenAI from "openai";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { clinicProfileSchema, type ClinicProfile } from "../dental/profile.js";
-import { produceWeek, type VideoPackage } from "../dental/week.js";
+import { produceVideo, produceWeek, type VideoPackage } from "../dental/week.js";
 import { historyFromRows, type PastItemRow, type PastTopic } from "../dental/memory.js";
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
@@ -33,6 +33,9 @@ import type { TtsProvider } from "../dental/elevenlabs.js";
 import { alertRefusal, sendOwnerAlert, SpendGuard, type AlertSender, type RefusalReason, type SpendOp } from "./spend-guard.js";
 import type { ParkStore } from "./park.js";
 import { probeDuration } from "../lib/media-input.js";
+import { subtitleCues, type Subtitles } from "../dental/subtitles.js";
+import { loadPendingRequests, requestOutcomes, saveOutcomes } from "./topic-requests.js";
+import { topicSchema, type RequestRefusal, type Topic } from "../dental/strategist.js";
 
 /**
  * DentVideo jobs. The product's data lives on Liman (self-hosted Supabase):
@@ -275,16 +278,43 @@ async function clinicGone(db: SupabaseClient, clinicId: string): Promise<boolean
 }
 let insertRetryMs = 2_000;
 
+/**
+ * Columns a week can be stored without: Liman without 0003_dentvid_backgrounds.sql
+ * (the web app recomputes the photo suggestions from the plan) or without
+ * 0025_dentvid_clinic_requests.sql (no subtitle file for these videos). A week
+ * of videos is never lost over either.
+ */
+export const OPTIONAL_ITEM_COLUMNS = ["suggested_backgrounds", "subtitles", "posted_at"] as const;
+
 async function insertOnce(db: SupabaseClient, rows: ItemRow[]) {
   if (!rows.length) return;
-  let { error } = await db.from("dentvid_items").insert(rows);
-  if (error && /suggested_backgrounds/.test(error.message)) {
-    // Liman without 0003_dentvid_backgrounds.sql yet: a week of videos must
-    // not be lost over the suggestions; the web app recomputes them from the plan.
-    logger.warn({ err: error.message }, "dentvid: suggested_backgrounds column missing; inserting without it");
-    ({ error } = await db.from("dentvid_items").insert(rows.map(({ suggested_backgrounds: _drop, ...r }) => r)));
+  let list: Record<string, unknown>[] = rows;
+  let { error } = await db.from("dentvid_items").insert(list);
+  for (const col of OPTIONAL_ITEM_COLUMNS) {
+    if (!error || !error.message.includes(col)) continue;
+    logger.warn({ err: error.message }, `dentvid: ${col} column missing; inserting without it`);
+    list = list.map(({ [col]: _drop, ...r }) => r);
+    ({ error } = await db.from("dentvid_items").insert(list));
   }
   if (error) throw new Error(`insert items: ${error.message}`);
+}
+
+/** An update of one item that drops the optional columns a database does not have yet (OPTIONAL_ITEM_COLUMNS). */
+export async function updateItem(db: SupabaseClient, id: string, patch: Record<string, unknown>): Promise<{ message: string } | null> {
+  let p = patch;
+  let { error } = await db.from("dentvid_items").update(p).eq("id", id);
+  for (const col of OPTIONAL_ITEM_COLUMNS) {
+    if (!error || !(col in p) || !error.message.includes(col)) continue;
+    p = Object.fromEntries(Object.entries(p).filter(([k]) => k !== col));
+    ({ error } = await db.from("dentvid_items").update(p).eq("id", id));
+  }
+  return error;
+}
+
+/** The subtitle cues of a narration just made (dental/subtitles.ts), or undefined without one. */
+export function narrationSubtitles(voice: { plan: ScenePlan; voiceSeconds?: number; pauses?: { start: number; end: number }[]; voiceoverPath?: string }, language: string | undefined): Subtitles | undefined {
+  if (!voice.voiceoverPath) return undefined;
+  return subtitleCues(voice.plan.voiceover?.text, voice.voiceSeconds, voice.pauses, language) ?? undefined;
 }
 
 /**
@@ -454,8 +484,13 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     const pastRows = (past ?? []) as PastItemRow[];
     const history = historyFromRows(pastRows);
     const ids = { clinicId: job.clinicId, ownerId };
+    // Subtitle cues of each rendered file, from its own narration (dental/subtitles.ts).
+    const subtitlesByFile = new Map<string, Subtitles>();
+    // The clinic's suggested topics, planned first (topic-requests.ts); [] without 0025.
+    const requests = await loadPendingRequests(db, job.clinicId);
+    let refused: RequestRefusal[] = [];
 
-    const produce = (count: number, avoidTitles: string[], history: PastTopic[]) =>
+    const produce = (count: number, avoidTitles: string[], history: PastTopic[], withRequests = false) =>
       produceWeek(
         {
           client: new OpenAI(),
@@ -484,11 +519,18 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
               logoSrc: logoPath,
               logoStyle,
             });
+            const subs = narrationSubtitles(voice, profile.language);
+            if (subs) subtitlesByFile.set(res.outputPath, subs);
             return res.outputPath;
           },
         },
         profile,
-        { count, avoidTitles, history },
+        {
+          count,
+          avoidTitles,
+          history,
+          ...(withRequests && requests.length ? { requests: requests.map((r) => r.text), onRefused: (r: RequestRefusal[]) => (refused = r) } : {}),
+        },
       );
 
     const toRows = async (pkgs: VideoPackage[]): Promise<ItemRow[]> => {
@@ -497,7 +539,14 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
         if (pkg.status === "ready" && pkg.videoPath) {
           const stored = await storeWithRetry(db, ownerId, pkg.videoPath);
           // The ready-to-paste Instagram / Shorts texts (post-kit.ts: deterministic, no model call).
-          if (stored) rows.push(withPostKit(rowFromPackage(pkg, ids, stored), profile));
+          if (stored) {
+            const row: ItemRow = withPostKit(rowFromPackage(pkg, ids, stored), profile);
+            const subs = subtitlesByFile.get(pkg.videoPath);
+            if (subs) row.subtitles = subs;
+            // A suggested topic's video gets its id now, so the suggestion can point to it.
+            if ((pkg.topic as { request?: number }).request !== undefined) row.id = randomUUID();
+            rows.push(row);
+          }
           // A video we could not store is not shown as a card that never loads.
           else rows.push(rowFromPackage({ status: "rejected", topic: pkg.topic, stage: "copy", reasons: [], error: "could not store the video file" }, ids));
         } else {
@@ -508,7 +557,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     };
 
     const avoid = pastRows.map((p) => p.title).filter((t): t is string => typeof t === "string");
-    const rows = await toRows(await produce(want, avoid, history));
+    const rows = await toRows(await produce(want, avoid, history, true));
 
     // Top-up: a week short of the promised count (topics the reviewers turned
     // down) gets extra topics for the missing ones — one round, within the
@@ -557,6 +606,12 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
         return { ready: 0, flagged: 0, rejected: 0 };
       }
       throw e;
+    }
+    // What became of the clinic's suggestions (used, refused with a reason, or still pending).
+    if (requests.length) {
+      const outcomes = requestOutcomes(requests, rows, refused, week);
+      if (outcomes.length) await saveOutcomes(db, job.clinicId, outcomes);
+      logger.info({ clinicId: job.clinicId, suggestions: requests.length, outcomes: outcomes.map((o) => o.status) }, "dentvid: topic suggestions");
     }
     const count = (s: ItemRow["status"]) => rows.filter((r) => r.status === s).length;
     const result = { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected"), toppedUp };
@@ -736,17 +791,17 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       onWarn: (m) => logger.warn({ itemId: item.id }, `dentvid: restyle ${m}`),
     });
     const files = await storeVideo(db, item.owner_id as string, res.outputPath);
-    const { error: upd } = await db
-      .from("dentvid_items")
-      .update({
-        video_path: files.videoPath,
-        thumb_path: files.thumbPath ?? null,
-        restyle_status: null,
-        // A row flagged only because its file was missing (or a legacy failed one) is healed by the new file.
-        ...afterRerender(item.status as string | null, item.findings),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", item.id);
+    // The new narration has its own pauses: its subtitles are timed again (none before 0025: dropped by updateItem).
+    const subs = narrationSubtitles(voice, profile.language);
+    const upd = await updateItem(db, item.id as string, {
+      video_path: files.videoPath,
+      thumb_path: files.thumbPath ?? null,
+      restyle_status: null,
+      // A row flagged only because its file was missing (or a legacy failed one) is healed by the new file.
+      ...afterRerender(item.status as string | null, item.findings),
+      ...(subs ? { subtitles: subs } : {}),
+      updated_at: new Date().toISOString(),
+    });
     if (upd) throw new Error(`update item: ${upd.message}`);
     // Only ever delete inside this owner's folder (the paths are on a row the owner can edit).
     const old = [item.video_path, item.thumb_path].filter((p): p is string => ownedKey(p, item.owner_id as string));
@@ -762,6 +817,182 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
         () => {},
       );
     throw e;
+  } finally {
+    void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/* ------------------------------------------------------------ change request */
+
+/** "Ask for a change" on one video (web: POST /api/dentvideo/items/[id]/change; table dentvid_change_requests, 0025). */
+export type ChangeJob = { requestId: string };
+export type ChangeResult = { status: "done" | "refused" | "failed" | "skipped"; reason?: string };
+
+type ChangeRow = { id: string; clinic_id: string; owner_id: string; item_id: string; note: string; status: string };
+
+/**
+ * Re-makes ONLY the one video the clinic asked about, with its note as
+ * guidance (dental/week.ts changeBrief), through exactly the same writer,
+ * reviewers, render and QA as a weekly video:
+ *  - nothing is spent for a clinic that is not paying, and never past the
+ *    spend guard ("change": its $ estimate in the global and clinic caps,
+ *    and at most DENTVID_MAX_CHANGES_PER_CLINIC_WEEK a week) — refused, the
+ *    request fails with "busy" and the owner is alerted;
+ *  - the old video is replaced only once the new one passed every review and
+ *    is stored; a version the reviewers turn down leaves the old one in place
+ *    ("refused", reason "checks");
+ *  - the changed video goes back to "waiting for your approval" (approval
+ *    pending, posted tick cleared): the dentist approves it again;
+ *  - one attempt only (CHANGE_JOB_OPTS on the web side): a technical failure
+ *    marks the request failed and alerts the owner, it is not retried, so a
+ *    change is never paid twice.
+ * Idempotent: a request that is no longer "queued" is left alone.
+ */
+export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
+  const db = dentvidDb();
+  const { data: reqRow, error: reqErr } = await db
+    .from("dentvid_change_requests")
+    .select("id, clinic_id, owner_id, item_id, note, status")
+    .eq("id", job.requestId)
+    .maybeSingle();
+  if (reqErr) throw new Error(`change request ${job.requestId} could not be read: ${reqErr.message}`);
+  const req = reqRow as ChangeRow | null;
+  if (!req) return { status: "skipped", reason: "no such request" };
+  if (req.status !== "queued") return { status: "skipped", reason: `already ${req.status}` };
+  // Claim it atomically (queued → working): a duplicate delivery, or a second worker running the
+  // same job at the same moment, finds nothing to claim and stops before anything is spent.
+  const { data: claimed, error: claimErr } = await db
+    .from("dentvid_change_requests")
+    .update({ status: "working", updated_at: new Date().toISOString() })
+    .eq("id", req.id)
+    .eq("status", "queued")
+    .select("id");
+  if (claimErr) throw new Error(`change request ${req.id} could not be claimed: ${claimErr.message}`);
+  if (!claimed?.length) return { status: "skipped", reason: "already claimed" };
+
+  const mark = async (status: "working" | "done" | "refused" | "failed", reason: string | null = null) => {
+    const now = new Date().toISOString();
+    await db
+      .from("dentvid_change_requests")
+      .update({ status, reason, updated_at: now, ...(status === "working" ? {} : { finished_at: now }) })
+      .eq("id", req.id)
+      .in("status", ["queued", "working"])
+      .then(
+        () => {},
+        () => {},
+      );
+  };
+
+  const { data: itemRow } = await db
+    .from("dentvid_items")
+    .select("id, clinic_id, owner_id, kind, status, topic, plan, video_path, thumb_path")
+    .eq("id", req.item_id)
+    .maybeSingle();
+  const item = itemRow as { id: string; clinic_id: string; owner_id: string; kind: string; status: string; topic: unknown; plan: unknown; video_path: string | null; thumb_path: string | null } | null;
+  // The request names its clinic, owner and video: all three must agree before anything runs.
+  const topic = topicSchema.safeParse(item?.topic);
+  if (!item || item.clinic_id !== req.clinic_id || item.owner_id !== req.owner_id || item.kind !== "generated" || !item.plan || !topic.success) {
+    await mark("refused", "not_possible");
+    return { status: "refused", reason: "not_possible" };
+  }
+  if (!(await paying(db, req.clinic_id, "change"))) {
+    await mark("refused", "no_plan");
+    return { status: "refused", reason: "no_plan" };
+  }
+  // Budget first: nothing below may call a paid API before this passes.
+  const d = await spend.guard.reserve("change", req.clinic_id);
+  if (!d.ok) {
+    await alertRefusal(spend.guard, { op: "change", clinicId: req.clinic_id, reason: d.reason, detail: d.detail, parked: false }, spend.alert).catch(() => false);
+    await mark("failed", "busy");
+    return { status: "failed", reason: "busy" };
+  }
+
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-change-"));
+  try {
+    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, req.clinic_id, workDir);
+    const { request: _drop, ...plainTopic } = topic.data;
+    const base = item.plan as Pick<ScenePlan, "scenes" | "voiceover">;
+    let subtitles: Subtitles | undefined;
+    const pkg = await produceVideo(
+      {
+        client: new OpenAI(),
+        log: (msg, extra) => logger.info({ clinicId: req.clinic_id, requestId: req.id, ...extra }, `dentvid: change ${msg}`),
+        onVideoError: (e) => noteRenderFailure(e).catch(() => {}),
+        render: async (plan, t) => {
+          const dir = await fs.mkdtemp(path.join(workDir, "v-"));
+          const voice = await prepareNarration(plan, dir, profile.language, {
+            ...resolveVoice(profile.language, process.env, profile.country, narratorOf(profile)),
+            onProviderFallback: (e) => logger.warn({ err: e.message, requestId: req.id }, "dentvid: change elevenlabs tts failed, narrated with openai"),
+            onMasterError: (e) => logger.warn({ err: e.message, requestId: req.id }, "dentvid: change narration mastering failed, used the plain voice"),
+          });
+          await meterNarration(voice, req.clinic_id, { requestId: req.id, topic: t.title });
+          const res = await renderPlan({
+            plan: voice.plan,
+            voiceoverSrc: voice.voiceoverPath,
+            workDir: dir,
+            outputPath: path.join(dir, "video.mp4"),
+            pexelsApiKey: process.env.PEXELS_API_KEY,
+            concurrency: renderConcurrency(),
+            logoSrc: logoPath,
+            logoStyle,
+          });
+          subtitles = narrationSubtitles(voice, profile.language);
+          return res.outputPath;
+        },
+      },
+      profile,
+      plainTopic as Topic,
+      new Set(),
+      undefined,
+      { note: req.note, base: { scenes: base.scenes, voiceover: base.voiceover } },
+    );
+    if (pkg.status === "rejected") {
+      if (pkg.error) throw new Error(pkg.error);
+      // The changed version did not pass the reviews: the clinic keeps the video it has.
+      logger.info({ clinicId: req.clinic_id, requestId: req.id, reasons: pkg.reasons.slice(0, 3) }, "dentvid: change did not pass the checks; old video kept");
+      await mark("refused", "checks");
+      return { status: "refused", reason: "checks" };
+    }
+    if (!pkg.videoPath) throw new Error("the changed video was not rendered");
+    const files = await storeVideo(db, ownerId, pkg.videoPath);
+    const row = withPostKit(rowFromPackage(pkg, { clinicId: req.clinic_id, ownerId }, files), profile);
+    const upd = await updateItem(db, item.id, {
+      title: row.title,
+      topic: row.topic,
+      plan: row.plan,
+      copy: row.copy,
+      checks: row.checks,
+      findings: row.findings,
+      status: row.status,
+      shoot_card: row.shoot_card ?? null,
+      qa: row.qa ?? null,
+      video_path: row.video_path,
+      thumb_path: row.thumb_path ?? null,
+      error: null,
+      restyle_status: null,
+      // A changed video is a new video: the dentist approves it again before it goes anywhere.
+      approval: "pending",
+      approval_note: null,
+      posted_at: null,
+      ...(row.suggested_backgrounds?.length ? { suggested_backgrounds: row.suggested_backgrounds } : {}),
+      subtitles: subtitles ?? null,
+      updated_at: new Date().toISOString(),
+    });
+    if (upd) {
+      // The new files are not referenced by anything: remove them, keep the old video.
+      await db.storage.from(BUCKET).remove([files.videoPath, files.thumbPath].filter((k): k is string => !!k)).catch(() => {});
+      throw new Error(`update item: ${upd.message}`);
+    }
+    const old = [item.video_path, item.thumb_path].filter((p): p is string => ownedKey(p, ownerId));
+    if (old.length) await db.storage.from(BUCKET).remove(old).catch(() => {});
+    await mark("done");
+    return { status: "done" };
+  } catch (e) {
+    const error = cleanError(e);
+    logger.error({ clinicId: req.clinic_id, requestId: req.id, err: (e as Error).message }, "dentvid: change request failed");
+    await mark("failed", "technical");
+    await ownerAlert(alerts.changeFailed({ clinic: await clinicRef(db, req.clinic_id), requestId: req.id, itemId: req.item_id, reason: "technical", error })).catch(() => "failed");
+    return { status: "failed", reason: "technical" };
   } finally {
     void fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }

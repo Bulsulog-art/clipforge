@@ -56,7 +56,7 @@ all eight languages (the tests require it).
   a patient, don't forward it; answer from the admin panel and delete the
   attachment from the mailbox.
 
-## Top 10 questions with approved answers
+## Top questions with approved answers
 
 ### 1. When do my first videos arrive?
 
@@ -92,11 +92,11 @@ all eight languages (the tests require it).
 
 ### 6. Can you change a video (wording, topic, my logo or colours)?
 
-- **EN:** Logo, colours, services and language are in Settings, and the next videos use them. For a change to a specific video, reply with the video's title and what you'd like different, and we'll take care of it.
-- **TR:** Logo, renkler, hizmetler ve dil Ayarlar'dadır; sonraki videolar bunları kullanır. Belirli bir videoda değişiklik için videonun başlığını ve neyin farklı olmasını istediğinizi yazmanız yeterli, gerisini biz hallederiz.
-- **DE:** Logo, Farben, Leistungen und Sprache stellen Sie in den Einstellungen ein; die nächsten Videos übernehmen das. Für eine Änderung an einem bestimmten Video antworten Sie mit dem Titel des Videos und was anders sein soll, wir kümmern uns darum.
+- **EN:** Logo, colours, services and language are in Settings, and the next videos use them. To change one specific video, tap "Ask for a change" on its card and write what should be different. Only that video is made again, with the same checks, and you approve it again before posting. You can ask for up to 3 changes a week; if the changed version doesn't pass the checks, your current video stays as it is.
+- **TR:** Logo, renkler, hizmetler ve dil Ayarlar'dadır; sonraki videolar bunları kullanır. Tek bir videoyu değiştirmek için kartındaki "Değişiklik iste"ye dokunup neyin farklı olması gerektiğini yazın. Yalnızca o video aynı kontrollerle yeniden hazırlanır ve paylaşmadan önce yeniden onaylarsınız. Haftada en fazla 3 değişiklik isteyebilirsiniz; değiştirilmiş sürüm kontrollerden geçmezse mevcut videonuz olduğu gibi kalır.
+- **DE:** Logo, Farben, Leistungen und Sprache stellen Sie in den Einstellungen ein; die nächsten Videos übernehmen das. Um ein einzelnes Video zu ändern, tippen Sie auf seiner Karte auf „Änderung anfragen“ und schreiben, was anders sein soll. Nur dieses Video wird mit denselben Prüfungen neu erstellt, und Sie geben es vor dem Posten erneut frei. Bis zu 3 Änderungen pro Woche sind möglich; besteht die geänderte Fassung die Prüfungen nicht, bleibt Ihr bisheriges Video unverändert.
 
-*Internal:* log the request on the clinic in Admin; don't promise a delivery day until it is scheduled.
+*Internal:* Admin → Requests (or the clinic's page) shows each change request, its note and status. A request that failed "technical" or "busy" also sent you an alert; the clinic's old video is untouched. If a clinic needs more than 3 a week, do it by hand rather than raising the cap for everyone (`DENTVID_MAX_CHANGES_PER_CLINIC_WEEK`).
 
 ### 7. I didn't get the email / the code doesn't arrive.
 
@@ -112,17 +112,33 @@ all eight languages (the tests require it).
 - **TR:** Videolarınız kütüphanenizde kalır. Devam etmek için DentVideo'yu açın, Ayarlar → Plan ve faturalandırma bölümünden kartınızı güncelleyin; bir dakika sürer. Lütfen yeni plan satın almayın, iki kez ücretlendirilirsiniz. Düğme çalışmazsa yanıtlayın, size güvenli bir bağlantı gönderelim.
 - **DE:** Ihre Videos bleiben in Ihrer Bibliothek. Um weiterzumachen, öffnen Sie DentVideo, gehen zu Einstellungen → Tarif und Abrechnung und aktualisieren Ihre Karte; das dauert eine Minute. Bitte kaufen Sie keinen neuen Tarif, sonst zahlen Sie doppelt. Funktioniert die Schaltfläche nicht, antworten Sie, wir schicken Ihnen einen sicheren Link.
 
-### 9. How do I cancel? Do I get a refund? Where is my invoice?
+### 9. How do I cancel? Do I get a refund? Where is my invoice? What happens to our videos?
 
-- **EN:** Plans are monthly and you can cancel any time in Settings → Plan and billing. You keep access until the end of the period you've paid for, and the videos you've downloaded stay yours to use. A started period isn't refunded in part, unless the law requires it or the service failed; details are in our Refund Policy. Invoices are issued by Dodo Payments, our payment provider, and are in your payment receipt email.
-- **TR:** Planlar aylıktır, istediğiniz zaman Ayarlar → Plan ve faturalandırma bölümünden iptal edebilirsiniz. Ödediğiniz dönemin sonuna kadar erişiminiz devam eder ve indirdiğiniz videoları kullanmaya devam edebilirsiniz. Başlamış bir dönem için kısmi iade yapılmaz; yasanın gerektirdiği ya da hizmetin aksadığı durumlar hariç. Ayrıntılar İade Politikamızda. Faturaları ödeme sağlayıcımız Dodo Payments düzenler; ödeme makbuzu e-postanızda bulunur.
-- **DE:** Die Tarife sind monatlich und jederzeit in Einstellungen → Tarif und Abrechnung kündbar. Sie behalten den Zugang bis zum Ende des bezahlten Zeitraums, und heruntergeladene Videos dürfen Sie weiter nutzen. Ein begonnener Zeitraum wird nicht anteilig erstattet, außer das Gesetz verlangt es oder der Dienst hat versagt; Einzelheiten stehen in unserer Erstattungsrichtlinie. Rechnungen stellt unser Zahlungsanbieter Dodo Payments aus; Sie finden sie in der Zahlungsbestätigung per E-Mail.
+- **EN:** Plans are monthly and you can cancel any time in Settings → Plan and billing. You keep access until the end of the period you've paid for. After that, your library stays for 90 days, so you can still watch and download your videos; we email you 14 days and 1 day before they are deleted, and the videos you've downloaded stay yours to use. A started period isn't refunded in part, unless the law requires it or the service failed; details are in our Refund Policy. Invoices are issued by Dodo Payments, our payment provider, and are in your payment receipt email.
+- **TR:** Planlar aylıktır, istediğiniz zaman Ayarlar → Plan ve faturalandırma bölümünden iptal edebilirsiniz. Ödediğiniz dönemin sonuna kadar erişiminiz devam eder. Sonrasında kütüphaneniz 90 gün daha kalır; videolarınızı izleyip indirebilirsiniz. Silinmeden 14 gün ve 1 gün önce size e-posta göndeririz; indirdiğiniz videoları kullanmaya devam edebilirsiniz. Başlamış bir dönem için kısmi iade yapılmaz; yasanın gerektirdiği ya da hizmetin aksadığı durumlar hariç. Ayrıntılar İade Politikamızda. Faturaları ödeme sağlayıcımız Dodo Payments düzenler; ödeme makbuzu e-postanızda bulunur.
+- **DE:** Die Tarife sind monatlich und jederzeit in Einstellungen → Tarif und Abrechnung kündbar. Sie behalten den Zugang bis zum Ende des bezahlten Zeitraums. Danach bleibt Ihre Bibliothek noch 90 Tage, damit Sie Ihre Videos ansehen und herunterladen können; wir schreiben Ihnen 14 Tage und 1 Tag vor der Löschung, und heruntergeladene Videos dürfen Sie weiter nutzen. Ein begonnener Zeitraum wird nicht anteilig erstattet, außer das Gesetz verlangt es oder der Dienst hat versagt; Einzelheiten stehen in unserer Erstattungsrichtlinie. Rechnungen stellt unser Zahlungsanbieter Dodo Payments aus; Sie finden sie in der Zahlungsbestätigung per E-Mail.
+
+*Internal:* the 90 days count from the end of the paid period (`dentvid_clinics.plan_ended_at`); the deletion date is on the clinic's admin page and in the app. A clinic that asks for more time: choosing a plan again keeps everything; otherwise point them to Settings → Your data → "Download my data". The worker's daily retention job (`DENTVID_RETENTION_MODE`: `delete` by default, `dry-run`, `off`) never touches active, paused or trial clinics, keeps settings and the logo, and emails you the counts whenever it deletes anything.
 
 ### 10. Can I stop the reminder emails?
 
 - **EN:** Of course. Every reminder has an Unsubscribe link at the bottom, and I've also turned them off for you now. Emails about your account, payments and ready videos still arrive, because they're part of the service.
 - **TR:** Elbette. Her hatırlatmanın altında "Abonelikten çık" bağlantısı var; ben de şimdi sizin için kapattım. Hesabınız, ödemeleriniz ve hazır videolarınızla ilgili e-postalar hizmetin parçası olduğu için gelmeye devam eder.
 - **DE:** Selbstverständlich. Jede Erinnerung hat unten einen Abmelden-Link, und ich habe sie jetzt auch für Sie abgestellt. E-Mails zu Ihrem Konto, zu Zahlungen und zu fertigen Videos kommen weiterhin, weil sie zum Dienst gehören.
+
+### 11. Can I suggest a topic?
+
+- **EN:** Yes. Use "Suggest a topic for next week" on the Videos page or in Settings: one patient question or subject, up to 140 characters. We use waiting suggestions first, up to three a week, when they fit your services and pass the same checks as every video. Under "Your suggestions" you can see what became of each one, with the reason if we couldn't make it.
+- **TR:** Evet. Videolar sayfasında veya Ayarlar'da "Gelecek hafta için konu önerin" bölümünü kullanın: bir hasta sorusu ya da konu, en fazla 140 karakter. Bekleyen önerileri, hizmetlerinize uyduklarında ve her video gibi aynı kontrollerden geçtiklerinde, haftada en fazla üç tane olmak üzere önce kullanırız. "Önerileriniz" bölümünde her birine ne olduğunu, hazırlanamadıysa nedenini görebilirsiniz.
+- **DE:** Ja. Nutzen Sie „Thema für nächste Woche vorschlagen“ auf der Seite „Videos“ oder in den Einstellungen: eine Patientenfrage oder ein Thema, bis zu 140 Zeichen. Wartende Vorschläge nutzen wir zuerst, bis zu drei pro Woche, wenn sie zu Ihren Leistungen passen und dieselben Prüfungen bestehen wie jedes Video. Unter „Ihre Vorschläge“ sehen Sie, was aus jedem geworden ist, und bei einem nicht umgesetzten den Grund.
+
+*Internal:* Admin → Requests lists every suggestion with its status and reason. A suggestion about a service the clinic doesn't list is refused "not offered": suggest they add the service in Settings.
+
+### 12. Do the videos have subtitles? (accessibility, YouTube, TikTok)
+
+- **EN:** Every video shows its key points on screen. For the full narration, tap "Download subtitles (.srt)" in "Post it": the file has the narrator's exact words, timed from the pauses in the narration (close, but not exact to the word, so watch it once with the video). YouTube and Facebook accept the .srt file; Instagram and TikTok don't take subtitle files, but you can turn on the app's own automatic captions and correct them with the .srt text. Videos made before subtitle files existed, and clips from your own recordings, have no .srt file.
+- **TR:** Her video ana mesajlarını ekranda gösterir. Seslendirmenin tamamı için "Paylaş" adımındaki "Altyazıyı indir (.srt)"ye dokunun: dosya seslendirmenin birebir sözlerini içerir; zamanlamalar seslendirmedeki duraklardan hesaplanır (yakındır ama kelimesi kelimesine değildir, bir kez videoyla izleyin). YouTube ve Facebook .srt dosyasını kabul eder; Instagram ve TikTok altyazı dosyası almaz, ancak uygulamanın otomatik altyazısını açıp .srt metniyle düzeltebilirsiniz. Altyazı dosyalarından önce hazırlanan videoların ve kendi kayıtlarınızdan çıkan kliplerin .srt dosyası yoktur.
+- **DE:** Jedes Video zeigt seine Kernaussagen im Bild. Für den vollständigen Sprechertext tippen Sie unter „Posten“ auf „Untertitel herunterladen (.srt)“: Die Datei enthält genau die Worte der Stimme, zeitlich aus den Pausen der Sprachaufnahme berechnet (gut passend, aber nicht wortgenau; sehen Sie sie einmal mit dem Video an). YouTube und Facebook nehmen die .srt-Datei an; Instagram und TikTok nehmen keine Untertiteldatei, aber Sie können die automatischen Untertitel der App einschalten und mit dem .srt-Text korrigieren. Videos aus der Zeit vor den Untertiteldateien und Clips aus Ihren eigenen Aufnahmen haben keine .srt-Datei.
 
 ## Escalate to Berke (owner) when
 
@@ -144,6 +160,7 @@ all eight languages (the tests require it).
 | Start / sample / objections | unpaid clinic, day 0 / 1 / 3 | yes (one-click) | finish preview / choose a plan |
 | Not posted | paying, nothing shared this week | yes | open this week's videos |
 | Monthly | paying, once a month | yes | open the library |
+| Library deletion notice | plan ended: 14 days and 1 day before the videos are deleted | no (about their data) | open the library / download |
 
 Previews of every email in every language: `/dentvideo/dev/email?kind=<kind>&lang=<lang>`
 (kinds in `web/src/lib/dentvid/email-samples.ts`).

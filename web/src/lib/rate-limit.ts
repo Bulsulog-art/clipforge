@@ -182,6 +182,15 @@ export const LIMITS = {
   weekUser: { limit: 10, windowSec: HOUR },
   // Approve / reject an item (cheap DB write).
   itemsUser: { limit: 120, windowSec: 10 * MIN },
+  // "Suggest a topic" (a DB row; the clinic can have 5 waiting at most) and its list.
+  topicRequestUser: { limit: 6, windowSec: HOUR },
+  topicRequestUserDay: { limit: 12, windowSec: DAY },
+  // "Ask for a change" queues a paid re-make of one video: 3 a week per clinic is the
+  // real cap (route + worker spend guard); these only stop a script hammering the route.
+  changeRequestUser: { limit: 6, windowSec: 10 * MIN },
+  changeRequestUserDay: { limit: 10, windowSec: DAY },
+  // A subtitle file is built from stored cues (one DB read).
+  subtitlesUser: { limit: 60, windowSec: 10 * MIN },
   // A signed upload URL (logo / recording): lists the owner folder for the quota.
   uploadUrlUser: { limit: 30, windowSec: 10 * MIN },
   // Save the clinic profile (DB write + storage).

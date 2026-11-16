@@ -11,6 +11,8 @@ import { AppHomeView, RecordView, SettingsView, type ShootCard } from "@/compone
 import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
 import { samplePostTexts } from "@/lib/dentvid/posting-samples";
 import type { BillingIssue } from "@/components/dentvid/billing-issue";
+import type { TopicView } from "@/components/dentvid/clinic-requests";
+import { retentionDates } from "@/lib/dentvid/plan";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = (): Metadata => devPreviewMeta("App preview");
@@ -26,7 +28,9 @@ export const generateMetadata = (): Metadata => devPreviewMeta("App preview");
  *   between (this week not made yet), empty (paid, nothing ever made),
  *   first-week (just paid), paused, cancelled, trial (no plan, old videos), updating,
  *   posting (this week all approved: the post-it step and the posting checklist),
- *   admin-paused (paused by DentVideo from the admin panel), disputed (a chargeback under review)
+ *   admin-paused (paused by DentVideo from the admin panel), disputed (a chargeback under review),
+ *   changing (one video's change being made, one change refused, one changed and waiting for approval)
+ * Paying states show "Suggest a topic for next week" with three suggestions; cancelled shows the 90-day notice.
  * settings states: active (default), paused, trial
  *   &delay=retrying|delayed adds the worker's "taking a little longer" note (library, first-week)
  *   &billing=email shows the path without DODO_API_KEY (default: self-serve);
@@ -54,6 +58,7 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
         selfServe={sp.billing !== "email"}
         initialDialog={sp.dialog === "delete" ? "delete" : null}
         clinicId="00000000-0000-4000-8000-000000000001"
+        topics={planState === "active" ? demoTopics(locale) : undefined}
       />
     );
   }
@@ -102,14 +107,26 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
     items = all.filter((i) => i.status !== "working" && i.status !== "rejected").map((i) => (i.week_of === thisWeek ? { ...i, approval: "approved" as const, status: "ready" as const, reasons: [] } : i))
       // One already ticked as posted (stored on the account), so the week's progress shows.
       .map((i) => (i.id === "t1" ? { ...i, postedAt: new Date().toISOString() } : i));
+  } else if (state === "changing") {
+    const at = new Date().toISOString();
+    items = all.map((i) =>
+      i.id === "t1" ? { ...i, change: { status: "working" as const, reason: null, at } }
+      : i.id === "t3" ? { ...i, change: { status: "refused" as const, reason: "checks" as const, at } }
+      : i.id === "t2" ? { ...i, change: { status: "done" as const, reason: null, at } }
+      : i,
+    );
   } else if (state === "updating") {
     items = all.map((i, n) => (n === 0 && i.photos ? { ...i, photos: { ...i.photos, status: "queued" as const } } : i));
   }
+  const shown = plan ?? demoPlan(planState);
+  // A plan that ended 30 days ago: the library's 90 days, and the date it goes.
+  if (shown.plan === "cancelled") shown.retention = retentionDates("cancelled", new Date(Date.now() - 30 * 86_400_000).toISOString(), null);
   return (
     <AppHomeView
       locale={locale}
       clinicName={demoProfile(locale).name}
-      plan={plan ?? demoPlan(planState)}
+      plan={shown}
+      topics={shown.canMake ? demoTopics(locale) : undefined}
       billingIssue={billingIssue}
       items={items}
       firstWeek={firstWeek}
@@ -121,6 +138,16 @@ export default async function AppPreview({ searchParams }: { searchParams: Promi
       weekDelay={sp.delay === "retrying" || sp.delay === "delayed" ? sp.delay : null}
     />
   );
+}
+
+/** Three suggestions: one waiting, one made last week, one refused (not one of the clinic's services). */
+function demoTopics(locale: Locale): TopicView[] {
+  const c = COPY[locale];
+  return [
+    { id: "00000000-0000-4000-8000-0000000000a1", text: c.titles[3], status: "pending", reason: null, week_of: null },
+    { id: "00000000-0000-4000-8000-0000000000a2", text: c.titles[1], status: "used", reason: null, week_of: weekOf(new Date(Date.now() - 7 * 86_400_000)) },
+    { id: "00000000-0000-4000-8000-0000000000a3", text: c.rejected, status: "refused", reason: "not_offered", week_of: null },
+  ];
 }
 
 function demoPlan(plan: ClinicPlan["plan"], tier: ClinicPlan["tier"] = "practice"): ClinicPlan {
@@ -243,6 +270,7 @@ function demoItems(locale: Locale, thisWeek: string, lastWeek: string): LibraryI
     reasons: [],
     ...media(n),
     photos: photos(n),
+    subtitles: true,
   });
   return [
     { ...base("t1", 0, thisWeek) },

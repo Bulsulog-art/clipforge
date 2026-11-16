@@ -24,6 +24,7 @@ import {
   type PostPlatform,
 } from "@/lib/dentvid/app-ui";
 import type { LibraryItem } from "./library";
+import { SubtitlesLink } from "./clinic-requests";
 
 /**
  * The Monday review, on a phone: one big vertical player per video, swipe
@@ -566,6 +567,8 @@ export function PostPanel({
         )}
       </div>
       <p className="mt-1.5 text-xs text-dv-muted">{p.format}</p>
+      {/* The narration as a subtitle file, next to the video download (YouTube, Facebook). */}
+      {item.subtitles && <SubtitlesLink locale={locale} itemId={item.id} className="mt-1" />}
       {share.note && (
         <p role={share.note.kind === "error" ? "alert" : "status"} className={`mt-2 rounded-xl px-3 py-2 text-sm ${share.note.kind === "error" ? "bg-[#fbeaea] text-[#8a1f1f]" : "bg-dv-teal-50 text-dv-teal"}`}>
           {share.note.text}

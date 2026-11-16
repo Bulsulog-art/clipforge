@@ -45,7 +45,8 @@ export const tr: HelpContent = {
     },
     topics: {
       q: "Konular nasıl seçiliyor, ben konu önerebilir miyim?",
-      a: "Her hafta ayarlarınızdaki hizmetlerden ve hastaların bu hizmetlerle ilgili sorduğu sorulardan beş konu seçeriz. Videolar yalnızca sunduğunuz hizmetler hakkında hazırlanır; bu yüzden en önemlisi hizmet listenizin eksiksiz ve doğru olmasıdır.\n\n“Hazırlamadığımız konular” bölümünde dışarıda kalan konuları nedenleriyle birlikte görürsünüz. Konu önermek için bize konuyu ve ait olduğu hizmeti yazın. Her öneriyi okuruz; uygulamada ayrı bir konu talep formu yoktur.",
+      a: "Her hafta ayarlarınızdaki hizmetlerden ve hastaların bu hizmetlerle ilgili sorduğu sorulardan beş konu seçeriz. Videolar yalnızca sunduğunuz hizmetler hakkında hazırlanır; bu yüzden en önemlisi hizmet listenizin eksiksiz ve doğru olmasıdır.\n\nKonu önermek için Videolar sayfasında veya Ayarlar'da “Gelecek hafta için konu önerin” bölümünü kullanın: bir hasta sorusu ya da konu, en fazla 140 karakter. Bekleyen önerileri, hizmetlerinize uyduklarında ve her video gibi aynı klinik ve reklam kontrollerinden geçtiklerinde, haftada en fazla üç tane olmak üzere önce kullanırız. “Önerileriniz” bölümünde her birine ne olduğunu görürsünüz; hazırlanamayan bir önerinin yanında nedeni yazar. “Hazırlamadığımız konular” bölümünde dışarıda kalan diğer konuları görürsünüz.",
+
     },
     "sign-in": {
       q: "Giriş yapamıyorum ya da e-posta kodu gelmiyor.",
@@ -74,7 +75,8 @@ export const tr: HelpContent = {
     },
     "wrong-video": {
       q: "Bir video hatalı. Ne yapabilirim?",
-      a: "Onaylamayın: onaylanmayan bir video hiçbir yere gitmez. “Reddet”e dokunun, neyin yanlış olduğunu seçin, isterseniz bir not ekleyin. Notunuz videoyla birlikte ekibimize ulaşır.\n\nBelirli bir videonun değişmesini istiyorsanız videonun başlığını ve neyin farklı olması gerektiğini bize yazın. Gelecekteki tüm videoları değiştirmek için (logo, renk, hizmetler, dil, ses) Ayarlar'ı kullanın.",
+      a: "Onaylamayın: onaylanmayan bir video hiçbir yere gitmez. “Reddet”e dokunun, neyin yanlış olduğunu seçin, isterseniz bir not ekleyin. Notunuz videoyla birlikte ekibimize ulaşır.\n\nTek bir videonun değişmesini istiyorsanız kartındaki “Değişiklik iste”ye dokunun ve neyin farklı olması gerektiğini yazın. Yalnızca o video aynı kontrollerle yeniden hazırlanır ve paylaşmadan önce yeniden onaylarsınız. Haftada en fazla 3 değişiklik isteyebilirsiniz. Değiştirilmiş sürüm kontrollerden geçmezse mevcut videonuz olduğu gibi kalır ve kart bunu size söyler. Gelecekteki tüm videoları değiştirmek için (logo, renk, hizmetler, dil, ses) Ayarlar'ı kullanın.",
+
     },
     "background-photos": {
       q: "Bir videonun arka plan fotoğraflarını değiştirebilir miyim?",
@@ -114,7 +116,8 @@ export const tr: HelpContent = {
     },
     captions: {
       q: "Videolarda altyazı var mı? Erişilebilir mi?",
-      a: "Her video ana mesajlarını görüntünün içinde yazı olarak gösterir; böylece ses kapalıyken de takip edilebilir. Bu yazı, seslendirmenin kısa bir özetidir, kelimesi kelimesine döküm değildir ve ayrı bir altyazı dosyası yoktur. Kendi kayıtlarınızdan hazırlanan klipler sizin sözlerinizle altyazılanır.\n\nYazı videonun parçası olduğu için her platformda görünür. Bir platform kendi otomatik altyazısını ekliyorsa bu videolar için kapatabilirsiniz; böylece yazı iki kez görünmez.",
+      a: "Her video ana mesajlarını görüntünün içinde yazı olarak gösterir; böylece ses kapalıyken de takip edilebilir. Bu yazı, seslendirmenin kısa bir özetidir, kelimesi kelimesine döküm değildir.\n\nSeslendirmenin tamamı için “Paylaş” adımında video indirmenin yanındaki “Altyazıyı indir (.srt)”ye dokunun. Dosya, seslendirmenin birebir sözlerini içerir. Zamanlamalar seslendirmedeki duraklardan hesaplanır; yakındır ama kelimesi kelimesine değildir. Yüklemeden önce bir kez videoyla birlikte izleyin. Altyazı dosyaları gelmeden önce hazırlanan videoların ve kendi kayıtlarınızdan çıkan kliplerin .srt dosyası yoktur (klipler sözlerinizi zaten ekranda gösterir).\n\nYouTube ve Facebook, altyazı sundukları yerde videoyla birlikte .srt dosyası yüklemenize izin verir. Instagram ve TikTok altyazı dosyası kabul etmez: ana mesajlar zaten videoda yazılıdır; paylaşırken uygulamanın kendi otomatik altyazısını da açıp .srt dosyasındaki metinle düzeltebilirsiniz. Hiçbir yazının iki kez görünmediğini kontrol edin.",
+
     },
     "other-uses": {
       q: "Videoları web sitemizde ya da bekleme salonunda kullanabilir miyiz?",
@@ -176,7 +179,8 @@ export const tr: HelpContent = {
     },
     "after-cancel": {
       q: "İptalden sonra videolarımıza ne olur?",
-      a: "Ödenen dönem bittiğinde yeni video hazırlanmaz. Kütüphanenizdeki videolar orada kalır; hesabınız durdukça onları izleyebilir, indirebilir ve paylaşabilirsiniz. İndirdiğiniz videoları iptalden sonra da kullanabilirsiniz; saklamak istediklerinizi indirin.\n\nVideolar sayfasından istediğiniz zaman yeniden plan seçebilirsiniz; ayarlarınız korunur. Hesabınızı silerseniz her şey kaldırılır.",
+      a: "Ödenen dönem bittiğinde yeni video hazırlanmaz. Kütüphaneniz bundan sonra 90 gün daha kalır: videolarınızı izlemeye, indirmeye ve paylaşmaya devam edebilirsiniz; tarih Videolar sayfasında yazar. Bu tarihten 14 gün ve 1 gün önce size e-posta göndeririz. 90 günün sonunda videolar, kayıtlar ve altyazı dosyaları silinir; ayarlarınız ve logonuz korunur.\n\nİndirdiğiniz videoları iptalden sonra da kullanabilirsiniz; saklamak istediklerinizi indirin ya da her şeyi tek seferde Ayarlar → Verileriniz → “Verilerimi indir” bölümünden indirin. Bu tarihten önce Videolar sayfasından yeniden plan seçerseniz her şey yerinde kalır. Hesabınızı silerseniz her şey hemen kaldırılır.",
+
     },
     group: {
       q: "İkinci bir şubemiz var. Nasıl ekleriz?",
