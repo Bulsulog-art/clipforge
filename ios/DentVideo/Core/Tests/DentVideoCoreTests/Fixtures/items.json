@@ -1,0 +1,23 @@
+{
+  "currentWeek": "2026-11-16",
+  "items": [
+    {
+      "id": "a1", "kind": "generated", "status": "ready", "approval": "pending", "title": "Zahnseide in zwei Minuten", "week_of": "2026-11-16",
+      "caption": "Einmal am Tag reicht. So geht es richtig.", "hashtags": ["zahnarzt", "zahnseide"],
+      "reasons": [], "videoUrl": "https://liman.example/sign/a1.mp4?token=x", "thumbUrl": "https://liman.example/sign/a1.jpg?token=x",
+      "post": { "instagram": "Einmal am Tag reicht. So geht es richtig.\n\n#zahnarzt #zahnseide", "short": "Einmal am Tag reicht.\n#zahnarzt #zahnseide" },
+      "postedAt": null, "slot": { "date": "2026-11-17", "time": "12:30" }, "shootCard": null
+    },
+    {
+      "id": "a2", "kind": "generated", "status": "flagged", "approval": "pending", "title": "Bleaching: was es kann", "week_of": "2026-11-16",
+      "reasons": ["pause", "brand_new_reason"], "slot": { "date": "2026-11-16", "time": "19:00" },
+      "shootCard": { "opening": "Hallo", "points": ["Eins", "Zwei"], "closing": "Bis bald", "minutes": 2 }
+    },
+    { "id": "a3", "kind": "generated", "status": "working", "approval": "pending", "title": "In Arbeit", "week_of": "2026-11-16", "reasons": [], "slot": null },
+    {
+      "id": "a4", "kind": "generated", "status": "ready", "approval": "approved", "title": "Letzte Woche", "week_of": "2026-11-09",
+      "reasons": [], "postedAt": "2026-11-10T10:00:00Z", "slot": { "date": "2026-11-10", "time": "12:30" }
+    },
+    { "id": "a5", "kind": "recording", "status": "something_new", "approval": "pending", "title": "Aufnahme", "week_of": "2026-11-16", "videoUrl": "not a url with spaces" }
+  ]
+}
