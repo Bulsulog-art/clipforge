@@ -30,7 +30,7 @@ const FAQ_LD = {
       name: "Is ClipForge really free?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes — you get a full clip set free on signup, no credit card. Paste a YouTube link up to 5 minutes and ClipForge cuts and captions it. Plus starts at $6.99/week, or $49.99 a year, if you want more.",
+        text: "Yes — you get a full clip set free on signup, no credit card. Upload a video up to 5 minutes and ClipForge cuts and captions it. Plus starts at $6.99/week, or $49.99 a year, if you want more.",
       },
     },
     {
@@ -46,7 +46,7 @@ const FAQ_LD = {
       name: "What can I turn into clips?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Any long video or podcast — paste a YouTube or TikTok URL, or upload an MP4/MOV. ClipForge finds the most viral moments, adds animated captions and hooks, and gets them ready to post.",
+        text: "Any long video or podcast — upload an MP4/MOV, or paste a TikTok link. (YouTube blocks downloads from our servers, so download a YouTube video first and upload the file.) ClipForge finds the most viral moments, adds animated captions and hooks, and gets them ready to post.",
       },
     },
   ],
@@ -84,7 +84,7 @@ export default function FreeClipMakerPage() {
           The free AI clip maker that <span className="gradient-text">does the work for you.</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-          Paste a YouTube link or upload a podcast. ClipForge finds your most viral moments, captions them, and gets a
+          Upload a podcast or long video. ClipForge finds your most viral moments, captions them, and gets a
           dozen short clips ready to post to TikTok, Reels and Shorts — free to start.
         </p>
         <div className="mt-8 flex justify-center">

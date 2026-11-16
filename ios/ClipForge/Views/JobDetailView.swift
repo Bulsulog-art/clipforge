@@ -171,12 +171,14 @@ struct JobDetailView: View {
                           systemImage: "square.and.arrow.down")
                 }
                 .disabled(bulkBusy)
-                Button {
-                    showBulkPublish = true
-                } label: {
-                    Label("Publish", systemImage: "paperplane.fill")
+                if FeatureGates.socialPublishing {
+                    Button {
+                        showBulkPublish = true
+                    } label: {
+                        Label("Publish", systemImage: "paperplane.fill")
+                    }
+                    .disabled(bulkBusy)
                 }
-                .disabled(bulkBusy)
                 if bulkBusy {
                     ProgressView().controlSize(.small).tint(.white)
                 }

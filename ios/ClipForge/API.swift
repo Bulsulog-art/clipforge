@@ -69,7 +69,7 @@ final class ClipForgeAPI {
         }
         req.httpBody = try JSONEncoder().encode(
             CreateJobBody(
-                sourceType: "youtube",
+                sourceType: "tiktok_url",
                 sourceUrl: sourceUrl,
                 niche: niche,
                 language: "en",

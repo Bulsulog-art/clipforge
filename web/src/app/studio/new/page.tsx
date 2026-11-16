@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Link2, Upload, Loader2, ArrowLeft, ChevronDown, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { isYouTubeSourceUrl, YOUTUBE_BLOCKED_MESSAGE } from "@/lib/source-url";
 
 const NICHES = [
   "motivation", "business", "finance", "health", "tech", "education",
@@ -13,7 +14,7 @@ const NICHES = [
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"url" | "upload">("url");
+  const [tab, setTab] = useState<"url" | "upload">("upload");
   const [url, setUrl] = useState("");
   const [niche, setNiche] = useState("motivation");
   const [language, setLanguage] = useState("en");
@@ -26,14 +27,16 @@ export default function NewProjectPage() {
   const [file, setFile] = useState<File | null>(null);
 
   async function submitUrl() {
-    if (!url.match(/youtube\.com|youtu\.be|tiktok\.com/i)) {
-      return toast.error("Drop a YouTube or TikTok URL.");
+    // YouTube blocks downloads from our servers: say so now, not after a failed job.
+    if (isYouTubeSourceUrl(url)) return toast.error(YOUTUBE_BLOCKED_MESSAGE);
+    if (!url.match(/tiktok\.com/i)) {
+      return toast.error("Paste a TikTok link, or upload a video file.");
     }
     setLoading(true);
     const res = await fetch("/api/jobs", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ sourceType: "youtube", sourceUrl: url, niche, language, prompt: clipPrompt || undefined, captionStyle: captionStyle || undefined, aspect }),
+      body: JSON.stringify({ sourceType: "tiktok_url", sourceUrl: url.trim(), niche, language, prompt: clipPrompt || undefined, captionStyle: captionStyle || undefined, aspect }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -73,7 +76,7 @@ export default function NewProjectPage() {
       </Link>
 
       <h1 className="text-3xl font-bold">New clips</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Paste a link and pick your topic — we&apos;ll do the rest.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Upload a video and pick your topic — we&apos;ll do the rest.</p>
 
       <div className="mt-8 flex gap-2 rounded-lg border border-border bg-muted p-1">
         <button
@@ -93,11 +96,11 @@ export default function NewProjectPage() {
       <div className="mt-6 space-y-4">
         {tab === "url" ? (
           <div>
-            <label className="text-sm font-medium">YouTube or TikTok URL</label>
+            <label className="text-sm font-medium">TikTok URL</label>
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://youtube.com/watch?v=…"
+              placeholder="https://www.tiktok.com/@you/video/…"
               className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-brand/40"
             />
           </div>

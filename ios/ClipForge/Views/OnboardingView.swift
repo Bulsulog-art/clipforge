@@ -16,7 +16,7 @@ struct OnboardingView: View {
         Page(
             kind: .splitClips,
             title: "Long video.\n100+ viral clips.",
-            body: "Drop a YouTube link or your podcast — ClipForge finds the moments worth sharing and edits them with TikTok-style captions, automatically.",
+            body: "Upload your podcast or long video — ClipForge finds the moments worth sharing and edits them with TikTok-style captions, automatically.",
             highlight: "AI does the editing",
             isPushAsk: false
         ),
