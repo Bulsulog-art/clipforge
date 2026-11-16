@@ -10,30 +10,46 @@ import { AI_CRAWLERS, ROBOTS_DISALLOW, robotsTxt } from "@/lib/dentvid/robots";
 
 /**
  * The per-treatment patient-education pages and the posting-rhythm guide
- * (SEO/GEO push, 2026-11-14): a hreflang group per treatment in en/de/tr,
- * real samples only in their own language, every page reachable from an
- * older guide, and the answer-engine files and robots.txt that point to them.
+ * (SEO/GEO push, 2026-11-14; ja/ar/pl/fr/es pass, 2026-11-16): a hreflang
+ * group per treatment, real samples only in their own language, every page
+ * reachable from an older guide, and the answer-engine files and robots.txt
+ * that point to them.
  */
 
-const TREATMENT_TOPICS = ["treatment-implants", "treatment-aligners", "treatment-whitening", "treatment-kids", "treatment-gum-disease", "treatment-root-canal"];
+/** Which languages each treatment page exists in (each group is one hreflang set). */
+const TREATMENT_GROUPS: Record<string, string[]> = {
+  "treatment-implants": ["de", "en", "pl", "tr"],
+  "treatment-aligners": ["de", "en", "ja", "tr"],
+  "treatment-whitening": ["ar", "de", "en", "es", "fr", "pl", "tr"],
+  "treatment-kids": ["de", "en", "tr"],
+  "treatment-gum-disease": ["de", "en", "tr"],
+  "treatment-root-canal": ["de", "en", "tr"],
+};
+const TREATMENT_TOPICS = Object.keys(TREATMENT_GROUPS);
 const linksOf = (g: (typeof GUIDES)[number]) =>
   guideTexts(g).flatMap((t) => parseInline(t).flatMap((p) => (p.kind === "link" ? [p.target] : [])));
 
 describe("treatment pages", () => {
-  it("each treatment has a page in English, German and Turkish, grouped for hreflang", () => {
+  it("each treatment has its pages grouped for hreflang (en, de and tr everywhere, plus the newer languages)", () => {
     for (const topic of TREATMENT_TOPICS) {
       const group = GUIDES.filter((g) => g.topic === topic);
-      expect(group.map((g) => g.locale).sort(), topic).toEqual(["de", "en", "tr"]);
+      expect(group.map((g) => g.locale).sort(), topic).toEqual(TREATMENT_GROUPS[topic]);
       for (const g of group) {
         expect(g.category, g.slug).toBe("treatments");
-        expect(translationsOf(g), g.slug).toHaveLength(3);
+        expect(translationsOf(g), g.slug).toHaveLength(TREATMENT_GROUPS[topic].length);
       }
     }
+    // Every treatment page belongs to one of the known groups.
+    for (const g of GUIDES.filter((x) => x.category === "treatments")) expect(TREATMENT_TOPICS, g.slug).toContain(g.topic);
+  });
+
+  it("Japanese, Arabic and Polish each have at least one treatment page", () => {
+    for (const l of ["ja", "ar", "pl"] as const) expect(guidesFor(l).filter((g) => g.category === "treatments").length, l).toBeGreaterThanOrEqual(1);
   });
 
   it("every treatment page has a risky → safer wording table, links the ad checker and the rules guide of its language", () => {
     for (const g of GUIDES.filter((x) => x.category === "treatments")) {
-      expect(g.sections.some((s) => s.table && s.table.rows.length >= 4 && /[„“"«]/.test(s.table.rows.map((r) => r[0]).join(" "))), g.slug).toBe(true);
+      expect(g.sections.some((s) => s.table && s.table.rows.length >= 4 && /[„“"«「]/.test(s.table.rows.map((r) => r[0]).join(" "))), g.slug).toBe(true);
       const targets = linksOf(g);
       expect(targets, g.slug).toContain("checker:");
       const rules = targets.filter((t) => t.startsWith("guide:")).map((t) => GUIDES.find((o) => o.slug === t.slice(6))!);
@@ -63,7 +79,7 @@ describe("treatment pages", () => {
   });
 
   it("the checker link resolves to the checker in the page's language", () => {
-    for (const l of ["en", "de", "tr", "es"] as const) expect(resolveTarget("checker:", l)).toBe(CHECKER_PATH[l]);
+    for (const l of ["en", "de", "tr", "es", "fr", "ja", "ar", "pl"] as const) expect(resolveTarget("checker:", l)).toBe(CHECKER_PATH[l]);
   });
 
   it("the guides hub has a treatments group label in every language", () => {
@@ -75,19 +91,19 @@ describe("treatment pages", () => {
 });
 
 describe("posting-rhythm guide", () => {
-  it("exists in en, de, es, tr, fr and pl as one hreflang group, with no invented figures", () => {
+  it("exists in en, de, es, tr, fr, pl, ja and ar as one hreflang group, with no invented figures", () => {
     const group = GUIDES.filter((g) => g.topic === "posting-frequency");
-    expect(group.map((g) => g.locale).sort()).toEqual(["de", "en", "es", "fr", "pl", "tr"]);
+    expect(group.map((g) => g.locale).sort()).toEqual(["ar", "de", "en", "es", "fr", "ja", "pl", "tr"]);
     for (const g of group) expect(JSON.stringify(g), g.slug).not.toMatch(/\d\s?%|\b(study|studie|estudio|araştırma) (shows|zeigt|muestra|gösteriyor)/i);
   });
 });
 
 describe("new pages are linked, listed and crawlable", () => {
-  const NEW = GUIDES.filter((g) => g.published === "2026-11-14");
+  const NEW = GUIDES.filter((g) => g.published === "2026-11-14" || g.published === "2026-11-16");
 
   it("every new page is linked from at least one older guide of its language (no orphans)", () => {
     for (const g of NEW) {
-      const from = guidesFor(g.locale).filter((o) => o.published !== "2026-11-14" && linksOf(o).includes(`guide:${g.slug}`));
+      const from = guidesFor(g.locale).filter((o) => o.published! < g.published! && linksOf(o).includes(`guide:${g.slug}`));
       expect(from.length, g.slug).toBeGreaterThanOrEqual(1);
     }
   });
