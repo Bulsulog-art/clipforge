@@ -98,8 +98,9 @@ cd ios/DentVideo && xcodegen generate && open DentVideo.xcodeproj
 > Settings contains account deletion (Settings → Delete account), which deletes the account on our
 > server.
 >
-> Purchasing: DentVideo is sold only to dental clinics (businesses), directly by us, for use by the
-> clinic's own staff, under guideline 3.1.3(c) Enterprise Services. The app contains no purchasing,
+> Purchasing: DentVideo is sold only to dental clinics (businesses), under a business agreement
+> between the clinic and us, for use by the clinic's own staff, under guideline 3.1.3(c) Enterprise
+> Services. Payment is processed on our website by our payment provider (merchant of record). The app contains no purchasing,
 > no prices, and no buttons, links or text directing users to purchase. Accounts without an active
 > plan see a neutral account-status screen with sign-out and account deletion only. Account
 > creation happens outside the app.
@@ -381,9 +382,11 @@ Limits: name 30, subtitle 30, keywords 100 characters (commas between), promotio
 
 ## 4. Age rating (App Store Connect questionnaire)
 
-All "None" / "No", except: **Medical or Treatment Information: Infrequent/Mild** (the videos are
-general dental patient education, for example how to floss). Unrestricted web access: **No** (help,
-privacy and terms links open Safari). User-generated content shared with other users: **No** (a
+All "None" / "No", except: **Medical or Treatment Information: Frequent** (every video is dental
+patient education about a treatment or care topic, so "Frequent" is the honest answer; expect 16+,
+which does not matter for a business app; 2.3.6 wants honest answers). Unrestricted web access:
+**No** (the privacy link opens Safari; there are no in-app Help or Terms links, because the help
+center covers billing and the terms list prices, see 3.1.3). User-generated content shared with other users: **No** (a
 clinic's recordings are visible only to that clinic). Messaging, gambling, contests, ads: **No**.
 Accept whatever rating Apple computes from these answers.
 
@@ -399,7 +402,8 @@ Matches `ios/DentVideo/App/Resources/PrivacyInfo.xcprivacy`.
 | User Content → Audio Data | Yes | Yes | App Functionality | the sound of those recordings |
 | User Content → Other User Content | Yes | Yes | App Functionality | clinic profile edited in Settings, decline notes |
 | Identifiers → Device ID | Yes | Yes | App Functionality | the APNs push token, to deliver the "week ready" notification (declared to be safe; it identifies the phone for push only) |
-| Everything else (location, contacts, health, financial, browsing, search, usage data, diagnostics, purchases) | No | | | the app has no analytics or crash SDK |
+| Usage Data → Product Interaction | Yes | Yes | Analytics | approving a video records a `video_approved` event on the clinic (`dentvid_events`, owner metrics); no third party |
+| Everything else (location, contacts, health, financial, browsing, search, diagnostics, purchases) | No | | | the app has no analytics or crash SDK |
 
 Payment data is not collected by the app (no purchases in the app).
 
