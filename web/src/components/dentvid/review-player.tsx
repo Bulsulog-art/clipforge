@@ -321,10 +321,10 @@ export function ReviewPanel({
   }
 
   return (
-    <section className={`${declining ? "max-h-[72dvh]" : "max-h-[48dvh]"} shrink-0 overflow-y-auto rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-dv-ink sm:px-6 lg:max-h-none lg:rounded-none lg:py-8`}>
+    <section className={`${declining ? "max-h-[72dvh]" : "max-h-[48dvh]"} shrink-0 overflow-y-auto rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-dv-ink shadow-[0_-12px_32px_-16px_rgba(0,0,0,0.5)] sm:px-6 lg:max-h-none lg:rounded-none lg:px-10 lg:py-12 lg:shadow-none`}>
       <div className="mx-auto max-w-xl">
         <StateChip state={state} posted={posted} t={t} />
-        <h2 dir="auto" className="sr-only text-start text-lg font-semibold leading-snug [overflow-wrap:anywhere] lg:not-sr-only lg:mt-2">{item.title}</h2>
+        <h2 dir="auto" className="dv-display sr-only text-balance text-start text-[1.875rem] leading-tight text-dv-ink [overflow-wrap:anywhere] lg:not-sr-only lg:mb-5 lg:mt-3">{item.title}</h2>
 
         {item.reasons.length > 0 && (state === "look" || state === "review") && (
           <div className="mt-3 rounded-xl bg-[#fdf6ea] p-3 text-sm">

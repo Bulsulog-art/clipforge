@@ -212,6 +212,18 @@ export function Library({
         />
       )}
 
+      {/* Nothing made yet: five quiet outlines show where the week's videos will land, instead of an empty page. */}
+      {groups.length === 0 && action !== "locked" && (
+        <section aria-labelledby="week-empty" className="mt-10">
+          <h2 id="week-empty" className="text-lg font-semibold text-dv-ink">{t.review.title}</h2>
+          <ul aria-hidden="true" className="mt-4 grid max-w-4xl grid-cols-3 gap-3 sm:grid-cols-5 sm:gap-4">
+            {Array.from({ length: 5 }, (_, n) => (
+              <li key={n} className={`aspect-[9/16] rounded-2xl border border-dashed border-dv-edge bg-white/40 ${n > 2 ? "max-sm:hidden" : ""}`} />
+            ))}
+          </ul>
+        </section>
+      )}
+
       {groups.length === 0 && action === "locked" && (
         <p className="mt-8 rounded-2xl border border-dashed border-dv-edge p-8 text-center text-dv-body">{text.home.emptyTitle}</p>
       )}
@@ -387,7 +399,7 @@ export function NextStep({
   const Title = level === 1 ? "h1" : "h2";
 
   return (
-    <section className={`dv-card relative overflow-hidden p-5 sm:p-8 ${action === "review" ? "ring-1 ring-dv-teal/25" : ""}`}>
+    <section className={`relative overflow-hidden p-5 sm:p-8 ${action === "review" ? "dv-featured rounded-[var(--dv-radius)]" : "dv-card"}`}>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 max-w-2xl">
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-dv-muted">
@@ -407,7 +419,7 @@ export function NextStep({
             <span aria-hidden="true">·</span>
             <span>{weekLabelDate(currentWeek, locale)}</span>
           </p>
-          <Title className="dv-display mt-2 text-balance text-[2rem] leading-[1.08] text-dv-ink sm:text-[2.5rem]">{title}</Title>
+          <Title className="dv-display dv-h-page mt-2 text-dv-ink">{title}</Title>
           <p className="mt-2 max-w-xl text-[0.9375rem] leading-relaxed text-dv-body">{delay ? (delay === "delayed" ? h.delayDelayed : h.delayRetrying) : lead}</p>
           {total > 1 && action !== "share" && (
             <div className="mt-5 max-w-sm">
@@ -579,14 +591,14 @@ function ItemCard({
   const canRestyle = !!item.photos && playable && state !== "declined";
 
   return (
-    <li className="dv-card flex flex-col overflow-hidden">
+    <li className="dv-card dv-lift flex flex-col overflow-hidden">
       <div className="flex gap-4 p-3 sm:p-4">
         {playable ? (
           <button
             type="button"
             onClick={onOpen}
             aria-label={fmt(t.play, { title: item.title })}
-            className={`group relative aspect-[9/16] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-dv-teal-950 sm:w-24 ${state === "declined" ? "opacity-50 grayscale" : ""}`}
+            className={`group relative aspect-[9/16] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-dv-teal-950 shadow-[0_1px_2px_rgba(20,33,31,0.12)] ring-1 ring-inset ring-black/5 sm:w-28 ${state === "declined" ? "opacity-50 grayscale" : ""}`}
           >
             {item.thumbUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- a short-lived signed URL
@@ -595,13 +607,13 @@ function ItemCard({
               <video src={item.videoUrl} preload="metadata" muted playsInline className="h-full w-full object-cover" aria-hidden="true" tabIndex={-1} />
             )}
             <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/35 to-transparent">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-dv-teal shadow-lg transition group-hover:scale-105">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-dv-teal shadow-lg backdrop-blur-sm transition duration-300 group-hover:scale-105">
                 <Play className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true" />
               </span>
             </span>
           </button>
         ) : (
-          <div className="flex aspect-[9/16] w-[5.5rem] shrink-0 items-center justify-center rounded-xl bg-dv-sand ring-1 ring-inset ring-dv-line sm:w-24">
+          <div className="flex aspect-[9/16] w-[5.5rem] shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-dv-sand to-dv-sand-200 ring-1 ring-inset ring-dv-line sm:w-28">
             {state === "failed" ? (
               <AlertTriangle className="h-6 w-6 text-[#8a1f1f]" aria-hidden="true" />
             ) : (
@@ -625,7 +637,7 @@ function ItemCard({
               </span>
             )}
           </p>
-          <h3 dir="auto" className="mt-2 text-start text-[0.9375rem] font-semibold leading-snug text-dv-ink [overflow-wrap:anywhere]">{item.title}</h3>
+          <h3 dir="auto" className="mt-2.5 text-start text-base font-semibold leading-snug text-dv-ink [overflow-wrap:anywhere]">{item.title}</h3>
           {item.kind === "recording" && <p className="mt-1 text-xs text-dv-muted">{t.fromRecording}</p>}
           {/* The posting time matters once it is approved, not before. */}
           {slot && state === "approved" && !posted && (

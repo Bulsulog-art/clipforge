@@ -180,7 +180,7 @@ export const VerifyCard = forwardRef<VerifyCardHandle, Props>(function VerifyCar
   const hintId = `${ids}-hint`;
 
   return (
-    <section ref={cardRef} aria-labelledby={`${ids}-title`} className="dv-card mx-auto max-w-3xl scroll-mt-24 p-5 ring-2 ring-dv-teal/30 sm:p-7">
+    <section ref={cardRef} aria-labelledby={`${ids}-title`} className="dv-card mx-auto max-w-[60rem] scroll-mt-24 p-5 ring-2 ring-dv-teal/30 sm:p-7">
       <div className="flex items-start gap-4">
         <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-dv-teal-50 text-dv-teal">
           <MailCheck className="h-5 w-5" />
@@ -326,7 +326,7 @@ export const VerifyCard = forwardRef<VerifyCardHandle, Props>(function VerifyCar
 /** The card's place once the code matched. */
 export function VerifiedNote({ locale }: { locale: Locale }) {
   return (
-    <p role="status" className="mx-auto flex max-w-3xl items-center gap-2 rounded-xl bg-[#e6f2ef] px-4 py-3 text-sm font-medium text-[#0f5c5c]">
+    <p role="status" className="mx-auto flex max-w-[60rem] items-center gap-2 rounded-xl bg-[#e6f2ef] px-4 py-3 text-sm font-medium text-[#0f5c5c]">
       <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
       {verifyText(locale).done}
     </p>

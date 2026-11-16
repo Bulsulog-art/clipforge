@@ -177,7 +177,7 @@ describe("rendered pages offer no Group checkout", () => {
       expect(card, l).toContain(`href="${groupMailto(l).replace(/&/g, "&amp;")}"`);
       expect(card, l).toContain(GROUP_CONTACT[l].cta);
       // Exactly two buy buttons: Starter and Practice.
-      expect(panel.match(/<button type="button"[^>]*class="dv-btn group w-full/g)?.length, l).toBe(2);
+      expect(panel.match(/<button type="button"[^>]*class="dv-btn w-full/g)?.length, l).toBe(2);
       // A legacy Group subscriber still sees the plan's name.
       expect(html(createElement(PlanStatus, { locale: l, state: "active", tier: "group", renewsAt: null })), l).toContain("Group");
     }

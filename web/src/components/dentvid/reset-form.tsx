@@ -71,7 +71,7 @@ export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; loc
       <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
       <div className="mx-auto flex max-w-md flex-col px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
-        <h1 className="dv-display mt-6 text-center text-[2.5rem] leading-[1.05] sm:text-5xl">{t.resetTitle}</h1>
+        <h1 className="dv-display dv-h-page mt-6 text-center text-dv-ink">{t.resetTitle}</h1>
         {phase === "invalid" ? (
           <div className="dv-card mt-9 space-y-4 p-6 sm:p-8">
             <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{t.linkInvalid}</p>

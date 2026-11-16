@@ -596,7 +596,9 @@ export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
         <h2 id="clinic-brand" className={heading}>{text.settings.brandHeading}</h2>
         <BrandFields draft={draft} locale={locale} showLogoPreview />
       </section>
-      <div className={`sticky bottom-0 z-10 -mx-4 border-t border-dv-line bg-dv-paper/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none ${draft.dirty || busy || error ? "" : "max-sm:static max-sm:mx-0 max-sm:border-0 max-sm:bg-transparent max-sm:px-0 max-sm:py-0 max-sm:backdrop-blur-none"}`}>
+      {/* With unsaved changes the save button stays in reach at the bottom of the screen (phones and desktops);
+          otherwise it sits quietly under the form. */}
+      <div className={draft.dirty || busy || error ? "sticky bottom-3 z-10 rounded-2xl bg-white/95 p-3 shadow-[var(--dv-shadow-3)] backdrop-blur sm:bottom-5 sm:p-4" : ""}>
         {error && <p className="mb-3 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <button type="submit" disabled={busy} className="dv-btn dv-btn-primary w-full px-8 py-3 sm:w-auto">
