@@ -162,6 +162,7 @@ final class WeekJourneyTests: DVTestCase {
         launch()
         openVideo("d3")
         let toggle = wait(el("video.posted"))
+        scrollTo(toggle)
         // The switch sits at the trailing end of the row.
         toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         wait(text(Strings.value("state.posted")), 6)

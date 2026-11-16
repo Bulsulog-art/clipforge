@@ -64,8 +64,14 @@ struct WeekView: View {
         }
         .onChange(of: model.openItemID, initial: true) { _, id in
             guard let id else { return }
-            path = model.items.contains(where: { $0.id == id }) ? [id] : []
             model.openItemID = nil
+            let known = model.items.contains(where: { $0.id == id })
+            // Let the tab switch finish first: on iOS 17 a path set while the week tab is still
+            // hidden is dropped (a notification tap from Settings opened only the week).
+            Task {
+                try? await Task.sleep(for: .milliseconds(300))
+                path = known ? [id] : []
+            }
         }
         .task {
             if model.isDemo("approve-all") {

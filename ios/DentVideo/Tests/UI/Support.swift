@@ -57,17 +57,34 @@ class DVTestCase: XCTestCase {
         app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", s)).firstMatch
     }
 
+    /// A tab: in the tab bar on iPhone; on iPad (iPadOS 18+) the tabs sit in the top bar and are
+    /// not inside a tab bar element, so fall back to any button with that label.
     func tab(_ key: String, lang: String = "en") -> XCUIElement {
-        app.tabBars.buttons[Strings.value(key, lang)].firstMatch
+        let label = Strings.value(key, lang)
+        let inBar = app.tabBars.buttons[label].firstMatch
+        if inBar.exists { return inBar }
+        let any = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+        if any.waitForExistence(timeout: 2) { return any }
+        return inBar
     }
 
+    /// Focus a field (retrying: on iOS 17 the first tap sometimes does not give keyboard focus) and type.
     func type(_ field: XCUIElement, _ s: String) {
-        field.tap()
+        for _ in 0..<4 {
+            field.tap()
+            if (field.value(forKey: "hasKeyboardFocus") as? Bool) == true { break }
+            usleep(400_000)
+        }
         field.typeText(s)
     }
 
     func clear(_ field: XCUIElement) {
-        field.tap()
+        // Put the cursor at the end (fields may be right-aligned), then delete everything.
+        for _ in 0..<4 {
+            field.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
+            if (field.value(forKey: "hasKeyboardFocus") as? Bool) == true { break }
+            usleep(400_000)
+        }
         let n = (field.value as? String)?.count ?? 0
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: n + 2))
     }

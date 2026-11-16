@@ -62,6 +62,7 @@ struct PostSheet: View {
                             // Photos access refused: the share sheet still offers "Save Video" and the apps.
                             ShareLink(item: file, subject: Text(item.title)) { Label(L("post.more"), systemImage: "square.and.arrow.up") }
                                 .buttonStyle(.dvSecondary)
+                                .accessibilityIdentifier("post.more")
                         }
                     case .preparing:
                         HStack(spacing: 12) {

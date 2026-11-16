@@ -26,6 +26,8 @@ print(next((t['identifier'] for t in json.load(sys.stdin)['devicetypes'] if t['n
   UDID=$(xcrun simctl create "DV $DEVICE" "$TYPE" "$RUNTIME")
 fi
 echo "Testing on $DEVICE, $RUNTIME ($UDID)"
+# The software keyboard, as on a phone (a connected Mac keyboard hides it and can steal focus).
+defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false || true
 xcrun simctl boot "$UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$UDID" -b >/dev/null
 
