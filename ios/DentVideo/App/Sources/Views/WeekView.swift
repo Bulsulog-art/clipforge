@@ -10,6 +10,8 @@ struct WeekView: View {
     @State private var confirmAll = false
     @State private var showEarlier = false
     @State private var approvedBatch = 0
+    /// A video a link or notification asked for, opened once the week tab is on screen.
+    @State private var pendingOpen: String?
     @Environment(\.dynamicTypeSize) private var type
 
     private var sections: [WeekBoard.Section] { WeekBoard.sections(model.items) }
@@ -65,20 +67,30 @@ struct WeekView: View {
         .onChange(of: model.openItemID, initial: true) { _, id in
             guard let id else { return }
             model.openItemID = nil
-            let known = model.items.contains(where: { $0.id == id })
-            // Let the tab switch finish first: on iOS 17 a path set while the week tab is still
-            // hidden is dropped (a notification tap from Settings opened only the week).
-            Task {
-                try? await Task.sleep(for: .milliseconds(300))
-                path = known ? [id] : []
-            }
+            pendingOpen = id
+            openPending()
         }
+        // On iOS 17 a path set while the week tab is still hidden is dropped (a notification tap
+        // from Settings opened only the week): open it again when the tab is on screen.
+        .onAppear { openPending() }
+        .onChange(of: model.tab) { _, tab in if tab == .week { openPending() } }
         .task {
             if model.isDemo("approve-all") {
                 try? await Task.sleep(for: .milliseconds(400))
                 confirmAll = true
             }
             if model.isDemo("week-empty") { showEarlier = true }
+        }
+    }
+
+    private func openPending() {
+        guard let id = pendingOpen else { return }
+        let known = model.items.contains(where: { $0.id == id })
+        Task {
+            try? await Task.sleep(for: .milliseconds(350))
+            guard pendingOpen == id else { return }
+            path = known ? [id] : []
+            pendingOpen = nil
         }
     }
 
