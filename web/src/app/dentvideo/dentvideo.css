@@ -473,6 +473,10 @@ html:has(.dv) {
   .dv :lang(ja) :is(li, .dv-btn, label, dt, figcaption) {
     word-break: auto-phrase;
   }
+  /* The app's short leads too ("始めら|れます"): the signed-in screens and the sign-up steps. */
+  .dv main:lang(ja) :is(p, dd) {
+    word-break: auto-phrase;
+  }
 }
 .dv .dv-h1:lang(ja) {
   max-width: 13em;
