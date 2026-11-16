@@ -28,7 +28,8 @@ Klinik başına ayrı uygulama yapılmayacak (4.2.6). Tek uygulama var, klinik b
 - Bilinen risk: tek hekimli bir klinik "single user" satış gibi görülebilir.
 - Bilinen gerilim: aboneliği teknik olarak Dodo Payments satıyor (merchant of record) ve faturayı Dodo kesiyor. 3.1.3(c)'deki "sold directly by you" ifadesi bu durumda zayıflıyor. İnceleme notu "sözleşme doğrudan klinikle, ödeme aracısı Dodo" diye dürüst yazılmalı. "Biz fatura keseriz" denmemeli.
 - Yardım bağlantısı gönderimden önce kaldırıldı. Yardım merkezi doğrudan faturalama içeriği taşıyor: fiyatlar, plan değiştirme, kart güncelleme. Plan sorusunun cevabı "the plan screen in the app" diye başlıyor, oysa iOS uygulamasında böyle bir ekran yok. Yardımın yerine destek e-postası var.
-- Açık risk: Gizlilik ve Koşullar bağlantıları kaldı. Gizlilik bağlantısı 5.1.1(i) gereği zorunlu. Bu sayfaların menüsünde "Pricing" bağlantısı var. İnceleme bu yüzden reddederse Koşullar bağlantısı kaldırılır ya da sitede menüsüz bir `?app=1` görünümü açılır.
+- Koşullar bağlantısı da gönderimden önce kaldırıldı. Kullanım koşulları sayfasının gövdesinde "Plans, prices and payment" bölümü ve fiyat listesi var.
+- Kalan tek dış bağlantı Gizlilik; 5.1.1(i) gereği zorunlu. Sayfanın menüsünde "Pricing" bağlantısı var, gövdede Dodo ile ödeme bölümü var. İnceleme bunu reddederse sitede menüsüz bir `?app=1` gizlilik görünümü açılır.
 
 ### Fiyat değişmedi
 
@@ -57,7 +58,7 @@ Fiyatlar aynı kalıyor: Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 
 
 ## Karar 5: Sunucu tarafı
 
-- Uygulamanın API çağrıları yalnız `/api/dentvideo/mobile/v1/*` adresine gidiyor. Video oynatma ve kayıt yükleme, sunucunun verdiği imzalı depolama URL'lerini kullanıyor. Gizlilik ve Koşullar siteyi açıyor. Bu yol yalnız Bearer kabul ediyor, cookie okumuyor ve web rotalarıyla aynı işleyicileri kullanıyor.
+- Uygulamanın API çağrıları yalnız `/api/dentvideo/mobile/v1/*` adresine gidiyor. Video oynatma ve kayıt yükleme, sunucunun verdiği imzalı depolama URL'lerini kullanıyor. Gizlilik bağlantısı siteyi açıyor. Bu yol yalnız Bearer kabul ediyor, cookie okumuyor ve web rotalarıyla aynı işleyicileri kullanıyor.
 - Canlıda doğrulandı (2026-11-16):
   - Tokensiz `GET me` → 401.
   - Yanlış şifreyle `POST session` → 401 `invalid_credentials`.

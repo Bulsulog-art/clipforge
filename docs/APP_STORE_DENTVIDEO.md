@@ -385,8 +385,8 @@ Limits: name 30, subtitle 30, keywords 100 characters (commas between), promotio
 All "None" / "No", except: **Medical or Treatment Information: Frequent** (every video is dental
 patient education about a treatment or care topic, so "Frequent" is the honest answer; expect 16+,
 which does not matter for a business app; 2.3.6 wants honest answers). Unrestricted web access:
-**No** (privacy and terms links open Safari; there is no in-app Help link, because the help center
-covers billing, see 3.1.3). User-generated content shared with other users: **No** (a
+**No** (the privacy link opens Safari; there are no in-app Help or Terms links, because the help
+center covers billing and the terms list prices, see 3.1.3). User-generated content shared with other users: **No** (a
 clinic's recordings are visible only to that clinic). Messaging, gambling, contests, ads: **No**.
 Accept whatever rating Apple computes from these answers.
 

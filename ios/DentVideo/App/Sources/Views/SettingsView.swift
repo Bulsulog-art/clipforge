@@ -80,12 +80,12 @@ struct SettingsView: View {
                 }
 
                 Section(L("settings.help")) {
-                    // Help center left out on purpose: it covers billing (3.1.3); support email instead.
+                    // Help center and terms left out on purpose: they cover billing and prices (3.1.3);
+                    // support email instead. Privacy stays (5.1.1(i)).
                     if let mail = URL(string: "mailto:\(Config.supportEmail)") {
                         Link(destination: mail) { row(L("settings.contact"), value: Config.supportEmail, icon: "envelope") }
                     }
                     Link(destination: Config.page("privacy")) { row(L("legal.privacy"), icon: "hand.raised") }
-                    Link(destination: Config.page("terms")) { row(L("legal.terms"), icon: "doc.text") }
                 }
                 .foregroundStyle(Theme.ink)
 
