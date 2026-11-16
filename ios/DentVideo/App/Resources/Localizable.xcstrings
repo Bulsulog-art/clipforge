@@ -2604,49 +2604,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Any running subscription is cancelled"
+            "value": "If a subscription is still running, you'll be asked to cancel it first"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein laufendes Abo wird gekündigt"
+            "value": "Läuft noch ein Abo, werden Sie gebeten, es zuerst zu kündigen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se cancela cualquier suscripción en curso"
+            "value": "Si aún tienes una suscripción activa, se te pedirá que la canceles primero"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Devam eden abonelik iptal edilir"
+            "value": "Hâlâ devam eden bir abonelik varsa önce iptal etmeniz istenir"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tout abonnement en cours est résilié"
+            "value": "Si un abonnement est encore en cours, vous serez invité à le résilier d'abord"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "継続中の契約は解約されます"
+            "value": "継続中の契約がある場合は、先に解約をお願いします"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يُلغى أي اشتراك قائم"
+            "value": "إذا كان هناك اشتراك قائم، فسيُطلب منك إلغاؤه أولًا"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trwająca subskrypcja zostanie anulowana"
+            "value": "Jeśli subskrypcja nadal trwa, najpierw poprosimy o jej anulowanie"
           }
         }
       }
@@ -3283,59 +3283,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resetowanie hasła"
-          }
-        }
-      }
-    },
-    "legal.help": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Help"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hilfe"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ayuda"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yardım"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aide"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ヘルプ"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "المساعدة"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pomoc"
           }
         }
       }

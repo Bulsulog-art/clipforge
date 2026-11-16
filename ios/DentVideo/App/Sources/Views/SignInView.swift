@@ -77,7 +77,8 @@ struct SignInView: View {
                 HStack(spacing: 16) {
                     Link(L("legal.privacy"), destination: Config.page("privacy"))
                     Link(L("legal.terms"), destination: Config.page("terms"))
-                    Link(L("legal.help"), destination: Config.page("help"))
+                    // No Help link in the app: the help center answers billing and plan questions
+                    // (prices, change plan, update card), which an iOS app may not point to (3.1.3).
                 }
                 .font(.footnote)
                 .foregroundStyle(Theme.muted)

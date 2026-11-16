@@ -80,7 +80,7 @@ struct SettingsView: View {
                 }
 
                 Section(L("settings.help")) {
-                    Link(destination: Config.page("help")) { row(L("legal.help"), icon: "questionmark.circle") }
+                    // Help center left out on purpose: it covers billing (3.1.3); support email instead.
                     if let mail = URL(string: "mailto:\(Config.supportEmail)") {
                         Link(destination: mail) { row(L("settings.contact"), value: Config.supportEmail, icon: "envelope") }
                     }
