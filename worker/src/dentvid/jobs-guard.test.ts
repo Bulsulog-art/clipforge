@@ -32,6 +32,8 @@ let clinicReadError: { message: string } | null = null;
 let clinicTier: string | null = null;
 let itemPlan: unknown = { scenes: [] };
 let clinicProfile: unknown = {};
+/** The App Review demo clinic flag (0024). */
+let clinicDemo = false;
 
 /** Enough of supabase-js for the guard paths: an active clinic and one generated item. */
 function fakeDb() {
@@ -43,7 +45,7 @@ function fakeDb() {
     q.in = () => ({ then: (res: (v: unknown) => void) => res({ count: 0, error: null }) });
     q.limit = async () => ({ data: [] });
     q.maybeSingle = async () =>
-      table === "dentvid_clinics" && clinicReadError ? { data: null, error: clinicReadError } : { data: table === "dentvid_clinics" ? { plan: "active", plan_tier: clinicTier } : null, error: null };
+      table === "dentvid_clinics" && clinicReadError ? { data: null, error: clinicReadError } : { data: table === "dentvid_clinics" ? { plan: "active", plan_tier: clinicTier, review_demo: clinicDemo } : null, error: null };
     q.single = async () =>
       table === "dentvid_items"
         ? { data: { id: "item-1", clinic_id: CLINIC, owner_id: OWNER, kind: "generated", plan: itemPlan, video_path: null, thumb_path: null }, error: null }
@@ -72,6 +74,26 @@ beforeEach(() => {
   clinicTier = null;
   itemPlan = { scenes: [] };
   clinicProfile = {};
+  clinicDemo = false;
+});
+
+describe("the App Review demo clinic (0024 review_demo)", () => {
+  it("a restyle is refused before any spend: card marked failed, no TTS, no render", async () => {
+    clinicDemo = true;
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => guardConfig({})), alert: vi.fn(async () => true) });
+    expect(await runDentvidRestyle({ itemId: "item-1" })).toEqual({ ok: false });
+    expect(prepareVoiceover).not.toHaveBeenCalled();
+    expect(renderPlan).not.toHaveBeenCalled();
+    expect(updates).toContainEqual(expect.objectContaining({ restyle_status: "failed" }));
+  });
+
+  it("a week is refused before any spend", async () => {
+    clinicDemo = true;
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => guardConfig({})), alert: vi.fn(async () => true) });
+    expect(await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { jobId: "w" })).toEqual({ ready: 0, flagged: 0, rejected: 0 });
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(openaiCtor).not.toHaveBeenCalled();
+  });
 });
 
 describe("dentvid jobs behind the spend guard", () => {

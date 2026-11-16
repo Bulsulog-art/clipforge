@@ -64,6 +64,8 @@ export type ClinicRow = {
   profile?: { country?: string; timezone?: string } | null;
   /** The owner paused this clinic from the admin panel (0010_dentvid_admin.sql); absent before that migration. */
   admin_paused_at?: string | null;
+  /** The App Review demo clinic (0024_dentvid_review_demo.sql): active by hand, never paid, so no automatic weeks. */
+  review_demo?: boolean | null;
 };
 
 /** Only a paying clinic has videos made (no API spend before payment). */
@@ -76,8 +78,16 @@ export function shouldRun(c: Pick<ClinicRow, "plan" | "admin_paused_at">): boole
   return isPaying(c.plan) && !c.admin_paused_at;
 }
 
+/**
+ * Gets the Monday batch (and is watched for it): paying, not paused, and not the App Review demo
+ * clinic, whose plan is set by hand without a payment, so no week is made for it on our cost.
+ */
+export function getsWeeks(c: Pick<ClinicRow, "plan" | "admin_paused_at" | "review_demo">): boolean {
+  return shouldRun(c) && !c.review_demo;
+}
+
 export function clinicsToRun(clinics: ClinicRow[]): string[] {
-  return clinics.filter(shouldRun).map((c) => c.id);
+  return clinics.filter(getsWeeks).map((c) => c.id);
 }
 
 export const weekJobId = (clinicId: string, week: string) => `week:${clinicId}:${week}`;
@@ -93,7 +103,7 @@ export type BatchEntry = { clinicId: string; tz: string; deadline: Date; hoursTo
  */
 export function planBatch(clinics: ClinicRow[], week: string, now: Date): BatchEntry[] {
   return clinics
-    .filter(shouldRun)
+    .filter(getsWeeks)
     .map((c, i) => {
       const tz = clinicTimeZone(c.profile?.country, c.profile?.timezone);
       const deadline = mondayMorning(week, tz);

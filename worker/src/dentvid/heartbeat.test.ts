@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { beat, COST_DAILY_KEY, HEARTBEAT_KEY, heartbeatField, heartbeatPayload, oldCostDays, staleHeartbeatFields } from "./heartbeat.js";
 import { afterRerender, MISSING_VIDEO } from "./rows.js";
-import { clinicsToRun, planBatch, shouldRun } from "./schedule.js";
+import { clinicsToRun, getsWeeks, planBatch, shouldRun } from "./schedule.js";
 
 const NOW = new Date("2026-11-11T12:00:30Z");
 
@@ -74,6 +74,20 @@ describe("re-render heals a row", () => {
   it("a reviewer's verdict is left alone", () => {
     expect(afterRerender("rejected", ["claim"])).toEqual({});
     expect(afterRerender("ready", [])).toEqual({});
+  });
+});
+
+describe("App Review demo clinic", () => {
+  it("is active but gets no Monday batch (its plan is set by hand, nobody pays for the week)", () => {
+    expect(getsWeeks({ plan: "active", admin_paused_at: null, review_demo: true })).toBe(false);
+    expect(getsWeeks({ plan: "active", admin_paused_at: null, review_demo: false })).toBe(true);
+    expect(getsWeeks({ plan: "active" })).toBe(true);
+    const clinics = [
+      { id: "a", plan: "active", profile: { country: "US" } },
+      { id: "demo", plan: "active", profile: { country: "US" }, review_demo: true },
+    ];
+    expect(clinicsToRun(clinics)).toEqual(["a"]);
+    expect(planBatch(clinics, "2026-11-16", NOW).map((b) => b.clinicId)).toEqual(["a"]);
   });
 });
 

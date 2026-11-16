@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, type WeekJobData } from "./job-options.js";
-import { activeClinicRows, deliveryWeek, shouldRun, weekJobId, weekOf, type ClinicRow } from "./schedule.js";
+import { activeClinicRows, deliveryWeek, getsWeeks, weekJobId, weekOf, type ClinicRow } from "./schedule.js";
 import { clinicTimeZone, mondayMorning } from "./timezone.js";
 import { alerts, weekStateKey, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
 import { supabaseWatchDb, type WatchQueue } from "./watchdog.js";
@@ -45,7 +45,7 @@ export const STUCK_ACTIVE_MS = 90 * 60_000;
 export type PayingClinic = { id: string; tz: string };
 
 export interface DeliveryDb {
-  /** Paying clinics that should get weeks (schedule.ts shouldRun), with their time zone. */
+  /** Paying clinics that should get weeks (schedule.ts getsWeeks), with their time zone. */
   payingClinics(): Promise<PayingClinic[]>;
   /** Activations (first payment or back from paused / cancelled) since a time (watchdog.ts firstPayments). */
   activations(since: Date): Promise<{ clinicId: string; paidAt: string }[]>;
@@ -217,7 +217,7 @@ export function supabaseDeliveryDb(db: SupabaseClient): DeliveryDb {
   return {
     async payingClinics() {
       return (await activeClinicRows<ClinicRow>(db))
-        .filter(shouldRun)
+        .filter(getsWeeks)
         .map((c) => ({ id: c.id, tz: clinicTimeZone(c.profile?.country, c.profile?.timezone) }));
     },
     activations: (since) => watch.firstPayments(since),

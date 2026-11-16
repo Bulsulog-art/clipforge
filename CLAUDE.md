@@ -52,6 +52,19 @@ of record). Products: Starter `pdt_0NrVahwZsINvy3TNz2H35`, Practice `pdt_0NrVai0
 6. Migrations in `supabase/liman/` are applied by hand after review; run the check queries at the
    bottom of each file. Existing rows must still pass the guards.
 
+## Release gate (owner rule: nothing ships until we are certain)
+
+- **Web and worker:** a change reaches production only after every check passes, the risky paths
+  (money, auth, data, emails, worker spend) have tests for success AND failure, cross-clinic access
+  is tested for any new endpoint, and the changed screens were looked at in a local build. After the
+  deploy, verify live; roll back at once if anything is off.
+- **iOS app:** nothing goes to TestFlight external testers or App Store review until
+  `docs/IOS_RELEASE_CHECKLIST.md` is fully green: unit + XCUITest suites on several simulators and
+  iOS versions, and the owner's manual test on a real iPhone (sign-in, approve, post to Instagram and
+  TikTok, record and upload, push notification). Internal TestFlight builds are allowed only for
+  that testing. The owner approves every App Store submission explicitly.
+- When in doubt, do not ship: write down what is unproven and test it first.
+
 ## Quality references
 
 - `docs/KNOWN_MISTAKES.md`: every mistake seen in a render, and the check that now catches it.
