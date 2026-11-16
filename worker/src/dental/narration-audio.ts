@@ -5,6 +5,7 @@ import type { ScenePlan } from "../remotion/scene-plan.js";
 import { detectPauses, masterNarration, mixNarrationWithMusic, type MasterOptions } from "./audio-master.js";
 import { speechText } from "./speech-text.js";
 import { speakingTempo } from "./voice.js";
+import type { TtsProvider } from "./elevenlabs.js";
 
 /**
  * DentVideo narration end to end: the text the voice reads (speech-text.ts),
@@ -29,6 +30,9 @@ export type Narration = {
   voiceoverPath?: string;
   voiceSeconds?: number;
   voiceModel?: string;
+  /** Which provider spoke ("openai" | "elevenlabs") and the characters it was sent (metering). */
+  ttsProvider?: TtsProvider;
+  ttsChars?: number;
   /** True when the file is the mastered (and maybe music-mixed) one. */
   mastered?: boolean;
 };
@@ -65,6 +69,7 @@ export async function prepareNarration(
 
   try {
     const src = await rawTtsFile(voice.voiceoverPath);
+    // The tempo factors were measured on tts-1-hd only; ElevenLabs ("elevenlabs:<model>") keeps its own pace (factor 1).
     const tempo = master?.tempo ?? speakingTempo(language, voice.voiceModel);
     const mastered = await masterNarration(src, path.join(workDir, "voiceover.master.wav"), { ...master, tempo });
     let out = mastered;
@@ -87,6 +92,8 @@ export async function prepareNarration(
       voiceoverPath: out.path,
       voiceSeconds: out.seconds,
       voiceModel: voice.voiceModel,
+      ttsProvider: voice.ttsProvider,
+      ttsChars: voice.ttsChars,
       mastered: true,
     };
   } catch (e) {

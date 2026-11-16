@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { LANGUAGES, type ClinicProfile } from "@/lib/dentvid/profile";
+import { LANGUAGES, type ClinicProfile, type NarratorVoice } from "@/lib/dentvid/profile";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { accentFor, analyseLogoFile, isDecodableImage, type LogoColors } from "@/lib/dentvid/logo-colors";
@@ -45,6 +45,8 @@ export type DraftFields = {
   bookingUrl: string;
   /** The clinic's own closing line under its captions; "" for none. */
   closingLine: string;
+  /** Who narrates the videos; female unless the clinic picks male. */
+  narratorVoice: NarratorVoice;
   brandColor: string;
 };
 
@@ -79,6 +81,7 @@ export function useClinicDraft({
     handle: initial?.handle ?? "",
     bookingUrl: initial?.bookingUrl ?? "",
     closingLine: initial?.closingLine ?? "",
+    narratorVoice: initial?.narratorVoice ?? "female",
     brandColor: initial?.brandColor ? `#${initial.brandColor.replace(/^#/, "").toLowerCase()}` : "#0f5c5c",
   });
   const [logo, setLogo] = useState<File | null>(null);
@@ -165,6 +168,9 @@ export function useClinicDraft({
       handle: p.handle || undefined,
       bookingUrl: p.bookingUrl || undefined,
       closingLine: p.closingLine.trim() || undefined,
+      // Sent once it means something (male, or a choice already stored), so a
+      // first save does not carry a key the pre-0022 database refuses.
+      ...(p.narratorVoice === "male" || initial?.narratorVoice ? { narratorVoice: p.narratorVoice } : {}),
       brandColor: p.brandColor,
     };
     const res = await fetch("/api/dentvideo/clinic", {
@@ -335,6 +341,7 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
       <HandleField draft={draft} t={t} />
       {booking}
       <ClosingLineField draft={draft} locale={locale} />
+      <NarratorVoiceField draft={draft} locale={locale} />
     </div>
   );
 }
@@ -373,6 +380,49 @@ export function ClosingLineField({ draft, locale }: { draft: ClinicDraft; locale
         <span dir="ltr" aria-hidden="true" className={`shrink-0 tabular-nums ${left < 15 ? "text-dv-ink" : "text-dv-muted"}`}>{left}</span>
       </span>
     </label>
+  );
+}
+
+/**
+ * Who narrates the clinic's videos: a female or a male voice (settings only,
+ * like the closing line). The worker maps it to the provider's voice
+ * (worker/src/dental/voice.ts, dental/elevenlabs.ts).
+ */
+export function NarratorVoiceField({ draft, locale }: { draft: ClinicDraft; locale: Locale }) {
+  const t = appText(locale).form;
+  const { p, update } = draft;
+  const options: { value: NarratorVoice; label: string }[] = [
+    { value: "female", label: t.narratorFemale },
+    { value: "male", label: t.narratorMale },
+  ];
+  return (
+    <fieldset className="sm:col-span-2" data-field="narratorVoice" aria-describedby="dv-narrator-help">
+      <legend className={label}>{t.narratorVoice}</legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {options.map((o) => {
+          const on = p.narratorVoice === o.value;
+          return (
+            <label
+              key={o.value}
+              className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ring-1 transition focus-within:ring-2 focus-within:ring-dv-teal ${
+                on ? "bg-dv-teal text-white ring-dv-teal" : "bg-white text-dv-ink ring-dv-line hover:ring-dv-teal"
+              }`}
+            >
+              <input
+                type="radio"
+                name="dv-narrator-voice"
+                value={o.value}
+                checked={on}
+                onChange={() => update("narratorVoice", o.value)}
+                className="sr-only"
+              />
+              {o.label}
+            </label>
+          );
+        })}
+      </div>
+      <span id="dv-narrator-help" className="mt-1.5 block text-xs font-normal text-dv-muted">{t.narratorVoiceHelp}</span>
+    </fieldset>
   );
 }
 

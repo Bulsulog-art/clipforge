@@ -7,7 +7,7 @@ const OTHER = "9f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f";
 let row: Record<string, unknown> | null;
 /** Simulates the 0004 trigger (before 0008): a versioned logo name is quietly refused. */
 let oldTrigger = false;
-/** Simulates the 0007 profile guard before 0021: an owner write with "closingLine" is refused (23514). */
+/** Simulates the profile guard before 0021/0022: an owner write with "closingLine" or "narratorVoice" is refused (23514). */
 let oldGuard = false;
 let objects: Map<string, number>;
 /** Stored bytes, when a test cares; anything else reads as a PNG. */
@@ -30,7 +30,8 @@ vi.mock("@/lib/dentvid/auth", () => ({
           maybeSingle: async () => ({ data: row, error: null }),
           upsert: (r: Record<string, unknown>) => ((upsert = r), q),
           single: async () => {
-            if (oldGuard && (upsert?.profile as Record<string, unknown> | undefined)?.closingLine !== undefined)
+            const prof = upsert?.profile as Record<string, unknown> | undefined;
+            if (oldGuard && (prof?.closingLine !== undefined || prof?.narratorVoice !== undefined))
               return { data: null, error: { code: "23514", message: "dentvid: clinic profile rejected (unknown key or invalid value)" } };
             const next = { ...(row ?? { id: "c1" }), ...upsert! };
             if (oldTrigger && typeof next.logo_path === "string" && !LEGACY.test(next.logo_path)) next.logo_path = row?.logo_path ?? null;
@@ -190,5 +191,23 @@ describe("POST /api/dentvideo/clinic — the clinic's own closing line", () => {
     expect(adminUpdates).toHaveLength(1);
     expect((row!.profile as Record<string, unknown>).closingLine).toBe(closingLine);
     expect((row!.profile as Record<string, unknown>).name).toBe("Riverside Dental");
+  });
+
+  it("works before migration 0022: the narrator choice is added with the service role", async () => {
+    oldGuard = true;
+    const r = await save({ profile: { ...profile, narratorVoice: "male" } });
+    expect(r.status).toBe(200);
+    expect(adminUpdates).toHaveLength(1);
+    expect((row!.profile as Record<string, unknown>).narratorVoice).toBe("male");
+    expect((row!.profile as Record<string, unknown>).name).toBe("Riverside Dental");
+  });
+
+  it("stores the narrator choice as the owner once 0022 is applied, and refuses an unknown one", async () => {
+    const ok = await save({ profile: { ...profile, narratorVoice: "female" } });
+    expect(ok.status).toBe(200);
+    expect(adminUpdates).toHaveLength(0);
+    expect((row!.profile as Record<string, unknown>).narratorVoice).toBe("female");
+    const bad = await save({ profile: { ...profile, narratorVoice: "robot" } });
+    expect(bad.status).toBe(400);
   });
 });

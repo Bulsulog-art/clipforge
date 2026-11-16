@@ -1,5 +1,6 @@
 import ffmpeg from "fluent-ffmpeg";
 import { synthesizeSpeech } from "../steps/tts.js";
+import { synthesizeEleven, ttsChars, type ElevenConfig, type TtsProvider } from "../dental/elevenlabs.js";
 import { FPS, LIMITS, totalSeconds, type ScenePlan } from "./scene-plan.js";
 
 /**
@@ -152,31 +153,66 @@ export type VoiceOptions = {
   instructions?: string;
   /** Called when the configured model failed and tts-1-hd was used instead. */
   onFallback?: (err: Error) => void;
+  /**
+   * Narrate with ElevenLabs first (dental/elevenlabs.ts resolveEleven; set
+   * only when DENTVID_TTS_PROVIDER=elevenlabs). Any failure — no key, non-2xx,
+   * timeout — falls back to the OpenAI path above for this video.
+   */
+  eleven?: ElevenConfig;
+  /** Called when ElevenLabs was selected but OpenAI narrated the video. */
+  onProviderFallback?: (err: Error) => void;
+  /** Tests: the HTTP client and environment ElevenLabs is called with. */
+  elevenFetch?: typeof fetch;
+  elevenEnv?: Record<string, string | undefined>;
 };
 
-export async function prepareVoiceover(
-  plan: ScenePlan,
-  workDir: string,
-  opts: VoiceOptions = {},
-): Promise<{ plan: ScenePlan; voiceoverPath?: string; voiceSeconds?: number; voiceModel?: string }> {
+export type Voiceover = {
+  plan: ScenePlan;
+  voiceoverPath?: string;
+  voiceSeconds?: number;
+  /** "tts-1-hd", or "elevenlabs:<model>" when ElevenLabs spoke. */
+  voiceModel?: string;
+  /** Which provider spoke, and how many characters it was sent (metering). */
+  ttsProvider?: TtsProvider;
+  ttsChars?: number;
+};
+
+export async function prepareVoiceover(plan: ScenePlan, workDir: string, opts: VoiceOptions = {}): Promise<Voiceover> {
   const text = plan.voiceover?.text?.trim();
   if (!text) return { plan };
   const base = { text, voiceId: plan.voiceover?.voice ?? "nova", workDir, label: "voiceover" };
   const model = opts.model ?? DEFAULT_VOICE_MODEL;
   let used = model;
-  const audioPath = await synthesizeSpeech({ ...base, modelId: model, instructions: opts.instructions })
-    .catch(async (err: Error) => {
+  let provider: TtsProvider = "openai";
+  const viaOpenAI = () =>
+    synthesizeSpeech({ ...base, modelId: model, instructions: opts.instructions }).catch(async (err: Error) => {
       // A newer model failing (outage, quota, a voice it lacks) must not cost
       // the video: say it once more on the long-standing model, plainly.
       if (model === DEFAULT_VOICE_MODEL) throw err;
       opts.onFallback?.(err);
       used = DEFAULT_VOICE_MODEL;
       return synthesizeSpeech({ ...base, modelId: DEFAULT_VOICE_MODEL });
-    })
-    .then((r) => r.audioPath);
+    });
+  let audioPath: string;
+  if (opts.eleven) {
+    const eleven = opts.eleven;
+    audioPath = await synthesizeEleven({ text, workDir, label: base.label, cfg: eleven, env: opts.elevenEnv, fetchImpl: opts.elevenFetch })
+      .then((r) => {
+        provider = "elevenlabs";
+        used = `elevenlabs:${eleven.model}`;
+        return r.audioPath;
+      })
+      .catch(async (err: Error) => {
+        // ElevenLabs selected but unusable for this video: OpenAI speaks it, and the caller logs why.
+        opts.onProviderFallback?.(err);
+        return (await viaOpenAI()).audioPath;
+      });
+  } else {
+    audioPath = (await viaOpenAI()).audioPath;
+  }
   const loud = await normalizeLoudness(audioPath);
   const voiceSeconds = await probeSeconds(loud);
-  return { plan: fitPlanToVoice(plan, voiceSeconds), voiceoverPath: loud, voiceSeconds, voiceModel: used };
+  return { plan: fitPlanToVoice(plan, voiceSeconds), voiceoverPath: loud, voiceSeconds, voiceModel: used, ttsProvider: provider, ttsChars: ttsChars(text) };
 }
 
 /**

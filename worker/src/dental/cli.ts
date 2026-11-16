@@ -35,7 +35,8 @@ import { produceWeek } from "./week.js";
 import { clipsFromRecording } from "./recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { prepareNarration } from "./narration-audio.js";
-import { resolveVoice } from "./voice.js";
+import { narratorOf, resolveVoice } from "./voice.js";
+import { ttsCostUsd } from "./elevenlabs.js";
 import { readyLogo, logoStyleOf } from "./logo.js";
 import { meterClient, spendCap, usageCost, type Usage } from "./eval.js";
 
@@ -119,13 +120,16 @@ async function main() {
         ? async (plan, topic) => {
             const dir = path.join(outDir, slug(topic.title));
             await fs.mkdir(dir, { recursive: true });
-            const voiceCfg = resolveVoice(profile.language, process.env, profile.country);
-            ttsUsd += (plan.voiceover?.text.length ?? 0) * (TTS_USD_PER_CHAR[voiceCfg.model] ?? 30e-6);
+            const voiceCfg = resolveVoice(profile.language, process.env, profile.country, narratorOf(profile));
             const voice = await prepareNarration(plan, dir, profile.language, {
               ...voiceCfg,
               onFallback: (e) => console.warn(`  ! tts model failed, used tts-1-hd: ${e.message}`),
+              onProviderFallback: (e) => console.warn(`  ! elevenlabs failed, narrated with openai: ${e.message}`),
               onMasterError: (e) => console.warn(`  ! narration mastering failed, used the plain voice: ${e.message}`),
             });
+            // Priced by the provider and model that actually spoke.
+            const chars = voice.ttsChars ?? plan.voiceover?.text.length ?? 0;
+            ttsUsd += voice.ttsProvider === "elevenlabs" ? ttsCostUsd(chars, "elevenlabs") : chars * (TTS_USD_PER_CHAR[voice.voiceModel ?? voiceCfg.model] ?? 30e-6);
             // The plan as rendered (timed to the mastered voice, cuts on its pauses):
             // the preview library replays it scene for scene (build-dentvideo-preview.mts).
             await fs.writeFile(path.join(dir, "render-plan.json"), JSON.stringify(voice.plan, null, 2));

@@ -9,7 +9,7 @@ import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./complian
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
 import { isUnspaced, marketRules, speechRate, speechTarget, speechUnits, variantRule } from "./locale.js";
-import { voiceFor } from "./voice.js";
+import { narratorOf, openaiVoiceFor } from "./voice.js";
 import { screenNotice, withCaptionNotice } from "./mandatory-notice.js";
 import { planWeek, sharpenHooks, type Topic } from "./strategist.js";
 import { AFTERCARE_GUIDE, reviewAccuracy, type AccuracyResult } from "./accuracy.js";
@@ -652,7 +652,8 @@ export async function produceVideo(
     clinic: profile.name,
     ...(notice ? { disclaimer: notice } : {}),
     language: profile.language,
-    ...(guarded.voiceover ? { voiceover: { ...guarded.voiceover, voice: voiceFor(profile.language, guarded.voiceover.voice) } } : {}),
+    // The clinic chooses the narrator (settings: female unless it picked male), not the planner.
+    ...(guarded.voiceover ? { voiceover: { ...guarded.voiceover, voice: openaiVoiceFor(profile.language, narratorOf(profile)) } } : {}),
   };
   const safe: ScenePlan = chosen.length ? { ...withLang, backgrounds: chosen } : withLang;
   const branded = profile.brandColor

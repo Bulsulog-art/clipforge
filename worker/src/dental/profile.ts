@@ -87,6 +87,13 @@ export const clinicProfileSchema = z.object({
    * Owner writes need supabase/liman/0021_dentvid_closing_line.sql.
    */
   closingLine: text(4, 140).optional().catch(undefined),
+  /**
+   * Who narrates the clinic's videos: a female or a male voice (OpenAI
+   * nova/onyx, or the ElevenLabs voices in dental/elevenlabs.ts). Unset means
+   * female (voice.ts narratorOf). Set in the app's clinic settings; owner
+   * writes need supabase/liman/0022_dentvid_narrator_voice.sql.
+   */
+  narratorVoice: z.enum(["female", "male"]).optional().catch(undefined),
   /** Where a viewer books. Goes in the caption, never on screen, never fetched. */
   bookingUrl: z.string().trim().regex(BOOKING_URL).optional().catch(undefined),
 });
