@@ -52,12 +52,14 @@ struct DeleteAccountView: View {
                     Text(L("delete.type", word)).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     TextField(word, text: $typed)
+                        .accessibilityIdentifier("delete.field")
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .modifier(FieldStyle())
                         .accessibilityLabel(L("delete.type", word))
                     if let error {
                         Text(error).font(.subheadline).foregroundStyle(Theme.danger).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("delete.error")
                     }
                     Button(role: .destructive) {
                         Task {
@@ -69,6 +71,7 @@ struct DeleteAccountView: View {
                         if busy { ProgressView().tint(Theme.onFill) } else { Text(L("delete.button")) }
                     }
                     .buttonStyle(.dvDestructive)
+                    .accessibilityIdentifier("delete.submit")
                     .disabled(!matches || busy)
                 }
                 .padding(Theme.s5)
@@ -78,7 +81,7 @@ struct DeleteAccountView: View {
             .background(Theme.paper.ignoresSafeArea())
             .navigationTitle(L("settings.delete"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("common.cancel")) { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("common.cancel")) { dismiss() }.accessibilityIdentifier("delete.cancel") } }
         }
         .presentationBackground(Theme.paper)
     }

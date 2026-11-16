@@ -45,6 +45,9 @@ final class CameraModel {
     }
 
     func toggleRecording() {
+        #if DEBUG
+        if demo { demoToggle(); return }
+        #endif
         if isRecording { engine.stop(); return }
         take = nil
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("take-\(UUID().uuidString).mov")
@@ -70,6 +73,28 @@ final class CameraModel {
         take = result
         failed = result == nil
     }
+
+    #if DEBUG
+    /// Demo mode: a take without a camera (a small placeholder file).
+    private func demoToggle() {
+        if isRecording {
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("take-\(UUID().uuidString).mov")
+            try? Data(repeating: 7, count: 4096).write(to: url)
+            finished(url)
+        } else {
+            take = nil
+            isRecording = true
+            startedAt = Date()
+            elapsed = 0
+            timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+                Task { @MainActor in
+                    guard let self, let s = self.startedAt else { return }
+                    self.elapsed = Date().timeIntervalSince(s)
+                }
+            }
+        }
+    }
+    #endif
 
     func discardTake() {
         if let take { try? FileManager.default.removeItem(at: take) }

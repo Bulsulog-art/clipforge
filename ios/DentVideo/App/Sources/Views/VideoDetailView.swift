@@ -45,7 +45,7 @@ struct VideoDetailView: View {
             VStack(alignment: .leading, spacing: Theme.s5) {
                 PlayerCard(item: item)
                 VStack(alignment: .leading, spacing: Theme.s3) {
-                    StateChip(state: state)
+                    StateChip(state: state).accessibilityIdentifier("video.state")
                     Text(item.title)
                         .font(Theme.display(.title))
                         .foregroundStyle(Theme.ink)
@@ -70,6 +70,7 @@ struct VideoDetailView: View {
                 if state == .approved || state == .posted || state == .declined {
                     Button(L("video.undo")) { run { await model.undoDecision(item) } }
                         .buttonStyle(.dvQuiet)
+                        .accessibilityIdentifier("video.undo")
                         .frame(maxWidth: .infinity)
                         .disabled(busy)
                 }
@@ -129,6 +130,7 @@ struct VideoDetailView: View {
             Label(L("video.markPosted"), systemImage: "paperplane").font(.body).foregroundStyle(Theme.ink)
         }
         .tint(Theme.teal)
+        .accessibilityIdentifier("video.posted")
         .padding(.horizontal, Theme.s4)
         .frame(minHeight: 56)
         .dvCard()
@@ -146,6 +148,7 @@ struct VideoDetailView: View {
                     if type.isAccessibilitySize { approveButton(item) }
                     Button { declining = true } label: { Label(L("video.decline"), systemImage: "xmark") }
                         .buttonStyle(.dvSecondary)
+                        .accessibilityIdentifier("video.decline")
                     if !type.isAccessibilitySize { approveButton(item) }
                 }
             }
@@ -153,6 +156,7 @@ struct VideoDetailView: View {
             bar {
                 Button { posting = true } label: { Label(L("video.post"), systemImage: "square.and.arrow.up") }
                     .buttonStyle(.dvPrimary)
+                    .accessibilityIdentifier("video.post")
             }
         default:
             EmptyView()
@@ -167,6 +171,7 @@ struct VideoDetailView: View {
             }
         } label: { Label(L("video.approve"), systemImage: "checkmark") }
             .buttonStyle(.dvPrimary)
+            .accessibilityIdentifier("video.approve")
     }
 
     private func bar<C: View>(@ViewBuilder _ content: () -> C) -> some View {
@@ -275,6 +280,7 @@ struct DeclineSheet: View {
                     TextField(L("decline.placeholder"), text: $note, axis: .vertical)
                         .lineLimit(3...6)
                         .focused($focused)
+                        .accessibilityIdentifier("decline.note")
                         .padding(14)
                         .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous).strokeBorder(focused ? Theme.teal : Theme.line))
@@ -291,6 +297,7 @@ struct DeclineSheet: View {
                     }
                     .buttonStyle(.dvPrimary)
                     .disabled(busy)
+                    .accessibilityIdentifier("decline.submit")
                 }
                 .padding(Theme.s5)
             }

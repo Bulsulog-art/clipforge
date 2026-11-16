@@ -27,9 +27,11 @@ struct SettingsView: View {
                         NavigationLink { ClinicDetailsForm(profile: clinic.profile) } label: {
                             row(L("settings.clinicDetails"), value: clinic.profile.name, icon: "building.2")
                         }
+                        .accessibilityIdentifier("settings.clinic")
                         NavigationLink { VideoSettingsForm(profile: clinic.profile) } label: {
                             row(L("settings.videos"), value: L10n.languageName(clinic.profile.language), icon: "film")
                         }
+                        .accessibilityIdentifier("settings.videos")
                     }
                     .dvFormRows()
                 }
@@ -107,8 +109,10 @@ struct SettingsView: View {
                         }
                     }
                     Button(L("settings.signOut")) { confirmSignOut = true }
+                        .accessibilityIdentifier("settings.signOut")
                         .foregroundStyle(Theme.teal)
                     Button(L("settings.delete"), role: .destructive) { deleting = true }
+                        .accessibilityIdentifier("settings.delete")
                         .foregroundStyle(Theme.danger)
                 } header: {
                     Text(L("settings.account"))
@@ -209,10 +213,12 @@ struct ClinicDetailsForm: View {
             Section {
                 LabeledContent(L("clinic.name")) {
                     TextField(L("clinic.name"), text: $profile.name).textContentType(.organizationName)
+                        .accessibilityIdentifier("clinic.name")
                         .multilineTextAlignment(.trailing)
                 }
                 LabeledContent(L("clinic.city")) {
                     TextField(L("clinic.city"), text: Binding($profile.city, ""))
+                        .accessibilityIdentifier("clinic.city")
                         .textContentType(.addressCity)
                         .multilineTextAlignment(.trailing)
                 }
@@ -256,6 +262,7 @@ struct ClinicDetailsForm: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button(L("common.save")) { Task { await save() } }
+                    .accessibilityIdentifier("clinic.save")
                     .disabled(saving || profile.name.trimmingCharacters(in: .whitespaces).isEmpty || profile.services.isEmpty)
             }
         }
@@ -308,6 +315,7 @@ struct VideoSettingsForm: View {
             .dvFormRows()
             Section {
                 TextField(L("videos.closing.placeholder"), text: Binding($profile.closingLine, ""), axis: .vertical)
+                    .accessibilityIdentifier("videos.closing")
                     .lineLimit(2...4)
             } header: {
                 Text(L("videos.closing"))
@@ -329,6 +337,7 @@ struct VideoSettingsForm: View {
                     }
                 }
                 .disabled(saving)
+                .accessibilityIdentifier("videos.save")
             }
         }
     }

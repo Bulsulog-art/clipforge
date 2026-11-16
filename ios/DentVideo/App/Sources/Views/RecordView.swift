@@ -50,6 +50,7 @@ struct RecordView: View {
                             Label(L("record.free"), systemImage: "video")
                         }
                         .buttonStyle(.dvSecondary)
+                        .accessibilityIdentifier("record.free")
                         if !clips.isEmpty { finished }
                     }
                 }
@@ -136,6 +137,7 @@ struct CardView: View {
             }
             Button(action: record) { Label(L("record.start"), systemImage: "record.circle") }
                 .buttonStyle(.dvPrimary)
+                .accessibilityIdentifier("record.start")
         }
         .padding(Theme.s4)
         .dvCard()
@@ -199,13 +201,16 @@ struct UploadRow: View {
                 HStack(spacing: 16) {
                     if entry.problem != .tooLarge && entry.problem != .type && entry.problem != .needsPlan {
                         Button(L("common.retry")) { model.uploads.retry(entry.id) }.frame(minHeight: 44)
+                            .accessibilityIdentifier("upload.retry")
                     }
                     Button(L("upload.remove"), role: .destructive) { model.uploads.remove(entry.id) }.frame(minHeight: 44)
+                        .accessibilityIdentifier("upload.remove")
                 }
                 .font(.subheadline.weight(.semibold))
             }
         }
         .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("upload.\(entry.state.rawValue)")
     }
 }
 
@@ -242,6 +247,11 @@ struct CameraScreen: View {
             #if DEBUG
             if model.isDemo("camera-live") { camera.access = .granted; camera.demo = true; return }
             if model.isDemo("camera-denied") { camera.access = .denied; return }
+            if model.isDemo("flow") {
+                camera.demo = true
+                camera.access = DemoFlags.camera == "denied" ? .denied : .granted
+                return
+            }
             #endif
             await camera.prepare()
         }
@@ -267,6 +277,7 @@ struct CameraScreen: View {
                 HStack {
                     Button { dismiss() } label: { Image(systemName: "xmark").font(.title3.weight(.semibold)).frame(width: 44, height: 44) }
                         .accessibilityLabel(L("common.close"))
+                        .accessibilityIdentifier("camera.close")
                         .disabled(camera.isRecording)
                     Spacer()
                     if camera.isRecording {
@@ -319,6 +330,7 @@ struct CameraScreen: View {
                     }
                 }
                 .accessibilityLabel(camera.isRecording ? L("camera.stop") : L("camera.record"))
+                .accessibilityIdentifier("camera.record")
                 .padding(.bottom, 24)
             }
         }
@@ -332,12 +344,14 @@ struct CameraScreen: View {
             Text(L("camera.review")).font(.subheadline).foregroundStyle(.white.opacity(0.8)).multilineTextAlignment(.center).padding(.horizontal)
             HStack(spacing: 12) {
                 Button(L("camera.retake")) { camera.discardTake() }.buttonStyle(.dvSecondary)
+                    .accessibilityIdentifier("camera.retake")
                 Button(L("camera.use")) {
                     model.uploads.enqueue(file: take, title: choice.title)
                     camera.take = nil
                     dismiss()
                 }
                 .buttonStyle(.dvPrimary)
+                .accessibilityIdentifier("camera.use")
             }
             .padding(.horizontal)
             .padding(.bottom, 24)

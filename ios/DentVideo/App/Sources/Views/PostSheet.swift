@@ -55,6 +55,7 @@ struct PostSheet: View {
                             Label(L("post.prepare"), systemImage: "square.and.arrow.down")
                         }
                         .buttonStyle(.dvPrimary)
+                        .accessibilityIdentifier("post.prepare")
                         Text(L("post.prepare.note")).font(.footnote).foregroundStyle(Theme.body)
                             .fixedSize(horizontal: false, vertical: true)
                         if let file {
@@ -70,6 +71,7 @@ struct PostSheet: View {
                         .frame(maxWidth: .infinity, minHeight: 50)
                     case .ready:
                         Label(L("post.ready"), systemImage: "checkmark.circle.fill")
+                            .accessibilityIdentifier("post.ready")
                             .font(.headline)
                             .foregroundStyle(Theme.teal)
                             .padding(Theme.s4)
@@ -80,6 +82,7 @@ struct PostSheet: View {
 
                     if let error {
                         Text(error).font(.subheadline).foregroundStyle(Theme.danger).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("post.error")
                     }
 
                     Divider().padding(.vertical, Theme.s1)
@@ -98,7 +101,7 @@ struct PostSheet: View {
             .background(Theme.paper.ignoresSafeArea())
             .navigationTitle(L("post.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.done")) { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.done")) { dismiss() }.accessibilityIdentifier("post.done") } }
             .onChange(of: network) { _, _ in
                 // The clipboard follows the chosen network once the video is saved.
                 if step == .ready { UIPasteboard.general.string = text }
@@ -118,6 +121,7 @@ struct PostSheet: View {
                         Label(target == .instagram ? L("post.openInstagram") : L("post.openTikTok"), systemImage: "arrow.up.forward.app")
                     }
                     .buttonStyle(.dvSecondary)
+                    .accessibilityIdentifier("post.open.\(target.rawValue)")
                 }
             }
             if let file {
@@ -125,6 +129,7 @@ struct PostSheet: View {
                     Label(L("post.more"), systemImage: "square.and.arrow.up")
                 }
                 .buttonStyle(.dvSecondary)
+                .accessibilityIdentifier("post.more")
             }
         }
     }

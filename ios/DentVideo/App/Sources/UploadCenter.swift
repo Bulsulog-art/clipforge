@@ -45,9 +45,10 @@ final class UploadCenter {
     }()
     private static let queueFile = folder.appendingPathComponent("queue.json")
 
-    init() {
+    /// `identifier`: unit tests pass their own, so they never share the app's background session.
+    init(identifier: String = UploadCenter.sessionID) {
         let delegate = UploadDelegate()
-        let c = URLSessionConfiguration.background(withIdentifier: Self.sessionID)
+        let c = URLSessionConfiguration.background(withIdentifier: identifier)
         c.isDiscretionary = false
         c.sessionSendsLaunchEvents = true
         c.allowsCellularAccess = true
@@ -135,6 +136,13 @@ final class UploadCenter {
         }
         do {
             let ticket = try await api.uploadTicket(size: e.bytes, contentType: e.contentType, name: e.fileName)
+            #if DEBUG
+            if DemoFlags.active {
+                update(id) { $0.state = .uploading; $0.path = ticket.path; $0.progress = 0; $0.problem = nil }
+                Task { await simulateDemoUpload(id) }
+                return
+            }
+            #endif
             var req = URLRequest(url: ticket.uploadUrl)
             req.httpMethod = "PUT"
             req.setValue(ticket.contentType, forHTTPHeaderField: "Content-Type")
@@ -203,6 +211,21 @@ final class UploadCenter {
     #if DEBUG
     /// Demo mode only: show these entries without touching the saved queue.
     func replaceForDemo(_ list: [Entry]) { entries = list }
+
+    private static var demoFailedOnce = Set<UUID>()
+
+    /// Demo mode: the storage PUT, as -DVUpload says (ok, fail, failonce, hold = never finishes,
+    /// so a relaunch can show the queue resuming).
+    private func simulateDemoUpload(_ id: UUID) async {
+        let mode = DemoFlags.upload
+        if mode == "hold" { return }
+        for p in [0.25, 0.6, 0.9] {
+            try? await Task.sleep(for: .milliseconds(350))
+            progressed(id.uuidString, p)
+        }
+        let fail = mode == "fail" || (mode == "failonce" && Self.demoFailedOnce.insert(id).inserted)
+        completed(id.uuidString, status: fail ? 0 : 200, failed: fail)
+    }
     #endif
 
     private func persist() {

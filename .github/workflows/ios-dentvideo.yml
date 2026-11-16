@@ -10,6 +10,10 @@ on:
         type: choice
         options: [full, medium, quick, none]
         default: full
+      tests:
+        description: "Unit + end-to-end UI tests on iPhone 17 Pro Max (iOS 26), iPad Pro 13\" (iOS 26), iPhone SE 3rd gen (iOS 17)"
+        type: boolean
+        default: true
   pull_request:
     paths:
       - "ios/DentVideo/**"
@@ -153,4 +157,60 @@ jobs:
           name: dentvideo-screens-store
           path: ios/DentVideo/build/screens/store
           retention-days: 14
+          if-no-files-found: ignore
+
+  # Unit tests of the app's models and end-to-end UI journeys (demo flow mode: in-process fake
+  # API), on the newest iPhone and iPad and on a small iPhone with iOS 17. Only on demand.
+  tests:
+    if: github.event_name == 'workflow_dispatch' && inputs.tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - leg: iphone-17-pro-max-ios26
+            runner: macos-15
+            xcode: "26"
+            device: "iPhone 17 Pro Max"
+            ios: "26"
+          - leg: ipad-pro-13-ios26
+            runner: macos-15
+            xcode: "26"
+            device: "iPad Pro 13-inch (M5)"
+            ios: "26"
+          - leg: iphone-se-3-ios17
+            runner: macos-14
+            xcode: "16"
+            device: "iPhone SE (3rd generation)"
+            ios: "17"
+    name: tests (${{ matrix.leg }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: ios/DentVideo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode ${{ matrix.xcode }}
+        run: |
+          X=$(ls -d /Applications/Xcode_${{ matrix.xcode }}*.app 2>/dev/null | grep -v beta | sort -V | tail -1)
+          [ -n "$X" ] || { ls /Applications | grep Xcode; exit 1; }
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+
+      - name: Unit and UI tests
+        run: ./scripts/test.sh "${{ matrix.device }}" "${{ matrix.ios }}"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dentvideo-tests-${{ matrix.leg }}
+          path: |
+            ios/DentVideo/build/test.log
+            ios/DentVideo/build/Tests.xcresult
+          retention-days: 10
           if-no-files-found: ignore

@@ -46,12 +46,14 @@ struct SignInView: View {
                         .autocorrectionDisabled()
                         .submitLabel(.next)
                         .focused($field, equals: .email)
+                        .accessibilityIdentifier("signin.email")
                         .onSubmit { field = .password }
                         .modifier(FieldStyle())
                     SecureField(L("signin.password"), text: $password)
                         .textContentType(.password)
                         .submitLabel(.go)
                         .focused($field, equals: .password)
+                        .accessibilityIdentifier("signin.password")
                         .onSubmit { Task { await submit() } }
                         .modifier(FieldStyle())
                 }
@@ -66,6 +68,7 @@ struct SignInView: View {
                             .background(Theme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.updatesFrequently)
+                            .accessibilityIdentifier("signin.error")
                     }
 
                     Button {
@@ -78,6 +81,7 @@ struct SignInView: View {
                     .allowsHitTesting(!busy)
                     .accessibilityLabel(L("signin.button"))
                     .accessibilityValue(busy ? L("common.loading") : "")
+                    .accessibilityIdentifier("signin.submit")
 
                     Button(L("signin.forgot")) { forgot = true }
                         .buttonStyle(.dvQuiet)

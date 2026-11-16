@@ -24,8 +24,8 @@ enum Demo {
         return s
     }
 
-    static let week = "2026-11-16"
-    static let lastWeek = "2026-11-09"
+    nonisolated static let week = "2026-11-16"
+    nonisolated static let lastWeek = "2026-11-09"
     private static var posters: [String: UIImage] = [:]
 
     static func poster(for id: String) -> UIImage? { posters[id] }
@@ -33,6 +33,7 @@ enum Demo {
     // MARK: Model
 
     static func makeModel() -> AppModel? {
+        if DemoFlags.flow { return makeFlowModel() }
         guard let screen else { return nil }
         UIView.setAnimationsEnabled(false)
         let lang = L10n.languageCode
@@ -142,6 +143,46 @@ enum Demo {
         return [i1, i2, i3, i4, i5, i6, r1]
     }
 
+    // MARK: Flow mode (UI tests)
+
+    /// `-DVFlow 1`: the app starts exactly as in real use (bootstrap, snapshot, refresh, uploads),
+    /// against DemoServer instead of dentvideo.com. The other `-DV…` flags shape the server.
+    static func makeFlowModel() -> AppModel {
+        UIView.setAnimationsEnabled(false)
+        let store = DemoFileStore()
+        if DemoFlags.reset {
+            let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            try? FileManager.default.removeItem(at: support.appendingPathComponent("snapshot.json"))
+            if let files = try? FileManager.default.contentsOfDirectory(at: UploadCenter.folder, includingPropertiesForKeys: nil) {
+                for f in files { try? FileManager.default.removeItem(at: f) }
+            }
+            Prefs.clear()
+            Prefs.askedForNotifications = true
+            store.save(nil)
+            if DemoFlags.signedIn {
+                let access = DemoFlags.session == "ok" ? "fresh" : "stale"
+                store.save(Tokens(accessToken: access, refreshToken: "r", expiresAt: Int(Date().timeIntervalSince1970) + 86_400 * 365, user: DemoServer.user))
+            }
+        }
+        let lang = L10n.languageCode
+        let c = DemoContent.of(lang)
+        let week: String
+        switch DemoFlags.week {
+        case "full": week = "week-full"
+        case "empty": week = "week-empty"
+        default: week = "week"
+        }
+        var items = Self.items(week, c)
+        for i in items.indices where items[i].status == .ready {
+            items[i].videoUrl = URL(string: "https://demo.invalid/\(items[i].id).mp4")
+        }
+        renderPosters(items, c)
+        let server = DemoServer(content: c, lang: lang, items: items)
+        let m = AppModel(store: store, transport: DemoTransport(server: server), uploads: UploadCenter())
+        m.demoScreen = "flow"
+        return m
+    }
+
     // MARK: Posters
 
     static let palettes: [(Color, Color)] = [
@@ -174,28 +215,164 @@ final class DemoMemoryStore: TokenStore, @unchecked Sendable {
     func save(_ tokens: Tokens?) { if tokens != nil { self.tokens = tokens } }
 }
 
-/// Answers like /api/dentvideo/mobile/v1, from memory. Writes succeed and change nothing.
+/// Flow mode's session, kept across launches (a relaunch test needs it) in Caches, never the Keychain.
+final class DemoFileStore: TokenStore, @unchecked Sendable {
+    private let url = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("demo-session.json")
+    private let lock = NSLock()
+    func load() -> Tokens? {
+        lock.lock(); defer { lock.unlock() }
+        return (try? Data(contentsOf: url)).flatMap { try? JSONDecoder().decode(Tokens.self, from: $0) }
+    }
+    func save(_ tokens: Tokens?) {
+        lock.lock(); defer { lock.unlock() }
+        if let tokens, let d = try? JSONEncoder().encode(tokens) { try? d.write(to: url) } else { try? FileManager.default.removeItem(at: url) }
+    }
+}
+
+/// The launch flags of demo mode. Read from the launch arguments (`-DVNet offline` …), which
+/// UserDefaults exposes; safe from any thread.
+enum DemoFlags {
+    private static func str(_ k: String, _ def: String) -> String {
+        let v = UserDefaults.standard.string(forKey: k) ?? ""
+        return v.isEmpty ? def : v
+    }
+    static var flow: Bool { UserDefaults.standard.bool(forKey: "DVFlow") }
+    static var active: Bool { flow || !(UserDefaults.standard.string(forKey: "DVScreen") ?? "").isEmpty }
+    static var reset: Bool { UserDefaults.standard.bool(forKey: "DVReset") }
+    static var signedIn: Bool { str("DVSignedIn", "1") == "1" }
+    /// ok | offline | error
+    static var net: String { str("DVNet", "ok") }
+    /// ok | expired (the stored access token is refused once, the refresh works) | revoked (the refresh is refused too)
+    static var session: String { str("DVSession", "ok") }
+    /// active | noplan | paused | starter | noclinic
+    static var plan: String { str("DVPlan", "active") }
+    /// normal | full | empty
+    static var week: String { str("DVWeek", "normal") }
+    /// granted | denied
+    static var photos: String { str("DVPhotos", "granted") }
+    static var camera: String { str("DVCamera", "granted") }
+    /// ok | fail | failonce | hold
+    static var upload: String { str("DVUpload", "ok") }
+    static var approveFail: Bool { str("DVApproveFail", "0") == "1" }
+    static var clinicReject: Bool { str("DVClinicReject", "0") == "1" }
+}
+
+/// An in-process stand-in for /api/dentvideo/mobile/v1 with the same shapes and status codes.
+/// It keeps state (decisions, posted ticks, the profile) so a refresh shows what was done.
+final class DemoServer: @unchecked Sendable {
+    static let user = AccountUser(id: "demo", email: "hello@riverside.example")
+    private let lock = NSLock()
+    private var items: [VideoItem]
+    private var profile: ClinicProfile
+    private let lang: String
+    private var deleted = false
+
+    init(content c: DemoContent, lang: String, items: [VideoItem]) {
+        self.items = items
+        self.lang = lang
+        self.profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: "riversidedental", bookingUrl: "https://riverside.example/book", closingLine: c.closing, narratorVoice: "female")
+    }
+
+    private var me: Me {
+        let plan: PlanInfo
+        switch DemoFlags.plan {
+        case "noplan": plan = PlanInfo(state: .cancelled, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
+        case "paused": plan = PlanInfo(state: .paused, tier: "practice", canMake: false, adminPaused: true, recordings: true, renewsAt: nil)
+        case "starter": plan = PlanInfo(state: .active, tier: "starter", canMake: true, adminPaused: false, recordings: false, renewsAt: nil)
+        default: plan = PlanInfo(state: .active, tier: "practice", canMake: true, adminPaused: false, recordings: true, renewsAt: nil)
+        }
+        let clinic = DemoFlags.plan == "noclinic" ? nil : Clinic(id: "demo-clinic", profile: profile, logoUrl: nil)
+        return Me(user: Self.user, clinic: clinic, plan: plan, locale: lang, currentWeek: Demo.week)
+    }
+
+    private func tokens(_ access: String) -> Tokens {
+        Tokens(accessToken: access, refreshToken: "r", expiresAt: Int(Date().timeIntervalSince1970) + 3600, user: Self.user)
+    }
+
+    private static func json(_ o: Any) -> Data { (try? JSONSerialization.data(withJSONObject: o)) ?? Data() }
+
+    func handle(_ r: URLRequest) throws -> (Int, Data, [String: String]) {
+        switch DemoFlags.net {
+        case "offline": throw URLError(.notConnectedToInternet)
+        case "error": return (500, Data(), [:])
+        default: break
+        }
+        lock.lock(); defer { lock.unlock() }
+        let path = r.url?.path ?? ""
+        let body = r.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
+        let enc = JSONEncoder()
+        let auth = r.value(forHTTPHeaderField: "Authorization") ?? ""
+
+        if path.hasSuffix("/session") {
+            let email = (body["email"] as? String) ?? ""
+            if (body["password"] as? String) == "wrong" { return (401, Self.json(["error": "x", "code": "invalid_credentials"]), [:]) }
+            if email.hasPrefix("other@") { return (403, Self.json(["code": "not_dentvideo"]), [:]) }
+            return (200, try enc.encode(tokens("fresh")), [:])
+        }
+        if path.hasSuffix("/session/refresh") {
+            if DemoFlags.session == "revoked" { return (401, Data(), [:]) }
+            return (200, try enc.encode(tokens("fresh")), [:])
+        }
+        if path.hasSuffix("/password-reset") { return (200, Self.json(["ok": true]), [:]) }
+        // Every other route needs a valid session.
+        if auth == "Bearer stale" || deleted { return (401, Data(), [:]) }
+        if path.hasSuffix("/session/signout") || path.hasSuffix("/devices") { return (200, Self.json(["ok": true]), [:]) }
+        if path.hasSuffix("/me") { return (200, try enc.encode(me), [:]) }
+        if path.hasSuffix("/items") { return (200, try enc.encode(ItemsResponse(currentWeek: Demo.week, items: items)), [:]) }
+        if path.hasSuffix("/approve-week") {
+            let week = body["week"] as? String ?? Demo.week
+            let ids = WeekBoard.approveAllCandidates(items, week: week).map(\.id)
+            for i in items.indices where ids.contains(items[i].id) { items[i].approval = .approved }
+            return (200, Self.json(["ok": true, "approved": ids.count, "ids": ids]), [:])
+        }
+        if r.httpMethod == "PATCH", let id = r.url?.lastPathComponent, let i = items.firstIndex(where: { $0.id == id }) {
+            if DemoFlags.approveFail { return (500, Data(), [:]) }
+            if let a = body["approval"] as? String, let v = Approval(rawValue: a) {
+                items[i].approval = v
+                if v != .approved { items[i].postedAt = nil }
+            }
+            if let p = body["posted"] as? Bool { items[i].postedAt = p ? "2026-11-16T09:00:00Z" : nil }
+            return (200, Self.json(["ok": true, "stored": true]), [:])
+        }
+        if path.hasSuffix("/upload-url") {
+            return (200, Self.json(["path": "demo/\(UUID().uuidString).mov", "uploadUrl": "https://demo.invalid/upload", "contentType": "video/quicktime"]), [:])
+        }
+        if path.hasSuffix("/recording") {
+            Thread.sleep(forTimeInterval: 1.5)
+            return (200, Self.json(["ok": true]), [:])
+        }
+        if path.hasSuffix("/clinic") {
+            if DemoFlags.clinicReject {
+                return (400, Self.json(["error": "This closing line cannot be used under your country's health advertising rules.", "code": "closing_line"]), [:])
+            }
+            if let p = body["profile"], let d = try? JSONSerialization.data(withJSONObject: p), let np = try? JSONDecoder().decode(ClinicProfile.self, from: d) { profile = np }
+            return (200, Self.json(["id": "demo-clinic"]), [:])
+        }
+        if path.hasSuffix("/account/delete") {
+            deleted = true
+            return (200, Self.json(["ok": true]), [:])
+        }
+        return (404, Self.json(["error": "Not found"]), [:])
+    }
+}
+
+/// HTTPTransport over DemoServer, with a little latency so loading states are real.
 struct DemoTransport: HTTPTransport {
-    let me: Me
-    let items: ItemsResponse
+    let server: DemoServer
+
+    init(server: DemoServer) { self.server = server }
+
+    /// Screenshot mode: a fixed answer for /me and /items.
+    init(me: Me, items: ItemsResponse) {
+        let c = DemoContent.of(me.locale)
+        self.server = DemoServer(content: c, lang: me.locale, items: items.items)
+    }
 
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
-        try await Task.sleep(for: .milliseconds(250))
-        let path = request.url?.path ?? ""
-        let enc = JSONEncoder()
-        let body: Data
-        if path.hasSuffix("/me") {
-            body = try enc.encode(me)
-        } else if path.hasSuffix("/items") {
-            body = try enc.encode(items)
-        } else if path.hasSuffix("/approve-week") {
-            let ids = WeekBoard.approveAllCandidates(items.items, week: items.currentWeek).map(\.id)
-            body = try JSONSerialization.data(withJSONObject: ["ok": true, "approved": ids.count, "ids": ids])
-        } else {
-            body = Data(#"{"ok":true}"#.utf8)
-        }
-        let r = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!
-        return (body, r)
+        try await Task.sleep(for: .milliseconds(150))
+        let (status, data, headers) = try server.handle(request)
+        let r = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: headers.merging(["Content-Type": "application/json"]) { a, _ in a })!
+        return (data, r)
     }
 }
 

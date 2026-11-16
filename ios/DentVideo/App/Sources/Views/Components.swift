@@ -83,6 +83,7 @@ struct MessageView<Actions: View>: View {
                 .background(Theme.teal.opacity(0.1), in: Circle())
                 .accessibilityHidden(true)
             Text(title)
+                .accessibilityIdentifier("message.title")
                 .font(Theme.display(.title2))
                 .foregroundStyle(Theme.ink)
                 .multilineTextAlignment(.center)
@@ -280,6 +281,7 @@ struct NoticeBanner: View {
         .frame(maxWidth: 560)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.updatesFrequently)
+        .accessibilityIdentifier("notice")
     }
 }
 

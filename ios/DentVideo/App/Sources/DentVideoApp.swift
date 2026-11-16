@@ -55,20 +55,15 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     }
 
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
-        let info = response.notification.request.content.userInfo
-        let itemID = info["itemID"] as? String
+        let itemID = DeepLink.itemID(fromNotification: response.notification.request.content.userInfo)
         await MainActor.run { model.open(itemID: itemID) }
     }
 }
 
 extension AppModel {
-    /// dentvideo.com/app links (universal links) and dentvideo:// open the week.
+    /// dentvideo.com/app links (universal links) and dentvideo://app open the week, or the video named.
     func handle(url: URL) {
-        let host = url.host?.lowercased() ?? ""
-        guard url.scheme == "dentvideo" || host == "dentvideo.com" || host == "www.dentvideo.com" else { return }
-        let parts = url.pathComponents.filter { $0 != "/" }
-        // /app/video/<id> is reserved for a direct video link; anything else under /app opens the week.
-        let id = parts.count >= 3 && parts[1] == "video" ? parts[2] : nil
-        open(itemID: id)
+        guard let target = DeepLink.target(url) else { return }
+        open(itemID: target.itemID)
     }
 }

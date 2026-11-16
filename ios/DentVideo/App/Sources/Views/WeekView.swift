@@ -32,6 +32,7 @@ struct WeekView: View {
                         ForEach(thisWeek) { item in
                             NavigationLink(value: item.id) { VideoCard(item: item) }
                                 .buttonStyle(.plain)
+                                .accessibilityIdentifier("card.\(item.id)")
                         }
                     }
                     if !earlier.isEmpty { earlierWeeks }
@@ -121,6 +122,7 @@ struct WeekView: View {
         .padding(.vertical, Theme.s2)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.sand, in: RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .accessibilityIdentifier("week.offline")
     }
 
     private var approveAll: some View {
@@ -129,6 +131,7 @@ struct WeekView: View {
         }
         .buttonStyle(.dvPrimary)
         .accessibilityHint(L("week.approveAll.note"))
+        .accessibilityIdentifier("week.approveAll")
     }
 
     private var earlierWeeks: some View {
