@@ -62,7 +62,8 @@ describe("the delivery week", () => {
 describe("web enqueues pass a priority", () => {
   const src = (p: string) => fs.readFileSync(path.resolve(__dirname, "../../app/api/dentvideo", p), "utf8");
   it("recording, restyle and the week button use the shared options", () => {
-    expect(src("recording/route.ts")).toMatch(/\.\.\.RECORDING_JOB_OPTS/);
+    // The recording route's body lives in a handler shared with the iPhone app's route.
+    expect(fs.readFileSync(path.resolve(__dirname, "handlers/recording.ts"), "utf8")).toMatch(/\.\.\.RECORDING_JOB_OPTS/);
     expect(src("items/[id]/backgrounds/route.ts")).toMatch(/\.\.\.RESTYLE_JOB_OPTS/);
     expect(src("week/route.ts")).toMatch(/\.\.\.FIRST_WEEK_JOB_OPTS/);
   });

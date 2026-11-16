@@ -1,0 +1,3 @@
+// TestFlight and App Store builds.
+DV_API_BASE_URL = https:/$()/dentvideo.com/api/dentvideo/mobile/v1
+APS_ENVIRONMENT = production
