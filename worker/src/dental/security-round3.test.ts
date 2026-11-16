@@ -79,10 +79,15 @@ describe("ReDoS: the rule scanners at the largest real input sizes", () => {
   it("a closing line of 140 characters is scanned in a few milliseconds whatever it holds", () => {
     for (const seed of worst)
       for (const country of ["US", "TR", "DE", "FR", "ES", "MX", "GB"]) {
-        const t0 = performance.now();
-        closingLineFindings(fill(seed, 140), country);
-        trSteering(fill(seed, 140));
-        expect(performance.now() - t0).toBeLessThan(100);
+        // Best of three: a quadratic blow-up stays slow every time, CPU contention does not.
+        let best = Infinity;
+        for (let run = 0; run < 3; run++) {
+          const t0 = performance.now();
+          closingLineFindings(fill(seed, 140), country);
+          trSteering(fill(seed, 140));
+          best = Math.min(best, performance.now() - t0);
+        }
+        expect(best).toBeLessThan(100);
       }
   });
 
