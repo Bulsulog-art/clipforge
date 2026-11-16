@@ -8,6 +8,9 @@ final class ClipForgeAPI {
 
     enum Error: Swift.Error { case quotaExceeded, network, unauthorized }
 
+    /// A refusal the server explains in its own words.
+    struct ServerMessage: LocalizedError { let message: String; var errorDescription: String? { message } }
+
     func fetchJobs() async throws -> [VideoJob] {
         let res: [VideoJob] = try await supabase
             .schema("clipforge")
@@ -81,6 +84,11 @@ final class ClipForgeAPI {
         let (data, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw Error.network }
         if http.statusCode == 402 { throw Error.quotaExceeded }
+        // 422: the server refused the link (YouTube) and says why; show its words.
+        if http.statusCode == 422,
+           let msg = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String {
+            throw ServerMessage(message: msg)
+        }
         guard (200..<300).contains(http.statusCode) else { throw Error.network }
         struct Resp: Decodable { let jobId: String }
         return (try? JSONDecoder().decode(Resp.self, from: data).jobId) ?? ""

@@ -43,6 +43,15 @@ export async function POST(
     );
   }
 
+  // Decided before anything is reset: a job that cannot run again (a YouTube
+  // link, a generate job without its prompt) keeps its "failed" state.
+  // Which pipeline this belongs to, and what it needs to run again, is
+  // decided in lib/retry-job.ts so the branch can be tested without Redis.
+  const plan = planRetry(job);
+  if (plan.queue === null) {
+    return NextResponse.json({ error: plan.error }, { status: 409 });
+  }
+
   // Clean partial output. The previous run may have inserted up to N-1 clip
   // rows before failing; delete them so the pipeline starts from a fresh
   // grid. Storage objects are best-effort — clipforge-videos-rendered has
@@ -63,12 +72,6 @@ export async function POST(
     return NextResponse.json({ error: resetErr.message }, { status: 500 });
   }
 
-  // Which pipeline this belongs to, and what it needs to run again, is
-  // decided in lib/retry-job.ts so the branch can be tested without Redis.
-  const plan = planRetry(job);
-  if (plan.queue === null) {
-    return NextResponse.json({ error: plan.error }, { status: 409 });
-  }
 
   const queue = plan.queue === "generate" ? generateQueue : videoQueue;
   await queue.add(plan.queue === "generate" ? "generate" : "ingest", plan.payload, {

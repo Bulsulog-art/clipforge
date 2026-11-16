@@ -53,7 +53,7 @@ const FAQ_LD = {
 };
 
 const POINTS = [
-  "Paste a link — no editing software, no timeline",
+  "Upload a video — no editing software, no timeline",
   "AI scores every moment so you post the winners",
   "Animated word-by-word captions in 5 styles",
   "Each niche gets its own look automatically",

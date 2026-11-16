@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Scissors, LogOut, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/supabase/types";
+import { SOCIAL_PUBLISHING } from "@/lib/features";
 
 export function DashboardNav({ profile }: { profile: Profile | null }) {
   const router = useRouter();
@@ -29,10 +30,11 @@ export function DashboardNav({ profile }: { profile: Profile | null }) {
 
         <nav className="hidden items-center gap-6 text-sm sm:flex">
           <Link href="/dashboard" className="font-medium text-foreground transition hover:text-brand">Studio</Link>
-          <Link href="/dashboard/social" className="text-muted-foreground transition hover:text-foreground">Channels</Link>
-          <Link href="/dashboard/analytics" className="inline-flex items-center gap-1.5 text-muted-foreground transition hover:text-foreground">
+          {/* Channels and analytics only exist once posting works (lib/features). */}
+          {SOCIAL_PUBLISHING && <Link href="/dashboard/social" className="text-muted-foreground transition hover:text-foreground">Channels</Link>}
+          {SOCIAL_PUBLISHING && <Link href="/dashboard/analytics" className="inline-flex items-center gap-1.5 text-muted-foreground transition hover:text-foreground">
             <BarChart3 className="h-3.5 w-3.5" /> Analytics
-          </Link>
+          </Link>}
           <Link href="/dashboard/billing" className="text-muted-foreground transition hover:text-foreground">Billing</Link>
         </nav>
 

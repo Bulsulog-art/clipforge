@@ -1,4 +1,5 @@
 import type { VideoJob } from "@/lib/supabase/types";
+import { isYouTubeSourceUrl, YOUTUBE_BLOCKED_MESSAGE } from "@/lib/source-url";
 
 /**
  * Decides how a failed job should be re-run.
@@ -57,6 +58,10 @@ export type RetryableJob = Pick<
 >;
 
 export function planRetry(job: RetryableJob): RetryPlan {
+  // A YouTube job fails again on our servers: say so instead of queueing it.
+  if (job.source_type === "youtube" || isYouTubeSourceUrl(job.source_url ?? "")) {
+    return { queue: null, error: YOUTUBE_BLOCKED_MESSAGE };
+  }
   if (job.source_type === "generate") {
     if (!job.clip_prompt?.trim()) {
       return { queue: null, error: "This video has no prompt to rebuild from. Start a new one." };
