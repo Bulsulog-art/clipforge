@@ -246,7 +246,8 @@ export const TR: LegalText = {
           blocks: [
             {
               list: [
-                "Hesap, klinik profili, yüklemeler ve videolar: hesabınız var olduğu sürece. Hesabınızı Ayarlar'dan sildiğinizde dosyalarınızı, videolarınızı, klinik profilinizi ve ödeme referanslarınızı canlı sistemlerimizden hemen sileriz; oturum hesabınızı da, başka bir {brand} uygulaması için kullanmıyorsanız sileriz. Sunucu yedeklerindeki kopyalar, yedekler döndükçe üzerine yazılır; silmeden en geç 30 gün sonra hesabınıza ait DentVideo verisi bizde kalmaz (aşağıdakiler hariç). Silinen hesapları yedekten geri yüklemeyiz.",
+                "Videolar, kayıtlar, altyazı dosyaları ve diğer yüklemeler: planınız aktif olduğu sürece ve plan sona erdikten sonra 90 gün boyunca; bu sürede onları izleyip indirebilirsiniz. Ardından silinirler; silmeden 14 gün ve 1 gün önce size e-posta göndeririz. Bu süre dolmadan yeniden bir plan seçerseniz her şey yerinde kalır.",
+                "Hesap, klinik profili ve logo: hesabınız var olduğu sürece. Hesabınızı Ayarlar'dan sildiğinizde dosyalarınızı, videolarınızı, klinik profilinizi ve ödeme referanslarınızı canlı sistemlerimizden hemen sileriz; oturum hesabınızı da, başka bir {brand} uygulaması için kullanmıyorsanız sileriz. Sunucu yedeklerindeki kopyalar, yedekler döndükçe üzerine yazılır; silmeden en geç 30 gün sonra hesabınıza ait DentVideo verisi bizde kalmaz (aşağıdakiler hariç). Silinen hesapları yedekten geri yüklemeyiz.",
                 "Kullanım olayları: anonim istatistik olarak kalır; hesabınızı silmek kliniğinizle bağlantılarını kaldırır.",
                 "Faturalar ve ödeme kayıtları: satıcı olarak Dodo Payments kendi yasal yükümlülükleri uyarınca, biz de muhasebe ve vergi mevzuatının gerektirdiği ölçüde saklarız.",
                 "İstek sınırı sayaçları: dakikalardan saatlere.",
@@ -391,7 +392,7 @@ export const TR: LegalText = {
         {
           heading: "9. Sonunda silme",
           blocks: [
-            "Klinik videolarını her zaman indirebilir. Klinik hesabını sildiğinde verilerini canlı sistemlerimizden hemen sileriz; yedeklerdeki kopyalar döndükçe üzerine yazılır ve hukuk saklamayı gerektirmedikçe en geç 30 gün içinde kliniğe ait hiçbir veri bizde kalmaz.",
+            "Klinik, planı aktif olduğu sürece ve plan sona erdikten sonraki 90 gün boyunca videolarını indirebilir; bu 90 günün sonunda videolarını ve yüklemelerini sileriz, kliniğe 14 gün ve 1 gün önce e-posta gönderilir. Klinik hesabını sildiğinde verilerini canlı sistemlerimizden hemen sileriz; yedeklerdeki kopyalar döndükçe üzerine yazılır ve hukuk saklamayı gerektirmedikçe en geç 30 gün içinde kliniğe ait hiçbir veri bizde kalmaz.",
           ],
         },
         {

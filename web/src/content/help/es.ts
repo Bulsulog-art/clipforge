@@ -45,7 +45,8 @@ export const es: HelpContent = {
     },
     topics: {
       q: "¿Cómo se eligen los temas? ¿Puedo proponer uno?",
-      a: "Cada semana elegimos cinco temas a partir de los servicios de tus ajustes y de las preguntas que hacen los pacientes sobre ellos. Los vídeos tratan solo de servicios que ofreces, así que lo más importante es que esa lista esté completa y al día.\n\nEn «Temas que no hemos creado» ves los temas que se quedaron fuera, cada uno con su motivo. Para proponer un tema, escríbenos con el tema y el servicio al que corresponde. Leemos todas las propuestas; en la app no hay un formulario para pedir temas.",
+      a: "Cada semana elegimos cinco temas a partir de los servicios de tus ajustes y de las preguntas que hacen los pacientes sobre ellos. Los vídeos tratan solo de servicios que ofreces, así que lo más importante es que esa lista esté completa y al día.\n\nPara proponer un tema, usa «Propón un tema para la próxima semana» en la página Vídeos o en Ajustes: una pregunta de un paciente o un tema, hasta 140 caracteres. Usamos primero las propuestas en espera, hasta tres por semana, cuando encajan con tus servicios y pasan las mismas revisiones clínicas y de publicidad que cada vídeo. En «Tus propuestas» ves qué pasó con cada una; si una no se pudo crear, aparece el motivo. En «Temas que no hemos creado» ves los demás temas que se quedaron fuera.",
+
     },
     "sign-in": {
       q: "No puedo entrar o no me llega el código por email.",
@@ -74,7 +75,8 @@ export const es: HelpContent = {
     },
     "wrong-video": {
       q: "Un vídeo está mal. ¿Qué puedo hacer?",
-      a: "No lo apruebes: un vídeo sin aprobar no va a ninguna parte. Toca «Descartar», elige qué falla y añade una nota si quieres. Tu nota llega a nuestro equipo junto con el vídeo.\n\nSi quieres que cambiemos un vídeo concreto, escríbenos con su título y lo que debería ser distinto. Para cambiar todos los vídeos futuros (logo, color, servicios, idioma, voz), usa Ajustes.",
+      a: "No lo apruebes: un vídeo sin aprobar no va a ninguna parte. Toca «Descartar», elige qué falla y añade una nota si quieres. Tu nota llega a nuestro equipo junto con el vídeo.\n\nPara cambiar un vídeo concreto, toca «Pedir un cambio» en su tarjeta y escribe qué debería ser distinto. Solo se vuelve a crear ese vídeo, con las mismas revisiones, y lo apruebas de nuevo antes de publicarlo. Puedes pedir hasta 3 cambios por semana. Si la versión cambiada no pasa las revisiones, tu vídeo actual se queda como está y la tarjeta te lo indica. Para cambiar todos los vídeos futuros (logo, color, servicios, idioma, voz), usa Ajustes.",
+
     },
     "background-photos": {
       q: "¿Puedo cambiar las fotos de fondo de un vídeo?",
@@ -114,7 +116,8 @@ export const es: HelpContent = {
     },
     captions: {
       q: "¿Los vídeos llevan subtítulos? ¿Son accesibles?",
-      a: "Cada vídeo muestra sus ideas clave como texto en la imagen, así que se puede seguir sin sonido. Ese texto es una versión breve de lo que dice la voz, no una transcripción literal, y no hay un archivo de subtítulos aparte. Los clips de tus propias grabaciones llevan subtítulos con tus palabras.\n\nComo el texto forma parte del vídeo, se ve en todas las plataformas. Si una plataforma añade sus propios subtítulos automáticos, puedes desactivarlos para estos vídeos y así el texto no aparece dos veces.",
+      a: "Cada vídeo muestra sus ideas clave como texto en la imagen, así que se puede seguir sin sonido. Ese texto es una versión breve de lo que dice la voz, no una transcripción literal.\n\nPara tener la narración completa, toca «Descargar subtítulos (.srt)» en «Publicar», junto a la descarga del vídeo. El archivo tiene las palabras exactas de la voz. Los tiempos se calculan a partir de las pausas de la narración, así que encajan bien pero no palabra por palabra: míralo una vez con el vídeo antes de subirlo. Los vídeos creados antes de que existieran los archivos de subtítulos y los clips de tus propias grabaciones no tienen archivo .srt (los clips ya muestran tus palabras en pantalla).\n\nYouTube y Facebook te dejan subir un archivo .srt con el vídeo, donde ofrecen subtítulos. Instagram y TikTok no aceptan archivos de subtítulos: las ideas clave ya están en el vídeo, y al publicar también puedes activar los subtítulos automáticos de la app y corregirlos con el texto del archivo .srt. Comprueba que ningún texto aparezca dos veces.",
+
     },
     "other-uses": {
       q: "¿Podemos usar los vídeos en nuestra web o en la sala de espera?",
@@ -176,7 +179,8 @@ export const es: HelpContent = {
     },
     "after-cancel": {
       q: "¿Qué pasa con nuestros vídeos después de cancelar?",
-      a: "Cuando termina el periodo pagado ya no se crean vídeos nuevos. Los vídeos de tu biblioteca siguen ahí y puedes verlos, descargarlos y compartirlos mientras exista tu cuenta. Los vídeos descargados son tuyos para usarlos, también después de cancelar, así que descarga los que quieras conservar.\n\nPuedes volver a elegir un plan cuando quieras en la página Vídeos; tus ajustes se conservan. Si eliminas tu cuenta, se borra todo.",
+      a: "Cuando termina el periodo pagado ya no se crean vídeos nuevos. Tu biblioteca se mantiene 90 días más: puedes seguir viendo, descargando y compartiendo tus vídeos, y la página Vídeos muestra la fecha. Te escribimos 14 días y 1 día antes. Pasados esos 90 días se borran los vídeos, las grabaciones y los archivos de subtítulos; tus ajustes y tu logo se conservan.\n\nLos vídeos descargados son tuyos para usarlos, también después de cancelar, así que descarga los que quieras conservar, o todo de una vez en Ajustes → Tus datos → «Descargar mis datos». Si vuelves a elegir un plan en la página Vídeos antes de esa fecha, se conserva todo. Si eliminas tu cuenta, se borra todo de inmediato.",
+
     },
     group: {
       q: "Tenemos una segunda clínica. ¿Cómo la añadimos?",

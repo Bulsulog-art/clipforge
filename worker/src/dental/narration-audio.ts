@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fitPlanToVoice, prepareVoiceover, snapScenesToPauses, type VoiceOptions } from "../remotion/voiceover.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
-import { detectPauses, masterNarration, mixNarrationWithMusic, type MasterOptions } from "./audio-master.js";
+import { detectPauses, masterNarration, mixNarrationWithMusic, type MasterOptions, type Silence } from "./audio-master.js";
 import { speechText } from "./speech-text.js";
 import { speakingTempo } from "./voice.js";
 import type { TtsProvider } from "./elevenlabs.js";
@@ -35,6 +35,8 @@ export type Narration = {
   ttsChars?: number;
   /** True when the file is the mastered (and maybe music-mixed) one. */
   mastered?: boolean;
+  /** Silences measured in the mastered narration (seconds from frame 0): scene cuts and subtitle cues use them. */
+  pauses?: Silence[];
 };
 
 /** The plan with the narration replaced by what the voice should read. */
@@ -95,6 +97,7 @@ export async function prepareNarration(
       ttsProvider: voice.ttsProvider,
       ttsChars: voice.ttsChars,
       mastered: true,
+      pauses,
     };
   } catch (e) {
     onMasterError?.(e as Error);

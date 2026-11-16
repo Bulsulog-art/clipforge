@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { batchWeekJobOpts, DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, type WeekJobData } from "./job-options.js";
-import { activeClinicRows, deliveryWeek, dispatchKey, shouldRun, weekJobId, type ClinicRow } from "./schedule.js";
+import { activeClinicRows, deliveryWeek, dispatchKey, getsWeeks, shouldRun, weekJobId, type ClinicRow } from "./schedule.js";
 import { alerts, thresholds, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
 
 /**
@@ -32,7 +32,7 @@ export const FIRST_WEEK_SCHEDULE = { pattern: "*/15 * * * *", tz: "UTC" } as con
 export const PAID_LIST_KEY = "dv:ops:paid";
 
 export interface WatchDb {
-  /** Clinics that should have a week: paying and not paused by the owner (schedule.ts shouldRun). */
+  /** Clinics that should have a week: paying, not paused by the owner, not the App Review demo (schedule.ts getsWeeks). */
   activeClinicIds(): Promise<string[]>;
   /**
    * Activations since a time: payment_succeeded with first = true (a first payment) or
@@ -207,7 +207,7 @@ export function supabaseWatchDb(db: SupabaseClient): WatchDb {
     async activeClinicIds() {
       // "*": admin_paused_at (0010) may not exist yet. A clinic the owner paused gets no
       // week from the dispatch, so it must not count as "missing" here either.
-      return (await activeClinicRows<ClinicRow>(db)).filter(shouldRun).map((r) => r.id);
+      return (await activeClinicRows<ClinicRow>(db)).filter(getsWeeks).map((r) => r.id);
     },
     async firstPayments(since) {
       const { data, error } = await db

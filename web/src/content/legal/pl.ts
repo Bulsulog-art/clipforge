@@ -246,7 +246,8 @@ export const PL: LegalText = {
           blocks: [
             {
               list: [
-                "Konto, profil gabinetu, przesłane pliki i filmy: dopóki istnieje konto. Gdy usuną Państwo konto w Ustawieniach, natychmiast usuwamy z systemów produkcyjnych pliki, filmy, profil gabinetu i referencje rozliczeniowe, a także login, chyba że używają go Państwo również w innej aplikacji {brand}. Kopie w kopiach zapasowych serwera są nadpisywane w miarę ich rotacji; najpóźniej 30 dni po usunięciu nie przechowujemy żadnych danych DentVideo dotyczących konta, poza wymienionymi niżej. Nie przywracamy usuniętych kont z kopii zapasowych.",
+                "Filmy, nagrania, pliki z napisami i inne przesłane pliki: dopóki plan jest aktywny i przez 90 dni po jego zakończeniu, aby mogli Państwo nadal je oglądać i pobierać. Potem są usuwane; piszemy do Państwa 14 dni i 1 dzień wcześniej. Jeśli wcześniej ponownie wybiorą Państwo plan, wszystko zostaje.",
+                "Konto, profil gabinetu i logo: dopóki istnieje konto. Gdy usuną Państwo konto w Ustawieniach, natychmiast usuwamy z systemów produkcyjnych pliki, filmy, profil gabinetu i referencje rozliczeniowe, a także login, chyba że używają go Państwo również w innej aplikacji {brand}. Kopie w kopiach zapasowych serwera są nadpisywane w miarę ich rotacji; najpóźniej 30 dni po usunięciu nie przechowujemy żadnych danych DentVideo dotyczących konta, poza wymienionymi niżej. Nie przywracamy usuniętych kont z kopii zapasowych.",
                 "Zdarzenia użycia: pozostają jako anonimowa statystyka; usunięcie konta usuwa ich powiązanie z gabinetem.",
                 "Faktury i dokumenty płatności: przechowuje je Dodo Payments jako sprzedawca zgodnie z własnymi obowiązkami prawnymi, a my w zakresie wymaganym przez przepisy rachunkowe i podatkowe.",
                 "Liczniki limitów zapytań: od minut do godzin.",
@@ -391,7 +392,7 @@ export const PL: LegalText = {
         {
           heading: "9. Usunięcie po zakończeniu",
           blocks: [
-            "Gabinet może w każdej chwili pobrać swoje filmy. Gdy gabinet usunie konto, natychmiast usuwamy jego dane z systemów produkcyjnych; kopie w kopiach zapasowych są nadpisywane w miarę rotacji i najpóźniej po 30 dniach nie przechowujemy żadnych danych gabinetu, chyba że prawo wymaga ich zachowania.",
+            "Gabinet może pobierać swoje filmy, dopóki plan jest aktywny, i przez 90 dni po jego zakończeniu; po tych 90 dniach usuwamy jego filmy i przesłane pliki, a gabinet otrzymuje e-mail 14 dni i 1 dzień wcześniej. Gdy gabinet usunie konto, natychmiast usuwamy jego dane z systemów produkcyjnych; kopie w kopiach zapasowych są nadpisywane w miarę rotacji i najpóźniej po 30 dniach nie przechowujemy żadnych danych gabinetu, chyba że prawo wymaga ich zachowania.",
           ],
         },
         {

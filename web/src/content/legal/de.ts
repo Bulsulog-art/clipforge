@@ -246,7 +246,8 @@ export const DE: LegalText = {
           blocks: [
             {
               list: [
-                "Konto, Praxisprofil, Uploads und Videos: solange Ihr Konto besteht. Löschen Sie Ihr Konto in den Einstellungen, löschen wir Ihre Dateien, Videos, Ihr Praxisprofil und Ihre Abrechnungsreferenzen sofort aus unseren Live-Systemen, und Ihren Login, sofern Sie ihn nicht auch für eine andere App von {brand} nutzen. Kopien in Server-Backups werden überschrieben, wenn die Backups rotieren; spätestens 30 Tage nach der Löschung liegen bei uns keine DentVideo-Daten zu Ihrem Konto mehr vor, außer wie unten genannt. Gelöschte Konten stellen wir nicht aus Backups wieder her.",
+                "Videos, Aufnahmen, Untertiteldateien und andere Uploads: solange Ihr Tarif aktiv ist und 90 Tage nach seinem Ende, damit Sie sie weiter ansehen und herunterladen können. Danach werden sie gelöscht; wir schreiben Ihnen 14 Tage und 1 Tag vorher. Wählen Sie vorher wieder einen Tarif, bleibt alles erhalten.",
+                "Konto, Praxisprofil und Logo: solange Ihr Konto besteht. Löschen Sie Ihr Konto in den Einstellungen, löschen wir Ihre Dateien, Videos, Ihr Praxisprofil und Ihre Abrechnungsreferenzen sofort aus unseren Live-Systemen, und Ihren Login, sofern Sie ihn nicht auch für eine andere App von {brand} nutzen. Kopien in Server-Backups werden überschrieben, wenn die Backups rotieren; spätestens 30 Tage nach der Löschung liegen bei uns keine DentVideo-Daten zu Ihrem Konto mehr vor, außer wie unten genannt. Gelöschte Konten stellen wir nicht aus Backups wieder her.",
                 "Nutzungsereignisse: bleiben als anonyme Statistik; die Löschung Ihres Kontos entfernt ihre Verbindung zu Ihrer Praxis.",
                 "Rechnungen und Zahlungsbelege: bewahrt Dodo Payments als Händler nach eigenen gesetzlichen Pflichten auf, und wir, soweit Buchhaltungs- und Steuerrecht es verlangen.",
                 "Zähler für Ratenbegrenzung: Minuten bis Stunden.",
@@ -391,7 +392,7 @@ export const DE: LegalText = {
         {
           heading: "9. Löschung am Ende",
           blocks: [
-            "Die Praxis kann ihre Videos jederzeit herunterladen. Löscht die Praxis ihr Konto, löschen wir ihre Daten sofort aus unseren Live-Systemen; Kopien in Backups werden beim Rotieren überschrieben, und spätestens nach 30 Tagen liegen bei uns keine Daten der Praxis mehr vor, sofern das Recht keine Aufbewahrung verlangt.",
+            "Die Praxis kann ihre Videos herunterladen, solange ihr Tarif aktiv ist und 90 Tage nach seinem Ende; danach löschen wir ihre Videos und Uploads, und die Praxis erhält 14 Tage und 1 Tag vorher eine E-Mail. Löscht die Praxis ihr Konto, löschen wir ihre Daten sofort aus unseren Live-Systemen; Kopien in Backups werden beim Rotieren überschrieben, und spätestens nach 30 Tagen liegen bei uns keine Daten der Praxis mehr vor, sofern das Recht keine Aufbewahrung verlangt.",
           ],
         },
         {

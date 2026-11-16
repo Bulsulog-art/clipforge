@@ -45,7 +45,8 @@ export const de: HelpContent = {
     },
     topics: {
       q: "Wie werden die Themen gewählt, und kann ich eines vorschlagen?",
-      a: "Jede Woche wählen wir fünf Themen aus den Leistungen in Ihren Einstellungen und den Fragen, die Patienten dazu stellen. Videos entstehen nur zu Leistungen, die Sie anbieten. Am wichtigsten ist deshalb eine vollständige, richtige Liste Ihrer Leistungen.\n\nUnter „Themen, die wir nicht umgesetzt haben“ sehen Sie ausgelassene Themen, jeweils mit Grund. Ein Thema schlagen Sie vor, indem Sie uns schreiben: das Thema und die Leistung, zu der es gehört. Wir lesen jeden Vorschlag; ein eigenes Formular dafür gibt es in der App nicht.",
+      a: "Jede Woche wählen wir fünf Themen aus den Leistungen in Ihren Einstellungen und den Fragen, die Patienten dazu stellen. Videos entstehen nur zu Leistungen, die Sie anbieten. Am wichtigsten ist deshalb eine vollständige, richtige Liste Ihrer Leistungen.\n\nUm ein Thema vorzuschlagen, nutzen Sie „Thema für nächste Woche vorschlagen“ auf der Seite „Videos“ oder in den Einstellungen: eine Patientenfrage oder ein Thema, bis zu 140 Zeichen. Wartende Vorschläge nutzen wir zuerst, bis zu drei pro Woche, wenn sie zu Ihren Leistungen passen und dieselben fachlichen und werberechtlichen Prüfungen bestehen wie jedes Video. Unter „Ihre Vorschläge“ sehen Sie, was aus jedem geworden ist; bei einem nicht umgesetzten steht der Grund. Unter „Themen, die wir nicht umgesetzt haben“ sehen Sie die übrigen ausgelassenen Themen.",
+
     },
     "sign-in": {
       q: "Ich kann mich nicht anmelden, oder der Code kommt nicht an.",
@@ -74,7 +75,8 @@ export const de: HelpContent = {
     },
     "wrong-video": {
       q: "Ein Video ist falsch. Was kann ich tun?",
-      a: "Geben Sie es nicht frei: Ein nicht freigegebenes Video geht nirgendwohin. Tippen Sie auf „Ablehnen“, wählen Sie, was nicht stimmt, und schreiben Sie bei Bedarf eine Notiz. Die Notiz erreicht unser Team zusammen mit dem Video.\n\nSoll ein bestimmtes Video geändert werden, schreiben Sie uns den Titel und was anders sein soll. Für alle künftigen Videos (Logo, Farbe, Leistungen, Sprache, Stimme) nutzen Sie die Einstellungen.",
+      a: "Geben Sie es nicht frei: Ein nicht freigegebenes Video geht nirgendwohin. Tippen Sie auf „Ablehnen“, wählen Sie, was nicht stimmt, und schreiben Sie bei Bedarf eine Notiz. Die Notiz erreicht unser Team zusammen mit dem Video.\n\nSoll ein einzelnes Video geändert werden, tippen Sie auf seiner Karte auf „Änderung anfragen“ und schreiben Sie, was anders sein soll. Nur dieses Video wird mit denselben Prüfungen neu erstellt, und Sie geben es vor dem Posten erneut frei. Bis zu 3 Änderungen pro Woche sind möglich. Besteht die geänderte Fassung die Prüfungen nicht, bleibt Ihr bisheriges Video unverändert, und die Karte sagt es Ihnen. Für alle künftigen Videos (Logo, Farbe, Leistungen, Sprache, Stimme) nutzen Sie die Einstellungen.",
+
     },
     "background-photos": {
       q: "Kann ich die Hintergrundfotos eines Videos ändern?",
@@ -114,7 +116,8 @@ export const de: HelpContent = {
     },
     captions: {
       q: "Haben die Videos Untertitel? Sind sie barrierearm?",
-      a: "Jedes Video zeigt seine Kernaussagen als Text im Bild, sodass man ihm auch ohne Ton folgen kann. Der Bildtext ist eine Kurzfassung dessen, was die Stimme sagt, keine wörtliche Abschrift, und es gibt keine separate Untertiteldatei. Clips aus Ihren eigenen Aufnahmen werden mit Ihren Worten untertitelt.\n\nDa der Text Teil des Videos ist, erscheint er auf jeder Plattform. Fügt eine Plattform eigene automatische Untertitel hinzu, können Sie diese für die Videos ausschalten, damit der Text nicht doppelt erscheint.",
+      a: "Jedes Video zeigt seine Kernaussagen als Text im Bild, sodass man ihm auch ohne Ton folgen kann. Der Bildtext ist eine Kurzfassung dessen, was die Stimme sagt, keine wörtliche Abschrift.\n\nFür den vollständigen Sprechertext tippen Sie unter „Posten“ neben dem Video-Download auf „Untertitel herunterladen (.srt)“. Die Datei enthält genau die Worte der Stimme. Die Zeiten werden aus den Pausen der Sprachaufnahme berechnet; sie passen gut, aber nicht auf das Wort genau. Sehen Sie sie vor dem Hochladen einmal mit dem Video an. Videos, die vor den Untertiteldateien entstanden sind, und Clips aus Ihren eigenen Aufnahmen haben keine .srt-Datei (die Clips zeigen Ihre Worte bereits im Bild).\n\nBei YouTube und Facebook können Sie eine .srt-Datei mit dem Video hochladen, dort wo Untertitel angeboten werden. Instagram und TikTok nehmen keine Untertiteldatei: Die Kernaussagen stehen schon im Video, und beim Posten können Sie zusätzlich die automatischen Untertitel der App einschalten und mit dem Text aus der .srt-Datei korrigieren. Achten Sie darauf, dass kein Text doppelt erscheint.",
+
     },
     "other-uses": {
       q: "Dürfen wir die Videos auf unserer Website oder im Wartezimmer zeigen?",
@@ -176,7 +179,8 @@ export const de: HelpContent = {
     },
     "after-cancel": {
       q: "Was passiert nach der Kündigung mit unseren Videos?",
-      a: "Nach dem Ende des bezahlten Zeitraums entstehen keine neuen Videos. Die Videos in Ihrer Bibliothek bleiben dort, und Sie können sie ansehen, herunterladen und teilen, solange Ihr Konto besteht. Heruntergeladene Videos dürfen Sie auch nach der Kündigung nutzen; laden Sie also die herunter, die Sie behalten möchten.\n\nSie können jederzeit auf der Seite „Videos“ wieder einen Tarif wählen; Ihre Einstellungen bleiben erhalten. Löschen Sie Ihr Konto, wird alles entfernt.",
+      a: "Nach dem Ende des bezahlten Zeitraums entstehen keine neuen Videos. Ihre Bibliothek bleibt danach 90 Tage bestehen: Sie können Ihre Videos weiter ansehen, herunterladen und teilen, und die Seite „Videos“ zeigt das Datum. Wir schreiben Ihnen 14 Tage und 1 Tag vorher. Nach den 90 Tagen werden die Videos, Aufnahmen und Untertiteldateien gelöscht; Ihre Einstellungen und Ihr Logo bleiben erhalten.\n\nHeruntergeladene Videos dürfen Sie auch nach der Kündigung nutzen. Laden Sie also die herunter, die Sie behalten möchten, oder alles auf einmal unter Einstellungen → Ihre Daten → „Meine Daten herunterladen“. Wählen Sie vorher auf der Seite „Videos“ wieder einen Tarif, bleibt alles erhalten. Löschen Sie Ihr Konto, wird sofort alles entfernt.",
+
     },
     group: {
       q: "Wir haben einen zweiten Standort. Wie fügen wir ihn hinzu?",

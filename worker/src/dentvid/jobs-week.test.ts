@@ -48,6 +48,8 @@ let insertFailures = 0;
 let insertError = "connection terminated unexpectedly";
 /** dentvid_clinics reads that still find the clinic; after that it is deleted (-1: never). */
 let clinicReadsLeft = -1;
+/** Extra dentvid_clinics columns for the paying() read (e.g. review_demo). */
+let clinicExtra: Record<string, unknown> = {};
 const removedKeys: string[] = [];
 const orders: { table: string; col: string; ascending: boolean }[] = [];
 
@@ -61,7 +63,7 @@ function fakeDb() {
     q.order = (col: string, o?: { ascending?: boolean }) => (orders.push({ table, col, ascending: o?.ascending !== false }), q);
     q.limit = async () => ({ data: table === "dentvid_items" ? pastItems : [] });
     q.maybeSingle = async () => ({
-      data: table === "dentvid_clinics" && clinicReadsLeft-- !== 0 ? { id: CLINIC, plan: "active", plan_tier: "practice", profile: { name: "Gülüş Dental", country: "TR" } } : null,
+      data: table === "dentvid_clinics" && clinicReadsLeft-- !== 0 ? { id: CLINIC, plan: "active", plan_tier: "practice", profile: { name: "Gülüş Dental", country: "TR" }, ...clinicExtra } : null,
       error: null,
     });
     q.single = async () => ({
@@ -118,6 +120,7 @@ beforeEach(() => {
   insertFailures = 0;
   insertError = "connection terminated unexpectedly";
   clinicReadsLeft = -1;
+  clinicExtra = {};
   removedKeys.length = 0;
   pastItems = [];
   selects.length = 0;
@@ -131,6 +134,23 @@ beforeEach(() => {
 });
 
 const week = weekOf();
+
+describe("the App Review demo clinic (0024 review_demo)", () => {
+  it("gets no week, however the job was queued: no model call, nothing stored", async () => {
+    clinicExtra = { review_demo: true };
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toEqual({ ready: 0, flagged: 0, rejected: 0 });
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(inserted).toEqual([]);
+  });
+
+  it("an ordinary active clinic (review_demo false) still gets its week", async () => {
+    clinicExtra = { review_demo: false };
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toMatchObject({ ready: 5 });
+  });
+});
 
 describe("a week that heals itself", () => {
   it("a full week: stored, the dentist notified, no alert, the delay note cleared", async () => {

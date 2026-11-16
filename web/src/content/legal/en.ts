@@ -252,7 +252,8 @@ export const EN: LegalText = {
           blocks: [
             {
               list: [
-                "Account, clinic profile, uploads and videos: while your account exists. When you delete your account in Settings, we delete your files, videos, clinic profile and billing references from our live systems straight away, and your login unless you also use it for another {brand} app. Copies in server backups are overwritten as the backups roll over; within 30 days of deletion no DentVideo data about your account remains with us, except as listed below. We do not restore deleted accounts from backups.",
+                "Videos, recordings, subtitle files and other uploads: while your plan is active, and for 90 days after it ends, so you can still watch and download them. Then they are deleted; we email you 14 days and 1 day before. If you choose a plan again before then, everything stays.",
+                "Account, clinic profile and logo: while your account exists. When you delete your account in Settings, we delete your files, videos, clinic profile and billing references from our live systems straight away, and your login unless you also use it for another {brand} app. Copies in server backups are overwritten as the backups roll over; within 30 days of deletion no DentVideo data about your account remains with us, except as listed below. We do not restore deleted accounts from backups.",
                 "Usage events: kept as anonymous statistics; deleting your account removes their link to your clinic.",
                 "Invoices and payment records: kept by Dodo Payments as merchant of record under its own legal obligations, and by us as far as accounting and tax law requires.",
                 "Rate-limit counters: minutes to hours.",
@@ -406,7 +407,7 @@ export const EN: LegalText = {
         {
           heading: "9. Deletion at the end",
           blocks: [
-            "The clinic can download its videos at any time. When the clinic deletes its account, we delete its data from our live systems straight away; copies in backups are overwritten as they roll over, and within 30 days no clinic data remains with us, unless the law requires us to keep it.",
+            "The clinic can download its videos at any time while its plan is active and for 90 days after it ends; after those 90 days we delete its videos and uploads, and the clinic is emailed 14 days and 1 day before. When the clinic deletes its account, we delete its data from our live systems straight away; copies in backups are overwritten as they roll over, and within 30 days no clinic data remains with us, unless the law requires us to keep it.",
           ],
         },
         {
