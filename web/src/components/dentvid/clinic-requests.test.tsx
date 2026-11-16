@@ -40,7 +40,7 @@ describe("the clinic's request controls, in every language", () => {
     expect(notice).not.toMatch(/\{\w+\}/);
   });
 
-  it("before migration 0024 the suggestion box is not shown at all", () => {
+  it("before migration 0025 the suggestion box is not shown at all", () => {
     expect(renderToStaticMarkup(createElement(TopicRequests, { locale: "en", initial: null }))).toBe("");
   });
 

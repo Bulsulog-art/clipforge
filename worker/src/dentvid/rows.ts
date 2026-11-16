@@ -37,7 +37,7 @@ export type ItemRow = {
   week_of?: string;
   /** Technical failure, for the owner (admin dashboard) only — the clinic's library never shows it. */
   error?: string;
-  /** Timed narration cues (dental/subtitles.ts; 0024_dentvid_clinic_requests.sql). */
+  /** Timed narration cues (dental/subtitles.ts; 0025_dentvid_clinic_requests.sql). */
   subtitles?: unknown;
 };
 

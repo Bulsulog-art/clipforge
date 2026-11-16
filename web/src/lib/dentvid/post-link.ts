@@ -35,7 +35,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const POST_PAGE_URL_TTL_S = 60 * 60;
 
 export type PostItem = {
-  /** 0024: the narration's timed cues; absent before it, or on a video made before subtitles existed. */
+  /** 0025: the narration's timed cues; absent before it, or on a video made before subtitles existed. */
   subtitles?: unknown;
   id: string;
   title: string | null;
@@ -67,7 +67,7 @@ export type PostView =
   | {
       state: "ready";
       locale: Locale;
-      item: { id: string; title: string; videoUrl: string; thumbUrl?: string; approval: "pending" | "approved"; posted: boolean; texts: PostTexts | null; slot?: string; /** The narration as an SRT file (stored cues, 0024), for the share kit. */ srt?: string };
+      item: { id: string; title: string; videoUrl: string; thumbUrl?: string; approval: "pending" | "approved"; posted: boolean; texts: PostTexts | null; slot?: string; /** The narration as an SRT file (stored cues, 0025), for the share kit. */ srt?: string };
     };
 
 /** The share kit's subtitle file for a video, when it has stored cues. */

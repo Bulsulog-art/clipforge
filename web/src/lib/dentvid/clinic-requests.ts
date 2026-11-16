@@ -7,7 +7,7 @@ import { weekOf } from "./week";
 import { dvAdmin } from "./supabase";
 
 /**
- * A clinic's own requests (migration 0024):
+ * A clinic's own requests (migration 0025):
  *
  *   topic suggestion  "Suggest a topic for next week" (library and settings):
  *                     plain text, 3–140 characters, refused at once when it
@@ -25,7 +25,7 @@ import { dvAdmin } from "./supabase";
  * the signed-in owner: the clinic and the video are looked up by owner_id =
  * the session's user, so clinic A can never act for clinic B. Reads go
  * through the user's client (RLS); writes through the service role, which
- * owners do not have on these tables (0024 has no write policy).
+ * owners do not have on these tables (0025 has no write policy).
  */
 
 export type DvActor = { db: SupabaseClient; user: User };
@@ -35,7 +35,7 @@ export type ChangeRow = { id: string; item_id: string; status: ChangeStatus; rea
 export type OwnClinic = { id: string; plan: string; country?: string; language?: string; adminPaused: boolean };
 export type OwnItem = { id: string; clinic_id: string; kind: string; status: string; hasPlan: boolean };
 
-/** Database access, so the rules are tested without a database. `null` / "missing": 0024 is not applied. */
+/** Database access, so the rules are tested without a database. `null` / "missing": 0025 is not applied. */
 export interface RequestStore {
   clinic(ownerId: string): Promise<OwnClinic | null>;
   topics(ownerId: string, limit: number): Promise<TopicRow[] | null>;

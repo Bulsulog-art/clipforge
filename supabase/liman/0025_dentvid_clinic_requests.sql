@@ -1,7 +1,7 @@
 -- ============================================================
 -- DentVideo: topic suggestions, change requests, subtitles and library
 -- retention after a plan ends (Liman). Additive only.
--- NOT applied automatically. Apply by hand after 0023 (Liman SQL editor or
+-- NOT applied automatically. Apply by hand after 0024 (Liman SQL editor or
 -- psql), then run the checks at the bottom. Idempotent; safe to run twice.
 --
 -- 1. dentvid_topic_requests: a clinic suggests a topic ("Suggest a topic for

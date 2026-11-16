@@ -66,7 +66,7 @@ export function supabasePlanEndDb(db: SupabaseClient): PlanEndDb {
       const end = (patch: Record<string, unknown>) =>
         db.from("dentvid_clinics").update(patch).eq("id", clinicId).eq("plan", "active").eq("dodo_subscription_id", subscriptionId).select("id");
       const base = { plan: "cancelled", plan_renews_at: null, updated_at: now.toISOString() };
-      // The library's 90 days (retention.ts) count from the paid period's end; without 0024 the plan still ends.
+      // The library's 90 days (retention.ts) count from the paid period's end; without 0025 the plan still ends.
       let { data, error } = await end(endedAt ? { ...base, plan_ended_at: endedAt } : base);
       if (error && endedAt && /plan_ended_at/.test(error.message)) ({ data, error } = await end(base));
       if (error) throw new Error(`plan end: ${error.message}`);

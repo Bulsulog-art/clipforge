@@ -196,7 +196,7 @@ describe("POST/GET /api/dentvideo/topic-requests and DELETE …/[id]", () => {
     expect(db.dentvid_topic_requests).toHaveLength(5);
   });
 
-  it("before migration 0024: 503 'not available', and the list says unavailable", async () => {
+  it("before migration 0025: 503 'not available', and the list says unavailable", async () => {
     missing.add("dentvid_topic_requests");
     expect((await topics.POST(post({ text: "How long does sensitivity last?" }))).status).toBe(503);
     expect((await json(await topics.GET())).body).toEqual({ topics: [], available: false });
@@ -274,7 +274,7 @@ describe("POST /api/dentvideo/items/[id]/change", () => {
     expect(queued.every((q) => (q[2] as { attempts: number }).attempts === 1)).toBe(true);
   });
 
-  it("validates the note; before migration 0024 says 'not available'", async () => {
+  it("validates the note; before migration 0025 says 'not available'", async () => {
     expect((await change.POST(post({ note: "x" }), ctx(ITEM_A))).status).toBe(400);
     expect((await change.POST(post({ note: "see https://x.example" }), ctx(ITEM_A))).status).toBe(400);
     missing.add("dentvid_change_requests");

@@ -322,7 +322,7 @@ export function AdminClinicDetail({ d, links, viewer, flash, back }: { d: Clinic
 
       <Section title="Requests" id="requests" lead="What this clinic asked for in the app: change requests on one video, and topic suggestions for its weeks.">
         {d.changeRequests === null || d.topicRequests === null ? (
-          <Warn>Requests appear once supabase/liman/0024_dentvid_clinic_requests.sql is applied.</Warn>
+          <Warn>Requests appear once supabase/liman/0025_dentvid_clinic_requests.sql is applied.</Warn>
         ) : (
           <div className="space-y-4">
             <ChangeRequestsTable rows={d.changeRequests ?? []} links={links} />

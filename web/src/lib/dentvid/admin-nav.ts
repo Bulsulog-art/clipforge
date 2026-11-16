@@ -10,7 +10,7 @@ export const ADMIN_SECTIONS = [
   { key: "videos", label: "Videos", path: "/videos" },
   { key: "system", label: "Queue & system", path: "/system" },
   { key: "emails", label: "Emails", path: "/emails" },
-  // Topic suggestions and "Ask for a change" requests from clinics (0024).
+  // Topic suggestions and "Ask for a change" requests from clinics (0025).
   { key: "requests", label: "Requests", path: "/requests" },
   { key: "billing", label: "Billing", path: "/billing" },
   { key: "funnel", label: "Funnel & sources", path: "/funnel" },

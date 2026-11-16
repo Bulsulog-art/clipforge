@@ -34,7 +34,7 @@ export function TopicRequests({ locale, initial, compact = false }: { locale: Lo
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   useEffect(() => setTopics(initial ?? []), [initial]);
-  // Before migration 0024 the server has nowhere to keep suggestions: say how to reach us instead.
+  // Before migration 0025 the server has nowhere to keep suggestions: say how to reach us instead.
   if (initial === null) return null;
 
   async function send(e: React.FormEvent) {

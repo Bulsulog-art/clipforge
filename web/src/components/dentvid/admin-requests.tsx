@@ -4,7 +4,7 @@ import type { AdminClinic } from "@/lib/dentvid/admin-metrics";
 import { AdminShell, Badge, Empty, Section, Stat, Table, Warn, int, when, type AdminLinks, type Viewer } from "./admin-ui";
 
 /**
- * What clinics asked for (0024): topic suggestions and "Ask for a change"
+ * What clinics asked for (0025): topic suggestions and "Ask for a change"
  * requests, newest first, with what became of each. The clinic's own words
  * are shown as text (React escapes them); nothing here acts on them.
  */
@@ -71,7 +71,7 @@ export function AdminRequests({ now, topics, changes, clinics, warnings, ...c }:
   const failed7 = (changes ?? []).filter((r) => r.status === "failed" && Date.parse(r.created_at) > week).length;
   return (
     <AdminShell active="requests" title="Requests" lead="Topic suggestions and change requests from clinics. A failed change also sent you an alert." now={now} warnings={warnings} {...c}>
-      {(topics === null || changes === null) && <Warn>Requests appear once supabase/liman/0024_dentvid_clinic_requests.sql is applied.</Warn>}
+      {(topics === null || changes === null) && <Warn>Requests appear once supabase/liman/0025_dentvid_clinic_requests.sql is applied.</Warn>}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Suggestions waiting" value={int((topics ?? []).filter((t) => t.status === "pending").length)} />
         <Stat label="Suggestions used" value={int((topics ?? []).filter((t) => t.status === "used").length)} />

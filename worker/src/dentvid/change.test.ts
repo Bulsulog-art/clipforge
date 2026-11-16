@@ -153,6 +153,14 @@ describe("a change request re-makes only that one video", () => {
     expect(await runDentvidChange({ requestId: "b1" })).toEqual({ status: "done" });
   });
 
+  it("the App Review demo clinic (active by hand, never paid) gets no change made and nothing spent", async () => {
+    liman.rows("dentvid_clinics")[0].review_demo = true;
+    request("rd", A, "item-a");
+    expect(await runDentvidChange({ requestId: "rd" })).toEqual({ status: "refused", reason: "no_plan" });
+    expect(produceVideo).not.toHaveBeenCalled();
+    expect(guardStore.values.size).toBe(0);
+  });
+
   it("never past the clinic's daily $ cap, whatever the weekly count", async () => {
     configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.1 })), alert: async (s) => (spendAlerts.push(s), true) });
     request("r4", A, "item-a");
@@ -208,7 +216,7 @@ describe("a change request re-makes only that one video", () => {
     expect([...guardStore.values.entries()].find(([k]) => k.startsWith(`dv:spend:ops:change:${A.clinic}`))?.[1]).toBe(3);
   });
 
-  it("without the subtitles column (0024 partly applied) the change is still stored", async () => {
+  it("without the subtitles column (0025 partly applied) the change is still stored", async () => {
     const missing = memoryLiman({}, { missingColumns: { dentvid_items: ["subtitles"] } });
     // Same tables, but a database that refuses the column.
     for (const [k, v] of liman.tables) missing.tables.set(k, v);

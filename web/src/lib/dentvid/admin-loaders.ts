@@ -114,15 +114,15 @@ export type DetailItem = {
   thumbUrl?: string;
 };
 
-/** A clinic's topic suggestion or change request as the owner's panel shows it (0024). */
+/** A clinic's topic suggestion or change request as the owner's panel shows it (0025). */
 export type AdminTopicRequest = { id: string; clinic_id: string; text: string; status: string; reason: string | null; week_of: string | null; item_id: string | null; created_at: string };
 export type AdminChangeRequest = { id: string; clinic_id: string; item_id: string; note: string; status: string; reason: string | null; created_at: string; finished_at: string | null };
 
 export type ClinicDetail = {
-  /** Topic suggestions and change requests (null: 0024 not applied). */
+  /** Topic suggestions and change requests (null: 0025 not applied). */
   topicRequests?: AdminTopicRequest[] | null;
   changeRequests?: AdminChangeRequest[] | null;
-  /** When the plan ended and when the library is deleted (0024; retention.ts). */
+  /** When the plan ended and when the library is deleted (0025; retention.ts). */
   retention?: { endedAt: string; deleteOn: string; deletedAt: string | null } | null;
   now: string;
   clinic: AdminClinic & { owner_id: string; logo_path?: string | null; updated_at?: string; email_opt_out_at?: string | null; plan_renews_at?: string | null; admin_pause_note?: string | null };
@@ -188,7 +188,7 @@ export async function loadClinicDetail(id: string, now = new Date()): Promise<Cl
 
 export type RequestsData = { now: string; topics: AdminTopicRequest[] | null; changes: AdminChangeRequest[] | null; clinics: AdminClinic[]; warnings: string[] };
 
-/** Recent topic suggestions and change requests across clinics (0024), newest first. */
+/** Recent topic suggestions and change requests across clinics (0025), newest first. */
 export async function loadRequests(now = new Date()): Promise<RequestsData> {
   const c = db();
   if (!c) return { now: now.toISOString(), topics: null, changes: null, clinics: [], warnings: ["The service-role key is not configured."] };

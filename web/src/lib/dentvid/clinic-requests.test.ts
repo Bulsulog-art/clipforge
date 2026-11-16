@@ -162,7 +162,7 @@ describe("topic suggestions", () => {
     expect(topics).toHaveLength(0);
   });
 
-  it("before migration 0024: says it is not available, never crashes", async () => {
+  it("before migration 0025: says it is not available, never crashes", async () => {
     missing = true;
     expect((await createTopic(actor(A), store, { text: "How long does sensitivity last?" })).status).toBe(503);
     expect(await body(await listTopics(actor(A), store))).toEqual({ topics: [], available: false });

@@ -144,7 +144,7 @@ describe("suggested topics in the Monday week", () => {
     }
   });
 
-  it("a database without 0024 makes a normal week: no suggestions, videos stored without subtitles", async () => {
+  it("a database without 0025 makes a normal week: no suggestions, videos stored without subtitles", async () => {
     liman.opts.missingTables = ["dentvid_topic_requests"];
     liman.opts.missingColumns = { dentvid_items: ["subtitles"] };
     week({ topics: [T("a"), T("b"), T("c"), T("d"), T("e")] });

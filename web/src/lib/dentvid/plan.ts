@@ -24,7 +24,7 @@ export type ClinicPlan = {
   /** Cancelled but paid until this date (set by the page from the ledger: billing-state.ts loadPlanEnd). */
   endsAt?: string | null;
   /**
-   * A plan that has ended (cancelled): when it ended and when its videos are deleted (0024,
+   * A plan that has ended (cancelled): when it ended and when its videos are deleted (0025,
    * worker/src/dentvid/retention.ts). Absent while the plan runs, or before the worker has seen the end.
    */
   retention?: { endedAt: string; deleteOn: string } | null;
@@ -55,7 +55,7 @@ export async function loadClinicPlan(db: SupabaseClient, clinicId: string): Prom
     db.from("dentvid_clinics").select("plan_tier, plan_renews_at, dodo_subscription_id").eq("id", clinicId).maybeSingle(),
     // Its own read: before 0010 the column does not exist and this simply returns no data.
     db.from("dentvid_clinics").select("admin_paused_at").eq("id", clinicId).maybeSingle(),
-    // Its own read too: before 0024 there are no retention dates.
+    // Its own read too: before 0025 there are no retention dates.
     Promise.resolve(db.from("dentvid_clinics").select("plan_ended_at, library_delete_after").eq("id", clinicId).maybeSingle()).catch(() => ({ data: null })),
   ]);
   const raw = (base as { plan?: string } | null)?.plan;

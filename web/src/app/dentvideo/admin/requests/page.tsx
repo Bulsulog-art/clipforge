@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return adminMeta("Requests");
 }
 
-/** Topic suggestions and change requests from clinics (0024). 404 for everyone but an admin. */
+/** Topic suggestions and change requests from clinics (0025). 404 for everyone but an admin. */
 export default async function AdminRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const viewer = await requireAdmin();
   const sp = await searchParams;

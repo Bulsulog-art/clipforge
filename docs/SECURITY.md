@@ -517,7 +517,7 @@ The compose file loads both services from `web/.env`, so in Coolify add them to 
 11. **Sentry / uptime** — an uptime monitor on `/api/health` (shallow) and an alert on the worker's "dentvid: spend guard refused" log line if you use a log tool.
 
 
-### Clinic requests, subtitles, library retention (2026-11-16, migration 0024)
+### Clinic requests, subtitles, library retention (2026-11-16, migration 0025)
 
 - **Tenant isolation.** `dentvid_topic_requests` / `dentvid_change_requests`: RLS on, owner may only
   read own rows, no write policy (inserts/updates only with the service role, owner_id and clinic_id

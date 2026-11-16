@@ -32,7 +32,7 @@ import { logger } from "../logger.js";
  * before deletion, and a deleted library is marked (library_deleted_at).
  *
  * DENTVID_RETENTION_MODE: "delete" (default — nothing can be deleted before
- * 90 days after the first stamp, i.e. after 0024 is applied), "dry-run"
+ * 90 days after the first stamp, i.e. after 0025 is applied), "dry-run"
  * (no writes, no email: the owner alert says what would happen) or "off".
  * The owner gets an alert with the counts whenever anything was deleted, is
  * due in a dry run, or failed.
@@ -114,7 +114,7 @@ export function retentionStep(c: RetentionClinic, sent: Set<string>, now: Date):
 export type LibraryItemRow = { id: string; video_path: string | null; thumb_path: string | null; source_path: string | null };
 
 export interface RetentionDb {
-  /** Cancelled clinics, and any clinic that still carries retention dates. null: 0024 not applied. */
+  /** Cancelled clinics, and any clinic that still carries retention dates. null: 0025 not applied. */
   clinics(): Promise<RetentionClinic[] | null>;
   /** The email log kinds starting with "retention" for these clinics. */
   sentNotices(clinicIds: string[]): Promise<Map<string, Set<string>>>;
@@ -167,7 +167,7 @@ export async function runRetention(deps: { db: RetentionDb; notify: NoticeSender
   if (mode === "off") return { ...res, stopped: "off" };
   const clinics = await deps.db.clinics();
   if (!clinics) {
-    logger.warn("dentvid: retention skipped — supabase/liman/0024_dentvid_clinic_requests.sql not applied");
+    logger.warn("dentvid: retention skipped — supabase/liman/0025_dentvid_clinic_requests.sql not applied");
     return { ...res, stopped: "migration missing" };
   }
   res.checked = clinics.length;

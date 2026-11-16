@@ -51,9 +51,9 @@ export type LibraryItem = {
   postedAt?: string | null;
   /** Background photos (generated videos only): library ids offered, those in use, and a pending re-render. */
   photos?: { suggested: string[]; chosen: string[]; status?: "queued" | "failed" };
-  /** The latest "Ask for a change" on this video (0024), when there is one. */
+  /** The latest "Ask for a change" on this video (0025), when there is one. */
   change?: ChangeView;
-  /** A subtitle file can be downloaded for it (stored cues, 0024). */
+  /** A subtitle file can be downloaded for it (stored cues, 0025). */
   subtitles?: boolean;
 };
 

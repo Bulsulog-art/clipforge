@@ -62,7 +62,7 @@ the origin guard exempts exactly this prefix (`lib/origin-guard.ts`). Every resp
 | `POST clinic` | `{ profile }` | `{ id }` | Shared handler (profile schema, closing-line market rules). |
 | `POST account/delete` | `{ confirm }` | `{ ok }` | Shared handler (Dodo cancel or 409, storage, rows, login). `confirm` = the clinic name (or email), as on the web. |
 | `POST password-reset` | `{ email, locale }` | `{ ok }` | The web's route, unchanged (same limits, same answer whether or not the account exists). |
-| `GET topic-requests` | – | `{ topics, available }` | Owner's own suggestions (RLS); `available: false` before migration 0024. |
+| `GET topic-requests` | – | `{ topics, available }` | Owner's own suggestions (RLS); `available: false` before migration 0025. |
 | `POST topic-requests` | `{ text }` | `{ ok, topic, message }` | Shared handler (`handlers/requests.ts`): plain text 3–140, hard ad rules, 5 waiting at most, rate limit. |
 | `DELETE topic-requests/{id}` | – | `{ ok }` | Only the caller's own, still waiting. |
 | `POST items/{id}/change` | `{ note }` | `{ ok, change, left }` | Shared handler: own generated video, active plan, one running per video, 3 a week (worker spend guard enforces it again). |

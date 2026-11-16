@@ -5,7 +5,7 @@ import type { ItemRow } from "./rows.js";
 
 /**
  * Topics a clinic suggested in the app ("Suggest a topic for next week",
- * web: lib/dentvid/clinic-requests.ts), table dentvid_topic_requests (0024).
+ * web: lib/dentvid/clinic-requests.ts), table dentvid_topic_requests (0025).
  *
  * The Monday week reads the oldest pending suggestions (at most
  * MAX_REQUESTS_PER_WEEK, so the rest of the week stays varied) and hands them
@@ -18,7 +18,7 @@ import type { ItemRow } from "./rows.js";
  *   pending   untouched when its video failed for a technical reason or the
  *             week filled up first — it is tried again the next week.
  *
- * Everything here fails soft: a database without 0024 (or a read error)
+ * Everything here fails soft: a database without 0025 (or a read error)
  * means a normal week without suggestions, never a failed week.
  */
 
@@ -39,7 +39,7 @@ export async function loadPendingRequests(db: SupabaseClient, clinicId: string, 
       .order("created_at", { ascending: true })
       .limit(limit);
     if (error) {
-      logger.warn({ clinicId, err: error.message }, "dentvid: topic suggestions not read (0024 not applied?)");
+      logger.warn({ clinicId, err: error.message }, "dentvid: topic suggestions not read (0025 not applied?)");
       return [];
     }
     return ((data ?? []) as PendingRequest[]).filter((r) => typeof r?.id === "string" && typeof r?.text === "string" && r.text.trim().length >= 3);

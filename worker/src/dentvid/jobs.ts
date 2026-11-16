@@ -281,7 +281,7 @@ let insertRetryMs = 2_000;
 /**
  * Columns a week can be stored without: Liman without 0003_dentvid_backgrounds.sql
  * (the web app recomputes the photo suggestions from the plan) or without
- * 0024_dentvid_clinic_requests.sql (no subtitle file for these videos). A week
+ * 0025_dentvid_clinic_requests.sql (no subtitle file for these videos). A week
  * of videos is never lost over either.
  */
 export const OPTIONAL_ITEM_COLUMNS = ["suggested_backgrounds", "subtitles", "posted_at"] as const;
@@ -486,7 +486,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     const ids = { clinicId: job.clinicId, ownerId };
     // Subtitle cues of each rendered file, from its own narration (dental/subtitles.ts).
     const subtitlesByFile = new Map<string, Subtitles>();
-    // The clinic's suggested topics, planned first (topic-requests.ts); [] without 0024.
+    // The clinic's suggested topics, planned first (topic-requests.ts); [] without 0025.
     const requests = await loadPendingRequests(db, job.clinicId);
     let refused: RequestRefusal[] = [];
 
@@ -791,7 +791,7 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       onWarn: (m) => logger.warn({ itemId: item.id }, `dentvid: restyle ${m}`),
     });
     const files = await storeVideo(db, item.owner_id as string, res.outputPath);
-    // The new narration has its own pauses: its subtitles are timed again (none before 0024: dropped by updateItem).
+    // The new narration has its own pauses: its subtitles are timed again (none before 0025: dropped by updateItem).
     const subs = narrationSubtitles(voice, profile.language);
     const upd = await updateItem(db, item.id as string, {
       video_path: files.videoPath,
@@ -824,7 +824,7 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
 
 /* ------------------------------------------------------------ change request */
 
-/** "Ask for a change" on one video (web: POST /api/dentvideo/items/[id]/change; table dentvid_change_requests, 0024). */
+/** "Ask for a change" on one video (web: POST /api/dentvideo/items/[id]/change; table dentvid_change_requests, 0025). */
 export type ChangeJob = { requestId: string };
 export type ChangeResult = { status: "done" | "refused" | "failed" | "skipped"; reason?: string };
 

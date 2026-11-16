@@ -29,7 +29,7 @@ type Row = {
   suggested_backgrounds?: unknown;
   restyle_status?: "queued" | "failed" | null;
   restyle_requested_at?: string | null;
-  /** 0024_dentvid_clinic_requests.sql; absent on a database without it. */
+  /** 0025_dentvid_clinic_requests.sql; absent on a database without it. */
   subtitles?: unknown;
 };
 
@@ -92,7 +92,7 @@ export async function loadItems(db: SupabaseClient, ownerId: string): Promise<{ 
     const { data: signed } = await db.storage.from(BUCKET).createSignedUrls(paths, 60 * 60);
     for (const s of signed ?? []) if (s.path && s.signedUrl) urls.set(s.path, s.signedUrl);
   }
-  // The latest change request per video (0024): a database without the table simply has none.
+  // The latest change request per video (0025): a database without the table simply has none.
   const changes = new Map<string, ChangeView>();
   const generatedIds = rows.filter((r) => r.kind === "generated").map((r) => r.id);
   if (generatedIds.length) {

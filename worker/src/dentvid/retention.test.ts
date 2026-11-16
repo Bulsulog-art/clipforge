@@ -206,7 +206,7 @@ describe("library retention after a plan ends", () => {
     expect(items(ENDED.id)).toHaveLength(2);
   });
 
-  it("without migration 0024 it does nothing", async () => {
+  it("without migration 0025 it does nothing", async () => {
     liman.opts.missingColumns = { dentvid_clinics: ["plan_ended_at"] };
     const r = await run(T0);
     expect(r.stopped).toBe("migration missing");

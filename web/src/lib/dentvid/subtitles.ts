@@ -82,7 +82,7 @@ export function subtitleFileName(title: string, format: SubtitleFormat): string 
  */
 export async function subtitleResponse(db: SupabaseClient, ownerId: string, itemId: string, format: SubtitleFormat): Promise<Response> {
   if (!/^[0-9a-f-]{36}$/i.test(itemId)) return NextResponse.json({ error: "not found" }, { status: 404 });
-  // "*": the subtitles column (0024) may not exist on a given database; then there is nothing to give.
+  // "*": the subtitles column (0025) may not exist on a given database; then there is nothing to give.
   const { data } = await db.from("dentvid_items").select("*").eq("id", itemId).eq("owner_id", ownerId).maybeSingle();
   const row = data as { title?: string; subtitles?: unknown; plan?: { language?: string } | null } | null;
   const cues = storedCues(row?.subtitles);

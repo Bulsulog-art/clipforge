@@ -49,7 +49,7 @@ export function AppHomeView({
   firstWeekJob,
   topics,
 }: {
-  /** "Suggest a topic for next week" (0024): the clinic's suggestions; null = not available; undefined = not shown. */
+  /** "Suggest a topic for next week" (0025): the clinic's suggestions; null = not available; undefined = not shown. */
   topics?: TopicView[] | null;
   locale: Locale;
   clinicName?: string;
@@ -146,7 +146,7 @@ export function SettingsView({
   clinicId = null,
   topics,
 }: {
-  /** "Suggest a topic for next week" (0024): shown while videos are being made. */
+  /** "Suggest a topic for next week" (0025): shown while videos are being made. */
   topics?: TopicView[] | null;
   locale: Locale;
   profile?: Partial<ClinicProfile>;
