@@ -192,6 +192,14 @@ export const LIMITS = {
   accountExportUser: { limit: 3, windowSec: HOUR },
   accountExportUserDay: { limit: 10, windowSec: DAY },
   accountDeleteUser: { limit: 5, windowSec: HOUR },
+  // The iPhone app (api/dentvideo/mobile/v1): password sign-in per IP and per address (a brake on
+  // guessing; Liman has its own limits behind it), token refresh per IP, device registration per user.
+  mobileSignInIp: { limit: 10, windowSec: 10 * MIN },
+  mobileSignInEmail: { limit: 5, windowSec: 10 * MIN },
+  mobileSignInEmailDay: { limit: 30, windowSec: DAY },
+  mobileRefreshIp: { limit: 60, windowSec: 10 * MIN },
+  mobileReadUser: { limit: 240, windowSec: 10 * MIN },
+  mobileDevicesUser: { limit: 20, windowSec: 10 * MIN },
   // Worker → "your week is ready" email. Even a leaked token cannot mail-bomb.
   notifyClinic: { limit: 6, windowSec: HOUR },
   notifyGlobal: { limit: 300, windowSec: HOUR },
