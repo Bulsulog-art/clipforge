@@ -251,6 +251,8 @@ export type AppText = {
     state: { trial: string; active: string; paused: string; cancelled: string };
     activeTier: string;
     renews: string;
+    /** A cancelled plan still in its paid period (docs/RELIABILITY.md F9). */
+    ends: string;
     trialNote: string;
     toPreview: string;
     chooseTitle: string;
@@ -600,6 +602,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "No plan yet", active: "Active", paused: "Paused", cancelled: "Canceled" },
       activeTier: "{tier} plan",
       renews: "Renews on {date}",
+      ends: "Your plan ends on {date}. You keep getting your weekly videos until then.",
       trialNote: "You haven't chosen a plan yet, so no videos are being made.",
       toPreview: "Back to your preview",
       chooseTitle: "Choose your plan",
@@ -958,6 +961,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "Noch kein Tarif", active: "Aktiv", paused: "Pausiert", cancelled: "Gekündigt" },
       activeTier: "Tarif {tier}",
       renews: "Verlängert sich am {date}",
+      ends: "Ihr Tarif endet am {date}. Bis dahin erhalten Sie weiter Ihre wöchentlichen Videos.",
       trialNote: "Sie haben noch keinen Tarif gewählt, daher werden noch keine Videos erstellt.",
       toPreview: "Zurück zu Ihrer Vorschau",
       chooseTitle: "Wählen Sie Ihren Tarif",
@@ -1316,6 +1320,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "Sin plan todavía", active: "Activo", paused: "En pausa", cancelled: "Cancelado" },
       activeTier: "Plan {tier}",
       renews: "Se renueva el {date}",
+      ends: "Tu plan termina el {date}. Hasta entonces sigues recibiendo tus videos semanales.",
       trialNote: "Aún no has elegido un plan, así que todavía no se crean vídeos.",
       toPreview: "Volver a tu vista previa",
       chooseTitle: "Elige tu plan",
@@ -1674,6 +1679,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "Henüz plan yok", active: "Aktif", paused: "Duraklatıldı", cancelled: "İptal edildi" },
       activeTier: "{tier} planı",
       renews: "{date} tarihinde yenilenir",
+      ends: "Planınız {date} tarihinde sona eriyor. O tarihe kadar haftalık videolarınız gelmeye devam ediyor.",
       trialNote: "Henüz bir plan seçmediniz; bu yüzden henüz video hazırlanmıyor.",
       toPreview: "Önizlemenize dönün",
       chooseTitle: "Planınızı seçin",
@@ -2032,6 +2038,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "Pas encore de formule", active: "Active", paused: "En pause", cancelled: "Résiliée" },
       activeTier: "Formule {tier}",
       renews: "Renouvellement le {date}",
+      ends: "Votre formule se termine le {date}. Vous continuez à recevoir vos vidéos de la semaine jusque-là.",
       trialNote: "Vous n'avez pas encore choisi de formule : aucune vidéo n'est donc réalisée pour l'instant.",
       toPreview: "Revenir à votre aperçu",
       chooseTitle: "Choisissez votre formule",
@@ -2387,6 +2394,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "プラン未選択", active: "ご利用中", paused: "一時停止中", cancelled: "解約済み" },
       activeTier: "{tier}プラン",
       renews: "次回更新日：{date}",
+      ends: "プランは{date}に終了します。それまでは毎週の動画が引き続き届きます。",
       trialNote: "まだプランが選ばれていないため、動画は制作されていません。",
       toPreview: "プレビューに戻る",
       chooseTitle: "プランを選ぶ",
@@ -2743,6 +2751,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "لا باقة بعد", active: "فعّالة", paused: "متوقفة مؤقتاً", cancelled: "ملغاة" },
       activeTier: "باقة {tier}",
       renews: "تتجدّد في {date}",
+      ends: "تنتهي خطتك في {date}. وحتى ذلك الحين تواصل تلقّي فيديوهاتك الأسبوعية.",
       trialNote: "لم تختاروا باقة بعد، لذلك لا نُعِدّ فيديوهات.",
       toPreview: "العودة إلى معاينتكم",
       chooseTitle: "اختاروا باقتكم",
@@ -3100,6 +3109,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       state: { trial: "Brak planu", active: "Aktywny", paused: "Wstrzymany", cancelled: "Zakończony" },
       activeTier: "Plan {tier}",
       renews: "Odnowienie: {date}",
+      ends: "Plan kończy się {date}. Do tego dnia nadal otrzymują Państwo cotygodniowe filmy.",
       trialNote: "Plan nie został jeszcze wybrany, więc filmy nie powstają.",
       toPreview: "Wróć do podglądu",
       chooseTitle: "Wybór planu",

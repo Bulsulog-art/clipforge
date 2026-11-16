@@ -508,6 +508,16 @@ export function AdminSystem({ data, ...c }: Common & { data: SystemData }) {
             sub="Clinics the batch was expected to miss Monday 07:00 for"
             tone={s.lastBatch.marker?.projectedLate ? "amber" : undefined}
           />
+          <Stat
+            label="Delivery check"
+            value={s.delivery ? `${s.delivery.late.length} late · ${s.delivery.behind.length} behind` : "—"}
+            sub={
+              s.delivery
+                ? `${when(s.delivery.at)} · ${s.delivery.payingClinics} paying · ${Object.keys(s.delivery.failedJobs).length} with failed jobs · ${Object.keys(s.delivery.stuckJobs).length} stuck${s.delivery.stale ? " · STALE" : ""}`
+                : "no report from the hourly delivery watchdog"
+            }
+            tone={s.available && (!s.delivery || s.delivery.stale) ? "amber" : s.delivery?.late.length || s.delivery?.behind.length ? "red" : s.delivery ? "teal" : undefined}
+          />
         </div>
       </Section>
 

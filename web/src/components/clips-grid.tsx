@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Play, Download, Send, Sparkles } from "lucide-react";
 import type { Clip } from "@/lib/supabase/types";
 import { formatDuration } from "@/lib/utils";
+import { SOCIAL_PUBLISHING } from "@/lib/features";
 
 export function ClipsGrid({ clips }: { clips: Clip[] }) {
   return (
@@ -66,12 +67,12 @@ export function ClipsGrid({ clips }: { clips: Clip[] }) {
               >
                 <Download className="h-3.5 w-3.5" /> Save
               </Link>
-              <Link
+              {SOCIAL_PUBLISHING && <Link
                 href={`/studio/clips/${c.id}/publish`}
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-1.5 text-xs font-medium text-white transition hover:bg-brand-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
               >
                 <Send className="h-3.5 w-3.5" /> Post
-              </Link>
+              </Link>}
             </div>
           </div>
         </article>

@@ -6,6 +6,7 @@ import { DashboardNav } from "@/components/dashboard-nav";
 import { ClipsGrid } from "@/components/clips-grid";
 import { JobStatusBar } from "@/components/job-status-bar";
 import { JobRetryButton } from "@/components/job-retry-button";
+import { SOCIAL_PUBLISHING } from "@/lib/features";
 
 export default async function StudioJobPage({ params }: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await params;
@@ -45,7 +46,7 @@ export default async function StudioJobPage({ params }: { params: Promise<{ jobI
             )}
           </div>
 
-          {clips && clips.length > 0 && (
+          {SOCIAL_PUBLISHING && clips && clips.length > 0 && (
             <Link
               href={`/studio/${jobId}/schedule`}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white outline-none transition hover:bg-brand-glow focus-visible:ring-2 focus-visible:ring-brand/40"

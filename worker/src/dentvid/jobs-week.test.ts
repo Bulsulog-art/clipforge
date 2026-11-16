@@ -41,6 +41,14 @@ let uploadFailures = 0;
 /** What the clinic already has in dentvid_items (newest week first, as the query orders it). */
 let pastItems: Record<string, unknown>[] = [];
 const selects: { table: string; cols: string }[] = [];
+/** Usable videos the week already has (the idempotency check at the start of a run). */
+let usableAlready = 0;
+let itemsCountError: { message: string } | null = null;
+let insertFailures = 0;
+let insertError = "connection terminated unexpectedly";
+/** dentvid_clinics reads that still find the clinic; after that it is deleted (-1: never). */
+let clinicReadsLeft = -1;
+const removedKeys: string[] = [];
 const orders: { table: string; col: string; ascending: boolean }[] = [];
 
 function fakeDb() {
@@ -48,10 +56,12 @@ function fakeDb() {
     const q: Record<string, unknown> = {};
     q.select = (cols?: string) => (selects.push({ table, cols: cols ?? "*" }), q);
     q.eq = () => q;
+    // The week's usable-video head count (jobs.ts usableInWeek): awaited straight after .in().
+    q.in = () => ({ then: (res: (v: unknown) => void) => res(itemsCountError ? { count: null, error: itemsCountError } : { count: usableAlready, error: null }) });
     q.order = (col: string, o?: { ascending?: boolean }) => (orders.push({ table, col, ascending: o?.ascending !== false }), q);
     q.limit = async () => ({ data: table === "dentvid_items" ? pastItems : [] });
     q.maybeSingle = async () => ({
-      data: table === "dentvid_clinics" ? { id: CLINIC, plan: "active", plan_tier: "practice", profile: { name: "Gülüş Dental", country: "TR" } } : null,
+      data: table === "dentvid_clinics" && clinicReadsLeft-- !== 0 ? { id: CLINIC, plan: "active", plan_tier: "practice", profile: { name: "Gülüş Dental", country: "TR" } } : null,
       error: null,
     });
     q.single = async () => ({
@@ -59,6 +69,7 @@ function fakeDb() {
       error: null,
     });
     q.insert = async (rows: Record<string, unknown>[]) => {
+      if (insertFailures-- > 0) return { error: { message: insertError } };
       inserted.push(...rows);
       return { error: null };
     };
@@ -67,6 +78,7 @@ function fakeDb() {
   const storage = {
     from: () => ({
       upload: async () => (uploadFailures-- > 0 ? { error: { message: "503 storage unavailable" } } : { error: null }),
+      remove: async (keys: string[]) => (removedKeys.push(...keys), { error: null }),
     }),
   };
   return { from, storage };
@@ -101,6 +113,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   inserted.length = 0;
   uploadFailures = 0;
+  usableAlready = 0;
+  itemsCountError = null;
+  insertFailures = 0;
+  insertError = "connection terminated unexpectedly";
+  clinicReadsLeft = -1;
+  removedKeys.length = 0;
   pastItems = [];
   selects.length = 0;
   orders.length = 0;
@@ -317,5 +335,75 @@ describe("a week that heals itself", () => {
     const spikes = mails.filter((m) => /Render failures spiking/.test(m.subject));
     expect(spikes).toHaveLength(1);
     expect(spikes[0].text).toMatch(/Chromium OOM/);
+  });
+});
+
+describe("reliability: a week is made once, and a database blip does not throw it away (docs/RELIABILITY.md F7, F8)", () => {
+  // Before: nothing checked whether the week already existed. A job re-run after the worker died
+  // between storing the videos and finishing (BullMQ "stalled"), or a re-queue racing a slow run,
+  // made — and paid for — a second full week.
+  it("a re-run of a week that is already delivered makes nothing and spends nothing", async () => {
+    usableAlready = 5;
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attempts: 4 });
+    expect(r).toMatchObject({ ready: 0, already: 5 });
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(inserted).toHaveLength(0);
+    expect(sendReadyAtCivilHour).not.toHaveBeenCalled();
+  });
+
+  it("a re-run of a partly stored week makes only the missing videos", async () => {
+    usableAlready = 3;
+    produceWeek.mockResolvedValueOnce(["d", "e"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attempts: 4 });
+    expect(produceWeek.mock.calls[0][2]).toMatchObject({ count: 2 });
+    expect(r).toMatchObject({ ready: 2 });
+  });
+
+  it("a top-up run (count = the missing ones) is unchanged", async () => {
+    usableAlready = 3;
+    produceWeek.mockResolvedValueOnce(["d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 2, week }, { jobId: "w", attempts: 4 });
+    expect(produceWeek.mock.calls[0][2]).toMatchObject({ count: 2 });
+  });
+
+  it("the week's items cannot be read: fails as transient (retried), never guesses", async () => {
+    itemsCountError = { message: "503 service unavailable" };
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toThrow(/could not be read/);
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
+  });
+
+  // Before: one failed insert at the very end failed the job; BullMQ's retry re-made the whole week.
+  it("an insert that fails twice is retried and the week is stored once", async () => {
+    insertFailures = 2;
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attempts: 4 });
+    expect(r).toMatchObject({ ready: 5 });
+    expect(inserted).toHaveLength(5);
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+  });
+
+  it("an insert that never works fails the job as transient after its retries (BullMQ retries; the owner hears on the last attempt)", async () => {
+    insertFailures = 99;
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 3, attempts: 4 })).rejects.toThrow(/insert items/);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+    expect(mails.some((m) => /week failed|Haftalık videolar/i.test(m.subject))).toBe(true);
+  });
+});
+
+describe("reliability: clinic deleted while its week is being made (docs/RELIABILITY.md F10)", () => {
+  // Before: the insert hit the foreign key, was treated as a passing error and retried; the
+  // videos already uploaded stayed in storage after the account (and its files) had been deleted.
+  it("no retry of the foreign-key error, the uploaded files are removed, nothing alerts", async () => {
+    clinicReadsLeft = 1; // paying() sees it; by the insert it is gone
+    insertFailures = 1;
+    insertError = 'insert or update on table "dentvid_items" violates foreign key constraint "dentvid_items_clinic_id_fkey"';
+    produceWeek.mockResolvedValueOnce(["a", "b"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 2, week }, { jobId: "w", attempts: 4 });
+    expect(r).toMatchObject({ ready: 0 });
+    expect(removedKeys.length).toBeGreaterThanOrEqual(2);
+    expect(removedKeys.every((k) => k.startsWith(`${OWNER}/`))).toBe(true);
+    expect(mails).toEqual([]);
   });
 });

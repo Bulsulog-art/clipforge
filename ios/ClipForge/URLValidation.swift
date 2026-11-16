@@ -2,8 +2,9 @@ import Foundation
 
 /// Shared source URL validation. NewProjectSheet + any future "paste link" UI.
 ///
-/// Worker accepts youtube.com, youtu.be, and tiktok.com sources. Reject early on
-/// the client so we don't burn a queued job + a credit attempt on a malformed URL.
+/// The server accepts TikTok links. YouTube links are refused (HTTP 422): YouTube
+/// blocks downloads from our servers, so 7 of 8 YouTube jobs failed in the 30
+/// days to 2026-11-16. Say so here, before a job is queued, and point at upload.
 enum SourceURL {
     enum Kind { case youtube, tiktok, other }
 
@@ -32,7 +33,12 @@ enum SourceURL {
         return nil
     }
 
+    /// A link the server will actually import (TikTok only).
     static func isValid(_ raw: String) -> Bool {
-        parse(raw) != nil
+        parse(raw)?.kind == .tiktok
+    }
+
+    static func isYouTube(_ raw: String) -> Bool {
+        parse(raw)?.kind == .youtube
     }
 }
