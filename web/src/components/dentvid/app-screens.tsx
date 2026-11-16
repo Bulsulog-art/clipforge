@@ -20,6 +20,7 @@ import { RecordUpload } from "./record-upload";
 import { HelpContact } from "./help-contact";
 import { HelpLink } from "./help-link";
 import { HELP } from "@/content/help";
+import { RetentionNotice, TopicRequests, type TopicView } from "./clinic-requests";
 
 /**
  * The screens of the signed-in app, as plain views of their data. The pages
@@ -46,7 +47,10 @@ export function AppHomeView({
   weekDelay = null,
   billingIssue = null,
   firstWeekJob,
+  topics,
 }: {
+  /** "Suggest a topic for next week" (0024): the clinic's suggestions; null = not available; undefined = not shown. */
+  topics?: TopicView[] | null;
   locale: Locale;
   clinicName?: string;
   /** The clinic's country (profile.country): the plan cards show the currency the checkout charges. */
@@ -79,6 +83,12 @@ export function AppHomeView({
         <p role="status" className="mb-6 rounded-xl bg-dv-teal-50 px-4 py-3 text-sm text-dv-teal ring-1 ring-inset ring-dv-teal/15">
           {notice}
         </p>
+      )}
+      {/* A plan that has ended: the library stays 90 days, and the clinic sees until when. */}
+      {plan.retention && (
+        <div className="mb-6">
+          <RetentionNotice locale={locale} endedAt={plan.retention.endedAt} deleteOn={plan.retention.deleteOn} />
+        </div>
       )}
       {firstWeek && (
         <div className={onlyFirstWeek ? "" : "mb-10"}>
@@ -113,6 +123,7 @@ export function AppHomeView({
               country={country}
               clinicName={clinicName || t.yourClinic}
               heroLevel={firstWeek ? 2 : 1}
+              topics={topics}
             />
           </div>
         </>
@@ -133,7 +144,10 @@ export function SettingsView({
   accountEmail = null,
   billingIssue = null,
   clinicId = null,
+  topics,
 }: {
+  /** "Suggest a topic for next week" (0024): shown while videos are being made. */
+  topics?: TopicView[] | null;
   locale: Locale;
   profile?: Partial<ClinicProfile>;
   /** The clinic's id, prefilled in the Help & contact email so support finds the account. */
@@ -163,12 +177,22 @@ export function SettingsView({
       <div className="mt-8">
         <ClinicForm locale={locale} initial={profile} logoPath={logoPath} logoUrl={logoUrl} submitLabel={t.save} />
       </div>
+      {topics && (
+        <div className="mt-14 border-t border-dv-line pt-10">
+          <TopicRequests locale={locale} initial={topics} compact />
+        </div>
+      )}
       {plan && (
         <section aria-labelledby="billing-title" className="mt-14 border-t border-dv-line pt-10">
           <h2 id="billing-title" className="text-xl font-semibold text-dv-ink">{b.settingsHeading}</h2>
           <div className="mt-4">
             <PlanStatus locale={locale} state={plan.plan} tier={plan.tier} renewsAt={plan.renewsAt} endsAt={plan.endsAt ?? null} />
           </div>
+          {plan.retention && (
+            <div className="mt-4">
+              <RetentionNotice locale={locale} endedAt={plan.retention.endedAt} deleteOn={plan.retention.deleteOn} />
+            </div>
+          )}
           {plan.plan === "trial" && (
             <p className="mt-3 text-sm text-dv-body">
               {b.trialNote}{" "}

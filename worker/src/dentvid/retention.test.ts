@@ -214,6 +214,99 @@ describe("library retention after a plan ends", () => {
   });
 });
 
+describe("re-subscribing during the 90 days, and fake time across DST", () => {
+  for (const [label, day] of [
+    ["day 1", 1],
+    ["day 50", 50],
+    ["day 77, after the 14-day email", 77],
+    ["day 89, after the 1-day email", 89],
+  ] as const) {
+    it(`subscribed again on ${label}: nothing is deleted, no more emails, even if the plan ends again later`, async () => {
+      await run(T0);
+      for (let d = 1; d <= day; d++) await run(at(d));
+      const mailsBefore = notices.length;
+      row(ENDED.id).plan = "active";
+      for (let d = day + 1; d <= 200; d += 1) await run(at(d));
+      expect(items(ENDED.id)).toHaveLength(2);
+      expect(filesOf(ENDED.owner_id)).toHaveLength(6);
+      expect(notices).toHaveLength(mailsBefore);
+      expect(row(ENDED.id)).toMatchObject({ plan_ended_at: null, library_delete_after: null, library_deleted_at: null });
+    });
+  }
+
+  it("subscribed again and then only paused (a failed payment): still never deleted", async () => {
+    await run(T0);
+    row(ENDED.id).plan = "paused";
+    for (let d = 1; d <= 120; d += 7) await run(at(d));
+    expect(items(ENDED.id)).toHaveLength(2);
+    expect(notices).toEqual([]);
+  });
+
+  it("subscribed again while the library was being listed (after the re-read): the conditional claim stops the deletion", async () => {
+    row(ENDED.id).plan_ended_at = at(-100).toISOString();
+    row(ENDED.id).library_delete_after = at(-1).toISOString();
+    liman.rows("dentvid_email_log").push({ clinic_id: ENDED.id, kind: noticeKind(1, at(-100).toISOString()) });
+    const d = db();
+    const library = d.library;
+    d.library = async (c) => {
+      row(ENDED.id).plan = "active";
+      return library(c);
+    };
+    const r = await runRetention({ db: d, notify, mode: "delete", now: T0 });
+    expect(r.deleted.clinics).toBe(0);
+    expect(items(ENDED.id)).toHaveLength(2);
+    expect(filesOf(ENDED.owner_id)).toHaveLength(6);
+    expect(row(ENDED.id).library_deleted_at).toBeNull();
+  });
+
+  it("a deletion that fails half-way is un-marked and finished by the next run", async () => {
+    row(ENDED.id).plan_ended_at = at(-100).toISOString();
+    row(ENDED.id).library_delete_after = at(-1).toISOString();
+    liman.rows("dentvid_email_log").push({ clinic_id: ENDED.id, kind: noticeKind(1, at(-100).toISOString()) });
+    const d = db();
+    const del = d.deleteLibrary;
+    d.deleteLibrary = async () => {
+      throw new Error("storage 503");
+    };
+    const r = await runRetention({ db: d, notify, mode: "delete", now: T0 });
+    expect(r.errors).toHaveLength(1);
+    expect(row(ENDED.id).library_deleted_at).toBeNull();
+    d.deleteLibrary = del;
+    await runRetention({ db: d, notify, mode: "delete", now: at(1) });
+    expect(items(ENDED.id)).toHaveLength(0);
+  });
+
+  it("two workers running the same day delete once", async () => {
+    row(ENDED.id).plan_ended_at = at(-100).toISOString();
+    row(ENDED.id).library_delete_after = at(-1).toISOString();
+    liman.rows("dentvid_email_log").push({ clinic_id: ENDED.id, kind: noticeKind(1, at(-100).toISOString()) });
+    const [a, b] = await Promise.all([run(T0), run(T0)]);
+    expect(a.deleted.clinics + b.deleted.clinics).toBe(1);
+  });
+
+  for (const [zone, ended] of [
+    ["Europe (DST ends 25 Oct 2026)", "2026-10-20T08:00:00Z"],
+    ["US (DST starts 14 Mar 2027)", "2027-01-05T15:00:00Z"],
+    ["Europe (DST starts 28 Mar 2027)", "2027-03-01T23:30:00Z"],
+  ] as const) {
+    it(`${zone}: exactly 90 × 24 h, the emails on day 76 and day 89, deletion on day 90, whatever the clock change`, async () => {
+      const E = new Date(ended);
+      const on = (days: number, extraMin = 0) => new Date(E.getTime() + days * DAY + extraMin * 60_000);
+      row(ENDED.id).plan_ended_at = E.toISOString();
+      await runRetention({ db: db(), notify, mode: "delete", now: on(75, 59 * 24) });
+      expect(notices).toEqual([]);
+      await runRetention({ db: db(), notify, mode: "delete", now: on(76) });
+      expect(notices[0]).toMatchObject({ days: 14, deleteOn: on(90).toISOString() });
+      await runRetention({ db: db(), notify, mode: "delete", now: on(89) });
+      expect(notices.map((n) => n.days)).toEqual([14, 1]);
+      await runRetention({ db: db(), notify, mode: "delete", now: on(90, -1) });
+      expect(items(ENDED.id)).toHaveLength(2);
+      await runRetention({ db: db(), notify, mode: "delete", now: on(90) });
+      expect(items(ENDED.id)).toHaveLength(0);
+    });
+  }
+});
+
 describe("rules", () => {
   const c: RetentionClinic = { id: "x", owner_id: "aaaaaaaa-0000-4000-8000-000000000001", plan: "cancelled", logo_path: "aaaaaaaa-0000-4000-8000-000000000001/logo.png", plan_ended_at: null, library_delete_after: null, library_deleted_at: null };
 

@@ -16,6 +16,7 @@ import type { FirstWeekJob } from "@/lib/dentvid/first-week-state";
 import { adminOrNull, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
 import { marksBrowserInternal } from "@/lib/dentvid/internal-traffic";
 import { InternalMark } from "@/components/dentvid/internal-mark";
+import { supabaseRequestStore } from "@/lib/dentvid/clinic-requests";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,8 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const notice = billing === "cancelled" ? (declined ? b.paymentFailed : b.cancelled) : null;
   // Not paying: the plan picker — unless buying would double-charge (on hold → update the card, payment being confirmed, cancelled but paid up).
   const panel = plan.canMake ? null : await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin);
+  // "Suggest a topic for next week" (0024): only while videos are being made; null = not available yet.
+  const topics = plan.canMake ? await supabaseRequestStore(db, () => null).topics(user.id, 30).catch(() => null) : undefined;
 
   return (
     <>
@@ -80,6 +83,7 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
         notice={notice}
         plans={dvAvailablePlans()}
         billingIssue={panel && panel.kind !== "plans" ? panel : null}
+        topics={topics}
       />
     </>
   );

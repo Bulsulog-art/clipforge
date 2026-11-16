@@ -129,7 +129,10 @@ export interface RetentionDb {
   library(c: RetentionClinic): Promise<{ items: LibraryItemRow[]; files: string[] }>;
   /** Removes the files, then the video rows and the clinic's requests. */
   deleteLibrary(c: RetentionClinic, files: string[]): Promise<{ items: number; files: number }>;
-  markDeleted(id: string, endedAt: string, at: Date): Promise<void>;
+  /** library_deleted_at := at, only while cancelled on this ended plan and not deleted for it yet; true when it moved. */
+  markDeleted(id: string, endedAt: string, at: Date): Promise<boolean>;
+  /** Undo a mark whose deletion failed half-way (the next run deletes the rest). */
+  unmarkDeleted(id: string, at: Date): Promise<void>;
 }
 
 /** What the web app said about a notice: sent; or not, and whether trying again could help. */
@@ -232,8 +235,17 @@ async function deleteOne(db: RetentionDb, c: RetentionClinic, now: Date, res: Re
   if (!at || now.getTime() < at.getTime()) return;
   const lib = await db.library(fresh);
   const files = lib.files.filter((f) => deletableFile(f, fresh));
-  const done = await db.deleteLibrary(fresh, files);
-  await db.markDeleted(fresh.id, fresh.plan_ended_at!, now);
+  // Claim the deletion in one conditional write (still cancelled, same ended plan, not yet deleted):
+  // a re-subscription that landed while the library was being listed stops it here.
+  if (!(await db.markDeleted(fresh.id, fresh.plan_ended_at!, now))) return;
+  let done: { items: number; files: number };
+  try {
+    done = await db.deleteLibrary(fresh, files);
+  } catch (e) {
+    // Not finished: un-mark it so tomorrow's run tries again.
+    await db.unmarkDeleted(fresh.id, now).catch(() => {});
+    throw e;
+  }
   res.deleted.clinics++;
   res.deleted.items += done.items;
   res.deleted.files += done.files;
@@ -328,8 +340,19 @@ export function supabaseRetentionDb(db: SupabaseClient): RetentionDb {
       return { items: (data ?? []).length, files: removed };
     },
     async markDeleted(id, endedAt, at) {
-      const { error } = await db.from("dentvid_clinics").update({ library_deleted_at: at.toISOString() }).eq("id", id).eq("plan_ended_at", endedAt);
+      const { data, error } = await db
+        .from("dentvid_clinics")
+        .update({ library_deleted_at: at.toISOString() })
+        .eq("id", id)
+        .eq("plan", "cancelled")
+        .eq("plan_ended_at", endedAt)
+        .or(`library_deleted_at.is.null,library_deleted_at.lt."${endedAt}"`)
+        .select("id");
       if (error) throw new Error(`retention: mark deleted: ${error.message}`);
+      return (data ?? []).length > 0;
+    },
+    async unmarkDeleted(id, at) {
+      await db.from("dentvid_clinics").update({ library_deleted_at: null }).eq("id", id).eq("library_deleted_at", at.toISOString());
     },
   };
 }

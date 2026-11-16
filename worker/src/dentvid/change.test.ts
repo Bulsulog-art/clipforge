@@ -187,6 +187,27 @@ describe("a change request re-makes only that one video", () => {
     expect(produceVideo).toHaveBeenCalledTimes(1);
   });
 
+  it("duplicate delivery: the same request run twice at the same moment is made (and paid) once", async () => {
+    request("d1", A, "item-a");
+    makes("ready");
+    makes("ready");
+    const results = await Promise.all([runDentvidChange({ requestId: "d1" }), runDentvidChange({ requestId: "d1" })]);
+    expect(produceVideo).toHaveBeenCalledTimes(1);
+    expect(results.map((r) => r.status).sort()).toEqual(["done", "skipped"]);
+    expect([...guardStore.values.entries()].find(([k]) => k.startsWith("dv:spend:ops:change:"))?.[1]).toBe(1);
+  });
+
+  it("five requests racing for one clinic: never more than the weekly three are made or reserved", async () => {
+    for (const id of ["p1", "p2", "p3", "p4", "p5"]) {
+      request(id, A, "item-a");
+      makes("ready");
+    }
+    const results = await Promise.all(["p1", "p2", "p3", "p4", "p5"].map((id) => runDentvidChange({ requestId: id })));
+    expect(produceVideo).toHaveBeenCalledTimes(3);
+    expect(results.filter((r) => r.status === "failed" && r.reason === "busy")).toHaveLength(2);
+    expect([...guardStore.values.entries()].find(([k]) => k.startsWith(`dv:spend:ops:change:${A.clinic}`))?.[1]).toBe(3);
+  });
+
   it("without the subtitles column (0024 partly applied) the change is still stored", async () => {
     const missing = memoryLiman({}, { missingColumns: { dentvid_items: ["subtitles"] } });
     // Same tables, but a database that refuses the column.

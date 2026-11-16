@@ -115,6 +115,22 @@ describe("suggested topics in the Monday week", () => {
     expect(topicRequest("x1").status).toBe("pending");
   });
 
+  it("a re-run of the week (retry or duplicate delivery) never reuses a suggestion already used or refused", async () => {
+    week({ topics: [T("Sensitivity after whitening", { request: 0 }), T("a"), T("b"), T("c"), T("d")], refused: [{ request: 1, reason: "not_offered" }] });
+    await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2026-11-09" }, { attempts: 4 });
+    // The week is already delivered: the re-run makes nothing and asks for nothing.
+    week({ topics: [] });
+    await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2026-11-09" }, { attempts: 4 });
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+    // Next week: only what is still pending goes to the strategist.
+    liman.rows("dentvid_items").length = 0;
+    week({ topics: [T("e"), T("f"), T("g"), T("h"), T("i")] });
+    await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2026-11-16" }, { attempts: 4 });
+    expect((produceWeek.mock.calls[1][2] as { requests: string[] }).requests).toEqual(["Whitening at home vs at the clinic", "Fourth: waits for next week"]);
+    expect(topicRequest("q1").status).toBe("used");
+    expect(topicRequest("q2").status).toBe("refused");
+  });
+
   it("stores each video's subtitle cues, timed from its own narration", async () => {
     week({ topics: [T("a"), T("b"), T("c"), T("d"), T("e")] });
     await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2026-11-09" }, { attempts: 4 });

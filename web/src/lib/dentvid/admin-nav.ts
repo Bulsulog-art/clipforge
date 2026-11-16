@@ -10,6 +10,8 @@ export const ADMIN_SECTIONS = [
   { key: "videos", label: "Videos", path: "/videos" },
   { key: "system", label: "Queue & system", path: "/system" },
   { key: "emails", label: "Emails", path: "/emails" },
+  // Topic suggestions and "Ask for a change" requests from clinics (0024).
+  { key: "requests", label: "Requests", path: "/requests" },
   { key: "billing", label: "Billing", path: "/billing" },
   { key: "funnel", label: "Funnel & sources", path: "/funnel" },
   // Built separately (personalised demo links); always linked.

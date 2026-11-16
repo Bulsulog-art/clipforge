@@ -11,6 +11,7 @@ import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { adminOrNull, loadAppBillingPanel, loadPlanEnd } from "@/lib/dentvid/billing-state";
 import { logoSignedUrl } from "@/lib/dentvid/logo-url";
 import { dodoApiKey } from "@/lib/dentvid/dodo-account";
+import { supabaseRequestStore } from "@/lib/dentvid/clinic-requests";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ export default async function Settings() {
   const admin = await adminOrNull();
   // Cancelled but still paid for: "ends on {date}" instead of "renews on" (docs/RELIABILITY.md F9).
   if (plan?.plan === "active") plan.endsAt = await loadPlanEnd({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin);
+  const topics = plan?.canMake ? await supabaseRequestStore(db, () => null).topics(user.id, 30).catch(() => null) : undefined;
   const panel = plan && !plan.canMake ? await loadAppBillingPanel({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId, adminPaused: plan.adminPaused }, admin) : null;
   return (
     <SettingsView
@@ -43,6 +45,7 @@ export default async function Settings() {
       selfServe={!!dodoApiKey()}
       accountEmail={user.email ?? null}
       clinicId={clinic.id as string}
+      topics={topics}
     />
   );
 }

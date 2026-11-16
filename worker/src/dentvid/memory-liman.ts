@@ -16,11 +16,15 @@ const cmp = (a: unknown, b: unknown) => String(a ?? "") < String(b ?? "") ? -1 :
 function orFilter(expr: string): Filter {
   const parts = expr.split(",").map((p) => p.trim());
   const tests = parts.map((p): Filter => {
-    const m = /^([a-z_]+)\.(not\.)?(eq|is|neq)\.(.+)$/.exec(p);
+    const m = /^([a-z_]+)\.(not\.)?(eq|is|neq|lt)\.(.+)$/.exec(p);
     if (!m) throw new Error(`memory-liman: unsupported or() part ${p}`);
     const [, col, not, op, raw] = m;
-    const val = raw === "null" ? null : raw;
-    const base: Filter = op === "is" ? (r) => (r[col] ?? null) === val : op === "eq" ? (r) => String(r[col]) === String(val) : (r) => String(r[col]) !== String(val);
+    const val = raw === "null" ? null : raw.replace(/^"(.*)"$/, "$1");
+    const base: Filter =
+      op === "is" ? (r) => (r[col] ?? null) === val
+      : op === "eq" ? (r) => String(r[col]) === String(val)
+      : op === "lt" ? (r) => r[col] != null && cmp(r[col], val) < 0
+      : (r) => String(r[col]) !== String(val);
     return not ? (r) => !base(r) : base;
   });
   return (r) => tests.some((t) => t(r));

@@ -8,6 +8,7 @@ import { clinicSources, lastRuns, type AdminClinic, type AdminEvent, type AdminI
 import { lastActivity, type ClinicRowView, type VideoRow } from "./admin-filters";
 import { billingIssues, type EmailLogRow, type EmailSendRow, type PaymentRow, type SubRow } from "./admin-ops";
 import { costOver } from "./admin-system";
+import { retentionDates } from "./plan";
 
 /**
  * What each admin screen shows, loaded with the service role on the server
@@ -113,7 +114,16 @@ export type DetailItem = {
   thumbUrl?: string;
 };
 
+/** A clinic's topic suggestion or change request as the owner's panel shows it (0024). */
+export type AdminTopicRequest = { id: string; clinic_id: string; text: string; status: string; reason: string | null; week_of: string | null; item_id: string | null; created_at: string };
+export type AdminChangeRequest = { id: string; clinic_id: string; item_id: string; note: string; status: string; reason: string | null; created_at: string; finished_at: string | null };
+
 export type ClinicDetail = {
+  /** Topic suggestions and change requests (null: 0024 not applied). */
+  topicRequests?: AdminTopicRequest[] | null;
+  changeRequests?: AdminChangeRequest[] | null;
+  /** When the plan ended and when the library is deleted (0024; retention.ts). */
+  retention?: { endedAt: string; deleteOn: string; deletedAt: string | null } | null;
   now: string;
   clinic: AdminClinic & { owner_id: string; logo_path?: string | null; updated_at?: string; email_opt_out_at?: string | null; plan_renews_at?: string | null; admin_pause_note?: string | null };
   ownerEmail: string | null;
@@ -136,6 +146,12 @@ export async function loadClinicDetail(id: string, now = new Date()): Promise<Cl
   if (!c) return null;
   const { data: clinic } = await c.from("dentvid_clinics").select("*").eq("id", id).maybeSingle();
   if (!clinic) return null;
+  const [topicReqs, changeReqs] = await Promise.all([
+    rows<AdminTopicRequest>(c.from("dentvid_topic_requests").select("*").eq("clinic_id", id).order("created_at", { ascending: false }).limit(50)),
+    rows<AdminChangeRequest>(c.from("dentvid_change_requests").select("*").eq("clinic_id", id).order("created_at", { ascending: false }).limit(50)),
+  ]);
+  const ended = clinic as { plan?: string; plan_ended_at?: string | null; library_delete_after?: string | null; library_deleted_at?: string | null };
+  const dates = retentionDates(ended.plan ?? "", ended.plan_ended_at, ended.library_delete_after);
   const [items, events, emailLog, emailSends, subs, payments, actions, owner] = await Promise.all([
     rows<DetailItem>(c.from("dentvid_items").select("*").eq("clinic_id", id).order("created_at", { ascending: false }).limit(60)),
     rows<AdminEvent>(c.from("dentvid_events").select("name, locale, props, clinic_id, created_at").eq("clinic_id", id).order("created_at", { ascending: false }).limit(300)),
@@ -162,7 +178,27 @@ export async function loadClinicDetail(id: string, now = new Date()): Promise<Cl
     actions,
     pauseColumn: "admin_paused_at" in clinic,
     signedTtlSec: ADMIN_SIGNED_URL_TTL_SEC,
+    topicRequests: topicReqs.missing ? null : topicReqs.rows,
+    changeRequests: changeReqs.missing ? null : changeReqs.rows,
+    retention: dates ? { ...dates, deletedAt: ended.library_deleted_at ?? null } : null,
   };
+}
+
+/* --------------------------------------------------------------- requests */
+
+export type RequestsData = { now: string; topics: AdminTopicRequest[] | null; changes: AdminChangeRequest[] | null; clinics: AdminClinic[]; warnings: string[] };
+
+/** Recent topic suggestions and change requests across clinics (0024), newest first. */
+export async function loadRequests(now = new Date()): Promise<RequestsData> {
+  const c = db();
+  if (!c) return { now: now.toISOString(), topics: null, changes: null, clinics: [], warnings: ["The service-role key is not configured."] };
+  const [topics, changes, clinics] = await Promise.all([
+    rows<AdminTopicRequest>(c.from("dentvid_topic_requests").select("*").order("created_at", { ascending: false }).limit(300)),
+    rows<AdminChangeRequest>(c.from("dentvid_change_requests").select("*").order("created_at", { ascending: false }).limit(300)),
+    rows<AdminClinic>(c.from("dentvid_clinics").select("id, profile, plan, plan_tier, created_at").limit(2000)),
+  ]);
+  const warnings = [topics.error, changes.error, clinics.error].filter((e): e is string => !!e);
+  return { now: now.toISOString(), topics: topics.missing ? null : topics.rows, changes: changes.missing ? null : changes.rows, clinics: clinics.rows, warnings };
 }
 
 /* ----------------------------------------------------------------- videos */

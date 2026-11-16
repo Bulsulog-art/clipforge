@@ -59,5 +59,12 @@ export const RECORDING_JOB_OPTS = { attempts: 2, backoff: { type: "exponential" 
 
 export const RESTYLE_JOB_OPTS = { attempts: 2, backoff: { type: "exponential" as const, delay: 30_000 }, priority: DENTVID_PRIORITY.restyle };
 
+/**
+ * "Ask for a change" on one video: someone is waiting, and it runs ONCE — a
+ * failure is reported to the clinic and the owner, never retried, so a change
+ * is never paid for twice (worker/src/dentvid/jobs.ts runDentvidChange).
+ */
+export const CHANGE_JOB_OPTS = { attempts: 1, priority: DENTVID_PRIORITY.restyle };
+
 /** The data of a "week" job. `week` is the Monday it is for (YYYY-MM-DD); older jobs without it mean the week they run in. */
 export type WeekJobData = { clinicId: string; count: number; week?: string; batch?: boolean };

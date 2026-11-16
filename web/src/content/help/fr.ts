@@ -45,7 +45,8 @@ export const fr: HelpContent = {
     },
     topics: {
       q: "Comment les sujets sont-ils choisis, et puis-je en proposer un ?",
-      a: "Chaque semaine, nous choisissons cinq sujets à partir des soins indiqués dans vos réglages et des questions que les patients se posent à leur sujet. Les vidéos ne portent que sur des soins que vous proposez : une liste complète et juste est donc ce qui compte le plus.\n\nDans « Sujets que nous n'avons pas créés », vous voyez les sujets écartés, chacun avec sa raison. Pour proposer un sujet, écrivez-nous en indiquant le sujet et le soin concerné. Nous lisons chaque proposition ; il n'existe pas de formulaire de demande de sujet dans l'application.",
+      a: "Chaque semaine, nous choisissons cinq sujets à partir des soins indiqués dans vos réglages et des questions que les patients se posent à leur sujet. Les vidéos ne portent que sur des soins que vous proposez : une liste complète et juste est donc ce qui compte le plus.\n\nPour proposer un sujet, utilisez « Proposer un sujet pour la semaine prochaine » sur la page Vidéos ou dans les Réglages : une question de patient ou un sujet, 140 caractères au plus. Nous utilisons d'abord les propositions en attente, jusqu'à trois par semaine, lorsqu'elles correspondent à vos soins et passent les mêmes vérifications cliniques et publicitaires que chaque vidéo. Sous « Vos propositions », vous voyez ce qu'il est advenu de chacune ; une proposition non réalisée indique la raison. Sous « Sujets que nous n'avons pas créés », vous voyez les autres sujets écartés.",
+
     },
     "sign-in": {
       q: "Je n'arrive pas à me connecter, ou le code n'arrive pas.",
@@ -74,7 +75,8 @@ export const fr: HelpContent = {
     },
     "wrong-video": {
       q: "Une vidéo est erronée. Que puis-je faire ?",
-      a: "Ne la validez pas : une vidéo non validée ne va nulle part. Touchez « Refuser », choisissez ce qui ne va pas et ajoutez une note si vous le souhaitez. Votre note parvient à notre équipe avec la vidéo.\n\nPour faire modifier une vidéo précise, écrivez-nous en indiquant son titre et ce qui doit changer. Pour changer toutes les vidéos à venir (logo, couleur, soins, langue, voix), passez par les Réglages.",
+      a: "Ne la validez pas : une vidéo non validée ne va nulle part. Touchez « Refuser », choisissez ce qui ne va pas et ajoutez une note si vous le souhaitez. Votre note parvient à notre équipe avec la vidéo.\n\nPour faire modifier une vidéo précise, touchez « Demander une modification » sur sa carte et écrivez ce qui doit changer. Seule cette vidéo est refaite, avec les mêmes vérifications, et vous la validez à nouveau avant de la publier. Vous pouvez demander jusqu'à 3 modifications par semaine. Si la version modifiée ne passe pas les vérifications, votre vidéo actuelle reste telle quelle et la carte vous l'indique. Pour changer toutes les vidéos à venir (logo, couleur, soins, langue, voix), passez par les Réglages.",
+
     },
     "background-photos": {
       q: "Puis-je changer les photos d'arrière-plan d'une vidéo ?",
@@ -114,7 +116,8 @@ export const fr: HelpContent = {
     },
     captions: {
       q: "Les vidéos sont-elles sous-titrées ? Sont-elles accessibles ?",
-      a: "Chaque vidéo affiche ses points clés sous forme de texte à l'image : on peut la suivre sans le son. Ce texte est une version courte de ce que dit la voix off, pas une transcription mot à mot, et il n'existe pas de fichier de sous-titres séparé. Les extraits de vos propres enregistrements sont sous-titrés avec vos mots.\n\nComme le texte fait partie de la vidéo, il apparaît sur toutes les plateformes. Si une plateforme ajoute ses propres sous-titres automatiques, vous pouvez les désactiver pour ces vidéos afin que le texte n'apparaisse pas deux fois.",
+      a: "Chaque vidéo affiche ses points clés sous forme de texte à l'image : on peut la suivre sans le son. Ce texte est une version courte de ce que dit la voix off, pas une transcription mot à mot.\n\nPour la voix off complète, touchez « Télécharger les sous-titres (.srt) » dans « Publier », à côté du téléchargement de la vidéo. Le fichier reprend les mots exacts de la voix off. Ses horaires sont calculés à partir des pauses de la narration : ils sont proches, mais pas exacts au mot près. Regardez-le une fois avec la vidéo avant de l'envoyer. Les vidéos créées avant l'arrivée des fichiers de sous-titres et les extraits de vos propres enregistrements n'ont pas de fichier .srt (les extraits affichent déjà vos mots à l'image).\n\nYouTube et Facebook permettent d'envoyer un fichier .srt avec une vidéo, là où ils proposent des sous-titres. Instagram et TikTok n'acceptent pas de fichier de sous-titres : les points clés sont déjà dans la vidéo, et vous pouvez aussi activer les sous-titres automatiques de l'application en publiant, puis les corriger avec le texte du fichier .srt. Vérifiez qu'aucun texte n'apparaît deux fois.",
+
     },
     "other-uses": {
       q: "Pouvons-nous utiliser les vidéos sur notre site ou en salle d'attente ?",
@@ -176,7 +179,8 @@ export const fr: HelpContent = {
     },
     "after-cancel": {
       q: "Que deviennent nos vidéos après la résiliation ?",
-      a: "Plus aucune vidéo n'est créée une fois la période payée terminée. Les vidéos de votre bibliothèque y restent, et vous pouvez les regarder, les télécharger et les partager tant que votre compte existe. Les vidéos téléchargées vous appartiennent pour votre usage, y compris après la résiliation : téléchargez celles que vous voulez garder.\n\nVous pouvez reprendre une formule à tout moment depuis la page Vidéos ; vos réglages sont conservés. Si vous supprimez votre compte, tout est effacé.",
+      a: "Plus aucune vidéo n'est créée une fois la période payée terminée. Votre bibliothèque reste ensuite disponible 90 jours : vous pouvez encore regarder, télécharger et partager vos vidéos, et la page Vidéos indique la date. Nous vous écrivons 14 jours puis 1 jour avant. Au bout de ces 90 jours, les vidéos, enregistrements et fichiers de sous-titres sont supprimés ; vos réglages et votre logo sont conservés.\n\nLes vidéos téléchargées vous appartiennent pour votre usage, y compris après la résiliation : téléchargez celles que vous voulez garder, ou tout en une fois dans Réglages → Vos données → « Télécharger mes données ». Si vous reprenez une formule depuis la page Vidéos avant cette date, tout est conservé. Si vous supprimez votre compte, tout est effacé immédiatement.",
+
     },
     group: {
       q: "Nous avons un second cabinet. Comment l'ajouter ?",

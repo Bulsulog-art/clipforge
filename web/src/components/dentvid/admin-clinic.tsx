@@ -5,6 +5,7 @@ import { sourceOf } from "@/lib/dentvid/admin-metrics";
 import type { ClinicDetail, DetailItem } from "@/lib/dentvid/admin-loaders";
 import { ActionForm, AdminShell, AllClear, Badge, Empty, PlanBadge, Section, StatusBadge, Table, Warn, ago, day, when, type AdminLinks, type Viewer } from "./admin-ui";
 import { dodoDashboard } from "./admin-screens";
+import { ChangeRequestsTable, TopicRequestsTable } from "./admin-requests";
 
 /**
  * One clinic, everything about it: profile and logo, plan and payments, every
@@ -316,6 +317,22 @@ export function AdminClinicDetail({ d, links, viewer, flash, back }: { d: Clinic
               </ul>
             </div>
           ))
+        )}
+      </Section>
+
+      <Section title="Requests" id="requests" lead="What this clinic asked for in the app: change requests on one video, and topic suggestions for its weeks.">
+        {d.changeRequests === null || d.topicRequests === null ? (
+          <Warn>Requests appear once supabase/liman/0024_dentvid_clinic_requests.sql is applied.</Warn>
+        ) : (
+          <div className="space-y-4">
+            <ChangeRequestsTable rows={d.changeRequests ?? []} links={links} />
+            <TopicRequestsTable rows={d.topicRequests ?? []} links={links} />
+          </div>
+        )}
+        {d.retention && (
+          <p className="mt-3 text-sm text-dv-body">
+            Plan ended {day(d.retention.endedAt)}; library {d.retention.deletedAt ? `deleted ${day(d.retention.deletedAt)}` : `kept until ${day(d.retention.deleteOn)}`} (retention job, 90 days).
+          </p>
         )}
       </Section>
 

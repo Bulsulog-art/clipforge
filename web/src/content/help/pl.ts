@@ -45,7 +45,8 @@ export const pl: HelpContent = {
     },
     topics: {
       q: "Jak wybierane są tematy i czy mogę jakiś zaproponować?",
-      a: "Co tydzień wybieramy pięć tematów na podstawie zabiegów wpisanych w ustawieniach i pytań, które pacjenci o nie zadają. Filmy dotyczą wyłącznie zabiegów wykonywanych w gabinecie, dlatego najważniejsza jest pełna i aktualna lista zabiegów.\n\nW sekcji „Tematy, których nie przygotowaliśmy” widać pominięte tematy wraz z powodem. Aby zaproponować temat, prosimy napisać do nas: temat i zabieg, którego dotyczy. Czytamy każdą propozycję; w aplikacji nie ma osobnego formularza zgłaszania tematów.",
+      a: "Co tydzień wybieramy pięć tematów na podstawie zabiegów wpisanych w ustawieniach i pytań, które pacjenci o nie zadają. Filmy dotyczą wyłącznie zabiegów wykonywanych w gabinecie, dlatego najważniejsza jest pełna i aktualna lista zabiegów.\n\nAby zaproponować temat, wystarczy skorzystać z pola „Zaproponuj temat na przyszły tydzień” na stronie Filmy lub w Ustawieniach: pytanie pacjenta albo temat, do 140 znaków. Oczekujące propozycje wykorzystujemy w pierwszej kolejności, do trzech tygodniowo, jeśli pasują do zabiegów gabinetu i przechodzą te same kontrole kliniczne i reklamowe co każdy film. W sekcji „Państwa propozycje” widać, co stało się z każdą z nich; przy nieprzygotowanej podajemy powód. W sekcji „Tematy, których nie przygotowaliśmy” widać pozostałe pominięte tematy.",
+
     },
     "sign-in": {
       q: "Nie mogę się zalogować albo nie dochodzi kod z e-maila.",
@@ -74,7 +75,8 @@ export const pl: HelpContent = {
     },
     "wrong-video": {
       q: "Film zawiera błąd. Co mogę zrobić?",
-      a: "Nie zatwierdzać go: niezatwierdzony film nigdzie nie trafia. Wystarczy dotknąć „Odrzuć”, wybrać, co jest nie tak, i w razie potrzeby dodać notatkę. Notatka trafia do naszego zespołu razem z filmem.\n\nAby zmienić konkretny film, prosimy napisać do nas jego tytuł i co powinno wyglądać inaczej. Zmiany dla wszystkich kolejnych filmów (logo, kolor, zabiegi, język, głos) wprowadza się w Ustawieniach.",
+      a: "Nie zatwierdzać go: niezatwierdzony film nigdzie nie trafia. Wystarczy dotknąć „Odrzuć”, wybrać, co jest nie tak, i w razie potrzeby dodać notatkę. Notatka trafia do naszego zespołu razem z filmem.\n\nAby zmienić jeden konkretny film, należy dotknąć „Poproś o zmianę” na jego karcie i opisać, co powinno wyglądać inaczej. Ponownie powstaje tylko ten film, z tymi samymi kontrolami, i przed publikacją trzeba go znów zatwierdzić. Można poprosić o maksymalnie 3 zmiany tygodniowo. Jeśli zmieniona wersja nie przejdzie kontroli, obecny film zostaje bez zmian, a karta o tym informuje. Zmiany dla wszystkich kolejnych filmów (logo, kolor, zabiegi, język, głos) wprowadza się w Ustawieniach.",
+
     },
     "background-photos": {
       q: "Czy mogę zmienić zdjęcia w tle filmu?",
@@ -114,7 +116,8 @@ export const pl: HelpContent = {
     },
     captions: {
       q: "Czy filmy mają napisy? Czy są dostępne?",
-      a: "Każdy film pokazuje najważniejsze informacje jako tekst w obrazie, więc można go śledzić bez dźwięku. Ten tekst to skrót tego, co mówi lektor, a nie dosłowna transkrypcja, i nie ma osobnego pliku z napisami. Klipy z Państwa nagrań mają napisy z Państwa słowami.\n\nPonieważ tekst jest częścią filmu, widać go na każdej platformie. Jeśli platforma dodaje własne automatyczne napisy, można je wyłączyć dla tych filmów, żeby tekst nie pojawiał się dwa razy.",
+      a: "Każdy film pokazuje najważniejsze informacje jako tekst w obrazie, więc można go śledzić bez dźwięku. Ten tekst to skrót tego, co mówi lektor, a nie dosłowna transkrypcja.\n\nPełny tekst lektora można pobrać przyciskiem „Pobierz napisy (.srt)” w kroku „Opublikuj”, obok pobierania filmu. Plik zawiera dokładne słowa lektora. Czasy są wyliczane z pauz w nagraniu lektora, więc są bliskie, ale nie co do słowa: warto raz obejrzeć je z filmem przed przesłaniem. Filmy przygotowane, zanim pojawiły się pliki z napisami, oraz klipy z Państwa nagrań nie mają pliku .srt (klipy i tak pokazują Państwa słowa na ekranie).\n\nYouTube i Facebook pozwalają przesłać plik .srt razem z filmem, tam gdzie oferują napisy. Instagram i TikTok nie przyjmują plików z napisami: najważniejsze informacje są już w filmie, a przy publikacji można też włączyć automatyczne napisy aplikacji i poprawić je tekstem z pliku .srt. Warto sprawdzić, czy żaden tekst nie pojawia się dwa razy.",
+
     },
     "other-uses": {
       q: "Czy możemy używać filmów na stronie internetowej lub w poczekalni?",
@@ -176,7 +179,8 @@ export const pl: HelpContent = {
     },
     "after-cancel": {
       q: "Co dzieje się z naszymi filmami po rezygnacji?",
-      a: "Po zakończeniu opłaconego okresu nowe filmy nie powstają. Filmy w bibliotece zostają, a dopóki konto istnieje, można je oglądać, pobierać i udostępniać. Pobrane filmy można wykorzystywać także po rezygnacji, dlatego warto pobrać te, które chcą Państwo zachować.\n\nPlan można wybrać ponownie w dowolnym momencie na stronie Filmy; ustawienia zostają zachowane. Po usunięciu konta wszystko zostaje skasowane.",
+      a: "Po zakończeniu opłaconego okresu nowe filmy nie powstają. Biblioteka zostaje jeszcze przez 90 dni: można dalej oglądać, pobierać i udostępniać filmy, a strona Filmy pokazuje datę. Piszemy do Państwa 14 dni i 1 dzień wcześniej. Po 90 dniach filmy, nagrania i pliki z napisami są usuwane; ustawienia i logo zostają.\n\nPobrane filmy można wykorzystywać także po rezygnacji, dlatego warto pobrać te, które chcą Państwo zachować, albo wszystko naraz w Ustawienia → Państwa dane → „Pobierz moje dane”. Jeśli przed tą datą ponownie wybiorą Państwo plan na stronie Filmy, wszystko zostaje. Po usunięciu konta wszystko zostaje skasowane od razu.",
+
     },
     group: {
       q: "Mamy drugą placówkę. Jak ją dodać?",

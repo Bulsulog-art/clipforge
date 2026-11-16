@@ -852,6 +852,16 @@ export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
   const req = reqRow as ChangeRow | null;
   if (!req) return { status: "skipped", reason: "no such request" };
   if (req.status !== "queued") return { status: "skipped", reason: `already ${req.status}` };
+  // Claim it atomically (queued → working): a duplicate delivery, or a second worker running the
+  // same job at the same moment, finds nothing to claim and stops before anything is spent.
+  const { data: claimed, error: claimErr } = await db
+    .from("dentvid_change_requests")
+    .update({ status: "working", updated_at: new Date().toISOString() })
+    .eq("id", req.id)
+    .eq("status", "queued")
+    .select("id");
+  if (claimErr) throw new Error(`change request ${req.id} could not be claimed: ${claimErr.message}`);
+  if (!claimed?.length) return { status: "skipped", reason: "already claimed" };
 
   const mark = async (status: "working" | "done" | "refused" | "failed", reason: string | null = null) => {
     const now = new Date().toISOString();
@@ -889,7 +899,6 @@ export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
     await mark("failed", "busy");
     return { status: "failed", reason: "busy" };
   }
-  await mark("working");
 
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-change-"));
   try {

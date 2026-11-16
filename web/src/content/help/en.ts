@@ -45,7 +45,8 @@ export const en: HelpContent = {
     },
     topics: {
       q: "How are the topics chosen, and can I suggest one?",
-      a: "Each week we choose five topics from the services in your settings and the questions patients ask about them. Videos are only ever about services you offer, so an accurate list of services matters most.\n\nUnder “Topics we did not make” you can see topics that were left out, each with the reason. To suggest a topic, write to us with the topic and the service it belongs to. We read every suggestion; there is no topic request form in the app.",
+      a: "Each week we choose five topics from the services in your settings and the questions patients ask about them. Videos are only ever about services you offer, so an accurate list of services matters most.\n\nTo suggest a topic, use “Suggest a topic for next week” on the Videos page or in Settings: one patient question or subject, up to 140 characters. We use waiting suggestions first, up to three a week, when they fit your services and pass the same clinical and advertising checks as every video. Under “Your suggestions” you see what became of each one, and a suggestion we could not make shows the reason. Under “Topics we did not make” you see the other topics that were left out.",
+
     },
     "sign-in": {
       q: "I can't sign in, or the email code doesn't arrive.",
@@ -74,7 +75,8 @@ export const en: HelpContent = {
     },
     "wrong-video": {
       q: "A video is wrong. What can I do?",
-      a: "Don't approve it: a video you don't approve goes nowhere. Tap “Decline”, choose what is wrong and add a note if you like. Your note reaches our team together with the video.\n\nIf you want a particular video changed, write to us with its title and what should be different. To change all future videos (logo, color, services, language, voice), use Settings.",
+      a: "Don't approve it: a video you don't approve goes nowhere. Tap “Decline”, choose what is wrong and add a note if you like. Your note reaches our team together with the video.\n\nTo have one video changed, tap “Ask for a change” on its card and write what should be different. Only that video is made again, with the same checks, and you approve it again before posting. You can ask for up to 3 changes a week. If the changed version does not pass the checks, your current video stays as it is and the card says so. To change all future videos (logo, color, services, language, voice), use Settings.",
+
     },
     "background-photos": {
       q: "Can I change a video's background photos?",
@@ -114,7 +116,8 @@ export const en: HelpContent = {
     },
     captions: {
       q: "Do the videos have captions? Are they accessible?",
-      a: "Every video shows its key points as text in the picture, so it can be followed with the sound off. The on-screen text is a short version of what the narrator says, not a word-for-word transcript, and there is no separate subtitle file. Clips from your own recordings are captioned with your words.\n\nBecause the text is part of the video, it shows on every platform. If a platform adds its own automatic captions, you can turn them off for these videos so the text does not appear twice.",
+      a: "Every video shows its key points as text in the picture, so it can be followed with the sound off. The on-screen text is a short version of what the narrator says, not a word-for-word transcript.\n\nFor the full narration, tap “Download subtitles (.srt)” in “Post it”, next to the video download. The file has the narrator's exact words. Its timing is calculated from the pauses in the narration, so it is close but not exact to the word: watch it once with the video before you upload. Videos made before subtitle files existed, and clips from your own recordings, have no .srt file (the clips already show your words on screen).\n\nYouTube and Facebook let you upload an .srt file with a video, where they offer subtitles or captions. Instagram and TikTok do not take a subtitle file: the key points are already in the video, and you can also turn on the app's own automatic captions when you post and correct them with the text from the .srt file. Check that no text appears twice.",
+
     },
     "other-uses": {
       q: "Can we use the videos on our website or in the waiting room?",
@@ -176,7 +179,8 @@ export const en: HelpContent = {
     },
     "after-cancel": {
       q: "What happens to our videos after we cancel?",
-      a: "No new videos are made once the paid period ends. The videos in your library stay there, and you can still watch, download and share them while your account exists. The videos you downloaded are yours to use, also after you cancel, so download the ones you want to keep.\n\nYou can choose a plan again at any time on the Videos page; your settings are kept. If you delete your account, everything is removed.",
+      a: "No new videos are made once the paid period ends. Your library stays for 90 days after that: you can still watch, download and share your videos, and the Videos page shows the date. We email you 14 days and 1 day before it. After the 90 days, the videos, recordings and subtitle files are deleted; your settings and logo are kept.\n\nThe videos you downloaded are yours to use, also after you cancel, so download the ones you want to keep, or everything at once in Settings → Your data → “Download my data”. If you choose a plan again on the Videos page before then, everything stays. If you delete your account, everything is removed at once.",
+
     },
     group: {
       q: "We have a second location. How do we add it?",

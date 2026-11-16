@@ -7,6 +7,7 @@ import { postingText } from "@/content/dentvideo-posting";
 import { appText, fmt } from "@/content/dentvideo-app";
 import type { PostView } from "@/lib/dentvid/post-link";
 import { CaptionTabs, useSaveAndCopy } from "./share-kit";
+import { SubtitlesFileButton } from "./clinic-requests";
 
 /**
  * The page the email's "Approve & share" opens (dentvideo.com/post): one
@@ -115,6 +116,7 @@ function Ready({ view, token, appUrl, endpoint }: { view: Extract<PostView, { st
           {error}
         </p>
       )}
+      {item.srt && <SubtitlesFileButton locale={locale} title={item.title} srt={item.srt} />}
       {item.texts && <CaptionTabs texts={item.texts} locale={locale} />}
       {approval === "approved" && (
         <button

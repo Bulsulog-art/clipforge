@@ -1,4 +1,5 @@
 import { approveToken, verifyApproveToken, APPROVE_TTL_DAYS } from "./approve-link";
+import { storedCues, toSrt } from "./subtitles";
 import { isMissingColumn, postTexts, slotLabel, weekSchedule, type PostTexts } from "./posting";
 import { asLocale } from "./locale";
 import type { Locale } from "@/content/dentvideo";
@@ -34,6 +35,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const POST_PAGE_URL_TTL_S = 60 * 60;
 
 export type PostItem = {
+  /** 0024: the narration's timed cues; absent before it, or on a video made before subtitles existed. */
+  subtitles?: unknown;
   id: string;
   title: string | null;
   kind: string;
@@ -64,8 +67,14 @@ export type PostView =
   | {
       state: "ready";
       locale: Locale;
-      item: { id: string; title: string; videoUrl: string; thumbUrl?: string; approval: "pending" | "approved"; posted: boolean; texts: PostTexts | null; slot?: string };
+      item: { id: string; title: string; videoUrl: string; thumbUrl?: string; approval: "pending" | "approved"; posted: boolean; texts: PostTexts | null; slot?: string; /** The narration as an SRT file (stored cues, 0024), for the share kit. */ srt?: string };
     };
+
+/** The share kit's subtitle file for a video, when it has stored cues. */
+function subtitlesOf(item: PostItem): { srt?: string } {
+  const cues = storedCues(item.subtitles);
+  return cues.length ? { srt: toSrt(cues) } : {};
+}
 
 /** A video the page may show: finished without findings, generated, still pending or approved. */
 function shareable(i: PostItem | undefined): i is PostItem & { video_path: string } {
@@ -98,6 +107,7 @@ export async function loadPostView(t: string | null | undefined, v: string | nul
       approval: item.approval as "pending" | "approved",
       posted: !!item.posted_at,
       texts: postTexts(item.copy as never),
+      ...subtitlesOf(item),
       slot: slot ? slotLabel(slot, locale) : undefined,
     },
   };
