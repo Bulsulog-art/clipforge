@@ -232,6 +232,7 @@ describe("supabaseWatchDb — who should have a week", () => {
     { id: "a", plan: "active", admin_paused_at: null },
     { id: "p", plan: "active", admin_paused_at: "2026-11-10T10:00:00Z" },
     { id: "b", plan: "active" },
+    { id: "demo", plan: "active", admin_paused_at: null, review_demo: true },
   ];
   const db = {
     from: () => ({
@@ -247,6 +248,7 @@ describe("supabaseWatchDb — who should have a week", () => {
   it("a clinic the owner paused is not 'missing' on Saturday (no false dispatch alert) and not active for the first-week watchdog", async () => {
     const { supabaseWatchDb } = await import("./watchdog.js");
     const w = supabaseWatchDb(db as never);
+    // The App Review demo clinic gets no batch, so it is not "missing" either.
     expect(await w.activeClinicIds()).toEqual(["a", "b"]);
     expect(await w.isActive("p")).toBe(false);
     expect(await w.isActive("a")).toBe(true);

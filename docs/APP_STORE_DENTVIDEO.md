@@ -69,19 +69,31 @@ cd ios/DentVideo && xcodegen generate && open DentVideo.xcodeproj
   **Privacy Policy URL**: `https://dentvideo.com/privacy`.
 - **Copyright**: `2026 BLS AI AUTOMATION DOO`.
 
-### 1.5 Demo account for App Review (owner creates it; never commit its password)
+### 1.5 Demo account for App Review (never commit its password)
 
-1. Sign up a clinic on dentvideo.com with an address you control (for example
-   `appreview@dentvideo.com`), describe a sample clinic ("Sunrise Dental", English, a few services).
-2. Give it an active plan **without a payment**: in `/admin` (or SQL on Liman:
-   `update dentvid_clinics set plan = 'active', plan_tier = 'practice' where owner_id = '<id>'`), so
-   the reviewer sees the full app including recording. Mark the account internal
-   (`app_metadata.internal`, as for the owner's test accounts) so it stays out of the metrics.
-3. Make sure it has a finished week: let the Monday batch run, or start the week from the web app.
-   Leave at least two videos undecided (one "ready", ideally one "needs a look") so the reviewer can
-   approve, decline, post and record.
-4. Put the email and password in App Store Connect → App Review Information → Sign-in required.
-   Re-check the day before submitting that the password works and the week is there.
+One command creates it on Liman, with the service role and no payment, **after** the worker with
+`review_demo` (migration 0024, worker `getsWeeks`) is deployed:
+
+```
+scripts/dentvideo-review-demo/run.sh
+```
+
+It backs up the dentvid tables, applies 0024 (idempotent), creates `appreview@dentvideo.com`
+(confirmed, `app_metadata.internal`, so it stays out of the metrics) with the password from
+`~/.config/dentvideo/inceleme-demo.env` (chmod 600, sent over ssh stdin, never printed), and a clinic
+"DentVideo Review Clinic" (English, US, Practice set by hand, emails opted out, `review_demo = true`).
+Its current week holds the three English site samples (`web/public/dentvideo/samples/en`: no
+render, no API spend), all "ready" and undecided, each with a filming card, so the reviewer can
+approve, decline, post and record.
+
+- `review_demo = true` keeps the clinic out of the Monday batch and the delivery watchdogs, and a
+  "week" job for it makes nothing (worker `getsWeeks`, `paying`). The reviewer's own recording is
+  still processed (a few cents of transcription), so the recording flow works.
+- Put the email and password in App Store Connect → App Review Information → Sign-in required.
+- The week moves on every Saturday 18:00 UTC. The day before submitting, bring the samples into the
+  current week: `update dentvid_items set week_of = date_trunc('week', now() + interval '30 hours')::date,
+  approval = 'pending', posted_at = null where clinic_id = (select id from dentvid_clinics where review_demo);`
+- If a reviewer deletes the account (5.1.1(v)), run the script again before resubmitting.
 
 ---
 
