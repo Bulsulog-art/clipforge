@@ -2,7 +2,8 @@ import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guideP
 import { ENTITY, OPERATOR, PUBLISHER_NAME } from "@/content/guides/entity";
 import { LEGAL, LEGAL_KINDS, legalPath, operatorAddress } from "@/content/legal";
 import { guideMarkdown, reviewedDate, solutionMarkdown } from "@/content/guides/text";
-import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
+import { ANSWER_KINDS, SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
+import { findClaim } from "@/content/solutions/claims";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { EXAMPLES, EXAMPLES_PATH, EXAMPLES_UI, examplePath, examplesFor, sampleOf, type ExampleVideo } from "@/content/dentvideo-examples";
@@ -18,7 +19,31 @@ import { DV_CURRENCIES, dvTierPrice } from "./pricing";
 const abs = (path: string) => dentvideoPublicUrl(path, "https://dentvideo.com", "");
 
 /** When the quick answers below were last checked against the product, billing and the pages. */
-export const LLMS_UPDATED = "2026-11-15";
+export const LLMS_UPDATED = "2026-11-16";
+
+/**
+ * The questions dentists ask before choosing (agency, Canva, a video library,
+ * filming themselves), answered briefly and pointing to the English answer
+ * pages, which quote the other options' own pages with dates.
+ */
+function decisionAnswers(): string[] {
+  const page = (kind: string) => {
+    const p = SOLUTIONS.find((o) => o.locale === "en" && o.kind === kind);
+    return p ? abs(solutionPath(p)) : abs(LANDING_PATH.en);
+  };
+  // Facts about another company carry its own page and the date it was read (content/solutions/claims.ts).
+  const src = (...ids: string[]) =>
+    `(${ids
+      .map(findClaim)
+      .map((c) => `${c.url}, as of ${c.checked}`)
+      .join("; ")})`;
+  return [
+    `- What are the ways to make patient-education or social media videos for a dental clinic? Five: film them yourself, hire a dental marketing agency, design them in an app such as Canva, license a ready-made video library (chairside and website explanations), or use software such as DentVideo that writes, narrates, captions and checks five videos a week for the dentist to approve. Comparison with sources and dates: ${page("options")}`,
+    `- DentVideo or a dental marketing agency? An agency can do more (strategy, on-site filming, ads, comment replies, posting) and usually costs more because it sells people's time. DentVideo covers the weekly educational videos only, checks every script for advertising rules and clinical accuracy, and leaves approval and posting to the clinic; the two can be combined. Details and published US agency prices with sources: ${page("vs-agency")}`,
+    `- DentVideo or Canva? Canva is a general design app with dental video templates, an AI voice generator and auto captions ${src("canva-dental-templates", "canva-ai-voice", "canva-auto-captions")}: someone on the team makes each video and checks every claim. It is the more flexible choice for posters, flyers and graphics. DentVideo makes and checks five videos a week and suits clinics short on time. Details with sources: ${page("vs-canva")}`,
+    `- Is there a free option? Filming yourself costs only time, and Canva has a free plan ${src("canva-plans")}. DentVideo has no free plan or trial; what is free is the ad checker and the preview of a clinic's own videos before paying.`,
+  ];
+}
 
 /**
  * Short, self-contained answers to the questions people ask answer engines
@@ -42,9 +67,12 @@ function quickAnswers(): string[] {
     "- Does it use AI avatars or fake patients? No. Scripts are written by software and the narration is a synthetic voice, and the site says so; footage is limited to objects; there are no avatar faces, fake doctors or patients. Where a platform or the clinic's rules ask for an AI label, the clinic adds it when posting. On Practice a dentist can record a few minutes and get captioned clips of themselves.",
     "- Does DentVideo need patient data (HIPAA, GDPR)? No. It never asks for patient information, so an account holds no patient health information; Practice users are asked to keep patients out of their recordings. The data processing agreement (Article 28 GDPR) applies when the clinic accepts the Terms, lists every sub-processor (including OpenAI for scripts and narration) and is available signed on request.",
     "- How is advertising compliance handled? Every script is written with the clinic's market rules in mind (for example the HWG and Berufsordnung in Germany, the 2025 Turkish health advertising regulation, the CAP Code and GDC guidance in the UK, the ADA Code and FTC rules in the US). Software (LLM-based checks plus fixed word rules) then checks every script and caption twice before the clinic sees it: against commonly restricted claims (guarantees, \"painless\", \"permanent\", superlatives, prices, discounts, before-and-after promises, testimonials) and, set up to think like a general dentist, for clinical accuracy. No human lawyer or compliance officer reviews it; it is a careful filter, not legal advice, it does not certify compliance, and the clinic approves every video.",
-    "- Which languages? Videos: English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic, Polish. Website: English, German, Spanish, Turkish, French, Japanese, Arabic, Polish.",
+    "- Which languages? Videos: English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic, Polish (formal or informal address). Website, in eight languages: English, German, Spanish, Turkish, French, Japanese, Arabic, Polish.",
+    "- Can the clinic choose the voice and the closing line? Yes. The clinic chooses a female or male narrator for its new videos, and can add one calm closing line under its captions; DentVideo checks that line against the market's advertising rules (no booking push, no promises, no prices, no urgency) before saving it. Without one, the posts use DentVideo's own closing lines.",
+    "- Who approves? The dentist, always: nothing is published until the clinic approves it, and the clinic posts approved videos itself.",
     `- Who operates DentVideo? ${OPERATOR.shortName} (Podgorica, Montenegro), trading as ${PUBLISHER_NAME}. Contact: ${OPERATOR.productEmail}.`,
     "- Are there customer reviews? Not yet: DentVideo is new and publishes no testimonials; none are invented.",
+    ...decisionAnswers(),
     `- Patient-education video topics by treatment: ${treatmentGuides.map((g) => `${g.h1.split(":")[0]} (${abs(guidePath(g))})`).join("; ")}.`,
     "",
   ];
@@ -79,6 +107,7 @@ function editorialBlock(): string[] {
     "- Every page shows a \"last reviewed\" date; rules guides link the official texts they rely on (laws, regulators, professional bodies) in a Sources list.",
     "- Rules guides are general information, not legal advice. They are hedged (\"usually\", \"check your regulator\") because rules differ by country and change.",
     "- Guides contain no prices, no invented statistics, no patient testimonials and no promised patient results.",
+    "- Comparison and answer pages state another company's features or published prices only as a quoted claim that links that company's own page and gives the date it was read; claims older than a year fail the site's tests and must be re-checked. Each page also says where another option is the better fit.",
     "- DentVideo publishes no customer reviews or testimonials: it is new, and none are invented.",
     "",
   ];
@@ -145,7 +174,10 @@ export function llmsTxt(): string {
     ...editorialBlock(),
     ...legalBlock(),
     "## What DentVideo makes, and how it compares",
-    ...SOLUTIONS.map((p) => `- [${p.h1}](${abs(solutionPath(p))}) (${p.locale}): ${p.seoDescription}`),
+    ...SOLUTIONS.filter((p) => !ANSWER_KINDS.includes(p.kind)).map((p) => `- [${p.h1}](${abs(solutionPath(p))}) (${p.locale}): ${p.seoDescription}`),
+    "",
+    "## Choosing how to make dental videos (sourced, dated comparisons)",
+    ...SOLUTIONS.filter((p) => ANSWER_KINDS.includes(p.kind)).map((p) => `- [${p.h1}](${abs(solutionPath(p))}) (${p.locale}, last reviewed ${reviewedDate(p)}): ${p.seoDescription}`),
     "",
     "# Pages by language",
     "",

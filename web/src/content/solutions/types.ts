@@ -10,15 +10,26 @@ import type { SectionExtras } from "../guides/types";
  * Same rules as the landing copy: only what the product does today, no prices
  * (they live in the pricing section and the About "Price" fact), no statistics,
  * no testimonials, no promised patients, no superlatives. Other products are
- * described by category and in general, hedged terms — never their prices or
- * limits, which change and which we cannot keep accurate.
+ * described by category and in general, hedged terms; a specific fact about
+ * another company (a feature, a published price) appears only as a claim from
+ * claims.ts, which carries that company's own page and the date it was read.
  *
  * Inline links use the guide markup (see guides/types.ts), plus
  * [label](video:<slug>) for another commercial page.
  */
 
-/** "product": what DentVideo makes for a clinic; "compare": DentVideo next to the alternatives. */
-export type SolutionKind = "product" | "compare";
+/**
+ * "product": what DentVideo makes for a clinic; "compare": DentVideo next to
+ * the alternatives in one table. The answer pages go one question deeper, with
+ * sourced and dated facts about the other options (claims.ts):
+ * "options": every way a clinic can get patient-education videos;
+ * "vs-agency": DentVideo or a dental marketing agency;
+ * "vs-canva": DentVideo or Canva.
+ */
+export type SolutionKind = "product" | "compare" | "options" | "vs-agency" | "vs-canva";
+
+/** The answer pages: they quote other companies only through claims.ts. */
+export const ANSWER_KINDS: readonly SolutionKind[] = ["options", "vs-agency", "vs-canva"];
 
 export type SolutionSection = { heading: string; paragraphs: string[] } & SectionExtras;
 
