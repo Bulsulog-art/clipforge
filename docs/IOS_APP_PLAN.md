@@ -26,14 +26,14 @@ on the web" wording (see section 6). No analytics SDK, no tracking, no third-par
 
 | Screen | Contents | Notes |
 |---|---|---|
-| Sign in | Email, password, "Forgot password?" (opens the web reset flow in Safari View), legal links | No account creation. Same accounts as dentvideo.com. |
+| Sign in | Email, password, "Forgot password?" (the app asks the server to email the web's reset link; the new password is chosen on dentvideo.com/reset), help/privacy/terms links | No account creation. Same accounts as dentvideo.com. |
 | No active plan | Clinic name, calm sentence "This account has no active plan at the moment", support email, sign out, delete account | No price, no button or link to buy, no "subscribe on the web". |
 | Paused by DentVideo | Same layout, the web's paused sentence with the support address | `adminPaused` from the API. |
 | This week (tab 1) | Week header (date range), progress (approved / posted), "Approve all ready" button, video cards (poster, title, state chip, suggested slot) | Pull to refresh; works offline from the last snapshot. Earlier weeks below. Empty state: "Your next videos arrive on Monday morning." |
 | Video | Full-width player (AVPlayer, cached file when available), state, software-check notes in the clinic's language, Approve / Decline (decline asks for an optional note), caption preview | Notes are the reason codes the web shows (`reasons.ts`), never raw internal text. |
 | Post sheet | Instagram / TikTok tabs with the ready text, "Save video and copy text", "Open Instagram", "Open TikTok", "More apps" (share sheet), "Mark as posted", suggested time | Only for approved videos. |
 | Record (tab 2) | Practice: list of filming cards (opening, points, closing, avoid, setup), "Record" per card, upload list with progress. Starter: neutral sentence that own recordings are part of the Practice plan, nothing to buy. | Camera screen: AVCaptureSession, front/back, card overlay that can be collapsed, timer, retake/use. |
-| Settings (tab 3) | Clinic details (name, city, handle, booking link), video language, narrator voice, closing line, notifications (week ready push, posting reminders + time), plan (read-only: plan name and state, no price), help (support page, privacy, terms), sign out, delete account | Saves through the same validation as the web. |
+| Settings (tab 3) | Clinic details (name, city, handle, booking link), video language, narrator voice, closing line, notifications (week ready push, posting reminders + time), plan (read-only: plan name and state, no price), help (dentvideo.com/help in the app's language, privacy, terms, support email), sign out, delete account | Saves through the same validation as the web. |
 | Delete account | What is deleted, type the confirmation word, delete. If a subscription is still active and cannot be cancelled automatically, the web's message is shown as is. | Guideline 5.1.1(v). |
 
 Navigation: `TabView` with three tabs, `NavigationStack` per tab, sheets for post and delete.
@@ -60,7 +60,8 @@ the origin guard exempts exactly this prefix (`lib/origin-guard.ts`). Every resp
 | `POST upload-url` | `{ size, contentType, name? }` | `{ path, uploadUrl, contentType }` | Shared handler with the web route (plan, quota, slots). |
 | `POST recording` | `{ path }` | `{ ok }` | Shared handler (own folder path only, plan gate). |
 | `POST clinic` | `{ profile }` | `{ id }` | Shared handler (profile schema, closing-line market rules). |
-| `POST account/delete` | `{ confirm }` | `{ ok }` | Shared handler (Dodo cancel or 409, storage, rows, login). |
+| `POST account/delete` | `{ confirm }` | `{ ok }` | Shared handler (Dodo cancel or 409, storage, rows, login). `confirm` = the clinic name (or email), as on the web. |
+| `POST password-reset` | `{ email, locale }` | `{ ok }` | The web's route, unchanged (same limits, same answer whether or not the account exists). |
 
 The existing cookie routes keep their exact behaviour: their bodies move into shared handler
 functions (`lib/dentvid/*-handler.ts`) that both the cookie route and the mobile route call with
@@ -124,7 +125,7 @@ left/right). iPhone first; iPad runs the same layout with a readable width.
 | 4.2 | "Just a website" | Native player with offline cache, Photos + share sheet, push, camera recording with on-screen prompts, background upload, local reminders. |
 | 5.1.1(v) | Account deletion | In Settings, same server deletion as the web. |
 | 5.1.1 / 5.1.2 | Privacy | Privacy manifest, no tracking, App Privacy answers match the data actually sent (section in the App Store doc). Purpose strings for camera, microphone, Photos add-only. |
-| 2.5.4 | Unused background modes | Only `remote-notification` is declared; uploads use a background `URLSession`, which needs no background mode. |
+| 2.5.4 | Unused background modes | No `UIBackgroundModes` at all: alert pushes need none, and uploads use a background `URLSession`, which needs none either. |
 | 1.4.1 / 5.1 medical | Medical claims | The listing and the app describe patient-education videos for the clinic's own channels; no diagnosis or outcome claims. |
 | 3.2.2 | Unacceptable business model | Free download, no ads, no paywall in the app. |
 | 2.3 | Accurate metadata | Screenshots from the real app with the demo clinic; no "best" or "#1". |
