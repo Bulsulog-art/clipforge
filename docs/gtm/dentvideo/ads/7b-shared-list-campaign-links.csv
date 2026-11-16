@@ -1,0 +1,6 @@
+﻿Campaign,Shared set name,Shared set type
+tr-search-core,NEG-ALL,Negative keywords
+de-search-core,NEG-ALL,Negative keywords
+us-search-test,NEG-ALL,Negative keywords
+tr-search-core,NEG-TR,Negative keywords
+de-search-core,NEG-DE,Negative keywords
