@@ -104,6 +104,28 @@ export function pickPreviews(
   return out;
 }
 
+/**
+ * The clinic's services that have no sample in its language's library (in
+ * the order and words it typed them), so the preview can say so rather than
+ * quietly showing other topics. Services we cannot classify are left out.
+ */
+export function servicesWithoutSample(
+  services: string[],
+  language: string,
+  manifest: Partial<Record<PreviewLanguage, PreviewEntry[]>> = PREVIEW_LIBRARY,
+): string[] {
+  const pool = manifest[libraryLanguage(language)] ?? [];
+  const seen = new Set<ServiceCategory>();
+  const out: string[] = [];
+  for (const s of services) {
+    const c = serviceCategory(s);
+    if (!c || seen.has(c)) continue;
+    seen.add(c);
+    if (!pool.some((e) => e.category === c)) out.push(s.trim());
+  }
+  return out;
+}
+
 /** Placeholders the library build left where the sample clinic's own text was. */
 export const HANDLE_TOKEN = "{handle}";
 export const NAME_TOKEN = "{name}";

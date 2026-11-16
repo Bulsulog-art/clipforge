@@ -319,6 +319,8 @@ export type AppText = {
      */
     videoOf: string;
     failed: string;
+    /** Under the preview: services the clinic chose that have no sample in its language yet; {services} is their list. */
+    noSample: string;
   };
 };
 
@@ -676,6 +678,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "Next video",
       videoOf: "Sample {n} of {total} from your week of 5",
       failed: "The preview could not load. Please refresh the page.",
+      noSample: "No sample about {services} in this language yet, so the preview shows other topics.",
     },
   },
 
@@ -1035,6 +1038,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "Nächstes Video",
       videoOf: "Beispiel {n} von {total} aus Ihrer Woche mit 5 Videos",
       failed: "Die Vorschau konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
+      noSample: "Zu {services} gibt es in dieser Sprache noch kein Beispiel, daher zeigt die Vorschau andere Themen.",
     },
   },
 
@@ -1394,6 +1398,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "Vídeo siguiente",
       videoOf: "Muestra {n} de {total} de tu semana de 5 vídeos",
       failed: "No se pudo cargar la vista previa. Recarga la página.",
+      noSample: "Aún no hay un ejemplo sobre {services} en este idioma, así que la vista previa muestra otros temas.",
     },
   },
 
@@ -1753,6 +1758,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "Sonraki video",
       videoOf: "Haftalık 5 videonuzdan örnek {n}/{total}",
       failed: "Önizleme yüklenemedi. Lütfen sayfayı yenileyin.",
+      noSample: "Bu dilde henüz {services} hakkında örnek yok, bu yüzden önizleme başka konuları gösteriyor.",
     },
   },
 
@@ -2112,6 +2118,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "Vidéo suivante",
       videoOf: "Exemple {n} sur {total} de votre semaine de 5 vidéos",
       failed: "L'aperçu n'a pas pu se charger. Merci d'actualiser la page.",
+      noSample: "Pas encore d'exemple sur {services} dans cette langue : l'aperçu montre donc d'autres sujets.",
     },
   },
   // Japanese: です・ます, the clinic as 院長先生 / 医院, no あなた.
@@ -2468,6 +2475,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "次の動画",
       videoOf: "毎週5本のうちのサンプル {n}/{total}",
       failed: "プレビューを読み込めませんでした。ページを再読み込みしてください。",
+      noSample: "この言語では{services}のサンプルがまだないため、プレビューでは別のテーマを表示しています。",
     },
   },
 
@@ -2825,6 +2833,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "الفيديو التالي",
       videoOf: "نموذج {n} من {total} من فيديوهات أسبوعكم الخمسة",
       failed: "تعذّر تحميل المعاينة. يُرجى تحديث الصفحة.",
+      noSample: "لا يوجد بعدُ مثال عن {services} بهذه اللغة، لذلك تعرض المعاينة مواضيع أخرى.",
     },
   },
 
@@ -3183,6 +3192,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       next: "Następny film",
       videoOf: "Przykład {n} z {total} z Państwa tygodnia (5 filmów)",
       failed: "Nie udało się wczytać podglądu. Prosimy odświeżyć stronę.",
+      noSample: "W tym języku nie ma jeszcze przykładu o {services}, dlatego podgląd pokazuje inne tematy.",
     },
   },
 };

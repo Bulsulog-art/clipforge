@@ -77,8 +77,6 @@ const dist2 = (a: number[], b: number[]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) *
 /** Pixels lighter or darker than this are paper and ink, not brand. */
 const NEAR_WHITE_L = 0.93;
 const NEAR_BLACK_L = 0.08;
-/** The reference a dark chip is drawn in, for deciding which chip a mark needs. */
-const DARK_CHIP = "#0D1A1E";
 
 // MARK: - Background
 
@@ -265,21 +263,19 @@ function visibleBox(img: Rgba): LogoAnalysis["crop"] {
 }
 
 /**
- * Which chip the mark reads on. Counted per pixel rather than from the mean,
- * so a navy emblem with a little white detail still gets the light chip it
- * was drawn for, while a white wordmark gets the dark one. Ties go to light:
- * logos are made for letterheads.
+ * Which chip the mark reads on. Counted per pixel rather than from the mean.
+ * The dark chip is only for a mark that does not read on white: when at
+ * least half of it does, it was drawn for a letterhead and gets the light
+ * chip — also when it has a large white shape inside (a white tooth in a
+ * teal circle). Before, every pixel that read on the dark chip counted for
+ * it, white ones included, so such an emblem went on the dark chip and its
+ * teal lettering sank into it (preview torture test, 2026-11-16).
  */
-function chipFor(ink: number[][]): LogoTreatment {
+export function chipFor(ink: number[][]): LogoTreatment {
   if (!ink.length) return "light";
   let onLight = 0;
-  let onDark = 0;
-  for (const p of ink) {
-    const hex = toHex(p[0], p[1], p[2]);
-    if (contrastRatio(hex, "#FFFFFF") >= 2) onLight++;
-    if (contrastRatio(hex, DARK_CHIP) >= 2) onDark++;
-  }
-  return onDark > onLight * 1.15 ? "dark" : "light";
+  for (const p of ink) if (contrastRatio(toHex(p[0], p[1], p[2]), "#FFFFFF") >= 2) onLight++;
+  return onLight * 2 < ink.length ? "dark" : "light";
 }
 
 /** The part a composition needs to draw it. */

@@ -170,3 +170,16 @@ describe("the library on disk", () => {
     expect(size(PUBLIC)).toBeLessThan(12 * 1024 * 1024);
   });
 });
+
+import { servicesWithoutSample as missingSamples } from "./preview-library";
+describe("servicesWithoutSample: the preview says when a chosen treatment has no sample", () => {
+  it("lists the clinic's own words for categories the language lacks, once each", () => {
+    const lib = { tr: [{ id: "a", category: "implant" as const, service: "İmplant", title: "x", seconds: 20 }] };
+    expect(missingSamples(["İmplant tedavisi", "Çocuk diş hekimliği", "çocuk", "Kanal tedavisi", "Botoks"], "tr", lib)).toEqual(["Çocuk diş hekimliği", "Kanal tedavisi"]);
+    expect(missingSamples(["İmplant"], "tr", lib)).toEqual([]);
+  });
+  it("knows the real gaps: no Turkish children's sample, no root canal sample anywhere", () => {
+    expect(missingSamples(["Çocuk diş hekimliği"], "tr")).toEqual(["Çocuk diş hekimliği"]);
+    for (const l of ["en", "de", "es", "fr", "tr", "ja", "ar", "pl"]) expect(missingSamples(["Root canal"], l)).toEqual(["Root canal"]);
+  });
+});
