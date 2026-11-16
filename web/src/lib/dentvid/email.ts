@@ -334,7 +334,8 @@ export async function sendEmail(to: string, msg: { subject: string; html: string
         from,
         to: [deliveryAddress(to)],
         reply_to: replyTo,
-        subject: msg.subject,
+        // One header line whatever the template put in it (security round 3).
+        subject: msg.subject.replace(/\s+/g, " ").trim(),
         html: msg.html,
         text: msg.text,
         ...(opts.headers ? { headers: opts.headers } : {}),

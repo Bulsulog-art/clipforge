@@ -15,6 +15,8 @@ let contents: Map<string, Uint8Array>;
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 73, 72, 68, 82]);
 const removed: string[] = [];
 const adminUpdates: Record<string, unknown>[] = [];
+/** The row filter of each service-role update ([column, value]). */
+const adminFilters: [string, unknown][] = [];
 
 const LEGACY = new RegExp(`^${OWNER}/logo\\.[a-z0-9_+-]{1,4}$`);
 
@@ -31,7 +33,9 @@ vi.mock("@/lib/dentvid/auth", () => ({
           upsert: (r: Record<string, unknown>) => ((upsert = r), q),
           single: async () => {
             const prof = upsert?.profile as Record<string, unknown> | undefined;
-            if (oldGuard && (prof?.closingLine !== undefined || prof?.narratorVoice !== undefined))
+            // 0021's guard counts code points (dentvid_plain_text char_length): a closing line under 4 is refused.
+            const shortLine = typeof prof?.closingLine === "string" && [...prof.closingLine].length < 4;
+            if (shortLine || (oldGuard && (prof?.closingLine !== undefined || prof?.narratorVoice !== undefined)))
               return { data: null, error: { code: "23514", message: "dentvid: clinic profile rejected (unknown key or invalid value)" } };
             const next = { ...(row ?? { id: "c1" }), ...upsert! };
             if (oldTrigger && typeof next.logo_path === "string" && !LEGACY.test(next.logo_path)) next.logo_path = row?.logo_path ?? null;
@@ -52,7 +56,8 @@ vi.mock("@/lib/dentvid/supabase", () => ({
   dvAdmin: () => ({
     from: () => ({
       update: (patch: Record<string, unknown>) => ({
-        eq: async () => {
+        eq: async (col: string, val: unknown) => {
+          adminFilters.push([col, val]);
           adminUpdates.push(patch);
           row = { ...row, ...patch };
           return { error: null };
@@ -98,6 +103,7 @@ beforeEach(() => {
   contents = new Map();
   removed.length = 0;
   adminUpdates.length = 0;
+  adminFilters.length = 0;
 });
 
 describe("POST /api/dentvideo/clinic — replacing the logo", () => {
@@ -209,5 +215,41 @@ describe("POST /api/dentvideo/clinic — the clinic's own closing line", () => {
     expect((row!.profile as Record<string, unknown>).narratorVoice).toBe("female");
     const bad = await save({ profile: { ...profile, narratorVoice: "robot" } });
     expect(bad.status).toBe(400);
+  });
+});
+
+describe("POST /api/dentvideo/clinic — the service-role fallback (security round 3)", () => {
+  it("writes only this owner's row and only known profile keys, whatever else the body carries", async () => {
+    oldGuard = true;
+    const { POST } = await import("./route");
+    const body = {
+      profile: { ...profile, closingLine: "Questions about your gums? Bring them to your next check-up.", narratorVoice: "male", logo: "/etc/passwd", plan: "active", owner_id: OTHER },
+      owner_id: OTHER,
+      id: "someone-elses-clinic",
+      plan: "active",
+    };
+    const res = await POST(new Request("https://dentvideo.com/api/dentvideo/clinic", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+    expect(res.status).toBe(200);
+    expect(adminFilters).toEqual([["owner_id", OWNER]]);
+    expect(adminUpdates).toHaveLength(1);
+    expect(Object.keys(adminUpdates[0])).toEqual(["profile"]);
+    const stored = adminUpdates[0].profile as Record<string, unknown>;
+    expect(Object.keys(stored).sort()).toEqual(["address", "brandColor", "closingLine", "country", "language", "name", "narratorVoice", "services", "tone"]);
+    expect(row!.owner_id).toBe(OWNER);
+    expect(row!.plan).toBeUndefined();
+  });
+
+  it("PoC: a closing line the database guard refuses (2 emoji = 4 UTF-16 units, 2 code points) is not added with the service role", async () => {
+    const r = await save({ profile: { ...profile, closingLine: "😀😀" } });
+    expect(r.status).toBe(400);
+    expect(r.body.error).toContain("closingLine");
+    expect(adminUpdates).toHaveLength(0);
+    expect((row!.profile as Record<string, unknown> | undefined)?.closingLine).toBeUndefined();
+  });
+
+  it("folds a line break in the clinic name (it goes into owner-alert subjects)", async () => {
+    const r = await save({ profile: { ...profile, name: "Riverside\r\nBcc: victim@example.com" } });
+    expect(r.status).toBe(200);
+    expect((row!.profile as Record<string, unknown>).name).toBe("Riverside Bcc: victim@example.com");
   });
 });
