@@ -122,7 +122,7 @@ xcrun simctl shutdown "$PHONE_ID" || true
 
 if [ -n "$PAD_ID" ] && [ "$SET" = full ]; then
   boot "$PAD_ID"
-  variant "$PAD_ID" ipad light large en signin week-full video-look post-ready record camera-live settings videos
+  variant "$PAD_ID" ipad light large en signin week-full video-review video-look post-ready record camera-live settings videos
   xcrun simctl shutdown "$PAD_ID" || true
 fi
 echo "screenshots done in $(( $(date +%s) - START ))s"

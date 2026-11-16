@@ -35,8 +35,9 @@ CAPTIONS = {
            "Graba con tus puntos clave en pantalla", "Una tarjeta de grabación por tema", "Tu idioma, tu voz, tu frase de cierre"],
     "fr": ["Les vidéos de la semaine, prêtes le lundi", "Regardez, puis validez ou refusez", "Enregistrée et copiée, prête à publier",
            "Filmez avec vos points clés à l’écran", "Une fiche de tournage par sujet", "Votre langue, votre voix, votre phrase de fin"],
-    "ja": ["今週の動画は月曜日に届きます", "見て、承認または見送り", "保存とコピーが完了、すぐに投稿", "話すポイントを画面に表示して撮影",
-           "テーマごとの撮影カード", "言語も声も、締めのひと言も"],
+    # Japanese has no spaces: the line breaks are set by hand at phrase boundaries.
+    "ja": ["今週の動画は\n月曜日に届きます", "見て、承認または見送り", "保存とコピーが完了、\nすぐに投稿", "話すポイントを\n画面に表示して撮影",
+           "テーマごとの撮影カード", "言語も声も、\n締めのひと言も"],
     "ar": ["فيديوهات أسبوعك جاهزة يوم الاثنين", "شاهد، ثم وافق أو ارفض", "تم الحفظ والنسخ، جاهز للنشر",
            "سجّل والنقاط الرئيسية على الشاشة", "بطاقة تصوير لكل موضوع", "لغتك وصوتك وجملة الختام"],
     "pl": ["Filmy na ten tydzień, gotowe w poniedziałek", "Obejrzyj, potem zaakceptuj lub odrzuć", "Zapisane i skopiowane, gotowe do publikacji",
@@ -79,6 +80,8 @@ def font_for(lang, size, fonts_dir):
 
 def wrap(draw, text, font, width, lang):
     """Greedy wrap by words (by characters for Japanese), balanced to two lines when it fits."""
+    if "\n" in text:
+        return text.split("\n")
     units = list(text) if lang == "ja" else text.split(" ")
     sep = "" if lang == "ja" else " "
     if draw.textlength(text, font=font) <= width:
