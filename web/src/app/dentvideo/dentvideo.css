@@ -39,6 +39,13 @@
   font-size: clamp(2.125rem, 1.6rem + 1.9vw, 3.375rem);
   line-height: 1.07;
 }
+/* The sign-up steps and the signed-in app: one fluid page-title size (2.25rem on a phone, 3.25rem
+   on a desktop), a step below the landing's h2, so every screen opens at the same weight. */
+:where(.dv) .dv-h-page {
+  font-size: clamp(2.25rem, 1.95rem + 1.15vw, 3.25rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
 :where(.dv) :is(p, li, dd, figcaption) {
   text-wrap: pretty;
 }
@@ -466,6 +473,10 @@ html:has(.dv) {
   .dv :lang(ja) :is(li, .dv-btn, label, dt, figcaption) {
     word-break: auto-phrase;
   }
+  /* The app's short leads too ("始めら|れます"): the signed-in screens and the sign-up steps. */
+  .dv main:lang(ja) :is(p, dd) {
+    word-break: auto-phrase;
+  }
 }
 .dv .dv-h1:lang(ja) {
   max-width: 13em;
@@ -475,6 +486,14 @@ html:has(.dv) {
 .dv .dv-h2:lang(ja) {
   font-size: 1.75rem;
   line-height: 1.4;
+}
+.dv .dv-h-page:lang(ja) {
+  font-size: clamp(1.75rem, 1.55rem + 0.8vw, 2.5rem);
+  line-height: 1.4;
+}
+.dv .dv-h-page:lang(ar) {
+  font-size: clamp(2rem, 1.75rem + 0.95vw, 2.75rem);
+  line-height: 1.35;
 }
 .dv .dv-h1:lang(ar) {
   font-size: 2.375rem;

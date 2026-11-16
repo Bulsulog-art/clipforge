@@ -18,11 +18,11 @@ export function Stepper({ locale, current }: { locale: Locale; current: Onboardi
       <div className="sm:hidden">
         <p className="flex items-baseline justify-between text-sm">
           <span className="font-semibold text-dv-ink">{t.steps[current]}</span>
-          <span className="text-dv-muted">{fmt(t.stepOf, { n: at + 1, total: ONBOARDING_STEPS.length })}</span>
+          <span className="tabular-nums text-dv-muted">{fmt(t.stepOf, { n: at + 1, total: ONBOARDING_STEPS.length })}</span>
         </p>
         <div className="mt-2 grid grid-cols-4 gap-1.5">
           {ONBOARDING_STEPS.map((s, i) => (
-            <span key={s} className={`h-1.5 rounded-full ${i <= at ? "bg-dv-teal" : "bg-dv-line"}`} />
+            <span key={s} className={`h-1.5 rounded-full transition-colors ${i < at ? "bg-dv-teal" : i === at ? "bg-gradient-to-r from-dv-teal to-dv-teal/45 rtl:bg-gradient-to-l" : "bg-dv-sand-200"}`} />
           ))}
         </div>
       </div>
@@ -36,14 +36,14 @@ export function Stepper({ locale, current }: { locale: Locale; current: Onboardi
               <span className="flex items-center gap-2.5">
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                    done ? "bg-dv-teal text-white" : here ? "bg-white text-dv-teal ring-2 ring-dv-teal" : "bg-white text-dv-muted ring-1 ring-dv-line"
+                    done ? "bg-dv-teal text-white shadow-[0_1px_2px_rgba(11,63,62,0.25)]" : here ? "bg-white text-dv-teal shadow-[0_0_0_5px_rgba(15,92,92,0.1)] ring-2 ring-dv-teal" : "bg-white/80 text-dv-muted ring-1 ring-dv-edge"
                   }`}
                 >
                   {done ? <Check className="h-4 w-4" strokeWidth={3} aria-hidden="true" /> : i + 1}
                 </span>
                 <span className={`whitespace-nowrap text-sm ${here ? "font-semibold text-dv-ink" : done ? "font-medium text-dv-body" : "text-dv-muted"}`}>{t.steps[s]}</span>
               </span>
-              {i < ONBOARDING_STEPS.length - 1 && <span aria-hidden="true" className={`mx-4 h-px flex-1 ${done ? "bg-dv-teal" : "bg-dv-line"}`} />}
+              {i < ONBOARDING_STEPS.length - 1 && <span aria-hidden="true" className={`mx-4 h-px flex-1 ${done ? "bg-dv-teal" : "bg-dv-edge"}`} />}
             </li>
           );
         })}

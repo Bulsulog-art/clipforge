@@ -88,7 +88,7 @@ export function AppHomeView({
           {locked && (
             <header>
               <p className="text-sm font-medium text-dv-muted">{clinicName || t.yourClinic}</p>
-              <h1 className="dv-display mt-1 text-[2.25rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
+              <h1 className="dv-display dv-h-page mt-1 text-dv-ink">{t.title}</h1>
             </header>
           )}
           {locked && (
@@ -156,7 +156,7 @@ export function SettingsView({
   return (
     <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-3xl`}>
       <RememberLocale locale={locale} />
-      <h1 className="dv-display text-[2.25rem] leading-[1.05] text-dv-ink sm:text-5xl">{t.title}</h1>
+      <h1 className="dv-display dv-h-page text-dv-ink">{t.title}</h1>
       <p className="mt-2 text-dv-body">{t.lead}</p>
       <div className="mt-8">
         <ClinicForm locale={locale} initial={profile} logoPath={logoPath} logoUrl={logoUrl} submitLabel={t.save} />
@@ -229,10 +229,10 @@ export function RecordView({
   // Starter switches tier; a clinic with no plan chooses one (the plan panel on the videos page).
   const onStarter = plan?.plan === "active";
   return (
-    <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-5xl`}>
+    <main lang={locale} dir={dirOf(locale)} className={`${MAIN} max-w-6xl`}>
       <RememberLocale locale={locale} />
       {/* No "back to videos" link: the Videos tab is always right above. On Starter the page is the upsell itself. */}
-      <h1 className="dv-display text-balance text-[2.25rem] leading-[1.05] text-dv-ink sm:text-5xl">{starter ? t.starterTitle : t.title}</h1>
+      <h1 className="dv-display dv-h-page text-dv-ink">{starter ? t.starterTitle : t.title}</h1>
       <p className="mt-3 max-w-2xl leading-relaxed text-dv-body">{starter ? t.starterLead : t.lead}</p>
 
       {starter ? (

@@ -93,7 +93,7 @@ export function FirstWeek({
         </span>
         {paid ? t.firstWeekStill : t.firstWeekActivating}
       </p>
-      <h1 className="dv-display mt-5 text-balance text-[2.5rem] leading-[1.04] text-dv-ink sm:text-[3.25rem]">{t.firstWeekTitle}</h1>
+      <h1 className="dv-display dv-h-page mt-5 text-dv-ink">{t.firstWeekTitle}</h1>
       <p className="mt-3 max-w-2xl text-[1.0625rem] leading-relaxed text-dv-body">{t.firstWeekLead}</p>
       {paid && delay && (
         <div role="status" className="mt-4 flex max-w-2xl flex-col gap-3 rounded-xl bg-dv-sand px-4 py-3 text-sm leading-relaxed text-dv-body ring-1 ring-inset ring-dv-line sm:flex-row sm:items-center sm:justify-between">
@@ -119,7 +119,7 @@ export function FirstWeek({
         {steps.map(({ key, state }) => (
           <li
             key={key}
-            className={`flex items-start gap-3 rounded-2xl p-4 ring-1 ${state === "done" ? "bg-dv-teal-50 ring-dv-teal/20" : state === "now" ? "bg-white ring-dv-line" : "bg-white/60 ring-dv-line"}`}
+            className={`flex items-start gap-3 rounded-2xl p-4 ring-1 ring-inset ${state === "done" ? "bg-dv-teal-50 ring-dv-teal/20" : state === "now" ? "bg-white shadow-[var(--dv-shadow-2)] ring-dv-teal/25" : "bg-white/50 ring-dv-line"}`}
           >
             <span
               className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${

@@ -199,7 +199,7 @@ export function FunnelAccount({ locale, email }: { locale: Locale; email: string
 function StepHeader({ title, lead }: { title: string; lead: string }) {
   return (
     <header className="mx-auto mt-10 max-w-3xl text-center sm:mt-14">
-      <h1 className="dv-display text-balance text-[2.5rem] leading-[1.04] text-dv-ink sm:text-[3.25rem]">{title}</h1>
+      <h1 className="dv-display dv-h-page text-dv-ink">{title}</h1>
       <p className="mx-auto mt-4 max-w-2xl text-pretty text-[1.0625rem] leading-relaxed text-dv-body">{lead}</p>
     </header>
   );
@@ -339,11 +339,11 @@ function PlanStep({
     <>
       <StepHeader title={t.planTitle} lead={t.planLead} />
       {cancelled && (
-        <p role="status" className="mx-auto mt-8 max-w-3xl rounded-xl bg-[#fdf1dc] px-4 py-3 text-center text-sm text-[#7a4b00]">
+        <p role="status" className="mx-auto mt-8 max-w-[60rem] rounded-xl bg-[#fdf1dc] px-4 py-3 text-center text-sm text-[#7a4b00]">
           {declined ? appText(locale).billing.paymentFailed : t.cancelled}
         </p>
       )}
-      <div className="mx-auto mt-10 flex max-w-3xl items-center gap-4 rounded-2xl bg-white/80 p-3 pe-4 ring-1 ring-dv-line backdrop-blur">
+      <div className="mx-auto mt-10 flex max-w-[60rem] items-center gap-4 rounded-2xl bg-white/80 p-3 pe-4 shadow-[var(--dv-shadow-1)] backdrop-blur">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl" style={{ background: preview.brandColor }}>
           {preview.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- object URL or signed URL
