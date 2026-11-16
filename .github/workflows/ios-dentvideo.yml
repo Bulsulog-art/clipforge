@@ -74,6 +74,25 @@ jobs:
             | tee build/xcodebuild.log | grep -E "error:|warning: .*(concurrency|Sendable)|BUILD (SUCCEEDED|FAILED)" || true
           grep -q "BUILD SUCCEEDED" build/xcodebuild.log
 
+      - name: Build Release and check no demo data ships
+        if: success() || failure()
+        run: |
+          xcodebuild build \
+            -project DentVideo.xcodeproj \
+            -scheme DentVideo \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedDataRelease \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee build/xcodebuild-release.log | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" build/xcodebuild-release.log
+          BIN=$(find build/DerivedDataRelease/Build/Products -path "*Release-iphonesimulator/DentVideo.app/DentVideo" | head -1)
+          # The demo mode (App/Sources/Demo) is DEBUG-only: its clinic, texts and launch switch must not be in Release.
+          for w in "Riverside" "DVScreen" "demo.invalid" "DemoTransport"; do
+            if strings -a "$BIN" | grep -q "$w"; then echo "::error::Release binary contains demo data: $w"; exit 1; fi
+          done
+          echo "Release build has no demo data."
+
       - name: Upload build log on failure
         if: failure()
         uses: actions/upload-artifact@v4

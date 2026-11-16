@@ -27,9 +27,12 @@ struct RootView: View {
         case nil:
             // First start without a saved snapshot: loading, or offline with a retry.
             if model.isRefreshing {
-                ScrollView { SkeletonWeek() }
-                    .scrollDisabled(true)
-                    .background(Theme.paper.ignoresSafeArea())
+                NavigationStack {
+                    ScrollView { SkeletonWeek() }
+                        .scrollDisabled(true)
+                        .background(Theme.paper.ignoresSafeArea())
+                        .navigationTitle(L("week.title"))
+                }
             } else {
                 MessageView(icon: "wifi.slash", title: L("offline.title"), message: L("offline.body")) {
                     Button(L("common.retry")) { Task { await model.refresh() } }.buttonStyle(.dvPrimary)

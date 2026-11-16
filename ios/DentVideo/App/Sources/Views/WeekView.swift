@@ -57,7 +57,6 @@ struct WeekView: View {
                         }
                     }
                 }
-                .keyboardShortcut(.defaultAction)
             } message: {
                 Text(L("week.approveAll.note"))
             }
@@ -208,12 +207,18 @@ struct VideoCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .layoutPriority(1)
-            if !stacked {
-                Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted.opacity(0.7)).accessibilityHidden(true)
-            }
         }
         .padding(compact ? Theme.s3 : 14)
+        // The chevron sits outside the row's layout, so the text column's width is fixed before
+        // its height is measured (long German or Polish notes are never cut off).
+        .padding(.trailing, stacked ? 0 : Theme.s4)
+        .overlay(alignment: .trailing) {
+            if !stacked {
+                Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted.opacity(0.7))
+                    .padding(.trailing, 14)
+                    .accessibilityHidden(true)
+            }
+        }
         .frame(maxWidth: .infinity, alignment: .leading)
         .dvCard()
         .contentShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
