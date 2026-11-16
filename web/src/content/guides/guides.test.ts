@@ -64,9 +64,9 @@ describe("guide library", () => {
     for (const g of GUIDES) for (const s of g.sources ?? []) expect(s.url, g.slug).toMatch(/^https:\/\//);
   });
 
-  it("every language has a guides hub; the first five markets have at least five guides each", () => {
+  it("every language has a guides hub with at least five guides", () => {
     expect(GUIDE_HUB_LOCALES).toEqual([...LOCALES]);
-    for (const l of ["en", "de", "es", "tr", "fr"] as const) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
+    for (const l of LOCALES) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
   });
 
   it("Japanese, Arabic and Polish each have a rules guide and a what-to-post guide, and their hubs are advertised", () => {
