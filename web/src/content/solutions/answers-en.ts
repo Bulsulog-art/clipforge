@@ -55,7 +55,6 @@ export const ANSWERS_EN: SolutionPage[] = [
           "Prices change, so each line below quotes the company's own page and the day we read it. They are US examples; agencies in your country will quote differently.",
         ],
         list: [
-          `Agency: ${c("lyfe-dentist-plans")}.`,
           `Agency range: ${c("webfx-agency-range")}.`,
           `Design app: ${c("canva-plans")}.`,
           `Video library: ${c("optio-price")}.`,
@@ -145,7 +144,7 @@ export const ANSWERS_EN: SolutionPage[] = [
       {
         heading: "What do dental marketing agencies charge?",
         paragraphs: ["Agencies quote by scope, but some publish prices. Two US examples, quoted from their own pages:"],
-        list: [`${c("lyfe-dentist-plans")}.`, `${c("webfx-agency-range")}.`],
+        list: [`${c("webfx-agency-range")}.`],
         after: [
           "Paid ad budgets usually come on top. DentVideo's monthly plans are on the [homepage pricing section](landing:); compare them with what you actually need an agency to do, not only with the headline price.",
         ],

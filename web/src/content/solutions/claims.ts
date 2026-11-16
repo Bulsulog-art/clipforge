@@ -31,7 +31,6 @@ export type ClaimSubject = {
 
 export const CLAIM_SUBJECTS: Record<string, ClaimSubject> = {
   canva: { name: "Canva", domains: ["canva.com"] },
-  lyfe: { name: "LYFE Marketing", domains: ["lyfemarketing.com"] },
   webfx: { name: "WebFX", domains: ["webfx.com"] },
   optio: { name: "Optio Dentistry", aliases: ["Optio"], domains: ["optiopublishing.com"] },
   toothflix: { name: "Toothflix", domains: ["ada.org"] },
@@ -96,17 +95,6 @@ export const CLAIMS: CompetitorClaim[] = [
       en: "Canva has a free plan and paid Pro, Business and Enterprise plans, with the current price for your country on its pricing page",
       de: "Canva hat einen kostenlosen Tarif und die kostenpflichtigen Tarife Pro, Business und Enterprise; den aktuellen Preis für Ihr Land nennt die Preisseite",
       tr: "Canva'nın ücretsiz bir planı ve ücretli Pro, Business ve Enterprise planları vardır; ülkenize göre güncel fiyat fiyatlandırma sayfasında yer alır",
-    },
-  },
-  {
-    id: "lyfe-dentist-plans",
-    subject: "lyfe",
-    url: "https://www.lyfemarketing.com/industries/social-media-for-dentists/",
-    checked: CHECKED,
-    text: {
-      en: "LYFE Marketing, a US agency, lists social media plans for dentists at $750, $1,350 and $1,550 a month, the two higher ones with 12 or 20 vertical video posts a month for Instagram and TikTok, plus a custom plan on request",
-      de: "LYFE Marketing, eine US-Agentur, nennt für Zahnarztpraxen Social-Media-Pakete zu $750, $1,350 und $1,550 im Monat, die beiden höheren mit 12 bzw. 20 Hochformat-Videos pro Monat für Instagram und TikTok, dazu ein individuelles Paket auf Anfrage",
-      tr: "ABD'li bir ajans olan LYFE Marketing, diş hekimleri için aylık $750, $1,350 ve $1,550 tutarında sosyal medya paketleri listeler; üst iki pakette Instagram ve TikTok için ayda 12 veya 20 dikey video paylaşımı vardır, ayrıca talep üzerine özel paket sunar",
     },
   },
   {

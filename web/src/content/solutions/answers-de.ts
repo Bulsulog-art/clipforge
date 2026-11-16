@@ -55,7 +55,6 @@ export const ANSWERS_DE: SolutionPage[] = [
           "Preise ändern sich, deshalb zitiert jede Zeile die Seite des Anbieters und das Datum, an dem wir sie gelesen haben. Es sind US-Beispiele; Agenturen in Deutschland, Österreich und der Schweiz kalkulieren anders, oft nur auf Anfrage.",
         ],
         list: [
-          `Agentur: ${c("lyfe-dentist-plans")}.`,
           `Agentur, Spanne: ${c("webfx-agency-range")}.`,
           `Design-App: ${c("canva-plans")}.`,
           `Video-Bibliothek im Abo: ${c("optio-price")}.`,
@@ -145,7 +144,7 @@ export const ANSWERS_DE: SolutionPage[] = [
       {
         heading: "Was kosten Zahnarzt-Marketing-Agenturen?",
         paragraphs: ["Agenturen kalkulieren nach Umfang, einige veröffentlichen aber Preise. Zwei US-Beispiele, zitiert von ihren eigenen Seiten:"],
-        list: [`${c("lyfe-dentist-plans")}.`, `${c("webfx-agency-range")}.`],
+        list: [`${c("webfx-agency-range")}.`],
         after: [
           "Werbebudgets kommen meist hinzu, und Agenturen im deutschsprachigen Raum nennen ihre Preise oft nur auf Anfrage. Die Monatstarife von DentVideo stehen im [Preisbereich der Startseite](landing:); vergleichen Sie sie mit dem, was eine Agentur für Sie tatsächlich übernehmen soll.",
         ],

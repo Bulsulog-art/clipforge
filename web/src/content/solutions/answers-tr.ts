@@ -54,7 +54,6 @@ export const ANSWERS_TR: SolutionPage[] = [
           "Fiyatlar değiştiği için her satır şirketin kendi sayfasını ve okuduğumuz tarihi gösterir. Bunlar ABD örnekleridir; Türkiye'deki ajanslar farklı fiyatlandırır ve çoğu fiyatı yalnızca teklif üzerine verir.",
         ],
         list: [
-          `Ajans: ${c("lyfe-dentist-plans")}.`,
           `Ajans, fiyat aralığı: ${c("webfx-agency-range")}.`,
           `Tasarım uygulaması: ${c("canva-plans")}.`,
           `Video kütüphanesi, abonelik: ${c("optio-price")}.`,
@@ -144,7 +143,7 @@ export const ANSWERS_TR: SolutionPage[] = [
       {
         heading: "Diş hekimliği ajansları ne kadar ücret alıyor?",
         paragraphs: ["Ajanslar kapsama göre fiyat verir, ama bazıları fiyat yayımlar. Kendi sayfalarından alınmış iki ABD örneği:"],
-        list: [`${c("lyfe-dentist-plans")}.`, `${c("webfx-agency-range")}.`],
+        list: [`${c("webfx-agency-range")}.`],
         after: [
           "Reklam bütçesi genellikle ayrıca eklenir ve Türkiye'deki ajanslar fiyatı çoğu zaman yalnızca teklif üzerine verir. DentVideo'nun aylık planları [ana sayfanın fiyat bölümünde](landing:); bunları sadece manşet fiyatla değil, ajansın sizin için gerçekten üstleneceği işle karşılaştırın.",
         ],
