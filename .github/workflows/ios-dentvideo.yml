@@ -1,0 +1,77 @@
+name: iOS DentVideo
+
+# Builds the DentVideo iPhone app and runs its tests on one macOS runner.
+# Only on demand, or for pull requests that change the app. Not on every push (macOS minutes).
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "ios/DentVideo/**"
+      - ".github/workflows/ios-dentvideo.yml"
+
+concurrency:
+  group: ios-dentvideo-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ios/DentVideo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.4.app || true
+          xcodebuild -version
+          swift --version
+
+      - name: Cache SwiftPM build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/DentVideo/Core/.build
+            ~/Library/Developer/Xcode/DerivedData/DentVideo-*/SourcePackages
+          key: dv-spm-${{ runner.os }}-${{ hashFiles('ios/DentVideo/Core/Package.swift', 'ios/DentVideo/Core/Sources/**', 'ios/DentVideo/Core/Tests/**') }}
+          restore-keys: dv-spm-${{ runner.os }}-
+
+      - name: Core unit tests (swift test)
+        working-directory: ios/DentVideo/Core
+        run: swift test --parallel
+
+      - name: Install XcodeGen
+        # Runs even when the Core tests failed, so one run reports both.
+        if: success() || failure()
+        run: brew install xcodegen
+
+      - name: Generate project
+        if: success() || failure()
+        run: xcodegen generate
+
+      - name: Build app for the simulator (no signing)
+        if: success() || failure()
+        run: |
+          mkdir -p build
+          xcodebuild build \
+            -project DentVideo.xcodeproj \
+            -scheme DentVideo \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee build/xcodebuild.log | grep -E "error:|warning: .*(concurrency|Sendable)|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" build/xcodebuild.log
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ios/DentVideo/build/xcodebuild.log
+          retention-days: 7

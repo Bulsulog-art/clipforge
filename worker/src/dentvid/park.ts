@@ -75,6 +75,8 @@ export async function resumeParked(
   queue: ResumeQueue,
   guard: SpendGuard,
   now = new Date(),
+  /** A parked job given up on: the owner must hear (index.ts alerts and marks the week delayed). Never throws into the loop. */
+  onDrop: (p: ParkedJob) => Promise<void> = async () => {},
 ): Promise<{ resumed: number; dropped: number; waiting: number }> {
   let resumed = 0;
   let dropped = 0;
@@ -84,6 +86,8 @@ export async function resumeParked(
       logger.error({ jobId: p.jobId, reason: p.reason }, "dentvid: parked job dropped after 7 days");
       await store.remove(p.jobId);
       dropped++;
+      // Before: only a log line — a paying clinic's week vanished without anyone being told.
+      await onDrop(p).catch((e) => logger.error({ jobId: p.jobId, err: (e as Error).message }, "dentvid: parked drop alert failed"));
       continue;
     }
     // Only a check: the job reserves for real when it runs.

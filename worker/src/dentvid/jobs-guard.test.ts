@@ -39,6 +39,8 @@ function fakeDb() {
     const q: Record<string, unknown> = {};
     q.select = () => q;
     q.eq = () => q;
+    // The week's usable-video head count (jobs.ts usableInWeek): none yet.
+    q.in = () => ({ then: (res: (v: unknown) => void) => res({ count: 0, error: null }) });
     q.limit = async () => ({ data: [] });
     q.maybeSingle = async () =>
       table === "dentvid_clinics" && clinicReadError ? { data: null, error: clinicReadError } : { data: table === "dentvid_clinics" ? { plan: "active", plan_tier: clinicTier } : null, error: null };

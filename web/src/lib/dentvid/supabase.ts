@@ -60,6 +60,18 @@ export function dvServer(cookieStore: CookieStore) {
   });
 }
 
+/**
+ * A client acting as the holder of a Supabase access token (the iOS app's
+ * bearer header). RLS applies exactly as for the cookie session; the token is
+ * never refreshed or stored here.
+ */
+export function dvBearer(accessToken: string) {
+  return createAdmin(URL, ANON, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
+
 /** Service-role client for trusted server code only (signup, queueing). */
 export function dvAdmin() {
   const key = process.env.DENTVID_SERVICE_ROLE_KEY;

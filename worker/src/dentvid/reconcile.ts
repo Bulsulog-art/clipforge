@@ -72,6 +72,9 @@ export async function reconcileBilling(deps: ReconcileDeps): Promise<ReconcileRe
         }
         continue; // Dodo says it is paid: never pause on our clock alone.
       }
+      // Cancelled / expired but paid until a date still ahead: the clinic keeps its weeks until
+      // then (docs/RELIABILITY.md F9); plan-end.ts ends the plan at that date.
+      if (ENDED_CANCELLED.has(live.status) && Number.isFinite(renews) && renews > now.getTime()) continue;
       const to = ENDED_CANCELLED.has(live.status) ? "cancelled" : ENDED_PAUSED.has(live.status) ? "paused" : null;
       if (to && (await deps.db.setPlan(c, to))) {
         (to === "cancelled" ? res.cancelled : res.paused).push(c.id);

@@ -240,6 +240,44 @@ Owner actions (round 3):
 1. **ElevenLabs before switching it on**: use a plan **without usage-based overage** (or set the account's character limit) so the plan quota is the hard cap; if `DENTVID_COST_WEEK_USD`, `DENTVID_COST_RESTYLE_USD` or `DENTVID_COST_TOPUP_USD` are set in Coolify, raise them by the surcharge (or remove them so the code adds it); restrict the API key to text-to-speech; 2FA on the account.
 2. Apply 0021 and 0022 when convenient (the app works without them through the fallback, which is now safe either way).
 
+### iPhone app API (2026-11-16 — `api/dentvideo/mobile/v1/**`, push, AASA)
+
+Scope: the new cookie-free API for the DentVideo iPhone app (`ios/DentVideo`), the APNs push
+added to the worker's ready notice, migration 0023 (`dentvid_devices`) and the per-host
+apple-app-site-association. Tests: `web/src/app/api/dentvideo/mobile/v1/mobile.test.ts` (an
+in-memory Liman that enforces the RLS owner rule), `web/src/lib/dentvid/apns.test.ts`,
+`web/src/app/api/internal/dentvideo/notify/route.test.ts`, `web/src/lib/origin-guard.test.ts`.
+
+Design decisions an attacker would probe:
+
+- **Authentication**: only `Authorization: Bearer <Liman access token>` (`lib/dentvid/mobile-auth.ts`),
+  verified by Liman (`auth.getUser`), never just decoded; not JWT-shaped or > 4 KB → refused before
+  Liman is asked. Accounts of another app on the shared Liman (`isDentvideoUser` false) are refused,
+  and at sign-in their fresh session is revoked at once. The mobile routes **never read the dv-auth
+  cookie** (tested: a cookie-only request is 401), so CSRF cannot reach them; that is why the origin
+  guard exempts exactly `/api/dentvideo/mobile/` (look-alike paths stay guarded, tested).
+- **Same rules as the web**: decisions, recordings, upload URLs, clinic saves and account deletion
+  run the *same* handler functions as the cookie routes (`lib/dentvid/handlers/*`), so a rule fixed in
+  one place is fixed for both. The client acts as the user (PostgREST and Storage get the user's
+  JWT), so RLS applies, and every query also filters `owner_id = user.id`.
+- **Cross-clinic attempts** (all tested, nothing changes): clinic A's token on clinic B's item
+  (approve, decline, undo, posted tick), on B's device token (delete, sign-out), on a recording path
+  in B's folder or with `..`, an `owner_id`/`userId`/`logoPath` in a body (strict schemas or ignored),
+  account deletion naming another user.
+- **Device tokens**: written only with the service role under the session's user id; a token moves to
+  the account that registers it last (one phone, one clinic), and sign-out deletes it. Someone who
+  somehow knew another phone's APNs token could only make that phone receive *their own* clinic's
+  "week ready" notice; APNs tokens are not exposed anywhere.
+- **Push content**: counts and fixed sentences only — no clinic name, video title or patient data in
+  the payload (lock screens are visible to others in a practice).
+- **Rate limits**: sign-in per IP (10/10 min) and per address (5/10 min, 30/day), refresh per IP,
+  reads per user, devices per user; writes reuse the web's per-user limits.
+- **No secrets in the app**: the iPhone app holds no API key at all (no Liman anon key, no Sentry,
+  no analytics); the server holds the APNs key.
+
+Owner actions: apply `0023_dentvid_devices.sql` (until then device registration answers
+`stored: false` and no push is sent); add the APNs env (section 5).
+
 ### Retention (owner decision — not automated)
 
 **Unpaid accounts (automated script, audit H4)**: `scripts/dentvideo-storage-cleanup.mts`
@@ -400,6 +438,9 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 
 | Var | Where | Default | Meaning |
 |---|---|---|---|
+| `APNS_KEY_ID` / `APNS_TEAM_ID` / `APNS_KEY_P8` | web | — (no push; the email still goes) | the team's APNs auth key (`.p8` contents, `\n` for line breaks) for the iPhone app's "week ready" push; the same key ClipForge's worker uses |
+| `DENTVID_APNS_BUNDLE_ID` | web | `com.bulsulabs.dentvideo` | APNs topic and the dentvideo.com apple-app-site-association app id |
+| `APPLE_TEAM_ID` | web (already used) | — | team id in the apple-app-site-association answer (both hosts) |
 | `OWNER_ALERT_EMAIL` | worker + web | — (alerts only logged) | where owner alerts and the daily digest go |
 | `RESEND_API_KEY` | worker (already on web) | — | needed for worker alerts |
 | `DENTVID_OWNER_ALERTS` | worker + web | on | `off` = no owner alert emails, no digest (logged only) |

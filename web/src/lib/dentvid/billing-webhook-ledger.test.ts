@@ -199,12 +199,13 @@ describe("C3: a second subscription for the same clinic", () => {
 });
 
 describe("H8: only a genuine first activation is 'first'", () => {
-  it("a returning clinic is not marked as a first payment (the first-week watchdog ignores it)", async () => {
+  it("a returning clinic is not a first payment, but the watchdog is still told (flagged returning; it skips a week it already has)", async () => {
     const f = fakeDb({ ...paying("sub_old"), plan: "cancelled" });
     const d = deps();
     await handleDentvideoEvent(f.db, evt("subscription.active", "sub_new"), d);
     expect(f.clinic.plan).toBe("active");
-    expect(d.markPaid).not.toHaveBeenCalled();
+    // Reliability F3 (docs/RELIABILITY.md): before, a returning clinic was not watched at all.
+    expect(d.markPaid).toHaveBeenCalledWith(CLINIC, expect.any(Date), true);
     expect(d.raised.find((a) => a.key.startsWith("new_paying"))?.titleEn).toBe("A clinic came back");
   });
 
@@ -212,7 +213,7 @@ describe("H8: only a genuine first activation is 'first'", () => {
     const f = fakeDb(unpaid());
     const d = deps();
     await handleDentvideoEvent(f.db, evt("subscription.active", "sub_1"), d);
-    expect(d.markPaid).toHaveBeenCalledWith(CLINIC);
+    expect(d.markPaid).toHaveBeenCalledWith(CLINIC, expect.any(Date), false);
     expect(d.enqueueWeek).toHaveBeenCalledTimes(1);
   });
 });

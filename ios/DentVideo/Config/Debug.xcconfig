@@ -1,0 +1,6 @@
+// Debug builds (Xcode, simulator). No secrets here: the app holds none.
+// To try a staging server, set DV_API_BASE_URL in Config/Local.xcconfig (gitignored), e.g.
+//   DV_API_BASE_URL = https:/$()/staging.example.com/api/dentvideo/mobile/v1
+DV_API_BASE_URL = https:/$()/dentvideo.com/api/dentvideo/mobile/v1
+APS_ENVIRONMENT = development
+#include? "Local.xcconfig"

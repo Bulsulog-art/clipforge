@@ -44,7 +44,10 @@ describe("nightly billing reconciliation", () => {
   it("with Dodo: active with a later billing date → the date is corrected, never paused; ended → access stops", async () => {
     const f = fakeDb([
       { id: "renewed", plan_renews_at: due(RENEWAL_GRACE_MS * 2), dodo_subscription_id: "sub_r" },
-      { id: "gone", plan_renews_at: new Date(NOW.getTime() + 86_400_000).toISOString(), dodo_subscription_id: "sub_g" },
+      // Cancelled, paid period over → cancelled. Cancelled but paid until tomorrow → kept until then
+      // (docs/RELIABILITY.md F9; plan-end.ts ends it at that date).
+      { id: "gone", plan_renews_at: new Date(NOW.getTime() - 86_400_000).toISOString(), dodo_subscription_id: "sub_g" },
+      { id: "paidup", plan_renews_at: new Date(NOW.getTime() + 86_400_000).toISOString(), dodo_subscription_id: "sub_g" },
       { id: "hold", plan_renews_at: due(0), dodo_subscription_id: "sub_h" },
     ]);
     const next = "2026-12-20T00:00:00.000Z";
@@ -55,6 +58,7 @@ describe("nightly billing reconciliation", () => {
     expect(f.renews.get("renewed")).toBe(next);
     expect(f.plans.get("renewed")).toBe("active");
     expect(r.cancelled).toEqual(["gone"]);
+    expect(f.plans.get("paidup")).toBe("active");
     expect(r.paused).toEqual(["hold"]);
     expect(alert).toHaveBeenCalledTimes(2);
   });

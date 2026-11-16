@@ -17,6 +17,9 @@ import {
   nextDispatch,
   parseAlerts,
   parseDispatch,
+  parseDeliveryReport,
+  DELIVERY_REPORT_KEY,
+  type DeliveryReportView,
   parseHeartbeats,
   parseJobHash,
   parseMonitorHistory,
@@ -54,6 +57,8 @@ export type SystemSnapshot = {
   costByDay: [string, number][];
   /** The synthetic monitor's last run and history. */
   monitor: MonitorView;
+  /** The worker's hourly delivery watchdog report (null: none yet, or older than 3 days). */
+  delivery: DeliveryReportView | null;
 };
 
 const DAY = 86_400_000;
@@ -74,6 +79,7 @@ export function emptySnapshot(now: Date, error?: string): SystemSnapshot {
     alerts: [],
     costByDay: [],
     monitor: emptyMonitor(),
+    delivery: null,
   };
 }
 
@@ -131,6 +137,7 @@ export async function readSystem(now = new Date(), opts: { failedPerQueue?: numb
     p.get(MONITOR_LAST_KEY);
     p.lrange(MONITOR_HISTORY_KEY, 0, -1);
     p.get(MONITOR_STATE_KEY);
+    p.get(DELIVERY_REPORT_KEY);
     const res = ((await p.exec()) ?? []) as PipelineReply[];
 
     let i = 0;
@@ -150,6 +157,7 @@ export async function readSystem(now = new Date(), opts: { failedPerQueue?: numb
     const monitorLast = parseMonitorRun(take(1)[0]?.[1] as string | null);
     const monitorHistory = parseMonitorHistory(take(1)[0]?.[1] as string[] | null);
     const monitorState = parseMonitorState(take(1)[0]?.[1] as string | null);
+    const delivery = parseDeliveryReport(take(1)[0]?.[1] as string | null, now);
 
     const failed = (await Promise.all(failedIds.map(({ q, ids }) => jobs(redis, q, ids)))).flat().sort((a, b) => (b.finishedAt ?? "").localeCompare(a.finishedAt ?? ""));
     const active = (await Promise.all(activeIds.map(({ q, ids }) => jobs(redis, q, ids)))).flat();
@@ -166,6 +174,7 @@ export async function readSystem(now = new Date(), opts: { failedPerQueue?: numb
       alerts: parseAlerts(alertLists),
       costByDay: [...costByDay(costHash, live).entries()].sort((a, b) => a[0].localeCompare(b[0])),
       monitor: monitorView(monitorLast, monitorHistory, monitorState, now),
+      delivery,
     };
   })();
   const timeout = new Promise<SystemSnapshot>((resolve) => setTimeout(() => resolve(emptySnapshot(now, "Redis did not answer in time.")), 2500));

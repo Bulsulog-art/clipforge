@@ -52,9 +52,11 @@ struct MainTabView: View {
             ClipsFeedView()
                 .tabItem { Label("Clips", systemImage: "play.rectangle") }
                 .tag(AppState.Tab.clips)
-            ChannelsView()
-                .tabItem { Label("Channels", systemImage: "link") }
-                .tag(AppState.Tab.channels)
+            if FeatureGates.socialPublishing {
+                ChannelsView()
+                    .tabItem { Label("Channels", systemImage: "link") }
+                    .tag(AppState.Tab.channels)
+            }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
                 .tag(AppState.Tab.settings)
@@ -72,7 +74,7 @@ struct MainTabView: View {
             // form, which is the variant that actually compiles on the
             // mobile SDK. The free-form `List(selection: content:)` is
             // a macOS-only init.
-            List(SidebarTab.allCases, id: \.self, selection: sidebarSelection) { tab in
+            List(SidebarTab.allCases.filter { $0 != .channels || FeatureGates.socialPublishing }, id: \.self, selection: sidebarSelection) { tab in
                 Label(tab.title, systemImage: tab.icon).tag(tab)
             }
             .navigationTitle("ClipForge")
@@ -85,7 +87,7 @@ struct MainTabView: View {
             case .studio:    ProjectsView()
             case .trends:    TrendsView()
             case .clips:     ClipsFeedView()
-            case .channels:  ChannelsView()
+            case .channels:  if FeatureGates.socialPublishing { ChannelsView() } else { ProjectsView() }
             case .settings:  SettingsView()
             }
         }

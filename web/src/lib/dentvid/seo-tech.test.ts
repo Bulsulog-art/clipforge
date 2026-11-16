@@ -6,6 +6,7 @@ import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LOCALES, guidePath } from "@/c
 import { LEGAL_KINDS, legalPath } from "@/content/legal";
 import { SOLUTIONS, solutionPath } from "@/content/solutions";
 import { EXAMPLES, EXAMPLES_PATH, examplePath } from "@/content/dentvideo-examples";
+import { HELP_PATH } from "@/content/help";
 import { ABOUT_PATH, CHECKER_PATH, GUIDES_INDEX_PATH } from "@/content/guides/ui";
 import { dvUrl } from "./host";
 import { landingJsonLd, landingMetadata } from "./seo";
@@ -24,6 +25,8 @@ import {
   guideMetadata,
   guidesIndexJsonLd,
   guidesIndexMetadata,
+  helpJsonLd,
+  helpMetadata,
   jsonLdHtml,
   legalJsonLd,
   legalMetadata,
@@ -41,6 +44,7 @@ const PAGES: { path: string; meta: Metadata; ld: unknown }[] = [
   ...LOCALES.map((l) => ({ path: ABOUT_PATH[l], meta: aboutMetadata(l), ld: aboutJsonLd(l) })),
   ...LOCALES.map((l) => ({ path: CHECKER_PATH[l], meta: checkerMetadata(l), ld: checkerJsonLd(l) })),
   ...LOCALES.map((l) => ({ path: EXAMPLES_PATH[l], meta: examplesHubMetadata(l), ld: examplesHubJsonLd(l) })),
+  ...LOCALES.map((l) => ({ path: HELP_PATH[l], meta: helpMetadata(l), ld: helpJsonLd(l) })),
   ...EXAMPLES.map((e) => ({ path: examplePath(e), meta: exampleMetadata(e), ld: exampleJsonLd(e) })),
   ...GUIDES.map((g) => ({ path: guidePath(g), meta: guideMetadata(g), ld: guideJsonLd(g) })),
   ...SOLUTIONS.map((p) => ({ path: solutionPath(p), meta: solutionMetadata(p), ld: solutionJsonLd(p) })),

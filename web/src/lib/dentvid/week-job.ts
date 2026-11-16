@@ -66,6 +66,15 @@ export function weekRunFor(state: string | null | undefined, usableThisWeek: num
 /** The slice of a BullMQ Queue this needs, so tests can pass a mock. */
 export type WeekQueue = {
   add(name: string, data: WeekJobData, opts: Record<string, unknown>): Promise<unknown>;
+  /** Optional so a bare `{ add }` mock still works; the real queue always has it. */
+  getJob?(id: string): Promise<KeptJob | null | undefined>;
+};
+
+/** A job BullMQ still keeps under an id (completed and failed jobs are kept for days: removeOnComplete/removeOnFail). */
+export type KeptJob = {
+  getState(): Promise<string>;
+  remove(): Promise<void>;
+  changePriority?(opts: { priority?: number }): Promise<void>;
 };
 
 /** How many videos a top-up run makes: the ones missing from the promised week. */
@@ -91,6 +100,19 @@ export async function enqueueFirstWeek(db: SupabaseClient, queue: WeekQueue, cli
     .eq("week_of", week)
     .neq("status", "failed");
   if ((count ?? 0) > 0) return "made";
-  await queue.add("week", { clinicId, count: WEEK_VIDEOS, week }, { jobId: weekJobId(clinicId, week), ...FIRST_WEEK_JOB_OPTS });
+  const jobId = weekJobId(clinicId, week);
+  // BullMQ ignores an add whose id it still keeps — and it keeps completed and failed jobs for
+  // days. A clinic whose batch week ran while it was on hold (the worker skips a clinic that is
+  // not paying: the job completes with nothing) and that then pays again would get NO week:
+  // the add below would be swallowed by that finished job. Nothing usable came of it (the count
+  // above), so it is removed and the week queued afresh. A job still waiting goes to the front.
+  const kept = queue.getJob ? await queue.getJob(jobId) : null;
+  const state = kept ? await kept.getState().catch(() => "unknown") : null;
+  if (kept && (state === "completed" || state === "failed")) await kept.remove();
+  else if (kept && (state === "waiting" || state === "prioritized") && kept.changePriority) {
+    await kept.changePriority({ priority: FIRST_WEEK_JOB_OPTS.priority }).catch(() => {});
+    return "queued";
+  }
+  await queue.add("week", { clinicId, count: WEEK_VIDEOS, week }, { jobId, ...FIRST_WEEK_JOB_OPTS });
   return "queued";
 }

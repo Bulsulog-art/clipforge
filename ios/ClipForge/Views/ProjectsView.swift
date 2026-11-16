@@ -180,7 +180,7 @@ struct ProjectsView: View {
                         Button {
                             showNewProject = true
                         } label: {
-                            Label("Paste a link · 1 cr", systemImage: "link")
+                            Label("Paste a TikTok link · 1 cr", systemImage: "link")
                         }
                     } label: {
                         Image(systemName: "plus.circle.fill")

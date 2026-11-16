@@ -2,7 +2,7 @@ import { fill, lifecycleText } from "@/content/dentvideo-lifecycle";
 import { billingText } from "@/content/dentvideo-billing";
 import { LOCALES, type Locale } from "@/content/dentvideo";
 import { operatorAddress } from "@/content/legal";
-import { CONTACT_EMAIL, COLORS, FONT, esc, renderEmail, type Brand, type Rendered } from "./email-layout";
+import { CONTACT_EMAIL, COLORS, FONT, esc, helpCenterLink, renderEmail, type Brand, type Rendered } from "./email-layout";
 import { formatDvPrice, type DvCurrency } from "./pricing";
 
 /** An amount in a list currency (pricing.ts). */
@@ -78,6 +78,8 @@ export function welcomeEmail(args: { language: string; clinicName: string; appUr
     button: { label: c.welcome.button, url: args.appUrl },
     // The panel above already says how to reach us.
     help: false,
+    // Everything a new clinic wonders in the first week, answered step by step.
+    helpLink: helpCenterLink(lang),
     signoff: c.signoff,
     footer: c.welcome.footer,
     brand: { ...args.brand, name: clinic },
@@ -172,6 +174,7 @@ export function notPostedEmail(args: NudgeArgs & { approved: number; pending: nu
     hello: tidy(fill(c.hello, { clinic })),
     blocks: [{ kind: "list", items: lines }, { kind: "p", text: s.how }, { kind: "p", text: s.gentle, muted: true }],
     button: { label: s.button, url: args.url },
+    helpLink: helpCenterLink(lang, "share"),
     ...marketing(lang, c, args, s.footer),
   });
 }
@@ -243,6 +246,7 @@ export function paymentProblemEmail(args: { language: string; clinicName: string
       { kind: "panel", text: how },
     ],
     button: { label: e.button, url },
+    helpLink: helpCenterLink(lang, "payment-failed"),
     // One signature in every DentVideo email (the billing copy has its own spelling of it in a few languages).
     signoff: lifecycleText(lang).copy.signoff,
     footer: e.footer,

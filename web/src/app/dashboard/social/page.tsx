@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { SOCIAL_PUBLISHING } from "@/lib/features";
 import { Music, Camera, Play, Bolt, Plug, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard-nav";
@@ -18,6 +19,8 @@ export default async function SocialPage({
 }: {
   searchParams: Promise<{ connected?: string; error?: string }>;
 }) {
+  // Posting is off until it works in production (lib/features).
+  if (!SOCIAL_PUBLISHING) notFound();
   const sp = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

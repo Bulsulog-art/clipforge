@@ -18,6 +18,8 @@ import { ClinicForm } from "./clinic-form";
 import { AccountPanel } from "./account-panel";
 import { RecordUpload } from "./record-upload";
 import { HelpContact } from "./help-contact";
+import { HelpLink } from "./help-link";
+import { HELP } from "@/content/help";
 
 /**
  * The screens of the signed-in app, as plain views of their data. The pages
@@ -165,7 +167,7 @@ export function SettingsView({
         <section aria-labelledby="billing-title" className="mt-14 border-t border-dv-line pt-10">
           <h2 id="billing-title" className="text-xl font-semibold text-dv-ink">{b.settingsHeading}</h2>
           <div className="mt-4">
-            <PlanStatus locale={locale} state={plan.plan} tier={plan.tier} renewsAt={plan.renewsAt} />
+            <PlanStatus locale={locale} state={plan.plan} tier={plan.tier} renewsAt={plan.renewsAt} endsAt={plan.endsAt ?? null} />
           </div>
           {plan.plan === "trial" && (
             <p className="mt-3 text-sm text-dv-body">
@@ -198,9 +200,16 @@ export function SettingsView({
             </div>
           )}
           <AccountPanel part="billing" locale={locale} selfServe={selfServe} plan={plan} plans={plans} country={profile?.country} clinicName={profile?.name ?? ""} />
+          <p className="mt-4 flex flex-col items-start gap-x-6 sm:flex-row sm:flex-wrap">
+            <HelpLink locale={locale} id="invoices" label={HELP[locale].articles.invoices.q} />
+            <HelpLink locale={locale} id="cancel" label={HELP[locale].articles.cancel.q} />
+          </p>
         </section>
       )}
       <AccountPanel part="data" locale={locale} selfServe={selfServe} plan={plan} plans={plans} clinicName={profile?.name ?? ""} accountEmail={accountEmail} initialDialog={initialDialog} />
+      <p className="mt-4">
+        <HelpLink locale={locale} id="privacy-dpa" label={HELP[locale].articles["privacy-dpa"].q} />
+      </p>
       <HelpContact locale={locale} clinicId={clinicId} clinicName={profile?.name} />
     </main>
   );
@@ -257,6 +266,9 @@ export function RecordView({
               <p className="mt-3 text-sm text-dv-muted">{DV_SUPPORT_EMAIL}</p>
             </>
           )}
+          <p className="mt-3">
+            <HelpLink locale={locale} id="plans" />
+          </p>
         </div>
       ) : (
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
@@ -273,6 +285,7 @@ export function RecordView({
                 </li>
               ))}
             </ol>
+            <HelpLink locale={locale} id="record" className="mt-4" />
           </aside>
         </div>
       )}

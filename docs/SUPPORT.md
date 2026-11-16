@@ -24,6 +24,19 @@ the app footer link opens one with the subject `DentVideo help`.
    "render"). Say "software-assisted check" / "you approve", the words the app
    and emails use.
 
+## Help center
+
+Public answers for paying clinics live at `dentvideo.com/help` (and `/de/help`,
+`/es/help`, `/tr/help`, `/fr/help`, `/ja/help`, `/ar/help`, `/pl/help`), one
+anchor per answer, e.g. `dentvideo.com/de/help#cancel`. Content:
+`web/src/content/help/<locale>.ts`; anchors: `web/src/content/dentvideo-help-links.ts`.
+The app links the matching answer from settings fields, the record page, empty
+or delayed weeks, billing problems and the post sheet; the welcome, "videos
+ready", payment-problem and "not posted" emails link one too. When you answer a
+question the help center covers, add the link to the answer in the clinic's
+language. When a question keeps coming that it doesn't cover, add an answer in
+all eight languages (the tests require it).
+
 ## Rules (never break these)
 
 - Never say a video is "legally approved", "compliant" or "guaranteed". The

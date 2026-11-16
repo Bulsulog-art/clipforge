@@ -20,7 +20,7 @@ import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert
 /** Scheduled jobs and the retries their scheduler gives them (index.ts upsertJobScheduler). */
 export const CRON_JOB_OPTS = { attempts: 3, backoff: { type: "exponential" as const, delay: 5 * 60_000 } };
 
-export const MAIL_CRONS = new Set(["watchdog-monday", "watchdog-first-week", "billing-reconcile", "digest", "lifecycle"]);
+export const MAIL_CRONS = new Set(["watchdog-monday", "watchdog-first-week", "watchdog-delivery", "billing-reconcile", "digest", "lifecycle"]);
 
 export type FailedJob = {
   name: string;
@@ -30,7 +30,10 @@ export type FailedJob = {
   opts?: { attempts?: number };
 };
 
-export type FailureAlert = { kind: "cron"; alert: OwnerAlert } | { kind: "recording"; clinicId: string; build: (clinic: ClinicRef) => OwnerAlert } | null;
+export type FailureAlert =
+  | { kind: "cron"; alert: OwnerAlert }
+  | { kind: "recording" | "ready_email"; clinicId: string; build: (clinic: ClinicRef) => OwnerAlert }
+  | null;
 
 const isFinal = (job: FailedJob) => job.attemptsMade >= Math.max(1, job.opts?.attempts ?? 1);
 
@@ -41,6 +44,12 @@ export function failureAlert(queue: "dentvid" | "dentvid-mail", job: FailedJob |
   if (!final) return null;
   const error = cleanError(err);
   if (queue === "dentvid-mail") {
+    if (job.name === "notify") {
+      // A "videos ready" email that every retry failed to send: the dentist does not know the week is there.
+      const d = (job.data ?? {}) as { clinicId?: string; week?: string };
+      const clinicId = d.clinicId ?? "unknown";
+      return { kind: "ready_email", clinicId, build: (clinic) => alerts.readyEmailFailed({ clinic, week: d.week ?? "unknown", attempts: job.attemptsMade, error }) };
+    }
     return MAIL_CRONS.has(job.name) ? { kind: "cron", alert: alerts.cronFailed({ job: job.name, error, attempts: job.attemptsMade }) } : null;
   }
   if (job.name === "dispatch") return { kind: "cron", alert: alerts.cronFailed({ job: "dispatch", error, attempts: job.attemptsMade }) };

@@ -3,12 +3,14 @@ import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
 import { workerAuthorised } from "@/lib/dentvid/internal-auth";
 import { sendReadyNotice } from "@/lib/dentvid/ready-notice";
+import { sendReadyPush } from "@/lib/dentvid/apns";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 
 /**
  * Called by the worker when a clinic's week or recording is ready: emails
- * the clinic owner a "ready for your review" note in the clinic's language.
+ * the clinic owner a "ready for your review" note in the clinic's language,
+ * and pushes the same notice to the owner's iPhones (lib/dentvid/apns.ts).
  * Authenticated with the shared WORKER_INTERNAL_TOKEN (Bearer), which also
  * exempts it from the browser Origin check.
  */
@@ -34,7 +36,10 @@ export async function POST(req: Request) {
   );
   if (limited) return limited;
 
-  const res = await sendReadyNotice(dvAdmin(), clinicId, kind, { ready, flagged });
+  const admin = dvAdmin();
+  const res = await sendReadyNotice(admin, clinicId, kind, { ready, flagged });
+  // The iPhone app's push: independent of the email (a bounced address still gets the push). Never throws.
+  if (res.reason !== "no clinic") await sendReadyPush(admin, clinicId, kind, { ready, flagged });
   if (res.reason === "no clinic") return NextResponse.json({ error: "no clinic" }, { status: 404 });
   if (res.reason === "no email" || res.reason === "nothing ready") return NextResponse.json({ sent: false, reason: res.reason });
   return NextResponse.json({ sent: res.sent });

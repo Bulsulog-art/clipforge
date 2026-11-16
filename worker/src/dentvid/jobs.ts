@@ -245,7 +245,37 @@ async function storeVideo(db: SupabaseClient, ownerId: string, videoPath: string
   return { videoPath: videoKey, thumbPath: thumbKey };
 }
 
+/**
+ * Insert a finished week's rows, with retries (backoff + jitter) for a database blip.
+ * The rows are the last step of a run that has already paid for every script, voice and
+ * render: one failed insert used to fail the whole job, and BullMQ's retry made the
+ * week again from scratch — paid twice, with the first run's files left orphaned.
+ */
 async function insert(db: SupabaseClient, rows: ItemRow[]) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await insertOnce(db, rows);
+    } catch (e) {
+      // The clinic is gone (account deleted mid-run): no retry brings it back.
+      if (attempt >= INSERT_ATTEMPTS || FK_VIOLATION.test((e as Error).message)) throw e;
+      const wait = Math.round(insertRetryMs * 2 ** (attempt - 1) * (0.75 + Math.random() * 0.5));
+      logger.warn({ attempt, waitMs: wait, err: (e as Error).message }, "dentvid: insert failed — retrying");
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+}
+
+export const INSERT_ATTEMPTS = 4;
+const FK_VIOLATION = /violates foreign key constraint|\b23503\b/i;
+
+/** The clinic row no longer exists (deleted, not merely unreadable). */
+async function clinicGone(db: SupabaseClient, clinicId: string): Promise<boolean> {
+  const { data, error } = await db.from("dentvid_clinics").select("id").eq("id", clinicId).maybeSingle();
+  return !error && !data;
+}
+let insertRetryMs = 2_000;
+
+async function insertOnce(db: SupabaseClient, rows: ItemRow[]) {
   if (!rows.length) return;
   let { error } = await db.from("dentvid_items").insert(rows);
   if (error && /suggested_backgrounds/.test(error.message)) {
@@ -293,7 +323,35 @@ export function recordingsIncluded(tier: string | null | undefined): boolean {
 export const MIN_USABLE_VIDEOS = 3;
 
 export type WeekCtx = { jobId?: string; attemptsMade?: number; attempts?: number };
-export type WeekResult = { ready: number; flagged: number; rejected: number; toppedUp?: number };
+export type WeekResult = { ready: number; flagged: number; rejected: number; toppedUp?: number; already?: number };
+
+/** Videos promised per week (web/src/lib/dentvid/week-job.ts WEEK_VIDEOS). */
+export const WEEK_VIDEOS = 5;
+
+/** Usable generated videos the clinic already has for this week. Throws (transient) when it cannot be read. */
+async function usableInWeek(db: SupabaseClient, clinicId: string, week: string): Promise<number> {
+  const { count, error } = await db
+    .from("dentvid_items")
+    .select("id", { count: "exact", head: true })
+    .eq("clinic_id", clinicId)
+    .eq("kind", "generated")
+    .eq("week_of", week)
+    .in("status", ["ready", "flagged"]);
+  if (error) throw new TransientWeekError(`the week's items could not be read (service unavailable): ${error.message}`);
+  return count ?? 0;
+}
+
+/**
+ * How many videos this run should make: what the job asked for, but never past the
+ * promised week. A run that finds the week already (partly) made — a job re-run after
+ * the worker died between storing the videos and finishing (BullMQ "stalled"), a
+ * watchdog re-queue racing a slow first run, the Monday batch for a week the first-week
+ * run already made — only makes what is missing, so a clinic never gets (and we never
+ * pay for) the same week twice. A top-up (count = the missing ones) is unchanged.
+ */
+export function videosToMake(requested: number | undefined, already: number): number {
+  return Math.min(requested ?? WEEK_VIDEOS, Math.max(0, WEEK_VIDEOS - Math.max(0, already)));
+}
 
 const usableRow = (r: ItemRow) => (r.status === "ready" || r.status === "flagged") && !!r.video_path;
 
@@ -364,6 +422,12 @@ function safeDb(): SupabaseClient | null {
 async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekResult> {
   const db = dentvidDb();
   if (!(await paying(db, job.clinicId, "week"))) return { ready: 0, flagged: 0, rejected: 0 };
+  const already = await usableInWeek(db, job.clinicId, week);
+  const want = videosToMake(job.count, already);
+  if (want === 0) {
+    logger.info({ clinicId: job.clinicId, week, already }, "dentvid: week already delivered — nothing to make");
+    return { ready: 0, flagged: 0, rejected: 0, already };
+  }
   // Budget first: nothing below may call a paid API before this passes.
   await reserveOrPark("week", { ...job }, ctx.jobId);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
@@ -382,7 +446,6 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
       .limit(200);
     const pastRows = (past ?? []) as PastItemRow[];
     const history = historyFromRows(pastRows);
-    const want = job.count ?? 5;
     const ids = { clinicId: job.clinicId, ownerId };
 
     const produce = (count: number, avoidTitles: string[], history: PastTopic[]) =>
@@ -475,7 +538,19 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
 
     // Stamped with the week the job was queued for, not the day it happens to run (a Sunday job finishing Monday).
     for (const r of rows) r.week_of = week;
-    await insert(db, rows);
+    try {
+      await insert(db, rows);
+    } catch (e) {
+      // Deleted mid-run (account deletion): its account's files were removed at deletion, so the
+      // videos this run just uploaded would outlive it. Compensate: remove them, make nothing.
+      if (await clinicGone(db, job.clinicId).catch(() => false)) {
+        const keys = rows.flatMap((r) => [r.video_path, r.thumb_path]).filter((k): k is string => ownedKey(k, ownerId));
+        if (keys.length) await db.storage.from(BUCKET).remove(keys).catch(() => {});
+        logger.warn({ clinicId: job.clinicId, removed: keys.length }, "dentvid: clinic deleted during its week — uploaded files removed, nothing stored");
+        return { ready: 0, flagged: 0, rejected: 0 };
+      }
+      throw e;
+    }
     const count = (s: ItemRow["status"]) => rows.filter((r) => r.status === s).length;
     const result = { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected"), toppedUp };
     if (usable() < enough) {
@@ -522,6 +597,7 @@ let storeRetryMs = 3_000;
 /** For tests. */
 export function _setStoreRetryMs(ms: number) {
   storeRetryMs = ms;
+  insertRetryMs = ms;
 }
 
 export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: string } = {}): Promise<{ clips: number }> {

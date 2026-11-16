@@ -246,11 +246,14 @@ export function PlanStatus({
   state,
   tier,
   renewsAt,
+  endsAt = null,
 }: {
   locale: Locale;
   state: DvPlanState;
   tier: DvTier | null;
   renewsAt: string | null;
+  /** Cancelled, still in its paid period: "ends on" instead of "renews on" (lib/dentvid/billing.ts planEndsAt). */
+  endsAt?: string | null;
 }) {
   const t = appText(locale).billing;
   const tone =
@@ -260,7 +263,7 @@ export function PlanStatus({
         ? "bg-white text-dv-body ring-dv-line"
         : "bg-[#fdf1dc] text-[#7a4b00] ring-[#f0dcb5]";
   const label = state === "active" && tier ? fmt(t.activeTier, { tier: tierName(locale, tier) }) : t.state[state];
-  const date = renewsAt && state === "active" ? new Date(renewsAt) : null;
+  const date = (endsAt ?? renewsAt) && state === "active" ? new Date((endsAt ?? renewsAt)!) : null;
   return (
     <p className="flex flex-wrap items-center gap-2 text-sm">
       <span className="text-dv-muted">{t.heading}:</span>
@@ -269,7 +272,7 @@ export function PlanStatus({
         {label}
       </span>
       {date && !Number.isNaN(date.getTime()) && (
-        <span className="text-xs text-dv-muted">{fmt(t.renews, { date: new Intl.DateTimeFormat(dateLocale(locale), { dateStyle: "long" }).format(date) })}</span>
+        <span className="text-xs text-dv-muted">{fmt(endsAt ? t.ends : t.renews, { date: new Intl.DateTimeFormat(dateLocale(locale), { dateStyle: "long" }).format(date) })}</span>
       )}
     </p>
   );

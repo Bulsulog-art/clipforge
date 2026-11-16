@@ -8,6 +8,9 @@ final class ClipForgeAPI {
 
     enum Error: Swift.Error { case quotaExceeded, network, unauthorized }
 
+    /// A refusal the server explains in its own words.
+    struct ServerMessage: LocalizedError { let message: String; var errorDescription: String? { message } }
+
     func fetchJobs() async throws -> [VideoJob] {
         let res: [VideoJob] = try await supabase
             .schema("clipforge")
@@ -69,7 +72,7 @@ final class ClipForgeAPI {
         }
         req.httpBody = try JSONEncoder().encode(
             CreateJobBody(
-                sourceType: "youtube",
+                sourceType: "tiktok_url",
                 sourceUrl: sourceUrl,
                 niche: niche,
                 language: "en",
@@ -81,6 +84,11 @@ final class ClipForgeAPI {
         let (data, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw Error.network }
         if http.statusCode == 402 { throw Error.quotaExceeded }
+        // 422: the server refused the link (YouTube) and says why; show its words.
+        if http.statusCode == 422,
+           let msg = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String {
+            throw ServerMessage(message: msg)
+        }
         guard (200..<300).contains(http.statusCode) else { throw Error.network }
         struct Resp: Decodable { let jobId: String }
         return (try? JSONDecoder().decode(Resp.self, from: data).jobId) ?? ""
@@ -411,9 +419,16 @@ final class ClipForgeAPI {
         let (data, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw Error.network }
         if http.statusCode == 402 { throw Error.quotaExceeded }
+        if let msg = Self.refusal(http.statusCode, data) { throw ServerMessage(message: msg) }
         guard (200..<300).contains(http.statusCode) else { throw Error.network }
         struct Resp: Decodable { let jobId: String }
         return (try? JSONDecoder().decode(Resp.self, from: data).jobId) ?? ""
+    }
+
+    /// The server's own words for a refusal it explains (409/422, e.g. a YouTube link).
+    static func refusal(_ status: Int, _ data: Data) -> String? {
+        guard status == 409 || status == 422 else { return nil }
+        return (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
     }
 
     // MARK: - Bulk clip actions
@@ -804,10 +819,10 @@ final class ClipForgeAPI {
         )
         req.httpMethod = "POST"
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let (_, resp) = try await URLSession.shared.data(for: req)
-        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw Error.network
-        }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw Error.network }
+        if let msg = Self.refusal(http.statusCode, data) { throw ServerMessage(message: msg) }
+        guard (200..<300).contains(http.statusCode) else { throw Error.network }
     }
 
     // MARK: - Clip derivatives (face swap / translation)

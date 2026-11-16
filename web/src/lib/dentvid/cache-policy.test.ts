@@ -20,6 +20,8 @@ describe("public cache headers", () => {
     "/dentvideo/fr/about",
     "/dentvideo/guides",
     "/dentvideo/ja/guides",
+    "/dentvideo/help",
+    "/dentvideo/ar/help",
     "/dentvideo/guides/patient-education-videos",
     "/dentvideo/videos/zahnarztpraxis-videos-ki",
     "/dentvideo/llms.txt",
