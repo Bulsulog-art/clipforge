@@ -1,0 +1,11 @@
+{
+  "user": { "id": "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e", "email": "a@clinic-a.example" },
+  "clinic": {
+    "id": "clinic-a",
+    "profile": { "name": "Praxis Sonne", "city": "Berlin", "country": "DE", "language": "de", "services": ["Implantate", "Bleaching"], "tone": "warm", "address": "formal", "narratorVoice": "male" },
+    "logoUrl": null
+  },
+  "plan": { "state": "active", "tier": "practice", "canMake": true, "adminPaused": false, "recordings": true, "renewsAt": "2026-12-01T00:00:00Z" },
+  "locale": "de",
+  "currentWeek": "2026-11-16"
+}

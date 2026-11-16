@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allowedOrigins, isBadOrigin } from "./origin-guard";
+import { allowedOrigins, isBadOrigin, isMobileApiPath } from "./origin-guard";
 
 const allowed = allowedOrigins({ NEXT_PUBLIC_APP_URL: "https://clipforge.bulsulabs.com/", NODE_ENV: "production" });
 const base = { method: "POST", origin: null, authorization: null, allowed };
@@ -72,5 +72,17 @@ describe("DentVideo routes", () => {
   it("leave the worker's internal calls and the signed unsubscribe link alone", () => {
     expect(isBadOrigin({ ...base, pathname: "/api/internal/dentvideo/notify", authorization: "Bearer worker-token" })).toBe(false);
     expect(isBadOrigin({ ...base, pathname: "/api/dentvideo/unsubscribe" })).toBe(false);
+  });
+
+  it("exempt only the cookie-free iPhone API (/api/dentvideo/mobile/), with or without a bearer", () => {
+    for (const pathname of ["/api/dentvideo/mobile/v1/session", "/api/dentvideo/mobile/v1/items/x", "/api/dentvideo/mobile/v1/account/delete"]) {
+      expect(isBadOrigin({ ...base, pathname }), pathname).toBe(false);
+      expect(isBadOrigin({ ...base, pathname, authorization: "Bearer a.b.c" }), pathname).toBe(false);
+    }
+    // Look-alikes stay guarded.
+    for (const pathname of ["/api/dentvideo/mobile", "/api/dentvideo/mobileX/v1", "/api/dentvideo/items/mobile/v1"]) {
+      expect(isMobileApiPath(pathname), pathname).toBe(false);
+      expect(isBadOrigin({ ...base, pathname, authorization: "Bearer a.b.c" }), pathname).toBe(true);
+    }
   });
 });
