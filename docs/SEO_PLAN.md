@@ -463,3 +463,34 @@ New pages (22, category `treatments` or `ideas`, each ≥ 900 words, risky → s
 - llms.txt / llms-full.txt open with "Quick answers" (price from billing: Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 2.490 TL, monthly, no yearly
   plan, no founding price; live preview; free ad checker; no auto-posting; no avatars; operator) and list the treatment pages.
 - Next: ES and FR treatment pages (same topic keys), more samples per language, GSC review of the new queries at week 6.
+
+---
+
+## 12. Thin languages: ja, ar, pl, then fr/es treatments (2026-11-16, branch `claude/dentvideo-guides-ja-ar-pl`)
+
+PR #158 found technical SEO sound and the ja/ar/pl hubs thin (3 guides each). This pass adds 8 pages, each written for
+its market (address form, rules, holidays), ≥ 900 words, risky → safer wording table where it is a treatment page,
+ad-checker link, FAQ, and linked from an older guide of its language (tested).
+
+| topic (hreflang group) | new pages | group now |
+| --- | --- | --- |
+| posting-frequency | ja `shika-iin-sns-toko-hindo`, ar `kam-marra-tanshur-iyadat-al-asnan` | en de tr es fr pl ja ar |
+| treatment-aligners | ja `mouthpiece-kyosei-kanja-setsumei-doga` (sample `mouthpiece-shokuji`) | en de tr ja |
+| treatment-whitening | ar `fidyohat-tabyid-al-asnan-lil-marda` (sample `qahwa-baad-altabyid`), pl `wybielanie-zebow-filmy-edukacyjne-dla-pacjentow` (sample `wybielanie-przed-slubem`), fr `blanchiment-dentaire-videos-information-patient` (sample `blanchiment-email`), es `blanqueamiento-dental-videos-educativos-pacientes` | en de tr ar pl fr es |
+| treatment-implants | pl `implanty-zebow-filmy-edukacyjne-dla-pacjentow` | en de tr pl |
+
+Sources: MHLW 医療広告ガイドライン page and 事例解説書 (第6版) for ja (限定解除 for 自由診療, and the extra disclosures
+for devices not approved in Japan: 未承認であること, 入手経路, 国内の承認品の有無, 諸外国での安全性情報); DHA social-media
+advertising standards v1.1 + circular CIR-2026-00000144, MOHAP licence, Saudi MOH art. 10 news for ar; KEL art. 71
+(NIL commentary) and art. 14 UDL for pl; Directive 2011/84/EU (EUR-Lex, per language) for the whitening facts
+(> 0.1 to 6 per cent H2O2 only sold to dentists, first use of each cycle by or under a dentist, not under 18), plus
+R. 4127-215-1 CSP / ONCD (fr) and RD 1907/1996 / CGD code (es). Official sites could not be fetched from the build
+environment; facts were confirmed through search results and limited to what the existing guides already cite.
+
+Writing notes: "free" is not used for the checker in ja/ar/pl (`no-free-trial.test.ts` bans 無料 / مجان / bezpłatn);
+JA risky-wording cells use 「」 (the treatment test accepts them). Gulf weekends (Sat–Sun UAE, Fri–Sat KSA), Ramadan
+and the DHA medical-director approval shape the Arabic rhythm; LINE 公式アカウント, 歯と口の健康週間 (4–10 June) and
+いい歯の日 (8 Nov) the Japanese one.
+
+Still for the owner: a native dental reviewer for the ja/ar/pl pages before promotion (wording and clinical tone),
+and a check of whether DHA/MOHAP or SFDA publish whitening-product rules worth citing on the Arabic page.

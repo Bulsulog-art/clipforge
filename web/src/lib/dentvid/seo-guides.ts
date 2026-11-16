@@ -4,6 +4,7 @@ import { GUIDES, GUIDE_HUB_LOCALES, HREFLANG, LANDING_PATH, LOCALES, guidePath, 
 import { ALTERNATE_NAMES, ENTITY, OPERATOR, PUBLISHER_NAME, PUBLISHER_URL, SAME_AS, VIDEO_LANGUAGES } from "@/content/guides/entity";
 import { SOLUTIONS, solutionPath, solutionTranslations, type SolutionPage } from "@/content/solutions";
 import { SOLUTION_UI } from "@/content/solutions/ui";
+import { pageClaims } from "@/content/solutions/page-claims";
 import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { guideSample, plainText, reviewedDate, translationsOf } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
@@ -659,6 +660,9 @@ export function solutionJsonLd(p: SolutionPage) {
   const url = absoluteUrl(solutionPath(p));
   const ui = SOLUTION_UI[p.locale];
   const samples = p.kind === "product" ? (samplesFor(p.locale) ?? []) : [];
+  // Answer pages: the other companies' pages they quote, and on the options page the options as a list.
+  const citations = [...new Set(pageClaims(p).map((c) => c.url))];
+  const optionsTable = p.kind === "options" ? p.sections.find((s) => s.table)?.table : undefined;
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -676,6 +680,7 @@ export function solutionJsonLd(p: SolutionPage) {
         isPartOf: { "@id": websiteId() },
         about: { "@id": softwareId() },
         publisher: { "@id": ORG_ID },
+        ...(citations.length ? { citation: citations } : {}),
       },
       organizationNode(),
       softwareNode(p.locale),
@@ -684,6 +689,19 @@ export function solutionJsonLd(p: SolutionPage) {
         { name: "DentVideo", path: LANDING_PATH[p.locale] },
         { name: p.nav, path: solutionPath(p) },
       ]),
+      // The options compared in the page's table, in the order shown (names only: the table is visible on the page).
+      ...(optionsTable
+        ? [
+            {
+              "@type": "ItemList",
+              "@id": `${url}#options`,
+              name: optionsTable.caption,
+              itemListOrder: "https://schema.org/ItemListUnordered",
+              numberOfItems: optionsTable.rows.length,
+              itemListElement: optionsTable.rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: plainText(r[0]) })),
+            },
+          ]
+        : []),
       // The sample videos shown on the page: real DentVideo output for a demo clinic in this language.
       ...samples.map((v) => ({
         "@type": "VideoObject",

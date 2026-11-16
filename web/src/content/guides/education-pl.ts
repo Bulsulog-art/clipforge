@@ -109,6 +109,7 @@ export const EDUCATION_PL: Guide = {
     },
   ],
   faq: [
+    { q: "Czy są przykłady filmów dla konkretnych zabiegów?", a: "Tak: poradniki o [wybielaniu zębów](guide:wybielanie-zebow-filmy-edukacyjne-dla-pacjentow) i o [implantach](guide:implanty-zebow-filmy-edukacyjne-dla-pacjentow) zawierają pytania pacjentów, sześć tematów filmów i sformułowania, których lepiej unikać." },
     { q: "Ile powinien trwać film edukacyjny dla pacjentów?", a: "W mediach społecznościowych 20–60 sekund, w poczekalni 30–60 sekund na film, w wiadomości po wizycie i na stronie gabinetu 1–3 minuty. Jeden temat na film ułatwia zrozumienie." },
     { q: "Czy film edukacyjny na Instagramie to reklama?", a: "Granica zależy od treści. Film, który rzetelnie wyjaśnia i nie zachęca do zakupu usług, łatwiej uznać za informację. Ceny, promocje, opinie pacjentów i obietnice efektu nadają mu cechy reklamy." },
     { q: "Czy w filmie może wystąpić pacjent?", a: "Tylko z jego wyraźną, pisemną zgodą na konkretne wykorzystanie wizerunku, i bez opinii o leczeniu. Bezpieczniej nagrać lekarza dentystę, model lub animację." },

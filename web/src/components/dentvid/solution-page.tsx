@@ -7,6 +7,8 @@ import { reviewedDate, sectionId } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { solutionPath, solutionsFor, type SolutionPage } from "@/content/solutions";
 import { SOLUTION_UI } from "@/content/solutions/ui";
+import { claimHost } from "@/content/solutions/claims";
+import { pageClaims } from "@/content/solutions/page-claims";
 import { solutionJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, Byline, GuideCta, HtmlLang, RichText, SectionTableView } from "./guide-parts";
@@ -26,6 +28,7 @@ export function SolutionView({ p }: { p: SolutionPage }) {
   const samples = p.kind === "product" ? samplesFor(L) : undefined;
   const guides = p.guides.map(findGuide).filter((g): g is NonNullable<typeof g> => !!g && g.locale === L);
   const siblings = solutionsFor(L).filter((o) => o.slug !== p.slug);
+  const claims = pageClaims(p);
 
   return (
     <main lang={L} dir={dirOf(L)}>
@@ -175,6 +178,26 @@ export function SolutionView({ p }: { p: SolutionPage }) {
             ))}
           </section>
         ))}
+
+        {claims.length > 0 && (
+          // Where every statement about another company comes from, and when it was read (content/solutions/claims.ts).
+          <section className="mt-12" aria-labelledby="sources" data-solution-sources>
+            <h2 id="sources" className="text-lg font-semibold text-dv-ink">{ui.sourcesHeading}</h2>
+            <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-dv-body">
+              {claims.map((c) => (
+                <li key={c.id}>
+                  <a href={c.url} rel="noopener nofollow" className="font-medium text-dv-teal underline underline-offset-4 hover:decoration-2">
+                    {claimHost(c.url)}
+                  </a>{" "}
+                  <span className="text-dv-muted">
+                    · <time dateTime={c.checked}>{c.checked}</time>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs leading-relaxed text-dv-muted">{ui.sourcesNote}</p>
+          </section>
+        )}
 
         <section className="mt-16">
           <h2 className="dv-display text-[2rem] leading-tight text-dv-ink sm:text-[2.5rem]">{gui.faq}</h2>

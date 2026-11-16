@@ -8,13 +8,31 @@ import { SOLUTIONS_FR } from "./fr";
 import { SOLUTIONS_JA } from "./ja";
 import { SOLUTIONS_AR } from "./ar";
 import { SOLUTIONS_PL } from "./pl";
+import { ANSWERS_EN } from "./answers-en";
+import { ANSWERS_DE } from "./answers-de";
+import { ANSWERS_TR } from "./answers-tr";
 
 // Only type imports from ../dentvideo here and in the per-language files, so
 // guides/text.ts (imported by content/dentvideo.ts' consumers) can use this
 // module without a runtime cycle.
 
 /** Every commercial page, by market priority. */
-export const SOLUTIONS: SolutionPage[] = [...SOLUTIONS_TR, ...SOLUTIONS_DE, ...SOLUTIONS_ES, ...SOLUTIONS_FR, ...SOLUTIONS_EN, ...SOLUTIONS_JA, ...SOLUTIONS_AR, ...SOLUTIONS_PL];
+export const SOLUTIONS: SolutionPage[] = [
+  ...SOLUTIONS_TR,
+  ...ANSWERS_TR,
+  ...SOLUTIONS_DE,
+  ...ANSWERS_DE,
+  ...SOLUTIONS_ES,
+  ...SOLUTIONS_FR,
+  ...SOLUTIONS_EN,
+  ...ANSWERS_EN,
+  ...SOLUTIONS_JA,
+  ...SOLUTIONS_AR,
+  ...SOLUTIONS_PL,
+];
+
+/** Order within a language: the product page, the comparison, then the answer pages. */
+const KIND_ORDER: Record<SolutionKind, number> = { product: 0, compare: 1, options: 2, "vs-agency": 3, "vs-canva": 4 };
 
 /** The in-app path; on dentvideo.com it is /videos/<slug>. */
 export function solutionPath(p: Pick<SolutionPage, "slug">): string {
@@ -26,8 +44,7 @@ export function findSolution(slug: string): SolutionPage | undefined {
 }
 
 export function solutionsFor(locale: Locale): SolutionPage[] {
-  // Product page first, then the comparison.
-  return SOLUTIONS.filter((p) => p.locale === locale).sort((a, b) => (a.kind === b.kind ? 0 : a.kind === "product" ? -1 : 1));
+  return SOLUTIONS.filter((p) => p.locale === locale).sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]);
 }
 
 export function solutionOf(locale: Locale, kind: SolutionKind): SolutionPage | undefined {
@@ -49,3 +66,4 @@ export function commercialPageForGuide(g: { locale: Locale; category?: string })
 }
 
 export type { SolutionKind, SolutionPage } from "./types";
+export { ANSWER_KINDS } from "./types";

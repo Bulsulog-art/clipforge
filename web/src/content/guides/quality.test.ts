@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GUIDES, LOCALES, guidePath, guidesFor } from "../dentvideo";
 import { BODY_BANNED, MONEY, SNIPPET_BANNED, unquoted } from "../compliance-words";
 import { SOLUTIONS, solutionPath } from "../solutions";
+import { withoutClaims } from "../solutions/claims";
 import { guideTexts, parseInline, plainText, reviewedDate, solutionTexts, translationsOf, wordCount } from "./text";
 import { GUIDE_UI } from "./ui";
 import type { SectionTable } from "./types";
@@ -63,7 +64,8 @@ describe("editorial pages: compliance wording", () => {
 
   it("no editorial page states a price, an amount of money or a percentage", () => {
     for (const g of GUIDES) expect(JSON.stringify(g), g.slug).not.toMatch(MONEY);
-    for (const p of SOLUTIONS) expect(JSON.stringify(p), p.slug).not.toMatch(MONEY);
+    // Another company's published price may appear only inside a sourced, dated claim (solutions/claims.ts).
+    for (const p of SOLUTIONS) expect(withoutClaims(JSON.stringify(p), p.locale), p.slug).not.toMatch(MONEY);
   });
 
   it("no guide presents patient testimonials or reviews as its own content", () => {

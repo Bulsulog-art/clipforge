@@ -443,6 +443,7 @@ export const GUIDES_ES: Guide[] = [
       { q: "¿Un vídeo sustituye al consentimiento informado?", a: "No. El consentimiento se obtiene en la conversación con el dentista y por escrito cuando corresponde. El vídeo prepara y recuerda." },
       { q: "¿Puedo publicar vídeos educativos en Instagram?", a: "Sí, mientras informen con prudencia y no incluyan promesas de resultado, descuentos o testimonios. En redes se aplican las normas de publicidad sanitaria." },
       { q: "¿El vídeo de la sala de espera necesita sonido?", a: "No. Con subtítulos se entiende sin sonido y molesta menos en la sala de espera." },
+      { q: "¿Hay un ejemplo para un tratamiento concreto?", a: "Sí: la guía de [vídeos sobre blanqueamiento dental](guide:blanqueamiento-dental-videos-educativos-pacientes) recoge las preguntas de los pacientes, seis temas de vídeo y las frases que conviene evitar." },
       { q: "¿Con qué vídeos empiezo?", a: "Con los temas que más se preguntan y más preocupan: cuidados tras una extracción, endodoncia, fases de un implante y la primera visita. Esos cuatro cubren buena parte de las explicaciones diarias del equipo." },
       { q: "¿Quién debe revisar los vídeos?", a: "Un dentista debe ver cada vídeo antes de publicarlo, sobre todo las instrucciones de cuidados, que deben coincidir con el protocolo de tu clínica." },
     ],
