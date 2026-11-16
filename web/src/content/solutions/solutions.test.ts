@@ -4,6 +4,7 @@ import { ENTITY, SAME_AS } from "../guides/entity";
 import { parseInline, plainText, resolveTarget, solutionTexts, wordCount } from "../guides/text";
 import { SOLUTIONS, commercialPageForGuide, findSolution, solutionOf, solutionPath, solutionTranslations, solutionsFor } from "./index";
 import { SOLUTION_UI } from "./ui";
+import { withoutClaims } from "./claims";
 import {
   SEO_DESCRIPTION_MAX,
   SEO_TITLE_MAX,
@@ -109,8 +110,8 @@ describe("commercial pages: snippets and compliance", () => {
     for (const l of LOCALES) expect(JSON.stringify(SOLUTION_UI[l]), l).not.toMatch(BODY_BANNED);
   });
 
-  it("states no prices, figures in currency or percentages", () => {
-    expect(JSON.stringify(SOLUTIONS)).not.toMatch(MONEY);
+  it("states no prices, figures in currency or percentages (other companies' prices only as sourced, dated claims)", () => {
+    for (const p of SOLUTIONS) expect(withoutClaims(JSON.stringify(p), p.locale), p.slug).not.toMatch(MONEY);
     expect(JSON.stringify(SOLUTION_UI)).not.toMatch(MONEY);
   });
 
