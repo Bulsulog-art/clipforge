@@ -36,6 +36,10 @@ final class AppModel {
     @ObservationIgnored private let snapshots: SnapshotStore
     let uploads: UploadCenter
     @ObservationIgnored var deviceToken: String?
+    #if DEBUG
+    /// The screen a demo launch opens on (Demo.swift); nil in normal use.
+    @ObservationIgnored var demoScreen: String?
+    #endif
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
 
     init(store: TokenStore = KeychainTokenStore(), transport: HTTPTransport = URLSessionTransport(), uploads: UploadCenter? = nil) {
@@ -47,6 +51,22 @@ final class AppModel {
     }
 
     var access: AccessState? { me.map(AccessState.of) }
+
+    /// True only in a DEBUG demo launch (screenshots) showing one of these screens. Always false in Release.
+    func isDemo(_ names: String...) -> Bool {
+        #if DEBUG
+        if let s = demoScreen { return names.contains(s) }
+        #endif
+        return false
+    }
+
+    var isDemoMode: Bool {
+        #if DEBUG
+        return demoScreen != nil
+        #else
+        return false
+        #endif
+    }
     var locale: Locale { L10n.locale }
 
     // MARK: Session

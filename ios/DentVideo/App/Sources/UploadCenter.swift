@@ -200,6 +200,11 @@ final class UploadCenter {
         if save { persist() }
     }
 
+    #if DEBUG
+    /// Demo mode only: show these entries without touching the saved queue.
+    func replaceForDemo(_ list: [Entry]) { entries = list }
+    #endif
+
     private func persist() {
         guard let data = try? JSONEncoder().encode(entries) else { return }
         try? data.write(to: Self.queueFile, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])

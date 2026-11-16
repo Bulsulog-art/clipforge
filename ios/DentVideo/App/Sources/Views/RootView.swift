@@ -19,6 +19,7 @@ struct RootView: View {
         .background(Theme.paper.ignoresSafeArea())
         .task { if model.phase == .launching { await model.bootstrap() } }
         .noticeOverlay()
+        .transaction { if model.isDemoMode { $0.disablesAnimations = true } }
     }
 
     @ViewBuilder private var signedIn: some View {
@@ -26,7 +27,9 @@ struct RootView: View {
         case nil:
             // First start without a saved snapshot: loading, or offline with a retry.
             if model.isRefreshing {
-                ProgressView(L("common.loading")).frame(maxWidth: .infinity, maxHeight: .infinity)
+                ScrollView { SkeletonWeek() }
+                    .scrollDisabled(true)
+                    .background(Theme.paper.ignoresSafeArea())
             } else {
                 MessageView(icon: "wifi.slash", title: L("offline.title"), message: L("offline.body")) {
                     Button(L("common.retry")) { Task { await model.refresh() } }.buttonStyle(.dvPrimary)
@@ -63,6 +66,7 @@ struct MainTabs: View {
                 .tag(AppModel.Tab.settings)
         }
         .sheet(isPresented: $model.showNotificationPrimer) { NotificationPrimer() }
+        .sensoryFeedback(.selection, trigger: model.tab)
     }
 }
 
@@ -86,8 +90,10 @@ struct NotificationPrimer: View {
             }
             .buttonStyle(.dvSecondary)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.paper.ignoresSafeArea())
         .presentationDetents([.medium, .large])
-        .interactiveDismissDisabled(false)
+        .presentationBackground(Theme.paper)
     }
 }
 
@@ -103,7 +109,7 @@ struct AccountStatusView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: Theme.s5) {
                     MessageView(icon: icon, title: title, message: message) {
                         if kind == .paused, let mail = URL(string: "mailto:\(Config.supportEmail)") {
                             Link(L("access.contact"), destination: mail).buttonStyle(.dvPrimary)
@@ -111,22 +117,25 @@ struct AccountStatusView: View {
                         Button(L("common.retry")) { Task { await model.refresh() } }
                             .buttonStyle(.dvSecondary)
                     }
-                    if let name = model.me?.clinic?.profile.name {
-                        Text(name).font(.footnote).foregroundStyle(Theme.muted)
+                    VStack(spacing: Theme.s1) {
+                        if let name = model.me?.clinic?.profile.name {
+                            Text(name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                        }
+                        if let email = model.me?.user.email {
+                            Text(L("settings.signedInAs", email)).font(.footnote).foregroundStyle(Theme.muted)
+                        }
                     }
-                    if let email = model.me?.user.email {
-                        Text(L("settings.signedInAs", email)).font(.footnote).foregroundStyle(Theme.muted)
-                    }
-                    VStack(spacing: 10) {
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Theme.gutter)
+                    VStack(spacing: Theme.s2) {
                         Button(L("settings.signOut")) { Task { await model.signOut() } }.buttonStyle(.dvSecondary)
                         Button(L("settings.delete"), role: .destructive) { deleting = true }
-                            .font(.subheadline)
-                            .frame(minHeight: 44)
+                            .buttonStyle(.dvQuiet)
                     }
                     .frame(maxWidth: 520)
                     .padding(.horizontal, Theme.gutter)
                 }
-                .padding(.vertical, 40)
+                .padding(.vertical, Theme.s6)
                 .frame(maxWidth: .infinity)
             }
             .refreshable { await model.refresh() }

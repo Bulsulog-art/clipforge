@@ -6,6 +6,10 @@ import DentVideoCore
 struct DentVideoApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
+    init() {
+        Theme.configureNavigationBars()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -20,7 +24,12 @@ struct DentVideoApp: App {
 }
 
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    @MainActor lazy var model = AppModel()
+    @MainActor lazy var model: AppModel = {
+        #if DEBUG
+        if let demo = Demo.makeModel() { return demo }
+        #endif
+        return AppModel()
+    }()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self

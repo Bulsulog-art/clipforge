@@ -29,14 +29,28 @@ struct DeleteAccountView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text(L("delete.body")).font(.body).foregroundStyle(Theme.body).fixedSize(horizontal: false, vertical: true)
-                    VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: Theme.s5) {
+                    Label {
+                        Text(L("delete.body")).font(.body.weight(.medium)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.danger)
+                    }
+                    VStack(alignment: .leading, spacing: Theme.s3) {
                         ForEach(["delete.item.videos", "delete.item.clinic", "delete.item.login", "delete.item.billing"], id: \.self) { k in
-                            Label(L(k), systemImage: "minus.circle").font(.subheadline).foregroundStyle(Theme.body)
+                            Label {
+                                Text(L(k)).fixedSize(horizontal: false, vertical: true)
+                            } icon: {
+                                Image(systemName: "minus.circle.fill").foregroundStyle(Theme.danger.opacity(0.8))
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.body)
                         }
                     }
+                    .padding(Theme.s4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .dvCard()
                     Text(L("delete.type", word)).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
                     TextField(word, text: $typed)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -52,20 +66,20 @@ struct DeleteAccountView: View {
                             error = await model.deleteAccount(confirm: typed.trimmingCharacters(in: .whitespaces))
                         }
                     } label: {
-                        if busy { ProgressView().tint(.white) } else { Text(L("delete.button")) }
+                        if busy { ProgressView().tint(Theme.onFill) } else { Text(L("delete.button")) }
                     }
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(Theme.danger.opacity(matches && !busy ? 1 : 0.4), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .buttonStyle(.dvDestructive)
                     .disabled(!matches || busy)
                 }
-                .padding(24)
+                .padding(Theme.s5)
+                .readableWidth(560)
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Theme.paper.ignoresSafeArea())
             .navigationTitle(L("settings.delete"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("common.cancel")) { dismiss() } } }
         }
+        .presentationBackground(Theme.paper)
     }
 }

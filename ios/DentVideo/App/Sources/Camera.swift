@@ -15,6 +15,10 @@ final class CameraModel {
     /// The finished take, in the temporary folder until the dentist keeps it.
     var take: URL?
     var failed = false
+    #if DEBUG
+    /// Demo screenshots: no capture session, a stand-in picture.
+    var demo = false
+    #endif
 
     @ObservationIgnored let engine = CameraEngine()
     @ObservationIgnored private var timer: Timer?
@@ -44,7 +48,8 @@ final class CameraModel {
         if isRecording { engine.stop(); return }
         take = nil
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("take-\(UUID().uuidString).mov")
-        engine.record(to: url) { [weak self] result in
+        let orientation = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first?.interfaceOrientation ?? .portrait
+        engine.record(to: url, angle: CameraPreview.angle(for: orientation)) { [weak self] result in
             Task { @MainActor in self?.finished(result) }
         }
         isRecording = true
@@ -128,8 +133,11 @@ final class CameraEngine: NSObject, AVCaptureFileOutputRecordingDelegate, @unche
     func start() { queue.async { if !self.session.isRunning { self.session.startRunning() } } }
     func stopSession() { queue.async { if self.session.isRunning { self.session.stopRunning() } } }
 
-    func record(to url: URL, completion: @escaping @Sendable (URL?) -> Void) {
+    /// `angle`: the interface's rotation, so the file is upright the way the screen showed it
+    /// (portrait on iPhone; an iPad held sideways records sideways).
+    func record(to url: URL, angle: CGFloat, completion: @escaping @Sendable (URL?) -> Void) {
         queue.async {
+            if let conn = self.output.connection(with: .video), conn.isVideoRotationAngleSupported(angle) { conn.videoRotationAngle = angle }
             self.completion = completion
             self.output.startRecording(to: url, recordingDelegate: self)
         }
@@ -155,6 +163,24 @@ struct CameraPreview: UIViewRepresentable {
     final class PreviewView: UIView {
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
         var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
+
+        /// Keep the image upright when an iPad turns.
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            guard let o = window?.windowScene?.interfaceOrientation, let c = previewLayer.connection else { return }
+            let a = CameraPreview.angle(for: o)
+            if c.isVideoRotationAngleSupported(a), c.videoRotationAngle != a { c.videoRotationAngle = a }
+        }
+    }
+
+    /// Capture rotation for an interface orientation (90 = portrait).
+    nonisolated static func angle(for o: UIInterfaceOrientation) -> CGFloat {
+        switch o {
+        case .landscapeRight: return 0
+        case .landscapeLeft: return 180
+        case .portraitUpsideDown: return 270
+        default: return 90
+        }
     }
 
     func makeUIView(context: Context) -> PreviewView {

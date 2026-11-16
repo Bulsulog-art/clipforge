@@ -14,9 +14,12 @@ struct SettingsView: View {
     @State private var permission: UNAuthorizationStatus = .notDetermined
     @State private var deleting = false
     @State private var confirmSignOut = false
+    @State private var demoClinic = false
+    @State private var demoVideos = false
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             Form {
                 if let clinic = model.me?.clinic {
                     Section(L("settings.clinic")) {
@@ -27,6 +30,7 @@ struct SettingsView: View {
                             row(L("settings.videos"), value: L10n.languageName(clinic.profile.language), icon: "film")
                         }
                     }
+                    .dvFormRows()
                 }
 
                 Section {
@@ -61,6 +65,7 @@ struct SettingsView: View {
                 } footer: {
                     Text(L("settings.notifications.footer"))
                 }
+                .dvFormRows()
                 .tint(Theme.teal)
 
                 Section {
@@ -71,12 +76,14 @@ struct SettingsView: View {
                 } footer: {
                     Text(L("settings.appLanguage.footer"))
                 }
+                .dvFormRows()
 
                 if let plan = model.me?.plan {
                     Section(L("settings.plan")) {
                         row(L("settings.plan.name"), value: planName(plan.tier), icon: "checkmark.seal")
                         row(L("settings.plan.state"), value: L("plan.state.\(plan.state.rawValue)"), icon: "circle.dashed")
                     }
+                    .dvFormRows()
                 }
 
                 Section(L("settings.help")) {
@@ -87,24 +94,48 @@ struct SettingsView: View {
                     }
                     Link(destination: Config.page("privacy")) { row(L("legal.privacy"), icon: "hand.raised") }
                 }
+                .dvFormRows()
                 .foregroundStyle(Theme.ink)
 
                 Section {
                     if let email = model.me?.user.email {
-                        Text(L("settings.signedInAs", email)).font(.footnote).foregroundStyle(Theme.muted)
+                        Label {
+                            Text(L("settings.signedInAs", email)).font(.subheadline).foregroundStyle(Theme.body)
+                        } icon: {
+                            Image(systemName: "person.crop.circle").foregroundStyle(Theme.teal)
+                        }
                     }
                     Button(L("settings.signOut")) { confirmSignOut = true }
+                        .foregroundStyle(Theme.teal)
                     Button(L("settings.delete"), role: .destructive) { deleting = true }
+                        .foregroundStyle(Theme.danger)
                 } header: {
                     Text(L("settings.account"))
                 } footer: {
                     Text(L("settings.version", Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, Theme.s2)
+                        .id("bottom")
                 }
+                .dvFormRows()
             }
             .scrollContentBackground(.hidden)
             .background(Theme.paper.ignoresSafeArea())
             .navigationTitle(L("tab.settings"))
-            .task { await reload() }
+            .navigationBarTitleDisplayMode(.large)
+            .task {
+                await reload()
+                guard model.isDemoMode else { return }
+                try? await Task.sleep(for: .milliseconds(400))
+                if model.isDemo("settings-bottom") { proxy.scrollTo("bottom", anchor: .bottom) }
+                if model.isDemo("delete") { deleting = true }
+                if model.isDemo("signout") { confirmSignOut = true }
+                if model.isDemo("clinic") { demoClinic = true }
+                if model.isDemo("videos") { demoVideos = true }
+            }
+            .navigationDestination(isPresented: $demoClinic) { if let c = model.me?.clinic { ClinicDetailsForm(profile: c.profile) } }
+            .navigationDestination(isPresented: $demoVideos) { if let c = model.me?.clinic { VideoSettingsForm(profile: c.profile) } }
+            }
             .confirmationDialog(L("settings.signOut.confirm"), isPresented: $confirmSignOut, titleVisibility: .visible) {
                 Button(L("settings.signOut"), role: .destructive) { Task { await model.signOut() } }
                 Button(L("common.cancel"), role: .cancel) {}
@@ -114,11 +145,16 @@ struct SettingsView: View {
     }
 
     private func row(_ title: String, value: String? = nil, icon: String) -> some View {
-        HStack {
-            Label(title, systemImage: icon)
-            Spacer()
-            if let value { Text(value).foregroundStyle(Theme.muted).lineLimit(1) }
+        HStack(spacing: Theme.s3) {
+            Label {
+                Text(title).foregroundStyle(Theme.ink)
+            } icon: {
+                Image(systemName: icon).foregroundStyle(Theme.teal)
+            }
+            Spacer(minLength: Theme.s2)
+            if let value { Text(value).foregroundStyle(Theme.muted).lineLimit(1).truncationMode(.middle) }
         }
+        .frame(minHeight: 32)
         .accessibilityElement(children: .combine)
     }
 
@@ -170,12 +206,14 @@ struct ClinicDetailsForm: View {
             } footer: {
                 Text(L("clinic.country.footer"))
             }
+            .dvFormRows()
             Section(L("clinic.online")) {
                 TextField(L("clinic.handle"), text: Binding($profile.handle, ""))
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                 TextField(L("clinic.booking"), text: Binding($profile.bookingUrl, ""))
                     .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
             }
+            .dvFormRows()
             Section {
                 ForEach(profile.services, id: \.self) { s in Text(s) }
                     .onDelete { profile.services.remove(atOffsets: $0) }
@@ -188,6 +226,7 @@ struct ClinicDetailsForm: View {
             } footer: {
                 Text(L("clinic.services.footer"))
             }
+            .dvFormRows()
         }
         .scrollContentBackground(.hidden)
         .background(Theme.paper.ignoresSafeArea())
@@ -230,6 +269,7 @@ struct VideoSettingsForm: View {
             } footer: {
                 Text(L("videos.language.footer"))
             }
+            .dvFormRows()
             Section {
                 Picker(L("videos.narrator"), selection: Binding($profile.narratorVoice, "female")) {
                     Text(L("videos.narrator.female")).tag("female")
@@ -243,6 +283,7 @@ struct VideoSettingsForm: View {
                     Text(L("videos.address.informal")).tag("informal")
                 }
             }
+            .dvFormRows()
             Section {
                 TextField(L("videos.closing.placeholder"), text: Binding($profile.closingLine, ""), axis: .vertical)
                     .lineLimit(2...4)
@@ -251,6 +292,7 @@ struct VideoSettingsForm: View {
             } footer: {
                 Text(L("videos.closing.footer"))
             }
+            .dvFormRows()
         }
         .scrollContentBackground(.hidden)
         .background(Theme.paper.ignoresSafeArea())

@@ -4,6 +4,12 @@ name: iOS DentVideo
 # Only on demand, or for pull requests that change the app. Not on every push (macOS minutes).
 on:
   workflow_dispatch:
+    inputs:
+      screens:
+        description: "Simulator screenshots of every screen (demo mode): none, quick or full"
+        type: choice
+        options: [full, quick, none]
+        default: full
   pull_request:
     paths:
       - "ios/DentVideo/**"
@@ -75,3 +81,57 @@ jobs:
           name: xcodebuild-log
           path: ios/DentVideo/build/xcodebuild.log
           retention-days: 7
+
+  # Every screen and state in the simulator (DEBUG demo mode: fake in-process API, fictional
+  # clinic), iPhone 6.9" in eight languages light/dark, largest text size, iPad 13". Only on demand.
+  screens:
+    if: github.event_name == 'workflow_dispatch' && inputs.screens != 'none'
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: ios/DentVideo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode (newest installed) and simulators
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$X" ] || X=/Applications/Xcode_16.4.app
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+          xcrun simctl list runtimes
+          xcrun simctl list devices available | grep -E "iPhone 1[67] Pro Max|iPad Pro 13" || true
+
+      - name: Cache derived data
+        uses: actions/cache@v4
+        with:
+          path: ios/DentVideo/build/DerivedData
+          key: dv-screens-dd-${{ runner.os }}-${{ hashFiles('ios/DentVideo/App/**', 'ios/DentVideo/Core/Sources/**', 'ios/DentVideo/project.yml') }}
+          restore-keys: dv-screens-dd-${{ runner.os }}-
+
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+
+      - name: Screenshots
+        env:
+          SCREENS_SET: ${{ inputs.screens }}
+        run: ./scripts/screens.sh build/screens
+
+      - name: Upload review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dentvideo-screens-review
+          path: ios/DentVideo/build/screens/review
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload App Store size screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dentvideo-screens-store
+          path: ios/DentVideo/build/screens/store
+          retention-days: 14
+          if-no-files-found: ignore

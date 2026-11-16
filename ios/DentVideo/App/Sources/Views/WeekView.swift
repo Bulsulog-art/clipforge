@@ -5,9 +5,11 @@ import DentVideoCore
 /// This week's videos: watch, decide, post. Earlier weeks below.
 struct WeekView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var path: [String] = []
     @State private var confirmAll = false
     @State private var showEarlier = false
+    @State private var approvedBatch = 0
 
     private var sections: [WeekBoard.Section] { WeekBoard.sections(model.items) }
     private var thisWeek: [VideoItem] { sections.first(where: { $0.week == model.currentWeek })?.items ?? [] }
@@ -17,7 +19,7 @@ struct WeekView: View {
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
+                LazyVStack(alignment: .leading, spacing: Theme.s4) {
                     header
                     if model.isOffline { offlineNote }
                     if thisWeek.isEmpty {
@@ -34,62 +36,71 @@ struct WeekView: View {
                     if !earlier.isEmpty { earlierWeeks }
                 }
                 .padding(.horizontal, Theme.gutter)
-                .padding(.bottom, 32)
-                .frame(maxWidth: 700)
-                .frame(maxWidth: .infinity)
+                .padding(.bottom, Theme.s6)
+                .readableWidth()
             }
             .background(Theme.paper.ignoresSafeArea())
             .refreshable { await model.refresh() }
             .navigationTitle(L("week.title"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    if model.isRefreshing { ProgressView().accessibilityLabel(L("common.loading")) }
-                }
-            }
+            .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: String.self) { id in VideoDetailView(itemID: id) }
             .confirmationDialog(L("week.approveAll.confirm", candidates.count), isPresented: $confirmAll, titleVisibility: .visible) {
                 Button(L("week.approveAll.button", candidates.count)) {
                     Task {
                         let n = await model.approveAllReady(week: model.currentWeek)
-                        if n > 0 { model.notice = .init(text: L("week.approveAll.done", n), isError: false) }
+                        if n > 0 {
+                            approvedBatch += 1
+                            model.notice = .init(text: L("week.approveAll.done", n), isError: false)
+                        }
                     }
                 }
                 Button(L("common.cancel"), role: .cancel) {}
             } message: {
                 Text(L("week.approveAll.note"))
             }
+            .sensoryFeedback(.success, trigger: approvedBatch)
         }
         .onChange(of: model.openItemID, initial: true) { _, id in
             guard let id else { return }
             path = model.items.contains(where: { $0.id == id }) ? [id] : []
             model.openItemID = nil
         }
+        .task {
+            if model.isDemo("approve-all") {
+                try? await Task.sleep(for: .milliseconds(400))
+                confirmAll = true
+            }
+            if model.isDemo("week-empty") { showEarlier = true }
+        }
     }
 
     private var header: some View {
         let p = WeekBoard.progress(model.items, week: model.currentWeek)
-        return VStack(alignment: .leading, spacing: 10) {
-            Text(L10n.weekRange(model.currentWeek))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.teal)
-                .textCase(.uppercase)
-            Text(model.me?.clinic?.profile.name ?? L("week.title"))
-                .font(Theme.display(.largeTitle))
-                .foregroundStyle(Theme.ink)
-                .accessibilityAddTraits(.isHeader)
+        return VStack(alignment: .leading, spacing: Theme.s2) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.s2) {
+                Text(L10n.weekRange(model.currentWeek))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.teal)
+                if let name = model.me?.clinic?.profile.name {
+                    Text(name)
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.muted)
+                        .lineLimit(1)
+                }
+            }
             if p.total > 0 {
-                ProgressView(value: Double(p.approved), total: Double(max(p.total, 1)))
-                    .tint(Theme.teal)
-                    .accessibilityLabel(L("week.progress.label"))
-                    .accessibilityValue(L("week.progress", p.approved, p.total, p.posted))
+                WeekProgressBar(value: Double(p.approved), total: Double(p.total))
+                    .padding(.top, Theme.s1)
+                    .accessibilityHidden(true)
                 Text(L("week.progress", p.approved, p.total, p.posted))
                     .font(.footnote)
-                    .foregroundStyle(Theme.muted)
-                    .accessibilityHidden(true)
+                    .foregroundStyle(Theme.body)
+                    .monospacedDigit()
             }
         }
-        .padding(.top, 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L("week.progress.label"))
+        .accessibilityValue(p.total > 0 ? "\(L10n.weekRange(model.currentWeek)), \(L("week.progress", p.approved, p.total, p.posted))" : L10n.weekRange(model.currentWeek))
     }
 
     private var offlineNote: some View {
@@ -102,8 +113,12 @@ struct WeekView: View {
         } icon: {
             Image(systemName: "wifi.slash")
         }
-        .font(.footnote)
-        .foregroundStyle(Theme.muted)
+        .font(.footnote.weight(.medium))
+        .foregroundStyle(Theme.body)
+        .padding(.horizontal, Theme.s3)
+        .padding(.vertical, Theme.s2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.sand, in: RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
     }
 
     private var approveAll: some View {
@@ -115,14 +130,18 @@ struct WeekView: View {
     }
 
     private var earlierWeeks: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Theme.s3) {
             Button {
-                withAnimation(.snappy) { showEarlier.toggle() }
+                motion(reduceMotion) { showEarlier.toggle() }
             } label: {
                 HStack {
                     Text(L("week.earlier")).font(Theme.display(.title3)).foregroundStyle(Theme.ink)
                     Spacer()
-                    Image(systemName: "chevron.down").rotationEffect(.degrees(showEarlier ? 180 : 0)).foregroundStyle(Theme.muted)
+                    Image(systemName: "chevron.down")
+                        .font(.subheadline.weight(.semibold))
+                        .rotationEffect(.degrees(showEarlier ? 180 : 0))
+                        .foregroundStyle(Theme.muted)
+                        .accessibilityHidden(true)
                 }
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())
@@ -132,14 +151,18 @@ struct WeekView: View {
             .accessibilityValue(showEarlier ? L("common.expanded") : L("common.collapsed"))
             if showEarlier {
                 ForEach(earlier) { section in
-                    Text(L10n.weekRange(section.week)).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.muted).padding(.top, 6)
+                    Text(L10n.weekRange(section.week))
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Theme.muted)
+                        .padding(.top, Theme.s1)
+                        .accessibilityAddTraits(.isHeader)
                     ForEach(section.items) { item in
                         NavigationLink(value: item.id) { VideoCard(item: item, compact: true) }.buttonStyle(.plain)
                     }
                 }
             }
         }
-        .padding(.top, 12)
+        .padding(.top, Theme.s2)
     }
 }
 
@@ -148,35 +171,48 @@ struct VideoCard: View {
     let item: VideoItem
     var compact = false
     @Environment(\.dynamicTypeSize) private var type
+    @ScaledMetric(relativeTo: .body) private var posterWidth: CGFloat = 76
 
     var body: some View {
         let state = WeekBoard.state(of: item)
-        let layout = type.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(alignment: .top, spacing: 14))
+        let stacked = type.isAccessibilitySize
+        let width = compact ? 52 : min(posterWidth, 110)
+        let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.s3)) : AnyLayout(HStackLayout(alignment: .center, spacing: Theme.s4))
         layout {
-            Poster(url: item.thumbUrl)
-                .frame(width: compact ? 54 : 78, height: compact ? 96 : 138)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            VStack(alignment: .leading, spacing: 8) {
+            Poster(id: item.id, url: item.thumbUrl, working: state == .making)
+                .frame(width: stacked ? 96 : width, height: (stacked ? 96 : width) * 16 / 9)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous).strokeBorder(Theme.line.opacity(0.6)))
+            VStack(alignment: .leading, spacing: Theme.s2) {
                 StateChip(state: state)
                 Text(item.title)
                     .font(compact ? .subheadline.weight(.semibold) : .headline)
                     .foregroundStyle(Theme.ink)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
-                if let s = slotText(item.slot), state != .declined, state != .notMade {
+                if let s = slotText(item.slot), state != .declined, state != .notMade, state != .failed {
                     Label(L("video.postOn", s), systemImage: "calendar")
                         .font(.footnote)
                         .foregroundStyle(Theme.muted)
                 }
-                if state == .look, let r = item.reasons.first {
+                if state == .look, let r = item.reasons.first, !compact {
                     Text(reasonText(r)).font(.footnote).foregroundStyle(Theme.amber).lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if state == .failed, !compact {
+                    Text(L("video.failed")).font(.footnote).foregroundStyle(Theme.body).lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            Spacer(minLength: 0)
-            Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted).accessibilityHidden(true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if !stacked {
+                Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted.opacity(0.7)).accessibilityHidden(true)
+            }
         }
-        .padding(14)
+        .padding(compact ? Theme.s3 : 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .dvCard()
+        .contentShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityHint(L("video.open.hint"))
     }
