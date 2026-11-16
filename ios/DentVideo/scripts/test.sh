@@ -30,6 +30,10 @@ echo "Testing on $DEVICE, $RUNTIME ($UDID)"
 defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false || true
 xcrun simctl boot "$UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$UDID" -b >/dev/null
+# No "slide to type" introduction over the keyboard on a fresh simulator (it takes the focus).
+xcrun simctl spawn "$UDID" defaults write com.apple.keyboard.preferences DidShowContinuousPathIntroduction -bool true || true
+xcrun simctl spawn "$UDID" defaults write com.apple.Preferences KeyboardContinuousPathEnabled -bool false || true
+xcrun simctl spawn "$UDID" defaults write com.apple.Preferences DidShowContinuousPathIntroduction -bool true || true
 
 mkdir -p build
 set +e

@@ -317,8 +317,13 @@ final class SettingsJourneyTests: DVTestCase {
         wait(el("card.d1"), 12)
         tab("tab.settings").tap()
         wait(el("settings.clinic")).tap()
-        clear(wait(el("clinic.name")))
-        XCTAssertFalse(el("clinic.save").isEnabled)
+        let name = wait(el("clinic.name"))
+        clear(name)
+        XCTAssertTrue(((name.value as? String) ?? "").isEmpty || name.value as? String == name.placeholderValue, "name cleared")
+        // Disabled: tapping Save does nothing (no "Saved" notice, the form stays).
+        el("clinic.save").tap()
+        XCTAssertFalse(textContaining(Strings.value("settings.saved")).waitForExistence(timeout: 3))
+        XCTAssertTrue(el("clinic.name").exists)
     }
 
     func testServerRefusalIsShown() {
@@ -392,7 +397,7 @@ final class OfflineAndLinkJourneyTests: DVTestCase {
         launch()
         wait(el("card.d1"), 12)
         tab("tab.settings").tap()
-        app.open(URL(string: "dentvideo://app/video/d2")!)
+        openLink("dentvideo://app/video/d2")
         wait(el("video.state"), 10)
         XCTAssertEqual(el("video.state").label, Strings.value("state.look"))
     }
@@ -401,7 +406,7 @@ final class OfflineAndLinkJourneyTests: DVTestCase {
         launch()
         wait(el("card.d1"), 12)
         tab("tab.record").tap()
-        app.open(URL(string: "dentvideo://app")!)
+        openLink("dentvideo://app")
         wait(el("card.d1"), 10)
     }
 }

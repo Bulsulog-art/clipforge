@@ -70,23 +70,41 @@ class DVTestCase: XCTestCase {
 
     /// Focus a field (retrying: on iOS 17 the first tap sometimes does not give keyboard focus) and type.
     func type(_ field: XCUIElement, _ s: String) {
-        for _ in 0..<4 {
-            field.tap()
-            if (field.value(forKey: "hasKeyboardFocus") as? Bool) == true { break }
-            usleep(400_000)
-        }
+        focus(field) { field.tap() }
         field.typeText(s)
     }
 
-    func clear(_ field: XCUIElement) {
-        // Put the cursor at the end (fields may be right-aligned), then delete everything.
-        for _ in 0..<4 {
-            field.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
-            if (field.value(forKey: "hasKeyboardFocus") as? Bool) == true { break }
-            usleep(400_000)
+    /// Tap until the field has keyboard focus and the keyboard is up (fresh iOS 17 simulators
+    /// sometimes swallow the first tap).
+    func focus(_ field: XCUIElement, tap: () -> Void) {
+        for _ in 0..<5 {
+            tap()
+            if app.keyboards.firstMatch.waitForExistence(timeout: 1.5),
+               (field.value(forKey: "hasKeyboardFocus") as? Bool) ?? true { return }
         }
+    }
+
+    /// Opening a link from outside: iOS may ask "Open in DentVideo?" first; answer it.
+    func openLink(_ url: String) {
+        app.open(URL(string: url)!)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let open = springboard.buttons["Open"]
+        if open.waitForExistence(timeout: 3) { open.tap() }
+    }
+
+    func clear(_ field: XCUIElement) {
+        // Cursor at the end (fields may be right-aligned), delete everything, check, and fall back
+        // to Select All when the cursor landed elsewhere.
+        focus(field) { field.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap() }
         let n = (field.value as? String)?.count ?? 0
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: n + 2))
+        let left = (field.value as? String) ?? ""
+        if !left.isEmpty && left != field.placeholderValue {
+            field.press(forDuration: 1.2)
+            let all = app.menuItems["Select All"].exists ? app.menuItems["Select All"] : app.buttons["Select All"]
+            if all.waitForExistence(timeout: 2) { all.tap() }
+            field.typeText(XCUIKeyboardKey.delete.rawValue)
+        }
     }
 
     /// Open a video of the week by its demo id (d1 … d5).
