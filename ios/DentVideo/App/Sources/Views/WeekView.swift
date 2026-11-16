@@ -10,6 +10,7 @@ struct WeekView: View {
     @State private var confirmAll = false
     @State private var showEarlier = false
     @State private var approvedBatch = 0
+    @Environment(\.dynamicTypeSize) private var type
 
     private var sections: [WeekBoard.Section] { WeekBoard.sections(model.items) }
     private var thisWeek: [VideoItem] { sections.first(where: { $0.week == model.currentWeek })?.items ?? [] }
@@ -44,7 +45,9 @@ struct WeekView: View {
             .navigationTitle(L("week.title"))
             .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: String.self) { id in VideoDetailView(itemID: id) }
-            .confirmationDialog(L("week.approveAll.confirm", candidates.count), isPresented: $confirmAll, titleVisibility: .visible) {
+            .sensoryFeedback(.success, trigger: approvedBatch)
+            .alert(L("week.approveAll.confirm", candidates.count), isPresented: $confirmAll) {
+                Button(L("common.cancel"), role: .cancel) {}
                 Button(L("week.approveAll.button", candidates.count)) {
                     Task {
                         let n = await model.approveAllReady(week: model.currentWeek)
@@ -54,11 +57,10 @@ struct WeekView: View {
                         }
                     }
                 }
-                Button(L("common.cancel"), role: .cancel) {}
+                .keyboardShortcut(.defaultAction)
             } message: {
                 Text(L("week.approveAll.note"))
             }
-            .sensoryFeedback(.success, trigger: approvedBatch)
         }
         .onChange(of: model.openItemID, initial: true) { _, id in
             guard let id else { return }
@@ -77,7 +79,8 @@ struct WeekView: View {
     private var header: some View {
         let p = WeekBoard.progress(model.items, week: model.currentWeek)
         return VStack(alignment: .leading, spacing: Theme.s2) {
-            HStack(alignment: .firstTextBaseline, spacing: Theme.s2) {
+            let row = type.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.s1)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Theme.s2))
+            row {
                 Text(L10n.weekRange(model.currentWeek))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.teal)
@@ -179,7 +182,7 @@ struct VideoCard: View {
         let width = compact ? 52 : min(posterWidth, 110)
         let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.s3)) : AnyLayout(HStackLayout(alignment: .center, spacing: Theme.s4))
         layout {
-            Poster(id: item.id, url: item.thumbUrl, working: state == .making)
+            Poster(id: item.id, url: item.thumbUrl, working: state == .making, delayed: state == .failed)
                 .frame(width: stacked ? 96 : width, height: (stacked ? 96 : width) * 16 / 9)
                 .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous).strokeBorder(Theme.line.opacity(0.6)))
@@ -196,15 +199,16 @@ struct VideoCard: View {
                         .foregroundStyle(Theme.muted)
                 }
                 if state == .look, let r = item.reasons.first, !compact {
-                    Text(reasonText(r)).font(.footnote).foregroundStyle(Theme.amber).lineLimit(3)
+                    Text(reasonText(r)).font(.footnote).foregroundStyle(Theme.amber)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if state == .failed, !compact {
-                    Text(L("video.failed")).font(.footnote).foregroundStyle(Theme.body).lineLimit(3)
+                    Text(L("video.failed")).font(.footnote).foregroundStyle(Theme.body)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(1)
             if !stacked {
                 Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted.opacity(0.7)).accessibilityHidden(true)
             }

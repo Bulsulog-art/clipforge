@@ -16,6 +16,7 @@ struct SettingsView: View {
     @State private var confirmSignOut = false
     @State private var demoClinic = false
     @State private var demoVideos = false
+    @Environment(\.dynamicTypeSize) private var type
 
     var body: some View {
         NavigationStack {
@@ -127,7 +128,7 @@ struct SettingsView: View {
                 await reload()
                 guard model.isDemoMode else { return }
                 try? await Task.sleep(for: .milliseconds(400))
-                if model.isDemo("settings-bottom") { proxy.scrollTo("bottom", anchor: .bottom) }
+                if model.isDemo("settings-bottom") { proxy.scrollTo("bottom", anchor: .center) }
                 if model.isDemo("delete") { deleting = true }
                 if model.isDemo("signout") { confirmSignOut = true }
                 if model.isDemo("clinic") { demoClinic = true }
@@ -136,23 +137,30 @@ struct SettingsView: View {
             .navigationDestination(isPresented: $demoClinic) { if let c = model.me?.clinic { ClinicDetailsForm(profile: c.profile) } }
             .navigationDestination(isPresented: $demoVideos) { if let c = model.me?.clinic { VideoSettingsForm(profile: c.profile) } }
             }
-            .confirmationDialog(L("settings.signOut.confirm"), isPresented: $confirmSignOut, titleVisibility: .visible) {
-                Button(L("settings.signOut"), role: .destructive) { Task { await model.signOut() } }
+            .alert(L("settings.signOut.confirm"), isPresented: $confirmSignOut) {
                 Button(L("common.cancel"), role: .cancel) {}
+                Button(L("settings.signOut"), role: .destructive) { Task { await model.signOut() } }
             }
             .sheet(isPresented: $deleting) { DeleteAccountView() }
         }
     }
 
     private func row(_ title: String, value: String? = nil, icon: String) -> some View {
-        HStack(spacing: Theme.s3) {
+        // Title and value side by side; the value goes under the title at the largest text sizes.
+        let layout = type.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.s1)) : AnyLayout(HStackLayout(spacing: Theme.s3))
+        return layout {
             Label {
-                Text(title).foregroundStyle(Theme.ink)
+                Text(title).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
             } icon: {
                 Image(systemName: icon).foregroundStyle(Theme.teal)
             }
-            Spacer(minLength: Theme.s2)
-            if let value { Text(value).foregroundStyle(Theme.muted).lineLimit(1).truncationMode(.middle) }
+            .layoutPriority(1)
+            if !type.isAccessibilitySize { Spacer(minLength: Theme.s2) }
+            if let value {
+                Text(value).foregroundStyle(Theme.muted)
+                    .lineLimit(type.isAccessibilitySize ? 3 : 1)
+                    .truncationMode(.tail)
+            }
         }
         .frame(minHeight: 32)
         .accessibilityElement(children: .combine)
@@ -199,19 +207,33 @@ struct ClinicDetailsForm: View {
     var body: some View {
         Form {
             Section {
-                TextField(L("clinic.name"), text: $profile.name).textContentType(.organizationName)
-                TextField(L("clinic.city"), text: Binding($profile.city, ""))
-                    .textContentType(.addressCity)
+                LabeledContent(L("clinic.name")) {
+                    TextField(L("clinic.name"), text: $profile.name).textContentType(.organizationName)
+                        .multilineTextAlignment(.trailing)
+                }
+                LabeledContent(L("clinic.city")) {
+                    TextField(L("clinic.city"), text: Binding($profile.city, ""))
+                        .textContentType(.addressCity)
+                        .multilineTextAlignment(.trailing)
+                }
                 LabeledContent(L("clinic.country"), value: L10n.countryName(profile.country))
             } footer: {
                 Text(L("clinic.country.footer"))
             }
             .dvFormRows()
             Section(L("clinic.online")) {
-                TextField(L("clinic.handle"), text: Binding($profile.handle, ""))
-                    .textInputAutocapitalization(.never).autocorrectionDisabled()
-                TextField(L("clinic.booking"), text: Binding($profile.bookingUrl, ""))
-                    .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                LabeledContent(L("clinic.handle")) {
+                    TextField(L("clinic.handle"), text: Binding($profile.handle, ""))
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .multilineTextAlignment(.trailing)
+                }
+                VStack(alignment: .leading, spacing: Theme.s1) {
+                    Text(L("clinic.booking")).font(.footnote).foregroundStyle(Theme.muted)
+                    TextField(L("clinic.booking"), text: Binding($profile.bookingUrl, ""))
+                        .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .textContentType(.URL)
+                }
+                .padding(.vertical, 2)
             }
             .dvFormRows()
             Section {

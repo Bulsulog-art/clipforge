@@ -10,7 +10,7 @@ struct StateChip: View {
         Label(L(Self.key(state)), systemImage: Self.icon(state))
             .font(.caption.weight(.semibold))
             .labelStyle(.titleAndIcon)
-            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .foregroundStyle(foreground)
@@ -159,12 +159,14 @@ struct Poster: View {
     let id: String
     let url: URL?
     var working = false
+    var delayed = false
     @State private var image: UIImage?
 
-    init(id: String, url: URL?, working: Bool = false) {
+    init(id: String, url: URL?, working: Bool = false, delayed: Bool = false) {
         self.id = id
         self.url = url
         self.working = working
+        self.delayed = delayed
         _image = State(initialValue: Self.ready(id))
     }
 
@@ -184,7 +186,7 @@ struct Poster: View {
                 Image(uiImage: image).resizable().scaledToFill()
                     .transition(.opacity)
             } else {
-                Image(systemName: working ? "hourglass" : "play.fill")
+                Image(systemName: working ? "hourglass" : delayed ? "clock" : "play.fill")
                     .font(.title3)
                     .foregroundStyle(Theme.teal.opacity(0.7))
             }

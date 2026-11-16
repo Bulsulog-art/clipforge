@@ -4,7 +4,8 @@
 # (CI: .github/workflows/ios-dentvideo.yml, job "screens"). Nothing here talks to a server.
 #
 # Usage: ios/DentVideo/scripts/screens.sh [out-dir]   (default: build/screens)
-#   SCREENS_SET=full|quick   quick = a handful of screens per variant (for a fast look)
+#   SCREENS_SET=full|medium|quick   quick = a handful of screens; medium = English in full plus
+#   the key screens in de, ar, ja, dark and the largest text size (no iPad)
 #
 # Output:
 #   <out>/review/<device>/<variant>/<screen>.jpg   half size, for looking at
@@ -74,7 +75,7 @@ shot() { # device-id device-label variant lang screen [store]
   local id=$1 dev=$2 variant=$3 lang=$4 s=$5 store=${6:-}
   xcrun simctl launch --terminate-running-process "$id" "$BUNDLE" \
     -AppleLanguages "($lang)" -AppleLocale "$(locale_of "$lang")" -DVScreen "$s" >/dev/null
-  sleep 2.6
+  sleep 2.2
   mkdir -p "$OUT/review/$dev/$variant"
   local png="$OUT/review/$dev/$variant/$s.png"
   xcrun simctl io "$id" screenshot --type=png "$png" >/dev/null 2>&1
@@ -103,6 +104,11 @@ if [ "$SET" = quick ]; then
   variant "$PHONE_ID" phone light large en "${QUICK[@]}"
   variant "$PHONE_ID" phone dark large en "${QUICK[@]}"
   variant "$PHONE_ID" phone light large ar "${QUICK[@]}"
+elif [ "$SET" = medium ]; then
+  variant "$PHONE_ID" phone light large en "${ALL[@]}"
+  variant "$PHONE_ID" phone dark large en "${KEY[@]}"
+  for l in de ar ja; do variant "$PHONE_ID" phone light large "$l" "${KEY[@]}"; done
+  variant "$PHONE_ID" phone light accessibility-extra-extra-extra-large en "${AX[@]}"
 else
   variant "$PHONE_ID" phone light large en "${ALL[@]}"
   variant "$PHONE_ID" phone dark large en "${ALL[@]}"
@@ -114,7 +120,7 @@ fi
 xcrun simctl ui "$PHONE_ID" content_size large
 xcrun simctl shutdown "$PHONE_ID" || true
 
-if [ -n "$PAD_ID" ] && [ "$SET" != quick ]; then
+if [ -n "$PAD_ID" ] && [ "$SET" = full ]; then
   boot "$PAD_ID"
   variant "$PAD_ID" ipad light large en signin week-full video-look post-ready record camera-live settings videos
   xcrun simctl shutdown "$PAD_ID" || true

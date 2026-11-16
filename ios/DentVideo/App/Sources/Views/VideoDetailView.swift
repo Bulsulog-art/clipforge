@@ -13,6 +13,7 @@ struct VideoDetailView: View {
     @State private var posting = false
     @State private var busy = false
     @State private var approvedTick = 0
+    @Environment(\.dynamicTypeSize) private var type
 
     private var item: VideoItem? { model.items.first { $0.id == itemID } }
 
@@ -27,6 +28,8 @@ struct VideoDetailView: View {
         }
         .background(Theme.paper.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
+        // The decision bar takes the bottom; the tabs come back with the back button.
+        .toolbar(.hidden, for: .tabBar)
         .sensoryFeedback(.success, trigger: approvedTick)
         .task {
             guard model.isDemoMode else { return }
@@ -137,16 +140,13 @@ struct VideoDetailView: View {
         switch state {
         case .review, .look:
             bar {
-                HStack(spacing: Theme.s3) {
+                // Side by side; stacked (approve on top) at the largest text sizes.
+                let layout = type.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: Theme.s2)) : AnyLayout(HStackLayout(spacing: Theme.s3))
+                layout {
+                    if type.isAccessibilitySize { approveButton(item) }
                     Button { declining = true } label: { Label(L("video.decline"), systemImage: "xmark") }
                         .buttonStyle(.dvSecondary)
-                    Button {
-                        run {
-                            await model.approve(item)
-                            if model.items.first(where: { $0.id == item.id })?.approval == .approved { approvedTick += 1 }
-                        }
-                    } label: { Label(L("video.approve"), systemImage: "checkmark") }
-                        .buttonStyle(.dvPrimary)
+                    if !type.isAccessibilitySize { approveButton(item) }
                 }
             }
         case .approved, .posted:
@@ -157,6 +157,16 @@ struct VideoDetailView: View {
         default:
             EmptyView()
         }
+    }
+
+    private func approveButton(_ item: VideoItem) -> some View {
+        Button {
+            run {
+                await model.approve(item)
+                if model.items.first(where: { $0.id == item.id })?.approval == .approved { approvedTick += 1 }
+            }
+        } label: { Label(L("video.approve"), systemImage: "checkmark") }
+            .buttonStyle(.dvPrimary)
     }
 
     private func bar<C: View>(@ViewBuilder _ content: () -> C) -> some View {
@@ -201,10 +211,10 @@ struct PlayerCard: View {
             }
         }
         .aspectRatio(9 / 16, contentMode: .fit)
-        .frame(maxHeight: 520)
-        .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
         .shadow(color: Color.black.opacity(0.12), radius: 18, y: 8)
+        .frame(maxHeight: 460)
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(L("video.player", item.title))
         .task(id: item.id) {

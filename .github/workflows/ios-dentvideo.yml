@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       screens:
-        description: "Simulator screenshots of every screen (demo mode): none, quick or full"
+        description: "Simulator screenshots of every screen (demo mode): full, medium, quick or none"
         type: choice
-        options: [full, quick, none]
+        options: [full, medium, quick, none]
         default: full
   pull_request:
     paths:

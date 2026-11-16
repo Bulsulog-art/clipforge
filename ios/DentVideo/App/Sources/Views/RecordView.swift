@@ -294,7 +294,7 @@ struct CameraScreen: View {
                         .foregroundStyle(.white)
                         if showCard {
                             ScrollView { CardText(card: card, inverted: true).frame(maxWidth: .infinity, alignment: .leading) }
-                                .frame(maxHeight: 300)
+                                .frame(maxHeight: 400)
                         }
                     }
                     .padding(Theme.s4)
