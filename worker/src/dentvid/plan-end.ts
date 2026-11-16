@@ -26,8 +26,8 @@ export type EndingSub = { dodo_subscription_id: string; clinic_id: string; statu
 export interface PlanEndDb {
   /** Ledger rows with an ending status whose period_end lies in [since, now]; null when the ledger is unavailable. */
   endedSince(since: Date, now: Date): Promise<EndingSub[] | null>;
-  /** plan → cancelled, only if the clinic is active on this subscription; true when it moved. */
-  endPlan(clinicId: string, subscriptionId: string, now: Date): Promise<boolean>;
+  /** plan → cancelled, only if the clinic is active on this subscription; true when it moved. `endedAt`: the paid period's end (retention.ts). */
+  endPlan(clinicId: string, subscriptionId: string, now: Date, endedAt?: string): Promise<boolean>;
 }
 
 export type PlanEndResult = { checked: number; ended: string[] };
@@ -37,7 +37,7 @@ export async function endPaidUpPlans(db: PlanEndDb, now = new Date()): Promise<P
   const res: PlanEndResult = { checked: rows?.length ?? 0, ended: [] };
   for (const r of rows ?? []) {
     if (!(Date.parse(r.period_end) <= now.getTime())) continue;
-    if (await db.endPlan(r.clinic_id, r.dodo_subscription_id, now)) {
+    if (await db.endPlan(r.clinic_id, r.dodo_subscription_id, now, new Date(Date.parse(r.period_end)).toISOString())) {
       res.ended.push(r.clinic_id);
       logger.info({ clinicId: r.clinic_id, subscriptionId: r.dodo_subscription_id, endedAt: r.period_end }, "dentvid: cancelled plan reached the end of its paid period");
     }
@@ -62,14 +62,13 @@ export function supabasePlanEndDb(db: SupabaseClient): PlanEndDb {
       }
       return (data ?? []) as EndingSub[];
     },
-    async endPlan(clinicId, subscriptionId, now) {
-      const { data, error } = await db
-        .from("dentvid_clinics")
-        .update({ plan: "cancelled", plan_renews_at: null, updated_at: now.toISOString() })
-        .eq("id", clinicId)
-        .eq("plan", "active")
-        .eq("dodo_subscription_id", subscriptionId)
-        .select("id");
+    async endPlan(clinicId, subscriptionId, now, endedAt) {
+      const end = (patch: Record<string, unknown>) =>
+        db.from("dentvid_clinics").update(patch).eq("id", clinicId).eq("plan", "active").eq("dodo_subscription_id", subscriptionId).select("id");
+      const base = { plan: "cancelled", plan_renews_at: null, updated_at: now.toISOString() };
+      // The library's 90 days (retention.ts) count from the paid period's end; without 0024 the plan still ends.
+      let { data, error } = await end(endedAt ? { ...base, plan_ended_at: endedAt } : base);
+      if (error && endedAt && /plan_ended_at/.test(error.message)) ({ data, error } = await end(base));
       if (error) throw new Error(`plan end: ${error.message}`);
       return (data ?? []).length > 0;
     },

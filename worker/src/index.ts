@@ -5,7 +5,7 @@ import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
-import { configureSpend, countActiveClinics, dentvidDb, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
+import { configureSpend, countActiveClinics, dentvidDb, runDentvidChange, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
 import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
 import { RedisParkStore, resumeParked } from "./dentvid/park.js";
 import { DISPATCH_SCHEDULE, dispatchWeeks } from "./dentvid/schedule.js";
@@ -19,6 +19,7 @@ import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatc
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
 import { checkWeekDelivery, DELIVERY_SCHEDULE, supabaseDeliveryDb } from "./dentvid/delivery.js";
 import { endPaidUpPlans, supabasePlanEndDb } from "./dentvid/plan-end.js";
+import { RETENTION_SCHEDULE, retentionAlertDue, runRetention, supabaseRetentionDb, webNoticeSender } from "./dentvid/retention.js";
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
 import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
@@ -136,6 +137,8 @@ const dentvidWorker = new Worker(
       }
       if (job.name === "recording") return await runDentvidRecording(job.data, { jobId: job.id });
       if (job.name === "restyle") return await runDentvidRestyle(job.data);
+      // "Ask for a change" on one video (dentvid/jobs.ts runDentvidChange): one attempt, within the spend guard.
+      if (job.name === "change") return await runDentvidChange(job.data);
       if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue, new Date(), opsStore(), DENTVID_CONCURRENCY);
       throw new Error(`unknown dentvid job ${job.name}`);
     } catch (e) {
@@ -232,6 +235,14 @@ const dentvidMailWorker = new Worker(
       const ended = await endPaidUpPlans(supabasePlanEndDb(dentvidDb()));
       return { due: r.due, delivered: r.delivered, late: r.late.length, behind: r.behind.length, plansEnded: ended.ended.length };
     }
+    if (job.name === "retention") {
+      // 90 days after a plan ends the library goes (dentvid/retention.ts); reminders 14 and 1 day before.
+      const r = await runRetention({ db: supabaseRetentionDb(dentvidDb()), notify: webNoticeSender() });
+      if (retentionAlertDue(r) && r.mode !== "off") {
+        await ownerAlert(alerts.retention({ mode: r.mode, stamped: r.stamped, cleared: r.cleared, noticed: r.noticed, deleted: r.deleted, due: r.due, errors: r.errors })).catch(() => "failed");
+      }
+      return r;
+    }
     if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
       const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };
       return job.name === "watchdog-monday" ? await checkMondayDispatch(deps) : await checkFirstWeeks(deps);
@@ -259,6 +270,7 @@ if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
     ["dentvid-watchdog-delivery", DELIVERY_SCHEDULE, "watchdog-delivery"],
     ["dentvid-digest", DIGEST_SCHEDULE, "digest"],
     ["dentvid-billing-reconcile", RECONCILE_SCHEDULE, "billing-reconcile"],
+    ["dentvid-retention", RETENTION_SCHEDULE, "retention"],
   ] as const) {
     dentvidMailQueue
       .upsertJobScheduler(id, schedule, { name, data: {}, opts: CRON_JOB_OPTS })

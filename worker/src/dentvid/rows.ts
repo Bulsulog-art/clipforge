@@ -13,6 +13,8 @@ import { clipFinding, qaFinding, tagReason } from "./reasons.js";
  */
 
 export type ItemRow = {
+  /** Set only when something must point to the row before it is stored (a suggested topic's video). */
+  id?: string;
   clinic_id: string;
   owner_id: string;
   kind: "generated" | "recording";
@@ -35,6 +37,8 @@ export type ItemRow = {
   week_of?: string;
   /** Technical failure, for the owner (admin dashboard) only — the clinic's library never shows it. */
   error?: string;
+  /** Timed narration cues (dental/subtitles.ts; 0024_dentvid_clinic_requests.sql). */
+  subtitles?: unknown;
 };
 
 export function rowFromPackage(

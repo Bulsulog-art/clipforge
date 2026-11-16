@@ -486,6 +486,60 @@ export const alerts = {
     };
   },
 
+  changeFailed(a: { clinic: ClinicRef; requestId: string; itemId: string; reason: "busy" | "technical"; error: string }): OwnerAlert {
+    return {
+      key: `change_failed:${a.requestId}`,
+      severity: "warning",
+      titleTr: "Video değişiklik isteği yapılamadı",
+      titleEn: "A video change request could not be made",
+      clinic: a.clinic,
+      what: [
+        a.reason === "busy"
+          ? "A clinic asked for a change to one video, and the spend guard refused it (a cap was reached)."
+          : "A clinic asked for a change to one video, and re-making it failed for a technical reason.",
+      ],
+      facts: [
+        ["Request", a.requestId],
+        ["Video", a.itemId],
+        ["Error", a.error],
+      ],
+      done: [
+        "The clinic's current video is unchanged and still in its library.",
+        "The app shows the clinic that the change could not be made this time. Nothing was retried automatically, so nothing was spent twice.",
+      ],
+      todo: ["Look at the error. If it was passing, the clinic can ask again (it counts toward its 3 a week); or reply to the clinic in person."],
+    };
+  },
+
+  retention(a: { mode: "dry-run" | "delete"; stamped: number; cleared: number; noticed: number; deleted: { clinics: number; items: number; files: number }; due: { clinics: number; items: number; files: number }; errors: string[] }): OwnerAlert {
+    const dry = a.mode === "dry-run";
+    return {
+      key: `retention:${a.mode}`,
+      severity: a.errors.length ? "warning" : "good",
+      titleTr: dry ? "Arşiv saklama: deneme çalıştırması" : "Arşiv saklama: süresi dolan videolar silindi",
+      titleEn: dry ? "Library retention: dry run" : "Library retention: expired libraries deleted",
+      what: [
+        dry
+          ? `Dry run (DENTVID_RETENTION_MODE=dry-run): ${a.due.clinics} ended plan(s) are past their 90 days; nothing was deleted or emailed.`
+          : `${a.deleted.clinics} clinic(s) whose plan ended more than 90 days ago had their videos and files deleted.`,
+      ],
+      facts: [
+        [dry ? "Would delete · clinics" : "Deleted · clinics", String(dry ? a.due.clinics : a.deleted.clinics)],
+        [dry ? "Would delete · videos" : "Deleted · videos", String(dry ? a.due.items : a.deleted.items)],
+        [dry ? "Would delete · files" : "Deleted · files", String(dry ? a.due.files : a.deleted.files)],
+        ["Plans marked ended", String(a.stamped)],
+        ["Re-subscribed (dates cleared)", String(a.cleared)],
+        ["Reminder emails", String(a.noticed)],
+        ...a.errors.slice(0, 3).map((e, i) => [`Error ${i + 1}`, e] as [string, string]),
+      ],
+      done: [
+        "Only clinics whose plan is cancelled were looked at; active, paused and trial clinics are never touched.",
+        "Each clinic's settings and logo are kept, so it can choose a plan again.",
+      ],
+      todo: dry ? ["When the numbers look right, set DENTVID_RETENTION_MODE=delete on the worker."] : [],
+    };
+  },
+
   dispatchMissing(a: { week: string; activeClinics: number; jobs: number; missing: number; requeued: number; reason: string }): OwnerAlert {
     return {
       key: `dispatch:${a.week}`,
@@ -899,6 +953,7 @@ export const alerts = {
       lifecycle: "The hourly lifecycle emails (reminders to unpaid clinics) did not run.",
       dispatch: "The Saturday weekly dispatch failed: paying clinics' weeks may not be queued.",
       "watchdog-delivery": "The hourly check that every paying clinic got its Monday week did not run, so a late week would go unnoticed.",
+      retention: "The daily library retention run did not run: ended plans are not being marked, reminded or cleaned up after their 90 days.",
     };
     return {
       key: `cron_failed:${a.job}`,

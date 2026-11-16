@@ -39,8 +39,10 @@ import { elevenSurchargePerVideoUsd, ttsCostUsd, type TtsProvider } from "../den
 /**
  * topup: extra topics for a week that ended thin (jobs.ts MIN_USABLE_VIDEOS) —
  * money only, no count of its own (it belongs to a week already counted).
+ * change: one video re-made from a clinic's "Ask for a change" (change.ts) —
+ * money, and a count per clinic per ISO week (DENTVID_MAX_CHANGES_PER_CLINIC_WEEK).
  */
-export type SpendOp = "week" | "restyle" | "recording" | "topup";
+export type SpendOp = "week" | "restyle" | "recording" | "topup" | "change";
 
 export type GuardConfig = {
   paused: boolean;
@@ -50,6 +52,7 @@ export type GuardConfig = {
   maxWeeksPerClinicWeek: number;
   maxRestylesPerClinicDay: number;
   maxRecordingsPerClinicWeek: number;
+  maxChangesPerClinicWeek: number;
   costUsd: Record<SpendOp, number>;
   /** Global daily ceiling grows by this per active clinic (Monday: every week runs on the same day). */
   dailyUsdPerActiveClinic: number;
@@ -67,10 +70,12 @@ export type GuardConfig = {
  *  - recording: Whisper API fallback $0.006/min × 30 min max = $0.18 (local
  *    faster-whisper is $0), moment scoring + reviews for up to 6 clips
  *    ≈ $0.15 → $0.50.
+ *  - change: one video written, reviewed and narrated again ≈ a fifth of a
+ *    week plus a rewrite round ≈ $0.07 → $0.15.
  * Override with DENTVID_COST_WEEK_USD / _RESTYLE_USD / _RECORDING_USD when
  * models or prices change.
  */
-export const COST_DEFAULTS: Record<SpendOp, number> = { week: 0.5, restyle: 0.03, recording: 0.5, topup: 0.3 };
+export const COST_DEFAULTS: Record<SpendOp, number> = { week: 0.5, restyle: 0.03, recording: 0.5, topup: 0.3, change: 0.15 };
 
 function num(v: string | undefined, fallback: number): number {
   const n = Number(v);
@@ -82,7 +87,7 @@ function num(v: string | undefined, fallback: number): number {
  * is 5 videos, a top-up up to 3 more, a restyle re-voices one; a recording
  * keeps the dentist's own voice.
  */
-export const TTS_VIDEOS_PER_OP: Record<SpendOp, number> = { week: 5, restyle: 1, recording: 0, topup: 3 };
+export const TTS_VIDEOS_PER_OP: Record<SpendOp, number> = { week: 5, restyle: 1, recording: 0, topup: 3, change: 1 };
 
 export function guardConfig(env: Record<string, string | undefined> = process.env): GuardConfig {
   // With DENTVID_TTS_PROVIDER=elevenlabs a narration costs more than the
@@ -96,7 +101,9 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
     restyle: cost("restyle", env.DENTVID_COST_RESTYLE_USD),
     recording: cost("recording", env.DENTVID_COST_RECORDING_USD),
     topup: cost("topup", env.DENTVID_COST_TOPUP_USD),
+    change: cost("change", env.DENTVID_COST_CHANGE_USD),
   };
+  const maxChanges = num(env.DENTVID_MAX_CHANGES_PER_CLINIC_WEEK, 3);
   return {
     paused: env.DENTVID_PAUSE_GENERATION === "1" || env.DENTVID_PAUSE_GENERATION === "true",
     // ~40 paying clinics' Monday runs at the estimate above, with room for retries.
@@ -106,11 +113,16 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
     // time: 4 × 0.50 + 4 × 0.30 = $3.20, plus a recording or a few restyles.
     // With ElevenLabs the same Monday costs more; the default grows with the
     // estimates (never below $5) so a retrying clinic is not parked for it.
-    clinicDailyUsd: num(env.DENTVID_CLINIC_DAILY_USD_CAP, Math.max(5, Math.round((4 * (costUsd.week + costUsd.topup) + costUsd.recording + 5 * costUsd.restyle) * 100) / 100)),
+    clinicDailyUsd: num(
+      env.DENTVID_CLINIC_DAILY_USD_CAP,
+      Math.max(5, Math.round((4 * (costUsd.week + costUsd.topup) + costUsd.recording + 5 * costUsd.restyle + maxChanges * costUsd.change) * 100) / 100),
+    ),
     // Monday's 4 automatic attempts (retry.ts WEEK_ATTEMPTS) + a manual re-run or a first week.
     maxWeeksPerClinicWeek: num(env.DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 6),
     maxRestylesPerClinicDay: num(env.DENTVID_MAX_RESTYLES_PER_CLINIC_DAY, 10),
     maxRecordingsPerClinicWeek: num(env.DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK, 5),
+    // "Ask for a change": 3 a week per clinic (the web app refuses the 4th before it is queued).
+    maxChangesPerClinicWeek: maxChanges,
     costUsd,
     // A clinic's Monday: its week (5 videos), one recording and a few restyles.
     // Defaults: 0.50 + 0.50 + 5 × 0.03 = $1.15.
@@ -157,7 +169,8 @@ export type RefusalReason =
   | "clinic_daily_usd"
   | "clinic_weekly_weeks"
   | "clinic_daily_restyles"
-  | "clinic_weekly_recordings";
+  | "clinic_weekly_recordings"
+  | "clinic_weekly_changes";
 
 export type GuardDecision = { ok: true; usd: number } | { ok: false; reason: RefusalReason; detail: string };
 
@@ -188,6 +201,8 @@ export function countersFor(op: SpendOp, clinicId: string, cfg: GuardConfig, now
     counters.push({ key: `dv:spend:ops:restyle:${clinicId}:${day}`, by: 1, cap: cfg.maxRestylesPerClinicDay, ttlSec: 2 * DAY, reason: "clinic_daily_restyles" });
   if (op === "recording")
     counters.push({ key: `dv:spend:ops:recording:${clinicId}:${monday}`, by: 1, cap: cfg.maxRecordingsPerClinicWeek, ttlSec: 8 * DAY, reason: "clinic_weekly_recordings" });
+  if (op === "change")
+    counters.push({ key: `dv:spend:ops:change:${clinicId}:${monday}`, by: 1, cap: cfg.maxChangesPerClinicWeek, ttlSec: 8 * DAY, reason: "clinic_weekly_changes" });
   return counters;
 }
 
@@ -444,6 +459,7 @@ const REASON_TEXT: Record<RefusalReason, string> = {
   clinic_weekly_weeks: "One clinic asked for more week runs than allowed this week (DENTVID_MAX_WEEKS_PER_CLINIC_WEEK).",
   clinic_daily_restyles: "One clinic reached its daily restyle limit (DENTVID_MAX_RESTYLES_PER_CLINIC_DAY).",
   clinic_weekly_recordings: "One clinic reached its weekly recording limit (DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK).",
+  clinic_weekly_changes: "One clinic reached its weekly change-request limit (DENTVID_MAX_CHANGES_PER_CLINIC_WEEK).",
 };
 
 /**
