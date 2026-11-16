@@ -27,9 +27,8 @@ final class AppModel {
         if await LiveBackend.shared.restore() {
             backend = LiveBackend.shared
             phase = .signedIn
+            // refresh() signs out by itself if the stored login no longer works.
             await refresh()
-            // A stored session whose clinic is gone (account deleted on the web).
-            if clinic == nil, error == BackendError.signedOut.message { await signOut() }
         } else {
             phase = .signedOut
         }
@@ -57,6 +56,11 @@ final class AppModel {
             weeks = Week.group(try await backend.items())
             error = nil
         } catch {
+            // The login no longer works (account deleted on the web, token revoked): back to sign-in.
+            if (error as? BackendError) == .signedOut, !isDemo {
+                await signOut()
+                return
+            }
             self.error = (error as? BackendError)?.message ?? BackendError.generic.message
         }
     }

@@ -92,24 +92,27 @@ Sıra şöyle:
 | Contact Info: Email Address | Evet | Evet | Hayır | App Functionality |
 | Identifiers: User ID | Evet | Evet | Hayır | App Functionality |
 | User Content: Other User Content (ret notu) | Evet | Evet | Hayır | App Functionality |
+| Usage Data: Product Interaction (onay olayı `video_approved`, `dentvid_events`) | Evet | Evet | Hayır | Analytics |
 | Health, Location, Contacts, Browsing, Diagnostics, Purchases | Hayır | | | |
 
 Tracking: No.
 
 ## App Review Information
 
-- **Sign-in required:** Hayır. Uygulamada giriş gerektirmeyen tam işlevli örnek klinik var. Apple demo hesabı isterse, sahibi bir demo klinik açıp bilgilerini buraya girer.
+- **Sign-in required:** Evet (2.1(a): demo modu yalnız Apple'ın ön onayıyla yeter). Sahibi bir demo klinik açar: etkin plan, en az 5 onay bekleyen video. E-posta ve şifresini buraya kendisi girer.
 - **Contact:** hello@dentvideo.com
 - **Notes:**
 
 ```
-DentVideo is a free companion app for dental clinics that already have a DentVideo business account. DentVideo is a B2B service sold directly to dental practices (organizations) under a business agreement on our website; it is not sold to consumers, and the app contains no purchasing, prices or links to buy (Guideline 3.1.3(c)). Accounts are created by clinics on the web; the app has sign-in only, plus account deletion under Account.
+DentVideo is a free companion app for dental clinics that already have a DentVideo business account. DentVideo is a B2B service. It is sold directly to dental practices (organizations) under a business agreement on our website and invoiced to the practice. It is not sold to consumers. The app contains no purchasing, no prices and no links to buy (Guideline 3.1.3(c)). Clinics create accounts on the web. The app offers sign-in, an in-app password reset, and account deletion under Account.
 
-To review every feature without an account, tap "Explore a sample clinic" on the first screen. It opens a sample clinic with DentVideo's real sample videos (streamed from dentvideo.com). You can watch a video, approve it, reject it with a note, approve all, save to Photos (add-only permission), share, copy the caption, mark as posted, and browse the library. Decisions in the sample clinic stay on the device. We ask that this demo mode be accepted in place of a demo account (Guideline 2.1(a)); if you need a live account, please tell us and we will provide one.
+Sign-in details for a demo clinic are in the Sign-In Information fields. Account deletion can be tested with that account.
 
-Health content: the videos are general patient information reviewed and approved by the clinic's own dentist before use; every video screen states it is not a diagnosis. The app stores no patient data.
+Without signing in, "Explore a sample clinic" on the first screen opens a sample clinic with DentVideo's public sample videos. There you can watch, approve, reject with a note, approve all, save to Photos (add-only permission), share, copy the caption, mark as posted and browse the library. Decisions in the sample clinic stay on the device.
 
-External links: Privacy policy and password reset open dentvideo.com.
+The videos are general patient information. The clinic's own dentist approves each one before use, and every video screen states that it is not a diagnosis. The app stores no patient data.
+
+The only external link is the privacy policy on dentvideo.com.
 ```
 
 ## Yükleme

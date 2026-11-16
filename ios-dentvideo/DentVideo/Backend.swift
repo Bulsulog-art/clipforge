@@ -78,7 +78,8 @@ final class LiveBackend: Backend {
             .limit(1)
             .execute()
             .value
-        guard let row = rows.first else { throw BackendError.generic }
+        // No clinic row: the account was deleted (or is another product's login).
+        guard let row = rows.first else { throw BackendError.signedOut }
         let email = (try? await client.auth.session.user.email) ?? ""
         return Clinic(
             name: row.profile?.name ?? "DentVideo",
@@ -108,7 +109,7 @@ final class LiveBackend: Backend {
         let rows: [ItemRow] = try await client.from("dentvid_items")
             .select("id, kind, status, approval, approval_note, title, week_of, copy, posted_at, video_path, thumb_path")
             .eq("owner_id", value: uid)
-            .eq("kind", value: "generated")
+            // Both kinds, as the web library: the weekly videos and the clinic's own recordings.
             .order("created_at", ascending: false)
             .limit(60)
             .execute()
@@ -140,40 +141,83 @@ final class LiveBackend: Backend {
         }
     }
 
-    /// Decisions go through the website's API (same checks and events as the web app).
-    private func api(_ path: String, body: [String: Any], method: String = "POST") async throws {
-        guard let token = try? await client.auth.session.accessToken else { throw BackendError.signedOut }
-        var req = URLRequest(url: Config.siteURL.appendingPathComponent(path))
-        req.httpMethod = method
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        req.setValue(Locale.preferredLanguages.first ?? "en", forHTTPHeaderField: "Accept-Language")
-        req.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
-        if (200..<300).contains(code) { return }
-        if code == 401 { throw BackendError.signedOut }
-        let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
-        throw message.map { BackendError(message: $0) } ?? BackendError.generic
-    }
+    lazy var api = SiteAPI(token: { [client] in try? await client.auth.session.accessToken })
 
     func decide(_ id: String, approval: VideoItem.Approval, note: String?) async throws {
-        var body: [String: Any] = ["approval": approval.rawValue]
-        if let note, !note.isEmpty { body["note"] = String(note.prefix(500)) }
-        try await api("/api/dentvideo/items/\(id)", body: body, method: "PATCH")
+        try await api.decide(id, approval: approval, note: note)
     }
 
     func setPosted(_ id: String, posted: Bool) async throws {
-        try await api("/api/dentvideo/items/\(id)", body: ["posted": posted], method: "PATCH")
+        try await api.setPosted(id, posted: posted)
     }
 
     func deleteAccount(confirm: String) async throws {
-        try await api("/api/dentvideo/account/delete", body: ["confirm": confirm])
+        try await api.deleteAccount(confirm: confirm)
         try? await client.auth.signOut(scope: .local)
+    }
+
+    func requestPasswordReset(email: String) async throws {
+        try await api.requestPasswordReset(email: email)
     }
 
     func signOut() async {
         try? await client.auth.signOut(scope: .local)
+    }
+}
+
+// MARK: - The website's API
+
+/// Calls to dentvideo.com's API: the same routes, checks and events the web app
+/// uses. Decisions and deletion authenticate with the Supabase access token
+/// (bearer); the password-reset request is unauthenticated, like the web form.
+struct SiteAPI {
+    var base: URL = Config.siteURL
+    var session: URLSession = .shared
+    let token: @Sendable () async -> String?
+
+    func decide(_ id: String, approval: VideoItem.Approval, note: String?) async throws {
+        var body: [String: Any] = ["approval": approval.rawValue]
+        if let note, !note.isEmpty { body["note"] = String(note.prefix(500)) }
+        try await send("/api/dentvideo/items/\(id)", body: body, method: "PATCH", auth: true)
+    }
+
+    func setPosted(_ id: String, posted: Bool) async throws {
+        try await send("/api/dentvideo/items/\(id)", body: ["posted": posted], method: "PATCH", auth: true)
+    }
+
+    func deleteAccount(confirm: String) async throws {
+        try await send("/api/dentvideo/account/delete", body: ["confirm": confirm], method: "POST", auth: true)
+    }
+
+    /// The server answers the same whether or not the account exists.
+    func requestPasswordReset(email: String) async throws {
+        let lang = Locale.current.language.languageCode?.identifier ?? "en"
+        try await send("/api/dentvideo/password-reset", body: ["email": email.trimmingCharacters(in: .whitespacesAndNewlines), "locale": lang], method: "POST", auth: false)
+    }
+
+    func send(_ path: String, body: [String: Any], method: String, auth: Bool) async throws {
+        var req = URLRequest(url: base.appendingPathComponent(path))
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue(Locale.preferredLanguages.first ?? "en", forHTTPHeaderField: "Accept-Language")
+        if auth {
+            guard let token = await token() else { throw BackendError.signedOut }
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            // A cookie-less request from the app itself; the site's CSRF guard wants its own origin.
+            req.setValue(base.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/")), forHTTPHeaderField: "Origin")
+        }
+        req.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        let (data, resp) = try await session.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+        if (200..<300).contains(code) { return }
+        if code == 401 { throw BackendError.signedOut }
+        // 4xx come with a message in the clinic's language; anything else is ours to word.
+        if (400..<500).contains(code), code != 403,
+           let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String {
+            throw BackendError(message: message)
+        }
+        throw BackendError.generic
     }
 }
 

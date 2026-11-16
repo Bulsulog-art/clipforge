@@ -20,7 +20,8 @@ Klinik başına ayrı uygulama yapılmayacak (4.2.6). Tek uygulama, klinik baş�
 - 3.1.3(b) uymaz. Bu madde web'de satılanın uygulamada da IAP olarak sunulmasını şart koşuyor.
 - 3.1.3(f) kategori olarak uymaz. Ama koşullarını aynen uyguluyoruz: uygulamada satın alma yok, dışarıya satın alma çağrısı yok.
 - Uygulamada şunlar yok: kayıt, plan, fiyat, "abone ol", ödeme sayfasına bağlantı. Kullanım koşulları bağlantısı da kaldırıldı, çünkü sitenin menüsünde fiyat bağlantısı var.
-- Kalan iki dış bağlantı: gizlilik politikası (5.1.1(i) gereği zorunlu) ve şifre sıfırlama. İkisi de inceleme notunda açıklanıyor.
+- Şifre sıfırlama uygulamanın içinde: sitenin `/api/dentvideo/password-reset` uç noktası, web formuyla aynı. Bağlantı e-postayla gelir.
+- Kalan tek dış bağlantı gizlilik politikası. 5.1.1(i) gereği zorunlu ve inceleme notunda açıklanıyor.
 - ABD mağazasında dış bağlantı serbestisi v1'de kullanılmıyor. Kullanılırsa 2.5.19 gereği notta beyan edilmeli.
 - Bilinen risk: tek hekimli bir klinik "single user" satış gibi görülebilir. Bunu azaltan şey, inceleme notunda B2B sözleşmeyi ve işletme faturasını açıkça yazmak.
 
@@ -42,11 +43,19 @@ Fiyatlar aynı kalıyor: Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 
 - Uygulama hasta verisi tutmuyor. Bu yüzden 5.1.3 tetiklenmiyor ve gizlilik etiketinde "Health" alanı işaretlenmiyor.
 - Yaş derecesi: tedavi bilgisi içeriği sık olduğu için dürüst cevap "Medical/Treatment Information: Frequent", sonuç 16+.
 
-## Karar 4: İnceleme için örnek klinik (demo modu)
+## Karar 4: İnceleme için demo klinik ve örnek klinik
 
-- Giriş ekranında "Explore a sample clinic" düğmesi var. Uygulamanın tamamını sitenin herkese açık örnek videolarıyla, girişsiz gösteriyor. Kararlar yalnız telefonda tutuluyor, hiçbir yere gönderilmiyor.
-- 2.1(a)'ya göre demo modu, demo hesabın yerine Apple'ın ön onayıyla geçer. İnceleme notunda bu isteniyor.
-- Yeni hesap açmak sahibine bırakıldı. Apple gerçek bir giriş isterse yapılacaklar: bir demo klinik açılır, bilgileri App Store Connect'e "Sign-in information" olarak girilir.
+- Giriş ekranında "Explore a sample clinic" düğmesi var. Uygulamanın tamamını, sitenin herkese açık örnek videolarıyla, girişsiz gösteriyor. Kararlar yalnız telefonda tutuluyor, hiçbir yere gönderilmiyor.
+- 2.1(a)'ya göre demo modu, demo hesabın yerine ancak Apple'ın ön onayıyla geçer. Bu yüzden gönderimde gerçek bir demo klinik hesabı da verilecek. Hesap silmeyi de inceleyici ancak bu hesapla görebilir.
+- Yeni hesap açmak ve şifre girmek sahibine bırakıldı.
+
+## Karar 6: Kayıtlar da gösteriliyor
+
+Uygulama web kütüphanesiyle aynı listeyi gösteriyor: haftalık videolar ve kliniğin kendi kayıtları. Practice planı kendi kayıtlarını satıyor, bu yüzden onları gizlemek eksik olurdu.
+
+## Bilinen sınırlar
+
+- Üretimde `DODO_API_KEY` tanımlı değil. Bu yüzden aktif aboneliği olan bir klinik hesabını uygulamadan silemiyor. Sunucu "önce aboneliğinizi iptal edin" diyor ve uygulama bu metni gösteriyor. Silme ekranındaki açıklama da buna göre yazıldı.
 
 ## Karar 5: Sunucu tarafı
 

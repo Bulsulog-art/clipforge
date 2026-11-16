@@ -618,6 +618,28 @@
         }
       }
     },
+    "Done": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamam"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        }
+      }
+    },
     "Every Monday, five short narrated videos with your logo and colours.": {
       "localizations": {
         "tr": {
@@ -790,6 +812,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ya lo publiqué"
+          }
+        }
+      }
+    },
+    "If this email has a DentVideo account, a link to choose a new password is on its way. Check your inbox.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu e-postanın bir DentVideo hesabı varsa yeni şifre seçme bağlantısı yolda. Gelen kutunuza bakın."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn zu dieser E-Mail ein DentVideo-Konto gehört, ist ein Link zum Festlegen eines neuen Passworts unterwegs. Sehen Sie in Ihr Postfach."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si este email tiene una cuenta de DentVideo, te llega un enlace para elegir una contraseña nueva. Revisa tu bandeja de entrada."
           }
         }
       }
@@ -1190,6 +1234,28 @@
         }
       }
     },
+    "Reset password": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreyi sıfırla"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort zurücksetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer contraseña"
+          }
+        }
+      }
+    },
     "Sample": {
       "localizations": {
         "tr": {
@@ -1296,6 +1362,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Guardando…"
+          }
+        }
+      }
+    },
+    "Send link": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bağlantıyı gönder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link senden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar enlace"
           }
         }
       }
@@ -1520,24 +1608,24 @@
         }
       }
     },
-    "This permanently deletes your clinic, its videos and your login. If your subscription is active, it is cancelled first. This cannot be undone.": {
+    "This permanently deletes your clinic, its videos and your login. It cannot be undone. A clinic with an active subscription is asked to cancel it first.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bu işlem kliniğinizi, videolarını ve girişinizi kalıcı olarak siler. Aboneliğiniz etkinse önce iptal edilir. Geri alınamaz."
+            "value": "Bu işlem kliniğinizi, videolarını ve girişinizi kalıcı olarak siler. Geri alınamaz. Aboneliği etkin olan bir klinikten önce aboneliği iptal etmesi istenir."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Damit werden Ihre Praxis, ihre Videos und Ihr Login dauerhaft gelöscht. Ein aktives Abo wird zuerst gekündigt. Das lässt sich nicht rückgängig machen."
+            "value": "Damit werden Ihre Praxis, ihre Videos und Ihr Login dauerhaft gelöscht. Das lässt sich nicht rückgängig machen. Eine Praxis mit aktivem Abo wird gebeten, es zuerst zu kündigen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esto elimina para siempre tu clínica, sus vídeos y tu acceso. Si tu suscripción está activa, primero se cancela. No se puede deshacer."
+            "value": "Esto elimina para siempre tu clínica, sus vídeos y tu acceso. No se puede deshacer. A una clínica con suscripción activa se le pide cancelarla primero."
           }
         }
       }
@@ -1714,6 +1802,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mira cada uno, o apruébalos todos si ya los revisaste."
+          }
+        }
+      }
+    },
+    "We'll email you a link to choose a new password.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni şifre seçmeniz için e-postanıza bir bağlantı göndereceğiz."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir senden Ihnen per E-Mail einen Link für ein neues Passwort."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te enviaremos por email un enlace para elegir una contraseña nueva."
           }
         }
       }

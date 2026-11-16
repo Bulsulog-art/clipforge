@@ -13,6 +13,7 @@ struct VideoDetailView: View {
     @State private var working: String?
     @State private var toast: String?
     @State private var shareFile: ShareFile?
+    @State private var saved = false
 
     private var item: VideoItem? { model.item(itemID) }
 
@@ -88,7 +89,8 @@ struct VideoDetailView: View {
             VStack(spacing: 10) {
                 HStack(spacing: 10) {
                     Button { Task { await saveToPhotos(item) } } label: {
-                        Label(working == "save" ? String(localized: "Saving…") : String(localized: "Save to Photos"), systemImage: "square.and.arrow.down")
+                        Label(working == "save" ? String(localized: "Saving…") : saved ? String(localized: "Saved to Photos") : String(localized: "Save to Photos"),
+                              systemImage: saved ? "checkmark" : "square.and.arrow.down")
                     }
                     .buttonStyle(PrimaryButtonStyle())
                     .disabled(working != nil)
@@ -191,6 +193,7 @@ struct VideoDetailView: View {
             try await PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: file)
             }
+            saved = true
             flash(String(localized: "Saved to Photos"))
         } catch {
             flash(String(localized: "Couldn't save the video. Please try again."))

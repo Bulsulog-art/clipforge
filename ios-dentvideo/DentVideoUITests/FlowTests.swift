@@ -23,8 +23,8 @@ final class FlowTests: XCTestCase {
         shot(app, "01-signin")
 
         app.buttons["demo-button"].tap()
-        XCTAssertTrue(app.otherElements["demo-banner"].waitForExistence(timeout: 10) || app.staticTexts["demo-banner"].exists || app.buttons["approve-all"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["approve-all"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["demo-banner"].exists, "the sample clinic says it is a sample")
         sleep(3) // posters load from dentvideo.com
         shot(app, "02-week")
 
@@ -50,10 +50,36 @@ final class FlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["save"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["share"].exists)
         app.buttons["copy-caption"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["toast"].waitForExistence(timeout: 3), "copying confirms itself")
         let posted = app.switches["posted-toggle"]
         XCTAssertTrue(posted.waitForExistence(timeout: 5))
         shot(app, "04-approved")
+        XCTAssertEqual(posted.value as? String, "0")
         if posted.switches.firstMatch.exists { posted.switches.firstMatch.tap() } else { posted.tap() }
+        XCTAssertEqual(posted.value as? String, "1", "the posted tick sticks")
+
+        // Save to Photos: the add-only permission prompt, then the confirmation.
+        addUIInterruptionMonitor(withDescription: "Photos") { alert in
+            for label in ["Allow", "Allow Access", "OK", "İzin Ver", "Tamam"] where alert.buttons[label].exists { alert.buttons[label].tap(); return true }
+            return false
+        }
+        app.buttons["save"].tap()
+        app.tap() // lets the interruption monitor run
+        // The add-only Photos alert, in any language: its last button allows.
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let alert = springboard.alerts.firstMatch
+        if alert.waitForExistence(timeout: 5), alert.buttons.count > 0 { alert.buttons.element(boundBy: alert.buttons.count - 1).tap() }
+        let saved = NSPredicate(format: "label CONTAINS[c] %@", savedLabel)
+        expectation(for: saved, evaluatedWith: app.buttons["save"])
+        waitForExpectations(timeout: 45)
+
+        // Share: the system share sheet opens with the video.
+        app.buttons["share"].tap()
+        let sheet = app.otherElements["ActivityListView"]
+        XCTAssertTrue(sheet.waitForExistence(timeout: 60) || app.navigationBars["UIActivityContentView"].waitForExistence(timeout: 5), "share sheet opens")
+        // Close the share sheet: its Close button, or a swipe on the sheet itself.
+        if app.buttons["Close"].waitForExistence(timeout: 3) { app.buttons["Close"].tap() } else { sheet.swipeDown(velocity: .fast) }
+        XCTAssertTrue(sheet.waitForNonExistence(timeout: 10), "share sheet closes")
 
         // Back to the week: approve the rest in one tap.
         app.navigationBars.buttons.element(boundBy: 0).tap()
@@ -65,6 +91,8 @@ final class FlowTests: XCTestCase {
 
         // Library and account.
         app.tabBars.buttons.element(boundBy: 1).tap()
+        XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5), "the library lists this week's videos")
+        XCTAssertGreaterThanOrEqual(app.cells.count, 3)
         sleep(2)
         shot(app, "06-library")
         app.tabBars.buttons.element(boundBy: 2).tap()
@@ -73,6 +101,17 @@ final class FlowTests: XCTestCase {
         shot(app, "07-account")
         app.buttons["signout"].tap()
         XCTAssertTrue(app.buttons["signin-button"].waitForExistence(timeout: 5))
+    }
+
+    func testForgotPasswordStaysInTheApp() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(en)"]
+        app.launch()
+        XCTAssertTrue(app.buttons["forgot-password"].waitForExistence(timeout: 10))
+        app.buttons["forgot-password"].tap()
+        XCTAssertTrue(app.textFields["reset-email"].waitForExistence(timeout: 5), "a sheet in the app, not the website")
+        XCTAssertFalse(app.buttons["reset-send"].isEnabled)
+        XCTAssertEqual(XCUIApplication(bundleIdentifier: "com.apple.mobilesafari").state, .notRunning)
     }
 
     func testWrongPasswordSaysSoWithoutCrashing() throws {
@@ -93,5 +132,6 @@ final class FlowTests: XCTestCase {
     private var lang: String { ProcessInfo.processInfo.environment["DV_LANG"] ?? "en" }
     private var locale: String { ["tr": "tr_TR", "de": "de_DE", "es": "es_ES"][lang] ?? "en_US" }
     private var needsApprovalLabel: String { ["tr": "Onayınızı bekliyor", "de": "Wartet auf Freigabe", "es": "Necesita tu aprobación"][lang] ?? "Needs your approval" }
+    private var savedLabel: String { ["tr": "kaydedildi", "de": "gesichert", "es": "Guardado"][lang] ?? "Saved to Photos" }
     private var approveAfterAllLabel: String { ["tr": "Yine de onayla", "de": "Doch freigeben", "es": "Aprobarlo de todos modos"][lang] ?? "Approve it after all" }
 }

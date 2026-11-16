@@ -53,7 +53,7 @@ struct AccountView: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("This permanently deletes your clinic, its videos and your login. If your subscription is active, it is cancelled first. This cannot be undone.")
+                    Text("This permanently deletes your clinic, its videos and your login. It cannot be undone. A clinic with an active subscription is asked to cancel it first.")
                         .font(.subheadline)
                 }
                 Section {

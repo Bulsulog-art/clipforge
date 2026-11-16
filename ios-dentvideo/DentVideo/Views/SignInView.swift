@@ -8,6 +8,7 @@ struct SignInView: View {
     @State private var password = ""
     @State private var busy = false
     @State private var error: String?
+    @State private var showReset = false
     @FocusState private var focus: Field?
     enum Field { case email, password }
 
@@ -60,9 +61,10 @@ struct SignInView: View {
                     .opacity(canSubmit ? 1 : 0.6)
                     .accessibilityIdentifier("signin-button")
 
-                    Link("Forgot your password?", destination: Config.siteURL.appendingPathComponent("reset"))
+                    Button("Forgot your password?") { showReset = true }
                         .font(.footnote.weight(.semibold))
                         .padding(.top, 4)
+                        .accessibilityIdentifier("forgot-password")
                 }
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -87,6 +89,7 @@ struct SignInView: View {
             .padding(.bottom, 30)
         }
         .scrollDismissesKeyboard(.interactively)
+        .sheet(isPresented: $showReset) { ForgotPasswordSheet(email: email) }
         .background(Color.dvPaper.ignoresSafeArea())
     }
 
@@ -111,5 +114,58 @@ struct FieldStyle: ViewModifier {
             .background(Color.white, in: .rect(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dvLine))
             .foregroundStyle(Color.dvInk)
+    }
+}
+
+/// Asks dentvideo.com to email a reset link (the same request as the website's
+/// form). The answer is the same whether or not the account exists.
+struct ForgotPasswordSheet: View {
+    @State var email: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var busy = false
+    @State private var sent = false
+    @State private var error: String?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if sent {
+                    Section {
+                        Label("If this email has a DentVideo account, a link to choose a new password is on its way. Check your inbox.", systemImage: "envelope.badge")
+                            .accessibilityIdentifier("reset-sent")
+                    }
+                } else {
+                    Section {
+                        TextField("Clinic email", text: $email)
+                            .textContentType(.username)
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .accessibilityIdentifier("reset-email")
+                    } footer: {
+                        if let error { Text(error).foregroundStyle(.red) } else { Text("We'll email you a link to choose a new password.") }
+                    }
+                    Section {
+                        Button {
+                            Task {
+                                busy = true
+                                defer { busy = false }
+                                do { try await LiveBackend.shared.requestPasswordReset(email: email); sent = true } catch {
+                                    self.error = error.localizedDescription
+                                }
+                            }
+                        } label: {
+                            if busy { ProgressView() } else { Text("Send link") }
+                        }
+                        .disabled(!email.contains("@") || busy)
+                        .accessibilityIdentifier("reset-send")
+                    }
+                }
+            }
+            .navigationTitle("Reset password")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(sent ? "Done" : "Cancel") { dismiss() } } }
+        }
+        .presentationDetents([.medium])
     }
 }

@@ -12,6 +12,8 @@ cd "$(dirname "$0")/.."
 CUR=$(sed -n 's/ *CFBundleVersion: "\([0-9]*\)"/\1/p' project.yml)
 NEXT=${1:-$((CUR + 1))}
 sed -i '' "s/CFBundleVersion: \"$CUR\"/CFBundleVersion: \"$NEXT\"/" project.yml
+# Keep the new number only if the upload succeeds.
+trap '[ "${DONE:-0}" = 1 ] || sed -i "" "s/CFBundleVersion: \"$NEXT\"/CFBundleVersion: \"$CUR\"/" project.yml' EXIT
 VER=$(sed -n 's/ *CFBundleShortVersionString: "\(.*\)"/\1/p' project.yml)
 xcodegen generate -q
 ARCHIVE="build/DentVideo-$VER-$NEXT.xcarchive"
@@ -19,4 +21,5 @@ xcodebuild -project DentVideo.xcodeproj -scheme DentVideo -configuration Release
   -destination 'generic/platform=iOS' -archivePath "$ARCHIVE" -allowProvisioningUpdates $AUTH archive
 xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportOptionsPlist exportOptions.plist \
   -exportPath build/export -allowProvisioningUpdates $AUTH
+DONE=1
 echo "Uploaded DentVideo $VER ($NEXT)."
