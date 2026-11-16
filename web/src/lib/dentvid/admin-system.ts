@@ -241,6 +241,51 @@ export function lastDispatch(now: Date): { at: Date; week: string } {
   return { at, week: dispatchWeek(at) };
 }
 
+/**
+ * The worker's delivery watchdog report (worker/src/dentvid/delivery.ts, key dv:ops:delivery,
+ * written hourly): did every paying clinic get its Monday week, the last week each one got,
+ * and failed / stuck jobs per clinic. What the daily ops sweep reads (docs/RELIABILITY.md).
+ */
+export const DELIVERY_REPORT_KEY = "dv:ops:delivery";
+export type DeliveryReportView = {
+  at: string;
+  payingClinics: number;
+  due: number;
+  delivered: number;
+  late: { clinicId: string; week: string; deadline: string; jobState: string; requeued: boolean }[];
+  lastDelivered: Record<string, string | null>;
+  behind: string[];
+  failedJobs: Record<string, number>;
+  stuckJobs: Record<string, number>;
+  /** Older than 3 hours: the hourly watchdog is not running. */
+  stale: boolean;
+};
+
+export function parseDeliveryReport(raw: string | null | undefined, now: Date): DeliveryReportView | null {
+  if (!raw) return null;
+  try {
+    const r = JSON.parse(raw) as Partial<DeliveryReportView>;
+    const at = typeof r.at === "string" ? r.at : "";
+    if (!Number.isFinite(Date.parse(at))) return null;
+    const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+    const counts = (o: unknown) => Object.fromEntries(Object.entries((o && typeof o === "object" ? o : {}) as Record<string, unknown>).map(([k, v]) => [k, num(v)]));
+    return {
+      at,
+      payingClinics: num(r.payingClinics),
+      due: num(r.due),
+      delivered: num(r.delivered),
+      late: Array.isArray(r.late) ? r.late.slice(0, 200) : [],
+      lastDelivered: r.lastDelivered && typeof r.lastDelivered === "object" ? r.lastDelivered : {},
+      behind: Array.isArray(r.behind) ? r.behind.filter((x): x is string => typeof x === "string") : [],
+      failedJobs: counts(r.failedJobs),
+      stuckJobs: counts(r.stuckJobs),
+      stale: now.getTime() - Date.parse(at) > 3 * 3_600_000,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export type DispatchMarker = { at: string; jobs: number; waves: number; projectedLate: number };
 
 export function parseDispatch(raw: string | null | undefined): DispatchMarker | null {

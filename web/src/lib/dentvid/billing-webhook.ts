@@ -43,8 +43,8 @@ export type DvWebhookDeps = {
   alert?: (a: OwnerAlert) => Promise<unknown>;
   /** Name, country, tier, email of a clinic for an alert. */
   clinicRef?: (db: SupabaseClient, clinicId: string) => Promise<ClinicRef>;
-  /** Tell the worker's first-week watchdog a clinic just paid for the first time (Redis marker). */
-  markPaid?: (clinicId: string) => Promise<void>;
+  /** Tell the worker's first-week watchdog a clinic just paid — first time or back from paused/cancelled (Redis marker). */
+  markPaid?: (clinicId: string, at?: Date, returning?: boolean) => Promise<void>;
   /** Record the Google Ads "dv_paid" conversion for a first payment (default: ad-conversions-server; best effort). */
   adConversion?: (db: SupabaseClient, clinic: { id: string; owner_id: string }) => Promise<string>;
   /**
@@ -68,7 +68,28 @@ export type DvWebhookDeps = {
    */
   clinicByEmail?: (db: SupabaseClient, email: string) => Promise<ClinicByEmail>;
   now?: () => Date;
+  /** How long queueing the week may take before it counts as failed (default ENQUEUE_TIMEOUT_MS). */
+  enqueueTimeoutMs?: number;
 };
+
+/**
+ * The web app's BullMQ connection queues commands while Redis is down
+ * (enableOfflineQueue, no retry limit), so `queue.add` would hang until Redis
+ * returns: the webhook would never answer, the welcome email and the owner's
+ * "could not queue" alert would never go out, and Dodo's retry would find the
+ * delivery still "in progress". Bounded: past this the week counts as not
+ * queued — the owner is told and the worker's watchdog re-queues it.
+ */
+export const ENQUEUE_TIMEOUT_MS = 5_000;
+
+/** Rejects after `ms` (the underlying call keeps running; a late success is harmless — same job id). */
+export function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const t = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${what} timed out after ${ms} ms`)), ms);
+  });
+  return Promise.race([p, t]).finally(() => clearTimeout(timer));
+}
 
 /** Payment trouble that does not move the plan yet (Dodo keeps the subscription through its grace period). */
 const AT_RISK_ONLY = new Set(["payment.failed", "subscription.past_due"]);
@@ -314,10 +335,13 @@ async function moneyBack(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhoo
       if (error) return { status: 500, body: { error: error.message } };
       await subs.put({ ...current, status: "active" });
       resumed = true;
+      // The watchdog hears about it first, so a week that cannot be queued now is still re-queued later.
+      await (deps.markPaid ?? markPaid)(clinic.id, now, true).catch(() => {});
       try {
-        await (deps.enqueueWeek ?? queueWeek)(db, clinic.id);
+        await withTimeout((deps.enqueueWeek ?? queueWeek)(db, clinic.id), deps.enqueueTimeoutMs ?? ENQUEUE_TIMEOUT_MS, "queueing the week");
       } catch (e) {
         console.error("[dodo:dentvideo] could not queue the week after a won dispute", clinic.id, (e as Error).message);
+        await tell(db, deps, clinic.id, (c) => alerts.enqueueFailed({ where: "payment", job: "week", error: cleanError(e), clinic: c }));
       }
     }
   }
@@ -514,7 +538,9 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   // Internal traffic (owner, QA, e2e): looked up only when a payment lands, never on other events.
   const internal = update.plan === "active" ? await (deps.ownerInternal ?? ownerIsInternal)(db, clinic.owner_id).catch(() => false) : false;
   if (to === "active" && from !== "active") {
-    if (first) await (deps.markPaid ?? markPaid)(clinic.id).catch(() => {});
+    // Every activation, not only the first: a clinic back from on hold / cancelled is owed its week
+    // just the same, and the worker's watchdog only checks the clinics it is told about.
+    await (deps.markPaid ?? markPaid)(clinic.id, now, !first).catch(() => {});
     // Google Ads offline conversion "dv_paid" when the owner came from an ad (one per account: a replay is a no-op).
     // Never for an internal owner: a QA purchase must not reach Google Ads.
     if (first && !internal) await (deps.adConversion ?? recordPaidConversion)(db, { id: clinic.id, owner_id: clinic.owner_id }).catch(() => "failed");
@@ -536,11 +562,11 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   // has already moved, and the app's "first week" screen asks for the week
   // again (idempotent, same job id) if this did not get through. A returning
   // clinic that already has this week's videos keeps them (enqueueFirstWeek).
-  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first, event: evt.type }, internal });
+  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first, activated: from !== "active", event: evt.type }, internal });
   let firstWeek: FirstWeekResult | "failed" | undefined;
   if (update.plan === "active" && from !== "active") {
     try {
-      firstWeek = await (deps.enqueueWeek ?? queueWeek)(db, clinic.id);
+      firstWeek = await withTimeout((deps.enqueueWeek ?? queueWeek)(db, clinic.id), deps.enqueueTimeoutMs ?? ENQUEUE_TIMEOUT_MS, "queueing the week");
     } catch (e) {
       firstWeek = "failed";
       console.error("[dodo:dentvideo] could not queue the first week", clinic.id, (e as Error).message);

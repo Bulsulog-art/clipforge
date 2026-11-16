@@ -11,12 +11,13 @@ import { RedisParkStore, resumeParked } from "./dentvid/park.js";
 import { DISPATCH_SCHEDULE, dispatchWeeks } from "./dentvid/schedule.js";
 import { isBatchPriority } from "./dentvid/job-options.js";
 import { batchNice, withNicedChildren } from "./dentvid/nice.js";
-import { configureReadyMail, notifyReady, type ReadyMailJob } from "./dentvid/notify.js";
+import { configureReadyMail, notifyReadyChecked, type ReadyMailJob } from "./dentvid/notify.js";
 import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
-import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore } from "./dentvid/ops.js";
+import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore, setWeekDelay } from "./dentvid/ops.js";
 import { alerts, cleanError, resendSender } from "./dentvid/ops-alert.js";
 import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
+import { checkWeekDelivery, DELIVERY_SCHEDULE, supabaseDeliveryDb } from "./dentvid/delivery.js";
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
 import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
@@ -211,7 +212,11 @@ const dentvidMailWorker = new Worker(
     if (job.name === "lifecycle") return assertRunOk("lifecycle", await runLifecycle());
     if (job.name === "notify") {
       const d = job.data as ReadyMailJob;
-      return await notifyReady(d.clinicId, d.kind, { ready: d.ready, flagged: d.flagged });
+      // A notice that failed for a passing reason throws, so BullMQ retries it (READY_MAIL_JOB_OPTS)
+      // and, after the last attempt, the owner is told (job-failures.ts). Before, it "succeeded" with false.
+      const r = await notifyReadyChecked(d.clinicId, d.kind, { ready: d.ready, flagged: d.flagged });
+      if (!r.sent && r.retry) throw new Error(`ready email not sent: ${r.reason}`);
+      return r;
     }
     if (job.name === "digest") return assertRunOk("digest", await runDigest());
     if (job.name === "billing-reconcile") {
@@ -219,6 +224,10 @@ const dentvidMailWorker = new Worker(
       // Nightly retention: Google Ads click ids older than 90 days (migration 0019; a no-op error before it is applied).
       await purgeAdData(dentvidDb());
       return result;
+    }
+    if (job.name === "watchdog-delivery") {
+      const r = await checkWeekDelivery({ db: supabaseDeliveryDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert });
+      return { due: r.due, delivered: r.delivered, late: r.late.length, behind: r.behind.length };
     }
     if (job.name === "watchdog-monday" || job.name === "watchdog-first-week") {
       const deps = { db: supabaseWatchDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert };
@@ -244,6 +253,7 @@ if (process.env.DENTVID_SUPABASE_URL && ROLES.has("dentvid-mail")) {
   for (const [id, schedule, name] of [
     ["dentvid-watchdog-monday", WATCHDOG_SCHEDULE, "watchdog-monday"],
     ["dentvid-watchdog-first-week", FIRST_WEEK_SCHEDULE, "watchdog-first-week"],
+    ["dentvid-watchdog-delivery", DELIVERY_SCHEDULE, "watchdog-delivery"],
     ["dentvid-digest", DIGEST_SCHEDULE, "digest"],
     ["dentvid-billing-reconcile", RECONCILE_SCHEDULE, "billing-reconcile"],
   ] as const) {
@@ -290,7 +300,12 @@ async function startParkedResumeCron() {
   while (true) {
     await new Promise((r) => setTimeout(r, PARK_RESUME_MS));
     try {
-      await resumeParked(parkStore, dentvidQueue, spendGuard);
+      await resumeParked(parkStore, dentvidQueue, spendGuard, new Date(), async (p) => {
+        // A parked week or recording given up on after 7 days: the clinic did not get it — the owner hears, the library says so.
+        const week = typeof p.data.week === "string" ? p.data.week : null;
+        if (p.name === "week" && week) await setWeekDelay(p.data.clinicId, week, "delayed");
+        await ownerAlert(alerts.parkedDropped({ clinic: await clinicRef(dentvidDb(), p.data.clinicId), job: p.name, jobId: p.jobId, reason: p.reason, parkedAt: p.parkedAt }));
+      });
     } catch (e) {
       logger.error({ err: (e as Error).message }, "dentvid: resume parked failed");
     }

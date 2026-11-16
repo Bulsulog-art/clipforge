@@ -34,8 +34,11 @@ export const PAID_LIST_KEY = "dv:ops:paid";
 export interface WatchDb {
   /** Clinics that should have a week: paying and not paused by the owner (schedule.ts shouldRun). */
   activeClinicIds(): Promise<string[]>;
-  /** First payments (payment_succeeded with first = true) since a time. */
-  firstPayments(since: Date): Promise<{ clinicId: string; paidAt: string }[]>;
+  /**
+   * Activations since a time: payment_succeeded with first = true (a first payment) or
+   * activated = true (back from paused / cancelled — owed its week just the same).
+   */
+  firstPayments(since: Date): Promise<{ clinicId: string; paidAt: string; returning?: boolean }[]>;
   /** A usable generated video (ready / flagged) created since a time. */
   deliveredSince(clinicId: string, since: Date): Promise<boolean>;
   /** Of these clinics, the ones with generated items for the week. */
@@ -124,17 +127,22 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
 
   // Payments from the events table, plus the web app's Redis markers (either may be missing).
   const paid = new Map<string, string>();
-  const add = (clinicId: string, paidAt: string) => {
+  const returning = new Set<string>();
+  const add = (clinicId: string, paidAt: string, back?: boolean) => {
     if (!clinicId || Number.isNaN(Date.parse(paidAt)) || Date.parse(paidAt) < since.getTime()) return;
     const prev = paid.get(clinicId);
-    if (!prev || paidAt > prev) paid.set(clinicId, paidAt);
+    if (!prev || paidAt > prev) {
+      paid.set(clinicId, paidAt);
+      if (back) returning.add(clinicId);
+      else returning.delete(clinicId);
+    }
   };
-  for (const p of await deps.db.firstPayments(since).catch(() => [])) add(p.clinicId, p.paidAt);
+  for (const p of await deps.db.firstPayments(since).catch(() => [])) add(p.clinicId, p.paidAt, p.returning);
   if (deps.store) {
     for (const raw of await deps.store.list(PAID_LIST_KEY).catch(() => [] as string[])) {
       try {
-        const p = JSON.parse(raw) as { clinicId: string; paidAt: string };
-        add(p.clinicId, p.paidAt);
+        const p = JSON.parse(raw) as { clinicId: string; paidAt: string; returning?: boolean };
+        add(p.clinicId, p.paidAt, p.returning === true);
       } catch {
         // ignore
       }
@@ -185,7 +193,7 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
     }
     if (minutes >= t.firstWeekAlertMin) {
       const wasRequeued = requeued || (deps.store ? (await deps.store.get(`dv:ops:fw-requeue:${clinicId}:${paidAt}`).catch(() => null)) !== null : false);
-      const r = await deps.alert(alerts.firstWeekLate({ clinic: await deps.db.clinic(clinicId), paidAt, minutes, requeued: wasRequeued, jobState: state }));
+      const r = await deps.alert(alerts.firstWeekLate({ clinic: await deps.db.clinic(clinicId), paidAt, minutes, requeued: wasRequeued, jobState: state, returning: returning.has(clinicId) }));
       if (r === "sent") res.alerted.push(clinicId);
     }
   }
@@ -210,8 +218,15 @@ export function supabaseWatchDb(db: SupabaseClient): WatchDb {
         .limit(500);
       if (error) return [];
       return (data ?? [])
-        .filter((r) => r.clinic_id && (r.props as { first?: unknown } | null)?.first === true)
-        .map((r) => ({ clinicId: r.clinic_id as string, paidAt: new Date(r.created_at as string).toISOString() }));
+        .filter((r) => {
+          const p = r.props as { first?: unknown; activated?: unknown } | null;
+          return r.clinic_id && (p?.first === true || p?.activated === true);
+        })
+        .map((r) => ({
+          clinicId: r.clinic_id as string,
+          paidAt: new Date(r.created_at as string).toISOString(),
+          returning: (r.props as { first?: unknown } | null)?.first !== true,
+        }));
     },
     async deliveredSince(clinicId, since) {
       const { count } = await db
