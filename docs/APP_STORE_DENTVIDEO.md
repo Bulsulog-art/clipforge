@@ -60,6 +60,11 @@ cd ios/DentVideo && xcodegen generate && open DentVideo.xcodeproj
   contain none of it) and uploads two artifacts: `dentvideo-screens-review` (every screen and
   state, iPhone 6.9" in eight languages, light and dark, largest text size, iPad 13") and
   `dentvideo-screens-store` (full-size PNGs for §6). Locally on a Mac: `scripts/screens.sh`.
+- Tests: the same workflow's `tests` job (input "tests", on by default) runs the app's unit tests
+  (`Tests/Unit`) and the end-to-end UI journeys (`Tests/UI`, demo flow mode against the in-process
+  fake API) on iPhone 17 Pro Max and iPad Pro 13" with iOS 26 and on iPhone SE (3rd generation)
+  with iOS 17. Locally: `scripts/test.sh "iPhone 17 Pro Max" 26`. What must pass before each
+  TestFlight and App Store step: `docs/IOS_RELEASE_CHECKLIST.md`.
 
 ### 1.4 App Store Connect → My Apps → +
 
