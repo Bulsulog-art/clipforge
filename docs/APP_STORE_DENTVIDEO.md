@@ -75,7 +75,7 @@ One command creates it on Liman, with the service role and no payment, **after**
 `review_demo` (migration 0024, worker `getsWeeks`) is deployed:
 
 ```
-scripts/dentvideo-review-demo/run.sh
+scripts/dentvideo-review-demo/run.sh --worker-has-review-demo
 ```
 
 It backs up the dentvid tables, applies 0024 (idempotent), creates `appreview@dentvideo.com`
@@ -87,8 +87,9 @@ render, no API spend), all "ready" and undecided, each with a filming card, so t
 approve, decline, post and record.
 
 - `review_demo = true` keeps the clinic out of the Monday batch and the delivery watchdogs, and a
-  "week" job for it makes nothing (worker `getsWeeks`, `paying`). The reviewer's own recording is
-  still processed (a few cents of transcription), so the recording flow works.
+  "week" or "restyle" job for it makes nothing (worker `getsWeeks`, `paying`). The reviewer's own
+  recording is still processed (transcription plus the script checks per clip, under the spend
+  guard), so the recording flow works; that is the only paid work the demo clinic can cause.
 - Put the email and password in App Store Connect → App Review Information → Sign-in required.
 - The week moves on every Saturday 18:00 UTC. The day before submitting, bring the samples into the
   current week: `update dentvid_items set week_of = date_trunc('week', now() + interval '30 hours')::date,

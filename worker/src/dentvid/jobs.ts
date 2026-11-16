@@ -299,10 +299,11 @@ async function paying(db: SupabaseClient, clinicId: string, kind: string): Promi
   // with nothing made (and its job id would block the week). Fail so it is retried.
   if (error) throw new TransientWeekError(`clinic ${clinicId} could not be read (service unavailable): ${error.message}`);
   const row = (data ?? null) as { plan?: string; plan_tier?: string | null; admin_paused_at?: string | null; review_demo?: boolean | null } | null;
-  if (kind === "week" && row?.review_demo) {
-    // The App Review demo clinic (0024): its plan is set by hand without a payment, so no week is
-    // made for it, however the job was queued. Its own recordings still work (the app's flow).
-    logger.warn({ clinicId }, "dentvid: week skipped — App Review demo clinic");
+  if (kind !== "recording" && row?.review_demo) {
+    // The App Review demo clinic (0024): its plan is set by hand without a payment, so no week and
+    // no restyle is made for it, however the job was queued. Its own recordings still work (the
+    // app's recording flow, which the reviewer tries).
+    logger.warn({ clinicId, kind }, "dentvid: skipped — App Review demo clinic");
     return false;
   }
   if (kind === "recording" && row && !recordingsIncluded(row.plan_tier)) {

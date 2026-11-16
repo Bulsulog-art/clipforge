@@ -1,10 +1,14 @@
 #!/bin/sh
+# Usage: scripts/dentvideo-review-demo/run.sh --worker-has-review-demo
 # Creates the App Review demo clinic on Liman (docs/APP_STORE_DENTVIDEO.md §1.5). Owner runs it once,
 # AFTER the worker with review_demo (getsWeeks) is deployed. Idempotent? No: run once; the second run
 # stops at "user create failed" (email exists).
 #   ~/.config/dentvideo/inceleme-demo.env (chmod 600) holds DENTVIDEO_REVIEW_PASSWORD; it is sent
 #   over ssh stdin and never printed. No paid API is called: the videos are the site's English samples.
 set -eu
+# Guard: the worker that knows review_demo must be live first, or the old one makes five paid videos
+# for the demo clinic every Saturday. Check the worker's deployed commit includes getsWeeks, then pass it.
+[ "${1:-}" = "--worker-has-review-demo" ] || { echo "Deploy the worker with review_demo (getsWeeks) first, check it is running:healthy, then run: $0 --worker-has-review-demo" >&2; exit 2; }
 cd "$(dirname "$0")/../.."
 ENV="${DV_DEMO_ENV:-$HOME/.config/dentvideo/inceleme-demo.env}"
 SSH="ssh -i $HOME/.ssh/liman_automation root@liman.bulsulabs.com"

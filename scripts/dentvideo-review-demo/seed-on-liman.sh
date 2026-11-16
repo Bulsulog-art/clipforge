@@ -14,9 +14,12 @@ docker exec supabase-db pg_dump -U postgres -d postgres $T | gzip > $F; chmod 60
 psql -q < 0024_dentvid_review_demo.sql && echo "migration 0024 applied"
 # 3. user
 KEY=$(docker exec supabase-kong printenv SUPABASE_SERVICE_KEY)
+# The service key goes to curl through a chmod-600 header file, never on the command line (ps).
+HDR=$(mktemp); chmod 600 "$HDR"; trap 'rm -f "$HDR"' EXIT
+printf 'apikey: %s\nAuthorization: Bearer %s\n' "$KEY" "$KEY" > "$HDR"
 BASE=https://liman.bulsulabs.com
 BODY=$(python3 -c 'import json,sys; print(json.dumps({"email":sys.argv[1],"password":sys.stdin.readline().rstrip("\n"),"email_confirm":True,"app_metadata":{"product":"dentvideo","internal":True,"review_demo":True},"user_metadata":{"product":"dentvideo"}}))' "$EMAIL" <<<"$PW")
-RES=$(curl -sS -X POST "$BASE/auth/v1/admin/users" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" --data-binary @- <<<"$BODY")
+RES=$(curl -sS -X POST "$BASE/auth/v1/admin/users" -H @"$HDR" -H "Content-Type: application/json" --data-binary @- <<<"$BODY")
 unset BODY PW
 UID_=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("id",""))' <<<"$RES")
 if [ -z "$UID_" ]; then echo "user create failed: $(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("msg") or d.get("error_code") or d.get("message"))' <<<"$RES")"; exit 1; fi
@@ -40,7 +43,7 @@ PY
 while read -r slug path; do
   for ext in mp4 jpg; do
     ct=$([ $ext = mp4 ] && echo video/mp4 || echo image/jpeg)
-    code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$BASE/storage/v1/object/dentvid/$path.$ext" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: $ct" -H "x-upsert: true" --data-binary @"$slug.$ext")
+    code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$BASE/storage/v1/object/dentvid/$path.$ext" -H @"$HDR" -H "Content-Type: $ct" -H "x-upsert: true" --data-binary @"$slug.$ext")
     echo "upload $slug.$ext -> $code"; [ "$code" = 200 ] || exit 1
   done
 done < map.txt
