@@ -21,6 +21,8 @@ export type SupportCopy = {
     linkFallback: string;
     /** Country name for the footer's postal line. */
     country: string;
+    /** Before the link to the matching help-center answer (dentvideo.com/help#…). */
+    helpCenter: string;
   };
   help: {
     title: string;
@@ -43,6 +45,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "Questions? Reply to this email or write to {email}. A person reads every message.",
       linkFallback: "Button not working? Open this link:",
       country: "Montenegro",
+      helpCenter: "Step-by-step answers in our help center:",
     },
     help: {
       title: "Help & contact",
@@ -59,6 +62,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "Fragen? Antworten Sie auf diese E-Mail oder schreiben Sie an {email}. Jede Nachricht liest ein Mensch.",
       linkFallback: "Die Schaltfläche funktioniert nicht? Öffnen Sie diesen Link:",
       country: "Montenegro",
+      helpCenter: "Schritt-für-Schritt-Antworten in unserem Hilfe-Center:",
     },
     help: {
       title: "Hilfe & Kontakt",
@@ -75,6 +79,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "¿Alguna duda? Responde a este correo o escribe a {email}. Cada mensaje lo lee una persona.",
       linkFallback: "¿El botón no funciona? Abre este enlace:",
       country: "Montenegro",
+      helpCenter: "Respuestas paso a paso en nuestro centro de ayuda:",
     },
     help: {
       title: "Ayuda y contacto",
@@ -91,6 +96,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "Sorunuz mu var? Bu e-postayı yanıtlayın ya da {email} adresine yazın. Her mesajı bir ekip üyemiz okur.",
       linkFallback: "Düğme çalışmıyor mu? Bu bağlantıyı açın:",
       country: "Karadağ",
+      helpCenter: "Yardım merkezimizde adım adım yanıtlar:",
     },
     help: {
       title: "Yardım ve iletişim",
@@ -107,6 +113,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "Une question ? Répondez à cet e-mail ou écrivez à {email}. Chaque message est lu par une personne.",
       linkFallback: "Le bouton ne fonctionne pas ? Ouvrez ce lien :",
       country: "Monténégro",
+      helpCenter: "Réponses pas à pas dans notre centre d'aide :",
     },
     help: {
       title: "Aide et contact",
@@ -123,6 +130,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "ご不明な点は、このメールへのご返信、または {email} までお寄せください。すべてスタッフが拝読します。",
       linkFallback: "ボタンが動かない場合は、こちらのリンクを開いてください：",
       country: "モンテネグロ",
+      helpCenter: "ヘルプセンターで手順をご案内しています：",
     },
     help: {
       title: "ヘルプ・お問い合わせ",
@@ -139,6 +147,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "لديكم سؤال؟ ردّوا على هذه الرسالة أو راسلونا على {email}. يقرأ أحد أفراد فريقنا كل رسالة.",
       linkFallback: "الزر لا يعمل؟ افتحوا هذا الرابط:",
       country: "الجبل الأسود",
+      helpCenter: "إجابات خطوة بخطوة في مركز المساعدة:",
     },
     help: {
       title: "المساعدة والتواصل",
@@ -155,6 +164,7 @@ export const SUPPORT_COPY: Record<Locale, SupportCopy> = {
       help: "Mają Państwo pytania? Wystarczy odpowiedzieć na tę wiadomość lub napisać na {email}. Każdą wiadomość czyta człowiek.",
       linkFallback: "Przycisk nie działa? Proszę otworzyć ten link:",
       country: "Czarnogóra",
+      helpCenter: "Odpowiedzi krok po kroku w naszym centrum pomocy:",
     },
     help: {
       title: "Pomoc i kontakt",

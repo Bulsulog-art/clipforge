@@ -21,7 +21,7 @@ const WIDTHS = [360, 390, 768, 1280, 1440];
 const pre = (l) => (l === "en" ? "/dentvideo" : `/dentvideo/${l}`);
 
 const pages = [
-  ...LOCALES.flatMap((l) => [pre(l), `${pre(l)}/examples`, `${pre(l)}/about`, `${pre(l)}/guides`]),
+  ...LOCALES.flatMap((l) => [pre(l), `${pre(l)}/examples`, `${pre(l)}/about`, `${pre(l)}/guides`, `${pre(l)}/help`]),
   "/dentvideo/privacy",
   "/dentvideo/terms",
   "/dentvideo/dpa",

@@ -10,7 +10,7 @@ import { isInternalEmail } from "./internal-traffic";
  * identified from — the library is behind the clinic's login.
  */
 
-import { renderEmail, type Brand, type Rendered, type Thumb, type VideoRow } from "./email-layout";
+import { helpCenterLink, renderEmail, type Brand, type Rendered, type Thumb, type VideoRow } from "./email-layout";
 import { postingText } from "@/content/dentvideo-posting";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
 
@@ -246,6 +246,8 @@ export function readyEmail(args: {
     // "Approve all" opens the signed approve page (one confirming tap there; never a flagged video).
     secondary: args.approveUrl && args.counts.ready > 0 ? { ask: c.approveAsk, label: c.approveAll, url: args.approveUrl, style: "button" } : undefined,
     afterButton: [c.approval],
+    // How approving works, or what "marked for a look" means when that is all that is waiting.
+    helpLink: helpCenterLink(lang, args.counts.ready > 0 ? "approve" : "needs-a-look"),
     // Signed like every other DentVideo email ("The DentVideo team", in the clinic's language).
     signoff: lifecycleText(lang).copy.signoff,
     footer: c.footer,

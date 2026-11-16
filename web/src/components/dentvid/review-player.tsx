@@ -8,6 +8,7 @@ import { postingText } from "@/content/dentvideo-posting";
 import { reasonText } from "@/content/dentvideo-reasons";
 import { postTexts, type PostTexts } from "@/lib/dentvid/posting";
 import { CaptionTabs, useSaveAndCopy } from "./share-kit";
+import { HelpLink } from "./help-link";
 import {
   cardState,
   DECLINE_REASONS,
@@ -627,6 +628,7 @@ export function PostPanel({
             </li>
           ))}
         </ol>
+        <HelpLink locale={locale} id={tab === "instagram" ? "instagram" : tab === "tiktok" ? "tiktok-shorts" : tab === "facebook" ? "facebook" : "share"} className="mt-2" />
       </div>
 
       {onUndo && (

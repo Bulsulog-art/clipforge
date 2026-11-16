@@ -40,6 +40,18 @@ export const LANDING_PATH: Record<Locale, string> = {
   pl: "/dentvideo/pl",
 };
 
+/** The help center per language (dentvideo.com/help, /de/help …), as in-app paths; anchors in dentvideo-help-links.ts. */
+export const HELP_PATH: Record<Locale, string> = {
+  en: "/dentvideo/help",
+  de: "/dentvideo/de/help",
+  es: "/dentvideo/es/help",
+  tr: "/dentvideo/tr/help",
+  fr: "/dentvideo/fr/help",
+  ja: "/dentvideo/ja/help",
+  ar: "/dentvideo/ar/help",
+  pl: "/dentvideo/pl/help",
+};
+
 /** Each language's own name, for the language switcher. */
 export const LANGUAGE_NAME: Record<Locale, string> = {
   en: "English",

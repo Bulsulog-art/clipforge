@@ -43,6 +43,9 @@
 
 import { companyLine, fillSupport, supportText, SUPPORT_EMAIL } from "@/content/dentvideo-support";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
+import { HELP_LINK_TEXT, helpHref, type HelpId } from "@/content/dentvideo-help-links";
+import { HELP } from "@/content/help";
+import { dentvideoPublicUrl } from "./host";
 
 export type Brand = {
   /** The clinic's name (kept for callers; DentVideo emails are always in DentVideo's own look). */
@@ -99,6 +102,11 @@ export type EmailSpec = {
    * already says it).
    */
   help?: string | false;
+  /**
+   * The matching answer in the help center, under the help line ("Step-by-step
+   * answers in our help center: How do I approve a video?"). helpCenterLink() builds it.
+   */
+  helpLink?: { ask: string; label: string; url: string };
   /** Small text under the button (e.g. "Nothing is published until you approve it"). */
   afterButton?: string[];
   /** Defaults to "The DentVideo team" in the email's language: every email is signed DentVideo. */
@@ -110,6 +118,21 @@ export type EmailSpec = {
 };
 
 export type Rendered = { subject: string; html: string; text: string };
+
+/**
+ * A link to one help-center answer (or the help center itself) for an email
+ * in `lang`: the answer's question as the label, on dentvideo.com in that
+ * language. Languages without a help center (it, pt) get the English one, as
+ * they get the English help line.
+ */
+export function helpCenterLink(lang: string, id?: HelpId): { ask: string; label: string; url: string } {
+  const { lang: l, copy } = supportText(lang);
+  return {
+    ask: copy.email.helpCenter,
+    label: id ? HELP[l].articles[id].q : HELP_LINK_TEXT[l].center,
+    url: dentvideoPublicUrl(helpHref(l, id), "https://dentvideo.com", ""),
+  };
+}
 
 export const CONTACT_EMAIL = SUPPORT_EMAIL;
 
@@ -419,9 +442,13 @@ export function renderEmail(s: EmailSpec): Rendered {
       ? `<p class="dv-body" style="margin:26px 0 0;font-size:15px;line-height:22px;color:${COLORS.body}">${esc(s.secondary.ask)}</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${align}" style="text-align:${align}">${outlineButton(s.secondary)}</td></tr></table>`
       : `<p class="dv-body" style="margin:20px 0 0;font-size:15px;line-height:23px;color:${COLORS.body}">${esc(s.secondary.ask)} <a href="${esc(s.secondary.url)}" class="dv-link" style="color:${T};font-weight:600;text-decoration:underline">${esc(s.secondary.label)}</a></p>`;
   const after = (s.afterButton ?? []).map((t) => `<p class="dv-muted" style="margin:18px 0 0;font-size:14px;line-height:22px;color:${COLORS.muted}">${rich(t)}</p>`).join("");
-  const helpRow = help
-    ? `<tr><td class="dv-rule" style="padding:22px 0 0;border-top:1px solid ${COLORS.line};text-align:${align}"><p class="dv-muted" style="margin:0;font-size:14px;line-height:22px;color:${COLORS.muted}">${rich(help)}</p></td></tr>`
+  const helpLink = s.helpLink
+    ? `<p class="dv-muted" style="margin:${help ? "10px" : "0"} 0 0;font-size:14px;line-height:22px;color:${COLORS.muted}">${esc(s.helpLink.ask)} <a href="${esc(s.helpLink.url)}" class="dv-link" style="color:${T};font-weight:600;text-decoration:underline">${esc(s.helpLink.label)}</a></p>`
     : "";
+  const helpRow =
+    help || helpLink
+      ? `<tr><td class="dv-rule" style="padding:22px 0 0;border-top:1px solid ${COLORS.line};text-align:${align}">${help ? `<p class="dv-muted" style="margin:0;font-size:14px;line-height:22px;color:${COLORS.muted}">${rich(help)}</p>` : ""}${helpLink}</td></tr>`
+      : "";
   const unsub = s.unsubscribe
     ? ` ${esc(s.unsubscribe.ask)} <a href="${esc(s.unsubscribe.url)}" class="dv-muted" style="color:${COLORS.muted};text-decoration:underline">${esc(s.unsubscribe.label)}</a>`
     : "";
@@ -435,7 +462,7 @@ ${preheader(s.preheader)}
 <table role="presentation" dir="${dir}" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;text-align:${align}">
 ${header()}
 <tr><td class="dv-card" bgcolor="${COLORS.card}" style="background:${COLORS.card};border:1px solid ${COLORS.line};border-radius:20px;padding:44px 48px 36px;font-family:${FONT};text-align:${align}">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:0 0 ${help ? "28px" : "0"};text-align:${align}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:0 0 ${helpRow ? "28px" : "0"};text-align:${align}">
 ${s.eyebrow ? `<p class="dv-mark" style="margin:0 0 10px;font-size:12px;line-height:18px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:${T}">${esc(s.eyebrow)}</p>` : ""}
 ${s.title ? `<h1 class="dv-ink dv-h1" style="margin:0 0 20px;font-family:${h.family};font-size:${h.size}px;line-height:${h.line}px;font-weight:${h.weight};letter-spacing:${h.spacing};color:${COLORS.ink}">${esc(s.title)}</h1>` : ""}
 ${s.hello ? `<p class="dv-body" style="margin:0 0 16px;font-size:16px;line-height:26px;color:${COLORS.body}">${esc(s.hello)}</p>` : ""}
@@ -465,6 +492,7 @@ ${signoff ? `<p class="dv-ink" style="margin:28px 0 0;font-size:16px;line-height
     ...(s.afterButton ?? []),
     signoff,
     help ?? undefined,
+    s.helpLink ? `${s.helpLink.ask} ${s.helpLink.label}: ${s.helpLink.url}` : undefined,
     ["-- ", s.footer, s.unsubscribe ? `${s.unsubscribe.ask} ${s.unsubscribe.label}: ${s.unsubscribe.url}` : "", `DentVideo · ${CONTACT_EMAIL} · dentvideo.com`, company].filter(Boolean).join("\n"),
   ]
     .filter((p): p is string => typeof p === "string" && p.trim() !== "")

@@ -8,6 +8,7 @@ import type { Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { accentFor, analyseLogoFile, isDecodableImage, type LogoColors } from "@/lib/dentvid/logo-colors";
 import { LogoPreview } from "./logo-preview";
+import { HelpLink } from "./help-link";
 import { FieldError, ValidatingForm, useClearFieldError } from "./validating-form";
 import type { PreviewProfile } from "./live-preview";
 import { SERVICE_HINTS, exampleServices, hasService, splitServices, suggestedServices, toggleService } from "@/lib/dentvid/service-hints";
@@ -284,6 +285,7 @@ export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: Clini
           );
         })}
       </div>
+      <HelpLink locale={locale} id="services" className="mt-2" />
     </div>
   );
   const tone = (
@@ -359,7 +361,8 @@ export function ClosingLineField({ draft, locale }: { draft: ClinicDraft; locale
   const note = line ? closingLineNote(line, p.country, locale) : null;
   const left = CLOSING_LINE_MAX - p.closingLine.length;
   return (
-    <label className={`${label} sm:col-span-2`}>
+    <div className="sm:col-span-2">
+    <label className={label}>
       {t.closingLine}
       <textarea
         data-field="closingLine"
@@ -380,6 +383,8 @@ export function ClosingLineField({ draft, locale }: { draft: ClinicDraft; locale
         <span dir="ltr" aria-hidden="true" className={`shrink-0 tabular-nums ${left < 15 ? "text-dv-ink" : "text-dv-muted"}`}>{left}</span>
       </span>
     </label>
+    <HelpLink locale={locale} id="closing-line" className="mt-1" />
+    </div>
   );
 }
 
@@ -422,6 +427,7 @@ export function NarratorVoiceField({ draft, locale }: { draft: ClinicDraft; loca
         })}
       </div>
       <span id="dv-narrator-help" className="mt-1.5 block text-xs font-normal text-dv-muted">{t.narratorVoiceHelp}</span>
+      <HelpLink locale={locale} id="narrator-voice" className="mt-1" />
     </fieldset>
   );
 }
