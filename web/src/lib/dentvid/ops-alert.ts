@@ -166,10 +166,18 @@ export function cleanError(e: unknown): string {
   );
 }
 
+/**
+ * A mail subject is one header line. A clinic name is typed by the clinic
+ * (older profiles may hold a line break), so every subject is folded to one
+ * line before it is sent (security round 3: no header injection, and no
+ * alert silently refused by the mail API because of a stray newline).
+ */
+export const oneLine = (s: string) => s.replace(/\s+/g, " ").trim();
+
 export function alertSubject(a: OwnerAlert): string {
   const s = SEVERITY[a.severity];
   const who = a.clinic?.name?.trim() ? ` — ${a.clinic.name.trim()}` : "";
-  return short(`[DentVideo] ${s.tr}: ${a.titleTr} / ${s.en}: ${a.titleEn}${who}`, 180);
+  return short(oneLine(`[DentVideo] ${s.tr}: ${a.titleTr} / ${s.en}: ${a.titleEn}${who}`), 180);
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -373,7 +381,7 @@ export function resendSender(env: Env, fetchImpl: typeof fetch = fetch): MailSen
       const res = await fetchImpl("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-        body: JSON.stringify({ from, to: [to], subject: msg.subject, text: msg.text, html: msg.html }),
+        body: JSON.stringify({ from, to: [to], subject: oneLine(msg.subject), text: msg.text, html: msg.html }),
         signal: AbortSignal.timeout(15_000),
       });
       return res.ok;

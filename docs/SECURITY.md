@@ -203,6 +203,43 @@ test artifact (details below).
   matters, compare `profile.country` to the server geo-IP at checkout (accepting that
   travellers / VPNs produce false positives) or rely on Dodo's card-country / fraud checks.
 
+### Round 3 (2026-11-16 — closing line, narrator voice, ElevenLabs, emails, known-mistakes)
+
+Scope: everything merged since round 2 (#147–#163): the clinic route's `closingLine` /
+`narratorVoice` and its service-role fallback on `23514`, migrations 0021/0022, the
+email redesign (#156) and the test-address sink (#147), the ElevenLabs provider and its
+spend-guard surcharge, the known-mistakes and closing-line scanners, plus a regression
+pass over the round 1/2 surface (password reset, verify-email, sign-up, checkout, geo,
+unsubscribe, ad-conversion export, Dodo webhook, admin allowlist) and a read-only probe
+of dentvideo.com (a handful of unauthenticated requests, nothing created). Regression
+tests: `web/src/lib/dentvid/security-round3.test.ts`,
+`web/src/app/api/dentvideo/clinic/route.test.ts` ("the service-role fallback"),
+`worker/src/dental/security-round3.test.ts`. No migration and no env change needed.
+
+| # | Severity | Where | Finding | Status | Test |
+|---|---|---|---|---|---|
+| R3-1 | Low | `lib/dentvid/profile.ts` → owner alerts (`ops-alert.ts`, web + worker) | Profile free text allowed CR/LF (the control-character check skips `\n`/`\r`, in the app and in 0007's `dentvid_plain_text`). A clinic name goes into every owner-alert **subject** (`alertSubject`), so a clinic named `X\r\nBcc: …` put a line break in a mail header: header injection if the mail API passes it through, or — more likely — the API refuses the message and the owner silently loses that clinic's alerts (payment failed, chargeback, week failed). | **Fixed**: the profile folds line breaks (CR, LF, NEL, LS, PS) to a space before validation; `alertSubject`, the owner-alert sender and `sendEmail` fold every subject to one line (covers rows saved before the fix). | `security-round3.test.ts` R3-1; route test "folds a line break" |
+| R3-2 | Low | `lib/dentvid/profile.ts` + clinic route fallback | The app counted the **minimum** length in UTF-16 units, the database guard in code points: `"😀😀"` is 4 in JS, 2 in Postgres. With 0021 applied, such a closing line passes zod and the market check, the owner write gets `23514`, the retry without the line succeeds, and the service-role fallback then writes the line the guard had refused. Impact is small (a 2-emoji closing line, still market-checked), but it is exactly the "fallback writes what the guard refuses" class. | **Fixed**: the minimum is counted in code points (the maximum stays in UTF-16 units, stricter than the DB and what the worker counts), so zod ⊆ guard for every key and the fallback can only add values the guard accepts. | route test "PoC: a closing line the database guard refuses" (fails before the fix) |
+| R3-3 | Info | `worker/src/dental/hard-rules.ts` (mirrored to web) | Several hard-rule patterns have a lookbehind over `\s+` (`NEGATED`, `AFTER_TEETH`, …), which is **quadratic on a long run of whitespace**: 10 000 spaces ≈ 0.5 s, 20 000 ≈ 2 s. Not reachable with a large input: the closing line is bounded (≤ 120 in the route, checked by zod before the scan; ≤ 140 in the worker), narration ≤ 1 200 and captions are model output, and the public ad checker runs in the visitor's browser with `CHECKER_MAX_CHARS`. The known-mistakes and closing-line patterns themselves (incl. KM-10's `(?<![Vv]ous\s+)`) are linear at these sizes. | Not changed (rewriting the rules risks their recall); the sizes are pinned by a test. Keep any new server-side scan behind a length bound. | worker `security-round3.test.ts` "ReDoS" |
+| R3-4 | Low | ElevenLabs spend (`spend-guard.ts`, `elevenlabs.ts`) | The surcharge reserves 450 characters × 5 videos per week; a narration may be up to 1 200 characters (scene-plan schema) and a technically failed video is re-attempted once, so the real ElevenLabs bill of a pathological week can be ~3× the reservation (≈ $3.60 vs $1.11 per week run, still capped by the per-clinic week-run count). Also: an explicit `DENTVID_COST_WEEK_USD` / `_RESTYLE_USD` / `_TOPUP_USD` is taken as the whole estimate, so with ElevenLabs on it must include the surcharge. Characters are metered (`dv:tts:chars:*`), not capped. | Not changed (ElevenLabs is off by default). Owner action below. | `elevenlabs.test.ts` (existing) |
+
+Checked and fine (no change):
+
+- **Clinic route fallback**: writes only `profile` (no other column), only on `owner_id = <session user>`; unknown profile keys and top-level fields (`owner_id`, `id`, `plan`, `logo`) are dropped by zod before any write; it runs only after the owner retry without the two keys succeeded, so every other key passed the database guard. Regression test added.
+- **0021 / 0022 `dentvid_profile_ok`**: every key is type-checked with `jsonb_typeof` before `->>` (a number, array, object or JSON `null` for `narratorVoice` / `closingLine` is refused); duplicate JSON keys collapse to the last one before the guard sees them; unknown top-level keys still refused; trigger unchanged (insert + update); RLS unchanged. The app's regexes are at least as strict as the guard's (JS `\s` ⊇ Postgres `\s`, identical control-character set, maximums stricter in JS).
+- **Closing line in the worker**: used only as caption text (`post-kit.ts softCta`), re-checked against the market rules there; it never reaches ffmpeg arguments (all `execFile`/`spawn` calls pass argument arrays, no shell; `drawtext` is ClipForge-only and fed by its own titles) or Remotion props beyond rendered text.
+- **ElevenLabs provider**: key only in the `xi-api-key` header (never URL, body, logs or error text — tested for 401, network error and timeout); 60 s timeout covers the body as well as the headers (tested with a stalled body); any failure falls back to OpenAI; voice ids from env are validated and URL-encoded; spend reservation and caps apply before the call whichever provider speaks.
+- **Emails (#156)**: every clinic-typed value is HTML-escaped (`esc`), link targets come from our env (`dvUrl`, `NEXT_PUBLIC_*`) or are filtered to `http(s)` (video rows) / `https` (thumbs); clinic names are no longer in any clinic-facing subject; support `mailto:` links are `encodeURIComponent`-encoded. The test-address sink (`deliveryAddress`) only redirects to `delivered@resend.dev`, never away from a real address unless it matches a test pattern.
+- **Password reset / verify-email / sign-up / unsubscribe**: unchanged since round 2; reset links are built from env (`dvUrl`), not the request `Host`; the answer is the same whether or not the account exists; unsubscribe tokens are HMAC-checked with `timingSafeEqual`.
+- **Ad-conversion export**: admin-only (404 otherwise), POST + same-origin + CSRF; click ids are `^[A-Za-z0-9._-]{6,200}$`, so no CSV formula can be built (no `=`, `+`, `@`, `(`, `|`).
+- **Dodo webhook**: production answers an unsigned POST with `401 {"error":"invalid signature"}` and nothing else; replay/idempotency tests still pass.
+- **Production probe (dentvideo.com, 2026-11-16)**: CSP, HSTS (preload), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP on pages **and** API responses; `/api/health` returns only `{"ok":true,"ts":…}`; CORS preflight from a foreign origin gets no `Access-Control-Allow-*`; a cross-site POST gets `403 Bad Origin` before any body parsing; `/admin`, `/admin/ads`, `/dev/funnel`, `/preview-demo` are 404; `/app` redirects to `/start?mode=signin` with `no-store`; `robots.txt` disallows `/app`, `/start`, `/dev/`, `/api/`; `llms.txt` lists only public pages; `next=` / `redirect=` parameters on `/start` and `/reset` are ignored (no redirect).
+
+Owner actions (round 3):
+
+1. **ElevenLabs before switching it on**: use a plan **without usage-based overage** (or set the account's character limit) so the plan quota is the hard cap; if `DENTVID_COST_WEEK_USD`, `DENTVID_COST_RESTYLE_USD` or `DENTVID_COST_TOPUP_USD` are set in Coolify, raise them by the surcharge (or remove them so the code adds it); restrict the API key to text-to-speech; 2FA on the account.
+2. Apply 0021 and 0022 when convenient (the app works without them through the fallback, which is now safe either way).
+
 ### Retention (owner decision — not automated)
 
 **Unpaid accounts (automated script, audit H4)**: `scripts/dentvideo-storage-cleanup.mts`

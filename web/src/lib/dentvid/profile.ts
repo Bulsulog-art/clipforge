@@ -26,13 +26,27 @@ export type NarratorVoice = (typeof NARRATOR_VOICES)[number];
 /** Free text the agents read: no control characters, nothing that looks like a URL or a file path. */
 const NO_URL = /(:\/\/|^\s*(file|data|javascript):|^\s*[/~\\]|\.\.[/\\])/i;
 const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
+/** Line breaks: every field is one line (a clinic name ends up in an email subject). */
+const LINE_BREAKS = /[\r\n\u0085\u2028\u2029]+/g;
+/**
+ * The database guard (0007 dentvid_plain_text) counts code points; JS
+ * `.length` counts UTF-16 units, so "😀😀" is 4 here and 2 there. The
+ * minimum is counted the database's way, or a value the guard refuses would
+ * pass here and reach the clinic route's service-role fallback (security
+ * round 3). The maximum stays in UTF-16 units: stricter than the database,
+ * and what the worker's copy of this schema counts.
+ */
 const text = (min: number, max: number) =>
   z
     .string()
-    .trim()
-    .min(min)
-    .max(max)
-    .refine((s) => !CONTROL.test(s) && !NO_URL.test(s), "plain text only");
+    .transform((s) => s.replace(LINE_BREAKS, " ").trim())
+    .pipe(
+      z
+        .string()
+        .max(max)
+        .refine((s) => [...s].length >= min, `at least ${min} characters`)
+        .refine((s) => !CONTROL.test(s) && !NO_URL.test(s), "plain text only"),
+    );
 
 /** A booking link: https only. It goes in captions; nothing ever fetches it. */
 export const BOOKING_URL = /^https:\/\/[^\s"'<>\\]{3,290}$/i;
