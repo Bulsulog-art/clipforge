@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { pickWaitingApple, takeOverWithWaitingApple, type AppleLedgerRow, type AppleTakeoverDb } from "./apple-takeover.js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { pickWaitingApple, supabaseAppleTakeoverDb, takeOverWithWaitingApple, type AppleLedgerRow, type AppleTakeoverDb } from "./apple-takeover.js";
 import { endPaidUpPlans, type EndingSub, type PlanEndDb } from "./plan-end.js";
 import { reconcileBilling, type ActiveClinic } from "./reconcile.js";
 import type { OwnerAlert } from "./ops-alert.js";
@@ -114,6 +115,29 @@ describe("worker: an App Store subscription waiting for a web plan takes over wh
     const a = w.raised.find((x) => x.key.startsWith("appstore:takeover_unchecked:"));
     expect(a?.severity).toBe("urgent");
     expect(a?.todo.join(" ")).toMatch(/0026/);
+  });
+
+  it("a clinic with no App Store subscription (readable ledger, zero rows) gets no alert at all — production query included", async () => {
+    const zero = (data: unknown) =>
+      ({
+        from: (table: string) => {
+          expect(table).toBe("dentvid_apple_subscriptions");
+          const q = { select: () => q, eq: () => q, limit: async () => ({ data, error: null }) };
+          return q;
+        },
+      }) as unknown as SupabaseClient;
+    for (const data of [[], null]) {
+      const prod = supabaseAppleTakeoverDb(zero(data));
+      expect(await prod.appleRows("c1")).toEqual([]);
+      const raised: OwnerAlert[] = [];
+      expect(await takeOverWithWaitingApple({ db: prod, alert: async (a) => void raised.push(a) }, "c1", "test", NOW)).toBeNull();
+      expect(raised).toEqual([]);
+    }
+    const clinics = { c1: onDodo() };
+    const w = world(clinics, { c1: [] });
+    await endPaidUpPlans(w.planDb(ended), NOW, { db: w.apple, alert: w.alert });
+    expect(clinics.c1.plan).toBe("cancelled");
+    expect(w.raised).toEqual([]);
   });
 
   it("a ledger read that throws is treated like an unreadable ledger: plan end stands, owner alerted, no throw", async () => {

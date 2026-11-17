@@ -4,7 +4,8 @@ import { handleDentvideoEvent, type DvWebhookDeps } from "./billing-webhook";
 import type { DvSubRecord } from "./billing";
 import type { SubscriptionStore } from "./subscriptions";
 import type { OwnerAlert } from "./ops-alert";
-import type { AppleSubRecord, AppleSubscriptionStore } from "./apple-store";
+import { supabaseAppleStore, type AppleSubRecord, type AppleSubscriptionStore } from "./apple-store";
+import { adoptWaitingApple } from "./apple-webhook";
 
 function memoryApple(rows: AppleSubRecord[] = []): AppleSubscriptionStore & { rows: Map<string, AppleSubRecord> } {
   const map = new Map(rows.map((r) => [r.original_transaction_id, { ...r }]));
@@ -213,6 +214,32 @@ describe("Dodo events for a clinic the App Store pays for", () => {
     await handleDentvideoEvent(f.db, evt("subscription.expired", "sub_1", "2026-11-17T10:00:00Z", { next_billing_date: null }), d);
     expect(f.clinic.plan).toBe("cancelled");
     expect(d.raised.some((a) => a.key.startsWith("appstore:takeover_unchecked:") && a.severity === "urgent")).toBe(true);
+  });
+
+  it("a clinic with no App Store subscription (ledger readable, zero rows) never gets takeover_unchecked, through the production store too", async () => {
+    // The production query: the ledger answers zero rows → [] (readable), not null (unreadable).
+    const rowsQuery = {
+      from: (table: string) => {
+        expect(table).toBe("dentvid_apple_subscriptions");
+        const q = { select: () => q, eq: () => q, order: () => q, limit: async () => ({ data: [], error: null }) };
+        return q;
+      },
+    } as unknown as SupabaseClient;
+    expect(await supabaseAppleStore(rowsQuery).forClinic(CLINIC)).toEqual([]);
+    const nullData = { from: () => { const q = { select: () => q, eq: () => q, order: () => q, limit: async () => ({ data: null, error: null }) }; return q; } } as unknown as SupabaseClient;
+    expect(await supabaseAppleStore(nullData).forClinic(CLINIC)).toEqual([]);
+    const unchecked = vi.fn(async () => {});
+    expect(await adoptWaitingApple(rowsQuery, CLINIC, { unchecked })).toBeNull();
+    expect(unchecked).not.toHaveBeenCalled();
+
+    // Through the Dodo webhook: the plan ends with the at-risk alert only.
+    const f = fakeDb(paying("sub_1"));
+    const subs = memorySubs([{ dodo_subscription_id: "sub_1", clinic_id: CLINIC, status: "active" }]);
+    const d = deps({ subs, apple: memoryApple([]) });
+    await handleDentvideoEvent(f.db, evt("subscription.expired", "sub_1", "2026-11-17T10:00:00Z", { next_billing_date: null }), d);
+    expect(f.clinic.plan).toBe("cancelled");
+    expect(d.raised.some((a) => a.key.startsWith("appstore:takeover_unchecked:"))).toBe(false);
+    expect(d.raised.map((a) => a.key.split(":")[0])).toEqual(["at_risk"]);
   });
 
   it("a plain web clinic (no billing source) behaves exactly as before", async () => {
