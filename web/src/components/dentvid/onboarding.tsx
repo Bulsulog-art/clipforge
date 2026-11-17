@@ -188,10 +188,13 @@ export function FunnelAccount({ locale, email }: { locale: Locale; email: string
   return (
     <p className="mt-3 flex flex-wrap items-center justify-center gap-x-2 text-sm text-dv-muted">
       <span dir="ltr" className="max-w-full truncate">{email}</span>
-      <span aria-hidden="true">·</span>
-      <button type="button" onClick={signOut} disabled={leaving} className="inline-flex min-h-11 items-center rounded-md px-1 font-medium text-dv-teal underline-offset-4 hover:underline disabled:opacity-60">
-        {leaving ? t.signingOut : t.signOut}
-      </button>
+      {/* The dot travels with the button: on a phone a long address fills the line, and a lone "·" opened the next one. */}
+      <span data-funnel-signout className="inline-flex items-center gap-x-2 whitespace-nowrap">
+        <span aria-hidden="true">·</span>
+        <button type="button" onClick={signOut} disabled={leaving} className="inline-flex min-h-11 items-center rounded-md px-1 font-medium text-dv-teal underline-offset-4 hover:underline disabled:opacity-60">
+          {leaving ? t.signingOut : t.signOut}
+        </button>
+      </span>
     </p>
   );
 }
