@@ -275,6 +275,9 @@ final class AppModel {
             // The refresh also gives the tab switch time to finish; a video that only arrived
             // with this refresh (a push tap that started the app) is known afterwards.
             await refresh()
+            // On a cold start (a link or push tap that launches the app) the tabs are built only
+            // after this first load; give the week's stack a moment to exist before pushing.
+            try? await Task.sleep(for: .milliseconds(300))
             guard let itemID else { weekPath = []; return }
             weekPath = items.contains(where: { $0.id == itemID }) ? [itemID] : []
         }
