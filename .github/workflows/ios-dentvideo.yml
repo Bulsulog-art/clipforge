@@ -1,13 +1,12 @@
 name: iOS DentVideo
 
 # Builds the DentVideo iPhone app and runs its tests on one macOS runner.
-# Only on demand, or for pull requests that change the app. Not on every push (macOS minutes).
+# Only on demand (Actions -> iOS DentVideo -> Run workflow, or `gh workflow run`).
+# Owner decision 2026-11-17: no automatic runs on pull requests. Every run on a
+# work-in-progress branch emailed the owner a failure; run it when the app is
+# ready to be checked, before a TestFlight build (see CLAUDE.md, release gate).
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "ios/DentVideo/**"
-      - ".github/workflows/ios-dentvideo.yml"
 
 concurrency:
   group: ios-dentvideo-${{ github.ref }}
