@@ -353,10 +353,13 @@ extension Binding where Value == String {
 #Preview { SettingsView().environment(AppModel.preview()) }
 
 /// A form row: a small caption above a full-width text field. VoiceOver reads the caption as the
-/// field's label; long German or Polish captions wrap instead of squeezing the field.
+/// field's label; long German or Polish captions wrap instead of squeezing the field. A tap
+/// anywhere on the row (the caption, the padding) puts the cursor in the field: in an iOS 18
+/// form the row is one element, and a tap on the caption did nothing.
 struct CaptionedField<Field: View>: View {
     let caption: String
     @ViewBuilder var field: () -> Field
+    @FocusState private var focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.s1) {
@@ -366,9 +369,12 @@ struct CaptionedField<Field: View>: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityHidden(true)
             field()
+                .focused($focused)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityLabel(caption)
         }
         .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .onTapGesture { focused = true }
     }
 }

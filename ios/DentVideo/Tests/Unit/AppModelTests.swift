@@ -295,15 +295,22 @@ final class AppModelTests: XCTestCase {
         m.tab = .settings
         m.handle(url: URL(string: "dentvideo://app/video/b")!)
         XCTAssertEqual(m.tab, .week)
-        XCTAssertEqual(m.openItemID, "b")
-        m.openItemID = nil
+        await waitUntil { m.weekPath == ["b"] }
+        XCTAssertEqual(m.weekPath, ["b"], "the week tab shows video b")
+        m.tab = .record
         m.handle(url: URL(string: "https://dentvideo.com/app/video/c")!)
-        XCTAssertEqual(m.openItemID, "c")
-        m.openItemID = nil
-        m.handle(url: URL(string: "https://example.com/app/video/c")!)
-        XCTAssertNil(m.openItemID, "links from other sites are ignored")
+        XCTAssertEqual(m.tab, .week)
+        await waitUntil { m.weekPath == ["c"] }
+        XCTAssertEqual(m.weekPath, ["c"])
+        m.handle(url: URL(string: "https://example.com/app/video/a")!)
+        try? await Task.sleep(for: .milliseconds(300))
+        XCTAssertEqual(m.weekPath, ["c"], "links from other sites are ignored")
         m.open(itemID: DeepLink.itemID(fromNotification: ["itemID": "a", "kind": "post_reminder"]))
-        XCTAssertEqual(m.openItemID, "a")
+        await waitUntil { m.weekPath == ["a"] }
+        XCTAssertEqual(m.weekPath, ["a"])
+        m.open(itemID: "gone")
+        await waitUntil { m.weekPath.isEmpty }
+        XCTAssertEqual(m.weekPath, [], "an unknown video opens the week")
     }
 
     func testUploadProblems() {

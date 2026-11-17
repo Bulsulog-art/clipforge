@@ -93,9 +93,9 @@ class DVTestCase: XCTestCase {
     }
 
     func clear(_ field: XCUIElement) {
-        // Cursor at the end (fields may be right-aligned), delete everything, check, and fall back
-        // to Select All when the cursor landed elsewhere.
-        focus(field) { field.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap() }
+        // Focus the field, delete everything, check, and fall back to Select All when the cursor
+        // did not land at the end.
+        focus(field) { field.tap() }
         let n = (field.value as? String)?.count ?? 0
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: n + 2))
         let left = (field.value as? String) ?? ""

@@ -84,10 +84,10 @@ enum Demo {
         if screen.hasPrefix("record") || screen.hasPrefix("camera") { m.tab = .record }
         if ["settings", "settings-bottom", "clinic", "videos", "delete", "signout"].contains(screen) { m.tab = .settings }
         switch screen {
-        case "video-review", "video-declined", "decline": m.openItemID = "d1"
-        case "video-look": m.openItemID = "d2"
-        case "video-approved", "post", "post-ready": m.openItemID = "d3"
-        case "video-posted": m.openItemID = "d4"
+        case "video-review", "video-declined", "decline": m.weekPath = ["d1"]
+        case "video-look": m.weekPath = ["d2"]
+        case "video-approved", "post", "post-ready": m.weekPath = ["d3"]
+        case "video-posted": m.weekPath = ["d4"]
         default: break
         }
         if screen == "record" {

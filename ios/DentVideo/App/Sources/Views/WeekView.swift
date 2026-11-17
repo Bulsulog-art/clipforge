@@ -6,12 +6,9 @@ import DentVideoCore
 struct WeekView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var path: [String] = []
     @State private var confirmAll = false
     @State private var showEarlier = false
     @State private var approvedBatch = 0
-    /// A video a link or notification asked for, opened once the week tab is on screen.
-    @State private var pendingOpen: String?
     @Environment(\.dynamicTypeSize) private var type
 
     private var sections: [WeekBoard.Section] { WeekBoard.sections(model.items) }
@@ -20,7 +17,8 @@ struct WeekView: View {
     private var candidates: [VideoItem] { WeekBoard.approveAllCandidates(model.items, week: model.currentWeek) }
 
     var body: some View {
-        NavigationStack(path: $path) {
+        @Bindable var bound = model
+        NavigationStack(path: $bound.weekPath) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Theme.s4) {
                     header
@@ -64,49 +62,12 @@ struct WeekView: View {
                 Text(L("week.approveAll.note"))
             }
         }
-        .onChange(of: model.openItemID, initial: true) { _, id in
-            guard let id else { return }
-            model.openItemID = nil
-            pendingOpen = id
-            openPending()
-        }
-        // A video asked for while another tab was open, or before the week was loaded, opens
-        // once the week tab is on screen and loaded.
-        .onAppear { openPending() }
-        .onChange(of: model.tab) { _, tab in if tab == .week { openPending() } }
-        .onChange(of: model.items.map(\.id)) { _, _ in openPending() }
-        .onChange(of: model.isRefreshing) { _, _ in openPending() }
         .task {
             if model.isDemo("approve-all") {
                 try? await Task.sleep(for: .milliseconds(400))
                 confirmAll = true
             }
             if model.isDemo("week-empty") { showEarlier = true }
-        }
-    }
-
-    private func openPending() {
-        // Pick up a request that arrived while this tab was not on screen.
-        if let id = model.openItemID {
-            model.openItemID = nil
-            pendingOpen = id
-        }
-        // Only on the week tab; the short wait below lets the tab switch finish first. (With an
-        // extra on-screen flag set in onAppear, a link opened from Settings never pushed its video
-        // in the iOS 18 test; the tab check and the wait are enough.)
-        guard let id = pendingOpen, model.tab == .week else { return }
-        guard model.items.contains(where: { $0.id == id }) else {
-            // A notification tap that starts the app arrives before the week is loaded: wait
-            // for it (onChange of the items calls this again). Unknown after loading: stay on the week.
-            if model.items.isEmpty || model.isRefreshing { return }
-            pendingOpen = nil
-            return
-        }
-        Task {
-            try? await Task.sleep(for: .milliseconds(350))
-            guard pendingOpen == id else { return }
-            path = [id]
-            pendingOpen = nil
         }
     }
 

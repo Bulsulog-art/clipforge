@@ -27,7 +27,11 @@ final class AppModel {
     var notice: Notice?
     var tab: Tab = .week
     /// A video to open (from a push, a reminder or a universal link).
-    var openItemID: String?
+    /// The week tab's navigation path (video ids). Owned here, not by the week view, so a link
+    /// or notification can open a video whatever tab is showing and whether or not the week
+    /// view has been updated since: iOS 18 did not push a path set from the week view's own
+    /// change handlers after a tab switch.
+    var weekPath: [String] = []
     /// Ask for notifications after the first sign-in, with our explanation first.
     var showNotificationPrimer = false
 
@@ -103,6 +107,7 @@ final class AppModel {
         await Notifications.clearAll()
         Prefs.clear()
         me = nil
+        weekPath = []
         items = []
         notice = nil
         tab = .week
@@ -258,8 +263,13 @@ final class AppModel {
     /// From a notification tap or a link: show the week, and the video when one is named.
     func open(itemID: String?) {
         tab = .week
-        openItemID = itemID
-        Task { await refresh() }
+        Task {
+            // The refresh also gives the tab switch time to finish; a video that only arrived
+            // with this refresh (a push tap that started the app) is known afterwards.
+            await refresh()
+            guard let itemID else { weekPath = []; return }
+            weekPath = items.contains(where: { $0.id == itemID }) ? [itemID] : []
+        }
     }
 
     // MARK: Errors
