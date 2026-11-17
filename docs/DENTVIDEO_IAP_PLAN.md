@@ -45,7 +45,7 @@ lists the exact numbers for the owner **before saving** (app-store-operator rule
 | Türkiye | 1.490 TL / 2.490 TL | closest TRY point (e.g. 1.499,99 TL / 2.499,99 TL if those are the points); set manually | ~10 TL |
 | Every other storefront | USD list | Apple's automatic equalisation from the US price | yes (FX) |
 
-**Tax difference (owner decision, open):** the web's prices are **tax-exclusive** (Dodo adds VAT/KDV at
+**Tax difference (owner decided 2026-11-17: match the number, see §12):** the web's prices are **tax-exclusive** (Dodo adds VAT/KDV at
 checkout; the site says "+ VAT"). App Store prices in the EU and Türkiye are **tax-inclusive**: €49.99
 on the App Store means the clinic pays €49.99 in total and Apple remits the VAT out of it. Matching the
 *number* (as above) makes the app cheaper than the web for EU/TR clinics; matching the *total paid*
@@ -259,16 +259,20 @@ queued; web settings of that clinic shows "Managed in the App Store"; web checko
 - Update `docs/IOS_APP_PLAN.md` §6 and `APP_STORE_DENTVIDEO.md` §2 wording at submission time: the
   3.1.3(c) Enterprise argument no longer applies to this build.
 
-## 12. Open decisions for the owner
+## 12. Owner decisions (decided 2026-11-17)
 
-1. **EU/TR tax**: match the number (cheaper in the app) or the total paid (§2)?
-2. **Sandbox policy**: decided — `internal` by default, App Review via `DENTVID_IAP_SANDBOX_ALLOW_EMAILS`.
+1. **EU/TR tax: match the number.** The App Store shows the same number as the web (the nearest Apple
+   price point to 49/79 USD/EUR and 1.490/2.490 TL), tax included. So in the EU and Türkiye the app
+   is slightly cheaper than the web. This is accepted, and nothing in the app compares the two.
+2. **Sandbox policy: `internal`.** App Review goes through `DENTVID_IAP_SANDBOX_ALLOW_EMAILS`.
    External TestFlight testers need their address on that list too.
-3. **Reconcile via RevenueCat**: turn on (needs a secret key in the worker env) or rely on webhooks + clock.
-4. **Commission**: keep web prices on the App Store (15% to Apple under the Small Business Program) or
-   raise App Store prices (§2).
-5. **Restore on another account**: RevenueCat transfer behaviour "keep with original" (recommended)
-   vs "transfer".
+3. **Reconcile via RevenueCat: on.** Set `DENTVID_REVENUECAT_API_KEY` and
+   `DENTVID_REVENUECAT_RECONCILE=on` on the worker once the RevenueCat project exists.
+4. **Commission: keep web prices.** No App Store markup. Apple takes 15% under the Small Business
+   Program (applied for, awaiting Apple's answer).
+5. **Restore on another account:** RevenueCat transfer behaviour "keep with original".
+6. **A paused web plan (Dodo on hold)** does not hand over to a waiting App Store subscription, to
+   avoid a double charge if Dodo recovers. The owner is alerted. Accepted as is.
 
 ## 13. Test matrix (server)
 
