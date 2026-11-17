@@ -1,3 +1,7 @@
 // TestFlight and App Store builds.
 DV_API_BASE_URL = https:/$()/dentvideo.com/api/dentvideo/mobile/v1
 APS_ENVIRONMENT = production
+// RevenueCat public Apple SDK key (appl_…), public by design but kept out of the repo: the release
+// build writes Config/RevenueCat.xcconfig (gitignored). Empty = the paywall says "not available yet".
+REVENUECAT_PUBLIC_KEY =
+#include? "RevenueCat.xcconfig"

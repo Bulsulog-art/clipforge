@@ -17,6 +17,8 @@ enum Demo {
         "video-review", "video-look", "video-approved", "video-posted", "video-declined", "decline", "post", "post-ready",
         "record", "record-locked", "camera-live", "camera-denied",
         "settings", "settings-bottom", "clinic", "videos", "delete", "signout",
+        // In-app purchase (Billing/, Views/PaywallView.swift); "noclinic" is the new clinic form.
+        "signup", "signup-code", "verify", "paywall", "paywall-unavailable", "activating", "confirming", "settings-appstore",
     ]
 
     static var screen: String? {
@@ -42,7 +44,7 @@ enum Demo {
         let profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: "riversidedental", bookingUrl: "https://riverside.example/book", closingLine: c.closing, narratorVoice: "female")
         let plan: PlanInfo
         switch screen {
-        case "noplan": plan = PlanInfo(state: .cancelled, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
+        case "noplan", "verify", "paywall", "paywall-unavailable", "activating", "confirming": plan = PlanInfo(state: .cancelled, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
         case "paused": plan = PlanInfo(state: .paused, tier: "practice", canMake: false, adminPaused: true, recordings: true, renewsAt: nil)
         case "record-locked": plan = PlanInfo(state: .active, tier: "starter", canMake: true, adminPaused: false, recordings: false, renewsAt: nil)
         default: plan = PlanInfo(state: .active, tier: "practice", canMake: true, adminPaused: false, recordings: true, renewsAt: nil)
@@ -54,12 +56,26 @@ enum Demo {
 
         let tokens = Tokens(accessToken: "demo", refreshToken: "demo", expiresAt: Int(Date().timeIntervalSince1970) + 86_400 * 365, user: user)
         let uploads = UploadCenter()
-        let m = AppModel(store: DemoMemoryStore(tokens), transport: DemoTransport(me: me, items: ItemsResponse(currentWeek: week, items: items)), uploads: uploads)
+        let transport = DemoTransport(me: me, items: ItemsResponse(currentWeek: week, items: items))
+        let server = transport.server
+        switch screen {
+        case "noplan": server.plan = "noplan"; server.billingMode = "web"
+        case "noclinic": server.plan = "noclinic"
+        case "paused": server.plan = "paused"
+        case "verify": server.plan = "noplan"; server.billingMode = "none"; server.emailVerified = false
+        case "paywall", "paywall-unavailable", "activating", "confirming": server.plan = "noplan"; server.billingMode = "none"
+        case "settings-appstore": server.billingMode = "apple"
+        default: break
+        }
+        let purchases = DemoPurchases(server: server, available: screen != "paywall-unavailable")
+        let m = AppModel(store: DemoMemoryStore(tokens), transport: transport, uploads: uploads, purchases: purchases)
         m.demoScreen = screen
+        if screen == "activating" { m.billing.phase = .activating }
+        if screen == "confirming" { m.billing.phase = .confirming }
         m.currentWeek = week
 
         switch screen {
-        case "signin", "signin-error", "signin-loading", "forgot":
+        case "signin", "signin-error", "signin-loading", "forgot", "signup", "signup-code":
             m.phase = .signedOut
             return m
         case "loading":
@@ -82,7 +98,7 @@ enum Demo {
         }
         if screen == "primer" { m.showNotificationPrimer = true }
         if screen.hasPrefix("record") || screen.hasPrefix("camera") { m.tab = .record }
-        if ["settings", "settings-bottom", "clinic", "videos", "delete", "signout"].contains(screen) { m.tab = .settings }
+        if ["settings", "settings-bottom", "clinic", "videos", "delete", "signout", "settings-appstore"].contains(screen) { m.tab = .settings }
         switch screen {
         case "video-review", "video-declined", "decline": m.weekPath = ["d1"]
         case "video-look": m.weekPath = ["d2"]
@@ -178,8 +194,11 @@ enum Demo {
         }
         renderPosters(items, c)
         let server = DemoServer(content: c, lang: lang, items: items)
-        let m = AppModel(store: store, transport: DemoTransport(server: server), uploads: UploadCenter())
+        let purchases = DemoPurchases(server: server, available: DemoFlags.store != "missing")
+        let m = AppModel(store: store, transport: DemoTransport(server: server), uploads: UploadCenter(), purchases: purchases)
         m.demoScreen = "flow"
+        // The real wait is two minutes; the UI tests see the "still confirming" message sooner.
+        m.billing.setPollTimeout(8)
         return m
     }
 
@@ -255,6 +274,17 @@ enum DemoFlags {
     static var upload: String { str("DVUpload", "ok") }
     static var approveFail: Bool { str("DVApproveFail", "0") == "1" }
     static var clinicReject: Bool { str("DVClinicReject", "0") == "1" }
+    /// Where a clinic without an active plan stands with the server (GET billing):
+    /// web (default: a web payment being confirmed, no paywall) | none (never paid: the paywall) | apple (an App Store plan)
+    static var billing: String { str("DVBilling", "web") }
+    /// The fake App Store: ok | cancel (the sheet closed) | pending (Ask to Buy) | fail | missing (no RevenueCat key)
+    static var store: String { str("DVStore", "ok") }
+    /// Restore Purchases finds: none | found
+    static var restore: String { str("DVRestore", "none") }
+    /// The account's address: verified | unverified
+    static var email: String { str("DVEmail", "verified") }
+    /// After a purchase the webhook: fast (the second poll sees the plan) | never (the app times out)
+    static var activation: String { str("DVActivation", "fast") }
 }
 
 /// An in-process stand-in for /api/dentvideo/mobile/v1 with the same shapes and status codes.
@@ -266,6 +296,17 @@ final class DemoServer: @unchecked Sendable {
     private var profile: ClinicProfile
     private let lang: String
     private var deleted = false
+    /// The signed-in account (another one after an in-app sign-up).
+    private var user = DemoServer.user
+    /// active | starter | noplan | trial | paused | noclinic (from -DVPlan; changes with a clinic form or a purchase)
+    var plan = DemoFlags.plan
+    /// web | none | apple: see DemoFlags.billing.
+    var billingMode = DemoFlags.billing
+    var emailVerified = DemoFlags.email != "unverified"
+    /// A purchase the fake App Store made, waiting for the "webhook" (a later GET billing).
+    private var purchasedTier: String?
+    private var pollsUntilActive = 0
+    private(set) var billingReads = 0
 
     init(content c: DemoContent, lang: String, items: [VideoItem]) {
         self.items = items
@@ -273,20 +314,77 @@ final class DemoServer: @unchecked Sendable {
         self.profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: "riversidedental", bookingUrl: "https://riverside.example/book", closingLine: c.closing, narratorVoice: "female")
     }
 
+    private var hasClinic: Bool { plan != "noclinic" }
+    private var planIsLive: Bool { plan == "active" || plan == "starter" }
+
     private var me: Me {
         let plan: PlanInfo
-        switch DemoFlags.plan {
+        switch self.plan {
         case "noplan": plan = PlanInfo(state: .cancelled, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
+        case "trial", "noclinic": plan = PlanInfo(state: .trial, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
         case "paused": plan = PlanInfo(state: .paused, tier: "practice", canMake: false, adminPaused: true, recordings: true, renewsAt: nil)
         case "starter": plan = PlanInfo(state: .active, tier: "starter", canMake: true, adminPaused: false, recordings: false, renewsAt: nil)
         default: plan = PlanInfo(state: .active, tier: "practice", canMake: true, adminPaused: false, recordings: true, renewsAt: nil)
         }
-        let clinic = DemoFlags.plan == "noclinic" ? nil : Clinic(id: "demo-clinic", profile: profile, logoUrl: nil)
-        return Me(user: Self.user, clinic: clinic, plan: plan, locale: lang, currentWeek: Demo.week)
+        let clinic = hasClinic ? Clinic(id: "demo-clinic", profile: profile, logoUrl: nil) : nil
+        return Me(user: user, clinic: clinic, plan: plan, locale: lang, currentWeek: Demo.week)
     }
 
     private func tokens(_ access: String) -> Tokens {
-        Tokens(accessToken: access, refreshToken: "r", expiresAt: Int(Date().timeIntervalSince1970) + 3600, user: Self.user)
+        Tokens(accessToken: access, refreshToken: "r", expiresAt: Int(Date().timeIntervalSince1970) + 3600, user: user)
+    }
+
+    // MARK: In-app purchase (docs/DENTVIDEO_IAP_PLAN.md §6, web/src/lib/dentvid/mobile-billing.ts)
+
+    /// The fake App Store took a payment: the plan switches on at a later GET billing, as when
+    /// RevenueCat's webhook lands, or never (DVActivation never).
+    func storePurchased(tier: String) {
+        lock.lock(); defer { lock.unlock() }
+        purchasedTier = tier
+        pollsUntilActive = DemoFlags.activation == "never" ? Int.max : 1
+    }
+
+    private var billing: [String: Any] {
+        if purchasedTier != nil {
+            if pollsUntilActive <= 0, let t = purchasedTier {
+                plan = t == "starter" ? "starter" : "active"
+                billingMode = "apple"
+                purchasedTier = nil
+            } else if pollsUntilActive != Int.max {
+                pollsUntilActive -= 1
+            }
+        }
+        let products: [[String: Any]] = [
+            ["tier": "starter", "productId": "dentvideo_starter_monthly", "entitlement": "starter"],
+            ["tier": "practice", "productId": "dentvideo_practice_monthly", "entitlement": "practice"],
+        ]
+        let apple = "https://apps.apple.com/account/subscriptions"
+        var o: [String: Any] = ["appUserId": user.id, "clinicId": hasClinic ? "demo-clinic" as Any : NSNull() as Any, "products": products, "manageUrl": NSNull(), "manage": NSNull()]
+        let unverified: [String] = emailVerified ? [] : ["email_unverified"]
+        let tier = plan == "starter" ? "starter" : "practice"
+        if !hasClinic {
+            o["plan"] = NSNull(); o["status"] = "none"; o["showPaywall"] = false; o["canPurchase"] = false; o["blockers"] = ["clinic"] + unverified
+            return o
+        }
+        o["blockers"] = unverified
+        let source: Any = billingMode == "apple" ? "apple" as Any : (billingMode == "web" ? "dodo" as Any : NSNull() as Any)
+        if planIsLive {
+            o["plan"] = ["state": "active", "tier": tier, "source": source, "renewsAt": "2026-12-16T10:00:00Z", "endsAt": NSNull()] as [String: Any]
+            o["status"] = "active"; o["showPaywall"] = false; o["canPurchase"] = false
+            o["manage"] = billingMode == "apple" ? "app_store" : "web"
+            if billingMode == "apple" { o["manageUrl"] = apple }
+        } else if plan == "paused" {
+            o["plan"] = ["state": "paused", "tier": tier, "source": source] as [String: Any]
+            o["status"] = "admin_paused"; o["showPaywall"] = false; o["canPurchase"] = false
+        } else if billingMode == "none" {
+            o["plan"] = ["state": plan == "noplan" ? "cancelled" : "trial", "tier": NSNull(), "source": NSNull()] as [String: Any]
+            o["status"] = plan == "noplan" ? "ended" : "none"; o["showPaywall"] = true; o["canPurchase"] = emailVerified
+        } else {
+            // A web payment being confirmed: one plan, one source, so the app sells nothing.
+            o["plan"] = ["state": "trial", "tier": NSNull(), "source": "dodo"] as [String: Any]
+            o["status"] = "pending"; o["showPaywall"] = false; o["canPurchase"] = false
+        }
+        return o
     }
 
     private static func json(_ o: Any) -> Data { (try? JSONSerialization.data(withJSONObject: o)) ?? Data() }
@@ -314,10 +412,39 @@ final class DemoServer: @unchecked Sendable {
             return (200, try enc.encode(tokens("fresh")), [:])
         }
         if path.hasSuffix("/password-reset") { return (200, Self.json(["ok": true]), [:]) }
+        if path.hasSuffix("/signup") {
+            let email = ((body["email"] as? String) ?? "").lowercased()
+            // The server's bot brake: a form filled in under 2.5 s (or with no time) is refused.
+            guard let ms = body["elapsedMs"] as? Int, ms >= SignupRules.minFillMs else { return (400, Self.json(["error": "We couldn't create the account. Please try again."]), [:]) }
+            if email.hasPrefix("taken@") { return (200, Self.json(["ok": true, "existing": true]), [:]) }
+            user = AccountUser(id: "new-user", email: email)
+            plan = "noclinic"
+            billingMode = "none"
+            emailVerified = false
+            items = []
+            deleted = false
+            let session = try JSONSerialization.jsonObject(with: try enc.encode(tokens("fresh")))
+            return (200, Self.json(["ok": true, "signedIn": true, "session": session] as [String: Any]), [:])
+        }
         // Every other route needs a valid session.
         if auth == "Bearer stale" || deleted { return (401, Data(), [:]) }
         if path.hasSuffix("/session/signout") || path.hasSuffix("/devices") { return (200, Self.json(["ok": true]), [:]) }
         if path.hasSuffix("/me") { return (200, try enc.encode(me), [:]) }
+        if path.hasSuffix("/billing") {
+            billingReads += 1
+            return (200, Self.json(billing), [:])
+        }
+        if path.hasSuffix("/verify-email") {
+            if emailVerified { return (200, Self.json(["ok": true, "verified": true, "email": user.email ?? ""]), [:]) }
+            if (body["action"] as? String) == "confirm" {
+                guard (body["code"] as? String) == "123456" else {
+                    return (400, Self.json(["error": "That code doesn't match. 4 tries left.", "reason": "wrong", "attemptsLeft": 4]), [:])
+                }
+                emailVerified = true
+                return (200, Self.json(["ok": true, "verified": true, "email": user.email ?? ""]), [:])
+            }
+            return (200, Self.json(["ok": true, "email": user.email ?? "", "resendInSec": 60]), [:])
+        }
         if path.hasSuffix("/items") { return (200, try enc.encode(ItemsResponse(currentWeek: Demo.week, items: items)), [:]) }
         if path.hasSuffix("/approve-week") {
             let week = body["week"] as? String ?? Demo.week
@@ -346,6 +473,8 @@ final class DemoServer: @unchecked Sendable {
                 return (400, Self.json(["error": "This closing line cannot be used under your country's health advertising rules.", "code": "closing_line"]), [:])
             }
             if let p = body["profile"], let d = try? JSONSerialization.data(withJSONObject: p), let np = try? JSONDecoder().decode(ClinicProfile.self, from: d) { profile = np }
+            // A new account's first clinic form creates the clinic (no plan yet).
+            if plan == "noclinic" { plan = "trial" }
             return (200, Self.json(["id": "demo-clinic"]), [:])
         }
         if path.hasSuffix("/account/delete") {

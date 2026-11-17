@@ -4,8 +4,9 @@
 # (CI: .github/workflows/ios-dentvideo.yml, job "screens"). Nothing here talks to a server.
 #
 # Usage: ios/DentVideo/scripts/screens.sh [out-dir]   (default: build/screens)
-#   SCREENS_SET=full|medium|quick   quick = a handful of screens; medium = English in full plus
-#   the key screens in de, ar, ja, dark and the largest text size (no iPad)
+#   SCREENS_SET=full|medium|quick|iap   quick = a handful of screens; medium = English in full plus
+#   the key screens in de, ar, ja, dark and the largest text size (no iPad); iap = sign-up and
+#   purchase screens in English and Turkish
 #
 # Output:
 #   <out>/review/<device>/<variant>/<screen>.jpg   half size, for looking at
@@ -48,12 +49,15 @@ ALL=(signin signin-error signin-loading forgot loading offline-first noplan paus
      week week-full week-empty week-generating week-delayed week-offline approve-all
      video-review video-look video-approved video-posted video-declined decline post post-ready
      record record-locked camera-live camera-denied
-     settings settings-bottom clinic videos delete signout)
+     settings settings-bottom clinic videos delete signout
+     signup signup-code verify paywall paywall-unavailable activating confirming settings-appstore)
 KEY=(signin signin-error noplan week week-full week-generating week-delayed week-offline approve-all
      video-review video-look video-approved decline post-ready record camera-live settings settings-bottom videos delete)
 AX=(signin week video-look post-ready record settings videos delete)
 STORE=(week-full video-review post-ready camera-live record videos)
 QUICK=(signin week video-look post-ready record settings)
+# Sign-up and in-app purchase: the new account's screens (noclinic = the clinic form) and the plan in Settings.
+IAP=(signin signup signup-code noclinic verify paywall paywall-unavailable activating confirming noplan settings settings-appstore)
 
 locale_of() {
   case $1 in en) echo en_US;; tr) echo tr_TR;; de) echo de_DE;; es) echo es_ES;; fr) echo fr_FR;;
@@ -100,7 +104,12 @@ variant() { # id dev appearance size lang screens...
 
 START=$(date +%s)
 boot "$PHONE_ID"
-if [ "$SET" = quick ]; then
+if [ "$SET" = iap ]; then
+  variant "$PHONE_ID" phone light large en "${IAP[@]}"
+  variant "$PHONE_ID" phone light large tr "${IAP[@]}"
+  variant "$PHONE_ID" phone dark large en paywall
+  variant "$PHONE_ID" phone light large ar paywall
+elif [ "$SET" = quick ]; then
   variant "$PHONE_ID" phone light large en "${QUICK[@]}"
   variant "$PHONE_ID" phone dark large en "${QUICK[@]}"
   variant "$PHONE_ID" phone light large ar "${QUICK[@]}"

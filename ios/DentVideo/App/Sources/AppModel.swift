@@ -39,6 +39,8 @@ final class AppModel {
     @ObservationIgnored private let store: TokenStore
     @ObservationIgnored private let snapshots: SnapshotStore
     let uploads: UploadCenter
+    /// The plan, the paywall and the App Store purchase (Billing/BillingModel.swift).
+    let billing: BillingModel
     @ObservationIgnored var deviceToken: String?
     #if DEBUG
     /// The screen a demo launch opens on (Demo.swift); nil in normal use.
@@ -46,12 +48,14 @@ final class AppModel {
     #endif
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
 
-    init(store: TokenStore = KeychainTokenStore(), transport: HTTPTransport = URLSessionTransport(), uploads: UploadCenter? = nil) {
+    init(store: TokenStore = KeychainTokenStore(), transport: HTTPTransport = URLSessionTransport(), uploads: UploadCenter? = nil, purchases: PurchaseService? = nil) {
         self.store = store
         self.api = APIClient(baseURL: Config.apiBaseURL, transport: transport, store: store, languageCode: L10n.languageCode)
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         self.snapshots = SnapshotStore(url: support.appendingPathComponent("snapshot.json"))
         self.uploads = uploads ?? UploadCenter()
+        self.billing = BillingModel(api: api, store: purchases ?? PurchaseServices.make())
+        billing.onActive = { [weak self] in await self?.refresh() }
     }
 
     var access: AccessState? { me.map(AccessState.of) }
@@ -109,6 +113,7 @@ final class AppModel {
     }
 
     private func clearLocal() async {
+        await billing.reset()
         snapshots.clear()
         uploads.reset()
         await VideoCache.shared.clearAll()

@@ -37,10 +37,10 @@ public enum APIError: Error, Equatable, Sendable {
 public actor APIClient {
     public let baseURL: URL
     private let transport: HTTPTransport
-    private let store: TokenStore
+    let store: TokenStore
     private let now: @Sendable () -> Date
     private var refreshing: Task<Tokens, Error>?
-    private let languageCode: String
+    let languageCode: String
 
     public init(baseURL: URL, transport: HTTPTransport, store: TokenStore, languageCode: String = "en", now: @escaping @Sendable () -> Date = { Date() }) {
         self.baseURL = baseURL
@@ -154,7 +154,7 @@ public actor APIClient {
         id.addingPercentEncoding(withAllowedCharacters: .alphanumerics.union(CharacterSet(charactersIn: "-"))) ?? ""
     }
 
-    private func send<T: Decodable>(_ path: String, method: String = "GET", body: (any Encodable)? = nil, auth: Bool = true) async throws -> T {
+    func send<T: Decodable>(_ path: String, method: String = "GET", body: (any Encodable)? = nil, auth: Bool = true) async throws -> T {
         let data = try await sendRaw(path, method: method, body: body, auth: auth)
         do {
             return try Self.decoder.decode(T.self, from: data)
@@ -164,7 +164,7 @@ public actor APIClient {
     }
 
     @discardableResult
-    private func sendRaw(_ path: String, method: String, body: (any Encodable)?, auth: Bool = true, retry: Bool = true) async throws -> Data {
+    func sendRaw(_ path: String, method: String, body: (any Encodable)?, auth: Bool = true, retry: Bool = true) async throws -> Data {
         var tokens: Tokens?
         if auth {
             tokens = try await validTokens()

@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       screens:
-        description: "Simulator screenshots of every screen (demo mode): full, medium, quick or none"
+        description: "Simulator screenshots of every screen (demo mode): full, medium, quick, iap (sign-up and purchase, en + tr) or none"
         type: choice
-        options: [full, medium, quick, none]
+        options: [full, medium, quick, iap, none]
         default: full
       tests:
         description: "Unit + end-to-end UI tests on iPhone 17 Pro Max (iOS 26), iPad Pro 13\" (iOS 26), iPhone SE 3rd gen (iOS 18)"

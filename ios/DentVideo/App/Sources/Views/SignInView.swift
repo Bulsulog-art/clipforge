@@ -2,8 +2,8 @@ import SwiftUI
 import UIKit
 import DentVideoCore
 
-/// Sign in with the clinic's DentVideo account (the same email and password as on the web).
-/// No account creation here, and nothing about plans or prices.
+/// Sign in with the clinic's DentVideo account (the same email and password as on the web), or
+/// create one (SignUpView). Nothing about plans or prices here.
 struct SignInView: View {
     @Environment(AppModel.self) private var model
     @State private var email = ""
@@ -11,6 +11,7 @@ struct SignInView: View {
     @State private var busy = false
     @State private var error: String?
     @State private var forgot = false
+    @State private var signingUp = false
     @FocusState private var field: Field?
     enum Field { case email, password }
 
@@ -88,6 +89,16 @@ struct SignInView: View {
                         .frame(maxWidth: .infinity)
                 }
 
+                VStack(spacing: Theme.s2) {
+                    Text(L("signin.new"))
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.muted)
+                    Button(L("signin.create")) { signingUp = true }
+                        .buttonStyle(.dvSecondary)
+                        .accessibilityIdentifier("signin.create")
+                }
+                .frame(maxWidth: .infinity)
+
                 HStack(spacing: 16) {
                     Link(L("legal.privacy"), destination: Config.page("privacy"))
                     // No Help or Terms link in the app: the help center answers billing questions and
@@ -106,6 +117,7 @@ struct SignInView: View {
         .scrollDismissesKeyboard(.interactively)
         .background(Theme.paper.ignoresSafeArea())
         .sheet(isPresented: $forgot) { ForgotPasswordView(prefill: email) }
+        .sheet(isPresented: $signingUp) { SignUpView(prefill: email) }
         .task {
             guard model.isDemoMode else { return }
             if model.isDemo("signin-error", "signin-loading", "forgot") { email = "hello@riverside.example" }
@@ -114,6 +126,10 @@ struct SignInView: View {
             if model.isDemo("forgot") {
                 try? await Task.sleep(for: .milliseconds(400))
                 forgot = true
+            }
+            if model.isDemo("signup", "signup-code") {
+                try? await Task.sleep(for: .milliseconds(400))
+                signingUp = true
             }
         }
     }
