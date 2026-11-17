@@ -4,18 +4,18 @@ import type { Guide } from "../dentvideo";
 // beschreiben, was gilt; keine erfundenen Zahlen, keine Preise; Recht vorsichtig
 // und mit amtlichen Quellen.
 
-const HWG = { label: "Heilmittelwerbegesetz (HWG) — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
-const UWG = { label: "Gesetz gegen den unlauteren Wettbewerb (UWG) — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/uwg_2004/" };
-const BZAEK = { label: "Bundeszahnärztekammer — Musterberufsordnung (MBO-Z), Abschnitt „Berufliche Kommunikation“ (§§ 20–22)", url: "https://www.bzaek.de/recht/musterberufsordnung/berufliche-kommunikation.html" };
-const HWG11 = { label: "§ 11 HWG — Werbung außerhalb der Fachkreise (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
-const HWG15 = { label: "§ 15 HWG — Bußgeldvorschriften (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__15.html" };
-const LTO_BGH = { label: "LTO — BGH, Urteil vom 31. Juli 2025, I ZR 170/24: keine Vorher-Nachher-Bilder für Hyaluron-Unterspritzungen", url: "https://www.lto.de/recht/nachrichten/n/izr17024-bgh-vorher-nachher-bildern-schoenheitsoperation-dr-rick-und-nick-aesthetify" };
-const DSGVO = { label: "Datenschutz-Grundverordnung (DSGVO), Art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
-const DDG = { label: "Digitale-Dienste-Gesetz (DDG), § 5 Impressumspflicht — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/ddg/" };
-const RIS = { label: "Rechtsinformationssystem des Bundes (RIS) — Zahnärztegesetz (ZÄG), § 35", url: "https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20004372&Paragraf=35" };
-const OEZAEK = { label: "Österreichische Zahnärztekammer — Werberichtlinie (WR-ÖZÄK)", url: "https://www.zahnaerztekammer.at/" };
-const FEDLEX = { label: "Fedlex — Medizinalberufegesetz (MedBG, SR 811.11), Art. 40", url: "https://www.fedlex.admin.ch/eli/cc/2007/537/de" };
-const SSO = { label: "Schweizerische Zahnärzte-Gesellschaft SSO — Standesordnung", url: "https://www.sso.ch/" };
+const HWG = { label: "Heilmittelwerbegesetz (HWG), gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
+const UWG = { label: "Gesetz gegen den unlauteren Wettbewerb (UWG), gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/uwg_2004/" };
+const BZAEK = { label: "Bundeszahnärztekammer: Musterberufsordnung (MBO-Z), Abschnitt „Berufliche Kommunikation“ (§§ 20–22)", url: "https://www.bzaek.de/recht/musterberufsordnung/berufliche-kommunikation.html" };
+const HWG11 = { label: "§ 11 HWG: Werbung außerhalb der Fachkreise (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
+const HWG15 = { label: "§ 15 HWG: Bußgeldvorschriften (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__15.html" };
+const LTO_BGH = { label: "LTO zum BGH-Urteil vom 31. Juli 2025, I ZR 170/24: keine Vorher-Nachher-Bilder für Hyaluron-Unterspritzungen", url: "https://www.lto.de/recht/nachrichten/n/izr17024-bgh-vorher-nachher-bildern-schoenheitsoperation-dr-rick-und-nick-aesthetify" };
+const DSGVO = { label: "Datenschutz-Grundverordnung (DSGVO), Art. 9 (EUR-Lex)", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
+const DDG = { label: "Digitale-Dienste-Gesetz (DDG), § 5 Impressumspflicht (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/ddg/" };
+const RIS = { label: "Rechtsinformationssystem des Bundes (RIS): Zahnärztegesetz (ZÄG), § 35", url: "https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20004372&Paragraf=35" };
+const OEZAEK = { label: "Österreichische Zahnärztekammer: Werberichtlinie (WR-ÖZÄK)", url: "https://www.zahnaerztekammer.at/" };
+const FEDLEX = { label: "Fedlex: Medizinalberufegesetz (MedBG, SR 811.11), Art. 40", url: "https://www.fedlex.admin.ch/eli/cc/2007/537/de" };
+const SSO = { label: "Schweizerische Zahnärzte-Gesellschaft SSO: Standesordnung", url: "https://www.sso.ch/" };
 
 export const GUIDES_DE: Guide[] = [
   {
@@ -100,7 +100,7 @@ export const GUIDES_DE: Guide[] = [
           "Erkennbare Patienten ohne schriftliche Einwilligung",
         ],
         after: [
-          "Der sichere Weg ist sachliche Aufklärung mit vorsichtigen Formulierungen: „in der Regel“, „bei den meisten Patienten“, „Ihre Zahnärztin berät Sie individuell“. Im Zweifel fragen Sie Ihre Kammer. Vergessen Sie außerdem das Impressum: Auch ein geschäftlich genutztes Instagram-Profil braucht in Deutschland einen leicht erreichbaren Link darauf.",
+          "Der sichere Weg ist sachliche Aufklärung mit vorsichtigen Formulierungen: „in der Regel“, „bei den meisten Patienten“, „Ihre Zahnärztin berät Sie individuell“. Im Zweifel fragen Sie Ihre Kammer. Vergessen Sie außerdem das Impressum: Auch ein geschäftlich genutztes Instagram-Profil braucht in Deutschland einen leicht erreichbaren Link darauf. Was hineingehört, erklärt der Ratgeber [Impressum auf Instagram für Zahnarztpraxen](guide:impressum-instagram-zahnarztpraxis).",
         ],
       },
       {
@@ -200,7 +200,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo diese Prüfung übernimmt",
         paragraphs: [
-          "[DentVideo](landing:) prüft jedes Skript und jeden Beitragstext auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind — Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen — und lässt riskante Formulierungen neu schreiben. Ihre eigenen Aufnahmen werden nicht verändert, sondern mit Begründung markiert. Das ersetzt keine Rechtsberatung: Sie geben jedes Video frei. Für Österreich und die Schweiz gibt es einen eigenen [Ratgeber zur Zahnarzt-Werbung in AT und CH](guide:zahnarzt-werbung-oesterreich-schweiz); Themen, die unbedenklich sind, finden Sie in den [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
+          "[DentVideo](landing:) prüft jedes Skript und jeden Beitragstext auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind — Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen — und lässt riskante Formulierungen neu schreiben. Ihre eigenen Aufnahmen werden nicht verändert, sondern mit Begründung markiert. Das ersetzt keine Rechtsberatung: Sie geben jedes Video frei. Eigene Beitragstexte, Website-Texte oder Anzeigen können Sie vorab kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) prüfen: Er markiert jeden Satz mit Begründung und Quelle. Welche Pflichtangaben ins Profil gehören, steht im Ratgeber [Impressum auf Instagram](guide:impressum-instagram-zahnarztpraxis). Für Österreich und die Schweiz gibt es einen eigenen [Ratgeber zur Zahnarzt-Werbung in AT und CH](guide:zahnarzt-werbung-oesterreich-schweiz); Themen, die unbedenklich sind, finden Sie in den [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
         ],
       },
     ],
@@ -526,7 +526,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo hilft",
         paragraphs: [
-          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung — Sie geben jedes Video frei. [Ihre Videos ansehen, bevor Sie zahlen](start:).",
+          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung — Sie geben jedes Video frei. Eigene Texte prüfen Sie kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) mit dem Markt Österreich oder Schweiz. [Ihre Videos ansehen, bevor Sie zahlen](start:).",
         ],
       },
     ],

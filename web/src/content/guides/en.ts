@@ -3,38 +3,38 @@ import type { Guide } from "../dentvideo";
 // English guides (US and UK first). Rules: describe only what is true today;
 // no invented statistics, no prices; regulation hedged and sourced.
 
-const GDC = { label: "General Dental Council — Standards for the Dental Team and guidance on advertising and social media", url: "https://www.gdc-uk.org/" };
-const CAP = { label: "ASA / CAP — UK Code of Non-broadcast Advertising (CAP Code)", url: "https://www.asa.org.uk/codes-and-rulings/advertising-codes/non-broadcast-code.html" };
-const ICO = { label: "Information Commissioner's Office — UK GDPR and health data", url: "https://ico.org.uk/" };
-const FTC_HEALTH = { label: "FTC — Health Products Compliance Guidance", url: "https://www.ftc.gov/business-guidance/resources/health-products-compliance-guidance" };
-const FTC_ADS = { label: "FTC — Advertising and marketing guidance (Endorsement Guides, reviews and testimonials rule)", url: "https://www.ftc.gov/business-guidance/advertising-marketing" };
-const ADA = { label: "American Dental Association — Principles of Ethics and Code of Professional Conduct", url: "https://www.ada.org/about/principles/code-of-ethics" };
-const HHS = { label: "U.S. Department of Health and Human Services — HIPAA for professionals", url: "https://www.hhs.gov/hipaa/index.html" };
-const HWG = { label: "Germany — Heilmittelwerbegesetz (HWG)", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
-const BOE = { label: "Spain — Real Decreto 1907/1996 (BOE)", url: "https://www.boe.es/eli/es/rd/1996/08/02/1907/con" };
-const RG = { label: "Türkiye — Resmî Gazete, 12 November 2025, no. 33075 (health-services promotion regulation)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+const GDC = { label: "General Dental Council: Standards for the Dental Team and guidance on advertising and social media", url: "https://www.gdc-uk.org/" };
+const CAP = { label: "ASA / CAP: UK Code of Non-broadcast Advertising (CAP Code)", url: "https://www.asa.org.uk/codes-and-rulings/advertising-codes/non-broadcast-code.html" };
+const ICO = { label: "Information Commissioner's Office: UK GDPR and health data", url: "https://ico.org.uk/" };
+const FTC_HEALTH = { label: "FTC: Health Products Compliance Guidance", url: "https://www.ftc.gov/business-guidance/resources/health-products-compliance-guidance" };
+const FTC_ADS = { label: "FTC: Advertising and marketing guidance (Endorsement Guides, reviews and testimonials rule)", url: "https://www.ftc.gov/business-guidance/advertising-marketing" };
+const ADA = { label: "American Dental Association: Principles of Ethics and Code of Professional Conduct", url: "https://www.ada.org/about/principles/code-of-ethics" };
+const HHS = { label: "U.S. Department of Health and Human Services: HIPAA for professionals", url: "https://www.hhs.gov/hipaa/index.html" };
+const HWG = { label: "Germany: Heilmittelwerbegesetz (HWG)", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
+const BOE = { label: "Spain: Real Decreto 1907/1996 (BOE)", url: "https://www.boe.es/eli/es/rd/1996/08/02/1907/con" };
+const RG = { label: "Türkiye: Resmî Gazete, 12 November 2025, no. 33075 (health-services promotion regulation)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
 
 // Deep links to the operative texts (checked 2026-11-10).
-const GDC_ADV = { label: "General Dental Council — Guidance on advertising", url: "https://www.gdc-uk.org/standards-guidance/standards-and-guidance/gdc-guidance-for-dental-professionals/guidance-on-advertising" };
-const GDC_SM = { label: "General Dental Council — Guidance on using social media (in effect since 27 June 2016)", url: "https://www.gdc-uk.org/docs/default-source/guidance-documents/guidance-on-using-social-media" };
-const CAP12 = { label: "CAP Code, Section 12 — Medicines, medical devices, health-related products and beauty products", url: "https://www.asa.org.uk/type/non_broadcast/code_section/12.html" };
-const ASA_POM = { label: "ASA / CAP advice — Healthcare: prescription-only medicines", url: "https://www.asa.org.uk/advice-online/healthcare-prescription-only-medicine.html" };
-const FTC_255 = { label: "FTC Endorsement Guides, 16 CFR Part 255 (revised 2023) — eCFR", url: "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-B/part-255" };
-const FTC_465 = { label: "FTC — Final rule on consumer reviews and testimonials, 16 CFR Part 465 (in force since 21 October 2024)", url: "https://www.ftc.gov/system/files/ftc_gov/pdf/r311003consumerreviewstestimonialsfinalrulefrn.pdf" };
-const FTC_EIR = { label: "FTC — Endorsements, influencers and reviews (business guidance)", url: "https://www.ftc.gov/business-guidance/advertising-marketing/endorsements-influencers-reviews" };
-const ADA_2025 = { label: "American Dental Association — Principles of Ethics and Code of Professional Conduct, 2025 edition (PDF)", url: "https://www.ada.org/-/media/project/ada-organization/ada/ada-org/files/about/2025_code_of_ethics_full.pdf" };
-const ADA_NEWS = { label: "ADA News — Code updates address ethical concerns with social media influencers (February 2025)", url: "https://adanews.ada.org/ada-news/2025/february/ada-code-updates-address-ethical-concerns-with-social-media-influencers/" };
-const TX_108 = { label: "Texas — 22 Tex. Admin. Code ch. 108, subchapter E (Business Promotion, §§ 108.50–108.63), via Cornell LII", url: "https://www.law.cornell.edu/regulations/texas/title-22/part-5/chapter-108/subchapter-E" };
-const TX_10857 = { label: "Texas — 22 Tex. Admin. Code § 108.57, False, misleading or deceptive advertising, via Cornell LII", url: "https://www.law.cornell.edu/regulations/texas/22-Tex-Admin-Code-SS-108-57" };
-const FL_466 = { label: "Florida Statutes § 466.019 — Advertising by dentists (Florida Senate)", url: "https://flsenate.gov/Laws/Statutes/2024/466.019" };
-const FL_64B5 = { label: "Florida — Fla. Admin. Code r. 64B5-4.003, Advertisement of fees and discounted services, via Cornell LII", url: "https://www.law.cornell.edu/regulations/florida/Fla-Admin-Code-Ann-R-64B5-4-003" };
-const CA_651 = { label: "California — Business and Professions Code § 651 (California Legislative Information)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=BPC&sectionNum=651" };
-const CDA_ELITE = { label: "California Dental Association — Dental practice settles HHS complaint over patient information disclosed in review replies (2019)", url: "https://www.cda.org/news-events/dental-practice-pays-10k-to-settle-disclosures-of-patients-phi-on-social-media" };
-const HWG11 = { label: "Germany — Heilmittelwerbegesetz § 11 (advertising to the public)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
-const R4127 = { label: "France — Code de la santé publique, art. R. 4127-215-1 (Légifrance)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
-const DHA = { label: "Dubai Health Authority — Standards for Medical Advertisement Content in Social Media (v1.1)", url: "https://www.dha.gov.ae/uploads/042022/Standards%20for%20Medical%20Advertisement%20Content%20in%20Social%20Media2022433965.pdf" };
-const MHLW = { label: "Japan — Ministry of Health, Labour and Welfare: medical advertising rules (医療広告ガイドライン)", url: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/kokokukisei/index.html" };
-const PL_UDL = { label: "Poland — Act on Medical Activity (ustawa o działalności leczniczej), art. 14, consolidated text Dz.U. 2026 poz. 156", url: "https://eli.gov.pl/eli/DU/2026/156" };
+const GDC_ADV = { label: "General Dental Council: Guidance on advertising", url: "https://www.gdc-uk.org/standards-guidance/standards-and-guidance/gdc-guidance-for-dental-professionals/guidance-on-advertising" };
+const GDC_SM = { label: "General Dental Council: Guidance on using social media (in effect since 27 June 2016)", url: "https://www.gdc-uk.org/docs/default-source/guidance-documents/guidance-on-using-social-media" };
+const CAP12 = { label: "CAP Code, Section 12: Medicines, medical devices, health-related products and beauty products", url: "https://www.asa.org.uk/type/non_broadcast/code_section/12.html" };
+const ASA_POM = { label: "ASA / CAP advice on healthcare: prescription-only medicines", url: "https://www.asa.org.uk/advice-online/healthcare-prescription-only-medicine.html" };
+const FTC_255 = { label: "FTC Endorsement Guides, 16 CFR Part 255, revised 2023 (eCFR)", url: "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-B/part-255" };
+const FTC_465 = { label: "FTC: Final rule on consumer reviews and testimonials, 16 CFR Part 465 (in force since 21 October 2024)", url: "https://www.ftc.gov/system/files/ftc_gov/pdf/r311003consumerreviewstestimonialsfinalrulefrn.pdf" };
+const FTC_EIR = { label: "FTC: Endorsements, influencers and reviews (business guidance)", url: "https://www.ftc.gov/business-guidance/advertising-marketing/endorsements-influencers-reviews" };
+const ADA_2025 = { label: "American Dental Association: Principles of Ethics and Code of Professional Conduct, 2025 edition (PDF)", url: "https://www.ada.org/-/media/project/ada-organization/ada/ada-org/files/about/2025_code_of_ethics_full.pdf" };
+const ADA_NEWS = { label: "ADA News: Code updates address ethical concerns with social media influencers (February 2025)", url: "https://adanews.ada.org/ada-news/2025/february/ada-code-updates-address-ethical-concerns-with-social-media-influencers/" };
+const TX_108 = { label: "Texas: 22 Tex. Admin. Code ch. 108, subchapter E (Business Promotion, §§ 108.50–108.63), via Cornell LII", url: "https://www.law.cornell.edu/regulations/texas/title-22/part-5/chapter-108/subchapter-E" };
+const TX_10857 = { label: "Texas: 22 Tex. Admin. Code § 108.57, False, misleading or deceptive advertising, via Cornell LII", url: "https://www.law.cornell.edu/regulations/texas/22-Tex-Admin-Code-SS-108-57" };
+const FL_466 = { label: "Florida Statutes § 466.019: Advertising by dentists (Florida Senate)", url: "https://flsenate.gov/Laws/Statutes/2024/466.019" };
+const FL_64B5 = { label: "Florida: Fla. Admin. Code r. 64B5-4.003, Advertisement of fees and discounted services, via Cornell LII", url: "https://www.law.cornell.edu/regulations/florida/Fla-Admin-Code-Ann-R-64B5-4-003" };
+const CA_651 = { label: "California: Business and Professions Code § 651 (California Legislative Information)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=BPC&sectionNum=651" };
+const CDA_ELITE = { label: "California Dental Association: Dental practice settles HHS complaint over patient information disclosed in review replies (2019)", url: "https://www.cda.org/news-events/dental-practice-pays-10k-to-settle-disclosures-of-patients-phi-on-social-media" };
+const HWG11 = { label: "Germany: Heilmittelwerbegesetz § 11 (advertising to the public)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
+const R4127 = { label: "France: Code de la santé publique, art. R. 4127-215-1 (Légifrance)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
+const DHA = { label: "Dubai Health Authority: Standards for Medical Advertisement Content in Social Media (v1.1)", url: "https://www.dha.gov.ae/uploads/042022/Standards%20for%20Medical%20Advertisement%20Content%20in%20Social%20Media2022433965.pdf" };
+const MHLW = { label: "Japan, Ministry of Health, Labour and Welfare: medical advertising rules (医療広告ガイドライン)", url: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/kokokukisei/index.html" };
+const PL_UDL = { label: "Poland: Act on Medical Activity (ustawa o działalności leczniczej), art. 14, consolidated text Dz.U. 2026 poz. 156", url: "https://eli.gov.pl/eli/DU/2026/156" };
 
 export const GUIDES_EN: Guide[] = [
   {
@@ -341,7 +341,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) checks every script and caption for these commonly restricted claims in ten languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes. For topics that are safe to post, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
+          "[DentVideo](landing:) checks every script and caption for these commonly restricted claims in ten languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes. For text you write yourself, paste it into the free [“Is my post allowed?” ad checker](checker:), pick the country, and see each sentence marked with the reason and a link to the official rule. For topics that are safe to post, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
         ],
       },
     ],
@@ -551,7 +551,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Patients, consent and UK GDPR",
         paragraphs: [
           "Health information is special category data under UK GDPR, and the duty of confidentiality applies on social media as it does in the surgery. Featuring a patient — their face, voice, name, radiograph or story — needs explicit, informed, written consent that is specific to that use and can be withdrawn. Keep it separate from treatment consent and store it with the record.",
-          "Take care when replying to online reviews: confirming that someone is your patient, or discussing their treatment, can itself be a breach. For more, see our guide to [patient consent on dental social media](guide:patient-consent-dental-social-media).",
+          "Take care when replying to online reviews: confirming that someone is your patient, or discussing their treatment, can itself be a breach. For more, see our guide to [patient consent on dental social media](guide:patient-consent-dental-social-media) and [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa).",
         ],
       },
       {
@@ -570,7 +570,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) writes educational videos that stay away from these risks: no guarantees, “painless”, superlatives, prices, before-and-after promises or testimonials, and every script reviewed for clinical accuracy. Your own recordings are marked for review instead of being reworded. It is a careful filter, not legal advice — you approve every video. For topics that work well, see [dental social media post ideas](guide:dental-social-media-post-ideas); for the wider picture, [advertising rules by country](guide:dental-social-media-advertising-rules).",
+          "[DentVideo](landing:) writes educational videos that stay away from these risks: no guarantees, “painless”, superlatives, prices, before-and-after promises or testimonials, and every script reviewed for clinical accuracy. Your own recordings are marked for review instead of being reworded. It is a careful filter, not legal advice — you approve every video. To check a caption or ad you wrote yourself against UK rules, use the free [“Is my post allowed?” ad checker](checker:) with the United Kingdom selected. For topics that work well, see [dental social media post ideas](guide:dental-social-media-post-ideas); for the wider picture, [advertising rules by country](guide:dental-social-media-advertising-rules).",
         ],
       },
     ],
@@ -636,7 +636,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "What does HIPAA mean for patient photos and reviews?",
         paragraphs: [
           "Patient photos, videos, radiographs, names and stories are protected health information. Using them in marketing generally requires the patient's written HIPAA authorization, separate from treatment consent, and the patient can revoke it. Simply confirming that someone is your patient can be a disclosure.",
-          "This matters most when replying to online reviews. In 2019 the HHS Office for Civil Rights settled with a Dallas dental practice that had disclosed a patient's last name, treatment plan and insurance details in a reply to a Yelp review; besides a payment, the practice accepted a corrective action plan with two years of monitoring. A safe reply thanks the reviewer and invites them to call the office, without confirming they are a patient or mentioning treatment. More in [patient consent on dental social media](guide:patient-consent-dental-social-media).",
+          "This matters most when replying to online reviews. In 2019 the HHS Office for Civil Rights settled with a Dallas dental practice that had disclosed a patient's last name, treatment plan and insurance details in a reply to a Yelp review; besides a payment, the practice accepted a corrective action plan with two years of monitoring. A safe reply thanks the reviewer and invites them to call the office, without confirming they are a patient or mentioning treatment. Reply templates are in [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa); more on consent in [patient consent on dental social media](guide:patient-consent-dental-social-media).",
         ],
       },
       {
@@ -672,7 +672,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) makes educational videos that avoid the riskiest claims — guarantees, “painless”, superlatives, prices, before-and-after promises and testimonials — and checks every script for clinical accuracy. It needs no patient footage, and your own recordings are flagged for review rather than reworded. It is not legal advice; you approve every video. See [dental social media post ideas](guide:dental-social-media-post-ideas) for topics, and the [country-by-country overview](guide:dental-social-media-advertising-rules) if you work across borders.",
+          "[DentVideo](landing:) makes educational videos that avoid the riskiest claims — guarantees, “painless”, superlatives, prices, before-and-after promises and testimonials — and checks every script for clinical accuracy. It needs no patient footage, and your own recordings are flagged for review rather than reworded. It is not legal advice; you approve every video. Captions and ads you write yourself can be checked against US rules with the free [“Is my post allowed?” ad checker](checker:). See [dental social media post ideas](guide:dental-social-media-post-ideas) for topics, and the [country-by-country overview](guide:dental-social-media-advertising-rules) if you work across borders.",
         ],
       },
     ],
@@ -745,14 +745,14 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Replying to online reviews",
         paragraphs: [
-          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. In 2019 the US Department of Health and Human Services settled with a Dallas dental practice for exactly this: its replies to Yelp reviews had disclosed a patient's last name, treatment plan and insurance details. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly — nothing more.",
+          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. In 2019 the US Department of Health and Human Services settled with a Dallas dental practice for exactly this: its replies to Yelp reviews had disclosed a patient's last name, treatment plan and insurance details. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly — nothing more. Templates and the HHS cases are in [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa).",
         ],
       },
       {
         heading: "Alternatives that need no patient data",
         paragraphs: [
           "Most useful content does not need real patients at all: the dentist explaining to camera, models and typodonts, diagrams, animation and narrated videos. They are easier to produce, never have to be taken down when consent is withdrawn and raise no advertising questions. Ideas in [dental social media post ideas](guide:dental-social-media-post-ideas).",
-          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colors, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [See your own videos before you pay](start:).",
+          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colors, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. A caption you write yourself about a patient story can be checked for testimonial-style wording with the free [“Is my post allowed?” ad checker](checker:). [See your own videos before you pay](start:).",
         ],
       },
     ],
