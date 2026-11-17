@@ -75,7 +75,7 @@ URLs are the public dentvideo.com paths. `[hub]` = guides index for that languag
 | P2 | diş kliniği sosyal medya yönetimi → diş kliniği reklam ajansı, diş kliniği dijital pazarlama | tool/alternative | `/guides/dis-klinigi-sosyal-medya-yonetimi` |
 | P2 | hasta bilgilendirme videosu → diş tedavisi bilgilendirme, bekleme salonu videosu | content | `/guides/hasta-bilgilendirme-videolari` |
 | P2 | diş hekimi video çekimi → diş kliniği tanıtım videosu, telefonla video çekimi | how-to | `/guides/dis-hekimi-video-cekimi` |
-| P3 | sağlık turizmi tanıtım kuralları (diş) | compliance | *to write* (see calendar) |
+| P1 | sağlık turizmi reklam yönetmeliği → sağlık turizmi reklam yasağı, sağlık turizmi reklam kuralları (suggest, Nov 2026) | compliance | `/guides/saglik-turizmi-dis-klinigi-tanitim-kurallari` (2026-11-17, art. 8 of the 2025 regulation) |
 | P3 | diş hekimi reklam cezası (standalone) | compliance | covered as FAQ; split out if GSC shows demand |
 
 ### DACH (de)
@@ -88,7 +88,7 @@ URLs are the public dentvideo.com paths. `[hub]` = guides index for that languag
 | P2 | Social Media Agentur Zahnarzt → Social-Media-Manager Zahnarztpraxis, Zahnarzt Marketing Agentur, Praxismarketing Zahnarzt | tool/alternative | `/guides/praxismarketing-zahnarzt-agentur-oder-selbst` |
 | P2 | Patientenaufklärung Video(s) → Aufklärungsvideo Zahnarzt, Wartezimmer-TV | content | `/guides/patientenaufklaerung-videos-zahnarztpraxis` |
 | P2 | Zahnarzt Werbung Österreich / Schweiz → § 35 ZÄG, Werberichtlinie ÖZÄK, MedBG Art. 40 | compliance | `/guides/zahnarzt-werbung-oesterreich-schweiz` |
-| P3 | Impressum Instagram Zahnarzt | compliance | *to write* |
+| P1 | Impressum Instagram Zahnarzt → zahnarzt impressum pflichtangaben, impressum instagram pflicht (suggest, Nov 2026) | compliance | `/guides/impressum-instagram-zahnarztpraxis` (2026-11-17) |
 
 ### Spain / LatAm (es)
 
@@ -127,6 +127,7 @@ URLs are the public dentvideo.com paths. `[hub]` = guides index for that languag
 | P2 | dental social media consent form → HIPAA social media dental, patient photo consent | compliance | `/guides/patient-consent-dental-social-media` |
 | P2 | instagram videos for dentists → how to make dental videos | how-to | `/guides/instagram-videos-for-dentists` |
 | P2 | dental advertising rules by country | compliance (intl.) | `/guides/dental-social-media-advertising-rules` |
+| P1 | hipaa responding to online reviews → how to respond to a negative dental review, hipaa compliant review responses (suggest, Nov 2026) | compliance (US, UK note) | `/guides/how-to-respond-to-negative-dental-reviews-hipaa` (2026-11-17) |
 | P3 | dental social media calendar 2027 · dental captions for instagram · dental hashtags | content | *to write* |
 
 ### Entity / brand (all markets)

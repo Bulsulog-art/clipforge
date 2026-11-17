@@ -34,6 +34,9 @@ import {
   POSTING_RHYTHM_TR,
 } from "./posting-rhythm";
 import { TIKTOK_EN } from "./tiktok";
+import { HEALTH_TOURISM_TR } from "./health-tourism-tr";
+import { IMPRESSUM_DE } from "./impressum-de";
+import { REVIEW_REPLIES_EN } from "./review-replies-en";
 
 // Only type imports from ../dentvideo here and in the per-language files, so
 // content/dentvideo.ts can import this module without a runtime cycle.
@@ -41,10 +44,12 @@ import { TIKTOK_EN } from "./tiktok";
 /** The guide library, by market priority; within a language, in hub order. */
 export const GUIDE_LIBRARY: Guide[] = [
   ...GUIDES_TR,
+  HEALTH_TOURISM_TR,
   CALENDAR_TR,
   POSTING_RHYTHM_TR,
   ...TREATMENTS_TR,
   ...GUIDES_DE,
+  IMPRESSUM_DE,
   CALENDAR_DE,
   POSTING_RHYTHM_DE,
   ...TREATMENTS_DE,
@@ -57,6 +62,7 @@ export const GUIDE_LIBRARY: Guide[] = [
   POSTING_RHYTHM_FR,
   ...TREATMENTS_FR,
   ...GUIDES_EN,
+  REVIEW_REPLIES_EN,
   CALENDAR_EN,
   POSTING_RHYTHM_EN,
   TIKTOK_EN,
