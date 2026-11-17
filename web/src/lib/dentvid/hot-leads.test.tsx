@@ -180,7 +180,7 @@ describe("raising a hot-lead alert", () => {
     expect(mails).toHaveLength(1);
     expect(await store.get(hotLeadGateKey(TOKEN, "viewed"))).toBe("1");
     // Another demo is its own lead.
-    demoRow = demo({ token: "Kq9WmZ2xT4p", clinic_name: "Riverside Dental" });
+    demoRow = demo({ token: "Kq9WmZ2xT4p", clinic_name: "Sample Dental Practice" });
     expect(await raiseHotLead({ token: "Kq9WmZ2xT4p", step: "viewed", now: NOW })).toBe("sent");
     expect(mails).toHaveLength(2);
   });

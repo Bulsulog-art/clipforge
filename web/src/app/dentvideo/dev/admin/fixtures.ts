@@ -21,14 +21,14 @@ export function rng(seed: number) {
 }
 
 const NAMES: Record<string, { country: string; names: string[] }> = {
-  en: { country: "GB", names: ["Riverside Dental", "Harbour Smiles", "Oakwood Dental Care", "The Smile Studio", "Kingsway Dental", "Brightside Dentistry", "Meadow Lane Dental"] },
-  de: { country: "DE", names: ["Zahnarztpraxis am Park", "Zahnzentrum Mitte", "Praxis Dr. Weber", "Zahnärzte am Markt", "Lächelwerk"] },
+  en: { country: "GB", names: ["Sample Dental Practice", "Demo Dental Clinic", "Example Dental Care", "Test Dental Studio", "Sample Family Dentistry", "Demo Dental Centre", "Example Smile Clinic"] },
+  de: { country: "DE", names: ["Demo Zahnarztpraxis", "Beispiel Zahnzentrum", "Musterpraxis Zahnmedizin", "Zahnarztpraxis Muster", "Demo Zahnzentrum"] },
   tr: { country: "TR", names: ["Örnek Diş Kliniği", "Ağız ve Diş Sağlığı Merkezi", "Demo Diş Merkezi İzmir", "Deneme Diş Kliniği"] },
-  es: { country: "ES", names: ["Clínica Dental Sonrisa", "Dental Mediterráneo", "Clínica Dental Sol"] },
-  fr: { country: "FR", names: ["Cabinet Dentaire du Parc", "Centre Dentaire Lumière", "Cabinet Dr Martin"] },
-  pl: { country: "PL", names: ["Gabinet Uśmiech", "Dentica Kraków"] },
-  ja: { country: "JP", names: ["さくら歯科クリニック", "みなと歯科"] },
-  ar: { country: "AE", names: ["عيادة الابتسامة", "مركز النور لطب الأسنان"] },
+  es: { country: "ES", names: ["Clínica Dental Ejemplo", "Clínica Dental Demo", "Centro Dental de Prueba"] },
+  fr: { country: "FR", names: ["Cabinet Dentaire Exemple", "Centre Dentaire Démo", "Cabinet Dentaire Test"] },
+  pl: { country: "PL", names: ["Przykładowy Gabinet Stomatologiczny", "Gabinet Demo"] },
+  ja: { country: "JP", names: ["サンプル歯科", "デモ歯科クリニック"] },
+  ar: { country: "AE", names: ["عيادة أسنان تجريبية", "مركز أسنان تجريبي"] },
 };
 const LOCALE_WEIGHT: [string, number][] = [["en", 34], ["de", 22], ["tr", 18], ["es", 9], ["fr", 8], ["pl", 4], ["ja", 3], ["ar", 2]];
 const TOPICS = ["Whitening: what to expect", "Why floss before brushing?", "Implants in three steps", "Aligners vs braces", "Sensitive teeth after cleaning", "Your child's first visit", "Gum bleeding: when to worry"];

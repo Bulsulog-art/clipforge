@@ -49,10 +49,10 @@ describe("POST /api/dentvideo/account/delete", () => {
 
   it("deletes only the session's own account (the body cannot name another) and signs out", async () => {
     deleteAccount.mockResolvedValueOnce({ ok: true });
-    expect(await call({ confirm: "Riverside Dental", owner_id: "9f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f", user: { id: "x" } })).toEqual({ status: 200, body: { ok: true } });
+    expect(await call({ confirm: "Sample Dental Practice", owner_id: "9f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f", user: { id: "x" } })).toEqual({ status: 200, body: { ok: true } });
     const args = deleteAccount.mock.calls[0][0];
     expect(args.user).toEqual({ id: OWNER, email: "dr@clinic.example" });
-    expect(args.confirm).toBe("Riverside Dental");
+    expect(args.confirm).toBe("Sample Dental Practice");
     expect(args.dodo).toBeNull();
     expect(signOut).toHaveBeenCalled();
   });
@@ -60,7 +60,7 @@ describe("POST /api/dentvideo/account/delete", () => {
   it("passes Dodo cancellation in when DODO_API_KEY is set", async () => {
     vi.stubEnv("DODO_API_KEY", "sk_test");
     deleteAccount.mockResolvedValueOnce({ ok: true });
-    await call({ confirm: "Riverside Dental" });
+    await call({ confirm: "Sample Dental Practice" });
     expect(deleteAccount.mock.calls[0][0].dodo).toMatchObject({ getSubscription: expect.any(Function), cancelSubscription: expect.any(Function) });
   });
 

@@ -221,14 +221,14 @@ describe("a calm home: one status, one action", () => {
     const h = html(
       <Library
         locale={l}
-        clinicName="Smile Studio"
+        clinicName="Sample Dental Practice"
         items={[item(), item(), item({ status: "flagged", reasons: ["wording"] }), item({ approval: "approved" }), item({ status: "working", videoUrl: undefined })]}
         canStartWeek={false}
         currentWeek={WEEK}
       />,
     );
     expect(h).toMatch(new RegExp(`<h1[^>]*>${esc(fmt(home.reviewMany, { n: 3 }))}</h1>`));
-    expect(h).toContain("Smile Studio");
+    expect(h).toContain("Sample Dental Practice");
     expect(h).toContain(fmt(home.approvedOf, { n: 1, total: 5 }));
     expect(h.match(/<h1/g)).toHaveLength(1);
     // One primary button in the hero; "approve all" is the quiet option.

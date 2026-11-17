@@ -80,12 +80,12 @@ describe("market copy rules (docs/MARKETS.md)", () => {
   });
 
   it("the ready email is right to left in Arabic, with the link kept left to right", () => {
-    const m = readyEmail({ kind: "week", counts: { ready: 4, flagged: 1 }, clinicName: "عيادة الابتسامة", language: "ar", appUrl: "https://dentvideo.com/app" })!;
+    const m = readyEmail({ kind: "week", counts: { ready: 4, flagged: 1 }, clinicName: "عيادة أسنان تجريبية", language: "ar", appUrl: "https://dentvideo.com/app" })!;
     expect(m.html).toContain('<html lang="ar" dir="rtl">');
     expect(m.html).toContain("text-align:right");
     expect(m.html).toContain('dir="ltr" class="dv-link" style="color:#0f5c5c;word-break:break-all">https://dentvideo.com/app');
     expect(m.subject).toContain("5");
-    const ja = readyEmail({ kind: "week", counts: { ready: 5, flagged: 0 }, clinicName: "さくら歯科", language: "ja", appUrl: "u" })!;
+    const ja = readyEmail({ kind: "week", counts: { ready: 5, flagged: 0 }, clinicName: "サンプル歯科", language: "ja", appUrl: "u" })!;
     expect(ja.subject).toBe("新しい動画5本のご確認をお願いします");
     const pl = readyEmail({ kind: "week", counts: { ready: 2, flagged: 3 }, clinicName: "Gabinet", language: "pl", appUrl: "u" })!;
     expect(pl.text).toContain("Gotowe do akceptacji: 2");

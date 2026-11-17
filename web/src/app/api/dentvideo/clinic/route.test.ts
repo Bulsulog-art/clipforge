@@ -84,7 +84,7 @@ vi.mock("@/lib/dentvid/supabase", () => ({
   }),
 }));
 
-const profile = { name: "Riverside Dental", country: "GB", language: "en", services: ["Implants"], tone: "warm", address: "formal", brandColor: "#0f5c5c" };
+const profile = { name: "Sample Dental Practice", country: "GB", language: "en", services: ["Implants"], tone: "warm", address: "formal", brandColor: "#0f5c5c" };
 
 async function save(extra: Record<string, unknown>) {
   const { POST } = await import("./route");
@@ -196,7 +196,7 @@ describe("POST /api/dentvideo/clinic — the clinic's own closing line", () => {
     expect(r.status).toBe(200);
     expect(adminUpdates).toHaveLength(1);
     expect((row!.profile as Record<string, unknown>).closingLine).toBe(closingLine);
-    expect((row!.profile as Record<string, unknown>).name).toBe("Riverside Dental");
+    expect((row!.profile as Record<string, unknown>).name).toBe("Sample Dental Practice");
   });
 
   it("works before migration 0022: the narrator choice is added with the service role", async () => {
@@ -205,7 +205,7 @@ describe("POST /api/dentvideo/clinic — the clinic's own closing line", () => {
     expect(r.status).toBe(200);
     expect(adminUpdates).toHaveLength(1);
     expect((row!.profile as Record<string, unknown>).narratorVoice).toBe("male");
-    expect((row!.profile as Record<string, unknown>).name).toBe("Riverside Dental");
+    expect((row!.profile as Record<string, unknown>).name).toBe("Sample Dental Practice");
   });
 
   it("stores the narrator choice as the owner once 0022 is applied, and refuses an unknown one", async () => {
@@ -248,8 +248,8 @@ describe("POST /api/dentvideo/clinic — the service-role fallback (security rou
   });
 
   it("folds a line break in the clinic name (it goes into owner-alert subjects)", async () => {
-    const r = await save({ profile: { ...profile, name: "Riverside\r\nBcc: victim@example.com" } });
+    const r = await save({ profile: { ...profile, name: "Sample\r\nBcc: victim@example.com" } });
     expect(r.status).toBe(200);
-    expect((row!.profile as Record<string, unknown>).name).toBe("Riverside Bcc: victim@example.com");
+    expect((row!.profile as Record<string, unknown>).name).toBe("Sample Bcc: victim@example.com");
   });
 });

@@ -33,15 +33,15 @@ const item = (over: Partial<LibraryItem> = {}): LibraryItem => ({
 
 describe("delete confirmation (mirrors lib/dentvid/account.ts confirmAccepted)", () => {
   it("asks for the clinic name, or the email when the profile has none", () => {
-    expect(deletePhrase("Riverside Dental", "a@b.example")).toBe("Riverside Dental");
+    expect(deletePhrase("Sample Dental Practice", "a@b.example")).toBe("Sample Dental Practice");
     expect(deletePhrase("   ", "a@b.example")).toBe("a@b.example");
     expect(deletePhrase(undefined, null)).toBe("");
   });
   it("accepts the name or the email, ignoring case, spacing and Unicode form", () => {
-    expect(deleteConfirmOk("  riverside   DENTAL ", "Riverside Dental", "a@b.example")).toBe(true);
-    expect(deleteConfirmOk("A@B.example", "Riverside Dental", "a@b.example")).toBe(true);
-    expect(deleteConfirmOk("ＲＩＶＥＲＳＩＤＥ Dental", "Riverside Dental", null)).toBe(true);
-    expect(deleteConfirmOk("Riverside", "Riverside Dental", "a@b.example")).toBe(false);
+    expect(deleteConfirmOk("  sample   dental   PRACTICE ", "Sample Dental Practice", "a@b.example")).toBe(true);
+    expect(deleteConfirmOk("A@B.example", "Sample Dental Practice", "a@b.example")).toBe(true);
+    expect(deleteConfirmOk("ＳＡＭＰＬＥ Dental Practice", "Sample Dental Practice", null)).toBe(true);
+    expect(deleteConfirmOk("Sample Dental", "Sample Dental Practice", "a@b.example")).toBe(false);
   });
   it("can still be confirmed when the clinic has no name (it used to be impossible)", () => {
     expect(deleteConfirmOk("a@b.example", "", "a@b.example")).toBe(true);
@@ -117,7 +117,7 @@ describe("text helpers", () => {
     expect(quote("en", "Hi")).toBe("“Hi”");
   });
   it("builds a mailto link", () => {
-    expect(mailtoHref("Plan ändern", "Praxis: Am Park")).toBe("mailto:hello@dentvideo.com?subject=Plan%20%C3%A4ndern&body=Praxis%3A%20Am%20Park");
+    expect(mailtoHref("Plan ändern", "Praxis: Demo Zahnarztpraxis")).toBe("mailto:hello@dentvideo.com?subject=Plan%20%C3%A4ndern&body=Praxis%3A%20Demo%20Zahnarztpraxis");
     expect(mailtoHref("Hi")).toBe("mailto:hello@dentvideo.com?subject=Hi");
   });
   it("names downloads readably, Turkish and German letters included", () => {

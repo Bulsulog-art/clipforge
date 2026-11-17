@@ -107,12 +107,12 @@ describe("personalisePlan", () => {
     ],
   };
   it("puts the visitor's handle and name where the sample clinic's were", () => {
-    const p = personalisePlan(plan, { name: "Smile Studio", handle: " smile_studio " });
-    expect(p.scenes[1]).toEqual({ kind: "cta", text: "Ask @smile_studio or visit Smile Studio", handle: "@smile_studio", seconds: 4 });
+    const p = personalisePlan(plan, { name: "Sample Dental Practice", handle: " example_handle " });
+    expect(p.scenes[1]).toEqual({ kind: "cta", text: "Ask @example_handle or visit Sample Dental Practice", handle: "@example_handle", seconds: 4 });
   });
   it("drops the handle chip when there is none, and names the clinic instead", () => {
-    const p = personalisePlan(plan, { name: "Smile Studio" });
-    expect(p.scenes[1]).toEqual({ kind: "cta", text: "Ask Smile Studio or visit Smile Studio", seconds: 4 });
+    const p = personalisePlan(plan, { name: "Sample Dental Practice" });
+    expect(p.scenes[1]).toEqual({ kind: "cta", text: "Ask Sample Dental Practice or visit Sample Dental Practice", seconds: 4 });
   });
   it("formats handles", () => {
     expect(formatHandle("@@a b")).toBe("@ab");
@@ -132,7 +132,7 @@ describe("the library on disk", () => {
   it.each(all.map(({ l, e }) => [`${l}/${e.id}`, l, e]))("%s is a valid plan with no sample-clinic text, narrated unless marked silent", (_, l, e) => {
     const json = fs.readFileSync(path.join(PUBLIC, l, `${e.id}.json`), "utf8");
     expect(json).not.toMatch(/demo/i);
-    const plan = personalisePlan(JSON.parse(json), { name: "Smile Studio", handle: "smilestudio" });
+    const plan = personalisePlan(JSON.parse(json), { name: "Sample Dental Practice", handle: "example_handle" });
     expect(() => parseScenePlan(plan)).not.toThrow();
     const mp3 = path.join(PUBLIC, l, `${e.id}.mp3`);
     if (e.narrated === false) {

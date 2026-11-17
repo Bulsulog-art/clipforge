@@ -220,11 +220,9 @@ async function capture(baseUrl: string, dir: string, only?: string[]) {
   const { chromium } = (await import(pwPath)) as typeof import("playwright");
   await fs.mkdir(dir, { recursive: true });
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM || undefined });
-  // The dev harness already shows the launch kit's fictional TR clinic ("Örnek Diş Kliniği");
-  // only its sample handle is taken off the screen (a handle could belong to someone).
-  const RENAME: [string, string][] = [
-    ["riverside.dental", ""],
-  ];
+  // The dev harness already shows the launch kit's fictional TR clinic ("Örnek Diş Kliniği")
+  // and carries no sample handle (a handle could belong to someone), so nothing is renamed.
+  const RENAME: [string, string][] = [];
   const flows: Record<string, (p: import("playwright").Page) => Promise<void>> = {
     landing: async (p) => {
       await p.goto(`${baseUrl}/dentvideo/tr`, { waitUntil: "networkidle" });
