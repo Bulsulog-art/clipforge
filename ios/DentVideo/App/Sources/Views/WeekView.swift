@@ -12,6 +12,7 @@ struct WeekView: View {
     @State private var approvedBatch = 0
     /// A video a link or notification asked for, opened once the week tab is on screen.
     @State private var pendingOpen: String?
+    @State private var onScreen = false
     @Environment(\.dynamicTypeSize) private var type
 
     private var sections: [WeekBoard.Section] { WeekBoard.sections(model.items) }
@@ -72,7 +73,8 @@ struct WeekView: View {
         }
         // On iOS 17 a path set while the week tab is still hidden is dropped (a notification tap
         // from Settings opened only the week): open it again when the tab is on screen.
-        .onAppear { openPending() }
+        .onAppear { onScreen = true; openPending() }
+        .onDisappear { onScreen = false }
         .onChange(of: model.tab) { _, tab in if tab == .week { openPending() } }
         .onChange(of: model.items.map(\.id)) { _, _ in openPending() }
         .onChange(of: model.isRefreshing) { _, _ in openPending() }
@@ -91,7 +93,8 @@ struct WeekView: View {
             model.openItemID = nil
             pendingOpen = id
         }
-        guard let id = pendingOpen else { return }
+        // Push only while the week is on screen: iOS 17 drops a path set on a hidden tab.
+        guard let id = pendingOpen, onScreen, model.tab == .week else { return }
         guard model.items.contains(where: { $0.id == id }) else {
             // A notification tap that starts the app arrives before the week is loaded: wait
             // for it (onChange of the items calls this again). Unknown after loading: stay on the week.

@@ -177,7 +177,9 @@ enum Demo {
         for i in items.indices where items[i].status == .ready {
             items[i].videoUrl = URL(string: "https://demo.invalid/\(items[i].id).mp4")
         }
-        renderPosters(items, c)
+        // No poster art in flow mode: SwiftUI's ImageRenderer, run at launch on iOS 17, leaves the
+        // app's window without keyboard focus (no text field could be typed into in the UI tests).
+        // The cards show their placeholder instead.
         let server = DemoServer(content: c, lang: lang, items: items)
         let m = AppModel(store: store, transport: DemoTransport(server: server), uploads: UploadCenter())
         m.demoScreen = "flow"
