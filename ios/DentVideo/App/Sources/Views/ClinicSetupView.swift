@@ -34,7 +34,6 @@ struct ClinicSetupView: View {
                         .foregroundStyle(Theme.body)
                         .fixedSize(horizontal: false, vertical: true)
                         .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 4, bottom: Theme.s2, trailing: 4))
                 }
 
                 Section {

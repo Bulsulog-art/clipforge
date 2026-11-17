@@ -9,11 +9,10 @@ final class PurchaseJourneyTests: DVTestCase {
     func testSignUpVerifyClinicPaywallBuyThenPlanActive() {
         launch(["SignedIn": "0"])
         openSignUp()
-        type(wait(el("signup.email")), "new@clinic.example")
-        type(el("signup.password"), "a long password\n")
+        fillSignUp("new@clinic.example", "a long password")
 
         // The 6-digit code: a wrong one says so, the right one opens the account.
-        XCTAssertEqual(wait(el("code.title"), 10, "code step").label, Strings.value("code.title"))
+        XCTAssertEqual(waitExplained(el("code.title"), "code step").label, Strings.value("code.title"))
         type(el("code.field"), "000000")
         wait(el("code.error"), 8, "wrong code message")
         type(el("code.field"), "123456")
@@ -60,9 +59,8 @@ final class PurchaseJourneyTests: DVTestCase {
     func testSignUpWithAnAddressThatHasAnAccount() {
         launch(["SignedIn": "0"])
         openSignUp()
-        type(wait(el("signup.email")), "taken@clinic.example")
-        type(el("signup.password"), "a long password\n")
-        XCTAssertTrue(wait(el("signup.notice"), 8).label.contains(Strings.value("signup.existing")))
+        fillSignUp("taken@clinic.example", "a long password")
+        XCTAssertTrue(waitExplained(el("signup.notice"), "existing-account notice").label.contains(Strings.value("signup.existing")))
         XCTAssertFalse(el("code.title").exists)
         el("signup.toSignIn").tap()
         wait(el("signin.email"))
@@ -71,8 +69,7 @@ final class PurchaseJourneyTests: DVTestCase {
     func testShortPasswordIsRefusedBeforeTheServer() {
         launch(["SignedIn": "0"])
         openSignUp()
-        type(wait(el("signup.email")), "new@clinic.example")
-        type(el("signup.password"), "short\n")
+        fillSignUp("new@clinic.example", "short")
         XCTAssertTrue(wait(el("signup.error")).label.contains(Strings.value("signup.error.passwordShort")))
     }
 
@@ -167,6 +164,29 @@ final class PurchaseJourneyTests: DVTestCase {
         launch(["Plan": "noplan", "Billing": "none"], lang: "tr")
         XCTAssertEqual(wait(el("paywall.title"), 12).label, Strings.value("paywall.title", "tr"))
         XCTAssertEqual(el("paywall.buy.starter").label, Strings.format("paywall.subscribe", "tr", "Starter"))
+    }
+
+    /// Email, then return (which moves the focus to the password, as a person would), the
+    /// password and return (which sends the form). On a small phone the password field can sit
+    /// under the keyboard, so it is reached through the form's own focus, not by a tap.
+    private func fillSignUp(_ email: String, _ password: String) {
+        type(wait(el("signup.email")), email + "\n")
+        let pw = el("signup.password")
+        if !((pw.value(forKey: "hasKeyboardFocus") as? Bool) ?? false) {
+            if !pw.isHittable { app.swipeUp() }
+            focus(pw) { pw.tap() }
+        }
+        app.typeText(password + "\n")
+    }
+
+    /// Wait for an element; when it does not come, say what the sign-up form shows instead.
+    @discardableResult
+    private func waitExplained(_ e: XCUIElement, _ what: String, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+        if !e.waitForExistence(timeout: 12) {
+            let error = el("signup.error"), email = el("signup.email"), routing = el("debug.routing")
+            XCTFail("not shown: \(what); form error: \(error.exists ? error.label : "-"); email field: \(email.exists ? String(describing: email.value) : "-"); routing: \(routing.exists ? routing.label : "-")", file: file, line: line)
+        }
+        return e
     }
 
     /// "Create an account" sits under the sign-in form; on a small phone it can be below the fold.
