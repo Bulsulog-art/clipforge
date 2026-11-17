@@ -121,6 +121,8 @@ deep-teal surfaces. Dynamic Type everywhere (no fixed font sizes), VoiceOver lab
 every control, 44 pt targets, right-to-left in Arabic (system mirroring; no hard-coded
 left/right). iPhone first; iPad runs the same layout with a readable width.
 
+Minimum iOS: **18.0** (was 17.0). iOS 18.0 minimum (owner decision, 2026-11-17). On iOS 17.5 one-line text fields (sign-in email, clinic name and city, the delete confirmation) never took keyboard focus under XCUITest, while the same simulator typed into the Settings app and into the app's multi-line decline note; the cause was not found, so iOS 17 is not supported rather than shipped uncertain.
+
 ## 6. App Review risks and how the plan avoids each
 
 | Guideline | Risk | Mitigation |

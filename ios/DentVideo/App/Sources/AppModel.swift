@@ -27,7 +27,11 @@ final class AppModel {
     var notice: Notice?
     var tab: Tab = .week
     /// A video to open (from a push, a reminder or a universal link).
-    var openItemID: String?
+    /// The week tab's navigation path (video ids). Owned here, not by the week view, so a link
+    /// or notification can open a video whatever tab is showing and whether or not the week
+    /// view has been updated since: iOS 18 did not push a path set from the week view's own
+    /// change handlers after a tab switch.
+    var weekPath: [String] = []
     /// Ask for notifications after the first sign-in, with our explanation first.
     var showNotificationPrimer = false
 
@@ -36,6 +40,10 @@ final class AppModel {
     @ObservationIgnored private let snapshots: SnapshotStore
     let uploads: UploadCenter
     @ObservationIgnored var deviceToken: String?
+    #if DEBUG
+    /// The screen a demo launch opens on (Demo.swift); nil in normal use.
+    @ObservationIgnored var demoScreen: String?
+    #endif
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
 
     init(store: TokenStore = KeychainTokenStore(), transport: HTTPTransport = URLSessionTransport(), uploads: UploadCenter? = nil) {
@@ -47,6 +55,30 @@ final class AppModel {
     }
 
     var access: AccessState? { me.map(AccessState.of) }
+
+    /// True only in a DEBUG demo launch (screenshots) showing one of these screens. Always false in Release.
+    func isDemo(_ names: String...) -> Bool {
+        #if DEBUG
+        if let s = demoScreen { return names.contains(s) }
+        #endif
+        return false
+    }
+
+    #if DEBUG
+    /// Demo flow mode: the last link received, for debugRouting.
+    @ObservationIgnored var debugLastLink: String = "-"
+    var debugRouting: String {
+        "phase=\(phase) tab=\(tab) path=\(weekPath) items=\(items.count) refreshing=\(isRefreshing) link=\(debugLastLink)"
+    }
+    #endif
+
+    var isDemoMode: Bool {
+        #if DEBUG
+        return demoScreen != nil
+        #else
+        return false
+        #endif
+    }
     var locale: Locale { L10n.locale }
 
     // MARK: Session
@@ -80,9 +112,10 @@ final class AppModel {
         snapshots.clear()
         uploads.reset()
         await VideoCache.shared.clearAll()
-        Notifications.clearAll()
+        await Notifications.clearAll()
         Prefs.clear()
         me = nil
+        weekPath = []
         items = []
         notice = nil
         tab = .week
@@ -238,8 +271,16 @@ final class AppModel {
     /// From a notification tap or a link: show the week, and the video when one is named.
     func open(itemID: String?) {
         tab = .week
-        openItemID = itemID
-        Task { await refresh() }
+        Task {
+            // The refresh also gives the tab switch time to finish; a video that only arrived
+            // with this refresh (a push tap that started the app) is known afterwards.
+            await refresh()
+            // On a cold start (a link or push tap that launches the app) the tabs are built only
+            // after this first load; give the week's stack a moment to exist before pushing.
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let itemID else { weekPath = []; return }
+            weekPath = items.contains(where: { $0.id == itemID }) ? [itemID] : []
+        }
     }
 
     // MARK: Errors

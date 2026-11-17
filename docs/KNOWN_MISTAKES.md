@@ -98,6 +98,15 @@ These were fixed on 15.11.2026 without any API call. The text was corrected in t
 
 `dentvideo-examples.ts` (`onScreen`) was updated to match.
 
+## iPhone app mistakes
+
+Mistakes seen in the DentVideo iPhone app (`ios/DentVideo`), outside the video register above
+(whose rows the worker tests check). Each has the check that now covers it.
+
+| Id | Area | What was seen (verbatim) | Why it is wrong | Caught by | Status |
+|---|---|---|---|---|---|
+| APP-01 | iOS app | iPhone SE (3rd gen), iOS 17.5: `Failed to synthesize event: Neither element nor any descendant has keyboard focus` on `signin.email`, `clinic.name`, `clinic.city`, `delete.field` | A dentist on iOS 17 might not have been able to type their email; the cause was not found (hardware keyboard off, Settings app types, the multi-line note types) | Minimum iOS raised to 18.0 (`ios/DentVideo/project.yml`, `Core/Package.swift`); the UI journeys type into every one-line field on iPhone SE 3 with iOS 18 and on iOS 26 (`ios/DentVideo/Tests/UI`, CI job `tests`) | caught (new) |
+
 ## Customer-journey defects (audit 2026-11-17)
 
 Found by walking the live funnel with throw-away `e2e-monitor+audit-…@bulsulabs.com` accounts (never emailed, deleted afterwards through Settings) at 390 and 1440 px in en, de and tr, by opening the Dodo checkout for every product and currency (no payment), and by reading the internal clinics' weeks in Liman (read-only). Not video text, so these rows use `J-` ids.

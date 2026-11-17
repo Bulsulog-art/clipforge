@@ -6,7 +6,7 @@ name: DentVideo
 options:
   bundleIdPrefix: com.bulsulabs
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "18.0"
   developmentLanguage: en
   createIntermediateGroups: true
 
@@ -26,7 +26,7 @@ targets:
   DentVideo:
     type: application
     platform: iOS
-    deploymentTarget: "17.0"
+    deploymentTarget: "18.0"
     sources:
       - path: App/Sources
       - path: App/Resources
@@ -43,7 +43,7 @@ targets:
           UIColorName: Paper
           UIImageName: Mark
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
-        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         UIRequiresFullScreen: true
         # No background modes: alert pushes need none, and recordings upload through a background
         # URLSession, which needs none either (App Review 2.5.4).
@@ -80,6 +80,38 @@ targets:
         com.apple.developer.associated-domains:
           - applinks:dentvideo.com
 
+  # Unit tests of the app target's models (AppModel, uploads, deep links), hosted in the app.
+  DentVideoTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Tests/Unit
+    dependencies:
+      - target: DentVideo
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.dentvideo.tests
+
+  # End-to-end journeys against the in-process fake API (demo flow mode, DEBUG builds).
+  DentVideoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Tests/UI
+    dependencies:
+      - target: DentVideo
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+        PRODUCT_BUNDLE_IDENTIFIER: com.bulsulabs.dentvideo.uitests
+        TEST_TARGET_NAME: DentVideo
+
 schemes:
   DentVideo:
     build:
@@ -87,5 +119,12 @@ schemes:
         DentVideo: all
     run:
       config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets: [DentVideo]
+      targets:
+        - DentVideoTests
+        - DentVideoUITests
     archive:
       config: Release
