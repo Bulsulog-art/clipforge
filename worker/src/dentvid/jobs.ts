@@ -23,7 +23,7 @@ import { notifyReady, sendReadyAtCivilHour } from "./notify.js";
 import { shouldRun, validWeek, weekOf } from "./schedule.js";
 import { clinicTimeZone } from "./timezone.js";
 import { classifyFailure, isLastAttempt, providerRefused, TransientWeekError } from "./retry.js";
-import { clinicRef, noteRenderFailure, ownerAlert, setWeekDelay } from "./ops.js";
+import { clinicRef, noteRenderFailure, ownerAlert, ownerAlertOnce, setWeekDelay } from "./ops.js";
 import { alerts, cleanError } from "./ops-alert.js";
 import { patientSearches } from "../dental/questions.js";
 import { brandFromLogo, logoStyleOf, readyLogo, type LogoAnalysis } from "../dental/logo.js";
@@ -353,11 +353,11 @@ export function recordingsIncluded(tier: string | null | undefined): boolean {
 }
 
 /**
- * Fewer usable videos than this after the top-up and the owner hears about a
- * thin week. (The top-up itself runs whenever the week is short of what was
- * promised — five — not only below this.)
+ * A week delivered with fewer than WEEK_VIDEOS usable videos (after re-attempts and the one top-up round)
+ * is a broken promise: the owner gets an urgent "short week" alert, once per clinic and week. Nothing is
+ * topped up automatically after that; the owner decides (admin requeue makes only the missing ones).
  */
-export const MIN_USABLE_VIDEOS = 3;
+export const SHORT_WEEK_ALERT_KEY = (clinicId: string, week: string) => `dv:ops:short-week:${clinicId}:${week}`;
 
 export type WeekCtx = { jobId?: string; attemptsMade?: number; attempts?: number };
 export type WeekResult = { ready: number; flagged: number; rejected: number; toppedUp?: number; already?: number };
@@ -399,7 +399,7 @@ const usableRow = (r: ItemRow) => (r.status === "ready" || r.status === "flagged
  *  - fewer usable videos than promised (job.count, five) → extra topics top
  *    the week up to the promised count (one round, budgeted as a "topup" by
  *    the spend guard — refused, the week is delivered as it is); still fewer
- *    than MIN_USABLE_VIDEOS afterwards → the owner gets a "thin week" alert;
+ *    than WEEK_VIDEOS in the library afterwards → the owner gets an urgent "short week" alert;
  *  - nothing usable and the failures were technical → nothing is stored and
  *    the job fails with a transient error, so BullMQ runs it again later
  *    (WEEK_JOB_OPTS: 4 attempts, 2/4/8 min apart);
@@ -564,7 +564,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     // spend guard's caps.
     let toppedUp = 0;
     const usable = () => rows.filter(usableRow).length;
-    const enough = Math.min(MIN_USABLE_VIDEOS, want);
+    let topupNote: string | null = null;
     if (usable() < want) {
       const d = await spend.guard.reserve("topup", job.clinicId);
       if (d.ok) {
@@ -572,6 +572,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
         const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => ({ title: r.title, topic: r.topic, week_of: week, status: r.status })));
         const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)], [...history, ...thisWeek]).catch((e) => {
           logger.warn({ clinicId: job.clinicId, err: (e as Error).message }, "dentvid: top-up failed");
+          topupNote = `extra topics could not be made: ${cleanError(e)}`;
           return [] as VideoPackage[];
         });
         const more = await toRows(extra);
@@ -580,6 +581,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
         logger.info({ clinicId: job.clinicId, toppedUp }, "dentvid: week topped up");
       } else {
         logger.warn({ clinicId: job.clinicId, reason: d.reason }, "dentvid: top-up refused by the spend guard");
+        topupNote = `no extra topics: the spend guard refused the top-up (${d.reason})`;
       }
     }
 
@@ -615,15 +617,19 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     }
     const count = (s: ItemRow["status"]) => rows.filter((r) => r.status === s).length;
     const result = { ready: count("ready"), flagged: count("flagged"), rejected: count("rejected"), toppedUp };
-    if (usable() < enough) {
-      await ownerAlert(
-        alerts.thinWeek({
-          clinic: await clinicRef(db, job.clinicId),
-          week,
-          usable: usable(),
-          wanted: want,
-          reasons: rows.filter((r) => r.status === "rejected").map((r) => (r.error ? cleanError(r.error) : r.findings.map(reasonText).join("; ") || "rejected by review")),
-        }),
+    // The promise is five a week: count what the library now holds for the week (earlier runs included).
+    const delivered = already + usable();
+    if (delivered < WEEK_VIDEOS) {
+      const missing = WEEK_VIDEOS - delivered;
+      const reasons = rows
+        .filter((r) => !usableRow(r))
+        .map((r) => `${r.title ?? "untitled"}: ${r.error ? cleanError(r.error) : r.findings.map(reasonText).join("; ") || "rejected by review"}`);
+      if (topupNote) reasons.push(topupNote);
+      while (reasons.length < missing) reasons.push("no video was attempted for this slot");
+      await ownerAlertOnce(
+        SHORT_WEEK_ALERT_KEY(job.clinicId, week),
+        14 * 86_400,
+        alerts.thinWeek({ clinic: await clinicRef(db, job.clinicId), week, usable: delivered, wanted: WEEK_VIDEOS, reasons }),
       ).catch(() => "failed");
     }
     // The dentist hears about it — they should not have to keep checking —

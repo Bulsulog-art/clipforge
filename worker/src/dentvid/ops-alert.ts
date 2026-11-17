@@ -473,16 +473,18 @@ export const alerts = {
   },
 
   thinWeek(a: { clinic: ClinicRef; week: string; usable: number; wanted: number; reasons: string[] }): OwnerAlert {
+    const missing = Math.max(0, a.wanted - a.usable);
     return {
       key: `thin_week:${a.clinic.id}:${a.week}`,
-      severity: "warning",
+      // The plan promises five videos every Monday: any week short of that is a broken promise, not a warning.
+      severity: "urgent",
       titleTr: "Eksik hafta teslim edildi",
-      titleEn: "A thin week was delivered",
+      titleEn: "A short week was delivered",
       clinic: a.clinic,
-      what: [`Only ${a.usable} of ${a.wanted} videos were usable for the week of ${a.week}, even after re-attempts and extra topics.`],
-      facts: a.reasons.slice(0, 4).map((r, i) => [`Reason ${i + 1}`, r] as [string, string]),
-      done: ["Each failed video was re-attempted once, and extra topics were tried to fill the week.", "The usable videos are in the clinic's library; the clinic got the usual email."],
-      todo: ["Look at the reasons. If it is the profile (an unusual service, language), check it in /dentvideo/admin.", "Optional: re-run the week for this clinic when fixed."],
+      what: [`Only ${a.usable} of ${a.wanted} promised videos are in the library for the week of ${a.week} (${missing} missing), even after re-attempts and extra topics.`],
+      facts: [["Week", a.week], ["Delivered", `${a.usable} of ${a.wanted}`], ...a.reasons.slice(0, 8).map((r, i) => [`Missing ${i + 1}`, r] as [string, string])],
+      done: ["Each failed video was re-attempted once, and extra topics were tried to fill the week.", "The usable videos are in the clinic's library; the clinic got the usual email.", "Nothing more is made on its own: no automatic top-up after this."],
+      todo: ["Look at the reasons. If it is the profile (an unusual service, language), check it in /dentvideo/admin.", "Requeue the week in /dentvideo/admin (it makes only the missing videos), or write to the clinic."],
     };
   },
 
@@ -647,7 +649,7 @@ export const alerts = {
       what: [`${a.count} ${render ? "video renders failed" : "requests failed with a server error"} in the last hour (threshold ${a.threshold}).`],
       facts: a.sample ? [[render ? "Last error" : "Last route", a.sample]] : [],
       done: render
-        ? ["Each failed video is re-attempted once; weeks that fail are retried with backoff; thin weeks are topped up."]
+        ? ["Each failed video is re-attempted once; weeks that fail are retried with backoff; short weeks are topped up once."]
         : ["Nothing automatic — each request failed for its user."],
       todo: render ? ["Check the worker logs: OpenAI / Pexels / storage / disk / memory."] : ["Check the web app logs (and Sentry) for the route above."],
     };
