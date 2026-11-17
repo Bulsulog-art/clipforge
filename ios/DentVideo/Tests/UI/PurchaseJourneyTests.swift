@@ -172,11 +172,20 @@ final class PurchaseJourneyTests: DVTestCase {
     private func fillSignUp(_ email: String, _ password: String) {
         type(wait(el("signup.email")), email + "\n")
         let pw = el("signup.password")
-        if !((pw.value(forKey: "hasKeyboardFocus") as? Bool) ?? false) {
+        // iOS 18 (SE run 44189260264): keys typed while the focus was still moving were lost, so
+        // the form saw a short password. Wait for the focus, then check the dots and type again.
+        let focused = NSPredicate(format: "hasKeyboardFocus == true")
+        if XCTWaiter.wait(for: [expectation(for: focused, evaluatedWith: pw)], timeout: 3) != .completed {
             if !pw.isHittable { app.swipeUp() }
             focus(pw) { pw.tap() }
         }
-        app.typeText(password + "\n")
+        app.typeText(password)
+        for _ in 0..<2 {
+            guard let dots = pw.value as? String, dots.count != password.count else { break }
+            app.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: dots.count + 2))
+            app.typeText(password)
+        }
+        app.typeText("\n")
     }
 
     /// Wait for an element; when it does not come, say what the sign-up form shows instead.
