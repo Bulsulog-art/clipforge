@@ -7,6 +7,7 @@ import {
   appleSubscriptionKey,
   candidateUserIds,
   iapTierForProduct,
+  sandboxOwnerAllowed,
   sandboxPolicy,
   type AppleEffect,
   type RcEvent,
@@ -14,7 +15,8 @@ import {
 import { missingSchema, readClinicSource, supabaseAppleStore, type AppleSubRecord, type AppleSubscriptionStore, type ClinicSource } from "./apple-store";
 import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
 import { afterPaid, tellOwner, type ActivationDeps } from "./billing-activation";
-import { ownerIsInternal } from "./internal-server";
+import { internalPatterns, patternRegex } from "./internal-traffic";
+import { isEmailVerified } from "./verify-email";
 import { alerts, type OwnerAlert } from "./ops-alert";
 import { raiseOwnerAlert } from "./ops-server";
 
@@ -33,18 +35,22 @@ import { raiseOwnerAlert } from "./ops-server";
  *    it known). A login without a clinic yet → 503 so RevenueCat retries.
  *  - Duplicates: the delivery id (route, Redis) and the ledger's last event
  *    id; out of order: an event older than the last one applied is ignored.
- *  - One plan per clinic. Apple subscription arrives while a web (Dodo)
- *    subscription is live → the clinic moves to Apple and the owner is told
- *    to cancel and refund the Dodo one (we can; an Apple charge only the
- *    customer can get back). Never two activations, two weeks or two welcomes.
+ *  - One plan per clinic. An Apple subscription that arrives while a web
+ *    (Dodo) plan is live (active, on hold, or cancelled but paid up) never
+ *    switches the clinic: app_user_id is whatever the app sends, so it may not
+ *    be the clinic's own purchase. It waits on the ledger as
+ *    ignored_web_active (its refund or expiry touches nothing) and the owner
+ *    contacts the clinic; it takes over once the web plan has ended.
+ *    Never two activations, two weeks or two welcomes.
  *  - Auto-renew off (CANCELLATION) keeps the plan until the paid period's end
  *    (like the web's F9); EXPIRATION ends it; a refund ends it at once.
  *  - BILLING_ISSUE: Apple's billing grace period keeps the clinic on until it
  *    ends; without one the clinic is paused (like Dodo's on hold) until a
  *    RENEWAL arrives. Apple emails the customer about the card; we do not.
- *  - Sandbox purchases follow DENTVID_IAP_SANDBOX (default allow: App Review
- *    must be able to buy); promotional / other stores and family sharing never
- *    switch a clinic on.
+ *  - Sandbox purchases follow DENTVID_IAP_SANDBOX (default internal: a proven
+ *    internal address or one on DENTVID_IAP_SANDBOX_ALLOW_EMAILS, e.g. the App
+ *    Review demo account; allow only when set); promotional / other stores and
+ *    family sharing never switch a clinic on.
  */
 
 export type AppleWebhookResult = { status: 200 | 401 | 500 | 503; body: Record<string, unknown> };
@@ -56,6 +62,8 @@ export type AppleWebhookDeps = ActivationDeps & {
   /** A Liman login by id: whether it is a DentVideo account; null when there is no such login; throws on a lookup failure. */
   userById?: (db: SupabaseClient, id: string) => Promise<{ id: string; dentvideo: boolean } | null>;
   env?: Record<string, string | undefined>;
+  /** The clinic owner's address and whether it is proven (sandbox policy "internal"); null when it cannot be read. */
+  sandboxOwner?: (db: SupabaseClient, ownerId: string) => Promise<{ email: string | null; verified: boolean } | null>;
 };
 
 type ClinicRow = { id: string; owner_id: string; plan: string; plan_tier: string | null; dodo_subscription_id: string | null; plan_renews_at: string | null };
@@ -90,6 +98,12 @@ async function limanUser(db: SupabaseClient, id: string): Promise<{ id: string; 
     throw new Error(e.message ?? "user lookup failed");
   }
   return data?.user ? { id: data.user.id, dentvideo: isDentvideoUser(data.user) } : null;
+}
+
+async function ownerForSandbox(db: SupabaseClient, ownerId: string): Promise<{ email: string | null; verified: boolean } | null> {
+  const { data, error } = await db.auth.admin.getUserById(ownerId);
+  if (error || !data?.user) return null;
+  return { email: data.user.email ?? null, verified: isEmailVerified(data.user) };
 }
 
 async function clinicOfOwner(db: SupabaseClient, ownerId: string): Promise<{ row: ClinicRow | null; error: string | null }> {
@@ -242,8 +256,12 @@ async function applyToClinic(
     const sandbox = evt.environment === "SANDBOX";
     if (sandbox) {
       const policy = sandboxPolicy(env);
-      const internal = policy === "internal" ? await (deps.ownerInternal ?? ownerIsInternal)(db, clinic.owner_id).catch(() => false) : false;
-      if (policy === "off" || (policy === "internal" && !internal)) {
+      let allowed = policy === "allow";
+      if (policy === "internal") {
+        const owner = await (deps.sandboxOwner ?? ownerForSandbox)(db, clinic.owner_id).catch(() => null);
+        allowed = !!owner && sandboxOwnerAllowed(owner, internalPatterns(env), (e, p) => patternRegex(p).test(e), env);
+      }
+      if (!allowed) {
         await record({ status: "ignored_sandbox" });
         return ok({ ignored: "sandbox" });
       }
@@ -269,11 +287,21 @@ async function applyToClinic(
       }
     }
 
-    // b. A live web (Dodo) subscription: the clinic moves to Apple; the owner cancels and refunds the Dodo one.
-    let dodoLive: string | null = null;
+    // b. A live web (Dodo) plan — active or on hold, or cancelled but still inside its paid period — is
+    // never switched to Apple. app_user_id is whatever the app passed to Purchases.logIn (anyone with the
+    // public SDK key can name any login), the app never offers a purchase to a clinic paying on the web, and
+    // a purchase-then-refund in someone else's name would otherwise end that clinic's paid web plan. The
+    // Apple subscription waits as ignored_web_active; it switches the clinic on once the web plan has ended
+    // (its next event, or billing-webhook.ts when Dodo ends the plan). The owner contacts the clinic.
     if (live && src?.source !== "apple" && clinic.dodo_subscription_id) {
       const dodoRow = await (deps.subs ?? supabaseSubscriptionStore(db)).get(clinic.dodo_subscription_id);
-      if (!dodoRow || !DV_SUB_ENDED.has(String(dodoRow.status))) dodoLive = clinic.dodo_subscription_id;
+      const ended = !!dodoRow && DV_SUB_ENDED.has(String(dodoRow.status));
+      if (!ended || futurePaidThrough(clinic.plan_renews_at, now)) {
+        const web = clinic.dodo_subscription_id;
+        await record({ status: "ignored_web_active", tier: effect.tier, period_end: effect.periodEnd });
+        await tell((c) => alerts.appStoreBilling({ kind: "web_active", event: type, subscription: key, other: web, clinic: c }));
+        return ok({ ignored: "web plan active", kept: web });
+      }
     }
 
     const from = clinic.plan;
@@ -301,7 +329,6 @@ async function applyToClinic(
       migrationMissing = migrationMissing || u.migrationMissing;
     }
     await record({ status: "active", tier, period_end: effect.periodEnd, pending_tier: null });
-    if (dodoLive) await tell((c) => alerts.appStoreBilling({ kind: "cross_channel", event: type, subscription: key, other: dodoLive, clinic: c }));
     if (migrationMissing) await tell((c) => alerts.appStoreBilling({ kind: "migration_missing", event: type, subscription: key, clinic: c }));
     if (sandbox && from !== "active") await tell((c) => alerts.appStoreBilling({ kind: "sandbox", event: type, subscription: key, clinic: c }));
 
@@ -317,7 +344,7 @@ async function applyToClinic(
       adConversion: false,
       logTag: "[apple:dentvideo]",
     });
-    return ok({ plan: "active", tier, ...(dodoLive ? { movedFrom: dodoLive } : {}), ...(paid.firstWeek ? { firstWeek: paid.firstWeek } : {}), ...(paid.welcomeEmail ? { welcomeEmail: paid.welcomeEmail } : {}) });
+    return ok({ plan: "active", tier, ...(paid.firstWeek ? { firstWeek: paid.firstWeek } : {}), ...(paid.welcomeEmail ? { welcomeEmail: paid.welcomeEmail } : {}) });
   }
 
   if (effect.kind === "scheduled_change") {
@@ -454,4 +481,37 @@ async function transfer(db: SupabaseClient, evt: RcEvent, deps: AppleWebhookDeps
     }
   }
   return ok({ transfer: true, switchedOff: left });
+}
+
+/**
+ * The clinic's web (Dodo) plan has just ended. An App Store subscription that was held back while it was
+ * live (ledger ignored_web_active, production, still paid through a future date) takes over now, so a
+ * clinic that really bought in the app does not wait for Apple's next renewal. Called by the Dodo webhook
+ * after it set the plan to cancelled. Returns the subscription that took over, or null.
+ */
+export async function adoptWaitingApple(
+  db: SupabaseClient,
+  clinicId: string,
+  deps: { apple?: AppleSubscriptionStore; now?: () => Date } = {},
+): Promise<{ subscription: string; tier: string | null; periodEnd: string } | null> {
+  const apple = deps.apple ?? supabaseAppleStore(db);
+  const now = deps.now?.() ?? new Date();
+  const rows = (await apple.forClinic(clinicId).catch(() => null)) ?? [];
+  const waiting = rows.find((r) => r.status === "ignored_web_active" && r.environment !== "SANDBOX" && !!r.tier && !!futurePaidThrough(r.period_end, now));
+  if (!waiting?.period_end) return null;
+  const u = await updateClinic(db, clinicId, {
+    plan: "active",
+    plan_tier: waiting.tier,
+    plan_renews_at: waiting.period_end,
+    dodo_subscription_id: null,
+    billing_source: "apple",
+    apple_original_transaction_id: waiting.original_transaction_id,
+    updated_at: now.toISOString(),
+  });
+  if (u.error) {
+    console.error("[apple:dentvideo] could not move the clinic to its waiting App Store subscription", clinicId, u.error);
+    return null;
+  }
+  await apple.put({ ...waiting, status: "active" });
+  return { subscription: waiting.original_transaction_id, tier: waiting.tier ?? null, periodEnd: waiting.period_end };
 }

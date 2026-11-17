@@ -79,15 +79,19 @@ no plan yet), `apple_original_transaction_id` = the Apple subscription the plan 
 | Paid in the app (Apple), opens dentvideo.com | Settings: "Managed in the App Store" + button to Apple's subscriptions page; no Dodo portal, no plan switch | `loadClinicPlan.source = apple`; account panel hides Dodo controls |
 | Apple plan, tries web checkout | Refused (409 `app_store`): "change or cancel it in Settings > your name > Subscriptions" | `loadCheckoutBlock` → `{ code: "app_store" }` (active **or** paused) |
 | Dodo plan (active, paused, pending, cancelled-but-paid, disputed) opens the paywall | Paywall never shown | `mobileBillingView` → `showPaywall: false` |
-| Race: Dodo live **and** an Apple purchase arrives | One plan: the clinic moves to Apple (no second week, no second welcome). Owner alert (urgent): "cancel Dodo sub X and refund its last charge" | `apple-webhook.ts` step b; `alerts.appStoreBilling cross_channel` |
+| Dodo live (active, on hold, or cancelled but paid up) **and** an Apple purchase / renewal arrives | Nothing changes: the clinic stays on its web plan. The Apple subscription waits (ledger `ignored_web_active`); its refund, expiry or billing issue never touch the web plan. Owner alert (urgent) `web_active`: contact the clinic — did it buy in the app? | `apple-webhook.ts` step b |
+| …then the web plan ends | Dodo ends the plan (`subscription.cancelled`/`expired` with no paid time left) → the waiting Apple subscription (production, paid through a future date) takes over at once: no gap, no second week. If the plan ends through the worker's period-end check instead, the next App Store event (renewal) switches it on | `billing-webhook.ts` → `adoptWaitingApple` |
 | Race: Apple live **and** a Dodo activation arrives | Plan untouched (stays Apple). Owner alert: cancel + refund the Dodo one | `billing-webhook.ts` step 0 `appStoreOwns` |
 | Old Dodo sub events (cancel, on hold, payment.failed, chargeback) while Apple pays | Nothing changes; no "update your card" email | `billing-webhook.ts` guards (`appleManaged`) |
 | Apple plan ended (expired/refunded), clinic pays on the web | Normal web activation; `billing_source` back to `dodo`; not a "first" payment | `setDodoSource` |
 | Two Apple IDs subscribe for one clinic | Stays on the first; the second recorded as `duplicate`; when the first ends the clinic moves to it | owner alert `apple_duplicate` (customer must cancel one + ask Apple for a refund) |
 
-**Why Apple wins a conflict:** we can cancel and refund a Dodo subscription ourselves (API/dashboard);
-an Apple charge can only be cancelled or refunded by the customer. Keeping Apple and refunding Dodo is
-the only way the owner can make the customer whole alone.
+**Why the web plan wins a conflict:** RevenueCat's `app_user_id` is whatever the app passes to
+`Purchases.logIn`, and anyone with the public SDK key can name any login id. If an App Store purchase
+could take a clinic off its web plan, a stranger could buy in the clinic's name, ask Apple for a refund,
+and the clinic's paid web plan would be gone. The app never offers a purchase to a clinic that pays on
+the web, so a real customer only gets here by accident (a race); the owner contacts the clinic and either
+cancels the Dodo subscription (the Apple one then takes over) or the customer asks Apple for a refund.
 
 ## 5. Event handling (`POST /api/dentvideo/revenuecat/webhook`)
 
@@ -124,10 +128,15 @@ once a day per event type). Unknown app_user_id → **200 + urgent owner alert**
 it known).
 
 **Sandbox** (`environment = SANDBOX`: TestFlight, App Review, Xcode builds; no money moves):
-`DENTVID_IAP_SANDBOX` = `allow` (default — App Review must be able to complete a purchase), `internal`
-(only internal-traffic owners), `off`. Every sandbox activation alerts the owner. A sandbox-activated
-clinic gets its first week (real model spend, a few dollars); sandbox subscriptions expire on their own
-within hours. **Open decision** (§11).
+`DENTVID_IAP_SANDBOX` = `internal` (**default**), `off`, or `allow` (only if set explicitly: anyone with a
+TestFlight build gets a free first week). Under `internal` a sandbox purchase switches a clinic on only
+when its owner's address is **proven** (the 6-digit code) and either is listed in
+`DENTVID_IAP_SANDBOX_ALLOW_EMAILS` (exact addresses: the App Review demo account) or matches an internal
+pattern that names a domain (`*@bulsulabs.com`, `*@dentvideo.com`, plus `DENTVID_INTERNAL_EMAIL_PATTERNS`).
+Catch-all patterns (`qa+*@*`, `e2e*@*`) and `app_metadata.internal` do not count: an outsider can own
+such a mailbox or ask for the flag at sign-up. A sandbox purchase never takes over a plan that something
+else pays for. Every sandbox activation alerts the owner; a sandbox-activated clinic gets its first week
+(real model spend, a few dollars); sandbox subscriptions expire on their own within hours.
 
 ## 6. Mobile API (bearer session, `cache-control: no-store`, session's own clinic only)
 
@@ -214,15 +223,20 @@ the clock: a cancelled (auto-renew off) plan past its end → cancelled; otherwi
 **Apply D (the migration) before C**: without 0026 the server cannot tell an App Store plan from a web one.
 
 **C. Server env (Coolify, web `y11bhiffmpb3u2hdekwhjhdq`; worker `aeoe3zdfhbhqzi89g32gkuwx` for the reconcile only)**
-- Web: `DENTVID_REVENUECAT_WEBHOOK_AUTH` = the secret from B.4. Optional: `DENTVID_IAP_SANDBOX`
-  (`allow` default / `internal` / `off`).
+- Web: `DENTVID_REVENUECAT_WEBHOOK_AUTH` = the secret from B.4 (not the same value as ClipForge's).
+- Web: `DENTVID_IAP_SANDBOX_ALLOW_EMAILS` = the App Review demo account's address (the plan-less one
+  from §11), so App Review can complete a sandbox purchase. Prove that address first (sign in as the demo
+  account and enter the 6-digit code): an unproven address is never allowed. Comma-separated if several.
+- Web, optional: `DENTVID_IAP_SANDBOX` (`internal` default / `off` / `allow`, the last one never in
+  production); `DENTVID_INTERNAL_EMAIL_PATTERNS` for testers' domains.
 - Worker (optional): `DENTVID_REVENUECAT_API_KEY` (secret v1 key), `DENTVID_REVENUECAT_RECONCILE=on`.
 - Set them through Coolify's env UI, never in chat or the repo.
 
 **D. Database**: apply `supabase/liman/0026_dentvid_apple_billing.sql` by hand, run its checks.
 
-**E. Verify** (after the PR is merged and deployed): RevenueCat test event → 200; a sandbox purchase with
-an internal test clinic → clinic active, `billing_source = apple`, owner "sandbox" alert, first week
+**E. Verify** (after the PR is merged and deployed): RevenueCat test event → 200; a sandbox purchase by a
+non-internal test account → `ignored: sandbox`, clinic unchanged; a sandbox purchase with an internal
+(proven `@bulsulabs.com`) test clinic → clinic active, `billing_source = apple`, owner "sandbox" alert, first week
 queued; web settings of that clinic shows "Managed in the App Store"; web checkout refused with
 `app_store`; cancel in the sandbox → "ends on"; let it expire → cancelled.
 
@@ -237,16 +251,19 @@ queued; web settings of that clinic shows "Managed in the App Store"; web checko
 - Account deletion is in Settings; with an App Store subscription the app tells the user that deleting
   the account does not cancel the subscription and links to Apple's subscription management.
 - Demo account for review: an account **without** a plan (to see the paywall and buy in the sandbox) and
-  the existing demo clinic **with** an active plan (`APP_STORE_DENTVIDEO.md` §1.5). Sandbox purchases
-  are allowed (`DENTVID_IAP_SANDBOX=allow`) while the build is in review.
+  the existing demo clinic **with** an active plan (`APP_STORE_DENTVIDEO.md` §1.5). Before submitting:
+  prove the plan-less account's address (6-digit code) and put it on `DENTVID_IAP_SANDBOX_ALLOW_EMAILS`;
+  only that account (and internal ones) can complete a sandbox purchase (`DENTVID_IAP_SANDBOX=internal`).
+  The demo clinic **with** a web plan sees no paywall; an App Store purchase made for it anyway does not
+  replace its web plan.
 - Update `docs/IOS_APP_PLAN.md` §6 and `APP_STORE_DENTVIDEO.md` §2 wording at submission time: the
   3.1.3(c) Enterprise argument no longer applies to this build.
 
 ## 12. Open decisions for the owner
 
 1. **EU/TR tax**: match the number (cheaper in the app) or the total paid (§2)?
-2. **Sandbox policy in production** after review: keep `allow`, or `internal` (TestFlight testers must
-   then be internal accounts; App Review needs `allow` while in review).
+2. **Sandbox policy**: decided — `internal` by default, App Review via `DENTVID_IAP_SANDBOX_ALLOW_EMAILS`.
+   External TestFlight testers need their address on that list too.
 3. **Reconcile via RevenueCat**: turn on (needs a secret key in the worker env) or rely on webhooks + clock.
 4. **Commission**: keep web prices on the App Store (15% to Apple under the Small Business Program) or
    raise App Store prices (§2).
@@ -258,7 +275,7 @@ queued; web settings of that clinic shows "Managed in the App Store"; web checko
 | Area | Tests |
 |---|---|
 | Event rules (every type, refunds, upgrades/downgrades, stores, family sharing, sandbox policy, ids) | `web/src/lib/dentvid/apple-billing.test.ts` |
-| Webhook handler: every event, duplicates, out-of-order, unknown user, no clinic (503), Liman/DB errors (500), cross-channel (Dodo → Apple, no double activation), second Apple ID, refund, expiration after cancellation, billing issue ± grace, transfer, sandbox, missing migration, auth compare | `web/src/lib/dentvid/apple-webhook.test.ts` |
+| Webhook handler: every event, duplicates, out-of-order, unknown user, no clinic (503), Liman/DB errors (500), cross-channel (Dodo live → Apple held back as `ignored_web_active`, spoofed purchase + refund leaves the Dodo clinic untouched, takeover once the web plan ends), second Apple ID, refund, expiration after cancellation, billing issue ± grace, transfer, sandbox, missing migration, auth compare | `web/src/lib/dentvid/apple-webhook.test.ts` |
 | Route: 401 (missing / wrong / ClipForge's secret / unset env), 413, 400, replay, retry release, 503 not paged | `web/src/app/api/dentvideo/revenuecat/webhook/route.test.ts` |
 | Dodo webhook next to App Store plans (activation ignored + alert, deactivations ignored, no card email, no chargeback pause, back to Dodo after Apple ended, plain web clinic unchanged) | `web/src/lib/dentvid/billing-webhook-apple.test.ts` (+ every existing Dodo test unchanged) |
 | Web checkout refusal `app_store`, panel, copy in 8 languages | `billing-state-apple.test.ts`, `app-store-plan.test.tsx` |

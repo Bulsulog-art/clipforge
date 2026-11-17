@@ -23,7 +23,8 @@ import { markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
 import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
 import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
 import { ENQUEUE_TIMEOUT_MS, afterPaid, tellOwner, withTimeout, type ActivationDeps } from "./billing-activation";
-import { isAppleManaged, readClinicSource, setBillingSource } from "./apple-store";
+import { isAppleManaged, readClinicSource, setBillingSource, type AppleSubscriptionStore } from "./apple-store";
+import { adoptWaitingApple } from "./apple-webhook";
 
 export { ENQUEUE_TIMEOUT_MS, withTimeout } from "./billing-activation";
 
@@ -60,6 +61,8 @@ export type DvWebhookDeps = ActivationDeps & {
   clinicByEmail?: (db: SupabaseClient, email: string) => Promise<ClinicByEmail>;
   /** Is the clinic's live plan paid through the App Store (apple-store.ts, 0026)? Default reads the clinic row. */
   appleManaged?: (db: SupabaseClient, clinic: { id: string; plan: string }) => Promise<boolean>;
+  /** The App Store ledger (0026): a subscription held back while the web plan was live takes over when it ends. */
+  apple?: AppleSubscriptionStore;
 };
 
 /** Payment trouble that does not move the plan yet (Dodo keeps the subscription through its grace period). */
@@ -554,6 +557,18 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
 
   const from = clinic.plan;
   const to = update.plan ?? clinic.plan;
+
+  // The web plan ended while an App Store subscription bought for this clinic was held back
+  // (ignored_web_active, apple-webhook.ts): the clinic continues on it, no gap and no second week.
+  if (to === "cancelled") {
+    const adopted = await adoptWaitingApple(db, clinic.id, { apple: deps.apple, now: () => now });
+    if (adopted) {
+      await tell(db, deps, clinic.id, (c) =>
+        alerts.appStoreBilling({ kind: "web_active", event: evt.type, subscription: adopted.subscription, other: t.subscriptionId, clinic: c, detail: "web plan ended: the clinic now runs on the App Store subscription" }),
+      );
+      return { status: 200, body: { ok: true, app: "dentvideo", plan: "active", movedTo: adopted.subscription, source: "apple" } };
+    }
+  }
   // A clinic's genuine first activation: it never had a subscription. A clinic coming back from
   // paused/cancelled is not "first" — the first-week watchdog must not re-make a week it has.
   const first = from === "trial" && !clinic.dodo_subscription_id;

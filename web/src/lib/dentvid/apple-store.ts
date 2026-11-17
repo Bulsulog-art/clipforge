@@ -16,7 +16,7 @@ export type AppleSubRecord = {
   original_transaction_id: string;
   clinic_id: string;
   app_user_id: string;
-  /** active | cancelled (auto-renew off) | billing_issue | expired | refunded | duplicate | transferred | pause_scheduled | refund_reversed */
+  /** active | cancelled (auto-renew off) | billing_issue | expired | refunded | duplicate | transferred | pause_scheduled | refund_reversed | ignored_sandbox | ignored_web_active (held back while a web plan is live) */
   status: string;
   product?: string | null;
   tier?: string | null;

@@ -111,6 +111,8 @@ function deps(over: Partial<AppleWebhookDeps> = {}) {
     adConversion: vi.fn(async () => "recorded"),
     ownerInternal: vi.fn(async () => false),
     userById: async (_db: SupabaseClient, id: string) => USERS[id] ?? null,
+    // A real (non-internal) clinic owner with a proven address, unless a test says otherwise.
+    sandboxOwner: async () => ({ email: "dr@clinic.example", verified: true }),
     apple: memoryApple(),
     subs: memoryDodo(),
     now: () => NOW,
@@ -344,19 +346,61 @@ describe("RevenueCat webhook: who is it", () => {
 });
 
 describe("RevenueCat webhook: one plan per clinic across channels", () => {
-  it("Dodo active + an Apple purchase arrives: the clinic keeps ONE plan (Apple), the owner is told to cancel and refund Dodo; no second week or welcome", async () => {
+  it("security: a purchase in someone else's name (Dodo plan live) never switches the clinic, and its refund leaves the Dodo clinic untouched", async () => {
+    // app_user_id is whatever the app passed to Purchases.logIn: an attacker buys under the victim's login id.
+    const onDodo: Clinic = { ...trial(), plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", plan_renews_at: "2026-12-01T00:00:00Z", billing_source: "dodo" };
+    const before = { ...onDodo };
+    const { db, clinics, updates } = fakeDb([onDodo]);
+    const d = deps({ subs: memoryDodo([{ dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "active" }]) });
+    const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE"), d);
+    expect(r.body).toMatchObject({ ignored: "web plan active", kept: "sub_1" });
+    expect(d.apple.rows.get(OTID)).toMatchObject({ status: "ignored_web_active", clinic_id: "clinic-a", tier: "practice", period_end: "2026-12-17T10:00:00.000Z" });
+    const alert = d.raised.find((a) => a.key.startsWith("appstore:web_active:"));
+    expect(alert?.severity).toBe("urgent");
+    expect(alert?.todo[0]).toMatch(/Contact dr@clinic.example: did they buy in the iPhone app/);
+    // Renewals, an upgrade, auto-renew back on: still the web's plan.
+    for (const t of ["RENEWAL", "UNCANCELLATION", "SUBSCRIPTION_EXTENDED"]) {
+      expect((await handleAppleEvent(db, ev(t), d)).body, t).toMatchObject({ ignored: "web plan active" });
+    }
+    expect((await handleAppleEvent(db, ev("PRODUCT_CHANGE", { product_id: "dentvideo_starter_monthly", new_product_id: "dentvideo_practice_monthly" }), d)).body).toMatchObject({ ignored: "web plan active" });
+    // The attacker asks Apple for a refund (both shapes RevenueCat sends), then it expires.
+    for (const e of [ev("CANCELLATION", { cancel_reason: "CUSTOMER_SUPPORT" }), ev("REFUND"), ev("BILLING_ISSUE"), ev("CANCELLATION"), ev("EXPIRATION")]) {
+      const res = await handleAppleEvent(db, e, d);
+      expect(res.status, e.type).toBe(200);
+    }
+    expect(clinics[0]).toEqual(before);
+    expect(updates).toEqual([]);
+    expect(d.enqueueWeek).not.toHaveBeenCalled();
+    expect(d.sendWelcome).not.toHaveBeenCalled();
+    expect(d.markPaid).not.toHaveBeenCalled();
+    expect(d.raised.some((a) => a.key.startsWith("new_paying") || a.key.startsWith("appstore:cross_channel"))).toBe(false);
+  });
+
+  it("security: a web plan on hold, or cancelled but still paid up, is not ended by an App Store purchase either; without 0026 neither", async () => {
+    const cases: [Clinic, DvSubRecord, { noAppleColumns?: boolean }][] = [
+      [{ ...trial(), plan: "paused", plan_tier: "starter", dodo_subscription_id: "sub_1", plan_renews_at: "2026-11-10T00:00:00Z" }, { dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "on_hold" }, {}],
+      [{ ...trial(), plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", plan_renews_at: "2026-12-01T00:00:00Z" }, { dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "cancelled" }, {}],
+      [{ ...trial(), plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", plan_renews_at: "2026-12-01T00:00:00Z" }, { dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "active" }, { noAppleColumns: true }],
+    ];
+    for (const [clinic, sub, opts] of cases) {
+      const before = { ...clinic };
+      const { db, clinics } = fakeDb([clinic], opts);
+      const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE"), deps({ subs: memoryDodo([sub]), ...(opts.noAppleColumns ? { apple: memoryApple([], false) } : {}) }));
+      expect(r.body, sub.status).toMatchObject({ ignored: "web plan active" });
+      expect(clinics[0], sub.status).toEqual(before);
+    }
+  });
+
+  it("a held-back App Store subscription switches the clinic on at its next event once the web plan has ended", async () => {
     const onDodo: Clinic = { ...trial(), plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", plan_renews_at: "2026-12-01T00:00:00Z" };
     const { db, clinics } = fakeDb([onDodo]);
     const d = deps({ subs: memoryDodo([{ dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "active" }]) });
-    const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE"), d);
-    expect(r.body).toMatchObject({ plan: "active", movedFrom: "sub_1" });
-    expect(clinics[0]).toMatchObject({ plan: "active", billing_source: "apple", dodo_subscription_id: null, plan_tier: "practice" });
-    expect(d.enqueueWeek).not.toHaveBeenCalled();
-    expect(d.sendWelcome).not.toHaveBeenCalled();
-    const conflict = d.raised.find((a) => a.key.startsWith("appstore:cross_channel:"));
-    expect(conflict?.todo.join(" ")).toMatch(/in Dodo, cancel subscription sub_1 and refund/i);
-    expect(conflict?.todo[0]).toMatch(/First confirm with dr@clinic.example/);
-    expect(d.raised.some((a) => a.key.startsWith("new_paying"))).toBe(false);
+    await handleAppleEvent(db, ev("INITIAL_PURCHASE"), d);
+    Object.assign(clinics[0], { plan: "cancelled", plan_renews_at: null });
+    const r = await handleAppleEvent(db, ev("RENEWAL", { expiration_at_ms: ms("2027-01-17T10:00:00Z") }), d);
+    expect(r.body).toMatchObject({ plan: "active" });
+    expect(clinics[0]).toMatchObject({ plan: "active", billing_source: "apple", apple_original_transaction_id: OTID, dodo_subscription_id: null });
+    expect(d.apple.rows.get(OTID)?.status).toBe("active");
   });
 
   it("an old Dodo subscription that already ended is no conflict", async () => {
@@ -384,33 +428,49 @@ describe("RevenueCat webhook: one plan per clinic across channels", () => {
 });
 
 describe("RevenueCat webhook: sandbox, migration, transfer", () => {
-  it("sandbox purchases follow DENTVID_IAP_SANDBOX: allow (default) activates and tells the owner; internal / off refuse", async () => {
-    {
+  it("security: sandbox purchases follow DENTVID_IAP_SANDBOX: internal (default) only for a proven internal or allow-listed owner; allow only when set; off never", async () => {
+    const run = async (over: Partial<AppleWebhookDeps>) => {
       const { db, clinics } = fakeDb([trial()]);
-      const d = deps();
-      await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX" }), d);
-      expect(clinics[0].plan).toBe("active");
-      expect(d.raised.some((a) => a.key.startsWith("appstore:sandbox:"))).toBe(true);
-    }
-    for (const policy of ["off", "internal"]) {
-      const { db, clinics } = fakeDb([trial()]);
-      const d = deps({ env: { DENTVID_IAP_SANDBOX: policy } });
+      const d = deps(over);
       const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX" }), d);
+      return { r, clinics, d };
+    };
+    // Default: a real clinic owner (a TestFlight tester under any login) gets nothing.
+    {
+      const { r, clinics, d } = await run({});
       expect(r.body).toMatchObject({ ignored: "sandbox" });
       expect(clinics[0].plan).toBe("trial");
       expect(d.enqueueWeek).not.toHaveBeenCalled();
+      expect(d.apple.rows.get(OTID)?.status).toBe("ignored_sandbox");
     }
-    const { db, clinics } = fakeDb([trial()]);
-    await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX" }), deps({ env: { DENTVID_IAP_SANDBOX: "internal" }, ownerInternal: async () => true }));
-    expect(clinics[0].plan).toBe("active");
+    // Owner internal by a domain pattern, proven address: allowed.
+    {
+      const { clinics, d } = await run({ sandboxOwner: async () => ({ email: "qa@bulsulabs.com", verified: true }) });
+      expect(clinics[0].plan).toBe("active");
+      expect(d.raised.some((a) => a.key.startsWith("appstore:sandbox:"))).toBe(true);
+    }
+    // The App Review demo account on DENTVID_IAP_SANDBOX_ALLOW_EMAILS: allowed.
+    expect((await run({ env: { DENTVID_IAP_SANDBOX_ALLOW_EMAILS: "appreview@dentvideo-demo.example" }, sandboxOwner: async () => ({ email: "AppReview@dentvideo-demo.example", verified: true }) })).clinics[0].plan).toBe("active");
+    // Owner-set pattern: allowed.
+    expect((await run({ env: { DENTVID_INTERNAL_EMAIL_PATTERNS: "*@tester.example" }, sandboxOwner: async () => ({ email: "a@tester.example", verified: true }) })).clinics[0].plan).toBe("active");
+    // Refused: an unproven internal-looking address, a catch-all pattern match, app_metadata.internal alone, an unreadable owner.
+    for (const owner of [{ email: "fake@bulsulabs.com", verified: false }, { email: "qa+me@gmail.com", verified: true }, null]) {
+      expect((await run({ sandboxOwner: async () => owner, ownerInternal: async () => true })).clinics[0].plan, JSON.stringify(owner)).toBe("trial");
+    }
+    expect((await run({ sandboxOwner: async () => { throw new Error("liman down"); } })).clinics[0].plan).toBe("trial");
+    // allow: anyone, only when set explicitly. off: nobody, not even internal.
+    expect((await run({ env: { DENTVID_IAP_SANDBOX: "allow" } })).clinics[0].plan).toBe("active");
+    expect((await run({ env: { DENTVID_IAP_SANDBOX: "off" }, sandboxOwner: async () => ({ email: "qa@bulsulabs.com", verified: true }) })).clinics[0].plan).toBe("trial");
   });
 
   it("security: a sandbox purchase (no money) never takes a clinic off a paid Dodo or production Apple plan", async () => {
+    // Even under DENTVID_IAP_SANDBOX=allow (the attacker's best case).
+    const allow = { env: { DENTVID_IAP_SANDBOX: "allow" } };
     // app_user_id is whatever the app passed to Purchases.logIn: a TestFlight build logged in as a victim's id.
     {
       const onDodo: Clinic = { ...trial(), plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", plan_renews_at: "2026-12-01T00:00:00Z" };
       const { db, clinics } = fakeDb([onDodo]);
-      const d = deps({ subs: memoryDodo([{ dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "active" }]) });
+      const d = deps({ ...allow, subs: memoryDodo([{ dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "active" }]) });
       const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX", original_transaction_id: OTID_2 }), d);
       expect(r.body).toMatchObject({ ignored: "sandbox over a paid plan" });
       expect(clinics[0]).toMatchObject({ plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", billing_source: null });
@@ -424,7 +484,7 @@ describe("RevenueCat webhook: sandbox, migration, transfer", () => {
     {
       // A production Apple plan the customer switched off (ending): a sandbox purchase does not take over either.
       const { db, clinics } = fakeDb([appleActive()]);
-      const d = deps({ apple: memoryApple([{ original_transaction_id: OTID, clinic_id: "clinic-a", app_user_id: USER_A, status: "cancelled", period_end: "2026-12-17T10:00:00.000Z" }]) });
+      const d = deps({ ...allow, apple: memoryApple([{ original_transaction_id: OTID, clinic_id: "clinic-a", app_user_id: USER_A, status: "cancelled", period_end: "2026-12-17T10:00:00.000Z" }]) });
       const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX", original_transaction_id: OTID_2 }), d);
       expect(r.body).toMatchObject({ ignored: "sandbox over a paid plan" });
       expect(clinics[0]).toMatchObject({ apple_original_transaction_id: OTID, billing_source: "apple" });
@@ -432,7 +492,7 @@ describe("RevenueCat webhook: sandbox, migration, transfer", () => {
     {
       // The clinic's own sandbox subscription still renews (TestFlight / App Review).
       const { db, clinics } = fakeDb([trial()]);
-      const d = deps();
+      const d = deps(allow);
       await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX" }), d);
       const r = await handleAppleEvent(db, ev("RENEWAL", { environment: "SANDBOX", expiration_at_ms: ms("2026-11-18T10:00:00Z") }), d);
       expect(r.body).toMatchObject({ plan: "active" });

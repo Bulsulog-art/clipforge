@@ -552,7 +552,8 @@ Design and runbook: `docs/DENTVIDEO_IAP_PLAN.md`. Checked by tests, not yet atta
   (`revenuecat/webhook/route.test.ts`). Origin guard exempts exactly this path.
 - **Free plans**: only `APP_STORE`/`MAC_APP_STORE` events with a DentVideo product id switch a clinic on;
   promotional grants, other stores, family sharing, other apps' products are ignored + owner alert.
-  Sandbox follows `DENTVID_IAP_SANDBOX` (default allow, every sandbox activation alerts the owner).
+  Sandbox follows `DENTVID_IAP_SANDBOX` (default `internal`: a proven internal-domain address or one on
+  `DENTVID_IAP_SANDBOX_ALLOW_EMAILS`; `allow` only if set; every sandbox activation alerts the owner).
 - **Whose plan**: app_user_id must be a DentVideo Liman login (UUID); anonymous ids and other apps'
   logins never match. app_user_id is NOT authenticated: anyone with the public SDK key can call
   `Purchases.logIn(<victim uuid>)` and buy for that login. UUIDs are not guessable, but they do appear in
@@ -560,7 +561,8 @@ Design and runbook: `docs/DENTVIDEO_IAP_PLAN.md`. Checked by tests, not yet atta
 - **Owner writes**: `billing_source` / `apple_original_transaction_id` reverted for anon/authenticated
   by a trigger (0026); the ledger is service-role only.
 - **Double charging**: web checkout refuses App Store plans (`app_store`), the paywall never opens for a
-  live web plan, and a race keeps one plan with an owner alert (tests in `apple-webhook.test.ts`,
+  live web plan, an App Store purchase never replaces a live web plan (held back as `ignored_web_active`,
+  owner alert `web_active`), and an Apple activation never replaces it either way (tests in `apple-webhook.test.ts`,
   `billing-webhook-apple.test.ts`).
 - **Mobile sign-up**: same handler and limits as the web plus an app-wide hourly ceiling; fill-time
   check; no Turnstile in a native form (App Attest is a possible later brake).
@@ -574,9 +576,9 @@ Findings (each fixed one has a regression test named `security: …`; each test 
 | Medium | `apple-webhook.ts` activate | A SANDBOX purchase (free: TestFlight) logged in as another clinic's login id took that clinic off its live Dodo plan (`dodo_subscription_id` cleared, `billing_source = apple`); the sandbox subscription's EXPIRATION hours later then cancelled the clinic, while Dodo kept charging. Also: a sandbox purchase could take over from a production Apple plan whose auto-renew was off, and a sandbox "duplicate" row could become the fallback plan after a refund. | Fixed: a sandbox purchase never takes over a live plan it is not already the source of (`ignored_sandbox` + owner alert). Test `apple-webhook.test.ts` "security: a sandbox purchase …" |
 | Medium | `billing-webhook.ts` | Before 0026 (runbook step C before D), after an Apple purchase moved a clinic off Dodo, the owner cancelling the old Dodo subscription — exactly what the cross-channel alert asks — cancelled the clinic Apple pays for (`applyTransition` treats a null `dodo_subscription_id` as "no subscription to compare"). | Fixed: a Dodo deactivation never ends a live plan that has no Dodo subscription. Test `billing-webhook-apple.test.ts` "security: before 0026 …" |
 | Low | webhook route | `DENTVID_REVENUECAT_WEBHOOK_AUTH` set to the same value as ClipForge's `REVENUECAT_WEBHOOK_AUTH` was accepted, so either project (or a leak of either secret) could post DentVideo events. | Fixed: refused (401, log says rotate). Tests in `apple-webhook.test.ts` and `revenuecat/webhook/route.test.ts` |
-| Medium | design, not fixed | A paid (production) App Store purchase under a victim's login id still moves a Dodo-paying clinic to Apple; the buyer then asks Apple for a refund and the clinic's plan ends. Costs the attacker a refundable purchase and needs the victim's UUID. The cross-channel alert now tells the owner to confirm with the clinic before cancelling / refunding Dodo. A real fix needs app_user_id bound to the login (e.g. RevenueCat's server-side customer creation / an app-side attestation) or keeping the Dodo plan on a cross-channel purchase. | Owner decision |
-| Medium | design, not fixed | `DENTVID_IAP_SANDBOX=allow` (default) gives any TestFlight tester a free first week (real model spend) on every trial clinic; with no Turnstile on mobile sign-up, accounts are cheap (10/IP/day, 40/network/day, 300/h app-wide). | Owner decision §12.2: `internal` once App Review is done; keep TestFlight private |
-| Low | mobile sign-up | No bot check beyond the client-reported `elapsedMs` (trivially faked): the mobile route is a Turnstile bypass for creating accounts and sending code emails to arbitrary addresses, within the limits above. Enumeration: `{ existing: true }` answers as on the web. | Accepted for now; App Attest / DeviceCheck is the real brake |
+| Medium | `apple-webhook.ts` activate | A paid (production) App Store purchase under a victim's login id moved a Dodo-paying clinic to Apple (`dodo_subscription_id` cleared); the buyer then asked Apple for a refund and the clinic's plan ended while Dodo kept charging. Needs only the victim's UUID and a refundable purchase. | Fixed (second commit): a live web plan (active, on hold, or cancelled but paid up; with or without 0026) is never switched to Apple. The Apple subscription is recorded as `ignored_web_active` (its refund, expiry, billing issue touch nothing), owner alert `web_active` (contact the clinic). It takes over only once the web plan has ended: at once when Dodo ends it (`adoptWaitingApple`, production rows with paid time left only), else at its next App Store event. Tests `apple-webhook.test.ts` "security: a purchase in someone else's name …", "security: a web plan on hold …", `billing-webhook-apple.test.ts` "when the web plan ends …" |
+| Medium | `apple-billing.ts` sandbox policy | `DENTVID_IAP_SANDBOX=allow` (default) gave any TestFlight tester a free first week (real model spend) on every trial clinic, and mobile accounts are cheap. The old `internal` policy used the general internal test, which an outsider passes too: `app_metadata.internal` can be requested at sign-up (`body.internal`), sign-up accepts any address unproven, and catch-all patterns (`qa+*@*`, `e2e*@*`, `dvq*+*@*`) match mailboxes anyone can own. | Fixed (second commit): default `internal`; `allow` only when set explicitly. `internal` = the owner's address is proven (6-digit code) AND is on `DENTVID_IAP_SANDBOX_ALLOW_EMAILS` (App Review demo account) or matches a domain-anchored internal pattern (defaults + `DENTVID_INTERNAL_EMAIL_PATTERNS`). Tests `apple-billing.test.ts` "security: sandbox policy defaults to internal …", "security: under internal …", `apple-webhook.test.ts` "security: sandbox purchases follow …" |
+| Low | mobile sign-up | No bot check beyond the client-reported `elapsedMs` (trivially faked): the mobile route is a Turnstile bypass for creating accounts and sending code emails to arbitrary addresses, within the limits above. Enumeration: `{ existing: true }` answers as on the web. | **Open** — see "Open item: App Attest for mobile sign-up" below |
 
 Checked and found safe: constant-time compare (SHA-256 + `timingSafeEqual`, no length leak), unset/short
 secret refuses everything; replay (Redis claim per event id, released on failure; ledger `last_event_id`);
@@ -585,3 +587,37 @@ end the plan at once; expiration of a non-current Apple subscription changes not
 an Apple plan never double-activates; no price in `mobile/v1/billing`; mobile routes only read the bearer
 user's own clinic; 0026 trigger matches the 0002 pattern (owner writes reverted, service role untouched),
 ledger RLS on with no policies and grants revoked, every statement re-runnable.
+
+All findings above were mutation-tested: each fix removed (or weakened: paid-through web plans not
+counted, sandbox default back to `allow`, no proof-of-address check, catch-all patterns allowed, no
+takeover, takeover of any ledger row) makes its test fail.
+
+#### Open item: App Attest for mobile sign-up (proposal, not built)
+
+**Problem.** `POST /api/dentvideo/mobile/v1/signup` has no bot check a script cannot fake: Turnstile is a
+browser widget, there is no honeypot in a native form, and the fill time (`elapsedMs`) is whatever the
+client sends. A script can create accounts and make DentVideo email a 6-digit code to any address, up to
+10 per IP per day, 40 per /24 per day and 300 per hour across the app (`rl:signup:mobile:global`), and it
+side-steps Turnstile on the web form, because the accounts work on the web too. Cost today: email
+reputation (codes to strangers) and Liman rows; no model spend (no plan without payment or an allowed
+sandbox purchase).
+
+**Proposal.** Apple App Attest (DeviceCheck framework, iOS 14+), checked on the server:
+1. `GET mobile/v1/attest/challenge` → a random 32-byte challenge, kept in Redis for 5 minutes, single use.
+2. First launch: the app makes a key (`DCAppAttestService.generateKey`), attests it with the challenge
+   hash (`attestKey`) and posts the attestation once (`POST mobile/v1/attest/register`). The server checks
+   it (CBOR; Apple's certificate chain to the App Attest root CA; nonce = SHA-256(authData ‖ clientDataHash);
+   RP id hash = SHA-256 of `<TEAMID>.com.bulsulabs.dentvideo`; counter 0; `aaguid` = `appattest` in
+   production, `appattestdevelop` only when an env flag allows it) and stores the key id + public key +
+   counter (`dentvid_app_attest_keys`, service role only).
+3. Sign-up (and the code `send`) carry an **assertion** over SHA-256(challenge ‖ request body): the server
+   verifies the signature with the stored key and requires a counter above the last one seen.
+4. Limits per attested key (e.g. 3 sign-ups per day) on top of today's per-IP ones; an unknown or replayed
+   key → refused.
+5. Rollout: `DENTVID_APP_ATTEST=report` first (log missing/invalid, refuse nothing: older builds and the
+   simulator have no App Attest), then `enforce` once the attesting build is the minimum supported
+   version. DeviceCheck's two per-device bits can mark a device that abused sign-up.
+6. Tests: fixtures from a real development attestation (no Apple call in tests); replayed assertion,
+   wrong app id, counter going backwards, development `aaguid` in production → refused.
+
+Until then: the limits above. Watch the sign-up funnel for bursts of unverified accounts.

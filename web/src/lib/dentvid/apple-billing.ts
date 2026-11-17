@@ -190,11 +190,45 @@ export function candidateUserIds(e: RcEvent): string[] {
   return [...new Set(all.map((x) => x.toLowerCase()))];
 }
 
-/** Sandbox purchases (TestFlight, App Review, Xcode) switch a clinic on only when DENTVID_IAP_SANDBOX allows it. */
+/**
+ * Sandbox purchases (TestFlight, App Review, Xcode) cost nothing, so they switch a clinic on only when
+ * DENTVID_IAP_SANDBOX allows it: `internal` (default) — see sandboxOwnerAllowed; `off` — never;
+ * `allow` — anyone, only when set explicitly. Anything else reads as the default.
+ */
 export type SandboxPolicy = "allow" | "internal" | "off";
 export function sandboxPolicy(env: Env = process.env): SandboxPolicy {
   const v = env.DENTVID_IAP_SANDBOX?.trim().toLowerCase();
-  return v === "off" || v === "internal" ? v : "allow";
+  return v === "off" || v === "allow" ? v : "internal";
+}
+
+/** DENTVID_IAP_SANDBOX_ALLOW_EMAILS: exact addresses (the App Review demo account), comma / semicolon / space separated. */
+export function sandboxAllowEmails(env: Env = process.env): Set<string> {
+  return new Set(
+    (env.DENTVID_IAP_SANDBOX_ALLOW_EMAILS ?? "")
+      .split(/[\s,;]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => e.includes("@")),
+  );
+}
+
+/**
+ * May a sandbox purchase switch on this owner's clinic under the `internal` policy? Only an owner whose
+ * address is PROVEN (the 6-digit code: anyone can sign up with any address) and that address is either
+ * listed in DENTVID_IAP_SANDBOX_ALLOW_EMAILS or matches an internal pattern that names a domain
+ * (internal-traffic.ts defaults + DENTVID_INTERNAL_EMAIL_PATTERNS). Deliberately NOT the general
+ * "internal" test: app_metadata.internal can be asked for at sign-up, and catch-all patterns such as
+ * qa+*@* match any mailbox an outsider owns.
+ */
+export function sandboxOwnerAllowed(
+  owner: { email: string | null; verified: boolean },
+  patterns: readonly string[],
+  matches: (email: string, pattern: string) => boolean,
+  env: Env = process.env,
+): boolean {
+  const email = (owner.email ?? "").trim().toLowerCase();
+  if (!owner.verified || !email.includes("@")) return false;
+  if (sandboxAllowEmails(env).has(email)) return true;
+  return patterns.filter((p) => !p.endsWith("@*")).some((p) => matches(email, p));
 }
 
 /* ------------------------------------------------------------ app billing */

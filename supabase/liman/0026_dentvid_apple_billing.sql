@@ -81,7 +81,8 @@ create table if not exists public.dentvid_apple_subscriptions (
   -- The Liman login RevenueCat knows as app_user_id.
   app_user_id      uuid not null,
   -- active, cancelled (auto-renew off, paid until period_end), billing_issue, expired, refunded,
-  -- duplicate (a second subscription while another was live), transferred, ignored_sandbox.
+  -- duplicate (a second subscription while another was live), transferred, ignored_sandbox,
+  -- ignored_web_active (bought while the clinic's web plan was live: held back until that plan ends).
   status           text not null,
   product          text,
   tier             text check (tier is null or tier in ('starter', 'practice')),

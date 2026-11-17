@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { internalPatterns, patternRegex } from "./internal-traffic";
 import {
   APP_STORE_MANAGE_URL,
   appleEffect,
@@ -8,6 +9,7 @@ import {
   iapTierForProduct,
   isUpgrade,
   mobileBillingView,
+  sandboxOwnerAllowed,
   sandboxPolicy,
   type MobileBillingInput,
   type RcEvent,
@@ -118,11 +120,30 @@ describe("identity", () => {
     expect(candidateUserIds({ app_user_id: "not-a-user" })).toEqual([]);
   });
 
-  it("sandbox policy defaults to allow (App Review buys in the sandbox)", () => {
-    expect(sandboxPolicy({})).toBe("allow");
+  it("security: sandbox policy defaults to internal; allow only when set explicitly", () => {
+    expect(sandboxPolicy({})).toBe("internal");
     expect(sandboxPolicy({ DENTVID_IAP_SANDBOX: "internal" })).toBe("internal");
     expect(sandboxPolicy({ DENTVID_IAP_SANDBOX: "OFF" })).toBe("off");
-    expect(sandboxPolicy({ DENTVID_IAP_SANDBOX: "yes please" })).toBe("allow");
+    expect(sandboxPolicy({ DENTVID_IAP_SANDBOX: " Allow " })).toBe("allow");
+    expect(sandboxPolicy({ DENTVID_IAP_SANDBOX: "yes please" })).toBe("internal");
+  });
+
+  it("security: under internal, a sandbox purchase needs a PROVEN address that is allow-listed or matches a domain pattern", () => {
+    const patterns = internalPatterns({ DENTVID_INTERNAL_EMAIL_PATTERNS: "*@tester.example" });
+    const m = (e: string, p: string) => patternRegex(p).test(e);
+    const env = { DENTVID_IAP_SANDBOX_ALLOW_EMAILS: "Review.Demo@Gmail.com, other@x.example" };
+    const ok = (email: string, verified = true) => sandboxOwnerAllowed({ email, verified }, patterns, m, env);
+    expect(ok("berke@bulsulabs.com")).toBe(true);
+    expect(ok("a@tester.example")).toBe(true);
+    expect(ok("review.demo@gmail.com")).toBe(true);
+    // An unproven address proves nothing: anyone can sign up as anyone@bulsulabs.com or as the demo address.
+    expect(ok("berke@bulsulabs.com", false)).toBe(false);
+    expect(ok("review.demo@gmail.com", false)).toBe(false);
+    // Catch-all patterns (qa+*@*, e2e*@*) match mailboxes an outsider owns: never enough for a free plan.
+    expect(ok("qa+free@gmail.com")).toBe(false);
+    expect(ok("e2e-me@outlook.com")).toBe(false);
+    expect(ok("someone@gmail.com")).toBe(false);
+    expect(sandboxOwnerAllowed({ email: "review.demo@gmail.com", verified: true }, patterns, m, {})).toBe(false);
   });
 });
 

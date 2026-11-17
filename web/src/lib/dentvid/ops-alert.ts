@@ -776,7 +776,7 @@ export const alerts = {
    * Apple refunds and cancellations are the customer's to request from Apple; Dodo's are ours to make.
    */
   appStoreBilling(a: {
-    kind: "unmatched" | "no_clinic" | "cross_channel" | "apple_duplicate" | "refund" | "refund_reversed" | "transfer" | "sandbox" | "ignored" | "migration_missing";
+    kind: "unmatched" | "no_clinic" | "cross_channel" | "apple_duplicate" | "refund" | "refund_reversed" | "transfer" | "sandbox" | "ignored" | "migration_missing" | "web_active";
     event: string;
     subscription: string;
     clinic?: ClinicRef;
@@ -850,8 +850,8 @@ export const alerts = {
         tr: "Sandbox (test) satın alımı bir kliniği açtı",
         en: "A sandbox (test) purchase switched a clinic on",
         what: `${who} was activated by a SANDBOX ${a.event} (TestFlight, App Review or an Xcode build). No money was paid; its first week will be made.`,
-        done: "Allowed by DENTVID_IAP_SANDBOX (default: allow, so App Review can buy). Sandbox subscriptions expire on their own within hours.",
-        todo: ["If this was not you, a tester or App Review, set DENTVID_IAP_SANDBOX=internal (or off) on the web app."],
+        done: "Allowed by DENTVID_IAP_SANDBOX (default internal: a verified internal address or one in DENTVID_IAP_SANDBOX_ALLOW_EMAILS; allow only if set explicitly). Sandbox subscriptions expire on their own within hours.",
+        todo: ["If this was not you, a tester or App Review, remove the address from DENTVID_IAP_SANDBOX_ALLOW_EMAILS / the internal patterns, or set DENTVID_IAP_SANDBOX=off."],
       },
       ignored: {
         sev: "warning",
@@ -860,6 +860,21 @@ export const alerts = {
         what: `${a.event} for Apple subscription ${a.subscription} was ignored: ${a.detail ?? "not a DentVideo plan"}.`,
         done: "Nothing was changed.",
         todo: ["Check RevenueCat: products and entitlements must be the ones in docs/DENTVIDEO_IAP_PLAN.md; family sharing off; no promotional grants."],
+      },
+      web_active: {
+        sev: "urgent",
+        tr: "Web'den ödeyen klinik için App Store satın alımı geldi",
+        en: "An App Store purchase arrived for a clinic that pays on the web",
+        what: `${who} has a live web (Dodo) plan${a.other ? ` (subscription ${a.other})` : ""}, and Apple subscription ${a.subscription} arrived for its login (${a.event}). The app never offers a purchase to a clinic paying on the web, and app_user_id is whatever the app sends, so this may not be the clinic's own purchase.`,
+        done: a.detail
+          ? `${a.detail[0].toUpperCase()}${a.detail.slice(1)} (${a.subscription}), which had been held back while the web plan was live. No new week, no second welcome.`
+          : "Nothing changed: the clinic stays on its web plan; the Apple subscription is recorded as ignored_web_active. It switches the clinic on only once the web plan has ended (the next App Store event, or at once when Dodo ends it). An Apple refund or expiry of it never touches the web plan.",
+        todo: a.detail
+          ? ["Nothing to do unless the clinic did not buy in the app: then it can ask Apple for a refund (reportaproblem.apple.com), and the plan ends with it."]
+          : [
+          `Contact ${a.clinic?.email ?? "the clinic"}: did they buy in the iPhone app?`,
+          "If yes and they want to stay in the app: cancel the Dodo subscription (refund its latest charge if you agree). If they did not mean to: they ask Apple for a refund (reportaproblem.apple.com). If they did not buy at all: nothing to do; the web plan is safe.",
+        ],
       },
       migration_missing: {
         sev: "urgent",

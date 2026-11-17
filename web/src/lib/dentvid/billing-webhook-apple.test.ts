@@ -4,6 +4,17 @@ import { handleDentvideoEvent, type DvWebhookDeps } from "./billing-webhook";
 import type { DvSubRecord } from "./billing";
 import type { SubscriptionStore } from "./subscriptions";
 import type { OwnerAlert } from "./ops-alert";
+import type { AppleSubRecord, AppleSubscriptionStore } from "./apple-store";
+
+function memoryApple(rows: AppleSubRecord[] = []): AppleSubscriptionStore & { rows: Map<string, AppleSubRecord> } {
+  const map = new Map(rows.map((r) => [r.original_transaction_id, { ...r }]));
+  return {
+    rows: map,
+    get: async (id) => map.get(id) ?? null,
+    forClinic: async (c) => [...map.values()].filter((r) => r.clinic_id === c),
+    put: async (r) => (map.set(r.original_transaction_id, { ...map.get(r.original_transaction_id), ...r }), true),
+  };
+}
 
 /**
  * The web's Dodo webhook next to App Store plans (docs/DENTVIDEO_IAP_PLAN.md): a clinic whose plan the
@@ -163,6 +174,34 @@ describe("Dodo events for a clinic the App Store pays for", () => {
       expect(r.body, type).toMatchObject({ ignored: "not the clinic's subscription" });
       expect(f.clinic, type).toMatchObject({ plan: "active", dodo_subscription_id: null, plan_renews_at: "2026-12-17T10:00:00Z" });
       expect(f.updates, type).toEqual([]);
+    }
+  });
+
+  it("when the web plan ends, an App Store subscription held back for it (ignored_web_active) takes over: no gap, no second week", async () => {
+    const appleRows = (status: string, environment = "PRODUCTION", period_end = "2099-01-01T00:00:00.000Z"): AppleSubRecord[] => [
+      { original_transaction_id: "2000000100", clinic_id: CLINIC, app_user_id: OWNER, status, tier: "practice", environment, period_end },
+    ];
+    const ends = async (rows: AppleSubRecord[]) => {
+      const f = fakeDb(paying("sub_1"));
+      const subs = memorySubs([{ dodo_subscription_id: "sub_1", clinic_id: CLINIC, status: "active" }]);
+      const store = memoryApple(rows);
+      const d = deps({ subs, apple: store });
+      const r = await handleDentvideoEvent(f.db, evt("subscription.expired", "sub_1", "2026-11-17T10:00:00Z", { next_billing_date: null }), d);
+      return { r, f, d, store };
+    };
+    {
+      const { r, f, d, store } = await ends(appleRows("ignored_web_active"));
+      expect(r.body).toMatchObject({ plan: "active", movedTo: "2000000100", source: "apple" });
+      expect(f.clinic).toMatchObject({ plan: "active", plan_tier: "practice", billing_source: "apple", apple_original_transaction_id: "2000000100", dodo_subscription_id: null, plan_renews_at: "2099-01-01T00:00:00.000Z" });
+      expect(store.rows.get("2000000100")?.status).toBe("active");
+      expect(d.enqueueWeek).not.toHaveBeenCalled();
+      expect(d.raised.some((a) => a.key.startsWith("at_risk"))).toBe(false);
+    }
+    // Refunded, expired, sandbox or already-over rows never take over: the plan ends as before.
+    for (const rows of [appleRows("refunded"), appleRows("expired"), appleRows("ignored_web_active", "SANDBOX"), appleRows("ignored_web_active", "PRODUCTION", "2020-01-01T00:00:00.000Z")]) {
+      const { f } = await ends(rows);
+      expect(f.clinic.plan, JSON.stringify(rows[0])).toBe("cancelled");
+      expect(f.clinic.billing_source, JSON.stringify(rows[0])).toBeUndefined();
     }
   });
 
