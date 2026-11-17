@@ -89,6 +89,18 @@ const CANCEL: Record<Locale, RegExp> = {
   pl: /rezygnacj|zrezygnować/i,
 };
 
+/** "Usually within an hour", as each language says it: the honest first-week promise (it was "about 15 minutes"). */
+const WITHIN_HOUR: Record<string, RegExp> = {
+  en: /within an hour/,
+  de: /innerhalb einer Stunde/,
+  es: /menos de una hora/,
+  tr: /bir saat içinde/,
+  fr: /moins d'une heure/,
+  ja: /1時間以内/,
+  ar: /خلال ساعة/,
+  pl: /w ciągu godziny/,
+};
+
 describe("landing copy, every language", () => {
   it.each(LOCALES)("%s: every section is there, with the brief's counts", (l) => {
     const c = LANDING[l];
@@ -125,11 +137,13 @@ describe("landing copy, every language", () => {
     expect(JSON.stringify(LANDING[l])).not.toMatch(OFFER);
   });
 
-  it.each(LOCALES)("%s: the facts are the true ones — approval, no fake people, the 15 minutes the plan step promises", (l) => {
+  it.each(LOCALES)("%s: the facts are the true ones — approval, no fake people, the first week usually within an hour (the plan step's promise)", (l) => {
     const c = LANDING[l];
-    // The only figure in the facts is the plan step's own promise (Japanese also writes 1週間分).
-    for (const m of c.hero.facts.join(" ").match(/\d+/g) ?? []) expect(["15", "1"]).toContain(m);
-    expect(APP_TEXT[l].onboarding.planLead).toContain("15");
+    // No figures in the facts (Japanese writes 1週間分 and 1時間以内); never the old "about 15 minutes".
+    for (const m of c.hero.facts.join(" ").match(/\d+/g) ?? []) expect(["1"]).toContain(m);
+    expect(c.hero.facts.join(" ")).toMatch(WITHIN_HOUR[l]);
+    expect(APP_TEXT[l].onboarding.planLead).toMatch(WITHIN_HOUR[l]);
+    expect(APP_TEXT[l].onboarding.planLead).not.toMatch(/15/);
     expect(c.hero.priceNote).toMatch(CANCEL[l]);
     expect(`${c.faq[9].q} ${c.faq[9].a}`).toMatch(CANCEL[l]);
   });

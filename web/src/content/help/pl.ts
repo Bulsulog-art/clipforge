@@ -37,11 +37,11 @@ export const pl: HelpContent = {
   articles: {
     "first-videos": {
       q: "Kiedy dostanę pierwsze filmy?",
-      a: "Filmy na pierwszy tydzień powstają zaraz po płatności i zwykle trwa to około 15 minut. Strona Filmy odświeża się sama, a gdy filmy będą gotowe do przejrzenia, wyślemy e-mail.\n\nPotem w każdy poniedziałek przychodzi pięć nowych filmów, za każdym razem z e-mailem.",
+      a: "Filmy na pierwszy tydzień powstają zaraz po płatności i zwykle trwa to mniej niż godzinę. Strona Filmy odświeża się sama, a gdy filmy będą gotowe do przejrzenia, wyślemy e-mail.\n\nPotem w każdy poniedziałek przychodzi pięć nowych filmów, za każdym razem z e-mailem.",
     },
     "no-videos-this-week": {
       q: "Filmów na ten tydzień jeszcze nie ma. Co zrobić?",
-      a: "Nowe filmy powstają w każdy poniedziałek. Jeśli filmów na ten tydzień nie ma jeszcze w bibliotece, wystarczy na stronie Filmy dotknąć „Przygotuj filmy na ten tydzień”. Trwa to około 15 minut.\n\nJeśli strona informuje o opóźnieniu, już ponawiamy próbę i napiszemy, gdy filmy będą gotowe. Można też dotknąć „Ponów próbę teraz”.\n\nFilm oznaczony „Nie udało się przygotować” nie wymaga żadnego działania. Jeśli sytuacja się powtórzy, prosimy o wiadomość.",
+      a: "Nowe filmy powstają w każdy poniedziałek. Jeśli filmów na ten tydzień nie ma jeszcze w bibliotece, wystarczy na stronie Filmy dotknąć „Przygotuj filmy na ten tydzień”. Zwykle trwa to mniej niż godzinę.\n\nJeśli strona informuje o opóźnieniu, już ponawiamy próbę i napiszemy, gdy filmy będą gotowe. Można też dotknąć „Ponów próbę teraz”.\n\nFilm oznaczony „Nie udało się przygotować” nie wymaga żadnego działania. Jeśli sytuacja się powtórzy, prosimy o wiadomość.",
     },
     topics: {
       q: "Jak wybierane są tematy i czy mogę jakiś zaproponować?",

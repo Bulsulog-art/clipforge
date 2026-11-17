@@ -151,12 +151,15 @@ describe("the clinic's recorded plan visit", () => {
 describe("first week: when the card offers 'try again'", () => {
   const now = 1_000_000_000;
   const min = 60_000;
-  it("not while waiting the promised ~15 minutes", () => {
+  it("not while waiting the promised hour", () => {
     expect(firstWeekStuck({ paid: true, job: { state: "active", createdAt: now - 15 * min }, seenSince: now - 15 * min, now })).toBe(false);
+    // 45 minutes is still within the promise: no "taking longer" yet.
+    expect(firstWeekStuck({ paid: true, job: { state: "active", createdAt: now - 45 * min }, seenSince: now - 45 * min, now })).toBe(false);
+    expect(FIRST_WEEK_SLOW_MS).toBe(60 * min);
   });
-  it("after 30 minutes since the job was queued (or the card first seen)", () => {
+  it("after an hour since the job was queued (or the card first seen)", () => {
     expect(firstWeekStuck({ paid: true, job: { state: "waiting", createdAt: now - FIRST_WEEK_SLOW_MS - 1 }, seenSince: now, now })).toBe(true);
-    expect(firstWeekStuck({ paid: true, job: undefined, seenSince: now - 31 * min, now })).toBe(true);
+    expect(firstWeekStuck({ paid: true, job: undefined, seenSince: now - 61 * min, now })).toBe(true);
   });
   it("when the job is missing (after a short grace) or failed", () => {
     expect(firstWeekStuck({ paid: true, job: { state: null, createdAt: null }, seenSince: now - 30_000, now })).toBe(false);
