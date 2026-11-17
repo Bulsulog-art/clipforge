@@ -74,6 +74,8 @@ struct WeekView: View {
         // from Settings opened only the week): open it again when the tab is on screen.
         .onAppear { openPending() }
         .onChange(of: model.tab) { _, tab in if tab == .week { openPending() } }
+        .onChange(of: model.items.map(\.id)) { _, _ in openPending() }
+        .onChange(of: model.isRefreshing) { _, _ in openPending() }
         .task {
             if model.isDemo("approve-all") {
                 try? await Task.sleep(for: .milliseconds(400))
@@ -90,11 +92,17 @@ struct WeekView: View {
             pendingOpen = id
         }
         guard let id = pendingOpen else { return }
-        let known = model.items.contains(where: { $0.id == id })
+        guard model.items.contains(where: { $0.id == id }) else {
+            // A notification tap that starts the app arrives before the week is loaded: wait
+            // for it (onChange of the items calls this again). Unknown after loading: stay on the week.
+            if model.items.isEmpty || model.isRefreshing { return }
+            pendingOpen = nil
+            return
+        }
         Task {
             try? await Task.sleep(for: .milliseconds(350))
             guard pendingOpen == id else { return }
-            path = known ? [id] : []
+            path = [id]
             pendingOpen = nil
         }
     }
