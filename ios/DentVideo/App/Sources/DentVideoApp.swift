@@ -63,6 +63,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 extension AppModel {
     /// dentvideo.com/app links (universal links) and dentvideo://app open the week, or the video named.
     func handle(url: URL) {
+        #if DEBUG
+        debugLastLink = url.absoluteString
+        #endif
         guard let target = DeepLink.target(url) else { return }
         open(itemID: target.itemID)
     }

@@ -64,6 +64,14 @@ final class AppModel {
         return false
     }
 
+    #if DEBUG
+    /// Demo flow mode: the last link received, for debugRouting.
+    @ObservationIgnored var debugLastLink: String = "-"
+    var debugRouting: String {
+        "phase=\(phase) tab=\(tab) path=\(weekPath) items=\(items.count) refreshing=\(isRefreshing) link=\(debugLastLink)"
+    }
+    #endif
+
     var isDemoMode: Bool {
         #if DEBUG
         return demoScreen != nil

@@ -398,7 +398,23 @@ final class OfflineAndLinkJourneyTests: DVTestCase {
         wait(el("card.d1"), 12)
         tab("tab.settings").tap()
         openLink("dentvideo://app/video/d2")
-        wait(el("video.state"), 10)
+        let shown = el("video.state").waitForExistence(timeout: 10)
+        let routing = el("debug.routing").exists ? el("debug.routing").label : "(no routing info)"
+        XCTAssertTrue(shown, "the linked video did not open; app state: \(routing)")
+        XCTAssertEqual(el("video.state").label, Strings.value("state.look"))
+    }
+
+    /// A link (or a notification tap) that starts the app opens its video once the week loads.
+    func testLinkOpensTheNamedVideoWhenItStartsTheApp() {
+        launch()
+        wait(el("card.d1"), 12)
+        app.terminate()
+        launch(reset: false, extra: [])
+        app.terminate()
+        openLink("dentvideo://app/video/d2")
+        let shown = el("video.state").waitForExistence(timeout: 15)
+        let routing = el("debug.routing").exists ? el("debug.routing").label : "(no routing info)"
+        XCTAssertTrue(shown, "the linked video did not open on a cold start; app state: \(routing)")
         XCTAssertEqual(el("video.state").label, Strings.value("state.look"))
     }
 

@@ -19,6 +19,19 @@ struct RootView: View {
         .background(Theme.paper.ignoresSafeArea())
         .task { if model.phase == .launching { await model.bootstrap() } }
         .noticeOverlay()
+        #if DEBUG
+        // UI tests only (demo flow mode): the model's routing state, readable by XCUITest when a
+        // journey fails, so a failure says what the app thought it was showing.
+        .overlay(alignment: .bottomLeading) {
+            if model.isDemo("flow") {
+                Text(model.debugRouting)
+                    .font(.system(size: 1))
+                    .opacity(0.02)
+                    .allowsHitTesting(false)
+                    .accessibilityIdentifier("debug.routing")
+            }
+        }
+        #endif
         // Still screenshots only; the UI tests run with the app's normal animations.
         .transaction { if model.isDemoMode && !model.isDemo("flow") { $0.disablesAnimations = true } }
     }
