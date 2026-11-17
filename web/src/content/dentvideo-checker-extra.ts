@@ -380,7 +380,7 @@ export const CHECKER_EXTRA: Record<Locale, CheckerUiExtra> = {
       label: "Wypróbuj przykład",
       promo: "Post promocyjny",
       items: [
-        { label: "Post o implantach", text: "Najlepszy gabinet implantologiczny w mieście. Implanty na całe życie. Implant zastępuje korzeń brakującego zęba. Umów wizytę już dziś – liczba miejsc ograniczona!" },
+        { label: "Post o implantach", text: "Najlepszy gabinet implantologiczny w mieście. Implanty na całe życie. Implant zastępuje korzeń brakującego zęba. Umów wizytę już dziś, liczba miejsc ograniczona!" },
         { label: "Spokojny post informacyjny", text: "Krwawią Ci dziąsła podczas szczotkowania? To często wczesny objaw zapalenia dziąseł. Delikatne szczotkowanie przy linii dziąseł i czyszczenie przestrzeni między zębami mogą pomóc. Jeśli to się powtarza, powiedz o tym dentyście podczas następnej wizyty kontrolnej." },
       ],
     },

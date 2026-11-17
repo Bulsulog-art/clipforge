@@ -32,6 +32,19 @@ export type CardContext = Pick<
   "fillStyle" | "font" | "textAlign" | "textBaseline" | "direction" | "fillRect" | "fillText" | "measureText" | "beginPath" | "fill"
 > & { roundRect?: CanvasRenderingContext2D["roundRect"] };
 
+/** The canonical public host the card names, whatever host the page was opened on (preview, staging, localhost). */
+export const CARD_HOST = "dentvideo.com";
+
+/**
+ * The card's footer: the checker's canonical address in the page's language
+ * ("dentvideo.com/tr/ad-checker"), then the disclaimer. `checkerPath` is the
+ * in-app route (CHECKER_PATH: "/dentvideo/tr/ad-checker"); never the text.
+ */
+export function cardFooter(checkerPath: string, disclaimer: string): string {
+  const clean = checkerPath.replace(/^\/dentvideo(?=\/|$)/, "") || "/";
+  return `${CARD_HOST}${clean} · ${disclaimer}`;
+}
+
 export const CARD_SIZE = 1080;
 const PAD = 72;
 export const CARD_MAX_ROWS = 5;

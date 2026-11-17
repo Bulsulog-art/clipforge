@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, ExternalLink, Lock, Plus } from "lucide-react";
 import { LANDING_PATH, dirOf, findGuide, guidePath, hasGuides, type Locale } from "@/content/dentvideo";
-import { CHECKER, CHECKER_SOURCES } from "@/content/dentvideo-checker";
+import { CHECKER, CHECKER_PATH, CHECKER_SOURCES } from "@/content/dentvideo-checker";
 import { CHECKER_MARKETS, OTHER_MARKET, PAGE_MARKETS, type CheckerMarket } from "@/lib/dentvid/checker-markets";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { checkerJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
@@ -51,7 +51,7 @@ export function CheckerPage({ locale }: { locale: Locale }) {
       </header>
 
       <section aria-label={c.nav} className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-10">
-        <AdChecker locale={locale} ui={c.ui} landingPath={LANDING_PATH[locale]} markets={checkerMarketOptions(locale)} sources={CHECKER_SOURCES} />
+        <AdChecker locale={locale} ui={c.ui} landingPath={LANDING_PATH[locale]} markets={checkerMarketOptions(locale)} sources={CHECKER_SOURCES} checkerPath={CHECKER_PATH[locale]} />
       </section>
 
       <div className="mx-auto max-w-3xl px-4 pb-24 sm:px-6">

@@ -55,11 +55,13 @@ type Props = {
   markets: CheckerMarketOption[];
   /** The official texts the results may cite. */
   sources: Record<SourceKey, Source>;
+  /** This page's route (CHECKER_PATH), for the canonical address on the result image. */
+  checkerPath: string;
 };
 
 const fill = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
 
-export function AdChecker({ locale, ui, landingPath, markets, sources }: Props) {
+export function AdChecker({ locale, ui, landingPath, markets, sources, checkerPath }: Props) {
   const id = useId();
   const [text, setText] = useState("");
   const [market, setMarket] = useState<CheckerMarket>(DEFAULT_MARKET[locale]);
@@ -235,6 +237,7 @@ export function AdChecker({ locale, ui, landingPath, markets, sources }: Props) 
             sources={sources}
             shared={shared}
             landingPath={landingPath}
+            checkerPath={checkerPath}
           />
         ) : (
           <RuleList ui={ui} />
@@ -276,7 +279,7 @@ function ruleText(ui: CheckerUi, rule: CheckerRuleId) {
   return rule in ui.rules ? ui.rules[rule as keyof CheckerUi["rules"]] : ui.marketRules[rule as keyof CheckerUi["marketRules"]];
 }
 
-type ResultsProps = {
+export type ResultsProps = {
   ui: CheckerUi;
   locale: Locale;
   text: string;
@@ -287,9 +290,10 @@ type ResultsProps = {
   sources: Record<SourceKey, Source>;
   shared: boolean;
   landingPath: string;
+  checkerPath: string;
 };
 
-function Results(p: ResultsProps) {
+export function Results(p: ResultsProps) {
   const { ui, hits, sentences } = p;
   const clean = hits.length === 0;
   const count = (v: Verdict) => sentences.filter((s) => s.verdict === v).length;
@@ -337,8 +341,8 @@ function Results(p: ResultsProps) {
                 </p>
                 {s.hits.length > 0 && (
                   <ul className="mt-3 space-y-3 border-t border-dv-line pt-3">
-                    {s.hits.map((h, j) => (
-                      <HitNote key={`${h.start}-${h.rule}`} i={first[k] + j + 1} h={h} safer={s.safer} {...p} />
+                    {groupHits(s.hits).map((g) => (
+                      <RuleNote key={g.rule} group={g} start={first[k]} safer={s.safer} ui={ui} />
                     ))}
                   </ul>
                 )}
@@ -382,37 +386,64 @@ function SentenceText({ s, start }: { s: Sentence; start: number }) {
   return <>{out}</>;
 }
 
-function HitNote({ i, h, ui, safer }: { i: number; h: CheckerHit; safer: string | null } & ResultsProps) {
-  const r = ruleText(ui, h.rule);
-  // A fix that is the sentence's safer version is shown once, under the sentence.
-  const fix = h.fix && h.fix !== safer ? h.fix : null;
+/** A sentence's hits grouped by rule, in reading order; `index` is each hit's place in the sentence (0-based). */
+export type RuleGroup = { rule: CheckerRuleId; hits: { hit: CheckerHit; index: number }[] };
+
+export function groupHits(hits: readonly CheckerHit[]): RuleGroup[] {
+  const out: RuleGroup[] = [];
+  hits.forEach((hit, index) => {
+    const g = out.find((x) => x.rule === hit.rule);
+    if (g) g.hits.push({ hit, index });
+    else out.push({ rule: hit.rule, hits: [{ hit, index }] });
+  });
+  return out;
+}
+
+/**
+ * One rule's note for a sentence: every phrase it flagged there, listed
+ * together, then the explanation once and each distinct fix once. A fix that
+ * is the sentence's safer version is shown under the sentence instead.
+ */
+function RuleNote({ group, start, safer, ui }: { group: RuleGroup; start: number; safer: string | null; ui: CheckerUi }) {
+  const r = ruleText(ui, group.rule);
+  const fixes = [...new Set(group.hits.map(({ hit }) => hit.fix).filter((f): f is string => !!f && f !== safer))];
+  const needsTip = group.hits.some(({ hit }) => !hit.fix);
   return (
-    <li className="text-sm leading-relaxed text-dv-body" data-rule={h.rule} data-verdict={h.verdict}>
+    <li className="text-sm leading-relaxed text-dv-body" data-rule={group.rule} data-verdict={group.hits[0].hit.verdict} data-testid="checker-rule-note">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#fde3c2] px-1.5 text-xs font-bold text-[#9a3412]">{i}</span>
+        {group.hits.map(({ hit, index }) => (
+          <span key={hit.start} className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#fde3c2] px-1.5 text-xs font-bold text-[#9a3412]">
+            {start + index + 1}
+          </span>
+        ))}
         <span className="rounded-full bg-dv-sand px-2.5 py-0.5 text-xs font-semibold text-dv-ink ring-1 ring-dv-line">{r.name}</span>
-        <span className="font-semibold text-dv-ink">
-          {ui.quotes[0]}
-          <bdi>{h.match}</bdi>
-          {ui.quotes[1]}
-        </span>
       </div>
+      <p className="mt-1.5 font-semibold text-dv-ink">
+        {group.hits.map(({ hit }, j) => (
+          <span key={hit.start}>
+            {j > 0 && ", "}
+            {ui.quotes[0]}
+            <bdi>{hit.match}</bdi>
+            {ui.quotes[1]}
+          </span>
+        ))}
+      </p>
       <p className="mt-1.5">
         <span className="font-semibold text-dv-ink">{ui.why}: </span>
         {r.why}
       </p>
-      {(fix || !h.fix) && (
+      {fixes.map((fix) => (
+        <p key={fix} className="mt-1">
+          <span className="font-semibold text-dv-teal">{ui.instead}: </span>
+          {ui.quotes[0]}
+          <bdi>{fix}</bdi>
+          {ui.quotes[1]}
+        </p>
+      ))}
+      {needsTip && (
         <p className="mt-1">
-          <span className="font-semibold text-dv-teal">{fix ? ui.instead : ui.tip}: </span>
-          {fix ? (
-            <>
-              {ui.quotes[0]}
-              <bdi>{fix}</bdi>
-              {ui.quotes[1]}
-            </>
-          ) : (
-            r.tip
-          )}
+          <span className="font-semibold text-dv-teal">{ui.tip}: </span>
+          {r.tip}
         </p>
       )}
     </li>
@@ -445,7 +476,7 @@ function SourceLine({ ui, keys, sources }: { ui: CheckerUi; keys: (SourceKey | n
 }
 
 /** Pass the check on: a link with the text in its #fragment, or an image drawn here. Nothing reaches our server. */
-function ShareBar({ ui, locale, text, sentences, market, marketName, summary }: ResultsProps & { summary: string }) {
+function ShareBar({ ui, locale, text, sentences, market, marketName, summary, checkerPath }: ResultsProps & { summary: string }) {
   const [link, setLink] = useState<"idle" | "copied" | "failed">("idle");
   const [url, setUrl] = useState("");
   const [image, setImage] = useState<"idle" | "making" | "failed">("idle");
@@ -466,7 +497,7 @@ function ShareBar({ ui, locale, text, sentences, market, marketName, summary }: 
   const save = async () => {
     setImage("making");
     try {
-      const { cardBlob } = await import("./checker-card");
+      const { cardBlob, cardFooter } = await import("./checker-card");
       const flagged = sentences.filter((s) => s.verdict !== "ok");
       const rows = (flagged.length ? flagged : sentences).map((s) => ({ verdict: s.verdict, label: verdictLabel(ui, s.verdict, marketName), text: s.text }));
       const blob = await cardBlob({
@@ -475,8 +506,8 @@ function ShareBar({ ui, locale, text, sentences, market, marketName, summary }: 
         summary,
         rows: rows.slice(0, 5),
         more: Math.max(0, rows.length - 5),
-        // Where to run it yourself: this page's address (dentvideo.com/tr/ad-checker), never the text.
-        footer: `${window.location.host}${window.location.pathname} · ${ui.disclaimer}`,
+        // Where to run it yourself: the canonical address (dentvideo.com/tr/ad-checker), never the host it was opened on.
+        footer: cardFooter(checkerPath, ui.disclaimer),
         font: getComputedStyle(document.body).fontFamily || "system-ui, sans-serif",
       });
       const file = new File([blob], "dentvideo-ad-check.png", { type: "image/png" });
