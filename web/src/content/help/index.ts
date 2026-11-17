@@ -33,15 +33,16 @@ export const HELP: Record<Locale, HelpContent> = { en, de, es, tr, fr, ja, ar, p
 export const HELP_UPDATED = "2026-11-16";
 
 /** What each answer is about, the same in every language: its group, a real app screen, the legal pages it rests on. */
-export const HELP_ARTICLE_META: Record<HelpId, { category: HelpCategory; shot?: HelpShot; legal?: LegalKind[] }> = {
+/** `checker`: the answer links the free ad checker (the same rules, on the dentist's own text). */
+export const HELP_ARTICLE_META: Record<HelpId, { category: HelpCategory; shot?: HelpShot; legal?: LegalKind[]; checker?: true }> = {
   "first-videos": { category: "start" },
   "no-videos-this-week": { category: "start" },
   topics: { category: "start" },
   "sign-in": { category: "start" },
   approve: { category: "review", shot: "week" },
   "needs-a-look": { category: "review", shot: "card" },
-  "software-check": { category: "review" },
-  responsibility: { category: "review", legal: ["terms"] },
+  "software-check": { category: "review", checker: true },
+  responsibility: { category: "review", legal: ["terms"], checker: true },
   "wrong-video": { category: "review" },
   "background-photos": { category: "review" },
   share: { category: "posting" },
@@ -56,7 +57,7 @@ export const HELP_ARTICLE_META: Record<HelpId, { category: HelpCategory; shot?: 
   language: { category: "settings" },
   services: { category: "settings" },
   "narrator-voice": { category: "settings" },
-  "closing-line": { category: "settings" },
+  "closing-line": { category: "settings", checker: true },
   record: { category: "recording", legal: ["terms"] },
   plans: { category: "billing" },
   invoices: { category: "billing", legal: ["terms"] },
