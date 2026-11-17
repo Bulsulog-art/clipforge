@@ -1,0 +1,429 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+/**
+ * A paying clinic's week heals itself before anyone is told: storage blips
+ * are retried, thin weeks are topped up, a week with nothing usable for
+ * technical reasons is retried by BullMQ (nothing half-made is stored), and
+ * only when every attempt failed does the library say "delayed" and the
+ * owner get one email. Everything external is a fake.
+ */
+
+vi.mock("openai", () => ({ default: class {} }));
+const produceWeek = vi.fn();
+vi.mock("../dental/week.js", () => ({ produceWeek }));
+vi.mock("../dental/recording.js", () => ({ clipsFromRecording: vi.fn() }));
+vi.mock("../remotion/voiceover.js", () => ({ prepareVoiceover: vi.fn() }));
+vi.mock("../remotion/render-plan.js", () => ({ renderPlan: vi.fn() }));
+vi.mock("../dental/questions.js", () => ({ patientSearches: vi.fn(async () => []) }));
+const notifyReady = vi.fn(async () => true);
+const sendReadyAtCivilHour = vi.fn(async () => ({ sent: true, at: new Date(), held: false }));
+vi.mock("./notify.js", () => ({ notifyReady, sendReadyAtCivilHour }));
+// No real ffmpeg: thumbnails just fail (they are optional).
+vi.mock("fluent-ffmpeg", () => {
+  const chain: Record<string, unknown> = {};
+  for (const m of ["seekInput", "frames", "size"]) chain[m] = () => chain;
+  chain.on = (ev: string, cb: (e?: Error) => void) => {
+    if (ev === "error") setTimeout(() => cb(new Error("no ffmpeg")), 0);
+    return chain;
+  };
+  chain.save = () => chain;
+  const f = Object.assign(() => chain, { ffprobe: (_f: string, cb: (e: Error) => void) => cb(new Error("no ffprobe")) });
+  return { default: f };
+});
+
+const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
+const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
+const inserted: Record<string, unknown>[] = [];
+let uploadFailures = 0;
+/** What the clinic already has in dentvid_items (newest week first, as the query orders it). */
+let pastItems: Record<string, unknown>[] = [];
+const selects: { table: string; cols: string }[] = [];
+/** Usable videos the week already has (the idempotency check at the start of a run). */
+let usableAlready = 0;
+let itemsCountError: { message: string } | null = null;
+let insertFailures = 0;
+let insertError = "connection terminated unexpectedly";
+/** dentvid_clinics reads that still find the clinic; after that it is deleted (-1: never). */
+let clinicReadsLeft = -1;
+/** Extra dentvid_clinics columns for the paying() read (e.g. review_demo). */
+let clinicExtra: Record<string, unknown> = {};
+const removedKeys: string[] = [];
+const orders: { table: string; col: string; ascending: boolean }[] = [];
+
+function fakeDb() {
+  const from = (table: string) => {
+    const q: Record<string, unknown> = {};
+    q.select = (cols?: string) => (selects.push({ table, cols: cols ?? "*" }), q);
+    q.eq = () => q;
+    // The week's usable-video head count (jobs.ts usableInWeek): awaited straight after .in().
+    q.in = () => ({ then: (res: (v: unknown) => void) => res(itemsCountError ? { count: null, error: itemsCountError } : { count: usableAlready, error: null }) });
+    q.order = (col: string, o?: { ascending?: boolean }) => (orders.push({ table, col, ascending: o?.ascending !== false }), q);
+    q.limit = async () => ({ data: table === "dentvid_items" ? pastItems : [] });
+    q.maybeSingle = async () => ({
+      data: table === "dentvid_clinics" && clinicReadsLeft-- !== 0 ? { id: CLINIC, plan: "active", plan_tier: "practice", profile: { name: "Gülüş Dental", country: "TR" }, ...clinicExtra } : null,
+      error: null,
+    });
+    q.single = async () => ({
+      data: { id: CLINIC, owner_id: OWNER, profile: { name: "Gülüş Dental", country: "TR", language: "tr", services: ["implants", "whitening"] }, logo_path: null },
+      error: null,
+    });
+    q.insert = async (rows: Record<string, unknown>[]) => {
+      if (insertFailures-- > 0) return { error: { message: insertError } };
+      inserted.push(...rows);
+      return { error: null };
+    };
+    return q;
+  };
+  const storage = {
+    from: () => ({
+      upload: async () => (uploadFailures-- > 0 ? { error: { message: "503 storage unavailable" } } : { error: null }),
+      remove: async (keys: string[]) => (removedKeys.push(...keys), { error: null }),
+    }),
+  };
+  return { from, storage };
+}
+vi.mock("@supabase/supabase-js", () => ({ createClient: () => fakeDb() }));
+
+process.env.DENTVID_SUPABASE_URL = "http://liman.test";
+process.env.DENTVID_SERVICE_ROLE_KEY = "x";
+
+const { configureSpend, runDentvidWeek, _setStoreRetryMs, MIN_USABLE_VIDEOS } = await import("./jobs.js");
+const { MemoryGuardStore, SpendGuard, guardConfig } = await import("./spend-guard.js");
+const { configureOps } = await import("./ops.js");
+const { MemoryOpsStore, weekStateKey, _resetLocalOnce } = await import("./ops-alert.js");
+const { TransientWeekError } = await import("./retry.js");
+const { weekOf } = await import("./schedule.js");
+const { UnrecoverableError } = await import("bullmq");
+
+type Pkg = Record<string, unknown>;
+const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "jobs-week-"));
+const ready = (t: string): Pkg => {
+  const videoPath = path.join(DIR, `${t}.mp4`);
+  fs.writeFileSync(videoPath, "");
+  return { status: "ready", approval: "pending", topic: { title: t }, plan: {}, copy: {}, checks: {}, videoPath };
+};
+const broken = (t: string): Pkg => ({ status: "rejected", topic: { title: t }, stage: "script", reasons: [], error: "429 Rate limit reached" });
+const reviewed = (t: string): Pkg => ({ status: "rejected", topic: { title: t }, stage: "script", reasons: ["mentions a guarantee"] });
+
+let ops: InstanceType<typeof MemoryOpsStore>;
+let mails: { subject: string; text: string }[];
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  inserted.length = 0;
+  uploadFailures = 0;
+  usableAlready = 0;
+  itemsCountError = null;
+  insertFailures = 0;
+  insertError = "connection terminated unexpectedly";
+  clinicReadsLeft = -1;
+  clinicExtra = {};
+  removedKeys.length = 0;
+  pastItems = [];
+  selects.length = 0;
+  orders.length = 0;
+  _setStoreRetryMs(0);
+  _resetLocalOnce();
+  ops = new MemoryOpsStore();
+  mails = [];
+  configureOps({ store: ops, send: async (m) => (mails.push(m), true), env: {} });
+  configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => guardConfig({})), alert: vi.fn(async () => true) });
+});
+
+const week = weekOf();
+
+describe("the App Review demo clinic (0024 review_demo)", () => {
+  it("gets no week, however the job was queued: no model call, nothing stored", async () => {
+    clinicExtra = { review_demo: true };
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toEqual({ ready: 0, flagged: 0, rejected: 0 });
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(inserted).toEqual([]);
+  });
+
+  it("an ordinary active clinic (review_demo false) still gets its week", async () => {
+    clinicExtra = { review_demo: false };
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toMatchObject({ ready: 5 });
+  });
+});
+
+describe("a week that heals itself", () => {
+  it("a full week: stored, the dentist notified, no alert, the delay note cleared", async () => {
+    await ops.set(weekStateKey(CLINIC, week), "retrying", 1);
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { jobId: "w", attemptsMade: 1, attempts: 4 });
+    expect(r).toMatchObject({ ready: 5, toppedUp: 0 });
+    expect(inserted).toHaveLength(5);
+    // Not a batch week: the dentist is told at once, in their own zone's terms (TR → Istanbul).
+    expect(sendReadyAtCivilHour).toHaveBeenCalledWith({ clinicId: CLINIC, week, tz: "Europe/Istanbul", batch: false, counts: { ready: 5, flagged: 0 } });
+    // Stamped with the week they are for.
+    expect(inserted.every((row) => row.week_of === week)).toBe(true);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBeNull();
+    expect(mails).toEqual([]);
+  });
+
+  it("a batch week made on Saturday is stamped with the coming Monday and its email is held for the clinic's morning", async () => {
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2030-01-07", batch: true }, { attempts: 4 });
+    expect(inserted.map((row) => row.week_of)).toEqual(Array(5).fill("2030-01-07"));
+    expect(sendReadyAtCivilHour).toHaveBeenCalledWith(expect.objectContaining({ week: "2030-01-07", batch: true, tz: "Europe/Istanbul" }));
+  });
+
+  it("a job without a week (queued before the field existed) means the week it runs in", async () => {
+    produceWeek.mockResolvedValueOnce(["a", "b", "c"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 3, week: "not-a-week" }, { attempts: 4 });
+    expect(inserted.every((row) => row.week_of === week)).toBe(true);
+  });
+
+  it("videos are stamped with the week in the job data, not the day the job runs", async () => {
+    produceWeek.mockResolvedValueOnce(["a", "b", "c"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 3, week: "2026-11-02" }, { attempts: 4 });
+    expect(inserted.map((r) => r.week_of)).toEqual(["2026-11-02", "2026-11-02", "2026-11-02"]);
+    // An old job without a week (or a malformed one) falls back to the current week.
+    inserted.length = 0;
+    produceWeek.mockResolvedValueOnce(["d", "e", "f"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 3, week: "next monday" }, { attempts: 4 });
+    expect(inserted.every((r) => r.week_of === week)).toBe(true);
+  });
+
+  it("a storage blip is retried: the video is kept", async () => {
+    uploadFailures = 1;
+    produceWeek.mockResolvedValueOnce(["a", "b", "c"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 3 }, { attempts: 4 });
+    expect(r.ready).toBe(3);
+    expect(inserted.every((row) => row.video_path)).toBe(true);
+  });
+
+  it(`fewer than ${MIN_USABLE_VIDEOS} usable → topped up with extra topics, avoiding this week's titles`, async () => {
+    produceWeek.mockResolvedValueOnce([ready("a"), broken("b"), broken("c"), reviewed("d"), broken("e")]).mockResolvedValueOnce([ready("f"), ready("g"), ready("h"), ready("i")]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(produceWeek).toHaveBeenCalledTimes(2);
+    const [, , opts] = produceWeek.mock.calls[1] as [unknown, unknown, { count: number; avoidTitles: string[] }];
+    expect(opts.count).toBe(4);
+    expect(opts.avoidTitles).toEqual(expect.arrayContaining(["a", "b", "c", "d", "e"]));
+    expect(r).toMatchObject({ ready: 5, toppedUp: 4 });
+    // Technical failures are kept for the owner, never as text the clinic reads.
+    const lost = inserted.filter((row) => row.status === "rejected" && row.error);
+    expect(lost).toHaveLength(3);
+    for (const row of lost) expect(row.findings).toEqual([]);
+    expect(mails).toEqual([]);
+  });
+
+  it("a week one short of the promised five (a topic the reviewers turned down) is topped up to five, no owner alert", async () => {
+    produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), ready("c"), ready("d"), reviewed("e")]).mockResolvedValueOnce([ready("f")]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(produceWeek).toHaveBeenCalledTimes(2);
+    const [, , opts] = produceWeek.mock.calls[1] as [unknown, unknown, { count: number; avoidTitles: string[] }];
+    expect(opts.count).toBe(1);
+    expect(opts.avoidTitles).toEqual(expect.arrayContaining(["a", "b", "c", "d", "e"]));
+    expect(r).toMatchObject({ ready: 5, rejected: 1, toppedUp: 1 });
+    // The turned-down topic is kept (with a code, not shown raw to the clinic).
+    expect(inserted.find((row) => row.title === "e")?.findings).toEqual(["[dv:skipped] mentions a guarantee"]);
+    expect(mails).toEqual([]);
+  });
+
+  it("a short week whose top-up the spend guard refuses is delivered as it is (four is not a thin week)", async () => {
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
+    produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), ready("c"), ready("d"), reviewed("e")]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+    expect(r).toMatchObject({ ready: 4, toppedUp: 0 });
+    expect(mails).toEqual([]);
+  });
+
+  it("the clinic's history (title, topic, week) reaches the strategist, oldest first, not just past titles", async () => {
+    pastItems = [
+      { title: "Diş eti kanaması", topic: { title: "Diş eti kanaması", hook: "Fırçalarken kanıyor mu?", service: "Diş eti tedavisi", pillar: "myth", question: "Kanama normal mi?" }, week_of: "2026-11-09", status: "ready" },
+      { title: "Reddedilen konu", topic: { title: "Reddedilen konu", hook: "x", service: "İmplant" }, week_of: "2026-11-09", status: "rejected" },
+      { title: "İmplant ömrü", topic: { title: "İmplant ömrü", hook: "İmplant ömür boyu mu?", service: "İmplant" }, week_of: "2026-10-26", status: "flagged" },
+    ];
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(selects).toContainEqual({ table: "dentvid_items", cols: expect.stringMatching(/title.*topic.*week_of/) });
+    expect(orders).toContainEqual({ table: "dentvid_items", col: "week_of", ascending: false });
+    const [, , opts] = produceWeek.mock.calls[0] as [unknown, unknown, { avoidTitles: string[]; history: { title: string; hook?: string; service?: string; weekOf?: string }[] }];
+    // Every past title still feeds the repeat filter, rejected ones included.
+    expect(opts.avoidTitles).toEqual(["Diş eti kanaması", "Reddedilen konu", "İmplant ömrü"]);
+    // The memory gets hooks, services and weeks of what the clinic actually received, oldest first.
+    expect(opts.history).toEqual([
+      { title: "İmplant ömrü", hook: "İmplant ömür boyu mu?", service: "İmplant", weekOf: "2026-10-26" },
+      { title: "Diş eti kanaması", hook: "Fırçalarken kanıyor mu?", service: "Diş eti tedavisi", pillar: "myth", question: "Kanama normal mi?", weekOf: "2026-11-09" },
+    ]);
+  });
+
+  it("the top-up's history includes this week's usable videos", async () => {
+    produceWeek
+      .mockResolvedValueOnce([{ ...ready("a"), topic: { title: "a", hook: "Hook A?", service: "implants" } }, broken("b"), broken("c")])
+      .mockResolvedValueOnce([ready("f"), ready("g")]);
+    await runDentvidWeek({ clinicId: CLINIC, count: 3 }, { attempts: 4 });
+    const [, , opts] = produceWeek.mock.calls[1] as [unknown, unknown, { history: { title: string; hook?: string; weekOf?: string }[] }];
+    expect(opts.history).toEqual([{ title: "a", hook: "Hook A?", service: "implants", weekOf: week }]);
+  });
+
+  it("the top-up respects the spend guard: refused → delivered thin, owner told once", async () => {
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
+    produceWeek.mockResolvedValueOnce([ready("a"), reviewed("b"), reviewed("c")]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+    expect(r.ready).toBe(1);
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/Eksik hafta.*thin week.*Gülüş Dental/i);
+    expect(mails[0].text).toContain(CLINIC);
+  });
+
+  it("nothing usable for technical reasons → nothing stored, transient error so BullMQ retries; library says 'retrying'", async () => {
+    produceWeek.mockResolvedValue(["a", "b", "c", "d", "e"].map(broken));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    expect(inserted).toEqual([]);
+    expect(sendReadyAtCivilHour).not.toHaveBeenCalled();
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
+    expect(mails).toEqual([]);
+  });
+
+  it("a transient API error mid-week → retried silently while attempts remain", async () => {
+    produceWeek.mockRejectedValueOnce(Object.assign(new Error("Rate limit reached for requests"), { status: 429 }));
+    await expect(runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 2, attempts: 4 })).rejects.toThrow(/Rate limit/);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
+    expect(mails).toEqual([]);
+  });
+
+  it("the last attempt fails → library says 'delayed', the owner gets ONE email with clinic, what was done and what to do", async () => {
+    produceWeek.mockRejectedValue(new Error("render timed out after 900s"));
+    await expect(runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 3, attempts: 4 })).rejects.toThrow(/timed out/);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/ACİL.*URGENT.*Gülüş Dental/);
+    expect(mails[0].text).toMatch(/after 4 attempts/);
+    expect(mails[0].text).toContain(CLINIC);
+    expect(mails[0].text).toMatch(/What you should do/);
+    // The same week failing again the same day: no second email.
+    await expect(runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 3, attempts: 4 })).rejects.toThrow();
+    expect(mails).toHaveLength(1);
+  });
+
+  it("a permanent error is not retried (UnrecoverableError) and the owner is told at once", async () => {
+    produceWeek.mockRejectedValue(Object.assign(new Error("Incorrect API key provided"), { status: 401 }));
+    await expect(runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(UnrecoverableError);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+    expect(mails).toHaveLength(1);
+    expect(mails[0].text).toMatch(/permanent error/);
+  });
+
+  it("the AI account is out of credit (OpenAI 429 insufficient_quota) → not retried, 'delayed', the week budget given back", async () => {
+    const store = new MemoryGuardStore();
+    configureSpend({ guard: new SpendGuard(store, () => guardConfig({})), alert: vi.fn(async () => true) });
+    const quota = Object.assign(new Error("429 You exceeded your current quota, please check your plan and billing details."), {
+      status: 429,
+      code: "insufficient_quota",
+      type: "insufficient_quota",
+    });
+    produceWeek.mockRejectedValue(quota);
+    // First attempt of four: still not retried — BullMQ would only hit the same closed door.
+    await expect(runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(UnrecoverableError);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+    expect(inserted).toEqual([]);
+    expect(mails).toHaveLength(1);
+    expect(mails[0].text).toMatch(/permanent error/);
+    expect(mails[0].text).toMatch(/exceeded your current quota/);
+    // Nothing was spent: every counter is back at zero, so the clinic's retry is not refused for it.
+    expect([...store.values.values()].every((v) => v === 0)).toBe(true);
+    // Several retries during the outage never use up the clinic's weekly runs.
+    for (let i = 0; i < 8; i++) await runDentvidWeek({ clinicId: CLINIC }, { attemptsMade: 0, attempts: 4 }).catch(() => {});
+    expect(produceWeek).toHaveBeenCalledTimes(9);
+  });
+
+  it("every video refused by the provider mid-week → not retried in minutes (permanent), nothing stored", async () => {
+    produceWeek.mockResolvedValue(["a", "b", "c"].map((t) => ({ ...broken(t), error: "429 You exceeded your current quota, please check your plan and billing details." })));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 3 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(UnrecoverableError);
+    expect(inserted).toEqual([]);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+  });
+
+  it("render failures past the hourly threshold raise one spike alert", async () => {
+    configureOps({ store: ops, send: async (m) => (mails.push(m), true), env: { DENTVID_ALERT_RENDER_FAIL_PER_HOUR: "3" } });
+    // Each produceWeek call reports its video errors through onVideoError.
+    produceWeek.mockImplementation(async (deps: { onVideoError?: (e: Error) => Promise<void> | void }) => {
+      for (let i = 0; i < 4; i++) await deps.onVideoError?.(new Error("render crashed: Chromium OOM"));
+      return ["a", "b", "c"].map(ready);
+    });
+    await runDentvidWeek({ clinicId: CLINIC, count: 3 }, { attempts: 4 });
+    const spikes = mails.filter((m) => /Render failures spiking/.test(m.subject));
+    expect(spikes).toHaveLength(1);
+    expect(spikes[0].text).toMatch(/Chromium OOM/);
+  });
+});
+
+describe("reliability: a week is made once, and a database blip does not throw it away (docs/RELIABILITY.md F7, F8)", () => {
+  // Before: nothing checked whether the week already existed. A job re-run after the worker died
+  // between storing the videos and finishing (BullMQ "stalled"), or a re-queue racing a slow run,
+  // made — and paid for — a second full week.
+  it("a re-run of a week that is already delivered makes nothing and spends nothing", async () => {
+    usableAlready = 5;
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attempts: 4 });
+    expect(r).toMatchObject({ ready: 0, already: 5 });
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(inserted).toHaveLength(0);
+    expect(sendReadyAtCivilHour).not.toHaveBeenCalled();
+  });
+
+  it("a re-run of a partly stored week makes only the missing videos", async () => {
+    usableAlready = 3;
+    produceWeek.mockResolvedValueOnce(["d", "e"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attempts: 4 });
+    expect(produceWeek.mock.calls[0][2]).toMatchObject({ count: 2 });
+    expect(r).toMatchObject({ ready: 2 });
+  });
+
+  it("a top-up run (count = the missing ones) is unchanged", async () => {
+    usableAlready = 3;
+    produceWeek.mockResolvedValueOnce(["d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 2, week }, { jobId: "w", attempts: 4 });
+    expect(produceWeek.mock.calls[0][2]).toMatchObject({ count: 2 });
+  });
+
+  it("the week's items cannot be read: fails as transient (retried), never guesses", async () => {
+    itemsCountError = { message: "503 service unavailable" };
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toThrow(/could not be read/);
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
+  });
+
+  // Before: one failed insert at the very end failed the job; BullMQ's retry re-made the whole week.
+  it("an insert that fails twice is retried and the week is stored once", async () => {
+    insertFailures = 2;
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attempts: 4 });
+    expect(r).toMatchObject({ ready: 5 });
+    expect(inserted).toHaveLength(5);
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+  });
+
+  it("an insert that never works fails the job as transient after its retries (BullMQ retries; the owner hears on the last attempt)", async () => {
+    insertFailures = 99;
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 3, attempts: 4 })).rejects.toThrow(/insert items/);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
+    expect(mails.some((m) => /week failed|Haftalık videolar/i.test(m.subject))).toBe(true);
+  });
+});
+
+describe("reliability: clinic deleted while its week is being made (docs/RELIABILITY.md F10)", () => {
+  // Before: the insert hit the foreign key, was treated as a passing error and retried; the
+  // videos already uploaded stayed in storage after the account (and its files) had been deleted.
+  it("no retry of the foreign-key error, the uploaded files are removed, nothing alerts", async () => {
+    clinicReadsLeft = 1; // paying() sees it; by the insert it is gone
+    insertFailures = 1;
+    insertError = 'insert or update on table "dentvid_items" violates foreign key constraint "dentvid_items_clinic_id_fkey"';
+    produceWeek.mockResolvedValueOnce(["a", "b"].map(ready));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 2, week }, { jobId: "w", attempts: 4 });
+    expect(r).toMatchObject({ ready: 0 });
+    expect(removedKeys.length).toBeGreaterThanOrEqual(2);
+    expect(removedKeys.every((k) => k.startsWith(`${OWNER}/`))).toBe(true);
+    expect(mails).toEqual([]);
+  });
+});

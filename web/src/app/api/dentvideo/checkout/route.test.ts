@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_TEXT } from "@/content/dentvideo-app";
+import { VERIFY_COPY } from "@/content/dentvideo-auth";
+import { BILLING_COPY } from "@/content/dentvideo-billing";
+import { GROUP_CONTACT } from "@/content/dentvideo-group";
 
 const OWNER = "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e";
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 
-let session: { user: { id: string; email: string } | null; clinic: Record<string, unknown> | null };
+let session: { user: { id: string; email: string; app_metadata?: Record<string, unknown> } | null; clinic: Record<string, unknown> | null };
 
 vi.mock("@/lib/dentvid/auth", () => ({
   dvSession: async () => ({
@@ -17,7 +20,12 @@ vi.mock("@/lib/dentvid/auth", () => ({
     },
   }),
 }));
-vi.mock("@/lib/dentvid/locale-server", () => ({ dvErrors: async () => APP_TEXT.en.errors }));
+vi.mock("@/lib/dentvid/locale-server", () => ({
+  dvErrors: async () => APP_TEXT.en.errors,
+  dvLocale: async (clinicLanguage?: string | null) => clinicLanguage ?? "en",
+}));
+
+const verified = { product: "dentvideo", email_verified_at: "2026-11-01T10:00:00.000Z", email_verified_for: "dr@clinic.example" };
 
 const fetchMock = vi.fn();
 
@@ -34,7 +42,7 @@ async function call(body: unknown) {
 const sent = (i: number) => JSON.parse(fetchMock.mock.calls[i][1].body as string) as Record<string, unknown>;
 
 beforeEach(() => {
-  session = { user: { id: OWNER, email: "dr@clinic.example" }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de" } } };
+  session = { user: { id: OWNER, email: "dr@clinic.example", app_metadata: verified }, clinic: { id: CLINIC, plan: "trial", profile: { language: "de", country: "DE" } } };
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("DODO_API_KEY", "sk_test");
@@ -55,7 +63,28 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("opens a live Dodo checkout for the plan with the founding code and metadata", async () => {
+  it("refuses an owner who has not confirmed their email, in the clinic's language", async () => {
+    session.user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } };
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(403);
+    expect(res.body).toMatchObject({ code: "email_unverified", email: "dr@clinic.example" });
+    expect(res.body.error).toBe(VERIFY_COPY.de.checkoutBlocked);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a verified flag the user wrote into their own user_metadata", async () => {
+    session.user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" }, user_metadata: verified } as typeof session.user;
+    expect((await call({ plan: "practice", interval: "month" })).status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses an address confirmed before it was changed", async () => {
+    session.user = { id: OWNER, email: "new@clinic.example", app_metadata: verified };
+    expect((await call({ plan: "practice", interval: "month" })).status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("opens a live Dodo checkout for the plan: the clinic's billing country and currency, no discount field, metadata", async () => {
     fetchMock.mockResolvedValueOnce(ok());
     const res = await call({ plan: "practice", interval: "month" });
     expect(res).toEqual({ status: 200, body: { url: "https://checkout.dodopayments.com/session/cks_1" } });
@@ -64,38 +93,140 @@ describe("POST /api/dentvideo/checkout", () => {
     expect(sent(0)).toMatchObject({
       product_cart: [{ product_id: "pdt_0NrVai0xqpQKU8H3Zj3QN", quantity: 1 }],
       customer: { email: "dr@clinic.example" },
-      discount_codes: ["KURUCU100"],
       metadata: { app: "dentvideo", clinic_id: CLINIC, owner_id: OWNER, plan: "practice" },
       return_url: "https://dentvideo.com/app?billing=success",
       customization: { force_language: "de" },
+      billing_address: { country: "DE" },
+      billing_currency: "EUR",
+      feature_flags: { allow_discount_code: false, allow_tax_id: true, allow_currency_selection: false },
     });
+    expect(sent(0)).not.toHaveProperty("discount_codes");
   });
 
-  it("opens at list price when Dodo refuses the founding code", async () => {
-    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ message: "discount usage limit reached" }), { status: 422 })).mockResolvedValueOnce(ok());
-    const res = await call({ plan: "practice", interval: "month" });
-    expect(res.status).toBe(200);
-    expect(sent(0).discount_codes).toEqual(["KURUCU100"]);
-    expect(sent(1).discount_codes).toBeUndefined();
+  it("charges in the currency of the clinic's country: TRY for Türkiye, USD elsewhere or when unknown", async () => {
+    for (const [country, currency] of [["TR", "TRY"], ["US", "USD"], ["GB", "USD"], [undefined, "USD"]] as const) {
+      session.clinic = { id: CLINIC, plan: "trial", profile: { language: "en", ...(country ? { country } : {}) } };
+      fetchMock.mockResolvedValueOnce(ok());
+      expect((await call({ plan: "starter", interval: "month" })).status, String(country)).toBe(200);
+      const body = sent(fetchMock.mock.calls.length - 1);
+      expect(body.billing_currency, String(country)).toBe(currency);
+      expect(body.billing_address, String(country)).toEqual(country ? { country } : undefined);
+    }
   });
 
-  it("says so when a typed code is refused, without retrying", async () => {
-    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ message: "invalid discount" }), { status: 422 }));
-    const res = await call({ plan: "starter", interval: "month", code: "nope10" });
-    expect(res).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.invalidCode } });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("refuses unknown or unsold plans and clinics that already pay", async () => {
-    expect((await call({ plan: "platinum", interval: "month" })).status).toBe(400);
-    expect((await call({ plan: "group", interval: "year" })).status).toBe(400);
-    session.clinic = { ...session.clinic, plan: "active" };
-    expect((await call({ plan: "group", interval: "month" })).status).toBe(409);
+  it("accepts no discount code: a body with a code is refused and nothing reaches Dodo", async () => {
+    const res = await call({ plan: "starter", interval: "month", code: "KURUCU100" });
+    expect(res).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.invalidPlan } });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("is unavailable without DODO_API_KEY", async () => {
+  it("no founding code is applied any more, even with the old env switch on", async () => {
+    vi.stubEnv("DENTVIDEO_FOUNDING_OFFER", "1");
+    vi.stubEnv("DENTVIDEO_FOUNDING_CODE", "KURUCU100");
+    for (const _ of ["starter", "practice"]) fetchMock.mockResolvedValueOnce(ok());
+    for (const plan of ["starter", "practice"]) {
+      expect((await call({ plan, interval: "month" })).status, plan).toBe(200);
+    }
+    for (let i = 0; i < 2; i++) expect(sent(i)).not.toHaveProperty("discount_codes");
+  });
+
+  it("refuses yearly billing: there is no yearly plan", async () => {
+    for (const plan of ["starter", "practice"]) {
+      const res = await call({ plan, interval: "year" });
+      expect(res, plan).toEqual({ status: 400, body: { error: APP_TEXT.en.errors.invalidPlan } });
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a second subscription while the clinic's current one is on hold: update the card instead", async () => {
+    session.clinic = { ...session.clinic, plan: "paused", dodo_subscription_id: "sub_old" };
+    // Dodo (API key set) says the subscription is on hold.
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ subscription_id: "sub_old", status: "on_hold" }), { status: 200 }));
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe("payment_update");
+    expect(String(res.body.error)).toContain("Tarif und Abrechnung");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/subscriptions\/sub_old$/);
+  });
+
+  it("refuses while Dodo says the subscription is active but our webhook has not landed (pending)", async () => {
+    session.clinic = { ...session.clinic, plan: "trial", dodo_subscription_id: "sub_new" };
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ subscription_id: "sub_new", status: "active" }), { status: 200 }));
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res).toMatchObject({ status: 409, body: { code: "pending", error: BILLING_COPY.de.refuse.pending } });
+  });
+
+  it("lets a clinic whose old subscription has ended buy again", async () => {
+    session.clinic = { ...session.clinic, plan: "paused", dodo_subscription_id: "sub_old" };
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ subscription_id: "sub_old", status: "failed" }), { status: 200 })).mockResolvedValueOnce(ok());
+    expect((await call({ plan: "practice", interval: "month" })).status).toBe(200);
+  });
+
+  it("without an API key or ledger, a paused clinic with a subscription is sent to the email path", async () => {
     vi.stubEnv("DODO_API_KEY", "");
-    expect((await call({ plan: "starter", interval: "month" })).status).toBe(503);
+    session.clinic = { ...session.clinic, plan: "paused", dodo_subscription_id: "sub_old" };
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe("payment_update");
+    expect(String(res.body.error)).toContain("hello@dentvideo.com");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("a Dodo refusal is a plain 'could not open checkout', never a discount-code message", async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ message: "bad request" }), { status: 422 }));
+    const res = await call({ plan: "starter", interval: "month" });
+    expect(res).toEqual({ status: 502, body: { error: APP_TEXT.en.errors.checkoutFailed } });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses unknown plans and clinics that already pay", async () => {
+    expect((await call({ plan: "platinum", interval: "month" })).status).toBe(400);
+    session.clinic = { ...session.clinic, plan: "active" };
+    expect((await call({ plan: "starter", interval: "month" })).status).toBe(409);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses Group (monthly or yearly) with a clear 400 that points to the contact address", async () => {
+    for (const interval of ["month", "year"]) {
+      const res = await call({ plan: "group", interval });
+      expect(res.status, interval).toBe(400);
+      expect(res.body.code, interval).toBe("contact_sales");
+      // The clinic's language (de), with the address to write to.
+      expect(res.body.error, interval).toBe(`${GROUP_CONTACT.de.text} hello@dentvideo.com`);
+      expect(String(res.body.contact), interval).toMatch(/^mailto:hello@dentvideo\.com\?subject=/);
+    }
+    // Before any other check: a paying or unverified clinic gets the same answer, never a link.
+    session.clinic = { ...session.clinic, plan: "active" };
+    expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
+    session.user = { id: OWNER, email: "dr@clinic.example", app_metadata: { product: "dentvideo" } };
+    expect((await call({ plan: "group", interval: "month" })).body.code).toBe("contact_sales");
+    // No API key (static payment link path): still no Group link.
+    vi.stubEnv("DODO_API_KEY", "");
+    session.clinic = { ...session.clinic, plan: "trial" };
+    const res = await call({ plan: "group", interval: "month" });
+    expect(res.status).toBe(400);
+    expect(res.body.url).toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to a Dodo static payment link with the metadata when there is no DODO_API_KEY", async () => {
+    vi.stubEnv("DODO_API_KEY", "");
+    vi.stubEnv("DODO_ENVIRONMENT", "live");
+    const res = await call({ plan: "practice", interval: "month" });
+    expect(res.status).toBe(200);
+    expect(Object.keys(res.body)).toEqual(["url"]);
+    const { url } = res.body as { url: string };
+    const u = new URL(url);
+    expect(u.origin).toBe("https://checkout.dodopayments.com");
+    expect(u.pathname).toMatch(/^\/buy\/pdt_/);
+    expect(u.searchParams.get("metadata_app")).toBe("dentvideo");
+    expect(u.searchParams.get("metadata_plan")).toBe("practice");
+    expect(u.searchParams.get("redirect_url")).toMatch(/\/app\?billing=success$/);
+    // Same country and currency as the API checkout; Dodo's discount field hidden.
+    expect(u.searchParams.get("country")).toBe("DE");
+    expect(u.searchParams.get("paymentCurrency")).toBe("EUR");
+    expect(u.searchParams.get("showDiscounts")).toBe("false");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

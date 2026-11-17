@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { SOCIAL_PUBLISHING } from "@/lib/features";
 import { ArrowLeft, Film } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard-nav";
@@ -11,6 +12,8 @@ type Platform = "tiktok" | "instagram" | "youtube";
 
 export default async function ScheduleJobPage({ params }: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await params;
+  // Posting is off until it works in production (lib/features).
+  if (!SOCIAL_PUBLISHING) notFound();
   const supabase = await createClient();
   const {
     data: { user },

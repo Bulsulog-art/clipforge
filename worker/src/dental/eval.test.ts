@@ -5,7 +5,7 @@ const row = (o: Partial<EvalRow>): EvalRow => ({ clinic: "C", language: "tr", to
 
 describe("eval", () => {
   it("panel covers every supported language with valid profiles", () => {
-    expect(new Set(PANEL.map((p) => p.language))).toEqual(new Set(["tr", "de", "es", "en", "fr", "it", "pt"]));
+    expect(new Set(PANEL.map((p) => p.language))).toEqual(new Set(["tr", "de", "es", "en", "fr", "it", "pt", "ja", "ar", "pl"]));
   });
   it("summarises ready, first-pass, scores and spread per language", () => {
     const rows = [
@@ -18,7 +18,7 @@ describe("eval", () => {
     expect(s.readyRate).toBe(0.75);
     expect(s.firstPass).toBe(0.5);
     const tr = s.byLang.find((l) => l.language === "tr")!;
-    expect(tr).toMatchObject({ readyRate: 0.67, firstPass: 0.33, hook: 3, voice: 3.5, services: 2, videos: 3 });
-    expect(reportMarkdown(rows, s, "now")).toContain("| tr | 67% | 33% | 3 | 3.5 | 2 | 3 |");
+    expect(tr).toMatchObject({ readyRate: 0.67, firstPass: 0.33, hook: 3, voice: 3.5, rubric: 0, services: 2, videos: 3 });
+    expect(reportMarkdown(rows, s, "now")).toContain("| tr | 67% | 33% | 3 | 3.5 | 0 | 2 | 3 |");
   });
 });

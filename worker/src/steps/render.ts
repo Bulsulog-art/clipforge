@@ -4,12 +4,13 @@ import { createReadStream } from "node:fs";
 import ffmpeg from "fluent-ffmpeg";
 import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
-import { buildKaraokeASS, buildHookASS } from "./captions.js";
+import { buildKaraokeASS, buildHookASS, buildDisclaimerASS } from "./captions.js";
 import { planJumpCut, selectExpr } from "./jumpcut.js";
 import { resolveAspect } from "../aspect.js";
 import type { Moment } from "./score.js";
 import type { Transcript } from "./transcribe.js";
 import { logoOverlayFilters } from "./logo-overlay.js";
+import { PROTOCOL_WHITELIST } from "../lib/media-input.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
 
 type Args = {
@@ -33,6 +34,13 @@ type Args = {
   workDir: string;
   /** Free tier renders include the ClipForge watermark in the corner. */
   watermark?: boolean;
+  /**
+   * A warning a market requires on screen, word for word (Türkiye: RG 33075
+   * md. 7/1-k; dental/mandatory-notice.ts screenNotice). Set by code, never by
+   * a model; drawn small for the last seconds (captions.ts buildDisclaimerASS),
+   * like the generated videos' Disclaimer.tsx. Absent: nothing drawn.
+   */
+  disclaimer?: string;
   /** Optional background music file (already downloaded to local disk). */
   bgMusicPath?: string | null;
   /** Music level (0..1). Defaults to 0.16 for plenty of headroom under voice. */
@@ -100,6 +108,7 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
   const thumb = path.join(a.workDir, `clip-${a.index}.jpg`);
   const captionFile = path.join(a.workDir, `clip-${a.index}.ass`);
   const hookFile = path.join(a.workDir, `clip-${a.index}-hook.ass`);
+  const disclaimerFile = a.disclaimer ? path.join(a.workDir, `clip-${a.index}-notice.ass`) : null;
 
   // Optional jump-cut: remove internal silences. plan===null → render unchanged.
   const plan = a.jumpCut ? planJumpCut(a.transcript.words, a.moment.start, a.moment.end) : null;
@@ -116,6 +125,7 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
         : buildKaraokeASS(a.transcript.words, a.niche, a.moment.start, a.moment.end, a.captionStyle, a.moment.keywords, a.aspect, a.accentHex),
     ),
     fs.writeFile(hookFile, buildHookASS(a.moment.hook ?? "", duration, a.niche, a.aspect, { top: a.faceCropX != null, accentHex: a.accentHex })),
+    ...(disclaimerFile && a.disclaimer ? [fs.writeFile(disclaimerFile, buildDisclaimerASS(a.disclaimer, duration, a.aspect, a.captionStyle))] : []),
   ]);
 
   // 2) FFmpeg render: cut → scale → crop 9:16 → burn captions + hook → loudnorm
@@ -153,6 +163,7 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
     scaleCrop,
     `ass=${escapePath(captionFile)}`,
     `ass=${escapePath(hookFile)}`,
+    ...(disclaimerFile ? [`ass=${escapePath(disclaimerFile)}`] : []),
     ...(watermarkFilter ? [watermarkFilter] : []),
   ].join(",");
 
@@ -211,9 +222,11 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
   ].join(";");
 
   await new Promise<void>((resolve, reject) => {
-    const cmd = ffmpeg(a.sourcePath).setStartTime(a.moment.start).duration(duration);
-    if (hasMusic && a.bgMusicPath) cmd.input(a.bgMusicPath);
-    if (hasBranding && a.branding) cmd.input(a.branding.localLogoPath);
+    // Every input is a local file we wrote: no network or nested protocols, whatever the file says it is.
+    const local = ["-protocol_whitelist", PROTOCOL_WHITELIST];
+    const cmd = ffmpeg(a.sourcePath).inputOptions(local).setStartTime(a.moment.start).duration(duration);
+    if (hasMusic && a.bgMusicPath) cmd.input(a.bgMusicPath).inputOptions(local);
+    if (hasBranding && a.branding) cmd.input(a.branding.localLogoPath).inputOptions(local);
 
     cmd
       .complexFilter(complexFilter)
@@ -254,7 +267,7 @@ export async function renderClipFile(a: RenderClipFileArgs): Promise<LocalClip> 
       .save(thumb);
   });
 
-  await Promise.all([fs.unlink(captionFile).catch(() => {}), fs.unlink(hookFile).catch(() => {})]);
+  await Promise.all([captionFile, hookFile, disclaimerFile].map((f) => (f ? fs.unlink(f).catch(() => {}) : undefined)));
 
   return { videoPath: out, thumbPath: thumb, durationSec: duration };
 }

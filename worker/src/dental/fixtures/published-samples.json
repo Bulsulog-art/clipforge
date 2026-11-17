@@ -1,0 +1,1644 @@
+[
+ {
+  "id": "tr/implant-asamalari",
+  "status": "published",
+  "language": "tr",
+  "country": "TR",
+  "source": "fu/r/out-tr-hero/i-mplant-tedavisinin-aşamaları",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "İmplant yapıldı ama diş daha hazır değil."
+   },
+   {
+    "kind": "statement",
+    "text": "İmplant önce kemiğe tutunur, sonra üst parça eklenir."
+   },
+   {
+    "kind": "footage"
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Yerleştirme",
+     "text": "İmplant kemiğe konur."
+    },
+    "right": {
+     "label": "Sonra",
+     "text": "Üst yapı eklenir."
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Bu bekleme, kemiğin implantı taşıması içindir."
+   },
+   {
+    "kind": "list",
+    "heading": "Süreç genelde böyle ilerler",
+    "items": [
+     "Muayene ve planlama",
+     "İmplantın yerleştirilmesi",
+     "İyileşme ve üst yapı"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "İmplantınızda hangi aşamanın sizde geçerli olduğunu hekiminiz söyler."
+   }
+  ],
+  "narration": "İmplant yapıldı ama diş hemen hazır olmaz. İmplant önce kemiğe tutunur, sonra üst parça eklenir. Yani süreç iki adımdır. Önce implant çene kemiğine yerleştirilir. Ardından üst yapı takılır. Bu bekleme boşuna değildir. Amaç, kemiğin implantı taşımasıdır. Süreç genelde böyle ilerler: muayene ve planlama, yerleştirme, iyileşme ve üst yapı. Sizde hangi aşamanın geçerli olduğunu kontrolünüzde hekiminiz söyler.",
+  "known": []
+ },
+ {
+  "id": "tr/beyazlatma-hassasiyet",
+  "status": "published",
+  "language": "tr",
+  "country": "TR",
+  "source": "fu/r/out-tr-two/beyazlatma-sonrası-hassasiyet",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Beyazlatmadan sonra gelen o diş sızısı…"
+   },
+   {
+    "kind": "statement",
+    "text": "Hassasiyet, beyazlatmanın bilinen bir yan etkisidir."
+   },
+   {
+    "kind": "footage",
+    "caption": "Kısa süreli hassasiyet olabilir."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "İlk günler",
+     "text": "Soğuk ve sıcak daha çok sızlatabilir."
+    },
+    "right": {
+     "label": "Birkaç gün sonra",
+     "text": "Çoğu kişide azalır."
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Uzarsa ya da belirginleşirse, hekiminize söyleyin."
+   },
+   {
+    "kind": "statement",
+    "text": "İlk günlerde koyu içecekleri sınırlayın."
+   },
+   {
+    "kind": "cta",
+    "text": "Beyazlatma sonrası sizin için normal olanı hekiminiz söyler."
+   }
+  ],
+  "narration": "Beyazlatmadan sonra dişleriniz sızladı mı? Bu hassasiyet, işlemin bilinen bir yan etkisidir. İlk günlerde kısa sürer. Soğukla sıcak daha çok hissettirir. Çoğu kişide birkaç gün içinde azalır. Uzarsa ya da artarsa hekiminize söyleyin. İlk günlerde koyu içecekleri sınırlayın. Sizin durumunuzda neyin normal olduğunu kontrolünüzde hekiminiz açıklar.",
+  "known": []
+ },
+ {
+  "id": "tr/dis-tasi-temizligi",
+  "status": "published",
+  "language": "tr",
+  "country": "TR",
+  "source": "r4/out-tr-clean2/diş-taşı-temizliği-neden-yapılır",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Diş eti kanaması bazen diş taşıyla başlar."
+   },
+   {
+    "kind": "footage",
+    "caption": "Diş taşı fırçayla çıkmaz."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Evde",
+     "text": "Fırça plağı alır"
+    },
+    "right": {
+     "label": "Hekimde",
+     "text": "Diş taşı temizlenir"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Diş taşı, diş etini tahriş eder ve kanamayı artırabilir."
+   },
+   {
+    "kind": "list",
+    "heading": "Temizlikten sonra",
+    "items": [
+     "Hafif hassasiyet olabilir",
+     "Diş etleri sakinleşir",
+     "Hekiminizin talimatını izleyin"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Profesyonel temizlikte işi hekim yapar; fırça tek başına yetmez."
+   },
+   {
+    "kind": "cta",
+    "text": "Diş taşı ve kanama için size neyin uygun olduğunu hekiminize sorun."
+   }
+  ],
+  "narration": "Fırçalarken kanama mı oluyor? Bazen sebep diş taşıdır. Fırça evde plağı alır ama taşlaşanı sökmez. O birikim diş etini tahriş eder, kanamayı artırabilir. Bu temizliği hekim yapar. Sonrasında hafif hassasiyet olabilir, sonra diş etleri sakinleşir. Bir de size verilen önerilere uyun. Diş taşı ve kanama için size neyin uygun olduğunu kontrolünüzde hekiminize sorun.",
+  "known": []
+ },
+ {
+  "id": "tr-preview/implant-implant-sonrasi-bakim",
+  "status": "published",
+  "language": "tr",
+  "country": "TR",
+  "source": "r4/out-tr-prev1/i-mplant-tedavisi-sonrası-bakım",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "İmplant tamamlandı, bakım kısmı şimdi başlıyor."
+   },
+   {
+    "kind": "footage",
+    "caption": "İmplant çevresi de her gün temizlenir."
+   },
+   {
+    "kind": "statement",
+    "text": "İmplantın çevresindeki diş eti, doğal diş gibi temiz tutulmalı."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Fırçalama",
+     "text": "Günlük temizlik"
+    },
+    "right": {
+     "label": "Ara yüz",
+     "text": "Aradaki alanlar"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Ara yüz temizliği, implant kenarındaki plağı azaltır."
+   },
+   {
+    "kind": "statement",
+    "text": "Kontrolde hekiminiz, size uygun aralığı söyler."
+   },
+   {
+    "kind": "cta",
+    "text": "İmplant çevresi için hangi temizlik size uygun, hekiminiz söyler."
+   }
+  ],
+  "narration": "İmplant tamamlandı, bakım şimdi başlıyor; nasıl yapacaksınız? Çevresindeki diş eti de doğal diş gibi her gün temiz tutulur. Günlük fırçalama bunun temelidir. Aradaki alanları da temizleyin; bu, implant kenarındaki plağı azaltır. Kontrolde hekiminiz size uygun aralığı söyler. İmplant çevresi için hangi temizliğin uygun olduğunu kontrolünüzde hekiminize sorabilirsiniz.",
+  "known": []
+ },
+ {
+  "id": "tr-preview/aligners-seffaf-plak-ve-icecekler",
+  "status": "published",
+  "language": "tr",
+  "country": "TR",
+  "source": "km2/out-tr/şeffaf-plak-ve-içecekler (the reviewed plan with the register fix, narration re-synthesised by TTS only, 2026-11-15)",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Şeffaf plak çayla sandığınızdan çabuk renk alır."
+   },
+   {
+    "kind": "footage"
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Plak takılıyken",
+     "text": "Su içilir."
+    },
+    "right": {
+     "label": "Diğer içecekler",
+     "text": "Plak çıkarılır."
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Şekerli, asitli ve sıcak içecekler plağın altında kalmamalı."
+   },
+   {
+    "kind": "statement",
+    "text": "İçtikten sonra dişlerinizi temizleyin, sonra plağı yeniden takın."
+   },
+   {
+    "kind": "cta",
+    "text": "Şeffaf plak için size özel kuralı hekiminiz söyleyebilir."
+   }
+  ],
+  "narration": "Çayı yudumladınız, plağınız hemen renk aldı mı? Şeffaf plak takılıyken yalnızca su için. Çay, kahve, meyve suyu ve diğer şekerli, asitli ya da sıcak içeceklerde plağı çıkarın. Bunlar altında kalırsa mine aşınması, çürük ve leke riski artar. İçtikten sonra dişlerinizi temizleyin, ardından plağı yeniden takın. Size özel kuralı kontrolünüzde hekiminiz söyler.",
+  "known": []
+ },
+ {
+  "id": "en/caring-for-clear-aligners",
+  "status": "published",
+  "language": "en",
+  "country": "US",
+  "source": "fu/r/out-en-two/keeping-clear-aligners-fresh",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Aligners smelling off by evening?"
+   },
+   {
+    "kind": "statement",
+    "text": "Rinse them every time you take them out."
+   },
+   {
+    "kind": "footage",
+    "caption": "Rinse, then store them clean."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Brush",
+     "text": "Soft brush, cool water"
+    },
+    "right": {
+     "label": "Skip",
+     "text": "Toothpaste"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Brush them gently so buildup doesn't linger."
+   },
+   {
+    "kind": "statement",
+    "text": "Use cool water so the tray keeps its shape."
+   },
+   {
+    "kind": "cta",
+    "text": "Ask if your aligner care routine needs a quick check."
+   }
+  ],
+  "narration": "Do your aligners start smelling off by evening? Rinse them each time you take them out, then put them away clean. Use a soft brush with cool water, and skip toothpaste. Brush gently so buildup doesn’t hang around. Cool water helps the tray keep its shape. If you want, ask us to check your routine.",
+  "known": []
+ },
+ {
+  "id": "en/proper-brushing-technique",
+  "status": "published",
+  "language": "en",
+  "country": "US",
+  "source": "fu/r/out-en-brush/brushing-the-spots-most-people-miss",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Your toothbrush skips one spot every morning."
+   },
+   {
+    "kind": "statement",
+    "text": "Start at the gumline, not the center of the tooth."
+   },
+   {
+    "kind": "footage",
+    "caption": "Angle the brush toward the gumline."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Too hard",
+     "text": "Scrubbing fast"
+    },
+    "right": {
+     "label": "Better",
+     "text": "Small gentle strokes"
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "Common misses",
+    "items": [
+     "Back molars",
+     "Inside fronts",
+     "Along the gums"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Two minutes gives each area enough attention."
+   },
+   {
+    "kind": "cta",
+    "text": "Ask if your brushing angle looks right at your next checkup."
+   }
+  ],
+  "narration": "Ever feel like your brush misses the same spot every morning? Start where the tooth meets the gums, not the middle. Tilt a soft brush toward that edge. Skip the fast scrubbing. Use small, gentle strokes instead. Common misses are back molars, inside front teeth, and along the gums. About two minutes gives each area enough attention. At your next checkup, ask us to look at your brushing angle.",
+  "known": []
+ },
+ {
+  "id": "en/whitening-myths-debunked",
+  "status": "published",
+  "language": "en",
+  "country": "US",
+  "source": "r4/out-en-wh3/does-whitening-thin-your-enamel",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Whitening your teeth? Not as harsh as you think."
+   },
+   {
+    "kind": "statement",
+    "text": "Whitening done as directed usually doesn't thin enamel."
+   },
+   {
+    "kind": "footage",
+    "caption": "It lifts stains, not enamel."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Common",
+     "text": "Short-lived sensitivity"
+    },
+    "right": {
+     "label": "Not typical",
+     "text": "Enamel thinning"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Sensitivity usually fades after whitening."
+   },
+   {
+    "kind": "list",
+    "heading": "After whitening",
+    "items": [
+     "Skip dark drinks",
+     "Follow your dentist's advice"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Ask your dentist which whitening plan fits your teeth."
+   }
+  ],
+  "narration": "Thinking about whitening because it might wear down enamel? Usually, when you use it the way your dentist tells you, it doesn’t thin enamel. It works on stains, not tooth structure. What you’re more likely to notice is some short-term sensitivity, and that usually fades. Afterward, skip dark drinks and follow your dentist’s advice to find the right plan for your teeth.",
+  "known": []
+ },
+ {
+  "id": "de/aligner-verfaerbung",
+  "status": "published",
+  "language": "de",
+  "country": "DE",
+  "source": "km2/out-de/verfärbte-aligner (the reviewed plan with the register fix, narration re-synthesised by TTS only, 2026-11-15)",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Kaffee macht Aligner schneller gelb als gedacht."
+   },
+   {
+    "kind": "statement",
+    "text": "Meist sind Farbe und Belag der Grund."
+   },
+   {
+    "kind": "footage",
+    "caption": "Beläge und Farbe setzen sich leicht fest."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Mit Schiene",
+     "text": "Getränke färben und belasten den Kunststoff."
+    },
+    "right": {
+     "label": "Ohne Schiene",
+     "text": "Zähne und Schiene lassen sich leichter sauber halten."
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "So bleiben sie klar",
+    "items": [
+     "Mit Schiene nur Wasser",
+     "Ausspülen vor dem Einsetzen",
+     "Nach dem Essen Zähne putzen"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Folgen Sie den Anweisungen Ihrer Zahnärztin oder Ihres Zahnarztes."
+   },
+   {
+    "kind": "cta",
+    "text": "Fragen Sie bei der Kontrolle nach Flecken an Ihren Alignern."
+   }
+  ],
+  "narration": "Kennen Sie das? Kaffee macht Aligner oft schneller gelb, als man denkt. Meist stecken Farbe und Beläge dahinter. Beides setzt sich leicht fest. Mit Schiene können Getränke den Kunststoff verfärben und belasten. Ohne Schiene bleibt es meist leichter sauber. Darum mit Schiene nur Wasser, vor dem Einsetzen ausspülen, nach dem Essen putzen. Halten Sie sich an unsere Hinweise und fragen Sie bei der Kontrolle nach Flecken.",
+  "known": []
+ },
+ {
+  "id": "de/bleaching-zahnschmelz",
+  "status": "published",
+  "language": "de",
+  "country": "DE",
+  "source": "rerender/out-de/bleaching-und-zahnschmelz",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Bleaching heißt nicht gleich schwacher Zahnschmelz."
+   },
+   {
+    "kind": "statement",
+    "text": "Fachgerecht gemacht greift Bleaching den Schmelz meist nicht an."
+   },
+   {
+    "kind": "footage",
+    "caption": "Der Schmelz wird dabei nicht abgetragen."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Schmelz",
+     "text": "Bleaching trägt ihn nicht ab."
+    },
+    "right": {
+     "label": "Empfindlichkeit",
+     "text": "Kurzzeitig kann sie zunehmen."
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "Was Sie merken können",
+    "items": [
+     "Kälte zieht kurz stärker",
+     "Zähne reagieren empfindlicher",
+     "Das klingt meist wieder ab"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Nach dem Bleaching sind stark gefärbte Getränke kurz eher ungünstig."
+   },
+   {
+    "kind": "cta",
+    "text": "Fragen Sie bei der Kontrolle nach Bleaching und Empfindlichkeit."
+   }
+  ],
+  "narration": "Macht Bleaching den Schmelz schwach? Meistens nicht, wenn es fachgerecht gemacht wird. Dabei wird nichts vom Zahn abgeschliffen oder abgetragen. Die Farbe wird gezielt aufgehellt. Danach können empfindliche Zähne kurz reagieren. Kälte zieht dann etwas stärker, oder die Zähne wirken empfindlicher. Das klingt meist wieder ab. Kräftige Farben sind kurz danach oft ungünstig. Wenn Sie dazu Fragen haben, sprechen Sie uns gern an.",
+  "known": []
+ },
+ {
+  "id": "de/kinder-zahnarztangst",
+  "status": "published",
+  "language": "de",
+  "country": "DE",
+  "source": "premium/samples/de/kinder-und-zahnarztangst",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ihr Kind spürt Ihre Nervosität sofort."
+   },
+   {
+    "kind": "footage",
+    "caption": "Sagen Sie vorher ruhig, was passiert."
+   },
+   {
+    "kind": "statement",
+    "text": "Sagen Sie ehrlich, dass der Besuch neu sein kann."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Hilfreich",
+     "text": "ruhig erklären, was der Zahnarzt macht"
+    },
+    "right": {
+     "label": "Unhilfreich",
+     "text": "Drohungen oder Versprechen wie „es tut gar nicht weh“"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Nennen Sie nur den nächsten Schritt, nicht den ganzen Ablauf."
+   },
+   {
+    "kind": "list",
+    "heading": "So klingt es ruhig",
+    "items": [
+     "Wir schauen zuerst.",
+     "Dann erklären wir weiter.",
+     "Sie bleiben dabei."
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Fragen Sie vor dem Termin, wie Sie den ersten Besuch Ihres Kindes ankündigen."
+   }
+  ],
+  "narration": "Merken Sie, wenn Ihr Kind sofort Ihre Anspannung aufnimmt? Sagen Sie vorher ruhig, was gleich passiert. Bleiben Sie ehrlich: Der Termin kann neu sein. Hilfreich ist eine einfache Erklärung, was wir machen. Weniger gut sind Drohungen oder Sätze wie „Es tut gar nicht weh“. Nennen Sie nur den nächsten Schritt: Wir schauen erst. Dann erklären wir weiter. Sie bleiben dabei. Vor dem Termin können Sie gern fragen, wie Sie den ersten Besuch ankündigen.",
+  "known": []
+ },
+ {
+  "id": "pl/wybielanie-przed-slubem",
+  "status": "published",
+  "language": "pl",
+  "country": "PL",
+  "source": "rerender/out-pl/wybielanie-przed-ślubem",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Biały uśmiech na ślub? Termin ma znaczenie."
+   },
+   {
+    "kind": "statement",
+    "text": "Tydzień przed ślubem to zwykle za mało."
+   },
+   {
+    "kind": "footage",
+    "caption": "Wybielanie warto zaplanować wcześniej."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Za tydzień",
+     "text": "Ryzyko wrażliwości i pośpiechu"
+    },
+    "right": {
+     "label": "Kilka tygodni wcześniej",
+     "text": "Czas na spokojny plan"
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "Przed ważnym dniem warto mieć czas na:",
+    "items": [
+     "konsultację",
+     "dobór metody",
+     "ocenę reakcji"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Po wybielaniu zęby mogą być przez chwilę wrażliwe."
+   },
+   {
+    "kind": "cta",
+    "text": "Przy planowaniu ślubu proszę zapytać o termin wybielania zębów."
+   }
+  ],
+  "narration": "Ślub już za tydzień i myślą Państwo o jaśniejszym uśmiechu? Taki termin zwykle jest za krótki. Lepiej pomyśleć o tym kilka tygodni wcześniej. Wtedy jest czas na konsultację, dobór sposobu i sprawdzenie reakcji zębów. Po wybielaniu może się też na chwilę pojawić wrażliwość, więc prosimy zapytać o dobry moment.",
+  "known": []
+ },
+ {
+  "id": "es/limpieza-dental",
+  "status": "published",
+  "language": "es",
+  "country": "ES",
+  "source": "r4/out-es0-c/limpieza-dental-profesional (card fixed and re-rendered without LLM/TTS, 2026-11-15)",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ese sarro junto a la encía…"
+   },
+   {
+    "kind": "statement",
+    "text": "No sale con el cepillo."
+   },
+   {
+    "kind": "footage",
+    "caption": "Es placa endurecida"
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Cepillo",
+     "text": "Quita placa blanda"
+    },
+    "right": {
+     "label": "Limpieza",
+     "text": "Retira sarro adherido"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "La limpieza llega al borde de la encía."
+   },
+   {
+    "kind": "list",
+    "heading": "En consulta",
+    "items": [
+     "Limpia entre dientes",
+     "Alisa la superficie"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Si te sangran las encías, pregúntalo en tu próxima limpieza."
+   }
+  ],
+  "narration": "¿Ese borde duro junto a la encía no se va aunque te cepilles? Suele ser sarro: placa que se ha endurecido. El cepillo quita la placa blanda, pero eso normalmente no. En la limpieza, el dentista o el higienista lo retira, también al ras de la encía, entre dientes, y deja la superficie más lisa. Si te sangran, coméntalo en tu próxima limpieza.",
+  "known": []
+ },
+ {
+  "id": "es/primer-diente",
+  "status": "published",
+  "language": "es",
+  "country": "ES",
+  "source": "r4/out-es1-a/el-primer-diente",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Asoma el primer diente… ¿ya lo cepillas?"
+   },
+   {
+    "kind": "footage",
+    "caption": "Sí, desde el primer diente."
+   },
+   {
+    "kind": "statement",
+    "text": "Sí: empieza en cuanto aparece el primer diente."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Cepillo",
+     "text": "Suave e infantil"
+    },
+    "right": {
+     "label": "Pasta",
+     "text": "Muy poca, con flúor"
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "Haz esto",
+    "items": [
+     "Dos veces al día",
+     "Sobre todo por la noche",
+     "Cepilla la unión con la encía"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Si no se deja, tú haces el cepillado."
+   },
+   {
+    "kind": "cta",
+    "text": "En la revisión, pregunta por la pasta y la cantidad para su edad."
+   }
+  ],
+  "narration": "Asoma el primer diente… ¿ya lo estás cepillando? Sí, hay que empezar en cuanto sale. Usa un cepillo infantil suave y muy poquita pasta con flúor. Hazlo dos veces al día, sobre todo por la noche, limpiando donde el diente toca la encía. Si no se deja, se lo haces tú. Y en revisión, pregunta qué pasta y qué cantidad le toca por edad.",
+  "known": []
+ },
+ {
+  "id": "es/cuidado-encias",
+  "status": "published",
+  "language": "es",
+  "country": "ES",
+  "source": "r4/out-es2-a/cuidado-de-las-encías-tras-el-tratamiento",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Tus encías tratadas también necesitan cepillo."
+   },
+   {
+    "kind": "footage",
+    "caption": "Cepilla suave, sin apartarte de la zona tratada."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Cepillo suave",
+     "text": "Limpia la línea de la encía."
+    },
+    "right": {
+     "label": "Cepillo duro",
+     "text": "Irrita más la zona."
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "El hilo o los cepillos interdentales ayudan entre los dientes."
+   },
+   {
+    "kind": "statement",
+    "text": "Si sangra un poco al principio, suele mejorar con la limpieza diaria."
+   },
+   {
+    "kind": "statement",
+    "text": "Sigue las indicaciones de tu dentista para tu caso."
+   },
+   {
+    "kind": "cta",
+    "text": "Si te sangran las encías al cepillarte, coméntalo en tu revisión."
+   }
+  ],
+  "narration": "¿Te da cosa cepillar justo la encía tratada? Hazlo igual, pero suave y pasando por esa zona. Un cepillo blando limpia el borde de la encía; uno duro puede irritarla más. Entre diente y diente, usa hilo o cepillos interdentales. Si al principio sangra un poco, suele mejorar con la limpieza diaria. Y sigue lo que te hayamos indicado para tu caso. Si te sangran al cepillarte, dínoslo en tu revisión.",
+  "known": []
+ },
+ {
+  "id": "fr/gencives-qui-saignent",
+  "status": "published",
+  "language": "fr",
+  "country": "FR",
+  "source": "r4/out-fr0-b/gencives-qui-saignent",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ce saignement quand vous vous brossez les dents…"
+   },
+   {
+    "kind": "statement",
+    "text": "Pas normal si cela revient souvent."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Parfois",
+     "text": "gencive irritée"
+    },
+    "right": {
+     "label": "Souvent",
+     "text": "à faire vérifier"
+    }
+   },
+   {
+    "kind": "footage",
+    "caption": "Un brossage doux reste essentiel."
+   },
+   {
+    "kind": "list",
+    "heading": "Ce que cela évoque",
+    "items": [
+     "Plaque près de la gencive",
+     "Inflammation gingivale",
+     "Brossage trop appuyé"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Un dentiste peut contrôler vos gencives et faire un détartrage si besoin."
+   },
+   {
+    "kind": "cta",
+    "text": "Si vos gencives saignent souvent, parlez-en au prochain contrôle."
+   }
+  ],
+  "narration": "Ce saignement quand vous vous brossez, ça vous arrive ? Si cela revient souvent, ce n’est pas normal. Parfois, c’est une gencive irritée. Souvent, il faut le faire vérifier. Gardez un brossage doux, c’est important. Cela évoque de la plaque près de la gencive, une inflammation gingivale, ou un geste trop appuyé. On peut contrôler vos gencives et faire un détartrage si besoin. Si ça saigne souvent, parlez-en au prochain contrôle.",
+  "known": []
+ },
+ {
+  "id": "fr/blanchiment-email",
+  "status": "published",
+  "language": "fr",
+  "country": "FR",
+  "source": "km2/out-fr/blanchiment-et-émail (the reviewed plan with the register fix, narration re-synthesised by TTS only, 2026-11-15)",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Le blanchiment fragilise vraiment l’émail ?"
+   },
+   {
+    "kind": "statement",
+    "text": "Pas tout à fait : il agit surtout sur les pigments."
+   },
+   {
+    "kind": "footage",
+    "caption": "L’émail n’est généralement pas abîmé."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Effet attendu",
+     "text": "Des dents plus claires"
+    },
+    "right": {
+     "label": "Effet courant",
+     "text": "Une sensibilité passagère"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Un dentiste adapte le soin selon vos dents et vos gencives."
+   },
+   {
+    "kind": "list",
+    "heading": "Après le soin",
+    "items": [
+     "Évitez le café et le thé",
+     "Évitez le vin rouge",
+     "Suivez ses consignes"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Si la sensibilité dure, demandez quel protocole de blanchiment vous convient."
+   }
+  ],
+  "narration": "Le blanchiment, ça fragilise vraiment l’émail ? Pas tout à fait. Ça agit surtout sur les pigments. Quand c’est fait ou encadré par un dentiste, l’émail n’est généralement pas abîmé. Le résultat attendu, ce sont des dents plus claires. L’effet le plus courant, c’est une sensibilité passagère. Ensuite, évitez le café, le thé et le vin rouge, et suivez bien les consignes. Si ça dure, on voit ensemble ce qui vous convient.",
+  "known": []
+ },
+ {
+  "id": "fr/detartrage",
+  "status": "published",
+  "language": "fr",
+  "country": "FR",
+  "source": "r4/out-fr2-a/le-détartrage",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Vous brossez bien, mais le tartre reste."
+   },
+   {
+    "kind": "footage",
+    "caption": "La brosse enlève la plaque, pas le tartre durci."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Plaque",
+     "text": "Film mou, retiré au brossage"
+    },
+    "right": {
+     "label": "Tartre",
+     "text": "Dépôt durci, collé à la dent"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Le tartre irrite souvent les gencives et les fait saigner."
+   },
+   {
+    "kind": "statement",
+    "text": "Le dentiste l'enlève avec un détartrage adapté."
+   },
+   {
+    "kind": "cta",
+    "text": "Si vos gencives saignent, demandez si un détartrage est indiqué."
+   }
+  ],
+  "narration": "Vous vous brossez bien, et pourtant ça reste collé ? La brosse enlève le film mou sur les dents. Quand il a durci, elle ne l’enlève plus. Ce dépôt peut irriter les gencives et les faire saigner. Là, c’est nous qui le retirons avec un détartrage adapté. Si ça saigne, parlez-en.",
+  "known": []
+ },
+ {
+  "id": "discarded/tr-implant-v1",
+  "status": "discarded",
+  "language": "tr",
+  "country": "TR",
+  "source": "fu/r/out-tr-hero-v1/i-mplant-tedavisinin-aşamaları",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "İmplant yapıldı ama diş hemen takılmıyor."
+   },
+   {
+    "kind": "statement",
+    "text": "Çoğu durumda önce iyileşme süreci gerekir."
+   },
+   {
+    "kind": "footage",
+    "caption": "İmplant önce iyileşir."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Aynı gün",
+     "text": "Geçici parça olabilir."
+    },
+    "right": {
+     "label": "Sonra",
+     "text": "Asıl parça iyileşmeden gelir."
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Bu süre kişiye göre değişir; yükü hekiminiz belirler."
+   },
+   {
+    "kind": "statement",
+    "text": "İlk dönemde yumuşak gıda ve hekiminizin talimatları önemlidir."
+   },
+   {
+    "kind": "cta",
+    "text": "İmplantınızda hangi aşama geçerli, bunu hekiminiz söyler."
+   }
+  ],
+  "narration": "İmplant yapıldı, diş neden hemen takılmadı? Çoğu durumda implantın kemikle kaynaşması için bir iyileşme süreci gerekir. Aynı gün geçici bir parça takılabilir. Asıl parça iyileşmeden sonra gelir. Bu süre kişiye göre değişir; yükü hekiminiz belirler. İlk dönemde yumuşak gıda tüketin, hekiminizin verdiği talimatlara uyun. İmplantınızda hangi aşamanın geçerli olduğunu hekiminiz söyler.",
+  "known": [
+   "KM-03"
+  ]
+ },
+ {
+  "id": "discarded/tr-cleaning-pass3",
+  "status": "discarded",
+  "language": "tr",
+  "country": "TR",
+  "source": "fu/r/out-tr-two/diş-taşı-temizliği-neden-yapılır",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Fırçalasanız da diş taşı neden kalıyor?"
+   },
+   {
+    "kind": "statement",
+    "text": "Pek sayılmaz; sertleşen tabakayı fırça çıkaramaz."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Evde",
+     "text": "Fırça yüzeyi temizler."
+    },
+    "right": {
+     "label": "Klinikte",
+     "text": "Hekim diş taşını uzaklaştırır."
+    }
+   },
+   {
+    "kind": "footage",
+    "caption": "Diş taşı temizliği hekim tarafından yapılır."
+   },
+   {
+    "kind": "statement",
+    "text": "Diş taşı diş etini tahriş eder, kanamayı artırır."
+   },
+   {
+    "kind": "list",
+    "heading": "Temizlikten sonra",
+    "items": [
+     "Hafif hassasiyet olabilir",
+     "Diş etleri rahatlar",
+     "Hekiminizin dediğini izleyin"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Diş taşı için size neyin uygun olduğunu hekiminiz söyler."
+   }
+  ],
+  "narration": "Fırçalasanız da diş taşı niye yerinde kalıyor? Çünkü sertleşen tabakayı fırça çıkarmaz. Evde fırça yüzeyi temizler. Muayenede hekim o birikimi uzaklaştırır. Diş taşı diş etini tahriş eder, kanamayı artırır. Sonrasında hafif hassasiyet olabilir, diş etleri rahatlar. Size uygun yaklaşımı kontrolünüzde hekiminize sorun.",
+  "known": [
+   "KM-04"
+  ]
+ },
+ {
+  "id": "discarded/en-brushing-v1",
+  "status": "discarded",
+  "language": "en",
+  "country": "US",
+  "source": "fu/r/out-en-two/brushing-the-spots-most-people-miss",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Your gumline after brushing? Take a look."
+   },
+   {
+    "kind": "footage",
+    "caption": "Aim at the gumline."
+   },
+   {
+    "kind": "statement",
+    "text": "Not quite if you only scrub the middle of the teeth."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Right",
+     "text": "Soft brush, slight angle"
+    },
+    "right": {
+     "label": "Wrong",
+     "text": "Flat brush, hard scrubbing"
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "Miss these spots less",
+    "items": [
+     "Back teeth",
+     "Inside edges"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Use small gentle strokes for about two minutes."
+   },
+   {
+    "kind": "cta",
+    "text": "Ask if your gumline brushing needs a quick check."
+   }
+  ],
+  "narration": "When you finish brushing, do you ever check along the gumline? If you only scrub the middle, not quite. Tilt a soft brush slightly toward where the teeth meet the gums. Skip the flat, hard back-and-forth. Hit the back teeth and inside edges too. Use small, gentle strokes for about two minutes. If you want, we can take a quick look together.",
+  "known": [
+   "KM-05"
+  ]
+ },
+ {
+  "id": "discarded/de-aligner-pass3",
+  "status": "discarded",
+  "language": "de",
+  "country": "DE",
+  "source": "fu/r/out-de-aligner-v1/verfärbte-aligner",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Kaffee drin? Aligner sehen es sofort."
+   },
+   {
+    "kind": "statement",
+    "text": "Nicht ganz: Meist färben sich Aligner durch Beläge und Getränke."
+   },
+   {
+    "kind": "footage",
+    "caption": "Meist setzen sich Beläge und Farbe fest."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Mit Getränk",
+     "text": "Farbe und Zucker bleiben unter dem Tray."
+    },
+    "right": {
+     "label": "Mit Wasser",
+     "text": "So bleiben die Aligner klarer."
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "Darauf kommt es an",
+    "items": [
+     "Mit Wasser tragen",
+     "Zum Trinken rausnehmen",
+     "Zähne vor dem Einsetzen reinigen"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Heiße Getränke können den Kunststoff verformen."
+   },
+   {
+    "kind": "cta",
+    "text": "Wenn Ihre Aligner gelblich werden, sprechen Sie das bei der Kontrolle an."
+   }
+  ],
+  "narration": "Kaffee drin? Das sehen Aligner sofort. Nicht nur der Kaffee selbst: Meist setzen sich Beläge und Farbe aus Getränken fest. Mit Saft oder Kaffee bleibt auch Zucker unter dem Tray. Mit Wasser bleiben sie meist klarer. Tragen Sie sie mit Wasser, nehmen Sie sie zum Trinken raus, und reinigen Sie die Zähne vorm Einsetzen. Heißes kann den Kunststoff verformen. Wenn sie gelblich werden, sprechen Sie uns bei der Kontrolle an.",
+  "known": [
+   "KM-04",
+   "KM-18"
+  ]
+ },
+ {
+  "id": "discarded/en-whitening-zippy",
+  "status": "discarded",
+  "language": "en",
+  "country": "US",
+  "source": "premium/samples/en/does-whitening-thin-your-enamel",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Teeth whitening hurting your enamel? Hold on."
+   },
+   {
+    "kind": "statement",
+    "text": "Not quite. Dentists usually don't see enamel thinning from whitening."
+   },
+   {
+    "kind": "footage",
+    "caption": "The usual issue is temporary sensitivity."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Enamel",
+     "text": "Usually stays intact"
+    },
+    "right": {
+     "label": "Common side effect",
+     "text": "Short-lived sensitivity"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Sensitivity can feel zippy, then settle down."
+   },
+   {
+    "kind": "cta",
+    "text": "Ask which whitening option fits your teeth at your next check-up."
+   }
+  ],
+  "narration": "Worried whitening’s wearing down your enamel? Not quite. When you use it the way your dentist tells you, we usually don’t see enamel getting thinner. What people notice more often is brief sensitivity. It can feel a little zippy, then calm down. At your next checkup, ask which option suits your teeth.",
+  "known": [
+   "KM-23"
+  ]
+ },
+ {
+  "id": "discarded/de-aligner-clickbait",
+  "status": "discarded",
+  "language": "de",
+  "country": "DE",
+  "source": "r4/out-de-al4/verfärbte-aligner",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Aligner raus beim Kaffee? Der Grund überrascht."
+   },
+   {
+    "kind": "statement",
+    "text": "Mit Aligner im Mund nur Wasser."
+   },
+   {
+    "kind": "footage",
+    "caption": "Andere Getränke können sie verfärben."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Wasser",
+     "text": "bleibt meist klar"
+    },
+    "right": {
+     "label": "Kaffee, Tee",
+     "text": "färben leichter"
+    }
+   },
+   {
+    "kind": "list",
+    "heading": "So bleiben sie klar",
+    "items": [
+     "Vor dem Trinken raus",
+     "Danach Zähne putzen",
+     "Oder zumindest ausspülen"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Zucker und Säuren unter dem Tray fördern Karies und Erosion."
+   },
+   {
+    "kind": "cta",
+    "text": "Wenn Ihre Aligner trüb wirken, fragen Sie bei der Kontrolle nach."
+   }
+  ],
+  "narration": "Lassen Sie die Aligner beim Kaffee besser raus? Genau da liegt der Punkt. Mit eingesetzten Alignern bitte nur Wasser. Andere Getränke können sie verfärben. Kaffee und Tee färben leichter, Wasser bleibt meist klar. Heiße Getränke können den Aligner verformen. Nehmen Sie ihn vorher raus und putzen Sie danach die Zähne. Oder spülen Sie zumindest aus. Zucker und Säuren unter dem Tray fördern Karies und Erosion.",
+  "known": [
+   "KM-10",
+   "KM-18"
+  ]
+ },
+ {
+  "id": "discarded/en-whitening-not-the-goal",
+  "status": "discarded",
+  "language": "en",
+  "country": "US",
+  "source": "r4/out-en-wh1/does-whitening-thin-your-enamel",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Teeth whitening bad for enamel? Hold on."
+   },
+   {
+    "kind": "statement",
+    "text": "Whitening done as your dentist directs usually doesn't thin enamel."
+   },
+   {
+    "kind": "footage",
+    "caption": "Whitening is usually about sensitivity, not enamel loss."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Common",
+     "text": "Short-lived sensitivity"
+    },
+    "right": {
+     "label": "Not the goal",
+     "text": "Enamel thinning"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Your dentist can adjust strength and timing for your teeth."
+   },
+   {
+    "kind": "statement",
+    "text": "Tell your dentist if sensitivity feels stronger than expected."
+   },
+   {
+    "kind": "cta",
+    "text": "Ask about whitening if you want a plan that fits your enamel."
+   }
+  ],
+  "narration": "Worried whitening will wear down your enamel? Usually, it doesn’t when you follow your dentist’s directions. What most people notice instead is brief sensitivity, not thinning. We can adjust the strength and timing for your teeth. If it feels stronger than expected, tell us. Ask about whitening if you want a plan that fits your enamel.",
+  "known": [
+   "KM-12"
+  ]
+ },
+ {
+  "id": "discarded/en-whitening-strong-colors",
+  "status": "discarded",
+  "language": "en",
+  "country": "US",
+  "source": "r4/out-en-wh2/does-whitening-thin-your-enamel",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Teeth whitening wears enamel down?"
+   },
+   {
+    "kind": "statement",
+    "text": "Not quite. Whitening usually does not thin enamel."
+   },
+   {
+    "kind": "footage",
+    "caption": "Whitening lifts stains, not enamel."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "What it does",
+     "text": "Lifts stains"
+    },
+    "right": {
+     "label": "What it doesn't",
+     "text": "Shave enamel"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Short-lived sensitivity is the common side effect."
+   },
+   {
+    "kind": "list",
+    "heading": "Typical aftercare",
+    "items": [
+     "Follow your dentist's instructions",
+     "Avoid strong colors briefly",
+     "Tell your dentist if sensitive"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Ask about whitening sensitivity at your next check-up."
+   }
+  ],
+  "narration": "Think whitening wears your enamel down? Not quite. When you use it the way your dentist tells you to, whitening usually doesn’t thin enamel. It works by lifting stains, not by shaving tooth structure. The most common side effect is short-lived sensitivity. Afterward, follow your instructions, skip strong colors briefly, and let your dentist know if your teeth feel sensitive at your next checkup.",
+  "known": [
+   "KM-13"
+  ]
+ },
+ {
+  "id": "discarded/es-cleaning-retiramos",
+  "status": "discarded",
+  "language": "es",
+  "country": "ES",
+  "source": "r4/out-es0-a/limpieza-dental-profesional",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Te cepillas bien y sale sarro."
+   },
+   {
+    "kind": "statement",
+    "text": "El sarro es placa endurecida."
+   },
+   {
+    "kind": "footage",
+    "caption": "El dentista o el higienista lo retira."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "En casa",
+     "text": "El cepillo no lo quita"
+    },
+    "right": {
+     "label": "En clínica",
+     "text": "Lo retiran con instrumentos"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "También limpian bien la zona de la encía."
+   },
+   {
+    "kind": "statement",
+    "text": "Después, las encías pueden quedar algo sensibles."
+   },
+   {
+    "kind": "cta",
+    "text": "Si notas sarro junto a la encía, pregúntalo en tu próxima limpieza."
+   }
+  ],
+  "narration": "¿Te cepillas bien y aun así notas sarro? Eso pasa porque el sarro es placa endurecida. En casa, el cepillo no lo quita. Aquí lo retiramos el dentista o el higienista con instrumentos. Además, limpiamos bien junto a la encía. Después, puede quedar algo sensible. Si lo ves ahí, coméntalo en tu próxima limpieza.",
+  "known": [
+   "KM-15"
+  ]
+ },
+ {
+  "id": "discarded/fr-whitening-dent-en-place",
+  "status": "discarded",
+  "language": "fr",
+  "country": "FR",
+  "source": "r4/out-fr1-a/blanchiment-et-émail",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Le blanchiment use l’émail ? Pas si simple."
+   },
+   {
+    "kind": "statement",
+    "text": "L’émail n’est généralement pas abîmé."
+   },
+   {
+    "kind": "footage",
+    "caption": "Le produit agit surtout sur les pigments."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Émail",
+     "text": "reste en place"
+    },
+    "right": {
+     "label": "Effet courant",
+     "text": "sensibilité passagère"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Le dentiste adapte le protocole si vos dents sont sensibles."
+   },
+   {
+    "kind": "list",
+    "heading": "Après le soin",
+    "items": [
+     "Café et thé à limiter",
+     "Vin rouge à éviter",
+     "Suivez ses consignes"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Avant un blanchiment, demandez si votre émail est adapté."
+   }
+  ],
+  "narration": "Le blanchiment use l’émail ? C’est un peu plus nuancé. Quand il est fait ou encadré par un dentiste, l’émail n’est généralement pas abîmé. Le produit agit surtout sur les pigments. La dent, elle, reste en place. L’effet qu’on voit le plus, c’est une sensibilité passagère. Si vos dents réagissent, on adapte le protocole. Après, limitez café et thé, évitez le vin rouge, et suivez les consignes. Avant de vous lancer, demandez si votre émail s’y prête.",
+  "known": [
+   "KM-11",
+   "KM-17"
+  ]
+ },
+ {
+  "id": "discarded/tr-children-burada",
+  "status": "discarded",
+  "language": "tr",
+  "country": "TR",
+  "source": "r4/out-tr-child3/çocuklarda-çürükten-korunma",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Çocuk dişlerinde çürük bazen burada başlıyor."
+   },
+   {
+    "kind": "footage"
+   },
+   {
+    "kind": "statement",
+    "text": "Çocuğunuz kendi başına iyi fırçalayana kadar siz üstünden geçin."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Akşamdan sonra",
+     "text": "Su dışında bir şey yok"
+    },
+    "right": {
+     "label": "Önce",
+     "text": "Son fırçayı yetişkin yapar"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Gece atıştırması ve içecek, dişin üstünde uzun süre kalır."
+   },
+   {
+    "kind": "statement",
+    "text": "Bu yüzden akşam fırçalamasından sonra sadece su verin."
+   },
+   {
+    "kind": "cta",
+    "text": "Çocuğunuzun fırçalama düzeyine göre neyin uygun olduğunu hekiminiz söyler."
+   }
+  ],
+  "narration": "Akşam bir şeyler atıştırınca çürük çoğu zaman burada başlar. Çocuğunuz iyi fırçalayana kadar dişlerini siz fırçalayın ya da üstünden geçin. Özellikle son fırçayı bir yetişkin yapsın. Çünkü gece yenip içilenler dişin üstünde uzun süre kalır. O yüzden akşam fırçalamasından sonra su dışında bir şey vermeyin. Çocuğunuza neyin uygun olduğunu kontrolde hekiminize sorabilirsiniz.",
+  "known": [
+   "KM-20"
+  ]
+ },
+ {
+  "id": "discarded/tr-children-compare",
+  "status": "discarded",
+  "language": "tr",
+  "country": "TR",
+  "source": "r4/out-tr-prev1/çocuklarda-çürükten-korunma",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Çocuk dişinde çürük bazen biberonla başlıyor."
+   },
+   {
+    "kind": "statement",
+    "text": "Asıl risk, şekerli içeceğin dişte kalmasıdır."
+   },
+   {
+    "kind": "footage",
+    "caption": "Temizlik, şekerin dişte kalmasını azaltır."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Gece sütü",
+     "text": "Dişte daha uzun kalır."
+    },
+    "right": {
+     "label": "Temizlik",
+     "text": "Gece sonrası dişi hazırlar."
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Yaşa uygun florürlü macun kullanın."
+   },
+   {
+    "kind": "list",
+    "heading": "Günlük bakım",
+    "items": [
+     "Gece beslenmesi sonrası temizleyin",
+     "Sabah akşam fırçalayın",
+     "Doğru miktarı hekiminizden öğrenin"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Çocuğunuzun yaşına göre florür ve fırçalamayı hekiminiz söyler."
+   }
+  ],
+  "narration": "Çocuklarda çürük, sık şekerli içecek ya da gıdanın özellikle gece ağızda kalmasıyla başlayabilir. Asıl sorun, şekerin dişte uzun süre kalmasıdır. Temizlik bunu azaltır. Gece sütü ya da başka içecekler dişte daha uzun kalır. Gece beslenmesinden sonra temizleyin. Sabah akşam fırçalayın. Yaşa uygun florürlü macun kullanın. Doğru miktarı ve fırçalama şeklini kontrolünüzde hekiminiz söyler.",
+  "known": [
+   "KM-14"
+  ]
+ },
+ {
+  "id": "discarded/tr-children-hook-mismatch",
+  "status": "discarded",
+  "language": "tr",
+  "country": "TR",
+  "source": "r4/out-tr-child2/çocuklarda-çürükten-korunma",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Arka azılarda başlayan çürüğü fark etmeyebilirsiniz."
+   },
+   {
+    "kind": "statement",
+    "text": "Gece fırçalama, çürük riskini azaltmaya yardımcı olur."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Gece",
+     "text": "Florür dişte kalır."
+    },
+    "right": {
+     "label": "Gündüz",
+     "text": "Şeker daha sık temas eder."
+    }
+   },
+   {
+    "kind": "footage",
+    "caption": "Gece fırçalama önemli bir adımdır."
+   },
+   {
+    "kind": "list",
+    "heading": "Evde dikkat edin",
+    "items": [
+     "Yaşa uygun macun",
+     "Fırçalamayı yetişkin yönetsin",
+     "Sık atıştırmayı azaltın"
+    ]
+   },
+   {
+    "kind": "statement",
+    "text": "Şikayet olmasa bile arka dişler kontrolde değerlendirilebilir."
+   },
+   {
+    "kind": "cta",
+    "text": "Çocuğunuzun yaşına göre fırçalama düzenini hekiminiz söyler."
+   }
+  ],
+  "narration": "Arka azılardaki çürüğü her zaman fark eder misiniz? Gece fırçalama, önemli adımlardan biridir. Çünkü gece kullanılan florürlü macun, bir süre diş yüzeyinde etkisini sürdürebilir. Gündüz şeker daha sık temas eder. Macunu yaşa göre seçin, fırçalamayı siz yönetin, sık atıştırmayı azaltın. Şikayet olmasa bile arka dişler, rutin kontrolde değerlendirilebilir. Yaşa uygun düzeni hekiminiz söyler.",
+  "known": [
+   "KM-21"
+  ]
+ },
+ {
+  "id": "discarded/es-limpieza-before-card-fix",
+  "status": "discarded",
+  "language": "es",
+  "country": "ES",
+  "source": "r4/out-es0-c/limpieza-dental-profesional",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Ese sarro junto a la encía…"
+   },
+   {
+    "kind": "statement",
+    "text": "No sale con el cepillo."
+   },
+   {
+    "kind": "footage",
+    "caption": "Es placa endurecida"
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Cepillo",
+     "text": "Quita placa blanda"
+    },
+    "right": {
+     "label": "Limpieza",
+     "text": "Retira sarro adherido"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Llega al borde de la encía."
+   },
+   {
+    "kind": "list",
+    "heading": "En consulta",
+    "items": [
+     "Limpia entre dientes",
+     "Alisa la superficie"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Si te sangran las encías, pregúntalo en tu próxima limpieza."
+   }
+  ],
+  "narration": "¿Ese borde duro junto a la encía no se va aunque te cepilles? Suele ser sarro: placa que se ha endurecido. El cepillo quita la placa blanda, pero eso normalmente no. En la limpieza, el dentista o el higienista lo retira, también al ras de la encía, entre dientes, y deja la superficie más lisa. Si te sangran, coméntalo en tu próxima limpieza.",
+  "known": [
+   "KM-16"
+  ]
+ },
+ {
+  "id": "discarded/fr-blanchiment-before-card-fix",
+  "status": "discarded",
+  "language": "fr",
+  "country": "FR",
+  "source": "r4/out-fr1-b/blanchiment-et-émail",
+  "scenes": [
+   {
+    "kind": "hook",
+    "text": "Le blanchiment fragilise vraiment l’émail ?"
+   },
+   {
+    "kind": "statement",
+    "text": "Pas tout à fait : il agit surtout sur les pigments."
+   },
+   {
+    "kind": "footage",
+    "caption": "L’émail n’est généralement pas abîmé."
+   },
+   {
+    "kind": "compare",
+    "left": {
+     "label": "Effet attendu",
+     "text": "Des dents plus claires"
+    },
+    "right": {
+     "label": "Effet courant",
+     "text": "Une sensibilité passagère"
+    }
+   },
+   {
+    "kind": "statement",
+    "text": "Un dentiste adapte le soin selon vos dents et vos gencives."
+   },
+   {
+    "kind": "list",
+    "heading": "Après le soin",
+    "items": [
+     "Évitez café et thé",
+     "Évitez vin rouge",
+     "Suivez ses consignes"
+    ]
+   },
+   {
+    "kind": "cta",
+    "text": "Si la sensibilité dure, demandez quel protocole de blanchiment vous convient."
+   }
+  ],
+  "narration": "Le blanchiment, ça fragilise vraiment l’émail ? Pas tout à fait. Ça agit surtout sur les pigments. Quand c’est fait ou encadré par un dentiste, l’émail n’est généralement pas abîmé. Le résultat attendu, ce sont des dents plus claires. L’effet le plus courant, c’est une sensibilité passagère. Ensuite, évitez café, thé, vin rouge, et suivez bien les consignes. Si ça dure, on voit ensemble ce qui vous convient.",
+  "known": [
+   "KM-17"
+  ]
+ }
+]

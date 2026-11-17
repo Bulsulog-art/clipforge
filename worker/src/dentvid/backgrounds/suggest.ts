@@ -1,0 +1,273 @@
+import { BACKGROUND_LIBRARY, type LibraryImage } from "./library.js";
+
+/**
+ * Background-photo suggestions for a DentVideo video.
+ *
+ * The customer never generates images: we keep a curated stock library
+ * (scripts/dentvideo-backgrounds/), and for each video this ranks 10–20 photos
+ * by what the video is about. The clinic taps the ones it likes and they
+ * rotate behind the text (remotion/background-layer.tsx).
+ *
+ * Pure and deterministic: the same plan always gets the same list, at zero API
+ * cost. Non-English videos are mapped through per-language keyword stems
+ * (tr, de, es, fr, it, pt, en), and the clinic's service name through the same
+ * kind of regexes dental/footage.ts uses. Diversity is enforced across
+ * categories, and the list is never empty.
+ *
+ * THIS FILE IS DUPLICATED, byte for byte apart from import extensions, in
+ * web/src/lib/dentvid/backgrounds/suggest.ts so the browser preview ranks
+ * exactly as the worker does. backgrounds.test.ts in both apps checks the
+ * shared fixtures, and the web test checks the two files are identical.
+ */
+
+export type SuggestInput = {
+  /** A scene plan, or anything shaped like one: every string in its scenes is read. */
+  plan?: { title?: string; scenes?: unknown[]; voiceover?: { text?: string } };
+  /** The topic title / angle the video was written for. */
+  topic?: string;
+  /** The clinic service the video promotes ("Implantologie", "Diş beyazlatma"…). */
+  service?: string;
+  /** ISO language of the video; only decides nothing on its own — stems for all languages are tried. */
+  language?: string;
+};
+
+export const SUGGEST_MIN = 10;
+export const SUGGEST_MAX = 20;
+export const BACKGROUNDS_BASE_PATH = "/dentvideo/backgrounds";
+
+/** Where an id's photo is served (web public folder; the worker resolves the same path). */
+export function backgroundSrc(id: string): string {
+  return `${BACKGROUNDS_BASE_PATH}/${id}.jpg`;
+}
+
+/** The library id back out of a src ("/dentvideo/backgrounds/implants-03.jpg" → "implants-03"). */
+export function backgroundId(src: string): string | undefined {
+  const m = /(?:^|\/)([a-z]+-\d{2})\.jpg$/.exec(src);
+  return m && BACKGROUND_LIBRARY.some((i) => i.id === m[1]) ? m[1] : undefined;
+}
+
+type Concept = { cats: Partial<Record<string, number>>; tags: string[]; stems: string[] };
+
+/**
+ * Concepts with the word stems that signal them, in every pipeline language
+ * (Japanese and Arabic stems match anywhere: no ASCII letter precedes them).
+ * Stems are matched at the start of a word after folding accents
+ * ("diş" → "dis", "Zähne" → "zahne"), so "beyazlat" catches "beyazlatma".
+ */
+const CONCEPTS: Concept[] = [
+  { cats: { whitening: 3 }, tags: ["whitening", "white", "bright"], stems: ["whiten", "bleach", "white teeth", "beyazlat", "beyaz", "bleaching", "aufhell", "weiss", "blanque", "blanco", "blanchi", "blanc", "sbianc", "bianc", "clarea", "branquea", "branco", "ホワイトニング", "漂白", "تبييض", "wybiel"] },
+  { cats: { whitening: 2, food: 1 }, tags: ["stain", "coffee"], stems: ["stain", "discolo", "yellow", "leke", "sarar", "verfarb", "flecken", "gelb", "mancha", "amarill", "tache", "jaun", "macchi", "giall", "amarel", "着色", "変色", "黄ばみ", "تصبغ", "اصفرار", "przebarwien", "zolte"] },
+  { cats: { implants: 3 }, tags: ["implant", "titanium", "replacement", "crown"], stems: ["implant", "titan", "titanyum", "impianto", "implante", "インプラント", "زراع", "زرع"] },
+  { cats: { implants: 2 }, tags: ["replacement", "missing tooth", "fit"], stems: ["missing tooth", "missing teeth", "gap", "eksik dis", "dis kaybi", "zahnluck", "zahnverlust", "fehlende", "diente perdid", "falta de diente", "dent manquant", "perte de dent", "dente mancant", "dente perdid", "bridge", "kopru", "brucke", "puente", "pont", "ponte", "denture", "protez", "prothes", "protesi", "dentadura", "crown", "kron", "krone", "corona", "couronne", "coroa", "入れ歯", "ブリッジ", "差し歯", "فقدان الأسنان", "طقم", "جسر", "تاج", "brak zeba", "proteza", "most ", "korona"] },
+  { cats: { implants: 1, food: 1 }, tags: ["eating", "bite", "chewing", "apple", "bread"], stems: ["chew", "bite", "cigne", "isir", "kauen", "beiss", "mastic", "morder", "macher", "mordre", "mastica", "morde", "噛", "かむ", "مضغ", "zuc", "gryz"] },
+  { cats: { implants: 1, calm: 1 }, tags: ["healing", "recovery", "growth", "stable", "foundation"], stems: ["heal", "recover", "bone", "iyiles", "kemik", "heil", "knochen", "cicatri", "hueso", "recupera", "guari", "osso", "治癒", "骨", "التئام", "عظم", "goj", "kosc"] },
+  { cats: { aligners: 3 }, tags: ["aligner", "clear", "invisible", "case"], stems: ["aligner", "invisalign", "seffaf plak", "plak tedavi", "seffaf", "schiene", "aligneur", "gouttiere", "alineador", "allineator", "alinhador", "invisible", "unsichtbar", "gorunmez", "invisibil", "マウスピース", "تقويم شفاف", "nakładk", "nakladk"] },
+  { cats: { aligners: 2 }, tags: ["straight", "aligned", "braces"], stems: ["brace", "orthodon", "ortodon", "straight", "crooked", "duzgun", "carpik", "tel ", "zahnspange", "kieferorthop", "gerade", "schief", "brackets", "ortodonc", "chueco", "torcid", "appareil", "redress", "apparecchio", "storti", "aparelho", "torto", "矯正", "歯並び", "تقويم", "اعوجاج", "aparat", "krzyw"] },
+  { cats: { cleaning: 3 }, tags: ["cleaning", "polish", "scaling", "clean"], stems: ["tartar", "plaque", "scaling", "polish", "professional clean", "dis tasi", "temizl", "detartraj", "zahnstein", "zahnreinig", "reinigung", "belag", "sarro", "limpieza", "placa", "detartr", "nettoyage", "tartre", "pulizia", "tartaro", "ablazione", "limpeza", "polier", "pulido", "polissage", "歯石", "クリーニング", "歯垢", "جير", "تنظيف", "البلاك", "kamien nazebny", "kamień", "skaling", "higienizac", "osad"] },
+  { cats: { cleaning: 2, clinic: 1 }, tags: ["check-up", "appointment", "clinic"], stems: ["check-up", "checkup", "check up", "control", "kontrol", "routine visit", "vorsorge", "untersuch", "revision", "revisao", "visita", "visite", "bilan", "muayene", "検診", "定期", "فحص", "przeglad"] },
+  { cats: { cleaning: 1, hygiene: 1 }, tags: ["gum", "rinse"], stems: ["gum", "gingiv", "periodon", "bleed", "dis eti", "diseti", "kanama", "zahnfleisch", "parodont", "blut", "encia", "sangr", "gencive", "saign", "gengiv", "sanguin", "gengiva", "歯ぐき", "歯茎", "歯肉", "歯周", "出血", "لثة", "اللثة", "نزيف", "dziasł", "krwaw", "paradont"] },
+  { cats: { rootcanal: 3 }, tags: ["root", "roots", "treatment"], stems: ["root canal", "endodon", "kanal tedavi", "kanal", "wurzel", "conducto", "endodonc", "canal", "devitali", "nerve", "sinir", "nerv", "nervio", "nerf", "nervo", "pulp", "pulpa", "pulpe", "polpa", "根管", "神経", "علاج العصب", "عصب", "kanał", "nerw", "miazg"] },
+  { cats: { rootcanal: 3 }, tags: ["pain", "relief", "comfort"], stems: ["pain", "toothache", "ache", "hurt", "agri", "sizla", "schmerz", "zahnweh", "dolor", "duele", "douleur", "mal de dent", "dolore", "mal di dent", "dor de dente", "dores", "痛", "しみる", "ألم", "وجع", "boli", "bolesn"] },
+  { cats: { rootcanal: 2 }, tags: ["swelling", "cold", "relief"], stems: ["swell", "abscess", "infect", "sislik", "apse", "enfeks", "schwell", "abszess", "entzund", "hinchaz", "absceso", "infecc", "gonfle", "abces", "gonfi", "ascess", "inchaco", "abscesso", "infecç", "腫れ", "膿", "تورم", "خراج", "التهاب", "obrzek", "ropien", "zapalen"] },
+  { cats: { rootcanal: 1, calm: 1 }, tags: ["night", "rest"], stems: ["night", "sleep", "gece", "uyku", "nacht", "schlaf", "noche", "dorm", "nuit", "sommeil", "notte", "sonno", "noite", "sono", "夜", "睡眠", "ليل", "نوم", "noc", "sen "] },
+  { cats: { kids: 5 }, tags: ["children", "kids", "toy", "first visit"], stems: ["child", "kid", "baby", "toddler", "pediatric", "paediatric", "cocuk", "cocug", "bebek", "pedodont", "kinder", "kind ", "kindes", "kleinkind", "nino", "nina", "infantil", "odontopediatr", "enfant", "pedodont", "bambin", "bimb", "pediatri", "crianc", "infantil", "milk teeth", "baby teeth", "sut dis", "milchzahn", "dientes de leche", "dents de lait", "denti da latte", "dentes de leite", "子ども", "子供", "小児", "乳歯", "أطفال", "طفل", "الطفل", "الأسنان اللبنية", "dzieci", "dziecko", "mleczn"] },
+  { cats: { hygiene: 3 }, tags: ["toothbrush", "brushing", "electric toothbrush"], stems: ["brush", "toothbrush", "fircala", "fırca", "firca", "putz", "zahnburst", "burst", "cepill", "brosse", "spazzol", "escov", "歯ブラシ", "歯磨き", "歯みがき", "ブラッシング", "فرشاة", "تفريش", "szczotk", "mycie zebow"] },
+  { cats: { hygiene: 3 }, tags: ["floss", "interdental", "water flosser"], stems: ["floss", "interdental", "dis ipi", "arayuz", "zahnseide", "zahnzwischen", "hilo dental", "seda dental", "fil dentaire", "brossette", "filo interdent", "scovolino", "fio dental", "フロス", "糸ようじ", "歯間", "خيط الأسنان", "nic dentyst", "nitk"] },
+  { cats: { hygiene: 2 }, tags: ["toothpaste", "mouthwash", "routine"], stems: ["toothpaste", "fluorid", "fluor", "mouthwash", "macun", "gargara", "zahnpasta", "zahncreme", "mundspul", "pasta de dient", "pasta dental", "enjuague", "dentifric", "bain de bouche", "dentifricio", "collutorio", "pasta de dente", "enxagu", "routine", "rutin", "habit", "aliskanl", "gewohnheit", "rutina", "habito", "abitudin", "hábito", "歯磨き粉", "フッ素", "معجون", "فلورايد", "pasta do zebow", "plukank"] },
+  { cats: { hygiene: 1 }, tags: ["morning", "routine"], stems: ["morning", "sabah", "morgen", "manana", "matin", "mattin", "manha", "朝", "صباح", "rano"] },
+  { cats: { food: 3, whitening: 1 }, tags: ["coffee", "tea", "wine", "stain"], stems: ["coffee", "tea ", "tea,", "wine", "kahve", "cay ", "cayi", "sarap", "kaffee", "tee ", "tees", "teetrink", "wein", "cafe", "vino", "vin rouge", "caffe", "vinho", "cha ", "コーヒー", "紅茶", "ワイン", "قهوة", "شاي", "kaw", "herbat", "wino"] },
+  { cats: { food: 3 }, tags: ["sugar", "sweets", "candy", "chocolate", "soda"], stems: ["sugar", "sweet", "candy", "chocolate", "soda", "cola", "fizzy", "seker", "tatli", "cikolata", "gazli", "zucker", "susses", "sussigkeit", "schokolad", "limonade", "azucar", "dulce", "golosina", "refresco", "sucre", "bonbon", "sucrer", "zucchero", "dolci", "caramell", "bibite", "acucar", "doce", "refrigerante", "cavit", "curuk", "karies", "caries", "carie", "cárie", "砂糖", "甘い", "虫歯", "سكر", "حلويات", "تسوس", "cukier", "slodycz", "prochnic"] },
+  { cats: { food: 2, sensitivity: 1 }, tags: ["citrus", "acid", "juice"], stems: ["acid", "citrus", "lemon", "orange juice", "juice", "asit", "limon", "meyve suyu", "saure", "zitron", "saft", "acido", "zumo", "jugo", "acide", "citron", "jus", "succo", "suco", "酸", "レモン", "حمض", "ليمون", "kwas", "cytryn", "sok"] },
+  { cats: { food: 2 }, tags: ["healthy", "calcium", "milk", "cheese", "vegetables", "diet", "food", "snack"], stems: ["food", "diet", "eat", "snack", "milk", "cheese", "calcium", "nutrition", "yiyecek", "beslen", "yemek", "sut", "peynir", "kalsiyum", "ernahr", "essen", "milch", "kase", "kalzium", "aliment", "comida", "leche", "queso", "calcio", "nourrit", "manger", "lait", "fromage", "cibo", "latte", "formaggio", "leite", "queijo", "食べ物", "食事", "カルシウム", "طعام", "غذاء", "حليب", "jedzen", "mleko"] },
+  { cats: { sensitivity: 3 }, tags: ["cold", "ice", "sensitive", "enamel", "gentle"], stems: ["sensitiv", "hassas", "empfindlich", "sensib", "sensível", "enamel", "mine", "dis mine", "zahnschmelz", "schmelz", "esmalte", "email", "smalto", "zing", "知覚過敏", "エナメル", "حساسية", "المينا", "nadwrazliw", "szkliw"] },
+  { cats: { sensitivity: 2, food: 1 }, tags: ["cold", "ice", "hot", "ice cream", "temperature", "winter"], stems: ["cold", "ice", "hot drink", "freez", "soguk", "buz", "dondurma", "kalt", "eis ", "eiswurf", "heiss", "frio", "hielo", "helado", "froid", "glace", "chaud", "freddo", "ghiaccio", "gelato", "caldo", "gelad", "sorvete", "quente", "winter", "kis ", "invierno", "hiver", "inverno", "冷たい", "アイス", "بارد", "مثلج", "zimn", "lod"] },
+  { cats: { breath: 3 }, tags: ["breath", "fresh", "mint", "tongue"], stems: ["breath", "halitos", "fresh", "mint", "tongue", "nefes", "agiz kok", "kotu koku", "nane", "dil ", "atem", "mundgeruch", "frisch", "minze", "zunge", "aliento", "halitosis", "fresco", "menta", "lengua", "haleine", "mauvaise odeur", "menthe", "langue", "alito", "alitosi", "lingua", "halito", "hálito", "dry mouth", "agiz kurulug", "mundtrocken", "boca seca", "bouche seche", "bocca secca", "口臭", "رائحة الفم", "oddech"] },
+  { cats: { clinic: 3 }, tags: ["clinic", "treatment room", "reception", "waiting room", "instruments"], stems: ["clinic", "practice", "appointment", "klinik", "randevu", "muayenehane", "praxis", "termin", "clinica", "cita", "consulta", "cabinet", "rendez-vous", "studio dentist", "appuntamento", "consultorio", "x-ray", "rontgen", "radiograf", "panoram", "waiting room", "bekleme", "wartezimmer", "sala de espera", "salle d'attente", "sala d'attesa", "歯科医院", "予約", "عيادة", "موعد", "gabinet"] },
+  // Every dental video says "dentist" and "visit"; on their own they only lean toward the clinic.
+  { cats: { clinic: 1 }, tags: ["clinic"], stems: ["dentist", "visit", "dis hekim", "dishekim", "zahnarzt", "dentista", "dentiste", "歯医者", "受診", "طبيب الأسنان", "dentyst", "wizyt"] },
+  { cats: { calm: 4, clinic: 1 }, tags: ["calm", "relax", "comfort", "trust", "anxiety"], stems: ["fear", "anxi", "afraid", "nervous", "calm", "relax", "comfort", "korku", "kayg", "endise", "rahat", "sakin", "angst", "nervos", "ruhig", "entspann", "miedo", "ansiedad", "tranquil", "relaj", "comod", "peur", "anxiet", "calme", "detente", "paura", "ansia", "calma", "rilass", "medo", "ansiedade", "conforto", "怖", "不安", "خوف", "قلق", "strach", "stres", "obaw"] },
+];
+
+/** Clinic service names → category, in the style of dental/footage.ts BY_SERVICE. */
+const BY_SERVICE: [RegExp, string][] = [
+  [/implant|インプラント|زراع/i, "implants"],
+  [/whiten|bleach|blanque|beyazlat|blanchi|clare|sbianc|aufhell|branquea|ホワイトニング|تبييض|wybiel/i, "whitening"],
+  [/align|alinead|alinhad|plak|aligneur|allinea|ortodon|orthodon|kieferorth|schiene|brace|矯正|マウスピース|تقويم|nakładk/i, "aligners"],
+  [/root|wurzel|endodon|kanal|kanał|canal|devital|根管|عصب/i, "rootcanal"],
+  [/child|kinder|niñ|nin[oa]|odontopedi|çocuk|cocuk|pédodont|pedodon|bambin|crian|pediatr|paediatr|小児|子ども|子供|أطفال|dzieci|dziec/i, "kids"],
+  [/clean|reinig|limpieza|temizl|détartr|detartr|igiene|limpeza|hygien|prophyl|zahnstein|sarro|tartar|クリーニング|歯石|PMTC|تنظيف|جير|higienizac|skaling|kamień/i, "cleaning"],
+  [/sensitiv|hassas|empfindl|sensib|知覚過敏|حساسية|nadwrażliw/i, "sensitivity"],
+  [/breath|halito|nefes|atem|aliento|haleine|alito|口臭|رائحة|oddech/i, "breath"],
+];
+
+/** When nothing matches, or to round out a list: the general-purpose looks. */
+const GENERAL_CATS = ["calm", "clinic", "hygiene", "whitening", "implants", "aligners"];
+
+/** Lowercase and strip accents so stems match across scripts ("Diş" → "dis", "Zähne" → "zahne"). */
+export function fold(text: string): string {
+  return text
+    .replace(/İ/g, "i")
+    .replace(/I/g, "i")
+    .toLowerCase()
+    .replace(/ı/g, "i")
+    .replace(/ß/g, "ss")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function strings(value: unknown, out: string[] = []): string[] {
+  if (typeof value === "string") out.push(value);
+  else if (Array.isArray(value)) value.forEach((v) => strings(v, out));
+  else if (value && typeof value === "object") {
+    for (const [k, v] of Object.entries(value)) if (k !== "kind" && k !== "type") strings(v, out);
+  }
+  return out;
+}
+
+function countStem(haystack: string, stem: string): number {
+  const s = fold(stem);
+  let n = 0;
+  let from = 0;
+  for (;;) {
+    const i = haystack.indexOf(s, from);
+    if (i < 0) return n;
+    // Start of a word only: "tea" must not fire inside "steak".
+    if (i === 0 || !/[a-z0-9]/.test(haystack[i - 1])) n++;
+    from = i + s.length;
+  }
+}
+
+/** Concept hit counts for a text, capped so one repeated word cannot dominate. */
+function conceptHits(text: string): number[] {
+  const hay = ` ${fold(text)} `;
+  return CONCEPTS.map((c) => Math.min(3, c.stems.reduce((sum, st) => sum + countStem(hay, st), 0)));
+}
+
+/**
+ * Ranked library ids for a video, best first: between SUGGEST_MIN and
+ * SUGGEST_MAX (default 16), or the whole library when it is smaller.
+ */
+type Scores = { catScore: Record<string, number>; tagScore: Record<string, number> };
+
+/** How strongly the video's own words point at each category and tag (no floor). */
+function topicScores(input: SuggestInput): Scores {
+  // The topic and the title say what the video is about; the scenes say it at length.
+  const head = [input.topic ?? "", input.plan?.title ?? ""].join(" . ");
+  const body = [...strings(input.plan?.scenes ?? []), input.plan?.voiceover?.text ?? ""].join(" . ");
+  const headHits = conceptHits(head);
+  const bodyHits = conceptHits(body);
+
+  const catScore: Record<string, number> = {};
+  const tagScore: Record<string, number> = {};
+  CONCEPTS.forEach((c, i) => {
+    const w = headHits[i] * 2 + bodyHits[i];
+    if (!w) return;
+    for (const [cat, cw] of Object.entries(c.cats)) catScore[cat] = (catScore[cat] ?? 0) + w * (cw ?? 0);
+    for (const t of c.tags) tagScore[t] = (tagScore[t] ?? 0) + w;
+  });
+  const service = BY_SERVICE.find(([re]) => re.test(input.service ?? ""))?.[1];
+  if (service) catScore[service] = (catScore[service] ?? 0) + 12;
+  return { catScore, tagScore };
+}
+
+/**
+ * The photos that are actually about this video: their category is named by
+ * its topic, service or script. Only these go in by default — a root
+ * canal video gets no photos rather than whitening ones; the clinic can still
+ * pick any suggestion by hand.
+ */
+export function matchingBackgrounds(input: SuggestInput, library: LibraryImage[] = BACKGROUND_LIBRARY): Set<string> {
+  const { catScore } = topicScores(input);
+  return new Set(library.filter((img) => (catScore[img.category] ?? 0) > 0).map((img) => img.id));
+}
+
+export function suggestBackgrounds(input: SuggestInput, count = 16, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+  const want = Math.min(library.length, Math.max(SUGGEST_MIN, Math.min(SUGGEST_MAX, Math.round(count))));
+  if (!want) return [];
+
+  const { catScore, tagScore } = topicScores(input);
+
+  // A small, fixed floor for the general looks so a plan that matches nothing
+  // still gets a sensible, stable list.
+  GENERAL_CATS.forEach((cat, i) => (catScore[cat] = (catScore[cat] ?? 0) + 0.6 - i * 0.05));
+
+  const scored = library.map((img) => {
+    const tags = img.tags.reduce((s, t) => s + Math.min(2, tagScore[t] ?? 0), 0);
+    return { img, score: (catScore[img.category] ?? 0) + tags * 0.35 };
+  });
+
+  // Greedy pick with a per-category penalty: the best photos lead, but a list
+  // of sixteen is not sixteen variations of one idea.
+  const picked: string[] = [];
+  const perCat: Record<string, number> = {};
+  const pool = [...scored];
+  while (picked.length < want && pool.length) {
+    let best = -1;
+    let bestValue = -Infinity;
+    pool.forEach((s, i) => {
+      const value = s.score * Math.pow(0.82, perCat[s.img.category] ?? 0);
+      if (value > bestValue + 1e-9 || (Math.abs(value - bestValue) <= 1e-9 && s.img.id < pool[best].img.id)) {
+        best = i;
+        bestValue = value;
+      }
+    });
+    const [s] = pool.splice(best, 1);
+    picked.push(s.img.id);
+    perCat[s.img.category] = (perCat[s.img.category] ?? 0) + 1;
+  }
+  return picked;
+}
+
+
+/**
+ * Photos in which a viewer recognises dentistry at a glance: a toothbrush,
+ * toothpaste, an aligner case, a dental mirror and probe, an instrument tray,
+ * an implant screw, a whitening tray, a treatment chair. Picked by eye from
+ * the library (Nov 2026). The rest of the library is mood (stones, plants,
+ * light on a wall) or food, and a dentist reviewing the samples read those as
+ * filler: "an apple, a bread loaf and a stone arch in the implant video; a
+ * sink and towels in the tartar video; an ice-cream bowl for whitening".
+ * Mood photos stay in the suggestions for a clinic to pick by hand; a new
+ * video only starts with these.
+ */
+export const DENTAL_PHOTOS: ReadonlySet<string> = new Set([
+  "aligners-02", "aligners-03", "cleaning-02", "clinic-01", "clinic-07", "clinic-13",
+  "hygiene-01", "hygiene-04", "hygiene-05", "hygiene-08", "hygiene-13", "hygiene-17",
+  "implants-03", "implants-04", "kids-01", "kids-02", "kids-18", "whitening-01",
+]);
+
+/** When nothing dental matches the topic: a treatment chair, a mirror and probe, a toothbrush — in that order. */
+const DENTAL_FALLBACK = ["clinic-13", "cleaning-02", "hygiene-13", "clinic-07", "hygiene-05", "clinic-01"];
+
+/**
+ * The photos a new video starts with, from a ranked list of on-topic
+ * suggestions: only recognisably dental ones (see DENTAL_PHOTOS), the
+ * topic's own first, topped up with general dental photos so a video is
+ * never only text on a gradient. Three for a short video, four from 45
+ * seconds, so each photo holds for roughly ten to fifteen seconds.
+ *
+ * The web live preview calls this with the same ranked list the worker
+ * builds (suggestBackgrounds filtered by matchingBackgrounds), so the
+ * preview shows the photos a real week would get. Before Nov 2026 it was
+ * the top three suggestions, mood and food photos included.
+ */
+export function defaultBackgrounds(suggested: string[], totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+  const n = totalSeconds >= 45 ? 4 : 3;
+  const known = new Set(library.map((i) => i.id));
+  const out: string[] = [];
+  for (const id of [...suggested.filter((s) => DENTAL_PHOTOS.has(s)), ...DENTAL_FALLBACK]) {
+    if (out.length >= n) break;
+    if (known.has(id) && !out.includes(id)) out.push(id);
+  }
+  return out;
+}
+
+/**
+ * The photos a new video starts with (worker dental/week.ts): the ranked
+ * on-topic suggestions through defaultBackgrounds. Deterministic.
+ */
+export function startingBackgrounds(input: SuggestInput, totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+  const relevant = matchingBackgrounds(input, library);
+  return defaultBackgrounds(suggestBackgrounds(input, undefined, library).filter((id) => relevant.has(id)), totalSeconds, library);
+}

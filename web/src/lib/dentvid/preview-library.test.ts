@@ -1,0 +1,185 @@
+import fs from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { formatHandle, libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, serviceCategory, NARRATION_HELD, PREVIEW_LANGUAGES, PREVIEW_LIBRARY } from "./preview-library";
+import { scanHardRules, scanMarketRules } from "./hard-rules";
+import { splitServices, SERVICE_HINTS } from "./service-hints";
+import { parseScenePlan } from "@/remotion/scene-plan";
+import { isRtl } from "@/remotion/script";
+
+describe("preview player controls", () => {
+  // The composition's logo: top right, mirrored to top left in a right-to-left video (remotion/Video.tsx).
+  const logoSide = (lang: string) => (isRtl(lang) ? "left" : "right");
+
+  it("never sit in the corner the clinic's logo is in, in any preview language", () => {
+    for (const lang of PREVIEW_LANGUAGES) expect(previewControlsSide(lang)).not.toBe(logoSide(lang));
+    expect(previewControlsSide("ar")).toBe("right");
+    expect(previewControlsSide("en")).toBe("left");
+    expect(previewControlsSide("ja")).toBe("left");
+  });
+
+  it("follow the video's language, not the page's — an English clinic on an Arabic page still has its logo top right", () => {
+    // Italian / Portuguese clinics are previewed with the English library.
+    expect(previewControlsSide("it")).toBe("left");
+  });
+
+  it("are placed by the player from the helper, with physical sides (not start/end, which flip with the page)", () => {
+    const src = fs.readFileSync(path.join(__dirname, "../../components/dentvid/live-preview-player.tsx"), "utf8");
+    expect(src).toContain("previewControlsSide(lang)");
+    expect(src).not.toMatch(/absolute end-4 top-14/);
+  });
+});
+
+const PUBLIC = path.resolve(__dirname, "../../../public/dentvideo/preview");
+
+describe("serviceCategory", () => {
+  it.each([
+    ["Teeth whitening", "whitening"],
+    ["Bleaching", "whitening"],
+    ["Diş beyazlatma", "whitening"],
+    ["İmplant tedavisi", "implant"],
+    ["Implants dentaires", "implant"],
+    ["Şeffaf plak tedavisi", "aligners"],
+    ["Ortodoncia invisible", "aligners"],
+    ["Kanal tedavisi", "rootcanal"],
+    ["Wurzelbehandlung", "rootcanal"],
+    ["Kinderzahnheilkunde", "children"],
+    ["Odontopediatría", "children"],
+    ["Tratamiento de encías", "gum"],
+    ["Parodontitis-Behandlung", "gum"],
+    ["Professionelle Zahnreinigung", "cleaning"],
+    ["Détartrage", "cleaning"],
+    ["Diş taşı temizliği", "cleaning"],
+    ["インプラント", "implant"],
+    ["マウスピース矯正", "aligners"],
+    ["根管治療", "rootcanal"],
+    ["小児歯科", "children"],
+    ["歯周病の予防", "gum"],
+    ["歯のクリーニング", "cleaning"],
+    ["زراعة الأسنان", "implant"],
+    ["التقويم الشفاف", "aligners"],
+    ["علاج اللثة", "gum"],
+    ["طب أسنان الأطفال", "children"],
+    ["تنظيف الأسنان", "cleaning"],
+    ["Leczenie kanałowe", "rootcanal"],
+    ["Leczenie nakładkami", "aligners"],
+    ["Stomatologia dziecięca", "children"],
+    ["Higienizacja", "cleaning"],
+    ["Krwawienie dziąseł", "gum"],
+    ["Veneers", undefined],
+  ])("%s → %s", (service, category) => expect(serviceCategory(service)).toBe(category));
+});
+
+describe("example services", () => {
+  it.each(["ja", "ar", "pl"])("every %s example maps to a topic, split on the language's own comma", (l) => {
+    const services = splitServices(SERVICE_HINTS[l]);
+    expect(services).toHaveLength(6);
+    for (const s of services) expect(serviceCategory(s), s).toBeDefined();
+  });
+});
+
+describe("pickPreviews", () => {
+  it("previews Japanese, Arabic and Polish clinics in their own language", () => {
+    for (const l of ["ja", "ar", "pl"] as const) {
+      expect(libraryLanguage(l)).toBe(l);
+      const picks = pickPreviews(splitServices(SERVICE_HINTS[l]), l, 3);
+      expect(picks).toHaveLength(3);
+      expect(picks.every((p) => PREVIEW_LIBRARY[l].includes(p))).toBe(true);
+    }
+  });
+  it("leads with the clinic's own services, in its order, without repeating a topic", () => {
+    const picks = pickPreviews(["İmplant tedavisi", "Diş beyazlatma"], "tr", 3);
+    expect(picks.map((p) => p.category).slice(0, 2)).toEqual(["implant", "whitening"]);
+    expect(new Set(picks.map((p) => p.category)).size).toBe(3);
+  });
+  it("fills from the library when nothing matches, and falls back to English for it/pt", () => {
+    expect(pickPreviews(["Veneers"], "de", 3)).toHaveLength(3);
+    expect(libraryLanguage("it")).toBe("en");
+    expect(pickPreviews([], "pt", 3).map((p) => p.id)).toEqual(pickPreviews([], "en", 3).map((p) => p.id));
+  });
+});
+
+describe("personalisePlan", () => {
+  const plan = {
+    scenes: [
+      { kind: "hook", text: "Hi", seconds: 3 },
+      { kind: "cta", text: "Ask {handle} or visit {name}", handle: "{handle}", seconds: 4 },
+    ],
+  };
+  it("puts the visitor's handle and name where the sample clinic's were", () => {
+    const p = personalisePlan(plan, { name: "Smile Studio", handle: " smile_studio " });
+    expect(p.scenes[1]).toEqual({ kind: "cta", text: "Ask @smile_studio or visit Smile Studio", handle: "@smile_studio", seconds: 4 });
+  });
+  it("drops the handle chip when there is none, and names the clinic instead", () => {
+    const p = personalisePlan(plan, { name: "Smile Studio" });
+    expect(p.scenes[1]).toEqual({ kind: "cta", text: "Ask Smile Studio or visit Smile Studio", seconds: 4 });
+  });
+  it("formats handles", () => {
+    expect(formatHandle("@@a b")).toBe("@ab");
+    expect(formatHandle("  ")).toBeUndefined();
+  });
+});
+
+describe("the library on disk", () => {
+  const all = PREVIEW_LANGUAGES.flatMap((l) => PREVIEW_LIBRARY[l].map((e) => ({ l, e })));
+  it("has 3–6 videos per language, narrated ones at least 4", () => {
+    for (const l of PREVIEW_LANGUAGES) {
+      const lib = PREVIEW_LIBRARY[l];
+      expect(lib.length, l).toBeGreaterThanOrEqual(lib.every((e) => e.narrated === false) ? 3 : 4);
+      expect(lib.length, l).toBeLessThanOrEqual(6);
+    }
+  });
+  it.each(all.map(({ l, e }) => [`${l}/${e.id}`, l, e]))("%s is a valid plan with no sample-clinic text, narrated unless marked silent", (_, l, e) => {
+    const json = fs.readFileSync(path.join(PUBLIC, l, `${e.id}.json`), "utf8");
+    expect(json).not.toMatch(/demo/i);
+    const plan = personalisePlan(JSON.parse(json), { name: "Smile Studio", handle: "smilestudio" });
+    expect(() => parseScenePlan(plan)).not.toThrow();
+    const mp3 = path.join(PUBLIC, l, `${e.id}.mp3`);
+    if (e.narrated === false) {
+      // A held narration stays on disk until the video is re-rendered; a silent video never had one.
+      expect(fs.existsSync(mp3)).toBe(Boolean(NARRATION_HELD[l]?.includes(e.id)));
+      // A silent plan names its language, so the player sets lang/dir and the script's fonts.
+      expect(plan.language).toBe(l);
+    } else expect(fs.statSync(mp3).size).toBeGreaterThan(20_000);
+  });
+  it("holds only narrations that exist, and plays them silent", () => {
+    for (const [l, ids] of Object.entries(NARRATION_HELD) as [keyof typeof NARRATION_HELD, string[]][]) {
+      for (const id of ids) {
+        const e = PREVIEW_LIBRARY[l].find((x) => x.id === id);
+        expect(e, `${l}/${id}`).toBeDefined();
+        expect(e!.narrated).toBe(false);
+      }
+    }
+  });
+  // RG 33075: information only. The library's Turkish closings used to say
+  // "Sorularınız için bize ulaşın veya randevu alın!".
+  it.each(PREVIEW_LIBRARY.tr.map((e) => [e.id]))("tr/%s shows nothing that steers to booking or the clinic, and no exclamation mark", (id) => {
+    const plan = JSON.parse(fs.readFileSync(path.join(PUBLIC, "tr", `${id}.json`), "utf8")) as { scenes: Record<string, unknown>[] };
+    const text = plan.scenes
+      .flatMap((s) => [s.text, s.caption, s.heading, ...(Array.isArray(s.items) ? s.items : [])])
+      .filter((t): t is string => typeof t === "string")
+      .join("\n");
+    expect(scanMarketRules(text, "TR")).toEqual([]);
+    expect(scanHardRules(text)).toEqual([]);
+    expect(text).not.toMatch(/[!！]/);
+  });
+  // Eight languages of 5–6 narrated videos (~1.5 MB each); a visitor only ever loads three.
+  it("stays small enough to ship (≤ 12 MB)", () => {
+    const size = (dir: string): number =>
+      fs.readdirSync(dir, { withFileTypes: true }).reduce((n, f) => n + (f.isDirectory() ? size(path.join(dir, f.name)) : fs.statSync(path.join(dir, f.name)).size), 0);
+    expect(size(PUBLIC)).toBeLessThan(12 * 1024 * 1024);
+  });
+});
+
+import { servicesWithoutSample as missingSamples } from "./preview-library";
+describe("servicesWithoutSample: the preview says when a chosen treatment has no sample", () => {
+  it("lists the clinic's own words for categories the language lacks, once each", () => {
+    const lib = { tr: [{ id: "a", category: "implant" as const, service: "İmplant", title: "x", seconds: 20 }] };
+    expect(missingSamples(["İmplant tedavisi", "Çocuk diş hekimliği", "çocuk", "Kanal tedavisi", "Botoks"], "tr", lib)).toEqual(["Çocuk diş hekimliği", "Kanal tedavisi"]);
+    expect(missingSamples(["İmplant"], "tr", lib)).toEqual([]);
+  });
+  it("knows the real gaps: no Turkish children's sample, no root canal sample anywhere", () => {
+    expect(missingSamples(["Çocuk diş hekimliği"], "tr")).toEqual(["Çocuk diş hekimliği"]);
+    for (const l of ["en", "de", "es", "fr", "tr", "ja", "ar", "pl"]) expect(missingSamples(["Root canal"], l)).toEqual(["Root canal"]);
+  });
+});

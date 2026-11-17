@@ -1,18 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ImagePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { dvBrowser, BUCKET } from "@/lib/dentvid/supabase";
-import { LANGUAGES, type ClinicProfile } from "@/lib/dentvid/profile";
+import { LANGUAGES, type ClinicProfile, type NarratorVoice } from "@/lib/dentvid/profile";
 import type { Locale } from "@/content/dentvideo";
-import { appText, fmt } from "@/content/dentvideo-app";
+import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { accentFor, analyseLogoFile, type LogoColors } from "@/lib/dentvid/logo-colors";
+import { prepareLogo, type PreparedLogo } from "@/lib/dentvid/logo-prepare";
+import { LOGO_TEXT, logoNotes, logoProblemText } from "@/content/dentvideo-logo";
+import { LogoStatus } from "./logo-status";
 import { LogoPreview } from "./logo-preview";
+import { HelpLink } from "./help-link";
+import { FieldError, ValidatingForm, useClearFieldError } from "./validating-form";
+import type { PreviewProfile } from "./live-preview";
+import { SERVICE_HINTS, exampleServices, hasService, splitServices, suggestedServices, toggleService } from "@/lib/dentvid/service-hints";
+import { uploadLogo } from "@/lib/dentvid/upload-client";
+import { readAttribution } from "@/lib/dentvid/attribution";
+import { CLOSING_LINE_MAX } from "@/lib/dentvid/closing-line";
+import { closingLineMessage, closingLineNote } from "@/lib/dentvid/closing-line-message";
 
-const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "AE", "CA", "AU"];
+const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "BR", "TR", "NL", "PL", "JP", "SG", "AE", "SA", "QA", "KW", "BH", "OM", "CA", "AU"];
 
 /** A new clinic starts in the country and language the visitor came in with. */
-const DEFAULT_COUNTRY: Record<Locale, string> = { en: "US", de: "DE", es: "ES", tr: "TR", fr: "FR" };
+const DEFAULT_COUNTRY: Record<Locale, string> = { en: "US", de: "DE", es: "ES", tr: "TR", fr: "FR", ja: "JP", ar: "AE", pl: "PL" };
+
+/** Brand colours to try when the logo gives none (or there is no logo yet). */
+const PRESET_COLOURS = ["#0f5c5c", "#1f4e79", "#2e7d6b", "#b6774f", "#8a3b4a", "#24303a"];
 
 /** Country names in the interface's language, from the browser's own data. */
 function countryName(code: string, locale: Locale): string {
@@ -23,23 +37,44 @@ function countryName(code: string, locale: Locale): string {
   }
 }
 
-const SERVICE_HINTS: Record<string, string> = {
-  en: "Cleanings, Teeth whitening, Implants, Clear aligners, Root canal treatment, Children's dentistry",
-  de: "Professionelle Zahnreinigung, Bleaching, Implantate, Aligner, Wurzelbehandlung, Kinderzahnheilkunde",
-  es: "Limpieza dental, Blanqueamiento, Implantes, Ortodoncia invisible, Endodoncia, Odontopediatría",
-  fr: "Détartrage, Blanchiment, Implants, Aligneurs, Traitement de canal, Pédodontie",
-  it: "Igiene dentale, Sbiancamento, Impianti, Allineatori, Devitalizzazione, Odontoiatria pediatrica",
-  pt: "Limpeza, Clareamento, Implantes, Alinhadores, Tratamento de canal, Odontopediatria",
-  tr: "Diş taşı temizliği, Diş beyazlatma, İmplant, Şeffaf plak, Kanal tedavisi, Çocuk diş hekimliği",
+export type DraftFields = {
+  name: string;
+  city: string;
+  country: string;
+  language: ClinicProfile["language"];
+  services: string;
+  tone: ClinicProfile["tone"];
+  address: ClinicProfile["address"];
+  handle: string;
+  bookingUrl: string;
+  /** The clinic's own closing line under its captions; "" for none. */
+  closingLine: string;
+  /** Who narrates the videos; female unless the clinic picks male. */
+  narratorVoice: NarratorVoice;
+  brandColor: string;
 };
 
-type Props = { locale: Locale; initial?: Partial<ClinicProfile>; logoPath?: string | null; submitLabel?: string };
-
-export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
+/**
+ * One clinic profile being edited: the fields, the logo (shown at once from
+ * an object URL, uploaded only on save) and the colours read from it. Shared
+ * by the settings form and every step of the onboarding wizard, so the live
+ * preview always shows exactly what will be saved.
+ */
+export function useClinicDraft({
+  locale,
+  initial,
+  logoUrl: savedLogoUrl,
+  demoToken,
+}: {
+  locale: Locale;
+  initial?: Partial<ClinicProfile>;
+  /** A signed URL of the clinic's saved logo, to preview it before any change. */
+  logoUrl?: string | null;
+  /** Arrived from a personalised demo link: sent with the save (credit, and the demo's logo is copied server side). */
+  demoToken?: string;
+}) {
   const text = appText(locale);
-  const t = text.form;
-  const router = useRouter();
-  const [p, setP] = useState({
+  const [p, setP] = useState<DraftFields>({
     name: initial?.name ?? "",
     city: initial?.city ?? "",
     country: initial?.country ?? DEFAULT_COUNTRY[locale],
@@ -49,174 +84,514 @@ export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
     address: initial?.address ?? "formal",
     handle: initial?.handle ?? "",
     bookingUrl: initial?.bookingUrl ?? "",
-    brandColor: initial?.brandColor ? `#${initial.brandColor}` : "#0f5c5c",
+    closingLine: initial?.closingLine ?? "",
+    narratorVoice: initial?.narratorVoice ?? "female",
+    brandColor: initial?.brandColor ? `#${initial.brandColor.replace(/^#/, "").toLowerCase()}` : "#0f5c5c",
   });
   const [logo, setLogo] = useState<File | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(savedLogoUrl ?? null);
   const [colors, setColors] = useState<LogoColors | null>(null);
+  const [dirty, setDirty] = useState(false);
+  /** A chosen file that is not a usable picture (the previous logo stays). */
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const invalidLogo = text.errors.invalidLogo;
   const latest = useRef<File | null>(null);
+  const objectUrl = useRef<string | null>(null);
   useEffect(() => () => {
-    if (logoUrl) URL.revokeObjectURL(logoUrl);
-  }, [logoUrl]);
+    if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+  }, []);
 
-  /** A new logo: read its colours and suggest the brand colour from it. The clinic can still pick any. */
-  async function chooseLogo(file: File | null) {
+  // A saved logo: read its colours too, so the swatches are there on return.
+  useEffect(() => {
+    if (!savedLogoUrl) return;
+    let live = true;
+    fetch(savedLogoUrl)
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((b) => (b ? analyseLogoFile(b) : undefined))
+      .then((found) => {
+        if (live && found && !latest.current) setColors(found);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [savedLogoUrl]);
+
+  const update = useCallback(<K extends keyof DraftFields>(k: K, v: DraftFields[K]) => {
+    setP((prev) => ({ ...prev, [k]: v }));
+    setDirty(true);
+  }, []);
+  const set = (k: keyof DraftFields) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+    update(k, e.target.value as never);
+
+  /** The chosen file, prepared (logo-prepare.ts): scaled, a white background removed, saved as PNG. */
+  const [prepared, setPrepared] = useState<PreparedLogo | null>(null);
+  const [keepBackground, setKeepBackground] = useState(false);
+  const [logoReading, setLogoReading] = useState(false);
+  const [logoNotesList, setLogoNotes] = useState<string[]>([]);
+  const logoText = LOGO_TEXT[locale];
+
+  /** Shows one version of the logo and reads its colours; it is what will be uploaded. */
+  const showLogo = useCallback(async (file: File) => {
     latest.current = file;
     setLogo(file);
     setColors(null);
-    setLogoUrl(file ? URL.createObjectURL(file) : null);
-    if (!file) return;
+    setDirty(true);
+    if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    objectUrl.current = URL.createObjectURL(file);
+    setLogoUrl(objectUrl.current);
     const found = await analyseLogoFile(file);
     // A second file chosen while the first was being read wins.
     if (!found || latest.current !== file) return;
     setColors(found);
     if (found.suggested) setP((prev) => ({ ...prev, brandColor: found.suggested! }));
-  }
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const set = (k: keyof typeof p) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setP({ ...p, [k]: e.target.value });
+  }, []);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      let newLogo: string | undefined;
-      if (logo) {
-        const db = dvBrowser();
-        const { data: u } = await db.auth.getUser();
-        if (!u.user) throw new Error(text.errors.signIn);
-        const ext = (logo.name.split(".").pop() ?? "png").toLowerCase().slice(0, 4);
-        newLogo = `${u.user.id}/logo.${ext}`;
-        const { error: upErr } = await db.storage.from(BUCKET).upload(newLogo, logo, { upsert: true, contentType: logo.type });
-        if (upErr) throw new Error(fmt(t.logoFailed, { message: upErr.message }));
-      }
-      const profile = {
-        name: p.name,
-        city: p.city || undefined,
-        country: p.country,
-        language: p.language,
-        services: p.services.split(/[,\n]/).map((s) => s.trim()).filter(Boolean),
-        tone: p.tone,
-        address: p.address,
-        handle: p.handle || undefined,
-        bookingUrl: p.bookingUrl || undefined,
-        brandColor: p.brandColor,
-      };
-      const res = await fetch("/api/dentvideo/clinic", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}) }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error ?? text.errors.saveFailed);
-      router.push("/dentvideo/app");
-      router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
+  /**
+   * A new logo: prepared in the browser (any size or format a clinic has),
+   * shown now, its colours suggested. Not a usable picture: say why in the
+   * clinic's language and keep the logo there was (never upload it).
+   */
+  const chooseLogo = useCallback(async (file: File | null) => {
+    setLogoError(null);
+    setLogoNotes([]);
+    if (!file) return;
+    const pending = file;
+    latest.current = pending;
+    setLogoReading(true);
+    const result = await prepareLogo(file);
+    if (latest.current !== pending) return;
+    setLogoReading(false);
+    if (!result.ok) {
+      latest.current = null;
+      setLogoError(result.problem === "unreadable" ? invalidLogo : logoProblemText(logoText, result.problem));
+      return;
     }
+    setPrepared(result);
+    setKeepBackground(false);
+    setLogoNotes(logoNotes(logoText, result));
+    await showLogo(result.file);
+  }, [invalidLogo, logoText, showLogo]);
+
+  const toggleBackground = useCallback(async () => {
+    const keep = !keepBackground;
+    const file = keep ? await prepared?.original?.() : prepared?.file;
+    if (!file) return;
+    setKeepBackground(keep);
+    void showLogo(file);
+  }, [prepared, keepBackground, showLogo]);
+
+  /** Upload a new logo (if any) and save the profile. Throws with a message for the clinic. */
+  async function save(): Promise<void> {
+    // Checked before any upload: the server refuses the same line with the same words.
+    const refused = p.closingLine.trim() ? closingLineMessage(p.closingLine, p.country, locale) : null;
+    if (refused) throw new Error(refused);
+    let newLogo: string | undefined;
+    if (logo) {
+      // A new, versioned name each time (no overwrite). The file goes through
+      // the server, which checks the session, its real size and bytes, and the
+      // quota (api/dentvideo/logo); it deletes the previous logo once saved.
+      newLogo = await uploadLogo(logo, text.errors.invalidLogo).catch((e: Error) => {
+        throw new Error(fmt(text.form.logoFailed, { message: e.message }));
+      });
+    }
+    const profile = {
+      name: p.name,
+      city: p.city || undefined,
+      country: p.country,
+      language: p.language,
+      services: splitServices(p.services),
+      tone: p.tone,
+      address: p.address,
+      handle: p.handle || undefined,
+      bookingUrl: p.bookingUrl || undefined,
+      closingLine: p.closingLine.trim() || undefined,
+      // Sent once it means something (male, or a choice already stored), so a
+      // first save does not carry a key the pre-0022 database refuses.
+      ...(p.narratorVoice === "male" || initial?.narratorVoice ? { narratorVoice: p.narratorVoice } : {}),
+      brandColor: p.brandColor,
+    };
+    const res = await fetch("/api/dentvideo/clinic", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      // The tab's first-touch source rides along, so the clinic's payment can be credited to it (/admin Sources).
+      body: JSON.stringify({ profile, ...(newLogo ? { logoPath: newLogo } : {}), attribution: readAttribution(), ...(demoToken ? { demoToken } : {}) }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error ?? text.errors.saveFailed);
+    // Saved: the object URL stays on screen; the file is no longer pending.
+    latest.current = null;
+    setLogo(null);
+    setDirty(false);
   }
 
-  const field = "dv-field";
-  const label = "block text-sm font-medium";
+  const preview: PreviewProfile = {
+    name: p.name.trim(),
+    language: p.language,
+    services: splitServices(p.services).length ? splitServices(p.services) : exampleServices(p.language),
+    brandColor: p.brandColor,
+    logoUrl: logoUrl ?? undefined,
+    handle: p.handle.replace(/^@/, "") || undefined,
+    tone: p.tone,
+  };
+
+  const logoStatus = {
+    text: logoText,
+    reading: logoReading,
+    notes: logoNotesList,
+    cleaned: !!logo && !!prepared?.cleaned && !!prepared.original,
+    keepBackground,
+    onToggleBackground: toggleBackground,
+  };
+  return { p, set, update, logo, logoUrl, logoError, colors, chooseLogo, save, dirty, preview, savedLogo: !!savedLogoUrl, logoStatus };
+}
+
+export type ClinicDraft = ReturnType<typeof useClinicDraft>;
+
+const label = "block text-sm font-semibold text-dv-ink";
+
+/**
+ * Name, place, language, address, services, tone, handle, booking link.
+ *
+ * `moreLabel` (the sign-up wizard): only what the first preview and the
+ * compliance rules need is shown — name, country, language, services — and
+ * the rest (city, form of address, tone, handle, booking link; all optional
+ * or with a default) folds under that label, so a new clinic reaches its
+ * preview with four fields instead of nine. Settings shows everything.
+ */
+export function ClinicDetailsFields({ draft, locale, moreLabel }: { draft: ClinicDraft; locale: Locale; moreLabel?: string }) {
+  const t = appText(locale).form;
+  const { p, set } = draft;
+  const clearError = useClearFieldError();
+  const name = (
+    <label className={`${label} sm:col-span-2`}>
+      {t.clinicName}
+      <input required data-field="name" value={p.name} onChange={set("name")} autoComplete="organization" className="dv-field" />
+      <FieldError name="name" />
+    </label>
+  );
+  const city = (
+    <label className={label}>
+      {t.city}
+      <input value={p.city} onChange={set("city")} autoComplete="address-level2" className="dv-field" />
+    </label>
+  );
+  const country = (
+    <label className={label}>
+      {t.country}
+      <select value={p.country} onChange={set("country")} className="dv-field">
+        {COUNTRIES.map((code) => (
+          <option key={code} value={code} suppressHydrationWarning>{countryName(code, locale)}</option>
+        ))}
+      </select>
+    </label>
+  );
+  // English has no formal/informal "you": the choice (labelled "Sie / du") only puzzled English clinics, and the
+  // videos read the same either way. The stored value is kept, so switching the language back shows it again.
+  const address = p.language === "en" ? null : (
+    <label className={label}>
+      {t.address}
+      <select value={p.address} onChange={set("address")} className="dv-field">
+        <option value="formal">{t.formal}</option>
+        <option value="informal">{t.informal}</option>
+      </select>
+    </label>
+  );
+  // The usual treatments one tap away: typing a comma-separated list on a phone is where clinics stalled.
+  const services = (
+    <div className="sm:col-span-2">
+      <label className={label}>
+        {t.services}
+        <textarea required data-field="services" rows={3} value={p.services} onChange={set("services")} placeholder={SERVICE_HINTS[p.language]} className="dv-field" />
+        <FieldError name="services" />
+        <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
+      </label>
+      <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label={t.servicesQuick} data-service-chips>
+        <span className="text-xs font-medium text-dv-muted">{t.servicesQuick}</span>
+        {suggestedServices(p.language).map((s) => {
+          const on = hasService(p.services, s);
+          return (
+            <button
+              key={s}
+              type="button"
+              aria-pressed={on}
+              onClick={() => {
+                draft.update("services", toggleService(p.services, s, p.language));
+                // A tap fills the field without an input event: clear its "please fill this in".
+                clearError("services");
+              }}
+              className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition ${
+                on ? "bg-dv-teal text-white ring-dv-teal" : "bg-white text-dv-ink ring-dv-line hover:ring-dv-teal"
+              }`}
+            >
+              <span aria-hidden="true">{on ? "✓" : "+"}</span>
+              {s}
+            </button>
+          );
+        })}
+      </div>
+      <HelpLink locale={locale} id="services" className="mt-2" />
+    </div>
+  );
+  const tone = (
+    <label className={label}>
+      {t.tone}
+      <select value={p.tone} onChange={set("tone")} className="dv-field">
+        <option value="warm">{t.tones.warm}</option>
+        <option value="expert">{t.tones.expert}</option>
+        <option value="calm">{t.tones.calm}</option>
+        <option value="playful">{t.tones.playful}</option>
+      </select>
+    </label>
+  );
+  const booking = (
+    <label className={`${label} sm:col-span-2`}>
+      {t.booking}
+      <input type="url" dir="ltr" data-field="bookingUrl" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className="dv-field" />
+      <FieldError name="bookingUrl" />
+    </label>
+  );
+
+  if (moreLabel) {
+    return (
+      <div className="grid gap-5 sm:grid-cols-2" data-fields="essential">
+        {name}
+        {country}
+        <LanguageField draft={draft} t={t} />
+        {services}
+        <details className="group sm:col-span-2" data-fields="more">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-semibold text-dv-teal [&::-webkit-details-marker]:hidden">
+            <span aria-hidden="true" className="inline-block transition-transform group-open:rotate-90 rtl:-scale-x-100">›</span>
+            {moreLabel}
+          </summary>
+          <div className="mt-4 grid gap-5 sm:grid-cols-2">
+            {city}
+            {address}
+            {tone}
+            <HandleField draft={draft} t={t} />
+            {booking}
+          </div>
+        </details>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
-      <label className={`${label} sm:col-span-2`}>
-        {t.clinicName}
-        <input required value={p.name} onChange={set("name")} className={field} />
-      </label>
-      <label className={label}>
-        {t.city}
-        <input value={p.city} onChange={set("city")} className={field} />
-      </label>
-      <label className={label}>
-        {t.country}
-        <select value={p.country} onChange={set("country")} className={field}>
-          {COUNTRIES.map((code) => (
-            <option key={code} value={code} suppressHydrationWarning>{countryName(code, locale)}</option>
-          ))}
-        </select>
-      </label>
-      <label className={label}>
-        {t.language}
-        <select value={p.language} onChange={set("language")} className={field}>
-          {LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>{l.label}</option>
-          ))}
-        </select>
-      </label>
-      <label className={label}>
-        {t.address}
-        <select value={p.address} onChange={set("address")} className={field}>
-          <option value="formal">{t.formal}</option>
-          <option value="informal">{t.informal}</option>
-        </select>
-      </label>
-      <label className={`${label} sm:col-span-2`}>
-        {t.services}
-        <textarea
-          required
-          rows={3}
-          value={p.services}
-          onChange={set("services")}
-          placeholder={SERVICE_HINTS[p.language]}
-          className={field}
+    <div className="grid gap-5 sm:grid-cols-2">
+      {name}
+      {city}
+      {country}
+      <LanguageField draft={draft} t={t} />
+      {address}
+      {services}
+      {tone}
+      <HandleField draft={draft} t={t} />
+      {booking}
+      <ClosingLineField draft={draft} locale={locale} />
+      <NarratorVoiceField draft={draft} locale={locale} />
+    </div>
+  );
+}
+
+/**
+ * The clinic's own closing line under its captions (settings only: the
+ * sign-up wizard keeps to what the first preview needs). Checked as the
+ * clinic types, against the same market rules the worker applies, and the
+ * reason is said calmly under the field; the save says it again if needed.
+ */
+export function ClosingLineField({ draft, locale }: { draft: ClinicDraft; locale: Locale }) {
+  const t = appText(locale).form;
+  const { p, set } = draft;
+  const line = p.closingLine.trim();
+  const note = line ? closingLineNote(line, p.country, locale) : null;
+  const left = CLOSING_LINE_MAX - p.closingLine.length;
+  return (
+    <div className="sm:col-span-2">
+    <label className={label}>
+      {t.closingLine}
+      <textarea
+        data-field="closingLine"
+        rows={2}
+        maxLength={CLOSING_LINE_MAX}
+        value={p.closingLine}
+        onChange={set("closingLine")}
+        aria-invalid={note ? true : undefined}
+        aria-describedby="dv-closing-line-help"
+        className="dv-field"
+      />
+      <span id="dv-closing-line-help" className="mt-1.5 flex items-start justify-between gap-3 text-xs font-normal">
+        {note ? (
+          <span role="status" className="text-[#8a1f1f]" data-testid="dv-closing-line-note">{note}</span>
+        ) : (
+          <span className="text-dv-muted">{t.closingLineHelp}</span>
+        )}
+        <span dir="ltr" aria-hidden="true" className={`shrink-0 tabular-nums ${left < 15 ? "text-dv-ink" : "text-dv-muted"}`}>{left}</span>
+      </span>
+    </label>
+    <HelpLink locale={locale} id="closing-line" className="mt-1" />
+    </div>
+  );
+}
+
+/**
+ * Who narrates the clinic's videos: a female or a male voice (settings only,
+ * like the closing line). The worker maps it to the provider's voice
+ * (worker/src/dental/voice.ts, dental/elevenlabs.ts).
+ */
+export function NarratorVoiceField({ draft, locale }: { draft: ClinicDraft; locale: Locale }) {
+  const t = appText(locale).form;
+  const { p, update } = draft;
+  const options: { value: NarratorVoice; label: string }[] = [
+    { value: "female", label: t.narratorFemale },
+    { value: "male", label: t.narratorMale },
+  ];
+  return (
+    <fieldset className="sm:col-span-2" data-field="narratorVoice" aria-describedby="dv-narrator-help">
+      <legend className={label}>{t.narratorVoice}</legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {options.map((o) => {
+          const on = p.narratorVoice === o.value;
+          return (
+            <label
+              key={o.value}
+              className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ring-1 transition focus-within:ring-2 focus-within:ring-dv-teal ${
+                on ? "bg-dv-teal text-white ring-dv-teal" : "bg-white text-dv-ink ring-dv-line hover:ring-dv-teal"
+              }`}
+            >
+              <input
+                type="radio"
+                name="dv-narrator-voice"
+                value={o.value}
+                checked={on}
+                onChange={() => update("narratorVoice", o.value)}
+                className="sr-only"
+              />
+              {o.label}
+            </label>
+          );
+        })}
+      </div>
+      <span id="dv-narrator-help" className="mt-1.5 block text-xs font-normal text-dv-muted">{t.narratorVoiceHelp}</span>
+      <HelpLink locale={locale} id="narrator-voice" className="mt-1" />
+    </fieldset>
+  );
+}
+
+export function LanguageField({ draft, t }: { draft: ClinicDraft; t: AppText["form"] }) {
+  return (
+    <label className={label}>
+      {t.language}
+      <select value={draft.p.language} onChange={draft.set("language")} className="dv-field">
+        {LANGUAGES.map((l) => (
+          <option key={l.code} value={l.code}>{l.label}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export function HandleField({ draft, t }: { draft: ClinicDraft; t: AppText["form"] }) {
+  return (
+    <label className={label}>
+      {t.handle}
+      <span dir="ltr" className="relative mt-0 block">
+        <span aria-hidden="true" className="pointer-events-none absolute start-4 top-1/2 mt-[3px] -translate-y-1/2 text-dv-muted">@</span>
+        <input
+          value={draft.p.handle.replace(/^@/, "")}
+          onChange={(e) => draft.update("handle", e.target.value.replace(/^@/, "").replace(/\s/g, ""))}
+          autoCapitalize="none"
+          spellCheck={false}
+          className="dv-field !ps-8"
         />
-        <span className="mt-1 block text-xs font-normal text-dv-muted">{t.servicesHelp}</span>
-      </label>
-      <label className={label}>
-        {t.tone}
-        <select value={p.tone} onChange={set("tone")} className={field}>
-          <option value="warm">{t.tones.warm}</option>
-          <option value="expert">{t.tones.expert}</option>
-          <option value="calm">{t.tones.calm}</option>
-          <option value="playful">{t.tones.playful}</option>
-        </select>
-      </label>
-      <label className={label}>
-        {t.handle}
-        <input value={p.handle} onChange={set("handle")} placeholder="@" className={field} />
-      </label>
-      <label className={label}>
-        {t.booking}
-        <input type="url" value={p.bookingUrl} onChange={set("bookingUrl")} placeholder="https://" className={field} />
-      </label>
-      <label className={`${label} sm:col-span-2`}>
-        {t.logo}
-        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => void chooseLogo(e.target.files?.[0] ?? null)} className={`${field} file:mr-3 file:rounded-full file:border-0 file:bg-[#e6efed] file:px-3 file:py-1`} />
-        {logoPath && !logo && <span className="mt-1 block text-xs font-normal text-dv-muted">{t.logoSaved}</span>}
-      </label>
-      <div className={`${label} sm:col-span-2`}>
+      </span>
+    </label>
+  );
+}
+
+/** Logo upload, brand colour, the logo's own colours as one-tap swatches. */
+export function BrandFields({ draft, locale, showLogoPreview = false }: { draft: ClinicDraft; locale: Locale; showLogoPreview?: boolean }) {
+  const t = appText(locale).form;
+  const { p, colors, logoUrl, logo } = draft;
+  const swatches = colors && colors.swatches.length > 0 ? colors.swatches : PRESET_COLOURS;
+  const fromLogo = !!colors && colors.swatches.length > 0;
+  return (
+    <div className="grid gap-5">
+      <div className={label}>
+        <label htmlFor="dv-logo">{t.logo}</label>
+        <span className="mt-2 flex items-center gap-4">
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-dv-line">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- an object URL or a short-lived signed URL
+              <img src={logoUrl} alt="" className="max-h-12 max-w-12 object-contain" />
+            ) : (
+              <span aria-hidden="true" className="h-6 w-6 rounded-full" style={{ background: p.brandColor }} />
+            )}
+          </span>
+          {/* A styled picker: the native control would speak the browser's language, not the clinic's. */}
+          <label htmlFor="dv-logo" className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[0.875rem] border border-dashed border-dv-edge bg-white px-4 py-3 transition focus-within:border-dv-teal focus-within:shadow-[0_0_0_4px_rgba(15,92,92,0.14)] hover:border-dv-teal">
+            <ImagePlus className="h-5 w-5 shrink-0 text-dv-teal" aria-hidden="true" />
+            <span className="min-w-0 truncate text-sm font-normal text-dv-body">{logo ? logo.name : "PNG · JPG · SVG"}</span>
+            {/* Any format a clinic has is turned into a PNG first (logo-prepare.ts). HEIC is left out of
+                the list on purpose: iPhones then hand over a JPEG. */}
+            <input
+              id="dv-logo"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"
+              onChange={(e) => {
+                void draft.chooseLogo(e.target.files?.[0] ?? null);
+                e.target.value = "";
+              }}
+              className="sr-only"
+            />
+          </label>
+        </span>
+        <span className="mt-3.5 block">
+          <LogoStatus {...draft.logoStatus} error={draft.logoError} />
+        </span>
+        {draft.savedLogo && !logo && <span className="mt-1.5 block text-xs font-normal text-dv-muted">{t.logoSaved}</span>}
+      </div>
+
+      <div className={label}>
         <label htmlFor="dv-brand-color">{t.brandColor}</label>
-        <span className="mt-1 flex flex-wrap items-center gap-3">
-          <input id="dv-brand-color" type="color" value={p.brandColor} onChange={set("brandColor")} className="h-12 w-16 cursor-pointer rounded-lg border border-[#d9d1c3] bg-white" />
-          <span className="font-mono text-sm text-dv-body">{p.brandColor}</span>
-          {colors && colors.swatches.length > 0 && (
-            <span className="flex items-center gap-2" role="group" aria-label={t.logoSwatches}>
-              {colors.swatches.map((c) => (
+        <span className="mt-2 flex flex-wrap items-center gap-3">
+          <span className="relative inline-flex h-11 w-11 shrink-0 overflow-hidden rounded-full ring-1 ring-black/10 shadow-sm">
+            <input
+              id="dv-brand-color"
+              type="color"
+              value={p.brandColor}
+              onChange={draft.set("brandColor")}
+              className="absolute -inset-2 h-[calc(100%+1rem)] w-[calc(100%+1rem)] cursor-pointer border-0 p-0"
+            />
+          </span>
+          <span dir="ltr" className="font-mono text-sm font-normal text-dv-body">{p.brandColor}</span>
+          <span className="-ms-1.5 flex flex-wrap items-center" role="group" aria-label={fromLogo ? t.logoSwatches : t.brandColor}>
+            {swatches.map((c) => {
+              const on = p.brandColor.toLowerCase() === c.toLowerCase();
+              return (
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setP((prev) => ({ ...prev, brandColor: c }))}
+                  onClick={() => draft.update("brandColor", c.toLowerCase())}
                   title={c}
                   aria-label={c}
-                  aria-pressed={p.brandColor.toLowerCase() === c}
-                  className={`h-8 w-8 rounded-full border border-black/10 shadow-sm transition hover:scale-110 ${p.brandColor.toLowerCase() === c ? "ring-2 ring-[#0f5c5c] ring-offset-2" : ""}`}
-                  style={{ background: c }}
-                />
-              ))}
-            </span>
-          )}
+                  aria-pressed={on}
+                  // A 44 px target around a 32 px swatch.
+                  className="group flex h-11 w-11 items-center justify-center rounded-full"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`h-8 w-8 rounded-full border border-black/10 shadow-sm transition group-hover:scale-110 ${on ? "ring-2 ring-dv-teal ring-offset-2 ring-offset-white" : ""}`}
+                    style={{ background: c }}
+                  />
+                </button>
+              );
+            })}
+          </span>
         </span>
-        {colors && (
-          <span className="mt-1 block text-xs font-normal text-dv-muted">{colors.suggested ? t.logoSuggested : t.logoNoColour}</span>
-        )}
+        {colors && <span className="mt-1.5 block text-xs font-normal text-dv-muted">{colors.suggested ? t.logoSuggested : t.logoNoColour}</span>}
       </div>
-      {logoUrl && colors && (
+
+      {showLogoPreview && logoUrl && colors && (
         <LogoPreview
           src={logoUrl}
           brandColor={p.brandColor}
@@ -227,12 +602,67 @@ export function ClinicForm({ locale, initial, logoPath, submitLabel }: Props) {
           handle={p.handle || undefined}
         />
       )}
-      {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f] sm:col-span-2" role="alert">{error}</p>}
-      <div className="sm:col-span-2">
-        <button type="submit" disabled={busy} className="dv-btn dv-btn-primary px-8 py-3">
-          {busy ? t.saving : submitLabel ?? t.save}
-        </button>
+    </div>
+  );
+}
+
+type Props = { locale: Locale; initial?: Partial<ClinicProfile>; logoPath?: string | null; logoUrl?: string | null; submitLabel?: string };
+
+/**
+ * Clinic settings: every field on one page, saved together. Saving stays on
+ * the page and says so; the save bar sticks to the bottom of a phone screen
+ * while there are unsaved changes.
+ */
+export function ClinicForm({ locale, initial, logoUrl, submitLabel }: Props) {
+  const text = appText(locale);
+  const t = text.form;
+  const router = useRouter();
+  const draft = useClinicDraft({ locale, initial, logoUrl });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await draft.save();
+      setSaved(true);
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const section = "dv-card p-5 sm:p-7";
+  const heading = "mb-5 text-lg font-semibold text-dv-ink";
+  return (
+    <ValidatingForm locale={locale} onSubmit={submit} className="grid gap-6" onChange={() => setSaved(false)}>
+      <section aria-labelledby="clinic-details" className={section}>
+        <h2 id="clinic-details" className={heading}>{text.settings.clinicHeading}</h2>
+        <ClinicDetailsFields draft={draft} locale={locale} />
+      </section>
+      <section aria-labelledby="clinic-brand" className={section}>
+        <h2 id="clinic-brand" className={heading}>{text.settings.brandHeading}</h2>
+        <BrandFields draft={draft} locale={locale} showLogoPreview />
+      </section>
+      {/* With unsaved changes the save button stays in reach at the bottom of the screen (phones and desktops);
+          otherwise it sits quietly under the form. */}
+      <div className={draft.dirty || busy || error ? "sticky bottom-3 z-10 rounded-2xl bg-white/95 p-3 shadow-[var(--dv-shadow-3)] backdrop-blur sm:bottom-5 sm:p-4" : ""}>
+        {error && <p className="mb-3 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button type="submit" disabled={busy} className="dv-btn dv-btn-primary w-full px-8 py-3 sm:w-auto">
+            {busy ? t.saving : submitLabel ?? t.save}
+          </button>
+          <p role="status" className="text-sm text-dv-teal">
+            {saved && !draft.dirty ? text.settings.saved : ""}
+          </p>
+        </div>
       </div>
-    </form>
+    </ValidatingForm>
   );
 }

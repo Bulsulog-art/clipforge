@@ -12,8 +12,29 @@ const ADA = { label: "American Dental Association — Principles of Ethics and C
 const HHS = { label: "U.S. Department of Health and Human Services — HIPAA for professionals", url: "https://www.hhs.gov/hipaa/index.html" };
 const HWG = { label: "Germany — Heilmittelwerbegesetz (HWG)", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
 const BOE = { label: "Spain — Real Decreto 1907/1996 (BOE)", url: "https://www.boe.es/eli/es/rd/1996/08/02/1907/con" };
-const LEGIFRANCE = { label: "France — Code de la santé publique, art. R. 4127-215 and following (Légifrance)", url: "https://www.legifrance.gouv.fr/" };
-const RG = { label: "Türkiye — Resmî Gazete, 12 November 2025, no. 33075 (health-services promotion regulation)", url: "https://www.resmigazete.gov.tr/" };
+const RG = { label: "Türkiye — Resmî Gazete, 12 November 2025, no. 33075 (health-services promotion regulation)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+
+// Deep links to the operative texts (checked 2026-11-10).
+const GDC_ADV = { label: "General Dental Council — Guidance on advertising", url: "https://www.gdc-uk.org/standards-guidance/standards-and-guidance/gdc-guidance-for-dental-professionals/guidance-on-advertising" };
+const GDC_SM = { label: "General Dental Council — Guidance on using social media (in effect since 27 June 2016)", url: "https://www.gdc-uk.org/docs/default-source/guidance-documents/guidance-on-using-social-media" };
+const CAP12 = { label: "CAP Code, Section 12 — Medicines, medical devices, health-related products and beauty products", url: "https://www.asa.org.uk/type/non_broadcast/code_section/12.html" };
+const ASA_POM = { label: "ASA / CAP advice — Healthcare: prescription-only medicines", url: "https://www.asa.org.uk/advice-online/healthcare-prescription-only-medicine.html" };
+const FTC_255 = { label: "FTC Endorsement Guides, 16 CFR Part 255 (revised 2023) — eCFR", url: "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-B/part-255" };
+const FTC_465 = { label: "FTC — Final rule on consumer reviews and testimonials, 16 CFR Part 465 (in force since 21 October 2024)", url: "https://www.ftc.gov/system/files/ftc_gov/pdf/r311003consumerreviewstestimonialsfinalrulefrn.pdf" };
+const FTC_EIR = { label: "FTC — Endorsements, influencers and reviews (business guidance)", url: "https://www.ftc.gov/business-guidance/advertising-marketing/endorsements-influencers-reviews" };
+const ADA_2025 = { label: "American Dental Association — Principles of Ethics and Code of Professional Conduct, 2025 edition (PDF)", url: "https://www.ada.org/-/media/project/ada-organization/ada/ada-org/files/about/2025_code_of_ethics_full.pdf" };
+const ADA_NEWS = { label: "ADA News — Code updates address ethical concerns with social media influencers (February 2025)", url: "https://adanews.ada.org/ada-news/2025/february/ada-code-updates-address-ethical-concerns-with-social-media-influencers/" };
+const TX_108 = { label: "Texas — 22 Tex. Admin. Code ch. 108, subchapter E (Business Promotion, §§ 108.50–108.63), via Cornell LII", url: "https://www.law.cornell.edu/regulations/texas/title-22/part-5/chapter-108/subchapter-E" };
+const TX_10857 = { label: "Texas — 22 Tex. Admin. Code § 108.57, False, misleading or deceptive advertising, via Cornell LII", url: "https://www.law.cornell.edu/regulations/texas/22-Tex-Admin-Code-SS-108-57" };
+const FL_466 = { label: "Florida Statutes § 466.019 — Advertising by dentists (Florida Senate)", url: "https://flsenate.gov/Laws/Statutes/2024/466.019" };
+const FL_64B5 = { label: "Florida — Fla. Admin. Code r. 64B5-4.003, Advertisement of fees and discounted services, via Cornell LII", url: "https://www.law.cornell.edu/regulations/florida/Fla-Admin-Code-Ann-R-64B5-4-003" };
+const CA_651 = { label: "California — Business and Professions Code § 651 (California Legislative Information)", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=BPC&sectionNum=651" };
+const CDA_ELITE = { label: "California Dental Association — Dental practice settles HHS complaint over patient information disclosed in review replies (2019)", url: "https://www.cda.org/news-events/dental-practice-pays-10k-to-settle-disclosures-of-patients-phi-on-social-media" };
+const HWG11 = { label: "Germany — Heilmittelwerbegesetz § 11 (advertising to the public)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
+const R4127 = { label: "France — Code de la santé publique, art. R. 4127-215-1 (Légifrance)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
+const DHA = { label: "Dubai Health Authority — Standards for Medical Advertisement Content in Social Media (v1.1)", url: "https://www.dha.gov.ae/uploads/042022/Standards%20for%20Medical%20Advertisement%20Content%20in%20Social%20Media2022433965.pdf" };
+const MHLW = { label: "Japan — Ministry of Health, Labour and Welfare: medical advertising rules (医療広告ガイドライン)", url: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/kokokukisei/index.html" };
+const PL_UDL = { label: "Poland — Act on Medical Activity (ustawa o działalności leczniczej), art. 14, consolidated text Dz.U. 2026 poz. 156", url: "https://eli.gov.pl/eli/DU/2026/156" };
 
 export const GUIDES_EN: Guide[] = [
   {
@@ -24,10 +45,12 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Instagram videos for dentists: what to post, how to film it and what to avoid",
+    seoTitle: "Instagram for dentists: what to post in Reels",
+    seoDescription: "Which short videos patients watch, the Reels format, captions, posting rhythm, five-minute filming and what health-advertising rules restrict for dentists.",
     description: "A practical guide for dental clinics: which short videos patients watch, the Reels format, captions, posting rhythm, five-minute filming and what health-advertising rules restrict.",
     h1: "Instagram videos for dentists: what to post, and how to keep it simple",
     intro:
-      "The best Instagram videos for dentists answer one patient question in 20 to 60 seconds: vertical, captioned and worded carefully. One to three a week is enough. Guarantees, “painless”, discounts, superlatives and patient testimonials should stay out, because health-advertising rules restrict them in many countries, including under GDC and ASA guidance in the UK and FTC rules in the US.",
+      "Instagram videos that work for dentists answer one patient question in 20 to 60 seconds: vertical, captioned and worded carefully. One to three a week is enough. Guarantees, “painless”, discounts, superlatives and patient testimonials should stay out, because health-advertising rules restrict them in many countries, including under GDC and ASA guidance in the UK and FTC rules in the US.",
     sections: [
       {
         heading: "Why patients watch dentists' videos",
@@ -39,7 +62,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "What patients actually want to see",
         paragraphs: [
-          "The questions people ask at the chair are the best topics. Answer one per video. For a year's worth of ideas, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
+          "The questions people ask at the chair make the most useful topics. Answer one per video. For a year's worth of ideas, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
         ],
         list: [
           "Does whitening damage enamel?",
@@ -65,7 +88,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Reels, Stories and your profile: which video goes where",
         paragraphs: [
           "Reels are the likeliest way to reach people who do not follow you yet, so they suit question-and-answer videos. Stories disappear after 24 hours and are for everyday contact with existing followers: a moment from the clinic, a reminder, a poll. Pinned videos on your profile are what a new visitor sees first; three good candidates are an introduction to the dentist, “what happens at your first visit” and the most common question you get.",
-          "Organise Story Highlights by topic — “First visit”, “Aftercare”, “Children” — so patients find what they need in two taps.",
+          "Organize Story Highlights by topic — “First visit”, “Aftercare”, “Children” — so patients find what they need in two taps.",
         ],
       },
       {
@@ -79,7 +102,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Filming in five minutes",
         paragraphs: [],
         list: [
-          "Pick three or four questions and jot down two or three points for each; do not memorise a script.",
+          "Pick three or four questions and jot down two or three points for each; do not memorize a script.",
           "Phone vertical, at eye level, on a small tripod or holder.",
           "Face a window for soft light; never stand with the window behind you.",
           "Use a clip-on microphone if you can: sound matters more than picture.",
@@ -109,7 +132,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colours with your logo. Every script is checked twice — for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [Your first week is free](start:).",
+          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colors with your logo. Every script is checked twice — for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [See a live preview with your logo before you pay](start:).",
         ],
       },
     ],
@@ -118,7 +141,7 @@ export const GUIDES_EN: Guide[] = [
       { q: "How long should a dental Instagram video be?", a: "About 20 to 60 seconds is enough to answer one question. Longer topics work better split into several videos, one question each." },
       { q: "Do I need professional equipment?", a: "No. A recent phone, a window for light, a clip-on microphone and a quiet room are enough for short educational videos." },
       { q: "Can I show patient cases?", a: "Only with the patient's informed, written consent, and in many countries before-and-after images are restricted in advertising. Check your national rules first." },
-      { q: "Can I use the same video on TikTok and YouTube Shorts?", a: "Yes. A vertical, captioned short video works on Reels, TikTok and YouTube Shorts; just adapt the caption text for each platform." },
+      { q: "Can I use the same video on TikTok and YouTube Shorts?", a: "Yes. A vertical, captioned short video works on Reels, TikTok and YouTube Shorts; just adapt the caption text for each platform. Our guide to [TikTok for dentists](guide:tiktok-for-dentists) covers sounds, AI labels and search." },
     ],
     sources: [GDC, CAP, FTC_ADS, ADA],
   },
@@ -130,6 +153,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Patient-education videos for dental clinics: topics, uses and accuracy",
+    seoTitle: "Dental patient education videos: topics and uses",
+    seoDescription: "Why short patient education videos help dental clinics, which topics to start with, a script template, where to use them and how to keep them accurate.",
     description: "Why short patient-education videos help dental clinics, which topics to cover first, a script template, where to use them and how to keep them accurate.",
     h1: "Patient-education videos for dental clinics",
     intro:
@@ -208,6 +233,7 @@ export const GUIDES_EN: Guide[] = [
       },
     ],
     faq: [
+      { q: "Are there video ideas for specific treatments?", a: "Yes. We have treatment guides with topics, a script structure and wording to avoid for [dental implants](guide:dental-implant-patient-education-videos), [clear aligners](guide:clear-aligner-patient-education-videos), [teeth whitening](guide:teeth-whitening-patient-education-videos), [children's dentistry](guide:pediatric-dental-patient-education-videos), [gum disease](guide:gum-disease-patient-education-videos) and [root canal treatment](guide:root-canal-patient-education-videos)." },
       { q: "How long should a patient-education video be?", a: "Short enough to watch in one go: about 30 to 90 seconds for one topic. Longer explanations work better split into several videos, one per step." },
       { q: "Does a video replace the consent conversation?", a: "No. Consent comes from a conversation with the dentist, documented as your rules require. A video prepares and reminds." },
       { q: "Should the dentist appear in the videos?", a: "When possible, yes. Patients trust the person who will treat them; narrated videos are a good fallback for busy weeks." },
@@ -222,22 +248,25 @@ export const GUIDES_EN: Guide[] = [
     slug: "dental-social-media-advertising-rules",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Dental social media and advertising rules: what to watch for, country by country",
+    seoTitle: "Dental advertising guidelines for social media",
+    seoDescription: "The claims health-advertising rules commonly restrict in dental social media posts, with pointers for the UK, US, Germany, Spain, France and Türkiye.",
     description: "The claims health-advertising rules commonly restrict in dental social media posts, with pointers to the UK, US, Germany, Spain, France and Türkiye. Not legal advice.",
     h1: "Dental social media and advertising rules: what to watch for",
     intro:
       "A dental clinic's social media posts are usually treated as advertising, and health advertising is regulated in most countries. The claims most often restricted are guarantees and “painless”, superlatives and comparisons, prices and discounts used as a lure, before-and-after promises and patient testimonials. The details differ by country, so check your national regulator. This is general information, not legal advice.",
     sections: [
       {
-        heading: "Why a post counts as advertising",
+        heading: "Is a clinic post advertising?",
         paragraphs: [
           "Content a clinic publishes to make itself known is generally treated as advertising, even when it is educational in tone. The channel does not matter: website, Google profile, Instagram, TikTok and YouTube are all in scope. A dentist's personal account is usually caught too when it is used to talk about their practice.",
           "That does not mean you cannot post. It means what you post must be accurate, verifiable and not misleading, and must not create false expectations.",
         ],
       },
       {
-        heading: "Claims that are commonly restricted",
+        heading: "Which claims are commonly restricted?",
         paragraphs: ["Not every country restricts all of these, but many restrict several:"],
         list: [
           "Guarantees of results and absolutes: “painless”, “guaranteed”, “permanent”, “lasts a lifetime”",
@@ -250,28 +279,43 @@ export const GUIDES_EN: Guide[] = [
         ],
       },
       {
-        heading: "Examples of national rules",
-        paragraphs: ["A starting point only; always read the current text or ask your regulator:"],
-        list: [
-          "United Kingdom: the General Dental Council's standards and guidance on advertising and social media, and the ASA's CAP Code, which requires claims to be substantiated. See [UK dental advertising rules](guide:dental-advertising-rules-uk-gdc-asa).",
-          "United States: the FTC's truth-in-advertising rules, its Endorsement Guides and its rule on consumer reviews and testimonials, the ADA Code of Ethics for members and state dental board rules. See [US dental advertising rules](guide:dental-advertising-rules-us).",
-          "Germany: the Heilmittelwerbegesetz (HWG), unfair-competition law and the dental chambers' professional codes.",
-          "Austria and Switzerland: § 35 of the Austrian Dentists Act with the dental chamber's advertising guideline; Art. 40 of the Swiss Medical Professions Act, requiring objective advertising that is neither misleading nor intrusive.",
-          "Spain: Real Decreto 1907/1996 on health-related advertising, regional rules (some regions require prior authorisation) and the dental code of ethics.",
-          "France: since a 2020 decree, dentists may communicate fair, honest information about their practice, but not testimonials, comparisons or commercial inducements.",
-          "Türkiye: a Ministry of Health regulation published on 12 November 2025 bans advertising of health services and limits promotion, including prices, discounts, campaigns, patient thank-you posts and sponsored promotion.",
+        heading: "Which rules apply in which country?",
+        paragraphs: [
+          "The table names the main texts a dental clinic's posts are judged against in each market we cover. It is a starting point, not a summary of everything that applies: always read the current text or ask your regulator or professional body.",
         ],
+        table: {
+          caption: "Dental advertising rules by country (as of November 2026)",
+          columns: ["Country", "Main texts", "What they mean for posts"],
+          rows: [
+            ["United Kingdom", "GDC Standards and guidance on advertising and on social media; ASA's CAP Code (Section 12 for health)", "Objective claims need evidence you hold before posting; “specialist” only for those on a GDC specialist list; no advertising of prescription-only medicines such as Botox to the public. [UK guide](guide:dental-advertising-rules-uk-gdc-asa)"],
+            ["United States", "FTC Act Section 5; Endorsement Guides (16 CFR 255); reviews and testimonials rule (16 CFR 465); state dental board rules; ADA Code for members; HIPAA", "Truthful, substantiated claims; disclosed material connections; no fake or bought reviews; state-specific rules on guarantees, specialties and fee ads. [US guide](guide:dental-advertising-rules-us)"],
+            ["Germany", "Heilmittelwerbegesetz (§§ 3, 7, 11 HWG); UWG; dental chambers' professional codes (§ 21 MBO-Z model)", "Factual information is allowed; boastful, misleading or comparative advertising is not; gifts and discounts only in narrow exceptions; before-and-after comparisons banned for non-medically necessary cosmetic procedures."],
+            ["Austria / Switzerland", "§ 35 Zahnärztegesetz and the dental chamber's advertising guideline (AT); Art. 40 Medizinalberufegesetz (CH)", "Advertising must be objective, not misleading and not intrusive."],
+            ["Spain", "Real Decreto 1907/1996; Ley 14/1986 General de Sanidad; regional health-advertising rules; dental code of ethics", "Some regions require prior authorization of health advertising; the Supreme Court has upheld a ban on using celebrities in dental clinic ads."],
+            ["France", "Code de la santé publique, art. R. 4127-215 and R. 4127-215-1 (decree of 22 December 2020); Ordre's recommendations", "Fair, honest, clear information that helps patients choose; no third-party testimonials, no comparisons with other dentists, nothing that encourages unnecessary care; dentistry may not be practiced as a business."],
+            ["Türkiye", "Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik (Resmî Gazete, 12 November 2025, no. 33075)", "Advertising of health services is banned; promotion and information are limited. Prices, discounts, campaigns and patient thank-you posts are high-risk."],
+            ["Japan", "Medical Care Act advertising rules and the MHLW 医療広告ガイドライン", "Patient testimonials about treatment may not be used in advertising; before-and-after photos and self-pay treatment information are allowed only with detailed explanation (treatment, usual cost, main risks and side effects)."],
+            ["Poland", "Art. 14 of the Act on Medical Activity; art. 71 of the Code of Medical Ethics (from 1 January 2025)", "Information about services is allowed, but it may not have “the features of advertising”: keep posts factual and educational."],
+            ["UAE (Dubai)", "DHA Standards for Medical Advertisement Content in Social Media; MOHAP and DoH Abu Dhabi rules", "Absolute or exaggerated claims such as “the best”, “guaranteed success” or “no side effects” are prohibited; some emirates require an advertising permit."],
+          ],
+          note: "Not legal advice. Rules change; check the official text linked under Sources.",
+        },
       },
       {
-        heading: "Safer ways to say it",
-        paragraphs: ["Almost any piece of information can be given without a promise:"],
-        list: [
-          "Instead of “painless implants”: “The procedure is done under local anaesthetic; most people feel some tenderness for a few days afterwards.”",
-          "Instead of “guaranteed whiter teeth”: “Results vary from person to person; we'll check first whether whitening suits you.”",
-          "Instead of “permanent”: “With good care and regular check-ups it can last many years.”",
-          "Instead of “the best clinic in town”: verifiable facts such as treatments offered, qualifications and opening hours.",
-          "Instead of “this month only”: no offer at all.",
-        ],
+        heading: "What can a dentist say instead?",
+        paragraphs: ["Almost any piece of information can be given without a promise. The right-hand column works in every market we cover:"],
+        table: {
+          caption: "Risky wording and a safer alternative",
+          columns: ["Risky wording", "Why it is risky", "Safer wording"],
+          rows: [
+            ["“Painless implants”", "An absolute claim about the patient's experience that cannot be substantiated", "“The procedure is done under local anesthetic; most people feel some tenderness for a few days afterwards.”"],
+            ["“Guaranteed whiter teeth”", "A guaranteed result; creates unjustified expectations", "“Results vary from person to person; we'll check first whether whitening suits you.”"],
+            ["“Permanent” / “lasts a lifetime”", "Overstates durability", "“With good care and regular check-ups it can last many years.”"],
+            ["“The best clinic in town”", "A superlative and an implied comparison with other clinics", "Verifiable facts: treatments offered, qualifications, languages spoken, opening hours"],
+            ["“Special offer, this month only”", "A price inducement and urgency; banned outright in some markets", "No offer. Invite people to ask a question or book a check-up"],
+            ["A carousel of five-star reviews", "Testimonials are restricted in several markets and confirm who is a patient", "An educational video answering the question those patients asked"],
+          ],
+        },
         after: [
           "Educate rather than promise, invite viewers to ask or book a check-up rather than offering a deal, and keep patient information out of posts unless you have documented consent and the rules allow it. Our guide to [patient consent on dental social media](guide:patient-consent-dental-social-media) covers the privacy side.",
         ],
@@ -297,7 +341,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) checks every script and caption for these commonly restricted claims in seven languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes. For topics that are safe to post, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
+          "[DentVideo](landing:) checks every script and caption for these commonly restricted claims in ten languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes. For topics that are safe to post, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
         ],
       },
     ],
@@ -308,7 +352,7 @@ export const GUIDES_EN: Guide[] = [
       { q: "Can I share patient reviews?", a: "Several countries restrict testimonials in health advertising, and privacy law applies to anything that identifies a patient. Where they are allowed, they must be genuine and not misleading." },
       { q: "Is this legal advice?", a: "No. Rules vary by country and change over time; confirm the requirements with your national dental council, regulator or a lawyer." },
     ],
-    sources: [GDC, CAP, FTC_ADS, HWG, BOE, LEGIFRANCE, RG],
+    sources: [GDC_ADV, CAP12, FTC_255, HWG11, BOE, R4127, RG, MHLW, PL_UDL, DHA],
   },
   {
     locale: "en",
@@ -318,6 +362,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Dental social media post ideas: a year of safe topics for Instagram, Reels and TikTok",
+    seoTitle: "Dental social media post ideas for a whole year",
+    seoDescription: "A year of dental social media post ideas: patient questions, treatments explained, aftercare, team, seasonal topics, captions and what to avoid.",
     description: "Dental social media post ideas: patient questions, treatments explained, aftercare, team and practice, seasonal topics, a sample month, captions and hashtags, and what to avoid.",
     h1: "Dental social media post ideas",
     intro:
@@ -327,7 +373,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Three rules for choosing a topic",
         paragraphs: ["Three questions tell you whether an idea will make a good post:"],
         list: [
-          "Do patients really ask this? Questions from the chair, the phone and Google are the best topics.",
+          "Do patients really ask this? Questions from the chair, the phone and Google make the most useful topics.",
           "Do we offer it? Only explain treatments your clinic provides.",
           "Does it inform, or push? Not “Book now, offer ends Friday”, but “Ask us about it at your next check-up”.",
         ],
@@ -369,7 +415,7 @@ export const GUIDES_EN: Guide[] = [
         list: [
           "The dentist introduces themselves: areas of interest and how they work",
           "What happens at your first appointment",
-          "How we sterilise instruments (with no patients in shot)",
+          "How we sterilize instruments (with no patients in shot)",
           "Getting here, parking and accessibility",
           "What we do for nervous patients",
         ],
@@ -389,7 +435,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Where to find more topics",
         paragraphs: [
-          "When the list runs dry, look in three places. Your team: reception and nurses know best what patients ask on the phone and in the chair — ask them to note every question for a week. Google: type “dental implant” or “teeth whitening” into the search box and read the suggestions; patterns such as “is … safe”, “how long” and “after” reveal real concerns. Your own account: comments and messages under your videos are your next topic.",
+          "When the list runs dry, look in three places. Your team: reception and nurses hear first-hand what patients ask on the phone and in the chair — ask them to note every question for a week. Google: type “dental implant” or “teeth whitening” into the search box and read the suggestions; patterns such as “is … safe”, “how long” and “after” reveal real concerns. Your own account: comments and messages under your videos are your next topic.",
           "Price questions come up often but are rarely a good video. Answer them individually; if they keep coming, explain the steps of the treatment and what affects the plan, rather than numbers.",
         ],
       },
@@ -412,7 +458,7 @@ export const GUIDES_EN: Guide[] = [
         list: [
           "Week 1: “Is whitening bad for your teeth?” · “The first 24 hours after a filling” · Meet the dentist",
           "Week 2: “When are bleeding gums a worry?” · “Brushing technique” · Your first appointment",
-          "Week 3: “How long does an implant take?” · “What to eat after an extraction” · How we sterilise",
+          "Week 3: “How long does an implant take?” · “What to eat after an extraction” · How we sterilize",
           "Week 4: “When should my child first see a dentist?” · “Signs of teeth grinding” · Getting here",
         ],
         after: [
@@ -421,9 +467,11 @@ export const GUIDES_EN: Guide[] = [
       },
     ],
     faq: [
+      { q: "How often should a dental clinic post these ideas?", a: "A rhythm your team can keep all year matters more than a big number. Our guide on [how often a dental practice should post, and when](guide:how-often-should-a-dental-practice-post) suggests rhythms by the time you have and shows how to find your followers' active hours." },
+      { q: "Is there a ready-made plan for a whole year?", a: "Yes: our [dental social media content calendar](guide:dental-social-media-content-calendar) gives one educational topic for each of the 52 weeks, tied to dates such as World Oral Health Day on 20 March." },
       { q: "What should a dental practice post on Instagram?", a: "Short answers to patient questions, clear explanations of treatments, aftercare tips and introductions to the team — informative, carefully worded and free of promises." },
       { q: "How many posts a week?", a: "One to three a week is manageable for most practices. Consistency matters more than frequency." },
-      { q: "Do I need different content for TikTok?", a: "Usually not. The same vertical, captioned short video works on Reels, TikTok and YouTube Shorts; adapt the caption." },
+      { q: "Do I need different content for TikTok?", a: "Usually not. The same vertical, captioned short video works on Reels, TikTok and YouTube Shorts; adapt the caption. See [TikTok for dentists](guide:tiktok-for-dentists) for what differs." },
       { q: "Can a dental practice run a giveaway?", a: "In many countries giveaways and gifts are restricted in health advertising, and even where allowed they attract followers who are not patients. Most practices are better off without them." },
       { q: "Should I reply to comments?", a: "Yes, politely and in general terms. Never discuss a person's own case in public; invite them to book or call instead, and never confirm that someone is your patient." },
     ],
@@ -434,22 +482,25 @@ export const GUIDES_EN: Guide[] = [
     slug: "dental-advertising-rules-uk-gdc-asa",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "UK dental advertising rules for social media: GDC standards and the ASA's CAP Code",
+    seoTitle: "GDC social media guidance and the CAP Code",
+    seoDescription: "What UK dentists can post on social media under GDC standards and the ASA's CAP Code: testimonials, prices, Botox, specialist titles and UK GDPR.",
     description: "What UK dentists can post on Instagram and TikTok: GDC standards and advertising guidance, CAP Code substantiation, testimonials, prices, Botox, specialist titles and UK GDPR. Not legal advice.",
     h1: "UK dental advertising rules for social media",
     intro:
       "In the UK, dental social media posts must follow the General Dental Council's standards and guidance on advertising and the ASA's CAP Code. In short: be legal, decent, honest and truthful; hold evidence for every objective claim; do not mislead about results or qualifications; do not promote prescription-only medicines such as Botox to the public; and get written consent before featuring a patient.",
     sections: [
       {
-        heading: "Two sets of rules apply at once",
+        heading: "Which rules apply to UK dental posts?",
         paragraphs: [
           "The General Dental Council regulates you as a registrant. Its Standards for the Dental Team expect any advertising and information you produce to be accurate and not misleading, and its guidance on advertising and on social media sets out what that means in practice. A breach can become a fitness-to-practise matter.",
           "The Advertising Standards Authority enforces the CAP Code, which covers marketing on websites and social media, including a clinic's own Instagram, TikTok and paid ads. It can rule against an ad and require it to be withdrawn, whoever wrote it.",
         ],
       },
       {
-        heading: "What the CAP Code requires",
+        heading: "What does the CAP Code require?",
         paragraphs: ["The most relevant principles for dental posts; read the current Code for the exact rules:"],
         list: [
           "Substantiation: you must hold documentary evidence for objective claims before you publish them, and health claims need suitable evidence.",
@@ -461,17 +512,35 @@ export const GUIDES_EN: Guide[] = [
         ],
       },
       {
-        heading: "What the GDC expects",
+        heading: "What does the GDC expect?",
         paragraphs: [
-          "The GDC's guidance asks for information that is factual and verifiable. In practice this means: describe treatments accurately and without promising outcomes; only use the title “specialist” if you are on the relevant GDC specialist list; state qualifications correctly; and, on your practice website, include the details the guidance lists, such as each dentist's name, qualifications and GDC registration number. Its social media guidance also reminds registrants to keep patient information confidential and to keep professional boundaries online.",
+          "The GDC's guidance asks for information that is factual and verifiable. In practice this means: describe treatments accurately and without promising outcomes; only use the title “specialist” if you are on the relevant GDC specialist list (dental care professionals have no specialist lists and must avoid titles that imply one); state qualifications correctly; and make clear in practice publicity whether the practice is NHS (or equivalent), mixed or wholly private.",
+          "Its Guidance on using social media, in effect since 27 June 2016, says the standards do not change because you are online: patients must not be identifiable when cases are discussed, closed professional groups may still be visible to the public, and the guidance applies even if you do not say you are a dental professional.",
           "Rules on what appears where can change, so check the current guidance on the GDC website rather than relying on older summaries.",
+        ],
+      },
+      {
+        heading: "What must a UK practice website show?",
+        paragraphs: [
+          "The GDC's guidance on advertising lists details that should appear wherever a website names the dental professionals who treat patients. Use it as a checklist for the website your Instagram bio links to:",
+        ],
+        list: [
+          "Each professional's name and GDC registration number",
+          "Their professional qualification and the country where it was obtained",
+          "The practice's name, address and contact details",
+          "Whether the practice provides NHS (or equivalent) care, private care or both",
+          "How to complain: the practice procedure and, if a complaint is not resolved, the NHS complaints body or the Dental Complaints Service for private treatment",
+          "The date the website was last updated",
+        ],
+        after: [
+          "Check the current wording of the guidance before relying on this list: the items above summarize it, and the GDC may revise it.",
         ],
       },
       {
         heading: "Safer wording for common posts",
         paragraphs: [],
         list: [
-          "Instead of “pain-free root canals”: “Treatment is done under local anaesthetic. Most people feel some tenderness for a day or two afterwards.”",
+          "Instead of “pain-free root canals”: “Treatment is done under local anesthetic. Most people feel some tenderness for a day or two afterwards.”",
           "Instead of “Botox from …”: talk about facial-aesthetic consultations without naming the prescription medicine.",
           "Instead of “Manchester's leading implant specialist” (unless on the specialist list): “Dr Patel has a special interest in implant dentistry.”",
           "Instead of “results guaranteed”: “Results vary; we'll talk through what's realistic for you at your consultation.”",
@@ -495,7 +564,7 @@ export const GUIDES_EN: Guide[] = [
           "Does the post name or promote a prescription-only medicine?",
           "Are prices, if any, accurate and complete?",
           "Is anyone identifiable, and do we have their written consent?",
-          "Is a paid partnership clearly labelled as an ad?",
+          "Is a paid partnership clearly labeled as an ad?",
         ],
       },
       {
@@ -513,44 +582,61 @@ export const GUIDES_EN: Guide[] = [
       { q: "Can I call myself a specialist?", a: "Only if you are on the relevant GDC specialist list. Otherwise describe a special interest accurately." },
       { q: "Is this legal advice?", a: "No. It is a general overview; check the current GDC guidance and CAP Code, and ask your indemnity provider or a lawyer about specific cases." },
     ],
-    sources: [GDC, CAP, ICO],
+    sources: [GDC_ADV, GDC_SM, CAP, CAP12, ASA_POM, ICO],
   },
   {
     locale: "en",
     slug: "dental-advertising-rules-us",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Dental advertising rules in the US: FTC, ADA Code, state boards and HIPAA on social media",
+    seoTitle: "US dental advertising rules: FTC, ADA, HIPAA",
+    seoDescription: "What US dental practices can post on social media: FTC advertising and endorsement rules, reviews, the ADA Code, state dental boards and HIPAA.",
     description: "What US dental practices can post on social media: FTC truth-in-advertising and endorsement rules, the reviews and testimonials rule, ADA Code, state dental boards and HIPAA. Not legal advice.",
     h1: "Dental advertising rules in the US for social media",
     intro:
       "In the United States, dental social media posts are governed by the FTC's truth-in-advertising rules, its Endorsement Guides and its rule on consumer reviews and testimonials, by your state dental board's advertising rules and, for ADA members, by the ADA Code of Ethics. HIPAA adds that patients' photos, stories and even the fact that someone is a patient need written authorization before marketing use.",
     sections: [
       {
-        heading: "Federal rules: the FTC",
+        heading: "What do federal FTC rules require?",
         paragraphs: [
-          "Under Section 5 of the FTC Act, advertising must be truthful and not misleading, and objective claims need a reasonable basis before you make them. For health-related claims the FTC expects competent and reliable scientific evidence, as set out in its Health Products Compliance Guidance. A post that says a treatment is painless, permanent or guaranteed is a claim you would have to support.",
-          "The FTC's Endorsement Guides cover testimonials and influencer posts: endorsements must reflect the endorser's honest experience, a testimonial is not a substitute for evidence, results that are not typical must not be presented as typical, and any material connection — payment, free treatment, a discount — must be clearly disclosed. Its rule on consumer reviews and testimonials prohibits fake reviews, buying reviews and suppressing negative ones.",
+          "Under Section 5 of the FTC Act, advertising must be truthful and not misleading, and objective claims need a reasonable basis before you make them. For health-related claims the FTC expects competent and reliable scientific evidence, as set out in its Health Products Compliance Guidance. A post that says a treatment is “painless”, “permanent” or “guaranteed” is a claim you would have to support.",
+          "The FTC's Endorsement Guides (16 CFR Part 255, revised in 2023) cover testimonials and influencer posts: endorsements must reflect the endorser's honest experience, a consumer testimonial is not competent and reliable scientific evidence, results that are not typical must not be presented as typical, and any material connection — payment, free treatment, a discount — must be disclosed clearly and conspicuously. A disclosure hidden behind a “more” link does not count. Tags in social media posts can themselves be endorsements.",
+          "Since 21 October 2024 the FTC's Trade Regulation Rule on the Use of Consumer Reviews and Testimonials (16 CFR Part 465) has also applied. It prohibits fake reviews and testimonials, buying reviews conditioned on what they say, and suppressing negative reviews, and it allows civil penalties for knowing violations. Offering patients a discount for a five-star review falls on the wrong side of it.",
         ],
       },
       {
-        heading: "State dental boards",
+        heading: "What do state dental boards add?",
         paragraphs: [
-          "Each state's dental practice act and board rules add their own advertising requirements, and they differ. Common themes include limits on claiming to be a specialist unless you meet the state's or recognized specialty criteria, disclosure requirements for advertised fees and discounts, restrictions on guarantees and on testimonials, and record-keeping for ads. Check your own state board's rules — the board's website is the authoritative source — before running a campaign, especially across state lines.",
+          "Each state's dental practice act and board rules add their own advertising requirements, and they differ. Three large states show the range; the summaries describe the rule texts as published in late 2026 and are not a substitute for reading them:",
+        ],
+        table: {
+          caption: "Examples of state dental advertising rules",
+          columns: ["State", "Rule", "What it says, in short"],
+          rows: [
+            ["Texas", "22 Tex. Admin. Code §§ 108.50–108.63 (Business Promotion), esp. § 108.57", "Dentists may not advertise in a way that is false, misleading, deceptive or “not readily subject to verification”. Examples include implying a guarantee or creating unjustified expectations about results, and testimonials from people who are not patients of record. § 108.54 governs specialty claims and § 108.60 requires keeping records of advertisements."],
+            ["Florida", "Fla. Stat. § 466.019; Fla. Admin. Code r. 64B5-4.002 and 64B5-4.003", "Ads may not contain laudatory statements about a dentist, create unjustified expectations of favorable results or make claims about the quality of services. Every ad must identify the Florida-licensed dentist responsible for it. An advertised fee must state the period it is in effect and describe the service in ADA wording or by ADA code; free or discounted services need the disclosure required by § 456.062 and the dates they are available."],
+            ["California", "Business and Professions Code § 651", "Licensees may not disseminate public communications that are false, fraudulent, misleading or deceptive, including a statement, endorsement or testimonial likely to mislead because it leaves out material facts. The section also sets out when a dentist may state board certification or that a practice is limited to certain fields."],
+          ],
+          note: "Other states have comparable rules. Your state board's website is the authoritative source; check it before running a campaign, especially across state lines.",
+        },
+        after: [
+          "Common themes across states: “specialist” only when you meet the state's or a recognized specialty's criteria; complete disclosure of advertised fees and discounts; limits on guarantees and on testimonials; and keeping copies of what you published.",
         ],
       },
       {
-        heading: "The ADA Code of Ethics",
+        heading: "What does the ADA Code of Ethics say?",
         paragraphs: [
-          "For ADA members, Section 5 of the Code (Veracity) prohibits advertising that is false or misleading in any material respect, and its advisory opinions address specialty announcements, testimonials, and before-and-after images. The ADA updated the Code in 2025 to address social media and influencers more directly. Members should read the current advisory opinions on ada.org; non-members still face the same expectations from state boards and the FTC.",
+          "For ADA members, Section 5 of the Code (Veracity) prohibits advertising that is false or misleading in any material respect, and its advisory opinions address specialty announcements, testimonials and before-and-after images. In 2025 the ADA added Advisory Opinion 5.F.7 on social media, which restates the duty to present factual information on social platforms and gives examples of unsubstantiated claims, and amended Advisory Opinion 4.E.1 so its rules on split-fee arrangements for marketing services also cover influencers. Members should read the current Code on ada.org; non-members still face the same expectations from state boards and the FTC.",
         ],
       },
       {
-        heading: "HIPAA and patient content",
+        heading: "What does HIPAA mean for patient photos and reviews?",
         paragraphs: [
           "Patient photos, videos, radiographs, names and stories are protected health information. Using them in marketing generally requires the patient's written HIPAA authorization, separate from treatment consent, and the patient can revoke it. Simply confirming that someone is your patient can be a disclosure.",
-          "This matters most when replying to online reviews. HHS has taken enforcement action against dental practices that disclosed patient information while responding to reviews. A safe reply thanks the reviewer and invites them to call the office, without confirming they are a patient or mentioning treatment. More in [patient consent on dental social media](guide:patient-consent-dental-social-media).",
+          "This matters most when replying to online reviews. In 2019 the HHS Office for Civil Rights settled with a Dallas dental practice that had disclosed a patient's last name, treatment plan and insurance details in a reply to a Yelp review; besides a payment, the practice accepted a corrective action plan with two years of monitoring. A safe reply thanks the reviewer and invites them to call the office, without confirming they are a patient or mentioning treatment. More in [patient consent on dental social media](guide:patient-consent-dental-social-media).",
         ],
       },
       {
@@ -597,15 +683,18 @@ export const GUIDES_EN: Guide[] = [
       { q: "Do I need to label paid influencer posts?", a: "Yes. The FTC requires clear disclosure of any material connection, such as payment or free treatment, in a way people will notice." },
       { q: "Is this legal advice?", a: "No. It is a general overview; rules vary by state and change. Confirm with your state dental board, your malpractice carrier or a healthcare attorney." },
     ],
-    sources: [FTC_HEALTH, FTC_ADS, ADA, HHS],
+    sources: [FTC_HEALTH, FTC_255, FTC_465, FTC_EIR, ADA_2025, ADA_NEWS, TX_108, TX_10857, FL_466, FL_64B5, CA_651, HHS, CDA_ELITE],
   },
   {
     locale: "en",
     slug: "patient-consent-dental-social-media",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Patient photos, videos and reviews on dental social media: consent, HIPAA and UK GDPR",
+    seoTitle: "Dental social media consent: photos, HIPAA, GDPR",
+    seoDescription: "What a dental practice needs before posting patient photos or videos: written consent or HIPAA authorization, what the form says and review replies.",
     description: "What dental practices need before posting patient photos, videos or stories: written consent or HIPAA authorization, what the form should say, review replies and safe alternatives. Not legal advice.",
     h1: "Patient photos and videos on dental social media: consent and privacy",
     intro:
@@ -619,7 +708,7 @@ export const GUIDES_EN: Guide[] = [
       },
       {
         heading: "What the law expects",
-        paragraphs: ["In outline; always check the current rules where you practise:"],
+        paragraphs: ["In outline; always check the current rules where you practice:"],
         list: [
           "United States: patient images and stories are protected health information under HIPAA; marketing use generally requires a signed authorization that states what will be used, for what, and how to revoke it.",
           "United Kingdom: health information is special category data under UK GDPR, and the duty of confidentiality applies online. Explicit, informed consent is the usual basis for publishing; the GDC's guidance on social media points the same way.",
@@ -656,14 +745,14 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Replying to online reviews",
         paragraphs: [
-          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. Regulators in the US have taken enforcement action against dental practices for exactly this. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly — nothing more.",
+          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. In 2019 the US Department of Health and Human Services settled with a Dallas dental practice for exactly this: its replies to Yelp reviews had disclosed a patient's last name, treatment plan and insurance details. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly — nothing more.",
         ],
       },
       {
         heading: "Alternatives that need no patient data",
         paragraphs: [
           "Most useful content does not need real patients at all: the dentist explaining to camera, models and typodonts, diagrams, animation and narrated videos. They are easier to produce, never have to be taken down when consent is withdrawn and raise no advertising questions. Ideas in [dental social media post ideas](guide:dental-social-media-post-ideas).",
-          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colours, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [Try your first week free](start:).",
+          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colors, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [See your own videos before you pay](start:).",
         ],
       },
     ],
@@ -676,7 +765,7 @@ export const GUIDES_EN: Guide[] = [
       { q: "Can I post an X-ray with the name removed?", a: "If nothing reasonably identifies the patient, the risk is much lower. Still check file names, metadata and context before posting." },
       { q: "Is this legal advice?", a: "No. It is general information. Ask your data-protection officer, privacy officer, indemnity provider or a lawyer about specific cases." },
     ],
-    sources: [HHS, ICO, GDC, FTC_ADS],
+    sources: [HHS, CDA_ELITE, ICO, GDC_SM, FTC_255],
   },
   {
     locale: "en",
@@ -686,6 +775,8 @@ export const GUIDES_EN: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Dental video marketing: agency, freelancer, in-house or software?",
+    seoTitle: "Dental video marketing: agency or software?",
+    seoDescription: "Dental video marketing compared: agency, freelancer, in-house team or software, questions to ask before signing, a weekly workflow and who is responsible.",
     description: "How to run a dental practice's social media video: agency, freelancer, in-house team or software compared, questions to ask before signing, a weekly workflow and who is responsible.",
     h1: "Dental video marketing: agency, freelancer, in-house or software?",
     intro:
@@ -704,7 +795,7 @@ export const GUIDES_EN: Guide[] = [
           "Agency: handles planning, design and posting, and saves time. Often expensive, and not every agency knows health-advertising rules — promotions, giveaways and before-and-after carousels are standard elsewhere and risky for a dental practice.",
           "Freelance creator: more flexible and often more affordable, strong on filming and editing. Continuity depends on one person, and knowledge of the rules varies.",
           "In-house: nobody knows the practice and patients better, and the content sounds authentic. But time is short and patients always come first.",
-          "Software: produces regular content quickly and predictably. General tools do not know health-advertising rules; even with a specialised tool, the final check belongs to the dentist.",
+          "Software: produces regular content quickly and predictably. General tools do not know health-advertising rules; even with a specialized tool, the final check belongs to the dentist.",
         ],
       },
       {
@@ -763,7 +854,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "The mixed model most practices settle on",
         paragraphs: [
           "For many practices, what lasts is a mix: regular education videos come from a tool or an outside provider, the dentist adds a short recording of their own once or twice a month, and the team posts and replies. The account stays active, sounds like the practice and nobody is under weekly pressure. Topics in [dental social media post ideas](guide:dental-social-media-post-ideas); filming tips in [Instagram videos for dentists](guide:instagram-videos-for-dentists).",
-          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency — DentVideo does not publish anything itself. [Your first week is free](start:).",
+          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency — DentVideo does not publish anything itself. [See a live preview with your logo before you pay](start:). For a side-by-side table, see [how DentVideo compares with an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
         ],
       },
     ],

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { LOCALES, type Locale } from "@/content/dentvideo";
+import { SHARED_ROUTE_LOCALES, hasGuides, type Locale } from "@/content/dentvideo";
 import { GuidesIndex } from "@/components/dentvid/guides-index";
 import { guidesIndexMetadata } from "@/lib/dentvid/seo-guides";
 
 // Guides hub per language (dentvideo.com/de/guides …); English lives at /guides.
-const OTHER = LOCALES.filter((l) => l !== "en");
-export const dynamicParams = false;
+// Only languages that have guides get a hub; ja and ar have their own folders (app/dentvideo/ja|ar/guides) for their web fonts.
+const OTHER = SHARED_ROUTE_LOCALES.filter(hasGuides);
+// Unknown values reach the page and its notFound(), so they get the DentVideo 404 (not-found.tsx)
+// inside the header and footer rather than Next's bare default.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return OTHER.map((locale) => ({ locale }));
@@ -18,7 +21,9 @@ const asLocale = (v: string): Locale | null => ((OTHER as string[]).includes(v) 
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = asLocale((await params).locale);
-  return locale ? guidesIndexMetadata(locale) : {};
+  // Unknown: the 404's own (localized) title.
+  if (!locale) notFound();
+  return guidesIndexMetadata(locale);
 }
 
 export default async function LocalizedGuidesIndex({ params }: Props) {

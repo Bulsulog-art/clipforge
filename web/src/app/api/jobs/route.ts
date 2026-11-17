@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { videoQueue } from "@/lib/queue";
 import { isAllowedSourceUrl } from "@/lib/security";
+import { isYouTubeSourceUrl, YOUTUBE_BLOCKED_MESSAGE } from "@/lib/source-url";
 
 const SourceUrl = z
   .string()
@@ -35,6 +36,10 @@ export async function POST(req: Request) {
     body = Body.parse(await req.json());
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  }
+  // Refuse before quota, insert or queue: the job would fail on our servers anyway.
+  if (isYouTubeSourceUrl(body.sourceUrl)) {
+    return NextResponse.json({ error: YOUTUBE_BLOCKED_MESSAGE, code: "youtube_blocked" }, { status: 422 });
   }
 
   const svc = createServiceClient();

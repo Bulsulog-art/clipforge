@@ -1,13 +1,42 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { allowedOrigins, isBadOrigin } from "@/lib/origin-guard";
-import { routeForHost } from "@/lib/dentvid/host";
+import { isDentvideoHost, routeForHost } from "@/lib/dentvid/host";
+import { aliasFor } from "@/lib/dentvid/host-alias";
+import { publicCacheControl } from "@/lib/dentvid/cache-policy";
+import { TOO_MANY, requestLocale } from "@/lib/dentvid/request-locale";
+import { shouldRefreshDvSession, withFreshDvSession } from "@/lib/dentvid/session-refresh";
+import { API_GLOBAL_PER_IP, MemoryStore, clientIp, slidingWindow } from "@/lib/rate-limit";
+
+// A cheap first line against floods of /api requests: a per-IP sliding
+// window kept in this process's memory (one app instance on one VPS, so it
+// sees all traffic). Pages and static files are not counted. Per-route
+// limits with tighter numbers live in Redis (lib/rate-limit-server).
+const apiBuckets = new MemoryStore(50_000);
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // CSRF defence: Origin check on state-changing /api requests, with an
 // exemption for bearer-authenticated (native app) calls. See lib/origin-guard.
 export async function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/api/")) {
+    const r = await slidingWindow(apiBuckets, `api:${clientIp(req.headers)}`, API_GLOBAL_PER_IP);
+    if (!r.ok) {
+      // DentVideo screens show `error` as-is: say it in the visitor's language there.
+      const error = req.nextUrl.pathname.startsWith("/api/dentvideo/")
+        ? TOO_MANY[requestLocale(req.headers.get("cookie"), req.headers.get("accept-language"))]
+        : "Too many requests";
+      return NextResponse.json({ error }, { status: 429, headers: { "Retry-After": String(r.retryAfterSec) } });
+    }
+  }
+
+  // Guessed addresses on dentvideo.com (/pricing, /login, /tr/start …) go to the page that answers them (lib/dentvid/host-alias).
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  if (isDentvideoHost(host) && !host?.toLowerCase().startsWith("www.")) {
+    const alias = aliasFor(req.nextUrl.pathname, req.nextUrl.search);
+    if (alias) return NextResponse.redirect(`https://dentvideo.com${alias}`, 308);
+  }
+
   // dentvideo.com is served from the /dentvideo section (lib/dentvid/host).
   const route = routeForHost(
     req.headers.get("x-forwarded-host") ?? req.headers.get("host"),
@@ -19,7 +48,15 @@ export async function middleware(req: NextRequest) {
   if (route.kind === "rewrite") {
     const url = req.nextUrl.clone();
     url.pathname = route.path;
-    return NextResponse.rewrite(url);
+    // A signed-in clinic's page: refresh an expired dv-auth session first (lib/dentvid/session-refresh).
+    if (shouldRefreshDvSession(route.path, req.method, req.headers.get("cookie"))) {
+      return withFreshDvSession(req, () => NextResponse.rewrite(url, { request: { headers: req.headers } }));
+    }
+    const res = NextResponse.rewrite(url);
+    // The marketing pages are the same for everyone: a CDN may keep them (lib/dentvid/cache-policy).
+    const cache = publicCacheControl(route.path, req.method);
+    if (cache) res.headers.set("Cache-Control", cache);
+    return res;
   }
 
   // CSRF / Origin guard — runs before any DB work.
@@ -33,6 +70,20 @@ export async function middleware(req: NextRequest) {
     })
   ) {
     return NextResponse.json({ error: "Bad Origin" }, { status: 403 });
+  }
+
+  // DentVideo's marketing pages on this host (before dentvideo.com is canonical):
+  // public and cacheable, so no session work and no cookies on them.
+  const dvCache = publicCacheControl(req.nextUrl.pathname, req.method);
+  if (dvCache) {
+    const pub = NextResponse.next({ request: req });
+    pub.headers.set("Cache-Control", dvCache);
+    return pub;
+  }
+
+  // DentVideo's per-person pages on this host: DentVideo's session, not ClipForge's.
+  if (shouldRefreshDvSession(req.nextUrl.pathname, req.method, req.headers.get("cookie"))) {
+    return withFreshDvSession(req, () => NextResponse.next({ request: req }));
   }
 
   let res = NextResponse.next({ request: req });

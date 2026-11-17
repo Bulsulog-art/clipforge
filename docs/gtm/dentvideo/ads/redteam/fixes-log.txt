@@ -1,0 +1,89 @@
+# Historical log (2026-11-15) of the red-team CSV edits. Prices in it are retired; current copy: build_csvs.py.
+KW removed: TR-1 Sosyal medya | diş hekimi instagram [Exact]
+KW phrase->exact: TR-1 Sosyal medya | diş kliniği instagram
+KW removed: TR-1 Sosyal medya | diş hekimi tiktok [Phrase]
+KW phrase->exact: TR-2 Video | diş kliniği video
+KW removed: TR-2 Video | diş hekimi video [Phrase]
+KW phrase->exact: TR-2 Video | implant bilgilendirme videosu
+KW narrowed: TR-2 Video | diş kliniği yapay zeka -> diş kliniği yapay zeka video
+KW removed: TR-3 Reklam kuralları | sponsorlu reklam yasağı [Phrase]
+KW removed: TR-3 Reklam kuralları | doktor sponsorlu reklam yasağı [Phrase]
+KW removed: TR-3 Reklam kuralları | doktorlara sosyal medya yasağı [Phrase]
+KW removed: TR-3 Reklam kuralları | 33075 sayılı yönetmelik [Phrase]
+KW removed: TR-4 Ajans alternatifi | sağlık sosyal medya ajansı [Phrase]
+KW removed: TR-4 Ajans alternatifi | sağlık sosyal medya yönetimi [Phrase]
+KW phrase->exact: DE-1 Social Media | instagram zahnarztpraxis
+KW phrase->exact: DE-1 Social Media | instagram zahnarzt
+KW phrase->exact: DE-1 Social Media | zahnarzt reels
+KW phrase->exact: DE-1 Social Media | zahnarztpraxis tiktok
+KW narrowed: DE-2 Videos | patientenaufklärung video -> patientenaufklärung video zahnarzt
+KW removed: DE-3 Werberecht | heilmittelwerbegesetz social media [Phrase]
+KW removed: DE-3 Werberecht | vorher nachher bilder zahnarzt [Phrase]
+TR-0 Brand RSA(dis-klinigi videolar) Description 2: 'Her metin siz görmeden tanıtım kuralları ve klinik doğruluk açısından kontrol edilir.' -> 'Her metin yazılımla, siz görmeden tanıtım kuralları ve klinik doğruluğa göre denetlenir.'
+TR-1 Sosyal medya RSA(sosyal-medya bilgilendirme) Description 2: 'Her metin siz görmeden tanıtım kuralları ve klinik doğruluk açısından kontrol edilir.' -> 'Her metin yazılımla, siz görmeden tanıtım kuralları ve klinik doğruluğa göre denetlenir.'
+TR-2 Video RSA(dis-klinigi bilgilendirme) Description 2: 'Her metin siz görmeden tanıtım kuralları ve klinik doğruluk açısından kontrol edilir.' -> 'Her metin yazılımla, siz görmeden tanıtım kuralları ve klinik doğruluğa göre denetlenir.'
+TR-3 Reklam kuralları RSA(reklam-kontrol dis-hekimi) Headline 14: "Aylık 2.490 TL'den Başlar" -> 'Instagram ve Web Metni İçin' (checker page has no price)
+TR-3 Reklam kuralları RSA(reklam-kontrol sosyal-medya) Headline 14: "Aylık 2.490 TL'den Başlar" -> 'Instagram ve Web Metni İçin' (checker page has no price)
+TR-3 Reklam kuralları RSA(reklam-kontrol sosyal-medya) Description 3: 'Her metin siz görmeden tanıtım kuralları ve klinik doğruluk açısından kontrol edilir.' -> 'Her metin yazılımla, siz görmeden tanıtım kuralları ve klinik doğruluğa göre denetlenir.'
+TR-3 Reklam kuralları RSA(reklam-kontrol sosyal-medya) Description 4: 'Starter aylık 2.490 TL, Practice aylık 4.490 TL, vergiler hariç. Taahhüt yok.' -> 'Ücretsiz araç: Instagram açıklamanızı ya da web sitesi metninizi tarayıcıda kontrol edin.' (checker page has no price)
+TR-4 Ajans alternatifi RSA(ajans alternatif) Headline 2: 'Ajans, Canva mı, DentVideo mu' -> 'Ajans mı, DentVideo mu?'
+TR-4 Ajans alternatifi RSA(ajans alternatif) Headline 3: 'Ajans Ücretinin Küçük Kısmı' -> 'Sabit Aylık Ücret'
+TR-4 Ajans alternatifi RSA(ajans alternatif) Final URL https://dentvideo.com/videos/dentvideo-ajans-canva-chatgpt -> https://dentvideo.com/tr (interim: /videos/* shows $79 to every visitor)
+TR-4 Ajans alternatifi RSA(ajans bilgilendirme) Description 2: 'Her metin siz görmeden tanıtım kuralları ve klinik doğruluk açısından kontrol edilir.' -> 'Her metin yazılımla, siz görmeden tanıtım kuralları ve klinik doğruluğa göre denetlenir.'
+TR-4 Ajans alternatifi RSA(ajans bilgilendirme) Final URL https://dentvideo.com/videos/dentvideo-ajans-canva-chatgpt -> https://dentvideo.com/tr (interim: /videos/* shows $79 to every visitor)
+DE-0 Brand RSA(zahnarztpraxis videos) Headline 11: 'Vorab auf Werberecht geprüft' -> 'Softwaregestützt vorgeprüft'
+DE-0 Brand RSA(zahnarztpraxis videos) Description 2: 'Jedes Skript vorab auf Werberecht und fachliche Richtigkeit geprüft. Keine Rechtsberatung.' -> 'Jedes Skript vorab softwaregestützt auf Werberecht geprüft. Keine Rechtsberatung.'
+DE-1 Social Media RSA(social-media zahnarzt) Headline 12: 'Vorab auf Werberecht geprüft' -> 'Softwaregestützt vorgeprüft'
+DE-1 Social Media RSA(social-media zahnarzt) Description 3: 'Jedes Skript vorab auf Werberecht und fachliche Richtigkeit geprüft. Keine Rechtsberatung.' -> 'Jedes Skript vorab softwaregestützt auf Werberecht geprüft. Keine Rechtsberatung.'
+DE-1 Social Media RSA(social-media praxis) Headline 12: 'Auf Werberecht vorgeprüft' -> 'Softwaregestützt vorgeprüft'
+DE-1 Social Media RSA(social-media praxis) Description 3: 'Jedes Skript vorab auf Werberecht und fachliche Richtigkeit geprüft. Sie entscheiden.' -> 'Jedes Skript vorab softwaregestützt auf Werberecht geprüft. Sie entscheiden.'
+DE-2 Videos RSA(zahnarztpraxis videos) Headline 12: 'Vorab auf Werberecht geprüft' -> 'Softwaregestützt vorgeprüft'
+DE-2 Videos RSA(zahnarztpraxis aufklaerung) Headline 12: 'Auf Werberecht vorgeprüft' -> 'Softwaregestützt vorgeprüft'
+DE-2 Videos RSA(zahnarztpraxis aufklaerung) Description 3: 'Jedes Skript vorab auf Werberecht und fachliche Richtigkeit geprüft. Sie entscheiden.' -> 'Jedes Skript vorab softwaregestützt auf Werberecht geprüft. Sie entscheiden.'
+DE-3 Werberecht RSA(werbe-check zahnarzt) Headline 14: 'Ab 79 € im Monat' -> 'Für Instagram und Website' (checker page has no price)
+DE-3 Werberecht RSA(werbe-check zahnarzt) Description 4: 'Auf Wunsch jeden Montag fünf Aufklärungsvideos, vorab auf Werberecht geprüft.' -> 'Auf Wunsch jeden Montag fünf Aufklärungsvideos, softwaregestützt vorgeprüft.'
+DE-3 Werberecht RSA(werbe-check praxis) Headline 11: 'Vorab auf Werberecht geprüft' -> 'Softwaregestützt vorgeprüft'
+DE-3 Werberecht RSA(werbe-check praxis) Headline 15: 'Ab 79 € im Monat' -> 'Für Instagram und Website' (checker page has no price)
+DE-3 Werberecht RSA(werbe-check praxis) Description 3: 'Jedes Skript vorab auf Werberecht und fachliche Richtigkeit geprüft. Keine Rechtsberatung.' -> 'Jedes Skript vorab softwaregestützt auf Werberecht geprüft. Keine Rechtsberatung.'
+DE-3 Werberecht RSA(werbe-check praxis) Description 4: 'Starter 79 €, Practice 149 € pro Monat zzgl. MwSt. Monatlich kündbar.' -> 'Kostenloser Check im Browser: Ihr Text wird nirgendwohin gesendet und nicht gespeichert.' (checker page has no price)
+DE-4 Agentur-Alternative RSA(agentur alternative) Headline 11: 'Auf Werberecht vorgeprüft' -> 'Softwaregestützt vorgeprüft'
+DE-4 Agentur-Alternative RSA(agentur alternative) Headline 15: 'Agentur, Canva oder DentVideo' -> 'Agentur oder DentVideo?'
+DE-4 Agentur-Alternative RSA(agentur alternative) Final URL https://dentvideo.com/videos/dentvideo-agentur-canva-chatgpt -> https://dentvideo.com/de (interim: /videos/* shows $79 to every visitor)
+DE-4 Agentur-Alternative RSA(agentur aufklaerung) Headline 10: 'Vorab auf Werberecht geprüft' -> 'Softwaregestützt vorgeprüft'
+DE-4 Agentur-Alternative RSA(agentur aufklaerung) Description 2: 'Jedes Skript vorab auf Werberecht und fachliche Richtigkeit geprüft. Keine Rechtsberatung.' -> 'Jedes Skript vorab softwaregestützt auf Werberecht geprüft. Keine Rechtsberatung.'
+DE-4 Agentur-Alternative RSA(agentur aufklaerung) Final URL https://dentvideo.com/videos/dentvideo-agentur-canva-chatgpt -> https://dentvideo.com/de (interim: /videos/* shows $79 to every visitor)
+NEG added tr-search-core: "izle"
+NEG added tr-search-core: "oyun"
+NEG added tr-search-core: "oyunu"
+NEG added tr-search-core: "çizgi film"
+NEG added tr-search-core: "vlog"
+NEG added tr-search-core: "korkusu"
+NEG added tr-search-core: "ameliyat"
+NEG added tr-search-core: "anestezi"
+NEG added tr-search-core: "hastane"
+NEG added tr-search-core: "eczacı"
+NEG added tr-search-core: "psikolog"
+NEG added tr-search-core: "diyetisyen"
+NEG added tr-search-core: "fizyoterapist"
+NEG added tr-search-core: "güzellik merkezi"
+NEG added tr-search-core: "ünlü"
+NEG added tr-search-core: "fenomen"
+NEG added de-search-core: "anschauen"
+NEG added de-search-core: "lustig"
+NEG added de-search-core: "witzig"
+NEG added de-search-core: "spiel"
+NEG added de-search-core: "angst"
+NEG added de-search-core: "erfahrungen"
+NEG added de-search-core: "veneers"
+NEG added de-search-core: "zahnspange"
+NEG added de-search-core: "türkei"
+NEG added de-search-core: "ungarn"
+NEG added de-search-core: "krankenhaus"
+NEG added de-search-core: "klinikum"
+NEG added de-search-core: "physiotherapie"
+NEG added de-search-core: "kosmetikstudio"
+NEG added de-search-core: "hyaluron"
+NEG added de-search-core: "botox"
+Sitelink TR comparison -> guide (no $79, no Canva/ChatGPT in text)
+Sitelink DE comparison -> guide (no $79, no Canva/ChatGPT in text)
+87 changes

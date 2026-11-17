@@ -1,0 +1,414 @@
+/**
+ * Billing-state copy: what a clinic reads when a payment did not go through,
+ * when a checkout is refused because a subscription already exists (or is
+ * still being confirmed), and the payment-problem email. One entry per site
+ * language, all with the same shape and {placeholders}
+ * (dentvideo-billing.test.ts checks this).
+ *
+ * The aim is one honest sentence about what happened and one clear way to fix
+ * it — never "buy again" while a subscription is still alive, so nobody is
+ * charged twice.
+ *
+ * Placeholders: {email} {date} {price} {left} {total} {clinic}.
+ */
+
+export type BillingCopy = {
+  refuse: {
+    pending: string;
+    updatePayment: string;
+    updateHowPortal: string;
+    updateHowEmail: string;
+    cancelledPending: string;
+    /** A chargeback is open on the clinic's subscription: no new plan, write to us. */
+    disputed: string;
+  };
+  panel: {
+    title: string;
+    body: string;
+    keepVideos: string;
+    portalButton: string;
+    emailButton: string;
+    emailSubject: string;
+    opening: string;
+    failed: string;
+    cancelledTitle: string;
+    cancelledBody: string;
+    pendingTitle: string;
+    pendingBody: string;
+    disputedTitle: string;
+    disputedBody: string;
+    /** The owner paused the clinic from the admin panel. */
+    adminPausedTitle: string;
+    adminPausedBody: string;
+    contactSubject: string;
+  };
+  email: {
+    failedSubject: string;
+    holdSubject: string;
+    preheader: string;
+    hello: string;
+    failedBody: string;
+    holdBody: string;
+    fixPortal: string;
+    fixEmail: string;
+    fixCheckout: string;
+    button: string;
+    signoff: string;
+    footer: string;
+  };
+};
+
+export const BILLING_COPY: Record<string, BillingCopy> = {
+  en: {
+    refuse: {
+      pending: "We're still confirming your last payment. Please give it a few minutes and refresh — there is no need to pay again.",
+      updatePayment: "Your subscription is on hold because a payment didn't go through. Please update your card instead of buying a new plan, so you aren't charged twice: {how}",
+      updateHowPortal: "open Plan and billing in Settings.",
+      updateHowEmail: "write to {email} and we'll send you a secure link.",
+      cancelledPending: "Your plan was canceled and is paid until {date}. To start again before then, write to {email} so you aren't charged twice.",
+      disputed: "A payment on your account is under review, so a new plan can't be bought right now. Please write to {email} and we'll sort it out with you.",
+    },
+    panel: {
+      title: "Please update your payment",
+      body: "Your last payment didn't go through, so new weekly videos are paused. Update your card and they start again — no need to choose a new plan.",
+      keepVideos: "Your videos stay in your library, and you can still share them.",
+      portalButton: "Update payment details",
+      emailButton: "Email us for a secure link",
+      emailSubject: "Update my DentVideo payment",
+      opening: "Opening…",
+      failed: "That didn't work. Please try again, or write to {email}.",
+      cancelledTitle: "Your plan has been canceled",
+      cancelledBody: "It is paid until {date}. To start again before then, write to {email} — we'll restart it without charging you twice.",
+      pendingTitle: "We're confirming your payment",
+      pendingBody: "This usually takes a minute or two. Please refresh shortly — there is no need to pay again.",
+      disputedTitle: "A payment is under review",
+      disputedBody: "A payment for your plan was disputed with your bank or card provider, so new weekly videos are paused while it is reviewed. Please don't buy a new plan — write to {email} and we'll sort it out with you.",
+      adminPausedTitle: "Your videos are paused by DentVideo",
+      adminPausedBody: "We've paused new weekly videos for your clinic for now. Your plan and your videos are safe. Please write to {email} and we'll explain and get you going again.",
+      contactSubject: "My DentVideo account",
+    },
+    email: {
+      failedSubject: "Your DentVideo payment didn't go through",
+      holdSubject: "Action needed: your DentVideo videos are paused",
+      preheader: "One quick step and your weekly videos carry on.",
+      hello: "Hello {clinic},",
+      failedBody: "We tried to charge your card for DentVideo and the payment didn't go through. Your plan is still running for now, and the payment will be tried again.",
+      holdBody: "Your payment for DentVideo didn't go through, so your subscription is on hold and new weekly videos are paused. Your videos stay in your library.",
+      fixPortal: "To fix it, open DentVideo, go to Settings → Plan and billing and update your card. It takes a minute and nothing else changes.",
+      fixEmail: "To fix it, just reply to this email (or write to {email}) and we'll send you a secure link to update your card. Please don't buy a new plan, as that would charge you twice.",
+      fixCheckout: "Your previous subscription has ended. Whenever you're ready, you can choose a plan again in DentVideo.",
+      button: "Open DentVideo",
+      signoff: "The DentVideo team",
+      footer: "You get this email because there is a problem with a payment for your DentVideo plan.",
+    },
+  },
+  de: {
+    refuse: {
+      pending: "Wir bestätigen gerade noch Ihre letzte Zahlung. Bitte warten Sie ein paar Minuten und laden Sie die Seite neu — Sie müssen nicht erneut bezahlen.",
+      updatePayment: "Ihr Abonnement ist pausiert, weil eine Zahlung nicht durchging. Bitte aktualisieren Sie Ihre Karte, statt einen neuen Tarif zu kaufen, damit Sie nicht doppelt bezahlen: {how}",
+      updateHowPortal: "Öffnen Sie in den Einstellungen „Tarif und Abrechnung“.",
+      updateHowEmail: "Schreiben Sie an {email}, wir senden Ihnen einen sicheren Link.",
+      cancelledPending: "Ihr Tarif wurde gekündigt und ist bis {date} bezahlt. Wenn Sie vorher wieder starten möchten, schreiben Sie an {email}, damit Sie nicht doppelt bezahlen.",
+      disputed: "Eine Zahlung auf Ihrem Konto wird gerade geprüft, daher kann im Moment kein neuer Tarif gekauft werden. Bitte schreiben Sie an {email}, wir klären das gemeinsam mit Ihnen.",
+    },
+    panel: {
+      title: "Bitte aktualisieren Sie Ihre Zahlung",
+      body: "Ihre letzte Zahlung ging nicht durch, daher sind neue Wochenvideos pausiert. Aktualisieren Sie Ihre Karte, dann geht es weiter — ein neuer Tarif ist nicht nötig.",
+      keepVideos: "Ihre Videos bleiben in Ihrer Bibliothek, und Sie können sie weiterhin teilen.",
+      portalButton: "Zahlungsdaten aktualisieren",
+      emailButton: "Sicheren Link per E-Mail anfordern",
+      emailSubject: "Meine DentVideo-Zahlung aktualisieren",
+      opening: "Wird geöffnet…",
+      failed: "Das hat nicht geklappt. Bitte versuchen Sie es erneut oder schreiben Sie an {email}.",
+      cancelledTitle: "Ihr Tarif wurde gekündigt",
+      cancelledBody: "Er ist bis {date} bezahlt. Wenn Sie vorher wieder starten möchten, schreiben Sie an {email} — wir starten ihn neu, ohne doppelt abzurechnen.",
+      pendingTitle: "Wir bestätigen Ihre Zahlung",
+      pendingBody: "Das dauert meist ein bis zwei Minuten. Bitte laden Sie die Seite gleich neu — Sie müssen nicht erneut bezahlen.",
+      disputedTitle: "Eine Zahlung wird geprüft",
+      disputedBody: "Eine Zahlung für Ihren Tarif wurde bei Ihrer Bank oder Ihrem Kartenanbieter beanstandet, daher sind neue Wochenvideos pausiert, solange sie geprüft wird. Bitte kaufen Sie keinen neuen Tarif — schreiben Sie an {email}, wir klären das gemeinsam mit Ihnen.",
+      adminPausedTitle: "Ihre Videos sind von DentVideo pausiert",
+      adminPausedBody: "Wir haben neue Wochenvideos für Ihre Praxis vorerst pausiert. Ihr Tarif und Ihre Videos bleiben erhalten. Bitte schreiben Sie an {email}, wir erklären Ihnen den Grund und starten wieder.",
+      contactSubject: "Mein DentVideo-Konto",
+    },
+    email: {
+      failedSubject: "Ihre DentVideo-Zahlung ging nicht durch",
+      holdSubject: "Ihre DentVideo-Videos sind pausiert",
+      preheader: "Ein kurzer Schritt, und Ihre Wochenvideos gehen weiter.",
+      hello: "Guten Tag {clinic},",
+      failedBody: "Wir wollten Ihre Karte für DentVideo belasten, aber die Zahlung ging nicht durch. Ihr Tarif läuft vorerst weiter, und die Zahlung wird erneut versucht.",
+      holdBody: "Ihre Zahlung für DentVideo ging nicht durch, daher ist Ihr Abonnement pausiert und neue Wochenvideos werden nicht erstellt. Ihre Videos bleiben in Ihrer Bibliothek.",
+      fixPortal: "So beheben Sie es: Öffnen Sie DentVideo, gehen Sie zu Einstellungen → Tarif und Abrechnung und aktualisieren Sie Ihre Karte. Das dauert eine Minute, sonst ändert sich nichts.",
+      fixEmail: "So beheben Sie es: Antworten Sie einfach auf diese E-Mail (oder schreiben Sie an {email}), und wir senden Ihnen einen sicheren Link, um Ihre Karte zu aktualisieren. Bitte kaufen Sie keinen neuen Tarif, sonst zahlen Sie doppelt.",
+      fixCheckout: "Ihr bisheriges Abonnement ist beendet. Wann immer Sie möchten, können Sie in DentVideo wieder einen Tarif wählen.",
+      button: "DentVideo öffnen",
+      signoff: "Ihr DentVideo-Team",
+      footer: "Sie erhalten diese E-Mail, weil es ein Problem mit einer Zahlung für Ihren DentVideo-Tarif gibt.",
+    },
+  },
+  es: {
+    refuse: {
+      pending: "Todavía estamos confirmando tu último pago. Espera unos minutos y actualiza la página; no hace falta pagar de nuevo.",
+      updatePayment: "Tu suscripción está en pausa porque un pago no se completó. Actualiza tu tarjeta en lugar de comprar un plan nuevo, para no pagar dos veces: {how}",
+      updateHowPortal: "abre Plan y facturación en Ajustes.",
+      updateHowEmail: "escribe a {email} y te enviaremos un enlace seguro.",
+      cancelledPending: "Tu plan se canceló y está pagado hasta el {date}. Si quieres volver a empezar antes, escribe a {email} para no pagar dos veces.",
+      disputed: "Un pago de tu cuenta está en revisión, así que ahora no se puede contratar un plan nuevo. Escríbenos a {email} y lo resolvemos contigo.",
+    },
+    panel: {
+      title: "Actualiza tu pago",
+      body: "Tu último pago no se completó, así que los nuevos vídeos semanales están en pausa. Actualiza tu tarjeta y se reanudan; no hace falta elegir un plan nuevo.",
+      keepVideos: "Tus vídeos siguen en tu biblioteca y puedes seguir compartiéndolos.",
+      portalButton: "Actualizar datos de pago",
+      emailButton: "Pídenos un enlace seguro por email",
+      emailSubject: "Actualizar mi pago de DentVideo",
+      opening: "Abriendo…",
+      failed: "No ha funcionado. Inténtalo de nuevo o escribe a {email}.",
+      cancelledTitle: "Tu plan se ha cancelado",
+      cancelledBody: "Está pagado hasta el {date}. Si quieres volver a empezar antes, escribe a {email} y lo reactivaremos sin cobrarte dos veces.",
+      pendingTitle: "Estamos confirmando tu pago",
+      pendingBody: "Suele tardar uno o dos minutos. Actualiza la página en un momento; no hace falta pagar de nuevo.",
+      disputedTitle: "Un pago está en revisión",
+      disputedBody: "Un pago de tu plan se ha reclamado ante tu banco o el emisor de tu tarjeta, así que los vídeos semanales nuevos están en pausa mientras se revisa. No contrates un plan nuevo: escríbenos a {email} y lo resolvemos contigo.",
+      adminPausedTitle: "DentVideo ha pausado tus vídeos",
+      adminPausedBody: "Hemos pausado por ahora los vídeos semanales nuevos de tu clínica. Tu plan y tus vídeos están a salvo. Escríbenos a {email} y te explicamos el motivo para volver a ponerlos en marcha.",
+      contactSubject: "Mi cuenta de DentVideo",
+    },
+    email: {
+      failedSubject: "Tu pago de DentVideo no se completó",
+      holdSubject: "Tus vídeos de DentVideo están en pausa",
+      preheader: "Un paso rápido y tus vídeos semanales siguen llegando.",
+      hello: "Hola, {clinic}:",
+      failedBody: "Intentamos cobrar DentVideo en tu tarjeta y el pago no se completó. Por ahora tu plan sigue activo y el cobro se intentará de nuevo.",
+      holdBody: "Tu pago de DentVideo no se completó, así que tu suscripción está en pausa y los nuevos vídeos semanales también. Tus vídeos siguen en tu biblioteca.",
+      fixPortal: "Para solucionarlo, abre DentVideo, ve a Ajustes → Plan y facturación y actualiza tu tarjeta. Es un minuto y no cambia nada más.",
+      fixEmail: "Para solucionarlo, responde a este email (o escribe a {email}) y te enviaremos un enlace seguro para actualizar tu tarjeta. Por favor, no compres un plan nuevo: te cobraríamos dos veces.",
+      fixCheckout: "Tu suscripción anterior ha terminado. Cuando quieras, puedes volver a elegir un plan en DentVideo.",
+      button: "Abrir DentVideo",
+      signoff: "El equipo de DentVideo",
+      footer: "Recibes este email porque hay un problema con un pago de tu plan de DentVideo.",
+    },
+  },
+  tr: {
+    refuse: {
+      pending: "Son ödemenizi hâlâ doğruluyoruz. Lütfen birkaç dakika bekleyip sayfayı yenileyin — tekrar ödeme yapmanıza gerek yok.",
+      updatePayment: "Bir ödeme gerçekleşmediği için aboneliğiniz beklemede. İki kez ödeme yapmamak için yeni bir plan almak yerine lütfen kartınızı güncelleyin: {how}",
+      updateHowPortal: "Ayarlar'da Plan ve faturalandırma bölümünü açın.",
+      updateHowEmail: "{email} adresine yazın, size güvenli bir bağlantı gönderelim.",
+      cancelledPending: "Planınız iptal edildi ve {date} tarihine kadar ödenmiş durumda. Daha önce yeniden başlamak isterseniz, iki kez ödeme yapmamak için {email} adresine yazın.",
+      disputed: "Hesabınızdaki bir ödeme inceleniyor, bu yüzden şu anda yeni bir plan satın alınamıyor. Lütfen {email} adresine yazın, birlikte çözelim.",
+    },
+    panel: {
+      title: "Lütfen ödemenizi güncelleyin",
+      body: "Son ödemeniz gerçekleşmediği için yeni haftalık videolar durduruldu. Kartınızı güncelleyin, videolar yeniden başlasın — yeni bir plan seçmenize gerek yok.",
+      keepVideos: "Videolarınız kütüphanenizde kalır ve onları paylaşmaya devam edebilirsiniz.",
+      portalButton: "Ödeme bilgilerini güncelle",
+      emailButton: "Güvenli bağlantı için bize yazın",
+      emailSubject: "DentVideo ödememi güncellemek istiyorum",
+      opening: "Açılıyor…",
+      failed: "Olmadı. Lütfen tekrar deneyin ya da {email} adresine yazın.",
+      cancelledTitle: "Planınız iptal edildi",
+      cancelledBody: "{date} tarihine kadar ödenmiş durumda. Daha önce yeniden başlamak isterseniz {email} adresine yazın — iki kez ücret almadan yeniden başlatalım.",
+      pendingTitle: "Ödemenizi doğruluyoruz",
+      pendingBody: "Bu genellikle bir iki dakika sürer. Lütfen birazdan sayfayı yenileyin — tekrar ödeme yapmanıza gerek yok.",
+      disputedTitle: "Bir ödeme inceleniyor",
+      disputedBody: "Planınıza ait bir ödemeye bankanız veya kart sağlayıcınız üzerinden itiraz edildi; inceleme sürerken yeni haftalık videolar duraklatıldı. Lütfen yeni bir plan satın almayın — {email} adresine yazın, birlikte çözelim.",
+      adminPausedTitle: "Videolarınız DentVideo tarafından duraklatıldı",
+      adminPausedBody: "Kliniğiniz için yeni haftalık videoları şimdilik duraklattık. Planınız ve videolarınız güvende. Lütfen {email} adresine yazın; nedenini açıklayıp yeniden başlatalım.",
+      contactSubject: "DentVideo hesabım",
+    },
+    email: {
+      failedSubject: "DentVideo ödemeniz gerçekleşmedi",
+      holdSubject: "DentVideo videolarınız durduruldu: ödeme gerekli",
+      preheader: "Kısa bir adım, haftalık videolarınız devam etsin.",
+      hello: "Merhaba {clinic},",
+      failedBody: "DentVideo için kartınızdan ödeme almaya çalıştık ama ödeme gerçekleşmedi. Planınız şimdilik devam ediyor ve ödeme yeniden denenecek.",
+      holdBody: "DentVideo ödemeniz gerçekleşmediği için aboneliğiniz beklemede ve yeni haftalık videolar durduruldu. Videolarınız kütüphanenizde kalır.",
+      fixPortal: "Düzeltmek için DentVideo'yu açın, Ayarlar → Plan ve faturalandırma bölümünden kartınızı güncelleyin. Bir dakika sürer, başka hiçbir şey değişmez.",
+      fixEmail: "Düzeltmek için bu e-postayı yanıtlamanız (ya da {email} adresine yazmanız) yeterli; kartınızı güncellemeniz için size güvenli bir bağlantı gönderelim. Lütfen yeni bir plan satın almayın, aksi halde iki kez ödeme yapmış olursunuz.",
+      fixCheckout: "Önceki aboneliğiniz sona erdi. Hazır olduğunuzda DentVideo'da yeniden bir plan seçebilirsiniz.",
+      button: "DentVideo'yu aç",
+      signoff: "DentVideo ekibi",
+      footer: "Bu e-postayı, DentVideo planınızın bir ödemesinde sorun olduğu için alıyorsunuz.",
+    },
+  },
+  fr: {
+    refuse: {
+      pending: "Nous confirmons encore votre dernier paiement. Merci de patienter quelques minutes puis d’actualiser la page — inutile de payer à nouveau.",
+      updatePayment: "Votre abonnement est suspendu car un paiement n’a pas abouti. Merci de mettre à jour votre carte plutôt que d’acheter une nouvelle formule, pour ne pas payer deux fois : {how}",
+      updateHowPortal: "ouvrez Formule et facturation dans les Réglages.",
+      updateHowEmail: "écrivez à {email} et nous vous enverrons un lien sécurisé.",
+      cancelledPending: "Votre formule a été résiliée et elle est payée jusqu’au {date}. Pour recommencer avant, écrivez à {email} afin de ne pas payer deux fois.",
+      disputed: "Un paiement de votre compte est en cours d'examen : vous ne pouvez donc pas souscrire de nouvelle formule pour le moment. Écrivez-nous à {email} et nous réglerons cela avec vous.",
+    },
+    panel: {
+      title: "Merci de mettre à jour votre paiement",
+      body: "Votre dernier paiement n’a pas abouti, les nouvelles vidéos hebdomadaires sont donc en pause. Mettez à jour votre carte et elles reprennent — inutile de choisir une nouvelle formule.",
+      keepVideos: "Vos vidéos restent dans votre bibliothèque et vous pouvez toujours les partager.",
+      portalButton: "Mettre à jour le paiement",
+      emailButton: "Demander un lien sécurisé par e-mail",
+      emailSubject: "Mettre à jour mon paiement DentVideo",
+      opening: "Ouverture…",
+      failed: "Cela n’a pas fonctionné. Réessayez ou écrivez à {email}.",
+      cancelledTitle: "Votre formule a été résiliée",
+      cancelledBody: "Elle est payée jusqu’au {date}. Pour recommencer avant, écrivez à {email} — nous la relancerons sans vous facturer deux fois.",
+      pendingTitle: "Nous confirmons votre paiement",
+      pendingBody: "Cela prend en général une à deux minutes. Actualisez la page dans un instant — inutile de payer à nouveau.",
+      disputedTitle: "Un paiement est en cours d'examen",
+      disputedBody: "Un paiement de votre formule a été contesté auprès de votre banque ou de l'émetteur de votre carte : les nouvelles vidéos hebdomadaires sont donc en pause pendant l'examen. Ne souscrivez pas de nouvelle formule — écrivez-nous à {email} et nous réglerons cela avec vous.",
+      adminPausedTitle: "Vos vidéos ont été mises en pause par DentVideo",
+      adminPausedBody: "Nous avons mis en pause, pour l'instant, les nouvelles vidéos hebdomadaires de votre cabinet. Votre formule et vos vidéos sont conservées. Écrivez-nous à {email} : nous vous expliquerons pourquoi et relancerons tout.",
+      contactSubject: "Mon compte DentVideo",
+    },
+    email: {
+      failedSubject: "Votre paiement DentVideo n’a pas abouti",
+      holdSubject: "Vos vidéos DentVideo sont en pause",
+      preheader: "Une étape rapide et vos vidéos hebdomadaires continuent.",
+      hello: "Bonjour {clinic},",
+      failedBody: "Nous avons tenté de débiter votre carte pour DentVideo et le paiement n’a pas abouti. Votre formule continue pour l’instant et le paiement sera retenté.",
+      holdBody: "Votre paiement DentVideo n’a pas abouti : votre abonnement est suspendu et les nouvelles vidéos hebdomadaires sont en pause. Vos vidéos restent dans votre bibliothèque.",
+      fixPortal: "Pour régler cela, ouvrez DentVideo, allez dans Réglages → Formule et facturation et mettez à jour votre carte. Cela prend une minute et rien d’autre ne change.",
+      fixEmail: "Pour régler cela, répondez simplement à cet e-mail (ou écrivez à {email}) et nous vous enverrons un lien sécurisé pour mettre à jour votre carte. Merci de ne pas acheter de nouvelle formule : vous paieriez deux fois.",
+      fixCheckout: "Votre abonnement précédent est terminé. Quand vous le souhaitez, vous pouvez choisir à nouveau une formule dans DentVideo.",
+      button: "Ouvrir DentVideo",
+      signoff: "L’équipe DentVideo",
+      footer: "Vous recevez cet e-mail car un paiement de votre formule DentVideo pose problème.",
+    },
+  },
+  ja: {
+    refuse: {
+      pending: "前回のお支払いを確認しています。数分お待ちいただいてからページを更新してください。再度お支払いいただく必要はありません。",
+      updatePayment: "お支払いが完了しなかったため、サブスクリプションが保留中です。二重請求を避けるため、新しいプランを購入せずにカード情報を更新してください：{how}",
+      updateHowPortal: "設定の「プランとお支払い」を開いてください。",
+      updateHowEmail: "{email} までご連絡いただければ、安全なリンクをお送りします。",
+      cancelledPending: "プランは解約済みで、{date}までお支払い済みです。それより前に再開したい場合は、二重請求を避けるため {email} までご連絡ください。",
+      disputed: "お客様のアカウントのお支払いを確認中のため、現在は新しいプランをお申し込みいただけません。{email} までご連絡ください。一緒に解決いたします。",
+    },
+    panel: {
+      title: "お支払い情報を更新してください",
+      body: "前回のお支払いが完了しなかったため、新しい週次動画を一時停止しています。カード情報を更新すれば再開します。新しいプランを選ぶ必要はありません。",
+      keepVideos: "動画はライブラリに残り、引き続き共有できます。",
+      portalButton: "お支払い情報を更新",
+      emailButton: "安全なリンクをメールで依頼",
+      emailSubject: "DentVideoのお支払い情報を更新したい",
+      opening: "開いています…",
+      failed: "うまくいきませんでした。もう一度お試しいただくか、{email} までご連絡ください。",
+      cancelledTitle: "プランは解約されました",
+      cancelledBody: "{date}までお支払い済みです。それより前に再開したい場合は {email} までご連絡ください。二重請求なしで再開します。",
+      pendingTitle: "お支払いを確認しています",
+      pendingBody: "通常1〜2分で完了します。少ししてからページを更新してください。再度お支払いいただく必要はありません。",
+      disputedTitle: "お支払いを確認中です",
+      disputedBody: "プランのお支払いについて、銀行またはカード会社に異議申し立てが行われました。確認が終わるまで、新しい週次動画の制作を一時停止しています。新しいプランはお申し込みにならず、{email} までご連絡ください。一緒に解決いたします。",
+      adminPausedTitle: "DentVideoが動画の制作を一時停止しています",
+      adminPausedBody: "現在、貴院の新しい週次動画の制作を一時停止しています。プランと動画はそのまま保持されます。{email} までご連絡いただければ、理由をご説明し、再開のお手続きをいたします。",
+      contactSubject: "DentVideoのアカウントについて",
+    },
+    email: {
+      failedSubject: "DentVideoのお支払いが完了しませんでした",
+      holdSubject: "DentVideo：お支払い情報の更新をお願いします",
+      preheader: "簡単な手続きで、週次動画がまた届きます。",
+      hello: "{clinic}様、",
+      failedBody: "DentVideoのご利用料金をカードに請求しましたが、お支払いが完了しませんでした。プランは現在も継続中で、お支払いは再度試行されます。",
+      holdBody: "DentVideoのお支払いが完了しなかったため、サブスクリプションが保留となり、新しい週次動画を一時停止しています。これまでの動画はライブラリに残ります。",
+      fixPortal: "DentVideoを開き、設定→「プランとお支払い」からカード情報を更新してください。1分ほどで完了し、ほかには何も変わりません。",
+      fixEmail: "このメールにご返信いただくか、{email} までご連絡ください。カード情報を更新するための安全なリンクをお送りします。二重請求になるため、新しいプランは購入しないでください。",
+      fixCheckout: "以前のサブスクリプションは終了しています。準備ができましたら、DentVideoでいつでもプランを選び直せます。",
+      button: "DentVideoを開く",
+      signoff: "DentVideoチーム",
+      footer: "DentVideoプランのお支払いに問題があるため、このメールをお送りしています。",
+    },
+  },
+  ar: {
+    refuse: {
+      pending: "ما زلنا نؤكد دفعتكم الأخيرة. يُرجى الانتظار بضع دقائق ثم تحديث الصفحة، ولا داعي للدفع مرة أخرى.",
+      updatePayment: "اشتراككم متوقف مؤقتاً لأن إحدى الدفعات لم تتم. يُرجى تحديث بطاقتكم بدلاً من شراء باقة جديدة حتى لا تدفعوا مرتين: {how}",
+      updateHowPortal: "افتحوا «الباقة والفوترة» في الإعدادات.",
+      updateHowEmail: "راسلونا على {email} وسنرسل إليكم رابطاً آمناً.",
+      cancelledPending: "أُلغيت باقتكم وهي مدفوعة حتى {date}. إن أردتم البدء من جديد قبل ذلك، راسلونا على {email} حتى لا تدفعوا مرتين.",
+      disputed: "إحدى الدفعات على حسابكم قيد المراجعة، لذا لا يمكن شراء باقة جديدة الآن. يُرجى مراسلتنا على {email} وسنحلّ الأمر معكم.",
+    },
+    panel: {
+      title: "يُرجى تحديث بيانات الدفع",
+      body: "لم تتم دفعتكم الأخيرة، لذلك أوقفنا الفيديوهات الأسبوعية الجديدة مؤقتاً. حدّثوا بطاقتكم وستُستأنف، ولا حاجة لاختيار باقة جديدة.",
+      keepVideos: "تبقى فيديوهاتكم في مكتبتكم، ويمكنكم مشاركتها متى شئتم.",
+      portalButton: "تحديث بيانات الدفع",
+      emailButton: "اطلبوا رابطاً آمناً بالبريد",
+      emailSubject: "تحديث الدفع في DentVideo",
+      opening: "جارٍ الفتح…",
+      failed: "لم ينجح ذلك. حاولوا مرة أخرى أو راسلونا على {email}.",
+      cancelledTitle: "أُلغيت باقتكم",
+      cancelledBody: "الباقة مدفوعة حتى {date}. إن أردتم البدء من جديد قبل ذلك، راسلونا على {email} وسنعيد تشغيلها دون أن تدفعوا مرتين.",
+      pendingTitle: "نؤكد دفعتكم الآن",
+      pendingBody: "يستغرق ذلك عادةً دقيقة أو دقيقتين. يُرجى تحديث الصفحة بعد قليل، ولا داعي للدفع مرة أخرى.",
+      disputedTitle: "إحدى الدفعات قيد المراجعة",
+      disputedBody: "تم الاعتراض على دفعة لباقتكم لدى البنك أو مُصدر البطاقة، لذا أوقفنا الفيديوهات الأسبوعية الجديدة مؤقتاً أثناء المراجعة. يُرجى عدم شراء باقة جديدة، وراسلونا على {email} وسنحلّ الأمر معكم.",
+      adminPausedTitle: "أوقفت DentVideo فيديوهاتكم مؤقتاً",
+      adminPausedBody: "أوقفنا الفيديوهات الأسبوعية الجديدة لعيادتكم مؤقتاً. باقتكم وفيديوهاتكم محفوظة. يُرجى مراسلتنا على {email} وسنوضّح السبب ونعيد التشغيل.",
+      contactSubject: "حسابي في DentVideo",
+    },
+    email: {
+      failedSubject: "لم تتم دفعتكم في DentVideo",
+      holdSubject: "فيديوهات DentVideo متوقفة: يُرجى تحديث الدفع",
+      preheader: "خطوة سريعة وتستمر فيديوهاتكم الأسبوعية.",
+      hello: "مرحباً {clinic}،",
+      failedBody: "حاولنا تحصيل رسوم DentVideo من بطاقتكم ولم تتم الدفعة. باقتكم ما زالت سارية حالياً، وستُعاد محاولة الدفع.",
+      holdBody: "لم تتم دفعتكم في DentVideo، لذلك أصبح اشتراككم متوقفاً مؤقتاً ولن تُعدّ فيديوهات أسبوعية جديدة. تبقى فيديوهاتكم في مكتبتكم.",
+      fixPortal: "للحل، افتحوا DentVideo وانتقلوا إلى الإعدادات ← الباقة والفوترة وحدّثوا بطاقتكم. يستغرق الأمر دقيقة ولن يتغير شيء آخر.",
+      fixEmail: "للحل، يكفي الرد على هذه الرسالة (أو مراسلتنا على {email}) وسنرسل إليكم رابطاً آمناً لتحديث بطاقتكم. يُرجى عدم شراء باقة جديدة حتى لا تدفعوا مرتين.",
+      fixCheckout: "انتهى اشتراككم السابق. ومتى شئتم، يمكنكم اختيار باقة من جديد في DentVideo.",
+      button: "افتحوا DentVideo",
+      signoff: "فريق DentVideo",
+      footer: "تصلكم هذه الرسالة لوجود مشكلة في دفعة لباقة DentVideo الخاصة بكم.",
+    },
+  },
+  pl: {
+    refuse: {
+      pending: "Wciąż potwierdzamy ostatnią płatność. Prosimy odczekać kilka minut i odświeżyć stronę — nie trzeba płacić ponownie.",
+      updatePayment: "Subskrypcja jest wstrzymana, bo płatność nie przeszła. Prosimy zaktualizować kartę zamiast kupować nowy plan, aby nie zapłacić dwa razy: {how}",
+      updateHowPortal: "wystarczy otworzyć Plan i płatności w Ustawieniach.",
+      updateHowEmail: "wystarczy napisać na {email}, a wyślemy bezpieczny link.",
+      cancelledPending: "Plan został anulowany i jest opłacony do {date}. Jeśli chcą Państwo wznowić go wcześniej, prosimy napisać na {email}, aby nie zapłacić dwa razy.",
+      disputed: "Jedna z płatności na Państwa koncie jest weryfikowana, dlatego teraz nie można kupić nowego planu. Prosimy o wiadomość na {email} — wspólnie to wyjaśnimy.",
+    },
+    panel: {
+      title: "Prosimy zaktualizować płatność",
+      body: "Ostatnia płatność nie przeszła, więc nowe cotygodniowe filmy są wstrzymane. Po aktualizacji karty ruszą ponownie — nie trzeba wybierać nowego planu.",
+      keepVideos: "Filmy zostają w bibliotece i nadal można je udostępniać.",
+      portalButton: "Zaktualizuj dane płatności",
+      emailButton: "Poproś o bezpieczny link e-mailem",
+      emailSubject: "Aktualizacja płatności DentVideo",
+      opening: "Otwieranie…",
+      failed: "Nie udało się. Prosimy spróbować ponownie lub napisać na {email}.",
+      cancelledTitle: "Plan został anulowany",
+      cancelledBody: "Jest opłacony do {date}. Jeśli chcą Państwo wznowić go wcześniej, prosimy napisać na {email} — uruchomimy go ponownie bez podwójnej opłaty.",
+      pendingTitle: "Potwierdzamy płatność",
+      pendingBody: "Zwykle trwa to minutę lub dwie. Prosimy za chwilę odświeżyć stronę — nie trzeba płacić ponownie.",
+      disputedTitle: "Płatność jest weryfikowana",
+      disputedBody: "Płatność za Państwa plan została zakwestionowana w banku lub u wydawcy karty, dlatego na czas weryfikacji nowe cotygodniowe filmy są wstrzymane. Prosimy nie kupować nowego planu — wystarczy napisać na {email}, a wspólnie to wyjaśnimy.",
+      adminPausedTitle: "DentVideo wstrzymało Państwa filmy",
+      adminPausedBody: "Na razie wstrzymaliśmy nowe cotygodniowe filmy dla Państwa gabinetu. Plan i filmy pozostają bezpieczne. Prosimy o wiadomość na {email} — wyjaśnimy powód i wznowimy pracę.",
+      contactSubject: "Moje konto DentVideo",
+    },
+    email: {
+      failedSubject: "Płatność za DentVideo nie przeszła",
+      holdSubject: "Filmy DentVideo wstrzymane: prosimy o płatność",
+      preheader: "Jeden szybki krok i cotygodniowe filmy wracają.",
+      hello: "Dzień dobry, {clinic},",
+      failedBody: "Próbowaliśmy obciążyć kartę za DentVideo, ale płatność nie przeszła. Plan na razie działa dalej, a płatność zostanie ponowiona.",
+      holdBody: "Płatność za DentVideo nie przeszła, więc subskrypcja jest wstrzymana, a nowe cotygodniowe filmy nie powstają. Dotychczasowe filmy zostają w bibliotece.",
+      fixPortal: "Jak to naprawić: wystarczy otworzyć DentVideo, przejść do Ustawienia → Plan i płatności i zaktualizować kartę. To zajmie minutę i nic więcej się nie zmieni.",
+      fixEmail: "Jak to naprawić: wystarczy odpowiedzieć na tę wiadomość (lub napisać na {email}), a wyślemy bezpieczny link do aktualizacji karty. Prosimy nie kupować nowego planu, inaczej zapłacą Państwo dwa razy.",
+      fixCheckout: "Poprzednia subskrypcja się zakończyła. W dowolnej chwili mogą Państwo ponownie wybrać plan w DentVideo.",
+      button: "Otwórz DentVideo",
+      signoff: "Zespół DentVideo",
+      footer: "Otrzymują Państwo tę wiadomość, ponieważ wystąpił problem z płatnością za plan DentVideo.",
+    },
+  },
+};
+
+export const BILLING_LANGUAGES = Object.keys(BILLING_COPY);
+
+/** The copy for a language, English for any other (it, pt clinics get the English interface too). */
+export function billingText(language: string | null | undefined): { lang: string; copy: BillingCopy } {
+  const lang = language && BILLING_COPY[language] ? language : "en";
+  return { lang, copy: BILLING_COPY[lang] };
+}

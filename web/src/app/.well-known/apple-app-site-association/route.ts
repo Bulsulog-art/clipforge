@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { aasaFor } from "@/lib/dentvid/aasa";
 
 /**
  * GET /.well-known/apple-app-site-association
@@ -14,11 +15,15 @@ import { NextResponse } from "next/server";
  * The matching applinks:clipforge.bulsulabs.com entitlement is already
  * declared on the iOS target (project.yml → associated-domains).
  *
+ * On dentvideo.com the same path answers for the DentVideo iPhone app
+ * (com.bulsulabs.dentvideo, entitlement applinks:dentvideo.com): the clinic
+ * app's pages (/app, /app/*) open in the app when it is installed.
+ *
  * appID format: <TEAM_ID>.<BUNDLE_ID>. We read APPLE_TEAM_ID from env so
  * the developer doesn't have to commit it; if missing the route returns
  * 503 so Apple knows to retry rather than caching a broken response.
  */
-export async function GET() {
+export async function GET(req: Request) {
   const teamId = process.env.APPLE_TEAM_ID;
   if (!teamId) {
     return NextResponse.json(
@@ -26,19 +31,7 @@ export async function GET() {
       { status: 503 },
     );
   }
-  const bundleId = process.env.APPLE_BUNDLE_ID ?? "com.bulsulabs.clipforge";
-
-  const aasa = {
-    applinks: {
-      apps: [],
-      details: [
-        {
-          appID: `${teamId}.${bundleId}`,
-          paths: ["/clips/*", "/jobs/*"],
-        },
-      ],
-    },
-  };
+  const aasa = aasaFor(req.headers.get("x-forwarded-host") ?? req.headers.get("host"), teamId);
   return new NextResponse(JSON.stringify(aasa), {
     status: 200,
     headers: {
@@ -46,6 +39,8 @@ export async function GET() {
       // 1h cache — Apple respects HTTP caching here, and we'll want a
       // fast invalidation if the bundle or team id ever rotates.
       "Cache-Control": "public, max-age=3600",
+      // One path, two answers (clipforge.bulsulabs.com / dentvideo.com).
+      Vary: "Host, X-Forwarded-Host",
     },
   });
 }

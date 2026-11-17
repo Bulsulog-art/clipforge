@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { EMAIL_LANGUAGES, readyEmail } from "./email";
+import { LANGUAGES } from "./profile";
+import { lifecycleText } from "@/content/dentvideo-lifecycle";
 
 describe("readyEmail", () => {
   it("speaks every language a clinic can choose", () => {
-    expect(new Set(EMAIL_LANGUAGES)).toEqual(new Set(["en", "de", "es", "fr", "it", "pt", "tr"]));
+    expect(new Set(EMAIL_LANGUAGES)).toEqual(new Set(LANGUAGES.map((l) => l.code)));
   });
   it("counts ready and flagged videos and links to the library", () => {
     const m = readyEmail({ kind: "week", counts: { ready: 4, flagged: 1 }, clinicName: "Gülüş <Klinik>", language: "tr", appUrl: "https://dentvideo.com/app" })!;
@@ -13,8 +15,71 @@ describe("readyEmail", () => {
     expect(m.html).toContain("Gülüş &lt;Klinik&gt;");
     expect(m.html).not.toContain("<Klinik>");
   });
+  it("is built for mail clients: language, preheader, a button Outlook draws, the link in plain sight", () => {
+    const m = readyEmail({ kind: "week", counts: { ready: 5, flagged: 0 }, clinicName: "Praxis", language: "de", appUrl: "https://dentvideo.com/app" })!;
+    expect(m.html).toContain('<html lang="de" dir="ltr">');
+    expect(m.html).toContain('<meta charset="utf-8">');
+    // The inbox line says what is waiting (not the first sentence of the body again).
+    expect(m.html).toMatch(/display:none[^>]*>5 bereit zur Freigabe\. Nichts wird veröffentlicht/);
+    expect(m.html).toContain('bgcolor="#0f5c5c"');
+    // Outlook's VML button, everyone else's button, and the link written out under it.
+    expect(m.html).toContain("<v:roundrect");
+    expect(m.html.match(/href="https:\/\/dentvideo\.com\/app"/g)).toHaveLength(3);
+    expect(m.html).not.toContain("markiert"); // no flagged line when nothing is flagged
+    expect(readyEmail({ kind: "week", counts: { ready: 1, flagged: 0 }, clinicName: "x", language: "nl", appUrl: "u" })!.html).toContain('<html lang="en" dir="ltr">');
+  });
+  it("is signed by the DentVideo team in every language, like the other emails", () => {
+    for (const language of EMAIL_LANGUAGES) {
+      const signoff = lifecycleText(language).copy.signoff;
+      for (const kind of ["week", "recording"] as const) {
+        const m = readyEmail({ kind, counts: { ready: 2, flagged: 1 }, clinicName: "x", language, appUrl: "https://dentvideo.com/app" })!;
+        expect(m.text, `${language}/${kind}`).toContain(signoff);
+      }
+    }
+    expect(readyEmail({ kind: "week", counts: { ready: 1, flagged: 0 }, clinicName: "x", language: "en", appUrl: "u" })!.text).toContain("The DentVideo team");
+  });
   it("sends nothing when nothing was made, and falls back to English", () => {
     expect(readyEmail({ kind: "week", counts: { ready: 0, flagged: 0 }, clinicName: "x", language: "tr", appUrl: "u" })).toBeNull();
     expect(readyEmail({ kind: "recording", counts: { ready: 2, flagged: 0 }, clinicName: "x", language: "nl", appUrl: "u" })!.subject).toBe("2 clips from your recording are ready");
+  });
+});
+
+describe("deliveryAddress: test inboxes never get real mail", async () => {
+  const { deliveryAddress, TEST_EMAIL_SINK } = await import("./email");
+  it("routes QA, e2e and monitor addresses to Resend's sink", () => {
+    for (const a of ["qa+appqa1@bulsulabs.com", "e2e-monitor+123@bulsulabs.com", "e2e7@example.com", "dvqa+x@bulsulabs.com"]) expect(deliveryAddress(a, {}), a).toBe(TEST_EMAIL_SINK);
+  });
+  it("keeps real clinics and the owner", () => {
+    for (const a of ["dr.ayse@klinik.com.tr", "hello@dentvideo.com", "owner@gmail.com", "quality@clinic.de"]) expect(deliveryAddress(a, {}), a).toBe(a);
+  });
+  it("extra patterns from DENTVID_TEST_EMAIL_PATTERNS", () => {
+    expect(deliveryAddress("tester+1@gmail.com", { DENTVID_TEST_EMAIL_PATTERNS: "tester+*@*" })).toBe(TEST_EMAIL_SINK);
+  });
+});
+
+describe("sendEmail: from DentVideo, replies to hello@dentvideo.com, HTML and plain text", async () => {
+  const { sendEmail } = await import("./email");
+  const { vi, afterEach } = await import("vitest");
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+  it("posts one message to Resend with the DentVideo sender, reply-to, both parts and the test-address sink", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("DENTVIDEO_EMAIL_FROM", "");
+    vi.stubEnv("DENTVIDEO_EMAIL_REPLY_TO", "");
+    const calls: { url: string; body: Record<string, unknown> }[] = [];
+    vi.stubGlobal("fetch", async (url: string, init: { body: string }) => {
+      calls.push({ url, body: JSON.parse(init.body) });
+      return new Response("{}", { status: 200 });
+    });
+    const { sampleEmailFor } = await import("./email-samples");
+    const m = sampleEmailFor("code", "tr");
+    expect(await sendEmail("qa+x@bulsulabs.com", m, { log: null })).toBe(true);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe("https://api.resend.com/emails");
+    expect(calls[0].body).toMatchObject({ from: "DentVideo <hello@dentvideo.com>", reply_to: "hello@dentvideo.com", to: ["delivered@resend.dev"], subject: "DentVideo doğrulama kodunuz: 482913" });
+    expect(calls[0].body.html).toBe(m.html);
+    expect(calls[0].body.text).toBe(m.text);
   });
 });

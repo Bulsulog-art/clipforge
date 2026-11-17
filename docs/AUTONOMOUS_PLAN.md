@@ -61,7 +61,8 @@ open item, updates the status here, commits and pushes.
 **Kapanış (11:05 UTC):** 8 saatlik gece çalışması bitti, saatlik kontrol kapatıldı. Her şey birleştirildi ve canlıda, dentvideo.com yayında. Sonraki iş: otomatik haftalık teslim ve e-posta bildirimi, ardından onaylanan videoların otomatik paylaşımı.
 
 **Gündüz eklenenler (2026-11-08):**
-- **Otomatik pazartesi teslimi:** Her pazartesi 05:00 UTC'de aktif kliniklerin haftası kendiliğinden hazırlanıyor. Deneme kliniklerine yalnızca ücretsiz ilk haftaları yapılıyor.
+- **Otomatik pazartesi teslimi:** Her pazartesi 05:00 UTC'de aktif kliniklerin haftası kendiliğinden hazırlanıyor. (Güncelleme: ücretsiz hafta kaldırıldı — ödeme yapmamış kliniklere hiç video yapılmıyor; aşağıdaki "Ücretli akış" maddesine bakın.)
+- **Ücretli akış (ücretsiz hafta yok):** Kayıt → klinik bilgileri → logo ve renklerle canlı önizleme (tarayıcıda, maliyetsiz) → plan seçimi → Dodo ile ödeme → ödeme onaylanınca ilk hafta hemen hazırlanıyor (~15 dk) ve e-posta gidiyor. Ödemeden önce hiçbir yapay zekâ harcaması yok.
 - **"Videolarınız hazır" e-postası:** Kliniğin dilinde (7 dil) hello@dentvideo.com adresinden gidiyor. Resend'de alan adı doğrulandı (DKIM/SPF/DMARC).
 - **Tek dokunuşla paylaşım:** Onaylanan videoda "Instagram'da veya TikTok'ta paylaş" telefonun paylaşım menüsünü video ekli olarak açıyor ve açıklama panoya kopyalanıyor.
 - **Gerçek hasta aramaları:** Konular artık kliniğin ülkesinde gerçekten aratılan sorulardan (Google önerileri) seçiliyor. Test turunda 12 videonun 12'si hazır çıktı.
@@ -121,8 +122,8 @@ open item, updates the status here, commits and pushes.
   DentVideo creates accounts server-side with the service role
   (/api/dentvideo/signup) and the browser signs in with the password. The
   global Liman setting was not changed.
-- **Pricing**: not invented. The site says "first week free, founding clinics
-  get introductory pricing when plans open" until the owner sets prices.
+- **Pricing**: owner-approved USD prices are on the site. There is no free week any more:
+  clinics see a live preview of their branded videos before paying, and the first week is made right after payment.
 
 ## Questions for the owner
 - Prices for DentVideo (and then the Dodo brand + products once the domain is bought).
@@ -216,7 +217,7 @@ Per run:
 
 **Risk seen:** 1 of 24 videos with the new writer was lost to a scene plan whose text ran over a length limit, even after the retry. The old configuration also lost one video (tr), to a reviewer rejection. The retry hint already names the limit. If this repeats in production, the next step is to have the planner shorten the text instead.
 
-**Cost:** text costs **$0.034 per ready video, up from $0.024** (+$0.010, +44%), with metered tokens and the judge excluded. That is about $0.05 more per clinic per 5-video week, which is negligible against the $39 Starter plan.
+**Cost:** text costs **$0.034 per ready video, up from $0.024** (+$0.010, +44%), with metered tokens and the judge excluded. That is about $0.05 more per clinic per 5-video week, which is negligible against the $49 Starter plan.
 - Prices per million tokens (input / output): gpt-4o-mini 0.15/0.60, gpt-4o 2.50/10, gpt-4.1-mini 0.40/1.60, gpt-4.1 2/8, gpt-5.4-mini 0.75/4.50, gpt-5.4 2.50/15.
 - The gpt-5.4 prices come from price aggregators, because platform.openai.com is outside this session's allowlist. Check them against the OpenAI invoice.
 - To roll back without a deploy: `DENTVID_AGENT_MODEL=gpt-4o-mini DENTVID_REVIEW_MODEL=gpt-4o`.

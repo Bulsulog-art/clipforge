@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { GUIDES, LANDING, LANDING_PATH, LOCALES, guidePath, guidesFor } from "./dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LANDING, LANDING_PATH, LOCALES, dirOf, guidePath, guidesFor } from "./dentvideo";
 import { dentvideoPaths, guideJsonLd, landingAlternates, landingJsonLd } from "@/lib/dentvid/seo";
-import { DV_FOUNDING, DV_PRICES_USD, DV_TIERS } from "@/lib/dentvid/billing";
+import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "@/lib/dentvid/billing";
 
 /** Shape of a value: object keys and array lengths, recursively. */
 function shape(v: unknown): unknown {
@@ -14,6 +14,24 @@ describe("DentVideo landing content", () => {
   it("every locale has the same keys and sections as English", () => {
     const en = shape(LANDING.en);
     for (const l of LOCALES) expect(shape(LANDING[l]), l).toEqual(en);
+  });
+
+  it("search snippets fit: titles up to 65 characters, descriptions 70–155", () => {
+    for (const l of LOCALES) {
+      const { title, description } = LANDING[l].meta;
+      expect(title.length, `${l} title`).toBeLessThanOrEqual(65);
+      expect(description.length, `${l} description`).toBeGreaterThanOrEqual(70);
+      expect(description.length, `${l} description`).toBeLessThanOrEqual(155);
+    }
+  });
+
+  // The hero lead is the first screen's largest paint (LCP) and about five lines on a phone.
+  it("the hero lead stays short: at most 45 words (Japanese: 160 characters)", () => {
+    for (const l of LOCALES) {
+      const lead = LANDING[l].hero.lead;
+      if (l === "ja") expect(lead.length, l).toBeLessThanOrEqual(160);
+      else expect(lead.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length, l).toBeLessThanOrEqual(45);
+    }
   });
 
   it("has no empty strings", () => {
@@ -31,31 +49,53 @@ describe("DentVideo landing content", () => {
   const MONEY = /[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL)/;
 
   it("states no prices or invented numbers outside the pricing section", () => {
+    // The one exception: the sourced agency range in the comparison's cost row (pricing memo §1.1).
     const withoutPricing = LOCALES.map((l) => {
-      const { pricing: _pricing, ...rest } = LANDING[l];
-      return JSON.stringify(rest);
+      const { pricing: _pricing, compare, ...rest } = LANDING[l];
+      const { cost, ...table } = compare;
+      return JSON.stringify(rest) + JSON.stringify(table) + JSON.stringify({ ...cost, agency: "" });
     }).join("");
     expect(withoutPricing).not.toMatch(MONEY);
     expect(JSON.stringify(GUIDES)).not.toMatch(MONEY);
   });
 
-  it("pricing shows only the configured USD prices, in every locale", () => {
-    const allowed = new Set<number>();
-    for (const tier of DV_TIERS) for (const v of Object.values(DV_PRICES_USD[tier])) if (v) allowed.add(v);
-    allowed.add(DV_FOUNDING.priceUsd);
+  it("pricing copy holds no figure at all: every price comes from pricing.ts, so it cannot drift from Dodo", () => {
+    expect(DV_PRICES_USD).toEqual({ starter: { month: 49 }, practice: { month: 79 }, group: {} });
     for (const l of LOCALES) {
       const p = LANDING[l].pricing;
-      const text = JSON.stringify(p);
-      expect(text, l).not.toMatch(/[€£₺%]|TL/);
-      const figures = [...text.matchAll(/\$\s?(\d[\d,.]*)|(\d[\d,.]*)\s?\$/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
-      expect(figures.length, l).toBeGreaterThan(0);
-      for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
-      // Starter, Practice, Group at their monthly list prices, in that order.
-      DV_TIERS.forEach((tier, i) => expect(p.tiers[i].price.replace(/\D/g, ""), `${l} ${tier}`).toBe(String(DV_PRICES_USD[tier].month)));
-      expect(p.founding, l).toContain(String(DV_FOUNDING.priceUsd));
-      expect(p.founding, l).toContain(String(DV_FOUNDING.months));
-      expect(p.founding, l).toContain(String(DV_FOUNDING.clinics));
-      expect(p.yearly, l).toContain(String(DV_PRICES_USD.practice.year));
+      expect(JSON.stringify(p), l).not.toMatch(MONEY);
+      expect(JSON.stringify(p), l).not.toMatch(/\b(29|49|79|149|1[.,]?490|2[.,]?490|4[.,]?490)\b/);
+      // Starter, Practice, in that order (Group is "Priced per location": no number).
+      expect(p.tiers, l).toHaveLength(DV_SELF_SERVE_TIERS.length);
+      for (const t of p.tiers) expect(t.features, `${l} ${t.name}`).toHaveLength(5);
+      // "From {price}": filled with Starter's list price; the note names the currency.
+      expect(p.from.split("{price}"), l).toHaveLength(2);
+      expect(p.note.split("{currency}"), l).toHaveLength(2);
+    }
+  });
+
+  it("the ROI line promises nothing about a year: one case is worth more than several months", () => {
+    const YEAR = /year|jahr|año|yıl|année|\ban de |年|سنة|عام|\brok/i;
+    for (const l of LOCALES) expect(LANDING[l].value.roi, l).not.toMatch(YEAR);
+    expect(LANDING.en.value.roi).toContain("several months of DentVideo");
+  });
+
+  it("the agency figures appear only where they are sourced (TR, DE) and say quotes differ", () => {
+    for (const l of LOCALES) {
+      const hasFigure = /\d/.test(LANDING[l].compare.cost.agency);
+      expect(hasFigure, l).toBe(l === "tr" || l === "de");
+      expect(LANDING[l].compare.source.length, l).toBeGreaterThan(20);
+    }
+  });
+
+  it("no founding offer, no yearly billing and no discount anywhere on the landings, in every locale", () => {
+    const FOUNDING = /founding|\bgründungs|fundador|kurucu|fondateur|創業|先行導入|المؤسسين|założyciel|KURUCU100/i;
+    const YEARLY = /990|yearly|\/year|a year|jährlich|im jahr|anual|al año|yıllık|annuel|par an|年額|سنوي|rocznie/i;
+    for (const l of LOCALES) {
+      const text = JSON.stringify(LANDING[l]);
+      expect(text, l).not.toMatch(FOUNDING);
+      expect(JSON.stringify(LANDING[l].pricing), l).not.toMatch(YEARLY);
+      expect(Object.keys(LANDING[l].pricing).sort(), l).toEqual(["cancel", "cta", "from", "heading", "note", "perMonth", "recommended", "text", "tiers"]);
     }
   });
 
@@ -88,8 +128,8 @@ describe("DentVideo guides", () => {
     for (const s of slugs) expect(s).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   });
 
-  it("every locale has at least one guide", () => {
-    for (const l of LOCALES) expect(guidesFor(l).length, l).toBeGreaterThan(0);
+  it("every locale with a guides hub has guides", () => {
+    for (const l of GUIDE_HUB_LOCALES) expect(guidesFor(l).length, l).toBeGreaterThan(0);
   });
 
   it("each guide has sections, an FAQ and breadcrumb structured data", () => {

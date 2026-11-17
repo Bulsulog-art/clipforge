@@ -1,5 +1,6 @@
 import { createBrowserClient, createServerClient, type CookieOptions } from "@supabase/ssr";
 import { createClient as createAdmin } from "@supabase/supabase-js";
+import { DV_AUTH_COOKIE, DV_COOKIE_OPTIONS } from "./session-cookie";
 
 /**
  * DentVideo's own Supabase — Liman (self-hosted). Separate from ClipForge's
@@ -8,11 +9,34 @@ import { createClient as createAdmin } from "@supabase/supabase-js";
  */
 const URL = process.env.NEXT_PUBLIC_DENTVID_SUPABASE_URL ?? "";
 const ANON = process.env.NEXT_PUBLIC_DENTVID_SUPABASE_ANON_KEY ?? "";
-export const COOKIE_NAME = "dv-auth";
+/** For a browser upload with progress (XMLHttpRequest), which the SDK's fetch cannot report. */
+export const DV_SUPABASE_URL = URL;
+export const DV_SUPABASE_ANON = ANON;
+export const COOKIE_NAME = DV_AUTH_COOKIE;
 export const BUCKET = "dentvid";
 
-export function dvBrowser() {
-  return createBrowserClient(URL, ANON, { cookieOptions: { name: COOKIE_NAME } });
+type DvBrowserClient = ReturnType<typeof createBrowserClient>;
+let browserClient: DvBrowserClient | null = null;
+
+/**
+ * DentVideo's browser client — one per page, kept here.
+ *
+ * Never @supabase/ssr's shared singleton: that cache holds ONE client per
+ * page whatever the URL, and the root layout's ClipForge code (UTM capture)
+ * creates ClipForge's client first whenever a visitor arrived with a
+ * referrer or UTM tags. dvBrowser() then returned ClipForge's client:
+ * sign-in went to the wrong project ("wrong email or password"), the logo
+ * upload asked to sign in again, and reset links failed as "expired".
+ */
+export function dvBrowser(): DvBrowserClient {
+  if (typeof window === "undefined") return createBrowserClient(URL, ANON, { cookieOptions: DV_COOKIE_OPTIONS, isSingleton: false });
+  browserClient ??= createBrowserClient(URL, ANON, { cookieOptions: DV_COOKIE_OPTIONS, isSingleton: false });
+  return browserClient;
+}
+
+/** Tests only: forget the cached client. */
+export function resetDvBrowserForTests() {
+  browserClient = null;
 }
 
 type CookieStore = {
@@ -22,7 +46,7 @@ type CookieStore = {
 
 export function dvServer(cookieStore: CookieStore) {
   return createServerClient(URL, ANON, {
-    cookieOptions: { name: COOKIE_NAME },
+    cookieOptions: DV_COOKIE_OPTIONS,
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (all: { name: string; value: string; options: CookieOptions }[]) => {
@@ -33,6 +57,18 @@ export function dvServer(cookieStore: CookieStore) {
         }
       },
     },
+  });
+}
+
+/**
+ * A client acting as the holder of a Supabase access token (the iOS app's
+ * bearer header). RLS applies exactly as for the cookie session; the token is
+ * never refreshed or stored here.
+ */
+export function dvBearer(accessToken: string) {
+  return createAdmin(URL, ANON, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 }
 

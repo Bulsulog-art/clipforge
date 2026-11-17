@@ -7,8 +7,12 @@ import {
   topupCredits,
 } from "@/lib/dodo";
 import { isDentvideoEvent } from "@/lib/dentvid/billing";
-import { handleDentvideoEvent } from "@/lib/dentvid/billing-webhook";
+import { alertWebhookFailure, handleDentvideoEvent, isDentvideoMoneyBackEvent } from "@/lib/dentvid/billing-webhook";
+import { noteWebhookSignatureFailure } from "@/lib/dentvid/ops-server";
 import { dvAdmin } from "@/lib/dentvid/supabase";
+import { claimWebhook, settleWebhook } from "@/lib/webhook-replay";
+import { LIMITS, clientIp } from "@/lib/rate-limit";
+import { rateLimited, replayStore } from "@/lib/rate-limit-server";
 
 /**
  * POST /api/dodo/webhook — Dodo Payments events (Standard Webhooks).
@@ -46,8 +50,25 @@ type DodoEvent = { type: string; data: DodoData };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const MAX_BODY = 256 * 1024;
+
+function dvAdminOrNull() {
+  try {
+    return dvAdmin();
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: Request) {
+  const ip = clientIp(req.headers);
+  const limited = await rateLimited([{ key: `rl:dodo:ip:${ip}`, rule: LIMITS.dodoWebhookIp }], () => "too many requests");
+  if (limited) return limited;
+
+  // Dodo bodies are small JSON; refuse anything huge before hashing it.
+  if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY) return NextResponse.json({ error: "payload too large" }, { status: 413 });
   const body = await req.text();
+  if (body.length > MAX_BODY) return NextResponse.json({ error: "payload too large" }, { status: 413 });
   const ok = verifyDodoWebhook({
     secret: process.env.DODO_WEBHOOK_SECRET ?? "",
     id: req.headers.get("webhook-id"),
@@ -55,8 +76,32 @@ export async function POST(req: Request) {
     signature: req.headers.get("webhook-signature"),
     body,
   });
-  if (!ok) return NextResponse.json({ error: "invalid signature" }, { status: 401 });
+  if (!ok) {
+    // A burst of these means a rotated secret (real payments not recorded!) or someone poking: owner alert past a threshold.
+    await noteWebhookSignatureFailure();
+    return NextResponse.json({ error: "invalid signature" }, { status: 401 });
+  }
 
+  // Signed and fresh — now make sure this delivery is processed only once
+  // (lib/webhook-replay). A failed delivery is released so Dodo's retry runs.
+  const webhookId = req.headers.get("webhook-id") ?? "";
+  const store = replayStore();
+  const claim = await claimWebhook(store, webhookId);
+  if (claim === "duplicate") return NextResponse.json({ ok: true, duplicate: true });
+  if (claim === "inflight") return NextResponse.json({ error: "delivery in progress" }, { status: 409 });
+
+  let res: NextResponse;
+  try {
+    res = await handle(body);
+  } catch (e) {
+    await settleWebhook(store, webhookId, false);
+    throw e;
+  }
+  await settleWebhook(store, webhookId, res.status < 300);
+  return res;
+}
+
+async function handle(body: string): Promise<NextResponse> {
   let evt: DodoEvent;
   try {
     evt = JSON.parse(body) as DodoEvent;
@@ -65,15 +110,25 @@ export async function POST(req: Request) {
   }
   const d = evt.data ?? {};
 
-  if (isDentvideoEvent(d)) {
+  // Refunds and disputes carry only a payment id: DentVideo claims them when the payment is one of its own.
+  if (isDentvideoEvent(d) || (/^(refund|dispute)\./.test(evt.type ?? "") && (await isDentvideoMoneyBackEvent(evt, dvAdminOrNull())))) {
     let db;
     try {
       db = dvAdmin();
     } catch (e) {
       console.error("[dodo:dentvideo] backend not configured", (e as Error).message);
+      await alertWebhookFailure(evt, e);
       return NextResponse.json({ error: "dentvideo backend not configured" }, { status: 500 });
     }
-    const result = await handleDentvideoEvent(db, evt);
+    let result;
+    try {
+      result = await handleDentvideoEvent(db, evt);
+    } catch (e) {
+      await alertWebhookFailure(evt, e);
+      throw e;
+    }
+    // 5xx → Dodo retries; the owner is told once a day per event type in case the retries keep failing.
+    if (result.status >= 500) await alertWebhookFailure(evt, String(result.body.error ?? "500"));
     return NextResponse.json(result.body, { status: result.status });
   }
 
@@ -114,7 +169,10 @@ export async function POST(req: Request) {
         p_reference: reference,
         p_metadata: { provider: "dodo", type: evt.type, subscription_id: d.subscription_id },
       });
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error("[dodo] grant_credits failed", error.message);
+        return NextResponse.json({ error: "grant failed" }, { status: 500 });
+      }
       await svc.from("profiles").update({ tier: "starter" }).eq("id", userId);
       break;
     }
@@ -146,7 +204,10 @@ export async function POST(req: Request) {
         p_reference: `dodo:pay:${d.payment_id}`,
         p_metadata: { provider: "dodo", payment_id: d.payment_id },
       });
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error("[dodo] grant_credits failed", error.message);
+        return NextResponse.json({ error: "grant failed" }, { status: 500 });
+      }
       break;
     }
   }

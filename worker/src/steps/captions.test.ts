@@ -1,5 +1,5 @@
 import { describe, expect, test, it } from "vitest";
-import { buildKaraokeASS, buildHookASS, chunkPhrases, maxCharsPerLine, wrapHook } from "./captions.js";
+import { buildKaraokeASS, buildHookASS, buildDisclaimerASS, captionWidth, chunkPhrases, maxCharsPerLine, wrapHook } from "./captions.js";
 import type { Word } from "./transcribe.js";
 
 const fakeWords: Word[] = [
@@ -235,5 +235,65 @@ describe("long hooks", () => {
     expect(ass).toContain("beachten?");
     const size = Number(ass.match(/Style: Hook,Inter Bold,(\d+),/)![1]);
     expect(size).toBeLessThan(96);
+  });
+});
+
+describe("captions without spaces (Japanese)", () => {
+  const chars = [..."歯ぐきの出血は放っておかないでください"].map((c, i) => ({ word: c, start: i * 0.2, end: i * 0.2 + 0.18 }));
+  it("chunks CJK characters by width, not four tokens at a time", () => {
+    const max = maxCharsPerLine(76, false, 1080);
+    const chunks = chunkPhrases(chars, max);
+    expect(chunks[0].words.length).toBeGreaterThan(4);
+    for (const c of chunks) expect(c.words.reduce((n, w) => n + captionWidth(w.word), 0)).toBeLessThanOrEqual(max);
+  });
+  it("draws Japanese tokens without spaces between them", () => {
+    const ass = buildKaraokeASS(chars.slice(0, 5), "dental", 0, 2, "clean", [], "9:16");
+    const line = ass.split("\n").find((l) => l.startsWith("Dialogue"))!;
+    const text = line.replace(/\{[^}]*\}/g, "").split(",").slice(9).join(",");
+    expect(text).toBe("歯ぐきの出");
+  });
+});
+
+
+describe("buildDisclaimerASS (market warning on recording clips)", () => {
+  const notice = "Her cerrahi veya girişimsel işlemde sonuçlar kişiden kişiye değişiklik gösterebilir. İşlem öncesinde hekiminizden detaylı görüş almanız önerilir.";
+  const field = (ass: string, prefix: string) => ass.split("\n").find((l) => l.startsWith(prefix))!;
+
+  it("shows the sentence word for word for the last 6 seconds, fading in", () => {
+    const ass = buildDisclaimerASS(notice, 30, "9:16", "clean");
+    const line = field(ass, "Dialogue:");
+    const [, start, end] = line.split(",");
+    expect(start).toBe("0:00:24.00");
+    expect(end).toBe("0:00:31.00");
+    expect(line).toContain("\\fad(267,0)");
+    expect(line.replace(/\{[^}]*\}/g, "").split(",").slice(9).join(",")).toBe(notice);
+  });
+
+  it("covers the whole of a clip shorter than the reading time", () => {
+    const [, start] = field(buildDisclaimerASS(notice, 4, "9:16"), "Dialogue:").split(",");
+    expect(start).toBe("0:00:00.00");
+  });
+
+  it("is a small white line on a 62% black box, wrapped inside the safe frame and above the caption line", () => {
+    const style = field(buildDisclaimerASS(notice, 20, "9:16", "clean"), "Style: Disclaimer").split(",");
+    expect(style[2]).toBe("34"); // TYPE.label, as in Disclaimer.tsx
+    expect(style[3]).toBe("&H00FFFFFF");
+    expect(style[5]).toBe("&HFF000000"); // no glyph outline
+    expect(style[6]).toBe("&H61000000"); // BackColour = the box, 0x61 transparent = 62% black
+    expect(style[15]).toBe("4"); // BorderStyle 4: one box behind the whole warning
+    expect(style[18]).toBe("2"); // bottom centre
+    const [marginL, marginR, marginV] = style.slice(19, 22).map(Number);
+    // Safe frame (theme.ts): start 7.5%, end 11.5% of 1080, bottom 22.2% of 1920.
+    expect(marginL).toBeGreaterThanOrEqual(81);
+    expect(marginR).toBeGreaterThanOrEqual(124);
+    expect(marginV).toBeGreaterThanOrEqual(Math.round(1920 * 0.222));
+    // Caption line: MarginV 360 + a 76 px "clean" line.
+    expect(marginV).toBeGreaterThan(360 + 76);
+    expect(buildDisclaimerASS(notice, 20, "9:16")).toMatch(/WrapStyle: 0/);
+  });
+
+  it("escapes ASS override braces in the text", () => {
+    const line = field(buildDisclaimerASS("a {b} c", 10), "Dialogue:");
+    expect(line).toContain("a \\{b\\} c");
   });
 });

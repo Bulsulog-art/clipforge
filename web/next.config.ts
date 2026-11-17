@@ -1,7 +1,21 @@
 import type { NextConfig } from "next";
 
+// ClipForge's own Supabase (NEXT_PUBLIC_SUPABASE_URL). *.supabase.co is
+// always allowed below; a self-hosted origin (Liman) is added from the env.
+function selfHostedSupabase(): URL | null {
+  try {
+    const u = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL) : null;
+    return u && !u.hostname.endsWith(".supabase.co") ? u : null;
+  } catch {
+    return null;
+  }
+}
+const cfSupabase = selfHostedSupabase();
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // No "X-Powered-By: Next.js" banner.
+  poweredByHeader: false,
   // Required for the Docker runner stage which copies /app/.next/standalone
   // and /app/public into a slim node:22 image and runs `node server.js`.
   output: "standalone",
@@ -13,21 +27,57 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "cdn.clipforge.bulsulabs.com" },
       { protocol: "https", hostname: "img.youtube.com" },
+      ...(cfSupabase ? [{ protocol: "https" as const, hostname: cfSupabase.hostname }] : []),
     ],
   },
+  async rewrites() {
+    // Browsers and search engines ask dentvideo.com for /favicon.ico whatever
+    // the page links. The middleware skips that path (see its matcher), so the
+    // host routing lives here; the forwarded host is checked as the proxy sets it.
+    const dentvideo = "(www\\.)?dentvideo\\.com";
+    return {
+      beforeFiles: [
+        { source: "/favicon.ico", has: [{ type: "header", key: "x-forwarded-host", value: dentvideo }], destination: "/dentvideo/favicon.ico" },
+        { source: "/favicon.ico", has: [{ type: "host", value: dentvideo }], destination: "/dentvideo/favicon.ico" },
+      ],
+    };
+  },
   async headers() {
+    // DentVideo's backend (Liman, self-hosted Supabase): the browser signs in,
+    // uploads recordings/logos and plays signed video URLs from it directly.
+    let liman = "";
+    try {
+      liman = process.env.NEXT_PUBLIC_DENTVID_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_DENTVID_SUPABASE_URL).origin : "";
+    } catch {
+      liman = "";
+    }
+    // ClipForge's own data on a self-hosted origin (after the move to Liman
+    // it is usually the same origin as DentVideo's; listed once).
+    const cf = cfSupabase && cfSupabase.origin !== liman ? cfSupabase.origin : "";
+    const cfWs = cf.startsWith("https://") ? cf.replace(/^https:/, "wss:") : "";
+    const limanWs = liman.startsWith("https://") ? liman.replace(/^https:/, "wss:") : "";
+    const extra = (...xs: string[]) => xs.filter(Boolean).map((x) => ` ${x}`).join("");
+    // Cloudflare Turnstile on the DentVideo sign-up form, only when configured.
+    const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ? "https://challenges.cloudflare.com" : "";
     // CSP scoped to what we actually load: our Supabase project, Sentry,
     // RevenueCat, and our CDN. Inline scripts are allowed for Next's
     // bootstrap & React hydration ('self' + 'unsafe-inline' is the
     // pragmatic Next.js default — tighten with nonces post-launch).
+    // 'unsafe-eval' only for `next dev` (React's dev tooling evaluates code);
+    // a production build runs without it, so an injected string can never be
+    // turned into code through eval / new Function.
+    const evalSrc = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.sentry.io",
+      `script-src 'self' 'unsafe-inline'${evalSrc} https://*.sentry.io${extra(turnstile)}`,
+      ...(turnstile ? [`frame-src 'self' ${turnstile}`] : []),
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://*.supabase.co https://cdn.clipforge.bulsulabs.com https://img.youtube.com",
-      "media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://api.revenuecat.com https://api.openai.com https://fal.run",
+      `img-src 'self' data: blob: https://*.supabase.co https://cdn.clipforge.bulsulabs.com https://img.youtube.com${extra(liman, cf)}`,
+      // data: for the live preview's player, which unlocks its audio tags with a silent data: mp3.
+      `media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob: data:${extra(liman, cf)}`,
+      // OpenAI and fal.ai are called server-side only, so they are not listed.
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://api.revenuecat.com${extra(liman, limanWs, cf, cfWs, turnstile)}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -48,7 +98,21 @@ const nextConfig: NextConfig = {
           // after we've been TLS-only for a while.
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
           { key: "Content-Security-Policy", value: csp },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
         ],
+      },
+      {
+        // DentVideo's sample videos and posters, the live preview's plans and narration, and the
+        // background photos: static files a browser may keep for a day (Next serves public/ with
+        // max-age=0, so every repeat visit revalidated each one). Not immutable: their names carry
+        // no hash, so a re-render under the same name is picked up within a day.
+        // no-transform: already-compressed media must reach the browser byte for byte (a
+        // compressed copy breaks the player's range requests — lib/dentvid/media-prefetch.ts).
+        // RFC 9111 proxies and CDNs honour it; Traefik's compress middleware does not, which
+        // is why the player never fetch()es media. Proxy-side, the compress middleware should
+        // also get excludedcontenttypes=audio/mpeg,video/mp4,image/jpeg,image/png,image/webp.
+        source: "/dentvideo/:dir(samples|preview|backgrounds)/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800, no-transform" }],
       },
     ];
   },

@@ -21,7 +21,7 @@ struct ClipPlayerView: View {
                 mode: .fullscreen,
                 isVisible: true,
                 onClose: { dismiss() },
-                trailingTopActions: [
+                trailingTopActions: (FeatureGates.socialPublishing ? [
                     .init(
                         label: "Publish",
                         systemImage: "paperplane.fill",
@@ -30,6 +30,7 @@ struct ClipPlayerView: View {
                             showPublishSheet = true
                         }
                     ),
+                ] : []) + [
                     .init(
                         label: "Share",
                         systemImage: sharing ? "ellipsis" : "square.and.arrow.up",

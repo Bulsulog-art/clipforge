@@ -151,16 +151,11 @@ export function logoColors(data: Uint8ClampedArray | Uint8Array, width: number, 
 
   let treatment: LogoTreatment = "none";
   if (!bg) {
+    // As the worker (dental/logo.ts chipFor): the dark chip only for a mark that does not read on white.
     const mark = ink.length ? ink : opaque;
-    const darkChip = lum([13, 26, 30]);
     let onLight = 0;
-    let onDark = 0;
-    for (const p of mark) {
-      const l = lum(p);
-      if (contrast(l, 1) >= 2) onLight++;
-      if (contrast(l, darkChip) >= 2) onDark++;
-    }
-    treatment = onDark > onLight * 1.15 ? "dark" : "light";
+    for (const p of mark) if (contrast(lum(p), 1) >= 2) onLight++;
+    treatment = mark.length && onLight * 2 < mark.length ? "dark" : "light";
   }
 
   return {
@@ -197,6 +192,29 @@ export function accentFor(brandColor: string, colors: Pick<LogoColors, "suggeste
 const SIDE = 160;
 
 /** Reads a chosen file in the browser. Resolves undefined if it cannot be read. */
+/**
+ * Is this file a picture the browser can actually draw? The picker's
+ * `accept` is only a hint and the upload is checked by its name and declared
+ * type alone, so a renamed document, a cut-off download or a HEIC with a .png
+ * name would otherwise replace the clinic's good logo with one that draws
+ * nothing — in the preview and in every video. A browser without
+ * createImageBitmap is given the benefit of the doubt.
+ */
+export async function isDecodableImage(
+  file: Blob,
+  decode: ((b: Blob) => Promise<{ width: number; height: number; close?: () => void }>) | undefined = typeof createImageBitmap === "function" ? (b) => createImageBitmap(b) : undefined,
+): Promise<boolean> {
+  if (!decode) return true;
+  try {
+    const bitmap = await decode(file);
+    const ok = bitmap.width > 0 && bitmap.height > 0;
+    bitmap.close?.();
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function analyseLogoFile(file: Blob): Promise<LogoColors | undefined> {
   try {
     const bitmap = await createImageBitmap(file);
@@ -210,6 +228,35 @@ export async function analyseLogoFile(file: Blob): Promise<LogoColors | undefine
     if (!ctx) return undefined;
     ctx.drawImage(bitmap, 0, 0, w, h);
     bitmap.close?.();
+    return logoColors(ctx.getImageData(0, 0, w, h).data, w, h);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Reads a logo by URL — an object URL the visitor just picked, or an https
+ * one served with CORS. Goes through an <img> rather than fetch(): the
+ * site's CSP allows blob: images but not blob: fetches. Resolves undefined
+ * when the pixels cannot be read (a cross-origin logo without CORS).
+ */
+export async function analyseLogoUrl(url: string): Promise<LogoColors | undefined> {
+  try {
+    const img = new Image();
+    if (/^https?:/.test(url)) img.crossOrigin = "anonymous";
+    img.src = url;
+    await img.decode();
+    // An SVG without its own size reports 0×0; give it the browser's default box.
+    const [iw, ih] = [img.naturalWidth || 300, img.naturalHeight || 150];
+    const k = Math.min(1, SIDE / Math.max(iw, ih));
+    const w = Math.max(1, Math.round(iw * k));
+    const h = Math.max(1, Math.round(ih * k));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return undefined;
+    ctx.drawImage(img, 0, 0, w, h);
     return logoColors(ctx.getImageData(0, 0, w, h).data, w, h);
   } catch {
     return undefined;

@@ -1,15 +1,28 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { GUIDES, LOCALES, guidePath, guidesFor } from "../dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LOCALES, guidePath, guidesFor } from "../dentvideo";
 import { ENTITY } from "./entity";
-import { guideTexts, guideWordCount, parseInline, plainText, resolveTarget, translationsOf } from "./text";
+import { guideTexts, guideWordCount, parseInline, resolveTarget, translationsOf, wordCount } from "./text";
 import { ABOUT_PATH, GUIDES_INDEX_PATH, GUIDE_UI } from "./ui";
 import { GUIDE_LIBRARY } from "./index";
-import { aboutJsonLd, dentvideoSitemapEntries, guideAlternates, guideJsonLd, guidesIndexJsonLd } from "@/lib/dentvid/seo-guides";
+import {
+  SEO_DESCRIPTION_MAX,
+  SEO_TITLE_MAX,
+  aboutJsonLd,
+  dentvideoSitemapEntries,
+  guideAlternates,
+  guideJsonLd,
+  guideMetadata,
+  guideSeoDescription,
+  guideSeoTitle,
+  guidesIndexJsonLd,
+} from "@/lib/dentvid/seo-guides";
 import { sitemapUrls, sitemapXml } from "@/lib/dentvid/sitemap";
 import { llmsFullTxt, llmsTxt } from "@/lib/dentvid/llms";
 import { INDEXNOW_KEY } from "@/lib/dentvid/indexnow";
+import { DV_SELF_SERVE_TIERS } from "@/lib/dentvid/billing";
+import { DV_CURRENCIES, DV_LIST_PRICES, dvTierPrice } from "@/lib/dentvid/pricing";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -36,7 +49,7 @@ describe("guide library", () => {
       expect(g.published, g.slug).toMatch(ISO);
       expect(g.updated ?? g.published, g.slug).toMatch(ISO);
       // The quotable answer: a first paragraph of one to a few sentences, not an essay.
-      const words = plainText(g.intro).split(/\s+/).length;
+      const words = wordCount(g.intro);
       expect(words, g.slug).toBeGreaterThanOrEqual(25);
       expect(words, g.slug).toBeLessThanOrEqual(110);
       expect(g.title.length, g.slug).toBeLessThanOrEqual(110);
@@ -51,8 +64,27 @@ describe("guide library", () => {
     for (const g of GUIDES) for (const s of g.sources ?? []) expect(s.url, g.slug).toMatch(/^https:\/\//);
   });
 
-  it("each priority market has at least five guides", () => {
+  it("every language has a guides hub with at least five guides", () => {
+    expect(GUIDE_HUB_LOCALES).toEqual([...LOCALES]);
     for (const l of LOCALES) expect(guidesFor(l).length, l).toBeGreaterThanOrEqual(5);
+  });
+
+  it("Japanese, Arabic and Polish each have a rules guide and a what-to-post guide, and their hubs are advertised", () => {
+    const hubs = dentvideoSitemapEntries().find((e) => e.path === GUIDES_INDEX_PATH.en)!;
+    for (const l of ["ja", "ar", "pl"] as const) {
+      const cats = guidesFor(l).map((g) => g.category);
+      expect(cats, l).toEqual(expect.arrayContaining(["rules", "ideas"]));
+      expect(dentvideoSitemapEntries().map((e) => e.path), l).toContain(GUIDES_INDEX_PATH[l]);
+      expect(Object.values(hubs.alternates ?? {}), l).toContain(GUIDES_INDEX_PATH[l]);
+      expect(llmsTxt(), l).toContain(GUIDES_INDEX_PATH[l].replace("/dentvideo", ""));
+      // Each guide links back to its hub as well as to the landing.
+      for (const g of guidesFor(l)) expect(guideTexts(g).some((t) => t.includes("](guides:)")), g.slug).toBe(true);
+    }
+  });
+
+  it("counts Japanese words without spaces", () => {
+    expect(wordCount("歯科医院がSNSに投稿する")).toBeGreaterThan(4);
+    expect(wordCount("two words")).toBe(2);
   });
 
   it("every library guide made it into GUIDES", () => {
@@ -84,9 +116,78 @@ describe("guide library", () => {
     }
   });
 
-  it("states no prices or invented percentages", () => {
-    const text = JSON.stringify(GUIDES) + JSON.stringify(ENTITY) + JSON.stringify(GUIDE_UI);
-    expect(text).not.toMatch(/[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL\b)/);
+  // Prices appear only in the About "Price" fact (which llms.txt copies), and
+  // only the configured USD list and founding prices; never in guides or CTAs.
+  const PRICE_LABELS = ["Price", "Preis", "Precio", "Ücret", "Prix", "料金", "السعر", "Cena"];
+  const MONEY = /[$€£₺]\s?\d|\d\s?(%|€|\$|£|TL\b)/;
+
+  it("states no prices or invented percentages outside the About price fact", () => {
+    const entityWithoutPrice = LOCALES.map((l) => ({ ...ENTITY[l], facts: ENTITY[l].facts.filter((f) => !PRICE_LABELS.includes(f.label)) }));
+    const text = JSON.stringify(GUIDES) + JSON.stringify(entityWithoutPrice) + JSON.stringify(GUIDE_UI);
+    expect(text).not.toMatch(MONEY);
+  });
+
+  it("the About price fact states the configured monthly plans in every currency — no yearly price, no founding offer, no discount", () => {
+    for (const l of LOCALES) {
+      const price = ENTITY[l].facts.find((f) => PRICE_LABELS.includes(f.label));
+      expect(price, l).toBeDefined();
+      const v = price!.value;
+      // Every figure is a configured list price (USD, EUR or TL), and each tier shows all three.
+      for (const tier of DV_SELF_SERVE_TIERS) for (const c of DV_CURRENCIES) expect(v, `${l} ${tier} ${c}`).toContain(dvTierPrice("en", tier, c));
+      const figures = [...v.matchAll(/[$€]\s?(\d[\d,.]*)|(\d[\d,.]*)\s?(?:\$|€|TL\b)/g)].map((m) => Number((m[1] ?? m[2]).replace(/[,.]/g, "")));
+      const allowed = new Set(DV_SELF_SERVE_TIERS.flatMap((t) => DV_CURRENCIES.map((c) => DV_LIST_PRICES[t][c])));
+      expect(figures.length, l).toBe(6);
+      for (const f of figures) expect(allowed.has(f), `${l}: ${f}`).toBe(true);
+      // Group is priced per location: the fact sends groups to the address, with no number.
+      expect(v, l).toContain("hello@dentvideo.com");
+      expect(v, l).not.toMatch(/990|\b100\b|KURUCU|\b29\b|\b149\b|4[.,]490/);
+    }
+    expect(llmsTxt()).toContain("Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 2.490 TL");
+  });
+});
+
+describe("search snippets", () => {
+  it("every guide's rendered title fits in 60 characters and its meta description in 155", () => {
+    for (const g of GUIDES) {
+      const m = guideMetadata(g);
+      const title = (m.title as { absolute: string }).absolute;
+      expect(title, g.slug).toBe(guideSeoTitle(g));
+      expect(title.length, `${g.slug}: ${title}`).toBeLessThanOrEqual(SEO_TITLE_MAX);
+      expect(String(m.description).length, g.slug).toBeLessThanOrEqual(SEO_DESCRIPTION_MAX);
+      expect(m.openGraph?.title, g.slug).toBe(g.seoTitle);
+      expect(m.twitter?.title, g.slug).toBe(g.seoTitle);
+      expect(m.openGraph?.description, g.slug).toBe(m.description);
+      expect(m.twitter?.description, g.slug).toBe(m.description);
+    }
+  });
+
+  it("guide titles are unique within each language", () => {
+    for (const l of LOCALES) {
+      const titles = guidesFor(l).map(guideSeoTitle);
+      expect(new Set(titles).size, l).toBe(titles.length);
+    }
+  });
+
+  it("keeps the brand suffix whenever it fits", () => {
+    for (const g of GUIDES) {
+      if (`${g.seoTitle} · DentVideo`.length <= SEO_TITLE_MAX) expect(guideSeoTitle(g), g.slug).toMatch(/ · DentVideo$/);
+    }
+  });
+
+  it("falls back to the full title and description without SEO fields", () => {
+    const g = { ...GUIDES[0], seoTitle: undefined, seoDescription: undefined };
+    expect(guideSeoTitle(g)).toBe(`${g.title} · DentVideo`);
+    expect(guideSeoDescription(g)).toBe(g.description);
+  });
+
+  it("snippets make no promises, superlatives or 'painless' claims", () => {
+    const banned =
+      /\b(guarantee|painless|best|cheapest|no\.? ?1)\b|garantiert|schmerzfrei|beste[nrs]?\b|garantizad|sin dolor|mejor(es)?\b|garanti|sans douleur|meilleur|garantili|ağrısız|acısız|en iyi|最高|日本一|一番|絶対|必ず|無痛|痛くない|保証|الأفضل|مضمون|بدون ألم|الأرخص|najlepsz|gwarant|bezbolesn|nr 1/i;
+    for (const g of GUIDES) expect(`${g.seoTitle} ${g.seoDescription}`, g.slug).not.toMatch(banned);
+  });
+
+  it("About meta descriptions fit in 155 characters", () => {
+    for (const l of LOCALES) expect(ENTITY[l].meta.description.length, l).toBeLessThanOrEqual(SEO_DESCRIPTION_MAX);
   });
 });
 
@@ -124,6 +225,12 @@ describe("structured data", () => {
       expect(page.mainEntity.itemListElement).toHaveLength(guidesFor(l).length);
       const types = (aboutJsonLd(l)["@graph"] as { "@type": string; publisher?: unknown }[]).map((n) => n["@type"]);
       expect(types).toEqual(expect.arrayContaining(["AboutPage", "Organization", "SoftwareApplication", "FAQPage"]));
+      // Google's SoftwareApplication rich result needs a priced offer: the self-serve plans only (Group is Contact us).
+      const app = (aboutJsonLd(l)["@graph"] as { "@type": string; offers?: Record<string, unknown>[] }[]).find((n) => n["@type"] === "SoftwareApplication");
+      expect(app?.offers?.filter((o) => o.priceCurrency === "USD"), l).toMatchObject([
+        { "@type": "Offer", name: "Starter", price: 49, priceCurrency: "USD" },
+        { "@type": "Offer", name: "Practice", price: 79, priceCurrency: "USD" },
+      ]);
     }
   });
 
@@ -143,10 +250,8 @@ describe("sitemap", () => {
   it("lists every guide, guides index, About page and landing exactly once, with a lastmod", () => {
     expect(new Set(paths).size).toBe(paths.length);
     for (const g of GUIDES) expect(paths).toContain(guidePath(g));
-    for (const l of LOCALES) {
-      expect(paths).toContain(GUIDES_INDEX_PATH[l]);
-      expect(paths).toContain(ABOUT_PATH[l]);
-    }
+    for (const l of LOCALES) expect(paths).toContain(ABOUT_PATH[l]);
+    for (const l of GUIDE_HUB_LOCALES) expect(paths).toContain(GUIDES_INDEX_PATH[l]);
     for (const e of entries) expect(e.lastmod, e.path).toMatch(ISO);
   });
 
@@ -176,7 +281,7 @@ describe("answer-engine files", () => {
       expect(txt).toContain(`## ${g.h1}`);
       expect(txt).toContain(g.sections[g.sections.length - 1].heading);
     }
-    expect(txt).not.toMatch(/\]\((guide|guides|landing|about|start):/);
+    expect(txt).not.toMatch(/\]\((guide|guides|landing|about|start|checker):/);
   });
 });
 
@@ -186,12 +291,25 @@ describe("header/footer language on the new pages", () => {
     const g = Object.fromEntries(GUIDES.map((x) => [x.slug, x.locale]));
     expect(pathLocale("/dentvideo/guides", g)).toBe("en");
     expect(pathLocale("/dentvideo/about", g)).toBe("en");
+    // dentvideo.com serves the same pages without the /dentvideo prefix.
+    expect(pathLocale("/", g)).toBe("en");
+    expect(pathLocale("/de", g)).toBe("de");
+    expect(pathLocale("/fr/guides", g)).toBe("fr");
+    expect(pathLocale("/es/about", g)).toBe("es");
+    expect(pathLocale("/app", g)).toBeNull();
+    expect(pathLocale("/start", g)).toBeNull();
     expect(pathLocale("/dentvideo/tr/guides", g)).toBe("tr");
     expect(pathLocale("/dentvideo/de/about", g)).toBe("de");
     expect(pathLocale("/dentvideo/guides/dis-hekimi-reklam-yasagi", g)).toBe("tr");
     expect(pathLocale("/dentvideo/fr", g)).toBe("fr");
+    expect(pathLocale("/ja/guides", g)).toBe("ja");
+    expect(pathLocale("/dentvideo/ar/guides", g)).toBe("ar");
+    expect(pathLocale("/pl/guides", g)).toBe("pl");
+    expect(pathLocale("/guides/madha-tanshur-iyadat-al-asnan", g)).toBe("ar");
     expect(pathLocale("/dentvideo/app", g)).toBeNull();
-    expect(pathLocale("/dentvideo/de/whatever", g)).toBeNull();
+    // A mistyped address under /de shows the German 404: header and footer in German too.
+    expect(pathLocale("/dentvideo/de/whatever", g)).toBe("de");
+    expect(pathLocale("/dentvideo/whatever", g)).toBeNull();
   });
 });
 

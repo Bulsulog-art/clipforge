@@ -1,5 +1,4 @@
 import path from "node:path";
-import fs from "node:fs/promises";
 import type OpenAI from "openai";
 import { extractAudio } from "../steps/extract-audio.js";
 import { transcribe, type Transcript } from "../steps/transcribe.js";
@@ -14,6 +13,7 @@ import { writePostCopy, type PostCopy } from "./copywriter.js";
 import type { ClinicProfile } from "./profile.js";
 import { analyseLogo, logoStyleOf } from "./logo.js";
 import type { Topic } from "./strategist.js";
+import { screenNotice, withCaptionNotice } from "./mandatory-notice.js";
 
 /**
  * The recording agent: the dentist's own video in, branded clips out.
@@ -48,6 +48,11 @@ export type RecordingDeps = {
   workDir: string;
   /** Render the clips to files. Off = review and copy only. */
   render?: boolean;
+  /**
+   * The clinic's logo as a local file the job downloaded from storage (the
+   * owner's logo key) into its work dir. Never a URL or a profile value.
+   */
+  logoPath?: string;
   log?: (msg: string, extra?: Record<string, unknown>) => void;
 };
 
@@ -58,6 +63,17 @@ export function spokenText(t: Transcript, start: number, end: number): string {
     .join(" ")
     .replace(/\s+([,.!?;:])/g, "$1")
     .trim();
+}
+
+/**
+ * The warning a market requires on screen for this clip (Türkiye: RG 33075
+ * md. 7/1-k), or undefined — the same rule as the generated videos
+ * (mandatory-notice.ts screenNotice: procedure topics, and anything unclear).
+ * A recording's subject is what the dentist actually said, so the spoken
+ * text is read along with the shoot-card topic (or the model's hook).
+ */
+export function clipScreenNotice(country: string | undefined, topic: Pick<Topic, "service" | "title" | "question">, spoken: string): string | undefined {
+  return screenNotice(country, { ...topic, question: `${topic.question} ${spoken}` });
 }
 
 export function findingsOf(c: ComplianceResult, a: AccuracyResult): string[] {
@@ -75,7 +91,7 @@ export async function clipsFromRecording(
   topic?: Topic,
   opts: { maxClips?: number } = {},
 ): Promise<RecordedClip[]> {
-  const logoPath = await localLogo(profile.logo, deps.workDir);
+  const logoPath = deps.logoPath;
   // Same chip and size as the generated videos; an unreadable logo is drawn
   // the way it always was.
   const logoStyle = logoPath && deps.render ? await analyseLogo(logoPath).then(logoStyleOf).catch(() => undefined) : undefined;
@@ -121,7 +137,10 @@ export async function clipsFromRecording(
     if (hookHits.length) findings.push(`hook removed — "${m.hook}": ${hookHits.map((h) => h.why).join(" ")}`);
 
     // The caption may only say what the dentist said.
-    const copy = await writePostCopy(deps.client, profile, { ...clipTopic, hook: hook || clipTopic.question }, [], spoken);
+    const written = await writePostCopy(deps.client, profile, { ...clipTopic, hook: hook || clipTopic.question }, [], spoken);
+    // The market's required sentence under the caption, as for the generated videos (week.ts).
+    const copy: PostCopy = { ...written, caption: withCaptionNotice(written.caption, profile.country) };
+    const disclaimer = clipScreenNotice(profile.country, clipTopic, spoken);
 
     let clipVideo: string | undefined;
     let clipThumb: string | undefined;
@@ -142,6 +161,7 @@ export async function clipsFromRecording(
         faceCropX,
         workDir: deps.workDir,
         watermark: false,
+        disclaimer,
         accentHex: profile.brandColor,
         branding: logoPath
           ? { localLogoPath: logoPath, position: "top-right", opacity: logoStyle ? 1 : 0.9, style: logoStyle }
@@ -171,20 +191,4 @@ export async function clipsFromRecording(
 
 export function clipDir(workDir: string, i: number): string {
   return path.join(workDir, `clip-${i}`);
-}
-
-/** The clinic's logo as a local file (downloads a URL once); undefined if unusable. */
-async function localLogo(logo: string | undefined, workDir: string): Promise<string | undefined> {
-  if (!logo) return undefined;
-  if (!/^https?:/.test(logo)) return logo;
-  try {
-    const res = await fetch(logo);
-    if (!res.ok) return undefined;
-    const ext = (logo.split("?")[0].split(".").pop() ?? "png").slice(0, 4);
-    const file = path.join(workDir, `clinic-logo.${ext}`);
-    await fs.writeFile(file, Buffer.from(await res.arrayBuffer()));
-    return file;
-  } catch {
-    return undefined;
-  }
 }

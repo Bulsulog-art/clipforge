@@ -1,68 +1,111 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvSession } from "@/lib/dentvid/auth";
-import { dvErrors } from "@/lib/dentvid/locale-server";
-import { DV_INTERVALS, DV_TIERS, buildDvCheckout } from "@/lib/dentvid/billing";
-import { DodoCheckoutError, postDodoCheckout } from "@/lib/dodo";
+import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
+import { isEmailVerified } from "@/lib/dentvid/verify-email";
+import { verifyText } from "@/content/dentvideo-auth";
+import { LIMITS, clientIp } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
+import { DV_INTERVALS, DV_TIERS, buildDvCheckout, buildDvStaticLink, isSelfServeTier } from "@/lib/dentvid/billing";
+import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentvideo-group";
+import { postDodoCheckout } from "@/lib/dodo";
+import { recordEvent } from "@/lib/dentvid/events-server";
+import { isInternalUser } from "@/lib/dentvid/internal-traffic";
+import { requestCountry } from "@/lib/dentvid/geo-ip";
+import { adminOrNull, checkoutBlockMessage, loadCheckoutBlock } from "@/lib/dentvid/billing-state";
 
 // POST /api/dentvideo/checkout — open a Dodo hosted checkout for the signed-in
-// clinic owner's plan. The clinic and owner ride along in metadata, which
-// Dodo copies onto the subscription; /api/dodo/webhook reads it back.
+// clinic owner's plan (monthly only, always at list price: there are no
+// discount codes, and Dodo's code field is hidden). The clinic's country sets
+// the billing country and currency, so Dodo charges the price the plan step
+// showed. The clinic and owner ride along in metadata, which Dodo copies onto
+// the subscription; /api/dodo/webhook reads it back.
 
-const Body = z.object({
-  plan: z.enum(DV_TIERS),
-  interval: z.enum(DV_INTERVALS).default("month"),
-  code: z.string().max(60).optional().nullable(),
-});
+// Strict: a body with anything more (a "code", say) is refused, not quietly dropped.
+const Body = z
+  .object({
+    plan: z.enum(DV_TIERS),
+    interval: z.enum(DV_INTERVALS).default("month"),
+  })
+  .strict();
 
 export async function POST(req: Request) {
   const { db, user } = await dvSession();
   if (!user) return NextResponse.json({ error: (await dvErrors()).signIn }, { status: 401 });
+  const ip = clientIp(req.headers);
+  const limited = await rateLimited(
+    [
+      { key: `rl:checkout:user:${user.id}`, rule: LIMITS.checkoutUser },
+      { key: `rl:checkout:ip:${ip}`, rule: LIMITS.checkoutIp },
+    ],
+    async () => (await dvErrors()).tooMany,
+  );
+  if (limited) return limited;
 
-  const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, plan").eq("owner_id", user.id).maybeSingle();
-  const language = (clinic?.profile as { language?: string } | undefined)?.language;
+  const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, plan, dodo_subscription_id").eq("owner_id", user.id).maybeSingle();
+  const profile = clinic?.profile as { language?: string; country?: string } | undefined;
+  const language = profile?.language;
   const err = await dvErrors(language);
-  if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
-  if (clinic.plan === "active") return NextResponse.json({ error: err.alreadySubscribed }, { status: 409 });
-
   const parsed = Body.safeParse(await req.json().catch(() => null));
+  // Group (multi-location) is "Contact us": no self-serve purchase, monthly or yearly.
+  if (parsed.success && !isSelfServeTier(parsed.data.plan)) return contactSales(await dvLocale(language));
+  if (!clinic) return NextResponse.json({ error: err.setupFirst }, { status: 400 });
+  // A clinic whose subscription has not ended must not open a second one (it would be charged twice):
+  // active, paid-but-not-yet-active, on hold (update the card instead), cancelled but still paid up.
+  const admin = await adminOrNull();
+  const block = await loadCheckoutBlock(
+    { id: clinic.id as string, plan: clinic.plan as string, dodo_subscription_id: (clinic as { dodo_subscription_id?: string | null }).dodo_subscription_id ?? null },
+    admin,
+  );
+  if (block) {
+    const message = checkoutBlockMessage(block, language, { selfServe: !!process.env.DODO_API_KEY?.trim(), alreadySubscribed: err.alreadySubscribed });
+    return NextResponse.json({ error: message, code: block.code, ...(block.code === "cancelled_pending" ? { until: block.until } : {}) }, { status: 409 });
+  }
+  // Paying is where an address starts getting mail (welcome, "videos ready"): it must be proven first.
+  if (!isEmailVerified(user)) {
+    return NextResponse.json({ error: verifyText(await dvLocale(language)).checkoutBlocked, code: "email_unverified", email: user.email }, { status: 403 });
+  }
+
   if (!parsed.success) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
 
   const built = buildDvCheckout({
     tier: parsed.data.plan,
     interval: parsed.data.interval,
-    code: parsed.data.code,
+    country: profile?.country,
     clinicId: clinic.id,
     ownerId: user.id,
     email: user.email,
     locale: language,
   });
-  if (!built.ok) return NextResponse.json({ error: err.invalidPlan }, { status: 400 });
+  if (!built.ok) return built.reason === "contact_sales" ? contactSales(await dvLocale(language)) : NextResponse.json({ error: err.invalidPlan }, { status: 400 });
+  // Funnel: a checkout URL was handed to the clinic (fire-and-forget).
+  const opened = (url: string, via: "api" | "link") => {
+    void recordEvent("checkout_opened", {
+      locale: language,
+      clinicId: clinic.id as string,
+      props: { tier: parsed.data.plan, interval: parsed.data.interval, via },
+      geo: requestCountry(req.headers),
+      internal: isInternalUser(user),
+    });
+    return url;
+  };
 
   // The same Dodo account as ClipForge: DODO_API_KEY, DODO_ENVIRONMENT=live.
+  // Without an API key, Dodo's static payment link does the same job (same
+  // product, metadata, return URL, country and currency, no discount field).
   const apiKey = process.env.DODO_API_KEY?.trim();
-  if (!apiKey) return NextResponse.json({ error: err.checkoutUnavailable }, { status: 503 });
+  if (!apiKey) return NextResponse.json({ url: opened(buildDvStaticLink(built), "link") });
 
   try {
-    return NextResponse.json({ url: await postDodoCheckout({ apiKey, body: built.body }) });
+    return NextResponse.json({ url: opened(await postDodoCheckout({ apiKey, body: built.body }), "api") });
   } catch (e) {
-    // The founding code is applied for the clinic; once its 100 uses are gone
-    // (or it is switched off in Dodo) checkout must still open, at list price.
-    if (built.autoDiscount && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {
-      const withoutCode = { ...built.body };
-      delete withoutCode.discount_codes;
-      try {
-        return NextResponse.json({ url: await postDodoCheckout({ apiKey, body: withoutCode }) });
-      } catch (e2) {
-        console.error("[dentvideo checkout] dodo checkout failed", (e2 as Error).message);
-      }
-    } else {
-      console.error("[dentvideo checkout] dodo checkout failed", (e as Error).message);
-      // A code the clinic typed that Dodo refuses: say so rather than "try again".
-      if (built.discount && !built.autoDiscount && e instanceof DodoCheckoutError && e.status >= 400 && e.status < 500) {
-        return NextResponse.json({ error: err.invalidCode }, { status: 400 });
-      }
-    }
+    console.error("[dentvideo checkout] dodo checkout failed", (e as Error).message);
     return NextResponse.json({ error: err.checkoutFailed }, { status: 502 });
   }
+}
+
+/** 400 for a tier that is sold by contact only (Group): say where to write instead. */
+function contactSales(locale: Awaited<ReturnType<typeof dvLocale>>) {
+  const g = GROUP_CONTACT[locale];
+  return NextResponse.json({ error: `${g.text} ${GROUP_CONTACT_EMAIL}`, code: "contact_sales", contact: groupMailto(locale) }, { status: 400 });
 }

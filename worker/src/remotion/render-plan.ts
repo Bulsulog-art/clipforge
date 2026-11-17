@@ -5,10 +5,15 @@ import { randomUUID } from "node:crypto";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { webpackOverride } from "./webpack-override.js";
-import { dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
+import { LIMITS, dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
 import { resolveStockClips } from "./stock.js";
+import { stageBackgrounds } from "./backgrounds.js";
 import type { LogoStyle } from "./logo-style.js";
+import { renderTuning, type RenderTuning } from "./capacity.js";
+import { enforceLoudness, type LoudnessGuardResult } from "./loudness-guard.js";
+import { isInside, mediaRoots } from "../lib/media-input.js";
+import { assertRenderFonts } from "./render-fonts.js";
 
 /**
  * Renders a scene plan to an mp4.
@@ -90,16 +95,24 @@ export type RenderPlanArgs = {
   voiceoverSrc?: string;
   musicSrc?: string;
   watermark?: boolean;
-  /** Local path or URL of a client logo, drawn in the top corner. */
+  /** Local path of a client logo (a file the job wrote into its work dir), drawn in the top corner. */
   logoSrc?: string;
   /** How the logo is drawn (chip, size by aspect), from dental/logo.ts. */
   logoStyle?: LogoStyle;
   pexelsApiKey?: string;
   /** How many frames to render at once. Tuned by the caller to the box. */
   concurrency?: number;
+  /** Encoder / decoder flags; default renderTuning() for this box (capacity.ts). */
+  tuning?: RenderTuning;
   onProgress?: (fraction: number) => void;
   onWarn?: (message: string) => void;
   entryPoint?: string;
+  /**
+   * Extra directories local assets may be staged from. The OS temp dir (job
+   * work dirs) and `workDir` are always allowed; anything else — a URL, a
+   * path outside them, a symlink pointing out — is never staged.
+   */
+  assetRoots?: string[];
 };
 
 export type RenderPlanResult = {
@@ -109,7 +122,45 @@ export type RenderPlanResult = {
   height: number;
   /** Scenes that asked for footage and did not get any. */
   missingFootage: number;
+  /** The finished file's loudness (and whether its audio was corrected); absent for a render without sound. */
+  loudness?: LoudnessGuardResult;
 };
+
+/**
+ * Copies one local asset (voiceover, music, logo, a user's clip) into the
+ * render's staging folder and returns the name the composition loads, or
+ * undefined (with a warning) when it may not or cannot be staged.
+ *
+ * Only plain local files inside `roots` are staged: never a URL (the
+ * headless browser would fetch it from inside our network), never a path
+ * elsewhere on the box. The renderer's static server only serves what is in
+ * the staging folder, so this is the single gate for what a video can embed.
+ */
+export async function stageLocalAsset(
+  src: string | undefined,
+  opts: { assetDir: string; renderId: string; roots: string[]; onWarn?: (m: string) => void; what?: string },
+): Promise<string | undefined> {
+  if (!src) return undefined;
+  const what = opts.what ?? "asset";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(src) || !path.isAbsolute(src)) {
+    opts.onWarn?.(`${what} is not a local file; not staged`);
+    return undefined;
+  }
+  if (!isInside(src, opts.roots)) {
+    opts.onWarn?.(`${what} is outside the job's directories; not staged`);
+    return undefined;
+  }
+  const dest = path.join(opts.assetDir, path.basename(src));
+  try {
+    const st = await fs.lstat(src);
+    if (!st.isFile()) throw new Error("not a regular file");
+    await fs.copyFile(src, dest);
+    return toRenderableSrc(dest, opts.renderId);
+  } catch (e) {
+    opts.onWarn?.(`could not stage ${what} ${path.basename(src)}: ${(e as Error).message}`);
+    return undefined;
+  }
+}
 
 /**
  * Turns a local path into something the renderer can actually fetch.
@@ -195,6 +246,9 @@ export async function resolveFootage(
 }
 
 export async function renderPlan(args: RenderPlanArgs): Promise<RenderPlanResult> {
+  // Before anything is bundled or staged: a box without the theme's fonts
+  // would not fail, it would draw the video in a fallback serif (render-fonts.ts).
+  await assertRenderFonts(args.plan, { onWarn: args.onWarn });
   // Bundle first: the staging directory lives inside the bundle, because that
   // is the only place the renderer's static server reads from.
   const serveUrl = await getBundle(args.entryPoint);
@@ -234,37 +288,24 @@ async function renderStaged(
     serveUrl,
   } = args;
 
+  // Only plain local files inside the job's directories are ever staged (stageLocalAsset).
+  const roots = mediaRoots([args.workDir, ...(args.assetRoots ?? [])]);
+
   // A user's clip lives wherever it was downloaded; copy it in so every source
-  // the composition asks for resolves from one directory.
+  // the composition asks for resolves from one directory. One that cannot be
+  // staged keeps its index (empty), so its scene falls back to the brand look.
   const stagedUserAssets: string[] = [];
   for (const asset of userAssets) {
-    const dest = path.join(assetDir, path.basename(asset));
-    try {
-      await fs.copyFile(asset, dest);
-      stagedUserAssets.push(dest);
-    } catch (e) {
-      onWarn?.(`could not stage user asset ${asset}: ${(e as Error).message}`);
-      stagedUserAssets.push(asset);
-    }
+    const staged = await stageLocalAsset(asset, { assetDir, renderId, roots, onWarn, what: "user asset" });
+    stagedUserAssets.push(staged ? path.join(assetDir, path.basename(asset)) : "");
   }
 
   // Audio has the same constraint as footage: the composition can only fetch
   // what is staged in its public folder. Both were passed as raw local paths
   // and silently never played.
-  const stageAudio = async (src?: string) => {
-    if (!src || /^https?:/.test(src)) return src;
-    const dest = path.join(assetDir, path.basename(src));
-    try {
-      await fs.copyFile(src, dest);
-      return toRenderableSrc(dest, renderId);
-    } catch (e) {
-      onWarn?.(`could not stage audio ${src}: ${(e as Error).message}`);
-      return undefined;
-    }
-  };
-  const stagedVoiceover = await stageAudio(voiceoverSrc);
-  const stagedMusic = await stageAudio(musicSrc);
-  const stagedLogo = await stageAudio(logoSrc);
+  const stagedVoiceover = await stageLocalAsset(voiceoverSrc, { assetDir, renderId, roots, onWarn, what: "voiceover" });
+  const stagedMusic = await stageLocalAsset(musicSrc, { assetDir, renderId, roots, onWarn, what: "music" });
+  const stagedLogo = await stageLocalAsset(logoSrc, { assetDir, renderId, roots, onWarn, what: "logo" });
 
   const footage = await resolveFootage(plan, {
     workDir: assetDir,
@@ -276,10 +317,19 @@ async function renderStaged(
 
   const footageScenes = plan.scenes.filter((s) => s.kind === "footage").length;
   const missingFootage = footageScenes - Object.keys(footage).length;
+  if (missingFootage > 0) onWarn?.(`${missingFootage} footage scene(s) without a clip; captions shown on the brand look`);
+  // A footage scene with no clip and no caption would be an empty frame.
+  const filled = withoutEmptyFootage(plan, footage);
+
+  // Library photos behind the text (plan.backgrounds), staged like everything
+  // else. If none could be had, the plan goes out without them: a plain
+  // theme background beats a render that waits on an image that 404s.
+  const backgroundSrcs = await stageBackgrounds(plan.backgrounds, { assetDir, renderId, onWarn });
 
   const inputProps = {
-    plan,
-    footage,
+    plan: plan.backgrounds && !backgroundSrcs.length ? { ...filled.plan, backgrounds: undefined } : filled.plan,
+    ...(backgroundSrcs.length ? { backgroundSrcs } : {}),
+    footage: filled.footage,
     voiceoverSrc: stagedVoiceover,
     musicSrc: stagedMusic,
     watermark,
@@ -289,13 +339,18 @@ async function renderStaged(
 
   // Use a specific browser binary when one is configured (a dev box with a
   // preinstalled chrome-headless-shell); otherwise Remotion's own download.
+  // REMOTION_CHROME_MODE=chrome-for-testing lets that binary be a full Chrome.
   const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
+  const chromeMode = process.env.REMOTION_CHROME_MODE === "chrome-for-testing" ? ("chrome-for-testing" as const) : undefined;
+  // Sized to the box (capacity.ts): x264 preset, footage cache, decoder threads.
+  const tuning = args.tuning ?? renderTuning();
 
   const composition = await selectComposition({
     serveUrl,
     id: COMPOSITION_ID,
     inputProps,
     browserExecutable,
+    ...(chromeMode ? { chromeMode } : {}),
   });
 
   await renderMedia({
@@ -308,9 +363,29 @@ async function renderStaged(
     // Short-form is watched on a phone over cellular; a visually lossless
     // encode at a sane bitrate beats a pristine file nobody waits for.
     crf: 23,
+    x264Preset: tuning.x264Preset,
+    offthreadVideoCacheSizeInBytes: tuning.offthreadVideoCacheSizeInBytes,
+    offthreadVideoThreads: tuning.offthreadVideoThreads,
     browserExecutable,
+    ...(chromeMode ? { chromeMode } : {}),
     onProgress: onProgress ? ({ progress }) => onProgress(progress) : undefined,
   });
+
+  // The file that gets posted is the one measured: -14 LUFS / -1 dBTP whatever
+  // path the audio took to get here (loudness-guard.ts). Best effort: a failed
+  // check leaves the render as it came out.
+  let loudness: LoudnessGuardResult | undefined;
+  if (stagedVoiceover || stagedMusic) {
+    loudness = await enforceLoudness(outputPath).catch((e: Error) => {
+      onWarn?.(`loudness check failed: ${e.message}`);
+      return undefined;
+    });
+    if (loudness?.corrected) {
+      onWarn?.(
+        `audio loudness corrected: ${loudness.before.I} LUFS / ${loudness.before.TP} dBTP -> ${loudness.after.I} LUFS / ${loudness.after.TP} dBTP`,
+      );
+    }
+  }
 
   return {
     outputPath,
@@ -318,8 +393,54 @@ async function renderStaged(
     width: composition.width,
     height: composition.height,
     missingFootage,
+    ...(loudness ? { loudness } : {}),
   };
 }
 
 /** Exported for the job layer: where each scene begins, for progress reporting. */
 export { sceneOffsets };
+
+/**
+ * A footage scene whose clip could not be had (no PEXELS_API_KEY, no result,
+ * a failed download) still shows its caption on the brand look. One with no
+ * caption either would ship an empty frame — never acceptable — so its time
+ * goes to the scene before it (or after it, for the first scene), keeping
+ * the total length the narration was timed to. Footage indices are remapped.
+ */
+export function withoutEmptyFootage(plan: ScenePlan, footage: Record<string, string>): { plan: ScenePlan; footage: Record<string, string> } {
+  const empty = (i: number) => {
+    const s = plan.scenes[i];
+    return s.kind === "footage" && !footage[String(i)] && !s.caption?.trim();
+  };
+  if (!plan.scenes.some((_, i) => empty(i)) || plan.scenes.every((_, i) => empty(i))) return { plan, footage };
+  const scenes = plan.scenes.map((s) => ({ ...s }));
+  const keep = scenes.map((_, i) => !empty(i));
+  const max = LIMITS.sceneSeconds.max;
+  scenes.forEach((s, i) => {
+    if (keep[i]) return;
+    // Its time goes to the neighbours, each only up to the per-scene limit.
+    const prev = scenes.slice(0, i).map((_, j) => j).reverse().find((j) => keep[j]);
+    const next = scenes.map((_, j) => j).find((j) => j > i && keep[j]);
+    const targets = [prev, next].filter((j): j is number => j !== undefined);
+    const room = targets.reduce((r, j) => r + Math.max(0, max - scenes[j].seconds), 0);
+    if (room + 1e-6 < s.seconds) {
+      keep[i] = true; // nowhere to put it: keep the scene (brand background) rather than break the plan
+      return;
+    }
+    let left = s.seconds;
+    for (const j of targets) {
+      const add = Math.min(left, max - scenes[j].seconds);
+      scenes[j].seconds = Math.round((scenes[j].seconds + add) * 100) / 100;
+      left -= add;
+    }
+  });
+  const remapped: Record<string, string> = {};
+  let n = 0;
+  scenes.forEach((_, i) => {
+    if (!keep[i]) return;
+    if (footage[String(i)]) remapped[String(n)] = footage[String(i)];
+    n++;
+  });
+  return { plan: { ...plan, scenes: scenes.filter((_, i) => keep[i]) } as ScenePlan, footage: remapped };
+}
+

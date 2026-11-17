@@ -17,7 +17,7 @@ export const Watermark: React.FC<{ theme: Theme }> = ({ theme }) => {
   return (
     <AbsoluteFill
       style={{
-        padding: `${safe.y * 0.5}px ${safe.x * 0.7}px`,
+        padding: `${safe.top * 0.5}px ${safe.start * 0.8}px`,
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "flex-end",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { isDentvideoHost } from "@/lib/dentvid/host";
 
 /**
  * Two-step attribution capture:
@@ -21,9 +21,20 @@ import { createClient } from "@/lib/supabase/client";
 const LS_KEY = "clipforge.attribution";
 const LS_SUBMITTED_KEY = "clipforge.attribution.submitted";
 
+/**
+ * ClipForge's attribution only. DentVideo (dentvideo.com, or /dentvideo on
+ * this host) has its own (lib/dentvid/attribution), its own login, and must
+ * not get ClipForge's Supabase client started on its pages.
+ */
+export function isClipforgePage(host: string, pathname: string): boolean {
+  if (isDentvideoHost(host)) return false;
+  return !(pathname === "/dentvideo" || pathname.startsWith("/dentvideo/"));
+}
+
 export function AttributionCapture() {
   useEffect(() => {
     try {
+      if (!isClipforgePage(window.location.hostname, window.location.pathname)) return;
       captureUtmFromUrl();
       void submitIfReady();
     } catch {
@@ -60,6 +71,9 @@ async function submitIfReady() {
   const raw = localStorage.getItem(LS_KEY);
   if (!raw) return;
 
+  // Loaded only here, with something to submit: this component sits in the root layout, so a static
+  // import would put ClipForge's Supabase client in every page's JavaScript, DentVideo's included.
+  const { createClient } = await import("@/lib/supabase/client");
   const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) return;   // wait until user signs in

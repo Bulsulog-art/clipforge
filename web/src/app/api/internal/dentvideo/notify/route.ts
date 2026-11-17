@@ -1,12 +1,16 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { dvAdmin } from "@/lib/dentvid/supabase";
-import { readyEmail, sendEmail } from "@/lib/dentvid/email";
+import { workerAuthorised } from "@/lib/dentvid/internal-auth";
+import { sendReadyNotice } from "@/lib/dentvid/ready-notice";
+import { sendReadyPush } from "@/lib/dentvid/apns";
+import { LIMITS } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 
 /**
  * Called by the worker when a clinic's week or recording is ready: emails
- * the clinic owner a "ready for your review" note in the clinic's language.
+ * the clinic owner a "ready for your review" note in the clinic's language,
+ * and pushes the same notice to the owner's iPhones (lib/dentvid/apns.ts).
  * Authenticated with the shared WORKER_INTERNAL_TOKEN (Bearer), which also
  * exempts it from the browser Origin check.
  */
@@ -17,32 +21,26 @@ const Body = z.object({
   flagged: z.number().int().min(0),
 });
 
-function authorised(header: string | null): boolean {
-  const expected = process.env.WORKER_INTERNAL_TOKEN;
-  const got = (header ?? "").replace(/^Bearer\s+/i, "");
-  if (!expected || !got) return false;
-  const a = Buffer.from(got);
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function POST(req: Request) {
-  if (!authorised(req.headers.get("authorization"))) return NextResponse.json({ error: "unauthorised" }, { status: 401 });
+  if (!workerAuthorised(req.headers.get("authorization"))) return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "bad request" }, { status: 400 });
   const { clinicId, kind, ready, flagged } = parsed.data;
+  // A worker bug (or a leaked token) must not turn into an email storm.
+  const limited = await rateLimited(
+    [
+      { key: `rl:notify:clinic:${clinicId}`, rule: LIMITS.notifyClinic },
+      { key: "rl:notify:global", rule: LIMITS.notifyGlobal },
+    ],
+    () => "too many notices",
+  );
+  if (limited) return limited;
 
-  const db = dvAdmin();
-  const { data: clinic } = await db.from("dentvid_clinics").select("owner_id, profile").eq("id", clinicId).maybeSingle();
-  if (!clinic) return NextResponse.json({ error: "no clinic" }, { status: 404 });
-  const { data: owner } = await db.auth.admin.getUserById(clinic.owner_id as string);
-  const email = owner?.user?.email;
-  if (!email) return NextResponse.json({ sent: false, reason: "no email" });
-
-  const profile = clinic.profile as { name?: string; language?: string };
-  const base = (process.env.NEXT_PUBLIC_DENTVIDEO_URL || `${(process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "")}/dentvideo`).replace(/\/+$/, "");
-  const msg = readyEmail({ kind, counts: { ready, flagged }, clinicName: profile.name ?? "", language: profile.language ?? "en", appUrl: `${base}/app` });
-  if (!msg) return NextResponse.json({ sent: false, reason: "nothing ready" });
-  const sent = await sendEmail(email, msg);
-  return NextResponse.json({ sent });
+  const admin = dvAdmin();
+  const res = await sendReadyNotice(admin, clinicId, kind, { ready, flagged });
+  // The iPhone app's push: independent of the email (a bounced address still gets the push). Never throws.
+  if (res.reason !== "no clinic") await sendReadyPush(admin, clinicId, kind, { ready, flagged });
+  if (res.reason === "no clinic") return NextResponse.json({ error: "no clinic" }, { status: 404 });
+  if (res.reason === "no email" || res.reason === "nothing ready") return NextResponse.json({ sent: false, reason: res.reason });
+  return NextResponse.json({ sent: res.sent });
 }

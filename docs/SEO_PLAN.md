@@ -278,3 +278,219 @@ video embeds (a DentVideo sample answering the guide's question) with VideoObjec
   health advertising; ADA Code advisory opinions (2025 social-media update); GDC guidance revisions; FTC reviews rule
   enforcement; France's ONCD recommendations.
 - No prices, no invented statistics, no testimonials in any guide (tested).
+
+---
+
+## 9. Owning dent/dental video searches (2026-11-09)
+
+The owner asked for DentVideo to come up first when people type "dent…" / "dental…". This section is the honest
+map of what that can mean, with the evidence, and what was shipped for it (branch `claude/seo-own-dental-video`).
+
+### 9.1 What is and is not achievable
+
+- **"dent", "dental", "dentist" (head terms): not achievable, and not worth chasing.** Google Suggest for `dent`
+  returns *dentist near me, dentist, dental insurance, dentaquest, dental hygienist salary, dentures…* (US), *dentolo,
+  dentsply sirona…* (DE), *dentista, dentista cerca de mi…* (ES), *dentosept, dentysta…* (PL), *dental ilan,
+  dentsoft…* (TR). These are local-pack, insurance, jobs and brand searches by patients; no software site ranks for
+  them and the traffic would not convert. No page targets them.
+- **Brand / navigational queries: achievable within weeks of indexing, and must be owned.** `dentvideo`,
+  `dentvideo app/login/review/price` return **no suggestions** — the brand has no search demand yet, and a web search
+  for "DentVideo" today shows unrelated pages (a University of Michigan "DENT-Video" service request page, dental
+  video encyclopedias). That means there is no strong incumbent: once dentvideo.com is indexed with consistent entity
+  data, the exact-match brand should rank #1 quickly. **Watch-out:** `dent video` (two words) autocompletes to *dent
+  videos* — car **paintless dent repair** — and *dental videos*. The two-word spelling is shared with other intents, so
+  we can be found for it but cannot expect to own it; always write the brand as one word, "DentVideo".
+- **Commercial "dental video" queries: page 1 in 3–6 months is realistic for a handful, per locale, not for the
+  biggest.** SERPs are held by patient-education libraries (Spear, Optio, ADA Toothflix, ViewMedica) for "dental
+  patient education videos", and by **HeyGen's programmatic pages** for "dental ai video generator / dentist video
+  maker". Those programmatic pages are thin and generic; a specialised page with real sample output, a rules angle and
+  an FAQ can compete — but authority (links) decides the last mile. Non-English commercial SERPs are weaker.
+
+### 9.2 Research (Google Suggest, hl/gl per market, 2026-11-09; ~130 seeds; raw output not committed)
+
+Verbatim suggestions that matter (selection):
+
+| Market | Brand / tool intent | Commercial intent | Informational (feeds the above) |
+| --- | --- | --- | --- |
+| en (us/gb) | *dentvideo* → none; *dent video app* → dental video app, dental video editing app | ai dental videos · dental ai video generator · dental video maker · dental videos ai · dental video template · dental clinic video template · dental marketing videos · dental promotional video · dental clinic marketing video · videos for dental clinic/office · canva dental templates · chatgpt for dentists · dental social media marketing/manager | dental videos for patients · … for patient education · … for waiting room · … for instagram · how to make dental videos · dental reels ideas · dental social media post ideas |
+| tr | — | diş kliniği sosyal medya (yönetimi) · diş kliniği instagram · diş kliniği tanıtım videosu · diş kliniği reklam ajansı · diş hekimi yapay zeka · diş kliniği yapay zeka | diş hekimi reklam yasağı/cezası/yönetmeliği · diş tedavisi videoları |
+| de | — | zahnarzt marketing (agentur) · online marketing zahnarzt · ki für/software zahnarztpraxis · zahnarzt imagefilm · wartezimmer tv zahnarzt · zahnarztpraxis video(s) | patientenaufklärung videos · zahnarzt social media · zahnarzt instagram |
+| es | — | videos dentales con ia · vídeos dentales para pacientes · vídeos para dentistas · banco de videos para dentistas · ia para dentistas · agencia marketing para dentistas · marketing digital para dentistas | videos para clinicas dentales · videos educativos dentales · marketing para dentistas instagram |
+| fr | — | vidéo présentation cabinet dentaire et ses traitements · video salle d'attente dentiste · marketing dentaire | dentiste reseaux sociaux · video explicative dentiste |
+| ja | — | 歯科 患者説明ツール / ソフト · 歯科 患者 説明 動画 · 歯科医院 待合室 動画 · 歯科 動画コンテンツ · 歯科 sns 運用 代行 · 歯科医院 sns 運用 代行 · 歯科 インスタ代行 | 歯科 インスタ ネタ / 運用 · 歯科 ai活用 |
+| ar (ae/sa) | — | فيديو عيادة اسنان · فيديوهات عيادات اسنان · تسويق عيادة اسنان · تسويق عيادات الاسنان · ذكاء اصطناعي اسنان | عيادة اسنان انستقرام |
+| pl | — | marketing stomatologiczny · marketing w gabinecie stomatologicznym · marketing dla stomatologów · reklama gabinetu stomatologicznego · ai stomatologia | filmy stomatologiczne · film edukacyjny o zębach |
+
+Skipped as wrong intent: "dentist video for kids/toddlers", "zahnarzt videos bohren schmerzen", "videos de dentistas
+sacando muelas", "video dentiste humour", "فيديو اسنان للاطفال", "film o zębach dla dzieci" (patients/children),
+"dental videos free download" (library seekers — answered honestly in an FAQ, not targeted), "clip dentaire" (a
+denture product), "dental video camera/editor job".
+
+### 9.3 Query map → pages (what targets what, so pages do not cannibalise each other)
+
+| Group | Queries | Page | 3–6 month outlook |
+| --- | --- | --- | --- |
+| Brand | DentVideo · what is DentVideo · DentVideo price / login / app / review (all 8 languages) | `/` + `/<l>` landings (title starts "DentVideo — …"), `/about` + `/<l>/about` retitled "What is DentVideo? …" with brand FAQ (price → pricing, sign-in, mobile app, reviews) | **#1 for "DentVideo" once indexed** (needs GSC + Bing verification and a few profiles linking back). "dent video" two words: page 1 plausible, #1 not guaranteed (shared with car dent repair). |
+| en commercial | ai dental videos · dental ai video generator · dental video maker · dental videos for instagram · dental clinic video template | `/videos/ai-dental-video-maker` | Page 1 for the long-tail AI variants plausible; "dental ai video generator" competes with HeyGen — needs links. |
+| en comparison | dental social media marketing agency (vs) · canva dental · chatgpt for dentists | `/videos/dentvideo-vs-agency-canva-chatgpt` | "DentVideo vs …" brand-comparison queries: yes. Generic agency queries: unlikely (agencies own them); the page is for evaluation-stage visitors and answer engines. |
+| tr | diş kliniği sosyal medya · diş kliniği instagram · diş kliniği tanıtım videosu · diş hekimi yapay zeka | `/videos/dis-klinigi-sosyal-medya-videolari`; comparison `/videos/dentvideo-ajans-canva-chatgpt` | Best chance of all markets (thin native SERP). Page 1 for "diş kliniği sosyal medya videoları/videosu" realistic. |
+| de | zahnarzt videos · zahnarztpraxis video · ki für zahnarztpraxis · wartezimmer tv zahnarzt | `/videos/zahnarztpraxis-videos-ki`; comparison `/videos/dentvideo-agentur-canva-chatgpt` | Page 1 for "Videos für Zahnarztpraxis (KI)" variants realistic; "ki zahnarztpraxis" is dominated by phone-assistant vendors. |
+| es | videos dentales con ia · vídeos dentales para pacientes · vídeos para dentistas | `/videos/videos-dentales-con-ia`; comparison `/videos/dentvideo-agencia-canva-chatgpt` | "videos dentales con ia" — weak SERP, good chance. |
+| fr | vidéo présentation cabinet dentaire et ses traitements · video salle d'attente dentiste | `/videos/videos-traitements-cabinet-dentaire` | Plausible; the existing guide `videos-information-patient-dentaire` keeps the informational salle-d'attente intent. |
+| ja | 歯科 患者説明 動画 / ツール / ソフト · 歯科医院 待合室 動画 · 歯科 sns 運用 代行 | `/videos/shika-kanja-setsumei-doga` | Competitive (established 患者説明ツール vendors); long-tail plausible. Needs a native reviewer before promotion. |
+| ar | فيديو عيادة اسنان · فيديوهات عيادات اسنان · تسويق عيادة اسنان | `/videos/fidyohat-iyadat-al-asnan` | Very thin Arabic B2B SERP; good chance for the marketing variants. |
+| pl | marketing stomatologiczny · marketing gabinetu stomatologicznego · filmy stomatologiczne | `/videos/filmy-marketing-stomatologiczny` | Agencies rank for "marketing stomatologiczny"; page 1 for the video/film variants plausible. |
+| Informational long tail | the guides in §3 | each guide now links to its language's product page (or comparison for agency/tool guides) with a descriptive anchor; hubs and About pages link both | Feeds authority to the commercial pages; unchanged targets. |
+
+Rules for these pages (tested in `web/src/content/solutions/solutions.test.ts`): one product page per language and
+a comparison only in en/de/es/tr (where agency/alternative demand showed up); every page lists the suggest queries it
+answers; ≥ 5 sections, ≥ 4 FAQs, 550+ words (700+ ja); title ≤ 60 incl. "DentVideo", description ≤ 155; no prices,
+percentages, superlatives, "painless"-type words outside quoted examples, or market do-not-say phrases; hreflang
+reciprocal per page kind; in sitemap and llms.txt; WebPage + SoftwareApplication (same `@id` as landing/About) +
+FAQPage + BreadcrumbList JSON-LD; product pages embed the three real sample videos (`preload="none"`) as VideoObject.
+
+### 9.4 Brand entity (shipped)
+
+- One `@id` for the product (`…/dentvideo#software`), the organisation (`https://bulsulabs.com/#organization`) and a
+  new **WebSite** node (`name: "DentVideo"`, `alternateName: ["Dent Video", "DentVideo app"]`) on every landing — the
+  signal Google uses for the site name in results.
+- `SAME_AS` in `content/guides/entity.ts` is **empty on purpose**: no profile exists yet. Add LinkedIn, Crunchbase,
+  Product Hunt, G2, Wikidata URLs there once live (a test rejects placeholders).
+- The "reviews" FAQ says plainly that DentVideo is new and publishes no testimonials. Update it when real third-party
+  reviews (G2/Capterra/OMR) exist — link them, never quote them as testimonials on regulated-market pages.
+
+### 9.5 Off-site actions that decide the outcome (owner)
+
+1. Set `NEXT_PUBLIC_DENTVIDEO_URL=https://dentvideo.com` in production (until then canonicals point at the ClipForge
+   host and the brand cannot consolidate).
+2. Google Search Console (Domain property) + Bing Webmaster Tools (import from GSC); submit the sitemap; request
+   indexing for `/`, `/about`, the 8 landings and the 12 `/videos/…` pages; run `node scripts/indexnow.mjs`.
+3. Profiles that say the same one-line definition and link to dentvideo.com: LinkedIn page, Crunchbase, Product Hunt,
+   G2/Capterra, OMR Reviews (DACH), AlternativeTo/SaaSHub, a YouTube channel with the demo video. Then fill `SAME_AS`.
+4. **Google Business Profile: not eligible** (no staffed customer location; GBP is for local businesses). Do not create
+   one with a home or virtual address.
+5. Links for the commercial pages: trade-press guest articles and association newsletters listed in §7 and
+   OFFSITE_PLAN, linking to the language's `/videos/…` page or the rules guide — not to the homepage only.
+6. Month 2: in GSC, check "DentVideo" position (target 1), impressions for each §9.3 query; rewrite titles of
+   `/videos/…` pages with impressions but position > 10.
+
+---
+
+## 10. Content quality pass: E-E-A-T and GEO (2026-11-10, branch `claude/seo-content-quality`)
+
+### 10.1 What changed on every page
+- **Byline and review date.** Every guide and `/videos` page shows "By the DentVideo editorial team, Bulsu Labs ·
+  Last reviewed <date>" (`GUIDE_UI.byline` / `lastReviewed`, field `reviewed`, falling back to `updated`). JSON-LD:
+  Article `author` and WebPage `reviewedBy` are the editorial team (`parentOrganization` = Bulsu Labs), WebPage
+  `lastReviewed` = the review date. No named clinical or legal reviewer exists, so none is claimed (tested).
+- **Tables.** `SectionExtras.table` renders as stacked cards on phones and a real table from `sm` up; tables go into
+  llms-full.txt as Markdown. Used for "rules by country", "risky wording → safer wording", state board rules,
+  awareness dates and "where to show patient-education videos".
+- **Question-style H2s** on the rules guides and all new guides (what answer engines match against questions).
+- **llms.txt** now has an editorial policy block and a page index per language (landing, About, `/videos` pages,
+  hub, every guide with its last-reviewed date); llms-full.txt carries review dates and tables.
+
+### 10.2 Sources verified and deep-linked (via web search of the official pages, 2026-11-10)
+Fetching official sites directly was blocked from the build environment, so each citation was verified through search
+results that show the official URL and text. Only facts found that way were added; generic homepages were replaced by
+deep links where one was confirmed.
+- UK: GDC Guidance on advertising (website details: GDC number, qualification and country, NHS/private status,
+  complaints route, last-updated date); GDC Guidance on using social media (in effect 27 June 2016); CAP Code
+  section 12; ASA advice on prescription-only medicines.
+- US: FTC Endorsement Guides 16 CFR 255 (revised 2023, eCFR); FTC reviews and testimonials rule 16 CFR 465 (in force
+  21 Oct 2024); ADA Code 2025 (Advisory Opinion 5.F.7 social media, 4.E.1 influencers); Texas 22 TAC §§ 108.50–108.63
+  incl. § 108.57; Florida § 466.019 and r. 64B5-4.003; California B&P § 651; HHS OCR Elite Dental settlement (2019).
+- DE/AT/CH: § 11 and § 15 HWG; BZÄK MBO-Z "Berufliche Kommunikation"; BGH I ZR 170/24 (31 July 2025, before/after
+  ban covers hyaluron injections); § 35 ZÄG (RIS, Gesetzesnummer 20004372); Art. 40 MedBG (Fedlex eli/cc/2007/537).
+- FR: art. R. 4127-215-1 CSP (LEGIARTI000042743767) and the ONCD recommendations (6 May 2021, amended 9 Dec 2021 and
+  24 Mar 2023).
+- ES: Tribunal Supremo on celebrities in dental clinic ads (Poder Judicial note); Defensor del Pueblo recommendation.
+- TR: Resmî Gazete 12 Nov 2025 no. 33075 (day index) replacing 29 Jul 2023 no. 32263.
+- Not stated because not verifiable here: exact article numbers of the 2025 Turkish regulation, the exact CAP rule
+  number for POMs, Spanish RD 1907/1996 sub-article numbers, ADHA dental-hygiene month.
+
+### 10.3 New pages (8)
+| Topic (hreflang group) | Pages |
+| --- | --- |
+| content-calendar (52 weekly topics + real awareness dates per market) | en `/guides/dental-social-media-content-calendar`, de `/guides/redaktionsplan-social-media-zahnarztpraxis`, es `/guides/calendario-contenidos-clinica-dental`, fr `/guides/calendrier-editorial-cabinet-dentaire`, tr `/guides/dis-klinigi-sosyal-medya-icerik-takvimi` |
+| patient-education (joins the existing en/de/es/fr/tr group) | ja `/guides/shika-kanja-setsumei-doga-theme`, ar `/guides/fidyohat-tawiyat-al-marda-iyadat-al-asnan`, pl `/guides/filmy-edukacyjne-dla-pacjentow-gabinet-stomatologiczny` |
+
+Each is written for its market (dates, rules, address form), links to ≥ 2 guides of its language, the landing and the
+preview, and is linked from that language's "what to post" guide FAQ and its `/videos` page.
+
+### 10.4 Tests (`web/src/content/guides/quality.test.ts`, shared word lists in `content/compliance-words.ts`)
+Review date between publication and today; team byline without credentials; no superlatives or do-not-say phrases in
+any guide body/table/FAQ outside quoted examples (several "the best videos…" intros were rewritten); no money or
+percentages on any editorial page; every link and citation https; ≥ 2 deep-link sources per rules guide; tables well
+formed; FAQ answers short enough to quote; JSON-LD round-trips and matches the visible FAQ, HowTo only where declared;
+hreflang identical across each topic group; every guide in the sitemap with its alternates; llms.txt per-language
+index and llms-full.txt tables and review dates.
+
+### 10.5 Still for the owner
+- A named professional reviewer per market (TR, DE, ES, FR, UK/US, JA, AR, PL) — then add a real reviewer line.
+- Re-check the Turkish regulation's article numbers against the official Resmî Gazete text and add them.
+- Quarterly: bump `reviewed` only after actually re-checking each rules guide's sources.
+
+---
+
+## 11. Treatment pages, posting rhythm and GEO pass (2026-11-14, branch `claude/seo-geo-push`)
+
+Research (Google Suggest, ~140 seeds, en/tr/de/es): per-treatment *video* queries in TR/DE/ES are mostly patient intent
+("implant tedavisi videosu", "wurzelbehandlung ablauf video"); the dentist-side demand is "<treatment> patient education",
+"<treatment> social media post / marketing ideas", "Parodontitis Aufklärung", "Wurzelbehandlung Angstpatienten",
+"kanal tedavisi korkusu", "Bleaching Werbung". Frequency/timing ("wie oft posten instagram unternehmen", "instagram
+paylaşım saatleri", "cada cuanto publicar en instagram") has strong generic demand with weak, unsourced answers.
+
+New pages (22, category `treatments` or `ideas`, each ≥ 900 words, risky → safer wording table, ad-checker link, FAQ):
+
+| topic (hreflang group) | en | de | tr | es |
+| --- | --- | --- | --- | --- |
+| treatment-implants | dental-implant-patient-education-videos | implantat-aufklaerungsvideos-zahnarztpraxis | implant-hasta-bilgilendirme-videolari | — |
+| treatment-aligners | clear-aligner-patient-education-videos | aligner-aufklaerungsvideos-zahnarztpraxis | seffaf-plak-hasta-bilgilendirme-videolari | — |
+| treatment-whitening | teeth-whitening-patient-education-videos | bleaching-aufklaerungsvideos-zahnarztpraxis | dis-beyazlatma-bilgilendirme-videolari | — |
+| treatment-kids | pediatric-dental-patient-education-videos | kinderzahnheilkunde-videos-zahnarztpraxis | cocuk-dis-sagligi-bilgilendirme-videolari | — |
+| treatment-gum-disease | gum-disease-patient-education-videos | parodontitis-aufklaerungsvideos-zahnarztpraxis | dis-eti-hastaligi-bilgilendirme-videolari | — |
+| treatment-root-canal | root-canal-patient-education-videos | wurzelbehandlung-aufklaerungsvideos-zahnarztpraxis | kanal-tedavisi-bilgilendirme-videolari | — |
+| posting-frequency | how-often-should-a-dental-practice-post | wie-oft-sollte-eine-zahnarztpraxis-posten | dis-klinigi-ne-siklikla-paylasim-yapmali | cada-cuanto-publicar-clinica-dental |
+
+- `sample` on a guide embeds a real sample video **of its own language** (8 pages) and emits a VideoObject; pages without a
+  matching sample get none (tested). To add one, render a sample in that language and list it in `dentvideo-samples.ts`.
+- New link target `[label](checker:)` → the ad checker in the guide's language.
+- Older patient-education and post-ideas guides link to the new pages from an FAQ entry (no orphans; tested).
+- robots.txt (`lib/dentvid/robots.ts`) names GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot,
+  Claude-User, PerplexityBot, Perplexity-User, Google-Extended, Applebot-Extended, Bingbot, CCBot, Meta-ExternalAgent,
+  Amazonbot, DuckAssistBot, MistralAI-User with an explicit Allow (each group repeats the private-path Disallows).
+- llms.txt / llms-full.txt open with "Quick answers" (price from billing: Starter $49 / €49 / 1.490 TL, Practice $79 / €79 / 2.490 TL, monthly, no yearly
+  plan, no founding price; live preview; free ad checker; no auto-posting; no avatars; operator) and list the treatment pages.
+- Next: ES and FR treatment pages (same topic keys), more samples per language, GSC review of the new queries at week 6.
+
+---
+
+## 12. Thin languages: ja, ar, pl, then fr/es treatments (2026-11-16, branch `claude/dentvideo-guides-ja-ar-pl`)
+
+PR #158 found technical SEO sound and the ja/ar/pl hubs thin (3 guides each). This pass adds 8 pages, each written for
+its market (address form, rules, holidays), ≥ 900 words, risky → safer wording table where it is a treatment page,
+ad-checker link, FAQ, and linked from an older guide of its language (tested).
+
+| topic (hreflang group) | new pages | group now |
+| --- | --- | --- |
+| posting-frequency | ja `shika-iin-sns-toko-hindo`, ar `kam-marra-tanshur-iyadat-al-asnan` | en de tr es fr pl ja ar |
+| treatment-aligners | ja `mouthpiece-kyosei-kanja-setsumei-doga` (sample `mouthpiece-shokuji`) | en de tr ja |
+| treatment-whitening | ar `fidyohat-tabyid-al-asnan-lil-marda` (sample `qahwa-baad-altabyid`), pl `wybielanie-zebow-filmy-edukacyjne-dla-pacjentow` (sample `wybielanie-przed-slubem`), fr `blanchiment-dentaire-videos-information-patient` (sample `blanchiment-email`), es `blanqueamiento-dental-videos-educativos-pacientes` | en de tr ar pl fr es |
+| treatment-implants | pl `implanty-zebow-filmy-edukacyjne-dla-pacjentow` | en de tr pl |
+
+Sources: MHLW 医療広告ガイドライン page and 事例解説書 (第6版) for ja (限定解除 for 自由診療, and the extra disclosures
+for devices not approved in Japan: 未承認であること, 入手経路, 国内の承認品の有無, 諸外国での安全性情報); DHA social-media
+advertising standards v1.1 + circular CIR-2026-00000144, MOHAP licence, Saudi MOH art. 10 news for ar; KEL art. 71
+(NIL commentary) and art. 14 UDL for pl; Directive 2011/84/EU (EUR-Lex, per language) for the whitening facts
+(> 0.1 to 6 per cent H2O2 only sold to dentists, first use of each cycle by or under a dentist, not under 18), plus
+R. 4127-215-1 CSP / ONCD (fr) and RD 1907/1996 / CGD code (es). Official sites could not be fetched from the build
+environment; facts were confirmed through search results and limited to what the existing guides already cite.
+
+Writing notes: "free" is not used for the checker in ja/ar/pl (`no-free-trial.test.ts` bans 無料 / مجان / bezpłatn);
+JA risky-wording cells use 「」 (the treatment test accepts them). Gulf weekends (Sat–Sun UAE, Fri–Sat KSA), Ramadan
+and the DHA medical-director approval shape the Arabic rhythm; LINE 公式アカウント, 歯と口の健康週間 (4–10 June) and
+いい歯の日 (8 Nov) the Japanese one.
+
+Still for the owner: a native dental reviewer for the ja/ar/pl pages before promotion (wording and clinical tone),
+and a check of whether DHA/MOHAP or SFDA publish whitening-product rules worth citing on the Arabic page.

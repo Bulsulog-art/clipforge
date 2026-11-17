@@ -36,7 +36,8 @@ export const AFTERCARE_GUIDE = `Procedure-specific aftercare is often mixed up �
 - extractions and implant surgery: for the first ~24 hours no vigorous rinsing, spitting or straws (protect the clot); AFTER that, gentle warm salt-water rinses are commonly advised. None of this applies to root canals, fillings or cleanings;
 - "wait about 30 minutes before eating or drinking" → after fluoride varnish or similar, not after every cleaning;
 - "avoid chewing on that side until the permanent restoration" → root canals with a temporary filling;
-- "wear aligners 20-22 hours a day" → clear aligners;
+- "wear aligners 20-22 hours a day" → clear aligners; with the aligners in, plain water only — other drinks (especially sugary, acidic or hot ones) mean taking them out, because a sugary or acidic drink held against the teeth under the tray raises the risk of decay and erosion, coloured drinks can stain them and hot drinks can warp them; clean the teeth (or at least rinse) before putting them back. The decay/erosion reason is the main one — a script that only mentions staining misses it;
+- implants: the implant usually needs a healing period (often a few months) to fuse with the bone before it takes full chewing load, unless the dentist has planned immediate loading; until then, follow the dentist's instructions on soft food and that side;
 - professional cleaning: usually no special restrictions afterwards; gums can be a little tender or teeth briefly sensitive;
 - whitening: avoiding strongly coloured food and drink (coffee, tea, red wine) for the first day or two is commonly advised; temporary sensitivity is common.`;
 

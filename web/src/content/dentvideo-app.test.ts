@@ -13,12 +13,16 @@ describe("app dictionary", () => {
   const en = new Map(leaves(APP_TEXT.en));
 
   it.each(LOCALES)("%s has exactly the English keys, no empty strings, the same placeholders", (l) => {
+    // A count label (CountText) may add the plural forms its language needs ("few", "many": Polish, Arabic…).
+    const plural = /\.(few|many)$/;
     const mine = leaves(APP_TEXT[l]);
-    expect(mine.map(([k]) => k).sort()).toEqual([...en.keys()].sort());
+    expect(mine.map(([k]) => k).filter((k) => !plural.test(k)).sort()).toEqual([...en.keys()].sort());
     for (const [k, v] of mine) {
       expect(typeof v, k).toBe("string");
       expect((v as string).trim().length, k).toBeGreaterThan(0);
-      expect(placeholders(v as string), k).toBe(placeholders(en.get(k) as string));
+      const base = plural.test(k) ? k.replace(plural, ".other") : k;
+      expect(en.has(base), k).toBe(true);
+      expect(placeholders(v as string), k).toBe(placeholders(en.get(base) as string));
     }
   });
 

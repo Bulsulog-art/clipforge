@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import IORedis from "ioredis";
+import { LIMITS, clientIp } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/rate-limit-server";
 
 /**
  * GET /api/health           — shallow check (200 OK, used by Coolify)
@@ -23,6 +25,9 @@ export async function GET(req: Request) {
   if (!deep) {
     return NextResponse.json({ ok: true, ts: Date.now() });
   }
+  // The deep check calls Supabase, Redis and OpenAI: not for anyone to hammer.
+  const limited = await rateLimited([{ key: `rl:health:ip:${clientIp(req.headers)}`, rule: LIMITS.healthDeepIp }], () => "too many requests");
+  if (limited) return limited;
 
   const results = await Promise.all([
     checkSupabase(),
@@ -65,7 +70,8 @@ async function checkSupabase(): Promise<Probe> {
   } catch (e) {
     return {
       name: "supabase", ok: false, latencyMs: Date.now() - start,
-      detail: (e as Error).message,
+      // Not the raw message: this endpoint is public, and errors can name hosts.
+      detail: probeError(e),
     };
   }
 }
@@ -93,7 +99,8 @@ async function checkRedis(): Promise<Probe> {
   } catch (e) {
     return {
       name: "redis", ok: false, latencyMs: Date.now() - start,
-      detail: (e as Error).message,
+      // Not the raw message: this endpoint is public, and errors can name hosts.
+      detail: probeError(e),
     };
   } finally {
     client.disconnect();
@@ -121,7 +128,14 @@ async function checkOpenAI(): Promise<Probe> {
   } catch (e) {
     return {
       name: "openai", ok: false, latencyMs: Date.now() - start,
-      detail: (e as Error).message,
+      // Not the raw message: this endpoint is public, and errors can name hosts.
+      detail: probeError(e),
     };
   }
+}
+
+function probeError(e: unknown): string {
+  const msg = (e as Error)?.message ?? String(e);
+  console.warn("[health] probe failed", msg);
+  return /timeout/i.test(msg) ? "timeout" : "unreachable";
 }

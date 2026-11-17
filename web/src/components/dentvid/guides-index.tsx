@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { LANDING_PATH, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
+import { LANDING_PATH, dirOf, guidePath, guidesFor, type Guide, type Locale } from "@/content/dentvideo";
 import type { GuideCategory } from "@/content/guides/types";
 import { readingMinutes } from "@/content/guides/text";
 import { ABOUT_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { ENTITY } from "@/content/guides/entity";
-import { guidesIndexJsonLd } from "@/lib/dentvid/seo-guides";
-import { Breadcrumbs, GuideCta } from "./guide-parts";
+import { guidesIndexJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
+import { dvHref } from "@/lib/dentvid/host";
+import { Breadcrumbs, GuideCta, HtmlLang } from "./guide-parts";
+import { CommercialLinks } from "./solution-page";
+import { solutionsFor } from "@/content/solutions";
+import { EXAMPLES_PATH, EXAMPLES_UI } from "@/content/dentvideo-examples";
 
-const ORDER: GuideCategory[] = ["ideas", "video", "rules", "tools"];
+const ORDER: GuideCategory[] = ["ideas", "treatments", "video", "rules", "tools"];
 
 /** The guides hub for one language: every guide, grouped by what it helps with. */
 export function GuidesIndex({ locale }: { locale: Locale }) {
@@ -17,11 +21,12 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
   const groups = ORDER.map((c) => ({ c, items: guides.filter((g) => (g.category ?? "ideas") === c) })).filter((x) => x.items.length > 0);
 
   return (
-    <main lang={locale}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guidesIndexJsonLd(locale)) }} />
+    <main lang={locale} dir={dirOf(locale)}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(guidesIndexJsonLd(locale)) }} />
+      <HtmlLang locale={locale} />
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
-        <div aria-hidden="true" className="absolute -left-40 -top-24 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
+        <div aria-hidden="true" className="absolute -start-40 -top-24 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">
           <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: ui.breadcrumbGuides }]} />
           <h1 className="dv-display mt-6 max-w-3xl text-balance text-[2.75rem] leading-[1.02] text-dv-ink sm:text-[3.75rem]">{ui.index.h1}</h1>
@@ -30,6 +35,17 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+        {solutionsFor(locale).length > 0 && (
+          <div className="mt-10 max-w-3xl">
+            <CommercialLinks locale={locale} pages={solutionsFor(locale)} />
+          </div>
+        )}
+        <p className="mt-6 max-w-3xl">
+          <Link href={dvHref(EXAMPLES_PATH[locale])} className="group inline-flex min-h-11 items-center gap-1.5 text-[1.0625rem] font-semibold text-dv-teal underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal" data-testid="hub-examples-link">
+            {EXAMPLES_UI[locale].seeAll}
+            <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+          </Link>
+        </p>
         {groups.map(({ c, items }) => (
           <section key={c} className="mt-14 sm:mt-16" aria-labelledby={`cat-${c}`}>
             <h2 id={`cat-${c}`} className="dv-display text-[2rem] leading-tight text-dv-ink sm:text-[2.5rem]">{ui.categories[c]}</h2>
@@ -49,7 +65,7 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
 
         <p className="mt-10 max-w-3xl text-sm leading-relaxed text-dv-muted">
           {ENTITY[locale].definition}{" "}
-          <Link href={ABOUT_PATH[locale]} className="font-medium text-dv-teal underline-offset-4 hover:underline">
+          <Link href={dvHref(ABOUT_PATH[locale])} className="font-medium text-dv-teal underline-offset-4 hover:underline">
             {ui.about}
           </Link>
         </p>
@@ -61,12 +77,12 @@ export function GuidesIndex({ locale }: { locale: Locale }) {
 function GuideCard({ g, minutes }: { g: Guide; minutes: string }) {
   return (
     <Link
-      href={guidePath(g)}
-      className="dv-card group flex h-full flex-col p-6 transition-shadow hover:shadow-[0_0_0_1px_rgba(15,92,92,0.35),0_18px_40px_-20px_rgba(15,92,92,0.35)]"
+      href={dvHref(guidePath(g))}
+      className="dv-card dv-lift group flex h-full flex-col p-6"
     >
       <span className="flex items-start justify-between gap-4">
         <span className="text-[1.125rem] font-semibold leading-snug text-dv-ink">{g.h1}</span>
-        <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+        <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
       </span>
       <span className="mt-3 line-clamp-4 text-[0.9375rem] leading-relaxed text-dv-body">{g.description}</span>
       <span className="mt-auto pt-5 text-xs font-medium uppercase tracking-[0.12em] text-dv-muted">{minutes}</span>

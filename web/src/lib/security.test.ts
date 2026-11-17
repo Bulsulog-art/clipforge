@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isAllowedSourceUrl, isOwnedPath, bearerEquals } from "./security";
+import { isYouTubeSourceUrl } from "./source-url";
 
 describe("isAllowedSourceUrl — SSRF allowlist", () => {
   it("allows youtube watch URL", () => {
@@ -80,5 +81,24 @@ describe("bearerEquals — RevenueCat webhook constant-time auth", () => {
   it("returns false on a length-only-matching candidate (no early-exit oracle)", () => {
     const same_length_garbage = `Bearer ${"x".repeat(secret.length)}`;
     expect(bearerEquals(same_length_garbage, secret)).toBe(false);
+  });
+});
+
+describe("isYouTubeSourceUrl — refused up front, YouTube blocks our servers", () => {
+  it("catches every YouTube host", () => {
+    for (const u of [
+      "https://www.youtube.com/watch?v=abc",
+      "https://youtube.com/shorts/abc",
+      "https://m.youtube.com/watch?v=abc",
+      "https://music.youtube.com/watch?v=abc",
+      "https://youtu.be/abc",
+      "  https://YOUTU.BE/abc  ",
+    ]) expect(isYouTubeSourceUrl(u)).toBe(true);
+  });
+  it("lets TikTok and junk through to the other checks", () => {
+    expect(isYouTubeSourceUrl("https://www.tiktok.com/@a/video/1")).toBe(false);
+    expect(isYouTubeSourceUrl("https://vm.tiktok.com/x")).toBe(false);
+    expect(isYouTubeSourceUrl("https://notyoutube.com/watch")).toBe(false);
+    expect(isYouTubeSourceUrl("not a url")).toBe(false);
   });
 });

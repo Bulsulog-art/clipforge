@@ -1,0 +1,218 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo uses the camera when you record yourself with a filming card. Recordings are uploaded only when you choose \"Use this take\"."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo nutzt die Kamera, wenn Sie sich mit einer Drehkarte selbst aufnehmen. Aufnahmen werden nur hochgeladen, wenn Sie „Diese Aufnahme verwenden“ wählen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo usa la cámara cuando te grabas con una tarjeta de grabación. Las grabaciones solo se suben si eliges «Usar esta toma»."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo, çekim kartıyla kendinizi kaydettiğinizde kamerayı kullanır. Kayıtlar yalnızca \"Bu çekimi kullan\"ı seçtiğinizde yüklenir."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo utilise la caméra quand vous vous filmez avec une fiche de tournage. Les enregistrements ne sont envoyés que si vous choisissez « Utiliser cette prise »."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideoは、撮影カードを使ってご自身を撮影するときにカメラを使います。「この動画を使う」を選んだときだけアップロードされます。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم DentVideo الكاميرا عندما تسجّل نفسك باستخدام بطاقة تصوير. لا تُرفع التسجيلات إلا عند اختيار «استخدام هذه اللقطة»."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo używa aparatu, gdy nagrywasz siebie z kartą nagrania. Nagrania są przesyłane tylko po wybraniu „Użyj tego ujęcia”."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo records your voice with the video when you record yourself with a filming card."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo nimmt Ihre Stimme mit dem Video auf, wenn Sie sich mit einer Drehkarte selbst aufnehmen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo graba tu voz junto con el vídeo cuando te grabas con una tarjeta de grabación."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo, çekim kartıyla kendinizi kaydettiğinizde sesinizi videoyla birlikte kaydeder."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo enregistre votre voix avec la vidéo quand vous vous filmez avec une fiche de tournage."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideoは、撮影カードを使ってご自身を撮影するときに動画と一緒に声を録音します。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يسجّل DentVideo صوتك مع الفيديو عندما تسجّل نفسك باستخدام بطاقة تصوير."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo nagrywa Twój głos razem z filmem, gdy nagrywasz siebie z kartą nagrania."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo saves your approved videos to Photos so you can post them on Instagram, TikTok and other apps."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo sichert Ihre freigegebenen Videos in Fotos, damit Sie sie auf Instagram, TikTok und in anderen Apps posten können."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo guarda tus vídeos aprobados en Fotos para que puedas publicarlos en Instagram, TikTok y otras apps."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo, onayladığınız videoları Instagram, TikTok ve diğer uygulamalarda paylaşabilmeniz için Fotoğraflar'a kaydeder."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo enregistre vos vidéos validées dans Photos pour que vous puissiez les publier sur Instagram, TikTok et d'autres apps."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideoは、承認した動画をInstagramやTikTokなどに投稿できるよう「写真」に保存します。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحفظ DentVideo فيديوهاتك المعتمدة في الصور لتتمكن من نشرها على Instagram وTikTok وتطبيقات أخرى."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DentVideo zapisuje zaakceptowane filmy w Zdjęciach, aby można było opublikować je na Instagramie, TikToku i w innych aplikacjach."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

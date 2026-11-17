@@ -1,0 +1,155 @@
+import type { Guide } from "../dentvideo";
+import { CALENDAR_PUBLISHED, FDI } from "./calendar";
+
+// Calendario para España (y útil en Latinoamérica): fechas comunes a todos los
+// países hispanohablantes, sin promociones; tuteo, como el resto de guías en español.
+
+export const CALENDAR_ES: Guide = {
+  locale: "es",
+  slug: "calendario-contenidos-clinica-dental",
+  topic: "content-calendar",
+  category: "ideas",
+  published: CALENDAR_PUBLISHED,
+  updated: CALENDAR_PUBLISHED,
+  reviewed: CALENDAR_PUBLISHED,
+  title: "Calendario de contenidos para una clínica dental: 52 temas semanales para redes sociales",
+  seoTitle: "Calendario de contenidos dental: 52 temas al año",
+  seoDescription: "Un año de publicaciones para la clínica dental: un tema educativo por semana, el Día Mundial de la Salud Bucodental y qué dejar fuera del calendario.",
+  description: "Calendario de contenidos para clínicas dentales: 52 temas semanales para Instagram, TikTok y YouTube Shorts, fechas que se repiten cada año y qué no publicar.",
+  h1: "Calendario de contenidos para una clínica dental: 52 semanas",
+  intro:
+    "Un calendario de contenidos para una clínica dental es una lista con un tema educativo por semana, preparada con un trimestre de antelación y apoyada en fechas que se repiten cada año, como el Día Mundial de la Salud Bucodental, el 20 de marzo. Aquí tienes 52 temas semanales para Instagram, TikTok o YouTube Shorts. Todos responden a dudas reales de pacientes, así que ninguno necesita descuentos, testimonios ni fotos de antes y después.",
+  sections: [
+    {
+      heading: "¿Cómo planificar un año de publicaciones en una clínica dental?",
+      paragraphs: [
+        "Planifica temas, no publicaciones sueltas. Un tema semanal (“sensibilidad dental”, “protector bucal”) da para un vídeo corto, un carrusel y una pregunta en historias, y todo el equipo sabe qué toca esa semana. La mayoría de perfiles de clínicas se abandonan porque nadie se encarga de esa pregunta.",
+        "Una rutina que funciona en equipos pequeños:",
+      ],
+      ordered: true,
+      list: [
+        "Cada trimestre, copia las 13 semanas siguientes del calendario y tacha los temas de tratamientos que tu clínica no ofrece.",
+        "Sustitúyelos por preguntas que los pacientes hicieron en el sillón el trimestre anterior. Una duda real vale más que cualquier lista.",
+        "Decide quién graba y quién aprueba. Cada afirmación clínica debería revisarla el dentista antes de publicarse.",
+        "Graba en bloque: una sesión de 20 minutos da para respuestas cortas de cuatro semanas.",
+        "Guarda un registro de qué se publicó, cuándo y con qué texto aprobado. En las comunidades que exigen autorización de la publicidad sanitaria, ese registro es especialmente útil.",
+      ],
+    },
+    {
+      heading: "¿Qué fechas conviene marcar en el calendario?",
+      paragraphs: [
+        "Las fechas señaladas dan un motivo a la publicación y se planifican con tiempo. Usa las de organizaciones reconocidas y consulta en su web el lema de cada año:",
+      ],
+      table: {
+        caption: "Fechas que se repiten cada año para una clínica dental",
+        columns: ["Cuándo", "Ocasión", "Idea de tema"],
+        rows: [
+          ["20 de marzo", "Día Mundial de la Salud Bucodental (FDI World Dental Federation)", "La relación entre la boca y la salud general, explicada con prudencia"],
+          ["Marzo o abril", "Semana Santa y vacaciones", "Viajar con el cepillo; qué hacer si duele una muela fuera de casa"],
+          ["Junio a agosto", "Verano", "Deporte, golpes en los dientes y bebidas ácidas"],
+          ["Septiembre", "Vuelta al cole", "Almuerzos y bebidas que cuidan los dientes; revisión de ortodoncia"],
+          ["Diciembre", "Navidad", "Turrones duros, dulces pegajosos y horarios de urgencias"],
+        ],
+        note: "Las fechas oficiales y sus lemas cambian; compruébalos en la web del organizador (ver Fuentes).",
+      },
+    },
+    {
+      heading: "Semanas 1 a 13 (enero a marzo): hábitos y salud infantil",
+      paragraphs: ["En enero la gente empieza rutinas nuevas, y en marzo llega el Día Mundial de la Salud Bucodental:"],
+      list: [
+        "Semana 1 — Cepillado: dos minutos, dos veces al día, y cómo inclinar el cepillo hacia la encía.",
+        "Semana 2 — Hilo dental o cepillos interproximales: qué conviene según el espacio, enseñado con un modelo.",
+        "Semana 3 — Encías que sangran: un motivo para pedir revisión, no para dejar de cepillarse.",
+        "Semana 4 — Qué se hace en una revisión y limpieza, paso a paso.",
+        "Semana 5 — ¿Cuándo debe ir un niño al dentista por primera vez?",
+        "Semana 6 — ¿Cuánta pasta de dientes para niños? Lo que dicen las recomendaciones según la edad.",
+        "Semana 7 — Picoteo y bebidas azucaradas: por qué importa cuántas veces al día.",
+        "Semana 8 — Selladores de fisuras: qué son y a quién pueden convenir.",
+        "Semana 9 — Sensibilidad dental: causas frecuentes y qué suele ayudar.",
+        "Semana 10 — Protectores bucales para el deporte: a medida o de farmacia.",
+        "Semana 11 — Boca seca: medicamentos que la causan y por qué afecta a los dientes.",
+        "Semana 12 — Día Mundial de la Salud Bucodental (20 de marzo): qué significa y qué no la relación entre la boca y el resto del cuerpo.",
+        "Semana 13 — Conoce al equipo: quién hace qué en la clínica.",
+      ],
+    },
+    {
+      heading: "Semanas 14 a 26 (abril a junio): tratamientos bien explicados",
+      paragraphs: ["La primavera es buen momento para explicar tratamientos con calma, antes de que alguien los necesite:"],
+      list: [
+        "Semana 14 — Cada cuánto cambiar el cepillo de dientes y cómo saber que está gastado.",
+        "Semana 15 — Cepillo eléctrico o manual: la técnica importa más que el aparato.",
+        "Semana 16 — Muelas del juicio: cuándo hay que vigilarlas y cuándo pueden quedarse.",
+        "Semana 17 — Erosión ácida: refrescos, cítricos y por qué esperar un rato antes de cepillarse.",
+        "Semana 18 — Blanqueamiento: qué esperar, cuánto puede durar y a quién puede no convenirle.",
+        "Semana 19 — Mal aliento: causas habituales y cuándo consultar.",
+        "Semana 20 — Limpieza dental profesional: en qué consiste.",
+        "Semana 21 — Miedo al dentista: qué puedes contarnos y qué podemos hacer.",
+        "Semana 22 — Endodoncia sin mitos: qué es y por qué se hace.",
+        "Semana 23 — Empaste o corona: por qué algunos dientes necesitan algo más.",
+        "Semana 24 — Tabaco, vapeo y encías.",
+        "Semana 25 — Embarazo y encías: por qué conviene una revisión.",
+        "Semana 26 — Semana de preguntas: responde tres dudas que te hicieron los pacientes este trimestre.",
+      ],
+    },
+    {
+      heading: "Semanas 27 a 39 (julio a septiembre): verano y vuelta al cole",
+      paragraphs: ["El verano trae viajes y deporte; septiembre, rutinas escolares:"],
+      list: [
+        "Semana 27 — Diente arrancado por un golpe: qué hacer en los primeros minutos y por qué importa la rapidez.",
+        "Semana 28 — Neceser dental para viajar y qué hacer si duele una muela de vacaciones.",
+        "Semana 29 — Hielo, bolígrafos y tapones: hábitos que astillan los dientes.",
+        "Semana 30 — Bruxismo: señales y para qué sirve una férula de descarga.",
+        "Semana 31 — Implantes dentales: el proceso paso a paso.",
+        "Semana 32 — Reponer un diente perdido: implante, puente o prótesis, en palabras sencillas.",
+        "Semana 33 — Alineadores transparentes: cómo mueven los dientes y qué implica llevarlos.",
+        "Semana 34 — Vuelta al cole: almuerzos y bebidas que cuidan los dientes.",
+        "Semana 35 — ¿A qué edad conviene una primera revisión de ortodoncia?",
+        "Semana 36 — Cómo cepillarse con brackets.",
+        "Semana 37 — Enfermedad de las encías: de la gingivitis a la periodontitis, y por qué tratarla pronto.",
+        "Semana 38 — Diabetes y encías.",
+        "Semana 39 — Detrás de escena: cómo se limpia y esteriliza el instrumental.",
+      ],
+    },
+    {
+      heading: "Semanas 40 a 52 (octubre a diciembre): prevención y fiestas",
+      paragraphs: ["El final del año va de prevención, dulces y avisos prácticos:"],
+      list: [
+        "Semana 40 — Flúor: qué hace y dónde está.",
+        "Semana 41 — Colutorios: cuándo ayudan y cuándo no hacen falta.",
+        "Semana 42 — Dulces de otoño: con las comidas, no a todas horas.",
+        "Semana 43 — Prótesis removibles: limpieza diaria y cuidado por la noche.",
+        "Semana 44 — Cuidar la boca de un familiar mayor.",
+        "Semana 45 — Radiografías dentales: para qué sirven y cada cuánto se recomiendan.",
+        "Semana 46 — Señales de un diente fisurado.",
+        "Semana 47 — Dolor de muelas antes de la cita: qué es razonable hacer en casa.",
+        "Semana 48 — Navidad: turrones duros, frutos secos y dulces pegajosos.",
+        "Semana 49 — Horarios en fiestas y qué se considera una urgencia dental.",
+        "Semana 50 — Qué pasa en una cita con la higienista.",
+        "Semana 51 — Las preguntas del año: resumen de lo que más nos preguntaron.",
+        "Semana 52 — Un recordatorio para la revisión del año nuevo.",
+      ],
+    },
+    {
+      heading: "¿Qué no debe entrar en el calendario?",
+      paragraphs: [
+        "Las fechas señaladas invitan a publicaciones que chocan con la normativa: un “descuento por el Día de la Salud Bucodental”, un sorteo, un carrusel de reseñas. Mantén el calendario educativo. Deja fuera precios y ofertas, testimonios de pacientes, fotos de antes y después y palabras como “sin dolor”, “garantizado” o “definitivo”. El detalle está en la guía de [publicidad sanitaria para dentistas](guide:publicidad-sanitaria-dentistas); si aparece algún paciente, revisa antes el [consentimiento para fotos y vídeos de pacientes](guide:consentimiento-fotos-pacientes-clinica-dental).",
+        "La exactitud clínica importa tanto como la normativa. Cada tema es información general, pero la forma de decirlo es responsabilidad de la clínica: con prudencia (“normalmente”, “en la mayoría de los casos”) y recordando que el dentista valora cada caso.",
+      ],
+    },
+    {
+      heading: "¿Qué formato encaja con cada semana?",
+      paragraphs: [
+        "Tres formatos cubren casi todo. Una respuesta del dentista a cámara de 20 a 40 segundos sirve para dudas (“¿el blanqueamiento daña el esmalte?”). Un vídeo explicativo con voz y subtítulos sirve para procesos (implantes, endodoncia). Un clip corto de detrás de escena sirve para las semanas de equipo e higiene. Cómo grabarlos, en [vídeos para clínicas dentales](guide:videos-para-clinicas-dentales); más ideas sueltas, en [ideas de contenido para Instagram](guide:ideas-contenido-instagram-clinica-dental).",
+        "[DentVideo](landing:) convierte un calendario así en cinco vídeos por semana con voz y subtítulos, en tu idioma y con tus colores; revisa cada guion contra las afirmaciones publicitarias que suelen estar restringidas y su exactitud clínica, y espera tu aprobación. [Mira una vista previa con tu logo](start:).",
+      ],
+    },
+  ],
+  faq: [
+    { q: "¿Cada cuánto debe publicar una clínica dental en redes?", a: "Importa más la constancia que el volumen. Entre una y tres publicaciones educativas cortas por semana es asumible para la mayoría; este calendario da un tema semanal que puede convertirse en una o varias publicaciones." },
+    { q: "¿Qué fechas señaladas sirven a una clínica dental?", a: "Sobre todo el Día Mundial de la Salud Bucodental, el 20 de marzo, y momentos del año como las vacaciones, la vuelta al cole y la Navidad." },
+    { q: "¿Puedo hacer una promoción en el Día de la Salud Bucodental?", a: "Es más seguro no hacerla. Descuentos, regalos y sorteos como reclamo están restringidos en la publicidad sanitaria y convierten una publicación educativa en un anuncio." },
+    { q: "¿Sirven los mismos temas para TikTok y YouTube Shorts?", a: "Sí. Un vídeo vertical con subtítulos de 20 a 60 segundos funciona en las tres plataformas; adapta solo el texto y los hashtags." },
+    { q: "¿Tengo que usar todos los temas?", a: "No. Publica solo sobre tratamientos que ofrece tu clínica y cambia cualquier tema por una pregunta de tus propios pacientes." },
+  ],
+  sources: [FDI],
+};

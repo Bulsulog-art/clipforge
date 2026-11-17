@@ -1,0 +1,302 @@
+import type { Metadata } from "next";
+import { devPreviewMeta } from "@/lib/dentvid/private-meta";
+import { notFound } from "next/navigation";
+import type { Locale } from "@/content/dentvideo";
+import { asLocale } from "@/lib/dentvid/locale";
+import { weekOf } from "@/lib/dentvid/week";
+import { dvAvailablePlans } from "@/lib/dentvid/billing";
+import type { ClinicPlan } from "@/lib/dentvid/plan";
+import type { LibraryItem } from "@/components/dentvid/library";
+import { AppHomeView, RecordView, SettingsView, type ShootCard } from "@/components/dentvid/app-screens";
+import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
+import { samplePostTexts } from "@/lib/dentvid/posting-samples";
+import type { BillingIssue } from "@/components/dentvid/billing-issue";
+import type { TopicView } from "@/components/dentvid/clinic-requests";
+import { retentionDates } from "@/lib/dentvid/plan";
+
+export const dynamic = "force-dynamic";
+export const generateMetadata = (): Metadata => devPreviewMeta("App preview");
+
+/**
+ * Dev-only: the signed-in app's screens from realistic fake data (real
+ * sample videos and posters from /public/dentvideo/samples), for design
+ * review and screenshots. 404 unless DENTVIDEO_DEV_PREVIEW=1.
+ *
+ *   /dentvideo/dev/app?screen=library|settings|record&state=…&lang=tr
+ *
+ * library states: mixed (default: this week to review + last week approved),
+ *   between (this week not made yet), empty (paid, nothing ever made),
+ *   first-week (just paid), paused, cancelled, trial (no plan, old videos), updating,
+ *   posting (this week all approved: the post-it step and the posting checklist),
+ *   admin-paused (paused by DentVideo from the admin panel), disputed (a chargeback under review),
+ *   changing (one video's change being made, one change refused, one changed and waiting for approval)
+ * Paying states show "Suggest a topic for next week" with three suggestions; cancelled shows the 90-day notice.
+ * settings states: active (default), paused, trial
+ *   &delay=retrying|delayed adds the worker's "taking a little longer" note (library, first-week)
+ *   &billing=email shows the path without DODO_API_KEY (default: self-serve);
+ *   &dialog=delete opens the delete-account dialog
+ * record states: practice (default), starter, nocards
+ */
+export default async function AppPreview({ searchParams }: { searchParams: Promise<{ screen?: string; state?: string; lang?: string; billing?: string; dialog?: string; delay?: string }> }) {
+  if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
+  const sp = await searchParams;
+  const locale = asLocale(sp.lang) ?? "en";
+  const screen = sp.screen ?? "library";
+  const state = sp.state ?? "";
+  const plans = dvAvailablePlans();
+
+  if (screen === "settings") {
+    const planState = state === "paused" || state === "trial" ? state : "active";
+    return (
+      <SettingsView
+        locale={locale}
+        profile={demoProfile(locale)}
+        logoPath={null}
+        logoUrl={null}
+        plan={demoPlan(planState)}
+        plans={plans}
+        selfServe={sp.billing !== "email"}
+        initialDialog={sp.dialog === "delete" ? "delete" : null}
+        clinicId="00000000-0000-4000-8000-000000000001"
+        topics={planState === "active" ? demoTopics(locale) : undefined}
+      />
+    );
+  }
+
+  if (screen === "record") {
+    const plan = demoPlan("active", state === "starter" ? "starter" : "practice");
+    const cards = state === "nocards" ? [] : demoCards(locale);
+    return <RecordView locale={locale} cards={cards} plan={plan} selfServe={sp.billing !== "email"} />;
+  }
+
+  const thisWeek = weekOf();
+  const lastWeek = weekOf(new Date(Date.now() - 7 * 86_400_000));
+  const all = demoItems(locale, thisWeek, lastWeek);
+  let items: LibraryItem[] = all;
+  let planState: ClinicPlan["plan"] = "active";
+  let firstWeek = false;
+  let madeThisWeek = true;
+  let plan: ClinicPlan | null = null;
+  let billingIssue: BillingIssue | null = null;
+  if (state === "admin-paused") {
+    plan = { ...demoPlan("active"), canMake: false, adminPaused: true };
+    billingIssue = { kind: "admin_paused" };
+    items = all.filter((i) => i.week_of === lastWeek);
+    madeThisWeek = false;
+  } else if (state === "disputed") {
+    plan = demoPlan("paused");
+    billingIssue = { kind: "disputed" };
+    items = all.filter((i) => i.week_of === lastWeek);
+    madeThisWeek = false;
+  } else if (state === "between") {
+    items = all.filter((i) => i.week_of === lastWeek);
+    madeThisWeek = false;
+  } else if (state === "empty") {
+    items = [];
+    madeThisWeek = false;
+  } else if (state === "first-week") {
+    items = [];
+    madeThisWeek = false;
+    firstWeek = true;
+  } else if (state === "paused" || state === "cancelled" || state === "trial") {
+    planState = state;
+    items = all.filter((i) => i.week_of === lastWeek);
+    madeThisWeek = false;
+  } else if (state === "posting") {
+    // Everything this week decided and approved: the "post it" step with the week's checklist.
+    items = all.filter((i) => i.status !== "working" && i.status !== "rejected").map((i) => (i.week_of === thisWeek ? { ...i, approval: "approved" as const, status: "ready" as const, reasons: [] } : i))
+      // One already ticked as posted (stored on the account), so the week's progress shows.
+      .map((i) => (i.id === "t1" ? { ...i, postedAt: new Date().toISOString() } : i));
+  } else if (state === "changing") {
+    const at = new Date().toISOString();
+    items = all.map((i) =>
+      i.id === "t1" ? { ...i, change: { status: "working" as const, reason: null, at } }
+      : i.id === "t3" ? { ...i, change: { status: "refused" as const, reason: "checks" as const, at } }
+      : i.id === "t2" ? { ...i, change: { status: "done" as const, reason: null, at } }
+      : i,
+    );
+  } else if (state === "updating") {
+    items = all.map((i, n) => (n === 0 && i.photos ? { ...i, photos: { ...i.photos, status: "queued" as const } } : i));
+  }
+  const shown = plan ?? demoPlan(planState);
+  // A plan that ended 30 days ago: the library's 90 days, and the date it goes.
+  if (shown.plan === "cancelled") shown.retention = retentionDates("cancelled", new Date(Date.now() - 30 * 86_400_000).toISOString(), null);
+  return (
+    <AppHomeView
+      locale={locale}
+      clinicName={demoProfile(locale).name}
+      plan={shown}
+      topics={shown.canMake ? demoTopics(locale) : undefined}
+      billingIssue={billingIssue}
+      items={items}
+      firstWeek={firstWeek}
+      madeThisWeek={madeThisWeek}
+      currentWeek={thisWeek}
+      notice={null}
+      plans={plans}
+      pollMs={3_600_000}
+      weekDelay={sp.delay === "retrying" || sp.delay === "delayed" ? sp.delay : null}
+    />
+  );
+}
+
+/** Three suggestions: one waiting, one made last week, one refused (not one of the clinic's services). */
+function demoTopics(locale: Locale): TopicView[] {
+  const c = COPY[locale];
+  return [
+    { id: "00000000-0000-4000-8000-0000000000a1", text: c.titles[3], status: "pending", reason: null, week_of: null },
+    { id: "00000000-0000-4000-8000-0000000000a2", text: c.titles[1], status: "used", reason: null, week_of: weekOf(new Date(Date.now() - 7 * 86_400_000)) },
+    { id: "00000000-0000-4000-8000-0000000000a3", text: c.rejected, status: "refused", reason: "not_offered", week_of: null },
+  ];
+}
+
+function demoPlan(plan: ClinicPlan["plan"], tier: ClinicPlan["tier"] = "practice"): ClinicPlan {
+  const active = plan === "active";
+  return { plan, tier: active ? tier : null, renewsAt: active ? new Date(Date.now() + 23 * 86_400_000).toISOString() : null, canMake: active };
+}
+
+function demoProfile(locale: Locale) {
+  return {
+    ...DEMO_CLINIC[locale],
+    language: locale,
+    services: splitServices(SERVICE_HINTS[locale]).slice(0, 4),
+    tone: "warm" as const,
+    address: "formal" as const,
+    handle: "riverside.dental",
+    brandColor: "0f5c5c",
+  };
+}
+
+const DEMO_CLINIC: Record<Locale, { name: string; city: string; country: string }> = {
+  en: { name: "Riverside Dental", city: "Bristol", country: "GB" },
+  de: { name: "Zahnarztpraxis am Park", city: "München", country: "DE" },
+  es: { name: "Clínica Dental Sonrisa", city: "Valencia", country: "ES" },
+  tr: { name: "Gülümse Diş Kliniği", city: "İzmir", country: "TR" },
+  fr: { name: "Cabinet Dentaire du Parc", city: "Lyon", country: "FR" },
+  ja: { name: "さくら歯科クリニック", city: "横浜市", country: "JP" },
+  ar: { name: "عيادة الابتسامة لطب الأسنان", city: "دبي", country: "AE" },
+  pl: { name: "Gabinet Stomatologiczny Uśmiech", city: "Kraków", country: "PL" },
+};
+
+/** The three real sample videos for a language (mp4 + poster). Japanese, Arabic and Polish have none yet. */
+const SAMPLES: Partial<Record<Locale, string[]>> = {
+  en: ["proper-brushing-technique", "whitening-myths-debunked", "caring-for-clear-aligners"],
+  de: ["bleaching-zahnschmelz", "aligner-verfaerbung", "kinder-zahnarztangst"],
+  es: ["limpieza-dental", "cuidado-encias", "primer-diente"],
+  fr: ["detartrage", "blanchiment-email", "gencives-qui-saignent"],
+  tr: ["dis-tasi-temizligi", "beyazlatma-hassasiyet", "implant-asamalari"],
+  ja: ["tsumetai-mono-de-shimiru", "mouthpiece-shokuji", "ha-ga-nuketa-mama"],
+  ar: ["tafrish-qawi", "nazif-allitha", "qahwa-baad-altabyid"],
+  pl: ["bol-po-lodach", "wybielanie-przed-slubem", "pierwsza-wizyta-dziecka"],
+};
+
+type Copy = { titles: string[]; caption: string; tags: string[]; rejected: string };
+const COPY: Record<Locale, Copy> = {
+  en: {
+    titles: ["The right way to brush", "Whitening myths, busted", "Caring for clear aligners", "What happens at a check-up", "Bleeding gums: when to come in"],
+    caption: "Two minutes, twice a day — and angle the brush towards the gum line. Questions? Ask us at your next visit.",
+    tags: ["dentist", "oralhealth", "brushing"],
+    rejected: "Implants for everyone over 60",
+  },
+  de: {
+    titles: ["Richtig Zähne putzen", "Bleaching: Mythen im Check", "Aligner richtig pflegen", "Was bei der Kontrolle passiert", "Zahnfleischbluten: wann zu uns?"],
+    caption: "Zwei Minuten, zweimal täglich – und die Bürste leicht zum Zahnfleisch neigen. Fragen? Sprechen Sie uns beim nächsten Termin an.",
+    tags: ["zahnarzt", "zahngesundheit", "zahnpflege"],
+    rejected: "Implantate für alle über 60",
+  },
+  es: {
+    titles: ["Cómo cepillarte bien", "Mitos del blanqueamiento", "Cuidar tus alineadores", "Qué pasa en una revisión", "Encías que sangran: cuándo venir"],
+    caption: "Dos minutos, dos veces al día, con el cepillo inclinado hacia la encía. ¿Dudas? Pregúntanos en tu próxima visita.",
+    tags: ["dentista", "saludbucal", "cepillado"],
+    rejected: "Implantes para todos los mayores de 60",
+  },
+  fr: {
+    titles: ["Bien se brosser les dents", "Blanchiment : idées reçues", "Entretenir ses aligneurs", "Ce qui se passe au contrôle", "Gencives qui saignent : quand venir"],
+    caption: "Deux minutes, deux fois par jour, brosse inclinée vers la gencive. Une question ? Parlons-en à votre prochain rendez-vous.",
+    tags: ["dentiste", "santebucco", "brossage"],
+    rejected: "Des implants pour tous après 60 ans",
+  },
+  ja: {
+    titles: ["歯石とクリーニング", "歯ぐきからの出血", "子どもの仕上げみがき", "定期検診で行うこと", "正しい歯みがきの方法"],
+    caption: "歯みがきは1日2回、歯と歯ぐきの境目を意識して。気になることは、次回のご来院時にお気軽にご相談ください。",
+    tags: ["歯医者", "歯科医院", "歯みがき"],
+    rejected: "60歳以上の方すべてにインプラント",
+  },
+  ar: {
+    titles: ["تنظيف الجير", "نزيف اللثة", "تفريش أسنان الأطفال", "ماذا يحدث في الفحص الدوري؟", "الطريقة الصحيحة للتفريش"],
+    caption: "دقيقتان، مرتين يومياً، مع إمالة الفرشاة نحو اللثة. لأي سؤال، تحدّثوا معنا في زيارتكم القادمة.",
+    tags: ["طبيب_أسنان", "صحة_الفم", "تفريش_الأسنان"],
+    rejected: "زراعة الأسنان لكل من تجاوز الستين",
+  },
+  pl: {
+    titles: ["Kamień nazębny i higienizacja", "Krwawienie dziąseł", "Szczotkowanie zębów u dzieci", "Co dzieje się na przeglądzie", "Jak dobrze szczotkować zęby"],
+    caption: "Dwie minuty, dwa razy dziennie, ze szczoteczką skierowaną lekko w stronę dziąseł. Pytania? Zapraszamy na kolejną wizytę.",
+    tags: ["dentysta", "zdrowiezebow", "higienajamyustnej"],
+    rejected: "Implanty dla wszystkich po 60. roku życia",
+  },
+  tr: {
+    titles: ["Diş taşı temizliği neden önemli?", "Beyazlatma ve hassasiyet", "İmplant tedavisinin aşamaları", "Kontrolde neler oluyor?", "Diş eti kanaması: ne zaman gelmeli?"],
+    caption: "Günde iki kez, ikişer dakika — fırçayı diş etine doğru hafifçe eğin. Sorularınız için bir sonraki randevunuzda bize sorun.",
+    tags: ["dishekimi", "agizsagligi", "disfircalama"],
+    rejected: "60 yaş üstü herkese implant",
+  },
+};
+
+function demoItems(locale: Locale, thisWeek: string, lastWeek: string): LibraryItem[] {
+  const c = COPY[locale];
+  const s = SAMPLES[locale];
+  // Without samples in the language, cards show library photos (no burned-in words) over the English demo video.
+  const PHOTOS = ["cleaning-05", "hygiene-04", "kids-03"];
+  const media = (n: number) =>
+    s
+      ? { videoUrl: `/dentvideo/samples/${locale}/${s[n % 3]}.mp4`, thumbUrl: `/dentvideo/samples/${locale}/${s[n % 3]}.jpg` }
+      : { videoUrl: `/dentvideo/samples/en/${SAMPLES.en![n % 3]}.mp4`, thumbUrl: `/dentvideo/backgrounds/${PHOTOS[n % 3]}.jpg` };
+  const photos = (n: number): LibraryItem["photos"] => ({
+    suggested: ["whitening-03", "whitening-07", "implants-02", "implants-06", "aligners-04", "whitening-10", "implants-09", "whitening-13"].slice(n % 2, (n % 2) + 7),
+    chosen: [],
+  });
+  const base = (id: string, n: number, week: string): LibraryItem => ({
+    id,
+    kind: "generated",
+    status: "ready",
+    approval: "pending",
+    title: c.titles[n],
+    week_of: week,
+    caption: c.caption,
+    hashtags: c.tags,
+    // The worker's post kit (Instagram + TikTok / Shorts texts); postedAt null = ticks are stored on the account (0012).
+    post: samplePostTexts(locale),
+    postedAt: null,
+    reasons: [],
+    ...media(n),
+    photos: photos(n),
+    subtitles: true,
+  });
+  return [
+    { ...base("t1", 0, thisWeek) },
+    { ...base("t2", 1, thisWeek), status: "flagged", reasons: ["wording"] },
+    { ...base("t3", 2, thisWeek) },
+    { ...base("t4", 3, thisWeek), status: "working", videoUrl: undefined, thumbUrl: undefined, photos: undefined },
+    { ...base("t5", 4, thisWeek), approval: "approved" },
+    { ...base("t6", 0, thisWeek), title: c.rejected, status: "rejected", reasons: ["skipped"], videoUrl: undefined, thumbUrl: undefined, photos: undefined },
+    { ...base("l1", 3, lastWeek), approval: "approved" },
+    { ...base("l2", 4, lastWeek), approval: "approved", kind: "recording", photos: undefined },
+    { ...base("l3", 1, lastWeek), approval: "approved" },
+    { ...base("l4", 2, lastWeek), approval: "rejected" },
+  ];
+}
+
+function demoCards(locale: Locale): { title: string; card: ShootCard }[] {
+  const c = COPY[locale];
+  const card: Record<Locale, ShootCard> = {
+    en: { opening: "Most people brush for less than a minute.", points: ["Two minutes, twice a day", "Angle the brush towards the gum", "Soft bristles, gentle circles"], closing: "Ask us to show you at your next visit.", avoid: ["brand names", "promises of results"], setup: ["phone at eye level", "face a window"], minutes: 2 },
+    de: { opening: "Die meisten putzen kürzer als eine Minute.", points: ["Zwei Minuten, zweimal täglich", "Bürste zum Zahnfleisch neigen", "Weiche Borsten, sanfte Kreise"], closing: "Wir zeigen es Ihnen gern beim nächsten Termin.", avoid: ["Markennamen", "Erfolgsversprechen"], setup: ["Handy auf Augenhöhe", "Blick zum Fenster"], minutes: 2 },
+    es: { opening: "La mayoría se cepilla menos de un minuto.", points: ["Dos minutos, dos veces al día", "Cepillo inclinado hacia la encía", "Cerdas suaves, círculos suaves"], closing: "Te lo enseñamos en tu próxima visita.", avoid: ["marcas", "promesas de resultados"], setup: ["móvil a la altura de los ojos", "de cara a una ventana"], minutes: 2 },
+    fr: { opening: "La plupart se brossent moins d'une minute.", points: ["Deux minutes, deux fois par jour", "Brosse inclinée vers la gencive", "Poils souples, petits cercles"], closing: "Nous vous montrons au prochain rendez-vous.", avoid: ["noms de marques", "promesses de résultat"], setup: ["téléphone à hauteur des yeux", "face à une fenêtre"], minutes: 2 },
+    ja: { opening: "歯みがきの時間、1分もかかっていない方が多いようです。", points: ["1日2回、2分ずつ", "歯ブラシを歯ぐきの方へ少し傾ける", "やわらかい毛先で小さく動かす"], closing: "次回のご来院時に、実際にお見せしますね。", avoid: ["商品名", "効果の約束"], setup: ["スマートフォンは目の高さに", "窓の方を向いて"], minutes: 2 },
+    ar: { opening: "كثير منا يفرّش أسنانه أقل من دقيقة.", points: ["دقيقتان، مرتين يومياً", "أميلوا الفرشاة نحو اللثة", "شعيرات ناعمة وحركات دائرية لطيفة"], closing: "اسألونا لنريكم الطريقة في زيارتكم القادمة.", avoid: ["أسماء العلامات التجارية", "الوعد بنتائج"], setup: ["الهاتف بمستوى العين", "الوجه نحو النافذة"], minutes: 2 },
+    pl: { opening: "Większość z nas szczotkuje zęby krócej niż minutę.", points: ["Dwie minuty, dwa razy dziennie", "Szczoteczka lekko w stronę dziąseł", "Miękkie włosie, delikatne ruchy"], closing: "Chętnie pokażemy to Państwu na kolejnej wizycie.", avoid: ["nazwy marek", "obietnice efektów"], setup: ["telefon na wysokości oczu", "twarzą do okna"], minutes: 2 },
+    tr: { opening: "Çoğumuz dişlerimizi bir dakikadan kısa fırçalıyoruz.", points: ["Günde iki kez, iki dakika", "Fırçayı diş etine doğru eğin", "Yumuşak kıl, nazik daireler"], closing: "Bir sonraki randevunuzda size gösterelim.", avoid: ["marka adları", "sonuç vaadi"], setup: ["telefon göz hizasında", "pencereye dönük"], minutes: 2 },
+  };
+  return [0, 1, 2].map((n) => ({ title: c.titles[n], card: card[locale] }));
+}

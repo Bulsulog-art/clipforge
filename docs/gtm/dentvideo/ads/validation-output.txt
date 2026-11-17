@@ -1,0 +1,60 @@
+DentVideo Google Ads import files: validation
+============================================================
+Campaigns: 3 | Ad groups: 12 | Keywords: 133 (exact 32, phrase 101) | RSAs: 20
+  de-search-core   ad groups 5, keywords 63, RSAs 9
+  tr-search-core   ad groups 5, keywords 61, RSAs 9
+  us-search-test   ad groups 2, keywords 9, RSAs 2
+Negatives: campaign 86, ad group 16, shared lists NEG-ALL=37, NEG-DE=57, NEG-TR=76, list links 5; conflicts 0
+Assets: sitelinks 18, callouts 23, snippets 3
+Prices from web/src/lib/dentvid/pricing.ts: {'starter': {'USD': 49, 'EUR': 49, 'TRY': 1490}, 'practice': {'USD': 79, 'EUR': 79, 'TRY': 2490}}
+Budgets (EUR): TR+DE daily 4.50 + 8.00; Google's monthly ceiling (daily x 30.4) = EUR 380.00 (cap EUR 408.57 = $450)
+Conversion values (ad-conversions.ts): dv_signup 5 USD, dv_paid 150 USD (TR 100 USD)
+
+URL checks (21 unique Final URLs, each bare and with the campaign suffix):
+  200 https://dentvideo.com/
+  200 https://dentvideo.com/?utm_source=google&utm_medium=cpc&utm_campaign=us-search-test&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/ad-checker
+  200 https://dentvideo.com/ad-checker?utm_source=google&utm_medium=cpc&utm_campaign=us-search-test&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/de
+  200 https://dentvideo.com/de?utm_source=google&utm_medium=cpc&utm_campaign=de-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/de/ad-checker
+  200 https://dentvideo.com/de/ad-checker?utm_source=google&utm_medium=cpc&utm_campaign=de-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/de/examples
+  200 https://dentvideo.com/de/examples?utm_source=google&utm_medium=cpc&utm_campaign=de-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/de/help
+  200 https://dentvideo.com/de/help?utm_source=google&utm_medium=cpc&utm_campaign=de-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/examples
+  200 https://dentvideo.com/examples?utm_source=google&utm_medium=cpc&utm_campaign=us-search-test&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/guides
+  200 https://dentvideo.com/guides?utm_source=google&utm_medium=cpc&utm_campaign=us-search-test&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/help
+  200 https://dentvideo.com/help?utm_source=google&utm_medium=cpc&utm_campaign=us-search-test&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/tr
+  200 https://dentvideo.com/tr?utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/tr/ad-checker
+  200 https://dentvideo.com/tr/ad-checker?utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/tr/examples
+  200 https://dentvideo.com/tr/examples?utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/tr/help
+  200 https://dentvideo.com/tr/help?utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/dentvideo-mu-ajans-mi
+  200 https://dentvideo.com/videos/dentvideo-mu-ajans-mi?utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/dentvideo-mu-canva-mi
+  200 https://dentvideo.com/videos/dentvideo-mu-canva-mi?utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/dentvideo-oder-canva-zahnarztpraxis
+  200 https://dentvideo.com/videos/dentvideo-oder-canva-zahnarztpraxis?utm_source=google&utm_medium=cpc&utm_campaign=de-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/dentvideo-oder-zahnarzt-marketing-agentur
+  200 https://dentvideo.com/videos/dentvideo-oder-zahnarzt-marketing-agentur?utm_source=google&utm_medium=cpc&utm_campaign=de-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/dentvideo-vs-dental-marketing-agency
+  200 https://dentvideo.com/videos/dentvideo-vs-dental-marketing-agency?utm_source=google&utm_medium=cpc&utm_campaign=us-search-test&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/dis-klinigi-hasta-bilgilendirme-videosu-hazirlama-yollari
+  200 https://dentvideo.com/videos/dis-klinigi-hasta-bilgilendirme-videosu-hazirlama-yollari?utm_source=google&utm_medium=cpc&utm_campaign=tr-search-core&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/ways-to-make-dental-patient-education-videos
+  200 https://dentvideo.com/videos/ways-to-make-dental-patient-education-videos?utm_source=google&utm_medium=cpc&utm_campaign=us-search-test&utm_term=kwd-123&utm_content=456-789
+  200 https://dentvideo.com/videos/zahnarzt-aufklaerungsvideos-erstellen-wege
+  200 https://dentvideo.com/videos/zahnarzt-aufklaerungsvideos-erstellen-wege?utm_source=google&utm_medium=cpc&utm_campaign=de-search-core&utm_term=kwd-123&utm_content=456-789
+
+Warnings: 0
+Errors: 0
+
+RESULT: PASS

@@ -14,10 +14,13 @@ struct StudioTooltipsOverlay: View {
     @Binding var step: Int  // 0, 1, 2; >=3 means "done"
     let onComplete: () -> Void
 
-    private let pages: [Page] = [
+    /// "Auto-publish" only while posting works (see FeatureGates).
+    private var pages: [Page] { allPages.filter { FeatureGates.socialPublishing || $0.title != "Auto-publish" } }
+
+    private let allPages: [Page] = [
         Page(
             title: "Start a project",
-            body: "Tap the + at the top-right to clip from a URL, upload a video, or generate an AI avatar.",
+            body: "Tap the + at the top-right to upload a video, paste a TikTok link, or generate an AI avatar.",
             anchor: .topTrailing,
             icon: "plus.circle.fill"
         ),

@@ -142,3 +142,16 @@ export const dentvidQueue = new Proxy({} as Queue, {
     return typeof value === "function" ? value.bind(_dentvidQueue) : value;
   },
 });
+
+const _byName = new Map<string, Queue>();
+
+/** A queue by name on the shared connection, for the owner admin panel's "retry failed job". */
+export function queueByName(name: string): Queue {
+  if (name === "dentvid") return dentvidQueue;
+  let q = _byName.get(name);
+  if (!q) {
+    q = new Queue(name, { connection: getConnection() });
+    _byName.set(name, q);
+  }
+  return q;
+}

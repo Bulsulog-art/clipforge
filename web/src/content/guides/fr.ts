@@ -4,8 +4,9 @@ import type { Guide } from "../dentvideo";
 // aujourd'hui ; pas de chiffres inventés ni de prix ; règles déontologiques
 // présentées avec prudence et sources officielles.
 
-const LEGIFRANCE = { label: "Légifrance — Code de la santé publique, art. R. 4127-215 et suivants (décret n° 2020-1658 du 22 décembre 2020)", url: "https://www.legifrance.gouv.fr/" };
-const ONCD = { label: "Ordre national des chirurgiens-dentistes — recommandations sur la communication professionnelle", url: "https://www.ordre-chirurgiens-dentistes.fr/" };
+const LEGIFRANCE = { label: "Légifrance — Code de la santé publique, art. R. 4127-215 et suivants (décret n° 2020-1658 du 22 décembre 2020)", url: "https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072665/LEGISCTA000006190548/2021-07-13/" };
+const R4127_215_1 = { label: "Légifrance — Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
+const ONCD = { label: "Ordre national des chirurgiens-dentistes — Communication professionnelle des chirurgiens-dentistes (recommandations du 6 mai 2021, modifiées le 9 décembre 2021 et le 24 mars 2023)", url: "https://www.ordre-chirurgiens-dentistes.fr/pour-le-chirurgien-dentiste/communication-professionnelle-des-chirurgiens-dentistes/" };
 const CNIL = { label: "CNIL — données de santé et droit à l'image", url: "https://www.cnil.fr/" };
 const RGPD = { label: "Règlement général sur la protection des données (RGPD), art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
 const DGCCRF = { label: "DGCCRF — influence commerciale (loi n° 2023-451 du 9 juin 2023)", url: "https://www.economie.gouv.fr/dgccrf" };
@@ -19,10 +20,12 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vidéos pour cabinets dentaires : sujets, format, tournage et règles de communication",
+    seoTitle: "Vidéos pour cabinet dentaire : sujets et format",
+    seoDescription: "Quelles vidéos courtes les patients regardent, format Reels, sous-titres, rythme de publication et ce que le code de déontologie encadre pour le dentiste.",
     description: "Guide pratique pour cabinets dentaires : quelles vidéos courtes les patients regardent, format Reels, sous-titres, rythme et ce que le code de déontologie encadre.",
     h1: "Vidéos pour cabinets dentaires",
     intro:
-      "Les meilleures vidéos pour un cabinet dentaire répondent en 20 à 60 secondes à une seule question de patient, au format vertical, sous-titrées et formulées avec prudence. Une à trois vidéos par semaine suffisent. Les promesses de résultat, « sans douleur », les réductions, les superlatifs et les témoignages de patients n'y ont pas leur place : le code de déontologie des chirurgiens-dentistes les encadre.",
+      "Les vidéos utiles pour un cabinet dentaire répondent en 20 à 60 secondes à une seule question de patient, au format vertical, sous-titrées et formulées avec prudence. Une à trois vidéos par semaine suffisent. Les promesses de résultat, « sans douleur », les réductions, les superlatifs et les témoignages de patients n'y ont pas leur place : le code de déontologie des chirurgiens-dentistes les encadre.",
     sections: [
       {
         heading: "Pourquoi les patients regardent des vidéos",
@@ -34,7 +37,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Les sujets qui fonctionnent",
         paragraphs: [
-          "Vous avez déjà la meilleure liste : les questions posées au fauteuil chaque jour. Répondez à une seule par vidéo. Pour une année de sujets, voyez les [idées de contenu Instagram pour cabinet dentaire](guide:idees-contenu-instagram-cabinet-dentaire).",
+          "Vous avez déjà la liste la plus utile : les questions posées au fauteuil chaque jour. Répondez à une seule par vidéo. Pour une année de sujets, voyez les [idées de contenu Instagram pour cabinet dentaire](guide:idees-contenu-instagram-cabinet-dentaire).",
         ],
         list: [
           "Le blanchiment abîme-t-il l'émail ?",
@@ -103,12 +106,12 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Comment DentVideo vous aide",
         paragraphs: [
-          "[DentVideo](landing:) planifie chaque semaine cinq sujets à partir de vos soins et de vraies questions de patients, rédige et met en voix les vidéos, puis les sous-titre avec votre logo et vos couleurs. Chaque script est vérifié deux fois : allégations couramment encadrées et exactitude clinique. Vos propres enregistrements ne sont jamais réécrits ; ce qui mérite un second regard est signalé avec la raison. Rien n'est publié sans votre validation. [La première semaine est gratuite](start:).",
+          "[DentVideo](landing:) planifie chaque semaine cinq sujets à partir de vos soins et de vraies questions de patients, rédige et met en voix les vidéos, puis les sous-titre avec votre logo et vos couleurs. Chaque script est vérifié deux fois : allégations couramment encadrées et exactitude clinique. Vos propres enregistrements ne sont jamais réécrits ; ce qui mérite un second regard est signalé avec la raison. Rien n'est publié sans votre validation. [Voyez un aperçu à votre logo avant de payer](start:).",
         ],
       },
     ],
     faq: [
-      { q: "À quelle fréquence un cabinet dentaire doit-il publier des vidéos ?", a: "La régularité compte plus que le volume. Une à trois vidéos d'information courtes par semaine restent réalistes pour la plupart des cabinets." },
+      { q: "À quelle fréquence un cabinet dentaire doit-il publier des vidéos ?", a: "La régularité compte plus que le volume. Une à trois vidéos d'information courtes par semaine restent réalistes pour la plupart des cabinets. Le détail, horaires compris, est dans [notre guide sur la fréquence de publication](guide:frequence-publication-cabinet-dentaire)." },
       { q: "Quelle durée pour une vidéo Instagram ?", a: "Pour répondre à une question, 20 à 60 secondes suffisent le plus souvent. Les sujets longs se découpent en plusieurs vidéos d'une question chacune." },
       { q: "Puis-je montrer des cas de patients ?", a: "Uniquement avec un consentement écrit, et avec prudence : un avant/après ou un témoignage peut être perçu comme une promesse ou un procédé publicitaire. Renseignez-vous auprès de l'Ordre avant de publier." },
       { q: "Le praticien doit-il apparaître dans les vidéos ?", a: "Si possible, oui : les patients font confiance à la personne qui va les soigner. Les vidéos narrées complètent bien les semaines sans tournage." },
@@ -121,22 +124,39 @@ export const GUIDES_FR: Guide[] = [
     slug: "communication-chirurgien-dentiste-reseaux-sociaux",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Communication du chirurgien-dentiste sur les réseaux sociaux : ce que permet la déontologie",
+    seoTitle: "Réseaux sociaux du dentiste : ce que dit le code",
+    seoDescription: "Ce qu'un chirurgien-dentiste peut publier sur Instagram depuis le décret de 2020 : information loyale, interdits, témoignages, influence et checklist.",
     description: "Ce qu'un chirurgien-dentiste peut publier sur Instagram depuis le décret de 2020 : information loyale, interdits, témoignages, comparaisons, influence et checklist. Pas un conseil juridique.",
     h1: "Communication du chirurgien-dentiste sur les réseaux sociaux",
     intro:
       "Depuis le décret du 22 décembre 2020, un chirurgien-dentiste peut communiquer au public, y compris sur les réseaux sociaux, des informations loyales, honnêtes et utiles sur son exercice. Il ne peut toujours pas exercer la profession comme un commerce : pas de témoignages de tiers, pas de comparaison avec d'autres praticiens, pas de promesse ni d'incitation à des soins inutiles.",
     sections: [
       {
-        heading: "Ce qui a changé en 2020",
+        heading: "Un dentiste peut-il faire de la publicité depuis 2020 ?",
         paragraphs: [
           "Jusqu'en 2020, le code de déontologie interdisait aux chirurgiens-dentistes tout procédé direct ou indirect de publicité. Le décret n° 2020-1658 du 22 décembre 2020 a supprimé cette interdiction générale et introduit un droit à la communication. L'article R. 4127-215 du Code de la santé publique maintient en revanche que la profession ne doit pas être pratiquée comme un commerce.",
           "En substance, le chirurgien-dentiste peut désormais diffuser, par tout moyen dont un site ou un compte Instagram, des informations sur ses compétences, son parcours, ses pratiques et les conditions de son exercice, à condition qu'elles soient loyales, honnêtes et vérifiables.",
         ],
       },
       {
-        heading: "Ce que vous pouvez publier sans difficulté",
+        heading: "Que dit l'article R. 4127-215-1 ?",
+        paragraphs: [
+          "L'article R. 4127-215-1, créé par le décret de 2020 et en vigueur depuis le 25 décembre 2020, est le texte à garder sous les yeux. Il comporte trois paragraphes :",
+        ],
+        list: [
+          "I. Le chirurgien-dentiste peut communiquer au public, par tout moyen, y compris sur un site internet, des informations de nature à contribuer au libre choix du praticien par le patient : ses compétences, ses pratiques professionnelles, son parcours et les conditions de son exercice. Cette communication est loyale et honnête, ne fait pas appel à des témoignages de tiers, ne repose pas sur des comparaisons avec d'autres praticiens et n'incite pas à un recours inutile à des actes.",
+          "II. Il peut aussi diffuser des informations à visée éducative ou sanitaire, scientifiquement étayées, avec prudence et sans présenter comme acquises des hypothèses non confirmées.",
+          "III. Ces communications tiennent compte des recommandations émises par le Conseil national de l'Ordre.",
+        ],
+        after: [
+          "Les recommandations de l'Ordre ont été adoptées le 6 mai 2021, puis modifiées le 9 décembre 2021 et le 24 mars 2023. Elles précisent par exemple qu'un praticien non spécialiste qui limite son exercice à une discipline doit éviter toute ambiguïté avec les spécialistes qualifiés. Relisez la version en vigueur sur le site de l'Ordre avant une campagne.",
+        ],
+      },
+      {
+        heading: "Que peut-on publier sans difficulté ?",
         paragraphs: ["Ces contenus relèvent clairement de l'information loyale et utile :"],
         list: [
           "Des réponses prudentes aux questions fréquentes des patients",
@@ -148,7 +168,7 @@ export const GUIDES_FR: Guide[] = [
         ],
       },
       {
-        heading: "Les limites posées par le code",
+        heading: "Quelles limites pose le code de déontologie ?",
         paragraphs: ["Les textes et les recommandations de l'Ordre convergent sur plusieurs limites ; vérifiez le libellé exact sur Légifrance :"],
         list: [
           "Pas de témoignages de tiers : avis, remerciements ou récits de patients mis en avant.",
@@ -160,7 +180,7 @@ export const GUIDES_FR: Guide[] = [
         ],
       },
       {
-        heading: "Formuler sans promettre",
+        heading: "Comment formuler sans promettre ?",
         paragraphs: ["Presque toute information peut se dire sans promesse :"],
         list: [
           "Au lieu de « implants sans douleur » : « L'intervention se fait sous anesthésie locale ; la plupart des patients ressentent ensuite une gêne légère quelques jours. »",
@@ -210,7 +230,7 @@ export const GUIDES_FR: Guide[] = [
       { q: "Les règles s'appliquent-elles aussi à mon compte personnel ?", a: "Dès que vous parlez de votre exercice ou de soins, oui. Le code de déontologie s'applique au praticien, quel que soit le compte utilisé." },
       { q: "Ce guide est-il un conseil juridique ?", a: "Non. C'est une information générale ; les textes évoluent. Pour un cas précis, adressez-vous à votre conseil départemental de l'Ordre ou à un avocat." },
     ],
-    sources: [LEGIFRANCE, ONCD, DGCCRF],
+    sources: [R4127_215_1, LEGIFRANCE, ONCD, DGCCRF],
   },
   {
     locale: "fr",
@@ -220,6 +240,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Idées de contenu Instagram pour cabinet dentaire : une année de sujets sans risque",
+    seoTitle: "Instagram du cabinet dentaire : idées de posts",
+    seoDescription: "Idées de publications Instagram, Reels et TikTok pour cabinet dentaire : questions de patients, soins expliqués, équipe, saisons et ce qu'il faut éviter.",
     description: "Idées de publications Instagram, Reels et TikTok pour cabinet dentaire : questions de patients, soins expliqués, équipe, sujets de saison, un mois type et ce qu'il vaut mieux éviter.",
     h1: "Idées de contenu Instagram pour cabinet dentaire",
     intro:
@@ -229,7 +251,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Trois règles pour choisir un sujet",
         paragraphs: ["Trois questions suffisent pour juger une idée :"],
         list: [
-          "Un patient le demande-t-il vraiment ? Les questions du fauteuil, du téléphone et de Google sont les meilleurs sujets.",
+          "Un patient le demande-t-il vraiment ? Les questions du fauteuil, du téléphone et de Google sont les sujets les plus utiles.",
           "Pratiquons-nous ce soin au cabinet ? N'expliquez que ce que vous faites.",
           "Est-ce que j'informe ou est-ce que je pousse ? Pas « prenez rendez-vous vite, l'offre se termine », mais « parlez-en à votre prochain contrôle ».",
         ],
@@ -299,7 +321,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Texte de publication et hashtags",
         paragraphs: [
           "Le texte sous la vidéo reprend en bref ce qu'elle dit, sans ajouter de promesse. Une structure qui marche : la question en première ligne, la réponse en deux ou trois phrases, puis « Votre dentiste vous dira ce qui convient dans votre cas ». Le nom du cabinet et la ville suffisent pour être trouvé.",
-          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq à dix pertinents plutôt que trente au hasard. Évitez les superlatifs comme #meilleurdentiste et tout ce qui évoque une offre.",
+          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq à dix pertinents plutôt que trente au hasard. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
         ],
       },
       {
@@ -323,8 +345,9 @@ export const GUIDES_FR: Guide[] = [
       },
     ],
     faq: [
+      { q: "Existe-t-il un plan prêt pour toute l'année ?", a: "Oui : notre [calendrier éditorial pour cabinet dentaire](guide:calendrier-editorial-cabinet-dentaire) propose un thème d'information pour chacune des 52 semaines, calé sur des dates comme la journée mondiale de la santé bucco-dentaire, le 20 mars." },
       { q: "Que publier sur l'Instagram d'un cabinet dentaire ?", a: "Des réponses courtes aux questions des patients, des explications claires des soins, des conseils après les soins et des présentations de l'équipe, toujours informatives, prudentes et sans promesse." },
-      { q: "Combien de publications par semaine ?", a: "Une à trois par semaine restent réalistes pour la plupart des cabinets. La régularité compte plus que la fréquence." },
+      { q: "Combien de publications par semaine ?", a: "Une à trois par semaine restent réalistes pour la plupart des cabinets. La régularité compte plus que la fréquence ; notre guide [à quelle fréquence publier](guide:frequence-publication-cabinet-dentaire) propose des rythmes selon votre temps." },
       { q: "Faut-il un contenu différent pour TikTok ?", a: "En général non. La même vidéo verticale sous-titrée fonctionne sur Reels, TikTok et YouTube Shorts ; adaptez le texte." },
       { q: "Puis-je organiser un jeu-concours ?", a: "Les jeux-concours et cadeaux relèvent du procédé commercial, incompatible avec l'exercice de la profession. Mieux vaut s'en abstenir." },
       { q: "Faut-il répondre aux commentaires ?", a: "Oui, aimablement et de façon générale. Ne répondez pas publiquement à une question sur un cas personnel : proposez un rendez-vous ou le téléphone du cabinet." },
@@ -339,6 +362,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vidéos d'information patient au cabinet dentaire : sujets, usages et exactitude",
+    seoTitle: "Vidéos d'information patient au cabinet dentaire",
+    seoDescription: "Vidéos d'information patient pour cabinet dentaire : sujets prioritaires, modèle de script, salle d'attente, e-mail, réseaux, exactitude et consentement.",
     description: "Guide des vidéos d'information patient pour cabinets dentaires : sujets prioritaires, modèle de script, salle d'attente, e-mail et réseaux, exactitude et consentement éclairé.",
     h1: "Vidéos d'information patient au cabinet dentaire",
     intro:
@@ -424,6 +449,7 @@ export const GUIDES_FR: Guide[] = [
       { q: "Puis-je publier ces vidéos sur Instagram ?", a: "Oui, si elles informent avec prudence et ne contiennent ni promesse de résultat, ni réduction, ni témoignage. Les règles de communication de la profession s'appliquent." },
       { q: "La vidéo de salle d'attente doit-elle avoir du son ?", a: "Non. Sous-titrée, elle se comprend sans le son et gêne moins en salle d'attente." },
       { q: "Qui doit relire les vidéos ?", a: "Un praticien doit regarder chaque vidéo avant publication, en particulier les consignes de suivi, qui doivent correspondre au protocole de votre cabinet." },
+      { q: "Existe-t-il un exemple pour un traitement précis ?", a: "Oui : le guide sur les [vidéos d'information patient sur le blanchiment](guide:blanchiment-dentaire-videos-information-patient) détaille les questions des patients, six sujets de vidéos et les formulations à éviter." },
       { q: "Par quelles vidéos commencer ?", a: "Par les sujets les plus demandés et les plus anxiogènes : consignes après extraction, dévitalisation, étapes d'un implant et premier rendez-vous." },
     ],
     sources: [LEGIFRANCE, ONCD, RGPD],
@@ -435,6 +461,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Photos avant/après et témoignages : ce qu'un chirurgien-dentiste peut publier",
+    seoTitle: "Photos avant/après dentiste : ce qui est permis",
+    seoDescription: "Avant/après, avis et témoignages de patients sur les réseaux d'un cabinet dentaire : déontologie, RGPD, droit à l'image et consentement écrit.",
     description: "Avant/après, avis et témoignages de patients sur les réseaux d'un cabinet dentaire : déontologie, RGPD, droit à l'image, consentement écrit et alternatives sûres. Pas un conseil juridique.",
     h1: "Photos avant/après et témoignages : ce qu'un dentiste peut publier",
     intro:
@@ -504,7 +532,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Ce que fait DentVideo",
         paragraphs: [
-          "[DentVideo](landing:) produit des vidéos d'information qui n'ont pas besoin d'images de patients : narrées, sous-titrées, aux couleurs du cabinet, ou découpées dans un enregistrement où vous parlez face caméra. Chaque script est vérifié pour qu'il ne contienne ni promesse ni témoignage ; vous validez tout. Les règles générales sont résumées dans le guide sur la [communication du chirurgien-dentiste](guide:communication-chirurgien-dentiste-reseaux-sociaux). [Essayez la première semaine gratuitement](start:).",
+          "[DentVideo](landing:) produit des vidéos d'information qui n'ont pas besoin d'images de patients : narrées, sous-titrées, aux couleurs du cabinet, ou découpées dans un enregistrement où vous parlez face caméra. Chaque script est vérifié pour qu'il ne contienne ni promesse ni témoignage ; vous validez tout. Les règles générales sont résumées dans le guide sur la [communication du chirurgien-dentiste](guide:communication-chirurgien-dentiste-reseaux-sociaux). [Voyez vos vidéos avant de payer](start:).",
         ],
       },
     ],
@@ -526,6 +554,8 @@ export const GUIDES_FR: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Marketing dentaire : agence, community manager, équipe ou outil ?",
+    seoTitle: "Marketing dentaire : agence, équipe ou outil ?",
+    seoDescription: "Réseaux sociaux du cabinet dentaire : agence, freelance, équipe ou logiciel comparés, questions avant de signer, flux hebdomadaire et responsabilités.",
     description: "Organiser les réseaux sociaux d'un cabinet dentaire : agence, freelance, équipe ou logiciel comparés, questions avant de signer, un flux hebdomadaire et qui est responsable.",
     h1: "Marketing dentaire : agence, équipe ou outil ?",
     intro:
@@ -603,7 +633,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Le modèle mixte, réaliste pour beaucoup de cabinets",
         paragraphs: [
           "Pour beaucoup de cabinets, ce qui tient dans la durée est un modèle mixte : les vidéos d'information régulières viennent d'un outil ou d'un prestataire, le praticien ajoute une ou deux fois par mois un court enregistrement, et l'équipe publie et répond. Le compte reste actif, il ressemble au cabinet et personne ne subit de pression hebdomadaire. Des sujets dans les [idées de contenu Instagram](guide:idees-contenu-instagram-cabinet-dentaire).",
-          "[DentVideo](landing:) est un logiciel pour la partie contenu : il crée cinq vidéos d'information courtes par semaine, vérifie chaque script pour l'exactitude clinique et les règles de communication, et découpe vos enregistrements en extraits sous-titrés. La publication et les réponses restent chez vous ou votre agence : DentVideo ne publie rien lui-même. [La première semaine est gratuite](start:).",
+          "[DentVideo](landing:) est un logiciel pour la partie contenu : il crée cinq vidéos d'information courtes par semaine, vérifie chaque script pour l'exactitude clinique et les règles de communication, et découpe vos enregistrements en extraits sous-titrés. La publication et les réponses restent chez vous ou votre agence : DentVideo ne publie rien lui-même. [Voyez un aperçu à votre logo avant de payer](start:).",
         ],
       },
     ],

@@ -11,6 +11,8 @@ const LO1982 = { label: "Ley Orgánica 1/1982, derecho a la propia imagen — BO
 const RGPD = { label: "Reglamento General de Protección de Datos (RGPD), art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
 const AEPD = { label: "Agencia Española de Protección de Datos (AEPD)", url: "https://www.aepd.es/" };
 const CGD = { label: "Consejo General de Dentistas de España — Código Español de Ética y Deontología Dental", url: "https://consejodentistas.es/" };
+const TS_FAMOSOS = { label: "Poder Judicial — El Tribunal Supremo avala la prohibición de difundir publicidad de clínicas de odontología utilizando a personas famosas", url: "https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Noticias-Judiciales/El-Tribunal-Supremo-avala-la-prohibicion-de-difundir-publicidad-de-clinicas-de-odontologia-utilizando-a-personas-famosas" };
+const DEFENSOR = { label: "Defensor del Pueblo — Control específico de la publicidad de las clínicas dentales (recomendación)", url: "https://www.defensordelpueblo.es/resoluciones/control-especifico-de-la-publicidad-de-las-clinicas-dentales" };
 const COFEPRIS = { label: "COFEPRIS (México) — publicidad de servicios de salud", url: "https://www.gob.mx/cofepris" };
 
 export const GUIDES_ES: Guide[] = [
@@ -22,10 +24,12 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vídeos para clínicas dentales en redes sociales: temas, formato y publicidad sanitaria",
+    seoTitle: "Vídeos para clínicas dentales: temas y formato",
+    seoDescription: "Qué vídeos cortos ven los pacientes, formato Reels, subtítulos, frecuencia y qué limita la publicidad sanitaria en España a las clínicas dentales.",
     description: "Guía práctica para clínicas dentales: qué vídeos cortos ven los pacientes, formato Reels, subtítulos, frecuencia y qué limita la publicidad sanitaria en España.",
     h1: "Vídeos para clínicas dentales en redes sociales",
     intro:
-      "Los mejores vídeos para una clínica dental responden en 20 a 60 segundos una sola pregunta de pacientes, en vertical, con subtítulos y un lenguaje prudente. Con uno a tres vídeos a la semana basta. Las promesas de resultados, “sin dolor”, los descuentos, los superlativos y los testimonios de pacientes no deben aparecer, porque la publicidad sanitaria y el código deontológico los limitan.",
+      "Los vídeos que funcionan en una clínica dental responden en 20 a 60 segundos una sola pregunta de pacientes, en vertical, con subtítulos y un lenguaje prudente. Con uno a tres vídeos a la semana basta. Las promesas de resultados, “sin dolor”, los descuentos, los superlativos y los testimonios de pacientes no deben aparecer, porque la publicidad sanitaria y el código deontológico los limitan.",
     sections: [
       {
         heading: "Por qué los pacientes ven vídeos",
@@ -37,7 +41,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Qué temas funcionan",
         paragraphs: [
-          "La mejor lista de temas ya la tienes: las preguntas que oyes en el sillón cada día. Responde una sola por vídeo. Si necesitas más, en las [ideas de contenido para Instagram](guide:ideas-contenido-instagram-clinica-dental) hay temas para un año.",
+          "La lista de temas más útil ya la tienes: las preguntas que oyes en el sillón cada día. Responde una sola por vídeo. Si necesitas más, en las [ideas de contenido para Instagram](guide:ideas-contenido-instagram-clinica-dental) hay temas para un año.",
         ],
         list: [
           "¿El blanqueamiento daña el esmalte?",
@@ -106,13 +110,13 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo ayuda DentVideo",
         paragraphs: [
-          "[DentVideo](landing:) planifica cada semana cinco temas a partir de tus tratamientos y de preguntas reales de pacientes, escribe y pone voz a los vídeos y los subtitula con tu logo y tus colores. Cada guion se revisa dos veces: en afirmaciones publicitarias restringidas y en precisión clínica. Tus propias grabaciones nunca se reescriben; lo dudoso se marca con el motivo. Nada se publica sin tu aprobación. [La primera semana es gratis](start:).",
+          "[DentVideo](landing:) planifica cada semana cinco temas a partir de tus tratamientos y de preguntas reales de pacientes, escribe y pone voz a los vídeos y los subtitula con tu logo y tus colores. Cada guion se revisa dos veces: en afirmaciones publicitarias restringidas y en precisión clínica. Tus propias grabaciones nunca se reescriben; lo dudoso se marca con el motivo. Nada se publica sin tu aprobación. [Mira una vista previa con tu logo antes de pagar](start:).",
         ],
       },
     ],
     faq: [
       { q: "¿Cada cuánto debería publicar vídeos una clínica dental?", a: "Importa más la constancia que el volumen. Uno a tres vídeos educativos cortos por semana es asumible para la mayoría de clínicas y mantiene la cuenta activa." },
-      { q: "¿Cuánto debe durar un vídeo para Instagram?", a: "Para responder una pregunta suelen bastar 20 a 60 segundos. Los temas largos funcionan mejor divididos en varios vídeos de una pregunta cada uno." },
+      { q: "¿Cuánto debe durar un vídeo para Instagram?", a: "Para responder una pregunta suelen bastar 20 a 60 segundos. Los temas largos se entienden más fácilmente divididos en varios vídeos de una pregunta cada uno." },
       { q: "¿Puedo mostrar casos de pacientes?", a: "Solo con consentimiento informado por escrito, y en publicidad las imágenes de antes y después pueden estar limitadas o crear falsas expectativas. Consulta antes la normativa de tu comunidad y a tu colegio." },
       { q: "¿Tiene que salir el dentista en los vídeos?", a: "Si es posible, sí: los pacientes confían en quien les va a tratar. Los vídeos educativos narrados son un buen complemento para las semanas sin grabación." },
       { q: "¿Sirve el mismo vídeo para TikTok y YouTube Shorts?", a: "Sí. Un vídeo vertical con subtítulos funciona en Reels, TikTok y YouTube Shorts; solo adapta el texto de la publicación a cada plataforma." },
@@ -124,22 +128,25 @@ export const GUIDES_ES: Guide[] = [
     slug: "publicidad-sanitaria-dentistas",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-10",
+    reviewed: "2026-11-10",
     title: "Publicidad sanitaria para dentistas: qué se puede publicar en redes sociales en España",
+    seoTitle: "Publicidad sanitaria para dentistas en redes",
+    seoDescription: "Qué puede publicar un dentista en redes en España: Ley General de Sanidad, RD 1907/1996, normas autonómicas, código deontológico y checklist.",
     description: "Normativa de publicidad sanitaria para clínicas dentales en redes: Ley General de Sanidad, RD 1907/1996, comunidades autónomas, código deontológico, ejemplos y checklist. No es asesoramiento jurídico.",
     h1: "Publicidad sanitaria para dentistas: qué se puede publicar en redes",
     intro:
       "En España, una clínica dental puede publicar en redes información sanitaria veraz, objetiva y prudente, pero no publicidad engañosa ni que induzca al consumo. La regulan la Ley General de Sanidad, la Ley General de Publicidad, el Real Decreto 1907/1996, la normativa de cada comunidad autónoma y el código deontológico dental. Son especialmente delicados las promesas de resultados, los descuentos, los superlativos y los testimonios.",
     sections: [
       {
-        heading: "Una publicación en Instagram es publicidad sanitaria",
+        heading: "¿Una publicación en Instagram es publicidad sanitaria?",
         paragraphs: [
           "Para la normativa, lo que publica una clínica para dar a conocer sus servicios suele considerarse publicidad, aunque tenga tono educativo. Da igual el canal: web, Google, Instagram, TikTok o YouTube. También cuentan las publicaciones profesionales que el dentista hace desde su cuenta personal y las de influencers con los que la clínica colabora.",
           "Eso no significa que no se pueda comunicar. Significa que lo que se comunica tiene que ser veraz, objetivo, prudente y no crear falsas expectativas.",
         ],
       },
       {
-        heading: "El marco legal en España",
+        heading: "¿Qué normas regulan la publicidad dental en España?",
         paragraphs: ["Resumido y sin pretender ser exhaustivo; revisa siempre el texto vigente:"],
         list: [
           "Ley 14/1986, General de Sanidad: atribuye a las administraciones sanitarias el control de la publicidad sanitaria.",
@@ -153,7 +160,14 @@ export const GUIDES_ES: Guide[] = [
         ],
       },
       {
-        heading: "Lo que suele estar restringido",
+        heading: "¿Puede una clínica dental anunciarse con famosos o influencers?",
+        paragraphs: [
+          "Con mucha cautela. En 2020 el Tribunal Supremo avaló la prohibición de difundir publicidad de clínicas de odontología utilizando a personas famosas, en un caso sobre una campaña de una cadena dental con un actor y una presentadora conocidos. El razonamiento exacto está en la nota del Poder Judicial enlazada en las fuentes; antes de cualquier colaboración con un perfil conocido, consulta a tu colegio o a un abogado sanitario.",
+          "El Defensor del Pueblo también ha recomendado a las administraciones un control específico de la publicidad de las clínicas dentales, y los servicios de consumo de algunos ayuntamientos, como el de Madrid, han hecho campañas de inspección centradas en ellas. Es decir: la publicidad dental se mira con lupa, también en redes.",
+        ],
+      },
+      {
+        heading: "¿Qué suele estar restringido?",
         paragraphs: [],
         list: [
           "Garantías de resultado y absolutos: “sin dolor”, “resultado garantizado”, “definitivo”, “para toda la vida”",
@@ -166,7 +180,7 @@ export const GUIDES_ES: Guide[] = [
         ],
       },
       {
-        heading: "Cómo decirlo de forma segura",
+        heading: "¿Cómo decirlo de forma segura?",
         paragraphs: ["Casi toda la información puede darse sin prometer:"],
         list: [
           "En lugar de “implantes sin dolor”: “Se hace con anestesia local; después, la mayoría de pacientes nota una molestia leve unos días.”",
@@ -210,7 +224,7 @@ export const GUIDES_ES: Guide[] = [
       { q: "¿Puedo colaborar con influencers?", a: "La publicidad de influencers debe identificarse como tal y cumplir las mismas reglas que la de la clínica; un influencer elogiando su tratamiento funciona como testimonio. Consulta antes de cerrar una colaboración." },
       { q: "¿Esta guía es asesoramiento jurídico?", a: "No. Es información general; las normas cambian y varían por comunidad y país. Para casos concretos consulta a tu colegio, a la consejería de sanidad o a un abogado." },
     ],
-    sources: [LGS, LGP, RD1907, CGD, COFEPRIS],
+    sources: [LGS, LGP, RD1907, CGD, COFEPRIS, TS_FAMOSOS, DEFENSOR],
   },
   {
     locale: "es",
@@ -220,6 +234,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Ideas de contenido para Instagram de una clínica dental: un año de temas seguros",
+    seoTitle: "Instagram para clínica dental: ideas para un año",
+    seoDescription: "Ideas de publicaciones para Instagram, Reels y TikTok de una clínica dental: preguntas de pacientes, tratamientos, equipo, temporada y qué evitar.",
     description: "Ideas de publicaciones para Instagram, Reels y TikTok de clínicas dentales: preguntas de pacientes, tratamientos explicados, equipo, temas de temporada, un mes de ejemplo y qué evitar.",
     h1: "Ideas de contenido para el Instagram de una clínica dental",
     intro:
@@ -229,7 +245,7 @@ export const GUIDES_ES: Guide[] = [
         heading: "Tres reglas para elegir tema",
         paragraphs: ["Tres preguntas bastan para saber si una idea es buena:"],
         list: [
-          "¿Lo pregunta de verdad un paciente? Las preguntas del sillón, del teléfono y de Google son los mejores temas.",
+          "¿Lo pregunta de verdad un paciente? Las preguntas del sillón, del teléfono y de Google son los temas más útiles.",
           "¿Lo hacemos en nuestra clínica? Explica solo los tratamientos que ofreces.",
           "¿Informa o empuja? No “pide cita ya, la oferta acaba el viernes”, sino “coméntalo en tu próxima revisión”.",
         ],
@@ -291,7 +307,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "De dónde sacar más temas",
         paragraphs: [
-          "Cuando se acaba la lista, hay tres fuentes. La primera, tu equipo: recepción y auxiliares saben mejor que nadie qué preguntan los pacientes por teléfono y en el sillón; pídeles que apunten durante una semana cada pregunta. La segunda, Google: escribe “implantes” o “blanqueamiento” en el buscador y mira las sugerencias; patrones como “es malo…”, “cuánto dura…” o “después de…” muestran preocupaciones reales. La tercera, tu propio perfil: los comentarios y mensajes bajo tus vídeos son el siguiente tema.",
+          "Cuando se acaba la lista, hay tres fuentes. La primera, tu equipo: recepción y auxiliares oyen cada día qué preguntan los pacientes por teléfono y en el sillón; pídeles que apunten durante una semana cada pregunta. La segunda, Google: escribe “implantes” o “blanqueamiento” en el buscador y mira las sugerencias; patrones como “es malo…”, “cuánto dura…” o “después de…” muestran preocupaciones reales. La tercera, tu propio perfil: los comentarios y mensajes bajo tus vídeos son el siguiente tema.",
           "Las preguntas de precio llegan a menudo, pero no son tema de vídeo. Respóndelas en privado; si se repiten, explica en un vídeo las fases del tratamiento y qué influye en él, sin cifras.",
         ],
       },
@@ -299,7 +315,7 @@ export const GUIDES_ES: Guide[] = [
         heading: "Texto de la publicación y hashtags",
         paragraphs: [
           "El texto bajo el vídeo repite en breve lo que dice el vídeo y no añade promesas. Funciona bien: la pregunta en la primera línea, la respuesta en dos o tres frases y, al final, “Tu dentista te dirá qué es lo indicado en tu caso”. Nombre de la clínica y ciudad bastan para que te encuentren.",
-          "Hashtags: por tema y ciudad (#saludbucodental, #implantesdentales, #dentistamadrid), entre cinco y diez con sentido mejor que treinta al azar. Evita superlativos como #mejordentista y cualquier cosa que suene a oferta.",
+          "Hashtags: por tema y ciudad (#saludbucodental, #implantesdentales, #dentistamadrid), entre cinco y diez con sentido, antes que treinta al azar. Evita superlativos como “#mejordentista” y cualquier cosa que suene a oferta.",
         ],
       },
       {
@@ -323,10 +339,12 @@ export const GUIDES_ES: Guide[] = [
       },
     ],
     faq: [
+      { q: "¿Cada cuánto conviene publicar estas ideas?", a: "Importa más un ritmo que tu equipo pueda mantener todo el año que un número alto. La guía [¿cada cuánto debe publicar una clínica dental?](guide:cada-cuanto-publicar-clinica-dental) propone ritmos según tu tiempo y explica dónde ver las horas activas de tus seguidores." },
+      { q: "¿Hay un plan listo para todo el año?", a: "Sí: nuestro [calendario de contenidos para clínicas dentales](guide:calendario-contenidos-clinica-dental) propone un tema educativo para cada una de las 52 semanas, con fechas como el Día Mundial de la Salud Bucodental, el 20 de marzo." },
       { q: "¿Qué debe publicar una clínica dental en Instagram?", a: "Respuestas cortas a preguntas de pacientes, explicaciones claras de tratamientos, consejos de cuidado y presentaciones del equipo, siempre informativas, prudentes y sin promesas." },
       { q: "¿Cuántas publicaciones por semana?", a: "Una a tres por semana es asumible para la mayoría de clínicas. La constancia importa más que la frecuencia." },
       { q: "¿Necesito contenido distinto para TikTok?", a: "Normalmente no. El mismo vídeo vertical con subtítulos sirve para Reels, TikTok y YouTube Shorts; solo adapta el texto." },
-      { q: "¿Puedo hacer sorteos en la cuenta de la clínica?", a: "Los sorteos y regalos como reclamo son delicados en publicidad sanitaria y en el código deontológico. Mejor evitarlos o consultarlos antes con tu colegio." },
+      { q: "¿Puedo hacer sorteos en la cuenta de la clínica?", a: "Los sorteos y regalos como reclamo son delicados en publicidad sanitaria y en el código deontológico. Conviene evitarlos o consultarlos antes con tu colegio." },
       { q: "¿De dónde saco nuevos temas?", a: "Del equipo (qué preguntan en recepción y en el sillón), de las sugerencias de Google sobre tus tratamientos y de los comentarios y mensajes en tus propios vídeos." },
     ],
     sources: [RD1907, CGD, RGPD],
@@ -339,6 +357,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Vídeos educativos para pacientes dentales: temas, usos y cómo mantenerlos precisos",
+    seoTitle: "Vídeos educativos dentales para pacientes",
+    seoDescription: "Vídeos de educación al paciente para clínicas dentales: temas para empezar, plantilla de guion, sala de espera, WhatsApp, precisión y consentimiento.",
     description: "Guía de vídeos de educación al paciente para clínicas dentales: por qué temas empezar, plantilla de guion, sala de espera, WhatsApp y redes, precisión y consentimiento informado.",
     h1: "Vídeos educativos para pacientes dentales",
     intro:
@@ -401,7 +421,7 @@ export const GUIDES_ES: Guide[] = [
         heading: "Accesibilidad y pacientes de otros idiomas",
         paragraphs: [
           "Los subtítulos ayudan a quien no oye bien y a quien mira sin sonido. Frases cortas, lenguaje cotidiano y la traducción de cada término técnico (“periodontitis, es decir, enfermedad avanzada de las encías”) hacen el vídeo comprensible.",
-          "Si atiendes a pacientes que se manejan mejor en inglés, francés, árabe o catalán, tener los cuidados más frecuentes también en esos idiomas reduce malentendidos en zonas turísticas y ciudades diversas.",
+          "Si atiendes a pacientes que se manejan con más soltura en inglés, francés, árabe o catalán, tener los cuidados más frecuentes también en esos idiomas reduce malentendidos en zonas turísticas y ciudades diversas.",
         ],
       },
       {
@@ -419,10 +439,11 @@ export const GUIDES_ES: Guide[] = [
       },
     ],
     faq: [
-      { q: "¿Cuánto debe durar un vídeo educativo para pacientes?", a: "Para un tema suelen bastar 30 a 90 segundos. Los tratamientos largos funcionan mejor en varios vídeos cortos, uno por fase." },
+      { q: "¿Cuánto debe durar un vídeo educativo para pacientes?", a: "Para un tema suelen bastar 30 a 90 segundos. Los tratamientos largos se explican más claramente en varios vídeos cortos, uno por fase." },
       { q: "¿Un vídeo sustituye al consentimiento informado?", a: "No. El consentimiento se obtiene en la conversación con el dentista y por escrito cuando corresponde. El vídeo prepara y recuerda." },
       { q: "¿Puedo publicar vídeos educativos en Instagram?", a: "Sí, mientras informen con prudencia y no incluyan promesas de resultado, descuentos o testimonios. En redes se aplican las normas de publicidad sanitaria." },
       { q: "¿El vídeo de la sala de espera necesita sonido?", a: "No. Con subtítulos se entiende sin sonido y molesta menos en la sala de espera." },
+      { q: "¿Hay un ejemplo para un tratamiento concreto?", a: "Sí: la guía de [vídeos sobre blanqueamiento dental](guide:blanqueamiento-dental-videos-educativos-pacientes) recoge las preguntas de los pacientes, seis temas de vídeo y las frases que conviene evitar." },
       { q: "¿Con qué vídeos empiezo?", a: "Con los temas que más se preguntan y más preocupan: cuidados tras una extracción, endodoncia, fases de un implante y la primera visita. Esos cuatro cubren buena parte de las explicaciones diarias del equipo." },
       { q: "¿Quién debe revisar los vídeos?", a: "Un dentista debe ver cada vídeo antes de publicarlo, sobre todo las instrucciones de cuidados, que deben coincidir con el protocolo de tu clínica." },
     ],
@@ -435,6 +456,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Fotos y vídeos de pacientes en redes: consentimiento y protección de datos en clínicas dentales",
+    seoTitle: "Consentimiento para fotos de pacientes dentales",
+    seoDescription: "Qué exigen el RGPD y la LOPDGDD para publicar fotos, vídeos o radiografías de pacientes en redes y cómo redactar el consentimiento en la clínica.",
     description: "Qué exige el RGPD y la LOPDGDD para publicar fotos, vídeos o radiografías de pacientes en redes, cómo redactar el consentimiento y qué evitar. No es asesoramiento jurídico.",
     h1: "Fotos y vídeos de pacientes en redes: consentimiento y datos",
     intro:
@@ -470,7 +493,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo pedirlo sin incomodar al paciente",
         paragraphs: [
-          "El mejor momento para pedir el consentimiento no es en el sillón ni con prisa, sino al terminar el tratamiento, con calma y por escrito. Explica en una frase para qué lo quieres (“nos ayuda a explicar el tratamiento a otros pacientes”), muestra exactamente qué imagen se usaría y deja claro que decir que no no cambia nada en su atención. Si duda, la respuesta es no.",
+          "El momento adecuado para pedir el consentimiento no es en el sillón ni con prisa, sino al terminar el tratamiento, con calma y por escrito. Explica en una frase para qué lo quieres (“nos ayuda a explicar el tratamiento a otros pacientes”), muestra exactamente qué imagen se usaría y deja claro que negarse no cambia nada en su atención. Si duda, la respuesta es no.",
           "Ofrece opciones intermedias: solo foto intraoral sin cara, sin nombre, solo en la web y no en redes. Muchos pacientes aceptan una versión limitada aunque no quieran aparecer de cuerpo entero en Instagram.",
         ],
       },
@@ -502,7 +525,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo encaja DentVideo",
         paragraphs: [
-          "[DentVideo](landing:) hace vídeos educativos que no necesitan imágenes de pacientes: narrados, subtitulados y con el logo y los colores de tu clínica, o cortados de una grabación tuya hablando a cámara. Cada guion se revisa para que no prometa resultados ni use testimonios. Si en tu propia grabación aparece algo que merece otra mirada, se marca con el motivo; tú decides y apruebas. [Prueba la primera semana gratis](start:).",
+          "[DentVideo](landing:) hace vídeos educativos que no necesitan imágenes de pacientes: narrados, subtitulados y con el logo y los colores de tu clínica, o cortados de una grabación tuya hablando a cámara. Cada guion se revisa para que no prometa resultados ni use testimonios. Si en tu propia grabación aparece algo que merece otra mirada, se marca con el motivo; tú decides y apruebas. [Ve tus vídeos antes de pagar](start:).",
         ],
       },
     ],
@@ -524,6 +547,8 @@ export const GUIDES_ES: Guide[] = [
     published: "2026-11-08",
     updated: "2026-11-08",
     title: "Marketing dental en redes: ¿agencia, community manager, equipo propio o herramienta?",
+    seoTitle: "Marketing dental: ¿agencia o herramienta?",
+    seoDescription: "Redes de una clínica dental: agencia, freelance, equipo propio o software comparados, preguntas antes de contratar, flujo semanal y quién responde.",
     description: "Cómo organizar las redes de una clínica dental: agencia, freelance, equipo o software comparados, preguntas antes de contratar, un flujo semanal y quién responde de los errores.",
     h1: "Marketing dental en redes: ¿agencia, equipo o herramienta?",
     intro:
@@ -541,7 +566,7 @@ export const GUIDES_ES: Guide[] = [
         list: [
           "Agencia de marketing dental: asume planificación, diseño y publicación y ahorra tiempo. Suele ser cara, y no todas conocen la publicidad sanitaria: promociones, sorteos y antes y después son habituales en otros sectores y arriesgados en una clínica.",
           "Community manager freelance: más flexible y a menudo más asequible, fuerte en grabación y edición. La continuidad depende de una persona y el conocimiento normativo varía.",
-          "Equipo propio: conoce mejor que nadie la clínica y a los pacientes, el contenido suena auténtico. Pero el tiempo es escaso y el sillón siempre va primero.",
+          "Equipo propio: conoce de primera mano la clínica y a los pacientes, el contenido suena auténtico. Pero el tiempo es escaso y el sillón siempre va primero.",
           "Herramienta o software: genera contenido regular rápido y de forma previsible. Las herramientas genéricas no conocen la publicidad sanitaria; incluso con una especializada, la última revisión es del dentista.",
         ],
       },
@@ -601,7 +626,7 @@ export const GUIDES_ES: Guide[] = [
         heading: "El modelo mixto: realista para muchas clínicas",
         paragraphs: [
           "Para muchas clínicas, lo que más dura es un modelo mixto: los vídeos educativos regulares salen de una herramienta o de fuera, el dentista añade una o dos veces al mes una grabación corta propia y el equipo publica y responde. La cuenta se mantiene activa, suena a tu clínica y nadie vive con la presión semanal. Los temas, en [ideas de contenido para Instagram](guide:ideas-contenido-instagram-clinica-dental).",
-          "[DentVideo](landing:) es un software para la parte de contenido: crea cinco vídeos educativos cortos por semana, revisa cada guion en precisión clínica y publicidad sanitaria y corta tus grabaciones en clips subtitulados. Publicar y responder sigue siendo cosa tuya o de tu agencia: DentVideo no publica nada por sí mismo. [La primera semana es gratis](start:).",
+          "[DentVideo](landing:) es un software para la parte de contenido: crea cinco vídeos educativos cortos por semana, revisa cada guion en precisión clínica y publicidad sanitaria y corta tus grabaciones en clips subtitulados. Publicar y responder sigue siendo cosa tuya o de tu agencia: DentVideo no publica nada por sí mismo. [Mira una vista previa con tu logo antes de pagar](start:). Tienes una tabla con todas las opciones en [cómo se compara DentVideo con una agencia, Canva y ChatGPT](video:dentvideo-agencia-canva-chatgpt).",
         ],
       },
     ],
@@ -610,7 +635,7 @@ export const GUIDES_ES: Guide[] = [
       { q: "¿Quién responde de los errores de la agencia?", a: "Frente a la administración y al colegio, normalmente la clínica y el dentista. Deja por escrito el proceso de aprobación y las responsabilidades." },
       { q: "¿Basta con una herramienta para las redes?", a: "Puede bastar para crear contenido con regularidad. Responder mensajes y la revisión final siguen siendo tarea de la clínica." },
       { q: "¿De quién deben ser las cuentas de redes?", a: "Siempre de la clínica. Da acceso por roles y no con contraseñas personales, para no perder la cuenta si cambias de proveedor." },
-      { q: "¿Puede alguien del equipo responder dudas clínicas por mensaje?", a: "Mejor no diagnosticar por mensaje: lo prudente es invitar a pedir cita o llamar a la clínica, sobre todo si hay dolor o urgencia." },
+      { q: "¿Puede alguien del equipo responder dudas clínicas por mensaje?", a: "No conviene diagnosticar por mensaje: lo prudente es invitar a pedir cita o llamar a la clínica, sobre todo si hay dolor o urgencia." },
     ],
     sources: [LGP, RD1907, CGD, RGPD],
   },

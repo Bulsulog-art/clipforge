@@ -32,4 +32,9 @@ describe("guardFootage", () => {
     expect(b).not.toBe(a);
     expect(b).toBe("toothbrush close up");
   });
+  it("maps Japanese, Arabic and Polish service names to object shots", () => {
+    expect(q(guardFootage(plan("dentist with patient"), "インプラント", new Set()))).toBe("dental implant model");
+    expect(q(guardFootage(plan("dentist with patient"), "تبييض الأسنان", new Set()))).toBe("teeth whitening tray");
+    expect(q(guardFootage(plan("dentist with patient"), "Leczenie kanałowe", new Set()))).toBe("tooth model close up");
+  });
 });

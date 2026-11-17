@@ -133,6 +133,11 @@ export type ThemeId = (typeof THEMES)[number];
 export const ASPECTS = { "9:16": [1080, 1920], "1:1": [1080, 1080], "16:9": [1920, 1080] } as const;
 export type AspectId = keyof typeof ASPECTS;
 
+/** A library photo's path, as the web app serves it and the worker resolves it. */
+export const BACKGROUND_PATH = /^\/dentvideo\/backgrounds\/[a-z]+-\d{2}\.jpg$/;
+/** Photos per video: more than four in a minute is a slideshow, not a backdrop. */
+export const MAX_BACKGROUNDS = 4;
+
 export const scenePlanSchema = z.object({
   /** Shown in the library. Not drawn on screen. */
   title: z.string().min(1).max(80),
@@ -151,6 +156,33 @@ export const scenePlanSchema = z.object({
   brandColor: z.string().regex(/^#?[0-9a-fA-F]{6}$/).optional(),
   /** A second colour from the client's logo; becomes the accent when it can (see brandTheme). */
   brandAccent: z.string().regex(/^#?[0-9a-fA-F]{6}$/).optional(),
+  /**
+   * Photos from our curated library (web/public/dentvideo/backgrounds) that
+   * rotate behind the text scenes (background-layer.tsx). Library paths only,
+   * never arbitrary URLs — the same rule as footage: a plan cannot point at
+   * pixels we hold no licence to. Absent: the plain theme background, exactly
+   * as before.
+   */
+  backgrounds: z.array(z.string().regex(BACKGROUND_PATH)).min(1).max(MAX_BACKGROUNDS).optional(),
+  /**
+   * The language the on-screen text is in (BCP-47, "ja", "ar-AE"). Decides
+   * fonts, line breaking and direction (script.ts): Japanese wraps between
+   * phrases, not spaces; Arabic is laid out right to left. Absent: as before.
+   */
+  language: z.string().min(2).max(16).optional(),
+  /**
+   * A warning a market requires on screen, word for word (Türkiye: RG 33075
+   * md. 7/1-k; dental/mandatory-notice.ts). Set by code, never by a model;
+   * drawn small near the end (Disclaimer.tsx). Absent: nothing drawn.
+   */
+  disclaimer: z.string().min(1).max(240).optional(),
+  /**
+   * The clinic's name, set by code from its profile (never by a model).
+   * Drawn on the sign-off under the logo, and small in the top corner for the
+   * whole video when the clinic has no logo, so every frame reads as theirs.
+   * Absent: as before.
+   */
+  clinic: z.string().trim().min(1).max(80).optional(),
 });
 
 export type ScenePlan = z.infer<typeof scenePlanSchema>;

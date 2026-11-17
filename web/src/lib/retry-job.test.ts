@@ -98,3 +98,25 @@ describe("a clipping job", () => {
     expect(planRetry(upload).queue).toBe("video");
   });
 });
+
+describe("a YouTube job", () => {
+  const yt: RetryableJob = { ...base, source_type: "youtube", source_url: "https://www.youtube.com/watch?v=abc", clip_prompt: null };
+
+  it("is refused with the upload message instead of failing again on our servers", () => {
+    const plan = planRetry(yt);
+    expect(plan.queue).toBeNull();
+    expect(plan.queue === null && plan.error).toMatch(/upload the file/i);
+  });
+
+  it("is refused even when only the link says YouTube", () => {
+    expect(planRetry({ ...yt, source_type: "tiktok_url", source_url: "https://youtu.be/abc" }).queue).toBeNull();
+  });
+
+  it("a TikTok link once saved as source_type youtube still retries", () => {
+    expect(planRetry({ ...yt, source_url: "https://www.tiktok.com/@a/video/1" }).queue).toBe("video");
+  });
+
+  it("a TikTok job still retries", () => {
+    expect(planRetry({ ...yt, source_type: "tiktok_url", source_url: "https://www.tiktok.com/@a/video/1" }).queue).toBe("video");
+  });
+});

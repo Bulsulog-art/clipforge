@@ -15,6 +15,7 @@ import { resolveAspect } from "./aspect.js";
 import { resolveNicheTemplate } from "./niche-templates.js";
 import { getWinningHooks } from "./jobs/winning-patterns.js";
 import { sendPush } from "./push.js";
+import { sniffLogo } from "./dental/logo.js";
 
 type Payload = {
   jobId: string;
@@ -129,8 +130,11 @@ export async function runVideoPipeline(p: Payload) {
             const ext = (brandingRow.logo_path as string).split(".").pop() ?? "png";
             const localLogoPath = path.join(work, `branding-logo.${ext}`);
             const dl = await fetch(signed.signedUrl);
-            if (dl.ok) {
-              await fs.writeFile(localLogoPath, Buffer.from(await dl.arrayBuffer()));
+            const bytes = dl.ok ? new Uint8Array(await dl.arrayBuffer()) : null;
+            // Not a PNG/JPEG/WebP whatever its name says: ffmpeg would fail the whole clip on it.
+            if (bytes && !sniffLogo(bytes)) logger.warn({ jobId: p.jobId }, "branding logo is not an image — rendering without logo");
+            else if (bytes) {
+              await fs.writeFile(localLogoPath, bytes);
               brandingArgs = {
                 localLogoPath,
                 position: (brandingRow.position as string) ?? "bottom-right",

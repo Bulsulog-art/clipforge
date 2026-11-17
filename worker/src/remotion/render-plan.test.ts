@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { resolveFootage } from "./render-plan.js";
 import { parseScenePlan } from "./scene-plan.js";
+import type { ScenePlan } from "./scene-plan.js";
 
 /**
  * resolveFootage is the join between a plan's intentions and the files that
@@ -189,5 +190,38 @@ describe("query sizing", () => {
     const p = plan([hook, stockScene("waves", 3), stockScene("waves", 8)]);
     await resolveFootage(p, { workDir, userAssets: [], pexelsApiKey: "k", fetchImpl: spy });
     expect(seen).toHaveLength(1);
+  });
+});
+
+describe("footage without a clip", () => {
+  const base = {
+    title: "t", aspect: "9:16", theme: "midnight", music: "none",
+    scenes: [
+      { kind: "hook", text: "A hook here", seconds: 3 },
+      { kind: "footage", source: { type: "stock", query: "toothbrush" }, seconds: 3 },
+      { kind: "statement", text: "A statement", seconds: 4 },
+      { kind: "footage", source: { type: "stock", query: "floss" }, caption: "Floss daily", seconds: 3 },
+      { kind: "cta", text: "Ask us", seconds: 3 },
+    ],
+  } as unknown as ScenePlan;
+  const total = (p: ScenePlan) => p.scenes.reduce((a, s) => a + s.seconds, 0);
+
+  it("never leaves an empty frame: a caption-less scene with no clip is folded into its neighbour, length kept", async () => {
+    const { withoutEmptyFootage } = await import("./render-plan.js");
+    const { plan, footage } = withoutEmptyFootage(base, {});
+    expect(plan.scenes.map((s) => s.kind)).toEqual(["hook", "statement", "footage", "cta"]);
+    expect(total(plan)).toBe(total(base));
+    expect(footage).toEqual({});
+  });
+  it("keeps a captioned scene (caption on the brand look) and remaps clips that did resolve", async () => {
+    const { withoutEmptyFootage } = await import("./render-plan.js");
+    const { plan, footage } = withoutEmptyFootage(base, { "3": "clip.mp4" });
+    expect(plan.scenes[2]).toMatchObject({ kind: "footage", caption: "Floss daily" });
+    expect(footage).toEqual({ "2": "clip.mp4" });
+  });
+  it("leaves the plan alone when every footage scene has a clip", async () => {
+    const { withoutEmptyFootage } = await import("./render-plan.js");
+    const r = withoutEmptyFootage(base, { "1": "a.mp4", "3": "b.mp4" });
+    expect(r.plan).toBe(base);
   });
 });

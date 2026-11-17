@@ -209,7 +209,7 @@ describe("planText", () => {
 });
 
 describe("the orchestrator", () => {
-  const clean = plan(["Whitening ruins enamel?", "Supervised whitening is considered safe for enamel.", "Sensitivity can happen and usually fades."]);
+  const clean = plan(["Whitening ruins enamel?", "Supervised whitening is usually considered safe for enamel.", "Sensitivity can happen and usually fades."]);
 
   it("ships a video only after script and caption both pass review", async () => {
     const { client } = fakeClient({ plans: [clean], reviews: ["pass", "pass"] });
@@ -219,6 +219,35 @@ describe("the orchestrator", () => {
       expect(pkg.checks.script.compliance.verdict).toBe("pass");
       expect(pkg.checks.script.accuracy.verdict).toBe("pass");
       expect(pkg.checks.copy.compliance.verdict).toBe("pass");
+    }
+  });
+
+  it("Türkiye: a procedure video carries the RG 33075 md. 7/1-k warning on screen and under the caption", async () => {
+    const { TR_MANDATORY_NOTICE } = await import("./mandatory-notice.js");
+    // The planner tries to set its own disclaimer: code decides, not the model.
+    const { client } = fakeClient({ plans: [{ ...clean, disclaimer: "made up" }], reviews: ["pass", "pass"] });
+    const pkg = await produceVideo({ client }, PROFILE, TOPIC);
+    expect(pkg.status).toBe("ready");
+    if (pkg.status !== "ready") return;
+    expect(pkg.plan.disclaimer).toBe(TR_MANDATORY_NOTICE);
+    expect(pkg.copy.caption.endsWith(`\n\n${TR_MANDATORY_NOTICE}`)).toBe(true);
+    expect(pkg.copy.caption.split(TR_MANDATORY_NOTICE)).toHaveLength(2);
+  });
+
+  it("Türkiye: a hygiene video carries the warning in the caption only; other markets carry none", async () => {
+    const { TR_MANDATORY_NOTICE } = await import("./mandatory-notice.js");
+    const hygiene: Topic = { ...TOPIC, title: "How long should you brush?", question: "Is two minutes of brushing enough?", service: "check-ups" };
+    const tr = await produceVideo({ client: fakeClient({ plans: [clean], reviews: ["pass", "pass"] }).client }, PROFILE, hygiene);
+    expect(tr.status).toBe("ready");
+    if (tr.status === "ready") {
+      expect(tr.plan.disclaimer).toBeUndefined();
+      expect(tr.copy.caption).toContain(TR_MANDATORY_NOTICE);
+    }
+    const gb = await produceVideo({ client: fakeClient({ plans: [{ ...clean, disclaimer: "made up" }], reviews: ["pass", "pass"] }).client }, { ...PROFILE, country: "GB" }, TOPIC);
+    expect(gb.status).toBe("ready");
+    if (gb.status === "ready") {
+      expect(gb.plan.disclaimer).toBeUndefined();
+      expect(gb.copy.caption).not.toContain(TR_MANDATORY_NOTICE);
     }
   });
 
@@ -239,6 +268,19 @@ describe("the orchestrator", () => {
       expect(pkg.stage).toBe("script");
       expect(pkg.reasons.join(" ")).toMatch(/guarantee|painless|best|off/i);
     }
+  });
+
+  it("never ships a known mistake (docs/KNOWN_MISTAKES.md): sent back, and rejected if the writer keeps it", async () => {
+    const flawed = plan(["Whitening ruins enamel?", "Supervised whitening is usually considered safe for enamel.", "Avoid strong colors briefly"]);
+    const kept = fakeClient({ plans: [flawed, flawed, flawed], reviews: ["pass", "pass", "pass"] });
+    const pkg = await produceVideo({ client: kept.client }, PROFILE, TOPIC);
+    expect(pkg.status).toBe("rejected");
+    if (pkg.status === "rejected") expect(pkg.reasons.join(" ")).toMatch(/KM-13/);
+    // The reviewers were never asked: the deterministic check runs first.
+    expect(kept.calls.filter((c) => c.system.startsWith("You review"))).toHaveLength(0);
+    const fixed = fakeClient({ plans: [flawed, clean], reviews: ["pass", "pass"] });
+    expect((await produceVideo({ client: fixed.client }, PROFILE, TOPIC)).status).toBe("ready");
+    expect(fixed.calls.filter((c) => c.system.startsWith("You write scene plans"))[1].user).toMatch(/KM-13/);
   });
 
   it("drops a topic the reviewer blocks, without a rewrite", async () => {
@@ -266,9 +308,11 @@ describe("the orchestrator", () => {
   it("runs the week: strategist topics → packages, rendering when asked", async () => {
     const other: Topic = { ...TOPIC, title: "Implant aftercare", service: "implants", pillar: "aftercare" };
     const offMenu: Topic = { ...TOPIC, title: "Braces 101", service: "orthodontics", pillar: "education" };
+    // The second video closes differently: a closing that echoes the first is sent back (week.ts scriptProblems).
+    const second = { ...clean, scenes: clean.scenes.map((s) => (s.kind === "cta" ? { ...s, text: "Ask about implant aftercare at your visit" } : s)) } as ScenePlan;
     const { client } = fakeClient({
       topics: [TOPIC, other, offMenu],
-      plans: [clean, clean],
+      plans: [clean, second],
       reviews: ["pass", "pass", "pass", "pass"],
       copies: [
         { caption: "Supervised whitening is considered safe. Book a check-up.", hashtags: ["dentist", "izmir", "whitening"] },
@@ -292,12 +336,21 @@ describe("the orchestrator", () => {
     const broken = { ...plan(["a", "b", "c"]), music: "warm and inviting" } as unknown as ScenePlan;
     const { client } = fakeClient({
       topics: [TOPIC, other],
-      // First topic: both plan attempts and the fresh retry's two invalid → throws. Second topic: clean.
-      plans: [broken, broken, broken, broken, plan(["Implant aftercare", "Keep the area clean.", "Follow your dentist's advice."])],
+      // First topic: both plan attempts and the fresh retry's two invalid → throws, and the
+      // same again on its one re-attempt (VIDEO_ATTEMPTS). Second topic: clean.
+      plans: [broken, broken, broken, broken, broken, broken, broken, broken, plan(["Implant aftercare", "Keep the area clean.", "Follow your dentist's advice."])],
       reviews: ["pass", "pass"],
     });
-    const week = await produceWeek({ client }, PROFILE, { count: 5 });
+    const errors: string[] = [];
+    const week = await produceWeek({ client, onVideoError: (e) => void errors.push(e.message) }, PROFILE, { count: 5 });
     expect(week.map((w) => w.status)).toEqual(["rejected", "ready"]);
+    // Tried twice, then given up with a technical error the clinic never sees.
+    expect(errors).toHaveLength(2);
+    const lost = week[0];
+    if (lost.status === "rejected") {
+      expect(lost.reasons).toEqual([]);
+      expect(lost.error).toBeTruthy();
+    }
   });
 
   it("retries an invalid plan once with the error instead of losing the topic", async () => {
@@ -326,7 +379,7 @@ describe("the orchestrator", () => {
     const { client, calls } = fakeClient({ plans: [clean], reviews: ["pass", "pass"] });
     await produceVideo({ client }, PROFILE, TOPIC);
     const copyPrompt = calls.find((c) => c.system.startsWith("You write the Instagram"))!.user;
-    expect(copyPrompt).toContain("Supervised whitening is considered safe for enamel.");
+    expect(copyPrompt).toContain("Supervised whitening is usually considered safe for enamel.");
     const reviews = calls.filter((c) => c.system.startsWith("You are a careful general dentist"));
     // script → caption (against the script) → shoot card
     expect(reviews).toHaveLength(3);
@@ -439,4 +492,152 @@ describe("per-language agent material", () => {
       expect(AVOID_WORDS[l], `avoid words for ${l}`).toBeTruthy();
     }
   });
+});
+
+describe("new markets: Japanese, Arabic, Polish hard rules", () => {
+  it("catches the 医療広告ガイドライン classics in Japanese (no spaces, no word boundaries)", () => {
+    expect(rules("無痛で安心のインプラント")).toContain("absolute");
+    expect(rules("当院は地域一番の歯科医院です")).toContain("superlative");
+    expect(rules("日本一のクリニック")).toContain("superlative");
+    expect(rules("ホワイトニングのキャンペーン中")).toContain("price");
+    expect(rules("インプラント 300,000円")).toContain("price");
+    expect(rules("ビフォーアフター写真をご覧ください")).toContain("before_after");
+    expect(rules("患者様の声をご紹介します")).toContain("testimonial");
+    expect(rules("歯周病が完治します")).toContain("cure");
+    expect(rules("効果を保証します")).toContain("guarantee");
+    expect(rules("フロスは歯周病を防ぎます")).toContain("absolute");
+    expect(rules("１００％白くなります")).toContain("absolute");
+  });
+  it("lets ordinary Japanese dental language through", () => {
+    expect(rules("永久歯は6歳ごろから生えてきます")).toEqual([]);
+    expect(rules("フロスは歯周病を防ぐのに役立ちます")).toEqual([]);
+    expect(rules("治療前後の注意点をお伝えします")).toEqual([]);
+    expect(rules("効果を保証できません")).toEqual([]);
+    expect(rules("必ず歯科医師に相談してください")).toEqual([]);
+    expect(rules("しみることがありますが、多くの場合は一時的です")).toEqual([]);
+  });
+  it("catches DHA-listed claims in Arabic, with attached prefixes", () => {
+    expect(rules("زراعة أسنان بدون ألم ومضمونة")).toEqual(["guarantee", "absolute"]);
+    expect(rules("أفضل عيادة أسنان في دبي")).toContain("superlative");
+    expect(rules("خصم 20% على التبييض")).toContain("price");
+    expect(rules("التبييض بـ 500 درهم")).toContain("price");
+    expect(rules("شاهدوا صور قبل وبعد")).toContain("before_after");
+    expect(rules("نتائج فورية")).toContain("absolute");
+    expect(rules("بدون آثار جانبية")).toContain("absolute");
+    expect(rules("الخيط يمنع التسوس")).toContain("absolute");
+    expect(rules("مرضانا يقولون")).toContain("testimonial");
+    expect(rules("علاج نهائي للألم")).toContain("cure");
+    expect(rules("ابتسامة دائمة")).toContain("absolute");
+  });
+  it("lets ordinary Arabic dental language through", () => {
+    expect(rules("الأسنان الدائمة تظهر عادة في سن السادسة")).toEqual([]);
+    expect(rules("بعد علاج العصب توضع الحشوة الدائمة")).toEqual([]);
+    expect(rules("نظفوا أسنانكم قبل وبعد الأكل")).toEqual([]);
+    expect(rules("نظفوا أسنانكم دائماً بلطف")).toEqual([]);
+    expect(rules("قد يساعد الخيط على الوقاية من التسوس")).toEqual([]);
+    expect(rules("لا نضمن النتائج")).toEqual([]);
+  });
+  it("catches the classics in Polish and lets the hedged forms through", () => {
+    expect(rules("Bezbolesne leczenie z gwarancją")).toEqual(["guarantee", "absolute"]);
+    expect(rules("Najlepszy gabinet stomatologiczny w Krakowie")).toContain("superlative");
+    expect(rules("Wybielanie 20% rabatu")).toContain("price");
+    expect(rules("Implant 3000 zł")).toContain("price");
+    expect(rules("Zdjęcia przed i po")).toContain("before_after");
+    expect(rules("Nić dentystyczna zapobiega próchnicy")).toContain("absolute");
+    expect(rules("Efekt na zawsze")).toContain("absolute");
+    expect(rules("Opinie naszych pacjentów")).toContain("testimonial");
+    expect(rules("Nić może pomóc zapobiegać próchnicy")).toEqual([]);
+    expect(rules("Myj zęby przed i po jedzeniu")).toEqual([]);
+    expect(rules("Zęby stałe wyrastają około 6. roku życia")).toEqual([]);
+    expect(rules("Trwałe wypełnienie po leczeniu kanałowym")).toEqual([]);
+    expect(rules("Nie gwarantujemy efektów")).toEqual([]);
+  });
+});
+
+describe("narration length in the language's own unit", () => {
+  const jaPlan = (text: string) => ({ ...plan(["フック", "説明", "項目"]), voiceover: { text, voice: "nova" } }) as ScenePlan;
+  it("counts Japanese in characters, not space-separated words", () => {
+    const long = "実は、ホワイトニングのあとに歯がしみるのはよくあることなんです。".repeat(6);
+    expect(narrationProblems(jaPlan(long), "ja")).toEqual([]);
+    // The same text counted in words is a single "word" and was always rejected.
+    expect(narrationProblems(jaPlan(long), "en")[0]).toMatch(/1 words/);
+    expect(narrationProblems(jaPlan("短すぎます。"), "ja")[0]).toMatch(/characters/);
+  });
+  it("tells Japanese writers characters and Japanese limits", () => {
+    const brief = scriptBrief({ ...PROFILE, language: "ja", country: "JP" }, TOPIC);
+    expect(brief).toMatch(/Japanese characters per second/);
+    expect(brief).toMatch(/hook at most 20 characters/);
+    expect(brief).toMatch(/医療広告ガイドライン/);
+  });
+});
+
+describe("per-language agent material (new markets)", () => {
+  it("covers ja, ar and pl", async () => {
+    const { SPOKEN_CUES } = await import("./narrate.js");
+    const { AVOID_WORDS } = await import("./compliance.js");
+    for (const l of ["ja", "ar", "pl"]) {
+      expect(SPOKEN_CUES[l], `spoken cues for ${l}`).toBeTruthy();
+      expect(AVOID_WORDS[l], `avoid words for ${l}`).toBeTruthy();
+    }
+  });
+});
+
+describe("launch markets: Turkish, German, Spanish hard rules (TR, DE/AT/CH, ES/MX)", () => {
+  it("catches what the Turkish Tanıtım Yönetmeliği (RG 33075) names", () => {
+    expect(rules("Türkiye'nin en iyi diş kliniği")).toContain("superlative");
+    expect(rules("İzmir'in en iyi implant merkezi")).toContain("superlative");
+    expect(rules("Bölgenin ilk ve tek kliniği")).toContain("superlative");
+    expect(rules("Şehrin lider kliniği")).toContain("superlative");
+    expect(rules("Diğer kliniklerden farklı olarak")).toContain("superlative");
+    expect(rules("Garantili beyazlatma")).toContain("guarantee");
+    expect(rules("İmplantta %50 indirim")).toContain("price");
+    expect(rules("12 ay taksit imkanı")).toContain("price");
+    expect(rules("Ücretsiz kontrol ve hediye diş fırçası")).toContain("price");
+    expect(rules("Öncesi sonrası farkı inanılmaz")).toContain("before_after");
+    expect(rules("Hasta yorumlarımızı okuyun")).toContain("testimonial");
+    expect(rules("Hastalarımızın teşekkür mesajları")).toContain("testimonial");
+    expect(rules("Ömür boyu ve acısız")).toContain("absolute");
+    expect(rules("Hiçbir yan etkisi yok")).toContain("absolute");
+  });
+  it("catches HWG / ZÄG / MedBG classics in German", () => {
+    expect(rules("Implantate schmerzfrei garantiert")).toEqual(["guarantee", "absolute"]);
+    expect(rules("Unsere Vorher-Nachher-Galerie")).toContain("before_after");
+    expect(rules("Vorher/Nachher-Bilder vom Bleaching")).toContain("before_after");
+    expect(rules("Die beste Zahnarztpraxis in Wien")).toContain("superlative");
+    expect(rules("Die führende Praxis für Implantate")).toContain("superlative");
+    expect(rules("Mit Erfolgsgarantie")).toContain("guarantee");
+    expect(rules("Bleaching ohne Risiko")).toContain("guarantee");
+    expect(rules("Ohne Nebenwirkungen")).toContain("absolute");
+    expect(rules("Jetzt Gutschein sichern")).toContain("price");
+    expect(rules("Großes Gewinnspiel zum Tag der Zahngesundheit")).toContain("price");
+    expect(rules("Nur diesen Monat: Zahnreinigung 20 % günstiger")).toContain("price");
+    expect(rules("Patientenstimmen zu unserer Praxis")).toContain("testimonial");
+  });
+  it("catches RD 1907/1996 and COFEPRIS classics in Spanish", () => {
+    expect(rules("Blanqueamiento garantizado")).toContain("guarantee");
+    expect(rules("El mejor dentista de Madrid")).toContain("superlative");
+    expect(rules("Somos número uno en implantes")).toContain("superlative");
+    expect(rules("Líderes en ortodoncia invisible")).toContain("superlative");
+    expect(rules("Resultados asegurados")).toContain("guarantee");
+    expect(rules("Resultados inmediatos y sin efectos secundarios")).toContain("absolute");
+    expect(rules("Una sonrisa para toda la vida")).toContain("absolute");
+    expect(rules("Implantes con 12 meses sin intereses")).toContain("price");
+    expect(rules("2x1 en limpiezas dentales")).toContain("price");
+    expect(rules("Limpieza por 800 pesos")).toContain("price");
+    expect(rules("Participa en nuestro sorteo")).toContain("price");
+    expect(rules("La clínica de los famosos")).toContain("testimonial");
+    expect(rules("Opiniones de nuestros pacientes")).toContain("testimonial");
+    expect(rules("Mira el antes y después")).toContain("before_after");
+  });
+  it.each([
+    // tr — informative, hedged, no steering.
+    "Diş taşı neden oluşur? Plak zamanla sertleşir ve fırçayla çıkmaz. Diş taşı temizliği genellikle 6 ayda bir önerilir; sizin için uygun aralığı hekiminiz belirler. Kontrollerinizi kaçırmayın. Bu konuda en iyi bilgiyi hekiminiz verir.",
+    "Kanal tedavisinden sonra dişe kalıcı dolgu yapılır. İlk günlerde hafif hassasiyet olabilir. Sonuç garanti edilemez ama çoğu durumda birkaç gün içinde geçer. Yemek öncesi ve sonrası ağzınızı çalkalayın.",
+    // de — sachlich, hedged.
+    "Tut eine Implantation weh? Der Eingriff erfolgt unter örtlicher Betäubung. Danach spüren die meisten Patienten einige Tage ein leichtes Ziehen. Ein Erfolg ist nicht garantiert; Ihre Zahnärztin bespricht Nutzen und Risiken mit Ihnen.",
+    "Nach der Wurzelbehandlung bekommt der Zahn eine dauerhafte Füllung oder eine Krone. Putzen Sie vorher und nachher gründlich. Zahnseide kann helfen, Karies vorzubeugen.",
+    // es — veraz, prudente.
+    "¿Duele un implante? Se coloca con anestesia local y la mayoría de las personas nota molestias leves unos días. No hay resultados asegurados: tu dentista valorará si es adecuado para ti.",
+    "Después de la endodoncia se coloca un empaste definitivo o una corona. Cepíllate antes y después de comer. El hilo dental puede ayudar a prevenir la caries.",
+  ])("lets a compliant script through: %s", (t) => expect(rules(t)).toEqual([]));
 });

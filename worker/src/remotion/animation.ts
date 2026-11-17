@@ -79,6 +79,66 @@ export function entrance(
  * Fade at both ends of a scene so cuts never hard-snap. Returns 1 through the
  * middle. `hold` frames are left untouched at full opacity.
  */
+/**
+ * Where each scene sits on the timeline, drawn as a real cross-dissolve.
+ *
+ * Scenes used to fade out to the background and the next one fade in after
+ * it, with the next scene's text still waiting on its entrance delay: about
+ * 0.4 s of empty frame at every cut — a contact sheet caught one and it read
+ * as a blank video. Then every scene after the first started CROSSFADE frames
+ * early and faded in on top of the one before, which stayed fully drawn
+ * underneath: no empty frame, but for those frames two blocks of type sat on
+ * top of each other at full strength (a frame grab of an Arabic sample shows
+ * a list heading fading in straight through the paragraph before it).
+ *
+ * Now the cut is a true dissolve: while the incoming scene fades in, the
+ * outgoing one fades out over the same frames on the mirrored curve, so the
+ * two opacities always add up to 1 — never an empty frame, never two
+ * full-strength texts. Two ends are special:
+ *  - the first scene does not fade in. Frame 0 is what a feed shows before
+ *    playback starts and what "cover from the first frame" picks, so it has
+ *    to carry the hook, not an empty background (every sample opened on 4-5
+ *    blank frames);
+ *  - the last scene does not fade out. Reels and TikTok loop: the loop should
+ *    hold the sign-off to the end and cut straight back to the hook, not
+ *    flash an empty frame in between.
+ * Scene lengths and the total running time are unchanged.
+ */
+export const CROSSFADE = 8;
+
+export type SceneWindow = { from: number; durationInFrames: number; fadeIn: boolean; fadeOut: boolean };
+
+export function sceneWindows(offsets: number[], frames: number[]): SceneWindow[] {
+  return offsets.map((offset, i) => {
+    const lead = i > 0 ? Math.min(CROSSFADE, offset) : 0;
+    return { from: offset - lead, durationInFrames: frames[i] + lead, fadeIn: lead > 0, fadeOut: i < offsets.length - 1 };
+  });
+}
+
+/** Opacity of a scene inside its window (sceneWindows). */
+export function windowOpacity(frame: number, w: Pick<SceneWindow, "durationInFrames" | "fadeIn" | "fadeOut">, fade = CROSSFADE): number {
+  if (w.durationInFrames <= fade * 2) return 1;
+  const inP = w.fadeIn ? easeInOut(frame / fade) : 1;
+  // The mirror of the next scene's fade-in (easeInOut(1 - x) = 1 - easeInOut(x)): the two always sum to 1.
+  const outP = w.fadeOut ? easeInOut((w.durationInFrames - frame) / fade) : 1;
+  return Math.min(1, inP, outP);
+}
+
+/**
+ * Frames of head start the opening scene gets: its own clock runs this far
+ * ahead of the video's, so at frame 0 the hook's first words are already up
+ * and the opening frame reads as a headline, and a hook of up to 12 words
+ * has fully landed by about 1.2 s — inside the second or so a viewer gives a
+ * Reel before swiping. The samples' hooks opened on 4-5 empty frames and took
+ * 1.3-2 s to complete.
+ */
+export const OPENING_HEAD_START = 10;
+
+/** The frame a scene's own animation sees: the opening scene starts already in motion. */
+export function sceneClock(sceneIndex: number, frame: number): number {
+  return sceneIndex === 0 ? frame + OPENING_HEAD_START : frame;
+}
+
 export function sceneOpacity(
   frame: number,
   durationInFrames: number,
@@ -100,6 +160,35 @@ export function wordsVisible(frame: number, total: number, perWord = 3, delay = 
   const elapsed = frame - delay;
   if (elapsed < 0) return 0;
   return Math.min(total, Math.floor(elapsed / perWord) + 1);
+}
+
+/**
+ * Progress (0–1) of a highlighter sweeping across a word: eased in and out,
+ * so the bar accelerates off the start and settles at the end like a pen
+ * stroke, rather than sliding at constant speed.
+ */
+export function sweep(frame: number, start: number, duration = 9): number {
+  return easeInOut(enterProgress(frame, start, duration));
+}
+
+/** Frames one highlighted word waits for the one before it in the same run. */
+export const SWEEP_STEP = 6;
+
+/**
+ * When each emphasised word's highlighter starts. A word is swept once it
+ * has landed (`landed[i]`); consecutive emphasised words (a run, see
+ * script.ts emphasisRuns) sweep one after another as a single stroke, each
+ * starting SWEEP_STEP frames after the previous one at the earliest.
+ * undefined for words without emphasis.
+ */
+export function highlightStarts(runs: { on: boolean; joinNext: boolean }[], landed: number[]): (number | undefined)[] {
+  const out: (number | undefined)[] = [];
+  runs.forEach((r, i) => {
+    if (!r.on) return void out.push(undefined);
+    const prev = i > 0 && runs[i - 1].joinNext ? out[i - 1] : undefined;
+    out.push(prev === undefined ? landed[i] : Math.max(landed[i], prev + SWEEP_STEP));
+  });
+  return out;
 }
 
 /**

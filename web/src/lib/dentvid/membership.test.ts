@@ -1,0 +1,100 @@
+import { describe, expect, it } from "vitest";
+import { DV_APP_METADATA_KEYS, isDentvideoOnly, isDentvideoUser, joinDentvideoPatch, signupAppMetadata, withoutDentvideo } from "./membership";
+import { verifiedAppMetadata } from "./verify-email";
+
+const dv = (extra: Record<string, unknown> = {}, user_metadata: Record<string, unknown> = {}) => ({
+  email: "dr@clinic.example",
+  app_metadata: { provider: "email", providers: ["email"], product: "dentvideo", ...extra },
+  user_metadata,
+  identities: [{ provider: "email" }],
+});
+
+describe("isDentvideoUser", () => {
+  it("reads the server-written app_metadata only", () => {
+    expect(isDentvideoUser(dv())).toBe(true);
+    expect(isDentvideoUser({ app_metadata: { products: ["coz", "dentvideo"] } })).toBe(true);
+    expect(isDentvideoUser({ app_metadata: { provider: "email" }, user_metadata: { product: "dentvideo" } })).toBe(false);
+    expect(isDentvideoUser({ app_metadata: { product: "aires" } })).toBe(false);
+    expect(isDentvideoUser(null)).toBe(false);
+  });
+});
+
+describe("isDentvideoOnly (may account deletion remove the shared login?)", () => {
+  it("yes for a plain DentVideo sign-up, verified or not, with GoTrue's identity copy in user_metadata", () => {
+    expect(isDentvideoOnly(dv())).toBe(true);
+    expect(isDentvideoOnly(dv({ email_verified_at: "x", email_verified_for: "dr@clinic.example", email_verified_via: "code" }))).toBe(true);
+    expect(isDentvideoOnly(dv({}, { sub: "id", email: "dr@clinic.example", email_verified: true, phone_verified: false, product: "dentvideo" }))).toBe(true);
+  });
+
+  it("yes for an internal (team / monitor) account: app_metadata.internal is DentVideo's own key", () => {
+    expect(isDentvideoOnly(dv({ internal: true }))).toBe(true);
+    expect(isDentvideoOnly(dv({ internal: true, email_verified_at: "x", email_verified_for: "dr@clinic.example", email_verified_via: "reset" }))).toBe(true);
+  });
+
+  it("every key DentVideo writes to app_metadata is one of its own (else its accounts look shared)", () => {
+    const written = [
+      ...Object.keys(signupAppMetadata(false)),
+      ...Object.keys(signupAppMetadata(true)),
+      ...Object.keys(verifiedAppMetadata("dr@clinic.example", "code")),
+    ];
+    for (const k of written) expect(DV_APP_METADATA_KEYS as readonly string[]).toContain(k);
+    expect(isDentvideoOnly({ ...dv(), app_metadata: { provider: "email", providers: ["email"], ...signupAppMetadata(true), ...verifiedAppMetadata("dr@clinic.example", "code") } })).toBe(true);
+  });
+
+  it("no when anything says another app uses the login", () => {
+    expect(isDentvideoOnly(dv({ products: ["dentvideo", "coz"] }))).toBe(false);
+    expect(isDentvideoOnly(dv({ role: "admin" }))).toBe(false);
+    expect(isDentvideoOnly(dv({}, { product: "aires" }))).toBe(false);
+    expect(isDentvideoOnly(dv({}, { full_name: "Dr A" }))).toBe(false);
+    expect(isDentvideoOnly(dv({ providers: ["email", "google"] }))).toBe(false);
+    expect(isDentvideoOnly({ ...dv(), identities: [{ provider: "email" }, { provider: "apple" }] })).toBe(false);
+  });
+
+  it("no without the app_metadata marker (user_metadata alone proves nothing)", () => {
+    expect(isDentvideoOnly({ app_metadata: { provider: "email" }, user_metadata: { product: "dentvideo" } })).toBe(false);
+    expect(isDentvideoOnly(null)).toBe(false);
+  });
+});
+
+describe("withoutDentvideo", () => {
+  it("nulls DentVideo's keys (GoTrue deletes null keys) and leaves the rest", () => {
+    expect(withoutDentvideo({ provider: "email", product: "dentvideo", email_verified_at: "x", email_verified_for: "y", role: "r" })).toEqual({
+      product: null,
+      email_verified_at: null,
+      email_verified_for: null,
+    });
+  });
+
+  it("takes the internal marker off too", () => {
+    expect(withoutDentvideo({ product: "aires", internal: true })).toEqual({ internal: null });
+  });
+
+  it("does not touch another app's product, and drops dentvideo from a products list", () => {
+    expect(withoutDentvideo({ product: "aires", products: ["aires", "dentvideo"] })).toEqual({ products: ["aires"] });
+    expect(withoutDentvideo({ products: ["dentvideo"] })).toEqual({ products: null });
+    expect(withoutDentvideo(null)).toEqual({});
+  });
+});
+
+describe("joinDentvideoPatch (an existing Liman account joins DentVideo)", () => {
+  it("marks an account no app has claimed", () => {
+    expect(joinDentvideoPatch({ provider: "email", providers: ["email"] })).toEqual({ product: "dentvideo" });
+    expect(joinDentvideoPatch(null)).toEqual({ product: "dentvideo" });
+  });
+  it("never overwrites another app's product; adds to the list instead", () => {
+    expect(joinDentvideoPatch({ product: "clipforge" })).toEqual({ products: ["dentvideo"] });
+    expect(joinDentvideoPatch({ product: "clipforge", products: ["other"] })).toEqual({ products: ["other", "dentvideo"] });
+  });
+  it("leaves a DentVideo account alone", () => {
+    expect(joinDentvideoPatch({ product: "dentvideo" })).toBeNull();
+    expect(joinDentvideoPatch({ product: "clipforge", products: ["dentvideo"] })).toBeNull();
+  });
+  it("the patched account counts as DentVideo, and leaving undoes it", () => {
+    for (const app of [{}, { product: "clipforge" }, { product: "clipforge", products: ["x"] }] as Record<string, unknown>[]) {
+      const joined = { ...app, ...joinDentvideoPatch(app) };
+      expect(isDentvideoUser({ app_metadata: joined })).toBe(true);
+      const left = { ...joined, ...withoutDentvideo(joined) };
+      expect(isDentvideoUser({ app_metadata: left })).toBe(false);
+    }
+  });
+});

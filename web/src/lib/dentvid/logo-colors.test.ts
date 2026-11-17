@@ -1,5 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { accentFor, logoColors } from "./logo-colors";
+import { accentFor, isDecodableImage, logoColors } from "./logo-colors";
+
+describe("a chosen logo file that is not a picture", () => {
+  const blob = new Blob(["this is not an image"], { type: "image/png" });
+
+  it("is refused when the browser cannot decode it (a renamed document keeps the old logo)", async () => {
+    expect(await isDecodableImage(blob, async () => Promise.reject(new Error("The source image could not be decoded.")))).toBe(false);
+    expect(await isDecodableImage(blob, async () => ({ width: 0, height: 0 }))).toBe(false);
+  });
+
+  it("is accepted when it decodes, and the bitmap is released", async () => {
+    let closed = false;
+    expect(await isDecodableImage(blob, async () => ({ width: 400, height: 200, close: () => (closed = true) }))).toBe(true);
+    expect(closed).toBe(true);
+  });
+
+  it("gives a browser without createImageBitmap the benefit of the doubt", async () => {
+    expect(await isDecodableImage(blob, undefined)).toBe(true);
+  });
+});
 
 type Rgba = [number, number, number, number];
 
@@ -55,5 +74,19 @@ describe("logoColors", () => {
     const out = logoColors(...image(60, 20, CLEAR, [{ x: 0, y: 0, w: 60, h: 20, c: [120, 120, 125, 255] }]));
     expect(out.suggested).toBeUndefined();
     expect(out.swatches).toHaveLength(1);
+  });
+});
+
+describe("the chip, as the worker decides it (dental/logo.ts chipFor)", () => {
+  it("a teal emblem with a large white shape inside stays on the light chip", () => {
+    const [data, w, h] = image(100, 100, [0, 0, 0, 0], [
+      { x: 0, y: 0, w: 100, h: 100, c: [14, 107, 116, 255] },
+      { x: 20, y: 0, w: 60, h: 66, c: [255, 255, 255, 255] },
+    ]);
+    expect(logoColors(data, w, h).treatment).toBe("light");
+  });
+  it("a mostly white mark gets the dark chip", () => {
+    const [data, w, h] = image(100, 40, [0, 0, 0, 0], [{ x: 0, y: 0, w: 80, h: 40, c: [255, 255, 255, 255] }, { x: 80, y: 0, w: 20, h: 40, c: [26, 127, 140, 255] }]);
+    expect(logoColors(data, w, h).treatment).toBe("dark");
   });
 });

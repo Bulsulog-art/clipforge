@@ -1,4 +1,4 @@
-import { LOCALES, type Locale } from "@/content/dentvideo";
+import { LOCALES, type Locale } from "@/content/dentvideo-locales";
 
 /**
  * Which language DentVideo's interface speaks to this visitor.

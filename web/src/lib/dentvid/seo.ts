@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { dvUrl as absoluteUrl } from "@/lib/dentvid/host";
 import { LANDING, LANDING_PATH, LOCALES, HREFLANG, type Locale } from "@/content/dentvideo";
-import { SAMPLE_VIDEOS, sampleSrc } from "@/content/dentvideo-samples";
+import { sampleSrc, samplesFor } from "@/content/dentvideo-samples";
 import { dentvideoSitemapEntries } from "./seo-guides";
-import { DV_PRICES_USD, DV_TIERS } from "./billing";
 
 /** hreflang map for the landings: every locale plus x-default (English). */
 export function landingAlternates(): Record<string, string> {
@@ -13,7 +12,8 @@ export function landingAlternates(): Record<string, string> {
   return languages;
 }
 
-const OG_LOCALE: Record<Locale, string> = { en: "en_US", de: "de_DE", es: "es_ES", tr: "tr_TR", fr: "fr_FR" };
+import { ALTERNATE_NAMES, SAME_AS } from "@/content/guides/entity";
+import { OG_ALTERNATE_LOCALES, OG_LOCALE, ORG_ID, SAMPLE_UPLOAD_DATE, organizationNode, planOffers, softwareId, websiteNode } from "./seo-guides";
 
 export function landingMetadata(locale: Locale): Metadata {
   const c = LANDING[locale];
@@ -22,11 +22,22 @@ export function landingMetadata(locale: Locale): Metadata {
     title: { absolute: c.meta.title },
     description: c.meta.description,
     alternates: { canonical: url, languages: landingAlternates() },
-    openGraph: { title: c.meta.title, description: c.meta.ogDescription, url, type: "website", siteName: "DentVideo", locale: OG_LOCALE[locale] },
+    openGraph: {
+      title: c.meta.title,
+      description: c.meta.ogDescription,
+      url,
+      type: "website",
+      siteName: "DentVideo",
+      locale: OG_LOCALE[locale],
+      ...(OG_ALTERNATE_LOCALES[locale] ? { alternateLocale: OG_ALTERNATE_LOCALES[locale] } : {}),
+    },
+    // Otherwise the layout's English X card text would apply to every language.
+    twitter: { card: "summary_large_image", title: c.meta.title, description: c.meta.ogDescription },
   };
 }
 
-const PUBLISHER = { "@type": "Organization", name: "Bulsu Labs", url: "https://bulsulabs.com" };
+// The same organisation, product and site nodes (stable @ids) as the About pages, guides and commercial pages.
+const PUBLISHER = { "@id": ORG_ID };
 
 function faqPage(faq: { q: string; a: string }[]) {
   return {
@@ -40,32 +51,32 @@ export function landingJsonLd(locale: Locale) {
   return {
     "@context": "https://schema.org",
     "@graph": [
+      websiteNode(locale),
+      organizationNode(),
       {
         "@type": "SoftwareApplication",
+        "@id": softwareId(),
         name: "DentVideo",
+        alternateName: [...ALTERNATE_NAMES],
+        ...(SAME_AS.length ? { sameAs: [...SAME_AS] } : {}),
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         inLanguage: locale,
         description: c.meta.description,
         url: absoluteUrl(LANDING_PATH[locale]),
-        offers: DV_TIERS.map((tier, i) => ({
-          "@type": "Offer",
-          name: c.pricing.tiers[i].name,
-          price: DV_PRICES_USD[tier].month,
-          priceCurrency: "USD",
-          description: c.pricing.text,
-        })),
+        // Only what can be bought: Group is "Contact us", so it has no Offer (no price published that is not sold).
+        offers: planOffers(locale),
         publisher: PUBLISHER,
       },
-      { ...faqPage(c.faq), inLanguage: locale },
+      ...(c.faq.length ? [{ ...faqPage(c.faq), inLanguage: locale }] : []),
       // The sample week shown on this landing, in this landing's language.
-      ...SAMPLE_VIDEOS[locale].map((v) => ({
+      ...(samplesFor(locale) ?? []).map((v) => ({
         "@type": "VideoObject",
         name: v.name,
         description: `${c.samples.heading} — DentVideo`,
         thumbnailUrl: absoluteUrl(sampleSrc(locale, v.slug, "jpg")),
         contentUrl: absoluteUrl(sampleSrc(locale, v.slug, "mp4")),
-        uploadDate: "2026-11-08",
+        uploadDate: SAMPLE_UPLOAD_DATE,
         duration: `PT${v.seconds}S`,
         inLanguage: locale,
         publisher: PUBLISHER,

@@ -1,11 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
-import { GUIDES, type Locale } from "@/content/dentvideo";
-import { DvFooter, DvHeader } from "@/components/dentvid/chrome";
+import { GUIDES, LOCALES, type Locale } from "@/content/dentvideo";
+import { SOLUTIONS, solutionPath, solutionsFor } from "@/content/solutions";
+import { DvFooter, DvHeader, type CommercialNav } from "@/components/dentvid/chrome";
+import { chromeText } from "@/lib/dentvid/chrome-text";
+import { AdCapture } from "@/components/dentvid/ad-consent";
 import "./dentvideo.css";
 
-const sans = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], variable: "--dv-font-sans", display: "swap" });
-const serif = Instrument_Serif({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--dv-font-serif", display: "swap" });
+// `subsets` decides what is preloaded; every unicode-range slice is declared either way. Only Latin is
+// preloaded: Latin Extended (Turkish ş ğ ı, Polish ł ą ę …) is fetched by the pages whose text has those
+// letters, instead of by every visitor ahead of the page's own scripts and styles.
+const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--dv-font-sans", display: "swap" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--dv-font-serif", display: "swap" });
 
 export const metadata: Metadata = {
   // Share images and other relative URLs resolve on dentvideo.com, not the ClipForge host.
@@ -14,11 +20,23 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "DentVideo — patient-education videos for dental clinics",
-    description: "Your dentist's own voice, cut into captioned short videos. Checked before you see them. Approved by you.",
+    description: "Your dentist's own voice, cut into captioned short videos. Software-checked before you see them. Approved by you.",
   },
-  title: { default: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
+  // The root layout's ClipForge canonical and share card must not leak onto
+  // DentVideo pages that set none of their own (sign-up, app, 404): pages
+  // with a canonical set it themselves.
+  alternates: {},
+  // ClipForge's keywords ("AI video clipping", "OpusClip alternative" …) are not DentVideo's.
+  keywords: null,
+  openGraph: {
+    siteName: "DentVideo",
+    type: "website",
+    title: "DentVideo — patient-education videos for dental clinics",
+    description: "Five patient videos every Monday, software-checked before you see them. You approve.",
+  },
+  title: { absolute: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
-    "DentVideo turns a dentist's five-minute phone recording into a week of captioned, compliant short videos — and writes, narrates and checks educational videos when there is no time to film.",
+    "DentVideo turns a dentist's five-minute phone recording into a week of captioned short videos, software-checked against advertising rules — and writes and narrates educational videos when there is no time to film.",
   applicationName: "DentVideo",
   // Optional search-console verification by meta tag (DNS TXT records are the preferred route; see docs/SEO_PLAN.md).
   ...(process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION || process.env.DENTVIDEO_BING_SITE_VERIFICATION
@@ -40,15 +58,23 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#faf7f2" };
 
-// Each guide is written in one language; the header and footer follow it.
-const GUIDE_LOCALES: Record<string, Locale> = Object.fromEntries(GUIDES.map((g) => [g.slug, g.locale]));
+// Each guide and each commercial page is written in one language; the header and footer follow it.
+const GUIDE_LOCALES: Record<string, Locale> = Object.fromEntries([...GUIDES, ...SOLUTIONS].map((g) => [g.slug, g.locale]));
+
+// The header's and footer's words in every language: passed down, so the content modules they come from stay on the server.
+const CHROME_TEXT = chromeText();
+
+// The footer links every language's commercial pages (only their paths and short labels reach the browser).
+const COMMERCIAL: CommercialNav = Object.fromEntries(LOCALES.map((l) => [l, solutionsFor(l).map((p) => ({ href: solutionPath(p), label: p.nav }))]));
 
 export default function DentVideoLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`dv ${sans.variable} ${serif.variable} flex min-h-screen flex-col bg-dv-paper text-dv-ink antialiased`}>
-      <DvHeader guideLocales={GUIDE_LOCALES} />
+      <DvHeader guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} />
       <div className="flex-1">{children}</div>
-      <DvFooter guideLocales={GUIDE_LOCALES} />
+      <DvFooter guideLocales={GUIDE_LOCALES} text={CHROME_TEXT} commercial={COMMERCIAL} />
+      {/* First-touch source on every entry page, and the ad-click consent prompt (paid EU visitors only). */}
+      <AdCapture />
     </div>
   );
 }

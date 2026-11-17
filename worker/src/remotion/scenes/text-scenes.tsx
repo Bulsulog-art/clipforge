@@ -1,7 +1,8 @@
 import React from "react";
 import { useVideoConfig } from "remotion";
 import type { Theme } from "../theme.js";
-import { TYPE } from "../theme.js";
+import { PHRASE_BREAK } from "../script.js";
+import { TYPE, leading, readableOn } from "../theme.js";
 import { entrance, drift } from "../animation.js";
 import { Backdrop, DisplayText, BodyText, Label, Surface, AccentRule, useScale } from "./primitives.js";
 import type { Scene } from "../scene-plan.js";
@@ -17,7 +18,9 @@ type Props<K extends Scene["kind"]> = {
 /**
  * The hook. Everything downstream is wasted if this frame does not stop a
  * thumb, so it is the only scene that gets the largest type, the word-by-word
- * reveal and the full height of the frame to itself.
+ * reveal and the full height of the frame to itself. (As the opening scene it
+ * starts already in motion — Video.tsx, OPENING_HEAD_START — so frame 0 shows
+ * its first words.)
  */
 export const HookScene: React.FC<Props<"hook">> = ({ scene, theme, frame }) => (
   <Backdrop theme={theme}>
@@ -29,6 +32,7 @@ export const HookScene: React.FC<Props<"hook">> = ({ scene, theme, frame }) => (
       size={TYPE.hook}
       byWord
       delay={4}
+      weight={900}
     />
     {scene.sub ? (
       <BodyText text={scene.sub} theme={theme} frame={frame} delay={18} size={TYPE.body} />
@@ -94,11 +98,13 @@ export const QuoteScene: React.FC<Props<"quote">> = ({ scene, theme, frame }) =>
  * The close. Kept quiet on purpose: a call to action that shouts reads as an
  * advert and gets scrolled, and the ask is a single line either way.
  */
-export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: LogoStyle } }> = ({
+export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: LogoStyle }; clinic?: string; notice?: boolean }> = ({
   scene,
   theme,
   frame,
   logo,
+  clinic,
+  notice,
 }) => {
   const scale = useScale();
   const pulse = drift(frame, 70, 0.012);
@@ -108,7 +114,8 @@ export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: L
   const mark = entrance(frame, { delay: 8, duration: 22, distance: 34 });
   return (
     <Backdrop theme={theme}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 * scale }}>
+      {/* Lifted when a market's notice sits at the foot of the frame, so it never covers the handle (seen in a TR render). */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 * scale, marginBottom: notice ? 300 * scale : 0 }}>
         <DisplayText
           text={scene.text}
           theme={theme}
@@ -129,16 +136,40 @@ export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: L
             <LogoMark src={logo.src} style={logo.style} theme={theme} size={CTA_LOGO} signOff />
           </div>
         ) : null}
+        {clinic ? (
+          // Who is talking: the clinic's name under its logo, so the last frame
+          // (the one a viewer pauses on) says whose video this is.
+          <div
+            style={{
+              fontFamily: theme.bodyFont,
+              fontSize: TYPE.handle * scale,
+              fontWeight: 600,
+              letterSpacing: "0.01em",
+              textAlign: "center",
+              maxWidth: "88%",
+              color: theme.foreground,
+              marginTop: logo ? 0 : 18 * scale,
+              opacity: mark.opacity,
+              transform: `translateY(${mark.translateY * scale}px)`,
+            }}
+          >
+            {clinic}
+          </div>
+        ) : null}
         {scene.handle ? (
           <div
             style={{
               fontFamily: theme.bodyFont,
-              fontSize: TYPE.label * scale,
+              // A handle is what the viewer has to type: large enough to read in one glance.
+              fontSize: TYPE.handle * scale,
               fontWeight: 700,
-              letterSpacing: "0.06em",
-              color: theme.onAccent,
+              letterSpacing: "0.02em",
+              // A handle is Latin and left-to-right even in an Arabic frame ("@clinic", not "clinic@").
+              direction: "ltr",
+              unicodeBidi: "isolate",
+              color: readableOn(theme.accent, [theme.onAccent]),
               background: theme.accent,
-              padding: `${16 * scale}px ${34 * scale}px`,
+              padding: `${18 * scale}px ${40 * scale}px`,
               borderRadius: 999,
               marginTop: logo ? 8 * scale : 0,
               opacity: chip.opacity,
@@ -179,7 +210,7 @@ export const CompareScene: React.FC<Props<"compare">> = ({ scene, theme, frame }
         }}
       >
         {sides.map((side, i) => (
-          <Surface key={i} theme={theme} frame={frame} delay={side.delay} grow>
+          <Surface key={i} theme={theme} frame={frame} delay={side.delay} grow accent={i === 1}>
             <Label
               text={side.label}
               theme={theme}
@@ -193,7 +224,8 @@ export const CompareScene: React.FC<Props<"compare">> = ({ scene, theme, frame }
                 fontFamily: theme.displayFont,
                 fontSize: 62 * scale,
                 fontWeight: 700,
-                lineHeight: 1.22,
+                lineHeight: leading(theme, 1.22),
+                ...PHRASE_BREAK,
                 color: theme.foreground,
               }}
             >

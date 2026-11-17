@@ -1,22 +1,127 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
 import { StartForm } from "@/components/dentvid/start-form";
+import { LazyOnboarding as Onboarding } from "@/components/dentvid/onboarding-lazy";
+import { RememberLocale } from "@/components/dentvid/chrome";
+import { LazyScriptFont } from "@/components/dentvid/font-lazy";
 import { appText } from "@/content/dentvideo-app";
+import { LANDING_PATH } from "@/content/dentvideo";
 import { asLocale } from "@/lib/dentvid/locale";
 import { dvLocale } from "@/lib/dentvid/locale-server";
+import { dvSession } from "@/lib/dentvid/auth";
+import { signedOutMode } from "@/lib/dentvid/start-mode";
+import { STEP_COOKIE, needsPlanHistory, resolveStep } from "@/lib/dentvid/onboarding";
+import { clinicReachedPlan } from "@/lib/dentvid/events-server";
+import { logoSignedUrl } from "@/lib/dentvid/logo-url";
+import { isEmailVerified } from "@/lib/dentvid/verify-email";
+import { legalPagesOn } from "@/lib/dentvid/legal";
+import type { ClinicProfile } from "@/lib/dentvid/profile";
+import { marksBrowserInternal } from "@/lib/dentvid/internal-traffic";
+import { InternalMark } from "@/components/dentvid/internal-mark";
+import { dvAvailablePlans } from "@/lib/dentvid/billing";
+import { DEMO_COOKIE, demoTokenFrom } from "@/lib/dentvid/demo-cookie";
+import { loadActiveDemo } from "@/lib/dentvid/demos-server";
+import { demoLogoSrc } from "@/lib/dentvid/demos";
 
-type Props = { searchParams: Promise<{ lang?: string }> };
+export const dynamic = "force-dynamic";
 
-async function pageLocale(searchParams: Props["searchParams"]) {
-  const fromLink = asLocale((await searchParams).lang);
-  return { locale: fromLink ?? (await dvLocale()), fromLink: fromLink !== null };
-}
+type Props = { searchParams: Promise<{ lang?: string; step?: string; billing?: string; payment?: string; demo?: string; mode?: string }> };
 
+/**
+ * The paid funnel: 1 account → 2 clinic → 3 live preview → 4 plan and pay.
+ * There is no free week — the preview is drawn in the browser, and the first
+ * real week is made right after payment (api/dodo/webhook). A returning
+ * visitor lands on the step they reached (lib/dentvid/onboarding.ts).
+ */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { locale } = await pageLocale(searchParams);
-  return { title: appText(locale).start.metaTitle };
+  const fromLink = asLocale((await searchParams).lang);
+  const locale = fromLink ?? (await dvLocale());
+  const t = appText(locale);
+  // noindex, but a shared sign-up link still unfurls: text and card in the link's language.
+  // (Setting openGraph here replaces the inherited one, so the share image is named too.)
+  const description = t.start.metaDescription;
+  const title = `${t.start.metaTitle} · DentVideo`;
+  const image = `${LANDING_PATH[locale]}/opengraph-image`;
+  return {
+    title: t.start.metaTitle,
+    description,
+    openGraph: { siteName: "DentVideo", type: "website", title, description, images: [{ url: image, width: 1200, height: 630, alt: "DentVideo" }] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
 }
 
 export default async function StartPage({ searchParams }: Props) {
-  const { locale, fromLink } = await pageLocale(searchParams);
-  return <StartForm locale={locale} remember={fromLink} />;
+  const sp = await searchParams;
+  const fromLink = asLocale(sp.lang);
+  const { db, user } = await dvSession();
+
+  if (!user) {
+    const locale = fromLink ?? (await dvLocale());
+    // Always announce the language the form is drawn in, so the header and footer
+    // (which choose theirs in the browser) match it — also when it came from Accept-Language.
+    return (
+      <>
+        <LazyScriptFont locale={locale} />
+        <StartForm locale={locale} remember legal={legalPagesOn()} initialMode={signedOutMode(new URLSearchParams({ ...(sp.mode ? { mode: sp.mode } : {}), ...(sp.step ? { step: sp.step } : {}) }))} />
+      </>
+    );
+  }
+
+  const { data: clinic } = await db.from("dentvid_clinics").select("id, profile, logo_path, plan").eq("owner_id", user.id).maybeSingle();
+  const profile = (clinic?.profile ?? undefined) as Partial<ClinicProfile> | undefined;
+  const cookieStore = await cookies();
+  // From a personalised demo link (?demo= or the dv-demo cookie): a clinic without a name yet starts from the demo.
+  const demoToken = profile?.name ? null : demoTokenFrom(sp.demo, cookieStore.get(DEMO_COOKIE)?.value);
+  const demo = demoToken ? await loadActiveDemo(demoToken) : null;
+  const stepInput = {
+    signedIn: true,
+    hasClinic: !!clinic,
+    plan: (clinic as { plan?: string } | null)?.plan ?? null,
+    requested: sp.step,
+    reached: cookieStore.get(STEP_COOKIE)?.value,
+  };
+  // The cookie is per browser and cleared on sign-out: a clinic that saw the plans
+  // before is also recognised from its recorded plan-step events.
+  const reachedPlan = clinic && needsPlanHistory(stepInput) ? await clinicReachedPlan(clinic.id as string) : false;
+  const where = resolveStep({ ...stepInput, reachedPlan });
+  if (where.kind === "app") redirect(dvHref("/dentvideo/app"));
+  const step = where.step === "account" ? "clinic" : where.step;
+
+  const locale = fromLink ?? (await dvLocale(profile?.language ?? demo?.language));
+  const logoUrl = await logoSignedUrl(db, clinic?.logo_path as string | null | undefined);
+  return (
+    <>
+      <RememberLocale locale={locale} />
+      <LazyScriptFont locale={locale} />
+      {/* Owner / QA / e2e signed in: this browser is internal traffic from now on (lib/dentvid/internal-flag). */}
+      {marksBrowserInternal(user) && <InternalMark />}
+      <Onboarding
+        locale={locale}
+        step={step}
+        initial={profile}
+        logoUrl={logoUrl}
+        plans={dvAvailablePlans()}
+        checkoutCancelled={sp.billing === "cancelled"}
+        paymentFailed={sp.billing === "cancelled" && sp.payment === "failed"}
+        account={user.email ? { email: user.email, verified: isEmailVerified(user) } : undefined}
+        demo={
+          demo
+            ? {
+                token: demo.token,
+                profile: {
+                  name: demo.clinicName,
+                  ...(demo.city ? { city: demo.city } : {}),
+                  ...(demo.country ? { country: demo.country } : {}),
+                  language: demo.language,
+                  brandColor: demo.colour,
+                },
+                logoUrl: demo.hasLogo ? demoLogoSrc(demo.token) : null,
+              }
+            : undefined
+        }
+      />
+    </>
+  );
 }

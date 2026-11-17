@@ -1,0 +1,113 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { dvHref } from "@/lib/dentvid/host";
+import { dvBrowser } from "@/lib/dentvid/supabase";
+import { authText } from "@/content/dentvideo-auth";
+import { DvIcon } from "./mark";
+import { FieldError, ValidatingForm } from "./validating-form";
+import { passwordTooLong, resetSaveOutcome } from "@/lib/dentvid/password";
+import { dirOf, type Locale } from "@/content/dentvideo";
+
+type Phase = "checking" | "ready" | "invalid" | "saving" | "saved";
+
+/** Opened from the reset email: exchange the token for a session, then set a new password. */
+export function ResetForm({ tokenHash, locale }: { tokenHash: string | null; locale: Locale }) {
+  const t = authText(locale);
+  const router = useRouter();
+  const [phase, setPhase] = useState<Phase>("checking");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!tokenHash) return setPhase("invalid");
+      // Exchanged on the server: opening this link proves the address, so the
+      // account is marked verified there (lib/dentvid/verify-email).
+      let ok = false;
+      try {
+        const res = await fetch("/api/dentvideo/password-reset/exchange", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ token_hash: tokenHash }),
+        });
+        const body = (await res.json().catch(() => ({}))) as { access_token?: string; refresh_token?: string };
+        if (res.ok && body.access_token && body.refresh_token) {
+          const { error: e } = await dvBrowser().auth.setSession({ access_token: body.access_token, refresh_token: body.refresh_token });
+          ok = !e;
+        }
+      } catch {
+        ok = false;
+      }
+      if (!cancelled) setPhase(ok ? "ready" : "invalid");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tokenHash]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (password.length < 8) return setError(t.tooShort);
+    if (passwordTooLong(password)) return setError(t.passwordTooLong);
+    setError(null);
+    setPhase("saving");
+    const { error: e2 } = await dvBrowser().auth.updateUser({ password });
+    const outcome = resetSaveOutcome(e2);
+    if (outcome !== "saved") {
+      setError(outcome === "tooLong" ? t.passwordTooLong : t.linkInvalid);
+      setPhase("ready");
+      return;
+    }
+    setPhase("saved");
+    router.push(dvHref("/dentvideo/start"));
+    router.refresh();
+  }
+
+  return (
+    <main lang={locale} dir={dirOf(locale)} className="relative isolate overflow-hidden">
+      <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
+      <div className="mx-auto flex max-w-md flex-col px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
+        <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
+        <h1 className="dv-display dv-h-page mt-6 text-center text-dv-ink">{t.resetTitle}</h1>
+        {phase === "invalid" ? (
+          <div className="dv-card mt-9 space-y-4 p-6 sm:p-8">
+            <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{t.linkInvalid}</p>
+            <a href={dvHref(`/dentvideo/start?mode=forgot&lang=${encodeURIComponent(locale)}`)} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
+              {t.forgot}
+            </a>
+          </div>
+        ) : (
+          <>
+            <p className="mt-3 text-center leading-relaxed text-dv-body">{t.resetLead}</p>
+            <ValidatingForm locale={locale} onSubmit={submit} className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+              <label className="block">
+                <span className="text-sm font-semibold text-dv-ink">{t.newPassword}</span>
+                <input
+                  type="password"
+                  dir="ltr"
+                  required
+                  minLength={8}
+                  data-field="password"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="dv-field"
+                  disabled={phase !== "ready"}
+                />
+                <FieldError name="password" />
+              </label>
+              {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+              {phase === "saved" && <p className="rounded-xl bg-[#e6f2ef] px-4 py-3 text-sm text-[#0f5c5c]" role="status">{t.saved}</p>}
+              <button type="submit" disabled={phase !== "ready"} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
+                {t.savePassword}
+              </button>
+            </ValidatingForm>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
