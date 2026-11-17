@@ -23,7 +23,7 @@ export function rng(seed: number) {
 const NAMES: Record<string, { country: string; names: string[] }> = {
   en: { country: "GB", names: ["Riverside Dental", "Harbour Smiles", "Oakwood Dental Care", "The Smile Studio", "Kingsway Dental", "Brightside Dentistry", "Meadow Lane Dental"] },
   de: { country: "DE", names: ["Zahnarztpraxis am Park", "Zahnzentrum Mitte", "Praxis Dr. Weber", "Zahnärzte am Markt", "Lächelwerk"] },
-  tr: { country: "TR", names: ["Gülümse Diş Kliniği", "Ağız ve Diş Sağlığı Merkezi", "Dentpark İzmir", "Beyaz Diş Kliniği"] },
+  tr: { country: "TR", names: ["Örnek Diş Kliniği", "Ağız ve Diş Sağlığı Merkezi", "Demo Diş Merkezi İzmir", "Deneme Diş Kliniği"] },
   es: { country: "ES", names: ["Clínica Dental Sonrisa", "Dental Mediterráneo", "Clínica Dental Sol"] },
   fr: { country: "FR", names: ["Cabinet Dentaire du Parc", "Centre Dentaire Lumière", "Cabinet Dr Martin"] },
   pl: { country: "PL", names: ["Gabinet Uśmiech", "Dentica Kraków"] },

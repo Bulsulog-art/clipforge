@@ -44,6 +44,8 @@ const INPUTS = [
   "Ağrısız implant tedavisi, %100 garantili sonuç! İstanbul'un en iyi diş kliniği. Kampanya: beyazlatmada indirim, 12 taksit. Öncesi sonrası fotoğraflarımıza bakın, hasta yorumları sayfamızda.",
   "Ömür boyu kalıcı gülüş, kesin sonuç. Geç olmadan hemen randevu alın! Diş eti hastalıklarını önler.",
   "Ücretsiz muayene fırsatı, 1500 TL'den başlayan fiyatlarla.",
+  // KM-52: patient satisfaction in a plain sentence, marked clean on the TR checker.
+  "Hastalarımız çok memnun.",
   // German
   "Schmerzfreie Behandlung mit Erfolgsgarantie! Die beste Zahnarztpraxis in München. Vorher-Nachher-Bilder und Patientenstimmen. 20 % Rabatt mit Gutschein.",
   "Bleaching wirkt dauerhaft und verhindert Karies. Warten Sie nicht länger, bevor es zu spät ist.",

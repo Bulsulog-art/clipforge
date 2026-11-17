@@ -150,7 +150,7 @@ describe("owner guards", () => {
 
   it("compares the typed clinic name calmly (case, spaces, Unicode form)", () => {
     expect(confirmMatches("  riverside   DENTAL ", "Riverside Dental")).toBe(true);
-    expect(confirmMatches("Gülümse Diş Kliniği".normalize("NFD"), "Gülümse Diş Kliniği")).toBe(true);
+    expect(confirmMatches("Örnek Diş Kliniği".normalize("NFD"), "Örnek Diş Kliniği")).toBe(true);
     expect(confirmMatches("Riverside", "Riverside Dental")).toBe(false);
     expect(confirmMatches("", "")).toBe(false);
   });

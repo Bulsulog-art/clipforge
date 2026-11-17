@@ -47,7 +47,7 @@ const S: Record<Locale, Sample> = {
     video: "fr/blanchiment-email",
   },
   tr: {
-    clinic: "Gülümse Diş Kliniği",
+    clinic: "Örnek Diş Kliniği",
     city: "İzmir",
     title: "Beyazlatma ve hassasiyet",
     caption: "Beyazlatıcı diş macunları yüzeydeki lekeleri parlatır; dişin doğal rengini değiştirmez.\n\nBeyazlatma sonrası hassasiyet genellikle birkaç gün içinde azalır.",

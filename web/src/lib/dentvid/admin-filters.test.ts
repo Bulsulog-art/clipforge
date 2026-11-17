@@ -45,7 +45,7 @@ describe("clinic filters", () => {
   const rows = [
     clinic({ id: A, plan: "active", plan_tier: "practice", profile: { name: "Zahnzentrum Mitte", country: "DE", language: "de" }, created_at: ago(3), lastActivity: ago(0.1), source: "instagram / dm / de-launch" }),
     clinic({ id: B, plan: "trial", profile: { name: "Harbour Smiles", country: "GB", language: "en" }, created_at: ago(60), lastActivity: ago(1) }),
-    clinic({ id: "c", plan: "active", admin_paused_at: ago(1), profile: { name: "Dentpark", country: "TR", language: "tr" }, created_at: ago(20), source: "google / — / —" }),
+    clinic({ id: "c", plan: "active", admin_paused_at: ago(1), profile: { name: "Demo Diş Merkezi", country: "TR", language: "tr" }, created_at: ago(20), source: "google / — / —" }),
   ];
   const ids = (sp: Record<string, string>) => filterClinics(rows, parseClinicFilter(sp), NOW).map((r) => r.id);
 

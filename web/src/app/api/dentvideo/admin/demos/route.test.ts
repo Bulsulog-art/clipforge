@@ -58,18 +58,18 @@ describe("admin-only", () => {
 
 describe("creating a demo", () => {
   it("returns the share link and the two messages in the clinic's language", async () => {
-    const r = await post({ clinicName: "Gülümse Diş Kliniği", city: "İzmir", country: "tr", language: "tr", colour: "", campaign: "" });
+    const r = await post({ clinicName: "Örnek Diş Kliniği", city: "İzmir", country: "tr", language: "tr", colour: "", campaign: "" });
     expect(r.status).toBe(200);
     expect(r.body.token).toBe("Ab3dE5fG7hJ");
     expect(r.body.url).toMatch(/\/tr\/d\/Ab3dE5fG7hJ$/);
     const m = r.body.messages as { ask: string; link: string };
-    expect(m.ask).toContain("Merhaba Gülümse Diş Kliniği ekibi");
+    expect(m.ask).toContain("Merhaba Örnek Diş Kliniği ekibi");
     expect(m.ask).not.toContain("https://");
     expect(m.link).toContain(r.body.url as string);
     // A clinic in Türkiye: the TL list price its checkout charges.
     expect(m.link).toContain("Başlangıç fiyatı aylık 1.490 TL");
     expect(m.link).not.toContain("kurucu");
-    expect(created[0]).toMatchObject({ input: { clinicName: "Gülümse Diş Kliniği", country: "TR", language: "tr", campaign: "tr-launch" }, logo: null, by: ADMIN });
+    expect(created[0]).toMatchObject({ input: { clinicName: "Örnek Diş Kliniği", country: "TR", language: "tr", campaign: "tr-launch" }, logo: null, by: ADMIN });
   });
 
   it("stores an uploaded PNG, refuses a non-image or a file over 2 MB", async () => {
