@@ -9,7 +9,7 @@ final class PurchaseJourneyTests: DVTestCase {
     func testSignUpVerifyClinicPaywallBuyThenPlanActive() {
         launch(["SignedIn": "0"])
         openSignUp()
-        fillSignUp("new@clinic.example", "a long password")
+        fillSignUp("new@clinic.example", "a long clinic password 2026")
 
         // The 6-digit code: a wrong one says so, the right one opens the account.
         XCTAssertEqual(waitExplained(el("code.title"), "code step").label, Strings.value("code.title"))
@@ -59,7 +59,7 @@ final class PurchaseJourneyTests: DVTestCase {
     func testSignUpWithAnAddressThatHasAnAccount() {
         launch(["SignedIn": "0"])
         openSignUp()
-        fillSignUp("taken@clinic.example", "a long password")
+        fillSignUp("taken@clinic.example", "a long clinic password 2026")
         XCTAssertTrue(waitExplained(el("signup.notice"), "existing-account notice").label.contains(Strings.value("signup.existing")))
         XCTAssertFalse(el("code.title").exists)
         el("signup.toSignIn").tap()
@@ -172,18 +172,18 @@ final class PurchaseJourneyTests: DVTestCase {
     private func fillSignUp(_ email: String, _ password: String) {
         type(wait(el("signup.email")), email + "\n")
         let pw = el("signup.password")
-        // iOS 18 (SE run 44189260264): keys typed while the focus was still moving were lost, so
-        // the form saw a short password. Wait for the focus, then check the dots and type again.
+        // The iOS 18 runner drops keystrokes when they come fast (runs 44189260264 and 44194834942:
+        // the form said "at least 8 characters"; EnvironmentTests got "W" for "Wi" on the same
+        // simulator), and a secure field does not show what arrived. Wait for the focus and type
+        // one key at a time. The journeys use a long password, so the length rule is not what they test.
         let focused = NSPredicate(format: "hasKeyboardFocus == true")
         if XCTWaiter.wait(for: [expectation(for: focused, evaluatedWith: pw)], timeout: 3) != .completed {
             if !pw.isHittable { app.swipeUp() }
             focus(pw) { pw.tap() }
         }
-        app.typeText(password)
-        for _ in 0..<2 {
-            guard let dots = pw.value as? String, dots.count != password.count else { break }
-            app.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: dots.count + 2))
-            app.typeText(password)
+        for c in password {
+            app.typeText(String(c))
+            usleep(60_000)
         }
         app.typeText("\n")
     }
