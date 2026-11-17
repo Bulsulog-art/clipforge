@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { DvActor } from "@/lib/dentvid/handlers/item-patch";
-import { dvErrors } from "@/lib/dentvid/locale-server";
+import { dvErrors, dvLocale } from "@/lib/dentvid/locale-server";
+import { appStoreText } from "@/content/dentvideo-app-store";
+import { APP_STORE_MANAGE_URL } from "@/lib/dentvid/apple-billing";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dvAdmin } from "@/lib/dentvid/supabase";
@@ -23,7 +25,9 @@ export async function deleteAccount({ db, user }: DvActor, req: Request): Promis
   const limited = await rateLimited([{ key: `rl:delete:user:${user.id}`, rule: LIMITS.accountDeleteUser }], async () => (await dvErrors()).tooMany);
   if (limited) return limited;
 
-  const err = await accountErrors(await ownClinic(db, user.id));
+  const own = await ownClinic(db, user.id);
+  const err = await accountErrors(own);
+  const language = (own?.profile as { language?: string } | undefined)?.language;
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: err.deleteConfirm }, { status: 400 });
 
@@ -47,5 +51,10 @@ export async function deleteAccount({ db, user }: DvActor, req: Request): Promis
 
   // The login is gone; clear this browser's session cookie too.
   await db.auth.signOut().catch(() => {});
+  // An App Store subscription keeps running until the customer cancels it in Settings (Apple's rule: say so).
+  if (result.appStoreSubscription) {
+    const notice = appStoreText(await dvLocale(language)).deleteNotice;
+    return NextResponse.json({ ok: true, appStoreSubscription: true, notice, manageUrl: APP_STORE_MANAGE_URL });
+  }
   return NextResponse.json({ ok: true });
 }

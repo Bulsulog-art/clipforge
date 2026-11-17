@@ -18,13 +18,14 @@ import {
   type DvTier,
 } from "./billing";
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
-import { recordEvent } from "./events-server";
-import { recordPaidConversion } from "./ad-conversions-server";
-import { ownerIsInternal } from "./internal-server";
 import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert";
-import { clinicRefFor, markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
+import { markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
 import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
 import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
+import { ENQUEUE_TIMEOUT_MS, afterPaid, tellOwner, withTimeout, type ActivationDeps } from "./billing-activation";
+import { isAppleManaged, readClinicSource, setBillingSource } from "./apple-store";
+
+export { ENQUEUE_TIMEOUT_MS, withTimeout } from "./billing-activation";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -34,26 +35,9 @@ export type DvWebhookResult = { status: 200 | 500; body: Record<string, unknown>
 
 export type DvWebhookEvent = { type: string; data: DodoEventData; timestamp?: unknown };
 
-export type DvWebhookDeps = {
-  /** Queue the clinic's first week (tests pass a mock; the default uses the BullMQ dentvid queue). */
-  enqueueWeek?: (db: SupabaseClient, clinicId: string) => Promise<FirstWeekResult>;
-  /** Send the welcome email (tests pass a mock; the default goes through lifecycle.ts and Resend). */
-  sendWelcome?: (db: SupabaseClient, clinicId: string) => Promise<string>;
+export type DvWebhookDeps = ActivationDeps & {
   /** "Your payment didn't go through" to the clinic (default: lifecycle.ts sendPaymentProblem). */
   sendPaymentMail?: (db: SupabaseClient, clinicId: string, kind: PaymentProblemKind, fix: PaymentFix) => Promise<string>;
-  /** Owner alerts (tests pass a mock; the default is ops-server → OWNER_ALERT_EMAIL). */
-  alert?: (a: OwnerAlert) => Promise<unknown>;
-  /** Name, country, tier, email of a clinic for an alert. */
-  clinicRef?: (db: SupabaseClient, clinicId: string) => Promise<ClinicRef>;
-  /** Tell the worker's first-week watchdog a clinic just paid — first time or back from paused/cancelled (Redis marker). */
-  markPaid?: (clinicId: string, at?: Date, returning?: boolean) => Promise<void>;
-  /** Record the Google Ads "dv_paid" conversion for a first payment (default: ad-conversions-server; best effort). */
-  adConversion?: (db: SupabaseClient, clinic: { id: string; owner_id: string }) => Promise<string>;
-  /**
-   * Is the clinic's owner internal traffic (lib/dentvid/internal-traffic: owner, QA, e2e, monitor)?
-   * Internal owners never produce a Google Ads conversion, and their payment event is tagged internal.
-   */
-  ownerInternal?: (db: SupabaseClient, ownerId: string) => Promise<boolean>;
   /** The subscription ledger (0007); the default degrades to "unknown" when the table is missing. */
   subs?: SubscriptionStore;
   /**
@@ -74,29 +58,9 @@ export type DvWebhookDeps = {
    * Exactly one DentVideo clinic owner, or the reason none was picked (default: Liman's auth admin API).
    */
   clinicByEmail?: (db: SupabaseClient, email: string) => Promise<ClinicByEmail>;
-  now?: () => Date;
-  /** How long queueing the week may take before it counts as failed (default ENQUEUE_TIMEOUT_MS). */
-  enqueueTimeoutMs?: number;
+  /** Is the clinic's live plan paid through the App Store (apple-store.ts, 0026)? Default reads the clinic row. */
+  appleManaged?: (db: SupabaseClient, clinic: { id: string; plan: string }) => Promise<boolean>;
 };
-
-/**
- * The web app's BullMQ connection queues commands while Redis is down
- * (enableOfflineQueue, no retry limit), so `queue.add` would hang until Redis
- * returns: the webhook would never answer, the welcome email and the owner's
- * "could not queue" alert would never go out, and Dodo's retry would find the
- * delivery still "in progress". Bounded: past this the week counts as not
- * queued — the owner is told and the worker's watchdog re-queues it.
- */
-export const ENQUEUE_TIMEOUT_MS = 5_000;
-
-/** Rejects after `ms` (the underlying call keeps running; a late success is harmless — same job id). */
-export function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const t = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`${what} timed out after ${ms} ms`)), ms);
-  });
-  return Promise.race([p, t]).finally(() => clearTimeout(timer));
-}
 
 /** Payment trouble that does not move the plan yet (Dodo keeps the subscription through its grace period). */
 const AT_RISK_ONLY = new Set(["payment.failed", "subscription.past_due"]);
@@ -105,23 +69,8 @@ const MONEY_BACK = /^(refund|dispute)\./;
 const CHARGEBACK = new Set(["dispute.opened", "dispute.accepted", "dispute.lost"]);
 /** The clinic won the dispute: a pause that came only from the chargeback is lifted. */
 const DISPUTE_WON = "dispute.won";
-/** Welcome results that mean a paying clinic got no welcome because something broke (not "already sent", "test account"…; without RESEND_API_KEY no alert could be sent either). */
-const WELCOME_PROBLEM = new Set(["failed", "migration missing"]);
 
-async function tell(db: SupabaseClient, deps: DvWebhookDeps, clinicId: string, make: (c: ClinicRef) => OwnerAlert): Promise<void> {
-  try {
-    const c = await (deps.clinicRef ?? clinicRefFor)(db, clinicId);
-    await (deps.alert ?? raiseOwnerAlert)(make(c));
-  } catch (e) {
-    console.error("[dodo:dentvideo] owner alert failed", (e as Error).message);
-  }
-}
-
-async function welcome(db: SupabaseClient, clinicId: string): Promise<string> {
-  if (!process.env.RESEND_API_KEY) return "no email key";
-  const [{ sendWelcome, supabaseLifecycleStore, lifecycleConfig }, { sendEmail }] = await Promise.all([import("./lifecycle"), import("./email")]);
-  return sendWelcome({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig() }, clinicId);
-}
+const tell = (db: SupabaseClient, deps: DvWebhookDeps, clinicId: string, make: (c: ClinicRef) => OwnerAlert) => tellOwner(db, deps, clinicId, make);
 
 async function paymentMail(db: SupabaseClient, clinicId: string, kind: PaymentProblemKind, fix: PaymentFix): Promise<string> {
   if (!process.env.RESEND_API_KEY) return "no email key";
@@ -289,6 +238,8 @@ async function atRiskOnly(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebho
   if (found.untrusted) return refuseSuspicious(evt, deps, "owner mismatch");
   const clinic = found.row;
   if (!clinic) return { status: 200, body: { ok: true, app: "dentvideo", ignored: evt.type } };
+  // An old Dodo subscription failing while the App Store pays for the plan: no "update your card" email.
+  if (await (deps.appleManaged ?? isAppleManaged)(db, clinic)) return { status: 200, body: { ok: true, app: "dentvideo", ignored: "app_store_managed" } };
   // A first payment that failed at checkout: the clinic saw it there; it has no plan to lose.
   const firstAttempt = clinic.plan === "trial" && !clinic.dodo_subscription_id;
   let clinicEmail: string | undefined;
@@ -338,7 +289,9 @@ async function moneyBack(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhoo
   // The ledger row of the subscription the clinic's access comes from (undefined: no ledger).
   const subId = clinic.dodo_subscription_id ?? null;
   const current = subId ? await subs.get(subId) : null;
-  if (CHARGEBACK.has(evt.type) && clinic.plan === "active") {
+  // A chargeback on an old Dodo payment never pauses a plan the App Store pays for now.
+  const appleOwned = await (deps.appleManaged ?? isAppleManaged)(db, clinic);
+  if (CHARGEBACK.has(evt.type) && clinic.plan === "active" && !appleOwned) {
     const { error } = await db.from("dentvid_clinics").update({ plan: "paused", updated_at: now.toISOString() }).eq("id", clinic.id);
     if (error) return { status: 500, body: { error: error.message } };
     paused = true;
@@ -366,6 +319,26 @@ async function moneyBack(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhoo
   }
   await tell(db, deps, clinic.id, (c) => alerts.billingDispute({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, paymentId: d.payment_id ?? null, paused, resumed }));
   return { status: 200, body: { ok: true, app: "dentvideo", event: evt.type, paused, ...(resumed ? { resumed } : {}) } };
+}
+
+/** A Dodo payment switched the clinic on: if its last plan came from the App Store, the web owns it again (0026; best effort). */
+async function setDodoSource(db: SupabaseClient, clinicId: string): Promise<void> {
+  const cur = await readClinicSource(db, clinicId);
+  if (cur?.source === "apple") await setBillingSource(db, clinicId, "dodo");
+}
+
+/**
+ * The clinic's live plan is an App Store subscription (apple-webhook.ts): a Dodo event never moves it.
+ * A Dodo subscription that activates anyway (a race, an old payment link) is a second subscription:
+ * recorded, the owner told to cancel and refund it in Dodo (we can; only the customer can for Apple).
+ */
+async function appStoreOwns(db: SupabaseClient, evt: DvWebhookEvent, deps: DvWebhookDeps, clinic: ClinicRow, subscriptionId: string, activation: boolean): Promise<DvWebhookResult> {
+  console.warn("[dodo:dentvideo] event for a clinic whose plan is managed in the App Store", evt.type, subscriptionId, clinic.id);
+  if (activation) {
+    const apple = (await readClinicSource(db, clinic.id))?.appleSubscription ?? "unknown";
+    await tell(db, deps, clinic.id, (c) => alerts.appStoreBilling({ kind: "cross_channel", event: evt.type, subscription: apple, other: subscriptionId, clinic: c }));
+  }
+  return { status: 200, body: { ok: true, app: "dentvideo", ignored: "app_store_managed" } };
 }
 
 /** A DentVideo event the route could not process (500 or exception): the owner is told once a day per event type. */
@@ -459,6 +432,12 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   const reported = dvEventSubStatus(evt.type, d) ?? (t.kind === "activate" ? "active" : t.plan);
   const stamp = eventAt ?? now.toISOString();
   const record = (status: string) => (ledger ? subs.put(ledgerRow(clinic.id, t.subscriptionId, status, d, prev, stamp, evt.type)) : Promise.resolve(false));
+
+  // 0. The clinic pays through the App Store (0026): its plan is Apple's; this Dodo event is only recorded.
+  if (await (deps.appleManaged ?? isAppleManaged)(db, clinic)) {
+    await record(reported);
+    return appStoreOwns(db, evt, deps, clinic, t.subscriptionId, t.kind === "activate");
+  }
 
   // 1. Out of order: an older event never undoes a newer one. A "pending" row only says a
   // payment arrived (rows written before that rule may carry the payment's time): never stale against it.
@@ -579,63 +558,33 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
     });
   }
 
-  // The owner hears about it: a new (or returning) paying clinic — good news, sent at once —
-  // and a paying clinic whose subscription stopped (customer at risk).
-  // Internal traffic (owner, QA, e2e): looked up only when a payment lands, never on other events.
-  const internal = update.plan === "active" ? await (deps.ownerInternal ?? ownerIsInternal)(db, clinic.owner_id).catch(() => false) : false;
-  if (to === "active" && from !== "active") {
-    // Every activation, not only the first: a clinic back from on hold / cancelled is owed its week
-    // just the same, and the worker's watchdog only checks the clinics it is told about.
-    await (deps.markPaid ?? markPaid)(clinic.id, now, !first).catch(() => {});
-    // Google Ads offline conversion "dv_paid" when the owner came from an ad (one per account: a replay is a no-op).
-    // Never for an internal owner: a QA purchase must not reach Google Ads.
-    if (first && !internal) await (deps.adConversion ?? recordPaidConversion)(db, { id: clinic.id, owner_id: clinic.owner_id }).catch(() => "failed");
-    await tell(db, deps, clinic.id, (c) =>
-      alerts.newPayingClinic({
-        clinic: { ...c, tier: c.tier ?? t.tier },
-        interval: typeof d.metadata?.interval === "string" ? d.metadata.interval : null,
-        returning: !first,
-      }),
-    );
-  } else if (from === "active" && (to === "paused" || to === "cancelled")) {
+  // A paying clinic whose subscription stopped: the owner hears about it (customer at risk).
+  if (from === "active" && (to === "paused" || to === "cancelled")) {
     await tell(db, deps, clinic.id, (c) =>
       alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from, to, clinicEmailed: clinicEmail === "sent" }),
     );
   }
 
-  // Paid: make this week's videos now rather than waiting for Monday. The
-  // worker emails the dentist when they are ready. Best effort — the plan
-  // has already moved, and the app's "first week" screen asks for the week
-  // again (idempotent, same job id) if this did not get through. A returning
-  // clinic that already has this week's videos keeps them (enqueueFirstWeek).
-  if (update.plan === "active") void recordEvent("payment_succeeded", { db, clinicId: clinic.id, props: { tier: t.tier, interval: d.metadata?.interval, first, activated: from !== "active", event: evt.type }, internal });
+  // Paid: the shared activation (billing-activation.ts) — week queued now, watchdog told, owner's
+  // "new paying clinic", welcome once per clinic, Google Ads dv_paid for a first web payment.
   let firstWeek: FirstWeekResult | "failed" | undefined;
-  if (update.plan === "active" && from !== "active") {
-    try {
-      firstWeek = await withTimeout((deps.enqueueWeek ?? queueWeek)(db, clinic.id), deps.enqueueTimeoutMs ?? ENQUEUE_TIMEOUT_MS, "queueing the week");
-    } catch (e) {
-      firstWeek = "failed";
-      console.error("[dodo:dentvideo] could not queue the first week", clinic.id, (e as Error).message);
-      // The first-week watchdog re-queues it once Redis is back — but a brand-new customer is waiting: the owner hears now.
-      await tell(db, deps, clinic.id, (c) => alerts.enqueueFailed({ where: "payment", job: "week", error: cleanError(e), clinic: c }));
-    }
-  }
-
-  // The welcome email: once per clinic (dentvid_email_log), so a retried
-  // event or a clinic that pays again after cancelling never gets it twice.
   let welcomeEmail: string | undefined;
-  if (update.plan === "active" && from !== "active") {
-    try {
-      welcomeEmail = await (deps.sendWelcome ?? welcome)(db, clinic.id);
-    } catch (e) {
-      welcomeEmail = "failed";
-      console.error("[dodo:dentvideo] welcome email failed", clinic.id, (e as Error).message);
-    }
-    if (welcomeEmail && WELCOME_PROBLEM.has(welcomeEmail)) {
-      console.error("[dodo:dentvideo] welcome email not sent", clinic.id, welcomeEmail);
-      const result = welcomeEmail;
-      await tell(db, deps, clinic.id, (c) => alerts.welcomeNotSent({ clinic: c, result }));
-    }
+  if (update.plan === "active") {
+    // A clinic that paid through the App Store before and now pays on the web: its plan is Dodo's again.
+    if (from !== "active") await setDodoSource(db, clinic.id);
+    const paid = await afterPaid(db, deps, {
+      clinic: { id: clinic.id, owner_id: clinic.owner_id },
+      from,
+      first,
+      tier: t.tier,
+      interval: typeof d.metadata?.interval === "string" ? d.metadata.interval : null,
+      event: evt.type,
+      source: "dodo",
+      adConversion: true,
+      logTag: "[dodo:dentvideo]",
+    });
+    firstWeek = paid.firstWeek;
+    welcomeEmail = paid.welcomeEmail;
   }
 
   return {

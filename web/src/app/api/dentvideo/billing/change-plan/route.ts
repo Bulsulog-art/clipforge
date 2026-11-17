@@ -6,7 +6,7 @@ import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { DV_INTERVALS, DV_PRICES_USD, DV_TIERS, dvPlanForProduct, dvProductId, isSelfServeTier } from "@/lib/dentvid/billing";
 import { GROUP_CONTACT, GROUP_CONTACT_EMAIL, groupMailto } from "@/content/dentvideo-group";
-import { accountErrors, ownClinic } from "@/lib/dentvid/account-route";
+import { accountErrors, appStoreManagedAnswer, ownClinic } from "@/lib/dentvid/account-route";
 import { dodoApiKey, dodoChangePlan, dodoGetSubscription, subscriptionEnded } from "@/lib/dentvid/dodo-account";
 
 // POST /api/dentvideo/billing/change-plan — move the signed-in clinic's own
@@ -25,6 +25,9 @@ export async function POST(req: Request) {
 
   const clinic = await ownClinic(db, user.id);
   const err = await accountErrors(clinic);
+  // Bought in the iPhone app: Apple's to change or cancel (no Dodo subscription exists to open).
+  const appStore = await appStoreManagedAnswer(clinic);
+  if (appStore) return appStore;
   const apiKey = dodoApiKey();
   if (!apiKey) return NextResponse.json({ error: err.billingUnavailable, fallback: "email" }, { status: 501 });
 

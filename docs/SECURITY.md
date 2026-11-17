@@ -542,3 +542,24 @@ The compose file loads both services from `web/.env`, so in Coolify add them to 
   cancelled, same ended plan) before removing files; files only inside the owner's folder, never the
   current logo. Owners cannot move the retention dates (trigger `dentvid_clinics_guard_retention`).
   Remaining window: a re-subscription landing during the seconds of the delete calls themselves is not caught.
+
+### App Store purchases through RevenueCat (2026-11-17, migration 0026, not deployed)
+
+Design and runbook: `docs/DENTVIDEO_IAP_PLAN.md`. Checked by tests, not yet attacked live.
+
+- **Webhook auth**: `DENTVID_REVENUECAT_WEBHOOK_AUTH` compared as SHA-256 digests with `timingSafeEqual`
+  (no length leak); unset or < 16 chars → everything 401; ClipForge's RevenueCat secret is refused
+  (`revenuecat/webhook/route.test.ts`). Origin guard exempts exactly this path.
+- **Free plans**: only `APP_STORE`/`MAC_APP_STORE` events with a DentVideo product id switch a clinic on;
+  promotional grants, other stores, family sharing, other apps' products are ignored + owner alert.
+  Sandbox follows `DENTVID_IAP_SANDBOX` (default allow, every sandbox activation alerts the owner).
+- **Whose plan**: app_user_id must be a DentVideo Liman login (UUID); anonymous ids and other apps'
+  logins never match. Someone who calls `Purchases.logIn(<victim uuid>)` with the public SDK key can only
+  pay for the victim's plan, or read its entitlement state (UUIDs are not guessable; accepted risk).
+- **Owner writes**: `billing_source` / `apple_original_transaction_id` reverted for anon/authenticated
+  by a trigger (0026); the ledger is service-role only.
+- **Double charging**: web checkout refuses App Store plans (`app_store`), the paywall never opens for a
+  live web plan, and a race keeps one plan with an owner alert (tests in `apple-webhook.test.ts`,
+  `billing-webhook-apple.test.ts`).
+- **Mobile sign-up**: same handler and limits as the web plus an app-wide hourly ceiling; fill-time
+  check; no Turnstile in a native form (App Attest is a possible later brake).

@@ -1,5 +1,11 @@
 # DentVideo for iPhone: plan
 
+> **Changed (2026-11-17): the app becomes a sales channel.** The owner decided that people who find
+> DentVideo on the App Store can sign up and subscribe inside the app with Apple in-app purchase
+> (RevenueCat), at the web's plans. That replaces the "no sign-up, no plan picker, no prices" parts of §1,
+> §2 (Sign in / No active plan screens) and the 3.1.1/3.1.3 row of §6. The design, server API and
+> runbook are in `docs/DENTVIDEO_IAP_PLAN.md`; the rest of this plan stands.
+
 Status: plan for the first App Store version (1.0). Owner decisions already made are marked
 **(decided)**. Everything here follows `CLAUDE.md`: no paid API spend, no invented claims, no
 secrets in the repo.

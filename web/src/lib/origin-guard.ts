@@ -19,7 +19,8 @@ const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 // they MUST do their own auth (Bearer / OAuth code / signature).
 // The DentVideo unsubscribe link is authenticated by its signed token, and the
 // RFC 8058 one-click POST comes from the mail provider, with no Origin.
-const WEBHOOK_PATHS = ["/api/revenuecat/webhook", "/api/dodo/webhook", "/api/auth/tiktok/callback", "/api/dentvideo/unsubscribe"];
+// DentVideo's App Store purchases arrive from RevenueCat (shared-secret Authorization header).
+const WEBHOOK_PATHS = ["/api/revenuecat/webhook", "/api/dodo/webhook", "/api/auth/tiktok/callback", "/api/dentvideo/unsubscribe", "/api/dentvideo/revenuecat/webhook"];
 
 export function allowedOrigins(env: {
   NEXT_PUBLIC_APP_URL?: string;

@@ -28,6 +28,11 @@ export type ClinicPlan = {
    * worker/src/dentvid/retention.ts). Absent while the plan runs, or before the worker has seen the end.
    */
   retention?: { endedAt: string; deleteOn: string } | null;
+  /**
+   * Where the subscription lives (0026 billing_source): "apple" = bought in the iPhone app, changed or
+   * cancelled in the App Store; "dodo" = the web's checkout. null before 0026 or before any payment (treated as web).
+   */
+  source?: "dodo" | "apple" | null;
 };
 
 /** The library's 90 days after a plan ends (same rule as the worker's retention.ts deleteDate). */
@@ -44,19 +49,24 @@ export function retentionDates(plan: string, endedAt: string | null | undefined,
 
 const STATES = new Set(["trial", "active", "paused", "cancelled"]);
 
+const sourceOf = (row: { billing_source?: string | null } | null): "dodo" | "apple" | null =>
+  row?.billing_source === "apple" || row?.billing_source === "dodo" ? row.billing_source : null;
+
 /**
  * The clinic's plan as the app needs it. `plan` exists since 0001; the
  * billing columns arrive with 0002 — read separately so the app keeps working
  * if that migration is not applied yet.
  */
 export async function loadClinicPlan(db: SupabaseClient, clinicId: string): Promise<ClinicPlan> {
-  const [{ data: base }, { data: billing }, { data: pause }, ended] = await Promise.all([
+  const [{ data: base }, { data: billing }, { data: pause }, ended, src] = await Promise.all([
     db.from("dentvid_clinics").select("plan").eq("id", clinicId).maybeSingle(),
     db.from("dentvid_clinics").select("plan_tier, plan_renews_at, dodo_subscription_id").eq("id", clinicId).maybeSingle(),
     // Its own read: before 0010 the column does not exist and this simply returns no data.
     db.from("dentvid_clinics").select("admin_paused_at").eq("id", clinicId).maybeSingle(),
     // Its own read too: before 0025 there are no retention dates.
     Promise.resolve(db.from("dentvid_clinics").select("plan_ended_at, library_delete_after").eq("id", clinicId).maybeSingle()).catch(() => ({ data: null })),
+    // And this one: before 0026 there is no billing source (every plan is the web's).
+    Promise.resolve(db.from("dentvid_clinics").select("billing_source").eq("id", clinicId).maybeSingle()).catch(() => ({ data: null })),
   ]);
   const raw = (base as { plan?: string } | null)?.plan;
   const plan = (raw && STATES.has(raw) ? raw : "trial") as DvPlanState;
@@ -72,5 +82,6 @@ export async function loadClinicPlan(db: SupabaseClient, clinicId: string): Prom
     subscriptionId: b.dodo_subscription_id ?? null,
     adminPaused,
     retention: retentionDates(plan, r?.plan_ended_at, r?.library_delete_after),
+    source: sourceOf(((src as { data?: unknown } | null)?.data ?? null) as { billing_source?: string | null } | null),
   };
 }

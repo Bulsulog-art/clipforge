@@ -127,6 +127,19 @@ dispute.opened/accepted/lost → active clinic paused, ledger "disputed", owner 
 week queued (bounded, alerted if it cannot be queued — NEW), watched (F3).
 ```
 
+### 2.9 App Store purchase (iPhone app, RevenueCat) — `docs/DENTVIDEO_IAP_PLAN.md`
+
+```
+App ── Purchases.purchase ──> Apple ──> RevenueCat ── POST /api/dentvideo/revenuecat/webhook (shared-secret header)
+        claim event id (Redis) → app_user_id = Liman user → DentVideo login → clinic (none yet → 503, RC retries)
+        INITIAL_PURCHASE/RENEWAL/UNCANCELLATION → plan=active, tier, plan_renews_at=expiration, billing_source=apple
+        first activation → billing-activation.ts afterPaid (same as Dodo: week queued, watchdog, welcome once, owner alert)
+        CANCELLATION → active until expiration (F9 rule) · EXPIRATION → cancelled · refund → cancelled now
+        BILLING_ISSUE → active through Apple's grace, else paused · RENEWAL recovers
+        Dodo live + Apple arrives → clinic on Apple, owner refunds Dodo · Apple live + Dodo arrives → Dodo ignored, owner refunds it
+Nightly reconcile: App Store clinics never asked at Dodo; RevenueCat REST when DENTVID_REVENUECAT_RECONCILE=on, else the clock
+```
+
 ## 3. Failure modes
 
 "Before" is the behaviour on `main` at 1e948ea; "After" is this branch. Tests: web

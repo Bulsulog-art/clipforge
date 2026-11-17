@@ -161,7 +161,7 @@ describe("deleteDentvideoAccount", () => {
     const s = fakeSupabase();
     const log = vi.fn();
     const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log });
-    expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, cancelledSubscription: false, userDeleted: true, loginKept: false });
+    expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, cancelledSubscription: false, userDeleted: true, loginKept: false, appStoreSubscription: false });
 
     const order = s.calls.map((c) => c.split(" ").slice(0, 2).join(" "));
     expect(order).toEqual(["storage.remove 5", "delete dentvid_items", "delete dentvid_clinics", `auth.deleteUser ${A}`]);
@@ -188,7 +188,7 @@ describe("deleteDentvideoAccount", () => {
     const args = { admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} };
     expect((await deleteDentvideoAccount(args)).ok).toBe(true);
     const again = await deleteDentvideoAccount(args);
-    expect(again).toEqual({ ok: true, files: 0, items: 0, clinic: false, cancelledSubscription: false, userDeleted: false, loginKept: false });
+    expect(again).toEqual({ ok: true, files: 0, items: 0, clinic: false, cancelledSubscription: false, userDeleted: false, loginKept: false, appStoreSubscription: false });
     expect(s.tables.dentvid_clinics).toHaveLength(1);
     expect(s.files.size).toBe(2);
   });
@@ -255,6 +255,16 @@ describe("deleteDentvideoAccount", () => {
     const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: null });
     expect(res).toEqual({ ok: false, reason: "subscription_active" });
     expect(s.calls).toEqual([]);
+  });
+
+  it("an App Store plan does not block deletion (only the customer can cancel it): the account goes, the answer says so", async () => {
+    const s = fakeSupabase();
+    Object.assign(s.tables.dentvid_clinics[0], { plan: "active", dodo_subscription_id: null, billing_source: "apple", apple_original_transaction_id: "2000000100" });
+    const log = vi.fn();
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: null, log });
+    expect(res).toMatchObject({ ok: true, clinic: true, cancelledSubscription: false, appStoreSubscription: true });
+    expect(s.tables.dentvid_clinics.map((r) => r.id)).toEqual([CLINIC_B]);
+    expect(JSON.stringify(log.mock.calls[0][0])).toContain('"app_store_subscription_live":true');
   });
 
   it("cancels the clinic's own subscription before deleting anything when the API is available", async () => {

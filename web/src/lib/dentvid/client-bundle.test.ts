@@ -155,7 +155,8 @@ describe("DentVideo public pages: browser bundle", () => {
       // 160: ad-click attribution on every page and the per-currency price tags added ~2 KB of source.
       // 170: the 404 boundary (loaded with every page) is counted now, ~7 KB of source. Before it was
       // counted, it shipped content/dentvideo.ts and the guide library: ~640 KB minified, unseen by this test.
-      expect(kb(g.client)).toBeLessThan(170);
+      // 171: the event allow-list (shared with the browser) names the paying channel, dodo or apple (~0.1 KB).
+      expect(kb(g.client)).toBeLessThan(171);
     });
   }
 

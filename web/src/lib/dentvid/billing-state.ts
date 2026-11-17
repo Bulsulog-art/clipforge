@@ -5,6 +5,8 @@ import { CONTACT_EMAIL } from "./lifecycle-email";
 import { checkoutBlock, planEndsAt, type DvCheckoutBlock, type DvSubRecord } from "./billing";
 import { supabaseSubscriptionStore } from "./subscriptions";
 import { dodoApiKey, dodoGetSubscription } from "./dodo-account";
+import { readClinicSource } from "./apple-store";
+import { appStoreText } from "@/content/dentvideo-app-store";
 
 /**
  * Server-side billing state for a clinic: may it open a new checkout, and
@@ -39,6 +41,8 @@ async function liveStatus(subscriptionId: string | null | undefined): Promise<st
 }
 
 export async function loadCheckoutBlock(clinic: ClinicBillingRow, admin: SupabaseClient | null, now = new Date()): Promise<DvCheckoutBlock | null> {
+  // Paid through the App Store (0026): a web checkout would be a second subscription in another channel.
+  if (admin && (clinic.plan === "active" || clinic.plan === "paused") && (await readClinicSource(admin, clinic.id))?.source === "apple") return { code: "app_store" };
   if (clinic.plan === "active") {
     const subs = admin && clinic.dodo_subscription_id ? await supabaseSubscriptionStore(admin).forClinic(clinic.id) : null;
     return checkoutBlock({ clinic, subs, now });
@@ -74,6 +78,8 @@ export function checkoutBlockMessage(block: DvCheckoutBlock, language: string | 
       return fill(r.disputed, vars);
     case "cancelled_pending":
       return fill(r.cancelledPending, { ...vars, date: formatDate(block.until, lang) });
+    case "app_store":
+      return appStoreText(lang).refuse;
   }
 }
 
@@ -145,7 +151,9 @@ export type AppBillingPanel =
   | { kind: "pending" }
   | { kind: "disputed" }
   | { kind: "admin_paused" }
-  | { kind: "cancelled_pending"; until: string };
+  | { kind: "cancelled_pending"; until: string }
+  /** An App Store plan Apple could not renew: fixed in the iPhone's Settings, never by buying again. */
+  | { kind: "app_store" };
 
 /** Paused on a card problem → "update your payment", not "choose a plan" (a new plan would charge twice). */
 export async function loadAppBillingPanel(clinic: ClinicBillingRow & { adminPaused?: boolean }, admin: SupabaseClient | null, now = new Date()): Promise<AppBillingPanel> {
@@ -157,5 +165,6 @@ export async function loadAppBillingPanel(clinic: ClinicBillingRow & { adminPaus
   if (block.code === "payment_update") return { kind: "update_payment", selfServe: !!dodoApiKey() };
   if (block.code === "pending") return { kind: "pending" };
   if (block.code === "disputed") return { kind: "disputed" };
+  if (block.code === "app_store") return { kind: "app_store" };
   return { kind: "cancelled_pending", until: block.until };
 }

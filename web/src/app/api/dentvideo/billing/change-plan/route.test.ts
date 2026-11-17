@@ -44,6 +44,14 @@ afterEach(() => {
 });
 
 describe("POST /api/dentvideo/billing/change-plan", () => {
+  it("an App Store plan is changed on the iPhone (Apple's subscription group), never through Dodo", async () => {
+    session.clinic = { ...session.clinic!, dodo_subscription_id: null, billing_source: "apple" };
+    const r = await call({ plan: "practice" });
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: "app_store" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("without DODO_API_KEY keeps the email path", async () => {
     vi.stubEnv("DODO_API_KEY", "");
     expect(await call({ plan: "practice" })).toEqual({ status: 501, body: { error: ACCOUNT_TEXT.en.errors.billingUnavailable, fallback: "email" } });
