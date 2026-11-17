@@ -19,7 +19,8 @@ struct RootView: View {
         .background(Theme.paper.ignoresSafeArea())
         .task { if model.phase == .launching { await model.bootstrap() } }
         .noticeOverlay()
-        .transaction { if model.isDemoMode { $0.disablesAnimations = true } }
+        // Still screenshots only; the UI tests run with the app's normal animations.
+        .transaction { if model.isDemoMode && !model.isDemo("flow") { $0.disablesAnimations = true } }
     }
 
     @ViewBuilder private var signedIn: some View {
