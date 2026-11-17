@@ -142,7 +142,9 @@ describe("every email, every language", () => {
       const m = sampleEmailFor("welcome", lang);
       const w = LIFECYCLE_COPY[lang].welcome;
       expect(w.steps, lang).toHaveLength(4);
-      expect(w.steps[0].body, lang).toMatch(/15/);
+      // The honest promise: usually within an hour (it was "about 15 minutes").
+      expect(w.steps[0].body, lang).toMatch(/within an hour|innerhalb einer Stunde|höchstens eine Stunde|menos de una hora|bir saat içinde|moins d'une heure|1時間以内|خلال ساعة|w ciągu godziny|mniej niż godzinę/);
+      expect(w.steps[0].body, lang).not.toMatch(/15/);
       expect(w.help, lang).toContain("{email}");
       expect(m.text, lang).toContain("hello@dentvideo.com");
       expect(m.text, lang).toContain("https://dentvideo.com/app");

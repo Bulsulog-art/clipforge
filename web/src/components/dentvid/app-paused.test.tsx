@@ -11,6 +11,7 @@ vi.mock("next/navigation", () => ({
 import { AppHomeView, SettingsView } from "./app-screens";
 import { billingText } from "@/content/dentvideo-billing";
 import { appText } from "@/content/dentvideo-app";
+import { accountText } from "@/content/dentvideo-account";
 import { LOCALES } from "@/content/dentvideo";
 import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { loadClinicPlan, type ClinicPlan } from "@/lib/dentvid/plan";
@@ -85,5 +86,25 @@ describe("loadClinicPlan: the admin pause", () => {
     expect(await loadClinicPlan(db({ plan: "active", plan_tier: "starter", admin_paused_at: "2026-11-10T00:00:00Z" }), "c")).toMatchObject({ plan: "active", canMake: false, adminPaused: true });
     expect(await loadClinicPlan(db({ plan: "active", plan_tier: "starter", admin_paused_at: null }), "c")).toMatchObject({ canMake: true, adminPaused: false });
     expect(await loadClinicPlan(db({ plan: "active", plan_tier: "starter" }, true), "c")).toMatchObject({ canMake: true, adminPaused: false });
+  });
+});
+
+describe("cancelling while online billing is off (no DODO_API_KEY)", () => {
+  const paying: ClinicPlan = { plan: "active", tier: "starter", renewsAt: "2026-12-17T00:00:00Z", canMake: true };
+  it("a paying clinic's settings show “Ask to cancel”, the same-day promise and the address, in every language", () => {
+    for (const locale of LOCALES) {
+      const t = appText(locale).settings;
+      const html = decode(renderToStaticMarkup(<SettingsView locale={locale} profile={{ name: "Smile", country: "DE", language: "de", services: ["Cleanings"] }} plan={paying} plans={plans} selfServe={false} />));
+      expect(html, locale).toContain('data-cancel-request="button"');
+      expect(html, locale).toContain(accountText(locale).cancelRequestButton);
+      expect(html, locale).toContain(t.manageLead);
+      expect(html, locale).toContain("hello@dentvideo.com");
+    }
+  });
+  it("not with online billing on (the portal cancels), nor for a clinic with nothing to cancel", () => {
+    const self = decode(renderToStaticMarkup(<SettingsView locale="en" profile={{ name: "Smile", country: "US", language: "en", services: ["Cleanings"] }} plan={paying} plans={plans} selfServe />));
+    expect(self).not.toContain('data-cancel-request="button"');
+    const trial = decode(renderToStaticMarkup(<SettingsView locale="en" plan={{ plan: "trial", tier: null, renewsAt: null, canMake: false }} plans={plans} selfServe={false} />));
+    expect(trial).not.toContain('data-cancel-request="button"');
   });
 });

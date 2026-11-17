@@ -380,7 +380,7 @@ One helper, `ops-alert.ts`, byte-identical in `worker/src/dentvid/` and `web/src
 | Alert | Raised by | Threshold / key |
 |---|---|---|
 | A paying clinic's week failed | worker `jobs.ts` | after the last attempt, or at once if permanent · `week_failed:<clinic>:<week>` |
-| Thin week delivered | worker `jobs.ts` | < 3 usable after re-attempts and top-up · `thin_week:<clinic>:<week>` |
+| Short week delivered (urgent) | worker `jobs.ts` | < 5 usable in the library after re-attempts and the one top-up · once per clinic and week (`dv:ops:short-week:<clinic>:<week>`, alert key `thin_week:<clinic>:<week>`) |
 | Monday dispatch did not run / zero jobs / a clinic without a job | worker `watchdog.ts`, Mon 07:00 UTC | `dispatch:<week>` |
 | First week not delivered 2 h after payment | worker `watchdog.ts` | 120 min (`DENTVID_FIRST_WEEK_ALERT_MIN`) · `first_week_late:<clinic>` |
 | Webhook signature failures | web Dodo route | ≥ 5 / hour (`DENTVID_ALERT_WEBHOOK_SIG_PER_HOUR`) |
@@ -447,7 +447,7 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `DENTVID_ALERT_MAX_PER_HOUR` | worker + web | `8` | most alert emails per clock hour (then one "muted" note) |
 | `DENTVID_ALERT_WEBHOOK_SIG_PER_HOUR` / `_EMAIL_FAIL_PER_HOUR` / `_RENDER_FAIL_PER_HOUR` / `_5XX_PER_HOUR` | worker + web | `5` / `3` / `5` / `10` | spike thresholds |
 | `DENTVID_FIRST_WEEK_REQUEUE_MIN` / `DENTVID_FIRST_WEEK_ALERT_MIN` | worker | `45` / `120` | first week: re-queue, then alert |
-| `DENTVID_COST_TOPUP_USD` | worker | `0.30` | budget for topping up a thin week |
+| `DENTVID_COST_TOPUP_USD` | worker | `0.30` | budget for topping up a short week |
 | `DENTVIDEO_EMAIL_FROM` | worker (optional) | `DentVideo <hello@dentvideo.com>` | sender |
 | `DENTVIDEO_EMAIL_REPLY_TO` | web (optional) | `hello@dentvideo.com` | reply-to on every DentVideo email |
 | `DENTVIDEO_MONITOR_TOKEN` | worker + web (same value, ≥ 16 chars) | — (monitor sign-ups then hit the normal per-IP limits and fail) | lets the synthetic monitor / smoke test sign up `e2e-monitor…` addresses every 15 min |

@@ -37,7 +37,7 @@ import { elevenSurchargePerVideoUsd, ttsCostUsd, type TtsProvider } from "../den
  */
 
 /**
- * topup: extra topics for a week that ended thin (jobs.ts MIN_USABLE_VIDEOS) —
+ * topup: extra topics for a week short of five usable videos (jobs.ts WEEK_VIDEOS) —
  * money only, no count of its own (it belongs to a week already counted).
  * change: one video re-made from a clinic's "Ask for a change" (change.ts) —
  * money, and a count per clinic per ISO week (DENTVID_MAX_CHANGES_PER_CLINIC_WEEK).

@@ -54,7 +54,7 @@ export function postalAddress(lang: string): string {
 
 /**
  * Welcome, right after the first payment. Transactional. It answers the four
- * things a new clinic wonders: when the first videos come (about 15 minutes,
+ * things a new clinic wonders: when the first videos come (usually within an hour,
  * by email), how to review and approve (software-assisted check, you approve,
  * nothing published before), how to post (Share copies the caption, a
  * suggested time, we never post for you), and what then (every Monday) — and

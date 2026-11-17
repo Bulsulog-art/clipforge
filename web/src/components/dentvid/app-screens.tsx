@@ -15,7 +15,7 @@ import { FirstWeek } from "./first-week";
 import { PlanPanel, PlanStatus, type PlanOption } from "./plan-panel";
 import { BillingIssuePanel, type BillingIssue } from "./billing-issue";
 import { ClinicForm } from "./clinic-form";
-import { AccountPanel } from "./account-panel";
+import { AccountPanel, CancelRequest } from "./account-panel";
 import { RecordUpload } from "./record-upload";
 import { HelpContact } from "./help-contact";
 import { HelpLink } from "./help-link";
@@ -217,10 +217,13 @@ export function SettingsView({
                 <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.manageLead}</p>
                 <p className="mt-2 text-sm text-dv-muted">{DV_SUPPORT_EMAIL}</p>
               </div>
-              <a href={manageHref} className="dv-btn dv-btn-secondary shrink-0 px-5 py-2.5 text-sm !text-dv-teal">
-                <Mail className="h-4 w-4" aria-hidden="true" />
-                {t.manageButton}
-              </a>
+              <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+                <CancelRequest locale={locale} />
+                <a href={manageHref} className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm !text-dv-teal">
+                  <Mail className="h-4 w-4" aria-hidden="true" />
+                  {t.manageButton}
+                </a>
+              </div>
             </div>
           )}
           <AccountPanel part="billing" locale={locale} selfServe={selfServe} plan={plan} plans={plans} country={profile?.country} clinicName={profile?.name ?? ""} />

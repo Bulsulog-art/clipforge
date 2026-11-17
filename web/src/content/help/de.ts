@@ -37,11 +37,11 @@ export const de: HelpContent = {
   articles: {
     "first-videos": {
       q: "Wann kommen meine ersten Videos?",
-      a: "Die Videos Ihrer ersten Woche entstehen direkt nach der Zahlung, meist in etwa 15 Minuten. Die Seite „Videos“ aktualisiert sich von selbst, und wir schicken Ihnen eine E-Mail, sobald die Videos zur Freigabe bereitstehen.\n\nDanach kommen jeden Montag fünf neue Videos, jedes Mal mit einer E-Mail.",
+      a: "Die Videos Ihrer ersten Woche entstehen direkt nach der Zahlung, meist innerhalb einer Stunde. Die Seite „Videos“ aktualisiert sich von selbst, und wir schicken Ihnen eine E-Mail, sobald die Videos zur Freigabe bereitstehen.\n\nDanach kommen jeden Montag fünf neue Videos, jedes Mal mit einer E-Mail.",
     },
     "no-videos-this-week": {
       q: "Die Videos dieser Woche sind noch nicht da. Was tun?",
-      a: "Neue Videos entstehen jeden Montag. Sind die Videos dieser Woche noch nicht in Ihrer Bibliothek, tippen Sie auf der Seite „Videos“ auf „Videos dieser Woche erstellen“. Das dauert etwa 15 Minuten.\n\nSteht dort, dass sich die Videos verzögern, versuchen wir es bereits erneut und schreiben Ihnen, sobald sie fertig sind. Sie können auch auf „Jetzt erneut versuchen“ tippen.\n\nBei einem Video mit „Konnte nicht erstellt werden“ müssen Sie nichts tun. Passiert es wieder, schreiben Sie uns.",
+      a: "Neue Videos entstehen jeden Montag. Sind die Videos dieser Woche noch nicht in Ihrer Bibliothek, tippen Sie auf der Seite „Videos“ auf „Videos dieser Woche erstellen“. Das dauert in der Regel höchstens eine Stunde.\n\nSteht dort, dass sich die Videos verzögern, versuchen wir es bereits erneut und schreiben Ihnen, sobald sie fertig sind. Sie können auch auf „Jetzt erneut versuchen“ tippen.\n\nBei einem Video mit „Konnte nicht erstellt werden“ müssen Sie nichts tun. Passiert es wieder, schreiben Sie uns.",
     },
     topics: {
       q: "Wie werden die Themen gewählt, und kann ich eines vorschlagen?",
