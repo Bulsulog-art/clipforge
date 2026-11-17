@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { LOCALES } from "@/content/dentvideo-locales";
 import { CHECKER } from "@/content/dentvideo-checker";
 import { CHECKER_MAX_CHARS, CHECKER_RULE_IDS, REWRITES, checkText, checkerEventProps, guessLanguage, segments, suggestRewrite, widenNumber } from "./ad-checker";
-import { CHECKER_RULES, HARD_RULES, findHardSpans } from "./hard-rules";
+import { CHECKER_RULES, HARD_RULES, findHardSpans, type RuleId } from "./hard-rules";
 import { parseClientEvent, sanitizeProps } from "./events";
 
 describe("ad checker: engine", () => {
@@ -130,7 +130,7 @@ describe("ad checker: engine", () => {
   it.each(LOCALES)("%s: the example post trips most rules, each with a fix or a tip", (l) => {
     const hits = checkText(CHECKER[l].ui.sample);
     expect(new Set(hits.map((h) => h.rule)).size, l).toBeGreaterThanOrEqual(5);
-    for (const h of hits) expect(h.fix ?? CHECKER[l].ui.rules[h.rule].tip, `${l}: ${h.match}`).toBeTruthy();
+    for (const h of hits) expect(h.fix ?? CHECKER[l].ui.rules[h.rule as RuleId].tip, `${l}: ${h.match}`).toBeTruthy();
     // A fix is in the post's language: no Latin-script fix for an Arabic or Japanese post.
     if (l === "ar") for (const h of hits) if (h.fix) expect(h.fix).toMatch(/[؀-ۿ]/);
     if (l === "ja") for (const h of hits) if (h.fix) expect(h.fix).toMatch(/[぀-ヿ一-鿿]/);
@@ -140,8 +140,8 @@ describe("ad checker: engine", () => {
 describe("ad checker: analytics never carry the text", () => {
   it("counts only", () => {
     const hits = checkText("Painless whitening, guaranteed. Painless again.");
-    expect(checkerEventProps(hits)).toEqual({ hits: 3, rules: 2, clean: false });
-    expect(checkerEventProps([])).toEqual({ hits: 0, rules: 0, clean: true });
+    expect(checkerEventProps(hits)).toEqual({ hits: 3, rules: 2, clean: false, banned: 0 });
+    expect(checkerEventProps([])).toEqual({ hits: 0, rules: 0, clean: true, banned: 0 });
   });
 
   it("the event allow-list drops anything that is not a count", () => {

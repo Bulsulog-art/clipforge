@@ -1,5 +1,7 @@
 import type { Locale } from "./dentvideo-locales";
 import type { RuleId } from "@/lib/dentvid/hard-rules";
+import type { SourceKey } from "@/lib/dentvid/checker-markets";
+import { CHECKER_EXTRA, type CheckerExample, type CheckerUiExtra } from "./dentvideo-checker-extra";
 export { CHECKER_PATH } from "./guides/ui";
 
 /**
@@ -16,10 +18,10 @@ export { CHECKER_PATH } from "./guides/ui";
  * component (components/dentvid/ad-checker.tsx), never the whole table.
  */
 
-type Source = { label: string; url: string };
+export type Source = { label: string; url: string };
 
-/** Everything the interactive checker shows, in one language (passed to the client component). */
-export type CheckerUi = {
+/** The words written with the first version of the checker (the rest: content/dentvideo-checker-extra.ts). */
+type CheckerBaseUi = {
   label: string;
   placeholder: string;
   /** A risky example post in this language, for the "Try an example" button. */
@@ -44,8 +46,14 @@ export type CheckerUi = {
   /** Opening and closing quotation marks in this language, around a flagged phrase and its rewrite. */
   quotes: [string, string];
   rules: Record<RuleId, { name: string; why: string; tip: string }>;
-  cta: { title: string; text: string; button: string; secondary: string };
 };
+
+/** Everything the interactive checker shows, in one language (passed to the client component). */
+export type CheckerUi = CheckerBaseUi &
+  Omit<CheckerUiExtra, "examples" | "page"> & {
+    /** One-tap examples: the page's risky sample first, then a mixed and a calm one. */
+    examples: { label: string; items: CheckerExample[] };
+  };
 
 export type CheckerCopy = {
   /** Short label for the header, footer and breadcrumbs. */
@@ -67,7 +75,7 @@ export type CheckerCopy = {
 };
 
 /** The day the checker pages last changed in substance (sitemap lastmod). */
-export const CHECKER_UPDATED = "2026-11-13";
+export const CHECKER_UPDATED = "2026-11-17";
 
 // Official texts, as the guides cite them.
 const GDC_ADV: Source = { label: "General Dental Council — Guidance on advertising", url: "https://www.gdc-uk.org/standards-guidance/standards-and-guidance/gdc-guidance-for-dental-professionals/guidance-on-advertising" };
@@ -94,15 +102,15 @@ const MHLW: Source = { label: "厚生労働省「医療法における病院等�
 const DHA: Source = { label: "هيئة الصحة بدبي — معايير محتوى الإعلانات الطبية على وسائل التواصل الاجتماعي", url: "https://www.dha.gov.ae/uploads/042022/Standards%20for%20Medical%20Advertisement%20Content%20in%20Social%20Media2022433965.pdf" };
 const MOH_SA: Source = { label: "وزارة الصحة السعودية — المادة العاشرة من نظام مزاولة المهن الصحية (حظر إعلان الممارس عن نفسه)", url: "https://www.moh.gov.sa/en/Ministry/MediaCenter/News/Pages/News-2024-04-21-003.aspx" };
 
-export const CHECKER: Record<Locale, CheckerCopy> = {
+const BASE: Record<Locale, Omit<CheckerCopy, "ui"> & { ui: CheckerBaseUi }> = {
   en: {
     nav: "Ad checker",
-    seoTitle: "Dental ad checker: is my post allowed?",
+    seoTitle: "Dental advertising compliance checker: is my post OK?",
     seoDescription: "Free checker for dentists: paste a caption, website text or ad and see which phrases risk breaking health-advertising rules, with safer wording.",
     h1: "Is my post allowed? A free ad checker for dentists",
     intro:
       "Paste an Instagram caption, a website paragraph or ad copy. The checker marks the phrases health-advertising rules most often object to — guarantees, “painless”-type absolutes, superlatives, prices and discounts, before-and-after results, testimonials, cure claims and fear — and suggests a calmer way to say each one. It runs in your browser: your text is never sent anywhere.",
-    queries: ["dental advertising compliance checker", "is my dental post allowed", "can dentists say painless in ads", "dentist social media advertising rules checker", "GDC advertising guidance dentists"],
+    queries: ["dental advertising compliance checker", "dental social media compliance checker", "dentist ad wording checker", "is my dental post allowed", "can dentists say painless in ads", "dentist social media advertising rules checker", "GDC advertising guidance dentists"],
     ui: {
       label: "Your caption, website text or ad",
       placeholder: "Paste a post here, e.g. “Painless whitening, 50% off this month — the best dentist in town!”",
@@ -130,12 +138,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         testimonial: { name: "Testimonial or review", why: "Patient testimonials, star ratings and celebrity endorsements are restricted in health advertising in many markets.", tip: "Answer a question patients often ask instead." },
         cure: { name: "Cure claim", why: "Claiming to cure or eliminate a condition overstates what treatment can promise.", tip: "Say the treatment “can help treat” or “can help relieve”." },
         fear: { name: "Fear or pressure", why: "Frightening people, pushing them to book now or inventing a deadline (“this month only”) is restricted in health advertising.", tip: "Describe the sign calmly and suggest asking the dentist." },
-      },
-      cta: {
-        title: "Want five videos a week already checked like this?",
-        text: "DentVideo writes, narrates and captions five short patient-education videos a week in your language and colors. Every script passes these same rules and a second, closer software check before you see it — and nothing is published without your approval.",
-        button: "See your preview",
-        secondary: "How DentVideo works",
       },
     },
     how: {
@@ -187,12 +189,12 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
 
   tr: {
     nav: "Reklam kontrolü",
-    seoTitle: "Diş hekimi reklam kontrolü: bu paylaşım yasak mı?",
+    seoTitle: "Diş hekimi reklam yasağı kontrol aracı: paylaşımım uygun mu?",
     seoDescription: "Diş hekimleri için ücretsiz kontrol aracı: metninizi yapıştırın, tanıtım yönetmeliğine takılabilecek ifadeleri ve daha güvenli karşılıklarını görün.",
     h1: "Bu paylaşım yasak mı? Diş hekimleri için reklam kontrol aracı",
     intro:
       "Instagram açıklamanızı, web sitesi metninizi ya da ilanınızı yapıştırın. Araç, sağlık tanıtım kurallarının en sık itiraz ettiği ifadeleri işaretler — garanti, “ağrısız” gibi kesin vaatler, “en iyi” gibi üstünlük iddiaları, fiyat ve kampanya, öncesi-sonrası, hasta yorumları, “tamamen iyileştirir” gibi iddialar ve korkutma — ve her biri için daha temkinli bir karşılık önerir. Kontrol tarayıcınızda yapılır: metniniz hiçbir yere gönderilmez.",
-    queries: ["diş hekimi reklam yasağı", "diş hekimi reklam yönetmeliği", "diş hekimi instagram yasak kelimeler", "sağlık tanıtım yönetmeliği yasak ifadeler", "ağrısız implant reklam yasak mı"],
+    queries: ["diş hekimi reklam yasağı kontrol aracı", "diş hekimi reklam yasağı", "diş hekimi reklam yönetmeliği", "diş hekimi instagram yasak kelimeler", "sağlık tanıtım yönetmeliği yasak ifadeler", "ağrısız implant reklam yasak mı"],
     ui: {
       label: "Paylaşım metniniz, web sitesi yazınız ya da ilanınız",
       placeholder: "Metni buraya yapıştırın, ör. “Ağrısız implant, bu ay %20 indirim — şehrin en iyi kliniği!”",
@@ -220,12 +222,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         testimonial: { name: "Hasta yorumu ya da teşekkür", why: "Hasta teşekkür ve memnuniyet ifadeleriyle tanıtım yapılamaz; mahremiyet riski de taşır.", tip: "Bunun yerine hastaların sık sorduğu bir soruyu yanıtlayın." },
         cure: { name: "İyileştirme iddiası", why: "Bir hastalığı tamamen iyileştireceğini ya da yok edeceğini söylemek tedavinin vaat edebileceğini aşar.", tip: "“Tedavisine yardımcı olabilir” deyin." },
         fear: { name: "Korkutma ya da yönlendirme", why: "İzleyeni korkutmak ya da “hemen randevu alın” diye ya da “son fırsat” gibi uydurma bir süreyle acele ettirmek yönlendirici tanıtım sayılabilir.", tip: "Belirtiyi sakin anlatın, hekime danışmayı önerin." },
-      },
-      cta: {
-        title: "Haftada beş video, her biri böyle kontrol edilmiş olarak gelsin mi?",
-        text: "DentVideo, kliniğiniz için haftada beş kısa hasta bilgilendirme videosunu Türkçe yazar, seslendirir ve altyazılar. Her senaryo bu kurallardan ve yazılımın daha dikkatli ikinci bir kontrolünden geçer; onayınız olmadan hiçbir şey yayınlanmaz.",
-        button: "Önizlemenizi görün",
-        secondary: "DentVideo nasıl çalışır",
       },
     },
     how: {
@@ -282,7 +278,7 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
     h1: "Ist mein Post erlaubt? Der kostenlose Werbe-Check für Zahnarztpraxen",
     intro:
       "Fügen Sie eine Instagram-Caption, einen Absatz Ihrer Website oder einen Anzeigentext ein. Der Check markiert die Formulierungen, an denen sich Heilmittelwerbegesetz und Berufsordnung am häufigsten stoßen — Garantien, absolute Aussagen wie „schmerzfrei“, Superlative, Preise und Rabatte, Vorher-Nachher, Patientenstimmen, Heilversprechen und Angstmache — und schlägt für jede eine ruhigere Formulierung vor. Alles läuft in Ihrem Browser: Ihr Text wird nirgendwohin gesendet.",
-    queries: ["HWG Check Zahnarzt", "Zahnarzt Werbung was ist erlaubt", "Heilmittelwerbegesetz Zahnarzt Instagram", "Zahnarztwerbung prüfen", "schmerzfrei Werbung Zahnarzt verboten"],
+    queries: ["Zahnarzt Werbung prüfen HWG", "HWG Check Zahnarzt", "Zahnarzt Werbung was ist erlaubt", "Heilmittelwerbegesetz Zahnarzt Instagram", "Zahnarztwerbung prüfen", "schmerzfrei Werbung Zahnarzt verboten"],
     ui: {
       label: "Ihr Post, Website-Text oder Anzeigentext",
       placeholder: "Text hier einfügen, z. B. „Schmerzfreie Implantate, 20 % Rabatt — die beste Praxis der Stadt!“",
@@ -310,12 +306,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         testimonial: { name: "Patientenstimme oder Bewertung", why: "Äußerungen Dritter, Patientenstimmen und Erfahrungsberichte zu Werbezwecken schränkt § 11 HWG ein.", tip: "Beantworten Sie stattdessen eine Frage, die Patienten oft stellen." },
         cure: { name: "Heilversprechen", why: "Zu versprechen, dass eine Behandlung heilt oder etwas beseitigt, geht über das hinaus, was sie zusagen kann.", tip: "Sagen Sie „kann bei der Behandlung helfen“." },
         fear: { name: "Angst oder Druck", why: "Werbung, die Angst macht, zur sofortigen Buchung drängt oder eine Frist erfindet („nur heute“), ist in der Heilmittelwerbung eingeschränkt.", tip: "Beschreiben Sie das Anzeichen ruhig und empfehlen Sie, es in der Praxis anzusprechen." },
-      },
-      cta: {
-        title: "Fünf Videos pro Woche, schon so geprüft?",
-        text: "DentVideo schreibt, vertont und untertitelt fünf kurze Aufklärungsvideos pro Woche in Ihrer Sprache und Ihren Farben. Jedes Skript durchläuft genau diese Regeln und eine zweite, genauere softwaregestützte Prüfung, bevor Sie es sehen — und nichts erscheint ohne Ihre Freigabe.",
-        button: "Ihre Vorschau ansehen",
-        secondary: "So funktioniert DentVideo",
       },
     },
     how: {
@@ -401,12 +391,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         cure: { name: "Promesa de curación", why: "Prometer una curación definitiva va más allá de lo que un tratamiento puede asegurar.", tip: "Di que el tratamiento “puede ayudar a tratar”." },
         fear: { name: "Miedo o presión", why: "Asustar, meter prisa para pedir cita (“no esperes más”) o inventar un plazo (“última oportunidad”) no es información prudente.", tip: "Describe el síntoma con calma y sugiere consultarlo con el dentista." },
       },
-      cta: {
-        title: "¿Quieres cinco vídeos a la semana ya revisados así?",
-        text: "DentVideo escribe, pone voz y subtitula cinco vídeos educativos cortos a la semana en tu idioma y tus colores. Cada guion pasa estas mismas reglas y una segunda revisión de software más atenta antes de que lo veas, y nada se publica sin tu aprobación.",
-        button: "Ver tu vista previa",
-        secondary: "Cómo funciona DentVideo",
-      },
     },
     how: {
       heading: "Qué busca el comprobador",
@@ -491,12 +475,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         cure: { name: "Promesse de guérison", why: "Promettre de guérir ou d'éliminer un problème dépasse ce qu'un soin peut garantir.", tip: "Dites que le traitement « peut aider à traiter »." },
         fear: { name: "Peur ou pression", why: "Faire peur, pousser à prendre rendez-vous tout de suite ou inventer une échéance (« dernière chance ») incite à des soins, ce que la déontologie proscrit.", tip: "Décrivez le signe calmement et suggérez d'en parler au dentiste." },
       },
-      cta: {
-        title: "Cinq vidéos par semaine, déjà vérifiées ainsi ?",
-        text: "DentVideo écrit, met en voix et sous-titre cinq courtes vidéos d'information patient par semaine, dans votre langue et vos couleurs. Chaque script passe ces mêmes règles et une seconde vérification logicielle plus attentive avant que vous le voyiez, et rien n'est publié sans votre accord.",
-        button: "Voir votre aperçu",
-        secondary: "Comment fonctionne DentVideo",
-      },
     },
     how: {
       heading: "Ce que vérifie l'outil",
@@ -576,12 +554,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         cure: { name: "「完治」などの表現", why: "「完治」「必ず治る」は治療が約束できる範囲を超えています。", tip: "「治療に役立つことがあります」と表現しましょう。" },
         fear: { name: "不安をあおる表現", why: "「手遅れ」「今すぐ予約」「期間限定」など、不安をあおったり受診を急がせたりする表現は避けるべきです。", tip: "症状を落ち着いて説明し、歯科医師への相談をすすめましょう。" },
       },
-      cta: {
-        title: "このチェック済みの動画を、週に5本。",
-        text: "DentVideoは、患者さん向けの短い説明動画を週に5本、医院の言語と色で作成し、ナレーションと字幕を付けます。すべての台本はこのルールと、ソフトウェアによるより丁寧な二次チェックを通ってから届き、医院の承認なしに公開されることはありません。",
-        button: "プレビューを見る",
-        secondary: "DentVideoのしくみ",
-      },
     },
     how: {
       heading: "チェックする内容",
@@ -660,12 +632,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         testimonial: { name: "آراء المرضى", why: "شهادات المرضى وتقييمات النجوم مقيدة في الإعلان الطبي، وقد تكشف هوية المريض.", tip: "أجيبوا بدلاً من ذلك عن سؤال يطرحه المرضى كثيراً." },
         cure: { name: "وعد بالشفاء", why: "الوعد بشفاء تام أو علاج نهائي يتجاوز ما يمكن أن يعد به أي علاج.", tip: "قولوا إن العلاج «قد يساعد في العلاج»." },
         fear: { name: "تخويف أو استعجال", why: "تخويف المشاهد أو استعجاله للحجز («احجزوا الآن») أو اختلاق مهلة («آخر فرصة») ليس معلومة هادئة ومتوازنة.", tip: "صفوا العَرَض بهدوء واقترحوا استشارة طبيب الأسنان." },
-      },
-      cta: {
-        title: "خمسة فيديوهات أسبوعياً، مفحوصة بهذه الطريقة مسبقاً؟",
-        text: "تكتب DentVideo خمسة فيديوهات توعوية قصيرة أسبوعياً بلغتكم وألوان عيادتكم، مع التعليق الصوتي والنص المكتوب. يمر كل نص بهذه القواعد نفسها وبمراجعة آلية ثانية أدق قبل أن تروه، ولا يُنشر شيء دون موافقتكم.",
-        button: "شاهدوا المعاينة",
-        secondary: "كيف تعمل DentVideo",
       },
     },
     how: {
@@ -751,12 +717,6 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
         cure: { name: "Obietnica wyleczenia", why: "Obietnica całkowitego wyleczenia wykracza poza to, co leczenie może zapewnić.", tip: "Napisz, że leczenie „może pomóc w leczeniu”." },
         fear: { name: "Straszenie lub presja", why: "Straszenie, poganianie do zapisu („nie czekaj”) albo wymyślony termin („ostatnia szansa”) nie jest rzetelną informacją.", tip: "Opisz objaw spokojnie i zaproponuj rozmowę z dentystą." },
       },
-      cta: {
-        title: "Pięć filmów tygodniowo, sprawdzonych już w ten sposób?",
-        text: "DentVideo pisze, nagrywa lektorem i opatruje napisami pięć krótkich filmów edukacyjnych tygodniowo, w Państwa języku i kolorach gabinetu. Każdy scenariusz przechodzi te same zasady i drugą, dokładniejszą kontrolę oprogramowania, zanim go Państwo zobaczą, a nic nie jest publikowane bez Państwa zgody.",
-        button: "Zobacz podgląd",
-        secondary: "Jak działa DentVideo",
-      },
     },
     how: {
       heading: "Czego szuka sprawdzarka",
@@ -800,3 +760,50 @@ export const CHECKER: Record<Locale, CheckerCopy> = {
     ],
   },
 };
+
+/**
+ * Every official text the checker can cite, by key (lib/dentvid/checker-markets.ts
+ * says which market and which rule each one backs). The same texts as the rules notes.
+ */
+export const CHECKER_SOURCES: Record<SourceKey, Source> = {
+  GDC_ADV,
+  CAP,
+  FTC_HEALTH,
+  FTC_EIR,
+  ADA,
+  RG_TR,
+  TDB,
+  HWG,
+  BZAEK,
+  RIS,
+  FEDLEX,
+  BOE,
+  CGD,
+  TS_FAMOSOS,
+  COFEPRIS,
+  R4127_215_1,
+  ONCD,
+  KEL,
+  UDL,
+  MHLW,
+  DHA,
+  MOH_SA,
+};
+
+function withExtra(l: Locale): CheckerCopy {
+  const b = BASE[l];
+  const { page, ...x } = CHECKER_EXTRA[l];
+  return {
+    ...b,
+    // The market paragraph after the first one; the new answers before the last (the one about DentVideo).
+    how: { ...b.how, paragraphs: [b.how.paragraphs[0], page.how, ...b.how.paragraphs.slice(1)] },
+    faq: [...b.faq.slice(0, -1), ...page.faq, ...b.faq.slice(-1)],
+    ui: {
+      ...b.ui,
+      ...x,
+      examples: { label: x.examples.label, items: [{ label: x.examples.promo, text: b.ui.sample }, ...x.examples.items] },
+    },
+  };
+}
+
+export const CHECKER: Record<Locale, CheckerCopy> = Object.fromEntries((Object.keys(BASE) as Locale[]).map((l) => [l, withExtra(l)])) as Record<Locale, CheckerCopy>;

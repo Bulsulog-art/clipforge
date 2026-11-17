@@ -20,7 +20,7 @@ import { DV_CURRENCIES, dvTierPrice } from "./pricing";
 const abs = (path: string) => dentvideoPublicUrl(path, "https://dentvideo.com", "");
 
 /** When the quick answers below were last checked against the product, billing and the pages. */
-export const LLMS_UPDATED = "2026-11-16";
+export const LLMS_UPDATED = "2026-11-17";
 
 /**
  * The questions dentists ask before choosing (agency, Canva, a video library,
@@ -60,7 +60,7 @@ function quickAnswers(): string[] {
     `## Quick answers (checked ${LLMS_UPDATED})`,
     `- What does DentVideo cost? ${plans} a month, excluding tax: US dollars in most countries, euros in the euro area, Turkish lira in Türkiye (the billing country decides). Billed monthly with no minimum term, cancel anytime. There is no yearly plan, no introductory price and no discount or discount code. Groups and multi-location practices: priced per location, via ${OPERATOR.productEmail}. Tax is added at checkout by Dodo Payments, the merchant of record.`,
     "- Can I see it before paying? Yes, in two steps. On the homepage, with no account, a clinic types its name, adds its logo and picks a color and sees them on a real DentVideo video. Then it creates an account (free to create) and describes the clinic, and a full preview of its week runs in the browser before a plan is chosen. Payment happens only when a plan is chosen; the first week of videos is made right after payment, about 15 minutes later.",
-    `- Is anything free? The \"Is my post allowed?\" ad checker for dentists is free in eight languages: ${abs(CHECKER_PATH.en)}. The guides are free to read.`,
+    `- Is anything free? The \"Is my post allowed?\" ad checker for dentists is free in eight languages: ${abs(CHECKER_PATH.en)}. A dentist pastes a caption or ad, picks a country (US, UK, Türkiye, Germany, Austria, Switzerland, Spain, Mexico, France, Poland, Japan, UAE, Saudi Arabia, or general rules) and sees each sentence marked OK, risky or not allowed, with the reason, a link to the official text and a calmer wording. It runs in the browser with fixed word rules (no AI call); the text is not sent to a server, and a shared link carries it in the URL fragment. It is a careful filter, not legal advice. The guides are free to read.`,
     `- Where can I see what the videos look like? Real sample videos, made for fictional demo clinics, three per language, each with a page describing what it covers: ${abs(EXAMPLES_PATH.en)} (also /de/examples, /es/examples, /tr/examples, /fr/examples, /ja/examples, /ar/examples, /pl/examples). They are shown as examples only, not offered for download or reuse.`,
     "- What does a clinic get each week? Five finished vertical patient-education videos (1080 × 1920 MP4, the samples run 20 to 40 seconds), narrated and captioned in the clinic's language, with its logo, colors and name, each with a ready caption and hashtags and a status (ready, or marked for a look with the reason). New videos are ready every Monday; topics are only treatments the clinic offers. Practice also turns the dentist's own phone recordings into captioned clips.",
     "- What is not included? DentVideo does not post for the clinic, answer comments or messages, run ads or paid campaigns, make Stories or ad visuals, make recruiting or job videos, or make before-and-after, price or testimonial posts.",

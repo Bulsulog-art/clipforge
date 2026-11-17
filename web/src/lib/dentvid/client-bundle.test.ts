@@ -117,6 +117,7 @@ const SERVER_ONLY_CONTENT = [
   "content/solutions/index.ts",
   "content/legal/index.ts",
   "content/dentvideo-checker.ts",
+  "content/dentvideo-checker-extra.ts",
   "content/dentvideo-examples.ts",
 ];
 /** Libraries the public pages never run on load. */
@@ -155,9 +156,22 @@ describe("DentVideo public pages: browser bundle", () => {
       // 160: ad-click attribution on every page and the per-currency price tags added ~2 KB of source.
       // 170: the 404 boundary (loaded with every page) is counted now, ~7 KB of source. Before it was
       // counted, it shipped content/dentvideo.ts and the guide library: ~640 KB minified, unseen by this test.
-      expect(kb(g.client)).toBeLessThan(170);
+      // 171: the event allow-list (events.ts, on every page via attribution) gained the checker's share
+      // event and its market/banned counts, ~0.35 KB; the landing sat at 169.99 before.
+      expect(kb(g.client)).toBeLessThan(171);
     });
   }
+
+  it("the ad checker loads its rules and its result image on demand, not with the page", () => {
+    const g = clientGraph([...LAYOUTS, ...PAGES.checker.map((p) => path.join(APP, p))]);
+    const files = [...g.client].map(rel);
+    expect(files).toContain("components/dentvid/ad-checker.tsx");
+    // Small and needed at once: the market table and the #fragment reader.
+    expect(files).toContain("lib/dentvid/checker-markets.ts");
+    expect(files).toContain("lib/dentvid/checker-share.ts");
+    // The engine (every language's patterns) and the canvas card are dynamic imports.
+    for (const f of ["lib/dentvid/ad-checker.ts", "lib/dentvid/hard-rules.ts", "components/dentvid/checker-card.ts"]) expect(files, f).not.toContain(f);
+  });
 
   it("the sign-up page ships the account form, not the wizard, the guides or Supabase", () => {
     const g = clientGraph([...LAYOUTS, path.join(APP, "dentvideo/start/layout.tsx"), path.join(APP, "dentvideo/start/page.tsx")]);

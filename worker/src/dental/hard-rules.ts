@@ -351,7 +351,8 @@ export const CHECKER_RULES: readonly Rule[] = [...HARD_RULES, FEAR_RULE];
  * not claim one — the clinic can add a claim it can prove, under its own
  * responsibility. This is a conservative filter, not a legal opinion.
  *
- * Not part of the public checker (it does not know the reader's market).
+ * The public checker runs them too, for the market the visitor picks
+ * (web/src/lib/dentvid/ad-checker.ts, checker-markets.ts).
  */
 export type MarketRuleId = "sponsored" | "engagement" | "giveaway" | "booking" | "specialist" | "children" | "pom" | "permit";
 export type MarketRule = { id: MarketRuleId; why: string; patterns: RegExp[] };
