@@ -56,3 +56,16 @@ describe("DentVideo UI polish", () => {
     expect(quote("fr", "Bonjour")).toBe("« Bonjour »");
   });
 });
+
+describe("funnel account line", () => {
+  it("keeps the separator dot on the sign-out button's line, never alone after a long address (de, 390 px)", async () => {
+    const { FunnelAccount } = await import("@/components/dentvid/onboarding");
+    for (const l of LOCALES) {
+      const out = html(createElement(FunnelAccount, { locale: l, email: "e2e-monitor+a-very-long-address-1794948225413@bulsulabs.com" }));
+      const group = out.match(/<span data-funnel-signout[^>]*>([\s\S]*?)<\/button><\/span>/);
+      expect(group, l).not.toBeNull();
+      expect(group![0], l).toContain("whitespace-nowrap");
+      expect(group![1], l).toContain("·");
+    }
+  });
+});

@@ -37,11 +37,11 @@ export const en: HelpContent = {
   articles: {
     "first-videos": {
       q: "When do my first videos arrive?",
-      a: "Your first week of videos is made right after payment and usually takes about 15 minutes. The Videos page updates by itself, and we email you as soon as the videos are ready for your review.\n\nAfter that, five new videos arrive every Monday, and we email you each time.",
+      a: "Your first week of videos is made right after payment and is usually ready within an hour. The Videos page updates by itself, and we email you as soon as the videos are ready for your review.\n\nAfter that, five new videos arrive every Monday, and we email you each time.",
     },
     "no-videos-this-week": {
       q: "This week's videos aren't there yet. What do I do?",
-      a: "New videos are made every Monday. If this week's are not in your library yet, tap “Make this week's videos” on the Videos page. It takes about 15 minutes.\n\nIf the page says the videos are delayed, we are already retrying and will email you when they are ready. You can also tap “Try again now”.\n\nA video marked “Could not be made” needs nothing from you. If it happens again, write to us.",
+      a: "New videos are made every Monday. If this week's are not in your library yet, tap “Make this week's videos” on the Videos page. It's usually done within an hour.\n\nIf the page says the videos are delayed, we are already retrying and will email you when they are ready. You can also tap “Try again now”.\n\nA video marked “Could not be made” needs nothing from you. If it happens again, write to us.",
     },
     topics: {
       q: "How are the topics chosen, and can I suggest one?",

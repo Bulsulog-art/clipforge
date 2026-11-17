@@ -3,8 +3,8 @@
  * Its own module: lib/dentvid/onboarding.ts is in the landing's browser
  * bundle (the teaser), and this is only for the signed-in app.
  */
-/** "About 15 minutes" is the promise; after this long the first week shows a calm "try again". */
-export const FIRST_WEEK_SLOW_MS = 30 * 60_000;
+/** "Usually within an hour" is the promise; after that hour the first week shows the calm "taking longer" state with "try again". */
+export const FIRST_WEEK_SLOW_MS = 60 * 60_000;
 /** A paid clinic whose week has no job at all gets "try again" after this grace (the page itself asks for the week on load). */
 export const FIRST_WEEK_MISSING_GRACE_MS = 2 * 60_000;
 

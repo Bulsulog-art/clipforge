@@ -37,11 +37,11 @@ export const tr: HelpContent = {
   articles: {
     "first-videos": {
       q: "İlk videolarım ne zaman gelir?",
-      a: "İlk haftanızın videoları ödemeden hemen sonra hazırlanır, genellikle yaklaşık 15 dakika sürer. Videolar sayfası kendiliğinden yenilenir ve videolar incelemenize hazır olduğunda size e-posta göndeririz.\n\nSonrasında her pazartesi beş yeni video gelir ve her seferinde e-postayla haber veririz.",
+      a: "İlk haftanızın videoları ödemeden hemen sonra hazırlanır, genellikle bir saat içinde hazır olur. Videolar sayfası kendiliğinden yenilenir ve videolar incelemenize hazır olduğunda size e-posta göndeririz.\n\nSonrasında her pazartesi beş yeni video gelir ve her seferinde e-postayla haber veririz.",
     },
     "no-videos-this-week": {
       q: "Bu haftanın videoları henüz gelmedi. Ne yapmalıyım?",
-      a: "Yeni videolar her pazartesi hazırlanır. Bu haftanınkiler kütüphanenizde henüz yoksa Videolar sayfasında “Bu haftanın videolarını hazırla”ya dokunun. Yaklaşık 15 dakika sürer.\n\nSayfada videoların geciktiği yazıyorsa zaten yeniden deniyoruz ve hazır olduklarında size yazacağız. Dilerseniz “Şimdi tekrar dene”ye de dokunabilirsiniz.\n\n“Hazırlanamadı” olarak işaretlenen bir video için sizin bir şey yapmanız gerekmez. Tekrar olursa bize yazın.",
+      a: "Yeni videolar her pazartesi hazırlanır. Bu haftanınkiler kütüphanenizde henüz yoksa Videolar sayfasında “Bu haftanın videolarını hazırla”ya dokunun. Genellikle bir saat içinde hazır olur.\n\nSayfada videoların geciktiği yazıyorsa zaten yeniden deniyoruz ve hazır olduklarında size yazacağız. Dilerseniz “Şimdi tekrar dene”ye de dokunabilirsiniz.\n\n“Hazırlanamadı” olarak işaretlenen bir video için sizin bir şey yapmanız gerekmez. Tekrar olursa bize yazın.",
     },
     topics: {
       q: "Konular nasıl seçiliyor, ben konu önerebilir miyim?",

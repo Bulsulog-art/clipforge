@@ -37,11 +37,11 @@ export const fr: HelpContent = {
   articles: {
     "first-videos": {
       q: "Quand mes premières vidéos arrivent-elles ?",
-      a: "Les vidéos de votre première semaine sont créées juste après le paiement, en général en 15 minutes environ. La page Vidéos se met à jour toute seule, et nous vous envoyons un e-mail dès qu'elles sont prêtes pour votre relecture.\n\nEnsuite, cinq nouvelles vidéos arrivent chaque lundi, avec un e-mail à chaque fois.",
+      a: "Les vidéos de votre première semaine sont créées juste après le paiement, en général en moins d'une heure. La page Vidéos se met à jour toute seule, et nous vous envoyons un e-mail dès qu'elles sont prêtes pour votre relecture.\n\nEnsuite, cinq nouvelles vidéos arrivent chaque lundi, avec un e-mail à chaque fois.",
     },
     "no-videos-this-week": {
       q: "Les vidéos de la semaine ne sont pas encore là. Que faire ?",
-      a: "Les nouvelles vidéos sont créées chaque lundi. Si celles de la semaine ne sont pas encore dans votre bibliothèque, touchez « Créer les vidéos de la semaine » sur la page Vidéos. Cela prend environ 15 minutes.\n\nSi la page indique que les vidéos sont en retard, nous réessayons déjà et vous écrirons dès qu'elles sont prêtes. Vous pouvez aussi toucher « Réessayer maintenant ».\n\nUne vidéo marquée « N'a pas pu être créée » ne demande rien de votre part. Si cela se reproduit, écrivez-nous.",
+      a: "Les nouvelles vidéos sont créées chaque lundi. Si celles de la semaine ne sont pas encore dans votre bibliothèque, touchez « Créer les vidéos de la semaine » sur la page Vidéos. Cela prend en général moins d'une heure.\n\nSi la page indique que les vidéos sont en retard, nous réessayons déjà et vous écrirons dès qu'elles sont prêtes. Vous pouvez aussi toucher « Réessayer maintenant ».\n\nUne vidéo marquée « N'a pas pu être créée » ne demande rien de votre part. Si cela se reproduit, écrivez-nous.",
     },
     topics: {
       q: "Comment les sujets sont-ils choisis, et puis-je en proposer un ?",
