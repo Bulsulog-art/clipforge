@@ -4,12 +4,12 @@ import type { Guide } from "../dentvideo";
 // § 5 DDG am 2026-11-17 im Wortlaut geprüft (Fassung ab 19.02.2026); Kammer-Merkblatt
 // LZK BW (05/2024); BGH I ZR 228/03 im Volltext gelesen. Keine Bußgeldbeträge nennen.
 
-const DDG5 = { label: "§ 5 Digitale-Dienste-Gesetz (DDG) — Allgemeine Informationspflichten (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/ddg/__5.html" };
-const LZK_BW = { label: "Landeszahnärztekammer Baden-Württemberg — Merkblatt Pflichtangaben im Internet für Zahnärzte (PDF, Stand 05/2024)", url: "https://lzk-bw.de/fileadmin/user_upload/user_upload/Pflichtangaben_Internet.pdf" };
-const BGH_2006 = { label: "BGH, Urteil vom 20. Juli 2006, I ZR 228/03 — Anbieterkennzeichnung im Internet (Volltext bei lexetius.com)", url: "https://lexetius.com/2006,2487" };
-const EU_ODR = { label: "Verordnung (EU) 2024/3228 — Aufhebung der Verordnung über Online-Streitbeilegung (EUR-Lex)", url: "https://eur-lex.europa.eu/eli/reg/2024/3228/oj" };
-const BZAEK = { label: "Bundeszahnärztekammer — Musterberufsordnung (MBO-Z), Abschnitt „Berufliche Kommunikation“ (§§ 20–22)", url: "https://www.bzaek.de/recht/musterberufsordnung/berufliche-kommunikation.html" };
-const ZM_2026 = { label: "zm-online — Diese Abmahnrisiken verstecken sich auf der Praxis-Website (zm 11/2026)", url: "https://www.zm-online.de/artikel/2026/zm-2026-11/diese-abmahnrisiken-verstecken-sich-auf-der-praxis-website" };
+const DDG5 = { label: "§ 5 Digitale-Dienste-Gesetz (DDG): Allgemeine Informationspflichten (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/ddg/__5.html" };
+const LZK_BW = { label: "Landeszahnärztekammer Baden-Württemberg: Merkblatt Pflichtangaben im Internet für Zahnärzte (PDF, Stand 05/2024)", url: "https://lzk-bw.de/fileadmin/user_upload/user_upload/Pflichtangaben_Internet.pdf" };
+const BGH_2006 = { label: "BGH, Urteil vom 20. Juli 2006, I ZR 228/03: Anbieterkennzeichnung im Internet (Volltext bei lexetius.com)", url: "https://lexetius.com/2006,2487" };
+const EU_ODR = { label: "Verordnung (EU) 2024/3228: Aufhebung der Verordnung über Online-Streitbeilegung (EUR-Lex)", url: "https://eur-lex.europa.eu/eli/reg/2024/3228/oj" };
+const BZAEK = { label: "Bundeszahnärztekammer: Musterberufsordnung (MBO-Z), Abschnitt „Berufliche Kommunikation“ (§§ 20–22)", url: "https://www.bzaek.de/recht/musterberufsordnung/berufliche-kommunikation.html" };
+const ZM_2026 = { label: "zm-online: Diese Abmahnrisiken verstecken sich auf der Praxis-Website (zm 11/2026)", url: "https://www.zm-online.de/artikel/2026/zm-2026-11/diese-abmahnrisiken-verstecken-sich-auf-der-praxis-website" };
 
 export const IMPRESSUM_DE: Guide = {
   locale: "de",

@@ -4,11 +4,11 @@ import type { Guide } from "../dentvideo";
 // metin 2026-11-17'de tam metinden okunarak kontrol edildi. Rakam, ücret ve
 // yaptırım tutarı yazılmaz; madde numaraları resmî metne göre verilir.
 
-const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı sayı (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+const RG = { label: "Resmî Gazete: 12 Kasım 2025 tarihli ve 33075 sayılı sayı (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
 const FULL_TEXT = { label: "Yönetmeliğin tam metni, madde 1–15 (Hukuki Haber yayını; resmî metin Resmî Gazete'dedir)", url: "https://www.hukukihaber.net/saglik-hizmetlerinde-tanitim-ve-bilgilendirme-faaliyetleri-hakkinda-yonetmelik" };
-const HEALTHTURKIYE = { label: "HealthTürkiye — Sağlık Bakanlığı'nın uluslararası sağlık turizmi portalı", url: "https://www.healthturkiye.gov.tr/" };
+const HEALTHTURKIYE = { label: "HealthTürkiye: Sağlık Bakanlığı'nın uluslararası sağlık turizmi portalı", url: "https://www.healthturkiye.gov.tr/" };
 const TDB = { label: "Türk Dişhekimleri Birliği (meslek etiği ve oda duyuruları)", url: "https://www.tdb.org.tr/" };
-const KVKK = { label: "Kişisel Verileri Koruma Kurumu — 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
+const KVKK = { label: "Kişisel Verileri Koruma Kurumu: 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
 
 export const HEALTH_TOURISM_TR: Guide = {
   locale: "tr",

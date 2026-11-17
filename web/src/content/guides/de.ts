@@ -4,18 +4,18 @@ import type { Guide } from "../dentvideo";
 // beschreiben, was gilt; keine erfundenen Zahlen, keine Preise; Recht vorsichtig
 // und mit amtlichen Quellen.
 
-const HWG = { label: "Heilmittelwerbegesetz (HWG) — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
-const UWG = { label: "Gesetz gegen den unlauteren Wettbewerb (UWG) — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/uwg_2004/" };
-const BZAEK = { label: "Bundeszahnärztekammer — Musterberufsordnung (MBO-Z), Abschnitt „Berufliche Kommunikation“ (§§ 20–22)", url: "https://www.bzaek.de/recht/musterberufsordnung/berufliche-kommunikation.html" };
-const HWG11 = { label: "§ 11 HWG — Werbung außerhalb der Fachkreise (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
-const HWG15 = { label: "§ 15 HWG — Bußgeldvorschriften (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__15.html" };
-const LTO_BGH = { label: "LTO — BGH, Urteil vom 31. Juli 2025, I ZR 170/24: keine Vorher-Nachher-Bilder für Hyaluron-Unterspritzungen", url: "https://www.lto.de/recht/nachrichten/n/izr17024-bgh-vorher-nachher-bildern-schoenheitsoperation-dr-rick-und-nick-aesthetify" };
-const DSGVO = { label: "Datenschutz-Grundverordnung (DSGVO), Art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
-const DDG = { label: "Digitale-Dienste-Gesetz (DDG), § 5 Impressumspflicht — gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/ddg/" };
-const RIS = { label: "Rechtsinformationssystem des Bundes (RIS) — Zahnärztegesetz (ZÄG), § 35", url: "https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20004372&Paragraf=35" };
-const OEZAEK = { label: "Österreichische Zahnärztekammer — Werberichtlinie (WR-ÖZÄK)", url: "https://www.zahnaerztekammer.at/" };
-const FEDLEX = { label: "Fedlex — Medizinalberufegesetz (MedBG, SR 811.11), Art. 40", url: "https://www.fedlex.admin.ch/eli/cc/2007/537/de" };
-const SSO = { label: "Schweizerische Zahnärzte-Gesellschaft SSO — Standesordnung", url: "https://www.sso.ch/" };
+const HWG = { label: "Heilmittelwerbegesetz (HWG), gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/" };
+const UWG = { label: "Gesetz gegen den unlauteren Wettbewerb (UWG), gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/uwg_2004/" };
+const BZAEK = { label: "Bundeszahnärztekammer: Musterberufsordnung (MBO-Z), Abschnitt „Berufliche Kommunikation“ (§§ 20–22)", url: "https://www.bzaek.de/recht/musterberufsordnung/berufliche-kommunikation.html" };
+const HWG11 = { label: "§ 11 HWG: Werbung außerhalb der Fachkreise (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
+const HWG15 = { label: "§ 15 HWG: Bußgeldvorschriften (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/heilmwerbg/__15.html" };
+const LTO_BGH = { label: "LTO zum BGH-Urteil vom 31. Juli 2025, I ZR 170/24: keine Vorher-Nachher-Bilder für Hyaluron-Unterspritzungen", url: "https://www.lto.de/recht/nachrichten/n/izr17024-bgh-vorher-nachher-bildern-schoenheitsoperation-dr-rick-und-nick-aesthetify" };
+const DSGVO = { label: "Datenschutz-Grundverordnung (DSGVO), Art. 9 (EUR-Lex)", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
+const DDG = { label: "Digitale-Dienste-Gesetz (DDG), § 5 Impressumspflicht (gesetze-im-internet.de)", url: "https://www.gesetze-im-internet.de/ddg/" };
+const RIS = { label: "Rechtsinformationssystem des Bundes (RIS): Zahnärztegesetz (ZÄG), § 35", url: "https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20004372&Paragraf=35" };
+const OEZAEK = { label: "Österreichische Zahnärztekammer: Werberichtlinie (WR-ÖZÄK)", url: "https://www.zahnaerztekammer.at/" };
+const FEDLEX = { label: "Fedlex: Medizinalberufegesetz (MedBG, SR 811.11), Art. 40", url: "https://www.fedlex.admin.ch/eli/cc/2007/537/de" };
+const SSO = { label: "Schweizerische Zahnärzte-Gesellschaft SSO: Standesordnung", url: "https://www.sso.ch/" };
 
 export const GUIDES_DE: Guide[] = [
   {

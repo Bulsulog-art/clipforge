@@ -4,14 +4,14 @@ import type { Guide } from "../dentvideo";
 // HHS resolution agreements and contemporaneous trade-press reports (checked
 // 2026-11-17). No settlement amounts: the content tests forbid money figures.
 
-const HHS_NEW_VISION = { label: "HHS Office for Civil Rights — Resolution agreement with New Vision Dental (B. Brandon Au, DDS, Inc.), 2022", url: "https://www.hhs.gov/hipaa/for-professionals/compliance-enforcement/agreements/new-vision/index.html" };
-const HHS_ELITE = { label: "HHS Office for Civil Rights — Resolution agreement and corrective action plan, Elite Dental Associates, Dallas (2019, PDF)", url: "https://www.hhs.gov/sites/default/files/elite-dental-ra-cap.pdf" };
-const CDA_ELITE = { label: "California Dental Association — Dental practice settles HHS complaint over patient information disclosed in review replies (2019)", url: "https://www.cda.org/news-events/dental-practice-pays-10k-to-settle-disclosures-of-patients-phi-on-social-media" };
-const HHS_PRIVACY = { label: "U.S. Department of Health and Human Services — HIPAA Privacy Rule for professionals", url: "https://www.hhs.gov/hipaa/for-professionals/privacy/index.html" };
-const FTC_465 = { label: "FTC — Final rule on consumer reviews and testimonials, 16 CFR Part 465 (in force since 21 October 2024)", url: "https://www.ftc.gov/system/files/ftc_gov/pdf/r311003consumerreviewstestimonialsfinalrulefrn.pdf" };
-const FTC_REVIEWS = { label: "FTC — Reviews: business guidance, including the Consumer Review Fairness Act", url: "https://www.ftc.gov/reviews" };
-const GOOGLE_REVIEWS = { label: "Google Business Profile Help — Manage customer reviews", url: "https://support.google.com/business/answer/3474050" };
-const GDC_SM = { label: "General Dental Council — Guidance on using social media (in effect since 27 June 2016)", url: "https://www.gdc-uk.org/docs/default-source/guidance-documents/guidance-on-using-social-media" };
+const HHS_NEW_VISION = { label: "HHS Office for Civil Rights: Resolution agreement with New Vision Dental (B. Brandon Au, DDS, Inc.), 2022", url: "https://www.hhs.gov/hipaa/for-professionals/compliance-enforcement/agreements/new-vision/index.html" };
+const HHS_ELITE = { label: "HHS Office for Civil Rights: Resolution agreement and corrective action plan, Elite Dental Associates, Dallas (2019, PDF)", url: "https://www.hhs.gov/sites/default/files/elite-dental-ra-cap.pdf" };
+const CDA_ELITE = { label: "California Dental Association: Dental practice settles HHS complaint over patient information disclosed in review replies (2019)", url: "https://www.cda.org/news-events/dental-practice-pays-10k-to-settle-disclosures-of-patients-phi-on-social-media" };
+const HHS_PRIVACY = { label: "U.S. Department of Health and Human Services: HIPAA Privacy Rule for professionals", url: "https://www.hhs.gov/hipaa/for-professionals/privacy/index.html" };
+const FTC_465 = { label: "FTC: Final rule on consumer reviews and testimonials, 16 CFR Part 465 (in force since 21 October 2024)", url: "https://www.ftc.gov/system/files/ftc_gov/pdf/r311003consumerreviewstestimonialsfinalrulefrn.pdf" };
+const FTC_REVIEWS = { label: "FTC reviews hub: business guidance, including the Consumer Review Fairness Act", url: "https://www.ftc.gov/reviews" };
+const GOOGLE_REVIEWS = { label: "Google Business Profile Help: Manage customer reviews", url: "https://support.google.com/business/answer/3474050" };
+const GDC_SM = { label: "General Dental Council: Guidance on using social media (in effect since 27 June 2016)", url: "https://www.gdc-uk.org/docs/default-source/guidance-documents/guidance-on-using-social-media" };
 
 export const REVIEW_REPLIES_EN: Guide = {
   locale: "en",

@@ -3,11 +3,11 @@ import type { Guide } from "../dentvideo";
 // Türkçe rehberler. Kurallar: yalnızca bugün geçerli olanı anlatın, istatistik
 // ve fiyat uydurmayın, mevzuatı temkinli ve kaynaklı aktarın.
 
-const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
-const RG_2023 = { label: "Resmî Gazete — 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete (yürürlükten kaldırılan önceki yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2023/07/20230729-29.htm" };
-const MEVZUAT = { label: "Mevzuat Bilgi Sistemi — yönetmeliklerin güncel metni", url: "https://www.mevzuat.gov.tr/" };
+const RG = { label: "Resmî Gazete: 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+const RG_2023 = { label: "Resmî Gazete: 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete (yürürlükten kaldırılan önceki yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2023/07/20230729-29.htm" };
+const MEVZUAT = { label: "Mevzuat Bilgi Sistemi: yönetmeliklerin güncel metni", url: "https://www.mevzuat.gov.tr/" };
 const TDB = { label: "Türk Dişhekimleri Birliği (meslek etiği ve oda duyuruları)", url: "https://www.tdb.org.tr/" };
-const KVKK = { label: "Kişisel Verileri Koruma Kurumu — 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
+const KVKK = { label: "Kişisel Verileri Koruma Kurumu: 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
 const SB = { label: "T.C. Sağlık Bakanlığı", url: "https://www.saglik.gov.tr/" };
 
 export const GUIDES_TR: Guide[] = [

@@ -6,8 +6,8 @@ import type { Guide } from "../dentvideo";
 // "Siz" hitabı; fiyat, istatistik ve hasta yorumu yok. Madde numarası
 // verilmez: resmî metinden doğrulanmadıkça yazılmaz (docs/SEO_PLAN.md §10.5).
 
-const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
-const KVKK = { label: "Kişisel Verileri Koruma Kurumu — 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
+const RG = { label: "Resmî Gazete: 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+const KVKK = { label: "Kişisel Verileri Koruma Kurumu: 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
 
 const DATES = { published: "2026-11-14", updated: "2026-11-14", reviewed: "2026-11-14" } as const;
 
