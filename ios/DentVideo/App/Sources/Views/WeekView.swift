@@ -84,6 +84,11 @@ struct WeekView: View {
     }
 
     private func openPending() {
+        // iOS 17 does not run onChange on a tab that is not on screen: pick the request up here.
+        if let id = model.openItemID {
+            model.openItemID = nil
+            pendingOpen = id
+        }
         guard let id = pendingOpen else { return }
         let known = model.items.contains(where: { $0.id == id })
         Task {
