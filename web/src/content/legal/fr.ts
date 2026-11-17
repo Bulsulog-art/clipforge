@@ -106,7 +106,26 @@ export const FR: LegalText = {
           ],
         },
         {
-          heading: "8. Vos contenus et les données des patients",
+          heading: "8. Abonnements souscrits dans l'app iPhone",
+          blocks: [
+            "Vous pouvez aussi souscrire Starter ou Practice dans l'app DentVideo pour iPhone, par l'achat intégré d'Apple. Ces formules offrent les mêmes fonctionnalités que les formules du même nom sur le site. Group n'est pas proposé dans l'app. Pour une formule achetée dans l'app, le présent article s'applique à la place des articles 6 et 7 et de la [Politique de remboursement](refunds) sur tous les points où ils diffèrent. Rien ne change pour les formules achetées sur le site.",
+            {
+              list: [
+                "Apple est le vendeur. Apple débite le moyen de paiement de votre compte Apple, affiche le prix dans votre devise locale avant que vous confirmiez, perçoit les taxes applicables et émet le reçu. Les conditions d'Apple pour les achats sur l'App Store s'appliquent également. Nous ne voyons jamais vos données de paiement.",
+                "Les formules sont mensuelles et se renouvellent automatiquement. Apple vous débite lorsque vous confirmez l'achat, puis au début de chaque nouveau mois, sauf si vous désactivez le renouvellement automatique au moins 24 heures avant la fin de la période en cours.",
+                "Pour résilier, ouvrez Réglages > votre nom > Abonnements sur l'iPhone et résiliez au moins 24 heures avant la date de renouvellement. Votre formule reste active jusqu'à la fin de la période payée. Vous seul pouvez résilier un abonnement App Store ; nous ne pouvons pas le faire à votre place.",
+                "Les remboursements des achats sur l'App Store relèvent uniquement d'Apple, selon ses règles. Vous pouvez demander un remboursement à Apple sur {appleRefunds}. Nous ne pouvons ni accorder ni promettre de remboursement pour ces achats. Si Apple rembourse un achat, la formule prend fin au moment du remboursement ; les vidéos déjà réalisées restent dans votre bibliothèque. Si le service a fait défaut comme décrit à l'article 3 de la [Politique de remboursement](refunds), nous refaisons les vidéos de la semaine concernée.",
+                "Vous pouvez passer de Starter à Practice, et inversement, dans ce même écran Abonnements. Apple applique une montée en gamme immédiatement et une descente en gamme à partir de votre prochain renouvellement.",
+                "Si Apple ne parvient pas à renouveler votre abonnement, par exemple parce qu'un paiement échoue, les nouvelles vidéos hebdomadaires peuvent être suspendues jusqu'à ce qu'Apple le renouvelle.",
+                "Si le prix d'un abonnement App Store change, Apple vous prévient à l'avance et, lorsque ses règles l'exigent, vous demande votre accord avant de facturer le nouveau prix.",
+                "Un cabinet n'a qu'une formule à la fois, achetée soit sur le site, soit sur l'App Store. Si votre cabinet paie déjà sur le site, l'app ne propose pas d'achat, et une formule achetée dans l'app ne peut pas être achetée une seconde fois sur le site. Si votre cabinet est un jour débité deux fois, écrivez à {email} et nous vous aiderons à résilier l'un des deux abonnements.",
+                "Supprimer votre compte ne résilie pas un abonnement App Store. Résiliez-le d'abord dans Réglages > votre nom > Abonnements, sinon Apple continuera de vous débiter.",
+              ],
+            },
+          ],
+        },
+        {
+          heading: "9. Vos contenus et les données des patients",
           blocks: [
             "Vous conservez tous les droits sur ce que vous envoyez : logo, informations du cabinet et enregistrements. Vous nous autorisez à les stocker et les traiter uniquement pour faire fonctionner DentVideo pour vous, y compris en les transmettant aux prestataires listés dans notre [Politique de confidentialité](privacy).",
             "Vous confirmez avoir le droit d'utiliser ce que vous envoyez et que toute personne qui apparaît ou parle dans un enregistrement y a consenti.",
@@ -115,7 +134,7 @@ export const FR: LegalText = {
           ],
         },
         {
-          heading: "9. Ce que vous obtenez",
+          heading: "10. Ce que vous obtenez",
           blocks: [
             "Les vidéos, scripts et sous-titres réalisés pour votre cabinet peuvent être utilisés pour la communication de votre cabinet, y compris après résiliation pour tout ce que vous avez téléchargé.",
             "Certaines vidéos contiennent des images d'archive de Pexels, utilisées sous la licence Pexels, et une voix de synthèse. Vous pouvez les utiliser dans les vidéos, mais pas séparément (par exemple en extrayant et revendant les images).",
@@ -124,21 +143,21 @@ export const FR: LegalText = {
           ],
         },
         {
-          heading: "10. Usage acceptable",
+          heading: "11. Usage acceptable",
           blocks: [
             "N'utilisez pas DentVideo pour créer des contenus trompeurs, illicites ou promettant des résultats de traitement, et n'essayez pas de casser, surcharger, copier ou revendre le service, ni d'accéder aux données d'autres cabinets.",
             "Nous pouvons suspendre ou fermer un compte qui enfreint ces conditions. Lorsque c'est possible, nous vous prévenons d'abord et vous laissons l'occasion de corriger.",
           ],
         },
         {
-          heading: "11. Disponibilité et évolutions",
+          heading: "12. Disponibilité et évolutions",
           blocks: [
             "Nous faisons en sorte de livrer vos vidéos chaque semaine, mais nous ne pouvons garantir que le service soit toujours disponible ou exempt d'erreurs. La livraison hebdomadaire peut être retardée, par exemple par une panne chez l'un de nos prestataires.",
             "Nous améliorons DentVideo en continu et pouvons en modifier le fonctionnement. Si nous retirons un élément essentiel de votre formule, nous vous prévenons à l'avance et vous pouvez résilier.",
           ],
         },
         {
-          heading: "12. Responsabilité",
+          heading: "13. Responsabilité",
           blocks: [
             "Rien dans ces conditions ne limite une responsabilité qui ne peut l'être légalement, comme celle pour faute intentionnelle ou faute lourde.",
             "Pour le reste, nous ne sommes pas responsables des dommages indirects (par exemple perte de bénéfices, perte de patients ou atteinte à la réputation), et notre responsabilité totale pour l'ensemble des réclamations est limitée aux sommes que vous nous avez versées au cours des 12 mois précédant la réclamation.",
@@ -146,25 +165,25 @@ export const FR: LegalText = {
           ],
         },
         {
-          heading: "13. Fin du contrat",
+          heading: "14. Fin du contrat",
           blocks: [
-            "Vous pouvez mettre fin au contrat en résiliant votre formule et en supprimant votre compte dans les Réglages. Nous pouvons y mettre fin avec un préavis de 30 jours, ou immédiatement en application de l'article 10. Lorsqu'un compte est supprimé, nous supprimons ses données comme décrit dans la [Politique de confidentialité](privacy).",
+            "Vous pouvez mettre fin au contrat en résiliant votre formule et en supprimant votre compte dans les Réglages. Nous pouvons y mettre fin avec un préavis de 30 jours, ou immédiatement en application de l'article 11. Lorsqu'un compte est supprimé, nous supprimons ses données comme décrit dans la [Politique de confidentialité](privacy).",
           ],
         },
         {
-          heading: "14. Modification des conditions",
+          heading: "15. Modification des conditions",
           blocks: [
             "Nous pouvons mettre à jour ces conditions. Nous vous informons par e-mail des modifications importantes au moins 30 jours avant leur entrée en vigueur. Si vous continuez à utiliser DentVideo ensuite, les nouvelles conditions s'appliquent ; si vous ne les acceptez pas, vous pouvez résilier avant leur entrée en vigueur.",
           ],
         },
         {
-          heading: "15. Droit applicable et juridiction",
+          heading: "16. Droit applicable et juridiction",
           blocks: [
             "Ces conditions sont régies par le droit du Monténégro, et les tribunaux de Podgorica sont compétents. Cela ne vous prive d'aucune protection que vous accorde la loi impérative du pays où vous êtes établi et à laquelle il ne peut être dérogé par contrat.",
             "Le texte anglais de ces conditions fait foi. Les traductions sont fournies pour plus de commodité ; en cas de divergence, la version anglaise prévaut.",
           ],
         },
-        { heading: "16. Contact", blocks: ["Questions sur DentVideo : {email}. Questions relatives à la société : {companyEmail}."] },
+        { heading: "17. Contact", blocks: ["Questions sur DentVideo : {email}. Questions relatives à la société : {companyEmail}."] },
       ],
     },
 
@@ -199,6 +218,7 @@ export const FR: LegalText = {
                 "Événements d'usage : un petit journal interne d'étapes comme « page d'accueil vue » ou « formule choisie », avec la langue de la page, les balises de campagne (utm) et le domaine du site d'origine. Ils ne contiennent ni identifiant de cookie, ni adresse IP, ni données de navigateur, ni nom ou e-mail.",
                 "Clics sur nos annonces : si vous arrivez sur dentvideo.com depuis l'une de nos annonces Google, l'identifiant de clic que Google ajoute au lien (gclid, gbraid ou wbraid) et l'heure du clic. Si vous créez ensuite un compte, nous l'enregistrons avec votre compte. Dans l'UE/EEE, au Royaume-Uni et en Suisse, uniquement si vous l'autorisez dans la question affichée à ces visiteurs.",
                 "Données techniques : votre adresse IP et les données de requête sont traitées pour afficher les pages, sécuriser le service et limiter les abus (compteurs de limitation de courte durée). Pour afficher les prix dans votre devise et savoir s'il faut vous demander votre accord avant de conserver un clic publicitaire, nous déterminons uniquement le pays de votre adresse IP à l'aide d'une base de données sur notre propre serveur ({dbip}) ; pour cela, l'adresse IP n'est ni conservée ni transmise.",
+                "App iPhone : le jeton de notifications push de votre iPhone si vous autorisez les notifications et, si vous vous abonnez dans l'app, votre historique d'achats App Store. L'article 4 explique les deux.",
               ],
             },
           ],
@@ -210,7 +230,22 @@ export const FR: LegalText = {
           ],
         },
         {
-          heading: "4. Finalités et bases légales",
+          heading: "4. L'app iPhone et les achats sur l'App Store",
+          blocks: [
+            "L'app DentVideo pour iPhone utilise le même compte et le même service que dentvideo.com, et le reste de cette politique s'y applique aussi. En complément :",
+            {
+              list: [
+                "Notifications : si vous les autorisez, nous enregistrons le jeton de notifications push de votre iPhone avec votre compte, ainsi que la langue de l'app et l'activation ou non de l'avis. Nous l'utilisons uniquement pour vous prévenir que les vidéos de votre semaine, ou un clip tiré de votre enregistrement, sont prêtes à être revues. L'avis est acheminé par le service de notifications push d'Apple. Le jeton est supprimé quand vous vous déconnectez de l'app sur cet iPhone, quand Apple nous indique qu'il n'est plus valide et quand vos identifiants sont supprimés avec votre compte. Désactiver l'avis dans les réglages de l'app l'arrête sans vous déconnecter.",
+                "Enregistrements : l'app n'utilise la caméra et le micro que pendant que vous enregistrez. Un enregistrement n'est envoyé qu'après que vous avez validé la prise, puis il est traité exactement comme un enregistrement envoyé sur le site. L'app n'enregistre une vidéo dans votre photothèque que si vous le lui demandez.",
+                "Sur votre iPhone : l'app conserve votre connexion dans le trousseau de l'iPhone, ainsi que des copies de vos vidéos validées pendant 21 jours au plus, pour qu'elles se lisent et se publient sans attente. Se déconnecter ou supprimer son compte dans l'app les efface de l'appareil.",
+              ],
+            },
+            "Achats dans l'app : si vous vous abonnez dans l'app, Apple est le vendeur et traite le paiement selon ses propres conditions et sa politique de confidentialité. Nous ne recevons jamais les données de votre carte ni celles de votre compte Apple. Pour les achats sur l'App Store, nous faisons appel à RevenueCat, Inc. (États-Unis) en tant que sous-traitant. RevenueCat reçoit l'identifiant de votre compte DentVideo, qu'il utilise comme identifiant d'utilisateur de l'app, et l'historique d'achats qu'Apple lui transmet : quelle formule a été achetée, quand elle se renouvelle ou prend fin, et si elle a été résiliée ou remboursée. RevenueCat nous communique ces informations pour que nous puissions activer votre formule, la maintenir et y mettre fin au bon moment.",
+            "Aucun pistage : l'app ne contient aucun logiciel de publicité, de mesure d'audience ou de rapport de plantage, et le seul logiciel tiers qu'elle intègre est celui de RevenueCat, pour les achats. Nous ne vous suivons pas à travers les apps ou sites web d'autres entreprises et n'utilisons pas l'identifiant publicitaire de votre appareil. Ce que vous faites dans l'app, par exemple valider une vidéo, n'est enregistré que dans notre propre service, comme sur le site.",
+          ],
+        },
+        {
+          heading: "5. Finalités et bases légales",
           blocks: [
             {
               list: [
@@ -221,28 +256,30 @@ export const FR: LegalText = {
                 "Envoyer des rappels concernant une inscription inachevée, que vous pouvez arrêter via le lien de désinscription (intérêt légitime).",
                 "Respecter nos obligations légales, comme la tenue des registres comptables et fiscaux (obligation légale).",
                 "Mesurer quelles annonces Google nous apportent des inscriptions et des cabinets payants : lorsqu'un compte est créé ou qu'un cabinet paie pour la première fois, nous transmettons cet événement avec l'identifiant de clic à Google Ads (consentement dans l'UE/EEE, au Royaume-Uni et en Suisse ; intérêts légitimes ailleurs).",
+                "Faire fonctionner l'app iPhone : envoyer les notifications que vous avez autorisées et traiter les achats et renouvellements App Store avec Apple et RevenueCat (exécution du contrat).",
               ],
             },
             "Nous ne vendons pas de données personnelles, ne les utilisons ni pour cibler de la publicité ni pour constituer des profils publicitaires, et n'utilisons ni vos envois ni vos vidéos pour entraîner des modèles d'IA.",
           ],
         },
         {
-          heading: "5. Destinataires",
+          heading: "6. Destinataires",
           blocks: [
             "Nous travaillons avec peu de prestataires. Chacun ne reçoit que ce dont il a besoin pour sa tâche :",
             { subprocessors: true },
             "Nous interrogeons aussi des termes de recherche généraux (comme le nom d'un soin et une langue) dans les suggestions de recherche publiques de Google et dans la banque de vidéos Pexels. Ces requêtes ne contiennent aucune donnée personnelle. La base de données, les connexions et le stockage des fichiers fonctionnent sur notre propre installation du logiciel libre Supabase sur notre serveur ; Supabase Inc. ne reçoit pas les données.",
             "Si vous êtes venu par l'une de nos annonces Google, nous envoyons à Google Ads (Google) l'identifiant de clic, la conversion qui a eu lieu (compte créé ou premier paiement), sa date et une valeur fixe que nous lui attribuons. Nous l'importons nous-mêmes : aucun script Google ne s'exécute sur nos pages et nous n'envoyons à Google ni nom, ni adresse e-mail, ni données de paiement. Google les traite selon ses propres conditions publicitaires et sa politique de confidentialité.",
+            "Pour l'app iPhone, Apple achemine les notifications push et vend les abonnements App Store, et RevenueCat, Inc. traite pour notre compte, aux États-Unis, les données d'achat App Store. L'article 4 décrit ce que chacun reçoit.",
           ],
         },
         {
-          heading: "6. Transferts internationaux",
+          heading: "7. Transferts internationaux",
           blocks: [
             "Nous sommes établis au Monténégro, hors de l'UE/EEE. Certains prestataires traitent des données dans d'autres pays, notamment aux États-Unis. Lorsque la loi applicable aux données exige une garantie pour un tel transfert, nous nous appuyons sur une décision d'adéquation lorsqu'elle existe ou sur des clauses contractuelles types (avec l'avenant britannique pour le Royaume-Uni) dans nos contrats avec ces prestataires.",
           ],
         },
         {
-          heading: "7. Durées de conservation",
+          heading: "8. Durées de conservation",
           blocks: [
             {
               list: [
@@ -253,12 +290,14 @@ export const FR: LegalText = {
                 "Compteurs de limitation : de quelques minutes à quelques heures.",
                 "Cabinets que nous contactons avec une démo personnalisée : nous créons nous-mêmes la démo à partir d'informations professionnelles publiques (nom du cabinet, ville, pays, couleur de marque et logo) et la conservons 60 jours au plus, sauf si le cabinet s'inscrit. Pour faire supprimer une démo plus tôt, écrivez à {email}.",
                 "Identifiants de clic publicitaire et conversions enregistrées avec eux : supprimés 90 jours après le clic. Ce que nous avons déjà transmis à Google Ads est conservé par Google selon ses propres règles.",
+                "Jetons de notifications push : jusqu'à ce que vous vous déconnectiez de l'app sur cet iPhone, qu'Apple nous indique que le jeton n'est plus valide ou que vos identifiants soient supprimés.",
+                "Achats App Store : notre fiche de votre abonnement App Store (formule, statut, date de renouvellement et référence de transaction Apple) est supprimée avec le profil de votre cabinet lorsque vous supprimez votre compte. RevenueCat conserve pour notre compte l'historique d'achats lié à l'identifiant de votre compte ; la suppression du compte ne l'efface pas automatiquement chez RevenueCat, écrivez donc à {email} si vous souhaitez qu'il soit supprimé. Apple conserve ses propres justificatifs d'achat en tant que vendeur.",
               ],
             },
           ],
         },
         {
-          heading: "8. Vos droits",
+          heading: "9. Vos droits",
           blocks: [
             "Selon la loi qui vous est applicable, vous pouvez demander l'accès à vos données, leur rectification, leur effacement, la limitation du traitement et une copie dans un format portable, et vous opposer à un traitement fondé sur l'intérêt légitime. Vous pouvez supprimer vous-même votre compte dans les Réglages. Écrivez à {email} ; nous répondons dans un délai d'un mois. Vous pouvez retirer à tout moment votre consentement à la mesure publicitaire en écrivant à {email} ou, avant de vous inscrire, en effaçant les données de ce site dans votre navigateur ; nous supprimons alors l'identifiant de clic que nous détenons. Le retrait n'affecte pas ce qui a été fait auparavant.",
             "Vous pouvez aussi saisir une autorité de protection des données : au Monténégro, l'Agence pour la protection des données personnelles et le libre accès à l'information ; dans l'UE/EEE, l'autorité de votre pays (en France, la CNIL) ; au Royaume-Uni, l'Information Commissioner's Office ; en Turquie, l'Autorité de protection des données personnelles (KVKK).",
@@ -266,14 +305,14 @@ export const FR: LegalText = {
           ],
         },
         {
-          heading: "9. Sécurité",
+          heading: "10. Sécurité",
           blocks: [
             "Les connexions sont chiffrées (HTTPS). Les données de chaque cabinet sont isolées dans la base de données par des règles d'accès, les fichiers ne sont servis que par des liens signés de courte durée, et l'accès aux serveurs est limité aux personnes qui exploitent DentVideo. Aucun système n'est parfaitement sûr ; si une violation touche vos données, nous vous en informons dans les meilleurs délais.",
           ],
         },
-        { heading: "10. Mineurs", blocks: ["DentVideo est un service professionnel qui ne s'adresse pas aux personnes de moins de 18 ans."] },
+        { heading: "11. Mineurs", blocks: ["DentVideo est un service professionnel qui ne s'adresse pas aux personnes de moins de 18 ans."] },
         {
-          heading: "11. Modifications",
+          heading: "12. Modifications",
           blocks: [
             "Nous mettons cette politique à jour lorsque nos pratiques changent et modifions la date en haut de page. Nous informons par e-mail les titulaires de compte des modifications importantes.",
           ],
@@ -284,7 +323,7 @@ export const FR: LegalText = {
     refunds: {
       title: "Politique de remboursement",
       description: "Comment fonctionnent la résiliation et les remboursements des abonnements DentVideo.",
-      intro: ["Cette politique fait partie de nos [Conditions d'utilisation](terms). En bref : résiliez quand vous voulez, gardez l'accès jusqu'à la fin de la période payée, et si le service a fait défaut, nous rectifions."],
+      intro: ["Cette politique fait partie de nos [Conditions d'utilisation](terms). En bref : résiliez quand vous voulez, gardez l'accès jusqu'à la fin de la période payée, et si le service a fait défaut, nous rectifions.", "Cette politique couvre les formules achetées sur dentvideo.com. Les formules achetées dans l'app DentVideo pour iPhone sont vendues par Apple, qui gère aussi leur résiliation et leur remboursement : voir l'article 8 des [Conditions d'utilisation](terms)."],
       sections: [
         {
           heading: "1. Résilier",

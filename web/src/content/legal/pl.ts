@@ -106,7 +106,26 @@ export const PL: LegalText = {
           ],
         },
         {
-          heading: "8. Państwa treści i dane pacjentów",
+          heading: "8. Subskrypcje kupione w aplikacji na iPhone'a",
+          blocks: [
+            "Plany Starter i Practice można też wykupić w aplikacji DentVideo na iPhone'a, za pomocą zakupu w aplikacji Apple. Mają one te same funkcje co plany o tej samej nazwie na stronie. Planu Group nie można kupić w aplikacji. W przypadku planu kupionego w aplikacji niniejszy punkt stosuje się zamiast punktów 6 i 7 oraz [Polityki zwrotów](refunds) we wszystkim, w czym się od nich różni. Dla planów kupionych na stronie nic się nie zmienia.",
+            {
+              list: [
+                "Sprzedawcą jest Apple. Apple obciąża metodę płatności przypisaną do Państwa konta Apple, przed potwierdzeniem pokazuje cenę w lokalnej walucie, pobiera należne podatki i wystawia potwierdzenie zakupu. Zastosowanie mają także warunki Apple dotyczące zakupów w App Store. Nigdy nie widzimy Państwa danych płatniczych.",
+                "Plany są miesięczne i odnawiają się automatycznie. Apple pobiera opłatę przy potwierdzeniu zakupu oraz na początku każdego kolejnego miesiąca, chyba że wyłączą Państwo automatyczne odnawianie co najmniej 24 godziny przed końcem bieżącego okresu.",
+                "Aby anulować, prosimy otworzyć na iPhonie Ustawienia > imię i nazwisko > Subskrypcje i anulować subskrypcję co najmniej 24 godziny przed datą odnowienia. Plan pozostaje aktywny do końca opłaconego okresu. Subskrypcję w App Store mogą anulować tylko Państwo; nie możemy zrobić tego w Państwa imieniu.",
+                "Zwroty za zakupy w App Store obsługuje wyłącznie Apple, zgodnie ze swoimi zasadami. O zwrot można poprosić Apple na stronie {appleRefunds}. Sami nie możemy dokonać ani obiecać zwrotu za takie zakupy. Jeśli Apple zwróci płatność, plan kończy się w chwili zwrotu, a filmy przygotowane wcześniej pozostają w bibliotece. Jeśli usługa zawiodła w sposób opisany w punkcie 3 [Polityki zwrotów](refunds), przygotujemy filmy z danego tygodnia ponownie.",
+                "Między planami Starter i Practice można przejść na tym samym ekranie Subskrypcje. Apple stosuje przejście na wyższy plan od razu, a na niższy od najbliższego odnowienia.",
+                "Jeśli Apple nie może odnowić subskrypcji, na przykład z powodu nieudanej płatności, nowe cotygodniowe filmy mogą zostać wstrzymane do czasu odnowienia przez Apple.",
+                "Jeśli cena subskrypcji w App Store się zmieni, Apple poinformuje o tym z wyprzedzeniem i tam, gdzie wymagają tego jego zasady, poprosi o zgodę przed pobraniem nowej ceny.",
+                "Gabinet ma jednocześnie tylko jeden plan, kupiony na stronie albo w App Store. Jeśli gabinet płaci już na stronie, aplikacja nie oferuje zakupu, a planu kupionego w aplikacji nie można kupić ponownie na stronie. Jeśli gabinet zostanie kiedyś obciążony podwójnie, prosimy napisać na {email}, a pomożemy anulować jedną z subskrypcji.",
+                "Usunięcie konta nie anuluje subskrypcji w App Store. Prosimy najpierw anulować ją w Ustawienia > imię i nazwisko > Subskrypcje, w przeciwnym razie Apple będzie nadal pobierać opłaty.",
+              ],
+            },
+          ],
+        },
+        {
+          heading: "9. Państwa treści i dane pacjentów",
           blocks: [
             "Wszystkie prawa do przesłanych treści (logo, danych gabinetu i nagrań) pozostają przy Państwu. Udzielają nam Państwo zgody na ich przechowywanie i przetwarzanie wyłącznie w celu świadczenia DentVideo, w tym przekazywanie ich dostawcom wymienionym w [Polityce prywatności](privacy).",
             "Potwierdzają Państwo, że mają prawo do korzystania z przesyłanych treści i że każda osoba widoczna lub słyszalna na nagraniu wyraziła zgodę.",
@@ -115,7 +134,7 @@ export const PL: LegalText = {
           ],
         },
         {
-          heading: "9. Co Państwo otrzymują",
+          heading: "10. Co Państwo otrzymują",
           blocks: [
             "Filmy, scenariusze i napisy przygotowane dla gabinetu mogą Państwo wykorzystywać w komunikacji gabinetu, także po anulowaniu — w odniesieniu do wszystkiego, co zostało pobrane.",
             "Niektóre filmy zawierają materiały stockowe z Pexels, używane na licencji Pexels, oraz syntetyczny głos. Można ich używać jako części filmów, ale nie osobno (np. wycinając i odsprzedając materiały).",
@@ -124,21 +143,21 @@ export const PL: LegalText = {
           ],
         },
         {
-          heading: "10. Dozwolone korzystanie",
+          heading: "11. Dozwolone korzystanie",
           blocks: [
             "Prosimy nie używać DentVideo do tworzenia treści wprowadzających w błąd, niezgodnych z prawem lub obiecujących efekty leczenia oraz nie próbować zakłócać, przeciążać, kopiować ani odsprzedawać usługi ani uzyskiwać dostępu do danych innych gabinetów.",
             "Możemy zawiesić lub zamknąć konto naruszające regulamin. W miarę możliwości uprzedzimy o tym i damy szansę na naprawę.",
           ],
         },
         {
-          heading: "11. Dostępność i zmiany",
+          heading: "12. Dostępność i zmiany",
           blocks: [
             "Staramy się dostarczać filmy co tydzień, ale nie możemy zagwarantować, że usługa będzie zawsze dostępna lub wolna od błędów. Cotygodniowa dostawa może się opóźnić, np. z powodu awarii u jednego z naszych dostawców.",
             "Stale rozwijamy DentVideo i możemy zmieniać sposób jego działania. Jeśli usuniemy coś istotnego z Państwa planu, uprzedzimy o tym, a Państwo będą mogli anulować.",
           ],
         },
         {
-          heading: "12. Odpowiedzialność",
+          heading: "13. Odpowiedzialność",
           blocks: [
             "Nic w regulaminie nie ogranicza odpowiedzialności, której nie można ograniczyć z mocy prawa, np. za winę umyślną lub rażące niedbalstwo.",
             "Poza tym nie odpowiadamy za szkody pośrednie lub następcze (np. utracone zyski, utraconych pacjentów lub szkody wizerunkowe), a nasza łączna odpowiedzialność za wszystkie roszczenia jest ograniczona do kwoty zapłaconej nam w ciągu 12 miesięcy przed powstaniem roszczenia.",
@@ -146,25 +165,25 @@ export const PL: LegalText = {
           ],
         },
         {
-          heading: "13. Zakończenie umowy",
+          heading: "14. Zakończenie umowy",
           blocks: [
-            "Mogą Państwo zakończyć umowę, anulując plan i usuwając konto w Ustawieniach. Możemy ją zakończyć z 30-dniowym wyprzedzeniem lub natychmiast na podstawie punktu 10. Po usunięciu konta usuwamy jego dane zgodnie z [Polityką prywatności](privacy).",
+            "Mogą Państwo zakończyć umowę, anulując plan i usuwając konto w Ustawieniach. Możemy ją zakończyć z 30-dniowym wyprzedzeniem lub natychmiast na podstawie punktu 11. Po usunięciu konta usuwamy jego dane zgodnie z [Polityką prywatności](privacy).",
           ],
         },
         {
-          heading: "14. Zmiany regulaminu",
+          heading: "15. Zmiany regulaminu",
           blocks: [
             "Możemy aktualizować regulamin. O istotnych zmianach poinformujemy e-mailem co najmniej 30 dni przed ich wejściem w życie. Dalsze korzystanie z DentVideo oznacza obowiązywanie nowego regulaminu; jeśli go Państwo nie akceptują, mogą Państwo anulować przed jego wejściem w życie.",
           ],
         },
         {
-          heading: "15. Prawo właściwe i sądy",
+          heading: "16. Prawo właściwe i sądy",
           blocks: [
             "Regulamin podlega prawu Czarnogóry, a właściwe są sądy w Podgoricy. Nie pozbawia to Państwa ochrony przyznanej przez bezwzględnie obowiązujące przepisy kraju siedziby, której nie można wyłączyć umową.",
             "Wiążący jest angielski tekst regulaminu. Tłumaczenia służą wygodzie; w razie rozbieżności rozstrzyga wersja angielska.",
           ],
         },
-        { heading: "16. Kontakt", blocks: ["Pytania dotyczące DentVideo: {email}. Sprawy spółki: {companyEmail}."] },
+        { heading: "17. Kontakt", blocks: ["Pytania dotyczące DentVideo: {email}. Sprawy spółki: {companyEmail}."] },
       ],
     },
 
@@ -199,6 +218,7 @@ export const PL: LegalText = {
                 "Zdarzenia użycia: niewielki własny zapis kroków, takich jak „wyświetlono stronę” czy „wybrano plan”, z językiem strony, tagami kampanii (utm) i domeną strony odsyłającej. Nie zawierają identyfikatora cookie, adresu IP, danych przeglądarki, imienia ani e-maila.",
                 "Kliknięcia reklam: jeśli trafią Państwo na dentvideo.com z jednej z naszych reklam Google — identyfikator kliknięcia, który Google dodaje do linku (gclid, gbraid lub wbraid), oraz czas kliknięcia. Jeśli następnie założą Państwo konto, zapisujemy go przy koncie. W UE/EOG, Wielkiej Brytanii i Szwajcarii tylko wtedy, gdy wyrażą Państwo na to zgodę w pytaniu wyświetlanym tym odwiedzającym.",
                 "Dane techniczne: adres IP i dane żądania są przetwarzane, aby wyświetlać strony, chronić usługę i ograniczać nadużycia (krótkotrwałe liczniki limitów zapytań). Aby pokazać ceny w Państwa walucie i ustalić, czy przed zapisaniem kliknięcia reklamy trzeba zapytać o zgodę, sprawdzamy jedynie kraj Państwa adresu IP w bazie danych na naszym własnym serwerze ({dbip}); w tym celu adres IP nie jest ani zapisywany, ani nikomu przekazywany.",
+                "Aplikacja na iPhone'a: token powiadomień push Państwa iPhone'a, jeśli zezwolą Państwo na powiadomienia, oraz historia zakupów w App Store, jeśli wykupią Państwo subskrypcję w aplikacji. Oba wyjaśnia punkt 4.",
               ],
             },
           ],
@@ -210,7 +230,22 @@ export const PL: LegalText = {
           ],
         },
         {
-          heading: "4. Cele i podstawy prawne",
+          heading: "4. Aplikacja na iPhone'a i zakupy w App Store",
+          blocks: [
+            "Aplikacja DentVideo na iPhone'a korzysta z tego samego konta i tej samej usługi co dentvideo.com, a pozostałe postanowienia tej polityki dotyczą również jej. Dodatkowo:",
+            {
+              list: [
+                "Powiadomienia: jeśli zezwolą Państwo na powiadomienia, zapisujemy przy koncie token powiadomień push Państwa iPhone'a wraz z językiem aplikacji i informacją, czy powiadomienie jest włączone. Używamy go wyłącznie do informowania, że filmy z danego tygodnia lub klip przygotowany z Państwa nagrania czekają na przejrzenie. Powiadomienie dostarcza usługa powiadomień push Apple. Token jest usuwany, gdy wylogują się Państwo z aplikacji na tym iPhonie, gdy Apple poinformuje nas, że jest już nieważny, oraz gdy dane logowania zostaną usunięte razem z kontem. Wyłączenie powiadomienia w ustawieniach aplikacji zatrzymuje je bez wylogowania.",
+                "Nagrania: aplikacja korzysta z aparatu i mikrofonu tylko podczas nagrywania. Nagranie jest wysyłane dopiero po zatwierdzeniu ujęcia, a potem traktowane dokładnie tak samo jak nagranie przesłane na stronie. Aplikacja zapisuje film w bibliotece zdjęć tylko na Państwa prośbę.",
+                "Na iPhonie: aplikacja przechowuje dane logowania w pęku kluczy iPhone'a, a kopie zatwierdzonych filmów przez maksymalnie 21 dni, aby można je było odtwarzać i publikować bez czekania. Wylogowanie lub usunięcie konta w aplikacji usuwa je z urządzenia.",
+              ],
+            },
+            "Zakupy w aplikacji: jeśli wykupią Państwo subskrypcję w aplikacji, sprzedawcą jest Apple, który obsługuje płatność na podstawie własnych warunków i polityki prywatności. Nigdy nie otrzymujemy danych karty ani danych konta Apple. Przy zakupach w App Store korzystamy z RevenueCat, Inc. (USA) jako podmiotu przetwarzającego. RevenueCat otrzymuje identyfikator Państwa konta DentVideo, którego używa jako identyfikatora użytkownika aplikacji, oraz historię zakupów przekazywaną przez Apple: który plan kupiono, kiedy się odnawia lub kończy oraz czy został anulowany lub zwrócony. RevenueCat przekazuje nam te informacje, abyśmy mogli włączyć plan, utrzymać go i zakończyć we właściwym czasie.",
+            "Bez śledzenia: aplikacja nie zawiera oprogramowania reklamowego, analitycznego ani do raportowania awarii, a jedynym oprogramowaniem zewnętrznym w niej jest oprogramowanie RevenueCat do obsługi zakupów. Nie śledzimy Państwa w aplikacjach ani na stronach innych firm i nie używamy identyfikatora reklamowego urządzenia. To, co robią Państwo w aplikacji, na przykład zatwierdzenie filmu, jest zapisywane wyłącznie w naszej własnej usłudze, tak samo jak na stronie.",
+          ],
+        },
+        {
+          heading: "5. Cele i podstawy prawne",
           blocks: [
             {
               list: [
@@ -221,28 +256,30 @@ export const PL: LegalText = {
                 "Przypomnienia o niedokończonej rejestracji, które można wyłączyć linkiem rezygnacji (prawnie uzasadniony interes).",
                 "Wypełnianie obowiązków prawnych, np. prowadzenie ksiąg i dokumentacji podatkowej (obowiązek prawny).",
                 "Aby mierzyć, które nasze reklamy Google przynoszą rejestracje i płacące gabinety: gdy powstaje konto lub gabinet płaci po raz pierwszy, zgłaszamy to zdarzenie wraz z identyfikatorem kliknięcia do Google Ads (zgoda w UE/EOG, Wielkiej Brytanii i Szwajcarii; prawnie uzasadniony interes w pozostałych przypadkach).",
+                "Działanie aplikacji na iPhone'a: wysyłanie powiadomień, na które Państwo zezwolili, oraz obsługa zakupów i odnowień w App Store z udziałem Apple i RevenueCat (umowa).",
               ],
             },
             "Nie sprzedajemy danych osobowych, nie wykorzystujemy ich do targetowania reklam ani tworzenia profili reklamowych i nie trenujemy modeli AI na Państwa treściach ani filmach.",
           ],
         },
         {
-          heading: "5. Odbiorcy",
+          heading: "6. Odbiorcy",
           blocks: [
             "Współpracujemy z niewielką liczbą dostawców. Każdy otrzymuje tylko to, czego potrzebuje do swojego zadania:",
             { subprocessors: true },
             "Wyszukujemy też ogólne hasła (np. nazwę zabiegu i język) w publicznych podpowiedziach wyszukiwania Google i w bibliotece materiałów wideo Pexels. Te zapytania nie zawierają danych osobowych. Baza danych, logowanie i przechowywanie plików działają na naszej własnej instalacji oprogramowania open source Supabase na naszym serwerze; Supabase Inc. nie otrzymuje danych.",
             "Jeśli przyszli Państwo z jednej z naszych reklam Google, przekazujemy Google Ads (Google) identyfikator kliknięcia, informację, jaka konwersja nastąpiła (założenie konta lub pierwsza płatność), kiedy, oraz stałą wartość, którą jej przypisujemy. Przesyłamy to sami: na naszych stronach nie działa żaden skrypt Google i nie przekazujemy Google imienia i nazwiska, adresu e-mail ani danych płatniczych. Google przetwarza te dane zgodnie z własnymi warunkami reklamowymi i polityką prywatności.",
+            "W przypadku aplikacji na iPhone'a Apple dostarcza powiadomienia push i sprzedaje subskrypcje w App Store, a RevenueCat, Inc. przetwarza dla nas dane o zakupach w App Store w USA. Co otrzymuje każdy z nich, opisuje punkt 4.",
           ],
         },
         {
-          heading: "6. Przekazywanie danych za granicę",
+          heading: "7. Przekazywanie danych za granicę",
           blocks: [
             "Mamy siedzibę w Czarnogórze, poza UE/EOG. Niektórzy dostawcy przetwarzają dane w innych krajach, w tym w Stanach Zjednoczonych. Gdy prawo właściwe dla danych wymaga zabezpieczenia takiego przekazania, opieramy się na decyzji stwierdzającej odpowiedni stopień ochrony, jeśli istnieje, lub na standardowych klauzulach umownych (dla Wielkiej Brytanii z brytyjskim aneksem) w umowach z tymi dostawcami.",
           ],
         },
         {
-          heading: "7. Okres przechowywania",
+          heading: "8. Okres przechowywania",
           blocks: [
             {
               list: [
@@ -253,12 +290,14 @@ export const PL: LegalText = {
                 "Liczniki limitów zapytań: od minut do godzin.",
                 "Gabinety, z którymi kontaktujemy się z indywidualnym demo: demo tworzymy sami na podstawie publicznych informacji o firmie (nazwa gabinetu, miasto, kraj, kolor marki i logo) i przechowujemy je najwyżej 60 dni, chyba że gabinet się zarejestruje. Aby usunąć demo wcześniej, prosimy napisać na {email}.",
                 "Identyfikatory kliknięć reklam i zarejestrowane z nimi konwersje: usuwane 90 dni po kliknięciu. To, co już przekazaliśmy Google Ads, Google przechowuje zgodnie z własnymi zasadami.",
+                "Tokeny powiadomień push: do wylogowania z aplikacji na danym iPhonie, do chwili, gdy Apple poinformuje nas, że token jest nieważny, albo do usunięcia danych logowania.",
+                "Zakupy w App Store: nasz zapis subskrypcji w App Store (plan, status, data odnowienia i numer transakcji Apple) jest usuwany razem z profilem gabinetu, gdy usuwają Państwo konto. RevenueCat przechowuje dla nas historię zakupów powiązaną z identyfikatorem konta; usunięcie konta nie usuwa jej tam automatycznie, dlatego prosimy napisać na {email}, jeśli ma zostać usunięta. Apple jako sprzedawca przechowuje własne zapisy zakupów.",
               ],
             },
           ],
         },
         {
-          heading: "8. Prawa",
+          heading: "9. Prawa",
           blocks: [
             "Zależnie od prawa, które Państwa dotyczy, mogą Państwo żądać dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania i kopii w formacie umożliwiającym przeniesienie, a także sprzeciwić się przetwarzaniu opartemu na prawnie uzasadnionym interesie. Konto mogą Państwo usunąć samodzielnie w Ustawieniach. Prosimy pisać na {email}; odpowiadamy w ciągu miesiąca. Zgodę na pomiar reklam mogą Państwo w każdej chwili wycofać, pisząc na {email} albo — przed rejestracją — usuwając dane tej witryny w przeglądarce; wtedy usuwamy przechowywany identyfikator kliknięcia. Wycofanie zgody nie wpływa na wcześniejsze przetwarzanie.",
             "Mogą Państwo także złożyć skargę do organu ochrony danych: w Czarnogórze do Agencji Ochrony Danych Osobowych i Swobodnego Dostępu do Informacji; w UE/EOG do organu w swoim kraju (w Polsce do Prezesa UODO); w Wielkiej Brytanii do Information Commissioner's Office; w Turcji do Urzędu Ochrony Danych Osobowych (KVKK).",
@@ -266,14 +305,14 @@ export const PL: LegalText = {
           ],
         },
         {
-          heading: "9. Bezpieczeństwo",
+          heading: "10. Bezpieczeństwo",
           blocks: [
             "Połączenia są szyfrowane (HTTPS). Dane każdego gabinetu są w bazie odseparowane regułami dostępu, pliki są udostępniane wyłącznie przez krótkotrwałe podpisane linki, a dostęp do serwerów mają tylko osoby prowadzące DentVideo. Żaden system nie jest w pełni bezpieczny; jeśli naruszenie dotknie Państwa danych, poinformujemy o tym bez zbędnej zwłoki.",
           ],
         },
-        { heading: "10. Dzieci", blocks: ["DentVideo jest usługą dla firm i nie jest przeznaczone dla osób poniżej 18 roku życia."] },
+        { heading: "11. Dzieci", blocks: ["DentVideo jest usługą dla firm i nie jest przeznaczone dla osób poniżej 18 roku życia."] },
         {
-          heading: "11. Zmiany",
+          heading: "12. Zmiany",
           blocks: [
             "Aktualizujemy tę politykę, gdy zmienia się to, co robimy, i zmieniamy datę na górze strony. O istotnych zmianach informujemy posiadaczy kont e-mailem.",
           ],
@@ -284,7 +323,7 @@ export const PL: LegalText = {
     refunds: {
       title: "Polityka zwrotów",
       description: "Jak działa anulowanie i zwroty w subskrypcjach DentVideo.",
-      intro: ["Ta polityka jest częścią naszego [Regulaminu](terms). W skrócie: można anulować w każdej chwili, dostęp trwa do końca opłaconego okresu, a jeśli usługa zawiodła, naprawimy to."],
+      intro: ["Ta polityka jest częścią naszego [Regulaminu](terms). W skrócie: można anulować w każdej chwili, dostęp trwa do końca opłaconego okresu, a jeśli usługa zawiodła, naprawimy to.", "Ta polityka dotyczy planów kupionych na dentvideo.com. Plany kupione w aplikacji DentVideo na iPhone'a sprzedaje Apple, który obsługuje też ich anulowanie i zwroty: zob. punkt 8 [Regulaminu](terms)."],
       sections: [
         {
           heading: "1. Anulowanie",
