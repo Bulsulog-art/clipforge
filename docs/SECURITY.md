@@ -554,8 +554,9 @@ Design and runbook: `docs/DENTVIDEO_IAP_PLAN.md`. Checked by tests, not yet atta
   promotional grants, other stores, family sharing, other apps' products are ignored + owner alert.
   Sandbox follows `DENTVID_IAP_SANDBOX` (default allow, every sandbox activation alerts the owner).
 - **Whose plan**: app_user_id must be a DentVideo Liman login (UUID); anonymous ids and other apps'
-  logins never match. Someone who calls `Purchases.logIn(<victim uuid>)` with the public SDK key can only
-  pay for the victim's plan, or read its entitlement state (UUIDs are not guessable; accepted risk).
+  logins never match. app_user_id is NOT authenticated: anyone with the public SDK key can call
+  `Purchases.logIn(<victim uuid>)` and buy for that login. UUIDs are not guessable, but they do appear in
+  storage paths (`<owner_id>/…`) of signed URLs. Effects and what limits them: see the audit round below.
 - **Owner writes**: `billing_source` / `apple_original_transaction_id` reverted for anon/authenticated
   by a trigger (0026); the ledger is service-role only.
 - **Double charging**: web checkout refuses App Store plans (`app_store`), the paywall never opens for a
@@ -563,3 +564,24 @@ Design and runbook: `docs/DENTVIDEO_IAP_PLAN.md`. Checked by tests, not yet atta
   `billing-webhook-apple.test.ts`).
 - **Mobile sign-up**: same handler and limits as the web plus an app-wide hourly ceiling; fill-time
   check; no Turnstile in a native form (App Attest is a possible later brake).
+
+#### Audit round 2026-11-17 (PR #184, branch `claude/dentvideo-iap-server`)
+
+Findings (each fixed one has a regression test named `security: …`; each test fails with the fix removed):
+
+| Sev | Where | Finding | Status |
+|---|---|---|---|
+| Medium | `apple-webhook.ts` activate | A SANDBOX purchase (free: TestFlight) logged in as another clinic's login id took that clinic off its live Dodo plan (`dodo_subscription_id` cleared, `billing_source = apple`); the sandbox subscription's EXPIRATION hours later then cancelled the clinic, while Dodo kept charging. Also: a sandbox purchase could take over from a production Apple plan whose auto-renew was off, and a sandbox "duplicate" row could become the fallback plan after a refund. | Fixed: a sandbox purchase never takes over a live plan it is not already the source of (`ignored_sandbox` + owner alert). Test `apple-webhook.test.ts` "security: a sandbox purchase …" |
+| Medium | `billing-webhook.ts` | Before 0026 (runbook step C before D), after an Apple purchase moved a clinic off Dodo, the owner cancelling the old Dodo subscription — exactly what the cross-channel alert asks — cancelled the clinic Apple pays for (`applyTransition` treats a null `dodo_subscription_id` as "no subscription to compare"). | Fixed: a Dodo deactivation never ends a live plan that has no Dodo subscription. Test `billing-webhook-apple.test.ts` "security: before 0026 …" |
+| Low | webhook route | `DENTVID_REVENUECAT_WEBHOOK_AUTH` set to the same value as ClipForge's `REVENUECAT_WEBHOOK_AUTH` was accepted, so either project (or a leak of either secret) could post DentVideo events. | Fixed: refused (401, log says rotate). Tests in `apple-webhook.test.ts` and `revenuecat/webhook/route.test.ts` |
+| Medium | design, not fixed | A paid (production) App Store purchase under a victim's login id still moves a Dodo-paying clinic to Apple; the buyer then asks Apple for a refund and the clinic's plan ends. Costs the attacker a refundable purchase and needs the victim's UUID. The cross-channel alert now tells the owner to confirm with the clinic before cancelling / refunding Dodo. A real fix needs app_user_id bound to the login (e.g. RevenueCat's server-side customer creation / an app-side attestation) or keeping the Dodo plan on a cross-channel purchase. | Owner decision |
+| Medium | design, not fixed | `DENTVID_IAP_SANDBOX=allow` (default) gives any TestFlight tester a free first week (real model spend) on every trial clinic; with no Turnstile on mobile sign-up, accounts are cheap (10/IP/day, 40/network/day, 300/h app-wide). | Owner decision §12.2: `internal` once App Review is done; keep TestFlight private |
+| Low | mobile sign-up | No bot check beyond the client-reported `elapsedMs` (trivially faked): the mobile route is a Turnstile bypass for creating accounts and sending code emails to arbitrary addresses, within the limits above. Enumeration: `{ existing: true }` answers as on the web. | Accepted for now; App Attest / DeviceCheck is the real brake |
+
+Checked and found safe: constant-time compare (SHA-256 + `timingSafeEqual`, no length leak), unset/short
+secret refuses everything; replay (Redis claim per event id, released on failure; ledger `last_event_id`);
+out-of-order events (ledger `last_event_at`); refund via `CANCELLATION`/`CUSTOMER_SUPPORT` and `REFUND`
+end the plan at once; expiration of a non-current Apple subscription changes nothing; a Dodo activation on
+an Apple plan never double-activates; no price in `mobile/v1/billing`; mobile routes only read the bearer
+user's own clinic; 0026 trigger matches the 0002 pattern (owner writes reverted, service role untouched),
+ledger RLS on with no policies and grants revoked, every statement re-runnable.

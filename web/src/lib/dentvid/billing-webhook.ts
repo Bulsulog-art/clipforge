@@ -531,6 +531,16 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
     }
   }
 
+  // 7. A live plan with no Dodo subscription is not Dodo's to end: only the App Store webhook moves a clinic
+  // there (dodo_subscription_id cleared when it took over from the web). Before 0026 the guard at 0 cannot see
+  // billing_source, so without this the owner cancelling the old Dodo subscription — as the cross-channel
+  // alert asks — would cancel a clinic Apple is paying for. (A column missing altogether reads as undefined.)
+  if (t.kind === "deactivate" && clinic.dodo_subscription_id === null && (clinic.plan === "active" || clinic.plan === "paused")) {
+    await record(reported);
+    console.warn("[dodo:dentvideo] deactivation for a clinic whose live plan has no Dodo subscription", evt.type, t.subscriptionId, clinic.id);
+    return { status: 200, body: { ok: true, app: "dentvideo", ignored: "not the clinic's subscription" } };
+  }
+
   const update = applyTransition(clinic, t);
   await record(reported);
   if (!update) return { status: 200, body: { ok: true, app: "dentvideo", unchanged: true } };

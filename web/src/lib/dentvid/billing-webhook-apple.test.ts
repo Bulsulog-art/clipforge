@@ -154,6 +154,18 @@ describe("Dodo events for a clinic the App Store pays for", () => {
     expect(d.adConversion).not.toHaveBeenCalled();
   });
 
+  it("security: before 0026, cancelling the old Dodo subscription (as the cross-channel alert asks) never cancels the clinic Apple moved off it", async () => {
+    // The App Store webhook took the clinic over without 0026: plan active, dodo_subscription_id cleared, no billing_source column.
+    for (const type of ["subscription.cancelled", "subscription.on_hold", "subscription.expired", "subscription.failed"]) {
+      const f = fakeDb({ ...unpaid(), plan: "active", plan_tier: "practice", plan_renews_at: "2026-12-17T10:00:00Z" });
+      const subs = memorySubs([{ dodo_subscription_id: "sub_old", clinic_id: CLINIC, status: "active" }]);
+      const r = await handleDentvideoEvent(f.db, evt(type, "sub_old", "2026-11-17T10:00:00Z"), deps({ subs }));
+      expect(r.body, type).toMatchObject({ ignored: "not the clinic's subscription" });
+      expect(f.clinic, type).toMatchObject({ plan: "active", dodo_subscription_id: null, plan_renews_at: "2026-12-17T10:00:00Z" });
+      expect(f.updates, type).toEqual([]);
+    }
+  });
+
   it("a plain web clinic (no billing source) behaves exactly as before", async () => {
     const f = fakeDb(unpaid());
     const d = deps();

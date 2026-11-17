@@ -68,9 +68,11 @@ type ClinicRow = { id: string; owner_id: string; plan: string; plan_tier: string
  * Compared as SHA-256 digests with timingSafeEqual (constant time, and no
  * length leak). No secret configured → nothing is accepted.
  */
-export function revenuecatAuthOk(header: string | null | undefined, secret: string | null | undefined): boolean {
+export function revenuecatAuthOk(header: string | null | undefined, secret: string | null | undefined, clipforgeSecret?: string | null): boolean {
   const want = (secret ?? "").trim();
   if (want.length < 16 || !header) return false;
+  // The same value as ClipForge's RevenueCat secret: either project (or a leak of either) could post here. Refused until rotated.
+  if (clipforgeSecret && clipforgeSecret.trim() === want) return false;
   const got = header.trim();
   const h = (s: string) => createHash("sha256").update(s).digest();
   const g = h(got);
@@ -244,6 +246,15 @@ async function applyToClinic(
       if (policy === "off" || (policy === "internal" && !internal)) {
         await record({ status: "ignored_sandbox" });
         return ok({ ignored: "sandbox" });
+      }
+      // No money moved: a sandbox purchase never takes over a plan that something else pays for (a live
+      // Dodo subscription, or another Apple subscription). app_user_id is whatever the app passed to
+      // Purchases.logIn, so a TestFlight build pointed at someone else's login id would otherwise detach
+      // that clinic's Dodo subscription for free, and its expiry hours later would cancel the clinic.
+      if (live && !isCurrent) {
+        await record({ status: "ignored_sandbox" });
+        await tell((c) => alerts.appStoreBilling({ kind: "ignored", event: type, subscription: key, clinic: c, detail: "sandbox purchase on a clinic whose plan is paid elsewhere" }));
+        return ok({ ignored: "sandbox over a paid plan" });
       }
     }
 

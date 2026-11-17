@@ -40,6 +40,7 @@ beforeEach(() => {
   answer = { status: 200, body: { ok: true } };
   store = new MemoryReplayStore();
   vi.stubEnv("DENTVID_REVENUECAT_WEBHOOK_AUTH", SECRET);
+  vi.stubEnv("REVENUECAT_WEBHOOK_AUTH", "clipforge-secret-0123456789abcdef");
 });
 
 describe("POST /api/dentvideo/revenuecat/webhook", () => {
@@ -48,6 +49,13 @@ describe("POST /api/dentvideo/revenuecat/webhook", () => {
     for (const auth of [null, "", "Bearer wrong-secret-0123456789abcdef", `Basic ${SECRET}`, "Bearer clipforge-secret-0123456789abcdef"]) {
       expect((await post(event(), auth)).status, String(auth)).toBe(401);
     }
+    expect(handled).toEqual([]);
+  });
+
+  it("security: 401 for everyone while DENTVID_REVENUECAT_WEBHOOK_AUTH reuses ClipForge's secret", async () => {
+    vi.stubEnv("REVENUECAT_WEBHOOK_AUTH", SECRET);
+    expect((await post(event("reuse-1"), `Bearer ${SECRET}`)).status).toBe(401);
+    expect((await post(event("reuse-2"), SECRET)).status).toBe(401);
     expect(handled).toEqual([]);
   });
 

@@ -354,7 +354,8 @@ describe("RevenueCat webhook: one plan per clinic across channels", () => {
     expect(d.enqueueWeek).not.toHaveBeenCalled();
     expect(d.sendWelcome).not.toHaveBeenCalled();
     const conflict = d.raised.find((a) => a.key.startsWith("appstore:cross_channel:"));
-    expect(conflict?.todo.join(" ")).toMatch(/In Dodo, cancel subscription sub_1 and refund/);
+    expect(conflict?.todo.join(" ")).toMatch(/in Dodo, cancel subscription sub_1 and refund/i);
+    expect(conflict?.todo[0]).toMatch(/First confirm with dr@clinic.example/);
     expect(d.raised.some((a) => a.key.startsWith("new_paying"))).toBe(false);
   });
 
@@ -404,6 +405,41 @@ describe("RevenueCat webhook: sandbox, migration, transfer", () => {
     expect(clinics[0].plan).toBe("active");
   });
 
+  it("security: a sandbox purchase (no money) never takes a clinic off a paid Dodo or production Apple plan", async () => {
+    // app_user_id is whatever the app passed to Purchases.logIn: a TestFlight build logged in as a victim's id.
+    {
+      const onDodo: Clinic = { ...trial(), plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", plan_renews_at: "2026-12-01T00:00:00Z" };
+      const { db, clinics } = fakeDb([onDodo]);
+      const d = deps({ subs: memoryDodo([{ dodo_subscription_id: "sub_1", clinic_id: "clinic-a", status: "active" }]) });
+      const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX", original_transaction_id: OTID_2 }), d);
+      expect(r.body).toMatchObject({ ignored: "sandbox over a paid plan" });
+      expect(clinics[0]).toMatchObject({ plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_1", billing_source: null });
+      expect(d.apple.rows.get(OTID_2)?.status).toBe("ignored_sandbox");
+      expect(d.raised.some((a) => a.key.startsWith("appstore:ignored:"))).toBe(true);
+      // Its expiry hours later changes nothing either.
+      const e = await handleAppleEvent(db, ev("EXPIRATION", { environment: "SANDBOX", original_transaction_id: OTID_2 }), d);
+      expect(e.body).toMatchObject({ current: false });
+      expect(clinics[0].plan).toBe("active");
+    }
+    {
+      // A production Apple plan the customer switched off (ending): a sandbox purchase does not take over either.
+      const { db, clinics } = fakeDb([appleActive()]);
+      const d = deps({ apple: memoryApple([{ original_transaction_id: OTID, clinic_id: "clinic-a", app_user_id: USER_A, status: "cancelled", period_end: "2026-12-17T10:00:00.000Z" }]) });
+      const r = await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX", original_transaction_id: OTID_2 }), d);
+      expect(r.body).toMatchObject({ ignored: "sandbox over a paid plan" });
+      expect(clinics[0]).toMatchObject({ apple_original_transaction_id: OTID, billing_source: "apple" });
+    }
+    {
+      // The clinic's own sandbox subscription still renews (TestFlight / App Review).
+      const { db, clinics } = fakeDb([trial()]);
+      const d = deps();
+      await handleAppleEvent(db, ev("INITIAL_PURCHASE", { environment: "SANDBOX" }), d);
+      const r = await handleAppleEvent(db, ev("RENEWAL", { environment: "SANDBOX", expiration_at_ms: ms("2026-11-18T10:00:00Z") }), d);
+      expect(r.body).toMatchObject({ plan: "active" });
+      expect(clinics[0].plan_renews_at).toBe("2026-11-18T10:00:00.000Z");
+    }
+  });
+
   it("without migration 0026 the paying clinic is still switched on, and the owner is told to apply it", async () => {
     const { db, clinics } = fakeDb([trial()], { noAppleColumns: true });
     const d = deps({ apple: memoryApple([], false) });
@@ -450,5 +486,13 @@ describe("revenuecatAuthOk (constant-time shared secret)", () => {
     expect(revenuecatAuthOk("Bearer ", "")).toBe(false);
     expect(revenuecatAuthOk("Bearer undefined", undefined)).toBe(false);
     expect(revenuecatAuthOk("short", "short")).toBe(false);
+  });
+
+  it("security: a secret equal to ClipForge's RevenueCat secret is refused (rotate it), a different one is not", () => {
+    const secret = "shared-0123456789abcdef0123456789";
+    expect(revenuecatAuthOk(`Bearer ${secret}`, secret, secret)).toBe(false);
+    expect(revenuecatAuthOk(secret, secret, ` ${secret} `)).toBe(false);
+    expect(revenuecatAuthOk(secret, secret, "clipforge-0123456789abcdef0123")).toBe(true);
+    expect(revenuecatAuthOk(secret, secret, "")).toBe(true);
   });
 });

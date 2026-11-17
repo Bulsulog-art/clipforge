@@ -211,6 +211,8 @@ the clock: a cancelled (auto-renew off) plan past its end → cancelled; otherwi
 6. API keys: the **public Apple SDK key** (`appl_…`) goes into the iOS app's config (it is public by
    design); a **secret v1 key** only if the reconcile check is wanted (step C).
 
+**Apply D (the migration) before C**: without 0026 the server cannot tell an App Store plan from a web one.
+
 **C. Server env (Coolify, web `y11bhiffmpb3u2hdekwhjhdq`; worker `aeoe3zdfhbhqzi89g32gkuwx` for the reconcile only)**
 - Web: `DENTVID_REVENUECAT_WEBHOOK_AUTH` = the secret from B.4. Optional: `DENTVID_IAP_SANDBOX`
   (`allow` default / `internal` / `off`).

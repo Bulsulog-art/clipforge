@@ -30,8 +30,9 @@ export async function POST(req: Request) {
   const limited = await rateLimited([{ key: `rl:rcdv:ip:${ip}`, rule: LIMITS.revenuecatWebhookIp }], () => "too many requests");
   if (limited) return limited;
 
-  if (!revenuecatAuthOk(req.headers.get("authorization"), process.env.DENTVID_REVENUECAT_WEBHOOK_AUTH)) {
-    console.warn("[apple:dentvideo] webhook refused: bad or missing Authorization");
+  if (!revenuecatAuthOk(req.headers.get("authorization"), process.env.DENTVID_REVENUECAT_WEBHOOK_AUTH, process.env.REVENUECAT_WEBHOOK_AUTH)) {
+    const reused = !!process.env.REVENUECAT_WEBHOOK_AUTH?.trim() && process.env.REVENUECAT_WEBHOOK_AUTH.trim() === process.env.DENTVID_REVENUECAT_WEBHOOK_AUTH?.trim();
+    console.warn(reused ? "[apple:dentvideo] webhook refused: DENTVID_REVENUECAT_WEBHOOK_AUTH equals ClipForge's REVENUECAT_WEBHOOK_AUTH — rotate it" : "[apple:dentvideo] webhook refused: bad or missing Authorization");
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY) return NextResponse.json({ error: "payload too large" }, { status: 413 });

@@ -808,7 +808,10 @@ export const alerts = {
         en: "A clinic is paying on the web AND in the App Store",
         what: `${who} has a live web (Dodo) subscription ${a.other ?? "?"} and Apple subscription ${a.subscription} (${a.event}). It may be charged twice.`,
         done: "The clinic has ONE plan: it is on the App Store subscription (an Apple subscription can only be cancelled or refunded by the customer; a Dodo one by us). No second week, no second welcome.",
-        todo: [`In Dodo, cancel subscription ${a.other ?? "?"} and refund its latest charge${a.clinic?.email ? `, then tell ${a.clinic.email}` : ""}.`],
+        todo: [
+          `First confirm with ${a.clinic?.email ?? "the clinic"} that they bought in the iPhone app (the App Store purchase names our login id, which the app itself sends; a purchase they did not make must not cost them their web plan).`,
+          `Then, in Dodo, cancel subscription ${a.other ?? "?"} and refund its latest charge${a.clinic?.email ? `, and tell ${a.clinic.email}` : ""}.`,
+        ],
       },
       apple_duplicate: {
         sev: "urgent",
