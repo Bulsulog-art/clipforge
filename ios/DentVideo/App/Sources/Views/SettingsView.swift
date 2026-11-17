@@ -211,16 +211,17 @@ struct ClinicDetailsForm: View {
     var body: some View {
         Form {
             Section {
-                LabeledContent(L("clinic.name")) {
+                // Caption above a full-width field (as the booking link): the whole row is the field,
+                // so a tap anywhere on it focuses it. A right-aligned field beside its label was only
+                // as wide as its text, and a tap elsewhere on the row did nothing (iOS 18).
+                CaptionedField(caption: L("clinic.name")) {
                     TextField(L("clinic.name"), text: $profile.name).textContentType(.organizationName)
                         .accessibilityIdentifier("clinic.name")
-                        .multilineTextAlignment(.trailing)
                 }
-                LabeledContent(L("clinic.city")) {
+                CaptionedField(caption: L("clinic.city")) {
                     TextField(L("clinic.city"), text: Binding($profile.city, ""))
                         .accessibilityIdentifier("clinic.city")
                         .textContentType(.addressCity)
-                        .multilineTextAlignment(.trailing)
                 }
                 LabeledContent(L("clinic.country"), value: L10n.countryName(profile.country))
             } footer: {
@@ -228,18 +229,17 @@ struct ClinicDetailsForm: View {
             }
             .dvFormRows()
             Section(L("clinic.online")) {
-                LabeledContent(L("clinic.handle")) {
+                CaptionedField(caption: L("clinic.handle")) {
                     TextField(L("clinic.handle"), text: Binding($profile.handle, ""))
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .multilineTextAlignment(.trailing)
+                        .accessibilityIdentifier("clinic.handle")
                 }
-                VStack(alignment: .leading, spacing: Theme.s1) {
-                    Text(L("clinic.booking")).font(.footnote).foregroundStyle(Theme.muted)
+                CaptionedField(caption: L("clinic.booking")) {
                     TextField(L("clinic.booking"), text: Binding($profile.bookingUrl, ""))
                         .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                         .textContentType(.URL)
+                        .accessibilityIdentifier("clinic.booking")
                 }
-                .padding(.vertical, 2)
             }
             .dvFormRows()
             Section {
@@ -351,3 +351,24 @@ extension Binding where Value == String {
 }
 
 #Preview { SettingsView().environment(AppModel.preview()) }
+
+/// A form row: a small caption above a full-width text field. VoiceOver reads the caption as the
+/// field's label; long German or Polish captions wrap instead of squeezing the field.
+struct CaptionedField<Field: View>: View {
+    let caption: String
+    @ViewBuilder var field: () -> Field
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.s1) {
+            Text(caption)
+                .font(.footnote)
+                .foregroundStyle(Theme.muted)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityHidden(true)
+            field()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel(caption)
+        }
+        .padding(.vertical, 2)
+    }
+}

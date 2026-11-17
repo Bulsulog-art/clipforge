@@ -100,7 +100,7 @@ final class AppModel {
         snapshots.clear()
         uploads.reset()
         await VideoCache.shared.clearAll()
-        Notifications.clearAll()
+        await Notifications.clearAll()
         Prefs.clear()
         me = nil
         items = []

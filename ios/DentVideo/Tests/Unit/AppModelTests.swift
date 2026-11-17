@@ -208,6 +208,24 @@ final class AppModelTests: XCTestCase {
         XCTAssertNil(m.me)
     }
 
+    /// Sign-out clears the phone (tokens, badge, reminders, uploads, cache) and must not crash:
+    /// the badge reset once crashed on UserNotifications' queue (iOS 18, Xcode 16 build), after
+    /// the test had already seen `.signedOut`, so the test waits for late callbacks too.
+    func testSignOutClearsThePhoneWithoutCrashing() async {
+        let store = TestStore(Fx.tokens)
+        let m = AppModel(store: store, transport: server(), uploads: UploadCenter(identifier: "test.\(UUID().uuidString)"))
+        m.phase = .signedIn
+        await m.refresh()
+        XCTAssertFalse(m.items.isEmpty)
+        await m.signOut()
+        XCTAssertEqual(m.phase, .signedOut)
+        XCTAssertNil(m.me)
+        XCTAssertTrue(m.items.isEmpty)
+        XCTAssertNil(store.load(), "the session is gone from this phone")
+        try? await Task.sleep(for: .seconds(2))
+        XCTAssertEqual(m.phase, .signedOut)
+    }
+
     func testSignInErrorsAreSentences() async {
         let wrong = model(ScriptedTransport { _ in (401, ["code": "invalid_credentials"]) }, tokens: nil)
         do {

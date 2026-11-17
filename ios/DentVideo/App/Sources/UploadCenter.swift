@@ -103,7 +103,8 @@ final class UploadCenter {
 
     /// After sign-out: forget everything (the files belong to that clinic).
     func reset() {
-        session.getAllTasks { tasks in tasks.forEach { $0.cancel() } }
+        // @Sendable: called on the session's queue, never the main actor (see Notifications.clearAll).
+        session.getAllTasks { @Sendable tasks in tasks.forEach { $0.cancel() } }
         for e in entries { try? FileManager.default.removeItem(at: Self.folder.appendingPathComponent(e.fileName)) }
         entries = []
         persist()
@@ -112,7 +113,7 @@ final class UploadCenter {
     /// Restart what was interrupted: waiting entries, and uploads the system no longer knows about.
     func resume() async {
         let running = await withCheckedContinuation { (c: CheckedContinuation<Set<String>, Never>) in
-            session.getAllTasks { tasks in c.resume(returning: Set(tasks.compactMap(\.taskDescription))) }
+            session.getAllTasks { @Sendable tasks in c.resume(returning: Set(tasks.compactMap(\.taskDescription))) }
         }
         for e in entries {
             switch e.state {
