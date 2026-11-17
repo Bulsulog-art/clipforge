@@ -215,7 +215,7 @@ describe("activation emails", () => {
   });
 
   it("the welcome is transactional and links the library", () => {
-    const m = welcomeEmail({ language: "ar", clinicName: "عيادة الابتسامة", appUrl: "https://dentvideo.com/app" });
+    const m = welcomeEmail({ language: "ar", clinicName: "عيادة أسنان تجريبية", appUrl: "https://dentvideo.com/app" });
     expect(m.html).toContain('dir="rtl"');
     expect(m.html).toContain("mailto:hello@dentvideo.com");
     expect(m.html).not.toContain("unsubscribe");

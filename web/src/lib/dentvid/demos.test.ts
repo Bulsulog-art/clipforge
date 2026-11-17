@@ -114,7 +114,7 @@ describe("the admin form", () => {
   });
 
   it("picks the same palette colour for the same clinic", () => {
-    expect(paletteColour("Riverside Dental")).toBe(paletteColour(" riverside dental "));
+    expect(paletteColour("Sample Dental Practice")).toBe(paletteColour(" sample dental practice "));
     expect(DEMO_PALETTE).toContain(paletteColour("Anything"));
   });
 });

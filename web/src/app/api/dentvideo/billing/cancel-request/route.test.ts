@@ -34,7 +34,7 @@ async function call(body?: unknown) {
 }
 
 beforeEach(() => {
-  session = { user: { id: OWNER, email: "dr@clinic.example" }, clinic: { id: CLINIC, owner_id: OWNER, plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_123", plan_renews_at: "2026-12-17T00:00:00Z", profile: { language: "en", name: "Smile Dental", country: "DE" } } };
+  session = { user: { id: OWNER, email: "dr@clinic.example" }, clinic: { id: CLINIC, owner_id: OWNER, plan: "active", plan_tier: "starter", dodo_subscription_id: "sub_123", plan_renews_at: "2026-12-17T00:00:00Z", profile: { language: "en", name: "Demo Dental Clinic", country: "DE" } } };
   filters.length = 0;
   raised.length = 0;
   deliver = "sent";
@@ -53,7 +53,7 @@ describe("POST /api/dentvideo/billing/cancel-request (online billing off)", () =
     expect(await call()).toEqual({ status: 200, body: { ok: true } });
     expect(filters).toContainEqual(["owner_id", OWNER]);
     expect(raised).toHaveLength(1);
-    expect(raised[0]).toMatchObject({ key: `cancel_request:${CLINIC}`, severity: "urgent", clinic: { id: CLINIC, name: "Smile Dental" } });
+    expect(raised[0]).toMatchObject({ key: `cancel_request:${CLINIC}`, severity: "urgent", clinic: { id: CLINIC, name: "Demo Dental Clinic" } });
     expect(JSON.stringify(raised[0].facts)).toContain("sub_123");
     expect(JSON.stringify(raised[0].facts)).toContain("dr@clinic.example");
   });

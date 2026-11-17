@@ -20,12 +20,12 @@ const SERVICES: Record<string, string> = {
  * seen repainting as a dentist would see it.
  */
 export function PreviewDemo() {
-  const [name, setName] = useState("Smile Studio");
+  const [name, setName] = useState("Sample Dental Practice");
   const [language, setLanguage] = useState<PreviewProfile["language"]>("en");
   const [services, setServices] = useState(SERVICES.en);
   const [brandColor, setBrandColor] = useState("#0f5c5c");
   const [useBrand, setUseBrand] = useState(true);
-  const [handle, setHandle] = useState("smilestudio");
+  const [handle, setHandle] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
 
   useEffect(() => () => void (logoUrl?.startsWith("blob:") && URL.revokeObjectURL(logoUrl)), [logoUrl]);
