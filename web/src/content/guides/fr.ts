@@ -219,7 +219,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Comment DentVideo fait cette vérification",
         paragraphs: [
-          "[DentVideo](landing:) vérifie chaque script et chaque texte au regard des allégations couramment encadrées — garanties, « sans douleur », « définitif », superlatifs, prix, réductions, promesses avant/après, témoignages — et fait réécrire ce qui pose problème. Vos enregistrements ne sont pas modifiés : ce qui mérite un second regard est signalé avec la raison. Ce n'est pas un conseil juridique : vous validez chaque vidéo. Sur les images de patients, lisez le guide [photos avant/après et témoignages](guide:photos-avant-apres-temoignages-dentiste) ; pour des sujets sans risque, les [idées de contenu](guide:idees-contenu-instagram-cabinet-dentaire).",
+          "[DentVideo](landing:) vérifie chaque script et chaque texte au regard des allégations couramment encadrées — garanties, « sans douleur », « définitif », superlatifs, prix, réductions, promesses avant/après, témoignages — et fait réécrire ce qui pose problème. Vos enregistrements ne sont pas modifiés : ce qui mérite un second regard est signalé avec la raison. Ce n'est pas un conseil juridique : vous validez chaque vidéo. Pour un texte que vous rédigez vous-même, collez-le dans le [vérificateur gratuit « Puis-je publier ça ? »](checker:) avec la France sélectionnée : chaque phrase est signalée avec la raison et une formulation plus prudente. Sur les images de patients, lisez le guide [photos avant/après et témoignages](guide:photos-avant-apres-temoignages-dentiste) ; pour des sujets sans risque, les [idées de contenu](guide:idees-contenu-instagram-cabinet-dentaire).",
         ],
       },
     ],

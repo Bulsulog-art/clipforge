@@ -3,11 +3,11 @@ import type { Guide } from "../dentvideo";
 // Türkçe rehberler. Kurallar: yalnızca bugün geçerli olanı anlatın, istatistik
 // ve fiyat uydurmayın, mevzuatı temkinli ve kaynaklı aktarın.
 
-const RG = { label: "Resmî Gazete — 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
-const RG_2023 = { label: "Resmî Gazete — 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete (yürürlükten kaldırılan önceki yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2023/07/20230729-29.htm" };
-const MEVZUAT = { label: "Mevzuat Bilgi Sistemi — yönetmeliklerin güncel metni", url: "https://www.mevzuat.gov.tr/" };
+const RG = { label: "Resmî Gazete: 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete (Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2025/11/20251112.htm" };
+const RG_2023 = { label: "Resmî Gazete: 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete (yürürlükten kaldırılan önceki yönetmelik)", url: "https://www.resmigazete.gov.tr/eskiler/2023/07/20230729-29.htm" };
+const MEVZUAT = { label: "Mevzuat Bilgi Sistemi: yönetmeliklerin güncel metni", url: "https://www.mevzuat.gov.tr/" };
 const TDB = { label: "Türk Dişhekimleri Birliği (meslek etiği ve oda duyuruları)", url: "https://www.tdb.org.tr/" };
-const KVKK = { label: "Kişisel Verileri Koruma Kurumu — 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
+const KVKK = { label: "Kişisel Verileri Koruma Kurumu: 6698 sayılı Kişisel Verilerin Korunması Kanunu", url: "https://www.kvkk.gov.tr/" };
 const SB = { label: "T.C. Sağlık Bakanlığı", url: "https://www.saglik.gov.tr/" };
 
 export const GUIDES_TR: Guide[] = [
@@ -147,7 +147,7 @@ export const GUIDES_TR: Guide[] = [
           "Sağlık Bakanlığı, 29 Temmuz 2023 tarihli ve 32263 sayılı Resmî Gazete'de yayımlanan aynı adlı yönetmeliği yürürlükten kaldırarak 12 Kasım 2025 tarihli ve 33075 sayılı Resmî Gazete'de yeni bir yönetmelik yayımladı. Aramalarda hâlâ “32263 sayılı yönetmelik” görülse de geçerli metin 2025 tarihli olandır. Yeni yönetmelik sağlık meslek mensuplarını, özel sağlık kuruluşlarını ve uluslararası sağlık turizmi aracı kuruluşlarını kapsar. Hukuk bürolarının ve meslek odalarının değerlendirmelerine göre öne çıkan noktalar şunlardır; madde numaraları ve istisnalar için mutlaka resmî metne bakın:",
         ],
         list: [
-          "Tanıtım ve bilgilendirmede ücret, indirim, kampanya ve promosyon bilgisine yer verilemez (uluslararası sağlık turizmine ilişkin ayrı hükümler bulunur).",
+          "Tanıtım ve bilgilendirmede ücret, indirim, kampanya ve promosyon bilgisine yer verilemez (uluslararası sağlık turizmine ilişkin ayrı hükümler bulunur; ayrıntılar [sağlık turizmi tanıtım kuralları rehberinde](guide:saglik-turizmi-dis-klinigi-tanitim-kurallari)).",
           "Hasta veya yakınlarının teşekkür ve memnuniyet ifadeleriyle reklam niteliğinde paylaşım yapılamaz.",
           "Ücretli, sponsorlu ya da öne çıkmaya yönelik paylaşım ve arama motoru kayıtları kısıtlanmıştır; sınırlı istisnalar için güncel metne bakın.",
           "Kişilerin rızası olmadan arama, SMS, e-posta ya da sosyal medya mesajıyla tanıtım yapılamaz.",
@@ -204,7 +204,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "DentVideo bu kontrolü nasıl yapar",
         paragraphs: [
-          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (“garanti”, “acısız”, “kalıcı”, “en iyi”, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı on dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
+          "[DentVideo](landing:), her senaryo ve açıklama metnini bu sık kısıtlanan ifadelere (“garanti”, “acısız”, “kalıcı”, “en iyi”, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumu) karşı on dilde denetler; riskli olanı yeniden yazdırır ya da üretmez. Kendi kaydınızda dikkat gerektiren bir cümle varsa sözlerinizi değiştirmez, gerekçesiyle işaretler. Bu bir hukuki danışmanlık değil, özenli bir filtredir: her videoyu siz onaylarsınız. Kendi yazdığınız bir açıklama metnini, web sitesi yazısını veya ilanı paylaşmadan önce ücretsiz [“Bu paylaşım yasak mı?” kontrol aracımıza](checker:) yapıştırarak her cümlenin değerlendirmesini ve daha temkinli bir karşılığını görebilirsiniz. Ne paylaşabileceğinize dair fikirler için [paylaşım fikirleri rehberine](guide:dis-hekimi-instagram-paylasim-fikirleri), çekim için [Instagram videoları rehberine](guide:dis-hekimleri-icin-instagram-videolari) bakın.",
         ],
       },
     ],
