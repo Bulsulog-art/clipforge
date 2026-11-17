@@ -90,7 +90,7 @@ vi.mock("@supabase/supabase-js", () => ({ createClient: () => fakeDb() }));
 process.env.DENTVID_SUPABASE_URL = "http://liman.test";
 process.env.DENTVID_SERVICE_ROLE_KEY = "x";
 
-const { configureSpend, runDentvidWeek, _setStoreRetryMs, SHORT_WEEK_ALERT_KEY } = await import("./jobs.js");
+const { configureSpend, runDentvidWeek, _setStoreRetryMs, SHORT_WEEK_ALERT_KEY, _setPreflight } = await import("./jobs.js");
 const { MemoryGuardStore, SpendGuard, guardConfig } = await import("./spend-guard.js");
 const { configureOps } = await import("./ops.js");
 const { MemoryOpsStore, weekStateKey, _resetLocalOnce } = await import("./ops-alert.js");
@@ -112,6 +112,8 @@ let ops: InstanceType<typeof MemoryOpsStore>;
 let mails: { subject: string; text: string }[];
 
 beforeEach(() => {
+  // No network in tests: the providers are fine unless a test says otherwise.
+  _setPreflight(async () => ({ ok: true }));
   vi.clearAllMocks();
   inserted.length = 0;
   uploadFailures = 0;
@@ -459,5 +461,37 @@ describe("reliability: clinic deleted while its week is being made (docs/RELIABI
     expect(removedKeys.length).toBeGreaterThanOrEqual(2);
     expect(removedKeys.every((k) => k.startsWith(`${OWNER}/`))).toBe(true);
     expect(mails).toEqual([]);
+  });
+});
+
+describe("provider pre-flight before a week spends", () => {
+  it("a refusing provider: nothing produced, nothing reserved, 'taking longer' in the library, one urgent alert naming the provider, retried (transient)", async () => {
+    _setPreflight(async () => ({ ok: false, provider: "OpenAI", reason: "HTTP 429 insufficient_quota" }));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(inserted).toEqual([]);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/OpenAI.*(ACİL|URGENT)|(ACİL|URGENT).*OpenAI/);
+    expect(mails[0].text).toContain("insufficient_quota");
+    expect(mails[0].text).toContain(CLINIC);
+  });
+
+  it("a refusal on a real call is remembered, so the next clinic's week stops before spending; a good week clears it", async () => {
+    const { preflight, PROVIDER_DOWN_KEY } = await import("./provider-health.js");
+    _setPreflight(() => preflight(ops, { OPENAI_API_KEY: "x" }, (async () => new Response("{}", { status: 200 })) as never));
+    produceWeek.mockRejectedValueOnce(Object.assign(new Error("429 You exceeded your current quota"), { status: 429, code: "insufficient_quota" }));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toThrow();
+    expect(await ops.get(PROVIDER_DOWN_KEY("OpenAI"))).not.toBeNull();
+    produceWeek.mockClear();
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    expect(produceWeek).not.toHaveBeenCalled();
+    // The owner topped up; a week succeeds and the memory is cleared.
+    await ops.del(PROVIDER_DOWN_KEY("OpenAI"));
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await ops.set(PROVIDER_DOWN_KEY("OpenAI"), "stale", 60);
+    _setPreflight(async () => ({ ok: true }));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(await ops.get(PROVIDER_DOWN_KEY("OpenAI"))).toBeNull();
   });
 });

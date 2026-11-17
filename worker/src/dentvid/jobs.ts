@@ -23,8 +23,9 @@ import { notifyReady, sendReadyAtCivilHour } from "./notify.js";
 import { shouldRun, validWeek, weekOf } from "./schedule.js";
 import { clinicTimeZone } from "./timezone.js";
 import { classifyFailure, isLastAttempt, providerRefused, TransientWeekError } from "./retry.js";
-import { clinicRef, noteRenderFailure, ownerAlert, ownerAlertOnce, setWeekDelay } from "./ops.js";
+import { clinicRef, noteRenderFailure, opsStore, ownerAlert, ownerAlertOnce, setWeekDelay } from "./ops.js";
 import { alerts, cleanError } from "./ops-alert.js";
+import { clearProviderDown, noteProviderRefused, preflight, type Preflight } from "./provider-health.js";
 import { patientSearches } from "../dental/questions.js";
 import { brandFromLogo, logoStyleOf, readyLogo, type LogoAnalysis } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
@@ -412,6 +413,8 @@ export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<W
   const last = isLastAttempt(ctx.attemptsMade ?? 0, ctx.attempts ?? 1);
   try {
     const result = await makeWeek(job, ctx, week);
+    // Videos were made: whatever refusal was remembered is over.
+    if (result.ready + result.flagged > 0) await clearProviderDown(opsStore(), "OpenAI");
     await setWeekDelay(job.clinicId, week, null);
     return result;
   } catch (e) {
@@ -421,6 +424,8 @@ export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<W
       throw e;
     }
     const kind = classifyFailure(e);
+    // A real call refused for a reason on our side: the next weeks stop before spending (provider-health.ts).
+    if (!(e instanceof ProviderPreflightError)) await noteProviderRefused(opsStore(), "OpenAI", e);
     if (providerRefused(e) && !(e instanceof TransientWeekError)) {
       // The provider refused the week's first call (out of credit, bad key):
       // nothing was spent, so the clinic's week budget is given back and its
@@ -456,6 +461,18 @@ function safeDb(): SupabaseClient | null {
   }
 }
 
+/**
+ * Before a week spends anything: can OpenAI work (provider-health.ts: a refusal remembered from a real
+ * call, else the free key check)? Replaceable in tests, which never reach the network.
+ */
+let preflightCheck: () => Promise<Preflight> = () => preflight(opsStore());
+export function _setPreflight(fn: () => Promise<Preflight>): void {
+  preflightCheck = fn;
+}
+
+/** The provider refused before the week started: nothing was spent; retried with backoff while the owner tops up. */
+export class ProviderPreflightError extends TransientWeekError {}
+
 async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekResult> {
   const db = dentvidDb();
   if (!(await paying(db, job.clinicId, "week"))) return { ready: 0, flagged: 0, rejected: 0 };
@@ -464,6 +481,13 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
   if (want === 0) {
     logger.info({ clinicId: job.clinicId, week, already }, "dentvid: week already delivered — nothing to make");
     return { ready: 0, flagged: 0, rejected: 0, already };
+  }
+  // Fail fast, before the budget and before any paid call, when the provider is known to refuse
+  // (out of credit, bad key): the clinic sees "taking a little longer", the owner gets one urgent alert.
+  const pre = await preflightCheck().catch(() => ({ ok: true }) as Preflight);
+  if (!pre.ok) {
+    await ownerAlert(alerts.providerDown({ provider: pre.provider, reason: pre.reason, when: "preflight", clinic: await clinicRef(db, job.clinicId), week })).catch(() => "failed");
+    throw new ProviderPreflightError(`preflight: ${pre.provider} refuses (${pre.reason}); nothing was spent`);
   }
   // Budget first: nothing below may call a paid API before this passes.
   await reserveOrPark("week", { ...job }, ctx.jobId);

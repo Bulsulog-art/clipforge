@@ -450,6 +450,30 @@ export const weekStateKey = (clinicId: string, week: string) => `dv:weekstate:${
 const tierLabel = (c: ClinicRef) => (c.tier ? c.tier : "unknown tier");
 
 export const alerts = {
+  providerDown(a: { provider: "OpenAI" | "ElevenLabs"; reason: string; when: "preflight" | "daily"; clinic?: ClinicRef; week?: string; fallback?: boolean }): OwnerAlert {
+    return {
+      key: `provider_down:${a.provider.toLowerCase()}`,
+      severity: "urgent",
+      titleTr: `${a.provider} hesabı reddediyor: bakiye/kota`,
+      titleEn: `${a.provider} is refusing: balance or quota`,
+      ...(a.clinic ? { clinic: a.clinic } : {}),
+      what: [
+        a.when === "preflight"
+          ? `Before starting ${a.week ? `the week of ${a.week}` : "a week"} for a paying clinic, the free ${a.provider} check failed: ${a.reason}. No paid call was made.`
+          : `The daily ${a.provider} check (free endpoints only) failed: ${a.reason}.`,
+      ],
+      facts: [["Provider", a.provider], ["Reason", a.reason]],
+      done: [
+        a.fallback
+          ? "Narration falls back to OpenAI's voice, so weeks are still made (with a different voice) while this lasts."
+          : "Week jobs stop before spending and are retried with growing waits; the clinic's library shows the calm “taking longer” note. No email went to the clinic.",
+      ],
+      todo: [
+        `Top up or fix the ${a.provider} account (billing, quota, API key), then retry the failed week jobs (BullMQ queue dentvid → failed → retry, or requeue in /dentvideo/admin).`,
+      ],
+    };
+  },
+
   weekFailed(a: { clinic: ClinicRef; week: string; attempts: number; error: string; permanent: boolean }): OwnerAlert {
     return {
       key: `week_failed:${a.clinic.id}:${a.week}`,
