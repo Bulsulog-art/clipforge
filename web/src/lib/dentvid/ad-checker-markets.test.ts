@@ -76,6 +76,19 @@ describe("ad checker markets: known examples per market", () => {
     // Fees and campaigns (md. 5/1-m), patient thanks (5/1-e): not allowed. A superlative: risky.
     expect(verdictIn("Bu ay beyazlatmada indirim.", "TR", "indirim")).toBe("price:banned");
     expect(verdictIn("Hasta yorumlarına bakın.", "TR", "hasta yorum")).toBe("testimonial:banned");
+    // KM-52: patient satisfaction in a plain sentence was marked "Uygun".
+    expect(verdictIn("Hastalarımız çok memnun.", "TR", "memnun")).toBe("testimonial:banned");
+    expect(sourceFor("testimonial", "TR")).toBe("RG_TR");
+    expect(verdictIn("Memnun kalan hastalarımız bizi tavsiye ediyor.", "TR", "memnun kalan")).toBe("testimonial:banned");
+    expect(verdictIn("Teşekkür eden hastalarımıza minnettarız.", "TR", "teşekkür eden")).toBe("testimonial:banned");
+    expect(verdictIn("Mutlu hastalarımızla gurur duyuyoruz.", "TR", "mutlu hasta")).toBe("testimonial:banned");
+    expect(verdictIn("Yüzde 95 memnuniyet oranı.", "TR", "memnuniyet")).toBe("testimonial:banned");
+    for (const calm of [
+      "Bazı hastalar protezinden memnun olmayabilir; hekiminize danışın.",
+      "Gülüşünüzden memnun değilseniz hekiminizle konuşabilirsiniz.",
+      "Sorularınızı memnuniyetle yanıtlarız.",
+      "Hastalarımızın sık sorduğu sorulardan biri implantın ne kadar sürdüğü.",
+    ]) expect(checkText(calm, "TR"), calm).toEqual([]);
     expect(verdictIn("Şehrin en iyi kliniği.", "TR", "en iyi")).toBe("superlative:risky");
     expect(verdictIn("Büyük çekiliş başladı.", "TR", "çekiliş")).toBe("giveaway:banned");
     expect(verdictIn("Bu videoyu paylaşmayı unutmayın.", "TR", "videoyu paylaş")).toBe("engagement:banned");

@@ -8,7 +8,9 @@
  *
  * (--tsconfig: the web modules it imports use web's "@/…" path alias.)
  *
- * selection.json: { "<lang>": [{ "dir": "/abs/path/to/video-folder", "name": "Demo Clinic", "handle": "democlinic" }, ...] }
+ * selection.json: { "<lang>": [{ "dir": "/abs/path/to/video-folder", "name": "Demo Clinic" }, ...] }
+ * Sample clinics have no "handle": an invented @handle could belong to a real
+ * account. A folder rendered with one may still name it here, so it is replaced.
  * A title in a non-Latin script (Japanese, Arabic) has no ASCII slug: give the
  * pick a romanised "slug" for its file name. "title" replaces a topic title
  * that reads as a brief rather than a label (the player shows it).
@@ -53,7 +55,7 @@ const run = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(root, "web/public/dentvideo/preview");
 
-type Pick = { dir: string; name: string; handle: string; slug?: string; title?: string };
+type Pick = { dir: string; name: string; handle?: string; slug?: string; title?: string };
 
 async function seconds(file: string): Promise<number> {
   const { stdout } = await run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]);
@@ -69,8 +71,8 @@ const DEMO = /demo|デモ|ديمو/i;
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 function tokenise(text: string, pick: Pick): string {
-  return text
-    .replace(new RegExp(`@?${escape(pick.handle)}`, "gi"), HANDLE_TOKEN)
+  const handled = pick.handle ? text.replace(new RegExp(`@?${escape(pick.handle)}`, "gi"), HANDLE_TOKEN) : text;
+  return handled
     .replace(new RegExp(escape(pick.name), "gi"), NAME_TOKEN);
 }
 
@@ -107,7 +109,7 @@ async function main() {
         if (c.compliance.verdict === "fail" || c.accuracy.verdict === "fail") throw new Error(`${pick.dir}: ${stage} review failed`);
       const spoken = raw.voiceover?.text ?? "";
       // A narrator often shortens the name ("عيادة ديمو", "デモ歯科"): the sample clinics are all "Demo" in some script.
-      if (new RegExp(escape(pick.name), "i").test(spoken) || new RegExp(escape(pick.handle), "i").test(spoken) || DEMO.test(spoken))
+      if (new RegExp(escape(pick.name), "i").test(spoken) || (pick.handle && new RegExp(escape(pick.handle), "i").test(spoken)) || DEMO.test(spoken))
         throw new Error(`${pick.dir}: the narration says the sample clinic's name`);
       // The narration is audio: once built, a closing it SAYS cannot be fixed by
       // editing the plan (Nov 2026: every Turkish sample said "… bize ulaşın veya

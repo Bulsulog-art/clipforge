@@ -220,9 +220,9 @@ async function capture(baseUrl: string, dir: string, only?: string[]) {
   const { chromium } = (await import(pwPath)) as typeof import("playwright");
   await fs.mkdir(dir, { recursive: true });
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM || undefined });
-  // The dev harness shows a fictional clinic; the launch kit's sample clinic replaces it on screen.
+  // The dev harness already shows the launch kit's fictional TR clinic ("Örnek Diş Kliniği");
+  // only its sample handle is taken off the screen (a handle could belong to someone).
   const RENAME: [string, string][] = [
-    ["Gülümse Diş Kliniği", SAMPLE.tr.name],
     ["riverside.dental", ""],
   ];
   const flows: Record<string, (p: import("playwright").Page) => Promise<void>> = {

@@ -91,7 +91,7 @@ export function fixtureSystem(now: Date, data: AdminData, opts: { staleRenderSer
     alerts: [
       { at: iso(t - 5 * 3600_000), severity: "warning", title: "Thin week: 2 of 5 usable videos — Harbour Smiles", key: `thin:${paying[1]?.id}`, clinic: "Harbour Smiles" },
       { at: iso(t - 2 * DAY), severity: "high", title: "Week failed after 4 attempts — Zahnzentrum Mitte", key: `week-failed:${failedClinic}`, clinic: "Zahnzentrum Mitte" },
-      { at: iso(t - 2.4 * DAY), severity: "high", title: "Dodo: dispute.opened on a DentVideo payment (clinic paused)", key: "billing-dispute:pay_8Hk2", clinic: "Dentpark İzmir" },
+      { at: iso(t - 2.4 * DAY), severity: "high", title: "Dodo: dispute.opened on a DentVideo payment (clinic paused)", key: "billing-dispute:pay_8Hk2", clinic: "Demo Diş Merkezi İzmir" },
     ],
     costByDay: Array.from({ length: 30 }, (_, i) => [new Date(t - i * DAY).toISOString().slice(0, 10), Math.round((2 + ((i * 7) % 9)) * 100) / 100] as [string, number]).reverse(),
     monitor: fixtureMonitor(now),

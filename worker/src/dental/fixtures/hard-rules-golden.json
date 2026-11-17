@@ -704,6 +704,33 @@
   "markets": {}
  },
  {
+  "input": "Hastalarımız çok memnun.",
+  "scan": [
+   {
+    "rule": "testimonial",
+    "match": "Hastalarımız çok memnun",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "testimonial",
+    "start": 0,
+    "end": 23,
+    "match": "Hastalarımız çok memnun"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "testimonial",
+    "start": 0,
+    "end": 23,
+    "match": "Hastalarımız çok memnun"
+   }
+  ],
+  "markets": {}
+ },
+ {
   "input": "Schmerzfreie Behandlung mit Erfolgsgarantie! Die beste Zahnarztpraxis in München. Vorher-Nachher-Bilder und Patientenstimmen. 20 % Rabatt mit Gutschein.",
   "scan": [
    {
