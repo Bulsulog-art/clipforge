@@ -84,9 +84,12 @@ class DVTestCase: XCTestCase {
         }
     }
 
-    /// Opening a link from outside: iOS may ask "Open in DentVideo?" first; answer it.
+    /// Opening a link from outside, as a tap on a link in Mail or Safari does: the system opens
+    /// the URL (not XCUIApplication.open, which on iOS 18 restarted the app without delivering
+    /// the link: the app's routing state showed no link received). iOS may ask "Open in
+    /// DentVideo?" first; answer it.
     func openLink(_ url: String) {
-        app.open(URL(string: url)!)
+        XCUIDevice.shared.system.open(URL(string: url)!)
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let open = springboard.buttons["Open"]
         if open.waitForExistence(timeout: 3) { open.tap() }
