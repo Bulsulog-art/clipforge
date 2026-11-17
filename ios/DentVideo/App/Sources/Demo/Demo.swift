@@ -33,6 +33,9 @@ enum Demo {
     // MARK: Model
 
     static func makeModel() -> AppModel? {
+        let d = UserDefaults.standard
+        if let v = d.string(forKey: "DVFlow") { d.set(v == "1", forKey: "DVFlowSticky") }
+        if screen != nil { d.removeObject(forKey: "DVFlowSticky") }
         if DemoFlags.flow { return makeFlowModel() }
         guard let screen else { return nil }
         UIView.setAnimationsEnabled(false)
@@ -236,7 +239,15 @@ enum DemoFlags {
         let v = UserDefaults.standard.string(forKey: k) ?? ""
         return v.isEmpty ? def : v
     }
-    static var flow: Bool { UserDefaults.standard.bool(forKey: "DVFlow") }
+    /// Flow mode: `-DVFlow 1`, and it stays on for later launches without arguments (a link
+    /// opened by the system cold-starts the app with no launch arguments) until a launch with
+    /// `-DVFlow 0` or `-DVScreen`. Simulator test runs only; DEBUG builds only.
+    static var flow: Bool {
+        let d = UserDefaults.standard
+        if !(d.string(forKey: "DVScreen") ?? "").isEmpty { return false }
+        if let v = d.string(forKey: "DVFlow") { return v == "1" }
+        return d.bool(forKey: "DVFlowSticky")
+    }
     static var active: Bool { flow || !(UserDefaults.standard.string(forKey: "DVScreen") ?? "").isEmpty }
     static var reset: Bool { UserDefaults.standard.bool(forKey: "DVReset") }
     static var signedIn: Bool { str("DVSignedIn", "1") == "1" }
