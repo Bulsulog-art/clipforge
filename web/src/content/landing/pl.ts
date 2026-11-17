@@ -16,7 +16,7 @@ export const pl: LandingContent = {
     ctaHint: "Podgląd z logo · bez zakładania konta",
     samplesLink: "Obejrzeć trzy przykładowe filmy",
     priceNote: "rozliczenie miesięczne, rezygnacja w dowolnym momencie",
-    facts: ["Bez Państwa akceptacji nic nie zostanie opublikowane", "Bez awatarów, fikcyjnych lekarzy i pacjentów w kadrze", "Pierwszy tydzień gotowy około 15 minut po zakupie"],
+    facts: ["Bez Państwa akceptacji nic nie zostanie opublikowane", "Bez awatarów, fikcyjnych lekarzy i pacjentów w kadrze", "Pierwszy tydzień gotowy zwykle w ciągu godziny od zakupu"],
   },
   mock: { ready: "Gotowe do akceptacji", copied: "Opis skopiowany" },
   video: { play: "Odtwórz", pause: "Wstrzymaj" },
@@ -66,7 +66,7 @@ export const pl: LandingContent = {
     heading: "Jak to działa",
     steps: [
       { title: "Raz opisują Państwo gabinet.", text: "Zabiegi, język, forma zwracania się, logo i kolor. Około dwóch minut. Filmy dotyczą wyłącznie zabiegów, które Państwo wykonują." },
-      { title: "Pięć filmów w każdy poniedziałek.", text: "Gdy tydzień jest gotowy, wysyłamy e-mail. Pierwszy tydzień jest gotowy około 15 minut po zakupie." },
+      { title: "Pięć filmów w każdy poniedziałek.", text: "Gdy tydzień jest gotowy, wysyłamy e-mail. Pierwszy tydzień jest gotowy zwykle w ciągu godziny od zakupu." },
       { title: "Obejrzeć, zatwierdzić, udostępnić.", text: "Cały tydzień jednym dotknięciem albo film po filmie. Na telefonie zatwierdzony film otwiera menu udostępniania z opisem już skopiowanym." },
     ],
     shots: ["Ekran ustawień gabinetu w aplikacji DentVideo", "Tydzień filmów w aplikacji DentVideo, gotowy do przejrzenia", "Przeglądanie filmu w aplikacji DentVideo: zatwierdzić lub odrzucić"],

@@ -6,15 +6,15 @@ import type { Guide } from "../dentvideo";
 // prices, statistics or testimonials. One page per treatment, each a true
 // translation group (topic) with the German and Turkish pages.
 
-const NHS_ROOT_CANAL = { label: "NHS — Root canal treatment (what happens, recovery, alternatives)", url: "https://www.nhs.uk/tests-and-treatments/root-canal-treatment/" };
-const NHS_WHITENING = { label: "NHS — Teeth whitening (who can legally do it, risks, home kits)", url: "https://www.nhs.uk/tests-and-treatments/teeth-whitening/" };
-const NHS_BRACES = { label: "NHS — Braces and orthodontic treatment, including clear aligners", url: "https://www.nhs.uk/tests-and-treatments/braces/" };
-const NHS_GUMS = { label: "NHS — Gum disease (symptoms, causes, treatment)", url: "https://www.nhs.uk/conditions/gum-disease/" };
-const NHS_KIDS = { label: "NHS — Taking care of children's teeth", url: "https://www.nhs.uk/live-well/healthy-teeth-and-gums/taking-care-of-childrens-teeth/" };
-const ADA_IMPLANTS = { label: "ADA MouthHealthy — Dental implants", url: "https://www.mouthhealthy.org/all-topics-a-z/implants" };
-const ADA_ROOT_CANAL = { label: "ADA MouthHealthy — Root canals", url: "https://www.mouthhealthy.org/all-topics-a-z/root-canals" };
-const ADA_WHITENING = { label: "ADA MouthHealthy — Teeth whitening", url: "https://www.mouthhealthy.org/all-topics-a-z/teeth-whitening" };
-const ADA_GUMS = { label: "ADA MouthHealthy — Gum disease", url: "https://www.mouthhealthy.org/all-topics-a-z/gum-disease" };
+const NHS_ROOT_CANAL = { label: "NHS: Root canal treatment (what happens, recovery, alternatives)", url: "https://www.nhs.uk/tests-and-treatments/root-canal-treatment/" };
+const NHS_WHITENING = { label: "NHS: Teeth whitening (who can legally do it, risks, home kits)", url: "https://www.nhs.uk/tests-and-treatments/teeth-whitening/" };
+const NHS_BRACES = { label: "NHS: Braces and orthodontic treatment, including clear aligners", url: "https://www.nhs.uk/tests-and-treatments/braces/" };
+const NHS_GUMS = { label: "NHS: Gum disease (symptoms, causes, treatment)", url: "https://www.nhs.uk/conditions/gum-disease/" };
+const NHS_KIDS = { label: "NHS: Taking care of children's teeth", url: "https://www.nhs.uk/live-well/healthy-teeth-and-gums/taking-care-of-childrens-teeth/" };
+const ADA_IMPLANTS = { label: "ADA MouthHealthy: Dental implants", url: "https://www.mouthhealthy.org/all-topics-a-z/implants" };
+const ADA_ROOT_CANAL = { label: "ADA MouthHealthy: Root canals", url: "https://www.mouthhealthy.org/all-topics-a-z/root-canals" };
+const ADA_WHITENING = { label: "ADA MouthHealthy: Teeth whitening", url: "https://www.mouthhealthy.org/all-topics-a-z/teeth-whitening" };
+const ADA_GUMS = { label: "ADA MouthHealthy: Gum disease", url: "https://www.mouthhealthy.org/all-topics-a-z/gum-disease" };
 
 const DATES = { published: "2026-11-14", updated: "2026-11-14", reviewed: "2026-11-14" } as const;
 

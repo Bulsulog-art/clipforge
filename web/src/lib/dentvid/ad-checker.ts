@@ -1,5 +1,6 @@
-import { CHECKER_RULES, findHardSpans, type HardSpan, type RuleId } from "./hard-rules";
+import { CHECKER_RULES, MARKET_HARD_RULES, findHardSpans, type HardSpan, type MarketRuleId, type Rule, type RuleId } from "./hard-rules";
 import { CHECKER_MAX_CHARS } from "./ad-checker-limits";
+import { OTHER_MARKET, verdictOf, worse, type CheckerMarket, type CheckerRuleId, type Verdict } from "./checker-markets";
 
 /**
  * The free public ad checker (dentvideo.com/ad-checker): the compliance
@@ -16,10 +17,22 @@ export { CHECKER_MAX_CHARS };
 /** The rules, in the engine's order (fear last). */
 export const CHECKER_RULE_IDS: readonly RuleId[] = CHECKER_RULES.map((r) => r.id);
 
-export type CheckerHit = HardSpan & {
+/** Every market pack rule the checker can report (MARKET_HARD_RULES), each once. */
+export const CHECKER_MARKET_RULE_IDS: readonly MarketRuleId[] = [...new Set(Object.values(MARKET_HARD_RULES).flatMap((rs) => rs.map((r) => r.id)))];
+
+export type CheckerHit = Omit<HardSpan, "rule"> & {
+  rule: CheckerRuleId;
+  /** How strictly the chosen market treats it. */
+  verdict: Exclude<Verdict, "ok">;
   /** A safer wording in the language of the flagged phrase, when one is known; else null (the UI shows the rule's tip). */
   fix: string | null;
 };
+
+/** The rules run for a market: the hard rules, fear and pressure, then that market's own pack. */
+export function rulesFor(market: CheckerMarket = OTHER_MARKET): readonly Rule[] {
+  // A market rule has the same shape as a hard rule; only its id names a market pack.
+  return [...CHECKER_RULES, ...((MARKET_HARD_RULES[market] ?? []) as unknown as Rule[])];
+}
 
 const DIGIT = /[\d٠-٩０-９]/;
 
@@ -42,19 +55,106 @@ export function widenNumber(text: string, s: HardSpan): HardSpan {
   return start === s.start && end === s.end ? s : { ...s, start, end, match: text.slice(start, end) };
 }
 
-/** Every risky phrase in `text`, in reading order, each with a safer wording when one is known. */
-export function checkText(text: string): CheckerHit[] {
+/**
+ * Every risky phrase in `text`, in reading order, each with how strictly
+ * `market` treats it and a safer wording when one is known. Without a market
+ * only the rules that apply everywhere run, and nothing is "banned".
+ */
+export function checkText(text: string, market: CheckerMarket = OTHER_MARKET): CheckerHit[] {
   const t = text.slice(0, CHECKER_MAX_CHARS);
   const lang = guessLanguage(t);
-  const spans = findHardSpans(t, CHECKER_RULES).map((s) => widenNumber(t, s));
+  const spans = findHardSpans(t, rulesFor(market)).map((s) => widenNumber(t, s));
   // Widening can run into the next hit: keep them apart.
   const out: CheckerHit[] = [];
   for (const s of spans) {
     const last = out[out.length - 1];
     if (last && s.start < last.end) continue;
-    out.push({ ...s, fix: suggestRewrite(s.match, s.rule, lang) });
+    const rule = s.rule as CheckerRuleId;
+    out.push({ ...s, rule, verdict: verdictOf(rule, market), fix: suggestRewrite(s.match, rule, lang) });
   }
   return out;
+}
+
+export type Sentence = {
+  /** [start, end) in the checked text, without the spaces around it. */
+  start: number;
+  end: number;
+  text: string;
+  /** The hits that start in this sentence, positions relative to the whole text. */
+  hits: CheckerHit[];
+  verdict: Verdict;
+  /**
+   * A whole safer sentence, when one of its hits has a sentence-length fix
+   * (a promotion or a push to book has nothing worth keeping: a calm
+   * invitation to ask replaces it). Else null: the phrase fixes apply.
+   */
+  safer: string | null;
+};
+
+// Words a full stop follows without ending the sentence ("Dr. Ali", "z. B.", "Uzm. Dt.").
+const ABBREVIATIONS = new Set(
+  "dr drs prof mr mrs ms st nr no vs etc ca bzw ggf inkl zb usw dt uzm doç op sn lek med stom mgr inż sr sra dra av tel".split(" "),
+);
+
+/**
+ * The text cut into sentences, deterministically (the same in every browser
+ * and in the tests): after . ! ? … and their Japanese and Arabic forms, and
+ * at every line break. Spaces between sentences belong to none.
+ */
+export function splitSentences(text: string): { start: number; end: number }[] {
+  const out: { start: number; end: number }[] = [];
+  let start = 0;
+  const push = (end: number) => {
+    let a = start;
+    let b = end;
+    while (a < b && /\s/.test(text[a])) a++;
+    while (b > a && /\s/.test(text[b - 1])) b--;
+    if (b > a) out.push({ start: a, end: b });
+    start = end;
+  };
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === "\n") {
+      push(i + 1);
+      continue;
+    }
+    // Japanese and Chinese stops need no space after them.
+    if (c === "。" || c === "！" || c === "？") {
+      let j = i + 1;
+      while (j < text.length && /[。！？」』）)]/.test(text[j])) j++;
+      push(j);
+      i = j - 1;
+      continue;
+    }
+    if (c === "." || c === "!" || c === "?" || c === "…" || c === "؟") {
+      let j = i + 1;
+      while (j < text.length && /[.!?…؟"'”’»)\]]/.test(text[j])) j++;
+      if (j < text.length && !/\s/.test(text[j])) continue;
+      if (c === ".") {
+        const word = /([\p{L}.]+)$/u.exec(text.slice(start, i))?.[1] ?? "";
+        const bare = word.replace(/\./g, "").toLowerCase();
+        // "Dr.", "z.B.", or a single letter ("A. Yılmaz", "z. B.").
+        if (ABBREVIATIONS.has(bare) || /^\p{L}$/u.test(word)) continue;
+      }
+      push(j);
+      i = j - 1;
+    }
+  }
+  push(text.length);
+  return out;
+}
+
+const SENTENCE_FIX = /[.!?。？！؟]$/;
+
+/** The checked text sentence by sentence, each with its hits and verdict (OK, risky, not allowed). */
+export function sentencesOf(text: string, hits: readonly CheckerHit[]): Sentence[] {
+  const t = text.slice(0, CHECKER_MAX_CHARS);
+  return splitSentences(t).map(({ start, end }) => {
+    const own = hits.filter((h) => h.start >= start && h.start < end);
+    const verdict = own.reduce<Verdict>((v, h) => worse(v, h.verdict), "ok");
+    const safer = verdict === "ok" ? null : (own.find((h) => h.fix && SENTENCE_FIX.test(h.fix))?.fix ?? null);
+    return { start, end, text: t.slice(start, end), hits: own, verdict, safer };
+  });
 }
 
 export type Segment = { text: string; hit?: CheckerHit; index?: number };
@@ -72,9 +172,18 @@ export function segments(text: string, hits: readonly CheckerHit[]): Segment[] {
   return out;
 }
 
-/** What the checker_used event may carry: counts, never words. */
-export function checkerEventProps(hits: readonly CheckerHit[]): { hits: number; rules: number; clean: boolean } {
-  return { hits: Math.min(hits.length, 100), rules: new Set(hits.map((h) => h.rule)).size, clean: hits.length === 0 };
+/** What the checker_used event may carry: counts and the chosen market, never words. */
+export function checkerEventProps(
+  hits: readonly CheckerHit[],
+  market: CheckerMarket = OTHER_MARKET,
+): { hits: number; rules: number; clean: boolean; banned: number; market?: string } {
+  return {
+    hits: Math.min(hits.length, 100),
+    rules: Math.min(new Set(hits.map((h) => h.rule)).size, 20),
+    clean: hits.length === 0,
+    banned: Math.min(hits.filter((h) => h.verdict === "banned").length, 100),
+    ...(market === OTHER_MARKET ? {} : { market }),
+  };
 }
 
 type Rewrite = { rule: RuleId; re: RegExp; fix: string };
@@ -123,7 +232,7 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("cure", /tedavi|iyileştirir|geçer|yok eder/i, "tedavisine yardımcı olabilir"),
     r("fear", /kaybed/i, "tedavi edilmezse zamanla ilerleyebilir"),
     r("fear", /geç olmadan|randevu|kaçırmayın|beklemeyin/i, "Bu belirtiyi fark ederseniz diş hekiminize danışabilirsiniz."),
-    r("fear", /fırsat|şans|sadece|yalnızca|özel|son gün|acele|kontenjan|tükenmeden/i, "Size uygun bir zamanda randevu için bize sorabilirsiniz."),
+    r("fear", /fırsat|şans|sadece|yalnızca|özel|son gün|acele|kontenjan|tükenmeden/i, "Size uygun bir zamanda diş hekiminize danışabilirsiniz."),
   ],
   de: [
     r("absolute", /schmerzfrei|schmerzlos/i, "unter örtlicher Betäubung, für die meisten gut verträglich"),
@@ -219,6 +328,15 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
   ],
 };
 
+/**
+ * Safer wordings for a market pack's phrases, by language. Only where a calm
+ * sentence can replace it; elsewhere (a sponsored label, a raffle, a title
+ * the clinic may or may not hold) the rule's tip says what to do.
+ */
+export const MARKET_REWRITES: Partial<Record<MarketRuleId, Partial<Record<RewriteLang, string>>>> = {
+  booking: { tr: "Merak ettiklerinizi bir sonraki kontrolünüzde diş hekiminize danışabilirsiniz." },
+};
+
 const LATIN = ["en", "tr", "de", "es", "fr", "pl"] as const;
 type LatinLang = (typeof LATIN)[number];
 
@@ -255,9 +373,11 @@ export function guessLanguage(text: string): RewriteLang {
  * language: the rule's tip in the page's language is better there).
  * `lang`: the language of the whole text (guessLanguage), tried first.
  */
-export function suggestRewrite(match: string, rule: RuleId, lang: RewriteLang = guessLanguage(match)): string | null {
+export function suggestRewrite(match: string, rule: CheckerRuleId, lang: RewriteLang = guessLanguage(match)): string | null {
   // Figures alone: no language to answer in.
   if (!/\p{L}/u.test(match)) return null;
+  const market = MARKET_REWRITES[rule as MarketRuleId];
+  if (market) return market[lang] ?? market[guessLanguage(match)] ?? null;
   const script = guessLanguage(match);
   const order: RewriteLang[] =
     script === "ar" || script === "ja" ? [script] : [...(LATIN as readonly RewriteLang[]).includes(lang) ? [lang] : [], ...LATIN.filter((l) => l !== lang)];

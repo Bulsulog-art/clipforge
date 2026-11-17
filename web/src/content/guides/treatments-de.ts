@@ -6,9 +6,9 @@ import type { Guide } from "../dentvideo";
 // HWG und Berufsordnung problematisch machen. Sie-Form, keine Preise,
 // keine Statistiken, keine Patientenstimmen.
 
-const HWG_11 = { label: "§ 11 Heilmittelwerbegesetz (HWG) — Werbeverbote außerhalb der Fachkreise, gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
-const HWG_3 = { label: "§ 3 Heilmittelwerbegesetz (HWG) — Verbot irreführender Werbung, gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/__3.html" };
-const LGL_BLEACHING = { label: "Bayerisches Landesamt für Gesundheit und Lebensmittelsicherheit — Zahnbleichmittel (Kosmetikrecht)", url: "https://www.lgl.bayern.de/produkte/kosmetika/kosmetische_mittel/et_zahnbleichmittel.htm" };
+const HWG_11 = { label: "§ 11 Heilmittelwerbegesetz (HWG): Werbeverbote außerhalb der Fachkreise, gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/__11.html" };
+const HWG_3 = { label: "§ 3 Heilmittelwerbegesetz (HWG): Verbot irreführender Werbung, gesetze-im-internet.de", url: "https://www.gesetze-im-internet.de/heilmwerbg/__3.html" };
+const LGL_BLEACHING = { label: "Bayerisches Landesamt für Gesundheit und Lebensmittelsicherheit: Zahnbleichmittel (Kosmetikrecht)", url: "https://www.lgl.bayern.de/produkte/kosmetika/kosmetische_mittel/et_zahnbleichmittel.htm" };
 
 const DATES = { published: "2026-11-14", updated: "2026-11-14", reviewed: "2026-11-14" } as const;
 

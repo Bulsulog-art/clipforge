@@ -16,7 +16,7 @@ export const tr: LandingContent = {
     ctaHint: "Ücretsiz logo önizlemesi · hesap gerekmez",
     samplesLink: "Üç örnek videoyu izleyin",
     priceNote: "aylık ödeme, istediğiniz zaman iptal",
-    facts: ["Onayınız olmadan hiçbir şey yayımlanmaz", "Avatar, sahte hekim ya da hasta görüntüsü yok", "İlk haftanız abonelikten yaklaşık 15 dakika sonra hazır"],
+    facts: ["Onayınız olmadan hiçbir şey yayımlanmaz", "Avatar, sahte hekim ya da hasta görüntüsü yok", "İlk haftanız abonelikten sonra genellikle bir saat içinde hazır"],
   },
   mock: { ready: "Onayınıza hazır", copied: "Açıklama metni kopyalandı" },
   video: { play: "Oynat", pause: "Duraklat" },
@@ -66,7 +66,7 @@ export const tr: LandingContent = {
     heading: "Nasıl çalışır?",
     steps: [
       { title: "Kliniğinizi bir kez tanıtın.", text: "Tedaviler, dil, hitap şekli, logo ve renk. Yaklaşık iki dakika. Videolar yalnızca sunduğunuz tedaviler hakkında olur." },
-      { title: "Her pazartesi beş video.", text: "Hafta hazır olduğunda size e-posta göndeririz. İlk haftanız abonelikten yaklaşık 15 dakika sonra hazırdır." },
+      { title: "Her pazartesi beş video.", text: "Hafta hazır olduğunda size e-posta göndeririz. İlk haftanız abonelikten sonra genellikle bir saat içinde hazır olur." },
       { title: "İzleyin, onaylayın, paylaşın.", text: "Haftanın tamamını tek dokunuşla ya da videoları tek tek onaylayın. Telefonunuzda onayladığınız video, açıklama metni kopyalanmış halde paylaşım menüsünü açar." },
     ],
     shots: ["DentVideo uygulamasında klinik ayarları ekranı", "DentVideo uygulamasında onay bekleyen bir haftalık videolar", "DentVideo uygulamasında bir videoyu inceleme: onayla ya da reddet"],

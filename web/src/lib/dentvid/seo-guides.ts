@@ -14,6 +14,7 @@ import { DV_LIST_PRICES, type DvCurrency } from "./pricing";
 import { LANDING } from "@/content/dentvideo";
 import { LEGAL, LEGAL_KINDS, LEGAL_UPDATED, legalPath, type LegalKind } from "@/content/legal";
 import { CHECKER, CHECKER_PATH, CHECKER_UPDATED } from "@/content/dentvideo-checker";
+import { CHECKER_MARKETS, OTHER_MARKET } from "@/lib/dentvid/checker-markets";
 import {
   EXAMPLES,
   EXAMPLES_PATH,
@@ -569,6 +570,9 @@ export function checkerJsonLd(locale: Locale) {
         browserRequirements: "Requires JavaScript.",
         isAccessibleForFree: true,
         offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
+        // What the visible tool does, in the page's words (no claim beyond what is on screen).
+        featureList: [c.ui.bySentence, c.ui.saferSentence, c.ui.source, c.ui.share.copy, c.ui.share.image],
+        countriesSupported: CHECKER_MARKETS.filter((m) => m !== OTHER_MARKET).join(", "),
         audience: { "@type": "BusinessAudience", audienceType: "Dentists and dental clinics" },
         publisher: { "@id": ORG_ID },
         isPartOf: { "@id": websiteId() },

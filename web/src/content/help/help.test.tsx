@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LOCALES, type Locale } from "@/content/dentvideo";
 import { HELP, HELP_ARTICLE_META, HELP_CATEGORIES, HELP_IDS, HELP_PATH, helpArticlesIn, type HelpId } from "@/content/help";
 import { helpHref } from "@/content/dentvideo-help-links";
+import { CHECKER_PATH } from "@/content/dentvideo-checker";
 import { dentvideoSitemapEntries, helpJsonLd, helpMetadata } from "@/lib/dentvid/seo-guides";
 import { sitemapXml } from "@/lib/dentvid/sitemap";
 import { dvUrl } from "@/lib/dentvid/host";
@@ -126,6 +127,16 @@ describe("help pages: SEO", () => {
 
   it("the language switcher keeps a reader on the help center", () => {
     for (const l of LOCALES) for (const t of LOCALES) expect(equivalentPath(HELP_PATH[l], t)).toBe(HELP_PATH[t]);
+  });
+
+  it("links the free ad checker from the answers about the software check, responsibility and the closing line", () => {
+    for (const l of LOCALES) {
+      const html = renderToStaticMarkup(<HelpCenter locale={l} />);
+      const links = [...html.matchAll(/<a [^>]*data-help-checker="true" href="([^"]+)"/g)].map((m) => m[1]);
+      expect(links.length, l).toBe(HELP_IDS.filter((id) => HELP_ARTICLE_META[id].checker).length);
+      expect(links.length).toBeGreaterThanOrEqual(2);
+      for (const href of links) expect(href, l).toBe(CHECKER_PATH[l]);
+    }
   });
 
   it("emits an FAQPage built only from the questions and answers the page shows", () => {

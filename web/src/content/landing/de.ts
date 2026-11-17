@@ -16,7 +16,7 @@ export const de: LandingContent = {
     ctaHint: "Kostenlose Logo-Vorschau · ohne Konto",
     samplesLink: "Drei Beispielvideos ansehen",
     priceNote: "monatlich kündbar",
-    facts: ["Ohne Ihre Freigabe wird nichts veröffentlicht", "Keine Avatare, keine erfundenen Ärzte, keine Patienten im Bild", "Erste Woche etwa 15 Minuten nach der Buchung fertig"],
+    facts: ["Ohne Ihre Freigabe wird nichts veröffentlicht", "Keine Avatare, keine erfundenen Ärzte, keine Patienten im Bild", "Erste Woche meist innerhalb einer Stunde nach der Buchung fertig"],
   },
   mock: { ready: "Bereit zur Freigabe", copied: "Beitragstext kopiert" },
   video: { play: "Abspielen", pause: "Pausieren" },
@@ -66,7 +66,7 @@ export const de: LandingContent = {
     heading: "So funktioniert es",
     steps: [
       { title: "Einmal Ihre Praxis beschreiben.", text: "Leistungen, Sprache, Anrede, Logo und Farbe. Etwa zwei Minuten. Die Videos behandeln nur Leistungen, die Sie anbieten." },
-      { title: "Jeden Montag fünf Videos.", text: "Sie erhalten eine E-Mail, sobald die Woche bereitsteht. Ihre erste Woche ist etwa 15 Minuten nach der Buchung fertig." },
+      { title: "Jeden Montag fünf Videos.", text: "Sie erhalten eine E-Mail, sobald die Woche bereitsteht. Ihre erste Woche ist meist innerhalb einer Stunde nach der Buchung fertig." },
       { title: "Ansehen, freigeben, teilen.", text: "Die ganze Woche mit einem Klick freigeben oder jedes Video einzeln. Auf dem Smartphone öffnet ein freigegebenes Video das Teilen-Menü, der Beitragstext ist schon kopiert." },
     ],
     shots: ["Die Praxis-Einstellungen in der DentVideo-App", "Eine Woche Videos in der DentVideo-App, bereit zur Prüfung", "Ein Video in der DentVideo-App prüfen: freigeben oder ablehnen"],

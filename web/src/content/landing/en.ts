@@ -16,7 +16,7 @@ export const en: LandingContent = {
     ctaHint: "Free logo preview · no account",
     samplesLink: "Watch three sample videos",
     priceNote: "monthly, cancel anytime",
-    facts: ["Nothing is posted without your approval", "No avatars, fake doctors or patients on screen", "First week ready about 15 minutes after you subscribe"],
+    facts: ["Nothing is posted without your approval", "No avatars, fake doctors or patients on screen", "First week usually ready within an hour of subscribing"],
   },
   mock: { ready: "Ready for your review", copied: "Caption copied" },
   video: { play: "Play", pause: "Pause" },
@@ -66,7 +66,7 @@ export const en: LandingContent = {
     heading: "How it works",
     steps: [
       { title: "Tell us about your clinic, once.", text: "Treatments, language, form of address, logo and color. About two minutes. Videos are only ever about treatments you offer." },
-      { title: "Five videos every Monday.", text: "We email you when the week is ready. Your first week arrives about 15 minutes after you subscribe." },
+      { title: "Five videos every Monday.", text: "We email you when the week is ready. Your first week usually arrives within an hour of subscribing." },
       { title: "Review, approve, share.", text: "Approve the whole week in one tap, or one by one. On your phone, an approved video opens the share menu with the caption already copied." },
     ],
     shots: ["The clinic setup screen in the DentVideo app", "A week of videos in the DentVideo app, ready for review", "Reviewing a video in the DentVideo app, with approve and decline"],

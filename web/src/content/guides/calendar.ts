@@ -6,12 +6,12 @@ import type { Guide } from "../dentvideo";
 // educational, so the calendar stays within the local advertising rules; no
 // prices, offers, testimonials or before-and-after posts anywhere in it.
 
-export const FDI = { label: "FDI World Dental Federation — World Oral Health Day (20 March)", url: "https://www.worldoralhealthday.org/" };
-export const ADA_NCDHM = { label: "American Dental Association — National Children's Dental Health Month (February)", url: "https://www.ada.org/resources/community-initiatives/national-childrens-dental-health-month" };
-export const OHF_SMILE = { label: "Oral Health Foundation — National Smile Month (UK, mid-May to mid-June)", url: "https://www.dentalhealth.org/what-is-national-smile-month" };
-export const TDZ = { label: "Aktionskreis Tag der Zahngesundheit — 25. September (Motto 2026: „Gesund beginnt im Mund – Kau dich fit!“)", url: "https://www.tagderzahngesundheit.de/" };
-export const TDB_20MART = { label: "Türk Dişhekimleri Birliği — 20 Mart Dünya Ağız ve Diş Sağlığı Günü basın açıklaması", url: "https://www.tdb.org.tr/userfiles/files/20Mart_Basın_Aciklamasi.pdf" };
-export const TDB = { label: "Türk Dişhekimleri Birliği — duyurular (22 Kasım Diş Hekimliği Günü ve Ağız ve Diş Sağlığı Haftası)", url: "https://www.tdb.org.tr/" };
+export const FDI = { label: "FDI World Dental Federation: World Oral Health Day (20 March)", url: "https://www.worldoralhealthday.org/" };
+export const ADA_NCDHM = { label: "American Dental Association: National Children's Dental Health Month (February)", url: "https://www.ada.org/resources/community-initiatives/national-childrens-dental-health-month" };
+export const OHF_SMILE = { label: "Oral Health Foundation: National Smile Month (UK, mid-May to mid-June)", url: "https://www.dentalhealth.org/what-is-national-smile-month" };
+export const TDZ = { label: "Aktionskreis Tag der Zahngesundheit: 25. September, mit dem Jahresmotto 2026", url: "https://www.tagderzahngesundheit.de/" };
+export const TDB_20MART = { label: "Türk Dişhekimleri Birliği: 20 Mart Dünya Ağız ve Diş Sağlığı Günü basın açıklaması", url: "https://www.tdb.org.tr/userfiles/files/20Mart_Basın_Aciklamasi.pdf" };
+export const TDB = { label: "Türk Dişhekimleri Birliği: duyurular (22 Kasım Diş Hekimliği Günü ve Ağız ve Diş Sağlığı Haftası)", url: "https://www.tdb.org.tr/" };
 
 export const CALENDAR_PUBLISHED = "2026-11-10";
 

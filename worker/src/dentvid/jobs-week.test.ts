@@ -90,7 +90,7 @@ vi.mock("@supabase/supabase-js", () => ({ createClient: () => fakeDb() }));
 process.env.DENTVID_SUPABASE_URL = "http://liman.test";
 process.env.DENTVID_SERVICE_ROLE_KEY = "x";
 
-const { configureSpend, runDentvidWeek, _setStoreRetryMs, MIN_USABLE_VIDEOS } = await import("./jobs.js");
+const { configureSpend, runDentvidWeek, _setStoreRetryMs, SHORT_WEEK_ALERT_KEY, _setPreflight } = await import("./jobs.js");
 const { MemoryGuardStore, SpendGuard, guardConfig } = await import("./spend-guard.js");
 const { configureOps } = await import("./ops.js");
 const { MemoryOpsStore, weekStateKey, _resetLocalOnce } = await import("./ops-alert.js");
@@ -112,6 +112,8 @@ let ops: InstanceType<typeof MemoryOpsStore>;
 let mails: { subject: string; text: string }[];
 
 beforeEach(() => {
+  // No network in tests: the providers are fine unless a test says otherwise.
+  _setPreflight(async () => ({ ok: true }));
   vi.clearAllMocks();
   inserted.length = 0;
   uploadFailures = 0;
@@ -199,7 +201,7 @@ describe("a week that heals itself", () => {
     expect(inserted.every((row) => row.video_path)).toBe(true);
   });
 
-  it(`fewer than ${MIN_USABLE_VIDEOS} usable → topped up with extra topics, avoiding this week's titles`, async () => {
+  it(`fewer than three usable → topped up with extra topics, avoiding this week's titles`, async () => {
     produceWeek.mockResolvedValueOnce([ready("a"), broken("b"), broken("c"), reviewed("d"), broken("e")]).mockResolvedValueOnce([ready("f"), ready("g"), ready("h"), ready("i")]);
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
     expect(produceWeek).toHaveBeenCalledTimes(2);
@@ -227,13 +229,47 @@ describe("a week that heals itself", () => {
     expect(mails).toEqual([]);
   });
 
-  it("a short week whose top-up the spend guard refuses is delivered as it is (four is not a thin week)", async () => {
+  it("a short week whose top-up the spend guard refuses is delivered as it is, and the owner gets one urgent short-week alert with every missing item's reason", async () => {
     configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
     produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), ready("c"), ready("d"), reviewed("e")]);
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    // Delivered as it is: no automatic top-up beyond the one refused round.
     expect(produceWeek).toHaveBeenCalledTimes(1);
     expect(r).toMatchObject({ ready: 4, toppedUp: 0 });
-    expect(mails).toEqual([]);
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/Eksik hafta.*short week.*Gülüş Dental/i);
+    expect(mails[0].subject).toMatch(/ACİL|URGENT|🔴/i);
+    expect(mails[0].text).toContain(CLINIC);
+    expect(mails[0].text).toContain(week);
+    expect(mails[0].text).toMatch(/4 of 5/);
+    expect(mails[0].text).toContain("e: mentions a guarantee");
+    expect(mails[0].text).toMatch(/spend guard refused the top-up/);
+    expect(await ops.get(SHORT_WEEK_ALERT_KEY(CLINIC, week))).not.toBeNull();
+  });
+
+  it("the short-week alert goes out once per clinic and week, also on a later day; a failed send does not use it up", async () => {
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
+    // First run: the mail provider fails, so the claim is given back.
+    configureOps({ store: ops, send: async () => false, env: {} });
+    produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), ready("c"), reviewed("d"), reviewed("e")]);
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(await ops.get(SHORT_WEEK_ALERT_KEY(CLINIC, week))).toBeNull();
+    // A later run (the owner's requeue, another day) still short: delivered now…
+    configureOps({ store: ops, send: async (m) => (mails.push(m), true), env: {}, now: () => new Date(Date.now() + 86_400_000) });
+    _resetLocalOnce();
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
+    usableAlready = 3;
+    produceWeek.mockResolvedValueOnce([reviewed("f")]);
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(mails).toHaveLength(1);
+    expect(mails[0].text).toMatch(/3 of 5/);
+    // …and never again for that week, even two days later.
+    configureOps({ store: ops, send: async (m) => (mails.push(m), true), env: {}, now: () => new Date(Date.now() + 2 * 86_400_000) });
+    _resetLocalOnce();
+    configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
+    produceWeek.mockResolvedValueOnce([reviewed("g")]);
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(mails).toHaveLength(1);
   });
 
   it("the clinic's history (title, topic, week) reaches the strategist, oldest first, not just past titles", async () => {
@@ -272,7 +308,7 @@ describe("a week that heals itself", () => {
     expect(produceWeek).toHaveBeenCalledTimes(1);
     expect(r.ready).toBe(1);
     expect(mails).toHaveLength(1);
-    expect(mails[0].subject).toMatch(/Eksik hafta.*thin week.*Gülüş Dental/i);
+    expect(mails[0].subject).toMatch(/Eksik hafta.*short week.*Gülüş Dental/i);
     expect(mails[0].text).toContain(CLINIC);
   });
 
@@ -425,5 +461,37 @@ describe("reliability: clinic deleted while its week is being made (docs/RELIABI
     expect(removedKeys.length).toBeGreaterThanOrEqual(2);
     expect(removedKeys.every((k) => k.startsWith(`${OWNER}/`))).toBe(true);
     expect(mails).toEqual([]);
+  });
+});
+
+describe("provider pre-flight before a week spends", () => {
+  it("a refusing provider: nothing produced, nothing reserved, 'taking longer' in the library, one urgent alert naming the provider, retried (transient)", async () => {
+    _setPreflight(async () => ({ ok: false, provider: "OpenAI", reason: "HTTP 429 insufficient_quota" }));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    expect(produceWeek).not.toHaveBeenCalled();
+    expect(inserted).toEqual([]);
+    expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/OpenAI.*(ACİL|URGENT)|(ACİL|URGENT).*OpenAI/);
+    expect(mails[0].text).toContain("insufficient_quota");
+    expect(mails[0].text).toContain(CLINIC);
+  });
+
+  it("a refusal on a real call is remembered, so the next clinic's week stops before spending; a good week clears it", async () => {
+    const { preflight, PROVIDER_DOWN_KEY } = await import("./provider-health.js");
+    _setPreflight(() => preflight(ops, { OPENAI_API_KEY: "x" }, (async () => new Response("{}", { status: 200 })) as never));
+    produceWeek.mockRejectedValueOnce(Object.assign(new Error("429 You exceeded your current quota"), { status: 429, code: "insufficient_quota" }));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toThrow();
+    expect(await ops.get(PROVIDER_DOWN_KEY("OpenAI"))).not.toBeNull();
+    produceWeek.mockClear();
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    expect(produceWeek).not.toHaveBeenCalled();
+    // The owner topped up; a week succeeds and the memory is cleared.
+    await ops.del(PROVIDER_DOWN_KEY("OpenAI"));
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await ops.set(PROVIDER_DOWN_KEY("OpenAI"), "stale", 60);
+    _setPreflight(async () => ({ ok: true }));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(await ops.get(PROVIDER_DOWN_KEY("OpenAI"))).toBeNull();
   });
 });

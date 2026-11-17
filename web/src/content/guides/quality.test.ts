@@ -50,6 +50,28 @@ describe("editorial pages: dated, reviewed and attributed", () => {
   });
 });
 
+describe("editorial pages: no em dashes", () => {
+  // Copy rule: no em dash and no spaced en dash in visible text. An unspaced en
+  // dash in a numeric range ("1–15", "§§ 20–22") is fine.
+  const DASH = /—| – /;
+  const visible = (g: (typeof GUIDES)[number]) => [g.title, g.h1, g.description, g.seoTitle ?? "", g.seoDescription ?? "", ...guideTexts(g), ...(g.sources ?? []).map((s) => s.label)];
+
+  it("the 2026-11-17 guides have none anywhere in their visible text or source labels", () => {
+    const slugs = ["saglik-turizmi-dis-klinigi-tanitim-kurallari", "impressum-instagram-zahnarztpraxis", "how-to-respond-to-negative-dental-reviews-hipaa"];
+    for (const slug of slugs) {
+      const g = GUIDES.find((x) => x.slug === slug)!;
+      expect(g, slug).toBeDefined();
+      for (const t of visible(g)) expect(t, slug).not.toMatch(DASH);
+    }
+  });
+
+  it("source labels of the tr, de and en guides have none", () => {
+    for (const g of GUIDES.filter((x) => ["tr", "de", "en"].includes(x.locale))) {
+      for (const s of g.sources ?? []) expect(s.label, g.slug).not.toMatch(DASH);
+    }
+  });
+});
+
 describe("editorial pages: compliance wording", () => {
   it("guide titles, H1s and search snippets make no promises or superlatives", () => {
     for (const g of GUIDES) {

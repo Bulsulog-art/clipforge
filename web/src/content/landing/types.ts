@@ -62,7 +62,7 @@ export type LandingContent = {
     samplesLink: string;
     /** After "From {price}/month": monthly, cancel anytime. */
     priceNote: string;
-    /** Three true facts, no figures except the 15 minutes the plan step promises. */
+    /** Three true facts, no figures except the "within an hour" the plan step promises. */
     facts: [string, string, string];
   };
   /** Two small cards beside the hero phone, in the app's own words. */

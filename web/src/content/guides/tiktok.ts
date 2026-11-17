@@ -6,15 +6,15 @@ import type { Guide } from "../dentvideo";
 // view counts, growth figures or "go viral" promises.
 
 const TIKTOK_INTEGRITY = {
-  label: "TikTok Community Guidelines — Integrity and authenticity (AI-generated content labels, unoriginal content)",
+  label: "TikTok Community Guidelines: Integrity and authenticity (AI-generated content labels, unoriginal content)",
   url: "https://www.tiktok.com/community-guidelines/en/integrity-authenticity",
 };
-const FTC_ENDORSEMENTS = { label: "FTC — Endorsements, influencers and reviews (business guidance)", url: "https://www.ftc.gov/business-guidance/advertising-marketing/endorsements-influencers-reviews" };
+const FTC_ENDORSEMENTS = { label: "FTC: Endorsements, influencers and reviews (business guidance)", url: "https://www.ftc.gov/business-guidance/advertising-marketing/endorsements-influencers-reviews" };
 const ADA_INFLUENCERS = {
-  label: "ADA News (February 2025) — ADA Code updates address ethical concerns with social media influencers",
+  label: "ADA News (February 2025): ADA Code updates address ethical concerns with social media influencers",
   url: "https://adanews.ada.org/ada-news/2025/february/ada-code-updates-address-ethical-concerns-with-social-media-influencers/",
 };
-const GDC_SOCIAL = { label: "General Dental Council — Guidance on using social media", url: "https://www.gdc-uk.org/docs/default-source/guidance-documents/guidance-on-using-social-media" };
+const GDC_SOCIAL = { label: "General Dental Council: Guidance on using social media", url: "https://www.gdc-uk.org/docs/default-source/guidance-documents/guidance-on-using-social-media" };
 
 export const TIKTOK_EN: Guide = {
   locale: "en",

@@ -9,7 +9,7 @@
  *   objections  day 3   answers to the three common objections (the last one)
  *
  * Honest by rule: only what the product does and the site already says
- * (software-checked videos, nothing published without approval, about 15 minutes,
+ * (software-checked videos, nothing published without approval, usually within an hour,
  * every Monday, monthly and cancel anytime). No free trial, no discount, no
  * invented deadline or scarcity. The "why us" lines are the ones reviewed for
  * the earlier reminders.
@@ -46,7 +46,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "Pick up where you left off: your branded videos are one tap away.",
       title: "Your preview is waiting",
       body: "You've set up {clinic} on DentVideo. Your preview is saved: short patient-education videos with your logo and colors, about the services you entered.",
-      next: "Watch them, and if you like what you see, choose a plan. Your first week of videos is then made in about 15 minutes.",
+      next: "Watch them, and if you like what you see, choose a plan. Your first week of videos is then usually ready within an hour.",
       button: "Finish my preview",
     },
     sample: {
@@ -116,7 +116,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "Machen Sie dort weiter, wo Sie aufgehört haben: Ihre Praxisvideos sind nur einen Klick entfernt.",
       title: "Ihre Vorschau wartet auf Sie",
       body: "Sie haben {clinic} bei DentVideo eingerichtet. Ihre Vorschau ist gespeichert: kurze Aufklärungsvideos mit Ihrem Logo und Ihren Farben, zu den Leistungen, die Sie angegeben haben.",
-      next: "Sehen Sie sie sich an – und wenn sie Ihnen gefallen, wählen Sie einen Tarif. Ihre erste Woche Videos entsteht dann in etwa 15 Minuten.",
+      next: "Sehen Sie sie sich an – und wenn sie Ihnen gefallen, wählen Sie einen Tarif. Ihre erste Woche Videos entsteht dann meist innerhalb einer Stunde.",
       button: "Vorschau fertig ansehen",
     },
     sample: {
@@ -186,7 +186,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "Retoma donde lo dejaste: tus vídeos con tu marca, a un toque.",
       title: "Tu vista previa te espera",
       body: "Has configurado {clinic} en DentVideo. Tu vista previa está guardada: vídeos cortos de educación para pacientes, con tu logo y tus colores, sobre los servicios que indicaste.",
-      next: "Míralos y, si te gustan, elige un plan. Tu primera semana de vídeos estará lista en unos 15 minutos.",
+      next: "Míralos y, si te gustan, elige un plan. Tu primera semana de vídeos suele estar lista en menos de una hora.",
       button: "Terminar mi vista previa",
     },
     sample: {
@@ -256,7 +256,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "Kaldığınız yerden devam edin: kliniğinize özel videolar bir dokunuş uzağınızda.",
       title: "Önizlemeniz sizi bekliyor",
       body: "{clinic} için DentVideo kurulumunu yaptınız. Önizlemeniz kayıtlı: girdiğiniz hizmetlere göre hazırlanmış, logonuz ve renklerinizle kısa hasta bilgilendirme videoları.",
-      next: "Videoları izleyin; beğenirseniz bir plan seçin. İlk haftanızın videoları ardından yaklaşık 15 dakikada hazırlanır.",
+      next: "Videoları izleyin; beğenirseniz bir plan seçin. İlk haftanızın videoları ardından genellikle bir saat içinde hazırlanır.",
       button: "Önizlememi tamamla",
     },
     sample: {
@@ -326,7 +326,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "Reprenez où vous en étiez : vos vidéos à vos couleurs sont à portée de main.",
       title: "Votre aperçu vous attend",
       body: "Vous avez configuré {clinic} sur DentVideo. Votre aperçu est enregistré : de courtes vidéos d'information pour vos patients, avec votre logo et vos couleurs, sur les soins que vous avez indiqués.",
-      next: "Regardez-les et, si elles vous plaisent, choisissez une formule. Votre première semaine de vidéos est ensuite prête en 15 minutes environ.",
+      next: "Regardez-les et, si elles vous plaisent, choisissez une formule. Votre première semaine de vidéos est ensuite prête en général en moins d'une heure.",
       button: "Terminer mon aperçu",
     },
     sample: {
@@ -396,7 +396,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "続きからご覧いただけます。医院オリジナルの動画はワンタップで開けます。",
       title: "プレビューをご用意しています",
       body: "{clinic} のDentVideo設定、ありがとうございます。プレビューは保存されています。ご入力いただいた診療内容に合わせた、ロゴと医院カラー入りの短い患者さん向け説明動画です。",
-      next: "ご覧になって気に入っていただけたら、プランをお選びください。初週の動画は15分ほどで出来上がります。",
+      next: "ご覧になって気に入っていただけたら、プランをお選びください。初週の動画は通常1時間以内に出来上がります。",
       button: "プレビューの続きを見る",
     },
     sample: {
@@ -466,7 +466,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "أكملوا من حيث توقفتم: فيديوهاتكم بهوية عيادتكم على بُعد نقرة.",
       title: "معاينتكم بانتظاركم",
       body: "أعددتم {clinic} على DentVideo، ومعاينتكم محفوظة: فيديوهات قصيرة لتوعية المرضى بشعاركم وألوانكم، عن الخدمات التي أدخلتموها.",
-      next: "شاهدوها، وإن أعجبتكم فاختاروا باقة. تُجهَّز بعدها فيديوهات أسبوعكم الأول خلال نحو 15 دقيقة.",
+      next: "شاهدوها، وإن أعجبتكم فاختاروا باقة. تُجهَّز بعدها فيديوهات أسبوعكم الأول عادةً خلال ساعة.",
       button: "إكمال المعاينة",
     },
     sample: {
@@ -536,7 +536,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "Można wrócić w każdej chwili: filmy w barwach gabinetu są o jedno dotknięcie.",
       title: "Podgląd czeka na Państwa",
       body: "Skonfigurowali Państwo {clinic} w DentVideo. Podgląd jest zapisany: krótkie filmy edukacyjne dla pacjentów z Państwa logo i kolorami, o podanych usługach.",
-      next: "Prosimy je obejrzeć, a jeśli się spodobają, wybrać plan. Pierwszy tydzień filmów powstaje wtedy w około 15 minut.",
+      next: "Prosimy je obejrzeć, a jeśli się spodobają, wybrać plan. Pierwszy tydzień filmów powstaje wtedy zwykle w ciągu godziny.",
       button: "Dokończ podgląd",
     },
     sample: {
