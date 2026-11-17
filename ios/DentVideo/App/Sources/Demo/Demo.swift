@@ -148,8 +148,7 @@ enum Demo {
     /// `-DVFlow 1`: the app starts exactly as in real use (bootstrap, snapshot, refresh, uploads),
     /// against DemoServer instead of dentvideo.com. The other `-DV…` flags shape the server.
     static func makeFlowModel() -> AppModel {
-        // Animations stay on here (unlike screenshot mode): the tests drive the app as a person
-        // would, and iOS 17 does not bring up the keyboard with UIView animations switched off.
+        // Animations stay on here (unlike screenshot mode): the tests drive the app as a person would.
         let store = DemoFileStore()
         if DemoFlags.reset {
             let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

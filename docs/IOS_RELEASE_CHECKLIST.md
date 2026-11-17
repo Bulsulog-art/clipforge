@@ -8,6 +8,9 @@ includes the ones before it. Setup steps (secrets, App Store Connect, demo accou
 Write the result of each gate (date, build number, who checked, the CI run link) in the PR or
 the release issue. A box that cannot be ticked is a stop, not a note.
 
+**Minimum iOS: 18.0.** iOS 18.0 minimum (owner decision, 2026-11-17). On iOS 17.5 one-line text fields (sign-in email, clinic name and city, the delete confirmation) never took keyboard focus under XCUITest, while the same simulator typed into the Settings app and into the app's multi-line decline note; the cause was not found, so iOS 17 is not supported rather than shipped uncertain.
+Raising the minimum again needs the same evidence on the new oldest version.
+
 ## What the automated checks cover (and what they cannot)
 
 | Check | Where | Covers |
@@ -16,7 +19,7 @@ the release issue. A box that cannot be ticked is a stop, not a note.
 | App build, Debug + Release | CI job `build-and-test` | compiles with strict concurrency; **the Release binary is checked to contain no demo data** |
 | App unit tests | `ios/DentVideo/Tests/Unit` (CI job `tests`) | AppModel: optimistic approve/decline/posted with rollback, approve-all partial answers, offline, gone session, error sentences, plan states, links and notification payloads |
 | End-to-end UI journeys | `ios/DentVideo/Tests/UI` (CI job `tests`) | every journey against the in-process fake API: sign-in (ok, wrong password, other product, forgot), expired and revoked session, no plan, paused, week states, approve/decline/undo, approve all, post sheet (Photos allowed/denied, share sheet), record (camera allowed/denied, upload ok/failed/retry/remove, resume after the app was closed), settings save, validation and server refusal, account deletion confirm/cancel, sign out, offline start with the saved week, deep links, 8 languages, right to left, largest text size, 44 pt targets; a crash fails the test |
-| Devices in CI | CI job `tests` | iPhone 17 Pro Max and iPad Pro 13" on iOS 26, iPhone SE (3rd generation) on iOS 17 |
+| Devices in CI | CI job `tests` | iPhone 17 Pro Max and iPad Pro 13" on iOS 26, iPhone SE (3rd generation) on iOS 18 (smallest screen, oldest supported iOS) |
 | Screenshots of every screen | CI job `screens` | all screens and states, 8 languages, light/dark, AX5, iPad, for a human to look at |
 
 Not covered by CI, because a simulator cannot do it: the real camera and microphone, real APNs
@@ -63,7 +66,7 @@ Build
 
 Everything in gate 1, plus a full manual pass on a **real iPhone** with the TestFlight build,
 signed in with the demo clinic (`docs/APP_STORE_DENTVIDEO.md` §1.5) and then with one real clinic
-that agreed to test. Use the newest iOS on one phone and, if available, iOS 17 on an older or
+that agreed to test. Use the newest iOS on one phone and, if available, iOS 18 (the minimum) on an older or
 small phone (SE or mini).
 
 ### Manual test script (real device, about 30 minutes)

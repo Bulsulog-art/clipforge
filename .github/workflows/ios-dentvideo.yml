@@ -11,7 +11,7 @@ on:
         options: [full, medium, quick, none]
         default: full
       tests:
-        description: "Unit + end-to-end UI tests on iPhone 17 Pro Max (iOS 26), iPad Pro 13\" (iOS 26), iPhone SE 3rd gen (iOS 17)"
+        description: "Unit + end-to-end UI tests on iPhone 17 Pro Max (iOS 26), iPad Pro 13\" (iOS 26), iPhone SE 3rd gen (iOS 18)"
         type: boolean
         default: true
   pull_request:
@@ -160,7 +160,8 @@ jobs:
           if-no-files-found: ignore
 
   # Unit tests of the app's models and end-to-end UI journeys (demo flow mode: in-process fake
-  # API), on the newest iPhone and iPad and on a small iPhone with iOS 17. Only on demand.
+  # API), on the newest iPhone and iPad (iOS 26) and on the smallest iPhone with the oldest supported
+  # iOS (iPhone SE 3rd gen, iOS 18; the app needs iOS 18). Only on demand.
   tests:
     if: github.event_name == 'workflow_dispatch' && inputs.tests
     strategy:
@@ -177,11 +178,11 @@ jobs:
             xcode: "26"
             device: "iPad Pro 13-inch (M5)"
             ios: "26"
-          - leg: iphone-se-3-ios17
+          - leg: iphone-se-3-ios18
             runner: macos-15
             xcode: "16.4"
             device: "iPhone SE (3rd generation)"
-            ios: "17"
+            ios: "18"
     name: tests (${{ matrix.leg }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 75
@@ -201,8 +202,8 @@ jobs:
       - name: iOS ${{ matrix.ios }} simulator runtime
         run: |
           if xcrun simctl list runtimes | grep -q "iOS ${{ matrix.ios }}\."; then exit 0; fi
-          # Not preinstalled on this image (iOS 17): download it once for this job (several GB).
-          for v in 17.5 17.4 17.2; do
+          # Not preinstalled on this image: download it once for this job (several GB).
+          for v in 18.6 18.5 18.4; do
             xcodebuild -downloadPlatform iOS -buildVersion "$v" && break
           done
           xcrun simctl list runtimes

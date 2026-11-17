@@ -63,11 +63,12 @@ cd ios/DentVideo && xcodegen generate && open DentVideo.xcodeproj
 - Tests: the same workflow's `tests` job (input "tests", on by default) runs the app's unit tests
   (`Tests/Unit`) and the end-to-end UI journeys (`Tests/UI`, demo flow mode against the in-process
   fake API) on iPhone 17 Pro Max and iPad Pro 13" with iOS 26 and on iPhone SE (3rd generation)
-  with iOS 17. Locally: `scripts/test.sh "iPhone 17 Pro Max" 26`. What must pass before each
+  with iOS 18, the oldest supported version. Locally: `scripts/test.sh "iPhone 17 Pro Max" 26`. What must pass before each
   TestFlight and App Store step: `docs/IOS_RELEASE_CHECKLIST.md`.
 
 ### 1.4 App Store Connect → My Apps → +
 
+- Minimum iOS **18.0** (`project.yml`): iOS 18.0 minimum (owner decision, 2026-11-17). On iOS 17.5 one-line text fields (sign-in email, clinic name and city, the delete confirmation) never took keyboard focus under XCUITest, while the same simulator typed into the Settings app and into the app's multi-line decline note; the cause was not found, so iOS 17 is not supported rather than shipped uncertain.
 - Platform iOS, name **DentVideo**, primary language English (U.S.), bundle id
   `com.bulsulabs.dentvideo`, SKU `dentvideo-ios`, full access.
 - **Pricing**: Free. **No in-app purchases** (do not create any).

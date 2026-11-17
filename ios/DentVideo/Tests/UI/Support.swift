@@ -68,16 +68,16 @@ class DVTestCase: XCTestCase {
         return inBar
     }
 
-    /// Focus a field (retrying: on iOS 17 the first tap sometimes does not give keyboard focus) and type.
+    /// Focus a field, wait for the keyboard, type.
     func type(_ field: XCUIElement, _ s: String) {
         focus(field) { field.tap() }
         field.typeText(s)
     }
 
-    /// Tap until the field has keyboard focus and the keyboard is up (fresh iOS 17 simulators
-    /// sometimes swallow the first tap).
+    /// Tap the field and wait until it has keyboard focus and the keyboard is up (one more tap
+    /// if the first lands while a sheet or push is still settling).
     func focus(_ field: XCUIElement, tap: () -> Void) {
-        for _ in 0..<5 {
+        for _ in 0..<2 {
             tap()
             if app.keyboards.firstMatch.waitForExistence(timeout: 1.5),
                (field.value(forKey: "hasKeyboardFocus") as? Bool) ?? true { return }

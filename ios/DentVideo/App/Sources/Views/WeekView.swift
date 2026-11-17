@@ -71,8 +71,8 @@ struct WeekView: View {
             pendingOpen = id
             openPending()
         }
-        // On iOS 17 a path set while the week tab is still hidden is dropped (a notification tap
-        // from Settings opened only the week): open it again when the tab is on screen.
+        // A video asked for while another tab was open, or before the week was loaded, opens
+        // once the week tab is on screen and loaded.
         .onAppear { onScreen = true; openPending() }
         .onDisappear { onScreen = false }
         .onChange(of: model.tab) { _, tab in if tab == .week { openPending() } }
@@ -88,12 +88,12 @@ struct WeekView: View {
     }
 
     private func openPending() {
-        // iOS 17 does not run onChange on a tab that is not on screen: pick the request up here.
+        // Pick up a request that arrived while this tab was not on screen.
         if let id = model.openItemID {
             model.openItemID = nil
             pendingOpen = id
         }
-        // Push only while the week is on screen: iOS 17 drops a path set on a hidden tab.
+        // Push only while the week is on screen (a path set on a hidden tab is not reliable).
         guard let id = pendingOpen, onScreen, model.tab == .week else { return }
         guard model.items.contains(where: { $0.id == id }) else {
             // A notification tap that starts the app arrives before the week is loaded: wait

@@ -26,15 +26,14 @@ print(next((t['identifier'] for t in json.load(sys.stdin)['devicetypes'] if t['n
   UDID=$(xcrun simctl create "DV $DEVICE" "$TYPE" "$RUNTIME")
 fi
 echo "Testing on $DEVICE, $RUNTIME ($UDID)"
-# Software keyboard for this device. Headless simulators read the per-device setting; with a
-# "hardware keyboard" connected, iOS 17 never gives a text field keyboard focus to XCUITest.
+# Software keyboard for this device, as on a phone (headless simulators read the per-device
+# setting; a connected Mac keyboard hides the on-screen keyboard the tests wait for).
 xcrun simctl shutdown "$UDID" 2>/dev/null || true
 PL=~/Library/Preferences/com.apple.iphonesimulator.plist
 /usr/libexec/PlistBuddy -c "Add :DevicePreferences dict" "$PL" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :DevicePreferences:$UDID dict" "$PL" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Delete :DevicePreferences:$UDID:ConnectHardwareKeyboard" "$PL" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :DevicePreferences:$UDID:ConnectHardwareKeyboard bool false" "$PL" || true
-# The software keyboard, as on a phone (a connected Mac keyboard hides it and can steal focus).
 defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false || true
 xcrun simctl boot "$UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$UDID" -b >/dev/null
