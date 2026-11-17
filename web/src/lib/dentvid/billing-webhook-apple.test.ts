@@ -205,6 +205,16 @@ describe("Dodo events for a clinic the App Store pays for", () => {
     }
   });
 
+  it("when the web plan ends and the App Store ledger cannot be read (no 0026), the plan ends and the owner is alerted", async () => {
+    const f = fakeDb(paying("sub_1"));
+    const subs = memorySubs([{ dodo_subscription_id: "sub_1", clinic_id: CLINIC, status: "active" }]);
+    const unreadable: AppleSubscriptionStore = { get: async () => undefined, forClinic: async () => null, put: async () => false };
+    const d = deps({ subs, apple: unreadable });
+    await handleDentvideoEvent(f.db, evt("subscription.expired", "sub_1", "2026-11-17T10:00:00Z", { next_billing_date: null }), d);
+    expect(f.clinic.plan).toBe("cancelled");
+    expect(d.raised.some((a) => a.key.startsWith("appstore:takeover_unchecked:") && a.severity === "urgent")).toBe(true);
+  });
+
   it("a plain web clinic (no billing source) behaves exactly as before", async () => {
     const f = fakeDb(unpaid());
     const d = deps();

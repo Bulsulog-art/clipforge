@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { takeOverWithWaitingApple, type AppleTakeoverDb } from "./apple-takeover.js";
 import { logger } from "../logger.js";
 import { activeClinicRows } from "./schedule.js";
 import { alerts, type ClinicRef, type DeliverResult, type OwnerAlert } from "./ops-alert.js";
@@ -68,6 +69,8 @@ export type ReconcileDeps = {
   revenuecat?: ((appUserId: string) => Promise<RcSub | null>) | null;
   alert: (a: OwnerAlert) => Promise<DeliverResult | unknown>;
   now?: Date;
+  /** A web plan ended here: an App Store subscription waiting for it takes over (apple-takeover.ts). */
+  apple?: AppleTakeoverDb;
 };
 
 export type ReconcileResult = { checked: number; paused: string[]; cancelled: string[]; corrected: string[]; appStore?: number };
@@ -107,8 +110,9 @@ export async function reconcileBilling(deps: ReconcileDeps): Promise<ReconcileRe
       if (to && (await deps.db.setPlan(c, to))) {
         (to === "cancelled" ? res.cancelled : res.paused).push(c.id);
         if (c.dodo_subscription_id) await deps.db.markLedger(c.dodo_subscription_id, live.status).catch(() => {});
-        await deps.alert(alerts.accessLapsed({ clinic: await deps.db.clinic(c.id), renewsAt: c.plan_renews_at ?? now.toISOString(), dodoStatus: live.status })).catch(() => {});
-        logger.warn({ clinicId: c.id, dodo: live.status, to }, "dentvid: reconcile — Dodo says the subscription is not active");
+        const moved = to === "cancelled" && deps.apple ? await takeOverWithWaitingApple({ db: deps.apple, alert: deps.alert }, c.id, `Dodo ${live.status} (reconcile)`, now) : null;
+        if (!moved) await deps.alert(alerts.accessLapsed({ clinic: await deps.db.clinic(c.id), renewsAt: c.plan_renews_at ?? now.toISOString(), dodoStatus: live.status })).catch(() => {});
+        logger.warn({ clinicId: c.id, dodo: live.status, to, ...(moved ? { movedToApple: moved } : {}) }, "dentvid: reconcile — Dodo says the subscription is not active");
       }
       continue;
     }

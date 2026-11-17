@@ -561,7 +561,11 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   // The web plan ended while an App Store subscription bought for this clinic was held back
   // (ignored_web_active, apple-webhook.ts): the clinic continues on it, no gap and no second week.
   if (to === "cancelled") {
-    const adopted = await adoptWaitingApple(db, clinic.id, { apple: deps.apple, now: () => now });
+    const adopted = await adoptWaitingApple(db, clinic.id, {
+      apple: deps.apple,
+      now: () => now,
+      unchecked: () => tell(db, deps, clinic.id, (c) => alerts.appStoreBilling({ kind: "takeover_unchecked", event: evt.type, subscription: "ledger", clinic: c })),
+    });
     if (adopted) {
       await tell(db, deps, clinic.id, (c) =>
         alerts.appStoreBilling({ kind: "web_active", event: evt.type, subscription: adopted.subscription, other: t.subscriptionId, clinic: c, detail: "web plan ended: the clinic now runs on the App Store subscription" }),

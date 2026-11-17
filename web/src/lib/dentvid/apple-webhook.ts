@@ -492,11 +492,17 @@ async function transfer(db: SupabaseClient, evt: RcEvent, deps: AppleWebhookDeps
 export async function adoptWaitingApple(
   db: SupabaseClient,
   clinicId: string,
-  deps: { apple?: AppleSubscriptionStore; now?: () => Date } = {},
+  deps: { apple?: AppleSubscriptionStore; now?: () => Date; unchecked?: () => Promise<void> } = {},
 ): Promise<{ subscription: string; tier: string | null; periodEnd: string } | null> {
   const apple = deps.apple ?? supabaseAppleStore(db);
   const now = deps.now?.() ?? new Date();
-  const rows = (await apple.forClinic(clinicId).catch(() => null)) ?? [];
+  const read = await apple.forClinic(clinicId).catch(() => null);
+  if (read === null) {
+    // Ledger not readable (0026 not applied): nothing to switch to, but a customer may be paying Apple.
+    await deps.unchecked?.().catch(() => {});
+    return null;
+  }
+  const rows = read;
   const waiting = rows.find((r) => r.status === "ignored_web_active" && r.environment !== "SANDBOX" && !!r.tier && !!futurePaidThrough(r.period_end, now));
   if (!waiting?.period_end) return null;
   const u = await updateClinic(db, clinicId, {

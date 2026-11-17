@@ -776,7 +776,7 @@ export const alerts = {
    * Apple refunds and cancellations are the customer's to request from Apple; Dodo's are ours to make.
    */
   appStoreBilling(a: {
-    kind: "unmatched" | "no_clinic" | "cross_channel" | "apple_duplicate" | "refund" | "refund_reversed" | "transfer" | "sandbox" | "ignored" | "migration_missing" | "web_active";
+    kind: "unmatched" | "no_clinic" | "cross_channel" | "apple_duplicate" | "refund" | "refund_reversed" | "transfer" | "sandbox" | "ignored" | "migration_missing" | "web_active" | "takeover_unchecked";
     event: string;
     subscription: string;
     clinic?: ClinicRef;
@@ -875,6 +875,14 @@ export const alerts = {
           `Contact ${a.clinic?.email ?? "the clinic"}: did they buy in the iPhone app?`,
           "If yes and they want to stay in the app: cancel the Dodo subscription (refund its latest charge if you agree). If they did not mean to: they ask Apple for a refund (reportaproblem.apple.com). If they did not buy at all: nothing to do; the web plan is safe.",
         ],
+      },
+      takeover_unchecked: {
+        sev: "urgent",
+        tr: "Web planı bitti, bekleyen App Store aboneliği kontrol edilemedi",
+        en: "A web plan ended and a waiting App Store subscription could not be checked",
+        what: `${who === "Nobody" ? "A clinic" : who}'s web plan ended (${a.event}), but the App Store ledger (dentvid_apple_subscriptions, migration 0026) could not be read${a.detail ? ` (${a.detail})` : ""}. If the clinic bought in the iPhone app while its web plan was live, it is now paying Apple without service.`,
+        done: "Nothing was switched: the plan ended as usual.",
+        todo: ["Apply supabase/liman/0026_dentvid_apple_billing.sql (Liman SQL editor) and run its checks.", "Check RevenueCat for this clinic's login: if it has an active App Store subscription, ask the clinic to open the app (the next App Store event switches it on) or set the plan by hand."],
       },
       migration_missing: {
         sev: "urgent",
