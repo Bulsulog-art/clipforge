@@ -5,7 +5,7 @@ import PackageDescription
 // (`swift test` in this folder). The iPhone app (../App) depends on it.
 let package = Package(
     name: "DentVideoCore",
-    platforms: [.iOS(.v17), .macOS(.v14)],
+    platforms: [.iOS(.v18), .macOS(.v14)],
     products: [.library(name: "DentVideoCore", targets: ["DentVideoCore"])],
     targets: [
         .target(name: "DentVideoCore"),

@@ -49,10 +49,13 @@ enum Notifications {
         }
     }
 
-    static func clearAll() {
+    /// The async badge call: a completion closure written here would inherit the main actor and
+    /// be called on UserNotifications' own queue, which Swift 6 stops with a crash (seen on every
+    /// sign-out, account deletion and revoked session on iOS 18 when built with Xcode 16).
+    static func clearAll() async {
         let c = UNUserNotificationCenter.current()
         c.removeAllPendingNotificationRequests()
         c.removeAllDeliveredNotifications()
-        c.setBadgeCount(0) { _ in }
+        try? await c.setBadgeCount(0)
     }
 }

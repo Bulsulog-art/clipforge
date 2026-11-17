@@ -33,6 +33,13 @@ actor VideoCache {
         if let local = localURL(for: id) { return local }
         if let t = inFlight[id] { return try await t.value }
         let target = dir.appendingPathComponent(Self.fileName(for: id))
+        #if DEBUG
+        // Demo mode has no video server: a placeholder file stands in for the download.
+        if DemoFlags.active {
+            try Data("demo".utf8).write(to: target)
+            return target
+        }
+        #endif
         let task = Task<URL, Error> {
             let (tmp, response) = try await URLSession.shared.download(from: remote)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw URLError(.badServerResponse) }

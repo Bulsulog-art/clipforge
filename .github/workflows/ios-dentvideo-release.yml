@@ -1,0 +1,158 @@
+name: iOS DentVideo release (TestFlight)
+
+# Archives the DentVideo iPhone app, signs it and uploads it to App Store Connect, from where it
+# appears in TestFlight. Manual only: Actions → "iOS DentVideo release (TestFlight)" → Run workflow.
+#
+# Signing is Xcode's automatic signing driven by an App Store Connect API key (no certificates or
+# profiles stored in the repo or in secrets; Apple keeps a cloud-managed distribution certificate).
+# Repository secrets the owner adds once (Settings → Secrets and variables → Actions):
+#   ASC_KEY_ID       the API key's Key ID (App Store Connect → Users and Access → Integrations)
+#   ASC_ISSUER_ID    the Issuer ID shown above the key list
+#   ASC_KEY_P8       the full text of AuthKey_<KEY_ID>.p8, including the BEGIN/END lines
+#   APPLE_TEAM_ID    YA6Y85MSY6 (optional; this is the default)
+# The key needs the Admin role (or App Manager with "Access to Cloud Managed Distribution
+# Certificate"), otherwise automatic signing cannot create the distribution certificate.
+# Steps for the owner: docs/APP_STORE_DENTVIDEO.md §1.6.
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: "Build number (CFBundleVersion). Empty = UTC time, e.g. 2611161830 (always increasing)."
+        required: false
+        default: ""
+      upload:
+        description: "Upload to App Store Connect (off = only archive and export, to test signing)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ios-dentvideo-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  testflight:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: ios/DentVideo
+    env:
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID || 'YA6Y85MSY6' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets are set
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          missing=""
+          [ -n "$ASC_KEY_ID" ] || missing="$missing ASC_KEY_ID"
+          [ -n "$ASC_ISSUER_ID" ] || missing="$missing ASC_ISSUER_ID"
+          [ -n "$ASC_KEY_P8" ] || missing="$missing ASC_KEY_P8"
+          if [ -n "$missing" ]; then echo "::error::Missing repository secrets:$missing (see docs/APP_STORE_DENTVIDEO.md §1.6)"; exit 1; fi
+
+      - name: Xcode 26 (App Store uploads must be built with the iOS 26 SDK)
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$X" ] || { echo "::error::No Xcode 26 on this runner image"; exit 1; }
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+
+      - name: API key file
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          # altool looks in ~/.appstoreconnect/private_keys; xcodebuild gets the path. Never printed.
+          mkdir -p ~/.appstoreconnect/private_keys
+          KEY=~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          printf '%s\n' "$ASC_KEY_P8" > "$KEY"
+          chmod 600 "$KEY"
+          echo "ASC_KEY_PATH=$KEY" >> "$GITHUB_ENV"
+
+      - name: Core tests
+        working-directory: ios/DentVideo/Core
+        run: swift test --parallel
+
+      - name: Build number
+        id: num
+        run: |
+          N="${{ inputs.build_number }}"
+          [ -n "$N" ] || N=$(date -u +%y%m%d%H%M)
+          case "$N" in (*[!0-9.]*|"") echo "::error::Build number must be digits"; exit 1;; esac
+          sed -i '' "s/CFBundleVersion: \"[0-9.]*\"/CFBundleVersion: \"$N\"/" project.yml
+          VER=$(sed -n 's/ *CFBundleShortVersionString: "\(.*\)"/\1/p' project.yml | head -1)
+          echo "build=$N" >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "DentVideo $VER ($N)"
+
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+
+      - name: Archive (Release, signed)
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcodebuild archive \
+            -project DentVideo.xcodeproj -scheme DentVideo -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/DentVideo.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            | tee build/archive.log | grep -E "error:|warning: .*(sign|profile)|ARCHIVE (SUCCEEDED|FAILED)" || true
+          grep -q "ARCHIVE SUCCEEDED" build/archive.log
+
+      - name: Export the .ipa (App Store Connect)
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cat > build/export.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>destination</key><string>export</string>
+            <key>uploadSymbols</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath build/DentVideo.xcarchive \
+            -exportOptionsPlist build/export.plist -exportPath build/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          ls -la build/export
+
+      - name: Upload to App Store Connect (TestFlight)
+        if: inputs.upload
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          IPA=$(ls build/export/*.ipa | head -1)
+          xcrun altool --validate-app -f "$IPA" -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+          xcrun altool --upload-app -f "$IPA" -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+          echo "Uploaded DentVideo ${{ steps.num.outputs.version }} (${{ steps.num.outputs.build }}). It appears in TestFlight after Apple's processing (usually 5–30 min)."
+
+      - name: Keep the archive's logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dentvideo-release-logs
+          path: ios/DentVideo/build/*.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Remove the key
+        if: always()
+        run: rm -rf ~/.appstoreconnect/private_keys
