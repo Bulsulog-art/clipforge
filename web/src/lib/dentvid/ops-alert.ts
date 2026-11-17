@@ -450,6 +450,25 @@ export const weekStateKey = (clinicId: string, week: string) => `dv:weekstate:${
 const tierLabel = (c: ClinicRef) => (c.tier ? c.tier : "unknown tier");
 
 export const alerts = {
+  cancelRequested(a: { clinic: ClinicRef; plan: string; subscriptionId: string | null; renewsAt: string | null; email: string | null }): OwnerAlert {
+    return {
+      key: `cancel_request:${a.clinic.id}`,
+      severity: "urgent",
+      titleTr: "Bir klinik iptal istiyor",
+      titleEn: "A clinic asked to cancel",
+      clinic: a.clinic,
+      what: ["The clinic tapped “Ask to cancel” in Settings (online billing is off, so it cannot cancel there itself). We promised to cancel it today and confirm by email."],
+      facts: [
+        ["Plan", a.plan],
+        ["Dodo subscription", a.subscriptionId ?? "none recorded"],
+        ["Renews / ends", a.renewsAt ?? "unknown"],
+        ["Reply to", a.email ?? "the clinic's login address (see /dentvideo/admin)"],
+      ],
+      done: ["Nothing was cancelled yet: no Dodo API key on the server.", "The clinic was told: cancelled today, confirmed by email, the plan runs to the end of the period paid for."],
+      todo: ["Today: cancel the subscription in the Dodo dashboard at the end of the current period (not immediately).", "Reply to the clinic to confirm, in its language. The webhook keeps its plan active until the period ends."],
+    };
+  },
+
   providerDown(a: { provider: "OpenAI" | "ElevenLabs"; reason: string; when: "preflight" | "daily"; clinic?: ClinicRef; week?: string; fallback?: boolean }): OwnerAlert {
     return {
       key: `provider_down:${a.provider.toLowerCase()}`,
