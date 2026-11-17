@@ -212,7 +212,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo hace DentVideo esta revisión",
         paragraphs: [
-          "[DentVideo](landing:) revisa cada guion y cada texto en busca de las afirmaciones que la publicidad sanitaria suele restringir —garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios— y hace reescribir lo arriesgado. Tus grabaciones no se modifican: lo dudoso se marca con el motivo. No es asesoramiento jurídico; tú apruebas cada vídeo. Para imágenes de pacientes, lee la guía de [consentimiento y fotos de pacientes](guide:consentimiento-fotos-pacientes-clinica-dental); para temas seguros, las [ideas de contenido](guide:ideas-contenido-instagram-clinica-dental).",
+          "[DentVideo](landing:) revisa cada guion y cada texto en busca de las afirmaciones que la publicidad sanitaria suele restringir —garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios— y hace reescribir lo arriesgado. Tus grabaciones no se modifican: lo dudoso se marca con el motivo. No es asesoramiento jurídico; tú apruebas cada vídeo. Si escribes tú el texto de un post, una web o un anuncio, pégalo antes en el [comprobador gratuito «¿Puedo publicar esto?»](checker:) y elige España o México: marca cada frase con el motivo y una alternativa. Para imágenes de pacientes, lee la guía de [consentimiento y fotos de pacientes](guide:consentimiento-fotos-pacientes-clinica-dental); para temas seguros, las [ideas de contenido](guide:ideas-contenido-instagram-clinica-dental).",
         ],
       },
     ],

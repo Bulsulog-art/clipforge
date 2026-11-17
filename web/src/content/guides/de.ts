@@ -100,7 +100,7 @@ export const GUIDES_DE: Guide[] = [
           "Erkennbare Patienten ohne schriftliche Einwilligung",
         ],
         after: [
-          "Der sichere Weg ist sachliche Aufklärung mit vorsichtigen Formulierungen: „in der Regel“, „bei den meisten Patienten“, „Ihre Zahnärztin berät Sie individuell“. Im Zweifel fragen Sie Ihre Kammer. Vergessen Sie außerdem das Impressum: Auch ein geschäftlich genutztes Instagram-Profil braucht in Deutschland einen leicht erreichbaren Link darauf.",
+          "Der sichere Weg ist sachliche Aufklärung mit vorsichtigen Formulierungen: „in der Regel“, „bei den meisten Patienten“, „Ihre Zahnärztin berät Sie individuell“. Im Zweifel fragen Sie Ihre Kammer. Vergessen Sie außerdem das Impressum: Auch ein geschäftlich genutztes Instagram-Profil braucht in Deutschland einen leicht erreichbaren Link darauf. Was hineingehört, erklärt der Ratgeber [Impressum auf Instagram für Zahnarztpraxen](guide:impressum-instagram-zahnarztpraxis).",
         ],
       },
       {
@@ -200,7 +200,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo diese Prüfung übernimmt",
         paragraphs: [
-          "[DentVideo](landing:) prüft jedes Skript und jeden Beitragstext auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind — Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen — und lässt riskante Formulierungen neu schreiben. Ihre eigenen Aufnahmen werden nicht verändert, sondern mit Begründung markiert. Das ersetzt keine Rechtsberatung: Sie geben jedes Video frei. Für Österreich und die Schweiz gibt es einen eigenen [Ratgeber zur Zahnarzt-Werbung in AT und CH](guide:zahnarzt-werbung-oesterreich-schweiz); Themen, die unbedenklich sind, finden Sie in den [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
+          "[DentVideo](landing:) prüft jedes Skript und jeden Beitragstext auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind — Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen — und lässt riskante Formulierungen neu schreiben. Ihre eigenen Aufnahmen werden nicht verändert, sondern mit Begründung markiert. Das ersetzt keine Rechtsberatung: Sie geben jedes Video frei. Eigene Beitragstexte, Website-Texte oder Anzeigen können Sie vorab kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) prüfen: Er markiert jeden Satz mit Begründung und Quelle. Welche Pflichtangaben ins Profil gehören, steht im Ratgeber [Impressum auf Instagram](guide:impressum-instagram-zahnarztpraxis). Für Österreich und die Schweiz gibt es einen eigenen [Ratgeber zur Zahnarzt-Werbung in AT und CH](guide:zahnarzt-werbung-oesterreich-schweiz); Themen, die unbedenklich sind, finden Sie in den [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
         ],
       },
     ],
@@ -526,7 +526,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo hilft",
         paragraphs: [
-          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung — Sie geben jedes Video frei. [Ihre Videos ansehen, bevor Sie zahlen](start:).",
+          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung — Sie geben jedes Video frei. Eigene Texte prüfen Sie kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) mit dem Markt Österreich oder Schweiz. [Ihre Videos ansehen, bevor Sie zahlen](start:).",
         ],
       },
     ],

@@ -341,7 +341,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) checks every script and caption for these commonly restricted claims in ten languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes. For topics that are safe to post, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
+          "[DentVideo](landing:) checks every script and caption for these commonly restricted claims in ten languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes. For text you write yourself, paste it into the free [“Is my post allowed?” ad checker](checker:), pick the country, and see each sentence marked with the reason and a link to the official rule. For topics that are safe to post, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
         ],
       },
     ],
@@ -551,7 +551,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Patients, consent and UK GDPR",
         paragraphs: [
           "Health information is special category data under UK GDPR, and the duty of confidentiality applies on social media as it does in the surgery. Featuring a patient — their face, voice, name, radiograph or story — needs explicit, informed, written consent that is specific to that use and can be withdrawn. Keep it separate from treatment consent and store it with the record.",
-          "Take care when replying to online reviews: confirming that someone is your patient, or discussing their treatment, can itself be a breach. For more, see our guide to [patient consent on dental social media](guide:patient-consent-dental-social-media).",
+          "Take care when replying to online reviews: confirming that someone is your patient, or discussing their treatment, can itself be a breach. For more, see our guide to [patient consent on dental social media](guide:patient-consent-dental-social-media) and [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa).",
         ],
       },
       {
@@ -570,7 +570,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) writes educational videos that stay away from these risks: no guarantees, “painless”, superlatives, prices, before-and-after promises or testimonials, and every script reviewed for clinical accuracy. Your own recordings are marked for review instead of being reworded. It is a careful filter, not legal advice — you approve every video. For topics that work well, see [dental social media post ideas](guide:dental-social-media-post-ideas); for the wider picture, [advertising rules by country](guide:dental-social-media-advertising-rules).",
+          "[DentVideo](landing:) writes educational videos that stay away from these risks: no guarantees, “painless”, superlatives, prices, before-and-after promises or testimonials, and every script reviewed for clinical accuracy. Your own recordings are marked for review instead of being reworded. It is a careful filter, not legal advice — you approve every video. To check a caption or ad you wrote yourself against UK rules, use the free [“Is my post allowed?” ad checker](checker:) with the United Kingdom selected. For topics that work well, see [dental social media post ideas](guide:dental-social-media-post-ideas); for the wider picture, [advertising rules by country](guide:dental-social-media-advertising-rules).",
         ],
       },
     ],
@@ -636,7 +636,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "What does HIPAA mean for patient photos and reviews?",
         paragraphs: [
           "Patient photos, videos, radiographs, names and stories are protected health information. Using them in marketing generally requires the patient's written HIPAA authorization, separate from treatment consent, and the patient can revoke it. Simply confirming that someone is your patient can be a disclosure.",
-          "This matters most when replying to online reviews. In 2019 the HHS Office for Civil Rights settled with a Dallas dental practice that had disclosed a patient's last name, treatment plan and insurance details in a reply to a Yelp review; besides a payment, the practice accepted a corrective action plan with two years of monitoring. A safe reply thanks the reviewer and invites them to call the office, without confirming they are a patient or mentioning treatment. More in [patient consent on dental social media](guide:patient-consent-dental-social-media).",
+          "This matters most when replying to online reviews. In 2019 the HHS Office for Civil Rights settled with a Dallas dental practice that had disclosed a patient's last name, treatment plan and insurance details in a reply to a Yelp review; besides a payment, the practice accepted a corrective action plan with two years of monitoring. A safe reply thanks the reviewer and invites them to call the office, without confirming they are a patient or mentioning treatment. Reply templates are in [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa); more on consent in [patient consent on dental social media](guide:patient-consent-dental-social-media).",
         ],
       },
       {
@@ -672,7 +672,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) makes educational videos that avoid the riskiest claims — guarantees, “painless”, superlatives, prices, before-and-after promises and testimonials — and checks every script for clinical accuracy. It needs no patient footage, and your own recordings are flagged for review rather than reworded. It is not legal advice; you approve every video. See [dental social media post ideas](guide:dental-social-media-post-ideas) for topics, and the [country-by-country overview](guide:dental-social-media-advertising-rules) if you work across borders.",
+          "[DentVideo](landing:) makes educational videos that avoid the riskiest claims — guarantees, “painless”, superlatives, prices, before-and-after promises and testimonials — and checks every script for clinical accuracy. It needs no patient footage, and your own recordings are flagged for review rather than reworded. It is not legal advice; you approve every video. Captions and ads you write yourself can be checked against US rules with the free [“Is my post allowed?” ad checker](checker:). See [dental social media post ideas](guide:dental-social-media-post-ideas) for topics, and the [country-by-country overview](guide:dental-social-media-advertising-rules) if you work across borders.",
         ],
       },
     ],
@@ -745,14 +745,14 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Replying to online reviews",
         paragraphs: [
-          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. In 2019 the US Department of Health and Human Services settled with a Dallas dental practice for exactly this: its replies to Yelp reviews had disclosed a patient's last name, treatment plan and insurance details. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly — nothing more.",
+          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. In 2019 the US Department of Health and Human Services settled with a Dallas dental practice for exactly this: its replies to Yelp reviews had disclosed a patient's last name, treatment plan and insurance details. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly — nothing more. Templates and the HHS cases are in [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa).",
         ],
       },
       {
         heading: "Alternatives that need no patient data",
         paragraphs: [
           "Most useful content does not need real patients at all: the dentist explaining to camera, models and typodonts, diagrams, animation and narrated videos. They are easier to produce, never have to be taken down when consent is withdrawn and raise no advertising questions. Ideas in [dental social media post ideas](guide:dental-social-media-post-ideas).",
-          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colors, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. [See your own videos before you pay](start:).",
+          "[DentVideo](landing:) makes exactly this kind of video: narrated, captioned education in your colors, or clips cut from your own recording, with every script checked for promises and testimonials. You approve everything. A caption you write yourself about a patient story can be checked for testimonial-style wording with the free [“Is my post allowed?” ad checker](checker:). [See your own videos before you pay](start:).",
         ],
       },
     ],

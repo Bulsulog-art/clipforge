@@ -108,6 +108,14 @@ describe("guide library", () => {
     }
   });
 
+  it("every rules guide in the priority markets (tr, de, en) links to the ad checker in its own text", () => {
+    // The footer link alone is not enough: the rules guides are where a reader
+    // has a caption in hand and needs the checker, so the link sits in the body.
+    for (const g of GUIDES.filter((x) => x.category === "rules" && ["tr", "de", "en"].includes(x.locale))) {
+      expect(guideTexts(g).some((t) => t.includes("](checker:)")), g.slug).toBe(true);
+    }
+  });
+
   it("each guide links to at least two other guides and to the landing or sign-up", () => {
     for (const g of GUIDES) {
       const targets = guideTexts(g).flatMap((t) => parseInline(t).filter((p) => p.kind === "link").map((p) => (p as { target: string }).target));
