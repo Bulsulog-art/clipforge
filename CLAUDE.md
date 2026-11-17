@@ -63,6 +63,9 @@ of record). Products: Starter `pdt_0NrVahwZsINvy3TNz2H35`, Practice `pdt_0NrVai0
   iOS versions, and the owner's manual test on a real iPhone (sign-in, approve, post to Instagram and
   TikTok, record and upload, push notification). Internal TestFlight builds are allowed only for
   that testing. The owner approves every App Store submission explicitly.
+- **iOS CI runs only when started by hand** (`.github/workflows/ios-dentvideo.yml`, workflow_dispatch).
+  Pull requests do not trigger it, so failures on work in progress do not email the owner. Start it
+  once the app work is ready, and do not add push or pull_request triggers back.
 - When in doubt, do not ship: write down what is unproven and test it first.
 
 ## Quality references
