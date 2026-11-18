@@ -5625,49 +5625,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "Unknown"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "Unbekannt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "Desconocido"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "Bilinmiyor"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "Inconnu"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "不明"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "غير معروف"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "Nieznany"
           }
         }
       }
@@ -6738,13 +6738,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The sound may be quiet in places — have a listen before posting."
+            "value": "The sound may be quiet in places. Have a listen before posting."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Ton ist stellenweise leise – bitte vor dem Posten kurz anhören."
+            "value": "Der Ton ist stellenweise leise. Bitte vor dem Posten kurz anhören."
           }
         },
         "es": {
@@ -6756,13 +6756,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ses bazı yerlerde düşük olabilir — paylaşmadan önce dinleyin."
+            "value": "Ses bazı yerlerde düşük olabilir. Paylaşmadan önce dinleyin."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le son peut être faible par endroits — écoutez-le avant de publier."
+            "value": "Le son peut être faible par endroits. Écoutez-le avant de publier."
           }
         },
         "ja": {
@@ -6774,13 +6774,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "قد يكون الصوت منخفضًا في بعض المواضع — يُرجى الاستماع قبل النشر."
+            "value": "قد يكون الصوت منخفضًا في بعض المواضع، لذا يُرجى الاستماع قبل النشر."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dźwięk może miejscami być cichy — prosimy odsłuchać przed publikacją."
+            "value": "Dźwięk może miejscami być cichy. Prosimy odsłuchać przed publikacją."
           }
         }
       }
@@ -6844,13 +6844,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We took out the on-screen opening line to stay within advertising rules — have a look before posting."
+            "value": "We took out the on-screen opening line to stay within advertising rules. Have a look before posting."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wir haben die Einstiegszeile im Bild entfernt, damit alles im Rahmen des Werberechts bleibt – bitte vor dem Posten kurz ansehen."
+            "value": "Wir haben die Einstiegszeile im Bild entfernt, damit alles im Rahmen des Werberechts bleibt. Bitte vor dem Posten kurz ansehen."
           }
         },
         "es": {
@@ -6862,13 +6862,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reklam kurallarına uymak için ekrandaki açılış cümlesini çıkardık — paylaşmadan önce göz atın."
+            "value": "Reklam kurallarına uymak için ekrandaki açılış cümlesini çıkardık. Paylaşmadan önce göz atın."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nous avons retiré la phrase d'accroche à l'écran pour rester dans les règles de publicité — jetez-y un œil avant de publier."
+            "value": "Nous avons retiré la phrase d'accroche à l'écran pour rester dans les règles de publicité. Jetez-y un œil avant de publier."
           }
         },
         "ja": {
@@ -6880,13 +6880,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "أزلنا الجملة الافتتاحية على الشاشة للالتزام بقواعد الإعلان — يُرجى إلقاء نظرة قبل النشر."
+            "value": "أزلنا الجملة الافتتاحية على الشاشة للالتزام بقواعد الإعلان، لذا يُرجى إلقاء نظرة قبل النشر."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usunęliśmy zdanie otwierające na ekranie, aby zachować zgodność z zasadami reklamy — prosimy obejrzeć przed publikacją."
+            "value": "Usunęliśmy zdanie otwierające na ekranie, aby zachować zgodność z zasadami reklamy. Prosimy obejrzeć przed publikacją."
           }
         }
       }
@@ -6897,13 +6897,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Short pause in the narration — have a look before posting."
+            "value": "Short pause in the narration. Have a look before posting."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kurze Pause in der Vertonung – bitte vor dem Posten kurz ansehen."
+            "value": "Kurze Pause in der Vertonung. Bitte vor dem Posten kurz ansehen."
           }
         },
         "es": {
@@ -6915,13 +6915,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anlatımda kısa bir duraklama var — paylaşmadan önce göz atın."
+            "value": "Anlatımda kısa bir duraklama var. Paylaşmadan önce göz atın."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Courte pause dans la narration — jetez-y un œil avant de publier."
+            "value": "Courte pause dans la narration. Jetez-y un œil avant de publier."
           }
         },
         "ja": {
@@ -6933,13 +6933,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "توقف قصير في التعليق الصوتي — يُرجى إلقاء نظرة قبل النشر."
+            "value": "هناك توقف قصير في التعليق الصوتي، لذا يُرجى إلقاء نظرة قبل النشر."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Krótka pauza w narracji — prosimy obejrzeć przed publikacją."
+            "value": "Krótka pauza w narracji. Prosimy obejrzeć przed publikacją."
           }
         }
       }
@@ -7003,13 +7003,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Our picture and sound check noticed something small — have a look before posting."
+            "value": "Our picture and sound check noticed something small. Have a look before posting."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unsere Bild- und Tonprüfung hat eine Kleinigkeit bemerkt – bitte vor dem Posten kurz ansehen."
+            "value": "Unsere Bild- und Tonprüfung hat eine Kleinigkeit bemerkt. Bitte vor dem Posten kurz ansehen."
           }
         },
         "es": {
@@ -7021,13 +7021,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Görüntü ve ses kontrolümüz küçük bir ayrıntı fark etti — paylaşmadan önce göz atın."
+            "value": "Görüntü ve ses kontrolümüz küçük bir ayrıntı fark etti. Paylaşmadan önce göz atın."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notre contrôle de l'image et du son a relevé un détail — jetez-y un œil avant de publier."
+            "value": "Notre contrôle de l'image et du son a relevé un détail. Jetez-y un œil avant de publier."
           }
         },
         "ja": {
@@ -7039,13 +7039,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لاحظ فحص الصورة والصوت لدينا تفصيلًا صغيرًا — يُرجى إلقاء نظرة قبل النشر."
+            "value": "لاحظ فحص الصورة والصوت لدينا تفصيلًا صغيرًا، لذا يُرجى إلقاء نظرة قبل النشر."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nasza kontrola obrazu i dźwięku zauważyła drobiazg — prosimy obejrzeć przed publikacją."
+            "value": "Nasza kontrola obrazu i dźwięku zauważyła drobiazg. Prosimy obejrzeć przed publikacją."
           }
         }
       }
@@ -7109,13 +7109,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Our software check marked some wording — please read it once before posting."
+            "value": "Our software check marked some wording. Please read it once before posting."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unsere softwaregestützte Prüfung hat eine Formulierung markiert – bitte vor dem Posten einmal lesen."
+            "value": "Unsere softwaregestützte Prüfung hat eine Formulierung markiert. Bitte vor dem Posten einmal lesen."
           }
         },
         "es": {
@@ -7127,13 +7127,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Yazılımla yaptığımız kontrol bir ifadeyi işaretledi — paylaşmadan önce bir kez okuyun."
+            "value": "Yazılımla yaptığımız kontrol bir ifadeyi işaretledi. Paylaşmadan önce bir kez okuyun."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La vérification par logiciel a signalé une formulation — relisez-la avant de publier."
+            "value": "La vérification par logiciel a signalé une formulation. Relisez-la avant de publier."
           }
         },
         "ja": {
@@ -7145,13 +7145,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "أشارت المراجعة الآلية إلى صياغة ما — يُرجى قراءتها مرة قبل النشر."
+            "value": "أشارت المراجعة الآلية إلى صياغة ما، لذا يُرجى قراءتها مرة قبل النشر."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sprawdzenie przez oprogramowanie oznaczyło sformułowanie — prosimy przeczytać je przed publikacją."
+            "value": "Sprawdzenie przez oprogramowanie oznaczyło sformułowanie. Prosimy przeczytać je przed publikacją."
           }
         }
       }

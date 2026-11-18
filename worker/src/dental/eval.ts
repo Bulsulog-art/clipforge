@@ -47,26 +47,26 @@ import { gradeWeek, type RubricScene, type RubricScript } from "./rubric.js";
 import type { WeekVoice } from "./memory.js";
 
 export const PANEL: ClinicProfile[] = [
-  { name: "Gülüş Ağız ve Diş Sağlığı", city: "İzmir", country: "TR", language: "tr", tone: "warm", address: "formal",
+  { name: "Örnek Diş Kliniği", city: "İzmir", country: "TR", language: "tr", tone: "warm", address: "formal",
     services: ["Diş taşı temizliği", "Diş beyazlatma", "İmplant", "Kanal tedavisi", "Çocuk diş hekimliği"] },
-  { name: "Zahnpraxis am Isartor", city: "München", country: "DE", language: "de", tone: "expert", address: "formal",
+  { name: "Demo Zahnarztpraxis", city: "München", country: "DE", language: "de", tone: "expert", address: "formal",
     services: ["Professionelle Zahnreinigung", "Implantate", "Bleaching", "Wurzelbehandlung", "Aligner"] },
-  { name: "Clínica Dental Retiro", city: "Madrid", country: "ES", language: "es", tone: "calm", address: "informal",
+  { name: "Clínica Dental Ejemplo", city: "Madrid", country: "ES", language: "es", tone: "calm", address: "informal",
     services: ["Limpieza dental", "Blanqueamiento", "Implantes", "Ortodoncia invisible", "Endodoncia"] },
-  { name: "Barton Creek Family Dental", city: "Austin", country: "US", language: "en", tone: "playful", address: "informal",
+  { name: "Sample Dental Practice", city: "Austin", country: "US", language: "en", tone: "playful", address: "informal",
     services: ["Cleanings", "Teeth whitening", "Clear aligners", "Children's dentistry", "Dental implants"] },
-  { name: "Cabinet Dentaire des Lilas", city: "Lyon", country: "FR", language: "fr", tone: "calm", address: "formal",
+  { name: "Cabinet Dentaire Exemple", city: "Lyon", country: "FR", language: "fr", tone: "calm", address: "formal",
     services: ["Détartrage", "Blanchiment", "Implants", "Aligneurs", "Traitement de canal"] },
-  { name: "Studio Dentistico Navigli", city: "Milano", country: "IT", language: "it", tone: "warm", address: "formal",
+  { name: "Studio Dentistico Esempio", city: "Milano", country: "IT", language: "it", tone: "warm", address: "formal",
     services: ["Igiene dentale", "Sbiancamento", "Impianti", "Allineatori", "Devitalizzazione"] },
-  { name: "Clínica Sorriso Atlântico", city: "Lisboa", country: "PT", language: "pt", tone: "warm", address: "informal",
+  { name: "Clínica Dentária Exemplo", city: "Lisboa", country: "PT", language: "pt", tone: "warm", address: "informal",
     services: ["Limpeza", "Clareamento", "Implantes", "Alinhadores", "Tratamento de canal"] },
   // New markets (docs/MARKETS.md): Japan, the Gulf, Poland.
-  { name: "さくら歯科クリニック", city: "東京", country: "JP", language: "ja", tone: "calm", address: "formal",
+  { name: "サンプル歯科", city: "東京", country: "JP", language: "ja", tone: "calm", address: "formal",
     services: ["歯のクリーニング", "ホワイトニング", "インプラント", "マウスピース矯正", "根管治療"] },
-  { name: "عيادة الابتسامة لطب الأسنان", city: "دبي", country: "AE", language: "ar", tone: "warm", address: "formal",
+  { name: "عيادة أسنان تجريبية", city: "دبي", country: "AE", language: "ar", tone: "warm", address: "formal",
     services: ["تنظيف الأسنان", "تبييض الأسنان", "زراعة الأسنان", "التقويم الشفاف", "علاج العصب"] },
-  { name: "Gabinet Stomatologiczny Wawel", city: "Kraków", country: "PL", language: "pl", tone: "warm", address: "formal",
+  { name: "Przykładowy Gabinet Stomatologiczny", city: "Kraków", country: "PL", language: "pl", tone: "warm", address: "formal",
     services: ["Higienizacja", "Wybielanie zębów", "Implanty", "Nakładki ortodontyczne", "Leczenie kanałowe"] },
 ].map((p) => clinicProfileSchema.parse(p));
 

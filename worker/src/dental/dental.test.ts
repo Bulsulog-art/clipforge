@@ -102,14 +102,14 @@ describe("hard compliance rules", () => {
 });
 
 const PROFILE: ClinicProfile = {
-  name: "Smile Studio",
+  name: "Sample Dental Practice",
   city: "Izmir",
   country: "TR",
   language: "en",
   services: ["whitening", "implants", "check-ups"],
   tone: "warm",
   address: "formal",
-  handle: "smilestudio",
+  handle: "sampledentalpractice",
 };
 
 const TOPIC: Topic = {
@@ -130,7 +130,7 @@ function plan(lines: string[]): ScenePlan {
       { kind: "hook", text: lines[0], seconds: 3 },
       { kind: "statement", text: lines[1], seconds: 4 },
       { kind: "list", heading: "Good to know", items: [lines[2], "Ask your dentist"], seconds: 5 },
-      { kind: "cta", text: "Book a check-up", handle: "@smilestudio", seconds: 3 },
+      { kind: "cta", text: "Book a check-up", handle: "@sampledentalpractice", seconds: 3 },
     ],
     voiceover: {
       text:
@@ -390,19 +390,19 @@ describe("the orchestrator", () => {
   it("briefs the scriptwriter with the clinic's language, handle and the rules", () => {
     const brief = scriptBrief({ ...PROFILE, language: "tr" }, TOPIC);
     expect(brief).toContain("in tr");
-    expect(brief).toContain("@smilestudio");
+    expect(brief).toContain("@sampledentalpractice");
     expect(brief).toMatch(/Never mention prices/);
   });
 });
 
 describe("finalHashtags", () => {
   it("puts the clinic's real tag first and drops invented brand tags", () => {
-    const tags = finalHashtags(["#gülüşstudio", "DişSağlığı", "izmir", "smilestudio", "diş sağlığı", "bad-tag!"], {
-      name: "Smile Studio",
-      handle: "smilestudio.izmir",
+    const tags = finalHashtags(["#örnekdental", "DişSağlığı", "izmir", "sampledentalpractice", "diş sağlığı", "bad-tag!"], {
+      name: "Sample Dental Practice",
+      handle: "sampledentalpractice.izmir",
     });
-    expect(tags[0]).toBe("smilestudioizmir");
-    expect(tags).not.toContain("gülüşstudio");
+    expect(tags[0]).toBe("sampledentalpracticeizmir");
+    expect(tags).not.toContain("örnekdental");
     expect(tags).toContain("dişsağlığı");
     expect(tags).toContain("izmir");
     expect(tags.filter((t) => t === "dişsağlığı")).toHaveLength(1);
