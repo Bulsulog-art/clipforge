@@ -229,6 +229,14 @@ export const HARD_RULES: Rule[] = [
       w("hastalarımız (diyor|anlatıyor)"),
       // RG 33075: patients' thank-you and satisfaction statements.
       w("hasta yorum\\p{L}*|hastalarımızın (yorum|teşekkür|deneyim)\\p{L}*|teşekkür mesaj\\p{L}*|memnun hasta\\p{L}*|hasta memnuniyet\\p{L}*"),
+      // …and the same claims in plain sentences ("Hastalarımız çok memnun.", seen
+      // marked clean on the TR checker): "our patients" plus satisfied or happy
+      // within a few words, patients thanking us ("hastalarımıza teşekkür ederiz"
+      // is the clinic thanking, not a patient statement), satisfaction rates, happy/thankful patients.
+      // Only "hastalarımız" (our patients) is tied to a following word: "Bazı
+      // hastalar protezinden memnun olmayabilir" is education, not a claim, and
+      // "memnuniyetle yanıtlarız" (gladly) is ordinary language.
+      w("hastalarımız\\p{L}*(\\s+[\\p{L}\\p{N}%'’]+){0,3}?\\s+(memnun|mutlu)\\p{L}*|hastalarımız(dan|ın)?(\\s+\\p{L}+){0,2}?\\s+teşekkür\\p{L}*|memnun (kalan |ayrılan )hasta\\p{L}*|mutlu hasta\\p{L}*|teşekkür eden (tüm |bütün |birçok |pek çok )?hasta\\p{L}*|hastalar\\p{L}*\\s+(%\\s?|yüzde\\s)\\d+['’]?\\p{L}*\\s+(\\p{L}+\\s+)?memnun\\p{L}*|(%\\s?|yüzde\\s)\\d+['’]?\\p{L}*\\s+(hasta\\p{L}*\\s+)?memnuniyet\\p{L}*|memnuniyet oran\\p{L}*|hasta (görüş|hikâye|hikaye)\\p{L}*|hastalarımızın (görüş|hikâye|hikaye|memnuniyet)\\p{L}*"),
       w("unsere patienten sagen|patientenbewertung\\p{L}*"),
       // § 11 HWG: statements by third parties used to advertise.
       w("patientenstimme\\p{L}*|erfahrungsbericht\\p{L}*|bewertungen (unserer|von) patient\\p{L}*|zufriedene\\p{L}* patient\\p{L}*|dankschreiben"),
@@ -353,7 +361,8 @@ export const CHECKER_RULES: readonly Rule[] = [...HARD_RULES, FEAR_RULE];
  * not claim one — the clinic can add a claim it can prove, under its own
  * responsibility. This is a conservative filter, not a legal opinion.
  *
- * Not part of the public checker (it does not know the reader's market).
+ * The public checker runs them too, for the market the visitor picks
+ * (web/src/lib/dentvid/ad-checker.ts, checker-markets.ts).
  */
 export type MarketRuleId = "sponsored" | "engagement" | "giveaway" | "booking" | "specialist" | "children" | "pom" | "permit";
 export type MarketRule = { id: MarketRuleId; why: string; patterns: RegExp[] };

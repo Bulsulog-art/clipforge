@@ -44,6 +44,7 @@ export const DV_EVENTS = [
   "demo_cta_clicked",
   "checker_used",
   "checker_cta_clicked",
+  "checker_shared",
 ] as const;
 export type DvEventName = (typeof DV_EVENTS)[number];
 
@@ -68,6 +69,7 @@ export const DV_CLIENT_EVENTS: readonly DvEventName[] = [
   "demo_cta_clicked",
   "checker_used",
   "checker_cta_clicked",
+  "checker_shared",
 ];
 
 /** Browser events that belong to a signed-in clinic: the route looks the clinic up from the session. */
@@ -132,9 +134,12 @@ export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
   demo_cta_clicked: { demo: DEMO, where: { kind: "enum", values: ["start", "question"] } },
   // The free ad checker (/ad-checker): counts only. The text a dentist pastes never leaves the browser,
   // so no prop here can carry it — how many phrases were flagged, in how many rules, and whether it was clean.
-  checker_used: { hits: { kind: "int", max: 100 }, rules: { kind: "int", max: 10 }, clean: { kind: "bool" } },
+  // banned: how many the chosen market names as not allowed.
+  checker_used: { hits: { kind: "int", max: 100 }, rules: { kind: "int", max: 20 }, clean: { kind: "bool" }, banned: { kind: "int", max: 100 }, market: { kind: "country" } },
   // Its call to action under the result: after flagged phrases, or after a clean text.
   checker_cta_clicked: { where: { kind: "enum", values: ["result", "clean"] } },
+  // Shared as a link (text in the #fragment), an image or via the share sheet.
+  checker_shared: { method: { kind: "enum", values: ["link", "image", "share"] }, market: { kind: "country" } },
 };
 
 /** The first-touch source tags any event may carry (utm_* slugs, the referring host). */

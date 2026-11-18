@@ -1,0 +1,92 @@
+{
+  "identifier" : "4F3B2A10",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_compatibilityTimeRate" : {
+      "3" : 6
+    },
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 6
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21581001",
+      "localizations" : [
+
+      ],
+      "name" : "DentVideo",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "79.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6758100001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Five narrated videos every week, plus your own recordings as clips.",
+              "displayName" : "Practice",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "dentvideo_practice_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Practice monthly",
+          "subscriptionGroupID" : "21581001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6758100002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Five narrated videos every week in your clinic's colors.",
+              "displayName" : "Starter",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "dentvideo_starter_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Starter monthly",
+          "subscriptionGroupID" : "21581001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

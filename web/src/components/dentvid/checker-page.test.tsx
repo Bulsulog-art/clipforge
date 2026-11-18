@@ -16,7 +16,8 @@ import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { checkerJsonLd, checkerMetadata, dentvideoSitemapEntries } from "@/lib/dentvid/seo-guides";
 import { equivalentPath } from "@/lib/dentvid/lang-switch";
 import { chromeText } from "@/lib/dentvid/chrome-text";
-import { CheckerPage } from "./checker-page";
+import { CheckerPage, checkerMarketOptions } from "./checker-page";
+import { CHECKER_MARKETS, DEFAULT_MARKET, OTHER_MARKET } from "@/lib/dentvid/checker-markets";
 import { pathLocale } from "./chrome";
 
 (globalThis as { React?: typeof React }).React = React;
@@ -39,6 +40,35 @@ describe("ad checker page", () => {
     expect(html).not.toContain('data-testid="checker-cta"');
     expect(html).toContain('"@type":"WebApplication"');
     expect(html).toContain('"@type":"FAQPage"');
+  });
+
+  it.each(LOCALES)("%s: the country picker, the one-tap examples and the market paragraph, in its language", (l) => {
+    const html = decode(renderToStaticMarkup(<CheckerPage locale={l} />));
+    const c = CHECKER[l];
+    // A labelled <select> with every market, the page's own first, "another country" last.
+    expect(html).toContain('data-testid="checker-market"');
+    expect(html).toMatch(new RegExp(`<label for="[^"]+-market"[^>]*>${c.ui.market.label}</label>`));
+    const options = [...html.matchAll(/<option value="([A-Z]{2})"/g)].map((m) => m[1]);
+    expect(options).toEqual(checkerMarketOptions(l).map((m) => m.id));
+    expect(options).toHaveLength(CHECKER_MARKETS.length);
+    expect(options[0]).toBe(DEFAULT_MARKET[l]);
+    expect(options.at(-1)).toBe(OTHER_MARKET);
+    expect(html).toContain(`<option value="${DEFAULT_MARKET[l]}" selected="">`);
+    for (const ex of c.ui.examples.items) expect(html).toContain(ex.label);
+    expect(html).toContain(c.how.paragraphs[1]);
+    // Market names come from the page's language, not English.
+    if (l !== "en") expect(checkerMarketOptions(l).find((m) => m.id === "DE")?.name).not.toBe("Germany");
+  });
+
+  it("JSON-LD lists the countries and the visible features, and FAQPage holds exactly the visible FAQ", () => {
+    for (const l of LOCALES) {
+      const g = checkerJsonLd(l)["@graph"] as Record<string, unknown>[];
+      const app = g.find((n) => n["@type"] === "WebApplication") as { countriesSupported: string; featureList: string[] };
+      expect(app.countriesSupported.split(", ")).toEqual(CHECKER_MARKETS.filter((m) => m !== OTHER_MARKET));
+      expect(app.featureList).toContain(CHECKER[l].ui.bySentence);
+      const faq = g.find((n) => n["@type"] === "FAQPage") as { mainEntity: { name: string }[] };
+      expect(faq.mainEntity.map((q) => q.name)).toEqual(CHECKER[l].faq.map((f) => f.q));
+    }
   });
 
   it.each(LOCALES)("%s: canonical, hreflang for every language and x-default", (l: Locale) => {

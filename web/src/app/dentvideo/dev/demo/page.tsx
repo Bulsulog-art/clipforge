@@ -13,14 +13,14 @@ export const dynamic = "force-dynamic";
 export const generateMetadata = (): Metadata => devPreviewMeta("Demo link preview", DEMO_ROBOTS);
 
 const CLINIC: Record<Locale, { name: string; city: string; country: string }> = {
-  en: { name: "Riverside Dental", city: "Bristol", country: "GB" },
-  de: { name: "Zahnarztpraxis am Park", city: "München", country: "DE" },
-  es: { name: "Clínica Dental Sonrisa", city: "Valencia", country: "ES" },
-  tr: { name: "Gülümse Diş Kliniği", city: "İzmir", country: "TR" },
-  fr: { name: "Cabinet Dentaire du Parc", city: "Lyon", country: "FR" },
-  ja: { name: "さくら歯科クリニック", city: "横浜市", country: "JP" },
-  ar: { name: "عيادة الابتسامة لطب الأسنان", city: "دبي", country: "AE" },
-  pl: { name: "Gabinet Stomatologiczny Uśmiech", city: "Kraków", country: "PL" },
+  en: { name: "Sample Dental Practice", city: "Bristol", country: "GB" },
+  de: { name: "Demo Zahnarztpraxis", city: "München", country: "DE" },
+  es: { name: "Clínica Dental Ejemplo", city: "Valencia", country: "ES" },
+  tr: { name: "Örnek Diş Kliniği", city: "İzmir", country: "TR" },
+  fr: { name: "Cabinet Dentaire Exemple", city: "Lyon", country: "FR" },
+  ja: { name: "サンプル歯科", city: "横浜市", country: "JP" },
+  ar: { name: "عيادة أسنان تجريبية", city: "دبي", country: "AE" },
+  pl: { name: "Przykładowy Gabinet Stomatologiczny", city: "Kraków", country: "PL" },
 };
 
 /**

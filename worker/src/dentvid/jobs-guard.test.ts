@@ -63,11 +63,13 @@ vi.mock("@supabase/supabase-js", () => ({ createClient: () => fakeDb() }));
 process.env.DENTVID_SUPABASE_URL = "http://liman.test";
 process.env.DENTVID_SERVICE_ROLE_KEY = "x";
 
-const { configureSpend, runDentvidWeek, runDentvidRecording, runDentvidRestyle, SpendRefusedError } = await import("./jobs.js");
+const { configureSpend, runDentvidWeek, runDentvidRecording, runDentvidRestyle, SpendRefusedError, _setPreflight } = await import("./jobs.js");
 const { MemoryGuardStore, SpendGuard, guardConfig } = await import("./spend-guard.js");
 const { MemoryParkStore } = await import("./park.js");
 
 beforeEach(() => {
+  // No network in tests: the providers are fine unless a test says otherwise.
+  _setPreflight(async () => ({ ok: true }));
   vi.clearAllMocks();
   updates.length = 0;
   clinicReadError = null;

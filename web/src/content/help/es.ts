@@ -37,11 +37,11 @@ export const es: HelpContent = {
   articles: {
     "first-videos": {
       q: "¿Cuándo llegan mis primeros vídeos?",
-      a: "Los vídeos de tu primera semana se crean justo después del pago y suelen tardar unos 15 minutos. La página Vídeos se actualiza sola y te enviamos un email en cuanto estén listos para que los revises.\n\nDespués llegan cinco vídeos nuevos cada lunes, y te avisamos por email cada vez.",
+      a: "Los vídeos de tu primera semana se crean justo después del pago y suelen estar listos en menos de una hora. La página Vídeos se actualiza sola y te enviamos un email en cuanto estén listos para que los revises.\n\nDespués llegan cinco vídeos nuevos cada lunes, y te avisamos por email cada vez.",
     },
     "no-videos-this-week": {
       q: "Los vídeos de esta semana aún no están. ¿Qué hago?",
-      a: "Los vídeos nuevos se crean cada lunes. Si los de esta semana todavía no están en tu biblioteca, toca «Crear los vídeos de esta semana» en la página Vídeos. Tarda unos 15 minutos.\n\nSi la página dice que los vídeos se retrasan, ya lo estamos reintentando y te escribiremos cuando estén listos. También puedes tocar «Intentarlo de nuevo».\n\nUn vídeo marcado con «No se pudo crear» no requiere nada por tu parte. Si vuelve a pasar, escríbenos.",
+      a: "Los vídeos nuevos se crean cada lunes. Si los de esta semana todavía no están en tu biblioteca, toca «Crear los vídeos de esta semana» en la página Vídeos. Suele tardar menos de una hora.\n\nSi la página dice que los vídeos se retrasan, ya lo estamos reintentando y te escribiremos cuando estén listos. También puedes tocar «Intentarlo de nuevo».\n\nUn vídeo marcado con «No se pudo crear» no requiere nada por tu parte. Si vuelve a pasar, escríbenos.",
     },
     topics: {
       q: "¿Cómo se eligen los temas? ¿Puedo proponer uno?",

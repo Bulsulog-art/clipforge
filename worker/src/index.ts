@@ -15,6 +15,7 @@ import { configureReadyMail, notifyReadyChecked, type ReadyMailJob } from "./den
 import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
 import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore, setWeekDelay } from "./dentvid/ops.js";
 import { alerts, cleanError, resendSender } from "./dentvid/ops-alert.js";
+import { dailyProviderCheck } from "./dentvid/provider-health.js";
 import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
 import { checkWeekDelivery, DELIVERY_SCHEDULE, supabaseDeliveryDb } from "./dentvid/delivery.js";
@@ -223,7 +224,13 @@ const dentvidMailWorker = new Worker(
       if (!r.sent && r.retry) throw new Error(`ready email not sent: ${r.reason}`);
       return r;
     }
-    if (job.name === "digest") return assertRunOk("digest", await runDigest());
+    if (job.name === "digest") {
+      // Once a day with the digest: can the AI providers work? Free endpoints only (dentvid/provider-health.ts).
+      for (const p of await dailyProviderCheck(opsStore()).catch(() => [])) {
+        await ownerAlert(alerts.providerDown({ provider: p.provider, reason: p.reason, when: "daily", fallback: p.fallback })).catch(() => "failed");
+      }
+      return assertRunOk("digest", await runDigest());
+    }
     if (job.name === "billing-reconcile") {
       const result = await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), revenuecat: revenuecatLookup(), alert: ownerAlert, apple: supabaseAppleTakeoverDb(dentvidDb()) });
       // Nightly retention: Google Ads click ids older than 90 days (migration 0019; a no-op error before it is applied).

@@ -450,6 +450,49 @@ export const weekStateKey = (clinicId: string, week: string) => `dv:weekstate:${
 const tierLabel = (c: ClinicRef) => (c.tier ? c.tier : "unknown tier");
 
 export const alerts = {
+  cancelRequested(a: { clinic: ClinicRef; plan: string; subscriptionId: string | null; renewsAt: string | null; email: string | null }): OwnerAlert {
+    return {
+      key: `cancel_request:${a.clinic.id}`,
+      severity: "urgent",
+      titleTr: "Bir klinik iptal istiyor",
+      titleEn: "A clinic asked to cancel",
+      clinic: a.clinic,
+      what: ["The clinic tapped “Ask to cancel” in Settings (online billing is off, so it cannot cancel there itself). We promised to cancel it today and confirm by email."],
+      facts: [
+        ["Plan", a.plan],
+        ["Dodo subscription", a.subscriptionId ?? "none recorded"],
+        ["Renews / ends", a.renewsAt ?? "unknown"],
+        ["Reply to", a.email ?? "the clinic's login address (see /dentvideo/admin)"],
+      ],
+      done: ["Nothing was cancelled yet: no Dodo API key on the server.", "The clinic was told: cancelled today, confirmed by email, the plan runs to the end of the period paid for."],
+      todo: ["Today: cancel the subscription in the Dodo dashboard at the end of the current period (not immediately).", "Reply to the clinic to confirm, in its language. The webhook keeps its plan active until the period ends."],
+    };
+  },
+
+  providerDown(a: { provider: "OpenAI" | "ElevenLabs"; reason: string; when: "preflight" | "daily"; clinic?: ClinicRef; week?: string; fallback?: boolean }): OwnerAlert {
+    return {
+      key: `provider_down:${a.provider.toLowerCase()}`,
+      severity: "urgent",
+      titleTr: `${a.provider} hesabı reddediyor: bakiye/kota`,
+      titleEn: `${a.provider} is refusing: balance or quota`,
+      ...(a.clinic ? { clinic: a.clinic } : {}),
+      what: [
+        a.when === "preflight"
+          ? `Before starting ${a.week ? `the week of ${a.week}` : "a week"} for a paying clinic, the free ${a.provider} check failed: ${a.reason}. No paid call was made.`
+          : `The daily ${a.provider} check (free endpoints only) failed: ${a.reason}.`,
+      ],
+      facts: [["Provider", a.provider], ["Reason", a.reason]],
+      done: [
+        a.fallback
+          ? "Narration falls back to OpenAI's voice, so weeks are still made (with a different voice) while this lasts."
+          : "Week jobs stop before spending and are retried with growing waits; the clinic's library shows the calm “taking longer” note. No email went to the clinic.",
+      ],
+      todo: [
+        `Top up or fix the ${a.provider} account (billing, quota, API key), then retry the failed week jobs (BullMQ queue dentvid → failed → retry, or requeue in /dentvideo/admin).`,
+      ],
+    };
+  },
+
   weekFailed(a: { clinic: ClinicRef; week: string; attempts: number; error: string; permanent: boolean }): OwnerAlert {
     return {
       key: `week_failed:${a.clinic.id}:${a.week}`,
@@ -473,16 +516,18 @@ export const alerts = {
   },
 
   thinWeek(a: { clinic: ClinicRef; week: string; usable: number; wanted: number; reasons: string[] }): OwnerAlert {
+    const missing = Math.max(0, a.wanted - a.usable);
     return {
       key: `thin_week:${a.clinic.id}:${a.week}`,
-      severity: "warning",
+      // The plan promises five videos every Monday: any week short of that is a broken promise, not a warning.
+      severity: "urgent",
       titleTr: "Eksik hafta teslim edildi",
-      titleEn: "A thin week was delivered",
+      titleEn: "A short week was delivered",
       clinic: a.clinic,
-      what: [`Only ${a.usable} of ${a.wanted} videos were usable for the week of ${a.week}, even after re-attempts and extra topics.`],
-      facts: a.reasons.slice(0, 4).map((r, i) => [`Reason ${i + 1}`, r] as [string, string]),
-      done: ["Each failed video was re-attempted once, and extra topics were tried to fill the week.", "The usable videos are in the clinic's library; the clinic got the usual email."],
-      todo: ["Look at the reasons. If it is the profile (an unusual service, language), check it in /dentvideo/admin.", "Optional: re-run the week for this clinic when fixed."],
+      what: [`Only ${a.usable} of ${a.wanted} promised videos are in the library for the week of ${a.week} (${missing} missing), even after re-attempts and extra topics.`],
+      facts: [["Week", a.week], ["Delivered", `${a.usable} of ${a.wanted}`], ...a.reasons.slice(0, 8).map((r, i) => [`Missing ${i + 1}`, r] as [string, string])],
+      done: ["Each failed video was re-attempted once, and extra topics were tried to fill the week.", "The usable videos are in the clinic's library; the clinic got the usual email.", "Nothing more is made on its own: no automatic top-up after this."],
+      todo: ["Look at the reasons. If it is the profile (an unusual service, language), check it in /dentvideo/admin.", "Requeue the week in /dentvideo/admin (it makes only the missing videos), or write to the clinic."],
     };
   },
 
@@ -647,7 +692,7 @@ export const alerts = {
       what: [`${a.count} ${render ? "video renders failed" : "requests failed with a server error"} in the last hour (threshold ${a.threshold}).`],
       facts: a.sample ? [[render ? "Last error" : "Last route", a.sample]] : [],
       done: render
-        ? ["Each failed video is re-attempted once; weeks that fail are retried with backoff; thin weeks are topped up."]
+        ? ["Each failed video is re-attempted once; weeks that fail are retried with backoff; short weeks are topped up once."]
         : ["Nothing automatic — each request failed for its user."],
       todo: render ? ["Check the worker logs: OpenAI / Pexels / storage / disk / memory."] : ["Check the web app logs (and Sentry) for the route above."],
     };

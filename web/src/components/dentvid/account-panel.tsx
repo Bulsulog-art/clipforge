@@ -506,3 +506,38 @@ export function AccountPanel({
     </>
   );
 }
+
+/**
+ * "Ask to cancel" while online billing is off (no DODO_API_KEY): one tap tells the owner
+ * (api/dentvideo/billing/cancel-request → urgent alert), who cancels the same day. If the
+ * request does not go through, the clinic is shown the address to write to instead.
+ */
+export function CancelRequest({ locale }: { locale: Locale }) {
+  const t = accountText(locale);
+  const [state, setState] = useState<"idle" | "busy" | "done" | "failed">("idle");
+  async function ask() {
+    if (state === "busy" || state === "done") return;
+    setState("busy");
+    try {
+      const r = await postJson("/api/dentvideo/billing/cancel-request");
+      setState(r.ok ? "done" : "failed");
+    } catch {
+      setState("failed");
+    }
+  }
+  if (state === "done") {
+    return (
+      <p role="status" data-cancel-request="done" className="rounded-xl bg-dv-teal-50 px-4 py-3 text-sm text-dv-ink">
+        {t.cancelRequestDone}
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <button type="button" onClick={ask} disabled={state === "busy"} data-cancel-request="button" className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm !text-dv-teal">
+        {t.cancelRequestButton}
+      </button>
+      {state === "failed" && <ErrorLine msg={t.cancelRequestFailed} />}
+    </div>
+  );
+}

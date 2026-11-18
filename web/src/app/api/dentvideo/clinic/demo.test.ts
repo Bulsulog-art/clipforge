@@ -63,7 +63,7 @@ vi.mock("@/lib/dentvid/demos-server", () => ({
   },
 }));
 
-const profile = { name: "Gülümse Diş Kliniği", city: "İzmir", country: "TR", language: "tr", services: ["İmplant"], tone: "warm", address: "formal", brandColor: "#1f4e79" };
+const profile = { name: "Örnek Diş Kliniği", city: "İzmir", country: "TR", language: "tr", services: ["İmplant"], tone: "warm", address: "formal", brandColor: "#1f4e79" };
 const attribution = { utm_source: "demo", utm_medium: "dm", utm_campaign: "tr-launch", utm_content: TOKEN };
 
 async function save(extra: Record<string, unknown>) {

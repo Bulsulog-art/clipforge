@@ -20,7 +20,7 @@ type AuthUser = { id: string; email?: string; app_metadata?: Record<string, unkn
 function fakeSupabase(opts: { leaky?: boolean; authUsers?: Record<string, Partial<AuthUser>> } = {}) {
   const tables: Record<string, Row[]> = {
     dentvid_clinics: [
-      { id: CLINIC_A, owner_id: A, profile: { name: "Riverside Dental", language: "en" }, logo_path: `${A}/logo.png`, plan: "trial", dodo_subscription_id: null },
+      { id: CLINIC_A, owner_id: A, profile: { name: "Sample Dental Practice", language: "en" }, logo_path: `${A}/logo.png`, plan: "trial", dodo_subscription_id: null },
       { id: CLINIC_B, owner_id: B, profile: { name: "Other Clinic" }, logo_path: `${B}/logo.png`, plan: "active", dodo_subscription_id: "sub_B" },
     ],
     dentvid_items: [
@@ -149,9 +149,9 @@ describe("owner guards", () => {
   });
 
   it("compares the typed clinic name calmly (case, spaces, Unicode form)", () => {
-    expect(confirmMatches("  riverside   DENTAL ", "Riverside Dental")).toBe(true);
-    expect(confirmMatches("Gülümse Diş Kliniği".normalize("NFD"), "Gülümse Diş Kliniği")).toBe(true);
-    expect(confirmMatches("Riverside", "Riverside Dental")).toBe(false);
+    expect(confirmMatches("  sample   dental   PRACTICE ", "Sample Dental Practice")).toBe(true);
+    expect(confirmMatches("Örnek Diş Kliniği".normalize("NFD"), "Örnek Diş Kliniği")).toBe(true);
+    expect(confirmMatches("Sample Dental", "Sample Dental Practice")).toBe(false);
     expect(confirmMatches("", "")).toBe(false);
   });
 });
@@ -160,7 +160,7 @@ describe("deleteDentvideoAccount", () => {
   it("removes the owner's storage, videos, clinic and login — in that order — and nothing of another clinic", async () => {
     const s = fakeSupabase();
     const log = vi.fn();
-    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log });
     expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, cancelledSubscription: false, userDeleted: true, loginKept: false, appStoreSubscription: false });
 
     const order = s.calls.map((c) => c.split(" ").slice(0, 2).join(" "));
@@ -179,13 +179,13 @@ describe("deleteDentvideoAccount", () => {
     expect(line).toContain("dentvideo.account_deleted");
     expect(line).toContain(auditRef(A));
     expect(line).not.toContain(A);
-    expect(line).not.toContain("Riverside");
+    expect(line).not.toContain("Sample Dental");
     expect(line).not.toContain("dr@a.example");
   });
 
   it("is idempotent: a second run (or a retry after a partial failure) finishes cleanly", async () => {
     const s = fakeSupabase();
-    const args = { admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} };
+    const args = { admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log: () => {} };
     expect((await deleteDentvideoAccount(args)).ok).toBe(true);
     const again = await deleteDentvideoAccount(args);
     expect(again).toEqual({ ok: true, files: 0, items: 0, clinic: false, cancelledSubscription: false, userDeleted: false, loginKept: false, appStoreSubscription: false });
@@ -203,7 +203,7 @@ describe("deleteDentvideoAccount", () => {
       },
     });
     const log = vi.fn();
-    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log });
     expect(res).toMatchObject({ ok: true, files: 5, items: 2, clinic: true, userDeleted: false, loginKept: true });
     expect(s.calls.some((c) => c.startsWith("auth.deleteUser"))).toBe(false);
     expect([...s.users].sort()).toEqual([A, B].sort());
@@ -217,14 +217,14 @@ describe("deleteDentvideoAccount", () => {
     const s = fakeSupabase({
       authUsers: { [A]: { app_metadata: { provider: "email", providers: ["email"], product: "dentvideo", internal: true, email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: "dr@a.example", email_verified_via: "code" } } },
     });
-    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log: () => {} });
     expect(res).toMatchObject({ ok: true, userDeleted: true, loginKept: false });
     expect(s.users.has(A)).toBe(false);
   });
 
   it("never deletes a login whose only DentVideo claim is user_metadata (anyone can write that)", async () => {
     const s = fakeSupabase({ authUsers: { [A]: { app_metadata: { provider: "email", providers: ["email"] }, user_metadata: { product: "dentvideo" } } } });
-    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Riverside Dental", dodo: null, log: () => {} });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log: () => {} });
     expect(res).toMatchObject({ ok: true, userDeleted: false, loginKept: true });
     expect(s.users.has(A)).toBe(true);
     expect(s.tables.dentvid_clinics.map((r) => r.id)).toEqual([CLINIC_B]);
@@ -236,7 +236,7 @@ describe("deleteDentvideoAccount", () => {
       { app_metadata: { provider: "google", providers: ["email", "google"], product: "dentvideo" }, identities: [{ provider: "email" }, { provider: "google" }] },
     ]) {
       const s = fakeSupabase({ authUsers: { [A]: other } });
-      expect(await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: null, log: () => {} })).toMatchObject({ ok: true, loginKept: true });
+      expect(await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: null, log: () => {} })).toMatchObject({ ok: true, loginKept: true });
       expect(s.users.has(A)).toBe(true);
     }
   });
@@ -252,7 +252,7 @@ describe("deleteDentvideoAccount", () => {
     const s = fakeSupabase();
     s.tables.dentvid_clinics[0].plan = "active";
     s.tables.dentvid_clinics[0].dodo_subscription_id = "sub_A";
-    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: null });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: null });
     expect(res).toEqual({ ok: false, reason: "subscription_active" });
     expect(s.calls).toEqual([]);
   });
@@ -261,7 +261,7 @@ describe("deleteDentvideoAccount", () => {
     const s = fakeSupabase();
     Object.assign(s.tables.dentvid_clinics[0], { plan: "active", dodo_subscription_id: null, billing_source: "apple", apple_original_transaction_id: "2000000100" });
     const log = vi.fn();
-    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: null, log });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: null, log });
     expect(res).toMatchObject({ ok: true, clinic: true, cancelledSubscription: false, appStoreSubscription: true });
     expect(s.tables.dentvid_clinics.map((r) => r.id)).toEqual([CLINIC_B]);
     expect(JSON.stringify(log.mock.calls[0][0])).toContain('"app_store_subscription_live":true');
@@ -272,7 +272,7 @@ describe("deleteDentvideoAccount", () => {
     s.tables.dentvid_clinics[0].plan = "active";
     s.tables.dentvid_clinics[0].dodo_subscription_id = "sub_A";
     const d = dodo("active");
-    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: d.deps, log: () => {} });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: d.deps, log: () => {} });
     expect(res).toMatchObject({ ok: true, cancelledSubscription: true });
     expect(d.log).toEqual(["get sub_A", "cancel sub_A"]);
     expect(d.deps.cancelSubscription).not.toHaveBeenCalledWith("sub_B");
@@ -283,14 +283,14 @@ describe("deleteDentvideoAccount", () => {
     s.tables.dentvid_clinics[0].plan = "paused";
     s.tables.dentvid_clinics[0].dodo_subscription_id = "sub_A";
     const ended = dodo("cancelled");
-    expect(await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Riverside Dental", dodo: ended.deps, log: () => {} })).toMatchObject({ ok: true, cancelledSubscription: false });
+    expect(await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: ended.deps, log: () => {} })).toMatchObject({ ok: true, cancelledSubscription: false });
     expect(ended.log).toEqual(["get sub_A"]);
 
     const t = fakeSupabase();
     t.tables.dentvid_clinics[0].plan = "active";
     t.tables.dentvid_clinics[0].dodo_subscription_id = "sub_A";
     const failing: DodoDeps = { getSubscription: async () => ({ subscription_id: "sub_A", status: "active" }), cancelSubscription: async () => Promise.reject(new Error("503")) };
-    expect(await deleteDentvideoAccount({ admin: t.db, user: { id: A }, confirm: "Riverside Dental", dodo: failing })).toEqual({ ok: false, reason: "billing_failed", step: "billing" });
+    expect(await deleteDentvideoAccount({ admin: t.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: failing })).toEqual({ ok: false, reason: "billing_failed", step: "billing" });
     expect(t.calls).toEqual([]);
   });
 
@@ -311,7 +311,7 @@ describe("buildAccountExport", () => {
     expect(out.format).toBe("dentvideo-export/1");
     expect(out.links_expire_at).toBe("2026-11-09T10:00:00.000Z");
     expect(out.account).toEqual({ id: A, email: "dr@a.example", created_at: "2026-01-01T00:00:00Z" });
-    expect(out.clinic).toMatchObject({ id: CLINIC_A, profile: { name: "Riverside Dental" }, logo_url: `https://liman.example/sign/${A}/logo.png?t=1` });
+    expect(out.clinic).toMatchObject({ id: CLINIC_A, profile: { name: "Sample Dental Practice" }, logo_url: `https://liman.example/sign/${A}/logo.png?t=1` });
     expect(out.videos.map((v) => v.id)).toEqual(["i1", "i2"]);
     expect(out.videos[0]).toMatchObject({ spoken: "Two minutes…", copy: { caption: "Brush well" }, links: { video: expect.stringContaining(`${A}/videos/v1.mp4`), thumbnail: expect.any(String) } });
     expect(out.videos[1].links.source).toContain(`${A}/recordings/`);

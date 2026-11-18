@@ -596,6 +596,33 @@ describe("launch markets: Turkish, German, Spanish hard rules (TR, DE/AT/CH, ES/
     expect(rules("Öncesi sonrası farkı inanılmaz")).toContain("before_after");
     expect(rules("Hasta yorumlarımızı okuyun")).toContain("testimonial");
     expect(rules("Hastalarımızın teşekkür mesajları")).toContain("testimonial");
+    // KM-52: patient thanks and satisfaction in plain sentences (RG 33075 md. 5/1-e).
+    for (const t of [
+      "Hastalarımız çok memnun.",
+      "Hastalarımız bizden gerçekten çok memnun kalıyor.",
+      "Memnun kalan hastalarımız bizi tavsiye ediyor.",
+      "Binlerce memnun hasta.",
+      "Mutlu hastalarımızla gurur duyuyoruz.",
+      "Teşekkür eden hastalarımıza minnettarız.",
+      "Hastalarımız bize teşekkür ediyor.",
+      "Hastalarımızdan gelen teşekkürler.",
+      "Hastaların %80'i memnun.",
+      "%98 hasta memnuniyeti.",
+      "Yüzde 95 memnuniyet oranı.",
+      "Memnuniyet oranımız çok yüksek.",
+      "Hastalarımızın memnuniyeti önceliğimiz.",
+      "Hasta görüşleri sayfamızda.",
+      "Hasta hikâyelerimizi izleyin.",
+    ]) expect(rules(t), t).toContain("testimonial");
+  });
+  it("leaves calm Turkish sentences about satisfaction and thanks alone", () => {
+    for (const t of [
+      "Bazı hastalar protezinden memnun olmayabilir; hekiminize danışın.",
+      "Gülüşünüzden memnun değilseniz hekiminizle konuşabilirsiniz.",
+      "Sorularınızı memnuniyetle yanıtlarız.",
+      "Hastalarımıza teşekkür ederiz.",
+      "Hastalarımızın sık sorduğu sorulardan biri implantın ne kadar sürdüğü.",
+    ]) expect(rules(t), t).not.toContain("testimonial");
     expect(rules("Ömür boyu ve acısız")).toContain("absolute");
     expect(rules("Hiçbir yan etkisi yok")).toContain("absolute");
   });

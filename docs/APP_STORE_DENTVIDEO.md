@@ -53,9 +53,22 @@ cd ios/DentVideo && xcodegen generate && open DentVideo.xcodeproj
   `ios/DentVideo/**`). It runs the Core tests and builds the app for the simulator, unsigned.
 - Archive: Xcode → Product → Archive (scheme DentVideo, Release) → Distribute → App Store Connect.
   Automatic signing creates the profiles; `aps-environment` is `production` in Release.
+  Or let CI do it: §1.6.
+- See every screen without a phone: Actions → "iOS DentVideo" → Run workflow (screens: `full`).
+  The `screens` job runs the app in the simulator in **demo mode** (DEBUG builds only: an
+  in-process fake API and the fictional "Riverside" clinic, `App/Sources/Demo/`; Release builds
+  contain none of it) and uploads two artifacts: `dentvideo-screens-review` (every screen and
+  state, iPhone 6.9" in eight languages, light and dark, largest text size, iPad 13") and
+  `dentvideo-screens-store` (full-size PNGs for §6). Locally on a Mac: `scripts/screens.sh`.
+- Tests: the same workflow's `tests` job (input "tests", on by default) runs the app's unit tests
+  (`Tests/Unit`) and the end-to-end UI journeys (`Tests/UI`, demo flow mode against the in-process
+  fake API) on iPhone 17 Pro Max and iPad Pro 13" with iOS 26 and on iPhone SE (3rd generation)
+  with iOS 18, the oldest supported version. Locally: `scripts/test.sh "iPhone 17 Pro Max" 26`. What must pass before each
+  TestFlight and App Store step: `docs/IOS_RELEASE_CHECKLIST.md`.
 
 ### 1.4 App Store Connect → My Apps → +
 
+- Minimum iOS **18.0** (`project.yml`): iOS 18.0 minimum (owner decision, 2026-11-17). On iOS 17.5 one-line text fields (sign-in email, clinic name and city, the delete confirmation) never took keyboard focus under XCUITest, while the same simulator typed into the Settings app and into the app's multi-line decline note; the cause was not found, so iOS 17 is not supported rather than shipped uncertain.
 - Platform iOS, name **DentVideo**, primary language English (U.S.), bundle id
   `com.bulsulabs.dentvideo`, SKU `dentvideo-ios`, full access.
 - **Pricing**: Free. **No in-app purchases** (do not create any).
@@ -95,6 +108,42 @@ approve, decline, post and record.
   current week: `update dentvid_items set week_of = date_trunc('week', now() + interval '30 hours')::date,
   approval = 'pending', posted_at = null where clinic_id = (select id from dentvid_clinics where review_demo);`
 - If a reviewer deletes the account (5.1.1(v)), run the script again before resubmitting.
+
+### 1.6 TestFlight from GitHub Actions (no Mac needed)
+
+Workflow `.github/workflows/ios-dentvideo-release.yml` ("iOS DentVideo release (TestFlight)"),
+manual only. It runs the Core tests, archives with Xcode 26 (App Store Connect only accepts builds
+made with the iOS 26 SDK), signs with Xcode's automatic signing through an App Store Connect API
+key, exports the `.ipa` and uploads it. The build number is the UTC time (`yyMMddHHmm`, always
+increasing) unless you type one. No certificate or profile is stored anywhere: Apple keeps a
+cloud-managed distribution certificate for the team.
+
+Once:
+
+1. App Store Connect → Users and Access → Integrations → App Store Connect API → **Team Keys** → +.
+   Name "GitHub DentVideo", role **Admin** (automatic signing on CI needs the right to create the
+   cloud-managed distribution certificate; App Manager works only if "Access to Cloud Managed
+   Distribution Certificate" is ticked for it). Download `AuthKey_<KEYID>.p8` (only once possible).
+2. GitHub → Bulsulog-art/clipforge → Settings → Secrets and variables → Actions → New repository
+   secret, four times:
+
+   | Secret | Value |
+   |---|---|
+   | `ASC_KEY_ID` | the key's Key ID (10 characters, shown in the key list) |
+   | `ASC_ISSUER_ID` | the Issuer ID shown above the key list (a UUID) |
+   | `ASC_KEY_P8` | the whole text of the `.p8` file, including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` |
+   | `APPLE_TEAM_ID` | `YA6Y85MSY6` (optional, this is the default) |
+
+3. The app record must exist first (§1.4), with bundle id `com.bulsulabs.dentvideo`, and the App ID
+   must have Push Notifications and Associated Domains (§1.1).
+
+Each release: raise `CFBundleShortVersionString` in `ios/DentVideo/project.yml` when the version
+changes (1.0.0 → 1.0.1), merge, then Actions → "iOS DentVideo release (TestFlight)" → Run
+workflow (leave the build number empty). Turn "upload" off for a dry run that only archives and
+exports. After Apple's processing (usually 5 to 30 minutes) the build appears in TestFlight;
+answer the export-compliance question once (the app sets `ITSAppUsesNonExemptEncryption = NO`, so
+it should not be asked). Never paste the `.p8` into a chat, an issue or a commit; the workflow
+writes it to the runner only for the job and deletes it at the end.
 
 ---
 
@@ -457,8 +506,25 @@ iPhones. Because the app also runs on iPad (`TARGETED_DEVICE_FAMILY 1,2`), **iPa
 2064 × 2752 screenshots are required too (same screens, iPad simulator). If the owner prefers not
 to make iPad screenshots, set `TARGETED_DEVICE_FAMILY: "1"` in `project.yml` (iPhone only).
 
-Simulator: `xcrun simctl status_bar booted override --time 9:41 --batteryState charged --batteryLevel 100`
-before capturing; capture with `xcrun simctl io booted screenshot shot.png`.
+How the set is made (repeatable, no hand editing):
+
+1. Actions → "iOS DentVideo" → Run workflow (screens `full`). The `screens` job captures the six
+   store screens on iPhone 17 Pro Max (1320 × 2868) in all eight languages and on iPad Pro 13"
+   (2064 × 2752) in English, status bar at 9:41, from demo mode (fictional "Riverside" clinic;
+   its dentist and texts are invented, in each language).
+2. Download the `dentvideo-screens-store` artifact, then
+   `python3 ios/DentVideo/scripts/appstore_shots.py <artifact-dir> <out> --fonts <dir with InstrumentSerif-Regular.ttf>`
+   (Instrument Serif is OFL, from google/fonts `ofl/instrumentserif`). It adds the caption band
+   (paper background, the site's serif, a teal rule) and writes `<out>/<lang>/1-week-full.png` …
+   `6-videos.png` and `<out>/ipad-en/…` at exactly the accepted sizes.
+3. Upload per language in App Store Connect (6.9" display, and 13" iPad for English; App Store
+   Connect scales them for smaller devices).
+
+Store screens and captions: 1 This week ("Your week's videos, ready on Monday"), 2 Video
+("Watch, then approve or decline"), 3 Post sheet after saving ("Saved and copied, ready to post"),
+4 Camera with the filming card ("Record with your talking points on screen"), 5 Record tab ("A
+filming card for every topic"), 6 Video settings ("Your language, your voice, your closing
+line"). The caption texts of all eight languages are in `appstore_shots.py`.
 
 ## 7. Universal links and deep links
 

@@ -65,6 +65,27 @@ export function ownerAlert(a: OwnerAlert): Promise<DeliverResult> {
   return deliverAlert({ store: deps.store, send: deps.send, env: deps.env, now: deps.now, log }, a);
 }
 
+/**
+ * Raise an alert at most once per `onceKey` for `ttlSec` (deliverAlert itself
+ * dedupes per key and day only). The claim is given back when the alert did
+ * not go out (muted, failed), so a later raise still reaches the owner.
+ */
+export async function ownerAlertOnce(onceKey: string, ttlSec: number, a: OwnerAlert): Promise<DeliverResult | "already"> {
+  const s = deps.store;
+  if (s) {
+    let first = true;
+    try {
+      first = await s.setNx(onceKey, ttlSec);
+    } catch {
+      first = true; // no store: fall back to the per-day dedupe
+    }
+    if (!first) return "already";
+  }
+  const res = await ownerAlert(a);
+  if (s && (res === "failed" || res === "muted" || res === "no_recipient")) await s.del(onceKey).catch(() => {});
+  return res;
+}
+
 /** One video failed to render; past the hourly threshold the owner hears about it once. */
 export async function noteRenderFailure(err: unknown): Promise<void> {
   const t = thresholds(deps.env).renderFailPerHour;

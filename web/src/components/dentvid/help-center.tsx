@@ -4,6 +4,7 @@ import { Link2, Mail } from "lucide-react";
 import { LANDING_PATH, dirOf, type Locale } from "@/content/dentvideo";
 import { HELP, HELP_ARTICLE_META, helpShotSrc, type HelpId } from "@/content/help";
 import { LEGAL_NAV, legalPath } from "@/content/legal";
+import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { LANDING } from "@/content/dentvideo";
 import { helpMailto, SUPPORT_EMAIL } from "@/content/dentvideo-support";
 import { helpJsonLd, helpSections, jsonLdHtml } from "@/lib/dentvid/seo-guides";
@@ -123,10 +124,10 @@ function Answer({ locale, id }: { locale: Locale; id: HelpId }) {
               <WithEmail text={p} />
             </p>
           ))}
-          {meta.legal?.length ? (
+          {meta.legal?.length || meta.checker ? (
             <p className="text-sm text-dv-muted">
               {h.readMore}{" "}
-              {meta.legal.map((k, i) => (
+              {(meta.legal ?? []).map((k, i) => (
                 <Fragment key={k}>
                   {i > 0 && " · "}
                   <Link href={dvHref(legalPath(k, locale))} className="font-medium text-dv-teal underline-offset-4 hover:underline">
@@ -134,6 +135,14 @@ function Answer({ locale, id }: { locale: Locale; id: HelpId }) {
                   </Link>
                 </Fragment>
               ))}
+              {meta.checker && (
+                <>
+                  {meta.legal?.length ? " · " : null}
+                  <Link href={dvHref(CHECKER_PATH[locale])} className="font-medium text-dv-teal underline-offset-4 hover:underline" data-help-checker>
+                    {CHECKER[locale].h1}
+                  </Link>
+                </>
+              )}
             </p>
           ) : null}
         </div>

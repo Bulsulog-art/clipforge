@@ -130,7 +130,7 @@ export function servicesWithoutSample(
 export const HANDLE_TOKEN = "{handle}";
 export const NAME_TOKEN = "{name}";
 
-/** "@smile_clinic" from "smile_clinic", "@smile_clinic" or " @Smile_Clinic " (case kept). */
+/** "@example_handle" from "example_handle", "@example_handle" or " @Example_Handle " (case kept). */
 export function formatHandle(handle?: string): string | undefined {
   const h = handle?.trim().replace(/^@+/, "").replace(/\s+/g, "");
   return h ? `@${h}` : undefined;

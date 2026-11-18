@@ -5,7 +5,7 @@ import { scanHardRules } from "../dental/compliance.js";
 import { ctaProblems } from "../dental/style.js";
 import type { ItemRow } from "./rows.js";
 
-const TR = { name: "Gülümse Diş Kliniği", city: "İzmir", language: "tr" as const, country: "TR", address: "formal" as const };
+const TR = { name: "Örnek Diş Kliniği", city: "İzmir", language: "tr" as const, country: "TR", address: "formal" as const };
 const DE = { name: "Zahnarztpraxis am Park", city: "München", language: "de" as const, country: "DE", address: "formal" as const };
 const EN = { name: "Riverside Dental", city: "Bristol", language: "en" as const, country: "GB", address: "formal" as const };
 

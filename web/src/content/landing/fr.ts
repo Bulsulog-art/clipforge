@@ -16,7 +16,7 @@ export const fr: LandingContent = {
     ctaHint: "Aperçu avec votre logo · sans compte",
     samplesLink: "Voir trois vidéos d'exemple",
     priceNote: "mensuel, résiliable à tout moment",
-    facts: ["Rien n'est publié sans votre validation", "Ni avatar, ni faux praticien, ni patient à l'écran", "Première semaine prête environ 15 minutes après l'abonnement"],
+    facts: ["Rien n'est publié sans votre validation", "Ni avatar, ni faux praticien, ni patient à l'écran", "Première semaine prête en général moins d'une heure après l'abonnement"],
   },
   mock: { ready: "Prête pour votre validation", copied: "Texte copié" },
   video: { play: "Lire", pause: "Pause" },
@@ -66,7 +66,7 @@ export const fr: LandingContent = {
     heading: "Comment ça marche",
     steps: [
       { title: "Présentez votre cabinet, une seule fois.", text: "Soins, langue, vouvoiement ou tutoiement, logo et couleur. Environ deux minutes. Les vidéos portent uniquement sur les soins que vous proposez." },
-      { title: "Cinq vidéos chaque lundi.", text: "Nous vous écrivons dès que la semaine est prête. Votre première semaine arrive environ 15 minutes après l'abonnement." },
+      { title: "Cinq vidéos chaque lundi.", text: "Nous vous écrivons dès que la semaine est prête. Votre première semaine arrive en général moins d'une heure après l'abonnement." },
       { title: "Regarder, valider, partager.", text: "Validez toute la semaine d'un geste, ou une vidéo après l'autre. Sur votre téléphone, une vidéo validée ouvre le menu de partage, texte déjà copié." },
     ],
     shots: ["L'écran de configuration du cabinet dans l'application DentVideo", "Une semaine de vidéos dans l'application DentVideo, prête à être vérifiée", "Vérifier une vidéo dans l'application DentVideo : valider ou refuser"],

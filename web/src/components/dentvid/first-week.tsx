@@ -62,7 +62,7 @@ export function FirstWeek({
     setRetrying(false);
   }
 
-  // Much longer than the ~15 minutes promised, or the job went missing: a calm
+  // Much longer than the "usually within an hour" promised, or the job went missing: a calm
   // note and the same "try again" (lib/dentvid/onboarding firstWeekStuck).
   // Worked out after mount (it depends on the clock and this browser's memory).
   const seenSince = useRef<number | null>(null);

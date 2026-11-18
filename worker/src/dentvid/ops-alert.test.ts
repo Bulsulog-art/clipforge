@@ -36,6 +36,8 @@ beforeEach(() => {
 export const SAMPLES: Record<string, OwnerAlert> = {
   weekFailed: alerts.weekFailed({ clinic: CLINIC, week: "2026-11-09", attempts: 4, error: "render timed out after 900s", permanent: false }),
   thinWeek: alerts.thinWeek({ clinic: CLINIC, week: "2026-11-09", usable: 2, wanted: 5, reasons: ["429 Rate limit reached", "mentions a guarantee"] }),
+  providerDown: alerts.providerDown({ provider: "OpenAI", reason: "HTTP 429 insufficient_quota", when: "preflight", clinic: CLINIC, week: "2026-11-09" }),
+  providerDownDaily: alerts.providerDown({ provider: "ElevenLabs", reason: "character quota used up (100000 of 100000)", when: "daily", fallback: true }),
   dispatchMissing: alerts.dispatchMissing({ week: "2026-11-09", activeClinics: 12, jobs: 0, missing: 12, requeued: 12, reason: "the dispatch never ran" }),
   firstWeekLate: alerts.firstWeekLate({ clinic: CLINIC, paidAt: "2026-11-09T05:00:00.000Z", minutes: 125, requeued: true, jobState: "active" }),
   webhookSignatures: alerts.webhookSignatures({ count: 5, threshold: 5 }),
