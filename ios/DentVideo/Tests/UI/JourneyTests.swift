@@ -4,7 +4,7 @@ import XCTest
 final class SessionJourneyTests: DVTestCase {
     func testSignInSuccess() {
         launch(["SignedIn": "0"])
-        type(wait(el("signin.email")), "hello@riverside.example")
+        type(wait(el("signin.email")), "hello@sample.example")
         type(el("signin.password"), "a good password")
         el("signin.submit").tap()
         wait(el("card.d1"), 12, "the week after signing in")
@@ -13,7 +13,7 @@ final class SessionJourneyTests: DVTestCase {
 
     func testSignInWrongPasswordSaysSo() {
         launch(["SignedIn": "0"])
-        type(wait(el("signin.email")), "hello@riverside.example")
+        type(wait(el("signin.email")), "hello@sample.example")
         type(el("signin.password"), "wrong")
         el("signin.submit").tap()
         let error = wait(el("signin.error"))
@@ -32,13 +32,13 @@ final class SessionJourneyTests: DVTestCase {
     func testSignInButtonNeedsAnEmailAndPassword() {
         launch(["SignedIn": "0"])
         XCTAssertFalse(wait(el("signin.submit")).isEnabled)
-        type(el("signin.email"), "hello@riverside.example")
+        type(el("signin.email"), "hello@sample.example")
         XCTAssertFalse(el("signin.submit").isEnabled)
     }
 
     func testForgotPassword() {
         launch(["SignedIn": "0"])
-        type(wait(el("signin.email")), "hello@riverside.example")
+        type(wait(el("signin.email")), "hello@sample.example")
         text(Strings.value("signin.forgot")).tap()
         wait(text(Strings.value("forgot.button"))).tap()
         wait(text(Strings.value("forgot.sent")))
@@ -356,7 +356,7 @@ final class SettingsJourneyTests: DVTestCase {
         let delete = el("settings.delete")
         scrollTo(delete)
         delete.tap()
-        type(wait(el("delete.field")), "riverside   dental")
+        type(wait(el("delete.field")), "sample   dental   practice")
         XCTAssertTrue(el("delete.submit").isEnabled, "case and spaces do not matter")
         el("delete.submit").tap()
         wait(el("signin.email"), 10, "signed out after deletion")

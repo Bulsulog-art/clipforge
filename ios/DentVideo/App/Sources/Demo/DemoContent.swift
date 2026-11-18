@@ -2,8 +2,11 @@
 import Foundation
 import DentVideoCore
 
-/// Sample texts for the demo clinic in the app's eight languages. The clinic ("Riverside") and its
-/// dentist are fictional; nothing here describes a real customer. DEBUG builds only.
+/// Sample texts for the demo clinic in the app's eight languages. The clinic and its dentist are
+/// fictional, and the clinic's name says so in every language ("Sample Dental Practice", "Örnek Diş
+/// Kliniği", "サンプル歯科" …, the same names as the web's demo data). No social handle: a made-up
+/// handle could belong to a real practice. Nothing here describes a real customer. DEBUG builds only.
+/// Names that must not come back: Core/Tests/DentVideoCoreTests/DemoNamesTests.swift.
 struct DemoContent {
     var clinic: String
     var city: String
@@ -31,7 +34,7 @@ struct DemoContent {
     }
 
     static let en = DemoContent(
-        clinic: "Riverside Dental", city: "Springfield", country: "US",
+        clinic: "Sample Dental Practice", city: "Springfield", country: "US",
         services: ["Check-ups", "Whitening", "Implants", "Aligners"],
         closing: "Book your check-up online.",
         titles: ["How long does whitening last?", "Implant or bridge?", "Flossing in two minutes", "Why do gums bleed?", "Aligners: what to expect", "Sensitive teeth and cold drinks", "Welcome to our clinic"],
@@ -40,7 +43,7 @@ struct DemoContent {
         card: ShootCard(opening: "Hi, I'm Dr. Reed. Here's the question patients ask most about whitening.", points: ["Whitening is safe on healthy enamel", "Some sensitivity can happen and fades in a few days", "We'll tell you which method suits your teeth"], closing: "Book a check-up and we'll tell you what's realistic for you.", avoid: ["Promising a shade", "Before-and-after claims"], setup: ["Phone at eye level", "Light in front of you", "A quiet room"], minutes: 2))
 
     static let tr = DemoContent(
-        clinic: "Riverside Diş Kliniği", city: "İzmir", country: "TR",
+        clinic: "Örnek Diş Kliniği", city: "İzmir", country: "TR",
         services: ["Kontrol", "Beyazlatma", "İmplant", "Şeffaf plak"],
         closing: "Kontrol randevunuzu online alın.",
         titles: ["Diş beyazlatma ne kadar kalıcı?", "İmplant mı, köprü mü?", "İki dakikada diş ipi", "Diş etleri neden kanar?", "Şeffaf plak: nelere hazır olmalı?", "Soğuk içecekte diş hassasiyeti", "Kliniğimize hoş geldiniz"],
@@ -49,7 +52,7 @@ struct DemoContent {
         card: ShootCard(opening: "Merhaba, ben Dr. Aydın. Hastaların beyazlatma hakkında en çok sorduğu soru şu.", points: ["Sağlıklı minede beyazlatma güvenlidir", "Hafif hassasiyet olabilir, birkaç günde geçer", "Dişlerinize uygun yöntemi birlikte seçeriz"], closing: "Muayene için randevu alın, sizin için neyin gerçekçi olduğunu söyleyelim.", avoid: ["Belirli bir renk vaat etmek", "Önce-sonra iddiaları"], setup: ["Telefon göz hizasında", "Işık önünüzde", "Sessiz bir oda"], minutes: 2))
 
     static let de = DemoContent(
-        clinic: "Zahnarztpraxis Riverside", city: "Freiburg", country: "DE",
+        clinic: "Demo Zahnarztpraxis", city: "Freiburg", country: "DE",
         services: ["Kontrolluntersuchung", "Bleaching", "Implantate", "Aligner"],
         closing: "Kontrolltermin jetzt online buchen.",
         titles: ["Wie lange hält Bleaching?", "Implantat oder Brücke?", "Zahnseide in zwei Minuten", "Warum blutet das Zahnfleisch?", "Aligner: was Sie erwartet", "Empfindliche Zähne bei Kälte", "Willkommen in unserer Praxis"],
@@ -58,7 +61,7 @@ struct DemoContent {
         card: ShootCard(opening: "Hallo, ich bin Dr. Weber. Das ist die Frage, die Patientinnen und Patienten am häufigsten zum Bleaching stellen.", points: ["Auf gesundem Zahnschmelz ist Bleaching sicher", "Leichte Empfindlichkeit kann auftreten und vergeht nach einigen Tagen", "Wir sagen Ihnen, welche Methode zu Ihren Zähnen passt"], closing: "Vereinbaren Sie einen Kontrolltermin, dann besprechen wir, was für Sie realistisch ist.", avoid: ["Eine bestimmte Zahnfarbe versprechen", "Vorher-nachher-Aussagen"], setup: ["Telefon auf Augenhöhe", "Licht von vorn", "Ein ruhiger Raum"], minutes: 2))
 
     static let es = DemoContent(
-        clinic: "Clínica Dental Riverside", city: "Valencia", country: "ES",
+        clinic: "Clínica Dental Ejemplo", city: "Valencia", country: "ES",
         services: ["Revisiones", "Blanqueamiento", "Implantes", "Alineadores"],
         closing: "Pide tu revisión online.",
         titles: ["¿Cuánto dura un blanqueamiento?", "¿Implante o puente?", "Hilo dental en dos minutos", "¿Por qué sangran las encías?", "Alineadores: qué esperar", "Dientes sensibles al frío", "Bienvenidos a nuestra clínica"],
@@ -67,7 +70,7 @@ struct DemoContent {
         card: ShootCard(opening: "Hola, soy la Dra. Ruiz. Esta es la pregunta que más nos hacen sobre el blanqueamiento.", points: ["En un esmalte sano, el blanqueamiento es seguro", "Puede haber algo de sensibilidad, que pasa en unos días", "Te diremos qué método va mejor con tus dientes"], closing: "Pide una revisión y te diremos qué es realista para ti.", avoid: ["Prometer un tono concreto", "Afirmaciones de antes y después"], setup: ["Teléfono a la altura de los ojos", "Luz delante de ti", "Una sala tranquila"], minutes: 2))
 
     static let fr = DemoContent(
-        clinic: "Cabinet dentaire Riverside", city: "Lyon", country: "FR",
+        clinic: "Cabinet Dentaire Exemple", city: "Lyon", country: "FR",
         services: ["Contrôles", "Blanchiment", "Implants", "Aligneurs"],
         closing: "Prenez rendez-vous en ligne.",
         titles: ["Combien de temps dure un blanchiment\u{00A0}?", "Implant ou bridge\u{00A0}?", "Le fil dentaire en deux minutes", "Pourquoi les gencives saignent-elles\u{00A0}?", "Aligneurs\u{00A0}: à quoi s'attendre", "Dents sensibles au froid", "Bienvenue au cabinet"],
@@ -76,7 +79,7 @@ struct DemoContent {
         card: ShootCard(opening: "Bonjour, je suis le Dr Martin. Voici la question qu'on nous pose le plus sur le blanchiment.", points: ["Sur un émail sain, le blanchiment est sûr", "Une sensibilité peut apparaître et disparaît en quelques jours", "Nous vous disons quelle méthode convient à vos dents"], closing: "Prenez rendez-vous pour un contrôle et nous verrons ce qui est réaliste pour vous.", avoid: ["Promettre une teinte", "Comparaisons avant/après"], setup: ["Téléphone à hauteur des yeux", "Lumière devant vous", "Une pièce calme"], minutes: 2))
 
     static let ja = DemoContent(
-        clinic: "リバーサイド歯科", city: "横浜", country: "JP",
+        clinic: "サンプル歯科", city: "横浜", country: "JP",
         services: ["定期検診", "ホワイトニング", "インプラント", "マウスピース矯正"],
         closing: "検診のご予約はオンラインで。",
         titles: ["ホワイトニングはどのくらい続く？", "インプラントとブリッジ、どちらがいい？", "2分でできるデンタルフロス", "歯ぐきから血が出るのはなぜ？", "マウスピース矯正で知っておきたいこと", "冷たい飲み物でしみる歯", "当院へようこそ"],
@@ -85,7 +88,7 @@ struct DemoContent {
         card: ShootCard(opening: "こんにちは、歯科医師の佐藤です。ホワイトニングについて一番多いご質問にお答えします。", points: ["健康なエナメル質なら、ホワイトニングは安全です", "しみることがありますが、数日でおさまります", "どの方法が合うかは、私たちがご説明します"], closing: "検診のご予約をどうぞ。あなたに合った方法をお伝えします。", avoid: ["特定の白さを約束すること", "ビフォーアフターの表現"], setup: ["スマホは目の高さに", "光は正面から", "静かな部屋で"], minutes: 2))
 
     static let ar = DemoContent(
-        clinic: "عيادة ريفرسايد للأسنان", city: "عمّان", country: "JO",
+        clinic: "عيادة أسنان تجريبية", city: "عمّان", country: "JO",
         services: ["فحص دوري", "تبييض", "زراعة", "تقويم شفاف"],
         closing: "احجز موعد الفحص عبر الإنترنت.",
         titles: ["كم يدوم تبييض الأسنان؟", "زراعة أم جسر؟", "خيط الأسنان في دقيقتين", "لماذا تنزف اللثة؟", "التقويم الشفاف: ماذا تتوقع", "حساسية الأسنان مع المشروبات الباردة", "أهلًا بكم في عيادتنا"],
@@ -94,7 +97,7 @@ struct DemoContent {
         card: ShootCard(opening: "مرحبًا، أنا د. سلمى. هذا أكثر سؤال يطرحه المرضى عن التبييض.", points: ["التبييض آمن على مينا الأسنان السليمة", "قد تظهر حساسية خفيفة وتزول خلال أيام", "نخبرك بالطريقة التي تناسب أسنانك"], closing: "احجز موعد فحص وسنخبرك بما هو واقعي بالنسبة لك.", avoid: ["الوعد بدرجة لون معيّنة", "ادعاءات قبل وبعد"], setup: ["الهاتف بمستوى العينين", "الضوء أمامك", "غرفة هادئة"], minutes: 2))
 
     static let pl = DemoContent(
-        clinic: "Gabinet stomatologiczny Riverside", city: "Poznań", country: "PL",
+        clinic: "Przykładowy Gabinet Stomatologiczny", city: "Poznań", country: "PL",
         services: ["Przeglądy", "Wybielanie", "Implanty", "Nakładki"],
         closing: "Umów przegląd online.",
         titles: ["Jak długo utrzymuje się wybielanie?", "Implant czy most?", "Nić dentystyczna w dwie minuty", "Dlaczego krwawią dziąsła?", "Nakładki ortodontyczne: czego się spodziewać", "Nadwrażliwość zębów na zimno", "Witamy w naszym gabinecie"],

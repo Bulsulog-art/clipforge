@@ -58,6 +58,9 @@ Build
 
 - [ ] Version (`CFBundleShortVersionString`) raised in `ios/DentVideo/project.yml` if this is a
       new version.
+- [ ] Repository secret `REVENUECAT_PUBLIC_KEY` set to DentVideo's `appl_…` public key
+      (`docs/APP_STORE_DENTVIDEO.md` §1.6). The release stops without it; a build without the key
+      would say "not available yet" on the paywall.
 - [ ] The owner (not an agent) runs "iOS DentVideo release (TestFlight)". It finishes green and
       the build shows in App Store Connect → TestFlight after processing.
 - [ ] Export compliance does not ask (the app declares no non-exempt encryption).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""App Store screenshots for DentVideo: the real app screens (simulator, demo mode, fictional
-"Riverside" clinic) under a short caption band in dentvideo.com's style (paper background,
-Instrument Serif caption in ink). No device frame, no claims, no prices.
+"""App Store screenshots for DentVideo: the real app screens (simulator, demo mode, the fictional
+"Sample Dental Practice" clinic in each language) under a short caption band in dentvideo.com's
+style (paper background, Instrument Serif caption in ink). No device frame, no claims, no prices.
 
 Input: the "store" artifact of the iOS DentVideo workflow (scripts/screens.sh):
     <in>/phone/<lang>/<screen>.png   1320 x 2868 (iPhone 6.9")

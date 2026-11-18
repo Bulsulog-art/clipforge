@@ -79,7 +79,12 @@ jobs:
 
       - name: Build Release and check no demo data ships
         if: success() || failure()
+        env:
+          # A dummy key through the same path the release workflow uses for the real one
+          # (scripts/revenuecat_key.sh), so every run proves the key reaches a Release build.
+          REVENUECAT_PUBLIC_KEY: appl_CIDummyKeyNotARealKey
         run: |
+          ./scripts/revenuecat_key.sh write
           xcodebuild build \
             -project DentVideo.xcodeproj \
             -scheme DentVideo \
@@ -91,10 +96,12 @@ jobs:
           grep -q "BUILD SUCCEEDED" build/xcodebuild-release.log
           BIN=$(find build/DerivedDataRelease/Build/Products -path "*Release-iphonesimulator/DentVideo.app/DentVideo" | head -1)
           # The demo mode (App/Sources/Demo) is DEBUG-only: its clinic, texts and launch switch must not be in Release.
-          for w in "Riverside" "DVScreen" "demo.invalid" "DemoTransport"; do
+          for w in "Demo Zahnarztpraxis" "sample.example" "DVScreen" "demo.invalid" "DemoTransport"; do
             if strings -a "$BIN" | grep -q "$w"; then echo "::error::Release binary contains demo data: $w"; exit 1; fi
           done
           echo "Release build has no demo data."
+          ./scripts/revenuecat_key.sh check "$(dirname "$BIN")"
+          rm -f Config/RevenueCat.xcconfig
 
       - name: Upload build log on failure
         if: failure()

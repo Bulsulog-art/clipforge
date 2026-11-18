@@ -71,10 +71,13 @@ struct SignUpView: View {
             if email.isEmpty { email = prefill }
         }
         .task {
+            // Demo screens only (DEBUG): Release builds carry none of the demo texts.
+            #if DEBUG
             guard model.isDemoMode, model.isDemo("signup", "signup-code") else { return }
-            email = "hello@riverside.example"
+            email = DemoServer.user.email ?? ""
             password = "••••••••••"
             if model.isDemo("signup-code") { step = .code(email) }
+            #endif
         }
     }
 

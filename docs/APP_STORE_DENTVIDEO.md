@@ -56,7 +56,7 @@ cd ios/DentVideo && xcodegen generate && open DentVideo.xcodeproj
   Or let CI do it: §1.6.
 - See every screen without a phone: Actions → "iOS DentVideo" → Run workflow (screens: `full`).
   The `screens` job runs the app in the simulator in **demo mode** (DEBUG builds only: an
-  in-process fake API and the fictional "Riverside" clinic, `App/Sources/Demo/`; Release builds
+  in-process fake API and the fictional "Sample Dental Practice" clinic, `App/Sources/Demo/`; Release builds
   contain none of it) and uploads two artifacts: `dentvideo-screens-review` (every screen and
   state, iPhone 6.9" in eight languages, light and dark, largest text size, iPad 13") and
   `dentvideo-screens-store` (full-size PNGs for §6). Locally on a Mac: `scripts/screens.sh`.
@@ -133,6 +133,20 @@ Once:
    | `ASC_ISSUER_ID` | the Issuer ID shown above the key list (a UUID) |
    | `ASC_KEY_P8` | the whole text of the `.p8` file, including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` |
    | `APPLE_TEAM_ID` | `YA6Y85MSY6` (optional, this is the default) |
+   | `REVENUECAT_PUBLIC_KEY` | RevenueCat's **public** Apple SDK key for DentVideo, `appl_…` (RevenueCat → the project → API keys → the App Store app). Required. |
+
+   About `REVENUECAT_PUBLIC_KEY`: it is the key the app's purchase screen uses to load the plans
+   and buy through the App Store. It is public by design (it is inside every copy of the app, so
+   a GitHub secret is only to keep it out of the repository), and it is **not** the RevenueCat
+   secret key (`sk_…`), which must never go into an app or this secret. The release workflow
+   writes it to `ios/DentVideo/Config/RevenueCat.xcconfig` (gitignored) with
+   `scripts/revenuecat_key.sh`, which refuses anything that is not `appl_` followed by letters and
+   digits, and after the archive checks that the built app carries it. If the secret is missing
+   or wrong, the release stops at its second step with "REVENUECAT_PUBLIC_KEY is empty" (or "is
+   not an App Store public SDK key") before anything is built, because a build without it would
+   show "not available yet" on the paywall to every clinic. The "iOS DentVideo" CI run passes a
+   dummy key through the same script on every Release build, so the path stays tested. On a Mac,
+   put the same line in that file by hand: `REVENUECAT_PUBLIC_KEY = appl_…`.
 
 3. The app record must exist first (§1.4), with bundle id `com.bulsulabs.dentvideo`, and the App ID
    must have Push Notifications and Associated Domains (§1.1).
@@ -484,14 +498,24 @@ Taken from the simulator with the demo clinic (or the `#Preview` sample data), l
 first, then each language from the same screens. No device frames with invented reviews, no prices,
 no claims in captions.
 
-| # | Screen | Caption idea (EN) |
+| # | Screen | Caption (EN) |
 |---|---|---|
 | 1 | This week (progress bar, five cards, "Approve all ready") | Your week's videos, ready on Monday |
 | 2 | Video detail (player, "Software-checked…", Approve / Decline) | Watch, then approve or decline |
 | 3 | Post sheet after "Save video and copy text" | Saved and copied, ready to post |
 | 4 | Record: camera with the filming card overlay | Record with your talking points on screen |
-| 5 | Settings (video language, narrator, closing line) | Your language, your voice, your closing line |
-| 6 | Arabic This week (right to left), optional | Eight languages |
+| 5 | Record tab (filming cards) | A filming card for every topic |
+| 6 | Video settings (video language, narrator, closing line) | Your language, your voice, your closing line |
+
+**Why the sign-up and paywall screens are not among the six** (decided 2026-11-18): the store
+screenshots are what a dentist sees before installing, and the six slots go to what the app does
+for the clinic every week (review, post, record). A plan screen there would spend a slot on
+prices, which these texts avoid, and would make the listing look like a consumer subscription
+app. App Review still sees the paywall: it is in the app (the reviewer reaches it with a new
+account), and App Store Connect asks for it separately as the **review screenshot of each
+in-app purchase** (Subscriptions → the product → Review Information → Screenshot), which is where
+it belongs. That image is the `paywall.png` the `screens` job keeps at full size
+(`dentvideo-screens-store` → `phone/en/paywall.png`, also `phone/tr/`).
 
 Sizes: **iPhone 6.9"** 1320 × 2868 (required); App Store Connect scales it down for smaller
 iPhones. Because the app also runs on iPad (`TARGETED_DEVICE_FAMILY 1,2`), **iPad 13"**
@@ -502,8 +526,12 @@ How the set is made (repeatable, no hand editing):
 
 1. Actions → "iOS DentVideo" → Run workflow (screens `full`). The `screens` job captures the six
    store screens on iPhone 17 Pro Max (1320 × 2868) in all eight languages and on iPad Pro 13"
-   (2064 × 2752) in English, status bar at 9:41, from demo mode (fictional "Riverside" clinic;
-   its dentist and texts are invented, in each language).
+   (2064 × 2752) in English, status bar at 9:41, from demo mode (the fictional "Sample Dental
+   Practice" clinic, named plainly as a sample in each language: "Örnek Diş Kliniği", "Demo
+   Zahnarztpraxis", "Clínica Dental Ejemplo", "Cabinet Dentaire Exemple", "サンプル歯科",
+   "عيادة أسنان تجريبية", "Przykładowy Gabinet Stomatologiczny"; no social handle; its dentist and
+   texts are invented). The same names as the web's demo data; the Core test
+   `DemoNamesTests` fails if a retired name such as "Riverside Dental" comes back.
 2. Download the `dentvideo-screens-store` artifact, then
    `python3 ios/DentVideo/scripts/appstore_shots.py <artifact-dir> <out> --fonts <dir with InstrumentSerif-Regular.ttf>`
    (Instrument Serif is OFL, from google/fonts `ofl/instrumentserif`). It adds the caption band

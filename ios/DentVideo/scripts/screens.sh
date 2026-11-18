@@ -1,6 +1,6 @@
 #!/bin/bash
 # Screenshots of every DentVideo screen and state, from the simulator, in demo mode (DEBUG build,
-# fake in-process API, the fictional "Riverside" clinic; see App/Sources/Demo). Runs on macOS
+# fake in-process API, the fictional "Sample Dental Practice" clinic; see App/Sources/Demo). Runs on macOS
 # (CI: .github/workflows/ios-dentvideo.yml, job "screens"). Nothing here talks to a server.
 #
 # Usage: ios/DentVideo/scripts/screens.sh [out-dir]   (default: build/screens)
@@ -54,7 +54,10 @@ ALL=(signin signin-error signin-loading forgot loading offline-first noplan paus
 KEY=(signin signin-error noplan week week-full week-generating week-delayed week-offline approve-all
      video-review video-look video-approved decline post-ready record camera-live settings settings-bottom videos delete)
 AX=(signin week video-look post-ready record settings videos delete)
-STORE=(week-full video-review post-ready camera-live record videos)
+# Full-size PNGs: the six App Store screens (scripts/appstore_shots.py) and the paywall, which is
+# not one of the six (the store set is for clinics) but is the in-app purchase's review screenshot
+# in App Store Connect (docs/APP_STORE_DENTVIDEO.md §6).
+STORE=(week-full video-review post-ready camera-live record videos paywall)
 QUICK=(signin week video-look post-ready record settings)
 # Sign-up and in-app purchase: the new account's screens (noclinic = the clinic form) and the plan in Settings.
 IAP=(signin signup signup-code noclinic verify paywall paywall-unavailable activating confirming noplan settings settings-appstore)
