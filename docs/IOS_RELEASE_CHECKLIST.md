@@ -39,7 +39,7 @@ Automated
 - [ ] "iOS DentVideo" run on the exact commit: `build-and-test`, all three `tests` legs and
       `screens` green. No test retried into a pass more than once (look at `test.log`; a flaky
       test is fixed, not ignored).
-- [ ] Core localisation test green (8 languages complete, no purchase wording).
+- [ ] Core localisation test green (8 languages complete, purchase wording only on the paywall).
 - [ ] Release binary check green ("Release build has no demo data").
 - [ ] Screenshots of this run looked at by a person: every screen in English light and dark,
       Arabic, German and Japanese key screens, AX5, iPad. Nothing clipped, overlapping,
@@ -172,8 +172,10 @@ Everything in gates 1 and 2, plus:
 - [ ] App Privacy answers match `PrivacyInfo.xcprivacy` and §5 of the App Store doc; the privacy
       policy mentions the push token.
 - [ ] Age rating questionnaire answered as in §4.
-- [ ] Pricing Free, no in-app purchases created, availability set.
-- [ ] Review notes pasted (§2), including the 3.1.3(c) explanation.
+- [ ] Pricing Free download; the two subscriptions (Starter, Practice) created as in
+      `docs/APP_STORE_DENTVIDEO.md` §1.4, each with the paywall review screenshot; availability set.
+- [ ] Review notes pasted (§2 / `APP_STORE_LISTING_DENTVIDEO.md` §5), with the second
+      (no-plan) account for the sandbox purchase.
 - [ ] "Manually release this version" selected, so the owner decides the moment after approval.
 
 After approval

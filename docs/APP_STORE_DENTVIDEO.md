@@ -8,6 +8,13 @@ Rules for every text here (CLAUDE.md): no "best", "#1", "leading", no invented n
 customers, no prices, no medical or outcome claims, nothing that tells people to buy or subscribe
 on the web.
 
+**Since #189 the app sells the plans itself.** Starter and Practice are auto-renewable monthly
+subscriptions bought through Apple's In-App Purchase (StoreKit through RevenueCat). The products,
+prices and server side are in `docs/DENTVIDEO_IAP_PLAN.md` (branch `claude/dentvideo-iap-server`); the
+paste-ready App Store Connect texts, including the in-app purchase entries, are in
+`docs/APP_STORE_LISTING_DENTVIDEO.md` (branch `claude/dentvideo-appstore-listing`). The 3.1.3(c)
+Enterprise Services argument that earlier versions of this file used no longer applies.
+
 ---
 
 ## 1. Owner setup, in order
@@ -18,7 +25,8 @@ on the web.
    description "DentVideo". Team `YA6Y85MSY6` (the same team as ClipForge, already in
    `ios/DentVideo/project.yml`).
 2. Capabilities on that App ID: **Push Notifications** and **Associated Domains**. Nothing else
-   (no Sign in with Apple, no App Groups, no In-App Purchase needed).
+   (no Sign in with Apple, no App Groups). In-App Purchase is on for every App ID by default;
+   leave it on, the app sells its plans through it.
 3. **Keys**: the team's existing APNs key (the one ClipForge's worker uses) works for every app of
    the team. If there is none: Keys → + → "Apple Push Notifications service (APNs)", download the
    `.p8` once, note the Key ID.
@@ -71,7 +79,13 @@ cd ios/DentVideo && xcodegen generate && open DentVideo.xcodeproj
 - Minimum iOS **18.0** (`project.yml`): iOS 18.0 minimum (owner decision, 2026-11-17). On iOS 17.5 one-line text fields (sign-in email, clinic name and city, the delete confirmation) never took keyboard focus under XCUITest, while the same simulator typed into the Settings app and into the app's multi-line decline note; the cause was not found, so iOS 17 is not supported rather than shipped uncertain.
 - Platform iOS, name **DentVideo**, primary language English (U.S.), bundle id
   `com.bulsulabs.dentvideo`, SKU `dentvideo-ios`, full access.
-- **Pricing**: Free. **No in-app purchases** (do not create any).
+- **Pricing**: Free download. The plans are **In-App Purchases**: one subscription group
+  "DentVideo" with two auto-renewable monthly subscriptions, Starter (`dentvideo_starter_monthly`,
+  level 2) and Practice (`dentvideo_practice_monthly`, level 1, adds the dentist's own recordings).
+  No free trial, no introductory, promotional or offer-code offers, Family Sharing off. Group
+  (multi-location) is not sold in the app. Prices per storefront, the RevenueCat set-up and the
+  order of the steps: `docs/DENTVIDEO_IAP_PLAN.md` §1, §2 and §10. Each subscription needs a review
+  screenshot: the paywall image from the `screens` job (§6).
 - **Availability**: the countries DentVideo serves.
 - **Category**: primary **Business**, secondary **Photo & Video**.
   *Why not Medical*: the app does not diagnose, treat or give health advice to anyone; it is a
@@ -91,9 +105,14 @@ One command creates it on Liman, with the service role and no payment, **after**
 scripts/dentvideo-review-demo/run.sh --worker-has-review-demo
 ```
 
+**Status: done.** `appreview@dentvideo.com` exists on Liman with the clinic below (Practice,
+`review_demo = true`). Its password is kept only on the server, in `/root/dentvideo-appreview.pw`;
+it is never written into the repository, an issue, a PR or a chat. Read it from there when filling
+in App Store Connect.
+
 It backs up the dentvid tables, applies 0024 (idempotent), creates `appreview@dentvideo.com`
-(confirmed, `app_metadata.internal`, so it stays out of the metrics) with the password from
-`~/.config/dentvideo/inceleme-demo.env` (chmod 600, sent over ssh stdin, never printed), and a clinic
+(confirmed, `app_metadata.internal`, so it stays out of the metrics) with a password that is never
+printed (sent over ssh stdin), and a clinic
 "DentVideo Review Clinic" (English, US, Practice set by hand, emails opted out, `review_demo = true`).
 Its current week holds the three English site samples (`web/public/dentvideo/samples/en`: no
 render, no API spend), all "ready" and undecided, each with a filming card, so the reviewer can
@@ -108,6 +127,13 @@ approve, decline, post and record.
   current week: `update dentvid_items set week_of = date_trunc('week', now() + interval '30 hours')::date,
   approval = 'pending', posted_at = null where clinic_id = (select id from dentvid_clinics where review_demo);`
 - If a reviewer deletes the account (5.1.1(v)), run the script again before resubmitting.
+- This clinic's plan was set outside the app, so it sees **no paywall**, only a neutral note that its
+  plan is managed outside the app. For the paywall and the sandbox purchase, App Review needs a
+  **second account without a plan**: proposed `appreview.purchase@dentvideo.com`
+  (`APP_STORE_LISTING_DENTVIDEO.md` §5, `DENTVIDEO_IAP_PLAN.md` §11). Before submitting: create it,
+  prove the address with the 6-digit code (an unproven address can never activate a sandbox
+  purchase), and put it in `DENTVID_IAP_SANDBOX_ALLOW_EMAILS` on the web app (sandbox policy
+  `internal`). Its password goes only into the App Review notes in App Store Connect.
 
 ### 1.6 TestFlight from GitHub Actions (no Mac needed)
 
@@ -163,26 +189,39 @@ writes it to the runner only for the job and deletes it at the end.
 
 ## 2. App Review notes (paste into "Notes")
 
-> DentVideo is a business service for dental clinics. Each week it delivers short patient-education
-> videos made for the clinic; this app lets the clinic's dentist review them, approve or decline
-> them, save them to Photos with the caption copied for posting on the clinic's own Instagram or
-> TikTok, and record their own clips with on-screen prompts.
->
-> Sign in with the demo clinic account provided above. Then: open a video in "This week", play it,
-> approve it, tap "Post this video" → "Save video and copy text". In "Record", open a filming card
-> and record a short take (camera and microphone permissions are requested only there).
-> Settings contains account deletion (Settings → Delete account), which deletes the account on our
-> server.
->
-> Purchasing: DentVideo is sold only to dental clinics (businesses), under a business agreement
-> between the clinic and us, for use by the clinic's own staff, under guideline 3.1.3(c) Enterprise
-> Services. Payment is processed on our website by our payment provider (merchant of record). The app contains no purchasing,
-> no prices, and no buttons, links or text directing users to purchase. Accounts without an active
-> plan see a neutral account-status screen with sign-out and account deletion only. Account
-> creation happens outside the app.
->
-> Notifications: one push when the clinic's weekly videos are ready (Monday morning) and optional
-> local posting reminders the user turns on in Settings. No tracking, no ads, no third-party SDKs.
+The paste-ready notes are in `docs/APP_STORE_LISTING_DENTVIDEO.md` §5 (`review.notes`); keep this
+summary in step with them and with `docs/DENTVIDEO_IAP_PLAN.md` §11. Replace the second account's
+password placeholder in App Store Connect, never in a file.
+
+- **Sign-in required**: `appreview@dentvideo.com` (Practice, `review_demo`, §1.5); the password
+  from `/root/dentvideo-appreview.pw` on the server.
+- **What the app is**: a service for dental clinics. Every Monday it delivers short
+  patient-education videos made for the clinic; in the app the clinic's dentist reviews them,
+  approves or declines them, saves them to Photos with the caption copied for posting on the
+  clinic's own Instagram or TikTok, and records their own clips with filming cards. The dentist
+  approves every video because they are health information published under the clinic's name; we
+  never post anything.
+- **Account 1, with a plan**: three ready videos to play, approve or decline, post ("Save video and
+  copy text") and record against; Settings → Delete account. Its plan was arranged outside the app,
+  so it sees no paywall, only a neutral note that its plan is managed outside the app (no link, no
+  price).
+- **Account 2, without a plan** (`appreview.purchase@dentvideo.com`): sign in, fill in the short
+  clinic form, then the plan screen shows Starter and Practice with the price from the App Store,
+  the renewal terms, Terms of Use, Privacy Policy and Restore Purchases. Buy either plan with a
+  sandbox Apple Account; the plan shows as active once our server receives the App Store
+  notification. Sandbox purchases switch on the service only for our own test accounts, so an
+  account the reviewer creates can see the paywall but a sandbox purchase on it stays pending.
+- **In-app purchase (3.1.1)**: two auto-renewable monthly subscriptions in one group (Starter,
+  level 2; Practice, level 1), no trials or offers or other purchasable items, through StoreKit
+  (RevenueCat), Restore Purchases on the plan screen. The website keeps its own checkout for web
+  visitors; the app does not link to it, mention it, or show web prices. If an account with an App
+  Store subscription is deleted, the app explains that deleting the account does not cancel the
+  subscription and opens Apple's subscription management.
+- **Account creation and deletion**: sign-up on the first screen with email and password and a
+  6-digit code by email; account deletion in Settings for every account.
+- **Permissions and data**: camera and microphone only in Record; Photos (add only) when saving a
+  video; one push when the week's videos are ready and optional local posting reminders. No
+  tracking, no ads, no analytics or crash SDKs; the only third-party SDK is RevenueCat (purchases).
 
 ---
 
@@ -461,15 +500,16 @@ Limits: name 30, subtitle 30, keywords 100 characters (commas between), promotio
 All "None" / "No", except: **Medical or Treatment Information: Frequent** (every video is dental
 patient education about a treatment or care topic, so "Frequent" is the honest answer; expect 16+,
 which does not matter for a business app; 2.3.6 wants honest answers). Unrestricted web access:
-**No** (the privacy link opens Safari; there are no in-app Help or Terms links, because the help
-center covers billing and the terms list prices, see 3.1.3). User-generated content shared with other users: **No** (a
+**No** (links such as privacy, terms and Apple's subscription page open outside the app; there is
+no browser). User-generated content shared with other users: **No** (a
 clinic's recordings are visible only to that clinic). Messaging, gambling, contests, ads: **No**.
 Accept whatever rating Apple computes from these answers.
 
 ## 5. App Privacy ("Data Collection")
 
 Tracking: **No** (no data is used to track people across apps or websites, no IDFA, no ad SDK).
-Matches `ios/DentVideo/App/Resources/PrivacyInfo.xcprivacy`.
+Matches `ios/DentVideo/App/Resources/PrivacyInfo.xcprivacy`, and `APP_STORE_LISTING_DENTVIDEO.md` §3.
+The only third-party SDK is RevenueCat, for purchases.
 
 | Data type | Collected | Linked to the user | Purpose | Notes |
 |---|---|---|---|---|
@@ -479,18 +519,26 @@ Matches `ios/DentVideo/App/Resources/PrivacyInfo.xcprivacy`.
 | User Content → Other User Content | Yes | Yes | App Functionality | clinic profile edited in Settings, decline notes |
 | Identifiers → Device ID | Yes | Yes | App Functionality | the APNs push token, to deliver the "week ready" notification (declared to be safe; it identifies the phone for push only) |
 | Usage Data → Product Interaction | Yes | Yes | Analytics | approving a video records a `video_approved` event on the clinic (`dentvid_events`, owner metrics); no third party |
-| Everything else (location, contacts, health, financial, browsing, search, diagnostics, purchases) | No | | | the app has no analytics or crash SDK |
+| Purchases → Purchase History | Yes | Yes | App Functionality | RevenueCat and our webhook record which plan the clinic bought, renewals and refunds |
+| Identifiers → User ID | Yes | Yes | App Functionality | the account's id is passed to RevenueCat as `app_user_id` (`Purchases.logIn`) |
+| Everything else (location, contacts, health, financial, browsing, search, diagnostics) | No | | | the app has no analytics or crash SDK |
 
-Payment data is not collected by the app (no purchases in the app).
+Payment card data is never collected: Apple handles the payment. With in-app sign-up, a person who
+signs up but does not buy also receives up to three "finish your setup" emails, so Email Address
+should then also carry the purpose **Developer's Advertising or Marketing**
+(`APP_STORE_LISTING_DENTVIDEO.md` §3, owner decision 5).
 
 **Privacy policy addition (owner, all eight languages)**: dentvideo.com/privacy describes
-recordings and clinic data already, but not the iPhone app's push token. Suggested English
-paragraph for section 2 ("What we collect"):
+recordings and clinic data already, but not the iPhone app's push token, App Store billing or
+RevenueCat. Suggested English paragraph for section 2 ("What we collect"), as in
+`APP_STORE_LISTING_DENTVIDEO.md` §3:
 
-> If you use the DentVideo iPhone app and allow notifications, we store your phone's push
-> notification token with your account to send you the "your week is ready" notice. It is deleted
-> when you sign out on that phone, turn the notice off, or delete your account. The app contains no
-> analytics, advertising or tracking software.
+> **iPhone app.** If you allow notifications, we store your phone's push notification token with
+> your account to send the "your week is ready" notice; it is deleted when you sign out on that
+> phone, turn the notice off, or delete your account. If you subscribe in the app, Apple processes
+> the payment; Apple and our subscription service provider RevenueCat, Inc. (USA) tell us which plan
+> was bought, when it renews and whether it was refunded, linked to your DentVideo account. The app
+> contains no advertising or tracking software.
 
 ## 6. Screenshots
 
@@ -565,6 +613,6 @@ line"). The caption texts of all eight languages are in `appstore_shots.py`.
       offline start in airplane mode,
       save to Photos, Instagram and TikTok hand-off, a recording uploads while the app is in the
       background, VoiceOver pass, Arabic, largest text size, dark mode.
-- [ ] No price, no purchase wording in the build (the Core localisation test enforces it for
-      strings; check screenshots by eye).
+- [ ] No price or purchase wording outside the plan screen; prices only from StoreKit on the paywall
+      (the Core localisation test enforces it for strings; check screenshots by eye).
 - [ ] Version and build number raised in `project.yml`.
