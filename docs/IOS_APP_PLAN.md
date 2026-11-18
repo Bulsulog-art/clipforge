@@ -59,7 +59,7 @@ the origin guard exempts exactly this prefix (`lib/origin-guard.ts`). Every resp
 | `DELETE devices` | `{ token }` | `{ ok }` | Deletes only the caller's row. |
 | `POST upload-url` | `{ size, contentType, name? }` | `{ path, uploadUrl, contentType }` | Shared handler with the web route (plan, quota, slots). |
 | `POST recording` | `{ path }` | `{ ok }` | Shared handler (own folder path only, plan gate). |
-| `POST clinic` | `{ profile }` | `{ id }` | Shared handler (profile schema, closing-line market rules). |
+| `POST clinic` | `{ profile }` | `{ id }` | Creates the login's clinic when it has none (an account made in the app), else saves it. The web's handler `handlers/clinic-save.ts`: profile schema, closing-line market rules, rate limit, one clinic per login, `clinic_saved`. Like the web, no email code needed here (the purchase waits for it). |
 | `POST account/delete` | `{ confirm }` | `{ ok }` | Shared handler (Dodo cancel or 409, storage, rows, login). `confirm` = the clinic name (or email), as on the web. |
 | `POST password-reset` | `{ email, locale }` | `{ ok }` | The web's route, unchanged (same limits, same answer whether or not the account exists). |
 | `GET topic-requests` | – | `{ topics, available }` | Owner's own suggestions (RLS); `available: false` before migration 0025. |
