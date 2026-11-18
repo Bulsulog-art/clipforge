@@ -9,6 +9,7 @@ struct WeekView: View {
     @State private var confirmAll = false
     @State private var showEarlier = false
     @State private var approvedBatch = 0
+    @State private var suggesting = false
     @Environment(\.dynamicTypeSize) private var type
 
     private var sections: [WeekBoard.Section] { WeekBoard.sections(model.items) }
@@ -35,6 +36,8 @@ struct WeekView: View {
                                 .accessibilityIdentifier("card.\(item.id)")
                         }
                     }
+                    // "Suggest a topic for next week" (the web's library has it too).
+                    TopicEntry(open: $suggesting)
                     if !earlier.isEmpty { earlierWeeks }
                 }
                 .padding(.horizontal, Theme.gutter)
@@ -47,6 +50,7 @@ struct WeekView: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: String.self) { id in VideoDetailView(itemID: id) }
             .sensoryFeedback(.success, trigger: approvedBatch)
+            .sheet(isPresented: $suggesting) { TopicSheet() }
             .alert(L("week.approveAll.confirm", candidates.count), isPresented: $confirmAll) {
                 Button(L("common.cancel"), role: .cancel) {}
                 Button(L("week.approveAll.button", candidates.count)) {
@@ -68,6 +72,10 @@ struct WeekView: View {
                 confirmAll = true
             }
             if model.isDemo("week-empty") { showEarlier = true }
+            if model.isDemo("topics", "topics-sent") {
+                try? await Task.sleep(for: .milliseconds(400))
+                suggesting = true
+            }
         }
     }
 

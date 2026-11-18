@@ -109,7 +109,8 @@ final class LocalizationTests: XCTestCase {
     /// Claims CLAUDE.md forbids, in every string, the purchase screens included.
     static let claimWords: [String: [String]] = [
         "en": ["\\bbest\\b", "#1", "\\bfree\\b", "guarantee", "discount"],
-        "de": ["\\bbeste", "kostenlos", "gratis"],
+        // "beste", not "bestehen" (to pass a check) or "am besten" (preferably).
+        "de": ["(?<!am )\\bbeste(?!h)", "kostenlos", "gratis"],
         "es": ["mejor\\b", "gratis"],
         "fr": ["meilleur", "gratuit"],
         "tr": ["en iyi", "ücretsiz"],
@@ -130,6 +131,22 @@ final class LocalizationTests: XCTestCase {
         "pl": ["rabat", "zniżk", "tylko dziś", "ograniczon", "próbn", "okazj", "promocj", "\\d+\\s?%"],
     ]
 
+    /// Strings that explain the advertising rules a refused topic suggestion broke: they may name
+    /// prices as something those rules restrict. Still no money, no claims.
+    static let ruleExplanations: Set<String> = ["topics.reason.ad_rules"]
+
+    func testClaimWordsCatchClaimsNotOrdinaryWords() throws {
+        func hit(_ l: String, _ s: String) throws -> Bool {
+            try (Self.claimWords[l] ?? []).contains { try NSRegularExpression(pattern: $0, options: [.caseInsensitive]).firstMatch(in: s, range: NSRange(s.startIndex..., in: s)) != nil }
+        }
+        XCTAssertTrue(try hit("de", "Die beste Praxis der Stadt"))
+        XCTAssertTrue(try hit("de", "Bester Service"))
+        XCTAssertTrue(try hit("de", "Kostenlose Beratung"))
+        XCTAssertFalse(try hit("de", "wenn sie dieselben Prüfungen bestehen"))
+        XCTAssertFalse(try hit("de", "Formulieren Sie es am besten als Frage eines Patienten."))
+        XCTAssertTrue(try hit("en", "The best clinic"))
+    }
+
     /// No price in any string (the paywall shows StoreKit's own, through a placeholder), no link to
     /// the web's sign-up, no superlatives (CLAUDE.md). Words that sell only on the purchase screens
     /// (`paywall.*`), and those screens use no pressure (no urgency, discount, trial or savings).
@@ -139,6 +156,9 @@ final class LocalizationTests: XCTestCase {
         for name in ["Localizable", "InfoPlist"] {
             for (k, m) in try load(name) {
                 let purchaseScreen = name == "Localizable" && k.hasPrefix("paywall.")
+                // Why a topic suggestion was refused names what health-advertising rules restrict
+                // ("such as prices, offers…", the web's wording): an explanation, not a sale.
+                let ruleExplanation = name == "Localizable" && Self.ruleExplanations.contains(k)
                 if purchaseScreen { paywallKeys += 1 }
                 for (l, raw) in m {
                     // Format placeholders ("%1$lld", "%@") are not money and not percentages.
@@ -146,7 +166,7 @@ final class LocalizationTests: XCTestCase {
                         .replacingOccurrences(of: "%(@|lld|ld|d|f)", with: "", options: .regularExpression)
                     XCTAssertNil(money.firstMatch(in: v, range: NSRange(v.startIndex..., in: v)), "\(k) \(l) shows money: \(v)")
                     XCTAssertFalse(v.lowercased().contains("dentvideo.com/start"), "\(k) \(l) links to sign-up")
-                    let words = (Self.claimWords[l] ?? []) + (purchaseScreen ? (Self.pressureWords[l] ?? []) : (Self.purchaseWords[l] ?? []))
+                    let words = (Self.claimWords[l] ?? []) + (purchaseScreen ? (Self.pressureWords[l] ?? []) : ruleExplanation ? [] : (Self.purchaseWords[l] ?? []))
                     for w in words {
                         let re = try NSRegularExpression(pattern: w, options: [.caseInsensitive])
                         XCTAssertNil(re.firstMatch(in: v, range: NSRange(v.startIndex..., in: v)), "\(k) \(l) contains '\(w)': \(v)")

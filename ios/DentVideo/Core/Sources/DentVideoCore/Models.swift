@@ -225,13 +225,17 @@ public struct VideoItem: Codable, Sendable, Equatable, Identifiable {
     public var postedAt: String?
     public var slot: Slot?
     public var shootCard: ShootCard?
+    /// The latest "Ask for a change" on this video (migration 0025), as the web's card shows it.
+    public var change: ChangeView?
+    /// True when the video has a subtitle file ("Download subtitles (.srt)").
+    public var subtitles: Bool
 
     enum CodingKeys: String, CodingKey {
-        case id, kind, status, approval, title, caption, hashtags, reasons, videoUrl, thumbUrl, post, postedAt, slot, shootCard
+        case id, kind, status, approval, title, caption, hashtags, reasons, videoUrl, thumbUrl, post, postedAt, slot, shootCard, change, subtitles
         case weekOf = "week_of"
     }
 
-    public init(id: String, kind: ItemKind = .generated, status: ItemStatus, approval: Approval, title: String, weekOf: String, caption: String? = nil, hashtags: [String]? = nil, reasons: [ReviewReason] = [], videoUrl: URL? = nil, thumbUrl: URL? = nil, post: PostTexts? = nil, postedAt: String? = nil, slot: Slot? = nil, shootCard: ShootCard? = nil) {
+    public init(id: String, kind: ItemKind = .generated, status: ItemStatus, approval: Approval, title: String, weekOf: String, caption: String? = nil, hashtags: [String]? = nil, reasons: [ReviewReason] = [], videoUrl: URL? = nil, thumbUrl: URL? = nil, post: PostTexts? = nil, postedAt: String? = nil, slot: Slot? = nil, shootCard: ShootCard? = nil, change: ChangeView? = nil, subtitles: Bool = false) {
         self.id = id
         self.kind = kind
         self.status = status
@@ -247,6 +251,8 @@ public struct VideoItem: Codable, Sendable, Equatable, Identifiable {
         self.postedAt = postedAt
         self.slot = slot
         self.shootCard = shootCard
+        self.change = change
+        self.subtitles = subtitles
     }
 
     public init(from decoder: Decoder) throws {
@@ -266,6 +272,8 @@ public struct VideoItem: Codable, Sendable, Equatable, Identifiable {
         postedAt = try c.decodeIfPresent(String.self, forKey: .postedAt)
         slot = try c.decodeIfPresent(Slot.self, forKey: .slot)
         shootCard = try? c.decodeIfPresent(ShootCard.self, forKey: .shootCard)
+        change = try? c.decodeIfPresent(ChangeView.self, forKey: .change)
+        subtitles = (try? c.decodeIfPresent(Bool.self, forKey: .subtitles)) ?? false
     }
 
     public var isPosted: Bool { postedAt != nil }

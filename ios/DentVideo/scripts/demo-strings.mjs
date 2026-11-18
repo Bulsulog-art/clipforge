@@ -23,6 +23,12 @@ export const DEMO_CONTENT = join(dirname(fileURLToPath(import.meta.url)), "..", 
  * flagging them is correct and expected; they are instructions, never published.
  */
 export const CONTENT_FIELDS = ["clinic", "city", "services", "closing", "titles", "captions", "tags"];
+/**
+ * Read when the block has them (older snippets do not): the clinic's topic suggestions and the
+ * logo preview's sample scenes (hook, statements, list, call to action), shown in the app's
+ * "Suggest a topic" sheet and "See it with your logo" screen.
+ */
+export const OPTIONAL_CONTENT_FIELDS = ["topics", "sample", "sample2"];
 export const CARD_FIELDS = ["opening", "points", "closing", "setup"];
 
 /** A Swift string literal's value (the escapes DemoContent uses: \u{…}, \", \\, \n). */
@@ -80,6 +86,10 @@ export function extractDemoStrings(src) {
       const v = readField(head, f, 0);
       if (!v) throw new Error(`DemoContent.${lang}: no ${f}`);
       v.forEach((text, i) => out.push({ lang, field: v.length > 1 || f.endsWith("s") ? `${f}[${i}]` : f, text }));
+    }
+    for (const f of OPTIONAL_CONTENT_FIELDS) {
+      const v = readField(head, f, 0);
+      if (v) v.forEach((text, i) => out.push({ lang, field: `${f}[${i}]`, text }));
     }
     for (const f of CARD_FIELDS) {
       const v = readField(block, f, cardAt);

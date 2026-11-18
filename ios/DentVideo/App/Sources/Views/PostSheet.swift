@@ -86,6 +86,10 @@ struct PostSheet: View {
                             .accessibilityIdentifier("post.error")
                     }
 
+                    if current.subtitles {
+                        SubtitlesRow(item: current)
+                    }
+
                     Divider().padding(.vertical, Theme.s1)
 
                     Toggle(isOn: Binding(get: { current.isPosted }, set: { v in Task { await model.setPosted(current, v) } })) {

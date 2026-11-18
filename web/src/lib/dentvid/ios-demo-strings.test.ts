@@ -32,7 +32,7 @@ describe("iOS demo clinic texts", () => {
     const all = (await load()).readDemoStrings();
     for (const lang of LANGS) {
       const mine = all.filter((s) => s.lang === lang);
-      for (const f of ["clinic", "closing", "titles[0]", "captions[0]", "card.opening", "card.points[0]", "card.closing"]) {
+      for (const f of ["clinic", "closing", "titles[0]", "captions[0]", "card.opening", "card.points[0]", "card.closing", "topics[0]", "sample[0]", "sample[6]", "sample2[2]"]) {
         expect(mine.some((s) => s.field === f), `${lang} ${f}`).toBe(true);
       }
     }

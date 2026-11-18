@@ -253,6 +253,7 @@ describe("every authenticated mobile route refuses requests without a valid Dent
     ["POST", "topic-requests", () => import("./topic-requests/route") as never, { text: "How long does sensitivity last?" }],
     ["GET", "billing", () => import("./billing/route") as never],
     ["GET", "preview", () => import("./preview/route") as never],
+    ["POST", "logo", () => import("./logo/route") as never, {}],
     ["POST", "verify-email", () => import("./verify-email/route") as never, { action: "confirm", code: "123456" }],
   ];
   const attempts: [string, { token?: string; cookie?: string; auth?: string }][] = [
