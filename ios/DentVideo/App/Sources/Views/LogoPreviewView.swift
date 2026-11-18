@@ -382,7 +382,8 @@ struct PreviewStage: View {
         .shadow(color: .black.opacity(0.18), radius: 22, y: 12)
         .contentShape(Rectangle())
         .onTapGesture { preview.toggle() }
-        .gesture(
+        // Simultaneous, so a vertical drag over the stage still scrolls the page.
+        .simultaneousGesture(
             DragGesture(minimumDistance: 30).onEnded { v in
                 guard abs(v.translation.width) > abs(v.translation.height) else { return }
                 // On a right-to-left page the next sample lies to the left.

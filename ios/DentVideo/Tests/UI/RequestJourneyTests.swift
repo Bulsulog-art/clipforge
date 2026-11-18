@@ -16,16 +16,18 @@ final class LogoPreviewJourneyTests: DVTestCase {
         XCTAssertTrue(el("preview.chip.initials").exists, "no logo yet: the clinic's initials")
         let sample = el("preview.sample")
         XCTAssertTrue(sample.label.contains(Strings.format("preview.sample", "en", 1, 2)), sample.label)
-        el("preview.next").tap()
+        let next = el("preview.next")
+        reveal(next)
+        next.tap()
         XCTAssertTrue(wait(textContaining(Strings.format("preview.sample", "en", 2, 2)), 5, "second sample").exists)
 
         let pick = el("preview.logo.pick")
-        scrollTo(pick)
+        reveal(pick)
         pick.tap()
         XCTAssertEqual(wait(el("preview.logo.saved"), 12, "logo saved").label, Strings.value("preview.logo.saved"))
         XCTAssertTrue(el("preview.chip.logo").exists, "the logo is in the video's corner")
         let fromLogo = el("preview.swatch.logo")
-        scrollTo(fromLogo)
+        reveal(fromLogo)
         XCTAssertTrue(fromLogo.exists, "the logo's own colour is offered")
         fromLogo.tap()
         XCTAssertTrue(fromLogo.isSelected)
@@ -48,15 +50,26 @@ final class LogoPreviewJourneyTests: DVTestCase {
         launch(["Plan": "noclinic", "Billing": "none", "Logo": "failonce"])
         fillClinicForm()
         let pick = wait(el("preview.logo.pick"), 15, "logo preview")
-        scrollTo(pick)
+        reveal(pick)
         pick.tap()
         XCTAssertEqual(wait(el("preview.logo.error"), 12, "upload error").label, Strings.value("preview.logo.failed"))
         XCTAssertTrue(el("preview.chip.logo").exists, "the preview keeps showing the picked logo")
         let retry = el("preview.logo.retry")
-        scrollTo(retry)
+        reveal(retry)
         retry.tap()
         wait(el("preview.logo.saved"), 12, "saved on retry")
         XCTAssertFalse(el("preview.logo.error").exists)
+    }
+
+    /// Scroll until the element is on screen and clear of the pinned "See the plans" bar: an element
+    /// under the bar still counts as hittable, and a tap on it lands on the bar's button (seen on the
+    /// iPhone SE and the 17 Pro Max; the iPad shows the whole screen).
+    private func reveal(_ e: XCUIElement) {
+        let bar = el("preview.continue")
+        for _ in 0..<8 {
+            if e.exists, e.isHittable, !bar.exists || e.frame.maxY < bar.frame.minY - 8 { return }
+            app.swipeUp(velocity: .slow)
+        }
     }
 
     private func fillClinicForm() {
