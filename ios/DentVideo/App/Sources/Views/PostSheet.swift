@@ -7,6 +7,8 @@ import DentVideoCore
 /// clinic posts from its own accounts.
 struct PostSheet: View {
     let item: VideoItem
+    /// Demo screenshots only: open on the "saved and copied" step.
+    var startReady = false
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
@@ -24,7 +26,7 @@ struct PostSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: Theme.s5) {
                     Picker(L("post.network"), selection: $network) {
                         Text("Instagram").tag(PostNetwork.instagram)
                         Text(L("post.short")).tag(PostNetwork.short)
@@ -35,15 +37,16 @@ struct PostSheet: View {
                         Label(L("post.bestTime", s), systemImage: "clock").font(.subheadline).foregroundStyle(Theme.body)
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L("post.text")).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.muted)
+                    VStack(alignment: .leading, spacing: Theme.s2) {
+                        Text(L("post.text")).font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted).textCase(.uppercase)
                         Text(text.isEmpty ? L("post.noText") : text)
                             .font(.body)
                             .foregroundStyle(Theme.ink)
                             .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(16)
+                    .padding(Theme.s4)
                     .dvCard()
 
                     switch step {
@@ -52,11 +55,14 @@ struct PostSheet: View {
                             Label(L("post.prepare"), systemImage: "square.and.arrow.down")
                         }
                         .buttonStyle(.dvPrimary)
-                        Text(L("post.prepare.note")).font(.footnote).foregroundStyle(Theme.muted)
+                        .accessibilityIdentifier("post.prepare")
+                        Text(L("post.prepare.note")).font(.footnote).foregroundStyle(Theme.body)
+                            .fixedSize(horizontal: false, vertical: true)
                         if let file {
                             // Photos access refused: the share sheet still offers "Save Video" and the apps.
                             ShareLink(item: file, subject: Text(item.title)) { Label(L("post.more"), systemImage: "square.and.arrow.up") }
                                 .buttonStyle(.dvSecondary)
+                                .accessibilityIdentifier("post.more")
                         }
                     case .preparing:
                         HStack(spacing: 12) {
@@ -66,16 +72,21 @@ struct PostSheet: View {
                         .frame(maxWidth: .infinity, minHeight: 50)
                     case .ready:
                         Label(L("post.ready"), systemImage: "checkmark.circle.fill")
-                            .font(.subheadline.weight(.semibold))
+                            .accessibilityIdentifier("post.ready")
+                            .font(.headline)
                             .foregroundStyle(Theme.teal)
+                            .padding(Theme.s4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Theme.teal.opacity(0.1), in: RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
                         targets
                     }
 
                     if let error {
                         Text(error).font(.subheadline).foregroundStyle(Theme.danger).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("post.error")
                     }
 
-                    Divider().padding(.vertical, 4)
+                    Divider().padding(.vertical, Theme.s1)
 
                     Toggle(isOn: Binding(get: { current.isPosted }, set: { v in Task { await model.setPosted(current, v) } })) {
                         VStack(alignment: .leading, spacing: 2) {
@@ -85,18 +96,22 @@ struct PostSheet: View {
                     }
                     .tint(Theme.teal)
                 }
-                .padding(24)
+                .padding(Theme.s5)
+                .readableWidth(560)
             }
             .background(Theme.paper.ignoresSafeArea())
             .navigationTitle(L("post.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.done")) { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.done")) { dismiss() }.accessibilityIdentifier("post.done") } }
             .onChange(of: network) { _, _ in
                 // The clipboard follows the chosen network once the video is saved.
                 if step == .ready { UIPasteboard.general.string = text }
             }
+            .sensoryFeedback(.success, trigger: step) { _, new in new == .ready }
+            .onAppear { if startReady { step = .ready } }
         }
         .presentationDetents([.large])
+        .presentationBackground(Theme.paper)
     }
 
     @ViewBuilder private var targets: some View {
@@ -107,6 +122,7 @@ struct PostSheet: View {
                         Label(target == .instagram ? L("post.openInstagram") : L("post.openTikTok"), systemImage: "arrow.up.forward.app")
                     }
                     .buttonStyle(.dvSecondary)
+                    .accessibilityIdentifier("post.open.\(target.rawValue)")
                 }
             }
             if let file {
@@ -114,12 +130,14 @@ struct PostSheet: View {
                     Label(L("post.more"), systemImage: "square.and.arrow.up")
                 }
                 .buttonStyle(.dvSecondary)
+                .accessibilityIdentifier("post.more")
             }
         }
     }
 
     private func installed(_ t: ShareTarget) -> Bool {
-        t.urls(localIdentifier: nil).contains { UIApplication.shared.canOpenURL($0) }
+        if model.isDemoMode { return true }
+        return t.urls(localIdentifier: nil).contains { UIApplication.shared.canOpenURL($0) }
     }
 
     private func open(_ t: ShareTarget) {

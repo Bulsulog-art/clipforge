@@ -698,14 +698,16 @@ export const alerts = {
     };
   },
 
-  newPayingClinic(a: { clinic: ClinicRef; interval?: string | null; returning: boolean }): OwnerAlert {
+  newPayingClinic(a: { clinic: ClinicRef; interval?: string | null; returning: boolean; source?: "dodo" | "apple" }): OwnerAlert {
     return {
       key: `new_paying:${a.clinic.id}`,
       severity: "good",
       titleTr: a.returning ? "Bir klinik geri döndü" : "Yeni ödeme yapan klinik",
       titleEn: a.returning ? "A clinic came back" : "New paying clinic",
       clinic: a.clinic,
-      what: [`${a.clinic.name?.trim() || "A clinic"} ${a.returning ? "re-activated" : "just paid for"} DentVideo ${a.clinic.tier ?? ""}${a.interval ? ` (${a.interval}ly)` : ""}${a.clinic.country ? ` from ${a.clinic.country}` : ""}.`],
+      what: [
+        `${a.clinic.name?.trim() || "A clinic"} ${a.returning ? "re-activated" : "just paid for"} DentVideo ${a.clinic.tier ?? ""}${a.interval ? ` (${a.interval}ly)` : ""}${a.clinic.country ? ` from ${a.clinic.country}` : ""}${a.source === "apple" ? " in the iPhone app (App Store)" : ""}.`,
+      ],
       done: ["Plan set to active, this week's videos queued, welcome email sent (once per clinic)."],
       todo: [`Say hello${a.clinic.email ? ` — ${a.clinic.email}` : ""}. A personal line from the founder in the first hour is remembered.`],
     };
@@ -810,6 +812,143 @@ export const alerts = {
       ],
       done: ["Nothing was changed: no clinic was switched on, paused or credited."],
       todo: ["Look the subscription up in Dodo. If it is not a genuine DentVideo purchase, refund or cancel it there."],
+    };
+  },
+
+  /**
+   * App Store (RevenueCat) billing events the owner must know about: a purchase that matched no clinic,
+   * a clinic paying in both channels, a refund, a transfer, a sandbox purchase, a missing migration.
+   * Apple refunds and cancellations are the customer's to request from Apple; Dodo's are ours to make.
+   */
+  appStoreBilling(a: {
+    kind: "unmatched" | "no_clinic" | "cross_channel" | "apple_duplicate" | "refund" | "refund_reversed" | "transfer" | "sandbox" | "ignored" | "migration_missing" | "web_active" | "takeover_unchecked";
+    event: string;
+    subscription: string;
+    clinic?: ClinicRef;
+    /** The other subscription in a conflict (a Dodo id, or another Apple original transaction id). */
+    other?: string | null;
+    detail?: string | null;
+  }): OwnerAlert {
+    const who = a.clinic ? a.clinic.name?.trim() || "The clinic" : "Nobody";
+    const T: Record<typeof a.kind, { sev: Severity; tr: string; en: string; what: string; done: string; todo: string[] }> = {
+      unmatched: {
+        sev: "urgent",
+        tr: "App Store ödemesi hiçbir hesapla eşleşmedi",
+        en: "An App Store purchase matched no DentVideo account",
+        what: `RevenueCat sent ${a.event} for Apple subscription ${a.subscription}, but its app_user_id is not a DentVideo login${a.detail ? ` (${a.detail})` : ""}.`,
+        done: "Nothing was changed: the webhook never guesses whose purchase it is. The event was acknowledged (200).",
+        todo: ["Find the customer in RevenueCat (Customers → search the id). If it is a real clinic, ask it to sign in to the app and tap Restore purchases.", "If nobody should be paying, the customer can ask Apple for a refund (reportaproblem.apple.com)."],
+      },
+      no_clinic: {
+        sev: "warning",
+        tr: "App Store ödemesi var ama klinik bilgisi yok",
+        en: "An App Store purchase arrived before the clinic was set up",
+        what: `${a.event} for Apple subscription ${a.subscription}: the login exists but has no clinic yet.`,
+        done: "Answered 503 so RevenueCat retries (it backs off over a few hours); the plan switches on as soon as the clinic exists.",
+        todo: ["If it is still not active tomorrow, ask the customer to finish the clinic form in the app and tap Restore purchases."],
+      },
+      cross_channel: {
+        sev: "urgent",
+        tr: "Klinik hem web'den hem App Store'dan ödüyor",
+        en: "A clinic is paying on the web AND in the App Store",
+        what: `${who} has a live web (Dodo) subscription ${a.other ?? "?"} and Apple subscription ${a.subscription} (${a.event}). It may be charged twice.`,
+        done: "The clinic has ONE plan: it is on the App Store subscription (an Apple subscription can only be cancelled or refunded by the customer; a Dodo one by us). No second week, no second welcome.",
+        todo: [
+          `First confirm with ${a.clinic?.email ?? "the clinic"} that they bought in the iPhone app (the App Store purchase names our login id, which the app itself sends; a purchase they did not make must not cost them their web plan).`,
+          `Then, in Dodo, cancel subscription ${a.other ?? "?"} and refund its latest charge${a.clinic?.email ? `, and tell ${a.clinic.email}` : ""}.`,
+        ],
+      },
+      apple_duplicate: {
+        sev: "urgent",
+        tr: "Klinik iki ayrı Apple aboneliğiyle ödüyor",
+        en: "A clinic has two App Store subscriptions",
+        what: `${who} already has Apple subscription ${a.other ?? "?"}; ${a.subscription} arrived as well (${a.event}) — most likely a second Apple ID on another iPhone.`,
+        done: "Recorded; the clinic stays on its current subscription. Nothing was cancelled (only the customer can).",
+        todo: [`Tell ${a.clinic?.email ?? "the clinic"} to cancel one of them in Settings → [name] → Subscriptions and ask Apple for a refund of that charge (reportaproblem.apple.com).`],
+      },
+      refund: {
+        sev: "warning",
+        tr: "Apple bir DentVideo ödemesini iade etti",
+        en: "Apple refunded a DentVideo purchase",
+        what: `${a.event}${a.detail ? ` (${a.detail})` : ""} for Apple subscription ${a.subscription}.`,
+        done: a.detail === "not current" ? "It was not the clinic's current subscription: the plan was left as it was." : "The plan ended at once (no new weeks). Videos already made stay in the library.",
+        todo: ["Nothing to do unless the clinic writes to you."],
+      },
+      refund_reversed: {
+        sev: "warning",
+        tr: "Apple iadeyi geri aldı",
+        en: "Apple reversed a refund",
+        what: `${a.event} for Apple subscription ${a.subscription}.`,
+        done: "Recorded only: the plan was not switched back on automatically.",
+        todo: ["Check the customer in RevenueCat. If the subscription is active again, the next renewal switches the clinic on; or set the plan by hand in /dentvideo/admin."],
+      },
+      transfer: {
+        sev: "warning",
+        tr: "Apple aboneliği başka bir hesaba taşındı",
+        en: "An App Store subscription moved to another account",
+        what: `RevenueCat moved Apple subscription ${a.subscription} between DentVideo logins${a.detail ? ` (${a.detail})` : ""} — usually "Restore purchases" on another account.`,
+        done: "The account it left no longer gets weeks from it; the account it went to is switched on only when the event says the subscription is paid and current.",
+        todo: ["If this looks like one subscription being shared between clinics, check RevenueCat's transfer setting (docs/DENTVIDEO_IAP_PLAN.md: keep with the original account)."],
+      },
+      sandbox: {
+        sev: "warning",
+        tr: "Sandbox (test) satın alımı bir kliniği açtı",
+        en: "A sandbox (test) purchase switched a clinic on",
+        what: `${who} was activated by a SANDBOX ${a.event} (TestFlight, App Review or an Xcode build). No money was paid; its first week will be made.`,
+        done: "Allowed by DENTVID_IAP_SANDBOX (default internal: a verified internal address or one in DENTVID_IAP_SANDBOX_ALLOW_EMAILS; allow only if set explicitly). Sandbox subscriptions expire on their own within hours.",
+        todo: ["If this was not you, a tester or App Review, remove the address from DENTVID_IAP_SANDBOX_ALLOW_EMAILS / the internal patterns, or set DENTVID_IAP_SANDBOX=off."],
+      },
+      ignored: {
+        sev: "warning",
+        tr: "App Store olayı yok sayıldı",
+        en: "An App Store event was ignored",
+        what: `${a.event} for Apple subscription ${a.subscription} was ignored: ${a.detail ?? "not a DentVideo plan"}.`,
+        done: "Nothing was changed.",
+        todo: ["Check RevenueCat: products and entitlements must be the ones in docs/DENTVIDEO_IAP_PLAN.md; family sharing off; no promotional grants."],
+      },
+      web_active: {
+        sev: "urgent",
+        tr: "Web'den ödeyen klinik için App Store satın alımı geldi",
+        en: "An App Store purchase arrived for a clinic that pays on the web",
+        what: `${who} has a live web (Dodo) plan${a.other ? ` (subscription ${a.other})` : ""}, and Apple subscription ${a.subscription} arrived for its login (${a.event}). The app never offers a purchase to a clinic paying on the web, and app_user_id is whatever the app sends, so this may not be the clinic's own purchase.`,
+        done: a.detail
+          ? `${a.detail[0].toUpperCase()}${a.detail.slice(1)} (${a.subscription}), which had been held back while the web plan was live. No new week, no second welcome.`
+          : "Nothing changed: the clinic stays on its web plan; the Apple subscription is recorded as ignored_web_active. It switches the clinic on only once the web plan has ended (the next App Store event, or at once when Dodo ends it). An Apple refund or expiry of it never touches the web plan.",
+        todo: a.detail
+          ? ["Nothing to do unless the clinic did not buy in the app: then it can ask Apple for a refund (reportaproblem.apple.com), and the plan ends with it."]
+          : [
+          `Contact ${a.clinic?.email ?? "the clinic"}: did they buy in the iPhone app?`,
+          "If yes and they want to stay in the app: cancel the Dodo subscription (refund its latest charge if you agree). If they did not mean to: they ask Apple for a refund (reportaproblem.apple.com). If they did not buy at all: nothing to do; the web plan is safe.",
+        ],
+      },
+      takeover_unchecked: {
+        sev: "urgent",
+        tr: "Web planı bitti, bekleyen App Store aboneliği kontrol edilemedi",
+        en: "A web plan ended and a waiting App Store subscription could not be checked",
+        what: `${who === "Nobody" ? "A clinic" : who}'s web plan ended (${a.event}), but the App Store ledger (dentvid_apple_subscriptions, migration 0026) could not be read${a.detail ? ` (${a.detail})` : ""}. If the clinic bought in the iPhone app while its web plan was live, it is now paying Apple without service.`,
+        done: "Nothing was switched: the plan ended as usual.",
+        todo: ["Apply supabase/liman/0026_dentvid_apple_billing.sql (Liman SQL editor) and run its checks.", "Check RevenueCat for this clinic's login: if it has an active App Store subscription, ask the clinic to open the app (the next App Store event switches it on) or set the plan by hand."],
+      },
+      migration_missing: {
+        sev: "urgent",
+        tr: "Apple ödemeleri için veritabanı göçü eksik (0026)",
+        en: "Apple billing migration 0026 is not applied",
+        what: `${a.event} for ${who} was applied without dentvid_clinics.billing_source / the Apple ledger.`,
+        done: "The plan moved anyway (the customer paid), but the web cannot tell it is an App Store plan and ordering checks are off.",
+        todo: ["Apply supabase/liman/0026_dentvid_apple_billing.sql (Liman SQL editor) and run its checks."],
+      },
+    };
+    const t = T[a.kind];
+    return {
+      key: `appstore:${a.kind}:${a.subscription}:${a.event}`,
+      severity: t.sev,
+      titleTr: t.tr,
+      titleEn: t.en,
+      ...(a.clinic ? { clinic: a.clinic } : {}),
+      what: [t.what],
+      done: [t.done],
+      todo: t.todo,
+      facts: [["Apple subscription", a.subscription], ...(a.other ? ([["Other", a.other]] as [string, string][]) : [])],
     };
   },
 

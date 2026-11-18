@@ -37,8 +37,8 @@ import { fitPlanToVoice, snapScenesToPauses } from "../remotion/voiceover.js";
 import { detectPauses, masterNarration } from "../dental/audio-master.js";
 
 const ROOT = path.resolve(process.cwd(), "..");
-const HANDLE = "@brightsmiledental";
-const NAME = "Bright Smile Dental";
+const HANDLE = "@sampledentalpractice";
+const NAME = "Sample Dental Practice";
 
 type Sample = { key: string; lang: string; id: string; brand: string; accent?: string; photos: string[] };
 
@@ -75,7 +75,7 @@ function loadPlan(s: Sample): { plan: ScenePlan; mp3: string } {
 /** A clinic wordmark: a dark mark on transparency (the "light chip" case, what most clinics upload). */
 const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="660" height="200" viewBox="0 0 660 200">
 <path d="M70 30c-30 0-48 22-48 52 0 40 18 88 34 88 14 0 14-42 30-42s16 42 30 42c16 0 34-48 34-88 0-30-18-52-48-52-8 0-12 6-16 6s-8-6-16-6z" fill="#0E7490"/>
-<text x="190" y="102" font-family="Inter, sans-serif" font-weight="800" font-size="74" fill="#0B2A3A">Bright Smile</text>
+<text x="190" y="102" font-family="Inter, sans-serif" font-weight="800" font-size="74" fill="#0B2A3A">Sample Dental</text>
 <text x="192" y="160" font-family="Inter, sans-serif" font-weight="600" font-size="38" letter-spacing="6" fill="#4B6472">DENTAL CLINIC</text>
 </svg>`;
 const LOGO_STYLE = { treatment: "light" as const, aspect: 660 / 200 };

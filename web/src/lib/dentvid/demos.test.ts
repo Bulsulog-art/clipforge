@@ -28,7 +28,7 @@ const NOW = new Date("2026-11-11T12:00:00Z");
 
 const row = (o: Partial<DemoRow> = {}): DemoRow => ({
   token: "Ab3dE5fG7hJ",
-  clinic_name: "Gülümse Diş Kliniği",
+  clinic_name: "Örnek Diş Kliniği",
   city: "İzmir",
   country: "TR",
   language: "tr",
@@ -89,17 +89,17 @@ describe("expiry and switch-off", () => {
 
   it("shows the public page nothing private (no note, creator or counters)", () => {
     const p = toPublicDemo(row());
-    expect(p).toEqual({ token: "Ab3dE5fG7hJ", clinicName: "Gülümse Diş Kliniği", city: "İzmir", country: "TR", language: "tr", colour: "#1f4e79", hasLogo: true, campaign: "tr-launch" });
+    expect(p).toEqual({ token: "Ab3dE5fG7hJ", clinicName: "Örnek Diş Kliniği", city: "İzmir", country: "TR", language: "tr", colour: "#1f4e79", hasLogo: true, campaign: "tr-launch" });
     expect(JSON.stringify(p)).not.toContain("private note");
-    expect(toPublicDemo(row({ colour: null, language: "xx" }))).toMatchObject({ language: "en", colour: paletteColour("Gülümse Diş Kliniği") });
+    expect(toPublicDemo(row({ colour: null, language: "xx" }))).toMatchObject({ language: "en", colour: paletteColour("Örnek Diş Kliniği") });
   });
 });
 
 describe("the admin form", () => {
   it("needs a clinic name and fills the defaults", () => {
     expect(parseDemoInput({ clinicName: "  ", language: "tr" })).toEqual({ ok: false, error: expect.stringMatching(/required/) });
-    const r = parseDemoInput({ clinicName: " Gülümse  <b>Diş</b> ", language: "tr", country: "tr" });
-    expect(r).toEqual({ ok: true, value: { clinicName: "Gülümse  b Diş /b".replace(/\s+/g, " "), country: "TR", language: "tr", colour: expect.any(String), campaign: "tr-launch" } });
+    const r = parseDemoInput({ clinicName: " Örnek  <b>Diş</b> ", language: "tr", country: "tr" });
+    expect(r).toEqual({ ok: true, value: { clinicName: "Örnek  b Diş /b".replace(/\s+/g, " "), country: "TR", language: "tr", colour: expect.any(String), campaign: "tr-launch" } });
     if (r.ok) expect(DEMO_PALETTE).toContain(r.value.colour);
   });
 
@@ -114,7 +114,7 @@ describe("the admin form", () => {
   });
 
   it("picks the same palette colour for the same clinic", () => {
-    expect(paletteColour("Riverside Dental")).toBe(paletteColour(" riverside dental "));
+    expect(paletteColour("Sample Dental Practice")).toBe(paletteColour(" sample dental practice "));
     expect(DEMO_PALETTE).toContain(paletteColour("Anything"));
   });
 });

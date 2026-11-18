@@ -102,14 +102,14 @@ describe("hard compliance rules", () => {
 });
 
 const PROFILE: ClinicProfile = {
-  name: "Smile Studio",
+  name: "Sample Dental Practice",
   city: "Izmir",
   country: "TR",
   language: "en",
   services: ["whitening", "implants", "check-ups"],
   tone: "warm",
   address: "formal",
-  handle: "smilestudio",
+  handle: "sampledentalpractice",
 };
 
 const TOPIC: Topic = {
@@ -130,7 +130,7 @@ function plan(lines: string[]): ScenePlan {
       { kind: "hook", text: lines[0], seconds: 3 },
       { kind: "statement", text: lines[1], seconds: 4 },
       { kind: "list", heading: "Good to know", items: [lines[2], "Ask your dentist"], seconds: 5 },
-      { kind: "cta", text: "Book a check-up", handle: "@smilestudio", seconds: 3 },
+      { kind: "cta", text: "Book a check-up", handle: "@sampledentalpractice", seconds: 3 },
     ],
     voiceover: {
       text:
@@ -390,19 +390,19 @@ describe("the orchestrator", () => {
   it("briefs the scriptwriter with the clinic's language, handle and the rules", () => {
     const brief = scriptBrief({ ...PROFILE, language: "tr" }, TOPIC);
     expect(brief).toContain("in tr");
-    expect(brief).toContain("@smilestudio");
+    expect(brief).toContain("@sampledentalpractice");
     expect(brief).toMatch(/Never mention prices/);
   });
 });
 
 describe("finalHashtags", () => {
   it("puts the clinic's real tag first and drops invented brand tags", () => {
-    const tags = finalHashtags(["#gülüşstudio", "DişSağlığı", "izmir", "smilestudio", "diş sağlığı", "bad-tag!"], {
-      name: "Smile Studio",
-      handle: "smilestudio.izmir",
+    const tags = finalHashtags(["#örnekdental", "DişSağlığı", "izmir", "sampledentalpractice", "diş sağlığı", "bad-tag!"], {
+      name: "Sample Dental Practice",
+      handle: "sampledentalpractice.izmir",
     });
-    expect(tags[0]).toBe("smilestudioizmir");
-    expect(tags).not.toContain("gülüşstudio");
+    expect(tags[0]).toBe("sampledentalpracticeizmir");
+    expect(tags).not.toContain("örnekdental");
     expect(tags).toContain("dişsağlığı");
     expect(tags).toContain("izmir");
     expect(tags.filter((t) => t === "dişsağlığı")).toHaveLength(1);
@@ -596,6 +596,33 @@ describe("launch markets: Turkish, German, Spanish hard rules (TR, DE/AT/CH, ES/
     expect(rules("Öncesi sonrası farkı inanılmaz")).toContain("before_after");
     expect(rules("Hasta yorumlarımızı okuyun")).toContain("testimonial");
     expect(rules("Hastalarımızın teşekkür mesajları")).toContain("testimonial");
+    // KM-52: patient thanks and satisfaction in plain sentences (RG 33075 md. 5/1-e).
+    for (const t of [
+      "Hastalarımız çok memnun.",
+      "Hastalarımız bizden gerçekten çok memnun kalıyor.",
+      "Memnun kalan hastalarımız bizi tavsiye ediyor.",
+      "Binlerce memnun hasta.",
+      "Mutlu hastalarımızla gurur duyuyoruz.",
+      "Teşekkür eden hastalarımıza minnettarız.",
+      "Hastalarımız bize teşekkür ediyor.",
+      "Hastalarımızdan gelen teşekkürler.",
+      "Hastaların %80'i memnun.",
+      "%98 hasta memnuniyeti.",
+      "Yüzde 95 memnuniyet oranı.",
+      "Memnuniyet oranımız çok yüksek.",
+      "Hastalarımızın memnuniyeti önceliğimiz.",
+      "Hasta görüşleri sayfamızda.",
+      "Hasta hikâyelerimizi izleyin.",
+    ]) expect(rules(t), t).toContain("testimonial");
+  });
+  it("leaves calm Turkish sentences about satisfaction and thanks alone", () => {
+    for (const t of [
+      "Bazı hastalar protezinden memnun olmayabilir; hekiminize danışın.",
+      "Gülüşünüzden memnun değilseniz hekiminizle konuşabilirsiniz.",
+      "Sorularınızı memnuniyetle yanıtlarız.",
+      "Hastalarımıza teşekkür ederiz.",
+      "Hastalarımızın sık sorduğu sorulardan biri implantın ne kadar sürdüğü.",
+    ]) expect(rules(t), t).not.toContain("testimonial");
     expect(rules("Ömür boyu ve acısız")).toContain("absolute");
     expect(rules("Hiçbir yan etkisi yok")).toContain("absolute");
   });

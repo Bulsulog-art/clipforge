@@ -2,8 +2,8 @@ import SwiftUI
 import UIKit
 import DentVideoCore
 
-/// Sign in with the clinic's DentVideo account (the same email and password as on the web).
-/// No account creation here, and nothing about plans or prices.
+/// Sign in with the clinic's DentVideo account (the same email and password as on the web), or
+/// create one (SignUpView). Nothing about plans or prices here.
 struct SignInView: View {
     @Environment(AppModel.self) private var model
     @State private var email = ""
@@ -11,6 +11,7 @@ struct SignInView: View {
     @State private var busy = false
     @State private var error: String?
     @State private var forgot = false
+    @State private var signingUp = false
     @FocusState private var field: Field?
     enum Field { case email, password }
 
@@ -18,12 +19,15 @@ struct SignInView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Theme.s6) {
+                VStack(alignment: .leading, spacing: Theme.s3) {
                     Image("Mark")
                         .resizable()
-                        .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .interpolation(.high)
+                        .frame(width: 60, height: 60)
+                        .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, y: 4)
+                        .padding(.bottom, Theme.s2)
                         .accessibilityHidden(true)
                     Text("DentVideo")
                         .font(Theme.display(.largeTitle))
@@ -35,7 +39,7 @@ struct SignInView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                VStack(spacing: 14) {
+                VStack(spacing: Theme.s3) {
                     TextField(L("signin.email"), text: $email)
                         .textContentType(.username)
                         .keyboardType(.emailAddress)
@@ -43,36 +47,57 @@ struct SignInView: View {
                         .autocorrectionDisabled()
                         .submitLabel(.next)
                         .focused($field, equals: .email)
+                        .accessibilityIdentifier("signin.email")
                         .onSubmit { field = .password }
                         .modifier(FieldStyle())
                     SecureField(L("signin.password"), text: $password)
                         .textContentType(.password)
                         .submitLabel(.go)
                         .focused($field, equals: .password)
+                        .accessibilityIdentifier("signin.password")
                         .onSubmit { Task { await submit() } }
                         .modifier(FieldStyle())
                 }
 
-                if let error {
-                    Label(error, systemImage: "exclamationmark.circle")
+                VStack(alignment: .leading, spacing: Theme.s3) {
+                    if let error {
+                        Label(error, systemImage: "exclamationmark.circle.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.danger)
+                            .padding(Theme.s3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Theme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.updatesFrequently)
+                            .accessibilityIdentifier("signin.error")
+                    }
+
+                    Button {
+                        Task { await submit() }
+                    } label: {
+                        if busy { ProgressView().tint(Theme.onFill) } else { Text(L("signin.button")) }
+                    }
+                    .buttonStyle(.dvPrimary)
+                    .disabled(!canSubmit && !busy)
+                    .allowsHitTesting(!busy)
+                    .accessibilityLabel(L("signin.button"))
+                    .accessibilityValue(busy ? L("common.loading") : "")
+                    .accessibilityIdentifier("signin.submit")
+
+                    Button(L("signin.forgot")) { forgot = true }
+                        .buttonStyle(.dvQuiet)
+                        .frame(maxWidth: .infinity)
+                }
+
+                VStack(spacing: Theme.s2) {
+                    Text(L("signin.new"))
                         .font(.subheadline)
-                        .foregroundStyle(Theme.danger)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.updatesFrequently)
+                        .foregroundStyle(Theme.muted)
+                    Button(L("signin.create")) { signingUp = true }
+                        .buttonStyle(.dvSecondary)
+                        .accessibilityIdentifier("signin.create")
                 }
-
-                Button {
-                    Task { await submit() }
-                } label: {
-                    if busy { ProgressView().tint(.white) } else { Text(L("signin.button")) }
-                }
-                .buttonStyle(.dvPrimary)
-                .disabled(!canSubmit)
-
-                Button(L("signin.forgot")) { forgot = true }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.teal)
-                    .frame(minHeight: 44)
+                .frame(maxWidth: .infinity)
 
                 HStack(spacing: 16) {
                     Link(L("legal.privacy"), destination: Config.page("privacy"))
@@ -81,18 +106,35 @@ struct SignInView: View {
                     // Privacy stays (5.1.1(i)).
                 }
                 .font(.footnote)
-                .foregroundStyle(Theme.muted)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 12)
+                .tint(Theme.muted)
+                .frame(maxWidth: .infinity, minHeight: 44)
             }
             .padding(.horizontal, 28)
-            .padding(.vertical, 48)
+            .padding(.vertical, Theme.s6 + Theme.s4)
             .frame(maxWidth: 480)
             .frame(maxWidth: .infinity)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Theme.paper.ignoresSafeArea())
         .sheet(isPresented: $forgot) { ForgotPasswordView(prefill: email) }
+        .sheet(isPresented: $signingUp) { SignUpView(prefill: email) }
+        .task {
+            // Demo screens only (DEBUG): Release builds carry none of the demo texts.
+            #if DEBUG
+            guard model.isDemoMode else { return }
+            if model.isDemo("signin-error", "signin-loading", "forgot") { email = DemoServer.user.email ?? "" }
+            if model.isDemo("signin-error") { password = "••••••••"; error = L("signin.error.credentials") }
+            if model.isDemo("signin-loading") { password = "••••••••"; busy = true }
+            if model.isDemo("forgot") {
+                try? await Task.sleep(for: .milliseconds(400))
+                forgot = true
+            }
+            if model.isDemo("signup", "signup-code") {
+                try? await Task.sleep(for: .milliseconds(400))
+                signingUp = true
+            }
+            #endif
+        }
     }
 
     private func submit() async {
@@ -114,9 +156,9 @@ struct FieldStyle: ViewModifier {
         content
             .font(.body)
             .padding(.horizontal, 16)
-            .frame(minHeight: 52)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.line))
+            .frame(minHeight: 54)
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous).strokeBorder(Theme.line))
     }
 }
 
@@ -131,7 +173,7 @@ struct ForgotPasswordView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: Theme.s4) {
                 Text(sent ? L("forgot.sent") : L("forgot.body"))
                     .font(.body)
                     .foregroundStyle(Theme.body)
@@ -156,7 +198,7 @@ struct ForgotPasswordView: View {
                             }
                         }
                     } label: {
-                        if busy { ProgressView().tint(.white) } else { Text(L("forgot.button")) }
+                        if busy { ProgressView().tint(Theme.onFill) } else { Text(L("forgot.button")) }
                     }
                     .buttonStyle(.dvPrimary)
                     .disabled(!prefill.contains("@") || busy)
@@ -165,13 +207,14 @@ struct ForgotPasswordView: View {
                 }
                 Spacer()
             }
-            .padding(24)
+            .padding(Theme.s5)
             .background(Theme.paper.ignoresSafeArea())
             .navigationTitle(L("forgot.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("common.close")) { dismiss() } } }
         }
         .presentationDetents([.medium, .large])
+        .presentationBackground(Theme.paper)
     }
 }
 

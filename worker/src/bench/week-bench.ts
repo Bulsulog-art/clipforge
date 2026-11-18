@@ -146,8 +146,8 @@ function cpuSeconds(): number {
 /* ------------------------------------------------------------ the week */
 
 const ROOT = path.resolve(process.cwd(), "..");
-const SAMPLE_NAME = "Bright Smile Dental";
-const SAMPLE_HANDLE = "@brightsmiledental";
+const SAMPLE_NAME = "Sample Dental Practice";
+const SAMPLE_HANDLE = "@sampledentalpractice";
 
 function samplePlans(lang: string, n: number): { id: string; plan: ScenePlan; mp3: string }[] {
   const dir = path.join(ROOT, "web/public/dentvideo/preview", lang);

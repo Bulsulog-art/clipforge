@@ -1,5 +1,5 @@
 {
-  "name": "Smile Studio",
+  "name": "Örnek Diş Kliniği",
   "city": "Izmir",
   "country": "TR",
   "language": "tr",
@@ -11,6 +11,5 @@
     "çocuk diş hekimliği"
   ],
   "tone": "warm",
-  "handle": "smilestudio.izmir",
   "address": "formal"
 }

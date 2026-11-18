@@ -5,9 +5,9 @@ import { scanHardRules } from "../dental/compliance.js";
 import { ctaProblems } from "../dental/style.js";
 import type { ItemRow } from "./rows.js";
 
-const TR = { name: "Gülümse Diş Kliniği", city: "İzmir", language: "tr" as const, country: "TR", address: "formal" as const };
-const DE = { name: "Zahnarztpraxis am Park", city: "München", language: "de" as const, country: "DE", address: "formal" as const };
-const EN = { name: "Riverside Dental", city: "Bristol", language: "en" as const, country: "GB", address: "formal" as const };
+const TR = { name: "Örnek Diş Kliniği", city: "İzmir", language: "tr" as const, country: "TR", address: "formal" as const };
+const DE = { name: "Demo Zahnarztpraxis", city: "München", language: "de" as const, country: "DE", address: "formal" as const };
+const EN = { name: "Sample Dental Practice", city: "Bristol", language: "en" as const, country: "GB", address: "formal" as const };
 
 const SAMPLES = {
   tr: {
@@ -15,7 +15,7 @@ const SAMPLES = {
     copy: {
       caption:
         "Diş taşı fırçayla çıkmaz; zamanla diş etlerini tahriş edebilir.\n\nProfesyonel temizlik genellikle birkaç dakika sürer ve diş hekiminizin önerdiği aralıklarla yapılır.\n\nBir sonraki kontrolünüzde diş taşınızı sorabilirsiniz.",
-      hashtags: ["gulumsedis", "distasi", "distemizligi", "agizsagligi"],
+      hashtags: ["ornekdisklinigi", "distasi", "distemizligi", "agizsagligi"],
     },
   },
   de: {
@@ -23,14 +23,14 @@ const SAMPLES = {
     copy: {
       caption:
         "Zahnstein lässt sich mit der Zahnbürste nicht entfernen – er kann das Zahnfleisch mit der Zeit reizen.\n\nDie professionelle Zahnreinigung dauert meist unter einer Stunde.\n\nVereinbaren Sie gern einen Termin zur Kontrolle.",
-      hashtags: ["zahnarztpraxisampark", "zahnstein", "zahnreinigung", "prophylaxe"],
+      hashtags: ["demopraxis", "zahnstein", "zahnreinigung", "prophylaxe"],
     },
   },
   en: {
     profile: EN,
     copy: {
       caption: "Tartar can't be brushed away — over time it can irritate your gums.\n\nA professional clean usually takes under an hour.\n\nBook a check-up and ask us about it.",
-      hashtags: ["riversidedental", "tartar", "teethcleaning"],
+      hashtags: ["sampledentalpractice", "tartar", "teethcleaning"],
     },
   },
 };
@@ -67,8 +67,8 @@ describe("hashtags", () => {
   });
 
   it("5–10 tags: the clinic's first, local next, no duplicates, nothing the hard rules reject", () => {
-    const tags = postHashtags(["gulumsedis", "distasi", "painless", "garanti", "#distasi"], TR);
-    expect(tags[0]).toBe("gulumsedis");
+    const tags = postHashtags(["ornekdisklinigi", "distasi", "painless", "garanti", "#distasi"], TR);
+    expect(tags[0]).toBe("ornekdisklinigi");
     expect(tags.slice(1, 3)).toEqual(["izmir", "izmirdishekimi"]);
     expect(tags).not.toContain("painless");
     expect(tags).not.toContain("garanti");

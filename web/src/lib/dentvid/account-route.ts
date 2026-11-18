@@ -1,4 +1,7 @@
+import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { appStoreText } from "@/content/dentvideo-app-store";
+import { APP_STORE_MANAGE_URL } from "./apple-billing";
 import { accountText } from "@/content/dentvideo-account";
 import { dvLocale } from "./locale-server";
 
@@ -14,4 +17,12 @@ export async function ownClinic(db: SupabaseClient, ownerId: string): Promise<Re
 export async function accountErrors(clinic: Record<string, unknown> | null) {
   const language = (clinic?.profile as { language?: string } | undefined)?.language;
   return accountText(await dvLocale(language)).errors;
+}
+
+/** 409 for a clinic whose plan the App Store bills (0026): changed or cancelled on the iPhone, never here. */
+export async function appStoreManagedAnswer(clinic: Record<string, unknown> | null): Promise<NextResponse | null> {
+  if (clinic?.billing_source !== "apple" || (clinic.plan !== "active" && clinic.plan !== "paused")) return null;
+  const language = (clinic.profile as { language?: string } | undefined)?.language;
+  const a = appStoreText(await dvLocale(language));
+  return NextResponse.json({ error: a.body, code: "app_store", manageUrl: APP_STORE_MANAGE_URL }, { status: 409 });
 }

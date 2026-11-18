@@ -17,11 +17,16 @@ const TOKEN_A = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBQUFBIn0.c2lnbmF0dXJlQUFBQQ";
 const TOKEN_B = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCQkJCIn0.c2lnbmF0dXJlQkJCQg";
 const TOKEN_OTHER = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPVEhFUiJ9.c2lnbmF0dXJlT1RIRVI";
 const TOKEN_EXPIRED = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPTERPIn0.c2lnbmF0dXJlT0xETw";
+/** Logins made in the app (mobile/v1/signup) that have no clinic yet: code entered, and code still waiting. */
+const NEW = "4f2e7a0c-5b6d-4e9f-8a2b-3c4d5e6f7a8b";
+const NEW_UNVERIFIED = "5a3f8b1d-6c7e-4f0a-9b3c-4d5e6f7a8b9c";
+const TOKEN_NEW = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJORVcifQ.c2lnbmF0dXJlTkVXTkVX";
+const TOKEN_NEW_UNVERIFIED = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJORVdVIn0.c2lnbmF0dXJlTkVXVQ";
 const DEVICE_A = "a".repeat(64);
 const DEVICE_B = "b".repeat(64);
 
 type Row = Record<string, unknown>;
-type Db = { dentvid_clinics: Row[]; dentvid_items: Row[]; dentvid_devices: Row[] };
+type Db = { dentvid_clinics: Row[]; dentvid_items: Row[]; dentvid_devices: Row[]; dentvid_subscriptions?: Row[]; dentvid_apple_subscriptions?: Row[] };
 let db: Db;
 let devicesTableExists = true;
 let revoked: string[];
@@ -34,6 +39,12 @@ const USERS: Record<string, { id: string; email: string; app_metadata: Record<st
   [TOKEN_A]: dvUser(A, "a@clinic-a.example"),
   [TOKEN_B]: dvUser(B, "b@clinic-b.example"),
   [TOKEN_OTHER]: { id: OTHER_APP, email: "x@other.example", app_metadata: { product: "clipforge" } },
+  [TOKEN_NEW]: {
+    id: NEW,
+    email: "new@clinic-new.example",
+    app_metadata: { product: "dentvideo", email_verified_at: "2026-11-18T09:00:00Z", email_verified_for: "new@clinic-new.example", email_verified_via: "code" },
+  },
+  [TOKEN_NEW_UNVERIFIED]: dvUser(NEW_UNVERIFIED, "later@clinic-new.example"),
 };
 const PASSWORDS: Record<string, { password: string; token: string }> = {
   "a@clinic-a.example": { password: "right-password", token: TOKEN_A },
@@ -54,7 +65,7 @@ function query(table: keyof Db, owner: string | null) {
   const visible = (r: Row) => owner === null || r.owner_id === owner;
   const run = () => {
     if (table === "dentvid_devices" && !devicesTableExists) return { data: null, error: { code: "42P01", message: 'relation "public.dentvid_devices" does not exist' } };
-    const rows = db[table];
+    const rows = (db[table] ??= []) as Row[];
     const match = () => rows.filter((r) => visible(r) && filters.every((f) => f(r)));
     if (op === "select") {
       const m = match().slice(0, limitN);
@@ -158,6 +169,8 @@ vi.mock("@/lib/rate-limit-server", () => ({
   uploadSlotStore: async () => null,
 }));
 vi.mock("@/lib/dentvid/events-server", () => ({ recordEvent: vi.fn() }));
+vi.mock("@/lib/dentvid/email", async (orig) => ({ ...(await orig<typeof import("@/lib/dentvid/email")>()), sendEmail: vi.fn(async () => true) }));
+vi.mock("@/lib/dentvid/hot-leads-server", () => ({ raiseHotLead: vi.fn(async () => "duplicate") }));
 vi.mock("@/lib/queue", () => ({ dentvidQueue: { add: async (...a: unknown[]) => (queued.push(a), {}) } }));
 vi.mock("@/lib/dentvid/ops-server", () => ({ noteEnqueueFailure: async () => {} }));
 vi.mock("@/lib/dentvid/account", () => ({
@@ -238,6 +251,9 @@ describe("every authenticated mobile route refuses requests without a valid Dent
     ["POST", "session/signout", () => import("./session/signout/route") as never, {}],
     ["GET", "topic-requests", () => import("./topic-requests/route") as never],
     ["POST", "topic-requests", () => import("./topic-requests/route") as never, { text: "How long does sensitivity last?" }],
+    ["GET", "billing", () => import("./billing/route") as never],
+    ["GET", "preview", () => import("./preview/route") as never],
+    ["POST", "verify-email", () => import("./verify-email/route") as never, { action: "confirm", code: "123456" }],
   ];
   const attempts: [string, { token?: string; cookie?: string; auth?: string }][] = [
     ["no header", {}],
@@ -521,13 +537,144 @@ describe("POST clinic (settings)", () => {
     expect(JSON.stringify(db.dentvid_clinics.find((c) => c.owner_id === B))).toBe(before);
     expect(db.dentvid_clinics.find((c) => c.owner_id === A)?.logo_path).toBeNull();
   });
-  it("does not create a clinic (that is the web's onboarding)", async () => {
-    db.dentvid_clinics = db.dentvid_clinics.filter((c) => c.owner_id !== A);
+});
+
+describe("POST clinic (a login made in the app, no clinic yet)", () => {
+  // What the app sends (ClinicSetupView → APIClient.saveClinic): nil fields left out, colour without "#".
+  const appProfile = { name: "  Praxis Neu ", country: "de", language: "de", services: ["Implantate", "Bleaching"], tone: "warm", address: "formal", brandColor: "0E7C7B" };
+  const clinicsOf = (owner: string) => db.dentvid_clinics.filter((c) => c.owner_id === owner);
+
+  beforeEach(async () => {
+    vi.mocked((await import("@/lib/dentvid/events-server")).recordEvent).mockClear();
+    vi.mocked((await import("@/lib/dentvid/email")).sendEmail).mockClear();
+  });
+
+  it("creates the clinic, owned by the token's login, with the web's normalisation and defaults", async () => {
     const { POST } = await import("./clinic/route");
-    const r = await json(await POST(req("clinic", { method: "POST", token: TOKEN_A, body: { profile } })));
+    const r = await json(await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: appProfile } })));
+    expect(r.status).toBe(200);
+    expect(r.headers.get("cache-control")).toBe("no-store");
+    const rows = clinicsOf(NEW);
+    expect(rows).toHaveLength(1);
+    expect(r.body).toEqual({ id: rows[0].id });
+    // clinicProfileSchema: trimmed name, upper-case country and colour; tone/address defaults kept.
+    expect(rows[0].profile).toEqual({ name: "Praxis Neu", country: "DE", language: "de", services: ["Implantate", "Bleaching"], tone: "warm", address: "formal", brandColor: "0E7C7B" });
+    expect(rows[0]).not.toHaveProperty("logo_path");
+    // Defaults the schema fills when the app leaves them out.
+    const { POST: again } = await import("./clinic/route");
+    db.dentvid_clinics = db.dentvid_clinics.filter((c) => c.owner_id !== NEW);
+    expect((await again(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: { name: "P", country: "DE", language: "de", services: ["Implantate"] } } }))).status).toBe(200);
+    expect(clinicsOf(NEW)[0].profile).toMatchObject({ tone: "warm", address: "formal" });
+    // Nobody else's rows moved.
+    expect(clinicsOf(A)).toHaveLength(1);
+    expect(clinicsOf(B)).toHaveLength(1);
+  });
+
+  it("records the web's analytics (clinic_saved, once per save) and sends no email: the welcome waits for the first payment", async () => {
+    const { recordEvent } = await import("@/lib/dentvid/events-server");
+    const { sendEmail } = await import("@/lib/dentvid/email");
+    const { POST } = await import("./clinic/route");
+    const r = await json(await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: appProfile } })));
+    expect(r.status).toBe(200);
+    expect(vi.mocked(recordEvent)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(recordEvent)).toHaveBeenCalledWith("clinic_saved", expect.objectContaining({ clinicId: r.body.id, locale: "de", props: { country: "DE", language: "de" }, internal: false }));
+    // Saving again (the user taps Save twice, or edits later) is a second clinic_saved for the same clinic, never a welcome.
+    await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: { ...appProfile, city: "Berlin" } } }));
+    expect(vi.mocked(recordEvent)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(recordEvent).mock.calls[1][1]).toMatchObject({ clinicId: r.body.id });
+    expect(vi.mocked(sendEmail)).not.toHaveBeenCalled();
+  });
+
+  it("an account whose email code is still waiting gets its clinic too, as on the web (the purchase waits for the code)", async () => {
+    const { POST } = await import("./clinic/route");
+    const r = await json(await POST(req("clinic", { method: "POST", token: TOKEN_NEW_UNVERIFIED, body: { profile: appProfile } })));
+    expect(r.status).toBe(200);
+    expect(clinicsOf(NEW_UNVERIFIED)).toHaveLength(1);
+  });
+
+  it("one clinic per login: a second create saves the same clinic (same id), never a second row", async () => {
+    const { POST } = await import("./clinic/route");
+    const first = await json(await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: appProfile } })));
+    const second = await json(await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: { ...appProfile, name: "Praxis Zwei" } } })));
+    expect(second.status).toBe(200);
+    expect(second.body.id).toBe(first.body.id);
+    expect(clinicsOf(NEW)).toHaveLength(1);
+    expect(clinicsOf(NEW)[0].profile).toMatchObject({ name: "Praxis Zwei" });
+  });
+
+  it("cannot create or take over a clinic for another login: owner_id, id and logoPath in the body are ignored", async () => {
+    const { POST } = await import("./clinic/route");
+    const before = JSON.stringify(db.dentvid_clinics);
+    const r = await json(
+      await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: appProfile, owner_id: B, id: "clinic-b", logoPath: `${B}/logo.png`, demoToken: "AbCdEf123456", attribution: { src: "x" } } })),
+    );
+    expect(r.status).toBe(200);
+    // Only the caller's own row was added; A's and B's rows are byte for byte what they were.
+    expect(JSON.stringify(db.dentvid_clinics.filter((c) => c.owner_id !== NEW))).toBe(before);
+    const own = clinicsOf(NEW);
+    expect(own).toHaveLength(1);
+    expect(own[0].id).not.toBe("clinic-b");
+    expect(own[0]).not.toHaveProperty("logo_path");
+    // B's token cannot reach the new clinic either: saving with it changes B's own clinic only.
+    await POST(req("clinic", { method: "POST", token: TOKEN_B, body: { profile: { ...appProfile, name: "B again" }, owner_id: NEW } }));
+    expect(clinicsOf(NEW)[0].profile).toMatchObject({ name: "Praxis Neu" });
+    expect(clinicsOf(B)[0].profile).toMatchObject({ name: "B again" });
+  });
+
+  it("creates nothing for any of the six bearer-auth attack shapes", async () => {
+    const { POST } = await import("./clinic/route");
+    const before = JSON.stringify(db);
+    const attempts: [string, { token?: string; cookie?: string; auth?: string }][] = [
+      ["no header", {}],
+      ["the web's dv-auth cookie only", { cookie: "dv-auth=base64-eyJhY2Nlc3NfdG9rZW4iOiJ4In0" }],
+      ["a token that is not a JWT", { auth: "Bearer not-a-jwt" }],
+      ["Basic instead of Bearer", { auth: `Basic ${TOKEN_NEW}` }],
+      ["an expired / unknown token", { token: TOKEN_EXPIRED }],
+      ["another app's account on the shared Liman", { token: TOKEN_OTHER }],
+    ];
+    for (const [label, a] of attempts) {
+      const r = await json(await POST(req("clinic", { method: "POST", body: { profile: appProfile }, ...a })));
+      expect(r.status, label).toBe(401);
+      expect(r.body.code, label).toBe("unauthorized");
+      expect(r.headers.get("cache-control"), label).toBe("no-store");
+    }
+    expect(JSON.stringify(db)).toBe(before);
+  });
+
+  it("refuses an invalid profile with the web's errors and creates nothing", async () => {
+    const { POST } = await import("./clinic/route");
+    const bad: [string, unknown, string | null][] = [
+      ["no profile", undefined, null],
+      ["empty name", { ...appProfile, name: " " }, "profile.name"],
+      ["no services", { ...appProfile, services: [] }, "profile.services"],
+      ["unknown language", { ...appProfile, language: "xx" }, "profile.language"],
+      ["bad country", { ...appProfile, country: "Germany" }, "profile.country"],
+      ["script booking link", { ...appProfile, bookingUrl: "javascript:alert(1)" }, "profile.bookingUrl"],
+      ["bad colour", { ...appProfile, brandColor: "teal" }, "profile.brandColor"],
+      ["name over 80", { ...appProfile, name: "x".repeat(81) }, "profile.name"],
+      ["21 services", { ...appProfile, services: Array.from({ length: 21 }, (_, i) => `Service ${i}`) }, "profile.services"],
+    ];
+    for (const [label, profile, field] of bad) {
+      const r = await json(await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: profile === undefined ? {} : { profile } })));
+      expect(r.status, label).toBe(400);
+      expect(String(r.body.error), label).toContain(APP_TEXT.en.errors.invalidProfile);
+      if (field) expect(String(r.body.error), label).toContain(`(${field})`);
+    }
+    // Not JSON at all.
+    const raw = new Request(`${BASE}/clinic`, { method: "POST", headers: { authorization: `Bearer ${TOKEN_NEW}`, "content-type": "application/json" }, body: "{not json" });
+    expect((await POST(raw)).status).toBe(400);
+    expect(clinicsOf(NEW)).toHaveLength(0);
+  });
+
+  it("refuses a closing line the clinic's market rules refuse (field + code), and is rate-limited per login", async () => {
+    const { POST } = await import("./clinic/route");
+    const r = await json(await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: { ...appProfile, country: "TR", language: "tr", closingLine: "Hemen randevu alın, kliniğimizde sizi bekliyoruz" } } })));
     expect(r.status).toBe(400);
-    expect(r.body.code).toBe("no_clinic");
-    expect(db.dentvid_clinics.some((c) => c.owner_id === A)).toBe(false);
+    expect(r.body).toMatchObject({ field: "closingLine", code: "closing_line" });
+    expect(clinicsOf(NEW)).toHaveLength(0);
+    limitedKeys = [`rl:clinic:user:${NEW}`];
+    expect((await POST(req("clinic", { method: "POST", token: TOKEN_NEW, body: { profile: appProfile } }))).status).toBe(429);
+    expect(clinicsOf(NEW)).toHaveLength(0);
   });
 });
 
@@ -541,5 +688,87 @@ describe("POST account/delete", () => {
     const { POST } = await import("./account/delete/route");
     expect((await POST(req("account/delete", { method: "POST", token: TOKEN_A, body: {} }))).status).toBe(400);
     expect(deleteCalls).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------- billing (IAP) */
+
+describe("GET billing (the paywall's state)", () => {
+  const verified = (id: string, email: string) => ({ id, email, app_metadata: { product: "dentvideo", email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: email } });
+
+  it("a clinic paying on the web never sees the paywall, is told the web manages it, and gets no price", async () => {
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(r.status).toBe(200);
+    expect(r.headers.get("cache-control")).toBe("no-store");
+    expect(r.body).toMatchObject({ appUserId: A, clinicId: "clinic-a", status: "active", showPaywall: false, canPurchase: false, manage: "web", manageUrl: null });
+    expect((r.body.plan as Row).tier).toBe("practice");
+    expect(r.body.products).toEqual([
+      { tier: "starter", productId: "dentvideo_starter_monthly", entitlement: "starter" },
+      { tier: "practice", productId: "dentvideo_practice_monthly", entitlement: "practice" },
+    ]);
+    expect(JSON.stringify(r.body)).not.toMatch(/price|amount|\$|€|\bTL\b|\bUSD\b|\bEUR\b|\bTRY\b/i);
+  });
+
+  it("only ever reads the session's own clinic (A's token never sees B's App Store plan)", async () => {
+    db.dentvid_clinics[1].billing_source = "apple";
+    db.dentvid_clinics[1].apple_original_transaction_id = "2000000111";
+    const { GET } = await import("./billing/route");
+    const a = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(a.body.clinicId).toBe("clinic-a");
+    expect((a.body.plan as Row).source).toBeNull();
+    const b = await json(await GET(req("billing", { token: TOKEN_B })));
+    expect(b.body).toMatchObject({ appUserId: B, clinicId: "clinic-b", status: "active", manage: "app_store", manageUrl: "https://apps.apple.com/account/subscriptions", showPaywall: false });
+  });
+
+  it("an unpaid clinic gets the paywall; buying waits for a confirmed email address, as the web's checkout does", async () => {
+    db.dentvid_clinics[0].plan = "trial";
+    db.dentvid_clinics[0].plan_tier = null;
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(r.body).toMatchObject({ status: "none", showPaywall: true, canPurchase: false, blockers: ["email_unverified"] });
+    const saved = USERS[TOKEN_A];
+    USERS[TOKEN_A] = verified(A, "a@clinic-a.example");
+    try {
+      const v = await json(await GET(req("billing", { token: TOKEN_A })));
+      expect(v.body).toMatchObject({ showPaywall: true, canPurchase: true, blockers: [] });
+    } finally {
+      USERS[TOKEN_A] = saved;
+    }
+  });
+
+  it("a login without a clinic yet: no paywall until the clinic form is saved", async () => {
+    db.dentvid_clinics = db.dentvid_clinics.filter((c) => c.owner_id !== A);
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(r.body).toMatchObject({ clinicId: null, showPaywall: false, canPurchase: false });
+    expect(r.body.blockers).toContain("clinic");
+  });
+
+  it("an App Store plan Apple could not renew: no paywall (a new purchase would be a second subscription)", async () => {
+    Object.assign(db.dentvid_clinics[1], { plan: "paused", billing_source: "apple", apple_original_transaction_id: "2000000111" });
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_B })));
+    expect(r.body).toMatchObject({ status: "billing_issue", showPaywall: false, manage: "app_store" });
+  });
+});
+
+describe("GET preview (library samples, no generation)", () => {
+  it("answers samples from the static library in the clinic's language, for the session's own clinic only", async () => {
+    const { GET } = await import("./preview/route");
+    const r = await json(await GET(req("preview", { token: TOKEN_A })));
+    expect(r.status).toBe(200);
+    expect(r.body.language).toBe("de");
+    expect((r.body.clinic as Row).name).toBe("Clinic A");
+    const samples = r.body.samples as { planPath: string; audioPath: string | null }[];
+    expect(samples.length).toBeGreaterThan(0);
+    for (const s of samples) expect(s.planPath).toMatch(/^\/dentvideo\/preview\/de\/[a-z0-9-]+\.json$/);
+    expect(queued).toEqual([]);
+  });
+
+  it("409 before the clinic exists", async () => {
+    db.dentvid_clinics = db.dentvid_clinics.filter((c) => c.owner_id !== A);
+    const { GET } = await import("./preview/route");
+    expect((await GET(req("preview", { token: TOKEN_A }))).status).toBe(409);
   });
 });

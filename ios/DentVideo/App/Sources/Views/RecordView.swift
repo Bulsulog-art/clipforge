@@ -33,11 +33,7 @@ struct RecordView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(L("record.title"))
-                        .font(Theme.display(.largeTitle))
-                        .foregroundStyle(Theme.ink)
-                        .accessibilityAddTraits(.isHeader)
+                VStack(alignment: .leading, spacing: Theme.s4) {
                     if !canRecord {
                         MessageView(icon: "video.slash", title: L("record.notIncluded.title"), message: L("record.notIncluded.body")) { EmptyView() }
                             .frame(maxWidth: .infinity)
@@ -46,42 +42,54 @@ struct RecordView: View {
                         Text(L("record.intro")).font(.body).foregroundStyle(Theme.body).fixedSize(horizontal: false, vertical: true)
                         uploads
                         if cards.isEmpty {
-                            Text(L("record.noCards")).font(.subheadline).foregroundStyle(Theme.muted)
+                            Text(L("record.noCards")).font(.subheadline).foregroundStyle(Theme.body)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         ForEach(cards) { c in CardView(choice: c) { recordingCard = c } }
                         Button { recordingCard = CardChoice(id: "free", title: L("record.free"), card: nil) } label: {
                             Label(L("record.free"), systemImage: "video")
                         }
                         .buttonStyle(.dvSecondary)
+                        .accessibilityIdentifier("record.free")
                         if !clips.isEmpty { finished }
                     }
                 }
                 .padding(.horizontal, Theme.gutter)
-                .padding(.vertical, 12)
-                .frame(maxWidth: 700)
-                .frame(maxWidth: .infinity)
+                .padding(.top, Theme.s1)
+                .padding(.bottom, Theme.s6)
+                .readableWidth()
             }
             .background(Theme.paper.ignoresSafeArea())
+            .navigationTitle(L("record.title"))
+            .navigationBarTitleDisplayMode(.large)
             .refreshable { await model.refresh() }
             .navigationDestination(for: String.self) { VideoDetailView(itemID: $0) }
             .fullScreenCover(item: $recordingCard) { c in CameraScreen(choice: c) }
+            .task {
+                guard model.isDemo("camera-live", "camera-denied") else { return }
+                try? await Task.sleep(for: .milliseconds(400))
+                recordingCard = cards.first ?? CardChoice(id: "free", title: L("record.free"), card: nil)
+            }
         }
     }
 
     @ViewBuilder private var uploads: some View {
         let list = model.uploads.active
         if !list.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(L("record.uploads")).font(.headline).foregroundStyle(Theme.ink)
-                ForEach(list) { e in UploadRow(entry: e) }
+            VStack(alignment: .leading, spacing: Theme.s3) {
+                Text(L("record.uploads")).font(.headline).foregroundStyle(Theme.ink).accessibilityAddTraits(.isHeader)
+                ForEach(Array(list.enumerated()), id: \.element.id) { n, e in
+                    if n > 0 { Divider() }
+                    UploadRow(entry: e)
+                }
             }
-            .padding(16)
+            .padding(Theme.s4)
             .dvCard()
         }
     }
 
     private var finished: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Theme.s3) {
             Text(L("record.clips")).font(Theme.display(.title3)).foregroundStyle(Theme.ink).accessibilityAddTraits(.isHeader)
             ForEach(clips) { item in
                 NavigationLink(value: item.id) { VideoCard(item: item, compact: true) }.buttonStyle(.plain)
@@ -95,28 +103,43 @@ struct RecordView: View {
 struct CardView: View {
     let choice: RecordView.CardChoice
     let record: () -> Void
-    @State private var open = false
+    @State private var open = true
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Button { withAnimation(.snappy) { open.toggle() } } label: {
+        VStack(alignment: .leading, spacing: Theme.s3) {
+            Button { motion(reduceMotion) { open.toggle() } } label: {
                 HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Theme.s1) {
                         Text(choice.title).font(.headline).foregroundStyle(Theme.ink).multilineTextAlignment(.leading)
-                        if let m = choice.card?.minutes { Text(L("record.minutes", Int(m.rounded()))).font(.footnote).foregroundStyle(Theme.muted) }
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let m = choice.card?.minutes {
+                            Label(L("record.minutes", Int(m.rounded())), systemImage: "timer").font(.footnote).foregroundStyle(Theme.muted)
+                        }
                     }
-                    Spacer()
-                    Image(systemName: "chevron.down").rotationEffect(.degrees(open ? 180 : 0)).foregroundStyle(Theme.muted)
+                    Spacer(minLength: Theme.s2)
+                    Image(systemName: "chevron.down")
+                        .font(.subheadline.weight(.semibold))
+                        .rotationEffect(.degrees(open ? 180 : 0))
+                        .foregroundStyle(Theme.muted)
+                        .accessibilityHidden(true)
                 }
+                .frame(minHeight: 44)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityValue(open ? L("common.expanded") : L("common.collapsed"))
-            if open, let card = choice.card { CardText(card: card) }
+            if open, let card = choice.card {
+                CardText(card: card)
+                    .padding(Theme.s4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.sand, in: RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+            }
             Button(action: record) { Label(L("record.start"), systemImage: "record.circle") }
                 .buttonStyle(.dvPrimary)
+                .accessibilityIdentifier("record.start")
         }
-        .padding(16)
+        .padding(Theme.s4)
         .dvCard()
     }
 }
@@ -126,7 +149,7 @@ struct CardText: View {
     var inverted = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Theme.s3) {
             block(L("card.opening"), [card.opening])
             block(L("card.points"), card.points)
             block(L("card.closing"), [card.closing])
@@ -137,9 +160,13 @@ struct CardText: View {
 
     private func block(_ title: String, _ lines: [String]) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption.weight(.semibold)).textCase(.uppercase).foregroundStyle(inverted ? Color.white.opacity(0.7) : Theme.teal)
+            Text(title).font(.caption.weight(.semibold)).textCase(.uppercase).foregroundStyle(inverted ? Color.white.opacity(0.75) : Theme.teal)
             ForEach(lines, id: \.self) { l in
-                Text(lines.count > 1 ? "• \(l)" : l).font(.body).foregroundStyle(inverted ? Color.white : Theme.body).fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: Theme.s2) {
+                    if lines.count > 1 { Text("•").foregroundStyle(inverted ? Color.white.opacity(0.75) : Theme.teal) }
+                    Text(l).foregroundStyle(inverted ? Color.white : Theme.ink).fixedSize(horizontal: false, vertical: true)
+                }
+                .font(inverted ? .title3 : .body)
             }
         }
         .accessibilityElement(children: .combine)
@@ -174,13 +201,16 @@ struct UploadRow: View {
                 HStack(spacing: 16) {
                     if entry.problem != .tooLarge && entry.problem != .type && entry.problem != .needsPlan {
                         Button(L("common.retry")) { model.uploads.retry(entry.id) }.frame(minHeight: 44)
+                            .accessibilityIdentifier("upload.retry")
                     }
                     Button(L("upload.remove"), role: .destructive) { model.uploads.remove(entry.id) }.frame(minHeight: 44)
+                        .accessibilityIdentifier("upload.remove")
                 }
                 .font(.subheadline.weight(.semibold))
             }
         }
         .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("upload.\(entry.state.rawValue)")
     }
 }
 
@@ -191,6 +221,10 @@ struct CameraScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var camera = CameraModel()
     @State private var showCard = true
+    /// Height of the camera screen: the filming card may use the room down to the record button on
+    /// tall phones instead of stopping halfway through a line.
+    @State private var liveHeight: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -206,13 +240,24 @@ struct CameraScreen: View {
                     .buttonStyle(.dvPrimary)
                     Button(L("common.close")) { dismiss() }.buttonStyle(.dvSecondary)
                 }
-                .background(Theme.paper, in: RoundedRectangle(cornerRadius: Theme.radius))
-                .padding()
+                .background(Theme.paper, in: RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
+                .padding(Theme.gutter)
             case .granted:
                 if let take = camera.take { review(take) } else { live }
             }
         }
-        .task { await camera.prepare() }
+        .task {
+            #if DEBUG
+            if model.isDemo("camera-live") { camera.access = .granted; camera.demo = true; return }
+            if model.isDemo("camera-denied") { camera.access = .denied; return }
+            if model.isDemo("flow") {
+                camera.demo = true
+                camera.access = DemoFlags.camera == "denied" ? .denied : .granted
+                return
+            }
+            #endif
+            await camera.prepare()
+        }
         .onDisappear {
             camera.shutdown()
             camera.discardTake()
@@ -222,12 +267,20 @@ struct CameraScreen: View {
 
     private var live: some View {
         ZStack {
-            CameraPreview(session: camera.engine.session).ignoresSafeArea()
-                .accessibilityHidden(true)
+            Group {
+                #if DEBUG
+                if camera.demo { DemoCameraBackdrop() } else { CameraPreview(session: camera.engine.session) }
+                #else
+                CameraPreview(session: camera.engine.session)
+                #endif
+            }
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
             VStack(spacing: 12) {
                 HStack {
                     Button { dismiss() } label: { Image(systemName: "xmark").font(.title3.weight(.semibold)).frame(width: 44, height: 44) }
                         .accessibilityLabel(L("common.close"))
+                        .accessibilityIdentifier("camera.close")
                         .disabled(camera.isRecording)
                     Spacer()
                     if camera.isRecording {
@@ -247,20 +300,23 @@ struct CameraScreen: View {
 
                 if let card = choice.card {
                     VStack(alignment: .leading, spacing: 8) {
-                        Button { withAnimation { showCard.toggle() } } label: {
+                        Button { motion(reduceMotion) { showCard.toggle() } } label: {
                             Label(showCard ? L("camera.hideCard") : L("camera.showCard"), systemImage: showCard ? "eye.slash" : "text.alignleft")
                                 .font(.footnote.weight(.semibold))
-                                .frame(minHeight: 36)
+                                .frame(minHeight: 44)
                         }
                         .foregroundStyle(.white)
                         if showCard {
                             ScrollView { CardText(card: card, inverted: true).frame(maxWidth: .infinity, alignment: .leading) }
-                                .frame(maxHeight: 260)
+                                .frame(maxHeight: max(400, liveHeight - 330))
                         }
                     }
-                    .padding(14)
-                    .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .padding(Theme.s4)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
+                    .background(Color.black.opacity(0.35), in: RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
+                    .environment(\.colorScheme, .dark)
                     .padding(.horizontal)
+                    .frame(maxWidth: 560)
                 }
                 if camera.failed {
                     Text(L("camera.failed")).font(.footnote).foregroundStyle(.white).padding(8).background(.black.opacity(0.6), in: Capsule())
@@ -277,9 +333,11 @@ struct CameraScreen: View {
                     }
                 }
                 .accessibilityLabel(camera.isRecording ? L("camera.stop") : L("camera.record"))
+                .accessibilityIdentifier("camera.record")
                 .padding(.bottom, 24)
             }
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { liveHeight = $0 }
     }
 
     private func review(_ take: URL) -> some View {
@@ -290,12 +348,14 @@ struct CameraScreen: View {
             Text(L("camera.review")).font(.subheadline).foregroundStyle(.white.opacity(0.8)).multilineTextAlignment(.center).padding(.horizontal)
             HStack(spacing: 12) {
                 Button(L("camera.retake")) { camera.discardTake() }.buttonStyle(.dvSecondary)
+                    .accessibilityIdentifier("camera.retake")
                 Button(L("camera.use")) {
                     model.uploads.enqueue(file: take, title: choice.title)
                     camera.take = nil
                     dismiss()
                 }
                 .buttonStyle(.dvPrimary)
+                .accessibilityIdentifier("camera.use")
             }
             .padding(.horizontal)
             .padding(.bottom, 24)

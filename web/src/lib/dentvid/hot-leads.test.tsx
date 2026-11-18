@@ -28,7 +28,7 @@ let sessionUser: { id: string } | null = null;
 
 const demo = (over: Partial<DemoRow> = {}): DemoRow => ({
   token: TOKEN,
-  clinic_name: "Gülümse Diş Kliniği",
+  clinic_name: "Örnek Diş Kliniği",
   city: "İzmir",
   country: "TR",
   language: "tr",
@@ -158,8 +158,8 @@ describe("raising a hot-lead alert", () => {
     expect(await raiseHotLead({ token: TOKEN, step: "signup", clinicId: "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d", now: NOW })).toBe("sent");
     expect(mails).toHaveLength(5);
     const [view, played, start, question, signup] = mails;
-    expect(view.subject).toBe("[DentVideo] GÜZEL HABER: Sıcak aday: Gülümse Diş Kliniği demoyu açtı / GOOD NEWS: Hot lead: Gülümse Diş Kliniği opened the demo");
-    for (const s of ["Gülümse Diş Kliniği", "İzmir, TR", "tr-launch", "demoyu açtı / opened the demo", "Görüntülenme / Views: 3", "13 Nov, 12:30 (Istanbul)", `/tr/d/${TOKEN}`, "Bugün arayın", "WhatsApp"]) {
+    expect(view.subject).toBe("[DentVideo] GÜZEL HABER: Sıcak aday: Örnek Diş Kliniği demoyu açtı / GOOD NEWS: Hot lead: Örnek Diş Kliniği opened the demo");
+    for (const s of ["Örnek Diş Kliniği", "İzmir, TR", "tr-launch", "demoyu açtı / opened the demo", "Görüntülenme / Views: 3", "13 Nov, 12:30 (Istanbul)", `/tr/d/${TOKEN}`, "Bugün arayın", "WhatsApp"]) {
       expect(view.text, s).toContain(s);
     }
     expect(view.html).toContain("GÜZEL HABER · GOOD NEWS");
@@ -180,7 +180,7 @@ describe("raising a hot-lead alert", () => {
     expect(mails).toHaveLength(1);
     expect(await store.get(hotLeadGateKey(TOKEN, "viewed"))).toBe("1");
     // Another demo is its own lead.
-    demoRow = demo({ token: "Kq9WmZ2xT4p", clinic_name: "Riverside Dental" });
+    demoRow = demo({ token: "Kq9WmZ2xT4p", clinic_name: "Sample Dental Practice" });
     expect(await raiseHotLead({ token: "Kq9WmZ2xT4p", step: "viewed", now: NOW })).toBe("sent");
     expect(mails).toHaveLength(2);
   });
@@ -256,7 +256,7 @@ describe("the alert email", () => {
       alerts.hotLead({
         token: TOKEN,
         step: "played",
-        clinicName: "Gülümse Diş Kliniği",
+        clinicName: "Örnek Diş Kliniği",
         city: "İzmir",
         country: "TR",
         campaign: "tr-launch",
@@ -265,7 +265,7 @@ describe("the alert email", () => {
         url: `https://dentvideo.com/tr/d/${TOKEN}`,
       }),
     );
-    expect(mail.html).toContain("Sıcak aday: Gülümse Diş Kliniği önizlemeyi oynattı");
+    expect(mail.html).toContain("Sıcak aday: Örnek Diş Kliniği önizlemeyi oynattı");
     expect(mail.html).toContain(`https://dentvideo.com/tr/d/${TOKEN}`);
     expect(mail.html).not.toContain("<script");
     if (process.env.HOT_LEAD_SAMPLE) fs.writeFileSync(process.env.HOT_LEAD_SAMPLE, mail.html);

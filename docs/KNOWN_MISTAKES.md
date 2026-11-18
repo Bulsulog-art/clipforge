@@ -78,6 +78,7 @@ Status values:
 | KM-49 | all | Every post kit ended with the same line | Repetition across a clinic's feed | `softCta` rotation · `dentvid/post-kit.ts` · value.test.ts "post kit closings" | caught |
 | KM-50 | TR | Captions "kontrol randevusu planlayabilirsiniz", "muayene planlayabilirsiniz" | Steering in the caption (RG 33075) | `captionProblems` / `trSteering` · `week.ts` · quality-round2.test.ts "sends a steering caption back…" | caught |
 | KM-51 | all | A teal emblem with a white tooth inside (about 40% white) was put on the dark chip in the corner; its teal lettering sank into the dark chip (live preview torture test, 2026-11-16) | The dark chip is for a mark that does not read on white. The old rule counted every pixel that read on the dark chip, white ones included, so a mark drawn for a letterhead lost | `chipFor` (dark only when under half the mark reads on white) · `worker/src/dental/logo.ts`, mirrored in `web/src/lib/dentvid/logo-colors.ts` · logo.test.ts "a teal emblem with a large white shape inside keeps the light chip", logo-colors.test.ts "the chip, as the worker decides it" | caught |
+| KM-52 | TR | "Hastalarımız çok memnun." marked *Uygun* on dentvideo.com/tr/ad-checker (2026-11-17) | RG 33075 (md. 5/1-e, 7/1-ğ) forbids promotion with patients' thanks and satisfaction, and the checker page's own FAQ says so. The pattern knew only "memnun hasta" and "hasta memnuniyet", not a plain sentence | `HARD_RULES` testimonial, TR satisfaction line ("hastalarımız" + memnun/mutlu within three words, "hastalarımız … teşekkür", memnun kalan/mutlu/teşekkür eden hastalar, "%80'i memnun", "yüzde 95 memnuniyet", memnuniyet oranı, hasta görüşleri/hikâyeleri); TR verdict *not allowed* with source RG_TR. Calm sentences stay clean ("Bazı hastalar protezinden memnun olmayabilir", "memnuniyetle yanıtlarız", "Hastalarımıza teşekkür ederiz") · `hard-rules.ts` (worker, mirrored to the checker) · dental.test.ts "catches what the Turkish Tanıtım Yönetmeliği names", "leaves calm Turkish sentences…"; ad-checker-markets.test.ts "Türkiye…"; hard-rules golden case | caught (new) |
 
 ## Live samples still carrying a flaw
 
@@ -97,6 +98,15 @@ These were fixed on 15.11.2026 without any API call. The text was corrected in t
 - `fr/blanchiment-email` (KM-17, cards): "Évitez le café et le thé", "Évitez le vin rouge". -14.7 LUFS.
 
 `dentvideo-examples.ts` (`onScreen`) was updated to match.
+
+## iPhone app mistakes
+
+Mistakes seen in the DentVideo iPhone app (`ios/DentVideo`), outside the video register above
+(whose rows the worker tests check). Each has the check that now covers it.
+
+| Id | Area | What was seen (verbatim) | Why it is wrong | Caught by | Status |
+|---|---|---|---|---|---|
+| APP-01 | iOS app | iPhone SE (3rd gen), iOS 17.5: `Failed to synthesize event: Neither element nor any descendant has keyboard focus` on `signin.email`, `clinic.name`, `clinic.city`, `delete.field` | A dentist on iOS 17 might not have been able to type their email; the cause was not found (hardware keyboard off, Settings app types, the multi-line note types) | Minimum iOS raised to 18.0 (`ios/DentVideo/project.yml`, `Core/Package.swift`); the UI journeys type into every one-line field on iPhone SE 3 with iOS 18 and on iOS 26 (`ios/DentVideo/Tests/UI`, CI job `tests`) | caught (new) |
 
 ## Customer-journey defects (audit 2026-11-17)
 

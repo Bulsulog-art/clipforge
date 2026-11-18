@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Mail } from "lucide-react";
+import { CreditCard, ExternalLink, Mail } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { billingText } from "@/content/dentvideo-billing";
+import { appStoreText } from "@/content/dentvideo-app-store";
 import { DV_SUPPORT_EMAIL, dateLocale, mailtoHref } from "@/lib/dentvid/app-ui";
 import { HelpLink } from "./help-link";
 
@@ -15,7 +16,11 @@ export type BillingIssue =
   | { kind: "pending" }
   | { kind: "disputed" }
   | { kind: "admin_paused" }
-  | { kind: "cancelled_pending"; until: string };
+  | { kind: "cancelled_pending"; until: string }
+  | { kind: "app_store" };
+
+/** Apple's subscriptions page (apple-billing.ts APP_STORE_MANAGE_URL; repeated here so this client file imports no server code). */
+const APP_STORE_SUBSCRIPTIONS = "https://apps.apple.com/account/subscriptions";
 
 /**
  * Shown instead of the plan picker when buying a plan would be wrong: the
@@ -26,6 +31,7 @@ export type BillingIssue =
  */
 export function BillingIssuePanel({ locale, issue, clinicName, keepVideos = false }: { locale: Locale; issue: BillingIssue; clinicName?: string; keepVideos?: boolean }) {
   const c = billingText(locale).copy.panel;
+  const appStore = appStoreText(locale);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +62,9 @@ export function BillingIssuePanel({ locale, issue, clinicName, keepVideos = fals
           ? [c.disputedTitle, fill(c.disputedBody, vars)]
           : issue.kind === "admin_paused"
             ? [c.adminPausedTitle, fill(c.adminPausedBody, vars)]
-            : [
+            : issue.kind === "app_store"
+              ? [appStore.holdTitle, appStore.holdBody]
+              : [
                 c.cancelledTitle,
                 fill(c.cancelledBody, {
                   ...vars,
@@ -96,6 +104,14 @@ export function BillingIssuePanel({ locale, issue, clinicName, keepVideos = fals
             {DV_SUPPORT_EMAIL}
           </a>
         </div>
+      )}
+      {issue.kind === "app_store" && (
+        <p className="mt-6">
+          <a href={APP_STORE_SUBSCRIPTIONS} target="_blank" rel="noopener noreferrer" className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm !text-dv-teal" data-testid="app-store-manage">
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            {appStore.button}
+          </a>
+        </p>
       )}
       {issue.kind === "cancelled_pending" && (
         <p className="mt-6">

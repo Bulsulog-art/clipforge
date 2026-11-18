@@ -13,25 +13,25 @@ import { dvAvailablePlans } from "@/lib/dentvid/billing";
 import { SERVICE_HINTS, splitServices } from "@/lib/dentvid/service-hints";
 
 const DEMO_CLINIC: Record<Locale, { name: string; city: string; country: string }> = {
-  en: { name: "Riverside Dental", city: "Bristol", country: "GB" },
-  de: { name: "Zahnarztpraxis am Park", city: "München", country: "DE" },
-  es: { name: "Clínica Dental Sonrisa", city: "Valencia", country: "ES" },
-  tr: { name: "Gülümse Diş Kliniği", city: "İzmir", country: "TR" },
-  fr: { name: "Cabinet Dentaire du Parc", city: "Lyon", country: "FR" },
-  ja: { name: "さくら歯科クリニック", city: "横浜市", country: "JP" },
-  ar: { name: "عيادة الابتسامة لطب الأسنان", city: "دبي", country: "AE" },
-  pl: { name: "Gabinet Stomatologiczny Uśmiech", city: "Kraków", country: "PL" },
+  en: { name: "Sample Dental Practice", city: "Bristol", country: "GB" },
+  de: { name: "Demo Zahnarztpraxis", city: "München", country: "DE" },
+  es: { name: "Clínica Dental Ejemplo", city: "Valencia", country: "ES" },
+  tr: { name: "Örnek Diş Kliniği", city: "İzmir", country: "TR" },
+  fr: { name: "Cabinet Dentaire Exemple", city: "Lyon", country: "FR" },
+  ja: { name: "サンプル歯科", city: "横浜市", country: "JP" },
+  ar: { name: "عيادة أسنان تجريبية", city: "دبي", country: "AE" },
+  pl: { name: "Przykładowy Gabinet Stomatologiczny", city: "Kraków", country: "PL" },
 };
 
 const DEMO_EMAIL: Record<Locale, string> = {
-  en: "hello@riverside-dental.example",
-  de: "praxis@zahnarzt-am-park.example",
-  es: "hola@clinicasonrisa.example",
-  tr: "info@gulumsedis.example",
-  fr: "contact@cabinet-du-parc.example",
-  ja: "info@sakura-dental.example",
-  ar: "info@smile-dental.example",
-  pl: "rejestracja@gabinet-usmiech.example",
+  en: "hello@sample-dental-practice.example",
+  de: "praxis@demo-zahnarztpraxis.example",
+  es: "hola@clinica-dental-ejemplo.example",
+  tr: "info@ornek-dis-klinigi.example",
+  fr: "contact@cabinet-dentaire-exemple.example",
+  ja: "info@sample-shika.example",
+  ar: "info@demo-dental-clinic.example",
+  pl: "rejestracja@przykladowy-gabinet.example",
 };
 
 export const dynamic = "force-dynamic";
@@ -66,7 +66,6 @@ export default async function FunnelPreview({ searchParams }: { searchParams: Pr
         services: splitServices(SERVICE_HINTS[locale]).slice(0, 4),
         tone: "warm" as const,
         address: "formal" as const,
-        handle: "riverside.dental",
         brandColor: "B6774F",
       };
   // As /start does: the header and footer speak the wizard's language.

@@ -7,6 +7,13 @@ enum PhotoSaver {
     enum Failure: Error { case denied, failed }
 
     static func saveVideo(at url: URL) async throws -> String? {
+        #if DEBUG
+        // Demo mode (UI tests, screenshots): the Photos answer comes from -DVPhotos.
+        if DemoFlags.active {
+            if DemoFlags.photos == "denied" { throw Failure.denied }
+            return "demo-asset"
+        }
+        #endif
         let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard status == .authorized || status == .limited else { throw Failure.denied }
         let box = IdentifierBox()

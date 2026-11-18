@@ -18,7 +18,7 @@ Forms change, so glance at each page first. Nothing here needs a payment.
 | `web/public/dentvideo/landing/{tr,de}/*.webp` | The same screens in Turkish and German |
 | Product Hunt thumbnail (240x240) and gallery (1270x760) | Not in the repo. Only needed on launch day, which is not part of this round. Make them then from the logo and the screenshots above |
 
-The screenshots show the app's demo clinic ("Riverside Dental, Bristol"). It is a demo, not a customer. If a site asks for screenshot captions, write "Demo clinic".
+The screenshots show the app's demo clinic ("Sample Dental Practice, Bristol"). It is a demo, not a customer. If a site asks for screenshot captions, write "Demo clinic".
 
 ---
 

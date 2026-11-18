@@ -8,7 +8,7 @@ import { alertSubject, renderAlert, resendSender } from "./ops-alert";
 import { readyEmail } from "./email";
 import { welcomeEmail } from "./lifecycle-email";
 
-const base = { name: "Riverside Dental", country: "GB", language: "en", services: ["Implants"] };
+const base = { name: "Sample Dental Practice", country: "GB", language: "en", services: ["Implants"] };
 
 describe("R3-1: one-line profile text, and every mail subject folded to one line", () => {
   afterEach(() => {

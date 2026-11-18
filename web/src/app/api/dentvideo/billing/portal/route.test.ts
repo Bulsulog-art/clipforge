@@ -51,6 +51,14 @@ describe("POST /api/dentvideo/billing/portal", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("an App Store plan: 409 'managed in the App Store' with Apple's link; Dodo is never called", async () => {
+    session.clinic = { ...session.clinic!, dodo_subscription_id: null, billing_source: "apple", apple_original_transaction_id: "2000000100" };
+    const r = await call();
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: "app_store", manageUrl: "https://apps.apple.com/account/subscriptions" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("without DODO_API_KEY keeps the email path and calls nothing", async () => {
     vi.stubEnv("DODO_API_KEY", "");
     expect(await call()).toEqual({ status: 501, body: { error: ACCOUNT_TEXT.en.errors.billingUnavailable, fallback: "email" } });

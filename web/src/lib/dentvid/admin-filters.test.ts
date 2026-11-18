@@ -43,9 +43,9 @@ const clinic = (o: Partial<ClinicRowView> & { id: string }): ClinicRowView => ({
 
 describe("clinic filters", () => {
   const rows = [
-    clinic({ id: A, plan: "active", plan_tier: "practice", profile: { name: "Zahnzentrum Mitte", country: "DE", language: "de" }, created_at: ago(3), lastActivity: ago(0.1), source: "instagram / dm / de-launch" }),
-    clinic({ id: B, plan: "trial", profile: { name: "Harbour Smiles", country: "GB", language: "en" }, created_at: ago(60), lastActivity: ago(1) }),
-    clinic({ id: "c", plan: "active", admin_paused_at: ago(1), profile: { name: "Dentpark", country: "TR", language: "tr" }, created_at: ago(20), source: "google / — / —" }),
+    clinic({ id: A, plan: "active", plan_tier: "practice", profile: { name: "Zahnarztpraxis Muster", country: "DE", language: "de" }, created_at: ago(3), lastActivity: ago(0.1), source: "instagram / dm / de-launch" }),
+    clinic({ id: B, plan: "trial", profile: { name: "Example Dental Care", country: "GB", language: "en" }, created_at: ago(60), lastActivity: ago(1) }),
+    clinic({ id: "c", plan: "active", admin_paused_at: ago(1), profile: { name: "Demo Diş Merkezi", country: "TR", language: "tr" }, created_at: ago(20), source: "google / — / —" }),
   ];
   const ids = (sp: Record<string, string>) => filterClinics(rows, parseClinicFilter(sp), NOW).map((r) => r.id);
 
@@ -54,7 +54,7 @@ describe("clinic filters", () => {
   });
 
   it("filters by search, plan, language, country, created and source", () => {
-    expect(ids({ q: "harbour" })).toEqual([B]);
+    expect(ids({ q: "example" })).toEqual([B]);
     expect(ids({ q: A.slice(0, 8) })).toEqual([A]);
     expect(ids({ plan: "active" })).toEqual([A, "c"]);
     expect(ids({ plan: "admin_paused" })).toEqual(["c"]);

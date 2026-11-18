@@ -3,4 +3,8 @@
 //   DV_API_BASE_URL = https:/$()/staging.example.com/api/dentvideo/mobile/v1
 DV_API_BASE_URL = https:/$()/dentvideo.com/api/dentvideo/mobile/v1
 APS_ENVIRONMENT = development
+// RevenueCat public Apple SDK key (appl_…). Empty here on purpose: put it in Config/RevenueCat.xcconfig
+// (gitignored) as  REVENUECAT_PUBLIC_KEY = appl_…  Without it the paywall says "not available yet".
+REVENUECAT_PUBLIC_KEY =
+#include? "RevenueCat.xcconfig"
 #include? "Local.xcconfig"

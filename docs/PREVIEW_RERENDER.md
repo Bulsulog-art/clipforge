@@ -20,8 +20,8 @@ mastered narration (-14 LUFS / -1 dBTP) and the loudness guard, safe areas, the
 hook on frame 0, cuts snapped to the narration's pauses, the on-screen md. 7/1-k
 warning on procedure topics, and every TR market rule. No stock footage
 (no Pexels key in the render box): footage scenes show their caption on the
-brand look, as in the earlier samples. Demo clinic: "Demo Diş Kliniği",
-@demodisklinigi.
+brand look, as in the earlier samples. Demo clinic: "Demo Diş Kliniği"
+(rendered then with a handle, removed on 17.11.2026: see the seventh pass).
 
 1. **Live preview library** (`web/public/dentvideo/preview/tr/`), rebuilt with
    `scripts/build-dentvideo-preview.mts`, same ids as before:
@@ -195,6 +195,31 @@ The three samples whose narration carried a register mistake were fixed without 
 Checked: a contact sheet per video (hook, every scene, the sign-off; dental photos only: aligner case, glass, aligner, whitening tray, chair; the TR md. 7/1-k notice), and a local Whisper transcript of each new narration, which has the corrected words. A first render of all three came out on the light default look because `plan.json` has no `brandColor` (the week adds it at render time); it was not published, and the published renders carry the clinics' colours like the originals.
 
 Spend: narration only, 1,199 characters at the tts-1-hd ceiling ($30/M): **$0.036** against a $0.60 cap. No chat call.
+
+## Seventh pass (17.11.2026): no invented @handle on any sample
+
+Every sample's sign-off showed a made-up Instagram handle (`@demodisklinigi`,
+`@demodentalstudio`, `@demozahnarztpraxis`, `@clinicadentaldemo`,
+`@cabinetdentairedemo`, `@demo_shika_tokyo`, `@demodental.dubai`,
+`@gabinet.demo.krakow`). A handle like that can belong to a real account, so the
+samples now carry none: the sign-off shows the CTA line, and the logo and clinic
+name where the sample had them. The handle came from the demo clinic profiles
+(`week.ts` puts `profile.handle` on the cta scene), so:
+
+- Sample profiles have no `handle` (`worker/dental-examples/*.json`, checked by
+  `worker/src/dental/sample-profiles.test.ts`; the demo profiles used for the
+  renders above are re-run without one). `scripts/build-dentvideo-preview.mts`
+  takes `handle` as optional.
+- All 24 sample MP4s were rendered again locally from the plan each one was
+  rendered from, with the cta `handle` removed and the video's own narration
+  file. Nothing was synthesised or generated: no TTS, no LLM, no stock footage.
+  The 16 current-pipeline samples (TR, EN, DE, ES, FR, `pl/wybielanie-przed-slubem`)
+  reuse `render-plan.json` + `voiceover.master.wav`; the 8 older JA/AR/PL samples
+  reuse `plan.json` + `voiceover.loud.mp3`, timed with `fitPlanToVoice` as the
+  worker timed them, and the profile's brand colour.
+- Compressed as before (~240 kbps video, AAC 96 kbps, `+faststart`); posters
+  unchanged (frame 0.9 s, which has no sign-off). Each new file was checked for
+  length against the old one, loudness, and a look at its last frame.
 
 ## Not changed on purpose
 
