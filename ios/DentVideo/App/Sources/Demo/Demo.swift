@@ -19,6 +19,8 @@ enum Demo {
         "settings", "settings-bottom", "clinic", "videos", "delete", "signout",
         // In-app purchase (Billing/, Views/PaywallView.swift); "noclinic" is the new clinic form.
         "signup", "signup-code", "verify", "paywall", "paywall-unavailable", "activating", "confirming", "settings-appstore",
+        // "See it with your logo" before the plans, and the clinic's own requests.
+        "preview-start", "preview", "preview-failed", "topics", "change", "change-sent",
     ]
 
     static var screen: String? {
@@ -47,7 +49,7 @@ enum Demo {
         let profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: nil, bookingUrl: "https://sample.example/book", closingLine: c.closing, narratorVoice: "female")
         let plan: PlanInfo
         switch screen {
-        case "noplan", "verify", "paywall", "paywall-unavailable", "activating", "confirming": plan = PlanInfo(state: .cancelled, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
+        case "noplan", "verify", "paywall", "paywall-unavailable", "activating", "confirming", "preview-start", "preview", "preview-failed": plan = PlanInfo(state: .cancelled, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
         case "paused": plan = PlanInfo(state: .paused, tier: "practice", canMake: false, adminPaused: true, recordings: true, renewsAt: nil)
         case "record-locked": plan = PlanInfo(state: .active, tier: "starter", canMake: true, adminPaused: false, recordings: false, renewsAt: nil)
         default: plan = PlanInfo(state: .active, tier: "practice", canMake: true, adminPaused: false, recordings: true, renewsAt: nil)
@@ -66,7 +68,8 @@ enum Demo {
         case "noclinic": server.plan = "noclinic"
         case "paused": server.plan = "paused"
         case "verify": server.plan = "noplan"; server.billingMode = "none"; server.emailVerified = false
-        case "paywall", "paywall-unavailable", "activating", "confirming": server.plan = "noplan"; server.billingMode = "none"
+        case "paywall", "paywall-unavailable", "activating", "confirming", "preview-start", "preview": server.plan = "noplan"; server.billingMode = "none"
+        case "preview-failed": server.plan = "noplan"; server.billingMode = "none"; server.logoMode = "fail"
         case "settings-appstore": server.billingMode = "apple"
         default: break
         }
@@ -75,6 +78,7 @@ enum Demo {
         m.demoScreen = screen
         if screen == "activating" { m.billing.phase = .activating }
         if screen == "confirming" { m.billing.phase = .confirming }
+        if screen.hasPrefix("preview") { m.showLogoPreview = true }
         m.currentWeek = week
 
         switch screen {
@@ -103,7 +107,7 @@ enum Demo {
         if screen.hasPrefix("record") || screen.hasPrefix("camera") { m.tab = .record }
         if ["settings", "settings-bottom", "clinic", "videos", "delete", "signout", "settings-appstore"].contains(screen) { m.tab = .settings }
         switch screen {
-        case "video-review", "video-declined", "decline": m.weekPath = ["d1"]
+        case "video-review", "video-declined", "decline", "change", "change-sent": m.weekPath = ["d1"]
         case "video-look": m.weekPath = ["d2"]
         case "video-approved", "post", "post-ready": m.weekPath = ["d3"]
         case "video-posted": m.weekPath = ["d4"]
@@ -123,8 +127,8 @@ enum Demo {
         func thumb(_ id: String) -> URL { URL(string: "https://demo.invalid/\(id).jpg")! }
         var i1 = VideoItem(id: "d1", status: .ready, approval: .pending, title: c.titles[0], weekOf: week, caption: c.captions[0], hashtags: c.tags, thumbUrl: thumb("d1"), slot: Slot(date: "2026-11-16", time: "19:00"), shootCard: c.card)
         var i2 = VideoItem(id: "d2", status: .flagged, approval: .pending, title: c.titles[1], weekOf: week, caption: c.captions[1], hashtags: c.tags, reasons: [.pause], thumbUrl: thumb("d2"), slot: Slot(date: "2026-11-17", time: "12:30"))
-        var i3 = VideoItem(id: "d3", status: .ready, approval: .approved, title: c.titles[2], weekOf: week, caption: c.captions[2], hashtags: c.tags, thumbUrl: thumb("d3"), slot: Slot(date: "2026-11-18", time: "19:00"))
-        var i4 = VideoItem(id: "d4", status: .ready, approval: .approved, title: c.titles[3], weekOf: week, caption: c.captions[3], hashtags: c.tags, thumbUrl: thumb("d4"), postedAt: "2026-11-16T18:10:00Z", slot: Slot(date: "2026-11-19", time: "12:30"))
+        var i3 = VideoItem(id: "d3", status: .ready, approval: .approved, title: c.titles[2], weekOf: week, caption: c.captions[2], hashtags: c.tags, thumbUrl: thumb("d3"), slot: Slot(date: "2026-11-18", time: "19:00"), subtitles: true)
+        var i4 = VideoItem(id: "d4", status: .ready, approval: .approved, title: c.titles[3], weekOf: week, caption: c.captions[3], hashtags: c.tags, thumbUrl: thumb("d4"), postedAt: "2026-11-16T18:10:00Z", slot: Slot(date: "2026-11-19", time: "12:30"), subtitles: true)
         var i5 = VideoItem(id: "d5", status: .working, approval: .pending, title: c.titles[4], weekOf: week, slot: Slot(date: "2026-11-20", time: "19:00"))
         let i6 = VideoItem(id: "d6", status: .ready, approval: .approved, title: c.titles[5], weekOf: lastWeek, caption: c.captions[3], hashtags: c.tags, thumbUrl: thumb("d6"), postedAt: "2026-11-10T11:00:00Z", slot: Slot(date: "2026-11-10", time: "12:30"))
         let r1 = VideoItem(id: "d7", kind: .recording, status: .ready, approval: .approved, title: c.titles[6], weekOf: lastWeek, caption: c.captions[0], thumbUrl: thumb("d7"), postedAt: "2026-11-12T09:00:00Z", slot: Slot(date: "2026-11-12", time: "09:00"))
@@ -157,6 +161,8 @@ enum Demo {
             i3.thumbUrl = nil
         case "video-declined":
             i1.approval = .rejected
+        case "change-sent":
+            i1.change = ChangeView(status: .queued, at: ISO8601DateFormatter().string(from: Date()))
         default: break
         }
         return [i1, i2, i3, i4, i5, i6, r1]
@@ -296,6 +302,14 @@ enum DemoFlags {
     static var email: String { str("DVEmail", "verified") }
     /// After a purchase the webhook: fast (the second poll sees the plan) | never (the app times out)
     static var activation: String { str("DVActivation", "fast") }
+    /// POST logo: ok | fail (every upload refused) | failonce (the first refused, a retry works)
+    static var logo: String { str("DVLogo", "ok") }
+    /// GET preview: ok | fail
+    static var preview: String { str("DVPreview", "ok") }
+    /// POST items/{id}/change: ok | limit (this week's 3 are used)
+    static var change: String { str("DVChange", "ok") }
+    /// Topic suggestions: ok | unavailable (the server has nowhere to keep them yet)
+    static var topics: String { str("DVTopics", "ok") }
 }
 
 /// An in-process stand-in for /api/dentvideo/mobile/v1 with the same shapes and status codes.
@@ -318,10 +332,22 @@ final class DemoServer: @unchecked Sendable {
     private var purchasedTier: String?
     private var pollsUntilActive = 0
     private(set) var billingReads = 0
+    private let content: DemoContent
+    /// The clinic's topic suggestions, newest first (one waiting, one made last week).
+    private var topics: [[String: Any]]
+    private var changesUsed = 0
+    /// POST logo: see DemoFlags.logo (a screenshot can set it).
+    var logoMode = DemoFlags.logo
+    private var logoUploads = 0
 
     init(content c: DemoContent, lang: String, items: [VideoItem]) {
         self.items = items
         self.lang = lang
+        self.content = c
+        self.topics = [
+            ["id": "8b1c9d2e-0000-4000-8000-000000000002", "text": c.topics[1], "status": "pending", "reason": NSNull(), "week_of": NSNull()],
+            ["id": "8b1c9d2e-0000-4000-8000-000000000001", "text": c.topics[0], "status": "used", "reason": NSNull(), "week_of": Demo.lastWeek],
+        ]
         self.profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: nil, bookingUrl: "https://sample.example/book", closingLine: c.closing, narratorVoice: "female")
     }
 
@@ -423,6 +449,11 @@ final class DemoServer: @unchecked Sendable {
             return (200, try enc.encode(tokens("fresh")), [:])
         }
         if path.hasSuffix("/password-reset") { return (200, Self.json(["ok": true]), [:]) }
+        // The preview library's plans: public files on the API's origin, no session.
+        if path.hasPrefix("/dentvideo/preview/"), path.hasSuffix(".json") {
+            let id = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+            return (200, Self.json(Self.samplePlan(content, id: id)), [:])
+        }
         if path.hasSuffix("/signup") {
             let email = ((body["email"] as? String) ?? "").lowercased()
             // The server's bot brake: a form filled in under 2.5 s (or with no time) is refused.
@@ -492,7 +523,115 @@ final class DemoServer: @unchecked Sendable {
             deleted = true
             return (200, Self.json(["ok": true]), [:])
         }
+        if let answer = requests(r, path: path, body: body) { return answer }
         return (404, Self.json(["error": "Not found"]), [:])
+    }
+}
+
+extension DemoServer {
+    private static func any(_ s: String?) -> Any { s.map { $0 as Any } ?? NSNull() }
+
+    /// The logo preview, topic suggestions, change requests and subtitle files, with the shapes
+    /// and status codes of the real routes (web/src/lib/dentvid/clinic-requests.ts, mobile/v1/logo).
+    /// Called with the lock held.
+    fileprivate func requests(_ r: URLRequest, path: String, body: [String: Any]) -> (Int, Data, [String: String])? {
+        let method = r.httpMethod ?? "GET"
+        if path.hasSuffix("/preview") {
+            if DemoFlags.preview == "fail" { return (500, Data(), [:]) }
+            guard plan != "noclinic" else { return (409, Self.json(["error": "Set up your clinic first.", "code": "no_clinic"]), [:]) }
+            let video = ["en", "de", "es", "fr", "tr", "ja", "ar", "pl"].contains(profile.language) ? profile.language : "en"
+            let samples: [[String: Any]] = [
+                ["id": "demo-floss", "title": content.titles[2], "service": content.services[0], "seconds": 16, "planPath": "/dentvideo/preview/\(video)/demo-floss.json", "audioPath": NSNull()],
+                ["id": "demo-sensitive", "title": content.titles[5], "service": content.services[0], "seconds": 15, "planPath": "/dentvideo/preview/\(video)/demo-sensitive.json", "audioPath": NSNull()],
+            ]
+            let clinic: [String: Any] = ["name": profile.name, "handle": Self.any(profile.handle.map { "@\($0)" }), "brandColor": Self.any(profile.brandColor.map { "#\($0)" }), "logoUrl": NSNull()]
+            return (200, Self.json(["language": video, "controlsSide": video == "ar" ? "right" : "left", "clinic": clinic, "placeholders": ["name": "{name}", "handle": "{handle}"], "samples": samples, "servicesWithoutSample": [String]()] as [String: Any]), [:])
+        }
+        if path.hasSuffix("/logo"), method == "POST" {
+            guard plan != "noclinic" else { return (409, Self.json(["error": "Set up your clinic first.", "code": "no_clinic"]), [:]) }
+            logoUploads += 1
+            if logoMode == "fail" || (logoMode == "failonce" && logoUploads == 1) { return (503, Self.json(["error": "Could not start."]), [:]) }
+            return (200, Self.json(["path": "demo/logo-\(logoUploads).png", "contentType": r.value(forHTTPHeaderField: "Content-Type") ?? "image/png", "logoUrl": NSNull()] as [String: Any]), [:])
+        }
+        if path.hasSuffix("/topic-requests") {
+            if DemoFlags.topics == "unavailable" {
+                return method == "POST" ? (503, Self.json(["error": L("topics.error.unavailable"), "code": "unavailable"]), [:]) : (200, Self.json(["topics": [Any](), "available": false] as [String: Any]), [:])
+            }
+            if method == "POST" {
+                let text = RequestRules.clean(body["text"] as? String ?? "")
+                guard RequestRules.canSendTopic(text) else { return (400, Self.json(["error": "Please write between 3 and 140 characters.", "code": "length"]), [:]) }
+                if topics.filter({ ($0["status"] as? String) == "pending" }).count >= RequestRules.pendingTopicsMax {
+                    return (409, Self.json(["error": L("topics.error.tooManyPending"), "code": "too_many_pending"]), [:])
+                }
+                let row: [String: Any] = ["id": UUID().uuidString.lowercased(), "text": text, "status": "pending", "reason": NSNull(), "week_of": NSNull()]
+                topics.insert(row, at: 0)
+                return (200, Self.json(["ok": true, "topic": row] as [String: Any]), [:])
+            }
+            return (200, Self.json(["topics": topics, "available": true] as [String: Any]), [:])
+        }
+        if method == "DELETE", path.contains("/topic-requests/") {
+            let id = r.url?.lastPathComponent ?? ""
+            guard let i = topics.firstIndex(where: { ($0["id"] as? String) == id && ($0["status"] as? String) == "pending" }) else { return (404, Self.json(["error": "not found"]), [:]) }
+            topics.remove(at: i)
+            return (200, Self.json(["ok": true]), [:])
+        }
+        if path.hasSuffix("/change"), method == "POST" {
+            let id = r.url?.deletingLastPathComponent().lastPathComponent ?? ""
+            guard let i = items.firstIndex(where: { $0.id == id }) else { return (404, Self.json(["error": "not found", "code": "not_found"]), [:]) }
+            let note = RequestRules.clean(body["note"] as? String ?? "")
+            guard RequestRules.canSendNote(note) else { return (400, Self.json(["error": "Please write between 3 and 300 characters.", "code": "length"]), [:]) }
+            if DemoFlags.change == "limit" || changesUsed >= RequestRules.changesPerWeek {
+                return (429, Self.json(["error": L("change.error.limit"), "code": "limit", "left": 0] as [String: Any]), [:])
+            }
+            changesUsed += 1
+            let at = ISO8601DateFormatter().string(from: Date())
+            items[i].change = ChangeView(status: .queued, at: at)
+            let change: [String: Any] = ["id": UUID().uuidString.lowercased(), "item_id": id, "status": "queued", "reason": NSNull(), "created_at": at]
+            return (200, Self.json(["ok": true, "change": change, "left": RequestRules.changesPerWeek - changesUsed] as [String: Any]), [:])
+        }
+        if path.hasSuffix("/subtitles") {
+            let id = r.url?.deletingLastPathComponent().lastPathComponent ?? ""
+            guard let item = items.first(where: { $0.id == id }), item.subtitles else { return (404, Self.json(["error": "not found"]), [:]) }
+            let srt = "1\n00:00:00,000 --> 00:00:03,000\n\(item.title)\n\n2\n00:00:03,000 --> 00:00:08,000\n\(item.caption ?? item.title)\n"
+            return (200, Data(srt.utf8), ["Content-Type": "application/x-subrip; charset=utf-8"])
+        }
+        return nil
+    }
+
+    /// A sample's plan in the preview library's shape (web/public/dentvideo/preview/<lang>/<id>.json),
+    /// from the demo clinic's checked texts (DemoContent.sample / sample2).
+    static func samplePlan(_ c: DemoContent, id: String) -> [String: Any] {
+        if id == "demo-sensitive" {
+            return ["title": c.titles[5], "scenes": [
+                ["kind": "hook", "text": c.sample2[0], "seconds": 3],
+                ["kind": "statement", "text": c.sample2[1], "seconds": 4],
+                ["kind": "statement", "text": c.sample2[2], "seconds": 5],
+                ["kind": "cta", "text": c.sample[6], "handle": "{handle}", "seconds": 3],
+            ] as [[String: Any]]]
+        }
+        return ["title": c.titles[2], "scenes": [
+            ["kind": "hook", "text": c.sample[0], "seconds": 3],
+            ["kind": "statement", "text": c.sample[1], "emphasis": [String](), "seconds": 4],
+            ["kind": "list", "heading": c.sample[2], "items": Array(c.sample[3...5]), "seconds": 6],
+            ["kind": "cta", "text": c.sample[6], "handle": "{handle}", "seconds": 3],
+        ] as [[String: Any]]]
+    }
+}
+
+extension Demo {
+    /// A sample logo for the demo (no photo library in screenshots or UI tests): a round mark in
+    /// a clinic red, so the preview's "From your logo" colour has something to find.
+    static func sampleLogo() -> Data {
+        let art = ZStack {
+            Circle().fill(Color(red: 138 / 255, green: 59 / 255, blue: 74 / 255))
+            Text(verbatim: "S")
+                .font(.system(size: 130, weight: .bold, design: .serif))
+                .foregroundStyle(.white)
+        }
+        .frame(width: 240, height: 240)
+        let r = ImageRenderer(content: art)
+        r.scale = 1
+        return r.uiImage?.pngData() ?? Data()
     }
 }
 

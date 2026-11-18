@@ -73,6 +73,8 @@ the origin guard exempts exactly this prefix (`lib/origin-guard.ts`). Every resp
 | `DELETE topic-requests/{id}` | – | `{ ok }` | Only the caller's own, still waiting. |
 | `POST items/{id}/change` | `{ note }` | `{ ok, change, left }` | Shared handler: own generated video, active plan, one running per video, 3 a week (worker spend guard enforces it again). |
 | `GET items/{id}/subtitles?format=srt\|vtt` | – | the file | Own video only; 404 without stored cues. |
+| `GET preview` | – | `{ language, controlsSide, clinic: { name, handle, brandColor, logoUrl }, samples: [{ id, title, planPath, audioPath }], servicesWithoutSample }` | The web's static preview library (`preview-library.ts`) for the clinic's services and language; plans and narrations are public files on the API's origin. Nothing generated. |
+| `POST logo` | image bytes (PNG/JPEG/WebP, at most 5 MB) | `{ path, contentType, logoUrl }` | The web's logo handler (`handlers/logo-upload.ts`: size counted while reading, real image type, quota, server-picked path), then attached to the caller's clinic by the web's `clinic-save.ts` with its stored profile. The app never names a path; 409 `no_clinic` before the clinic exists; a refused attach removes the file. |
 
 The existing cookie routes keep their exact behaviour: their bodies move into shared handler
 functions (`lib/dentvid/*-handler.ts`) that both the cookie route and the mobile route call with
@@ -165,10 +167,26 @@ Minimum iOS: **18.0** (was 17.0). iOS 18.0 minimum (owner decision, 2026-11-17).
 
 ## 8. Out of scope for 1.0 (written down so nobody assumes it exists)
 
-- Logo upload and the background-photo picker (web only).
+- The background-photo picker (web only). Logo upload is in the app since the logo preview
+  ("See it with your logo", before the plans: section 9).
 - Starting a week manually (the Monday batch makes it; the web keeps the button).
 - Byte-level resumable (TUS) uploads: 1.0 uses a background `URLSession` upload, which the
   system continues while the app is suspended and retries on network changes; a failed upload
   restarts with a fresh URL.
 - Direct posting through the Instagram or TikTok SDKs (both need app keys); the app hands the
   video and text to the installed apps instead.
+
+## 9. Logo preview and the clinic's own requests (added 2026-11-18)
+
+- **"See it with your logo"** comes right after a new clinic's form, before the plans (and as a card
+  on the plans). It is the web's live preview on the phone: the static, reviewed sample library
+  (`GET preview`), each plan drawn natively as a story in a 9:16 frame, painted in the clinic's
+  colour, with its logo in the video's top corner (left in an Arabic video), its name, and the
+  library's `{name}` / `{handle}` filled the web's way (`personalisePlan`). The logo is picked with
+  PhotosPicker, shown at once, its own colour offered (and used when the clinic has none yet), then
+  saved with `POST logo`; a colour is saved with `POST clinic`. Autoplay is muted, never with Reduce
+  Motion. No generation, no paid call.
+- **Suggest a topic** (the week), **Ask for a change** (the video, next to Decline; decline is
+  unchanged) and **Download subtitles (.srt)** (the post sheet, through the share sheet) use the
+  web's routes, limits (3 to 140 characters and 5 waiting; 3 to 300 characters, 3 changes a week,
+  one at a time per video) and wording (`content/dentvideo-requests.ts`) in all eight languages.

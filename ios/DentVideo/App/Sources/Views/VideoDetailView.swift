@@ -10,6 +10,7 @@ struct VideoDetailView: View {
     let itemID: String
     @Environment(AppModel.self) private var model
     @State private var declining = false
+    @State private var changing = false
     @State private var posting = false
     @State private var busy = false
     @State private var approvedTick = 0
@@ -35,6 +36,7 @@ struct VideoDetailView: View {
             guard model.isDemoMode else { return }
             try? await Task.sleep(for: .milliseconds(400))
             if model.isDemo("decline") { declining = true }
+            if model.isDemo("change") { changing = true }
             if model.isDemo("post", "post-ready") { posting = true }
         }
     }
@@ -56,6 +58,7 @@ struct VideoDetailView: View {
                     }
                 }
                 notes(item, state: state)
+                ChangeNote(item: item)
                 if state == .approved || state == .posted { postedToggle(item) }
                 if let caption = item.post?.instagram ?? item.caption, !caption.isEmpty, state != .notMade, state != .failed {
                     VStack(alignment: .leading, spacing: Theme.s2) {
@@ -82,6 +85,7 @@ struct VideoDetailView: View {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { actionBar(item, state: state) }
         .sheet(isPresented: $declining) { DeclineSheet(item: item) }
+        .sheet(isPresented: $changing) { ChangeSheet(item: item) }
         .sheet(isPresented: $posting) { PostSheet(item: item, startReady: model.isDemo("post-ready")) }
     }
 
@@ -142,14 +146,24 @@ struct VideoDetailView: View {
         switch state {
         case .review, .look:
             bar {
-                // Side by side; stacked (approve on top) at the largest text sizes.
-                let layout = type.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: Theme.s2)) : AnyLayout(HStackLayout(spacing: Theme.s3))
-                layout {
-                    if type.isAccessibilitySize { approveButton(item) }
-                    Button { declining = true } label: { Label(L("video.decline"), systemImage: "xmark") }
-                        .buttonStyle(.dvSecondary)
-                        .accessibilityIdentifier("video.decline")
-                    if !type.isAccessibilitySize { approveButton(item) }
+                VStack(spacing: Theme.s1) {
+                    // Side by side; stacked (approve on top) at the largest text sizes.
+                    let layout = type.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: Theme.s2)) : AnyLayout(HStackLayout(spacing: Theme.s3))
+                    layout {
+                        if type.isAccessibilitySize { approveButton(item) }
+                        Button { declining = true } label: { Label(L("video.decline"), systemImage: "xmark") }
+                            .buttonStyle(.dvSecondary)
+                            .accessibilityIdentifier("video.decline")
+                        if !type.isAccessibilitySize { approveButton(item) }
+                    }
+                    // Next to Decline: a video that is nearly right can be changed instead.
+                    if RequestRules.canAskForChange(item) {
+                        Button { changing = true } label: { Label(L("change.button"), systemImage: "pencil") }
+                            .buttonStyle(.dvQuiet)
+                            .frame(maxWidth: .infinity)
+                            .accessibilityHint(L("change.lead"))
+                            .accessibilityIdentifier("video.change")
+                    }
                 }
             }
         case .approved, .posted:

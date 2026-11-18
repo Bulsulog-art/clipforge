@@ -23,6 +23,8 @@ extension AppModel {
     func createClinic(_ profile: ClinicProfile) async -> String? {
         do {
             try await api.saveClinic(profile)
+            // The moment the clinic is set up: show its look before the plans.
+            showLogoPreview = true
             await refresh()
             await billing.load()
             return nil
