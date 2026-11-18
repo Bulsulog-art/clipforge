@@ -4,7 +4,7 @@ import { changeBrief, scriptBrief } from "./week.js";
 import type { ClinicProfile } from "./profile.js";
 
 const PROFILE: ClinicProfile = {
-  name: "Smile Studio",
+  name: "Sample Dental Practice",
   city: "Austin",
   country: "US",
   language: "en",

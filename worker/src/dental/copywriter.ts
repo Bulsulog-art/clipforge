@@ -51,7 +51,7 @@ Return JSON: { "caption", "hashtags": [] }`,
 
 /**
  * Clean the model's tags and put the clinic's real tag first. The model was
- * seen inventing a translated brand tag ("#gülüşstudio" for Smile Studio);
+ * seen inventing a half-translated brand tag (the clinic's name partly in Turkish);
  * a clinic that spots a made-up tag for itself stops trusting the tool.
  */
 export function finalHashtags(raw: string[], profile: Pick<ClinicProfile, "name" | "handle">): string[] {

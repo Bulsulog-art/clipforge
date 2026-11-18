@@ -182,7 +182,7 @@ struct SettingsView: View {
         case "starter"?: return "Starter"
         case "practice"?: return "Practice"
         case "group"?: return "Group"
-        default: return "—"
+        default: return L("plan.state.unknown")
         }
     }
 

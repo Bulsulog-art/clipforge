@@ -44,7 +44,7 @@ function fakeDb(logoPath: string | null, bytes: Uint8Array | null) {
       q.select = () => q;
       q.eq = () => q;
       q.single = async () => ({
-        data: { id: CLINIC, owner_id: OWNER, profile: { name: "Riverside Dental", country: "GB", language: "en", services: ["implants"] }, logo_path: logoPath },
+        data: { id: CLINIC, owner_id: OWNER, profile: { name: "Sample Dental Practice", country: "GB", language: "en", services: ["implants"] }, logo_path: logoPath },
         error: null,
       });
       return q;

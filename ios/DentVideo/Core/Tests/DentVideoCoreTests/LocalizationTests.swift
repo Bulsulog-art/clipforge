@@ -171,6 +171,54 @@ final class LocalizationTests: XCTestCase {
         }
     }
 
+    /// The owner's copy rule: no em dash and no spaced en dash in anything the user reads. Number
+    /// ranges written with an unspaced en dash ("16–20 Kas") are fine.
+    static func dashProblem(_ s: String) -> String? {
+        if s.contains("\u{2014}") { return "em dash" }
+        if s.range(of: "(^|\\s)\u{2013}(\\s|$)", options: .regularExpression) != nil { return "spaced en dash" }
+        return nil
+    }
+
+    func testDashRuleItself() {
+        XCTAssertEqual(Self.dashProblem("Short pause — have a look."), "em dash")
+        XCTAssertEqual(Self.dashProblem("—"), "em dash")
+        XCTAssertEqual(Self.dashProblem("Kurze Pause – bitte ansehen."), "spaced en dash")
+        XCTAssertEqual(Self.dashProblem("leise –\nbitte"), "spaced en dash")
+        XCTAssertNil(Self.dashProblem("16–20 Kas"))
+        XCTAssertNil(Self.dashProblem("Short pause. Have a look before posting."))
+        XCTAssertNil(Self.dashProblem("on-screen"))
+    }
+
+    func testNoEmDashOrSpacedEnDashInAnyLocalizedValue() throws {
+        var checked = 0
+        for name in ["Localizable", "InfoPlist"] {
+            for (k, m) in try load(name) {
+                for (l, v) in m {
+                    checked += 1
+                    XCTAssertNil(Self.dashProblem(v), "\(name) \(k) \(l) has an \(Self.dashProblem(v) ?? ""): \(v)")
+                }
+            }
+        }
+        XCTAssertGreaterThan(checked, 1000)
+    }
+
+    /// The same rule for text written straight into the app's Swift code (string literals outside comments).
+    func testNoEmDashOrSpacedEnDashInSwiftStringLiterals() throws {
+        let literal = try NSRegularExpression(pattern: #""(?:[^"\\\n]|\\.)*""#)
+        let dir = Self.appDir.appendingPathComponent("Sources")
+        let e = FileManager.default.enumerator(at: dir, includingPropertiesForKeys: nil)!
+        while let u = e.nextObject() as? URL {
+            guard u.pathExtension == "swift" else { continue }
+            for (i, line) in try String(contentsOf: u, encoding: .utf8).components(separatedBy: "\n").enumerated() {
+                if line.trimmingCharacters(in: .whitespaces).hasPrefix("//") { continue }
+                for m in literal.matches(in: line, range: NSRange(line.startIndex..., in: line)) {
+                    let s = String(line[Range(m.range, in: line)!])
+                    XCTAssertNil(Self.dashProblem(s), "\(u.lastPathComponent):\(i + 1) \(s)")
+                }
+            }
+        }
+    }
+
     /// The app's code links only to help, privacy and terms on the site: never to a sign-up or plan page.
     func testNoLinksToPlansOrCheckout() throws {
         let text = try sources()

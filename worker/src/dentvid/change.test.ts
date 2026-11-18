@@ -33,7 +33,7 @@ vi.mock("fluent-ffmpeg", () => {
 
 const A = { clinic: "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d", owner: "1c9b4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e" };
 const B = { clinic: "9a9a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d", owner: "2d2d4d7f-2e3a-4b6c-8d9e-0f1a2b3c4d5e" };
-const PROFILE = { name: "Smile Studio", country: "US", language: "en", services: ["Whitening", "Implants"] };
+const PROFILE = { name: "Sample Dental Practice", country: "US", language: "en", services: ["Whitening", "Implants"] };
 const TOPIC = { title: "Whitening and sensitivity", pillar: "myth", question: "Does whitening hurt?", hook: "That twinge after whitening?", service: "Whitening" };
 
 const liman = memoryLiman();
@@ -104,7 +104,7 @@ describe("a change request re-makes only that one video", () => {
     makes("ready");
     expect(await runDentvidChange({ requestId: "r1" })).toEqual({ status: "done" });
     const [, profile, topic, , , change] = produceVideo.mock.calls[0];
-    expect(profile).toMatchObject({ name: "Smile Studio" });
+    expect(profile).toMatchObject({ name: "Sample Dental Practice" });
     expect(topic).toMatchObject({ title: TOPIC.title });
     expect(change).toEqual({ note: "Make it shorter and calmer", base: { scenes: [{ kind: "hook", text: "Old" }], voiceover: { text: "Old narration.", voice: "nova" } } });
     const row = item("item-a");
