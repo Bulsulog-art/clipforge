@@ -221,6 +221,9 @@ struct CameraScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var camera = CameraModel()
     @State private var showCard = true
+    /// Height of the camera screen: the filming card may use the room down to the record button on
+    /// tall phones instead of stopping halfway through a line.
+    @State private var liveHeight: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -305,7 +308,7 @@ struct CameraScreen: View {
                         .foregroundStyle(.white)
                         if showCard {
                             ScrollView { CardText(card: card, inverted: true).frame(maxWidth: .infinity, alignment: .leading) }
-                                .frame(maxHeight: 400)
+                                .frame(maxHeight: max(400, liveHeight - 330))
                         }
                     }
                     .padding(Theme.s4)
@@ -334,6 +337,7 @@ struct CameraScreen: View {
                 .padding(.bottom, 24)
             }
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { liveHeight = $0 }
     }
 
     private func review(_ take: URL) -> some View {

@@ -10,6 +10,9 @@ name: iOS DentVideo release (TestFlight)
 #   ASC_ISSUER_ID    the Issuer ID shown above the key list
 #   ASC_KEY_P8       the full text of AuthKey_<KEY_ID>.p8, including the BEGIN/END lines
 #   APPLE_TEAM_ID    YA6Y85MSY6 (optional; this is the default)
+#   REVENUECAT_PUBLIC_KEY  RevenueCat's public Apple SDK key for DentVideo (appl_…). Public by design
+#                    (it ships inside the app), kept out of the repo; written to the gitignored
+#                    Config/RevenueCat.xcconfig. Required: without it the paywall says "not available yet".
 # The key needs the Admin role (or App Manager with "Access to Cloud Managed Distribution
 # Certificate"), otherwise automatic signing cannot create the distribution certificate.
 # Steps for the owner: docs/APP_STORE_DENTVIDEO.md §1.6.
@@ -56,6 +59,13 @@ jobs:
           [ -n "$ASC_ISSUER_ID" ] || missing="$missing ASC_ISSUER_ID"
           [ -n "$ASC_KEY_P8" ] || missing="$missing ASC_KEY_P8"
           if [ -n "$missing" ]; then echo "::error::Missing repository secrets:$missing (see docs/APP_STORE_DENTVIDEO.md §1.6)"; exit 1; fi
+
+      - name: RevenueCat key (Config/RevenueCat.xcconfig)
+        # Stops the release here when the secret is missing or is not an appl_ key: a build without
+        # it would ship a paywall that says "not available yet".
+        env:
+          REVENUECAT_PUBLIC_KEY: ${{ secrets.REVENUECAT_PUBLIC_KEY }}
+        run: ./scripts/revenuecat_key.sh write
 
       - name: Xcode 26 (App Store uploads must be built with the iOS 26 SDK)
         run: |
@@ -110,6 +120,11 @@ jobs:
             | tee build/archive.log | grep -E "error:|warning: .*(sign|profile)|ARCHIVE (SUCCEEDED|FAILED)" || true
           grep -q "ARCHIVE SUCCEEDED" build/archive.log
 
+      - name: The archived app carries the RevenueCat key
+        env:
+          REVENUECAT_PUBLIC_KEY: ${{ secrets.REVENUECAT_PUBLIC_KEY }}
+        run: ./scripts/revenuecat_key.sh check build/DentVideo.xcarchive/Products/Applications/DentVideo.app
+
       - name: Export the .ipa (App Store Connect)
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -153,6 +168,6 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Remove the key
+      - name: Remove the keys
         if: always()
-        run: rm -rf ~/.appstoreconnect/private_keys
+        run: rm -rf ~/.appstoreconnect/private_keys Config/RevenueCat.xcconfig

@@ -119,8 +119,10 @@ struct SignInView: View {
         .sheet(isPresented: $forgot) { ForgotPasswordView(prefill: email) }
         .sheet(isPresented: $signingUp) { SignUpView(prefill: email) }
         .task {
+            // Demo screens only (DEBUG): Release builds carry none of the demo texts.
+            #if DEBUG
             guard model.isDemoMode else { return }
-            if model.isDemo("signin-error", "signin-loading", "forgot") { email = "hello@riverside.example" }
+            if model.isDemo("signin-error", "signin-loading", "forgot") { email = DemoServer.user.email ?? "" }
             if model.isDemo("signin-error") { password = "••••••••"; error = L("signin.error.credentials") }
             if model.isDemo("signin-loading") { password = "••••••••"; busy = true }
             if model.isDemo("forgot") {
@@ -131,6 +133,7 @@ struct SignInView: View {
                 try? await Task.sleep(for: .milliseconds(400))
                 signingUp = true
             }
+            #endif
         }
     }
 

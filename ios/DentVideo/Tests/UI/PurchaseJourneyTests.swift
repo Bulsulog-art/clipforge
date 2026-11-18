@@ -18,7 +18,7 @@ final class PurchaseJourneyTests: DVTestCase {
         type(el("code.field"), "123456")
 
         // The clinic form (the web's start flow): no paywall before it is saved.
-        type(wait(el("setup.name"), 12, "clinic form"), "Lakeside Dental")
+        type(wait(el("setup.name"), 12, "clinic form"), "Sample Dental Practice")
         XCTAssertFalse(el("paywall.title").exists)
         let chip = el("setup.service.0")
         scrollTo(chip)

@@ -4,9 +4,9 @@ import UIKit
 import DentVideoCore
 
 /// Demo mode for screenshots and UI review: the app runs against an in-process fake API with the
-/// fictional "Riverside" clinic, and opens straight on one screen and state. Started only by the
-/// launch argument `-DVScreen <name>` (scripts/screens.sh), and compiled only into DEBUG builds:
-/// Release builds contain none of this code or data.
+/// fictional "Sample Dental Practice" clinic, and opens straight on one screen and state. Started
+/// only by the launch argument `-DVScreen <name>` (scripts/screens.sh), and compiled only into
+/// DEBUG builds: Release builds contain none of this code or data.
 @MainActor
 enum Demo {
     /// Every screen the screenshot run captures, in order.
@@ -43,8 +43,8 @@ enum Demo {
         UIView.setAnimationsEnabled(false)
         let lang = L10n.languageCode
         let c = DemoContent.of(lang)
-        let user = AccountUser(id: "demo", email: "hello@riverside.example")
-        let profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: "riversidedental", bookingUrl: "https://riverside.example/book", closingLine: c.closing, narratorVoice: "female")
+        let user = DemoServer.user
+        let profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: nil, bookingUrl: "https://sample.example/book", closingLine: c.closing, narratorVoice: "female")
         let plan: PlanInfo
         switch screen {
         case "noplan", "verify", "paywall", "paywall-unavailable", "activating", "confirming": plan = PlanInfo(state: .cancelled, tier: nil, canMake: false, adminPaused: false, recordings: false, renewsAt: nil)
@@ -301,7 +301,7 @@ enum DemoFlags {
 /// An in-process stand-in for /api/dentvideo/mobile/v1 with the same shapes and status codes.
 /// It keeps state (decisions, posted ticks, the profile) so a refresh shows what was done.
 final class DemoServer: @unchecked Sendable {
-    static let user = AccountUser(id: "demo", email: "hello@riverside.example")
+    static let user = AccountUser(id: "demo", email: "hello@sample.example")
     private let lock = NSLock()
     private var items: [VideoItem]
     private var profile: ClinicProfile
@@ -322,7 +322,7 @@ final class DemoServer: @unchecked Sendable {
     init(content c: DemoContent, lang: String, items: [VideoItem]) {
         self.items = items
         self.lang = lang
-        self.profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: "riversidedental", bookingUrl: "https://riverside.example/book", closingLine: c.closing, narratorVoice: "female")
+        self.profile = ClinicProfile(name: c.clinic, city: c.city, country: c.country, language: lang, services: c.services, tone: "warm", address: "formal", handle: nil, bookingUrl: "https://sample.example/book", closingLine: c.closing, narratorVoice: "female")
     }
 
     private var hasClinic: Bool { plan != "noclinic" }
