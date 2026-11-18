@@ -25,6 +25,15 @@ struct SignUpView: View {
 
     private var canSubmit: Bool { SignupRules.isEmail(email) && !password.isEmpty && !busy }
 
+    /// `.newPassword` (iOS offers a strong password). In the UI tests' flow mode only, `.password`:
+    /// on iOS 18 the "Use Strong Password" sheet takes over the field and swallows typed keys.
+    static var passwordContent: UITextContentType {
+        #if DEBUG
+        if DemoFlags.flow { return .password }
+        #endif
+        return .newPassword
+    }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -96,7 +105,7 @@ struct SignUpView: View {
                         .onSubmit { field = .password }
                         .modifier(FieldStyle())
                     SecureField(L("signup.password"), text: $password)
-                        .textContentType(.newPassword)
+                        .textContentType(Self.passwordContent)
                         .submitLabel(.go)
                         .focused($field, equals: .password)
                         .accessibilityIdentifier("signup.password")

@@ -181,6 +181,9 @@ final class PurchaseJourneyTests: DVTestCase {
             if !pw.isHittable { app.swipeUp() }
             focus(pw) { pw.tap() }
         }
+        // If iOS still offers a strong password, take the user's own path out of it.
+        let own = app.buttons["Choose My Own Password"]
+        if own.waitForExistence(timeout: 1) { own.tap() }
         for c in password {
             app.typeText(String(c))
             usleep(60_000)
