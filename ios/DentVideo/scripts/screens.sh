@@ -82,7 +82,9 @@ shot() { # device-id device-label variant lang screen [store]
   local id=$1 dev=$2 variant=$3 lang=$4 s=$5 store=${6:-}
   xcrun simctl launch --terminate-running-process "$id" "$BUNDLE" \
     -AppleLanguages "($lang)" -AppleLocale "$(locale_of "$lang")" -DVScreen "$s" >/dev/null
-  sleep 2.2
+  # Screens pushed or presented after the first load need longer, or the shot shows the screen
+  # underneath (seen: "videos" captured as Settings in tr, es, pl).
+  case $s in clinic|videos|delete|signout|settings-bottom|forgot|signup|signup-code) sleep 4.5;; *) sleep 2.2;; esac
   mkdir -p "$OUT/review/$dev/$variant"
   local png="$OUT/review/$dev/$variant/$s.png"
   xcrun simctl io "$id" screenshot --type=png "$png" >/dev/null 2>&1
