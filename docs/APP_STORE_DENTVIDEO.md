@@ -147,6 +147,14 @@ writes it to the runner only for the job and deletes it at the end.
 
 ---
 
+## 1.6 In-app purchase (planned, not live)
+
+The app will sell Starter and Practice monthly through Apple in-app purchase (RevenueCat project
+"DentVideo", subscription group "DentVideo", products `dentvideo_starter_monthly` /
+`dentvideo_practice_monthly`). Server side, App Store Connect / RevenueCat runbook, price points and
+review notes: `docs/DENTVIDEO_IAP_PLAN.md`. Until that build ships, the notes below (no purchase in the
+app) are the ones to use; the IAP build replaces the 3.1.3 paragraph with §11 of that file.
+
 ## 2. App Review notes (paste into "Notes")
 
 > DentVideo is a business service for dental clinics. Each week it delivers short patient-education

@@ -4,7 +4,7 @@ import { dvErrors } from "@/lib/dentvid/locale-server";
 import { LIMITS } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/rate-limit-server";
 import { dvBaseUrl } from "@/lib/dentvid/billing";
-import { accountErrors, ownClinic } from "@/lib/dentvid/account-route";
+import { accountErrors, appStoreManagedAnswer, ownClinic } from "@/lib/dentvid/account-route";
 import { dodoApiKey, dodoGetSubscription, dodoPortalLink } from "@/lib/dentvid/dodo-account";
 
 // POST /api/dentvideo/billing/portal — a one-time Dodo customer-portal link
@@ -21,6 +21,9 @@ export async function POST() {
 
   const clinic = await ownClinic(db, user.id);
   const err = await accountErrors(clinic);
+  // Bought in the iPhone app: Apple's to change or cancel (no Dodo subscription exists to open).
+  const appStore = await appStoreManagedAnswer(clinic);
+  if (appStore) return appStore;
   const apiKey = dodoApiKey();
   if (!apiKey) return NextResponse.json({ error: err.billingUnavailable, fallback: "email" }, { status: 501 });
   const subId = typeof clinic?.dodo_subscription_id === "string" ? clinic.dodo_subscription_id : null;

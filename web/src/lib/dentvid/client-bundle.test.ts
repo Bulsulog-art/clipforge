@@ -158,6 +158,7 @@ describe("DentVideo public pages: browser bundle", () => {
       // counted, it shipped content/dentvideo.ts and the guide library: ~640 KB minified, unseen by this test.
       // 171: the event allow-list (events.ts, on every page via attribution) gained the checker's share
       // event and its market/banned counts, ~0.35 KB; the landing sat at 169.99 before.
+      // 171 (also): the event allow-list (shared with the browser) names the paying channel, dodo or apple (~0.1 KB).
       expect(kb(g.client)).toBeLessThan(171);
     });
   }

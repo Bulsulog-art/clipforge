@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
+import { takeOverWithWaitingApple, type TakeoverDeps } from "./apple-takeover.js";
 
 /**
  * Cancelled plans that were paid until a date (docs/RELIABILITY.md F9).
@@ -30,9 +31,13 @@ export interface PlanEndDb {
   endPlan(clinicId: string, subscriptionId: string, now: Date, endedAt?: string): Promise<boolean>;
 }
 
-export type PlanEndResult = { checked: number; ended: string[] };
+export type PlanEndResult = { checked: number; ended: string[]; movedToApple?: string[] };
 
-export async function endPaidUpPlans(db: PlanEndDb, now = new Date()): Promise<PlanEndResult> {
+/**
+ * `apple`: an App Store subscription bought while the web plan was live takes over at once
+ * (apple-takeover.ts) — the customer is paying Apple and must not sit unserved until its next renewal.
+ */
+export async function endPaidUpPlans(db: PlanEndDb, now = new Date(), apple?: TakeoverDeps): Promise<PlanEndResult> {
   const rows = await db.endedSince(new Date(now.getTime() - PLAN_END_LOOKBACK_MS), now);
   const res: PlanEndResult = { checked: rows?.length ?? 0, ended: [] };
   for (const r of rows ?? []) {
@@ -40,6 +45,7 @@ export async function endPaidUpPlans(db: PlanEndDb, now = new Date()): Promise<P
     if (await db.endPlan(r.clinic_id, r.dodo_subscription_id, now, new Date(Date.parse(r.period_end)).toISOString())) {
       res.ended.push(r.clinic_id);
       logger.info({ clinicId: r.clinic_id, subscriptionId: r.dodo_subscription_id, endedAt: r.period_end }, "dentvid: cancelled plan reached the end of its paid period");
+      if (apple && (await takeOverWithWaitingApple(apple, r.clinic_id, "web plan reached its paid end", now))) (res.movedToApple ??= []).push(r.clinic_id);
     }
   }
   return res;

@@ -26,7 +26,7 @@ const DEVICE_A = "a".repeat(64);
 const DEVICE_B = "b".repeat(64);
 
 type Row = Record<string, unknown>;
-type Db = { dentvid_clinics: Row[]; dentvid_items: Row[]; dentvid_devices: Row[] };
+type Db = { dentvid_clinics: Row[]; dentvid_items: Row[]; dentvid_devices: Row[]; dentvid_subscriptions?: Row[]; dentvid_apple_subscriptions?: Row[] };
 let db: Db;
 let devicesTableExists = true;
 let revoked: string[];
@@ -65,7 +65,7 @@ function query(table: keyof Db, owner: string | null) {
   const visible = (r: Row) => owner === null || r.owner_id === owner;
   const run = () => {
     if (table === "dentvid_devices" && !devicesTableExists) return { data: null, error: { code: "42P01", message: 'relation "public.dentvid_devices" does not exist' } };
-    const rows = db[table];
+    const rows = (db[table] ??= []) as Row[];
     const match = () => rows.filter((r) => visible(r) && filters.every((f) => f(r)));
     if (op === "select") {
       const m = match().slice(0, limitN);
@@ -251,6 +251,9 @@ describe("every authenticated mobile route refuses requests without a valid Dent
     ["POST", "session/signout", () => import("./session/signout/route") as never, {}],
     ["GET", "topic-requests", () => import("./topic-requests/route") as never],
     ["POST", "topic-requests", () => import("./topic-requests/route") as never, { text: "How long does sensitivity last?" }],
+    ["GET", "billing", () => import("./billing/route") as never],
+    ["GET", "preview", () => import("./preview/route") as never],
+    ["POST", "verify-email", () => import("./verify-email/route") as never, { action: "confirm", code: "123456" }],
   ];
   const attempts: [string, { token?: string; cookie?: string; auth?: string }][] = [
     ["no header", {}],
@@ -685,5 +688,87 @@ describe("POST account/delete", () => {
     const { POST } = await import("./account/delete/route");
     expect((await POST(req("account/delete", { method: "POST", token: TOKEN_A, body: {} }))).status).toBe(400);
     expect(deleteCalls).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------- billing (IAP) */
+
+describe("GET billing (the paywall's state)", () => {
+  const verified = (id: string, email: string) => ({ id, email, app_metadata: { product: "dentvideo", email_verified_at: "2026-11-01T00:00:00Z", email_verified_for: email } });
+
+  it("a clinic paying on the web never sees the paywall, is told the web manages it, and gets no price", async () => {
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(r.status).toBe(200);
+    expect(r.headers.get("cache-control")).toBe("no-store");
+    expect(r.body).toMatchObject({ appUserId: A, clinicId: "clinic-a", status: "active", showPaywall: false, canPurchase: false, manage: "web", manageUrl: null });
+    expect((r.body.plan as Row).tier).toBe("practice");
+    expect(r.body.products).toEqual([
+      { tier: "starter", productId: "dentvideo_starter_monthly", entitlement: "starter" },
+      { tier: "practice", productId: "dentvideo_practice_monthly", entitlement: "practice" },
+    ]);
+    expect(JSON.stringify(r.body)).not.toMatch(/price|amount|\$|€|\bTL\b|\bUSD\b|\bEUR\b|\bTRY\b/i);
+  });
+
+  it("only ever reads the session's own clinic (A's token never sees B's App Store plan)", async () => {
+    db.dentvid_clinics[1].billing_source = "apple";
+    db.dentvid_clinics[1].apple_original_transaction_id = "2000000111";
+    const { GET } = await import("./billing/route");
+    const a = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(a.body.clinicId).toBe("clinic-a");
+    expect((a.body.plan as Row).source).toBeNull();
+    const b = await json(await GET(req("billing", { token: TOKEN_B })));
+    expect(b.body).toMatchObject({ appUserId: B, clinicId: "clinic-b", status: "active", manage: "app_store", manageUrl: "https://apps.apple.com/account/subscriptions", showPaywall: false });
+  });
+
+  it("an unpaid clinic gets the paywall; buying waits for a confirmed email address, as the web's checkout does", async () => {
+    db.dentvid_clinics[0].plan = "trial";
+    db.dentvid_clinics[0].plan_tier = null;
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(r.body).toMatchObject({ status: "none", showPaywall: true, canPurchase: false, blockers: ["email_unverified"] });
+    const saved = USERS[TOKEN_A];
+    USERS[TOKEN_A] = verified(A, "a@clinic-a.example");
+    try {
+      const v = await json(await GET(req("billing", { token: TOKEN_A })));
+      expect(v.body).toMatchObject({ showPaywall: true, canPurchase: true, blockers: [] });
+    } finally {
+      USERS[TOKEN_A] = saved;
+    }
+  });
+
+  it("a login without a clinic yet: no paywall until the clinic form is saved", async () => {
+    db.dentvid_clinics = db.dentvid_clinics.filter((c) => c.owner_id !== A);
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_A })));
+    expect(r.body).toMatchObject({ clinicId: null, showPaywall: false, canPurchase: false });
+    expect(r.body.blockers).toContain("clinic");
+  });
+
+  it("an App Store plan Apple could not renew: no paywall (a new purchase would be a second subscription)", async () => {
+    Object.assign(db.dentvid_clinics[1], { plan: "paused", billing_source: "apple", apple_original_transaction_id: "2000000111" });
+    const { GET } = await import("./billing/route");
+    const r = await json(await GET(req("billing", { token: TOKEN_B })));
+    expect(r.body).toMatchObject({ status: "billing_issue", showPaywall: false, manage: "app_store" });
+  });
+});
+
+describe("GET preview (library samples, no generation)", () => {
+  it("answers samples from the static library in the clinic's language, for the session's own clinic only", async () => {
+    const { GET } = await import("./preview/route");
+    const r = await json(await GET(req("preview", { token: TOKEN_A })));
+    expect(r.status).toBe(200);
+    expect(r.body.language).toBe("de");
+    expect((r.body.clinic as Row).name).toBe("Clinic A");
+    const samples = r.body.samples as { planPath: string; audioPath: string | null }[];
+    expect(samples.length).toBeGreaterThan(0);
+    for (const s of samples) expect(s.planPath).toMatch(/^\/dentvideo\/preview\/de\/[a-z0-9-]+\.json$/);
+    expect(queued).toEqual([]);
+  });
+
+  it("409 before the clinic exists", async () => {
+    db.dentvid_clinics = db.dentvid_clinics.filter((c) => c.owner_id !== A);
+    const { GET } = await import("./preview/route");
+    expect((await GET(req("preview", { token: TOKEN_A }))).status).toBe(409);
   });
 });

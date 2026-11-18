@@ -474,7 +474,9 @@ export type DvCheckoutBlock =
   | { code: "pending" }
   | { code: "payment_update" }
   | { code: "disputed" }
-  | { code: "cancelled_pending"; until: string };
+  | { code: "cancelled_pending"; until: string }
+  /** The plan is paid through the App Store (the iPhone app): changed or cancelled there, never bought again on the web. */
+  | { code: "app_store" };
 
 /**
  * Should a new checkout be refused because the clinic already has a

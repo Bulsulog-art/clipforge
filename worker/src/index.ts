@@ -20,10 +20,11 @@ import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatc
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
 import { checkWeekDelivery, DELIVERY_SCHEDULE, supabaseDeliveryDb } from "./dentvid/delivery.js";
 import { endPaidUpPlans, supabasePlanEndDb } from "./dentvid/plan-end.js";
+import { supabaseAppleTakeoverDb } from "./dentvid/apple-takeover.js";
 import { RETENTION_SCHEDULE, retentionAlertDue, runRetention, supabaseRetentionDb, webNoticeSender } from "./dentvid/retention.js";
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
-import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, supabaseReconcileDb } from "./dentvid/reconcile.js";
+import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, revenuecatLookup, supabaseReconcileDb } from "./dentvid/reconcile.js";
 import { jobWeek } from "./dentvid/jobs.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -231,7 +232,7 @@ const dentvidMailWorker = new Worker(
       return assertRunOk("digest", await runDigest());
     }
     if (job.name === "billing-reconcile") {
-      const result = await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), alert: ownerAlert });
+      const result = await reconcileBilling({ db: supabaseReconcileDb(dentvidDb()), dodo: dodoLookup(), revenuecat: revenuecatLookup(), alert: ownerAlert, apple: supabaseAppleTakeoverDb(dentvidDb()) });
       // Nightly retention: Google Ads click ids older than 90 days (migration 0019; a no-op error before it is applied).
       await purgeAdData(dentvidDb());
       return result;
@@ -239,8 +240,8 @@ const dentvidMailWorker = new Worker(
     if (job.name === "watchdog-delivery") {
       const r = await checkWeekDelivery({ db: supabaseDeliveryDb(dentvidDb()), queue: dentvidQueue, store: opsStore(), alert: ownerAlert });
       // Same hour: cancelled plans whose paid period is over become cancelled (dentvid/plan-end.ts).
-      const ended = await endPaidUpPlans(supabasePlanEndDb(dentvidDb()));
-      return { due: r.due, delivered: r.delivered, late: r.late.length, behind: r.behind.length, plansEnded: ended.ended.length };
+      const ended = await endPaidUpPlans(supabasePlanEndDb(dentvidDb()), new Date(), { db: supabaseAppleTakeoverDb(dentvidDb()), alert: ownerAlert });
+      return { due: r.due, delivered: r.delivered, late: r.late.length, behind: r.behind.length, plansEnded: ended.ended.length, movedToApple: ended.movedToApple?.length ?? 0 };
     }
     if (job.name === "retention") {
       // 90 days after a plan ends the library goes (dentvid/retention.ts); reminders 14 and 1 day before.

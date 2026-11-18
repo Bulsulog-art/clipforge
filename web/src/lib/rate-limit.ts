@@ -242,6 +242,10 @@ export const LIMITS = {
   unsubscribeIp: { limit: 30, windowSec: 10 * MIN },
   // Payment provider; a handful of IPs, retries included.
   dodoWebhookIp: { limit: 600, windowSec: MIN },
+  // RevenueCat (App Store purchases in the iPhone app): the same shape of traffic.
+  revenuecatWebhookIp: { limit: 600, windowSec: MIN },
+  // The iPhone app's sign-up: the web's sign-up limits apply too (same keys); this is the app's own ceiling.
+  mobileSignupGlobal: { limit: 300, windowSec: HOUR },
   // /api/health?deep=1 makes outbound calls (Supabase, Redis, OpenAI).
   healthDeepIp: { limit: 10, windowSec: MIN },
 } satisfies Record<string, Rule>;
