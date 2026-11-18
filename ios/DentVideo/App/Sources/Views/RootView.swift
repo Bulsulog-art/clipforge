@@ -18,6 +18,8 @@ struct RootView: View {
         }
         .background(Theme.paper.ignoresSafeArea())
         .task { if model.phase == .launching { await model.bootstrap() } }
+        // RevenueCat's logIn with the id GET billing names, right after sign-in (and on each launch).
+        .task(id: model.me?.user.id) { if model.me != nil { await model.billing.load() } }
         .noticeOverlay()
         #if DEBUG
         // UI tests only (demo flow mode): the model's routing state, readable by XCUITest when a
@@ -57,11 +59,13 @@ struct RootView: View {
         case .active?:
             MainTabs()
         case .noPlan?:
-            AccountStatusView(kind: .noPlan)
+            // GET billing decides: the email code, the plans, "not available yet", or the neutral screen.
+            PurchaseGateView()
         case .paused?:
             AccountStatusView(kind: .paused)
         case .noClinic?:
-            AccountStatusView(kind: .noClinic)
+            // A new account (signed up in the app or on the web): the clinic details, then the plans.
+            ClinicSetupView()
         }
     }
 }
@@ -114,9 +118,8 @@ struct NotificationPrimer: View {
     }
 }
 
-/// No active plan / paused / no clinic: a neutral account screen. No price, no way to buy, no
-/// link or wording that points to buying (App Store guideline 3.1.3). Sign-out and deletion stay
-/// available.
+/// No active plan that the app may sell to (GET billing: no paywall) / paused / no clinic: a neutral
+/// account screen. No price and no way to buy here. Sign-out and deletion stay available.
 struct AccountStatusView: View {
     enum Kind { case noPlan, paused, noClinic }
     let kind: Kind

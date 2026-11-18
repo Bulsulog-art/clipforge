@@ -9,6 +9,15 @@ enum Config {
         return URL(string: "https://dentvideo.com/api/dentvideo/mobile/v1")!
     }()
 
+    /// RevenueCat's public Apple SDK key (`appl_…`, public by design), from the xcconfig variable
+    /// `REVENUECAT_PUBLIC_KEY` through Info.plist. Empty in the repository: the paywall then says
+    /// "not available yet" instead of selling anything.
+    static let revenueCatKey: String? = {
+        let s = (Bundle.main.object(forInfoDictionaryKey: "DVRevenueCatKey") as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        // An unexpanded "$(…)" (the variable missing from the build settings) counts as no key.
+        return s.isEmpty || s.hasPrefix("$(") ? nil : s
+    }()
+
     static let site = URL(string: "https://dentvideo.com")!
     static let help = URL(string: "https://dentvideo.com/help")!
     static let supportEmail = "hello@dentvideo.com"

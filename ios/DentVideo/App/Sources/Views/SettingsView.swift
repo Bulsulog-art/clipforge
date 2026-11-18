@@ -3,8 +3,9 @@ import UIKit
 @preconcurrency import UserNotifications
 import DentVideoCore
 
-/// The web's essential settings, plus this phone's notifications. The plan is shown read-only:
-/// its name and state, never a price or a way to change it here.
+/// The web's essential settings, plus this phone's notifications. The plan: its name and state, and
+/// where it is managed (Apple's "manage subscription" for an App Store plan; a web plan says "managed
+/// on the web" with no link and no price).
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var readyPush = Prefs.readyPush
@@ -82,9 +83,14 @@ struct SettingsView: View {
                 .dvFormRows()
 
                 if let plan = model.me?.plan {
-                    Section(L("settings.plan")) {
+                    Section {
                         row(L("settings.plan.name"), value: planName(plan.tier), icon: "checkmark.seal")
                         row(L("settings.plan.state"), value: L("plan.state.\(plan.state.rawValue)"), icon: "circle.dashed")
+                        PlanManageRow()
+                    } header: {
+                        Text(L("settings.plan"))
+                    } footer: {
+                        PlanFooter()
                     }
                     .dvFormRows()
                 }
@@ -130,6 +136,7 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.large)
             .task {
                 await reload()
+                await model.billing.load()
                 guard model.isDemoMode else { return }
                 try? await Task.sleep(for: .milliseconds(400))
                 if model.isDemo("settings-bottom") { proxy.scrollTo("bottom", anchor: .center) }

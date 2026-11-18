@@ -13,6 +13,10 @@ options:
 packages:
   DentVideoCore:
     path: Core
+  # In-app purchase (App Store) through RevenueCat. Exact version: bump on purpose, never a range.
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios
+    exactVersion: 5.100.0
 
 configs:
   Debug: debug
@@ -53,6 +57,7 @@ targets:
         NSMicrophoneUsageDescription: "DentVideo records your voice with the video when you record yourself with a filming card."
         NSPhotoLibraryAddUsageDescription: "DentVideo saves your approved videos to Photos so you can post them on Instagram, TikTok and other apps."
         DVAPIBaseURL: $(DV_API_BASE_URL)
+        DVRevenueCatKey: $(REVENUECAT_PUBLIC_KEY)
         CFBundleURLTypes:
           - CFBundleURLName: com.bulsulabs.dentvideo
             CFBundleURLSchemes: [dentvideo]
@@ -73,6 +78,8 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
     dependencies:
       - package: DentVideoCore
+      - package: RevenueCat
+        product: RevenueCat
     entitlements:
       path: App/DentVideo.entitlements
       properties:
@@ -119,6 +126,8 @@ schemes:
         DentVideo: all
     run:
       config: Debug
+      # Local purchases in Xcode without App Store Connect (Product > Scheme > Edit Scheme > Options).
+      storeKitConfiguration: StoreKit/DentVideo.storekit
     test:
       config: Debug
       gatherCoverageData: true
