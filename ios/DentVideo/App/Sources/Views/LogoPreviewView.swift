@@ -174,23 +174,27 @@ struct LogoPreviewView: View {
     }
 
     @ViewBuilder private var pickButton: some View {
-        let label = Label(preview.logo == nil ? L("preview.logo.choose") : L("preview.logo.change"), systemImage: "photo.badge.plus")
         #if DEBUG
         if model.isDemoMode {
             // Demo mode has no photo library to pick from: the sample logo stands in for the picker.
-            Button { Task { await preview.use(Demo.sampleLogo()) } } label: { label }
+            Button { Task { await preview.use(Demo.sampleLogo()) } } label: { pickLabel }
                 .buttonStyle(.dvSecondary)
                 .accessibilityIdentifier("preview.logo.pick")
         } else {
-            picker(label)
+            picker
         }
         #else
-        picker(label)
+        picker
         #endif
     }
 
-    private func picker(_ label: some View) -> some View {
-        PhotosPicker(selection: $picked, matching: .images) { label }
+    private var pickTitle: String { preview.logo == nil ? L("preview.logo.choose") : L("preview.logo.change") }
+
+    private var pickLabel: some View { Label(pickTitle, systemImage: "photo.badge.plus") }
+
+    private var picker: some View {
+        let title = pickTitle
+        return PhotosPicker(selection: $picked, matching: .images) { Label(title, systemImage: "photo.badge.plus") }
             .buttonStyle(.dvSecondary)
             .accessibilityIdentifier("preview.logo.pick")
     }

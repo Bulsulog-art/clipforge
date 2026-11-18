@@ -225,7 +225,8 @@ final class RequestsTests: XCTestCase {
 
     func testLengthsCountLikeTheServer() {
         XCTAssertFalse(RequestRules.canSendTopic("ab"))
-        XCTAssertFalse(RequestRules.canSendTopic("  a   b  "), "spaces do not count twice")
+        XCTAssertFalse(RequestRules.canSendTopic("  a \n  "), "spaces around do not count")
+        XCTAssertTrue(RequestRules.canSendTopic("  a   b  "), "runs of spaces count once: \"a b\" is 3")
         XCTAssertTrue(RequestRules.canSendTopic("abc"))
         XCTAssertTrue(RequestRules.canSendTopic(String(repeating: "x", count: 140)))
         XCTAssertFalse(RequestRules.canSendTopic(String(repeating: "x", count: 141)))
