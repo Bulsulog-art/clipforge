@@ -38,18 +38,18 @@ struct DemoContent {
         services: ["Check-ups", "Whitening", "Implants", "Aligners"],
         closing: "Book your check-up online.",
         titles: ["How long does whitening last?", "Implant or bridge?", "Flossing in two minutes", "Why do gums bleed?", "Aligners: what to expect", "Sensitive teeth and cold drinks", "Welcome to our clinic"],
-        captions: ["Whitening doesn't last forever, and that's normal. Here is what changes the result.", "Two good options for a missing tooth, and how we help you choose.", "Once a day is enough. This is how to do it well.", "Bleeding gums are a signal, not a normal part of brushing."],
+        captions: ["Whitening fades over time, and that's normal. Here is what changes the result.", "Two good options for a missing tooth, and how we help you choose.", "Once a day is enough. This is how to do it well.", "Bleeding gums are a signal, not a normal part of brushing."],
         tags: ["dentist", "whitening", "smile"],
         card: ShootCard(opening: "Hi, I'm Dr. Reed. Here's the question patients ask most about whitening.", points: ["Whitening is safe on healthy enamel", "Some sensitivity can happen and fades in a few days", "We'll tell you which method suits your teeth"], closing: "Book a check-up and we'll tell you what's realistic for you.", avoid: ["Promising a shade", "Before-and-after claims"], setup: ["Phone at eye level", "Light in front of you", "A quiet room"], minutes: 2))
 
     static let tr = DemoContent(
         clinic: "Örnek Diş Kliniği", city: "İzmir", country: "TR",
         services: ["Kontrol", "Beyazlatma", "İmplant", "Şeffaf plak"],
-        closing: "Kontrol randevunuzu online alın.",
-        titles: ["Diş beyazlatma ne kadar kalıcı?", "İmplant mı, köprü mü?", "İki dakikada diş ipi", "Diş etleri neden kanar?", "Şeffaf plak: nelere hazır olmalı?", "Soğuk içecekte diş hassasiyeti", "Kliniğimize hoş geldiniz"],
+        closing: "Merak ettiklerinizi kontrol randevunuzda sorabilirsiniz.",
+        titles: ["Diş beyazlatmanın etkisi ne kadar sürer?", "İmplant mı, köprü mü?", "İki dakikada diş ipi", "Diş etleri neden kanar?", "Şeffaf plak: nelere hazır olmalı?", "Soğuk içecekte diş hassasiyeti", "Kliniğimize hoş geldiniz"],
         captions: ["Beyazlatma sonsuza kadar sürmez, bu normaldir. Sonucu neyin değiştirdiğini anlatıyoruz.", "Eksik bir diş için iki iyi seçenek ve size uygun olanı birlikte nasıl seçtiğimiz.", "Günde bir kez yeterli. Doğru yapmanın yolu bu.", "Diş eti kanaması bir işarettir, fırçalamanın normal bir parçası değildir."],
         tags: ["dişhekimi", "beyazlatma", "gülüş"],
-        card: ShootCard(opening: "Merhaba, ben Dr. Aydın. Hastaların beyazlatma hakkında en çok sorduğu soru şu.", points: ["Sağlıklı minede beyazlatma güvenlidir", "Hafif hassasiyet olabilir, birkaç günde geçer", "Dişlerinize uygun yöntemi birlikte seçeriz"], closing: "Muayene için randevu alın, sizin için neyin gerçekçi olduğunu söyleyelim.", avoid: ["Belirli bir renk vaat etmek", "Önce-sonra iddiaları"], setup: ["Telefon göz hizasında", "Işık önünüzde", "Sessiz bir oda"], minutes: 2))
+        card: ShootCard(opening: "Merhaba, ben Dr. Aydın. Hastaların beyazlatma hakkında en çok sorduğu soru şu.", points: ["Sağlıklı minede beyazlatma güvenlidir", "Hafif hassasiyet olabilir, birkaç günde geçer", "Dişlerinize uygun yöntemi birlikte seçeriz"], closing: "Sizin için neyin gerçekçi olduğunu diş hekiminiz muayenede söyleyebilir.", avoid: ["Belirli bir renk vaat etmek", "Önce-sonra iddiaları"], setup: ["Telefon göz hizasında", "Işık önünüzde", "Sessiz bir oda"], minutes: 2))
 
     static let de = DemoContent(
         clinic: "Demo Zahnarztpraxis", city: "Freiburg", country: "DE",
@@ -65,7 +65,7 @@ struct DemoContent {
         services: ["Revisiones", "Blanqueamiento", "Implantes", "Alineadores"],
         closing: "Pide tu revisión online.",
         titles: ["¿Cuánto dura un blanqueamiento?", "¿Implante o puente?", "Hilo dental en dos minutos", "¿Por qué sangran las encías?", "Alineadores: qué esperar", "Dientes sensibles al frío", "Bienvenidos a nuestra clínica"],
-        captions: ["El blanqueamiento no dura para siempre, y es normal. Esto es lo que cambia el resultado.", "Dos buenas opciones para un diente que falta, y cómo elegimos contigo.", "Una vez al día es suficiente. Así se hace bien.", "Las encías que sangran son una señal, no algo normal del cepillado."],
+        captions: ["El blanqueamiento se atenúa con el tiempo, y es normal. Esto es lo que cambia el resultado.", "Dos buenas opciones para un diente que falta, y cómo elegimos contigo.", "Una vez al día es suficiente. Así se hace bien.", "Las encías que sangran son una señal, no algo normal del cepillado."],
         tags: ["dentista", "blanqueamiento", "sonrisa"],
         card: ShootCard(opening: "Hola, soy la Dra. Ruiz. Esta es la pregunta que más nos hacen sobre el blanqueamiento.", points: ["En un esmalte sano, el blanqueamiento es seguro", "Puede haber algo de sensibilidad, que pasa en unos días", "Te diremos qué método va mejor con tus dientes"], closing: "Pide una revisión y te diremos qué es realista para ti.", avoid: ["Prometer un tono concreto", "Afirmaciones de antes y después"], setup: ["Teléfono a la altura de los ojos", "Luz delante de ti", "Una sala tranquila"], minutes: 2))
 
@@ -92,7 +92,7 @@ struct DemoContent {
         services: ["فحص دوري", "تبييض", "زراعة", "تقويم شفاف"],
         closing: "احجز موعد الفحص عبر الإنترنت.",
         titles: ["كم يدوم تبييض الأسنان؟", "زراعة أم جسر؟", "خيط الأسنان في دقيقتين", "لماذا تنزف اللثة؟", "التقويم الشفاف: ماذا تتوقع", "حساسية الأسنان مع المشروبات الباردة", "أهلًا بكم في عيادتنا"],
-        captions: ["التبييض لا يدوم إلى الأبد، وهذا طبيعي. إليك ما يغيّر النتيجة.", "خياران جيدان لسنّ مفقودة، وكيف نختار معك.", "مرة واحدة في اليوم تكفي. هكذا تفعلها بشكل صحيح.", "نزيف اللثة إشارة، وليس جزءًا طبيعيًا من تنظيف الأسنان."],
+        captions: ["يخفّ أثر التبييض مع الوقت، وهذا طبيعي. إليك ما يغيّر النتيجة.", "خياران جيدان لسنّ مفقودة، وكيف نختار معك.", "مرة واحدة في اليوم تكفي. هكذا تفعلها بشكل صحيح.", "نزيف اللثة إشارة، وليس جزءًا طبيعيًا من تنظيف الأسنان."],
         tags: ["طبيب_أسنان", "تبييض", "ابتسامة"],
         card: ShootCard(opening: "مرحبًا، أنا د. سلمى. هذا أكثر سؤال يطرحه المرضى عن التبييض.", points: ["التبييض آمن على مينا الأسنان السليمة", "قد تظهر حساسية خفيفة وتزول خلال أيام", "نخبرك بالطريقة التي تناسب أسنانك"], closing: "احجز موعد فحص وسنخبرك بما هو واقعي بالنسبة لك.", avoid: ["الوعد بدرجة لون معيّنة", "ادعاءات قبل وبعد"], setup: ["الهاتف بمستوى العينين", "الضوء أمامك", "غرفة هادئة"], minutes: 2))
 
@@ -101,7 +101,7 @@ struct DemoContent {
         services: ["Przeglądy", "Wybielanie", "Implanty", "Nakładki"],
         closing: "Umów przegląd online.",
         titles: ["Jak długo utrzymuje się wybielanie?", "Implant czy most?", "Nić dentystyczna w dwie minuty", "Dlaczego krwawią dziąsła?", "Nakładki ortodontyczne: czego się spodziewać", "Nadwrażliwość zębów na zimno", "Witamy w naszym gabinecie"],
-        captions: ["Wybielanie nie jest na zawsze i to normalne. Oto, co wpływa na efekt.", "Dwie dobre opcje przy brakującym zębie i jak wybieramy razem z Tobą.", "Raz dziennie wystarczy. Tak robi się to dobrze.", "Krwawiące dziąsła to sygnał, a nie normalna część szczotkowania."],
+        captions: ["Efekt wybielania słabnie z czasem i to normalne. Oto, co na niego wpływa.", "Dwie dobre opcje przy brakującym zębie i jak wybieramy razem z Tobą.", "Raz dziennie wystarczy. Tak robi się to dobrze.", "Krwawiące dziąsła to sygnał, a nie normalna część szczotkowania."],
         tags: ["dentysta", "wybielanie", "uśmiech"],
         card: ShootCard(opening: "Dzień dobry, jestem dr Nowak. Oto pytanie o wybielanie, które pacjenci zadają najczęściej.", points: ["Na zdrowym szkliwie wybielanie jest bezpieczne", "Może pojawić się nadwrażliwość, która mija po kilku dniach", "Powiemy, która metoda pasuje do Twoich zębów"], closing: "Umów się na przegląd, a powiemy, czego realnie możesz się spodziewać.", avoid: ["Obiecywanie konkretnego odcienia", "Porównania przed i po"], setup: ["Telefon na wysokości oczu", "Światło przed Tobą", "Cichy pokój"], minutes: 2))
 }
