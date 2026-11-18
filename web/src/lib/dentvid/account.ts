@@ -243,6 +243,11 @@ export type DeleteResult =
       userDeleted: boolean;
       /** The login belongs to other apps on Liman too: only DentVideo's data and markers were removed. */
       loginKept: boolean;
+      /**
+       * The plan was an App Store subscription (0026 billing_source = apple). We cannot cancel it — only
+       * the customer can, in Settings — so the deletion goes ahead and the answer tells them how (Apple's rule).
+       */
+      appStoreSubscription: boolean;
     }
   | { ok: false; reason: "confirm" | "subscription_active" | "billing_failed" | "failed"; step?: DeleteStep };
 
@@ -345,7 +350,8 @@ export async function deleteDentvideoAccount(args: {
     }
   }
 
-  const result = { ok: true as const, files, items: items ?? 0, clinic: (clinics ?? 0) > 0 || !!clinic, cancelledSubscription, userDeleted, loginKept };
+  const appStoreSubscription = clinic?.billing_source === "apple" && (clinic?.plan === "active" || clinic?.plan === "paused");
+  const result = { ok: true as const, files, items: items ?? 0, clinic: (clinics ?? 0) > 0 || !!clinic, cancelledSubscription, userDeleted, loginKept, appStoreSubscription };
   (args.log ?? defaultLog)({
     evt: "dentvideo.account_deleted",
     // A one-way reference (not the id, no name or email) to match support questions.
@@ -354,6 +360,7 @@ export async function deleteDentvideoAccount(args: {
     items: result.items,
     clinic: result.clinic,
     subscription_cancelled: cancelledSubscription,
+    app_store_subscription_live: appStoreSubscription,
     login: userDeleted ? "deleted" : loginKept ? "kept_shared" : "gone",
     at: new Date().toISOString(),
   });

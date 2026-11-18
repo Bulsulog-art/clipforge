@@ -44,6 +44,8 @@ describe("isBadOrigin", () => {
 describe("Dodo webhook", () => {
   it("is not blocked for having no Origin (it verifies its own signature)", () => {
     expect(isBadOrigin({ ...base, pathname: "/api/dodo/webhook" })).toBe(false);
+    // DentVideo's RevenueCat webhook (App Store purchases) authenticates its own Authorization header.
+    expect(isBadOrigin({ ...base, pathname: "/api/dentvideo/revenuecat/webhook" })).toBe(false);
   });
 });
 

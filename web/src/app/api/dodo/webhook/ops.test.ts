@@ -35,6 +35,9 @@ function limanClient() {
         return q;
       },
       neq: () => Promise.resolve({ count: 0, error: null }),
+      // Ledger lists (dentvid_subscriptions, dentvid_apple_subscriptions): migrated and empty for this clinic.
+      order: () => q,
+      limit: () => Promise.resolve({ data: [], error: null }),
       maybeSingle: () => {
         const hit = table === "dentvid_clinics" ? clinics.find((r) => filters.every(([k, x]) => r[k] === x)) : null;
         return Promise.resolve({ data: hit ? { ...hit } : null, error: null });
@@ -124,6 +127,9 @@ describe("payment webhook → owner alerts", () => {
     expect(mails[0].subject).toMatch(/DİKKAT: Müşteri aboneliği durdu \/ HEADS-UP: Customer subscription stopped — Gülüş Dental/);
     expect(mails[0].text).toMatch(/active → cancelled/);
     expect(mails[0].text).toMatch(/Ask dr@gulus\.example why/);
+    // No App Store subscription in the (readable, empty) ledger: no takeover, and no "could not check" alarm.
+    expect(mails.some((m) => /could not be checked/.test(m.subject))).toBe(false);
+    expect(clinics[0].plan).toBe("cancelled");
   });
 
   it("on hold → payment-failed alert; payment.failed (plan unchanged) → alert too, once a day", async () => {

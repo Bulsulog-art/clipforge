@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { ArrowLeftRight, CreditCard, Download, Mail, Trash2 } from "lucide-react";
+import { ArrowLeftRight, CreditCard, Download, ExternalLink, Mail, Trash2 } from "lucide-react";
 import type { Locale } from "@/content/dentvideo";
 import { appText, fmt } from "@/content/dentvideo-app";
 import { accountText } from "@/content/dentvideo-account";
@@ -12,6 +12,10 @@ import type { ClinicPlan } from "@/lib/dentvid/plan";
 import type { DvTier } from "@/lib/dentvid/billing";
 import { planPrice, planTax, tierName as planTierName, type PlanOption } from "./plan-panel";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
+import { appStoreText } from "@/content/dentvideo-app-store";
+
+/** Apple's subscriptions page (apple-billing.ts APP_STORE_MANAGE_URL; repeated so this client file imports no server code). */
+const APP_STORE_SUBSCRIPTIONS = "https://apps.apple.com/account/subscriptions";
 
 /**
  * Self-serve account control on the settings screen:
@@ -234,7 +238,9 @@ export function AccountPanel({
   const [typed, setTyped] = useState("");
   const [delBusy, setDelBusy] = useState(false);
   const [delError, setDelError] = useState<string | null>(null);
-  const blockedBySub = paying && !selfServe;
+  // An App Store plan is never cancelled by us (only the customer can, in Settings): deletion goes ahead with a notice.
+  const appStorePlan = paying && plan?.source === "apple";
+  const blockedBySub = paying && !selfServe && !appStorePlan;
   const phrase = deletePhrase(clinicName, accountEmail);
   const matches = deleteConfirmOk(typed, clinicName, accountEmail);
   async function deleteAccount(e: React.FormEvent) {
@@ -267,6 +273,22 @@ export function AccountPanel({
   const priceLine = (o: PlanOption) => `${planPrice(locale, o, country)} ${text.billing.perMonth} ${planTax(locale, country)}`;
 
   if (part === "billing") {
+    // Bought in the iPhone app: Apple bills it, so it is changed or cancelled in the App Store — no Dodo portal or plan switch here.
+    if (paying && plan?.source === "apple") {
+      const a = appStoreText(locale);
+      return (
+        <div className="dv-card mt-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6" data-testid="app-store-managed">
+          <div className="max-w-xl">
+            <h3 className="font-semibold text-dv-ink">{a.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-dv-body">{a.body}</p>
+          </div>
+          <a href={APP_STORE_SUBSCRIPTIONS} target="_blank" rel="noopener noreferrer" className="dv-btn dv-btn-secondary shrink-0 px-5 py-2.5 text-sm !text-dv-teal">
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            {a.button}
+          </a>
+        </div>
+      );
+    }
     return (
       <>
         {selfServe && paying && (
@@ -421,10 +443,16 @@ export function AccountPanel({
           </h2>
           <div id={ids.delBody} className="mt-3 space-y-3 text-sm leading-relaxed text-dv-body">
             <p>{t.deleteDialogBody}</p>
-            {paying && (
-              <p className={`rounded-xl px-4 py-3 ${blockedBySub ? "bg-[#fdf1dc] text-[#7a4b00]" : "bg-dv-sand text-dv-ink"}`}>
-                {blockedBySub ? t.deleteSubEmail : t.deleteSubApi}
+            {appStorePlan ? (
+              <p className="rounded-xl bg-[#fdf1dc] px-4 py-3 text-[#7a4b00]" data-testid="delete-app-store-notice">
+                {appStoreText(locale).deleteNotice}
               </p>
+            ) : (
+              paying && (
+                <p className={`rounded-xl px-4 py-3 ${blockedBySub ? "bg-[#fdf1dc] text-[#7a4b00]" : "bg-dv-sand text-dv-ink"}`}>
+                  {blockedBySub ? t.deleteSubEmail : t.deleteSubApi}
+                </p>
+              )
             )}
           </div>
           {blockedBySub ? (

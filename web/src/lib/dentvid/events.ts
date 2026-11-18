@@ -122,6 +122,8 @@ export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
     // Switched on from not active (first payment or back from paused / cancelled): the worker's watchdog checks the week came.
     activated: { kind: "bool" },
     event: { kind: "enum", values: ["subscription.active", "subscription.renewed", "subscription.unpaused", "subscription.plan_changed"] },
+    // Which channel paid: dodo (web) or apple (the iPhone app).
+    source: { kind: "enum", values: ["dodo", "apple"] },
   },
   week_ready: { kind: { kind: "enum", values: ["week", "recording"] }, ready: { kind: "int", max: 100 }, flagged: { kind: "int", max: 100 } },
   video_approved: {},

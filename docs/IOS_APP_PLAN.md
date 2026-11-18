@@ -1,5 +1,11 @@
 # DentVideo for iPhone: plan
 
+> **Changed (2026-11-17): the app becomes a sales channel.** The owner decided that people who find
+> DentVideo on the App Store can sign up and subscribe inside the app with Apple in-app purchase
+> (RevenueCat), at the web's plans. That replaces the "no sign-up, no plan picker, no prices" parts of §1,
+> §2 (Sign in / No active plan screens) and the 3.1.1/3.1.3 row of §6. The design, server API and
+> runbook are in `docs/DENTVIDEO_IAP_PLAN.md`; the rest of this plan stands.
+
 Status: plan for the first App Store version (1.0). Owner decisions already made are marked
 **(decided)**. Everything here follows `CLAUDE.md`: no paid API spend, no invented claims, no
 secrets in the repo.
@@ -59,7 +65,7 @@ the origin guard exempts exactly this prefix (`lib/origin-guard.ts`). Every resp
 | `DELETE devices` | `{ token }` | `{ ok }` | Deletes only the caller's row. |
 | `POST upload-url` | `{ size, contentType, name? }` | `{ path, uploadUrl, contentType }` | Shared handler with the web route (plan, quota, slots). |
 | `POST recording` | `{ path }` | `{ ok }` | Shared handler (own folder path only, plan gate). |
-| `POST clinic` | `{ profile }` | `{ id }` | Shared handler (profile schema, closing-line market rules). |
+| `POST clinic` | `{ profile }` | `{ id }` | Creates the login's clinic when it has none (an account made in the app), else saves it. The web's handler `handlers/clinic-save.ts`: profile schema, closing-line market rules, rate limit, one clinic per login, `clinic_saved`. Like the web, no email code needed here (the purchase waits for it). |
 | `POST account/delete` | `{ confirm }` | `{ ok }` | Shared handler (Dodo cancel or 409, storage, rows, login). `confirm` = the clinic name (or email), as on the web. |
 | `POST password-reset` | `{ email, locale }` | `{ ok }` | The web's route, unchanged (same limits, same answer whether or not the account exists). |
 | `GET topic-requests` | – | `{ topics, available }` | Owner's own suggestions (RLS); `available: false` before migration 0025. |
