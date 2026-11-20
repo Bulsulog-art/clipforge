@@ -15,7 +15,7 @@ export const HEALTH_TOURISM_TR: Guide = {
   slug: "saglik-turizmi-dis-klinigi-tanitim-kurallari",
   category: "rules",
   published: "2026-11-17",
-  updated: "2026-11-17",
+  updated: "2026-11-20",
   reviewed: "2026-11-17",
   title: "Sağlık turizmi reklam kuralları: diş klinikleri yurt dışındaki hastalara neyi, nasıl duyurabilir?",
   seoTitle: "Sağlık turizmi reklam kuralları: diş klinikleri",
@@ -30,7 +30,7 @@ export const HEALTH_TOURISM_TR: Guide = {
       paragraphs: [
         "Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Faaliyetleri Hakkında Yönetmelik, Türkiye'deki bütün diş hekimleri ve özel sağlık kuruluşları için reklamı yasaklar ve yalnızca kurallara uygun tanıtım ve bilgilendirmeye izin verir. Genel kuralları [diş hekimi reklam yasağı rehberimizde](guide:dis-hekimi-reklam-yasagi) anlattık. Yönetmeliğin 8. maddesi bunlara, uluslararası sağlık turizmi için ayrı bir alan açar.",
         "Bu alan herkese açık değildir. 8. madde, 26 Nisan 2025 tarihli ve 32882 sayılı Resmî Gazete'de yayımlanan Uluslararası Sağlık Turizmi ve Turistin Sağlığı Hakkında Yönetmelik uyarınca Bakanlıkça verilen yetki belgesi kapsamında hizmet sunan sağlık tesislerini ve aracı kuruluşları sayar. Yetki belgesi olmayan bir muayenehane ya da poliklinik, yabancı hastalara hizmet verse bile bu maddedeki esnekliklerden yararlanamaz; onun için yurt içindeki genel kurallar geçerlidir.",
-        "Maddenin dördüncü fıkrası da önemlidir: 8. maddenin düzenlemediği her konuda yönetmeliğin diğer hükümleri sağlık turizmi yapan kuruluşlara da uygulanır. Yani kesin sonuç vaadi, üstünlük iddiası, bilimsel olarak kanıtlanmamış yöntemler ve yanıltıcı görseller yurt dışı hesapta da yasaktır.",
+        "Maddenin dördüncü fıkrası da önemlidir: 8. maddenin düzenlemediği her konuda yönetmeliğin diğer hükümleri sağlık turizmi yapan kuruluşlara da uygulanır. Yani kesin sonuç vaadi, üstünlük iddiası, bilimsel olarak kanıtlanmamış yöntemler ve yanıltıcı görseller yurt dışı hesapta da yasaktır. Aykırılıklarda uygulanan idari yaptırımları, sağlık turizmine özgü yetki belgesi iptali dahil, [diş hekimi reklam cezası rehberinde](guide:dis-hekimi-reklam-cezasi) özetledik.",
       ],
     },
     {
