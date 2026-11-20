@@ -124,8 +124,8 @@ export const GUIDES_TR: Guide[] = [
     slug: "dis-hekimi-reklam-yasagi",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-10",
-    reviewed: "2026-11-10",
+    updated: "2026-11-20",
+    reviewed: "2026-11-20",
     title: "Diş hekimi reklam yasağı: 2025 tanıtım yönetmeliğine göre sosyal medyada neler paylaşılabilir?",
     seoTitle: "Diş hekimi reklam yasağı: neler paylaşılabilir?",
     seoDescription: "2025 Sağlık Hizmetlerinde Tanıtım ve Bilgilendirme Yönetmeliği'ne göre diş hekimleri için yasak ifadeler, öncesi-sonrası, KVKK ve kontrol listesi.",
@@ -152,7 +152,7 @@ export const GUIDES_TR: Guide[] = [
           "Ücretli, sponsorlu ya da öne çıkmaya yönelik paylaşım ve arama motoru kayıtları kısıtlanmıştır; sınırlı istisnalar için güncel metne bakın.",
           "Kişilerin rızası olmadan arama, SMS, e-posta ya da sosyal medya mesajıyla tanıtım yapılamaz.",
           "Çekiliş, hediye ve benzeri özendirici pazarlama faaliyetleri yapılamaz.",
-          "Denetim il sağlık müdürlükleri ve Bakanlık tarafından yapılır; şikâyet ve tespitler il sağlık müdürlükleri bünyesindeki il değerlendirme komisyonlarında incelenir ve aykırılıklarda idari yaptırımlar uygulanabilir.",
+          "Denetim il sağlık müdürlükleri ve Bakanlık tarafından yapılır; şikâyet ve tespitler il sağlık müdürlükleri bünyesindeki il değerlendirme komisyonlarında incelenir ve aykırılıklarda idari yaptırımlar uygulanabilir (süreç ve Ek-2 yaptırım formu için [diş hekimi reklam cezası rehberi](guide:dis-hekimi-reklam-cezasi)).",
         ],
       },
       {
@@ -169,14 +169,14 @@ export const GUIDES_TR: Guide[] = [
             ["“Ömür boyu kalıcı”", "Kalıcılığı abartır", "“Düzenli bakım ve kontrollerle uzun yıllar kullanılabilir.”"],
             ["“Şehrin en iyi kliniği”", "Üstünlük iddiası ve karşılaştırma", "Kliniğin adı, adresi ve sunduğu hizmetler gibi doğrulanabilir bilgiler"],
             ["“Bu ay indirimde”", "Ücret, indirim ve kampanya bilgisi yasak", "Hiçbir fiyat ya da kampanya bilgisi; soru sormaya veya kontrole davet"],
-            ["Hasta teşekkür mesajı paylaşımı", "Memnuniyet ifadeleriyle tanıtım sınırlı; mahremiyet", "Hastaların sorduğu soruyu yanıtlayan eğitici bir video"],
+            ["Hasta teşekkür mesajı paylaşımı", "Memnuniyet ifadeleriyle tanıtım sınırlı; mahremiyet ([hasta yorumları rehberi](guide:sosyal-medyada-doktor-onermek-yasak-mi))", "Hastaların sorduğu soruyu yanıtlayan eğitici bir video"],
           ],
         },
       },
       {
         heading: "Öncesi-sonrası görselleri paylaşılabilir mi?",
         paragraphs: [
-          "Öncesi-sonrası görselleri konusundaki yorumlar birbirinden farklıdır: bazı değerlendirmeler bu görsellerin reklam niteliği taşıdığını ve yasak olduğunu, bazıları ise hastanın açık rızası, kimliğin gizlenmesi ve “sonuçlar kişiden kişiye değişebilir” uyarısı gibi koşullarla bilgilendirme amaçlı kullanılabileceğini söyler. Bu belirsizlik nedeniyle en güvenli yaklaşım, öncesi-sonrası görsellerini sosyal medyada hiç kullanmamak ya da kullanmadan önce odanızın ve bir hukukçunun görüşünü almaktır.",
+          "2025 yönetmeliği öncesi-sonrası görselleri tümüyle yasaklamaz; 7. maddesinde sıkı koşullara bağlar: hastanın Ek-1 Görsel İçerik Kaydetme ve İşleme Onam Formu ile açık rızası, görseli önceden görme ve izni her zaman geri çekme hakkı, aynı ortam ve teknik şartlarda çekim, işlem ve çekim tarihlerinin yazılması, sonradan düzeltme yapılmaması, “sonuçlar kişiden kişiye değişiklik gösterebilir” uyarısı ve sponsorsuz paylaşım. Tedavi sırasında çekilmiş hasta görüntüsü ve teşekkür içeren görseller ise paylaşılamaz. Koşulların tamamı ve onam formunun içeriği [öncesi-sonrası ve görsel içerik onam formu rehberinde](guide:oncesi-sonrasi-gorsel-icerik-onam-formu). Bu yükü taşımak istemiyorsanız en sade yol, sosyal medyada hasta görseli kullanmamaktır.",
           "Ayrıca sağlık verisi, 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında özel nitelikli kişisel veridir. Bir hastanın yüzü, sesi, adı ya da ağız içi fotoğrafı paylaşılacaksa amacı açıkça belirten, yazılı ve geri alınabilir bir onam alın; onamı hasta dosyasında saklayın. Görüntüde diğer hastaların, ekranlardaki hasta bilgilerinin ve randevu defterinin görünmediğinden emin olun.",
         ],
       },
@@ -225,7 +225,7 @@ export const GUIDES_TR: Guide[] = [
     topic: "post-ideas",
     category: "ideas",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-20",
     title: "Diş hekimleri için Instagram paylaşım fikirleri: bir yıllık, yönetmeliğe uygun konu listesi",
     seoTitle: "Diş hekimi için Instagram paylaşım fikirleri",
     seoDescription: "Diş klinikleri için Instagram ve TikTok paylaşım fikirleri: hasta soruları, tedavi açıklamaları, ekip, mevsimsel konular ve kaçınılacak içerikler.",
@@ -300,7 +300,7 @@ export const GUIDES_TR: Guide[] = [
       {
         heading: "Kaçınılacak paylaşımlar",
         paragraphs: [
-          "Yaygın sosyal medya önerilerinin bir kısmı Türkiye'de sorun yaratabilir: indirim ve kampanya duyuruları, çekilişler, “hastalarımız ne diyor” paylaşımları, hasta teşekkür mesajlarının ekran görüntüleri, öncesi-sonrası karşılaştırmaları ve ücretli öne çıkarma. Nedenini [diş hekimi reklam yasağı rehberinde](guide:dis-hekimi-reklam-yasagi) açıkladık. Hasta görüntüsü içeren her paylaşım için ayrıca KVKK kapsamında yazılı açık rıza gerekir.",
+          "Yaygın sosyal medya önerilerinin bir kısmı Türkiye'de sorun yaratabilir: indirim ve kampanya duyuruları, çekilişler, “hastalarımız ne diyor” paylaşımları, hasta teşekkür mesajlarının ekran görüntüleri, öncesi-sonrası karşılaştırmaları ve ücretli öne çıkarma. Nedenini [diş hekimi reklam yasağı rehberinde](guide:dis-hekimi-reklam-yasagi) açıkladık. Hasta teşekkürleri ve etiketli hikâyeler için [hasta yorumları rehberine](guide:sosyal-medyada-doktor-onermek-yasak-mi), hasta görüntüsü içeren paylaşımlarda gereken onam ve koşullar için [görsel içerik onam formu rehberine](guide:oncesi-sonrasi-gorsel-icerik-onam-formu) bakın.",
         ],
       },
       {

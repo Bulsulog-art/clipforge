@@ -57,7 +57,7 @@ describe("editorial pages: no em dashes", () => {
   const visible = (g: (typeof GUIDES)[number]) => [g.title, g.h1, g.description, g.seoTitle ?? "", g.seoDescription ?? "", ...guideTexts(g), ...(g.sources ?? []).map((s) => s.label)];
 
   it("the 2026-11-17 guides have none anywhere in their visible text or source labels", () => {
-    const slugs = ["saglik-turizmi-dis-klinigi-tanitim-kurallari", "impressum-instagram-zahnarztpraxis", "how-to-respond-to-negative-dental-reviews-hipaa"];
+    const slugs = ["saglik-turizmi-dis-klinigi-tanitim-kurallari", "impressum-instagram-zahnarztpraxis", "how-to-respond-to-negative-dental-reviews-hipaa", "dis-hekimi-reklam-cezasi", "oncesi-sonrasi-gorsel-icerik-onam-formu", "sosyal-medyada-doktor-onermek-yasak-mi"];
     for (const slug of slugs) {
       const g = GUIDES.find((x) => x.slug === slug)!;
       expect(g, slug).toBeDefined();
