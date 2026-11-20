@@ -7,6 +7,7 @@ import type { Locale } from "@/content/dentvideo";
 import { captureAttribution } from "@/lib/dentvid/attribution";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { rememberDemo } from "@/lib/dentvid/demo-cookie";
+import { isInternalBrowser } from "@/lib/dentvid/internal-flag";
 import type { PreviewProfile } from "./live-preview";
 
 /**
@@ -50,7 +51,8 @@ export function DemoView({ token, campaign, locale }: { token: string; campaign:
         void fetch("/api/dentvideo/demo/view", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ token, locale }),
+          // A browser flagged as ours (owner, QA): the server leaves it out of the views and alerts.
+          body: JSON.stringify({ token, locale, ...(isInternalBrowser() ? { internal: true } : {}) }),
           keepalive: true,
           credentials: "same-origin",
         }).catch(() => {});
@@ -78,7 +80,8 @@ export function DemoActions({
   mailHref,
   cta,
   ask,
-  colour,
+  fill,
+  ink,
 }: {
   token: string;
   locale: Locale;
@@ -86,15 +89,17 @@ export function DemoActions({
   mailHref: string;
   cta: string;
   ask: string;
-  colour: string;
+  /** The clinic's colour, deepened if needed, and the text colour that reads on it (lib/dentvid/demos demoBrandInk). */
+  fill: string;
+  ink: string;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <a
         href={startHref}
         onClick={() => trackDv("demo_cta_clicked", { locale, props: { demo: token, where: "start" } })}
-        className="dv-btn group px-7 py-4 text-base font-semibold text-white shadow-[0_14px_30px_-14px_rgba(8,46,45,0.6)]"
-        style={{ background: colour }}
+        className="dv-btn group px-7 py-4 text-base font-semibold shadow-[0_14px_30px_-14px_rgba(8,46,45,0.6)]"
+        style={{ background: fill, color: ink }}
         data-cta="demo-start"
       >
         {cta}

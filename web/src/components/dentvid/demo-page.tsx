@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
 import { LANDING_PATH, dirOf, type Locale } from "@/content/dentvideo";
-import { DEMO_COPY, demoFromPrice, fillDemo } from "@/content/dentvideo-demo";
+import { DEMO_COPY, demoFromPrice, demoLogoCopy, fillDemo } from "@/content/dentvideo-demo";
 import { OPERATOR } from "@/content/guides/operator";
-import { demoLogoSrc, demoStartPath, type PublicDemo } from "@/lib/dentvid/demos";
+import { demoBrandInk, demoLogoSrc, demoStartPath, type PublicDemo } from "@/lib/dentvid/demos";
 import { dvHref } from "@/lib/dentvid/host";
 import { exampleServices } from "@/lib/dentvid/service-hints";
 import { DemoActions, DemoPreview, DemoView } from "./demo-client";
@@ -26,7 +26,7 @@ export function demoMetadata(locale: Locale, demo: PublicDemo | null): Metadata 
   if (!demo) return { robots: DEMO_ROBOTS };
   const t = DEMO_COPY[locale];
   const title = fillDemo(t.metaTitle, { name: demo.clinicName });
-  const description = fillDemo(t.lead, { name: demo.clinicName });
+  const description = fillDemo(demoLogoCopy(t, demo.hasLogo).lead, { name: demo.clinicName });
   const image = `${LANDING_PATH[locale]}/opengraph-image`;
   return {
     title,
@@ -44,6 +44,10 @@ export function DemoPage({ locale, demo, logoSrc }: { locale: Locale; demo: Publ
   const t = DEMO_COPY[locale];
   const name = demo.clinicName;
   const colour = demo.colour;
+  // Text on the clinic's colour (CTA, check marks) reads at 4.5:1 whatever the colour.
+  const brand = demoBrandInk(colour);
+  // Without a logo the page promises name and colour only, and invites the logo.
+  const copy = demoLogoCopy(t, demo.hasLogo);
   // The price in the currency this clinic's country is billed in (the demo's country, else the page's language).
   const facts = [fillDemo(t.facts.from, { price: demoFromPrice(locale, demo.country) }), t.facts.cancel, t.facts.approve, t.facts.rules];
   const mailHref = `mailto:${OPERATOR.productEmail}?subject=${encodeURIComponent(fillDemo(t.mailSubject, { name }))}`;
@@ -70,7 +74,7 @@ export function DemoPage({ locale, demo, logoSrc }: { locale: Locale; demo: Publ
           <h1 className="dv-display mt-5 text-balance text-[2.35rem] leading-[1.05] text-dv-ink [word-break:auto-phrase] sm:text-[3.4rem]">
             {fillDemo(t.headline, { name })}
           </h1>
-          <p className="mt-4 max-w-xl text-pretty text-[1.0625rem] leading-relaxed text-dv-body">{t.lead}</p>
+          <p className="mt-4 max-w-xl text-pretty text-[1.0625rem] leading-relaxed text-dv-body">{copy.lead}</p>
         </div>
 
         <div className="mt-8 min-w-0 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:self-start">
@@ -82,7 +86,7 @@ export function DemoPage({ locale, demo, logoSrc }: { locale: Locale; demo: Publ
           <ul className="mt-8 space-y-3">
             {t.points.map((p) => (
               <li key={p} className="flex gap-3 text-[1.0625rem] leading-snug text-dv-ink">
-                <span aria-hidden="true" className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white" style={{ background: colour }}>
+                <span aria-hidden="true" className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full" style={{ background: brand.fill, color: brand.ink }}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </span>
                 <span>{p}</span>
@@ -112,9 +116,10 @@ export function DemoPage({ locale, demo, logoSrc }: { locale: Locale; demo: Publ
               mailHref={mailHref}
               cta={t.cta}
               ask={t.ask}
-              colour={colour}
+              fill={brand.fill}
+              ink={brand.ink}
             />
-            <p className="mt-3 text-sm text-dv-muted">{t.ctaNote}</p>
+            <p className="mt-3 text-sm text-dv-muted">{copy.ctaNote}</p>
           </div>
 
           <p className="mt-10 max-w-xl border-t border-dv-line pt-5 text-xs leading-relaxed text-dv-muted" data-testid="demo-privacy">

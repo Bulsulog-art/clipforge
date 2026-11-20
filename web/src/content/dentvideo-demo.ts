@@ -32,12 +32,18 @@ export type DemoCopy = {
   metaTitle: string;
   eyebrow: string;
   headline: string;
+  /** The lead, for a demo with the clinic's logo. */
   lead: string;
+  /** The lead without a logo: names only the colours (a demo never promises a logo it does not have). */
+  leadNoLogo: string;
   points: [string, string, string];
   factsTitle: string;
   facts: { from: string; cancel: string; approve: string; rules: string };
   cta: string;
+  /** Under the CTA, for a demo with a logo: name, colour and logo are filled in. */
   ctaNote: string;
+  /** Without a logo: name and colour are filled in, and the logo is one tap away. */
+  ctaNoteNoLogo: string;
   ask: string;
   mailSubject: string;
   sample: string;
@@ -56,6 +62,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Made for {name}",
     headline: "{name}, this is what your Monday videos could look like",
     lead: "A sample week in your colors and with your logo, playing right here. No sign-up needed.",
+    leadNoLogo: "A sample week in your colors, playing right here. No sign-up needed.",
     points: [
       "Five narrated, captioned patient-education videos every Monday.",
       "Record five minutes on your phone — or we write and narrate the topics for you.",
@@ -70,6 +77,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Start with these settings",
     ctaNote: "Your clinic name, color and logo are already filled in.",
+    ctaNoteNoLogo: "Your clinic name and color are already filled in. Add your logo with one tap.",
     ask: "Ask a question",
     mailSubject: "Question about DentVideo ({name})",
     sample: "These are sample videos from our library, shown in your colors. Your real videos are about the treatments you offer.",
@@ -87,6 +95,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "{name} için hazırlandı",
     headline: "{name}, pazartesi videolarınız böyle görünebilir",
     lead: "Renklerinizle ve logonuzla örnek bir hafta, burada oynuyor. Kayıt gerekmez.",
+    leadNoLogo: "Renklerinizle örnek bir hafta, burada oynuyor. Kayıt gerekmez.",
     points: [
       "Her pazartesi beş seslendirmeli, altyazılı hasta bilgilendirme videosu.",
       "Telefonla beş dakikalık bir kayıt yeterli — ya da konuları biz yazar ve seslendiririz.",
@@ -101,6 +110,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Bu ayarlarla başla",
     ctaNote: "Klinik adınız, renginiz ve logonuz hazır doldurulmuş olur.",
+    ctaNoteNoLogo: "Klinik adınız ve renginiz hazır doldurulmuş olur. Logonuzu tek dokunuşla ekleyebilirsiniz.",
     ask: "Soru sor",
     mailSubject: "DentVideo hakkında soru ({name})",
     sample: "Bunlar kütüphanemizden örnek videolar, sizin renklerinizle. Gerçek videolarınız sunduğunuz tedaviler hakkında olur.",
@@ -118,6 +128,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Für {name} erstellt",
     headline: "{name}, so könnten Ihre Montagsvideos aussehen",
     lead: "Eine Beispielwoche in Ihren Farben und mit Ihrem Logo, direkt hier abgespielt. Ohne Anmeldung.",
+    leadNoLogo: "Eine Beispielwoche in Ihren Farben, direkt hier abgespielt. Ohne Anmeldung.",
     points: [
       "Jeden Montag fünf vertonte, untertitelte Videos zur Patientenaufklärung.",
       "Fünf Minuten mit dem Handy aufnehmen – oder wir schreiben und vertonen die Themen für Sie.",
@@ -132,6 +143,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Mit diesen Einstellungen starten",
     ctaNote: "Praxisname, Farbe und Logo sind schon ausgefüllt.",
+    ctaNoteNoLogo: "Praxisname und Farbe sind schon ausgefüllt. Ihr Logo fügen Sie mit einem Tipp hinzu.",
     ask: "Frage stellen",
     mailSubject: "Frage zu DentVideo ({name})",
     sample: "Das sind Beispielvideos aus unserer Bibliothek in Ihren Farben. Ihre echten Videos handeln von den Behandlungen, die Sie anbieten.",
@@ -149,6 +161,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Preparado para {name}",
     headline: "{name}, así podrían ser sus vídeos de cada lunes",
     lead: "Una semana de ejemplo con sus colores y su logo, reproducida aquí mismo. Sin registro.",
+    leadNoLogo: "Una semana de ejemplo con sus colores, reproducida aquí mismo. Sin registro.",
     points: [
       "Cinco vídeos educativos para pacientes, narrados y subtitulados, cada lunes.",
       "Grabe cinco minutos con el móvil, o nosotros escribimos y narramos los temas.",
@@ -163,6 +176,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Empezar con estos ajustes",
     ctaNote: "El nombre de su clínica, su color y su logo ya estarán rellenados.",
+    ctaNoteNoLogo: "El nombre de su clínica y su color ya estarán rellenados. Puede añadir su logo con un toque.",
     ask: "Hacer una pregunta",
     mailSubject: "Pregunta sobre DentVideo ({name})",
     sample: "Son vídeos de ejemplo de nuestra biblioteca, con sus colores. Sus vídeos reales tratarán de los tratamientos que usted ofrece.",
@@ -180,6 +194,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Préparé pour {name}",
     headline: "{name}, voici à quoi pourraient ressembler vos vidéos du lundi",
     lead: "Une semaine d'exemple à vos couleurs et avec votre logo, lue ici même. Sans inscription.",
+    leadNoLogo: "Une semaine d'exemple à vos couleurs, lue ici même. Sans inscription.",
     points: [
       "Cinq vidéos d'information patient, narrées et sous-titrées, chaque lundi.",
       "Enregistrez cinq minutes avec votre téléphone, ou nous écrivons et narrons les sujets pour vous.",
@@ -194,6 +209,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Commencer avec ces réglages",
     ctaNote: "Le nom du cabinet, la couleur et le logo seront déjà remplis.",
+    ctaNoteNoLogo: "Le nom du cabinet et la couleur seront déjà remplis. Ajoutez votre logo d'un simple geste.",
     ask: "Poser une question",
     mailSubject: "Question sur DentVideo ({name})",
     sample: "Ce sont des vidéos d'exemple de notre bibliothèque, à vos couleurs. Vos vraies vidéos porteront sur les soins que vous proposez.",
@@ -211,6 +227,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "{name}様のために作成",
     headline: "{name}様、毎週月曜日の動画はこんなふうになります",
     lead: "医院のカラーとロゴで作ったサンプルの1週間を、このページで再生しています。登録は不要です。",
+    leadNoLogo: "医院のカラーで作ったサンプルの1週間を、このページで再生しています。登録は不要です。",
     points: [
       "毎週月曜日に、ナレーションと字幕付きの患者さん向け解説動画を5本。",
       "スマートフォンで5分録画するだけ。または、テーマに沿って私たちが原稿とナレーションを用意します。",
@@ -225,6 +242,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "この設定で始める",
     ctaNote: "医院名・カラー・ロゴは入力済みの状態で始まります。",
+    ctaNoteNoLogo: "医院名とカラーは入力済みの状態で始まります。ロゴはワンタップで追加できます。",
     ask: "質問する",
     mailSubject: "DentVideoについての質問（{name}）",
     sample: "これは当社ライブラリのサンプル動画を、医院のカラーで表示したものです。実際の動画は、貴院で提供している治療についての内容になります。",
@@ -242,6 +260,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "أُعدّت خصيصًا لـ {name}",
     headline: "{name}، هكذا يمكن أن تبدو فيديوهاتكم كل يوم اثنين",
     lead: "أسبوع تجريبي بألوانكم وشعاركم، يُعرض هنا مباشرة. دون تسجيل.",
+    leadNoLogo: "أسبوع تجريبي بألوانكم، يُعرض هنا مباشرة. دون تسجيل.",
     points: [
       "كل يوم اثنين، خمسة فيديوهات توعوية للمرضى بتعليق صوتي ونص على الشاشة.",
       "سجّلوا خمس دقائق بالهاتف، أو نكتب نحن المواضيع ونسجّل التعليق الصوتي.",
@@ -256,6 +275,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "ابدؤوا بهذه الإعدادات",
     ctaNote: "سنملأ لكم مسبقًا اسم العيادة ولونها وشعارها.",
+    ctaNoteNoLogo: "سنملأ لكم مسبقًا اسم العيادة ولونها، ويمكنكم إضافة شعاركم بلمسة واحدة.",
     ask: "اطرحوا سؤالًا",
     mailSubject: "سؤال عن DentVideo ({name})",
     sample: "هذه فيديوهات نموذجية من مكتبتنا بألوانكم. فيديوهاتكم الفعلية ستتناول العلاجات التي تقدمونها.",
@@ -273,6 +293,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Przygotowane dla: {name}",
     headline: "{name}, tak mogłyby wyglądać Państwa poniedziałkowe filmy",
     lead: "Przykładowy tydzień w Państwa kolorach i z Państwa logo, odtwarzany tutaj. Bez rejestracji.",
+    leadNoLogo: "Przykładowy tydzień w Państwa kolorach, odtwarzany tutaj. Bez rejestracji.",
     points: [
       "Co poniedziałek pięć edukacyjnych filmów dla pacjentów, z lektorem i napisami.",
       "Wystarczy pięć minut nagrania telefonem — albo to my piszemy tematy i nagrywamy lektora.",
@@ -287,6 +308,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Zacznij z tymi ustawieniami",
     ctaNote: "Nazwa gabinetu, kolor i logo będą już wypełnione.",
+    ctaNoteNoLogo: "Nazwa gabinetu i kolor będą już wypełnione. Logo dodadzą Państwo jednym dotknięciem.",
     ask: "Zadaj pytanie",
     mailSubject: "Pytanie o DentVideo ({name})",
     sample: "To przykładowe filmy z naszej biblioteki w Państwa kolorach. Prawdziwe filmy będą o zabiegach, które Państwo oferują.",
@@ -300,6 +322,11 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
   },
 };
+
+/** The lead and the CTA note for this demo: they mention the logo only when the demo has one. */
+export function demoLogoCopy(t: DemoCopy, hasLogo: boolean): { lead: string; ctaNote: string } {
+  return hasLogo ? { lead: t.lead, ctaNote: t.ctaNote } : { lead: t.leadNoLogo, ctaNote: t.ctaNoteNoLogo };
+}
 
 export function fillDemo(s: string, vars: { name?: string; url?: string; price?: string }): string {
   return s

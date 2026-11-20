@@ -29,11 +29,12 @@ vi.mock("@/lib/dentvid/supabase", () => ({
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LOCALES, type Locale } from "@/content/dentvideo";
-import { DEMO_COPY, demoFromPrice, fillDemo } from "@/content/dentvideo-demo";
+import { DEMO_COPY, demoFromPrice, demoLogoCopy, fillDemo } from "@/content/dentvideo-demo";
 import { dvTierPrice } from "@/lib/dentvid/pricing";
 import { DemoPage, demoMetadata } from "./demo-page";
 import { Onboarding } from "./onboarding";
-import type { PublicDemo } from "@/lib/dentvid/demos";
+import { DEMO_MIN_CONTRAST, type PublicDemo } from "@/lib/dentvid/demos";
+import { contrastRatio } from "@/remotion/theme";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -70,6 +71,55 @@ describe("the demo page", () => {
       expect(Object.keys(DEMO_COPY[l].facts), l).not.toContain("founding");
       expect(h, l).not.toMatch(/\b99\b|990|founding|kurucu|\bGründungs|fundador|fondateur|創業|المؤسسين|założyciel/i);
     }
+  });
+
+  it("promises the logo only when the demo has one; without it, name and colour and a one-tap invite, in every language", () => {
+    // The word for "logo" on each page.
+    const LOGO: Record<Locale, RegExp> = { en: /logo/i, tr: /logo/i, de: /logo/i, es: /logo/i, fr: /logo/i, ja: /ロゴ/, ar: /شعار/, pl: /logo/i };
+    for (const l of LOCALES) {
+      const t = DEMO_COPY[l];
+      expect(t.lead, l).toMatch(LOGO[l]);
+      expect(t.ctaNote, l).toMatch(LOGO[l]);
+      expect(t.leadNoLogo, l).not.toMatch(LOGO[l]);
+      // The note without a logo invites one (in one tap) instead of saying it is filled in.
+      expect(t.ctaNoteNoLogo, l).toMatch(LOGO[l]);
+      for (const v of [t.leadNoLogo, t.ctaNoteNoLogo]) expect(v, l).not.toMatch(/[\u2014\u2013]/);
+
+      const without = decode(renderToStaticMarkup(<DemoPage locale={l} demo={{ ...demo(l), hasLogo: false }} />));
+      expect(without, l).toContain(t.leadNoLogo);
+      expect(without, l).toContain(t.ctaNoteNoLogo);
+      expect(without, l).not.toContain(t.lead);
+      expect(without, l).not.toContain(t.ctaNote);
+      expect(without, l).not.toContain("/api/dentvideo/demo/");
+      expect(demoMetadata(l, { ...demo(l), hasLogo: false }).description, l).toBe(t.leadNoLogo);
+
+      const withLogo = decode(renderToStaticMarkup(<DemoPage locale={l} demo={demo(l)} />));
+      expect(withLogo, l).toContain(t.lead);
+      expect(withLogo, l).toContain(t.ctaNote);
+      expect(withLogo, l).not.toContain(t.ctaNoteNoLogo);
+      expect(demoLogoCopy(t, true), l).toEqual({ lead: t.lead, ctaNote: t.ctaNote });
+    }
+  });
+
+  it("keeps text on the clinic's colour readable (4.5:1): white on deep colours, dark on a gold", () => {
+    const styles = (h: string, attr: string) => {
+      const tag = new RegExp(`<a[^>]*data-cta="${attr}"[^>]*>`).exec(h)?.[0] ?? "";
+      const st = /style="([^"]*)"/.exec(tag)?.[1] ?? "";
+      return { bg: /background:\s*(#[0-9a-f]{6})/i.exec(st)?.[1], fg: /(?:^|;)\s*color:\s*(#[0-9a-f]{6})/i.exec(st)?.[1] };
+    };
+    // A gold like demo 30's: white text on it is only 3:1.
+    for (const colour of ["#c9a227", "#1f4e79", "#e0b84c", "#8fbc8f", "#d4af37"]) {
+      const h = renderToStaticMarkup(<DemoPage locale="tr" demo={{ ...demo("tr"), colour }} />);
+      const { bg, fg } = styles(h, "demo-start");
+      expect(bg && fg, colour).toBeTruthy();
+      expect(contrastRatio(fg!, bg!), colour).toBeGreaterThanOrEqual(DEMO_MIN_CONTRAST);
+      // The check marks use the same pair.
+      expect(h, colour).toContain(`background:${bg};color:${fg}`);
+    }
+    const gold = styles(renderToStaticMarkup(<DemoPage locale="de" demo={{ ...demo("de"), colour: "#c9a227" }} />), "demo-start");
+    expect(gold).toEqual({ bg: "#c9a227", fg: "#0b0d10" });
+    const navy = styles(renderToStaticMarkup(<DemoPage locale="de" demo={demo("de")} />), "demo-start");
+    expect(navy).toEqual({ bg: "#1f4e79", fg: "#ffffff" });
   });
 
   it("is never indexed or followed, and a missing demo is the 404", () => {

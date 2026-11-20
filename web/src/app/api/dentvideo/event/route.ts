@@ -61,11 +61,11 @@ export async function POST(req: Request) {
   ]);
   if (!second.ok) return NO_CONTENT();
 
-  // A demo page's play / CTA click: not from a bot or the owner testing his own demo
+  // A demo page's play / CTA click: not from a bot, our own checks (internal) or the owner testing his own demo
   // (they would skew /admin/demos), and the first one raises a hot-lead alert.
   const step = hotStepForEvent(row.name, row.props);
   const demoToken = typeof row.props.demo === "string" ? row.props.demo : null;
-  if (step && (!demoToken || (await demoRequestSkip(req)))) return NO_CONTENT();
+  if (step && (!demoToken || (await demoRequestSkip(req, row.props)))) return NO_CONTENT();
 
   await insertEventRow(row);
   if (step && demoToken) void raiseHotLead({ token: demoToken, step });
