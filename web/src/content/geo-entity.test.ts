@@ -63,7 +63,7 @@ describe("structured data: one product node", () => {
   });
 
   it.each(LOCALES)("%s: the homepage FAQPage holds exactly the questions the page shows", (l) => {
-    const faq = graph(landingJsonLd(l)).find((n) => n["@type"] === "FAQPage") as { mainEntity: { name: string }[] };
+    const faq = graph(landingJsonLd(l)).find((n) => n["@type"] === "FAQPage") as unknown as { mainEntity: { name: string }[] };
     expect(faq.mainEntity.map((q) => q.name)).toEqual(LANDING[l].faq.map((f) => f.q));
   });
 
