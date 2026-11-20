@@ -43,9 +43,9 @@ vi.mock("@/lib/dentvid/auth", () => ({
   }),
 }));
 
-const post = async (body: string, ua = SAFARI) => {
+const post = async (body: string, ua = SAFARI, extra: Record<string, string> = {}) => {
   const { POST } = await import("./route");
-  return POST(new Request("https://dentvideo.com/api/dentvideo/event", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9", "user-agent": ua }, body }));
+  return POST(new Request("https://dentvideo.com/api/dentvideo/event", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9", "user-agent": ua, ...extra }, body }));
 };
 
 describe("POST /api/dentvideo/event", () => {
@@ -73,6 +73,26 @@ describe("POST /api/dentvideo/event", () => {
       ["plan_viewed", null],
       ["plan_viewed", true],
     ]);
+  });
+
+  it("automated browsers, crawlers and our own scripts are stored tagged internal; a real browser is not", async () => {
+    const view = JSON.stringify({ name: "landing_view", locale: "en", props: {} });
+    const HEADLESS = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36";
+    const PLAYWRIGHT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36 Playwright/1.49";
+    const GOOGLEBOT = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/131.0 Safari/537.36";
+    await post(view, HEADLESS);
+    await post(view, PLAYWRIGHT);
+    await post(view, GOOGLEBOT);
+    await post(view, "curl/8.5.0");
+    await post(view, "");
+    // Our scripts: the header on a normal-looking browser, or the internal campaign tag.
+    await post(view, SAFARI, { "x-dv-internal": "1" });
+    await post(JSON.stringify({ name: "landing_view", props: { utm_source: "internal", utm_medium: "e2e", utm_campaign: "internal-smoke" } }));
+    // A visitor: a real browser, no marker, a real source; a header with another value marks nothing.
+    await post(JSON.stringify({ name: "landing_view", props: { utm_source: "instagram" } }));
+    await post(view, SAFARI, { "x-dv-internal": "0" });
+    const tags = (inserted as { props: Record<string, unknown> }[]).map((r) => r.props.internal ?? null);
+    expect(tags).toEqual([true, true, true, true, true, true, true, null, null]);
   });
 
   it("a demo page's play and CTA clicks are stored and raise a hot-lead alert (each step)", async () => {

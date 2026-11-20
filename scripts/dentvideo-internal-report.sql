@@ -36,7 +36,7 @@ begin transaction read only;
 -- 1. Accounts (DentVideo accounts only; Liman hosts other apps too).
 with pats as (
   select distinct lower(replace(n, '*', '%')) as pattern
-  from unnest(array['*@bulsulabs.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
+  from unnest(array['*@bulsulabs.com', '*@bulsulogistics.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
     lateral (select case when left(trim(p), 1) = '@' then '*' || trim(p) else trim(p) end as n) as norm
   where n like '%_@_%'
 ), users as (
@@ -58,7 +58,7 @@ where dentvideo;
 -- 1b. Which pattern the internal accounts matched (no address is printed: the pattern and a count only).
 with pats as (
   select distinct lower(replace(n, '*', '%')) as pattern
-  from unnest(array['*@bulsulabs.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
+  from unnest(array['*@bulsulabs.com', '*@bulsulogistics.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
     lateral (select case when left(trim(p), 1) = '@' then '*' || trim(p) else trim(p) end as n) as norm
   where n like '%_@_%'
 )
@@ -72,7 +72,7 @@ order by accounts desc;
 -- 2. Sign-ups in the audit log (deleted accounts included: the monitor deletes its own).
 with pats as (
   select distinct lower(replace(n, '*', '%')) as pattern
-  from unnest(array['*@bulsulabs.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
+  from unnest(array['*@bulsulabs.com', '*@bulsulogistics.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
     lateral (select case when left(trim(p), 1) = '@' then '*' || trim(p) else trim(p) end as n) as norm
   where n like '%_@_%'
 )
@@ -85,7 +85,7 @@ where a.payload ->> 'action' in ('user_signedup', 'user_invited');
 -- 3. Clinics, 4. events and 5. ad rows, classified through their owner.
 with pats as (
   select distinct lower(replace(n, '*', '%')) as pattern
-  from unnest(array['*@bulsulabs.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
+  from unnest(array['*@bulsulabs.com', '*@bulsulogistics.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
     lateral (select case when left(trim(p), 1) = '@' then '*' || trim(p) else trim(p) end as n) as norm
   where n like '%_@_%'
 ), internal_users as (
@@ -113,7 +113,7 @@ select
 -- 4b. Events per name: how many are internal by tag or clinic.
 with pats as (
   select distinct lower(replace(n, '*', '%')) as pattern
-  from unnest(array['*@bulsulabs.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
+  from unnest(array['*@bulsulabs.com', '*@bulsulogistics.com', '*@dentvideo.com', 'e2e-monitor+*@*', 'e2e*@*', 'qa+*@*', 'dvq*+*@*'] || string_to_array(:'extra', ',')) as p,
     lateral (select case when left(trim(p), 1) = '@' then '*' || trim(p) else trim(p) end as n) as norm
   where n like '%_@_%'
 ), internal_clinics as (

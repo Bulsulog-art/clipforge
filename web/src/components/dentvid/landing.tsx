@@ -18,6 +18,7 @@ import { SampleVideo } from "./sample-video";
 import { Teaser } from "./teaser";
 import { LandingView, TrackedLink, TryLink } from "./track";
 import { HtmlLang } from "./guide-parts";
+import { LanguageHint } from "./lang-hint";
 
 /**
  * The DentVideo landing, in every language. One story, in the order a careful
@@ -909,6 +910,8 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
       <LandingView locale={locale} />
+      {/* English only: "this page is also in <your language>", picked before the first paint (lib/dentvid/lang-hint). */}
+      {locale === "en" && <LanguageHint />}
       <Hero locale={locale} />
       <Teaser locale={locale} copy={LANDING[locale].teaser} href={dvHref(`/dentvideo/start?lang=${locale}`)} />
       <Monday locale={locale} />

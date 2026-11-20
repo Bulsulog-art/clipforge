@@ -6,6 +6,7 @@ import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 import { CHUNK_RELOAD_SCRIPT } from "@/lib/chunk-reload";
 import { PRICE_BOOT_SCRIPT } from "@/lib/dentvid/price-boot";
+import { LANG_HINT_BOOT_SCRIPT } from "@/lib/dentvid/lang-hint";
 import { HtmlRoot } from "@/components/html-root";
 import { GUIDES } from "@/content/dentvideo";
 import { SOLUTIONS } from "@/content/solutions";
@@ -77,6 +78,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script id="chunk-reload" dangerouslySetInnerHTML={{ __html: CHUNK_RELOAD_SCRIPT }} />
         {/* DentVideo's prices: the likely currency on <html> before the first paint (lib/dentvid/price-boot). */}
         <script id="dv-price-boot" dangerouslySetInnerHTML={{ __html: PRICE_BOOT_SCRIPT }} />
+        {/* DentVideo's English landing: which language line to show, before the first paint (lib/dentvid/lang-hint). */}
+        <script id="dv-lang-hint" dangerouslySetInnerHTML={{ __html: LANG_HINT_BOOT_SCRIPT }} />
       </head>
       <body className={`${inter.variable} font-sans`}>
         {/* Captures UTM params + referrer at first landing and POSTs

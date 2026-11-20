@@ -204,6 +204,11 @@ describe("POST /api/dentvideo/signup", () => {
     expect(adClicks).toEqual([["new-user", adClick]]);
     expect(created.at(-1)?.app_metadata).toEqual({ product: "dentvideo" });
     expect(recorded.at(-1)).toEqual(["signup_completed", { locale: "de", props: undefined, geo: "TR" }]);
+    // Our scripts' markers: the x-dv-internal header, or the internal campaign tag in the tab's first touch.
+    await signup({ email: "dr.two@praxis.example", adClick }, { "x-forwarded-for": "88.255.1.1", "x-dv-internal": "1" });
+    await signup({ email: "dr.three@praxis.example", adClick, attribution: { utm_source: "internal", utm_campaign: "internal-smoke" } }, { "x-forwarded-for": "88.255.1.1" });
+    expect(created.slice(-2).map((c) => (c.app_metadata as Record<string, unknown>).internal)).toEqual([true, true]);
+    expect(adClicks).toHaveLength(1);
   });
 
   it("an existing account or a monitor sign-up records no ad conversion", async () => {

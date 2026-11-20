@@ -39,7 +39,7 @@ import { isAdminUser } from "./admin";
  * test addresses QA, the browser e2e runs and the monitor sign up with.
  * No personal address here — those go in DENTVID_INTERNAL_EMAIL_PATTERNS.
  */
-export const DEFAULT_INTERNAL_EMAIL_PATTERNS: readonly string[] = ["*@bulsulabs.com", "*@dentvideo.com", "e2e-monitor+*@*", "e2e*@*", "qa+*@*", "dvq*+*@*"];
+export const DEFAULT_INTERNAL_EMAIL_PATTERNS: readonly string[] = ["*@bulsulabs.com", "*@bulsulogistics.com", "*@dentvideo.com", "e2e-monitor+*@*", "e2e*@*", "qa+*@*", "dvq*+*@*"];
 
 export const INTERNAL_PATTERNS_ENV = "DENTVID_INTERNAL_EMAIL_PATTERNS";
 
