@@ -106,7 +106,26 @@ export const TR: LegalText = {
           ],
         },
         {
-          heading: "8. İçeriğiniz ve hasta verileri",
+          heading: "8. iPhone uygulamasında satın alınan abonelikler",
+          blocks: [
+            "Starter veya Practice planına DentVideo iPhone uygulamasından, Apple'ın uygulama içi satın alma sistemiyle de abone olabilirsiniz. Bu planlar, web sitesindeki aynı adlı planlarla aynı özellikleri sunar. Group planı uygulamada satılmaz. Uygulamada satın alınan bir plan için, 6. ve 7. maddelerden ve [İade Politikası](refunds) hükümlerinden farklı olduğu her noktada bu madde uygulanır. Web sitesinden satın alınan planlar için hiçbir şey değişmez.",
+            {
+              list: [
+                "Satıcı Apple'dır. Apple ücreti Apple Hesabınıza bağlı ödeme yönteminden tahsil eder, siz onaylamadan önce fiyatı yerel para biriminizde gösterir, varsa vergiyi tahsil eder ve makbuzu düzenler. App Store satın alımları için Apple'ın kendi koşulları da geçerlidir. Ödeme bilgilerinizi hiçbir zaman görmeyiz.",
+                "Planlar aylıktır ve otomatik olarak yenilenir. Apple ücreti satın almayı onayladığınızda ve her yeni ayın başında tahsil eder. Mevcut dönem bitmeden en az 24 saat önce otomatik yenilemeyi kapatırsanız yeni tahsilat yapılmaz.",
+                "İptal etmek için iPhone'da Ayarlar > adınız > Abonelikler bölümünü açın ve yenileme tarihinden en az 24 saat önce iptal edin. Planınız, ödediğiniz dönemin sonuna kadar aktif kalır. Bir App Store aboneliğini yalnızca siz iptal edebilirsiniz; bunu sizin yerinize yapamayız.",
+                "App Store satın alımlarının iadesini yalnızca Apple, kendi kurallarına göre yapar. İade talebinizi {appleRefunds} adresinden Apple'a iletebilirsiniz. Bu satın alımlar için iade yapamaz ve iade sözü veremeyiz. Apple bir satın alımı iade ederse plan, iadenin yapıldığı anda sona erer; o zamana kadar hazırlanan videolar kitaplığınızda kalır. Hizmet, [İade Politikasının](refunds) 3. maddesinde anlatıldığı gibi aksarsa o haftanın videolarını yeniden hazırlarız.",
+                "Starter ile Practice arasında aynı Abonelikler ekranından geçiş yapabilirsiniz. Apple üst plana geçişi hemen, alt plana geçişi ise bir sonraki yenilemeden itibaren uygular.",
+                "Apple aboneliğinizi yenileyemezse (örneğin bir ödeme başarısız olursa), Apple yenileyene kadar yeni haftalık videolar duraklatılabilir.",
+                "Bir App Store aboneliğinin fiyatı değişirse Apple sizi önceden bilgilendirir ve kuralları gerektiriyorsa yeni fiyatı tahsil etmeden önce onayınızı ister.",
+                "Bir kliniğin aynı anda yalnızca bir planı olur; bu plan ya web sitesinden ya da App Store'dan alınır. Kliniğiniz web sitesinden zaten ödeme yapıyorsa uygulama satın alma seçeneği sunmaz; uygulamada alınan bir plan da web sitesinden ikinci kez satın alınamaz. Kliniğinizden bir gün iki kez ücret alınırsa {email} adresine yazın, ikisinden birini iptal etmenize yardımcı olalım.",
+                "Hesabınızı silmek App Store aboneliğinizi iptal etmez. Önce Ayarlar > adınız > Abonelikler bölümünden iptal edin; aksi halde Apple ücret almaya devam eder.",
+              ],
+            },
+          ],
+        },
+        {
+          heading: "9. İçeriğiniz ve hasta verileri",
           blocks: [
             "Yüklediğiniz her şeyin (logonuz, klinik bilgileriniz ve kayıtlarınız) tüm hakları sizde kalır. Bunları yalnızca DentVideo'yu sizin için çalıştırmak amacıyla saklamamıza ve işlememize, [Gizlilik Politikamızda](privacy) listelenen sağlayıcılara iletmek dahil, izin verirsiniz.",
             "Yüklediklerinizi kullanma hakkınız olduğunu ve bir kayıtta görünen veya konuşan herkesin buna onay verdiğini beyan edersiniz.",
@@ -115,7 +134,7 @@ export const TR: LegalText = {
           ],
         },
         {
-          heading: "9. Size verdiklerimiz",
+          heading: "10. Size verdiklerimiz",
           blocks: [
             "Kliniğiniz için hazırlanan videoları, metinleri ve altyazıları kliniğinizin iletişiminde kullanabilirsiniz; indirdikleriniz için bu hak iptalden sonra da sürer.",
             "Bazı videolar Pexels lisansıyla kullanılan stok görüntüler ve yapay bir ses içerir. Bunları videoların parçası olarak kullanabilirsiniz, ancak ayrı olarak kullanamazsınız (örneğin görüntüleri çıkarıp satmak).",
@@ -124,21 +143,21 @@ export const TR: LegalText = {
           ],
         },
         {
-          heading: "10. Kabul edilebilir kullanım",
+          heading: "11. Kabul edilebilir kullanım",
           blocks: [
             "DentVideo'yu yanıltıcı, hukuka aykırı veya tedavi sonucu vaat eden içerik üretmek için kullanmayın; hizmeti bozmaya, aşırı yüklemeye, kopyalamaya veya yeniden satmaya ya da başka kliniklerin verilerine erişmeye çalışmayın.",
             "Bu koşulları ihlal eden bir hesabı askıya alabilir veya kapatabiliriz. Mümkün olduğunda önce size haber verir ve sorunu düzeltme fırsatı tanırız.",
           ],
         },
         {
-          heading: "11. Erişilebilirlik ve değişiklikler",
+          heading: "12. Erişilebilirlik ve değişiklikler",
           blocks: [
             "Videolarınızı her hafta teslim etmek için çalışırız, ancak hizmetin her zaman erişilebilir veya hatasız olacağını garanti edemeyiz. Haftalık teslim, örneğin sağlayıcılarımızdan birindeki bir kesinti nedeniyle gecikebilir.",
             "DentVideo'yu sürekli geliştiririz ve işleyişini değiştirebiliriz. Planınızın temel bir parçasını kaldırırsak önceden haber veririz ve iptal edebilirsiniz.",
           ],
         },
         {
-          heading: "12. Sorumluluk",
+          heading: "13. Sorumluluk",
           blocks: [
             "Bu koşullardaki hiçbir hüküm, kanunen sınırlandırılamayan sorumluluğu (örneğin kast veya ağır ihmal) sınırlamaz.",
             "Bunun dışında; kâr kaybı, hasta kaybı veya itibar zararı gibi dolaylı zararlardan sorumlu değiliz ve tüm talepler için toplam sorumluluğumuz, talebin doğduğu tarihten önceki 12 ayda bize ödediğiniz tutarla sınırlıdır.",
@@ -146,25 +165,25 @@ export const TR: LegalText = {
           ],
         },
         {
-          heading: "13. Sözleşmenin sona ermesi",
+          heading: "14. Sözleşmenin sona ermesi",
           blocks: [
-            "Planınızı iptal edip hesabınızı Ayarlar'dan silerek sözleşmeyi sona erdirebilirsiniz. Biz sözleşmeyi 30 gün önceden bildirerek veya 10. madde kapsamında derhal sona erdirebiliriz. Bir hesap silindiğinde verilerini [Gizlilik Politikasında](privacy) anlatıldığı şekilde sileriz.",
+            "Planınızı iptal edip hesabınızı Ayarlar'dan silerek sözleşmeyi sona erdirebilirsiniz. Biz sözleşmeyi 30 gün önceden bildirerek veya 11. madde kapsamında derhal sona erdirebiliriz. Bir hesap silindiğinde verilerini [Gizlilik Politikasında](privacy) anlatıldığı şekilde sileriz.",
           ],
         },
         {
-          heading: "14. Koşullardaki değişiklikler",
+          heading: "15. Koşullardaki değişiklikler",
           blocks: [
             "Bu koşulları güncelleyebiliriz. Önemli değişiklikleri yürürlüğe girmeden en az 30 gün önce e-postayla bildiririz. Sonrasında DentVideo'yu kullanmaya devam ederseniz yeni koşullar geçerli olur; kabul etmiyorsanız yürürlüğe girmeden önce iptal edebilirsiniz.",
           ],
         },
         {
-          heading: "15. Uygulanacak hukuk ve yetkili mahkemeler",
+          heading: "16. Uygulanacak hukuk ve yetkili mahkemeler",
           blocks: [
             "Bu koşullara Karadağ hukuku uygulanır ve Podgorica mahkemeleri yetkilidir. Bu, yerleşik olduğunuz ülkenin emredici hukukunun size tanıdığı ve sözleşmeyle kaldırılamayan korumaları ortadan kaldırmaz.",
             "Bu koşulların İngilizce metni esastır. Çeviriler kolaylık içindir; farklılık olursa İngilizce metin geçerlidir.",
           ],
         },
-        { heading: "16. İletişim", blocks: ["DentVideo ile ilgili sorular: {email}. Şirketle ilgili konular: {companyEmail}."] },
+        { heading: "17. İletişim", blocks: ["DentVideo ile ilgili sorular: {email}. Şirketle ilgili konular: {companyEmail}."] },
       ],
     },
 
@@ -199,6 +218,7 @@ export const TR: LegalText = {
                 "Kullanım olayları: “ana sayfa görüntülendi” veya “plan seçildi” gibi adımların sayfa dili, kampanya etiketleri (utm) ve yönlendiren sitenin alan adıyla tutulan küçük, birinci taraf kaydı. Bu kayıtlar çerez kimliği, IP adresi, tarayıcı bilgisi, ad veya e-posta içermez.",
                 "Reklam tıklamaları: dentvideo.com'a Google reklamlarımızdan biri üzerinden gelirseniz, Google'ın bağlantıya eklediği tıklama kimliği (gclid, gbraid veya wbraid) ve tıklamanın zamanı. Ardından bir hesap oluşturursanız bunu hesabınızla birlikte saklarız. AB/AEA, Birleşik Krallık ve İsviçre'de yalnızca bu ziyaretçilere gösterilen soruda izin verirseniz.",
                 "Teknik veriler: IP adresiniz ve istek bilgileri sayfaları sunmak, hizmeti korumak ve kötüye kullanımı sınırlamak için işlenir (kısa ömürlü istek sınırı sayaçları). Fiyatları para biriminizde göstermek ve bir reklam tıklamasını saklamadan önce izin isteyip istemeyeceğimizi belirlemek için IP adresinizin yalnızca ülkesini kendi sunucumuzdaki bir veritabanından buluruz ({dbip}); bunun için IP adresi saklanmaz ve hiçbir yere gönderilmez.",
+                "iPhone uygulaması: bildirimlere izin verirseniz telefonunuzun bildirim belirteci (push token), uygulamada abone olursanız App Store satın alma geçmişiniz. İkisi de 4. maddede açıklanır.",
               ],
             },
           ],
@@ -210,7 +230,22 @@ export const TR: LegalText = {
           ],
         },
         {
-          heading: "4. Amaçlar ve hukuki sebepler",
+          heading: "4. iPhone uygulaması ve App Store satın alımları",
+          blocks: [
+            "DentVideo iPhone uygulaması, dentvideo.com ile aynı hesabı ve aynı hizmeti kullanır; bu politikanın geri kalanı uygulama için de geçerlidir. Bunlara ek olarak:",
+            {
+              list: [
+                "Bildirimler: izin verirseniz iPhone'unuzun bildirim belirtecini, uygulamanın dili ve bildirimin açık olup olmadığı bilgisiyle birlikte hesabınızla saklarız. Belirteci yalnızca haftanın videolarının veya kaydınızdan hazırlanan bir klibin incelemenize hazır olduğunu haber vermek için kullanırız. Bildirimi Apple'ın anlık bildirim hizmeti iletir. Belirteç, o iPhone'da uygulamadan çıkış yaptığınızda, Apple belirtecin artık geçerli olmadığını bildirdiğinde ve oturum hesabınız hesabınızla birlikte silindiğinde silinir. Bildirimi uygulamanın ayarlarından kapatırsanız oturumunuz açık kalır, yalnızca bildirim durur.",
+                "Kayıtlar: uygulama kamerayı ve mikrofonu yalnızca siz kayıt yaparken kullanır. Bir kayıt ancak çekimi onayladıktan sonra yüklenir ve bundan sonra web sitesinden yüklenen bir kayıtla tamamen aynı şekilde işlenir. Uygulama bir videoyu fotoğraf arşivinize yalnızca siz istediğinizde kaydeder.",
+                "iPhone'unuzda: uygulama oturum bilgilerinizi iPhone'un anahtar zincirinde, onayladığınız videoların kopyalarını da beklemeden oynatılıp paylaşılabilmeleri için en fazla 21 gün saklar. Uygulamada çıkış yapmak veya hesabınızı silmek bunları telefondan kaldırır.",
+              ],
+            },
+            "Uygulama içi satın alımlar: uygulamada abone olursanız satıcı Apple'dır ve ödemeyi kendi koşulları ve gizlilik politikası kapsamında işler. Kart bilgileriniz veya Apple Hesabı bilgileriniz bize hiç ulaşmaz. App Store satın alımları için veri işleyen olarak RevenueCat, Inc. (ABD) ile çalışırız. RevenueCat, uygulama kullanıcı kimliği olarak kullandığı DentVideo hesap kimliğinizi ve Apple'ın bu hesap için bildirdiği satın alma geçmişini alır: hangi planın alındığı, ne zaman yenileneceği veya sona ereceği, iptal ya da iade edilip edilmediği. RevenueCat bu bilgileri, planınızı başlatabilmemiz, sürdürebilmemiz ve zamanında sona erdirebilmemiz için bize iletir.",
+            "İzleme yok: uygulamada reklam, analiz veya çökme raporlama yazılımı bulunmaz; içindeki tek üçüncü taraf yazılım, satın alımlar için kullanılan RevenueCat yazılımıdır. Sizi başka şirketlerin uygulamaları veya web siteleri arasında izlemeyiz ve cihazınızın reklam kimliğini kullanmayız. Uygulamada yaptıklarınız, örneğin bir videoyu onaylamanız, web sitesinde olduğu gibi yalnızca kendi hizmetimizde kaydedilir.",
+          ],
+        },
+        {
+          heading: "5. Amaçlar ve hukuki sebepler",
           blocks: [
             {
               list: [
@@ -221,28 +256,30 @@ export const TR: LegalText = {
                 "Tamamlanmamış bir kayıt için hatırlatma göndermek; abonelikten çıkma bağlantısıyla durdurabilirsiniz (meşru menfaat).",
                 "Muhasebe ve vergi kayıtları gibi hukuki yükümlülükleri yerine getirmek (hukuki yükümlülük).",
                 "Hangi Google reklamlarımızın kayıt ve ödeme yapan klinik getirdiğini ölçmek: bir hesap oluşturulduğunda veya bir klinik ilk kez ödeme yaptığında, bu olayı tıklama kimliğiyle birlikte Google Ads'e bildiririz (AB/AEA, Birleşik Krallık ve İsviçre'de rıza; diğer yerlerde meşru menfaat).",
+                "iPhone uygulamasını çalıştırmak: izin verdiğiniz bildirimleri göndermek ve App Store satın alımlarını ve yenilemelerini Apple ve RevenueCat ile işlemek (sözleşmenin ifası).",
               ],
             },
             "Kişisel verileri satmayız, reklam hedeflemesi veya reklam profili oluşturmak için kullanmayız ve yüklediklerinizi veya videolarınızı yapay zekâ modellerini eğitmek için kullanmayız.",
           ],
         },
         {
-          heading: "5. Verileri kimler alır",
+          heading: "6. Verileri kimler alır",
           blocks: [
             "Az sayıda sağlayıcıyla çalışırız. Her biri yalnızca görevi için gerekeni alır:",
             { subprocessors: true },
             "Ayrıca genel arama terimlerini (bir tedavi adı ve dil gibi) Google'ın herkese açık arama önerilerinde ve Pexels stok video kitaplığında sorgularız. Bu sorgular kişisel veri içermez. Veritabanı, oturum açma ve dosya depolama, sunucumuzdaki açık kaynaklı Supabase yazılımının kendi kurulumumuzda çalışır; Supabase Inc. verileri almaz.",
             "Google reklamlarımızdan biri üzerinden geldiyseniz, Google Ads'e (Google) tıklama kimliğini, hangi dönüşümün gerçekleştiğini (hesap oluşturuldu veya ilk ödeme), ne zaman gerçekleştiğini ve bizim belirlediğimiz sabit bir değeri göndeririz. Bunu kendimiz yükleriz: sayfalarımızda Google betiği çalışmaz ve Google'a ad, e-posta adresi veya ödeme bilgisi göndermeyiz. Google bu verileri kendi reklam koşulları ve gizlilik politikası kapsamında işler.",
+            "iPhone uygulaması için anlık bildirimleri Apple iletir ve App Store aboneliklerini Apple satar; RevenueCat, Inc. ise App Store satın alma verilerini bizim adımıza ABD'de işler. Her birinin hangi verileri aldığı 4. maddede anlatılır.",
           ],
         },
         {
-          heading: "6. Yurt dışına aktarım",
+          heading: "7. Yurt dışına aktarım",
           blocks: [
             "Karadağ'da, AB/AEA dışında yerleşiğiz. Bazı sağlayıcılar verileri ABD dahil başka ülkelerde işler. Verilere uygulanan hukuk bu tür bir aktarım için güvence gerektiriyorsa, varsa yeterlilik kararına, yoksa bu sağlayıcılarla sözleşmelerimizdeki standart sözleşme hükümlerine (Birleşik Krallık için UK eki ile) dayanırız. KVKK'ya tabi aktarımlarda KVKK'nın 9. maddesinde öngörülen mekanizmalara uyarız.",
           ],
         },
         {
-          heading: "7. Saklama süreleri",
+          heading: "8. Saklama süreleri",
           blocks: [
             {
               list: [
@@ -253,12 +290,14 @@ export const TR: LegalText = {
                 "İstek sınırı sayaçları: dakikalardan saatlere.",
                 "Kişiye özel bir demoyla iletişime geçtiğimiz klinikler: demoyu herkese açık işletme bilgilerinden (klinik adı, şehir, ülke, marka rengi ve logo) kendimiz hazırlarız ve klinik kaydolmadıkça en fazla 60 gün saklarız. Bir demonun daha önce silinmesini isterseniz {email} adresine yazın.",
                 "Reklam tıklama kimlikleri ve bunlarla kaydedilen dönüşümler: tıklamadan 90 gün sonra silinir. Google Ads'e daha önce bildirdiklerimizi Google kendi politikalarına göre saklar.",
+                "Bildirim belirteçleri: o iPhone'da uygulamadan çıkış yapana, Apple belirtecin artık geçerli olmadığını bildirene veya oturum hesabınız silinene kadar.",
+                "App Store satın alımları: App Store aboneliğinize ilişkin kaydımız (plan, durum, yenileme tarihi ve Apple'ın işlem referansı) hesabınızı sildiğinizde klinik profilinizle birlikte silinir. Hesap kimliğinize bağlı satın alma geçmişini RevenueCat bizim için saklar; hesabı silmek bu kaydı orada otomatik olarak kaldırmaz, silinmesini isterseniz {email} adresine yazın. Apple da satıcı olarak kendi satın alma kayıtlarını saklar.",
               ],
             },
           ],
         },
         {
-          heading: "8. Haklarınız",
+          heading: "9. Haklarınız",
           blocks: [
             "Size uygulanan hukuka göre verilerinize erişim, düzeltme, silme, işlemenin kısıtlanması ve taşınabilir bir kopya talep edebilir, meşru menfaate dayanan işlemeye itiraz edebilirsiniz; KVKK'nın 11. maddesindeki haklar da buna dahildir. Hesabınızı Ayarlar'dan kendiniz silebilirsiniz. {email} adresine yazın; bir ay içinde yanıt veririz. Reklam ölçümüne verdiğiniz izni istediğiniz zaman {email} adresine yazarak ya da kayıt olmadan önce tarayıcınızda bu sitenin verilerini silerek geri alabilirsiniz; bu durumda elimizdeki tıklama kimliğini sileriz. Geri alma, önceki işlemleri etkilemez.",
             "Bir veri koruma otoritesine de şikâyette bulunabilirsiniz: Karadağ'da Kişisel Verilerin Korunması ve Bilgiye Serbest Erişim Ajansı; AB/AEA'da ülkenizdeki otorite; Birleşik Krallık'ta Information Commissioner's Office; Türkiye'de Kişisel Verileri Koruma Kurumu (KVKK).",
@@ -266,14 +305,14 @@ export const TR: LegalText = {
           ],
         },
         {
-          heading: "9. Güvenlik",
+          heading: "10. Güvenlik",
           blocks: [
             "Bağlantılar şifrelidir (HTTPS). Her kliniğin verileri veritabanında erişim kurallarıyla ayrılmıştır, dosyalar yalnızca kısa ömürlü imzalı bağlantılarla sunulur ve sunuculara erişim DentVideo'yu işleten kişilerle sınırlıdır. Hiçbir sistem kusursuz güvenli değildir; bir ihlal verilerinizi etkilerse size gecikmeksizin bildiririz.",
           ],
         },
-        { heading: "10. Çocuklar", blocks: ["DentVideo bir işletme hizmetidir ve 18 yaşından küçükler için değildir."] },
+        { heading: "11. Çocuklar", blocks: ["DentVideo bir işletme hizmetidir ve 18 yaşından küçükler için değildir."] },
         {
-          heading: "11. Değişiklikler",
+          heading: "12. Değişiklikler",
           blocks: [
             "Yaptıklarımız değiştiğinde bu politikayı günceller ve yukarıdaki tarihi değiştiririz. Önemli değişiklikleri hesap sahiplerine e-postayla bildiririz.",
           ],
@@ -284,7 +323,7 @@ export const TR: LegalText = {
     refunds: {
       title: "İade Politikası",
       description: "DentVideo aboneliklerinde iptal ve iadelerin nasıl işlediği.",
-      intro: ["Bu politika [Kullanım Koşullarımızın](terms) parçasıdır. Kısaca: istediğiniz zaman iptal edin, ödediğiniz dönemin sonuna kadar erişiminiz sürer ve hizmet aksadıysa bunu telafi ederiz."],
+      intro: ["Bu politika [Kullanım Koşullarımızın](terms) parçasıdır. Kısaca: istediğiniz zaman iptal edin, ödediğiniz dönemin sonuna kadar erişiminiz sürer ve hizmet aksadıysa bunu telafi ederiz.", "Bu politika, dentvideo.com'dan satın alınan planları kapsar. DentVideo iPhone uygulamasında satın alınan planları Apple satar; iptallerini ve iadelerini de Apple yürütür. Ayrıntılar [Kullanım Koşullarının](terms) 8. maddesindedir."],
       sections: [
         {
           heading: "1. İptal",
