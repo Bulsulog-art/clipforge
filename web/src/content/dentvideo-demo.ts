@@ -32,12 +32,18 @@ export type DemoCopy = {
   metaTitle: string;
   eyebrow: string;
   headline: string;
+  /** The lead, for a demo with the clinic's logo. */
   lead: string;
+  /** The lead without a logo: names only the colours (a demo never promises a logo it does not have). */
+  leadNoLogo: string;
   points: [string, string, string];
   factsTitle: string;
   facts: { from: string; cancel: string; approve: string; rules: string };
   cta: string;
+  /** Under the CTA, for a demo with a logo: name, colour and logo are filled in. */
   ctaNote: string;
+  /** Without a logo: name and colour are filled in, and the logo is one tap away. */
+  ctaNoteNoLogo: string;
   ask: string;
   mailSubject: string;
   sample: string;
@@ -56,26 +62,28 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Made for {name}",
     headline: "{name}, this is what your Monday videos could look like",
     lead: "A sample week in your colors and with your logo, playing right here. No sign-up needed.",
+    leadNoLogo: "A sample week in your colors, playing right here. No sign-up needed.",
     points: [
       "Five narrated, captioned patient-education videos every Monday.",
-      "Record five minutes on your phone — or we write and narrate the topics for you.",
+      "Record five minutes on your phone, or let us write and narrate the topics for you.",
       "You watch, approve with one tap and share. Nothing is posted without you.",
     ],
     factsTitle: "The facts",
     facts: {
       from: "From {price}/month.",
-      cancel: "No contract — cancel anytime.",
+      cancel: "No contract. Cancel anytime.",
       approve: "You approve every video before it is posted.",
       rules: "Every script is software-checked against the health-advertising rules of your country.",
     },
     cta: "Start with these settings",
     ctaNote: "Your clinic name, color and logo are already filled in.",
+    ctaNoteNoLogo: "Your clinic name and color are already filled in. Add your logo with one tap.",
     ask: "Ask a question",
     mailSubject: "Question about DentVideo ({name})",
     sample: "These are sample videos from our library, shown in your colors. Your real videos are about the treatments you offer.",
     privacy: "We made this page for {name} from public business information. It is deleted after 60 days. To have it removed sooner, write to hello@dentvideo.com.",
     dmAsk:
-      "Hi {name} team, I'm {sender} from DentVideo. We make short patient-education videos for dental clinics. I put together a small preview in your clinic's colors — may I send you the link? If it's not for you, no problem at all: just say so and I won't message again.",
+      "Hi {name} team, I'm {sender} from DentVideo. We make short patient-education videos for dental clinics. I put together a small preview in your clinic's colors. May I send you the link? If it's not for you, no problem at all: just say so and I won't message again.",
     dmLink: {
       thanks: "Thank you! Here is the preview (no sign-up): {url}",
       facts: "Five videos every Monday; nothing is shared without your approval. Plans start at {price}/month, no contract.",
@@ -87,26 +95,28 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "{name} için hazırlandı",
     headline: "{name}, pazartesi videolarınız böyle görünebilir",
     lead: "Renklerinizle ve logonuzla örnek bir hafta, burada oynuyor. Kayıt gerekmez.",
+    leadNoLogo: "Renklerinizle örnek bir hafta, burada oynuyor. Kayıt gerekmez.",
     points: [
       "Her pazartesi beş seslendirmeli, altyazılı hasta bilgilendirme videosu.",
-      "Telefonla beş dakikalık bir kayıt yeterli — ya da konuları biz yazar ve seslendiririz.",
+      "Telefonla beş dakikalık bir kayıt yeterli. İsterseniz konuları biz yazar ve seslendiririz.",
       "İzlersiniz, tek dokunuşla onaylar ve paylaşırsınız. Onayınız olmadan hiçbir şey yayınlanmaz.",
     ],
     factsTitle: "Kısaca",
     facts: {
       from: "Başlangıç fiyatı aylık {price}.",
-      cancel: "Sözleşme yok — istediğiniz zaman iptal edebilirsiniz.",
+      cancel: "Sözleşme yok, istediğiniz zaman iptal edebilirsiniz.",
       approve: "Her video, paylaşılmadan önce sizin onayınızdan geçer.",
       rules: "Her metin, ülkenizin sağlık reklamı kurallarına göre yazılımla kontrol edilir.",
     },
     cta: "Bu ayarlarla başla",
     ctaNote: "Klinik adınız, renginiz ve logonuz hazır doldurulmuş olur.",
+    ctaNoteNoLogo: "Klinik adınız ve renginiz hazır doldurulmuş olur. Logonuzu tek dokunuşla ekleyebilirsiniz.",
     ask: "Soru sor",
     mailSubject: "DentVideo hakkında soru ({name})",
     sample: "Bunlar kütüphanemizden örnek videolar, sizin renklerinizle. Gerçek videolarınız sunduğunuz tedaviler hakkında olur.",
     privacy: "Bu sayfayı {name} için herkese açık işletme bilgilerinden hazırladık. 60 gün sonra silinir. Daha önce silinmesini isterseniz hello@dentvideo.com adresine yazın.",
     dmAsk:
-      "Merhaba {name} ekibi, ben DentVideo'dan {sender}. Diş klinikleri için kısa hasta bilgilendirme videoları hazırlıyoruz. Kliniğiniz için, kendi renklerinizle küçük bir önizleme hazırladım — linkini göndermemi ister misiniz? İlginizi çekmezse hiç sorun değil; haber vermeniz yeterli, bir daha yazmam.",
+      "Merhaba {name} ekibi, ben DentVideo'dan {sender}. Diş klinikleri için kısa hasta bilgilendirme videoları hazırlıyoruz. Kliniğiniz için, kendi renklerinizle küçük bir önizleme hazırladım. Linkini göndermemi ister misiniz? İlginizi çekmezse hiç sorun değil; haber vermeniz yeterli, bir daha yazmam.",
     dmLink: {
       thanks: "Teşekkürler! Önizleme burada (kayıt gerekmez): {url}",
       facts: "Her pazartesi beş video; onayınız olmadan hiçbir şey paylaşılmaz. Başlangıç fiyatı aylık {price}, sözleşme yok.",
@@ -118,26 +128,28 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Für {name} erstellt",
     headline: "{name}, so könnten Ihre Montagsvideos aussehen",
     lead: "Eine Beispielwoche in Ihren Farben und mit Ihrem Logo, direkt hier abgespielt. Ohne Anmeldung.",
+    leadNoLogo: "Eine Beispielwoche in Ihren Farben, direkt hier abgespielt. Ohne Anmeldung.",
     points: [
       "Jeden Montag fünf vertonte, untertitelte Videos zur Patientenaufklärung.",
-      "Fünf Minuten mit dem Handy aufnehmen – oder wir schreiben und vertonen die Themen für Sie.",
+      "Fünf Minuten mit dem Handy aufnehmen, oder wir schreiben und vertonen die Themen für Sie.",
       "Sie sehen sie an, geben sie mit einem Tipp frei und teilen sie. Ohne Sie wird nichts veröffentlicht.",
     ],
     factsTitle: "Die Fakten",
     facts: {
       from: "Ab {price}/Monat.",
-      cancel: "Kein Vertrag – jederzeit kündbar.",
+      cancel: "Kein Vertrag, jederzeit kündbar.",
       approve: "Jedes Video wird erst nach Ihrer Freigabe geteilt.",
       rules: "Jedes Skript wird softwaregestützt anhand der Werberegeln für Heilberufe in Ihrem Land geprüft.",
     },
     cta: "Mit diesen Einstellungen starten",
     ctaNote: "Praxisname, Farbe und Logo sind schon ausgefüllt.",
+    ctaNoteNoLogo: "Praxisname und Farbe sind schon ausgefüllt. Ihr Logo fügen Sie mit einem Tipp hinzu.",
     ask: "Frage stellen",
     mailSubject: "Frage zu DentVideo ({name})",
     sample: "Das sind Beispielvideos aus unserer Bibliothek in Ihren Farben. Ihre echten Videos handeln von den Behandlungen, die Sie anbieten.",
     privacy: "Wir haben diese Seite für {name} aus öffentlichen Geschäftsangaben erstellt. Sie wird nach 60 Tagen gelöscht. Wenn Sie sie früher entfernen lassen möchten, schreiben Sie an hello@dentvideo.com.",
     dmAsk:
-      "Guten Tag, liebes Team von {name}, ich bin {sender} von DentVideo. Wir erstellen kurze Aufklärungsvideos für Zahnarztpraxen. Ich habe eine kleine Vorschau in Ihren Praxisfarben vorbereitet – darf ich Ihnen den Link schicken? Falls kein Interesse besteht, ist das völlig in Ordnung: Ein kurzes Nein genügt, und ich melde mich nicht wieder.",
+      "Guten Tag, liebes Team von {name}, ich bin {sender} von DentVideo. Wir erstellen kurze Aufklärungsvideos für Zahnarztpraxen. Ich habe eine kleine Vorschau in Ihren Praxisfarben vorbereitet. Darf ich Ihnen den Link schicken? Falls kein Interesse besteht, ist das völlig in Ordnung: Ein kurzes Nein genügt, und ich melde mich nicht wieder.",
     dmLink: {
       thanks: "Danke! Hier ist die Vorschau (ohne Anmeldung): {url}",
       facts: "Jeden Montag fünf Videos; nichts wird ohne Ihre Freigabe geteilt. Ab {price}/Monat, ohne Vertrag.",
@@ -149,6 +161,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Preparado para {name}",
     headline: "{name}, así podrían ser sus vídeos de cada lunes",
     lead: "Una semana de ejemplo con sus colores y su logo, reproducida aquí mismo. Sin registro.",
+    leadNoLogo: "Una semana de ejemplo con sus colores, reproducida aquí mismo. Sin registro.",
     points: [
       "Cinco vídeos educativos para pacientes, narrados y subtitulados, cada lunes.",
       "Grabe cinco minutos con el móvil, o nosotros escribimos y narramos los temas.",
@@ -163,6 +176,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Empezar con estos ajustes",
     ctaNote: "El nombre de su clínica, su color y su logo ya estarán rellenados.",
+    ctaNoteNoLogo: "El nombre de su clínica y su color ya estarán rellenados. Puede añadir su logo con un toque.",
     ask: "Hacer una pregunta",
     mailSubject: "Pregunta sobre DentVideo ({name})",
     sample: "Son vídeos de ejemplo de nuestra biblioteca, con sus colores. Sus vídeos reales tratarán de los tratamientos que usted ofrece.",
@@ -180,6 +194,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Préparé pour {name}",
     headline: "{name}, voici à quoi pourraient ressembler vos vidéos du lundi",
     lead: "Une semaine d'exemple à vos couleurs et avec votre logo, lue ici même. Sans inscription.",
+    leadNoLogo: "Une semaine d'exemple à vos couleurs, lue ici même. Sans inscription.",
     points: [
       "Cinq vidéos d'information patient, narrées et sous-titrées, chaque lundi.",
       "Enregistrez cinq minutes avec votre téléphone, ou nous écrivons et narrons les sujets pour vous.",
@@ -194,12 +209,13 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "Commencer avec ces réglages",
     ctaNote: "Le nom du cabinet, la couleur et le logo seront déjà remplis.",
+    ctaNoteNoLogo: "Le nom du cabinet et la couleur seront déjà remplis. Ajoutez votre logo d'un simple geste.",
     ask: "Poser une question",
     mailSubject: "Question sur DentVideo ({name})",
     sample: "Ce sont des vidéos d'exemple de notre bibliothèque, à vos couleurs. Vos vraies vidéos porteront sur les soins que vous proposez.",
     privacy: "Nous avons créé cette page pour {name} à partir d'informations professionnelles publiques. Elle est supprimée au bout de 60 jours. Pour la faire supprimer plus tôt, écrivez à hello@dentvideo.com.",
     dmAsk:
-      "Bonjour à l'équipe de {name}, je suis {sender}, de DentVideo. Nous réalisons de courtes vidéos d'information patient pour les cabinets dentaires. J'ai préparé un petit aperçu aux couleurs de votre cabinet : puis-je vous envoyer le lien ? Si cela ne vous intéresse pas, aucun souci — dites-le-moi simplement et je ne vous écrirai plus.",
+      "Bonjour à l'équipe de {name}, je suis {sender}, de DentVideo. Nous réalisons de courtes vidéos d'information patient pour les cabinets dentaires. J'ai préparé un petit aperçu aux couleurs de votre cabinet : puis-je vous envoyer le lien ? Si cela ne vous intéresse pas, aucun souci : dites-le-moi simplement et je ne vous écrirai plus.",
     dmLink: {
       thanks: "Merci ! Voici l'aperçu (sans inscription) : {url}",
       facts: "Cinq vidéos chaque lundi ; rien n'est partagé sans votre validation. À partir de {price}/mois, sans engagement.",
@@ -211,6 +227,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "{name}様のために作成",
     headline: "{name}様、毎週月曜日の動画はこんなふうになります",
     lead: "医院のカラーとロゴで作ったサンプルの1週間を、このページで再生しています。登録は不要です。",
+    leadNoLogo: "医院のカラーで作ったサンプルの1週間を、このページで再生しています。登録は不要です。",
     points: [
       "毎週月曜日に、ナレーションと字幕付きの患者さん向け解説動画を5本。",
       "スマートフォンで5分録画するだけ。または、テーマに沿って私たちが原稿とナレーションを用意します。",
@@ -225,6 +242,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "この設定で始める",
     ctaNote: "医院名・カラー・ロゴは入力済みの状態で始まります。",
+    ctaNoteNoLogo: "医院名とカラーは入力済みの状態で始まります。ロゴはワンタップで追加できます。",
     ask: "質問する",
     mailSubject: "DentVideoについての質問（{name}）",
     sample: "これは当社ライブラリのサンプル動画を、医院のカラーで表示したものです。実際の動画は、貴院で提供している治療についての内容になります。",
@@ -242,6 +260,7 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "أُعدّت خصيصًا لـ {name}",
     headline: "{name}، هكذا يمكن أن تبدو فيديوهاتكم كل يوم اثنين",
     lead: "أسبوع تجريبي بألوانكم وشعاركم، يُعرض هنا مباشرة. دون تسجيل.",
+    leadNoLogo: "أسبوع تجريبي بألوانكم، يُعرض هنا مباشرة. دون تسجيل.",
     points: [
       "كل يوم اثنين، خمسة فيديوهات توعوية للمرضى بتعليق صوتي ونص على الشاشة.",
       "سجّلوا خمس دقائق بالهاتف، أو نكتب نحن المواضيع ونسجّل التعليق الصوتي.",
@@ -256,12 +275,13 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
     cta: "ابدؤوا بهذه الإعدادات",
     ctaNote: "سنملأ لكم مسبقًا اسم العيادة ولونها وشعارها.",
+    ctaNoteNoLogo: "سنملأ لكم مسبقًا اسم العيادة ولونها، ويمكنكم إضافة شعاركم بلمسة واحدة.",
     ask: "اطرحوا سؤالًا",
     mailSubject: "سؤال عن DentVideo ({name})",
     sample: "هذه فيديوهات نموذجية من مكتبتنا بألوانكم. فيديوهاتكم الفعلية ستتناول العلاجات التي تقدمونها.",
     privacy: "أعددنا هذه الصفحة لـ {name} من معلومات تجارية متاحة للعموم. تُحذف بعد 60 يومًا. لحذفها قبل ذلك، راسلونا على hello@dentvideo.com.",
     dmAsk:
-      "مرحبًا فريق {name}، أنا {sender} من DentVideo. نُعدّ فيديوهات قصيرة لتوعية المرضى لعيادات الأسنان. جهّزت معاينة صغيرة بألوان عيادتكم — هل تسمحون لي بإرسال الرابط؟ إن لم يكن الأمر يهمكم فلا مشكلة إطلاقًا، يكفي أن تخبروني ولن أراسلكم مجددًا.",
+      "مرحبًا فريق {name}، أنا {sender} من DentVideo. نُعدّ فيديوهات قصيرة لتوعية المرضى لعيادات الأسنان. جهّزت معاينة صغيرة بألوان عيادتكم، فهل تسمحون لي بإرسال الرابط؟ إن لم يكن الأمر يهمكم فلا مشكلة إطلاقًا، يكفي أن تخبروني ولن أراسلكم مجددًا.",
     dmLink: {
       thanks: "شكرًا لكم! هذه هي المعاينة (دون تسجيل): {url}",
       facts: "خمسة فيديوهات كل يوم اثنين، ولا يُشارَك شيء دون موافقتكم. الأسعار تبدأ من {price} شهريًا، دون عقد.",
@@ -273,26 +293,28 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     eyebrow: "Przygotowane dla: {name}",
     headline: "{name}, tak mogłyby wyglądać Państwa poniedziałkowe filmy",
     lead: "Przykładowy tydzień w Państwa kolorach i z Państwa logo, odtwarzany tutaj. Bez rejestracji.",
+    leadNoLogo: "Przykładowy tydzień w Państwa kolorach, odtwarzany tutaj. Bez rejestracji.",
     points: [
       "Co poniedziałek pięć edukacyjnych filmów dla pacjentów, z lektorem i napisami.",
-      "Wystarczy pięć minut nagrania telefonem — albo to my piszemy tematy i nagrywamy lektora.",
+      "Wystarczy pięć minut nagrania telefonem, a jeśli Państwo wolą, to my piszemy tematy i nagrywamy lektora.",
       "Państwo oglądają, zatwierdzają jednym dotknięciem i udostępniają. Nic nie zostanie opublikowane bez Państwa.",
     ],
     factsTitle: "Najważniejsze",
     facts: {
       from: "Od {price} miesięcznie.",
-      cancel: "Bez umowy — można zrezygnować w każdej chwili.",
+      cancel: "Bez umowy, można zrezygnować w każdej chwili.",
       approve: "Każdy film zatwierdzają Państwo przed publikacją.",
       rules: "Każdy scenariusz jest sprawdzany przez oprogramowanie pod kątem zasad reklamy usług medycznych w Państwa kraju.",
     },
     cta: "Zacznij z tymi ustawieniami",
     ctaNote: "Nazwa gabinetu, kolor i logo będą już wypełnione.",
+    ctaNoteNoLogo: "Nazwa gabinetu i kolor będą już wypełnione. Logo dodadzą Państwo jednym dotknięciem.",
     ask: "Zadaj pytanie",
     mailSubject: "Pytanie o DentVideo ({name})",
     sample: "To przykładowe filmy z naszej biblioteki w Państwa kolorach. Prawdziwe filmy będą o zabiegach, które Państwo oferują.",
     privacy: "Tę stronę przygotowaliśmy dla: {name} na podstawie publicznych informacji o firmie. Zostanie usunięta po 60 dniach. Aby usunąć ją wcześniej, prosimy napisać na hello@dentvideo.com.",
     dmAsk:
-      "Dzień dobry, zespół {name}! Nazywam się {sender} i piszę z DentVideo. Tworzymy krótkie filmy edukacyjne dla pacjentów gabinetów stomatologicznych. Przygotowałem mały podgląd w kolorach Państwa gabinetu — czy mogę przesłać link? Jeśli to nie dla Państwa, nie ma problemu: wystarczy krótka odpowiedź, a nie napiszę ponownie.",
+      "Dzień dobry, zespół {name}! Nazywam się {sender} i piszę z DentVideo. Tworzymy krótkie filmy edukacyjne dla pacjentów gabinetów stomatologicznych. Przygotowałem mały podgląd w kolorach Państwa gabinetu. Czy mogę przesłać link? Jeśli to nie dla Państwa, nie ma problemu: wystarczy krótka odpowiedź, a nie napiszę ponownie.",
     dmLink: {
       thanks: "Dziękuję! Oto podgląd (bez rejestracji): {url}",
       facts: "Pięć filmów co poniedziałek; nic nie jest udostępniane bez Państwa zgody. Od {price} miesięcznie, bez umowy.",
@@ -300,6 +322,11 @@ export const DEMO_COPY: Record<Locale, DemoCopy> = {
     },
   },
 };
+
+/** The lead and the CTA note for this demo: they mention the logo only when the demo has one. */
+export function demoLogoCopy(t: DemoCopy, hasLogo: boolean): { lead: string; ctaNote: string } {
+  return hasLogo ? { lead: t.lead, ctaNote: t.ctaNote } : { lead: t.leadNoLogo, ctaNote: t.ctaNoteNoLogo };
+}
 
 export function fillDemo(s: string, vars: { name?: string; url?: string; price?: string }): string {
   return s

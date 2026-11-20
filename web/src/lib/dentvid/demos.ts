@@ -11,6 +11,7 @@
  * another: the token is the only key, and it is random.
  */
 import { LOCALES, LANDING_PATH, type Locale } from "@/content/dentvideo";
+import { contrastRatio, mix, readableOn } from "@/remotion/theme";
 import { everPaid, type AdminClinic, type AdminEvent } from "./admin-metrics";
 
 export const DEMO_TOKEN_LENGTH = 11;
@@ -43,7 +44,7 @@ export function isDemoToken(v: unknown): v is string {
   return typeof v === "string" && DEMO_TOKEN_RE.test(v);
 }
 
-/** Brand colours a demo gets when none is given: calm, clinical, readable under white text. */
+/** Brand colours a demo gets when none is given: calm and clinical. The page picks the text colour that reads on each (demoBrandInk). */
 export const DEMO_PALETTE = ["#0f5c5c", "#1f4e79", "#2e7d6b", "#5b3f8c", "#8a3b4a", "#b6774f", "#24303a", "#1d6fa5"];
 
 /** The default colour for a clinic: picked from the palette by its name, so the same clinic gets the same one. */
@@ -51,6 +52,25 @@ export function paletteColour(name: string): string {
   let h = 0;
   for (const ch of name.trim().toLowerCase()) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
   return DEMO_PALETTE[h % DEMO_PALETTE.length];
+}
+
+/** WCAG AA for normal-size text. */
+export const DEMO_MIN_CONTRAST = 4.5;
+
+/**
+ * Fill and text colour for what the demo page paints in the clinic's colour
+ * (the CTA button, the check marks), readable at WCAG AA: the same rule the
+ * preview's own theme follows (remotion/theme readableOn). White when it
+ * clears 4.5:1, else near-black (a gold or a pale brand colour); a mid-tone
+ * where neither does keeps white text and gets its fill deepened until it reads.
+ */
+export function demoBrandInk(colour: string, min = DEMO_MIN_CONTRAST): { fill: string; ink: string } {
+  const base = /^#[0-9a-f]{6}$/i.test(colour) ? colour.toLowerCase() : DEMO_PALETTE[0];
+  const ink = readableOn(base, [], min);
+  if (contrastRatio(ink, base) >= min) return { fill: base, ink: ink.toLowerCase() };
+  let fill = base;
+  for (let deep = 0.05; deep <= 1 && contrastRatio("#FFFFFF", fill) < min; deep += 0.05) fill = mix(base, "#05080A", deep).toLowerCase();
+  return { fill, ink: "#ffffff" };
 }
 
 export type DemoRow = {

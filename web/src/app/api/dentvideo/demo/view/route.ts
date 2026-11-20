@@ -15,8 +15,10 @@ import { limitChecks } from "@/lib/rate-limit-server";
  * (Instagram, LinkedIn, WhatsApp unfurl the link) do not count — and,
  * since some fetchers do run the page's script (Google, headless
  * scanners), a request whose user agent is a bot or a script is dropped
- * here too (lib/dentvid/hot-leads isBotUserAgent), as is the signed-in
- * owner opening his own demo. Neither uses up the rate limit.
+ * here too (lib/dentvid/hot-leads isBotUserAgent), as are our own checks
+ * (the `x-dv-internal: 1` header, lib/dentvid/internal-request, or
+ * `internal: true` from a browser flagged as ours) and the signed-in owner
+ * opening his own demo. None of them uses up the rate limit.
  *
  * At most one view per address and demo per hour, plus per-address and
  * global ceilings. Always 204: the page learns nothing — in particular not
@@ -32,7 +34,7 @@ const NO_CONTENT = () => new NextResponse(null, { status: 204 });
 export async function POST(req: Request) {
   const text = await readCapped(req, 256).catch(() => null);
   if (!text) return NO_CONTENT();
-  let body: { token?: unknown; locale?: unknown };
+  let body: { token?: unknown; locale?: unknown; internal?: unknown };
   try {
     body = JSON.parse(text);
   } catch {
@@ -40,7 +42,8 @@ export async function POST(req: Request) {
   }
   if (!isDemoToken(body.token)) return NO_CONTENT();
   const token = body.token;
-  if (await demoRequestSkip(req)) return NO_CONTENT();
+  // Bots, our own checks (x-dv-internal: 1, or a browser the page knows is ours) and the owner: not a view.
+  if (await demoRequestSkip(req, body.internal === true ? { internal: true } : null)) return NO_CONTENT();
   const ip = clientIp(req.headers);
   const limit = await limitChecks([
     { key: `rl:demoview:ip:${ip}`, rule: LIMITS.demoViewIp },

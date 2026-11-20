@@ -29,13 +29,15 @@ const CLINIC: Record<Locale, { name: string; city: string; country: string }> = 
  *
  *   /dentvideo/dev/demo?lang=tr            the public demo page in Turkish
  *   /dentvideo/dev/demo?lang=ar&logo=0     without a logo
+ *   /dentvideo/dev/demo?lang=de&colour=c9a227   in another brand colour (a gold)
  *   /dentvideo/dev/demo?admin=1            /admin/demos with a few demos
  */
-export default async function DemoPreviewPage({ searchParams }: { searchParams: Promise<{ lang?: string; logo?: string; admin?: string; sort?: string }> }) {
+export default async function DemoPreviewPage({ searchParams }: { searchParams: Promise<{ lang?: string; logo?: string; colour?: string; admin?: string; sort?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const locale = asLocale(sp.lang) ?? "en";
   const c = CLINIC[locale];
+  const colour = /^[0-9a-f]{6}$/i.test(sp.colour ?? "") ? `#${sp.colour!.toLowerCase()}` : "#1f4e79";
   if (sp.admin) {
     const now = new Date();
     const d = (days: number) => new Date(now.getTime() + days * 86_400_000).toISOString();
@@ -76,7 +78,7 @@ export default async function DemoPreviewPage({ searchParams }: { searchParams: 
       <RememberLocale locale={locale} />
       <DemoPage
         locale={locale}
-        demo={{ token: "Ab3dE5fG7hJ", clinicName: c.name, city: c.city, country: c.country, language: locale, colour: "#1f4e79", hasLogo: sp.logo !== "0", campaign: "tr-launch" }}
+        demo={{ token: "Ab3dE5fG7hJ", clinicName: c.name, city: c.city, country: c.country, language: locale, colour, hasLogo: sp.logo !== "0", campaign: "tr-launch" }}
         logoSrc="/dentvideo/icon-512.png"
       />
     </>

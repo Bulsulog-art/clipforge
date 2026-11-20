@@ -46,12 +46,12 @@ vi.mock("@/lib/dentvid/events-server", async (orig) => ({
   },
 }));
 
-async function view(body: unknown, ip = "203.0.113.9", ua: string | null = SAFARI) {
+async function view(body: unknown, ip = "203.0.113.9", ua: string | null = SAFARI, extra: Record<string, string> = {}) {
   const { POST } = await import("./route");
   const res = await POST(
     new Request("https://dentvideo.com/api/dentvideo/demo/view", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": ip, ...(ua !== null ? { "user-agent": ua } : {}) },
+      headers: { "content-type": "application/json", "x-forwarded-for": ip, ...(ua !== null ? { "user-agent": ua } : {}), ...extra },
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   );
@@ -98,6 +98,19 @@ describe("POST /api/dentvideo/demo/view", () => {
     expect(recorded).toEqual([]);
     expect(checks).toEqual([]);
     expect(hot).toEqual([]);
+  });
+
+  it("does not count our own checks (x-dv-internal: 1, or a browser flagged as ours): no view, no event, no alert, no rate limit", async () => {
+    expect(await view({ token: LIVE, locale: "tr" }, "203.0.113.9", SAFARI, { "x-dv-internal": "1" })).toBe(204);
+    expect(await view({ token: LIVE, locale: "tr", internal: true })).toBe(204);
+    expect(counted).toEqual([]);
+    expect(recorded).toEqual([]);
+    expect(checks).toEqual([]);
+    expect(hot).toEqual([]);
+    // Only the exact marker counts: anything else is a visitor like any other.
+    await view({ token: LIVE, locale: "tr", internal: "yes" }, "203.0.113.9", SAFARI, { "x-dv-internal": "0" });
+    expect(counted).toEqual([LIVE]);
+    expect(hot).toHaveLength(1);
   });
 
   it("does not count the signed-in owner opening his own demo", async () => {

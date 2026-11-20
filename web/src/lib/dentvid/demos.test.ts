@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { dvTierPrice } from "./pricing";
 import {
+  DEMO_MIN_CONTRAST,
   DEMO_PALETTE,
   DEMO_TOKEN_RE,
+  demoBrandInk,
   clinicDemos,
   demoExpiry,
   demoPath,
@@ -23,6 +25,7 @@ import { clinicSources, type AdminEvent } from "./admin-metrics";
 import { pathLocale } from "@/components/dentvid/chrome";
 import { DEMO_COPY, demoMessages } from "@/content/dentvideo-demo";
 import { LOCALES } from "@/content/dentvideo";
+import { contrastRatio } from "@/remotion/theme";
 
 const NOW = new Date("2026-11-11T12:00:00Z");
 
@@ -241,5 +244,40 @@ describe("the messages", () => {
   it("never invents urgency", () => {
     const all = JSON.stringify(DEMO_COPY).toLowerCase();
     for (const w of ["hurry", "last chance", "only today", "limited time", "act now", "acele", "son şans", "sadece bugün", "jetzt zugreifen", "nur heute", "solo hoy", "última oportunidad"]) expect(all).not.toContain(w);
+  });
+});
+
+describe("demoBrandInk", () => {
+  it("never changes a palette colour; white stays on the deep ones, the light brown (3.7:1 under white) gets dark text", () => {
+    for (const c of DEMO_PALETTE) {
+      const { fill, ink } = demoBrandInk(c);
+      expect(fill, c).toBe(c);
+      expect(ink, c).toBe(c === "#b6774f" ? "#0b0d10" : "#ffffff");
+    }
+  });
+
+  it("puts dark text on a gold where white would be 3:1 (demo 30), without changing the colour", () => {
+    expect(contrastRatio("#FFFFFF", "#c9a227")).toBeLessThan(3.1);
+    const g = demoBrandInk("#C9A227");
+    expect(g).toEqual({ fill: "#c9a227", ink: "#0b0d10" });
+    expect(contrastRatio(g.ink, g.fill)).toBeGreaterThanOrEqual(DEMO_MIN_CONTRAST);
+  });
+
+  it("clears 4.5:1 for every colour, deepening a mid-tone where neither white nor dark text would", () => {
+    let deepened = 0;
+    for (let r = 0; r < 256; r += 17)
+      for (let g = 0; g < 256; g += 17)
+        for (let b = 0; b < 256; b += 17) {
+          const c = `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+          const { fill, ink } = demoBrandInk(c);
+          expect(contrastRatio(ink, fill), c).toBeGreaterThanOrEqual(DEMO_MIN_CONTRAST);
+          if (fill !== c) {
+            deepened++;
+            expect(ink, c).toBe("#ffffff");
+          }
+        }
+    // A mid grey-teal is one of them: neither white nor near-black reaches 4.5 on it.
+    expect(deepened).toBeGreaterThan(0);
+    expect(demoBrandInk("not a colour")).toEqual({ fill: DEMO_PALETTE[0], ink: "#ffffff" });
   });
 });

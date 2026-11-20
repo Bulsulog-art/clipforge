@@ -123,6 +123,18 @@ describe("POST /api/dentvideo/event", () => {
     expect(inserted).toHaveLength(1);
   });
 
+  it("demo events from our own checks (x-dv-internal: 1, utm_source=internal, a browser flagged as ours) are not stored and alert nobody", async () => {
+    await post(JSON.stringify({ name: "demo_preview_played", locale: "tr", props: { demo: DEMO } }), SAFARI, { "x-dv-internal": "1" });
+    await post(JSON.stringify({ name: "demo_cta_clicked", props: { demo: DEMO, where: "start", utm_source: "internal" } }));
+    await post(JSON.stringify({ name: "demo_cta_clicked", props: { demo: DEMO, where: "question", internal: true } }));
+    expect(inserted).toEqual([]);
+    expect(hot).toEqual([]);
+    // The same play from a visitor's browser still counts.
+    await post(JSON.stringify({ name: "demo_preview_played", locale: "tr", props: { demo: DEMO } }), SAFARI, { "x-dv-internal": "0" });
+    expect(inserted).toHaveLength(1);
+    expect(hot).toEqual([{ token: DEMO, step: "played" }]);
+  });
+
   it("stores an allowed browser event, sanitised, without IP", async () => {
     const res = await post(JSON.stringify({ name: "landing_view", locale: "de", props: { utm_source: "google", email: "a@b.c" } }));
     expect(res.status).toBe(204);
