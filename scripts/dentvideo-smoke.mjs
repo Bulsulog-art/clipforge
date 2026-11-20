@@ -48,8 +48,10 @@ const TOKEN = process.env.DENTVIDEO_MONITOR_TOKEN?.trim() || "";
 const DEVICE = process.env.SMOKE_DEVICE || "Pixel 7";
 const HEADED = process.env.SMOKE_HEADED === "1";
 const STEP_MS = 30_000;
-const UTM = "utm_source=smoke-test&utm_medium=e2e&utm_campaign=dentvideo-smoke";
-const REFERRER = "https://www.google.com/";
+// Never real campaign tags or click ids: utm_source=internal marks the run as ours on the server too
+// (web/src/lib/dentvid/internal-request.ts), and the referrer is a reserved test domain, not a real source.
+const UTM = "utm_source=internal&utm_medium=e2e&utm_campaign=internal-smoke";
+const REFERRER = "https://referrer.example/";
 
 const email = `e2e-monitor+smoke-${Date.now()}${randomBytes(2).toString("hex")}@bulsulabs.com`;
 const password = `Smoke-${randomBytes(12).toString("base64url")}`;
@@ -131,7 +133,10 @@ const page = await context.newPage();
 page.setDefaultTimeout(STEP_MS);
 
 // The monitor token rides only on the sign-up call, never on page or third-party requests.
-await page.route("**/api/dentvideo/signup", (route) => route.continue({ headers: { ...route.request().headers(), ...(TOKEN ? { "x-dv-monitor": TOKEN } : {}) } }));
+await page.route("**/api/dentvideo/signup", (route) => route.continue({ headers: { ...route.request().headers(), "x-dv-internal": "1", ...(TOKEN ? { "x-dv-monitor": TOKEN } : {}) } }));
+// Funnel events from this run: marked internal for the server (a custom header on our own origin only;
+// on Supabase's it would trigger a CORS preflight).
+await page.route("**/api/dentvideo/event", (route) => route.continue({ headers: { ...route.request().headers(), "x-dv-internal": "1" } }));
 
 // Every browser call to Supabase auth, to check they all go to the project that issued the session.
 const authCalls = [];
@@ -161,7 +166,7 @@ const firstFailure = async () => {
 console.log(`DentVideo smoke test against ${BASE} as ${email} (${DEVICE})\n`);
 
 try {
-  await step("landing page from a Google referrer with UTM tags", async () => {
+  await step("landing page from a referrer with internal UTM tags", async () => {
     await open(`${BASE}/?${UTM}`, REFERRER);
     if (!/DentVideo/.test(await page.title())) throw new Error(`unexpected title “${await page.title()}”`);
   });
@@ -177,7 +182,7 @@ try {
     const sent = JSON.parse(res.request().postData() || "{}");
     if (res.status() !== 200 || !signupBody.ok) throw new Error(`sign-up answered HTTP ${res.status()} ${JSON.stringify(signupBody).slice(0, 200)}`);
     if (signupBody.existing) throw new Error("the fresh address was said to exist already");
-    if (sent.attribution?.utm_source !== "smoke-test") throw new Error(`the UTM source did not reach the sign-up (attribution: ${JSON.stringify(sent.attribution ?? null)})`);
+    if (sent.attribution?.utm_source !== "internal") throw new Error(`the UTM source did not reach the sign-up (attribution: ${JSON.stringify(sent.attribution ?? null)})`);
     if (sent.internal !== true) throw new Error("the sign-up did not carry the internal-traffic flag (localStorage dv-internal)");
     if (sent.adClick) throw new Error("an internally flagged browser sent an ad click with its sign-up");
     await page.waitForURL(/step=clinic/, { timeout: STEP_MS }).catch(async () => {
@@ -217,7 +222,7 @@ try {
     });
 
     await step("sign in again from a referrer + UTM", async () => {
-      await open(`${BASE}/start?mode=signin&lang=en&${UTM}`, `https://www.instagram.com/`);
+      await open(`${BASE}/start?mode=signin&lang=en&${UTM}`, "https://other-referrer.example/");
       await page.locator('input[type="email"]').fill(email);
       await page.locator('input[type="password"]').fill(password);
       await page.locator('form button[type="submit"]').click();

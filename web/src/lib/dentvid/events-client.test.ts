@@ -44,6 +44,15 @@ describe("browser events: internal traffic", () => {
     expect(sent[1].body.props.internal).toBe(true);
   });
 
+  it("a browser driven by automation (navigator.webdriver) tags its events, even with a normal user agent", () => {
+    vi.stubGlobal("localStorage", memStore());
+    vi.stubGlobal("navigator", { webdriver: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) Safari/604.1" });
+    trackDv("landing_view", { locale: "en" });
+    vi.stubGlobal("navigator", { webdriver: false });
+    trackDv("landing_view", { locale: "tr" });
+    expect(sent.map((s) => s.body.props.internal ?? null)).toEqual([true, null]);
+  });
+
   it("blocked storage still sends the event, untagged", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => {

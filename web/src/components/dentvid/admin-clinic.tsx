@@ -17,6 +17,7 @@ import { ChangeRequestsTable, TopicRequestsTable } from "./admin-requests";
 const EVENT_LABEL: Record<string, string> = {
   signup_completed: "Signed up",
   clinic_saved: "Saved clinic profile",
+  preview_seen: "Reached the landing preview",
   preview_started: "Started a preview",
   preview_step_viewed: "Saw their preview",
   preview_played: "Played the preview",

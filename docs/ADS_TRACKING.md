@@ -104,7 +104,7 @@ Deleting an account deletes its rows (`on delete cascade`).
 Before launch ~88% of funnel events were ours, and QA runs used real ad tags (`google / cpc / de-search-core`,
 test gclids). Internal traffic is now marked where it starts (`web/src/lib/dentvid/internal-traffic.ts`):
 
-- **Accounts.** Internal when the email matches a pattern — built-in: `*@bulsulabs.com`, `*@dentvideo.com`,
+- **Accounts.** Internal when the email matches a pattern — built-in: `*@bulsulabs.com`, `*@bulsulogistics.com`, `*@dentvideo.com`,
   `e2e-monitor+*@*`, `e2e*@*`, `qa+*@*`, `dvq*+*@*`, plus `DENTVID_INTERNAL_EMAIL_PATTERNS` (comma-separated;
   personal addresses go **only** there, never in the repo) — or when `app_metadata.internal = true`. Sign-up
   sets that marker for pattern matches, the synthetic monitor (it sends `internal: true`) and any sign-up from
@@ -112,7 +112,13 @@ test gclids). Internal traffic is now marked where it starts (`web/src/lib/dentv
 - **Browsers.** `localStorage["dv-internal"] = "1"`. Set when an internal account or an admin is signed in
   (the wizard, the app, the admin panel), or by `?dv_internal=1` **while signed in as one** (the server checks;
   a bare link marks nobody). Stays after sign-out. `?dv_internal=0` removes it. The browser smoke test sets it.
-- **Events.** Tagged `props.internal = true` by the browser (flagged) and by the server (internal account).
+- **Events.** Tagged `props.internal = true` by the browser (flagged, or driven by automation:
+  `navigator.webdriver`) and by the server (internal account; a crawler, headless or automated browser or
+  HTTP library by its user agent; a request with the header `x-dv-internal: 1`; a visit whose first touch is
+  `utm_source=internal`, see `web/src/lib/dentvid/internal-request.ts`).
+- **Scripts.** Monitor, smoke and e2e scripts never use real campaign tags or click ids. They use
+  `utm_source=internal&utm_medium=e2e&utm_campaign=internal-<script>` and send `x-dv-internal: 1` on their
+  calls to `/api/dentvideo/event`.
   `/admin`, `/admin/clinics`, `/admin/funnel` and the daily digest leave internal traffic out by default —
   tagged events, internal owners' clinics and their events — with an "Include" switch (`?internal=1`).
 - **Ads.** An internal browser never keeps a click id; an internal sign-up stores no click and records no

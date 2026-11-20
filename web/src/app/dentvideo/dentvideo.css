@@ -596,3 +596,19 @@ html:lang(es):not([data-dv-tax]) .dv-tax-eu,
 html:lang(fr):not([data-dv-tax]) .dv-tax-eu {
   display: inline;
 }
+
+/* The English landing's language hint (components/dentvid/lang-hint, lib/dentvid/lang-hint): every
+   language's line is in the HTML and hidden; the <head> script sets html[data-dv-hint] before the
+   first paint, so the one shown never shifts the page. Dismissed: the attribute goes. */
+.dv-lang-hint {
+  display: none;
+}
+html[data-dv-hint="de"] .dv-lang-hint[data-l="de"],
+html[data-dv-hint="es"] .dv-lang-hint[data-l="es"],
+html[data-dv-hint="tr"] .dv-lang-hint[data-l="tr"],
+html[data-dv-hint="fr"] .dv-lang-hint[data-l="fr"],
+html[data-dv-hint="ja"] .dv-lang-hint[data-l="ja"],
+html[data-dv-hint="ar"] .dv-lang-hint[data-l="ar"],
+html[data-dv-hint="pl"] .dv-lang-hint[data-l="pl"] {
+  display: block;
+}

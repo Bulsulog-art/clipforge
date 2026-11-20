@@ -7,6 +7,7 @@ import { limitChecks } from "@/lib/rate-limit-server";
 import { hotStepForEvent } from "@/lib/dentvid/hot-leads";
 import { demoRequestSkip, raiseHotLead } from "@/lib/dentvid/hot-leads-server";
 import { isInternalUser } from "@/lib/dentvid/internal-traffic";
+import { internalRequestReason } from "@/lib/dentvid/internal-request";
 
 /**
  * POST /api/dentvideo/event — first-party funnel events from the browser
@@ -33,6 +34,8 @@ export async function POST(req: Request) {
   // The country comes from the proxy's geo header (an ISO code), never from the body.
   const row = parseClientEvent(text, requestCountry(req.headers));
   if (!row) return NextResponse.json({ error: "bad event" }, { status: 400 });
+  // Automated browsers, crawlers and our own scripts (header or utm_source=internal): kept, tagged internal.
+  if (internalRequestReason(req.headers, row.props)) row.props.internal = true;
 
   if (DV_CLINIC_CLIENT_EVENTS.includes(row.name)) {
     try {

@@ -27,6 +27,7 @@ import { tokensOf, type MobileTokens } from "@/lib/dentvid/mobile-session";
 import { raiseOwnerAlert } from "@/lib/dentvid/ops-server";
 import { alerts, cleanError } from "@/lib/dentvid/ops-alert";
 import { isInternalEmail } from "@/lib/dentvid/internal-traffic";
+import { markedInternal } from "@/lib/dentvid/internal-request";
 
 // One sign-up for both front doors: the web form (POST /api/dentvideo/signup,
 // session cookie) and the iPhone app (POST /api/dentvideo/mobile/v1/signup,
@@ -144,7 +145,9 @@ export async function signup(req: Request, channel: SignupChannel): Promise<Next
   }
 
   const locale = asLocale(body.locale) ?? (await dvLocale().catch(() => "en" as const));
-  const internal = testAccount || body.internal === true || isInternalEmail(body.email);
+  // Also our scripts' marker (x-dv-internal: 1, or utm_source=internal in the tab's first touch). Not the
+  // bot rule: the iPhone app's own requests carry no browser user agent.
+  const internal = testAccount || body.internal === true || isInternalEmail(body.email) || markedInternal(req.headers, body.attribution) !== null;
   const { data: created, error } = await dvAdmin().auth.admin.createUser({
     email: body.email,
     password: body.password,
