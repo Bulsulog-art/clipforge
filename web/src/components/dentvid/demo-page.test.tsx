@@ -101,6 +101,21 @@ describe("the demo page", () => {
     }
   });
 
+  it("has no em dashes or spaced en dashes, in the copy or on the rendered page, in any language", () => {
+    const DASH = /\u2014|\s\u2013\s/;
+    const strings = (v: unknown): string[] => (typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(strings) : []);
+    for (const l of LOCALES) {
+      for (const v of strings(DEMO_COPY[l])) expect(v, l).not.toMatch(DASH);
+      for (const hasLogo of [true, false]) {
+        const text = decode(renderToStaticMarkup(<DemoPage locale={l} demo={{ ...demo(l), hasLogo }} />)).replace(/<[^>]+>/g, " ");
+        expect(text, `${l} logo=${hasLogo}`).not.toMatch(DASH);
+      }
+    }
+    // The check itself catches both forms.
+    expect("No contract — cancel anytime.").toMatch(DASH);
+    expect("Kein Vertrag – jederzeit kündbar.").toMatch(DASH);
+  });
+
   it("keeps text on the clinic's colour readable (4.5:1): white on deep colours, dark on a gold", () => {
     const styles = (h: string, attr: string) => {
       const tag = new RegExp(`<a[^>]*data-cta="${attr}"[^>]*>`).exec(h)?.[0] ?? "";
