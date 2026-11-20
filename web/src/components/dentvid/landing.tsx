@@ -9,6 +9,7 @@ import { SHOWCASE } from "@/content/dentvideo-showcase";
 import { OPERATOR } from "@/content/guides/operator";
 import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { RULES_GUIDE_LINKS } from "@/content/landing/rules-guides";
 import { LEGAL_KINDS } from "@/content/legal/types";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
@@ -404,6 +405,7 @@ function Control({ locale }: { locale: Locale }) {
 
 function Rules({ locale }: { locale: Locale }) {
   const r = LANDING[locale].rules;
+  const links = RULES_GUIDE_LINKS[locale] ?? [];
   return (
     <section id="rules" aria-labelledby="rules-heading" className="dv-on-dark dv-grain relative scroll-mt-20 overflow-hidden bg-dv-teal-900 text-[#f7f1e7]" data-rules>
       <div aria-hidden="true" className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[56rem] -translate-x-1/2 rounded-full bg-[#167269]/40 blur-3xl" />
@@ -439,6 +441,22 @@ function Rules({ locale }: { locale: Locale }) {
           </div>
         </div>
         <p className="mt-8 text-[0.9375rem] leading-relaxed text-[#d5e6e2] lg:mt-10">{r.close}</p>
+        {links.length > 0 && (
+          <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-1" data-rules-guides>
+            {links.map((l) => {
+              const g = guidesFor(locale).find((x) => x.slug === l.slug);
+              if (!g) return null;
+              return (
+                <li key={l.slug}>
+                  <Link href={dvHref(guidePath(g))} className="inline-flex min-h-11 items-center gap-1.5 text-[0.9375rem] font-semibold text-white underline decoration-white/40 underline-offset-[3px] hover:decoration-white">
+                    {l.label}
+                    <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </section>
   );

@@ -122,9 +122,9 @@ export const GUIDE_UI: Record<Locale, GuideUi> = {
     guides: "Rehberler",
     about: "DentVideo hakkında",
     index: {
-      title: "Diş kliniği rehberleri: sosyal medya, video, tanıtım · DentVideo",
+      title: "Diş kliniği sosyal medya ve reklam kuralları · DentVideo",
       description:
-        "Diş hekimleri için rehberler: Instagram ve TikTok'ta ne paylaşılır, hasta bilgilendirme videosu nasıl çekilir, sağlık tanıtım yönetmeliği neye izin verir.",
+        "Diş hekimleri için rehberler: reklam yasağı ve cezaları, öncesi-sonrası onamı, Instagram'da ne paylaşılır, hasta bilgilendirme videosu nasıl hazırlanır.",
       h1: "Diş klinikleri için rehberler",
       lead: "Pratik, temkinli ve kaynaklı: ne paylaşacağınız, beş dakikada nasıl çekeceğiniz ve yayınlamadan önce hangi tanıtım kurallarını kontrol etmeniz gerektiği.",
     },
