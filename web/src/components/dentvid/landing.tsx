@@ -7,6 +7,7 @@ import { appText } from "@/content/dentvideo-app";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { SHOWCASE } from "@/content/dentvideo-showcase";
 import { OPERATOR } from "@/content/guides/operator";
+import { ENTITY } from "@/content/guides/entity";
 import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { RULES_GUIDE_LINKS } from "@/content/landing/rules-guides";
@@ -140,14 +141,23 @@ function Hero({ locale }: { locale: Locale }) {
         </div>
 
         {/* Three short facts: a column on phones, three equal columns under the copy from sm up. */}
-        <ul className="grid min-w-0 gap-3 border-t border-dv-line pt-6 [grid-area:facts] sm:grid-cols-3 sm:gap-6 lg:self-start" data-hero-points>
-          {c.hero.facts.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-dv-ink sm:gap-2.5 sm:text-sm">
-              <Tick />
-              {f}
-            </li>
-          ))}
-        </ul>
+        <div className="min-w-0 [grid-area:facts] lg:self-start">
+          <ul className="grid min-w-0 gap-3 border-t border-dv-line pt-6 sm:grid-cols-3 sm:gap-6" data-hero-points>
+            {c.hero.facts.map((f) => (
+              <li key={f} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-dv-ink sm:gap-2.5 sm:text-sm">
+                <Tick />
+                {f}
+              </li>
+            ))}
+          </ul>
+          {/*
+            The one-sentence definition (content/guides/entity.ts), the same words as the About page, llms.txt and the
+            structured data: what an answer engine quotes when asked "what is DentVideo?".
+          */}
+          <p className="mt-6 max-w-[40rem] text-sm leading-relaxed text-dv-muted" data-definition>
+            {ENTITY[locale].definition}
+          </p>
+        </div>
 
         <div className="relative mx-auto w-full max-w-[15.5rem] [grid-area:phone] sm:max-w-[17rem] lg:max-w-[19.5rem] lg:self-center">
           {/* A soft halo and two hairline lens rings behind the phone (CSS only, no image). */}

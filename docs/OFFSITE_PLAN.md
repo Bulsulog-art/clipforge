@@ -441,9 +441,9 @@ source say the same few facts.
 
 Use this text verbatim (it is the `entity.ts` definition). Don't paraphrase it per profile.
 
-> **DentVideo is a web app for dental clinics that makes short patient-education videos — narrated, captioned and in
-> the clinic's colours — and checks every script for clinical accuracy and health-advertising rules before the dentist
-> approves it. It is made by Bulsu Labs.**
+> **DentVideo is a web app for dental clinics that makes short, narrated and captioned patient-education videos in the
+> clinic's colors and checks every script for clinical accuracy and health-advertising rules before the dentist approves
+> it. It is made by Bulsu Labs.**
 
 - **Short form** (for 160-char fields): `DentVideo makes weekly patient-education videos for dental clinics, checked for
   advertising rules and clinical accuracy before the dentist approves.` (148)
@@ -517,8 +517,8 @@ Add a reference URL (the independent article) to the main statements.
 **Crunchbase**
 - Short description: use the short form above (148 chars).
 - Long description:
-  > DentVideo is a web app for dental clinics that makes short patient-education videos — narrated, captioned and in the
-  > clinic's colours — and checks every script for clinical accuracy and health-advertising rules before the dentist
+  > DentVideo is a web app for dental clinics that makes short, narrated and captioned patient-education videos in the
+  > clinic's colors and checks every script for clinical accuracy and health-advertising rules before the dentist
   > approves it. Every Monday a clinic receives five vertical videos answering questions patients in its country search
   > for, approves them in one tap and shares them from a phone. Dentists can also record five minutes of themselves and
   > receive captioned clips. Videos are made in English, German, Spanish, French, Italian, Portuguese and Turkish.

@@ -62,8 +62,8 @@ export const SITE_UPDATED = "2026-11-08";
  * content/guides/entity.ts). Move these when that copy changes, not for a
  * footer link or a style tweak, so search engines can keep trusting lastmod.
  */
-export const LANDING_UPDATED = "2026-11-15"; // premium landing: the fifteen-section narrative, real app screens
-export const ABOUT_UPDATED = "2026-11-10"; // Group became "Contact us": price facts rewritten (#80)
+export const LANDING_UPDATED = "2026-11-20"; // the one-sentence definition under the hero facts; TR rules-guide links (#200); first-week time (#192)
+export const ABOUT_UPDATED = "2026-11-20"; // definition reworded without dashes; agency/Canva and voice FAQs (#167)
 
 // Stable node ids, so every page's graph describes the same organisation and product.
 export const ORG_ID = `${PUBLISHER_URL}/#organization`;

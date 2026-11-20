@@ -30,7 +30,7 @@ export type { HelpCategory, HelpContent, HelpId, HelpShot };
 export const HELP: Record<Locale, HelpContent> = { en, de, es, tr, fr, ja, ar, pl };
 
 /** When the help content last changed (sitemap lastmod, dateModified). */
-export const HELP_UPDATED = "2026-11-16";
+export const HELP_UPDATED = "2026-11-17"; // first-week time "within an hour" (#192)
 
 /** What each answer is about, the same in every language: its group, a real app screen, the legal pages it rests on. */
 /** `checker`: the answer links the free ad checker (the same rules, on the dentist's own text). */
