@@ -11,13 +11,14 @@ type Row = Record<string, unknown>;
 
 /**
  * An in-memory stand-in for the parts of supabase-js the account code uses:
- * the two DentVideo tables, the "dentvid" bucket and auth.admin.deleteUser.
- * `leaky` makes table reads ignore their filters (as if RLS and the query
+ * the DentVideo tables, the "dentvid" bucket and auth.admin.deleteUser.
+ * `missing` tables answer "relation does not exist" (migration not applied);
+ * `failing` tables answer with any other error. `leaky` makes table reads ignore their filters (as if RLS and the query
  * were both wrong) to prove the code's own owner checks hold.
  */
 type AuthUser = { id: string; email?: string; app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown>; identities?: { provider: string }[] };
 
-function fakeSupabase(opts: { leaky?: boolean; authUsers?: Record<string, Partial<AuthUser>> } = {}) {
+function fakeSupabase(opts: { leaky?: boolean; authUsers?: Record<string, Partial<AuthUser>>; missing?: string[]; failing?: string[] } = {}) {
   const tables: Record<string, Row[]> = {
     dentvid_clinics: [
       { id: CLINIC_A, owner_id: A, profile: { name: "Sample Dental Practice", language: "en" }, logo_path: `${A}/logo.png`, plan: "trial", dodo_subscription_id: null },
@@ -27,6 +28,11 @@ function fakeSupabase(opts: { leaky?: boolean; authUsers?: Record<string, Partia
       { id: "i1", clinic_id: CLINIC_A, owner_id: A, title: "Brushing", spoken: "Two minutes…", copy: { caption: "Brush well" }, video_path: `${A}/videos/v1.mp4`, thumb_path: `${A}/videos/v1.jpg`, source_path: null },
       { id: "i2", clinic_id: CLINIC_A, owner_id: A, title: "My recording", copy: null, video_path: `${A}/videos/v2.mp4`, thumb_path: null, source_path: `${A}/recordings/1700000000000.mp4` },
       { id: "i3", clinic_id: CLINIC_B, owner_id: B, title: "Not yours", copy: { caption: "secret" }, video_path: `${B}/videos/x.mp4`, thumb_path: null, source_path: null },
+    ],
+    dentvid_devices: [
+      { id: "d1", owner_id: A, token: "a".repeat(64), environment: "production" },
+      { id: "d2", owner_id: A, token: "b".repeat(64), environment: "development" },
+      { id: "d3", owner_id: B, token: "c".repeat(64), environment: "production" },
     ],
   };
   const files = new Map<string, { size: number; mimetype: string }>(
@@ -56,6 +62,14 @@ function fakeSupabase(opts: { leaky?: boolean; authUsers?: Record<string, Partia
       delete: () => ((mode = "delete"), q),
       maybeSingle: async () => ({ data: rows()[0] ?? null, error: null }),
       then(resolve: (v: unknown) => void) {
+        if (opts.missing?.includes(table)) {
+          calls.push(`${mode} ${table} missing`);
+          return resolve({ data: null, error: { code: "PGRST205", message: `Could not find the table 'public.${table}' in the schema cache` }, count: null });
+        }
+        if (opts.failing?.includes(table)) {
+          calls.push(`${mode} ${table} failed`);
+          return resolve({ data: null, error: { code: "57014", message: "canceling statement due to statement timeout" }, count: null });
+        }
         if (mode === "delete") {
           const gone = tables[table].filter((r) => filters.every(([k, v]) => r[k] === v));
           tables[table] = tables[table].filter((r) => !gone.includes(r));
@@ -157,20 +171,21 @@ describe("owner guards", () => {
 });
 
 describe("deleteDentvideoAccount", () => {
-  it("removes the owner's storage, videos, clinic and login — in that order — and nothing of another clinic", async () => {
+  it("removes the owner's storage, videos, clinic, push tokens and login — in that order — and nothing of another clinic", async () => {
     const s = fakeSupabase();
     const log = vi.fn();
     const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log });
-    expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, cancelledSubscription: false, userDeleted: true, loginKept: false, appStoreSubscription: false });
+    expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, devices: 2, cancelledSubscription: false, userDeleted: true, loginKept: false, appStoreSubscription: false });
 
     const order = s.calls.map((c) => c.split(" ").slice(0, 2).join(" "));
-    expect(order).toEqual(["storage.remove 5", "delete dentvid_items", "delete dentvid_clinics", `auth.deleteUser ${A}`]);
+    expect(order).toEqual(["storage.remove 5", "delete dentvid_items", "delete dentvid_clinics", "delete dentvid_devices", `auth.deleteUser ${A}`]);
     for (const c of s.calls.filter((c) => c.startsWith("delete"))) expect(c).toContain(`["owner_id","${A}"]`);
 
     // Clinic B is untouched.
     expect([...s.files.keys()].sort()).toEqual([`${B}/logo.png`, `${B}/videos/x.mp4`]);
     expect(s.tables.dentvid_items.map((r) => r.id)).toEqual(["i3"]);
     expect(s.tables.dentvid_clinics.map((r) => r.id)).toEqual([CLINIC_B]);
+    expect(s.tables.dentvid_devices.map((r) => r.id)).toEqual(["d3"]);
     expect([...s.users]).toEqual([B]);
 
     // One audit line, without the id, name or email.
@@ -188,7 +203,7 @@ describe("deleteDentvideoAccount", () => {
     const args = { admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log: () => {} };
     expect((await deleteDentvideoAccount(args)).ok).toBe(true);
     const again = await deleteDentvideoAccount(args);
-    expect(again).toEqual({ ok: true, files: 0, items: 0, clinic: false, cancelledSubscription: false, userDeleted: false, loginKept: false, appStoreSubscription: false });
+    expect(again).toEqual({ ok: true, files: 0, items: 0, clinic: false, devices: 0, cancelledSubscription: false, userDeleted: false, loginKept: false, appStoreSubscription: false });
     expect(s.tables.dentvid_clinics).toHaveLength(1);
     expect(s.files.size).toBe(2);
   });
@@ -204,13 +219,47 @@ describe("deleteDentvideoAccount", () => {
     });
     const log = vi.fn();
     const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A, email: "dr@a.example" }, confirm: "Sample Dental Practice", dodo: null, log });
-    expect(res).toMatchObject({ ok: true, files: 5, items: 2, clinic: true, userDeleted: false, loginKept: true });
+    expect(res).toMatchObject({ ok: true, files: 5, items: 2, clinic: true, devices: 2, userDeleted: false, loginKept: true });
     expect(s.calls.some((c) => c.startsWith("auth.deleteUser"))).toBe(false);
     expect([...s.users].sort()).toEqual([A, B].sort());
     // DentVideo's keys are gone; the other app's are untouched.
     expect(s.authUsers.get(A)!.app_metadata).toEqual({ provider: "email", providers: ["email"], role: "aires_admin" });
     expect(s.authUsers.get(A)!.user_metadata).toEqual({ full_name: "Dr A" });
     expect(JSON.stringify(log.mock.calls[0][0])).toContain("kept_shared");
+  });
+
+  it("removes the push tokens even when the login is kept (no auth.users cascade to rely on)", async () => {
+    const s = fakeSupabase({ authUsers: { [A]: { app_metadata: { provider: "email", product: "dentvideo", products: ["dentvideo", "coz"] } } } });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: null, log: () => {} });
+    expect(res).toMatchObject({ ok: true, devices: 2, userDeleted: false, loginKept: true });
+    expect(s.users.has(A)).toBe(true);
+    // A's phones are gone, B's stays; the delete was scoped to the owner and ran before the login step.
+    expect(s.tables.dentvid_devices.map((r) => r.id)).toEqual(["d3"]);
+    expect(s.calls).toContain(`delete dentvid_devices [["owner_id","${A}"]]`);
+    const order = s.calls.map((c) => c.split(" ").slice(0, 2).join(" "));
+    expect(order.indexOf("delete dentvid_devices")).toBeLessThan(order.findIndex((c) => c.startsWith("auth.")));
+  });
+
+  it("finishes when dentvid_devices is not there yet (migration 0023 not applied)", async () => {
+    const s = fakeSupabase({ missing: ["dentvid_devices"] });
+    const res = await deleteDentvideoAccount({ admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: null, log: () => {} });
+    expect(res).toEqual({ ok: true, files: 5, items: 2, clinic: true, devices: 0, cancelledSubscription: false, userDeleted: true, loginKept: false, appStoreSubscription: false });
+    expect(s.users.has(A)).toBe(false);
+  });
+
+  it("stops before the login step when the push-token delete fails, and a retry finishes", async () => {
+    const failing = ["dentvid_devices"];
+    const s = fakeSupabase({ failing });
+    const args = { admin: s.db, user: { id: A }, confirm: "Sample Dental Practice", dodo: null, log: () => {} };
+    expect(await deleteDentvideoAccount(args)).toEqual({ ok: false, reason: "failed", step: "devices" });
+    expect(s.calls.some((c) => c.startsWith("auth."))).toBe(false);
+    expect(s.users.has(A)).toBe(true);
+    expect(s.tables.dentvid_devices).toHaveLength(3);
+
+    failing.length = 0; // the database answers again
+    expect(await deleteDentvideoAccount(args)).toMatchObject({ ok: true, devices: 2, userDeleted: true });
+    expect(s.tables.dentvid_devices.map((r) => r.id)).toEqual(["d3"]);
+    expect(s.users.has(A)).toBe(false);
   });
 
   it("deletes the login of an internal account (app_metadata.internal is DentVideo's own key, not another app's)", async () => {
