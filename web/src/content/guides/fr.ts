@@ -238,7 +238,7 @@ export const GUIDES_FR: Guide[] = [
     topic: "post-ideas",
     category: "ideas",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-22",
     title: "Idées de contenu Instagram pour cabinet dentaire : une année de sujets sans risque",
     seoTitle: "Instagram du cabinet dentaire : idées de posts",
     seoDescription: "Idées de publications Instagram, Reels et TikTok pour cabinet dentaire : questions de patients, soins expliqués, équipe, saisons et ce qu'il faut éviter.",
@@ -321,7 +321,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Texte de publication et hashtags",
         paragraphs: [
           "Le texte sous la vidéo reprend en bref ce qu'elle dit, sans ajouter de promesse. Une structure qui marche : la question en première ligne, la réponse en deux ou trois phrases, puis « Votre dentiste vous dira ce qui convient dans votre cas ». Le nom du cabinet et la ville suffisent pour être trouvé.",
-          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq à dix pertinents plutôt que trente au hasard. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
+          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq au maximum : depuis décembre 2025, Instagram limite les publications et les Reels à cinq hashtags. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
         ],
       },
       {
