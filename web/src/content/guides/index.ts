@@ -38,6 +38,7 @@ import { HEALTH_TOURISM_TR } from "./health-tourism-tr";
 import { RULES_TR } from "./rules-tr";
 import { IMPRESSUM_DE } from "./impressum-de";
 import { REVIEW_REPLIES_EN } from "./review-replies-en";
+import { CHANNELS_EN } from "./channels-en";
 
 // Only type imports from ../dentvideo here and in the per-language files, so
 // content/dentvideo.ts can import this module without a runtime cycle.
@@ -68,6 +69,7 @@ export const GUIDE_LIBRARY: Guide[] = [
   CALENDAR_EN,
   POSTING_RHYTHM_EN,
   TIKTOK_EN,
+  ...CHANNELS_EN,
   ...TREATMENTS_EN,
   ...GUIDES_JA,
   EDUCATION_JA,

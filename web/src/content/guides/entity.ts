@@ -48,10 +48,12 @@ export const ALTERNATE_NAMES = ["Dent Video", "DentVideo app"] as const;
 /**
  * Official profiles of DentVideo elsewhere (LinkedIn, Crunchbase, G2, Product
  * Hunt, Wikidata …), emitted as `sameAs`. Add a URL only once the profile is
- * live and says the same as this file (docs/OFFSITE_PLAN.md). None exists yet
- * (2026-11-09), so this stays empty: an invented sameAs is worse than none.
+ * live and says the same as this file (docs/OFFSITE_PLAN.md): an invented
+ * sameAs is worse than none. Instagram confirmed live by the owner 2026-11-22.
+ * YouTube (@dentvideoapp) and TikTok (@dentvideo) are reserved but not yet
+ * confirmed live: add them here only once they are.
  */
-export const SAME_AS: readonly string[] = [];
+export const SAME_AS: readonly string[] = ["https://www.instagram.com/dentvideo/"];
 
 const BASE: Record<Locale, EntityFacts> = {
   en: {
@@ -62,7 +64,7 @@ const BASE: Record<Locale, EntityFacts> = {
     },
     h1: "What is DentVideo?",
     definition:
-      "DentVideo is a web app for dental clinics that makes short, narrated and captioned patient-education videos in the clinic's colors and checks every script for clinical accuracy and health-advertising rules before the dentist approves it. It is made by Bulsu Labs.",
+      "DentVideo is a web app for dental clinics that delivers five short, narrated and captioned patient-education videos every Monday, in the clinic's colors and logo, and checks every script for clinical accuracy and health-advertising rules before the dentist approves it. It is made by Bulsu Labs.",
     facts: [
       { label: "What it is", value: "A web app (software as a service) that makes short educational videos for dental clinics' social media, website and waiting room." },
       { label: "Who it is for", value: "Dentists and dental clinics that want to post regularly without filming every week or hiring an agency." },

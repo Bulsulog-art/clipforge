@@ -52,6 +52,17 @@ function fitAnswer(): string {
   return `${f.yesHeading}: ${f.yes.join("; ")}. ${f.noHeading}: ${f.no.join("; ")}.`;
 }
 
+/** The English channel and format guides (2026-11-22), named in one quick answer so the question "where do I post these?" has a sourced reply. */
+const CHANNEL_SLUGS = [
+  "instagram-videos-for-dentists",
+  "tiktok-for-dentists",
+  "youtube-shorts-for-dentists",
+  "google-business-profile-for-dentists",
+  "dental-waiting-room-tv-videos",
+  "dental-instagram-captions",
+  "dental-videos-without-being-on-camera",
+] as const;
+
 /** The rules guides in the markets people ask about most (US/UK in English, Türkiye, Germany), with their URLs. */
 function rulesGuides(): string {
   return (["en", "tr", "de"] as const)
@@ -91,6 +102,9 @@ function quickAnswers(): string[] {
     `- Who operates DentVideo? ${OPERATOR.shortName} (Podgorica, Montenegro), trading as ${PUBLISHER_NAME}. Contact: ${OPERATOR.productEmail}.`,
     "- Are there customer reviews? Not yet: DentVideo is new and publishes no testimonials; none are invented.",
     ...decisionAnswers(),
+    `- Where can a dental practice use short patient-education videos, and how? ${CHANNEL_SLUGS.map((slug) => GUIDES.find((g) => g.slug === slug)!)
+      .map((g) => `${g.h1} (${abs(guidePath(g))})`)
+      .join("; ")}.`,
     `- Patient-education video topics by treatment: ${treatmentGuides.map((g) => `${g.h1.split(":")[0]} (${abs(guidePath(g))})`).join("; ")}.`,
     "",
   ];
