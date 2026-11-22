@@ -4,11 +4,14 @@ import { agentJson } from "./llm.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
 import { captionRules, marketRules, variantRule } from "./locale.js";
 import type { Topic } from "./strategist.js";
+import { capHashtags, INSTAGRAM_MAX_HASHTAGS } from "../lib/hashtags.js";
 
 /** The copywriter agent: the post text that goes under the video. */
 
 export const postCopySchema = z.object({
   caption: z.string().min(10).max(1500),
+  // The prompt asks for at most INSTAGRAM_MAX_HASHTAGS; a model that sends a
+  // few more is trimmed by finalHashtags rather than paying for a repair round.
   hashtags: z.array(z.string().min(2).max(40)).min(3).max(12),
 });
 export type PostCopy = z.infer<typeof postCopySchema>;
@@ -34,7 +37,7 @@ export async function writePostCopy(
 - Every sentence in ${profile.language}, including the first: never open in another language or mix in English words the clinic's patients would not use.
 - About the practice you know ONLY its name, city and services. Never claim it has anything else (an after-hours or emergency line, opening hours, equipment, a child-friendly room, games, rewards, languages, parking, payment plans).
 - Plain, warm wording a dentist would sign: no slang ("folks", "funky", "dodge"), no stock openers ("Did you know", "Wissen Sie was").
-${marketRules(profile.country) ? `- ${marketRules(profile.country)}\n` : ""}${captionRules(profile.country) ? `- ${captionRules(profile.country)}\n` : ""}- hashtags: lowercase, no '#', topic and local (city) tags, in the clinic's language and script (Japanese and Arabic tags stay in their own script). Do NOT make a hashtag of the clinic's name or translate it; the clinic's own tag is added automatically.
+${marketRules(profile.country) ? `- ${marketRules(profile.country)}\n` : ""}${captionRules(profile.country) ? `- ${captionRules(profile.country)}\n` : ""}- hashtags: at most ${INSTAGRAM_MAX_HASHTAGS} (Instagram's limit), the most relevant first, lowercase, no '#', topic and local (city) tags, in the clinic's language and script (Japanese and Arabic tags stay in their own script). Do NOT make a hashtag of the clinic's name or translate it; the clinic's own tag is added automatically.
 Return JSON: { "caption", "hashtags": [] }`,
     user:
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""}. Language: ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}\n` +
@@ -53,6 +56,7 @@ Return JSON: { "caption", "hashtags": [] }`,
  * Clean the model's tags and put the clinic's real tag first. The model was
  * seen inventing a half-translated brand tag (the clinic's name partly in Turkish);
  * a clinic that spots a made-up tag for itself stops trusting the tool.
+ * At most INSTAGRAM_MAX_HASHTAGS (Instagram's cap), in the model's order.
  */
 export function finalHashtags(raw: string[], profile: Pick<ClinicProfile, "name" | "handle">): string[] {
   const norm = (h: string) => h.replace(/^#/, "").toLowerCase().replace(/[\s.]+/g, "");
@@ -66,5 +70,5 @@ export function finalHashtags(raw: string[], profile: Pick<ClinicProfile, "name"
     .filter((h) => h.length >= 2 && /^[\p{L}\p{N}_]+$/u.test(h))
     // Drop the model's own attempts at the clinic's tag.
     .filter((h) => h !== own && !nameWords.some((w) => fold(h).includes(w.replace(/[^\p{L}\p{N}]/gu, ""))));
-  return [...new Set([own, ...cleaned])].filter(Boolean).slice(0, 12);
+  return capHashtags([own, ...cleaned], INSTAGRAM_MAX_HASHTAGS);
 }

@@ -17,6 +17,15 @@ final class PostKitTests: XCTestCase {
         XCTAssertEqual(PostKit.build(caption: nil, hashtags: nil), PostTexts(instagram: "", short: ""))
     }
 
+    func testAtMostFiveHashtags() {
+        // Instagram's cap since December 2025: trimmed to five, duplicates dropped, order kept.
+        XCTAssertEqual(PostKit.maxHashtags, 5)
+        XCTAssertEqual(PostKit.capHashtags(["#a", "b", "#A", "c", "", "B", "d", "e", "f"]), ["#a", "b", "c", "d", "e"])
+        let p = PostKit.build(caption: "Hi. There.", hashtags: ["a", "b", "#a", "c", "d", "e", "f", "g"])
+        XCTAssertEqual(p.instagram, "Hi. There.\n\n#a #b #c #d #e")
+        XCTAssertEqual(p.short, "Hi.\n#a #b #c")
+    }
+
     func testHashtagsInEveryScript() {
         XCTAssertEqual(PostKit.cleanHashtags(["diş", "歯医者", "طبيب_اسنان", "zahnärztin", "x-y", String(repeating: "a", count: 61)]), ["#diş", "#歯医者", "#طبيب_اسنان", "#zahnärztin"])
     }

@@ -1,6 +1,7 @@
 import { logger } from "../logger.js";
 import { supabase } from "../supabase.js";
 import type { PublisherAccount as SocialAccount, PublisherClip as Clip } from "../types/social.js";
+import { capHashtags } from "../lib/hashtags.js";
 
 const FB_API = "https://graph.facebook.com/v20.0";
 
@@ -24,7 +25,8 @@ export async function postToInstagram(
   if (signErr || !signed) throw new Error(signErr?.message ?? "could not sign video url");
 
   const captionParts = [clip.hook, clip.caption].filter(Boolean) as string[];
-  const tags = (clip.hashtags ?? []).map((t) => `#${t.replace(/^#/, "")}`).slice(0, 10);
+  // Instagram allows at most five hashtags per post (lib/hashtags.ts).
+  const tags = capHashtags((clip.hashtags ?? []).map((t) => `#${t.replace(/^#/, "")}`));
   const caption = `${captionParts.join("\n\n")}\n\n${tags.join(" ")}`.slice(0, 2200);
 
   // Move the access token out of the URL — IG Graph API accepts it as a

@@ -6,7 +6,7 @@ import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { postingText } from "@/content/dentvideo-posting";
 import { reasonText } from "@/content/dentvideo-reasons";
-import { postTexts, type PostTexts } from "@/lib/dentvid/posting";
+import { capHashtags, postTexts, type PostTexts } from "@/lib/dentvid/posting";
 import { CaptionTabs, useSaveAndCopy } from "./share-kit";
 import { HelpLink } from "./help-link";
 import {
@@ -39,7 +39,7 @@ export type Decide = (id: string, approval: LibraryItem["approval"], note?: stri
 /** The Instagram caption for a video: the worker's post kit, or the caption and hashtags of older videos. */
 export function postText(item: Pick<LibraryItem, "caption" | "hashtags" | "post">): string {
   if (item.post?.instagram) return item.post.instagram;
-  return [item.caption ?? "", (item.hashtags ?? []).map((h) => `#${h}`).join(" ")].filter(Boolean).join("\n\n");
+  return [item.caption ?? "", capHashtags((item.hashtags ?? []).map((h) => `#${h.replace(/^#/, "")}`)).join(" ")].filter(Boolean).join("\n\n");
 }
 
 /** Both texts for the caption tabs (Instagram, TikTok / Shorts), or null when the video has none. */

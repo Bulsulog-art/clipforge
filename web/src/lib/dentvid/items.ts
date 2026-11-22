@@ -4,7 +4,7 @@ import type { LibraryItem } from "@/components/dentvid/library";
 import { chosenPhotoIds, cleanPhotoIds, suggestBackgrounds, SUGGEST_MAX } from "./backgrounds";
 import { clinicReasons } from "./reasons";
 import { restyleStatus } from "./restyle";
-import { postTexts } from "./posting";
+import { capHashtags, postTexts } from "./posting";
 import { storedCues } from "./subtitles";
 import { CHANGE_STALE_MS } from "./clinic-requests";
 import type { ChangeView } from "@/components/dentvid/clinic-requests";
@@ -117,7 +117,7 @@ export async function loadItems(db: SupabaseClient, ownerId: string): Promise<{ 
     title: r.title,
     week_of: r.week_of,
     caption: r.copy?.caption,
-    hashtags: r.copy?.hashtags,
+    hashtags: Array.isArray(r.copy?.hashtags) ? capHashtags(r.copy.hashtags.filter((h): h is string => typeof h === "string")) : undefined,
     post: postTexts(r.copy) ?? undefined,
     postedAt: "posted_at" in r ? (r.posted_at ?? null) : undefined,
     reasons: clinicReasons(r.findings, r.status),
