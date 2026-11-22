@@ -230,7 +230,7 @@ export type DodoDeps = {
   cancelSubscription: (id: string) => Promise<void>;
 };
 
-export type DeleteStep = "lookup" | "billing" | "storage" | "items" | "clinic" | "auth";
+export type DeleteStep = "lookup" | "billing" | "storage" | "items" | "clinic" | "devices" | "auth";
 
 export type DeleteResult =
   | {
@@ -238,6 +238,8 @@ export type DeleteResult =
       files: number;
       items: number;
       clinic: boolean;
+      /** iPhone push tokens (dentvid_devices) removed. */
+      devices: number;
       cancelledSubscription: boolean;
       /** The Liman auth user itself was deleted (a DentVideo-only account). */
       userDeleted: boolean;
@@ -262,7 +264,10 @@ const notFound = (e: { status?: number; message?: string; code?: string } | null
  *   2. every storage object under "<owner>/" (videos, posters, recordings, logo);
  *   3. its dentvid_items rows;
  *   4. its dentvid_clinics row;
- *   5. the login — Liman is shared with other apps, so the auth user is
+ *   5. its dentvid_devices rows (iPhone push tokens) — removed here, not left
+ *      to the auth.users cascade, because step 6 may keep a shared login;
+ *      skipped while migration 0023 is not applied;
+ *   6. the login — Liman is shared with other apps, so the auth user is
  *      deleted only when it is DentVideo's alone (lib/dentvid/membership
  *      isDentvideoOnly: app_metadata.product = "dentvideo" and no other app's
  *      marker). Otherwise only DentVideo's app_metadata keys (product, internal,
@@ -328,7 +333,12 @@ export async function deleteDentvideoAccount(args: {
   const { error: de, count: clinics } = await admin.from("dentvid_clinics").delete({ count: "exact" }).eq("owner_id", owner);
   if (de) return { ok: false, reason: "failed", step: "clinic" };
 
-  // 5. Login: deleted only if no other app on Liman uses it.
+  // 5. Push tokens. The table cascades from auth.users, but a shared login is kept below,
+  // so delete them explicitly. Before migration 0023 the table is not there: nothing to do.
+  const { error: ve, count: devices } = await admin.from("dentvid_devices").delete({ count: "exact" }).eq("owner_id", owner);
+  if (ve && !missingRelation(ve)) return { ok: false, reason: "failed", step: "devices" };
+
+  // 6. Login: deleted only if no other app on Liman uses it.
   let userDeleted = false;
   let loginKept = false;
   const { data: got, error: ge } = await admin.auth.admin.getUserById(owner);
@@ -351,7 +361,7 @@ export async function deleteDentvideoAccount(args: {
   }
 
   const appStoreSubscription = clinic?.billing_source === "apple" && (clinic?.plan === "active" || clinic?.plan === "paused");
-  const result = { ok: true as const, files, items: items ?? 0, clinic: (clinics ?? 0) > 0 || !!clinic, cancelledSubscription, userDeleted, loginKept, appStoreSubscription };
+  const result = { ok: true as const, files, items: items ?? 0, clinic: (clinics ?? 0) > 0 || !!clinic, devices: ve ? 0 : (devices ?? 0), cancelledSubscription, userDeleted, loginKept, appStoreSubscription };
   (args.log ?? defaultLog)({
     evt: "dentvideo.account_deleted",
     // A one-way reference (not the id, no name or email) to match support questions.
@@ -359,6 +369,7 @@ export async function deleteDentvideoAccount(args: {
     files: result.files,
     items: result.items,
     clinic: result.clinic,
+    devices: result.devices,
     subscription_cancelled: cancelledSubscription,
     app_store_subscription_live: appStoreSubscription,
     login: userDeleted ? "deleted" : loginKept ? "kept_shared" : "gone",
