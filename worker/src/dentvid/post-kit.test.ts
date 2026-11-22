@@ -4,6 +4,7 @@ import { buildPostKit, firstSentence, localTags, postHashtags, postKitProblems, 
 import { scanHardRules } from "../dental/compliance.js";
 import { ctaProblems } from "../dental/style.js";
 import type { ItemRow } from "./rows.js";
+import { INSTAGRAM_MAX_HASHTAGS } from "../lib/hashtags.js";
 
 const TR = { name: "Örnek Diş Kliniği", city: "İzmir", language: "tr" as const, country: "TR", address: "formal" as const };
 const DE = { name: "Demo Zahnarztpraxis", city: "München", language: "de" as const, country: "DE", address: "formal" as const };
@@ -66,17 +67,18 @@ describe("hashtags", () => {
     expect(localTags({ language: "en" })).toEqual([]);
   });
 
-  it("5–10 tags: the clinic's first, local next, no duplicates, nothing the hard rules reject", () => {
+  it("at most five tags: the clinic's first, local next, no duplicates, nothing the hard rules reject", () => {
     const tags = postHashtags(["ornekdisklinigi", "distasi", "painless", "garanti", "#distasi"], TR);
     expect(tags[0]).toBe("ornekdisklinigi");
     expect(tags.slice(1, 3)).toEqual(["izmir", "izmirdishekimi"]);
     expect(tags).not.toContain("painless");
     expect(tags).not.toContain("garanti");
-    expect(tags.length).toBeGreaterThanOrEqual(5);
-    expect(tags.length).toBeLessThanOrEqual(10);
+    expect(tags).toHaveLength(INSTAGRAM_MAX_HASHTAGS);
     expect(new Set(tags).size).toBe(tags.length);
-    // A long list is capped at ten.
-    expect(postHashtags(Array.from({ length: 15 }, (_, i) => `tag${i}`), EN)).toHaveLength(10);
+    // A long list is trimmed to five, duplicates dropped, the order kept (most relevant first).
+    expect(INSTAGRAM_MAX_HASHTAGS).toBe(5);
+    expect(postHashtags(["own", "tag1", "#tag1", "TAG2", "tag3", "tag4", "tag5", "tag6", "tag7"], { language: "en" })).toEqual(["own", "tag1", "tag2", "tag3", "tag4"]);
+    expect(postHashtags(Array.from({ length: 15 }, (_, i) => `tag${i}`), EN)).toHaveLength(5);
     // No city, few tags: topped up from the language's generic tags.
     expect(postHashtags(["own"], { language: "ja" }).length).toBeGreaterThanOrEqual(5);
   });
@@ -100,14 +102,14 @@ describe("texts", () => {
   });
 
   for (const [lang, s] of Object.entries(SAMPLES)) {
-    it(`${lang}: Instagram caption has the body, the invitation, clinic · city and 5–10 tags; the short one fits a Shorts title`, () => {
+    it(`${lang}: Instagram caption has the body, the invitation, clinic · city and at most five tags; the short one fits a Shorts title`, () => {
       const kit = buildPostKit(s.copy, s.profile);
       expect(kit.instagram).toContain(kit.cta);
       expect(kit.instagram).toContain(`📍 ${s.profile.name} · ${s.profile.city}`);
       expect(kit.instagram.length).toBeLessThanOrEqual(2200);
       const tags = kit.instagram.split("\n").at(-1)!.split(" ");
-      expect(tags.length).toBeGreaterThanOrEqual(5);
-      expect(tags.length).toBeLessThanOrEqual(10);
+      expect(tags).toHaveLength(INSTAGRAM_MAX_HASHTAGS);
+      expect(kit.hashtags).toHaveLength(INSTAGRAM_MAX_HASHTAGS);
       expect(tags.every((t) => t.startsWith("#"))).toBe(true);
       expect(kit.short.split("\n")[0]).toContain(kit.cta);
       expect(kit.short.split("\n").at(-1)!.split(" ")).toHaveLength(3);

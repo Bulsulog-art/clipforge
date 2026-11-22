@@ -5,7 +5,8 @@
  *   postTexts       the ready-to-paste Instagram and TikTok / Shorts texts
  *                   for a video — the worker's post kit (worker/src/dentvid/
  *                   post-kit.ts, stored in dentvid_items.copy.post), or for
- *                   older videos the caption + hashtags as before. Nothing
+ *                   older videos the caption + hashtags as before. At most
+ *                   INSTAGRAM_MAX_HASHTAGS (5) hashtags either way. Nothing
  *                   here calls a model.
  *   weekSchedule    a suggested day and time for each of the week's videos,
  *                   spread Monday–Friday, in the clinic's local clock time —
@@ -35,14 +36,50 @@ export function leadSentence(text: string, max = 120): string {
   return `${(at > max / 2 ? cut.slice(0, at) : cut).trimEnd()}…`;
 }
 
+/**
+ * Instagram allows at most five hashtags on a post or Reel (announced
+ * December 2025). The worker holds its post kit to the same number
+ * (worker/src/lib/hashtags.ts), and so does the iOS app (PostKit.swift).
+ */
+export const INSTAGRAM_MAX_HASHTAGS = 5;
+
+/** The first `max` distinct tags in the order given (most relevant first); case and a leading "#" do not make a tag new. */
+export function capHashtags(tags: readonly string[], max = INSTAGRAM_MAX_HASHTAGS): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const tag of tags) {
+    const key = tag.trim().replace(/^#/, "").toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(tag.trim());
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+/**
+ * A kit written before the cap ends on a line of up to ten hashtags. Pasted
+ * as it is, Instagram would refuse it, so a closing line made only of
+ * hashtags keeps its first five (the clinic's own and the local ones lead).
+ */
+export function capTagLine(text: string, max = INSTAGRAM_MAX_HASHTAGS): string {
+  const at = text.lastIndexOf("\n");
+  const last = text.slice(at + 1).trim();
+  const tags = last.split(/\s+/);
+  if (tags.length <= max || !tags.every((t) => /^#[\p{L}\p{N}_]+$/u.test(t))) return text;
+  return `${text.slice(0, at + 1)}${capHashtags(tags, max).join(" ")}`;
+}
+
 export function postTexts(copy: CopyLike): PostTexts | null {
   if (!copy || typeof copy !== "object") return null;
   const post = copy.post as { instagram?: unknown; short?: unknown } | undefined;
   const instagram = str(post?.instagram, 2200);
   const short = str(post?.short, 600);
-  if (instagram && short) return { instagram, short };
+  if (instagram && short) return { instagram: capTagLine(instagram), short };
   const caption = str(copy.caption, 2200) ?? "";
-  const tags = Array.isArray(copy.hashtags) ? copy.hashtags.filter((h): h is string => typeof h === "string" && /^[\p{L}\p{N}_]{1,60}$/u.test(h.replace(/^#/, ""))).map((h) => `#${h.replace(/^#/, "")}`) : [];
+  const tags = Array.isArray(copy.hashtags)
+    ? capHashtags(copy.hashtags.filter((h): h is string => typeof h === "string" && /^[\p{L}\p{N}_]{1,60}$/u.test(h.replace(/^#/, ""))).map((h) => `#${h.replace(/^#/, "")}`))
+    : [];
   if (!caption && !tags.length) return null;
   return {
     instagram: [caption, tags.join(" ")].filter(Boolean).join("\n\n"),

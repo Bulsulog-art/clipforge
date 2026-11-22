@@ -4,7 +4,7 @@ import type { PostTexts } from "./posting";
 /**
  * Post kits as the worker writes them (worker/src/dentvid/post-kit.ts), for
  * the dev previews and the email samples: caption, the soft invitation to
- * ask, "📍 Clinic · City", 5–10 hashtags; and the one-line TikTok / Shorts
+ * ask, "📍 Clinic · City", at most five hashtags (Instagram's cap); and the one-line TikTok / Shorts
  * version. No I/O.
  */
 type Sample = { clinic: string; city: string; title: string; caption: string; cta: string; tags: string[]; video: string };
@@ -16,7 +16,7 @@ const S: Record<Locale, Sample> = {
     title: "Whitening myths, busted",
     caption: "Whitening toothpaste polishes surface stains — it can't change the natural color of your teeth.\n\nIf your teeth feel sensitive after whitening, that usually settles within a few days.",
     cta: "Questions about this? You're welcome to send us a message.",
-    tags: ["bristol", "dentistbristol", "teethwhitening", "whiteningmyths", "dentist", "oralhealth"],
+    tags: ["bristol", "dentistbristol", "teethwhitening", "whiteningmyths", "dentist"],
     video: "en/whitening-myths-debunked",
   },
   de: {
@@ -25,7 +25,7 @@ const S: Record<Locale, Sample> = {
     title: "Bleaching: Mythen im Check",
     caption: "Weißmacher-Zahnpasta poliert Verfärbungen an der Oberfläche – die natürliche Zahnfarbe ändert sie nicht.\n\nEmpfindliche Zähne nach dem Bleaching beruhigen sich meist nach wenigen Tagen.",
     cta: "Fragen dazu? Schreiben Sie uns gern eine Nachricht.",
-    tags: ["münchen", "zahnarztmünchen", "bleaching", "zahnaufhellung", "zahnarzt", "zahngesundheit"],
+    tags: ["münchen", "zahnarztmünchen", "bleaching", "zahnaufhellung", "zahnarzt"],
     video: "de/bleaching-zahnschmelz",
   },
   es: {
@@ -53,7 +53,7 @@ const S: Record<Locale, Sample> = {
     caption: "Beyazlatıcı diş macunları yüzeydeki lekeleri parlatır; dişin doğal rengini değiştirmez.\n\nBeyazlatma sonrası hassasiyet genellikle birkaç gün içinde azalır.",
     // Türkiye: the post may only inform (RG 33075), so the invitation sends viewers to their own dentist.
     cta: "Merak ettiğiniz bir şey varsa bir sonraki kontrolünüzde hekiminize sorabilirsiniz.",
-    tags: ["izmir", "izmirdishekimi", "disbeyazlatma", "dishassasiyeti", "dishekimi", "agizsagligi"],
+    tags: ["izmir", "izmirdishekimi", "disbeyazlatma", "dishassasiyeti", "dishekimi"],
     video: "tr/beyazlatma-hassasiyet",
   },
   ja: {

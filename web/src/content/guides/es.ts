@@ -232,7 +232,7 @@ export const GUIDES_ES: Guide[] = [
     topic: "post-ideas",
     category: "ideas",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-22",
     title: "Ideas de contenido para Instagram de una clínica dental: un año de temas seguros",
     seoTitle: "Instagram para clínica dental: ideas para un año",
     seoDescription: "Ideas de publicaciones para Instagram, Reels y TikTok de una clínica dental: preguntas de pacientes, tratamientos, equipo, temporada y qué evitar.",
@@ -315,7 +315,7 @@ export const GUIDES_ES: Guide[] = [
         heading: "Texto de la publicación y hashtags",
         paragraphs: [
           "El texto bajo el vídeo repite en breve lo que dice el vídeo y no añade promesas. Funciona bien: la pregunta en la primera línea, la respuesta en dos o tres frases y, al final, “Tu dentista te dirá qué es lo indicado en tu caso”. Nombre de la clínica y ciudad bastan para que te encuentren.",
-          "Hashtags: por tema y ciudad (#saludbucodental, #implantesdentales, #dentistamadrid), entre cinco y diez con sentido, antes que treinta al azar. Evita superlativos como “#mejordentista” y cualquier cosa que suene a oferta.",
+          "Hashtags: por tema y ciudad (#saludbucodental, #implantesdentales, #dentistamadrid), cinco como máximo: desde diciembre de 2025, Instagram limita las publicaciones y los reels a cinco hashtags. Evita superlativos como “#mejordentista” y cualquier cosa que suene a oferta.",
         ],
       },
       {

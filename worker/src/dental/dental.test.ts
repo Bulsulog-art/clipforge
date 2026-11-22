@@ -408,6 +408,11 @@ describe("finalHashtags", () => {
     expect(tags.filter((t) => t === "dişsağlığı")).toHaveLength(1);
     expect(tags).not.toContain("bad-tag!");
   });
+
+  it("keeps at most five tags (Instagram's cap), the clinic's first, no duplicates, in the model's order", () => {
+    const tags = finalHashtags(["#Brushing", "floss", "brushing", "gums", "enamel", "plaque", "cavities", "fluoride"], { name: "Sample Dental Practice", handle: "sampledental" });
+    expect(tags).toEqual(["sampledental", "brushing", "floss", "gums", "enamel"]);
+  });
 });
 
 describe("planWeek", () => {

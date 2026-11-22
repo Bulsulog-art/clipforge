@@ -104,5 +104,21 @@ apply to Japanese too.
 
 **Watch**
 
-- The worker's Instagram post kit still emits 5–10 hashtags (up to 12 in `finalHashtags`): above Instagram's cap.
+- ~~The worker's Instagram post kit still emits 5–10 hashtags (up to 12 in `finalHashtags`): above Instagram's cap.~~
+  Fixed in the follow-up below.
 - After deploy: IndexNow for the five new URLs and the three edited post-ideas guides only (not the whole sitemap).
+
+## 2026-11-22: Every Instagram hashtag list capped at five
+
+**Why.** Instagram allows at most five hashtags per post and Reel (announced December 2025); the post kit gave 5 to 10.
+
+- One constant per codebase: `INSTAGRAM_MAX_HASHTAGS = 5` in `worker/src/lib/hashtags.ts` and
+  `web/src/lib/dentvid/posting.ts`, `PostKit.maxHashtags` in the iOS core. Lists are trimmed in order (the clinic's own
+  tag, then local, then topic tags) with duplicates dropped.
+- Worker: post kit, copywriter prompt and `finalHashtags`, ClipForge Instagram publisher. TikTok / Shorts keep three.
+- Web: kits stored before the cap have their closing hashtag line cut to five when shown; samples trimmed to five.
+- Guides: the Turkish and Spanish post-ideas guides said five to ten; now "at most five". ja/ar/pl named no number.
+
+**Watch**
+
+- After deploy: IndexNow for the two edited guides only.

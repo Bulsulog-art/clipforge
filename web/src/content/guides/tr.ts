@@ -225,7 +225,7 @@ export const GUIDES_TR: Guide[] = [
     topic: "post-ideas",
     category: "ideas",
     published: "2026-11-08",
-    updated: "2026-11-20",
+    updated: "2026-11-22",
     title: "Diş hekimleri için Instagram paylaşım fikirleri: bir yıllık, yönetmeliğe uygun konu listesi",
     seoTitle: "Diş hekimi için Instagram paylaşım fikirleri",
     seoDescription: "Diş klinikleri için Instagram ve TikTok paylaşım fikirleri: hasta soruları, tedavi açıklamaları, ekip, mevsimsel konular ve kaçınılacak içerikler.",
@@ -307,7 +307,7 @@ export const GUIDES_TR: Guide[] = [
         heading: "Açıklama metni ve etiketler",
         paragraphs: [
           "Videonun altındaki metin, videonun söylediğini kısaca tekrar etmeli ve ek bir vaat içermemelidir. İyi bir yapı: soruyu ilk satıra yazın, iki üç cümleyle yanıtı özetleyin, son satırda “Kendi durumunuz için hekiminize danışın” gibi temkinli bir not ekleyin. Klinik adı ve şehir bilgisi bulunabilirlik için yeterlidir.",
-          "Etiketlerde konuya ve şehre odaklanın (#dişbeyazlatma, #implant, #ağızsağlığı, #istanbuldişhekimi gibi). Üstünlük iddiası taşıyan etiketlerden (#eniyidişhekimi gibi) ve indirim çağrıştıranlardan kaçının. Beş ile on arasında anlamlı etiket, uzun bir listeden daha işe yarar.",
+          "Etiketlerde konuya ve şehre odaklanın (#dişbeyazlatma, #implant, #ağızsağlığı, #istanbuldişhekimi gibi). Üstünlük iddiası taşıyan etiketlerden (#eniyidişhekimi gibi) ve indirim çağrıştıranlardan kaçının. En fazla beş anlamlı etiket seçin: Instagram, Aralık 2025'ten bu yana gönderi ve Reels başına en fazla beş etikete izin veriyor.",
         ],
       },
       {
@@ -343,7 +343,7 @@ export const GUIDES_TR: Guide[] = [
       { q: "Haftada kaç paylaşım yapılmalı?", a: "Haftada bir ila üç kısa video çoğu klinik için yeterli ve sürdürülebilirdir. Düzen, sıklıktan daha önemlidir." },
       { q: "TikTok için farklı içerik mi gerekir?", a: "Genellikle hayır. Aynı dikey, altyazılı kısa video Instagram Reels, TikTok ve YouTube Shorts'ta kullanılabilir; yalnızca açıklama metnini platforma göre kısaltın." },
       { q: "Bayram ya da özel gün kutlaması paylaşılabilir mi?", a: "Evet, kutlama mesajları bilgilendirme ya da iyi dilek niteliğindedir. Ancak bunlara indirim, kampanya ya da hediye eklemeyin; aksi halde tanıtım kurallarıyla çelişebilir." },
-      { q: "Hangi etiketleri kullanmalıyım?", a: "Konu ve şehir odaklı, beş ile on arası anlamlı etiket yeterlidir. “En iyi” gibi üstünlük iddiası taşıyan ya da indirim çağrıştıran etiketlerden kaçının." },
+      { q: "Hangi etiketleri kullanmalıyım?", a: "Konu ve şehir odaklı, en fazla beş anlamlı etiket kullanın (Instagram Aralık 2025'ten beri gönderi ve Reels başına beş etiketle sınırlıyor). “En iyi” gibi üstünlük iddiası taşıyan ya da indirim çağrıştıran etiketlerden kaçının." },
     ],
     sources: [RG, TDB, KVKK],
   },

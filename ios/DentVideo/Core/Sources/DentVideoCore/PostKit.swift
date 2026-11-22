@@ -20,6 +20,23 @@ public enum PostKit {
         return network == .instagram ? built.instagram : built.short
     }
 
+    /// Instagram allows at most five hashtags on a post or Reel (announced December 2025). The same
+    /// number as INSTAGRAM_MAX_HASHTAGS in web/src/lib/dentvid/posting.ts and worker/src/lib/hashtags.ts.
+    public static let maxHashtags = 5
+
+    /// The first `max` distinct tags in the order given; case and a leading "#" do not make a tag new.
+    public static func capHashtags(_ tags: [String], max: Int = maxHashtags) -> [String] {
+        var seen = Set<String>()
+        var out: [String] = []
+        for tag in tags {
+            let key = (tag.hasPrefix("#") ? String(tag.dropFirst()) : tag).lowercased()
+            guard !key.isEmpty, seen.insert(key).inserted else { continue }
+            out.append(tag)
+            if out.count >= max { break }
+        }
+        return out
+    }
+
     /// Hashtags as the web keeps them: letters, digits and underscore, at most 60, "#" in front.
     public static func cleanHashtags(_ tags: [String]?) -> [String] {
         (tags ?? []).compactMap { raw in
@@ -33,7 +50,7 @@ public enum PostKit {
 
     public static func build(caption: String?, hashtags: [String]?) -> PostTexts {
         let cap = (caption ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let tags = cleanHashtags(hashtags)
+        let tags = capHashtags(cleanHashtags(hashtags))
         let instagram = [cap, tags.joined(separator: " ")].filter { !$0.isEmpty }.joined(separator: "\n\n")
         let short = [cap.isEmpty ? "" : leadSentence(cap), tags.prefix(3).joined(separator: " ")].filter { !$0.isEmpty }.joined(separator: "\n")
         return PostTexts(instagram: instagram, short: short)

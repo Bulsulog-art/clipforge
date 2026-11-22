@@ -4,6 +4,7 @@ import { ctaProblems, BLOCKING_CTA } from "../dental/style.js";
 import { closingLineFindings } from "../dental/closing-line.js";
 import type { ClinicProfile } from "../dental/profile.js";
 import type { ItemRow } from "./rows.js";
+import { INSTAGRAM_MAX_HASHTAGS } from "../lib/hashtags.js";
 
 /**
  * The "post kit": the text a clinic pastes under a video, ready to post with
@@ -17,7 +18,8 @@ import type { ItemRow } from "./rows.js";
  *   instagram  the caption + the market's required warning, if any
  *              (Türkiye: RG 33075 md. 7/1-k, mandatory-notice.ts) + a soft,
  *              non-promotional invitation to ask + "📍 Clinic · City" +
- *              5–10 hashtags, local ones first
+ *              at most 5 hashtags (Instagram's cap since December 2025,
+ *              lib/hashtags.ts), the clinic's own first, then local ones
  *   short      one line for TikTok / YouTube Shorts: the caption's first
  *              sentence, the same invitation, the required warning, 3 hashtags
  *
@@ -29,7 +31,7 @@ export type PostKit = {
   v: 1;
   instagram: string;
   short: string;
-  /** Without "#", 5–10, the clinic's own tag first. */
+  /** Without "#", at most INSTAGRAM_MAX_HASHTAGS (5), the clinic's own tag first. */
   hashtags: string[];
   /** The closing invitation used in both texts. */
   cta: string;
@@ -169,8 +171,10 @@ const cleanTag = (h: string) => h.replace(/^#/, "").trim().toLowerCase();
 const tagCompliant = (h: string) => scanHardRules(h.replace(/_/g, " ")).length === 0;
 
 /**
- * 5–10 tags: the clinic's own (first, as finalHashtags put it), the local
- * ones, the copywriter's topic tags, then generic dental tags if still short.
+ * At most five tags (Instagram's cap, INSTAGRAM_MAX_HASHTAGS), most relevant
+ * first: the clinic's own (first, as finalHashtags put it), the local ones,
+ * the copywriter's topic tags, then generic dental tags if still short.
+ * Duplicates are dropped and the order is kept.
  */
 export function postHashtags(raw: string[], profile: Pick<ClinicProfile, "city" | "language">): string[] {
   // Turkish and Polish tags are written without diacritics, like the local
@@ -185,7 +189,7 @@ export function postHashtags(raw: string[], profile: Pick<ClinicProfile, "city" 
   for (const h of all) {
     if (!TAG_OK.test(h) || !tagCompliant(h) || out.includes(h)) continue;
     out.push(h);
-    if (out.length >= 10) break;
+    if (out.length >= INSTAGRAM_MAX_HASHTAGS) break;
   }
   return out;
 }

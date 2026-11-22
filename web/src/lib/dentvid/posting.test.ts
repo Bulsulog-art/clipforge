@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { isMissingColumn, leadSentence, postTexts, sharePayload, shareMethod, slotLabel, slotsFor, spreadDays, weekSchedule } from "./posting";
+import { capHashtags, capTagLine, INSTAGRAM_MAX_HASHTAGS, isMissingColumn, leadSentence, postTexts, sharePayload, shareMethod, slotLabel, slotsFor, spreadDays, weekSchedule } from "./posting";
+import { samplePostTexts } from "./posting-samples";
 import { POSTING_TEXT } from "@/content/dentvideo-posting";
 import { LOCALES } from "@/content/dentvideo";
 
@@ -16,6 +17,26 @@ describe("postTexts", () => {
     expect(postTexts({ caption: "c", post: { instagram: "x".repeat(2201), short: "S" } })?.instagram).toBe("c");
     expect(postTexts(null)).toBeNull();
     expect(postTexts({})).toBeNull();
+  });
+  it("at most five hashtags (Instagram's cap): a longer list is trimmed, deduplicated, in order", () => {
+    expect(INSTAGRAM_MAX_HASHTAGS).toBe(5);
+    expect(capHashtags(["#a", "b", "#A", "c", "", "B", "d", "e", "f", "g"])).toEqual(["#a", "b", "c", "d", "e"]);
+    const t = postTexts({ caption: "Hi. There.", hashtags: ["a", "b", "#a", "c", "d", "e", "f", "g"] });
+    expect(t?.instagram).toBe("Hi. There.\n\n#a #b #c #d #e");
+    expect(t?.short).toBe("Hi.\n#a #b #c");
+  });
+  it("a kit stored before the cap keeps only its first five hashtags; other texts are left alone", () => {
+    const old = "Body.\n\nAsk us.\n\n📍 Clinic · City\n\n#own #city #dentistcity #a #b #c #a #d";
+    expect(postTexts({ post: { instagram: old, short: "S #own" } })?.instagram).toBe("Body.\n\nAsk us.\n\n📍 Clinic · City\n\n#own #city #dentistcity #a #b");
+    expect(capTagLine("Body.\n\n#a #b #c")).toBe("Body.\n\n#a #b #c");
+    expect(capTagLine("A line with #one #two #three #four #five #six words")).toBe("A line with #one #two #three #four #five #six words");
+  });
+  it("the sample kits keep to five hashtags", () => {
+    for (const l of LOCALES) {
+      const tags = samplePostTexts(l).instagram.split("\n").at(-1)!.split(" ");
+      expect(tags.length).toBeLessThanOrEqual(INSTAGRAM_MAX_HASHTAGS);
+      expect(tags.every((h) => h.startsWith("#"))).toBe(true);
+    }
   });
   it("cuts a long lead sentence at a word", () => {
     const s = leadSentence(`${"word ".repeat(50)}.`, 40);
