@@ -84,3 +84,25 @@ apply to Japanese too.
 - Native review: a Japanese 歯科医師 or 医療広告 specialist, a UAE/KSA healthcare-compliance contact, a Polish
   izba-aware lawyer — before promoting these guides.
 - Next: per-market topic guides (ja: 自由診療の限定解除; ar: DHA approval workflow; pl: opinie pacjentów / ZnanyLekarz).
+
+## 2026-11-22: English channel guides (US/UK), definition, Instagram sameAs
+
+**Shipped**
+
+- Five English guides (`web/src/content/guides/channels-en.ts`): YouTube Shorts for dentists, Google Business Profile
+  for dentists, dental Instagram captions, dental waiting room TV, dental videos without being on camera. Each has an
+  FAQ, a soft CTA to the free preview, links to the product and to related guides; sitemap, llms.txt and llms-full.txt
+  pick them up from the library.
+- Platform facts read on the official pages on 2026-11-22: Shorts up to three minutes; YouTube health source features
+  list licensed doctors, nurses, psychologists, MFTs and clinical social workers (not dentists); YouTube GenAI
+  disclosure examples; Business Profile videos up to 30 s / 75 MB / 720p, posts archived after six months without a
+  date range; GOV.UK on TheMusicLicence. Instagram's five-hashtag cap (announced December 2025) also corrected in the
+  en/de/fr post-ideas guides, which said five to ten.
+- `SAME_AS`: https://www.instagram.com/dentvideo/ only. YouTube @dentvideoapp and TikTok @dentvideo wait until live.
+- English definition now names the weekly delivery (five videos every Monday); the English pricing intro is a
+  self-contained paragraph saying what DentVideo is.
+
+**Watch**
+
+- The worker's Instagram post kit still emits 5–10 hashtags (up to 12 in `finalHashtags`): above Instagram's cap.
+- After deploy: IndexNow for the five new URLs and the three edited post-ideas guides only (not the whole sitemap).

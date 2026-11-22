@@ -1,6 +1,7 @@
 import { alerts, MemoryOpsStore, type DeliverResult, type OpsStore } from "./ops-alert";
 import { raiseOwnerAlert, webOpsStore } from "./ops-server";
-import { HOT_LEAD_GATE_TTL_SEC, UNCAPPED_STEPS, hotLeadCaps, hotLeadDayKey, hotLeadGateKey, hotLeadHourKey, isBotUserAgent, type HotStep } from "./hot-leads";
+import { HOT_LEAD_GATE_TTL_SEC, UNCAPPED_STEPS, hotLeadCaps, hotLeadDayKey, hotLeadGateKey, hotLeadHourKey, type HotStep } from "./hot-leads";
+import { internalRequestReason } from "./internal-request";
 import { demoLanguage, demoPath, isDemoActive, type DemoRow } from "./demos";
 import { loadDemoRow } from "./demos-server";
 import { isAdminUser } from "./admin";
@@ -28,10 +29,15 @@ export async function isAdminRequest(): Promise<boolean> {
 /**
  * Why a demo request must not count (no view, no event, no alert): "bot"
  * for link-preview crawlers, search bots and scripts (by user agent),
- * "admin" for the owner opening his own demo. Null for a prospect.
+ * "internal" for our own checks (the `x-dv-internal: 1` header, the
+ * utm_source=internal first touch, or `internal: true` from a browser the
+ * page knows is ours; lib/dentvid/internal-request), "admin" for the owner
+ * opening his own demo. Null for a prospect.
  */
-export async function demoRequestSkip(req: Request): Promise<"bot" | "admin" | null> {
-  if (isBotUserAgent(req.headers.get("user-agent"))) return "bot";
+export async function demoRequestSkip(req: Request, props?: Record<string, unknown> | null): Promise<"bot" | "internal" | "admin" | null> {
+  const reason = internalRequestReason(req.headers, props);
+  if (reason === "bot") return "bot";
+  if (reason || props?.internal === true) return "internal";
   if (await isAdminRequest()) return "admin";
   return null;
 }

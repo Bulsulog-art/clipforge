@@ -4,9 +4,10 @@
 # (CI: .github/workflows/ios-dentvideo.yml, job "screens"). Nothing here talks to a server.
 #
 # Usage: ios/DentVideo/scripts/screens.sh [out-dir]   (default: build/screens)
-#   SCREENS_SET=full|medium|quick|iap   quick = a handful of screens; medium = English in full plus
-#   the key screens in de, ar, ja, dark and the largest text size (no iPad); iap = sign-up and
-#   purchase screens in English and Turkish
+#   SCREENS_SET=full|medium|quick|iap|requests   quick = a handful of screens; medium = English in
+#   full plus the key screens in de, ar, ja, dark and the largest text size (no iPad); iap = sign-up
+#   and purchase screens in English and Turkish; requests = "See it with your logo" and the clinic's
+#   requests (topic, change, subtitles) in English and Turkish, plus Arabic, dark and the largest text
 #
 # Output:
 #   <out>/review/<device>/<variant>/<screen>.jpg   half size, for looking at
@@ -50,7 +51,8 @@ ALL=(signin signin-error signin-loading forgot loading offline-first noplan paus
      video-review video-look video-approved video-posted video-declined decline post post-ready
      record record-locked camera-live camera-denied
      settings settings-bottom clinic videos delete signout
-     signup signup-code verify paywall paywall-unavailable activating confirming settings-appstore)
+     signup signup-code verify paywall paywall-unavailable activating confirming settings-appstore
+     preview-start preview preview-failed topics change change-sent)
 KEY=(signin signin-error noplan week week-full week-generating week-delayed week-offline approve-all
      video-review video-look video-approved decline post-ready record camera-live settings settings-bottom videos delete)
 AX=(signin week video-look post-ready record settings videos delete)
@@ -61,6 +63,8 @@ STORE=(week-full video-review post-ready camera-live record videos paywall)
 QUICK=(signin week video-look post-ready record settings)
 # Sign-up and in-app purchase: the new account's screens (noclinic = the clinic form) and the plan in Settings.
 IAP=(signin signup signup-code noclinic verify paywall paywall-unavailable activating confirming noplan settings settings-appstore)
+# The logo preview before the plans, and the clinic's own requests (topic, change, subtitles in "post").
+REQUESTS=(preview-start preview preview-failed paywall topics change change-sent post)
 
 locale_of() {
   case $1 in en) echo en_US;; tr) echo tr_TR;; de) echo de_DE;; es) echo es_ES;; fr) echo fr_FR;;
@@ -84,7 +88,7 @@ shot() { # device-id device-label variant lang screen [store]
     -AppleLanguages "($lang)" -AppleLocale "$(locale_of "$lang")" -DVScreen "$s" >/dev/null
   # Screens pushed or presented after the first load need longer, or the shot shows the screen
   # underneath (seen: "videos" captured as Settings in tr, es, pl).
-  case $s in clinic|videos|delete|signout|settings-bottom|forgot|signup|signup-code) sleep 4.5;; *) sleep 2.2;; esac
+  case $s in clinic|videos|delete|signout|settings-bottom|forgot|signup|signup-code|preview|preview-failed|topics|change) sleep 4.5;; *) sleep 2.2;; esac
   mkdir -p "$OUT/review/$dev/$variant"
   local png="$OUT/review/$dev/$variant/$s.png"
   xcrun simctl io "$id" screenshot --type=png "$png" >/dev/null 2>&1
@@ -109,7 +113,13 @@ variant() { # id dev appearance size lang screens...
 
 START=$(date +%s)
 boot "$PHONE_ID"
-if [ "$SET" = iap ]; then
+if [ "$SET" = requests ]; then
+  variant "$PHONE_ID" phone light large en "${REQUESTS[@]}"
+  variant "$PHONE_ID" phone light large tr "${REQUESTS[@]}"
+  variant "$PHONE_ID" phone dark large en preview topics change-sent
+  variant "$PHONE_ID" phone light large ar preview topics change
+  variant "$PHONE_ID" phone light accessibility-extra-extra-extra-large en preview topics change
+elif [ "$SET" = iap ]; then
   variant "$PHONE_ID" phone light large en "${IAP[@]}"
   variant "$PHONE_ID" phone light large tr "${IAP[@]}"
   variant "$PHONE_ID" phone dark large en paywall

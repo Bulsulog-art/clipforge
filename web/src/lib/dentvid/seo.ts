@@ -12,8 +12,7 @@ export function landingAlternates(): Record<string, string> {
   return languages;
 }
 
-import { ALTERNATE_NAMES, SAME_AS } from "@/content/guides/entity";
-import { OG_ALTERNATE_LOCALES, OG_LOCALE, ORG_ID, SAMPLE_UPLOAD_DATE, organizationNode, planOffers, softwareId, websiteNode } from "./seo-guides";
+import { OG_ALTERNATE_LOCALES, OG_LOCALE, ORG_ID, SAMPLE_UPLOAD_DATE, organizationNode, softwareNode, websiteNode } from "./seo-guides";
 
 export function landingMetadata(locale: Locale): Metadata {
   const c = LANDING[locale];
@@ -53,27 +52,15 @@ export function landingJsonLd(locale: Locale) {
     "@graph": [
       websiteNode(locale),
       organizationNode(),
-      {
-        "@type": "SoftwareApplication",
-        "@id": softwareId(),
-        name: "DentVideo",
-        alternateName: [...ALTERNATE_NAMES],
-        ...(SAME_AS.length ? { sameAs: [...SAME_AS] } : {}),
-        applicationCategory: "BusinessApplication",
-        operatingSystem: "Web",
-        inLanguage: locale,
-        description: c.meta.description,
-        url: absoluteUrl(LANDING_PATH[locale]),
-        // Only what can be bought: Group is "Contact us", so it has no Offer (no price published that is not sold).
-        offers: planOffers(locale),
-        publisher: PUBLISHER,
-      },
+      // The same product node as the About pages and guides (one @id, one description, one set of offers),
+      // so an answer engine reads the same facts about DentVideo wherever it lands.
+      softwareNode(locale),
       ...(c.faq.length ? [{ ...faqPage(c.faq), inLanguage: locale }] : []),
       // The sample week shown on this landing, in this landing's language.
       ...(samplesFor(locale) ?? []).map((v) => ({
         "@type": "VideoObject",
         name: v.name,
-        description: `${c.samples.heading} — DentVideo`,
+        description: `${c.samples.heading} (DentVideo)`,
         thumbnailUrl: absoluteUrl(sampleSrc(locale, v.slug, "jpg")),
         contentUrl: absoluteUrl(sampleSrc(locale, v.slug, "mp4")),
         uploadDate: SAMPLE_UPLOAD_DATE,

@@ -1,4 +1,4 @@
-import { GUIDES, GUIDE_HUB_LOCALES, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
+import { GUIDES, GUIDE_HUB_LOCALES, LANDING, LANDING_PATH, LANGUAGE_NAME, LOCALES, guidePath, guidesFor, type Locale } from "@/content/dentvideo";
 import { ENTITY, OPERATOR, PUBLISHER_NAME } from "@/content/guides/entity";
 import { LEGAL, LEGAL_KINDS, legalPath, operatorAddress } from "@/content/legal";
 import { guideMarkdown, reviewedDate, solutionMarkdown } from "@/content/guides/text";
@@ -20,7 +20,7 @@ import { DV_CURRENCIES, dvTierPrice } from "./pricing";
 const abs = (path: string) => dentvideoPublicUrl(path, "https://dentvideo.com", "");
 
 /** When the quick answers below were last checked against the product, billing and the pages. */
-export const LLMS_UPDATED = "2026-11-17";
+export const LLMS_UPDATED = "2026-11-20";
 
 /**
  * The questions dentists ask before choosing (agency, Canva, a video library,
@@ -44,6 +44,31 @@ function decisionAnswers(): string[] {
     `- DentVideo or Canva? Canva is a general design app with dental video templates, an AI voice generator and auto captions ${src("canva-dental-templates", "canva-ai-voice", "canva-auto-captions")}: someone on the team makes each video and checks every claim. It is the more flexible choice for posters, flyers and graphics. DentVideo makes and checks five videos a week and suits clinics short on time. Details with sources: ${page("vs-canva")}`,
     `- Is there a free option? Filming yourself costs only time, and Canva has a free plan ${src("canva-plans")}. DentVideo has no free plan or trial; what is free is the ad checker and the preview of a clinic's own videos before paying.`,
   ];
+}
+
+/** "For: … Not for: …", from the English landing's fit section, so llms.txt says exactly what the page says. */
+function fitAnswer(): string {
+  const f = LANDING.en.fit;
+  return `${f.yesHeading}: ${f.yes.join("; ")}. ${f.noHeading}: ${f.no.join("; ")}.`;
+}
+
+/** The English channel and format guides (2026-11-22), named in one quick answer so the question "where do I post these?" has a sourced reply. */
+const CHANNEL_SLUGS = [
+  "instagram-videos-for-dentists",
+  "tiktok-for-dentists",
+  "youtube-shorts-for-dentists",
+  "google-business-profile-for-dentists",
+  "dental-waiting-room-tv-videos",
+  "dental-instagram-captions",
+  "dental-videos-without-being-on-camera",
+] as const;
+
+/** The rules guides in the markets people ask about most (US/UK in English, Türkiye, Germany), with their URLs. */
+function rulesGuides(): string {
+  return (["en", "tr", "de"] as const)
+    .flatMap((l) => guidesFor(l).filter((g) => g.category === "rules"))
+    .map((g) => `${g.h1} (${abs(guidePath(g))})`)
+    .join("; ");
 }
 
 /**
@@ -71,9 +96,15 @@ function quickAnswers(): string[] {
     "- Which languages? Videos: English, German, Spanish, French, Italian, Portuguese, Turkish, Japanese, Arabic, Polish (formal or informal address). Website, in eight languages: English, German, Spanish, Turkish, French, Japanese, Arabic, Polish.",
     "- Can the clinic choose the voice and the closing line? Yes. The clinic chooses a female or male narrator for its new videos, and can add one calm closing line under its captions; DentVideo checks that line against the market's advertising rules (no booking push, no promises, no prices, no urgency) before saving it. Without one, the posts use DentVideo's own closing lines.",
     "- Who approves? The dentist, always: nothing is published until the clinic approves it, and the clinic posts approved videos itself.",
+    `- Who is DentVideo for, and who is it not for? ${fitAnswer()}`,
+    `- Is there an iPhone or Android app? Not yet (checked ${LLMS_UPDATED}). An iPhone app is in preparation and coming soon; it is not in the App Store today, and there is no Android app. DentVideo is a web app that works now in any phone or desktop browser; on a phone, an approved video opens the share menu so the clinic can post it to Instagram or TikTok from its own account.`,
+    `- Is this dental Instagram post allowed? It depends on the country. The free ad checker marks each sentence of a caption or ad as OK, risky or not allowed for the chosen market, with the reason and a link to the official text: ${abs(CHECKER_PATH.en)} (Turkish: ${abs(CHECKER_PATH.tr)}, German: ${abs(CHECKER_PATH.de)}). The rules guides explain each market in full: ${rulesGuides()}. Both are general information, not legal advice.`,
     `- Who operates DentVideo? ${OPERATOR.shortName} (Podgorica, Montenegro), trading as ${PUBLISHER_NAME}. Contact: ${OPERATOR.productEmail}.`,
     "- Are there customer reviews? Not yet: DentVideo is new and publishes no testimonials; none are invented.",
     ...decisionAnswers(),
+    `- Where can a dental practice use short patient-education videos, and how? ${CHANNEL_SLUGS.map((slug) => GUIDES.find((g) => g.slug === slug)!)
+      .map((g) => `${g.h1} (${abs(guidePath(g))})`)
+      .join("; ")}.`,
     `- Patient-education video topics by treatment: ${treatmentGuides.map((g) => `${g.h1.split(":")[0]} (${abs(guidePath(g))})`).join("; ")}.`,
     "",
   ];
@@ -131,7 +162,7 @@ function legalBlock(): string[] {
 function languageIndex(l: Locale): string[] {
   const lines = [
     `## ${LANGUAGE_NAME[l]} (${l})`,
-    `- [DentVideo — ${LANGUAGE_NAME[l]}](${abs(LANDING_PATH[l])}): landing page`,
+    `- [DentVideo (${LANGUAGE_NAME[l]})](${abs(LANDING_PATH[l])}): landing page`,
     `- [${ENTITY[l].h1}](${abs(ABOUT_PATH[l])}): ${ENTITY[l].definition}`,
     ...solutionsFor(l).map((p) => `- [${p.h1}](${abs(solutionPath(p))}): ${p.seoDescription}`),
     `- [${CHECKER[l].h1}](${abs(CHECKER_PATH[l])}): ${CHECKER[l].seoDescription}`,

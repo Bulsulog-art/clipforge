@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GUIDES, GUIDE_HUB_LOCALES, LANDING, LANDING_PATH, LOCALES, dirOf, guidePath, guidesFor } from "./dentvideo";
 import { dentvideoPaths, guideJsonLd, landingAlternates, landingJsonLd } from "@/lib/dentvid/seo";
 import { DV_PRICES_USD, DV_SELF_SERVE_TIERS } from "@/lib/dentvid/billing";
+import { RULES_GUIDE_LINKS } from "./landing/rules-guides";
 
 /** Shape of a value: object keys and array lengths, recursively. */
 function shape(v: unknown): unknown {
@@ -14,6 +15,17 @@ describe("DentVideo landing content", () => {
   it("every locale has the same keys and sections as English", () => {
     const en = shape(LANDING.en);
     for (const l of LOCALES) expect(shape(LANDING[l]), l).toEqual(en);
+  });
+
+  it("the rules section links only to rules guides of its own language", () => {
+    for (const [l, links] of Object.entries(RULES_GUIDE_LINKS)) {
+      for (const link of links!) {
+        const g = guidesFor(l as (typeof LOCALES)[number]).find((x) => x.slug === link.slug);
+        expect(g, `${l}: ${link.slug}`).toBeDefined();
+        expect(g!.category, link.slug).toBe("rules");
+      }
+    }
+    expect(RULES_GUIDE_LINKS.tr?.length).toBeGreaterThanOrEqual(2);
   });
 
   it("search snippets fit: titles up to 65 characters, descriptions 70–155", () => {

@@ -221,7 +221,7 @@ export const GUIDES_DE: Guide[] = [
     topic: "post-ideas",
     category: "ideas",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-22",
     title: "Social Media für die Zahnarztpraxis: Themenideen für Instagram, Reels und TikTok",
     seoTitle: "Social-Media-Ideen für die Zahnarztpraxis",
     seoDescription: "Themenideen für Instagram, Reels und TikTok in der Zahnarztpraxis: Patientenfragen, Behandlungen erklärt, Team, Saisonthemen und ein Beispielmonat.",
@@ -304,7 +304,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Beitragstext und Hashtags",
         paragraphs: [
           "Der Text unter dem Video wiederholt kurz, was das Video sagt, und fügt kein Versprechen hinzu. Bewährt hat sich: Frage in die erste Zeile, Antwort in zwei, drei Sätzen, zum Schluss „Ihre Zahnärztin berät Sie individuell“. Praxisname und Ort genügen für die Auffindbarkeit.",
-          "Hashtags: themen- und ortsbezogen (#Zahngesundheit, #Implantat, #ZahnarztKöln), fünf bis zehn sinnvolle statt dreißig beliebiger. Verzichten Sie auf Superlative wie #besterZahnarzt.",
+          "Hashtags: themen- und ortsbezogen (#Zahngesundheit, #Implantat, #ZahnarztKöln), höchstens fünf sinnvolle: Instagram erlaubt seit Dezember 2025 nur noch fünf Hashtags pro Beitrag und Reel. Verzichten Sie auf Superlative wie #besterZahnarzt.",
         ],
       },
       {
@@ -334,7 +334,7 @@ export const GUIDES_DE: Guide[] = [
       { q: "Wie oft sollte eine Praxis posten?", a: "Ein bis drei Beiträge pro Woche sind für die meisten Praxen gut machbar. Regelmäßigkeit ist wichtiger als Häufigkeit." },
       { q: "Brauche ich für TikTok andere Inhalte?", a: "Meist nicht. Dasselbe hochformatige, untertitelte Kurzvideo funktioniert auf Instagram Reels, TikTok und YouTube Shorts; nur den Text passen Sie an." },
       { q: "Darf ich Gewinnspiele machen?", a: "Gewinnspiele und Werbegaben sind in der Werbung für Heilbehandlungen nach § 7 HWG und dem Berufsrecht heikel. Verzichten Sie darauf oder lassen Sie sie vorher rechtlich prüfen." },
-      { q: "Welche Hashtags sollte eine Zahnarztpraxis nutzen?", a: "Fünf bis zehn thematisch und örtlich passende Hashtags wie #Zahngesundheit oder #ZahnarztHamburg. Verzichten Sie auf Superlative wie #besterZahnarzt und auf Hashtags, die an Rabatte erinnern." },
+      { q: "Welche Hashtags sollte eine Zahnarztpraxis nutzen?", a: "Höchstens fünf thematisch und örtlich passende Hashtags (das Limit von Instagram seit Dezember 2025) wie #Zahngesundheit oder #ZahnarztHamburg. Verzichten Sie auf Superlative wie #besterZahnarzt und auf Hashtags, die an Rabatte erinnern." },
       { q: "Sollte ich auf Kommentare antworten?", a: "Ja, freundlich und allgemein. Fragen zu individuellen Beschwerden beantworten Sie nicht öffentlich, sondern verweisen auf einen Termin oder das Telefon der Praxis." },
       { q: "Darf ich zu Feiertagen gratulieren?", a: "Ja, Grüße zu Feiertagen sind unproblematisch. Verbinden Sie sie aber nicht mit Aktionen, Rabatten oder Gutscheinen." },
       { q: "Woher bekomme ich neue Themen?", a: "Vom Team (welche Fragen kommen am Empfang und am Stuhl?), aus den Google-Suchvorschlägen zu Ihren Behandlungen und aus Kommentaren und Nachrichten unter Ihren eigenen Videos." },

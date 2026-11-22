@@ -132,7 +132,7 @@ export const en: LandingContent = {
   },
   pricing: {
     heading: "One monthly price. A finished week, every week.",
-    text: "Every plan includes five finished videos every Monday, written for the advertising rules where you practice and software-checked before you see them. Monthly, no contract, no setup fee.",
+    text: "DentVideo is a monthly subscription for dental clinics: every Monday, five finished patient-education videos, narrated, captioned and in your colors and logo, written for the advertising rules where you practice and software-checked for clinical accuracy before you approve them. Starter is the weekly videos; Practice adds clips cut from your own phone recordings. Monthly, no contract, no setup fee.",
     cta: "Continue to your preview",
     perMonth: "/month",
     from: "From {price}/month",

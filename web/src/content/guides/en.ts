@@ -360,7 +360,7 @@ export const GUIDES_EN: Guide[] = [
     topic: "post-ideas",
     category: "ideas",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-22",
     title: "Dental social media post ideas: a year of safe topics for Instagram, Reels and TikTok",
     seoTitle: "Dental social media post ideas for a whole year",
     seoDescription: "A year of dental social media post ideas: patient questions, treatments explained, aftercare, team, seasonal topics, captions and what to avoid.",
@@ -443,7 +443,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Captions and hashtags",
         paragraphs: [
           "The caption repeats briefly what the video says and adds no promise. A structure that works: the question on the first line, the answer in two or three sentences, then “Your dentist will advise you on your own situation”. Your clinic's name and town are enough to be found locally.",
-          "Hashtags: topic and place (#oralhealth, #dentalimplants, #manchesterdentist), five to ten relevant ones rather than thirty random ones. Avoid superlatives such as #bestdentist and anything that suggests a deal.",
+          "Hashtags: topic and place (#oralhealth, #dentalimplants, #manchesterdentist), no more than five relevant ones: Instagram has limited posts and Reels to five hashtags since December 2025. Avoid superlatives such as #bestdentist and anything that suggests a deal. Our guide to [dental Instagram captions](guide:dental-instagram-captions) has templates by post type.",
         ],
       },
       {

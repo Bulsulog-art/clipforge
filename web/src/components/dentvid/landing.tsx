@@ -7,8 +7,10 @@ import { appText } from "@/content/dentvideo-app";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { SHOWCASE } from "@/content/dentvideo-showcase";
 import { OPERATOR } from "@/content/guides/operator";
+import { ENTITY } from "@/content/guides/entity";
 import { LEGAL_NAV, legalPath } from "@/content/legal/nav";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
+import { RULES_GUIDE_LINKS } from "@/content/landing/rules-guides";
 import { LEGAL_KINDS } from "@/content/legal/types";
 import { landingJsonLd } from "@/lib/dentvid/seo";
 import { dvHref } from "@/lib/dentvid/host";
@@ -18,6 +20,7 @@ import { SampleVideo } from "./sample-video";
 import { Teaser } from "./teaser";
 import { LandingView, TrackedLink, TryLink } from "./track";
 import { HtmlLang } from "./guide-parts";
+import { LanguageHint } from "./lang-hint";
 
 /**
  * The DentVideo landing, in every language. One story, in the order a careful
@@ -138,14 +141,23 @@ function Hero({ locale }: { locale: Locale }) {
         </div>
 
         {/* Three short facts: a column on phones, three equal columns under the copy from sm up. */}
-        <ul className="grid min-w-0 gap-3 border-t border-dv-line pt-6 [grid-area:facts] sm:grid-cols-3 sm:gap-6 lg:self-start" data-hero-points>
-          {c.hero.facts.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-dv-ink sm:gap-2.5 sm:text-sm">
-              <Tick />
-              {f}
-            </li>
-          ))}
-        </ul>
+        <div className="min-w-0 [grid-area:facts] lg:self-start">
+          <ul className="grid min-w-0 gap-3 border-t border-dv-line pt-6 sm:grid-cols-3 sm:gap-6" data-hero-points>
+            {c.hero.facts.map((f) => (
+              <li key={f} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-dv-ink sm:gap-2.5 sm:text-sm">
+                <Tick />
+                {f}
+              </li>
+            ))}
+          </ul>
+          {/*
+            The one-sentence definition (content/guides/entity.ts), the same words as the About page, llms.txt and the
+            structured data: what an answer engine quotes when asked "what is DentVideo?".
+          */}
+          <p className="mt-6 max-w-[40rem] text-sm leading-relaxed text-dv-muted" data-definition>
+            {ENTITY[locale].definition}
+          </p>
+        </div>
 
         <div className="relative mx-auto w-full max-w-[15.5rem] [grid-area:phone] sm:max-w-[17rem] lg:max-w-[19.5rem] lg:self-center">
           {/* A soft halo and two hairline lens rings behind the phone (CSS only, no image). */}
@@ -403,6 +415,7 @@ function Control({ locale }: { locale: Locale }) {
 
 function Rules({ locale }: { locale: Locale }) {
   const r = LANDING[locale].rules;
+  const links = RULES_GUIDE_LINKS[locale] ?? [];
   return (
     <section id="rules" aria-labelledby="rules-heading" className="dv-on-dark dv-grain relative scroll-mt-20 overflow-hidden bg-dv-teal-900 text-[#f7f1e7]" data-rules>
       <div aria-hidden="true" className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[56rem] -translate-x-1/2 rounded-full bg-[#167269]/40 blur-3xl" />
@@ -438,6 +451,22 @@ function Rules({ locale }: { locale: Locale }) {
           </div>
         </div>
         <p className="mt-8 text-[0.9375rem] leading-relaxed text-[#d5e6e2] lg:mt-10">{r.close}</p>
+        {links.length > 0 && (
+          <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-1" data-rules-guides>
+            {links.map((l) => {
+              const g = guidesFor(locale).find((x) => x.slug === l.slug);
+              if (!g) return null;
+              return (
+                <li key={l.slug}>
+                  <Link href={dvHref(guidePath(g))} className="inline-flex min-h-11 items-center gap-1.5 text-[0.9375rem] font-semibold text-white underline decoration-white/40 underline-offset-[3px] hover:decoration-white">
+                    {l.label}
+                    <ArrowUpRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </section>
   );
@@ -909,6 +938,8 @@ export function DentVideoLanding({ locale }: { locale: Locale }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd(locale)) }} />
       <HtmlLang locale={locale} />
       <LandingView locale={locale} />
+      {/* English only: "this page is also in <your language>", picked before the first paint (lib/dentvid/lang-hint). */}
+      {locale === "en" && <LanguageHint />}
       <Hero locale={locale} />
       <Teaser locale={locale} copy={LANDING[locale].teaser} href={dvHref(`/dentvideo/start?lang=${locale}`)} />
       <Monday locale={locale} />

@@ -265,6 +265,8 @@ export type FunnelStepDef = { key: string; event: DvEventName; label: string; wh
  */
 export const FUNNEL: FunnelStepDef[] = [
   { key: "visit", event: "landing_view", label: "Landing views" },
+  // The preview section came into view (scrolled to, or the hero button): visit, reached, started.
+  { key: "seen", event: "preview_seen", label: "Reached the landing preview", where: { where: "landing" } },
   { key: "try", event: "try_clicked", label: "Clicked “See your preview” (no account)" },
   { key: "teaser", event: "preview_started", label: "Tried the landing preview", where: { where: "landing" } },
   { key: "cta", event: "cta_clicked", label: "Clicked a sign-up button" },

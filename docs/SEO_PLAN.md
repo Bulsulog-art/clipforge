@@ -495,3 +495,36 @@ and the DHA medical-director approval shape the Arabic rhythm; LINE 公式アカ
 
 Still for the owner: a native dental reviewer for the ja/ar/pl pages before promotion (wording and clinical tone),
 and a check of whether DHA/MOHAP or SFDA publish whitening-product rules worth citing on the Arabic page.
+
+## 13. GEO round: what answers clinic owners today (2026-11-20, branch `claude/dentvideo-geo-round`)
+
+### 13.1 Measurement (free web search, one engine, 2026-11-20; results vary by engine, country and day)
+
+| Question | Who answers / is cited | DentVideo |
+|---|---|---|
+| patient education videos for dental clinics | ADA Toothflix, Spear Education, ViewMedica, TuftsTube, AI-tool blogs (Scrimba, HeyGen) | not shown |
+| diş kliniği için hasta bilgilendirme videosu | university consent forms (Selçuk, Ege, Dicle, İBÜ), Yandex summary pages, one clinic vlog | not shown |
+| dental social media content service | Smile Marketing, My Social Practice, Wonderist, Optio, Sendible, Jetpack, Birdeye | not shown |
+| Zahnarztpraxis Patientenvideos | rework.com, HeyGen DE, iww.de, zm-online, ZWP, practice examples on Vimeo | not shown |
+| is this dental Instagram post allowed | ADA, ADA Australia, dentistry.co.uk, Mondaq, mysocialpractice (EN); hukukihaber, Resmî Gazete, alomaliye (TR); iww.de, zwp-online, aerzteblatt, ZKN (DE) | not shown |
+| "dentvideo.com" / "DentVideo" by name | unrelated dentalvideos.com, o360, ViewMedica | not indexed for its own name |
+
+The engine does not yet know the brand at all, so the bottleneck is discovery and authority (Search Console,
+Bing Webmaster, IndexNow, genuine off-site profiles for `sameAs`), not on-page copy. The rules questions are
+where DentVideo's pages are strongest (official sources, dated), and they are answered today by law-firm and
+trade-press pages.
+
+### 13.2 What changed
+
+- One definition everywhere, with no dashes: `entity.ts` definition reworded in all eight languages and shown
+  under the homepage hero facts (`data-definition`), so the homepage, About, JSON-LD, llms.txt and
+  OFFSITE_PLAN quote the same sentence.
+- The homepage now emits the same `SoftwareApplication` node as the About pages (`softwareNode`): one
+  description, video languages, audience and offers per `@id`, instead of two different descriptions.
+- llms.txt: "who it is for / not for" (the landing's fit section), "is there an iPhone app" (coming soon,
+  not in the App Store, checked by iTunes lookup of `com.bulsulabs.dentvideo` on 2026-11-20), and "is this
+  post allowed" (ad checker plus every EN/TR/DE rules guide).
+- Sitemap lastmod: landings and About 2026-11-20, help 2026-11-17 (first-week time changed on 11-17 but the
+  constant still said 11-16; About FAQ changed on 11-16 but the constant said 11-10).
+- No new comparison page: EN/DE/TR "DentVideo vs agency" and "vs Canva" pages already exist (#167).
+- Tests: `web/src/content/geo-entity.test.ts`.

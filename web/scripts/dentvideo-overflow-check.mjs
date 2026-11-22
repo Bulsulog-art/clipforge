@@ -41,6 +41,8 @@ const pages = [
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ reducedMotion: "reduce" });
+// Funnel events from this run are ours: the server tags them internal (web/src/lib/dentvid/internal-request.ts).
+await ctx.route("**/api/dentvideo/event", (r) => r.continue({ headers: { ...r.request().headers(), "x-dv-internal": "1" } }));
 const findings = [];
 for (const path of pages) {
   for (const width of WIDTHS) {

@@ -48,10 +48,12 @@ export const ALTERNATE_NAMES = ["Dent Video", "DentVideo app"] as const;
 /**
  * Official profiles of DentVideo elsewhere (LinkedIn, Crunchbase, G2, Product
  * Hunt, Wikidata …), emitted as `sameAs`. Add a URL only once the profile is
- * live and says the same as this file (docs/OFFSITE_PLAN.md). None exists yet
- * (2026-11-09), so this stays empty: an invented sameAs is worse than none.
+ * live and says the same as this file (docs/OFFSITE_PLAN.md): an invented
+ * sameAs is worse than none. Instagram confirmed live by the owner 2026-11-22.
+ * YouTube (@dentvideoapp) and TikTok (@dentvideo) are reserved but not yet
+ * confirmed live: add them here only once they are.
  */
-export const SAME_AS: readonly string[] = [];
+export const SAME_AS: readonly string[] = ["https://www.instagram.com/dentvideo/"];
 
 const BASE: Record<Locale, EntityFacts> = {
   en: {
@@ -62,7 +64,7 @@ const BASE: Record<Locale, EntityFacts> = {
     },
     h1: "What is DentVideo?",
     definition:
-      "DentVideo is a web app for dental clinics that makes short patient-education videos — narrated, captioned and in the clinic's colors — and checks every script for clinical accuracy and health-advertising rules before the dentist approves it. It is made by Bulsu Labs.",
+      "DentVideo is a web app for dental clinics that delivers five short, narrated and captioned patient-education videos every Monday, in the clinic's colors and logo, and checks every script for clinical accuracy and health-advertising rules before the dentist approves it. It is made by Bulsu Labs.",
     facts: [
       { label: "What it is", value: "A web app (software as a service) that makes short educational videos for dental clinics' social media, website and waiting room." },
       { label: "Who it is for", value: "Dentists and dental clinics that want to post regularly without filming every week or hiring an agency." },
@@ -71,9 +73,9 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "How content is checked", value: "Software checks every script and caption twice: once against commonly restricted advertising claims (guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises, testimonials) and once against mainstream clinical guidance, with the software set up to think like a general dentist. What fails is rewritten or not made. The dentist's own words are never changed; a clip worth a second look is marked with the reason." },
       { label: "Who decides", value: "The dentist. Nothing is published until the clinic approves it, and DentVideo does not post to social networks itself: the clinic downloads approved videos and posts them." },
       { label: "Legal status of the checks", value: "A careful filter, not legal advice. The clinic remains responsible for what it publishes and should check its national rules." },
-      { label: "Price", value: `Paid plans, monthly, excluding tax: Starter ${PRICE.starter}, Practice ${PRICE.practice} (US dollars in most countries, euros in the euro area, Turkish lira in Türkiye: the billing country decides). Groups and multi-location practices: priced per location — contact us at hello@dentvideo.com. No discounts. Monthly, with no minimum term. Before paying, a clinic sees a live preview of its own branded videos with its logo and colors; its first week of videos is made right after payment.` },
+      { label: "Price", value: `Paid plans, monthly, excluding tax: Starter ${PRICE.starter}, Practice ${PRICE.practice} (US dollars in most countries, euros in the euro area, Turkish lira in Türkiye: the billing country decides). Groups and multi-location practices: priced per location, on request at hello@dentvideo.com. No discounts. Monthly, with no minimum term. Before paying, a clinic sees a live preview of its own branded videos with its logo and colors; its first week of videos is made right after payment.` },
       { label: "Publisher", value: "Bulsu Labs (bulsulabs.com)." },
-      { label: "Website", value: "dentvideo.com — in English, German, Spanish, Turkish, French, Japanese, Arabic and Polish." },
+      { label: "Website", value: "dentvideo.com, in English, German, Spanish, Turkish, French, Japanese, Arabic and Polish." },
     ],
     sections: [
       {
@@ -106,7 +108,7 @@ const BASE: Record<Locale, EntityFacts> = {
     },
     h1: "Was ist DentVideo?",
     definition:
-      "DentVideo ist eine Web-App für Zahnarztpraxen, die kurze Patientenaufklärungsvideos erstellt — vertont, untertitelt und in den Farben der Praxis — und jedes Skript auf fachliche Richtigkeit und Werberecht prüft, bevor die Zahnärztin oder der Zahnarzt es freigibt. Entwickelt von Bulsu Labs.",
+      "DentVideo ist eine Web-App für Zahnarztpraxen, die kurze, vertonte und untertitelte Patientenaufklärungsvideos in den Farben der Praxis erstellt und jedes Skript auf fachliche Richtigkeit und Werberecht prüft, bevor die Zahnärztin oder der Zahnarzt es freigibt. Entwickelt von Bulsu Labs.",
     facts: [
       { label: "Was es ist", value: "Eine Web-App (Software as a Service), die kurze Aufklärungsvideos für Social Media, Website und Wartezimmer von Zahnarztpraxen erstellt." },
       { label: "Für wen", value: "Zahnärztinnen, Zahnärzte und Praxen, die regelmäßig posten möchten, ohne jede Woche zu drehen oder eine Agentur zu beauftragen." },
@@ -117,13 +119,13 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Rechtlicher Stellenwert", value: "Ein sorgfältiger Filter, keine Rechtsberatung. Verantwortlich für Veröffentlichungen bleibt die Praxis." },
       { label: "Preis", value: `Monatliche Tarife zzgl. Steuern: Starter ${PRICE.starter}, Practice ${PRICE.practice} (Euro im Euroraum, Türkische Lira in der Türkei, sonst US-Dollar: das Rechnungsland entscheidet). Praxisgruppen und Praxen mit mehreren Standorten: Preis pro Standort, auf Anfrage an hello@dentvideo.com. Keine Rabatte. Monatlich, ohne Mindestlaufzeit. Vor der Zahlung sieht eine Praxis eine Live-Vorschau ihrer eigenen Videos mit Logo und Farben; die erste Woche Videos entsteht direkt nach der Zahlung.` },
       { label: "Anbieter", value: "Bulsu Labs (bulsulabs.com)." },
-      { label: "Website", value: "dentvideo.com — auf Deutsch, Englisch, Spanisch, Türkisch, Französisch, Japanisch, Arabisch und Polnisch." },
+      { label: "Website", value: "dentvideo.com, auf Deutsch, Englisch, Spanisch, Türkisch, Französisch, Japanisch, Arabisch und Polnisch." },
     ],
     sections: [
       {
         heading: "Warum es DentVideo gibt",
         paragraphs: [
-          "Patienten wählen gern eine Praxis, die sie schon ein wenig zu kennen glauben — kurze Videos sind dafür einer der einfachsten Wege. Doch jede Woche zu posten kostet Zeit, und Werbung für Heilbehandlungen ist reguliert: Ein „schmerzfrei“, ein Rabatt oder ein Vorher-Nachher-Versprechen kann gegen das Heilmittelwerbegesetz oder die Berufsordnung verstoßen. Allgemeine Video-Tools kennen diesen Unterschied nicht.",
+          "Patienten wählen gern eine Praxis, die sie schon ein wenig zu kennen glauben, und kurze Videos sind dafür einer der einfachsten Wege. Doch jede Woche zu posten kostet Zeit, und Werbung für Heilbehandlungen ist reguliert: Ein „schmerzfrei“, ein Rabatt oder ein Vorher-Nachher-Versprechen kann gegen das Heilmittelwerbegesetz oder die Berufsordnung verstoßen. Allgemeine Video-Tools kennen diesen Unterschied nicht.",
           "DentVideo macht den regelmäßigen Teil einfach und den riskanten Teil sichtbar: Die Videos werden für Sie erstellt, softwaregestützt auf das geprüft, worauf eine sorgfältige Kollegin achten würde, und das letzte Wort hat die Praxis.",
         ],
       },
@@ -150,7 +152,7 @@ const BASE: Record<Locale, EntityFacts> = {
     },
     h1: "¿Qué es DentVideo?",
     definition:
-      "DentVideo es una aplicación web para clínicas dentales que crea vídeos cortos de educación al paciente —narrados, subtitulados y con los colores de la clínica— y revisa cada guion en precisión clínica y normas de publicidad sanitaria antes de que el dentista lo apruebe. La desarrolla Bulsu Labs.",
+      "DentVideo es una aplicación web para clínicas dentales que crea vídeos cortos de educación al paciente, narrados, subtitulados y con los colores de la clínica, y revisa cada guion en precisión clínica y normas de publicidad sanitaria antes de que el dentista lo apruebe. La desarrolla Bulsu Labs.",
     facts: [
       { label: "Qué es", value: "Una aplicación web (software como servicio) que crea vídeos educativos cortos para las redes sociales, la web y la sala de espera de clínicas dentales." },
       { label: "Para quién", value: "Dentistas y clínicas dentales que quieren publicar con regularidad sin grabar cada semana ni contratar una agencia." },
@@ -161,7 +163,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Valor jurídico", value: "Un filtro cuidadoso, no asesoramiento jurídico. La clínica sigue siendo responsable de lo que publica." },
       { label: "Precio", value: `Planes mensuales, impuestos no incluidos: Starter ${PRICE.starter}, Practice ${PRICE.practice} (euros en la zona euro, liras turcas en Turquía y dólares estadounidenses en el resto: decide el país de facturación). Grupos y clínicas con varias sedes: precio por sede; escríbenos a hello@dentvideo.com. Sin descuentos. Mensuales y sin permanencia. Antes de pagar, la clínica ve una vista previa en directo de sus propios vídeos con su logo y sus colores; su primera semana de vídeos se crea justo después del pago.` },
       { label: "Empresa", value: "Bulsu Labs (bulsulabs.com)." },
-      { label: "Web", value: "dentvideo.com — en español, inglés, alemán, turco, francés, japonés, árabe y polaco." },
+      { label: "Web", value: "dentvideo.com, en español, inglés, alemán, turco, francés, japonés, árabe y polaco." },
     ],
     sections: [
       {
@@ -194,7 +196,7 @@ const BASE: Record<Locale, EntityFacts> = {
     },
     h1: "DentVideo nedir?",
     definition:
-      "DentVideo, diş klinikleri için kısa hasta bilgilendirme videoları üreten —seslendirilmiş, altyazılı ve kliniğin renklerinde— ve her senaryoyu diş hekimi onaylamadan önce klinik doğruluk ve sağlık tanıtım kurallarına göre denetleyen bir web uygulamasıdır. Bulsu Labs tarafından geliştirilir.",
+      "DentVideo, diş klinikleri için seslendirilmiş, altyazılı ve kliniğin renklerinde kısa hasta bilgilendirme videoları üreten ve her senaryoyu diş hekimi onaylamadan önce klinik doğruluk ve sağlık tanıtım kurallarına göre denetleyen bir web uygulamasıdır. Bulsu Labs tarafından geliştirilir.",
     facts: [
       { label: "Nedir", value: "Diş kliniklerinin sosyal medyası, web sitesi ve bekleme salonu için kısa bilgilendirme videoları üreten bir web uygulaması (hizmet olarak yazılım)." },
       { label: "Kimin için", value: "Her hafta çekim yapmadan ya da ajansla çalışmadan düzenli paylaşım yapmak isteyen diş hekimleri ve diş klinikleri." },
@@ -205,7 +207,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Hukuki niteliği", value: "Özenli bir filtre; hukuki danışmanlık değildir. Yayınlanan içerikten klinik sorumludur." },
       { label: "Ücret", value: `Aylık planlar, vergiler hariç: Starter ${PRICE.starter}, Practice ${PRICE.practice} (Türkiye'de Türk lirası, Euro Bölgesi'nde avro, diğer ülkelerde ABD doları: fatura ülkesi belirler). Gruplar ve birden fazla şubesi olan klinikler: şube başına fiyatlandırılır; hello@dentvideo.com adresine yazın. İndirim yoktur. Aylık, asgari süre yok. Klinik, ödeme yapmadan önce kendi videolarının logosu ve renkleriyle canlı önizlemesini görür; ilk haftanın videoları ödemenin hemen ardından hazırlanır.` },
       { label: "Geliştiren", value: "Bulsu Labs (bulsulabs.com)." },
-      { label: "Web sitesi", value: "dentvideo.com — Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, Japonca, Arapça ve Lehçe." },
+      { label: "Web sitesi", value: "dentvideo.com: Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, Japonca, Arapça ve Lehçe." },
     ],
     sections: [
       {
@@ -238,7 +240,7 @@ const BASE: Record<Locale, EntityFacts> = {
     },
     h1: "Qu'est-ce que DentVideo ?",
     definition:
-      "DentVideo est une application web pour cabinets dentaires qui crée de courtes vidéos d'information patient — narrées, sous-titrées et aux couleurs du cabinet — et vérifie chaque script pour l'exactitude clinique et les règles de communication en santé avant que le chirurgien-dentiste ne le valide. Elle est développée par Bulsu Labs.",
+      "DentVideo est une application web pour cabinets dentaires qui crée de courtes vidéos d'information patient, narrées, sous-titrées et aux couleurs du cabinet, et vérifie chaque script pour l'exactitude clinique et les règles de communication en santé avant que le chirurgien-dentiste ne le valide. Elle est développée par Bulsu Labs.",
     facts: [
       { label: "Ce que c'est", value: "Une application web (logiciel en ligne) qui crée de courtes vidéos d'information pour les réseaux sociaux, le site et la salle d'attente des cabinets dentaires." },
       { label: "Pour qui", value: "Les chirurgiens-dentistes et cabinets qui veulent publier régulièrement sans filmer chaque semaine ni passer par une agence." },
@@ -249,7 +251,7 @@ const BASE: Record<Locale, EntityFacts> = {
       { label: "Portée juridique", value: "Un filtre attentif, pas un conseil juridique. Le cabinet reste responsable de ce qu'il publie." },
       { label: "Prix", value: `Formules mensuelles, hors taxes : Starter ${PRICE.starter}, Practice ${PRICE.practice} (en euros dans la zone euro, en livres turques en Turquie, en dollars américains ailleurs : le pays de facturation décide). Groupes et cabinets à plusieurs sites : tarif par site, sur demande à hello@dentvideo.com. Aucune remise. Mensuelles, sans engagement. Avant de payer, le cabinet voit un aperçu en direct de ses propres vidéos, à son logo et à ses couleurs ; sa première semaine de vidéos est réalisée dès le paiement.` },
       { label: "Éditeur", value: "Bulsu Labs (bulsulabs.com)." },
-      { label: "Site", value: "dentvideo.com — en français, anglais, allemand, espagnol, turc, japonais, arabe et polonais." },
+      { label: "Site", value: "dentvideo.com, en français, anglais, allemand, espagnol, turc, japonais, arabe et polonais." },
     ],
     sections: [
       {
@@ -427,7 +429,7 @@ const BRAND_FAQ: Record<Locale, Faq[]> = {
     { q: "Was kostet DentVideo?", a: "DentVideo hat monatliche Tarife ohne Mindestlaufzeit; die aktuellen Preise stehen oben unter „Preis“ und im Preisbereich der Startseite. Vor der Zahlung sehen Sie eine Live-Vorschau Ihrer eigenen Videos." },
     { q: "Wie melde ich mich bei DentVideo an?", a: "Öffnen Sie dentvideo.com/start und wählen Sie „Anmelden“, oder tippen Sie oben auf „Zur App“: Wenn Sie abgemeldet sind, landen Sie im Anmeldeformular. Installieren müssen Sie nichts." },
     { q: "Gibt es eine DentVideo-App fürs Smartphone?", a: "Noch nicht in den App-Stores. DentVideo ist eine Web-App, die im Browser Ihres Smartphones läuft; dort öffnet ein freigegebenes Video das Teilen-Menü, sodass Sie es auf Instagram oder TikTok posten können." },
-    { q: "Wo finde ich Bewertungen zu DentVideo?", a: "DentVideo ist neu, und wir veröffentlichen keine Kundenstimmen — auch weil das Werberecht für Heilberufe sie oft einschränkt. Fair beurteilen können Sie es anhand der Beispielvideos auf der Startseite und der Live-Vorschau Ihrer eigenen Videos vor der Zahlung." },
+    { q: "Wo finde ich Bewertungen zu DentVideo?", a: "DentVideo ist neu, und wir veröffentlichen keine Kundenstimmen, auch weil das Werberecht für Heilberufe sie oft einschränkt. Fair beurteilen können Sie es anhand der Beispielvideos auf der Startseite und der Live-Vorschau Ihrer eigenen Videos vor der Zahlung." },
     { q: "Ist DentVideo eine Alternative zu einer Marketing-Agentur oder zu Canva?", a: "Für die wöchentlichen Aufklärungsvideos ja: DentVideo erstellt und prüft sie, Sie geben frei und posten. Anzeigen, Kommentare und Dreh in der Praxis wie bei einer Agentur gehören nicht dazu, Plakate und Flyer wie in einer Design-App auch nicht. Die Vergleichsseiten unter „DentVideo für Zahnarztpraxen“ stellen die Wege nebeneinander." },
     { q: "Kann ich die Stimme und den Schlusssatz wählen?", a: "Ja. In den Praxiseinstellungen wählen Sie eine weibliche oder männliche Stimme für neue Videos und können einen ruhigen Schlusssatz unter Ihre Beiträge setzen; DentVideo prüft ihn vor dem Speichern auf die Werberegeln Ihres Landes." },
   ],

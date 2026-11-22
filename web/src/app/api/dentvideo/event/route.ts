@@ -7,6 +7,7 @@ import { limitChecks } from "@/lib/rate-limit-server";
 import { hotStepForEvent } from "@/lib/dentvid/hot-leads";
 import { demoRequestSkip, raiseHotLead } from "@/lib/dentvid/hot-leads-server";
 import { isInternalUser } from "@/lib/dentvid/internal-traffic";
+import { internalRequestReason } from "@/lib/dentvid/internal-request";
 
 /**
  * POST /api/dentvideo/event — first-party funnel events from the browser
@@ -33,6 +34,8 @@ export async function POST(req: Request) {
   // The country comes from the proxy's geo header (an ISO code), never from the body.
   const row = parseClientEvent(text, requestCountry(req.headers));
   if (!row) return NextResponse.json({ error: "bad event" }, { status: 400 });
+  // Automated browsers, crawlers and our own scripts (header or utm_source=internal): kept, tagged internal.
+  if (internalRequestReason(req.headers, row.props)) row.props.internal = true;
 
   if (DV_CLINIC_CLIENT_EVENTS.includes(row.name)) {
     try {
@@ -58,11 +61,11 @@ export async function POST(req: Request) {
   ]);
   if (!second.ok) return NO_CONTENT();
 
-  // A demo page's play / CTA click: not from a bot or the owner testing his own demo
+  // A demo page's play / CTA click: not from a bot, our own checks (internal) or the owner testing his own demo
   // (they would skew /admin/demos), and the first one raises a hot-lead alert.
   const step = hotStepForEvent(row.name, row.props);
   const demoToken = typeof row.props.demo === "string" ? row.props.demo : null;
-  if (step && (!demoToken || (await demoRequestSkip(req)))) return NO_CONTENT();
+  if (step && (!demoToken || (await demoRequestSkip(req, row.props)))) return NO_CONTENT();
 
   await insertEventRow(row);
   if (step && demoToken) void raiseHotLead({ token: demoToken, step });

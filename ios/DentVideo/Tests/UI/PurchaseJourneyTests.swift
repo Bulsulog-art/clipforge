@@ -28,6 +28,9 @@ final class PurchaseJourneyTests: DVTestCase {
         XCTAssertTrue(save.isEnabled)
         save.tap()
 
+        // "See it with your logo" comes first for a new clinic, then the plans.
+        wait(el("preview.continue"), 15, "logo preview after the clinic form").tap()
+
         // The paywall: both plans with StoreKit's prices, restore, terms, privacy, the 3.1.2 text.
         let starter = wait(el("paywall.buy.starter"), 12, "paywall")
         XCTAssertTrue(el("paywall.buy.practice").exists)

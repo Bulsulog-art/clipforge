@@ -34,6 +34,8 @@ final class AppModel {
     var weekPath: [String] = []
     /// Ask for notifications after the first sign-in, with our explanation first.
     var showNotificationPrimer = false
+    /// "See it with your logo" right after a new account's clinic form, before the plans.
+    var showLogoPreview = false
 
     @ObservationIgnored let api: APIClient
     @ObservationIgnored private let store: TokenStore
@@ -120,6 +122,7 @@ final class AppModel {
         await Notifications.clearAll()
         Prefs.clear()
         me = nil
+        showLogoPreview = false
         weekPath = []
         items = []
         notice = nil
@@ -227,7 +230,7 @@ final class AppModel {
         }
     }
 
-    private func saveSnapshot() {
+    func saveSnapshot() {
         guard let me else { return }
         snapshots.save(Snapshot(me: me, items: ItemsResponse(currentWeek: currentWeek, items: items), savedAt: lastUpdated ?? Date()))
     }

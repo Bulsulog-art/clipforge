@@ -1,29 +1,22 @@
 /**
- * DentVideo first-party funnel events — the allow-list and the payload rules.
+ * DentVideo first-party funnel events: the allow-list and the payload rules. Pure, shared by the
+ * browser (events-client), POST /api/dentvideo/event, the server recorders and the tests.
  *
- * Pure (no I/O, no Next imports) so the browser helper (events-client), the
- * POST /api/dentvideo/event route, the server-side recorders and the tests
- * share one definition.
+ * Privacy, enforced here: only allow-listed names; per-event prop allow-lists whose values must fit a
+ * narrow shape (enum, short slug, host, small int, boolean, ISO country), so free text (an email, a
+ * name, a URL path) never gets through; anything still like an email or phone is dropped; no IP,
+ * user agent or cookie id is ever part of an event.
  *
- * Privacy rules, enforced here rather than trusted from callers:
- * - only allow-listed event names are stored;
- * - each event has its own prop allow-list, and every value must match a
- *   narrow shape (an enum, a short slug, a host name, a small integer, a
- *   boolean, an ISO country code) — free text never gets through, so an
- *   email, a name or a URL path cannot be stored by accident;
- * - anything that still looks like an email or a phone number is dropped;
- * - no IP, user agent or cookie id is ever part of an event.
- *
- * Internal traffic (lib/dentvid/internal-traffic): any event may carry
- * props.internal = true — from an internally flagged browser
- * (events-client) or set by the server for an internal account. Only `true`
- * is stored; the admin views leave such events out by default.
+ * Internal traffic (internal-traffic, internal-request): props.internal = true from a flagged or
+ * automated browser, or set by the server (internal account, bot, our scripts). Only `true` is
+ * stored; the admin views leave such events out by default.
  */
 
 export const DV_EVENTS = [
   "landing_view",
   "try_clicked",
   "cta_clicked",
+  "preview_seen",
   "preview_started",
   "signup_started",
   "signup_completed",
@@ -57,6 +50,7 @@ export const DV_CLIENT_EVENTS: readonly DvEventName[] = [
   "landing_view",
   "try_clicked",
   "cta_clicked",
+  "preview_seen",
   "preview_started",
   "signup_started",
   "preview_step_viewed",
@@ -104,6 +98,7 @@ export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
   // "See your preview" in the hero: down to the no-account preview (#try), not into the sign-up.
   try_clicked: { where: { kind: "enum", values: ["hero"] } },
   cta_clicked: { where: { kind: "enum", values: DV_CTA_WHERE } },
+  preview_seen: { where: { kind: "enum", values: ["landing"] } },
   preview_started: { where: PREVIEW_WHERE },
   signup_started: {},
   signup_completed: {},

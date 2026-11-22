@@ -178,14 +178,30 @@ public actor APIClient {
         return try Self.check(data, response)
     }
 
+    /// The address of a route: "items" under the API, "items/x/subtitles?format=srt" with its query,
+    /// and "/dentvideo/preview/…" (a leading slash) on the API's own origin (the preview library).
+    nonisolated func url(for path: String) -> URL {
+        if path.hasPrefix("/") { return URL(string: path, relativeTo: baseURL)?.absoluteURL ?? baseURL }
+        let parts = path.split(separator: "?", maxSplits: 1).map(String.init)
+        let u = baseURL.appendingPathComponent(parts.first ?? "")
+        guard parts.count == 2, var c = URLComponents(url: u, resolvingAgainstBaseURL: false) else { return u }
+        c.percentEncodedQuery = parts[1]
+        return c.url ?? u
+    }
+
     private func perform(_ path: String, method: String, body: (any Encodable)?, token: String?) async throws -> (Data, HTTPURLResponse) {
-        var req = URLRequest(url: baseURL.appendingPathComponent(path))
+        var req = URLRequest(url: url(for: path))
         req.httpMethod = method
         req.timeoutInterval = 30
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         req.setValue(languageCode, forHTTPHeaderField: "Accept-Language")
         if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
-        if let body {
+        if let raw = body as? RawBody {
+            // Bytes as they are (the logo): the server reads its type from Content-Type.
+            req.setValue(raw.contentType, forHTTPHeaderField: "Content-Type")
+            req.httpBody = raw.data
+            req.timeoutInterval = 60
+        } else if let body {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = try JSONEncoder().encode(body)
         }
@@ -231,6 +247,10 @@ public actor APIClient {
         case 402: throw APIError.needsPlan
         case 403 where body?.code == "not_dentvideo": throw APIError.notDentVideo
         case 423: throw APIError.paused
+        // A cap the clinic reached (3 changes a week), with the server's sentence: not "slow down".
+        case 429 where body?.code == "limit": throw APIError.refused(code: body?.code, message: body?.error)
+        // Requests (topics, changes) not available on this server yet, or not queued: its sentence.
+        case 503 where body?.code == "unavailable" || body?.code == "not_queued": throw APIError.refused(code: body?.code, message: body?.error)
         case 429:
             let after = r.value(forHTTPHeaderField: "Retry-After").flatMap { Int($0) }
             throw APIError.rateLimited(retryAfter: after)
@@ -238,6 +258,13 @@ public actor APIClient {
         default: throw APIError.server(status: r.statusCode)
         }
     }
+}
+
+/// A request body sent as raw bytes with its own type (the logo image), not JSON.
+struct RawBody: Encodable, Sendable {
+    let data: Data
+    let contentType: String
+    func encode(to encoder: Encoder) throws {}
 }
 
 #if canImport(Darwin)

@@ -56,6 +56,20 @@ describe("funnel events", () => {
     expect(order.indexOf("cta")).toBeLessThan(order.indexOf("signupStart"));
   });
 
+  it("preview_seen: a browser event for the landing's preview section, between the visit and the preview start", () => {
+    expect(DV_EVENTS).toContain("preview_seen");
+    expect(DV_CLIENT_EVENTS).toContain("preview_seen");
+    // Anonymous: never tied to a clinic by the server.
+    expect(DV_CLINIC_CLIENT_EVENTS).not.toContain("preview_seen");
+    expect(parseClientEvent(JSON.stringify({ name: "preview_seen", locale: "tr", props: { where: "landing" } }))).toEqual({ name: "preview_seen", locale: "tr", props: { where: "landing" }, clinic_id: null });
+    // Only the landing; nothing else rides on it.
+    expect(parseClientEvent(JSON.stringify({ name: "preview_seen", props: { where: "wizard", clinic: "x", email: "a@b.c" } }))?.props).toEqual({});
+    const order = FUNNEL.map((f) => f.key);
+    expect(order.indexOf("visit")).toBeLessThan(order.indexOf("seen"));
+    expect(order.indexOf("seen")).toBeLessThan(order.indexOf("teaser"));
+    expect(FUNNEL.find((f) => f.key === "seen")).toMatchObject({ event: "preview_seen", where: { where: "landing" } });
+  });
+
   it("preview_played / preview_completed say where: landing or wizard", () => {
     for (const name of ["preview_played", "preview_completed"]) {
       expect(parseClientEvent(JSON.stringify({ name, props: { where: "wizard" } }))?.props).toEqual({ where: "wizard" });

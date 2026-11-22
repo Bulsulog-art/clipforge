@@ -75,7 +75,10 @@ export function demoData(now: Date): AdminData {
       const geo = { geo: NAMES[locale].country };
       ev("landing_view", at, locale, null, { ...tags, ...geo });
       if (r() < 0.22) ev("cta_clicked", at + 30_000, locale, null, { ...tags, ...geo, where: r() < 0.7 ? "hero" : "pricing" });
-      if (r() < 0.19) ev("preview_started", at + 60_000, locale, null, { ...tags, ...geo, where: "landing" });
+      // Reached the preview section: every visitor who starts it, plus some who only scroll past (no extra r() draw).
+      const tried = r() < 0.19;
+      if (tried || i % 3 === 0) ev("preview_seen", at + 45_000, locale, null, { ...tags, ...geo, where: "landing" });
+      if (tried) ev("preview_started", at + 60_000, locale, null, { ...tags, ...geo, where: "landing" });
       if (r() < 0.1) ev("signup_started", at + 90_000, locale, null, { ...tags, ...geo });
     }
   }

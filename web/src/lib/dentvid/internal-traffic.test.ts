@@ -29,6 +29,7 @@ describe("internal accounts: email patterns", () => {
       "dvqa+x@whatever.org",
       "hello@dentvideo.com",
       "Someone@BulsuLabs.com",
+      "Info@BulsuLogistics.com",
       "  QA+X@gmail.com ",
     ]) {
       expect(isInternalEmail(e, defaults), e).toBe(true);
@@ -43,6 +44,7 @@ describe("internal accounts: email patterns", () => {
       "dvquinn@gmail.com", // dvq without a plus tag
       "dr.e2e@clinic.de", // e2e not at the start
       "someone@bulsulabs.com.evil.example",
+      "someone@bulsulogistics.com.evil.example",
       "someone@notdentvideo.com",
       "",
       null,

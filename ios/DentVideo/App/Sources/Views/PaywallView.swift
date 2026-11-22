@@ -17,45 +17,52 @@ struct PurchaseGateView: View {
             case .confirming:
                 ConfirmingView()
             default:
-                switch billing.step {
-                case nil:
-                    if let error = billing.loadError, !billing.loading {
+                if model.showLogoPreview, let step = billing.step, step == .paywall || step == .verifyEmail {
+                    // A new clinic sees its own look first ("See it with your logo"), then the plans.
+                    LogoPreviewView(continueLabel: step == .paywall ? L("preview.continue") : L("preview.next")) {
+                        model.showLogoPreview = false
+                    }
+                } else {
+                    switch billing.step {
+                    case nil:
+                        if let error = billing.loadError, !billing.loading {
+                            NavigationStack {
+                                MessageView(icon: "wifi.slash", title: L("offline.title"), message: error) {
+                                    Button(L("common.retry")) { Task { await billing.load() } }.buttonStyle(.dvPrimary)
+                                    Button(L("settings.signOut")) { Task { await model.signOut() } }.buttonStyle(.dvSecondary)
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Theme.paper.ignoresSafeArea())
+                            }
+                        } else {
+                            Theme.paper.ignoresSafeArea().overlay(ProgressView().accessibilityLabel(L("common.loading")))
+                        }
+                    case .clinic?:
+                        ClinicSetupView()
+                    case .verifyEmail?:
                         NavigationStack {
-                            MessageView(icon: "wifi.slash", title: L("offline.title"), message: error) {
-                                Button(L("common.retry")) { Task { await billing.load() } }.buttonStyle(.dvPrimary)
-                                Button(L("settings.signOut")) { Task { await model.signOut() } }.buttonStyle(.dvSecondary)
+                            ScrollView {
+                                EmailCodeView(email: model.me?.user.email ?? "", sendFirst: true) { await billing.load() }
+                                    .padding(.horizontal, 28)
+                                    .padding(.vertical, Theme.s6)
+                                    .frame(maxWidth: 480)
+                                    .frame(maxWidth: .infinity)
                             }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .scrollDismissesKeyboard(.interactively)
                             .background(Theme.paper.ignoresSafeArea())
-                        }
-                    } else {
-                        Theme.paper.ignoresSafeArea().overlay(ProgressView().accessibilityLabel(L("common.loading")))
-                    }
-                case .clinic?:
-                    ClinicSetupView()
-                case .verifyEmail?:
-                    NavigationStack {
-                        ScrollView {
-                            EmailCodeView(email: model.me?.user.email ?? "", sendFirst: true) { await billing.load() }
-                                .padding(.horizontal, 28)
-                                .padding(.vertical, Theme.s6)
-                                .frame(maxWidth: 480)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .scrollDismissesKeyboard(.interactively)
-                        .background(Theme.paper.ignoresSafeArea())
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button(L("settings.signOut")) { Task { await model.signOut() } }
+                            .toolbar {
+                                ToolbarItem(placement: .cancellationAction) {
+                                    Button(L("settings.signOut")) { Task { await model.signOut() } }
+                                }
                             }
                         }
+                    case .paywall?:
+                        PaywallView()
+                    case .notAvailable?:
+                        NotAvailableView()
+                    case .noPaywall?:
+                        AccountStatusView(kind: .noPlan)
                     }
-                case .paywall?:
-                    PaywallView()
-                case .notAvailable?:
-                    NotAvailableView()
-                case .noPaywall?:
-                    AccountStatusView(kind: .noPlan)
                 }
             }
         }
@@ -70,6 +77,7 @@ struct PurchaseGateView: View {
 struct PaywallView: View {
     @Environment(AppModel.self) private var model
     @State private var deleting = false
+    @State private var previewing = false
 
     var body: some View {
         let billing = model.billing
@@ -103,6 +111,9 @@ struct PaywallView: View {
                             PlanCard(offer: offer)
                         }
                     }
+
+                    // Alongside the plans: the clinic's own look on the sample videos.
+                    PreviewCard { previewing = true }
 
                     if let message = billing.message { ErrorBox(text: message, id: "paywall.message") }
                     if billing.phase == .pending {
@@ -145,7 +156,49 @@ struct PaywallView: View {
             .refreshable { await billing.load() }
             .background(Theme.paper.ignoresSafeArea())
             .sheet(isPresented: $deleting) { DeleteAccountView() }
+            .sheet(isPresented: $previewing) {
+                LogoPreviewView(continueLabel: L("preview.continue"), closable: true) { previewing = false }
+                    .presentationBackground(Theme.paper)
+            }
         }
+    }
+}
+
+/// "See it with your logo" on the plans: a card that opens the preview.
+struct PreviewCard: View {
+    @Environment(AppModel.self) private var model
+    let open: () -> Void
+
+    var body: some View {
+        let profile = model.me?.clinic?.profile
+        Button(action: open) {
+            HStack(spacing: Theme.s3) {
+                ZStack(alignment: .topTrailing) {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color(rgb: PreviewLook.parse(profile?.brandColor) ?? PreviewLook.parse(PreviewLook.defaultColor) ?? RGB(0.06, 0.36, 0.36)))
+                        .frame(width: 44, height: 78)
+                    LogoChip(logo: nil, name: profile?.name ?? "", color: profile?.brandColor ?? PreviewLook.defaultColor, size: 20)
+                        .padding(4)
+                }
+                .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: Theme.s1) {
+                    Text(L("preview.title")).font(.headline).foregroundStyle(Theme.ink)
+                    Text(L("preview.card")).font(.subheadline).foregroundStyle(Theme.body)
+                }
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "play.circle.fill").font(.title2).foregroundStyle(Theme.teal).accessibilityHidden(true)
+            }
+            .padding(Theme.s4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dvCard()
+            .contentShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityIdentifier("paywall.preview")
     }
 }
 

@@ -9,6 +9,7 @@ import { analyseLogoFile } from "@/lib/dentvid/logo-colors";
 import type { LogoState } from "./logo-status";
 import { TEASER_KEY } from "@/lib/dentvid/onboarding";
 import { trackDv } from "@/lib/dentvid/events-client";
+import { onceInView } from "@/lib/dentvid/seen";
 import { exampleServices } from "@/lib/dentvid/service-hints";
 import { PreviewPlaceholder } from "./phone";
 
@@ -21,14 +22,9 @@ const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePre
 });
 
 /**
- * True once `ref` is within `margin` of the viewport and the page itself has
- * finished loading. The live preview (the Remotion player, its fonts and
- * narration: several hundred KB) sits right under the hero, so it would
- * otherwise start at once and compete with the hero's text and video on a
- * phone's first load; it waits for the load event and an idle moment
- * instead. The margin is about two screens, so the player has settled (it
- * sizes itself once mounted, in the placeholder's box) before it scrolls
- * into view.
+ * True once `ref` is within `margin` (~two screens) of the viewport and the page has loaded and gone
+ * idle: the live preview (Remotion, fonts, narration: several hundred KB) must not compete with the
+ * hero on a phone's first load, and has settled in the placeholder's box before it scrolls into view.
  */
 function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "1600px"): boolean {
   const [near, setNear] = useState(false);
@@ -81,10 +77,8 @@ export type TeaserCopy = {
 };
 
 /**
- * "Try it with your logo" on the landing: name, logo and colour, a live
- * preview in a phone — all in the browser, nothing uploaded — and a button
- * into the sign-up that carries the choices over (sessionStorage), so the
- * wizard's preview starts from them.
+ * The landing's "try it with your logo": name, logo, colour and a live preview, all in the browser,
+ * then a button into the sign-up that carries them over (sessionStorage) to the wizard's preview.
  */
 export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCopy; href: string }) {
   const [name, setName] = useState("");
@@ -93,7 +87,10 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [swatches, setSwatches] = useState<string[]>([]);
   const previewBox = useRef<HTMLDivElement>(null);
+  const section = useRef<HTMLElement>(null);
   const showPreview = useNearViewport(previewBox);
+  // Funnel: reached this section.
+  useEffect(() => onceInView(section.current, () => trackDv("preview_seen", { locale, props: { where: "landing" }, once: "preview-seen:landing" })), [locale]);
   useEffect(() => void (showPreview && import("./logo-status")), [showPreview]);
   const [st, setSt] = useState<LogoState>({});
   /** The logo as a data URL, read when chosen, so the hand-over on click is synchronous. */
@@ -183,23 +180,22 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
   );
 
   return (
-    <section id="try" aria-labelledby="try-heading" className="relative isolate scroll-mt-16 overflow-hidden border-t border-dv-line bg-white/60">
-      {/*
-        Right under the hero, where its "See your preview" button lands. Phones: what this is, the preview
-        itself (already playing in the default look), then the fields that make it the clinic's own and the
-        way on to the account. From lg: text and fields on the left, the phone beside them.
-      */}
-      <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-8 px-4 py-16 [grid-template-areas:'text'_'phone'_'form'] sm:px-6 sm:py-24 lg:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-y-0 lg:[grid-template-areas:'text_phone'_'form_phone']">
-        <div className="min-w-0 [grid-area:text] lg:self-end">
-          <p className="dv-eyebrow">{copy.eyebrow}</p>
-          <h2 id="try-heading" className="dv-display dv-h2 mt-4 text-balance text-dv-ink">
-            {copy.heading}
-          </h2>
-          <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body">{copy.text}</p>
+    <section ref={section} id="try" aria-labelledby="try-heading" className="relative isolate scroll-mt-16 overflow-hidden border-t border-dv-line bg-white/60">
+      {/* Phones (<md): heading, fields, preview, text, button (max-md:contents; DOM order kept).
+          md: text, preview, fields. lg: text and fields left, phone right. */}
+      <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-8 px-4 py-16 [grid-template-areas:'text'_'phone'_'form'] max-md:gap-y-6 max-md:pt-12 max-md:[grid-template-areas:'head'_'form'_'phone'_'lead'_'cta'] sm:px-6 sm:py-24 lg:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-y-0 lg:[grid-template-areas:'text_phone'_'form_phone']">
+        <div className="min-w-0 [grid-area:text] max-md:contents lg:self-end">
+          <div className="min-w-0 max-md:[grid-area:head]">
+            <p className="dv-eyebrow">{copy.eyebrow}</p>
+            <h2 id="try-heading" className="dv-display dv-h2 mt-4 text-balance text-dv-ink">
+              {copy.heading}
+            </h2>
+          </div>
+          <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-dv-body max-md:mt-0 max-md:[grid-area:lead]">{copy.text}</p>
         </div>
 
-        <div className="min-w-0 [grid-area:form] lg:self-start">
-          <div className="dv-card grid gap-5 p-5 sm:p-6 lg:mt-8">
+        <div className="min-w-0 [grid-area:form] max-md:contents lg:self-start">
+          <div className="dv-card grid min-w-0 gap-5 p-5 max-md:[grid-area:form] sm:p-6 lg:mt-8">
             <label className="block text-sm font-semibold text-dv-ink">
               {copy.name}
               <input value={name} onChange={(e) => {
@@ -263,9 +259,8 @@ export function Teaser({ locale, copy, href }: { locale: Locale; copy: TeaserCop
             {/* Side by side (lg), the button sits inside the card, under the fields. */}
             <div className="hidden lg:grid lg:gap-5">{cta}</div>
           </div>
-          {/* Phones and tablets: preview, then the fields, then the way on — the button never comes
-              before the fields it carries over. */}
-          <div className="mx-auto mt-6 grid max-w-md gap-4 lg:hidden">{cta}</div>
+          {/* Phones and tablets: the button never comes before the fields it carries over. */}
+          <div className="mx-auto mt-6 grid w-full max-w-md gap-4 max-md:mt-0 max-md:[grid-area:cta] lg:hidden">{cta}</div>
         </div>
 
         <div className="relative [grid-area:phone]">

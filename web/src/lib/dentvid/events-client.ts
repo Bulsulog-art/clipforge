@@ -21,8 +21,9 @@ export function trackDv(name: DvEventName, opts: { locale?: string; props?: Reco
       }
     }
     // The tab's first-touch source rides along on every event (lib/dentvid/attribution).
-    // Internal browser (owner, QA, e2e): tagged.
-    const body = JSON.stringify({ name, locale: opts.locale, props: { ...readAttribution(), ...(opts.props ?? {}), ...(isInternalBrowser() ? { internal: true } : {}) } });
+    // Internal browser (owner, QA, e2e) or automation: tagged.
+    const bot = typeof navigator !== "undefined" && navigator.webdriver === true;
+    const body = JSON.stringify({ name, locale: opts.locale, props: { ...readAttribution(), ...(opts.props ?? {}), ...(isInternalBrowser() || bot ? { internal: true } : {}) } });
     void fetch("/api/dentvideo/event", {
       method: "POST",
       headers: { "content-type": "application/json" },
