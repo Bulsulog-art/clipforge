@@ -22,7 +22,7 @@ export const TIKTOK_EN: Guide = {
   topic: "tiktok-for-dentists",
   category: "video",
   published: "2026-11-15",
-  updated: "2026-11-15",
+  updated: "2026-11-23",
   reviewed: "2026-11-15",
   title: "TikTok for dentists: what to post, how often, and what to keep off it",
   seoTitle: "TikTok for dentists: what to post and what to avoid",
@@ -30,7 +30,13 @@ export const TIKTOK_EN: Guide = {
   description: "A practical guide to TikTok for dental practices: videos that help patients, how TikTok search works for a local clinic, sounds, AI labels, posting rhythm and the ad rules that still apply.",
   h1: "TikTok for dentists: what to post, how often, and what to keep off it",
   intro:
-    "TikTok works for a dental practice when it is used the same way as a good chairside conversation: short vertical videos that answer one real patient question clearly, posted on a rhythm the team can keep. A clinic does not need dances or trends. It needs useful answers, captions, honest wording and a quick check against the advertising and privacy rules before each post.",
+    "TikTok works for a dental practice when it is used like a good chairside conversation: short vertical videos that answer one real patient question clearly, posted on a rhythm the team can keep. No dances or trends are needed. What a clinic needs is useful answers, captions, honest wording and a quick check against advertising and privacy rules.",
+  takeaways: [
+    "On TikTok, one real patient question per short vertical video works better than dances or trends.",
+    "Business accounts are generally limited to sounds cleared for commercial use.",
+    "Label realistic AI-generated content, as TikTok's Community Guidelines require.",
+    "A clinic's TikTok is advertising, so the same rules apply as on its website.",
+  ],
   sections: [
     {
       heading: "Is TikTok worth it for a dental practice?",

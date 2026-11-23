@@ -9,6 +9,7 @@ import { EXAMPLES_UI, examplePath, findExample } from "@/content/dentvideo-examp
 import { PhoneFrame } from "@/components/dentvid/phone";
 import { GUIDES_INDEX_PATH, GUIDE_UI } from "@/content/guides/ui";
 import { GUIDE_SAMPLE_UI } from "@/content/guides/ui-sample";
+import { KEY_TAKEAWAYS } from "@/content/guides/ui-takeaways";
 import { guideJsonLd, guideMetadata } from "@/lib/dentvid/seo";
 import { jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
@@ -86,6 +87,25 @@ export default async function GuidePage({ params }: Props) {
         </header>
 
         <div className="mx-auto max-w-3xl px-4 pb-8 pt-4 sm:px-6">
+          {g.takeaways && g.takeaways.length > 0 && (
+            // The page's main points right under the direct answer, each one quotable on its own.
+            <section aria-labelledby="guide-takeaways" className="mt-8 rounded-2xl bg-white p-5 ring-1 ring-dv-line sm:p-6">
+              <h2 id="guide-takeaways" className="text-xs font-semibold uppercase tracking-[0.14em] text-dv-muted">
+                {KEY_TAKEAWAYS[L]}
+              </h2>
+              <ul className="mt-4 space-y-3">
+                {g.takeaways.map((t, j) => (
+                  <li key={j} className="flex gap-3 text-[1.0625rem] leading-[1.65] text-[#33423f]">
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-dv-teal" aria-hidden="true" />
+                    <span>
+                      <RichText text={t} locale={L} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {sample && (
             <figure aria-labelledby="guide-sample" className="mt-8 flex flex-col items-center gap-6 rounded-2xl bg-dv-sand/70 p-5 ring-1 ring-dv-line sm:flex-row sm:items-start sm:p-6">
               <PhoneFrame tightShadow className="w-[11.5rem] shrink-0">

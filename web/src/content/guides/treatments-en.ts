@@ -16,7 +16,8 @@ const ADA_ROOT_CANAL = { label: "ADA MouthHealthy: Root canals", url: "https://w
 const ADA_WHITENING = { label: "ADA MouthHealthy: Teeth whitening", url: "https://www.mouthhealthy.org/all-topics-a-z/teeth-whitening" };
 const ADA_GUMS = { label: "ADA MouthHealthy: Gum disease", url: "https://www.mouthhealthy.org/all-topics-a-z/gum-disease" };
 
-const DATES = { published: "2026-11-14", updated: "2026-11-14", reviewed: "2026-11-14" } as const;
+// Updated 2026-11-23 (direct-answer intros, key takeaways, no em dashes); the facts were last checked on 2026-11-14.
+const DATES = { published: "2026-11-14", updated: "2026-11-23", reviewed: "2026-11-14" } as const;
 
 export const TREATMENTS_EN: Guide[] = [
   {
@@ -31,7 +32,13 @@ export const TREATMENTS_EN: Guide[] = [
     description: "A practical guide for dental clinics: the questions patients ask about implants, six short videos that answer them, a script structure and the wording that health-advertising rules restrict.",
     h1: "Dental implant patient education videos: what to make and what to avoid",
     intro:
-      "A dental implant patient education video is a short, plain-language clip that explains one step of implant treatment — assessment, placement, healing, the crown, or aftercare — so patients arrive with realistic expectations. The most useful ones answer a single question in under a minute, describe the usual sequence without promising a result, and end by inviting the viewer to ask whether implants suit them.",
+      "A dental implant patient education video is a short, plain-language clip that explains one step of implant treatment (assessment, placement, healing, the crown or aftercare) so patients arrive with realistic expectations. The useful ones answer one question in under a minute, describe the usual sequence without promising a result, and invite the viewer to ask whether implants suit them.",
+    takeaways: [
+      "Answer one implant question per video: assessment, placement, healing, the crown or aftercare.",
+      "Describe the usual sequence and what affects longevity, rather than promising results or a number of years.",
+      "Avoid headlines such as “new teeth in one day” that leave out the healing phase.",
+      "Post implant videos as a short series so someone who finds one can watch the rest.",
+    ],
     sections: [
       {
         heading: "What do patients ask about dental implants?",
@@ -42,7 +49,7 @@ export const TREATMENTS_EN: Guide[] = [
           "Does it all happen in one appointment, or how many visits does an implant take?",
           "Why do I have to wait between the implant and the final tooth?",
           "Will I be without a tooth while it heals?",
-          "Am I suitable — what about bone loss, smoking or diabetes?",
+          "Am I suitable? What about bone loss, smoking or diabetes?",
           "What does the procedure feel like, and what happens on the day?",
           "How do I clean around an implant, and does it need check-ups?",
           "What is the difference between an implant, a bridge and a denture?",
@@ -73,7 +80,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "What should implant videos avoid saying?",
         paragraphs: [
-          "Implants are a high-value treatment, which is exactly why regulators look closely at how they are advertised. The safest videos explain; they do not sell. The wording below is commonly restricted across the UK, the US and the EU — the exact rules differ by country, so check yours in our [overview of dental advertising rules](guide:dental-social-media-advertising-rules).",
+          "Implants are a high-value treatment, which is exactly why regulators look closely at how they are advertised. The safest videos explain; they do not sell. The wording below is commonly restricted across the UK, the US and the EU, though the exact rules differ by country, so check yours in our [overview of dental advertising rules](guide:dental-social-media-advertising-rules).",
         ],
         table: {
           caption: "Implant wording: risky and safer",
@@ -81,7 +88,7 @@ export const TREATMENTS_EN: Guide[] = [
           rows: [
             ["“Permanent teeth” or “teeth for life”", "Implants need maintenance and can fail; it is a promise of a result", "“Designed to be long-lasting with good care and regular check-ups”"],
             ["“Painless implants”", "An absolute claim no clinic can guarantee for every patient", "“Placed under local anesthetic; we explain what you may feel afterwards”"],
-            ["“New teeth in one day” as a headline", "Misleading if it applies only to some cases and leaves out the healing phase", "“In some cases a temporary tooth can be fitted the same day — ask whether that applies to you”"],
+            ["“New teeth in one day” as a headline", "Misleading if it applies only to some cases and leaves out the healing phase", "“In some cases a temporary tooth can be fitted the same day. Ask whether that applies to you”"],
             ["Before-and-after photos of a patient", "Restricted or banned for some treatments in several countries, and they need written consent", "An illustration or a model showing the stages"],
             ["Patient testimonials", "Restricted in many countries and covered by consumer law in others", "Explain the process in your own words"],
           ],
@@ -108,25 +115,25 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "Where do implant videos fit in a posting plan?",
         paragraphs: [
-          "Implant content works as a short series rather than a one-off. Post the stages video first, then the suitability and aftercare videos in the following weeks, so someone who finds one can watch the rest. Mix them with prevention and everyday topics — a feed that is only implants reads like an advert. The [dental social media post ideas](guide:dental-social-media-post-ideas) guide shows how treatment topics fit into a balanced month, and the [52-week content calendar](guide:dental-social-media-content-calendar) suggests when to schedule them.",
+          "Implant content works as a short series rather than a one-off. Post the stages video first, then the suitability and aftercare videos in the following weeks, so someone who finds one can watch the rest. Mix them with prevention and everyday topics: a feed that is only implants reads like an advert. The [dental social media post ideas](guide:dental-social-media-post-ideas) guide shows how treatment topics fit into a balanced month, and the [52-week content calendar](guide:dental-social-media-content-calendar) suggests when to schedule them.",
           "Use the same videos off social media too. A link to the stages video in the email that confirms an implant consultation answers the first questions before the patient sits down, and a loop of the aftercare video on a waiting-room screen reminds current patients why check-ups matter.",
         ],
       },
       {
         heading: "How DentVideo makes implant videos for your clinic",
         paragraphs: [
-          "[DentVideo](landing:) plans videos only from the treatments you list. If you offer implants, implant topics such as the stages, suitability and aftercare come up in your weekly set alongside prevention topics. Each video is narrated and captioned in your language and colors, and each script is checked for the claims above — “permanent”, “painless”, guarantees, prices, before-and-after promises — and for clinical accuracy before you see it. Nothing is posted until you approve it. You can [see a live preview with your own logo](start:) before choosing a plan.",
+          "[DentVideo](landing:) plans videos only from the treatments you list. If you offer implants, implant topics such as the stages, suitability and aftercare come up in your weekly set alongside prevention topics. Each video is narrated and captioned in your language and colors, and each script is checked for the claims above (“permanent”, “painless”, guarantees, prices, before-and-after promises) and for clinical accuracy before you see it. Nothing is posted until you approve it. You can [see a live preview with your own logo](start:) before choosing a plan.",
         ],
       },
     ],
     faq: [
       {
         q: "Can I use implant animations from a manufacturer in my clinic's videos?",
-        a: "Often yes, if the manufacturer's license allows it — check the terms. Be careful that the video does not turn into product promotion for an implant brand: in several countries promoting a medical device to the public has its own rules.",
+        a: "Often yes, if the manufacturer's license allows it, so check the terms. Be careful that the video does not turn into product promotion for an implant brand: in several countries promoting a medical device to the public has its own rules.",
       },
       {
         q: "Should implant videos mention how long implants last?",
-        a: "Describe what affects longevity — cleaning, check-ups, gum health, smoking — rather than giving a number of years. A specific lifetime reads as a promise and is hard to support for an individual patient.",
+        a: "Describe what affects longevity (cleaning, check-ups, gum health, smoking) rather than giving a number of years. A specific lifetime reads as a promise and is hard to support for an individual patient.",
       },
       {
         q: "Can I show a patient's implant X-ray in a video?",
@@ -148,11 +155,17 @@ export const TREATMENTS_EN: Guide[] = [
     sample: "caring-for-clear-aligners",
     title: "Clear aligner patient education videos: topics, a script structure and claims to avoid",
     seoTitle: "Clear aligner patient education videos",
-    seoDescription: "Short clear aligner videos patients actually need: wear time, cleaning, attachments, retainers — and the “invisible” and “in X months” claims to avoid.",
+    seoDescription: "Short clear aligner videos patients actually need: wear time, cleaning, attachments, retainers, and the “invisible” and “in X months” claims to avoid.",
     description: "What patients ask about clear aligners, six short videos that answer it, how to script them in five beats, and the wording that advertising rules restrict.",
     h1: "Clear aligner patient education videos: what to make and what to avoid",
     intro:
-      "A clear aligner patient education video explains one part of aligner treatment — how many hours to wear them, how to clean them, what attachments are, what happens at check-ups, why a retainer follows — in a short, captioned clip. The useful ones help patients stick to treatment; they do not promise a result or a finish date, because both depend on the case and on how the aligners are worn.",
+      "A clear aligner patient education video explains one part of aligner treatment in a short, captioned clip: daily wear time, cleaning, attachments, check-ups or the retainer that follows. The useful ones help patients stick to treatment. They do not promise a result or a finish date, because both depend on the case and on how the aligners are worn.",
+    takeaways: [
+      "The most useful aligner videos help patients during treatment: wear time, cleaning, attachments and retainers.",
+      "Do not promise a result or a finish date; both depend on the case and on wear.",
+      "Keep the focus on the treatment, not on an aligner brand's slogans.",
+      "Send these videos to patients who have just started treatment, as well as posting them.",
+    ],
     sections: [
       {
         heading: "What do patients ask about clear aligners?",
@@ -221,7 +234,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "When should aligner videos be posted or sent?",
         paragraphs: [
-          "Aligner videos do double duty. On social media they show people considering treatment what it involves day to day — which is more convincing than a promise and much safer. In a patient's inbox they reduce the routine questions your team answers by phone. Send the wearing-time and cleaning videos when a patient starts, the tight-set video with the second or third set, and the retainer video near the end.",
+          "Aligner videos do double duty. On social media they show people considering treatment what it involves day to day, which is more convincing than a promise and much safer. In a patient's inbox they reduce the routine questions your team answers by phone. Send the wearing-time and cleaning videos when a patient starts, the tight-set video with the second or third set, and the retainer video near the end.",
           "If your clinic posts a few times a week, one aligner video a week alongside prevention topics is plenty; the [dental social media post ideas](guide:dental-social-media-post-ideas) guide shows a balanced mix.",
         ],
       },
@@ -235,7 +248,7 @@ export const TREATMENTS_EN: Guide[] = [
     faq: [
       {
         q: "Can a clinic name an aligner brand in its videos?",
-        a: "Saying which system you use is usually fine as information. A video built around the brand, using the manufacturer's slogans, reads as product advertising — keep the focus on the treatment and the patient's questions.",
+        a: "Saying which system you use is usually fine as information. A video built around the brand, using the manufacturer's slogans, reads as product advertising, so keep the focus on the treatment and the patient's questions.",
       },
       {
         q: "Should aligner videos give a number of hours of wear?",
@@ -257,11 +270,17 @@ export const TREATMENTS_EN: Guide[] = [
     sample: "whitening-myths-debunked",
     title: "Teeth whitening patient education videos: myths, sensitivity and the claims to avoid",
     seoTitle: "Teeth whitening patient education videos",
-    seoDescription: "Short whitening videos for dental clinics: enamel myths, sensitivity, crowns and fillings, home kits — and the before/after and “instant” claims to avoid.",
+    seoDescription: "Short whitening videos for dental clinics: enamel myths, sensitivity, crowns and fillings, home kits, and the before/after and “instant” claims to avoid.",
     description: "What patients ask about teeth whitening, six short videos that answer it, a five-beat script and the wording that health and consumer rules restrict for cosmetic treatments.",
     h1: "Teeth whitening patient education videos: what to make and what to avoid",
     intro:
-      "A teeth whitening patient education video answers one question about whitening — does it damage enamel, why do teeth feel sensitive afterwards, will it change my crowns, are shop-bought kits the same — in a short, captioned clip. Whitening is a cosmetic treatment, which makes it the topic where clinic videos most easily slide into advertising, so the useful ones explain the facts and leave the decision to a consultation.",
+      "A teeth whitening patient education video answers one question about whitening in a short, captioned clip: does it damage enamel, why do teeth feel sensitive, will it change my crowns, are shop-bought kits the same? Whitening is cosmetic, so videos easily slide into advertising. The useful ones explain the facts and leave the decision to a consultation.",
+    takeaways: [
+      "Whitening videos should answer safety and expectation questions: enamel, sensitivity, crowns and home kits.",
+      "Leave out before-and-after promises, shade promises and “instant” claims.",
+      "Keep cosmetic content balanced with prevention topics, even before weddings, holidays and the new year.",
+      "Explain the facts and leave the decision to a consultation.",
+    ],
     sections: [
       {
         heading: "What do patients ask about teeth whitening?",
@@ -293,7 +312,7 @@ export const TREATMENTS_EN: Guide[] = [
           ],
         },
         after: [
-          "In the UK, the NHS notes that whitening may only be carried out by a dentist or another regulated dental professional on a dentist's prescription — a useful, factual point for the “clinic or kit” video (see sources).",
+          "In the UK, the NHS notes that whitening may only be carried out by a dentist or another regulated dental professional on a dentist's prescription. That is a useful, factual point for the “clinic or kit” video (see sources).",
         ],
       },
       {
@@ -333,13 +352,13 @@ export const TREATMENTS_EN: Guide[] = [
         paragraphs: [
           "Interest in whitening tends to rise before weddings, holidays and the new year, and it is tempting to post more cosmetic content then. Keep the mix balanced: a feed full of whitening reads as advertising. One myth-busting whitening video a month next to prevention topics is a sensible rhythm; the [content calendar](guide:dental-social-media-content-calendar) shows where cosmetic topics fit across the year.",
           "The aftercare video is just as valuable off social media: send it on the day of treatment so patients have the advice at home.",
-          "Whitening videos are also a good place to show how your clinic thinks. A clinic that explains why it checks for decay and gum problems first, and that says plainly that results vary, earns more trust than one that promises a perfect shade — and it stays on the right side of the rules at the same time.",
+          "Whitening videos are also a good place to show how your clinic thinks. A clinic that explains why it checks for decay and gum problems first, and that says plainly that results vary, earns more trust than one that promises a perfect shade, and it stays on the right side of the rules at the same time.",
         ],
       },
       {
         heading: "How DentVideo makes whitening videos for your clinic",
         paragraphs: [
-          "The sample above — “Whitening thins your enamel? Not quite.” — is a real DentVideo video for a demo clinic. If whitening is one of your services, [DentVideo](landing:) plans myth-busting and aftercare topics into your weekly set, narrated and captioned in your language and colors, and checks every script for promised shades, “instant” claims, price promotion and clinical accuracy before you see it. [See your own branded preview](start:) before you choose a plan.",
+          "The sample above (“Whitening thins your enamel? Not quite.”) is a real DentVideo video for a demo clinic. If whitening is one of your services, [DentVideo](landing:) plans myth-busting and aftercare topics into your weekly set, narrated and captioned in your language and colors, and checks every script for promised shades, “instant” claims, price promotion and clinical accuracy before you see it. [See your own branded preview](start:) before you choose a plan.",
         ],
       },
     ],
@@ -367,11 +386,17 @@ export const TREATMENTS_EN: Guide[] = [
     ...DATES,
     title: "Pediatric dental patient education videos: topics for parents, consent and what to avoid",
     seoTitle: "Pediatric dental videos for parents",
-    seoDescription: "Children's dentistry videos for parents: first visit, brushing, sugar, teething, dental fear — plus consent for children's images and wording to avoid.",
+    seoDescription: "Children's dentistry videos for parents: first visit, brushing, sugar, teething, dental fear, plus consent for children's images and wording to avoid.",
     description: "What parents ask about their children's teeth, six short videos that answer it, how to talk about dental fear, and the consent and advertising rules that apply to children.",
     h1: "Pediatric dental patient education videos: what to make for parents",
     intro:
-      "A pediatric dental patient education video is a short clip for parents — not children — that answers one question about a child's teeth: when to book the first visit, how to brush a toddler's teeth, what sugar and night-time bottles do, how to prepare a nervous child. The useful ones are calm and practical, use no images of real children without consent, and never scare parents into booking.",
+      "A pediatric dental patient education video is a short clip for parents, not children, that answers one question about a child's teeth: when to book the first visit, how to brush a toddler's teeth, what sugar does, how to prepare a nervous child. The useful ones are calm, show no real children without consent and never scare parents.",
+    takeaways: [
+      "Make children's dentistry videos for parents, not for children.",
+      "Use no image of a real child without consent; some countries also restrict health advertising aimed at children.",
+      "Instead of “don't be scared” or “it won't hurt”, give parents calm, practical words.",
+      "Follow the family calendar: first-visit and brushing videos before school starts, snack videos around holidays.",
+    ],
     sections: [
       {
         heading: "What do parents ask about their children's teeth?",
@@ -382,7 +407,7 @@ export const TREATMENTS_EN: Guide[] = [
           "Is it a problem if my child falls asleep with a bottle?",
           "What snacks and drinks are hardest on children's teeth?",
           "Teething: what is normal and when should I worry?",
-          "My child is scared of the dentist — what should I say before the visit?",
+          "My child is scared of the dentist. What should I say before the visit?",
           "What are fissure sealants and fluoride varnish?",
           "Do baby teeth matter if they fall out anyway?",
         ],
@@ -394,7 +419,7 @@ export const TREATMENTS_EN: Guide[] = [
           caption: "Six videos for parents and where each helps",
           columns: ["Video", "What it answers", "Where it helps most"],
           rows: [
-            ["The first visit", "When to come and what happens — mostly a look and a chat", "Social media; booking confirmation"],
+            ["The first visit", "When to come and what happens: mostly a look and a chat", "Social media; booking confirmation"],
             ["Brushing little teeth", "Technique, a parent's help, a small smear or pea-sized amount of fluoride toothpaste as advised", "Social media; waiting room"],
             ["Bottles and night-time drinks", "Why milk or juice at night is hard on teeth", "Social media"],
             ["Snacks and how often", "Frequency of sugar matters as well as amount", "Social media; school-term reminders"],
@@ -409,7 +434,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "What should children's dentistry videos avoid?",
         paragraphs: [
-          "Two extra layers apply when children are involved: consent for any image of a child, and advertising rules that protect children. Some countries restrict advertising for health treatments aimed mainly at children — another reason to address parents, not kids. See the [dental advertising rules overview](guide:dental-social-media-advertising-rules) for your country.",
+          "Two extra layers apply when children are involved: consent for any image of a child, and advertising rules that protect children. Some countries restrict advertising for health treatments aimed mainly at children, which is another reason to address parents, not kids. See the [dental advertising rules overview](guide:dental-social-media-advertising-rules) for your country.",
         ],
         table: {
           caption: "Children's dentistry wording: risky and safer",
@@ -430,7 +455,7 @@ export const TREATMENTS_EN: Guide[] = [
         heading: "How do you talk about dental fear in a video?",
         paragraphs: [
           "Parents often say “don't be scared” or “it won't hurt” with good intentions, but both put the idea of fear and pain into the child's head. A short video for parents can suggest calmer language instead: describe what will happen in neutral words (“the dentist will count your teeth”), read a picture book about a dentist visit, let the child bring a favorite toy, and keep your own worries to yourself.",
-          "This is one of the most shared kinds of clinic video, because it helps parents directly — and it shows how your clinic treats children without a single image of one.",
+          "This is one of the most shared kinds of clinic video, because it helps parents directly, and it shows how your clinic treats children without a single image of one.",
         ],
       },
       {
@@ -450,7 +475,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "How DentVideo makes children's dentistry videos",
         paragraphs: [
-          "If you list children's dentistry as a service, [DentVideo](landing:) plans parent-focused topics like these into your weekly set. The videos use no avatar children or real patients — footage is limited to objects — and every script is checked for absolute promises, fear-based wording and clinical accuracy before you see it. You approve each one. [See a live preview with your clinic's logo](start:).",
+          "If you list children's dentistry as a service, [DentVideo](landing:) plans parent-focused topics like these into your weekly set. The videos use no avatar children or real patients (footage is limited to objects), and every script is checked for absolute promises, fear-based wording and clinical accuracy before you see it. You approve each one. [See a live preview with your clinic's logo](start:).",
         ],
       },
     ],
@@ -478,17 +503,23 @@ export const TREATMENTS_EN: Guide[] = [
     ...DATES,
     title: "Gum disease patient education videos: bleeding gums, periodontitis and wording to avoid",
     seoTitle: "Gum disease patient education videos",
-    seoDescription: "Short gum disease videos for dental clinics: bleeding gums, gingivitis vs periodontitis, cleaning, maintenance — and scare claims and images to avoid.",
+    seoDescription: "Short gum disease videos for dental clinics: bleeding gums, gingivitis vs periodontitis, cleaning, maintenance, and scare claims and images to avoid.",
     description: "What patients ask about gum disease, six short videos that answer it, how to talk about links with general health without scaring people, and wording advertising rules restrict.",
     h1: "Gum disease patient education videos: what to make and what to avoid",
     intro:
-      "A gum disease patient education video explains one thing about gum health — why gums bleed, the difference between gingivitis and periodontitis, what a deep clean involves, why maintenance visits matter — in a short, calm clip. Gum disease is common and often causes no pain in its early stages, so these videos help patients notice the signs early; they should inform, not frighten.",
+      "A gum disease patient education video explains one thing about gum health in a short, calm clip: why gums bleed, gingivitis versus periodontitis, what a deep clean involves, why maintenance visits matter. Gum disease is common and often causes no pain early on, so these videos help patients notice the signs early. They should inform, not frighten.",
+    takeaways: [
+      "Explain one gum health topic per video: bleeding gums, gingivitis versus periodontitis, deep cleaning or maintenance.",
+      "Inform, do not frighten: no graphic photos, threats of tooth loss or big claims about other diseases.",
+      "Hygienists are often the most natural presenters for gum topics.",
+      "Gum health fits any month, and awareness dates give extra hooks.",
+    ],
     sections: [
       {
         heading: "What do patients ask about gum disease?",
         paragraphs: ["Many patients do not know they have gum disease until a dentist tells them. Their questions are a good list of video topics:"],
         list: [
-          "My gums bleed when I brush — should I stop brushing there?",
+          "My gums bleed when I brush. Should I stop brushing there?",
           "What is the difference between gingivitis and periodontitis?",
           "Can gum disease be reversed?",
           "What happens during a deep cleaning (scaling and root planing)?",
@@ -528,7 +559,7 @@ export const TREATMENTS_EN: Guide[] = [
           rows: [
             ["Close-ups of severe gum disease", "Distressing images can be restricted and drive viewers away", "Illustrations or a calm explanation of the signs"],
             ["“Gum disease causes heart attacks”", "Overstates research that shows associations, not simple causes", "“Research links gum health with some general health conditions; ask us what that means for you”"],
-            ["“You will lose your teeth”", "Fear-based and not true for every patient", "“Untreated, it can lead to loose teeth — treated early, it can often be managed well”"],
+            ["“You will lose your teeth”", "Fear-based and not true for every patient", "“Untreated, it can lead to loose teeth. Treated early, it can often be managed well”"],
             ["“Cure gum disease for good”", "Periodontitis usually needs ongoing maintenance", "“Treatment and regular maintenance can keep it under control”"],
             ["“Painless deep cleaning”", "An absolute claim about how a patient will feel", "“Usually done with local anesthetic; we explain what to expect”"],
           ],
@@ -552,9 +583,9 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "When should gum disease videos be posted?",
         paragraphs: [
-          "Gum health fits naturally into any month, and several countries hold gum health awareness days or months — the [content calendar](guide:dental-social-media-content-calendar) lists the dates for your market. Post the bleeding-gums video early in a series; it is the one most viewers recognize themselves in. Send the deep-clean video before scaling appointments and the maintenance video with recall reminders.",
+          "Gum health fits naturally into any month, and several countries hold gum health awareness days or months, and the [content calendar](guide:dental-social-media-content-calendar) lists the dates for your market. Post the bleeding-gums video early in a series; it is the one most viewers recognize themselves in. Send the deep-clean video before scaling appointments and the maintenance video with recall reminders.",
           "Gum topics also balance a feed heavy on cosmetic treatments. Our [dental social media post ideas](guide:dental-social-media-post-ideas) guide shows a month that mixes prevention, treatment and the team.",
-          "Hygienists are often the most natural presenters for gum topics. If a hygienist on your team is willing to record a few minutes, a clip of them showing an interdental brush on a model is more convincing than any graphic — and it puts a familiar face to the maintenance visits you are asking patients to keep.",
+          "Hygienists are often the most natural presenters for gum topics. If a hygienist on your team is willing to record a few minutes, a clip of them showing an interdental brush on a model is more convincing than any graphic, and it puts a familiar face to the maintenance visits you are asking patients to keep.",
         ],
       },
       {
@@ -588,17 +619,23 @@ export const TREATMENTS_EN: Guide[] = [
     ...DATES,
     title: "Root canal patient education videos: myths, what happens and the wording to avoid",
     seoTitle: "Root canal patient education videos",
-    seoDescription: "Short root canal videos for dental clinics: what happens, why a crown may follow, aftercare and myths — without absolute promises or fear-based wording.",
+    seoDescription: "Short root canal videos for dental clinics: what happens, why a crown may follow, aftercare and myths, without absolute promises or fear-based wording.",
     description: "What patients ask about root canal treatment, six short videos that answer it, how to handle root canal fear and myths, and the claims to avoid in captions and scripts.",
     h1: "Root canal patient education videos: what to make and what to avoid",
     intro:
-      "A root canal patient education video explains one part of root canal treatment — why it is needed, what happens in the chair, what to expect afterwards, why a crown may follow — in a short, calm clip. Root canal treatment has a reputation that is worse than the experience many patients describe, so these videos help most when they replace myths with plain facts, without promising that nobody will feel anything.",
+      "A root canal patient education video explains one part of root canal treatment in a short, calm clip: why it is needed, what happens in the chair, what to expect afterwards, why a crown may follow. The treatment's reputation is worse than many patients' experience, so these videos replace myths with plain facts, without promising that nobody feels anything.",
+    takeaways: [
+      "Root canal videos help most when they replace myths with plain facts.",
+      "Avoid absolute promises such as “painless root canals”.",
+      "Name the worry in the first second, then explain what actually happens.",
+      "Send a short explanation with the appointment confirmation, not only on social media.",
+    ],
     sections: [
       {
         heading: "What do patients ask about root canal treatment?",
         paragraphs: ["Most root canal questions come from fear or from stories patients have heard. Each is a good short video:"],
         list: [
-          "Why do I need a root canal — can't you just fill the tooth?",
+          "Why do I need a root canal? Can't you just fill the tooth?",
           "Does a root canal hurt?",
           "What actually happens during the treatment?",
           "How many visits does it take?",
@@ -633,7 +670,7 @@ export const TREATMENTS_EN: Guide[] = [
           caption: "Root canal wording: risky and safer",
           columns: ["Risky wording", "Why it is a problem", "Safer wording"],
           rows: [
-            ["“Painless root canals”", "An absolute claim no clinic can guarantee", "“Done under local anesthetic — many patients say it feels similar to a filling”"],
+            ["“Painless root canals”", "An absolute claim no clinic can guarantee", "“Done under local anesthetic. Many patients say it feels similar to a filling”"],
             ["“Saves your tooth forever”", "A promised, permanent result", "“The aim is to keep your own tooth; with a good restoration and care it can last a long time”"],
             ["“Root canal or lose your tooth!”", "Fear-based pressure", "“The alternative is usually removing the tooth; we explain both options”"],
             ["Graphic footage of an open tooth", "Distressing; adds to fear rather than reducing it", "An illustration of the tooth's layers"],
@@ -662,7 +699,7 @@ export const TREATMENTS_EN: Guide[] = [
       {
         heading: "Where do root canal videos help most?",
         paragraphs: [
-          "Off social media more than on it. The single most useful moment is the message that confirms a root canal appointment: a 40-second explanation the patient can watch at home reduces the anxiety that leads to cancellations. The aftercare video belongs in the follow-up message on the same day. On social media, the myth video and the why-a-root-canal video work well as part of a balanced mix — see the [dental social media post ideas](guide:dental-social-media-post-ideas) guide and the [patient education video guide](guide:patient-education-videos).",
+          "Off social media more than on it. The single most useful moment is the message that confirms a root canal appointment: a 40-second explanation the patient can watch at home reduces the anxiety that leads to cancellations. The aftercare video belongs in the follow-up message on the same day. On social media, the myth video and the why-a-root-canal video work well as part of a balanced mix; see the [dental social media post ideas](guide:dental-social-media-post-ideas) guide and the [patient education video guide](guide:patient-education-videos).",
         ],
       },
       {

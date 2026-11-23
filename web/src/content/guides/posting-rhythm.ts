@@ -14,18 +14,26 @@ const EN: Guide = {
   topic: "posting-frequency",
   category: "ideas",
   ...DATES,
+  // Updated 2026-11-23 (direct-answer intro, key takeaways, no em dashes); the facts were last checked on 2026-11-14.
+  updated: "2026-11-23",
   title: "How often should a dental practice post on social media, and when?",
   seoTitle: "How often should a dental practice post?",
   seoDescription: "A posting rhythm a dental clinic can keep: how many posts a week, how to find your audience's active hours, and why consistency beats volume.",
   description: "An honest answer to the frequency question for dental clinics: rhythms by the time you have, how to read your own audience data for timing, and how to keep every post within the rules.",
-  h1: "How often should a dental practice post on social media — and when?",
+  h1: "How often should a dental practice post on social media, and when?",
   intro:
-    "There is no number of posts that platforms require or reward for every account. For most dental clinics, a rhythm of two to five posts a week that the team can keep up for a whole year works better than a burst of daily posts followed by silence. The right time to post is when your own followers are online, which Instagram, Facebook, TikTok and YouTube each show in their audience data.",
+    "No platform requires or rewards a set number of posts for every account. For most dental clinics, two to five posts a week that the team can keep up all year work better than a burst of daily posts followed by silence. Post when your own followers are online, which each platform shows in its audience data.",
+  takeaways: [
+    "No platform publishes a required posting frequency for business accounts.",
+    "Start from the hours your team really has. A smaller rhythm kept up all year beats an ambitious one dropped after a month.",
+    "Post when your own followers are online, as your audience data shows, and compare times after four to six weeks.",
+    "Batch the work: choose the week's topics on a fixed day and approve them in one sitting.",
+  ],
   sections: [
     {
       heading: "Is there an ideal number of posts per week?",
       paragraphs: [
-        "Not a universal one. Social platforms change how they rank content regularly and do not publish a required posting frequency for business accounts. Most advice you will read — “post daily”, “post three times a week” — is a rule of thumb from marketing agencies, not a measured law, and many of those sources sell posting services.",
+        "Not a universal one. Social platforms change how they rank content regularly and do not publish a required posting frequency for business accounts. Most advice you will read (“post daily”, “post three times a week”) is a rule of thumb from marketing agencies, not a measured law, and many of those sources sell posting services.",
         "What does hold up is simpler: an account that posts regularly gives followers a reason to keep watching, and an account that goes quiet for months looks abandoned to a patient who finds it. So the useful question is not “what is the ideal number?” but “what can we keep up every week without cutting corners on quality or compliance?”",
       ],
     },
@@ -59,20 +67,20 @@ const EN: Guide = {
         "YouTube: YouTube Studio's audience report shows when your viewers are on YouTube.",
       ],
       after: [
-        "Until you have enough data, test times that fit patients' days — before work, around lunch and in the evening — and compare after four to six weeks. Keep the time you post consistent enough to compare, and change one thing at a time.",
+        "Until you have enough data, test times that fit patients' days (before work, around lunch and in the evening) and compare after four to six weeks. Keep the time you post consistent enough to compare, and change one thing at a time.",
       ],
     },
     {
       heading: "Which formats should a clinic post each week?",
       paragraphs: [
         "Short vertical video is the format platforms push most to people who do not follow you yet, which makes it the main way new patients find a clinic. Stories keep existing followers in touch day to day. Carousels and photos work for practical information people want to save. A balanced week might be two or three short videos, one carousel or photo post, and a handful of Stories.",
-        "Patient-education videos are the safest high-value format: they answer a real question, they are useful even to people who never book, and they avoid the riskiest kinds of content — before-and-after photos, testimonials and offers. Our guide to [Instagram videos for dentists](guide:instagram-videos-for-dentists) covers filming your own.",
+        "Patient-education videos are the safest high-value format: they answer a real question, they are useful even to people who never book, and they avoid the riskiest kinds of content: before-and-after photos, testimonials and offers. Our guide to [Instagram videos for dentists](guide:instagram-videos-for-dentists) covers filming your own.",
       ],
     },
     {
       heading: "Does posting more often change the rules?",
       paragraphs: [
-        "No — but it multiplies the chances of a mistake. Every post from a clinic account is health advertising in most countries, whether it is the first of the month or the twentieth. A higher rhythm needs a quick, repeatable check before each post: no “painless” or guaranteed results, no prices or discounts in social posts, no patient photos without written consent, no testimonials where they are restricted. The [dental advertising rules overview](guide:dental-social-media-advertising-rules) explains the differences by country, and our free [“Is my post allowed?” checker](checker:) gives a first pass on any caption in seconds.",
+        "No, but it multiplies the chances of a mistake. Every post from a clinic account is health advertising in most countries, whether it is the first of the month or the twentieth. A higher rhythm needs a quick, repeatable check before each post: no “painless” or guaranteed results, no prices or discounts in social posts, no patient photos without written consent, no testimonials where they are restricted. The [dental advertising rules overview](guide:dental-social-media-advertising-rules) explains the differences by country, and our free [“Is my post allowed?” checker](checker:) gives a first pass on any caption in seconds.",
       ],
     },
     {
@@ -88,13 +96,14 @@ const EN: Guide = {
       ],
       after: [
         "[DentVideo](landing:) was built for this rhythm: five narrated, captioned patient-education videos are ready every Monday, each checked for clinical accuracy and advertising rules, so the weekly work is approving and scheduling. [See a live preview with your logo](start:) before you choose a plan.",
+        "For a complete weekly plan for a small team, from choosing channels to knowing whether it works, see [dental video marketing for small practices](guide:dental-video-marketing-for-small-practices).",
       ],
     },
   ],
   faq: [
     { q: "Is posting every day better for a dental clinic?", a: "Not necessarily. Daily posting only helps if quality and compliance hold up. For most clinics, two to five good posts a week kept up all year does more than daily posts for a month." },
     { q: "What time of day should a dentist post on Instagram?", a: "When your own followers are most active, which Instagram shows in the professional dashboard's insights. Until you have data, test before work, lunchtime and evening, and compare after a few weeks." },
-    { q: "Should a clinic post at weekends?", a: "If your followers are active then, yes — scheduled posts need no one at the clinic. Check your audience data; weekend patterns differ a lot between clinics." },
+    { q: "Should a clinic post at weekends?", a: "If your followers are active then, yes: scheduled posts need no one at the clinic. Check your audience data; weekend patterns differ a lot between clinics." },
     { q: "How many Stories should a clinic post?", a: "There is no fixed number. A few Stories on most days keep followers in touch; they disappear after a day, so they suit reminders, the team and behind-the-scenes moments." },
   ],
 };

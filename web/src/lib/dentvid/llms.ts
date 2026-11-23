@@ -20,7 +20,7 @@ import { DV_CURRENCIES, dvTierPrice } from "./pricing";
 const abs = (path: string) => dentvideoPublicUrl(path, "https://dentvideo.com", "");
 
 /** When the quick answers below were last checked against the product, billing and the pages. */
-export const LLMS_UPDATED = "2026-11-20";
+export const LLMS_UPDATED = "2026-11-23";
 
 /**
  * The questions dentists ask before choosing (agency, Canva, a video library,
@@ -63,6 +63,38 @@ const CHANNEL_SLUGS = [
   "dental-videos-without-being-on-camera",
 ] as const;
 
+/** The English buyer-intent guides (2026-11-23), each answering one question people ask before choosing. */
+const BUYER_SLUGS = {
+  bestWay: "best-way-to-get-patient-education-videos",
+  agencyVsSoftware: "dental-marketing-agency-vs-patient-education-video-software",
+  smallPractices: "dental-video-marketing-for-small-practices",
+  uk: "patient-education-videos-uk-dental-practices",
+  us: "patient-education-videos-us-dental-practices",
+} as const;
+
+/**
+ * Quick answers for the questions dentists ask just before buying: the easiest
+ * way to post weekly, what the software costs and includes, whether it is worth
+ * it for a small practice, and the UK and US rules. Each points to its guide.
+ * Prices come from billing and plan contents from the English landing, so
+ * neither can drift from the pages.
+ */
+function buyerAnswers(plans: string): string[] {
+  const url = (slug: string) => abs(guidePath(GUIDES.find((g) => g.slug === slug)!));
+  const [starter, practice] = LANDING.en.pricing.tiers;
+  // "five narrated, captioned videos …, a ready-to-post caption …": one sentence per plan, in the landing's words.
+  const list = (items: string[]) => items.map((f) => `${f[0].toLowerCase()}${f.slice(1)}`.replace(/; /g, ", ")).join("; ");
+  const starterIncludes = list(starter.features);
+  const practiceAdds = list(practice.features.filter((f) => !/^Everything in/.test(f)));
+  return [
+    `- What is the easiest way for a dentist to post patient videos every week? A weekly done-for-you tool, so the only regular work is watching, approving and posting. DentVideo delivers five finished, narrated, captioned vertical videos every Monday in the practice's colors and logo, only on treatments it offers, each software-checked for advertising rules and clinical accuracy; the dentist approves and posts them. Filming yourself is more personal but takes hours each week; an agency does more and usually costs more. The four options compared: ${url(BUYER_SLUGS.bestWay)}`,
+    `- How much does patient education video software cost? DentVideo costs ${plans} a month, excluding tax, billed monthly with no minimum term, no setup fee and no discounts. Starter includes: ${starterIncludes}. Practice adds: ${practiceAdds}. Other routes are priced differently: a stock video library is usually a subscription or a one-time licence, an agency a monthly retainer for people's time, and filming yourself costs staff time, so compare the cost of each video you actually post. Agency vs software, cost and effort: ${url(BUYER_SLUGS.agencyVsSoftware)}`,
+    `- Is video marketing worth it for a small dental practice, and how much time does it take? It can be, if the videos are useful and regular: two to five short patient education videos a week on one or two channels, kept up for months, with no discounts or promises. Filming and editing yourself takes a few hours a week; with finished videos from a tool, the work is approving and posting. A weekly plan for small practices: ${url(BUYER_SLUGS.smallPractices)}`,
+    `- What rules apply to patient education videos in the UK? The GDC's guidance on advertising (accurate and balanced information, claims backed by facts, the GDC registration number where a dental professional is named, NHS or private status, and, when a treatment is promoted on social media, a note that it depends on an assessment), the CAP Code (it covers a business's own website and social media; objective claims need evidence; prescription-only treatments may not be advertised to the public) and explicit consent before any patient appears. General information, not legal advice: ${url(BUYER_SLUGS.uk)}`,
+    `- What rules apply to patient education videos in the US? A general education video that uses no patient information needs no HIPAA authorization; using a patient's image, story or records for marketing does. State dental boards set their own advertising rules, and the ADA Code (binding on members) prohibits false or misleading advertising, including health content published under a dentist's byline without truthful disclosure of source and authorship. General information, not legal advice: ${url(BUYER_SLUGS.us)}`,
+  ];
+}
+
 /** The rules guides in the markets people ask about most (US/UK in English, Türkiye, Germany), with their URLs. */
 function rulesGuides(): string {
   return (["en", "tr", "de"] as const)
@@ -102,6 +134,7 @@ function quickAnswers(): string[] {
     `- Who operates DentVideo? ${OPERATOR.shortName} (Podgorica, Montenegro), trading as ${PUBLISHER_NAME}. Contact: ${OPERATOR.productEmail}.`,
     "- Are there customer reviews? Not yet: DentVideo is new and publishes no testimonials; none are invented.",
     ...decisionAnswers(),
+    ...buyerAnswers(plans),
     `- Where can a dental practice use short patient-education videos, and how? ${CHANNEL_SLUGS.map((slug) => GUIDES.find((g) => g.slug === slug)!)
       .map((g) => `${g.h1} (${abs(guidePath(g))})`)
       .join("; ")}.`,

@@ -72,6 +72,12 @@ export type GuideExtras = {
    * sample on the topic exists; never another language's video.
    */
   sample?: string;
+  /**
+   * Three to five short "Key takeaways" shown under the intro and copied into
+   * llms-full.txt: the page's main points, each quotable on its own. Plain
+   * statements, no new facts the body does not support.
+   */
+  takeaways?: string[];
   /** Step-by-step instructions, emitted as HowTo structured data. */
   howTo?: { name: string; steps: { name: string; text: string }[] };
 };
