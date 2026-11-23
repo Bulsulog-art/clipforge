@@ -21,17 +21,12 @@ const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePre
   loading: () => <PreviewPlaceholder />,
 });
 
-/** What a visitor does on the page: the first of these says someone is there, not a bounce or a crawler. */
 const ACTIVITY = ["scroll", "pointerdown", "touchstart", "keydown", "wheel"] as const;
 
 /**
- * True once `ref` is within `margin` (~two screens) of the viewport, the page has loaded and gone
- * idle, and the visitor has done something (scrolled, tapped, typed, or arrived already scrolled,
- * e.g. at #try): the live preview (Remotion, fonts, narration: several hundred KB of script and
- * audio) must not compete with the hero on a phone's first load, and has settled in the
- * placeholder's box before it scrolls into view. Waiting for the first scroll or tap keeps it off
- * the first load of a visitor who leaves from the hero (Lighthouse measured it as most of the
- * landing's blocking time on a phone), and any scroll starts it ~1.5 screens before it is seen.
+ * True once `ref` is within `margin` of the viewport, the page has loaded and gone idle, and the
+ * visitor has scrolled, tapped or typed: the live preview (Remotion, fonts, narration) stays off a
+ * phone's first load (most of its Lighthouse blocking time) yet is ready before it is seen.
  */
 function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "1600px"): boolean {
   const [near, setNear] = useState(false);
@@ -54,7 +49,6 @@ function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "160
   }, []);
   useEffect(() => {
     if (active) return;
-    // Already scrolled (a reload further down, a link to #try): someone is reading.
     if (window.scrollY > 0) {
       setActive(true);
       return;

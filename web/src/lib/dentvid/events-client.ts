@@ -2,10 +2,7 @@ import type { DvEventName } from "./events";
 import { readAttribution } from "./attribution";
 import { isInternalBrowser } from "./internal-flag";
 
-/**
- * "mobile", "tablet" or "desktop" from the pointer and the screen's short side: a touch screen
- * under 600 CSS px is a phone. Coarse on purpose (events.ts DV_DEVICES); never the user agent.
- */
+/** Coarse device kind (events.ts DV_DEVICES) from the pointer and screen; never the user agent. */
 export function deviceKind(w: Pick<Window, "matchMedia" | "screen"> = window): "mobile" | "tablet" | "desktop" | undefined {
   try {
     const touch = w.matchMedia("(pointer: coarse)").matches && !w.matchMedia("(any-pointer: fine)").matches;
