@@ -2,6 +2,42 @@
 
 One entry per growth change: what shipped, why, what to watch. Newest first.
 
+## 2026-11-23: English buyer-intent guides and GEO hardening of every English guide
+
+**Why.** The English guides covered "how to post"; nothing answered the questions people ask just before buying
+(agency or software, which way to get videos, is it worth it for a small practice, what the UK and US rules mean
+for each video). Answer engines also quote short, self-contained passages, so every English guide now leads with one.
+
+**What shipped** (branch `claude/dentvideo-seo-round2`)
+
+- Five English guides (`web/src/content/guides/buyers-en.ts`), no named competitors (categories only; the sourced
+  price comparison stays on the `/videos` answer pages, which these link to):
+  `/guides/dental-marketing-agency-vs-patient-education-video-software`,
+  `/guides/best-way-to-get-patient-education-videos`, `/guides/dental-video-marketing-for-small-practices`,
+  `/guides/patient-education-videos-uk-dental-practices`, `/guides/patient-education-videos-us-dental-practices`.
+- Key takeaways: a new optional `takeaways` field, rendered under the intro (label in `guides/ui-takeaways.ts`, kept
+  out of the landing's client bundle) and copied into llms-full.txt. All 28 English guides have three to five.
+- Every English intro is now a 40 to 60 word direct answer; every em dash is gone from English guide text.
+- Internal links: each new page links 3+ guides and the free preview; seven existing guides link back to them.
+- llms.txt: five new quick answers (easiest way to post weekly, what the software costs and includes, small
+  practices, UK rules, US rules), prices from billing and plan contents from the English landing.
+- `updated` bumped to 2026-11-23 on the 23 changed English guides (sitemap lastmod); `reviewed` keeps the date the
+  facts were last checked. New pages have no `topic`, so no hreflang. Test: `guides/geo-en.test.ts`.
+
+**Key sources (read 2026-11-23)**
+
+- UK: GDC guidance on advertising (effective 30 Sep 2013) and on social media (27 Jun 2016); CAP Code scope,
+  Sections 3 and 12; ASA teeth whitening advice (16 Sep 2025).
+- US: 45 CFR 164.501 and 164.508(a)(3) via Cornell LII; ADA Code, advisory opinions revised to October 2024
+  (5.F, 5.F.1 authorship, 5.F.7 social media, 5.H/5.I specialty, 4.E.1 split fees). hhs.gov and ftc.gov refused
+  automated requests that day, so the new pages do not cite them.
+
+**Watch**
+
+- GSC queries "dental marketing agency vs", "patient education videos for dental practice", "dental video marketing
+  small practice", "patient education videos uk/us"; watch for overlap with `/videos/ways-to-make-dental-patient-education-videos`.
+- Run `node scripts/indexnow.mjs` after deploy for the new and changed URLs.
+
 ## 2026-11-09 — Owning "DentVideo" and the dental-video searches we can win
 
 **Why.** The owner wants DentVideo first when people type "dent…/dental…". Google Suggest (≈130 seeds, 8 markets)

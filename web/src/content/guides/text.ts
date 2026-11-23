@@ -1,5 +1,6 @@
 import { GUIDES, LANDING_PATH, findGuide, guidePath, type Guide, type Locale } from "../dentvideo";
 import { ABOUT_PATH, CHECKER_PATH, GUIDES_INDEX_PATH } from "./ui";
+import { KEY_TAKEAWAYS } from "./ui-takeaways";
 import { findSolution, solutionPath, type SolutionPage } from "../solutions";
 import type { SectionTable } from "./types";
 import { sampleSrc, samplesFor, type SampleVideo } from "../dentvideo-samples";
@@ -80,6 +81,7 @@ export function reviewedDate(p: { reviewed?: string; updated?: string; published
 export function guideTexts(g: Guide): string[] {
   return [
     g.intro,
+    ...(g.takeaways ?? []),
     ...g.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.list ?? []), ...tableTexts(s.table), ...(s.after ?? [])]),
     ...g.faq.flatMap((f) => [f.q, f.a]),
   ];
@@ -197,6 +199,11 @@ export function guideMarkdown(g: Guide, abs: (path: string) => string): string {
   const sample = guideSample(g);
   if (sample) lines.push(`Sample video: "${sample.name}" (${sample.seconds} s, a real DentVideo video for a demo clinic): ${abs(sampleSrc(g.locale, sample.slug, "mp4"))}`);
   lines.push("", link(g.intro), "");
+  if (g.takeaways?.length) {
+    lines.push(`### ${KEY_TAKEAWAYS[g.locale]}`, "");
+    for (const t of g.takeaways) lines.push(`- ${link(t)}`);
+    lines.push("");
+  }
   for (const s of g.sections) {
     lines.push(`### ${s.heading}`, "");
     for (const p of s.paragraphs) lines.push(link(p), "");

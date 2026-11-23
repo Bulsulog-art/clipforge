@@ -18,7 +18,7 @@ export const REVIEW_REPLIES_EN: Guide = {
   slug: "how-to-respond-to-negative-dental-reviews-hipaa",
   category: "rules",
   published: "2026-11-17",
-  updated: "2026-11-17",
+  updated: "2026-11-23",
   reviewed: "2026-11-17",
   title: "How to respond to a negative dental review without breaking HIPAA",
   seoTitle: "How to respond to a negative dental review (HIPAA)",
@@ -26,7 +26,13 @@ export const REVIEW_REPLIES_EN: Guide = {
   description: "A guide for dental practices on replying to negative online reviews: what HIPAA allows, the HHS dental settlements over Yelp replies, safe reply templates, review removal and the FTC review rules.",
   h1: "How to respond to a negative dental review without breaking HIPAA",
   intro:
-    "A dental practice can reply to a negative online review, but the public reply must not confirm that the reviewer is a patient or mention any treatment, appointment, bill or insurance detail. Under HIPAA that information is protected even when the patient posted it first. The HHS Office for Civil Rights has settled with dental practices over exactly this. A safe reply is short, general and moves the conversation offline.",
+    "A dental practice can reply to a negative review, but the public reply must not confirm the reviewer is a patient or mention any treatment, visit, bill or insurance detail. HIPAA protects that information even when the patient posted it first, and HHS has settled with dental practices over it. Safe replies are short, general and move the conversation offline.",
+  takeaways: [
+    "Never confirm in a public reply that the reviewer is a patient, or mention treatment, visits, bills or insurance.",
+    "Under HIPAA that information stays protected even when the patient posted it first.",
+    "A safe reply thanks the reviewer, says you take concerns seriously and gives a direct contact.",
+    "Handle the complaint privately, and give the team a one-page review policy.",
+  ],
   sections: [
     {
       heading: "Why is replying to a review a HIPAA risk?",
