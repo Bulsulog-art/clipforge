@@ -11,6 +11,7 @@ import {
   sanitizeProps,
 } from "./events";
 import { _resetEventBackoff, insertEventRow, readCapped, recordEvent } from "./events-server";
+import { deviceKind } from "./events-client";
 
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 
@@ -68,6 +69,28 @@ describe("payload sanitising (no personal data)", () => {
     expect(sanitizeProps("checkout_opened", { founding: "yes" })).toEqual({});
     expect(sanitizeProps("clinic_saved", { country: "de", language: "xx" })).toEqual({ country: "DE" });
     expect(sanitizeProps("clinic_saved", { country: "Germany" })).toEqual({});
+  });
+
+  it("keeps a coarse device label (mobile / tablet / desktop) on any event, and nothing else about the device", () => {
+    expect(sanitizeProps("landing_view", { device: "mobile" })).toEqual({ device: "mobile" });
+    expect(sanitizeProps("preview_seen", { device: "desktop", where: "landing" })).toEqual({ device: "desktop", where: "landing" });
+    expect(sanitizeProps("landing_view", { device: "iPhone 15 Pro" })).toEqual({});
+    expect(sanitizeProps("landing_view", { device: "Mozilla/5.0 (Linux; Android 14)" })).toEqual({});
+  });
+
+  it("reads the device kind from the pointer and the screen's short side, never the user agent", () => {
+    const win = (coarse: boolean, fine: boolean, w: number, h: number) =>
+      ({
+        matchMedia: (q: string) => ({ matches: q === "(pointer: coarse)" ? coarse : q === "(any-pointer: fine)" ? fine : false }),
+        screen: { width: w, height: h },
+      }) as unknown as Pick<Window, "matchMedia" | "screen">;
+    expect(deviceKind(win(true, false, 390, 844))).toBe("mobile");
+    expect(deviceKind(win(true, false, 844, 390))).toBe("mobile");
+    expect(deviceKind(win(true, false, 820, 1180))).toBe("tablet");
+    expect(deviceKind(win(false, true, 1440, 900))).toBe("desktop");
+    // A touch laptop or a tablet with a trackpad has a fine pointer too: desktop.
+    expect(deviceKind(win(true, true, 1280, 800))).toBe("desktop");
+    expect(deviceKind({} as Pick<Window, "matchMedia" | "screen">)).toBeUndefined();
   });
 
   it("never stores an email, a phone number or free text in a utm tag", () => {

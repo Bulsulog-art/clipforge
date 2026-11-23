@@ -10,8 +10,9 @@ export const en: LandingContent = {
   },
   hero: {
     eyebrow: "For dental clinics · Patient education, not advertising",
-    h1: "Five patient-education videos for your clinic, every Monday.",
-    lead: "Finished, narrated and captioned, with your logo and colors. Every script is software-checked for health-advertising rules and clinical accuracy before you see it. You approve, then share from your own account.",
+    // The outcome in one line; "You just approve." is the line the English social ads close on.
+    h1: "A week of patient videos for your clinic, every Monday. You just approve.",
+    lead: "Five finished videos a week, narrated and captioned, with your logo and colors. Every script is software-checked for health-advertising rules and clinical accuracy before you see it.",
     cta: "See it with your logo",
     ctaHint: "Free logo preview · no account",
     samplesLink: "Watch three sample videos",
@@ -189,8 +190,10 @@ export const en: LandingContent = {
     heading: "Before you decide",
     items: [
       { title: "See it first.", text: "Your logo on a real video, free and without an account. Then a full preview of your week before you choose a plan." },
-      { title: "You approve everything.", text: "Nothing is posted without you, and you post it yourself." },
-      { title: "Monthly, cancel anytime.", text: "No contract, no minimum term. Cancel in Settings; access runs to the end of the period you paid for." },
+      { title: "Nothing to film.", text: "Starter needs no filming at all. Only if you want to appear yourself, Practice adds clips from your own phone recordings." },
+      { title: "Checked, then approved by you.", text: "Every script is software-checked for clinical accuracy and the advertising rules where you practice. Nothing is posted without your approval, and you post it yourself." },
+      { title: "Don't like one? Decline it.", text: "Decline a video with a note on what is wrong. It goes nowhere, and your note reaches our team with the video." },
+      { title: "Monthly, cancel anytime.", text: "No contract, no minimum term, no setup fee. Cancel in Settings; access runs to the end of the period you paid for." },
       { title: "What you download stays yours.", text: "Videos you downloaded remain yours after you cancel." },
     ],
   },

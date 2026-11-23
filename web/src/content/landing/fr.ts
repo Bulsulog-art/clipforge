@@ -189,8 +189,10 @@ export const fr: LandingContent = {
     heading: "Avant de décider",
     items: [
       { title: "Voyez d'abord.", text: "Votre logo sur une vraie vidéo, sans compte et sans rien payer. Puis l'aperçu complet de votre semaine avant de choisir une formule." },
-      { title: "Vous validez tout.", text: "Rien n'est publié sans vous, et c'est vous qui publiez." },
-      { title: "Mensuel, résiliable à tout moment.", text: "Sans contrat ni durée minimale. Résiliation dans les Réglages ; l'accès court jusqu'à la fin de la période payée." },
+      { title: "Rien à filmer.", text: "La formule Starter ne demande aucun tournage. Seulement si vous souhaitez apparaître vous-même, Practice ajoute des clips tirés de vos propres enregistrements au téléphone." },
+      { title: "Vérifié, puis validé par vous.", text: "Chaque script est vérifié par logiciel pour l'exactitude clinique et les règles de communication en santé de votre pays. Rien n'est publié sans votre validation, et c'est vous qui publiez." },
+      { title: "Une vidéo ne vous plaît pas ? Refusez-la.", text: "Refusez-la avec une note sur ce qui ne va pas. Elle ne part nulle part, et la note arrive à notre équipe avec la vidéo." },
+      { title: "Mensuel, résiliable à tout moment.", text: "Sans contrat, sans durée minimale, sans frais de mise en service. Résiliation dans les Réglages ; l'accès court jusqu'à la fin de la période payée." },
       { title: "Ce que vous téléchargez reste à vous.", text: "Les vidéos téléchargées restent les vôtres après la résiliation." },
     ],
   },

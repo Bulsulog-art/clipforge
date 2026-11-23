@@ -758,7 +758,11 @@ function Scope({ locale }: { locale: Locale }) {
   );
 }
 
-/** Risk reversal from facts that already exist: no guarantee, refund or satisfaction offer (owner decision). */
+/**
+ * Risk reversal from facts that already exist: no guarantee, refund or satisfaction offer (owner decision).
+ * The objections at the price, answered from the product: no filming, checked then approved, decline
+ * with a note (dentvid_items.approval_note, shown to the team), monthly with no setup fee.
+ */
 function Before({ locale }: { locale: Locale }) {
   const b = LANDING[locale].before;
   return (

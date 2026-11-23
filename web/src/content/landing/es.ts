@@ -189,8 +189,10 @@ export const es: LandingContent = {
     heading: "Antes de decidir",
     items: [
       { title: "Míralo primero.", text: "Tu logo en un vídeo real, sin pagar y sin crear cuenta. Después, la vista previa completa de tu semana antes de elegir plan." },
-      { title: "Tú lo apruebas todo.", text: "No se publica nada sin ti, y lo publicas tú." },
-      { title: "Mensual, cancela cuando quieras.", text: "Sin contrato ni permanencia. Cancelas en Ajustes y mantienes el acceso hasta el final del periodo pagado." },
+      { title: "No tienes que grabar nada.", text: "Con Starter no hace falta grabar. Solo si quieres aparecer tú, Practice añade clips de tus propias grabaciones con el móvil." },
+      { title: "Revisado, y luego lo apruebas tú.", text: "Un software revisa cada guion según la exactitud clínica y las normas de publicidad sanitaria de tu país. No se publica nada sin tu aprobación, y lo publicas tú." },
+      { title: "¿Un vídeo no te gusta? Recházalo.", text: "Recházalo con una nota sobre lo que falla. No va a ninguna parte, y la nota llega a nuestro equipo junto con el vídeo." },
+      { title: "Mensual, cancela cuando quieras.", text: "Sin contrato, sin permanencia, sin cuota de alta. Cancelas en Ajustes y mantienes el acceso hasta el final del periodo pagado." },
       { title: "Lo que descargas es tuyo.", text: "Los vídeos que hayas descargado siguen siendo tuyos después de cancelar." },
     ],
   },

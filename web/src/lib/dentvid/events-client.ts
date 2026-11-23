@@ -2,6 +2,22 @@ import type { DvEventName } from "./events";
 import { readAttribution } from "./attribution";
 import { isInternalBrowser } from "./internal-flag";
 
+/** Coarse device kind (events.ts DV_DEVICES) from the pointer and screen; never the user agent. */
+export function deviceKind(w: Pick<Window, "matchMedia" | "screen"> = window): "mobile" | "tablet" | "desktop" | undefined {
+  try {
+    const touch = w.matchMedia("(pointer: coarse)").matches && !w.matchMedia("(any-pointer: fine)").matches;
+    if (!touch) return "desktop";
+    return Math.min(w.screen.width, w.screen.height) < 600 ? "mobile" : "tablet";
+  } catch {
+    return undefined;
+  }
+}
+
+function deviceProp(): { device?: string } {
+  const d = deviceKind();
+  return d ? { device: d } : {};
+}
+
 /**
  * Send a funnel event from the browser — fire-and-forget. Never throws,
  * never awaits anything the UI waits for, sets no cookie and stores no id.
@@ -23,7 +39,7 @@ export function trackDv(name: DvEventName, opts: { locale?: string; props?: Reco
     // The tab's first-touch source rides along on every event (lib/dentvid/attribution).
     // Internal browser (owner, QA, e2e) or automation: tagged.
     const bot = typeof navigator !== "undefined" && navigator.webdriver === true;
-    const body = JSON.stringify({ name, locale: opts.locale, props: { ...readAttribution(), ...(opts.props ?? {}), ...(isInternalBrowser() || bot ? { internal: true } : {}) } });
+    const body = JSON.stringify({ name, locale: opts.locale, props: { ...readAttribution(), ...deviceProp(), ...(opts.props ?? {}), ...(isInternalBrowser() || bot ? { internal: true } : {}) } });
     void fetch("/api/dentvideo/event", {
       method: "POST",
       headers: { "content-type": "application/json" },
