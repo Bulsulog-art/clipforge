@@ -122,7 +122,8 @@ describe("landing copy, every language", () => {
       expect(h.lead.length).toBeLessThanOrEqual(110);
       for (const p of h.facts) expect(p.length, p).toBeLessThanOrEqual(26);
     } else {
-      expect(h.h1.length, h.h1).toBeLessThanOrEqual(72);
+      // 73 in English: "A week of patient videos for your clinic, every Monday. You just approve." (the ads' line).
+      expect(h.h1.length, h.h1).toBeLessThanOrEqual(74);
       expect(words(h.lead), h.lead).toBeLessThanOrEqual(45);
       for (const p of h.facts) expect(p.length, p).toBeLessThanOrEqual(72);
     }

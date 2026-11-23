@@ -189,8 +189,10 @@ export const de: LandingContent = {
     heading: "Bevor Sie sich entscheiden",
     items: [
       { title: "Erst ansehen.", text: "Ihr Logo in einem echten Video, kostenlos und ohne Konto. Danach die vollständige Vorschau Ihrer Woche, bevor Sie einen Tarif wählen." },
-      { title: "Sie geben alles frei.", text: "Ohne Sie wird nichts veröffentlicht, und Sie posten selbst." },
-      { title: "Monatlich kündbar.", text: "Keine Vertragsbindung, keine Mindestlaufzeit. Kündigung in den Einstellungen; der Zugang läuft bis zum Ende des bezahlten Zeitraums." },
+      { title: "Kein Dreh nötig.", text: "Im Tarif Starter müssen Sie nichts filmen. Nur wenn Sie selbst zu sehen sein möchten, macht Practice Clips aus Ihren eigenen Smartphone-Aufnahmen." },
+      { title: "Geprüft, dann von Ihnen freigegeben.", text: "Jedes Skript wird softwaregestützt auf fachliche Richtigkeit und das Werberecht Ihres Landes geprüft. Ohne Ihre Freigabe wird nichts veröffentlicht, und Sie posten selbst." },
+      { title: "Gefällt eins nicht? Ablehnen.", text: "Lehnen Sie ein Video mit einer kurzen Notiz ab. Es geht nirgendwohin, und die Notiz geht mit dem Video an unser Team." },
+      { title: "Monatlich kündbar.", text: "Keine Vertragsbindung, keine Mindestlaufzeit, keine Einrichtungsgebühr. Kündigung in den Einstellungen; der Zugang läuft bis zum Ende des bezahlten Zeitraums." },
       { title: "Heruntergeladenes bleibt Ihres.", text: "Videos, die Sie heruntergeladen haben, gehören auch nach der Kündigung Ihnen." },
     ],
   },

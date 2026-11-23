@@ -147,6 +147,14 @@ export const DV_ATTRIBUTION_PROPS: Record<string, Rule> = {
   ref: { kind: "host" },
 };
 
+/**
+ * The kind of device a browser event came from, as the page itself sees it (pointer and screen size,
+ * lib/dentvid/events-client): a three-value label, never the user agent, so the funnel can be split
+ * phone vs desktop without storing anything that identifies a browser.
+ */
+export const DV_DEVICES = ["mobile", "tablet", "desktop"] as const;
+export const DV_CONTEXT_PROPS: Record<string, Rule> = { device: { kind: "enum", values: DV_DEVICES } };
+
 const SLUG = /^[a-z0-9][a-z0-9._-]{0,39}$/;
 const HOST = /^(?=.{3,80}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const EMAIL = /@|%40/;
@@ -195,7 +203,7 @@ function clean(rule: Rule, raw: unknown): string | number | boolean | undefined 
 /** The props of an event reduced to its allow-list; anything else is dropped. */
 export function sanitizeProps(name: DvEventName, raw: unknown): DvProps {
   // Every event may carry the tab's first-touch source (lib/dentvid/attribution); the event's own rules win.
-  const rules = { ...DV_ATTRIBUTION_PROPS, ...DV_EVENT_PROPS[name] };
+  const rules = { ...DV_ATTRIBUTION_PROPS, ...DV_CONTEXT_PROPS, ...DV_EVENT_PROPS[name] };
   const out: DvProps = {};
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
   for (const [key, rule] of Object.entries(rules)) {

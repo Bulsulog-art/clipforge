@@ -21,14 +21,22 @@ const LivePreview = dynamic(() => import("./live-preview").then((m) => m.LivePre
   loading: () => <PreviewPlaceholder />,
 });
 
+/** What a visitor does on the page: the first of these says someone is there, not a bounce or a crawler. */
+const ACTIVITY = ["scroll", "pointerdown", "touchstart", "keydown", "wheel"] as const;
+
 /**
- * True once `ref` is within `margin` (~two screens) of the viewport and the page has loaded and gone
- * idle: the live preview (Remotion, fonts, narration: several hundred KB) must not compete with the
- * hero on a phone's first load, and has settled in the placeholder's box before it scrolls into view.
+ * True once `ref` is within `margin` (~two screens) of the viewport, the page has loaded and gone
+ * idle, and the visitor has done something (scrolled, tapped, typed, or arrived already scrolled,
+ * e.g. at #try): the live preview (Remotion, fonts, narration: several hundred KB of script and
+ * audio) must not compete with the hero on a phone's first load, and has settled in the
+ * placeholder's box before it scrolls into view. Waiting for the first scroll or tap keeps it off
+ * the first load of a visitor who leaves from the hero (Lighthouse measured it as most of the
+ * landing's blocking time on a phone), and any scroll starts it ~1.5 screens before it is seen.
  */
 function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "1600px"): boolean {
   const [near, setNear] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [active, setActive] = useState(false);
   useEffect(() => {
     let idle: number | undefined;
     const go = () => {
@@ -45,6 +53,19 @@ function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "160
     };
   }, []);
   useEffect(() => {
+    if (active) return;
+    // Already scrolled (a reload further down, a link to #try): someone is reading.
+    if (window.scrollY > 0) {
+      setActive(true);
+      return;
+    }
+    const on = () => setActive(true);
+    for (const e of ACTIVITY) window.addEventListener(e, on, { once: true, passive: true });
+    return () => {
+      for (const e of ACTIVITY) window.removeEventListener(e, on);
+    };
+  }, [active]);
+  useEffect(() => {
     const el = ref.current;
     if (!el || near) return;
     if (typeof IntersectionObserver === "undefined") {
@@ -57,7 +78,7 @@ function useNearViewport(ref: React.RefObject<HTMLElement | null>, margin = "160
     io.observe(el);
     return () => io.disconnect();
   }, [ref, margin, near]);
-  return near && loaded;
+  return near && loaded && active;
 }
 
 const COLOURS = ["#0f5c5c", "#1f4e79", "#2e7d6b", "#b6774f", "#8a3b4a", "#24303a"];

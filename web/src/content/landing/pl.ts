@@ -189,8 +189,10 @@ export const pl: LandingContent = {
     heading: "Zanim Państwo zdecydują",
     items: [
       { title: "Najpierw zobaczyć.", text: "Państwa logo na prawdziwym filmie, bez płacenia i bez zakładania konta. Potem pełny podgląd tygodnia, zanim wybiorą Państwo plan." },
-      { title: "Państwo zatwierdzają wszystko.", text: "Bez Państwa nic nie zostanie opublikowane, a publikują Państwo sami." },
-      { title: "Miesięcznie, rezygnacja w dowolnym momencie.", text: "Bez umowy i minimalnego okresu. Rezygnacja w Ustawieniach; dostęp trwa do końca opłaconego okresu." },
+      { title: "Nie trzeba nic nagrywać.", text: "W planie Starter nie trzeba niczego nagrywać. Tylko jeśli chcą Państwo pojawić się osobiście, plan Practice dodaje klipy z Państwa nagrań telefonem." },
+      { title: "Sprawdzone, potem zatwierdzone przez Państwa.", text: "Każdy scenariusz jest sprawdzany przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy usług medycznych w Państwa kraju. Bez Państwa zgody nic nie zostanie opublikowane, a publikują Państwo sami." },
+      { title: "Film się nie podoba? Można go odrzucić.", text: "Wystarczy odrzucić go z notatką, co jest nie tak. Nigdzie nie trafi, a notatka trafia do naszego zespołu razem z filmem." },
+      { title: "Miesięcznie, rezygnacja w dowolnym momencie.", text: "Bez umowy, minimalnego okresu i opłaty startowej. Rezygnacja w Ustawieniach; dostęp trwa do końca opłaconego okresu." },
       { title: "Pobrane pliki zostają u Państwa.", text: "Pobrane filmy pozostają Państwa także po rezygnacji." },
     ],
   },

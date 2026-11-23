@@ -137,8 +137,12 @@ export type LandingContent = {
   pricingWhy: Faq;
   /** Right under the plans: what a clinic gets every week, and what it does not. */
   scope: { heading: string; includedHeading: string; included: [string, string, string, string]; excludedHeading: string; excluded: [string, string, string, string] };
-  /** §12 Before you decide: existing facts only — no guarantee, refund or satisfaction offer. */
-  before: { heading: string; items: [TitledText, TitledText, TitledText, TitledText] };
+  /**
+   * §12 Before you decide: existing facts only — no guarantee, refund or satisfaction offer.
+   * Six answers to the objections a dentist has at the price, in this order: see it first,
+   * nothing to film, checked then approved, decline with a note, cancel anytime, downloads stay yours.
+   */
+  before: { heading: string; items: [TitledText, TitledText, TitledText, TitledText, TitledText, TitledText] };
   /**
    * §13 Who is behind DentVideo: who runs it, who takes the money, what happens
    * to the data, how to leave, plus patient data, the DPA and AI disclosure.

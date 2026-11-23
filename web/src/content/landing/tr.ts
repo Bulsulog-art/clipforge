@@ -189,8 +189,10 @@ export const tr: LandingContent = {
     heading: "Karar vermeden önce",
     items: [
       { title: "Önce görün.", text: "Logonuz gerçek bir videoda; ücretsiz ve hesap açmadan. Ardından, plan seçmeden önce haftanızın tam önizlemesi." },
-      { title: "Her şeyi siz onaylarsınız.", text: "Siz olmadan hiçbir şey yayımlanmaz; paylaşımı kendiniz yaparsınız." },
-      { title: "Aylık, istediğiniz zaman iptal.", text: "Sözleşme ve asgari süre yok. Ayarlar'dan iptal edersiniz; ödediğiniz dönemin sonuna kadar erişiminiz sürer." },
+      { title: "Çekim gerekmez.", text: "Starter planında hiç çekim yapmazsınız. Yalnızca kendiniz görünmek isterseniz Practice, telefonla kaydettiklerinizden klipler ekler." },
+      { title: "Önce kontrol, sonra sizin onayınız.", text: "Her senaryo yazılımla klinik doğruluk ve ülkenizdeki sağlık tanıtım kuralları açısından kontrol edilir. Onayınız olmadan hiçbir şey yayımlanmaz; paylaşımı kendiniz yaparsınız." },
+      { title: "Beğenmediniz mi? Reddedin.", text: "Neyin yanlış olduğunu not ederek reddedersiniz. Video hiçbir yere gitmez; notunuz videoyla birlikte ekibimize ulaşır." },
+      { title: "Aylık, istediğiniz zaman iptal.", text: "Sözleşme, asgari süre ve kurulum ücreti yok. Ayarlar'dan iptal edersiniz; ödediğiniz dönemin sonuna kadar erişiminiz sürer." },
       { title: "İndirdikleriniz sizde kalır.", text: "İndirdiğiniz videolar iptalden sonra da sizindir." },
     ],
   },
