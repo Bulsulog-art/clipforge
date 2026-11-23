@@ -29,7 +29,7 @@ const YOUTUBE_SHORTS: Guide = {
   slug: "youtube-shorts-for-dentists",
   category: "video",
   published: DATE,
-  updated: DATE,
+  updated: "2026-11-23",
   reviewed: DATE,
   title: "YouTube Shorts for dentists: what to post, how long, and what YouTube's health rules mean for you",
   seoTitle: "YouTube Shorts for dentists: what to post",
@@ -37,7 +37,13 @@ const YOUTUBE_SHORTS: Guide = {
   description: "A guide for dental practices on YouTube Shorts: topics patients search for, length and format, titles, YouTube's medical misinformation and AI disclosure rules, and reusing videos.",
   h1: "YouTube Shorts for dentists",
   intro:
-    "YouTube Shorts are vertical videos of up to three minutes that YouTube shows in its Shorts feed and in search. For a dental practice they are a low-effort second home for the short patient-education videos you already make for Instagram or TikTok. The difference is that YouTube is also a search engine: a Short titled with the exact question a patient types can keep being found for months.",
+    "YouTube Shorts are vertical videos of up to three minutes that YouTube shows in the Shorts feed and search. For a dental practice they are an easy second home for the patient education videos you make for Instagram or TikTok. Because YouTube is also a search engine, a Short titled with a patient's exact question can be found for months.",
+  takeaways: [
+    "Shorts are vertical videos of up to three minutes, found in the Shorts feed and in search.",
+    "Title each Short with the patient's question in their own words, and put the practice name in the description.",
+    "YouTube removes content that contradicts health authorities' guidance, so stay with mainstream advice.",
+    "Disclose realistic AI content, and never use an AI voice or face that imitates a real dentist.",
+  ],
   sections: [
     {
       heading: "Why should a dental practice bother with YouTube Shorts?",
@@ -120,7 +126,7 @@ const WAITING_ROOM: Guide = {
   slug: "dental-waiting-room-tv-videos",
   category: "video",
   published: DATE,
-  updated: DATE,
+  updated: "2026-11-23",
   reviewed: DATE,
   title: "Dental waiting room TV: what to show patients, and what to keep off the screen",
   seoTitle: "Dental waiting room TV: what to show patients",
@@ -129,6 +135,12 @@ const WAITING_ROOM: Guide = {
   h1: "Dental waiting room TV: what to show patients",
   intro:
     "A waiting room screen is most useful as quiet patient education: short, captioned videos that answer the questions patients are about to ask, played without sound or with sound low. It should calm people and inform them, not sell to them. Keep it to your own treatments, refresh it regularly, and keep anything that identifies a patient off the screen.",
+  takeaways: [
+    "Use the screen for quiet patient education: short, captioned videos that answer the questions patients are about to ask.",
+    "Play videos without sound or with the sound low.",
+    "In the UK, playing music at a business usually needs a licence.",
+    "Keep anything that identifies a patient off the screen, and refresh the loop every week or two.",
+  ],
   sections: [
     {
       heading: "What should a dental waiting room screen show?",
@@ -204,7 +216,7 @@ const GOOGLE_PROFILE: Guide = {
   slug: "google-business-profile-for-dentists",
   category: "ideas",
   published: DATE,
-  updated: DATE,
+  updated: "2026-11-23",
   reviewed: DATE,
   title: "Google Business Profile for dentists: posts, photos and videos that help patients choose you",
   seoTitle: "Google Business Profile posts for dentists",
@@ -212,7 +224,13 @@ const GOOGLE_PROFILE: Guide = {
   description: "A guide for dental practices on Google Business Profile: what to post as updates, Google's video and photo requirements, scheduling, reviews, privacy and advertising rules, and how to keep it current.",
   h1: "Google Business Profile for dentists: posts, photos and videos",
   intro:
-    "Your Google Business Profile is often the first thing a patient sees when they search for a dentist nearby: hours, reviews, photos and your latest posts, on Google Search and Maps. Keeping it current with real photos, short educational updates and calm replies to reviews costs little time. Google lets you add videos of up to 30 seconds and schedule posts ahead.",
+    "Your Google Business Profile is often the first thing a patient sees when searching for a dentist nearby: hours, reviews, photos and your latest posts, on Google Search and Maps. Keeping it current with real photos, short educational updates and calm review replies takes little time. Google allows videos of up to 30 seconds and scheduled posts.",
+  takeaways: [
+    "The Google Business Profile is often the first thing patients see when they search for a dentist nearby.",
+    "Short educational updates, real photos and calm review replies keep it current without much time.",
+    "As of the review date, profile videos can be up to 30 seconds long, up to 75 MB and 720p or higher.",
+    "Never confirm in a review reply that the reviewer is a patient.",
+  ],
   sections: [
     {
       heading: "Why does the Google Business Profile matter for a dental practice?",
@@ -290,7 +308,7 @@ const CAPTIONS: Guide = {
   slug: "dental-instagram-captions",
   category: "ideas",
   published: DATE,
-  updated: DATE,
+  updated: "2026-11-23",
   reviewed: DATE,
   title: "Dental Instagram captions: templates, hashtags and the wording to avoid",
   seoTitle: "Dental Instagram captions: templates and hashtags",
@@ -299,6 +317,12 @@ const CAPTIONS: Guide = {
   h1: "Dental Instagram captions: templates, hashtags and wording to avoid",
   intro:
     "A good dental Instagram caption repeats the patient's question, answers it in one or two plain sentences and ends with a calm invitation to ask. It does not promise results, mention prices or call anything “painless”. Instagram now allows at most five hashtags per post, so choose a few precise topic and place tags rather than a long block.",
+  takeaways: [
+    "Open with the patient's question, answer it in one or two plain sentences and close with a calm invitation to ask.",
+    "Instagram allows at most five hashtags per post, so choose a few precise topic and place tags.",
+    "A caption is advertising text: no promises, no prices and nothing called “painless”.",
+    "Mention a patient only with written consent for that specific use.",
+  ],
   sections: [
     {
       heading: "What makes a dental caption work?",
@@ -387,7 +411,7 @@ const NO_CAMERA: Guide = {
   slug: "dental-videos-without-being-on-camera",
   category: "video",
   published: DATE,
-  updated: DATE,
+  updated: "2026-11-23",
   reviewed: DATE,
   title: "Dental videos without being on camera: formats that work when the dentist does not want to film",
   seoTitle: "Dental videos without being on camera",
@@ -395,7 +419,13 @@ const NO_CAMERA: Guide = {
   description: "A guide for dentists who do not want to appear on camera: video formats that still build trust, what to film instead of faces, narration and AI voices, platform disclosure rules and patient privacy.",
   h1: "Dental videos without being on camera",
   intro:
-    "A dental practice can post useful videos without anyone appearing on camera. Narrated explainers, hands-only demonstrations, text-led videos and calm footage of the practice all answer patients' questions. What matters is that each video answers one real question accurately. If you use an AI voice, never present it as a real dentist, and follow each platform's rules on disclosing realistic AI content.",
+    "A dental practice can post useful videos without anyone on camera. Narrated explainers, hands-only demonstrations, text-led videos and calm footage of the practice all work, as long as each answers one real question accurately. If you use an AI voice, never present it as a real dentist, and follow each platform's AI disclosure rules.",
+  takeaways: [
+    "Narrated explainers, hands-only demonstrations, text-led videos and footage of objects all work without a face.",
+    "Without a dentist on screen the script carries the weight, so have a dentist read every script.",
+    "Never present an AI voice as a real dentist, and follow each platform's AI disclosure rules.",
+    "Two to five videos a week is realistic for most practices when the work is batched.",
+  ],
   sections: [
     {
       heading: "Do dental videos need the dentist on camera?",
@@ -445,6 +475,7 @@ const NO_CAMERA: Guide = {
       paragraphs: [
         "Pick a format, batch the work, and keep a rhythm you can sustain. Two to five videos a week is realistic for most practices; see [how often a dental practice should post](guide:how-often-should-a-dental-practice-post). Our [dental social media content calendar](guide:dental-social-media-content-calendar) gives you 52 weeks of topics.",
         "[DentVideo](landing:) was built for practices that do not want to film every week. Every Monday it delivers five narrated, captioned vertical patient-education videos in your practice's colors and logo, with no avatar faces and no fake patients: the narration is a synthetic voice and the site says so. Every script is software-checked for clinical accuracy and advertising rules, and nothing is published until the dentist approves it. On the Practice plan, a dentist who is ready can also record a few minutes and get captioned clips of their own voice. You can [see a free preview of your own videos](start:) before choosing a plan.",
+        "To weigh this against filming yourself, a stock video library or an agency, see [four ways to get patient education videos](guide:best-way-to-get-patient-education-videos).",
       ],
     },
   ],

@@ -43,7 +43,8 @@ export const GUIDES_EN: Guide[] = [
     topic: "instagram-videos",
     category: "video",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-23",
+    reviewed: "2026-11-08",
     title: "Instagram videos for dentists: what to post, how to film it and what to avoid",
     seoTitle: "Instagram for dentists: what to post in Reels",
     seoDescription: "Which short videos patients watch, the Reels format, captions, posting rhythm, five-minute filming and what health-advertising rules restrict for dentists.",
@@ -51,6 +52,12 @@ export const GUIDES_EN: Guide[] = [
     h1: "Instagram videos for dentists: what to post, and how to keep it simple",
     intro:
       "Instagram videos that work for dentists answer one patient question in 20 to 60 seconds: vertical, captioned and worded carefully. One to three a week is enough. Guarantees, “painless”, discounts, superlatives and patient testimonials should stay out, because health-advertising rules restrict them in many countries, including under GDC and ASA guidance in the UK and FTC rules in the US.",
+    takeaways: [
+      "Answer one patient question per Reel, in 20 to 60 seconds, vertical and captioned.",
+      "One to three educational videos a week, kept up steadily, is enough for most clinics.",
+      "Keep guarantees, “painless”, discounts, superlatives and testimonials out: health-advertising rules restrict them in many countries.",
+      "One five-minute recording session can be cut into several short clips.",
+    ],
     sections: [
       {
         heading: "Why patients watch dentists' videos",
@@ -80,7 +87,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "The Reels format: first second, one idea, captions",
         paragraphs: [
-          "Short videos go out as Reels in vertical 9:16. Put the question in the first second, spoken and on screen. Answer it in two or three plain sentences, then close calmly — “If you're unsure, we can look at it at your next check-up” — with no pressure and no offer.",
+          "Short videos go out as Reels in vertical 9:16. Put the question in the first second, spoken and on screen. Answer it in two or three plain sentences, then close calmly, with no pressure and no offer: “If you're unsure, we can look at it at your next check-up.”",
           "Add captions. Many people watch with the sound off, and captions also help viewers with hearing loss and patients whose first language is different from yours. Keep them in the lower third, above the app's icons.",
         ],
       },
@@ -88,7 +95,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Reels, Stories and your profile: which video goes where",
         paragraphs: [
           "Reels are the likeliest way to reach people who do not follow you yet, so they suit question-and-answer videos. Stories disappear after 24 hours and are for everyday contact with existing followers: a moment from the clinic, a reminder, a poll. Pinned videos on your profile are what a new visitor sees first; three good candidates are an introduction to the dentist, “what happens at your first visit” and the most common question you get.",
-          "Organize Story Highlights by topic — “First visit”, “Aftercare”, “Children” — so patients find what they need in two taps.",
+          "Organize Story Highlights by topic (“First visit”, “Aftercare”, “Children”) so patients find what they need in two taps.",
         ],
       },
       {
@@ -132,7 +139,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colors with your logo. Every script is checked twice — for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [See a live preview with your logo before you pay](start:).",
+          "[DentVideo](landing:) plans five topics a week from the services you offer and real patient questions, writes and narrates the videos, and captions them in your colors with your logo. Every script is checked twice: for commonly restricted advertising claims and for clinical accuracy. Your own recordings are never reworded; anything worth a second look is marked with the reason. Nothing goes out until you approve it. [See a live preview with your logo before you pay](start:).",
         ],
       },
     ],
@@ -151,7 +158,8 @@ export const GUIDES_EN: Guide[] = [
     topic: "patient-education",
     category: "video",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-23",
+    reviewed: "2026-11-08",
     title: "Patient-education videos for dental clinics: topics, uses and accuracy",
     seoTitle: "Dental patient education videos: topics and uses",
     seoDescription: "Why short patient education videos help dental clinics, which topics to start with, a script template, where to use them and how to keep them accurate.",
@@ -159,6 +167,12 @@ export const GUIDES_EN: Guide[] = [
     h1: "Patient-education videos for dental clinics",
     intro:
       "Dental patient-education videos are short films, usually 30 to 90 seconds, that explain what a treatment is, how it is done and what to do afterwards. Clinics use them to calm nerves before an appointment, reinforce aftercare at home and give every patient the same accurate explanation. They support the consent conversation with the dentist; they do not replace it.",
+    takeaways: [
+      "Patient education videos explain what a treatment is, how it is done and what to do afterwards, usually in 30 to 90 seconds.",
+      "They help most before a first visit, before a treatment and after it, when advice is easily forgotten.",
+      "Stay with mainstream guidance and hedge where outcomes vary. The videos support the consent conversation; they never replace it.",
+      "Captions and plain words make them usable for patients with hearing loss or another first language.",
+    ],
     sections: [
       {
         heading: "What an education video solves",
@@ -172,7 +186,7 @@ export const GUIDES_EN: Guide[] = [
         paragraphs: ["Start with what your team explains every day. Three moments work well:"],
         list: [
           "Before a first visit: what happens at a check-up, what to bring, why an X-ray may be taken.",
-          "Before a treatment: root canal, implant, extraction, hygiene appointment, aligners — the steps in plain words.",
+          "Before a treatment: root canal, implant, extraction, hygiene appointment, aligners: the steps in plain words.",
           "After a treatment: aftercare following an extraction, eating after a filling, cleaning around implants, sensitivity after whitening.",
           "For children and parents: baby teeth, the first visit, fissure sealants and fluoride varnish.",
         ],
@@ -182,7 +196,7 @@ export const GUIDES_EN: Guide[] = [
         paragraphs: ["Using the same simple structure every time makes videos easier to write and to watch:"],
         list: [
           "Question (first 3 seconds): “When can I eat after an extraction?”",
-          "Short answer (1 sentence): “Usually once the numbness wears off — something soft and lukewarm.”",
+          "Short answer (1 sentence): “Usually once the numbness wears off. Start with something soft and lukewarm.”",
           "Why (1–2 sentences): why the blood clot matters for healing.",
           "What to do (2–3 points): procedure-specific advice, such as avoiding hot drinks, straws and smoking on the first day.",
           "When to call (1 sentence): “If bleeding or pain gets worse, call us.”",
@@ -194,7 +208,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Keeping them accurate",
         paragraphs: [
-          "Stay with mainstream guidance and hedge where outcomes vary: “usually”, “for most people”, “your dentist will tell you”. Keep aftercare specific to the procedure — advice that is right after an extraction can be wrong after a filling.",
+          "Stay with mainstream guidance and hedge where outcomes vary: “usually”, “for most people”, “your dentist will tell you”. Keep aftercare specific to the procedure: advice that is right after an extraction can be wrong after a filling.",
           "Make sure the caption under the video says the same thing as the video, and have a dentist review every video before it goes out. When the videos are posted on social media, advertising rules apply too; see [dental social media advertising rules](guide:dental-social-media-advertising-rules).",
         ],
       },
@@ -214,7 +228,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Accessibility and patients who speak other languages",
         paragraphs: [
-          "Captions help viewers with hearing loss and anyone watching without sound. Short sentences, everyday words and a plain translation of each technical term (“periodontitis — advanced gum disease”) make videos easier to follow.",
+          "Captions help viewers with hearing loss and anyone watching without sound. Short sentences, everyday words and a plain translation of each technical term (“periodontitis, or advanced gum disease”) make videos easier to follow.",
           "If many of your patients are more comfortable in Spanish, Polish, Urdu or another language, having your most common aftercare videos in those languages too reduces misunderstandings.",
         ],
       },
@@ -229,6 +243,7 @@ export const GUIDES_EN: Guide[] = [
         paragraphs: [
           "Patients trust the person who will treat them, so videos of the dentist explaining things are the most effective. Filming every week is rarely realistic, though. A good balance: explain the most common topics yourself and cover the rest with narrated education videos. For filming tips, see [Instagram videos for dentists](guide:instagram-videos-for-dentists).",
           "[DentVideo](landing:) plans a week of topics from the services you offer, writes and narrates the videos in your language, checks each one for clinical accuracy and advertising rules, and leaves the final approval to you. You download approved videos with their caption for social media, the waiting room or your website.",
+          "Not sure who should make them? [Four ways to get patient education videos](guide:best-way-to-get-patient-education-videos) compares filming yourself, a stock library, an agency and a weekly tool, and [dental video marketing for small practices](guide:dental-video-marketing-for-small-practices) sets out a simple weekly routine.",
         ],
       },
     ],
@@ -248,7 +263,7 @@ export const GUIDES_EN: Guide[] = [
     slug: "dental-social-media-advertising-rules",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-10",
+    updated: "2026-11-23",
     reviewed: "2026-11-10",
     title: "Dental social media and advertising rules: what to watch for, country by country",
     seoTitle: "Dental advertising guidelines for social media",
@@ -257,6 +272,12 @@ export const GUIDES_EN: Guide[] = [
     h1: "Dental social media and advertising rules: what to watch for",
     intro:
       "A dental clinic's social media posts are usually treated as advertising, and health advertising is regulated in most countries. The claims most often restricted are guarantees and “painless”, superlatives and comparisons, prices and discounts used as a lure, before-and-after promises and patient testimonials. The details differ by country, so check your national regulator. This is general information, not legal advice.",
+    takeaways: [
+      "A clinic's social media posts are usually treated as advertising, even when they are educational.",
+      "Commonly restricted: guarantees, “painless”, superlatives, prices and discounts as a lure, before-and-after promises and testimonials.",
+      "Almost any information can be given without a promise, with hedged wording such as “usually” or “for most people”.",
+      "Rules differ by country, so check your national regulator. Paid ads also face the platforms' own policies.",
+    ],
     sections: [
       {
         heading: "Is a clinic post advertising?",
@@ -342,6 +363,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "How DentVideo helps",
         paragraphs: [
           "[DentVideo](landing:) checks every script and caption for these commonly restricted claims in ten languages, sends anything risky back for a rewrite, and marks your own recordings for review instead of changing your words. It is a careful filter, not legal advice: you approve every video, and you remain responsible for what your clinic publishes. For text you write yourself, paste it into the free [“Is my post allowed?” ad checker](checker:), pick the country, and see each sentence marked with the reason and a link to the official rule. For topics that are safe to post, see [dental social media post ideas](guide:dental-social-media-post-ideas).",
+          "Making patient education videos in the UK or the US? Our pages for [UK dental practices](guide:patient-education-videos-uk-dental-practices) and [US dental practices](guide:patient-education-videos-us-dental-practices) apply these rules to each video.",
         ],
       },
     ],
@@ -360,7 +382,8 @@ export const GUIDES_EN: Guide[] = [
     topic: "post-ideas",
     category: "ideas",
     published: "2026-11-08",
-    updated: "2026-11-22",
+    updated: "2026-11-23",
+    reviewed: "2026-11-22",
     title: "Dental social media post ideas: a year of safe topics for Instagram, Reels and TikTok",
     seoTitle: "Dental social media post ideas for a whole year",
     seoDescription: "A year of dental social media post ideas: patient questions, treatments explained, aftercare, team, seasonal topics, captions and what to avoid.",
@@ -368,6 +391,12 @@ export const GUIDES_EN: Guide[] = [
     h1: "Dental social media post ideas",
     intro:
       "The safest and most-watched dental social media posts are short videos that answer common patient questions, explain treatments step by step, give aftercare tips and introduce the team. Discount promotions, giveaways, testimonials and before-and-after promises do not belong on the list: health-advertising rules restrict them in many countries, and they do little to build trust.",
+    takeaways: [
+      "The safest posts answer patient questions, explain treatments step by step, give aftercare tips and introduce the team.",
+      "Leave out discount promotions, giveaways, testimonials and before-and-after promises.",
+      "Find new topics in what reception and nurses hear, in search suggestions and in the seasons.",
+      "A caption repeats the video's answer briefly and adds no promise.",
+    ],
     sections: [
       {
         heading: "Three rules for choosing a topic",
@@ -435,7 +464,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Where to find more topics",
         paragraphs: [
-          "When the list runs dry, look in three places. Your team: reception and nurses hear first-hand what patients ask on the phone and in the chair — ask them to note every question for a week. Google: type “dental implant” or “teeth whitening” into the search box and read the suggestions; patterns such as “is … safe”, “how long” and “after” reveal real concerns. Your own account: comments and messages under your videos are your next topic.",
+          "When the list runs dry, look in three places. Your team: reception and nurses hear first-hand what patients ask on the phone and in the chair, so ask them to note every question for a week. Google: type “dental implant” or “teeth whitening” into the search box and read the suggestions; patterns such as “is … safe”, “how long” and “after” reveal real concerns. Your own account: comments and messages under your videos are your next topic.",
           "Price questions come up often but are rarely a good video. Answer them individually; if they keep coming, explain the steps of the treatment and what affects the plan, rather than numbers.",
         ],
       },
@@ -469,7 +498,7 @@ export const GUIDES_EN: Guide[] = [
     faq: [
       { q: "How often should a dental clinic post these ideas?", a: "A rhythm your team can keep all year matters more than a big number. Our guide on [how often a dental practice should post, and when](guide:how-often-should-a-dental-practice-post) suggests rhythms by the time you have and shows how to find your followers' active hours." },
       { q: "Is there a ready-made plan for a whole year?", a: "Yes: our [dental social media content calendar](guide:dental-social-media-content-calendar) gives one educational topic for each of the 52 weeks, tied to dates such as World Oral Health Day on 20 March." },
-      { q: "What should a dental practice post on Instagram?", a: "Short answers to patient questions, clear explanations of treatments, aftercare tips and introductions to the team — informative, carefully worded and free of promises." },
+      { q: "What should a dental practice post on Instagram?", a: "Short answers to patient questions, clear explanations of treatments, aftercare tips and introductions to the team: informative, carefully worded and free of promises." },
       { q: "How many posts a week?", a: "One to three a week is manageable for most practices. Consistency matters more than frequency." },
       { q: "Do I need different content for TikTok?", a: "Usually not. The same vertical, captioned short video works on Reels, TikTok and YouTube Shorts; adapt the caption. See [TikTok for dentists](guide:tiktok-for-dentists) for what differs." },
       { q: "Can a dental practice run a giveaway?", a: "In many countries giveaways and gifts are restricted in health advertising, and even where allowed they attract followers who are not patients. Most practices are better off without them." },
@@ -482,7 +511,7 @@ export const GUIDES_EN: Guide[] = [
     slug: "dental-advertising-rules-uk-gdc-asa",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-10",
+    updated: "2026-11-23",
     reviewed: "2026-11-10",
     title: "UK dental advertising rules for social media: GDC standards and the ASA's CAP Code",
     seoTitle: "GDC social media guidance and the CAP Code",
@@ -490,7 +519,13 @@ export const GUIDES_EN: Guide[] = [
     description: "What UK dentists can post on Instagram and TikTok: GDC standards and advertising guidance, CAP Code substantiation, testimonials, prices, Botox, specialist titles and UK GDPR. Not legal advice.",
     h1: "UK dental advertising rules for social media",
     intro:
-      "In the UK, dental social media posts must follow the General Dental Council's standards and guidance on advertising and the ASA's CAP Code. In short: be legal, decent, honest and truthful; hold evidence for every objective claim; do not mislead about results or qualifications; do not promote prescription-only medicines such as Botox to the public; and get written consent before featuring a patient.",
+      "In the UK, dental social media posts must follow the General Dental Council's guidance on advertising and the ASA's CAP Code. Be legal, decent, honest and truthful; hold evidence for every objective claim; do not mislead about results or qualifications; do not advertise prescription-only medicines such as Botox to the public; and get written consent before featuring a patient.",
+    takeaways: [
+      "UK dental posts follow the GDC's guidance on advertising and the ASA's CAP Code.",
+      "Hold evidence for every objective claim, and do not mislead about results or qualifications.",
+      "Prescription-only medicines such as Botox may not be advertised to the public.",
+      "Featuring a patient needs explicit written consent; health information is special category data under UK GDPR.",
+    ],
     sections: [
       {
         heading: "Which rules apply to UK dental posts?",
@@ -550,7 +585,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Patients, consent and UK GDPR",
         paragraphs: [
-          "Health information is special category data under UK GDPR, and the duty of confidentiality applies on social media as it does in the surgery. Featuring a patient — their face, voice, name, radiograph or story — needs explicit, informed, written consent that is specific to that use and can be withdrawn. Keep it separate from treatment consent and store it with the record.",
+          "Health information is special category data under UK GDPR, and the duty of confidentiality applies on social media as it does in the surgery. Featuring a patient (their face, voice, name, radiograph or story) needs explicit, informed, written consent that is specific to that use and can be withdrawn. Keep it separate from treatment consent and store it with the record.",
           "Take care when replying to online reviews: confirming that someone is your patient, or discussing their treatment, can itself be a breach. For more, see our guide to [patient consent on dental social media](guide:patient-consent-dental-social-media) and [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa).",
         ],
       },
@@ -570,7 +605,8 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) writes educational videos that stay away from these risks: no guarantees, “painless”, superlatives, prices, before-and-after promises or testimonials, and every script reviewed for clinical accuracy. Your own recordings are marked for review instead of being reworded. It is a careful filter, not legal advice — you approve every video. To check a caption or ad you wrote yourself against UK rules, use the free [“Is my post allowed?” ad checker](checker:) with the United Kingdom selected. For topics that work well, see [dental social media post ideas](guide:dental-social-media-post-ideas); for the wider picture, [advertising rules by country](guide:dental-social-media-advertising-rules).",
+          "[DentVideo](landing:) writes educational videos that stay away from these risks: no guarantees, “painless”, superlatives, prices, before-and-after promises or testimonials, and every script reviewed for clinical accuracy. Your own recordings are marked for review instead of being reworded. It is a careful filter, not legal advice, and you approve every video. To check a caption or ad you wrote yourself against UK rules, use the free [“Is my post allowed?” ad checker](checker:) with the United Kingdom selected. For topics that work well, see [dental social media post ideas](guide:dental-social-media-post-ideas); for the wider picture, [advertising rules by country](guide:dental-social-media-advertising-rules).",
+          "For the same rules applied video by video (GDC registration numbers, the line that treatment depends on an assessment, whitening claims and consent on camera), see [patient education videos for UK dental practices](guide:patient-education-videos-uk-dental-practices).",
         ],
       },
     ],
@@ -589,7 +625,7 @@ export const GUIDES_EN: Guide[] = [
     slug: "dental-advertising-rules-us",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-10",
+    updated: "2026-11-23",
     reviewed: "2026-11-10",
     title: "Dental advertising rules in the US: FTC, ADA Code, state boards and HIPAA on social media",
     seoTitle: "US dental advertising rules: FTC, ADA, HIPAA",
@@ -597,13 +633,19 @@ export const GUIDES_EN: Guide[] = [
     description: "What US dental practices can post on social media: FTC truth-in-advertising and endorsement rules, the reviews and testimonials rule, ADA Code, state dental boards and HIPAA. Not legal advice.",
     h1: "Dental advertising rules in the US for social media",
     intro:
-      "In the United States, dental social media posts are governed by the FTC's truth-in-advertising rules, its Endorsement Guides and its rule on consumer reviews and testimonials, by your state dental board's advertising rules and, for ADA members, by the ADA Code of Ethics. HIPAA adds that patients' photos, stories and even the fact that someone is a patient need written authorization before marketing use.",
+      "In the United States, dental social media posts are governed by the FTC's truth-in-advertising rules, Endorsement Guides and rule on reviews and testimonials, by your state dental board's advertising rules and, for ADA members, by the ADA Code of Ethics. HIPAA adds that patients' photos, stories and the fact that someone is a patient need written authorization before marketing use.",
+    takeaways: [
+      "FTC rules require advertising to be truthful, with a reasonable basis for objective claims, including health claims.",
+      "State dental boards add their own advertising rules, and they differ: read your own board's rules.",
+      "For ADA members, the Code prohibits advertising that is false or misleading in any material respect.",
+      "Using a patient's photos, story or even the fact that they are a patient in marketing needs a written HIPAA authorization.",
+    ],
     sections: [
       {
         heading: "What do federal FTC rules require?",
         paragraphs: [
           "Under Section 5 of the FTC Act, advertising must be truthful and not misleading, and objective claims need a reasonable basis before you make them. For health-related claims the FTC expects competent and reliable scientific evidence, as set out in its Health Products Compliance Guidance. A post that says a treatment is “painless”, “permanent” or “guaranteed” is a claim you would have to support.",
-          "The FTC's Endorsement Guides (16 CFR Part 255, revised in 2023) cover testimonials and influencer posts: endorsements must reflect the endorser's honest experience, a consumer testimonial is not competent and reliable scientific evidence, results that are not typical must not be presented as typical, and any material connection — payment, free treatment, a discount — must be disclosed clearly and conspicuously. A disclosure hidden behind a “more” link does not count. Tags in social media posts can themselves be endorsements.",
+          "The FTC's Endorsement Guides (16 CFR Part 255, revised in 2023) cover testimonials and influencer posts: endorsements must reflect the endorser's honest experience, a consumer testimonial is not competent and reliable scientific evidence, results that are not typical must not be presented as typical, and any material connection (payment, free treatment, a discount) must be disclosed clearly and conspicuously. A disclosure hidden behind a “more” link does not count. Tags in social media posts can themselves be endorsements.",
           "Since 21 October 2024 the FTC's Trade Regulation Rule on the Use of Consumer Reviews and Testimonials (16 CFR Part 465) has also applied. It prohibits fake reviews and testimonials, buying reviews conditioned on what they say, and suppressing negative reviews, and it allows civil penalties for knowing violations. Offering patients a discount for a five-star review falls on the wrong side of it.",
         ],
       },
@@ -672,7 +714,8 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "How DentVideo helps",
         paragraphs: [
-          "[DentVideo](landing:) makes educational videos that avoid the riskiest claims — guarantees, “painless”, superlatives, prices, before-and-after promises and testimonials — and checks every script for clinical accuracy. It needs no patient footage, and your own recordings are flagged for review rather than reworded. It is not legal advice; you approve every video. Captions and ads you write yourself can be checked against US rules with the free [“Is my post allowed?” ad checker](checker:). See [dental social media post ideas](guide:dental-social-media-post-ideas) for topics, and the [country-by-country overview](guide:dental-social-media-advertising-rules) if you work across borders.",
+          "[DentVideo](landing:) makes educational videos that avoid the riskiest claims (guarantees, “painless”, superlatives, prices, before-and-after promises and testimonials) and checks every script for clinical accuracy. It needs no patient footage, and your own recordings are flagged for review rather than reworded. It is not legal advice; you approve every video. Captions and ads you write yourself can be checked against US rules with the free [“Is my post allowed?” ad checker](checker:). See [dental social media post ideas](guide:dental-social-media-post-ideas) for topics, and the [country-by-country overview](guide:dental-social-media-advertising-rules) if you work across borders.",
+          "For how HIPAA, state board rules and the ADA Code apply to patient education videos specifically, including when a video needs no authorization at all, see [patient education videos for US dental practices](guide:patient-education-videos-us-dental-practices).",
         ],
       },
     ],
@@ -690,7 +733,7 @@ export const GUIDES_EN: Guide[] = [
     slug: "patient-consent-dental-social-media",
     category: "rules",
     published: "2026-11-08",
-    updated: "2026-11-10",
+    updated: "2026-11-23",
     reviewed: "2026-11-10",
     title: "Patient photos, videos and reviews on dental social media: consent, HIPAA and UK GDPR",
     seoTitle: "Dental social media consent: photos, HIPAA, GDPR",
@@ -698,7 +741,13 @@ export const GUIDES_EN: Guide[] = [
     description: "What dental practices need before posting patient photos, videos or stories: written consent or HIPAA authorization, what the form should say, review replies and safe alternatives. Not legal advice.",
     h1: "Patient photos and videos on dental social media: consent and privacy",
     intro:
-      "A dental practice should only post a patient's face, voice, name, radiograph or story with the patient's explicit, written consent for that specific use — a HIPAA authorization in the US, explicit consent under UK GDPR in the UK — which the patient can withdraw. Treatment consent does not cover social media, and even confirming someone is a patient can breach confidentiality.",
+      "A dental practice should only post a patient's face, voice, name, radiograph or story with the patient's explicit, written consent for that specific use (a HIPAA authorization in the US, explicit consent under UK GDPR in the UK), which the patient can withdraw. Treatment consent does not cover social media, and even confirming someone is a patient can breach confidentiality.",
+    takeaways: [
+      "Post a patient's face, voice, name, radiograph or story only with explicit, written consent for that specific use.",
+      "Consent to treatment does not cover social media, and the patient can withdraw consent.",
+      "Check the background before filming: screens, appointment books and radiographs can identify patients.",
+      "Most useful content needs no patient at all: models, diagrams, animation and narration.",
+    ],
     sections: [
       {
         heading: "Why this deserves its own checklist",
@@ -745,7 +794,7 @@ export const GUIDES_EN: Guide[] = [
       {
         heading: "Replying to online reviews",
         paragraphs: [
-          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. In 2019 the US Department of Health and Human Services settled with a Dallas dental practice for exactly this: its replies to Yelp reviews had disclosed a patient's last name, treatment plan and insurance details. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly — nothing more. Templates and the HHS cases are in [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa).",
+          "Replying to a review is where many practices slip. Confirming that the reviewer is a patient, mentioning their treatment or correcting their account with details from the record can all disclose health information. In 2019 the US Department of Health and Human Services settled with a Dallas dental practice for exactly this: its replies to Yelp reviews had disclosed a patient's last name, treatment plan and insurance details. A safe reply thanks the person, says you take feedback seriously, and invites them to contact the practice directly. Nothing more. Templates and the HHS cases are in [how to respond to a negative dental review](guide:how-to-respond-to-negative-dental-reviews-hipaa).",
         ],
       },
       {
@@ -773,7 +822,8 @@ export const GUIDES_EN: Guide[] = [
     topic: "agency-or-tool",
     category: "tools",
     published: "2026-11-08",
-    updated: "2026-11-08",
+    updated: "2026-11-23",
+    reviewed: "2026-11-08",
     title: "Dental video marketing: agency, freelancer, in-house or software?",
     seoTitle: "Dental video marketing: agency or software?",
     seoDescription: "Dental video marketing compared: agency, freelancer, in-house team or software, questions to ask before signing, a weekly workflow and who is responsible.",
@@ -781,6 +831,12 @@ export const GUIDES_EN: Guide[] = [
     h1: "Dental video marketing: agency, freelancer, in-house or software?",
     intro:
       "A dental practice has four ways to produce social media video: a dental marketing agency, a freelance content creator, someone on the team, or software that makes the content. Whichever you choose, the deciding question is the same: does the content follow health-advertising rules, and does a dentist approve every post before it goes live?",
+    takeaways: [
+      "A practice has four ways to produce video: an agency, a freelancer, someone on the team or software.",
+      "Whichever you choose, the content must follow health-advertising rules and a dentist must approve every post.",
+      "Before signing, ask who checks the rules, whether every post goes to a dentist first, and who owns the accounts and footage.",
+      "Many practices settle on a mix: regular videos from a tool or provider, plus the dentist on camera now and then.",
+    ],
     sections: [
       {
         heading: "First, decide what you need",
@@ -792,7 +848,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Four options, pros and cons",
         paragraphs: [],
         list: [
-          "Agency: handles planning, design and posting, and saves time. Often expensive, and not every agency knows health-advertising rules — promotions, giveaways and before-and-after carousels are standard elsewhere and risky for a dental practice.",
+          "Agency: handles planning, design and posting, and saves time. Often expensive, and not every agency knows health-advertising rules: promotions, giveaways and before-and-after carousels are standard elsewhere and risky for a dental practice.",
           "Freelance creator: more flexible and often more affordable, strong on filming and editing. Continuity depends on one person, and knowledge of the rules varies.",
           "In-house: nobody knows the practice and patients better, and the content sounds authentic. But time is short and patients always come first.",
           "Software: produces regular content quickly and predictably. General tools do not know health-advertising rules; even with a specialized tool, the final check belongs to the dentist.",
@@ -822,7 +878,7 @@ export const GUIDES_EN: Guide[] = [
         paragraphs: ["Packages include different things and are hard to compare directly. Judge them on the same criteria instead:"],
         list: [
           "How many posts a week actually arrive ready to publish?",
-          "How long does approval take the dentist — a quick watch, or a rewrite every time?",
+          "How long does approval take the dentist: a quick watch, or a rewrite every time?",
           "Who checks clinical accuracy and advertising rules before approval?",
           "Does it sound like your practice, or like a template many practices receive?",
           "What happens to accounts and content if you switch provider?",
@@ -854,7 +910,8 @@ export const GUIDES_EN: Guide[] = [
         heading: "The mixed model most practices settle on",
         paragraphs: [
           "For many practices, what lasts is a mix: regular education videos come from a tool or an outside provider, the dentist adds a short recording of their own once or twice a month, and the team posts and replies. The account stays active, sounds like the practice and nobody is under weekly pressure. Topics in [dental social media post ideas](guide:dental-social-media-post-ideas); filming tips in [Instagram videos for dentists](guide:instagram-videos-for-dentists).",
-          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency — DentVideo does not publish anything itself. [See a live preview with your logo before you pay](start:). For a side-by-side table, see [how DentVideo compares with an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
+          "[DentVideo](landing:) is software for the content part: it makes five short education videos a week, checks every script for clinical accuracy and advertising rules, and cuts your own recordings into captioned clips. Posting and replies stay with you or your agency. DentVideo does not publish anything itself. [See a live preview with your logo before you pay](start:). For a side-by-side table, see [how DentVideo compares with an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
+          "For the fees, the weekly tasks and the hidden costs side by side, see [dental marketing agency vs patient education video software](guide:dental-marketing-agency-vs-patient-education-video-software). For all four ways to get videos, including a stock library, see [the ways to get patient education videos](guide:best-way-to-get-patient-education-videos).",
         ],
       },
     ],
