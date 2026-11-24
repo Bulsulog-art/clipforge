@@ -1,5 +1,6 @@
 import { fill, lifecycleText } from "@/content/dentvideo-lifecycle";
 import { billingText } from "@/content/dentvideo-billing";
+import { appText } from "@/content/dentvideo-app";
 import { LOCALES, type Locale } from "@/content/dentvideo";
 import { operatorAddress } from "@/content/legal";
 import { CONTACT_EMAIL, COLORS, FONT, esc, helpCenterLink, renderEmail, type Brand, type Rendered } from "./email-layout";
@@ -16,8 +17,8 @@ export type DvMoney = { currency: DvCurrency; amount: number };
  *   sample          day 1 — here is your clinic's sample (its preview's titles)
  *   objections      day 3 — answers to the three common objections
  *   payment problem payment.failed / subscription.on_hold (transactional)
- *   not posted      paying clinic, nothing shared yet this week
- *   monthly         paying clinic, last month in three numbers
+ *   not posted      paying clinic, nothing shared or ticked as posted yet this week
+ *   monthly         paying clinic, last month: made, approved, posted
  *
  * and the unsubscribe page. Marketing mail (everything but welcome and the
  * payment problem) carries the unsubscribe link and the operator's postal
@@ -47,6 +48,15 @@ export function tidy(s: string): string {
     .trim();
 }
 
+/**
+ * The app's own button labels, as the dentist sees them, for the copy that
+ * names them ({post}, {mark}): read from the app's strings, never retyped.
+ */
+export function appLabels(lang: string): { post: string; mark: string } {
+  const t = appText(((LOCALES as readonly string[]).includes(lang) ? lang : "en") as Locale).library;
+  return { post: t.review.openPost, mark: t.post.markPosted };
+}
+
 /** The operator's postal address in the reader's language, for marketing mail. */
 export function postalAddress(lang: string): string {
   return operatorAddress(((LOCALES as readonly string[]).includes(lang) ? lang : "en") as Locale);
@@ -56,14 +66,15 @@ export function postalAddress(lang: string): string {
  * Welcome, right after the first payment. Transactional. It answers the four
  * things a new clinic wonders: when the first videos come (usually within an hour,
  * by email), how to review and approve (software-assisted check, you approve,
- * nothing published before), how to post (Share copies the caption, a
- * suggested time, we never post for you), and what then (every Monday) — and
+ * nothing published before), how to post (the app's "Post it" button, then one
+ * tap saves the video and copies the caption, a suggested time, we never post
+ * for you), and what then (every Monday) — and
  * how to reach a person (reply, hello@dentvideo.com).
  */
 export function welcomeEmail(args: { language: string; clinicName: string; appUrl: string; brand?: Brand }): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
   const clinic = clinicLabel(args.clinicName);
-  const vars = { clinic, email: CONTACT_EMAIL };
+  const vars = { clinic, email: CONTACT_EMAIL, post: appLabels(lang).post };
   return renderEmail({
     lang,
     subject: c.welcome.subject,
@@ -144,7 +155,7 @@ export function objectionsEmail(args: NudgeArgs & { from: DvMoney }): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
   const clinic = clinicLabel(args.clinicName);
   const s = c.objections;
-  const vars = { from: money(lang, args.from) };
+  const vars = { from: money(lang, args.from), post: appLabels(lang).post };
   return renderEmail({
     lang,
     subject: s.subject,
@@ -160,7 +171,7 @@ export function objectionsEmail(args: NudgeArgs & { from: DvMoney }): Rendered {
   });
 }
 
-/** Paying clinic, nothing shared yet this week: a gentle nudge. */
+/** Paying clinic, nothing shared or ticked as posted yet this week: a gentle nudge. */
 export function notPostedEmail(args: NudgeArgs & { approved: number; pending: number }): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
   const clinic = clinicLabel(args.clinicName);
@@ -172,31 +183,48 @@ export function notPostedEmail(args: NudgeArgs & { approved: number; pending: nu
     preheader: s.preheader,
     title: s.title,
     hello: tidy(fill(c.hello, { clinic })),
-    blocks: [{ kind: "list", items: lines }, { kind: "p", text: s.how }, { kind: "p", text: s.gentle, muted: true }],
+    blocks: [{ kind: "list", items: lines }, { kind: "p", text: fill(s.how, { post: appLabels(lang).post }) }, { kind: "p", text: s.gentle, muted: true }],
     button: { label: s.button, url: args.url },
     helpLink: helpCenterLink(lang, "share"),
     ...marketing(lang, c, args, s.footer),
   });
 }
 
-export type MonthStats = { made: number; approved: number; shared: number };
+/**
+ * Last month's numbers. `posted`: approved videos ticked as posted
+ * (dentvid_items.posted_at); null or absent before 0012, when there are no
+ * ticks to count, and then the video_shared event count is the only,
+ * rougher, signal. (A failed read sends no summary at all: monthStats
+ * returns null and the next hourly run asks again.)
+ */
+export type MonthStats = { made: number; approved: number; shared: number; posted?: number | null };
 
 /** "October 2026" in the reader's language (Arabic with Latin digits, like prices). */
 export function monthLabel(lang: string, year: number, month: number): string {
   return new Intl.DateTimeFormat(lang === "ar" ? "ar-u-nu-latn" : lang, { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 15)));
 }
 
-/** Paying clinic, once a month: what was made, approved and shared last month. */
+/**
+ * Paying clinic, once a month: what was made, approved and posted last
+ * month. Posted is "X of Y approved", so it is clipped to the approved
+ * count. When it is unknown the summary shows two numbers, not a guess,
+ * and neither its inbox preview nor its lines speak of posted ticks.
+ */
 export function monthlyEmail(args: NudgeArgs & { year: number; month: number; stats: MonthStats }): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
   const clinic = clinicLabel(args.clinicName);
   const s = c.monthly;
   const month = monthLabel(lang, args.year, args.month);
   const nf = new Intl.NumberFormat(lang === "ar" ? "en-US" : lang);
+  const { made, approved, shared } = args.stats;
+  const posted = typeof args.stats.posted === "number" && Number.isFinite(args.stats.posted) ? Math.max(0, Math.min(Math.floor(args.stats.posted), approved)) : null;
+  // Thanks only for what we can see went out: the ticks, or (without them) at least one share.
+  // "None marked as posted yet" only when the ticks were counted: without them it would be a guess.
+  const line = posted !== null ? (posted > 0 ? s.sharedSome : fill(s.sharedNone, { mark: appLabels(lang).mark })) : shared > 0 ? s.sharedSome : null;
   return renderEmail({
     lang,
     subject: fill(s.subject, { month }),
-    preheader: s.preheader,
+    preheader: posted !== null ? s.preheader : s.preheaderMadeApproved,
     title: fill(s.title, { month }),
     hello: tidy(fill(c.hello, { clinic })),
     blocks: [
@@ -204,12 +232,13 @@ export function monthlyEmail(args: NudgeArgs & { year: number; month: number; st
       {
         kind: "stats",
         items: [
-          { value: nf.format(args.stats.made), label: s.made },
-          { value: nf.format(args.stats.approved), label: s.approved },
-          { value: nf.format(args.stats.shared), label: s.shared },
+          { value: nf.format(made), label: s.made },
+          { value: nf.format(approved), label: s.approved },
+          ...(posted !== null ? [{ value: nf.format(posted), label: s.posted }] : []),
         ],
       },
-      { kind: "p", text: args.stats.shared > 0 ? s.sharedSome : s.sharedNone },
+      ...(posted ? [{ kind: "p" as const, text: fill(s.postedLine, { n: nf.format(posted), total: nf.format(approved) }) }] : []),
+      ...(line ? [{ kind: "p" as const, text: line }] : []),
     ],
     button: { label: s.button, url: args.url },
     ...marketing(lang, c, args, s.footer),

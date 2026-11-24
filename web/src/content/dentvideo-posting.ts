@@ -32,6 +32,10 @@ export type PostingText = {
     nothingTitle: string;
     nothingBody: string;
     approveFailed: string;
+    /** After a share or download from the page: the inline question, its button and the line once it is ticked. */
+    postedAsk: string;
+    postedYes: string;
+    postedDone: string;
   };
   email: {
     approveShare: string;
@@ -47,13 +51,13 @@ const en: PostingText = {
   approveSaveCopy: "Approve, save video + copy caption",
   downloadAndCopy: "Download video + copy caption",
   sharedHint: "Caption copied. In Instagram tap +, choose Reel, pick the video and paste.",
-  downloadedHint: "Video downloaded and caption copied — upload it and paste the caption.",
+  downloadedHint: "Video downloaded and caption copied. Upload it and paste the caption.",
   instagram: "Instagram",
   short: "TikTok · Shorts",
   copy: "Copy",
   copied: "Copied",
   suggested: "Best time: {slot}",
-  syncedNote: "Saved to your account — the same on every device.",
+  syncedNote: "Saved to your account, the same on every device.",
   nextVideo: "Next video",
   page: {
     metaTitle: "Ready to post",
@@ -67,6 +71,9 @@ const en: PostingText = {
     nothingTitle: "This video can't be shared from here",
     nothingBody: "It needs a quick look first, or it was declined. Open the app to see it.",
     approveFailed: "That didn't save. Check your connection and try again.",
+    postedAsk: "Posted it?",
+    postedYes: "Yes, mark as posted",
+    postedDone: "Marked as posted. Thank you.",
   },
   email: {
     approveShare: "Approve & share",
@@ -82,13 +89,13 @@ const de: PostingText = {
   approveSaveCopy: "Freigeben, Video sichern + Text kopieren",
   downloadAndCopy: "Video laden + Text kopieren",
   sharedHint: "Text kopiert. In Instagram auf + tippen, Reel wählen, Video auswählen und Text einfügen.",
-  downloadedHint: "Video geladen und Text kopiert – hochladen und den Text einfügen.",
+  downloadedHint: "Video geladen und Text kopiert. Jetzt hochladen und den Text einfügen.",
   instagram: "Instagram",
   short: "TikTok · Shorts",
   copy: "Kopieren",
   copied: "Kopiert",
   suggested: "Beste Zeit: {slot}",
-  syncedNote: "In Ihrem Konto gespeichert – auf jedem Gerät gleich.",
+  syncedNote: "In Ihrem Konto gespeichert, auf jedem Gerät gleich.",
   nextVideo: "Nächstes Video",
   page: {
     metaTitle: "Bereit zum Posten",
@@ -102,6 +109,9 @@ const de: PostingText = {
     nothingTitle: "Dieses Video lässt sich hier nicht teilen",
     nothingBody: "Es braucht erst einen kurzen Blick oder wurde abgelehnt. Öffnen Sie es in der App.",
     approveFailed: "Das wurde nicht gespeichert. Prüfen Sie die Verbindung und versuchen Sie es noch einmal.",
+    postedAsk: "Schon gepostet?",
+    postedYes: "Ja, als gepostet markieren",
+    postedDone: "Als gepostet markiert. Vielen Dank.",
   },
   email: {
     approveShare: "Freigeben & teilen",
@@ -137,6 +147,9 @@ const es: PostingText = {
     nothingTitle: "Este vídeo no se puede compartir desde aquí",
     nothingBody: "Necesita un vistazo antes o fue rechazado. Ábrelo en la app.",
     approveFailed: "No se ha guardado. Revisa la conexión e inténtalo de nuevo.",
+    postedAsk: "¿Ya lo has publicado?",
+    postedYes: "Sí, marcar como publicado",
+    postedDone: "Marcado como publicado. Gracias.",
   },
   email: {
     approveShare: "Aprobar y compartir",
@@ -172,6 +185,9 @@ const fr: PostingText = {
     nothingTitle: "Cette vidéo ne peut pas être partagée d'ici",
     nothingBody: "Elle demande d'abord un coup d'œil, ou elle a été refusée. Ouvrez-la dans l'application.",
     approveFailed: "Ce n'a pas été enregistré. Vérifiez la connexion et réessayez.",
+    postedAsk: "Vous l'avez publiée ?",
+    postedYes: "Oui, marquer comme publiée",
+    postedDone: "Marquée comme publiée. Merci.",
   },
   email: {
     approveShare: "Valider et partager",
@@ -187,13 +203,13 @@ const tr: PostingText = {
   approveSaveCopy: "Onayla, kaydet + açıklamayı kopyala",
   downloadAndCopy: "Videoyu indir + açıklamayı kopyala",
   sharedHint: "Açıklama kopyalandı. Instagram'da +'ya dokunun, Reels'i seçin, videoyu seçip açıklamayı yapıştırın.",
-  downloadedHint: "Video indirildi ve açıklama kopyalandı — videoyu yükleyip açıklamayı yapıştırın.",
+  downloadedHint: "Video indirildi ve açıklama kopyalandı. Videoyu yükleyip açıklamayı yapıştırın.",
   instagram: "Instagram",
   short: "TikTok · Shorts",
   copy: "Kopyala",
   copied: "Kopyalandı",
   suggested: "En iyi zaman: {slot}",
-  syncedNote: "Hesabınıza kaydedildi — her cihazda aynı.",
+  syncedNote: "Hesabınıza kaydedildi, her cihazda aynı.",
   nextVideo: "Sonraki video",
   page: {
     metaTitle: "Paylaşmaya hazır",
@@ -207,6 +223,9 @@ const tr: PostingText = {
     nothingTitle: "Bu video buradan paylaşılamıyor",
     nothingBody: "Önce kısa bir göz atılması gerekiyor ya da reddedildi. Uygulamada açın.",
     approveFailed: "Kaydedilemedi. Bağlantınızı kontrol edip tekrar deneyin.",
+    postedAsk: "Paylaştınız mı?",
+    postedYes: "Evet, paylaşıldı olarak işaretle",
+    postedDone: "Paylaşıldı olarak işaretlendi. Teşekkürler.",
   },
   email: {
     approveShare: "Onayla ve paylaş",
@@ -242,6 +261,9 @@ const ja: PostingText = {
     nothingTitle: "この動画はここから共有できません",
     nothingBody: "先に確認が必要か、見送りになった動画です。アプリでご確認ください。",
     approveFailed: "保存できませんでした。接続を確認して、もう一度お試しください。",
+    postedAsk: "投稿はお済みですか？",
+    postedYes: "はい、投稿済みにする",
+    postedDone: "投稿済みにしました。ありがとうございます。",
   },
   email: {
     approveShare: "承認して共有",
@@ -257,13 +279,13 @@ const ar: PostingText = {
   approveSaveCopy: "اعتماد، حفظ الفيديو + نسخ النص",
   downloadAndCopy: "تنزيل الفيديو + نسخ النص",
   sharedHint: "تم نسخ النص. في إنستغرام اضغطوا +، واختاروا ريلز ثم الفيديو، والصقوا النص.",
-  downloadedHint: "تم تنزيل الفيديو ونسخ النص — ارفعوه والصقوا النص.",
+  downloadedHint: "تم تنزيل الفيديو ونسخ النص. ارفعوه والصقوا النص.",
   instagram: "إنستغرام",
   short: "تيك توك · شورتس",
   copy: "نسخ",
   copied: "تم النسخ",
   suggested: "أفضل وقت: {slot}",
-  syncedNote: "محفوظ في حسابكم — هو نفسه على كل الأجهزة.",
+  syncedNote: "محفوظ في حسابكم، وهو نفسه على كل الأجهزة.",
   nextVideo: "الفيديو التالي",
   page: {
     metaTitle: "جاهز للنشر",
@@ -277,6 +299,9 @@ const ar: PostingText = {
     nothingTitle: "لا يمكن مشاركة هذا الفيديو من هنا",
     nothingBody: "يحتاج إلى نظرة سريعة أولاً، أو تم رفضه. افتحوه في التطبيق.",
     approveFailed: "لم يتم الحفظ. تحققوا من الاتصال وحاولوا مرة أخرى.",
+    postedAsk: "هل نشرتموه؟",
+    postedYes: "نعم، تحديد كمنشور",
+    postedDone: "تم تحديده كمنشور. شكراً لكم.",
   },
   email: {
     approveShare: "اعتماد ومشاركة",
@@ -292,13 +317,13 @@ const pl: PostingText = {
   approveSaveCopy: "Zatwierdź, zapisz wideo + skopiuj opis",
   downloadAndCopy: "Pobierz wideo + skopiuj opis",
   sharedHint: "Opis skopiowany. W Instagramie stuknij +, wybierz Rolkę, potem wideo i wklej opis.",
-  downloadedHint: "Wideo pobrane, opis skopiowany — prześlij je i wklej opis.",
+  downloadedHint: "Wideo pobrane, opis skopiowany. Prześlij je i wklej opis.",
   instagram: "Instagram",
   short: "TikTok · Shorts",
   copy: "Kopiuj",
   copied: "Skopiowano",
   suggested: "Najlepszy czas: {slot}",
-  syncedNote: "Zapisane na koncie — tak samo na każdym urządzeniu.",
+  syncedNote: "Zapisane na koncie, tak samo na każdym urządzeniu.",
   nextVideo: "Następne wideo",
   page: {
     metaTitle: "Gotowe do publikacji",
@@ -312,6 +337,9 @@ const pl: PostingText = {
     nothingTitle: "Tego filmu nie można udostępnić stąd",
     nothingBody: "Wymaga najpierw krótkiego sprawdzenia albo został odrzucony. Otwórz go w aplikacji.",
     approveFailed: "Nie udało się zapisać. Sprawdź połączenie i spróbuj ponownie.",
+    postedAsk: "Film już opublikowany?",
+    postedYes: "Tak, oznacz jako opublikowany",
+    postedDone: "Oznaczono jako opublikowany. Dziękujemy.",
   },
   email: {
     approveShare: "Zatwierdź i udostępnij",

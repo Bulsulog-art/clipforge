@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { approveToken } from "./approve-link";
-import { handlePostAction, loadPostView, postLinkUrl, type PostItem, type PostLinkStore } from "./post-link";
+import { APPROVE_TTL_DAYS, handlePostAction, loadPostView, postLinkUrl, shareOnceKey, SHARE_ONCE_TTL_S, type PostItem, type PostLinkStore, type ShareCounter } from "./post-link";
 import { videoRows } from "./ready-notice";
 import { readyEmail } from "./email";
 
@@ -114,6 +114,133 @@ describe("post link", () => {
     expect((await handlePostAction({ t: tok(), v: id(1), action: "posted" }, { store, secret: SECRET, now: NOW })).status).toBe(409);
     const missing = makeStore({ postedMissing: true });
     expect((await handlePostAction({ t: tok(), v: id(3), action: "posted" }, { store: missing.store, secret: SECRET, now: NOW })).body).toEqual({ ok: true, stored: false });
+  });
+});
+
+/** The route's share counter in memory: a once-only key per video, and the events it stored. */
+function shares(opts: { recordOk?: boolean } = {}) {
+  const keys = new Set<string>();
+  const events: Parameters<ShareCounter["record"]>[0][] = [];
+  const counter: ShareCounter = {
+    claim: async (itemId) => (keys.has(shareOnceKey(itemId)) ? false : (keys.add(shareOnceKey(itemId)), true)),
+    release: async (itemId) => void keys.delete(shareOnceKey(itemId)),
+    record: async (e) => {
+      if (opts.recordOk === false) return false;
+      events.push(e);
+      return true;
+    },
+  };
+  return { counter, keys, events };
+}
+
+describe("post link: a share from the page counts, with the clinic, once per video", () => {
+  const shared = (body: Record<string, unknown>, store: PostLinkStore, counter: ShareCounter, now = NOW) =>
+    handlePostAction({ action: "shared", method: "share", ...body }, { store, secret: SECRET, now, shares: counter });
+
+  it("records one video_shared with the token's clinic for a ready video of that clinic and week, once per video", async () => {
+    const { store } = makeStore();
+    const sh = shares();
+    expect(await shared({ t: tok(), v: id(1), device: "mobile" }, store, sh.counter)).toEqual({ status: 200, body: { ok: true, stored: true } });
+    expect(sh.events).toEqual([{ clinicId: CLINIC, method: "share", locale: "tr", device: "mobile", internal: false }]);
+    // The same video again (another tap, a second download, a replayed request): counted once.
+    expect(await shared({ t: tok(), v: id(1), method: "download" }, store, sh.counter)).toEqual({ status: 200, body: { ok: true, stored: false } });
+    expect(await shared({ t: tok(), v: id(1).toUpperCase() }, store, sh.counter)).toEqual({ status: 200, body: { ok: true, stored: false } });
+    // Another video of the week counts on its own; an approved one too.
+    expect((await shared({ t: tok(), v: id(3), method: "download", device: "laptop" }, store, sh.counter)).body.stored).toBe(true);
+    expect(sh.events).toHaveLength(2);
+    expect(sh.events[1]).toEqual({ clinicId: CLINIC, method: "download", locale: "tr", device: undefined, internal: false });
+  });
+
+  it("needs the right clinic, week and video: another clinic's token, another week, a flagged, declined or unknown video count nothing", async () => {
+    const { store } = makeStore();
+    const sh = shares();
+    expect((await shared({ t: tok(OTHER), v: id(1) }, store, sh.counter)).status).toBe(409);
+    expect((await shared({ t: tok(CLINIC, "2026-11-02"), v: id(1) }, store, sh.counter)).status).toBe(409);
+    for (const v of [id(2), id(4), id(9)]) expect((await shared({ t: tok(), v }, store, sh.counter)).status, v).toBe(409);
+    expect(sh.events).toEqual([]);
+    expect(sh.keys.size).toBe(0);
+  });
+
+  it("rejects an expired, forged or missing token, a malformed video id and an unknown method", async () => {
+    const { store } = makeStore();
+    const sh = shares();
+    expect((await shared({ t: tok(), v: id(1) }, store, sh.counter, new Date("2026-12-01T00:00:00Z"))).status).toBe(400);
+    expect((await shared({ t: approveToken(CLINIC, WEEK, "other-secret", NOW), v: id(1) }, store, sh.counter)).status).toBe(400);
+    const [c, w, exp, sig] = tok().split(".");
+    expect((await shared({ t: [c, w, String(Number(exp) + 86_400), sig].join("."), v: id(1) }, store, sh.counter)).status).toBe(400);
+    expect((await shared({ v: id(1) }, store, sh.counter)).status).toBe(400);
+    expect((await shared({ t: tok(), v: "1 or 1=1" }, store, sh.counter)).status).toBe(400);
+    expect((await shared({ t: tok(), v: id(1), method: "post" }, store, sh.counter)).body).toEqual({ ok: false, error: "method" });
+    expect((await shared({ t: tok(), v: id(1), method: undefined }, store, sh.counter)).status).toBe(400);
+    expect(sh.events).toEqual([]);
+  });
+
+  it("a paused or cancelled clinic counts nothing", async () => {
+    const sh = shares();
+    for (const plan of ["paused", "cancelled", "trial"]) expect((await shared({ t: tok(), v: id(1) }, makeStore({ plan }).store, sh.counter)).status, plan).toBe(409);
+    expect(sh.events).toEqual([]);
+  });
+
+  it("when the event is not stored, the video's key is freed so a later tap still counts", async () => {
+    const { store } = makeStore();
+    const down = shares({ recordOk: false });
+    expect((await shared({ t: tok(), v: id(1) }, store, down.counter)).body).toEqual({ ok: true, stored: false });
+    expect(down.keys.size).toBe(0);
+    // A claim store that throws does not block the count (Redis down: the route falls back to memory).
+    const events: unknown[] = [];
+    const flaky: ShareCounter = { claim: async () => Promise.reject(new Error("redis down")), release: async () => {}, record: async (e) => (events.push(e), true) };
+    expect((await shared({ t: tok(), v: id(1) }, store, flaky)).body.stored).toBe(true);
+    expect(events).toHaveLength(1);
+  });
+
+  it("does not approve, tick or change the video", async () => {
+    const { store, items, approve } = makeStore();
+    await shared({ t: tok(), v: id(1) }, store, shares().counter);
+    expect(approve).not.toHaveBeenCalled();
+    expect(items[0]).toMatchObject({ approval: "pending", posted_at: null });
+  });
+
+  it("a share of ours (a flagged browser, or a bot or our scripts by request) is kept as internal, without the clinic, and leaves the video's one count to the dentist", async () => {
+    const { store } = makeStore();
+    const sh = shares();
+    // The owner checks a clinic's link from a browser flagged as ours: the page sends internal: true.
+    expect(await shared({ t: tok(), v: id(1), internal: true, device: "desktop" }, store, sh.counter)).toEqual({ status: 200, body: { ok: true, stored: false } });
+    // A monitor or a headless browser: the route says so from the request.
+    const r = await handlePostAction({ action: "shared", method: "download", t: tok(), v: id(1) }, { store, secret: SECRET, now: NOW, shares: sh.counter, internal: true });
+    expect(r).toEqual({ status: 200, body: { ok: true, stored: false } });
+    expect(sh.events).toEqual([
+      { clinicId: null, method: "share", locale: "tr", device: "desktop", internal: true },
+      { clinicId: null, method: "download", locale: "tr", device: undefined, internal: true },
+    ]);
+    expect(sh.keys.size).toBe(0);
+    // The dentist's own share afterwards still counts, once, for the clinic.
+    expect((await shared({ t: tok(), v: id(1) }, store, sh.counter)).body.stored).toBe(true);
+    expect(sh.events[2]).toEqual({ clinicId: CLINIC, method: "share", locale: "tr", device: undefined, internal: false });
+    expect((await shared({ t: tok(), v: id(1) }, store, sh.counter)).body.stored).toBe(false);
+    // Only a literal true marks it: anything else is a normal share.
+    const other = shares();
+    for (const internal of ["true", 1, "1", {}]) await shared({ t: tok(), v: id(3), internal }, store, other.counter);
+    expect(other.events.map((e) => [e.clinicId, e.internal])).toEqual([[CLINIC, false]]);
+  });
+
+  it("an internal share goes through the same checks: no token, the wrong clinic or a paused one count nothing, internal or not", async () => {
+    const sh = shares();
+    expect((await shared({ t: tok(OTHER), v: id(1), internal: true }, makeStore().store, sh.counter)).status).toBe(409);
+    expect((await shared({ v: id(1), internal: true }, makeStore().store, sh.counter)).status).toBe(400);
+    expect((await shared({ t: tok(), v: id(1), internal: true }, makeStore({ plan: "paused" }).store, sh.counter)).status).toBe(409);
+    expect(sh.events).toEqual([]);
+  });
+
+  it("the once-per-video key outlives every link that can still be valid for that week", () => {
+    // A week's link is valid APPROVE_TTL_DAYS from each send, and the ready email can be sent again for
+    // the newest week (the admin's resend): a share counted on day 1 must still be counted on the last
+    // day of a link sent again weeks later.
+    const day = 86_400;
+    expect(SHARE_ONCE_TTL_S).toBeGreaterThanOrEqual((APPROVE_TTL_DAYS + 21) * day);
+    const sentAgainOnDay = 21;
+    expect(SHARE_ONCE_TTL_S).toBeGreaterThan((sentAgainOnDay + APPROVE_TTL_DAYS) * day);
+    // ...and still expires, so the keys do not pile up forever.
+    expect(SHARE_ONCE_TTL_S).toBeLessThanOrEqual(60 * day);
   });
 });
 
