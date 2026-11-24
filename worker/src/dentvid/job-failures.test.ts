@@ -38,6 +38,8 @@ describe("failed jobs the owner hears about", () => {
     expect(failureAlert("dentvid", { name: "recording", data: { clinicId: "c1" }, attemptsMade: 2, opts: { attempts: 2 } }, err, { spendRefusal: true })).toBeNull();
     // runDentvidWeek alerts for weeks itself; a second email here would double it.
     expect(failureAlert("dentvid", { name: "week", attemptsMade: 4, opts: { attempts: 4 } }, err)).toBeNull();
+    // A week BullMQ failed itself (its process died twice) is stalled-week.ts's job, not this one.
+    expect(failureAlert("dentvid", { name: "week", attemptsMade: 1, opts: { attempts: 4 } }, new UnrecoverableError("job stalled more than allowable limit"))).toBeNull();
     expect(failureAlert("dentvid", undefined, err)).toBeNull();
   });
 

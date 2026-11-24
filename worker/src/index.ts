@@ -14,7 +14,7 @@ import { batchNice, withNicedChildren } from "./dentvid/nice.js";
 import { configureReadyMail, notifyReadyChecked, type ReadyMailJob } from "./dentvid/notify.js";
 import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
 import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore, setWeekDelay } from "./dentvid/ops.js";
-import { alerts, cleanError, resendSender } from "./dentvid/ops-alert.js";
+import { alerts, resendSender } from "./dentvid/ops-alert.js";
 import { dailyProviderCheck } from "./dentvid/provider-health.js";
 import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
 import { DIGEST_SCHEDULE, runDigest } from "./dentvid/digest.js";
@@ -25,7 +25,7 @@ import { RETENTION_SCHEDULE, retentionAlertDue, runRetention, supabaseRetentionD
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
 import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, revenuecatLookup, supabaseReconcileDb } from "./dentvid/reconcile.js";
-import { jobWeek } from "./dentvid/jobs.js";
+import { handleFailedWeek, MAX_STALLED_COUNT, weekClinic } from "./dentvid/stalled-week.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
@@ -154,6 +154,10 @@ const dentvidWorker = new Worker(
     // DENTVID_RENDER_CONCURRENCY=0: this box takes no renders (a render server does).
     autorun: ROLES.has("dentvid") && DENTVID_CONCURRENCY > 0,
     concurrency: Math.max(1, DENTVID_CONCURRENCY),
+    // A week whose process dies under it (a deploy, a restart, out of memory) is put back in the
+    // queue; only the third time is it failed as "stalled" (dentvid/stalled-week.ts takes it from
+    // there). The default, 1, gave up on a week after two restarts in one Saturday evening.
+    maxStalledCount: MAX_STALLED_COUNT,
     // Enough to keep a whole week's jobs: the job ids are what stop a week
     // from being queued twice (dispatch, payment, button, watchdogs).
     removeOnComplete: { count: 5000, age: 7 * 24 * 3600 },
@@ -178,14 +182,21 @@ dentvidWorker.on("failed", (job, err) => {
   logger.error({ jobId: job?.id, err: err.message }, "dentvid job failed");
   // The Saturday dispatch and a dentist's recording: the owner hears about a final failure.
   alertOnFailure("dentvid", job, err);
-  // runDentvidWeek alerts on its own final failure; a job that died with the
-  // process (OOM, restart — "stalled") never reached that code, so tell the owner here.
-  if (job?.name === "week" && /stalled/i.test(err.message) && job.attemptsMade >= (job.opts.attempts ?? 1)) {
-    const clinicId = (job.data as { clinicId?: string }).clinicId ?? "unknown";
-    void (async () =>
-      ownerAlert(
-        alerts.weekFailed({ clinic: await clinicRef(dentvidDb(), clinicId), week: jobWeek(job.data as { week?: string }), attempts: job.attemptsMade, error: cleanError(err), permanent: false }),
-      ))().catch(() => {});
+  // A week that failed for good, also one BullMQ failed itself because its process died under it
+  // ("stalled", an UnrecoverableError at attempt 1 of 4 that runDentvidWeek never sees): the library
+  // says "delayed", the owner is told, and before the clinic's Monday morning it is queued once more
+  // (dentvid/stalled-week.ts).
+  if (job?.name === "week") {
+    void handleFailedWeek(
+      job,
+      err,
+      { queue: dentvidQueue, store: opsStore(), alert: ownerAlert, setDelay: setWeekDelay, clinic: (id) => weekClinic(dentvidDb, id) },
+      { spendRefusal: err instanceof SpendRefusedError },
+    )
+      .then((o) => {
+        if (o.handled) logger.warn({ jobId: job.id, ...o }, "dentvid: week failed for good");
+      })
+      .catch((e) => logger.error({ jobId: job.id, err: (e as Error).message }, "dentvid: failed-week handling failed"));
   }
   // A restyle that died outside its own error handling (stalled, killed): the card must not say "updating…" forever.
   if (job?.name === "restyle" && job.attemptsMade >= (job.opts.attempts ?? 1)) {

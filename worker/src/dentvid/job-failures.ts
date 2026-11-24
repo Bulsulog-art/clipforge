@@ -8,8 +8,10 @@ import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert
  *                  that fails is otherwise silent — the very checks meant to
  *                  catch a missed Monday or a lapsed subscription would stop
  *                  without anyone noticing.
- *   dentvid        the Saturday dispatch; a dentist's own recording (a week
- *                  alerts from runDentvidWeek itself; a stalled week from index.ts).
+ *   dentvid        the Saturday dispatch; a dentist's own recording. A week is
+ *                  not handled here: runDentvidWeek alerts on its own final
+ *                  failure, and a week that failed for good outside it (BullMQ
+ *                  "stalled") goes to stalled-week.ts, which also queues it once more.
  *
  * Only on the job's last attempt (no alert for a failure BullMQ will retry),
  * never for a spend-guard refusal (parked, already alerted), and the alert

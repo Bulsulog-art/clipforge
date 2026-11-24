@@ -11,6 +11,10 @@ import { notifyReadyChecked, READY_MAIL_JOB_OPTS, readyMailJobId, sendReadyAtCiv
 import type { SpendGuard } from "./spend-guard.js";
 import { endPaidUpPlans, type EndingSub, type PlanEndDb } from "./plan-end.js";
 import { reconcileBilling, type ActiveClinic, type ReconcileDb } from "./reconcile.js";
+import { rowFromPackage } from "./rows.js";
+import { handleFailedWeek, STALLED_RETRY_ATTEMPTS, type StalledWeekDeps } from "./stalled-week.js";
+import { judge } from "../steps/qa.js";
+import { UnrecoverableError } from "bullmq";
 
 /**
  * The post-purchase chain's failure modes (docs/RELIABILITY.md), worker side.
@@ -32,14 +36,15 @@ const fjob = (state: string, extra: Partial<FakeJob> = {}): FakeJob => ({ state,
 function fakeQueue(jobs: Record<string, FakeJob> = {}) {
   const map = new Map(Object.entries(jobs));
   const added: { data: unknown; opts: Record<string, unknown> }[] = [];
-  const q: DeliveryQueue = {
+  // Like BullMQ: an add under an id it still keeps (failed included) is ignored, and a job can be removed.
+  const q: DeliveryQueue & StalledWeekDeps["queue"] = {
     getJob: async (id) => {
       const j = map.get(id);
-      return j ? { getState: async () => j.state, retry: j.retry, opts: j.opts, changePriority: j.changePriority } : null;
+      return j ? { getState: async () => j.state, retry: j.retry, opts: j.opts, changePriority: j.changePriority, remove: async () => void map.delete(id) } : null;
     },
     add: async (_n, data, opts) => {
       if (!map.has(opts.jobId as string)) {
-        map.set(opts.jobId as string, fjob("prioritized"));
+        map.set(opts.jobId as string, fjob(Number(opts.delay) > 0 ? "delayed" : "prioritized", { opts: opts as FakeJob["opts"] }));
         added.push({ data, opts });
       }
       return {};
@@ -380,5 +385,99 @@ describe("F9 a cancelled plan ends at the end of its paid period, not before", (
     expect(moved).toEqual([]);
     await reconcileBilling({ db, dodo, alert: async () => "sent", now: new Date("2026-12-11T03:17:00Z") });
     expect(moved).toEqual(["cancelled"]);
+  });
+});
+
+/* ------------------------------------------- a silent render is never delivered */
+
+describe("a video whose voice could not be made is never delivered as silent", () => {
+  // Before: the TTS failed, the render went on without a voice, QA said "no audio track", rows.ts
+  // stored it as "flagged" and jobs.ts counted flagged as delivered. No top-up, retry or alert;
+  // the dentist was told only "the sound may be quiet in places".
+  const ids = { clinicId: "c1", ownerId: "u1" };
+  const pkg = (hasAudio: boolean, meanVolumeDb: number | null) => {
+    const stats = { durationSec: 30, width: 1080, height: 1920, hasAudio, meanVolumeDb, longestSilenceSec: hasAudio && meanVolumeDb !== null && meanVolumeDb > -45 ? 0.6 : 30, blackSec: 0 };
+    const issues = judge(stats, { width: 1080, height: 1920, minSec: 8, maxSec: 90, expectAudio: true });
+    return { status: "ready", approval: "pending", topic: { title: "t" }, plan: {}, copy: {}, checks: {}, videoPath: "/tmp/v.mp4", qa: { ok: !issues.length, issues, stats } } as never;
+  };
+  /** jobs.ts usableRow: what counts as one of the week's five (and stops the top-up). */
+  const usable = (r: { status: string; video_path?: string }) => (r.status === "ready" || r.status === "flagged") && !!r.video_path;
+
+  it("no audio track, or audio too quiet to hear: rejected (the top-up replaces it), its file named for the owner, nothing the clinic can play", () => {
+    for (const p of [pkg(false, null), pkg(true, -91)]) {
+      const row = rowFromPackage(p, ids, { videoPath: "u1/x.mp4", thumbPath: "u1/x.jpg" });
+      expect(row.status).toBe("rejected");
+      expect(usable(row)).toBe(false);
+      // The web and the iPhone app sign every video_path / thumb_path of the clinic's rows.
+      expect(row.video_path).toBeUndefined();
+      expect(row.thumb_path).toBeUndefined();
+      expect(row.error).toMatch(/^silent render: .* \(file kept for the owner: u1\/x\.mp4\)$/);
+    }
+  });
+
+  it("a narrated video is still ready and counts; one whose loudness was not measured is delivered for a look, not thrown away", () => {
+    const row = rowFromPackage(pkg(true, -18), ids, { videoPath: "u1/x.mp4" });
+    expect(row.status).toBe("ready");
+    expect(usable(row)).toBe(true);
+    const unmeasured = rowFromPackage(pkg(true, null), ids, { videoPath: "u1/x.mp4" });
+    expect(unmeasured.status).toBe("flagged");
+    expect(unmeasured.findings).toContain("[dv:unchecked] qa unavailable");
+    expect(usable(unmeasured)).toBe(true);
+  });
+});
+
+/* ------------------------------------- a week killed twice by worker restarts */
+
+describe("a week whose worker died under it twice recovers before Monday", () => {
+  // Before: BullMQ failed it itself ("job stalled more than allowable limit", an UnrecoverableError)
+  // at attempt 1 of 4; index.ts alerted only at attemptsMade >= attempts, runDentvidWeek never saw
+  // it, and the delivery watchdog picked it up only after Monday 08:00 local, too late.
+  const WEEK = "2026-11-30";
+  const SAT = new Date("2026-11-28T20:05:00Z");
+  const deps = (q: ReturnType<typeof fakeQueue>["q"], now: Date): StalledWeekDeps => ({
+    queue: q,
+    store,
+    alert,
+    setDelay: (c, w, state) => store.set(weekStateKey(c, w), state, 60),
+    clinic: async (id) => ({ ref: { id }, tz: "Europe/Istanbul" }),
+    now,
+  });
+  const job = { name: "week", id: `week:ist:${WEEK}`, data: { clinicId: "ist", count: 5, week: WEEK, batch: true }, attemptsMade: 1, opts: { attempts: 4 } };
+  const stalled = new UnrecoverableError("job stalled more than allowable limit");
+
+  it("Saturday night: the owner is told, the library says 'delayed', and the week is queued once more at the front", async () => {
+    const { q, map, added } = fakeQueue({ [`week:ist:${WEEK}`]: fjob("failed") });
+    const r = await handleFailedWeek(job, stalled, deps(q, SAT));
+    expect(r).toMatchObject({ handled: true, kind: "stalled", requeued: true });
+    // Under the week's own id, which the app's "try again", the admin requeue and the watchdogs look at:
+    // the failed job was removed to free it, and the extra run now waits there.
+    expect(added.map((a) => a.opts.jobId)).toEqual([`week:ist:${WEEK}`]);
+    expect([...map.keys()]).toEqual([`week:ist:${WEEK}`]);
+    expect(map.get(`week:ist:${WEEK}`)!.state).toBe("delayed");
+    expect(added[0].opts.priority).toBe(DENTVID_PRIORITY.firstWeek);
+    expect(added[0].opts.attempts).toBe(STALLED_RETRY_ATTEMPTS);
+    expect(await store.get(weekStateKey("ist", WEEK))).toBe("delayed");
+    expect(raised.map((a) => a.key)).toEqual([`week_failed:ist:${WEEK}:stalled`]);
+    expect(renderAlert(raised[0]).text).toMatch(/stopped more than once/);
+
+    // The extra run dies the same way: told again under its own key, never a third run.
+    map.get(`week:ist:${WEEK}`)!.state = "failed";
+    const r2 = await handleFailedWeek({ ...job, opts: { attempts: STALLED_RETRY_ATTEMPTS } }, stalled, deps(q, new Date(SAT.getTime() + 30 * 60_000)));
+    expect(r2).toMatchObject({ requeued: false, skipped: "already" });
+    expect(added).toHaveLength(1);
+    expect(raised.map((a) => a.key)).toEqual([`week_failed:ist:${WEEK}:stalled`, `week_failed:ist:${WEEK}:again`]);
+  });
+
+  it("after the clinic's Monday 07:00 it is left to the hourly delivery watchdog, which retries the failed job", async () => {
+    const original = fjob("failed");
+    const { q, added } = fakeQueue({ [`week:ist:${WEEK}`]: original });
+    const MON = new Date("2026-11-30T05:41:00Z");
+    const r = await handleFailedWeek(job, stalled, deps(q, MON));
+    expect(r).toMatchObject({ requeued: false, skipped: "past_deadline" });
+    expect(added).toEqual([]);
+    await checkWeekDelivery({ db: deliveryDb({ payingClinics: async () => [{ id: "ist", tz: "Europe/Istanbul" }] }), queue: q, store, alert, now: MON });
+    expect(original.retry).toHaveBeenCalledWith("failed");
+    // "Delayed" stays (the week failed for good), not softened to "taking longer".
+    expect(await store.get(weekStateKey("ist", WEEK))).toBe("delayed");
   });
 });

@@ -26,6 +26,8 @@ export const REASON_CODES = [
   "opening",
   /** A topic that was not made: the script did not meet the quality bar. */
   "skipped",
+  /** The QA measurement itself could not run on a rendered video: nobody has checked its picture and sound. */
+  "unchecked",
 ] as const;
 export type ReasonCode = (typeof REASON_CODES)[number];
 
@@ -44,7 +46,7 @@ export function reasonText(finding: string): string {
 /** The code of a QA issue (steps/qa.ts judge). */
 export function qaReasonCode(issue: string): ReasonCode {
   if (/of silence/i.test(issue)) return "pause";
-  if (/no audio track|effectively silent/i.test(issue)) return "audio";
+  if (isSilentIssue(issue)) return "audio";
   return "technical";
 }
 
@@ -52,6 +54,22 @@ export function qaReasonCode(issue: string): ReasonCode {
 export function qaFinding(issue: string): string {
   return tagReason(qaReasonCode(issue), `quality: ${issue}`);
 }
+
+/**
+ * A QA issue that means the video has no narration at all (steps/qa.ts judge:
+ * no audio track, or audio too quiet to hear anywhere). Seen when the voice
+ * could not be made and the video was rendered without it. A long pause
+ * ("of silence") is not one of these: the narration is there.
+ */
+export function isSilentIssue(issue: string): boolean {
+  return /no audio track|effectively silent/i.test(issue);
+}
+
+/** The admin text of a rendered video whose QA measurement could not run (inspectVideo threw). */
+export const QA_UNAVAILABLE = "qa unavailable";
+
+/** The stored finding for a rendered video that nobody measured: the dentist watches it before posting. */
+export const UNCHECKED_FINDING = tagReason("unchecked", QA_UNAVAILABLE);
 
 /**
  * A recording clip's findings (dental/recording.ts) as stored findings:
