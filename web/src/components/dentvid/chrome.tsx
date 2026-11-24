@@ -28,7 +28,7 @@ export function announceLocale(locale: Locale) {
   window.dispatchEvent(new CustomEvent(LANG_EVENT, { detail: locale }));
 }
 
-/** The page's language when its address says so (/tr, a guide); null on the app and sign-up screens (per visitor). */
+/** The page's language when its address says so (/tr, a guide); null on app and sign-up screens. */
 export function pathLocale(pathname: string, guideLocales: Record<string, Locale>): Locale | null {
   // "/tr" on dentvideo.com, "/dentvideo/tr" elsewhere.
   const all = pathname.split("/").filter(Boolean);
@@ -68,7 +68,7 @@ function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; re
   return { locale: remembered ?? "en", ready };
 }
 
-/** A DentVideo session cookie in this browser? Read in the browser only (pages stay static); false on first paint. */
+/** A session cookie? Read in the browser only (pages stay static); false on first paint. */
 function useSignedIn(): boolean {
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
@@ -81,14 +81,14 @@ function useSignedIn(): boolean {
   return signedIn;
 }
 
-/** "Open app" with a session; else "Sign in" to the sign-in form ("Open app" read like an app download to new visitors). */
+/** "Open app" with a session, else "Sign in" ("Open app" read like an app download to new visitors). */
 export function accountLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords, "openApp" | "signIn">): Item {
   return signedIn
     ? { href: "/dentvideo/app", label: t.openApp }
     : { href: `/dentvideo/start?mode=signin&lang=${locale}`, label: t.signIn };
 }
 
-/** Signed out, the filled button goes to the landing's no-account logo preview (#try), as the hero's does. */
+/** Signed out, the filled button goes to the logo preview (#try), as the hero's does. */
 export function startLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords, "start">): Item | null {
   return signedIn ? null : { href: dvHref(`${LANDING_PATH[locale]}#try`), label: t.start };
 }
@@ -96,7 +96,7 @@ export function startLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords
 type Item = { href: string; label: string };
 const BUTTON = "dv-btn dv-btn-primary ms-2 whitespace-nowrap py-2.5 sm:px-5";
 
-/** The start button: to the no-account preview, so try_clicked as the hero's (cta_clicked means into the sign-up). */
+/** To the no-account preview, so try_clicked as the hero's (cta_clicked means into the sign-up). */
 export function Start({ to, locale, className, onNav }: { to: Item; locale: Locale; className: string; onNav?: (e: React.MouseEvent<HTMLAnchorElement>) => void }) {
   return (
     <Link href={to.href} data-cta="header" className={className} onClick={(e) => (trackDv("try_clicked", { locale, props: { where: "header" } }), onNav?.(e))}>
@@ -114,7 +114,7 @@ export function DvHeader({ guideLocales, text }: Props) {
   const tab = appTab(path);
   const t = text[locale];
   const signedIn = useSignedIn();
-  // Skip link (on focus) to the mark where <main> begins; as the nav, not before the language is known.
+  // Skip link (on focus) to where <main> begins; as the nav, only once the language is known.
   return (
     <>
       {ready && <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-dv-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white">
@@ -340,7 +340,7 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
   const signedIn = useSignedIn();
   const path = usePathname() ?? "";
   const t = text[locale];
-  // On sign-up only the browser knows the language: keep the space, send no words (no English footer under a Turkish form).
+  // On sign-up only the browser knows the language: keep the space, send no English words.
   if (isFunnel(path) && !ready) return <footer aria-hidden="true" className="invisible min-h-40 border-t border-dv-line bg-dv-sand/60" />;
   if (appTab(path) || isFunnel(path)) return <AppFooter t={t} locale={locale} ready={ready} />;
   const home = LANDING_PATH[locale];
@@ -419,7 +419,7 @@ const TABS: { key: AppTab; href: string; Icon: typeof Video }[] = [
   { key: "settings", href: "/dentvideo/app/settings", Icon: Settings },
 ];
 
-/** Inside the app: the logo, the three screens and sign-out; on a phone the screens are equal tabs under the logo. */
+/** In the app: logo, three screens, sign-out; on a phone the screens are equal tabs under the logo. */
 function AppHeader({ t, locale, ready, tab }: { t: ChromeWords; locale: Locale; ready: boolean; tab: AppTab }) {
   const [leaving, setLeaving] = useState(false);
   // As on the site: <html> speaks the app's language, right to left in Arabic.
@@ -433,7 +433,7 @@ function AppHeader({ t, locale, ready, tab }: { t: ChromeWords; locale: Locale; 
 
   async function signOut() {
     setLeaving(true);
-    // Everywhere, by the server (lib/dentvid/sign-out-client); loaded on click, not with every page's header.
+    // By the server (lib/dentvid/sign-out-client), loaded on click, not with the header.
     const { signOutDentvideo } = await import("@/lib/dentvid/sign-out-client");
     await signOutDentvideo();
     window.location.assign(dvHref("/dentvideo/start"));
