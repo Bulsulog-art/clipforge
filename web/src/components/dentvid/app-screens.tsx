@@ -48,9 +48,21 @@ export function AppHomeView({
   billingIssue = null,
   firstWeekJob,
   topics,
+  hasEarlier = false,
+  weeks,
+  earlierWeeks = null,
+  postedWeeks,
 }: {
   /** "Suggest a topic for next week" (0025): the clinic's suggestions; null = not available; undefined = not shown. */
   topics?: TopicView[] | null;
+  /** The clinic has weeks older than the ones shown: the library offers "Show earlier weeks" (lib/dentvid/items.ts). */
+  hasEarlier?: boolean;
+  /** How many weeks the library shows (?weeks=, default 12). */
+  weeks?: number;
+  /** What "Show earlier weeks" asks for when a pause lies before the older videos (lib/dentvid/items.ts). */
+  earlierWeeks?: number | null;
+  /** Weeks before the loaded ones in which the clinic posted, for the posting streak (lib/dentvid/items.ts). */
+  postedWeeks?: string[];
   locale: Locale;
   clinicName?: string;
   /** The clinic's country (profile.country): the plan cards show the currency the checkout charges. */
@@ -124,6 +136,12 @@ export function AppHomeView({
               clinicName={clinicName || t.yourClinic}
               heroLevel={firstWeek ? 2 : 1}
               topics={topics}
+              hasEarlier={hasEarlier}
+              weeks={weeks}
+              earlierWeeks={earlierWeeks}
+              postedWeeks={postedWeeks}
+              firstWeek={firstWeek}
+              planEndsAt={plan.endsAt ?? null}
             />
           </div>
         </>

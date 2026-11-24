@@ -170,11 +170,26 @@ export function weekSchedule<T extends { id: string; status: string; approval: s
   return new Map(made.flatMap((i, n) => (i.approval === "rejected" ? [] : [[i.id, slots[n]] as [string, Slot]])));
 }
 
-/** "Tue 12:30" / "Sal 12:30" / "火 12:15" in the clinic's language. */
-export function slotLabel(slot: Slot, locale: Locale): string {
-  const day = new Intl.DateTimeFormat(dateLocale(locale), { weekday: "short", timeZone: "UTC" }).format(new Date(`${slot.date}T12:00:00Z`));
-  // A 24-hour clock in every market DentVideo serves (UK included); Western digits as dateLocale gives Arabic.
-  return `${day} ${slot.time}`;
+/** Does this clinic read a 12-hour clock ("7:00 PM")? English clinics in the US, Canada, Australia and New Zealand do; everyone else reads 24 hours. */
+export function twelveHourClock(locale: string, country?: string | null): boolean {
+  return locale === "en" && dateLocale(locale, country) !== "en-GB";
+}
+
+/**
+ * "Tue 12:30" / "Sal 12:30" / "火 12:15" in the clinic's language; with the
+ * clinic's country, "Mon 7:00 PM" for an English clinic in the US, Canada,
+ * Australia or New Zealand, which read a 12-hour clock.
+ */
+export function slotLabel(slot: Slot, locale: Locale, country?: string | null): string {
+  const loc = dateLocale(locale, country);
+  const day = new Intl.DateTimeFormat(loc, { weekday: "short", timeZone: "UTC" }).format(new Date(`${slot.date}T12:00:00Z`));
+  // A 24-hour clock everywhere else (UK included); Western digits as dateLocale gives Arabic.
+  const m = /^(\d{1,2}):(\d{2})$/.exec(slot.time);
+  if (!m || !twelveHourClock(locale, country)) return `${day} ${slot.time}`;
+  const time = new Intl.DateTimeFormat(loc, { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "UTC" }).format(new Date(Date.UTC(2026, 0, 5, Number(m[1]), Number(m[2]))));
+  // ICU writes a narrow no-break space before "PM" in some versions and a plain one in others: the server and
+  // the browser must print the same label, and "7:00" never ends a line without its "PM".
+  return `${day} ${time.replace(/\s+/g, "\u00a0")}`;
 }
 
 /* ---------------------------------------------------------------- share */

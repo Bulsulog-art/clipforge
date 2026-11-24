@@ -145,11 +145,11 @@ export function approvableIds(items: LibraryItem[]): string[] {
   return items.filter((i) => cardState(i) === "review").map((i) => i.id);
 }
 
-/** "2 Nov" in the clinic's language, from a YYYY-MM-DD Monday (read as UTC so it never shifts a day). */
-export function weekLabelDate(week: string, locale: Locale): string {
+/** "2 Nov" in the clinic's language (and, for English, its country), from a YYYY-MM-DD Monday (read as UTC so it never shifts a day). */
+export function weekLabelDate(week: string, locale: Locale, country?: string | null): string {
   const d = new Date(`${week}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return week;
-  return new Intl.DateTimeFormat(dateLocale(locale), { day: "numeric", month: "long", timeZone: "UTC" }).format(d);
+  return new Intl.DateTimeFormat(dateLocale(locale, country), { day: "numeric", month: "long", timeZone: "UTC" }).format(d);
 }
 
 /** How many whole weeks before `current` a week is (0 = this week, 1 = last week). */
@@ -198,9 +198,11 @@ export function fileSize(bytes: number, locale: Locale): string {
   return `${nf(Math.max(1, Math.round(bytes / 1024)), 0)} KB`;
 }
 
-/** Dates for people: English clinics get "2 November" (UK order), not "November 2". */
-export function dateLocale(locale: string): string {
-  if (locale === "en") return "en-GB";
+const EN_REGION: Record<string, string> = { US: "en-US", CA: "en-CA", AU: "en-AU", NZ: "en-NZ" };
+
+/** Dates for people: English clinics get "2 November" (UK order), not "November 2", unless the clinic's country is the US, Canada, Australia or New Zealand. */
+export function dateLocale(locale: string, country?: string | null): string {
+  if (locale === "en") return EN_REGION[String(country ?? "").trim().toUpperCase()] ?? "en-GB";
   // Gulf clinics write Western digits (0–9); plain "ar" would format in Arabic-Indic ones.
   if (locale === "ar") return "ar-u-nu-latn";
   return locale;

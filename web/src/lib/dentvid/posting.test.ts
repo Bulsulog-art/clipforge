@@ -111,6 +111,38 @@ describe("schedule", () => {
     expect(slotLabel(slot, "ja")).toBe("火 12:30");
     for (const l of LOCALES) expect(slotLabel(slot, l)).toMatch(/12:30$/);
   });
+
+  it("US clinics read a 12-hour clock; UK clinics and clinics without a country keep 24 hours", () => {
+    const evening = { date: "2026-11-23", weekday: 0, time: "19:00" };
+    const lunch = { date: "2026-11-24", weekday: 1, time: "12:30" };
+    // A no-break space keeps "PM" with its time; spaced normally it reads "Mon 7:00 PM".
+    expect(slotLabel(evening, "en", "US")).toBe("Mon 7:00\u00a0PM");
+    expect(slotLabel(evening, "en", "US").replace(/\u00a0/g, " ")).toBe("Mon 7:00 PM");
+    expect(slotLabel(lunch, "en", "US")).toBe("Tue 12:30\u00a0PM");
+    expect(slotLabel(evening, "en", "GB")).toBe("Mon 19:00");
+    expect(slotLabel(evening, "en")).toBe("Mon 19:00");
+    expect(slotLabel(evening, "en", null)).toBe("Mon 19:00");
+    expect(slotLabel(evening, "en", "IE")).toBe("Mon 19:00");
+    // Canada, Australia and New Zealand: 12 hours, written their own way.
+    expect(slotLabel(evening, "en", "CA")).toBe("Mon 7:00\u00a0p.m.");
+    expect(slotLabel(evening, "en", "AU")).toBe("Mon 7:00\u00a0pm");
+    expect(slotLabel(evening, "en", "NZ")).toBe("Mon 7:00\u00a0pm");
+    // The country does not change another language's clock.
+    expect(slotLabel(evening, "es", "US")).toBe(slotLabel(evening, "es"));
+    expect(slotLabel(evening, "de", "US")).toBe("Mo 19:00");
+  });
+
+  it("prints the same label on any ICU: no narrow no-break space, which browsers and Node disagree on", () => {
+    for (const c of ["US", "CA", "AU", "NZ"]) for (const time of ["07:15", "12:30", "19:00", "21:00"]) {
+      const label = slotLabel({ date: "2026-11-25", weekday: 2, time }, "en", c);
+      expect(label, `${c} ${time}`).not.toMatch(/\u202f/);
+      expect(label, `${c} ${time}`).toMatch(/^Wed \d{1,2}:\d{2}\u00a0[ap]\.?m\.?$/i);
+    }
+  });
+
+  it("a time it cannot read is shown as stored", () => {
+    expect(slotLabel({ date: "2026-11-23", weekday: 0, time: "soon" }, "en", "US")).toBe("Mon soon");
+  });
 });
 
 describe("share fallback", () => {

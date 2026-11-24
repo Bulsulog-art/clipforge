@@ -5,6 +5,7 @@ import {
   approvableIds,
   cardState,
   checkRecording,
+  dateLocale,
   deleteConfirmOk,
   deletePhrase,
   fileSize,
@@ -12,12 +13,15 @@ import {
   isFunnel,
   mailtoHref,
   nextAction,
+  postingStreak,
   quote,
   videoFileName,
   weekLabelDate,
   weekSummary,
   weeksAgo,
 } from "./app-ui";
+import { addDays, clampWeeks, earlierWeeksHref, LIBRARY_WEEKS, LIBRARY_WEEKS_MAX, nextDeliveryWeek, notMadeTopics, planEndsBefore, usableVideos, withEarlierPosts } from "./library-weeks";
+import { twelveHourClock } from "./posting";
 
 const item = (over: Partial<LibraryItem> = {}): LibraryItem => ({
   id: Math.random().toString(36).slice(2),
@@ -103,6 +107,43 @@ describe("dates", () => {
     expect(weekLabelDate("2026-11-02", "tr")).toBe("2 Kasım");
     expect(weekLabelDate("nope", "en")).toBe("nope");
   });
+  it("US and Canadian clinics read the month first; the UK, the rest and clinics without a country are unchanged", () => {
+    expect(weekLabelDate("2026-11-23", "en", "US")).toBe("November 23");
+    expect(weekLabelDate("2026-11-23", "en", "us ")).toBe("November 23");
+    expect(weekLabelDate("2026-11-23", "en", "CA")).toBe("November 23");
+    expect(weekLabelDate("2026-11-23", "en", "AU")).toBe("23 November");
+    expect(weekLabelDate("2026-11-23", "en", "NZ")).toBe("23 November");
+    expect(weekLabelDate("2026-11-23", "en", "GB")).toBe("23 November");
+    expect(weekLabelDate("2026-11-23", "en", "IE")).toBe("23 November");
+    expect(weekLabelDate("2026-11-23", "en")).toBe("23 November");
+    expect(weekLabelDate("2026-11-23", "en", null)).toBe("23 November");
+    expect(weekLabelDate("2026-11-23", "en", "")).toBe("23 November");
+    // The country only picks among Englishes: a Spanish-speaking clinic in the US keeps Spanish dates.
+    expect(weekLabelDate("2026-11-23", "es", "US")).toBe(weekLabelDate("2026-11-23", "es"));
+    expect(weekLabelDate("2026-11-23", "de", "US")).toBe("23. November");
+  });
+  it("dateLocale keeps every existing answer when no country is given", () => {
+    expect(dateLocale("en")).toBe("en-GB");
+    expect(dateLocale("ar")).toBe("ar-u-nu-latn");
+    expect(dateLocale("tr")).toBe("tr");
+    expect(dateLocale("en", "US")).toBe("en-US");
+    expect(dateLocale("en", "CA")).toBe("en-CA");
+    expect(dateLocale("en", "AU")).toBe("en-AU");
+    expect(dateLocale("en", "NZ")).toBe("en-NZ");
+    expect(dateLocale("en", "ZA")).toBe("en-GB");
+    expect(dateLocale("ar", "US")).toBe("ar-u-nu-latn");
+  });
+  it("a 12-hour clock only for English clinics in the US, Canada, Australia and New Zealand", () => {
+    for (const c of ["US", "CA", "AU", "NZ", "us"]) expect(twelveHourClock("en", c), c).toBe(true);
+    for (const c of ["GB", "IE", "ZA", "DE", "", null, undefined]) expect(twelveHourClock("en", c), String(c)).toBe(false);
+    expect(twelveHourClock("es", "US")).toBe(false);
+  });
+  it("moves a date by whole days across months and years", () => {
+    expect(addDays("2026-11-23", 7)).toBe("2026-11-30");
+    expect(addDays("2026-12-28", 7)).toBe("2027-01-04");
+    expect(addDays("2026-11-23", -84)).toBe("2026-08-31");
+    expect(addDays("nope", 7)).toBe("nope");
+  });
   it("counts weeks back", () => {
     expect(weeksAgo("2026-11-02", "2026-11-02")).toBe(0);
     expect(weeksAgo("2026-10-26", "2026-11-02")).toBe(1);
@@ -154,5 +195,103 @@ describe("recording checks", () => {
     expect(fileSize(84 * 1024 * 1024, "en")).toBe("84 MB");
     expect(fileSize(1.5 * 1024 * 1024, "de")).toBe("1,5 MB");
     expect(fileSize(2048, "en")).toBe("2 KB");
+  });
+});
+
+describe("library weeks", () => {
+  it("?weeks= is held to 12..520, whatever the address bar says", () => {
+    expect(clampWeeks(undefined)).toBe(LIBRARY_WEEKS);
+    expect(clampWeeks("24")).toBe(24);
+    expect(clampWeeks(" 36 ")).toBe(36);
+    expect(clampWeeks(["48", "60"])).toBe(48);
+    expect(clampWeeks("5")).toBe(12);
+    expect(clampWeeks("0")).toBe(12);
+    expect(clampWeeks("-24")).toBe(12);
+    expect(clampWeeks("24abc")).toBe(12);
+    expect(clampWeeks("1e3")).toBe(12);
+    expect(clampWeeks("99999")).toBe(LIBRARY_WEEKS_MAX);
+    expect(clampWeeks(30.7)).toBe(30);
+    expect(clampWeeks(Number.POSITIVE_INFINITY)).toBe(12);
+  });
+  it("'Show earlier weeks' asks for 12 more, and stops at the most it can show", () => {
+    expect(earlierWeeksHref(12)).toBe("?weeks=24");
+    expect(earlierWeeksHref(24)).toBe("?weeks=36");
+    expect(earlierWeeksHref(515)).toBe("?weeks=520");
+    expect(earlierWeeksHref(520)).toBeNull();
+  });
+  it("…or jumps to the window that reaches older videos behind a pause, never fewer than 12 more, never past 520", () => {
+    expect(earlierWeeksHref(12, 44)).toBe("?weeks=44");
+    expect(earlierWeeksHref(36, 20)).toBe("?weeks=48");
+    expect(earlierWeeksHref(12, null)).toBe("?weeks=24");
+    expect(earlierWeeksHref(12, Number.NaN)).toBe("?weeks=24");
+    expect(earlierWeeksHref(12, 44.6)).toBe("?weeks=44");
+    expect(earlierWeeksHref(400, 9999)).toBe("?weeks=520");
+    expect(earlierWeeksHref(520, 600)).toBeNull();
+  });
+  it("the posting streak counts the weeks posted before the ones shown", () => {
+    const marks = { a: "2026-11-23", b: "2026-11-16" };
+    expect(postingStreak(marks, "2026-11-23")).toBe(2);
+    const merged = withEarlierPosts(marks, ["2026-11-09", "2026-11-02", "2026-10-19"]);
+    expect(postingStreak(merged, "2026-11-23")).toBe(4);
+    // The ticks on the page stay as they are; nothing to add leaves them untouched.
+    expect(merged).toMatchObject(marks);
+    expect(withEarlierPosts(marks, [])).toBe(marks);
+    expect(withEarlierPosts(marks, undefined)).toBe(marks);
+  });
+  it("a cancelled plan that ends before the next Monday gives its end day; one that runs to it or renews gives null", () => {
+    expect(planEndsBefore("2026-11-27T10:00:00.000Z", "2026-11-30")).toBe("2026-11-27");
+    expect(planEndsBefore("2026-11-29T23:59:00.000Z", "2026-11-30")).toBe("2026-11-29");
+    expect(planEndsBefore("2026-11-30T00:00:00.000Z", "2026-11-30")).toBeNull();
+    expect(planEndsBefore("2027-01-15T00:00:00.000Z", "2026-11-30")).toBeNull();
+    expect(planEndsBefore(null, "2026-11-30")).toBeNull();
+    expect(planEndsBefore(undefined, "2026-11-30")).toBeNull();
+    expect(planEndsBefore("soon", "2026-11-30")).toBeNull();
+  });
+
+  const W = "2026-11-23";
+  const five = () => Array.from({ length: 5 }, (_, n) => item({ id: `v${n}`, week_of: W }));
+  const skipped = (week = W) => item({ status: "rejected", week_of: week, videoUrl: undefined });
+
+  it("counts a week's usable videos: made (ready or flagged), generated, with a video", () => {
+    const items = [
+      item({ week_of: W }),
+      item({ week_of: W, status: "flagged" }),
+      item({ week_of: W, approval: "rejected" }),
+      item({ week_of: W, status: "working", videoUrl: undefined }),
+      item({ week_of: W, status: "failed", videoUrl: undefined }),
+      skipped(),
+      item({ week_of: W, kind: "recording" }),
+      item({ week_of: "2026-11-16" }),
+    ];
+    expect(usableVideos(items, W)).toBe(3);
+  });
+
+  it("'Topics we did not make' shows this week's skipped topics while the week is short of five", () => {
+    const a = skipped();
+    const old = skipped("2026-11-16");
+    const short = [...five().slice(0, 4), a, old];
+    expect(notMadeTopics(short, W)).toEqual([a]);
+  });
+
+  it("…and hides them once the week was topped up to five, and never lists an earlier week's", () => {
+    expect(notMadeTopics([...five(), skipped(), skipped()], W)).toEqual([]);
+    // Last week was short, but it is last week: nothing to explain on this week's page.
+    const lastWeek = [...five().slice(0, 2).map((i) => ({ ...i, week_of: "2026-11-16" })), skipped("2026-11-16")];
+    expect(notMadeTopics(lastWeek, W)).toEqual([]);
+    // Five made, one declined by the dentist: still five made, so still hidden.
+    expect(notMadeTopics([...five().slice(0, 4), item({ week_of: W, approval: "rejected" }), skipped()], W)).toEqual([]);
+  });
+
+  it("the next five arrive the Monday after the latest delivered week", () => {
+    expect(nextDeliveryWeek(five(), W)).toBe("2026-11-30");
+    // Paid on Sunday: the coming Monday's week is already here, so the next five come a week later.
+    const sunday = "2026-11-30";
+    expect(nextDeliveryWeek([item({ week_of: sunday })], sunday)).toBe("2026-12-07");
+    // A week that only made topics it could not use, or nothing yet: still the Monday after this week, never a past one.
+    expect(nextDeliveryWeek([skipped(), item({ week_of: "2026-10-05" })], W)).toBe("2026-11-30");
+    expect(nextDeliveryWeek([], W)).toBe("2026-11-30");
+    // A week already made ahead of the calendar moves it on.
+    expect(nextDeliveryWeek([item({ week_of: "2026-11-30" })], W)).toBe("2026-12-07");
+    expect(nextDeliveryWeek([item({ week_of: "2026-12-28" })], "2026-12-21")).toBe("2027-01-04");
   });
 });

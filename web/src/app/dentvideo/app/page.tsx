@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { dvHref } from "@/lib/dentvid/host";
 import { deliveryWeek, dvSession } from "@/lib/dentvid/auth";
 import { loadItems } from "@/lib/dentvid/items";
+import { clampWeeks } from "@/lib/dentvid/library-weeks";
 import { clinicLocale, dvLocale } from "@/lib/dentvid/locale-server";
 import { appText } from "@/content/dentvideo-app";
 import { AppHomeView } from "@/components/dentvid/app-screens";
@@ -13,7 +14,7 @@ import { readWeekDelay } from "@/lib/dentvid/ops-server";
 import { weekDelivered, weekJobId } from "@/lib/dentvid/week-job";
 import { dentvidQueue } from "@/lib/queue";
 import type { FirstWeekJob } from "@/lib/dentvid/first-week-state";
-import { adminOrNull, loadAppBillingPanel, paymentSeen } from "@/lib/dentvid/billing-state";
+import { adminOrNull, loadAppBillingPanel, loadPlanEnd, paymentSeen } from "@/lib/dentvid/billing-state";
 import { marksBrowserInternal } from "@/lib/dentvid/internal-traffic";
 import { InternalMark } from "@/components/dentvid/internal-mark";
 import { supabaseRequestStore } from "@/lib/dentvid/clinic-requests";
@@ -24,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: appText(await clinicLocale()).home.metaTitle, robots: { index: false } };
 }
 
-export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string; status?: string }> }) {
+export default async function AppHome({ searchParams }: { searchParams: Promise<{ billing?: string; status?: string; weeks?: string | string[] }> }) {
   const { db, user } = await dvSession();
   if (!user) redirect(dvHref("/dentvideo/start?mode=signin"));
 
@@ -34,13 +35,20 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   const profile = (clinic.profile ?? {}) as { name?: string; language?: string; country?: string };
   const locale = await dvLocale(profile.language);
 
-  const [{ items }, plan, sp] = await Promise.all([loadItems(db, user.id), loadClinicPlan(db, clinic.id), searchParams]);
+  const sp = await searchParams;
+  // The library shows the newest 12 weeks; "Show earlier weeks" asks for 12 more each time (?weeks=24, 36, … up to 520),
+  // or jumps past a pause. The posted weeks before them keep the posting streak whole.
+  const [{ items, hasEarlier, weeks, earlierWeeks, postedWeeks }, plan] = await Promise.all([
+    loadItems(db, user.id, { weeks: clampWeeks(sp.weeks), clinicId: clinic.id, streak: true }),
+    loadClinicPlan(db, clinic.id),
+  ]);
   // Dodo returns to ?billing=success whatever happened and says how it went in &status= (a declined card is "failed").
   const billing = billingReturn(sp.billing, sp.status);
   // A refused card is not a cancelled checkout: say what happened.
   const declined = paymentDeclined(sp.billing, sp.status);
   // Not paid yet, and nothing to show: back to the preview / plans.
-  if (appSendsToFunnel(plan.plan, billing, items.length)) {
+  // Videos older than the window still count: a clinic with any library is never sent back to the funnel.
+  if (appSendsToFunnel(plan.plan, billing, items.length + (hasEarlier ? 1 : 0))) {
     redirect(dvHref(billing === "cancelled" ? `/dentvideo/start?step=plan&billing=cancelled${declined ? "&payment=failed" : ""}` : "/dentvideo/start"));
   }
 
@@ -53,9 +61,14 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
   // ?billing=success shows "being made" only with evidence of a payment (or right after the return from checkout).
   const seen = billing === "success" && plan.plan === "trial" && !madeThisWeek ? await paymentSeen(clinic.id, admin) : true;
   // Paused by DentVideo (admin): nothing is being made, so never "your first week is being made".
-  const firstWeek = !plan.adminPaused && showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: generated.some((i) => i.status !== "failed"), paymentSeen: seen });
+  const firstWeek = !plan.adminPaused && showFirstWeek({ plan: plan.plan, billing, madeThisWeek, everMade: hasEarlier || generated.some((i) => i.status !== "failed"), paymentSeen: seen });
   // A run that is being retried or is delayed: the library says so calmly (never an error).
-  const weekDelay = plan.canMake ? await readWeekDelay(clinic.id, week) : null;
+  // A cancelled plan that is paid up to a date: the week card must not name a Monday after it (as settings, F9).
+  const [weekDelay, endsAt] = await Promise.all([
+    plan.canMake ? readWeekDelay(clinic.id, week) : null,
+    plan.canMake && plan.plan === "active" ? loadPlanEnd({ id: clinic.id, plan: plan.plan, dodo_subscription_id: plan.subscriptionId }, admin) : null,
+  ]);
+  plan.endsAt = endsAt;
   // The first week's job, so a card that waits far longer than promised can offer "try again".
   const firstWeekJob = firstWeek && plan.plan === "active" ? await readWeekJob(clinic.id, week) : undefined;
   const b = appText(locale).billing;
@@ -84,6 +97,10 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
         plans={dvAvailablePlans()}
         billingIssue={panel && panel.kind !== "plans" ? panel : null}
         topics={topics}
+        hasEarlier={hasEarlier}
+        weeks={weeks}
+        earlierWeeks={earlierWeeks}
+        postedWeeks={postedWeeks}
       />
     </>
   );

@@ -113,9 +113,10 @@ export const CtaScene: React.FC<Props<"cta"> & { logo?: { src: string; style?: L
   // under it: the frame ends on who said it and where to find them.
   const mark = entrance(frame, { delay: 8, duration: 22, distance: 34 });
   return (
-    <Backdrop theme={theme}>
-      {/* Lifted when a market's notice sits at the foot of the frame, so it never covers the handle (seen in a TR render). */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 * scale, marginBottom: notice ? 300 * scale : 0 }}>
+    // Lifted when a market's notice sits at the foot of the frame, so it never covers the handle (seen in a TR render).
+    // Backdrop keeps the room free under the text block, so over photos the plate stays on the text, not on the gap.
+    <Backdrop theme={theme} lift={notice ? 300 * scale : 0}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 * scale }}>
         <DisplayText
           text={scene.text}
           theme={theme}
