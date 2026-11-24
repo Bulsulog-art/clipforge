@@ -3,6 +3,18 @@
  * nothing leaks into ClipForge pages that share this app.
  */
 
+/* One light design, no dark theme: browsers must not repaint it dark on their own
+   (Android auto-dark made the wordmark's "Dent" nearly vanish). The page also declares
+   <meta name="color-scheme" content="only light"> (layout.tsx). Only on pages that hold
+   DentVideo, so nothing leaks into ClipForge. */
+.dv {
+  color-scheme: only light;
+}
+/* A rule of its own: a browser without :has() drops only this one. */
+:root:has(.dv) {
+  color-scheme: only light;
+}
+
 .dv {
   --dv-ink: #14211f;
   --dv-teal: #0f5c5c;
