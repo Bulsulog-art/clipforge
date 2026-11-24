@@ -9,6 +9,7 @@ import {
   dvPlanForProduct,
   dvTransition,
   isDentvideoEvent,
+  isSelfServeTier,
   isStaleEvent,
   usedFounding,
   type ClinicBilling,
@@ -18,14 +19,24 @@ import {
   type DvTier,
 } from "./billing";
 import { enqueueFirstWeek, type FirstWeekResult } from "./week-job";
-import { alerts, cleanError, type ClinicRef, type OwnerAlert } from "./ops-alert";
+import { alerts, cleanError, type ClinicRef, type OpsStore, type OwnerAlert } from "./ops-alert";
 import { markPaid, raiseOwnerAlert, webOpsStore } from "./ops-server";
 import { supabaseSubscriptionStore, type SubscriptionStore } from "./subscriptions";
 import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
+import type { LifecycleStore, Sender } from "./lifecycle";
 import { ENQUEUE_TIMEOUT_MS, afterPaid, tellOwner, withTimeout, type ActivationDeps } from "./billing-activation";
 import { isAppleManaged, readClinicSource, setBillingSource, type AppleSubscriptionStore } from "./apple-store";
 import { adoptWaitingApple } from "./apple-webhook";
 import type { BillingConfirmNotice } from "./billing-confirm-email";
+import {
+  CONFIRM_PROBLEM,
+  appleTakesOver,
+  cancellationAlert,
+  confirmNotSentAlert,
+  deletionRequested,
+  libraryUntil,
+  readAppleLedger,
+} from "./billing-confirm-checks";
 
 export { ENQUEUE_TIMEOUT_MS, withTimeout } from "./billing-activation";
 
@@ -47,6 +58,11 @@ export type DvWebhookDeps = ActivationDeps & {
   sendConfirmMail?: (db: SupabaseClient, clinicId: string, notice: BillingConfirmNotice) => Promise<string>;
   /** How long the confirmation may take before the webhook answers without it (default CONFIRM_TIMEOUT_MS). */
   confirmTimeoutMs?: number;
+  /**
+   * Did the clinic's owner ask to delete the account in the last hour or two (true), or not (false)?
+   * null: unknown. Default: the deletion route's request count in Redis (billing-confirm-checks.ts).
+   */
+  deletionRequested?: (ownerId: string) => Promise<boolean | null>;
   /** The subscription ledger (0007); the default degrades to "unknown" when the table is missing. */
   subs?: SubscriptionStore;
   /**
@@ -91,37 +107,118 @@ async function paymentMail(db: SupabaseClient, clinicId: string, kind: PaymentPr
   return sendPaymentProblem({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig(), claim }, clinicId, kind, fix);
 }
 
-async function confirmMail(db: SupabaseClient, clinicId: string, notice: BillingConfirmNotice): Promise<string> {
-  if (!process.env.RESEND_API_KEY) return "no email key";
-  const [{ sendBillingConfirmation, reviewDemoCheck }, { supabaseLifecycleStore, lifecycleConfig }, { sendEmail }] = await Promise.all([
-    import("./billing-confirm-email"),
-    import("./lifecycle"),
-    import("./email"),
-  ]);
-  const store = await webOpsStore().catch(() => null);
-  // Only when the email log cannot take the kind (0011 not applied): a long-lived Redis key instead.
-  const fallbackClaim = async (key: string) => (store ? store.setNx(key, 400 * 86_400).catch(() => true) : true);
-  return sendBillingConfirmation({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig(), isDemo: reviewDemoCheck(db), fallbackClaim }, clinicId, notice);
+/** What the production confirmation sender is made of; tests replace the parts that reach the outside. */
+export type ConfirmMailIo = {
+  env?: Record<string, string | undefined>;
+  send?: Sender;
+  store?: (db: SupabaseClient) => LifecycleStore;
+  ops?: () => Promise<OpsStore | null>;
+};
+
+/**
+ * The confirmation sender the webhook uses by default: the email log as the once-only claim (a Redis key when
+ * 0011 is not applied), the App Review demo clinic left out (review_demo), the lifecycle off switch respected.
+ */
+export function confirmMailWith(io: ConfirmMailIo = {}) {
+  return async (db: SupabaseClient, clinicId: string, notice: BillingConfirmNotice): Promise<string> => {
+    const env = io.env ?? process.env;
+    if (!env.RESEND_API_KEY) return "no email key";
+    const [{ sendBillingConfirmation, reviewDemoCheck }, { supabaseLifecycleStore, lifecycleConfig }] = await Promise.all([import("./billing-confirm-email"), import("./lifecycle")]);
+    const send = io.send ?? (await import("./email")).sendEmail;
+    const ops = await (io.ops ?? webOpsStore)().catch(() => null);
+    // Only when the email log cannot take the kind (0011 not applied): a long-lived Redis key instead.
+    const fallbackClaim = async (key: string) => (ops ? ops.setNx(key, 400 * 86_400).catch(() => true) : true);
+    return sendBillingConfirmation(
+      { store: (io.store ?? supabaseLifecycleStore)(db), send, config: lifecycleConfig(env), isDemo: reviewDemoCheck(db), fallbackClaim },
+      clinicId,
+      notice,
+    );
+  };
+}
+
+const confirmMail = confirmMailWith();
+
+/**
+ * Has the owner asked to delete the account in the last hour or two? Read from the deletion route's request
+ * count (billing-confirm-checks.ts deletionRequested); null when Redis cannot be read. A connection still
+ * opening (the first request after a start) gets one more try shortly after.
+ */
+export async function accountDeletionMarker(ownerId: string, now: Date, io: { ops?: () => Promise<OpsStore | null>; retryMs?: number } = {}): Promise<boolean | null> {
+  const ops = await (io.ops ?? webOpsStore)().catch(() => null);
+  if (!ops) return null;
+  const read = async (key: string) => Number((await ops.get(key)) ?? 0);
+  try {
+    return await deletionRequested(read, ownerId, now);
+  } catch {
+    await new Promise((r) => setTimeout(r, io.retryMs ?? 400));
+    return deletionRequested(read, ownerId, now).catch(() => null);
+  }
 }
 
 /**
- * How long the confirmation may hold up the webhook's answer. Past it the webhook answers Dodo anyway
- * (a slow mail provider must not turn into a Dodo retry); a send still under way is harmless, its claim
- * keeps any later attempt from mailing twice.
+ * Why a cancellation must not be confirmed as "your plan ends on {end}, your library stays until {library}",
+ * or null when nothing stands in the way:
+ *  - "account deletion": the owner asked to delete the account (deletion cancels Dodo first, then removes the
+ *    library and the clinic row, so this event can arrive while the clinic still looks active);
+ *  - "app store takes over": an App Store subscription bought while the web plan ran takes the clinic over at
+ *    the end date (adoptWaitingApple, worker plan-end), so the plan does not end;
+ *  - "not checked": either could not be checked. Held back too; the owner is asked to confirm by hand.
  */
-export const CONFIRM_TIMEOUT_MS = 10_000;
+async function cancelHold(db: SupabaseClient, deps: DvWebhookDeps, clinic: ClinicRow, now: Date): Promise<string | null> {
+  const deleting = await (deps.deletionRequested ?? ((owner: string) => accountDeletionMarker(owner, now)))(clinic.owner_id).catch(() => null);
+  if (deleting) return "account deletion";
+  const apple = deps.apple ? await deps.apple.forClinic(clinic.id).catch(() => null) : await readAppleLedger(db, clinic.id);
+  if (Array.isArray(apple) && appleTakesOver(apple, now)) return "app store takes over";
+  if (deleting === null || apple === null) return "not checked";
+  return null;
+}
 
-/** The confirmation email, best effort: whatever happens to it, the webhook carries on (its result is only reported). */
-async function confirmToClinic(db: SupabaseClient, deps: DvWebhookDeps, clinicId: string, notice: BillingConfirmNotice): Promise<string> {
+/**
+ * How long the confirmation may hold up the webhook's answer. Past it the webhook answers Dodo anyway (a slow
+ * mail provider must not turn into a Dodo retry). A send still under way goes on: its claim keeps any later
+ * attempt from mailing twice, and if it ends badly the owner is told then.
+ */
+export const CONFIRM_TIMEOUT_MS = 5_000;
+
+/** What the owner sends by hand when a confirmation does not reach the clinic. */
+function confirmDetail(notice: BillingConfirmNotice): string {
+  if (notice.kind === "cancelled") return `weekly videos until ${notice.endsAt.slice(0, 10)}, library kept until ${libraryUntil(new Date(notice.endsAt)).toISOString().slice(0, 10)}.`;
+  return `the plan is now ${notice.tier[0].toUpperCase()}${notice.tier.slice(1)}.`;
+}
+
+/**
+ * The confirmation email, best effort: whatever happens to it, the webhook carries on (its result is only
+ * reported). A cancellation is first checked against cancelHold. Nothing here retries: when a confirmation that
+ * should have gone out does not, the owner hears about it (in the cancellation's own alert, or confirmNotSentAlert).
+ */
+async function confirmToClinic(db: SupabaseClient, deps: DvWebhookDeps, clinic: ClinicRow, notice: BillingConfirmNotice, now: Date): Promise<string> {
+  const attempt = Promise.resolve().then(async () => {
+    if (notice.kind === "cancelled") {
+      const hold = await cancelHold(db, deps, clinic, now);
+      if (hold) return hold;
+    }
+    return (deps.sendConfirmMail ?? confirmMail)(db, clinic.id, notice);
+  });
   try {
-    const send = Promise.resolve().then(() => (deps.sendConfirmMail ?? confirmMail)(db, clinicId, notice));
-    const result = await withTimeout(send, deps.confirmTimeoutMs ?? CONFIRM_TIMEOUT_MS, "the confirmation email");
-    if (result === "failed" || result === "migration missing") console.error("[dodo:dentvideo] confirmation email not sent", notice.kind, clinicId, result);
+    const result = await withTimeout(attempt, deps.confirmTimeoutMs ?? CONFIRM_TIMEOUT_MS, "the confirmation email");
+    if (CONFIRM_PROBLEM.has(result)) console.error("[dodo:dentvideo] confirmation email not sent", notice.kind, clinic.id, result);
     return result;
   } catch (e) {
     const msg = (e as Error).message;
-    console.error("[dodo:dentvideo] confirmation email failed", notice.kind, clinicId, msg);
-    return /timed out/.test(msg) ? "timed out" : "failed";
+    console.error("[dodo:dentvideo] confirmation email failed", notice.kind, clinic.id, msg);
+    if (!/timed out/.test(msg)) return "failed";
+    // Still under way after Dodo got its answer: if it ends badly, the owner is told then.
+    void attempt
+      .then(
+        (late) => (CONFIRM_PROBLEM.has(late) ? late : null),
+        () => "failed",
+      )
+      .then((late) => {
+        if (!late) return;
+        console.error("[dodo:dentvideo] confirmation email not sent after the webhook answered", notice.kind, clinic.id, late);
+        return tell(db, deps, clinic.id, (c) => confirmNotSentAlert({ clinic: c, kind: notice.kind, result: late, detail: confirmDetail(notice) }));
+      });
+    return "timed out";
   }
 }
 
@@ -569,12 +666,17 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
       await subs.put({ ...ledgerRow(clinic.id, t.subscriptionId, reported, d, prev, stamp, evt.type), period_end: end });
       let confirmEmail: string | undefined;
       if (firstNotice) {
-        await tell(db, deps, clinic.id, (c) =>
-          alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from: "active", to: `active until ${end.slice(0, 10)}, then cancelled` }),
-        );
         // The clinic's written confirmation: when its videos stop and how long its library stays. Once per
-        // subscription (a repeat, or cancelled then expired, is not a first notice; the email log claims it too).
-        confirmEmail = await confirmToClinic(db, deps, clinic.id, { kind: "cancelled", subscriptionId: t.subscriptionId, endsAt: end });
+        // cancellation (a repeat, or cancelled then expired, is not a first notice; the email log claims it too).
+        // Sent before the owner's alert, so the alert can say what the clinic was told.
+        const result = await confirmToClinic(db, deps, clinic, { kind: "cancelled", subscriptionId: t.subscriptionId, endsAt: end, since: prev?.last_event_at ?? null }, now);
+        confirmEmail = result;
+        await tell(db, deps, clinic.id, (c) =>
+          cancellationAlert(
+            alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from: "active", to: `active until ${end.slice(0, 10)}, then cancelled` }),
+            { result, endsAt: end, email: c.email ?? null },
+          ),
+        );
       }
       return {
         status: 200,
@@ -669,7 +771,19 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
   // (a redelivery finds the tier already moved, so `update` would not have changed it; the email log claims it too).
   let confirmEmail: string | undefined;
   if (evt.type === "subscription.plan_changed" && from === "active" && to === "active" && t.tier && update.plan_tier === t.tier && (clinic.plan_tier ?? null) !== t.tier) {
-    confirmEmail = await confirmToClinic(db, deps, clinic.id, { kind: "plan_changed", subscriptionId: t.subscriptionId, tier: t.tier, eventAt });
+    // Prorated at once only through the self-serve switch (change-plan route); a change the owner made by hand
+    // in Dodo (no API key, or Group) is billed however it was set up there, so the email does not claim how.
+    const selfServe = deps.selfServe ?? !!process.env.DODO_API_KEY?.trim();
+    const notice: BillingConfirmNotice = {
+      kind: "plan_changed",
+      subscriptionId: t.subscriptionId,
+      tier: t.tier,
+      eventAt,
+      prorated: selfServe && isSelfServeTier(t.tier) && isSelfServeTier(clinic.plan_tier),
+    };
+    confirmEmail = await confirmToClinic(db, deps, clinic, notice, now);
+    const result = confirmEmail;
+    if (CONFIRM_PROBLEM.has(result)) await tell(db, deps, clinic.id, (c) => confirmNotSentAlert({ clinic: c, kind: "plan_changed", result, detail: confirmDetail(notice) }));
   }
 
   return {

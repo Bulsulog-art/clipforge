@@ -10,10 +10,14 @@ import type { Locale } from "./dentvideo-locales";
  *              after it ends") and worker/src/dentvid/retention.ts RETENTION_DAYS:
  *              nothing is deleted before then, and the clinic is emailed 14 days and
  *              1 day before.
- *   changed    the plan moved to {tier}. Dodo Payments charges or credits the
- *              difference for the rest of the period (the self-serve change is
+ *   changed    the plan moved to {tier}. After the self-serve switch, Dodo Payments
+ *              charges or credits the difference for the rest of the period (it is
  *              prorated_immediately, lib/dentvid/dodo-account.ts), the same promise
- *              the plan screen makes before the switch (dentvideo-account.ts).
+ *              the plan screen makes before the switch (dentvideo-account.ts). A change
+ *              the owner made by hand in Dodo only says that Dodo Payments bills it.
+ *
+ * The greetings are the ones the other clinic emails use (dentvideo-lifecycle.ts):
+ * Polish addresses the clinic's team, so the clinic's name never needs a vocative.
  *
  * Only what the product already does: no refund, no credit of our own, no
  * response time. {end}, {library} and {tier} are filled in. Plain sentences: no
@@ -42,7 +46,10 @@ export type BillingConfirmCopy = {
     /** What the new plan brings, for the self-serve tiers (Group has no line: it is set up by hand). */
     starter: string;
     practice: string;
+    /** The self-serve switch: Dodo prorates the difference at once (the plan screen says the same). */
     money: string;
+    /** A change made by hand in Dodo (no self-serve billing, or Group): who bills it, without claiming how. */
+    moneyManual: string;
     notYou: string;
     button: string;
     footer: string;
@@ -73,13 +80,14 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "Starter brings you five narrated, captioned videos every Monday, with your logo and colors.",
       practice: "Practice includes everything in Starter, and you can also upload your own recordings, which we turn into captioned clips in your colors.",
       money: "For the rest of this billing period, the difference is charged or credited by Dodo Payments, our payment provider.",
+      moneyManual: "Dodo Payments, our payment provider, handles the billing for your new plan.",
       notYou: "If you did not make this change, please reply to this email right away.",
       button: "See my plan",
       footer: "You get this email because your clinic's DentVideo plan changed. It confirms a change to your plan, so it is sent even if you unsubscribed from reminders.",
     },
   },
   de: {
-    hello: "Guten Tag {clinic},",
+    hello: "Guten Tag, {clinic},",
     helloNoName: "Guten Tag,",
     cancelled: {
       subject: "Ihr DentVideo-Tarif ist gekündigt",
@@ -101,6 +109,7 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "Mit Starter erhalten Sie jeden Montag fünf vertonte, untertitelte Videos mit Ihrem Logo und Ihren Farben.",
       practice: "Practice enthält alles aus Starter. Zusätzlich können Sie eigene Aufnahmen hochladen, und wir schneiden daraus Clips mit Untertiteln in Ihren Farben.",
       money: "Für den Rest des Abrechnungszeitraums wird die Differenz von Dodo Payments, unserem Zahlungsanbieter, anteilig berechnet oder gutgeschrieben.",
+      moneyManual: "Die Abrechnung Ihres neuen Tarifs übernimmt Dodo Payments, unser Zahlungsanbieter.",
       notYou: "Wenn Sie diese Änderung nicht selbst vorgenommen haben, antworten Sie bitte umgehend auf diese E-Mail.",
       button: "Meinen Tarif ansehen",
       footer: "Sie erhalten diese E-Mail, weil sich der DentVideo-Tarif Ihrer Praxis geändert hat. Sie bestätigt eine Änderung an Ihrem Tarif und kommt deshalb auch, wenn Sie Erinnerungen abbestellt haben.",
@@ -129,6 +138,7 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "Con Starter recibes cada lunes cinco vídeos con locución y subtítulos, con tu logo y tus colores.",
       practice: "Practice incluye todo lo de Starter y, además, puedes subir tus propias grabaciones, que convertimos en clips subtitulados con tus colores.",
       money: "Por el resto de este periodo de facturación, Dodo Payments, nuestro proveedor de pagos, cobra o abona la diferencia de forma proporcional.",
+      moneyManual: "Dodo Payments, nuestro proveedor de pagos, se encarga de la facturación de tu nuevo plan.",
       notYou: "Si no hiciste este cambio, responde a este correo cuanto antes.",
       button: "Ver mi plan",
       footer: "Recibes este correo porque cambió el plan de DentVideo de tu clínica. Confirma un cambio en tu plan, así que se envía aunque te hayas dado de baja de los recordatorios.",
@@ -157,6 +167,7 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "Starter ile her pazartesi logonuz ve renklerinizle hazırlanmış beş seslendirilmiş, altyazılı video alırsınız.",
       practice: "Practice, Starter'daki her şeyi içerir. Ayrıca kendi kayıtlarınızı yükleyebilirsiniz, biz de onları renklerinizle altyazılı kliplere dönüştürürüz.",
       money: "Bu ödeme döneminin kalanı için fark, ödeme sağlayıcımız Dodo Payments tarafından orantılı olarak tahsil edilir veya iade edilir.",
+      moneyManual: "Yeni planınızın faturalandırmasını ödeme sağlayıcımız Dodo Payments yönetir.",
       notYou: "Bu değişikliği siz yapmadıysanız, lütfen hemen bu e-postayı yanıtlayın.",
       button: "Planımı gör",
       footer: "Bu e-postayı kliniğinizin DentVideo planı değiştiği için alıyorsunuz. Planınızdaki bir değişikliği onayladığı için, hatırlatma e-postalarından çıkmış olsanız da gönderilir.",
@@ -185,14 +196,15 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "Avec Starter, vous recevez chaque lundi cinq vidéos commentées et sous-titrées, avec votre logo et vos couleurs.",
       practice: "Practice comprend tout ce qu'inclut Starter, et vous pouvez aussi envoyer vos propres enregistrements, que nous transformons en clips sous-titrés à vos couleurs.",
       money: "Pour le reste de la période de facturation en cours, la différence est facturée ou créditée au prorata par Dodo Payments, notre prestataire de paiement.",
+      moneyManual: "La facturation de votre nouvelle formule est gérée par Dodo Payments, notre prestataire de paiement.",
       notYou: "Si vous n'êtes pas à l'origine de ce changement, répondez dès que possible à cet e-mail.",
       button: "Voir ma formule",
       footer: "Vous recevez cet e-mail parce que la formule DentVideo de votre cabinet a changé. Il confirme un changement de votre formule : il est donc envoyé même si vous vous êtes désabonné des rappels.",
     },
   },
   ja: {
-    hello: "{clinic}様、",
-    helloNoName: "ご担当者様、",
+    hello: "{clinic} ご担当者様",
+    helloNoName: "ご担当者様",
     cancelled: {
       subject: "DentVideoのプランの解約を承りました",
       preheader: "{end}までは毎週の動画が引き続き届きます。",
@@ -212,6 +224,7 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "Starterでは、毎週月曜日に医院のロゴとカラーを使った、ナレーションと字幕付きの動画を5本お届けします。",
       practice: "PracticeにはStarterのすべての内容が含まれます。さらに、ご自身で撮影した動画をアップロードいただくと、医院のカラーで字幕入りのクリップに仕上げます。",
       money: "現在の請求期間の残りについては、お支払いを取り扱うDodo Paymentsが差額を日割りで請求または返金します。",
+      moneyManual: "新しいプランのご請求は、お支払いを取り扱うDodo Paymentsが行います。",
       notYou: "この変更にお心当たりがない場合は、すぐにこのメールにご返信ください。",
       button: "プランを確認する",
       footer: "医院のDentVideoプランが変更されたため、このメールをお送りしています。プランの変更を確認するお知らせのため、リマインダーの配信を停止されている場合もお送りします。",
@@ -239,13 +252,14 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "مع Starter تصلكم كل يوم اثنين خمسة فيديوهات بتعليق صوتي ونص على الشاشة، بشعاركم وألوانكم.",
       practice: "تشمل Practice كل ما في Starter، ويمكنكم أيضاً رفع تسجيلاتكم الخاصة لنحوّلها إلى مقاطع مع النص على الشاشة بألوانكم.",
       money: "أما بقية فترة الفوترة الحالية، فتحتسب Dodo Payments، مزوّد الدفع لدينا، فرقها خصماً أو رصيداً بالتناسب.",
+      moneyManual: "تتولى Dodo Payments، مزوّد الدفع لدينا، فوترة باقتكم الجديدة.",
       notYou: "إن لم تُجروا هذا التغيير بأنفسكم، فيُرجى الرد على هذه الرسالة فوراً.",
       button: "اعرضوا باقتكم",
       footer: "تصلكم هذه الرسالة لأن باقة DentVideo الخاصة بعيادتكم تغيّرت. وهي تؤكد تغييراً في باقتكم، لذا تُرسل حتى لو ألغيتم الاشتراك في رسائل التذكير.",
     },
   },
   pl: {
-    hello: "Dzień dobry, {clinic},",
+    hello: "Dzień dobry, zespole {clinic},",
     helloNoName: "Dzień dobry,",
     cancelled: {
       subject: "Plan DentVideo został anulowany",
@@ -267,6 +281,7 @@ export const BILLING_CONFIRM_COPY: Record<Locale, BillingConfirmCopy> = {
       starter: "W planie Starter co poniedziałek otrzymują Państwo pięć filmów z lektorem i napisami, z logo i kolorami gabinetu.",
       practice: "Plan Practice obejmuje wszystko z planu Starter, a do tego można przesyłać własne nagrania, z których przygotujemy klipy z napisami w barwach gabinetu.",
       money: "Za resztę bieżącego okresu rozliczeniowego różnicę proporcjonalnie dolicza lub zwraca Dodo Payments, nasz operator płatności.",
+      moneyManual: "Rozliczenia za nowy plan prowadzi Dodo Payments, nasz operator płatności.",
       notYou: "Jeśli to nie Państwo wprowadzili tę zmianę, prosimy jak najszybciej odpowiedzieć na tę wiadomość.",
       button: "Zobacz mój plan",
       footer: "Otrzymują Państwo tę wiadomość, ponieważ plan DentVideo gabinetu się zmienił. Potwierdza ona zmianę planu, dlatego wysyłamy ją także po rezygnacji z przypomnień.",

@@ -6,6 +6,7 @@ import { helpCenterLink, renderEmail, type Brand, type Block, type Rendered } fr
 import { clinicLabel, tidy } from "./lifecycle-email";
 import { isTestEmail, KindNotAllowedError, MissingSchemaError, zoneOf, type LifecycleConfig, type LifecycleStore, type Sender } from "./lifecycle";
 import { noticeDate } from "./retention-email";
+import { LIBRARY_DAYS_AFTER_END, libraryUntil } from "./billing-confirm-checks";
 
 /**
  * Written confirmation of a money event, to the clinic, in its language:
@@ -29,21 +30,42 @@ import { noticeDate } from "./retention-email";
  * payment-problem email's way), and without Redis the webhook's own state
  * check (first cancellation word, tier actually changed) is what keeps it to one.
  *
+ * Not retried: Dodo is answered 200 whatever happens here, and a cancellation
+ * has no later event that would send it. When a confirmation that should have
+ * gone out does not, the webhook tells the owner, who confirms by hand
+ * (billing-confirm-checks.ts). The webhook also holds a cancellation back
+ * during an account deletion or when an App Store subscription takes over.
+ *
  * Never throws for an expected case; the webhook still wraps every call so a
  * failure here never fails or retries the webhook.
  */
 
-/**
- * How long the library stays after a plan ends: the privacy policy's "for 90 days after it
- * ends" and the worker's retention (worker/src/dentvid/retention.ts RETENTION_DAYS, pinned by
- * billing-confirm-email.test.ts). Nothing is deleted earlier; the clinic is emailed before.
- */
-export const LIBRARY_DAYS_AFTER_END = 90;
-const DAY = 86_400_000;
+export { LIBRARY_DAYS_AFTER_END, libraryUntil };
 
 export type BillingConfirmNotice =
-  | { kind: "cancelled"; subscriptionId: string; endsAt: string }
-  | { kind: "plan_changed"; subscriptionId: string; tier: DvTier; eventAt: string | null };
+  | {
+      kind: "cancelled";
+      subscriptionId: string;
+      endsAt: string;
+      /**
+       * The subscription's last event before this cancellation (the ledger's last_event_at): which
+       * cancellation this is. Two deliveries of the same word share it; a cancellation after the
+       * subscription was resumed has a newer one, so it is confirmed again.
+       */
+      since?: string | null;
+    }
+  | {
+      kind: "plan_changed";
+      subscriptionId: string;
+      tier: DvTier;
+      eventAt: string | null;
+      /**
+       * The change went through DentVideo's self-serve switch (DODO_API_KEY set, Starter and Practice on
+       * both sides), which Dodo prorates at once (dodo-account.ts dodoChangePlan). Otherwise the owner
+       * changed it by hand in Dodo and the email does not claim how the difference is billed.
+       */
+      prorated?: boolean;
+    };
 
 export type BillingConfirmResult =
   | "sent"
@@ -59,11 +81,6 @@ export type BillingConfirmResult =
   | "failed"
   | "migration missing";
 
-/** The earliest day the library can be deleted after a plan that ends at `endsAt`. */
-export function libraryUntil(endsAt: Date): Date {
-  return new Date(endsAt.getTime() + LIBRARY_DAYS_AFTER_END * DAY);
-}
-
 const TIER_NAME: Record<DvTier, string> = { starter: "Starter", practice: "Practice", group: "Group" };
 export const tierName = (tier: DvTier) => TIER_NAME[tier] ?? tier;
 
@@ -71,12 +88,13 @@ const h10 = (s: string) => createHash("sha256").update(s).digest("hex").slice(0,
 
 /**
  * The dentvid_email_log kind that makes this notice at most once (0011: ^[a-z][a-z0-9_]{2,39}$).
- * A cancellation: once per subscription (cancelled then expired, or a repeat, is the same word).
+ * A cancellation: once per cancellation of a subscription (cancelled then expired, or a repeat,
+ * is the same word; cancelled again after a resume is a new one, see `since`).
  * A plan change: once per change event (Dodo's event time; a retry carries the same one), so
  * Starter to Practice and back again are two confirmations.
  */
 export function confirmKind(n: BillingConfirmNotice, now: Date = new Date()): string {
-  if (n.kind === "cancelled") return `plan_cancelled_${h10(n.subscriptionId)}`;
+  if (n.kind === "cancelled") return `plan_cancelled_${h10(`${n.subscriptionId}|${n.since ?? ""}`)}`;
   return `plan_${n.tier}_${h10(`${n.subscriptionId}|${n.eventAt ?? now.toISOString().slice(0, 10)}`)}`;
 }
 
@@ -108,7 +126,7 @@ export function cancelledEmail(args: { language: string; clinicName: string; end
   });
 }
 
-export function planChangedEmail(args: { language: string; clinicName: string; tier: DvTier; appUrl: string; brand?: Brand }): Rendered {
+export function planChangedEmail(args: { language: string; clinicName: string; tier: DvTier; prorated?: boolean; appUrl: string; brand?: Brand }): Rendered {
   const { lang, copy } = billingConfirmText(args.language);
   const c = copy.changed;
   const clinic = clinicLabel(args.clinicName);
@@ -116,7 +134,7 @@ export function planChangedEmail(args: { language: string; clinicName: string; t
   const includes = args.tier === "starter" ? c.starter : args.tier === "practice" ? c.practice : null;
   const blocks: Block[] = [{ kind: "p", text: fillConfirm(c.body, vars) }];
   if (includes) blocks.push({ kind: "p", text: includes });
-  blocks.push({ kind: "panel", text: c.money }, { kind: "p", text: c.notYou });
+  blocks.push({ kind: "panel", text: args.prorated ? c.money : c.moneyManual }, { kind: "p", text: c.notYou });
   return renderEmail({
     lang,
     subject: fillConfirm(c.subject, vars),
@@ -183,7 +201,7 @@ export async function sendBillingConfirmation(deps: ConfirmDeps, clinicId: strin
     const msg =
       notice.kind === "cancelled"
         ? cancelledEmail({ language: lang, clinicName: clinic.profile?.name ?? "", endsAt: end!, timeZone: zoneOf(clinic), appUrl, brand })
-        : planChangedEmail({ language: lang, clinicName: clinic.profile?.name ?? "", tier: notice.tier, appUrl, brand });
+        : planChangedEmail({ language: lang, clinicName: clinic.profile?.name ?? "", tier: notice.tier, prorated: notice.prorated, appUrl, brand });
     const logKind = notice.kind === "cancelled" ? "plan_cancelled" : "plan_changed";
     const ok = await deps.send(owner.email, msg, {
       idempotencyKey: `dentvideo-${kind.replace(/_/g, "-")}-${clinic.id}`,

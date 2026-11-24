@@ -98,6 +98,8 @@ describe("the copy, in every DentVideo language", () => {
       expect(c.changed.subject, l).toContain("{tier}");
       expect(c.changed.body, l).toContain("{tier}");
       expect(c.changed.money, l).toContain("Dodo Payments");
+      expect(c.changed.moneyManual, l).toContain("Dodo Payments");
+      expect(c.changed.moneyManual, l).not.toBe(c.changed.money);
       // No placeholder that is never filled.
       for (const s of strings(c)) expect(s.replace(/\{(end|library|tier|clinic)\}/g, ""), `${l}: ${s}`).not.toMatch(/[{}]/);
     }
@@ -117,8 +119,11 @@ describe("the copy, in every DentVideo language", () => {
   it("keeps the library for the same 90 days as the worker's retention and the privacy policy", () => {
     const worker = fs.readFileSync(path.resolve(__dirname, "../../../../worker/src/dentvid/retention.ts"), "utf8");
     expect(worker).toMatch(new RegExp(`export const RETENTION_DAYS = ${LIBRARY_DAYS_AFTER_END};`));
+    // Loose on purpose: the wording of the privacy policy may be polished, the number may not change unnoticed.
     const privacy = fs.readFileSync(path.resolve(__dirname, "../../content/legal/en.ts"), "utf8");
-    expect(privacy).toMatch(/for 90 days after it ends/);
+    const retention = privacy.split("\n").filter((line) => /videos/i.test(line) && /plan/i.test(line) && /\bdays?\b/.test(line));
+    expect(retention.length).toBeGreaterThan(0);
+    for (const line of retention) expect([...line.matchAll(/(\d+) days/g)].map((m) => Number(m[1])), line).toContain(LIBRARY_DAYS_AFTER_END);
     expect(libraryUntil(new Date(END)).toISOString()).toBe("2027-03-10T12:00:00.000Z");
   });
 });
@@ -170,9 +175,29 @@ describe("rendering", () => {
     }
   });
 
+  it("greets the clinic the way its other DentVideo emails do (Polish addresses the team, no vocative of the name)", () => {
+    const hello = (l: string) => planChangedEmail({ language: l, clinicName: "Przykładowy Gabinet Stomatologiczny", tier: "starter", appUrl: `${APP}/app` }).text.split("\n\n")[1];
+    expect(hello("pl")).toBe("Dzień dobry, zespole Przykładowy Gabinet Stomatologiczny,");
+    expect(hello("ja")).toBe("Przykładowy Gabinet Stomatologiczny ご担当者様");
+    expect(hello("de")).toBe("Guten Tag, Przykładowy Gabinet Stomatologiczny,");
+    expect(hello("en")).toBe("Hello Przykładowy Gabinet Stomatologiczny,");
+  });
+
+  it("says Dodo prorates the difference only after the self-serve switch; otherwise only who bills it", () => {
+    for (const l of LOCALES) {
+      const c = BILLING_CONFIRM_COPY[l].changed;
+      const selfServe = planChangedEmail({ language: l, clinicName: "", tier: "practice", prorated: true, appUrl: `${APP}/app` }).text;
+      const byHand = planChangedEmail({ language: l, clinicName: "", tier: "practice", appUrl: `${APP}/app` }).text;
+      expect(selfServe, l).toContain(c.money);
+      expect(selfServe, l).not.toContain(c.moneyManual);
+      expect(byHand, l).toContain(c.moneyManual);
+      expect(byHand, l).not.toContain(c.money);
+    }
+  });
+
   it("the plan change names the new plan, what it brings, and who handles the difference", () => {
     for (const l of LOCALES) {
-      const msg = planChangedEmail({ language: l, clinicName: "Örnek Diş Kliniği", tier: "practice", appUrl: `${APP}/app` });
+      const msg = planChangedEmail({ language: l, clinicName: "Örnek Diş Kliniği", tier: "practice", prorated: true, appUrl: `${APP}/app` });
       expect(msg.subject, l).toContain("Practice");
       expect(msg.text, l).toContain(BILLING_CONFIRM_COPY[l].changed.practice);
       expect(msg.text, l).toContain("Dodo Payments");
@@ -213,6 +238,18 @@ describe("sendBillingConfirmation", () => {
     // A later subscription of the same clinic that is cancelled in its turn is a new confirmation.
     expect(await sendBillingConfirmation(deps(m.store, send), CLINIC, { ...CANCEL, subscriptionId: "sub_2" })).toBe("sent");
     expect(sent).toHaveLength(2);
+  });
+
+  it("a cancellation after the subscription was resumed is a new confirmation; the same cancellation again is not", async () => {
+    const m = memory(clinic());
+    const { send, sent } = sender();
+    const first = { ...CANCEL, since: "2026-11-10T00:00:00.000Z" };
+    expect(await sendBillingConfirmation(deps(m.store, send), CLINIC, first)).toBe("sent");
+    expect(await sendBillingConfirmation(deps(m.store, send), CLINIC, first)).toBe("already sent");
+    expect(await sendBillingConfirmation(deps(m.store, send), CLINIC, { ...first, since: "2026-11-22T00:00:00.000Z" })).toBe("sent");
+    expect(sent).toHaveLength(2);
+    expect(confirmKind(first)).not.toBe(confirmKind({ ...first, since: "2026-11-22T00:00:00.000Z" }));
+    expect(confirmKind(first)).toMatch(/^[a-z][a-z0-9_]{2,39}$/);
   });
 
   it("each plan change event is confirmed once; going back and forth is two events", async () => {
@@ -261,7 +298,7 @@ describe("sendBillingConfirmation", () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it("a failed send releases the claim (a later qualifying event may try again) and says failed", async () => {
+  it("a failed send releases the claim and says failed (the webhook then asks the owner to confirm by hand)", async () => {
     const m = memory(clinic());
     const { send } = sender(false);
     expect(await sendBillingConfirmation(deps(m.store, send), CLINIC, CANCEL)).toBe("failed");
