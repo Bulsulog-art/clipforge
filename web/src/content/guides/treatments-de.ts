@@ -25,18 +25,18 @@ export const TREATMENTS_DE: Guide[] = [
     description: "Ein Praxisleitfaden: Was Patienten vor einer Implantatbehandlung fragen, sechs kurze Videos dazu, ein Skript in fünf Schritten und die Formulierungen, die das Werberecht kritisch sieht.",
     h1: "Aufklärungsvideos zu Zahnimplantaten: was Sie zeigen und was Sie lassen sollten",
     intro:
-      "Ein Aufklärungsvideo zu Zahnimplantaten erklärt in kurzer, verständlicher Form einen Schritt der Behandlung — Voruntersuchung, Implantation, Einheilzeit, Krone oder Nachsorge —, damit Patientinnen und Patienten mit realistischen Erwartungen ins Beratungsgespräch kommen. Gut funktionieren Videos, die eine einzige Frage in unter einer Minute beantworten, den üblichen Ablauf beschreiben, kein Ergebnis versprechen und mit der Einladung enden, die eigene Situation in der Praxis zu besprechen.",
+      "Ein Aufklärungsvideo zu Zahnimplantaten erklärt in kurzer, verständlicher Form einen Schritt der Behandlung (Voruntersuchung, Implantation, Einheilzeit, Krone oder Nachsorge), damit Patientinnen und Patienten mit realistischen Erwartungen ins Beratungsgespräch kommen. Gut funktionieren Videos, die eine einzige Frage in unter einer Minute beantworten, den üblichen Ablauf beschreiben, kein Ergebnis versprechen und mit der Einladung enden, die eigene Situation in der Praxis zu besprechen.",
     sections: [
       {
         heading: "Was fragen Patienten vor einer Implantatbehandlung?",
         paragraphs: [
-          "Wer über ein Implantat nachdenkt, recherchiert oft wochenlang, bevor er einen Termin vereinbart. Im Erstgespräch tauchen dann fast immer dieselben Fragen auf — jede davon ist ein Videothema. Beginnen Sie mit den Fragen, die Ihr Team am häufigsten hört:",
+          "Wer über ein Implantat nachdenkt, recherchiert oft wochenlang, bevor er einen Termin vereinbart. Im Erstgespräch tauchen dann fast immer dieselben Fragen auf, und jede davon ist ein Videothema. Beginnen Sie mit den Fragen, die Ihr Team am häufigsten hört:",
         ],
         list: [
           "Ist alles an einem Termin erledigt, oder wie viele Sitzungen braucht ein Implantat?",
           "Warum muss ich zwischen Implantat und fertiger Krone warten?",
           "Habe ich während der Einheilzeit eine Lücke?",
-          "Komme ich überhaupt infrage — bei Knochenabbau, als Raucher, mit Diabetes?",
+          "Komme ich überhaupt infrage, etwa bei Knochenabbau, als Raucher oder mit Diabetes?",
           "Was spüre ich während des Eingriffs, und wie läuft der Tag ab?",
           "Wie reinige ich ein Implantat, und warum sind Kontrolltermine wichtig?",
           "Was unterscheidet Implantat, Brücke und Prothese?",
@@ -71,9 +71,9 @@ export const TREATMENTS_DE: Guide[] = [
           caption: "Implantat-Formulierungen: heikel und vorsichtiger",
           columns: ["Heikle Formulierung", "Warum problematisch", "Vorsichtiger formuliert"],
           rows: [
-            ["„Feste Zähne für immer“", "Verspricht einen dauerhaften Erfolg; Implantate brauchen Pflege und können verloren gehen", "„Auf lange Haltbarkeit ausgelegt — mit guter Pflege und regelmäßigen Kontrollen“"],
-            ["„Schmerzfreie Implantation“", "Absolute Aussage, die keine Praxis für jeden Patienten einhalten kann", "„Unter örtlicher Betäubung — wir erklären, was Sie danach spüren können“"],
-            ["„Neue Zähne an einem Tag“ als Schlagzeile", "Irreführend, wenn es nur für manche Fälle gilt und die Einheilzeit verschweigt", "„In manchen Fällen ist ein Provisorium am selben Tag möglich — fragen Sie, ob das bei Ihnen infrage kommt“"],
+            ["„Feste Zähne für immer“", "Verspricht einen dauerhaften Erfolg; Implantate brauchen Pflege und können verloren gehen", "„Auf lange Haltbarkeit ausgelegt, mit guter Pflege und regelmäßigen Kontrollen“"],
+            ["„Schmerzfreie Implantation“", "Absolute Aussage, die keine Praxis für jeden Patienten einhalten kann", "„Unter örtlicher Betäubung. Wir erklären, was Sie danach spüren können“"],
+            ["„Neue Zähne an einem Tag“ als Schlagzeile", "Irreführend, wenn es nur für manche Fälle gilt und die Einheilzeit verschweigt", "„In manchen Fällen ist ein Provisorium am selben Tag möglich; fragen Sie, ob das bei Ihnen infrage kommt“"],
             ["Vorher-Nachher-Fotos von Patienten", "Rechtlich riskant und nur mit schriftlicher Einwilligung denkbar", "Modell oder Grafik der Behandlungsphasen"],
             ["Patientenstimmen und Dankesschreiben", "Nach § 11 HWG riskant, wenn sie irreführend oder missbräuchlich wirken", "Den Ablauf in eigenen Worten erklären"],
           ],
@@ -100,25 +100,25 @@ export const TREATMENTS_DE: Guide[] = [
       {
         heading: "Wo passen Implantat-Videos in den Redaktionsplan?",
         paragraphs: [
-          "Implantat-Themen wirken als kleine Serie besser als einzeln. Veröffentlichen Sie zuerst das Video zu den Behandlungsphasen und in den folgenden Wochen die Videos zur Eignung und zur Nachsorge — wer eines findet, schaut die anderen. Mischen Sie sie mit Prophylaxe- und Alltagsthemen: Ein Feed, der nur aus Implantaten besteht, wirkt wie Werbung. Wie ein ausgewogener Monat aussieht, zeigen die [Social-Media-Ideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen) und der [Redaktionsplan für 52 Wochen](guide:redaktionsplan-social-media-zahnarztpraxis).",
+          "Implantat-Themen wirken als kleine Serie besser als einzeln. Veröffentlichen Sie zuerst das Video zu den Behandlungsphasen und in den folgenden Wochen die Videos zur Eignung und zur Nachsorge. Wer eines findet, schaut die anderen. Mischen Sie sie mit Prophylaxe- und Alltagsthemen: Ein Feed, der nur aus Implantaten besteht, wirkt wie Werbung. Wie ein ausgewogener Monat aussieht, zeigen die [Social-Media-Ideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen) und der [Redaktionsplan für 52 Wochen](guide:redaktionsplan-social-media-zahnarztpraxis).",
           "Nutzen Sie dieselben Videos auch außerhalb von Social Media: Ein Link zum Phasen-Video in der Terminbestätigung beantwortet die ersten Fragen, bevor der Patient auf dem Stuhl sitzt, und das Nachsorge-Video im Wartezimmer erinnert daran, warum Kontrolltermine zählen.",
         ],
       },
       {
         heading: "So erstellt DentVideo Implantat-Videos für Ihre Praxis",
         paragraphs: [
-          "[DentVideo](landing:) plant Videos nur aus den Leistungen, die Sie angeben. Bieten Sie Implantologie an, kommen Themen wie Behandlungsphasen, Eignung und Nachsorge in Ihre wöchentlichen fünf Videos — neben Prophylaxe-Themen. Jedes Video wird in Ihrer Sprache und Ihren Farben vertont und untertitelt, und jedes Skript wird vor der Freigabe auf die oben genannten Aussagen und auf fachliche Richtigkeit geprüft. Veröffentlicht wird nichts ohne Ihre Freigabe. [Sehen Sie vorab eine Live-Vorschau mit Ihrem Logo](start:).",
+          "[DentVideo](landing:) plant Videos nur aus den Leistungen, die Sie angeben. Bieten Sie Implantologie an, kommen Themen wie Behandlungsphasen, Eignung und Nachsorge in Ihre wöchentlichen fünf Videos, neben Prophylaxe-Themen. Jedes Video wird in Ihrer Sprache und Ihren Farben vertont und untertitelt, und jedes Skript wird vor der Freigabe auf die oben genannten Aussagen und auf fachliche Richtigkeit geprüft. Veröffentlicht wird nichts ohne Ihre Freigabe. [Sehen Sie vorab eine Live-Vorschau mit Ihrem Logo](start:).",
         ],
       },
     ],
     faq: [
       {
         q: "Darf ich Animationen eines Implantat-Herstellers in Praxisvideos verwenden?",
-        a: "Oft ja, wenn die Lizenz des Herstellers das erlaubt — prüfen Sie die Bedingungen. Achten Sie darauf, dass das Video keine Produktwerbung für eine Implantatmarke wird: Für Medizinprodukte gelten eigene Werberegeln.",
+        a: "Oft ja, wenn die Lizenz des Herstellers das erlaubt. Prüfen Sie die Bedingungen. Achten Sie darauf, dass das Video keine Produktwerbung für eine Implantatmarke wird: Für Medizinprodukte gelten eigene Werberegeln.",
       },
       {
         q: "Sollten Implantat-Videos eine Haltbarkeit in Jahren nennen?",
-        a: "Besser nicht. Erklären Sie, wovon die Haltbarkeit abhängt — Pflege, Kontrollen, Zahnfleischgesundheit, Rauchen. Eine Jahreszahl wirkt wie ein Erfolgsversprechen und lässt sich für den Einzelfall nicht belegen.",
+        a: "Besser nicht. Erklären Sie, wovon die Haltbarkeit abhängt: Pflege, Kontrollen, Zahnfleischgesundheit, Rauchen. Eine Jahreszahl wirkt wie ein Erfolgsversprechen und lässt sich für den Einzelfall nicht belegen.",
       },
       {
         q: "Darf ich Röntgenbilder von Patienten zeigen?",
@@ -140,11 +140,11 @@ export const TREATMENTS_DE: Guide[] = [
     sample: "aligner-verfaerbung",
     title: "Aufklärungsvideos zu Alignern: Themen, Skriptaufbau und Aussagen, die Sie vermeiden sollten",
     seoTitle: "Aligner-Aufklärungsvideos für die Praxis",
-    seoDescription: "Kurze Aligner-Videos, die Patienten wirklich brauchen: Tragezeit, Reinigung, Attachments, Retainer — ohne „unsichtbar“- und Zeitversprechen.",
+    seoDescription: "Kurze Aligner-Videos, die Patienten wirklich brauchen: Tragezeit, Reinigung, Attachments, Retainer. Ohne „unsichtbar“- und Zeitversprechen.",
     description: "Was Patienten zu Alignern fragen, sechs kurze Videos dazu, ein Skript in fünf Schritten und die Formulierungen, die nach Werberecht problematisch sind.",
     h1: "Aufklärungsvideos zu Alignern: was Sie zeigen und was Sie lassen sollten",
     intro:
-      "Ein Aufklärungsvideo zu Alignern erklärt einen Teil der Behandlung mit durchsichtigen Schienen — Tragezeit, Reinigung, Attachments, Kontrolltermine, Retainer — in einem kurzen, untertitelten Clip. Hilfreich sind Videos, die Patienten beim Durchhalten unterstützen. Sie versprechen weder ein Ergebnis noch ein Enddatum, denn beides hängt vom Befund und davon ab, wie konsequent die Schienen getragen werden.",
+      "Ein Aufklärungsvideo zu Alignern erklärt einen Teil der Behandlung mit durchsichtigen Schienen (Tragezeit, Reinigung, Attachments, Kontrolltermine, Retainer) in einem kurzen, untertitelten Clip. Hilfreich sind Videos, die Patienten beim Durchhalten unterstützen. Sie versprechen weder ein Ergebnis noch ein Enddatum, denn beides hängt vom Befund und davon ab, wie konsequent die Schienen getragen werden.",
     sections: [
       {
         heading: "Was fragen Patienten zu Alignern?",
@@ -171,7 +171,7 @@ export const TREATMENTS_DE: Guide[] = [
           rows: [
             ["Tragezeit, kurz erklärt", "Warum Aligner nur wirken, solange sie im Mund sind", "Nachricht zum Start; Social Media"],
             ["Essen und Trinken mit Alignern", "Für alles außer Wasser herausnehmen, danach Zähne putzen", "Social Media; Wartezimmer"],
-            ["Verfärbungen vermeiden", "Kaffee, Tee, Rotwein — und warum heißes Wasser schadet", "Nachricht zum Start; Social Media"],
+            ["Verfärbungen vermeiden", "Kaffee, Tee, Rotwein und warum heißes Wasser schadet", "Nachricht zum Start; Social Media"],
             ["Wozu Attachments da sind", "Kleine zahnfarbene Formen, an denen die Schiene greift", "Vor dem Attachment-Termin"],
             ["Die neue Schiene drückt", "Druck ist ein, zwei Tage üblich; wann Sie anrufen sollten", "Social Media; Folgenachricht"],
             ["Warum danach ein Retainer kommt", "Zähne können zurückwandern; der Retainer hält das Ergebnis", "Nachricht zum Behandlungsende"],
@@ -213,7 +213,7 @@ export const TREATMENTS_DE: Guide[] = [
       {
         heading: "Wann sollten Sie Aligner-Videos posten oder verschicken?",
         paragraphs: [
-          "Aligner-Videos arbeiten doppelt. Auf Social Media zeigen sie Interessierten, wie der Alltag mit Schienen aussieht — das überzeugt mehr als ein Versprechen und ist rechtlich sicherer. Als Nachricht an Patienten ersparen sie Ihrem Team viele telefonische Routinefragen. Schicken Sie das Tragezeit- und das Reinigungsvideo zu Behandlungsbeginn, das Video zur drückenden Schiene mit der zweiten oder dritten Schiene und das Retainer-Video gegen Ende.",
+          "Aligner-Videos arbeiten doppelt. Auf Social Media zeigen sie Interessierten, wie der Alltag mit Schienen aussieht. Das überzeugt mehr als ein Versprechen und ist rechtlich sicherer. Als Nachricht an Patienten ersparen sie Ihrem Team viele telefonische Routinefragen. Schicken Sie das Tragezeit- und das Reinigungsvideo zu Behandlungsbeginn, das Video zur drückenden Schiene mit der zweiten oder dritten Schiene und das Retainer-Video gegen Ende.",
           "Wenn Ihre Praxis einige Male pro Woche postet, reicht ein Aligner-Video pro Woche neben Prophylaxe-Themen. Die [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen) zeigen, wie Sie solche Clips selbst drehen.",
         ],
       },
@@ -240,7 +240,7 @@ export const TREATMENTS_DE: Guide[] = [
     faq: [
       {
         q: "Darf die Praxis in Videos die Aligner-Marke nennen?",
-        a: "Als sachliche Information, welches System Sie verwenden, meist ja. Ein Video, das sich um die Marke dreht und Herstellerslogans übernimmt, wirkt dagegen wie Produktwerbung — bleiben Sie bei der Behandlung und den Fragen der Patienten.",
+        a: "Als sachliche Information, welches System Sie verwenden, meist ja. Ein Video, das sich um die Marke dreht und Herstellerslogans übernimmt, wirkt dagegen wie Produktwerbung. Bleiben Sie bei der Behandlung und den Fragen der Patienten.",
       },
       {
         q: "Sollten Aligner-Videos eine Tragezeit in Stunden nennen?",
@@ -262,11 +262,11 @@ export const TREATMENTS_DE: Guide[] = [
     sample: "bleaching-zahnschmelz",
     title: "Aufklärungsvideos zum Bleaching: Mythen, Empfindlichkeit und Werbeaussagen, die Sie vermeiden sollten",
     seoTitle: "Bleaching-Aufklärungsvideos für Zahnarztpraxen",
-    seoDescription: "Kurze Bleaching-Videos für die Praxis: Zahnschmelz-Mythen, Empfindlichkeit, Kronen und Füllungen — ohne Vorher-Nachher-Bilder und Rabattaktionen.",
+    seoDescription: "Kurze Bleaching-Videos für die Praxis: Zahnschmelz-Mythen, Empfindlichkeit, Kronen und Füllungen. Ohne Vorher-Nachher-Bilder und Rabattaktionen.",
     description: "Was Patienten zum Bleaching fragen, sechs kurze Videos dazu, ein Skript in fünf Schritten und die Aussagen, die bei ästhetischen Behandlungen werberechtlich riskant sind.",
     h1: "Aufklärungsvideos zum Bleaching: was Sie zeigen und was Sie lassen sollten",
     intro:
-      "Ein Aufklärungsvideo zum Bleaching beantwortet eine Frage zur Zahnaufhellung — schadet es dem Zahnschmelz, warum werden die Zähne empfindlich, hellen Kronen mit auf, sind Drogerieprodukte dasselbe — in einem kurzen, untertitelten Clip. Bleaching ist eine ästhetische Behandlung und damit das Thema, bei dem Praxisvideos am leichtesten in Werbung abrutschen. Gute Videos erklären Fakten und überlassen die Entscheidung dem Beratungsgespräch.",
+      "Ein Aufklärungsvideo zum Bleaching beantwortet in einem kurzen, untertitelten Clip eine Frage zur Zahnaufhellung: Schadet es dem Zahnschmelz, warum werden die Zähne empfindlich, hellen Kronen mit auf, sind Drogerieprodukte dasselbe? Bleaching ist eine ästhetische Behandlung und damit das Thema, bei dem Praxisvideos am leichtesten in Werbung abrutschen. Gute Videos erklären Fakten und überlassen die Entscheidung dem Beratungsgespräch.",
     sections: [
       {
         heading: "Was fragen Patienten zum Bleaching?",
@@ -327,7 +327,7 @@ export const TREATMENTS_DE: Guide[] = [
         paragraphs: ["Dieselben fünf Schritte passen zu jedem Bleaching-Thema:"],
         list: [
           "Mit dem Mythos oder der Frage beginnen: „Ihr Zahnschmelz beim Bleaching in Gefahr?“",
-          "Die einfache Antwort in ein, zwei Sätzen — ohne Zahl von Farbstufen.",
+          "Die einfache Antwort in ein, zwei Sätzen, ohne Zahl von Farbstufen.",
           "Der praktische Tipp: was Sie die ersten Tage meiden oder was gegen Empfindlichkeit hilft.",
           "Die Grenze: Kronen und Füllungen behalten ihre Farbe; Ergebnisse sind individuell.",
           "Einladen statt verkaufen: „Fragen Sie uns, ob Bleaching für Ihre Zähne infrage kommt.“",
@@ -338,14 +338,14 @@ export const TREATMENTS_DE: Guide[] = [
         paragraphs: [
           "Das Interesse an Zahnaufhellung steigt vor Hochzeiten, Urlauben und dem Jahreswechsel. Halten Sie den Feed trotzdem ausgewogen: Lauter Bleaching-Beiträge wirken wie Werbung. Ein aufklärendes Bleaching-Video im Monat neben Prophylaxe-Themen ist ein guter Rhythmus; wo ästhetische Themen im Jahr hinpassen, zeigt der [Redaktionsplan für die Zahnarztpraxis](guide:redaktionsplan-social-media-zahnarztpraxis).",
           "Das Nachsorge-Video ist auch außerhalb von Social Media wertvoll: Schicken Sie es am Behandlungstag, damit die Hinweise zu Hause griffbereit sind.",
-          "Bleaching-Videos zeigen außerdem, wie Ihre Praxis arbeitet. Wer erklärt, warum vorher Karies und Zahnfleisch geprüft werden, und offen sagt, dass Ergebnisse unterschiedlich ausfallen, gewinnt mehr Vertrauen als mit einem versprochenen Farbton — und bleibt zugleich auf der sicheren Seite.",
+          "Bleaching-Videos zeigen außerdem, wie Ihre Praxis arbeitet. Wer erklärt, warum vorher Karies und Zahnfleisch geprüft werden, und offen sagt, dass Ergebnisse unterschiedlich ausfallen, gewinnt mehr Vertrauen als mit einem versprochenen Farbton und bleibt zugleich auf der sicheren Seite.",
         ],
       },
       {
         heading: "Wie nutzen Sie Bleaching-Videos im Beratungsgespräch?",
         paragraphs: [
           "Bleaching-Interessierte kommen oft mit Bildern aus sozialen Netzwerken, die mit Filtern bearbeitet sind. Ein kurzes Video, das vor dem Termin verschickt wird, setzt realistische Erwartungen: Es erklärt, dass Kronen und Füllungen ihre Farbe behalten, dass die erreichbare Aufhellung von der Ausgangsfarbe abhängt und dass vorübergehende Empfindlichkeit vorkommen kann. Im Gespräch bleibt dann mehr Zeit für die Fragen, die nur die individuelle Situation betreffen.",
-          "Wer nach dem Termin noch unsicher ist, bekommt das Mythen-Video zum Zahnschmelz mit der Zusammenfassung des Gesprächs. So hat die Patientin die Fakten zu Hause griffbereit und entscheidet in Ruhe — genau das, was eine Aufklärung leisten soll.",
+          "Wer nach dem Termin noch unsicher ist, bekommt das Mythen-Video zum Zahnschmelz mit der Zusammenfassung des Gesprächs. So hat die Patientin die Fakten zu Hause griffbereit und entscheidet in Ruhe. Genau das soll eine Aufklärung leisten.",
         ],
       },
       {
@@ -380,7 +380,7 @@ export const TREATMENTS_DE: Guide[] = [
     sample: "kinder-zahnarztangst",
     title: "Videos zur Kinderzahnheilkunde: Themen für Eltern, Einwilligung und was das HWG bei Kindern verbietet",
     seoTitle: "Kinderzahnheilkunde-Videos für Eltern",
-    seoDescription: "Kurze Videos für Eltern: erster Zahnarztbesuch, Putzen, Zucker, Nuckelflasche, Zahnarztangst — plus Einwilligung und § 11 HWG bei Kindern.",
+    seoDescription: "Kurze Videos für Eltern: erster Zahnarztbesuch, Putzen, Zucker, Nuckelflasche, Zahnarztangst. Dazu Einwilligung und § 11 HWG bei Kindern.",
     description: "Was Eltern zu den Zähnen ihrer Kinder fragen, sechs kurze Videos dazu, wie Sie über Zahnarztangst sprechen, und warum sich Werbung nicht an Kinder unter 14 richten darf.",
     h1: "Videos zur Kinderzahnheilkunde: was Sie für Eltern drehen sollten",
     intro:
@@ -395,7 +395,7 @@ export const TREATMENTS_DE: Guide[] = [
           "Ist es schlimm, wenn mein Kind mit der Flasche einschläft?",
           "Welche Snacks und Getränke sind für Kinderzähne besonders ungünstig?",
           "Zahnen: Was ist normal, und wann sollte ich mir Sorgen machen?",
-          "Mein Kind hat Angst vor dem Zahnarzt — was sage ich vorher?",
+          "Mein Kind hat Angst vor dem Zahnarzt. Was sage ich vorher?",
           "Was sind Fissurenversiegelung und Fluoridlack?",
           "Sind Milchzähne wichtig, wenn sie doch ausfallen?",
         ],
@@ -407,7 +407,7 @@ export const TREATMENTS_DE: Guide[] = [
           caption: "Sechs Videos für Eltern und wo sie helfen",
           columns: ["Video", "Beantwortet", "Wo es am meisten hilft"],
           rows: [
-            ["Der erste Zahnarztbesuch", "Wann und was passiert — vor allem schauen und kennenlernen", "Social Media; Terminbestätigung"],
+            ["Der erste Zahnarztbesuch", "Wann und was passiert: vor allem schauen und kennenlernen", "Social Media; Terminbestätigung"],
             ["Kleine Zähne putzen", "Technik, Nachputzen durch die Eltern, Zahnpasta nach aktueller Empfehlung", "Social Media; Wartezimmer-TV"],
             ["Flasche und Getränke in der Nacht", "Warum Milch oder Saft nachts den Zähnen schadet", "Social Media"],
             ["Snacks und wie oft", "Nicht nur die Menge, auch die Häufigkeit von Zucker zählt", "Social Media; Schulstart"],
@@ -428,10 +428,10 @@ export const TREATMENTS_DE: Guide[] = [
           caption: "Videos für Eltern: heikel und vorsichtiger",
           columns: ["Heikler Inhalt", "Warum problematisch", "Vorsichtiger"],
           rows: [
-            ["Ein echtes Kind auf dem Behandlungsstuhl", "Braucht die schriftliche Einwilligung der Sorgeberechtigten; das Kind selbst kann nicht einwilligen", "Grafiken, Kuscheltiere, nur Hände — oder ganz ohne Gesichter"],
+            ["Ein echtes Kind auf dem Behandlungsstuhl", "Braucht die schriftliche Einwilligung der Sorgeberechtigten; das Kind selbst kann nicht einwilligen", "Grafiken, Kuscheltiere, nur Hände oder ganz ohne Gesichter"],
             ["„Das tut gar nicht weh“", "Absolutes Versprechen; bringt das Thema Schmerz erst ins Spiel", "„Die Zahnärztin zählt deine Zähne und zeigt dir ihre Instrumente“"],
             ["Erschreckende Bilder kariöser Milchzähne", "Arbeitet mit Angst; abstoßende Darstellungen sind nach § 11 HWG riskant", "Ursache und schützende Gewohnheit erklären"],
-            ["Gewinnspiele oder Aktionen für Kinder", "Richtet sich an Kinder unter 14 — nach § 11 HWG unzulässig", "Eltern mit praktischen Informationen ansprechen"],
+            ["Gewinnspiele oder Aktionen für Kinder", "Richtet sich an Kinder unter 14, nach § 11 HWG unzulässig", "Eltern mit praktischen Informationen ansprechen"],
             ["„Kinder-Prophylaxe zum Sonderpreis“", "Preiswerbung ist berufsrechtlich heikel", "Preise und Aktionen aus Social-Media-Videos weglassen"],
           ],
         },
@@ -442,8 +442,8 @@ export const TREATMENTS_DE: Guide[] = [
       {
         heading: "Wie sprechen Sie in einem Video über Zahnarztangst?",
         paragraphs: [
-          "Eltern sagen „Du brauchst keine Angst zu haben“ oder „Es tut nicht weh“ in guter Absicht — doch beides pflanzt dem Kind die Idee von Angst und Schmerz erst ein. Ein kurzes Video für Eltern kann ruhigere Worte vorschlagen: neutral beschreiben, was passiert („Die Zahnärztin zählt deine Zähne“), vorher ein Bilderbuch über den Zahnarztbesuch lesen, das Lieblingskuscheltier mitnehmen und die eigenen Sorgen für sich behalten.",
-          "Solche Videos werden oft geteilt, weil sie Eltern direkt helfen — und sie zeigen, wie Ihre Praxis mit Kindern umgeht, ganz ohne ein einziges Kinderbild.",
+          "Eltern sagen „Du brauchst keine Angst zu haben“ oder „Es tut nicht weh“ in guter Absicht. Doch beides pflanzt dem Kind die Idee von Angst und Schmerz erst ein. Ein kurzes Video für Eltern kann ruhigere Worte vorschlagen: neutral beschreiben, was passiert („Die Zahnärztin zählt deine Zähne“), vorher ein Bilderbuch über den Zahnarztbesuch lesen, das Lieblingskuscheltier mitnehmen und die eigenen Sorgen für sich behalten.",
+          "Solche Videos werden oft geteilt, weil sie Eltern direkt helfen, und sie zeigen, wie Ihre Praxis mit Kindern umgeht, ganz ohne ein einziges Kinderbild.",
         ],
       },
       {
@@ -470,14 +470,14 @@ export const TREATMENTS_DE: Guide[] = [
       {
         heading: "So erstellt DentVideo Videos zur Kinderzahnheilkunde",
         paragraphs: [
-          "Das Video oben ist ein echtes DentVideo-Video für eine Demo-Praxis. Geben Sie Kinderzahnheilkunde als Leistung an, plant [DentVideo](landing:) elternorientierte Themen in Ihre wöchentlichen Videos ein. Es gibt keine Avatar-Kinder und keine echten Patienten — gezeigt werden nur Gegenstände —, und jedes Skript wird vor der Freigabe auf absolute Versprechen, angstmachende Formulierungen und fachliche Richtigkeit geprüft. [Sehen Sie Ihre Live-Vorschau](start:).",
+          "Das Video oben ist ein echtes DentVideo-Video für eine Demo-Praxis. Geben Sie Kinderzahnheilkunde als Leistung an, plant [DentVideo](landing:) elternorientierte Themen in Ihre wöchentlichen Videos ein. Es gibt keine Avatar-Kinder und keine echten Patienten (gezeigt werden nur Gegenstände), und jedes Skript wird vor der Freigabe auf absolute Versprechen, angstmachende Formulierungen und fachliche Richtigkeit geprüft. [Sehen Sie Ihre Live-Vorschau](start:).",
         ],
       },
     ],
     faq: [
       {
         q: "Darf ich Fotos von Kindern zeigen, die in der Praxis behandelt wurden?",
-        a: "Nur mit ausdrücklicher schriftlicher Einwilligung der Sorgeberechtigten für genau diese Nutzung — viele Praxen verzichten ganz darauf. Videos für Eltern funktionieren gut ohne ein Kind im Bild.",
+        a: "Nur mit ausdrücklicher schriftlicher Einwilligung der Sorgeberechtigten für genau diese Nutzung. Viele Praxen verzichten ganz darauf. Videos für Eltern funktionieren gut ohne ein Kind im Bild.",
       },
       {
         q: "Sollten Kinder-Videos für Kinder oder für Eltern gemacht werden?",
@@ -498,17 +498,17 @@ export const TREATMENTS_DE: Guide[] = [
     ...DATES,
     title: "Aufklärungsvideos zu Parodontitis: Zahnfleischbluten, Behandlung, Nachsorge und heikle Aussagen",
     seoTitle: "Parodontitis-Aufklärungsvideos für die Praxis",
-    seoDescription: "Kurze Parodontitis-Videos: Zahnfleischbluten, Gingivitis oder Parodontitis, Behandlung, Nachsorge — ohne Angstmache und abstoßende Bilder.",
+    seoDescription: "Kurze Parodontitis-Videos: Zahnfleischbluten, Gingivitis oder Parodontitis, Behandlung, Nachsorge. Ohne Angstmache und abstoßende Bilder.",
     description: "Was Patienten zu Parodontitis fragen, sechs kurze Videos dazu, wie Sie Zusammenhänge mit der Allgemeingesundheit erklären, ohne Angst zu machen, und welche Aussagen das HWG kritisch sieht.",
     h1: "Aufklärungsvideos zu Parodontitis: was Sie zeigen und was Sie lassen sollten",
     intro:
-      "Ein Aufklärungsvideo zu Parodontitis erklärt einen Aspekt der Zahnfleischgesundheit — warum Zahnfleisch blutet, was Gingivitis von Parodontitis unterscheidet, wie die Behandlung abläuft, warum die Nachsorge danach so wichtig ist — in einem kurzen, ruhigen Clip. Parodontitis ist häufig und verursacht anfangs oft keine Schmerzen. Deshalb helfen solche Videos, Warnzeichen früh zu erkennen; sie sollen informieren, nicht erschrecken.",
+      "Ein Aufklärungsvideo zu Parodontitis erklärt in einem kurzen, ruhigen Clip einen Aspekt der Zahnfleischgesundheit: warum Zahnfleisch blutet, was Gingivitis von Parodontitis unterscheidet, wie die Behandlung abläuft oder warum die Nachsorge danach so wichtig ist. Parodontitis ist häufig und verursacht anfangs oft keine Schmerzen. Deshalb helfen solche Videos, Warnzeichen früh zu erkennen; sie sollen informieren, nicht erschrecken.",
     sections: [
       {
         heading: "Was fragen Patienten zu Parodontitis?",
         paragraphs: ["Viele erfahren erst in der Praxis, dass ihr Zahnfleisch erkrankt ist. Ihre Fragen sind eine gute Themenliste:"],
         list: [
-          "Mein Zahnfleisch blutet beim Putzen — soll ich die Stelle schonen?",
+          "Mein Zahnfleisch blutet beim Putzen. Soll ich die Stelle schonen?",
           "Was ist der Unterschied zwischen Gingivitis und Parodontitis?",
           "Ist Parodontitis heilbar?",
           "Wie läuft eine Parodontitis-Behandlung ab?",
@@ -547,10 +547,10 @@ export const TREATMENTS_DE: Guide[] = [
           columns: ["Heikle Formulierung oder Darstellung", "Warum problematisch", "Vorsichtiger"],
           rows: [
             ["Nahaufnahmen schwerer Parodontitis", "Abstoßende Darstellungen sind nach § 11 HWG riskant und schrecken ab", "Grafiken oder eine ruhige Erklärung der Warnzeichen"],
-            ["„Parodontitis verursacht Herzinfarkte“", "Überzeichnet Studien, die Zusammenhänge zeigen, keine einfache Ursache", "„Studien zeigen Zusammenhänge mit der Allgemeingesundheit — fragen Sie uns, was das für Sie bedeutet“"],
-            ["„Sonst fallen Ihnen die Zähne aus“", "Arbeitet mit Angst und trifft nicht auf jeden zu", "„Unbehandelt können sich Zähne lockern — früh erkannt, lässt sich das oft gut behandeln“"],
+            ["„Parodontitis verursacht Herzinfarkte“", "Überzeichnet Studien, die Zusammenhänge zeigen, keine einfache Ursache", "„Studien zeigen Zusammenhänge mit der Allgemeingesundheit; fragen Sie uns, was das für Sie bedeutet“"],
+            ["„Sonst fallen Ihnen die Zähne aus“", "Arbeitet mit Angst und trifft nicht auf jeden zu", "„Unbehandelt können sich Zähne lockern; früh erkannt, lässt sich das oft gut behandeln“"],
             ["„Parodontitis endgültig heilen“", "Parodontitis braucht meist dauerhafte Nachsorge", "„Behandlung und regelmäßige Nachsorge können sie gut unter Kontrolle halten“"],
-            ["„Schmerzfreie Parodontitis-Behandlung“", "Absolute Aussage über das Empfinden", "„Meist unter örtlicher Betäubung — wir erklären, was Sie erwartet“"],
+            ["„Schmerzfreie Parodontitis-Behandlung“", "Absolute Aussage über das Empfinden", "„Meist unter örtlicher Betäubung. Wir erklären, was Sie erwartet“"],
           ],
         },
         after: [
@@ -572,7 +572,7 @@ export const TREATMENTS_DE: Guide[] = [
       {
         heading: "Wann passen Parodontitis-Videos in den Redaktionsplan?",
         paragraphs: [
-          "Zahnfleischgesundheit passt in jeden Monat; Aktionstage rund um Mundgesundheit finden Sie im [Redaktionsplan für die Zahnarztpraxis](guide:redaktionsplan-social-media-zahnarztpraxis). Beginnen Sie eine Serie mit dem Video zum Zahnfleischbluten — darin erkennen sich die meisten wieder. Schicken Sie das Behandlungsvideo vor dem Termin und das Nachsorge-Video mit der Recall-Erinnerung.",
+          "Zahnfleischgesundheit passt in jeden Monat; Aktionstage rund um Mundgesundheit finden Sie im [Redaktionsplan für die Zahnarztpraxis](guide:redaktionsplan-social-media-zahnarztpraxis). Beginnen Sie eine Serie mit dem Video zum Zahnfleischbluten, denn darin erkennen sich die meisten wieder. Schicken Sie das Behandlungsvideo vor dem Termin und das Nachsorge-Video mit der Recall-Erinnerung.",
           "Parodontitis-Themen gleichen außerdem einen Feed aus, der stark von ästhetischen Behandlungen geprägt ist; die [Social-Media-Ideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen) zeigen einen ausgewogenen Monat.",
           "Für Zahnfleischthemen sind Dentalhygienikerinnen und ZMPs oft die überzeugendsten Gesichter. Ein kurzer Clip, in dem jemand aus Ihrem Team eine Interdentalbürste am Modell zeigt, wirkt glaubwürdiger als jede drastische Aufnahme.",
         ],
@@ -580,7 +580,7 @@ export const TREATMENTS_DE: Guide[] = [
       {
         heading: "Wie erklären Sie die Nachsorge, ohne zu drängen?",
         paragraphs: [
-          "Nach einer Parodontitis-Behandlung entscheidet die Nachsorge über den langfristigen Erfolg — und genau hier springen viele Patienten ab. Ein kurzes Video kann erklären, warum: Zahnfleischtaschen lassen sich zu Hause nicht vollständig reinigen, und regelmäßige Kontrollen zeigen früh, ob sich etwas verändert. Formulieren Sie das als Information, nicht als Drohung.",
+          "Nach einer Parodontitis-Behandlung entscheidet die Nachsorge über den langfristigen Erfolg, und genau hier springen viele Patienten ab. Ein kurzes Video kann erklären, warum: Zahnfleischtaschen lassen sich zu Hause nicht vollständig reinigen, und regelmäßige Kontrollen zeigen früh, ob sich etwas verändert. Formulieren Sie das als Information, nicht als Drohung.",
         ],
         list: [
           "Das Ziel benennen: das Erreichte erhalten und Veränderungen früh erkennen.",
@@ -624,17 +624,17 @@ export const TREATMENTS_DE: Guide[] = [
     ...DATES,
     title: "Aufklärungsvideos zur Wurzelbehandlung: Ablauf, Angst, Mythen und Aussagen, die Sie vermeiden sollten",
     seoTitle: "Aufklärungsvideos zur Wurzelbehandlung",
-    seoDescription: "Kurze Videos zur Wurzelbehandlung: Ablauf, warum oft eine Krone folgt, Nachsorge, Mythen — ohne absolute Versprechen und ohne Angstmache.",
+    seoDescription: "Kurze Videos zur Wurzelbehandlung: Ablauf, warum oft eine Krone folgt, Nachsorge, Mythen. Ohne absolute Versprechen und ohne Angstmache.",
     description: "Was Patienten zur Wurzelbehandlung fragen, sechs kurze Videos dazu, wie Sie mit Angst und Mythen umgehen und welche Aussagen in Beitragstexten heikel sind.",
     h1: "Aufklärungsvideos zur Wurzelbehandlung: was Sie zeigen und was Sie lassen sollten",
     intro:
-      "Ein Aufklärungsvideo zur Wurzelbehandlung erklärt einen Teil der Behandlung — warum sie nötig ist, was auf dem Stuhl passiert, was danach zu erwarten ist, warum oft eine Krone folgt — in einem kurzen, ruhigen Clip. Die Wurzelbehandlung hat einen schlechteren Ruf, als viele Patienten sie hinterher beschreiben. Am meisten helfen deshalb Videos, die Mythen durch einfache Fakten ersetzen, ohne zu versprechen, dass niemand etwas spürt.",
+      "Ein Aufklärungsvideo zur Wurzelbehandlung erklärt in einem kurzen, ruhigen Clip einen Teil der Behandlung: warum sie nötig ist, was auf dem Stuhl passiert, was danach zu erwarten ist oder warum oft eine Krone folgt. Die Wurzelbehandlung hat einen schlechteren Ruf, als viele Patienten sie hinterher beschreiben. Am meisten helfen deshalb Videos, die Mythen durch einfache Fakten ersetzen, ohne zu versprechen, dass niemand etwas spürt.",
     sections: [
       {
         heading: "Was fragen Patienten zur Wurzelbehandlung?",
         paragraphs: ["Die meisten Fragen entstehen aus Angst oder aus Geschichten, die Patienten gehört haben. Jede ist ein gutes kurzes Video:"],
         list: [
-          "Warum brauche ich eine Wurzelbehandlung — reicht keine Füllung?",
+          "Warum brauche ich eine Wurzelbehandlung? Reicht keine Füllung?",
           "Tut eine Wurzelbehandlung weh?",
           "Was passiert während der Behandlung genau?",
           "Wie viele Termine sind nötig?",
@@ -651,7 +651,7 @@ export const TREATMENTS_DE: Guide[] = [
           caption: "Sechs Videos zur Wurzelbehandlung und wo sie helfen",
           columns: ["Video", "Beantwortet", "Wo es am meisten hilft"],
           rows: [
-            ["Warum eine Wurzelbehandlung?", "Entzündeter oder infizierter Zahnnerv — und das Ziel, den Zahn zu erhalten", "Social Media; Website"],
+            ["Warum eine Wurzelbehandlung?", "Entzündeter oder infizierter Zahnnerv und das Ziel, den Zahn zu erhalten", "Social Media; Website"],
             ["Was auf dem Stuhl passiert", "Örtliche Betäubung, Kanäle reinigen, füllen und verschließen", "Nachricht vor dem Termin"],
             ["Ein Termin oder mehrere?", "Warum das vom Zahn und der Entzündung abhängt", "Nachricht vor dem Termin"],
             ["Warum oft eine Krone folgt", "Schutz für einen Seitenzahn nach der Behandlung", "Folgenachricht"],
@@ -669,11 +669,11 @@ export const TREATMENTS_DE: Guide[] = [
           caption: "Formulierungen zur Wurzelbehandlung: heikel und vorsichtiger",
           columns: ["Heikle Formulierung", "Warum problematisch", "Vorsichtiger formuliert"],
           rows: [
-            ["„Schmerzfreie Wurzelbehandlung“", "Absolutes Versprechen, das keine Praxis einhalten kann", "„Unter örtlicher Betäubung — viele Patienten empfinden es ähnlich wie eine Füllung“"],
+            ["„Schmerzfreie Wurzelbehandlung“", "Absolutes Versprechen, das keine Praxis einhalten kann", "„Unter örtlicher Betäubung. Viele Patienten empfinden es ähnlich wie eine Füllung“"],
             ["„Rettet Ihren Zahn für immer“", "Verspricht ein dauerhaftes Ergebnis", "„Ziel ist es, Ihren eigenen Zahn zu erhalten; mit guter Versorgung kann er lange halten“"],
             ["„Wurzelbehandlung oder Zahn weg!“", "Druck durch Angst", "„Die Alternative ist meist das Ziehen des Zahns; wir erklären beide Wege“"],
             ["Drastische Aufnahmen eines eröffneten Zahns", "Abstoßend; verstärkt die Angst, statt sie zu nehmen", "Grafik der Zahnschichten"],
-            ["Patientenzitate wie „Ich habe nichts gespürt“", "Äußerungen Dritter — nach § 11 HWG riskant", "Die Betäubung in eigenen Worten erklären"],
+            ["Patientenzitate wie „Ich habe nichts gespürt“", "Äußerungen Dritter, nach § 11 HWG riskant", "Die Betäubung in eigenen Worten erklären"],
           ],
         },
         after: [
@@ -688,7 +688,7 @@ export const TREATMENTS_DE: Guide[] = [
         ],
         ordered: true,
         list: [
-          "Einstieg: „Wurzelbehandlung — das Schlimmste überhaupt? So läuft sie wirklich ab.“",
+          "Einstieg: „Wurzelbehandlung, das Schlimmste überhaupt? So läuft sie wirklich ab.“",
           "Ein Satz zum Warum: Das Innere des Zahns ist entzündet oder infiziert.",
           "Drei Schritte: betäuben, Kanäle reinigen, füllen und verschließen.",
           "Eine ehrliche Grenze: Der Zahn kann einige Tage empfindlich sein.",
@@ -698,7 +698,7 @@ export const TREATMENTS_DE: Guide[] = [
       {
         heading: "Wo helfen Videos zur Wurzelbehandlung am meisten?",
         paragraphs: [
-          "Eher außerhalb von Social Media. Der wichtigste Moment ist die Terminbestätigung: Eine Erklärung von 40 Sekunden, die der Patient zu Hause ansehen kann, nimmt Angst und beugt Absagen vor. Das Nachsorge-Video gehört in die Nachricht am Behandlungstag. Auf Social Media funktionieren das Mythen-Video und das Warum-Video als Teil einer ausgewogenen Mischung — siehe [Social-Media-Ideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen) und [Patientenaufklärung per Video](guide:patientenaufklaerung-videos-zahnarztpraxis).",
+          "Eher außerhalb von Social Media. Der wichtigste Moment ist die Terminbestätigung: Eine Erklärung von 40 Sekunden, die der Patient zu Hause ansehen kann, nimmt Angst und beugt Absagen vor. Das Nachsorge-Video gehört in die Nachricht am Behandlungstag. Auf Social Media funktionieren das Mythen-Video und das Warum-Video als Teil einer ausgewogenen Mischung, siehe [Social-Media-Ideen für die Zahnarztpraxis](guide:social-media-zahnarztpraxis-ideen) und [Patientenaufklärung per Video](guide:patientenaufklaerung-videos-zahnarztpraxis).",
         ],
       },
       {

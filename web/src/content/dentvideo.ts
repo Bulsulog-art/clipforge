@@ -69,7 +69,7 @@ const BASE_GUIDES: Guide[] = [
     title: "Instagram videos for dentists: what to post and how to keep it simple",
     description: "A practical guide for dental clinics: which short videos patients actually watch, how to film them in five minutes, and what to avoid in health advertising.",
     h1: "Instagram videos for dentists: what to post, and how to keep it simple",
-    intro: "Most patients look a clinic up before they book. Short videos let them see who will be treating them and hear how you explain things — which is often what decides the appointment. You do not need a studio or a weekly content plan to do it well.",
+    intro: "Most patients look a clinic up before they book. Short videos let them see who will be treating them and hear how you explain things, which is often what decides the appointment. You do not need a studio or a weekly content plan to do it well.",
     sections: [
       { heading: "What patients actually want to see", paragraphs: [
         "The questions people ask at the chair are the best topics: does whitening damage enamel, how long does an implant take, what should I do after a root canal, when should my child first see a dentist. Answering one question per video keeps each one short and useful.",
@@ -81,7 +81,7 @@ const BASE_GUIDES: Guide[] = [
       ]},
       { heading: "Filming in five minutes", paragraphs: [
         "Hold the phone vertically at eye level, stand facing a window for soft light, and record in a quiet room. Talk through three or four points as you would to a patient, then stop. One relaxed take is usually better than a scripted one.",
-        "A single five-minute recording can be cut into several short clips, each answering one question — so one session can cover a week.",
+        "A single five-minute recording can be cut into several short clips, each answering one question, so one session can cover a week.",
       ]},
       { heading: "What to avoid", paragraphs: [
         "Health advertising is regulated in many countries. Phrases such as “painless”, “guaranteed results”, “permanent” or “the best clinic in town”, prices and discounts, before-and-after promises and patient testimonials are restricted or banned in several markets. The safest content is educational and hedged: “usually”, “for most people”, “ask your dentist”.",
@@ -112,7 +112,7 @@ const BASE_GUIDES: Guide[] = [
         "Start with the questions your team hears every day: sensitivity after whitening, how long an implant takes to heal, what to eat after a filling, when children should first see a dentist, how often to have a professional cleaning. Each one is a short video.",
       ]},
       { heading: "Keeping them accurate", paragraphs: [
-        "Stay with mainstream guidance and hedge where outcomes vary: “usually”, “for most people”, “your dentist will tell you”. Keep aftercare specific to the procedure — advice that is right after an extraction can be wrong after a filling.",
+        "Stay with mainstream guidance and hedge where outcomes vary: “usually”, “for most people”, “your dentist will tell you”. Keep aftercare specific to the procedure: advice that is right after an extraction can be wrong after a filling.",
         "Make sure the caption under the video says the same thing as the video itself, and have a dentist review every video before it goes out.",
       ]},
       { heading: "Where to use them", paragraphs: [
@@ -165,7 +165,7 @@ const BASE_GUIDES: Guide[] = [
     title: "Instagram-Videos für Zahnarztpraxen: Themen, Dreh und Werberecht",
     description: "Ein praktischer Ratgeber für Zahnarztpraxen: welche Kurzvideos Patienten ansehen, wie Sie sie in fünf Minuten drehen und was das Heilmittelwerbegesetz verbietet.",
     h1: "Instagram-Videos für Zahnarztpraxen",
-    intro: "Viele Patienten schauen sich eine Praxis online an, bevor sie einen Termin vereinbaren. Kurze Videos zeigen, wer sie behandeln wird und wie Sie erklären — oft gibt genau das den Ausschlag. Dafür brauchen Sie weder Studio noch Redaktionsplan.",
+    intro: "Viele Patienten schauen sich eine Praxis online an, bevor sie einen Termin vereinbaren. Kurze Videos zeigen, wer sie behandeln wird und wie Sie erklären. Oft gibt genau das den Ausschlag. Dafür brauchen Sie weder Studio noch Redaktionsplan.",
     sections: [
       { heading: "Welche Themen funktionieren", paragraphs: [
         "Die besten Themen sind die Fragen, die Patienten am Behandlungsstuhl stellen: Schadet Bleaching dem Zahnschmelz? Wie lange dauert ein Implantat? Was muss ich nach einer Wurzelbehandlung beachten? Wann sollte mein Kind zum ersten Mal zum Zahnarzt? Eine Frage pro Video hält es kurz und nützlich.",
@@ -174,11 +174,11 @@ const BASE_GUIDES: Guide[] = [
         "Stellen Sie die Frage in der ersten Sekunde, beantworten Sie sie in zwei, drei klaren Sätzen und laden Sie am Ende zu Fragen oder einem Kontrolltermin ein. 20 bis 60 Sekunden reichen für die meisten Themen. Untertitel sind Pflicht: Viele sehen ohne Ton.",
       ]},
       { heading: "In fünf Minuten gedreht", paragraphs: [
-        "Handy hochkant auf Augenhöhe, Gesicht zum Fenster, ruhiger Raum. Sprechen Sie drei, vier Punkte so, wie Sie es einem Patienten erklären würden. Eine entspannte Aufnahme ist meist besser als ein abgelesenes Skript — und aus fünf Minuten lassen sich mehrere kurze Clips schneiden.",
+        "Handy hochkant auf Augenhöhe, Gesicht zum Fenster, ruhiger Raum. Sprechen Sie drei, vier Punkte so, wie Sie es einem Patienten erklären würden. Eine entspannte Aufnahme ist meist besser als ein abgelesenes Skript, und aus fünf Minuten lassen sich mehrere kurze Clips schneiden.",
       ]},
       { heading: "Was das Werberecht verbietet", paragraphs: [
         "In Deutschland regeln das Heilmittelwerbegesetz (HWG) und die Berufsordnung der Zahnärzte, was in der Werbung für Behandlungen zulässig ist. Heikel sind unter anderem Erfolgsversprechen und Begriffe wie „schmerzfrei“ oder „garantiert“, Superlative und Vergleiche mit anderen Praxen, Rabatte sowie Vorher-Nachher-Darstellungen bei bestimmten Eingriffen. Sachliche Aufklärung mit vorsichtigen Formulierungen („in der Regel“, „fragen Sie Ihre Zahnärztin“) ist der sichere Weg.",
-        "Die Regeln ändern sich und hängen vom Einzelfall ab — im Zweifel fragen Sie Ihre Zahnärztekammer.",
+        "Die Regeln ändern sich und hängen vom Einzelfall ab. Im Zweifel fragen Sie Ihre Zahnärztekammer.",
       ]},
       { heading: "Wie DentVideo hilft", paragraphs: [
         "DentVideo schneidet aus einer kurzen Aufnahme von Ihnen untertitelte Clips mit Ihrem Logo und schreibt und vertont Aufklärungsvideos für Wochen ohne Dreh. Jedes Skript wird auf fachliche Richtigkeit und Werberecht geprüft, und nichts wird veröffentlicht, bevor Sie es freigeben.",

@@ -5,31 +5,31 @@ import type { Guide } from "../dentvideo";
 // وصف الأنظمة بحذر مع مصادر رسمية مؤرّخة، وعدم ذكر أرقام مواد لم نتحقق منها.
 
 const DHA_STANDARDS = {
-  label: "هيئة الصحة بدبي — معايير محتوى الإعلانات الطبية على وسائل التواصل الاجتماعي، الإصدار 1.1 (صدر في أغسطس 2022)",
+  label: "هيئة الصحة بدبي: معايير محتوى الإعلانات الطبية على وسائل التواصل الاجتماعي، الإصدار 1.1 (صدر في أغسطس 2022)",
   url: "https://www.dha.gov.ae/uploads/042022/Standards%20for%20Medical%20Advertisement%20Content%20in%20Social%20Media2022433965.pdf",
 };
 const DHA_CIRCULAR = {
-  label: "هيئة الصحة بدبي — التعميم CIR-2026-00000144 بشأن معايير الإعلانات الطبية على وسائل التواصل (17 أغسطس 2026)",
+  label: "هيئة الصحة بدبي: التعميم CIR-2026-00000144 بشأن معايير الإعلانات الطبية على وسائل التواصل (17 أغسطس 2026)",
   url: "https://www.dha.gov.ae/en/circulars/details/CIR-2026-00000144",
 };
 const DOH = {
-  label: "دائرة الصحة – أبوظبي — التعميم رقم 26 لسنة 2023 بشأن نظام الإعلام والإعلان الصحي",
+  label: "دائرة الصحة في أبوظبي: التعميم رقم 26 لسنة 2023 بشأن نظام الإعلام والإعلان الصحي",
   url: "https://doh.gov.ae/-/media/Feature/Resources/Circulars/26--2023.ashx",
 };
 const MOHAP = {
-  label: "وزارة الصحة ووقاية المجتمع (الإمارات) — خدمة ترخيص الإعلان الصحي على وسائل التواصل الاجتماعي",
+  label: "وزارة الصحة ووقاية المجتمع (الإمارات): خدمة ترخيص الإعلان الصحي على وسائل التواصل الاجتماعي",
   url: "https://mohap.gov.ae/en/services/license-for-healthcare-advertisement-on-social-media",
 };
 const MEDIA_COUNCIL = {
-  label: "Gulf News — تصريح المعلن من مجلس الإمارات للإعلام إلزامي اعتباراً من 1 فبراير 2026",
+  label: "Gulf News: تصريح المعلن من مجلس الإمارات للإعلام إلزامي اعتباراً من 1 فبراير 2026",
   url: "https://gulfnews.com/uae/new-uae-law-advertiser-permit-now-mandatory-for-influencers-and-creators-for-social-media-1.500427938",
 };
 const MOH_SA_ART10 = {
-  label: "وزارة الصحة السعودية — خبر 21 أبريل 2024 يشير إلى المادة العاشرة من نظام مزاولة المهن الصحية (حظر إعلان الممارس عن نفسه)",
+  label: "وزارة الصحة السعودية: خبر 21 أبريل 2024 يشير إلى المادة العاشرة من نظام مزاولة المهن الصحية (حظر إعلان الممارس عن نفسه)",
   url: "https://www.moh.gov.sa/en/Ministry/MediaCenter/News/Pages/News-2024-04-21-003.aspx",
 };
 const MOH_SA_2026 = {
-  label: "وزارة الصحة السعودية — إيقاف ترخيص طبيبين بسبب ترويج مضلل (17 يونيو 2026)",
+  label: "وزارة الصحة السعودية: إيقاف ترخيص طبيبين بسبب ترويج مضلل (17 يونيو 2026)",
   url: "https://www.moh.gov.sa/en/Ministry/MediaCenter/News/Pages/news-2026-06-17-001.aspx",
 };
 

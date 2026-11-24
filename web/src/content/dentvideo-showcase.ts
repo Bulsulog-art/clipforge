@@ -56,7 +56,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     feed: {
       eyebrow: "Ihr Profil",
       heading: "Vier Montage auf Ihrem Profil",
-      text: "Patienten informieren sich online, bevor sie einen Termin buchen. So sieht das Profil einer Demo-Praxis oft am Anfang aus — und nach vier Wochen DentVideo: zwanzig geprüfte Videos, bereit zum Teilen. Was Sie davon wann veröffentlichen, entscheiden Sie.",
+      text: "Patienten informieren sich online, bevor sie einen Termin buchen. So sieht das Profil einer Demo-Praxis oft am Anfang aus, und so nach vier Wochen DentVideo: zwanzig geprüfte Videos, bereit zum Teilen. Was Sie davon wann veröffentlichen, entscheiden Sie.",
       clinic: "Demo Zahnarztpraxis",
       today: "Heute",
       todayCaption: "Ein paar Beiträge, Monate auseinander",
@@ -176,7 +176,7 @@ export const SHOWCASE: Record<Locale, ShowcaseCopy> = {
     feed: {
       eyebrow: "Profil gabinetu",
       heading: "Cztery poniedziałki na Państwa profilu",
-      text: "Pacjenci szukają gabinetu w sieci, zanim się umówią. Tak często wygląda profil gabinetu demo na początku — i po czterech tygodniach z DentVideo: dwadzieścia sprawdzonych filmów gotowych do udostępnienia. Które i kiedy opublikować, decydują Państwo.",
+      text: "Pacjenci szukają gabinetu w sieci, zanim się umówią. Tak często wygląda profil gabinetu demo na początku, a tak po czterech tygodniach z DentVideo: dwadzieścia sprawdzonych filmów gotowych do udostępnienia. Które i kiedy opublikować, decydują Państwo.",
       clinic: "Gabinet Stomatologiczny Demo",
       today: "Dziś",
       todayCaption: "Kilka postów, w odstępach miesięcy",

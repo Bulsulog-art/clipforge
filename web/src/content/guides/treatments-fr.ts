@@ -6,13 +6,13 @@ import type { Guide } from "../dentvideo";
 // R. 4127-215-1 du CSP et des recommandations de l'Ordre. Vouvoiement ; ni prix,
 // ni statistiques, ni témoignages.
 
-const R4127_215_1 = { label: "Légifrance — Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
+const R4127_215_1 = { label: "Légifrance : Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
 const ONCD = {
-  label: "Ordre national des chirurgiens-dentistes — Communication professionnelle des chirurgiens-dentistes (recommandations)",
+  label: "Ordre national des chirurgiens-dentistes : Communication professionnelle des chirurgiens-dentistes (recommandations)",
   url: "https://www.ordre-chirurgiens-dentistes.fr/pour-le-chirurgien-dentiste/communication-professionnelle-des-chirurgiens-dentistes/",
 };
 const DIR_WHITENING = {
-  label: "Directive 2011/84/UE du Conseil relative aux produits cosmétiques (produits de blanchiment dentaire au peroxyde d'hydrogène) — EUR-Lex",
+  label: "Directive 2011/84/UE du Conseil relative aux produits cosmétiques (produits de blanchiment dentaire au peroxyde d'hydrogène), EUR-Lex",
   url: "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32011L0084",
 };
 

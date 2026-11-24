@@ -4,12 +4,12 @@ import type { Guide } from "../dentvideo";
 // aujourd'hui ; pas de chiffres inventés ni de prix ; règles déontologiques
 // présentées avec prudence et sources officielles.
 
-const LEGIFRANCE = { label: "Légifrance — Code de la santé publique, art. R. 4127-215 et suivants (décret n° 2020-1658 du 22 décembre 2020)", url: "https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072665/LEGISCTA000006190548/2021-07-13/" };
-const R4127_215_1 = { label: "Légifrance — Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
-const ONCD = { label: "Ordre national des chirurgiens-dentistes — Communication professionnelle des chirurgiens-dentistes (recommandations du 6 mai 2021, modifiées le 9 décembre 2021 et le 24 mars 2023)", url: "https://www.ordre-chirurgiens-dentistes.fr/pour-le-chirurgien-dentiste/communication-professionnelle-des-chirurgiens-dentistes/" };
-const CNIL = { label: "CNIL — données de santé et droit à l'image", url: "https://www.cnil.fr/" };
-const RGPD = { label: "Règlement général sur la protection des données (RGPD), art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
-const DGCCRF = { label: "DGCCRF — influence commerciale (loi n° 2023-451 du 9 juin 2023)", url: "https://www.economie.gouv.fr/dgccrf" };
+const LEGIFRANCE = { label: "Légifrance : Code de la santé publique, art. R. 4127-215 et suivants (décret n° 2020-1658 du 22 décembre 2020)", url: "https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072665/LEGISCTA000006190548/2021-07-13/" };
+const R4127_215_1 = { label: "Légifrance : Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" };
+const ONCD = { label: "Ordre national des chirurgiens-dentistes : Communication professionnelle des chirurgiens-dentistes (recommandations du 6 mai 2021, modifiées le 9 décembre 2021 et le 24 mars 2023)", url: "https://www.ordre-chirurgiens-dentistes.fr/pour-le-chirurgien-dentiste/communication-professionnelle-des-chirurgiens-dentistes/" };
+const CNIL = { label: "CNIL : données de santé et droit à l'image", url: "https://www.cnil.fr/" };
+const RGPD = { label: "Règlement général sur la protection des données (RGPD), art. 9 (EUR-Lex)", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
+const DGCCRF = { label: "DGCCRF : influence commerciale (loi n° 2023-451 du 9 juin 2023)", url: "https://www.economie.gouv.fr/dgccrf" };
 
 export const GUIDES_FR: Guide[] = [
   {
@@ -200,7 +200,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Hors de France",
         paragraphs: [
-          "En Belgique, au Luxembourg, en Suisse romande ou au Québec, les règles de communication des dentistes diffèrent, de même que les autorités compétentes. Les principes sont souvent proches — véracité, absence de promesse et de comparaison — mais les détails varient. Renseignez-vous auprès de l'Ordre, de la commission ou de l'autorité de votre pays.",
+          "En Belgique, au Luxembourg, en Suisse romande ou au Québec, les règles de communication des dentistes diffèrent, de même que les autorités compétentes. Les principes sont souvent proches (véracité, absence de promesse et de comparaison), mais les détails varient. Renseignez-vous auprès de l'Ordre, de la commission ou de l'autorité de votre pays.",
         ],
       },
       {
@@ -219,7 +219,7 @@ export const GUIDES_FR: Guide[] = [
       {
         heading: "Comment DentVideo fait cette vérification",
         paragraphs: [
-          "[DentVideo](landing:) vérifie chaque script et chaque texte au regard des allégations couramment encadrées — garanties, « sans douleur », « définitif », superlatifs, prix, réductions, promesses avant/après, témoignages — et fait réécrire ce qui pose problème. Vos enregistrements ne sont pas modifiés : ce qui mérite un second regard est signalé avec la raison. Ce n'est pas un conseil juridique : vous validez chaque vidéo. Pour un texte que vous rédigez vous-même, collez-le dans le [vérificateur gratuit « Puis-je publier ça ? »](checker:) avec la France sélectionnée : chaque phrase est signalée avec la raison et une formulation plus prudente. Sur les images de patients, lisez le guide [photos avant/après et témoignages](guide:photos-avant-apres-temoignages-dentiste) ; pour des sujets sans risque, les [idées de contenu](guide:idees-contenu-instagram-cabinet-dentaire).",
+          "[DentVideo](landing:) vérifie chaque script et chaque texte au regard des allégations couramment encadrées (garanties, « sans douleur », « définitif », superlatifs, prix, réductions, promesses avant/après, témoignages) et fait réécrire ce qui pose problème. Vos enregistrements ne sont pas modifiés : ce qui mérite un second regard est signalé avec la raison. Ce n'est pas un conseil juridique : vous validez chaque vidéo. Pour un texte que vous rédigez vous-même, collez-le dans le [vérificateur gratuit « Puis-je publier ça ? »](checker:) avec la France sélectionnée : chaque phrase est signalée avec la raison et une formulation plus prudente. Sur les images de patients, lisez le guide [photos avant/après et témoignages](guide:photos-avant-apres-temoignages-dentiste) ; pour des sujets sans risque, les [idées de contenu](guide:idees-contenu-instagram-cabinet-dentaire).",
         ],
       },
     ],
@@ -321,7 +321,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Texte de publication et hashtags",
         paragraphs: [
           "Le texte sous la vidéo reprend en bref ce qu'elle dit, sans ajouter de promesse. Une structure qui marche : la question en première ligne, la réponse en deux ou trois phrases, puis « Votre dentiste vous dira ce qui convient dans votre cas ». Le nom du cabinet et la ville suffisent pour être trouvé.",
-          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq au maximum : depuis décembre 2025, Instagram limite les publications et les Reels à cinq hashtags. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
+          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq au maximum. Depuis décembre 2025, Instagram limite les publications et les Reels à cinq hashtags. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
         ],
       },
       {

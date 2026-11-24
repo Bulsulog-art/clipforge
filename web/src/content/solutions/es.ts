@@ -38,7 +38,7 @@ export const SOLUTIONS_ES: SolutionPage[] = [
         heading: "Cómo se revisa cada vídeo",
         paragraphs: ["Cada guion y cada texto pasa tres controles de software antes de llegarte. Lo que no pasa se reescribe o no se hace."],
         list: [
-          "Publicidad sanitaria: se detectan las afirmaciones que suelen estar restringidas — garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios.",
+          "Publicidad sanitaria: se detectan las afirmaciones que suelen estar restringidas, como garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después o testimonios.",
           "Precisión clínica: un software con el criterio de un dentista general contrasta cada afirmación con las guías habituales.",
           "Imagen y sonido: voz presente y audible, sin silencios ni fotogramas negros, en el formato correcto.",
         ],
@@ -123,7 +123,7 @@ export const SOLUTIONS_ES: SolutionPage[] = [
       {
         heading: "Cuándo conviene una agencia",
         paragraphs: [
-          "Si quieres que alguien se ocupe de todo — grabar en la clínica, anuncios, comentarios, la web —, una buena agencia de marketing dental hace más que cualquier herramienta. Pagas horas de trabajo, así que suele costar bastante más, y participas en reuniones y aprobaciones. Antes de firmar, pregunta quién revisa el contenido frente a la normativa de publicidad sanitaria; nuestra guía [agencia o herramienta](guide:marketing-dental-agencia-o-herramienta) recoge las preguntas.",
+          "Si quieres que alguien se ocupe de todo (grabar en la clínica, anuncios, comentarios, la web), una buena agencia de marketing dental hace más que cualquier herramienta. Pagas horas de trabajo, así que suele costar bastante más, y participas en reuniones y aprobaciones. Antes de firmar, pregunta quién revisa el contenido frente a la normativa de publicidad sanitaria; nuestra guía [agencia o herramienta](guide:marketing-dental-agencia-o-herramienta) recoge las preguntas.",
         ],
       },
       {

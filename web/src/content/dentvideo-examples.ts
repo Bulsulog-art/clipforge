@@ -126,7 +126,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     seoDescription: "Sehen Sie Patientenvideos, die DentVideo für Demo-Praxen in acht Sprachen erstellt hat: vertont, untertitelt, softwaregestützt geprüft.",
     h1: "Beispiele für Patientenvideos aus der Zahnarztpraxis",
     intro:
-      "Das sind echte Videos, die DentVideo für fiktive Demo-Praxen erstellt hat, drei pro Sprache, unbearbeitet bis auf die Komprimierung fürs Web. Jedes beantwortet eine Frage, die Patienten stellen – mit Sprecherstimme, Untertiteln und einer kurzen Checkliste. Eine Praxis mit Abo erhält jede Woche fünf neue Videos dieser Art, mit eigenem Namen, Logo, eigenen Farben und in ihrer Sprache.",
+      "Das sind echte Videos, die DentVideo für fiktive Demo-Praxen erstellt hat, drei pro Sprache, unbearbeitet bis auf die Komprimierung fürs Web. Jedes beantwortet eine Frage, die Patienten stellen, mit Sprecherstimme, Untertiteln und einer kurzen Checkliste. Eine Praxis mit Abo erhält jede Woche fünf neue Videos dieser Art, mit eigenem Namen, Logo, eigenen Farben und in ihrer Sprache.",
     demoNote: "Für eine fiktive Demo-Praxis erstellt: Name, Kontoname und Farben im Video gehören zur Demo-Praxis, nicht zu einer echten Praxis.",
     viewOnly: "Hier als Beispiel für die Arbeit von DentVideo gezeigt. Diese Videos werden nicht zum Download oder zur Weiterverwendung angeboten.",
     disclaimer: "Allgemeine Information, kein Ersatz für eine zahnärztliche Beratung.",
@@ -138,7 +138,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     otherLanguages: "Dasselbe Thema in anderen Sprachen",
     seeAll: "Alle Beispielvideos ansehen",
     cta: {
-      title: "Jede Woche solche Videos – mit Namen, Logo und Sprache Ihrer Praxis",
+      title: "Jede Woche solche Videos, mit Namen, Logo und Sprache Ihrer Praxis",
       text: "DentVideo schreibt, vertont und untertitelt jede Woche fünf kurze Patientenvideos zu den Behandlungen, die Sie anbieten, prüft jedes auf Werberecht und fachliche Richtigkeit, und Sie geben jedes Video frei, bevor es verwendet wird.",
       button: "Ihre Vorschau ansehen",
       secondary: "Tarife und Preise",
@@ -146,7 +146,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
     faq: [
       {
         q: "Darf meine Praxis diese Beispielvideos verwenden?",
-        a: "Nein. Sie wurden für fiktive Demo-Praxen erstellt und werden hier nur als Beispiele gezeigt. Eine Praxis mit Abo erhält jede Woche eigene, neue Videos mit ihrem Namen, Logo, ihren Farben und in ihrer Sprache – zu den Behandlungen, die sie anbietet.",
+        a: "Nein. Sie wurden für fiktive Demo-Praxen erstellt und werden hier nur als Beispiele gezeigt. Eine Praxis mit Abo erhält jede Woche eigene, neue Videos mit ihrem Namen, Logo, ihren Farben und in ihrer Sprache, zu den Behandlungen, die sie anbietet.",
       },
       {
         q: "Wurden die Videos von Hand bearbeitet?",
@@ -158,7 +158,7 @@ export const EXAMPLES_UI: Record<Locale, ExamplesUi> = {
       },
       {
         q: "In welchen Sprachen gibt es die Videos?",
-        a: "Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Türkisch, Japanisch, Arabisch und Polnisch – mit Sie oder Du, wie es Ihre Praxis wünscht.",
+        a: "Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Türkisch, Japanisch, Arabisch und Polnisch, mit Sie oder Du, wie es Ihre Praxis wünscht.",
       },
     ],
   },

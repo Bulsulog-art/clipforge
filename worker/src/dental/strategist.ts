@@ -124,11 +124,11 @@ Rules:
 - Spread the week across the clinic's services: at most two videos about the same service, and never two that answer the same question in different words.
 - Hooks decide whether anyone watches. ${hookLimit(profile.language).text.replace(/^u/, "U")}, specific, and built on one of these:
   * a myth stated, then challenged: "Whitening thins your enamel? Not really."
-  * a common mistake: "You're brushing too hard — here's the sign."
-  * a concrete number or timeframe, with the loop left open: "Your toothbrush has an expiry date — most people miss it."
+  * a common mistake: "You're brushing too hard. Here's the sign."
+  * a concrete number or timeframe, with the loop left open: "Your toothbrush has an expiry date. Most people miss it."
   * a relatable moment: "That sharp pain when you drink something cold?"
   Never a generic textbook question ("What is X?", "Is X important?", "How does X work?"), never a hook that suggests dentists or clinics get things wrong (the clinic posts it), never a bare topic label, never a listicle label ("3 tips for…", "5 things about…").
-  Open a loop, do not close it: the hook raises the question and the video answers it. "Implant treatment happens in 3 stages." gives the answer away; "Your implant isn't done on day one — here's why." makes people stay.
+  Open a loop, do not close it: the hook raises the question and the video answers it. "Implant treatment happens in 3 stages." gives the answer away; "Your implant isn't done on day one. Here's why." makes people stay.
   Medicine is rarely absolute, and a reviewer will reject absolutes, so a myth hook challenges with "${notQuite(profile.language)}" (or "usually not", in the clinic's language), never a flat "No!" and never another language's words.
   Native hooks in this clinic's language, for sound and shape: ${hookExamples(profile.language).map((h) => `"${h}"`).join(" ")}
 The examples above show shapes only — do not reuse their subjects or wording.
@@ -283,7 +283,7 @@ A strong hook:
 - uses the shapes of these native hooks (never their subjects or words): ${hookExamples(profile.language).map((h) => `"${h}"`).join(" ")}
 Never: anything suggesting dentists or clinics get things wrong ("What do dentists often skip?") — the clinic itself posts this; a textbook question ("What is X?"), a "Did you know?" opener in any language ("Lo sapeva?", "Wussten Sie?", "¿Sabías que?", "Biliyor muydunuz?"), a topic label or "Topic: description" line ("Your implant: a multi-step process"), a listicle ("3 tips…"), absolutes ("never", "always", "No!"), promises, prices, "best", fear.
 Score every candidate 1-5 as that scrolling patient would, strictly: 3 is "fine, forgettable".
-Vary the shapes across the week: at most half of the chosen hooks may be questions; the rest a mistake ("You're brushing too hard — here's the sign."), a moment ("That twinge when you sip something cold…"), or a surprising fact.
+Vary the shapes across the week: at most half of the chosen hooks may be questions; the rest a mistake ("You're brushing too hard. Here's the sign."), a moment ("That twinge when you sip something cold…"), or a surprising fact.
 Return JSON: { "hooks": [ { "index", "candidates": [ { "hook", "score" } ×4 ] } ] } — one entry per topic, same index.`,
       user:
         topics.map((t, i) => `${i}. Topic: ${t.title} — patient question: "${t.question}" — current hook: "${t.hook}"`).join("\n") +
