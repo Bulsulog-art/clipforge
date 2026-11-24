@@ -13,7 +13,7 @@ import { historyFromRows, type PastItemRow, type PastTopic } from "../dental/mem
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
-import { prepareNarration } from "../dental/narration-audio.js";
+import { prepareNarration, type Narration } from "../dental/narration-audio.js";
 import { narratorOf, openaiVoiceFor, resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
 import { afterRerender, rowFromClip, rowFromPackage, storageKey, type ItemRow } from "./rows.js";
@@ -36,6 +36,7 @@ import type { ParkStore } from "./park.js";
 import { probeDuration } from "../lib/media-input.js";
 import { subtitleCues, type Subtitles } from "../dental/subtitles.js";
 import { loadPendingRequests, requestOutcomes, saveOutcomes } from "./topic-requests.js";
+import { downloadLogo, LogoMissingError, logoMissingAlert, LogoUnavailableError, logoUnavailableAlert, type LogoJob } from "./logo-fetch.js";
 import { topicSchema, type RequestRefusal, type Topic } from "../dental/strategist.js";
 
 /**
@@ -107,8 +108,9 @@ const MAX_LOGO_BYTES = 5 * 1024 * 1024;
  * reason per day); if it cannot even be parked (Redis down), a normal error
  * lets BullMQ retry it later with backoff.
  */
-async function reserveOrPark(op: Extract<SpendOp, "week" | "recording">, data: { clinicId: string } & Record<string, unknown>, jobId?: string): Promise<void> {
-  const d = await spend.guard.reserve(op, data.clinicId);
+async function reserveOrPark(op: Extract<SpendOp, "week" | "recording">, data: { clinicId: string } & Record<string, unknown>, jobId?: string, week?: string): Promise<void> {
+  // A week's runs count against the Monday it delivers (spend-guard.ts countersFor).
+  const d = await spend.guard.reserve(op, data.clinicId, week ? { week } : {});
   if (d.ok) return;
   let parked = false;
   if (jobId && spend.park) {
@@ -141,9 +143,11 @@ export async function countActiveClinics(): Promise<number> {
  * week: the Monday the videos are for (YYYY-MM-DD) — a batch week is made on
  * the weekend before it, so "now" is the wrong week. Jobs queued before this
  * field existed mean the week they run in. batch: queued by the weekly
- * dispatch (schedule.ts) rather than by someone waiting for it.
+ * dispatch (schedule.ts) rather than by someone waiting for it. extra: the
+ * one extra run stalled-week.ts queued after a final failure, which the
+ * worker does not start again after a stall (extraRunRestarted).
  */
-export type WeekJob = { clinicId: string; count?: number; week?: string; batch?: boolean };
+export type WeekJob = { clinicId: string; count?: number; week?: string; batch?: boolean; extra?: boolean };
 
 /** The week a job is for: its own `week` when valid, else the current one. */
 export function jobWeek(job: Pick<WeekJob, "week">, now = new Date()): string {
@@ -166,14 +170,30 @@ export function isOwnerLogoKey(key: string | null | undefined, ownerId: string):
   return ownedKey(key, ownerId) && key.split("/").length === 2 && LOGO_KEY.test(key.slice(ownerId.length + 1));
 }
 
+/** How a job needs the clinic's logo (loadClinic). */
+export type LoadClinicOpts = {
+  /** The run, named in the owner's logo alert. Unset: no alert (a change request has its own failure alert). */
+  alertAs?: LogoJob;
+  /** The run replaces a video that has the logo (restyle, change): a logo file gone from storage stops it. */
+  rerender?: boolean;
+};
+
 /**
  * The clinic, its validated profile and — only from the storage object at
  * the owner's logo key — a local logo file inside `workDir`. Nothing in the
  * profile can point the renderers at a file or URL (dental/profile.ts).
  * A logo that is not a real, decodable image is left out (with a warning):
  * the videos are made without it rather than failing or showing a broken box.
+ *
+ * The download is retried (logo-fetch.ts). A logo the clinic has that storage
+ * will not give us stops the run with LogoUnavailableError (a transient error:
+ * a week is retried by the queue) rather than making videos without it. A logo
+ * file that storage says is gone stops a restyle or a change (LogoMissingError:
+ * the old video, with its logo, stays); a new week or recording goes ahead
+ * without it. The owner hears of either (logo-fetch.ts alerts). Nothing here
+ * calls a paid API, so a caller that already reserved budget gives it back.
  */
-export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string) {
+export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string, opts: LoadClinicOpts = {}) {
   const { data, error } = await db
     .from("dentvid_clinics")
     .select("id, owner_id, profile, logo_path")
@@ -188,11 +208,20 @@ export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: 
   if (key && !isOwnerLogoKey(key, ownerId)) {
     logger.warn({ clinicId }, "dentvid: logo_path is not the owner's logo key; ignored");
   } else if (key) {
-    const { data: blob } = await db.storage.from(BUCKET).download(key);
-    if (blob && blob.size > MAX_LOGO_BYTES) {
-      logger.warn({ clinicId, bytes: blob.size }, "dentvid: logo too large, ignored");
-    } else if (blob) {
-      const ready = await readyLogo(new Uint8Array(await blob.arrayBuffer()), workDir);
+    const got = await downloadLogo(db.storage.from(BUCKET), key, (n, err) => logger.warn({ clinicId, try: n, err }, "dentvid: logo download failed, trying again"));
+    if (!got.ok) {
+      logger.error({ clinicId, key, missing: got.missing, tries: got.tries, err: got.error }, got.missing ? "dentvid: logo file missing from storage" : "dentvid: logo could not be downloaded");
+      if (opts.alertAs) {
+        const alert = got.missing ? logoMissingAlert : logoUnavailableAlert;
+        await ownerAlert(alert({ clinic: await clinicRef(db, clinicId), key, error: got.error, job: opts.alertAs })).catch(() => "failed");
+      }
+      if (!got.missing) throw new LogoUnavailableError(key, got.error);
+      if (opts.rerender) throw new LogoMissingError(key);
+      // A new week or recording: made without the logo, as for a clinic that never uploaded one.
+    } else if (got.blob.size > MAX_LOGO_BYTES) {
+      logger.warn({ clinicId, bytes: got.blob.size }, "dentvid: logo too large, ignored");
+    } else {
+      const ready = await readyLogo(new Uint8Array(await got.blob.arrayBuffer()), workDir);
       if (ready.ok) {
         logoPath = ready.file;
         logoStyle = brandWithLogo(profile, ready.analysis, clinicId);
@@ -203,6 +232,9 @@ export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: 
   }
   return { ownerId, profile, logoPath, logoStyle };
 }
+
+/** A logo error from loadClinic: the run stopped before any paid call, so its reservation is given back. */
+const isLogoStop = (e: unknown) => e instanceof LogoUnavailableError || e instanceof LogoMissingError;
 
 /**
  * The logo, read once per job: its colours fill a brand colour the clinic
@@ -360,7 +392,21 @@ export function recordingsIncluded(tier: string | null | undefined): boolean {
  */
 export const SHORT_WEEK_ALERT_KEY = (clinicId: string, week: string) => `dv:ops:short-week:${clinicId}:${week}`;
 
-export type WeekCtx = { jobId?: string; attemptsMade?: number; attempts?: number };
+export type WeekCtx = {
+  jobId?: string;
+  attemptsMade?: number;
+  attempts?: number;
+  /**
+   * The job runs under the dentvid worker, whose "failed" handler
+   * (stalled-week.ts handleFailedWeek) tells the owner about every final
+   * failure of a week, knowing whether it queued the week once more. Then
+   * runDentvidWeek sends no "week failed" email of its own: one failure, one
+   * email (before, an exhausted week sent "week failed, retry it by hand"
+   * and then "queued once more, no need to retry", and a failed extra run sent
+   * "week failed" and "failed again"). Unset (a direct call): it alerts itself.
+   */
+  failedHandlerAlerts?: boolean;
+};
 export type WeekResult = { ready: number; flagged: number; rejected: number; toppedUp?: number; already?: number };
 
 /** Videos promised per week (web/src/lib/dentvid/week-job.ts WEEK_VIDEOS). */
@@ -430,7 +476,7 @@ export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<W
       // The provider refused the week's first call (out of credit, bad key):
       // nothing was spent, so the clinic's week budget is given back and its
       // retry after the outage is not refused by the spend guard.
-      await spend.guard.release("week", job.clinicId).catch(() => false);
+      await spend.guard.release("week", job.clinicId, { week }).catch(() => false);
     }
     if (kind === "transient" && !last) {
       logger.warn({ clinicId: job.clinicId, attempt: (ctx.attemptsMade ?? 0) + 1, err: (e as Error).message }, "dentvid: week failed — will retry");
@@ -438,15 +484,20 @@ export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<W
       throw e;
     }
     await setWeekDelay(job.clinicId, week, "delayed");
-    await ownerAlert(
-      alerts.weekFailed({
-        clinic: await clinicRef(safeDb(), job.clinicId),
-        week,
-        attempts: (ctx.attemptsMade ?? 0) + 1,
-        error: cleanError(e),
-        permanent: kind === "permanent",
-      }),
-    ).catch(() => "failed");
+    if (ctx.failedHandlerAlerts) {
+      // The worker's "failed" handler sends the one email for this failure (WeekCtx).
+      logger.error({ clinicId: job.clinicId, week, kind, err: (e as Error).message }, "dentvid: week failed for good; the failed-job handler tells the owner");
+    } else {
+      await ownerAlert(
+        alerts.weekFailed({
+          clinic: await clinicRef(safeDb(), job.clinicId),
+          week,
+          attempts: (ctx.attemptsMade ?? 0) + 1,
+          error: cleanError(e),
+          permanent: kind === "permanent",
+        }),
+      ).catch(() => "failed");
+    }
     // Permanent: tell BullMQ not to spend more attempts on it.
     if (kind === "permanent" && !(e instanceof UnrecoverableError)) throw new UnrecoverableError((e as Error).message);
     throw e;
@@ -473,6 +524,70 @@ export function _setPreflight(fn: () => Promise<Preflight>): void {
 /** The provider refused before the week started: nothing was spent; retried with backoff while the owner tops up. */
 export class ProviderPreflightError extends TransientWeekError {}
 
+/** Tries of one week video's narration before its render is given up (a TTS blip gets a second chance in place). */
+export const NARRATION_TRIES = 2;
+let narrationRetryMs = 5_000;
+
+/**
+ * A week video's narration could not be made. The video is NOT rendered: week.ts
+ * re-attempts the topic once (VIDEO_ATTEMPTS), then records it as a technical
+ * rejection with no file, and a spare topic takes its place. Before, the render
+ * went on without a voice: during a TTS outage every attempt rendered and
+ * uploaded ten silent videos that were all rejected afterwards (about two
+ * minutes of the one render slot each, and files no row pointed to).
+ */
+export class NarrationFailedError extends Error {}
+
+/** What one week run's narrations did, for the top-up decision. */
+type NarrationTally = { ok: number; failed: number };
+
+/** The narration for one week video, tried NARRATION_TRIES times; throws NarrationFailedError instead of returning a silent one. */
+async function narrateWeekVideo(plan: ScenePlan, dir: string, profile: ClinicProfile, topic: Topic, clinicId: string, tally: NarrationTally): Promise<Narration> {
+  let last: Error | undefined;
+  for (let n = 1; n <= NARRATION_TRIES; n++) {
+    try {
+      const voice = await prepareNarration(plan, dir, profile.language, {
+        ...resolveVoice(profile.language, process.env, profile.country, narratorOf(profile)),
+        onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
+        onProviderFallback: (e) => logger.warn({ err: e.message, topic: topic.title, clinicId }, "dentvid: elevenlabs tts failed, narrated with openai"),
+        onMasterError: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: narration mastering failed, used the plain voice"),
+      });
+      await meterNarration(voice, clinicId, { topic: topic.title });
+      if (!voice.voiceoverPath) {
+        // No narration text at all (prepareVoiceover only returns no file then): a week video must speak.
+        tally.failed++;
+        throw new NarrationFailedError("narration failed: the script has no narration text");
+      }
+      tally.ok++;
+      return voice;
+    } catch (e) {
+      if (e instanceof NarrationFailedError) throw e;
+      last = e as Error;
+      logger.warn({ err: last.message, topic: topic.title, clinicId, try: n }, "dentvid: voiceover failed");
+      if (n < NARRATION_TRIES) await new Promise((r) => setTimeout(r, narrationRetryMs));
+    }
+  }
+  tally.failed++;
+  throw new NarrationFailedError(`narration failed: ${last?.message ?? "unknown error"}`);
+}
+
+/**
+ * Remove files this run uploaded that no stored row will point to (the week
+ * stored nothing, or its clinic is gone). Only inside the owner's folder.
+ * Never throws; returns how many keys it asked storage to remove.
+ */
+async function discardUploads(db: SupabaseClient, ownerId: string, keys: Iterable<string>, clinicId: string, why: string): Promise<number> {
+  const own = [...new Set(keys)].filter((k) => ownedKey(k, ownerId));
+  if (!own.length) return 0;
+  const res = await Promise.resolve(db.storage.from(BUCKET).remove(own)).then(
+    (r) => (r as { error?: { message?: string } | null })?.error ?? null,
+    (e: Error) => ({ message: e.message }),
+  );
+  if (res) logger.error({ clinicId, keys: own.length, err: res.message }, `dentvid: uploaded files not removed (${why})`);
+  else logger.warn({ clinicId, removed: own.length }, `dentvid: uploaded files removed (${why})`);
+  return own.length;
+}
+
 async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekResult> {
   const db = dentvidDb();
   if (!(await paying(db, job.clinicId, "week"))) return { ready: 0, flagged: 0, rejected: 0 };
@@ -489,11 +604,16 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     await ownerAlert(alerts.providerDown({ provider: pre.provider, reason: pre.reason, when: "preflight", clinic: await clinicRef(db, job.clinicId), week })).catch(() => "failed");
     throw new ProviderPreflightError(`preflight: ${pre.provider} refuses (${pre.reason}); nothing was spent`);
   }
-  // Budget first: nothing below may call a paid API before this passes.
-  await reserveOrPark("week", { ...job }, ctx.jobId);
+  // Budget first: nothing below may call a paid API before this passes. Counted against the
+  // Monday this week delivers, not the week the job runs in (the batch runs the Saturday before).
+  await reserveOrPark("week", { ...job }, ctx.jobId, week);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
-    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, job.clinicId, workDir);
+    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, job.clinicId, workDir, { alertAs: "week" }).catch(async (e) => {
+      // The logo could not be had: nothing was spent, the budget goes back, the queue retries the week.
+      if (isLogoStop(e)) await spend.guard.release("week", job.clinicId, { week }).catch(() => false);
+      throw e;
+    });
     // The clinic's last 200 items, newest weeks first: titles for the repeat
     // filter, and topic + week for the strategist's memory (services covered
     // lately, recent hooks and their shapes — dental/memory.ts). Before, only
@@ -524,6 +644,11 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     // The clinic's suggested topics, planned first (topic-requests.ts); [] without 0025.
     const requests = await loadPendingRequests(db, job.clinicId);
     let refused: RequestRefusal[] = [];
+    // Every narration of this run: none made and some failed means the voice is down for now.
+    const narration: NarrationTally = { ok: 0, failed: 0 };
+    // Every storage key this run uploaded (videos, thumbnails, and the files of silent renders,
+    // which rows.ts names only in the owner's error): removed again when no row will point to them.
+    const uploaded: string[] = [];
 
     const produce = (count: number, avoidTitles: string[], history: PastTopic[], withRequests = false) =>
       produceWeek(
@@ -534,16 +659,8 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           onVideoError: (e) => noteRenderFailure(e).catch(() => {}),
           render: async (plan, topic) => {
             const dir = await fs.mkdtemp(path.join(workDir, "v-"));
-            const voice = await prepareNarration(plan, dir, profile.language, {
-              ...resolveVoice(profile.language, process.env, profile.country, narratorOf(profile)),
-              onFallback: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: tts model failed, used tts-1-hd"),
-              onProviderFallback: (e) => logger.warn({ err: e.message, topic: topic.title, clinicId: job.clinicId }, "dentvid: elevenlabs tts failed, narrated with openai"),
-              onMasterError: (e) => logger.warn({ err: e.message, topic: topic.title }, "dentvid: narration mastering failed, used the plain voice"),
-            }).catch((e) => {
-              logger.warn({ err: (e as Error).message, topic: topic.title }, "dentvid: voiceover failed");
-              return { plan, voiceoverPath: undefined };
-            });
-            await meterNarration(voice, job.clinicId, { topic: topic.title });
+            // No voice, no render: a silent video is never made (NarrationFailedError).
+            const voice = await narrateWeekVideo(plan, dir, profile, topic, job.clinicId, narration);
             const res = await renderPlan({
               plan: voice.plan,
               voiceoverSrc: voice.voiceoverPath,
@@ -575,6 +692,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           const stored = await storeWithRetry(db, ownerId, pkg.videoPath);
           // The ready-to-paste Instagram / Shorts texts (post-kit.ts: deterministic, no model call).
           if (stored) {
+            uploaded.push(stored.videoPath, ...(stored.thumbPath ? [stored.thumbPath] : []));
             const row: ItemRow = withPostKit(rowFromPackage(pkg, ids, stored), profile);
             const subs = subtitlesByFile.get(pkg.videoPath);
             if (subs) row.subtitles = subs;
@@ -592,41 +710,55 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     };
 
     const avoid = pastRows.map((p) => p.title).filter((t): t is string => typeof t === "string");
-    const rows = await toRows(await produce(want, avoid, history, true));
-
-    // Top-up: a week short of the promised count (topics the reviewers turned
-    // down) gets extra topics for the missing ones — one round, within the
-    // spend guard's caps.
+    const rows: ItemRow[] = [];
     let toppedUp = 0;
     const usable = () => rows.filter(usableRow).length;
     let topupNote: string | null = null;
-    if (usable() < want) {
-      const d = await spend.guard.reserve("topup", job.clinicId);
-      if (d.ok) {
-        // This week's usable videos count as history too, so the top-up neither repeats them nor piles onto their services.
-        const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => ({ title: r.title, topic: r.topic, week_of: week, status: r.status, backgrounds: (r.plan as { backgrounds?: unknown } | null | undefined)?.backgrounds })));
-        const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)], [...history, ...thisWeek]).catch((e) => {
-          logger.warn({ clinicId: job.clinicId, err: (e as Error).message }, "dentvid: top-up failed");
-          topupNote = `extra topics could not be made: ${cleanError(e)}`;
-          return [] as VideoPackage[];
-        });
-        const more = await toRows(extra);
-        toppedUp = more.filter(usableRow).length;
-        rows.push(...more);
-        logger.info({ clinicId: job.clinicId, toppedUp }, "dentvid: week topped up");
-      } else {
-        logger.warn({ clinicId: job.clinicId, reason: d.reason }, "dentvid: top-up refused by the spend guard");
-        topupNote = `no extra topics: the spend guard refused the top-up (${d.reason})`;
-      }
-    }
+    try {
+      rows.push(...(await toRows(await produce(want, avoid, history, true))));
 
-    const technical = rows.filter((r) => r.status === "rejected" && r.error);
-    if (usable() === 0 && technical.length > 0) {
-      // Nothing to show and it was not the reviewers: store nothing, run again later.
-      const detail = `${technical.length} technical failures; last: ${technical.at(-1)!.error}`;
-      // Every video was refused by the provider (out of credit mid-week): retrying in minutes would not help.
-      if (technical.every((r) => providerRefused({ message: r.error }))) throw new Error(`zero usable videos — the AI provider refused (${detail})`);
-      throw new TransientWeekError(`zero usable videos (${detail})`);
+      // Top-up: a week short of the promised count (topics the reviewers turned
+      // down) gets extra topics for the missing ones — one round, within the
+      // spend guard's caps.
+      const voiceDown = narration.ok === 0 && narration.failed > 0;
+      if (usable() < want && voiceDown) {
+        // No voice could be made for any video of this run: extra topics would only pay for
+        // scripts that cannot be narrated either. The week is retried later instead.
+        logger.warn({ clinicId: job.clinicId, narrationFailures: narration.failed }, "dentvid: no top-up, the narration failed for every video");
+        topupNote = "no extra topics: the narration could not be made for any video in this run";
+      } else if (usable() < want) {
+        const d = await spend.guard.reserve("topup", job.clinicId);
+        if (d.ok) {
+          // This week's usable videos count as history too, so the top-up neither repeats them nor piles onto their services.
+          const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => ({ title: r.title, topic: r.topic, week_of: week, status: r.status, backgrounds: (r.plan as { backgrounds?: unknown } | null | undefined)?.backgrounds })));
+          const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)], [...history, ...thisWeek]).catch((e) => {
+            logger.warn({ clinicId: job.clinicId, err: (e as Error).message }, "dentvid: top-up failed");
+            topupNote = `extra topics could not be made: ${cleanError(e)}`;
+            return [] as VideoPackage[];
+          });
+          const more = await toRows(extra);
+          toppedUp = more.filter(usableRow).length;
+          rows.push(...more);
+          logger.info({ clinicId: job.clinicId, toppedUp }, "dentvid: week topped up");
+        } else {
+          logger.warn({ clinicId: job.clinicId, reason: d.reason }, "dentvid: top-up refused by the spend guard");
+          topupNote = `no extra topics: the spend guard refused the top-up (${d.reason})`;
+        }
+      }
+
+      const technical = rows.filter((r) => r.status === "rejected" && r.error);
+      if (usable() === 0 && technical.length > 0) {
+        // Nothing to show and it was not the reviewers: store nothing, run again later.
+        const detail = `${technical.length} technical failures; last: ${technical.at(-1)!.error}`;
+        // Every video was refused by the provider (out of credit mid-week): retrying in minutes would not help.
+        if (technical.every((r) => providerRefused({ message: r.error }))) throw new Error(`zero usable videos — the AI provider refused (${detail})`);
+        throw new TransientWeekError(`zero usable videos (${detail})`);
+      }
+    } catch (e) {
+      // Nothing of this run will be stored (zero usable videos, or an error before the insert):
+      // no row will point to what it uploaded, silent renders included, so it goes again.
+      await discardUploads(db, ownerId, uploaded, job.clinicId, "the week stored nothing");
+      throw e;
     }
 
     // Stamped with the week the job was queued for, not the day it happens to run (a Sunday job finishing Monday).
@@ -635,13 +767,15 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
       await insert(db, rows);
     } catch (e) {
       // Deleted mid-run (account deletion): its account's files were removed at deletion, so the
-      // videos this run just uploaded would outlive it. Compensate: remove them, make nothing.
+      // videos this run just uploaded would outlive it. Compensate: remove every file this run
+      // uploaded (also a silent render's, which no video_path names), make nothing.
       if (await clinicGone(db, job.clinicId).catch(() => false)) {
-        const keys = rows.flatMap((r) => [r.video_path, r.thumb_path]).filter((k): k is string => ownedKey(k, ownerId));
-        if (keys.length) await db.storage.from(BUCKET).remove(keys).catch(() => {});
-        logger.warn({ clinicId: job.clinicId, removed: keys.length }, "dentvid: clinic deleted during its week — uploaded files removed, nothing stored");
+        const removed = await discardUploads(db, ownerId, uploaded, job.clinicId, "the clinic was deleted during its week");
+        logger.warn({ clinicId: job.clinicId, removed }, "dentvid: clinic deleted during its week — uploaded files removed, nothing stored");
         return { ready: 0, flagged: 0, rejected: 0 };
       }
+      // Any other insert failure keeps the files: the insert may have reached the database
+      // before the error came back, and a row pointing to a removed file is worse than a stray file.
       throw e;
     }
     // What became of the clinic's suggestions (used, refused with a reason, or still pending).
@@ -697,10 +831,11 @@ async function storeWithRetry(db: SupabaseClient, ownerId: string, videoPath: st
 }
 
 let storeRetryMs = 3_000;
-/** For tests. */
+/** For tests: the waits between store, insert and narration tries. */
 export function _setStoreRetryMs(ms: number) {
   storeRetryMs = ms;
   insertRetryMs = ms;
+  narrationRetryMs = ms;
 }
 
 export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: string } = {}): Promise<{ clips: number }> {
@@ -709,7 +844,11 @@ export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: stri
   await reserveOrPark("recording", { ...job }, ctx.jobId);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-rec-"));
   try {
-    const { ownerId, profile, logoPath } = await loadClinic(db, job.clinicId, workDir);
+    const { ownerId, profile, logoPath } = await loadClinic(db, job.clinicId, workDir, { alertAs: "recording" }).catch(async (e) => {
+      // The logo could not be had: nothing was spent, the budget goes back, the queue retries it.
+      if (isLogoStop(e)) await spend.guard.release("recording", job.clinicId).catch(() => false);
+      throw e;
+    });
     // The path came from the browser via the web app: it must be this
     // owner's recording (the service role below bypasses storage RLS).
     if (!ownedKey(job.sourcePath, ownerId) || !job.sourcePath.startsWith(`${ownerId}/recordings/`)) {
@@ -799,7 +938,12 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       await markFailed();
       return { ok: false };
     }
-    const { profile, logoPath, logoStyle } = await loadClinic(db, item.clinic_id as string, workDir);
+    // A logo storage will not give us (or a logo file gone from it) stops the restyle before any
+    // paid call: the video the clinic has keeps its logo, and the budget goes back.
+    const { profile, logoPath, logoStyle } = await loadClinic(db, clinicId, workDir, { alertAs: "restyle", rerender: true }).catch(async (e) => {
+      if (isLogoStop(e)) await spend.guard.release("restyle", clinicId).catch(() => false);
+      throw e;
+    });
     const stored = parseScenePlan(item.plan);
     // Painted in the clinic's colour exactly as the weekly run does (week.ts).
     const plan: ScenePlan = profile.brandColor
@@ -950,7 +1094,9 @@ export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
 
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-change-"));
   try {
-    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, req.clinic_id, workDir);
+    // A change replaces a video that has the logo: without the logo it does not run (the error
+    // reaches the owner in the change alert below; no separate logo alert).
+    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, req.clinic_id, workDir, { rerender: true });
     const { request: _drop, ...plainTopic } = topic.data;
     const base = item.plan as Pick<ScenePlan, "scenes" | "voiceover">;
     let subtitles: Subtitles | undefined;
@@ -1036,6 +1182,8 @@ export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
     await mark("done");
     return { status: "done" };
   } catch (e) {
+    // Stopped by the logo before any paid call: the change is given back, so the clinic can ask again.
+    if (isLogoStop(e)) await spend.guard.release("change", req.clinic_id).catch(() => false);
     const error = cleanError(e);
     logger.error({ clinicId: req.clinic_id, requestId: req.id, err: (e as Error).message }, "dentvid: change request failed");
     await mark("failed", "technical");

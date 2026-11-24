@@ -90,8 +90,10 @@ export async function resumeParked(
       await onDrop(p).catch((e) => logger.error({ jobId: p.jobId, err: (e as Error).message }, "dentvid: parked drop alert failed"));
       continue;
     }
-    // Only a check: the job reserves for real when it runs.
-    const d = await guard.reserve(p.name, p.data.clinicId, { dryRun: true, now });
+    // Only a check: the job reserves for real when it runs, against the same counters (a week's
+    // runs count against the Monday it delivers, spend-guard.ts countersFor).
+    const week = p.name === "week" && typeof p.data.week === "string" ? p.data.week : undefined;
+    const d = await guard.reserve(p.name, p.data.clinicId, { dryRun: true, now, ...(week ? { week } : {}) });
     if (!d.ok) {
       waiting++;
       continue;

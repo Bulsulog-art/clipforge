@@ -2,8 +2,10 @@ import type { Queue } from "bullmq";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { batchWeekJobOpts, type WeekJobData } from "./job-options.js";
-import type { OpsStore } from "./ops-alert.js";
+import type { DeliverResult, OpsStore, OwnerAlert } from "./ops-alert.js";
 import { clinicTimeZone, mondayMorning } from "./timezone.js";
+import { CAPACITY_ALERT_TTL_SEC, capacityAlert, capacityAlertKey, weekPace } from "./capacity.js";
+import { ownerAlertOnce } from "./ops.js";
 
 /**
  * Weekly delivery. The worker starts the coming week for each clinic that
@@ -130,8 +132,10 @@ export function waves(batch: BatchEntry[]): Wave[] {
 /**
  * Clinics whose deadline the batch is expected to miss if one week takes
  * `minutesPerWeek` on this box and they run in order from `now`
- * (docs/CAPACITY.md has the measured number). Logged at dispatch, so the
- * owner sees "add a render server" coming before a Monday is missed.
+ * (docs/CAPACITY.md). At dispatch the minutes are the measured median of
+ * real weeks once there are enough (capacity.ts weekPace), and any projected
+ * miss is emailed to the owner, so "add a render server" comes before a
+ * Monday is missed.
  */
 export function projectedLate(batch: BatchEntry[], minutesPerWeek: number, now: Date, workers = 1): string[] {
   const late: string[] = [];
@@ -171,12 +175,16 @@ export async function activeClinicRows<T = ClinicRow>(db: Pick<SupabaseClient, "
   return out;
 }
 
+/** Raise an owner alert at most once per claim key (ops.ts ownerAlertOnce); replaceable in tests. */
+export type AlertOnce = (onceKey: string, ttlSec: number, a: OwnerAlert) => Promise<DeliverResult | "already">;
+
 export async function dispatchWeeks(
   db: SupabaseClient,
   queue: Pick<Queue, "add">,
   now = new Date(),
   store: OpsStore | null = null,
   workers = 1,
+  opts: { alertOnce?: AlertOnce; env?: Record<string, string | undefined> } = {},
 ): Promise<number> {
   // "*": admin_paused_at (0010) may not exist yet on a given database.
   const clinics = await activeClinicRows<ClinicRow>(db).catch((e: Error) => {
@@ -188,15 +196,23 @@ export async function dispatchWeeks(
     const data: WeekJobData = { clinicId: b.clinicId, count: 5, week, batch: true };
     await queue.add("week", data, { jobId: weekJobId(b.clinicId, week), ...batchWeekJobOpts(b.hoursToDeadline) });
   }
-  const late = projectedLate(batch, weekMinutes(), now, workers);
+  // Measured minutes per week once enough full weeks were recorded (capacity.ts), else the configured estimate.
+  const pace = await weekPace(store, weekMinutes(opts.env));
+  const late = projectedLate(batch, pace.minutes, now, workers);
   const w = waves(batch);
   if (store) await store.set(dispatchKey(week), JSON.stringify({ at: now.toISOString(), jobs: batch.length, waves: w.length, projectedLate: late.length }), 8 * 86_400).catch(() => {});
-  logger.info({ week, clinics: batch.length, waves: w, projectedLate: late.length }, "dentvid: weekly dispatch");
+  logger.info({ week, clinics: batch.length, waves: w, projectedLate: late.length, minutesPerWeek: pace.minutes, minutesSource: pace.source }, "dentvid: weekly dispatch");
   if (late.length) {
     logger.warn(
-      { week, clinics: batch.length, projectedLate: late.length, minutesPerWeek: weekMinutes(), workers },
+      { week, clinics: batch.length, projectedLate: late.length, minutesPerWeek: pace.minutes, minutesSource: pace.source, workers },
       "dentvid: the batch is projected to miss some Monday-morning deadlines — time for a render server (docs/CAPACITY.md)",
     );
   }
+  // The owner hears it, once per delivery week (a re-run dispatch the same week sends nothing more).
+  const lateSet = new Set(late);
+  const lateZones = [...new Set(batch.filter((b) => lateSet.has(b.clinicId)).map((b) => b.tz))];
+  const alert = capacityAlert({ week, clinics: batch.length, late: late.length, lateZones, pace, workers: Math.max(1, workers) });
+  // Never fails the dispatch: every week is already queued.
+  if (alert) await Promise.resolve().then(() => (opts.alertOnce ?? ownerAlertOnce)(capacityAlertKey(week), CAPACITY_ALERT_TTL_SEC, alert)).catch(() => "failed");
   return batch.length;
 }

@@ -142,3 +142,81 @@ describe("resumeParked", () => {
     expect(queue.add).toHaveBeenCalledWith("week", { clinicId: CLINIC, count: 5 }, expect.objectContaining({ jobId: "fresh" }));
   });
 });
+
+describe("a week's runs count against the Monday it delivers, not the week it runs in", () => {
+  // The batch for week W runs from Saturday 18:00 UTC, inside W-1's calendar week. Counted by the run
+  // date, it shared one cap of 6 with W-1's first week, its retries and the clinic's "try again", and a
+  // clinic that needed them was parked until Monday 00:00 UTC: past Tokyo's, Sydney's and Auckland's mornings.
+  const W_MINUS_1 = "2026-11-23";
+  const W = "2026-11-30";
+  const WEDNESDAY = new Date("2026-11-25T10:00:00Z");
+  const SATURDAY_BATCH = new Date("2026-11-28T18:05:00Z");
+  const roomy = () => cfg({ dailyUsd: 1e6, monthlyUsd: 1e6, clinicDailyUsd: 1e6 });
+
+  it("batch week W reserved on Saturday counts against W", async () => {
+    const store = new MemoryGuardStore();
+    const g = new SpendGuard(store, roomy);
+    expect((await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W })).ok).toBe(true);
+    expect(store.values.get(`dv:spend:ops:week:${CLINIC}:${W}`)).toBe(1);
+    expect(store.values.has(`dv:spend:ops:week:${CLINIC}:${W_MINUS_1}`)).toBe(false);
+    expect(countersFor("week", CLINIC, roomy(), SATURDAY_BATCH, W).find((c) => c.reason === "clinic_weekly_weeks")?.key).toBe(`dv:spend:ops:week:${CLINIC}:${W}`);
+  });
+
+  it("first week (W-1) with 4 attempts + 1 button run does not block Saturday's batch for W", async () => {
+    const g = new SpendGuard(new MemoryGuardStore(), roomy);
+    // A clinic that paid on Wednesday: its first week took all 4 attempts and a "try again".
+    for (let i = 0; i < 5; i++) expect((await g.reserve("week", CLINIC, { now: WEDNESDAY, week: W_MINUS_1 })).ok).toBe(true);
+    // Saturday's batch for W: its 4 attempts and the one extra run all go through.
+    for (let i = 0; i < 5; i++) expect((await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W })).ok, `run ${i + 1}`).toBe(true);
+    // Each week keeps its own cap.
+    expect((await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W })).ok).toBe(true);
+    expect(await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W })).toMatchObject({ ok: false, reason: "clinic_weekly_weeks" });
+    expect((await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W_MINUS_1 })).ok).toBe(true);
+    expect(await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W_MINUS_1 })).toMatchObject({ ok: false, reason: "clinic_weekly_weeks" });
+  });
+
+  it("the old way (keyed by the run date) would have parked that batch: the guard still does without a week", async () => {
+    const g = new SpendGuard(new MemoryGuardStore(), roomy);
+    for (let i = 0; i < 5; i++) await g.reserve("week", CLINIC, { now: WEDNESDAY });
+    expect((await g.reserve("week", CLINIC, { now: SATURDAY_BATCH })).ok).toBe(true);
+    expect(await g.reserve("week", CLINIC, { now: SATURDAY_BATCH })).toMatchObject({ ok: false, reason: "clinic_weekly_weeks" });
+  });
+
+  it("the dollar caps stay by day: a delivery week never opens more money", async () => {
+    const g = new SpendGuard(new MemoryGuardStore(), () => cfg({ clinicDailyUsd: 1, dailyUsd: 1e6, monthlyUsd: 1e6 }));
+    expect((await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W })).ok).toBe(true);
+    expect((await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W })).ok).toBe(true);
+    expect(await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: "2026-12-07" })).toMatchObject({ ok: false, reason: "clinic_daily_usd" });
+  });
+
+  it("a release gives back the same delivery week's run; a malformed week means the run date's Monday", async () => {
+    const store = new MemoryGuardStore();
+    const g = new SpendGuard(store, roomy);
+    await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W });
+    expect(await g.release("week", CLINIC, { now: SATURDAY_BATCH, week: W })).toBe(true);
+    expect(store.values.get(`dv:spend:ops:week:${CLINIC}:${W}`)).toBe(0);
+    await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: "next monday" });
+    expect(store.values.get(`dv:spend:ops:week:${CLINIC}:${W_MINUS_1}`)).toBe(1);
+  });
+
+  it("other operations ignore the week: recordings and changes stay per calendar week", async () => {
+    const keys = (op: "recording" | "change") => countersFor(op, CLINIC, roomy(), SATURDAY_BATCH, W).map((c) => c.key);
+    expect(keys("recording")).toContain(`dv:spend:ops:recording:${CLINIC}:${W_MINUS_1}`);
+    expect(keys("change")).toContain(`dv:spend:ops:change:${CLINIC}:${W_MINUS_1}`);
+  });
+
+  it("a parked week is resumed when its own delivery week has room, whatever the run week's count", async () => {
+    const guardStore = new MemoryGuardStore();
+    const g = new SpendGuard(guardStore, roomy);
+    // W-1 is full; W is not.
+    for (let i = 0; i < 6; i++) await g.reserve("week", CLINIC, { now: SATURDAY_BATCH, week: W_MINUS_1 });
+    const park = new MemoryParkStore();
+    await park.put({ jobId: `week:${CLINIC}:${W}`, name: "week", data: { clinicId: CLINIC, count: 5, week: W, batch: true }, reason: "global_daily_usd", parkedAt: SATURDAY_BATCH.toISOString() });
+    await park.put({ jobId: `week:${CLINIC}:${W_MINUS_1}`, name: "week", data: { clinicId: CLINIC, count: 5, week: W_MINUS_1 }, reason: "clinic_weekly_weeks", parkedAt: SATURDAY_BATCH.toISOString() });
+    const queue = { getJob: vi.fn(async () => undefined), add: vi.fn(async () => ({})) };
+    expect(await resumeParked(park, queue, g, new Date(SATURDAY_BATCH.getTime() + 15 * 60_000))).toMatchObject({ resumed: 1, waiting: 1 });
+    expect(queue.add).toHaveBeenCalledWith("week", expect.objectContaining({ week: W }), expect.objectContaining({ jobId: `week:${CLINIC}:${W}` }));
+    // Only a check: nothing reserved for the resumed week yet.
+    expect(guardStore.values.get(`dv:spend:ops:week:${CLINIC}:${W}`) ?? 0).toBe(0);
+  });
+});

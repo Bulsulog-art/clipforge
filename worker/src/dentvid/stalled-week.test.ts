@@ -3,6 +3,7 @@ import { Job, UnrecoverableError } from "bullmq";
 import {
   EXHAUSTED_RETRY_ATTEMPTS,
   EXHAUSTED_RETRY_DELAY_MS,
+  EXTRA_RUN_STALLED,
   finalKind,
   handleFailedWeek,
   MAX_STALLED_COUNT,
@@ -166,7 +167,8 @@ describe("a week killed twice by worker restarts", () => {
     expect(added[0].opts.attempts).toBe(STALLED_RETRY_ATTEMPTS);
     expect(added[0].opts.backoff).toEqual(WEEK_RETRY.backoff);
     // Same week, same promise: a full week asked for, of which jobs.ts makes only the missing videos.
-    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: WEEK, batch: true });
+    // Marked as the extra run: it gets no stall tolerance of its own (extraRunRestarted).
+    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: WEEK, batch: true, extra: true });
 
     expect(raised).toHaveLength(1);
     // Its own key: runDentvidWeek's week_failed:<clinic>:<week> must not swallow a later failure of the same day.
@@ -308,7 +310,7 @@ describe("a week killed twice by worker restarts", () => {
     expect(EXHAUSTED_RETRY_DELAY_MS).toBe(30 * 60_000);
     expect(EXHAUSTED_RETRY_ATTEMPTS).toBe(1);
 
-    // runDentvidWeek already sent "week failed" (asking for a retry by hand): this is a separate, short notice.
+    // The only email about this failure (runDentvidWeek sends none under the worker): what failed, and that it is handled.
     expect(raised).toHaveLength(1);
     expect(raised[0].key).toBe(`week_requeued:${CLINIC}:${WEEK}`);
     expect(raised[0].severity).toBe("warning");
@@ -317,6 +319,10 @@ describe("a week killed twice by worker restarts", () => {
     expect(text).toMatch(/with one attempt, to leave room in the clinic's weekly run limit for a retry by hand/);
     expect(text).toMatch(/No need to retry by hand now/);
     expect(text).toContain("render timed out after 900s");
+    expect(text).toMatch(/could not be made after 4 attempts/);
+    expect(text).toMatch(/your videos are delayed, we're on it/);
+    // It no longer points to a separate "week failed" email: there is none.
+    expect(text).not.toMatch(/see the .week failed. email/i);
   });
 
   it("an exhausted first week (priority 1, someone is waiting) keeps priority 1; a job without one goes with the batch", async () => {
@@ -393,7 +399,7 @@ describe("a week killed twice by worker restarts", () => {
     expect(delays).toEqual([[CLINIC, "2026-11-23", "delayed"]]);
     // Early on that Monday (before 07:00 in Istanbul) it would still get its extra run, stamped with the week.
     await handleFailedWeek(weekJob({ data: { clinicId: CLINIC, count: 5 } }), stalled(), deps(new Date("2026-11-23T02:00:00Z")));
-    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: "2026-11-23" });
+    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: "2026-11-23", extra: true });
     expect(added[0].opts.jobId).toBe(weekJobId(CLINIC, "2026-11-23"));
   });
 
@@ -428,53 +434,49 @@ describe("the clinic keeps one run for 'try again' (the spend guard's weekly run
 });
 
 describe("what the owner actually receives (the real mailer: one email per alert key and day)", () => {
-  // Before: the handler reused runDentvidWeek's key week_failed:<clinic>:<week>, so the mailer dropped
-  // its "queued once more" note as a duplicate, and a second failure the same evening reached nobody.
+  // Under the worker runDentvidWeek sends no email of its own (jobs.ts WeekCtx failedHandlerAlerts;
+  // jobs-week.test.ts runs it for real): this handler's alert is the one email per failure.
+  // Before: an exhausted week sent "week failed" from runDentvidWeek and "queued once more" from
+  // here, and a failing extra run sent "week failed" and "failed again".
   let mails: Mail[];
   let clock: Date;
   let mailStore: MemoryOpsStore;
   const deliver = (a: OwnerAlert) => deliverAlert({ store: mailStore, send: async (m) => (mails.push(m), true), env: {}, now: () => clock }, a);
-  /** runDentvidWeek's own alert on a week's last attempt (jobs.ts). */
-  const lastAttemptAlert = (attempts: number, err: Error) =>
-    deliver(alerts.weekFailed({ clinic: { id: CLINIC, name: "Gülüş Dental" }, week: WEEK, attempts, error: cleanError(err), permanent: false }));
 
   beforeEach(() => {
     mails = [];
     mailStore = new MemoryOpsStore();
   });
 
-  it("an exhausted week: the failure, then the re-queue notice, then the extra run failing too: three emails, none dropped", async () => {
+  it("an exhausted week, then its extra run failing too: two emails, one per failure, none dropped", async () => {
     clock = SATURDAY_EVENING;
     const err = new Error("render timed out after 900s");
-    expect(await lastAttemptAlert(4, err)).toBe("sent");
     await handleFailedWeek(weekJob({ attemptsMade: 4, priority: 120 }), err, deps(clock, { alert: deliver }));
     clock = new Date(SATURDAY_EVENING.getTime() + 50 * 60_000);
     jobs.get(OWN_ID)!.state = "failed";
-    // The extra run uses its attempt: runDentvidWeek's alert (same key, same day) is dropped; the handler's is not.
-    expect(await lastAttemptAlert(EXHAUSTED_RETRY_ATTEMPTS, err)).toBe("deduped");
     await handleFailedWeek(weekJob({ attemptsMade: EXHAUSTED_RETRY_ATTEMPTS, attempts: EXHAUSTED_RETRY_ATTEMPTS }), err, deps(clock, { alert: deliver }));
-    expect(mails).toHaveLength(3);
-    expect(mails[1].subject).toMatch(/A failed week was queued once more/);
-    expect(mails[1].text).toMatch(/No need to retry by hand now/);
-    expect(mails[2].subject).toMatch(/A paying clinic's week failed/);
-    expect(mails[2].text).toMatch(/failed again after it had already been queued once more/);
+    expect(mails).toHaveLength(2);
+    expect(mails[0].subject).toMatch(/A failed week was queued once more/);
+    expect(mails[0].text).toMatch(/No need to retry by hand now/);
+    expect(mails[0].text).toContain("render timed out after 900s");
+    expect(mails[1].subject).toMatch(/A paying clinic's week failed/);
+    expect(mails[1].text).toMatch(/failed again after it had already been queued once more/);
   });
 
-  it("an exhausted week whose extra run then fails for a permanent reason: the owner still hears it (not deduped as the first 'week failed')", async () => {
+  it("an exhausted week whose extra run then fails for a permanent reason: the owner still hears it", async () => {
     clock = SATURDAY_EVENING;
     const err = new Error("render timed out after 900s");
-    await lastAttemptAlert(4, err);
     await handleFailedWeek(weekJob({ attemptsMade: 4 }), err, deps(clock, { alert: deliver }));
     clock = new Date(SATURDAY_EVENING.getTime() + 40 * 60_000);
     jobs.get(OWN_ID)!.state = "failed";
     await handleFailedWeek(weekJob({ attemptsMade: 1, attempts: EXHAUSTED_RETRY_ATTEMPTS }), new UnrecoverableError("Incorrect API key provided"), deps(clock, { alert: deliver }));
-    expect(mails).toHaveLength(3);
-    expect(mails[2].text).toMatch(/failed again after it had already been queued once more/);
-    expect(mails[2].text).toContain("Incorrect API key provided");
+    expect(mails).toHaveLength(2);
+    expect(mails[1].text).toMatch(/failed again after it had already been queued once more/);
+    expect(mails[1].text).toContain("Incorrect API key provided");
   });
 
-  it("stalled on Saturday at 21:10, the extra run failing again 40 minutes later (stalled, or out of attempts): the owner hears both", async () => {
-    for (const second of ["stalled", "exhausted"] as const) {
+  it("stalled on Saturday at 21:10, the extra run failing again 40 minutes later (stalled, refused after a stall, or out of attempts): two emails", async () => {
+    for (const second of ["stalled", "refused", "exhausted"] as const) {
       mails = [];
       mailStore = new MemoryOpsStore();
       await store.del(stallRetryKey(CLINIC, WEEK));
@@ -484,16 +486,22 @@ describe("what the owner actually receives (the real mailer: one email per alert
       await handleFailedWeek(weekJob(), stalled(), deps(clock, { alert: deliver }));
       clock = new Date(SATURDAY_EVENING.getTime() + 40 * 60_000);
       jobs.get(OWN_ID)!.state = "failed";
-      const extra = weekJob({ attemptsMade: second === "stalled" ? 1 : STALLED_RETRY_ATTEMPTS, attempts: STALLED_RETRY_ATTEMPTS });
-      if (second === "stalled") await handleFailedWeek(extra, stalled(), deps(clock, { alert: deliver }));
-      else {
-        await lastAttemptAlert(STALLED_RETRY_ATTEMPTS, new Error("render timed out"));
-        await handleFailedWeek(extra, new Error("render timed out"), deps(clock, { alert: deliver }));
-      }
+      const extra = weekJob({ attemptsMade: second === "exhausted" ? STALLED_RETRY_ATTEMPTS : 1, attempts: STALLED_RETRY_ATTEMPTS });
+      const err = second === "stalled" ? stalled() : second === "refused" ? new UnrecoverableError(EXTRA_RUN_STALLED) : new Error("render timed out");
+      await handleFailedWeek(extra, err, deps(clock, { alert: deliver }));
       expect(mails[0].text).toMatch(/Queued once more by itself/);
       expect(mails.at(-1)!.text).toMatch(/failed again after it had already been queued once more/);
-      expect(mails.length).toBe(second === "stalled" ? 2 : 3);
+      expect(mails.length, second).toBe(2);
     }
+  });
+
+  it("outside the worker, runDentvidWeek's own 'week failed' and this handler's share a key: still one email", async () => {
+    clock = SATURDAY_EVENING;
+    const err = new UnrecoverableError("Incorrect API key provided");
+    // jobs.ts runDentvidWeek on a direct call (no failedHandlerAlerts).
+    await deliver(alerts.weekFailed({ clinic: { id: CLINIC, name: "Gülüş Dental" }, week: WEEK, attempts: 1, error: cleanError(err), permanent: true }));
+    await handleFailedWeek(weekJob(), err, deps(clock, { alert: deliver }));
+    expect(mails).toHaveLength(1);
   });
 });
 

@@ -55,6 +55,8 @@ let clinicReadsLeft = -1;
 /** Extra dentvid_clinics columns for the paying() read (e.g. review_demo). */
 let clinicExtra: Record<string, unknown> = {};
 const removedKeys: string[] = [];
+/** Every storage key an upload succeeded for (videos and thumbnails), to count against what was removed. */
+const uploadedKeys: string[] = [];
 const orders: { table: string; col: string; ascending: boolean }[] = [];
 
 function fakeDb() {
@@ -83,7 +85,7 @@ function fakeDb() {
   };
   const storage = {
     from: () => ({
-      upload: async () => (uploadFailures-- > 0 ? { error: { message: "503 storage unavailable" } } : { error: null }),
+      upload: async (key: string) => (uploadFailures-- > 0 ? { error: { message: "503 storage unavailable" } } : (uploadedKeys.push(key), { error: null })),
       remove: async (keys: string[]) => (removedKeys.push(...keys), { error: null }),
     }),
   };
@@ -94,7 +96,7 @@ vi.mock("@supabase/supabase-js", () => ({ createClient: () => fakeDb() }));
 process.env.DENTVID_SUPABASE_URL = "http://liman.test";
 process.env.DENTVID_SERVICE_ROLE_KEY = "x";
 
-const { configureSpend, runDentvidWeek, _setStoreRetryMs, SHORT_WEEK_ALERT_KEY, _setPreflight } = await import("./jobs.js");
+const { configureSpend, runDentvidWeek, _setStoreRetryMs, SHORT_WEEK_ALERT_KEY, _setPreflight, NARRATION_TRIES } = await import("./jobs.js");
 const { MemoryGuardStore, SpendGuard, guardConfig } = await import("./spend-guard.js");
 const { configureOps } = await import("./ops.js");
 const { MemoryOpsStore, weekStateKey, _resetLocalOnce } = await import("./ops-alert.js");
@@ -132,6 +134,7 @@ beforeEach(() => {
   clinicReadsLeft = -1;
   clinicExtra = {};
   removedKeys.length = 0;
+  uploadedKeys.length = 0;
   pastItems = [];
   selects.length = 0;
   orders.length = 0;
@@ -403,20 +406,27 @@ describe("a week that heals itself", () => {
 });
 
 describe("a voice that could not be made never reaches the dentist as a silent video", () => {
-  // Before: when the narration (TTS) failed, render() went on without a voice, QA measured "no audio
-  // track", the row was stored as "flagged" and counted as one of the week's five: no top-up, no
-  // retry, no alert, and the dentist read only "the sound may be quiet in places".
+  // Before (#210): when the narration (TTS) failed, render() went on without a voice, the silent
+  // render was uploaded, and only then rejected: during a TTS outage every attempt rendered and
+  // uploaded ten silent videos that no stored row pointed to. Now a video without its voice is never
+  // rendered: the narration is tried again in place, then the topic is re-attempted by week.ts, then
+  // given up as a technical rejection with no file.
   const QA_EXPECT = { width: 1080, height: 1920, minSec: 8, maxSec: 90, expectAudio: true };
+  /** week.ts VIDEO_ATTEMPTS (week.ts is mocked here). */
+  const VIDEO_ATTEMPTS = 2;
   /** Rendered files and whether their render had a voice. */
   let voiced: Map<string, boolean>;
   let ttsCalls: number;
-  /** TTS calls (1-based) that fail, as when ElevenLabs and the OpenAI fallback both refuse. */
+  /** TTS calls (1-based) that fail, as when ElevenLabs and the OpenAI fallback both refuse; 0 = every call. */
   let ttsFails: Set<number>;
+  /** Renders whose QA measures silence although they had a voice (a mux bug): rows.ts's last line of defence. */
+  let silentRenders: Set<string>;
 
   beforeEach(() => {
     voiced = new Map();
     ttsCalls = 0;
     ttsFails = new Set();
+    silentRenders = new Set();
     prepareNarration.mockImplementation(async (plan: unknown, dir: string) => {
       ttsCalls++;
       if (ttsFails.has(ttsCalls) || ttsFails.has(0)) throw new Error("tts failed: ElevenLabs 503, OpenAI 500");
@@ -431,40 +441,68 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     });
   });
 
-  /** produceWeek as the real one: each topic rendered through the job's render(), then measured. */
-  const renderedWeek = (titles: string[]) => async (deps: { render: (p: unknown, t: unknown) => Promise<string> }) => {
-    const out: Pkg[] = [];
-    for (const title of titles) {
-      const topic = { title };
-      const videoPath = await deps.render({ scenes: [], voiceover: { text: "Eins. Zwei.", voice: "nova" } }, topic);
-      const has = voiced.get(videoPath) === true;
-      const stats = has ? STATS_OK : { ...STATS_OK, hasAudio: false, meanVolumeDb: null, longestSilenceSec: 0 };
-      const issues = judge(stats, QA_EXPECT);
-      out.push({ status: "ready", approval: "pending", topic, plan: {}, copy: {}, checks: {}, videoPath, qa: { ok: issues.length === 0, issues, stats } });
-    }
-    return out;
-  };
+  /**
+   * produceWeek as the real one (week.ts): topics in order until the count asked for is ready,
+   * each rendered through the job's render() and measured; a video whose render throws is tried
+   * once more, then recorded as a technical rejection (no file) and the next topic takes its place.
+   */
+  const renderedWeek =
+    (titles: string[]) =>
+    async (deps: { render: (p: unknown, t: unknown) => Promise<string>; onVideoError?: (e: Error, t: unknown) => unknown }, _profile: unknown, opts: { count: number }) => {
+      const out: Pkg[] = [];
+      for (const title of titles) {
+        if (out.filter((p) => p.status === "ready").length >= opts.count) break;
+        const topic = { title };
+        let lastError: Error | undefined;
+        for (let attempt = 1; attempt <= VIDEO_ATTEMPTS; attempt++) {
+          try {
+            const videoPath = await deps.render({ scenes: [], voiceover: { text: "Eins. Zwei.", voice: "nova" } }, topic);
+            const has = voiced.get(videoPath) === true && !silentRenders.has(title);
+            const stats = has ? STATS_OK : { ...STATS_OK, hasAudio: false, meanVolumeDb: null, longestSilenceSec: 0 };
+            const issues = judge(stats, QA_EXPECT);
+            out.push({ status: "ready", approval: "pending", topic, plan: {}, copy: {}, checks: {}, videoPath, qa: { ok: issues.length === 0, issues, stats } });
+            lastError = undefined;
+            break;
+          } catch (e) {
+            lastError = e as Error;
+            await deps.onVideoError?.(lastError, topic);
+          }
+        }
+        if (lastError) out.push({ status: "rejected", topic, stage: "script", reasons: [], error: lastError.message });
+      }
+      return out;
+    };
+  const videoUploads = () => uploadedKeys.filter((k) => k.endsWith(".mp4"));
 
-  it("TTS failing for one video: that video is named for the owner but never delivered or playable, and the week is topped up to five", async () => {
-    ttsFails = new Set([3]);
+  it("TTS failing for one video: it is never rendered or uploaded, the owner can read why, and the week is topped up to five", async () => {
+    // Video c: both narration tries of its first attempt fail, and both of its re-attempt.
+    // (No spare topics in this round, so the top-up has to make the fifth.)
+    ttsFails = new Set([3, 4, 5, 6]);
     produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"])).mockImplementationOnce(renderedWeek(["f"]));
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
 
-    // The silent render happened (render() went on without a voice)…
-    expect(renderPlan.mock.calls.filter(([o]) => !(o as { voiceoverSrc?: string }).voiceoverSrc)).toHaveLength(1);
+    // Never a render without a voice: a, b, d, e and the top-up's f only.
+    expect(renderPlan).toHaveBeenCalledTimes(5);
+    expect(renderPlan.mock.calls.every(([o]) => !!(o as { voiceoverSrc?: string }).voiceoverSrc)).toBe(true);
+    // The narration was tried NARRATION_TRIES times in each of week.ts's two attempts.
+    expect(NARRATION_TRIES).toBe(2);
+    expect(ttsCalls).toBe(9);
     // …and the top-up asked for exactly the one missing video.
     expect(produceWeek).toHaveBeenCalledTimes(2);
     expect((produceWeek.mock.calls[1][2] as { count: number }).count).toBe(1);
     expect(r).toMatchObject({ ready: 5, flagged: 0, rejected: 1, toppedUp: 1 });
 
-    const silent = inserted.find((row) => row.title === "c")!;
-    expect(silent.status).toBe("rejected");
-    // The owner reads why and where its file is (in the owner's folder); the clinic gets no sound reason.
-    expect(String(silent.error)).toMatch(new RegExp(`^silent render: no audio track \\(file kept for the owner: ${OWNER}/[^)]+\\.mp4\\)$`));
-    expect(silent.findings).toEqual([]);
-    // Nothing on the columns the clinic's library signs: neither the web nor the iPhone app can play it.
-    expect(silent.video_path).toBeUndefined();
-    expect(silent.thumb_path).toBeUndefined();
+    const lost = inserted.find((row) => row.title === "c")!;
+    expect(lost.status).toBe("rejected");
+    // For the owner only: why it was not made. The clinic gets no reason, and nothing it could play.
+    expect(String(lost.error)).toMatch(/^narration failed: tts failed: ElevenLabs 503, OpenAI 500$/);
+    expect(lost.findings).toEqual([]);
+    expect(lost.video_path).toBeUndefined();
+    expect(lost.thumb_path).toBeUndefined();
+    // Five uploads, all five on a stored row, nothing to remove.
+    expect(videoUploads()).toHaveLength(5);
+    expect(new Set(inserted.map((row) => row.video_path).filter(Boolean))).toEqual(new Set(videoUploads()));
+    expect(removedKeys).toEqual([]);
     // Every video the dentist can review has a voice.
     const usable = inserted.filter((row) => row.status === "ready" || row.status === "flagged");
     expect(usable.map((row) => row.title)).toEqual(["a", "b", "d", "e", "f"]);
@@ -474,22 +512,53 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     expect(mails).toEqual([]);
   });
 
-  it("the top-up refused by the spend guard: the silent video still does not count, and the owner hears of a short week naming it", async () => {
+  it("a narration that fails once is tried again in place: the video keeps its topic and its voice, no re-made script", async () => {
+    ttsFails = new Set([3]);
+    produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"]));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toMatchObject({ ready: 5, rejected: 0, toppedUp: 0 });
+    expect(ttsCalls).toBe(6);
+    expect(renderPlan).toHaveBeenCalledTimes(5);
+    expect(renderPlan.mock.calls.every(([o]) => !!(o as { voiceoverSrc?: string }).voiceoverSrc)).toBe(true);
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+  });
+
+  it("a script with no narration text is not rendered either: the topic is re-attempted, then given up", async () => {
+    prepareNarration.mockImplementation(async (plan: unknown) => ({ plan }));
+    produceWeek.mockImplementationOnce(renderedWeek(["a"]));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 1, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toThrow(/zero usable videos.*narration failed: the script has no narration text/);
+    expect(renderPlan).not.toHaveBeenCalled();
+    expect(uploadedKeys).toEqual([]);
+  });
+
+  it("the top-up refused by the spend guard: the video without a voice does not count, and the owner hears of a short week naming it", async () => {
     configureSpend({ guard: new SpendGuard(new MemoryGuardStore(), () => ({ ...guardConfig({}), clinicDailyUsd: 0.5 })), alert: vi.fn(async () => true) });
-    ttsFails = new Set([2]);
+    ttsFails = new Set([2, 3, 4, 5]);
     produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"]));
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
     expect(r).toMatchObject({ ready: 4, rejected: 1, toppedUp: 0 });
+    expect(renderPlan).toHaveBeenCalledTimes(4);
     expect(mails).toHaveLength(1);
     expect(mails[0].text).toMatch(/4 of 5/);
-    expect(mails[0].text).toContain("b: silent render: no audio track");
+    expect(mails[0].text).toContain("b: narration failed: tts failed");
   });
 
-  it("TTS down for every video: nothing silent is stored, the week fails as transient and BullMQ retries it", async () => {
+  it("TTS down for every video: nothing rendered, nothing uploaded, no top-up paid for, the week fails as transient and BullMQ retries it", async () => {
+    const guardStore = new MemoryGuardStore();
+    configureSpend({ guard: new SpendGuard(guardStore, () => guardConfig({})), alert: vi.fn(async () => true) });
     ttsFails = new Set([0]);
-    produceWeek.mockImplementation(renderedWeek(["a", "b", "c", "d", "e"]));
+    produceWeek.mockImplementation(renderedWeek(["a", "b", "c", "d", "e", "s1", "s2"]));
     await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    expect(renderPlan).not.toHaveBeenCalled();
+    expect(uploadedKeys).toEqual([]);
+    expect(removedKeys).toEqual([]);
     expect(inserted).toEqual([]);
+    // Bounded: every topic of the one round got its two attempts of two narration tries; no top-up round.
+    expect(ttsCalls).toBe(7 * VIDEO_ATTEMPTS * NARRATION_TRIES);
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+    // Only the week's own reservation was taken: no top-up money for scripts that could not be voiced.
+    const usd = [...guardStore.values.entries()].find(([k]) => k.startsWith(`dv:spend:usd:clinic:${CLINIC}:`))?.[1];
+    expect(usd).toBe(Math.round(guardConfig({}).costUsd.week * 100));
     expect(sendReadyAtCivilHour).not.toHaveBeenCalled();
     expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
     produceWeek.mockReset();
@@ -498,11 +567,49 @@ describe("a voice that could not be made never reaches the dentist as a silent v
   it("the last attempt with TTS still down: 'delayed' in the library and the owner is told, never a silent week", async () => {
     ttsFails = new Set([0]);
     produceWeek.mockImplementation(renderedWeek(["a", "b", "c"]));
-    await expect(runDentvidWeek({ clinicId: CLINIC, count: 3, week }, { jobId: "w", attemptsMade: 3, attempts: 4 })).rejects.toThrow(/zero usable videos.*silent render/);
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 3, week }, { jobId: "w", attemptsMade: 3, attempts: 4 })).rejects.toThrow(/zero usable videos.*narration failed/);
     expect(inserted).toEqual([]);
+    expect(uploadedKeys).toEqual([]);
     expect(await ops.get(weekStateKey(CLINIC, week))).toBe("delayed");
     expect(mails.some((m) => /Haftalık videolar|week failed/i.test(m.subject))).toBe(true);
     produceWeek.mockReset();
+  });
+
+  it("a silent render despite a voice (rows.ts's last line of defence) in a week that is stored: rejected, its file kept and named for the owner", async () => {
+    silentRenders = new Set(["c"]);
+    produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"])).mockImplementationOnce(renderedWeek(["f"]));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toMatchObject({ ready: 5, rejected: 1, toppedUp: 1 });
+    const silent = inserted.find((row) => row.title === "c")!;
+    expect(String(silent.error)).toMatch(new RegExp(`^silent render: no audio track \\(file kept for the owner: ${OWNER}/[^)]+\\.mp4\\)$`));
+    expect(silent.video_path).toBeUndefined();
+    // Every upload is either on a row or named in the silent row's error; none removed.
+    const named = String(silent.error).match(/file kept for the owner: ([^)]+)\)/)![1];
+    expect(new Set(videoUploads())).toEqual(new Set([...inserted.map((row) => row.video_path).filter(Boolean), named]));
+    expect(removedKeys).toEqual([]);
+  });
+
+  it("every render silent despite a voice: the week stores nothing, so every file it uploaded is removed again", async () => {
+    silentRenders = new Set(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
+    produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"])).mockImplementationOnce(renderedWeek(["f", "g", "h", "i", "j"]));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    expect(inserted).toEqual([]);
+    // Ten uploaded (five and the top-up's five), ten removed: no file without a row.
+    expect(videoUploads()).toHaveLength(10);
+    expect(new Set(removedKeys)).toEqual(new Set(uploadedKeys));
+    expect(removedKeys.every((k) => k.startsWith(`${OWNER}/`))).toBe(true);
+  });
+
+  it("the clinic deleted while its week ran, one render silent: every uploaded file is removed, the silent one too", async () => {
+    clinicReadsLeft = 1; // paying() sees it; by the insert it is gone
+    insertFailures = 1;
+    insertError = 'insert or update on table "dentvid_items" violates foreign key constraint "dentvid_items_clinic_id_fkey"';
+    silentRenders = new Set(["b"]);
+    produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c"])).mockImplementationOnce(renderedWeek(["d"]));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 3, week }, { jobId: "w", attempts: 4 });
+    expect(r).toMatchObject({ ready: 0 });
+    expect(videoUploads()).toHaveLength(4);
+    expect(new Set(removedKeys)).toEqual(new Set(uploadedKeys));
   });
 });
 
@@ -633,5 +740,129 @@ describe("provider pre-flight before a week spends", () => {
     _setPreflight(async () => ({ ok: true }));
     await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
     expect(await ops.get(PROVIDER_DOWN_KEY("OpenAI"))).toBeNull();
+  });
+});
+
+describe("a week's runs count against the Monday it delivers (spend-guard.ts countersFor)", () => {
+  const runsKey = (w: string) => `dv:spend:ops:week:${CLINIC}:${w}`;
+  const weekKeys = (store: InstanceType<typeof MemoryGuardStore>) => [...store.values.keys()].filter((k) => k.startsWith("dv:spend:ops:week:"));
+
+  it("a batch week made on Saturday counts against the coming Monday, not the calendar week it runs in", async () => {
+    const store = new MemoryGuardStore();
+    configureSpend({ guard: new SpendGuard(store, () => guardConfig({})), alert: vi.fn(async () => true) });
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2030-01-07", batch: true }, { jobId: "w", attempts: 4 });
+    expect(weekKeys(store)).toEqual([runsKey("2030-01-07")]);
+    expect(store.values.get(runsKey("2030-01-07"))).toBe(1);
+  });
+
+  it("an old job without a week counts against the week it runs in, as before", async () => {
+    const store = new MemoryGuardStore();
+    configureSpend({ guard: new SpendGuard(store, () => guardConfig({})), alert: vi.fn(async () => true) });
+    produceWeek.mockResolvedValueOnce(["a", "b", "c"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 3 }, { jobId: "w", attempts: 4 });
+    expect(weekKeys(store)).toEqual([runsKey(week)]);
+  });
+
+  it("the delivery week's run is given back when the provider refused the first call", async () => {
+    const store = new MemoryGuardStore();
+    configureSpend({ guard: new SpendGuard(store, () => guardConfig({})), alert: vi.fn(async () => true) });
+    produceWeek.mockRejectedValueOnce(Object.assign(new Error("429 You exceeded your current quota"), { status: 429, code: "insufficient_quota" }));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2030-01-07" }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(UnrecoverableError);
+    expect(store.values.get(runsKey("2030-01-07"))).toBe(0);
+  });
+});
+
+describe("one email per final failure: under the worker, the failed-job handler speaks (stalled-week.ts)", () => {
+  // Before: runDentvidWeek sent "week failed, retry it by hand" on its last attempt, then the handler
+  // sent "queued once more, no need to retry"; when that extra run failed, runDentvidWeek sent
+  // "week failed" again and the handler "failed again". Two emails with opposite advice, twice.
+  const W = "2030-01-07";
+  const SAT = new Date("2030-01-05T20:00:00Z");
+  const ID = `week:${CLINIC}:${W}`;
+  let added: { name: string; data: Record<string, unknown>; opts: Record<string, unknown> }[];
+  let kept: Map<string, string>;
+  const queue = {
+    add: async (name: string, data: unknown, opts: Record<string, unknown>) => {
+      added.push({ name, data: data as Record<string, unknown>, opts });
+      kept.set(String(opts.jobId), "delayed");
+      return {};
+    },
+    getJob: async (id: string) =>
+      kept.has(id) ? { getState: async () => kept.get(id)!, remove: async () => void kept.delete(id) } : undefined,
+  };
+  const handlerDeps = async (now: Date) => {
+    const { ownerAlert, setWeekDelay } = await import("./ops.js");
+    return { queue, store: ops, alert: ownerAlert, setDelay: setWeekDelay, clinic: async (id: string) => ({ ref: { id, name: "Gülüş Dental" }, tz: "Europe/Istanbul" }), now };
+  };
+  const failedJob = (data: Record<string, unknown>, attemptsMade: number, attempts: number) => ({ name: "week", id: ID, data, attemptsMade, opts: { attempts, priority: 120 } });
+
+  beforeEach(() => {
+    added = [];
+    kept = new Map([[ID, "failed"]]);
+  });
+
+  it("a week that used every attempt: ONE email (queued once more, with its error); its extra run failing too: ONE more", async () => {
+    const { handleFailedWeek, weekRunCtx } = await import("./stalled-week.js");
+    produceWeek.mockRejectedValue(new Error("render timed out after 900s"));
+    const data = { clinicId: CLINIC, count: 5, week: W, batch: true };
+    const err = await runDentvidWeek(data, weekRunCtx(failedJob(data, 3, 4))).catch((e) => e);
+    expect(err.message).toMatch(/timed out/);
+    // runDentvidWeek did its part (the library says "delayed") but sent nothing itself.
+    expect(await ops.get(weekStateKey(CLINIC, W))).toBe("delayed");
+    expect(mails).toEqual([]);
+    const first = await handleFailedWeek(failedJob(data, 4, 4), err, await handlerDeps(SAT));
+    expect(first).toMatchObject({ kind: "exhausted", requeued: true });
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/A failed week was queued once more/);
+    expect(mails[0].text).toContain("render timed out after 900s");
+    expect(mails[0].text).toMatch(/could not be made after 4 attempts/);
+    expect(mails[0].text).toMatch(/No need to retry by hand now/);
+    expect(mails[0].text).not.toMatch(/failed → retry|retry that job/);
+
+    // The extra run (marked extra) fails too: still nothing from runDentvidWeek, one "failed again".
+    expect(added[0].data).toMatchObject({ clinicId: CLINIC, week: W, extra: true });
+    const err2 = await runDentvidWeek(added[0].data as never, weekRunCtx(failedJob(added[0].data, 0, 1))).catch((e) => e);
+    expect(mails).toHaveLength(1);
+    kept.set(ID, "failed");
+    const second = await handleFailedWeek(failedJob(added[0].data, 1, 1), err2, await handlerDeps(new Date(SAT.getTime() + 40 * 60_000)));
+    expect(second).toMatchObject({ requeued: false, skipped: "already" });
+    expect(mails).toHaveLength(2);
+    expect(mails[1].subject).toMatch(/A paying clinic's week failed/);
+    expect(mails[1].text).toMatch(/failed again after it had already been queued once more/);
+    produceWeek.mockReset();
+  });
+
+  it("a permanent error: ONE email, said once", async () => {
+    const { handleFailedWeek, weekRunCtx } = await import("./stalled-week.js");
+    produceWeek.mockRejectedValue(Object.assign(new Error("Incorrect API key provided"), { status: 401 }));
+    const data = { clinicId: CLINIC, count: 5, week: W };
+    const err = await runDentvidWeek(data, weekRunCtx(failedJob(data, 0, 4))).catch((e) => e);
+    expect(err).toBeInstanceOf(UnrecoverableError);
+    expect(mails).toEqual([]);
+    await handleFailedWeek(failedJob(data, 1, 4), err, await handlerDeps(SAT));
+    expect(mails).toHaveLength(1);
+    expect(mails[0].text).toMatch(/permanent error/);
+    expect(added).toEqual([]);
+    produceWeek.mockReset();
+  });
+
+  it("every attempt used after the clinic's Monday morning (not queued again): ONE 'week failed' email that says why", async () => {
+    const { handleFailedWeek, weekRunCtx } = await import("./stalled-week.js");
+    produceWeek.mockRejectedValue(new Error("render timed out after 900s"));
+    const data = { clinicId: CLINIC, count: 5, week: W };
+    const err = await runDentvidWeek(data, weekRunCtx(failedJob(data, 3, 4))).catch((e) => e);
+    await handleFailedWeek(failedJob(data, 4, 4), err, await handlerDeps(new Date("2030-01-07T06:00:00Z")));
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/A paying clinic's week failed/);
+    expect(mails[0].text).toMatch(/Monday morning has passed/);
+    produceWeek.mockReset();
+  });
+
+  it("outside the worker (a direct call), runDentvidWeek still tells the owner itself", async () => {
+    produceWeek.mockRejectedValue(new Error("render timed out after 900s"));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week: W }, { jobId: ID, attemptsMade: 3, attempts: 4 })).rejects.toThrow();
+    expect(mails).toHaveLength(1);
+    produceWeek.mockReset();
   });
 });

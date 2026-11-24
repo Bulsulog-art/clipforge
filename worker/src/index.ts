@@ -1,11 +1,11 @@
-import { Worker, MetricsTime, Queue } from "bullmq";
+import { Worker, MetricsTime, Queue, UnrecoverableError } from "bullmq";
 import IORedis from "ioredis";
 import * as Sentry from "@sentry/node";
 import { logger } from "./logger.js";
 import { supabase } from "./supabase.js";
 import { runVideoPipeline } from "./pipeline.js";
 import { runGenerate } from "./generate.js";
-import { configureSpend, countActiveClinics, dentvidDb, runDentvidChange, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError } from "./dentvid/jobs.js";
+import { configureSpend, countActiveClinics, dentvidDb, runDentvidChange, runDentvidRecording, runDentvidRestyle, runDentvidWeek, SpendRefusedError, WEEK_VIDEOS } from "./dentvid/jobs.js";
 import { RedisGuardStore, SpendGuard } from "./dentvid/spend-guard.js";
 import { RedisParkStore, resumeParked } from "./dentvid/park.js";
 import { DISPATCH_SCHEDULE, dispatchWeeks } from "./dentvid/schedule.js";
@@ -13,7 +13,7 @@ import { isBatchPriority } from "./dentvid/job-options.js";
 import { batchNice, withNicedChildren } from "./dentvid/nice.js";
 import { configureReadyMail, notifyReadyChecked, type ReadyMailJob } from "./dentvid/notify.js";
 import { LIFECYCLE_SCHEDULE, runLifecycle } from "./dentvid/lifecycle.js";
-import { clinicRef, configureOps, opsStore, ownerAlert, RedisOpsStore, setWeekDelay } from "./dentvid/ops.js";
+import { clinicRef, configureOps, opsStore, ownerAlert, ownerAlertOnce, RedisOpsStore, setWeekDelay } from "./dentvid/ops.js";
 import { alerts, resendSender } from "./dentvid/ops-alert.js";
 import { dailyProviderCheck } from "./dentvid/provider-health.js";
 import { checkFirstWeeks, checkMondayDispatch, FIRST_WEEK_SCHEDULE, supabaseWatchDb, WATCHDOG_SCHEDULE } from "./dentvid/watchdog.js";
@@ -25,7 +25,8 @@ import { RETENTION_SCHEDULE, retentionAlertDue, runRetention, supabaseRetentionD
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
 import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, revenuecatLookup, supabaseReconcileDb } from "./dentvid/reconcile.js";
-import { handleFailedWeek, MAX_STALLED_COUNT, weekClinic } from "./dentvid/stalled-week.js";
+import { EXTRA_RUN_STALLED, extraRunRestarted, handleFailedRestyle, handleFailedWeek, MAX_STALLED_COUNT, weekClinic, weekRunCtx } from "./dentvid/stalled-week.js";
+import { recordWeekDuration } from "./dentvid/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
@@ -134,14 +135,20 @@ const dentvidWorker = new Worker(
   async (job) => {
     try {
       if (job.name === "week") {
-        const run = () => runDentvidWeek(job.data, { jobId: job.id, attemptsMade: job.attemptsMade, attempts: job.opts.attempts });
+        // A week's one extra run (dentvid/stalled-week.ts) whose process died under it is not started
+        // again: failed here, before it reserves anything, and the "failed" handler tells the owner.
+        if (extraRunRestarted(job)) throw new UnrecoverableError(EXTRA_RUN_STALLED);
+        // weekRunCtx: the "failed" handler below sends the one owner email for a final failure.
+        const run = () => runDentvidWeek(job.data, weekRunCtx(job));
         return isBatchPriority(job.opts.priority) ? await withNicedChildren(BATCH_NICE, run) : await run();
       }
       if (job.name === "recording") return await runDentvidRecording(job.data, { jobId: job.id });
       if (job.name === "restyle") return await runDentvidRestyle(job.data);
       // "Ask for a change" on one video (dentvid/jobs.ts runDentvidChange): one attempt, within the spend guard.
       if (job.name === "change") return await runDentvidChange(job.data);
-      if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue, new Date(), opsStore(), DENTVID_CONCURRENCY);
+      // Projects the batch with the measured minutes per week and emails the owner once a week when a
+      // Monday deadline would be missed (dentvid/capacity.ts).
+      if (job.name === "dispatch") return await dispatchWeeks(dentvidDb(), dentvidQueue, new Date(), opsStore(), DENTVID_CONCURRENCY, { alertOnce: ownerAlertOnce });
       throw new Error(`unknown dentvid job ${job.name}`);
     } catch (e) {
       // A spend-guard refusal is expected behaviour (parked + owner alerted), not a crash.
@@ -198,21 +205,26 @@ dentvidWorker.on("failed", (job, err) => {
       })
       .catch((e) => logger.error({ jobId: job.id, err: (e as Error).message }, "dentvid: failed-week handling failed"));
   }
-  // A restyle that died outside its own error handling (stalled, killed): the card must not say "updating…" forever.
-  if (job?.name === "restyle" && job.attemptsMade >= (job.opts.attempts ?? 1)) {
-    const itemId = (job.data as { itemId?: string }).itemId;
-    if (itemId) {
-      void dentvidDb()
+  // A restyle that died outside its own error handling (stalled, killed): the card must not say "updating…"
+  // forever. Final by the same test as weeks (a stalled restyle fails at attempt 1 of 2).
+  if (job?.name === "restyle") {
+    void handleFailedRestyle(job, err, async (itemId) => {
+      const { error } = await dentvidDb()
         .from("dentvid_items")
         .update({ restyle_status: "failed", updated_at: new Date().toISOString() })
         .eq("id", itemId)
-        .eq("restyle_status", "queued")
-        .then(
-          () => {},
-          () => {},
-        );
-    }
+        .eq("restyle_status", "queued");
+      if (error) throw new Error(error.message);
+    }).catch(() => {});
   }
+});
+// How long real weeks take (dentvid/capacity.ts): every full week's duration goes into a capped list,
+// whose median the Saturday dispatch projects with once there are enough.
+dentvidWorker.on("completed", (job, result) => {
+  if (job.name !== "week") return;
+  void recordWeekDuration(opsStore(), job, result, WEEK_VIDEOS).then((minutes) => {
+    if (minutes !== null) logger.info({ jobId: job.id, minutes }, "dentvid: week duration recorded");
+  });
 });
 
 // DentVideo lifecycle email (welcome is sent by the payment webhook; this is

@@ -18,8 +18,9 @@ queue priorities and the point at which rendering has to move to its own server.
   Monday payer now waits for at most the one week already rendering (~12 min), not for 100 of them.
 - **One shared 2-core box carries ~120 paying clinics if many are in New Zealand/Australia, ~135 if most are
   in Europe/Türkiye** (at a planning load of 75 %). **Plan the render server at 80 paying clinics; it is
-  required before 120.** The launch goal of 100 paying clinics should not fill on one box. The worker logs a
-  warning at dispatch when its projection says a deadline will be missed.
+  required before 120.** The launch goal of 100 paying clinics should not fill on one box. The worker records
+  how long every real week takes and **emails the owner at dispatch** when its projection says a Monday
+  deadline will be missed, or when weeks take 1.5× longer than planned (§2a).
 - Marketing pages are now prerendered and sent with
   `Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400`; the app, sign-in, checkout
   and every API route are never marked public.
@@ -94,9 +95,31 @@ Arabic and Japanese landings, about and guides pages were *not* prerendered befo
 | Storage upload, thumbnails, logo analysis | <0.5 | small files (3–4 MB per video) |
 | **Total, one job at a time** | **≈ 12** | `WEEK_MINUTES_DEFAULT` in `worker/src/dentvid/schedule.ts` |
 
-**Throughput: 60 / 12 = 5 clinics per hour** with one DentVideo job at a time. Replace the estimate with
-production numbers once a few weeks have run: BullMQ keeps `processedOn`/`finishedOn` on every completed
-`week:*` job; set `DENTVID_WEEK_MINUTES` to the median and the dispatch's projection follows.
+**Throughput: 60 / 12 = 5 clinics per hour** with one DentVideo job at a time. The 12 is an estimate; the
+worker now measures the real number (§2a).
+
+## 2a. Measured week durations and the capacity alert
+
+BullMQ forgets a completed job after 7 days, so no history of real week durations used to exist, and "the
+batch will miss deadlines" was only a log line. Now (`worker/src/dentvid/capacity.ts`, wired in
+`worker/src/index.ts` and `schedule.ts`):
+
+- **Recorded.** After every `week` job that made a full week in its run (five usable videos), its wall time
+  (`finishedOn - processedOn`, minutes) is pushed to the Redis list `dv:ops:weekdur`, capped at the last
+  **50**, kept 60 days. A re-run that made only the missing videos, or one that found the week already made,
+  is not a week's work and is not recorded.
+- **Projected.** At the Saturday dispatch, once **5** full weeks are recorded, their **median** replaces
+  `DENTVID_WEEK_MINUTES` (default 12) in `projectedLate`. Before that, the configured number is used. The
+  dispatch log line says which (`minutesSource`).
+- **Alerted, once per delivery week** (claim `dv:ops:capacity-alert:<monday>`, so a re-run dispatch sends
+  nothing more):
+  - *urgent* "The weekend batch may miss some Monday deliveries" when any clinic is projected to get its
+    videos after its Monday 07:00, with the count, the minutes per week used and the time zones affected;
+  - *warning* "Weeks take longer to make than planned" when nothing is late yet but the measured median is
+    more than **1.5×** `DENTVID_WEEK_MINUTES`. Then set `DENTVID_WEEK_MINUTES` to the median and look again at
+    §3 and §6.
+- **The decision stays the owner's.** Nothing is skipped or reordered; every week is queued as before. The
+  delivery watchdog's own checks after each Monday morning are unchanged.
 
 ## 3. When each market's Monday morning is
 
@@ -181,14 +204,14 @@ re-run week never sends two. A first week or a button week is announced at once 
 | `REMOTION_OFFTHREAD_CACHE_MB` | 256 on ≤2 cores; ⅛ of RAM (≤2 GB) above | `renderTuning()` | Remotion's default is half the free memory — on a shared box, the website's memory |
 | `REMOTION_OFFTHREAD_THREADS` | 1 on ≤2 cores, 2 above | `renderTuning()` | footage decoding threads |
 | `DENTVID_BATCH_NICE` | **10** (`0` = off) | `worker/src/dentvid/nice.ts` | weekend-batch renders (Chromium, compositor, ffmpeg) run niced, thread by thread, so the website gets the CPU first; first weeks, restyles and recordings run at normal priority |
-| `DENTVID_WEEK_MINUTES` | 12 | `schedule.ts` | end-to-end minutes per week for the dispatch's deadline projection |
+| `DENTVID_WEEK_MINUTES` | 12 | `schedule.ts` | planned minutes per week: the dispatch's projection until 5 full weeks are measured (then their median, §2a), and the baseline the "slower than planned" alert compares with |
 | `WORKER_QUEUES` | all | `worker/src/roles.ts` | which queues/crons this process runs; `dentvid` on a render server |
 
 ## 6. Move rendering to a separate server (runbook)
 
 **When:** plan it at **80 paying clinics**; it is **required before ~120** (sooner if many clinics are in New
-Zealand, Australia or Japan — see §3), or as soon as the Saturday dispatch logs *"the batch is projected to
-miss some Monday-morning deadlines"*, or the batch is still running on Sunday afternoon UTC.
+Zealand, Australia or Japan — see §3), or as soon as the Saturday dispatch emails *"The weekend batch may
+miss some Monday deliveries"* (§2a), or the batch is still running on Sunday afternoon UTC.
 
 **What:** a second VPS (Hostinger KVM 4: 4 vCPU / 16 GB is plenty; KVM 2 works at concurrency 1) running the
 **same worker image** with only the DentVideo render queue. Redis and Liman stay where they are; the render
@@ -212,7 +235,8 @@ server talks to both over the network. Nothing in the web app changes.
    - `DENTVID_RENDER_CONCURRENCY=2` on 4 vCPU / 8 GB+ (≈2× throughput: one job's OpenAI wait overlaps the
      other's render; memory 2 × 2.4 GB). `1` on a 2-vCPU box.
    - `DENTVID_BATCH_NICE=0` — nothing else runs there to protect
-   - `DENTVID_WEEK_MINUTES` — leave at 12 until measured
+   - `DENTVID_WEEK_MINUTES` — leave at 12; the dispatch projects with the measured median once 5 full weeks
+     are recorded (§2a)
 5. **Deploy, then watch one job.** The render server logs `worker roles ["dentvid"]`; queue a test week
    from the admin (or wait for the next first week) and check it completes there.
 6. **Stop rendering on the main box.** Main worker: `DENTVID_RENDER_CONCURRENCY=0` and redeploy. It keeps
