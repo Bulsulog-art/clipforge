@@ -4,11 +4,15 @@ import type { Locale } from "@/content/dentvideo-locales";
 import { CHECKER, CHECKER_PATH } from "@/content/dentvideo-checker";
 import { dvHref } from "@/lib/dentvid/host";
 
-/** On the advertising-rules guides: try the rules on your own post, in the checker. */
+/**
+ * On the advertising-rules guides: try the rules on your own post, in the checker.
+ * A plain block, not an <aside>: it sits inside the guide's <article>, where a
+ * complementary landmark would be nested in another (axe landmark-complementary-is-top-level).
+ */
 export function CheckerCallout({ locale }: { locale: Locale }) {
   const c = CHECKER[locale];
   return (
-    <aside className="flex flex-col gap-4 rounded-[1.25rem] bg-dv-teal-50 p-5 ring-1 ring-dv-teal-100 sm:flex-row sm:items-center sm:justify-between sm:p-6" data-testid="checker-callout">
+    <div className="flex flex-col gap-4 rounded-[1.25rem] bg-dv-teal-50 p-5 ring-1 ring-dv-teal-100 sm:flex-row sm:items-center sm:justify-between sm:p-6" data-testid="checker-callout">
       <div>
         <p className="text-lg font-semibold leading-snug text-dv-ink">{c.h1}</p>
         <p className="mt-1 text-sm leading-relaxed text-dv-body">{c.ui.privacy}</p>
@@ -17,6 +21,6 @@ export function CheckerCallout({ locale }: { locale: Locale }) {
         {c.ui.check}
         <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
       </Link>
-    </aside>
+    </div>
   );
 }

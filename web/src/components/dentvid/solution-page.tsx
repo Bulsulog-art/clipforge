@@ -11,6 +11,7 @@ import { claimHost } from "@/content/solutions/claims";
 import { pageClaims } from "@/content/solutions/page-claims";
 import { solutionJsonLd, jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
+import { capitalizeFirst } from "@/lib/dentvid/capitalize";
 import { Breadcrumbs, Byline, GuideCta, HtmlLang, RichText, SectionTableView } from "./guide-parts";
 import { GuideScriptFont } from "./font-guide";
 import { PhoneFrame } from "./phone";
@@ -42,7 +43,7 @@ export function SolutionView({ p }: { p: SolutionPage }) {
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div aria-hidden="true" className="absolute -end-40 -top-20 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
         <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">
-          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[L] }, { name: p.nav }]} />
+          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[L] }, { name: p.nav }]} locale={L} />
           <h1 className="dv-display mt-6 text-balance text-[2.25rem] leading-[1.05] text-dv-ink sm:text-[3.25rem]">{p.h1}</h1>
           <p className="mt-6 text-lg leading-relaxed text-dv-body sm:text-xl">
             <RichText text={p.intro} locale={L} />
@@ -109,7 +110,8 @@ export function SolutionView({ p }: { p: SolutionPage }) {
                 <caption className="pb-4 text-start text-[1.25rem] font-semibold text-dv-ink">{p.table.caption}</caption>
                 <thead>
                   <tr>
-                    <th scope="col" className="w-[9rem] border-b border-dv-line p-3 text-start" />
+                    {/* The empty corner above the row names: a plain cell, not a header with no text. */}
+                    <td className="w-[9rem] border-b border-dv-line p-3" />
                     {p.table.columns.map((c, i) => (
                       <th key={c} scope="col" className={`border-b border-dv-line p-3 text-start font-semibold ${i === 0 ? "bg-dv-teal-50 text-dv-teal" : "text-dv-ink"}`}>
                         {c}
@@ -257,24 +259,31 @@ function CardLink({ href, label, teal = false }: { href: string; label: string; 
 /**
  * The link from a guide, a hub or the About page to the commercial page(s) of
  * that language, with a descriptive anchor (what the page is, not "click here").
+ *
+ * The anchor is written to sit inside a sentence ("how DentVideo compares …"); standing alone
+ * here it is a title, so it starts with a capital in the page's language. A labelled <nav>,
+ * not an <aside>: a set of links to other pages, and allowed inside an article or a section,
+ * where a nested complementary landmark is not.
  */
 export function CommercialLinks({ locale, pages }: { locale: Locale; pages: SolutionPage[] }) {
   if (pages.length === 0) return null;
   const ui = SOLUTION_UI[locale];
   return (
-    <aside aria-label={ui.forClinics} className="rounded-2xl bg-white p-5 ring-1 ring-dv-line sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-dv-muted">{ui.forClinics}</p>
+    <nav aria-labelledby="dv-for-clinics" className="rounded-2xl bg-white p-5 ring-1 ring-dv-line sm:p-6" data-commercial-links>
+      <p id="dv-for-clinics" className="text-xs font-semibold uppercase tracking-[0.12em] text-dv-muted">
+        {ui.forClinics}
+      </p>
       <ul className="mt-3 space-y-4">
         {pages.map((p) => (
           <li key={p.slug}>
             <Link href={dvHref(solutionPath(p))} className="group inline-flex items-start gap-2 text-[1.0625rem] font-semibold leading-snug text-dv-teal underline decoration-dv-teal/30 underline-offset-[3px] hover:decoration-dv-teal">
-              {p.anchor}
+              {capitalizeFirst(p.anchor, locale)}
               <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 no-underline rtl:-scale-x-100" aria-hidden="true" />
             </Link>
             <p className="mt-1 text-[0.9375rem] leading-relaxed text-dv-body">{p.blurb}</p>
           </li>
         ))}
       </ul>
-    </aside>
+    </nav>
   );
 }

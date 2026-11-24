@@ -29,7 +29,7 @@ export function HelpCenter({ locale }: { locale: Locale }) {
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div aria-hidden="true" className="absolute -start-40 -top-24 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-14">
-          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: h.nav }]} />
+          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: h.nav }]} locale={locale} />
           <h1 className="dv-display mt-6 max-w-3xl text-balance text-[2.75rem] leading-[1.02] text-dv-ink sm:text-[3.75rem]">{h.h1}</h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dv-body sm:text-xl">{h.lead}</p>
           <HelpSearch label={h.search.label} placeholder={h.search.placeholder} none={h.search.none} one={h.search.count.one} other={h.search.count.other} />

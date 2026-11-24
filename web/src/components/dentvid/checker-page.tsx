@@ -40,7 +40,7 @@ export function CheckerPage({ locale }: { locale: Locale }) {
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div aria-hidden="true" className="absolute -end-40 -top-20 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6 sm:pb-12 sm:pt-14">
-          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: c.nav }]} />
+          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: c.nav }]} locale={locale} />
           <h1 className="dv-display mt-6 max-w-4xl text-balance text-[2.25rem] leading-[1.05] text-dv-ink sm:text-[3.25rem]">{c.h1}</h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-dv-body sm:text-xl">{c.intro}</p>
           <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-1.5 text-sm font-medium text-dv-teal ring-1 ring-dv-line">

@@ -56,7 +56,10 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { themeColor: "#faf7f2" };
+// The site has one, light design and no dark theme. "only light" tells browsers that would
+// repaint it dark on their own (Chrome and Samsung Internet's auto-dark on Android) to leave it
+// as designed: their repaint turned the wordmark's dark-teal "Dent" nearly invisible.
+export const viewport: Viewport = { themeColor: "#faf7f2", colorScheme: "only light" };
 
 // Each guide and each commercial page is written in one language; the header and footer follow it.
 const GUIDE_LOCALES: Record<string, Locale> = Object.fromEntries([...GUIDES, ...SOLUTIONS].map((g) => [g.slug, g.locale]));
