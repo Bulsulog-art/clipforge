@@ -1,18 +1,22 @@
 import { describe, expect, it } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadItems, loadShootCards } from "./items";
-import { addDays, LIBRARY_WEEKS } from "./library-weeks";
+import { addDays, earlierWeeksHref, LIBRARY_WEEKS, withEarlierPosts } from "./library-weeks";
+import { postingStreak } from "./app-ui";
 
 /**
  * A small in-memory stand-in for the Supabase client: enough of the query
  * builder (select, eq, gte, lt, in, not … is null, order, limit) and of
  * storage.createSignedUrls for loadItems and loadShootCards, recording every
  * call so the tests can see what was asked of the database.
+ *
+ * `maxRows` caps every answer the way PostgREST's max_rows does (whatever
+ * .limit() asks); `fail` makes the calls it matches answer with an error.
  */
 type Rec = Record<string, unknown>;
 type Call = { table: string; select: string; filters: string[]; limit?: number; inSize?: number; inValues?: unknown[]; orders: string[] };
 
-function fakeDb(tables: Record<string, Rec[]>) {
+function fakeDb(tables: Record<string, Rec[]>, opts: { maxRows?: number; fail?: (c: Call) => boolean } = {}) {
   const calls: Call[] = [];
   const signed: string[][] = [];
   const from = (table: string) => {
@@ -64,8 +68,9 @@ function fakeDb(tables: Record<string, Rec[]>) {
         call.limit = n;
         return q;
       },
-      then<T>(resolve: (v: { data: Rec[]; error: null }) => T) {
+      then<T>(resolve: (v: { data: Rec[] | null; error: { code: string; message: string } | null }) => T) {
         calls.push(call);
+        if (opts.fail?.(call)) return Promise.resolve(resolve({ data: null, error: { code: "PGRST000", message: "could not connect" } }));
         const sorted = [...rows].sort((a, b) => {
           for (const o of orders) {
             const x = String(a[o.col]);
@@ -74,7 +79,7 @@ function fakeDb(tables: Record<string, Rec[]>) {
           }
           return 0;
         });
-        const cut = limit === undefined ? sorted : sorted.slice(0, limit);
+        const cut = sorted.slice(0, Math.min(limit ?? Infinity, opts.maxRows ?? Infinity));
         const data = cols.trim() === "*" ? cut : cut.map((r) => Object.fromEntries(cols.split(",").map((c) => c.trim()).map((c) => [c, r[c]])));
         return Promise.resolve(resolve({ data, error: null }));
       },
@@ -96,6 +101,7 @@ function fakeDb(tables: Record<string, Rec[]>) {
 const NOW = new Date("2026-11-24T10:00:00Z");
 const CURRENT = "2026-11-23";
 const OWNER = "owner-a";
+const CLINIC = "clinic-a";
 
 let seq = 0;
 function row(week: string, over: Rec = {}): Rec {
@@ -104,6 +110,7 @@ function row(week: string, over: Rec = {}): Rec {
   return {
     id,
     owner_id: OWNER,
+    clinic_id: CLINIC,
     kind: "generated",
     status: "ready",
     approval: "pending",
@@ -191,7 +198,8 @@ describe("loadItems: whole weeks, newest first", () => {
     expect(main.inValues).toContain(addDays(CURRENT, -11 * 7));
     expect(main.inValues).not.toContain(addDays(CURRENT, -11 * 7 - 1));
     expect(main.orders).toEqual(["week_of:desc", "created_at:desc"]);
-    expect(main.limit).toBe(400);
+    // The safety limit: 34 rows a week of the window (408 for twelve weeks).
+    expect(main.limit).toBe(408);
     // Two one-row reads find the newest and the oldest week.
     const edges = calls.filter((c) => c.table === "dentvid_items" && c.select === "week_of").slice(0, 2);
     expect(edges.map((c) => [c.filters, c.orders, c.limit])).toEqual([
@@ -208,16 +216,18 @@ describe("loadItems: whole weeks, newest first", () => {
   });
 
   it("at the safety limit the cut-short oldest week is left for 'Show earlier weeks', never shown half", async () => {
-    // A runaway week: 396 rows this week, 10 last week. The 400-row safety limit would cut last week after 4 rows.
-    const rows = [...Array.from({ length: 396 }, () => row(CURRENT)), ...Array.from({ length: 10 }, () => row(addDays(CURRENT, -7)))];
+    // A runaway week: 404 rows this week, 10 last week. The 408-row safety limit would cut last week after 4 rows.
+    const rows = [...Array.from({ length: 404 }, () => row(CURRENT)), ...Array.from({ length: 10 }, () => row(addDays(CURRENT, -7)))];
     const { db } = fakeDb({ dentvid_items: rows });
     const out = await loadItems(db, OWNER, { now: NOW });
     expect(weeksIn(out.items)).toEqual([CURRENT]);
-    expect(out.items).toHaveLength(396);
+    expect(out.items).toHaveLength(404);
     expect(out.hasEarlier).toBe(true);
+    expect(out.earlierWeeks).toBe(24);
     // Asking for more weeks raises the limit with them, so the week comes back whole.
-    const more = await loadItems(db, OWNER, { weeks: 48, now: NOW });
-    expect(perWeek(more.items)).toEqual({ [CURRENT]: 396, [addDays(CURRENT, -7)]: 10 });
+    const more = await loadItems(db, OWNER, { weeks: 24, now: NOW });
+    expect(perWeek(more.items)).toEqual({ [CURRENT]: 404, [addDays(CURRENT, -7)]: 10 });
+    expect(more.hasEarlier).toBe(false);
   });
 
   it("every older week can be reached by asking for 12 more each time", async () => {
@@ -301,6 +311,197 @@ describe("loadItems: whole weeks, newest first", () => {
     expect((await loadItems(db, OWNER, { weeks: 3, now: NOW })).weeks).toBe(12);
     expect((await loadItems(db, OWNER, { weeks: 100_000, now: NOW })).weeks).toBe(520);
     expect((await loadItems(db, OWNER, { weeks: Number.NaN, now: NOW })).weeks).toBe(12);
+  });
+});
+
+/**
+ * Taps "Show earlier weeks" until it is gone, the way a dentist would: each load asks for what the
+ * previous one's link asked for. Returns the weeks seen and how many weeks each load showed.
+ */
+async function tapThrough(db: SupabaseClient, opts: { clinicId?: string } = {}) {
+  const seen = new Set<string>();
+  const shown: number[] = [];
+  let weeks = LIBRARY_WEEKS;
+  for (let taps = 0; taps < 60; taps++) {
+    const out = await loadItems(db, OWNER, { weeks, now: NOW, ...opts });
+    for (const w of weeksIn(out.items)) seen.add(w);
+    shown.push(weeksIn(out.items).length);
+    const href = out.hasEarlier ? earlierWeeksHref(out.weeks, out.earlierWeeks) : null;
+    if (!href) return { seen, shown, last: out };
+    weeks = Number(href.replace("?weeks=", ""));
+  }
+  throw new Error("the link never went away");
+}
+
+describe("loadItems: every tap on 'Show earlier weeks' shows more", () => {
+  it("a dense clinic (20 rows a week): the safety limit grows with the window, so 24 and 36 weeks show 24 and 36", async () => {
+    const forty = weeksBack(CURRENT, 40);
+    const dense = forty.flatMap((w) => [...Array.from({ length: 5 }, () => row(w)), ...Array.from({ length: 15 }, () => row(w, { status: "rejected", video_path: null, thumb_path: null }))]);
+    const { db } = fakeDb({ dentvid_items: dense });
+    for (const weeks of [12, 24, 36]) {
+      const out = await loadItems(db, OWNER, { weeks, now: NOW });
+      expect(weeksIn(out.items), `${weeks} weeks`).toEqual(forty.slice(0, weeks));
+      for (const n of Object.values(perWeek(out.items))) expect(n).toBe(20);
+      expect(out.hasEarlier).toBe(true);
+    }
+    const { seen, shown, last } = await tapThrough(db);
+    expect(shown).toEqual([12, 24, 36, 40]);
+    expect([...seen].sort().reverse()).toEqual(forty);
+    expect(last.hasEarlier).toBe(false);
+  });
+
+  it("after a long pause the link jumps to the older videos, never to weeks that are all empty", async () => {
+    // This week and last, then 30 weeks with nothing (a pause), then ten older weeks.
+    const recent = weeksBack(CURRENT, 2);
+    const older = weeksBack(addDays(CURRENT, -32 * 7), 10);
+    const { db } = fakeDb({ dentvid_items: [...recent, ...older].flatMap(fullWeek) });
+    const out = await loadItems(db, OWNER, { now: NOW });
+    expect(weeksIn(out.items)).toEqual(recent);
+    expect(out.hasEarlier).toBe(true);
+    // The next older week is 32 weeks back: the window that shows it and eleven weeks below it is 44.
+    expect(out.earlierWeeks).toBe(44);
+    expect(earlierWeeksHref(out.weeks, out.earlierWeeks)).toBe("?weeks=44");
+    const { seen, shown, last } = await tapThrough(db);
+    expect(shown).toEqual([2, 12]);
+    expect([...seen].sort().reverse()).toEqual([...recent, ...older]);
+    expect(last.hasEarlier).toBe(false);
+  });
+
+  it("…and with several pauses each tap still lands on videos", async () => {
+    const a = weeksBack(CURRENT, 3);
+    const b = weeksBack(addDays(CURRENT, -25 * 7), 4);
+    const c = weeksBack(addDays(CURRENT, -80 * 7), 2);
+    const { db } = fakeDb({ dentvid_items: [...a, ...b, ...c].flatMap(fullWeek) });
+    const { seen, shown } = await tapThrough(db);
+    for (let k = 1; k < shown.length; k++) expect(shown[k], `tap ${k}`).toBeGreaterThan(shown[k - 1]);
+    expect([...seen].sort().reverse()).toEqual([...a, ...b, ...c]);
+  });
+
+  it("the jump is only a convenience: if that read fails, the link asks for twelve more", async () => {
+    const recent = weeksBack(CURRENT, 2);
+    const older = weeksBack(addDays(CURRENT, -32 * 7), 10);
+    const { db } = fakeDb({ dentvid_items: [...recent, ...older].flatMap(fullWeek) }, { fail: (c) => c.filters.some((f) => f.startsWith("lt:week_of")) });
+    const out = await loadItems(db, OWNER, { now: NOW });
+    expect(weeksIn(out.items)).toEqual(recent);
+    expect(out.earlierWeeks).toBe(24);
+  });
+});
+
+describe("loadItems: a server that returns at most 1000 rows per request", () => {
+  it("never loses a week or shows one half: a request cut by the server is read on from the week it cut", async () => {
+    // 120 weeks of 30 rows: 40 weeks per request would be 1200 rows, more than the server returns.
+    const many = weeksBack(CURRENT, 120);
+    const rows = many.flatMap((w) => [...Array.from({ length: 5 }, () => row(w)), ...Array.from({ length: 25 }, () => row(w, { status: "rejected", video_path: null, thumb_path: null }))]);
+    const { db, calls } = fakeDb({ dentvid_items: rows }, { maxRows: 1000 });
+    const out = await loadItems(db, OWNER, { weeks: 520, now: NOW });
+    expect(weeksIn(out.items)).toEqual(many);
+    for (const [w, n] of Object.entries(perWeek(out.items))) expect(n, w).toBe(30);
+    expect(out.hasEarlier).toBe(false);
+    // No request asks the server for more than it gives.
+    for (const c of calls.filter((x) => x.table === "dentvid_items")) expect(c.limit).toBeLessThanOrEqual(1000);
+  });
+
+  it("36 weeks of a dense clinic come out the same whether the server cuts a request or not", async () => {
+    const forty = weeksBack(CURRENT, 40);
+    const rows = forty.flatMap((w) => Array.from({ length: 30 }, () => row(w)));
+    const capped = await loadItems(fakeDb({ dentvid_items: rows }, { maxRows: 1000 }).db, OWNER, { weeks: 36, now: NOW });
+    const free = await loadItems(fakeDb({ dentvid_items: rows }).db, OWNER, { weeks: 36, now: NOW });
+    expect(weeksIn(capped.items)).toEqual(forty.slice(0, 36));
+    expect(capped.items.map((i) => i.id)).toEqual(free.items.map((i) => i.id));
+  });
+
+  it("a runaway week bigger than one request shows as far as a request goes, and the older weeks still follow", async () => {
+    const rows = [...Array.from({ length: 1200 }, () => row(CURRENT)), ...weeksBack(addDays(CURRENT, -7), 3).flatMap(fullWeek)];
+    const { db } = fakeDb({ dentvid_items: rows }, { maxRows: 1000 });
+    const out = await loadItems(db, OWNER, { weeks: 520, now: NOW });
+    expect(perWeek(out.items)).toEqual({ [CURRENT]: 1000, ...Object.fromEntries(weeksBack(addDays(CURRENT, -7), 3).map((w) => [w, 8])) });
+  });
+});
+
+describe("loadItems: a failed read is an error, never an empty library", () => {
+  // An empty library reads as "your first week is being made", or sends a trial clinic back to the sign-up.
+  const data = () => ({ dentvid_items: weeksBack(CURRENT, 3).flatMap(fullWeek) });
+
+  it("the newest-week read fails: it throws", async () => {
+    const { db } = fakeDb(data(), { fail: (c) => c.select === "week_of" && c.orders[0] === "week_of:desc" && c.limit === 1 && !c.filters.some((f) => f.startsWith("lt:")) });
+    await expect(loadItems(db, OWNER, { now: NOW })).rejects.toThrow(/could not read the clinic's weeks \(PGRST000\)/);
+  });
+
+  it("the oldest-week read fails: it throws", async () => {
+    const { db } = fakeDb(data(), { fail: (c) => c.select === "week_of" && c.orders[0] === "week_of:asc" });
+    await expect(loadItems(db, OWNER, { now: NOW })).rejects.toThrow(/could not read the clinic's weeks/);
+  });
+
+  it("the window read fails: it throws", async () => {
+    const { db } = fakeDb(data(), { fail: (c) => c.table === "dentvid_items" && c.select === "*" });
+    await expect(loadItems(db, OWNER, { now: NOW })).rejects.toThrow(/could not read the clinic's videos/);
+  });
+
+  it("with the same data and no failure, the library loads", async () => {
+    const out = await loadItems(fakeDb(data()).db, OWNER, { now: NOW });
+    expect(weeksIn(out.items)).toEqual(weeksBack(CURRENT, 3));
+  });
+
+  it("the extras never break it: change requests and posted weeks that fail are simply left out", async () => {
+    const { db } = fakeDb(data(), { fail: (c) => c.table === "dentvid_change_requests" || c.filters.includes("not:posted_at:is") });
+    const out = await loadItems(db, OWNER, { now: NOW, streak: true });
+    expect(out.items).toHaveLength(24);
+    expect(out.postedWeeks).toEqual([]);
+  });
+});
+
+describe("loadItems: the posting streak counts on past the window", () => {
+  // Fifteen weeks in a row, one video posted in each.
+  const fifteen = weeksBack(CURRENT, 15);
+  const rows = () => fifteen.flatMap((w) => [row(w, { posted_at: `${w}T18:00:00Z` }), ...Array.from({ length: 4 }, () => row(w, { posted_at: null }))]);
+  const marksOf = (items: { id: string; week_of: string; postedAt?: string | null }[]) =>
+    Object.fromEntries(items.filter((i) => i.postedAt).map((i) => [i.id, i.week_of]));
+
+  it("a clinic that posted fifteen weeks in a row sees 15 at the default twelve weeks", async () => {
+    const { db, calls } = fakeDb({ dentvid_items: rows() });
+    const out = await loadItems(db, OWNER, { now: NOW, streak: true, clinicId: CLINIC });
+    expect(weeksIn(out.items)).toHaveLength(12);
+    expect(out.postedWeeks).toEqual(fifteen.slice(12));
+    expect(postingStreak(withEarlierPosts(marksOf(out.items), out.postedWeeks), CURRENT)).toBe(15);
+    // Without them the streak stopped at the window: the bug this fixes.
+    expect(postingStreak(marksOf(out.items), CURRENT)).toBe(12);
+    // One read, the clinic's own posted rows before the oldest loaded week.
+    const read = calls.find((c) => c.filters.includes("not:posted_at:is"))!;
+    expect(read.filters).toEqual(["eq:owner_id", "eq:clinic_id", "not:posted_at:is", `lt:week_of:${fifteen[11]}`]);
+    expect(read.select).toBe("week_of");
+    expect(read.limit).toBe(520);
+  });
+
+  it("the same number with 'Show earlier weeks' tapped: it no longer depends on the address", async () => {
+    const out = await loadItems(fakeDb({ dentvid_items: rows() }).db, OWNER, { weeks: 24, now: NOW, streak: true });
+    expect(out.postedWeeks).toEqual([]);
+    expect(postingStreak(withEarlierPosts(marksOf(out.items), out.postedWeeks), CURRENT)).toBe(15);
+  });
+
+  it("only the page that shows the streak asks (the iPhone list does not)", async () => {
+    const { db, calls } = fakeDb({ dentvid_items: rows() });
+    const out = await loadItems(db, OWNER, { now: NOW });
+    expect(out.postedWeeks).toEqual([]);
+    expect(calls.some((c) => c.filters.includes("not:posted_at:is"))).toBe(false);
+  });
+
+  it("another clinic's posts never count", async () => {
+    const theirs = weeksBack(addDays(CURRENT, -12 * 7), 3).map((w) => row(w, { owner_id: "owner-b", clinic_id: "clinic-b", posted_at: `${w}T18:00:00Z` }));
+    const mine = fifteen.slice(0, 12).flatMap((w) => [row(w, { posted_at: `${w}T18:00:00Z` })]);
+    const out = await loadItems(fakeDb({ dentvid_items: [...mine, ...theirs] }).db, OWNER, { now: NOW, streak: true, clinicId: CLINIC });
+    expect(out.postedWeeks).toEqual([]);
+  });
+});
+
+describe("loadItems: the clinic's own rows, by its index", () => {
+  it("with the clinic's id every read of the library filters on owner and clinic", async () => {
+    const recent = weeksBack(CURRENT, 2);
+    const older = weeksBack(addDays(CURRENT, -32 * 7), 2);
+    const { db, calls } = fakeDb({ dentvid_items: [...recent, ...older].flatMap(fullWeek), dentvid_change_requests: [] });
+    await loadItems(db, OWNER, { now: NOW, clinicId: CLINIC, streak: true });
+    const reads = calls.filter((c) => c.table === "dentvid_items");
+    expect(reads.length).toBeGreaterThanOrEqual(5);
+    for (const c of reads) expect(c.filters.slice(0, 2), c.select).toEqual(["eq:owner_id", "eq:clinic_id"]);
   });
 });
 

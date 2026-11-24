@@ -21,7 +21,7 @@ export type LibraryWeeksText = {
 export const LIBRARY_WEEKS_TEXT: Record<Locale, LibraryWeeksText> = {
   en: {
     showEarlier: "Show earlier weeks",
-    nextDelivery: "Your next five videos arrive Monday, {date}.",
+    nextDelivery: "Your next five videos arrive on Monday, {date}.",
   },
   de: {
     showEarlier: "Frühere Wochen anzeigen",

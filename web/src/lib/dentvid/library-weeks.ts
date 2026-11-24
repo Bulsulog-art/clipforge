@@ -6,6 +6,7 @@
  * the header, so none of this reaches the landing page's bundle.
  */
 import type { LibraryItem } from "@/components/dentvid/library";
+import type { PostedMarks } from "./app-ui";
 import { USABLE_STATUSES, WEEK_VIDEOS } from "./week-job";
 
 /** A YYYY-MM-DD date moved by whole days (UTC); the input back unchanged when it is not a date. */
@@ -27,11 +28,40 @@ export function clampWeeks(raw: unknown): number {
   return Math.min(LIBRARY_WEEKS_MAX, Math.max(LIBRARY_WEEKS, Math.floor(n)));
 }
 
-/** The "Show earlier weeks" link for a library showing `weeks` weeks, or null when it already shows the most it can. */
-export function earlierWeeksHref(weeks: number): string | null {
+/**
+ * The "Show earlier weeks" link for a library showing `weeks` weeks, or null
+ * when it already shows the most it can. It asks for twelve more, or for
+ * `reach` when that is more: the window the server worked out to reach the
+ * clinic's next older videos (items.ts earlierWeeks), so a tap after a long
+ * pause lands on videos, not on empty weeks.
+ */
+export function earlierWeeksHref(weeks: number, reach?: number | null): string | null {
   const now = clampWeeks(weeks);
   if (now >= LIBRARY_WEEKS_MAX) return null;
-  return `?weeks=${Math.min(LIBRARY_WEEKS_MAX, now + LIBRARY_WEEKS)}`;
+  const far = typeof reach === "number" && Number.isFinite(reach) ? Math.floor(reach) : 0;
+  return `?weeks=${Math.min(LIBRARY_WEEKS_MAX, Math.max(now + LIBRARY_WEEKS, far))}`;
+}
+
+/**
+ * The posted ticks with the weeks posted before the loaded ones added (one
+ * mark per week, items.ts postedWeeks), so the posting streak does not stop
+ * where the library's twelve weeks end. Ticks of the loaded videos win: they
+ * follow what the dentist taps on this page.
+ */
+export function withEarlierPosts(marks: PostedMarks, weeks: readonly string[] | null | undefined): PostedMarks {
+  if (!weeks?.length) return marks;
+  return { ...Object.fromEntries(weeks.map((w) => [`week:${w}`, w])), ...marks };
+}
+
+/**
+ * The day (YYYY-MM-DD, UTC) a cancelled plan ends, when that is before the
+ * Monday the next five would arrive; null when the plan renews, or runs past
+ * that Monday. The card then says when the plan ends instead of naming a
+ * Monday that brings nothing.
+ */
+export function planEndsBefore(endsAt: string | null | undefined, nextWeek: string): string | null {
+  const day = typeof endsAt === "string" && /^\d{4}-\d{2}-\d{2}/.test(endsAt) ? endsAt.slice(0, 10) : null;
+  return day && day < nextWeek ? day : null;
 }
 
 /** Generated videos of one week the clinic can use: made (ready, or flagged for a look) and with a video to watch. */

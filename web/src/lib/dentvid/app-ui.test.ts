@@ -13,13 +13,14 @@ import {
   isFunnel,
   mailtoHref,
   nextAction,
+  postingStreak,
   quote,
   videoFileName,
   weekLabelDate,
   weekSummary,
   weeksAgo,
 } from "./app-ui";
-import { addDays, clampWeeks, earlierWeeksHref, LIBRARY_WEEKS, LIBRARY_WEEKS_MAX, nextDeliveryWeek, notMadeTopics, usableVideos } from "./library-weeks";
+import { addDays, clampWeeks, earlierWeeksHref, LIBRARY_WEEKS, LIBRARY_WEEKS_MAX, nextDeliveryWeek, notMadeTopics, planEndsBefore, usableVideos, withEarlierPosts } from "./library-weeks";
 import { twelveHourClock } from "./posting";
 
 const item = (over: Partial<LibraryItem> = {}): LibraryItem => ({
@@ -217,6 +218,34 @@ describe("library weeks", () => {
     expect(earlierWeeksHref(24)).toBe("?weeks=36");
     expect(earlierWeeksHref(515)).toBe("?weeks=520");
     expect(earlierWeeksHref(520)).toBeNull();
+  });
+  it("…or jumps to the window that reaches older videos behind a pause, never fewer than 12 more, never past 520", () => {
+    expect(earlierWeeksHref(12, 44)).toBe("?weeks=44");
+    expect(earlierWeeksHref(36, 20)).toBe("?weeks=48");
+    expect(earlierWeeksHref(12, null)).toBe("?weeks=24");
+    expect(earlierWeeksHref(12, Number.NaN)).toBe("?weeks=24");
+    expect(earlierWeeksHref(12, 44.6)).toBe("?weeks=44");
+    expect(earlierWeeksHref(400, 9999)).toBe("?weeks=520");
+    expect(earlierWeeksHref(520, 600)).toBeNull();
+  });
+  it("the posting streak counts the weeks posted before the ones shown", () => {
+    const marks = { a: "2026-11-23", b: "2026-11-16" };
+    expect(postingStreak(marks, "2026-11-23")).toBe(2);
+    const merged = withEarlierPosts(marks, ["2026-11-09", "2026-11-02", "2026-10-19"]);
+    expect(postingStreak(merged, "2026-11-23")).toBe(4);
+    // The ticks on the page stay as they are; nothing to add leaves them untouched.
+    expect(merged).toMatchObject(marks);
+    expect(withEarlierPosts(marks, [])).toBe(marks);
+    expect(withEarlierPosts(marks, undefined)).toBe(marks);
+  });
+  it("a cancelled plan that ends before the next Monday gives its end day; one that runs to it or renews gives null", () => {
+    expect(planEndsBefore("2026-11-27T10:00:00.000Z", "2026-11-30")).toBe("2026-11-27");
+    expect(planEndsBefore("2026-11-29T23:59:00.000Z", "2026-11-30")).toBe("2026-11-29");
+    expect(planEndsBefore("2026-11-30T00:00:00.000Z", "2026-11-30")).toBeNull();
+    expect(planEndsBefore("2027-01-15T00:00:00.000Z", "2026-11-30")).toBeNull();
+    expect(planEndsBefore(null, "2026-11-30")).toBeNull();
+    expect(planEndsBefore(undefined, "2026-11-30")).toBeNull();
+    expect(planEndsBefore("soon", "2026-11-30")).toBeNull();
   });
 
   const W = "2026-11-23";

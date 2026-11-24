@@ -28,7 +28,7 @@ import {
   type CardState,
   type PostedMarks,
 } from "@/lib/dentvid/app-ui";
-import { earlierWeeksHref, LIBRARY_WEEKS, nextDeliveryWeek, notMadeTopics } from "@/lib/dentvid/library-weeks";
+import { earlierWeeksHref, LIBRARY_WEEKS, nextDeliveryWeek, notMadeTopics, planEndsBefore, withEarlierPosts } from "@/lib/dentvid/library-weeks";
 import { slotLabel, weekSchedule, type PostTexts } from "@/lib/dentvid/posting";
 import { postingText } from "@/content/dentvideo-posting";
 import type { HelpId } from "@/content/dentvideo-help-links";
@@ -107,6 +107,10 @@ export function Library({
   topics,
   hasEarlier = false,
   weeks = LIBRARY_WEEKS,
+  earlierWeeks = null,
+  postedWeeks,
+  firstWeek = false,
+  planEndsAt = null,
 }: {
   /** The clinic's topic suggestions (null: not available on this database; undefined: not shown). */
   topics?: TopicView[] | null;
@@ -114,6 +118,14 @@ export function Library({
   hasEarlier?: boolean;
   /** How many weeks are loaded (?weeks=); the link asks for 12 more. */
   weeks?: number;
+  /** When a pause lies before the older videos: the window that reaches them, so the link jumps there (lib/dentvid/items.ts). */
+  earlierWeeks?: number | null;
+  /** Weeks before the loaded ones in which the clinic posted a video: the posting streak counts on through them. */
+  postedWeeks?: string[];
+  /** The "your first week is being made" card is above: the week card says nothing of its own while there is nothing to do. */
+  firstWeek?: boolean;
+  /** A cancelled plan, paid up to this date (ISO): the week card never names a Monday after it. */
+  planEndsAt?: string | null;
   /** Shown above "This week" (the hero is the top of the page). */
   clinicName?: string;
   /** The hero's title is the page's h1, unless the first-week card above it holds the h1. */
@@ -183,7 +195,7 @@ export function Library({
   const thisWeek = view.filter((i) => i.week_of === currentWeek);
   // Topics not made: this week's only, and only while the week is short of its five videos.
   const notMade = notMadeTopics(view, currentWeek);
-  const earlier = hasEarlier ? earlierWeeksHref(weeks) : null;
+  const earlier = hasEarlier ? earlierWeeksHref(weeks, earlierWeeks) : null;
   const delay = delayNote(weekDelay, thisWeek);
   const action = nextAction({ locked, canStartWeek, thisWeek, delayed: !!delay });
   const s = weekSummary(thisWeek);
@@ -219,7 +231,9 @@ export function Library({
 
   return (
     <div>
-      {action !== "locked" && (
+      {/* While the first-week card above says this week is being made, an idle card here would contradict it
+          (and name the Monday after), so it gives way. */}
+      {action !== "locked" && !(firstWeek && action === "idle") && (
         <NextStep
           locale={locale}
           action={action}
@@ -230,6 +244,8 @@ export function Library({
           synced={posted.synced}
           currentWeek={currentWeek}
           nextWeek={nextDeliveryWeek(view, currentWeek)}
+          earlierPosted={postedWeeks}
+          planEndsAt={planEndsAt}
           country={country}
           clinicName={clinicName}
           level={heroLevel}
@@ -373,6 +389,8 @@ export function NextStep({
   synced = false,
   currentWeek,
   nextWeek,
+  earlierPosted,
+  planEndsAt = null,
   country = null,
   clinicName,
   level = 2,
@@ -383,6 +401,10 @@ export function NextStep({
   action: Exclude<ReturnType<typeof nextAction>, "locked">;
   /** The Monday the next five videos arrive (YYYY-MM-DD); by default the Monday after this week. */
   nextWeek?: string;
+  /** Weeks before the loaded ones with a posted video (lib/dentvid/items.ts postedWeeks): the streak counts on through them. */
+  earlierPosted?: string[];
+  /** A cancelled plan, paid up to this date (ISO): when it ends before that Monday, the card says so instead. */
+  planEndsAt?: string | null;
   /** The clinic's country: an English clinic in the US reads "December 7", in the UK "7 December". */
   country?: string | null;
   clinicName?: string;
@@ -408,7 +430,7 @@ export function NextStep({
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const progress = postingProgress(thisWeek, marks);
-  const streak = postingStreak(marks, currentWeek);
+  const streak = postingStreak(withEarlierPosts(marks, earlierPosted), currentWeek);
   const nextToPost = thisWeek.find((i) => cardState(i) === "approved" && !marks[i.id]) ?? thisWeek.find((i) => cardState(i) === "approved");
 
   async function startWeek() {
@@ -438,7 +460,12 @@ export function NextStep({
   const allPosted = action === "share" && progress.total > 0 && progress.posted === progress.total;
   // Nothing left to do this week: say on which Monday the next five arrive, by date (a clinic that paid on
   // Sunday already has the coming Monday's week, so "on Monday" alone would promise videos that are not coming).
-  const nextLine = fmt(libraryWeeksText(locale).nextDelivery, { date: weekLabelDate(nextWeek ?? nextDeliveryWeek(thisWeek, currentWeek), locale, country) });
+  // A cancelled plan that ends before that Monday: when it ends, in the words settings uses, never a Monday that brings nothing.
+  const next = nextWeek ?? nextDeliveryWeek(thisWeek, currentWeek);
+  const endsDay = planEndsBefore(planEndsAt, next);
+  const nextLine = endsDay
+    ? fmt(text.billing.ends, { date: weekLabelDate(endsDay, locale, country) })
+    : fmt(libraryWeeksText(locale).nextDelivery, { date: weekLabelDate(next, locale, country) });
   const title =
     action === "review" ? (pending === 1 ? h.reviewOne : fmt(h.reviewMany, { n: pending }))
     : action === "making" ? h.makingTitle
