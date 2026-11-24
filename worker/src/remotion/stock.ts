@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { AspectId } from "./scene-plan.js";
+import type { AspectId, ScenePlan } from "./scene-plan.js";
 
 /**
  * Resolves a plan's stock queries to local video files.
@@ -346,6 +346,9 @@ export async function resolveStockClips(
  *  - footageIds: the Pexels ids the video shows, recorded on the stored plan
  *    after the render, so the clinic's next weeks avoid them and a re-render of
  *    the same plan keeps them.
+ * The stored plan also carries each stock footage scene's own clip
+ * (source.clipId, withShownClips): a change request is handed the stored
+ * scenes and narration only (dentvid/jobs.ts), and keeps the clip from there.
  * All optional: a plan without them (every plan stored before) renders
  * exactly as before.
  */
@@ -396,28 +399,90 @@ export function withoutFootageFields<T extends object>(plan: T): T {
   return rest as T;
 }
 
-/**
- * The Pexels ids each finished render showed, by its output file, for the
- * week: its render callback (dentvid/jobs.ts) hands back the file path only,
- * so renderPlan notes the ids here and produceVideo takes them by that path
- * (takeFootageIds). Same process, read once. Renders nobody asks about (a
- * restyle, the bench) are forgotten after REMEMBERED_RENDERS more.
- */
-const idsByOutput = new Map<string, number[]>();
-const REMEMBERED_RENDERS = 64;
+/** One stock clip a render showed: the query it answered and the Pexels id. */
+export type ShownClip = { query: string; id: number };
 
-export function noteFootageIds(outputPath: string, ids: readonly number[]): void {
-  const key = path.resolve(outputPath);
-  idsByOutput.delete(key);
-  idsByOutput.set(key, clipIds([...ids]));
-  while (idsByOutput.size > REMEMBERED_RENDERS) idsByOutput.delete(idsByOutput.keys().next().value!);
+/**
+ * The plan as stored after its render, with the clips it showed: footageIds
+ * (each once, in scene order) and, on each stock footage scene, the clip its
+ * query got (source.clipId). The plan as it was when the render showed none.
+ */
+export function withShownClips<P extends ScenePlan>(plan: P, shown: readonly ShownClip[]): P & Pick<FootageFields, "footageIds"> {
+  const ids = clipIds(shown.map((c) => c.id));
+  if (!ids.length) return plan;
+  const byQuery = new Map(shown.filter((c) => ids.includes(c.id)).map((c) => [c.query, c.id]));
+  const scenes = plan.scenes.map((s) => {
+    if (s.kind !== "footage" || s.source.type !== "stock") return s;
+    const id = byQuery.get(s.source.query);
+    return id ? { ...s, source: { ...s.source, clipId: id } } : s;
+  });
+  return { ...plan, scenes, footageIds: ids } as P & Pick<FootageFields, "footageIds">;
 }
 
-/** The ids a render of `outputPath` showed ([] when it showed none or was not a renderPlan render); forgotten once read. */
-export function takeFootageIds(outputPath: string | undefined): number[] {
+/** A stored scene's own clip (withShownClips), when it carries a valid one. */
+function sceneClipId(scene: unknown): number | undefined {
+  const source = scene && typeof scene === "object" ? (scene as { source?: unknown }).source : undefined;
+  const id = source && typeof source === "object" ? (source as { clipId?: unknown }).clipId : undefined;
+  return clipIds([id])[0];
+}
+
+/**
+ * The Pexels ids a stored video showed: its footageIds, then the clip on
+ * each of its stock footage scenes, each once. Read defensively: it is stored
+ * JSON, or the part of it a caller passed on (a change request's base holds
+ * the scenes and narration only, dentvid/jobs.ts).
+ */
+export function shownClipIds(plan: unknown): number[] {
+  if (!plan || typeof plan !== "object") return [];
+  const p = plan as { footageIds?: unknown; scenes?: unknown };
+  const top = Array.isArray(p.footageIds) ? p.footageIds : [];
+  const onScenes = Array.isArray(p.scenes) ? p.scenes.map(sceneClipId) : [];
+  return clipIds([...top, ...onScenes]);
+}
+
+/**
+ * Stored scenes without their clip ids: what a writer is shown of the
+ * previous version (a Pexels id means nothing to it). Scenes that carry none
+ * are handed back as they are.
+ */
+export function withoutClipIds<T>(scenes: T): T {
+  if (!Array.isArray(scenes)) return scenes;
+  let changed = false;
+  const out = scenes.map((s: unknown) => {
+    const source = s && typeof s === "object" ? (s as { source?: unknown }).source : undefined;
+    if (!source || typeof source !== "object" || !("clipId" in source)) return s;
+    changed = true;
+    const { clipId: _id, ...rest } = source as { clipId?: unknown };
+    return { ...(s as object), source: rest };
+  });
+  return (changed ? out : scenes) as T;
+}
+
+/**
+ * The clips each finished render showed, by its output file, for the week:
+ * its render callback (dentvid/jobs.ts) hands back the file path only, so
+ * renderPlan notes them here and produceVideo takes them by that path
+ * (takeFootage). Same process, read once. Renders nobody asks about (a
+ * restyle, the bench) are forgotten after REMEMBERED_RENDERS more.
+ */
+const shownByOutput = new Map<string, ShownClip[]>();
+const REMEMBERED_RENDERS = 64;
+
+export function noteFootage(outputPath: string, shown: readonly ShownClip[]): void {
+  const key = path.resolve(outputPath);
+  shownByOutput.delete(key);
+  shownByOutput.set(
+    key,
+    shown.filter((c) => typeof c.query === "string" && clipIds([c.id]).length).map((c) => ({ query: c.query, id: c.id })),
+  );
+  while (shownByOutput.size > REMEMBERED_RENDERS) shownByOutput.delete(shownByOutput.keys().next().value!);
+}
+
+/** The clips a render of `outputPath` showed ([] when it showed none or was not a renderPlan render); forgotten once read. */
+export function takeFootage(outputPath: string | undefined): ShownClip[] {
   if (!outputPath) return [];
   const key = path.resolve(outputPath);
-  const ids = idsByOutput.get(key) ?? [];
-  idsByOutput.delete(key);
-  return ids;
+  const shown = shownByOutput.get(key) ?? [];
+  shownByOutput.delete(key);
+  return shown;
 }

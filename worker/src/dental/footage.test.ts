@@ -82,7 +82,7 @@ describe("each pool shows only its own treatment, and only objects", () => {
 
   it("no pool reaches for a chairside instrument, which stock libraries show in someone's mouth", () => {
     for (const shot of [...SERVICE_SHOTS.flatMap(([, shots]) => shots), ...GENERAL_SHOTS])
-      expect(shot).not.toMatch(/mirror|shade|drill|probe|syringe|needle|screw|scaler/i);
+      expect(shot).not.toMatch(/mirror|shade|drill|probe|syringe|needle|screw|scaler|instrument|\btools?\b|forceps|curette|injection|anesth|anaesth/i);
   });
 
   it("a query for one is replaced by an object shot for the service", () => {
@@ -90,6 +90,33 @@ describe("each pool shows only its own treatment, and only objects", () => {
     expect(q(guardFootage(plan("tooth shade guide"), "Teeth whitening", new Set()))).toBe("teeth whitening tray");
     expect(q(guardFootage(plan("dental drill close up"), "Dental implants", new Set()))).toBe("dental implant model");
     for (const query of ["dental mirrors", "teeth shade guides", "dental drills"]) expect(dentalQuery(query), query).toBe(false);
+  });
+
+  it("other chairside instruments and injections are replaced too, while the object shots stay", () => {
+    const instruments = [
+      "dental instruments close up",
+      "dental instrument tray",
+      "dental tools",
+      "dental tool close up",
+      "dental probe",
+      "dental scaler",
+      "ultrasonic scaler teeth",
+      "dental curette",
+      "dental syringe",
+      "dental injection",
+      "dental needle",
+      "dental forceps",
+      "dental anesthesia",
+      "dental anaesthetic",
+    ];
+    for (const query of instruments) expect(dentalQuery(query), query).toBe(false);
+    expect(q(guardFootage(plan("dental instruments close up"), "Check-ups", new Set()))).toBe(GENERAL_SHOTS[0]);
+    expect(q(guardFootage(plan("dental scaler"), "Hygienist cleaning", new Set()))).toBe("toothbrush close up");
+    expect(q(guardFootage(plan("dental syringe"), "Dental implants", new Set()))).toBe("dental implant model");
+    expect(q(guardFootage(plan("dental tools"), "Kanal tedavisi", new Set()))).toBe("tooth model close up");
+    // "tooth" and "toothbrush" are not "tool", and every pool shot still passes.
+    for (const query of ["toothbrush close up", "tooth model close up", "toothpaste on toothbrush"]) expect(dentalQuery(query), query).toBe(true);
+    for (const shot of [...SERVICE_SHOTS.flatMap(([, shots]) => shots), ...GENERAL_SHOTS]) expect(dentalQuery(shot), shot).toBe(true);
   });
 
   it("Turkish plaque cleaning gets cleaning shots; Turkish clear aligners still get aligner shots", () => {

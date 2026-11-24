@@ -7,10 +7,13 @@ import {
   chooseVideo,
   clipIds,
   footageChoice,
-  noteFootageIds,
+  noteFootage,
   resolveStockClip,
   scoreVideo,
-  takeFootageIds,
+  shownClipIds,
+  takeFootage,
+  withShownClips,
+  withoutClipIds,
   withoutFootageFields,
   type ClipRotation,
   type PexelsVideo,
@@ -336,22 +339,104 @@ describe("the plan's footage fields", () => {
     const want = chooseVideo(TEN, "toothbrush close up", 4, true, { rotation, targetWidth: 1080 })!.id;
     expect([101, 102, 103, 104]).not.toContain(want);
     expect(out.clipIds).toEqual([want]);
+    expect(out.shown).toEqual([{ query: "toothbrush close up", id: want }]);
     expect(out.footage["1"]).toBe(`r1/stock-${want}.mp4`);
   });
 });
 
-describe("the ids a render showed, by its output file", () => {
+describe("the clips a render showed, by its output file", () => {
   it("are read once, by the same path however it is written", () => {
-    noteFootageIds(path.join(workDir, "v-1", "video.mp4"), [12, 12, 13]);
-    expect(takeFootageIds(`${workDir}/v-1/./video.mp4`)).toEqual([12, 13]);
-    expect(takeFootageIds(path.join(workDir, "v-1", "video.mp4"))).toEqual([]);
-    expect(takeFootageIds(undefined)).toEqual([]);
-    expect(takeFootageIds("/nonexistent/video.mp4")).toEqual([]);
+    noteFootage(path.join(workDir, "v-1", "video.mp4"), [
+      { query: "toothbrush close up", id: 12 },
+      { query: "dental floss close up", id: 13 },
+    ]);
+    expect(takeFootage(`${workDir}/v-1/./video.mp4`)).toEqual([
+      { query: "toothbrush close up", id: 12 },
+      { query: "dental floss close up", id: 13 },
+    ]);
+    expect(takeFootage(path.join(workDir, "v-1", "video.mp4"))).toEqual([]);
+    expect(takeFootage(undefined)).toEqual([]);
+    expect(takeFootage("/nonexistent/video.mp4")).toEqual([]);
+  });
+
+  it("keep only valid ids", () => {
+    noteFootage("/tmp/garbage/video.mp4", [
+      { query: "a", id: -1 },
+      { query: "b", id: 1.5 },
+      { query: "c", id: 7 },
+    ]);
+    expect(takeFootage("/tmp/garbage/video.mp4")).toEqual([{ query: "c", id: 7 }]);
   });
 
   it("forget renders nobody asked about, oldest first", () => {
-    for (let i = 0; i < 70; i++) noteFootageIds(`/tmp/forgotten-${i}/video.mp4`, [i + 1]);
-    expect(takeFootageIds("/tmp/forgotten-0/video.mp4")).toEqual([]);
-    expect(takeFootageIds("/tmp/forgotten-69/video.mp4")).toEqual([70]);
+    for (let i = 0; i < 70; i++) noteFootage(`/tmp/forgotten-${i}/video.mp4`, [{ query: "q", id: i + 1 }]);
+    expect(takeFootage("/tmp/forgotten-0/video.mp4")).toEqual([]);
+    expect(takeFootage("/tmp/forgotten-69/video.mp4")).toEqual([{ query: "q", id: 70 }]);
+  });
+});
+
+describe("the stored plan records its clips twice: footageIds, and on each footage scene", () => {
+  const stored = () =>
+    parseScenePlan({
+      title: "This week",
+      aspect: "9:16",
+      theme: "editorial",
+      music: "none",
+      scenes: [
+        { kind: "hook", text: "A hook here", seconds: 3 },
+        { kind: "footage", source: { type: "stock", query: "toothbrush close up" }, caption: "c", seconds: 4 },
+        { kind: "statement", text: "Small circles clean better", seconds: 4 },
+        { kind: "footage", source: { type: "stock", query: "dental floss close up" }, caption: "d", seconds: 4 },
+        { kind: "footage", source: { type: "stock", query: "toothbrush close up" }, caption: "e", seconds: 4 },
+      ],
+    });
+
+  it("each scene gets the clip its own query got", () => {
+    const plan = withShownClips(stored(), [
+      { query: "toothbrush close up", id: 104 },
+      { query: "dental floss close up", id: 207 },
+    ]);
+    expect(plan.footageIds).toEqual([104, 207]);
+    const ids = plan.scenes.map((s) => (s.kind === "footage" ? (s.source as { clipId?: number }).clipId : undefined));
+    expect(ids).toEqual([undefined, 104, undefined, 207, 104]);
+    // Nothing else on the scene moves.
+    expect(plan.scenes[1]).toEqual({ kind: "footage", source: { type: "stock", query: "toothbrush close up", clipId: 104 }, caption: "c", seconds: 4 });
+  });
+
+  it("a render that showed no clip leaves the plan exactly as it was", () => {
+    const plan = stored();
+    expect(withShownClips(plan, [])).toBe(plan);
+    expect(withShownClips(plan, [{ query: "toothbrush close up", id: 0 }])).toBe(plan);
+  });
+
+  it("are read back from either place, each once, and from stored JSON", () => {
+    const plan = JSON.parse(JSON.stringify(withShownClips(stored(), [{ query: "toothbrush close up", id: 104 }, { query: "dental floss close up", id: 207 }])));
+    expect(shownClipIds(plan)).toEqual([104, 207]);
+    // A change request's base: the scenes and narration only.
+    expect(shownClipIds({ scenes: plan.scenes, voiceover: plan.voiceover })).toEqual([104, 207]);
+    // The plan-level list alone.
+    expect(shownClipIds({ footageIds: [5], scenes: stored().scenes })).toEqual([5]);
+    // Plans stored before, and garbage.
+    expect(shownClipIds(stored())).toEqual([]);
+    expect(shownClipIds(undefined)).toEqual([]);
+    expect(shownClipIds("plan")).toEqual([]);
+    expect(shownClipIds({ scenes: [null, 3, { source: null }, { source: { clipId: "104" } }, { source: { clipId: -4 } }] })).toEqual([]);
+  });
+
+  it("the parser drops them, so nothing that draws a video ever sees them", () => {
+    const plan = withShownClips(stored(), [{ query: "toothbrush close up", id: 104 }]);
+    const reparsed = parseScenePlan(plan);
+    expect(shownClipIds(reparsed)).toEqual([]);
+    expect(reparsed).toEqual(stored());
+  });
+
+  it("a writer is shown the scenes without them; scenes without any are handed back untouched", () => {
+    const plan = withShownClips(stored(), [{ query: "toothbrush close up", id: 104 }]);
+    const shown = withoutClipIds(plan.scenes);
+    expect(JSON.stringify(shown)).not.toContain("clipId");
+    expect(shown).toEqual(stored().scenes);
+    const plain = stored().scenes;
+    expect(withoutClipIds(plain)).toBe(plain);
+    expect(withoutClipIds(undefined)).toBeUndefined();
   });
 });

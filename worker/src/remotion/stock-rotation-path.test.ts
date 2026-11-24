@@ -27,7 +27,7 @@ const real = await vi.importActual<typeof import("./voiceover.js")>("./voiceover
 const { masterNarration, detectPauses } = await import("../dental/audio-master.js");
 const { prepareNarration } = await import("../dental/narration-audio.js");
 const { resolveFootageClips } = await import("./render-plan.js");
-const { chooseVideo, clipIds } = await import("./stock.js");
+const { chooseVideo, shownClipIds, withShownClips } = await import("./stock.js");
 const { parseScenePlan, totalSeconds } = await import("./scene-plan.js");
 
 const tts = vi.mocked(voiceover.prepareVoiceover);
@@ -129,18 +129,21 @@ describe("the rotation fields reach the stock lookup through the narration", () 
 });
 
 describe("the restyle (dentvid/jobs.ts: new photos, same video)", () => {
-  /** The stored row's plan: what week.ts kept, with the clip the dentist saw. */
-  const row = () => ({ ...stored(true), backgrounds: ["/dentvideo/backgrounds/cleaning-02.jpg"], footageIds: [rotated] });
+  /** The stored row's plan: what week.ts kept (withShownClips), with the clip the dentist saw, and the new photos. */
+  const row = () => ({
+    ...withShownClips(stored(true), [{ query: "toothbrush close up", id: rotated }]),
+    backgrounds: ["/dentvideo/backgrounds/cleaning-02.jpg"],
+  });
 
-  it("re-parses the stored plan, which drops footageIds: today the clip is swapped for the top one", async () => {
+  it("the job re-parses the stored plan, and the parser drops the clips: re-rendered as it is parsed, the top clip comes back", async () => {
     const reparsed = parseScenePlan(row());
-    expect("footageIds" in reparsed).toBe(false);
+    expect(shownClipIds(reparsed)).toEqual([]);
     expect((await jobPath(reparsed)).clipIds).toEqual([101]);
   });
 
-  it("with the stored ids put back after parsing (the one-line change jobs.ts needs), the dentist's clip comes back", async () => {
+  it("with the stored clips put back after parsing (the change dentvid/jobs.ts still needs), the dentist's clip comes back", async () => {
     const stored = row();
-    const plan = { ...parseScenePlan(stored), footageIds: clipIds(stored.footageIds) };
+    const plan = { ...parseScenePlan(stored), footageIds: shownClipIds(stored) };
     expect((await jobPath(plan)).clipIds).toEqual([rotated]);
   });
 });

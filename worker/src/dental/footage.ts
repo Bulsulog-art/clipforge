@@ -12,13 +12,13 @@ import { rotationHash } from "../remotion/stock.js";
  * signs, logos or offices that could carry another practice's name): any query that reaches for people or a clinical setting
  * is replaced by an object shot for the video's service, and a week does not
  * show the same shot twice (two videos got the same toothpaste clip).
- * Chairside instruments (a mirror, a shade guide, a drill) count as a
- * clinical setting: stock libraries file them mostly under exam shots of
- * someone's open mouth.
+ * Chairside instruments (a mirror, a shade guide, a drill, a probe, a
+ * scaler, a syringe, forceps, "dental tools") count as a clinical setting:
+ * stock libraries file them mostly under exam shots of someone's open mouth.
  */
 
 const PEOPLE_OR_CLINIC =
-  /\b(logos?|brand\w*|signs?|signage|office|store|shop|posters?|dentists?|doctors?|nurses?|hygienists?|clinics?|surgery|surgical|surgeon|treatments?|procedures?|process|patients?|operations?|hospital|chair|exam\w*|appointment|people|person|woman|man|girl|boy|smil\w*|face|mouth open|mirrors?|shade guides?|drills?)\b/i;
+  /\b(logos?|brand\w*|signs?|signage|office|store|shop|posters?|dentists?|doctors?|nurses?|hygienists?|clinics?|surgery|surgical|surgeon|treatments?|procedures?|process|patients?|operations?|hospital|chair|exam\w*|appointment|people|person|woman|man|girl|boy|smil\w*|face|mouth open|mirrors?|shade guides?|drills?|instruments?|tools?|probes?|scalers?|curettes?|syringes?|injections?|needles?|forceps|an(?:a)?esthe\w*)\b/i;
 
 /**
  * Object shots by service, in several languages' service names: six to eight

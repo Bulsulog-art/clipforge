@@ -7,7 +7,7 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import { webpackOverride } from "./webpack-override.js";
 import { LIMITS, dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
-import { footageChoice, noteFootageIds, resolveStockClips, withoutFootageFields } from "./stock.js";
+import { footageChoice, noteFootage, resolveStockClips, withoutFootageFields, type ShownClip } from "./stock.js";
 import { stageBackgrounds } from "./backgrounds.js";
 import type { LogoStyle } from "./logo-style.js";
 import { renderTuning, type RenderTuning } from "./capacity.js";
@@ -124,7 +124,7 @@ export type RenderPlanResult = {
   height: number;
   /** Scenes that asked for footage and did not get any. */
   missingFootage: number;
-  /** The Pexels ids the video shows, in scene order (also noted for takeFootageIds, stock.ts). */
+  /** The Pexels ids the video shows, in scene order (also noted, with their queries, for takeFootage: stock.ts). */
   footageIds: number[];
   /** The finished file's loudness (and whether its audio was corrected); absent for a render without sound. */
   loudness?: LoudnessGuardResult;
@@ -207,15 +207,15 @@ export async function resolveFootage(plan: ScenePlan, opts: FootageOptions): Pro
 
 /**
  * resolveFootage, plus the Pexels ids the scenes got (in scene order, each
- * once). Which clip a query gets follows the plan's footage fields
- * (stock.ts FootageFields): the clinic's rotation for the week, and the clips
- * a stored video already showed. A plan without them gets the best-scored
- * clip, as before.
+ * once) and the query each one answered. Which clip a query gets follows the
+ * plan's footage fields (stock.ts FootageFields): the clinic's rotation for
+ * the week, and the clips a stored video already showed. A plan without them
+ * gets the best-scored clip, as before.
  */
 export async function resolveFootageClips(
   plan: ScenePlan,
   opts: FootageOptions,
-): Promise<{ footage: Record<string, string>; clipIds: number[] }> {
+): Promise<{ footage: Record<string, string>; clipIds: number[]; shown: ShownClip[] }> {
   const { width } = dimensions(plan);
   const { rotation, keep } = footageChoice(plan);
   const renderId = opts.renderId ?? path.basename(opts.workDir);
@@ -246,6 +246,7 @@ export async function resolveFootageClips(
 
   const footage: Record<string, string> = {};
   const clipIds: number[] = [];
+  const shown: ShownClip[] = [];
   plan.scenes.forEach((scene, index) => {
     if (scene.kind !== "footage") return;
     if (scene.source.type === "stock") {
@@ -253,6 +254,7 @@ export async function resolveFootageClips(
       if (clip) {
         footage[String(index)] = toRenderableSrc(clip.path, renderId);
         if (!clipIds.includes(clip.id)) clipIds.push(clip.id);
+        if (!shown.some((c) => c.query === clip.query)) shown.push({ query: clip.query, id: clip.id });
       }
       return;
     }
@@ -266,7 +268,7 @@ export async function resolveFootageClips(
     }
   });
 
-  return { footage, clipIds };
+  return { footage, clipIds, shown };
 }
 
 export async function renderPlan(args: RenderPlanArgs): Promise<RenderPlanResult> {
@@ -331,7 +333,7 @@ async function renderStaged(
   const stagedMusic = await stageLocalAsset(musicSrc, { assetDir, renderId, roots, onWarn, what: "music" });
   const stagedLogo = await stageLocalAsset(logoSrc, { assetDir, renderId, roots, onWarn, what: "logo" });
 
-  const { footage, clipIds } = await resolveFootageClips(plan, {
+  const { footage, clipIds, shown: shownClips } = await resolveFootageClips(plan, {
     workDir: assetDir,
     renderId,
     userAssets: stagedUserAssets,
@@ -414,8 +416,8 @@ async function renderStaged(
     }
   }
 
-  // For the week (week.ts takeFootageIds): its render callback returns only this file's path.
-  noteFootageIds(outputPath, clipIds);
+  // For the week (week.ts takeFootage): its render callback returns only this file's path.
+  noteFootage(outputPath, shownClips);
 
   return {
     outputPath,

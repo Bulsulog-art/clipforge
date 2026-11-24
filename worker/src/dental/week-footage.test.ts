@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type OpenAI from "openai";
 import type { ScenePlan } from "../remotion/scene-plan.js";
 import { resolveFootageClips } from "../remotion/render-plan.js";
-import { noteFootageIds, ROTATION_POOL, type FootageFields, type PexelsVideo } from "../remotion/stock.js";
+import { noteFootage, ROTATION_POOL, type FootageFields, type PexelsVideo } from "../remotion/stock.js";
 import { FOOTAGE_MEMORY_WEEKS, footageSeed, keptClips, produceVideo, produceWeek, recentFootage, rememberClips, weekNumber, type ChangeGuidance, type VideoPackage } from "./week.js";
 import type { PastTopic } from "./memory.js";
 import type { ClinicProfile } from "./profile.js";
@@ -16,7 +16,7 @@ import type { Topic } from "./strategist.js";
  * stock.ts): each week's plan carries the clinic's rotation, the render
  * reports the clip it showed, the stored plan keeps it, and the next weeks
  * avoid it. The render here is the real stock lookup of renderPlan
- * (resolveFootageClips + noteFootageIds) against a stubbed Pexels; no
+ * (resolveFootageClips + noteFootage) against a stubbed Pexels; no
  * network, no model.
  */
 
@@ -74,8 +74,8 @@ function plan(topic: Topic, query: string, cta: string): ScenePlan {
   } as ScenePlan;
 }
 
-/** Answers each agent by its system prompt; the planner writes `queries[n]` into the n-th plan. */
-function fakeClient(queries: string[]) {
+/** Answers each agent by its system prompt; the planner writes `queries[n]` into the n-th plan. Every prompt lands in `prompts`. */
+function fakeClient(queries: string[], prompts: string[] = []) {
   let n = 0;
   const client = {
     chat: {
@@ -83,6 +83,7 @@ function fakeClient(queries: string[]) {
         create: async (req: { messages: { role: string; content: string }[] }) => {
           const system = req.messages[0].content;
           const user = req.messages[1].content;
+          prompts.push(...req.messages.map((m) => m.content));
           let body: unknown;
           if (system.startsWith("You write scene plans")) {
             const title = user.match(/Topic: (.*?)\. It answers/)![1];
@@ -125,9 +126,9 @@ function stockRender() {
     seen.push(p as ScenePlan & FootageFields);
     const dir = path.join(workDir, `v-${n++}`);
     await fs.mkdir(dir, { recursive: true });
-    const { clipIds } = await resolveFootageClips(p, { workDir: dir, userAssets: [], pexelsApiKey: "k", fetchImpl: pexels });
+    const { shown } = await resolveFootageClips(p, { workDir: dir, userAssets: [], pexelsApiKey: "k", fetchImpl: pexels });
     const outputPath = path.join(dir, "video.mp4");
-    noteFootageIds(outputPath, clipIds);
+    noteFootage(outputPath, shown);
     return outputPath;
   };
   return { render, seen };
@@ -226,6 +227,9 @@ describe("one clinic over eight weeks, the same shot asked for every week", () =
       const keys = Object.keys(v.plan);
       expect(keys).toContain("footageIds");
       for (const k of ["footageSeed", "footageTurn", "footageAvoid"]) expect(keys).not.toContain(k);
+      // The footage scene records its own clip too: a change request is handed the scenes.
+      const footage = v.plan.scenes.find((sc) => sc.kind === "footage");
+      expect((footage as { source: { clipId?: number } }).source.clipId).toBe(v.plan.footageIds![0]);
     }
   });
 
@@ -284,31 +288,46 @@ describe("a change request to a video made in a week", () => {
   const NOTE = "Please say it a little shorter.";
   const changed = async (base: ChangeGuidance["base"]) => {
     const r = stockRender();
-    const pkg = await produceVideo({ client: fakeClient(["toothbrush close up"]), render: r.render }, US, TOPICS[0], new Set(), undefined, { note: NOTE, base });
+    const prompts: string[] = [];
+    const pkg = await produceVideo({ client: fakeClient(["toothbrush close up"], prompts), render: r.render }, US, TOPICS[0], new Set(), undefined, { note: NOTE, base });
     expect(pkg.status).toBe("ready");
-    return { pkg: pkg as Extract<VideoPackage, { status: "ready" }>, seen: r.seen };
+    return { pkg: pkg as Extract<VideoPackage, { status: "ready" }>, seen: r.seen, prompts };
   };
 
-  it("keeps the stock clip the dentist already saw when the change carries the stored plan's ids", async () => {
-    // A week video whose rotated clip is not the one a plain render picks (101).
-    let stored: Extract<VideoPackage, { status: "ready" }> | undefined;
+  /** A week video whose rotated clip is not the one a plain render picks (101), as the database hands it back. */
+  async function rotatedWeekVideo() {
     for (const monday of MONDAYS) {
       const [video] = ready(await produceWeek({ client: fakeClient(["toothbrush close up"]), render: stockRender().render }, US, { count: 1, topics: TOPICS.slice(0, 1), weekOf: monday }));
-      if (video.plan.footageIds?.[0] !== 101) {
-        stored = video;
-        break;
-      }
+      if (video.plan.footageIds?.[0] !== 101) return JSON.parse(JSON.stringify(video.plan)) as Extract<VideoPackage, { status: "ready" }>["plan"];
     }
-    expect(stored).toBeDefined();
-    const shown = stored!.plan.footageIds!;
-    const { pkg, seen } = await changed({ scenes: stored!.plan.scenes, voiceover: stored!.plan.voiceover, footageIds: stored!.plan.footageIds });
+    throw new Error("no week picked a clip other than the top one");
+  }
+
+  it("keeps the stock clip the dentist already saw when the change carries the stored plan's ids", async () => {
+    const stored = await rotatedWeekVideo();
+    const shown = stored.footageIds!;
+    const { pkg, seen } = await changed({ scenes: stored.scenes, voiceover: stored.voiceover, footageIds: stored.footageIds });
     expect(seen[0].footageIds).toEqual(shown);
     expect(pkg.plan.footageIds).toEqual(shown);
     // The ids only chose the clip: the change gets no rotation of its own.
     for (const k of ["footageSeed", "footageTurn", "footageAvoid"]) expect(Object.keys(seen[0])).not.toContain(k);
   });
 
-  it("without the ids (dentvid/jobs.ts passes scenes and voiceover only today), the clip is swapped for the top one", async () => {
+  it("keeps it from the stored scenes alone, which is all dentvid/jobs.ts passes (scenes and narration)", async () => {
+    const stored = await rotatedWeekVideo();
+    const shown = stored.footageIds!;
+    expect(shown[0]).not.toBe(101);
+    const { pkg, seen, prompts } = await changed({ scenes: stored.scenes, voiceover: stored.voiceover });
+    expect(seen[0].footageIds).toEqual(shown);
+    expect(pkg.plan.footageIds).toEqual(shown);
+    // The changed video's stored scene records the clip again, for the next change.
+    expect((pkg.plan.scenes.find((sc) => sc.kind === "footage") as { source: { clipId?: number } }).source.clipId).toBe(shown[0]);
+    // The writer starts from the previous version, without the ids (a Pexels id means nothing to it).
+    expect(prompts.some((p) => p.includes("The previous version, to start from"))).toBe(true);
+    expect(prompts.join("\n")).not.toContain("clipId");
+  });
+
+  it("a video stored before the clips were recorded gets the top clip, as it always did", async () => {
     const before = plan(TOPICS[0], "toothbrush close up", CTA_POOL[0]);
     const { pkg, seen } = await changed({ scenes: before.scenes, voiceover: before.voiceover });
     expect("footageIds" in seen[0]).toBe(false);
@@ -320,6 +339,9 @@ describe("a change request to a video made in a week", () => {
     expect(keptClips({ note: NOTE })).toEqual([]);
     expect(keptClips({ note: NOTE, base: { scenes: [], footageIds: [105, "x", 105, -2] } })).toEqual([105]);
     expect(keptClips({ note: NOTE, base: { scenes: [], footageIds: "105" } })).toEqual([]);
+    const scene = (clipId: unknown) => ({ kind: "footage", source: { type: "stock", query: "toothbrush close up", clipId }, seconds: 4 });
+    expect(keptClips({ note: NOTE, base: { scenes: [scene(104), scene("104"), scene(0)] } as unknown as ChangeGuidance["base"] })).toEqual([104]);
+    expect(keptClips({ note: NOTE, base: { scenes: [scene(104)], footageIds: [103] } as unknown as ChangeGuidance["base"] })).toEqual([103, 104]);
   });
 });
 
