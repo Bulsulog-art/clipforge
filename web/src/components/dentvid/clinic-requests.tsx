@@ -160,8 +160,8 @@ export function ChangeRequest({
 }: {
   locale: Locale;
   itemId: string;
-  /** The change was accepted; `confirmation` is what this form shows for it ("Change requested. Changes left this week: 2 of 3"). */
-  onQueued: (confirmation: string) => void;
+  /** The change was accepted; `confirmation` is what this form shows for it ("Change requested. Changes left this week: 2 of 3"), and `left` how many changes the clinic has left this week (as the server said). */
+  onQueued: (confirmation: string, left?: number) => void;
   /** The note the form starts with, e.g. what was typed in the decline form (cut to CHANGE_NOTE_MAX). */
   initialNote?: string;
   /** Open the form at once instead of showing the button first. */
@@ -203,7 +203,7 @@ export function ChangeRequest({
         setOpen(false);
         setNote("");
         setMessage({ kind: "ok", text });
-        onQueued(text);
+        onQueued(text, typeof body.left === "number" ? body.left : undefined);
       } else {
         const text = body.error ?? t.errors.unavailable;
         setMessage({ kind: "error", text });

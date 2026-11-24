@@ -11,7 +11,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LOCALES, type Locale } from "@/content/dentvideo";
 import { APP_TEXT, countText, fmt } from "@/content/dentvideo-app";
 import { Library, NextStep, type LibraryItem } from "./library";
-import { CHANGE_INSTEAD_REASONS, DeclineForm, PostPanel, ReviewPanel, ReviewPlayer, askedHere, canAskChange, postText, refreshOnClose } from "./review-player";
+import { CHANGE_INSTEAD_REASONS, DeclineForm, PostPanel, ReviewPanel, ReviewPlayer, askedHere, canAskChange, nextToDecide, postText, refreshOnClose } from "./review-player";
 import { ChangeRequest } from "./clinic-requests";
 import { POSTING_TEXT } from "@/content/dentvideo-posting";
 import { REASON_TEXT } from "@/content/dentvideo-reasons";
@@ -325,6 +325,28 @@ function treeOf(render: () => React.ReactNode): React.ReactNode {
   renderToStaticMarkup(<Spy />);
   return out;
 }
+/**
+ * A component's tree through a few steps, with its state kept from one step to the next: each step
+ * gets the tree as rendered and may call its handlers or change what the render reads. A server
+ * render takes state updates only while it renders, so the steps run inside it, and each one is
+ * followed by a render of what it changed. Returns the last tree and the HTML it rendered to.
+ */
+function playThrough(render: () => React.ReactNode, steps: ((tree: React.ReactNode) => void)[]): { tree: React.ReactNode; html: string } {
+  let out: React.ReactNode = null;
+  let k = 0;
+  function Spy() {
+    const [, again] = React.useState(0);
+    out = render();
+    if (k < steps.length) {
+      steps[k++](out);
+      again((n) => n + 1);
+    }
+    return <>{out}</>;
+  }
+  const h = renderToStaticMarkup(<Spy />);
+  expect(k, "every step ran").toBe(steps.length);
+  return { tree: out, html: decode(h) };
+}
 type Props = { children?: React.ReactNode; onClick?: () => void; className?: string };
 function textOf(n: React.ReactNode): string {
   if (typeof n === "string" || typeof n === "number") return String(n);
@@ -350,6 +372,10 @@ function elementsOf<P>(n: unknown, type: unknown, out: React.ReactElement<P>[] =
   return out;
 }
 type ChangeProps = React.ComponentProps<typeof ChangeRequest>;
+type DeclineProps = React.ComponentProps<typeof DeclineForm>;
+type PanelProps = React.ComponentProps<typeof ReviewPanel>;
+/** The button whose whole text is `name` ("Approve", not "Approve, save video + copy caption"). */
+const buttonExactly = (tree: React.ReactNode, name: string) => buttonsIn(tree).find((b) => textOf(b.props.children).trim() === name);
 
 /**
  * A fake share (useSaveAndCopy) in a given state: an "ok" note is what a successful save or share leaves.
@@ -715,5 +741,243 @@ describe("sending a change from the player: the player hears of it only when the
     expect(onChangeQueued).not.toHaveBeenCalled();
     el.props.onQueued("Change requested. Changes left this week: 2 of 3");
     expect(onChangeQueued).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("a cancelled 'Ask for a change instead' opens nothing by itself later", () => {
+  const t = APP_TEXT.en.library;
+  const rq = REQUESTS_TEXT.en.change;
+  const note = "The second sentence says three times a day.";
+  /**
+   * The week's last video still waiting (so nothing moves on after a decision): Decline, "Something is
+   * wrong", "Ask for a change instead", then Cancel in the change form; then `after`, each step a
+   * change the library brings (the decision saved, taken back).
+   */
+  function cancelledHandOver(after: Partial<LibraryItem>[], more: ((tree: React.ReactNode) => void)[] = []) {
+    let current = item({ photos });
+    const opened: { startOpen: boolean; note?: string }[] = [];
+    const out = playThrough(
+      () => ReviewPanel({ locale: "en", item: current, queue: [current], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {} }),
+      [
+        (tree) => buttonExactly(tree, t.decline)!.props.onClick!(),
+        (tree) => elementsOf<DeclineProps>(tree, DeclineForm)[0].props.changeInstead!.onChoose("wrong", note),
+        (tree) => {
+          const [form] = elementsOf<ChangeProps>(tree, ChangeRequest);
+          opened.push({ startOpen: !!form.props.startOpen, note: form.props.initialNote });
+          // The form reports itself open, then Cancel closes it.
+          form.props.onOpenChange!(true);
+          form.props.onOpenChange!(false);
+        },
+        ...more,
+        ...after.map((over) => () => {
+          current = { ...current, ...over };
+        }),
+      ],
+    );
+    return { ...out, opened };
+  }
+
+  it("the hand-over opens the change form, with the reason's words in it", () => {
+    expect(cancelledHandOver([]).opened).toEqual([{ startOpen: true, note }]);
+  });
+
+  it("after Cancel and then Approve, the post step offers 'Ask for a change' closed: no open form, no old note to send", () => {
+    const { tree, html: h } = cancelledHandOver([{ approval: "approved" }]);
+    expect(elementsOf(tree, PostPanel)).toHaveLength(1);
+    const forms = elementsOf<ChangeProps>(tree, ChangeRequest);
+    expect(forms.map((f) => !!f.props.startOpen)).toEqual([false]);
+    const c = controls(h);
+    expect(c).toContain(APP_TEXT.en.library.post.markPosted);
+    expect(c).toContain(rq.button);
+    expect(c).not.toContain(rq.submit);
+    expect(h).not.toContain("<textarea");
+    expect(h).not.toContain(note);
+  });
+
+  it("after Cancel, a decline and Undo, Approve and Decline are back and the change form stays closed", () => {
+    const { tree, html: h } = cancelledHandOver([{ approval: "rejected" }, { approval: "pending" }]);
+    expect(elementsOf<ChangeProps>(tree, ChangeRequest).map((f) => !!f.props.startOpen)).toEqual([false]);
+    const c = controls(h);
+    expect(c).toContain(t.approve);
+    expect(c).toContain(t.decline);
+    expect(c).toContain(rq.button);
+    expect(c).not.toContain(rq.submit);
+    expect(h).not.toContain("<textarea");
+  });
+
+  it("after Cancel, Decline opens again with the reason and the words; choosing the change again opens it again", () => {
+    let again: { startOpen: boolean; note?: string } | undefined;
+    cancelledHandOver(
+      [],
+      [
+        (tree) => buttonExactly(tree, t.decline)!.props.onClick!(),
+        (tree) => {
+          const [form] = elementsOf<DeclineProps>(tree, DeclineForm);
+          expect(form.props.initial).toEqual({ reason: "wrong", words: note });
+          form.props.changeInstead!.onChoose("wrong", `${note} Twice.`);
+        },
+        (tree) => {
+          const [form] = elementsOf<ChangeProps>(tree, ChangeRequest);
+          again = { startOpen: !!form.props.startOpen, note: form.props.initialNote };
+        },
+      ],
+    );
+    expect(again).toEqual({ startOpen: true, note: `${note} Twice.` });
+  });
+});
+
+describe("after a decision the player moves on only to a video with something to decide", () => {
+  const t = APP_TEXT.en.library;
+  const at = "2026-11-24T08:00:00.000Z";
+
+  it("nextToDecide passes over videos whose change is asked for or being made", () => {
+    const a = item({ photos });
+    const b = item({ photos, approval: "approved" });
+    const c = item({ photos });
+    const none = () => false;
+    expect(nextToDecide([a, b, c], 1, none)).toBe(2);
+    expect(nextToDecide([a, b, c], 2, none)).toBe(0);
+    expect(nextToDecide([a, b, c], 1, (q) => q.id === c.id)).toBe(0);
+    expect(nextToDecide([a, b, c], 1, (q) => q.id === a.id)).toBe(2);
+    expect(nextToDecide([a, b, c], 1, (q) => q.id !== b.id)).toBe(-1);
+    expect(nextToDecide([a, b], 1, (q) => q.id === a.id)).toBe(-1);
+    // By default, a change the library shows running.
+    expect(nextToDecide([item({ photos, change: { status: "working", reason: null, at } }), b], 1)).toBe(-1);
+    expect(nextToDecide([item({ photos, change: { status: "done", reason: null, at } }), b], 1)).toBe(0);
+    expect(nextToDecide([a, b], 1)).toBe(0);
+    expect(nextToDecide([b], 0)).toBe(-1);
+  });
+
+  it("approving the other video does not jump back to the one whose change was just asked for", async () => {
+    async function approveB(aBeingChanged: boolean) {
+      const a = item({ photos });
+      const b = item({ photos });
+      const onIndex = vi.fn();
+      const tree = treeOf(() =>
+        ReviewPanel({ locale: "en", item: b, queue: [a, b], index: 1, onIndex, decide: noop, posted: false, onPosted: () => {}, beingChanged: (q) => aBeingChanged && q.id === a.id }),
+      );
+      vi.stubGlobal("window", { setTimeout: (f: () => void) => (f(), 0) });
+      try {
+        await (buttonExactly(tree, t.approve)!.props.onClick as () => Promise<void>)();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+      return onIndex;
+    }
+    expect(await approveB(true)).not.toHaveBeenCalled();
+    // The same tap moves on to a video that is waiting.
+    expect(await approveB(false)).toHaveBeenCalledWith(0);
+  });
+
+  it("'Every video is decided' shows once the only other video waiting is being changed", () => {
+    function approveAndShareB(aBeingChanged: boolean) {
+      const a = item({ photos });
+      let b = item({ photos });
+      // The save waits for the file; the approval is what counts here.
+      vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+      try {
+        return playThrough(
+          () => ReviewPanel({ locale: "en", item: b, queue: [a, b], index: 1, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {}, beingChanged: (q) => aBeingChanged && q.id === a.id }),
+          [
+            (tree) => void buttonNamed(tree, POSTING_TEXT.en.approveSaveCopy)!.props.onClick!(),
+            () => {
+              b = { ...b, approval: "approved" };
+            },
+          ],
+        ).html;
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    }
+    const done = approveAndShareB(true);
+    expect(done).toContain(t.review.allDone);
+    expect(controls(done)).toContain(t.post.markPosted);
+    expect(approveAndShareB(false)).not.toContain(t.review.allDone);
+  });
+
+  it("the player tells each video which others are being changed (asked here, or running)", () => {
+    const a = item({ photos });
+    const b = item({ photos });
+    const c = item({ photos, change: { status: "queued", reason: null, at } });
+    let index = 0;
+    const { tree } = playThrough(
+      () => ReviewPlayer({ locale: "en", queue: [a, b, c], index, onIndex: () => {}, onClose: () => {}, decide: noop, posted: {}, onPosted: () => {} }),
+      [
+        (tree) => elementsOf<PanelProps>(tree, ReviewPanel)[0].props.onChangeQueued!(),
+        () => {
+          index = 1;
+        },
+      ],
+    );
+    const [panel] = elementsOf<PanelProps>(tree, ReviewPanel);
+    expect(panel.props.item.id).toBe(b.id);
+    expect([a, b, c].map((q) => panel.props.beingChanged!(q))).toEqual([true, false, true]);
+  });
+});
+
+describe("no changes left this week is the clinic's, not one video's", () => {
+  const t = APP_TEXT.en.library;
+  const note = "Please say twice a day.";
+
+  it("a video that hears 'no changes left' or 'no plan', or uses the week's last change, tells the player; other answers do not", () => {
+    function heard(act: (el: React.ReactElement<ChangeProps>) => void): number {
+      const onChangesOver = vi.fn();
+      const it = item({ photos });
+      const tree = treeOf(() => ReviewPanel({ locale: "en", item: it, queue: [it], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {}, onChangesOver }));
+      act(elementsOf<ChangeProps>(tree, ChangeRequest)[0]);
+      return onChangesOver.mock.calls.length;
+    }
+    for (const code of ["limit", "no_plan"]) expect(heard((el) => el.props.onFailed!({ code, message: "No.", note })), code).toBe(1);
+    for (const code of ["busy", "length", "not_this", "unavailable", undefined]) expect(heard((el) => el.props.onFailed!({ code, message: "No.", note })), String(code)).toBe(0);
+    expect(heard((el) => el.props.onQueued("Change requested. Changes left this week: 0 of 3", 0))).toBe(1);
+    expect(heard((el) => el.props.onQueued("Change requested. Changes left this week: 2 of 3", 2))).toBe(0);
+    expect(heard((el) => el.props.onQueued("Change requested."))).toBe(0);
+  });
+
+  it("the player passes it on to every other video while it is open", () => {
+    const a = item({ photos });
+    const b = item({ photos });
+    let index = 0;
+    const seen: boolean[] = [];
+    const { tree } = playThrough(
+      () => ReviewPlayer({ locale: "en", queue: [a, b], index, onIndex: () => {}, onClose: () => {}, decide: noop, posted: {}, onPosted: () => {} }),
+      [
+        (tree) => {
+          const [p] = elementsOf<PanelProps>(tree, ReviewPanel);
+          seen.push(!!p.props.changesOver);
+          p.props.onChangesOver!();
+        },
+        () => {
+          index = 1;
+        },
+      ],
+    );
+    const [panel] = elementsOf<PanelProps>(tree, ReviewPanel);
+    expect(panel.props.item.id).toBe(b.id);
+    expect(seen).toEqual([false]);
+    expect(panel.props.changesOver).toBe(true);
+  });
+
+  it("a video told so offers no change: not under the decision, not in the decline form, not in the post step", () => {
+    const it = item({ photos });
+    let row = -1;
+    const { tree } = playThrough(
+      () => ReviewPanel({ locale: "en", item: it, queue: [it], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {}, changesOver: true }),
+      [
+        (tree) => {
+          row = elementsOf(tree, ChangeRequest).length;
+          buttonExactly(tree, t.decline)!.props.onClick!();
+        },
+      ],
+    );
+    expect(row).toBe(0);
+    const [form] = elementsOf<DeclineProps>(tree, DeclineForm);
+    expect(form.props.changeInstead).toBeUndefined();
+    const a = item({ photos, approval: "approved" });
+    const post = treeOf(() => ReviewPanel({ locale: "en", item: a, queue: [a], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {}, changesOver: true }));
+    expect(elementsOf(post, ChangeRequest)).toHaveLength(0);
+    // Without it, the same videos offer it.
+    const before = treeOf(() => ReviewPanel({ locale: "en", item: a, queue: [a], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {} }));
+    expect(elementsOf(before, ChangeRequest)).toHaveLength(1);
   });
 });

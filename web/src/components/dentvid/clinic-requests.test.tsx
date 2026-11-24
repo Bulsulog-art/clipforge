@@ -152,8 +152,17 @@ describe("sending a change: what the form hands up", () => {
     const { onQueued, onFailed, fetchMock } = await submit(json(200, { ok: true, left: 2 }));
     expect(fetchMock).toHaveBeenCalledWith("/api/dentvideo/items/x/change", expect.objectContaining({ method: "POST", body: JSON.stringify({ note }) }));
     expect(onQueued).toHaveBeenCalledTimes(1);
-    expect(onQueued).toHaveBeenCalledWith(`${t.status.queued}. Changes left this week: 2 of 3`);
+    expect(onQueued).toHaveBeenCalledWith(`${t.status.queued}. Changes left this week: 2 of 3`, 2);
     expect(onFailed).not.toHaveBeenCalled();
+  });
+
+  it("accepted: how many changes are left is handed up as the server said it, so the week's last one can be told apart", async () => {
+    const last = await submit(json(200, { ok: true, left: 0 }));
+    expect(last.onQueued).toHaveBeenCalledWith(`${t.status.queued}. Changes left this week: 0 of 3`, 0);
+    // An answer without the count is not read as "none left".
+    const unsure = await submit(json(200, { ok: true }));
+    expect(unsure.onQueued).toHaveBeenCalledTimes(1);
+    expect(unsure.onQueued.mock.calls[0][1]).toBeUndefined();
   });
 
   it("refused by the server: its code and message, with the note as typed; never reported as queued", async () => {

@@ -136,6 +136,11 @@ export function ReviewPlayer({
   // video would reload), so such a video reads as "requested" here until the library brings newer
   // news of it, and the library refreshes when the player closes.
   const [asked, setAsked] = useState<ReadonlyMap<string, string | null>>(() => new Map());
+  // No change can be made this week (none left, or no plan). That is the clinic's limit, not one
+  // video's: once any video hears it, no video in the open player offers a change again.
+  const [changesOver, setChangesOver] = useState(false);
+  /** A video whose change is asked for or being made waits for its new version, not for a decision. */
+  const beingChanged = (q: LibraryItem) => changeRunning(q) || askedHere(q, asked.get(q.id));
 
   useEffect(() => {
     const d = ref.current;
@@ -149,6 +154,10 @@ export function ReviewPlayer({
     setAsked(new Map());
     router.refresh();
   }, [open, asked, router]);
+
+  useEffect(() => {
+    if (!open) setChangesOver(false);
+  }, [open]);
 
   const go = (step: "next" | "previous") => {
     const n = step === "next" ? index + 1 : index - 1;
@@ -196,7 +205,7 @@ export function ReviewPlayer({
             {queue.length > 1 && (
               <ol className="flex gap-1 px-3 sm:px-5" aria-hidden="true">
                 {queue.map((q, n) => {
-                  const c = changeRunning(q) || askedHere(q, asked.get(q.id)) ? "updating" : cardState(q);
+                  const c = beingChanged(q) ? "updating" : cardState(q);
                   const tone = c === "approved" || c === "updating" ? "bg-dv-teal-300" : c === "declined" ? "bg-white/30" : "bg-white/55";
                   return <li key={q.id} className={`h-1 flex-1 rounded-full ${tone} ${n === index ? "outline outline-2 outline-offset-1 outline-white" : "opacity-80"}`} />;
                 })}
@@ -262,6 +271,9 @@ export function ReviewPlayer({
             slot={slots?.get(item.id)}
             changeQueued={askedHere(item, asked.get(item.id))}
             onChangeQueued={() => setAsked((m) => new Map(m).set(item.id, item.change?.at ?? null))}
+            beingChanged={beingChanged}
+            changesOver={changesOver}
+            onChangesOver={() => setChangesOver(true)}
           />
         </div>
       )}
@@ -307,6 +319,29 @@ export function canAskChange(item: LibraryItem, queuedHere = false): boolean {
   return !!item.photos && playable && state !== "updating" && !changing;
 }
 
+/**
+ * After a decision: the next video still waiting for one (wrapping round), or -1 when none is.
+ * A video whose change is asked for or being made has nothing to decide until its new version is
+ * in, so it is passed over (`beingChanged`; by default a change the library already shows running).
+ */
+export function nextToDecide(queue: LibraryItem[], from: number, beingChanged: (q: LibraryItem) => boolean = changeRunning): number {
+  // nextUndecided's order, stepping on past the videos being changed.
+  let n = from;
+  for (let k = 0; k < queue.length; k++) {
+    n = nextUndecided(queue, n);
+    if (n < 0 || !beingChanged(queue[n])) return n;
+  }
+  return -1;
+}
+
+/**
+ * What the decline form hands to "Ask for a change instead": the reason and the words, kept so the
+ * decline form can open again with them, and `open`, which opens the change form once. Cancel (or
+ * the form leaving the sheet) clears it, so no later change form opens by itself; a saved decision
+ * ends the hand-over.
+ */
+type Handover = { n: number; reason: DeclineReason; words: string; open: boolean };
+
 /** The decision (or, once approved, the posting) under the player: a sheet on a phone, a side column on a desktop. */
 export function ReviewPanel({
   locale,
@@ -320,6 +355,9 @@ export function ReviewPanel({
   slot,
   changeQueued = false,
   onChangeQueued,
+  beingChanged = changeRunning,
+  changesOver = false,
+  onChangesOver,
 }: {
   locale: Locale;
   item: LibraryItem;
@@ -334,6 +372,12 @@ export function ReviewPanel({
   changeQueued?: boolean;
   /** A change was just asked for (the player refreshes the library when it closes). */
   onChangeQueued?: () => void;
+  /** Videos of the queue whose change is asked for or being made (the player also knows those asked in it): skipped when moving on after a decision. */
+  beingChanged?: (q: LibraryItem) => boolean;
+  /** No change can be made this week (none left, or no plan), as another video of the open player heard. */
+  changesOver?: boolean;
+  /** This video heard that no change can be made this week. */
+  onChangesOver?: () => void;
 }) {
   const text = appText(locale);
   const t = text.library;
@@ -344,9 +388,15 @@ export function ReviewPanel({
   const place = deciding ? "decide" : "post";
   const [changeOpen, setChangeOpen] = useState(false);
   const [sent, setSent] = useState<{ place: typeof place; text: string; seen: string | null } | null>(null);
-  const [draft, setDraft] = useState<{ n: number; reason: DeclineReason; words: string } | null>(null);
+  const [draft, setDraft] = useState<Handover | null>(null);
   // No change can be made this week (none left, or no plan): stop offering one; declining stays.
-  const [noChange, setNoChange] = useState(false);
+  // Heard here, or on another video of the open player (the limit is the clinic's).
+  const [noChangeHere, setNoChangeHere] = useState(false);
+  const noChange = changesOver || noChangeHere;
+  function changesAreOver() {
+    setNoChangeHere(true);
+    onChangesOver?.();
+  }
   // A change asked for here (or earlier in this open player) that the library has no newer news of.
   const asked = changeQueued || (!!sent && askedHere(item, sent.seen));
   // While a change is asked for or being made, the video on screen is the one being replaced: like the
@@ -368,7 +418,7 @@ export function ReviewPanel({
   // "Every video is decided" only right after the decision that made it so, not whenever a decided video is opened.
   const [justDecided, setJustDecided] = useState(false);
   const decided = state === "approved" || state === "declined" || state === "updating";
-  const allDone = justDecided && decided && queue.length > 1 && nextUndecided(queue, index) < 0;
+  const allDone = justDecided && decided && queue.length > 1 && nextToDecide(queue, index, beingChanged) < 0;
 
   // Right after sending, the confirmation stands where the form was (with how many changes are left)
   // and takes the keyboard focus, so it is not lost with the form; after that the chip says it.
@@ -399,21 +449,28 @@ export function ReviewPanel({
         locale={locale}
         itemId={item.id}
         initialNote={draft?.words}
-        startOpen={!!draft}
-        onOpenChange={setChangeOpen}
-        onQueued={(text) => {
+        startOpen={!!draft?.open}
+        onOpenChange={(o) => {
+          setChangeOpen(o);
+          // The hand-over opened the form once. After Cancel, a later change form (the post step after
+          // Approve, the decision row after Undo) starts closed, never open with the old words in it.
+          if (!o) setDraft((d) => (d?.open ? { ...d, open: false } : d));
+        }}
+        onQueued={(text, left) => {
           setSent({ place, text, seen: item.change?.at ?? null });
           setDraft(null);
           onChangeQueued?.();
+          // That was the week's last change: the other videos stop offering one.
+          if (left === 0) changesAreOver();
         }}
         onFailed={({ code, message: text, note }) => {
           if (!code || !NO_CHANGE_CODES.includes(code)) return;
           // No change this week: say so where the decision is, and go back to it. Coming from the
           // decline form, it opens again with the reason and the words (as edited in the change form).
-          setNoChange(true);
+          changesAreOver();
           setMessage({ kind: "error", text });
           if (draft) {
-            setDraft({ ...draft, words: note.trim() ? note : draft.words });
+            setDraft({ ...draft, open: false, words: note.trim() ? note : draft.words });
             setDeclining(true);
           } else focusDecline.current = true;
         }}
@@ -426,7 +483,8 @@ export function ReviewPanel({
     void share.run(() => {
       setJustDecided(true);
       void decide(item.id, "approved").then((ok) => {
-        if (!ok) setMessage({ kind: "error", text: t.actionFailed });
+        if (ok) setDraft(null);
+        else setMessage({ kind: "error", text: t.actionFailed });
       });
     });
   }
@@ -440,20 +498,22 @@ export function ReviewPanel({
       setMessage({ kind: "error", text: t.actionFailed });
       return;
     }
+    // A saved decision ends what the decline form handed over: nothing of it opens or prefills later.
+    setDraft(null);
     setDeclining(false);
     setJustDecided(approval !== "pending");
     if (approval === "rejected") setMessage({ kind: "ok", text: reviewText(locale).declined });
     if (approval === "pending") return;
-    // On to the next video still waiting, after a beat so the change is seen.
+    // On to the next video still waiting for a decision, after a beat so the change is seen.
     const updated = queue.map((q) => (q.id === item.id ? { ...q, approval } : q));
-    const n = nextUndecided(updated, index);
+    const n = nextToDecide(updated, index, beingChanged);
     if (n >= 0) window.setTimeout(() => onIndex(n), approval === "approved" ? 450 : 1100);
   }
 
-  /** From the decline form: keep the video and open the change form with what was typed. */
+  /** From the decline form: keep the video and open the change form, once, with what was typed. */
   function keepAndChange(reason: DeclineReason, words: string) {
     setDeclining(false);
-    setDraft((d) => ({ n: (d?.n ?? 0) + 1, reason, words }));
+    setDraft((d) => ({ n: (d?.n ?? 0) + 1, reason, words, open: true }));
   }
 
   return (
