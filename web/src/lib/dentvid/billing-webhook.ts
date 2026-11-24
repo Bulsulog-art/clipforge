@@ -25,6 +25,7 @@ import type { PaymentFix, PaymentProblemKind } from "./lifecycle-email";
 import { ENQUEUE_TIMEOUT_MS, afterPaid, tellOwner, withTimeout, type ActivationDeps } from "./billing-activation";
 import { isAppleManaged, readClinicSource, setBillingSource, type AppleSubscriptionStore } from "./apple-store";
 import { adoptWaitingApple } from "./apple-webhook";
+import type { BillingConfirmNotice } from "./billing-confirm-email";
 
 export { ENQUEUE_TIMEOUT_MS, withTimeout } from "./billing-activation";
 
@@ -39,6 +40,13 @@ export type DvWebhookEvent = { type: string; data: DodoEventData; timestamp?: un
 export type DvWebhookDeps = ActivationDeps & {
   /** "Your payment didn't go through" to the clinic (default: lifecycle.ts sendPaymentProblem). */
   sendPaymentMail?: (db: SupabaseClient, clinicId: string, kind: PaymentProblemKind, fix: PaymentFix) => Promise<string>;
+  /**
+   * The clinic's written confirmation of a cancellation or a plan change (default:
+   * billing-confirm-email.ts sendBillingConfirmation). Its result, never its failure, reaches the webhook.
+   */
+  sendConfirmMail?: (db: SupabaseClient, clinicId: string, notice: BillingConfirmNotice) => Promise<string>;
+  /** How long the confirmation may take before the webhook answers without it (default CONFIRM_TIMEOUT_MS). */
+  confirmTimeoutMs?: number;
   /** The subscription ledger (0007); the default degrades to "unknown" when the table is missing. */
   subs?: SubscriptionStore;
   /**
@@ -81,6 +89,40 @@ async function paymentMail(db: SupabaseClient, clinicId: string, kind: PaymentPr
   const store = await webOpsStore().catch(() => null);
   const claim = async (key: string) => (store ? store.setNx(key, 3 * 86_400).catch(() => true) : true);
   return sendPaymentProblem({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig(), claim }, clinicId, kind, fix);
+}
+
+async function confirmMail(db: SupabaseClient, clinicId: string, notice: BillingConfirmNotice): Promise<string> {
+  if (!process.env.RESEND_API_KEY) return "no email key";
+  const [{ sendBillingConfirmation, reviewDemoCheck }, { supabaseLifecycleStore, lifecycleConfig }, { sendEmail }] = await Promise.all([
+    import("./billing-confirm-email"),
+    import("./lifecycle"),
+    import("./email"),
+  ]);
+  const store = await webOpsStore().catch(() => null);
+  // Only when the email log cannot take the kind (0011 not applied): a long-lived Redis key instead.
+  const fallbackClaim = async (key: string) => (store ? store.setNx(key, 400 * 86_400).catch(() => true) : true);
+  return sendBillingConfirmation({ store: supabaseLifecycleStore(db), send: sendEmail, config: lifecycleConfig(), isDemo: reviewDemoCheck(db), fallbackClaim }, clinicId, notice);
+}
+
+/**
+ * How long the confirmation may hold up the webhook's answer. Past it the webhook answers Dodo anyway
+ * (a slow mail provider must not turn into a Dodo retry); a send still under way is harmless, its claim
+ * keeps any later attempt from mailing twice.
+ */
+export const CONFIRM_TIMEOUT_MS = 10_000;
+
+/** The confirmation email, best effort: whatever happens to it, the webhook carries on (its result is only reported). */
+async function confirmToClinic(db: SupabaseClient, deps: DvWebhookDeps, clinicId: string, notice: BillingConfirmNotice): Promise<string> {
+  try {
+    const send = Promise.resolve().then(() => (deps.sendConfirmMail ?? confirmMail)(db, clinicId, notice));
+    const result = await withTimeout(send, deps.confirmTimeoutMs ?? CONFIRM_TIMEOUT_MS, "the confirmation email");
+    if (result === "failed" || result === "migration missing") console.error("[dodo:dentvideo] confirmation email not sent", notice.kind, clinicId, result);
+    return result;
+  } catch (e) {
+    const msg = (e as Error).message;
+    console.error("[dodo:dentvideo] confirmation email failed", notice.kind, clinicId, msg);
+    return /timed out/.test(msg) ? "timed out" : "failed";
+  }
 }
 
 /**
@@ -525,12 +567,19 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
       }
       // Ledger after the clinic row: a failed clinic update (500, Dodo retries) leaves no half-recorded end.
       await subs.put({ ...ledgerRow(clinic.id, t.subscriptionId, reported, d, prev, stamp, evt.type), period_end: end });
+      let confirmEmail: string | undefined;
       if (firstNotice) {
         await tell(db, deps, clinic.id, (c) =>
           alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from: "active", to: `active until ${end.slice(0, 10)}, then cancelled` }),
         );
+        // The clinic's written confirmation: when its videos stop and how long its library stays. Once per
+        // subscription (a repeat, or cancelled then expired, is not a first notice; the email log claims it too).
+        confirmEmail = await confirmToClinic(db, deps, clinic.id, { kind: "cancelled", subscriptionId: t.subscriptionId, endsAt: end });
       }
-      return { status: 200, body: { ok: true, app: "dentvideo", plan: "active", endsAt: end, ...(changed || firstNotice ? {} : { unchanged: true }) } };
+      return {
+        status: 200,
+        body: { ok: true, app: "dentvideo", plan: "active", endsAt: end, ...(changed || firstNotice ? {} : { unchanged: true }), ...(confirmEmail ? { confirmEmail } : {}) },
+      };
     }
   }
 
@@ -616,6 +665,13 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
     welcomeEmail = paid.welcomeEmail;
   }
 
+  // A plan change that really moved a paying clinic to another tier: confirmed in writing, once per change
+  // (a redelivery finds the tier already moved, so `update` would not have changed it; the email log claims it too).
+  let confirmEmail: string | undefined;
+  if (evt.type === "subscription.plan_changed" && from === "active" && to === "active" && t.tier && update.plan_tier === t.tier && (clinic.plan_tier ?? null) !== t.tier) {
+    confirmEmail = await confirmToClinic(db, deps, clinic.id, { kind: "plan_changed", subscriptionId: t.subscriptionId, tier: t.tier, eventAt });
+  }
+
   return {
     status: 200,
     body: {
@@ -625,6 +681,7 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
       ...(firstWeek ? { firstWeek } : {}),
       ...(welcomeEmail ? { welcomeEmail } : {}),
       ...(clinicEmail ? { clinicEmail } : {}),
+      ...(confirmEmail ? { confirmEmail } : {}),
     },
   };
 }
