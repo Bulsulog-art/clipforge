@@ -103,7 +103,11 @@ export function scoreVideo(video: PexelsVideo, wantedSeconds: number, portrait: 
   return orientationMatch * 2 + coverage;
 }
 
-/** How many of the best-fitting clips a rotation chooses among: further down Pexels' ranking the shots drift off the subject. */
+/**
+ * How many clips a rotation turns through: the first results of the right
+ * shape, in Pexels' own order. Further down its ranking the shots drift off
+ * the subject.
+ */
 export const ROTATION_POOL = 5;
 
 /**
@@ -113,16 +117,24 @@ export const ROTATION_POOL = 5;
  * Pexels answers a query with the same results in the same order, so the
  * best-scored clip was the same clip every time: a clinic saw the same
  * "toothbrush close up" shot every few weeks, and every other clinic saw it
- * too. With a rotation the clip is chosen among the ROTATION_POOL best clips
- * that fit the scene as well as the best one does (chooseVideo):
- *  - seed: stable for one clinic. Where the clinic starts in that list, per
+ * too. With a rotation (chooseVideo) the clip comes from a short list: the
+ * first ROTATION_POOL results with a usable mp4 in the best clip's
+ * orientation (and as sharp as the best one), in Pexels' own order. The list
+ * does not depend on the scene's length, so a longer scene next week (fewer
+ * clips long enough) does not reshuffle it.
+ *  - seed: stable for one clinic. Where the clinic stands in that list, per
  *    query, so two clinics in the same week usually show different clips.
  *  - turn: the week (week.ts weekNumber). Each week moves one place along, so
  *    a query does not show a clinic the same clip again for ROTATION_POOL
  *    weeks, even with no history at all.
  *  - avoid: Pexels ids the clinic's recent videos and this week's other
- *    videos showed, oldest first. Skipped while any other fitting clip is
- *    left; when none is, the one shown longest ago is used again.
+ *    videos showed, oldest first.
+ * The week's clip is the one at the clinic's place, when it covers the scene
+ * and was not shown lately. Otherwise, in this order: a fitting clip from
+ * further down the results (never anyone's place in the list, so never last
+ * or next week's clip), picked by the same seed and turn; another clip of the
+ * list, next week's and last week's only after the others; and when every
+ * fitting clip was shown lately, the one shown longest ago.
  */
 export type ClipRotation = { seed: string; turn?: number; avoid?: ReadonlySet<number> };
 
@@ -142,6 +154,8 @@ export function rotationHash(seed: string): number {
 }
 
 const hasMp4 = (video: PexelsVideo) => video.video_files.some((f) => f.file_type === "video/mp4" && (f.width ?? 0) > 0);
+
+const mod = (n: number, m: number) => ((n % m) + m) % m;
 
 /**
  * Whether a clip fits the scene as well as the best result does: the same
@@ -164,14 +178,16 @@ function fitsLike(best: PexelsVideo, wantedSeconds: number, portrait: boolean): 
  * before (ties keep Pexels' order). `keep` holds the clips a stored video
  * already showed (plan.footageIds): a re-render of it plays the same clip
  * while the search still returns it and it still fits. With a rotation, see
- * ClipRotation; a clip without a usable mp4 is never chosen there.
+ * ClipRotation; a rotated clip always has a usable mp4, and when the best
+ * clip has a file `targetWidth` wide, so does the rotated one (no upscaled
+ * clip where the old rule played a sharp one).
  */
 export function chooseVideo(
   videos: PexelsVideo[],
   query: string,
   wantedSeconds: number,
   portrait: boolean,
-  opts: { rotation?: ClipRotation; keep?: ReadonlySet<number> } = {},
+  opts: { rotation?: ClipRotation; keep?: ReadonlySet<number>; targetWidth?: number } = {},
 ): PexelsVideo | undefined {
   const ranked = [...videos].sort(
     (a, b) => scoreVideo(b, wantedSeconds, portrait) - scoreVideo(a, wantedSeconds, portrait),
@@ -179,25 +195,35 @@ export function chooseVideo(
   const best = ranked[0];
   if (!best || (!opts.rotation && !opts.keep?.size)) return best;
   const fit = fitsLike(best, wantedSeconds, portrait);
-  const fits = ranked.filter((v) => fit(v) && hasMp4(v));
-  const kept = opts.keep?.size ? fits.find((v) => opts.keep!.has(v.id)) : undefined;
+  const kept = opts.keep?.size ? ranked.find((v) => opts.keep!.has(v.id) && fit(v) && hasMp4(v)) : undefined;
   if (kept) return kept;
-  if (!opts.rotation || !fits.length) return best;
+  if (!opts.rotation) return best;
+
+  const width = opts.targetWidth ?? 0;
+  const wide = (v: PexelsVideo) => width > 0 && v.video_files.some((f) => f.file_type === "video/mp4" && (f.width ?? 0) >= width);
+  const sharpEnough = wide(best) ? wide : hasMp4;
+  const shape = (v: PexelsVideo) => (v.height > v.width) === (best.height > best.width) && sharpEnough(v);
+  const fits = ranked.filter((v) => shape(v) && fit(v));
+  if (!fits.length) return best;
 
   const { seed, turn = 0, avoid } = opts.rotation;
-  const pool = fits.slice(0, ROTATION_POOL);
+  const fresh = (v: PexelsVideo) => fit(v) && !avoid?.has(v.id);
+  const list = videos.filter(shape).slice(0, ROTATION_POOL);
   const shift = rotationHash(`${seed}|${query.trim().toLowerCase()}`) + Math.trunc(Number.isFinite(turn) ? turn : 0);
-  const start = ((shift % pool.length) + pool.length) % pool.length;
-  for (let i = 0; i < pool.length; i++) {
-    const video = pool[(start + i) % pool.length];
-    if (!avoid?.has(video.id)) return video;
+  const at = mod(shift, list.length);
+  if (fresh(list[at])) return list[at];
+  // Not this week's place: a fitting clip further down, which is no week's place in the list.
+  const further = fits.filter((v) => !list.includes(v) && !avoid?.has(v.id));
+  if (further.length) return further[mod(shift, further.length)];
+  // Then the rest of the list; next week's place (one along) and last week's (one back) last.
+  const steps = [...Array.from({ length: Math.max(0, list.length - 3) }, (_, i) => i + 2), 1, list.length - 1];
+  for (const k of steps) {
+    const video = list[mod(at + k, list.length)];
+    if (fresh(video)) return video;
   }
-  // The best few were all shown lately: the next fitting clip that was not.
-  const fresh = fits.slice(ROTATION_POOL).find((v) => !avoid?.has(v.id));
-  if (fresh) return fresh;
   // Every fitting clip was shown lately: the one shown longest ago (avoid lists the oldest first).
   const order = [...(avoid ?? [])];
-  return pool.reduce((a, b) => (order.indexOf(b.id) < order.indexOf(a.id) ? b : a));
+  return fits.reduce((a, b) => (order.indexOf(b.id) < order.indexOf(a.id) ? b : a));
 }
 
 export type StockResolverOptions = {
@@ -261,7 +287,7 @@ export async function resolveStockClip(
   }
 
   const portrait = orientationFor(aspect) === "portrait";
-  const best = chooseVideo(videos, query, wantedSeconds, portrait, { rotation: opts.rotation, keep: opts.keep })!;
+  const best = chooseVideo(videos, query, wantedSeconds, portrait, { rotation: opts.rotation, keep: opts.keep, targetWidth })!;
 
   const file = pickFile(best, targetWidth);
   if (!file) {
@@ -333,15 +359,22 @@ export type FootageFields = {
 /** At most this many ids are read from one plan or history row: eight weeks of five videos, with room to spare. */
 const MAX_IDS = 200;
 
-/** Pexels ids from stored JSON: positive whole numbers only, each once, in order. Anything else is ignored. */
-export function clipIds(value: unknown): number[] {
+/**
+ * Pexels ids from stored JSON: positive whole numbers only, each once, in
+ * order. Anything else is ignored. At most MAX_IDS: the first ones, or with
+ * "newest" the last ones (an avoid list is oldest first, and the clips shown
+ * most recently matter most).
+ */
+export function clipIds(value: unknown, keep: "first" | "newest" = "first"): number[] {
   if (!Array.isArray(value)) return [];
+  const newest = keep === "newest";
   const out = new Set<number>();
-  for (const v of value) {
+  for (const v of newest ? [...value].reverse() : value) {
     if (typeof v === "number" && Number.isSafeInteger(v) && v > 0) out.add(v);
     if (out.size >= MAX_IDS) break;
   }
-  return [...out];
+  const ids = [...out];
+  return newest ? ids.reverse() : ids;
 }
 
 /** The rotation and the clips to keep that a plan asks for, read defensively (it may come from stored JSON). */
@@ -352,7 +385,7 @@ export function footageChoice(plan: unknown): { rotation?: ClipRotation; keep?: 
   const turn = typeof p.footageTurn === "number" && Number.isSafeInteger(p.footageTurn) ? p.footageTurn : undefined;
   const keep = clipIds(p.footageIds);
   return {
-    ...(seed ? { rotation: { seed, ...(turn !== undefined ? { turn } : {}), avoid: new Set(clipIds(p.footageAvoid)) } } : {}),
+    ...(seed ? { rotation: { seed, ...(turn !== undefined ? { turn } : {}), avoid: new Set(clipIds(p.footageAvoid, "newest")) } } : {}),
     ...(keep.length ? { keep: new Set(keep) } : {}),
   };
 }

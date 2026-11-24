@@ -6,7 +6,7 @@ import type OpenAI from "openai";
 import type { ScenePlan } from "../remotion/scene-plan.js";
 import { resolveFootageClips } from "../remotion/render-plan.js";
 import { noteFootageIds, ROTATION_POOL, type FootageFields, type PexelsVideo } from "../remotion/stock.js";
-import { FOOTAGE_MEMORY_WEEKS, footageSeed, produceVideo, produceWeek, recentFootage, rememberClips, weekNumber, type VideoPackage } from "./week.js";
+import { FOOTAGE_MEMORY_WEEKS, footageSeed, keptClips, produceVideo, produceWeek, recentFootage, rememberClips, weekNumber, type ChangeGuidance, type VideoPackage } from "./week.js";
 import type { PastTopic } from "./memory.js";
 import type { ClinicProfile } from "./profile.js";
 import type { Topic } from "./strategist.js";
@@ -175,8 +175,20 @@ describe("the rotation's inputs", () => {
   });
 
   it("the seed is the clinic, not the week", () => {
-    expect(footageSeed(US)).toBe("Live Oak Family Dentistry|Austin|US");
+    expect(footageSeed(US)).toBe("Live Oak Family Dentistry|Austin|US|liveoakdental");
+    expect(footageSeed({ ...US, handle: "@LiveOakDental" })).toBe(footageSeed(US));
     expect(footageSeed({ name: "Körfez Dental", city: undefined, country: "TR" })).toBe("Körfez Dental||TR");
+  });
+
+  it("two locations of a group with the same name and city get their own seed: by clinic id, or by their own handles", () => {
+    const north = { ...US, name: "Smile Dental", handle: "smiledental.north" };
+    const south = { ...US, name: "Smile Dental", handle: "smiledental.south" };
+    expect(footageSeed(north)).not.toBe(footageSeed(south));
+    // The job's clinic id wins: same name, city and handle, still two seeds; a renamed clinic keeps its own.
+    const shared = { ...US, name: "Smile Dental", handle: "smiledental" };
+    expect(footageSeed(shared, "c-1")).not.toBe(footageSeed(shared, "c-2"));
+    expect(footageSeed({ ...shared, name: "Smile Dental Studio" }, "c-1")).toBe(footageSeed(shared, "c-1"));
+    expect(footageSeed(shared, "  ")).toBe(footageSeed(shared));
   });
 
   it("the clips of the last eight weeks and of this week are avoided, oldest first; older ones and garbage are not", () => {
@@ -257,6 +269,57 @@ describe("two clinics in the same week", () => {
     for (let i = 1; i < picks.length; i++) if (picks[i] !== picks[i - 1]) differ++;
     expect(differ).toBeGreaterThanOrEqual(7);
     expect(new Set(picks).size).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("the job's clinic id", () => {
+  it("seeds the rotation when the caller passes it", async () => {
+    const r = stockRender();
+    await produceWeek({ client: fakeClient(["toothbrush close up"]), render: r.render }, US, { count: 1, topics: TOPICS.slice(0, 1), weekOf: "2026-11-23", clinicId: "c-42" });
+    expect(r.seen[0].footageSeed).toBe("clinic:c-42");
+  });
+});
+
+describe("a change request to a video made in a week", () => {
+  const NOTE = "Please say it a little shorter.";
+  const changed = async (base: ChangeGuidance["base"]) => {
+    const r = stockRender();
+    const pkg = await produceVideo({ client: fakeClient(["toothbrush close up"]), render: r.render }, US, TOPICS[0], new Set(), undefined, { note: NOTE, base });
+    expect(pkg.status).toBe("ready");
+    return { pkg: pkg as Extract<VideoPackage, { status: "ready" }>, seen: r.seen };
+  };
+
+  it("keeps the stock clip the dentist already saw when the change carries the stored plan's ids", async () => {
+    // A week video whose rotated clip is not the one a plain render picks (101).
+    let stored: Extract<VideoPackage, { status: "ready" }> | undefined;
+    for (const monday of MONDAYS) {
+      const [video] = ready(await produceWeek({ client: fakeClient(["toothbrush close up"]), render: stockRender().render }, US, { count: 1, topics: TOPICS.slice(0, 1), weekOf: monday }));
+      if (video.plan.footageIds?.[0] !== 101) {
+        stored = video;
+        break;
+      }
+    }
+    expect(stored).toBeDefined();
+    const shown = stored!.plan.footageIds!;
+    const { pkg, seen } = await changed({ scenes: stored!.plan.scenes, voiceover: stored!.plan.voiceover, footageIds: stored!.plan.footageIds });
+    expect(seen[0].footageIds).toEqual(shown);
+    expect(pkg.plan.footageIds).toEqual(shown);
+    // The ids only chose the clip: the change gets no rotation of its own.
+    for (const k of ["footageSeed", "footageTurn", "footageAvoid"]) expect(Object.keys(seen[0])).not.toContain(k);
+  });
+
+  it("without the ids (dentvid/jobs.ts passes scenes and voiceover only today), the clip is swapped for the top one", async () => {
+    const before = plan(TOPICS[0], "toothbrush close up", CTA_POOL[0]);
+    const { pkg, seen } = await changed({ scenes: before.scenes, voiceover: before.voiceover });
+    expect("footageIds" in seen[0]).toBe(false);
+    expect(pkg.plan.footageIds).toEqual([101]);
+  });
+
+  it("reads the stored ids defensively", () => {
+    expect(keptClips(undefined)).toEqual([]);
+    expect(keptClips({ note: NOTE })).toEqual([]);
+    expect(keptClips({ note: NOTE, base: { scenes: [], footageIds: [105, "x", 105, -2] } })).toEqual([105]);
+    expect(keptClips({ note: NOTE, base: { scenes: [], footageIds: "105" } })).toEqual([]);
   });
 });
 

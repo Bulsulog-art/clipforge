@@ -12,10 +12,13 @@ import { rotationHash } from "../remotion/stock.js";
  * signs, logos or offices that could carry another practice's name): any query that reaches for people or a clinical setting
  * is replaced by an object shot for the video's service, and a week does not
  * show the same shot twice (two videos got the same toothpaste clip).
+ * Chairside instruments (a mirror, a shade guide, a drill) count as a
+ * clinical setting: stock libraries file them mostly under exam shots of
+ * someone's open mouth.
  */
 
 const PEOPLE_OR_CLINIC =
-  /\b(logos?|brand\w*|signs?|signage|office|store|shop|posters?|dentists?|doctors?|nurses?|hygienists?|clinics?|surgery|surgical|surgeon|treatments?|procedures?|process|patients?|operations?|hospital|chair|exam\w*|appointment|people|person|woman|man|girl|boy|smil\w*|face|mouth open)\b/i;
+  /\b(logos?|brand\w*|signs?|signage|office|store|shop|posters?|dentists?|doctors?|nurses?|hygienists?|clinics?|surgery|surgical|surgeon|treatments?|procedures?|process|patients?|operations?|hospital|chair|exam\w*|appointment|people|person|woman|man|girl|boy|smil\w*|face|mouth open|mirrors?|shade guides?|drills?)\b/i;
 
 /**
  * Object shots by service, in several languages' service names: six to eight
@@ -23,23 +26,26 @@ const PEOPLE_OR_CLINIC =
  * three shots every month (stock-clip rotation, Nov 2026). Each is an object
  * on its own, phrased the way stock libraries tag it ("close up", "model",
  * "case"), never a scene with a person in it. The first ones lead, as before.
+ * Each pool shows only its own treatment: no braces in an aligner video.
+ * Turkish "plak" alone is also dental plaque ("plak temizliği" is a
+ * cleaning), so aligners answer to "şeffaf plak" or "plak tedavisi" only.
  */
 export const SERVICE_SHOTS: readonly (readonly [RegExp, readonly string[]])[] = [
   [
     /implant|インプラント|زراع/i,
-    ["dental implant model", "tooth model close up", "dental model teeth", "dental implant screw", "titanium dental implant", "jaw model teeth", "dental crown close up"],
+    ["dental implant model", "tooth model close up", "dental model teeth", "implant model close up", "jaw model teeth", "tooth implant model", "dental crown model"],
   ],
   [
     /whiten|bleach|blanque|beyazlat|blanchi|clare|sbianc|ホワイトニング|تبييض|wybiel/i,
-    ["teeth whitening tray", "white toothpaste close up", "toothbrush and toothpaste", "teeth whitening kit", "tooth shade guide", "toothpaste tube close up", "dental model white teeth"],
+    ["teeth whitening tray", "white toothpaste close up", "toothbrush and toothpaste", "teeth whitening kit", "teeth whitening gel", "toothpaste tube close up", "dental model white teeth"],
   ],
   [
-    /align|alinead|plak|aligneur|allinea|alinhad|ortodon|矯正|マウスピース|تقويم|nakładk/i,
-    ["clear aligner close up", "clear aligner case", "orthodontic retainer close up", "aligner tray close up", "retainer case close up", "teeth model with braces", "orthodontic model teeth"],
+    /align|alinead|şeffaf plak|seffaf plak|plak tedavi|aligneur|allinea|alinhad|ortodon|矯正|マウスピース|تقويم|nakładk/i,
+    ["clear aligner close up", "clear aligner case", "orthodontic retainer close up", "aligner tray close up", "retainer case close up", "aligner on teeth model", "transparent aligner close up"],
   ],
   [
     /root|wurzel|endodon|kanal|kanał|canal|devital|根管|عصب/i,
-    ["tooth model close up", "dental model teeth", "dental x ray", "molar tooth model", "tooth anatomy model", "dental crown close up", "dental mirror close up"],
+    ["tooth model close up", "dental model teeth", "dental x ray", "molar tooth model", "tooth anatomy model", "tooth cross section model", "dental crown model"],
   ],
   [
     /child|kinder|niñ|odontopedi|çocuk|pédodont|pedodon|bambin|crian|小児|子ども|子供|أطفال|dziec/i,

@@ -74,6 +74,33 @@ describe("each service's pool of object shots", () => {
   });
 });
 
+describe("each pool shows only its own treatment, and only objects", () => {
+  it("an aligner video never gets braces", () => {
+    for (const name of ["Clear aligners", "Invisalign", "Şeffaf plak"])
+      for (const shot of serviceShots(name)) expect(shot, `${name}: ${shot}`).not.toMatch(/brace|bracket|wire/i);
+  });
+
+  it("no pool reaches for a chairside instrument, which stock libraries show in someone's mouth", () => {
+    for (const shot of [...SERVICE_SHOTS.flatMap(([, shots]) => shots), ...GENERAL_SHOTS])
+      expect(shot).not.toMatch(/mirror|shade|drill|probe|syringe|needle|screw|scaler/i);
+  });
+
+  it("a query for one is replaced by an object shot for the service", () => {
+    expect(q(guardFootage(plan("dental mirror close up"), "Root canal treatment", new Set()))).toBe("tooth model close up");
+    expect(q(guardFootage(plan("tooth shade guide"), "Teeth whitening", new Set()))).toBe("teeth whitening tray");
+    expect(q(guardFootage(plan("dental drill close up"), "Dental implants", new Set()))).toBe("dental implant model");
+    for (const query of ["dental mirrors", "teeth shade guides", "dental drills"]) expect(dentalQuery(query), query).toBe(false);
+  });
+
+  it("Turkish plaque cleaning gets cleaning shots; Turkish clear aligners still get aligner shots", () => {
+    const cleaning = serviceShots("Hygienist cleaning");
+    const aligner = serviceShots("Clear aligners");
+    expect(serviceShots("Diş taşı ve plak temizliği")).toBe(cleaning);
+    expect(serviceShots("Plak temizliği")).toBe(cleaning);
+    for (const name of ["Şeffaf plak", "Şeffaf Plak Tedavisi", "ŞEFFAF PLAK", "Seffaf plak", "Plak tedavisi", "Ortodonti"]) expect(serviceShots(name), name).toBe(aligner);
+  });
+});
+
 describe("with the clinic's weekly rotation (produceWeek)", () => {
   const seed = "Live Oak Family Dentistry|Austin|US";
   const replaced = (service: string, turn: number, rotationSeed = seed) =>

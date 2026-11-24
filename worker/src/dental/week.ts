@@ -122,12 +122,13 @@ export type WeekVisuals = {
   seed: string;
   closingIndex?: number;
   /**
-   * The stock clips (remotion/stock.ts ClipRotation): the week's turn in the
-   * clinic's rotation (weekNumber of its Monday), and the Pexels ids the
-   * clinic's recent videos and this week's earlier ones showed, oldest first
-   * (recentFootage). Absent: each query gets its best-scored clip, as before.
+   * The stock clips (remotion/stock.ts ClipRotation): the clinic's seed
+   * (footageSeed), the week's turn in its rotation (weekNumber of its Monday),
+   * and the Pexels ids the clinic's recent videos and this week's earlier ones
+   * showed, oldest first (recentFootage). Absent: each query gets its
+   * best-scored clip, as before.
    */
-  footage?: { turn: number; avoid: ReadonlySet<number> };
+  footage?: { seed: string; turn: number; avoid: ReadonlySet<number> };
 };
 
 /** How far back a clinic's earlier photos are avoided: the two weeks before the week being made. */
@@ -148,10 +149,17 @@ export function weekNumber(monday: string): number {
 /**
  * The seed of a clinic's clip rotation: the same every week (the turn moves
  * it along), different from clinic to clinic, so two clinics that ask for the
- * same shot in the same week usually see different clips.
+ * same shot in the same week usually see different clips. The clinic's id
+ * when the caller has it (produceWeek opts.clinicId): two locations of a
+ * group can share a name and a city, and a renamed clinic keeps its place.
+ * Without it, the name, city, country and handle (locations of one group
+ * usually post from their own accounts).
  */
-export function footageSeed(profile: Pick<ClinicProfile, "name" | "city" | "country">): string {
-  return [profile.name, profile.city ?? "", profile.country ?? ""].join("|");
+export function footageSeed(profile: Pick<ClinicProfile, "name" | "city" | "country" | "handle">, clinicId?: string): string {
+  const id = clinicId?.trim();
+  if (id) return `clinic:${id}`;
+  const handle = (profile.handle ?? "").trim().replace(/^@/, "").toLowerCase();
+  return [profile.name, profile.city ?? "", profile.country ?? "", ...(handle ? [handle] : [])].join("|");
 }
 
 /**
@@ -286,10 +294,13 @@ export function hedgingRule(language: string | undefined): string {
  * caller also passes that version's look and photos, the changed video keeps
  * them (keptLook, keptPhotos): the dentist asked to change words, not the
  * look of a video made before HOUSE_THEME or the photos it already shows.
+ * Likewise its stock clips (plan.footageIds, keptClips): a rotated clip is
+ * not the one a plain re-render would pick, so without them the changed video
+ * would swap the footage the dentist already saw.
  */
 export type ChangeGuidance = {
   note: string;
-  base?: Pick<ScenePlan, "scenes" | "voiceover"> & { theme?: unknown; backgrounds?: unknown };
+  base?: Pick<ScenePlan, "scenes" | "voiceover"> & { theme?: unknown; backgrounds?: unknown; footageIds?: unknown };
 };
 
 /** The stored video's theme, when the change carries a valid one. */
@@ -303,6 +314,11 @@ export function keptPhotos(change: ChangeGuidance | undefined): string[] {
   const b = change?.base?.backgrounds;
   if (!Array.isArray(b)) return [];
   return [...new Set(b.filter((p): p is string => typeof p === "string" && BACKGROUND_PATH.test(p) && !!backgroundId(p)))].slice(0, MAX_BACKGROUNDS);
+}
+
+/** The stock clips (Pexels ids) the stored video showed, when the change carries them; anything else is ignored. */
+export function keptClips(change: ChangeGuidance | undefined): number[] {
+  return clipIds(change?.base?.footageIds);
 }
 
 /**
@@ -826,7 +842,7 @@ export async function produceVideo(
   // Painted in the clinic's colour, so the week reads as theirs.
   // Objects only, never people or a clinic in stock footage; no repeats.
   // In a week, a replaced query follows the clinic's rotation, like its clips.
-  const clipRotation = visual?.footage ? { seed: footageSeed(profile), turn: visual.footage.turn } : undefined;
+  const clipRotation = visual?.footage ? { seed: visual.footage.seed, turn: visual.footage.turn } : undefined;
   const guarded = guardFootage(script.value, topic.service, usedFootage, clipRotation);
   // Library photos behind the text: 10–20 ranked suggestions are kept for the
   // clinic to choose from; the top few go in by default (dentvid/backgrounds).
@@ -875,11 +891,15 @@ export async function produceVideo(
     : safe;
   // Which clip each stock query gets: the clinic's place in its rotation this
   // week, and the clips its recent videos and this week's earlier ones showed
-  // (remotion/stock.ts ClipRotation). Only the render sees these fields.
-  const toRender: ScenePlan & FootageFields =
-    clipRotation && visual?.footage
-      ? { ...branded, footageSeed: clipRotation.seed, footageTurn: clipRotation.turn, footageAvoid: [...visual.footage.avoid] }
-      : branded;
+  // (remotion/stock.ts ClipRotation). A change keeps the clips the video
+  // already shows wherever its queries still find them. Only the render sees
+  // these fields.
+  const keptIds = keptClips(change);
+  const toRender: ScenePlan & FootageFields = {
+    ...branded,
+    ...(clipRotation && visual?.footage ? { footageSeed: clipRotation.seed, footageTurn: clipRotation.turn, footageAvoid: [...visual.footage.avoid] } : {}),
+    ...(keptIds.length ? { footageIds: keptIds } : {}),
+  };
   const videoPath = deps.render ? await deps.render(toRender, topic) : undefined;
   // The clips the render showed (renderPlan notes them by output file), stored
   // on the plan so the clinic's next weeks can avoid them.
@@ -927,6 +947,12 @@ export async function produceWeek(
      */
     topics?: Topic[];
     /**
+     * The clinic's id (dentvid_clinics), when the caller has it: the seed of
+     * its stock-clip rotation (footageSeed). Without it, the profile's name,
+     * city, country and handle.
+     */
+    clinicId?: string;
+    /**
      * Topics the clinic suggested, oldest first (dentvid/topic-requests.ts). The
      * strategist plans them first, marked with their index in `topic.request`;
      * one it cannot use is reported through `onRefused` with a reason code.
@@ -956,7 +982,7 @@ export async function produceWeek(
   // Stock clips: the clinic's turn this week, and the clips of its last eight
   // weeks (when the history carries them) and of this week's videos, skipped.
   const usedClips = recentFootage(opts.history, weekMonday);
-  const footage = { turn: weekNumber(weekMonday), avoid: usedClips };
+  const footage = { seed: footageSeed(profile, opts.clinicId), turn: weekNumber(weekMonday), avoid: usedClips };
   // A top-up's history holds this week's videos already made (jobs.ts): its closings continue after theirs.
   const madeThisWeek = (opts.history ?? []).filter((h) => (h.weekOf ?? "") >= weekMonday).length;
   const seed = `${profile.name}|${weekMonday}`;

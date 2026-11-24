@@ -144,9 +144,11 @@ describe("one clinic over eight weeks", () => {
     for (const id of shown) expect(id).toBeLessThanOrEqual(100 + ROTATION_POOL);
   });
 
-  it("when the best five were all shown lately, takes the next fitting clip that was not", () => {
+  it("when the best five were all shown lately, takes a fitting clip further down that was not, a different one each week", () => {
     const avoid = new Set([101, 102, 103, 104, 105]);
-    for (const m of MONDAYS) expect(chooseVideo(TEN, "toothbrush close up", 4, true, { rotation: { seed, turn: turnOf(m), avoid } })!.id).toBe(106);
+    const picks = MONDAYS.map((m) => chooseVideo(TEN, "toothbrush close up", 4, true, { rotation: { seed, turn: turnOf(m), avoid } })!.id);
+    for (const id of picks) expect([106, 107, 108, 109, 110]).toContain(id);
+    for (let i = 1; i < picks.length; i++) expect(picks[i], MONDAYS[i]).not.toBe(picks[i - 1]);
   });
 
   it("when every fitting clip was shown lately, repeats the one shown longest ago rather than showing nothing", () => {
@@ -176,6 +178,75 @@ describe("one clinic over eight weeks", () => {
     const videos = [clip(501, { duration: 6 }), clip(502, { duration: 5.5 }), clip(503, { duration: 2 })];
     const picks = new Set(Array.from({ length: 12 }, (_, turn) => chooseVideo(videos, "q", 8, true, { rotation: { seed, turn } })!.id));
     expect([...picks].sort()).toEqual([501, 502]);
+  });
+});
+
+describe("when the scene's length changes from week to week (no history)", () => {
+  /** Seven results in Pexels' order, long and short ones mixed: a longer scene rules the short ones out. */
+  const MIXED = [clip(201), clip(202, { duration: 5 }), clip(203), clip(204, { duration: 5 }), clip(205), clip(206, { duration: 5 }), clip(207)];
+
+  it("a 4 s scene one week and an 8 s scene the next (or the other way round) never show the same clip", () => {
+    for (let c = 0; c < 200; c++) {
+      const seed = `Clinic ${c}|City|US`;
+      const pick = (seconds: number, turn: number) => chooseVideo(MIXED, "toothbrush close up", seconds, true, { rotation: { seed, turn } })!;
+      const t = turnOf("2026-11-30");
+      expect(pick(8, t + 1).id, seed).not.toBe(pick(4, t).id);
+      expect(pick(4, t + 1).id, seed).not.toBe(pick(8, t).id);
+      // Whatever the length, the clip always covers the scene.
+      expect(pick(8, t).duration).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  it("over many result lists and scene lengths, the same clip two weeks running stays rare", () => {
+    const rnd = lcg(42);
+    let repeats = 0;
+    let pairs = 0;
+    for (let c = 0; c < 400; c++) {
+      const videos = Array.from({ length: 10 }, (_, i) => clip(1000 + i, { duration: rnd() < 0.4 ? 3 + rnd() * 5 : 8 + rnd() * 30 }));
+      const seed = `Clinic ${c}|City|US`;
+      let last: number | undefined;
+      for (let turn = 2900; turn < 2912; turn++) {
+        const id = chooseVideo(videos, "toothbrush close up", 3 + Math.floor(rnd() * 6), true, { rotation: { seed, turn } })!.id;
+        if (last !== undefined) {
+          pairs++;
+          if (id === last) repeats++;
+        }
+        last = id;
+      }
+    }
+    // Measured 0.4 %; a rotation whose place depends on how many clips fit the scene repeated about 9 % of the time here.
+    expect(repeats / pairs).toBeLessThan(0.01);
+  });
+});
+
+describe("a rotated clip is as sharp as the best one", () => {
+  /** A clip whose only mp4 is 540 wide: it would be upscaled into a 1080-wide frame. */
+  const sd = (id: number) => clip(id, { video_files: [{ link: `https://x/${id}.mp4`, width: 540, height: 960, file_type: "video/mp4", quality: "sd" }] });
+  const videos = [clip(601), sd(602), sd(603), clip(604), clip(605), clip(606)];
+
+  it("when the best clip has a file wide enough for the frame, never picks one that has not", () => {
+    const picks = new Set<number>();
+    for (let c = 0; c < 40; c++)
+      for (const m of MONDAYS) picks.add(chooseVideo(videos, "q", 4, true, { rotation: { seed: `Clinic ${c}`, turn: turnOf(m) }, targetWidth: 1080 })!.id);
+    expect([...picks].sort()).toEqual([601, 604, 605, 606]);
+    // Told nothing about the frame, the SD clips stay in the rotation.
+    const loose = new Set(Array.from({ length: 40 }, (_, c) => chooseVideo(videos, "q", 4, true, { rotation: { seed: `Clinic ${c}`, turn: 1 } })!.id));
+    expect(loose.has(602) || loose.has(603)).toBe(true);
+  });
+
+  it("when no clip is that wide, the rotation still turns through them", () => {
+    const all = [sd(701), sd(702), sd(703)];
+    const picks = new Set(Array.from({ length: 6 }, (_, turn) => chooseVideo(all, "q", 4, true, { rotation: { seed: "s", turn }, targetWidth: 1080 })!.id));
+    expect(picks.size).toBe(3);
+  });
+
+  it("resolveStockClip tells chooseVideo the frame's width", async () => {
+    for (let turn = 0; turn < 8; turn++) {
+      const { fetchImpl, seen } = pexels(videos);
+      const got = await resolveStockClip("q", 4, { ...opts(fetchImpl), rotation: { seed: "Clinic 7", turn } });
+      expect([602, 603]).not.toContain(got!.id);
+      expect(seen[1]).toBe(`https://x/${got!.id}.mp4`);
+    }
   });
 });
 
@@ -218,6 +289,7 @@ describe("the plan's footage fields", () => {
     expect(clipIds([3, 3, "4", -1, 0, 2.5, null, 9])).toEqual([3, 9]);
     expect(clipIds("101")).toEqual([]);
     expect(clipIds(Array.from({ length: 500 }, (_, i) => i + 1))).toHaveLength(200);
+    expect(clipIds([1, 2, 1], "newest")).toEqual([2, 1]);
     expect(footageChoice(null)).toEqual({});
     expect(footageChoice({ footageSeed: "  ", footageTurn: 3 })).toEqual({});
     expect(footageChoice({ footageSeed: 7, footageAvoid: [1] })).toEqual({});
@@ -227,6 +299,15 @@ describe("the plan's footage fields", () => {
     expect([...(read.rotation?.avoid ?? [])]).toEqual([5, 6]);
     expect([...(read.keep ?? [])]).toEqual([8]);
     expect(footageChoice({ footageSeed: "s", footageTurn: 1.5 }).rotation).toEqual({ seed: "s", avoid: new Set() });
+  });
+
+  it("keep the newest clips of a long avoid list: it is oldest first, and the clips shown last matter most", () => {
+    const avoid = Array.from({ length: 250 }, (_, i) => i + 1);
+    const kept = [...(footageChoice({ footageSeed: "s", footageTurn: 1, footageAvoid: avoid }).rotation?.avoid ?? [])];
+    expect(kept).toHaveLength(200);
+    expect(kept[0]).toBe(51);
+    expect(kept.at(-1)).toBe(250);
+    expect(kept).not.toContain(1);
   });
 
   it("never reach the composition", () => {
@@ -251,8 +332,11 @@ describe("the plan's footage fields", () => {
       footageAvoid: [101, 102, 103, 104],
     } as ScenePlan;
     const out = await resolveFootageClips(plan, { workDir, renderId: "r1", userAssets: [], pexelsApiKey: "k", fetchImpl: pexels(TEN).fetchImpl });
-    expect(out.clipIds).toEqual([105]);
-    expect(out.footage["1"]).toBe("r1/stock-105.mp4");
+    const rotation = { seed: "Clinic|City|US", turn: 2917, avoid: new Set([101, 102, 103, 104]) };
+    const want = chooseVideo(TEN, "toothbrush close up", 4, true, { rotation, targetWidth: 1080 })!.id;
+    expect([101, 102, 103, 104]).not.toContain(want);
+    expect(out.clipIds).toEqual([want]);
+    expect(out.footage["1"]).toBe(`r1/stock-${want}.mp4`);
   });
 });
 
