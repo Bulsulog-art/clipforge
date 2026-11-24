@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { readyEmail, sendEmail } from "./email";
+import { readyEmail, sendEmail, type SettingsNudge } from "./email";
 import { recordEvent } from "./events-server";
 import { approveUrl } from "./approve-link";
 import { EMAIL_IMAGE_TTL_S, isTestEmail, lifecycleConfig } from "./lifecycle";
@@ -10,6 +10,7 @@ import { postLinkUrl } from "./post-link";
 import { leadSentence, postTexts, slotLabel, weekSchedule } from "./posting";
 import { asLocale } from "./locale";
 import { postingText } from "@/content/dentvideo-posting";
+import { WEEK_VIDEOS } from "./week-job";
 
 /**
  * "Your videos are ready" to a clinic's owner, in the clinic's language. Used
@@ -26,6 +27,15 @@ import { postingText } from "@/content/dentvideo-posting";
  * ready one, "Check it in the app" for one flagged for a look.
  * The clinic's logo and colour brand the email. Test accounts (e2e-…) get
  * nothing.
+ *
+ * Two weeks read differently:
+ *   - the clinic's first delivered week (no usable video from an earlier
+ *     week) gets the welcome: three steps from "ready" to "posted", the next
+ *     delivery date and, if the clinic has not set them, one line about its
+ *     Instagram handle and closing line in Settings;
+ *   - a week with fewer than five usable videos says how many were left out
+ *     and why, counted from the week's videos in the library (the worker's
+ *     counts are one run's, and a re-run only makes the missing ones).
  */
 export type ReadyNoticeResult = { sent: boolean; reason?: "no clinic" | "no email" | "test account" | "nothing ready" | "send failed" };
 
@@ -52,6 +62,45 @@ export function videoRows(
       action: !shareable ? p.email.lookInApp : i.approval === "approved" ? p.email.share : p.email.approveShare,
     };
   });
+}
+
+/** How many of the week's five are missing from its usable videos (0 when none, or when there is nothing to count). */
+export function missingFromWeek(items: ItemRow[]): number {
+  const usable = items.filter((r) => r.status === "ready" || r.status === "flagged").length;
+  return usable > 0 && usable < WEEK_VIDEOS ? WEEK_VIDEOS - usable : 0;
+}
+
+/**
+ * Is `week` the clinic's first delivered week: no usable generated video
+ * (ready or flagged) from an earlier week? The rows already read answer it
+ * when they hold an earlier week; otherwise one count asks the database.
+ * Any doubt (an error) reads as "not first": a long-time clinic must never
+ * be welcomed as new.
+ */
+export async function isFirstWeek(db: SupabaseClient, clinicId: string, week: string, rows: ItemRow[]): Promise<boolean> {
+  if (rows.some((r) => (r.status === "ready" || r.status === "flagged") && r.week_of < week)) return false;
+  const { count, error } = await db
+    .from("dentvid_items")
+    .select("id", { count: "exact", head: true })
+    .eq("clinic_id", clinicId)
+    .eq("kind", "generated")
+    .in("status", ["ready", "flagged"])
+    .lt("week_of", week);
+  return !error && count === 0;
+}
+
+/** Which of the clinic's own touches the first-week email may suggest: only ones not set yet. */
+export function settingsNudge(profile: { handle?: unknown; closingLine?: unknown }): SettingsNudge | null {
+  const set = (v: unknown) => typeof v === "string" && v.trim().length > 0;
+  const handle = !set(profile.handle);
+  const closing = !set(profile.closingLine);
+  return handle && closing ? "both" : handle ? "handle" : closing ? "closingLine" : null;
+}
+
+/** The Monday after a week's Monday (YYYY-MM-DD). */
+export function nextWeekOf(week: string): string | null {
+  const t = Date.parse(`${week}T00:00:00Z`);
+  return Number.isNaN(t) ? null : new Date(t + 7 * 86_400_000).toISOString().slice(0, 10);
 }
 
 /** The newest week with finished generated videos: its date, and its items. */
@@ -84,7 +133,7 @@ export async function sendReadyNotice(
   const email = owner?.user?.email;
   if (!email) return { sent: false, reason: "no email" };
   if (isTestEmail(email)) return { sent: false, reason: "test account" };
-  const profile = (clinic.profile ?? {}) as { name?: string; language?: string; brandColor?: string };
+  const profile = (clinic.profile ?? {}) as { name?: string; language?: string; brandColor?: string; handle?: string; closingLine?: string };
   // Funnel: the worker finished a week (or a recording) for this clinic. Not for an owner's resend.
   if (opts.recordFunnel !== false) void recordEvent("week_ready", { db, clinicId, locale: profile.language, props: { kind, ...counts } });
   const base = readyEmailBase();
@@ -93,6 +142,9 @@ export async function sendReadyNotice(
   let approve: string | null = null;
   let videos: VideoRow[] = [];
   let logoUrl: string | null = null;
+  let first = false;
+  let missing = 0;
+  let nextDate: string | null = null;
   try {
     const paths: string[] = [];
     let items: ItemRow[] = [];
@@ -106,8 +158,14 @@ export async function sendReadyNotice(
         .order("week_of", { ascending: false })
         .order("created_at", { ascending: true })
         .limit(24);
-      ({ week, items } = latestWeek((data ?? []) as ItemRow[]));
+      const rows = (data ?? []) as ItemRow[];
+      ({ week, items } = latestWeek(rows));
       for (const i of items.slice(0, 6)) if (i.thumb_path) paths.push(i.thumb_path);
+      if (week) {
+        missing = missingFromWeek(items);
+        first = await isFirstWeek(db, clinicId, week, rows).catch(() => false);
+        nextDate = first ? nextWeekOf(week) : null;
+      }
     }
     if (typeof clinic.logo_path === "string") paths.push(clinic.logo_path);
     const urls = new Map<string, string>();
@@ -138,6 +196,10 @@ export async function sendReadyNotice(
     approveUrl: approve,
     videos,
     brand: { logoUrl, color: profile.brandColor ?? null },
+    first,
+    nextDate,
+    nudge: first ? settingsNudge(profile) : null,
+    missing,
   });
   if (!msg) return { sent: false, reason: "nothing ready" };
   const sent = await (opts.send ?? sendEmail)(email, msg, { log: { clinicId, kind: kind === "week" ? "ready_week" : "ready_recording", language: profile.language ?? null } });

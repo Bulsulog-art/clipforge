@@ -23,6 +23,27 @@ export async function notifyReadyChecked(
   counts: { ready: number; flagged: number },
   fetchImpl: typeof fetch = fetch,
 ): Promise<NotifyOutcome> {
+  return postNotice({ clinicId, kind, ...counts }, "ready notice", fetchImpl);
+}
+
+/** late: a paying clinic's Monday week is late (delivery.ts); first-late: a first week is late (watchdog.ts). */
+export type DelayKind = "late" | "first-late";
+
+/**
+ * Tells the web app a clinic's week is late, so it emails the dentist one
+ * calm "running late" note (web: lib/dentvid/delay-notice.ts). The callers
+ * ask once per clinic and week (a Redis marker); the web app skips test
+ * accounts, clinics without an address and a week that arrived meanwhile.
+ * Never throws: a lost notice must not stop a watchdog run. The outcome is
+ * classified like the ready notice's.
+ */
+export async function notifyDelayChecked(clinicId: string, week: string, kind: DelayKind, fetchImpl: typeof fetch = fetch): Promise<NotifyOutcome> {
+  return postNotice({ clinicId, kind, week }, "delay notice", fetchImpl);
+}
+
+/** POST one notice to the web app's internal notify route; never throws. */
+async function postNotice(body: { clinicId: string; kind: string } & Record<string, unknown>, label: string, fetchImpl: typeof fetch): Promise<NotifyOutcome> {
+  const { clinicId, kind } = body;
   const token = process.env.WORKER_INTERNAL_TOKEN;
   const base = (process.env.DENTVIDEO_APP_URL || "https://dentvideo.com").replace(/\/+$/, "");
   if (!token) return { sent: false, retry: false, reason: "no WORKER_INTERNAL_TOKEN" };
@@ -30,19 +51,19 @@ export async function notifyReadyChecked(
     const res = await fetchImpl(`${base}/api/internal/dentvideo/notify`, {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify({ clinicId, kind, ...counts }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(15_000),
     });
-    const body = (await res.json().catch(() => ({}))) as { sent?: boolean; reason?: string; error?: string };
-    logger.info({ clinicId, kind, status: res.status, body }, "dentvid: ready notice");
-    if (res.ok && body.sent === true) return { sent: true, retry: false, reason: "sent" };
+    const answer = (await res.json().catch(() => ({}))) as { sent?: boolean; reason?: string; error?: string };
+    logger.info({ clinicId, kind, status: res.status, body: answer }, `dentvid: ${label}`);
+    if (res.ok && answer.sent === true) return { sent: true, retry: false, reason: "sent" };
     // 200 with a reason: the web app decided not to send (no email, test account, nothing ready) — final.
-    if (res.ok && body.reason) return { sent: false, retry: false, reason: body.reason };
+    if (res.ok && answer.reason) return { sent: false, retry: false, reason: answer.reason };
     // 200 {sent:false} without a reason is the email provider failing; 429 / 5xx / 408 pass too.
     if (res.ok || res.status === 408 || res.status === 429 || res.status >= 500) return { sent: false, retry: true, reason: res.ok ? "send failed" : `HTTP ${res.status}` };
-    return { sent: false, retry: false, reason: `HTTP ${res.status}${body.error ? ` ${body.error}` : ""}` };
+    return { sent: false, retry: false, reason: `HTTP ${res.status}${answer.error ? ` ${answer.error}` : ""}` };
   } catch (e) {
-    logger.warn({ clinicId, err: (e as Error).message }, "dentvid: ready notice failed");
+    logger.warn({ clinicId, kind, err: (e as Error).message }, `dentvid: ${label} failed`);
     return { sent: false, retry: true, reason: (e as Error).message.slice(0, 200) };
   }
 }

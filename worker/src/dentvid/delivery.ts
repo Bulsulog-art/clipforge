@@ -4,7 +4,7 @@ import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, type WeekJobData } from "./job-o
 import { activeClinicRows, deliveryWeek, getsWeeks, weekJobId, weekOf, type ClinicRow } from "./schedule.js";
 import { clinicTimeZone, mondayMorning } from "./timezone.js";
 import { alerts, weekStateKey, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
-import { supabaseWatchDb, type WatchQueue } from "./watchdog.js";
+import { noticeClinicOnce, supabaseWatchDb, type ClinicNotifier, type WatchQueue } from "./watchdog.js";
 
 /**
  * The delivery watchdog: did every paying clinic actually get its week by
@@ -24,6 +24,9 @@ import { supabaseWatchDb, type WatchQueue } from "./watchdog.js";
  *     (missing → added; failed → retried; completed with nothing → a fresh
  *     run under its own id; waiting behind the batch → to the front);
  *   - the clinic's library says "taking a little longer" (never an error);
+ *   - the clinic gets one calm "running late" email (queued, nothing extra
+ *     charged, we email when ready), once per clinic and week: only on the
+ *     run that set the re-queue marker (notifyClinic);
  *   - the owner is told (one email per clinic and week a day).
  * A clinic that started paying after its deadline is the first-week
  * watchdog's, not this one's.
@@ -66,10 +69,12 @@ export type DeliveryDeps = {
   queue: DeliveryQueue;
   store: OpsStore | null;
   alert: (a: OwnerAlert) => Promise<DeliverResult>;
+  /** The clinic's "running late" email; defaults to the web app's notice (notify.ts notifyDelayChecked). */
+  notifyClinic?: ClinicNotifier;
   now?: Date;
 };
 
-export type LateWeek = { clinicId: string; week: string; deadline: string; jobState: string; requeued: boolean };
+export type LateWeek = { clinicId: string; week: string; deadline: string; jobState: string; requeued: boolean; /** The clinic was emailed on this run. */ notified?: boolean };
 
 export type DeliveryReport = {
   at: string;
@@ -203,8 +208,12 @@ async function handleLate(deps: DeliveryDeps, clinicId: string, week: string, de
     if (cur !== "delayed") await deps.store.set(key, "retrying", 8 * 86_400).catch(() => {});
   }
   await deps.alert(alerts.weekLate({ clinic: await deps.db.clinic(clinicId).catch(() => ({ id: clinicId })), week, deadline: deadline.toISOString(), jobState: state, requeued })).catch(() => "failed");
-  logger.warn({ clinicId, week, state, requeued }, "dentvid: a paying clinic's week is late");
-  return { clinicId, week, deadline: deadline.toISOString(), jobState: state, requeued };
+  // The dentist hears it from us, once per clinic and week: only on the run that set the
+  // marker above (the next hourly runs, and a second worker, find it set). Without a store
+  // there is no marker, so no email rather than one an hour.
+  const notified = fresh && deps.store ? await noticeClinicOnce(deps.store, deps.notifyClinic, clinicId, week, "late") : false;
+  logger.warn({ clinicId, week, state, requeued, notified }, "dentvid: a paying clinic's week is late");
+  return { clinicId, week, deadline: deadline.toISOString(), jobState: state, requeued, notified };
 }
 
 /* ------------------------------------------------------------ Liman */
