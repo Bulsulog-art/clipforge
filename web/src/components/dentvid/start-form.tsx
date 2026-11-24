@@ -21,8 +21,12 @@ import { resetRequestOutcome, signedOutMode, stepAfterSignIn } from "@/lib/dentv
 import { TEASER_KEY } from "@/lib/dentvid/onboarding";
 import { SIGNUP_SAVED } from "@/content/dentvideo-signup-saved";
 type Extras = typeof import("./signup-extras");
-// Needed only when the form is sent; loaded after the page is up.
-const adClickRules = () => import("@/lib/dentvid/ad-click").catch(() => null);
+// Needed only when the form is sent; loaded after the page is up (the send reuses that load, or retries a failed one).
+let adClickLoad: Promise<typeof import("@/lib/dentvid/ad-click") | null> | null = null;
+const adClickRules = () => (adClickLoad ??= import("@/lib/dentvid/ad-click").catch(() => ((adClickLoad = null), null)));
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// At most this long for those rules (a stalled chunk); then the sign-up goes without the click.
+const AD_CLICK_WAIT_MS = 1500;
 
 /**
  * `legal`: show the consent line linking to the Terms and Privacy Policy (on
@@ -82,6 +86,20 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
     void adClickRules();
   }, []);
 
+  // The typo hint never appears between a press and its release: its line would move the pressed button and lose the click.
+  const press = useRef<ReturnType<Extras["pressWatch"]> | null>(null);
+  useEffect(() => {
+    if (!extras) return;
+    const w = extras.pressWatch(document);
+    press.current = w;
+    return () => {
+      w.stop();
+      press.current = null;
+    };
+  }, [extras]);
+  // Bumped by each change to the field, so a held-back hint never shows an address that is gone.
+  const edits = useRef(0);
+
   useEffect(() => {
     if (mode !== "signup" || extras) return;
     // It checks the seed in full; a bad seed or no chunk: the plain sign-up.
@@ -103,8 +121,6 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
     started.current = true;
     trackDv("signup_started", { locale, once: "signup-start" });
   };
-
-  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   async function signIn(addr: string): Promise<boolean> {
     // The Supabase client is loaded when it is needed, not with the page.
@@ -147,13 +163,14 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
       }
       if (mode === "signup") {
         if (passwordTooLong(password)) throw new Error(a.passwordTooLong);
+        // Internal traffic (owner, QA, e2e): the account is marked internal and no ad click is sent (lib/dentvid/internal-flag).
+        const internal = isInternalBrowser();
+        const rules = internal ? null : Promise.race([adClickRules(), wait(AD_CLICK_WAIT_MS).then(() => null)]);
         // Password managers fill the form instantly; wait out the bot brake
         // instead of refusing a real person.
         const elapsed = Date.now() - openedAt.current;
         if (elapsed < 2700) await wait(2700 - elapsed);
-        // Internal traffic (owner, QA, e2e): the account is marked internal and no ad click is sent (lib/dentvid/internal-flag).
-        const internal = isInternalBrowser();
-        const adClick = internal ? null : ((await adClickRules())?.readAdClick() ?? null);
+        const adClick = (await rules)?.readAdClick() ?? null;
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -194,8 +211,17 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
   const field = "dv-field";
   const saved = mode === "signup" && seeded ? (SIGNUP_SAVED[locale] ?? SIGNUP_SAVED.en) : null;
   const typed = (v: string) => {
+    edits.current++;
     setEmail(v);
     setChecked("");
+  };
+  const left = (v: string) => {
+    const n = edits.current;
+    const show = () => {
+      if (edits.current === n) setChecked(v);
+    };
+    if (press.current) press.current.after(show);
+    else show();
   };
 
   return (
@@ -231,7 +257,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
                 startTyping();
                 typed(e.target.value);
               }}
-              onBlur={(e) => setChecked(e.target.value)}
+              onBlur={(e) => left(e.target.value)}
               className={field}
             />
             <FieldError name="email" />

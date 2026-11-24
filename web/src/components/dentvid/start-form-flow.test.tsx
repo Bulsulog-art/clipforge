@@ -22,6 +22,8 @@ const h = vi.hoisted(() => ({
   extrasFail: false,
   adLoads: 0,
   adFail: false,
+  adStall: false,
+  openAdGate: () => {},
 }));
 
 vi.mock("react", async (importOriginal) => {
@@ -133,6 +135,8 @@ const hintFor = (tree: React.ReactNode) => find(tree, named("EmailHint"));
 const recapBox = (tree: React.ReactNode) => find(tree, (e) => e.props["data-recap-box"] === true);
 
 let stored: string | null;
+/** The page's document, where the press watch listens (a real EventTarget, so presses can be sent to it). */
+let doc: EventTarget;
 /** The page's address; window.sessionStorage is the same storage as the global, as in a browser. */
 const at = (search: string) =>
   vi.stubGlobal("window", {
@@ -149,8 +153,12 @@ beforeEach(async () => {
   h.extrasFail = false;
   h.adLoads = 0;
   h.adFail = false;
+  h.adStall = false;
+  const gate = new Promise<void>((r) => (h.openAdGate = r));
   stored = null;
   at("");
+  doc = new EventTarget();
+  vi.stubGlobal("document", doc);
   vi.stubGlobal("sessionStorage", { getItem: (k: string) => (k === TEASER_KEY ? stored : null) });
   vi.resetModules();
   // The two chunks start-form loads after mount: counted, and made to fail on demand (fresh each test).
@@ -159,14 +167,18 @@ beforeEach(async () => {
     if (h.extrasFail) throw new Error("chunk gone after a deploy");
     return importOriginal();
   });
-  vi.doMock("@/lib/dentvid/ad-click", () => {
+  vi.doMock("@/lib/dentvid/ad-click", async () => {
     h.adLoads++;
     if (h.adFail) throw new Error("chunk gone after a deploy");
+    // A request that neither arrives nor fails (a phone on a bad connection), until the test ends.
+    if (h.adStall) await gate;
     return { readAdClick: () => ({ type: "gclid", id: "TEST123", at: 1, consent: "not_required" }) };
   });
   ({ StartForm } = (await import("./start-form")) as unknown as { StartForm: typeof StartForm });
 });
 afterEach(() => {
+  h.openAdGate();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -302,6 +314,67 @@ describe("the typo hint follows the address as it was left, never one being type
     expect(emailInput(tree).props.value).toBe("dr.smith@yahoo.co.uk");
   });
 
+  // A press that leaves the field (on "Create account", the toggle under the form, the password field):
+  // the hint's line would move what is being pressed and lose the click, so it waits for the release.
+  const press = (...types: string[]) => types.forEach((t) => doc.dispatchEvent(new Event(t)));
+  const zeroTimer = () => new Promise((r) => setTimeout(r, 0));
+
+  it("left by a mouse press: nothing moves until the press is over, then the hint", async () => {
+    let tree: React.ReactNode = await settle(props);
+    type(tree, "dr.smith@gmial.com");
+    tree = paint(props);
+    press("pointerdown", "mousedown");
+    leave(tree, "dr.smith@gmial.com");
+    tree = paint(props);
+    expect(hintFor(tree)?.props.email, "held while the button is down").toBe("");
+    press("pointerup", "mouseup", "click");
+    tree = paint(props);
+    expect(hintFor(tree)?.props.email, "the click goes out first").toBe("");
+    await zeroTimer();
+    tree = paint(props);
+    expect(hintFor(tree)?.props.email).toBe("dr.smith@gmial.com");
+  });
+
+  it("left by a finger's tap (the pointer is up before focus moves): the same", async () => {
+    let tree: React.ReactNode = await settle(props);
+    type(tree, "dr.smith@gmial.com");
+    press("pointerdown", "pointerup", "mousedown");
+    leave(paint(props), "dr.smith@gmial.com");
+    tree = paint(props);
+    expect(hintFor(tree)?.props.email).toBe("");
+    press("mouseup", "click");
+    await zeroTimer();
+    tree = paint(props);
+    expect(hintFor(tree)?.props.email).toBe("dr.smith@gmial.com");
+  });
+
+  it("the fix pressed while the field is focused: the held-back hint for the old address never comes back", async () => {
+    let tree: React.ReactNode = await settle(props);
+    type(tree, "dr.smith@gmial.com");
+    leave(paint(props), "dr.smith@gmial.com");
+    tree = paint(props);
+    expect(hintFor(tree)?.props.email).toBe("dr.smith@gmial.com");
+    // Back in the field without typing, then a press on the fix: the field is left by that press.
+    press("pointerdown", "mousedown");
+    leave(tree, "dr.smith@gmial.com");
+    press("pointerup", "mouseup");
+    (hintFor(paint(props))!.props.onFix as (a: string) => void)("dr.smith@gmail.com");
+    await zeroTimer();
+    tree = paint(props);
+    expect(emailInput(tree).props.value).toBe("dr.smith@gmail.com");
+    expect(hintFor(tree)?.props.email).toBe("");
+  });
+
+  it("before the extras chunk has arrived there is no hint to hold back, and leaving the field throws nothing", async () => {
+    h.extrasFail = true;
+    let tree: React.ReactNode = await settle(props);
+    type(tree, "dr.smith@gmial.com");
+    press("pointerdown", "mousedown");
+    expect(() => leave(paint(props), "dr.smith@gmial.com")).not.toThrow();
+    tree = paint(props);
+    expect(hintFor(tree)).toBeNull();
+  });
+
   it("the hint's fix puts the address in the field and the hint goes away", async () => {
     let tree: React.ReactNode = await settle(props);
     type(tree, "dr.smith@gmial.com");
@@ -346,6 +419,45 @@ describe("the ad click on sign-up, now loaded after the page", () => {
   it("its chunk failing never stops the sign-up: it is sent without the click", async () => {
     h.adFail = true;
     const body = await signUp();
+    expect(body).not.toHaveProperty("adClick");
+    expect(body.email).toBe("dr.smith@gmail.com");
+  });
+
+  it("its chunk failing when the page opened is tried again when the form is sent", async () => {
+    h.adFail = true;
+    paint(props);
+    for (let k = 0; k < 20 && !h.adLoads; k++) await new Promise((r) => setTimeout(r, 0));
+    await vi.dynamicImportSettled();
+    expect(h.adLoads).toBe(1);
+    h.adFail = false;
+    const body = await signUp();
+    expect(h.adLoads, "loaded again on send").toBe(2);
+    expect(body.adClick).toEqual({ type: "gclid", id: "TEST123", at: 1, consent: "not_required" });
+  });
+
+  it("its chunk stalling holds the sign-up 1.5 s at most, then it is sent without the click", async () => {
+    h.adStall = true;
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ signedIn: true }) }));
+    vi.stubGlobal("fetch", fetchMock);
+    // Drawn only: settle() waits for every chunk, and this one never arrives.
+    let tree: React.ReactNode = paint(props);
+    for (let k = 0; k < 20 && !h.adLoads; k++) await new Promise((r) => setTimeout(r, 0));
+    expect(h.adLoads, "its load starts with the page").toBe(1);
+    (emailInput(tree).props.onChange as (e: unknown) => void)({ target: { value: "dr.smith@gmail.com" } });
+    tree = paint(props);
+    const pw = find(tree, (e) => e.type === "input" && e.props["data-field"] === "password")!;
+    (pw.props.onChange as (e: unknown) => void)({ target: { value: "a-long-password" } });
+    tree = paint(props);
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() + 10_000);
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const signups = () => fetchMock.mock.calls.filter((c) => String((c as unknown[])[0]) === "/api/dentvideo/signup");
+    const sending = (find(tree, named("ValidatingForm"))!.props.onSubmit as (e: unknown) => Promise<void>)({ preventDefault: () => {} });
+    await vi.advanceTimersByTimeAsync(1499);
+    expect(signups(), "still waiting for the rules").toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(1);
+    await sending;
+    expect(signups()).toHaveLength(1);
+    const body = JSON.parse(String(((signups()[0] as unknown[])[1] as { body: string }).body));
     expect(body).not.toHaveProperty("adClick");
     expect(body.email).toBe("dr.smith@gmail.com");
   });

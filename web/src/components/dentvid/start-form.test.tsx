@@ -156,7 +156,7 @@ describe("what the sign-up page loads up front", () => {
   const src = fs.readFileSync(path.join(__dirname, "start-form.tsx"), "utf8");
   const staticImports = [...src.matchAll(/^\s*import\s+(?!type\s)[^;]*?from\s+["']([^"']+)["']/gm)].map((m) => m[1]);
 
-  it.each(["@/lib/dentvid/email-typo", "@/lib/dentvid/teaser-seed", "@/content/dentvideo-signup-extra"])("%s comes only with the extras chunk", (mod) => {
+  it.each(["@/lib/dentvid/email-typo", "@/lib/dentvid/teaser-seed", "@/content/dentvideo-signup-extra", "@/lib/dentvid/after-press"])("%s comes only with the extras chunk", (mod) => {
     expect(staticImports).not.toContain(mod);
   });
 

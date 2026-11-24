@@ -5,6 +5,8 @@ import { aroundEmail, signupExtraText } from "@/content/dentvideo-signup-extra";
 import { TEASER_KEY } from "@/lib/dentvid/onboarding";
 import { clinicInitial, inkOn, readTeaserSeed, type TeaserSeed } from "@/lib/dentvid/teaser-seed";
 import { suggestDomain } from "@/lib/dentvid/email-typo";
+// The hint waits for a press to end before it appears (see the module).
+export { pressWatch } from "@/lib/dentvid/after-press";
 
 /**
  * The sign-up page's extras, loaded by start-form.tsx after the page is up
