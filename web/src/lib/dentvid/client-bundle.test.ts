@@ -161,7 +161,9 @@ describe("DentVideo public pages: browser bundle", () => {
       // 171 (also): the event allow-list (shared with the browser) names the paying channel, dodo or apple (~0.1 KB).
       // 173: the live preview waits for the visitor's first scroll or tap (~0.6 KB) and events carry a
       // coarse device label (~0.7 KB); off the first load that took ~170 KB of built JS and fonts.
-      expect(kb(g.client)).toBeLessThan(173);
+      // 174: the shared event allow-list names the server-only video_declined event (~0.45 KB) and
+      // the header gained its start button and skip link (~0.26 KB); landing 173.37 with both merged.
+      expect(kb(g.client)).toBeLessThan(174);
     });
   }
 
