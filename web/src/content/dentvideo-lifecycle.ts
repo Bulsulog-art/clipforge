@@ -318,7 +318,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       title: "Wypisanie potwierdzone",
       body: "Gotowe. Nie wyślemy już przypomnień ani podsumowań. Wiadomości o koncie, płatnościach i gotowych filmach nadal będą przychodzić.",
       invalidTitle: "Ten link nie działa",
-      invalidBody: "Prosimy napisać na {email} — wypiszemy Państwa ręcznie.",
+      invalidBody: "Prosimy napisać na {email}, a wypiszemy Państwa ręcznie.",
       errorTitle: "Nie udało się zapisać",
       errorBody: "Prosimy otworzyć link ponownie za minutę lub napisać na {email}.",
       back: "Przejdź do DentVideo",

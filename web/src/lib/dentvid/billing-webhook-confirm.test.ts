@@ -11,8 +11,8 @@ import { deletionLimitKey } from "./billing-confirm-checks";
 import { KindNotAllowedError, type ClinicForMail, type LifecycleStore, type LogRow, type Sender } from "./lifecycle";
 import { noticeDate } from "./retention-email";
 
-/** A day as the New York clinic below reads it (the email's own date format). */
-const ny = (iso: string) => noticeDate("en", new Date(iso), "America/New_York");
+/** A day as the New York clinic below reads it (the email's own date format: a US clinic writes "December 9, 2026"). */
+const ny = (iso: string) => noticeDate("en", new Date(iso), "America/New_York", "US");
 
 /**
  * Money events are confirmed to the clinic in writing (billing-confirm-email.ts): the first word of a
@@ -171,7 +171,8 @@ describe("cancellation: one written confirmation, on the first word", () => {
     expect(mail.sent[0].subject).toBe("Your DentVideo plan is canceled");
     // 00:00 UTC on 10 December is still the 9th in New York; the library stays 90 days after that.
     expect(mail.sent[0].text).toContain(`You keep getting your weekly videos until ${ny(END)}.`);
-    expect(ny(END)).toBe(noticeDate("en", new Date("2026-12-09T12:00:00Z")));
+    expect(ny(END)).toBe(noticeDate("en", new Date("2026-12-09T12:00:00Z"), "UTC", "US"));
+    expect(ny(END)).toBe("December 9, 2026");
     expect(mail.sent[0].text).toContain(`for 90 days, until ${ny("2027-03-10T00:00:00Z")}`);
   });
 

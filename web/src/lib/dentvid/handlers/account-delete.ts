@@ -10,6 +10,8 @@ import { dvAdmin } from "@/lib/dentvid/supabase";
 import { deleteDentvideoAccount } from "@/lib/dentvid/account";
 import { accountErrors, ownClinic } from "@/lib/dentvid/account-route";
 import { dodoApiKey, dodoCancelSubscription, dodoGetSubscription } from "@/lib/dentvid/dodo-account";
+import { markAccountDeleting } from "@/lib/dentvid/deletion-marker";
+import { webOpsStore } from "@/lib/dentvid/ops-server";
 
 // POST /api/dentvideo/account/delete { confirm } — delete the signed-in
 // clinic's account: subscription (cancelled via Dodo when DODO_API_KEY is
@@ -17,6 +19,13 @@ import { dodoApiKey, dodoCancelSubscription, dodoGetSubscription } from "@/lib/d
 // clinic row, then the login. The user id comes from the session only; the
 // service-role client is used with owner_id = that id on every step
 // (lib/dentvid/account.ts). Safe to repeat after a partial failure.
+//
+// Right before Dodo is asked to cancel, the account is marked as being deleted
+// (lib/dentvid/deletion-marker.ts): Dodo's cancellation webhook can arrive
+// while the clinic row still exists, and must not send the clinic a "your
+// library stays 90 days" confirmation. When Redis is configured but the mark
+// cannot be written, Dodo is not called: nothing is cancelled or deleted, and
+// the clinic is asked to try again in a moment (deleteBillingFailed).
 
 const Body = z.object({ confirm: z.string().min(1).max(200) });
 
@@ -37,7 +46,14 @@ export async function deleteAccount({ db, user }: DvActor, req: Request): Promis
     user: { id: user.id, email: user.email },
     confirm: parsed.data.confirm,
     dodo: apiKey
-      ? { getSubscription: (id) => dodoGetSubscription({ apiKey }, id), cancelSubscription: (id) => dodoCancelSubscription({ apiKey }, id) }
+      ? {
+          getSubscription: (id) => dodoGetSubscription({ apiKey }, id),
+          cancelSubscription: async (id) => {
+            const mark = await markAccountDeleting(await webOpsStore().catch(() => null), user.id, new Date());
+            if (mark === "failed") throw new Error("account deletion: could not mark the account before cancelling Dodo");
+            await dodoCancelSubscription({ apiKey }, id);
+          },
+        }
       : null,
   });
 

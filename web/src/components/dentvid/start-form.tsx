@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Eye, EyeOff } from "lucide-react";
 import { dvHref } from "@/lib/dentvid/host";
 import { dirOf, type Locale } from "@/content/dentvideo-locales";
@@ -27,6 +28,10 @@ const adClickRules = () => (adClickLoad ??= import("@/lib/dentvid/ad-click").cat
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // At most this long for those rules (a stalled chunk); then the sign-up goes without the click.
 const AD_CLICK_WAIT_MS = 1500;
+// The line under an error with a person to write to (8 languages): its own chunk, loaded only when an error shows.
+const HelpLine = dynamic(() => import("./help-line").then((m) => m.HelpLine), { ssr: false });
+/** An error the form shows. `help`: the reference for the support line under it ("signup-500"), or null for a slip the person fixes. */
+const fail = (message: string, help: string | null) => Object.assign(new Error(message), { help });
 
 /**
  * `legal`: show the consent line linking to the Terms and Privacy Policy (on
@@ -50,6 +55,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [help, setHelp] = useState<string | null>(null);
   // Bot brakes (lib/dentvid/bot-check): a honeypot field people never see,
   // and how long the form was open before it was sent.
   const [website, setWebsite] = useState("");
@@ -157,12 +163,12 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
         }).catch(() => null);
         // "The link is on its way" only when it is (lib/dentvid/start-mode).
         const sent = await resetRequestOutcome(res, verifyText(locale).failed);
-        if (!sent.ok) throw new Error(sent.error);
+        if (!sent.ok) throw fail(sent.error, `reset-${res?.status ?? "network"}`);
         setNotice(a.sent);
         return;
       }
       if (mode === "signup") {
-        if (passwordTooLong(password)) throw new Error(a.passwordTooLong);
+        if (passwordTooLong(password)) throw fail(a.passwordTooLong, null);
         // Internal traffic (owner, QA, e2e): the account is marked internal and no ad click is sent (lib/dentvid/internal-flag).
         const internal = isInternalBrowser();
         const rules = internal ? null : Promise.race([adClickRules(), wait(AD_CLICK_WAIT_MS).then(() => null)]);
@@ -190,19 +196,22 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
         // A Turnstile token is good for one try.
         captchaBox.current?.reset();
         const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error ?? errors.createFailed);
+        if (!res.ok) throw fail(body.error ?? errors.createFailed, `signup-${res.status}`);
         // A new account comes back already signed in (the server set the
         // session cookie). An address that already had an account: try its
         // password, else say plainly that the account exists.
         if (body.signedIn) return goIn(!body.existing);
         if ((await signIn(addr)) || (await wait(1200).then(() => signIn(addr)))) return goIn(!body.existing);
         setMode("signin");
-        throw new Error(body.existing ? a.accountExists : a.signInFailedAfterSignup);
+        throw body.existing ? fail(a.accountExists, null) : fail(a.signInFailedAfterSignup, "signup-signin");
       }
-      if (!(await signIn(addr))) throw new Error(t.wrongPassword);
+      if (!(await signIn(addr))) throw fail(t.wrongPassword, null);
       goIn(false);
     } catch (err) {
-      setError((err as Error).message);
+      const e = err as Error & { help?: string | null };
+      setError(e.message);
+      // Anything unplanned (the network dropped, a page that did not answer) gets the support line too.
+      setHelp(e.help === undefined ? `${mode}-network` : e.help);
     } finally {
       setBusy(false);
     }
@@ -311,7 +320,12 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
           )}
           {mode === "signup" && TURNSTILE_SITE_KEY && <TurnstileWidget ref={captchaBox} locale={locale} onToken={setCaptcha} />}
           {mode === "signup" && legal && <ConsentLine locale={locale} />}
-          {error && <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+          {error && (
+            <div>
+              <p className="rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>
+              {help && <HelpLine locale={locale} code={help} message={error} />}
+            </div>
+          )}
           {notice && <p className="rounded-xl bg-[#e6f2ef] px-4 py-3 text-sm text-[#0f5c5c]" role="status">{notice}</p>}
           <button type="submit" disabled={busy || (mode === "signup" && !!TURNSTILE_SITE_KEY && !captcha)} className="dv-btn dv-btn-primary w-full px-6 py-3.5 text-base">
             {busy ? t.busy : mode === "signup" ? t.submitSignup : mode === "forgot" ? a.sendLink : t.submitSignin}

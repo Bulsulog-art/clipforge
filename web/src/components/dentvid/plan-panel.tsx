@@ -10,6 +10,7 @@ import { DV_TAX_LABEL, dvPriceContext, formatDvPrice } from "@/lib/dentvid/prici
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { VerifyCard } from "./verify-email";
 import { CheckoutConsent } from "./consent-line";
+import { HelpLine } from "./help-line";
 import { trackDv } from "@/lib/dentvid/events-client";
 
 /** A plan on sale, with its list price in every currency (billing.ts dvAvailablePlans). */
@@ -71,6 +72,8 @@ export function PlanPanel({
   const t = text.billing;
   const [busy, setBusy] = useState<DvTier | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** The reference the support line under the error carries ("checkout-502"). */
+  const [errorCode, setErrorCode] = useState("checkout");
   /** Inline code card (in the app, where the page has none): the address to confirm. */
   const [verifyFor, setVerifyFor] = useState<string | null>(null);
   /** The plan that was chosen when checkout asked for the code: checkout resumes with it once confirmed. */
@@ -118,8 +121,10 @@ export function PlanPanel({
         }
         return;
       }
+      setErrorCode(`checkout-${res.status}`);
       setError(body.error ?? text.errors.checkoutFailed);
     } catch {
+      setErrorCode("checkout-network");
       setError(text.errors.checkoutFailed);
     }
     setBusy(null);
@@ -208,9 +213,13 @@ export function PlanPanel({
 
       <div className={`mx-auto max-w-[60rem] ${bare ? "" : "px-2 sm:px-0"}`}>
         {error && (
-          <p role="alert" className="mt-5 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]">
-            {error}
-          </p>
+          <>
+            <p role="alert" className="mt-5 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]">
+              {error}
+            </p>
+            {/* Paying is where a dead end costs the most: a person to write to, never just "try again". */}
+            <HelpLine locale={locale} code={errorCode} message={error} />
+          </>
         )}
         {verifyFor !== null && (
           <div className="mt-5">

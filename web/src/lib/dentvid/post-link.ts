@@ -115,7 +115,8 @@ export async function loadPostView(t: string | null | undefined, v: string | nul
       posted: !!item.posted_at,
       texts: postTexts(item.copy as never),
       ...subtitlesOf(item),
-      slot: slot ? slotLabel(slot, locale) : undefined,
+      // "Mon 7:00 PM" for an English clinic in the US, Canada, Australia or New Zealand; the slot's time already is the country's.
+      slot: slot ? slotLabel(slot, locale, clinic.country) : undefined,
     },
   };
 }
