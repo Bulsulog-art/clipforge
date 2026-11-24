@@ -34,6 +34,11 @@ export const de: HelpContent = {
     title: "Noch Fragen offen?",
     body: "Schreiben Sie an {email}. Jede Nachricht liest ein Mensch. Schreiben Sie aus der App (Einstellungen → Hilfe & Kontakt), ist Ihre Praxis-ID schon eingetragen und wir finden Ihr Konto sofort.",
   },
+  checkSources: {
+    clinical: "Patientenseiten hinter den Nachsorge-Regeln (auf Englisch)",
+    advertising: "Amtliche Texte nach Land",
+    checked: "Jede Seite wurde am {date} gelesen und mit ihrer Regel abgeglichen.",
+  },
   articles: {
     "first-videos": {
       q: "Wann kommen meine ersten Videos?",
@@ -68,6 +73,10 @@ export const de: HelpContent = {
     "software-check": {
       q: "Was prüft die Software, und was nicht?",
       a: "Bevor Sie ein Skript sehen, prüft die Software es zweimal: einmal auf Aussagen, die das Heilmittelwerberecht häufig einschränkt (Erfolgsversprechen, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Sonderangebote, Vorher-nachher-Versprechen, Patientenstimmen), und einmal gegen anerkannte fachliche Empfehlungen. Was durchfällt, wird umgeschrieben oder nicht erstellt; alles, was einen zweiten Blick verdient, wird mit Begründung markiert.\n\nDas ist eine automatische Prüfung, keine Rechtsberatung und keine Prüfung durch einen Anwalt oder Ihre Kammer. Die Regeln unterscheiden sich je nach Land und ändern sich, deshalb haben Sie das letzte Wort.",
+    },
+    "how-we-check": {
+      q: "Wie prüft DentVideo ein Video, und nach welchen Quellen?",
+      a: "Bevor Sie ein Video sehen, prüft Software das Skript und den Beitragstext zweimal. Beide Prüfungen macht KI-Software, kein Zahnarzt. Die letzte Prüfung ist Ihre Freigabe: Nichts wird gepostet, bevor Sie es freigeben, und Sie posten selbst.\n\nDie eine Prüfung gilt der fachlichen Richtigkeit. Die Software misst jede Aussage an anerkannten Empfehlungen auf dem Niveau nationaler Gesundheits- und Zahnärzteorganisationen wie des britischen NHS und der American Dental Association (ADA). Sie sucht nach falschen oder veralteten Angaben, nach Nachsorge-Hinweisen, die zu einer anderen Behandlung gehören, und nach einem Beitragstext, der dem Video widerspricht. Ihre Regeln zur Nachsorge stimmen mit den Patientenseiten des NHS, der ADA, der Oral Health Foundation und der American Association of Orthodontists (AAO) überein, die unten aufgeführt sind.\n\nDie andere Prüfung gilt der Werbung. Die Software sucht nach Aussagen, die das Heilmittelwerberecht häufig einschränkt, etwa Erfolgsversprechen, „schmerzfrei“, Superlative, Preise und Angebote, Patientenstimmen und Vorher-nachher-Versprechen. Für Praxen in den unten genannten Ländern wendet sie zusätzlich die Regeln dieses Landes an. Die Liste nennt die amtlichen Texte jedes Landes zur Gesundheitswerbung, dieselben, die auch unser kostenloser Werbe-Check zitiert. In anderen Ländern wendet sie nur die allgemeinen Regeln an, und die Regeln Ihres Landes können mehr verlangen.\n\nEin Skript, das eine Prüfung nicht besteht, wird umgeschrieben und erneut geprüft, oder das Video wird nicht erstellt. Alles, was einen zweiten Blick verdient, wird mit „Bitte ansehen“ und dem Grund markiert. Die Software kann etwas übersehen oder sich irren. Sie ist keine Prüfung durch einen Zahnarzt, einen Anwalt oder Ihre Kammer und keine Rechtsberatung.",
     },
     responsibility: {
       q: "Wer ist für unsere Beiträge verantwortlich?",

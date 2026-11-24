@@ -23,6 +23,7 @@ export const HELP_IDS = [
   "approve",
   "needs-a-look",
   "software-check",
+  "how-we-check",
   "responsibility",
   "wrong-video",
   "background-photos",

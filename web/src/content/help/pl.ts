@@ -34,6 +34,11 @@ export const pl: HelpContent = {
     title: "Nadal coś nie działa?",
     body: "Prosimy napisać na {email}. Każdą wiadomość czyta człowiek. Wiadomość wysłana z aplikacji (Ustawienia → Pomoc i kontakt) ma już wpisany identyfikator gabinetu, więc od razu znajdziemy konto.",
   },
+  checkSources: {
+    clinical: "Strony dla pacjentów, na których opierają się zasady postępowania po zabiegach (po angielsku)",
+    advertising: "Teksty urzędowe według kraju",
+    checked: "Każdą stronę przeczytano i porównano z odpowiednią zasadą dnia {date}.",
+  },
   articles: {
     "first-videos": {
       q: "Kiedy dostanę pierwsze filmy?",
@@ -68,6 +73,10 @@ export const pl: HelpContent = {
     "software-check": {
       q: "Co sprawdza kontrola programowa, a czego nie?",
       a: "Zanim zobaczą Państwo scenariusz, program sprawdza go dwa razy: raz pod kątem stwierdzeń, które przepisy o reklamie usług medycznych często ograniczają (obietnice efektów, „bezbolesny”, „na zawsze”, superlatywy, ceny, promocje, obietnice „przed i po”, opinie pacjentów), i raz pod kątem powszechnie przyjętej wiedzy klinicznej. To, co nie przejdzie kontroli, jest przepisywane albo w ogóle nie powstaje, a wszystko, co warto obejrzeć jeszcze raz, zostaje oznaczone wraz z powodem.\n\nTo kontrola automatyczna. Nie jest poradą prawną ani oceną prawnika czy izby lekarskiej. Przepisy różnią się w zależności od kraju i zmieniają się, dlatego ostatnie słowo należy do Państwa.",
+    },
+    "how-we-check": {
+      q: "Jak DentVideo sprawdza film i na jakich źródłach się opiera?",
+      a: "Zanim zobaczą Państwo film, program dwa razy sprawdza jego scenariusz i opis posta. Obie kontrole wykonuje oprogramowanie AI, a nie lekarz dentysta. Ostatnią kontrolą jest Państwa akceptacja: nic nie zostanie opublikowane bez Państwa zatwierdzenia, a publikują Państwo sami.\n\nJedna kontrola dotyczy poprawności klinicznej. Program ocenia każde stwierdzenie według powszechnie przyjętych zaleceń na poziomie krajowych instytucji zdrowia i stomatologii, takich jak brytyjska NHS i American Dental Association (ADA). Szuka błędnych lub nieaktualnych informacji, zaleceń pozabiegowych dotyczących innego zabiegu oraz opisu, który przeczy filmowi. Jego zasady postępowania po zabiegach są zgodne ze stronami dla pacjentów NHS, ADA, Oral Health Foundation i American Association of Orthodontists (AAO), wymienionymi poniżej.\n\nDruga kontrola dotyczy reklamy. Program szuka stwierdzeń, które przepisy o reklamie usług medycznych często ograniczają, takich jak obietnice efektów, „bezbolesny”, superlatywy, ceny i promocje, opinie pacjentów oraz obietnice „przed i po”. W przypadku gabinetów z krajów wymienionych poniżej stosuje też przepisy danego kraju. Lista podaje teksty urzędowe każdego kraju dotyczące reklamy usług medycznych, te same, na które powołuje się nasza bezpłatna sprawdzarka reklam. W innych krajach stosuje tylko zasady ogólne, a przepisy Państwa kraju mogą wymagać więcej.\n\nScenariusz, który nie przejdzie kontroli, jest przepisywany i sprawdzany ponownie albo film w ogóle nie powstaje. Wszystko, co warto obejrzeć jeszcze raz, zostaje oznaczone jako „Do przejrzenia” wraz z powodem. Program może coś przeoczyć lub się pomylić. Nie jest to ocena lekarza dentysty, prawnika ani izby lekarskiej i nie jest to porada prawna.",
     },
     responsibility: {
       q: "Kto odpowiada za to, co publikujemy?",

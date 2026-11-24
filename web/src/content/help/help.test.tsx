@@ -15,6 +15,11 @@ import { readyEmail } from "@/lib/dentvid/email";
 import { notPostedEmail, paymentProblemEmail, welcomeEmail } from "@/lib/dentvid/lifecycle-email";
 import { HelpCenter } from "@/components/dentvid/help-center";
 import { foldText, matchesQuery } from "@/components/dentvid/help-search";
+import { HelpCheckSources, checkMarkets, checkedDate } from "@/components/dentvid/help-check-sources";
+import { CHECKER_SOURCES } from "@/content/dentvideo-checker";
+import { MARKET_SOURCES } from "@/lib/dentvid/checker-markets";
+import { RULE_MARKETS } from "@/content/dentvideo-showcase";
+import { CLINICAL_SOURCE_LIST } from "@/lib/dentvid/clinical-sources";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -169,6 +174,110 @@ describe("help pages: SEO", () => {
       for (const m of html.matchAll(/src="(\/dentvideo\/landing\/[^"]+)"/g)) {
         expect(() => readFileSync(join(SRC, "../public", m[1])), m[1]).not.toThrow();
       }
+    }
+  });
+});
+
+describe("help: how a video is checked, with its sources", () => {
+  const ID: HelpId = "how-we-check";
+  const answer = (l: Locale) => HELP[l].articles[ID];
+  /** The label of a marked video in each language's app ("Needs a look"), as the needs-a-look answer names it. */
+  const NEEDS_A_LOOK: Record<Locale, string> = { en: "Needs a look", de: "Bitte ansehen", es: "Revísalo", tr: "Göz atın", fr: "À revoir", ja: "要確認", ar: "يحتاج نظرة", pl: "Do przejrzenia" };
+  /** "AI software, not a dentist" and "your approval is the final check", in each language. */
+  const SAYS: Record<Locale, { ai: RegExp; approval: RegExp }> = {
+    en: { ai: /AI software, not by a dentist/, approval: /Your approval is the final check/ },
+    de: { ai: /KI-Software, kein Zahnarzt/, approval: /letzte Prüfung ist Ihre Freigabe/ },
+    es: { ai: /software de IA, no un dentista/, approval: /revisión final es tu aprobación/ },
+    tr: { ai: /diş hekimi değil, yapay zekâ yazılımı/, approval: /Son kontrol sizin onayınızdır/ },
+    fr: { ai: /logiciel d'IA, pas par un dentiste/, approval: /dernier contrôle, c'est votre validation/ },
+    ja: { ai: /歯科医師ではなくAIソフトウェア/, approval: /最終確認は医院による承認/ },
+    ar: { ai: /برنامج ذكاء اصطناعي، لا طبيب أسنان/, approval: /الفحص الأخير هو اعتمادكم/ },
+    pl: { ai: /oprogramowanie AI, a nie lekarz dentysta/, approval: /Ostatnią kontrolą jest Państwa akceptacja/ },
+  };
+
+  it("sits in Review and approval, right after the answer on the software check", () => {
+    expect(HELP_ARTICLE_META[ID].category).toBe("review");
+    expect(HELP_IDS.indexOf(ID)).toBe(HELP_IDS.indexOf("software-check") + 1);
+    expect(helpArticlesIn("review")).toContain(ID);
+  });
+
+  it.each(LOCALES)("%s: says the reviewer is AI software, not a dentist, and that the dentist's approval is the final check", (l) => {
+    expect(answer(l).a).toMatch(SAYS[l].ai);
+    expect(answer(l).a).toMatch(SAYS[l].approval);
+    // The app's own label for a marked video, and four paragraphs like the English one.
+    expect(answer(l).a).toContain(NEEDS_A_LOOK[l]);
+    expect(HELP[l].articles["needs-a-look"].q).toContain(NEEDS_A_LOOK[l]);
+    expect(answer(l).a.split("\n\n")).toHaveLength(4);
+  });
+
+  it.each(LOCALES)("%s: names the clinical bodies the aftercare rules rest on", (l) => {
+    for (const name of ["NHS", "ADA", "Oral Health Foundation", "AAO"]) expect(answer(l).a, name).toContain(name);
+  });
+
+  it("claims no compliance, guarantee or dentist's approval, and uses no dash as punctuation", () => {
+    for (const l of LOCALES) {
+      const text = [answer(l).q, answer(l).a, ...Object.values(HELP[l].checkSources)].join(" ");
+      expect(text, l).not.toMatch(/[—–]/);
+      expect(text, l).not.toMatch(/!/);
+    }
+    const en = answer("en").a;
+    expect(en).not.toMatch(/compliant|compliance|guarantee|approved by (a )?dentist|reviewed by (a )?dentist|100%/i);
+  });
+
+  it.each(LOCALES)("%s: lists every clinical source and the advertising sources of each country the reviewer has rules for", (l) => {
+    const html = renderToStaticMarkup(<HelpCenter locale={l} />);
+    const card = html.slice(html.indexOf(`id="${ID}"`), html.indexOf("</article>", html.indexOf(`id="${ID}"`)));
+    expect(card.length).toBeGreaterThan(500);
+    expect(card.match(/data-help-source="clinical"/g)?.length).toBe(CLINICAL_SOURCE_LIST.length);
+    for (const s of CLINICAL_SOURCE_LIST) expect(card, s.url).toContain(`href="${s.url}"`);
+    // Every country the reviewer is briefed for, each with its official texts (or the rule's name where none is linked).
+    for (const m of RULE_MARKETS) expect(card, m.code).toContain(`data-help-market="${m.code}"`);
+    for (const m of checkMarkets(l)) {
+      expect(m.sources.length + (m.rule ? 1 : 0), m.code).toBeGreaterThan(0);
+      for (const s of m.sources) expect(card, `${m.code} ${s.url}`).toContain(s.url.replace(/&/g, "&amp;"));
+    }
+    // France has checker sources but no rules in the reviewer: not listed as checked.
+    for (const k of MARKET_SOURCES.FR) expect(card, k).not.toContain(CHECKER_SOURCES[k].url);
+    expect(card).not.toContain('data-help-market="FR"');
+    // The day the clinical pages were read, written out in the page's language.
+    expect(decode(card)).toContain(HELP[l].checkSources.checked.replace("{date}", checkedDate(l)));
+    expect(checkedDate(l)).toMatch(/2026|٢٠٢٦/);
+    // External links open in a new tab without handing over the page.
+    for (const a of card.matchAll(/<a [^>]*data-help-source="[^"]+"[^>]*>/g)) {
+      expect(a[0]).toContain('target="_blank"');
+      expect(a[0]).toContain('rel="noopener noreferrer"');
+    }
+  });
+
+  it("the Gulf lists the Dubai and Saudi texts; a country without a linked text shows its rule's name", () => {
+    const gulf = checkMarkets("ar").find((m) => m.code === "GULF")!;
+    expect(gulf.sources.map((s) => s.url)).toEqual([...MARKET_SOURCES.AE, ...MARKET_SOURCES.SA].map((k) => CHECKER_SOURCES[k].url));
+    const sg = checkMarkets("en").find((m) => m.code === "SG")!;
+    expect(sg.sources).toEqual([]);
+    expect(sg.rule).toBe(RULE_MARKETS.find((m) => m.code === "SG")!.rule);
+    const html = renderToStaticMarkup(<HelpCheckSources locale="en" />);
+    expect(decode(html)).toContain(sg.rule!);
+    // The page's own markets first: German page leads with Germany.
+    expect(checkMarkets("de")[0].code).toBe("DE");
+  });
+
+  it.each(LOCALES)("%s: the answer on the software check links to it", (l) => {
+    const html = renderToStaticMarkup(<HelpCenter locale={l} />);
+    const card = html.slice(html.indexOf('id="software-check"'), html.indexOf("</article>", html.indexOf('id="software-check"')));
+    expect(card).toMatch(new RegExp(`<a href="#${ID}"[^>]*data-help-see="${ID}"`));
+    expect(decode(card)).toContain(answer(l).q);
+    // Only that answer gets the see-also link.
+    expect(html.match(/data-help-see=/g)?.length).toBe(1);
+  });
+
+  it("the source lists are folded, with every label filled in every language", () => {
+    for (const l of LOCALES) {
+      const c = HELP[l].checkSources;
+      for (const v of Object.values(c)) expect(v.trim(), l).not.toBe("");
+      expect(c.checked, l).toContain("{date}");
+      const html = renderToStaticMarkup(<HelpCheckSources locale={l} />);
+      expect(html.match(/<details/g)?.length, l).toBe(2);
+      expect(html, l).not.toMatch(/<details[^>]* open/);
     }
   });
 });

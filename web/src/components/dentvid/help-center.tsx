@@ -11,6 +11,7 @@ import { helpJsonLd, helpSections, jsonLdHtml } from "@/lib/dentvid/seo-guides";
 import { dvHref } from "@/lib/dentvid/host";
 import { Breadcrumbs, HtmlLang } from "./guide-parts";
 import { HelpSearch } from "./help-search";
+import { HelpCheckSources } from "./help-check-sources";
 
 /**
  * The help center for one language (dentvideo.com/help, /de/help …): a search
@@ -124,12 +125,21 @@ function Answer({ locale, id }: { locale: Locale; id: HelpId }) {
               <WithEmail text={p} />
             </p>
           ))}
-          {meta.legal?.length || meta.checker ? (
+          {meta.sources && <HelpCheckSources locale={locale} />}
+          {meta.see?.length || meta.legal?.length || meta.checker ? (
             <p className="text-sm text-dv-muted">
               {h.readMore}{" "}
+              {(meta.see ?? []).map((s, i) => (
+                <Fragment key={s}>
+                  {i > 0 && " · "}
+                  <a href={`#${s}`} className="font-medium text-dv-teal underline-offset-4 hover:underline" data-help-see={s}>
+                    {h.articles[s].q}
+                  </a>
+                </Fragment>
+              ))}
               {(meta.legal ?? []).map((k, i) => (
                 <Fragment key={k}>
-                  {i > 0 && " · "}
+                  {(i > 0 || Boolean(meta.see?.length)) && " · "}
                   <Link href={dvHref(legalPath(k, locale))} className="font-medium text-dv-teal underline-offset-4 hover:underline">
                     {LEGAL_NAV[locale].nav[k]}
                   </Link>
@@ -137,7 +147,7 @@ function Answer({ locale, id }: { locale: Locale; id: HelpId }) {
               ))}
               {meta.checker && (
                 <>
-                  {meta.legal?.length ? " · " : null}
+                  {meta.legal?.length || meta.see?.length ? " · " : null}
                   <Link href={dvHref(CHECKER_PATH[locale])} className="font-medium text-dv-teal underline-offset-4 hover:underline" data-help-checker>
                     {CHECKER[locale].h1}
                   </Link>

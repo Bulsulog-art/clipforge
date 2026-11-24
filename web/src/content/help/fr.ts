@@ -34,6 +34,11 @@ export const fr: HelpContent = {
     title: "Toujours bloqué ?",
     body: "Écrivez à {email}. Chaque message est lu par une personne. Si vous écrivez depuis l'application (Réglages → Aide et contact), l'identifiant de votre cabinet est déjà indiqué et nous retrouvons votre compte tout de suite.",
   },
+  checkSources: {
+    clinical: "Pages patients sur lesquelles reposent les règles de suivi (en anglais)",
+    advertising: "Textes officiels par pays",
+    checked: "Chaque page a été lue et comparée à sa règle le {date}.",
+  },
   articles: {
     "first-videos": {
       q: "Quand mes premières vidéos arrivent-elles ?",
@@ -68,6 +73,10 @@ export const fr: HelpContent = {
     "software-check": {
       q: "Que vérifie le contrôle logiciel, et que ne vérifie-t-il pas ?",
       a: "Avant que vous ne voyiez un script, le logiciel le vérifie deux fois : une fois sur les affirmations que les règles de publicité de santé restreignent souvent (promesses de résultat, « indolore », « définitif », superlatifs, prix, offres promotionnelles, promesses avant-après, témoignages), et une fois au regard des recommandations cliniques reconnues. Ce qui échoue est réécrit ou n'est pas créé, et tout ce qui mérite un second regard est marqué avec sa raison.\n\nC'est un contrôle automatique. Ce n'est pas un conseil juridique, ni la relecture d'un avocat ou de votre Ordre. Les règles varient selon les pays et évoluent : le dernier mot vous revient.",
+    },
+    "how-we-check": {
+      q: "Comment DentVideo vérifie-t-il une vidéo, et selon quelles sources ?",
+      a: "Avant que vous ne voyiez une vidéo, un logiciel vérifie deux fois son script et le texte de la publication. Ces deux contrôles sont faits par un logiciel d'IA, pas par un dentiste. Le dernier contrôle, c'est votre validation : rien n'est publié avant que vous ne validiez, et c'est vous qui publiez.\n\nL'un des contrôles porte sur l'exactitude clinique. Le logiciel juge chaque affirmation au regard des recommandations reconnues, au niveau des organismes nationaux de santé et des associations dentaires, comme le NHS britannique et l'American Dental Association (ADA). Il cherche les informations fausses ou dépassées, les conseils de suivi qui relèvent d'un autre soin et un texte qui contredit la vidéo. Ses règles sur les suites de soins concordent avec les pages patients du NHS, de l'ADA, de l'Oral Health Foundation et de l'American Association of Orthodontists (AAO), listées ci-dessous.\n\nL'autre contrôle porte sur la publicité. Le logiciel repère les affirmations que les règles de publicité de santé restreignent souvent : promesses de résultat, « indolore », superlatifs, prix et offres, témoignages, promesses avant-après. Pour les cabinets des pays listés ci-dessous, il applique aussi les règles propres à ce pays. La liste indique les textes officiels de chaque pays sur la publicité de santé, les mêmes que cite notre vérificateur gratuit. Ailleurs, il n'applique que les règles générales, et les règles de votre pays peuvent en demander davantage.\n\nUn script qui échoue à un contrôle est réécrit et vérifié à nouveau, ou la vidéo n'est pas créée. Tout ce qui mérite un second regard est marqué « À revoir » avec sa raison. Le logiciel peut laisser passer quelque chose ou se tromper. Ce n'est ni la relecture d'un dentiste, d'un avocat ou de votre Ordre, ni un conseil juridique.",
     },
     responsibility: {
       q: "Qui est responsable de ce que nous publions ?",

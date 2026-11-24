@@ -34,6 +34,11 @@ export const es: HelpContent = {
     title: "¿Sigues con dudas?",
     body: "Escribe a {email}. Cada mensaje lo lee una persona. Si escribes desde la app (Ajustes → Ayuda y contacto), el ID de tu clínica ya va incluido y encontramos tu cuenta enseguida.",
   },
+  checkSources: {
+    clinical: "Páginas para pacientes en las que se basan las reglas de cuidados posteriores (en inglés)",
+    advertising: "Textos oficiales por país",
+    checked: "Cada página se leyó y se comparó con su regla el {date}.",
+  },
   articles: {
     "first-videos": {
       q: "¿Cuándo llegan mis primeros vídeos?",
@@ -68,6 +73,10 @@ export const es: HelpContent = {
     "software-check": {
       q: "¿Qué revisa el software y qué no?",
       a: "Antes de que veas un guion, el software lo revisa dos veces: una por afirmaciones que las normas de publicidad sanitaria suelen restringir (promesas de resultados, «indoloro», «para siempre», superlativos, precios, ofertas, promesas de antes y después, testimonios) y otra frente a las pautas clínicas comúnmente aceptadas. Lo que no pasa se reescribe o no se crea, y lo que merece una segunda mirada se marca con el motivo.\n\nEs una revisión automática. No es asesoramiento jurídico ni la revisión de un abogado o de tu colegio profesional. Las normas cambian según el país y con el tiempo, así que la última palabra es tuya.",
+    },
+    "how-we-check": {
+      q: "¿Cómo revisa DentVideo un vídeo y con qué fuentes?",
+      a: "Antes de que veas un vídeo, un software revisa dos veces su guion y el texto de la publicación. Las dos revisiones las hace un software de IA, no un dentista. La revisión final es tu aprobación: no se publica nada hasta que lo apruebas, y lo publicas tú.\n\nUna revisión comprueba la exactitud clínica. El software juzga cada afirmación según las pautas clínicas aceptadas, al nivel de organismos sanitarios y dentales nacionales como el NHS británico y la American Dental Association (ADA). Busca datos erróneos o desactualizados, consejos de cuidados posteriores que corresponden a otro tratamiento y un texto que contradiga el vídeo. Sus reglas de cuidados posteriores coinciden con las páginas para pacientes del NHS, la ADA, la Oral Health Foundation y la American Association of Orthodontists (AAO), que tienes abajo.\n\nLa otra revisión se ocupa de la publicidad. El software busca afirmaciones que las normas de publicidad sanitaria suelen restringir, como promesas de resultados, «indoloro», superlativos, precios y ofertas, testimonios y promesas de antes y después. Para clínicas de los países de la lista de abajo aplica además las normas de ese país. La lista recoge los textos oficiales de cada país sobre publicidad sanitaria, los mismos que cita nuestro comprobador de anuncios gratuito. En otros países aplica solo las reglas generales, y las normas de tu país pueden pedir más.\n\nUn guion que no pasa una revisión se reescribe y se revisa de nuevo, o el vídeo no se crea. Lo que merece una segunda mirada se marca con «Revísalo» y el motivo. El software puede pasar algo por alto o equivocarse. No es la revisión de un dentista, de un abogado ni de tu colegio profesional, ni es asesoramiento jurídico.",
     },
     responsibility: {
       q: "¿Quién es responsable de lo que publicamos?",
