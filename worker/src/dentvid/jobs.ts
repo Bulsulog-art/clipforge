@@ -13,6 +13,7 @@ import { historyFromRows, type PastItemRow, type PastTopic } from "../dental/mem
 import { clipsFromRecording } from "../dental/recording.js";
 import { renderPlan } from "../remotion/render-plan.js";
 import { parseScenePlan, type ScenePlan } from "../remotion/scene-plan.js";
+import { shownClipIds } from "../remotion/stock.js";
 import { prepareNarration, type Narration } from "../dental/narration-audio.js";
 import { narratorOf, openaiVoiceFor, resolveVoice } from "../dental/voice.js";
 import { renderConcurrency } from "../remotion/capacity.js";
@@ -661,7 +662,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     // only if that fails too does it fall back to the bare columns: a week is
     // never planned without its history.
     const pastQuery = (cols: string) => db.from("dentvid_items").select(cols).eq("clinic_id", job.clinicId).order("week_of", { ascending: false }).limit(200);
-    const DECIDED = "title, topic, week_of, status, approval, approval_note, updated_at, backgrounds:plan->backgrounds";
+    const DECIDED = "title, topic, week_of, status, approval, approval_note, updated_at, backgrounds:plan->backgrounds, footageIds:plan->footageIds";
     let read = await pastQuery(`${DECIDED}, posted_at`);
     if (read.error) {
       logger.warn({ clinicId: job.clinicId, err: read.error.message }, "dentvid: history without the posted tick");
@@ -786,7 +787,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
         const d = await spend.guard.reserve("topup", job.clinicId);
         if (d.ok) {
           // This week's usable videos count as history too, so the top-up neither repeats them nor piles onto their services.
-          const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => ({ title: r.title, topic: r.topic, week_of: week, status: r.status, backgrounds: (r.plan as { backgrounds?: unknown } | null | undefined)?.backgrounds })));
+          const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => { const plan = r.plan as { backgrounds?: unknown; footageIds?: unknown } | null | undefined; return { title: r.title, topic: r.topic, week_of: week, status: r.status, backgrounds: plan?.backgrounds, footageIds: plan?.footageIds }; }));
           const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)], [...history, ...thisWeek]).catch((e) => {
             logger.warn({ clinicId: job.clinicId, err: (e as Error).message }, "dentvid: top-up failed");
             topupNote = `extra topics could not be made: ${cleanError(e)}`;
@@ -1006,7 +1007,9 @@ export async function runDentvidRestyle(job: RestyleJob): Promise<{ ok: boolean 
       if (isLogoStop(e)) await spend.guard.release("restyle", clinicId).catch(() => false);
       throw e;
     });
-    const stored = parseScenePlan(item.plan);
+    // The stock clips the dentist saw (remotion/stock.ts shownClipIds): the parser drops them, and a
+    // render without them would swap a rotated clip for the top one. Only the photos change.
+    const stored = { ...parseScenePlan(item.plan), footageIds: shownClipIds(item.plan) };
     // Painted in the clinic's colour exactly as the weekly run does (week.ts).
     const plan: ScenePlan = profile.brandColor
       ? { ...stored, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }

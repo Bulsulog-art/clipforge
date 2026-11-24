@@ -49,6 +49,17 @@ describe("the dentist's decision in the clinic's history", () => {
     ]);
   });
 
+  it("keeps the stock clip ids the stored plan showed, and drops anything that is not a Pexels id", () => {
+    const h = historyFromRows([
+      row("Clips", "Implants", "2026-11-16", { footageIds: [101, 101, "102", -3, 1.5, 0, Number.MAX_SAFE_INTEGER + 2, 103] }),
+      row("No clips", "Whitening", "2026-11-09", { footageIds: "101" }),
+    ]);
+    expect(h.find((t) => t.title === "Clips")?.footageIds).toEqual([101, 103]);
+    expect(h.find((t) => t.title === "No clips")).not.toHaveProperty("footageIds");
+    const many = historyFromRows([row("Many", "Implants", "2026-11-16", { footageIds: Array.from({ length: 20 }, (_, i) => i + 1) })]);
+    expect(many[0].footageIds).toHaveLength(8);
+  });
+
   it("without decision data the history is exactly what it was", () => {
     const h = historyFromRows([row("A", "Implants", "2026-11-16", { approval: "pending", approval_note: null, posted_at: null, backgrounds: null })]);
     expect(h).toEqual([{ title: "A", hook: "A?", service: "Implants", pillar: "myth", question: "A question?", weekOf: "2026-11-16" }]);

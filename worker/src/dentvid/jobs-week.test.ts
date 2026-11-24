@@ -323,6 +323,21 @@ describe("a week that heals itself", () => {
     ]);
   });
 
+  it("the stock clips past videos showed reach the planner, so the next weeks rotate away from them", async () => {
+    pastItems = [
+      { title: "Diş eti kanaması", topic: { title: "Diş eti kanaması", service: "Diş eti tedavisi" }, week_of: "2026-11-09", status: "ready", footageIds: [101, 102] },
+      { title: "Eski video", topic: { title: "Eski video", service: "İmplant" }, week_of: "2026-10-26", status: "ready", footageIds: ["x", 7] },
+    ];
+    produceWeek.mockResolvedValueOnce(["a", "b", "c", "d", "e"].map(ready));
+    await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
+    expect(selects).toContainEqual({ table: "dentvid_items", cols: expect.stringContaining("footageIds:plan->footageIds") });
+    const [, , opts] = produceWeek.mock.calls[0] as [unknown, unknown, { history: { title: string; footageIds?: number[] }[] }];
+    expect(opts.history.map((h) => [h.title, h.footageIds])).toEqual([
+      ["Eski video", [7]],
+      ["Diş eti kanaması", [101, 102]],
+    ]);
+  });
+
   it("the top-up's history includes this week's usable videos", async () => {
     produceWeek
       .mockResolvedValueOnce([{ ...ready("a"), topic: { title: "a", hook: "Hook A?", service: "implants" } }, broken("b"), broken("c")])

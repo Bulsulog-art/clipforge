@@ -91,7 +91,7 @@ beforeEach(() => {
   liman.tables.set("dentvid_clinics", [{ id: CLINIC, owner_id: OWNER, plan: "active", plan_tier: "starter", profile: { name: "Smile", country: "US", language: "en", services: ["Whitening", "Implants"] }, logo_path: null }]);
   liman.tables.set("dentvid_items", [
     past("Implants are not for us", "2026-11-02", { service: "Implants", approval: "rejected", approval_note: "[notUs] We refer implants out.\u0007 See https://example.com/why", updated_at: "2026-11-04T12:00:00Z" }),
-    past("Whitening and coffee", "2026-10-26", { approval: "approved", posted_at: "2026-10-28T09:00:00Z" }),
+    past("Whitening and coffee", "2026-10-26", { approval: "approved", posted_at: "2026-10-28T09:00:00Z", plan: { title: "Whitening and coffee", backgrounds: [BG("07")], footageIds: [500, 501] } }),
     past("Floss or water flosser", "2026-10-26", { approval: "approved", plan: null }),
     past("Undone decline", "2026-10-19", { approval: "pending", approval_note: "[wrong] kept after an undo" }),
     { ...past("Another clinic's video", "2026-11-02", { approval: "rejected", approval_note: "[wrong] other clinic" }), clinic_id: OTHER, owner_id: "someone-else" },
@@ -116,7 +116,9 @@ describe("the week job's history carries the dentist's decisions", () => {
     const by = (t: string) => h.find((x) => x.title === t)!;
     expect(by("Implants are not for us")).toMatchObject({ service: "Implants", weekOf: "2026-11-02", decision: "rejected", decidedAt: "2026-11-04T12:00:00Z", reason: "notUs", note: "We refer implants out. See", backgrounds: [BG("07")] });
     expect(by("Implants are not for us").posted).toBeUndefined();
-    expect(by("Whitening and coffee")).toMatchObject({ decision: "approved", posted: true, backgrounds: [BG("07")] });
+    expect(by("Whitening and coffee")).toMatchObject({ decision: "approved", posted: true, backgrounds: [BG("07")], footageIds: [500, 501] });
+    // The stock clips come from the stored plan through plan->footageIds; a plan without them gives none.
+    expect(by("Implants are not for us").footageIds).toBeUndefined();
     // A plan without photos, and a decision undone: nothing made up.
     expect(by("Floss or water flosser")).toEqual({ title: "Floss or water flosser", hook: "Floss or water flosser hook", service: "Whitening", pillar: "myth", question: "Floss or water flosser?", weekOf: "2026-10-26", decision: "approved" });
     expect(by("Undone decline").decision).toBeUndefined();
@@ -149,7 +151,7 @@ describe("the week job's history carries the dentist's decisions", () => {
     expect(h.map((x) => x.title)).toEqual(["Undone decline", "Whitening and coffee", "Floss or water flosser", "Implants are not for us"]);
     // Only the posted tick is missing: decisions, reasons, words and photos still arrive.
     expect(h.find((x) => x.title === "Implants are not for us")).toMatchObject({ decision: "rejected", reason: "notUs", note: "We refer implants out. See", backgrounds: [BG("07")] });
-    expect(h.find((x) => x.title === "Whitening and coffee")).toMatchObject({ decision: "approved" });
+    expect(h.find((x) => x.title === "Whitening and coffee")).toMatchObject({ decision: "approved", footageIds: [500, 501] });
     expect(h.some((x) => x.posted)).toBe(false);
     expect(JSON.stringify(h)).not.toMatch(/other clinic/);
   });
@@ -163,7 +165,7 @@ describe("the week job's history carries the dentist's decisions", () => {
     expect(h.map((x) => x.title)).toEqual(["Undone decline", "Whitening and coffee", "Floss or water flosser", "Implants are not for us"]);
     // Read with the columns every database has: titles, hooks, services and weeks, no decisions.
     expect(h.find((x) => x.title === "Implants are not for us")).toEqual({ title: "Implants are not for us", hook: "Implants are not for us hook", service: "Implants", pillar: "myth", question: "Implants are not for us?", weekOf: "2026-11-02" });
-    expect(h.some((x) => x.decision || x.posted || x.backgrounds)).toBe(false);
+    expect(h.some((x) => x.decision || x.posted || x.backgrounds || x.footageIds)).toBe(false);
     expect(JSON.stringify(h)).not.toMatch(/other clinic/);
   });
 });
