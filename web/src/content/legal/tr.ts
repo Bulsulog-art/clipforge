@@ -19,7 +19,7 @@ export const TR: LegalText = {
       director: "Müdür (yetkili temsilci)",
       contact: "E-posta",
       brand: "Marka",
-      brandValue: "{brand} — ürün: DentVideo",
+      brandValue: "{brand} (ürün: DentVideo)",
     },
     table: { provider: "Sağlayıcı", purpose: "Amaç", data: "Veriler", location: "Konum" },
   },
@@ -91,7 +91,7 @@ export const TR: LegalText = {
               list: [
                 "Starter: aylık {starter}.",
                 "Practice: aylık {practice}.",
-                "Group (klinik grupları ve çok şubeli muayenehaneler): anlaşmaya göre özel koşullar — iletişim {email}. Group web sitesinden satın alınamaz.",
+                "Group (klinik grupları ve çok şubeli muayenehaneler): anlaşmaya göre özel koşullar (iletişim: {email}). Group web sitesinden satın alınamaz.",
               ],
             },
             "Ödemeleri, satıcı (merchant of record) ve yetkili yeniden satıcı olarak hareket eden Dodo Payments yürütür: aboneliği size o satar, ödeme aracınızdan tahsil eder, kart ekstrenizde o görünür, geçerli vergileri hesaplayıp tahsil eder ve faturanızı düzenler. Satın alma için Dodo Payments'ın alıcı koşulları da geçerlidir. Kart bilgilerinizin tamamını hiçbir zaman görmeyiz.",
@@ -406,7 +406,7 @@ export const TR: LegalText = {
 
     imprint: {
       title: "Künye",
-      description: "dentvideo.com künyesi: BLS AI Automation DOO, Podgorica, Karadağ — sicil, vergi numarası, müdür ve iletişim.",
+      description: "dentvideo.com künyesi: BLS AI Automation DOO'nun (Podgorica, Karadağ) sicil, vergi numarası, müdür ve iletişim bilgileri.",
       intro: ["dentvideo.com'un sağlayıcısına ilişkin bilgiler (Alman Dijital Hizmetler Kanunu (DDG) § 5 ve AB Elektronik Ticaret Direktifi 5. madde kapsamında)."],
       sections: [
         { heading: "Sağlayıcı", blocks: [{ operator: true }] },

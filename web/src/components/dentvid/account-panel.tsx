@@ -13,6 +13,7 @@ import type { DvTier } from "@/lib/dentvid/billing";
 import { planPrice, planTax, tierName as planTierName, type PlanOption } from "./plan-panel";
 import { GROUP_CONTACT, groupMailto } from "@/content/dentvideo-group";
 import { appStoreText } from "@/content/dentvideo-app-store";
+import { HelpLine } from "./help-line";
 
 /** Apple's subscriptions page (apple-billing.ts APP_STORE_MANAGE_URL; repeated so this client file imports no server code). */
 const APP_STORE_SUBSCRIPTIONS = "https://apps.apple.com/account/subscriptions";
@@ -50,12 +51,16 @@ async function postJson(
   return { ok: res.ok, status: res.status, data };
 }
 
-function ErrorLine({ msg }: { msg: string | null }) {
+/** An error, and under it, where a failure is a dead end (billing, deleting the account), a person to write to. */
+function ErrorLine({ msg, help }: { msg: string | null; help?: { locale: Locale; code: string } }) {
   if (!msg) return null;
   return (
-    <p role="alert" className="mt-3 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]">
-      {msg}
-    </p>
+    <>
+      <p role="alert" className="mt-3 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]">
+        {msg}
+      </p>
+      {help && <HelpLine locale={help.locale} code={help.code} message={msg} />}
+    </>
   );
 }
 
@@ -296,7 +301,7 @@ export function AccountPanel({
             <div className="max-w-xl">
               <h3 className="font-semibold text-dv-ink">{t.billingTitle}</h3>
               <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.billingLead}</p>
-              <ErrorLine msg={portalError} />
+              <ErrorLine msg={portalError} help={{ locale, code: "billing-portal" }} />
             </div>
             <button type="button" onClick={openPortal} disabled={portalBusy} className="dv-btn dv-btn-secondary shrink-0 px-5 py-2.5 text-sm !text-dv-teal">
               <CreditCard className="h-4 w-4" aria-hidden="true" />
@@ -375,7 +380,7 @@ export function AccountPanel({
                   price: isolate(priceLine(target)),
                 })}
               </p>
-              <ErrorLine msg={changeError} />
+              <ErrorLine msg={changeError} help={{ locale, code: "plan-change" }} />
               <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button type="button" onClick={() => setTarget(null)} disabled={changeBusy} className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm">
                   {t.back}
@@ -403,7 +408,7 @@ export function AccountPanel({
             <div className="max-w-xl">
               <h3 className="font-semibold text-dv-ink">{t.exportTitle}</h3>
               <p className="mt-1 text-sm leading-relaxed text-dv-body">{t.exportLead}</p>
-              <ErrorLine msg={exportError} />
+              <ErrorLine msg={exportError} help={{ locale, code: "export" }} />
               {exported && (
                 <p role="status" className="mt-2 text-sm text-dv-teal">
                   {t.exported}
@@ -484,7 +489,7 @@ export function AccountPanel({
                 maxLength={200}
                 className="dv-field mt-2"
               />
-              <ErrorLine msg={delError} />
+              <ErrorLine msg={delError} help={{ locale, code: "account-delete" }} />
               <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button type="button" onClick={() => setDelOpen(false)} disabled={delBusy} className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm">
                   {t.back}

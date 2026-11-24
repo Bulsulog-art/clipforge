@@ -38,7 +38,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       {
         heading: "Warum kein allgemeiner KI-Videogenerator?",
         paragraphs: [
-          "Allgemeine KI-Video-Tools liefern schnell etwas: einen Avatar, der einen Text spricht, Stock-Clips, eine Vorlage. Für eine Zahnarztpraxis beginnt die Arbeit dort erst. Jemand muss Themen passend zu Ihren Leistungen wählen, ein fachlich sauberes Skript schreiben und Aussagen vermeiden, die das Heilmittelwerbegesetz oder die Berufsordnung problematisch machen — Heilversprechen, „schmerzfrei“, Preise, Rabatte, Vorher-Nachher-Vergleiche, Patientenstimmen.",
+          "Allgemeine KI-Video-Tools liefern schnell etwas: einen Avatar, der einen Text spricht, Stock-Clips, eine Vorlage. Für eine Zahnarztpraxis beginnt die Arbeit dort erst. Jemand muss Themen passend zu Ihren Leistungen wählen, ein fachlich sauberes Skript schreiben und Aussagen vermeiden, die das Heilmittelwerbegesetz oder die Berufsordnung problematisch machen: Heilversprechen, „schmerzfrei“, Preise, Rabatte, Vorher-Nachher-Vergleiche, Patientenstimmen.",
           "DentVideo ist um diesen zweiten Teil herum gebaut. Es gibt keine Avatare, keine falschen Ärzte und keine Stock-Patienten: Bildmaterial zeigt nur Gegenstände, jedes Video trägt Ihr Logo und Ihre Farben. Einen fairen Vergleich der Alternativen finden Sie unter [DentVideo, Agentur, Canva oder ChatGPT](video:dentvideo-agentur-canva-chatgpt).",
         ],
       },
@@ -46,7 +46,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
         heading: "So wird jedes Video geprüft",
         paragraphs: ["Jedes Skript und jeder Beitragstext durchläuft drei softwaregestützte Prüfungen, bevor er Sie erreicht. Was durchfällt, wird umgeschrieben oder nicht erstellt."],
         list: [
-          "Werberecht: häufig unzulässige Aussagen werden abgefangen — Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen.",
+          "Werberecht: häufig unzulässige Aussagen werden abgefangen, etwa Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen und Patientenstimmen.",
           "Fachliche Richtigkeit: eine Software in der Rolle eines Allgemeinzahnarztes gleicht jede Aussage mit gängigen Leitlinien ab.",
           "Ton und Bild: Sprache vorhanden und verständlich, keine stillen Lücken oder schwarzen Bilder, richtiges Format.",
         ],
@@ -63,7 +63,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       {
         heading: "Ihr eigenes Gesicht, wenn Sie fünf Minuten haben",
         paragraphs: [
-          "Patienten vertrauen am ehesten der Person, die sie behandeln wird. In Tarifen mit eigenen Aufnahmen schlägt eine Drehkarte vor, was Sie sagen könnten; Sie nehmen ein paar Minuten mit dem Smartphone auf, und DentVideo schneidet daraus kurze untertitelte Clips mit Ihrem Logo. Ihre Worte werden nie verändert — Auffälliges wird mit Begründung und Formulierungsvorschlag markiert. Tipps zum Drehen: [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen).",
+          "Patienten vertrauen am ehesten der Person, die sie behandeln wird. In Tarifen mit eigenen Aufnahmen schlägt eine Drehkarte vor, was Sie sagen könnten; Sie nehmen ein paar Minuten mit dem Smartphone auf, und DentVideo schneidet daraus kurze untertitelte Clips mit Ihrem Logo. Ihre Worte werden nie verändert. Auffälliges wird mit Begründung und Formulierungsvorschlag markiert. Tipps zum Drehen: [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen).",
         ],
       },
       {
@@ -83,7 +83,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
         list: [
           "[Konto anlegen](start:) und die Praxis beschreiben: Sprache, Leistungen, Tonalität, Farben, Logo.",
           "Vor der Zahlung eine Live-Vorschau Ihrer eigenen Videos im Browser ansehen.",
-          "Tarif wählen — monatlich, ohne Mindestlaufzeit. Zu den [Tarifen](landing:).",
+          "Tarif wählen: monatlich, ohne Mindestlaufzeit. Zu den [Tarifen](landing:).",
           "Die erste Woche entsteht direkt nach der Zahlung, danach jeden Montag.",
         ],
       },
@@ -120,7 +120,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
         { label: "Was Sie bekommen", values: ["Fünf fertige, vertonte und untertitelte Videos pro Woche", "Was der Vertrag umfasst: oft Beiträge, Dreh, Anzeigen, Community", "Vorlagen und Editor; das Video machen Sie", "Text: Ideen, Skripte, Beitragstexte"] },
         { label: "Ihre Zeit pro Woche", values: ["Ein paar Minuten zum Ansehen und Freigeben", "Briefings, Feedbackrunden, Abnahmen", "Stunden für Text, Gestaltung, Aufnahme, Schnitt", "Prompten, prüfen, dann das Video anderswo bauen"] },
         { label: "Wer wählt Themen", values: ["Aus Ihren Leistungen und Patientenfragen", "Redaktionsplan der Agentur, mit Ihnen abgestimmt", "Sie", "Sie, mit Vorschlägen"] },
-        { label: "Prüfung auf Werberecht", values: ["Jedes Skript und jeder Text, softwaregestützt, bevor Sie es sehen", "Je nach Agentur — fragen Sie nach", "Ihre Aufgabe", "Ihre Aufgabe"] },
+        { label: "Prüfung auf Werberecht", values: ["Jedes Skript und jeder Text, softwaregestützt, bevor Sie es sehen", "Je nach Agentur, fragen Sie nach", "Ihre Aufgabe", "Ihre Aufgabe"] },
         { label: "Fachliche Prüfung", values: ["Software in der Rolle eines Allgemeinzahnarztes; Sie entscheiden", "Je nach Agentur", "Ihre Aufgabe", "Ihre Aufgabe; Fehler sind möglich"] },
         { label: "Ihr eigenes Gesicht", values: ["Ein paar Minuten aufnehmen; Clips werden geschnitten", "Meist, mit Dreh vor Ort", "Wenn Sie selbst drehen und schneiden", "Nein"] },
         { label: "Bindung", values: ["Monatlich, ohne Mindestlaufzeit", "Oft Pauschale mit Mindestlaufzeit", "Abo für ein Design-Tool", "Abo für einen KI-Assistenten"] },
@@ -131,7 +131,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       {
         heading: "Wann eine Agentur die richtige Wahl ist",
         paragraphs: [
-          "Wenn jemand alles übernehmen soll — Dreh in der Praxis, Anzeigen, Kommentare, Website —, leistet eine gute Dentalmarketing-Agentur mehr als jedes Tool. Sie bezahlen Arbeitszeit, also meist deutlich mehr, und nehmen an Briefings und Abnahmen teil. Fragen Sie vor Vertragsschluss, wer die Inhalte auf HWG und Berufsordnung prüft; unser Ratgeber [Praxismarketing: Agentur oder selbst machen?](guide:praxismarketing-zahnarzt-agentur-oder-selbst) listet die Fragen auf.",
+          "Wenn jemand alles übernehmen soll (Dreh in der Praxis, Anzeigen, Kommentare, Website), leistet eine gute Dentalmarketing-Agentur mehr als jedes Tool. Sie bezahlen Arbeitszeit, also meist deutlich mehr, und nehmen an Briefings und Abnahmen teil. Fragen Sie vor Vertragsschluss, wer die Inhalte auf HWG und Berufsordnung prüft; unser Ratgeber [Praxismarketing: Agentur oder selbst machen?](guide:praxismarketing-zahnarzt-agentur-oder-selbst) listet die Fragen auf.",
         ],
       },
       {
@@ -141,7 +141,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
         ],
       },
       {
-        heading: "Wo ChatGPT hilft — und wo nicht",
+        heading: "Wo ChatGPT hilft und wo nicht",
         paragraphs: [
           "ChatGPT und ähnliche Assistenten sind schnell bei Ideen, Entwürfen und Beitragstexten. Sie kennen Ihr Leistungsspektrum nur, wenn Sie es jedes Mal angeben, formulieren auch Falsches überzeugend und haben keine eingebaute Prüfung auf das Heilmittelwerbegesetz. Was herauskommt, ist Text zum Prüfen, kein fertiges Video in Ihren Farben.",
         ],
@@ -149,14 +149,14 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       {
         heading: "Wann DentVideo passt",
         paragraphs: [
-          "DentVideo passt zu Praxen, die regelmäßig posten möchten, keine Stunden pro Woche dafür haben und riskante Aussagen herausgefiltert sehen wollen, bevor etwas bei der Zahnärztin oder dem Zahnarzt ankommt. Sie bekommen [fünf fertige Aufklärungsvideos pro Woche](video:zahnarztpraxis-videos-ki) und geben jedes frei. DentVideo schaltet keine Anzeigen und dreht nicht vor Ort — eine Agentur kann die Videos aber neben ihrer eigenen Arbeit posten. [Sehen Sie vorab eine Live-Vorschau mit Ihrem Logo](start:).",
+          "DentVideo passt zu Praxen, die regelmäßig posten möchten, keine Stunden pro Woche dafür haben und riskante Aussagen herausgefiltert sehen wollen, bevor etwas bei der Zahnärztin oder dem Zahnarzt ankommt. Sie bekommen [fünf fertige Aufklärungsvideos pro Woche](video:zahnarztpraxis-videos-ki) und geben jedes frei. DentVideo schaltet keine Anzeigen und dreht nicht vor Ort. Eine Agentur kann die Videos aber neben ihrer eigenen Arbeit posten. [Sehen Sie vorab eine Live-Vorschau mit Ihrem Logo](start:).",
         ],
       },
       {
         heading: "Fragen an jede Lösung",
         paragraphs: [],
         list: [
-          "Wer prüft jeden Beitrag auf HWG und Berufsordnung — vor oder nach der Veröffentlichung?",
+          "Wer prüft jeden Beitrag auf HWG und Berufsordnung, und geschieht das vor oder nach der Veröffentlichung?",
           "Wer prüft, ob fachliche Aussagen stimmen?",
           "Wie viel meiner Zeit kostet eine normale Woche?",
           "Gibt es eine Mindestlaufzeit, und was passiert mit den Inhalten, wenn wir aufhören?",
@@ -165,7 +165,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
       },
     ],
     faq: [
-      { q: "Ist DentVideo günstiger als eine Agentur?", a: "In der Regel ja, weil es Software ist und keine Arbeitszeit — die Tarife stehen auf der [DentVideo-Startseite](landing:). Eine Agentur kann mehr (Dreh, Anzeigen, Community), vergleichen Sie also nach Bedarf, nicht nur nach Preis." },
+      { q: "Ist DentVideo günstiger als eine Agentur?", a: "In der Regel ja, weil es Software ist und keine Arbeitszeit. Die Tarife stehen auf der [DentVideo-Startseite](landing:). Eine Agentur kann mehr (Dreh, Anzeigen, Community), vergleichen Sie also nach Bedarf, nicht nur nach Preis." },
       { q: "Kann ich DentVideo zusammen mit Canva oder ChatGPT nutzen?", a: "Ja. Viele Praxen behalten Canva für Plakate und Flyer und einen Assistenten für Newsletter, während DentVideo die wöchentlichen Videos liefert." },
       { q: "Kann unsere Agentur die DentVideo-Videos posten?", a: "Ja. Sie geben die Videos in DentVideo frei und laden sie herunter; wer Ihre Kanäle betreut, kann sie posten." },
       { q: "Sind die Videos dann sicher rechtskonform?", a: "Das kann niemand seriös zusagen. DentVideo filtert häufig unzulässige Aussagen und markiert Auffälliges; Sie geben jedes Video frei und bleiben verantwortlich." },

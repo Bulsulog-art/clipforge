@@ -5,10 +5,10 @@ import type { Guide } from "../dentvideo";
 // frases evitar según la publicidad sanitaria y el código deontológico. Tuteo,
 // como el resto de guías en español; sin precios, estadísticas ni testimonios.
 
-const RD1907 = { label: "Real Decreto 1907/1996, publicidad con pretendida finalidad sanitaria — BOE", url: "https://www.boe.es/eli/es/rd/1996/08/02/1907/con" };
-const CGD = { label: "Consejo General de Dentistas de España — Código Español de Ética y Deontología Dental", url: "https://consejodentistas.es/" };
+const RD1907 = { label: "Real Decreto 1907/1996, publicidad con pretendida finalidad sanitaria (BOE)", url: "https://www.boe.es/eli/es/rd/1996/08/02/1907/con" };
+const CGD = { label: "Consejo General de Dentistas de España: Código Español de Ética y Deontología Dental", url: "https://consejodentistas.es/" };
 const DIR_WHITENING = {
-  label: "Directiva 2011/84/UE del Consejo sobre productos cosméticos (blanqueadores dentales con peróxido de hidrógeno) — EUR-Lex",
+  label: "Directiva 2011/84/UE del Consejo sobre productos cosméticos (blanqueadores dentales con peróxido de hidrógeno), EUR-Lex",
   url: "https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32011L0084",
 };
 

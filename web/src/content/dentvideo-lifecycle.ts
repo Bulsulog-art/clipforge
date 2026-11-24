@@ -13,7 +13,9 @@ import { SEQUENCE_COPY, type SequenceCopy } from "./dentvideo-lifecycle-sequence
  * every Monday, monthly and cancel anytime). No guarantees, no promised
  * patients, no invented scarcity.
  *
- * Placeholders: {clinic} {email}.
+ * Placeholders: {clinic} {email} {post}. {post} is the app's own "Post it"
+ * button label (dentvideo-app.ts), filled in by lifecycle-email.ts, so the
+ * email always names the button the dentist actually sees.
  */
 
 export type LifecycleBase = {
@@ -53,7 +55,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   en: {
     hello: "Hello {clinic},",
     signoff: "The DentVideo team",
-    nudgeFooter: "You get this email because you started setting up DentVideo for your clinic. We send at most four short emails, and stop as soon as you choose a plan.",
+    nudgeFooter: "You get this email because you started setting up DentVideo for your clinic. We send at most three short emails, and stop as soon as you choose a plan.",
     unsubscribeAsk: "Don't want reminders?",
     unsubscribe: "Unsubscribe",
     welcome: {
@@ -64,7 +66,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "Today: your first videos", body: "We're making this week's videos now. It's usually done within an hour, and we'll email you the moment they're ready." },
         { title: "Review and approve", body: "Every video has had a software-assisted check for clinical accuracy and health-advertising rules. You approve each one with a tap, and nothing is published until you do." },
-        { title: "Post it yourself", body: "Tap Share on an approved video and the caption is copied, with a suggested day and time to post. DentVideo never posts for you." },
+        { title: "Post it yourself", body: "Tap “{post}” on an approved video. One more tap saves the video and copies its caption, and we suggest a day and time to post. DentVideo never posts for you." },
         { title: "Then every Monday", body: "A new week of videos arrives in your library every Monday, and we email you when it's ready." },
       ],
       help: "Questions, a video to change, or feedback? Reply to this email. It reaches a real person at {email}.",
@@ -87,7 +89,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   de: {
     hello: "Guten Tag, {clinic},",
     signoff: "Ihr DentVideo-Team",
-    nudgeFooter: "Sie erhalten diese E-Mail, weil Sie begonnen haben, DentVideo für Ihre Praxis einzurichten. Wir schicken höchstens vier kurze E-Mails und hören auf, sobald Sie einen Tarif wählen.",
+    nudgeFooter: "Sie erhalten diese E-Mail, weil Sie begonnen haben, DentVideo für Ihre Praxis einzurichten. Wir schicken höchstens drei kurze E-Mails und hören auf, sobald Sie einen Tarif wählen.",
     unsubscribeAsk: "Keine Erinnerungen mehr?",
     unsubscribe: "Abmelden",
     welcome: {
@@ -98,7 +100,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "Heute: Ihre ersten Videos", body: "Die Videos dieser Woche entstehen gerade. Das dauert meist höchstens eine Stunde; sobald sie fertig sind, bekommen Sie eine E-Mail." },
         { title: "Ansehen und freigeben", body: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft. Freigeben können Sie es mit einem Tippen. Ohne Ihre Freigabe wird nichts veröffentlicht." },
-        { title: "Selbst posten", body: "Tippen Sie bei einem freigegebenen Video auf „Teilen“: Die Bildunterschrift wird kopiert, dazu schlagen wir Tag und Uhrzeit vor. DentVideo postet nie für Sie." },
+        { title: "Selbst posten", body: "Tippen Sie bei einem freigegebenen Video auf „{post}“. Ein weiteres Tippen sichert das Video und kopiert die Bildunterschrift, dazu schlagen wir Tag und Uhrzeit vor. DentVideo postet nie für Sie." },
         { title: "Danach jeden Montag", body: "Jeden Montag kommt eine neue Woche Videos in Ihre Bibliothek, und wir schicken Ihnen eine E-Mail, sobald sie bereitsteht." },
       ],
       help: "Fragen, ein Video, das geändert werden soll, oder Feedback? Antworten Sie auf diese E-Mail. Sie erreicht unter {email} einen Menschen.",
@@ -121,7 +123,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   es: {
     hello: "Hola, {clinic}:",
     signoff: "El equipo de DentVideo",
-    nudgeFooter: "Recibes este correo porque empezaste a configurar DentVideo para tu clínica. Enviamos como máximo cuatro correos breves y paramos en cuanto eliges un plan.",
+    nudgeFooter: "Recibes este correo porque empezaste a configurar DentVideo para tu clínica. Enviamos como máximo tres correos breves y paramos en cuanto eliges un plan.",
     unsubscribeAsk: "¿No quieres recordatorios?",
     unsubscribe: "Darse de baja",
     welcome: {
@@ -132,7 +134,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "Hoy: tus primeros vídeos", body: "Estamos creando los vídeos de esta semana. Suele tardar menos de una hora y te escribimos en cuanto estén listos." },
         { title: "Revisa y aprueba", body: "Cada vídeo pasa una revisión asistida por software de exactitud clínica y normas de publicidad sanitaria. Tú lo apruebas con un toque, y no se publica nada sin tu aprobación." },
-        { title: "Publícalo tú", body: "En un vídeo aprobado, toca Compartir: el texto se copia y te sugerimos un día y una hora. DentVideo nunca publica por ti." },
+        { title: "Publícalo tú", body: "En un vídeo aprobado, toca «{post}». Con otro toque guardas el vídeo y copias su texto, y te sugerimos un día y una hora. DentVideo nunca publica por ti." },
         { title: "Después, cada lunes", body: "Cada lunes llega a tu biblioteca una nueva semana de vídeos, y te avisamos por correo cuando está lista." },
       ],
       help: "¿Dudas, un vídeo que cambiar o comentarios? Responde a este correo: lo lee una persona en {email}.",
@@ -155,7 +157,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   tr: {
     hello: "Merhaba {clinic},",
     signoff: "DentVideo ekibi",
-    nudgeFooter: "Bu e-postayı, kliniğiniz için DentVideo kurulumuna başladığınız için alıyorsunuz. En fazla dört kısa e-posta göndeririz ve bir plan seçtiğiniz anda dururuz.",
+    nudgeFooter: "Bu e-postayı, kliniğiniz için DentVideo kurulumuna başladığınız için alıyorsunuz. En fazla üç kısa e-posta göndeririz ve bir plan seçtiğiniz anda dururuz.",
     unsubscribeAsk: "Hatırlatma istemiyor musunuz?",
     unsubscribe: "Abonelikten çık",
     welcome: {
@@ -166,7 +168,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "Bugün: ilk videolarınız", body: "Bu haftanın videolarını şu anda hazırlıyoruz. Genellikle bir saat içinde biter; hazır olunca size e-posta göndeririz." },
         { title: "İnceleyin ve onaylayın", body: "Her video, klinik doğruluk ve sağlık reklamı kuralları açısından yazılım destekli bir kontrolden geçer. Onayı tek dokunuşla siz verirsiniz. Siz onaylamadan hiçbir şey yayınlanmaz." },
-        { title: "Paylaşımı siz yaparsınız", body: "Onaylı bir videoda Paylaş'a dokunun: açıklama metni kopyalanır, önerilen gün ve saati de gösteririz. DentVideo sizin adınıza paylaşım yapmaz." },
+        { title: "Paylaşımı siz yaparsınız", body: "Onaylı bir videoda “{post}” düğmesine dokunun. Bir dokunuş daha videoyu kaydeder ve açıklama metnini kopyalar. Önerilen gün ve saati de gösteririz. DentVideo sizin adınıza paylaşım yapmaz." },
         { title: "Sonra her pazartesi", body: "Her pazartesi kütüphanenize yeni haftanın videoları gelir; hazır olduğunda size e-postayla haber veririz." },
       ],
       help: "Sorunuz, değişmesini istediğiniz bir video ya da geri bildiriminiz mi var? Bu e-postayı yanıtlayın; {email} adresine gelen mesajı bir ekip üyemiz okur.",
@@ -189,7 +191,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   fr: {
     hello: "Bonjour {clinic},",
     signoff: "L'équipe DentVideo",
-    nudgeFooter: "Vous recevez cet e-mail car vous avez commencé à configurer DentVideo pour votre cabinet. Nous envoyons au plus quatre courts e-mails, et nous arrêtons dès que vous choisissez une formule.",
+    nudgeFooter: "Vous recevez cet e-mail car vous avez commencé à configurer DentVideo pour votre cabinet. Nous envoyons au plus trois courts e-mails, et nous arrêtons dès que vous choisissez une formule.",
     unsubscribeAsk: "Vous ne souhaitez plus de rappels ?",
     unsubscribe: "Se désabonner",
     welcome: {
@@ -200,7 +202,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "Aujourd'hui : vos premières vidéos", body: "Nous réalisons en ce moment les vidéos de cette semaine. Cela prend en général moins d'une heure, et nous vous écrivons dès qu'elles sont prêtes." },
         { title: "Regardez et validez", body: "Chaque vidéo passe une vérification assistée par logiciel (exactitude clinique et règles de publicité en santé), puis vous la validez d'un geste. Rien n'est publié sans votre accord." },
-        { title: "Publiez vous-même", body: "Sur une vidéo validée, touchez Partager : la légende est copiée, avec un jour et une heure suggérés. DentVideo ne publie jamais à votre place." },
+        { title: "Publiez vous-même", body: "Sur une vidéo validée, touchez « {post} ». Une autre touche enregistre la vidéo et copie sa légende, avec un jour et une heure suggérés. DentVideo ne publie jamais à votre place." },
         { title: "Puis chaque lundi", body: "Chaque lundi, une nouvelle semaine de vidéos arrive dans votre bibliothèque, et un e-mail vous prévient." },
       ],
       help: "Une question, une vidéo à modifier ou une remarque ? Répondez à cet e-mail : une vraie personne le lit à {email}.",
@@ -223,7 +225,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   ja: {
     hello: "{clinic} ご担当者様",
     signoff: "DentVideo チーム",
-    nudgeFooter: "このメールは、医院のDentVideo設定を始められた方にお送りしています。お送りするのは最大4通までで、プランをお選びいただいた時点で停止します。",
+    nudgeFooter: "このメールは、医院のDentVideo設定を始められた方にお送りしています。お送りするのは最大3通までで、プランをお選びいただいた時点で停止します。",
     unsubscribeAsk: "リマインドが不要な場合は",
     unsubscribe: "配信停止",
     welcome: {
@@ -234,7 +236,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "本日：最初の動画", body: "今週の動画をただいま制作しています。通常1時間以内に完成し、完成次第メールでお知らせします。" },
         { title: "確認して承認", body: "すべての動画は、臨床的な正確さと医療広告のルールについてソフトウェアによるチェックを受けています。承認はワンタップで、先生が承認されるまで何も公開されません。" },
-        { title: "投稿は先生ご自身で", body: "承認済みの動画で「共有」をタップすると、キャプションがコピーされ、投稿のおすすめ日時も表示されます。DentVideoが代わりに投稿することはありません。" },
+        { title: "投稿は先生ご自身で", body: "承認済みの動画で「{post}」をタップし、もう一度タップすると動画が保存され、キャプションがコピーされます。投稿のおすすめ日時も表示されます。DentVideoが代わりに投稿することはありません。" },
         { title: "その後は毎週月曜日", body: "毎週月曜日に新しい1週間分の動画がライブラリに届き、準備ができるとメールでお知らせします。" },
       ],
       help: "ご質問、動画の修正のご希望、ご意見は、このメールにご返信ください。{email} に届いたメッセージはスタッフが拝読します。",
@@ -257,7 +259,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   ar: {
     hello: "مرحباً {clinic}،",
     signoff: "فريق DentVideo",
-    nudgeFooter: "تصلكم هذه الرسالة لأنكم بدأتم إعداد DentVideo لعيادتكم. نرسل أربع رسائل قصيرة على الأكثر، ونتوقف فور اختياركم باقة.",
+    nudgeFooter: "تصلكم هذه الرسالة لأنكم بدأتم إعداد DentVideo لعيادتكم. نرسل ثلاث رسائل قصيرة على الأكثر، ونتوقف فور اختياركم باقة.",
     unsubscribeAsk: "لا ترغبون في التذكيرات؟",
     unsubscribe: "إلغاء الاشتراك",
     welcome: {
@@ -268,7 +270,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "اليوم: أول فيديوهاتكم", body: "نُعدّ الآن فيديوهات هذا الأسبوع. تجهز عادةً خلال ساعة، وسنراسلكم فور جاهزيتها." },
         { title: "شاهدوا واعتمدوا", body: "يخضع كل فيديو لفحص بمساعدة البرمجيات للدقة السريرية وقواعد الإعلان الصحي، وتعتمدونه بلمسة واحدة. لا يُنشر شيء قبل اعتمادكم." },
-        { title: "انشروا بأنفسكم", body: "اضغطوا «مشاركة» على فيديو معتمد فيُنسخ النص المرافق، مع يوم وساعة مقترحين للنشر. لا ينشر DentVideo شيئاً نيابةً عنكم." },
+        { title: "انشروا بأنفسكم", body: "اضغطوا «{post}» على فيديو معتمد، وضغطة أخرى تحفظ الفيديو وتنسخ نصه المرافق، مع يوم وساعة مقترحين للنشر. لا ينشر DentVideo شيئاً نيابةً عنكم." },
         { title: "ثم كل يوم اثنين", body: "يصل إلى مكتبتكم كل يوم اثنين أسبوع جديد من الفيديوهات، ونراسلكم عند جاهزيته." },
       ],
       help: "لديكم سؤال أو فيديو تريدون تعديله أو ملاحظة؟ ردّوا على هذه الرسالة، فيقرؤها أحد أفراد فريقنا على {email}.",
@@ -291,7 +293,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
   pl: {
     hello: "Dzień dobry, zespole {clinic}!",
     signoff: "Zespół DentVideo",
-    nudgeFooter: "Otrzymują Państwo tę wiadomość, ponieważ rozpoczęli Państwo konfigurację DentVideo dla gabinetu. Wysyłamy najwyżej cztery krótkie wiadomości i przestajemy, gdy tylko wybiorą Państwo plan.",
+    nudgeFooter: "Otrzymują Państwo tę wiadomość, ponieważ rozpoczęli Państwo konfigurację DentVideo dla gabinetu. Wysyłamy najwyżej trzy krótkie wiadomości i przestajemy, gdy tylko wybiorą Państwo plan.",
     unsubscribeAsk: "Nie chcą Państwo przypomnień?",
     unsubscribe: "Wypisz się",
     welcome: {
@@ -302,7 +304,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       steps: [
         { title: "Dziś: pierwsze filmy", body: "Właśnie przygotowujemy filmy na ten tydzień. Zwykle trwa to mniej niż godzinę, a gdy będą gotowe, od razu wyślemy e-mail." },
         { title: "Obejrzeć i zaakceptować", body: "Każdy film przechodzi wspomaganą przez oprogramowanie kontrolę poprawności klinicznej i zasad reklamy usług medycznych, a akceptacja to jedno dotknięcie. Bez Państwa akceptacji nic nie zostanie opublikowane." },
-        { title: "Publikacja po Państwa stronie", body: "Przy zaakceptowanym filmie wystarczy dotknąć „Udostępnij”: opis zostaje skopiowany, a my proponujemy dzień i godzinę publikacji. DentVideo nigdy nie publikuje za Państwa." },
+        { title: "Publikacja po Państwa stronie", body: "Przy zaakceptowanym filmie wystarczy dotknąć „{post}”. Kolejne dotknięcie zapisuje film i kopiuje jego opis, a my proponujemy dzień i godzinę publikacji. DentVideo nigdy nie publikuje za Państwa." },
         { title: "Potem co poniedziałek", body: "W każdy poniedziałek w bibliotece pojawia się nowy tydzień filmów, a my dajemy znać e-mailem." },
       ],
       help: "Pytania, film do zmiany lub uwagi? Wystarczy odpowiedzieć na tę wiadomość: pod adresem {email} czyta ją człowiek.",
@@ -316,7 +318,7 @@ const BASE_COPY: Record<string, LifecycleBase> = {
       title: "Wypisanie potwierdzone",
       body: "Gotowe. Nie wyślemy już przypomnień ani podsumowań. Wiadomości o koncie, płatnościach i gotowych filmach nadal będą przychodzić.",
       invalidTitle: "Ten link nie działa",
-      invalidBody: "Prosimy napisać na {email} — wypiszemy Państwa ręcznie.",
+      invalidBody: "Prosimy napisać na {email}, a wypiszemy Państwa ręcznie.",
       errorTitle: "Nie udało się zapisać",
       errorBody: "Prosimy otworzyć link ponownie za minutę lub napisać na {email}.",
       back: "Przejdź do DentVideo",

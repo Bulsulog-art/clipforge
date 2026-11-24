@@ -14,14 +14,37 @@
  * invented deadline or scarcity. The "why us" lines are the ones reviewed for
  * the earlier reminders.
  *
- * Placeholders: {clinic} {from} {n} {month} {days}.
+ * Placeholders: {clinic} {from} {n} {total} {month} {days} {post} {mark}.
+ * {post} and {mark} are the app's own button labels ("Post it", "Mark as
+ * posted" in dentvideo-app.ts), filled in by lifecycle-email.ts.
+ *
+ * The weekly nudge and the monthly summary count what went out from
+ * dentvid_items.posted_at (the "posted" tick), so their wording speaks of
+ * videos shared or marked as posted, never of sharing "from the app".
  */
 export type SequenceCopy = {
   start: { subject: string; preheader: string; title: string; body: string; next: string; button: string };
   sample: { subject: string; preheader: string; title: string; intro: string; outro: string; whyUs: string; button: string };
   objections: { subject: string; preheader: string; title: string; intro: string; qa: { q: string; a: string }[]; button: string };
   notPosted: { subject: string; preheader: string; title: string; approved: string; pending: string; how: string; gentle: string; button: string; footer: string };
-  monthly: { subject: string; preheader: string; title: string; intro: string; made: string; approved: string; shared: string; sharedNone: string; sharedSome: string; button: string; footer: string };
+  monthly: {
+    subject: string;
+    preheader: string;
+    /** The inbox preview when the ticks cannot be counted (before 0012) and the summary shows only the first two numbers. */
+    preheaderMadeApproved: string;
+    title: string;
+    intro: string;
+    made: string;
+    approved: string;
+    /** The third number: approved videos ticked as posted. It counts the ticks, so it says so. */
+    posted: string;
+    /** Under the numbers when some were posted: {n} of {total} approved. */
+    postedLine: string;
+    sharedNone: string;
+    sharedSome: string;
+    button: string;
+    footer: string;
+  };
   approvePage: {
     confirmTitle: string;
     confirmBody: string;
@@ -65,7 +88,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       intro: "If something is holding you back, it is probably one of these.",
       qa: [
         { q: "Is the content accurate, and is it allowed?", a: "Software checks each video for clinical accuracy and health-advertising rules before you see it. It is an automated check, not legal advice: the final say is yours, and nothing is published until you approve it." },
-        { q: "I don't have time for another tool.", a: "We write, narrate and caption every video, and software checks each one. New ones arrive every Monday; you only watch, approve and tap Share." },
+        { q: "I don't have time for another tool.", a: "We write, narrate and caption every video, and software checks each one. New ones arrive every Monday; you only watch, approve and tap “{post}”." },
         { q: "What does it cost, and am I tied in?", a: "Plans start at {from}/month. Monthly, cancel anytime." },
       ],
       button: "Choose a plan",
@@ -76,20 +99,22 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "This week's videos are waiting",
       approved: "In your library this week: {n} approved and ready to post.",
       pending: "In your library this week: {n} waiting for your OK.",
-      how: "Posting is quick: open a video, tap Share and paste the caption into your post.",
+      how: "Posting is quick: tap “{post}” on a video, save it with its caption in one tap, then paste the caption into your post.",
       gentle: "Just a gentle reminder in case the week got busy. If you have already posted, thank you, and please ignore this email.",
       button: "Open this week's videos",
-      footer: "You get this email because your clinic uses DentVideo. We send it at most once a week, and only when nothing has been shared yet.",
+      footer: "You get this email because your clinic uses DentVideo. We send it at most once a week, and only when none of this week's videos has been shared or marked as posted.",
     },
     monthly: {
       subject: "Your DentVideo month: {month}",
-      preheader: "What was made, approved and shared last month.",
+      preheader: "What was made, approved and posted last month.",
+      preheaderMadeApproved: "What was made and approved last month.",
       title: "{month} at a glance",
       intro: "Here is what DentVideo made for {clinic} last month.",
       made: "videos made",
       approved: "approved",
-      shared: "shared",
-      sharedNone: "None were shared from the app yet. Patients only see the videos you post, and one a week is a good start.",
+      posted: "marked as posted",
+      postedLine: "Approved videos marked as posted: {n} of {total}.",
+      sharedNone: "We haven't seen any marked as posted yet. If you did post some, tap “{mark}” on them in the app so this summary counts them. Patients only see the videos you post, and one a week is a good start.",
       sharedSome: "Thank you for posting. New videos arrive every Monday.",
       button: "Open my library",
       footer: "You get this summary once a month because your clinic uses DentVideo.",
@@ -116,26 +141,26 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       preheader: "Machen Sie dort weiter, wo Sie aufgehört haben: Ihre Praxisvideos sind nur einen Klick entfernt.",
       title: "Ihre Vorschau wartet auf Sie",
       body: "Sie haben {clinic} bei DentVideo eingerichtet. Ihre Vorschau ist gespeichert: kurze Aufklärungsvideos mit Ihrem Logo und Ihren Farben, zu den Leistungen, die Sie angegeben haben.",
-      next: "Sehen Sie sie sich an – und wenn sie Ihnen gefallen, wählen Sie einen Tarif. Ihre erste Woche Videos entsteht dann meist innerhalb einer Stunde.",
+      next: "Sehen Sie sie sich an. Wenn sie Ihnen gefallen, wählen Sie einen Tarif. Ihre erste Woche Videos entsteht dann meist innerhalb einer Stunde.",
       button: "Vorschau fertig ansehen",
     },
     sample: {
       subject: "Die Beispielvideos für Ihre Praxis",
-      preheader: "Mit Ihrem Logo und Ihren Farben – zu den Leistungen, die Sie anbieten.",
+      preheader: "Mit Ihrem Logo, in Ihren Farben und zu den Leistungen, die Sie anbieten.",
       title: "Ihre Beispielvideos",
       intro: "Diese Videos sind in der Vorschau von {clinic}, jedes mit Ihrem Logo und Ihren Farben:",
-      outro: "Jede Woche bekämen Sie neue Videos wie diese – zu Ihren Leistungen, in Ihrer Sprache.",
+      outro: "Jede Woche bekämen Sie neue Videos wie diese: zu Ihren Leistungen und in Ihrer Sprache.",
       whyUs: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft; das letzte Wort haben Sie, und nichts wird ohne Ihre Freigabe veröffentlicht.",
       button: "Beispielvideos ansehen",
     },
     objections: {
       subject: "Drei Fragen, die Zahnärzte uns stellen",
-      preheader: "Richtigkeit, Zeit und Kosten – kurz beantwortet.",
+      preheader: "Richtigkeit, Zeit und Kosten: kurz beantwortet.",
       title: "Drei Fragen vor dem Start",
       intro: "Falls Sie noch zögern, liegt es meist an einer dieser Fragen.",
       qa: [
-        { q: "Sind die Inhalte korrekt – und überhaupt erlaubt?", a: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft, bevor Sie es sehen. Das ist eine automatische Prüfung, keine Rechtsberatung: Das letzte Wort haben Sie, und ohne Ihre Freigabe wird nichts veröffentlicht." },
-        { q: "Ich habe keine Zeit für noch ein Tool.", a: "Wir schreiben, vertonen und untertiteln jedes Video, und jedes wird softwaregestützt geprüft. Jeden Montag kommen neue; Sie sehen sie nur an, geben sie frei und tippen auf „Teilen“." },
+        { q: "Sind die Inhalte korrekt und überhaupt erlaubt?", a: "Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft, bevor Sie es sehen. Das ist eine automatische Prüfung, keine Rechtsberatung: Das letzte Wort haben Sie, und ohne Ihre Freigabe wird nichts veröffentlicht." },
+        { q: "Ich habe keine Zeit für noch ein Tool.", a: "Wir schreiben, vertonen und untertiteln jedes Video, und jedes wird softwaregestützt geprüft. Jeden Montag kommen neue; Sie sehen sie nur an, geben sie frei und tippen auf „{post}“." },
         { q: "Was kostet es, und binde ich mich?", a: "Tarife ab {from}/Monat. Monatlich, jederzeit kündbar." },
       ],
       button: "Tarif wählen",
@@ -146,27 +171,29 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Die Videos dieser Woche warten",
       approved: "Diese Woche in Ihrer Bibliothek: {n} freigegeben und bereit zum Posten.",
       pending: "Diese Woche in Ihrer Bibliothek: {n} warten auf Ihre Freigabe.",
-      how: "Posten geht schnell: Video öffnen, auf „Teilen“ tippen und die Bildunterschrift in Ihren Beitrag einfügen.",
-      gentle: "Nur eine freundliche Erinnerung, falls die Woche voll war. Wenn Sie schon gepostet haben: danke – dann ignorieren Sie diese E-Mail bitte.",
+      how: "Posten geht schnell: bei einem Video auf „{post}“ tippen, Video und Bildunterschrift mit einem Tippen sichern und den Text in Ihren Beitrag einfügen.",
+      gentle: "Nur eine freundliche Erinnerung, falls die Woche voll war. Wenn Sie schon gepostet haben, vielen Dank. Dann ignorieren Sie diese E-Mail bitte.",
       button: "Videos dieser Woche öffnen",
-      footer: "Sie erhalten diese E-Mail, weil Ihre Praxis DentVideo nutzt. Wir schicken sie höchstens einmal pro Woche und nur, wenn noch nichts geteilt wurde.",
+      footer: "Sie erhalten diese E-Mail, weil Ihre Praxis DentVideo nutzt. Wir schicken sie höchstens einmal pro Woche und nur, wenn noch keines der Videos dieser Woche geteilt oder als gepostet markiert wurde.",
     },
     monthly: {
       subject: "Ihr DentVideo-Monat: {month}",
-      preheader: "Was im letzten Monat erstellt, freigegeben und geteilt wurde.",
+      preheader: "Was im letzten Monat erstellt, freigegeben und gepostet wurde.",
+      preheaderMadeApproved: "Was im letzten Monat erstellt und freigegeben wurde.",
       title: "{month} auf einen Blick",
       intro: "Das hat DentVideo im letzten Monat für {clinic} erstellt.",
       made: "Videos erstellt",
       approved: "freigegeben",
-      shared: "geteilt",
-      sharedNone: "Aus der App wurde noch keines geteilt. Patientinnen und Patienten sehen nur, was Sie posten – ein Video pro Woche ist ein guter Anfang.",
+      posted: "als gepostet markiert",
+      postedLine: "Freigegebene Videos, die als gepostet markiert sind: {n} von {total}.",
+      sharedNone: "Bisher ist keines als gepostet markiert. Falls Sie schon gepostet haben, tippen Sie in der App bei diesen Videos auf „{mark}“, dann zählt diese Übersicht sie mit. Patientinnen und Patienten sehen nur, was Sie posten, und ein Video pro Woche ist ein guter Anfang.",
       sharedSome: "Danke fürs Posten. Jeden Montag kommen neue Videos.",
       button: "Meine Bibliothek öffnen",
       footer: "Sie erhalten diese Übersicht einmal im Monat, weil Ihre Praxis DentVideo nutzt.",
     },
     approvePage: {
       confirmTitle: "Diese Videos freigeben?",
-      confirmBody: "Sie sind erstellt und softwaregestützt geprüft; das letzte Wort haben Sie. Mit der Freigabe sind sie bereit zum Posten – wir posten nichts für Sie.",
+      confirmBody: "Sie sind erstellt und softwaregestützt geprüft; das letzte Wort haben Sie. Mit der Freigabe sind sie bereit zum Posten. Wir posten nichts für Sie.",
       confirmButton: "Alle freigeben",
       watchFirst: "Erst in der App ansehen",
       doneTitle: "Freigegeben",
@@ -205,7 +232,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       intro: "Si algo te frena, seguramente es una de estas.",
       qa: [
         { q: "¿El contenido es correcto? ¿Está permitido?", a: "Un software revisa cada vídeo en precisión clínica y normas de publicidad sanitaria antes de que lo veas. Es una revisión automática, no asesoría legal: la última palabra es tuya y no se publica nada sin tu aprobación." },
-        { q: "No tengo tiempo para otra herramienta.", a: "Nosotros escribimos, narramos y subtitulamos cada vídeo, y un software revisa cada uno. Cada lunes llegan nuevos; tú solo los ves, los apruebas y tocas Compartir." },
+        { q: "No tengo tiempo para otra herramienta.", a: "Nosotros escribimos, narramos y subtitulamos cada vídeo, y un software revisa cada uno. Cada lunes llegan nuevos; tú solo los ves, los apruebas y tocas «{post}»." },
         { q: "¿Cuánto cuesta? ¿Hay permanencia?", a: "Planes desde {from}/mes. Mensual, cancela cuando quieras." },
       ],
       button: "Elegir un plan",
@@ -216,20 +243,22 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Los vídeos de esta semana te esperan",
       approved: "Esta semana en tu biblioteca: {n} aprobados y listos para publicar.",
       pending: "Esta semana en tu biblioteca: {n} esperan tu aprobación.",
-      how: "Publicar es rápido: abre un vídeo, toca Compartir y pega el texto en tu publicación.",
+      how: "Publicar es rápido: toca «{post}» en un vídeo, guárdalo con su texto en un solo toque y pega el texto en tu publicación.",
       gentle: "Solo un recordatorio amable por si la semana se complicó. Si ya has publicado, gracias: puedes ignorar este correo.",
       button: "Abrir los vídeos de esta semana",
-      footer: "Recibes este correo porque tu clínica usa DentVideo. Lo enviamos como máximo una vez por semana y solo si aún no se ha compartido nada.",
+      footer: "Recibes este correo porque tu clínica usa DentVideo. Lo enviamos como máximo una vez por semana y solo si ninguno de los vídeos de esta semana se ha compartido ni marcado como publicado.",
     },
     monthly: {
       subject: "Tu mes con DentVideo: {month}",
-      preheader: "Lo que se creó, aprobó y compartió el mes pasado.",
+      preheader: "Lo que se creó, aprobó y publicó el mes pasado.",
+      preheaderMadeApproved: "Lo que se creó y aprobó el mes pasado.",
       title: "{month} en resumen",
       intro: "Esto es lo que DentVideo creó el mes pasado para {clinic}.",
       made: "vídeos creados",
       approved: "aprobados",
-      shared: "compartidos",
-      sharedNone: "Aún no se ha compartido ninguno desde la app. Los pacientes solo ven lo que publicas: uno por semana es un buen comienzo.",
+      posted: "marcados como publicados",
+      postedLine: "Vídeos aprobados marcados como publicados: {n} de {total}.",
+      sharedNone: "Todavía no hay ninguno marcado como publicado. Si ya publicaste alguno, toca «{mark}» en la app para que este resumen lo cuente. Los pacientes solo ven lo que publicas: uno por semana es un buen comienzo.",
       sharedSome: "Gracias por publicar. Cada lunes llegan vídeos nuevos.",
       button: "Abrir mi biblioteca",
       footer: "Recibes este resumen una vez al mes porque tu clínica usa DentVideo.",
@@ -275,7 +304,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       intro: "Sizi durduran bir şey varsa, büyük ihtimalle bunlardan biridir.",
       qa: [
         { q: "İçerik doğru mu, yayınlamakta sakınca var mı?", a: "Her video, siz görmeden önce klinik doğruluk ve sağlık reklamı kurallarına göre yazılımla kontrol edilir. Bu otomatik bir kontroldür, hukuki danışmanlık değildir: son karar sizindir ve siz onaylamadan hiçbir şey yayınlanmaz." },
-        { q: "Yeni bir araca ayıracak vaktim yok.", a: "Her videoyu biz yazar, seslendirir ve altyazılarız; her biri yazılımla kontrol edilir. Her pazartesi yenileri gelir; siz yalnızca izler, onaylar ve Paylaş'a dokunursunuz." },
+        { q: "Yeni bir araca ayıracak vaktim yok.", a: "Her videoyu biz yazar, seslendirir ve altyazılarız; her biri yazılımla kontrol edilir. Her pazartesi yenileri gelir; siz yalnızca izler, onaylar ve “{post}” düğmesine dokunursunuz." },
         { q: "Ücreti ne kadar, taahhüt var mı?", a: "Planlar aylık {from} ile başlar. Aylık, istediğiniz zaman iptal." },
       ],
       button: "Plan seçin",
@@ -286,20 +315,22 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Bu haftanın videoları sizi bekliyor",
       approved: "Bu hafta kütüphanenizde: onaylanmış ve paylaşıma hazır {n} video.",
       pending: "Bu hafta kütüphanenizde: onayınızı bekleyen {n} video.",
-      how: "Paylaşmak hızlıdır: videoyu açın, Paylaş'a dokunun ve açıklama metnini gönderinize yapıştırın.",
+      how: "Paylaşmak hızlıdır: bir videoda “{post}” düğmesine dokunun, videoyu açıklamasıyla birlikte tek dokunuşla kaydedin ve açıklamayı gönderinize yapıştırın.",
       gentle: "Hafta yoğun geçtiyse diye küçük bir hatırlatma. Zaten paylaştıysanız teşekkürler; bu e-postayı yok sayabilirsiniz.",
       button: "Bu haftanın videolarını aç",
-      footer: "Bu e-postayı kliniğiniz DentVideo kullandığı için alıyorsunuz. Haftada en fazla bir kez ve yalnızca henüz hiçbir şey paylaşılmadıysa göndeririz.",
+      footer: "Bu e-postayı kliniğiniz DentVideo kullandığı için alıyorsunuz. Haftada en fazla bir kez ve yalnızca bu haftanın videolarından hiçbiri paylaşılmadıysa ve paylaşıldı olarak işaretlenmediyse göndeririz.",
     },
     monthly: {
       subject: "DentVideo ile geçen ay: {month}",
       preheader: "Geçen ay hazırlanan, onaylanan ve paylaşılan videolar.",
+      preheaderMadeApproved: "Geçen ay hazırlanan ve onaylanan videolar.",
       title: "Bir bakışta {month}",
       intro: "Geçen ay DentVideo'nun {clinic} için hazırladıkları:",
       made: "hazırlanan video",
       approved: "onaylanan",
-      shared: "paylaşılan",
-      sharedNone: "Uygulamadan henüz hiçbiri paylaşılmadı. Hastalarınız yalnızca paylaştığınız videoları görür; haftada bir video iyi bir başlangıçtır.",
+      posted: "paylaşıldı olarak işaretlenen",
+      postedLine: "Onaylanan {total} videodan {n} tanesi paylaşıldı olarak işaretlendi.",
+      sharedNone: "Henüz paylaşıldı olarak işaretlenmiş bir video görünmüyor. Paylaştıklarınız varsa uygulamada onlar için “{mark}” düğmesine dokunun, bu özet de onları saysın. Hastalarınız yalnızca paylaştığınız videoları görür; haftada bir video iyi bir başlangıçtır.",
       sharedSome: "Paylaştığınız için teşekkürler. Her pazartesi yeni videolar geliyor.",
       button: "Kütüphanemi aç",
       footer: "Bu özeti, kliniğiniz DentVideo kullandığı için ayda bir kez alıyorsunuz.",
@@ -345,7 +376,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       intro: "Si quelque chose vous retient, c'est sans doute l'une de celles-ci.",
       qa: [
         { q: "Le contenu est-il exact, et autorisé ?", a: "Chaque vidéo est vérifiée par logiciel sur le plan clinique et au regard des règles de publicité en santé avant que vous ne la voyiez. C'est une vérification automatique, pas un conseil juridique : le dernier mot vous revient, et rien n'est publié sans votre accord." },
-        { q: "Je n'ai pas le temps pour un outil de plus.", a: "Nous écrivons, mettons en voix et sous-titrons chaque vidéo, et un logiciel vérifie chacune. De nouvelles arrivent chaque lundi ; vous n'avez qu'à regarder, valider et toucher Partager." },
+        { q: "Je n'ai pas le temps pour un outil de plus.", a: "Nous écrivons, mettons en voix et sous-titrons chaque vidéo, et un logiciel vérifie chacune. De nouvelles arrivent chaque lundi ; vous n'avez qu'à regarder, valider et toucher « {post} »." },
         { q: "Combien ça coûte, et y a-t-il un engagement ?", a: "Formules dès {from}/mois. Mensuel, résiliable à tout moment." },
       ],
       button: "Choisir une formule",
@@ -356,20 +387,22 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Les vidéos de la semaine vous attendent",
       approved: "Cette semaine dans votre bibliothèque : {n} validées et prêtes à publier.",
       pending: "Cette semaine dans votre bibliothèque : {n} en attente de votre validation.",
-      how: "Publier est rapide : ouvrez une vidéo, touchez Partager et collez la légende dans votre publication.",
+      how: "Publier est rapide : touchez « {post} » sur une vidéo, enregistrez-la avec sa légende en une touche, puis collez la légende dans votre publication.",
       gentle: "Un simple rappel, au cas où la semaine aurait été chargée. Si vous avez déjà publié, merci, et ignorez cet e-mail.",
       button: "Ouvrir les vidéos de la semaine",
-      footer: "Vous recevez cet e-mail car votre cabinet utilise DentVideo. Nous l'envoyons au plus une fois par semaine, et seulement si rien n'a encore été partagé.",
+      footer: "Vous recevez cet e-mail car votre cabinet utilise DentVideo. Nous l'envoyons au plus une fois par semaine, et seulement si aucune vidéo de la semaine n'a été partagée ni marquée comme publiée.",
     },
     monthly: {
       subject: "Votre mois avec DentVideo : {month}",
-      preheader: "Ce qui a été créé, validé et partagé le mois dernier.",
+      preheader: "Ce qui a été créé, validé et publié le mois dernier.",
+      preheaderMadeApproved: "Ce qui a été créé et validé le mois dernier.",
       title: "{month} en bref",
       intro: "Voici ce que DentVideo a créé le mois dernier pour {clinic}.",
       made: "vidéos créées",
       approved: "validées",
-      shared: "partagées",
-      sharedNone: "Aucune n'a encore été partagée depuis l'application. Vos patients ne voient que ce que vous publiez : une par semaine, c'est un bon début.",
+      posted: "marquées comme publiées",
+      postedLine: "Vidéos validées marquées comme publiées : {n} sur {total}.",
+      sharedNone: "Aucune n'est encore marquée comme publiée. Si vous en avez publié, touchez « {mark} » dans l'application pour que ce récapitulatif les compte. Vos patients ne voient que ce que vous publiez : une par semaine, c'est un bon début.",
       sharedSome: "Merci de publier. De nouvelles vidéos arrivent chaque lundi.",
       button: "Ouvrir ma bibliothèque",
       footer: "Vous recevez ce récapitulatif une fois par mois car votre cabinet utilise DentVideo.",
@@ -415,7 +448,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       intro: "導入を迷われている理由は、たいてい次のいずれかです。",
       qa: [
         { q: "内容は正確ですか？　広告として問題ありませんか？", a: "すべての動画は、先生がご覧になる前に臨床的な正確性と医療広告の観点からソフトウェアでチェックしています。自動チェックであり、法的助言ではありません。最終判断は先生が行い、承認されるまで何も公開されません。" },
-        { q: "新しいツールに割く時間がありません。", a: "台本・ナレーション・字幕は私たちが用意し、各動画をソフトウェアでチェックします。毎週月曜日に新しい動画が届き、先生はご覧になって承認し、「共有」をタップするだけです。" },
+        { q: "新しいツールに割く時間がありません。", a: "台本・ナレーション・字幕は私たちが用意し、各動画をソフトウェアでチェックします。毎週月曜日に新しい動画が届き、先生はご覧になって承認し、「{post}」をタップするだけです。" },
         { q: "料金は？　契約期間の縛りはありますか？", a: "プランは月額{from}からご用意しています。月単位の契約で、いつでも解約できます。" },
       ],
       button: "プランを選ぶ",
@@ -426,20 +459,22 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "今週の動画が届いています",
       approved: "今週ライブラリにある動画：承認済みで投稿できるもの {n}本",
       pending: "今週ライブラリにある動画：承認待ち {n}本",
-      how: "投稿は簡単です。動画を開いて「共有」をタップし、キャプションを投稿に貼り付けるだけです。",
+      how: "投稿は簡単です。動画の「{post}」をタップし、ワンタップで動画を保存してキャプションをコピーしたら、投稿に貼り付けるだけです。",
       gentle: "お忙しい週だったかもしれないと思い、念のためお知らせしました。すでに投稿済みでしたら、このメールは破棄してください。",
       button: "今週の動画を開く",
-      footer: "このメールは、DentVideoをご利用の医院にお送りしています。まだ何も共有されていない場合に限り、週1回までお送りします。",
+      footer: "このメールは、DentVideoをご利用の医院にお送りしています。今週の動画がまだ1本も共有されておらず、投稿済みにもなっていない場合に限り、週1回までお送りします。",
     },
     monthly: {
       subject: "DentVideo 月間レポート：{month}",
-      preheader: "先月制作・承認・共有された動画のまとめです。",
+      preheader: "先月制作・承認・投稿された動画のまとめです。",
+      preheaderMadeApproved: "先月制作・承認された動画のまとめです。",
       title: "{month}のまとめ",
       intro: "先月、DentVideoが {clinic} のために制作した動画です。",
       made: "制作した動画",
       approved: "承認済み",
-      shared: "共有済み",
-      sharedNone: "アプリからの共有はまだありません。患者さんの目に届くのは投稿した動画だけです。まずは週1本から始めてみてください。",
+      posted: "投稿済みにした動画",
+      postedLine: "承認済み{total}本のうち、投稿済みになっている動画：{n}本",
+      sharedNone: "投稿済みになっている動画はまだありません。すでに投稿された場合は、アプリでその動画の「{mark}」をタップすると、このレポートに反映されます。患者さんの目に届くのは投稿した動画だけです。まずは週1本から始めてみてください。",
       sharedSome: "投稿いただき、ありがとうございます。毎週月曜日に新しい動画が届きます。",
       button: "ライブラリを開く",
       footer: "このレポートは、DentVideoをご利用の医院に月1回お送りしています。",
@@ -485,7 +520,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       intro: "إن كان هناك ما يجعلكم تترددون، فهو على الأرجح أحد هذه الأسئلة.",
       qa: [
         { q: "هل المحتوى دقيق؟ وهل نشره مسموح؟", a: "يُراجَع كل فيديو آلياً للدقة السريرية وضوابط الإعلان الصحي قبل أن تروه. إنها مراجعة آلية وليست استشارة قانونية: القرار الأخير لكم، ولا يُنشر شيء قبل اعتمادكم." },
-        { q: "ليس لديّ وقت لأداة جديدة.", a: "نكتب كل فيديو ونسجّل صوته ونضيف النص، ويُراجَع كل منها آلياً. تصل فيديوهات جديدة كل يوم اثنين، وما عليكم إلا المشاهدة والاعتماد والضغط على «مشاركة»." },
+        { q: "ليس لديّ وقت لأداة جديدة.", a: "نكتب كل فيديو ونسجّل صوته ونضيف النص، ويُراجَع كل منها آلياً. تصل فيديوهات جديدة كل يوم اثنين، وما عليكم إلا المشاهدة والاعتماد والضغط على «{post}»." },
         { q: "كم التكلفة؟ وهل هناك التزام؟", a: "الباقات تبدأ من {from} شهرياً. اشتراك شهري يمكن إلغاؤه في أي وقت." },
       ],
       button: "اختيار باقة",
@@ -496,20 +531,22 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "فيديوهات هذا الأسبوع بانتظاركم",
       approved: "معتمدة وجاهزة للنشر هذا الأسبوع: {n}",
       pending: "بانتظار اعتمادكم هذا الأسبوع: {n}",
-      how: "النشر سريع: افتحوا الفيديو واضغطوا «مشاركة» ثم الصقوا النص في منشوركم.",
+      how: "النشر سريع: اضغطوا «{post}» على الفيديو، واحفظوه مع نصه بضغطة واحدة، ثم الصقوا النص في منشوركم.",
       gentle: "مجرد تذكير لطيف في حال كان الأسبوع مزدحماً. وإن كنتم قد نشرتم بالفعل فشكراً لكم، ويمكنكم تجاهل هذه الرسالة.",
       button: "فتح فيديوهات هذا الأسبوع",
-      footer: "تصلكم هذه الرسالة لأن عيادتكم تستخدم DentVideo. نرسلها مرة واحدة في الأسبوع على الأكثر، وفقط إن لم تُشارَك أي فيديوهات بعد.",
+      footer: "تصلكم هذه الرسالة لأن عيادتكم تستخدم DentVideo. نرسلها مرة واحدة في الأسبوع على الأكثر، وفقط إن لم يُشارَك أي فيديو من فيديوهات هذا الأسبوع ولم يُحدَّد أي منها كمنشور.",
     },
     monthly: {
       subject: "شهركم مع DentVideo: {month}",
-      preheader: "ما أُعدّ واعتُمد وشورك الشهر الماضي.",
+      preheader: "ما أُعدّ واعتُمد ونُشر الشهر الماضي.",
+      preheaderMadeApproved: "ما أُعدّ واعتُمد الشهر الماضي.",
       title: "ملخص {month}",
       intro: "إليكم ما أعدّه DentVideo الشهر الماضي لـ {clinic}.",
       made: "فيديوهات أُعدّت",
       approved: "معتمدة",
-      shared: "تمت مشاركتها",
-      sharedNone: "لم تُشارَك أي فيديوهات من التطبيق بعد. لا يرى المرضى إلا ما تنشرونه، وفيديو واحد أسبوعياً بداية جيدة.",
+      posted: "محدَّدة كمنشورة",
+      postedLine: "الفيديوهات المعتمدة المحدَّدة كمنشورة: {n} من {total}.",
+      sharedNone: "لم يُحدَّد أي فيديو كمنشور بعد. إن كنتم نشرتم بعضها، فاضغطوا «{mark}» عليها في التطبيق ليحتسبها هذا الملخص. لا يرى المرضى إلا ما تنشرونه، وفيديو واحد أسبوعياً بداية جيدة.",
       sharedSome: "شكراً على النشر. تصل فيديوهات جديدة كل يوم اثنين.",
       button: "فتح مكتبتي",
       footer: "يصلكم هذا الملخص مرة كل شهر لأن عيادتكم تستخدم DentVideo.",
@@ -555,7 +592,7 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       intro: "Jeśli coś Państwa powstrzymuje, to zapewne jedno z tych pytań.",
       qa: [
         { q: "Czy treści są poprawne i czy wolno je publikować?", a: "Każdy film jest sprawdzany przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy medycznej, zanim go Państwo zobaczą. To automatyczna kontrola, a nie porada prawna. Nic nie zostanie opublikowane bez Państwa akceptacji: decyzja zawsze należy do Państwa." },
-        { q: "Nie mam czasu na kolejne narzędzie.", a: "Piszemy, nagrywamy lektora i dodajemy napisy do każdego filmu, a oprogramowanie sprawdza każdy z nich. Nowe pojawiają się w każdy poniedziałek; Państwo tylko oglądają, akceptują i dotykają „Udostępnij”." },
+        { q: "Nie mam czasu na kolejne narzędzie.", a: "Piszemy, nagrywamy lektora i dodajemy napisy do każdego filmu, a oprogramowanie sprawdza każdy z nich. Nowe pojawiają się w każdy poniedziałek; Państwo tylko oglądają, akceptują i dotykają „{post}”." },
         { q: "Ile to kosztuje i czy jest umowa na czas określony?", a: "Plany od {from}/mies. Rozliczenie miesięczne, rezygnacja w dowolnym momencie." },
       ],
       button: "Wybierz plan",
@@ -566,20 +603,22 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
       title: "Filmy na ten tydzień czekają",
       approved: "W bibliotece w tym tygodniu, zaakceptowane i gotowe do publikacji: {n}.",
       pending: "W bibliotece w tym tygodniu, czekają na Państwa akceptację: {n}.",
-      how: "Publikacja jest szybka: wystarczy otworzyć film, dotknąć „Udostępnij” i wkleić opis do posta.",
+      how: "Publikacja jest szybka: wystarczy dotknąć „{post}” przy filmie, jednym dotknięciem zapisać go razem z opisem i wkleić opis do posta.",
       gentle: "To tylko przypomnienie na wypadek pracowitego tygodnia. Jeśli już Państwo opublikowali, dziękujemy i prosimy zignorować tę wiadomość.",
       button: "Otwórz filmy z tego tygodnia",
-      footer: "Otrzymują Państwo tę wiadomość, ponieważ gabinet korzysta z DentVideo. Wysyłamy ją najwyżej raz w tygodniu i tylko wtedy, gdy nic jeszcze nie zostało udostępnione.",
+      footer: "Otrzymują Państwo tę wiadomość, ponieważ gabinet korzysta z DentVideo. Wysyłamy ją najwyżej raz w tygodniu i tylko wtedy, gdy żaden film z tego tygodnia nie został jeszcze udostępniony ani oznaczony jako opublikowany.",
     },
     monthly: {
       subject: "Państwa miesiąc z DentVideo: {month}",
-      preheader: "Co przygotowano, zaakceptowano i udostępniono w zeszłym miesiącu.",
+      preheader: "Co przygotowano, zaakceptowano i opublikowano w zeszłym miesiącu.",
+      preheaderMadeApproved: "Co przygotowano i zaakceptowano w zeszłym miesiącu.",
       title: "Podsumowanie: {month}",
       intro: "Oto co DentVideo przygotowało w zeszłym miesiącu dla {clinic}.",
       made: "przygotowane filmy",
       approved: "zaakceptowane",
-      shared: "udostępnione",
-      sharedNone: "Z aplikacji nie udostępniono jeszcze żadnego filmu. Pacjenci widzą tylko to, co Państwo opublikują; jeden film tygodniowo to dobry początek.",
+      posted: "oznaczone jako opublikowane",
+      postedLine: "Zaakceptowane filmy oznaczone jako opublikowane: {n} z {total}.",
+      sharedNone: "Żaden film nie jest jeszcze oznaczony jako opublikowany. Jeśli coś już Państwo opublikowali, wystarczy dotknąć „{mark}” przy tych filmach w aplikacji, a podsumowanie je uwzględni. Pacjenci widzą tylko to, co Państwo opublikują; jeden film tygodniowo to dobry początek.",
       sharedSome: "Dziękujemy za publikacje. Nowe filmy pojawiają się w każdy poniedziałek.",
       button: "Otwórz bibliotekę",
       footer: "Otrzymują Państwo to podsumowanie raz w miesiącu, ponieważ gabinet korzysta z DentVideo.",

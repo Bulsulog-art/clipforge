@@ -28,7 +28,7 @@ export type SolutionUi = {
 export const SOLUTION_UI: Record<Locale, SolutionUi> = {
   en: {
     samplesHeading: "Three videos DentVideo made for a demo clinic",
-    samplesNote: "Demo clinic. Real DentVideo output, unedited. Yours are made in your language, colours and tone.",
+    samplesNote: "Demo clinic. Real DentVideo output, unedited. Yours are made in your language, colors and tone.",
     preview: "See your preview",
     pricing: "Plans and pricing",
     tryPreview: "Or try the preview first, no account needed",

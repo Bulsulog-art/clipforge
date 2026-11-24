@@ -2015,7 +2015,7 @@
     {
      "rule": "specialist",
      "match": "Unser Team sind Spezialisten",
-     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+     "why": "Calling the practice or dentist a specialist needs a recognized title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
     },
     {
      "rule": "children",
@@ -2027,14 +2027,14 @@
     {
      "rule": "specialist",
      "match": "Unser Team sind Spezialisten",
-     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+     "why": "Calling the practice or dentist a specialist needs a recognized title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
     }
    ],
    "CH": [
     {
      "rule": "specialist",
      "match": "Unser Team sind Spezialisten",
-     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+     "why": "Calling the practice or dentist a specialist needs a recognized title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
     }
    ]
   }
@@ -2049,21 +2049,21 @@
     {
      "rule": "specialist",
      "match": "Nous sommes spécialistes",
-     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+     "why": "Calling the practice or dentist a specialist needs a recognized title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
     }
    ],
    "AT": [
     {
      "rule": "specialist",
      "match": "Nous sommes spécialistes",
-     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+     "why": "Calling the practice or dentist a specialist needs a recognized title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
     }
    ],
    "CH": [
     {
      "rule": "specialist",
      "match": "Nous sommes spécialistes",
-     "why": "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
+     "why": "Calling the practice or dentist a specialist needs a recognized title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40)."
     }
    ]
   }
@@ -2090,7 +2090,7 @@
     {
      "rule": "specialist",
      "match": "Our implant specialists",
-     "why": "Announcing as a specialist or board-certified is limited to recognised specialties and qualified dentists (ADA Code 5.H, 5.F.2; state board rules); the writer cannot verify that, so the clinic adds it if true."
+     "why": "Announcing as a specialist or board-certified is limited to recognized specialties and qualified dentists (ADA Code 5.H, 5.F.2; state board rules); the writer cannot verify that, so the clinic adds it if true."
     }
    ]
   }

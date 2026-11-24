@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from "lucide
 import { ClipForgeVideo } from "@/remotion/Video";
 import { FPS, totalFrames, type ScenePlan } from "@/remotion/scene-plan";
 import { analyseLogoUrl, accentFor, type LogoColors } from "@/lib/dentvid/logo-colors";
-import { libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, servicesWithoutSample, type PreviewEntry } from "@/lib/dentvid/preview-library";
+import { libraryLanguage, pickPreviews, previewControlsEdge, previewControlsSide, previewPlan, servicesWithoutSample, type PreviewEntry } from "@/lib/dentvid/preview-library";
 import { fmt, type AppText } from "@/content/dentvideo-app";
 import { PhoneFrame } from "./phone";
 import { trackDv } from "@/lib/dentvid/events-client";
@@ -222,16 +222,15 @@ export default function LivePreviewPlayer({
     return defaultBackgrounds(suggestBackgrounds(input).filter((id) => relevant.has(id)), seconds).map(backgroundSrc);
   }, [raw, entry, lang]);
   const bgKey = (backgrounds ?? autoBackgrounds).join("\u0000");
-  const plan = useMemo(() => {
-    if (!raw) return undefined;
-    const personal = personalisePlan(raw, { name, handle });
-    return {
-      ...personal,
-      ...(brand ? { brandColor: brand.replace(/^#/, "").toUpperCase() } : {}),
-      ...(accent ? { brandAccent: accent.replace(/^#/, "").toUpperCase() } : {}),
-      ...(bgKey ? { backgrounds: bgKey.split("\u0000") } : {}),
-    } as ScenePlan;
-  }, [raw, name, handle, brand, accent, bgKey]);
+  // The visitor's name signs the video as a real week does: in the corner
+  // while there is no logo, and on the sign-off (preview-library.ts previewPlan).
+  const plan = useMemo(
+    () =>
+      raw
+        ? (previewPlan(raw, { name, handle, brandColor: brand, brandAccent: accent, backgrounds: bgKey ? bgKey.split("\u0000") : undefined }) as ScenePlan)
+        : undefined,
+    [raw, name, handle, brand, accent, bgKey],
+  );
 
   const inputProps = useMemo(
     () =>
@@ -430,6 +429,10 @@ export default function LivePreviewPlayer({
   // The page's direction (Arabic pages are right to left): there the next video lies to the left.
   const isRtl = () => (rootRef.current ? getComputedStyle(rootRef.current).direction === "rtl" : false);
   const silent = entry?.narrated === false;
+  // Without a logo the clinic's name sits on a chip in the top corner, as wide as 60% of the
+  // frame; the buttons then take the bottom corner so a long name is never under them.
+  // Read from the name, not the loaded plan, so they do not jump once the plan arrives.
+  const controlsEdge = previewControlsEdge({ logo: Boolean(logo?.url === logoUrl && logo?.drawable), clinic: name });
   const retryText = (LOGO_TEXT[profile.language as keyof typeof LOGO_TEXT] ?? LOGO_TEXT.en).retry;
 
   return (
@@ -525,8 +528,13 @@ export default function LivePreviewPlayer({
             </div>
           ) : null}
 
-          {/* In the top corner the clinic's logo is not in (top right; top left in an Arabic video) — never over it. */}
-          <div className={`absolute ${controlsSide === "left" ? "left-4" : "right-4"} top-14 z-10 flex gap-2`} data-controls-side={controlsSide}>
+          {/* On the side the clinic's logo or name is not on (right; left in an Arabic video), never over it.
+              Top corner beside a logo; bottom corner while the name chip is drawn (preview-library.ts previewControlsEdge). */}
+          <div
+            className={`absolute ${controlsSide === "left" ? "left-4" : "right-4"} ${controlsEdge === "top" ? "top-14" : "bottom-4"} z-10 flex gap-2`}
+            data-controls-side={controlsSide}
+            data-controls-edge={controlsEdge}
+          >
             {silent ? null : (
               <button
                 type="button"

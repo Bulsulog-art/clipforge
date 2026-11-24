@@ -71,7 +71,7 @@ export const SEO_PAGES: SeoPage[] = [
     points: [
       "Moments start and end on full sentences, not mid-word",
       "Landscape two-camera setups reframed around the person speaking",
-      "Word-by-word captions — most short-form is watched muted",
+      "Word-by-word captions, because most short-form video is watched muted",
       "Tell it what to look for: “every time we talk about pricing”",
     ],
     body: [
@@ -106,12 +106,12 @@ export const SEO_PAGES: SeoPage[] = [
       "Upload the file you published to YouTube",
       "Up to 12 clips of 25–70 seconds, best first",
       "A written hook and caption suggestion for each clip",
-      "9:16 framing that follows the face, not a centre crop",
+      "9:16 framing that follows the face, not a center crop",
     ],
     body: [
       {
         heading: "Why upload instead of a YouTube link",
-        text: "YouTube blocks downloads from our servers, so ClipForge takes the file rather than the link. Download your video from YouTube Studio (Content → Download) and upload it — the result is the same.",
+        text: "YouTube blocks downloads from our servers, so ClipForge takes the file rather than the link. Download your video from YouTube Studio (Content → Download) and upload it. The result is the same.",
       },
       {
         heading: "Clip length",
@@ -139,7 +139,7 @@ export const SEO_PAGES: SeoPage[] = [
     body: [
       {
         heading: "Built for the first three seconds",
-        text: "The scoring prompt rejects moments that open with throat-clearing and favours a question, a bold claim, a number or the start of a story. That ranking is what decides which clips come first in your set.",
+        text: "The scoring prompt rejects moments that open with throat-clearing and favors a question, a bold claim, a number or the start of a story. That ranking is what decides which clips come first in your set.",
       },
     ],
     faqs: COMMON_FAQS,
@@ -179,9 +179,9 @@ export const SEO_PAGES: SeoPage[] = [
       "Most short-form video is watched with the sound off. ClipForge transcribes every word with its timing and burns animated captions into each clip, highlighting the punchiest words, so the clip still lands in a muted feed.",
     steps: HOW_IT_WORKS,
     points: [
-      "Burned into the MP4 — no separate subtitle file to upload",
+      "Burned into the MP4, so there is no separate subtitle file to upload",
       "5 styles: Bold Pop, Clean, Neon, HYPE and Minimal",
-      "Key words emphasised automatically",
+      "Key words emphasized automatically",
       "Captions timed to each spoken word",
     ],
     body: [
@@ -200,7 +200,7 @@ export const SEO_PAGES: SeoPage[] = [
       "Looking for an OpusClip alternative? ClipForge turns long videos into captioned, speaker-framed vertical clips. Free first clip set, then $6.99/week or $49.99/year.",
     h1: "An OpusClip alternative for creators who pay their own bills",
     intro:
-      "OpusClip popularised AI clipping. ClipForge does the same core job — long video in, ranked vertical clips out — and is priced for individual creators: one free clip set, then $6.99 a week or $49.99 a year.",
+      "OpusClip popularised AI clipping. ClipForge does the same core job (long video in, ranked vertical clips out) and is priced for individual creators: one free clip set, then $6.99 a week or $49.99 a year.",
     points: [
       "Up to 12 ranked clips per video",
       "Prompt what to clip, or let it pick the strongest moments",
@@ -214,7 +214,7 @@ export const SEO_PAGES: SeoPage[] = [
       },
       {
         heading: "How to compare",
-        text: "Run the same video through both and compare the clips you would actually post. Check each tool's current pricing and limits on its own site — they change often, and we only describe ours.",
+        text: "Run the same video through both and compare the clips you would actually post. Check each tool's current pricing and limits on its own site. They change often, and we only describe ours.",
       },
     ],
     faqs: COMMON_FAQS,

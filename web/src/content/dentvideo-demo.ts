@@ -34,15 +34,15 @@ export type DemoCopy = {
   headline: string;
   /** The lead, for a demo with the clinic's logo. */
   lead: string;
-  /** The lead without a logo: names only the colours (a demo never promises a logo it does not have). */
+  /** The lead without a logo: names only the colors (a demo never promises a logo it does not have). */
   leadNoLogo: string;
   points: [string, string, string];
   factsTitle: string;
   facts: { from: string; cancel: string; approve: string; rules: string };
   cta: string;
-  /** Under the CTA, for a demo with a logo: name, colour and logo are filled in. */
+  /** Under the CTA, for a demo with a logo: name, color and logo are filled in. */
   ctaNote: string;
-  /** Without a logo: name and colour are filled in, and the logo is one tap away. */
+  /** Without a logo: name and color are filled in, and the logo is one tap away. */
   ctaNoteNoLogo: string;
   ask: string;
   mailSubject: string;

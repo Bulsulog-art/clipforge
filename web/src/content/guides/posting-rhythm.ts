@@ -74,7 +74,7 @@ const EN: Guide = {
       heading: "Which formats should a clinic post each week?",
       paragraphs: [
         "Short vertical video is the format platforms push most to people who do not follow you yet, which makes it the main way new patients find a clinic. Stories keep existing followers in touch day to day. Carousels and photos work for practical information people want to save. A balanced week might be two or three short videos, one carousel or photo post, and a handful of Stories.",
-        "Patient-education videos are the safest high-value format: they answer a real question, they are useful even to people who never book, and they avoid the riskiest kinds of content: before-and-after photos, testimonials and offers. Our guide to [Instagram videos for dentists](guide:instagram-videos-for-dentists) covers filming your own.",
+        "Patient-education videos are the safest high-value format: they answer a real question, they are useful even to people who never book, and they avoid the riskiest kinds of content, such as before-and-after photos, testimonials and offers. Our guide to [Instagram videos for dentists](guide:instagram-videos-for-dentists) covers filming your own.",
       ],
     },
     {
@@ -118,14 +118,14 @@ const DE: Guide = {
   seoTitle: "Wie oft sollte eine Zahnarztpraxis posten?",
   seoDescription: "Ein Posting-Rhythmus, den Ihre Praxis halten kann: Beiträge pro Woche, die aktiven Zeiten Ihrer Follower finden und warum Regelmäßigkeit zählt.",
   description: "Eine ehrliche Antwort auf die Frage nach Häufigkeit und Uhrzeit: Rhythmen nach verfügbarer Zeit, eigene Statistiken statt pauschaler Tabellen, und wie jeder Beitrag im Rahmen des Werberechts bleibt.",
-  h1: "Wie oft sollte eine Zahnarztpraxis posten — und wann?",
+  h1: "Wie oft sollte eine Zahnarztpraxis posten, und wann?",
   intro:
-    "Eine Beitragszahl, die Plattformen für jedes Konto vorschreiben oder belohnen, gibt es nicht. Für die meisten Zahnarztpraxen funktioniert ein Rhythmus von zwei bis fünf Beiträgen pro Woche, den das Team ein ganzes Jahr durchhält, besser als tägliche Beiträge mit anschließender Funkstille. Die richtige Uhrzeit ist die, zu der Ihre eigenen Follower online sind — Instagram, Facebook, TikTok und YouTube zeigen das in ihren Statistiken.",
+    "Eine Beitragszahl, die Plattformen für jedes Konto vorschreiben oder belohnen, gibt es nicht. Für die meisten Zahnarztpraxen funktioniert ein Rhythmus von zwei bis fünf Beiträgen pro Woche, den das Team ein ganzes Jahr durchhält, besser als tägliche Beiträge mit anschließender Funkstille. Die richtige Uhrzeit ist die, zu der Ihre eigenen Follower online sind. Instagram, Facebook, TikTok und YouTube zeigen das in ihren Statistiken.",
   sections: [
     {
       heading: "Gibt es die ideale Anzahl an Beiträgen pro Woche?",
       paragraphs: [
-        "Nicht allgemeingültig. Die Plattformen ändern regelmäßig, wie sie Inhalte ausspielen, und veröffentlichen keine Pflichtfrequenz für Unternehmenskonten. Die meisten Empfehlungen — „täglich posten“, „dreimal pro Woche“ — sind Faustregeln von Agenturen, keine gemessenen Gesetze, und viele dieser Quellen verkaufen selbst Posting-Dienstleistungen.",
+        "Nicht allgemeingültig. Die Plattformen ändern regelmäßig, wie sie Inhalte ausspielen, und veröffentlichen keine Pflichtfrequenz für Unternehmenskonten. Die meisten Empfehlungen wie „täglich posten“ oder „dreimal pro Woche“ sind Faustregeln von Agenturen, keine gemessenen Gesetze, und viele dieser Quellen verkaufen selbst Posting-Dienstleistungen.",
         "Was sich bewährt, ist einfacher: Ein Konto, das regelmäßig postet, gibt Followern einen Grund dranzubleiben. Ein Konto, das monatelang schweigt, wirkt auf Patienten, die es finden, verwaist. Die sinnvolle Frage ist also nicht „Wie viel ist ideal?“, sondern „Was schaffen wir jede Woche, ohne bei Qualität oder Werberecht Abstriche zu machen?“",
       ],
     },
@@ -150,7 +150,7 @@ const DE: Guide = {
     {
       heading: "Wann sollte eine Zahnarztpraxis posten?",
       paragraphs: [
-        "Allgemeine Tabellen mit „besten Posting-Zeiten“ mitteln Millionen Konten aus vielen Branchen und Zeitzonen. Ihre Follower sind überwiegend Patienten aus der Umgebung mit eigenem Tagesablauf — Ihre eigenen Daten sind deshalb der zuverlässigere Wegweiser. Jede große Plattform zeigt sie Unternehmenskonten an:",
+        "Allgemeine Tabellen mit „besten Posting-Zeiten“ mitteln Millionen Konten aus vielen Branchen und Zeitzonen. Ihre Follower sind überwiegend Patienten aus der Umgebung mit eigenem Tagesablauf. Ihre eigenen Daten sind deshalb der zuverlässigere Wegweiser. Jede große Plattform zeigt sie Unternehmenskonten an:",
       ],
       list: [
         "Instagram: Im professionellen Dashboard zeigen die Statistiken zu Ihren Followern die aktivsten Zeiten nach Tag und Uhrzeit.",
@@ -159,20 +159,20 @@ const DE: Guide = {
         "YouTube: Der Bericht „Zielgruppe“ in YouTube Studio zeigt, wann Ihre Zuschauer auf YouTube sind.",
       ],
       after: [
-        "Solange noch zu wenige Daten vorliegen, testen Sie Zeiten, die zum Alltag Ihrer Patienten passen — vor der Arbeit, mittags und abends — und vergleichen Sie nach vier bis sechs Wochen. Ändern Sie dabei immer nur eine Sache.",
+        "Solange noch zu wenige Daten vorliegen, testen Sie Zeiten, die zum Alltag Ihrer Patienten passen (vor der Arbeit, mittags und abends), und vergleichen Sie nach vier bis sechs Wochen. Ändern Sie dabei immer nur eine Sache.",
       ],
     },
     {
       heading: "Welche Formate gehören in eine Woche?",
       paragraphs: [
-        "Kurze Hochformat-Videos spielen die Plattformen am stärksten an Menschen aus, die Ihnen noch nicht folgen — der wichtigste Weg, über den neue Patienten eine Praxis entdecken. Stories halten bestehende Follower im Alltag auf dem Laufenden. Karussells und Fotos eignen sich für praktische Informationen zum Speichern. Eine ausgewogene Woche: zwei bis drei kurze Videos, ein Karussell oder Foto und einige Stories.",
-        "Aufklärungsvideos sind dabei das sicherste Format mit hohem Nutzen: Sie beantworten eine echte Frage, helfen auch Menschen, die nie einen Termin buchen, und vermeiden die riskantesten Inhalte — Vorher-Nachher-Bilder, Patientenstimmen und Aktionen. Wie Sie eigene Videos drehen, steht im Ratgeber zu [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen).",
+        "Kurze Hochformat-Videos spielen die Plattformen am stärksten an Menschen aus, die Ihnen noch nicht folgen. Das ist der wichtigste Weg, über den neue Patienten eine Praxis entdecken. Stories halten bestehende Follower im Alltag auf dem Laufenden. Karussells und Fotos eignen sich für praktische Informationen zum Speichern. Eine ausgewogene Woche: zwei bis drei kurze Videos, ein Karussell oder Foto und einige Stories.",
+        "Aufklärungsvideos sind dabei das sicherste Format mit hohem Nutzen: Sie beantworten eine echte Frage, helfen auch Menschen, die nie einen Termin buchen, und vermeiden die riskantesten Inhalte wie Vorher-Nachher-Bilder, Patientenstimmen und Aktionen. Wie Sie eigene Videos drehen, steht im Ratgeber zu [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen).",
       ],
     },
     {
       heading: "Ändert häufigeres Posten etwas am Werberecht?",
       paragraphs: [
-        "Nein — aber jeder zusätzliche Beitrag ist eine zusätzliche Gelegenheit für einen Fehler. Jeder Beitrag eines Praxiskontos fällt unter das Heilmittelwerbegesetz und die Berufsordnung, egal ob es der erste oder der zwanzigste im Monat ist. Ein höherer Rhythmus braucht deshalb einen schnellen, wiederholbaren Check vor jedem Beitrag: kein „schmerzfrei“, keine Erfolgsversprechen, keine Preise oder Rabatte, keine Patientenfotos ohne schriftliche Einwilligung. Die Einzelheiten stehen im [Ratgeber zum Heilmittelwerbegesetz](guide:heilmittelwerbegesetz-zahnarzt-social-media); eine schnelle erste Prüfung jedes Beitragstextes bietet unser kostenloser [Werbe-Check „Ist mein Post erlaubt?“](checker:).",
+        "Nein, aber jeder zusätzliche Beitrag ist eine zusätzliche Gelegenheit für einen Fehler. Jeder Beitrag eines Praxiskontos fällt unter das Heilmittelwerbegesetz und die Berufsordnung, egal ob es der erste oder der zwanzigste im Monat ist. Ein höherer Rhythmus braucht deshalb einen schnellen, wiederholbaren Check vor jedem Beitrag: kein „schmerzfrei“, keine Erfolgsversprechen, keine Preise oder Rabatte, keine Patientenfotos ohne schriftliche Einwilligung. Die Einzelheiten stehen im [Ratgeber zum Heilmittelwerbegesetz](guide:heilmittelwerbegesetz-zahnarzt-social-media); eine schnelle erste Prüfung jedes Beitragstextes bietet unser kostenloser [Werbe-Check „Ist mein Post erlaubt?“](checker:).",
       ],
     },
     {
@@ -180,7 +180,7 @@ const DE: Guide = {
       ordered: true,
       paragraphs: ["Praxen, die ein Jahr lang dranbleiben, bündeln die Arbeit, statt spontan zu posten:"],
       list: [
-        "Die Themen der Woche an einem festen Tag wählen — idealerweise aus Fragen, die Patienten in der Vorwoche gestellt haben.",
+        "Die Themen der Woche an einem festen Tag wählen, idealerweise aus Fragen, die Patienten in der Vorwoche gestellt haben.",
         "Alle Beiträge der Woche in einer Sitzung erstellen oder freigeben.",
         "Jeden Beitragstext vor dem Einplanen gegen das Werberecht prüfen.",
         "Mit den Planungsfunktionen der Plattformen einplanen, damit nichts davon abhängt, dass jemand daran denkt.",
@@ -193,8 +193,8 @@ const DE: Guide = {
   ],
   faq: [
     { q: "Ist tägliches Posten für eine Zahnarztpraxis sinnvoll?", a: "Nicht unbedingt. Tägliches Posten hilft nur, wenn Qualität und Werberecht dabei nicht leiden. Für die meisten Praxen bringen zwei bis fünf gute Beiträge pro Woche über das ganze Jahr mehr als ein Monat täglicher Beiträge." },
-    { q: "Zu welcher Uhrzeit sollte eine Zahnarztpraxis auf Instagram posten?", a: "Wenn Ihre eigenen Follower am aktivsten sind — das zeigt Instagram in den Statistiken des professionellen Dashboards. Ohne Daten testen Sie vor der Arbeit, mittags und abends und vergleichen nach einigen Wochen." },
-    { q: "Sollte eine Praxis am Wochenende posten?", a: "Wenn Ihre Follower dann aktiv sind, ja — eingeplante Beiträge brauchen niemanden in der Praxis. Prüfen Sie Ihre Statistiken; Wochenendmuster unterscheiden sich stark zwischen Praxen." },
+    { q: "Zu welcher Uhrzeit sollte eine Zahnarztpraxis auf Instagram posten?", a: "Wenn Ihre eigenen Follower am aktivsten sind. Das zeigt Instagram in den Statistiken des professionellen Dashboards. Ohne Daten testen Sie vor der Arbeit, mittags und abends und vergleichen nach einigen Wochen." },
+    { q: "Sollte eine Praxis am Wochenende posten?", a: "Wenn Ihre Follower dann aktiv sind, ja. Eingeplante Beiträge brauchen niemanden in der Praxis. Prüfen Sie Ihre Statistiken; Wochenendmuster unterscheiden sich stark zwischen Praxen." },
     { q: "Braucht ein Instagram-Konto einer Praxis ein Impressum?", a: "Geschäftlich genutzte Konten brauchen in Deutschland in der Regel eine leicht erreichbare Anbieterkennzeichnung, meist als Link im Profil auf das Impressum der Website. Klären Sie Details mit Ihrer Kammer." },
   ],
 };
@@ -216,7 +216,7 @@ const TR: Guide = {
     {
       heading: "Haftada kaç paylaşım yapmak gerekir?",
       paragraphs: [
-        "Herkes için geçerli bir sayı yok. Platformlar içerikleri nasıl öne çıkardıklarını düzenli olarak değiştirir ve işletme hesapları için zorunlu bir paylaşım sıklığı yayımlamaz. Okuduğunuz tavsiyelerin çoğu — “her gün paylaşın”, “haftada üç kez paylaşın” — ajansların genel kuralıdır, ölçülmüş bir yasa değil; bu kaynakların birçoğu da paylaşım hizmeti satar.",
+        "Herkes için geçerli bir sayı yok. Platformlar içerikleri nasıl öne çıkardıklarını düzenli olarak değiştirir ve işletme hesapları için zorunlu bir paylaşım sıklığı yayımlamaz. Okuduğunuz “her gün paylaşın”, “haftada üç kez paylaşın” gibi tavsiyelerin çoğu ajansların genel kuralıdır, ölçülmüş bir yasa değil; bu kaynakların birçoğu da paylaşım hizmeti satar.",
         "İşe yarayan şey daha basittir: düzenli paylaşım yapan bir hesap, takipçilere izlemeye devam etmek için bir neden verir. Aylarca sessiz kalan bir hesap ise onu bulan hastaya terk edilmiş gibi görünür. Bu yüzden doğru soru “İdeal sayı kaç?” değil, “Kaliteden ve kurallardan ödün vermeden her hafta neyi sürdürebiliriz?” sorusudur.",
       ],
     },
@@ -250,20 +250,20 @@ const TR: Guide = {
         "YouTube: YouTube Studio'daki kitle raporu, izleyicilerinizin YouTube'da ne zaman olduğunu gösterir.",
       ],
       after: [
-        "Yeterli veri oluşana kadar hastalarınızın gününe uyan saatleri deneyin — işe gitmeden önce, öğle arası ve akşam — ve dört altı hafta sonra karşılaştırın. Her seferinde yalnızca bir şeyi değiştirin. Ramazan ayında akşam saatlerinde alışkanlıklar belirgin biçimde değişebilir; bu dönemde istatistiklerinize ayrıca bakın.",
+        "Yeterli veri oluşana kadar hastalarınızın gününe uyan saatleri (işe gitmeden önce, öğle arası ve akşam) deneyin ve dört altı hafta sonra karşılaştırın. Her seferinde yalnızca bir şeyi değiştirin. Ramazan ayında akşam saatlerinde alışkanlıklar belirgin biçimde değişebilir; bu dönemde istatistiklerinize ayrıca bakın.",
       ],
     },
     {
       heading: "Haftalık paylaşımlarda hangi biçimler olmalı?",
       paragraphs: [
         "Platformlar kısa dikey videoları, sizi henüz takip etmeyen kişilere en çok gösterir; yeni hastaların bir kliniği keşfettiği ana yol da budur. Hikâyeler mevcut takipçilerle gündelik bağı korur. Kaydırmalı gönderiler ve fotoğraflar, kaydedilmek istenen pratik bilgiler için uygundur. Dengeli bir hafta: iki üç kısa video, bir kaydırmalı gönderi ya da fotoğraf ve birkaç hikâye.",
-        "Hasta bilgilendirme videoları bu biçimlerin içinde değeri yüksek ve riski en düşük olanıdır: gerçek bir soruyu yanıtlar, hiç randevu almayacak kişilere bile yararlı olur ve en riskli içeriklerden — önce-sonra fotoğrafları, hasta yorumları, kampanyalar — uzak durur. Kendi videonuzu çekmek için [diş hekimleri için Instagram videoları](guide:dis-hekimleri-icin-instagram-videolari) rehberine bakın.",
+        "Hasta bilgilendirme videoları bu biçimlerin içinde değeri yüksek ve riski en düşük olanıdır: gerçek bir soruyu yanıtlar, hiç randevu almayacak kişilere bile yararlı olur ve en riskli içeriklerden (önce-sonra fotoğrafları, hasta yorumları, kampanyalar) uzak durur. Kendi videonuzu çekmek için [diş hekimleri için Instagram videoları](guide:dis-hekimleri-icin-instagram-videolari) rehberine bakın.",
       ],
     },
     {
       heading: "Daha sık paylaşım yapmak kuralları değiştirir mi?",
       paragraphs: [
-        "Hayır — ama her ek paylaşım, hata için ek bir fırsattır. Klinik hesabından yapılan her paylaşım, ayın ilki de olsa yirmincisi de olsa, sağlık hizmetlerinde tanıtım kurallarına tabidir. Daha yoğun bir ritim, her paylaşımdan önce hızlı ve tekrarlanabilir bir kontrol gerektirir: “ağrısız” gibi kesin vaatler yok, fiyat ve kampanya yok, hasta teşekkürleri üzerinden tanıtım yok, yazılı rıza olmadan hasta görüntüsü yok. Ayrıntılar [diş hekimi reklam yasağı rehberinde](guide:dis-hekimi-reklam-yasagi); her açıklama metni için hızlı bir ön kontrolü ücretsiz [“Bu paylaşım yasak mı?” aracımız](checker:) yapar.",
+        "Hayır, ama her ek paylaşım, hata için ek bir fırsattır. Klinik hesabından yapılan her paylaşım, ayın ilki de olsa yirmincisi de olsa, sağlık hizmetlerinde tanıtım kurallarına tabidir. Daha yoğun bir ritim, her paylaşımdan önce hızlı ve tekrarlanabilir bir kontrol gerektirir: “ağrısız” gibi kesin vaatler yok, fiyat ve kampanya yok, hasta teşekkürleri üzerinden tanıtım yok, yazılı rıza olmadan hasta görüntüsü yok. Ayrıntılar [diş hekimi reklam yasağı rehberinde](guide:dis-hekimi-reklam-yasagi); her açıklama metni için hızlı bir ön kontrolü ücretsiz [“Bu paylaşım yasak mı?” aracımız](checker:) yapar.",
       ],
     },
     {
@@ -307,7 +307,7 @@ const ES: Guide = {
     {
       heading: "¿Hay un número ideal de publicaciones por semana?",
       paragraphs: [
-        "No uno universal. Las plataformas cambian con frecuencia cómo distribuyen el contenido y no publican una frecuencia obligatoria para cuentas de empresa. La mayoría de los consejos que leerás —“publica a diario”, “publica tres veces por semana”— son reglas generales de agencias, no leyes medidas, y muchas de esas fuentes venden servicios de publicación.",
+        "No uno universal. Las plataformas cambian con frecuencia cómo distribuyen el contenido y no publican una frecuencia obligatoria para cuentas de empresa. La mayoría de los consejos que leerás, como “publica a diario” o “publica tres veces por semana”, son reglas generales de agencias, no leyes medidas, y muchas de esas fuentes venden servicios de publicación.",
         "Lo que sí se sostiene es más sencillo: una cuenta que publica con regularidad da a sus seguidores un motivo para seguir mirando, y una cuenta que pasa meses en silencio parece abandonada para el paciente que la encuentra. Así que la pregunta útil no es “¿cuál es el número ideal?”, sino “¿qué podemos mantener cada semana sin rebajar la calidad ni saltarnos la normativa?”.",
       ],
     },
@@ -341,14 +341,14 @@ const ES: Guide = {
         "YouTube: el informe de audiencia de YouTube Studio muestra cuándo están tus espectadores en YouTube.",
       ],
       after: [
-        "Mientras no tengas datos suficientes, prueba horas que encajen con el día de tus pacientes —antes del trabajo, a mediodía y por la tarde-noche— y compara al cabo de cuatro a seis semanas. Cambia una sola cosa cada vez.",
+        "Mientras no tengas datos suficientes, prueba horas que encajen con el día de tus pacientes (antes del trabajo, a mediodía y por la tarde-noche) y compara al cabo de cuatro a seis semanas. Cambia una sola cosa cada vez.",
       ],
     },
     {
       heading: "¿Qué formatos conviene publicar cada semana?",
       paragraphs: [
         "El vídeo vertical corto es el formato que las plataformas muestran más a quien todavía no te sigue, y por eso es la vía principal por la que nuevos pacientes descubren una clínica. Las historias mantienen el contacto diario con quien ya te sigue. Los carruseles y las fotos sirven para información práctica que la gente quiere guardar. Una semana equilibrada: dos o tres vídeos cortos, un carrusel o foto y varias historias.",
-        "Los vídeos educativos para pacientes son el formato de mayor valor y menor riesgo: responden una duda real, son útiles incluso para quien nunca pide cita y evitan el contenido más delicado —fotos de antes y después, testimonios y promociones—. Para grabar los tuyos, consulta la guía de [vídeos para clínicas dentales](guide:videos-para-clinicas-dentales).",
+        "Los vídeos educativos para pacientes son el formato de mayor valor y menor riesgo: responden una duda real, son útiles incluso para quien nunca pide cita y evitan el contenido más delicado, como fotos de antes y después, testimonios y promociones. Para grabar los tuyos, consulta la guía de [vídeos para clínicas dentales](guide:videos-para-clinicas-dentales).",
       ],
     },
     {
@@ -474,9 +474,9 @@ const FR: Guide = {
     { q: "Les publications sponsorisées sont-elles possibles ?", a: "Une publication payée pour être mise en avant peut être considérée comme de la publicité, ce que la déontologie des chirurgiens-dentistes encadre strictement. Renseignez-vous auprès de votre conseil départemental de l'Ordre avant d'en faire." },
   ],
   sources: [
-    { label: "Légifrance — Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" },
+    { label: "Légifrance : Code de la santé publique, article R. 4127-215-1 (communication du chirurgien-dentiste)", url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042743767" },
     {
-      label: "Ordre national des chirurgiens-dentistes — Communication professionnelle des chirurgiens-dentistes (recommandations)",
+      label: "Ordre national des chirurgiens-dentistes : Communication professionnelle des chirurgiens-dentistes (recommandations)",
       url: "https://www.ordre-chirurgiens-dentistes.fr/pour-le-chirurgien-dentiste/communication-professionnelle-des-chirurgiens-dentistes/",
     },
   ],
@@ -573,8 +573,8 @@ const PL: Guide = {
     { q: "Czy płatne promowanie postów jest dozwolone?", a: "Płatne promowanie może zostać uznane za reklamę, a informacje podmiotu leczniczego nie mogą mieć jej cech. Przed promowaniem postów warto zapytać okręgową izbę lekarską lub prawnika." },
   ],
   sources: [
-    { label: "Ustawa z 15 kwietnia 2011 r. o działalności leczniczej, tekst jednolity Dz.U. 2026 poz. 156 (art. 14) — eli.gov.pl", url: "https://eli.gov.pl/eli/DU/2026/156" },
-    { label: "Naczelna Izba Lekarska — komentarz do art. 71 Kodeksu Etyki Lekarskiej (styczeń 2025)", url: "https://nil.org.pl/uploaded_files/art_1736325594_komentarz-art71.pdf" },
+    { label: "Ustawa z 15 kwietnia 2011 r. o działalności leczniczej, tekst jednolity Dz.U. 2026 poz. 156 (art. 14), eli.gov.pl", url: "https://eli.gov.pl/eli/DU/2026/156" },
+    { label: "Naczelna Izba Lekarska: komentarz do art. 71 Kodeksu Etyki Lekarskiej (styczeń 2025)", url: "https://nil.org.pl/uploaded_files/art_1736325594_komentarz-art71.pdf" },
   ],
 };
 
@@ -688,15 +688,15 @@ const JA: Guide = {
 };
 
 const DHA_STANDARDS = {
-  label: "هيئة الصحة بدبي — معايير محتوى الإعلانات الطبية على وسائل التواصل الاجتماعي، الإصدار 1.1",
+  label: "هيئة الصحة بدبي: معايير محتوى الإعلانات الطبية على وسائل التواصل الاجتماعي، الإصدار 1.1",
   url: "https://www.dha.gov.ae/uploads/042022/Standards%20for%20Medical%20Advertisement%20Content%20in%20Social%20Media2022433965.pdf",
 };
 const DHA_CIRCULAR = {
-  label: "هيئة الصحة بدبي — التعميم CIR-2026-00000144 بشأن معايير الإعلانات الطبية على وسائل التواصل (17 أغسطس 2026)",
+  label: "هيئة الصحة بدبي: التعميم CIR-2026-00000144 بشأن معايير الإعلانات الطبية على وسائل التواصل (17 أغسطس 2026)",
   url: "https://www.dha.gov.ae/en/circulars/details/CIR-2026-00000144",
 };
 const MOH_SA_ART10 = {
-  label: "وزارة الصحة السعودية — خبر 21 أبريل 2024 يشير إلى المادة العاشرة من نظام مزاولة المهن الصحية (حظر إعلان الممارس عن نفسه)",
+  label: "وزارة الصحة السعودية: خبر 21 أبريل 2024 يشير إلى المادة العاشرة من نظام مزاولة المهن الصحية (حظر إعلان الممارس عن نفسه)",
   url: "https://www.moh.gov.sa/en/Ministry/MediaCenter/News/Pages/News-2024-04-21-003.aspx",
 };
 

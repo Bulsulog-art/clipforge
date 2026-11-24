@@ -6,19 +6,19 @@ import type { Guide } from "../dentvideo";
 // Forma „Państwo”; bez cen, statystyk i opinii pacjentów.
 
 const KEL_ART71 = {
-  label: "Naczelna Izba Lekarska — komentarz do art. 71 Kodeksu Etyki Lekarskiej (styczeń 2025)",
+  label: "Naczelna Izba Lekarska: komentarz do art. 71 Kodeksu Etyki Lekarskiej (styczeń 2025)",
   url: "https://nil.org.pl/uploaded_files/art_1736325594_komentarz-art71.pdf",
 };
 const KEL = {
-  label: "Naczelna Izba Lekarska — Kodeks Etyki Lekarskiej (obowiązuje od 1 stycznia 2025 r.)",
+  label: "Naczelna Izba Lekarska: Kodeks Etyki Lekarskiej (obowiązuje od 1 stycznia 2025 r.)",
   url: "https://nil.org.pl/uploaded_images/1716532642_kel.pdf",
 };
 const UDL = {
-  label: "Ustawa z 15 kwietnia 2011 r. o działalności leczniczej, tekst jednolity Dz.U. 2026 poz. 156 (art. 14) — eli.gov.pl",
+  label: "Ustawa z 15 kwietnia 2011 r. o działalności leczniczej, tekst jednolity Dz.U. 2026 poz. 156 (art. 14), eli.gov.pl",
   url: "https://eli.gov.pl/eli/DU/2026/156",
 };
 const DIR_WHITENING = {
-  label: "Dyrektywa Rady 2011/84/UE w sprawie produktów kosmetycznych (środki do wybielania zębów z nadtlenkiem wodoru) — EUR-Lex",
+  label: "Dyrektywa Rady 2011/84/UE w sprawie produktów kosmetycznych (środki do wybielania zębów z nadtlenkiem wodoru), EUR-Lex",
   url: "https://eur-lex.europa.eu/legal-content/PL/TXT/?uri=CELEX:32011L0084",
 };
 

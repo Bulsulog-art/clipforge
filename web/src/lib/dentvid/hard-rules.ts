@@ -439,7 +439,7 @@ const MARKET_SPECIALIST_DACH: MarketRule = {
   // expertise, Fachzahnarzt is the recognised title); AT: § 35 Abs. 2 ZÄG
   // (unwahre or unsachliche Anpreisung); CH: Art. 40 lit. d MedBG
   // (objective, not misleading) and the federal/SSO Weiterbildungstitel.
-  why: "Calling the practice or dentist a specialist needs a recognised title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40).",
+  why: "Calling the practice or dentist a specialist needs a recognized title or proven expertise the writer cannot verify: the clinic adds it itself if it holds one (DE MBO-Z § 21, AT ZÄG § 35, CH MedBG Art. 40).",
   patterns: [w(SPECIALIST_DE), w(SPECIALIST_FR), w(SPECIALIST_IT)],
 };
 
@@ -523,7 +523,7 @@ export const MARKET_HARD_RULES: Readonly<Record<string, readonly MarketRule[]>> 
   US: [
     {
       id: "specialist",
-      why: "Announcing as a specialist or board-certified is limited to recognised specialties and qualified dentists (ADA Code 5.H, 5.F.2; state board rules); the writer cannot verify that, so the clinic adds it if true.",
+      why: "Announcing as a specialist or board-certified is limited to recognized specialties and qualified dentists (ADA Code 5.H, 5.F.2; state board rules); the writer cannot verify that, so the clinic adds it if true.",
       patterns: [w(`${SPECIALIST_EN}|board[- ]certified`)],
     },
   ],

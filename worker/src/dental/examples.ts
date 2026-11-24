@@ -178,11 +178,11 @@ export const EXAMPLES: ScriptExample[] = [
     pillar: "prevention",
     title: "Mundgeruch am Morgen",
     question: "Warum habe ich morgens Mundgeruch, obwohl ich gründlich putze?",
-    takeaway: "Bei Mundgeruch die Zunge mitreinigen – sanft, von hinten nach vorn.",
+    takeaway: "Bei Mundgeruch die Zunge mitreinigen: sanft, von hinten nach vorn.",
     hook: "Morgens Mundgeruch, obwohl du gründlich putzt?",
     scenes: [
       { kind: "hook", text: "Morgens Mundgeruch, obwohl du gründlich putzt?" },
-      { kind: "statement", text: "Nachts bildet sich weniger Speichel – Bakterien haben leichtes Spiel." },
+      { kind: "statement", text: "Nachts bildet sich weniger Speichel. Bakterien haben leichtes Spiel." },
       { kind: "list", heading: "Oft vergessen: die Zunge", items: ["Beläge sitzen vor allem hinten", "Sanft von hinten nach vorn reinigen", "Zungenschaber oder Zahnbürste"] },
       { kind: "statement", text: "Bleibt der Geruch, kann auch etwas anderes dahinterstecken." },
       { kind: "cta", text: "Sprich es bei deiner nächsten Kontrolle einfach an." },

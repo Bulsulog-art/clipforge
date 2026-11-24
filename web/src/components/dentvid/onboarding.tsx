@@ -9,6 +9,7 @@ import type { ClinicProfile } from "@/lib/dentvid/profile";
 import { STEP_COOKIE, TEASER_KEY, type OnboardingStep } from "@/lib/dentvid/onboarding";
 import { BrandFields, ClinicDetailsFields, HandleField, LanguageField, useClinicDraft, type ClinicDraft } from "./clinic-form";
 import { PlanPanel, type PlanOption } from "./plan-panel";
+import { HelpLine } from "./help-line";
 import { VerifiedNote, VerifyCard, type VerifyCardHandle } from "./verify-email";
 import type { PreviewProfile } from "./live-preview";
 import { trackDv } from "@/lib/dentvid/events-client";
@@ -244,7 +245,12 @@ function ClinicStep({ locale, draft, onDone }: { locale: Locale; draft: ClinicDr
               <BrandFields draft={draft} locale={locale} />
             </div>
           </div>
-          {error && <p className="mt-6 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+          {error && (
+            <>
+              <p className="mt-6 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>
+              <HelpLine locale={locale} code="clinic-save" message={error} />
+            </>
+          )}
           <button type="submit" disabled={busy} className="dv-btn dv-btn-primary group mt-8 w-full px-7 py-4 text-base sm:w-auto">
             {busy ? text.form.saving : t.clinicNext}
             {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />}
@@ -296,7 +302,12 @@ function PreviewStep({ locale, draft, onBack, onDone }: { locale: Locale; draft:
               <BrandFields draft={draft} locale={locale} />
             </div>
           </div>
-          {error && <p className="mt-6 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>}
+          {error && (
+            <>
+              <p className="mt-6 rounded-xl bg-[#fbeaea] px-4 py-3 text-sm text-[#8a1f1f]" role="alert">{error}</p>
+              <HelpLine locale={locale} code="clinic-save" message={error} />
+            </>
+          )}
           <button type="submit" disabled={busy} className="dv-btn dv-btn-primary group mt-8 w-full px-7 py-4 text-base">
             {busy ? f.saving : t.previewNext}
             {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />}

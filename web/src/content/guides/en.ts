@@ -186,7 +186,7 @@ export const GUIDES_EN: Guide[] = [
         paragraphs: ["Start with what your team explains every day. Three moments work well:"],
         list: [
           "Before a first visit: what happens at a check-up, what to bring, why an X-ray may be taken.",
-          "Before a treatment: root canal, implant, extraction, hygiene appointment, aligners: the steps in plain words.",
+          "Before a treatment: root canal, implant, extraction, hygiene appointment or aligners, each with the steps in plain words.",
           "After a treatment: aftercare following an extraction, eating after a filling, cleaning around implants, sensitivity after whitening.",
           "For children and parents: baby teeth, the first visit, fissure sealants and fluoride varnish.",
         ],
@@ -472,7 +472,7 @@ export const GUIDES_EN: Guide[] = [
         heading: "Captions and hashtags",
         paragraphs: [
           "The caption repeats briefly what the video says and adds no promise. A structure that works: the question on the first line, the answer in two or three sentences, then “Your dentist will advise you on your own situation”. Your clinic's name and town are enough to be found locally.",
-          "Hashtags: topic and place (#oralhealth, #dentalimplants, #manchesterdentist), no more than five relevant ones: Instagram has limited posts and Reels to five hashtags since December 2025. Avoid superlatives such as #bestdentist and anything that suggests a deal. Our guide to [dental Instagram captions](guide:dental-instagram-captions) has templates by post type.",
+          "Hashtags: topic and place (#oralhealth, #dentalimplants, #manchesterdentist), no more than five relevant ones. Instagram has limited posts and Reels to five hashtags since December 2025. Avoid superlatives such as #bestdentist and anything that suggests a deal. Our guide to [dental Instagram captions](guide:dental-instagram-captions) has templates by post type.",
         ],
       },
       {

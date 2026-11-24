@@ -24,6 +24,7 @@ import { pickPreviews } from "./preview-library";
 import { BUCKET } from "./supabase";
 import { unsubscribeSecret, unsubscribeToken } from "./unsubscribe-token";
 import { isEmailVerified } from "./verify-email";
+import { isMissingColumn } from "./posting";
 import { weekOf } from "./week";
 
 /**
@@ -46,12 +47,18 @@ import { weekOf } from "./week";
  * deleted — each is re-checked right before every send.
  *
  * Paying clinics (plan "active", not opted out):
- *   nudge_post_<week>  Thursday, nothing shared yet from this week's ready
- *                      videos (dentvid_events video_shared), the week ready
- *                      for at least two days. Once per week.
+ *   nudge_post_<week>  Thursday, when none of this week's videos was shared
+ *                      (dentvid_events video_shared: the app, and the email's
+ *                      post page on the server) or ticked as posted
+ *                      (dentvid_items.posted_at, 0012), the week ready for at
+ *                      least two days. Once per week. Both have to be read
+ *                      as none: when either cannot be read, the run waits
+ *                      for the next hour instead of guessing.
  *   monthly_<yyyy_mm>  on one of the first four days of the month, a weekday,
- *                      last month's made / approved / shared. Skipped when
- *                      nothing was made. Once per month.
+ *                      last month's made / approved / posted (posted_at,
+ *                      never more than approved). Skipped when nothing was
+ *                      made, and for the hour when the numbers cannot be
+ *                      read. Once per month.
  *
  * Every lifecycle email: only in the clinic's send window (lifecycle-time.ts,
  * 08:00–20:00 in its own zone; the hourly run waits otherwise), only to an
@@ -93,8 +100,13 @@ export type OwnerContact = { email: string; verified: boolean };
 
 export type LogRow = { clinic_id: string; kind: LifecycleKind; sent_at: string };
 
-/** This week's videos of a paying clinic, and whether any was shared. `shared` null: unknown (no events table). */
-export type WeekStats = { approved: number; pending: number; shared: number | null; firstReadyAt: string | null };
+/**
+ * This week's videos of a paying clinic, and whether any went out: `shared`
+ * counts video_shared events, `posted` the videos ticked as posted (0 before
+ * 0012, when nothing can be ticked yet). Either is null when it could not be
+ * read: unknown, never "none".
+ */
+export type WeekStats = { approved: number; pending: number; shared: number | null; posted: number | null; firstReadyAt: string | null };
 
 export class MissingSchemaError extends Error {
   constructor(what: string) {
@@ -445,16 +457,27 @@ export async function runPaying(deps: RunDeps): Promise<RunResult> {
       let render: Job["render"];
       if (due.type === "post") {
         const w = await store.weekStats(clinic.id, due.week);
-        if (w.shared === null) {
+        // One signal we can see is enough to know the week went out: a share, or a video ticked as posted.
+        if ((w.shared ?? 0) > 0 || (w.posted ?? 0) > 0) {
+          skip("already posted");
+          continue;
+        }
+        // "Nothing went out" needs both read as none. An unread one waits for the next hourly run; it never sends.
+        if (w.shared === null || w.posted === null) {
           skip("shares unknown");
           continue;
         }
-        if (w.shared > 0 || w.approved + w.pending === 0) continue;
+        if (w.approved + w.pending === 0) continue;
         if (!w.firstReadyAt || now.getTime() - Date.parse(w.firstReadyAt) < POST_NUDGE_AFTER_H * H) continue;
         render = (brand, unsub) => notPostedEmail({ ...base, unsubscribeUrl: unsub, brand, approved: w.approved, pending: w.pending });
       } else {
         const stats = await store.monthStats(clinic.id, new Date(Date.UTC(due.year, due.month - 1, 1)), new Date(Date.UTC(due.year, due.month, 1)));
-        if (!stats || stats.made === 0) continue;
+        // Could not be read: the next hourly run, within the four-day window, tries again.
+        if (!stats) {
+          skip("stats unknown");
+          continue;
+        }
+        if (stats.made === 0) continue;
         render = (brand, unsub) => monthlyEmail({ ...base, unsubscribeUrl: unsub, brand, year: due.year, month: due.month, stats });
       }
       res.due++;
@@ -636,10 +659,24 @@ export function supabaseLifecycleStore(db: SupabaseClient): LifecycleStore {
       const rows = (items ?? []) as { approval: string; created_at: string }[];
       const since = new Date(Date.parse(`${week}T00:00:00Z`) - 2 * 24 * H).toISOString();
       const { count, error } = await db.from("dentvid_events").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId).eq("name", "video_shared").gte("created_at", since);
+      // Ticked as posted, in the app or on the email's post page: the surest sign the week went out.
+      // A GET, not HEAD (see postedCount): at most the week's five rows.
+      const posted = await postedCount(
+        db
+          .from("dentvid_items")
+          .select("id", { count: "exact" })
+          .eq("clinic_id", clinicId)
+          .eq("week_of", week)
+          .eq("kind", "generated")
+          .in("status", ["ready", "flagged"])
+          .not("posted_at", "is", null),
+      );
       return {
         approved: rows.filter((r) => r.approval === "approved").length,
         pending: rows.filter((r) => r.approval === "pending").length,
         shared: error ? null : (count ?? 0),
+        // Before 0012 no video can have been ticked: none. A failed read: unknown, so the run waits.
+        posted: posted === "missing" ? 0 : posted === "failed" ? null : posted,
         firstReadyAt: rows.map((r) => r.created_at).sort()[0] ?? null,
       };
     },
@@ -662,7 +699,43 @@ export function supabaseLifecycleStore(db: SupabaseClient): LifecycleStore {
         .eq("name", "video_shared")
         .gte("created_at", from.toISOString())
         .lt("created_at", to.toISOString());
-      return { made: rows.length, approved: rows.filter((r) => r.approval === "approved").length, shared: evErr ? 0 : (count ?? 0) };
+      // One per video (a row is a video), and only approved ones: "posted X of Y approved" can never pass Y.
+      // A GET, not HEAD (see postedCount): at most the month's twenty-odd rows.
+      const posted = await postedCount(
+        db
+          .from("dentvid_items")
+          .select("id", { count: "exact" })
+          .eq("clinic_id", clinicId)
+          .eq("kind", "generated")
+          .in("status", ["ready", "flagged"])
+          .eq("approval", "approved")
+          .gte("week_of", day(from))
+          .lt("week_of", day(to))
+          .not("posted_at", "is", null),
+      );
+      // A failed read is not "none posted": no summary this hour, the next run asks again.
+      if (posted === "failed") return null;
+      const approved = rows.filter((r) => r.approval === "approved").length;
+      // Before 0012 there are no ticks to count: the summary shows two numbers instead of a guess.
+      return { made: rows.length, approved, posted: posted === "missing" ? null : Math.min(posted, approved), shared: evErr ? 0 : (count ?? 0) };
     },
   };
+}
+
+/**
+ * How many videos a posted_at count found. "missing": 0012 is not applied, so
+ * no video can have been ticked. "failed": the read went wrong, the number is
+ * unknown (never taken as none).
+ *
+ * The query must be a GET. PostgREST names a missing column in the error's
+ * body (42703), and a HEAD answer has no body: supabase-js then reports
+ * { message: "" }, which cannot be told apart from any other failure, so
+ * every clinic would read as "unknown" until 0012 is applied.
+ */
+async function postedCount(query: PromiseLike<{ data: unknown[] | null; count: number | null; error: PgError }>): Promise<number | "missing" | "failed"> {
+  const { data, count, error } = await query;
+  if (!error) return count ?? data?.length ?? 0;
+  if (isMissingColumn(error, "posted_at")) return "missing";
+  console.warn("[dentvideo lifecycle] posted count failed", error.message);
+  return "failed";
 }

@@ -248,8 +248,16 @@ export const KNOWN_RULES: readonly KnownRule[] = [
     code: "en_strong_colors",
     languages: ["en"],
     where: ALL,
-    // "Avoid strong colors briefly" (EN whitening, discarded render, Nov 2026).
-    all: [w("strong colou?rs?")],
+    // "Avoid strong colors briefly" (EN whitening, discarded render, Nov 2026);
+    // "Avoid strong colored foods for a day." and "Avoid strongly colored foods
+    // and drinks for a day or two." (the old English live preview, Nov 2026),
+    // which the first version of this rule missed.
+    all: [w("strong(?:ly)?[ -]colou?r(?:s|ed)?")],
+    // A line that names what to skip is the advice itself, and the patient
+    // can act on it: accuracy.ts AFTERCARE_GUIDE, which the writer and the
+    // accuracy reviewer are both given, says "avoiding strongly coloured food
+    // and drink (coffee, tea, red wine) for the first day or two".
+    none: [w("coffee|espresso|tea|(?:red )?wine|cola|soda|curry|turmeric|berry|berries|beets?|beetroot|soy sauce|tomato sauce|balsamic")],
     why: "\"strong colors\" is not what stains teeth; the patient cannot act on it",
     fix: "\"skip dark drinks like coffee, tea and red wine for a day or two\"",
   },

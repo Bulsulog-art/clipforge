@@ -14,7 +14,7 @@
  *                  hosted PNG next to the wordmark in live text, so the
  *                  header still reads "DentVideo" with images off and never
  *                  turns into dark-on-dark in a dark inbox. Always DentVideo's
- *                  own colours: a clinic's colour or logo never restyles a
+ *                  own colors: a clinic's color or logo never restyles a
  *                  DentVideo email. Signed by the DentVideo team, no names.
  *   Mobile first   one column, at most 600 px, 16 px body text, a button that
  *                  fills the width on a phone, 44 px+ tap targets.
@@ -29,8 +29,8 @@
  *   Footer         why they get it, DentVideo · hello@dentvideo.com, and the
  *                  operator's registered name and address.
  *   Dark mode      color-scheme "light dark" plus a prefers-color-scheme block
- *                  (and Outlook.com's [data-ogsc] hooks) that recolours the
- *                  page; the colours chosen survive Gmail's forced inversion.
+ *                  (and Outlook.com's [data-ogsc] hooks) that recolors the
+ *                  page; the colors chosen survive Gmail's forced inversion.
  *   RTL            Arabic flips the whole message (dir="rtl", right aligned);
  *                  the brand, links, codes and email addresses stay LTR.
  *   Accessible     lang + dir, a <title>, one <h1>, role="presentation" on
@@ -170,7 +170,7 @@ function headFont(lang: string): { family: string; weight: number; size: number;
 
 export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-/* ------------------------------------------------------------------ colour */
+/* ------------------------------------------------------------------ color */
 
 function rgb(hex: string): [number, number, number] | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
@@ -187,7 +187,7 @@ function luminance([r, g, b]: [number, number, number]): number {
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 }
 
-/** WCAG contrast ratio of two "#RRGGBB" colours. */
+/** WCAG contrast ratio of two "#RRGGBB" colors. */
 export function contrast(a: string, b: string): number {
   const x = rgb(a);
   const y = rgb(b);
@@ -307,7 +307,7 @@ function blockHtml(b: Block, ctx: { rtl: boolean; align: string }): string {
     case "code":
       return (
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px"><tr><td align="center" class="dv-tint" bgcolor="${COLORS.tint}" style="background:${COLORS.tint};border:1px solid ${COLORS.tintLine};border-radius:14px;padding:24px 12px 20px;text-align:center">` +
-        // letter-spacing adds space after the last digit too: the same indent on the left keeps the code centred.
+        // letter-spacing adds space after the last digit too: the same indent on the left keeps the code centered.
         `<span dir="ltr" class="dv-code dv-mark" style="display:inline-block;font-family:${FONT};font-size:40px;line-height:46px;font-weight:700;letter-spacing:10px;text-indent:10px;color:${COLORS.tealDeep};font-variant-numeric:tabular-nums;white-space:nowrap">${esc(b.code)}</span>` +
         (b.note ? `<p class="dv-muted" style="margin:10px 0 0;font-size:13px;line-height:19px;color:${COLORS.muted};text-align:center">${esc(b.note)}</p>` : "") +
         `</td></tr></table>`
@@ -392,7 +392,7 @@ function blockText(b: Block): string {
 /**
  * The header: the DentVideo mark (hosted PNG, alt "DentVideo") and the
  * wordmark in live text, "Dent" in ink and "Video" in teal like the logo,
- * centred above the card and always left to right.
+ * centered above the card and always left to right.
  */
 function header(): string {
   return (

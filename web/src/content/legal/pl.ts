@@ -19,7 +19,7 @@ export const PL: LegalText = {
       director: "Dyrektor zarządzający",
       contact: "E-mail",
       brand: "Marka",
-      brandValue: "{brand} — produkt: DentVideo",
+      brandValue: "{brand} (produkt: DentVideo)",
     },
     table: { provider: "Dostawca", purpose: "Cel", data: "Dane", location: "Lokalizacja" },
   },
@@ -91,7 +91,7 @@ export const PL: LegalText = {
               list: [
                 "Starter: {starter} miesięcznie.",
                 "Practice: {practice} miesięcznie.",
-                "Group (grupy i gabinety z wieloma lokalizacjami): indywidualne warunki po uzgodnieniu — kontakt {email}. Planu Group nie można kupić na stronie.",
+                "Group (grupy i gabinety z wieloma lokalizacjami): indywidualne warunki po uzgodnieniu (kontakt: {email}). Planu Group nie można kupić na stronie.",
               ],
             },
             "Płatności obsługuje Dodo Payments, które działa jako sprzedawca (merchant of record) i autoryzowany odsprzedawca: sprzedaje Państwu subskrypcję, obciąża środek płatności, widnieje na wyciągu z karty, nalicza i pobiera należne podatki oraz wystawia fakturę. Do zakupu stosuje się także warunki dla kupujących Dodo Payments. Nigdy nie widzimy pełnych danych karty.",
@@ -117,7 +117,7 @@ export const PL: LegalText = {
         {
           heading: "9. Co Państwo otrzymują",
           blocks: [
-            "Filmy, scenariusze i napisy przygotowane dla gabinetu mogą Państwo wykorzystywać w komunikacji gabinetu, także po anulowaniu — w odniesieniu do wszystkiego, co zostało pobrane.",
+            "Filmy, scenariusze i napisy przygotowane dla gabinetu mogą Państwo wykorzystywać w komunikacji gabinetu, także po anulowaniu, w odniesieniu do wszystkiego, co zostało pobrane.",
             "Niektóre filmy zawierają materiały stockowe z Pexels, używane na licencji Pexels, oraz syntetyczny głos. Można ich używać jako części filmów, ale nie osobno (np. wycinając i odsprzedając materiały).",
             "Nie używamy Państwa treści ani filmów do trenowania modeli AI i nie pokazujemy filmów gabinetu innym klientom.",
             "Samo DentVideo (oprogramowanie, projekt, szablony i marka) pozostaje naszą własnością.",
@@ -197,7 +197,7 @@ export const PL: LegalText = {
                 "Rozliczenia: plan, status subskrypcji, data odnowienia oraz identyfikatory subskrypcji, klienta i płatności w Dodo Payments. Dane karty obsługuje Dodo Payments; nigdy do nas nie trafiają.",
                 "E-maile: jakie wiadomości usługi wysłaliśmy do gabinetu i czy wypisali się Państwo z przypomnień.",
                 "Zdarzenia użycia: niewielki własny zapis kroków, takich jak „wyświetlono stronę” czy „wybrano plan”, z językiem strony, tagami kampanii (utm) i domeną strony odsyłającej. Nie zawierają identyfikatora cookie, adresu IP, danych przeglądarki, imienia ani e-maila.",
-                "Kliknięcia reklam: jeśli trafią Państwo na dentvideo.com z jednej z naszych reklam Google — identyfikator kliknięcia, który Google dodaje do linku (gclid, gbraid lub wbraid), oraz czas kliknięcia. Jeśli następnie założą Państwo konto, zapisujemy go przy koncie. W UE/EOG, Wielkiej Brytanii i Szwajcarii tylko wtedy, gdy wyrażą Państwo na to zgodę w pytaniu wyświetlanym tym odwiedzającym.",
+                "Kliknięcia reklam: identyfikator kliknięcia, który Google dodaje do linku (gclid, gbraid lub wbraid), oraz czas kliknięcia, jeśli trafią Państwo na dentvideo.com z jednej z naszych reklam Google. Jeśli następnie założą Państwo konto, zapisujemy go przy koncie. W UE/EOG, Wielkiej Brytanii i Szwajcarii tylko wtedy, gdy wyrażą Państwo na to zgodę w pytaniu wyświetlanym tym odwiedzającym.",
                 "Dane techniczne: adres IP i dane żądania są przetwarzane, aby wyświetlać strony, chronić usługę i ograniczać nadużycia (krótkotrwałe liczniki limitów zapytań). Aby pokazać ceny w Państwa walucie i ustalić, czy przed zapisaniem kliknięcia reklamy trzeba zapytać o zgodę, sprawdzamy jedynie kraj Państwa adresu IP w bazie danych na naszym własnym serwerze ({dbip}); w tym celu adres IP nie jest ani zapisywany, ani nikomu przekazywany.",
               ],
             },
@@ -206,7 +206,7 @@ export const PL: LegalText = {
         {
           heading: "3. Pliki cookie i pamięć przeglądarki",
           blocks: [
-            "Używamy tylko tego, czego usługa potrzebuje: sesyjnych plików cookie do logowania, pliku cookie zapamiętującego język, pliku cookie zapamiętującego postęp rejestracji i krótkotrwałej pamięci przeglądarki podczas rejestracji. Nie używamy reklamowych ani analitycznych plików cookie podmiotów trzecich. Jeśli przyszli Państwo z jednej z naszych reklam Google, pamięć przeglądarki tej witryny przechowuje też identyfikator kliknięcia reklamy przez maksymalnie 90 dni — w UE/EOG, Wielkiej Brytanii i Szwajcarii dopiero po wyrażeniu zgody, a po odmowie nie jest zapisywany. Nie wczytujemy reklamowych ani analitycznych skryptów podmiotów trzecich (żadnego tagu Google).",
+            "Używamy tylko tego, czego usługa potrzebuje: sesyjnych plików cookie do logowania, pliku cookie zapamiętującego język, pliku cookie zapamiętującego postęp rejestracji i krótkotrwałej pamięci przeglądarki podczas rejestracji. Nie używamy reklamowych ani analitycznych plików cookie podmiotów trzecich. Jeśli przyszli Państwo z jednej z naszych reklam Google, pamięć przeglądarki tej witryny przechowuje też identyfikator kliknięcia reklamy przez maksymalnie 90 dni. W UE/EOG, Wielkiej Brytanii i Szwajcarii dzieje się to dopiero po wyrażeniu zgody, a po odmowie identyfikator nie jest zapisywany. Nie wczytujemy reklamowych ani analitycznych skryptów podmiotów trzecich (żadnego tagu Google).",
           ],
         },
         {
@@ -260,7 +260,7 @@ export const PL: LegalText = {
         {
           heading: "8. Prawa",
           blocks: [
-            "Zależnie od prawa, które Państwa dotyczy, mogą Państwo żądać dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania i kopii w formacie umożliwiającym przeniesienie, a także sprzeciwić się przetwarzaniu opartemu na prawnie uzasadnionym interesie. Konto mogą Państwo usunąć samodzielnie w Ustawieniach. Prosimy pisać na {email}; odpowiadamy w ciągu miesiąca. Zgodę na pomiar reklam mogą Państwo w każdej chwili wycofać, pisząc na {email} albo — przed rejestracją — usuwając dane tej witryny w przeglądarce; wtedy usuwamy przechowywany identyfikator kliknięcia. Wycofanie zgody nie wpływa na wcześniejsze przetwarzanie.",
+            "Zależnie od prawa, które Państwa dotyczy, mogą Państwo żądać dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania i kopii w formacie umożliwiającym przeniesienie, a także sprzeciwić się przetwarzaniu opartemu na prawnie uzasadnionym interesie. Konto mogą Państwo usunąć samodzielnie w Ustawieniach. Prosimy pisać na {email}; odpowiadamy w ciągu miesiąca. Zgodę na pomiar reklam mogą Państwo w każdej chwili wycofać, pisząc na {email} albo, przed rejestracją, usuwając dane tej witryny w przeglądarce; wtedy usuwamy przechowywany identyfikator kliknięcia. Wycofanie zgody nie wpływa na wcześniejsze przetwarzanie.",
             "Mogą Państwo także złożyć skargę do organu ochrony danych: w Czarnogórze do Agencji Ochrony Danych Osobowych i Swobodnego Dostępu do Informacji; w UE/EOG do organu w swoim kraju (w Polsce do Prezesa UODO); w Wielkiej Brytanii do Information Commissioner's Office; w Turcji do Urzędu Ochrony Danych Osobowych (KVKK).",
             "Stosujemy czarnogórskie przepisy o ochronie danych osobowych oraz, w zakresie, w jakim mają zastosowanie do naszego przetwarzania, ogólne rozporządzenie UE o ochronie danych (RODO), UK GDPR i turecką ustawę nr 6698 o ochronie danych osobowych (KVKK).",
           ],
@@ -334,7 +334,7 @@ export const PL: LegalText = {
             {
               list: [
                 "Osoby, których dane dotyczą: lekarze i personel gabinetu; osoby widoczne lub słyszalne na nagraniach przesłanych przez gabinet; pacjenci tylko wtedy, gdy gabinet prześle materiały pozwalające ich zidentyfikować.",
-                "Kategorie danych: imiona i nazwiska, adresy e-mail, wizerunek i głos, transkrypcje, dane profilu gabinetu. DentVideo nie potrzebuje danych o zdrowiu; są przetwarzane tylko, jeśli gabinet je prześle — wtedy gabinet odpowiada za podstawę prawną i wyraźną zgodę pacjenta.",
+                "Kategorie danych: imiona i nazwiska, adresy e-mail, wizerunek i głos, transkrypcje, dane profilu gabinetu. DentVideo nie potrzebuje danych o zdrowiu; są przetwarzane tylko, jeśli gabinet je prześle. Wtedy gabinet odpowiada za podstawę prawną i wyraźną zgodę pacjenta.",
               ],
             },
           ],
@@ -342,7 +342,7 @@ export const PL: LegalText = {
         {
           heading: "3. Polecenia",
           blocks: [
-            "Przetwarzamy dane wyłącznie na udokumentowane polecenie gabinetu — Regulamin, niniejszą DPA i korzystanie z ustawień usługi — chyba że prawo wymaga inaczej; wtedy informujemy o tym gabinet z wyprzedzeniem, o ile prawo tego nie zabrania. Jeśli uznamy, że polecenie narusza przepisy o ochronie danych, poinformujemy gabinet.",
+            "Przetwarzamy dane wyłącznie na udokumentowane polecenie gabinetu (czyli zgodnie z Regulaminem, niniejszą DPA i ustawieniami usługi, z których gabinet korzysta), chyba że prawo wymaga inaczej; wtedy informujemy o tym gabinet z wyprzedzeniem, o ile prawo tego nie zabrania. Jeśli uznamy, że polecenie narusza przepisy o ochronie danych, poinformujemy gabinet.",
           ],
         },
         { heading: "4. Poufność", blocks: ["Wszystkie osoby w {shortName} mające dostęp do danych są zobowiązane do zachowania poufności."] },
@@ -406,7 +406,7 @@ export const PL: LegalText = {
 
     imprint: {
       title: "Nota prawna",
-      description: "Nota prawna dentvideo.com: BLS AI Automation DOO, Podgorica, Czarnogóra — rejestr, numer podatkowy, dyrektor zarządzający i kontakt.",
+      description: "Nota prawna dentvideo.com: rejestr, numer podatkowy, dyrektor zarządzający i kontakt spółki BLS AI Automation DOO, Podgorica, Czarnogóra.",
       intro: ["Informacje o usługodawcy dentvideo.com (zgodnie z § 5 niemieckiej ustawy o usługach cyfrowych, DDG, i art. 5 unijnej dyrektywy o handlu elektronicznym)."],
       sections: [
         { heading: "Usługodawca", blocks: [{ operator: true }] },

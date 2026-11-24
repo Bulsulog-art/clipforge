@@ -64,7 +64,7 @@ export function AdminDemos({
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-dv-teal">Outreach</p>
           <h1 className="dv-display mt-2 text-[2.5rem] leading-[1.05] text-dv-ink sm:text-[3.25rem]">Demo links</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-dv-muted">
-            A private page that shows one clinic its own branded preview — no sign-up, no OpenAI cost (the stored preview library is painted in its colours and logo).
+            A private page that shows one clinic its own branded preview — no sign-up, no OpenAI cost (the stored preview library is painted in its colors and logo).
             “Start with these settings” carries the demo into the sign-up, so a payment is credited to it.
           </p>
         </header>

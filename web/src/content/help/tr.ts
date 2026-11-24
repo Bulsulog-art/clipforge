@@ -34,6 +34,11 @@ export const tr: HelpContent = {
     title: "Hâlâ takıldığınız bir şey mi var?",
     body: "{email} adresine yazın. Her mesajı bir ekip üyemiz okur. Uygulamadan yazarsanız (Ayarlar → Yardım ve iletişim) klinik numaranız otomatik eklenir, hesabınızı hemen buluruz.",
   },
+  checkSources: {
+    clinical: "Tedavi sonrası bakım kurallarını karşılaştırdığımız hasta sayfaları (İngilizce)",
+    advertising: "Ülkelere göre resmî kaynaklar",
+    checked: "Her sayfa {date} tarihinde okunup ilgili kuralla karşılaştırıldı.",
+  },
   articles: {
     "first-videos": {
       q: "İlk videolarım ne zaman gelir?",
@@ -68,6 +73,10 @@ export const tr: HelpContent = {
     "software-check": {
       q: "Yazılım kontrolü neye bakar, neye bakmaz?",
       a: "Siz bir metni görmeden önce yazılım onu iki kez kontrol eder: bir kez sağlık reklamı kurallarının sıklıkla kısıtladığı ifadeler açısından (sonuç vaatleri, “ağrısız”, “kalıcı”, üstünlük iddiaları, fiyatlar, kampanyalar, öncesi-sonrası vaatleri, hasta yorumları), bir kez de genel kabul görmüş klinik bilgilere göre. Geçemeyen metin yeniden yazılır ya da hiç hazırlanmaz; ikinci bir bakış gerektiren her şey nedeniyle birlikte işaretlenir.\n\nBu otomatik bir kontroldür. Hukuki görüş değildir, bir avukatın ya da meslek odanızın incelemesi yerine geçmez. Kurallar ülkeden ülkeye değişir ve zamanla güncellenir; bu yüzden son karar sizindir.",
+    },
+    "how-we-check": {
+      q: "DentVideo bir videoyu nasıl ve hangi kaynaklara göre kontrol eder?",
+      a: "Sizin için yazdığımız videolardan birini görmeden önce yazılım, videonun metnini ve paylaşım açıklamasını iki kez kontrol eder. Bu iki kontrolü bir diş hekimi değil, yapay zekâ yazılımı yapar. Son kontrol sizin onayınızdır: Siz onaylamadan hiçbir şey paylaşılmaz ve paylaşımı siz yaparsınız.\n\nKontrollerden biri klinik doğruluğa bakar. Yazılım her ifadeyi, İngiltere'deki NHS ve Amerikan Diş Hekimleri Birliği (ADA) gibi ulusal sağlık ve diş hekimliği kuruluşları düzeyindeki genel kabul görmüş bilgilere göre değerlendirir. Yanlış ya da güncelliğini yitirmiş bilgileri, başka bir işleme ait bakım önerilerini ve videoyla çelişen açıklamaları arar. Tedavi sonrası bakım kuralları, NHS, ADA, Oral Health Foundation ve Amerikan Ortodontistler Birliği'nin (AAO) aşağıda listelenen hasta sayfalarıyla karşılaştırıldı.\n\nDiğer kontrol reklam kurallarıyla ilgilidir. Yazılım, sağlık reklamı kurallarının sıklıkla kısıtladığı ifadeleri arar: sonuç vaatleri, “ağrısız”, üstünlük iddiaları, fiyatlar ve kampanyalar, hasta yorumları, öncesi-sonrası vaatleri gibi. Aşağıdaki listede yer alan ülkelerdeki klinikler için o ülkenin kendi kurallarını da uygular. Listede her ülke için resmî kaynaklar yer alır. Ücretsiz reklam kontrol aracımız da aynı kaynakları gösterir. Diğer ülkelerde yalnızca genel kuralları uygular ve ülkenizin kuralları daha fazlasını isteyebilir.\n\nBir kontrolden geçemeyen metin yeniden yazılıp tekrar kontrol edilir ya da o video hiç hazırlanmaz. İkinci bir bakış gerektiren her şey nedeniyle birlikte “Göz atın” olarak işaretlenir. Kendi kayıtlarınızdan hazırlanan klipler de söyledikleriniz üzerinden aynı iki kontrolden geçer, ancak sözleriniz asla değiştirilmez: İkinci bir bakış gerektiren her şey işaretlenir. Yazılım bir şeyi gözden kaçırabilir ya da yanılabilir. Bir diş hekiminin, avukatın ya da meslek odanızın incelemesi değildir ve hukuki görüş yerine geçmez.",
     },
     responsibility: {
       q: "Paylaştıklarımızdan kim sorumlu?",

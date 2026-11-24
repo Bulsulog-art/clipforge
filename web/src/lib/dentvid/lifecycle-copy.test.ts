@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { LIFECYCLE_COPY, LIFECYCLE_LANGUAGES, lifecycleText } from "@/content/dentvideo-lifecycle";
 import { LOCALES } from "@/content/dentvideo";
-import { money, monthLabel, objectionsEmail, sampleEmail, startEmail, unsubscribePage, welcomeEmail } from "./lifecycle-email";
-import { lowestMonthlyFor, lowestMonthlyUsd } from "./lifecycle";
+import { appLabels, money, monthLabel, notPostedEmail, objectionsEmail, sampleEmail, startEmail, unsubscribePage, welcomeEmail } from "./lifecycle-email";
+import { lowestMonthlyFor, lowestMonthlyUsd, renderNudge, SEQUENCE, type ClinicForMail, type NudgeKind } from "./lifecycle";
+import { APP_TEXT } from "@/content/dentvideo-app";
+import type { Locale } from "@/content/dentvideo";
 import { DV_PRICES_USD } from "./billing";
 import { SAMPLE_KINDS, sampleEmailFor } from "./email-samples";
 import { EMAIL_LANGUAGES } from "./email";
@@ -150,7 +152,7 @@ describe("every email, every language", () => {
       expect(m.text, lang).toContain("https://dentvideo.com/app");
       expect(m.subject, lang).not.toContain("Smile & Co"); // short, never cut off by a long clinic name
     }
-    expect(sampleEmailFor("welcome", "en").text).toMatch(/software-assisted check[\s\S]*approve[\s\S]*Share[\s\S]*Monday/);
+    expect(sampleEmailFor("welcome", "en").text).toMatch(/software-assisted check[\s\S]*approve[\s\S]*Tap “Post it” on an approved video[\s\S]*Monday/);
   });
 
   it("the ready email lets the dentist act in one tap: a per-video action and an approve-all button", () => {
@@ -268,5 +270,71 @@ describe("every email looks and signs like DentVideo", () => {
       expect(m.html, lang).toMatch(/<span dir="ltr" class="dv-code dv-mark"[^>]*font-size:40px[^>]*>482 913<\/span>/);
       expect(m.subject, lang).toContain("482913");
     }
+  });
+});
+
+describe("the emails say what the product really does", () => {
+  /** Count words, by language, for the activation footer ("at most three short emails"). */
+  const COUNT_WORDS: Record<string, Record<number, string>> = {
+    en: { 2: "two", 3: "three", 4: "four", 5: "five" },
+    de: { 2: "zwei", 3: "drei", 4: "vier", 5: "fünf" },
+    es: { 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco" },
+    fr: { 2: "deux", 3: "trois", 4: "quatre", 5: "cinq" },
+    tr: { 2: "iki", 3: "üç", 4: "dört", 5: "beş" },
+    ja: { 2: "2通", 3: "3通", 4: "4通", 5: "5通" },
+    ar: { 2: "رسالتين", 3: "ثلاث", 4: "أربع", 5: "خمس" },
+    pl: { 2: "dwie", 3: "trzy", 4: "cztery", 5: "pięć" },
+  };
+  const has = (text: string, word: string) => (/^[\p{Script=Latin}]+$/u.test(word) ? new RegExp(`(?<!\\p{L})${word}(?!\\p{L})`, "u").test(text) : text.includes(word));
+
+  it("the activation footer's 'at most N emails' is the number of emails the sequence can send, in every language", () => {
+    // The kinds the sequence can still send: SEQUENCE, each rendering an email (the retired day-7 offer renders nothing).
+    const clinic: ClinicForMail = { id: "c", owner_id: "o", profile: { name: "A", language: "en" }, plan: "trial", created_at: "2026-11-01T00:00:00Z", email_opt_out_at: null };
+    const cfg = { enabled: true, base: "https://dentvideo.com", apiOrigin: "https://dentvideo.com", secret: "s", maxPerRun: 50 };
+    const sendable = (["nudge_start", "nudge_preview", "nudge_objections", "nudge_offer"] as NudgeKind[]).filter((k) => renderNudge(cfg, clinic, k, "https://dentvideo.com/u") !== null);
+    expect(sendable).toEqual(SEQUENCE.map((s) => s.kind));
+    const n = SEQUENCE.length;
+    for (const lang of LIFECYCLE_LANGUAGES) {
+      const footer = LIFECYCLE_COPY[lang].nudgeFooter;
+      const words = COUNT_WORDS[lang];
+      expect(words, lang).toBeDefined();
+      expect(has(footer, words[n]), `${lang}: ${footer}`).toBe(true);
+      for (const [m, w] of Object.entries(words)) if (Number(m) !== n) expect(has(footer, w), `${lang} says ${w}: ${footer}`).toBe(false);
+    }
+    // And the footer is what the three activation emails carry.
+    for (const kind of ["start", "sample", "objections"] as const) expect(sampleEmailFor(kind, "en").text, kind).toContain("at most three short emails");
+  });
+
+  it("the welcome, the objections answer and the weekly nudge name the app's real post button, in every language", () => {
+    const unsub = "https://dentvideo.com/api/dentvideo/unsubscribe?t=x.y";
+    for (const lang of LOCALES) {
+      const post = APP_TEXT[lang as Locale].library.review.openPost;
+      expect(appLabels(lang).post, lang).toBe(post);
+      const welcome = welcomeEmail({ language: lang, clinicName: "A", appUrl: "https://dentvideo.com/app" });
+      const objections = objectionsEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/start?step=plan", unsubscribeUrl: unsub, from: { currency: "USD", amount: 49 } });
+      const nudge = notPostedEmail({ language: lang, clinicName: "A", url: "https://dentvideo.com/app", unsubscribeUrl: unsub, approved: 2, pending: 1 });
+      for (const [what, m] of [["welcome", welcome], ["objections", objections], ["not posted", nudge]] as const) {
+        expect(m.text, `${lang} ${what}`).toContain(post);
+        expect(m.text, `${lang} ${what}`).not.toMatch(/\{post\}|\{mark\}/);
+      }
+    }
+    // The old label ("tap Share") is gone from the copy that tells the dentist where to tap.
+    const old = /Tap Share|tap Share|„Teilen“|toca Compartir|Paylaş'a dokunun|touchez Partager|toucher Partager|「共有」をタップ|«مشاركة»|„Udostępnij”/;
+    for (const lang of LIFECYCLE_LANGUAGES) for (const [k, v] of leaves(LIFECYCLE_COPY[lang])) expect(v, `${lang}.${k}`).not.toMatch(old);
+  });
+
+  it("no copy speaks of sharing 'from the app' any more, and the new lines use no dashes as punctuation", () => {
+    for (const lang of LIFECYCLE_LANGUAGES) {
+      const c = LIFECYCLE_COPY[lang];
+      for (const v of [c.monthly.sharedNone, c.monthly.postedLine, c.monthly.posted, c.monthly.preheader, c.monthly.preheaderMadeApproved, c.notPosted.how, c.notPosted.footer, c.nudgeFooter, c.welcome.steps[2].body, c.objections.qa[1].a]) {
+        expect(v, lang).not.toMatch(/ [—–] |—/);
+      }
+      // The two-number preview is its own line in every language, and promises no third number.
+      expect(c.monthly.preheaderMadeApproved.trim(), lang).not.toBe("");
+      expect(c.monthly.preheaderMadeApproved, lang).not.toBe(c.monthly.preheader);
+      if (lang !== "en") expect(c.monthly.preheaderMadeApproved, lang).not.toBe(LIFECYCLE_COPY.en.monthly.preheaderMadeApproved);
+    }
+    expect(LIFECYCLE_COPY.en.monthly.sharedNone).not.toMatch(/from the app/i);
+    expect(LIFECYCLE_COPY.de.monthly.sharedNone).not.toMatch(/Aus der App/);
   });
 });

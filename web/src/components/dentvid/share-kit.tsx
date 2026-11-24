@@ -18,8 +18,16 @@ import { sharePayload, shareMethod, type PostTexts, type ShareMethod } from "@/l
  * tap, so the file is fetched ahead (`prefetch`) while the dentist watches;
  * if it is not in yet, the button asks for one more tap. Elsewhere the MP4
  * downloads and the caption is copied.
+ *
+ * `track` (default true) sends the browser's video_shared event on each tap,
+ * as the app always has. The email's post page passes false: it counts the
+ * share on the server instead, with its clinic, once the share went through
+ * (`run` resolves to what happened).
  */
-export function useSaveAndCopy(args: { videoUrl?: string; title: string; text: string; prefetch?: boolean; labels: { sharedHint: string; downloadedHint: string; failed: string } }) {
+export type ShareOutcome = "share" | "download" | null;
+
+export function useSaveAndCopy(args: { videoUrl?: string; title: string; text: string; prefetch?: boolean; track?: boolean; labels: { sharedHint: string; downloadedHint: string; failed: string } }) {
+  const track = args.track !== false;
   const [method, setMethod] = useState<ShareMethod>("download");
   const [busy, setBusy] = useState(false);
   const [again, setAgain] = useState(false);
@@ -79,25 +87,31 @@ export function useSaveAndCopy(args: { videoUrl?: string; title: string; text: s
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }
 
-  /** The one tap. `before` runs first, inside the tap (e.g. approving the video). */
-  async function run(before?: () => void) {
-    if (!args.videoUrl) return;
+  /**
+   * The one tap. `before` runs first, inside the tap (e.g. approving the video).
+   * Resolves to "share" once the share sheet took the file, "download" once it
+   * was saved, null when it was cancelled, failed or needs another tap.
+   */
+  async function run(before?: () => void): Promise<ShareOutcome> {
+    if (!args.videoUrl) return null;
     before?.();
-    trackDv("video_shared", { props: { method: method === "share-file" ? "share" : "download" } });
+    if (track) trackDv("video_shared", { props: { method: method === "share-file" ? "share" : "download" } });
     // The clipboard first, while the tap still counts — not awaited, so the share sheet can open in the same tap.
     const hasClipboard = !!args.text && typeof navigator.clipboard?.writeText === "function";
     const copied = hasClipboard ? navigator.clipboard.writeText(args.text).then(() => true, () => false) : Promise.resolve(false);
     if (method === "download") {
       setBusy(true);
+      let saved = false;
       try {
         save(await load());
         await copied;
         flash({ kind: "ok", text: args.labels.downloadedHint });
+        saved = true;
       } catch {
         window.open(args.videoUrl, "_blank", "noopener");
       }
       setBusy(false);
-      return;
+      return saved ? "download" : null;
     }
     let f = file.current;
     if (!f) {
@@ -107,7 +121,7 @@ export function useSaveAndCopy(args: { videoUrl?: string; title: string; text: s
       } catch {
         setBusy(false);
         flash({ kind: "error", text: args.labels.failed });
-        return;
+        return null;
       }
       setBusy(false);
     }
@@ -115,17 +129,19 @@ export function useSaveAndCopy(args: { videoUrl?: string; title: string; text: s
       await navigator.share(sharePayload(f, args.text, hasClipboard));
       setAgain(false);
       flash({ kind: "ok", text: args.labels.sharedHint });
+      return "share";
     } catch (e) {
       const n = (e as Error).name;
       if (n === "AbortError") setAgain(false);
       // The file came in after the tap stopped counting: one more tap shares it.
       else if (n === "NotAllowedError") setAgain(true);
       else flash({ kind: "error", text: args.labels.failed });
+      return null;
     }
   }
 
   async function download() {
-    trackDv("video_shared", { props: { method: "download" } });
+    if (track) trackDv("video_shared", { props: { method: "download" } });
     if (args.text) await navigator.clipboard?.writeText(args.text).catch(() => {});
     try {
       save(await load());

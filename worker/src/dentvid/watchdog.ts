@@ -3,6 +3,7 @@ import { logger } from "../logger.js";
 import { batchWeekJobOpts, DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, type WeekJobData } from "./job-options.js";
 import { activeClinicRows, deliveryWeek, dispatchKey, getsWeeks, shouldRun, weekJobId, type ClinicRow } from "./schedule.js";
 import { alerts, thresholds, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
+import { notifyDelayChecked, type DelayKind, type NotifyOutcome } from "./notify.js";
 
 /**
  * Watchdogs: the worker checking its own promises, healing what it can and
@@ -20,9 +21,14 @@ import { alerts, thresholds, type ClinicRef, type DeliverResult, type OpsStore, 
  *                       told. The first week outranks the weekly batch
  *                       (job-options.ts), so a Monday payer waits for at most
  *                       the one week already rendering, not for the batch.
+ *                       The clinic gets one calm "your first videos are
+ *                       taking a little longer" email at the same 2 h mark
+ *                       (once per clinic; notifyClinic). A clinic coming
+ *                       back from a pause gets the routine "running late"
+ *                       email for its comeback week instead (once per week).
  *
- * Time, the database, the queue and the alert are injected, so the logic is
- * tested with a fake clock and fakes.
+ * Time, the database, the queue, the alert and the clinic's email are
+ * injected, so the logic is tested with a fake clock and fakes.
  */
 
 /** 90 minutes after the Saturday 18:00 UTC dispatch (schedule.ts DISPATCH_SCHEDULE). */
@@ -58,14 +64,86 @@ export type WatchQueue = {
   add(name: string, data: unknown, opts: Record<string, unknown>): Promise<unknown>;
 };
 
+/**
+ * Emails a clinic that its week is late (notify.ts notifyDelayChecked). `queued`: the week is
+ * really on its way, so the email may say so. Never throws.
+ */
+export type ClinicNotifier = (clinicId: string, week: string, kind: DelayKind, opts: { queued: boolean }) => Promise<NotifyOutcome>;
+
+/**
+ * The sender used when a watchdog is not given one: the web app's notice, except under the
+ * test runner. A test that runs a watchdog without injecting notifyClinic (and with
+ * WORKER_INTERNAL_TOKEN set by another test) must never post to a real web app, nor wait out
+ * the request's timeout.
+ */
+export function defaultClinicNotifier(env: Record<string, string | undefined> = process.env): ClinicNotifier {
+  if (env.VITEST) return async () => ({ sent: false, retry: false, reason: "not sent from a test run" });
+  return notifyDelayChecked;
+}
+
+/** BullMQ states in which a week is still on its way: queued, at the front, running, or waiting out a retry's backoff. */
+const ON_ITS_WAY = new Set(["waiting", "prioritized", "active", "delayed", "waiting-children"]);
+
+/**
+ * Is the week really on its way: is one of these jobs (the week's own, or the fresh run a
+ * re-queue added under its own id) queued or running? A failed or completed job, a missing
+ * one or a queue that cannot answer is not: the "running late" email then makes no "queued"
+ * claim.
+ */
+export async function weekOnItsWay(queue: WatchQueue, jobIds: string[]): Promise<boolean> {
+  for (const id of jobIds) {
+    const job = await queue.getJob(id).catch(() => null);
+    const state = job ? await job.getState().catch(() => "unknown") : "missing";
+    if (ON_ITS_WAY.has(state)) return true;
+  }
+  return false;
+}
+
 export type WatchDeps = {
   db: WatchDb;
   queue: WatchQueue;
   store: OpsStore | null;
   alert: (a: OwnerAlert) => Promise<DeliverResult>;
+  /** The clinic's "running late" email; defaults to the web app's notice (notifyDelayChecked). */
+  notifyClinic?: ClinicNotifier;
   now?: Date;
   env?: Record<string, string | undefined>;
 };
+
+/**
+ * One "running late" email per clinic and week, whichever watchdog sees it
+ * first (a Saturday-evening payer's first week is also Monday's week the
+ * delivery watchdog checks). Set only together with the watchdog's own
+ * marker, so it never fires twice.
+ */
+export const lateNoticeKey = (clinicId: string, week: string) => `dv:ops:late-notice:${clinicId}:${week}`;
+export const LATE_NOTICE_TTL_S = 8 * 86_400;
+/** The first-week notice: once per clinic (the first-week watchdog looks back 3 days). */
+export const firstLateNoticeKey = (clinicId: string) => `dv:ops:first-late-notice:${clinicId}`;
+export const FIRST_LATE_NOTICE_TTL_S = 30 * 86_400;
+
+/**
+ * Sends the clinic its "running late" email, guarded by the per-week marker
+ * (and the caller's own). No store, no email: without the marker it could
+ * not be sent only once. `queued` is asked only when the email will go
+ * (it reads the queue). Never throws.
+ */
+export async function noticeClinicOnce(
+  store: OpsStore | null,
+  notify: ClinicNotifier | undefined,
+  clinicId: string,
+  week: string,
+  kind: DelayKind,
+  queued: () => Promise<boolean>,
+): Promise<boolean> {
+  if (!store) return false;
+  if (!(await store.setNx(lateNoticeKey(clinicId, week), LATE_NOTICE_TTL_S).catch(() => false))) return false;
+  const onItsWay = await queued().catch(() => false);
+  const out = await (notify ?? defaultClinicNotifier())(clinicId, week, kind, { queued: onItsWay }).catch((e: Error) => ({ sent: false, retry: false, reason: e.message }) as NotifyOutcome);
+  const log = out.sent ? logger.info.bind(logger) : logger.warn.bind(logger);
+  log({ clinicId, week, kind, queued: onItsWay, reason: out.reason }, out.sent ? "dentvid: clinic told its week is late" : "dentvid: could not tell the clinic its week is late");
+  return out.sent;
+}
 
 /* ------------------------------------------------------------ Monday */
 
@@ -115,14 +193,14 @@ export async function checkMondayDispatch(deps: WatchDeps): Promise<DispatchChec
 
 /* ------------------------------------------------------------ first week */
 
-export type FirstWeekCheck = { checked: number; requeued: string[]; alerted: string[] };
+export type FirstWeekCheck = { checked: number; requeued: string[]; alerted: string[]; /** Clinics emailed about their late week this run ("first-late", or "late" for one coming back). */ notified: string[] };
 
 const MIN = 60_000;
 
 export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> {
   const now = deps.now ?? new Date();
   const t = thresholds(deps.env ?? process.env);
-  const res: FirstWeekCheck = { checked: 0, requeued: [], alerted: [] };
+  const res: FirstWeekCheck = { checked: 0, requeued: [], alerted: [], notified: [] };
   const since = new Date(now.getTime() - 3 * 86_400_000);
 
   // Payments from the events table, plus the web app's Redis markers (either may be missing).
@@ -195,6 +273,19 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
       const wasRequeued = requeued || (deps.store ? (await deps.store.get(`dv:ops:fw-requeue:${clinicId}:${paidAt}`).catch(() => null)) !== null : false);
       const r = await deps.alert(alerts.firstWeekLate({ clinic: await deps.db.clinic(clinicId), paidAt, minutes, requeued: wasRequeued, jobState: state, returning: returning.has(clinicId) }));
       if (r === "sent") res.alerted.push(clinicId);
+      // The dentist was told "you can close this page": a calm note instead of silence.
+      //   - A new clinic: once ever, in first-week words.
+      //   - A clinic coming back from a pause is not new ("your first videos" would be wrong):
+      //     the routine "running late" words, once for its comeback week. The delivery watchdog
+      //     skips that week when the clinic came back after its deadline, so this is its only note.
+      // Either way the shared per-week marker keeps it to one email with the delivery watchdog's.
+      // "Queued and on its way" only when it is: this run re-queued it, or its job (or the
+      // re-queue's fresh run) is waiting or running. A failed run used up its one re-queue.
+      const back = returning.has(clinicId);
+      const ours = back || (deps.store ? await deps.store.setNx(firstLateNoticeKey(clinicId), FIRST_LATE_NOTICE_TTL_S).catch(() => false) : false);
+      if (ours && (await noticeClinicOnce(deps.store, deps.notifyClinic, clinicId, week, back ? "late" : "first-late", async () => requeued || (await weekOnItsWay(deps.queue, [id, `${id}:requeue`]))))) {
+        res.notified.push(clinicId);
+      }
     }
   }
   return res;

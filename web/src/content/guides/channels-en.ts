@@ -130,7 +130,7 @@ const WAITING_ROOM: Guide = {
   reviewed: DATE,
   title: "Dental waiting room TV: what to show patients, and what to keep off the screen",
   seoTitle: "Dental waiting room TV: what to show patients",
-  seoDescription: "What a dental practice should play on its waiting room screen: patient-education topics, sound, captions, music licences, privacy and how to keep it fresh.",
+  seoDescription: "What a dental practice should play on its waiting room screen: patient-education topics, sound, captions, music licenses, privacy and how to keep it fresh.",
   description: "A practical guide to dental waiting room TV: which patient-education videos to show, sound and captions, screen format, music licensing in the UK, patient privacy, and how to keep the loop up to date.",
   h1: "Dental waiting room TV: what to show patients",
   intro:
@@ -138,7 +138,7 @@ const WAITING_ROOM: Guide = {
   takeaways: [
     "Use the screen for quiet patient education: short, captioned videos that answer the questions patients are about to ask.",
     "Play videos without sound or with the sound low.",
-    "In the UK, playing music at a business usually needs a licence.",
+    "In the UK, playing music at a business usually needs a license.",
     "Keep anything that identifies a patient off the screen, and refresh the loop every week or two.",
   ],
   sections: [
@@ -167,9 +167,9 @@ const WAITING_ROOM: Guide = {
       ],
     },
     {
-      heading: "Do you need a licence to play music or TV in a dental waiting room?",
+      heading: "Do you need a license to play music or TV in a dental waiting room?",
       paragraphs: [
-        "In the UK, GOV.UK says you usually need a licence to play live or recorded music in public or at your business, including background music from a radio or music channel, and that the licence is TheMusicLicence from PPL PRS. Royalty-free music does not need it. Playing broadcast TV on the screen also raises TV licensing questions. In the US, playing commercial music or streaming playlists in a business can require licences from performing rights organizations.",
+        "In the UK, GOV.UK says you usually need a license to play live or recorded music in public or at your business, including background music from a radio or music channel, and that the license is TheMusicLicence from PPL PRS. Royalty-free music does not need it. Playing broadcast TV on the screen also raises TV licensing questions. In the US, playing commercial music or streaming playlists in a business can require licenses from performing rights organizations.",
         "The simplest route is to play your own videos with no music, or with music the video maker has the right to use for public display, and to check with the licensing bodies if you also play radio or TV.",
       ],
     },
@@ -205,7 +205,7 @@ const WAITING_ROOM: Guide = {
     { q: "How long should a waiting room video be?", a: "Short: 20 to 60 seconds per topic, in a loop of many topics, so a patient waiting a few minutes sees several different answers rather than one long film." },
     { q: "Is a waiting room screen advertising?", a: "It can be. Content about your own treatments shown to patients is often treated as promotion, so keep it educational and free of promises, prices and testimonials." },
     { q: "Can we show before-and-after photos in the waiting room?", a: "Only with written consent that specifically covers display in the practice, and only where your advertising rules allow them. Many practices leave them off the screen entirely." },
-    { q: "Do we need a music licence in the UK?", a: "Usually yes if you play recorded music, radio or a music channel at your business, according to GOV.UK; the licence is TheMusicLicence from PPL PRS. Royalty-free music does not need one." },
+    { q: "Do we need a music license in the UK?", a: "Usually yes if you play recorded music, radio or a music channel at your business, according to GOV.UK; the license is TheMusicLicence from PPL PRS. Royalty-free music does not need one." },
     { q: "Can we use our social media videos on the waiting room TV?", a: "Yes, if they are captioned and educational. Vertical videos play with side bars on a landscape screen, or fill a screen mounted in portrait." },
   ],
   sources: [GOVUK_MUSIC, HHS_PRIVACY, GDC_SM, CAP_CODE],

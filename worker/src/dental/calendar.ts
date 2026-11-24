@@ -6,8 +6,12 @@
  * Tag der Zahngesundheit, Ramadan, back to school, holiday sweets. The dates
  * follow the per-market content calendars published on the site
  * (web/src/content/guides/calendar*.ts, verified against the organisers'
- * pages on 2026-11-10); moving dates (Ramadan, Eid, Easter) are listed per
- * year or computed.
+ * pages on 2026-11-10; the US and UK observances re-checked on 2026-11-24);
+ * moving dates (Ramadan, Eid, Easter) are listed per year or computed.
+ *
+ * An observance run by an organisation carries the organiser's page as
+ * `source`. Every US and UK one also appears in the English calendar guide
+ * (web/src/content/guides/calendar.ts), and a test there keeps the two in step.
  *
  * The strategist is offered what falls in the coming days and may use it for
  * at most ONE video, only when it fits a service the clinic offers. Every
@@ -24,11 +28,24 @@ export type Observance = {
   /** The educational angle, for the strategist. */
   angle: string;
   /** Days on which it is worth posting about, for a given year (UTC dates, inclusive). */
-  window: (year: number) => { start: string; end: string } | undefined;
+  window: (year: number) => Window | undefined;
+  /** The organiser's own page the date was checked against (organised observances only). */
+  source?: string;
 };
+
+/**
+ * `approximate` marks a year whose exact dates the organiser has not
+ * published yet: the window is the usual span, and the strategist is told to
+ * name the season rather than a date.
+ */
+export type Window = { start: string; end: string; approximate?: true };
 
 const d = (y: number, m: number, day: number) => `${y}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 const fixed = (m1: number, d1: number, m2: number, d2: number) => (y: number) => ({ start: d(y, m1, d1), end: d(y, m2, d2) });
+/** Days in month `m` (1–12) of year `y`: February has 29 in leap years. */
+const daysIn = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+/** The whole calendar month `m`, for month-long observances. */
+const wholeMonth = (m: number) => (y: number) => ({ start: d(y, m, 1), end: d(y, m, daysIn(y, m)) });
 const shift = (iso: string, days: number) => new Date(Date.parse(iso) + days * 86_400_000).toISOString().slice(0, 10);
 
 /** Gregorian Easter Sunday (anonymous / Meeus algorithm). */
@@ -54,6 +71,17 @@ export const RAMADAN: Record<number, { start: string; eid: string }> = {
 
 const MUSLIM_MARKETS = ["TR", "AE", "SA", "QA", "KW", "BH", "OM"];
 
+/**
+ * National Smile Month (Oral Health Foundation) by year, as the organiser
+ * publishes it: "Between 11 May and 11 June 2026" on
+ * https://www.dentalhealth.org/smilemonth (read 2026-11-24). A year without an
+ * entry gets the usual mid-May to mid-June span, marked approximate; add the
+ * new year's dates here once the Oral Health Foundation announces them.
+ */
+export const SMILE_MONTH: Record<number, { start: string; end: string }> = {
+  2026: { start: "2026-05-11", end: "2026-06-11" },
+};
+
 export const OBSERVANCES: Observance[] = [
   {
     id: "world-oral-health-day",
@@ -61,6 +89,7 @@ export const OBSERVANCES: Observance[] = [
     name: { en: "World Oral Health Day (20 March)", tr: "Dünya Ağız ve Diş Sağlığı Günü (20 Mart)", de: "Weltmundgesundheitstag (20. März)", es: "Día Mundial de la Salud Bucodental (20 de marzo)" },
     angle: "how mouth health and general health are linked, explained carefully and hedged (no scare claims)",
     window: fixed(3, 13, 3, 21),
+    source: "https://www.worldoralhealthday.org/",
   },
   {
     id: "tr-agiz-dis-sagligi-haftasi",
@@ -68,6 +97,7 @@ export const OBSERVANCES: Observance[] = [
     name: { en: "Oral and Dental Health Week, around Dentists' Day (22 November)", tr: "Ağız ve Diş Sağlığı Haftası ve 22 Kasım Diş Hekimliği Günü" },
     angle: "one simple daily habit for the whole family, or what a dentist actually checks at a routine visit",
     window: fixed(11, 16, 11, 28),
+    source: "https://www.tdb.org.tr/",
   },
   {
     id: "tr-23-nisan",
@@ -82,6 +112,7 @@ export const OBSERVANCES: Observance[] = [
     name: { en: "Tag der Zahngesundheit (25 September)", de: "Tag der Zahngesundheit (25. September)" },
     angle: "the year's motto (2026: „Gesund beginnt im Mund – Kau dich fit!“ — chewing well), or one prevention habit",
     window: fixed(9, 18, 9, 26),
+    source: "https://www.tagderzahngesundheit.de/",
   },
   {
     id: "mx-dia-del-nino",
@@ -91,18 +122,78 @@ export const OBSERVANCES: Observance[] = [
     window: fixed(4, 23, 4, 30),
   },
   {
+    // American Dental Association: "February is National Children's Dental
+    // Health Month (NCDHM)" (read 2026-11-24). The whole month, 29 days in a leap year.
     id: "us-childrens-dental-health-month",
     countries: ["US"],
     name: { en: "National Children's Dental Health Month (February)" },
     angle: "children's teeth: first visit, toothpaste amount, sealants",
-    window: fixed(2, 1, 2, 28),
+    window: wholeMonth(2),
+    source: "https://www.ada.org/resources/community-initiatives/national-childrens-dental-health-month",
   },
   {
+    // The Oral Cancer Foundation: "April is Oral Cancer Awareness month"
+    // (read 2026-11-24); the American Dental Hygienists' Association lists it
+    // for April too. The foundation's campaign is built on free screening
+    // events, which is exactly what a clinic's video must not offer.
+    id: "us-oral-cancer-awareness-month",
+    countries: ["US"],
+    name: { en: "Oral Cancer Awareness Month (April)" },
+    angle:
+      "what the dentist looks at for signs of oral cancer during a routine exam (lips, cheeks, tongue, the floor and roof of the mouth, the throat), the changes worth showing a dentist or doctor (a sore that does not heal, a red or white patch, a lump or thickening) and well-known risk factors such as tobacco and alcohol, told calmly and factually with no statistics or survival figures, no scare claims, and never a screening offer or event",
+    window: wholeMonth(4),
+    source: "https://oralcancerfoundation.org/events/oral-head-neck-cancer-awareness-month/",
+  },
+  {
+    // American Association of Oral and Maxillofacial Surgeons, 30 March 2026:
+    // "April is National Facial Protection Month", led by AAOMS with the
+    // Academy for Sports Dentistry, the AAPD and the AAO (read 2026-11-24).
+    // The spring sports season in the US. A free mouthguard fitting would be
+    // an offer, so the angle rules it out by name.
+    id: "us-facial-protection-month",
+    countries: ["US"],
+    name: { en: "National Facial Protection Month (April)" },
+    angle:
+      "protecting teeth and face in spring sports and play: a mouthguard for contact sports and a helmet for bikes, scooters and skateboards, the difference between stock, boil-and-bite and custom-made mouthguards, and what to do in the first minutes if a tooth is knocked out, with no injury statistics and never a mouthguard offer",
+    window: wholeMonth(4),
+    source: "https://myoms.org/april-is-national-facial-protection-month-suit-up-for-spring-sports-and-outdoor-fun/",
+  },
+  {
+    // American Dental Hygienists' Association: https://www.adha.org/ndhm leads
+    // to the year's page, which says "October is National Dental Hygiene
+    // Month!" (read 2026-11-24, weeks of 5 to 31 October); the association's
+    // events menu lists "National Dental Hygiene Month | October" too.
+    id: "us-dental-hygiene-month",
+    countries: ["US"],
+    name: { en: "National Dental Hygiene Month (October)" },
+    angle:
+      "what a dental hygienist does at a cleaning visit, step by step, or one daily habit done well (two minutes of brushing twice a day, cleaning between the teeth, water instead of sugary drinks between meals)",
+    window: wholeMonth(10),
+    source: "https://www.adha.org/ndhm",
+  },
+  {
+    // Oral Health Foundation, see SMILE_MONTH above.
     id: "gb-national-smile-month",
     countries: ["GB"],
-    name: { en: "National Smile Month (mid-May to mid-June; check this year's dates)" },
+    name: { en: "National Smile Month (mid-May to mid-June)" },
     angle: "one family habit (brushing, sugar timing, check-ups)",
-    window: fixed(5, 11, 6, 11),
+    window: (y) => SMILE_MONTH[y] ?? { start: d(y, 5, 15), end: d(y, 6, 15), approximate: true },
+    source: "https://www.dentalhealth.org/smilemonth",
+  },
+  {
+    // Oral Health Foundation: "Mouth Cancer Action Month is a charity
+    // campaign that takes place in November", message "if in doubt, get
+    // checked out"; the signs below are the foundation's own list on
+    // https://www.dentalhealth.org/spotthesigns (read 2026-11-24). "Get
+    // checked out" invites "pop in for a free mouth check", an offer, so the
+    // angle rules that out by name as the US cancer month does.
+    id: "gb-mouth-cancer-action-month",
+    countries: ["GB"],
+    name: { en: "Mouth Cancer Action Month (November)" },
+    angle:
+      "how to check your own mouth in about a minute (lips, cheeks, tongue, the roof of the mouth), the changes worth having checked by a dentist or doctor (a mouth ulcer that does not heal, a red or white patch, an unusual lump) and that a routine check-up includes a look for them, under the campaign's message 'if in doubt, get checked out', told calmly and factually with no statistics or survival figures, no scare claims, and never a mouth-check or screening offer or event",
+    window: wholeMonth(11),
+    source: "https://www.dentalhealth.org/mouthcancer",
   },
   {
     id: "ramadan",
@@ -205,14 +296,15 @@ export const OBSERVANCES: Observance[] = [
   },
 ];
 
-export type Upcoming = { id: string; name: string; angle: string; start: string; end: string };
+export type Upcoming = { id: string; name: string; angle: string; start: string; end: string; approximate?: true };
 
 /**
  * What a clinic in `country` could tie a video to between `date` and
  * `date + horizonDays` (the week being planned).
  */
 export function upcomingObservances(country: string, language: string, date: Date = new Date(), horizonDays = 10): Upcoming[] {
-  const c = country.toUpperCase();
+  // "UK" is how people write Great Britain; the same market (hard-rules.ts marketCode).
+  const c = country.trim().toUpperCase() === "UK" ? "GB" : country.trim().toUpperCase();
   const lang = language.toLowerCase().slice(0, 2);
   const from = date.toISOString().slice(0, 10);
   const to = shift(from, horizonDays);
@@ -230,12 +322,19 @@ export function upcomingObservances(country: string, language: string, date: Dat
   return out;
 }
 
+/** The dates as the strategist sees them; an unconfirmed year is said to be approximate. */
+function when(u: Upcoming): string {
+  return u.approximate
+    ? `around ${u.start}–${u.end}: this year's exact dates are not published yet, so name the season, never a specific date`
+    : `${u.start}–${u.end}`;
+}
+
 /** The strategist's seasonal line; empty when nothing falls in the coming days. */
 export function seasonalBrief(country: string, language: string, date: Date = new Date()): string {
   const up = upcomingObservances(country, language, date);
   if (!up.length) return "";
   return [
-    `This week in the clinic's market: ${up.map((u) => `${u.name} (${u.start}–${u.end}): ${u.angle}`).join("; ")}.`,
+    `This week in the clinic's market: ${up.map((u) => `${u.name} (${when(u)}): ${u.angle}`).join("; ")}.`,
     `Patients notice a practice that talks about what is happening now: when one of these fits a service the clinic offers, build ONE video of the week on it. Tie AT MOST ONE video to it, only if it fits one of the clinic's services, and only educationally — never an offer, discount, giveaway or "special" around the date. Name the occasion in the hook or first line so the timing is the reason to watch. Skip it if a recent video already covered the same angle.`,
   ].join(" ");
 }

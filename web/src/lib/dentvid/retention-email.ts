@@ -25,20 +25,36 @@ export function retentionKind(days: NoticeDays, endedAt: string): string {
   return `retention${days}_${endedAt.slice(0, 10).replace(/-/g, "_")}`;
 }
 
-/** "16 February 2027" in the reader's language and the clinic's time zone. */
-export function noticeDate(lang: string, d: Date, timeZone = "UTC"): string {
+/**
+ * "16 February 2027" in the reader's language and the clinic's time zone; with the clinic's
+ * country, "February 16, 2027" for an English clinic in the US, Canada, Australia or New
+ * Zealand, as the app writes its dates (app-ui.ts dateLocale).
+ */
+export function noticeDate(lang: string, d: Date, timeZone = "UTC", country?: string | null): string {
+  const locale = dateLocale(lang, country);
   try {
-    return new Intl.DateTimeFormat(dateLocale(lang), { day: "numeric", month: "long", year: "numeric", timeZone }).format(d);
+    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric", timeZone }).format(d);
   } catch {
-    return new Intl.DateTimeFormat(dateLocale(lang), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(d);
+    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(d);
   }
 }
 
-export function retentionEmail(args: { language: string; clinicName: string; days: NoticeDays; endedAt: Date; deleteOn: Date; timeZone?: string; appUrl: string; brand?: Brand }): Rendered {
+export function retentionEmail(args: {
+  language: string;
+  clinicName: string;
+  days: NoticeDays;
+  endedAt: Date;
+  deleteOn: Date;
+  timeZone?: string;
+  /** The clinic's country (profile.country): picks the date format of an English clinic. */
+  country?: string | null;
+  appUrl: string;
+  brand?: Brand;
+}): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
   const t = requestsText(lang).email;
   const clinic = clinicLabel(args.clinicName);
-  const vars = { ended: noticeDate(lang, args.endedAt, args.timeZone), date: noticeDate(lang, args.deleteOn, args.timeZone) };
+  const vars = { ended: noticeDate(lang, args.endedAt, args.timeZone, args.country), date: noticeDate(lang, args.deleteOn, args.timeZone, args.country) };
   const last = args.days === 1;
   return renderEmail({
     lang,
@@ -85,6 +101,7 @@ export async function sendRetentionNotice(
       endedAt: new Date(args.endedAt),
       deleteOn: args.deleteOn,
       timeZone: zoneOf(clinic),
+      country: clinic.profile?.country ?? null,
       appUrl: `${deps.config.base}/app`,
       brand: { name: clinic.profile?.name ?? "", logoUrl, color: clinic.profile?.brandColor ?? null },
     });
