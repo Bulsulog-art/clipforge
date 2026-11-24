@@ -3,6 +3,7 @@ import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import { narrate } from "./narrate.js";
 import { AGENT_MODEL } from "./llm.js";
 import { guardFootage } from "./footage.js";
+import { clipIds, takeFootageIds, type FootageFields } from "../remotion/stock.js";
 import { backgroundId, backgroundSrc, startingBackgrounds, suggestBackgrounds } from "../dentvid/backgrounds/suggest.js";
 import { BACKGROUND_PATH, MAX_BACKGROUNDS, THEMES, totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { deliveryWeek, validWeek } from "../dentvid/schedule.js";
@@ -63,7 +64,8 @@ export type VideoPackage =
       /** Nothing is published until the clinic's dentist approves it. */
       approval: "pending" | "approved" | "rejected";
       topic: Topic;
-      plan: ScenePlan;
+      /** The plan as stored; plan.footageIds lists the stock clips its render showed (remotion/stock.ts FootageFields). */
+      plan: ScenePlan & Pick<FootageFields, "footageIds">;
       /** Library photo ids for this video, best first; plan.backgrounds holds the chosen ones. */
       suggestedBackgrounds?: string[];
       copy: PostCopy;
@@ -115,10 +117,70 @@ export const HOUSE_THEME: ScenePlan["theme"] = "editorial";
  * which of the week's delivered videos this one will be (0-based, counted
  * across a top-up), which picks its closing move.
  */
-export type WeekVisuals = { avoid: ReadonlySet<string>; seed: string; closingIndex?: number };
+export type WeekVisuals = {
+  avoid: ReadonlySet<string>;
+  seed: string;
+  closingIndex?: number;
+  /**
+   * The stock clips (remotion/stock.ts ClipRotation): the week's turn in the
+   * clinic's rotation (weekNumber of its Monday), and the Pexels ids the
+   * clinic's recent videos and this week's earlier ones showed, oldest first
+   * (recentFootage). Absent: each query gets its best-scored clip, as before.
+   */
+  footage?: { turn: number; avoid: ReadonlySet<number> };
+};
 
 /** How far back a clinic's earlier photos are avoided: the two weeks before the week being made. */
 export const PHOTO_MEMORY_DAYS = 14;
+
+/** How far back a clinic's earlier stock clips are avoided: the eight weeks before the week being made. */
+export const FOOTAGE_MEMORY_WEEKS = 8;
+
+/**
+ * Whole weeks from the first Monday of 1970 to `monday` (YYYY-MM-DD): one
+ * more every week, the turn of a clinic's clip rotation. 0 when unreadable.
+ */
+export function weekNumber(monday: string): number {
+  const at = Date.parse(`${monday}T00:00:00Z`);
+  return Number.isFinite(at) ? Math.floor((at - Date.UTC(1970, 0, 5)) / (7 * 86_400_000)) : 0;
+}
+
+/**
+ * The seed of a clinic's clip rotation: the same every week (the turn moves
+ * it along), different from clinic to clinic, so two clinics that ask for the
+ * same shot in the same week usually see different clips.
+ */
+export function footageSeed(profile: Pick<ClinicProfile, "name" | "city" | "country">): string {
+  return [profile.name, profile.city ?? "", profile.country ?? ""].join("|");
+}
+
+/**
+ * The stock clips (Pexels ids) of the clinic's videos from the
+ * FOOTAGE_MEMORY_WEEKS before `week` and from that week itself (a top-up's
+ * history holds the week's videos already made), oldest week first.
+ * History rows may carry the stored plan's ids as "footageIds"; until the
+ * job reads them (dentvid/jobs.ts selects plan->backgrounds only today)
+ * there are none, and the turn alone keeps a query from showing a clinic
+ * the same clip two weeks running. Read defensively, like recentBackgrounds.
+ */
+export function recentFootage(history: PastTopic[] | undefined, week: string): Set<number> {
+  const since = Date.parse(`${week}T00:00:00Z`) - FOOTAGE_MEMORY_WEEKS * 7 * 86_400_000;
+  const dated = (history ?? [])
+    .map((h) => ({ at: Date.parse(h.weekOf ?? ""), ids: clipIds((h as PastTopic & { footageIds?: unknown }).footageIds) }))
+    .filter((h) => Number.isFinite(h.at) && h.at >= since && h.ids.length)
+    .sort((a, b) => a.at - b.at);
+  const out = new Set<number>();
+  for (const h of dated) rememberClips(out, h.ids);
+  return out;
+}
+
+/** Marks clips as just shown: each moves to the end, so the one shown longest ago stays first. */
+export function rememberClips(used: Set<number>, ids: readonly number[] | undefined): void {
+  for (const id of ids ?? []) {
+    used.delete(id);
+    used.add(id);
+  }
+}
 
 /**
  * The Monday (YYYY-MM-DD) of the week a run's videos are for: the caller's
@@ -763,7 +825,9 @@ export async function produceVideo(
   const shootCard = card?.ok ? card.value : undefined;
   // Painted in the clinic's colour, so the week reads as theirs.
   // Objects only, never people or a clinic in stock footage; no repeats.
-  const guarded = guardFootage(script.value, topic.service, usedFootage);
+  // In a week, a replaced query follows the clinic's rotation, like its clips.
+  const clipRotation = visual?.footage ? { seed: footageSeed(profile), turn: visual.footage.turn } : undefined;
+  const guarded = guardFootage(script.value, topic.service, usedFootage, clipRotation);
   // Library photos behind the text: 10–20 ranked suggestions are kept for the
   // clinic to choose from; the top few go in by default (dentvid/backgrounds).
   const bgInput = {
@@ -809,7 +873,17 @@ export async function produceVideo(
   const branded = profile.brandColor
     ? { ...safe, brandColor: profile.brandColor, ...(profile.brandAccent ? { brandAccent: profile.brandAccent } : {}) }
     : safe;
-  const videoPath = deps.render ? await deps.render(branded, topic) : undefined;
+  // Which clip each stock query gets: the clinic's place in its rotation this
+  // week, and the clips its recent videos and this week's earlier ones showed
+  // (remotion/stock.ts ClipRotation). Only the render sees these fields.
+  const toRender: ScenePlan & FootageFields =
+    clipRotation && visual?.footage
+      ? { ...branded, footageSeed: clipRotation.seed, footageTurn: clipRotation.turn, footageAvoid: [...visual.footage.avoid] }
+      : branded;
+  const videoPath = deps.render ? await deps.render(toRender, topic) : undefined;
+  // The clips the render showed (renderPlan notes them by output file), stored
+  // on the plan so the clinic's next weeks can avoid them.
+  const footageIds = takeFootageIds(videoPath);
   // Measure the render before anyone sees it (silent narration, wrong size,
   // black frames…). A failing video is still delivered, marked with why.
   const qa = videoPath
@@ -819,7 +893,7 @@ export async function produceVideo(
     status: "ready",
     approval: "pending",
     topic,
-    plan: safe,
+    plan: footageIds.length ? { ...safe, footageIds } : safe,
     suggestedBackgrounds,
     // The reviewed caption, plus the sentence a market requires under every post (Türkiye: RG 33075 md. 7/1-k).
     copy: { ...post.value, caption: withCaptionNotice(post.value.caption, profile.country) },
@@ -879,6 +953,10 @@ export async function produceWeek(
   // Photos: the last two weeks' (when the history carries them) and this
   // week's own go last, so five videos do not open on the same chair.
   const usedBackgrounds = recentBackgrounds(opts.history, weekMonday);
+  // Stock clips: the clinic's turn this week, and the clips of its last eight
+  // weeks (when the history carries them) and of this week's videos, skipped.
+  const usedClips = recentFootage(opts.history, weekMonday);
+  const footage = { turn: weekNumber(weekMonday), avoid: usedClips };
   // A top-up's history holds this week's videos already made (jobs.ts): its closings continue after theirs.
   const madeThisWeek = (opts.history ?? []).filter((h) => (h.weekOf ?? "") >= weekMonday).length;
   const seed = `${profile.name}|${weekMonday}`;
@@ -889,7 +967,7 @@ export async function produceWeek(
     // The closing move follows the videos actually delivered: one that is
     // turned down or fails after its script passed (copy review, render)
     // hands its move to the next, so the week's moves never skip and wrap.
-    const visual: WeekVisuals = { avoid: usedBackgrounds, seed, closingIndex: madeThisWeek + ready() };
+    const visual: WeekVisuals = { avoid: usedBackgrounds, seed, closingIndex: madeThisWeek + ready(), footage };
     // One topic failing (a plan the model could not get valid, a render
     // error) must not cost the clinic the rest of its week: it is tried
     // once more (most failures are passing — a 429, a render timeout), then
@@ -898,7 +976,10 @@ export async function produceWeek(
     for (let attempt = 1; attempt <= VIDEO_ATTEMPTS; attempt++) {
       try {
         const pkg = await produceVideo(deps, profile, topic, usedFootage, week, undefined, visual);
-        if (pkg.status === "ready") rememberPhotos(usedBackgrounds, pkg.plan.backgrounds);
+        if (pkg.status === "ready") {
+          rememberPhotos(usedBackgrounds, pkg.plan.backgrounds);
+          rememberClips(usedClips, pkg.plan.footageIds);
+        }
         out.push(pkg);
         lastError = undefined;
         break;

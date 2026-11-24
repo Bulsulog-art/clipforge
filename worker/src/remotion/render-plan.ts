@@ -7,7 +7,7 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import { webpackOverride } from "./webpack-override.js";
 import { LIMITS, dimensions, sceneOffsets, stockQueries, totalSeconds } from "./scene-plan.js";
 import type { ScenePlan } from "./scene-plan.js";
-import { resolveStockClips } from "./stock.js";
+import { footageChoice, noteFootageIds, resolveStockClips, withoutFootageFields } from "./stock.js";
 import { stageBackgrounds } from "./backgrounds.js";
 import type { LogoStyle } from "./logo-style.js";
 import { renderTuning, type RenderTuning } from "./capacity.js";
@@ -107,6 +107,8 @@ export type RenderPlanArgs = {
   onProgress?: (fraction: number) => void;
   onWarn?: (message: string) => void;
   entryPoint?: string;
+  /** Injected in tests: the stock search and download. */
+  fetchImpl?: typeof fetch;
   /**
    * Extra directories local assets may be staged from. The OS temp dir (job
    * work dirs) and `workDir` are always allowed; anything else — a URL, a
@@ -122,6 +124,8 @@ export type RenderPlanResult = {
   height: number;
   /** Scenes that asked for footage and did not get any. */
   missingFootage: number;
+  /** The Pexels ids the video shows, in scene order (also noted for takeFootageIds, stock.ts). */
+  footageIds: number[];
   /** The finished file's loudness (and whether its audio was corrected); absent for a render without sound. */
   loudness?: LoudnessGuardResult;
 };
@@ -179,6 +183,16 @@ function toRenderableSrc(localPath: string, renderId: string): string {
   return `${renderId}/${path.basename(localPath)}`;
 }
 
+type FootageOptions = {
+  workDir: string;
+  userAssets: string[];
+  /** Names the staging subdirectory, which is also the staticFile() prefix. */
+  renderId?: string;
+  pexelsApiKey?: string;
+  fetchImpl?: typeof fetch;
+  onWarn?: (message: string) => void;
+};
+
 /**
  * Resolves what each footage scene should actually play.
  *
@@ -187,19 +201,23 @@ function toRenderableSrc(localPath: string, renderId: string): string {
  * no resolvable source are simply absent from the map, which the composition
  * treats as "draw the theme background instead".
  */
-export async function resolveFootage(
+export async function resolveFootage(plan: ScenePlan, opts: FootageOptions): Promise<Record<string, string>> {
+  return (await resolveFootageClips(plan, opts)).footage;
+}
+
+/**
+ * resolveFootage, plus the Pexels ids the scenes got (in scene order, each
+ * once). Which clip a query gets follows the plan's footage fields
+ * (stock.ts FootageFields): the clinic's rotation for the week, and the clips
+ * a stored video already showed. A plan without them gets the best-scored
+ * clip, as before.
+ */
+export async function resolveFootageClips(
   plan: ScenePlan,
-  opts: {
-    workDir: string;
-    userAssets: string[];
-    /** Names the staging subdirectory, which is also the staticFile() prefix. */
-    renderId?: string;
-    pexelsApiKey?: string;
-    fetchImpl?: typeof fetch;
-    onWarn?: (message: string) => void;
-  },
-): Promise<Record<string, string>> {
+  opts: FootageOptions,
+): Promise<{ footage: Record<string, string>; clipIds: number[] }> {
   const { width } = dimensions(plan);
+  const { rotation, keep } = footageChoice(plan);
   const renderId = opts.renderId ?? path.basename(opts.workDir);
 
   // Every distinct stock query, with the longest scene that uses it so the
@@ -221,15 +239,21 @@ export async function resolveFootage(
         targetWidth: width,
         fetchImpl: opts.fetchImpl,
         onWarn: opts.onWarn,
+        ...(rotation ? { rotation } : {}),
+        ...(keep ? { keep } : {}),
       })
     : new Map();
 
   const footage: Record<string, string> = {};
+  const clipIds: number[] = [];
   plan.scenes.forEach((scene, index) => {
     if (scene.kind !== "footage") return;
     if (scene.source.type === "stock") {
       const clip = stock.get(scene.source.query);
-      if (clip) footage[String(index)] = toRenderableSrc(clip.path, renderId);
+      if (clip) {
+        footage[String(index)] = toRenderableSrc(clip.path, renderId);
+        if (!clipIds.includes(clip.id)) clipIds.push(clip.id);
+      }
       return;
     }
     const asset = opts.userAssets[scene.source.assetIndex];
@@ -242,7 +266,7 @@ export async function resolveFootage(
     }
   });
 
-  return footage;
+  return { footage, clipIds };
 }
 
 export async function renderPlan(args: RenderPlanArgs): Promise<RenderPlanResult> {
@@ -307,11 +331,12 @@ async function renderStaged(
   const stagedMusic = await stageLocalAsset(musicSrc, { assetDir, renderId, roots, onWarn, what: "music" });
   const stagedLogo = await stageLocalAsset(logoSrc, { assetDir, renderId, roots, onWarn, what: "logo" });
 
-  const footage = await resolveFootage(plan, {
+  const { footage, clipIds } = await resolveFootageClips(plan, {
     workDir: assetDir,
     renderId,
     userAssets: stagedUserAssets,
     pexelsApiKey,
+    fetchImpl: args.fetchImpl,
     onWarn,
   });
 
@@ -326,8 +351,10 @@ async function renderStaged(
   // theme background beats a render that waits on an image that 404s.
   const backgroundSrcs = await stageBackgrounds(plan.backgrounds, { assetDir, renderId, onWarn });
 
+  // The footage fields only chose the clips; the composition draws nothing from them.
+  const shown = withoutFootageFields(filled.plan);
   const inputProps = {
-    plan: plan.backgrounds && !backgroundSrcs.length ? { ...filled.plan, backgrounds: undefined } : filled.plan,
+    plan: plan.backgrounds && !backgroundSrcs.length ? { ...shown, backgrounds: undefined } : shown,
     ...(backgroundSrcs.length ? { backgroundSrcs } : {}),
     footage: filled.footage,
     voiceoverSrc: stagedVoiceover,
@@ -387,12 +414,16 @@ async function renderStaged(
     }
   }
 
+  // For the week (week.ts takeFootageIds): its render callback returns only this file's path.
+  noteFootageIds(outputPath, clipIds);
+
   return {
     outputPath,
     durationSec: totalSeconds(plan),
     width: composition.width,
     height: composition.height,
     missingFootage,
+    footageIds: clipIds,
     ...(loudness ? { loudness } : {}),
   };
 }
