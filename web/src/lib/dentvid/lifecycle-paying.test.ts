@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { duePaying, lifecycleConfig, runPaying, supabaseLifecycleStore, type ClinicForMail, type LifecycleStore, type LogRow, type Sender, type WeekStats } from "./lifecycle";
 import { monthlyEmail, type MonthStats } from "./lifecycle-email";
 import { LIFECYCLE_COPY } from "@/content/dentvideo-lifecycle";
@@ -273,31 +273,37 @@ describe("monthly summary: posted X of Y approved", () => {
 type Row = Record<string, unknown>;
 type Filter = (r: Row) => boolean;
 
-/** A small stand-in for the PostgREST builder: eq / in / gte / lt / not-is-null, count + head. */
+/**
+ * A small stand-in for the PostgREST builder: eq / in / gte / lt / not-is-null, count + head.
+ * It answers as supabase-js does: a count comes back whenever one was asked for, and a failed
+ * HEAD request carries no body, so its error is { message: "" } with no code.
+ */
 function fakeDb(tables: Record<string, Row[]>, opts: { noPostedAt?: boolean; failPostedAt?: boolean; failEvents?: boolean } = {}) {
-  const calls: { table: string; filters: string[] }[] = [];
+  const calls: { table: string; filters: string[]; head: boolean }[] = [];
   const db = {
     from(table: string) {
       const filters: Filter[] = [];
       const seen: string[] = [];
       let head = false;
+      let counted = false;
       const col = (k: string) => {
         seen.push(k);
       };
       const q = {
-        select: (_cols: string, o?: { count?: string; head?: boolean }) => ((head = !!o?.head), q),
+        select: (_cols: string, o?: { count?: string; head?: boolean }) => ((head = !!o?.head), (counted = !!o?.count), q),
         eq: (k: string, v: unknown) => (col(`${k}=${v}`), filters.push((r) => r[k] === v), q),
         in: (k: string, vs: unknown[]) => (col(`${k} in`), filters.push((r) => vs.includes(r[k])), q),
         gte: (k: string, v: string) => (col(`${k}>=`), filters.push((r) => String(r[k]) >= v), q),
         lt: (k: string, v: string) => (col(`${k}<`), filters.push((r) => String(r[k]) < v), q),
         not: (k: string, op: string, v: unknown) => (col(`${k} not ${op} ${v}`), filters.push((r) => r[k] !== null && r[k] !== undefined), q),
         then(resolve: (v: unknown) => void) {
-          calls.push({ table, filters: seen });
-          if (opts.noPostedAt && seen.some((f) => f.startsWith("posted_at"))) return resolve({ data: null, count: null, error: { code: "42703", message: "column dentvid_items.posted_at does not exist" } });
-          if (opts.failPostedAt && seen.some((f) => f.startsWith("posted_at"))) return resolve({ data: null, count: null, error: { code: "57014", message: "canceling statement due to statement timeout" } });
-          if (opts.failEvents && table === "dentvid_events") return resolve({ data: null, count: null, error: { code: "42P01", message: "relation dentvid_events does not exist" } });
+          calls.push({ table, filters: seen, head });
+          const fail = (error: { code: string; message: string }) => resolve({ data: null, count: null, error: head ? { message: "" } : error });
+          if (opts.noPostedAt && seen.some((f) => f.startsWith("posted_at"))) return fail({ code: "42703", message: "column dentvid_items.posted_at does not exist" });
+          if (opts.failPostedAt && seen.some((f) => f.startsWith("posted_at"))) return fail({ code: "57014", message: "canceling statement due to statement timeout" });
+          if (opts.failEvents && table === "dentvid_events") return fail({ code: "42P01", message: "relation dentvid_events does not exist" });
           const rows = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
-          return resolve(head ? { data: null, count: rows.length, error: null } : { data: rows, count: null, error: null });
+          return resolve({ data: head ? null : rows, count: counted ? rows.length : null, error: null });
         },
       };
       return q;
@@ -391,5 +397,81 @@ describe("supabaseLifecycleStore: what went out", () => {
     expect(m).toBeNull();
     expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();
+  });
+
+  it("the posted counts are GETs: a failed HEAD has no body, so a missing column could not be told from a failed read", async () => {
+    const { db, calls } = fakeDb({ dentvid_items: [item(1)], dentvid_events: [] });
+    await supabaseLifecycleStore(db).weekStats!(C, "2026-11-09");
+    await supabaseLifecycleStore(db).monthStats!(C, new Date(Date.UTC(2026, 9, 1)), new Date(Date.UTC(2026, 10, 1)));
+    const postedReads = calls.filter((c) => c.filters.some((f) => f.startsWith("posted_at")));
+    expect(postedReads).toHaveLength(2);
+    for (const c of postedReads) expect(c.head).toBe(false);
+  });
+});
+
+/**
+ * PostgREST without 0012, behind the real supabase-js client: a query that
+ * names posted_at is a 400 with the 42703 body, and, as on any server, a
+ * HEAD answer carries no body.
+ */
+function postgrestWithout0012(rows: Row[]) {
+  const seen: string[] = [];
+  const fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+    seen.push(`${method} ${url.pathname}`);
+    const reply = (status: number, body: unknown, range: string | null) =>
+      new Response(method === "HEAD" ? null : JSON.stringify(body), { status, headers: { "content-type": "application/json", ...(range ? { "content-range": range } : {}) } });
+    if (url.searchParams.has("posted_at")) return reply(400, { code: "42703", details: null, hint: null, message: "column dentvid_items.posted_at does not exist" }, null);
+    if (url.pathname.endsWith("/dentvid_events")) return reply(200, [], "*/0");
+    return reply(200, rows, `0-${rows.length - 1}/${rows.length}`);
+  };
+  const db = createClient("http://postgrest.test", "anon-key", { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch } });
+  return { db, seen };
+}
+
+describe("supabaseLifecycleStore before 0012, through supabase-js", () => {
+  const C = id(1);
+  const rows = [
+    { approval: "approved", created_at: "2026-11-09T06:00:00Z" },
+    { approval: "approved", created_at: "2026-11-09T06:00:00Z" },
+    { approval: "pending", created_at: "2026-11-09T06:00:00Z" },
+  ];
+
+  it("the stand-in answers like the real thing: the same failure is 42703 on a GET and a bare { message: '' } on a HEAD", async () => {
+    const { db } = postgrestWithout0012(rows);
+    const get = await db.from("dentvid_items").select("id", { count: "exact" }).not("posted_at", "is", null);
+    expect(get.error).toMatchObject({ code: "42703" });
+    const head = await db.from("dentvid_items").select("id", { count: "exact", head: true }).not("posted_at", "is", null);
+    expect(head.error).toEqual({ message: "" });
+  });
+
+  it("weekStats reads posted as none (nothing can have been ticked), so the Thursday nudge still goes out when nothing was shared", async () => {
+    const { db, seen } = postgrestWithout0012(rows);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const w = await supabaseLifecycleStore(db).weekStats!(C, "2026-11-09");
+    expect(w).toEqual({ approved: 2, pending: 1, shared: 0, posted: 0, firstReadyAt: "2026-11-09T06:00:00Z" });
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+    expect(seen.filter((r) => r.startsWith("HEAD") && r.endsWith("/dentvid_items"))).toEqual([]);
+    const m = memory([clinic(1)], { shared: w.shared, posted: w.posted });
+    const { send, sent } = sender();
+    const r = await runPaying({ store: m.store, send, allow: async () => true, now: THU, config: cfg() });
+    expect(r.skipped).toEqual({});
+    expect(sent).toHaveLength(1);
+  });
+
+  it("monthStats gives the two numbers it knows, and the monthly summary goes out with them", async () => {
+    const { db } = postgrestWithout0012(rows);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const month = await supabaseLifecycleStore(db).monthStats!(C, new Date(Date.UTC(2026, 9, 1)), new Date(Date.UTC(2026, 10, 1)));
+    expect(month).toEqual({ made: 3, approved: 2, posted: null, shared: 0 });
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+    const m = memory([clinic(1)], {}, month);
+    const { send, sent } = sender();
+    await runPaying({ store: m.store, send, allow: async () => true, now: MON, config: cfg() });
+    expect(sent).toHaveLength(1);
+    expect(sent[0].html).toContain(LIFECYCLE_COPY.tr.monthly.preheaderMadeApproved);
   });
 });

@@ -660,10 +660,11 @@ export function supabaseLifecycleStore(db: SupabaseClient): LifecycleStore {
       const since = new Date(Date.parse(`${week}T00:00:00Z`) - 2 * 24 * H).toISOString();
       const { count, error } = await db.from("dentvid_events").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId).eq("name", "video_shared").gte("created_at", since);
       // Ticked as posted, in the app or on the email's post page: the surest sign the week went out.
+      // A GET, not HEAD (see postedCount): at most the week's five rows.
       const posted = await postedCount(
         db
           .from("dentvid_items")
-          .select("id", { count: "exact", head: true })
+          .select("id", { count: "exact" })
           .eq("clinic_id", clinicId)
           .eq("week_of", week)
           .eq("kind", "generated")
@@ -699,10 +700,11 @@ export function supabaseLifecycleStore(db: SupabaseClient): LifecycleStore {
         .gte("created_at", from.toISOString())
         .lt("created_at", to.toISOString());
       // One per video (a row is a video), and only approved ones: "posted X of Y approved" can never pass Y.
+      // A GET, not HEAD (see postedCount): at most the month's twenty-odd rows.
       const posted = await postedCount(
         db
           .from("dentvid_items")
-          .select("id", { count: "exact", head: true })
+          .select("id", { count: "exact" })
           .eq("clinic_id", clinicId)
           .eq("kind", "generated")
           .in("status", ["ready", "flagged"])
@@ -724,10 +726,15 @@ export function supabaseLifecycleStore(db: SupabaseClient): LifecycleStore {
  * How many videos a posted_at count found. "missing": 0012 is not applied, so
  * no video can have been ticked. "failed": the read went wrong, the number is
  * unknown (never taken as none).
+ *
+ * The query must be a GET. PostgREST names a missing column in the error's
+ * body (42703), and a HEAD answer has no body: supabase-js then reports
+ * { message: "" }, which cannot be told apart from any other failure, so
+ * every clinic would read as "unknown" until 0012 is applied.
  */
-async function postedCount(query: PromiseLike<{ count: number | null; error: PgError }>): Promise<number | "missing" | "failed"> {
-  const { count, error } = await query;
-  if (!error) return count ?? 0;
+async function postedCount(query: PromiseLike<{ data: unknown[] | null; count: number | null; error: PgError }>): Promise<number | "missing" | "failed"> {
+  const { data, count, error } = await query;
+  if (!error) return count ?? data?.length ?? 0;
   if (isMissingColumn(error, "posted_at")) return "missing";
   console.warn("[dentvideo lifecycle] posted count failed", error.message);
   return "failed";

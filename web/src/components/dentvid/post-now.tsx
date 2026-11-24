@@ -57,11 +57,24 @@ export function postControls(s: PostState): { ask: boolean; tick: boolean; done:
 
 export type PostCall = (action: "approve" | "posted" | "shared", extra?: Record<string, unknown>) => Promise<boolean>;
 
-/** The page's calls to /api/dentvideo/post: true when the server took it. keepalive, so a share sheet taking the page away does not drop it. */
+/**
+ * The page's calls to /api/dentvideo/post: true when the server took it.
+ * keepalive, so a share sheet taking the page away does not drop it.
+ *
+ * A tick answered with `stored: false` was not kept (the database has no
+ * posted_at yet): the page must not say "Marked as posted" for it, so it
+ * counts as not taken. For "shared", `stored: false` only means the video
+ * was counted already, which is fine.
+ */
 export function postCaller(endpoint: string, token: string, itemId: string, send: typeof fetch = (...a) => fetch(...a)): PostCall {
   return (action, extra = {}) =>
     send(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ t: token, v: itemId, action, ...extra }), keepalive: true })
-      .then((r) => r.ok)
+      .then(async (r) => {
+        if (!r.ok) return false;
+        if (action !== "posted") return true;
+        const body = (await r.json().catch(() => null)) as { stored?: unknown } | null;
+        return body?.stored !== false;
+      })
       .catch(() => false);
 }
 

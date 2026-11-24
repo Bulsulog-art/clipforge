@@ -165,4 +165,43 @@ describe("the page's calls", () => {
     const down = postCaller("/api/dentvideo/post", "t", "v", (async () => Promise.reject(new TypeError("offline"))) as unknown as typeof fetch);
     expect(await down("posted", { on: true })).toBe(false);
   });
+
+  it("a tick the server answered with stored: false was not kept, so it is not taken; for a share it only means counted already", async () => {
+    let reply: unknown = { ok: true, stored: false };
+    const send = (async () => new Response(JSON.stringify(reply), { status: 200 })) as unknown as typeof fetch;
+    const call = postCaller("/api/dentvideo/post", "t", "v", send);
+    expect(await call("posted", { on: true })).toBe(false);
+    expect(await call("shared", { method: "share" })).toBe(true);
+    reply = { ok: true, stored: true };
+    expect(await call("posted", { on: true })).toBe(true);
+    reply = { ok: true };
+    expect(await call("approve")).toBe(true);
+    // A 2xx whose body cannot be read is still the server's yes.
+    const garbled = postCaller("/api/dentvideo/post", "t", "v", (async () => new Response("<html>", { status: 200 })) as unknown as typeof fetch);
+    expect(await garbled("posted", { on: true })).toBe(true);
+  });
+
+  it("'Posted it?' answered with stored: false: no thank-you, the tick undone with 'That didn't save', the question still there", async () => {
+    const send = (async (_url: string | URL | Request, init?: RequestInit) => {
+      const action = JSON.parse(String(init?.body)).action;
+      return new Response(JSON.stringify(action === "posted" ? { ok: true, stored: false } : { ok: true, stored: true }), { status: 200 });
+    }) as unknown as typeof fetch;
+    let state: PostState = { approval: "approved", posted: false, asked: false, marked: false, error: null };
+    const actions = postActions({
+      get: () => state,
+      set: (patch) => {
+        state = { ...state, ...patch };
+      },
+      run: async () => "share",
+      call: postCaller("/api/dentvideo/post", "t", "v", send),
+      device: () => "mobile",
+      internal: () => false,
+      failed: FAILED,
+    });
+    await actions.tap();
+    expect(postControls(state).ask).toBe(true);
+    await actions.yes();
+    expect(state).toMatchObject({ posted: false, marked: false, error: FAILED });
+    expect(postControls(state)).toEqual({ ask: true, tick: false, done: false });
+  });
 });
