@@ -7,6 +7,7 @@ import { backgroundCss, fitText, fitsOneLine, leading, readableOn, safeFrame, tr
 import { PHRASE_BREAK, emphasisRuns, layoutUnits, visualLength } from "../script";
 import { entrance, highlightStarts, sweep, wordsVisible } from "../animation";
 import { usePhotoBackdrop } from "../background-layer";
+import { photoPlate, scrimBox, scrimCss, scrimInsets } from "../photo-overlay";
 
 /**
  * The pieces every scene is built from.
@@ -45,35 +46,82 @@ export function safePadding(f: SafeFrame): React.CSSProperties {
   return { paddingTop: f.top, paddingBottom: f.bottom, paddingInlineStart: f.start, paddingInlineEnd: f.end };
 }
 
-export const Backdrop: React.FC<{ theme: Theme; children: React.ReactNode }> = ({
-  theme,
-  children,
-}) => {
+export const Backdrop: React.FC<{
+  theme: Theme;
+  children: React.ReactNode;
+  /** Space kept free under the text block, px (the sign-off makes room for a market's notice). */
+  lift?: number;
+}> = ({ theme, children, lift = 0 }) => {
   const scale = useScale();
   const safe = useSafeArea(theme);
-  // Over background photos the frame stays see-through; the photo layer
-  // (background-layer.tsx) brings its own contrast-safe tint.
+  const { width } = useVideoConfig();
+  // Over background photos the frame stays see-through: the photo layer
+  // (background-layer.tsx) brings a light wash, and the plate drawn here
+  // behind the text block brings the contrast (photo-overlay.ts).
   const photo = usePhotoBackdrop();
   return (
     <AbsoluteFill style={{ background: photo ? "transparent" : backgroundCss(theme) }}>
-      {/* A soft light source keeps the flat gradient from reading as a solid fill. */}
-      <AbsoluteFill
-        style={{
-          background: `radial-gradient(120% 80% at 50% 0%, ${theme.accent}22 0%, transparent 60%)`,
-        }}
-      />
+      {/* A soft light source keeps the flat gradient from reading as a solid fill. A photo needs no help, and over one it would be a layer the contrast sums leave out. */}
+      {photo ? null : (
+        <AbsoluteFill
+          style={{
+            background: `radial-gradient(120% 80% at 50% 0%, ${theme.accent}22 0%, transparent 60%)`,
+          }}
+        />
+      )}
       <AbsoluteFill
         style={{
           ...safePadding(safe),
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          gap: 28 * scale,
         }}
       >
-        {children}
+        {/* The text block. Its own stacking context, so the plate sits under the text and over nothing else. */}
+        <div
+          style={{
+            position: "relative",
+            isolation: "isolate",
+            display: "flex",
+            flexDirection: "column",
+            gap: 28 * scale,
+            marginBottom: lift,
+          }}
+        >
+          {photo ? <TextScrim theme={theme} width={width} scale={scale} /> : null}
+          {children}
+        </div>
       </AbsoluteFill>
     </AbsoluteFill>
+  );
+};
+
+/**
+ * The plate behind a text block over photos: the brand's deep colour at the
+ * opacity photo-overlay.ts worked out, solid over the block plus a margin
+ * and fading out beyond it, so the photo stays bright everywhere else. It is
+ * placed against the text column (scrimBox), which in an Arabic frame starts
+ * on the right.
+ */
+const TextScrim: React.FC<{ theme: Theme; width: number; scale: number }> = ({ theme, width, scale }) => {
+  const rtl = theme.script === "arabic";
+  const box = scrimBox(width, useSafeArea(theme), rtl, scale);
+  // `theme` is the photo variant (Video.tsx): the plate is worked out for the colours drawn on it.
+  const color = scrimCss(photoPlate(theme));
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        zIndex: -1,
+        // Physical sides, measured from the text column this block fills.
+        ...scrimInsets(box),
+        borderRadius: box.radius,
+        background: color,
+        boxShadow: `0 0 ${box.feather}px ${box.feather}px ${color}`,
+        pointerEvents: "none",
+      }}
+    />
   );
 };
 
