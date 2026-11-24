@@ -90,7 +90,7 @@ beforeEach(() => {
   liman.opts.project = true;
   liman.tables.set("dentvid_clinics", [{ id: CLINIC, owner_id: OWNER, plan: "active", plan_tier: "starter", profile: { name: "Smile", country: "US", language: "en", services: ["Whitening", "Implants"] }, logo_path: null }]);
   liman.tables.set("dentvid_items", [
-    past("Implants are not for us", "2026-11-02", { service: "Implants", approval: "rejected", approval_note: "[notUs] We refer implants out.\u0007 See https://example.com/why" }),
+    past("Implants are not for us", "2026-11-02", { service: "Implants", approval: "rejected", approval_note: "[notUs] We refer implants out.\u0007 See https://example.com/why", updated_at: "2026-11-04T12:00:00Z" }),
     past("Whitening and coffee", "2026-10-26", { approval: "approved", posted_at: "2026-10-28T09:00:00Z" }),
     past("Floss or water flosser", "2026-10-26", { approval: "approved", plan: null }),
     past("Undone decline", "2026-10-19", { approval: "pending", approval_note: "[wrong] kept after an undo" }),
@@ -114,7 +114,7 @@ describe("the week job's history carries the dentist's decisions", () => {
     const h = historyOf(0);
     expect(h.map((x) => x.title)).toEqual(["Undone decline", "Whitening and coffee", "Floss or water flosser", "Implants are not for us"]);
     const by = (t: string) => h.find((x) => x.title === t)!;
-    expect(by("Implants are not for us")).toMatchObject({ service: "Implants", weekOf: "2026-11-02", decision: "rejected", reason: "notUs", note: "We refer implants out. See", backgrounds: [BG("07")] });
+    expect(by("Implants are not for us")).toMatchObject({ service: "Implants", weekOf: "2026-11-02", decision: "rejected", decidedAt: "2026-11-04T12:00:00Z", reason: "notUs", note: "We refer implants out. See", backgrounds: [BG("07")] });
     expect(by("Implants are not for us").posted).toBeUndefined();
     expect(by("Whitening and coffee")).toMatchObject({ decision: "approved", posted: true, backgrounds: [BG("07")] });
     // A plan without photos, and a decision undone: nothing made up.
@@ -140,8 +140,22 @@ describe("the week job's history carries the dentist's decisions", () => {
     expect(topup.find((x) => x.title === "Implants are not for us")).toMatchObject({ decision: "rejected", reason: "notUs" });
   });
 
-  it("a database without posted_at (0012) still plans the week with the history it has", async () => {
+  it("a database without posted_at (0012) still learns from the dentist's decisions", async () => {
     liman.opts.missingColumns = { dentvid_items: ["posted_at"] };
+    week(["a", "b", "c", "d", "e"]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2026-11-09" }, { attempts: 4 });
+    expect(r.ready).toBe(5);
+    const h = historyOf(0);
+    expect(h.map((x) => x.title)).toEqual(["Undone decline", "Whitening and coffee", "Floss or water flosser", "Implants are not for us"]);
+    // Only the posted tick is missing: decisions, reasons, words and photos still arrive.
+    expect(h.find((x) => x.title === "Implants are not for us")).toMatchObject({ decision: "rejected", reason: "notUs", note: "We refer implants out. See", backgrounds: [BG("07")] });
+    expect(h.find((x) => x.title === "Whitening and coffee")).toMatchObject({ decision: "approved" });
+    expect(h.some((x) => x.posted)).toBe(false);
+    expect(JSON.stringify(h)).not.toMatch(/other clinic/);
+  });
+
+  it("if the decisions cannot be read either, the week is planned with the bare history", async () => {
+    liman.opts.missingColumns = { dentvid_items: ["posted_at", "approval_note"] };
     week(["a", "b", "c", "d", "e"]);
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week: "2026-11-09" }, { attempts: 4 });
     expect(r.ready).toBe(5);
@@ -150,5 +164,6 @@ describe("the week job's history carries the dentist's decisions", () => {
     // Read with the columns every database has: titles, hooks, services and weeks, no decisions.
     expect(h.find((x) => x.title === "Implants are not for us")).toEqual({ title: "Implants are not for us", hook: "Implants are not for us hook", service: "Implants", pillar: "myth", question: "Implants are not for us?", weekOf: "2026-11-02" });
     expect(h.some((x) => x.decision || x.posted || x.backgrounds)).toBe(false);
+    expect(JSON.stringify(h)).not.toMatch(/other clinic/);
   });
 });

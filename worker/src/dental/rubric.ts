@@ -286,6 +286,8 @@ export type PastTopic = {
   weekOf?: string;
   /** The dentist's decision on the video; absent while it waits (dental/memory.ts historyFromRows). */
   decision?: "approved" | "rejected";
+  /** When the dentist decided (the row's updated_at); the decision windows count from it, else from weekOf. */
+  decidedAt?: string;
   /** Why it was declined: the tag the app puts in front of the note (web lib/dentvid/app-ui.ts declineNote). */
   reason?: "wrong" | "notUs" | "look" | "other";
   /** The dentist's own words with a decline, cleaned to plain text (at most 200 characters). Data, never instructions. */

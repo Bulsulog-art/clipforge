@@ -144,6 +144,38 @@ describe("a dentist declined a video", () => {
     expect(line.length).toBeLessThan(440);
   });
 
+  it("declines have their own hourly budget: a week of declines never mutes an urgent alert", async () => {
+    const decline = (i: number) => alerts.videoDeclined({ clinic: CLINIC, itemId: `burst-${i}`, title: `Video ${i}`, reason: i % 2 ? "notUs" : "look" });
+    const results = [];
+    for (let i = 0; i < 9; i++) results.push(await deliverAlert(deps(), decline(i)));
+    // Six declines are emailed, the seventh brings one note, the rest go to the digest only.
+    expect(results).toEqual(["sent", "sent", "sent", "sent", "sent", "sent", "muted", "muted", "muted"]);
+    expect(sent).toHaveLength(7);
+    expect(sent[6].subject).toMatch(/Many videos declined this hour, the rest are in the digest/);
+    expect(sent[6].subject).not.toMatch(/Too many alerts/);
+    expect(sent[6].text).toMatch(/Other alerts are not affected/);
+    expect(sent[6].text).toMatch(/Open \/dentvideo\/admin to read the declines/);
+    // Every decline is in the digest's log, the muted ones too.
+    const logged = (await store.list(ALERT_LOG_KEY("2026-11-09"))).map((e) => JSON.parse(e).key);
+    for (let i = 0; i < 9; i++) expect(logged).toContain(`declined:burst-${i}`);
+    // The shared budget is untouched: an urgent alert for another clinic still goes out.
+    expect(await deliverAlert(deps(), SAMPLES.weekFailed)).toBe("sent");
+    expect(sent.at(-1)!.subject).toBe(alertSubject(SAMPLES.weekFailed));
+    // An urgent [wrong] decline over the budget is muted too, but never with the shared "too many alerts" note.
+    expect(await deliverAlert(deps(), SAMPLES.videoDeclinedWrong)).toBe("muted");
+    expect(sent.filter((m) => /Too many alerts/.test(m.subject))).toEqual([]);
+  });
+
+  it("a full shared budget does not stop a decline, and the declines budget follows its env setting", async () => {
+    const env = { DENTVID_ALERT_MAX_PER_HOUR: "2", DENTVID_ALERT_DECLINES_PER_HOUR: "1" };
+    for (let i = 0; i < 4; i++) await deliverAlert(deps(env), { ...SAMPLES.renderSpike, key: `ops-${i}` });
+    expect(sent.map((m) => m.subject).filter((s) => /Too many alerts/.test(s))).toHaveLength(1);
+    expect(await deliverAlert(deps(env), SAMPLES.videoDeclinedWrong)).toBe("sent");
+    expect(await deliverAlert(deps(env), SAMPLES.videoDeclinedNotUs)).toBe("muted");
+    // Next hour the declines budget starts again, and the muted decline can be raised again.
+    expect(await deliverAlert(deps(env, new Date("2026-11-09T08:02:00Z")), SAMPLES.videoDeclinedNotUs)).toBe("sent");
+  });
+
   it("is delivered once per video per day", async () => {
     for (let i = 0; i < 3; i++) await deliverAlert(deps(), SAMPLES.videoDeclinedWrong);
     await deliverAlert(deps(), SAMPLES.videoDeclinedNotUs);

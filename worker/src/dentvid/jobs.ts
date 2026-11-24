@@ -499,17 +499,23 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     // lately, recent hooks and their shapes — dental/memory.ts). Before, only
     // titles were read (in no particular order), so the memory saw no hooks,
     // services or dates at all. The dentist's decisions come along (approval,
-    // the decline note, the posted tick) so the planner learns from them, and
-    // the plan's photos for the week's variety. A database without posted_at
-    // (0012) falls back to the columns every database has: a week is never
-    // planned without its history.
+    // the decline note, when it was decided, the posted tick) so the planner
+    // learns from them, and the plan's photos for the week's variety. A
+    // database without posted_at (0012) still reads the decisions (0001);
+    // only if that fails too does it fall back to the bare columns: a week is
+    // never planned without its history.
     const pastQuery = (cols: string) => db.from("dentvid_items").select(cols).eq("clinic_id", job.clinicId).order("week_of", { ascending: false }).limit(200);
-    const read = await pastQuery("title, topic, week_of, status, approval, approval_note, posted_at, backgrounds:plan->backgrounds");
-    let past = read.data;
+    const DECIDED = "title, topic, week_of, status, approval, approval_note, updated_at, backgrounds:plan->backgrounds";
+    let read = await pastQuery(`${DECIDED}, posted_at`);
+    if (read.error) {
+      logger.warn({ clinicId: job.clinicId, err: read.error.message }, "dentvid: history without the posted tick");
+      read = await pastQuery(DECIDED);
+    }
     if (read.error) {
       logger.warn({ clinicId: job.clinicId, err: read.error.message }, "dentvid: history without the dentist's decisions");
-      past = (await pastQuery("title, topic, week_of, status")).data;
+      read = await pastQuery("title, topic, week_of, status");
     }
+    const past = read.data;
     const pastRows = (past ?? []) as PastItemRow[];
     const history = historyFromRows(pastRows);
     const ids = { clinicId: job.clinicId, ownerId };

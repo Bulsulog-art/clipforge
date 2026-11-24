@@ -24,7 +24,6 @@
  */
 import { hookShape } from "./style.js";
 import { similarity, type PastTopic } from "./rubric.js";
-import { clinicProfileSchema } from "./profile.js";
 import { BACKGROUND_PATH } from "../remotion/scene-plan.js";
 
 export type { PastTopic };
@@ -35,6 +34,15 @@ const DAY = 86_400_000;
 const DECISION_DAYS = 56;
 
 const withinDays = (h: PastTopic, days: number, now: Date) => !h.weekOf || now.getTime() - Date.parse(h.weekOf) <= days * DAY;
+/**
+ * A decision's own window counts from when the dentist made it (a backlog
+ * declined today is today's decline), and from the video's week when the
+ * row has no decision time.
+ */
+const decidedWithin = (h: PastTopic, days: number, now: Date) => {
+  const at = h.decidedAt ? Date.parse(h.decidedAt) : NaN;
+  return Number.isNaN(at) ? withinDays(h, days, now) : now.getTime() - at <= days * DAY;
+};
 const declined = (h: PastTopic) => h.decision === "rejected";
 
 export type ClinicMemory = {
@@ -62,12 +70,12 @@ export function clinicMemory(history: PastTopic[], now: Date = new Date()): Clin
 
 /**
  * Services the dentist declined as "not a topic for our clinic" ([notUs])
- * within `days`, with how many times: lower-cased service → count.
+ * within `days` of the decision, with how many times: lower-cased service → count.
  */
 export function notUsDeclines(history: PastTopic[], now: Date = new Date(), days = 28): Map<string, number> {
   const out = new Map<string, number>();
   for (const h of history) {
-    if (!declined(h) || h.reason !== "notUs" || !h.service || !withinDays(h, days, now)) continue;
+    if (!declined(h) || h.reason !== "notUs" || !h.service || !decidedWithin(h, days, now)) continue;
     const k = h.service.toLowerCase().trim();
     out.set(k, (out.get(k) ?? 0) + 1);
   }
@@ -97,7 +105,7 @@ export function memoryBrief(history: PastTopic[], services: string[], now: Date 
   if (top && top[1] >= 3) lines.push(`Recent hooks leaned on the "${top[0]}" shape; use other shapes this week.`);
   // What the dentist decided lately. Nothing here without decision data, so a
   // history without it gives exactly the brief above.
-  const lately = history.filter((h) => withinDays(h, DECISION_DAYS, now));
+  const lately = history.filter((h) => decidedWithin(h, DECISION_DAYS, now));
   const no = lately.filter(declined).slice(-12);
   if (no.length) {
     const list = no.map((h) => [h.title, h.reason ? `[${h.reason}]` : "", h.note ? quoted(h.note) : ""].filter(Boolean).join(" "));
@@ -171,6 +179,8 @@ export type PastItemRow = {
   approval?: unknown;
   approval_note?: unknown;
   posted_at?: unknown;
+  /** Set with every decision (web handlers/item-patch.ts), so for a decided row it is when the dentist decided. */
+  updated_at?: unknown;
   backgrounds?: unknown;
 };
 
@@ -183,36 +193,82 @@ const TAG = /^\s*\[(wrong|notUs|look|other)\]\s*/;
 /** The longest a dentist's note may be when it reaches a prompt. */
 export const NOTE_MAX = 200;
 
-// Control characters (the C0 set and DEL, the C1 set, line/paragraph separators, and the
-// invisible direction overrides that can make quoted text read differently), turned into spaces.
-const CONTROLS = /[\u0000-\u001f\u007f-\u009f\u200e\u200f\u2028-\u202e\u2066-\u2069\ufeff]/g;
-/** A word that is, or carries, a link: a scheme, "www.", a host with a path, or a host ending in a common top-level domain. */
-const LINKISH = /:\/\/|^(?:https?|ftp|file|data|javascript|mailto|tel):|^www\.|^[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)+\/|\.(?:com|net|org|info|io|co|app|dev|me|ly|eu|de|tr|fr|es|it|pt|pl|ae|jp|uk|us)(?:[/?#:]|[.,;!?)]*$)/iu;
 /**
- * Profile free text's own plain-text check (dental/profile.ts): no control
- * characters, nothing that looks like a URL or a file path. The schema keeps
- * the check private, so it is borrowed through an optional field that refuses
- * anything else (city: at most 60 characters, which every real word fits).
+ * Characters that never belong in quoted words. Control characters, line and
+ * paragraph separators and the zero-width space become spaces. Invisible
+ * format characters are removed: direction overrides and marks that make
+ * quoted text read differently, zero-width joiners, the soft hyphen, and the
+ * Unicode tag characters that can carry hidden text a person never sees
+ * (U+E0000 to U+E007F). Private-use characters and lone surrogate halves go too.
  */
-const profilePlain = (word: string) => clinicProfileSchema.shape.city.parse(word) !== undefined;
+const SPACE_LIKE = /[\p{Cc}\p{Zl}\p{Zp}\u200b]/gu;
+const INVISIBLE = /[\p{Cf}\p{Co}\p{Cs}]/gu;
+const TLDS = "com|net|org|info|io|co|app|dev|me|ly|eu|de|tr|fr|es|it|pt|pl|ae|jp|uk|us";
+/** A word that is, or carries, a link: a scheme, "www.", a host with a path, or a host ending in a common top-level domain. */
+const LINKISH = new RegExp(
+  `:\\/\\/|^(?:https?|ftp|file|data|javascript|mailto|tel):|^www\\.|^[\\p{L}\\p{N}-]+(?:\\.[\\p{L}\\p{N}-]+)+\\/|\\.(?:${TLDS})(?:[/?#:]|[.,;!?)]*$)`,
+  "iu",
+);
+/**
+ * A link inside a run of text with no spaces (Japanese is written without
+ * them: "example.comをご覧ください"): a scheme URL, "www." or an ASCII host
+ * ending in a common top-level domain, with its path. Cut out of the word,
+ * so the words around it stay.
+ */
+const LINK_IN_RUN = new RegExp(`[a-z][a-z0-9+.-]*:\\/\\/[\\x21-\\x7e]*|www\\.[\\x21-\\x7e]*|(?:[a-z0-9-]+\\.)+(?:${TLDS})(?![a-z0-9-])(?:[/?#:][\\x21-\\x7e]*)?`, "gi");
+/**
+ * Profile free text's own plain-text rule (dental/profile.ts NO_URL, copied
+ * here because that module keeps it private): nothing that looks like a URL
+ * scheme or a file path. Its CONTROL rule is a subset of SPACE_LIKE above,
+ * which has already run. Checked per word and with no length cap: a Japanese
+ * sentence is one "word", and NOTE_MAX does the cutting.
+ */
+const NO_URL = /(:\/\/|^\s*(file|data|javascript):|^\s*[/~\\]|\.\.[/\\])/i;
+/** A letter of a script other than Latin: what a run written without spaces (Japanese) is made of. */
+const NON_LATIN_LETTER = /(?!\p{Script=Latin})\p{L}/u;
+
+/**
+ * One word of the note, without links. A plain word stays as typed. A word
+ * that is, or carries, a link or a path goes whole, unless it is a run of
+ * text written without spaces: then only the link is cut out and the words
+ * around it stay.
+ */
+function plainWord(w: string): string {
+  const rest = w.replace(LINK_IN_RUN, "");
+  if (rest === w && !LINKISH.test(w) && !NO_URL.test(w)) return w;
+  return NON_LATIN_LETTER.test(rest) && !LINKISH.test(rest) && !NO_URL.test(rest) ? rest : "";
+}
+
+/** At most `max` UTF-16 units, cut between characters (never inside an emoji's surrogate pair), with "…" when cut. */
+function cutNote(s: string, max: number): string {
+  if (s.length <= max) return s;
+  let out = "";
+  for (const ch of s) {
+    if (out.length + ch.length > max - 1) break;
+    out += ch;
+  }
+  return `${out.trimEnd()}…`;
+}
 
 /**
  * The reason tag and the dentist's words of a decline note ("[notUs] we don't
  * do implants"), the format the app's declineNote writes. The words are
- * cleaned to plain text: control characters become spaces, a word that is a
- * link or a path is left out, whitespace is collapsed, and the result is cut
- * at NOTE_MAX characters. A tag the app never writes is left in the words.
+ * cleaned to plain text: control characters become spaces, invisible format
+ * characters are removed, a word that is a link or a path is left out, a link
+ * inside a word is cut out of it, whitespace is collapsed, and the result is
+ * cut at NOTE_MAX characters. A tag the app never writes is left in the words.
  */
 export function parseDeclineNote(raw: unknown): { reason?: DeclineTag; note?: string } {
   if (typeof raw !== "string") return {};
   const m = TAG.exec(raw);
   const reason = m?.[1] as DeclineTag | undefined;
   const words = (m ? raw.slice(m[0].length) : raw)
-    .replace(CONTROLS, " ")
+    .replace(SPACE_LIKE, " ")
+    .replace(INVISIBLE, "")
     .split(/\s+/)
-    .filter((w) => w && !LINKISH.test(w) && profilePlain(w));
-  let note = words.join(" ");
-  if (note.length > NOTE_MAX) note = `${note.slice(0, NOTE_MAX - 1).trimEnd()}…`;
+    .map(plainWord)
+    .filter(Boolean);
+  const note = cutNote(words.join(" "), NOTE_MAX);
   return { ...(reason ? { reason } : {}), ...(note ? { note } : {}) };
 }
 
@@ -253,6 +309,7 @@ export function historyFromRows(rows: PastItemRow[]): PastTopic[] {
     const pillar = str(t.pillar, 40);
     const question = str(t.question);
     const decision = r.approval === "approved" || r.approval === "rejected" ? r.approval : undefined;
+    const decidedAt = decision ? str(r.updated_at, 40) : undefined;
     const { reason, note } = decision === "rejected" ? parseDeclineNote(r.approval_note) : {};
     const posted = typeof r.posted_at === "string" && r.posted_at.trim() !== "";
     const backgrounds = backgroundsOf(r.backgrounds);
@@ -264,6 +321,7 @@ export function historyFromRows(rows: PastItemRow[]): PastTopic[] {
       ...(question ? { question } : {}),
       ...(weekOf && !Number.isNaN(Date.parse(weekOf)) ? { weekOf } : {}),
       ...(decision ? { decision } : {}),
+      ...(decidedAt && !Number.isNaN(Date.parse(decidedAt)) ? { decidedAt } : {}),
       ...(reason ? { reason } : {}),
       ...(note ? { note } : {}),
       ...(posted ? { posted } : {}),
