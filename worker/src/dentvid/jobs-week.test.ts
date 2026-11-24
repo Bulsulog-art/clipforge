@@ -445,7 +445,7 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     return out;
   };
 
-  it("TTS failing for one video: that video is kept for the owner but never delivered, and the week is topped up to five", async () => {
+  it("TTS failing for one video: that video is named for the owner but never delivered or playable, and the week is topped up to five", async () => {
     ttsFails = new Set([3]);
     produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"])).mockImplementationOnce(renderedWeek(["f"]));
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
@@ -459,10 +459,12 @@ describe("a voice that could not be made never reaches the dentist as a silent v
 
     const silent = inserted.find((row) => row.title === "c")!;
     expect(silent.status).toBe("rejected");
-    expect(silent.error).toBe("silent render: no audio track");
-    // Its file is tracked on the row (no orphan) for the owner to listen to; the clinic gets no sound reason.
-    expect(String(silent.video_path)).toMatch(new RegExp(`^${OWNER}/`));
+    // The owner reads why and where its file is (in the owner's folder); the clinic gets no sound reason.
+    expect(String(silent.error)).toMatch(new RegExp(`^silent render: no audio track \\(file kept for the owner: ${OWNER}/[^)]+\\.mp4\\)$`));
     expect(silent.findings).toEqual([]);
+    // Nothing on the columns the clinic's library signs: neither the web nor the iPhone app can play it.
+    expect(silent.video_path).toBeUndefined();
+    expect(silent.thumb_path).toBeUndefined();
     // Every video the dentist can review has a voice.
     const usable = inserted.filter((row) => row.status === "ready" || row.status === "flagged");
     expect(usable.map((row) => row.title)).toEqual(["a", "b", "d", "e", "f"]);
@@ -505,6 +507,20 @@ describe("a voice that could not be made never reaches the dentist as a silent v
 });
 
 describe("a video whose QA check could not run is never 'ready'", () => {
+  it("a narrated render whose loudness was not measured (mean ? dB) is delivered flagged 'qa unavailable', not thrown away for a top-up", async () => {
+    const stats = { ...STATS_OK, meanVolumeDb: null };
+    const issues = judge(stats, { width: 1080, height: 1920, minSec: 8, maxSec: 90, expectAudio: true });
+    produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), { ...ready("c"), qa: { ok: false, issues, stats } }, ready("d"), ready("e")]);
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    // No top-up spent on it, no silent rejection.
+    expect(produceWeek).toHaveBeenCalledTimes(1);
+    expect(r).toMatchObject({ ready: 4, flagged: 1, rejected: 0, toppedUp: 0 });
+    const c = inserted.find((row) => row.title === "c")!;
+    expect(c.status).toBe("flagged");
+    expect(c.findings).toEqual(["[dv:unchecked] qa unavailable"]);
+    expect(c.video_path).toBeTruthy();
+  });
+
   it("delivered as flagged with the 'qa unavailable' reason, counted as flagged in the dentist's email", async () => {
     // week.ts: qa = await inspectVideo(...).catch(() => undefined) when ffprobe itself fails.
     produceWeek.mockResolvedValueOnce([ready("a"), ready("b"), { ...ready("c"), qa: undefined }, ready("d"), ready("e")]);

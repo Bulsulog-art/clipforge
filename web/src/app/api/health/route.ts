@@ -4,7 +4,7 @@ import IORedis from "ioredis";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
 import { limiterRedis, rateLimited } from "@/lib/rate-limit-server";
 import { dvAdmin } from "@/lib/dentvid/supabase";
-import { judgeWorkerHealth, readWorkerState, type Check, type WorkerState } from "@/lib/dentvid/worker-health";
+import { cachedWorkerHealth, judgeWorkerHealth, readWorkerState, rememberWorkerHealth, type Check, type WorkerHealth, type WorkerState } from "@/lib/dentvid/worker-health";
 
 /**
  * GET /api/health           — shallow check (200 OK, used by Coolify)
@@ -53,15 +53,23 @@ export async function GET(req: Request) {
 
 /**
  * The worker check: heartbeats, the Saturday dispatch, the render queue and
- * Liman. Reads Redis and Liman, so it is rate-limited like the deep check.
+ * Liman. A fresh result (15 s) is answered from memory without any read;
+ * otherwise it reads Redis and Liman, rate-limited like the deep check.
  * 200 or 503; the body names only the checks, never a host, key or clinic.
  */
 async function workerCheck(req: Request) {
+  const now = new Date();
+  const fresh = cachedWorkerHealth(now);
+  if (fresh) return workerReply(fresh, now);
   const limited = await rateLimited([{ key: `rl:health:worker:ip:${clientIp(req.headers)}`, rule: LIMITS.healthDeepIp }], () => "too many requests");
   if (limited) return limited;
-  const now = new Date();
   const [state, database] = await Promise.all([readWorker(now), checkLiman()]);
   const health = judgeWorkerHealth(state, database, now);
+  rememberWorkerHealth(now, health);
+  return workerReply(health, now);
+}
+
+function workerReply(health: WorkerHealth, now: Date) {
   return NextResponse.json(
     { ok: health.ok, ts: now.getTime(), checks: health.checks },
     { status: health.ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },

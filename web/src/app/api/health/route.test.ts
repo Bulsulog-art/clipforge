@@ -34,6 +34,7 @@ const redis = {
       },
       zrange: (k: string, start: number, stop: number) => (ops.push(() => (self.zsets.get(k) ?? []).slice(start, stop + 1)), p),
       hget: (k: string, f: string) => (ops.push(() => self.hashes.get(k)?.[f] ?? null), p),
+      hmget: (k: string, ...fs: string[]) => (ops.push(() => fs.map((f) => self.hashes.get(k)?.[f] ?? null)), p),
       exec: async () => {
         if (self.down) throw new Error("connect ECONNREFUSED redis.internal.example:6379");
         return ops.map((op) => [null, op()]);
@@ -44,9 +45,10 @@ const redis = {
 };
 
 let limited = false;
+let limiterCalls = 0;
 vi.mock("@/lib/rate-limit-server", () => ({
   limiterRedis: () => redis,
-  rateLimited: async () => (limited ? new Response(JSON.stringify({ error: "too many requests" }), { status: 429 }) : null),
+  rateLimited: async () => (limiterCalls++, limited ? new Response(JSON.stringify({ error: "too many requests" }), { status: 429 }) : null),
 }));
 
 let limanError: string | null = null;
@@ -68,6 +70,7 @@ vi.mock("@/lib/dentvid/supabase", () => ({
 vi.mock("@/lib/supabase/server", () => ({ createServiceClient: () => ({}) }));
 
 const { GET } = await import("./route");
+const { _resetWorkerHealthCache, HEALTH_CACHE_MS } = await import("@/lib/dentvid/worker-health");
 
 const CLINIC = "0b8a3c6e-1d2f-4a5b-9c8d-7e6f5a4b3c2d";
 const HOST_MAIN = "bulsu-worker-main-7f9c";
@@ -88,7 +91,11 @@ function healthy() {
   redis.strings.set(DISPATCH_KEY, JSON.stringify({ at: "2026-11-28T18:00:02Z", jobs: 3, waves: 2, projectedLate: 0 }));
 }
 
-const get = (q = "?worker=1") => GET(new Request(`https://dentvideo.com/api/health${q}`));
+/** One check as a fresh read; `cached: true` lets the 15-second memory answer (the caching test). */
+const get = (q = "?worker=1", { cached = false } = {}) => {
+  if (!cached) _resetWorkerHealthCache();
+  return GET(new Request(`https://dentvideo.com/api/health${q}`));
+};
 async function body(res: Response) {
   const text = await res.text();
   return { text, json: JSON.parse(text) as { ok: boolean; checks: Record<string, { ok: boolean; detail?: string }> } };
@@ -104,6 +111,8 @@ beforeEach(() => {
   redis.down = false;
   redis.status = "ready";
   limited = false;
+  limiterCalls = 0;
+  _resetWorkerHealthCache();
   limanError = null;
   limanThrows = false;
   limanQueries.length = 0;
@@ -152,7 +161,9 @@ describe("GET /api/health?worker=1", () => {
     expect((await body(res)).json.checks.heartbeat.detail).toBe("no fresh heartbeat for: dentvid, dentvid-mail, crons");
   });
 
-  it("past Saturday 18:30 UTC without the dispatch marker for the coming week: 503", async () => {
+  it("past Saturday 19:00 UTC without the dispatch marker for the coming week: 503", async () => {
+    vi.setSystemTime(new Date("2026-11-28T19:15:00Z"));
+    healthy();
     redis.strings.clear();
     const res = await get();
     expect(res.status).toBe(503);
@@ -162,29 +173,37 @@ describe("GET /api/health?worker=1", () => {
     expect(text).not.toContain("dv:ops");
   });
 
-  it("within 30 minutes of the dispatch the marker may still be on its way; at 18:31 it must be there", async () => {
-    redis.strings.clear();
-    vi.setSystemTime(new Date("2026-11-28T18:20:00Z"));
-    // Before the grace ends, the previous week's marker is not what is asked for either.
-    redis.strings.set("dv:ops:dispatch:2026-11-23", JSON.stringify({ at: "2026-11-21T18:00:01Z", jobs: 3, waves: 2, projectedLate: 0 }));
-    expect((await get()).status).toBe(200);
-    vi.setSystemTime(new Date("2026-11-28T18:31:00Z"));
-    expect((await get()).status).toBe(503);
-    redis.strings.set(DISPATCH_KEY, JSON.stringify({ at: "2026-11-28T18:00:02Z", jobs: 0, waves: 0, projectedLate: 0 }));
-    // A dispatch that ran with nothing to queue is still a dispatch that ran.
-    expect((await get()).status).toBe(200);
+  it("within 60 minutes of the dispatch the marker may still be on its way (it waits behind a running render and retries); at 19:01 it must be there", async () => {
+    const at = async (iso: string, marker?: string) => {
+      vi.setSystemTime(new Date(iso));
+      healthy(); // heartbeats as fresh as the clock
+      redis.strings.clear();
+      // The previous week's marker is never what is asked for.
+      redis.strings.set("dv:ops:dispatch:2026-11-23", JSON.stringify({ at: "2026-11-21T18:00:01Z", jobs: 3, waves: 2, projectedLate: 0 }));
+      if (marker) redis.strings.set(DISPATCH_KEY, marker);
+      return (await get()).status;
+    };
+    expect(await at("2026-11-28T18:50:00Z")).toBe(200);
+    expect(await at("2026-11-28T18:59:00Z")).toBe(200);
+    expect(await at("2026-11-28T19:01:00Z")).toBe(503);
+    // A dispatch that ran late, with nothing to queue, is still a dispatch that ran.
+    expect(await at("2026-11-28T19:01:00Z", JSON.stringify({ at: "2026-11-28T18:47:02Z", jobs: 0, waves: 0, projectedLate: 0 }))).toBe(200);
   });
 
-  it("the missing marker is watched until the delivery Monday is over (UTC), not all week", async () => {
+  it("the missing marker is watched until Saturday 21:00 UTC: by then the 19:30 dispatch watchdog has queued the weeks, and a red light kept on would hide the next outage", async () => {
     const at = async (iso: string) => {
       vi.setSystemTime(new Date(iso));
       healthy(); // heartbeats as fresh as the clock
       redis.strings.clear();
       return (await get()).status;
     };
-    expect(await at("2026-11-30T23:59:00Z")).toBe(503);
-    expect(await at("2026-12-01T00:01:00Z")).toBe(200);
+    expect(await at("2026-11-28T20:59:00Z")).toBe(503);
+    expect(await at("2026-11-28T21:01:00Z")).toBe(200);
+    expect(await at("2026-11-29T09:00:00Z")).toBe(200);
+    expect(await at("2026-11-30T23:59:00Z")).toBe(200);
     expect(await at("2026-12-04T12:00:00Z")).toBe(200);
+    // Next Saturday is watched again.
+    expect(await at("2026-12-05T19:30:00Z")).toBe(503);
   });
 
   it("a dentvid job waiting more than 6 hours with none running: 503; the same wait behind a running render: 200", async () => {
@@ -210,6 +229,50 @@ describe("GET /api/health?worker=1", () => {
     expect((await get()).status).toBe(200);
     redis.hashes.set("bull:dentvid:old", { timestamp: String(SUNDAY.getTime() - 6.5 * 3_600_000) });
     expect((await get()).status).toBe(503);
+  });
+
+  it("a job waits from when it became due: the week-ahead scheduler job just promoted, or a retry back from its backoff, is not hours old", async () => {
+    const H = 3_600_000;
+    // The scheduler's Saturday dispatch job: added a week ago with a week's delay, due 10 minutes ago.
+    redis.lists.set("bull:dentvid:wait", ["repeat:dentvid-monday:1"]);
+    redis.hashes.set("bull:dentvid:repeat:dentvid-monday:1", {
+      timestamp: String(SUNDAY.getTime() - 7 * 24 * H),
+      opts: JSON.stringify({ delay: 7 * 24 * H - 10 * 60_000, attempts: 3 }),
+      // BullMQ sets the hash's own delay to 0 when it promotes a job; the opts keep it.
+      delay: "0",
+    });
+    expect((await get()).status).toBe(200);
+    // A week added 8 hours ago whose last attempt started 20 minutes ago (now back from its backoff).
+    redis.lists.set("bull:dentvid:wait", ["week:r:2026-11-30"]);
+    redis.hashes.set("bull:dentvid:week:r:2026-11-30", { timestamp: String(SUNDAY.getTime() - 8 * H), processedOn: String(SUNDAY.getTime() - 20 * 60_000) });
+    expect((await get()).status).toBe(200);
+    // The same week never started: it has waited the full 8 hours.
+    redis.hashes.set("bull:dentvid:week:r:2026-11-30", { timestamp: String(SUNDAY.getTime() - 8 * H) });
+    const res = await get();
+    expect(res.status).toBe(503);
+    expect((await body(res)).json.checks.queue.detail).toBe("a job has waited 8.0 h with none running");
+  });
+
+  it("answers from memory for 15 seconds: no read and no rate limit, so nobody can turn the monitor's checks into 429s", async () => {
+    expect((await get("?worker=1", { cached: true })).status).toBe(200);
+    expect(limiterCalls).toBe(1);
+    expect(limanQueries).toHaveLength(1);
+    // Within 15 s, even with the limiter refusing and the render server gone quiet: the remembered answer.
+    limited = true;
+    redis.hashes.clear();
+    vi.setSystemTime(new Date(SUNDAY.getTime() + HEALTH_CACHE_MS - 1));
+    const res = await get("?worker=1", { cached: true });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(limiterCalls).toBe(1);
+    expect(limanQueries).toHaveLength(1);
+    // After that, a fresh read (here refused by the limiter).
+    vi.setSystemTime(new Date(SUNDAY.getTime() + HEALTH_CACHE_MS));
+    expect((await get("?worker=1", { cached: true })).status).toBe(429);
+    limited = false;
+    const fresh = await get("?worker=1", { cached: true });
+    expect(fresh.status).toBe(503);
+    expect((await body(fresh)).json.checks.heartbeat.ok).toBe(false);
   });
 
   it("Liman not answering the head count: 503, without the error text", async () => {

@@ -11,13 +11,22 @@ import { clipFinding, isSilentIssue, qaFinding, tagReason, UNCHECKED_FINDING } f
  *            QA issue such as a long pause, or a QA check that could not run)
  *   rejected could not be made safely; kept so nothing disappears silently
  *
- * A generated video with no narration at all (QA: "no audio track" or "audio
- * is effectively silent", seen when the voice could not be made and the video
- * was rendered without it) is rejected, not flagged: it is not a video a
- * clinic can post. It never counts as one of the week's five, so the week's
- * top-up makes another in its place (jobs.ts usableRow). Its file stays on the
- * row (video_path), so it is tracked rather than orphaned in storage and the
- * owner can listen to it in the admin panel; the clinic never sees it.
+ * A generated video with no narration at all (QA: "no audio track", or a
+ * measured mean volume too low to hear, seen when the voice could not be made
+ * and the video was rendered without it) is rejected, not flagged: it is not a
+ * video a clinic can post. It never counts as one of the week's five, so the
+ * week's top-up makes another in its place (jobs.ts usableRow). Its uploaded
+ * file is named in the row's error, for the owner only, and NOT in video_path
+ * or thumb_path: the clinic's library signs and plays every video_path it is
+ * given (the iPhone app lists rejected rows as "not made" cards), and the
+ * clinic must never see or play a silent render. The file lives in the
+ * owner's folder, which account deletion and retention remove as a whole.
+ *
+ * A render whose loudness could not be measured (an audio track, but the
+ * volume pass printed no mean, e.g. ffmpeg cut short on a busy box) is not
+ * called silent: QA's "mean ? dB" is no measurement. It is flagged
+ * "qa unavailable" like a render whose QA could not run at all, so a good
+ * narrated video is never thrown away and replaced at the clinic's cost.
  */
 
 export type ItemRow = {
@@ -70,8 +79,11 @@ export function rowFromPackage(
     };
   }
   const issues = pkg.qa && !pkg.qa.ok && Array.isArray(pkg.qa.issues) ? pkg.qa.issues : [];
-  const silent = issues.filter(isSilentIssue);
-  if (silent.length) {
+  const silentIssues = issues.filter(isSilentIssue);
+  // "Effectively silent (mean ? dB)" on a track that is there: the loudness was not measured.
+  const unmeasured = silentIssues.length > 0 && loudnessUnmeasured(pkg.qa);
+  if (silentIssues.length && !unmeasured) {
+    const file = stored?.videoPath ? ` (file kept for the owner: ${stored.videoPath})` : "";
     return {
       clinic_id: ids.clinicId,
       owner_id: ids.ownerId,
@@ -85,17 +97,17 @@ export function rowFromPackage(
       // No clinic-facing finding: a topic not made reads "we couldn't make this one" (web reasons.ts).
       findings: [],
       qa: pkg.qa,
-      video_path: stored?.videoPath,
-      thumb_path: stored?.thumbPath,
+      // No video_path / thumb_path: the clinic's library would sign and play them.
       // For the owner (admin panel, short-week alert); a technical failure, so the week retries or tops up.
-      error: `silent render: ${issues.join("; ")}`.slice(0, 500),
+      error: `${`silent render: ${issues.join("; ")}`.slice(0, 500 - file.length)}${file}`,
     };
   }
-  const qaIssues = issues.map(qaFinding);
+  const qaIssues = (unmeasured ? issues.filter((i) => !isSilentIssue(i)) : issues).map(qaFinding);
   // A rendered video whose QA measurement could not run has been checked by
   // nobody. week.ts reports the qa field for every render it measured
   // (undefined when inspectVideo threw); such a video is never "ready".
-  const unchecked = pkg.videoPath && qaMissing(pkg) ? [UNCHECKED_FINDING] : [];
+  // Nor is one whose loudness pass printed nothing: its sound is unchecked.
+  const unchecked = pkg.videoPath && (unmeasured || qaMissing(pkg)) ? [UNCHECKED_FINDING] : [];
   // A package meant to be rendered that has no stored video is not ready.
   const missingVideo = stored ? [] : [MISSING_VIDEO];
   const findings = [...qaIssues, ...unchecked, ...missingVideo];
@@ -124,6 +136,21 @@ export function rowFromPackage(
  * Packages built without the field at all (callers that never measure, such
  * as test doubles of week.ts) are judged by the other rules.
  */
+/**
+ * QA called the audio silent without having measured it: the track is there
+ * (hasAudio) but the volume pass gave no mean (steps/qa.ts parseMeanVolume
+ * null, judged "effectively silent (mean ? dB)"). A measured -inf (digital
+ * silence) is a measurement. A report without its stats is read by its words.
+ */
+function loudnessUnmeasured(qa: unknown): boolean {
+  const stats = (qa as { stats?: { hasAudio?: unknown; meanVolumeDb?: unknown } } | null | undefined)?.stats;
+  if (stats && typeof stats === "object" && typeof stats.hasAudio === "boolean") {
+    return stats.hasAudio && (typeof stats.meanVolumeDb !== "number" || Number.isNaN(stats.meanVolumeDb));
+  }
+  const issues = (qa as { issues?: unknown } | null | undefined)?.issues;
+  return Array.isArray(issues) && issues.some((i) => typeof i === "string" && /effectively silent \(mean \? dB\)/i.test(i)) && !issues.some((i) => i === "no audio track");
+}
+
 function qaMissing(pkg: Extract<VideoPackage, { status: "ready" }>): boolean {
   if (!("qa" in pkg)) return false;
   const qa = pkg.qa as { ok?: unknown; issues?: unknown } | null | undefined;

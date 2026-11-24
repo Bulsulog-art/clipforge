@@ -402,20 +402,26 @@ describe("a video whose voice could not be made is never delivered as silent", (
   /** jobs.ts usableRow: what counts as one of the week's five (and stops the top-up). */
   const usable = (r: { status: string; video_path?: string }) => (r.status === "ready" || r.status === "flagged") && !!r.video_path;
 
-  it("no audio track, or audio too quiet to hear: rejected (the top-up replaces it), its file kept on the row", () => {
+  it("no audio track, or audio too quiet to hear: rejected (the top-up replaces it), its file named for the owner, nothing the clinic can play", () => {
     for (const p of [pkg(false, null), pkg(true, -91)]) {
-      const row = rowFromPackage(p, ids, { videoPath: "u1/x.mp4" });
+      const row = rowFromPackage(p, ids, { videoPath: "u1/x.mp4", thumbPath: "u1/x.jpg" });
       expect(row.status).toBe("rejected");
       expect(usable(row)).toBe(false);
-      expect(row.video_path).toBe("u1/x.mp4");
-      expect(row.error).toMatch(/^silent render: /);
+      // The web and the iPhone app sign every video_path / thumb_path of the clinic's rows.
+      expect(row.video_path).toBeUndefined();
+      expect(row.thumb_path).toBeUndefined();
+      expect(row.error).toMatch(/^silent render: .* \(file kept for the owner: u1\/x\.mp4\)$/);
     }
   });
 
-  it("a narrated video is still ready and counts", () => {
+  it("a narrated video is still ready and counts; one whose loudness was not measured is delivered for a look, not thrown away", () => {
     const row = rowFromPackage(pkg(true, -18), ids, { videoPath: "u1/x.mp4" });
     expect(row.status).toBe("ready");
     expect(usable(row)).toBe(true);
+    const unmeasured = rowFromPackage(pkg(true, null), ids, { videoPath: "u1/x.mp4" });
+    expect(unmeasured.status).toBe("flagged");
+    expect(unmeasured.findings).toContain("[dv:unchecked] qa unavailable");
+    expect(usable(unmeasured)).toBe(true);
   });
 });
 
@@ -443,15 +449,18 @@ describe("a week whose worker died under it twice recovers before Monday", () =>
     const r = await handleFailedWeek(job, stalled, deps(q, SAT));
     expect(r).toMatchObject({ handled: true, kind: "stalled", requeued: true });
     expect(added.map((a) => a.opts.jobId)).toEqual([stalledJobId("ist", WEEK)]);
+    // Three ":"-parts: BullMQ refuses any other custom id with a ":" in it.
+    expect(String(added[0].opts.jobId).split(":")).toHaveLength(3);
     expect(added[0].opts.priority).toBe(DENTVID_PRIORITY.firstWeek);
     expect(await store.get(weekStateKey("ist", WEEK))).toBe("delayed");
-    expect(raised.map((a) => a.key)).toEqual([`week_failed:ist:${WEEK}`]);
+    expect(raised.map((a) => a.key)).toEqual([`week_failed:ist:${WEEK}:stalled`]);
     expect(renderAlert(raised[0]).text).toMatch(/stopped more than once/);
 
-    // The extra run dies the same way: told again (de-duplicated per day by the mailer), never a third run.
+    // The extra run dies the same way: told again under its own key, never a third run.
     const r2 = await handleFailedWeek({ ...job, id: stalledJobId("ist", WEEK) }, stalled, deps(q, new Date(SAT.getTime() + 30 * 60_000)));
-    expect(r2).toMatchObject({ requeued: false, skipped: "already" });
+    expect(r2).toMatchObject({ requeued: false, skipped: "extra_run" });
     expect(added).toHaveLength(1);
+    expect(raised.map((a) => a.key)).toEqual([`week_failed:ist:${WEEK}:stalled`, `week_failed:ist:${WEEK}:again`]);
   });
 
   it("after the clinic's Monday 07:00 it is left to the hourly delivery watchdog, which retries the failed job", async () => {

@@ -38,30 +38,63 @@ describe("rowFromPackage", () => {
     expect("suggested_backgrounds" in rowFromPackage(ready, ids)).toBe(false);
   });
 
-  it("no narration at all (no audio track) is rejected, keeps its file for the owner, and is never usable", () => {
+  it("no narration at all (no audio track) is rejected, its file named for the owner only, and is never usable", () => {
     const qa = { ok: false, issues: ["no audio track", "28.0s of silence (max 3s)"] };
     const row = rowFromPackage({ ...(ready as object), qa } as never, ids, { videoPath: "u1/x.mp4", thumbPath: "u1/x.jpg" });
     expect(row.status).toBe("rejected");
-    // The file stays tracked (no orphan in storage) and the owner can listen to it.
-    expect(row.video_path).toBe("u1/x.mp4");
-    expect(row.thumb_path).toBe("u1/x.jpg");
+    // Nothing the clinic's library would sign and play: the web and the iPhone app sign every video_path they get.
+    expect(row.video_path).toBeUndefined();
+    expect(row.thumb_path).toBeUndefined();
     expect(row.qa).toEqual(qa);
-    // For the owner only; the clinic reads the calm "not made" sentence, never a sound reason.
-    expect(row.error).toBe("silent render: no audio track; 28.0s of silence (max 3s)");
+    // For the owner only (admin panel, alerts): why, and where the file is.
+    expect(row.error).toBe("silent render: no audio track; 28.0s of silence (max 3s) (file kept for the owner: u1/x.mp4)");
+    // The clinic reads the calm "not made" sentence, never a sound reason.
     expect(row.findings).toEqual([]);
     // jobs.ts counts a row as one of the week's five only when it is ready or flagged with a file.
     const usable = (row.status === "ready" || row.status === "flagged") && !!row.video_path;
     expect(usable).toBe(false);
   });
 
-  it("audio too quiet to hear anywhere is rejected the same way, as QA measures it", () => {
-    const stats = { durationSec: 30, width: 1080, height: 1920, hasAudio: true, meanVolumeDb: -91, longestSilenceSec: 30, blackSec: 0 };
+  it("a long list of QA issues never pushes the file's name out of the error", () => {
+    const qa = { ok: false, issues: ["no audio track", ...Array.from({ length: 40 }, (_, i) => `${i}.0s of black frames`)] };
+    const row = rowFromPackage({ ...(ready as object), qa } as never, ids, { videoPath: "u1/x.mp4" });
+    expect(row.error!.length).toBeLessThanOrEqual(500);
+    expect(row.error).toMatch(/^silent render: no audio track; /);
+    expect(row.error).toMatch(/ \(file kept for the owner: u1\/x\.mp4\)$/);
+  });
+
+  it("audio too quiet to hear anywhere is rejected the same way, as QA measures it, digital silence (-inf) included", () => {
+    for (const meanVolumeDb of [-91, -Infinity]) {
+      const stats = { durationSec: 30, width: 1080, height: 1920, hasAudio: true, meanVolumeDb, longestSilenceSec: 30, blackSec: 0 };
+      const issues = judge(stats, { width: 1080, height: 1920, minSec: 8, maxSec: 90, expectAudio: true });
+      expect(issues[0]).toMatch(/^audio is effectively silent/);
+      const row = rowFromPackage({ ...(ready as object), qa: { ok: false, issues, stats } } as never, ids, { videoPath: "u1/x.mp4" });
+      expect(row.status).toBe("rejected");
+      expect(row.error).toMatch(/^silent render: audio is effectively silent \(mean -(91\.0|Infinity) dB\)/);
+      expect(row.video_path).toBeUndefined();
+    }
+  });
+
+  it("a narrated render whose loudness pass printed nothing (mean ? dB) is not called silent: flagged 'qa unavailable', delivered", () => {
+    // steps/qa.ts: an audio track is there, the volumedetect pass gave no mean_volume (cut short on a busy box).
+    const stats = { durationSec: 30, width: 1080, height: 1920, hasAudio: true, meanVolumeDb: null, longestSilenceSec: 0, blackSec: 0 };
     const issues = judge(stats, { width: 1080, height: 1920, minSec: 8, maxSec: 90, expectAudio: true });
-    expect(issues[0]).toMatch(/^audio is effectively silent/);
+    expect(issues).toEqual(["audio is effectively silent (mean ? dB)"]);
     const row = rowFromPackage({ ...(ready as object), qa: { ok: false, issues, stats } } as never, ids, { videoPath: "u1/x.mp4" });
-    expect(row.status).toBe("rejected");
-    expect(row.error).toMatch(/^silent render: audio is effectively silent \(mean -91\.0 dB\)/);
+    expect(row.status).toBe("flagged");
+    // Not "the sound may be quiet": nobody measured it. The dentist watches it before posting.
+    expect(row.findings).toEqual(["[dv:unchecked] qa unavailable"]);
     expect(row.video_path).toBe("u1/x.mp4");
+    expect(row.error).toBeUndefined();
+    const usable = (row.status === "ready" || row.status === "flagged") && !!row.video_path;
+    expect(usable).toBe(true);
+    // Other measured issues stay as they are, next to it.
+    const both = rowFromPackage({ ...(ready as object), qa: { ok: false, issues: [...issues, "0.8s of black frames"], stats } } as never, ids, { videoPath: "u1/x.mp4" });
+    expect(both.findings).toEqual(["[dv:technical] quality: 0.8s of black frames", "[dv:unchecked] qa unavailable"]);
+    // A report without its stats is read by its words, the same way.
+    const words = rowFromPackage({ ...(ready as object), qa: { ok: false, issues } } as never, ids, { videoPath: "u1/x.mp4" });
+    expect(words.status).toBe("flagged");
+    expect(words.findings).toEqual(["[dv:unchecked] qa unavailable"]);
   });
 
   it("a long pause in narration that is there stays flagged (the dentist looks), not rejected", () => {
