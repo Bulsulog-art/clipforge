@@ -187,6 +187,26 @@ describe("a change request re-makes only that one video", () => {
     expect(mails[0].subject).toMatch(/change request could not be made/i);
   });
 
+  it("a change that renders with no sound: old video and thumbnail kept, new files removed, request failed, owner alerted once", async () => {
+    request("r6s", A, "item-a");
+    const before = new Set(liman.files.keys());
+    produceVideo.mockImplementationOnce(async (deps: { render: (plan: unknown, topic: unknown) => Promise<string> }, _profile, topic) => {
+      const videoPath = await deps.render({ scenes: [], voiceover: { text: "New narration.", voice: "nova" } }, topic);
+      return {
+        status: "ready", approval: "pending", topic, plan: { scenes: [{ kind: "hook", text: "New" }] }, copy: { caption: "c", hashtags: [] }, checks: {}, videoPath,
+        qa: { ok: false, issues: ["no audio track"], stats: { durationSec: 30, width: 1080, height: 1920, hasAudio: false, meanVolumeDb: null, longestSilenceSec: 0, blackSec: 0 } },
+      };
+    });
+    expect(await runDentvidChange({ requestId: "r6s" })).toEqual({ status: "failed", reason: "technical" });
+    expect(item("item-a")).toMatchObject({ status: "ready", approval: "approved", video_path: `${A.owner}/old.mp4`, thumb_path: `${A.owner}/old.jpg` });
+    expect(liman.files.has(`${A.owner}/old.mp4`)).toBe(true);
+    expect(liman.files.has(`${A.owner}/old.jpg`)).toBe(true);
+    expect([...liman.files.keys()].filter((k) => !before.has(k))).toEqual([]);
+    expect(req("r6s")).toMatchObject({ status: "failed", reason: "technical" });
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toMatch(/change request could not be made/i);
+  });
+
   it("is idempotent: a request that already ran is left alone", async () => {
     request("r7", A, "item-a");
     makes("ready");

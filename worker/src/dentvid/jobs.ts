@@ -986,6 +986,12 @@ export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
     if (!pkg.videoPath) throw new Error("the changed video was not rendered");
     const files = await storeVideo(db, ownerId, pkg.videoPath);
     const row = withPostKit(rowFromPackage(pkg, { clinicId: req.clinic_id, ownerId }, files), profile);
+    if (row.status === "rejected") {
+      // A change that rendered with no sound must never replace the video the dentist has.
+      // Drop the new files, keep the old video and let the catch below tell the owner.
+      await db.storage.from(BUCKET).remove([files.videoPath, files.thumbPath].filter((k): k is string => !!k)).catch(() => {});
+      throw new Error(`the changed video came out silent (${row.error ?? "no audio"}); the old video was kept`);
+    }
     const upd = await updateItem(db, item.id, {
       title: row.title,
       topic: row.topic,
