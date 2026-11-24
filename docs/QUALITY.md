@@ -249,3 +249,21 @@ Samples and the Turkish preview re-rendered with these: docs/PREVIEW_RERENDER.md
 ## Known mistakes register
 
 Every mistake found in a rendered video is listed in `docs/KNOWN_MISTAKES.md` with its verbatim text and the check that now catches it. Most checks live in `worker/src/dental/known-mistakes.ts` (run by `scriptProblems` and `captionProblems`, mirrored to web). The rule: a new mistake gets a row and a check before the next release.
+
+## Week variety (Nov 2026)
+
+A clinic that gets five videos every Monday notices sameness before it notices anything else. Three things made a week look and close alike, and all three are now decided by code, at no API cost.
+
+**Photos.** Each video's starting photos were a fixed list per topic, so every brushing or gum video got the same three toothbrush photos. Now `produceWeek` keeps the photos the clinic used lately, least recently used first: this week's videos, plus the last two weeks' when the history rows carry the plan's `backgrounds` (the job does not pass them yet; until it does, only the week rotates within itself). `startingBackgrounds(input, seconds, library, { avoid, seed })` then takes the topic's dental photos not used lately, then the general dental photos (chairs, mirror and probe, instrument tray, toothbrushes, toothpaste) rotated by a seed for the clinic and the week, then the ones used lately, oldest first. The avoid list is soft: a topic with photos of its own (implant, aligners, whitening, children, toothbrushes for a brushing video) always opens on one, the oldest when all were used. A treatment's own photo (the implant screw, the aligner cases, the whitening tray, the toy) never fills a gap in another topic's video. Without the options, the result is exactly the old list, so the live preview is unchanged. Code: `dentvid/backgrounds/suggest.ts` (mirrored in web), `week.ts recentBackgrounds`, `rememberPhotos`.
+
+Measured on a month of 20 videos built from the published sample plans (`week-variety.test.ts`), four weeks of five:
+
+| | Before | After |
+|---|---|---|
+| Distinct photos in the month | 16 | 18 |
+| Most uses of one photo in a week | 3 | 2 |
+| Videos that repeat the exact photos of an earlier video that week | 3 | 0 |
+
+**One look.** The planner chose the theme per video, while most published samples use the serif "editorial" look, so a week did not reliably look like the samples a clinic signed up for. `week.ts HOUSE_THEME` is now the only theme a produced video gets: it is asked of the planner and set on the plan afterwards, so a planner that ignores it cannot win. A clinic's brand colour still repaints it. Arabic and Japanese stills were rendered locally with it: the script's own sans leads for those languages (`theme.ts localizeTheme`), and both read cleanly on the cream background and on a brand colour, so no language keeps another theme.
+
+**Closings.** All 18 published sample closings make the same move: ask the dentist, or bring it up at the next check-up. `style.ts closingMoves(country, language)` lists the ways a video can close, and `scriptBrief` tells each video one of them ("Close this video with this move: …"), starting at a place set by the clinic and week and moving one step per video, so five videos get five different moves. Elsewhere: the one thing to remember, a small step at home, a sign worth mentioning at a check-up, passing the video on to someone it would help, keeping it for when it applies, and an invitation to ask the practice. Türkiye gets information-only moves (RG 33075): the one thing to remember, a small step at home, the moment it matters, a sign or a question for the viewer's own dentist; never an invitation to the clinic, a booking, or a request to like, comment on or share. A clinic's change request keeps the closing it saw unless the note asks otherwise. No check was added or loosened: `ctaGuide`, `scriptProblems` and the reviewers judge every closing as before.

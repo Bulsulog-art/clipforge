@@ -241,6 +241,48 @@ export const DENTAL_PHOTOS: ReadonlySet<string> = new Set([
 const DENTAL_FALLBACK = ["clinic-13", "cleaning-02", "hygiene-13", "clinic-07", "hygiene-05", "clinic-01"];
 
 /**
+ * Dental photos that sit well behind a video on any subject: treatment
+ * chairs, a mirror and probe, an instrument tray, toothbrushes, toothpaste.
+ * The other five dental photos show one treatment's own object (the implant
+ * screw, the aligner cases, the whitening tray, the child's toy) and only go
+ * behind their own topic: an implant screw behind a children's video reads as
+ * a mistake, for the same reason the mood photos did. The order mixes the
+ * looks (a chair, a mirror, brushes…) so any run of three from a rotated
+ * start is not three toothbrushes, and it starts with DENTAL_FALLBACK so an
+ * unrotated list tops up exactly as before.
+ */
+const ANY_TOPIC_PHOTOS = [
+  ...DENTAL_FALLBACK,
+  "kids-18", "implants-03", "hygiene-01", "hygiene-08", "kids-01", "hygiene-04", "hygiene-17",
+];
+
+/** Categories whose dental photos suit every topic: a topic owns them only when no treatment photo leads. */
+const GENERAL_LOOKS = new Set(["clinic", "cleaning", "hygiene"]);
+
+/**
+ * How a week varies its photos (worker dental/week.ts produceWeek).
+ *  - avoid: photos the clinic's recent videos already used (this week's and
+ *    the last two weeks'). A soft preference: they go last, never out, and
+ *    among them the one used longest ago comes first. That is the set's own
+ *    iteration order, so a caller deletes and re-adds a photo it has just
+ *    used to move it to the end.
+ *  - seed: stable for one clinic and one week; decides where the run of
+ *    any-topic photos starts, so two weeks with the same topics still look
+ *    different.
+ */
+export type BackgroundOptions = { avoid?: ReadonlySet<string>; seed?: string };
+
+/** A small stable string hash (FNV-1a, 32 bit): the same seed gives the same rotation in the browser and the worker. */
+function seedHash(seed: string): number {
+  let h = 0x811c9dc5;
+  for (const ch of seed) {
+    h ^= ch.codePointAt(0) ?? 0;
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/**
  * The photos a new video starts with, from a ranked list of on-topic
  * suggestions: only recognisably dental ones (see DENTAL_PHOTOS), the
  * topic's own first, topped up with general dental photos so a video is
@@ -251,23 +293,66 @@ const DENTAL_FALLBACK = ["clinic-13", "cleaning-02", "hygiene-13", "clinic-07", 
  * builds (suggestBackgrounds filtered by matchingBackgrounds), so the
  * preview shows the photos a real week would get. Before Nov 2026 it was
  * the top three suggestions, mood and food photos included.
+ *
+ * With `opts` (a week of videos, see BackgroundOptions) the candidates are,
+ * in order: the on-topic dental photos not avoided; then the any-topic
+ * dental photos not avoided, rotated by the seed; then the avoided ones, the
+ * least recently used first. Whatever that gives, a topic with photos of its
+ * own (an implant video: implants-03 and implants-04; aligners: the two
+ * aligner cases; brushing: the toothbrushes) opens on one of them, the least
+ * recently used when all are avoided. Without `opts` the result is exactly
+ * what it was before weeks were varied: one fixed list per topic, so a
+ * clinic's weeks kept showing the same few photos.
  */
-export function defaultBackgrounds(suggested: string[], totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+export function defaultBackgrounds(
+  suggested: string[],
+  totalSeconds = 30,
+  library: LibraryImage[] = BACKGROUND_LIBRARY,
+  opts?: BackgroundOptions,
+): string[] {
   const n = totalSeconds >= 45 ? 4 : 3;
   const known = new Set(library.map((i) => i.id));
-  const out: string[] = [];
-  for (const id of [...suggested.filter((s) => DENTAL_PHOTOS.has(s)), ...DENTAL_FALLBACK]) {
-    if (out.length >= n) break;
-    if (known.has(id) && !out.includes(id)) out.push(id);
-  }
-  return out;
+  const onTopic = suggested.filter((s) => DENTAL_PHOTOS.has(s));
+  const take = (candidates: string[], out: string[] = []) => {
+    for (const id of candidates) {
+      if (out.length >= n) break;
+      if (known.has(id) && !out.includes(id)) out.push(id);
+    }
+    return out;
+  };
+  if (!opts) return take([...onTopic, ...DENTAL_FALLBACK]);
+
+  const avoid = opts.avoid ?? new Set<string>();
+  const free = (id: string) => !avoid.has(id);
+  const shift = opts.seed ? seedHash(opts.seed) % ANY_TOPIC_PHOTOS.length : 0;
+  const anyTopic = [...ANY_TOPIC_PHOTOS.slice(shift), ...ANY_TOPIC_PHOTOS.slice(0, shift)];
+  const candidates = new Set([...onTopic, ...anyTopic]);
+  // Least recently used first: the order the caller put them in the set.
+  const avoided = [...avoid].filter((id) => candidates.has(id));
+  const out = take([...onTopic.filter(free), ...anyTopic.filter(free), ...avoided, ...DENTAL_FALLBACK]);
+
+  // The topic's own photos: the dental photos whose category leads the
+  // ranking, a treatment's (implant, aligner, whitening, children) before the
+  // general looks. "Coffee stains aligners" ranks food and aligner photos
+  // first, so its own photos are the aligner cases, not a toothbrush or the
+  // whitening tray further down; a brushing video's are the toothbrushes.
+  const categoryOf = new Map(library.map((i) => [i.id, i.category]));
+  const leading = new Set(suggested.slice(0, 4).map((id) => categoryOf.get(id) ?? ""));
+  const inLeading = onTopic.filter((id) => known.has(id) && leading.has(categoryOf.get(id) ?? ""));
+  const treatment = inLeading.filter((id) => !GENERAL_LOOKS.has(categoryOf.get(id) ?? ""));
+  const own = treatment.length ? treatment : inLeading;
+  if (!own.length) return out;
+  // It leads, so the hook already shows what the video is about.
+  const anchor = out.find((id) => own.includes(id)) ?? own.find(free) ?? avoided.find((id) => own.includes(id)) ?? own[0];
+  return [anchor, ...out.filter((id) => id !== anchor)].slice(0, n);
 }
 
 /**
  * The photos a new video starts with (worker dental/week.ts): the ranked
- * on-topic suggestions through defaultBackgrounds. Deterministic.
+ * on-topic suggestions through defaultBackgrounds. Deterministic; `opts`
+ * varies a week (see defaultBackgrounds).
  */
-export function startingBackgrounds(input: SuggestInput, totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY): string[] {
+export function startingBackgrounds(input: SuggestInput, totalSeconds = 30, library: LibraryImage[] = BACKGROUND_LIBRARY, opts?: BackgroundOptions): string[] {
   const relevant = matchingBackgrounds(input, library);
-  return defaultBackgrounds(suggestBackgrounds(input, undefined, library).filter((id) => relevant.has(id)), totalSeconds, library);
+  return defaultBackgrounds(suggestBackgrounds(input, undefined, library).filter((id) => relevant.has(id)), totalSeconds, library, opts);
 }

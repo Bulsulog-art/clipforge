@@ -3,8 +3,8 @@ import { planFromPrompt } from "../remotion/plan-from-prompt.js";
 import { narrate } from "./narrate.js";
 import { AGENT_MODEL } from "./llm.js";
 import { guardFootage } from "./footage.js";
-import { backgroundSrc, startingBackgrounds, suggestBackgrounds } from "../dentvid/backgrounds/suggest.js";
-import { totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
+import { backgroundId, backgroundSrc, startingBackgrounds, suggestBackgrounds } from "../dentvid/backgrounds/suggest.js";
+import { BACKGROUND_PATH, totalSeconds, type ScenePlan } from "../remotion/scene-plan.js";
 import { AVOID_WORDS, reviewCompliance, type ComplianceResult } from "./compliance.js";
 import { writePostCopy, type PostCopy } from "./copywriter.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
@@ -27,6 +27,7 @@ import {
   repeatedScreen,
   spokenTics,
   trSteering,
+  closingMove,
   ctaGuide,
   ctaProblems,
   linesEcho,
@@ -94,6 +95,71 @@ export type WeekDeps = {
 
 /** A video that fails for a technical reason is tried this many times before its topic is given up. */
 export const VIDEO_ATTEMPTS = 2;
+
+/**
+ * The one look every DentVideo video is made in: the cream, serif
+ * "editorial" theme most published samples use. The planner used to choose
+ * per video, so what a clinic received did not reliably look like the
+ * samples it signed up for. A clinic's brand colour still repaints it
+ * (remotion/theme.ts brandTheme); change this one line to change the
+ * house look.
+ */
+export const HOUSE_THEME: ScenePlan["theme"] = "editorial";
+
+/**
+ * How a week keeps its videos from looking and closing alike (produceWeek →
+ * produceVideo): the library photos the clinic's recent videos already used,
+ * least recently used first (dentvid/backgrounds/suggest.ts
+ * BackgroundOptions), a seed that is stable for one clinic and one week, and
+ * how many of this week's videos already exist (a top-up continues the
+ * week's closing moves instead of starting them again).
+ */
+export type WeekVisuals = { avoid: ReadonlySet<string>; seed: string; closingOffset?: number };
+
+/** How far back a clinic's earlier photos are avoided: the two weeks before this one. */
+export const PHOTO_MEMORY_DAYS = 14;
+
+/** The Monday (UTC) of the week a date falls in, as YYYY-MM-DD. */
+export function mondayOf(d: Date): string {
+  const back = (d.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - back)).toISOString().slice(0, 10);
+}
+
+/**
+ * The library photos of the clinic's videos from the last PHOTO_MEMORY_DAYS
+ * (counted back from this week's Monday), oldest week first, so the least
+ * recently used comes first. History rows may carry the plan's photo paths
+ * as "backgrounds"; until the job passes them there are none, and only this
+ * week's own videos are avoided. Read defensively: anything that is not a
+ * library path (or a library id) is ignored, and so is a row without a date.
+ */
+export function recentBackgrounds(history: PastTopic[] | undefined, today: Date = new Date()): Set<string> {
+  const since = Date.parse(mondayOf(today)) - PHOTO_MEMORY_DAYS * 86_400_000;
+  const dated = (history ?? [])
+    .map((h) => ({ at: Date.parse(h.weekOf ?? ""), backgrounds: (h as PastTopic & { backgrounds?: unknown }).backgrounds }))
+    .filter((h) => Number.isFinite(h.at) && h.at >= since && Array.isArray(h.backgrounds))
+    .sort((a, b) => a.at - b.at);
+  const out = new Set<string>();
+  for (const h of dated)
+    for (const src of h.backgrounds as unknown[]) {
+      if (typeof src !== "string") continue;
+      const id = BACKGROUND_PATH.test(src) ? backgroundId(src) : backgroundId(backgroundSrc(src)) === src ? src : undefined;
+      if (id) rememberPhotos(out, [id]);
+    }
+  return out;
+}
+
+/**
+ * Marks photos as just used: each moves to the end of the set, so the least
+ * recently used stays first. Takes library ids or plan paths.
+ */
+export function rememberPhotos(used: Set<string>, photos: readonly string[] | undefined): void {
+  for (const p of photos ?? []) {
+    const id = backgroundId(p) ?? p;
+    used.delete(id);
+    used.add(id);
+  }
+}
 
 /** Every word a viewer will read or hear in the video. */
 export function planText(plan: ScenePlan): string {
@@ -166,8 +232,23 @@ export function changeBrief(change: ChangeGuidance | undefined): string {
     .join("\n");
 }
 
-export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[] = [], week?: WeekVoice, change?: ChangeGuidance): string {
+export function scriptBrief(
+  profile: ClinicProfile,
+  topic: Topic,
+  fixes: string[] = [],
+  week?: WeekVoice,
+  change?: ChangeGuidance,
+  /**
+   * Where the week's closing moves start: a seed stable for one clinic and one
+   * week (produceWeek), and how many of the week's videos came before this run.
+   */
+  closing?: { seed: string; offset?: number },
+): string {
   const example = exampleFor(profile, topic);
+  // Each video of the week closes with a different move (style.ts closingMoves).
+  // A change request keeps the closing the dentist already saw unless the note asks otherwise.
+  const nth = (closing?.offset ?? 0) + (week?.closings.length ?? 0);
+  const move = change?.note.trim() ? undefined : closingMove(profile.country, profile.language, closing?.seed ?? profile.name, nth);
   return [
     `An educational ${profile.language} video for the dental clinic "${profile.name}".`,
     `Topic: ${topic.title}. It answers the patient question: "${topic.question}".`,
@@ -193,6 +274,7 @@ export function scriptBrief(profile: ClinicProfile, topic: Topic, fixes: string[
     `Include exactly ONE footage scene with stock footage — { "kind": "footage", "source": { "type": "stock", "query": "..." }, "caption": "<one short line of the answer>", "seconds": 3-4 } — placed right after the hook or in the middle, so the video is not only text. The query: 2-4 English words naming a DENTAL object you can film for THIS topic (e.g. "teeth whitening tray", "dental floss close up", "clear aligner case", "tooth model close up", "toothbrush and toothpaste") — never food, drinks, a sink or a room on its own, never a "dentist office", sign or logo, no people, no clinic or treatment scenes.`,
     `End with a cta scene. ${ctaGuide(profile.country, profile.address)}` +
       (profile.handle ? ` Put "@${profile.handle.replace(/^@/, "")}" only in the cta scene's "handle" field, never inside any text.` : ""),
+    move ? `Close this video with this move: ${move}` : "",
     weekVoiceBrief(week),
     example ? exampleBlock(example) : "",
     isUnspaced(profile.language)
@@ -569,6 +651,8 @@ export async function produceVideo(
   week: WeekVoice = { openers: [], closings: [] },
   /** A clinic's change request for this video: its note and the version it saw (dentvid/change.ts). */
   change?: ChangeGuidance,
+  /** The week's photo memory and seed (produceWeek); without it the photos are the topic's fixed list. */
+  visual?: WeekVisuals,
 ): Promise<VideoPackage> {
   let draftsChecked = 0;
   const script = await reviewed(
@@ -583,12 +667,12 @@ export async function produceVideo(
       // fixed one sentence and introduced new problems elsewhere (eval:
       // most rejections were a third, different objection).
       const brief =
-        scriptBrief(profile, topic, fixes, week, change) +
+        scriptBrief(profile, topic, fixes, week, change, visual && { seed: visual.seed, offset: visual.closingOffset }) +
         (previous && fixes.length
           ? `\nThis is a revision. Keep the previous version below — its structure, scenes and wording — and change ONLY what the reviewer required:\n${JSON.stringify({ scenes: previous.scenes, voiceover: previous.voiceover })}`
           : "");
-      const { plan } = await planFromPrompt({ prompt: brief, aspect: "9:16", model: AGENT_MODEL }, deps.client).catch((err: Error) =>
-        planFromPrompt({ prompt: `${brief}\nThe previous attempt was invalid: ${err.message}. Keep every on-screen text well under its limit.`, aspect: "9:16", model: AGENT_MODEL }, deps.client),
+      const { plan } = await planFromPrompt({ prompt: brief, aspect: "9:16", theme: HOUSE_THEME, model: AGENT_MODEL }, deps.client).catch((err: Error) =>
+        planFromPrompt({ prompt: `${brief}\nThe previous attempt was invalid: ${err.message}. Keep every on-screen text well under its limit.`, aspect: "9:16", theme: HOUSE_THEME, model: AGENT_MODEL }, deps.client),
       );
       // The planner's voice-over reads like a leaflet; the narrator rewrites
       // it from the screen text alone, so the reviews below still see one story.
@@ -662,7 +746,8 @@ export async function produceVideo(
   // aligner case, a treatment chair), the topic's own first: a dentist read
   // the library's mood and food stills (an apple and bread in an implant
   // video) as filler. The clinic can still pick any suggestion by hand.
-  const chosen = startingBackgrounds(bgInput, totalSeconds(guarded)).map(backgroundSrc);
+  // In a week, photos the clinic's recent videos used go last (produceWeek).
+  const chosen = startingBackgrounds(bgInput, totalSeconds(guarded), undefined, visual ? { avoid: visual.avoid, seed: visual.seed } : undefined).map(backgroundSrc);
   // The renderer needs the language for fonts, line breaking and direction (RTL for Arabic).
   // A market's required on-screen warning (Türkiye, RG 33075 md. 7/1-k) is
   // set by code alone: whatever the planner put there is dropped.
@@ -676,6 +761,8 @@ export async function produceVideo(
     : unwarned.scenes;
   const withLang: ScenePlan = {
     ...unwarned,
+    // One house look, whatever the planner returned.
+    theme: HOUSE_THEME,
     scenes: signed as ScenePlan["scenes"],
     clinic: profile.name,
     ...(notice ? { disclaimer: notice } : {}),
@@ -746,6 +833,13 @@ export async function produceWeek(
   const out: VideoPackage[] = [];
   const usedFootage = new Set<string>();
   const week: WeekVoice = { openers: [], closings: [] };
+  // Photos: the last two weeks' (when the history carries them) and this
+  // week's own go last, so five videos do not open on the same chair.
+  const today = opts.today ?? new Date();
+  const usedBackgrounds = recentBackgrounds(opts.history, today);
+  // A top-up's history holds this week's videos already made (jobs.ts): its closings continue after theirs.
+  const madeThisWeek = (opts.history ?? []).filter((h) => (h.weekOf ?? "") >= mondayOf(today)).length;
+  const visual: WeekVisuals = { avoid: usedBackgrounds, seed: `${profile.name}|${mondayOf(today)}`, closingOffset: madeThisWeek };
   // Sequential on purpose: renders are CPU-bound and the agents are cheap.
   for (const topic of topics) {
     if (out.filter((p) => p.status === "ready").length >= want) break;
@@ -756,7 +850,9 @@ export async function produceWeek(
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= VIDEO_ATTEMPTS; attempt++) {
       try {
-        out.push(await produceVideo(deps, profile, topic, usedFootage, week));
+        const pkg = await produceVideo(deps, profile, topic, usedFootage, week, undefined, visual);
+        if (pkg.status === "ready") rememberPhotos(usedBackgrounds, pkg.plan.backgrounds);
+        out.push(pkg);
         lastError = undefined;
         break;
       } catch (e) {
