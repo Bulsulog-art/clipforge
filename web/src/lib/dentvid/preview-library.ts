@@ -160,3 +160,41 @@ export function personalisePlan<P extends { scenes: Record<string, unknown>[] }>
   });
   return { ...plan, scenes };
 }
+
+/** The longest clinic name a plan carries (remotion/scene-plan.ts `clinic`). */
+export const CLINIC_NAME_MAX = 80;
+
+/** What the visitor has typed and picked so far: the look the preview paints a library plan in. */
+export type PreviewLook = {
+  name: string;
+  handle?: string;
+  /** "#rrggbb" or "rrggbb". */
+  brandColor?: string;
+  brandAccent?: string;
+  /** Background photo paths, in scene order. */
+  backgrounds?: string[];
+};
+
+export type PreviewPlanExtras = { clinic?: string; brandColor?: string; brandAccent?: string; backgrounds?: string[] };
+
+/**
+ * The plan the live preview plays: a library plan in the visitor's look.
+ * The clinic's name signs the video the way a real week does (worker
+ * dental/week.ts sets `clinic: profile.name`): small in the top corner while
+ * there is no logo, and under the closing line on the sign-off. A name that
+ * is empty or only spaces signs nothing.
+ */
+export function previewPlan<P extends { scenes: Record<string, unknown>[] }>(raw: P, look: PreviewLook): P & PreviewPlanExtras {
+  const personal = personalisePlan(raw, { name: look.name, handle: look.handle });
+  const clinic = look.name.trim().slice(0, CLINIC_NAME_MAX).trim();
+  const hex = (c?: string) => c?.trim().replace(/^#/, "").toUpperCase() || undefined;
+  const brandColor = hex(look.brandColor);
+  const brandAccent = hex(look.brandAccent);
+  return {
+    ...personal,
+    ...(clinic ? { clinic } : {}),
+    ...(brandColor ? { brandColor } : {}),
+    ...(brandAccent ? { brandAccent } : {}),
+    ...(look.backgrounds?.length ? { backgrounds: look.backgrounds } : {}),
+  };
+}

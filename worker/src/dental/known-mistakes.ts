@@ -246,8 +246,11 @@ export const KNOWN_RULES: readonly KnownRule[] = [
     code: "en_strong_colors",
     languages: ["en"],
     where: ALL,
-    // "Avoid strong colors briefly" (EN whitening, discarded render, Nov 2026).
-    all: [w("strong colou?rs?")],
+    // "Avoid strong colors briefly" (EN whitening, discarded render, Nov 2026);
+    // "Avoid strong colored foods for a day." and "Avoid strongly colored foods
+    // and drinks for a day or two." (the old English live preview, Nov 2026),
+    // which the first version of this rule missed.
+    all: [w("strong(?:ly)?[ -]colou?r(?:s|ed)?")],
     why: "\"strong colors\" is not what stains teeth; the patient cannot act on it",
     fix: "\"skip dark drinks like coffee, tea and red wine for a day or two\"",
   },

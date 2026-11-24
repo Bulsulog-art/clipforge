@@ -33,6 +33,11 @@ describe("each known mistake is caught with the text that was seen", () => {
     ["KM-11", "fr", "La dent, elle, reste en place."],
     ["KM-12", "en", "Not the goal: Enamel thinning"],
     ["KM-13", "en", "Avoid strong colors briefly"],
+    ["KM-13", "en", "Avoid strong colored foods for a day."],
+    ["KM-13", "en", "Avoid strongly colored foods and drinks for a day or two."],
+    ["KM-13", "en", "Skip strongly coloured drinks after whitening."],
+    ["KM-13", "en", "Avoid strong-colored food."],
+    ["KM-13", "en", "Afterward, skip strong colour briefly."],
     ["KM-14", "tr", "Temizlik: Gece sonrası dişi hazırlar."],
     ["KM-15", "es", "Aquí lo retiramos el dentista o el higienista con instrumentos."],
     ["KM-16", "es", "Llega al borde de la encía."],
@@ -90,6 +95,9 @@ describe("the good version of each line passes", () => {
     ["tr", "Röntgende görülen kemik kaybı herkeste aynı değildir."],
     ["en", "Not typical: Enamel thinning"],
     ["en", "Skip dark drinks for a day or two."],
+    ["en", "Skip coffee, tea and red wine for a day or two."],
+    ["en", "Tooth-colored fillings blend in with your teeth."],
+    ["en", "A strong habit: brush for two minutes, twice a day."],
     ["en", "Aligners are usually worn 20–22 hours a day."],
   ])("%s: %s", (lang, text) => {
     expect(ids(text, lang)).toEqual([]);

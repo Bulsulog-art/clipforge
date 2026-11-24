@@ -221,6 +221,77 @@ name where the sample had them. The handle came from the demo clinic profiles
   unchanged (frame 0.9 s, which has no sign-off). Each new file was checked for
   length against the old one, loudness, and a look at its last frame.
 
+## Eighth pass (24.11.2026): the English and German live preview, and gates for every language
+
+The live preview's English and German libraries (`web/public/dentvideo/preview/en|de/`)
+were still the set from 8 November: all six English and all four German videos closed on
+"Got questions? Ask us or book a check-up!" or "… buchen Sie einen Termin!", and the
+English ones showed "That funky smell", "Cleaning your aligners is super important",
+"Avoid strong colored foods" and Title Case headings. The gate in
+`preview-library.test.ts` only looked at Turkish, and KM-13 did not match "strong colored".
+
+**No API call, no new narration.** Both libraries were rebuilt with
+`scripts/build-dentvideo-preview.mts` from the published render folders of the third,
+fourth and sixth passes (`render-plan.json` + `voiceover.master.wav` + `week.json`),
+copied first to `/home/user/dv-preview-sources/` (outside the repo; `SOURCES.txt` there
+says where each came from). Selection: title in sentence case, `name`/`handle` the demo
+clinic's, so its name and handle become `{name}`/`{handle}`.
+
+| Language | Now (id) | From |
+|---|---|---|
+| en | `whitening-does-whitening-thin-your-enamel` ("Whitening your teeth? Not as harsh as you think.", 25 s) | the EN hero render (`en/whitening-myths-debunked`) |
+| en | `aligners-keeping-clear-aligners-fresh` ("Aligners smelling off by evening?", 22 s) | `en/caring-for-clear-aligners` |
+| en | `cleaning-brushing-the-spots-most-people-miss` ("Your toothbrush skips one spot every morning.", 27 s) | `en/proper-brushing-technique` |
+| de | `aligners-warum-aligner-sich-verfaerben` ("Kaffee macht Aligner schneller gelb als gedacht.", 28 s) | `de/aligner-verfaerbung` (sixth pass, "Mit Schiene") |
+| de | `whitening-bleaching-und-zahnschmelz` ("Bleaching heißt nicht gleich schwacher Zahnschmelz.", 28 s) | `de/bleaching-zahnschmelz` |
+| de | `children-kind-ruhig-auf-den-zahnarztbesuch-vorbereiten` ("Ihr Kind spürt Ihre Nervosität sofort.", 30 s) | `de/kinder-zahnarztangst` |
+
+Every old English and German entry was removed, because its narration says the pushy
+closing and re-voicing costs money. English has no children's video and German no
+cleaning video for now; a clinic that lists one sees the "no sample yet" line in the wizard.
+The build left every other language's manifest entries as they were.
+
+Other languages (on-screen text only; the narration was transcribed locally with
+faster-whisper to decide):
+
+- `es/children-cuidado-de-dientes-en-ninos` removed: its card read "¡Consulta con nosotros
+  o agenda tu cita!" and the narration says "¿Tienes dudas? Pregúntanos o agenda tu cita."
+  Spanish keeps 4.
+- `fr/cleaning-detartrage` removed: card "Posez vos questions ou prenez rendez-vous !",
+  narration "N'hésitez pas à poser vos questions ou à prendre rendez-vous chez nous."
+  French keeps 5.
+- French closings that were generic or used twice now name the topic and follow what the
+  narration says: whitening "Une question sur le blanchiment ? Demandez-nous ou prenez
+  rendez-vous." (was "Pour plus d'informations, …"), implant "Une question sur l'entretien
+  de votre implant ? Parlez-nous-en.", gum visits "Posez vos questions ou prenez
+  rendez-vous pour un contrôle."
+- Japanese closings used twice: stains "着色が気になる方はご相談ください", cold sensitivity
+  "しみたら、気軽にご相談ください".
+- Still spoken, not fixable without paid re-voicing: every French narration ends on
+  "n'hésitez pas à … prendre rendez-vous", and the Spanish ones on "pregunta en nuestra
+  clínica o agenda tu revisión". No exclamation mark is on screen in any language.
+
+**One look.** Every preview plan in all 8 languages now uses the `editorial` theme, as the
+published samples do. Contact sheets of every plan that changed theme (and of the new
+English and German ones), drawn with Remotion `renderStill` as a visitor sees them (typed
+clinic name, no logo, a brand colour, library photos), showed no text overflowing in any
+language, so none was reverted. One Japanese closing was reworded after its sheet showed
+an awkward break ("しみる / 時は気軽に").
+
+**The clinic's name.** `live-preview-player.tsx` now builds its plan with
+`preview-library.ts previewPlan`, which sets `clinic` from the typed name as a real week
+does (`worker/src/dental/week.ts`): small in the top corner while there is no logo, and on
+the sign-off. An empty or blank name adds nothing.
+
+**Gates** (`web/src/lib/dentvid/preview-library.test.ts`, every language): no `!` on screen,
+no hard-rule claim, `closing-line.ts ctaProblems` finds no exclamation, pressure or generic
+closing, no English or German booking push, no closing used twice in a language, no
+off-register words (mirrored from `worker/src/dental/claims.ts` OFF_REGISTER, plus "super
+important"), English labels in sentence case, at least 3 videos per language, every
+manifest file on disk and nothing on disk outside the manifest, the editorial theme. They
+fail on the library as it was on main (46 failures). KM-13 now matches
+`strong(ly)? colo(u)r(s|ed)` with a space or a hyphen (`known-mistakes.ts`, mirrored to web).
+
 ## Not changed on purpose
 
 - `worker/src/dental/fixtures/baseline-scripts.json`: the November 2026 baseline

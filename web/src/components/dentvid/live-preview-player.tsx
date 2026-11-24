@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from "lucide
 import { ClipForgeVideo } from "@/remotion/Video";
 import { FPS, totalFrames, type ScenePlan } from "@/remotion/scene-plan";
 import { analyseLogoUrl, accentFor, type LogoColors } from "@/lib/dentvid/logo-colors";
-import { libraryLanguage, personalisePlan, pickPreviews, previewControlsSide, servicesWithoutSample, type PreviewEntry } from "@/lib/dentvid/preview-library";
+import { libraryLanguage, pickPreviews, previewControlsSide, previewPlan, servicesWithoutSample, type PreviewEntry } from "@/lib/dentvid/preview-library";
 import { fmt, type AppText } from "@/content/dentvideo-app";
 import { PhoneFrame } from "./phone";
 import { trackDv } from "@/lib/dentvid/events-client";
@@ -222,16 +222,15 @@ export default function LivePreviewPlayer({
     return defaultBackgrounds(suggestBackgrounds(input).filter((id) => relevant.has(id)), seconds).map(backgroundSrc);
   }, [raw, entry, lang]);
   const bgKey = (backgrounds ?? autoBackgrounds).join("\u0000");
-  const plan = useMemo(() => {
-    if (!raw) return undefined;
-    const personal = personalisePlan(raw, { name, handle });
-    return {
-      ...personal,
-      ...(brand ? { brandColor: brand.replace(/^#/, "").toUpperCase() } : {}),
-      ...(accent ? { brandAccent: accent.replace(/^#/, "").toUpperCase() } : {}),
-      ...(bgKey ? { backgrounds: bgKey.split("\u0000") } : {}),
-    } as ScenePlan;
-  }, [raw, name, handle, brand, accent, bgKey]);
+  // The visitor's name signs the video as a real week does: in the corner
+  // while there is no logo, and on the sign-off (preview-library.ts previewPlan).
+  const plan = useMemo(
+    () =>
+      raw
+        ? (previewPlan(raw, { name, handle, brandColor: brand, brandAccent: accent, backgrounds: bgKey ? bgKey.split("\u0000") : undefined }) as ScenePlan)
+        : undefined,
+    [raw, name, handle, brand, accent, bgKey],
+  );
 
   const inputProps = useMemo(
     () =>
