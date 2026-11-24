@@ -1,15 +1,23 @@
 import type { VideoPackage } from "../dental/week.js";
 import type { RecordedClip } from "../dental/recording.js";
-import { clipFinding, qaFinding, tagReason } from "./reasons.js";
+import { clipFinding, isSilentIssue, qaFinding, tagReason, UNCHECKED_FINDING } from "./reasons.js";
 
 /**
  * How agent output becomes a dentvid_items row. Pure, so the mapping — and
  * in particular the status a clinic sees — is tested directly.
  *
  *   ready    passed every review and the QA measurements
- *   flagged  usable, but the dentist must look first (reviewer findings,
- *            or a QA issue such as silent narration)
+ *   flagged  usable, but the dentist must look first (reviewer findings, a
+ *            QA issue such as a long pause, or a QA check that could not run)
  *   rejected could not be made safely; kept so nothing disappears silently
+ *
+ * A generated video with no narration at all (QA: "no audio track" or "audio
+ * is effectively silent", seen when the voice could not be made and the video
+ * was rendered without it) is rejected, not flagged: it is not a video a
+ * clinic can post. It never counts as one of the week's five, so the week's
+ * top-up makes another in its place (jobs.ts usableRow). Its file stays on the
+ * row (video_path), so it is tracked rather than orphaned in storage and the
+ * owner can listen to it in the admin panel; the clinic never sees it.
  */
 
 export type ItemRow = {
@@ -61,10 +69,36 @@ export function rowFromPackage(
       ...(pkg.error ? { error: pkg.error.slice(0, 500) } : {}),
     };
   }
-  const qaIssues = pkg.qa && !pkg.qa.ok ? pkg.qa.issues.map(qaFinding) : [];
+  const issues = pkg.qa && !pkg.qa.ok && Array.isArray(pkg.qa.issues) ? pkg.qa.issues : [];
+  const silent = issues.filter(isSilentIssue);
+  if (silent.length) {
+    return {
+      clinic_id: ids.clinicId,
+      owner_id: ids.ownerId,
+      kind: "generated",
+      status: "rejected",
+      title: pkg.topic.title,
+      topic: pkg.topic,
+      plan: pkg.plan,
+      copy: pkg.copy,
+      checks: pkg.checks,
+      // No clinic-facing finding: a topic not made reads "we couldn't make this one" (web reasons.ts).
+      findings: [],
+      qa: pkg.qa,
+      video_path: stored?.videoPath,
+      thumb_path: stored?.thumbPath,
+      // For the owner (admin panel, short-week alert); a technical failure, so the week retries or tops up.
+      error: `silent render: ${issues.join("; ")}`.slice(0, 500),
+    };
+  }
+  const qaIssues = issues.map(qaFinding);
+  // A rendered video whose QA measurement could not run has been checked by
+  // nobody. week.ts reports the qa field for every render it measured
+  // (undefined when inspectVideo threw); such a video is never "ready".
+  const unchecked = pkg.videoPath && qaMissing(pkg) ? [UNCHECKED_FINDING] : [];
   // A package meant to be rendered that has no stored video is not ready.
   const missingVideo = stored ? [] : [MISSING_VIDEO];
-  const findings = [...qaIssues, ...missingVideo];
+  const findings = [...qaIssues, ...unchecked, ...missingVideo];
   return {
     clinic_id: ids.clinicId,
     owner_id: ids.ownerId,
@@ -82,6 +116,18 @@ export function rowFromPackage(
     video_path: stored?.videoPath,
     thumb_path: stored?.thumbPath,
   };
+}
+
+/**
+ * The QA report is absent although week.ts tried to measure the render: the
+ * field is there but empty (inspectVideo threw), or it is not a report.
+ * Packages built without the field at all (callers that never measure, such
+ * as test doubles of week.ts) are judged by the other rules.
+ */
+function qaMissing(pkg: Extract<VideoPackage, { status: "ready" }>): boolean {
+  if (!("qa" in pkg)) return false;
+  const qa = pkg.qa as { ok?: unknown; issues?: unknown } | null | undefined;
+  return !qa || typeof qa.ok !== "boolean" || !Array.isArray(qa.issues);
 }
 
 export function rowFromClip(

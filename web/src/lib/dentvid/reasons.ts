@@ -12,7 +12,7 @@
  */
 
 /** Keep in step with worker/src/dentvid/reasons.ts REASON_CODES, plus the fallback. */
-export const CLINIC_REASONS = ["pause", "audio", "technical", "wording", "opening", "skipped", "unavailable", "generic"] as const;
+export const CLINIC_REASONS = ["pause", "audio", "technical", "wording", "opening", "skipped", "unchecked", "unavailable", "generic"] as const;
 export type ClinicReason = (typeof CLINIC_REASONS)[number];
 
 const TAG = /^\[dv:([a-z]+)\]\s*/;

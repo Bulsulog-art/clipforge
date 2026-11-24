@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import IORedis from "ioredis";
 import { LIMITS, clientIp } from "@/lib/rate-limit";
-import { rateLimited } from "@/lib/rate-limit-server";
+import { limiterRedis, rateLimited } from "@/lib/rate-limit-server";
+import { dvAdmin } from "@/lib/dentvid/supabase";
+import { judgeWorkerHealth, readWorkerState, type Check, type WorkerState } from "@/lib/dentvid/worker-health";
 
 /**
  * GET /api/health           — shallow check (200 OK, used by Coolify)
  * GET /api/health?deep=1    — exercises each backing service in turn
+ * GET /api/health?worker=1  — is the DentVideo worker doing its job? 503 when
+ *                             not (lib/dentvid/worker-health.ts): for an
+ *                             outside uptime monitor, since every other alarm
+ *                             runs inside the worker itself
  *
  * The shallow check stays fast (no I/O) so an uptime monitor pinging
  * every 30s doesn't add load. The deep check is what you wire to
@@ -19,6 +25,7 @@ import { rateLimited } from "@/lib/rate-limit-server";
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
+  if (url.searchParams.get("worker") === "1") return workerCheck(req);
   const deep = url.searchParams.get("deep") === "1"
     || url.pathname.endsWith("/deep");
 
@@ -42,6 +49,46 @@ export async function GET(req: Request) {
     ts: Date.now(),
     subsystems,
   }, { status: 200 });   // always 200 — deep check is informational
+}
+
+/**
+ * The worker check: heartbeats, the Saturday dispatch, the render queue and
+ * Liman. Reads Redis and Liman, so it is rate-limited like the deep check.
+ * 200 or 503; the body names only the checks, never a host, key or clinic.
+ */
+async function workerCheck(req: Request) {
+  const limited = await rateLimited([{ key: `rl:health:worker:ip:${clientIp(req.headers)}`, rule: LIMITS.healthDeepIp }], () => "too many requests");
+  if (limited) return limited;
+  const now = new Date();
+  const [state, database] = await Promise.all([readWorker(now), checkLiman()]);
+  const health = judgeWorkerHealth(state, database, now);
+  return NextResponse.json(
+    { ok: health.ok, ts: now.getTime(), checks: health.checks },
+    { status: health.ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
+  );
+}
+
+async function readWorker(now: Date): Promise<WorkerState | null> {
+  try {
+    const redis = limiterRedis();
+    if (!redis) return null;
+    return await withTimeout(readWorkerState(redis, now), 2500);
+  } catch (e) {
+    probeError(e);
+    return null;
+  }
+}
+
+/** A head count on dentvid_clinics: Liman answers and the table is there. */
+async function checkLiman(): Promise<Check> {
+  try {
+    const probe = Promise.resolve(dvAdmin().from("dentvid_clinics").select("id", { count: "exact", head: true }).limit(1));
+    const { error } = await withTimeout(probe, 2500);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, detail: probeError(e) };
+  }
 }
 
 type Probe = { name: string; ok: boolean; latencyMs: number; detail?: string };
