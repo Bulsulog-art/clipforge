@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, OffthreadVideo, staticFile, useVideoConfig } from "remotion";
 import type { Theme } from "../theme.js";
 import { PHRASE_BREAK } from "../script.js";
-import { TYPE, backgroundCss, fitText, leading, scrimAlpha, tracking } from "../theme.js";
+import { TYPE, backgroundCss, contrastRatio, fitText, leading, scrimAlpha, tracking } from "../theme.js";
 import { entrance, kenBurns } from "../animation.js";
 import { safePadding, useScale, useSafeArea } from "./primitives.js";
 import { usePhotoBackdrop } from "../background-layer.js";
@@ -41,7 +41,7 @@ export const FootageScene: React.FC<{
   // otherwise. A scene with neither clip nor caption never reaches here —
   // render-plan.ts folds it into its neighbour (withoutEmptyFootage).
   const photo = usePhotoBackdrop();
-  const scrim = theme.background[0];
+  const scrim = captionScrim(theme);
   const alpha = scrimAlpha("#FFFFFF", scrim, "#FFFFFF");
   // Top of the solid part of the scrim, as % of the frame from the bottom: the caption's band.
   const captionBand = Math.round(((safe.bottom + 420 * scale) / height) * 100);
@@ -121,6 +121,17 @@ export const FootageScene: React.FC<{
     </AbsoluteFill>
   );
 };
+
+/**
+ * The colour of the scrim under a footage caption, which is always white: the
+ * theme's deepest colour that white type reads on. That is the background's
+ * first stop for every dark theme and every clinic colour; a light theme
+ * (Editorial) has no deep background, and white on its cream never reaches
+ * 4.5:1 however solid the scrim, so its ink colour stands in.
+ */
+export function captionScrim(theme: Theme): string {
+  return [theme.background[0], theme.background[1], theme.foreground].find((c) => contrastRatio("#FFFFFF", c) >= 7) ?? "#0B0D10";
+}
 
 function rgba(hex: string, a: number): string {
   const h = hex.replace("#", "");
