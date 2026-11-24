@@ -59,7 +59,11 @@ For example, a German clinic asking how to cancel gets
   languages (the tests require it), not this page. This page only says which
   answer to link and what to check first.
 - `web/src/content/support-playbook.test.ts` checks that every answer linked
-  here exists and that the short summaries below still match the help center.
+  here exists, that each language's link is the address dentvideo.com
+  serves, and that the facts the short summaries state (times, limits, button
+  and error names, the admin section to look in) are still what the help
+  center, the app and the admin page say. The rest of a summary's wording is
+  not checked: when you change an answer, reread its summary here.
 
 ## Rules (never break these)
 
@@ -165,11 +169,20 @@ mismatch with what the clinic sees. Don't paste it; link the answer.
   payment details", or change the card in Settings → Plan and billing →
   "Manage billing". They should not buy a new plan: that would charge them
   twice.
-- *Check first:* Admin → clinic → billing events. If "Manage billing" fails
-  for them (an error, or no button because no Dodo subscription is stored on
-  the clinic), the app and the payment email promise a secure link. There is
-  no admin button for that link yet, so pass it to Berke. Never ask for card
-  details.
+- *Check first:* Admin → clinic → billing events. "Manage billing" shows on
+  every paying plan, a paused one too, so a clinic with a billing problem
+  usually sees the button and gets an error under it when it taps:
+  - "There is no active subscription on this account." means no Dodo
+    subscription is stored on the clinic. Look under Admin → clinic → "Plan,
+    subscriptions and payments".
+  - "We couldn't open the billing portal. Please try again in a moment."
+    means Dodo did not answer. If it keeps happening, it is a failure.
+  - No button at all: the plan is unpaid or has ended (or online billing is
+    switched off on the server, which shows for every clinic). A plan bought
+    in the iPhone app shows an App Store card instead (question 9).
+- *If it fails for them,* the app and the payment email promise a secure
+  link. There is no admin button for that link yet, so pass it to Berke.
+  Never ask for card details.
 
 ### 9. How do I cancel? Refunds? Where is my invoice? What happens to our videos?
 
@@ -186,6 +199,12 @@ mismatch with what the clinic sees. Don't paste it; link the answer.
     for them, the fallback is that Dodo receipt email.
   - After the paid period: the library stays 90 days (emails 14 days and 1
     day before deletion); downloaded videos stay theirs to use.
+- *Cancel for them:* there is no admin button for it. If you can use the
+  Dodo dashboard, take the subscription id from Admin → clinic → "Plan,
+  subscriptions and payments" and cancel it there at the end of the current
+  period, not immediately. If you can't, pass it to Berke the same day. Once
+  it is done, reply in the clinic's language that the plan is canceled and
+  runs to the end of the period they paid for.
 - *Internal:* the 90 days count from the end of the paid period
   (`dentvid_clinics.plan_ended_at`); the deletion date is on the clinic's
   admin page and in the app. A clinic that asks for more time: choosing a plan
@@ -246,7 +265,9 @@ mismatch with what the clinic sees. Don't paste it; link the answer.
 - anything about personal data (access, deletion beyond Settings, a breach);
 - the same failure (emails, week run, checkout) shows for more than one clinic;
 - a clinic needs a secure billing link because "Manage billing" fails for
-  them (question 8).
+  them (question 8);
+- a clinic asks us to cancel for them and you can't do it in the Dodo
+  dashboard yourself (question 9): pass it on the same day.
 
 ## Which email says what (for reference)
 

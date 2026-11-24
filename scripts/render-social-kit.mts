@@ -503,7 +503,7 @@ async function main() {
     "Banner",
     {
       line: "Patient-education videos for dental clinics, every Monday.",
-      sub: "Narrated, captioned, in the clinic's colours. Checked twice; the dentist approves every video.",
+      sub: "Narrated, captioned, in the clinic's colors. Checked twice; the dentist approves every video.",
       shots: ["stills/tr-implant-asamalari.png", "stills/es-blanqueamiento.png", "stills/de-aligner-pflege.png"],
     },
     path.join(outDir, "profile", "linkedin-banner-1584x396.png"),

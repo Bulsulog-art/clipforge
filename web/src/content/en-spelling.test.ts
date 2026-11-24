@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { GUIDE_LIBRARY } from "./guides";
 
@@ -22,6 +23,11 @@ import { GUIDE_LIBRARY } from "./guides";
  * record keyed by site language, and modules that are English by name or
  * carry no language of their own. Text in other languages is skipped (French
  * "licence" and "centre" are correct French).
+ *
+ * Pages and components (.tsx under web/src) that write English inline are read
+ * too: their JSX text and any string with a space in it (labels, aria-labels,
+ * hints). One-word strings are names, test ids or CSS keys (the `colour` form
+ * field, data-testid="try-colour"), and comments are not read.
  */
 
 /** The British forms the brief names, as whole words (identifiers like PRESET_COLOURS or logoNoColour never match). */
@@ -101,6 +107,35 @@ function stringLiterals(src: string): string[] {
   return [...code.matchAll(/"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g)].map((m) => m[0]);
 }
 
+/** The prose a .tsx file shows: JSX text, and string or template text that has a space in it. Comments are never nodes, so never read. */
+function tsxProse(file: string, src: string): string[] {
+  const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, false, ts.ScriptKind.TSX);
+  const out: string[] = [];
+  const visit = (n: ts.Node) => {
+    if (ts.isJsxText(n)) out.push(n.text);
+    else if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) out.push(n.text);
+    else if (ts.isTemplateExpression(n)) out.push(n.head.text, ...n.templateSpans.map((x) => x.literal.text));
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+  return out.map((t) => t.trim()).filter((t) => /\s/.test(t));
+}
+
+const WEB_SRC = path.join(CONTENT_DIR, "..");
+
+function tsxFiles(dir = WEB_SRC): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) return e.name === "node_modules" ? [] : tsxFiles(p);
+    return e.name.endsWith(".tsx") && !/\.test\.tsx$/.test(e.name) ? [p] : [];
+  });
+}
+
+/** British spellings in the prose of one .tsx source. */
+function tsxSpellings(file: string, src: string): Finding[] {
+  return tsxProse(file, src).flatMap((t) => [...t.matchAll(UK_SPELLING)].map((m) => ({ where: file, word: m[0], text: t.slice(Math.max(0, (m.index ?? 0) - 50), (m.index ?? 0) + m[0].length + 30) })));
+}
+
 const show = (f: Finding[]) => f.map((x) => `${x.where}: "${x.word}" in …${x.text}…`).join("\n");
 
 describe("English copy uses US spelling (UK guides excepted)", () => {
@@ -124,6 +159,16 @@ describe("English copy uses US spelling (UK guides excepted)", () => {
     const src = readFileSync(path.join(CONTENT_DIR, "../lib/dentvid/llms.ts"), "utf8");
     const hits = stringLiterals(src).flatMap((s) => [...s.matchAll(UK_SPELLING)].map((m) => `${m[0]} in ${s.slice(0, 80)}`));
     expect(hits).toEqual([]);
+  });
+
+  it("the web's pages and components (.tsx) show US spelling too", () => {
+    const files = tsxFiles();
+    expect(files.length).toBeGreaterThan(100);
+    for (const f of ["components/dentvid/admin-demo-form.tsx", "app/dentvideo/preview-demo/preview-demo.tsx", "components/dentvid/admin-demos.tsx", "app/pricing/page.tsx", "components/generate/create-form.tsx"]) {
+      expect(files.map((x) => path.relative(WEB_SRC, x).replace(/\\/g, "/"))).toContain(f);
+    }
+    const findings = files.flatMap((f) => tsxSpellings(path.relative(WEB_SRC, f).replace(/\\/g, "/"), readFileSync(f, "utf8")));
+    expect(show(findings), "write US spelling in labels, hints and page text (color, license …)").toBe("");
   });
 
   it("keeps UK guides in British spelling: they are recognized and skipped", () => {
@@ -165,6 +210,33 @@ describe("English copy uses US spelling (UK guides excepted)", () => {
       const keys = { PRESET_COLOURS: ["#0f5c5c"], logoNoColour: "No color found in the logo." };
       expect(ukSpellings("guides/x-en.ts", { A: [ukGuide, usGuide], B: markets, C: french, D: keys })).toEqual([]);
       expect(ukSpellings("legal/fr.ts", { FR: { intro: "Utilisées sous la licence Pexels." } })).toEqual([]);
+    });
+
+    it("reads a .tsx file's labels, hints and page text, not its names, test ids, class names or comments", () => {
+      const src = [
+        "/** Logo upload, brand colour. */",
+        "export function Form({ colour }: { colour: string }) {",
+        "  // centre the swatches",
+        '  const presets = ["5 caption styles, niche colour presets"];',
+        "  return (",
+        '    <fieldset data-testid="try-colour" className={`h-8 w-8 ${colour === "x" ? "ring-2" : "ring-1"}`}>',
+        "      {/* colour picker */}",
+        "      <legend>Brand colour (optional)</legend>",
+        '      <input name="colour" aria-label="Brand colour hex" value={colour} />',
+        "      <p>{`Shown in your colours, ${presets[0]}`}</p>",
+        "    </fieldset>",
+        "  );",
+        "}",
+      ].join("\n");
+      expect(tsxSpellings("x.tsx", src).map((f) => f.text)).toEqual([
+        "5 caption styles, niche colour presets",
+        "Brand colour (optional)",
+        "Brand colour hex",
+        "Shown in your colours,",
+      ]);
+      // With the four texts in US spelling, the names, test id, class names and comments left as they are pass.
+      const fixed = src.replace("niche colour presets", "niche color presets").replace("Brand colour (optional)", "Brand color (optional)").replace("Brand colour hex", "Brand color hex").replace("your colours", "your colors");
+      expect(tsxSpellings("x.tsx", fixed)).toEqual([]);
     });
 
     it("reads string literals, not comments or identifiers, from inline-copy sources", () => {
