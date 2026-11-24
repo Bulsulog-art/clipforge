@@ -25,7 +25,7 @@ import { RETENTION_SCHEDULE, retentionAlertDue, runRetention, supabaseRetentionD
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
 import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, revenuecatLookup, supabaseReconcileDb } from "./dentvid/reconcile.js";
-import { handleFailedWeek, weekClinic } from "./dentvid/stalled-week.js";
+import { handleFailedWeek, MAX_STALLED_COUNT, weekClinic } from "./dentvid/stalled-week.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
 import { buildAllSnapshots } from "./jobs/trend-snapshot.js";
@@ -157,7 +157,7 @@ const dentvidWorker = new Worker(
     // A week whose process dies under it (a deploy, a restart, out of memory) is put back in the
     // queue; only the third time is it failed as "stalled" (dentvid/stalled-week.ts takes it from
     // there). The default, 1, gave up on a week after two restarts in one Saturday evening.
-    maxStalledCount: 2,
+    maxStalledCount: MAX_STALLED_COUNT,
     // Enough to keep a whole week's jobs: the job ids are what stop a week
     // from being queued twice (dispatch, payment, button, watchdogs).
     removeOnComplete: { count: 5000, age: 7 * 24 * 3600 },

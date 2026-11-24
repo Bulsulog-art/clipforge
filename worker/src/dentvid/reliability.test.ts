@@ -12,7 +12,7 @@ import type { SpendGuard } from "./spend-guard.js";
 import { endPaidUpPlans, type EndingSub, type PlanEndDb } from "./plan-end.js";
 import { reconcileBilling, type ActiveClinic, type ReconcileDb } from "./reconcile.js";
 import { rowFromPackage } from "./rows.js";
-import { handleFailedWeek, stalledJobId, type StalledWeekDeps } from "./stalled-week.js";
+import { handleFailedWeek, STALLED_RETRY_ATTEMPTS, type StalledWeekDeps } from "./stalled-week.js";
 import { judge } from "../steps/qa.js";
 import { UnrecoverableError } from "bullmq";
 
@@ -36,14 +36,15 @@ const fjob = (state: string, extra: Partial<FakeJob> = {}): FakeJob => ({ state,
 function fakeQueue(jobs: Record<string, FakeJob> = {}) {
   const map = new Map(Object.entries(jobs));
   const added: { data: unknown; opts: Record<string, unknown> }[] = [];
-  const q: DeliveryQueue = {
+  // Like BullMQ: an add under an id it still keeps (failed included) is ignored, and a job can be removed.
+  const q: DeliveryQueue & StalledWeekDeps["queue"] = {
     getJob: async (id) => {
       const j = map.get(id);
-      return j ? { getState: async () => j.state, retry: j.retry, opts: j.opts, changePriority: j.changePriority } : null;
+      return j ? { getState: async () => j.state, retry: j.retry, opts: j.opts, changePriority: j.changePriority, remove: async () => void map.delete(id) } : null;
     },
     add: async (_n, data, opts) => {
       if (!map.has(opts.jobId as string)) {
-        map.set(opts.jobId as string, fjob("prioritized"));
+        map.set(opts.jobId as string, fjob(Number(opts.delay) > 0 ? "delayed" : "prioritized", { opts: opts as FakeJob["opts"] }));
         added.push({ data, opts });
       }
       return {};
@@ -445,20 +446,24 @@ describe("a week whose worker died under it twice recovers before Monday", () =>
   const stalled = new UnrecoverableError("job stalled more than allowable limit");
 
   it("Saturday night: the owner is told, the library says 'delayed', and the week is queued once more at the front", async () => {
-    const { q, added } = fakeQueue({ [`week:ist:${WEEK}`]: fjob("failed") });
+    const { q, map, added } = fakeQueue({ [`week:ist:${WEEK}`]: fjob("failed") });
     const r = await handleFailedWeek(job, stalled, deps(q, SAT));
     expect(r).toMatchObject({ handled: true, kind: "stalled", requeued: true });
-    expect(added.map((a) => a.opts.jobId)).toEqual([stalledJobId("ist", WEEK)]);
-    // Three ":"-parts: BullMQ refuses any other custom id with a ":" in it.
-    expect(String(added[0].opts.jobId).split(":")).toHaveLength(3);
+    // Under the week's own id, which the app's "try again", the admin requeue and the watchdogs look at:
+    // the failed job was removed to free it, and the extra run now waits there.
+    expect(added.map((a) => a.opts.jobId)).toEqual([`week:ist:${WEEK}`]);
+    expect([...map.keys()]).toEqual([`week:ist:${WEEK}`]);
+    expect(map.get(`week:ist:${WEEK}`)!.state).toBe("delayed");
     expect(added[0].opts.priority).toBe(DENTVID_PRIORITY.firstWeek);
+    expect(added[0].opts.attempts).toBe(STALLED_RETRY_ATTEMPTS);
     expect(await store.get(weekStateKey("ist", WEEK))).toBe("delayed");
     expect(raised.map((a) => a.key)).toEqual([`week_failed:ist:${WEEK}:stalled`]);
     expect(renderAlert(raised[0]).text).toMatch(/stopped more than once/);
 
     // The extra run dies the same way: told again under its own key, never a third run.
-    const r2 = await handleFailedWeek({ ...job, id: stalledJobId("ist", WEEK) }, stalled, deps(q, new Date(SAT.getTime() + 30 * 60_000)));
-    expect(r2).toMatchObject({ requeued: false, skipped: "extra_run" });
+    map.get(`week:ist:${WEEK}`)!.state = "failed";
+    const r2 = await handleFailedWeek({ ...job, opts: { attempts: STALLED_RETRY_ATTEMPTS } }, stalled, deps(q, new Date(SAT.getTime() + 30 * 60_000)));
+    expect(r2).toMatchObject({ requeued: false, skipped: "already" });
     expect(added).toHaveLength(1);
     expect(raised.map((a) => a.key)).toEqual([`week_failed:ist:${WEEK}:stalled`, `week_failed:ist:${WEEK}:again`]);
   });
