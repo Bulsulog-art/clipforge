@@ -1,3 +1,4 @@
+import { useId } from "react";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Check, Plus } from "lucide-react";
 import { FromPrice, PriceRegion } from "./price";
@@ -263,14 +264,16 @@ function CardLink({ href, label, teal = false }: { href: string; label: string; 
  * The anchor is written to sit inside a sentence ("how DentVideo compares …"); standing alone
  * here it is a title, so it starts with a capital in the page's language. A labelled <nav>,
  * not an <aside>: a set of links to other pages, and allowed inside an article or a section,
- * where a nested complementary landmark is not.
+ * where a nested complementary landmark is not. The heading's id is made per box, so a page that
+ * shows the box twice still names each nav by its own heading, with no duplicate id.
  */
 export function CommercialLinks({ locale, pages }: { locale: Locale; pages: SolutionPage[] }) {
+  const headingId = useId();
   if (pages.length === 0) return null;
   const ui = SOLUTION_UI[locale];
   return (
-    <nav aria-labelledby="dv-for-clinics" className="rounded-2xl bg-white p-5 ring-1 ring-dv-line sm:p-6" data-commercial-links>
-      <p id="dv-for-clinics" className="text-xs font-semibold uppercase tracking-[0.12em] text-dv-muted">
+    <nav aria-labelledby={headingId} className="rounded-2xl bg-white p-5 ring-1 ring-dv-line sm:p-6" data-commercial-links>
+      <p id={headingId} className="text-xs font-semibold uppercase tracking-[0.12em] text-dv-muted">
         {ui.forClinics}
       </p>
       <ul className="mt-3 space-y-4">

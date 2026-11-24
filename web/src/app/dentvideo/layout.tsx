@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   // Without this, DentVideo pages inherited ClipForge's Twitter/X card text.
   twitter: {
     card: "summary_large_image",
-    title: "DentVideo — patient-education videos for dental clinics",
+    title: "DentVideo: patient-education videos for dental clinics",
     description: "Your dentist's own voice, cut into captioned short videos. Software-checked before you see them. Approved by you.",
   },
   // The root layout's ClipForge canonical and share card must not leak onto
@@ -31,12 +31,12 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: "DentVideo",
     type: "website",
-    title: "DentVideo — patient-education videos for dental clinics",
+    title: "DentVideo: patient-education videos for dental clinics",
     description: "Five patient videos every Monday, software-checked before you see them. You approve.",
   },
-  title: { absolute: "DentVideo — patient-education videos for dental clinics", template: "%s · DentVideo" },
+  title: { absolute: "DentVideo: patient-education videos for dental clinics", template: "%s · DentVideo" },
   description:
-    "DentVideo turns a dentist's five-minute phone recording into a week of captioned short videos, software-checked against advertising rules — and writes and narrates educational videos when there is no time to film.",
+    "DentVideo turns a dentist's five-minute phone recording into a week of captioned short videos, software-checked against advertising rules. It also writes and narrates educational videos when there is no time to film.",
   applicationName: "DentVideo",
   // Optional search-console verification by meta tag (DNS TXT records are the preferred route; see docs/SEO_PLAN.md).
   ...(process.env.DENTVIDEO_GOOGLE_SITE_VERIFICATION || process.env.DENTVIDEO_BING_SITE_VERIFICATION
@@ -56,9 +56,11 @@ export const metadata: Metadata = {
   },
 };
 
-// The site has one, light design and no dark theme. "only light" tells browsers that would
-// repaint it dark on their own (Chrome and Samsung Internet's auto-dark on Android) to leave it
-// as designed: their repaint turned the wordmark's dark-teal "Dent" nearly invisible.
+// The site has one, light design and no dark theme. "only light" asks browsers that would repaint
+// it dark on their own to leave it as designed: their repaint turned the wordmark's dark-teal "Dent"
+// nearly invisible. Measured in Chromium: with the browser theme dark (how Android Chrome's
+// "Darken websites" runs) the page stays light; forced dark under a light theme ignores every page
+// declaration. Samsung Internet was not tested.
 export const viewport: Viewport = { themeColor: "#faf7f2", colorScheme: "only light" };
 
 // Each guide and each commercial page is written in one language; the header and footer follow it.

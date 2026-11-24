@@ -77,7 +77,9 @@ function Seconds({ locale, seconds }: { locale: Locale; seconds: number }) {
  * three cards across, each wide enough for its title. `eager`: the hub's first cards.
  *
  * A card from another language keeps its title in that language (lang and dir on the title alone);
- * the card itself and its length ("28 seconds") follow the page the visitor is reading.
+ * the card itself and its length ("28 seconds") follow the page the visitor is reading. The title is
+ * aligned to the page's side too: by its own direction alone, an Arabic title that wraps on an
+ * English page went to the right while a short one stayed left, and both left the length behind.
  */
 function ExampleCard({ e, pageLocale, eager = false }: { e: ExampleVideo; pageLocale: Locale; eager?: boolean }) {
   const s = sampleOf(e);
@@ -90,7 +92,7 @@ function ExampleCard({ e, pageLocale, eager = false }: { e: ExampleVideo; pageLo
       <span className="flex min-w-0 flex-1 flex-col sm:mt-4">
         <span className="flex items-start justify-between gap-3">
           {/* Whole words; break-words only as a last resort, so a long word can never push the arrow out of the card. */}
-          <span className="min-w-0 break-words font-semibold leading-snug text-dv-ink" lang={e.locale} dir={dirOf(e.locale)} data-example-title>
+          <span className={`min-w-0 break-words font-semibold leading-snug text-dv-ink ${dirOf(pageLocale) === "rtl" ? "text-right" : "text-left"}`} lang={e.locale} dir={dirOf(e.locale)} data-example-title>
             {s.name}
           </span>
           <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />

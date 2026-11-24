@@ -10,10 +10,11 @@ import { createElement } from "react";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
-import { GUIDES, LOCALES, type Locale } from "@/content/dentvideo";
+import { GUIDES, LANDING, LOCALES, dirOf, type Locale } from "@/content/dentvideo";
 import { EXAMPLES_UI, examplesFor } from "@/content/dentvideo-examples";
 import { BREADCRUMB_LABEL } from "@/content/guides/ui-breadcrumb";
 import { SOLUTIONS, solutionsFor } from "@/content/solutions";
+import { SOLUTION_UI } from "@/content/solutions/ui";
 import { capitalizeFirst } from "@/lib/dentvid/capitalize";
 import { Breadcrumbs } from "./guide-parts";
 import { CommercialLinks, SolutionView } from "./solution-page";
@@ -25,6 +26,7 @@ import { CheckerPage } from "./checker-page";
 import { CheckerCallout } from "./checker-callout";
 import { LegalPage } from "./legal-page";
 import GuidePage from "@/app/dentvideo/guides/[slug]/page";
+import { metadata as siteMetadata } from "@/app/dentvideo/layout";
 
 // Under vitest the components compile with the classic JSX runtime (tsconfig keeps "preserve" for Next).
 (globalThis as { React?: typeof React }).React = React;
@@ -37,6 +39,42 @@ function breadcrumbLabels(page: string): string[] {
 }
 const decode = (s: string) => s.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+const re = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** The copy rule's dash: an em dash anywhere, or an en dash with a space (or the edge) on either side. A range ("1–7") is not one. */
+const DASH = /—|(?:^|\s)–|–(?:\s|$)/;
+
+/** Every string value in an object, with its key path. */
+function strings(v: unknown, where = ""): { where: string; text: string }[] {
+  if (typeof v === "string") return [{ where, text: v }];
+  if (!v || typeof v !== "object") return [];
+  return Object.entries(v).flatMap(([k, x]) => strings(x, where ? `${where}.${k}` : k));
+}
+
+describe("the site title and description every DentVideo page inherits (tab, search result, share card)", () => {
+  it("say it without a dash, the way the landing does", () => {
+    const found = strings(siteMetadata).filter((x) => DASH.test(x.text));
+    expect(found.map((x) => `${x.where}: ${x.text}`).join("\n")).toBe("");
+    // The tab title, the share card title and the X card title match the English landing's title.
+    expect(siteMetadata.title).toEqual({ absolute: LANDING.en.meta.title, template: "%s · DentVideo" });
+    expect(siteMetadata.openGraph?.title).toBe(LANDING.en.meta.title);
+    expect(siteMetadata.twitter?.title).toBe(LANDING.en.meta.title);
+    expect(siteMetadata.description).toBe(
+      "DentVideo turns a dentist's five-minute phone recording into a week of captioned short videos, software-checked against advertising rules. It also writes and narrates educational videos when there is no time to film.",
+    );
+  });
+
+  it("the check catches the dashes the layout used to carry, and leaves a range alone", () => {
+    expect(DASH.test("DentVideo — patient-education videos for dental clinics")).toBe(true);
+    expect(DASH.test("software-checked against advertising rules — and writes and narrates")).toBe(true);
+    expect(DASH.test("Woche 1 – Zähneputzen")).toBe(true);
+    expect(DASH.test("1–7 Feb")).toBe(false);
+    expect(strings({ a: { b: ["ok", "x — y"] } })).toEqual([
+      { where: "a.b.0", text: "ok" },
+      { where: "a.b.1", text: "x — y" },
+    ]);
+  });
+});
 
 describe("light-only colour scheme (Android auto-dark left the wordmark's \"Dent\" nearly invisible)", () => {
   it("the DentVideo layout declares color-scheme 'only light' through Next's viewport (the <meta name=color-scheme>)", () => {
@@ -143,6 +181,33 @@ describe("examples cards: the length in the page's language, the title in its ow
     if (examplesFor("ar").length > 0) expect(hub).toMatch(/<span [^>]*lang="ar" dir="rtl"[^>]*data-example-title="true"/);
   });
 
+  /** Each card title's class, lang and dir, in page order. */
+  function titlesOf(page: string): { cls: string; lang: string; dir: string }[] {
+    return [...page.matchAll(/<span class="([^"]*)" lang="([^"]+)" dir="([^"]+)" data-example-title="true">/g)].map((m) => ({ cls: m[1], lang: m[2], dir: m[3] }));
+  }
+  const side = (l: Locale) => (dirOf(l) === "rtl" ? "text-right" : "text-left");
+  const otherSide = (l: Locale) => (dirOf(l) === "rtl" ? "text-left" : "text-right");
+
+  it.each(LOCALES)("%s hub: every title lines up on the page's side, whatever its own direction", (l) => {
+    const titles = titlesOf(html(createElement(ExamplesHub, { locale: l })));
+    expect(titles).toHaveLength(LOCALES.reduce((n, o) => n + examplesFor(o).length, 0));
+    for (const t of titles) {
+      expect(t.cls.split(" "), `${l} page, ${t.lang} title`).toContain(side(l));
+      expect(t.cls.split(" "), `${l} page, ${t.lang} title`).not.toContain(otherSide(l));
+    }
+    // The case the review saw: right-to-left titles on a left-to-right page, and the reverse.
+    if (dirOf(l) === "rtl") expect(titles.some((t) => t.dir === "ltr")).toBe(true);
+    else if (examplesFor("ar").length > 0) expect(titles.some((t) => t.dir === "rtl")).toBe(true);
+  });
+
+  it("a video page's More examples titles line up on that page's side too", () => {
+    for (const l of LOCALES.filter((x) => examplesFor(x).length > 1)) {
+      const titles = titlesOf(html(createElement(ExampleView, { e: examplesFor(l)[0] })));
+      expect(titles.length, l).toBe(examplesFor(l).length - 1);
+      for (const t of titles) expect(t.cls.split(" "), l).toContain(side(l));
+    }
+  });
+
   it("a video page's More examples cards say their length in the page's language too", () => {
     for (const l of LOCALES.filter((x) => examplesFor(x).length > 1)) {
       const page = html(createElement(ExampleView, { e: examplesFor(l)[0] }));
@@ -202,8 +267,47 @@ describe("commercial link box: titles start with a capital, and it is a labelled
   it.each(LOCALES)("%s: a nav named by its visible heading, never an aside", (l) => {
     const out = html(createElement(CommercialLinks, { locale: l, pages: solutionsFor(l) }));
     expect(out).not.toContain("<aside");
-    expect(out).toMatch(/^<nav aria-labelledby="dv-for-clinics"/);
-    expect(out).toMatch(/<p id="dv-for-clinics"[^>]*>[^<]+<\/p>/);
+    const named = out.match(/^<nav aria-labelledby="([^"]+)"/);
+    expect(named, l).not.toBeNull();
+    // The id it points to is the box's own heading, in the page's language.
+    expect(out).toMatch(new RegExp(`<p id="${re(named![1])}"[^>]*>${re(escape(SOLUTION_UI[l].forClinics))}</p>`));
+  });
+
+  it("two boxes on one page: each nav is named by its own heading, and no id repeats", () => {
+    const out = html(
+      createElement(
+        "div",
+        null,
+        createElement(CommercialLinks, { locale: "en", pages: solutionsFor("en") }),
+        createElement(CommercialLinks, { locale: "de", pages: solutionsFor("de") }),
+      ),
+    );
+    const ids = [...out.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    const navs = [...out.matchAll(/<nav aria-labelledby="([^"]+)"[^>]*><p id="([^"]+)"[^>]*>([^<]+)<\/p>/g)].map((m) => ({ by: m[1], id: m[2], heading: m[3] }));
+    expect(navs).toHaveLength(2);
+    for (const n of navs) expect(n.by).toBe(n.id);
+    expect(navs.map((n) => decode(n.heading))).toEqual([SOLUTION_UI.en.forClinics, SOLUTION_UI.de.forClinics]);
+  });
+
+  it("no id repeats on the pages that show the box (guides index and About in every language, every guide)", async () => {
+    const pages: [string, string][] = [];
+    for (const l of LOCALES) {
+      pages.push([`${l} guides`, html(createElement(GuidesIndex, { locale: l }))]);
+      pages.push([`${l} about`, html(createElement(AboutPage, { locale: l }))]);
+    }
+    for (const g of GUIDES) pages.push([g.slug, html((await GuidePage({ params: Promise.resolve({ slug: g.slug }) })) as React.ReactElement)]);
+    let boxes = 0;
+    for (const [name, page] of pages) {
+      boxes += (page.match(/data-commercial-links/g) ?? []).length;
+      const ids = [...page.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+      const repeated = ids.filter((id, i) => ids.indexOf(id) !== i);
+      expect(repeated, name).toEqual([]);
+      // Every aria-labelledby on the page points at an id that is there.
+      for (const m of page.matchAll(/aria-labelledby="([^"]+)"/g)) for (const id of m[1].split(" ")) expect(ids, `${name}: ${id}`).toContain(id);
+    }
+    expect(boxes).toBeGreaterThan(LOCALES.length);
   });
 
   it("renders nothing without pages", () => {
