@@ -46,6 +46,7 @@ export const SAMPLES: Record<string, OwnerAlert> = {
   paymentFailed: alerts.customerAtRisk({ clinic: CLINIC, event: "payment.failed", from: "active", to: "active" }),
   onHold: alerts.customerAtRisk({ clinic: CLINIC, event: "subscription.on_hold", from: "active", to: "paused" }),
   cancelled: alerts.customerAtRisk({ clinic: CLINIC, event: "subscription.cancelled", from: "active", to: "cancelled" }),
+  cancelledConfirmed: alerts.customerAtRisk({ clinic: CLINIC, event: "subscription.cancelled", from: "active", to: "active until 2026-12-10, then cancelled", cancellationConfirmed: true }),
   emailFailures: alerts.emailFailures({ count: 3, threshold: 3, lastError: "403 domain not verified" }),
   renderSpike: alerts.errorSpike({ kind: "render", count: 5, threshold: 5, sample: "render crashed: Chromium OOM" }),
   serverSpike: alerts.errorSpike({ kind: "5xx", count: 10, threshold: 10, sample: "/api/dentvideo/week" }),
@@ -101,6 +102,42 @@ describe("every alert says what happened, which clinic, what was done, what to d
     const c = cleanError(e);
     expect(c).not.toMatch(/ABCDEFGHIJKLMNOP|abc\.def\.ghi|\n/);
     expect(c.length).toBeLessThanOrEqual(240);
+  });
+});
+
+describe("a customer at risk: what the clinic was told by email", () => {
+  const NONE = "No email was sent to the clinic by DentVideo (Dodo sends its own payment notices).";
+  const CARD = "The clinic was emailed what happened and how to update its card (in its language, once per incident); the app shows “update your payment” instead of the plan picker.";
+  const CONFIRMED = "The clinic was emailed a confirmation of the end date and how long its library stays (in its language, once).";
+  const at = (event: string, to: string, emailed: { clinicEmailed?: boolean; cancellationConfirmed?: boolean } = {}) =>
+    alerts.customerAtRisk({ clinic: CLINIC, event, from: "active", to, ...emailed });
+
+  it("a confirmed cancellation says the clinic has its end date and library date in writing, never that no email was sent", () => {
+    const a = SAMPLES.cancelledConfirmed;
+    expect(a.done[1]).toBe(CONFIRMED);
+    const m = renderAlert(a);
+    expect(m.text).toContain(CONFIRMED);
+    expect(m.text).not.toMatch(/No email was sent|update its card|payment notices/);
+  });
+
+  it("the confirmation changes only that line: same key, title, severity and question as the unconfirmed cancellation", () => {
+    const plain = at("subscription.cancelled", "active until 2026-12-10, then cancelled");
+    const confirmed = SAMPLES.cancelledConfirmed;
+    expect(confirmed.key).toBe(`at_risk:${CLINIC.id}:subscription.cancelled`);
+    expect(confirmed).toEqual({ ...plain, done: [plain.done[0], CONFIRMED] });
+    expect(plain.done[1]).toBe(NONE);
+    expect(SAMPLES.cancelled.done[1]).toBe(NONE);
+  });
+
+  it("the payment-problem wording is unchanged, and a cancellation confirmation never shows on a payment problem", () => {
+    for (const [event, to] of [["payment.failed", "active"], ["subscription.on_hold", "paused"], ["subscription.past_due", "active"]] as const) {
+      expect(at(event, to).done[1], event).toBe(NONE);
+      expect(at(event, to, { clinicEmailed: true }).done[1], event).toBe(CARD);
+      expect(at(event, to, { cancellationConfirmed: true }).done[1], event).toBe(NONE);
+      expect(at(event, to, { clinicEmailed: true, cancellationConfirmed: true }).done[1], event).toBe(CARD);
+      expect(at(event, to, { cancellationConfirmed: true }).key, event).toBe(`at_risk:${CLINIC.id}:${event}`);
+    }
+    expect(SAMPLES.onHold.titleEn).toBe("Customer payment failed");
   });
 });
 

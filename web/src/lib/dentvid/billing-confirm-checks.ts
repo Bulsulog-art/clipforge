@@ -120,8 +120,11 @@ function reason(result: string): string {
 
 /**
  * The owner's "subscription stopped" alert (ops-alert.ts customerAtRisk) for a cancellation that keeps the
- * clinic active until its paid-through date, with what the clinic was told in writing. customerAtRisk's own
- * lines are about plans that stop now and say no email was sent; for this case they are replaced.
+ * clinic active until its paid-through date, with what the clinic was told in writing. customerAtRisk's
+ * lines are [what happens to the plan, what the clinic was emailed]:
+ *  - the first is about plans that stop now ("new weeks stop"), so it is replaced with the dates;
+ *  - the second stays when the confirmation went out ("sent": the webhook passes cancellationConfirmed, so
+ *    the owner reads ops-alert.ts's own wording); otherwise it is replaced with why no confirmation went out.
  */
 export function cancellationAlert(a: OwnerAlert, o: { result: string; endsAt: string; email?: string | null }): OwnerAlert {
   const end = day(o.endsAt);
@@ -135,7 +138,7 @@ export function cancellationAlert(a: OwnerAlert, o: { result: string; endsAt: st
   const todo: string[] = [];
   switch (o.result) {
     case "sent":
-      note = "The clinic was sent a written confirmation in its language with both dates.";
+      note = a.done[1];
       break;
     case "already sent":
       note = "The clinic already had its written confirmation of this cancellation.";
