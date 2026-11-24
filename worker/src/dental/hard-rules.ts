@@ -365,7 +365,7 @@ const IF_EN = "if|when|whenever|should|in case|as soon as(?! possible)";
 // is a push, while "call us now when a tooth is knocked out" stays clean through its urgent word.
 const IF_AFTER_EN = "if|in case";
 const URGENT_EN =
-  "emergenc\\p{L}*|urgent\\p{L}*|toothache\\p{L}*|pain\\p{L}*|hurt\\p{L}*|ache\\p{L}*|aching|swell\\p{L}*|swollen|bleed\\p{L}*|blood\\p{L}*|knocked[- ]out|broken|broke|cracked|chipped|lost|abscess\\p{L}*|fever\\p{L}*|infect\\p{L}*|injur\\p{L}*|trauma\\p{L}*|accident\\p{L}*|severe";
+  "emergenc\\p{L}*|urgent\\p{L}*|toothache\\p{L}*|pain(?!less|[- ]?free)\\p{L}*|hurt\\p{L}*|ache\\p{L}*|aching|swell\\p{L}*|swollen|bleed\\p{L}*|blood\\p{L}*|knocked[- ]out|broken|broke|cracked|chipped|lost|abscess\\p{L}*|fever\\p{L}*|infect\\p{L}*|injur\\p{L}*|trauma\\p{L}*|accident\\p{L}*|severe";
 
 export const FEAR_RULE: Rule = {
   id: "fear",
