@@ -187,7 +187,7 @@ const BEST_WAY: Guide = {
           ["Dental marketing agency", "Whatever the contract covers, often filming, posting and ads too", "Briefings, feedback and sign-off", "Depends on the agency: ask", "wants one partner to run everything"],
           ["Weekly done-for-you tool", "A set number of finished videos every week in your branding", "Minutes to watch, approve and post", "Depends on the tool: ask whether it checks every script", "wants to post every week without filming"],
         ],
-        note: "Typical set-ups, not any one provider. Offers and licence terms differ and change.",
+        note: "Typical set-ups, not any one provider. Offers and license terms differ and change.",
       },
     },
     {
@@ -204,7 +204,7 @@ const BEST_WAY: Guide = {
         "The limits are the reverse of the strengths. The videos are the same for every practice that buys them, they rarely carry your logo, colors or voice, and they are not a weekly social media feed. Check three things before you buy:",
       ],
       list: [
-        "Licence: can you post the videos on Instagram, TikTok or YouTube, or only show them in the practice and on your website? What happens to them if you cancel?",
+        "License: can you post the videos on Instagram, TikTok or YouTube, or only show them in the practice and on your website? What happens to them if you cancel?",
         "Language and market: are they in your patients' language, and does their wording fit your country's advertising rules?",
         "Treatments: do they match what you actually offer, or will patients ask about treatments you do not provide?",
       ],
@@ -248,7 +248,7 @@ const BEST_WAY: Guide = {
   ],
   faq: [
     { q: "What is the quickest way to get patient education videos?", a: "A stock library is quickest for a single explanation you can play today. For a steady weekly supply for social media, a done-for-you tool takes the least time: you watch, approve and post." },
-    { q: "Can I post stock library videos on Instagram or TikTok?", a: "Only if the licence allows it. Some libraries are licensed for chairside, website or waiting room use only. Check the terms for social media posting, adding your logo, and what happens to the videos if you cancel." },
+    { q: "Can I post stock library videos on Instagram or TikTok?", a: "Only if the license allows it. Some libraries are licensed for chairside, website or waiting room use only. Check the terms for social media posting, adding your logo, and what happens to the videos if you cancel." },
     { q: "Do patient education videos need the dentist on camera?", a: "No. Narrated explainers, hands-only demonstrations and text-led videos answer patients' questions well. A familiar face builds trust faster, so many practices mix both." },
     { q: "Who is responsible for what the videos say?", a: "The practice that shows or posts them, whoever made them. Approve every video, and check it against your country's advertising rules before it goes out." },
   ],
@@ -279,7 +279,7 @@ const SMALL_PRACTICES: Guide = {
     {
       heading: "What does video marketing look like for a small dental practice?",
       paragraphs: [
-        "For a small practice, video marketing is mostly patient education that happens to be public. A short clip answers a question your front desk hears every week: does whitening damage enamel, what happens at a first check-up, how to clean around an implant. People who are choosing a dentist watch it, recognise your name and colors, and get a feel for how you explain things.",
+        "For a small practice, video marketing is mostly patient education that happens to be public. A short clip answers a question your front desk hears every week: does whitening damage enamel, what happens at a first check-up, how to clean around an implant. People who are choosing a dentist watch it, recognize your name and colors, and get a feel for how you explain things.",
         "It is not a campaign, a viral trend or a discount. Those take time and budget a small team does not have, and in many countries they break health-advertising rules. Steady, calm, useful videos are cheaper to make and safer to post.",
       ],
     },
@@ -339,7 +339,7 @@ const SMALL_PRACTICES: Guide = {
     {
       heading: "How do you know if it is working?",
       paragraphs: [
-        "Not by views alone. A local practice does not need a large audience; it needs the right few hundred people nearby to recognise it. Look at signals that relate to patients rather than reach:",
+        "Not by views alone. A local practice does not need a large audience; it needs the right few hundred people nearby to recognize it. Look at signals that relate to patients rather than reach:",
       ],
       list: [
         "New patients who mention a video, or ask about a topic you posted.",

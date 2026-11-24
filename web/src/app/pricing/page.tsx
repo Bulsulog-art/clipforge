@@ -60,7 +60,7 @@ const PLANS: Plan[] = [
       "Add your own clips and we cut them in",
       "No watermark",
       "Sources up to 90 minutes",
-      "5 caption styles, niche colour presets",
+      "5 caption styles, niche color presets",
       "Clip by prompt — “only the parts where I talk about pricing”",
       "Translate a clip into 15+ languages (2 credits)",
       "Cancel anytime",

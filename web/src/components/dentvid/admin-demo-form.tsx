@@ -135,7 +135,7 @@ export function DemoForm({ languages, palette, defaultCampaign }: { languages: L
           </label>
         </div>
         <fieldset>
-          <legend className={label}>Brand colour (optional — a calm default is picked from the name)</legend>
+          <legend className={label}>Brand color (optional — a calm default is picked from the name)</legend>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {palette.map((c) => (
               <button

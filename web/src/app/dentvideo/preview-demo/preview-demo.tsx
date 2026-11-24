@@ -73,10 +73,10 @@ export function PreviewDemo() {
         </label>
         <div className="flex items-end gap-3">
           <label className="block text-sm font-medium">
-            Brand colour
+            Brand color
             <input data-testid="color" type="color" className="mt-1 block h-10 w-16 cursor-pointer rounded-lg border border-[#d9d1c3]" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} />
           </label>
-          <input data-testid="color-hex" aria-label="Brand colour hex" className={`${field} w-32 font-mono`} value={brandColor} onChange={(e) => setBrandColor(e.target.value)} />
+          <input data-testid="color-hex" aria-label="Brand color hex" className={`${field} w-32 font-mono`} value={brandColor} onChange={(e) => setBrandColor(e.target.value)} />
           <label className="mb-2 flex items-center gap-2 text-sm">
             <input type="checkbox" checked={useBrand} onChange={(e) => setUseBrand(e.target.checked)} /> use
           </label>

@@ -106,7 +106,7 @@ export const SEO_PAGES: SeoPage[] = [
       "Upload the file you published to YouTube",
       "Up to 12 clips of 25–70 seconds, best first",
       "A written hook and caption suggestion for each clip",
-      "9:16 framing that follows the face, not a centre crop",
+      "9:16 framing that follows the face, not a center crop",
     ],
     body: [
       {
@@ -139,7 +139,7 @@ export const SEO_PAGES: SeoPage[] = [
     body: [
       {
         heading: "Built for the first three seconds",
-        text: "The scoring prompt rejects moments that open with throat-clearing and favours a question, a bold claim, a number or the start of a story. That ranking is what decides which clips come first in your set.",
+        text: "The scoring prompt rejects moments that open with throat-clearing and favors a question, a bold claim, a number or the start of a story. That ranking is what decides which clips come first in your set.",
       },
     ],
     faqs: COMMON_FAQS,
@@ -181,7 +181,7 @@ export const SEO_PAGES: SeoPage[] = [
     points: [
       "Burned into the MP4 — no separate subtitle file to upload",
       "5 styles: Bold Pop, Clean, Neon, HYPE and Minimal",
-      "Key words emphasised automatically",
+      "Key words emphasized automatically",
       "Captions timed to each spoken word",
     ],
     body: [
