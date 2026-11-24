@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 const nav = vi.hoisted(() => ({ path: "/dentvideo" }));
+const tracked = vi.hoisted(() => [] as unknown[][]);
+vi.mock("@/lib/dentvid/events-client", () => ({ trackDv: (...args: unknown[]) => void tracked.push(args) }));
 vi.mock("next/navigation", () => ({
   usePathname: () => nav.path,
   useRouter: () => ({ push: () => {}, replace: () => {}, refresh: () => {}, prefetch: () => {} }),
@@ -11,11 +13,12 @@ import path from "node:path";
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LANDING, LANDING_PATH, LOCALES, type Locale } from "@/content/dentvideo";
+import { hasGuideHub } from "@/content/dentvideo-locales";
 import { EXAMPLES_PATH } from "@/content/guides/ui";
 import { HEADER_TEXT } from "@/content/dentvideo-header-cta";
 import { chromeText, chromeWords } from "@/lib/dentvid/chrome-text";
-import { DV_CTA_WHERE } from "@/lib/dentvid/events";
-import { DvHeader, accountLink, startLink } from "./chrome";
+import { parseClientEvent } from "@/lib/dentvid/events";
+import { DvHeader, SiteHeader, Start, accountLink, startLink } from "./chrome";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -27,7 +30,8 @@ function header(locale: Locale, at = LANDING_PATH[locale]): string {
 
 /** Every <a …>…</a> in the markup, with its attributes and text. */
 function anchors(html: string): { attrs: string; text: string }[] {
-  return [...html.matchAll(/<a ([^>]*)>([\s\S]*?)<\/a>/g)].map((m) => ({ attrs: m[1], text: m[2].replace(/<[^>]+>/g, "") }));
+  const decode = (t: string) => t.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+  return [...html.matchAll(/<a ([^>]*)>([\s\S]*?)<\/a>/g)].map((m) => ({ attrs: m[1], text: decode(m[2].replace(/<[^>]+>/g, "")) }));
 }
 
 const attr = (s: string) => s.replace(/&/g, "&amp;").replace(/'/g, "&#x27;");
@@ -95,10 +99,17 @@ describe("site header, signed out", () => {
     expect(anchors(html).map((x) => x.text)).toEqual([HEADER_TEXT.en.skip, ""]);
   });
 
-  it("the header click is counted as a call to action from the header", () => {
-    expect(DV_CTA_WHERE).toContain("header");
-    const src = fs.readFileSync(path.join(__dirname, "chrome.tsx"), "utf8");
-    expect(src).toMatch(/trackDv\("cta_clicked", \{ locale, props: \{ where: "header" \} \}\)/);
+  it("a header click is counted as a try of the no-account preview, as the hero's is, not as a sign-up click", () => {
+    tracked.length = 0;
+    const navs: unknown[] = [];
+    const el = Start({ to: { href: "/dentvideo/de#try", label: "x" }, locale: "de", className: "", onNav: (e) => void navs.push(e) }) as React.ReactElement<{ onClick: (e: unknown) => void }>;
+    const click = { currentTarget: null };
+    el.props.onClick(click);
+    // cta_clicked stays "a button into the sign-up" (the admin funnel's "Clicked a sign-up button").
+    expect(tracked).toEqual([["try_clicked", { locale: "de", props: { where: "header" } }]]);
+    expect(navs).toEqual([click]);
+    // The event endpoint accepts it: it lands in the funnel's "try" step.
+    expect(parseClientEvent(JSON.stringify({ name: "try_clicked", locale: "de", props: { where: "header" } }))?.name).toBe("try_clicked");
   });
 });
 
@@ -112,11 +123,30 @@ describe("site header, signed in: unchanged", () => {
     expect(accountLink(false, l, t).label).toBe(t.signIn);
   });
 
-  it("the bar renders 'Open app' as the filled button, and 'Sign in' only when there is a start button", () => {
-    const src = fs.readFileSync(path.join(__dirname, "chrome.tsx"), "utf8");
-    // The sign-in text link exists only beside a start button (signed out).
-    expect(src).toMatch(/\.\.\.\(start \? \[\{ href: dvHref\(account\.href\), label: account\.label, account: true as const \}\] : \[\]\)/);
-    // Signed in: the account link ("Open app") keeps the filled button.
-    expect(src).toMatch(/\{start \? \([\s\S]*?<Start [\s\S]*?\) : \([\s\S]*?data-account-link className=\{`\$\{BUTTON\} px-4 text-sm`\}/);
+  /** The site header as a signed-in browser shows it once the session cookie is read. */
+  function signedInHeader(l: Locale): string {
+    nav.path = LANDING_PATH[l];
+    return renderToStaticMarkup(React.createElement(SiteHeader, { t: chromeWords(l), locale: l, ready: true, quiet: false, signedIn: true }));
+  }
+
+  it.each(LOCALES)("%s: rendered signed in, 'Open app' is the only filled button, with no start button and no 'Sign in'", (l) => {
+    const t = chromeWords(l);
+    const a = anchors(signedInHeader(l));
+    expect(a.some((x) => x.attrs.includes('data-cta="header"'))).toBe(false);
+    expect(a.filter((x) => x.attrs.includes("dv-btn"))).toEqual([{ attrs: expect.stringContaining('href="/dentvideo/app"'), text: t.openApp }]);
+    expect(a.filter((x) => x.text === t.openApp)[0].attrs).toContain("dv-btn-primary");
+    expect(a.some((x) => x.text === t.signIn)).toBe(false);
+  });
+
+  it.each(LOCALES)("%s: rendered signed in, the bar and the phone menu keep their links and breakpoints, plus Examples", (l) => {
+    const t = chromeWords(l);
+    const a = anchors(signedInHeader(l));
+    const want = [t.howItWorks, t.pricing, ...(hasGuideHub(l) ? [t.guides] : []), t.examples, t.checker];
+    const bar = a.filter((x) => x.attrs.includes("hidden whitespace-nowrap rounded-full"));
+    expect(bar.map((x) => x.text)).toEqual(want);
+    // As before the start button: every link from md, the ad checker from lg.
+    for (const x of bar) expect(x.attrs).toContain(x.text === t.checker ? "lg:inline-block" : "md:inline-block");
+    // The phone menu: the same links, no start button and no account link.
+    expect(a.filter((x) => x.attrs.includes("min-h-14")).map((x) => x.text)).toEqual(want);
   });
 });

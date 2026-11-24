@@ -96,10 +96,10 @@ export function startLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords
 type Item = { href: string; label: string };
 const BUTTON = "dv-btn dv-btn-primary ms-2 whitespace-nowrap py-2.5 sm:px-5";
 
-/** The start button, counted as cta_clicked "header". */
-function Start({ to, locale, className, onNav }: { to: Item; locale: Locale; className: string; onNav?: (e: React.MouseEvent<HTMLAnchorElement>) => void }) {
+/** The start button: to the no-account preview, so try_clicked as the hero's (cta_clicked means into the sign-up). */
+export function Start({ to, locale, className, onNav }: { to: Item; locale: Locale; className: string; onNav?: (e: React.MouseEvent<HTMLAnchorElement>) => void }) {
   return (
-    <Link href={to.href} data-cta="header" className={className} onClick={(e) => (trackDv("cta_clicked", { locale, props: { where: "header" } }), onNav?.(e))}>
+    <Link href={to.href} data-cta="header" className={className} onClick={(e) => (trackDv("try_clicked", { locale, props: { where: "header" } }), onNav?.(e))}>
       {to.label}
     </Link>
   );
@@ -113,20 +113,21 @@ export function DvHeader({ guideLocales, text }: Props) {
   const path = usePathname() ?? "";
   const tab = appTab(path);
   const t = text[locale];
+  const signedIn = useSignedIn();
   // Skip link (shown on focus) to a mark after the header, where <main> begins.
   return (
     <>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-dv-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white">
         {t.skip}
       </a>
-      {tab ? <AppHeader t={t} locale={locale} ready={ready} tab={tab} /> : <SiteHeader t={t} locale={locale} ready={ready} quiet={isFunnel(path) || isPostPage(path)} />}
+      {tab ? <AppHeader t={t} locale={locale} ready={ready} tab={tab} /> : <SiteHeader t={t} locale={locale} ready={ready} quiet={isFunnel(path) || isPostPage(path)} signedIn={signedIn} />}
       <div id="main" className="scroll-mt-40" />
     </>
   );
 }
 
 /** `quiet` (the sign-up wizard): only the logo, so the next step is the only way on. */
-function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Locale; ready: boolean; quiet: boolean }) {
+export function SiteHeader({ t, locale, ready, quiet, signedIn }: { t: ChromeWords; locale: Locale; ready: boolean; quiet: boolean; signedIn: boolean }) {
   const home = LANDING_PATH[locale];
   // Until the visitor's language is known, keep the space but not the English words.
   const hide = ready ? "" : "invisible";
@@ -145,7 +146,6 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
     return () => window.removeEventListener("scroll", on);
   }, []);
   const [open, setOpen] = useState(false);
-  const signedIn = useSignedIn();
   const account = accountLink(signedIn, locale, t);
   const start = startLink(signedIn, locale, t);
   const navLink =
