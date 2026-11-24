@@ -8,6 +8,7 @@ import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { postingText } from "@/content/dentvideo-posting";
 import { reviewText, type ReviewText } from "@/content/dentvideo-review";
 import { reasonText } from "@/content/dentvideo-reasons";
+import { requestsText } from "@/content/dentvideo-requests";
 import { capHashtags, postTexts, type PostTexts } from "@/lib/dentvid/posting";
 import { CaptionTabs, useSaveAndCopy } from "./share-kit";
 import { HelpLink } from "./help-link";
@@ -26,7 +27,7 @@ import {
   type PostPlatform,
 } from "@/lib/dentvid/app-ui";
 import type { LibraryItem } from "./library";
-import { ChangeNote, ChangeRequest, SubtitlesLink, type ChangeView } from "./clinic-requests";
+import { ChangeNote, ChangeRequest, SubtitlesLink } from "./clinic-requests";
 
 /**
  * The Monday review, on a phone: one big vertical player per video, swipe
@@ -130,9 +131,11 @@ export function ReviewPlayer({
   const item = index >= 0 ? queue[index] : undefined;
   const open = !!item;
   const router = useRouter();
-  // Changes asked for while the player is open. The library does not look again while it is open
-  // (the video would reload), so these read as "requested" here and the library refreshes on close.
-  const [queuedIds, setQueuedIds] = useState<ReadonlySet<string>>(() => new Set());
+  // Changes asked for while the player is open: video id → the change the library showed for it at
+  // that moment (its time, or null). The library does not look again while the player is open (the
+  // video would reload), so such a video reads as "requested" here until the library brings newer
+  // news of it, and the library refreshes when the player closes.
+  const [asked, setAsked] = useState<ReadonlyMap<string, string | null>>(() => new Map());
 
   useEffect(() => {
     const d = ref.current;
@@ -142,10 +145,10 @@ export function ReviewPlayer({
   }, [open]);
 
   useEffect(() => {
-    if (open || queuedIds.size === 0) return;
-    setQueuedIds(new Set());
+    if (!refreshOnClose(open, asked)) return;
+    setAsked(new Map());
     router.refresh();
-  }, [open, queuedIds, router]);
+  }, [open, asked, router]);
 
   const go = (step: "next" | "previous") => {
     const n = step === "next" ? index + 1 : index - 1;
@@ -193,7 +196,7 @@ export function ReviewPlayer({
             {queue.length > 1 && (
               <ol className="flex gap-1 px-3 sm:px-5" aria-hidden="true">
                 {queue.map((q, n) => {
-                  const c = cardState(q);
+                  const c = changeRunning(q) || askedHere(q, asked.get(q.id)) ? "updating" : cardState(q);
                   const tone = c === "approved" || c === "updating" ? "bg-dv-teal-300" : c === "declined" ? "bg-white/30" : "bg-white/55";
                   return <li key={q.id} className={`h-1 flex-1 rounded-full ${tone} ${n === index ? "outline outline-2 outline-offset-1 outline-white" : "opacity-80"}`} />;
                 })}
@@ -257,8 +260,8 @@ export function ReviewPlayer({
             posted={!!posted[item.id]}
             onPosted={(on) => onPosted(item, on)}
             slot={slots?.get(item.id)}
-            changeQueued={queuedIds.has(item.id)}
-            onChangeQueued={() => setQueuedIds((ids) => new Set(ids).add(item.id))}
+            changeQueued={askedHere(item, asked.get(item.id))}
+            onChangeQueued={() => setAsked((m) => new Map(m).set(item.id, item.change?.at ?? null))}
           />
         </div>
       )}
@@ -268,6 +271,27 @@ export function ReviewPlayer({
 
 /** "Ask for a change" is being made for this video (the same test as the library card). */
 const changeRunning = (i: Pick<LibraryItem, "change">) => i.change?.status === "queued" || i.change?.status === "working";
+
+/**
+ * Whether a change asked for in this open player still has to be shown from here: `seen` is the
+ * change the library showed for the video when it was asked (its time, null for none; undefined:
+ * nothing was asked here). Once the library brings a newer change (requested, being made, done or
+ * refused), that one is the news, and the player shows it instead.
+ */
+export function askedHere(item: Pick<LibraryItem, "change">, seen: string | null | undefined): boolean {
+  return seen !== undefined && (item.change?.at ?? null) === seen;
+}
+
+/** The library refreshes once the player closes, and only if a change was asked for in it. */
+export function refreshOnClose(open: boolean, asked: ReadonlyMap<string, unknown>): boolean {
+  return !open && asked.size > 0;
+}
+
+/** The decline reasons where a change keeps the video better than a decline does. */
+export const CHANGE_INSTEAD_REASONS: readonly DeclineReason[] = ["wrong", "look"];
+
+/** Change failures that no second try fixes this week: no changes left, or no active plan. Declining is what is left. */
+const NO_CHANGE_CODES = ["limit", "no_plan"];
 
 /**
  * Whether "Ask for a change" can be offered on this video: exactly the library
@@ -282,9 +306,6 @@ export function canAskChange(item: LibraryItem, queuedHere = false): boolean {
   const playable = !!item.videoUrl && state !== "making" && state !== "failed";
   return !!item.photos && playable && state !== "updating" && !changing;
 }
-
-/** The decline reasons where a change keeps the video better than a decline does. */
-export const CHANGE_INSTEAD_REASONS: readonly DeclineReason[] = ["wrong", "look"];
 
 /** The decision (or, once approved, the posting) under the player: a sheet on a phone, a side column on a desktop. */
 export function ReviewPanel({
@@ -309,7 +330,7 @@ export function ReviewPanel({
   posted: boolean;
   onPosted: (on: boolean) => void;
   slot?: string;
-  /** A change for this video was asked for earlier in this open player. */
+  /** A change for this video was asked for earlier in this open player, and the library has no newer news of it. */
   changeQueued?: boolean;
   /** A change was just asked for (the player refreshes the library when it closes). */
   onChangeQueued?: () => void;
@@ -318,12 +339,27 @@ export function ReviewPanel({
   const t = text.library;
   const p = postingText(locale);
   const state = cardState(item);
+  // "Ask for a change": whether its form is open, what was just sent from where, and what the decline form handed over.
+  const deciding = state === "look" || state === "review";
+  const place = deciding ? "decide" : "post";
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [sent, setSent] = useState<{ place: typeof place; text: string; seen: string | null } | null>(null);
+  const [draft, setDraft] = useState<{ n: number; reason: DeclineReason; words: string } | null>(null);
+  // No change can be made this week (none left, or no plan): stop offering one; declining stays.
+  const [noChange, setNoChange] = useState(false);
+  // A change asked for here (or earlier in this open player) that the library has no newer news of.
+  const asked = changeQueued || (!!sent && askedHere(item, sent.seen));
+  // While a change is asked for or being made, the video on screen is the one being replaced: like the
+  // library card, the panel offers no decision and no posting until the new version is in (the worker
+  // sets it back to "waiting for approval" then, and clears a posted tick).
+  const changing = asked || changeRunning(item);
+  const canChange = canAskChange(item, asked) && !noChange;
   // One share for the panel, so "Approve + save" and the post step after it are the same tap and the same file.
   const share = useSaveAndCopy({
     videoUrl: item.videoUrl,
     title: item.title,
     text: postText(item),
-    prefetch: state === "review" || state === "approved",
+    prefetch: !changing && (state === "review" || state === "approved"),
     labels: { sharedHint: p.sharedHint, downloadedHint: p.downloadedHint, failed: t.shareFailed },
   });
   const [declining, setDeclining] = useState(false);
@@ -334,31 +370,55 @@ export function ReviewPanel({
   const decided = state === "approved" || state === "declined" || state === "updating";
   const allDone = justDecided && decided && queue.length > 1 && nextUndecided(queue, index) < 0;
 
-  // "Ask for a change": whether its form is open, where it was just sent from, and what the decline form handed over.
-  const deciding = state === "look" || state === "review";
-  const place = deciding ? "decide" : "post";
-  const [changeOpen, setChangeOpen] = useState(false);
-  const [queuedAt, setQueuedAt] = useState<typeof place | null>(null);
-  const [draft, setDraft] = useState<{ n: number; reason: DeclineReason; words: string } | null>(null);
-  const canChange = canAskChange(item, changeQueued);
-  // Right after sending, the form stays where it was to confirm it (and say how many changes are left);
-  // anywhere else the note under the state chip says it was requested.
-  const confirming = queuedAt === place;
-  const change: ChangeView | undefined = changeQueued && !changeRunning(item) ? { status: "queued", reason: null } : item.change;
-  const changeRequest = (canChange || confirming) && (
-    <ChangeRequest
-      key={`change-${draft?.n ?? 0}`}
-      locale={locale}
-      itemId={item.id}
-      initialNote={draft?.words}
-      startOpen={!!draft}
-      once
-      onOpenChange={setChangeOpen}
-      onQueued={() => {
-        setQueuedAt(place);
-        onChangeQueued?.();
-      }}
-    />
+  // Right after sending, the confirmation stands where the form was (with how many changes are left)
+  // and takes the keyboard focus, so it is not lost with the form; after that the chip says it.
+  const confirming = !!sent && changing && sent.place === place;
+  const sentLine = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (confirming) sentLine.current?.focus();
+  }, [confirming]);
+  // After "no changes left", the keyboard goes to Decline once it is back on the sheet.
+  const declineButton = useRef<HTMLButtonElement>(null);
+  const focusDecline = useRef(false);
+  useEffect(() => {
+    if (focusDecline.current && declineButton.current) {
+      focusDecline.current = false;
+      declineButton.current.focus();
+    }
+  });
+  // The chip names the change ("Change requested", "Making your change"): the card's "updating" label is about photos.
+  const changeLabel = changing ? requestsText(locale).change.status[asked || !item.change ? "queued" : item.change.status] : undefined;
+  const changeSlot = confirming ? (
+    <p ref={sentLine} tabIndex={-1} role="status" className="mt-3 rounded-xl bg-dv-teal-50 px-3 py-2 text-sm text-dv-teal">
+      {sent?.text}
+    </p>
+  ) : (
+    canChange && (
+      <ChangeRequest
+        key={`change-${draft?.n ?? 0}`}
+        locale={locale}
+        itemId={item.id}
+        initialNote={draft?.words}
+        startOpen={!!draft}
+        onOpenChange={setChangeOpen}
+        onQueued={(text) => {
+          setSent({ place, text, seen: item.change?.at ?? null });
+          setDraft(null);
+          onChangeQueued?.();
+        }}
+        onFailed={({ code, message: text, note }) => {
+          if (!code || !NO_CHANGE_CODES.includes(code)) return;
+          // No change this week: say so where the decision is, and go back to it. Coming from the
+          // decline form, it opens again with the reason and the words (as edited in the change form).
+          setNoChange(true);
+          setMessage({ kind: "error", text });
+          if (draft) {
+            setDraft({ ...draft, words: note.trim() ? note : draft.words });
+            setDeclining(true);
+          } else focusDecline.current = true;
+        }}
+      />
+    )
   );
 
   /** Approve and share in the same tap: the decision saves in the background while the share sheet opens. */
@@ -382,7 +442,7 @@ export function ReviewPanel({
     }
     setDeclining(false);
     setJustDecided(approval !== "pending");
-    if (approval === "rejected") setMessage({ kind: "ok", text: t.declineForm.done });
+    if (approval === "rejected") setMessage({ kind: "ok", text: reviewText(locale).declined });
     if (approval === "pending") return;
     // On to the next video still waiting, after a beat so the change is seen.
     const updated = queue.map((q) => (q.id === item.id ? { ...q, approval } : q));
@@ -399,10 +459,10 @@ export function ReviewPanel({
   return (
     <section className={`${declining || changeOpen ? "max-h-[72dvh]" : "max-h-[48dvh]"} shrink-0 overflow-y-auto rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-dv-ink shadow-[0_-12px_32px_-16px_rgba(0,0,0,0.5)] sm:px-6 lg:max-h-none lg:rounded-none lg:px-10 lg:py-12 lg:shadow-none`}>
       <div className="mx-auto max-w-xl">
-        <StateChip state={state} posted={posted} t={t} />
+        <StateChip state={changing && state !== "making" ? "updating" : state} label={changeLabel} posted={posted} t={t} />
         <h2 dir="auto" className="dv-display sr-only text-balance text-start text-[1.875rem] leading-tight text-dv-ink [overflow-wrap:anywhere] lg:not-sr-only lg:mb-5 lg:mt-3">{item.title}</h2>
-        {/* What became of a change (requested, being made, made, or why not); the form says it itself right after asking. */}
-        {!confirming && state !== "making" && state !== "failed" && <ChangeNote locale={locale} change={change} approval={item.approval} />}
+        {/* What became of a change once it is over (made, or why not); while it runs the chip says so. */}
+        {!changing && state !== "making" && state !== "failed" && <ChangeNote locale={locale} change={item.change} approval={item.approval} />}
 
         {item.reasons.length > 0 && deciding && (
           <div className="mt-3 rounded-xl bg-[#fdf6ea] p-3 text-sm">
@@ -427,7 +487,7 @@ export function ReviewPanel({
         )}
 
         {deciding &&
-          (declining ? (
+          (declining && !changing ? (
             <DeclineForm
               t={t.declineForm}
               busy={busy}
@@ -438,16 +498,17 @@ export function ReviewPanel({
             />
           ) : (
             <>
-              {/* While the change form is open it is the one thing on the sheet; Cancel brings the decision back. */}
-              {!changeOpen && state === "review" && item.videoUrl && (
+              {/* While the change form is open it is the one thing on the sheet; Cancel brings the decision back.
+                  Once a change is asked for, there is nothing to decide on this version. */}
+              {!changeOpen && !changing && state === "review" && item.videoUrl && (
                 <button type="button" disabled={busy || share.busy} onClick={approveAndShare} className="dv-btn dv-btn-primary mt-4 w-full px-5 py-3">
                   {share.busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Share2 className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />}
                   {p.approveSaveCopy}
                 </button>
               )}
-              {!changeOpen && (
+              {!changeOpen && !changing && (
                 <div className={`${state === "review" && item.videoUrl ? "mt-2" : "mt-4"} flex gap-2`}>
-                  <button type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn dv-btn-secondary px-5 py-3">
+                  <button ref={declineButton} type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn dv-btn-secondary px-5 py-3">
                     {t.decline}
                   </button>
                   <button type="button" disabled={busy} onClick={() => choose("approved")} className={`dv-btn flex-1 px-5 py-3 ${state === "review" && item.videoUrl ? "dv-btn-secondary !text-dv-teal" : "dv-btn-primary"}`}>
@@ -456,12 +517,12 @@ export function ReviewPanel({
                   </button>
                 </div>
               )}
-              {changeRequest}
+              {changeSlot}
               {slot && !changeOpen && <SlotLine label={fmt(p.suggested, { slot })} />}
             </>
           ))}
 
-        {state === "declined" && (
+        {state === "declined" && !changing && (
           <button type="button" disabled={busy} onClick={() => choose("pending")} className="dv-btn dv-btn-secondary mt-4 w-full px-5 py-3">
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             {t.undo}
@@ -492,7 +553,8 @@ export function ReviewPanel({
             share={share}
             slot={slot}
             onNext={queue.length > 1 && index < queue.length - 1 ? () => onIndex(index + 1) : undefined}
-            change={changeRequest || undefined}
+            change={changeSlot || undefined}
+            changing={changing}
           />
         )}
       </div>
@@ -500,16 +562,25 @@ export function ReviewPanel({
   );
 }
 
-function StateChip({ state, posted, t }: { state: ReturnType<typeof cardState>; posted: boolean; t: AppText["library"] }) {
+function StateChip({ state, label, posted, t }: { state: ReturnType<typeof cardState>; label?: string; posted: boolean; t: AppText["library"] }) {
   if (state === "notMade" || state === "making" || state === "failed") return null;
   const tone =
-    state === "look" ? "bg-[#fdf1dc] text-[#7a4b00]" : state === "review" ? "bg-dv-teal-50 text-dv-teal" : state === "declined" ? "bg-dv-sand text-dv-muted" : "bg-dv-teal text-white";
+    state === "look"
+      ? "bg-[#fdf1dc] text-[#7a4b00]"
+      : state === "review"
+        ? "bg-dv-teal-50 text-dv-teal"
+        : state === "declined"
+          ? "bg-dv-sand text-dv-muted"
+          : state === "updating"
+            ? "bg-dv-sand text-dv-body"
+            : "bg-dv-teal text-white";
   return (
     <p className="flex flex-wrap gap-1.5">
       <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>
         {state === "look" && <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />}
         {state === "approved" && <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />}
-        {t.state[state]}
+        {state === "updating" && <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+        {label ?? t.state[state]}
       </span>
       {posted && (
         <span className="inline-flex items-center gap-1 rounded-full bg-dv-sand px-2.5 py-1 text-xs font-semibold text-dv-ink">
@@ -640,6 +711,7 @@ export function PostPanel({
   slot,
   onNext,
   change,
+  changing = false,
 }: {
   locale: Locale;
   item: LibraryItem;
@@ -651,8 +723,10 @@ export function PostPanel({
   share?: Share;
   slot?: string;
   onNext?: () => void;
-  /** "Ask for a change" for this video, when it can be offered (ReviewPanel). */
+  /** "Ask for a change" for this video when it can be offered, or the confirmation right after asking (ReviewPanel). */
   change?: React.ReactNode;
+  /** A change is asked for or being made: this version is not the one to post (the new one comes back for approval). */
+  changing?: boolean;
 }) {
   const text = appText(locale);
   const t = text.library;
@@ -679,6 +753,21 @@ export function PostPanel({
     if (okNow) setShared(true);
   }, [okNow]);
   const askPosted = !posted && (shared || okNow);
+
+  const next = onNext && (
+    <button type="button" onClick={onNext} className="dv-btn dv-btn-secondary shrink-0 whitespace-nowrap px-4 py-3 !text-dv-teal">
+      {ps.nextVideo}
+      <ChevronRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+    </button>
+  );
+  // Nothing to save, tick or undo while it is being re-made: what was asked, and the way on.
+  if (changing)
+    return (
+      <div className="mt-3">
+        {change}
+        {next && <div className="mt-3 flex">{next}</div>}
+      </div>
+    );
 
   function onTabKey(e: React.KeyboardEvent, n: number) {
     const rtl = dirOf(locale) === "rtl";
@@ -718,9 +807,10 @@ export function PostPanel({
           {rv.postedPrompt}
         </p>
       )}
-      <div className={`${askPosted ? "mt-1.5" : "mt-2"} flex gap-2`}>
+      {/* One line per button: where both do not fit (a long label, a small phone), "Next video" goes under the tick. */}
+      <div className={`${askPosted ? "mt-1.5" : "mt-2"} flex flex-wrap gap-2`}>
         {askPosted ? (
-          <button key="ask" type="button" aria-describedby={`${id}-ask`} onClick={() => onPosted(true)} className="dv-btn dv-btn-primary flex-1 px-5 py-3">
+          <button key="ask" type="button" aria-describedby={`${id}-ask`} onClick={() => onPosted(true)} className="dv-btn dv-btn-primary flex-1 whitespace-nowrap px-5 py-3">
             <CircleCheck className="h-5 w-5" aria-hidden="true" />
             {rv.postedYes}
           </button>
@@ -730,18 +820,13 @@ export function PostPanel({
             type="button"
             aria-pressed={posted}
             onClick={() => onPosted(!posted)}
-            className={`dv-btn flex-1 px-5 py-3 ${posted ? "bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/30" : "dv-btn-secondary"}`}
+            className={`dv-btn flex-1 whitespace-nowrap px-5 py-3 ${posted ? "bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/30" : "dv-btn-secondary"}`}
           >
             <CircleCheck className={`h-5 w-5 ${posted ? "fill-dv-teal text-white" : "text-dv-muted"}`} aria-hidden="true" />
             {posted ? p.posted : p.markPosted}
           </button>
         )}
-        {onNext && (
-          <button type="button" onClick={onNext} className="dv-btn dv-btn-secondary shrink-0 px-4 py-3 !text-dv-teal">
-            {ps.nextVideo}
-            <ChevronRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
-          </button>
-        )}
+        {next}
       </div>
 
       {share.note && (

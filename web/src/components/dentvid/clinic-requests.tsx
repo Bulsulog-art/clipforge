@@ -155,27 +155,27 @@ export function ChangeRequest({
   onQueued,
   initialNote = "",
   startOpen = false,
-  once = false,
   onOpenChange,
+  onFailed,
 }: {
   locale: Locale;
   itemId: string;
-  onQueued: () => void;
+  /** The change was accepted; `confirmation` is what this form shows for it ("Change requested. Changes left this week: 2 of 3"). */
+  onQueued: (confirmation: string) => void;
   /** The note the form starts with, e.g. what was typed in the decline form (cut to CHANGE_NOTE_MAX). */
   initialNote?: string;
   /** Open the form at once instead of showing the button first. */
   startOpen?: boolean;
-  /** After a change is queued, show only the confirmation and no second button (a view that does not refresh at once, like the review player). */
-  once?: boolean;
   /** Told whenever the form opens or closes, so a sheet around it can make room. */
   onOpenChange?: (open: boolean) => void;
+  /** The change was not accepted: the server's code ("limit", "no_plan", "busy"…, none when unreachable), the message shown, and the note as typed. */
+  onFailed?: (failure: { code?: string; message: string; note: string }) => void;
 }) {
   const t = requestsText(locale).change;
   const id = useId();
   const [open, setOpen] = useState(startOpen);
   const [note, setNote] = useState(() => clipChangeNote(initialNote));
   const [busy, setBusy] = useState(false);
-  const [queued, setQueued] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const area = useRef<HTMLTextAreaElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -197,16 +197,21 @@ export function ChangeRequest({
     setMessage(null);
     try {
       const res = await fetch(`/api/dentvideo/items/${itemId}/change`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ note }) });
-      const body = (await res.json().catch(() => ({}))) as { error?: string; left?: number };
+      const body = (await res.json().catch(() => ({}))) as { error?: string; code?: string; left?: number };
       if (res.ok) {
+        const text = `${t.status.queued}. ${fillRequests(t.left, { n: body.left ?? 0, max: CHANGES_PER_WEEK })}`;
         setOpen(false);
         setNote("");
-        setQueued(true);
-        setMessage({ kind: "ok", text: `${t.status.queued}. ${fillRequests(t.left, { n: body.left ?? 0, max: CHANGES_PER_WEEK })}` });
-        onQueued();
-      } else setMessage({ kind: "error", text: body.error ?? t.errors.unavailable });
+        setMessage({ kind: "ok", text });
+        onQueued(text);
+      } else {
+        const text = body.error ?? t.errors.unavailable;
+        setMessage({ kind: "error", text });
+        onFailed?.({ code: body.code, message: text, note });
+      }
     } catch {
       setMessage({ kind: "error", text: t.errors.unavailable });
+      onFailed?.({ message: t.errors.unavailable, note });
     }
     setBusy(false);
   }
@@ -214,12 +219,10 @@ export function ChangeRequest({
   return (
     <div className="mt-2">
       {!open ? (
-        !(once && queued) && (
-          <button ref={button} type="button" onClick={() => setOpen(true)} className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
-            <PencilLine className="h-4 w-4" aria-hidden="true" />
-            {t.button}
-          </button>
-        )
+        <button ref={button} type="button" onClick={() => setOpen(true)} className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
+          <PencilLine className="h-4 w-4" aria-hidden="true" />
+          {t.button}
+        </button>
       ) : (
         <form onSubmit={send} className="mt-2 rounded-2xl bg-dv-sand/60 p-4 ring-1 ring-inset ring-dv-line">
           <p className="font-semibold text-dv-ink">{t.title}</p>

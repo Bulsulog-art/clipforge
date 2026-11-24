@@ -1,8 +1,8 @@
 /**
  * Words only the full-screen review (components/dentvid/review-player.tsx) uses: asking for a
- * change instead of declining, the "Posted it?" question after a share, and the "More options"
- * fold of the post sheet. Kept apart from dentvideo-app.ts, which also ships with the sign-up
- * page and is held to that page's size budget (lib/dentvid/client-bundle.test.ts).
+ * change instead of declining, the line after a decline, the "Posted it?" question after a share,
+ * and the "More options" fold of the post sheet. Kept apart from dentvideo-app.ts, which also
+ * ships with the sign-up page and is held to that page's size budget (lib/dentvid/client-bundle.test.ts).
  *
  * Forms of address follow dentvideo-app.ts: German Sie, Spanish tú, French vous, Turkish siz,
  * Japanese です・ます, Arabic plural أنتم, Polish Państwo.
@@ -19,6 +19,8 @@ export type ReviewText = {
   postedYes: string;
   /** The post sheet's fold: the caption texts, the subtitles and the steps for each app. */
   moreOptions: string;
+  /** Said once a video is declined in the player (the decline form's lead, in dentvideo-app.ts, says what happens with the answer). */
+  declined: string;
 };
 
 export const REVIEW_TEXT: Record<Locale, ReviewText> = {
@@ -28,6 +30,7 @@ export const REVIEW_TEXT: Record<Locale, ReviewText> = {
     postedPrompt: "Posted it?",
     postedYes: "Yes, posted",
     moreOptions: "More options",
+    declined: "Declined. Our team has your answer.",
   },
   de: {
     changeInstead: "Lieber eine Änderung anfragen",
@@ -35,6 +38,7 @@ export const REVIEW_TEXT: Record<Locale, ReviewText> = {
     postedPrompt: "Schon gepostet?",
     postedYes: "Ja, gepostet",
     moreOptions: "Weitere Optionen",
+    declined: "Abgelehnt. Ihre Antwort ist bei unserem Team.",
   },
   es: {
     changeInstead: "Mejor pedir un cambio",
@@ -42,13 +46,15 @@ export const REVIEW_TEXT: Record<Locale, ReviewText> = {
     postedPrompt: "¿Ya lo publicaste?",
     postedYes: "Sí, publicado",
     moreOptions: "Más opciones",
+    declined: "Rechazado. Tu respuesta ya está con nuestro equipo.",
   },
   tr: {
-    changeInstead: "Bunun yerine değişiklik isteyin",
-    changeInsteadHint: "Video bu haftanızda kalır, notunuz da korunur.",
+    changeInstead: "Bunun yerine değişiklik iste",
+    changeInsteadHint: "Video bu haftanın videoları arasında kalır, notunuz da korunur.",
     postedPrompt: "Paylaştınız mı?",
     postedYes: "Evet, paylaştım",
     moreOptions: "Diğer seçenekler",
+    declined: "Reddedildi. Yanıtınız ekibimize iletildi.",
   },
   fr: {
     changeInstead: "Demander plutôt une modification",
@@ -56,6 +62,7 @@ export const REVIEW_TEXT: Record<Locale, ReviewText> = {
     postedPrompt: "Vous l'avez publiée ?",
     postedYes: "Oui, publiée",
     moreOptions: "Plus d'options",
+    declined: "Refusée. Votre réponse est transmise à notre équipe.",
   },
   ja: {
     changeInstead: "代わりに修正を依頼する",
@@ -63,6 +70,7 @@ export const REVIEW_TEXT: Record<Locale, ReviewText> = {
     postedPrompt: "投稿しましたか？",
     postedYes: "はい、投稿しました",
     moreOptions: "その他のオプション",
+    declined: "見送りました。回答は担当チームに届いています。",
   },
   ar: {
     changeInstead: "طلب تعديل بدلًا من ذلك",
@@ -70,6 +78,7 @@ export const REVIEW_TEXT: Record<Locale, ReviewText> = {
     postedPrompt: "هل نشرتموه؟",
     postedYes: "نعم، نشرناه",
     moreOptions: "خيارات أخرى",
+    declined: "تم الرفض. وصلت إجابتكم إلى فريقنا.",
   },
   pl: {
     changeInstead: "Zamiast tego poproś o zmianę",
@@ -77,6 +86,7 @@ export const REVIEW_TEXT: Record<Locale, ReviewText> = {
     postedPrompt: "Opublikowali go Państwo?",
     postedYes: "Tak, opublikowany",
     moreOptions: "Więcej opcji",
+    declined: "Odrzucono. Odpowiedź trafiła do naszego zespołu.",
   },
 };
 

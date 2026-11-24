@@ -11,7 +11,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LOCALES, type Locale } from "@/content/dentvideo";
 import { APP_TEXT, countText, fmt } from "@/content/dentvideo-app";
 import { Library, NextStep, type LibraryItem } from "./library";
-import { CHANGE_INSTEAD_REASONS, DeclineForm, PostPanel, ReviewPanel, ReviewPlayer, canAskChange, postText } from "./review-player";
+import { CHANGE_INSTEAD_REASONS, DeclineForm, PostPanel, ReviewPanel, ReviewPlayer, askedHere, canAskChange, postText, refreshOnClose } from "./review-player";
+import { ChangeRequest } from "./clinic-requests";
 import { POSTING_TEXT } from "@/content/dentvideo-posting";
 import { REASON_TEXT } from "@/content/dentvideo-reasons";
 import { REQUESTS_TEXT } from "@/content/dentvideo-requests";
@@ -339,9 +340,22 @@ function buttonsIn(n: React.ReactNode, out: React.ReactElement<Props>[] = []): R
   return out;
 }
 const buttonNamed = (tree: React.ReactNode, name: string) => buttonsIn(tree).find((b) => textOf(b.props.children).includes(name));
+/** Every element of a component type in a tree, also inside element props (PostPanel's `change`). */
+function elementsOf<P>(n: unknown, type: unknown, out: React.ReactElement<P>[] = []): React.ReactElement<P>[] {
+  if (Array.isArray(n)) n.forEach((c) => elementsOf(c, type, out));
+  else if (React.isValidElement(n)) {
+    if (n.type === type) out.push(n as React.ReactElement<P>);
+    for (const v of Object.values(n.props as Record<string, unknown>)) elementsOf(v, type, out);
+  }
+  return out;
+}
+type ChangeProps = React.ComponentProps<typeof ChangeRequest>;
 
-/** A fake share (useSaveAndCopy) in a given state: an "ok" note is what a successful save or share leaves. */
-const shareIn = (note: { kind: "ok" | "error"; text: string } | null) => ({ method: "download" as const, busy: false, again: false, note, run: async () => {}, download: async () => {} });
+/**
+ * A fake share (useSaveAndCopy) in a given state: an "ok" note is what a successful save or share leaves.
+ * `run` and `download` are bare mocks so the fake fits whatever they resolve to.
+ */
+const shareIn = (note: { kind: "ok" | "error"; text: string } | null) => ({ method: "download" as const, busy: false, again: false, note, run: vi.fn(), download: vi.fn() });
 
 const photos = { suggested: ["a", "b"], chosen: [] as string[] };
 
@@ -470,12 +484,14 @@ describe("decline, or keep the video and ask for a change", () => {
     expect(h).toContain(`>${note}</textarea>`);
   });
 
-  it.each(LOCALES)("%s: the decline copy promises only what happens (the team reads it, next week's planning sees it), never an email or a reply", (l: Locale) => {
+  it.each(LOCALES)("%s: the decline copy promises only what happens (the team has it, the next topics are planned with it), never an email, a reply or a date", (l: Locale) => {
     const t = APP_TEXT[l].library.declineForm;
-    for (const s of [t.lead, t.done, REVIEW_TEXT[l].changeInstead, REVIEW_TEXT[l].changeInsteadHint]) {
+    for (const s of [t.lead, REVIEW_TEXT[l].declined, REVIEW_TEXT[l].changeInstead, REVIEW_TEXT[l].changeInsteadHint]) {
       expect(s).not.toMatch(/mail|メール|بريد|correo|courriel|e-posta|reply|respond|antworten wir|responderemos|répondrons|yanıtlayacağız|odpowiemy|返信|سنرد/i);
       expect(s).not.toMatch(/[–—!]/);
     }
+    // A decline on Sunday shapes the week after next (the week is planned on Saturday): no "next week".
+    expect(t.lead).not.toMatch(/next week|nächsten Woche|próxima semana|gelecek hafta|semaine prochaine|翌週|来週|الأسبوع القادم|przyszły tydzień/i);
   });
 });
 
@@ -539,5 +555,165 @@ describe("the post sheet: the posted tick in reach", () => {
     const onPosted = vi.fn();
     buttonNamed(treeOf(() => PostPanel({ locale: "en", item: a, posted: true, onPosted, share: shareIn(null) })), p.posted)!.props.onClick!();
     expect(onPosted).toHaveBeenCalledWith(false);
+  });
+});
+
+describe("while a change is asked for or being made, the old version is not decided on or posted", () => {
+  const at = "2026-11-24T08:00:00.000Z";
+  const t = APP_TEXT.en.library;
+  const ps = POSTING_TEXT.en;
+  const rq = REQUESTS_TEXT.en.change;
+  const panel = (it: LibraryItem, extra: Partial<React.ComponentProps<typeof ReviewPanel>> = {}, l: Locale = "en") =>
+    html(<ReviewPanel locale={l} item={it} queue={[it, item({ photos })]} index={0} onIndex={() => {}} decide={noop} posted={false} onPosted={() => {}} {...extra} />);
+  const asked = { changeQueued: true };
+
+  it.each(LOCALES)("%s: waiting for a decision, with a change asked here or running: no Approve, no Approve + save, no Decline, no second request", (l: Locale) => {
+    const lt = APP_TEXT[l].library;
+    const lp = POSTING_TEXT[l];
+    const lrq = REQUESTS_TEXT[l].change;
+    const cases: [LibraryItem, Partial<React.ComponentProps<typeof ReviewPanel>>, string][] = [
+      [item({ photos }), asked, lrq.status.queued],
+      [item({ photos, status: "flagged", reasons: ["pause"] }), asked, lrq.status.queued],
+      [item({ photos, change: { status: "working", reason: null, at } }), {}, lrq.status.working],
+      [item({ photos, status: "flagged", reasons: ["pause"], change: { status: "queued", reason: null, at } }), {}, lrq.status.queued],
+    ];
+    for (const [it, extra, status] of cases) {
+      const h = panel(it, extra, l);
+      const c = controls(h);
+      for (const gone of [lt.approve, lt.decline, lp.approveSaveCopy, lrq.button, lrq.submit, lt.post.markPosted]) expect(c, `${it.status} ${it.change?.status}: ${gone}`).not.toContain(gone);
+      // The chip names the change (not "Ready to approve", and not the card's "Updating photos").
+      expect(h).toContain(status);
+      for (const not of [lt.state.review, lt.state.look, lt.state.updating]) expect(h).not.toContain(`${not}</span>`);
+      // What to check stays readable.
+      if (it.reasons.length) expect(h).toContain(lt.whatToCheck);
+    }
+  });
+
+  it.each(LOCALES)("%s: approved, with a change asked here or running: nothing to save, tick or undo, and the way to the next video", (l: Locale) => {
+    const lt = APP_TEXT[l].library;
+    const lp = POSTING_TEXT[l];
+    const lrq = REQUESTS_TEXT[l].change;
+    for (const [it, extra] of [
+      [item({ photos, approval: "approved" }), asked],
+      [item({ photos, approval: "approved", change: { status: "working", reason: null, at } }), {}],
+    ] as const) {
+      const c = controls(panel(it, extra, l));
+      for (const gone of [lp.downloadAndCopy, lp.saveAndCopy, lt.post.markPosted, lt.post.posted, REVIEW_TEXT[l].postedYes, lt.undo, REVIEW_TEXT[l].moreOptions, lrq.button, lt.approve, lt.decline]) {
+        expect(c, gone).not.toContain(gone);
+      }
+      expect(c.some((x) => x.includes(lp.nextVideo))).toBe(true);
+    }
+  });
+
+  it("a declined video being changed cannot be taken back meanwhile; a photo update (no change) still posts as before", () => {
+    const d = panel(item({ photos, approval: "rejected", change: { status: "working", reason: null, at } }));
+    expect(controls(d)).not.toContain(t.undo);
+    expect(d).toContain(rq.status.working);
+    const restyled = controls(panel(item({ photos: { ...photos, status: "queued" }, approval: "approved" })));
+    expect(restyled).toContain(ps.downloadAndCopy);
+    expect(restyled).toContain(t.post.markPosted);
+    expect(restyled).toContain(t.undo);
+  });
+
+  it("once a change is asked for here, no change request is rendered at all, so a note carried over from the decline form cannot reopen it", () => {
+    for (const it of [item({ photos }), item({ photos, approval: "approved" }), item({ photos, status: "flagged", reasons: ["pause"] })]) {
+      const tree = treeOf(() => ReviewPanel({ locale: "en", item: it, queue: [it], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {}, changeQueued: true }));
+      expect(elementsOf(tree, ChangeRequest), it.approval).toHaveLength(0);
+      // Without it, it is there (closed).
+      const before = treeOf(() => ReviewPanel({ locale: "en", item: it, queue: [it], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {} }));
+      expect(elementsOf<ChangeProps>(before, ChangeRequest).map((e) => !!e.props.startOpen)).toEqual([false]);
+    }
+  });
+
+  it("once the library brings newer news of the change, that is what the player shows (made, or not made and why)", () => {
+    const done = panel(item({ photos, change: { status: "done", reason: null, at } }));
+    expect(done).toContain(rq.status.done);
+    expect(controls(done)).toContain(t.approve);
+    expect(controls(done)).toContain(t.decline);
+    const refused = panel(item({ photos, approval: "approved", change: { status: "refused", reason: "checks", at } }));
+    expect(refused).toContain(rq.reasons.checks);
+    expect(controls(refused)).toContain(ps.downloadAndCopy);
+  });
+});
+
+describe("what the player remembers about a change asked in it", () => {
+  const at = "2026-11-24T08:00:00.000Z";
+
+  it("a change asked here is shown from here until the library has a newer one for that video", () => {
+    // Nothing asked here.
+    expect(askedHere(item({}), undefined)).toBe(false);
+    // Asked when the library showed no change, and it still shows none (it does not look while the player is open).
+    expect(askedHere(item({}), null)).toBe(true);
+    // Asked when the library showed an older outcome, which it still shows.
+    expect(askedHere(item({ change: { status: "done", reason: null, at } }), at)).toBe(true);
+    // The library now has the new change: requested, being made, made or refused. Its word counts.
+    for (const status of ["queued", "working", "done", "refused", "failed"] as const) {
+      expect(askedHere(item({ change: { status, reason: null, at: "2026-11-24T09:00:00.000Z" } }), at), status).toBe(false);
+      expect(askedHere(item({ change: { status, reason: null, at } }), null), status).toBe(false);
+    }
+  });
+
+  it("the library refreshes when the player closes, and only if a change was asked for in it", () => {
+    const one = new Map([["i1", null]]);
+    expect(refreshOnClose(false, one)).toBe(true);
+    expect(refreshOnClose(true, one)).toBe(false);
+    expect(refreshOnClose(false, new Map())).toBe(false);
+    expect(refreshOnClose(true, new Map())).toBe(false);
+  });
+});
+
+describe("sending a change from the player: the player hears of it only when the server took it", () => {
+  const rq = REQUESTS_TEXT.en.change;
+  const note = "Please say twice a day, not three times.";
+  /** The panel's own change request, opened with a note, with fetch answering `respond`. */
+  async function send(respond: () => Promise<Response>, it = item({ photos })) {
+    const onChangeQueued = vi.fn();
+    const fetchMock = vi.fn(respond);
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const tree = treeOf(() => ReviewPanel({ locale: "en", item: it, queue: [it], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {}, onChangeQueued }));
+      const [el] = elementsOf<ChangeProps>(tree, ChangeRequest);
+      const form = treeOf(() => ChangeRequest({ ...el.props, startOpen: true, initialNote: note }));
+      const [f] = elementsOf<{ onSubmit: (e: { preventDefault: () => void }) => Promise<void> }>(form, "form");
+      await f.props.onSubmit({ preventDefault: () => {} });
+      return { onChangeQueued, fetchMock };
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  }
+  const json = (status: number, body: unknown) => async () => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+
+  it("accepted: one POST for this video with the note, and the player is told once (it refreshes the library on close)", async () => {
+    const it = item({ photos });
+    const { onChangeQueued, fetchMock } = await send(json(200, { ok: true, left: 2 }), it);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(`/api/dentvideo/items/${it.id}/change`);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toEqual({ note });
+    expect(onChangeQueued).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["no changes left this week", json(429, { error: rq.errors.limit, code: "limit", left: 0 })],
+    ["no active plan", json(402, { error: rq.reasons.no_plan, code: "no_plan" })],
+    ["a change already being made", json(409, { error: rq.errors.busy, code: "busy" })],
+    ["a server error", json(500, {})],
+    ["no connection", async () => Promise.reject(new TypeError("offline"))],
+  ])("refused (%s): nothing is marked as asked, so nothing is hidden and the library is not refreshed for it", async (_why, respond) => {
+    const { onChangeQueued, fetchMock } = await send(respond as () => Promise<Response>);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(onChangeQueued).not.toHaveBeenCalled();
+  });
+
+  it("the panel's handlers: only an accepted change counts as asked; a refusal never does", () => {
+    const onChangeQueued = vi.fn();
+    const it = item({ photos });
+    const tree = treeOf(() => ReviewPanel({ locale: "en", item: it, queue: [it], index: 0, onIndex: () => {}, decide: noop, posted: false, onPosted: () => {}, onChangeQueued }));
+    const [el] = elementsOf<ChangeProps>(tree, ChangeRequest);
+    for (const code of ["limit", "no_plan", "busy", "length", undefined]) el.props.onFailed!({ code, message: "No.", note });
+    expect(onChangeQueued).not.toHaveBeenCalled();
+    el.props.onQueued("Change requested. Changes left this week: 2 of 3");
+    expect(onChangeQueued).toHaveBeenCalledTimes(1);
   });
 });

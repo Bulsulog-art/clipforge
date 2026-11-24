@@ -112,6 +112,76 @@ describe("a change request opened with words already in it (from the review play
     expect(h).toContain(esc(t.button));
     expect(h).not.toContain("<textarea");
     expect(render({ initialNote: "ignored until opened" })).not.toContain("ignored until opened");
-    expect(render({ once: true })).toContain(esc(t.button));
+  });
+});
+
+describe("sending a change: what the form hands up", () => {
+  const t = REQUESTS_TEXT.en.change;
+  const note = "Say twice a day, not three times.";
+  /** What ChangeRequest renders (its hooks run in a render), so the form's submit handler can be called. */
+  function formOf(props: Partial<Parameters<typeof ChangeRequest>[0]>) {
+    let out: React.ReactNode = null;
+    function Spy() {
+      out = ChangeRequest({ locale: "en", itemId: "x", onQueued: () => {}, startOpen: true, initialNote: note, ...props });
+      return createElement(React.Fragment, null, out);
+    }
+    renderToStaticMarkup(createElement(Spy));
+    const find = (n: unknown): React.ReactElement<{ onSubmit: (e: { preventDefault: () => void }) => Promise<void> }> | null => {
+      if (Array.isArray(n)) return n.map(find).find(Boolean) ?? null;
+      if (!React.isValidElement(n)) return null;
+      if (n.type === "form") return n as never;
+      return find((n.props as { children?: unknown }).children);
+    };
+    return find(out)!;
+  }
+  async function submit(respond: () => Promise<Response>) {
+    const onQueued = vi.fn();
+    const onFailed = vi.fn();
+    const fetchMock = vi.fn(respond);
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      await formOf({ onQueued, onFailed }).props.onSubmit({ preventDefault: () => {} });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    return { onQueued, onFailed, fetchMock };
+  }
+  const json = (status: number, body: unknown) => async () => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+
+  it("accepted: the confirmation with how many changes are left, once; nothing reported as failed", async () => {
+    const { onQueued, onFailed, fetchMock } = await submit(json(200, { ok: true, left: 2 }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/dentvideo/items/x/change", expect.objectContaining({ method: "POST", body: JSON.stringify({ note }) }));
+    expect(onQueued).toHaveBeenCalledTimes(1);
+    expect(onQueued).toHaveBeenCalledWith(`${t.status.queued}. Changes left this week: 2 of 3`);
+    expect(onFailed).not.toHaveBeenCalled();
+  });
+
+  it("refused by the server: its code and message, with the note as typed; never reported as queued", async () => {
+    const { onQueued, onFailed } = await submit(json(429, { error: t.errors.limit, code: "limit", left: 0 }));
+    expect(onQueued).not.toHaveBeenCalled();
+    expect(onFailed).toHaveBeenCalledWith({ code: "limit", message: t.errors.limit, note });
+    const busy = await submit(json(409, { error: t.errors.busy, code: "busy" }));
+    expect(busy.onQueued).not.toHaveBeenCalled();
+    expect(busy.onFailed).toHaveBeenCalledWith({ code: "busy", message: t.errors.busy, note });
+  });
+
+  it("unreachable, or an answer that is not JSON: the general message and no code; never reported as queued", async () => {
+    const offline = await submit(async () => Promise.reject(new TypeError("offline")));
+    expect(offline.onQueued).not.toHaveBeenCalled();
+    expect(offline.onFailed).toHaveBeenCalledWith({ message: t.errors.unavailable, note });
+    const broken = await submit(async () => new Response("<html>bad gateway</html>", { status: 502 }));
+    expect(broken.onQueued).not.toHaveBeenCalled();
+    expect(broken.onFailed).toHaveBeenCalledWith({ code: undefined, message: t.errors.unavailable, note });
+  });
+
+  it("without onFailed (the library card) a refusal is shown in the form as before, and nothing breaks", async () => {
+    const onQueued = vi.fn();
+    vi.stubGlobal("fetch", vi.fn(json(429, { error: t.errors.limit, code: "limit" })));
+    try {
+      await formOf({ onQueued, onFailed: undefined }).props.onSubmit({ preventDefault: () => {} });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(onQueued).not.toHaveBeenCalled();
   });
 });
