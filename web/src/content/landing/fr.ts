@@ -28,7 +28,7 @@ export const fr: LandingContent = {
     namePlaceholder: "Votre cabinet",
     logo: "Ajouter votre logo",
     color: "Couleur du cabinet",
-    cta: "Continuer : voir toute votre semaine",
+    cta: "Continuer : enregistrer votre aperçu",
     note: "Étape suivante : la création d'un compte, sans frais, et l'aperçu complet de votre semaine. Vous ne payez que si vous choisissez une formule.",
   },
   monday: {

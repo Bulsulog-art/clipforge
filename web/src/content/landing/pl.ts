@@ -28,7 +28,7 @@ export const pl: LandingContent = {
     namePlaceholder: "Państwa gabinet",
     logo: "Dodaj logo",
     color: "Kolor gabinetu",
-    cta: "Dalej: cały tydzień",
+    cta: "Dalej: zapisać podgląd",
     note: "Następny krok: konto, którego założenie nic nie kosztuje, i pełny podgląd Państwa tygodnia. Płacą Państwo dopiero po wybraniu planu.",
   },
   monday: {

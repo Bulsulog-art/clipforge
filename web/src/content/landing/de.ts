@@ -28,7 +28,7 @@ export const de: LandingContent = {
     namePlaceholder: "Ihre Praxis",
     logo: "Logo hinzufügen",
     color: "Praxisfarbe",
-    cta: "Weiter: Ihre ganze Woche ansehen",
+    cta: "Weiter: Ihre Vorschau speichern",
     note: "Nächster Schritt: ein kostenloses Konto und die vollständige Vorschau Ihrer Woche. Sie zahlen nur, wenn Sie einen Tarif wählen. Monatlich, jederzeit kündbar.",
   },
   monday: {

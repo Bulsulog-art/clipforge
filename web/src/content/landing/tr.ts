@@ -28,7 +28,7 @@ export const tr: LandingContent = {
     namePlaceholder: "Kliniğiniz",
     logo: "Logonuzu ekleyin",
     color: "Klinik rengi",
-    cta: "Devam: haftanızın tamamını görün",
+    cta: "Devam: önizlemenizi kaydedin",
     note: "Sonraki adım: ücretsiz bir hesap ve haftanızın tam önizlemesi. Yalnızca bir plan seçerseniz ödeme yaparsınız; aylık, istediğiniz zaman iptal.",
   },
   monday: {

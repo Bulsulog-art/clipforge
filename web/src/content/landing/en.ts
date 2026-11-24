@@ -29,7 +29,7 @@ export const en: LandingContent = {
     namePlaceholder: "Your clinic",
     logo: "Add your logo",
     color: "Brand color",
-    cta: "Continue: see your full week",
+    cta: "Continue: save your preview",
     note: "Next step: a free account and a full preview of your week. You pay only if you choose a plan.",
   },
   monday: {

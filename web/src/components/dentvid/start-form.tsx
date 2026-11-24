@@ -20,6 +20,7 @@ import { isInternalBrowser } from "@/lib/dentvid/internal-flag";
 import { rememberDemo } from "@/lib/dentvid/demo-cookie";
 import { passwordTooLong } from "@/lib/dentvid/password";
 import { resetRequestOutcome, signedOutMode, stepAfterSignIn } from "@/lib/dentvid/start-mode";
+type Extras = typeof import("./signup-extras");
 
 /**
  * `legal`: show the consent line linking to the Terms and Privacy Policy (on
@@ -33,6 +34,10 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
   const [mode, setMode] = useState<"signup" | "signin" | "forgot">(initialMode);
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [emailLeft, setEmailLeft] = useState(false);
+  // The teaser's recap and the typo hint load after mount; without them, the plain form.
+  const [extras, setExtras] = useState<Extras | null>(null);
+  const [teaser, setTeaser] = useState<ReturnType<Extras["teaserFromSession"]>>(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -62,6 +67,15 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
     if (demo) rememberDemo(demo);
     // A link straight to /start?utm_…: keep its source for the tab, as a landing would.
     captureFromLocation();
+  }, []);
+
+  useEffect(() => {
+    import("./signup-extras")
+      .then((m) => {
+        setExtras(m);
+        setTeaser(m.teaserFromSession());
+      })
+      .catch(() => {});
   }, []);
 
   /** Funnel: the first keystroke in the sign-up form (once per tab). */
@@ -160,6 +174,7 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
   }
 
   const field = "dv-field";
+  const x = mode === "signup" && teaser ? extras?.signupExtraText(locale) : undefined;
 
   return (
     <main lang={locale} dir={dirOf(locale)} className="relative isolate overflow-hidden">
@@ -172,12 +187,14 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
       )}
       <div className={`mx-auto flex max-w-md flex-col px-4 pb-24 sm:px-6 ${mode === "signup" ? "pt-10" : "pt-10 sm:pt-16"}`}>
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
-        <h1 className="dv-display dv-h-page mt-6 text-center text-dv-ink">{mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
-        <p className="mt-3 text-pretty text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
+        <h1 className="dv-display dv-h-page mt-6 text-center text-dv-ink">{mode === "signup" ? (x ? x.titleSaved : t.titleSignup) : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
+        <p className="mt-3 text-pretty text-center leading-relaxed text-dv-body">{mode === "signup" ? (x ? x.leadSaved : t.leadSignup) : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
+        {x && extras && teaser && <extras.TeaserRecap locale={locale} seed={teaser} />}
 
         {/* method/action only matter when this page's JS never ran (chunks gone after a deploy): reload, never a GET with the fields in the URL. */}
         {/* The form checks its fields itself and says what is wrong in the page's language (not the browser's bubble). */}
         <ValidatingForm locale={locale} onSubmit={submit} method="post" action="/api/dentvideo/reload" className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+          <div>
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
             <input
@@ -191,10 +208,14 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
                 startTyping();
                 setEmail(e.target.value);
               }}
+              onBlur={() => setEmailLeft(true)}
               className={field}
             />
             <FieldError name="email" />
           </label>
+          {/* Outside the label; once the field was left (no hint mid-word). */}
+          {mode === "signup" && extras && <extras.EmailHint locale={locale} email={emailLeft ? email : ""} onFix={setEmail} />}
+          </div>
           {mode !== "forgot" && (
           <div>
             {/* On a phone a mistyped new password only shows up at the next sign-in: let them look at it. */}
