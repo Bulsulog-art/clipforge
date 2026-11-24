@@ -148,19 +148,21 @@ export const OBSERVANCES: Observance[] = [
     // American Association of Oral and Maxillofacial Surgeons, 30 March 2026:
     // "April is National Facial Protection Month", led by AAOMS with the
     // Academy for Sports Dentistry, the AAPD and the AAO (read 2026-11-24).
-    // The spring sports season in the US.
+    // The spring sports season in the US. A free mouthguard fitting would be
+    // an offer, so the angle rules it out by name.
     id: "us-facial-protection-month",
     countries: ["US"],
     name: { en: "National Facial Protection Month (April)" },
     angle:
-      "protecting teeth and face in spring sports and play: a mouthguard for contact sports and a helmet for bikes, scooters and skateboards, the difference between stock, boil-and-bite and custom-made mouthguards, and what to do in the first minutes if a tooth is knocked out (no injury statistics)",
+      "protecting teeth and face in spring sports and play: a mouthguard for contact sports and a helmet for bikes, scooters and skateboards, the difference between stock, boil-and-bite and custom-made mouthguards, and what to do in the first minutes if a tooth is knocked out, with no injury statistics and never a mouthguard offer",
     window: wholeMonth(4),
     source: "https://myoms.org/april-is-national-facial-protection-month-suit-up-for-spring-sports-and-outdoor-fun/",
   },
   {
-    // American Dental Hygienists' Association: "National Dental Hygiene Month
-    // | October" in the association's own events menu (read 2026-11-24 on
-    // https://www.adha.org/; the month's page below refuses scripted reads).
+    // American Dental Hygienists' Association: https://www.adha.org/ndhm leads
+    // to the year's page, which says "October is National Dental Hygiene
+    // Month!" (read 2026-11-24, weeks of 5 to 31 October); the association's
+    // events menu lists "National Dental Hygiene Month | October" too.
     id: "us-dental-hygiene-month",
     countries: ["US"],
     name: { en: "National Dental Hygiene Month (October)" },
@@ -182,12 +184,14 @@ export const OBSERVANCES: Observance[] = [
     // Oral Health Foundation: "Mouth Cancer Action Month is a charity
     // campaign that takes place in November", message "if in doubt, get
     // checked out"; the signs below are the foundation's own list on
-    // https://www.dentalhealth.org/spotthesigns (read 2026-11-24).
+    // https://www.dentalhealth.org/spotthesigns (read 2026-11-24). "Get
+    // checked out" invites "pop in for a free mouth check", an offer, so the
+    // angle rules that out by name as the US cancer month does.
     id: "gb-mouth-cancer-action-month",
     countries: ["GB"],
     name: { en: "Mouth Cancer Action Month (November)" },
     angle:
-      "how to check your own mouth in about a minute (lips, cheeks, tongue, the roof of the mouth), the changes worth having checked by a dentist or doctor (a mouth ulcer that does not heal, a red or white patch, an unusual lump) and that a routine check-up includes a look for them, under the campaign's message 'if in doubt, get checked out', told calmly and factually with no statistics or survival figures and no scare claims",
+      "how to check your own mouth in about a minute (lips, cheeks, tongue, the roof of the mouth), the changes worth having checked by a dentist or doctor (a mouth ulcer that does not heal, a red or white patch, an unusual lump) and that a routine check-up includes a look for them, under the campaign's message 'if in doubt, get checked out', told calmly and factually with no statistics or survival figures, no scare claims, and never a mouth-check or screening offer or event",
     window: wholeMonth(11),
     source: "https://www.dentalhealth.org/mouthcancer",
   },

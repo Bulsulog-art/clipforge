@@ -139,6 +139,17 @@ describe("US and UK awareness days: the strategist's brief", () => {
     expect(byId("us-oral-cancer-awareness-month").angle).toMatch(/never a screening offer or event/);
   });
 
+  it("rules out by name the free thing each campaign invites: a screening, a mouth check, a mouthguard", () => {
+    // The scanners do not catch "free oral cancer screening", "free mouth
+    // check" or "free mouthguard fitting" yet, so the angle has to say it.
+    expect(byId("us-oral-cancer-awareness-month").angle).toMatch(/never a screening offer or event$/);
+    expect(byId("gb-mouth-cancer-action-month").angle).toMatch(/never a mouth-check or screening offer or event$/);
+    expect(byId("us-facial-protection-month").angle).toMatch(/never a mouthguard offer$/);
+    // And the planner sees it in the brief for that week.
+    expect(seasonalBrief("UK", "en", at("2026-11-09"))).toContain("never a mouth-check or screening offer or event");
+    expect(seasonalBrief("US", "en", at("2026-04-06"))).toContain("never a mouthguard offer");
+  });
+
   it("names the month and its dates, and keeps the one-video, never-an-offer rule", () => {
     const april = seasonalBrief("US", "en", at("2026-04-06"));
     expect(april).toContain("Oral Cancer Awareness Month (April) (2026-04-01–2026-04-30)");

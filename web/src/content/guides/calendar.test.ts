@@ -38,6 +38,30 @@ const quarterOf = (iso: string) => {
 
 const workerFile = path.resolve(__dirname, "../../../../worker/src/dental/calendar.ts");
 
+/**
+ * Some organisers publish exact dates year by year (National Smile Month); the
+ * worker keeps them in a table and treats a year without an entry as
+ * `approximate`. For such an observance the table row must print the latest
+ * year the worker has exact dates for, and those dates, so adding next year's
+ * dates to the worker cannot leave the guide on last year's. Returns what is
+ * wrong, or undefined. Observances with the same dates every year are skipped.
+ */
+function printedYearProblem(o: WorkerObservance, when: string): string | undefined {
+  const years = Array.from({ length: 15 }, (_, i) => 2026 + i);
+  if (!years.some((y) => o.window(y)?.approximate)) return undefined;
+  const published = years.filter((y) => {
+    const w = o.window(y);
+    return w !== undefined && !w.approximate;
+  });
+  const printed = when.match(/in (\d{4})\)/)?.[1];
+  if (!published.length) return printed ? `${o.id}: the guide prints ${printed}, but the worker has no published dates` : undefined;
+  const latest = Math.max(...published);
+  if (printed !== String(latest)) return `${o.id}: the guide prints ${printed ?? "no year"}, but the worker has the dates for ${latest}`;
+  const w = o.window(latest)!;
+  const expected = `${dayMonth(w.start)}–${dayMonth(w.end)} in ${latest}`;
+  return when.includes(expected) ? undefined : `${o.id}: the guide should print "${expected}"`;
+}
+
 describe("the English calendar guide on its own", () => {
   it("has one table of US and UK dates with an organizer column", () => {
     expect(table, "table").toBeDefined();
@@ -57,6 +81,39 @@ describe("the English calendar guide on its own", () => {
   it("answers the dates question in the FAQ with every organised US and UK date", () => {
     const answer = CALENDAR_EN.faq.find((f) => /which dates/i.test(f.q))!.a;
     for (const r of table.rows.filter((x) => x[2] !== NO_ORGANIZER)) expect(answer, r[1]).toContain(r[1]);
+  });
+});
+
+describe("the check that keeps a year's printed dates current", () => {
+  const SMILE_ROW = "Mid-May to mid-June (11 May–11 June in 2026)";
+  const tableOf = (published: Record<number, { start: string; end: string }>): WorkerObservance => ({
+    id: "gb-national-smile-month",
+    countries: ["GB"],
+    name: { en: "National Smile Month (mid-May to mid-June)" },
+    window: (y) => published[y] ?? { start: `${y}-05-15`, end: `${y}-06-15`, approximate: true },
+    source: "https://www.dentalhealth.org/smilemonth",
+  });
+  const y2026 = { 2026: { start: "2026-05-11", end: "2026-06-11" } };
+  const y2027 = { ...y2026, 2027: { start: "2027-05-17", end: "2027-06-17" } };
+
+  it("passes when the guide prints the latest year the worker has dates for", () => {
+    expect(printedYearProblem(tableOf(y2026), SMILE_ROW)).toBeUndefined();
+    expect(printedYearProblem(tableOf(y2027), "Mid-May to mid-June (17 May–17 June in 2027)")).toBeUndefined();
+  });
+
+  it("fails when next year's dates reach the worker and the guide still prints last year's", () => {
+    expect(printedYearProblem(tableOf(y2027), SMILE_ROW)).toMatch(/prints 2026, but the worker has the dates for 2027/);
+  });
+
+  it("fails when the year is right but the dates are not, or the guide prints no year at all", () => {
+    expect(printedYearProblem(tableOf(y2027), "Mid-May to mid-June (11 May–11 June in 2027)")).toMatch(/should print "17 May–17 June in 2027"/);
+    expect(printedYearProblem(tableOf(y2026), "Mid-May to mid-June")).toMatch(/prints no year/);
+    expect(printedYearProblem(tableOf({}), SMILE_ROW)).toMatch(/no published dates/);
+  });
+
+  it("leaves alone an observance with the same dates every year", () => {
+    const february: WorkerObservance = { id: "x", countries: ["US"], name: { en: "X (February)" }, window: (y) => ({ start: `${y}-02-01`, end: `${y}-02-28` }) };
+    expect(printedYearProblem(february, "February")).toBeUndefined();
   });
 });
 
@@ -106,6 +163,12 @@ describe.runIf(fs.existsSync(workerFile))("the English calendar guide and the wo
       expect(w.approximate, o.id).toBeUndefined();
       expect(row[0], o.id).toContain(`${dayMonth(w.start)}–${dayMonth(w.end)} in ${m[1]}`);
     }
+  });
+
+  it("a row with dates published year by year prints the latest year the worker has, so the guide is updated with the worker", () => {
+    const yearly = organised.filter((o) => Array.from({ length: 15 }, (_, i) => o.window(2026 + i)).some((w) => w?.approximate));
+    expect(yearly.map((o) => o.id)).toContain("gb-national-smile-month");
+    for (const o of yearly) expect(printedYearProblem(o, rowFor(plainName(o))![0])).toBeUndefined();
   });
 
   it("every organised date in the table is one the worker offers", () => {
