@@ -3,6 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { describe, it, expect, beforeEach } from "vitest";
 import { backgroundFile, stageBackgrounds } from "./backgrounds.js";
+import { THEME_LIST, brandTheme } from "./theme.js";
+import { PHOTO_TINT_MAX, overlayCss, photoOverlay } from "./photo-overlay.js";
 
 let root: string;
 beforeEach(async () => {
@@ -65,5 +67,28 @@ describe("stageBackgrounds", () => {
 
   it("does nothing for a plan without backgrounds", async () => {
     expect(await stageBackgrounds(undefined, { assetDir: root, renderId: "r" })).toEqual([]);
+  });
+});
+
+describe("what is laid over a library photo", () => {
+  // The photo layer (background-layer.tsx) draws exactly overlayCss(photoOverlay(theme)) over every photo.
+  const themes = THEME_LIST.flatMap((base) => [undefined, "#1A7F8C", "#1E3A8A", "#D97706", "#E91E63", "#A7D8F0"].map((b) => brandTheme(base, b)));
+
+  it(`is a light wash, at most ${PHOTO_TINT_MAX}, for every theme and clinic colour`, () => {
+    for (const t of themes) {
+      const css = overlayCss(photoOverlay(t));
+      // One flat colour: no band of the photo gets a heavier tint than the rest.
+      const alphas = [...css.matchAll(/rgba\(\d+,\d+,\d+,([\d.]+)\)/g)].map((m) => Number(m[1]));
+      expect(alphas).toHaveLength(1);
+      expect(alphas[0]).toBeLessThanOrEqual(PHOTO_TINT_MAX);
+    }
+  });
+
+  it("leaves the readability to the plate behind the text, which is stronger than the wash", () => {
+    for (const t of themes) {
+      const o = photoOverlay(t);
+      expect(o.scrim).toBeGreaterThan(0);
+      expect(1 - (1 - o.alpha) * (1 - o.scrim)).toBeGreaterThan(o.alpha);
+    }
   });
 });

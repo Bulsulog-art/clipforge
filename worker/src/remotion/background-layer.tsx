@@ -8,11 +8,15 @@ import { overlayCss, photoOverlay } from "./photo-overlay.js";
  * from the curated library, see dentvid/backgrounds/suggest.ts).
  *
  * The photos cross-fade through the whole video with a slow Ken Burns, under
- * a brand-tinted overlay strong enough that text keeps WCAG contrast on any
- * photo (photo-overlay.ts). Text scenes draw their usual backdrop transparent
- * while this layer is present (PhotoBackdrop context, read by Backdrop);
- * footage scenes still paint their own opaque frame, so real footage always
- * wins. With no photos nothing here renders and videos look exactly as before.
+ * a light wash in the brand's colour, so the photo reads as a bright photo
+ * with the clinic's colour in it (photo-overlay.ts). The wash is not what
+ * keeps text readable: each text scene draws a soft plate behind its own
+ * text block, strong enough that text keeps WCAG contrast on any photo
+ * (Backdrop in scenes/primitives.tsx). Text scenes draw their usual backdrop
+ * transparent while this layer is present (PhotoBackdrop context, read by
+ * Backdrop); footage scenes still paint their own opaque frame, so real
+ * footage always wins. With no photos nothing here renders and videos look
+ * exactly as before.
  */
 
 /** True while a photo layer sits behind the scenes. */
@@ -66,6 +70,7 @@ export const BackgroundLayer: React.FC<{ srcs: string[]; theme: Theme }> = ({ sr
           </AbsoluteFill>
         );
       })}
+      {/* The wash: light, the same everywhere. Legibility comes from each scene's plate. */}
       <AbsoluteFill style={{ background: overlayCss(overlay) }} />
     </AbsoluteFill>
   );
