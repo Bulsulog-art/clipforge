@@ -8,6 +8,8 @@ import { capHashtags, postTexts } from "./posting";
 import { storedCues } from "./subtitles";
 import { CHANGE_STALE_MS } from "./clinic-requests";
 import type { ChangeView } from "@/components/dentvid/clinic-requests";
+import { addDays, clampWeeks, LIBRARY_WEEKS } from "./library-weeks";
+import { deliveryWeek, weekOf } from "./week";
 
 type Row = {
   id: string;
@@ -16,6 +18,7 @@ type Row = {
   approval: LibraryItem["approval"];
   title: string;
   week_of: string;
+  created_at?: string;
   copy: { caption?: string; hashtags?: string[]; post?: unknown } | null;
   /** 0012_dentvid_posted.sql; absent on a database without it. */
   posted_at?: string | null;
@@ -75,21 +78,107 @@ export function photosFor(r: Pick<Row, "kind" | "plan" | "topic" | "suggested_ba
   return { suggested: list, chosen, status: restyleStatus(r.restyle_status, r.restyle_requested_at) ?? undefined };
 }
 
-/** The clinic's items with short-lived signed URLs for video and poster. */
-export async function loadItems(db: SupabaseClient, ownerId: string): Promise<{ items: LibraryItem[]; rows: Row[] }> {
-  const { data } = await db
-    .from("dentvid_items")
-    // "*" rather than a column list: the background columns (0003) may not
-    // exist yet on a given database, and the library must not break over them.
-    .select("*")
-    .eq("owner_id", ownerId)
-    .order("created_at", { ascending: false })
-    .limit(60);
-  const rows = (data ?? []) as Row[];
-  const paths = rows.flatMap((r) => [r.video_path, r.thumb_path]).filter((p): p is string => Boolean(p));
+/**
+ * Rows the library loads at most per week of its window, on average (and
+ * never fewer than SAFETY_ROWS): five videos, the topics not made, a top-up
+ * and a few recordings fit well under it. Only a runaway (a bug writing
+ * hundreds of rows into one week) reaches it.
+ */
+const ROWS_PER_WEEK_MAX = 10;
+const SAFETY_ROWS = 400;
+/** createSignedUrls takes at most this many paths per call (as account.ts signs the export). */
+const SIGN_BATCH = 500;
+/** Item ids per change-request query, so the request line stays short however many weeks are shown. */
+const CHANGE_ID_BATCH = 100;
+/** Weeks per window query: 40 weeks of days (280 dates) keep the request line near 3 KB. */
+const WEEKS_PER_QUERY = 40;
+
+const day = (v: unknown): string | null => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : null);
+const newestFirst = (a: Row, b: Row) =>
+  a.week_of < b.week_of ? 1 : a.week_of > b.week_of ? -1 : a.created_at === b.created_at ? 0 : (a.created_at ?? "") < (b.created_at ?? "") ? 1 : -1;
+
+export type LoadedItems = {
+  items: LibraryItem[];
+  rows: Row[];
+  /** The clinic has rows older than the window: the library offers "Show earlier weeks". */
+  hasEarlier: boolean;
+  /** The window, in weeks, after clamping (LIBRARY_WEEKS..LIBRARY_WEEKS_MAX). */
+  weeks: number;
+};
+
+/**
+ * The clinic's items, whole weeks at a time, with short-lived signed URLs
+ * for video and poster.
+ *
+ * The window is the newest `weeks` weeks by week_of (default 12), counting
+ * back from the current delivery week, or from the clinic's newest week when
+ * that is older (a clinic back after a pause, or reading its library in the
+ * 90 days after cancelling, still sees its last twelve weeks rather than an
+ * empty page). A week is always loaded whole: the window lists its weeks day
+ * by day, never cuts by a row count, so topics that were not made and failed
+ * rows never push a video out (they did under the old flat 60-row limit).
+ * `hasEarlier` says whether anything older exists.
+ *
+ * Every filter is an equality or a list (eq / in) on week_of: a week_of that
+ * is not a Monday still lands in its week, and the request stays one short
+ * line for the usual twelve weeks.
+ */
+export async function loadItems(db: SupabaseClient, ownerId: string, opts: { weeks?: number; now?: Date } = {}): Promise<LoadedItems> {
+  const weeks = clampWeeks(opts.weeks ?? LIBRARY_WEEKS);
+  const current = deliveryWeek(opts.now);
+  // The clinic's newest and oldest week: two one-row reads.
+  const edge = (ascending: boolean) => db.from("dentvid_items").select("week_of").eq("owner_id", ownerId).order("week_of", { ascending }).limit(1);
+  const [{ data: top }, { data: bottom }] = await Promise.all([edge(false), edge(true)]);
+  const newestDay = day((top as { week_of?: unknown }[] | null)?.[0]?.week_of);
+  const oldestDay = day((bottom as { week_of?: unknown }[] | null)?.[0]?.week_of);
+  const newest = newestDay ? weekOf(new Date(`${newestDay}T12:00:00Z`)) : null;
+  const anchor = newest && newest < current ? newest : current;
+  const cutoff = addDays(anchor, -(weeks - 1) * 7);
+  // A week made ahead of the calendar is shown too; nothing is asked for before the clinic's first week.
+  const last = newest && newest > current ? newest : current;
+  const first = oldestDay ? weekOf(new Date(`${oldestDay}T12:00:00Z`)) : last;
+  const floor = first > cutoff ? first : cutoff;
+  const mondays: string[] = [];
+  // An empty library has no edges: nothing to read.
+  if (newestDay) for (let w = last; w >= floor; w = addDays(w, -7)) mondays.push(w);
+  const limit = Math.max(SAFETY_ROWS, weeks * ROWS_PER_WEEK_MAX);
+
+  // Newest weeks first, 40 weeks per request, until the window or the safety limit is reached.
+  let rows: Row[] = [];
+  let truncated = false;
+  for (let i = 0; i < mondays.length && !truncated; i += WEEKS_PER_QUERY) {
+    const days = mondays.slice(i, i + WEEKS_PER_QUERY).flatMap((m) => Array.from({ length: 7 }, (_, d) => addDays(m, d)));
+    const want = limit - rows.length;
+    const { data } = await db
+      .from("dentvid_items")
+      // "*" rather than a column list: the background columns (0003) may not
+      // exist yet on a given database, and the library must not break over them.
+      .select("*")
+      .eq("owner_id", ownerId)
+      .in("week_of", days)
+      .order("week_of", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(want);
+    const got = (data ?? []) as Row[];
+    rows = [...rows, ...got].sort(newestFirst);
+    if (got.length >= want) truncated = true;
+  }
+  let hasEarlier = !!oldestDay && oldestDay < cutoff;
+  // At the safety limit the oldest week loaded may be cut short: it is left out (for
+  // "Show earlier weeks", which loads more) so a week is never shown half.
+  if (truncated && rows.length > 0) {
+    const oldest = rows[rows.length - 1].week_of;
+    const whole = rows.filter((r) => r.week_of !== oldest);
+    if (whole.length > 0) {
+      rows = whole;
+      hasEarlier = true;
+    }
+  }
+
+  const paths = [...new Set(rows.flatMap((r) => [r.video_path, r.thumb_path]).filter((p): p is string => Boolean(p)))];
   const urls = new Map<string, string>();
-  if (paths.length) {
-    const { data: signed } = await db.storage.from(BUCKET).createSignedUrls(paths, 60 * 60);
+  for (let i = 0; i < paths.length; i += SIGN_BATCH) {
+    const { data: signed } = await db.storage.from(BUCKET).createSignedUrls(paths.slice(i, i + SIGN_BATCH), 60 * 60);
     for (const s of signed ?? []) if (s.path && s.signedUrl) urls.set(s.path, s.signedUrl);
   }
   // The latest change request per video (0025): a database without the table simply has none.
@@ -97,14 +186,22 @@ export async function loadItems(db: SupabaseClient, ownerId: string): Promise<{ 
   const generatedIds = rows.filter((r) => r.kind === "generated").map((r) => r.id);
   if (generatedIds.length) {
     try {
-      const { data: ch, error } = await db
-        .from("dentvid_change_requests")
-        .select("item_id, status, reason, created_at")
-        .eq("owner_id", ownerId)
-        .in("item_id", generatedIds)
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (!error) for (const [k, v] of changeViews((ch ?? []) as ChangeRowLite[])) changes.set(k, v);
+      const batches: string[][] = [];
+      for (let i = 0; i < generatedIds.length; i += CHANGE_ID_BATCH) batches.push(generatedIds.slice(i, i + CHANGE_ID_BATCH));
+      const results = await Promise.all(
+        batches.map((ids) =>
+          db
+            .from("dentvid_change_requests")
+            .select("item_id, status, reason, created_at")
+            .eq("owner_id", ownerId)
+            .in("item_id", ids)
+            .order("created_at", { ascending: false })
+            .limit(200),
+        ),
+      );
+      const found: ChangeRowLite[] = [];
+      for (const { data: ch, error } of results) if (!error) found.push(...((ch ?? []) as ChangeRowLite[]));
+      for (const [k, v] of changeViews(found)) changes.set(k, v);
     } catch {
       // The library never breaks over change requests.
     }
@@ -127,5 +224,21 @@ export async function loadItems(db: SupabaseClient, ownerId: string): Promise<{ 
     change: changes.get(r.id),
     subtitles: storedCues(r.subtitles).length > 0,
   }));
-  return { items, rows };
+  return { items, rows, hasEarlier, weeks };
+}
+
+/**
+ * The filming cards for the record page: the five newest rows that have
+ * one, title and card only. No video rows, no signed URLs: the page shows
+ * text.
+ */
+export async function loadShootCards(db: SupabaseClient, ownerId: string): Promise<{ title: string; shoot_card: unknown }[]> {
+  const { data } = await db
+    .from("dentvid_items")
+    .select("title, shoot_card")
+    .eq("owner_id", ownerId)
+    .not("shoot_card", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  return ((data ?? []) as { title: string; shoot_card: unknown }[]).filter((r) => r.shoot_card);
 }
