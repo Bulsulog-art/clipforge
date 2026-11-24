@@ -7,6 +7,8 @@ import { CHECKER } from "@/content/dentvideo-checker";
 import { EXAMPLES_UI } from "@/content/dentvideo-examples";
 import type { LegalKind } from "@/content/legal/types";
 import { HELP_LINK_TEXT } from "@/content/dentvideo-help-links";
+import { LANDING } from "@/content/dentvideo";
+import { HEADER_TEXT } from "@/content/dentvideo-header-cta";
 
 /**
  * The words the DentVideo header and footer show, in one language: the
@@ -29,6 +31,10 @@ export type ChromeWords = AppText["chrome"] & {
   /** The help center (/help). */
   helpCenter: string;
   signIn: string;
+  /** The header's start button for signed-out visitors: the landing hero's own button ("See it with your logo"). */
+  start: string;
+  /** The visually hidden skip link, first on every page. */
+  skip: string;
   legal: string;
   legalNav: Record<LegalKind, string>;
 };
@@ -44,6 +50,8 @@ export function chromeWords(locale: Locale): ChromeWords {
     examples: EXAMPLES_UI[locale].nav,
     helpCenter: HELP_LINK_TEXT[locale].center,
     signIn: SOLUTION_UI[locale].signIn,
+    start: LANDING[locale].hero.cta,
+    skip: HEADER_TEXT[locale].skip,
     legal: LEGAL_NAV[locale].legal,
     legalNav: LEGAL_NAV[locale].nav,
   };

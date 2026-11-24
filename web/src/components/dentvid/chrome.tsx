@@ -3,8 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// Only the small languages module and the words the layout passes in: this file ships on every DentVideo
-// page, and the content modules (landing copy, guides, the app's interface) must stay out of its bundle.
+// Ships on every DentVideo page: small modules only; the content modules stay on the server.
 import { HELP_PATH, LANDING_PATH, LANGUAGE_NAME, LOCALES, dirOf, hasGuideHub as hasGuides, type Locale } from "@/content/dentvideo-locales";
 import type { ChromeText, ChromeWords } from "@/lib/dentvid/chrome-text";
 import { asLocale } from "@/lib/dentvid/locale";
@@ -19,6 +18,7 @@ import { DvLogo } from "./mark";
 import { Check, Clapperboard, LogOut, Menu, Settings, Video, X } from "lucide-react";
 import { appTab, isFunnel, isPostPage, DV_SUPPORT_EMAIL, mailtoHref, type AppTab } from "@/lib/dentvid/app-ui";
 import { hasDvSessionCookie } from "@/lib/dentvid/session-cookie";
+import { trackDv } from "@/lib/dentvid/events-client";
 
 /** Fired when a page sets the interface language, so the header follows at once. */
 const LANG_EVENT = "dv-lang";
@@ -28,14 +28,9 @@ export function announceLocale(locale: Locale) {
   window.dispatchEvent(new CustomEvent(LANG_EVENT, { detail: locale }));
 }
 
-/**
- * The language the page itself is in, when its address says so: a localized
- * landing (/dentvideo/tr) or a guide (each guide has one language). Null for
- * the app and sign-up screens, whose language is per visitor.
- */
+/** The page's language when its address says so (/tr, a guide); null on the app and sign-up screens (per visitor). */
 export function pathLocale(pathname: string, guideLocales: Record<string, Locale>): Locale | null {
-  // On dentvideo.com the address is "/tr" (the middleware serves the
-  // /dentvideo section there); elsewhere it is "/dentvideo/tr". Read both.
+  // "/tr" on dentvideo.com, "/dentvideo/tr" elsewhere.
   const all = pathname.split("/").filter(Boolean);
   const parts = all[0] === "dentvideo" ? all.slice(1) : all;
   if (parts.length === 0) return "en";
@@ -49,9 +44,7 @@ export function pathLocale(pathname: string, guideLocales: Record<string, Locale
   // Guides (/guides/<slug>) and commercial pages (/videos/<slug>) each have one language.
   if (parts[0] === "guides" || parts[0] === "videos") return guideLocales[parts[1] ?? ""] ?? null;
   if (!(LOCALES as readonly string[]).includes(parts[0])) return null;
-  // Everything under a language prefix is in that language: a landing (/tr), its guides hub,
-  // About, legal pages and ad checker (/tr/guides, /tr/terms, /tr/ad-checker) — and the
-  // 404 for a mistyped /tr/… address, whose message is Turkish, so its header and footer are too.
+  // Everything under a language prefix is in that language, the 404 for a mistyped /tr/… address included.
   return parts[0] as Locale;
 }
 
@@ -75,12 +68,7 @@ function useDvLocale(guideLocales: Record<string, Locale>): { locale: Locale; re
   return { locale: remembered ?? "en", ready };
 }
 
-/**
- * Is a DentVideo session cookie present in this browser? Read once in the
- * browser, never from the server: the marketing pages stay static and
- * cacheable, and nobody waits on an auth call. False until then (and on the
- * server), so a new visitor's first paint already says "Sign in".
- */
+/** A DentVideo session cookie in this browser? Read in the browser only (pages stay static); false on first paint. */
 function useSignedIn(): boolean {
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
@@ -93,34 +81,54 @@ function useSignedIn(): boolean {
   return signedIn;
 }
 
-/**
- * The header's account button. "Open app" read like an app download to a
- * new visitor (from Instagram, say) and led to the sign-up form; signed out
- * it is "Sign in" and opens the sign-in form. A clinic with a session keeps
- * "Open app" and goes straight to its videos.
- */
-export function accountLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords, "openApp" | "signIn">): { href: string; label: string } {
+/** "Open app" with a session; else "Sign in" to the sign-in form ("Open app" read like an app download to new visitors). */
+export function accountLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords, "openApp" | "signIn">): Item {
   return signedIn
     ? { href: "/dentvideo/app", label: t.openApp }
     : { href: `/dentvideo/start?mode=signin&lang=${locale}`, label: t.signIn };
 }
 
-/** `text`: the header's and footer's words in every language (lib/dentvid/chrome-text, built by the layout). */
+/** Signed out, the filled button goes to the landing's no-account logo preview (#try), as the hero's does. */
+export function startLink(signedIn: boolean, locale: Locale, t: Pick<ChromeWords, "start">): Item | null {
+  return signedIn ? null : { href: dvHref(`${LANDING_PATH[locale]}#try`), label: t.start };
+}
+
+type Item = { href: string; label: string };
+const BUTTON = "dv-btn dv-btn-primary ms-2 whitespace-nowrap py-2.5 sm:px-5";
+
+/** The start button, counted as cta_clicked "header". */
+function Start({ to, locale, className, onNav }: { to: Item; locale: Locale; className: string; onNav?: (e: React.MouseEvent<HTMLAnchorElement>) => void }) {
+  return (
+    <Link href={to.href} data-cta="header" className={className} onClick={(e) => (trackDv("cta_clicked", { locale, props: { where: "header" } }), onNav?.(e))}>
+      {to.label}
+    </Link>
+  );
+}
+
+/** `text`: every language's chrome words (lib/dentvid/chrome-text, built by the layout). */
 type Props = { guideLocales: Record<string, Locale>; text: ChromeText };
 
 export function DvHeader({ guideLocales, text }: Props) {
   const { locale, ready } = useDvLocale(guideLocales);
   const path = usePathname() ?? "";
   const tab = appTab(path);
-  if (tab) return <AppHeader t={text[locale]} locale={locale} ready={ready} tab={tab} />;
-  return <SiteHeader t={text[locale]} locale={locale} ready={ready} quiet={isFunnel(path) || isPostPage(path)} />;
+  const t = text[locale];
+  // Skip link (shown on focus) to a mark after the header, where <main> begins.
+  return (
+    <>
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-dv-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white">
+        {t.skip}
+      </a>
+      {tab ? <AppHeader t={t} locale={locale} ready={ready} tab={tab} /> : <SiteHeader t={t} locale={locale} ready={ready} quiet={isFunnel(path) || isPostPage(path)} />}
+      <div id="main" className="scroll-mt-40" />
+    </>
+  );
 }
 
-/** The site header; `quiet` (the sign-up wizard) keeps only the logo, so the next step is the only way on. */
+/** `quiet` (the sign-up wizard): only the logo, so the next step is the only way on. */
 function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Locale; ready: boolean; quiet: boolean }) {
   const home = LANDING_PATH[locale];
-  // Until the visitor's language is known on the app screens, keep the space
-  // but not the English words.
+  // Until the visitor's language is known, keep the space but not the English words.
   const hide = ready ? "" : "invisible";
   // <html lang> follows the page on client-side navigation (HtmlLang sets it on first load).
   useEffect(() => {
@@ -137,16 +145,21 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
     return () => window.removeEventListener("scroll", on);
   }, []);
   const [open, setOpen] = useState(false);
-  const account = accountLink(useSignedIn(), locale, t);
+  const signedIn = useSignedIn();
+  const account = accountLink(signedIn, locale, t);
+  const start = startLink(signedIn, locale, t);
   const navLink =
-    "hidden rounded-full px-3.5 py-2 font-medium text-dv-body transition-colors hover:bg-dv-sand-200/70 hover:text-dv-ink md:inline-block";
-  const links = [
-    { href: dvHref(`${home}#how`), label: t.howItWorks },
+    "hidden whitespace-nowrap rounded-full px-3.5 py-2 font-medium text-dv-body transition-colors hover:bg-dv-sand-200/70 hover:text-dv-ink md:inline-block";
+  // In the bar from md; beside the start button "How it works" and guides from lg, the ad checker from xl.
+  // All are in the phone menu and the footer.
+  const lg = start ? "lg:inline-block" : undefined;
+  const links: (Item & { at?: string; account?: true })[] = [
+    { href: dvHref(`${home}#how`), label: t.howItWorks, at: lg },
     { href: dvHref(`${home}#pricing`), label: t.pricing },
-    // As on the desktop: only languages that have guides link to them.
-    ...(hasGuides(locale) ? [{ href: dvHref(GUIDES_INDEX_PATH[locale]), label: t.guides }] : []),
-    // The free ad checker, in every language; in the bar from the lg breakpoint (four links do not fit at md), always in the phone menu and the footer.
-    { href: dvHref(CHECKER_PATH[locale]), label: t.checker, wide: true },
+    ...(hasGuides(locale) ? [{ href: dvHref(GUIDES_INDEX_PATH[locale]), label: t.guides, at: lg }] : []),
+    { href: dvHref(EXAMPLES_PATH[locale]), label: t.examples },
+    { href: dvHref(CHECKER_PATH[locale]), label: t.checker, at: start ? "xl:inline-block" : "lg:inline-block" },
+    ...(start ? [{ href: dvHref(account.href), label: account.label, account: true as const }] : []),
   ];
   return (
     <header
@@ -160,19 +173,23 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
             : "border-transparent bg-dv-paper/0"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:h-[4.5rem] sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:h-[4.5rem] sm:gap-4 sm:px-6">
         <Link href={dvHref(home)} className="-m-1 inline-flex min-h-11 shrink-0 items-center rounded-lg p-1" aria-label="DentVideo">
-          <DvLogo className="h-7 w-auto sm:h-8" />
+          <DvLogo className="h-6 w-auto min-[380px]:h-7 sm:h-8" />
         </Link>
         {!quiet && (
           <nav className={`flex items-center gap-1 text-[0.9375rem] ${hide}`}>
             {links.map((l) => (
-              <Link key={l.href} href={l.href} className={"wide" in l ? navLink.replace("md:inline-block", "whitespace-nowrap lg:inline-block") : navLink}>{l.label}</Link>
+              <Link key={l.href} href={l.href} data-account-link={l.account} className={l.at ? navLink.replace("md:inline-block", l.at) : navLink}>{l.label}</Link>
             ))}
-            <Link href={dvHref(account.href)} data-account-link className="dv-btn dv-btn-primary ms-2 whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
-              {account.label}
-            </Link>
-            <MobileMenu locale={locale} links={links} label={t.menu} languageLabel={t.language} open={open} setOpen={setOpen} />
+            {start ? (
+              <Start to={start} locale={locale} className={`${BUTTON} px-3 text-[0.8125rem] max-[359px]:!hidden sm:text-sm ${open ? "invisible" : ""}`} />
+            ) : (
+              <Link href={dvHref(account.href)} data-account-link className={`${BUTTON} px-4 text-sm`}>
+                {account.label}
+              </Link>
+            )}
+            <MobileMenu locale={locale} links={links} start={start} label={t.menu} languageLabel={t.language} open={open} setOpen={setOpen} />
           </nav>
         )}
       </div>
@@ -181,21 +198,21 @@ function SiteHeader({ t, locale, ready, quiet }: { t: ChromeWords; locale: Local
 }
 
 /**
- * Below the md breakpoint the header has room for the logo and the account
- * button ("Sign in", or "Open app" when signed in) only; the other links and the languages open from this button, as a sheet
- * under the header. Escape or the button closes it and returns focus to the
- * button; Tab stays inside while it is open; any link closes it.
+ * Below md: the links and languages open as a sheet under the header, the start button at its top.
+ * Escape or the button closes it and refocuses the button; Tab stays inside; any link closes it.
  */
 function MobileMenu({
   locale,
   links,
+  start,
   label,
   languageLabel,
   open,
   setOpen,
 }: {
   locale: Locale;
-  links: { href: string; label: string }[];
+  links: Item[];
+  start: Item | null;
   label: string;
   languageLabel: string;
   open: boolean;
@@ -278,6 +295,7 @@ function MobileMenu({
         className="absolute inset-x-0 top-full h-[calc(100dvh-4rem)] overflow-y-auto sm:h-[calc(100dvh-4.5rem)] overscroll-contain border-t border-dv-line/80 bg-dv-paper md:hidden"
       >
         <div className="px-4 pb-10 pt-3">
+          {start && <Start to={start} locale={locale} onNav={close} className="dv-btn dv-btn-primary mb-3 mt-2 flex w-full px-6 py-3.5 text-base" />}
           <ul className="divide-y divide-dv-line/80">
             {links.map((l) => (
               <li key={l.href}>
@@ -301,7 +319,7 @@ function MobileMenu({
                     l === locale ? "bg-dv-teal font-semibold text-white ring-dv-teal" : "bg-white font-medium text-dv-body ring-dv-line hover:text-dv-ink"
                   }`}
                 >
-                  {/* As in the footer: the name has its own direction, the pill follows the page's, so every name starts on the same side. */}
+                  {/* The name has its own direction, the pill the page's: every name starts on the same side. */}
                   <span dir={dirOf(l)}>{LANGUAGE_NAME[l]}</span>
                   {l === locale ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
                 </Link>
@@ -314,7 +332,7 @@ function MobileMenu({
   );
 }
 
-/** The commercial pages per language, as small href/label pairs (the layout passes them, so their text stays on the server). */
+/** The commercial pages per language, as href/label pairs from the layout. */
 export type CommercialNav = Partial<Record<Locale, { href: string; label: string }[]>>;
 
 export function DvFooter({ guideLocales, text, commercial }: Props & { commercial?: CommercialNav }) {
@@ -322,13 +340,11 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
   const signedIn = useSignedIn();
   const path = usePathname() ?? "";
   const t = text[locale];
-  // Sign-up (/start?lang=tr) is reached in the visitor's language, which only the browser knows here:
-  // until then, keep the footer's space but send no words, so the page's HTML never carries an English
-  // footer under a Turkish or German form (crawlers, link previews, slow scripts).
+  // On sign-up only the browser knows the language: keep the space, send no words (no English footer under a Turkish form).
   if (isFunnel(path) && !ready) return <footer aria-hidden="true" className="invisible min-h-40 border-t border-dv-line bg-dv-sand/60" />;
   if (appTab(path) || isFunnel(path)) return <AppFooter t={t} locale={locale} ready={ready} />;
   const home = LANDING_PATH[locale];
-  // Below lg (phones and tablets: touch) every footer link is a full 44px row; with a mouse they sit tighter.
+  // Touch (below lg): 44px rows.
   const tap = "inline-flex min-h-11 min-w-11 items-center lg:min-h-0 lg:min-w-0";
   const link = `${tap} rounded-md text-[#c9d9d5] transition-colors hover:text-white`;
   return (
@@ -354,15 +370,13 @@ export function DvFooter({ guideLocales, text, commercial }: Props & { commercia
               ))}
               <li><Link href={dvHref(ABOUT_PATH[locale])} className={link}>{t.about}</Link></li>
               <li><Link href={dvHref(HELP_PATH[locale])} className={link}>{t.helpCenter}</Link></li>
-              {/* As in the header: "Open app" for a browser with a session; everyone else signs in (never the sign-up form). */}
               {signedIn && <li><Link href={dvHref("/dentvideo/app")} className={link}>{t.openApp}</Link></li>}
               <li><Link href={dvHref(`/dentvideo/start?mode=signin&lang=${locale}`)} className={link}>{t.signIn}</Link></li>
             </ul>
             <ul className="lg:space-y-3.5">
               {LOCALES.map((l) => (
                 <li key={l}>
-                  {/* The name carries its own direction; the link keeps the page's, so a short RTL name (العربية) inside the
-                      44px tap box starts on the same edge as the others instead of being pushed to the far side. */}
+                  {/* The name has its own direction, the link the page's: a short RTL name starts on the same edge. */}
                   <Link href={dvHref(equivalentPath(path, l))} hrefLang={l} lang={l} className={l === locale ? `${tap} rounded-md font-semibold text-white` : link}>
                     <span dir={dirOf(l)}>{LANGUAGE_NAME[l]}</span>
                   </Link>
@@ -405,11 +419,7 @@ const TABS: { key: AppTab; href: string; Icon: typeof Video }[] = [
   { key: "settings", href: "/dentvideo/app/settings", Icon: Settings },
 ];
 
-/**
- * Inside the app: the logo, the three screens (Videos, Record, Settings) and
- * sign-out. On a phone the screens sit in a row of equal tabs under the logo,
- * each a full thumb's width.
- */
+/** Inside the app: the logo, the three screens and sign-out; on a phone the screens are equal tabs under the logo. */
 function AppHeader({ t, locale, ready, tab }: { t: ChromeWords; locale: Locale; ready: boolean; tab: AppTab }) {
   const [leaving, setLeaving] = useState(false);
   // As on the site: <html> speaks the app's language, right to left in Arabic.
