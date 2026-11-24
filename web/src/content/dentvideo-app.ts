@@ -105,7 +105,7 @@ export type AppText = {
       openPost: string;
       postedBadge: string;
     };
-    /** Declining with a reason; the note reaches the team (dentvid_items.approval_note). */
+    /** Declining with a reason; the note reaches the team (dentvid_items.approval_note). The line after it is in dentvideo-review.ts. */
     declineForm: {
       title: string;
       lead: string;
@@ -114,7 +114,6 @@ export type AppText = {
       notePlaceholder: string;
       submit: string;
       cancel: string;
-      done: string;
     };
     /** The "post it" step for an approved video. */
     post: {
@@ -437,7 +436,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "Why are you declining it?",
-        lead: "Your note goes to our team together with the video.",
+        lead: "Your answer goes to our team and into planning your next topics.",
         reasons: {
           wrong: "Something is wrong or unclear",
           notUs: "Not a topic for our clinic",
@@ -448,7 +447,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "For example: we don't offer this treatment",
         submit: "Decline this video",
         cancel: "Cancel",
-        done: "Declined. Your note is with our team.",
       },
       post: {
         title: "Post it",
@@ -794,7 +792,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "Warum lehnen Sie es ab?",
-        lead: "Ihre Notiz geht zusammen mit dem Video an unser Team.",
+        lead: "Ihre Antwort geht an unser Team und fließt in die nächste Themenplanung ein.",
         reasons: {
           wrong: "Etwas ist falsch oder unklar",
           notUs: "Kein Thema für unsere Praxis",
@@ -805,7 +803,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "Zum Beispiel: Diese Behandlung bieten wir nicht an",
         submit: "Video ablehnen",
         cancel: "Abbrechen",
-        done: "Abgelehnt. Ihre Notiz ist bei unserem Team.",
       },
       post: {
         title: "Posten",
@@ -1154,7 +1151,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "¿Por qué lo rechazas?",
-        lead: "Tu nota llega a nuestro equipo junto con el vídeo.",
+        lead: "Tu respuesta llega a nuestro equipo y se tiene en cuenta al planificar tus próximos temas.",
         reasons: {
           wrong: "Algo es incorrecto o poco claro",
           notUs: "No es un tema para nuestra clínica",
@@ -1165,7 +1162,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "Por ejemplo: no ofrecemos este tratamiento",
         submit: "Rechazar este vídeo",
         cancel: "Cancelar",
-        done: "Rechazado. Tu nota ya está con nuestro equipo.",
       },
       post: {
         title: "Publicar",
@@ -1514,7 +1510,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "Neden reddediyorsunuz?",
-        lead: "Notunuz videoyla birlikte ekibimize iletilir.",
+        lead: "Yanıtınız ekibimize iletilir ve sonraki konularınız planlanırken dikkate alınır.",
         reasons: {
           wrong: "Yanlış ya da belirsiz bir şey var",
           notUs: "Kliniğimize uygun bir konu değil",
@@ -1525,7 +1521,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "Örneğin: Bu tedaviyi sunmuyoruz",
         submit: "Bu videoyu reddet",
         cancel: "Vazgeç",
-        done: "Reddedildi. Notunuz ekibimize iletildi.",
       },
       post: {
         title: "Paylaşın",
@@ -1874,7 +1869,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "Pourquoi la refusez-vous ?",
-        lead: "Votre note est transmise à notre équipe avec la vidéo.",
+        lead: "Votre réponse est transmise à notre équipe et prise en compte pour vos prochains sujets.",
         reasons: {
           wrong: "Quelque chose est faux ou peu clair",
           notUs: "Pas un sujet pour notre cabinet",
@@ -1885,7 +1880,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "Par exemple : nous ne proposons pas ce soin",
         submit: "Refuser cette vidéo",
         cancel: "Annuler",
-        done: "Refusée. Votre note est transmise à notre équipe.",
       },
       post: {
         title: "Publier",
@@ -2234,7 +2228,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "見送る理由を教えてください",
-        lead: "メモは動画と一緒に担当チームに届きます。",
+        lead: "回答は担当チームに届き、今後のテーマ選びで考慮されます。",
         reasons: {
           wrong: "誤り・分かりにくい点がある",
           notUs: "当院に合わないテーマ",
@@ -2245,7 +2239,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "例：この治療は行っていません",
         submit: "この動画を見送る",
         cancel: "キャンセル",
-        done: "見送りました。メモは担当チームに届いています。",
       },
       post: {
         title: "投稿する",
@@ -2592,7 +2585,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "لماذا ترفضونه؟",
-        lead: "تصل ملاحظتكم إلى فريقنا مع الفيديو.",
+        lead: "تصل إجابتكم إلى فريقنا، وتُؤخذ في الحسبان عند اختيار مواضيعكم القادمة.",
         reasons: {
           wrong: "فيه خطأ أو أمر غير واضح",
           notUs: "موضوع لا يناسب عيادتنا",
@@ -2603,7 +2596,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "مثال: لا نقدّم هذا العلاج",
         submit: "رفض هذا الفيديو",
         cancel: "إلغاء",
-        done: "تم الرفض. وصلت ملاحظتكم إلى فريقنا.",
       },
       post: {
         title: "انشروه",
@@ -2951,7 +2943,7 @@ export const APP_TEXT: Record<Locale, AppText> = {
       },
       declineForm: {
         title: "Dlaczego Państwo go odrzucają?",
-        lead: "Notatka trafi do naszego zespołu razem z filmem.",
+        lead: "Odpowiedź trafi do naszego zespołu i zostanie uwzględniona przy wyborze kolejnych tematów.",
         reasons: {
           wrong: "Coś jest błędne lub niejasne",
           notUs: "To nie temat dla naszego gabinetu",
@@ -2962,7 +2954,6 @@ export const APP_TEXT: Record<Locale, AppText> = {
         notePlaceholder: "Na przykład: nie wykonujemy tego zabiegu",
         submit: "Odrzuć ten film",
         cancel: "Anuluj",
-        done: "Odrzucono. Notatka trafiła do naszego zespołu.",
       },
       post: {
         title: "Opublikuj",

@@ -144,17 +144,52 @@ export function ChangeNote({ locale, change, approval }: { locale: Locale; chang
   );
 }
 
-export function ChangeRequest({ locale, itemId, onQueued }: { locale: Locale; itemId: string; onQueued: () => void }) {
+/** A note carried in from elsewhere (the decline form allows more), cut to what the change request takes. */
+export function clipChangeNote(text: string): string {
+  return [...text.trim()].slice(0, CHANGE_NOTE_MAX).join("");
+}
+
+export function ChangeRequest({
+  locale,
+  itemId,
+  onQueued,
+  initialNote = "",
+  startOpen = false,
+  onOpenChange,
+  onFailed,
+}: {
+  locale: Locale;
+  itemId: string;
+  /** The change was accepted; `confirmation` is what this form shows for it ("Change requested. Changes left this week: 2 of 3"), and `left` how many changes the clinic has left this week (as the server said). */
+  onQueued: (confirmation: string, left?: number) => void;
+  /** The note the form starts with, e.g. what was typed in the decline form (cut to CHANGE_NOTE_MAX). */
+  initialNote?: string;
+  /** Open the form at once instead of showing the button first. */
+  startOpen?: boolean;
+  /** Told whenever the form opens or closes, so a sheet around it can make room. */
+  onOpenChange?: (open: boolean) => void;
+  /** The change was not accepted: the server's code ("limit", "no_plan", "busy"…, none when unreachable), the message shown, and the note as typed. */
+  onFailed?: (failure: { code?: string; message: string; note: string }) => void;
+}) {
   const t = requestsText(locale).change;
   const id = useId();
-  const [open, setOpen] = useState(false);
-  const [note, setNote] = useState("");
+  const [open, setOpen] = useState(startOpen);
+  const [note, setNote] = useState(() => clipChangeNote(initialNote));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const area = useRef<HTMLTextAreaElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  // Cancel puts the keyboard back on the button that opened the form.
+  const refocus = useRef(false);
+  const told = useRef(onOpenChange);
+  told.current = onOpenChange;
   useEffect(() => {
     if (open) area.current?.focus();
+    else if (refocus.current) button.current?.focus();
+    refocus.current = false;
+    told.current?.(open);
   }, [open]);
+  useEffect(() => () => told.current?.(false), []);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -162,15 +197,21 @@ export function ChangeRequest({ locale, itemId, onQueued }: { locale: Locale; it
     setMessage(null);
     try {
       const res = await fetch(`/api/dentvideo/items/${itemId}/change`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ note }) });
-      const body = (await res.json().catch(() => ({}))) as { error?: string; left?: number };
+      const body = (await res.json().catch(() => ({}))) as { error?: string; code?: string; left?: number };
       if (res.ok) {
+        const text = `${t.status.queued}. ${fillRequests(t.left, { n: body.left ?? 0, max: CHANGES_PER_WEEK })}`;
         setOpen(false);
         setNote("");
-        setMessage({ kind: "ok", text: `${t.status.queued}. ${fillRequests(t.left, { n: body.left ?? 0, max: CHANGES_PER_WEEK })}` });
-        onQueued();
-      } else setMessage({ kind: "error", text: body.error ?? t.errors.unavailable });
+        setMessage({ kind: "ok", text });
+        onQueued(text, typeof body.left === "number" ? body.left : undefined);
+      } else {
+        const text = body.error ?? t.errors.unavailable;
+        setMessage({ kind: "error", text });
+        onFailed?.({ code: body.code, message: text, note });
+      }
     } catch {
       setMessage({ kind: "error", text: t.errors.unavailable });
+      onFailed?.({ message: t.errors.unavailable, note });
     }
     setBusy(false);
   }
@@ -178,7 +219,7 @@ export function ChangeRequest({ locale, itemId, onQueued }: { locale: Locale; it
   return (
     <div className="mt-2">
       {!open ? (
-        <button type="button" onClick={() => setOpen(true)} className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
+        <button ref={button} type="button" onClick={() => setOpen(true)} className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
           <PencilLine className="h-4 w-4" aria-hidden="true" />
           {t.button}
         </button>
@@ -194,7 +235,14 @@ export function ChangeRequest({ locale, itemId, onQueued }: { locale: Locale; it
             {[...note].length}/{CHANGE_NOTE_MAX}
           </p>
           <div className="mt-3 flex gap-2">
-            <button type="button" onClick={() => setOpen(false)} className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm">
+            <button
+              type="button"
+              onClick={() => {
+                refocus.current = true;
+                setOpen(false);
+              }}
+              className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm"
+            >
               {t.cancel}
             </button>
             <button type="submit" disabled={busy || [...note].length < 3} className="dv-btn dv-btn-primary flex-1 px-5 py-2.5 text-sm">
