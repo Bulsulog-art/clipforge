@@ -1,4 +1,4 @@
-import { readyEmail } from "./email";
+import { delayEmail, readyEmail } from "./email";
 import type { Rendered } from "./email-layout";
 import { lowestMonthlyFor } from "./lifecycle";
 import {
@@ -30,7 +30,11 @@ export const SAMPLE_KINDS = [
   "sample",
   "objections",
   "ready",
+  "ready-first",
+  "ready-short",
   "ready-recording",
+  "week-late",
+  "first-week-late",
   "not-posted",
   "monthly",
   "payment-failed",
@@ -65,18 +69,30 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
       // The sample clinic sits in the reader's market: Türkiye for Turkish, Germany for German, else the USD markets.
       return objectionsEmail({ ...nudge, url: plan, from: lowestMonthlyFor(language === "tr" ? "TR" : language === "de" ? "DE" : null) });
     case "ready":
-    case "ready-recording":
+    case "ready-first":
+    case "ready-short":
+    case "ready-recording": {
+      // ready-first: the clinic's first week (welcome, three steps, next Monday, the Settings nudge).
+      // ready-short: a routine week with four of its five videos (one the checks refused).
+      const short = kind === "ready-short";
       return readyEmail({
-        kind: kind === "ready" ? "week" : "recording",
-        counts: { ready: 4, flagged: 1 },
+        kind: kind === "ready-recording" ? "recording" : "week",
+        counts: short ? { ready: 3, flagged: 1 } : { ready: 4, flagged: 1 },
         clinicName,
         language,
         appUrl: `${BASE}/app`,
         thumbs: ["Proper brushing", "Whitening myths", "Caring for aligners", "Kids' teeth"].map((title) => ({ url: IMG, title, href: `${BASE}/app` })),
         approveUrl: `${BASE}/api/dentvideo/approve?t=${CLINIC}.2026-11-09.1790000000.sample-signature`,
-        videos: kind === "ready" ? sampleVideos(language) : undefined,
+        videos: kind === "ready-recording" ? undefined : sampleVideos(language, short ? 4 : 5),
         brand,
+        ...(kind === "ready-first" ? { first: true, nextDate: "2026-11-16", nudge: "both" as const } : {}),
+        ...(short ? { missing: 1, missingReason: "checks" as const } : {}),
       })!;
+    }
+    case "week-late":
+    case "first-week-late":
+      // The week is queued and on its way (the usual case); email.test.ts covers the "alerted, on it" wording too.
+      return delayEmail({ kind: kind === "week-late" ? "late" : "first-late", queued: true, clinicName, language, brand });
     case "not-posted":
       return notPostedEmail({ ...nudge, url: `${BASE}/app`, approved: 3, pending: 2 });
     case "monthly":
@@ -87,10 +103,10 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
   }
 }
 
-/** The week's five videos as the ready email lists them: four ready (approve & share), one flagged for a look. */
-function sampleVideos(language: string) {
+/** The week's videos as the ready email lists them: all ready (approve & share) but the fourth, flagged for a look. */
+function sampleVideos(language: string, count = 5) {
   const texts = samplePostTexts(asLocale(language) ?? "en");
-  const titles = ["Proper brushing", "Whitening myths", "Caring for aligners", "Kids' teeth", "Bleeding gums"];
+  const titles = ["Proper brushing", "Whitening myths", "Caring for aligners", "Kids' teeth", "Bleeding gums"].slice(0, count);
   const items = titles.map((title, n) => ({
     id: `00000000-0000-4000-8000-00000000000${n + 1}`,
     title,
