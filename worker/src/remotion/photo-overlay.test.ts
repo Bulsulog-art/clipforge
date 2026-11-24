@@ -2,11 +2,13 @@ import { describe, it, expect } from "vitest";
 import { THEME_LIST, brandTheme, contrastRatio, localizeTheme, mix, safeFrame, theme } from "./theme.js";
 import {
   PHOTO_LARGE_MIN,
+  PHOTO_MARGIN,
   PHOTO_TEXT_MIN,
   PHOTO_TINT_MAX,
   SCRIM_SHAPE,
   composite,
   overlayCss,
+  photoCover,
   photoOverlay,
   photoPlate,
   photoTheme,
@@ -93,10 +95,35 @@ describe("photo overlay keeps text readable on any photo", () => {
     });
   }
 
+  it(`keeps ${PHOTO_MARGIN} of extra cover over the photo behind the text, as the full-frame tint did`, () => {
+    for (const { label, t } of themes) {
+      const pt = photoTheme(t);
+      const o = photoOverlay(t);
+      const pixel = worstPixel(t);
+      // The least plate on which every colour drawn clears its bar, found here independently.
+      const passes = (scrim: number) =>
+        [false, true].every((onSurface) => {
+          const bg = composite(pt, { color: o.color, alpha: o.alpha, scrim }, pixel, onSurface);
+          return (
+            contrastRatio(pt.foreground, bg) >= PHOTO_TEXT_MIN &&
+            contrastRatio(pt.muted, bg) >= PHOTO_LARGE_MIN &&
+            contrastRatio(pt.accent, bg) >= PHOTO_LARGE_MIN
+          );
+        });
+      let least = 0;
+      while (!passes(least)) least = Math.round((least + 0.01) * 100) / 100;
+      expect(o.scrim, label).toBeLessThan(0.97);
+      expect(photoCover(o.scrim) - photoCover(least), label).toBeGreaterThanOrEqual(PHOTO_MARGIN - 1e-9);
+      // The same margin put on the plate alone falls short: under the wash it is worth only 60% of itself.
+      expect(photoCover(least + PHOTO_MARGIN) - photoCover(least), label).toBeLessThan(PHOTO_MARGIN - 0.01);
+    }
+  });
+
   it("is not heavier than it needs to be on the clinic's default teal", () => {
     // Behind the text the photo still shows through the wash and the plate together.
     const o = photoOverlay(brandTheme(theme("sunrise"), "#0F5C5C"));
-    expect(1 - (1 - o.alpha) * (1 - o.scrim)).toBeLessThanOrEqual(0.75);
+    expect(photoCover(o.scrim, o.alpha)).toBeCloseTo(1 - (1 - o.alpha) * (1 - o.scrim), 9);
+    expect(photoCover(o.scrim, o.alpha)).toBeLessThanOrEqual(0.75);
   });
 
   it("matches the browser's rgba compositing, layer over layer", () => {
@@ -116,7 +143,7 @@ describe("the plate covers the text block", () => {
   ];
   for (const { label, width, height } of frames) {
     for (const rtl of [false, true]) {
-      it(`${label} ${rtl ? "right to left" : "left to right"}: solid over the whole text column, with room to spare, inside the frame`, () => {
+      it(`${label} ${rtl ? "right to left" : "left to right"}: solid over the whole text column, with room to spare, never cut off by the frame`, () => {
         const scale = width / 1080;
         const safe = safeFrame(width, height, { rtl });
         const box = scrimBox(width, safe, rtl, scale);
@@ -126,10 +153,17 @@ describe("the plate covers the text block", () => {
         expect(box.pad).toBeGreaterThanOrEqual(34 * scale);
         expect(box.plate.left).toBeLessThanOrEqual(box.column.left - box.pad + 1e-9);
         expect(box.plate.right).toBeGreaterThanOrEqual(box.column.right + box.pad - 1e-9);
-        // Inside the frame and centred on it.
-        expect(box.plate.left).toBeGreaterThanOrEqual(0);
-        expect(box.plate.right).toBeLessThanOrEqual(width);
+        // Centred on the frame.
         expect(box.plate.left).toBeCloseTo(width - box.plate.right, 6);
+        // Never a soft edge the frame cuts off half-way: either the fade dies out inside the frame (a card)...
+        const edge = box.plate.left;
+        if (edge >= 0) {
+          expect(plateAlphaAt(edge, box.feather, 1)).toBeLessThan(0.03);
+        } else {
+          // ...or the plate runs past both edges, its rounded corners and its fade off-frame (a band).
+          expect(box.plate.left + box.radius + box.feather).toBeLessThanOrEqual(1e-9);
+          expect(box.plate.right - box.radius - box.feather).toBeGreaterThanOrEqual(width - 1e-9);
+        }
         // The offsets Backdrop draws it with: outward on every side of the block.
         const inset = scrimInsets(box);
         for (const side of [inset.top, inset.bottom, inset.left, inset.right]) expect(side).toBeLessThanOrEqual(-box.pad + 1e-9);
@@ -138,6 +172,23 @@ describe("the plate covers the text block", () => {
       });
     }
   }
+
+  it("floats as a card where the frame leaves room for its fade, and runs edge to edge where it does not", () => {
+    const shape = (width: number, height: number, rtl: boolean) => {
+      const box = scrimBox(width, safeFrame(width, height, { rtl }), rtl, width / 1080);
+      return box.plate.left >= 0 ? "card" : "band";
+    };
+    // The Arabic portrait frame keeps clear of the rail on both sides: room for the whole fade.
+    expect(shape(1080, 1920, true)).toBe("card");
+    // A left-to-right portrait frame starts its lines 81 px from the edge: the fade would be cut off at about half strength.
+    expect(shape(1080, 1920, false)).toBe("band");
+    expect(shape(1080, 1080, false)).toBe("band");
+    expect(shape(1920, 1080, false)).toBe("band");
+    // What the band replaces: the solid part 37 px in, still at more than half its opacity where the frame cuts it.
+    const ltr = safeFrame(1080, 1920);
+    const cut = ltr.start - SCRIM_SHAPE.pad;
+    expect(plateAlphaAt(cut, SCRIM_SHAPE.feather, 1)).toBeGreaterThan(0.5);
+  });
 
   it("follows an Arabic block to the right, where its lines start", () => {
     // In a dir=rtl frame the safe padding's inline start is the right edge.

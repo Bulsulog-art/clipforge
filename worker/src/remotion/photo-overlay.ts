@@ -33,12 +33,31 @@ import { contrastRatio, mix } from "./theme.js";
 export const PHOTO_TEXT_MIN = 4.5;
 /** Secondary text and the accent (all large type). */
 export const PHOTO_LARGE_MIN = 3.0;
-/** Extra plate on top of the minimum, so JPEG noise and Ken Burns never sit on the line. */
-const MARGIN = 0.03;
+/**
+ * Extra cover over the photo behind the text, on top of the least that
+ * passes, so JPEG noise and Ken Burns never sit on the line. Cover is how much
+ * of the photo the wash and the plate hide together: 1 - (1 - wash)(1 - plate).
+ */
+export const PHOTO_MARGIN = 0.03;
 /** The wash over the whole photo: enough to put the clinic's colour in it, light enough that it reads as a photo. */
 export const PHOTO_TINT = 0.4;
 /** The most the wash may ever be (photo-overlay.test.ts, backgrounds.test.ts). */
 export const PHOTO_TINT_MAX = 0.45;
+
+/** How much of the photo the wash and a plate of opacity `scrim` hide together, behind the text. */
+export function photoCover(scrim: number, alpha = PHOTO_TINT): number {
+  return 1 - (1 - alpha) * (1 - scrim);
+}
+
+/**
+ * A plate raised by PHOTO_MARGIN of cover. The plate only darkens the light
+ * the wash lets through, so adding PHOTO_MARGIN to the plate itself would buy
+ * only 60% of it (0.6 x 0.03): it takes PHOTO_MARGIN / (1 - PHOTO_TINT) on
+ * the plate to keep the headroom the single full-frame tint used to have.
+ */
+function withMargin(scrim: number): number {
+  return Math.min(0.97, Math.round((scrim + PHOTO_MARGIN / (1 - PHOTO_TINT)) * 100) / 100);
+}
 
 export type PhotoOverlay = {
   /** Colour of the wash and of the plate (hex). */
@@ -124,7 +143,7 @@ function textScrim(t: Theme, color: string): number {
  */
 export function photoTheme(t: Theme): Theme {
   const color = tintOf(t);
-  const scrim = Math.min(0.97, textScrim(t, color) + MARGIN);
+  const scrim = withMargin(textScrim(t, color));
   const pixel = worstPixel(t);
   const passes = (c: string) =>
     [false, true].every(
@@ -145,16 +164,15 @@ export function photoTheme(t: Theme): Theme {
 /**
  * Wash and plate for text drawn in `drawn`'s own colours over photos: the
  * least plate at which its body, secondary and accent colours all clear their
- * bars, plus MARGIN. Backdrop calls this with the theme the scenes are handed,
- * which over photos is already photoTheme(t) (Video.tsx), so the plate is
- * worked out for exactly the colours on screen.
+ * bars, raised by PHOTO_MARGIN of cover. Backdrop calls this with the theme
+ * the scenes are handed, which over photos is already photoTheme(t)
+ * (Video.tsx), so the plate is worked out for exactly the colours on screen.
  */
 export function photoPlate(drawn: Theme): PhotoOverlay {
   const color = tintOf(drawn);
   let scrim = textScrim(drawn, color);
   while (scrim < 0.97 && !readable(drawn, { color, alpha: PHOTO_TINT, scrim })) scrim = step(scrim);
-  scrim = Math.min(0.97, Math.round((scrim + MARGIN) * 100) / 100);
-  return { color, alpha: PHOTO_TINT, scrim };
+  return { color, alpha: PHOTO_TINT, scrim: withMargin(scrim) };
 }
 
 /** Wash and plate for photos behind `t` (the theme as given; its photo variant is derived here). */
@@ -197,7 +215,7 @@ export const SCRIM_SHAPE = {
 export type ScrimBox = {
   /** The column the text block is laid out in, px from the frame's left edge. */
   column: { left: number; right: number };
-  /** The solid part of the plate, px from the frame's left edge. Vertically: the block plus `pad`. */
+  /** The solid part of the plate, px from the frame's left edge (negative: past it). Vertically: the block plus `pad`. */
   plate: { left: number; right: number };
   /** Solid plate above and below the block, px. */
   pad: number;
@@ -212,21 +230,33 @@ export type ScrimBox = {
  * applies as inline-start/end: in a right-to-left frame inline start is the
  * right edge, so an Arabic block starts at `safe.start` from the RIGHT. The
  * plate covers the column with at least `pad` on both sides and is centred on
- * the frame, so it reads as one deliberate band rather than a card pushed
- * toward the platform's action rail. Vertically it follows the block itself
- * (Backdrop lays it out), `pad` above and below.
+ * the frame, so it never reads as a card pushed toward the platform's action
+ * rail. Vertically it follows the block itself (Backdrop lays it out), `pad`
+ * above and below.
+ *
+ * Across the frame it is one of two shapes, never something in between. Its
+ * soft edge needs about two feathers to fade away. Where the frame leaves that
+ * much room beside the plate (the Arabic portrait frame, clear of the rail on
+ * both sides), it floats as a soft card. Where it does not (a left-to-right
+ * portrait frame, square, landscape), the frame edge would cut the fade off
+ * half-way and the plate would look like a card a little too big for the
+ * frame, so it runs past both edges instead, far enough that its rounded
+ * corners and its fade are off-frame, and reads as a band across the frame.
  */
 export function scrimBox(width: number, safe: SafeFrame, rtl: boolean, scale = width / 1080): ScrimBox {
   const left = rtl ? safe.end : safe.start;
   const right = width - (rtl ? safe.start : safe.end);
   const pad = SCRIM_SHAPE.pad * scale;
-  const margin = Math.max(0, Math.min(left, width - right) - pad);
+  const feather = SCRIM_SHAPE.feather * scale;
+  const radius = SCRIM_SHAPE.radius * scale;
+  const room = Math.min(left, width - right) - pad;
+  const margin = room >= 2 * feather ? room : -(feather + radius);
   return {
     column: { left, right },
     plate: { left: margin, right: width - margin },
     pad,
-    feather: SCRIM_SHAPE.feather * scale,
-    radius: SCRIM_SHAPE.radius * scale,
+    feather,
+    radius,
   };
 }
 
