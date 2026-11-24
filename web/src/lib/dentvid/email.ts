@@ -210,11 +210,15 @@ export type SettingsNudge = "handle" | "closingLine" | "both";
 /** Why a week is short: every one left out was refused by our checks, or not (a technical failure, a slot never made). */
 export type ShortReason = "checks" | "unfinished";
 
-/** "Monday 23 November" in the email's language, from a YYYY-MM-DD Monday (read at noon UTC so it never shifts a day). */
-export function deliveryDate(week: string, lang: string): string | null {
+/**
+ * "Monday 23 November" in the email's language, from a YYYY-MM-DD Monday (read at noon UTC so it
+ * never shifts a day). An English clinic in the US, Canada, Australia or New Zealand gets its own
+ * order ("Monday, November 23"); every other clinic is unchanged.
+ */
+export function deliveryDate(week: string, lang: string, country?: string | null): string | null {
   const d = new Date(`${week}T12:00:00Z`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(week) || Number.isNaN(d.getTime())) return null;
-  return new Intl.DateTimeFormat(dateLocale(lang), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(d);
+  return new Intl.DateTimeFormat(dateLocale(lang, country), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(d);
 }
 
 export function readyEmail(args: {
@@ -243,6 +247,8 @@ export function readyEmail(args: {
   first?: boolean;
   /** The Monday of the next delivery (YYYY-MM-DD), for the first-week email. */
   nextDate?: string | null;
+  /** The clinic's country, so the next delivery date reads the way that country writes dates. */
+  country?: string | null;
   /** First week only: settings the clinic has not filled in yet that the email may mention. */
   nudge?: SettingsNudge | null;
   /**
@@ -276,7 +282,7 @@ export function readyEmail(args: {
   const thumbs = week && !videos.length ? (args.thumbs ?? []).filter((t) => /^https:\/\//.test(t.url)).slice(0, 4) : [];
   const name = args.clinicName.replace(/\s+/g, " ").trim().slice(0, 80);
   const approveAll = !!args.approveUrl && args.counts.ready > 0;
-  const next = first && n && args.nextDate ? deliveryDate(args.nextDate, lang) : null;
+  const next = first && n && args.nextDate ? deliveryDate(args.nextDate, lang, args.country) : null;
   return renderEmail({
     lang,
     subject,
