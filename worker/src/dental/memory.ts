@@ -274,7 +274,6 @@ export function parseDeclineNote(raw: unknown): { reason?: DeclineTag; note?: st
   return { ...(reason ? { reason } : {}), ...(note ? { note } : {}) };
 }
 
-/** The plan's library photos, as stored (plan.backgrounds): only paths the renderer accepts. */
 /** At most this many stock clip ids are kept per history row (a video shows one or two). */
 const FOOTAGE_IDS_MAX = 8;
 
@@ -289,6 +288,7 @@ function footageIdsOf(v: unknown): number[] | undefined {
   return out.length ? out : undefined;
 }
 
+/** The plan's library photos, as stored (plan.backgrounds): only paths the renderer accepts. */
 function backgroundsOf(v: unknown): string[] | undefined {
   if (!Array.isArray(v)) return undefined;
   const ok = v.filter((p): p is string => typeof p === "string" && BACKGROUND_PATH.test(p));
