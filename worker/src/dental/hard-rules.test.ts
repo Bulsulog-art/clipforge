@@ -119,6 +119,9 @@ const INPUTS = [
   "No pain, no fuss: completely pain-free fillings.",
   "Get the perfect smile you deserve.",
   "Call now to book your check-up.",
+  // A promise of no pain is not an urgent sign: the push is still flagged (live check, Nov 2026).
+  "Call now for painless, perfect smiles.",
+  "Call us today if the pain gets worse.",
 ];
 
 const MARKETS = Object.keys(MARKET_HARD_RULES);
@@ -239,6 +242,22 @@ describe("hard rules: US and UK promo phrases", () => {
     ]) {
       expect(checker(t)).toEqual([`fear:${m}`]);
       expect(scanHardRules(t)).toEqual([]);
+    }
+  });
+
+  it("'painless' or 'pain-free' after the call is a sales promise, not an urgent sign: the push is still pressure", () => {
+    for (const [t, call, absolute] of [
+      ["Call now for painless, perfect smiles.", "Call now", "painless"],
+      ["Call now for pain-free whitening.", "Call now", "pain-free"],
+      ["Call us today for pain free implants.", "Call us today", "pain free"],
+    ]) {
+      const hits = checker(t);
+      expect(hits).toContain(`fear:${call}`);
+      expect(hits.some((h) => h.startsWith("absolute:") && h.toLowerCase().includes(absolute))).toBe(true);
+    }
+    // Real pain is still an urgent sign: advice to call stays clean.
+    for (const t of ["Call us today if the pain gets worse.", "Painful swelling? Call us today.", "Call us now if it is painful to bite."]) {
+      expect(checker(t).filter((h) => h.startsWith("fear:"))).toEqual([]);
     }
   });
 

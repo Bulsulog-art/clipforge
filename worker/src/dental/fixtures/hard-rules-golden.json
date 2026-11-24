@@ -2407,5 +2407,45 @@
    }
   ],
   "markets": {}
+ },
+ {
+  "input": "Call now for painless, perfect smiles.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "painless",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 13,
+    "end": 21,
+    "match": "painless"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "fear",
+    "start": 0,
+    "end": 8,
+    "match": "Call now"
+   },
+   {
+    "rule": "absolute",
+    "start": 13,
+    "end": 21,
+    "match": "painless"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "Call us today if the pain gets worse.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
  }
 ]
