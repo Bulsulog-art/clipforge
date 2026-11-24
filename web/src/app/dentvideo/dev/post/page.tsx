@@ -17,15 +17,19 @@ export const generateMetadata = (): Metadata => devPreviewMeta("Post page previe
  * 404 unless DENTVIDEO_DEV_PREVIEW=1. Its buttons call a stub endpoint that
  * says yes, so the whole tap path can be walked.
  *
- *   /dentvideo/dev/post?lang=tr&state=pending|approved|invalid|nothing
+ *   /dentvideo/dev/post?lang=tr&state=pending|approved|invalid|nothing&country=US
+ *
+ * `country` is the clinic's (profile.country): with lang=en, US shows "Tue 12:30 PM",
+ * GB or none the 24-hour "Tue 12:30".
  */
-export default async function PostPreview({ searchParams }: { searchParams: Promise<{ lang?: string; state?: string }> }) {
+export default async function PostPreview({ searchParams }: { searchParams: Promise<{ lang?: string; state?: string; country?: string }> }) {
   if (process.env.DENTVIDEO_DEV_PREVIEW !== "1") notFound();
   const sp = await searchParams;
   const locale = asLocale(sp.lang) ?? "en";
   const state = sp.state ?? "pending";
   const demo = samplePost(locale);
-  const slot = slotsFor(weekOf(), 5, locale)[1];
+  const country = /^[A-Za-z]{2}$/.test(sp.country ?? "") ? sp.country!.toUpperCase() : null;
+  const slot = slotsFor(weekOf(), 5, { country, locale })[1];
   const view: PostView =
     state === "invalid" || state === "nothing"
       ? { state, locale }
@@ -40,7 +44,7 @@ export default async function PostPreview({ searchParams }: { searchParams: Prom
             approval: state === "approved" ? "approved" : "pending",
             posted: false,
             texts: demo.texts,
-            slot: slotLabel(slot, locale),
+            slot: slotLabel(slot, locale, country),
             // The share kit's subtitle file, as the real page builds it from stored cues.
             srt: "1\n00:00:00,250 --> 00:00:02,900\n" + demo.title + "\n",
           },

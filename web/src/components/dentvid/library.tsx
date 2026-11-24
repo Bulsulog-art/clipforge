@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CalendarClock, Check, CheckCheck, ChevronRight, Circle, CircleCheck, Flame, Loader2, Play, RotateCcw, Send } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, CheckCheck, ChevronDown, ChevronRight, Circle, CircleCheck, Flame, Loader2, Play, RotateCcw, Send } from "lucide-react";
 import { BackgroundPicker } from "./background-picker";
 import { DeclineForm, postText, ReviewPlayer, usePosted, type Decide } from "./review-player";
 import type { Locale } from "@/content/dentvideo";
 import { appText, countText, fmt, type AppText } from "@/content/dentvideo-app";
 import { reasonText } from "@/content/dentvideo-reasons";
+import { libraryWeeksText } from "@/content/dentvideo-library-weeks";
 import type { ClinicReason } from "@/lib/dentvid/reasons";
 import {
   approvableIds,
@@ -26,6 +28,7 @@ import {
   type CardState,
   type PostedMarks,
 } from "@/lib/dentvid/app-ui";
+import { earlierWeeksHref, LIBRARY_WEEKS, nextDeliveryWeek, notMadeTopics, planEndsBefore, withEarlierPosts } from "@/lib/dentvid/library-weeks";
 import { slotLabel, weekSchedule, type PostTexts } from "@/lib/dentvid/posting";
 import { postingText } from "@/content/dentvideo-posting";
 import type { HelpId } from "@/content/dentvideo-help-links";
@@ -102,14 +105,32 @@ export function Library({
   clinicName,
   heroLevel = 1,
   topics,
+  hasEarlier = false,
+  weeks = LIBRARY_WEEKS,
+  earlierWeeks = null,
+  postedWeeks,
+  firstWeek = false,
+  planEndsAt = null,
 }: {
   /** The clinic's topic suggestions (null: not available on this database; undefined: not shown). */
   topics?: TopicView[] | null;
+  /** The clinic has weeks older than the ones loaded: a quiet "Show earlier weeks" link follows the last week. */
+  hasEarlier?: boolean;
+  /** How many weeks are loaded (?weeks=); the link asks for 12 more. */
+  weeks?: number;
+  /** When a pause lies before the older videos: the window that reaches them, so the link jumps there (lib/dentvid/items.ts). */
+  earlierWeeks?: number | null;
+  /** Weeks before the loaded ones in which the clinic posted a video: the posting streak counts on through them. */
+  postedWeeks?: string[];
+  /** The "your first week is being made" card is above: the week card says nothing of its own while there is nothing to do. */
+  firstWeek?: boolean;
+  /** A cancelled plan, paid up to this date (ISO): the week card never names a Monday after it. */
+  planEndsAt?: string | null;
   /** Shown above "This week" (the hero is the top of the page). */
   clinicName?: string;
   /** The hero's title is the page's h1, unless the first-week card above it holds the h1. */
   heroLevel?: 1 | 2;
-  /** The clinic's country (profile.country): suggested posting times follow it, not the UI language. */
+  /** The clinic's country (profile.country): suggested posting times, the clock and the date order follow it, not the UI language. */
   country?: string | null;
   items: LibraryItem[];
   canStartWeek: boolean;
@@ -168,11 +189,13 @@ export function Library({
     const out = new Map<string, string>();
     // Oldest first (the library lists newest first), generated videos only — the same order as the email.
     const made = view.filter((i) => i.kind === "generated").reverse();
-    for (const [id, slot] of weekSchedule(made, currentWeek, { country, locale })) out.set(id, slotLabel(slot, locale));
+    for (const [id, slot] of weekSchedule(made, currentWeek, { country, locale })) out.set(id, slotLabel(slot, locale, country));
     return out;
   }, [view, currentWeek, locale, country]);
   const thisWeek = view.filter((i) => i.week_of === currentWeek);
-  const notMade = view.filter((i) => i.status === "rejected");
+  // Topics not made: this week's only, and only while the week is short of its five videos.
+  const notMade = notMadeTopics(view, currentWeek);
+  const earlier = hasEarlier ? earlierWeeksHref(weeks, earlierWeeks) : null;
   const delay = delayNote(weekDelay, thisWeek);
   const action = nextAction({ locked, canStartWeek, thisWeek, delayed: !!delay });
   const s = weekSummary(thisWeek);
@@ -208,7 +231,9 @@ export function Library({
 
   return (
     <div>
-      {action !== "locked" && (
+      {/* While the first-week card above says this week is being made, an idle card here would contradict it
+          (and name the Monday after), so it gives way. */}
+      {action !== "locked" && !(firstWeek && action === "idle") && (
         <NextStep
           locale={locale}
           action={action}
@@ -218,6 +243,10 @@ export function Library({
           slots={slots}
           synced={posted.synced}
           currentWeek={currentWeek}
+          nextWeek={nextDeliveryWeek(view, currentWeek)}
+          earlierPosted={postedWeeks}
+          planEndsAt={planEndsAt}
+          country={country}
           clinicName={clinicName}
           level={heroLevel}
           onReview={() => openReview(currentWeek)}
@@ -244,7 +273,7 @@ export function Library({
 
       {groups.map((g, n) => {
         const ago = weeksAgo(g.week, currentWeek);
-        const label = ago === 0 ? text.home.thisWeek : ago === 1 ? text.home.lastWeek : fmt(text.home.weekOf, { date: weekLabelDate(g.week, locale) });
+        const label = ago === 0 ? text.home.thisWeek : ago === 1 ? text.home.lastWeek : fmt(text.home.weekOf, { date: weekLabelDate(g.week, locale, country) });
         const cards = (
           <ul className="mt-4 grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
             {g.items.map((item) => (
@@ -269,7 +298,7 @@ export function Library({
             <section key={g.week} aria-labelledby={`week-${g.week}`} className="mt-10">
               <h2 id={`week-${g.week}`} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="text-lg font-semibold text-dv-ink">{ago === 0 ? t.review.title : label}</span>
-                {ago === 1 && <span className="text-sm text-dv-muted">{weekLabelDate(g.week, locale)}</span>}
+                {ago === 1 && <span className="text-sm text-dv-muted">{weekLabelDate(g.week, locale, country)}</span>}
               </h2>
               {cards}
             </section>
@@ -279,13 +308,27 @@ export function Library({
             <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden">
               <ChevronRight className="h-4 w-4 shrink-0 text-dv-muted transition-transform group-open/week:rotate-90 rtl:-scale-x-100 rtl:group-open/week:-rotate-90" aria-hidden="true" />
               <span className="text-base font-semibold text-dv-ink">{label}</span>
-              {ago <= 1 && <span className="text-sm text-dv-muted">{weekLabelDate(g.week, locale)}</span>}
+              {ago <= 1 && <span className="text-sm text-dv-muted">{weekLabelDate(g.week, locale, country)}</span>}
               <span className="ms-auto rounded-full bg-dv-sand px-2.5 py-0.5 text-xs font-semibold tabular-nums text-dv-body">{g.items.length}</span>
             </summary>
             <div className="pb-6">{cards}</div>
           </details>
         );
       })}
+
+      {/* Older weeks are a tap away: twelve more each time, so the library keeps every week the clinic ever had. */}
+      {earlier && (
+        <p className={groups.length > 1 ? "border-t border-dv-line" : "mt-8"}>
+          <Link
+            href={earlier}
+            scroll={false}
+            className="inline-flex min-h-12 items-center gap-2 text-sm font-medium text-dv-teal underline-offset-4 hover:underline"
+          >
+            <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {libraryWeeksText(locale).showEarlier}
+          </Link>
+        </p>
+      )}
 
       {!locked && topics !== undefined && topics !== null && (
         <div className="mt-10">
@@ -345,6 +388,10 @@ export function NextStep({
   slots,
   synced = false,
   currentWeek,
+  nextWeek,
+  earlierPosted,
+  planEndsAt = null,
+  country = null,
   clinicName,
   level = 2,
   onReview,
@@ -352,6 +399,14 @@ export function NextStep({
 }: {
   locale: Locale;
   action: Exclude<ReturnType<typeof nextAction>, "locked">;
+  /** The Monday the next five videos arrive (YYYY-MM-DD); by default the Monday after this week. */
+  nextWeek?: string;
+  /** Weeks before the loaded ones with a posted video (lib/dentvid/items.ts postedWeeks): the streak counts on through them. */
+  earlierPosted?: string[];
+  /** A cancelled plan, paid up to this date (ISO): when it ends before that Monday, the card says so instead. */
+  planEndsAt?: string | null;
+  /** The clinic's country: an English clinic in the US reads "December 7", in the UK "7 December". */
+  country?: string | null;
   clinicName?: string;
   /** 1 when the hero is the top of the page. */
   level?: 1 | 2;
@@ -375,7 +430,7 @@ export function NextStep({
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const progress = postingProgress(thisWeek, marks);
-  const streak = postingStreak(marks, currentWeek);
+  const streak = postingStreak(withEarlierPosts(marks, earlierPosted), currentWeek);
   const nextToPost = thisWeek.find((i) => cardState(i) === "approved" && !marks[i.id]) ?? thisWeek.find((i) => cardState(i) === "approved");
 
   async function startWeek() {
@@ -402,18 +457,27 @@ export function NextStep({
   }
 
   const pending = s.look + s.review;
+  const allPosted = action === "share" && progress.total > 0 && progress.posted === progress.total;
+  // Nothing left to do this week: say on which Monday the next five arrive, by date (a clinic that paid on
+  // Sunday already has the coming Monday's week, so "on Monday" alone would promise videos that are not coming).
+  // A cancelled plan that ends before that Monday: when it ends, in the words settings uses, never a Monday that brings nothing.
+  const next = nextWeek ?? nextDeliveryWeek(thisWeek, currentWeek);
+  const endsDay = planEndsBefore(planEndsAt, next);
+  const nextLine = endsDay
+    ? fmt(text.billing.ends, { date: weekLabelDate(endsDay, locale, country) })
+    : fmt(libraryWeeksText(locale).nextDelivery, { date: weekLabelDate(next, locale, country) });
   const title =
     action === "review" ? (pending === 1 ? h.reviewOne : fmt(h.reviewMany, { n: pending }))
     : action === "making" ? h.makingTitle
     : action === "start" ? h.startTitle
-    : action === "share" ? (progress.total > 0 && progress.posted === progress.total ? t.post.allPosted : h.shareTitle)
+    : action === "share" ? (allPosted ? t.post.allPosted : h.shareTitle)
     : h.idleTitle;
   const lead =
     action === "review" ? h.reviewLead
     : action === "making" ? h.makingLead
     : action === "start" ? h.startLead
-    : action === "share" ? h.shareLead
-    : h.idleLead;
+    : action === "share" ? (allPosted ? nextLine : h.shareLead)
+    : nextLine;
 
   // This week's videos as one quiet bar and line ("2 of 5 approved"), instead of a pill per state.
   const total = s.look + s.review + s.making + s.updating + s.approved;
@@ -438,7 +502,7 @@ export function NextStep({
             )}
             <span>{h.thisWeek}</span>
             <span aria-hidden="true">·</span>
-            <span>{weekLabelDate(currentWeek, locale)}</span>
+            <span>{weekLabelDate(currentWeek, locale, country)}</span>
           </p>
           <Title className="dv-display dv-h-page mt-2 text-dv-ink">{title}</Title>
           <p className="mt-2 max-w-xl text-[0.9375rem] leading-relaxed text-dv-body">{delay ? (delay === "delayed" ? h.delayDelayed : h.delayRetrying) : lead}</p>
