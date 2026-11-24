@@ -39,6 +39,26 @@ const CLEAN = [
   "No pain doesn't mean no problem.",
   "Gum disease is a leading cause of tooth loss.",
   "Call your dentist if your gums bleed.",
+  // Urgent-care advice: "call us today" is the right instruction here, not a push (review, Nov 2026).
+  "Knocked-out tooth? Call us today: the first hour matters.",
+  "If a tooth is knocked out, call us today and keep the tooth in milk.",
+  "If your face is swelling, call us today.",
+  "Dental emergency? Call us now.",
+  "Give us a call today if your filling feels high.",
+  // "Leading" as a verb or about a problem, not a claim about the clinic.
+  "Tooth decay is the leading problem dentists see in children.",
+  "Gum disease is a leading reason dentists remove adult teeth.",
+  "Tooth decay can reach the nerve, leading your dentist to recommend a root canal.",
+  "Plaque hardens into tartar, leading many dentists to suggest a cleaning every six months.",
+  // Stars on a brushing chart, negated or educational "perfect smile" and "zero pain", patients in general.
+  "Kids can earn five stars on their brushing chart.",
+  "Whitening alone won't give you your perfect smile.",
+  "Your perfect smile does not need to be bright white.",
+  "Zero pain doesn't mean zero problems.",
+  "On a scale from zero to ten, zero pain means you feel nothing at all.",
+  "Happy patients are more likely to keep their check-ups.",
+  "Many patients love how quick a clear aligner check-up is.",
+  "Read patient reviews when you choose a new dentist.",
 ];
 
 const INPUTS = [
@@ -158,12 +178,16 @@ describe("hard rules: US and UK promo phrases", () => {
   it.each([
     ["Rated 5 stars by our patients.", "testimonial:Rated 5 stars"],
     ["Rated 4.9 stars on Google.", "testimonial:Rated 4.9 stars"],
-    ["Read our five-star Google reviews.", "testimonial:five-star"],
-    ["Read our five-star Google reviews.", "testimonial:Google reviews"],
+    ["Read our five-star Google reviews.", "testimonial:our five-star Google reviews"],
+    ["Five-star Google reviews.", "testimonial:Five-star Google reviews"],
     ["See our 5-star reviews.", "testimonial:5-star reviews"],
-    ["Thank you to all our happy patients.", "testimonial:happy patients"],
-    ["Satisfied patients recommend us.", "testimonial:Satisfied patients"],
-    ["Patients love our gentle hygienists.", "testimonial:Patients love"],
+    ["A five-star practice in Leeds.", "testimonial:five-star"],
+    ["5 stars on Google.", "testimonial:5 stars on Google"],
+    ["Real patient reviews.", "testimonial:Real patient reviews"],
+    ["Thank you to all our happy patients.", "testimonial:our happy patients"],
+    ["Join thousands of happy patients.", "testimonial:thousands of happy patients"],
+    ["Satisfied patients recommend us.", "testimonial:Satisfied patients recommend"],
+    ["Patients love our gentle hygienists.", "testimonial:Patients love our"],
     ["Award-winning dental care in Leeds.", "superlative:Award-winning"],
     ["Voted top dentist in Manchester.", "superlative:Voted top dentist"],
     ["Voted #1 practice in Dallas.", "superlative:Voted #1 practice"],
@@ -171,12 +195,16 @@ describe("hard rules: US and UK promo phrases", () => {
     ["One of the top dental practices in Ohio.", "superlative:top dental practices"],
     ["London's leading implant clinic.", "superlative:leading implant clinic"],
     ["The leading dental team in Bath.", "superlative:The leading dental team"],
+    ["We are leading dentists in Leeds.", "superlative:leading dentists"],
+    ["The leading dental practice in Leeds.", "superlative:The leading dental practice"],
     ["No pain, no fuss.", "absolute:No pain, no fuss"],
     ["No pain, no needles.", "absolute:No pain, no needles"],
     ["Zero pain whitening.", "absolute:Zero pain"],
+    ["Zero pain, zero stress.", "absolute:Zero pain"],
     ["Completely pain-free treatment.", "absolute:Completely pain-free"],
     ["Get the perfect smile you deserve.", "absolute:Get the perfect smile"],
     ["Your perfect smile starts here.", "absolute:Your perfect smile"],
+    ["Get your perfect smile today.", "absolute:Get your perfect smile"],
     ["Perfect smiles in one visit.", "absolute:Perfect smiles in one visit"],
   ])("%s → %s, in the checker and in the scripts' gate", (text, want) => {
     expect(checker(text)).toContain(want);
@@ -184,10 +212,29 @@ describe("hard rules: US and UK promo phrases", () => {
   });
 
   it("'Call now' is pressure in the checker, but not a hard rule for the scripts", () => {
-    for (const [t, m] of [["Call now to book your check-up.", "Call now"], ["Call us today for a check-up.", "Call us today"]]) {
+    for (const [t, m] of [
+      ["Call now to book your check-up.", "Call now"],
+      ["Call us today for a check-up.", "Call us today"],
+      ["Spaces are limited, call now!", "call now"],
+      ["Want whiter teeth? Call now!", "Call now"],
+    ]) {
       expect(checker(t)).toEqual([`fear:${m}`]);
       expect(scanHardRules(t)).toEqual([]);
     }
+  });
+
+  it.each([
+    "Knocked-out tooth? Call us today: the first hour matters.",
+    "If your face is swelling, call us today.",
+    "Dental emergency? Call us now.",
+    "If your face swells and you have a fever, call us now.",
+    "Severe toothache that keeps you up at night? Call us today.",
+    "In pain? Call us today.",
+    "Lost a filling? Call us today.",
+    "Call us today for emergency care.",
+    "Give us a call today if your filling feels high.",
+  ])("urgent-care advice to call is not pressure: %s", (text) => {
+    expect(checker(text)).toEqual([]);
   });
 
   it.each([
@@ -205,6 +252,13 @@ describe("hard rules: US and UK promo phrases", () => {
     "Whitening does not give you a perfect smile; it lightens the colour of your teeth.",
     "Five minutes of brushing a day is plenty.",
     "Most patients feel little discomfort after a filling.",
+    "Missing teeth can shift your bite, leading most dentists to suggest replacing them.",
+    "Grinding can wear enamel, leading your dental team to suggest a night guard.",
+    "Sugary drinks feed bacteria, leading to cavities and leading dentists to warn parents about juice.",
+    "Brush twice a day and give yourself a star. Five stars by Friday means a sticker.",
+    "Veneers won't give you a perfect smile overnight.",
+    "There is no such thing as a perfect smile.",
+    "Leave us a Google review.",
   ])("leaves education alone: %s", (text) => {
     expect(findHardSpans(text, CHECKER_RULES)).toEqual([]);
     expect(scanHardRules(text)).toEqual([]);

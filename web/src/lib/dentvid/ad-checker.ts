@@ -217,8 +217,11 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("fear", /lose|cost/i, "left untreated, it can get worse over time"),
     // A symptom someone should not wait on: a calm pointer to their dentist.
     r("fear", /too late|wait/i, "If you notice this, ask your dentist at your next visit."),
-    // A push to book or call, or a made-up deadline: no push and no deadline at all.
-    r("fear", /book|call|only|limited|end|expire|last|hurry|act|while|left|remaining|filling|running|going|miss/i, "Whenever it suits you, ask us about an appointment."),
+    // "Call now" keeps the call and loses the rush. A phrase, not a whole sentence: a call can be
+    // the right advice, and "whenever it suits you" must never replace it.
+    r("fear", /call/i, "call us"),
+    // A push to book, or a made-up deadline: no push and no deadline at all.
+    r("fear", /book|only|limited|end|expire|last|hurry|act|while|left|remaining|filling|running|going|miss/i, "Whenever it suits you, ask us about an appointment."),
   ],
   tr: [
     r("absolute", /ağrısız|acısız/i, "lokal anestezi altında, çoğu hasta için konforlu"),
@@ -234,8 +237,9 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("testimonial", /hasta|teşekkür|memnun/i, "hastalarımızın sık sorduğu sorular"),
     r("cure", /tedavi|iyileştirir|geçer|yok eder/i, "tedavisine yardımcı olabilir"),
     r("fear", /kaybed/i, "tedavi edilmezse zamanla ilerleyebilir"),
-    r("fear", /geç olmadan|randevu|kaçırmayın|beklemeyin/i, "Bu belirtiyi fark ederseniz diş hekiminize danışabilirsiniz."),
-    r("fear", /fırsat|şans|sadece|yalnızca|özel|son gün|acele|kontenjan|tükenmeden/i, "Size uygun bir zamanda diş hekiminize danışabilirsiniz."),
+    r("fear", /geç olmadan|beklemeyin/i, "Bu belirtiyi fark ederseniz diş hekiminize danışabilirsiniz."),
+    // "Hemen randevu alın" is a push to book, not a symptom.
+    r("fear", /randevu|kaçırmayın|fırsat|şans|sadece|yalnızca|özel|son gün|acele|kontenjan|tükenmeden/i, "Size uygun bir zamanda diş hekiminize danışabilirsiniz."),
   ],
   de: [
     r("absolute", /schmerzfrei|schmerzlos/i, "unter örtlicher Betäubung, für die meisten gut verträglich"),
@@ -249,8 +253,9 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("before_after", /vorher/i, "wie die Behandlung Schritt für Schritt abläuft"),
     r("testimonial", /patienten|erfahrungsbericht|dankschreiben|bewertung/i, "Fragen, die uns Patientinnen und Patienten oft stellen"),
     r("cure", /heil/i, "kann bei der Behandlung helfen"),
-    r("fear", /zu spät|warten|termin|buchen|verlieren/i, "Wenn Ihnen das auffällt, sprechen Sie uns beim nächsten Termin an."),
-    r("fear", /heute|chance|kurze zeit|angebot|vorrat|plätze|begrenzt/i, "Wann immer es Ihnen passt: Fragen Sie uns nach einem Termin."),
+    r("fear", /zu spät|warten|verlieren/i, "Wenn Ihnen das auffällt, sprechen Sie uns beim nächsten Termin an."),
+    // "Jetzt Termin buchen" is a push to book, not a symptom.
+    r("fear", /termin|buchen|heute|chance|kurze zeit|angebot|vorrat|plätze|begrenzt/i, "Wann immer es Ihnen passt: Fragen Sie uns nach einem Termin."),
   ],
   es: [
     r("absolute", /sin dolor|indoloro/i, "con anestesia local, cómodo para la mayoría de pacientes"),
@@ -312,8 +317,8 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("testimonial", /آراء|تجارب|تجربة|شهادات|مرضانا|قصص|نجوم/, "أسئلة يطرحها المرضى علينا كثيراً"),
     r("cure", /يشفي|تشفي|شفاء|نهائي|يقضي|تقضي/, "قد يساعد في العلاج"),
     r("fear", /تفقد/, "إذا لم يُعالج فقد يتفاقم مع الوقت"),
-    r("fear", /فوات|تنتظر|احجز/, "إذا لاحظتم ذلك، استشيروا طبيب الأسنان."),
-    r("fear", /فرصة|فقط|تفوت|محدودة|سارع|ينتهي/, "اسألونا عن موعد في الوقت الذي يناسبكم."),
+    r("fear", /فوات|تنتظر/, "إذا لاحظتم ذلك، استشيروا طبيب الأسنان."),
+    r("fear", /احجز|فرصة|فقط|تفوت|محدودة|سارع|ينتهي/, "اسألونا عن موعد في الوقت الذي يناسبكم."),
   ],
   ja: [
     r("absolute", /無痛|痛くない|痛みのない|痛みゼロ/, "痛みに配慮し、局所麻酔を使って行います（感じ方には個人差があります）"),
@@ -327,6 +332,8 @@ export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
     r("before_after", /./, "治療の一般的な流れ"),
     r("testimonial", /./, "患者さんからよくいただくご質問"),
     r("cure", /./, "治療に役立つことがあります"),
+    // A push to book or a made-up deadline is not a symptom: no push and no deadline.
+    r("fear", /今すぐ|期間限定|本日限り|今月|今週|先着|残りわずか|お急ぎ|今だけ|見逃し|締め?切り/, "ご都合のよいときに、ご予約についてお問い合わせください。"),
     r("fear", /./, "気になる症状があれば、歯科医師にご相談ください。"),
   ],
 };

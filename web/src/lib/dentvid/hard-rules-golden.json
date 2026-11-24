@@ -77,6 +77,125 @@
   "markets": {}
  },
  {
+  "input": "Knocked-out tooth? Call us today: the first hour matters.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "If a tooth is knocked out, call us today and keep the tooth in milk.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "If your face is swelling, call us today.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Dental emergency? Call us now.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Give us a call today if your filling feels high.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Tooth decay is the leading problem dentists see in children.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Gum disease is a leading reason dentists remove adult teeth.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Tooth decay can reach the nerve, leading your dentist to recommend a root canal.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Plaque hardens into tartar, leading many dentists to suggest a cleaning every six months.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Kids can earn five stars on their brushing chart.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Whitening alone won't give you your perfect smile.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Your perfect smile does not need to be bright white.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Zero pain doesn't mean zero problems.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "On a scale from zero to ten, zero pain means you feel nothing at all.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Happy patients are more likely to keep their check-ups.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Many patients love how quick a clear aligner check-up is.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Read patient reviews when you choose a new dentist.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
   "input": "Guaranteed painless whitening, 50% off this month only! The best dentist in town. Our patients say it's life-changing. See our before and after photos.",
   "scan": [
    {
@@ -2026,9 +2145,9 @@
    },
    {
     "rule": "testimonial",
-    "start": 45,
+    "start": 41,
     "end": 59,
-    "match": "happy patients"
+    "match": "our happy patients"
    }
   ],
   "checker": [
@@ -2046,9 +2165,9 @@
    },
    {
     "rule": "testimonial",
-    "start": 45,
+    "start": 41,
     "end": 59,
-    "match": "happy patients"
+    "match": "our happy patients"
    }
   ],
   "markets": {}
@@ -2058,36 +2177,24 @@
   "scan": [
    {
     "rule": "testimonial",
-    "match": "five-star",
+    "match": "our five-star Google reviews",
     "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
    }
   ],
   "spans": [
    {
     "rule": "testimonial",
-    "start": 9,
-    "end": 18,
-    "match": "five-star"
-   },
-   {
-    "rule": "testimonial",
-    "start": 19,
+    "start": 5,
     "end": 33,
-    "match": "Google reviews"
+    "match": "our five-star Google reviews"
    }
   ],
   "checker": [
    {
     "rule": "testimonial",
-    "start": 9,
-    "end": 18,
-    "match": "five-star"
-   },
-   {
-    "rule": "testimonial",
-    "start": 19,
+    "start": 5,
     "end": 33,
-    "match": "Google reviews"
+    "match": "our five-star Google reviews"
    }
   ],
   "markets": {}
@@ -2178,7 +2285,7 @@
   "scan": [
    {
     "rule": "testimonial",
-    "match": "Patients love",
+    "match": "Patients love our",
     "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
    }
   ],
@@ -2186,16 +2293,16 @@
    {
     "rule": "testimonial",
     "start": 0,
-    "end": 13,
-    "match": "Patients love"
+    "end": 17,
+    "match": "Patients love our"
    }
   ],
   "checker": [
    {
     "rule": "testimonial",
     "start": 0,
-    "end": 13,
-    "match": "Patients love"
+    "end": 17,
+    "match": "Patients love our"
    }
   ],
   "markets": {}

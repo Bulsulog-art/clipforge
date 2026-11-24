@@ -68,11 +68,18 @@ const CITYISH = "\\p{Lu}\\p{L}+";
 // The clinic itself, for "top …" and "leading …" in English. "Practices" followed by
 // "for/to/of" are habits ("top practices for healthy gums"), not a dental practice.
 const CLINIC_PLACE_EN = "dentists?|clinics?|practices?(?!\\s+(for|to|of)(?![\\p{L}]))|dental (clinic|practice|office)s?";
+// The word after "leading" that makes it a verb or a cause, not a claim about the clinic.
+const NOT_A_CLINIC_WORD_EN =
+  "your|my|our|their|his|her|its|many|most|some|all|every|more|other|these|those|a|an|the|to|causes?|reasons?|problems?|issues?|concerns?|factors?|risks?|signs?|sources?|contributors?";
 
 // "Does not guarantee whiter teeth" is the honest version of a claim, not a
 // guarantee. Hard rules cannot read sentences, but they can see a negation
 // right before the word.
 const NEGATED = "(?<!(no|not|n't|never|cannot|can't|nicht|kein\\p{L}*|ne|n'|não|non|nunca|jamais|mai|nie|لا|لن|ليس|ليست|غير)\\s+)";
+// English only: a negation up to three words back ("won't give you your perfect smile").
+const NEGATED_NEAR_EN = "(?<!((?<![\\p{L}])(no|not|never|cannot)|n['’]t)(\\s+[\\p{L}'’]+){0,3}\\s+)";
+// …and a negation right after the phrase ("Your perfect smile does not need to be bright white").
+const NEGATED_AFTER_EN = "(?!\\s+(does not|doesn['’]?t|is not|isn['’]?t|need not|needn['’]?t|will not|won['’]?t|cannot|can['’]?t|may not|might not)(?![\\p{L}]))";
 
 /**
  * The words a writer must not reach for, by language — told to the writers
@@ -80,7 +87,8 @@ const NEGATED = "(?<!(no|not|n't|never|cannot|can't|nicht|kein\\p{L}*|ne|n'|não
  * (Baseline eval: most script rewrites were "prevents"/"önler"/"dauerhaft".)
  */
 export const AVOID_WORDS: Record<string, string> = {
-  en: "prevents, stops (say \"can help prevent\"), permanent, painless, pain-free, no pain no fuss, perfect smile, guaranteed, risk-free, forever, lifetime, best, #1, top dentist, leading, award-winning, 5-star, happy patients, before-and-after results, cures, 100%",
+  // Claim shapes, not bare words: "a leading cause of tooth loss" is good education.
+  en: "prevents, stops (say \"can help prevent\"), permanent, painless, pain-free, \"no pain, no fuss\", \"get the perfect smile\", guaranteed, risk-free, forever, lifetime, best, #1, top dentist, leading clinic, leading dentist, award-winning, 5-star, our happy patients, before-and-after results, cures, 100%",
   // Tanıtım Yönetmeliği, RG 12.11.2025 no. 33075 — see locale.ts marketRules("TR").
   tr: "önler, engeller (\"önlemeye yardımcı olabilir\" deyin), kalıcı, acısız, ağrısız, garanti, garantili, ömür boyu, yan etkisiz, en iyi, ilk ve tek, lider, bir numara, en uygun fiyat, diğer kliniklerden farklı, kesin sonuç, öncesi-sonrası sonuçları, hasta yorumları, teşekkür mesajları, tamamen iyileştirir, indirim, kampanya, taksit, hediye, ücretsiz, %100",
   // HWG §§ 3, 7, 11; ZÄG § 35 (AT); Art. 40 MedBG (CH) — see locale.ts.
@@ -150,8 +158,10 @@ export const HARD_RULES: Rule[] = [
       // ("No pain, no fuss", "completely pain free", "Get the perfect smile"). Promise shapes only:
       // a bare "no pain" is good education ("gum disease often causes no pain in its early stages",
       // "no pain doesn't mean no problem"), and these rules also gate the video scripts.
-      w("zero pain|no pain,? no (fuss|stress|needles?|drills?)|(totally|completely|100%) pain[- ]?free"),
-      w(`${NEGATED}((get|achieve|create|deliver|design|unlock|reveal|give you|gives you) (a |the |your |that )?|your )perfect smiles?|perfect smiles? (for (life|everyone|every patient)|every time|in (one|a single|\\d+) (days?|visits?|appointments?|weeks?))`),
+      // "Zero pain" as a promise; not a pain scale ("on a scale from zero to ten, zero pain means…")
+      // and not "zero pain doesn't mean zero problems".
+      w(`(?<!(?<![\\p{L}])(scale|between|out of)(?![\\p{L}])[^.!?\\n]{0,30})zero pain(?!\\s+(does not|doesn['’]?t|is not|isn['’]?t|means?)(?![\\p{L}]))|no pain,? no (fuss|stress|needles?|drills?)|(totally|completely|100%) pain[- ]?free`),
+      w(`${NEGATED_NEAR_EN}((get|achieve|create|deliver|design|unlock|reveal|give you|gives you) (a |the |your |that )?|your )perfect smiles?${NEGATED_AFTER_EN}|perfect smiles? (for (life|everyone|every patient)|every time|in (one|a single|\\d+) (days?|visits?|appointments?|weeks?))`),
     ],
   },
   {
@@ -165,7 +175,9 @@ export const HARD_RULES: Rule[] = [
       // Awards, votes, "top" and "leading" about the clinic, as US and UK sites write them. A
       // clinic noun is required: "a leading cause of tooth loss" and "top teeth" are not claims,
       // and "top practices for healthy gums" (habits) is not about a practice.
-      w(`award[- ]winning|voted (the )?(best|top|#\\s?1|number one)( (${CLINIC_NOUNS.en}))?|top (${CLINIC_PLACE_EN})|(the )?leading (\\p{L}+ )?(${CLINIC_PLACE_EN}|dental team)`),
+      // "Leading" as a verb ("…, leading your dentist to recommend a root canal", "leading dentists to
+      // warn parents") or about a problem ("the leading problem dentists see") is not a claim either.
+      w(`award[- ]winning|voted (the )?(best|top|#\\s?1|number one)( (${CLINIC_NOUNS.en}))?|top (${CLINIC_PLACE_EN})|(the )?leading (?!(${NOT_A_CLINIC_WORD_EN})\\s)(\\p{L}+ )?(${CLINIC_PLACE_EN}|dental team)(?!\\s+to(?![\\p{L}]))`),
       w(`en iyi (${CLINIC_NOUNS.tr})|bir numara|en ucuz`),
       // Tanıtım Yönetmeliği (RG 33075): superiority, firsts, comparison with
       // other clinics.
@@ -239,8 +251,16 @@ export const HARD_RULES: Rule[] = [
     why: "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets.",
     patterns: [
       // Star ratings, reviews and satisfied patients, as US and UK clinic sites write them
-      // ("rated 5 stars", "five-star Google reviews", "our happy patients", "patients love it").
-      w("our patients? (say|said|love)|(google|patient|(5|five)[- ]star) reviews|(5|five)[- ]stars?|rated \\d([.,]\\d)?[- ]stars?|(happy|satisfied) patients|patients love|testimonials?"),
+      // ("rated 5 stars", "five-star Google reviews", "our happy patients", "patients love us").
+      // Tied to the clinic or to a rating: a brushing chart's "five stars by Friday", "read patient
+      // reviews when you choose a dentist" and "happy patients keep their check-ups" are not claims.
+      w(
+        "our patients? (say|said|love)|(our|real|genuine|verified|\\d[\\d.,]*\\+?) ((5|five)[- ]star )?(google|patient) reviews" +
+          "|(5|five)[- ]star (google |patient )?reviews|(5|five)[- ]star(?!s)|rated (\\d([.,]\\d)?|five)[- ]stars?" +
+          "|(5|five) stars? (on|from|by|in|across) (our |happy |satisfied )*(google|yelp|facebook|trustpilot|doctify|reviews?|patients)" +
+          "|(our|so many|thousands of|hundreds of|\\d[\\d.,]*\\+?) (happy|satisfied) patients|(happy|satisfied) patients (say|said|recommend|agree|love|trust|rate|choose)" +
+          "|patients love (us|our|coming)|testimonials?",
+      ),
       w("hastalarımız (diyor|anlatıyor)"),
       // RG 33075: patients' thank-you and satisfaction statements.
       w("hasta yorum\\p{L}*|hastalarımızın (yorum|teşekkür|deneyim)\\p{L}*|teşekkür mesaj\\p{L}*|memnun hasta\\p{L}*|hasta memnuniyet\\p{L}*"),
@@ -336,6 +356,11 @@ export function findHardSpans(text: string, rules: readonly Rule[] = HARD_RULES)
  * in context, and scanHardRules must not change); the public checker adds
  * it, with phrases narrow enough to mean only that.
  */
+// A condition ("if", "when") or an urgent sign near "call us today" makes it care advice, not a push.
+const IF_EN = "if|when|whenever|should|in case|as soon as|until";
+const URGENT_EN =
+  "emergenc\\p{L}*|urgent\\p{L}*|toothache\\p{L}*|pain\\p{L}*|hurt\\p{L}*|ache\\p{L}*|aching|swell\\p{L}*|swollen|bleed\\p{L}*|blood\\p{L}*|knocked[- ]out|broken|broke|cracked|chipped|lost|abscess\\p{L}*|fever\\p{L}*|infect\\p{L}*|injur\\p{L}*|trauma\\p{L}*|accident\\p{L}*|severe";
+
 export const FEAR_RULE: Rule = {
   id: "fear",
   why: "Frightening the reader, pressing them to book now or inventing a deadline is restricted in health advertising.",
@@ -352,8 +377,11 @@ export const FEAR_RULE: Rule = {
     w("solo oggi|ultima occasione|per un tempo limitato|posti limitati|affrettat[iei]|non perdere"),
     a("آخر فرصة|الفرصة الأخيرة|اليوم فقط|(هذا الشهر|هذا الأسبوع) فقط|لا تفوت\\p{L}*|(أماكن|مقاعد) محدودة|سارع\\p{L}*|(العرض )?ينتهي (العرض|قريباً|قريبا|اليوم)"),
     j("期間限定|本日限り|今月(限り|だけ|末まで)|今週(限り|だけ)|先着(順|\\d+名)|残りわずか|お急ぎ|今だけ|お見逃しなく|締め?切り間近"),
-    // "Call now" / "call us today" push in the same way; "call your dentist if your gums bleed" is advice and passes.
-    w("before it'?s too late|(you )?could lose (all )?your teeth|(could|will) cost you your teeth|don'?t wait (any longer|until it'?s too late)|book (now|today)( before)?|call (us )?(now|today)"),
+    w("before it'?s too late|(you )?could lose (all )?your teeth|(could|will) cost you your teeth|don'?t wait (any longer|until it'?s too late)|book (now|today)( before)?"),
+    // "Call now" / "call us today" push in the same way, but in urgent-care advice it is the right
+    // instruction: "If a tooth is knocked out, call us today", "Dental emergency? Call us now",
+    // "Give us a call today if your filling feels high". Those are left alone.
+    w(`(?=call )(?<!(?<![\\p{L}])(${IF_EN})(?![\\p{L}])[^.!?\\n]{0,80})(?<!(?<![\\p{L}])(${URGENT_EN})(?![\\p{L}])[^.!\\n]{0,80})call (us )?(now|today)(?![^.!?\\n]{0,60}(?<![\\p{L}])(${IF_EN}|${URGENT_EN})(?![\\p{L}]))`),
     w("(çok )?geç olmadan|dişlerinizi kaybedebilirsiniz|dişlerinizi kaybetmeden|hemen randevu al\\p{L}*|kaçırmayın|daha fazla beklemeyin"),
     w("bevor es zu spät ist|warten sie nicht (länger|zu lange)|jetzt sofort (einen )?termin\\p{L}*|jetzt (einen )?termin (buchen|vereinbaren|sichern)|jetzt buchen|ihre zähne verlieren"),
     w("antes de que sea (demasiado )?tarde|no esperes? más|(podrías|puedes|podría|puede) perder (tus|sus) dientes"),
