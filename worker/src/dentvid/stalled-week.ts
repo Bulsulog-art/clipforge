@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { UnrecoverableError } from "bullmq";
 import { logger } from "../logger.js";
 import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, WEEK_RETRY, type WeekJobData } from "./job-options.js";
 import { alerts, cleanError, type ClinicRef, type OpsStore, type OwnerAlert, type WeekDelay } from "./ops-alert.js";
@@ -38,27 +39,54 @@ import { clinicTimeZone, mondayMorning } from "./timezone.js";
  *       exhausted  30 minutes later (four failures in a row within minutes:
  *                  give the outage time to pass), at its own place in the
  *                  queue (a batch week does not jump the batch), 1 attempt.
- *     Every run of a week reserves one of the clinic's weekly runs
- *     (spend-guard.ts DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 6). A stalled week
- *     used up to 3 (BullMQ ran it again after each of its MAX_STALLED_COUNT
- *     allowed stalls), an exhausted one 4. With the extra run that makes at
- *     most 5, leaving one for the clinic's "try again" or the owner's requeue
- *     (other week runs in the same week, such as a first week, count too).
+ *     The extra run carries `extra: true` (and `extraFor`, why it was
+ *     queued) in its data and gets no stall tolerance: if its process dies
+ *     under it, BullMQ puts it back in the queue, and the worker fails it as
+ *     soon as it is picked up again (refuseRestartedExtraRun, index.ts),
+ *     before it reserves anything. Without that, the re-added job started
+ *     with a fresh stall count, and a week whose own content kills the worker
+ *     (out of memory in its render) ran 6 times in a row at the head of the
+ *     queue. The refusal takes the mark off the job first: BullMQ's
+ *     job.retry() keeps the stall count, so a marked job would be refused
+ *     again by every deliberate retry later (the delivery watchdog's, the
+ *     owner's "Retry job" in /admin/system), and the week would never run.
+ *     Such a retry runs as an ordinary week, with whatever stall tolerance
+ *     BullMQ has left for the job (MAX_STALLED_COUNT minus the one stall).
+ *     Runs of a week, each reserving one of the clinic's runs of that
+ *     delivery week (spend-guard.ts DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 6):
+ *       a week that kills the worker every time  3 (BullMQ runs it again after
+ *         each of its MAX_STALLED_COUNT stalls) + 1 extra run = 4
+ *       a stalled week whose extra run fails     3 + 2 (STALLED_RETRY_ATTEMPTS) = 5
+ *       an exhausted week                        4 + 1 (EXHAUSTED_RETRY_ATTEMPTS) = 5
+ *     That leaves at least one for the clinic's "try again" or the owner's
+ *     requeue (other runs of the same delivery week, such as a first week,
+ *     count too). BullMQ's stall count also runs across a job's ordinary
+ *     attempts, so a week whose attempts both fail and stall can use more; the
+ *     cap then parks the next run, and the owner is told (spend-guard alert).
+ *     A deliberate retry after a refused extra run (above) is not counted
+ *     here: it is the delivery watchdog's once per clinic and week, or the
+ *     owner's, and it reserves within the same cap.
  *     A permanent error is not queued again (runDentvidWeek's own rule); after
  *     the deadline the hourly delivery watchdog takes over (it retries the
  *     failed job under the week's own id). A week that already had its extra
  *     run (the claim is there) is never queued again, whatever failed, and
  *     neither is anything when the claim cannot be taken (no ops store).
- *   - the owner hears what happened and what is already being done. Each
- *     alert has its own key, because deliverAlert sends one email per key and
- *     day and runDentvidWeek already used week_failed:<clinic>:<monday> for a
- *     week that used every attempt:
- *       week_failed:<c>:<w>:stalled  the process died under it (runDentvidWeek never spoke)
- *       week_requeued:<c>:<w>        an exhausted week was queued once more (runDentvidWeek
- *                                    told the owner it failed; this says no hand retry is needed)
- *       week_failed:<c>:<w>:again    the week failed again after its one extra run was queued
- *       week_failed:<c>:<w>          everything else, the same alert runDentvidWeek sends
- *                                    (so it is not doubled, and is sent if that one was not)
+ *   - the owner gets ONE email for the failure, from here. Under the dentvid
+ *     worker runDentvidWeek sends none of its own (jobs.ts WeekCtx
+ *     failedHandlerAlerts): only this handler knows whether the week was
+ *     queued once more, so it says what happened and what is already being
+ *     done. Before, an exhausted week sent "week failed, retry it by hand" and
+ *     then "queued once more, no need to", and an extra run that failed sent
+ *     "week failed" and "failed again". Keys (deliverAlert sends one email per
+ *     key and day):
+ *       week_failed:<c>:<w>:stalled  the process died under it
+ *       week_requeued:<c>:<w>        an exhausted week was queued once more (warning:
+ *                                    nothing to do yet)
+ *       week_failed:<c>:<w>:again    the week failed again after its one extra run was
+ *                                    queued (its own key, so the first failure's email
+ *                                    the same day does not swallow it)
+ *       week_failed:<c>:<w>          everything else: a permanent error, or a week that
+ *                                    used every attempt and was not queued again
  * A spend-guard refusal is not a failure: the week is parked and the owner was told.
  */
 
@@ -70,6 +98,9 @@ import { clinicTimeZone, mondayMorning } from "./timezone.js";
 export const MAX_STALLED_COUNT = 2;
 /** BullMQ's failedReason for a job whose process died under it more than maxStalledCount times. */
 export const STALLED_MESSAGE = /stalled more than allowable limit/i;
+/** Why the worker fails an extra run picked up again after its process died under it (extraRunRestarted). */
+export const EXTRA_RUN_STALLED = "the week's extra run stopped mid-run (its worker process died) and gets no second start";
+const EXTRA_RUN_STALLED_RE = /extra run stopped mid-run/i;
 /** How long after a stalled failure the one extra run starts: time for a restarting worker to come back. */
 export const STALL_RETRY_DELAY_MS = 5 * 60_000;
 /** How long after a week used every attempt its one extra run starts: time for an outage to pass. */
@@ -99,15 +130,72 @@ const message = (err: unknown) => `${(err as { message?: unknown } | null)?.mess
 
 /** Why this failure is final, or null while BullMQ will still retry it. */
 export function finalKind(job: Pick<FailedWeekJob, "attemptsMade" | "opts">, err: unknown): FailureKind | null {
-  if (STALLED_MESSAGE.test(message(err))) return "stalled";
+  if (STALLED_MESSAGE.test(message(err)) || EXTRA_RUN_STALLED_RE.test(message(err))) return "stalled";
   if ((err as { name?: unknown } | null)?.name === "UnrecoverableError") return "permanent";
   if (job.attemptsMade >= Math.max(1, job.opts?.attempts ?? 1)) return "exhausted";
   return null;
 }
 
-/** Is this a final failure of the job (no BullMQ retry will follow)? */
+/** Is this a final failure of the job (no BullMQ retry will follow)? Holds for any dentvid job, not only weeks. */
 export function weekJobFinal(job: Pick<FailedWeekJob, "attemptsMade" | "opts">, err: unknown): boolean {
   return finalKind(job, err) !== null;
+}
+
+/**
+ * The data of the one extra run this handler queues: marked, so a stall of it
+ * is not run again, and with why it was queued, for the owner's words if it
+ * fails (a week that stopped the worker, or one that used every attempt).
+ */
+export type ExtraWeekJobData = WeekJobData & { extra?: true; extraFor?: "stalled" | "exhausted" };
+
+/** What the worker knows about a job it picks up (a BullMQ Job fits). */
+export type StartedJob = { data?: unknown; attemptsMade: number; attemptsStarted?: number; stalledCounter?: number };
+
+/** The process running this job died under it at least once (BullMQ put it back as stalled). */
+export function stalledBefore(job: StartedJob): boolean {
+  // stc counts the job's stalls (never reset); ats - attemptsMade > 1 says the same where stc is not kept.
+  return (job.stalledCounter ?? 0) > 0 || (job.attemptsStarted ?? 0) > job.attemptsMade + 1;
+}
+
+/**
+ * The extra run picked up again after its process died under it. The worker
+ * fails it at once (UnrecoverableError with EXTRA_RUN_STALLED), before it
+ * reserves anything; the "failed" handler then tells the owner the week
+ * failed again. See the header for the run accounting.
+ */
+export function extraRunRestarted(job: StartedJob): boolean {
+  return (job.data as { extra?: unknown } | null | undefined)?.extra === true && stalledBefore(job);
+}
+
+/** A job the worker is running, as far as the refusal needs it (a BullMQ Job fits). */
+export type RunningWeekJob = StartedJob & { id?: string | null; updateData(data: unknown): Promise<unknown> };
+
+/**
+ * Run first for every week job (index.ts): an extra run picked up again after
+ * its process died under it is failed here, with an UnrecoverableError
+ * (EXTRA_RUN_STALLED), before it reserves anything.
+ *
+ * The mark comes off the job before it fails. BullMQ's job.retry() keeps the
+ * job's stall count (`stc`) and its starts (`ats`), so with the mark left on,
+ * every deliberate retry later (the delivery watchdog's after the clinic's
+ * Monday morning, the owner's "Retry job") was refused again within
+ * milliseconds and the week never ran, while the watchdog told the owner it
+ * was requeued. Without the mark such a retry is an ordinary run. `extraFor`
+ * stays, for the owner's email. If the mark cannot be taken off (Redis not
+ * answering), the run is refused all the same and the failure is logged.
+ */
+export async function refuseRestartedExtraRun(job: RunningWeekJob): Promise<void> {
+  if (!extraRunRestarted(job)) return;
+  const { extra: _mark, ...rest } = (job.data ?? {}) as Record<string, unknown>;
+  await job.updateData(rest).catch((e) =>
+    logger.error({ jobId: job.id, err: (e as Error)?.message }, "dentvid: the extra run's mark could not be taken off; a retry of it would be refused too"),
+  );
+  throw new UnrecoverableError(EXTRA_RUN_STALLED);
+}
+
+/** The context runDentvidWeek gets under the dentvid worker: this handler sends the failure email (jobs.ts WeekCtx). */
+export function weekRunCtx(job: { id?: string | null; attemptsMade: number; opts?: { attempts?: number } }) {
+  return { jobId: job.id ?? undefined, attemptsMade: job.attemptsMade, attempts: job.opts?.attempts, failedHandlerAlerts: true as const };
 }
 
 /** The clinic, for the alert and for its Monday-morning deadline. */
@@ -181,11 +269,14 @@ export async function handleFailedWeek(
     const claim = await deps.store.setNx(key, STALL_RETRY_TTL_SEC).then((fresh) => (fresh ? "fresh" : "already"), () => "no_claim" as const);
     if (claim !== "fresh") skipped = claim;
     else {
-      const again: WeekJobData = {
+      const again: ExtraWeekJobData = {
         clinicId,
         count: typeof data.count === "number" && data.count > 0 ? data.count : 5,
         week,
         ...(data.batch ? { batch: true } : {}),
+        // No stall tolerance for this run (refuseRestartedExtraRun).
+        extra: true,
+        extraFor: kind,
       };
       try {
         const placed = await takeWeekId(deps.queue, weekJobId(clinicId, week), again, extraRunOpts(kind, job));
@@ -223,7 +314,7 @@ export function extraRunOpts(kind: "stalled" | "exhausted", job: Pick<FailedWeek
 export async function takeWeekId(
   queue: StalledWeekDeps["queue"],
   id: string,
-  data: WeekJobData,
+  data: ExtraWeekJobData,
   opts: Record<string, unknown>,
 ): Promise<"queued" | "on_its_way"> {
   const kept = await queue.getJob(id);
@@ -268,7 +359,7 @@ export function ownerNotice(n: NoticeInput): OwnerAlert {
       key: `${base.key}:again`,
       what: [
         `The week of ${week} failed again after it had already been queued once more by itself.`,
-        ...(kind === "stalled" ? [STALLED_WHAT] : base.what),
+        ...(EXTRA_RUN_STALLED_RE.test(message(n.err)) ? [extraStalledWhat(job)] : kind === "stalled" ? [STALLED_WHAT] : base.what),
       ],
       done: ["Not queued again: a week gets one extra run by itself, and this one had it.", LIBRARY_NOTE],
       todo: [retryByHand, writeClinic],
@@ -291,22 +382,25 @@ export function ownerNotice(n: NoticeInput): OwnerAlert {
   }
 
   if (kind === "exhausted" && n.requeued) {
+    // The only email about this failure (runDentvidWeek sent none under the worker): what failed, and that it is handled.
     return {
       key: `week_requeued:${clinicId}:${week}`,
       severity: "warning",
       titleTr: "Başarısız hafta bir kez daha sıraya alındı",
       titleEn: "A failed week was queued once more",
       clinic,
-      what: [`The week of ${week} failed after every attempt (see the “week failed” email about it). The clinic's Monday morning has not come yet.`],
+      what: [`The week of ${week} could not be made after ${attemptsText(Math.max(1, job.attemptsMade))}, retried automatically with growing waits. The clinic's Monday morning has not come yet.`],
       facts: [["Error", cleanError(n.err)]],
       done: [
         `Queued once more by itself (job ${ownId}), starting in 30 minutes, at its own place in the queue, with ${attemptsText(EXHAUSTED_RETRY_ATTEMPTS)}, to leave room in the clinic's weekly run limit for a retry by hand. It makes only the videos still missing, within the spend guard. ${freedId}`,
+        LIBRARY_NOTE,
       ],
       todo: [`No need to retry by hand now. ${noSecondRun} If this run fails too, you get another email.`, "If the error above is something you can fix, fix it before the extra run starts in 30 minutes."],
     };
   }
 
-  // A permanent error, or a week that used every attempt and was not queued again: the alert runDentvidWeek sent.
+  // A permanent error, or a week that used every attempt and was not queued again: the "week failed" alert
+  // (also what runDentvidWeek sends when it runs outside the worker, so the two never double).
   return kind === "permanent" ? base : { ...base, done: [...base.done, skippedNote(n)] };
 }
 
@@ -314,6 +408,26 @@ const attemptsText = (n: number) => (n === 1 ? "one attempt" : `${n} attempts`);
 
 const STALLED_WHAT =
   "The worker process running it stopped more than once in the middle of the run (a restart, a deploy or running out of memory), so BullMQ gave the job up without retrying it.";
+
+const EXTRA_STALLED = "The worker process running that extra run stopped in the middle of it (a restart, a deploy or running out of memory).";
+
+/**
+ * Why the extra run was refused, in words that fit why it was queued. Only a
+ * week whose own runs stopped the worker may be what makes it run out of
+ * memory. A week that used every attempt on ordinary errors never stopped it,
+ * and an extra run queued before `extraFor` existed says nothing either way.
+ */
+export function extraStalledWhat(job: Pick<FailedWeekJob, "data">): string {
+  const why = (job.data as { extraFor?: unknown } | null | undefined)?.extraFor;
+  if (why === "stalled") {
+    return `${EXTRA_STALLED} It was not started a second time: this week had already stopped the worker before, so it may be what makes the worker run out of memory.`;
+  }
+  const never = "It was not started a second time, because an extra run is never started twice.";
+  if (why === "exhausted") {
+    return `${EXTRA_STALLED} ${never} This week never stopped the worker before (its earlier attempts ended with ordinary errors), so a restart or a deploy is the likelier cause. The worker logs from that time will show which.`;
+  }
+  return `${EXTRA_STALLED} ${never} The worker logs from that time show why the process stopped.`;
+}
 
 function skippedNote(n: Pick<NoticeInput, "skipped" | "queueError">): string {
   if (n.skipped === "past_deadline") return "Not queued again here: the clinic's Monday morning has passed. The hourly delivery watchdog re-queues late weeks.";
@@ -338,4 +452,26 @@ export async function weekClinic(db: () => Pick<SupabaseClient, "from">, clinicI
     logger.warn({ clinicId, err: (e as Error).message }, "dentvid: clinic not read for a failed week; using the default time zone");
     return { ref: { id: clinicId }, tz: clinicTimeZone() };
   }
+}
+
+/* ---------------------------------------------------------------- restyles */
+
+/** What a failed restyle hands over (a BullMQ Job fits). */
+export type FailedRestyleJob = Pick<FailedWeekJob, "name" | "data" | "attemptsMade" | "opts">;
+
+/**
+ * A restyle (new background photos) that BullMQ failed for good: its card must
+ * not say "updating…" forever. runDentvidRestyle marks a failure it sees
+ * itself; this covers the ones it never sees, by the same finality test as
+ * weeks. Before, index.ts checked only attemptsMade >= attempts, so a restyle
+ * whose process died three times (failed as "stalled" at attempt 1 of 2)
+ * stayed "queued". `markFailed` sets restyle_status 'failed' where it is still
+ * 'queued'. Returns whether it was called.
+ */
+export async function handleFailedRestyle(job: FailedRestyleJob | undefined, err: unknown, markFailed: (itemId: string) => Promise<unknown>): Promise<boolean> {
+  if (!job || job.name !== "restyle" || !weekJobFinal(job, err)) return false;
+  const itemId = (job.data as { itemId?: unknown } | null | undefined)?.itemId;
+  if (typeof itemId !== "string" || !itemId) return false;
+  await markFailed(itemId).catch((e) => logger.warn({ itemId, err: (e as Error).message }, "dentvid: restyle not marked failed"));
+  return true;
 }

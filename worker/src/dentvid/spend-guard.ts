@@ -16,7 +16,7 @@ import { elevenSurchargePerVideoUsd, ttsCostUsd, type TtsProvider } from "../den
  *            of paying clinics × a per-clinic allowance, so growth never
  *            parks paying clinics; the global cap only catches runaway bugs
  *   clinic   $ today                                   (DENTVID_CLINIC_DAILY_USD_CAP)
- *            weeks this ISO week, restyles today,
+ *            runs of one delivery week, restyles today,
  *            recordings this ISO week                  (DENTVID_MAX_*)
  *
  * and is refused when any of them would go over, or when the kill switch
@@ -117,7 +117,8 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
       env.DENTVID_CLINIC_DAILY_USD_CAP,
       Math.max(5, Math.round((4 * (costUsd.week + costUsd.topup) + costUsd.recording + 5 * costUsd.restyle + maxChanges * costUsd.change) * 100) / 100),
     ),
-    // Monday's 4 automatic attempts (retry.ts WEEK_ATTEMPTS) + a manual re-run or a first week.
+    // Runs of one delivery week: its 4 automatic attempts (retry.ts WEEK_ATTEMPTS), the one
+    // extra run after a final failure (stalled-week.ts) and a "try again" or requeue by hand.
     maxWeeksPerClinicWeek: num(env.DENTVID_MAX_WEEKS_PER_CLINIC_WEEK, 6),
     maxRestylesPerClinicDay: num(env.DENTVID_MAX_RESTYLES_PER_CLINIC_DAY, 10),
     maxRecordingsPerClinicWeek: num(env.DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK, 5),
@@ -185,7 +186,28 @@ function mondayOf(d: Date): string {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day)).toISOString().slice(0, 10);
 }
 
-export function countersFor(op: SpendOp, clinicId: string, cfg: GuardConfig, now = new Date()): Counter[] {
+/** "YYYY-MM-DD" that is a real date (schedule.ts validWeek), else undefined. */
+function weekKey(w: unknown): string | undefined {
+  return typeof w === "string" && /^\d{4}-\d{2}-\d{2}$/.test(w) && !Number.isNaN(Date.parse(`${w}T00:00:00Z`)) ? w : undefined;
+}
+
+/**
+ * How long a week-run counter lives. It is keyed by the delivery week, which is
+ * reserved from the Saturday before it (the batch) to the end of it (a "try
+ * again", the owner's requeue, the delivery watchdog): 15 days covers all of it.
+ */
+const WEEK_RUNS_TTL_SEC = 15 * DAY;
+
+/**
+ * The budget counters one operation reserves. `week` is the Monday a week job
+ * delivers (jobs.ts jobWeek): its runs count against that week, not the week
+ * the job happens to run in. The Saturday batch for week W runs inside W-1's
+ * calendar week; counted by the run date it shared one cap with W-1's first
+ * week, its retries and the clinic's "try again", and could be parked until
+ * Monday 00:00 UTC, past the Asia-Pacific deadlines. Without a (valid) week the
+ * run date's Monday is used, as before. The dollar caps stay by day and month.
+ */
+export function countersFor(op: SpendOp, clinicId: string, cfg: GuardConfig, now = new Date(), week?: string): Counter[] {
   const c = cents(cfg.costUsd[op]);
   const day = dayOf(now);
   const month = day.slice(0, 7);
@@ -196,7 +218,7 @@ export function countersFor(op: SpendOp, clinicId: string, cfg: GuardConfig, now
     { key: `dv:spend:usd:clinic:${clinicId}:${day}`, by: c, cap: cents(cfg.clinicDailyUsd), ttlSec: 2 * DAY, reason: "clinic_daily_usd" },
   ];
   if (op === "week")
-    counters.push({ key: `dv:spend:ops:week:${clinicId}:${monday}`, by: 1, cap: cfg.maxWeeksPerClinicWeek, ttlSec: 8 * DAY, reason: "clinic_weekly_weeks" });
+    counters.push({ key: `dv:spend:ops:week:${clinicId}:${weekKey(week) ?? monday}`, by: 1, cap: cfg.maxWeeksPerClinicWeek, ttlSec: WEEK_RUNS_TTL_SEC, reason: "clinic_weekly_weeks" });
   if (op === "restyle")
     counters.push({ key: `dv:spend:ops:restyle:${clinicId}:${day}`, by: 1, cap: cfg.maxRestylesPerClinicDay, ttlSec: 2 * DAY, reason: "clinic_daily_restyles" });
   if (op === "recording")
@@ -264,13 +286,16 @@ export class SpendGuard {
     }
   }
 
-  /** Reserve the budget for one operation, or say why not. Nothing is spent on a refusal. */
-  async reserve(op: SpendOp, clinicId: string, opts: { dryRun?: boolean; now?: Date } = {}): Promise<GuardDecision> {
+  /**
+   * Reserve the budget for one operation, or say why not. Nothing is spent on a refusal.
+   * `week`: the Monday a week job delivers (countersFor); ignored for other operations.
+   */
+  async reserve(op: SpendOp, clinicId: string, opts: { dryRun?: boolean; now?: Date; week?: string } = {}): Promise<GuardDecision> {
     const base = this.cfg();
     if (base.paused) return { ok: false, reason: "paused", detail: "DENTVID_PAUSE_GENERATION is set" };
     if (!this.store) return { ok: false, reason: "store_unavailable", detail: "no counter store configured" };
     const cfg = { ...base, ...scaledCaps(base, await this.activeClinics(opts.now?.getTime())) };
-    const counters = countersFor(op, clinicId, cfg, opts.now);
+    const counters = countersFor(op, clinicId, cfg, opts.now, opts.week);
     let idx: number;
     try {
       idx = await this.store.reserve(counters, opts.dryRun);
@@ -286,14 +311,15 @@ export class SpendGuard {
   /**
    * Give a reservation back. Only for a job that provably spent nothing —
    * the provider refused its very first call (retry.ts providerRefused: out
-   * of credit, bad key) — so a clinic's retries after the outage are not
-   * refused for weeks that never ran. Best effort; never throws.
+   * of credit, bad key), or the clinic's logo could not be downloaded before
+   * any paid call (jobs.ts loadClinic) — so a clinic's retries after the
+   * outage are not refused for runs that never happened. Best effort; never throws.
    */
-  async release(op: SpendOp, clinicId: string, opts: { now?: Date } = {}): Promise<boolean> {
+  async release(op: SpendOp, clinicId: string, opts: { now?: Date; week?: string } = {}): Promise<boolean> {
     if (!this.store?.release) return false;
     const base = this.cfg();
-    // The caps do not matter for a release; the keys and amounts are what reserve used.
-    const counters = countersFor(op, clinicId, base, opts.now);
+    // The caps do not matter for a release; the keys and amounts are what reserve used (same week).
+    const counters = countersFor(op, clinicId, base, opts.now, opts.week);
     try {
       await this.store.release(counters);
       return true;
@@ -456,11 +482,25 @@ const REASON_TEXT: Record<RefusalReason, string> = {
   global_daily_usd: "Today's global spend ceiling (DENTVID_DAILY_USD_CAP) is reached.",
   global_monthly_usd: "This month's global spend ceiling (DENTVID_MONTHLY_USD_CAP) is reached.",
   clinic_daily_usd: "One clinic reached its daily spend ceiling (DENTVID_CLINIC_DAILY_USD_CAP).",
-  clinic_weekly_weeks: "One clinic asked for more week runs than allowed this week (DENTVID_MAX_WEEKS_PER_CLINIC_WEEK).",
+  clinic_weekly_weeks:
+    "One clinic used every run allowed for one delivery week (DENTVID_MAX_WEEKS_PER_CLINIC_WEEK): the week's own attempts, its one extra run and any “try again” or requeue by hand all count. This count belongs to the Monday the week delivers, so a new day or a new calendar week does not reset it.",
   clinic_daily_restyles: "One clinic reached its daily restyle limit (DENTVID_MAX_RESTYLES_PER_CLINIC_DAY).",
   clinic_weekly_recordings: "One clinic reached its weekly recording limit (DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK).",
   clinic_weekly_changes: "One clinic reached its weekly change-request limit (DENTVID_MAX_CHANGES_PER_CLINIC_WEEK).",
 };
+
+/**
+ * A week parked on its delivery week's run cap (countersFor). Unlike the other
+ * caps this one does not open again by itself: the counter belongs to that
+ * Monday and goes down only when a run gives its budget back, which is rare.
+ * Before, the email said it would be retried "once there is room again", as for
+ * a daily cap, and nothing ever happened.
+ */
+const PARKED_NO_ROOM = [
+  "The job is parked, not lost, but it will not resume by itself: this delivery week gets no more runs unless the limit is raised.",
+  "First look at why the week needed so many runs (the earlier failure emails and the worker logs).",
+  "To make it anyway, raise DENTVID_MAX_WEEKS_PER_CLINIC_WEEK on the worker (a redeploy applies it): the parked job is then resumed within 15 minutes (DENTVID_PARK_RESUME_MIN). A requeue in /dentvideo/admin before that is parked again. Parked jobs older than 7 days are dropped.",
+].join("\n");
 
 /**
  * Tell the owner about a refusal — at most one email per reason per UTC day
@@ -482,7 +522,9 @@ export async function alertRefusal(
     args.detail,
     "",
     args.parked
-      ? "The job is parked, not lost: it is retried automatically every 15 minutes (DENTVID_PARK_RESUME_MIN) once there is room again (or the pause is lifted). Parked jobs older than 7 days are dropped."
+      ? args.reason === "clinic_weekly_weeks"
+        ? PARKED_NO_ROOM
+        : "The job is parked, not lost: it is retried automatically every 15 minutes (DENTVID_PARK_RESUME_MIN) once there is room again (or the pause is lifted). Parked jobs older than 7 days are dropped."
       : "The request was refused; the clinic can try again later.",
     "No further email for this reason today. See docs/SECURITY.md → Spend guards for the knobs.",
   ].join("\n");
