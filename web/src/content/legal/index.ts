@@ -32,8 +32,11 @@ export function operatorAddress(locale: Locale): string {
 /** Tokens that render as an email link. */
 export const EMAIL_TOKENS = new Set(["email", "companyEmail"]);
 
-/** Tokens that render as an external link: the attribution the DB-IP country database's CC BY 4.0 licence asks for. */
-export const LINK_TOKENS: Record<string, string> = { dbip: "https://db-ip.com" };
+/**
+ * Tokens that render as an external link: the attribution the DB-IP country database's CC BY 4.0 licence asks for,
+ * and Apple's page for refund requests on App Store purchases (Terms, App Store section).
+ */
+export const LINK_TOKENS: Record<string, string> = { dbip: "https://db-ip.com", appleRefunds: "https://reportaproblem.apple.com" };
 
 /** Values for the {tokens} in the legal texts: operator data from the register extract, prices from billing. */
 export function legalTokens(locale: Locale): Record<string, string> {
@@ -50,6 +53,7 @@ export function legalTokens(locale: Locale): Record<string, string> {
     starter: listPrices("starter", locale),
     practice: listPrices("practice", locale),
     dbip: "IP Geolocation by DB-IP",
+    appleRefunds: "reportaproblem.apple.com",
   };
 }
 

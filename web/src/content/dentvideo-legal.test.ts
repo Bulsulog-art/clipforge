@@ -215,6 +215,40 @@ describe("legal pages", () => {
     expect(LEGAL_UPDATED >= "2026-11-15").toBe(true);
   });
 
+  it("covers the iPhone app and App Store subscriptions in every language, and leaves the web's Dodo terms as they were", () => {
+    const appSection = (l: Locale, k: "terms" | "privacy") =>
+      LEGAL[l].docs[k].sections[k === "terms" ? 7 : 3].blocks.flatMap((b) => (typeof b === "string" ? [b] : "list" in b ? b.list : [])).join(" ");
+    for (const l of LOCALES) {
+      const terms = page("terms", l);
+      expect(terms, l).toContain('href="https://reportaproblem.apple.com"');
+      expect(text(terms), l).toContain("reportaproblem.apple.com");
+      expect(appSection(l, "terms"), l).toMatch(/24/);
+      expect(appSection(l, "terms"), l).toContain("App Store");
+      const privacy = text(page("privacy", l));
+      expect(privacy, l).toContain("RevenueCat, Inc.");
+      expect(text(page("refunds", l)), l).toContain("dentvideo.com");
+      // New text is written without em dashes.
+      for (const k of ["terms", "privacy"] as const) expect(appSection(l, k), `${l} ${k}`).not.toContain("—");
+    }
+    const terms = text(page("terms", "en"));
+    expect(terms).toContain("8. Subscriptions bought in the iPhone app");
+    expect(terms).toContain("Apple is the seller.");
+    expect(terms).toContain("at least 24 hours before the renewal date");
+    expect(terms).toContain("Refunds for App Store purchases are handled by Apple only");
+    expect(terms).toContain("A clinic has one plan at a time, bought either on the website or in the App Store.");
+    expect(terms).toContain("Deleting your account does not cancel an App Store subscription.");
+    // The web's checkout terms are unchanged.
+    expect(terms).toContain("Payments are handled by Dodo Payments, which acts as merchant of record and authorised reseller");
+    expect(terms).toContain("or at once under section 11.");
+    const privacy = text(page("privacy", "en"));
+    expect(privacy).toContain("4. The iPhone app and App Store purchases");
+    expect(privacy).toContain("push notification token");
+    expect(privacy).toContain("the app contains no advertising, analytics or crash-reporting software");
+    expect(privacy).toContain("RevenueCat, Inc. (United States) as our processor");
+    expect(text(page("refunds", "en"))).toContain("This policy covers plans bought on dentvideo.com.");
+    expect(LEGAL_UPDATED).toBe("2026-11-17");
+  });
+
   it("makes no certification claims", () => {
     for (const [l, k] of LEGAL_PAGES) {
       const t = text(page(k, l));
