@@ -49,6 +49,34 @@
   "markets": {}
  },
  {
+  "input": "Gum disease often causes no pain in its early stages.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "No pain doesn't mean no problem.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Gum disease is a leading cause of tooth loss.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Call your dentist if your gums bleed.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
   "input": "Guaranteed painless whitening, 50% off this month only! The best dentist in town. Our patients say it's life-changing. See our before and after photos.",
   "scan": [
    {
@@ -285,7 +313,7 @@
   "scan": [
    {
     "rule": "testimonial",
-    "match": "5-star",
+    "match": "5-star reviews",
     "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
    }
   ],
@@ -293,8 +321,8 @@
    {
     "rule": "testimonial",
     "start": 92,
-    "end": 98,
-    "match": "5-star"
+    "end": 106,
+    "match": "5-star reviews"
    }
   ],
   "checker": [
@@ -319,8 +347,8 @@
    {
     "rule": "testimonial",
     "start": 92,
-    "end": 98,
-    "match": "5-star"
+    "end": 106,
+    "match": "5-star reviews"
    }
   ],
   "markets": {}
@@ -1968,5 +1996,288 @@
     }
    ]
   }
+ },
+ {
+  "input": "Best dentist in Austin, rated 5 stars by our happy patients.",
+  "scan": [
+   {
+    "rule": "superlative",
+    "match": "Best dentist",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   },
+   {
+    "rule": "testimonial",
+    "match": "rated 5 stars",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "superlative",
+    "start": 0,
+    "end": 12,
+    "match": "Best dentist"
+   },
+   {
+    "rule": "testimonial",
+    "start": 24,
+    "end": 37,
+    "match": "rated 5 stars"
+   },
+   {
+    "rule": "testimonial",
+    "start": 45,
+    "end": 59,
+    "match": "happy patients"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "superlative",
+    "start": 0,
+    "end": 12,
+    "match": "Best dentist"
+   },
+   {
+    "rule": "testimonial",
+    "start": 24,
+    "end": 37,
+    "match": "rated 5 stars"
+   },
+   {
+    "rule": "testimonial",
+    "start": 45,
+    "end": 59,
+    "match": "happy patients"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "Read our five-star Google reviews.",
+  "scan": [
+   {
+    "rule": "testimonial",
+    "match": "five-star",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "testimonial",
+    "start": 9,
+    "end": 18,
+    "match": "five-star"
+   },
+   {
+    "rule": "testimonial",
+    "start": 19,
+    "end": 33,
+    "match": "Google reviews"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "testimonial",
+    "start": 9,
+    "end": 18,
+    "match": "five-star"
+   },
+   {
+    "rule": "testimonial",
+    "start": 19,
+    "end": 33,
+    "match": "Google reviews"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "Award-winning dental care in Leeds.",
+  "scan": [
+   {
+    "rule": "superlative",
+    "match": "Award-winning",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "superlative",
+    "start": 0,
+    "end": 13,
+    "match": "Award-winning"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "superlative",
+    "start": 0,
+    "end": 13,
+    "match": "Award-winning"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "Voted top dentist in Manchester.",
+  "scan": [
+   {
+    "rule": "superlative",
+    "match": "Voted top dentist",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "superlative",
+    "start": 0,
+    "end": 17,
+    "match": "Voted top dentist"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "superlative",
+    "start": 0,
+    "end": 17,
+    "match": "Voted top dentist"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "London's leading implant clinic.",
+  "scan": [
+   {
+    "rule": "superlative",
+    "match": "leading implant clinic",
+    "why": "Unverifiable superlatives and comparisons with other clinics are restricted."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "superlative",
+    "start": 9,
+    "end": 31,
+    "match": "leading implant clinic"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "superlative",
+    "start": 9,
+    "end": 31,
+    "match": "leading implant clinic"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "Patients love our gentle hygienists.",
+  "scan": [
+   {
+    "rule": "testimonial",
+    "match": "Patients love",
+    "why": "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "testimonial",
+    "start": 0,
+    "end": 13,
+    "match": "Patients love"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "testimonial",
+    "start": 0,
+    "end": 13,
+    "match": "Patients love"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "No pain, no fuss: completely pain-free fillings.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "pain-free",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 16,
+    "match": "No pain, no fuss"
+   },
+   {
+    "rule": "absolute",
+    "start": 18,
+    "end": 38,
+    "match": "completely pain-free"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 16,
+    "match": "No pain, no fuss"
+   },
+   {
+    "rule": "absolute",
+    "start": 18,
+    "end": 38,
+    "match": "completely pain-free"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "Get the perfect smile you deserve.",
+  "scan": [
+   {
+    "rule": "absolute",
+    "match": "Get the perfect smile",
+    "why": "Absolute claims (painless, 100%, permanent, forever) overpromise outcomes."
+   }
+  ],
+  "spans": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 21,
+    "match": "Get the perfect smile"
+   }
+  ],
+  "checker": [
+   {
+    "rule": "absolute",
+    "start": 0,
+    "end": 21,
+    "match": "Get the perfect smile"
+   }
+  ],
+  "markets": {}
+ },
+ {
+  "input": "Call now to book your check-up.",
+  "scan": [],
+  "spans": [],
+  "checker": [
+   {
+    "rule": "fear",
+    "start": 0,
+    "end": 8,
+    "match": "Call now"
+   }
+  ],
+  "markets": {}
  }
 ]

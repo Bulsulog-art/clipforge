@@ -201,21 +201,24 @@ export type RewriteLang = "en" | "tr" | "de" | "es" | "fr" | "pl" | "ar" | "ja";
  */
 export const REWRITES: Record<RewriteLang, readonly Rewrite[]> = {
   en: [
-    r("absolute", /painless|pain[- ]free/i, "comfortable for most patients, with local anesthesia"),
+    // "Painless", "pain-free", "zero pain", "no pain, no fuss".
+    r("absolute", /pain/i, "comfortable for most patients, with local anesthesia"),
+    r("absolute", /perfect smile/i, "can help you toward a healthier smile"),
     r("absolute", /forever|lifetime|permanent/i, "can last many years with good care"),
     r("absolute", /prevents/i, "can help prevent"),
     r("guarantee", /risk[- ]free/i, "we explain the benefits and risks before you decide"),
     r("guarantee", /guarantee/i, "results vary from person to person"),
-    r("superlative", /best|#\s?1|number one|top[- ]rated|cheapest/i, "our team (say what you do, not that you are the best)"),
+    r("superlative", /best|#\s?1|number one|top|cheapest|award|voted|leading/i, "our team (say what you do, not that you are the best)"),
     r("price", /discount|off|free|offer|limited|usd|eur|gbp/i, "Questions about treatment? Ask us at your next check-up."),
     r("before_after", /before/i, "what the treatment involves, step by step"),
-    r("testimonial", /patients?|testimonial|star/i, "questions our patients often ask"),
+    r("testimonial", /patients?|testimonial|star|review/i, "questions our patients often ask"),
     r("cure", /eliminat/i, "can help relieve pain"),
     r("cure", /cure/i, "can help treat"),
     r("fear", /lose|cost/i, "left untreated, it can get worse over time"),
-    r("fear", /too late|wait|book/i, "If you notice this, ask your dentist at your next visit."),
-    // A made-up deadline: no deadline at all.
-    r("fear", /only|limited|end|expire|last|hurry|act|while|left|remaining|filling|running|going|miss/i, "Whenever it suits you, ask us about an appointment."),
+    // A symptom someone should not wait on: a calm pointer to their dentist.
+    r("fear", /too late|wait/i, "If you notice this, ask your dentist at your next visit."),
+    // A push to book or call, or a made-up deadline: no push and no deadline at all.
+    r("fear", /book|call|only|limited|end|expire|last|hurry|act|while|left|remaining|filling|running|going|miss/i, "Whenever it suits you, ask us about an appointment."),
   ],
   tr: [
     r("absolute", /ağrısız|acısız/i, "lokal anestezi altında, çoğu hasta için konforlu"),

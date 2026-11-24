@@ -63,6 +63,9 @@ const CLINIC_NOUNS = {
   ja: "歯科|歯医者|クリニック|医院|治療|技術|医師|ドクター|先生|設備|結果|サービス|価格",
 };
 const CITYISH = "\\p{Lu}\\p{L}+";
+// The clinic itself, for "top …" and "leading …" in English. "Practices" followed by
+// "for/to/of" are habits ("top practices for healthy gums"), not a dental practice.
+const CLINIC_PLACE_EN = "dentists?|clinics?|practices?(?!\\s+(for|to|of)(?![\\p{L}]))|dental (clinic|practice|office)s?";
 
 // "Does not guarantee whiter teeth" is the honest version of a claim, not a
 // guarantee. Hard rules cannot read sentences, but they can see a negation
@@ -75,7 +78,7 @@ const NEGATED = "(?<!(no|not|n't|never|cannot|can't|nicht|kein\\p{L}*|ne|n'|não
  * (Baseline eval: most script rewrites were "prevents"/"önler"/"dauerhaft".)
  */
 export const AVOID_WORDS: Record<string, string> = {
-  en: "prevents, stops (say \"can help prevent\"), permanent, painless, pain-free, guaranteed, risk-free, forever, lifetime, best, #1, before-and-after results, cures, 100%",
+  en: "prevents, stops (say \"can help prevent\"), permanent, painless, pain-free, no pain no fuss, perfect smile, guaranteed, risk-free, forever, lifetime, best, #1, top dentist, leading, award-winning, 5-star, happy patients, before-and-after results, cures, 100%",
   // Tanıtım Yönetmeliği, RG 12.11.2025 no. 33075 — see locale.ts marketRules("TR").
   tr: "önler, engeller (\"önlemeye yardımcı olabilir\" deyin), kalıcı, acısız, ağrısız, garanti, garantili, ömür boyu, yan etkisiz, en iyi, ilk ve tek, lider, bir numara, en uygun fiyat, diğer kliniklerden farklı, kesin sonuç, öncesi-sonrası sonuçları, hasta yorumları, teşekkür mesajları, tamamen iyileştirir, indirim, kampanya, taksit, hediye, ücretsiz, %100",
   // HWG §§ 3, 7, 11; ZÄG § 35 (AT); Art. 40 MedBG (CH) — see locale.ts.
@@ -141,6 +144,12 @@ export const HARD_RULES: Rule[] = [
       // word and passes. Seen live: "diş eti hastalıklarını önler".
       w("prevents|önler|verhindert|previene|prévient|previne|zapobiega|zapobiegają"),
       a("(يقي|تقي) من|(يمنع|تمنع) (\\p{L}+ )?(التسوس|تسوس|أمراض|مرض|التهاب|النزيف|نزيف|الجير|البلاك|الرائحة|رائحة)"),
+      // English ad promises about pain and the perfect smile, as US and UK clinic sites write them
+      // ("No pain, no fuss", "completely pain free", "Get the perfect smile"). Promise shapes only:
+      // a bare "no pain" is good education ("gum disease often causes no pain in its early stages",
+      // "no pain doesn't mean no problem"), and these rules also gate the video scripts.
+      w("zero pain|no pain,? no (fuss|stress|needles?|drills?)|(totally|completely|100%) pain[- ]?free"),
+      w(`${NEGATED}((get|achieve|create|deliver|design|unlock|reveal|give you|gives you) (a |the |your |that )?|your )perfect smiles?|perfect smiles? (for (life|everyone|every patient)|every time|in (one|a single|\\d+) (days?|visits?|appointments?|weeks?))`),
     ],
   },
   {
@@ -151,6 +160,10 @@ export const HARD_RULES: Rule[] = [
     // are ordinary language and were rejecting good videos.
     patterns: [
       w(`(the )?best (${CLINIC_NOUNS.en})|best in (town|the city|${CITYISH})|#\\s?1|number one|top[- ]rated|cheapest`),
+      // Awards, votes, "top" and "leading" about the clinic, as US and UK sites write them. A
+      // clinic noun is required: "a leading cause of tooth loss" and "top teeth" are not claims,
+      // and "top practices for healthy gums" (habits) is not about a practice.
+      w(`award[- ]winning|voted (the )?(best|top|#\\s?1|number one)( (${CLINIC_NOUNS.en}))?|top (${CLINIC_PLACE_EN})|(the )?leading (\\p{L}+ )?(${CLINIC_PLACE_EN}|dental team)`),
       w(`en iyi (${CLINIC_NOUNS.tr})|bir numara|en ucuz`),
       // Tanıtım Yönetmeliği (RG 33075): superiority, firsts, comparison with
       // other clinics.
@@ -223,7 +236,9 @@ export const HARD_RULES: Rule[] = [
     id: "testimonial",
     why: "Patient testimonials, reviews and celebrity endorsements are restricted in health advertising in several markets.",
     patterns: [
-      w("our patients? (say|said|love)|5[- ]star|testimonials?"),
+      // Star ratings, reviews and satisfied patients, as US and UK clinic sites write them
+      // ("rated 5 stars", "five-star Google reviews", "our happy patients", "patients love it").
+      w("our patients? (say|said|love)|(google|patient|(5|five)[- ]star) reviews|(5|five)[- ]stars?|rated \\d([.,]\\d)?[- ]stars?|(happy|satisfied) patients|patients love|testimonials?"),
       w("hastalarımız (diyor|anlatıyor)"),
       // RG 33075: patients' thank-you and satisfaction statements.
       w("hasta yorum\\p{L}*|hastalarımızın (yorum|teşekkür|deneyim)\\p{L}*|teşekkür mesaj\\p{L}*|memnun hasta\\p{L}*|hasta memnuniyet\\p{L}*"),
@@ -335,7 +350,8 @@ export const FEAR_RULE: Rule = {
     w("solo oggi|ultima occasione|per un tempo limitato|posti limitati|affrettat[iei]|non perdere"),
     a("آخر فرصة|الفرصة الأخيرة|اليوم فقط|(هذا الشهر|هذا الأسبوع) فقط|لا تفوت\\p{L}*|(أماكن|مقاعد) محدودة|سارع\\p{L}*|(العرض )?ينتهي (العرض|قريباً|قريبا|اليوم)"),
     j("期間限定|本日限り|今月(限り|だけ|末まで)|今週(限り|だけ)|先着(順|\\d+名)|残りわずか|お急ぎ|今だけ|お見逃しなく|締め?切り間近"),
-    w("before it'?s too late|(you )?could lose (all )?your teeth|(could|will) cost you your teeth|don'?t wait (any longer|until it'?s too late)|book (now|today)( before)?"),
+    // "Call now" / "call us today" push in the same way; "call your dentist if your gums bleed" is advice and passes.
+    w("before it'?s too late|(you )?could lose (all )?your teeth|(could|will) cost you your teeth|don'?t wait (any longer|until it'?s too late)|book (now|today)( before)?|call (us )?(now|today)"),
     w("(çok )?geç olmadan|dişlerinizi kaybedebilirsiniz|dişlerinizi kaybetmeden|hemen randevu al\\p{L}*|kaçırmayın|daha fazla beklemeyin"),
     w("bevor es zu spät ist|warten sie nicht (länger|zu lange)|jetzt sofort (einen )?termin\\p{L}*|jetzt (einen )?termin (buchen|vereinbaren|sichern)|jetzt buchen|ihre zähne verlieren"),
     w("antes de que sea (demasiado )?tarde|no esperes? más|(podrías|puedes|podría|puede) perder (tus|sus) dientes"),

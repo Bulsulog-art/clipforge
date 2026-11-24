@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LOCALES } from "@/content/dentvideo-locales";
 import { CHECKER } from "@/content/dentvideo-checker";
-import { CHECKER_MAX_CHARS, CHECKER_RULE_IDS, REWRITES, checkText, checkerEventProps, guessLanguage, segments, suggestRewrite, widenNumber } from "./ad-checker";
+import { CHECKER_MAX_CHARS, CHECKER_RULE_IDS, REWRITES, checkText, checkerEventProps, guessLanguage, segments, sentencesOf, suggestRewrite, widenNumber } from "./ad-checker";
 import { CHECKER_RULES, HARD_RULES, findHardSpans, type RuleId } from "./hard-rules";
 import { parseClientEvent, sanitizeProps } from "./events";
 
@@ -51,6 +51,57 @@ describe("ad checker: engine", () => {
       expect(fear?.fix, t).toBeTruthy();
       expect(guessLanguage(fear!.fix!), `${t} → ${fear!.fix}`).toBe(lang);
     }
+  });
+
+  it("a push to book or call gets the appointment sentence, not the symptom sentence", () => {
+    const appointment = "Whenever it suits you, ask us about an appointment.";
+    for (const t of ["Book now.", "Book today!", "Call now.", "Call us today to book your check-up.", "Book now before the offer ends."]) {
+      const fear = checkText(t).find((h) => h.rule === "fear");
+      expect(fear?.fix, t).toBe(appointment);
+      const [s] = sentencesOf(t, checkText(t));
+      expect(s.safer, t).toBe(appointment);
+    }
+    // A symptom someone should not sit on still gets the pointer to their dentist.
+    expect(checkText("Don't wait until it's too late.").find((h) => h.rule === "fear")?.fix).toBe("If you notice this, ask your dentist at your next visit.");
+    // Advice to call one's own dentist is not pressure.
+    expect(checkText("Call your dentist if your gums bleed.")).toEqual([]);
+  });
+
+  it("catches the US and UK promo phrases, each with a safer wording or the rule's tip", () => {
+    const tips = CHECKER.en.ui.rules;
+    for (const [t, want] of [
+      ["Best dentist in Austin, rated 5 stars by our happy patients.", ["superlative:Best dentist", "testimonial:rated 5 stars", "testimonial:happy patients"]],
+      ["Read our five-star Google reviews.", ["testimonial:five-star", "testimonial:Google reviews"]],
+      ["Award-winning dental care in Leeds.", ["superlative:Award-winning"]],
+      ["Voted top dentist in Manchester.", ["superlative:Voted top dentist"]],
+      ["London's leading implant clinic.", ["superlative:leading implant clinic"]],
+      ["Patients love our gentle hygienists.", ["testimonial:Patients love"]],
+      ["No pain, no fuss.", ["absolute:No pain, no fuss"]],
+      ["Completely pain-free fillings.", ["absolute:Completely pain-free"]],
+      ["Get the perfect smile you deserve.", ["absolute:Get the perfect smile"]],
+      ["Call now to book.", ["fear:Call now"]],
+    ] as const) {
+      const hits = checkText(t);
+      expect(hits.map((h) => `${h.rule}:${h.match}`), t).toEqual(want);
+      for (const h of hits) {
+        expect(h.fix ?? tips[h.rule as RuleId].tip, `${t}: ${h.match}`).toBeTruthy();
+        if (h.fix) expect(guessLanguage(h.fix), `${t}: ${h.fix}`).toBe("en");
+      }
+    }
+    expect(checkText("No pain, no fuss.")[0].fix).toBe("comfortable for most patients, with local anesthesia");
+    expect(checkText("London's leading implant clinic.")[0].fix).toBe("our team (say what you do, not that you are the best)");
+    expect(checkText("Read our five-star Google reviews.").map((h) => h.fix)).toEqual(["questions our patients often ask", "questions our patients often ask"]);
+  });
+
+  it("leaves the education the new English patterns could be confused with alone", () => {
+    for (const t of [
+      "Gum disease often causes no pain in its early stages.",
+      "No pain doesn't mean no problem.",
+      "Gum disease is a leading cause of tooth loss.",
+      "Call your dentist if your gums bleed.",
+      "Top practices for healthy gums: brush twice a day and floss.",
+      "Braces will not give you a perfect smile overnight, but they can straighten crowded teeth.",
+    ]) expect(checkText(t), t).toEqual([]);
   });
 
   it("does not mistake ordinary time words for pressure", () => {

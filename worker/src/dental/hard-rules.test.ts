@@ -24,8 +24,8 @@ type Golden = {
   markets: Record<string, ReturnType<typeof scanMarketRules>>;
 };
 
-const INPUTS = [
-  // Clean, hedged, educational
+/** Clean, hedged, educational: no rule and no market pack may flag these. */
+const CLEAN = [
   "Whitening can make teeth a few shades lighter for many people; ask your dentist whether it suits you.",
   "Diş taşı temizliği diş eti sağlığını korumaya yardımcı olabilir; hekiminize danışın.",
   "Brush before and after meals and floss once a day.",
@@ -33,6 +33,16 @@ const INPUTS = [
   "Kalıcı dolgu bir sonraki randevuda yapılır.",
   "Professionelle Zahnreinigung kann helfen, Zahnfleischentzündungen vorzubeugen.",
   "",
+  // The education the US/UK promo patterns must leave alone: "no pain" as a symptom, "leading"
+  // as a cause, "call your dentist" as advice.
+  "Gum disease often causes no pain in its early stages.",
+  "No pain doesn't mean no problem.",
+  "Gum disease is a leading cause of tooth loss.",
+  "Call your dentist if your gums bleed.",
+];
+
+const INPUTS = [
+  ...CLEAN,
   // English
   "Guaranteed painless whitening, 50% off this month only! The best dentist in town. Our patients say it's life-changing. See our before and after photos.",
   "Risk-free implants that last forever, 100% success. Cures gum disease. $99 special offer, limited time.",
@@ -75,6 +85,16 @@ const INPUTS = [
   "Our implant specialists also offer Botox. A board-certified team.",
   "Your dentist may refer you to a specialist if a root canal is complex.",
   "Clínica autorizada por COFEPRIS, aviso de publicidad No. 123456.",
+  // US and UK promo phrases the checker used to pass (Nov 2026 audit of dentvideo.com/ad-checker).
+  "Best dentist in Austin, rated 5 stars by our happy patients.",
+  "Read our five-star Google reviews.",
+  "Award-winning dental care in Leeds.",
+  "Voted top dentist in Manchester.",
+  "London's leading implant clinic.",
+  "Patients love our gentle hygienists.",
+  "No pain, no fuss: completely pain-free fillings.",
+  "Get the perfect smile you deserve.",
+  "Call now to book your check-up.",
 ];
 
 const MARKETS = Object.keys(MARKET_HARD_RULES);
@@ -107,8 +127,8 @@ describe("hard rules: shared module", () => {
     const golden = JSON.parse(fs.readFileSync(FILE, "utf8")) as Golden[];
     const seen = new Set(golden.flatMap((g) => g.checker.map((s) => s.rule)));
     for (const r of CHECKER_RULES) expect(seen, r.id).toContain(r.id);
-    for (const g of golden.slice(0, 7)) expect(g.checker, g.input).toEqual([]);
-    for (const g of golden.slice(0, 7)) expect(g.markets, g.input).toEqual({});
+    for (const g of golden.slice(0, CLEAN.length)) expect(g.checker, g.input).toEqual([]);
+    for (const g of golden.slice(0, CLEAN.length)) expect(g.markets, g.input).toEqual({});
     const marketSeen = new Set(golden.flatMap((g) => Object.values(g.markets).flat().map((h) => h.rule)));
     for (const rules of Object.values(MARKET_HARD_RULES)) for (const r of rules) expect(marketSeen, r.id).toContain(r.id);
   });
@@ -129,5 +149,64 @@ describe("hard rules: shared module", () => {
       const spans = findHardSpans(input, CHECKER_RULES);
       for (let i = 1; i < spans.length; i++) expect(spans[i].start).toBeGreaterThanOrEqual(spans[i - 1].end);
     }
+  });
+});
+
+describe("hard rules: US and UK promo phrases", () => {
+  const checker = (t: string) => findHardSpans(t, CHECKER_RULES).map((s) => `${s.rule}:${s.match}`);
+
+  it.each([
+    ["Rated 5 stars by our patients.", "testimonial:Rated 5 stars"],
+    ["Rated 4.9 stars on Google.", "testimonial:Rated 4.9 stars"],
+    ["Read our five-star Google reviews.", "testimonial:five-star"],
+    ["Read our five-star Google reviews.", "testimonial:Google reviews"],
+    ["See our 5-star reviews.", "testimonial:5-star reviews"],
+    ["Thank you to all our happy patients.", "testimonial:happy patients"],
+    ["Satisfied patients recommend us.", "testimonial:Satisfied patients"],
+    ["Patients love our gentle hygienists.", "testimonial:Patients love"],
+    ["Award-winning dental care in Leeds.", "superlative:Award-winning"],
+    ["Voted top dentist in Manchester.", "superlative:Voted top dentist"],
+    ["Voted #1 practice in Dallas.", "superlative:Voted #1 practice"],
+    ["Top dentists in Chicago.", "superlative:Top dentists"],
+    ["One of the top dental practices in Ohio.", "superlative:top dental practices"],
+    ["London's leading implant clinic.", "superlative:leading implant clinic"],
+    ["The leading dental team in Bath.", "superlative:The leading dental team"],
+    ["No pain, no fuss.", "absolute:No pain, no fuss"],
+    ["No pain, no needles.", "absolute:No pain, no needles"],
+    ["Zero pain whitening.", "absolute:Zero pain"],
+    ["Completely pain-free treatment.", "absolute:Completely pain-free"],
+    ["Get the perfect smile you deserve.", "absolute:Get the perfect smile"],
+    ["Your perfect smile starts here.", "absolute:Your perfect smile"],
+    ["Perfect smiles in one visit.", "absolute:Perfect smiles in one visit"],
+  ])("%s → %s, in the checker and in the scripts' gate", (text, want) => {
+    expect(checker(text)).toContain(want);
+    expect(scanHardRules(text).map((h) => h.rule)).toContain(want.split(":")[0]);
+  });
+
+  it("'Call now' is pressure in the checker, but not a hard rule for the scripts", () => {
+    for (const [t, m] of [["Call now to book your check-up.", "Call now"], ["Call us today for a check-up.", "Call us today"]]) {
+      expect(checker(t)).toEqual([`fear:${m}`]);
+      expect(scanHardRules(t)).toEqual([]);
+    }
+  });
+
+  it.each([
+    "Gum disease often causes no pain in its early stages.",
+    "No pain doesn't mean no problem.",
+    "Toothache that comes and goes, or no pain at all, can both hide decay.",
+    "Gum disease is a leading cause of tooth loss.",
+    "Leading up to the appointment, avoid coffee.",
+    "Call your dentist if your gums bleed.",
+    "If the swelling grows, call the practice or your doctor.",
+    "Top practices for healthy gums: brush twice a day and floss.",
+    "Your top teeth and bottom teeth meet when you bite.",
+    "Nobody has a perfect smile, and that is fine.",
+    "Braces will not give you a perfect smile overnight, but they can straighten crowded teeth.",
+    "Whitening does not give you a perfect smile; it lightens the colour of your teeth.",
+    "Five minutes of brushing a day is plenty.",
+    "Most patients feel little discomfort after a filling.",
+  ])("leaves education alone: %s", (text) => {
+    expect(findHardSpans(text, CHECKER_RULES)).toEqual([]);
+    expect(scanHardRules(text)).toEqual([]);
   });
 });
