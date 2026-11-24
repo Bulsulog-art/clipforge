@@ -73,7 +73,7 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
     case "ready-short":
     case "ready-recording": {
       // ready-first: the clinic's first week (welcome, three steps, next Monday, the Settings nudge).
-      // ready-short: a routine week with four of its five videos (one left out by the checks).
+      // ready-short: a routine week with four of its five videos (one the checks refused).
       const short = kind === "ready-short";
       return readyEmail({
         kind: kind === "ready-recording" ? "recording" : "week",
@@ -86,12 +86,13 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
         videos: kind === "ready-recording" ? undefined : sampleVideos(language, short ? 4 : 5),
         brand,
         ...(kind === "ready-first" ? { first: true, nextDate: "2026-11-16", nudge: "both" as const } : {}),
-        ...(short ? { missing: 1 } : {}),
+        ...(short ? { missing: 1, missingReason: "checks" as const } : {}),
       })!;
     }
     case "week-late":
     case "first-week-late":
-      return delayEmail({ kind: kind === "week-late" ? "late" : "first-late", clinicName, language, brand });
+      // The week is queued and on its way (the usual case); email.test.ts covers the "alerted, on it" wording too.
+      return delayEmail({ kind: kind === "week-late" ? "late" : "first-late", queued: true, clinicName, language, brand });
     case "not-posted":
       return notPostedEmail({ ...nudge, url: `${BASE}/app`, approved: 3, pending: 2 });
     case "monthly":

@@ -13,7 +13,7 @@ import { isInternalEmail } from "./internal-traffic";
 import { helpCenterLink, renderEmail, type Block, type Brand, type Rendered, type Thumb, type VideoRow } from "./email-layout";
 import { postingText } from "@/content/dentvideo-posting";
 import { lifecycleText } from "@/content/dentvideo-lifecycle";
-import { appText, countText, fmt } from "@/content/dentvideo-app";
+import { appText, fmt } from "@/content/dentvideo-app";
 import { deliveryNoticesText, hasDeliveryNotices, type DeliveryNotices } from "@/content/dentvideo-delivery-notices";
 import { dateLocale } from "./app-ui";
 import type { Locale } from "@/content/dentvideo-locales";
@@ -207,6 +207,9 @@ export const EMAIL_LANGUAGES = Object.keys(COPY);
 /** Which of a clinic's own settings the first-week email may suggest (only ones not set yet). */
 export type SettingsNudge = "handle" | "closingLine" | "both";
 
+/** Why a week is short: every one left out was refused by our checks, or not (a technical failure, a slot never made). */
+export type ShortReason = "checks" | "unfinished";
+
 /** "Monday 23 November" in the email's language, from a YYYY-MM-DD Monday (read at noon UTC so it never shifts a day). */
 export function deliveryDate(week: string, lang: string): string | null {
   const d = new Date(`${week}T12:00:00Z`);
@@ -243,10 +246,16 @@ export function readyEmail(args: {
   /** First week only: settings the clinic has not filled in yet that the email may mention. */
   nudge?: SettingsNudge | null;
   /**
-   * How many of the week's five were left out (they did not pass the checks).
-   * Weeks only; 0 or absent says nothing. Never a promise of a remake or a credit.
+   * How many of the week's five were left out. Weeks only; 0 or absent says
+   * nothing. Never a promise of a remake or a credit.
    */
   missing?: number;
+  /**
+   * Why (ready-notice.ts shortReason): "checks" only when every one left out
+   * was refused by our checks; anything else, and the default, is
+   * "unfinished", which makes no claim about the checks.
+   */
+  missingReason?: ShortReason;
 }): Rendered | null {
   const total = args.counts.ready + args.counts.flagged;
   if (total === 0) return null;
@@ -280,7 +289,7 @@ export function readyEmail(args: {
       // What is waiting comes first; each video then has its own one-tap action.
       { kind: "list", items: lines },
       // A short week says so, once, plainly: how many were left out and why.
-      ...(missing && n ? [{ kind: "p" as const, text: countText(n.short, missing, lang) }] : []),
+      ...(missing && n ? [{ kind: "p" as const, text: n.short[args.missingReason === "checks" ? "checks" : "unfinished"][missing as 1 | 2 | 3 | 4] }] : []),
       ...(first && n ? firstWeekSteps(n, lang, { approveAll, ready: args.counts.ready }) : []),
       ...(videos.length ? [{ kind: "videos" as const, heading: postingText(lang).email.heading, items: videos }] : []),
       ...(thumbs.length ? [{ kind: "thumbs" as const, items: thumbs }] : []),
@@ -302,15 +311,18 @@ export function readyEmail(args: {
 
 /**
  * The first week's three steps, with the real labels of the buttons they
- * name: this email's approve-all button and the app's "Save video + copy
- * caption" on an approved video (read from their content files, so a
- * renamed button is renamed here too).
+ * name: this email's approve-all button and the app's "Post it" on an
+ * approved video, the same button the welcome email names (read from their
+ * content files, so a renamed button is renamed here too). The next tap,
+ * which saves the video and copies the caption, is described rather than
+ * quoted: its label differs between the web app, a computer and the iPhone
+ * app.
  */
 function firstWeekSteps(n: DeliveryNotices, lang: string, a: { approveAll: boolean; ready: number }): Block[] {
   const f = n.first;
   const loc = lang as Locale;
   const one = a.approveAll ? f.approveHere : a.ready > 0 ? f.approveInApp : f.lookFirst;
-  const vars = { approve: COPY[lang].approveAll, post: postingText(loc).saveAndCopy };
+  const vars = { approve: COPY[lang].approveAll, post: appText(loc).library.review.openPost };
   return [
     { kind: "p", text: f.stepsIntro },
     { kind: "steps", items: [one, f.post, f.paste].map((s) => ({ title: s.title, body: fmt(s.body, vars) })) },
@@ -326,13 +338,16 @@ export type DelayKind = "late" | "first-late";
  * "This week's videos are running late": sent once per clinic and week when
  * a watchdog finds a week late (worker/src/dentvid/delivery.ts, watchdog.ts,
  * through api/internal/dentvideo/notify and delay-notice.ts). Calm and
- * short: queued, nothing extra charged, we email when they are ready,
- * nothing to do. No button: there is nothing to do.
+ * short: nothing extra charged, we email when they are ready, nothing to
+ * do. "Queued and on its way" only when the worker saw the week queued or
+ * running (`queued`); otherwise, and by default, that we were alerted and
+ * are on it. No button: there is nothing to do.
  */
-export function delayEmail(args: { kind: DelayKind; clinicName: string; language: string; brand?: Brand }): Rendered {
+export function delayEmail(args: { kind: DelayKind; queued?: boolean; clinicName: string; language: string; brand?: Brand }): Rendered {
   const { lang, copy } = deliveryNoticesText(args.language);
   const c = COPY[lang];
-  const t = args.kind === "late" ? copy.late : copy.firstLate;
+  const notice = args.kind === "late" ? copy.late : copy.firstLate;
+  const t = { subject: notice.subject, next: notice.next, ...(args.queued === true ? notice.queued : notice.held) };
   const name = args.clinicName.replace(/\s+/g, " ").trim().slice(0, 80);
   return renderEmail({
     lang,

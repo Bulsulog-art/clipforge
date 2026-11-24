@@ -33,12 +33,26 @@ export type DelayKind = "late" | "first-late";
  * Tells the web app a clinic's week is late, so it emails the dentist one
  * calm "running late" note (web: lib/dentvid/delay-notice.ts). The callers
  * ask once per clinic and week (a Redis marker); the web app skips test
- * accounts, clinics without an address and a week that arrived meanwhile.
+ * accounts, clinics that no longer get weeks, clinics without an address and
+ * a week that arrived meanwhile.
+ *
+ * `queued` says whether the week really is on its way (its job, or the fresh
+ * run a re-queue added, is waiting, running or waiting out a retry). Only
+ * then does the email say "queued and on its way"; otherwise it says we were
+ * alerted and are on it (a failed run the watchdog did not re-queue waits for
+ * the owner).
+ *
  * Never throws: a lost notice must not stop a watchdog run. The outcome is
  * classified like the ready notice's.
  */
-export async function notifyDelayChecked(clinicId: string, week: string, kind: DelayKind, fetchImpl: typeof fetch = fetch): Promise<NotifyOutcome> {
-  return postNotice({ clinicId, kind, week }, "delay notice", fetchImpl);
+export async function notifyDelayChecked(
+  clinicId: string,
+  week: string,
+  kind: DelayKind,
+  opts: { queued: boolean } = { queued: false },
+  fetchImpl: typeof fetch = fetch,
+): Promise<NotifyOutcome> {
+  return postNotice({ clinicId, kind, week, queued: opts.queued === true }, "delay notice", fetchImpl);
 }
 
 /** POST one notice to the web app's internal notify route; never throws. */

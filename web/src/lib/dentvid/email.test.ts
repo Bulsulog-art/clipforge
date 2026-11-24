@@ -90,7 +90,7 @@ describe("readyEmail: the first week, a short week", async () => {
   const { DELIVERY_NOTICES } = await import("@/content/dentvideo-delivery-notices");
   const { LOCALES } = await import("@/content/dentvideo-locales");
   const { postingText } = await import("@/content/dentvideo-posting");
-  const { appText, countText, fmt } = await import("@/content/dentvideo-app");
+  const { appText, fmt } = await import("@/content/dentvideo-app");
   const { deliveryDate } = await import("./email");
   const APPROVE = "https://dentvideo.com/api/dentvideo/approve?t=x.2026-11-16.1.sig";
   const base = { kind: "week" as const, counts: { ready: 4, flagged: 1 }, clinicName: "Klinik", appUrl: "https://dentvideo.com/app" };
@@ -117,11 +117,15 @@ describe("readyEmail: the first week, a short week", async () => {
       expect(m.text, l).toContain(n.title);
       expect(m.text, l).toContain(n.welcome);
       expect(m.text, l).toContain(n.stepsIntro);
-      // Step 1 names this email's own approve-all button; step 2 the app's post button; the nudge the app's Settings tab.
+      // Step 1 names this email's own approve-all button; step 2 the app's "Post it" on an approved video
+      // (the button the welcome email names too); the nudge the app's Settings tab.
       expect(m.text, l).toContain(fmt(n.approveHere.body, { approve: APPROVE_ALL[l] }));
       expect(m.text, l).toContain(`${APPROVE_ALL[l]}: ${APPROVE}`);
-      expect(m.text, l).toContain(postingText(l).saveAndCopy);
-      expect(m.text, l).toContain(fmt(n.post.body, { post: postingText(l).saveAndCopy }));
+      const openPost = appText(l).library.review.openPost;
+      expect(m.text, l).toContain(openPost);
+      expect(m.text, l).toContain(fmt(n.post.body, { post: openPost }));
+      // The tap after it is described, not quoted: its label differs on the web, on a computer and in the iPhone app.
+      expect(m.text, l).not.toContain(postingText(l).saveAndCopy);
       expect(m.text, l).toContain(n.paste.body);
       expect(m.text, l).toContain(fmt(n.nudge.both, { settings: appText(l).chrome.settings }));
       expect(m.text, l).toContain(fmt(n.next, { date: deliveryDate("2026-11-23", l)! }));
@@ -180,29 +184,42 @@ describe("readyEmail: the first week, a short week", async () => {
 
   it("a short week says, once and plainly, how many were left out and why, in all eight languages", () => {
     for (const l of LOCALES) {
-      for (const missing of [1, 2, 3, 4]) {
-        const m = readyEmail({ ...base, counts: { ready: 5 - missing, flagged: 0 }, language: l, missing })!;
-        const line = countText(DELIVERY_NOTICES[l].short, missing, l);
-        expect(m.text, `${l} ${missing}`).toContain(line);
-        expect(line, `${l} ${missing}`).not.toMatch(/\{\w+\}/);
-        expect(m.text.split(line).length - 1, `${l} ${missing}`).toBe(1);
-        expect(m.html, `${l} ${missing}`).toContain(`<html lang="${l}"`);
+      for (const missing of [1, 2, 3, 4] as const) {
+        for (const missingReason of ["checks", "unfinished"] as const) {
+          const m = readyEmail({ ...base, counts: { ready: 5 - missing, flagged: 0 }, language: l, missing, missingReason })!;
+          const line = DELIVERY_NOTICES[l].short[missingReason][missing];
+          const other = DELIVERY_NOTICES[l].short[missingReason === "checks" ? "unfinished" : "checks"][missing];
+          const at = `${l} ${missing} ${missingReason}`;
+          expect(m.text, at).toContain(line);
+          expect(m.text, at).not.toContain(other);
+          expect(m.text.split(line).length - 1, at).toBe(1);
+          expect(m.html, at).toContain(`<html lang="${l}"`);
+        }
       }
     }
-    expect(readyEmail({ ...base, counts: { ready: 4, flagged: 0 }, language: "en", missing: 1 })!.text).toContain("One of this week's five videos did not pass our checks, so we left it out rather than send you something wrong.");
-    expect(readyEmail({ ...base, counts: { ready: 2, flagged: 0 }, language: "en", missing: 3 })!.text).toContain("3 of this week's five videos did not pass our checks");
-    // Polish and Arabic count in their own forms.
-    expect(readyEmail({ ...base, language: "pl", missing: 3 })!.text).toContain("3 z pięciu filmów na ten tydzień nie przeszły");
-    expect(readyEmail({ ...base, language: "ar", missing: 2 })!.text).toContain("لم يجتز فيديوهان");
+    expect(readyEmail({ ...base, counts: { ready: 4, flagged: 0 }, language: "en", missing: 1, missingReason: "checks" })!.text).toContain("One of this week's five videos did not pass our checks, so we left it out rather than send you something wrong.");
+    expect(readyEmail({ ...base, counts: { ready: 2, flagged: 0 }, language: "en", missing: 3, missingReason: "checks" })!.text).toContain("Three of this week's five videos did not pass our checks");
+    expect(readyEmail({ ...base, counts: { ready: 4, flagged: 0 }, language: "en", missing: 1, missingReason: "unfinished" })!.text).toContain("One of this week's five videos could not be finished to our standard, so we left it out.");
+    // Polish and Arabic in their own forms, the number written out.
+    expect(readyEmail({ ...base, language: "pl", missing: 3, missingReason: "checks" })!.text).toContain("Trzy z pięciu filmów na ten tydzień nie przeszły");
+    expect(readyEmail({ ...base, language: "ar", missing: 2, missingReason: "checks" })!.text).toContain("لم يجتز فيديوهان");
+  });
+
+  it("without a reason the line blames nothing it cannot prove: the plainer 'could not be finished' wording", () => {
+    const m = readyEmail({ ...base, counts: { ready: 3, flagged: 0 }, language: "en", missing: 2 })!;
+    expect(m.text).toContain(DELIVERY_NOTICES.en.short.unfinished[2]);
+    expect(m.text).not.toContain("our checks");
   });
 
   it("a full week, a nonsense count or a recording gets no short-week line, and nothing promises a remake or credit", () => {
     for (const missing of [0, 5, 7, -1, 1.5, Number.NaN]) {
-      expect(readyEmail({ ...base, language: "en", missing })!.text, String(missing)).not.toContain("did not pass our checks");
+      expect(readyEmail({ ...base, language: "en", missing, missingReason: "checks" })!.text, String(missing)).not.toMatch(/of this week's five videos/);
     }
-    expect(readyEmail({ ...base, kind: "recording", language: "en", missing: 2 })!.text).not.toContain("did not pass our checks");
-    const m = readyEmail({ ...base, language: "en", missing: 2, first: true, nextDate: "2026-11-23", nudge: "both", approveUrl: APPROVE })!;
-    expect(m.text).not.toMatch(/remake|redo|credit|refund|free|discount|compensat|guarant/i);
+    expect(readyEmail({ ...base, kind: "recording", language: "en", missing: 2, missingReason: "checks" })!.text).not.toMatch(/of this week's five videos/);
+    for (const missingReason of ["checks", "unfinished"] as const) {
+      const m = readyEmail({ ...base, language: "en", missing: 2, missingReason, first: true, nextDate: "2026-11-23", nudge: "both", approveUrl: APPROVE })!;
+      expect(m.text).not.toMatch(/remake|redo|credit|refund|free|discount|compensat|guarant/i);
+    }
   });
 
   it("Italian and Portuguese clinics (English app and welcome) get these emails whole in English, never half translated; their routine email stays theirs", () => {
@@ -226,28 +243,50 @@ describe("delayEmail: one calm 'running late' note", async () => {
   const { DELIVERY_NOTICES } = await import("@/content/dentvideo-delivery-notices");
   const { LOCALES } = await import("@/content/dentvideo-locales");
 
-  it("late and first-late in all eight languages: its subject, title, body and 'we will email you', signed and transactional", () => {
+  it("late and first-late in all eight languages, queued or not: its subject, title, body and 'we will email you', signed and transactional", () => {
     for (const l of LOCALES) {
       for (const kind of ["late", "first-late"] as const) {
-        const t = kind === "late" ? DELIVERY_NOTICES[l].late : DELIVERY_NOTICES[l].firstLate;
-        const m = delayEmail({ kind, clinicName: "Gülüş <Klinik>", language: l });
-        const at = `${l} ${kind}`;
-        expect(m.subject, at).toBe(t.subject);
-        expect([...m.subject].length, at).toBeLessThanOrEqual(50);
-        expect(m.html, at).toContain(`<html lang="${l}" dir="${l === "ar" ? "rtl" : "ltr"}"`);
-        expect(m.html, at).toContain(`>${esc(t.preheader)}&#847;`);
-        for (const s of [t.title, t.body, t.next]) expect(m.text, at).toContain(s);
-        expect(m.html, at).toContain("Gülüş &lt;Klinik&gt;");
-        expect(m.html, at).not.toContain("<Klinik>");
-        // Nothing to do, so nothing to click: no button, no unsubscribe (it is about their own week), a person to reply to.
-        expect(m.html, at).not.toContain("v:roundrect");
-        expect(m.html, at).not.toContain("unsubscribe");
-        expect(m.text, at).toContain("hello@dentvideo.com");
-        expect(m.text, at).not.toMatch(/\{\w+\}|undefined|NaN/);
+        for (const queued of [true, false]) {
+          const n = kind === "late" ? DELIVERY_NOTICES[l].late : DELIVERY_NOTICES[l].firstLate;
+          const t = queued ? n.queued : n.held;
+          const other = queued ? n.held : n.queued;
+          const m = delayEmail({ kind, queued, clinicName: "Gülüş <Klinik>", language: l });
+          const at = `${l} ${kind} ${queued ? "queued" : "held"}`;
+          expect(m.subject, at).toBe(n.subject);
+          expect([...m.subject].length, at).toBeLessThanOrEqual(50);
+          expect(m.html, at).toContain(`<html lang="${l}" dir="${l === "ar" ? "rtl" : "ltr"}"`);
+          expect(m.html, at).toContain(`>${esc(t.preheader)}&#847;`);
+          for (const s of [t.title, t.body, n.next]) expect(m.text, at).toContain(s);
+          // Only the wording that fits: never the other body.
+          expect(m.text, at).not.toContain(other.body);
+          expect(m.html, at).toContain("Gülüş &lt;Klinik&gt;");
+          expect(m.html, at).not.toContain("<Klinik>");
+          // Nothing to do, so nothing to click: no button, no unsubscribe (it is about their own week), a person to reply to.
+          expect(m.html, at).not.toContain("v:roundrect");
+          expect(m.html, at).not.toContain("unsubscribe");
+          expect(m.text, at).toContain("hello@dentvideo.com");
+          expect(m.text, at).not.toMatch(/\{\w+\}|undefined|NaN/);
+        }
       }
     }
     expect(delayEmail({ kind: "late", clinicName: "x", language: "en" }).subject).toBe("This week's videos are running late");
     expect(delayEmail({ kind: "first-late", clinicName: "x", language: "en" }).subject).toBe("Your first videos are taking a little longer");
+  });
+
+  it("says 'queued and on its way' only when told the week is queued; by default it says we were alerted and are on it", () => {
+    const queued = delayEmail({ kind: "first-late", queued: true, clinicName: "x", language: "en" });
+    expect(queued.text).toContain("It is queued and on its way");
+    expect(queued.text).toContain("Your first videos are on their way");
+    const held = [
+      delayEmail({ kind: "first-late", clinicName: "x", language: "en" }),
+      delayEmail({ kind: "first-late", queued: false, clinicName: "x", language: "en" }),
+      delayEmail({ kind: "late", clinicName: "x", language: "en" }),
+    ];
+    for (const m of held) {
+      expect(m.text).toContain("We have been alerted and are on it, and nothing extra is charged.");
+      expect(m.text).not.toMatch(/queued|on (its|their) way/);
+      expect(m.html).not.toMatch(/queued|on (its|their) way/);
+    }
   });
 
   it("Italian, Portuguese and unknown languages get the English note", () => {

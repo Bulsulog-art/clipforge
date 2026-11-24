@@ -50,8 +50,8 @@ let store: MemoryOpsStore;
 let raised: OwnerAlert[];
 const alert = async (a: OwnerAlert) => (raised.push(a), "sent" as const);
 /** The clinic's "running late" email, faked: never the real web app from a test. */
-let told: [clinicId: string, week: string, kind: string][];
-const notifyClinic: ClinicNotifier = async (clinicId, week, kind) => (told.push([clinicId, week, kind]), { sent: true, retry: false, reason: "sent" });
+let told: [clinicId: string, week: string, kind: string, queued: boolean][];
+const notifyClinic: ClinicNotifier = async (clinicId, week, kind, o) => (told.push([clinicId, week, kind, o.queued]), { sent: true, retry: false, reason: "sent" });
 
 beforeEach(() => {
   store = new MemoryOpsStore();
@@ -196,7 +196,8 @@ describe("first-week watchdog (every 15 min)", () => {
     expect((await checkFirstWeeks({ ...deps, now: plus(121) })).notified).toEqual(["new"]);
     // The next runs (every 15 minutes, and a second worker) send nothing more.
     for (const m of [136, 151, 166, 600]) expect((await checkFirstWeeks({ ...deps, now: plus(m) })).notified).toEqual([]);
-    expect(told).toEqual([["new", "2026-11-09", "first-late"]]);
+    // Re-queued at 45 minutes and waiting since: it really is queued, so the email may say so.
+    expect(told).toEqual([["new", "2026-11-09", "first-late", true]]);
     expect(await store.get(firstLateNoticeKey("new"))).not.toBeNull();
     // The per-week marker the delivery watchdog reads, so Monday's check does not send a second email.
     expect(await store.get(lateNoticeKey("new", "2026-11-09"))).not.toBeNull();
@@ -212,7 +213,7 @@ describe("first-week watchdog (every 15 min)", () => {
 
   it("the first-late email does not depend on the owner's alert going out, and a failed send is not retried every 15 minutes", async () => {
     const { q } = fakeQueue();
-    const failing: ClinicNotifier = async (clinicId, week, kind) => (told.push([clinicId, week, kind]), { sent: false, retry: true, reason: "HTTP 503" });
+    const failing: ClinicNotifier = async (clinicId, week, kind, o) => (told.push([clinicId, week, kind, o.queued]), { sent: false, retry: true, reason: "HTTP 503" });
     const quietAlert = async () => "deduped" as const;
     const deps = { db: fakeDb({ firstPayments: payments }), queue: q, store, alert: quietAlert, notifyClinic: failing, env: {} };
     const r = await checkFirstWeeks({ ...deps, now: plus(121) });
@@ -232,14 +233,61 @@ describe("first-week watchdog (every 15 min)", () => {
     expect(r.notified).toEqual([]);
   });
 
-  it("no 'first-late' email for a clinic coming back from a pause (it is not new), nor without a store to remember it was sent", async () => {
+  it("a failed first week whose one re-queue is used up is not called 'queued' (the reviewer's case: provider down twice)", async () => {
+    // 45 minutes: the failed job was retried (the marker is set); it failed again. At 2 h nothing will move until the owner acts.
+    await store.setNx(`dv:ops:fw-requeue:new:${PAID}`, 60);
+    const failed = fakeQueue({ "week:new:2026-11-09": "failed" });
+    const r = await checkFirstWeeks({ db: fakeDb({ firstPayments: payments }), queue: failed.q, store, alert, notifyClinic, now: plus(121), env: {} });
+    expect(r.requeued).toEqual([]);
+    expect(r.notified).toEqual(["new"]);
+    expect(told).toEqual([["new", "2026-11-09", "first-late", false]]);
+    expect(failed.map.get("week:new:2026-11-09")!.retry).not.toHaveBeenCalled();
+  });
+
+  it("'queued' when it is: running, waiting out a retry, or the re-queue's own fresh run still waiting", async () => {
+    const at2h = async (jobs: Record<string, string>) => {
+      store = new MemoryOpsStore();
+      await store.setNx(`dv:ops:fw-requeue:new:${PAID}`, 60);
+      told = [];
+      await checkFirstWeeks({ db: fakeDb({ firstPayments: payments }), queue: fakeQueue(jobs).q, store, alert, notifyClinic, now: plus(121), env: {} });
+      return told[0]?.[3];
+    };
+    expect(await at2h({ "week:new:2026-11-09": "active" })).toBe(true);
+    expect(await at2h({ "week:new:2026-11-09": "delayed" })).toBe(true);
+    expect(await at2h({ "week:new:2026-11-09": "completed", "week:new:2026-11-09:requeue": "waiting" })).toBe(true);
+    expect(await at2h({ "week:new:2026-11-09": "completed", "week:new:2026-11-09:requeue": "completed" })).toBe(false);
+    expect(await at2h({ "week:new:2026-11-09": "completed" })).toBe(false);
+    expect(await at2h({})).toBe(false);
+  });
+
+  it("a clinic coming back from a pause: no first-week words, but one routine 'running late' email for its comeback week", async () => {
     const { q } = fakeQueue();
     const back = async () => [{ clinicId: "back", paidAt: PAID, returning: true }];
-    const r = await checkFirstWeeks({ db: fakeDb({ firstPayments: back }), queue: q, store, alert, notifyClinic, now: plus(121), env: {} });
+    const deps = { db: fakeDb({ firstPayments: back }), queue: q, store, alert, notifyClinic, env: {} };
+    await checkFirstWeeks({ ...deps, now: plus(45) });
+    const r = await checkFirstWeeks({ ...deps, now: plus(121) });
     expect(r.alerted).toEqual(["back"]);
+    expect(r.notified).toEqual(["back"]);
+    for (const m of [136, 151, 600]) expect((await checkFirstWeeks({ ...deps, now: plus(m) })).notified).toEqual([]);
+    expect(told).toEqual([["back", "2026-11-09", "late", true]]);
+    // Not the once-per-clinic first-week marker: a later new start is not blocked by it.
+    expect(await store.get(firstLateNoticeKey("back"))).toBeNull();
+    expect(await store.get(lateNoticeKey("back", "2026-11-09"))).not.toBeNull();
+  });
+
+  it("a comeback week the delivery watchdog already reported is not reported twice", async () => {
+    await store.setNx(lateNoticeKey("back", "2026-11-09"), 60);
+    const back = async () => [{ clinicId: "back", paidAt: PAID, returning: true }];
+    const r = await checkFirstWeeks({ db: fakeDb({ firstPayments: back }), queue: fakeQueue().q, store, alert, notifyClinic, now: plus(121), env: {} });
     expect(r.notified).toEqual([]);
+    expect(told).toEqual([]);
+  });
+
+  it("no email without a store to remember it was sent", async () => {
     const noStore = await checkFirstWeeks({ db: fakeDb({ firstPayments: payments }), queue: fakeQueue().q, store: null, alert, notifyClinic, now: plus(121), env: {} });
     expect(noStore.notified).toEqual([]);
+    const back = async () => [{ clinicId: "back", paidAt: PAID, returning: true }];
+    expect((await checkFirstWeeks({ db: fakeDb({ firstPayments: back }), queue: fakeQueue().q, store: null, alert, notifyClinic, now: plus(121), env: {} })).notified).toEqual([]);
     expect(told).toEqual([]);
   });
 

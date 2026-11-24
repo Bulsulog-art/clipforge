@@ -121,40 +121,41 @@ describe("notifyReady", () => {
 
 describe("notifyDelayChecked: the clinic's 'running late' email, through the web app", () => {
   const res = (status: number, body: unknown) => new Response(JSON.stringify(body), { status });
-  it("posts kind 'late' (or 'first-late') with the week to the internal notify route, with the internal token", async () => {
+  const Q = { queued: true };
+  it("posts kind 'late' (or 'first-late') with the week and whether it is queued to the internal notify route, with the internal token", async () => {
     process.env.WORKER_INTERNAL_TOKEN = "tok";
     const f = vi.fn(async () => res(200, { sent: true }));
-    expect(await notifyDelayChecked("c1", "2026-11-16", "late", f as unknown as typeof fetch)).toEqual({ sent: true, retry: false, reason: "sent" });
+    expect(await notifyDelayChecked("c1", "2026-11-16", "late", Q, f as unknown as typeof fetch)).toEqual({ sent: true, retry: false, reason: "sent" });
     const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("https://dentvideo.com/api/internal/dentvideo/notify");
     expect(init.method).toBe("POST");
     expect((init.headers as Record<string, string>).authorization).toBe("Bearer tok");
-    expect(JSON.parse(init.body as string)).toEqual({ clinicId: "c1", kind: "late", week: "2026-11-16" });
-    await notifyDelayChecked("c1", "2026-11-09", "first-late", f as unknown as typeof fetch);
-    expect(JSON.parse((f.mock.calls[1] as unknown as [string, RequestInit])[1].body as string)).toEqual({ clinicId: "c1", kind: "first-late", week: "2026-11-09" });
+    expect(JSON.parse(init.body as string)).toEqual({ clinicId: "c1", kind: "late", week: "2026-11-16", queued: true });
+    await notifyDelayChecked("c1", "2026-11-09", "first-late", { queued: false }, f as unknown as typeof fetch);
+    expect(JSON.parse((f.mock.calls[1] as unknown as [string, RequestInit])[1].body as string)).toEqual({ clinicId: "c1", kind: "first-late", week: "2026-11-09", queued: false });
   });
   it("never throws: a network error, a 5xx or a provider failure is a retryable outcome", async () => {
     process.env.WORKER_INTERNAL_TOKEN = "tok";
     const down = vi.fn(async () => {
       throw new Error("fetch failed");
     });
-    await expect(notifyDelayChecked("c1", "2026-11-16", "late", down as unknown as typeof fetch)).resolves.toMatchObject({ sent: false, retry: true });
-    expect(await notifyDelayChecked("c1", "2026-11-16", "late", (async () => res(503, {})) as unknown as typeof fetch)).toMatchObject({ sent: false, retry: true });
-    expect(await notifyDelayChecked("c1", "2026-11-16", "late", (async () => res(200, { sent: false })) as unknown as typeof fetch)).toMatchObject({ sent: false, retry: true });
+    await expect(notifyDelayChecked("c1", "2026-11-16", "late", Q, down as unknown as typeof fetch)).resolves.toMatchObject({ sent: false, retry: true });
+    expect(await notifyDelayChecked("c1", "2026-11-16", "late", Q, (async () => res(503, {})) as unknown as typeof fetch)).toMatchObject({ sent: false, retry: true });
+    expect(await notifyDelayChecked("c1", "2026-11-16", "late", Q, (async () => res(200, { sent: false })) as unknown as typeof fetch)).toMatchObject({ sent: false, retry: true });
     const garbled = (async () => new Response("<html>", { status: 502 })) as unknown as typeof fetch;
-    expect(await notifyDelayChecked("c1", "2026-11-16", "late", garbled)).toMatchObject({ sent: false, retry: true });
+    expect(await notifyDelayChecked("c1", "2026-11-16", "late", Q, garbled)).toMatchObject({ sent: false, retry: true });
   });
-  it("the web app's decisions are final (test account, no address, the week already arrived, unknown clinic)", async () => {
+  it("the web app's decisions are final (test account, no address, no longer getting weeks, the week already arrived, unknown clinic)", async () => {
     process.env.WORKER_INTERNAL_TOKEN = "tok";
-    for (const reason of ["test account", "no email", "already delivered"]) {
-      expect(await notifyDelayChecked("c1", "2026-11-16", "late", (async () => res(200, { sent: false, reason })) as unknown as typeof fetch)).toEqual({ sent: false, retry: false, reason });
+    for (const reason of ["test account", "no email", "not active", "already delivered"]) {
+      expect(await notifyDelayChecked("c1", "2026-11-16", "late", Q, (async () => res(200, { sent: false, reason })) as unknown as typeof fetch)).toEqual({ sent: false, retry: false, reason });
     }
-    expect(await notifyDelayChecked("c1", "2026-11-16", "late", (async () => res(404, { error: "no clinic" })) as unknown as typeof fetch)).toMatchObject({ sent: false, retry: false });
+    expect(await notifyDelayChecked("c1", "2026-11-16", "late", Q, (async () => res(404, { error: "no clinic" })) as unknown as typeof fetch)).toMatchObject({ sent: false, retry: false });
   });
   it("without the internal token nothing is sent and nothing is fetched", async () => {
     delete process.env.WORKER_INTERNAL_TOKEN;
     const f = vi.fn();
-    expect(await notifyDelayChecked("c1", "2026-11-16", "late", f as unknown as typeof fetch)).toEqual({ sent: false, retry: false, reason: "no WORKER_INTERNAL_TOKEN" });
+    expect(await notifyDelayChecked("c1", "2026-11-16", "late", Q, f as unknown as typeof fetch)).toEqual({ sent: false, retry: false, reason: "no WORKER_INTERNAL_TOKEN" });
     expect(f).not.toHaveBeenCalled();
   });
 });

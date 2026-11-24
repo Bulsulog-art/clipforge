@@ -4,7 +4,7 @@ import { DENTVID_PRIORITY, FIRST_WEEK_JOB_OPTS, type WeekJobData } from "./job-o
 import { activeClinicRows, deliveryWeek, getsWeeks, weekJobId, weekOf, type ClinicRow } from "./schedule.js";
 import { clinicTimeZone, mondayMorning } from "./timezone.js";
 import { alerts, weekStateKey, type ClinicRef, type DeliverResult, type OpsStore, type OwnerAlert } from "./ops-alert.js";
-import { noticeClinicOnce, supabaseWatchDb, type ClinicNotifier, type WatchQueue } from "./watchdog.js";
+import { noticeClinicOnce, supabaseWatchDb, weekOnItsWay, type ClinicNotifier, type WatchQueue } from "./watchdog.js";
 
 /**
  * The delivery watchdog: did every paying clinic actually get its week by
@@ -24,9 +24,10 @@ import { noticeClinicOnce, supabaseWatchDb, type ClinicNotifier, type WatchQueue
  *     (missing → added; failed → retried; completed with nothing → a fresh
  *     run under its own id; waiting behind the batch → to the front);
  *   - the clinic's library says "taking a little longer" (never an error);
- *   - the clinic gets one calm "running late" email (queued, nothing extra
- *     charged, we email when ready), once per clinic and week: only on the
- *     run that set the re-queue marker (notifyClinic);
+ *   - the clinic gets one calm "running late" email (nothing extra charged,
+ *     we email when ready, and "queued and on its way" only when the week
+ *     really is), once per clinic and week: only on the run that set the
+ *     re-queue marker (notifyClinic);
  *   - the owner is told (one email per clinic and week a day).
  * A clinic that started paying after its deadline is the first-week
  * watchdog's, not this one's.
@@ -210,8 +211,11 @@ async function handleLate(deps: DeliveryDeps, clinicId: string, week: string, de
   await deps.alert(alerts.weekLate({ clinic: await deps.db.clinic(clinicId).catch(() => ({ id: clinicId })), week, deadline: deadline.toISOString(), jobState: state, requeued })).catch(() => "failed");
   // The dentist hears it from us, once per clinic and week: only on the run that set the
   // marker above (the next hourly runs, and a second worker, find it set). Without a store
-  // there is no marker, so no email rather than one an hour.
-  const notified = fresh && deps.store ? await noticeClinicOnce(deps.store, deps.notifyClinic, clinicId, week, "late") : false;
+  // there is no marker, so no email rather than one an hour. "Queued" only when it is: the
+  // re-queue above worked, or the job (or the fresh run under `${id}:late`) is waiting or
+  // running. A re-queue that threw leaves a failed or missing week, and the email says so.
+  const notified =
+    fresh && deps.store ? await noticeClinicOnce(deps.store, deps.notifyClinic, clinicId, week, "late", async () => requeued || (await weekOnItsWay(deps.queue, [id, `${id}:late`]))) : false;
   logger.warn({ clinicId, week, state, requeued, notified }, "dentvid: a paying clinic's week is late");
   return { clinicId, week, deadline: deadline.toISOString(), jobState: state, requeued, notified };
 }

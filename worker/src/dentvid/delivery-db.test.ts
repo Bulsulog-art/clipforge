@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { checkWeekDelivery, supabaseDeliveryDb, type DeliveryDb, type DeliveryQueue } from "./delivery.js";
-import { lateNoticeKey, type ClinicNotifier } from "./watchdog.js";
+import { defaultClinicNotifier, lateNoticeKey, type ClinicNotifier } from "./watchdog.js";
+import { notifyDelayChecked } from "./notify.js";
 import { MemoryOpsStore } from "./ops-alert.js";
 
 /** Which clinics the Monday delivery watchdog expects a week for (Liman adapter). */
@@ -35,15 +36,27 @@ describe("delivery watchdog: one calm 'running late' email per clinic and week",
   const hour = (n: number) => new Date(MON_0541.getTime() + n * 3_600_000);
 
   let store: MemoryOpsStore;
-  let told: [clinicId: string, week: string, kind: string][];
-  const notifyClinic: ClinicNotifier = async (clinicId, week, kind) => (told.push([clinicId, week, kind]), { sent: true, retry: false, reason: "sent" });
+  let told: [clinicId: string, week: string, kind: string, queued: boolean][];
+  const notifyClinic: ClinicNotifier = async (clinicId, week, kind, o) => (told.push([clinicId, week, kind, o.queued]), { sent: true, retry: false, reason: "sent" });
   const alert = vi.fn(async () => "sent" as const);
 
-  function queue(states: Record<string, string> = {}): DeliveryQueue {
+  /** BullMQ, faked: a retried job goes back to waiting; `broken` makes every re-queue throw (Redis hiccup). */
+  function queue(states: Record<string, string> = {}, broken = false): DeliveryQueue {
     const map = new Map(Object.entries(states));
     return {
-      getJob: async (id) => (map.has(id) ? { getState: async () => map.get(id)!, retry: async () => {}, opts: {} } : null),
+      getJob: async (id) =>
+        map.has(id)
+          ? {
+              getState: async () => map.get(id)!,
+              retry: async () => {
+                if (broken) throw new Error("Connection is closed.");
+                map.set(id, "waiting");
+              },
+              opts: {},
+            }
+          : null,
       add: async (_n, _d, opts) => {
+        if (broken) throw new Error("Connection is closed.");
         if (!map.has(opts.jobId as string)) map.set(opts.jobId as string, "prioritized");
         return {};
       },
@@ -74,7 +87,7 @@ describe("delivery watchdog: one calm 'running late' email per clinic and week",
     expect(second.late).toEqual([expect.objectContaining({ clinicId: "ist", notified: false })]);
     // A second worker running the same hour, with its own queue handle: still nothing more.
     await checkWeekDelivery({ ...deps, queue: queue(), now: hour(1) });
-    expect(told).toEqual([["ist", WEEK, "late"]]);
+    expect(told).toEqual([["ist", WEEK, "late", true]]);
     expect(alert).toHaveBeenCalledTimes(3);
   });
 
@@ -83,8 +96,8 @@ describe("delivery watchdog: one calm 'running late' email per clinic and week",
     await checkWeekDelivery({ db: two, queue: queue(), store, alert, notifyClinic, now: MON_0541 });
     await checkWeekDelivery({ db: two, queue: queue(), store, alert, notifyClinic, now: hour(2) });
     expect(told.sort()).toEqual([
-      ["a", WEEK, "late"],
-      ["b", WEEK, "late"],
+      ["a", WEEK, "late", true],
+      ["b", WEEK, "late", true],
     ]);
     await checkWeekDelivery({ db: two, queue: queue(), store, alert, notifyClinic, now: hour(24 * 7) });
     expect(told.filter((t) => t[1] === "2026-11-23").map((t) => t[0]).sort()).toEqual(["a", "b"]);
@@ -129,18 +142,46 @@ describe("delivery watchdog: one calm 'running late' email per clinic and week",
     expect(calls).toBe(1);
   });
 
-  it("without an injected notifier it asks the web app's notify route (kind 'late', with the week)", async () => {
+  it("'queued and on its way' only when it is: a re-queue that worked, or a job still waiting or running", async () => {
+    const run = async (states: Record<string, string>, broken = false) => {
+      const st = new MemoryOpsStore();
+      told = [];
+      const r = await checkWeekDelivery({ db: db(), queue: queue(states, broken), store: st, alert, notifyClinic, now: MON_0541 });
+      return { r: r.late[0], queued: told[0]?.[3] };
+    };
+    const id = `week:ist:${WEEK}`;
+    // Re-queued by this run: missing → added, failed → retried, completed with nothing → a fresh run.
+    expect(await run({})).toMatchObject({ r: { jobState: "missing", requeued: true }, queued: true });
+    expect(await run({ [id]: "failed" })).toMatchObject({ r: { jobState: "failed", requeued: true }, queued: true });
+    expect(await run({ [id]: "completed" })).toMatchObject({ r: { jobState: "completed", requeued: true }, queued: true });
+    // Not re-queued, but on its way: running, or waiting out a retry's backoff.
+    expect(await run({ [id]: "active" })).toMatchObject({ r: { requeued: false }, queued: true });
+    expect(await run({ [id]: "delayed" })).toMatchObject({ r: { requeued: false }, queued: true });
+    // The re-queue threw (Redis hiccup): the week is failed or missing, and the email must not say "queued".
+    expect(await run({ [id]: "failed" }, true)).toMatchObject({ r: { jobState: "failed", requeued: false, notified: true }, queued: false });
+    expect(await run({}, true)).toMatchObject({ r: { jobState: "missing", requeued: false, notified: true }, queued: false });
+    // A completed week whose fresh run (under :late) already finished with nothing: not on its way either.
+    const st = new MemoryOpsStore();
+    await st.setNx(`dv:ops:late-requeue:ist:${WEEK}`, 60);
+    told = [];
+    const quiet = await checkWeekDelivery({ db: db(), queue: queue({ [id]: "completed", [`${id}:late`]: "completed" }), store: st, alert, notifyClinic, now: MON_0541 });
+    expect(quiet.late[0].notified).toBe(false); // an earlier run already told the clinic
+    expect(told).toEqual([]);
+  });
+
+  it("without an injected notifier: the web app's notice in production, and never a real request from a test run", async () => {
+    // Production wiring: the default sender is notify.ts's, which posts kind, week and queued (schedule.test.ts).
+    expect(defaultClinicNotifier({})).toBe(notifyDelayChecked);
+    // Under the test runner, even with a token set by another test, nothing is fetched.
     vi.stubEnv("WORKER_INTERNAL_TOKEN", "tok");
     vi.stubEnv("DENTVIDEO_APP_URL", "https://app.example");
-    const calls: { url: string; body: unknown }[] = [];
-    vi.stubGlobal("fetch", async (url: string, init: { body: string }) => {
-      calls.push({ url, body: JSON.parse(init.body) });
-      return new Response(JSON.stringify({ sent: true }), { status: 200 });
-    });
+    const fetchSpy = vi.fn(async () => new Response(JSON.stringify({ sent: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
     try {
       const r = await checkWeekDelivery({ db: db(), queue: queue(), store, alert, now: MON_0541 });
-      expect(r.late[0].notified).toBe(true);
-      expect(calls).toEqual([{ url: "https://app.example/api/internal/dentvideo/notify", body: { clinicId: "ist", kind: "late", week: WEEK } }]);
+      expect(r.late[0]).toMatchObject({ requeued: true, notified: false });
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(await defaultClinicNotifier({ VITEST: "true" })("ist", WEEK, "late", { queued: true })).toEqual({ sent: false, retry: false, reason: "not sent from a test run" });
     } finally {
       vi.unstubAllGlobals();
       vi.unstubAllEnvs();

@@ -16,7 +16,9 @@ import { rateLimited } from "@/lib/rate-limit-server";
  *                      owner's iPhones (lib/dentvid/apns.ts);
  *   late | first-late  a watchdog found the clinic's week late: one calm
  *                      "running late" email (lib/dentvid/delay-notice.ts).
- *                      The worker asks once per clinic and week.
+ *                      The worker asks once per clinic and week, and says
+ *                      whether the week is really queued (`queued`; absent
+ *                      reads as not, so the email never claims it wrongly).
  * Authenticated with the shared WORKER_INTERNAL_TOKEN (Bearer), which also
  * exempts it from the browser Origin check. Every kind shares the same rate
  * limits, so a worker bug (or a leaked token) cannot become an email storm.
@@ -38,11 +40,12 @@ const Body = z.union([
     clinicId: z.string().uuid(),
     kind: z.enum(["late", "first-late"]),
     week: Week.optional(),
+    queued: z.boolean().optional(),
   }),
 ]);
 
 /** Reasons the web app decided not to send: final, the worker does not retry them. */
-const FINAL = new Set(["no email", "test account", "nothing ready", "already delivered"]);
+const FINAL = new Set(["no email", "test account", "nothing ready", "already delivered", "not active"]);
 
 export async function POST(req: Request) {
   if (!workerAuthorised(req.headers.get("authorization"))) return NextResponse.json({ error: "unauthorised" }, { status: 401 });
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
 
   const admin = dvAdmin();
   if (!("ready" in body)) {
-    const res = await sendDelayNotice(admin, clinicId, body.kind, { week: body.week ?? null });
+    const res = await sendDelayNotice(admin, clinicId, body.kind, { week: body.week ?? null, queued: body.queued === true });
     return answer(res);
   }
   const { kind, ready, flagged } = body;

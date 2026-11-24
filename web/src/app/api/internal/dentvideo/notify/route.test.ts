@@ -6,6 +6,7 @@ const CLINIC = "5f1e2d3c-4b5a-4968-8776-655443322110";
 let emailResult: { sent: boolean; reason?: string };
 let ownerEmail: string | null;
 let limitedNow: boolean;
+let plan: string;
 const push = vi.fn(async () => ({ sent: 1, failed: 0, removed: 0 }));
 const readyNotice = vi.fn(async () => emailResult);
 /** The real email is built and handed to the sender; only the send itself is faked. */
@@ -18,7 +19,7 @@ const db = {
       select: () => q,
       eq: () => q,
       in: () => q,
-      maybeSingle: async () => ({ data: { owner_id: "owner-1", profile: { name: "Smile & Co", language: "en" } }, error: null }),
+      maybeSingle: async () => ({ data: { owner_id: "owner-1", plan, profile: { name: "Smile & Co", language: "en" } }, error: null }),
       then: (res: (v: unknown) => unknown) => Promise.resolve({ count: 0, error: null }).then(res),
     };
     return q;
@@ -47,6 +48,7 @@ beforeEach(() => {
   emailResult = { sent: true };
   ownerEmail = "dr@klinik.example";
   limitedNow = false;
+  plan = "active";
 });
 
 describe("POST /api/internal/dentvideo/notify: ready", () => {
@@ -91,6 +93,23 @@ describe("POST /api/internal/dentvideo/notify: running late", () => {
     expect(opts.idempotencyKey).toBe(`dentvideo-week-late-${CLINIC}-2026-11-16`);
     expect(readyNotice).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
+  });
+  it("says 'queued' only when the worker says the week is queued; without the flag it does not", async () => {
+    await call("Bearer worker", { clinicId: CLINIC, kind: "late", week: "2026-11-16", queued: true });
+    await call("Bearer worker", { clinicId: CLINIC, kind: "late", week: "2026-11-16", queued: false });
+    await call("Bearer worker", { clinicId: CLINIC, kind: "late", week: "2026-11-16" });
+    const texts = sendEmail.mock.calls.map((c) => (c as unknown as [string, { text: string }])[1].text);
+    expect(texts[0]).toContain("They are queued and on their way");
+    for (const t of texts.slice(1)) {
+      expect(t).toContain("We have been alerted and are on it");
+      expect(t).not.toContain("queued");
+    }
+    expect((await call("Bearer worker", { clinicId: CLINIC, kind: "late", week: "2026-11-16", queued: "yes" })).status).toBe(400);
+  });
+  it("a clinic that no longer gets weeks is not emailed, and the worker is told that is final", async () => {
+    plan = "cancelled";
+    expect(await (await call("Bearer worker", { clinicId: CLINIC, kind: "late", week: "2026-11-16", queued: true })).json()).toEqual({ sent: false, reason: "not active" });
+    expect(sendEmail).not.toHaveBeenCalled();
   });
   it("kind 'first-late' sends the first-week wording", async () => {
     await call("Bearer worker", { clinicId: CLINIC, kind: "first-late", week: "2026-11-16" });

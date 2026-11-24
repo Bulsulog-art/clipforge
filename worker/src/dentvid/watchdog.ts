@@ -23,7 +23,9 @@ import { notifyDelayChecked, type DelayKind, type NotifyOutcome } from "./notify
  *                       the one week already rendering, not for the batch.
  *                       The clinic gets one calm "your first videos are
  *                       taking a little longer" email at the same 2 h mark
- *                       (once per clinic; notifyClinic).
+ *                       (once per clinic; notifyClinic). A clinic coming
+ *                       back from a pause gets the routine "running late"
+ *                       email for its comeback week instead (once per week).
  *
  * Time, the database, the queue, the alert and the clinic's email are
  * injected, so the logic is tested with a fake clock and fakes.
@@ -62,8 +64,40 @@ export type WatchQueue = {
   add(name: string, data: unknown, opts: Record<string, unknown>): Promise<unknown>;
 };
 
-/** Emails a clinic that its week is late (notify.ts notifyDelayChecked). Never throws. */
-export type ClinicNotifier = (clinicId: string, week: string, kind: DelayKind) => Promise<NotifyOutcome>;
+/**
+ * Emails a clinic that its week is late (notify.ts notifyDelayChecked). `queued`: the week is
+ * really on its way, so the email may say so. Never throws.
+ */
+export type ClinicNotifier = (clinicId: string, week: string, kind: DelayKind, opts: { queued: boolean }) => Promise<NotifyOutcome>;
+
+/**
+ * The sender used when a watchdog is not given one: the web app's notice, except under the
+ * test runner. A test that runs a watchdog without injecting notifyClinic (and with
+ * WORKER_INTERNAL_TOKEN set by another test) must never post to a real web app, nor wait out
+ * the request's timeout.
+ */
+export function defaultClinicNotifier(env: Record<string, string | undefined> = process.env): ClinicNotifier {
+  if (env.VITEST) return async () => ({ sent: false, retry: false, reason: "not sent from a test run" });
+  return notifyDelayChecked;
+}
+
+/** BullMQ states in which a week is still on its way: queued, at the front, running, or waiting out a retry's backoff. */
+const ON_ITS_WAY = new Set(["waiting", "prioritized", "active", "delayed", "waiting-children"]);
+
+/**
+ * Is the week really on its way: is one of these jobs (the week's own, or the fresh run a
+ * re-queue added under its own id) queued or running? A failed or completed job, a missing
+ * one or a queue that cannot answer is not: the "running late" email then makes no "queued"
+ * claim.
+ */
+export async function weekOnItsWay(queue: WatchQueue, jobIds: string[]): Promise<boolean> {
+  for (const id of jobIds) {
+    const job = await queue.getJob(id).catch(() => null);
+    const state = job ? await job.getState().catch(() => "unknown") : "missing";
+    if (ON_ITS_WAY.has(state)) return true;
+  }
+  return false;
+}
 
 export type WatchDeps = {
   db: WatchDb;
@@ -91,7 +125,8 @@ export const FIRST_LATE_NOTICE_TTL_S = 30 * 86_400;
 /**
  * Sends the clinic its "running late" email, guarded by the per-week marker
  * (and the caller's own). No store, no email: without the marker it could
- * not be sent only once. Never throws.
+ * not be sent only once. `queued` is asked only when the email will go
+ * (it reads the queue). Never throws.
  */
 export async function noticeClinicOnce(
   store: OpsStore | null,
@@ -99,12 +134,14 @@ export async function noticeClinicOnce(
   clinicId: string,
   week: string,
   kind: DelayKind,
+  queued: () => Promise<boolean>,
 ): Promise<boolean> {
   if (!store) return false;
   if (!(await store.setNx(lateNoticeKey(clinicId, week), LATE_NOTICE_TTL_S).catch(() => false))) return false;
-  const out = await (notify ?? notifyDelayChecked)(clinicId, week, kind).catch((e: Error) => ({ sent: false, retry: false, reason: e.message }) as NotifyOutcome);
+  const onItsWay = await queued().catch(() => false);
+  const out = await (notify ?? defaultClinicNotifier())(clinicId, week, kind, { queued: onItsWay }).catch((e: Error) => ({ sent: false, retry: false, reason: e.message }) as NotifyOutcome);
   const log = out.sent ? logger.info.bind(logger) : logger.warn.bind(logger);
-  log({ clinicId, week, kind, reason: out.reason }, out.sent ? "dentvid: clinic told its week is late" : "dentvid: could not tell the clinic its week is late");
+  log({ clinicId, week, kind, queued: onItsWay, reason: out.reason }, out.sent ? "dentvid: clinic told its week is late" : "dentvid: could not tell the clinic its week is late");
   return out.sent;
 }
 
@@ -156,7 +193,7 @@ export async function checkMondayDispatch(deps: WatchDeps): Promise<DispatchChec
 
 /* ------------------------------------------------------------ first week */
 
-export type FirstWeekCheck = { checked: number; requeued: string[]; alerted: string[]; /** Clinics emailed "your first videos are taking a little longer" this run. */ notified: string[] };
+export type FirstWeekCheck = { checked: number; requeued: string[]; alerted: string[]; /** Clinics emailed about their late week this run ("first-late", or "late" for one coming back). */ notified: string[] };
 
 const MIN = 60_000;
 
@@ -236,11 +273,18 @@ export async function checkFirstWeeks(deps: WatchDeps): Promise<FirstWeekCheck> 
       const wasRequeued = requeued || (deps.store ? (await deps.store.get(`dv:ops:fw-requeue:${clinicId}:${paidAt}`).catch(() => null)) !== null : false);
       const r = await deps.alert(alerts.firstWeekLate({ clinic: await deps.db.clinic(clinicId), paidAt, minutes, requeued: wasRequeued, jobState: state, returning: returning.has(clinicId) }));
       if (r === "sent") res.alerted.push(clinicId);
-      // The dentist was told "you can close this page": a calm note, once per clinic, instead of
-      // silence. A clinic coming back from a pause is not new: its words would be wrong ("your
-      // first videos"), and the Monday delivery watchdog covers its weeks.
-      if (!returning.has(clinicId) && deps.store && (await deps.store.setNx(firstLateNoticeKey(clinicId), FIRST_LATE_NOTICE_TTL_S).catch(() => false))) {
-        if (await noticeClinicOnce(deps.store, deps.notifyClinic, clinicId, week, "first-late")) res.notified.push(clinicId);
+      // The dentist was told "you can close this page": a calm note instead of silence.
+      //   - A new clinic: once ever, in first-week words.
+      //   - A clinic coming back from a pause is not new ("your first videos" would be wrong):
+      //     the routine "running late" words, once for its comeback week. The delivery watchdog
+      //     skips that week when the clinic came back after its deadline, so this is its only note.
+      // Either way the shared per-week marker keeps it to one email with the delivery watchdog's.
+      // "Queued and on its way" only when it is: this run re-queued it, or its job (or the
+      // re-queue's fresh run) is waiting or running. A failed run used up its one re-queue.
+      const back = returning.has(clinicId);
+      const ours = back || (deps.store ? await deps.store.setNx(firstLateNoticeKey(clinicId), FIRST_LATE_NOTICE_TTL_S).catch(() => false) : false);
+      if (ours && (await noticeClinicOnce(deps.store, deps.notifyClinic, clinicId, week, back ? "late" : "first-late", async () => requeued || (await weekOnItsWay(deps.queue, [id, `${id}:requeue`]))))) {
+        res.notified.push(clinicId);
       }
     }
   }
