@@ -141,6 +141,11 @@ describe("readyEmail: the first week, a short week", async () => {
     expect(deliveryDate("2026-11-23", "tr")).toBe("23 Kasım Pazartesi");
     expect(deliveryDate("2026-11-23", "ar")).toMatch(/23/); // Western digits, as dateLocale gives Arabic
     expect(deliveryDate("not a date", "en")).toBeNull();
+    // An English clinic in the US, Canada, Australia or New Zealand reads its own date order; others are unchanged.
+    expect(deliveryDate("2026-11-23", "en", "US")).toBe("Monday, November 23");
+    expect(deliveryDate("2026-11-23", "en", "GB")).toBe("Monday 23 November");
+    expect(deliveryDate("2026-11-23", "de", "US")).toBe("Montag, 23. November");
+    expect(firstWeek("en", { country: "US" }).text).toContain("Monday, November 23");
     expect(firstWeek("en").text).toContain("Your next week of videos arrives on Monday 23 November.");
     // No date, no line (never an empty or made-up one).
     expect(firstWeek("en", { nextDate: null }).text).not.toContain("arrives on");

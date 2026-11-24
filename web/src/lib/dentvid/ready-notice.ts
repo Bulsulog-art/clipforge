@@ -239,6 +239,7 @@ export async function sendReadyNotice(
     brand: { logoUrl, color: profile.brandColor ?? null },
     first,
     nextDate,
+    country: (profile as { country?: string }).country ?? null,
     nudge: first ? settingsNudge(profile) : null,
     missing,
     missingReason,
