@@ -166,10 +166,11 @@ export function footageSeed(profile: Pick<ClinicProfile, "name" | "city" | "coun
  * The stock clips (Pexels ids) of the clinic's videos from the
  * FOOTAGE_MEMORY_WEEKS before `week` and from that week itself (a top-up's
  * history holds the week's videos already made), oldest week first.
- * History rows may carry the stored plan's ids as "footageIds"; until the
- * job reads them (dentvid/jobs.ts selects plan->backgrounds only today)
- * there are none, and the turn alone keeps a query from showing a clinic
- * the same clip two weeks running. Read defensively, like recentBackgrounds.
+ * History rows carry the stored plan's ids as "footageIds" (dentvid/jobs.ts
+ * selects plan->footageIds, dental/memory.ts historyFromRows keeps them).
+ * Videos stored before the ids were recorded have none; for them the turn
+ * alone keeps a query from showing a clinic the same clip two weeks running.
+ * Read defensively, like recentBackgrounds.
  */
 export function recentFootage(history: PastTopic[] | undefined, week: string): Set<number> {
   const since = Date.parse(`${week}T00:00:00Z`) - FOOTAGE_MEMORY_WEEKS * 7 * 86_400_000;

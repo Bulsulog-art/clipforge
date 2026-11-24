@@ -296,6 +296,8 @@ export type PastTopic = {
   posted?: boolean;
   /** The library photos its plan used (BACKGROUND_PATH only). */
   backgrounds?: string[];
+  /** The stock clips (Pexels ids) its render showed, from the stored plan (remotion/stock.ts withShownClips). */
+  footageIds?: number[];
 };
 
 const tokens = (s: string) => new Set(norm(s).split(" ").filter((t) => t.length > 2));

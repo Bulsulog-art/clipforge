@@ -182,6 +182,8 @@ export type PastItemRow = {
   /** Set with every decision (web handlers/item-patch.ts), so for a decided row it is when the dentist decided. */
   updated_at?: unknown;
   backgrounds?: unknown;
+  /** plan->footageIds: the stock clips (Pexels ids) the stored video showed. */
+  footageIds?: unknown;
 };
 
 const str = (v: unknown, max = 200): string | undefined => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
@@ -273,6 +275,20 @@ export function parseDeclineNote(raw: unknown): { reason?: DeclineTag; note?: st
 }
 
 /** The plan's library photos, as stored (plan.backgrounds): only paths the renderer accepts. */
+/** At most this many stock clip ids are kept per history row (a video shows one or two). */
+const FOOTAGE_IDS_MAX = 8;
+
+/** Positive whole Pexels ids only, de-duplicated, in their order; anything else is dropped. */
+function footageIdsOf(v: unknown): number[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const out: number[] = [];
+  for (const x of v) {
+    if (typeof x === "number" && Number.isSafeInteger(x) && x > 0 && !out.includes(x)) out.push(x);
+    if (out.length >= FOOTAGE_IDS_MAX) break;
+  }
+  return out.length ? out : undefined;
+}
+
 function backgroundsOf(v: unknown): string[] | undefined {
   if (!Array.isArray(v)) return undefined;
   const ok = v.filter((p): p is string => typeof p === "string" && BACKGROUND_PATH.test(p));
@@ -313,6 +329,7 @@ export function historyFromRows(rows: PastItemRow[]): PastTopic[] {
     const { reason, note } = decision === "rejected" ? parseDeclineNote(r.approval_note) : {};
     const posted = typeof r.posted_at === "string" && r.posted_at.trim() !== "";
     const backgrounds = backgroundsOf(r.backgrounds);
+    const footageIds = footageIdsOf(r.footageIds);
     out.push({
       title,
       ...(hook ? { hook } : {}),
@@ -326,6 +343,7 @@ export function historyFromRows(rows: PastItemRow[]): PastTopic[] {
       ...(note ? { note } : {}),
       ...(posted ? { posted } : {}),
       ...(backgrounds ? { backgrounds } : {}),
+      ...(footageIds ? { footageIds } : {}),
     });
   }
   // Oldest first; undated rows (none in practice: week_of is not null) go first, in their order.
