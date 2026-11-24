@@ -184,12 +184,6 @@ export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | 
       "seconds": 38
     },
     {
-      "id": "general-tsumetai-mono-de-shimiru",
-      "service": "知覚過敏",
-      "title": "冷たい物でしみる時",
-      "seconds": 34.3
-    },
-    {
       "id": "general-tsuyoku-migaku-kuse",
       "service": "知覚過敏",
       "title": "強く磨くクセ",

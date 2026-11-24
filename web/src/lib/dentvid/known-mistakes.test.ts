@@ -63,6 +63,8 @@ describe("known mistakes on the site", () => {
     expect(km13("Avoid strongly colored foods and drinks for a day or two.")).toEqual(["KM-13"]);
     expect(km13("Avoid strong colors briefly")).toEqual(["KM-13"]);
     expect(km13("Skip dark drinks")).toEqual([]);
+    // Naming the drinks makes it advice a patient can follow (worker accuracy.ts AFTERCARE_GUIDE's wording).
+    expect(km13("Avoid strongly coloured food and drink (coffee, tea, red wine) for the first day or two.")).toEqual([]);
   });
 
   it("the re-rendered ES, FR and DE cards are the fixed ones", () => {

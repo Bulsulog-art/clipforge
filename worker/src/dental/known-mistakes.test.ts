@@ -12,6 +12,7 @@ import { BLOCKING_HOOK, hookProblems } from "./style.js";
 import { captionProblems, scriptProblems } from "./week.js";
 import { screenLines, type RubricScene } from "./rubric.js";
 import { EXAMPLES, HOOK_BANK } from "./examples.js";
+import { AFTERCARE_GUIDE } from "./accuracy.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
 import type { ClinicProfile } from "./profile.js";
 
@@ -103,6 +104,24 @@ describe("the good version of each line passes", () => {
     expect(ids(text, lang)).toEqual([]);
   });
 
+  // KM-13 asks for the drinks to be named. The writer and the accuracy
+  // reviewer are both handed accuracy.ts AFTERCARE_GUIDE, whose whitening
+  // line says "strongly coloured" and then names them: that wording, or a fix
+  // the reviewer writes from it, must not send a whitening script back.
+  it("KM-13 lets a line through when it names what to skip (the aftercare guide's own whitening wording)", () => {
+    const guide = AFTERCARE_GUIDE.split("\n").find((l) => l.startsWith("- whitening:"));
+    expect(guide).toMatch(/strongly coloured food and drink \(coffee, tea, red wine\)/);
+    for (const where of ["screen", "narration", "caption"] as const) expect(ids(guide!, "en", where), where).toEqual([]);
+    expect(ids("Avoid strongly coloured food and drink (coffee, tea, red wine) for the first day or two.", "en", "narration")).toEqual([]);
+    expect(ids("Skip strongly colored drinks like coffee, tea and red wine for a day or two.", "en")).toEqual([]);
+    expect(ids("Avoid strong colors such as curry or berries briefly.", "en")).toEqual([]);
+    // Without the drinks it is still the vague advice the rule exists for.
+    expect(ids("Avoid strongly coloured food and drink for the first day or two.", "en", "narration")).toEqual(["KM-13"]);
+    expect(ids("Skip strongly colored drinks; tell your team if it stings.", "en")).toEqual(["KM-13"]);
+    // "tea" is a word, not a fragment of one.
+    expect(ids("Avoid strong colors, team, for a day.", "en")).toEqual(["KM-13"]);
+  });
+
   it("the hook bank and the reference scripts trip nothing", () => {
     for (const [lang, hooks] of Object.entries(HOOK_BANK)) for (const h of hooks) expect(scanKnownMistakes({ hook: h }, lang), `${lang}: ${h}`).toEqual([]);
     for (const e of EXAMPLES) {
@@ -175,6 +194,12 @@ describe("the pipeline sends a known mistake back (never publishes it)", () => {
     expect(p).toHaveLength(1);
     expect(p[0]).toMatch(/^screen: "Avoid strong colors briefly" — .*dark drinks.*\(known mistake KM-13\)$/);
     expect(scriptProblems(planOf("Skip dark drinks for a day or two."), US)).toEqual([]);
+  });
+
+  it("a whitening script in the aftercare guide's words is not sent back", () => {
+    const guided = "Avoid strongly coloured food and drink (coffee, tea, red wine) for the first day or two.";
+    expect(scriptProblems(planOf(guided, `Whitening done as directed usually doesn't thin enamel. ${guided}`), US)).toEqual([]);
+    expect(scriptProblems(planOf("Avoid strongly coloured food and drink for a day or two."), US).join(" ")).toMatch(/KM-13/);
   });
 
   it("checks the narration too, not only the screen", () => {

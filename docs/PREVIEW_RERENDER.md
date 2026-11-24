@@ -251,8 +251,8 @@ closing and re-voicing costs money. English has no children's video and German n
 cleaning video for now; a clinic that lists one sees the "no sample yet" line in the wizard.
 The build left every other language's manifest entries as they were.
 
-Other languages (on-screen text only; the narration was transcribed locally with
-faster-whisper to decide):
+Other languages (on-screen text only; the narration was transcribed locally, with an
+open-source speech recognizer and no API call, to decide):
 
 - `es/children-cuidado-de-dientes-en-ninos` removed: its card read "¡Consulta con nosotros
   o agenda tu cita!" and the narration says "¿Tienes dudas? Pregúntanos o agenda tu cita."
@@ -267,9 +267,16 @@ faster-whisper to decide):
   rendez-vous pour un contrôle."
 - Japanese closings used twice: stains "着色が気になる方はご相談ください", cold sensitivity
   "しみたら、気軽にご相談ください".
-- Still spoken, not fixable without paid re-voicing: every French narration ends on
-  "n'hésitez pas à … prendre rendez-vous", and the Spanish ones on "pregunta en nuestra
-  clínica o agenda tu revisión". No exclamation mark is on screen in any language.
+- Still spoken, not fixable without paid re-voicing (from the local transcripts):
+  French aligners "n'hésitez pas à nous contacter ou à prendre rendez-vous", both gum videos
+  "n'hésitez pas à poser vos questions ou à prendre rendez-vous" (+ "pour un contrôle" /
+  "chez nous"), whitening the generic "Pour en savoir plus, n'hésitez pas à demander à notre
+  clinique ou à prendre rendez-vous" (the card no longer shows it, so viewers hear one
+  closing and read another); French implant ends "n'hésitez pas à nous en parler", with no
+  booking. Of the Spanish narrations only whitening ends "Pregunta en nuestra clínica o
+  agenda tu revisión"; cleaning ends "pregúntanos en la clínica", gum bleeding "… en la
+  clínica", gum treatment "¿Dudas? Pregunta en nuestra clínica." No exclamation mark is on
+  screen in any language.
 
 **One look.** Every preview plan in all 8 languages now uses the `editorial` theme, as the
 published samples do. Contact sheets of every plan that changed theme (and of the new
@@ -291,6 +298,71 @@ important"), English labels in sentence case, at least 3 videos per language, ev
 manifest file on disk and nothing on disk outside the manifest, the editorial theme. They
 fail on the library as it was on main (46 failures). KM-13 now matches
 `strong(ly)? colo(u)r(s|ed)` with a space or a hyphen (`known-mistakes.ts`, mirrored to web).
+
+### Review round (24.11.2026)
+
+Two reviewers checked the branch; what they found, and what changed:
+
+- **The name chip ran under the buttons.** Without a logo the composition signs the video
+  with a chip up to 60% of the frame wide (`remotion/Video.tsx` ClinicName). On a 390 px
+  phone a name from about 28 characters reached under the Pause button, and a 38-character
+  one showed as "L…side Family…". While the chip is drawn the preview's mute and play
+  buttons now sit in the bottom corner on the same side, which the composition keeps clear
+  for the platform's UI (`preview-library.ts previewControlsEdge`); beside a logo they stay
+  at the top. The name is cut at a whole character (an emoji is never split).
+- **KM-13 against the writer's own reference.** The wider pattern also caught
+  `accuracy.ts AFTERCARE_GUIDE`'s whitening line ("avoiding strongly coloured food and
+  drink (coffee, tea, red wine) …"), which the writer and the accuracy reviewer are both
+  given, so a whitening script in those words would have been sent back. A line that names
+  what to skip (coffee, tea, wine, cola, curry, berries …) now passes; without the drinks it
+  is still caught. A worker test pins the guide's line.
+- **German whitening said the German KM-13.** The card "Nach dem Bleaching sind stark
+  gefärbte Getränke kurz eher ungünstig." is now "Verzichten Sie nach dem Bleaching ein,
+  zwei Tage auf Kaffee, Tee und Rotwein." The narration still says "Kräftige Farben sind
+  kurz danach oft ungünstig.": a candidate for a German KM row when a re-voice is approved.
+  The German children compare label "Unhilfreich" is now "Weniger gut", as the narration says.
+- **Closings that were one line with a few words added.** French aligners, gum bleeding and
+  gum visits closed on "Posez vos questions ou prenez rendez-vous" (+ "avec nous." /
+  nothing / "pour un contrôle."); Arabic aligners and cleaning on the same "لأي سؤال، راسلوا
+  العيادة أو احجزوا فحصًا" (one with "للأسنان" added); Japanese "気になる方はご相談ください"
+  sat inside the stains closing. Now: French aligners "Des questions sur les aligneurs ?
+  Écrivez-nous ou prenez rendez-vous.", gum bleeding "Vos gencives saignent ? Posez-nous la
+  question ou prenez rendez-vous."; Arabic aligners "إذا لم يجلس القالب الجديد جيدًا، راسلوا
+  العيادة أو احجزوا فحصًا."; Japanese brushing "磨き方は、診察のときに気軽にお尋ねください".
+  Spanish cards now say what the narration says, without the "pide revisión" it never
+  says: cleaning "Si dura o te preocupa, pregúntanos en la clínica.", gum bleeding "¿Te
+  sangran las encías? Cuéntanoslo en la clínica.", gum treatment "¿Dudas tras el
+  tratamiento? Pregunta en nuestra clínica." Contact sheets of every changed plan:
+  `/home/user/wt-shots/preview-quality/stills-r1/`.
+- **`ja/general-tsumetai-mono-de-shimiru` removed.** Its last ~3 seconds do not sound
+  Japanese: decoded as Japanese they come out as English words ("… rice with in my kitty
+  watershed"), the language guess drops to 0.87, and the fit is far worse than the other
+  five Japanese endings (log-prob −0.60 against −0.23 to −0.49), whose English decode is
+  plain romaji. The plan says "…様子を見ることもありますが、長く続く時は受診が安心です。" there.
+  Japanese keeps 5. **The published Japanese sample `samples/ja/tsumetai-mono-de-shimiru.mp4`
+  (examples page, Japanese hero) has the same ending** (language guess English 0.64): listen
+  to its last 4 seconds; it is outside this library. To bring the preview back after a
+  re-voice, rebuild it with `scripts/build-dentvideo-preview.mts` and raise the Japanese
+  count in the test.
+- **Arabic endings not settled.** The local recognizer is weak on this Arabic voice for
+  every file, good or not, so it proves nothing either way; for aligners its English guess
+  is a transliteration of the expected "راسلوا العيادة أو احجزوا فحصًا". Worth a listen:
+  the last 6 seconds of `ar/aligners-tabdil-altaqwim-alshaffaf.mp3` and
+  `ar/whitening-qahwa-baad-altabyid.mp3`.
+- **Gates, wider:** every string a scene carries is read (the hook's sub-line and a stat's
+  value were not), a closing that contains another or shares three quarters of it at
+  either end counts as used twice, the German cards may not say "stark gefärbt" or
+  "kräftige Farben", and the count per language is pinned (en 3, de 3, es 4, fr 5, tr 5,
+  ja 5, ar 5, pl 5) so removing a video is a decision written in the test.
+
+Not changed here (other packages' files): the landing passes the input's placeholder as
+the name while the field is empty, so the corner reads "Your clinic" / "Ihre Praxis" and,
+in Japanese, "医院名" ("clinic name", a form label) until the visitor types (`teaser.tsx`,
+`content/landing/ja.ts`); a 40+ character name with no spaces runs off the sign-off, and a
+Latin name in an Arabic video loses its trailing full stop to the wrong side (the
+composition's `CtaScene` and `ClinicName`); the dev bench (`worker/src/bench/frames.ts`)
+and `scripts/render-social-kit.mts` still name removed preview ids; the KM-13 row in
+`docs/KNOWN_MISTAKES.md` still quotes only "strong colors".
 
 ## Not changed on purpose
 
