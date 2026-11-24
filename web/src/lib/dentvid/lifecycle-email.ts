@@ -192,8 +192,10 @@ export function notPostedEmail(args: NudgeArgs & { approved: number; pending: nu
 
 /**
  * Last month's numbers. `posted`: approved videos ticked as posted
- * (dentvid_items.posted_at); null or absent when that cannot be read, and
- * then the video_shared event count is the only, rougher, signal.
+ * (dentvid_items.posted_at); null or absent before 0012, when there are no
+ * ticks to count, and then the video_shared event count is the only,
+ * rougher, signal. (A failed read sends no summary at all: monthStats
+ * returns null and the next hourly run asks again.)
  */
 export type MonthStats = { made: number; approved: number; shared: number; posted?: number | null };
 
@@ -205,7 +207,8 @@ export function monthLabel(lang: string, year: number, month: number): string {
 /**
  * Paying clinic, once a month: what was made, approved and posted last
  * month. Posted is "X of Y approved", so it is clipped to the approved
- * count; when it is unknown the summary shows two numbers, not a guess.
+ * count. When it is unknown the summary shows two numbers, not a guess,
+ * and neither its inbox preview nor its lines speak of posted ticks.
  */
 export function monthlyEmail(args: NudgeArgs & { year: number; month: number; stats: MonthStats }): Rendered {
   const { lang, copy: c } = lifecycleText(args.language);
@@ -216,11 +219,12 @@ export function monthlyEmail(args: NudgeArgs & { year: number; month: number; st
   const { made, approved, shared } = args.stats;
   const posted = typeof args.stats.posted === "number" && Number.isFinite(args.stats.posted) ? Math.max(0, Math.min(Math.floor(args.stats.posted), approved)) : null;
   // Thanks only for what we can see went out: the ticks, or (without them) at least one share.
-  const wentOut = posted !== null ? posted > 0 : shared > 0;
+  // "None marked as posted yet" only when the ticks were counted: without them it would be a guess.
+  const line = posted !== null ? (posted > 0 ? s.sharedSome : fill(s.sharedNone, { mark: appLabels(lang).mark })) : shared > 0 ? s.sharedSome : null;
   return renderEmail({
     lang,
     subject: fill(s.subject, { month }),
-    preheader: s.preheader,
+    preheader: posted !== null ? s.preheader : s.preheaderMadeApproved,
     title: fill(s.title, { month }),
     hello: tidy(fill(c.hello, { clinic })),
     blocks: [
@@ -234,7 +238,7 @@ export function monthlyEmail(args: NudgeArgs & { year: number; month: number; st
         ],
       },
       ...(posted ? [{ kind: "p" as const, text: fill(s.postedLine, { n: nf.format(posted), total: nf.format(approved) }) }] : []),
-      { kind: "p", text: wentOut ? s.sharedSome : fill(s.sharedNone, { mark: appLabels(lang).mark }) },
+      ...(line ? [{ kind: "p" as const, text: line }] : []),
     ],
     button: { label: s.button, url: args.url },
     ...marketing(lang, c, args, s.footer),

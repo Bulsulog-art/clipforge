@@ -80,15 +80,20 @@ describe("runPaying", () => {
     expect(sent).toHaveLength(1);
   });
 
-  it("does not nudge when something was shared or ticked as posted, nothing is ready, the week is too fresh, or nothing can be read", async () => {
+  it("does not nudge when something was shared or ticked as posted, nothing is ready, the week is too fresh, or a signal cannot be read", async () => {
     const cases = [
       { shared: 1 },
       { approved: 0, pending: 0 },
       { firstReadyAt: "2026-11-11T12:00:00Z" },
+      // The share events could not be read (the guard this run always had): wait, even with no ticks.
+      { shared: null },
+      { shared: null, posted: 0 },
+      { shared: 0, posted: null },
       { shared: null, posted: null },
       // Posted from the email's page and ticked there: no share event with the clinic, still posted.
       { shared: 0, posted: 1 },
       { shared: null, posted: 2 },
+      { shared: 2, posted: null },
     ] as Partial<WeekStats>[];
     for (const week of cases) {
       const m = memory([clinic(1)], week);
@@ -107,17 +112,32 @@ describe("runPaying", () => {
     expect(m.log).toHaveLength(0);
   });
 
-  it("decides on the posted ticks when the share events cannot be read, and on the events when the ticks cannot", async () => {
-    for (const [week, n] of [
-      [{ shared: null, posted: 0 }, 1],
-      [{ shared: 0, posted: null }, 1],
-      [{ shared: 2, posted: null }, 0],
-    ] as [Partial<WeekStats>, number][]) {
+  it("never sends on a signal it could not read: a seen share or tick settles it, an unread one waits for the next hour", async () => {
+    for (const [week, why] of [
+      [{ shared: null, posted: 0 }, "shares unknown"],
+      [{ shared: 0, posted: null }, "shares unknown"],
+      [{ shared: null, posted: null }, "shares unknown"],
+      [{ shared: null, posted: 2 }, "already posted"],
+      [{ shared: 2, posted: null }, "already posted"],
+    ] as [Partial<WeekStats>, string][]) {
       const m = memory([clinic(1)], week);
       const { send, sent } = sender();
-      await runPaying({ store: m.store, send, allow: async () => true, now: THU, config: cfg() });
-      expect(sent, JSON.stringify(week)).toHaveLength(n);
+      const r = await runPaying({ store: m.store, send, allow: async () => true, now: THU, config: cfg() });
+      expect(sent, JSON.stringify(week)).toHaveLength(0);
+      expect(r.skipped, JSON.stringify(week)).toEqual({ [why]: 1 });
+      // Nothing was claimed: the week's one nudge is still there for a later run.
+      expect(m.log, JSON.stringify(week)).toHaveLength(0);
     }
+    // The read failed at 13:23; at 14:23 both come back as none, and the nudge goes out once.
+    let week: Partial<WeekStats> = { shared: null, posted: 0 };
+    const m = memory([clinic(1)]);
+    m.store.weekStats = async () => ({ approved: 3, pending: 1, shared: 0, posted: 0, firstReadyAt: "2026-11-08T22:00:00Z", ...week });
+    const { send, sent } = sender();
+    await runPaying({ store: m.store, send, allow: async () => true, now: THU, config: cfg() });
+    expect(sent).toHaveLength(0);
+    week = {};
+    await runPaying({ store: m.store, send, allow: async () => true, now: new Date(THU.getTime() + 3600_000), config: cfg() });
+    expect(sent).toHaveLength(1);
   });
 
   it("the nudge names the app's own post button and says it stops once a video is shared or marked as posted", async () => {
@@ -136,7 +156,7 @@ describe("runPaying", () => {
     expect(sent[0].subject).toBe("Your DentVideo month: October 2026");
     expect(sent[0].text).toContain("videos made: 16");
     expect(sent[0].text).toContain("approved: 12");
-    expect(sent[0].text).toContain("posted: 0");
+    expect(sent[0].text).toContain("marked as posted: 0");
     expect(sent[0].text).toContain("We haven't seen any marked as posted yet.");
     expect(sent[0].text).toContain(`tap “${APP_TEXT.en.library.post.markPosted}”`);
     expect(sent[0].text).not.toContain("from the app");
@@ -144,6 +164,21 @@ describe("runPaying", () => {
     const b = sender();
     await runPaying({ store: empty.store, send: b.send, allow: async () => true, now: MON, config: cfg() });
     expect(b.sent).toHaveLength(0);
+  });
+
+  it("monthly summary: numbers that could not be read send nothing this hour, and the next run sends it", async () => {
+    let month: MonthStats | null = null;
+    const m = memory([clinic(1, { profile: { name: "Smile", language: "en", country: "GB" } })]);
+    m.store.monthStats = async () => month;
+    const { send, sent } = sender();
+    const r = await runPaying({ store: m.store, send, allow: async () => true, now: MON, config: cfg() });
+    expect(sent).toHaveLength(0);
+    expect(r.skipped).toEqual({ "stats unknown": 1 });
+    expect(m.log).toHaveLength(0);
+    month = { made: 5, approved: 5, shared: 0, posted: 3 };
+    await runPaying({ store: m.store, send, allow: async () => true, now: new Date(MON.getTime() + 3600_000), config: cfg() });
+    expect(sent).toHaveLength(1);
+    expect(sent[0].text).toContain("Approved videos marked as posted: 3 of 5.");
   });
 
   it("skips test accounts and clinics that stopped paying", async () => {
@@ -175,12 +210,12 @@ describe("monthly summary: posted X of Y approved", () => {
   it("posted never exceeds approved", () => {
     const m = monthlyEmail({ ...args, stats: { made: 6, approved: 2, shared: 9, posted: 4 } });
     expect(m.text).toContain("approved: 2");
-    expect(m.text).toContain("posted: 2");
+    expect(m.text).toContain("marked as posted: 2");
     expect(m.text).toContain("Approved videos marked as posted: 2 of 2.");
     expect(m.text).not.toMatch(/posted: [3-9]|: 4 of/);
     // Nothing approved: nothing can count as posted.
     const none = monthlyEmail({ ...args, stats: { made: 3, approved: 0, shared: 0, posted: 2 } });
-    expect(none.text).toContain("posted: 0");
+    expect(none.text).toContain("marked as posted: 0");
     expect(none.text).toContain("We haven't seen any marked as posted yet.");
   });
 
@@ -189,9 +224,39 @@ describe("monthly summary: posted X of Y approved", () => {
     expect(m.text).toContain("videos made: 20");
     expect(m.text).toContain("approved: 17");
     expect(m.text).not.toMatch(/posted: |shared: |40/);
-    // ...but they still decide between the thank-you and the gentle line.
+    // ...but a share still earns the thank-you.
     expect(m.text).toContain(LIFECYCLE_COPY.en.monthly.sharedSome);
-    expect(monthlyEmail({ ...args, stats: { made: 20, approved: 17, shared: 0, posted: null } }).text).toContain("We haven't seen any marked as posted yet.");
+  });
+
+  it("with the ticks unknown, neither the inbox preview nor the lines speak of posted ticks, in any language", () => {
+    for (const lang of LOCALES) {
+      const c = LIFECYCLE_COPY[lang].monthly;
+      for (const shared of [0, 3]) {
+        const m = monthlyEmail({ ...args, language: lang, stats: { made: 20, approved: 17, shared, posted: null } });
+        expect(m.html, lang).toContain(c.preheaderMadeApproved);
+        expect(m.html, lang).not.toContain(c.preheader);
+        expect(m.text, lang).not.toContain(c.posted);
+        expect(m.text, lang).not.toContain(c.sharedNone.split("{mark}")[0].trim());
+        expect(m.text, lang).not.toContain(APP_TEXT[lang].library.post.markPosted);
+        expect(m.text.includes(c.sharedSome), `${lang} ${shared}`).toBe(shared > 0);
+      }
+      // With the ticks counted, the preview names all three numbers.
+      const known = monthlyEmail({ ...args, language: lang, stats: { made: 20, approved: 17, shared: 0, posted: 4 } });
+      expect(known.html, lang).toContain(c.preheader);
+      expect(known.html, lang).not.toContain(c.preheaderMadeApproved);
+    }
+  });
+
+  it("the third number says what it counts: a clinic that shares but never ticks reads 'marked as posted: 0', with the way to tick", () => {
+    const m = monthlyEmail({ ...args, stats: { made: 12, approved: 12, shared: 12, posted: 0 } });
+    expect(m.text).toContain("marked as posted: 0");
+    expect(m.text).not.toMatch(/(^|\n)posted: 0/);
+    expect(m.text).toContain(`tap “${APP_TEXT.en.library.post.markPosted}”`);
+    for (const lang of LOCALES) {
+      const c = LIFECYCLE_COPY[lang].monthly;
+      expect(c.posted, lang).not.toBe(APP_TEXT[lang].library.post.posted);
+      expect(c.posted.trim(), lang).not.toBe("");
+    }
   });
 
   it("the gentle line names the app's own Mark as posted button, in every language, and never says 'from the app'", () => {
@@ -209,7 +274,7 @@ type Row = Record<string, unknown>;
 type Filter = (r: Row) => boolean;
 
 /** A small stand-in for the PostgREST builder: eq / in / gte / lt / not-is-null, count + head. */
-function fakeDb(tables: Record<string, Row[]>, opts: { noPostedAt?: boolean; failEvents?: boolean } = {}) {
+function fakeDb(tables: Record<string, Row[]>, opts: { noPostedAt?: boolean; failPostedAt?: boolean; failEvents?: boolean } = {}) {
   const calls: { table: string; filters: string[] }[] = [];
   const db = {
     from(table: string) {
@@ -229,6 +294,7 @@ function fakeDb(tables: Record<string, Row[]>, opts: { noPostedAt?: boolean; fai
         then(resolve: (v: unknown) => void) {
           calls.push({ table, filters: seen });
           if (opts.noPostedAt && seen.some((f) => f.startsWith("posted_at"))) return resolve({ data: null, count: null, error: { code: "42703", message: "column dentvid_items.posted_at does not exist" } });
+          if (opts.failPostedAt && seen.some((f) => f.startsWith("posted_at"))) return resolve({ data: null, count: null, error: { code: "57014", message: "canceling statement due to statement timeout" } });
           if (opts.failEvents && table === "dentvid_events") return resolve({ data: null, count: null, error: { code: "42P01", message: "relation dentvid_events does not exist" } });
           const rows = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
           return resolve(head ? { data: null, count: rows.length, error: null } : { data: rows, count: null, error: null });
@@ -268,17 +334,31 @@ describe("supabaseLifecycleStore: what went out", () => {
     expect(w).toEqual({ approved: 2, pending: 1, shared: 0, posted: 1, firstReadyAt: "2026-11-09T06:00:00Z" });
   });
 
-  it("weekStats says 'unknown' for the ticks before 0012, and the run then decides on the share events", async () => {
+  it("weekStats before 0012: no video can have been ticked, so none, and the run decides on the share events as it always did", async () => {
     const { db } = fakeDb({ dentvid_items: [item(1)], dentvid_events: [] }, { noPostedAt: true });
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const w = await supabaseLifecycleStore(db).weekStats!(C, "2026-11-09");
-    expect(w.posted).toBeNull();
-    expect(w.shared).toBe(0);
+    expect([w.shared, w.posted]).toEqual([0, 0]);
     expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
     const both = fakeDb({ dentvid_items: [item(1)] }, { noPostedAt: true, failEvents: true });
     const u = await supabaseLifecycleStore(both.db).weekStats!(C, "2026-11-09");
-    expect([u.shared, u.posted]).toEqual([null, null]);
+    expect([u.shared, u.posted]).toEqual([null, 0]);
+  });
+
+  it("weekStats: a posted count that fails for another reason is unknown, never none", async () => {
+    const { db } = fakeDb({ dentvid_items: [item(1, { posted_at: "2026-11-10T09:00:00Z" })], dentvid_events: [] }, { failPostedAt: true });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const w = await supabaseLifecycleStore(db).weekStats!(C, "2026-11-09");
+    expect([w.shared, w.posted]).toEqual([0, null]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+    // ...and with that, the run holds the nudge for the hour.
+    const m = memory([clinic(1)], { shared: w.shared, posted: w.posted });
+    const { send, sent } = sender();
+    const r = await runPaying({ store: m.store, send, allow: async () => true, now: THU, config: cfg() });
+    expect(sent).toHaveLength(0);
+    expect(r.skipped).toEqual({ "shares unknown": 1 });
   });
 
   it("monthStats: posted = approved videos of the month ticked as posted, one per video, never more than approved", async () => {
@@ -302,5 +382,14 @@ describe("supabaseLifecycleStore: what went out", () => {
     const { db } = fakeDb({ dentvid_items: [item(1, { week_of: "2026-10-05" })], dentvid_events: [] }, { noPostedAt: true });
     const m = await supabaseLifecycleStore(db).monthStats!(C, new Date(Date.UTC(2026, 9, 1)), new Date(Date.UTC(2026, 10, 1)));
     expect(m).toEqual({ made: 1, approved: 1, posted: null, shared: 0 });
+  });
+
+  it("monthStats: a posted count that fails for another reason gives no numbers at all, so no half-true summary goes out", async () => {
+    const { db } = fakeDb({ dentvid_items: [item(1, { week_of: "2026-10-05", posted_at: "2026-10-06T09:00:00Z" })], dentvid_events: [] }, { failPostedAt: true });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const m = await supabaseLifecycleStore(db).monthStats!(C, new Date(Date.UTC(2026, 9, 1)), new Date(Date.UTC(2026, 10, 1)));
+    expect(m).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
   });
 });

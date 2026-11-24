@@ -30,11 +30,13 @@ export type SequenceCopy = {
   monthly: {
     subject: string;
     preheader: string;
+    /** The inbox preview when the ticks cannot be counted (before 0012) and the summary shows only the first two numbers. */
+    preheaderMadeApproved: string;
     title: string;
     intro: string;
     made: string;
     approved: string;
-    /** The third number: approved videos ticked as posted. */
+    /** The third number: approved videos ticked as posted. It counts the ticks, so it says so. */
     posted: string;
     /** Under the numbers when some were posted: {n} of {total} approved. */
     postedLine: string;
@@ -105,11 +107,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "Your DentVideo month: {month}",
       preheader: "What was made, approved and posted last month.",
+      preheaderMadeApproved: "What was made and approved last month.",
       title: "{month} at a glance",
       intro: "Here is what DentVideo made for {clinic} last month.",
       made: "videos made",
       approved: "approved",
-      posted: "posted",
+      posted: "marked as posted",
       postedLine: "Approved videos marked as posted: {n} of {total}.",
       sharedNone: "We haven't seen any marked as posted yet. If you did post some, tap “{mark}” on them in the app so this summary counts them. Patients only see the videos you post, and one a week is a good start.",
       sharedSome: "Thank you for posting. New videos arrive every Monday.",
@@ -176,11 +179,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "Ihr DentVideo-Monat: {month}",
       preheader: "Was im letzten Monat erstellt, freigegeben und gepostet wurde.",
+      preheaderMadeApproved: "Was im letzten Monat erstellt und freigegeben wurde.",
       title: "{month} auf einen Blick",
       intro: "Das hat DentVideo im letzten Monat für {clinic} erstellt.",
       made: "Videos erstellt",
       approved: "freigegeben",
-      posted: "gepostet",
+      posted: "als gepostet markiert",
       postedLine: "Freigegebene Videos, die als gepostet markiert sind: {n} von {total}.",
       sharedNone: "Bisher ist keines als gepostet markiert. Falls Sie schon gepostet haben, tippen Sie in der App bei diesen Videos auf „{mark}“, dann zählt diese Übersicht sie mit. Patientinnen und Patienten sehen nur, was Sie posten, und ein Video pro Woche ist ein guter Anfang.",
       sharedSome: "Danke fürs Posten. Jeden Montag kommen neue Videos.",
@@ -247,11 +251,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "Tu mes con DentVideo: {month}",
       preheader: "Lo que se creó, aprobó y publicó el mes pasado.",
+      preheaderMadeApproved: "Lo que se creó y aprobó el mes pasado.",
       title: "{month} en resumen",
       intro: "Esto es lo que DentVideo creó el mes pasado para {clinic}.",
       made: "vídeos creados",
       approved: "aprobados",
-      posted: "publicados",
+      posted: "marcados como publicados",
       postedLine: "Vídeos aprobados marcados como publicados: {n} de {total}.",
       sharedNone: "Todavía no hay ninguno marcado como publicado. Si ya publicaste alguno, toca «{mark}» en la app para que este resumen lo cuente. Los pacientes solo ven lo que publicas: uno por semana es un buen comienzo.",
       sharedSome: "Gracias por publicar. Cada lunes llegan vídeos nuevos.",
@@ -318,11 +323,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "DentVideo ile geçen ay: {month}",
       preheader: "Geçen ay hazırlanan, onaylanan ve paylaşılan videolar.",
+      preheaderMadeApproved: "Geçen ay hazırlanan ve onaylanan videolar.",
       title: "Bir bakışta {month}",
       intro: "Geçen ay DentVideo'nun {clinic} için hazırladıkları:",
       made: "hazırlanan video",
       approved: "onaylanan",
-      posted: "paylaşılan",
+      posted: "paylaşıldı olarak işaretlenen",
       postedLine: "Onaylanan {total} videodan {n} tanesi paylaşıldı olarak işaretlendi.",
       sharedNone: "Henüz paylaşıldı olarak işaretlenmiş bir video görünmüyor. Paylaştıklarınız varsa uygulamada onlar için “{mark}” düğmesine dokunun, bu özet de onları saysın. Hastalarınız yalnızca paylaştığınız videoları görür; haftada bir video iyi bir başlangıçtır.",
       sharedSome: "Paylaştığınız için teşekkürler. Her pazartesi yeni videolar geliyor.",
@@ -389,11 +395,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "Votre mois avec DentVideo : {month}",
       preheader: "Ce qui a été créé, validé et publié le mois dernier.",
+      preheaderMadeApproved: "Ce qui a été créé et validé le mois dernier.",
       title: "{month} en bref",
       intro: "Voici ce que DentVideo a créé le mois dernier pour {clinic}.",
       made: "vidéos créées",
       approved: "validées",
-      posted: "publiées",
+      posted: "marquées comme publiées",
       postedLine: "Vidéos validées marquées comme publiées : {n} sur {total}.",
       sharedNone: "Aucune n'est encore marquée comme publiée. Si vous en avez publié, touchez « {mark} » dans l'application pour que ce récapitulatif les compte. Vos patients ne voient que ce que vous publiez : une par semaine, c'est un bon début.",
       sharedSome: "Merci de publier. De nouvelles vidéos arrivent chaque lundi.",
@@ -460,11 +467,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "DentVideo 月間レポート：{month}",
       preheader: "先月制作・承認・投稿された動画のまとめです。",
+      preheaderMadeApproved: "先月制作・承認された動画のまとめです。",
       title: "{month}のまとめ",
       intro: "先月、DentVideoが {clinic} のために制作した動画です。",
       made: "制作した動画",
       approved: "承認済み",
-      posted: "投稿済み",
+      posted: "投稿済みにした動画",
       postedLine: "承認済み{total}本のうち、投稿済みになっている動画：{n}本",
       sharedNone: "投稿済みになっている動画はまだありません。すでに投稿された場合は、アプリでその動画の「{mark}」をタップすると、このレポートに反映されます。患者さんの目に届くのは投稿した動画だけです。まずは週1本から始めてみてください。",
       sharedSome: "投稿いただき、ありがとうございます。毎週月曜日に新しい動画が届きます。",
@@ -531,11 +539,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "شهركم مع DentVideo: {month}",
       preheader: "ما أُعدّ واعتُمد ونُشر الشهر الماضي.",
+      preheaderMadeApproved: "ما أُعدّ واعتُمد الشهر الماضي.",
       title: "ملخص {month}",
       intro: "إليكم ما أعدّه DentVideo الشهر الماضي لـ {clinic}.",
       made: "فيديوهات أُعدّت",
       approved: "معتمدة",
-      posted: "منشورة",
+      posted: "محدَّدة كمنشورة",
       postedLine: "الفيديوهات المعتمدة المحدَّدة كمنشورة: {n} من {total}.",
       sharedNone: "لم يُحدَّد أي فيديو كمنشور بعد. إن كنتم نشرتم بعضها، فاضغطوا «{mark}» عليها في التطبيق ليحتسبها هذا الملخص. لا يرى المرضى إلا ما تنشرونه، وفيديو واحد أسبوعياً بداية جيدة.",
       sharedSome: "شكراً على النشر. تصل فيديوهات جديدة كل يوم اثنين.",
@@ -602,11 +611,12 @@ export const SEQUENCE_COPY: Record<string, SequenceCopy> = {
     monthly: {
       subject: "Państwa miesiąc z DentVideo: {month}",
       preheader: "Co przygotowano, zaakceptowano i opublikowano w zeszłym miesiącu.",
+      preheaderMadeApproved: "Co przygotowano i zaakceptowano w zeszłym miesiącu.",
       title: "Podsumowanie: {month}",
       intro: "Oto co DentVideo przygotowało w zeszłym miesiącu dla {clinic}.",
       made: "przygotowane filmy",
       approved: "zaakceptowane",
-      posted: "opublikowane",
+      posted: "oznaczone jako opublikowane",
       postedLine: "Zaakceptowane filmy oznaczone jako opublikowane: {n} z {total}.",
       sharedNone: "Żaden film nie jest jeszcze oznaczony jako opublikowany. Jeśli coś już Państwo opublikowali, wystarczy dotknąć „{mark}” przy tych filmach w aplikacji, a podsumowanie je uwzględni. Pacjenci widzą tylko to, co Państwo opublikują; jeden film tygodniowo to dobry początek.",
       sharedSome: "Dziękujemy za publikacje. Nowe filmy pojawiają się w każdy poniedziałek.",

@@ -326,9 +326,13 @@ describe("the emails say what the product really does", () => {
   it("no copy speaks of sharing 'from the app' any more, and the new lines use no dashes as punctuation", () => {
     for (const lang of LIFECYCLE_LANGUAGES) {
       const c = LIFECYCLE_COPY[lang];
-      for (const v of [c.monthly.sharedNone, c.monthly.postedLine, c.monthly.posted, c.monthly.preheader, c.notPosted.how, c.notPosted.footer, c.nudgeFooter, c.welcome.steps[2].body, c.objections.qa[1].a]) {
+      for (const v of [c.monthly.sharedNone, c.monthly.postedLine, c.monthly.posted, c.monthly.preheader, c.monthly.preheaderMadeApproved, c.notPosted.how, c.notPosted.footer, c.nudgeFooter, c.welcome.steps[2].body, c.objections.qa[1].a]) {
         expect(v, lang).not.toMatch(/ [—–] |—/);
       }
+      // The two-number preview is its own line in every language, and promises no third number.
+      expect(c.monthly.preheaderMadeApproved.trim(), lang).not.toBe("");
+      expect(c.monthly.preheaderMadeApproved, lang).not.toBe(c.monthly.preheader);
+      if (lang !== "en") expect(c.monthly.preheaderMadeApproved, lang).not.toBe(LIFECYCLE_COPY.en.monthly.preheaderMadeApproved);
     }
     expect(LIFECYCLE_COPY.en.monthly.sharedNone).not.toMatch(/from the app/i);
     expect(LIFECYCLE_COPY.de.monthly.sharedNone).not.toMatch(/Aus der App/);

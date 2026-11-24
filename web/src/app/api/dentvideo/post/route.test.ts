@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { approveToken } from "@/lib/dentvid/approve-link";
 import { MemoryOpsStore } from "@/lib/dentvid/ops-alert";
+import { SHARE_ONCE_TTL_S } from "@/lib/dentvid/post-link";
 
 /**
  * POST /api/dentvideo/post — the email's post page. Here: the "shared"
@@ -67,9 +68,9 @@ vi.mock("@/lib/dentvid/supabase", () => ({
 const SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1";
 const HEADLESS = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36";
 
-async function post(body: Record<string, unknown>, ua = SAFARI) {
+async function post(body: Record<string, unknown>, ua = SAFARI, extra: Record<string, string> = {}) {
   const { POST } = await import("./route");
-  const res = await POST(new Request("https://dentvideo.com/api/dentvideo/post", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9", "user-agent": ua }, body: JSON.stringify(body) }));
+  const res = await POST(new Request("https://dentvideo.com/api/dentvideo/post", { method: "POST", headers: { "content-type": "application/json", "x-real-ip": "203.0.113.9", "user-agent": ua, ...extra }, body: JSON.stringify(body) }));
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
 }
 
@@ -102,8 +103,11 @@ describe("POST /api/dentvideo/post — shared", () => {
   });
 
   it("records exactly one video_shared with the clinic id per video, server-side", async () => {
+    const setNx = vi.spyOn(redis!, "setNx");
     expect(await shared({ device: "mobile" })).toEqual({ status: 200, body: { ok: true, stored: true } });
     expect(shares()).toEqual([{ name: "video_shared", opts: { clinicId: CLINIC, locale: "de", props: { method: "share", device: "mobile" }, internal: false } }]);
+    // The key outlives the links for that week (post-link SHARE_ONCE_TTL_S), not just one link.
+    expect(setNx.mock.calls[0]).toEqual([`dv:shared:${id(1)}`, SHARE_ONCE_TTL_S]);
     expect(redis!.kv.has(`dv:shared:${id(1)}`)).toBe(true);
     // Tapped again, downloaded too, or the request replayed: still one.
     expect((await shared({ method: "download" })).body).toEqual({ ok: true, stored: false });
@@ -156,9 +160,18 @@ describe("POST /api/dentvideo/post — shared", () => {
     expect(shares()).toHaveLength(2);
   });
 
-  it("an automated browser's share is kept, tagged internal", async () => {
-    await shared({}, HEADLESS);
-    expect(shares()[0].opts.internal).toBe(true);
+  it("an automated browser's share, our scripts' marked one, or a browser flagged as ours: kept as internal, without the clinic, and the dentist's own share still counts", async () => {
+    expect((await shared({}, HEADLESS)).body).toEqual({ ok: true, stored: false });
+    expect((await post({ t: tok(), v: id(1), action: "shared", method: "share" }, SAFARI, { "x-dv-internal": "1" })).body).toEqual({ ok: true, stored: false });
+    expect((await shared({ internal: true, device: "desktop" })).body).toEqual({ ok: true, stored: false });
+    expect(shares().map((r) => [r.opts.clinicId, r.opts.internal])).toEqual([
+      [null, true],
+      [null, true],
+      [null, true],
+    ]);
+    expect(redis!.kv.size).toBe(0);
+    expect((await shared()).body).toEqual({ ok: true, stored: true });
+    expect(shares()[3].opts).toMatchObject({ clinicId: CLINIC, internal: false });
   });
 
   it("over the per-IP limit: 429 and nothing counted", async () => {

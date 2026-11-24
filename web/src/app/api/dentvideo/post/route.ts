@@ -14,7 +14,8 @@ import { limitChecks } from "@/lib/rate-limit-server";
  * { t, v, action: "approve" } approves that one ready, pending video;
  * { t, v, action: "posted", on } ticks an approved one as posted;
  * { t, v, action: "shared", method } counts the share or download the page
- * just made, as the clinic's video_shared event, once per video.
+ * just made, as the clinic's video_shared event, once per video (one of
+ * ours, by request or by `internal: true`, is kept apart: post-link.ts).
  * The signed, expiring token is the key (lib/dentvid/post-link.ts).
  */
 export const dynamic = "force-dynamic";
@@ -46,12 +47,11 @@ async function once(): Promise<Pick<OpsStore, "setNx" | "del">> {
   };
 }
 
-function shareCounter(req: Request): ShareCounter {
-  const internal = internalRequestReason(req.headers) !== null;
+function shareCounter(): ShareCounter {
   return {
     claim: async (itemId) => (await once()).setNx(shareOnceKey(itemId), SHARE_ONCE_TTL_S),
     release: async (itemId) => (await once()).del(shareOnceKey(itemId)),
-    record: ({ clinicId, method, locale, device }) => recordEvent("video_shared", { clinicId, locale, props: { method, ...(device ? { device } : {}) }, internal }),
+    record: ({ clinicId, method, locale, device, internal }) => recordEvent("video_shared", { clinicId, locale, props: { method, ...(device ? { device } : {}) }, internal }),
   };
 }
 
@@ -64,7 +64,9 @@ export async function POST(req: Request) {
       store: supabasePostLinkStore(dvAdmin(), BUCKET),
       secret: unsubscribeSecret(),
       onApproved: (clinicId) => void recordEvent("video_approved", { clinicId }),
-      shares: shareCounter(req),
+      shares: shareCounter(),
+      // A bot or our scripts' marker; the page adds `internal: true` for a browser flagged as ours.
+      internal: internalRequestReason(req.headers) !== null,
     });
     return NextResponse.json(r.body, { status: r.status, headers: { "cache-control": "no-store" } });
   } catch (e) {
