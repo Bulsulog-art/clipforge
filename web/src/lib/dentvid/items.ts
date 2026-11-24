@@ -10,6 +10,7 @@ import { CHANGE_STALE_MS } from "./clinic-requests";
 import type { ChangeView } from "@/components/dentvid/clinic-requests";
 import { addDays, clampWeeks, LIBRARY_WEEKS } from "./library-weeks";
 import { deliveryWeek, weekOf } from "./week";
+import { checkedOf, scriptOf } from "./item-checks";
 
 type Row = {
   id: string;
@@ -26,7 +27,7 @@ type Row = {
   video_path: string | null;
   thumb_path: string | null;
   shoot_card: unknown;
-  plan?: { title?: string; scenes?: unknown[]; backgrounds?: unknown } | null;
+  plan?: { title?: string; scenes?: unknown[]; backgrounds?: unknown; language?: string; voiceover?: { text?: string } } | null;
   topic?: { title?: string; question?: string; hook?: string; service?: string } | null;
   /** 0003_dentvid_backgrounds.sql; absent on a database without it. */
   suggested_backgrounds?: unknown;
@@ -34,6 +35,11 @@ type Row = {
   restyle_requested_at?: string | null;
   /** 0025_dentvid_clinic_requests.sql; absent on a database without it. */
   subtitles?: unknown;
+  /** The reviews' results and the picture and sound measurement (worker rows.ts), read for the "checked" line. */
+  checks?: unknown;
+  qa?: unknown;
+  /** What the dentist says in a recorded clip. */
+  spoken?: string | null;
 };
 
 type ChangeRowLite = { item_id: string; status: ChangeView["status"]; reason: ChangeView["reason"]; created_at: string };
@@ -98,6 +104,11 @@ const CHANGE_ID_BATCH = 100;
 const WEEKS_PER_QUERY = 40;
 /** Posted rows read from before the window, for the posting streak: two years of a clinic that posts all five. */
 const POSTED_ROWS = 520;
+/**
+ * Videos, newest first, that carry their script to the page (the review's "Script and caption"):
+ * about fourteen weeks of five, so a library opened to years of weeks does not send years of text.
+ */
+const SCRIPT_ITEMS = 70;
 
 const day = (v: unknown): string | null => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : null);
 /** The Monday of the week a week_of falls in (a recording's week_of need not be a Monday). */
@@ -302,24 +313,32 @@ export async function loadItems(
       // The library never breaks over change requests.
     }
   }
-  const items = rows.map((r) => ({
-    id: r.id,
-    kind: r.kind,
-    status: r.status,
-    approval: r.approval,
-    title: r.title,
-    week_of: r.week_of,
-    caption: r.copy?.caption,
-    hashtags: Array.isArray(r.copy?.hashtags) ? capHashtags(r.copy.hashtags.filter((h): h is string => typeof h === "string")) : undefined,
-    post: postTexts(r.copy) ?? undefined,
-    postedAt: "posted_at" in r ? (r.posted_at ?? null) : undefined,
-    reasons: clinicReasons(r.findings, r.status),
-    videoUrl: r.video_path ? urls.get(r.video_path) : undefined,
-    thumbUrl: r.thumb_path ? urls.get(r.thumb_path) : undefined,
-    photos: photosFor(r),
-    change: changes.get(r.id),
-    subtitles: storedCues(r.subtitles).length > 0,
-  }));
+  let scripts = 0;
+  const items = rows.map((r) => {
+    const checked = checkedOf(r);
+    const script = scripts < SCRIPT_ITEMS ? scriptOf(r) : undefined;
+    if (script) scripts++;
+    return {
+      id: r.id,
+      kind: r.kind,
+      status: r.status,
+      approval: r.approval,
+      title: r.title,
+      week_of: r.week_of,
+      caption: r.copy?.caption,
+      hashtags: Array.isArray(r.copy?.hashtags) ? capHashtags(r.copy.hashtags.filter((h): h is string => typeof h === "string")) : undefined,
+      post: postTexts(r.copy) ?? undefined,
+      postedAt: "posted_at" in r ? (r.posted_at ?? null) : undefined,
+      reasons: clinicReasons(r.findings, r.status),
+      videoUrl: r.video_path ? urls.get(r.video_path) : undefined,
+      thumbUrl: r.thumb_path ? urls.get(r.thumb_path) : undefined,
+      photos: photosFor(r),
+      change: changes.get(r.id),
+      subtitles: storedCues(r.subtitles).length > 0,
+      ...(checked ? { checked } : {}),
+      ...(script ? { script } : {}),
+    };
+  });
   return { items, rows, hasEarlier, weeks, earlierWeeks, postedWeeks: await postedRead };
 }
 
