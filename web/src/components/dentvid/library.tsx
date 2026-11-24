@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarClock, Check, CheckCheck, ChevronDown, ChevronRight, Circle, CircleCheck, Flame, Loader2, Play, RotateCcw, Send } from "lucide-react";
 import { BackgroundPicker } from "./background-picker";
-import { DeclineForm, postText, ReviewPlayer, usePosted, type Decide } from "./review-player";
+import { canAskChange, changesOverCode, DeclineForm, postText, ReviewPlayer, useChangeHandover, usePosted, type Decide } from "./review-player";
 import type { Locale } from "@/content/dentvideo";
 import { appText, countText, fmt, type AppText } from "@/content/dentvideo-app";
 import { reasonText } from "@/content/dentvideo-reasons";
@@ -34,6 +34,8 @@ import { postingText } from "@/content/dentvideo-posting";
 import type { HelpId } from "@/content/dentvideo-help-links";
 import { HelpLink } from "./help-link";
 import { ChangeNote, ChangeRequest, TopicRequests, type ChangeView, type TopicView } from "./clinic-requests";
+import { reviewText } from "@/content/dentvideo-review";
+import { CheckedLine, type Checked, type ScriptLine } from "./video-checks";
 
 export type LibraryItem = {
   id: string;
@@ -58,6 +60,10 @@ export type LibraryItem = {
   change?: ChangeView;
   /** A subtitle file can be downloaded for it (stored cues, 0025). */
   subtitles?: boolean;
+  /** What the stored results prove our software checked (lib/dentvid/item-checks.ts); absent when they do not prove it. */
+  checked?: Checked;
+  /** The narration (or a recorded clip's words), sentence by sentence, for the review's "Script and caption". */
+  script?: ScriptLine[];
 };
 
 const CHIP: Record<Exclude<CardState, "notMade">, string> = {
@@ -175,6 +181,11 @@ export function Library({
   // The review steps through one week's videos in the order it opened with (the cards re-sort as
   // decisions are made; the player must not), by id, so a refresh keeps its place.
   const [review, setReview] = useState<{ ids: string[]; id: string } | null>(null);
+  // No change can be made this week (none left, or no plan), as one card heard from the server. The
+  // limit is the clinic's, not one video's: from then on no card offers a change (as in the review player).
+  const [changesOver, setChangesOver] = useState(false);
+  // A new week brings new changes (a library left open over a Monday hears it with the refresh).
+  useEffect(() => setChangesOver(false), [currentWeek]);
   const queue = review ? review.ids.map((id) => view.find((i) => i.id === id)).filter((i): i is LibraryItem => !!i) : [];
   const index = review ? queue.findIndex((i) => i.id === review.id) : -1;
   const openReview = (week: string, id?: string) => {
@@ -288,6 +299,9 @@ export function Library({
                 decide={decide}
                 onChanged={() => router.refresh()}
                 onOpen={() => openReview(g.week, item.id)}
+                country={country}
+                changesOver={changesOver}
+                onChangesOver={() => setChangesOver(true)}
               />
             ))}
           </ul>
@@ -373,6 +387,7 @@ export function Library({
         posted={posted.marks}
         onPosted={(item, on) => posted.toggle(item.id, item.week_of, on)}
         slots={slots}
+        country={country}
       />
     </div>
   );
@@ -647,7 +662,7 @@ function PostingChecklist({
   );
 }
 
-function ItemCard({
+export function ItemCard({
   item,
   t,
   posted,
@@ -656,10 +671,19 @@ function ItemCard({
   onOpen,
   slot,
   locale,
+  country = null,
+  changesOver = false,
+  onChangesOver,
 }: {
   item: LibraryItem;
   t: AppText["library"];
   posted: boolean;
+  /** The clinic's country, for the "checked" line. */
+  country?: string | null;
+  /** No change can be made this week, as another card heard: this one stops offering one too. */
+  changesOver?: boolean;
+  /** This card heard that no change can be made this week (or used the week's last one). */
+  onChangesOver?: () => void;
   /** Suggested posting day and time ("Tue 12:30"), this week's videos only. */
   slot?: string;
   locale: Locale;
@@ -672,6 +696,17 @@ function ItemCard({
   const [busy, setBusy] = useState(false);
   const [declining, setDeclining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // "Ask for a change instead" from the decline form: the review player's hand-over, the same here.
+  const handover = useChangeHandover();
+  // The server said no change can be made this week (none left, or no plan): declining is what is left.
+  // Heard on this card, or on another one of the library (the limit is the clinic's).
+  const [noChangeHere, setNoChangeHere] = useState(false);
+  const noChange = changesOver || noChangeHere;
+  // A change was just accepted from this card: its form stays to show "Change requested, N of 3 left"
+  // (even when that was the week's last change) until the refresh brings the change's own status.
+  // Kept as the change the card showed when it was sent, so newer news of a change ends it.
+  const [sentOver, setSentOver] = useState<string | null | undefined>(undefined);
+  const sentHere = sentOver !== undefined && sentOver === (item.change?.at ?? null);
 
   async function choose(next: LibraryItem["approval"], note?: string) {
     setBusy(true);
@@ -679,14 +714,18 @@ function ItemCard({
     const ok = await decide(item.id, next, note);
     setBusy(false);
     if (!ok) setError(t.actionFailed);
-    else setDeclining(false);
+    else {
+      setDeclining(false);
+      handover.clear();
+    }
   }
 
   const playable = !!item.videoUrl && state !== "making" && state !== "failed";
   const canRestyle = !!item.photos && playable && state !== "declined";
   const changing = changeRunning(item);
   // A video we made (it has a stored plan, so it has photos): one change at a time, never while it is being re-made.
-  const canChange = !!item.photos && playable && state !== "updating" && !changing;
+  // The player's rule (canAskChange), so the card and the player always agree.
+  const canChange = canAskChange(item) && !noChange;
 
   return (
     <li className="dv-card dv-lift flex flex-col overflow-hidden">
@@ -768,11 +807,34 @@ function ItemCard({
         </div>
       )}
 
+      {/* What our software checked, one quiet line, only where the stored results prove it. */}
+      {playable && !changing && (state === "review" || state === "look" || state === "approved") && (
+        <CheckedLine locale={locale} checked={item.checked} country={country} className="mx-3 mb-3 sm:mx-4" />
+      )}
+
       {playable && !changing && (
         <div className="mt-auto px-3 pb-3 sm:px-4 sm:pb-4">
           {state === "review" || state === "look" ? (
             declining ? (
-              <DeclineForm t={t.declineForm} busy={busy} onCancel={() => setDeclining(false)} onSubmit={(note) => choose("rejected", note)} />
+              <DeclineForm
+                t={t.declineForm}
+                busy={busy}
+                initial={handover.initial}
+                onCancel={() => setDeclining(false)}
+                onSubmit={(note) => choose("rejected", note)}
+                changeInstead={
+                  canChange
+                    ? {
+                        text: reviewText(locale),
+                        onChoose: (reason, words) => {
+                          setDeclining(false);
+                          setError(null);
+                          handover.choose(reason, words);
+                        },
+                      }
+                    : undefined
+                }
+              />
             ) : (
               <div className="flex gap-2">
                 <button type="button" disabled={busy} onClick={() => choose("approved")} className="dv-btn dv-btn-secondary flex-1 px-4 py-2.5 text-sm !text-dv-teal">
@@ -805,7 +867,33 @@ function ItemCard({
               {error}
             </p>
           )}
-          {canChange && <ChangeRequest locale={locale} itemId={item.id} onQueued={onChanged} />}
+          {/* While the decline form is open, a change is offered inside it ("Ask for a change instead"). */}
+          {(canChange || sentHere) && !declining && (
+            <ChangeRequest
+              key={handover.form.key}
+              locale={locale}
+              itemId={item.id}
+              initialNote={handover.form.initialNote}
+              startOpen={handover.form.startOpen}
+              onOpenChange={handover.opened}
+              onQueued={(_, left) => {
+                setSentOver(item.change?.at ?? null);
+                handover.clear();
+                // That was the week's last change: the other cards stop offering one.
+                if (left === 0) onChangesOver?.();
+                onChanged();
+              }}
+              onFailed={({ code, message, note }) => {
+                if (!changesOverCode(code)) return;
+                // No change this week: say so, stop offering one (here and on every card), and, coming
+                // from the decline form, open it again with the reason and the words (as edited there).
+                setNoChangeHere(true);
+                onChangesOver?.();
+                setError(message);
+                if (handover.back(note)) setDeclining(true);
+              }}
+            />
+          )}
         </div>
       )}
 

@@ -28,6 +28,8 @@ import {
 } from "@/lib/dentvid/app-ui";
 import type { LibraryItem } from "./library";
 import { ChangeNote, ChangeRequest, SubtitlesLink } from "./clinic-requests";
+import { checkedText } from "@/content/dentvideo-checked";
+import { CheckedLine, ScriptText } from "./video-checks";
 
 /**
  * The Monday review, on a phone: one big vertical player per video, swipe
@@ -108,10 +110,13 @@ export function ReviewPlayer({
   posted,
   onPosted,
   slots,
+  country = null,
 }: {
   locale: Locale;
   /** Suggested posting day and time per video id ("Tue 12:30"). */
   slots?: Map<string, string>;
+  /** The clinic's country (profile.country): the "checked" line says "general advertising rules" where the reviewer has none of its own. */
+  country?: string | null;
   /** The videos stepped through (one week's), already showing any decision made here. */
   queue: LibraryItem[];
   /** The one on screen; -1 when the player is closed. */
@@ -127,6 +132,7 @@ export function ReviewPlayer({
   const r = t.review;
   const rtl = dirOf(locale) === "rtl";
   const ref = useRef<HTMLDialogElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
   const item = index >= 0 ? queue[index] : undefined;
   const open = !!item;
@@ -172,6 +178,18 @@ export function ReviewPlayer({
     else return;
     e.preventDefault();
   }
+
+  /** A time in the script: the video plays from there. */
+  const seek = (seconds: number) => {
+    const v = video.current;
+    if (!v) return;
+    try {
+      v.currentTime = seconds;
+      void v.play()?.catch(() => {});
+    } catch {
+      /* not seekable yet: the time is on screen to find by hand */
+    }
+  };
 
   const hasPrev = index > 0;
   const hasNext = index >= 0 && index < queue.length - 1;
@@ -231,6 +249,7 @@ export function ReviewPlayer({
             >
               {item.videoUrl ? (
                 <video
+                  ref={video}
                   key={item.id}
                   src={item.videoUrl}
                   poster={item.thumbUrl}
@@ -274,6 +293,8 @@ export function ReviewPlayer({
             beingChanged={beingChanged}
             changesOver={changesOver}
             onChangesOver={() => setChangesOver(true)}
+            country={country}
+            onSeek={item.videoUrl ? seek : undefined}
           />
         </div>
       )}
@@ -304,6 +325,11 @@ export const CHANGE_INSTEAD_REASONS: readonly DeclineReason[] = ["wrong", "look"
 
 /** Change failures that no second try fixes this week: no changes left, or no active plan. Declining is what is left. */
 const NO_CHANGE_CODES = ["limit", "no_plan"];
+
+/** The server's answer means no change can be made this week (none left, or no plan): stop offering one; declining stays. */
+export function changesOverCode(code: string | undefined): boolean {
+  return !!code && NO_CHANGE_CODES.includes(code);
+}
 
 /**
  * Whether "Ask for a change" can be offered on this video: exactly the library
@@ -340,7 +366,51 @@ export function nextToDecide(queue: LibraryItem[], from: number, beingChanged: (
  * the form leaving the sheet) clears it, so no later change form opens by itself; a saved decision
  * ends the hand-over.
  */
-type Handover = { n: number; reason: DeclineReason; words: string; open: boolean };
+type Handover = { reason: DeclineReason; words: string; open: boolean };
+
+/**
+ * The decline form's hand-over to "Ask for a change", shared by the review panel and the library
+ * card so both behave alike: "Ask for a change instead" opens the change form once with the reason's
+ * words; Cancel there means no later change form opens by itself; a change refused for the week
+ * (changesOverCode) sends the reason and the words, as edited, back to the decline form; a saved
+ * decision or an accepted change ends it.
+ */
+export function useChangeHandover() {
+  const [draft, setDraft] = useState<Handover | null>(null);
+  // How many hand-overs there have been: the ChangeRequest's key. Only a new hand-over changes it, so
+  // the form that sent a change keeps its "Change requested, N of 3 left" and the keyboard focus after
+  // clear(); a hand-over made again starts a fresh form, open, with the new words.
+  const [n, setN] = useState(0);
+  return {
+    /** What the decline form starts from when it opens again. */
+    initial: draft ? { reason: draft.reason, words: draft.words } : undefined,
+    /** Props for the ChangeRequest that takes it: a new key per hand-over, its words, open once. */
+    form: { key: `change-${n}`, initialNote: draft?.words, startOpen: !!draft?.open },
+    /** "Ask for a change instead" in the decline form: keep the video, open the change form with the words. */
+    choose: (reason: DeclineReason, words: string) => {
+      setN((k) => k + 1);
+      setDraft({ reason, words, open: true });
+    },
+    /** The change form opened or closed. After Cancel, a later change form starts closed, never open with the old words. */
+    opened: (open: boolean) => {
+      if (!open) setDraft((d) => (d?.open ? { ...d, open: false } : d));
+    },
+    /**
+     * No change this week: keep the reason and the words (as edited in the change form) for the decline
+     * form. True when something was handed over, so the caller opens the decline form again.
+     */
+    back: (note: string): boolean => {
+      if (!draft) return false;
+      setDraft({ ...draft, open: false, words: note.trim() ? note : draft.words });
+      return true;
+    },
+    /**
+     * A saved decision or an accepted change: nothing of the hand-over opens or prefills later. The key
+     * stays, so the form on screen is not remounted and keeps what it is showing.
+     */
+    clear: () => setDraft(null),
+  };
+}
 
 /** The decision (or, once approved, the posting) under the player: a sheet on a phone, a side column on a desktop. */
 export function ReviewPanel({
@@ -358,6 +428,8 @@ export function ReviewPanel({
   beingChanged = changeRunning,
   changesOver = false,
   onChangesOver,
+  country = null,
+  onSeek,
 }: {
   locale: Locale;
   item: LibraryItem;
@@ -378,17 +450,24 @@ export function ReviewPanel({
   changesOver?: boolean;
   /** This video heard that no change can be made this week. */
   onChangesOver?: () => void;
+  /** The clinic's country, for the "checked" line. */
+  country?: string | null;
+  /** Plays the video on screen from a time in the script (the player); without it the times are plain text. */
+  onSeek?: (seconds: number) => void;
 }) {
   const text = appText(locale);
   const t = text.library;
   const p = postingText(locale);
+  const ck = checkedText(locale);
   const state = cardState(item);
+  const script = item.script?.length ? item.script : null;
+  const marked = !!script?.some((l) => l.marked);
   // "Ask for a change": whether its form is open, what was just sent from where, and what the decline form handed over.
   const deciding = state === "look" || state === "review";
   const place = deciding ? "decide" : "post";
   const [changeOpen, setChangeOpen] = useState(false);
   const [sent, setSent] = useState<{ place: typeof place; text: string; seen: string | null } | null>(null);
-  const [draft, setDraft] = useState<Handover | null>(null);
+  const handover = useChangeHandover();
   // No change can be made this week (none left, or no plan): stop offering one; declining stays.
   // Heard here, or on another video of the open player (the limit is the clinic's).
   const [noChangeHere, setNoChangeHere] = useState(false);
@@ -445,34 +524,32 @@ export function ReviewPanel({
   ) : (
     canChange && (
       <ChangeRequest
-        key={`change-${draft?.n ?? 0}`}
+        key={handover.form.key}
         locale={locale}
         itemId={item.id}
-        initialNote={draft?.words}
-        startOpen={!!draft?.open}
+        initialNote={handover.form.initialNote}
+        startOpen={handover.form.startOpen}
         onOpenChange={(o) => {
           setChangeOpen(o);
           // The hand-over opened the form once. After Cancel, a later change form (the post step after
           // Approve, the decision row after Undo) starts closed, never open with the old words in it.
-          if (!o) setDraft((d) => (d?.open ? { ...d, open: false } : d));
+          handover.opened(o);
         }}
         onQueued={(text, left) => {
           setSent({ place, text, seen: item.change?.at ?? null });
-          setDraft(null);
+          handover.clear();
           onChangeQueued?.();
           // That was the week's last change: the other videos stop offering one.
           if (left === 0) changesAreOver();
         }}
         onFailed={({ code, message: text, note }) => {
-          if (!code || !NO_CHANGE_CODES.includes(code)) return;
+          if (!changesOverCode(code)) return;
           // No change this week: say so where the decision is, and go back to it. Coming from the
           // decline form, it opens again with the reason and the words (as edited in the change form).
           changesAreOver();
           setMessage({ kind: "error", text });
-          if (draft) {
-            setDraft({ ...draft, open: false, words: note.trim() ? note : draft.words });
-            setDeclining(true);
-          } else focusDecline.current = true;
+          if (handover.back(note)) setDeclining(true);
+          else focusDecline.current = true;
         }}
       />
     )
@@ -483,7 +560,7 @@ export function ReviewPanel({
     void share.run(() => {
       setJustDecided(true);
       void decide(item.id, "approved").then((ok) => {
-        if (ok) setDraft(null);
+        if (ok) handover.clear();
         else setMessage({ kind: "error", text: t.actionFailed });
       });
     });
@@ -499,7 +576,7 @@ export function ReviewPanel({
       return;
     }
     // A saved decision ends what the decline form handed over: nothing of it opens or prefills later.
-    setDraft(null);
+    handover.clear();
     setDeclining(false);
     setJustDecided(approval !== "pending");
     if (approval === "rejected") setMessage({ kind: "ok", text: reviewText(locale).declined });
@@ -513,7 +590,7 @@ export function ReviewPanel({
   /** From the decline form: keep the video and open the change form, once, with what was typed. */
   function keepAndChange(reason: DeclineReason, words: string) {
     setDeclining(false);
-    setDraft((d) => ({ n: (d?.n ?? 0) + 1, reason, words, open: true }));
+    handover.choose(reason, words);
   }
 
   return (
@@ -535,14 +612,30 @@ export function ReviewPanel({
           </div>
         )}
 
-        {/* The caption is part of what is approved: readable before the decision, folded so the buttons stay in reach. */}
-        {deciding && !declining && item.caption && (
-          <details className="group/cap mt-3 rounded-xl bg-dv-sand/60 text-sm ring-1 ring-inset ring-dv-line">
+        {/* What our software checked, said quietly next to the decision (only what the stored results prove). */}
+        {deciding && !changing && <CheckedLine locale={locale} checked={item.checked} country={country} className="mt-3" />}
+
+        {/* What is approved, readable before the decision: the script (tap a time to play from there) and the caption,
+            folded so the buttons stay in reach. A sentence our check marked opens it. */}
+        {deciding && !declining && (item.caption || script) && (
+          <details open={marked || undefined} className="group/cap mt-3 rounded-xl bg-dv-sand/60 text-sm ring-1 ring-inset ring-dv-line">
             <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 font-medium text-dv-ink [&::-webkit-details-marker]:hidden">
-              {t.captionAndHashtags}
+              {script ? (item.kind === "recording" ? ck.wordsAndCaption : ck.scriptAndCaption) : t.captionAndHashtags}
               <ChevronRight className="h-4 w-4 shrink-0 text-dv-muted transition-transform group-open/cap:rotate-90 rtl:-scale-x-100 rtl:group-open/cap:-rotate-90" aria-hidden="true" />
             </summary>
-            <p dir="auto" className="whitespace-pre-line px-3 pb-3 text-start text-dv-body">{postText(item)}</p>
+            {script ? (
+              <div className="space-y-4 px-3 pb-3">
+                <ScriptText locale={locale} lines={script} recording={item.kind === "recording"} onSeek={onSeek} />
+                {item.caption && (
+                  <div>
+                    <p className="text-sm font-semibold text-dv-ink">{t.captionAndHashtags}</p>
+                    <p dir="auto" className="mt-1.5 whitespace-pre-line text-start text-dv-body">{postText(item)}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p dir="auto" className="whitespace-pre-line px-3 pb-3 text-start text-dv-body">{postText(item)}</p>
+            )}
           </details>
         )}
 
@@ -551,7 +644,7 @@ export function ReviewPanel({
             <DeclineForm
               t={t.declineForm}
               busy={busy}
-              initial={draft ? { reason: draft.reason, words: draft.words } : undefined}
+              initial={handover.initial}
               onCancel={() => setDeclining(false)}
               onSubmit={(note) => choose("rejected", note)}
               changeInstead={canChange ? { text: reviewText(locale), onChoose: keepAndChange } : undefined}
@@ -617,6 +710,7 @@ export function ReviewPanel({
             changing={changing}
           />
         )}
+        {state === "approved" && !changing && <CheckedLine locale={locale} checked={item.checked} country={country} className="mt-4" />}
       </div>
     </section>
   );
