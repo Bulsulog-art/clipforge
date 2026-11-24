@@ -28,6 +28,7 @@ const EVENT_LABEL: Record<string, string> = {
   payment_succeeded: "Paid",
   week_ready: "Videos ready",
   video_approved: "Approved a video",
+  video_declined: "Declined a video",
   video_shared: "Shared a video",
 };
 
@@ -58,7 +59,12 @@ function VideoCard({ i, viewer, back, now }: { i: DetailItem; viewer: Viewer; ba
           </span>
           {i.restyle_status && <Badge tone="amber">re-render {i.restyle_status}</Badge>}
         </p>
-        {i.approval_note && <p className="mt-1 text-xs text-dv-body">Dentist&apos;s note: {i.approval_note}</p>}
+        {i.approval_note && (
+          // The note stays when a decline is undone or the video approved later (handlers/item-patch.ts).
+          <p className="mt-1 text-xs text-dv-body">
+            {i.approval === "rejected" ? "Dentist's note" : "Dentist's note from an earlier decline"}: {i.approval_note}
+          </p>
+        )}
         {i.error && <code className="mt-1.5 block break-words font-mono text-xs text-[#8a1f1f]">{i.error}</code>}
         {findings.length > 0 && (
           <ul className="mt-1.5 list-disc ps-5 text-xs text-[#7a4b00]">

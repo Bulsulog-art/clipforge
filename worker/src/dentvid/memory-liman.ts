@@ -4,6 +4,13 @@
  * select (with count), insert, update, delete, order, limit, and a storage
  * bucket with list / upload / download / remove. Never imported by
  * production code.
+ *
+ * A select returns whole rows (as it always has), plus any JSON path the
+ * column list names, the way PostgREST answers it: "plan->backgrounds" adds
+ * `backgrounds`, "photos:plan->backgrounds" adds `photos`, and "->>" gives
+ * the value as text. A missing column is reported by its base name ("plan").
+ * With `project: true` a select with a column list returns only those
+ * columns, as the real database does (opt-in: older tests rely on whole rows).
  */
 
 type Row = Record<string, unknown>;
@@ -12,6 +19,22 @@ type Filter = (r: Row) => boolean;
 export type MemoryLiman = ReturnType<typeof memoryLiman>;
 
 const cmp = (a: unknown, b: unknown) => String(a ?? "") < String(b ?? "") ? -1 : String(a ?? "") > String(b ?? "") ? 1 : 0;
+
+/** A select column with a JSON path ("alias:col->key->>leaf"); null for a plain column. */
+type JsonPath = { alias: string; col: string; keys: string[]; text: boolean };
+function jsonPath(token: string): JsonPath | null {
+  const m = /^(?:([A-Za-z_][\w]*):)?([A-Za-z_][\w]*)((?:->>?[A-Za-z_][\w]*)+)$/.exec(token);
+  if (!m) return null;
+  const steps = [...m[3].matchAll(/(->>?)([A-Za-z_][\w]*)/g)];
+  const keys = steps.map((x) => x[2]);
+  return { alias: m[1] ?? keys[keys.length - 1], col: m[2], keys, text: steps[steps.length - 1][1] === "->>" };
+}
+function readPath(row: Row, p: JsonPath): unknown {
+  let v: unknown = row[p.col];
+  for (const k of p.keys) v = v && typeof v === "object" && !Array.isArray(v) ? (v as Row)[k] : undefined;
+  if (v === undefined || v === null) return null;
+  return p.text && typeof v !== "string" ? JSON.stringify(v) : v;
+}
 
 function orFilter(expr: string): Filter {
   const parts = expr.split(",").map((p) => p.trim());
@@ -30,7 +53,7 @@ function orFilter(expr: string): Filter {
   return (r) => tests.some((t) => t(r));
 }
 
-export function memoryLiman(seed: Record<string, Row[]> = {}, opts: { missingTables?: string[]; missingColumns?: Record<string, string[]> } = {}) {
+export function memoryLiman(seed: Record<string, Row[]> = {}, opts: { missingTables?: string[]; missingColumns?: Record<string, string[]>; project?: boolean } = {}) {
   const tables = new Map<string, Row[]>(Object.entries(seed).map(([k, v]) => [k, v.map((r) => ({ ...r }))]));
   const files = new Map<string, { size: number; created_at: string }>();
   const log: { table: string; op: string; patch?: unknown; filters: string[] }[] = [];
@@ -56,7 +79,9 @@ export function memoryLiman(seed: Record<string, Row[]> = {}, opts: { missingTab
     let single: "one" | "maybe" | null = null;
 
     const run = () => {
-      const err = missingErr(table, [...cols, ...(patch && !Array.isArray(patch) ? Object.keys(patch) : []), ...(Array.isArray(patch) ? patch.flatMap((r) => Object.keys(r)) : [])]);
+      const paths = cols.map(jsonPath).filter((p): p is JsonPath => p !== null);
+      const baseCols = cols.map((c) => jsonPath(c)?.col ?? c);
+      const err = missingErr(table, [...baseCols, ...(patch && !Array.isArray(patch) ? Object.keys(patch) : []), ...(Array.isArray(patch) ? patch.flatMap((r) => Object.keys(r)) : [])]);
       if (err) return { data: null, error: err, count: null };
       const rows = t(table);
       log.push({ table, op, patch: patch ?? undefined, filters: described });
@@ -72,7 +97,13 @@ export function memoryLiman(seed: Record<string, Row[]> = {}, opts: { missingTab
       }
       if (order) hit = [...hit].sort((a, b) => (order!.asc ? 1 : -1) * cmp(a[order!.col], b[order!.col]));
       hit = hit.slice(0, limit);
-      const data = op === "select" || returning ? hit.map((r) => ({ ...r })) : null;
+      const plain = cols.filter((c) => !jsonPath(c));
+      const shape = (r: Row): Row => {
+        const derived = Object.fromEntries(paths.map((p) => [p.alias, readPath(r, p)]));
+        if (!opts.project || !cols.length) return { ...r, ...derived };
+        return { ...Object.fromEntries(plain.filter((c) => c in r).map((c) => [c, r[c]])), ...derived };
+      };
+      const data = op === "select" || returning ? hit.map(shape) : null;
       if (single) {
         if (single === "one" && hit.length !== 1) return { data: null, error: { message: "not exactly one row" } };
         return { data: data?.[0] ?? null, error: null };

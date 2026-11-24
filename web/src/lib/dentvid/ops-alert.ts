@@ -449,6 +449,19 @@ export const weekStateKey = (clinicId: string, week: string) => `dv:weekstate:${
 
 const tierLabel = (c: ClinicRef) => (c.tier ? c.tier : "unknown tier");
 
+/** The admin page of one clinic, as a link for an alert. */
+export const adminClinicUrl = (clinicId: string) => `https://dentvideo.com/admin/clinic/${encodeURIComponent(clinicId)}`;
+
+/** Why a dentist declined a video: the tag the app puts in front of the note (web lib/dentvid/app-ui.ts DECLINE_REASONS). */
+export type DeclineReasonTag = "wrong" | "notUs" | "look" | "other";
+/** The words the dentist tapped, as the English app shows them. */
+const DECLINE_REASON_LABEL: Record<DeclineReasonTag, string> = {
+  wrong: "Something is wrong or unclear",
+  notUs: "Not a topic for our clinic",
+  look: "Doesn't look right",
+  other: "Something else",
+};
+
 export const alerts = {
   cancelRequested(a: { clinic: ClinicRef; plan: string; subscriptionId: string | null; renewsAt: string | null; email: string | null }): OwnerAlert {
     return {
@@ -1209,6 +1222,51 @@ export const alerts = {
       ],
       done: ["Nothing automatic — this is the moment for a personal follow-up. You get this alert once per demo and step."],
       todo: next,
+    };
+  },
+
+  /**
+   * A dentist declined one of their videos in the app (web
+   * lib/dentvid/handlers/item-patch.ts). The app tells them "your note goes
+   * to our team", so a person must actually read it: one alert per video per
+   * day, urgent when they say something in it is wrong or unclear (a possible
+   * clinical or factual mistake in a video we made).
+   */
+  videoDeclined(a: { clinic: ClinicRef; itemId: string; title?: string | null; reason?: DeclineReasonTag | null; note?: string | null }): OwnerAlert {
+    const reason = a.reason ?? null;
+    const title = a.title?.trim() ? short(oneLine(a.title), 120) : "(untitled video)";
+    const words = a.note?.trim() ? short(oneLine(a.note), 400) : null;
+    const admin = adminClinicUrl(a.clinic.id);
+    const wrong = reason === "wrong";
+    return {
+      key: `declined:${a.itemId}`,
+      severity: wrong ? "urgent" : "warning",
+      titleTr: wrong ? "Diş hekimi bir videoda hata olduğunu söylüyor" : "Diş hekimi bir videoyu reddetti",
+      titleEn: wrong ? "A dentist says a video is wrong or unclear" : "A dentist declined a video",
+      clinic: a.clinic,
+      what: [
+        `The dentist declined “${title}” in the app${reason ? `, with the reason “${DECLINE_REASON_LABEL[reason]}”` : ", without choosing a reason"}.`,
+        words ? `Their words: “${words}”` : "They wrote no note.",
+      ],
+      facts: [
+        ["Video", title],
+        ["Video ID", a.itemId],
+        ["Reason", reason ? `[${reason}] ${DECLINE_REASON_LABEL[reason]}` : "none chosen"],
+        ["Admin", admin],
+      ],
+      done: [
+        "The decline and the note are saved on the video; the clinic's library shows it as declined. The video was not changed or replaced.",
+        "Next Monday's planning reads it: the topic counts as declined, so the repeat filter keeps it out, it no longer counts as covering its service, and the dentist's words go to the planner as a quoted note.",
+        ...(reason === "notUs" ? ["Two “not a topic for our clinic” declines on one service within four weeks rest that service for a while (never below two services)."] : []),
+        "No email went to the clinic.",
+      ],
+      todo: [
+        `Reply to the dentist in their language${a.clinic.email ? ` (${a.clinic.email})` : ""}: thank them for the note and say what changes for their next videos.`,
+        ...(wrong
+          ? ["Watch the video and check its script against the note. If it is a real mistake, triage it into docs/KNOWN_MISTAKES.md (a row and the check that will catch it) before the next release."]
+          : []),
+        `Open the clinic's admin page to see the video and its script: ${admin}`,
+      ],
     };
   },
 

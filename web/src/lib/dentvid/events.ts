@@ -39,7 +39,10 @@ export const DV_EVENTS = [
   "checker_cta_clicked",
   "checker_shared",
 ] as const;
-export type DvEventName = (typeof DV_EVENTS)[number];
+/** Not funnel steps: recorded by the server only, with their own props only. */
+export const DV_SERVER_EVENTS = ["video_declined"] as const;
+const SERVER: readonly string[] = DV_SERVER_EVENTS;
+export type DvEventName = (typeof DV_EVENTS)[number] | (typeof DV_SERVER_EVENTS)[number];
 
 /**
  * Events a browser may send to /api/dentvideo/event. The rest are recorded
@@ -135,6 +138,8 @@ export const DV_EVENT_PROPS: Record<DvEventName, Record<string, Rule>> = {
   checker_cta_clicked: { where: { kind: "enum", values: ["result", "clean"] } },
   // Shared as a link (text in the #fragment), an image or via the share sheet.
   checker_shared: { method: { kind: "enum", values: ["link", "image", "share"] }, market: { kind: "country" } },
+  // The reason tag (app-ui DECLINE_REASONS), never the note.
+  video_declined: { reason: { kind: "enum", values: ["wrong", "notUs", "look", "other"] } },
 };
 
 /** The first-touch source tags any event may carry (utm_* slugs, the referring host). */
@@ -158,7 +163,7 @@ const PHONE = /\d[\d\s().-]{6,}\d/;
 
 /** Is this one of our event names? */
 export function isDvEvent(name: unknown): name is DvEventName {
-  return typeof name === "string" && (DV_EVENTS as readonly string[]).includes(name);
+  return typeof name === "string" && ((DV_EVENTS as readonly string[]).includes(name) || SERVER.includes(name));
 }
 
 function clean(rule: Rule, raw: unknown): string | number | boolean | undefined {
@@ -198,8 +203,8 @@ function clean(rule: Rule, raw: unknown): string | number | boolean | undefined 
 
 /** The props of an event reduced to its allow-list; anything else is dropped. */
 export function sanitizeProps(name: DvEventName, raw: unknown): DvProps {
-  // Every event may carry the tab's first-touch source (lib/dentvid/attribution); the event's own rules win.
-  const rules = { ...DV_ATTRIBUTION_PROPS, ...DV_CONTEXT_PROPS, ...DV_EVENT_PROPS[name] };
+  // Every funnel event may carry the tab's first-touch source (lib/dentvid/attribution); the event's own rules win.
+  const rules = SERVER.includes(name) ? DV_EVENT_PROPS[name] : { ...DV_ATTRIBUTION_PROPS, ...DV_CONTEXT_PROPS, ...DV_EVENT_PROPS[name] };
   const out: DvProps = {};
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
   for (const [key, rule] of Object.entries(rules)) {

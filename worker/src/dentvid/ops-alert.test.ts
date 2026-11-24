@@ -3,6 +3,7 @@ import {
   _resetLocalOnce,
   alerts,
   alertsEnabled,
+  alertSubject,
   ALERT_LOG_KEY,
   cleanError,
   countSpike,
@@ -60,6 +61,9 @@ export const SAMPLES: Record<string, OwnerAlert> = {
   welcomeNotSent: alerts.welcomeNotSent({ clinic: CLINIC, result: "failed" }),
   recordingFailed: alerts.recordingFailed({ clinic: CLINIC, attempts: 2, error: "OpenAI 500", jobId: "rec:x" }),
   cronFailed: alerts.cronFailed({ job: "watchdog-monday", error: "fetch failed", attempts: 3 }),
+  videoDeclinedWrong: alerts.videoDeclined({ clinic: CLINIC, itemId: "item-1", title: "Whitening and enamel", reason: "wrong", note: "The enamel claim is not right." }),
+  videoDeclinedNotUs: alerts.videoDeclined({ clinic: CLINIC, itemId: "item-2", title: "Same-day implants", reason: "notUs", note: "We refer implants out." }),
+  videoDeclinedBare: alerts.videoDeclined({ clinic: CLINIC, itemId: "item-3", title: null }),
 };
 
 describe("every alert says what happened, which clinic, what was done, what to do", () => {
@@ -97,6 +101,53 @@ describe("every alert says what happened, which clinic, what was done, what to d
     const c = cleanError(e);
     expect(c).not.toMatch(/ABCDEFGHIJKLMNOP|abc\.def\.ghi|\n/);
     expect(c.length).toBeLessThanOrEqual(240);
+  });
+});
+
+describe("a dentist declined a video", () => {
+  it("one alert per video, urgent only when something is wrong or unclear", () => {
+    expect(SAMPLES.videoDeclinedWrong).toMatchObject({ key: "declined:item-1", severity: "urgent" });
+    expect(SAMPLES.videoDeclinedNotUs).toMatchObject({ key: "declined:item-2", severity: "warning" });
+    expect(SAMPLES.videoDeclinedBare).toMatchObject({ key: "declined:item-3", severity: "warning" });
+    for (const reason of ["look", "other"] as const) expect(alerts.videoDeclined({ clinic: CLINIC, itemId: "x", title: "t", reason }).severity).toBe("warning");
+  });
+
+  it("says what happened, which clinic with its admin link, what the system did and what to do", () => {
+    const m = renderAlert(SAMPLES.videoDeclinedWrong);
+    expect(m.subject).toBe("[DentVideo] ACİL: Diş hekimi bir videoda hata olduğunu söylüyor / URGENT: A dentist says a video is wrong or unclear — Gülüş Dental");
+    expect(m.text).toContain("The dentist declined “Whitening and enamel” in the app, with the reason “Something is wrong or unclear”.");
+    expect(m.text).toContain("Their words: “The enamel claim is not right.”");
+    expect(m.text).toContain(`Admin: https://dentvideo.com/admin/clinic/${CLINIC.id}`);
+    expect(m.html).toContain(`https://dentvideo.com/admin/clinic/${CLINIC.id}`);
+    expect(m.text).toMatch(/Next Monday's planning reads it/);
+    expect(m.text).toMatch(/No email went to the clinic/);
+    expect(m.text).toMatch(/Reply to the dentist in their language \(dr@gulus\.example\)/);
+    expect(m.text).toMatch(/triage it into docs\/KNOWN_MISTAKES\.md/);
+    // Only a [wrong] decline asks for a known-mistakes triage; only [notUs] mentions resting the service.
+    expect(renderAlert(SAMPLES.videoDeclinedNotUs).text).not.toMatch(/KNOWN_MISTAKES/);
+    expect(renderAlert(SAMPLES.videoDeclinedNotUs).text).toMatch(/rest that service for a while/);
+    expect(renderAlert(SAMPLES.videoDeclinedWrong).text).not.toMatch(/rest that service/);
+    const bare = renderAlert(SAMPLES.videoDeclinedBare).text;
+    expect(bare).toContain("The dentist declined “(untitled video)” in the app, without choosing a reason.");
+    expect(bare).toContain("They wrote no note.");
+    expect(bare).toContain("Reason: none chosen");
+  });
+
+  it("the dentist's words are escaped in HTML, kept to one line in the text, and never reach the subject", () => {
+    const a = alerts.videoDeclined({ clinic: CLINIC, itemId: "i", title: "T", reason: "other", note: "<script>alert(1)</script>\nSecond line " + "x".repeat(600) });
+    const m = renderAlert(a);
+    expect(m.html).not.toMatch(/<script/i);
+    expect(m.html).toContain("&lt;script&gt;");
+    expect(m.subject).not.toContain("script");
+    const line = m.text.split("\n").find((l) => l.startsWith("- Their words:"))!;
+    expect(line).toContain("Second line");
+    expect(line.length).toBeLessThan(440);
+  });
+
+  it("is delivered once per video per day", async () => {
+    for (let i = 0; i < 3; i++) await deliverAlert(deps(), SAMPLES.videoDeclinedWrong);
+    await deliverAlert(deps(), SAMPLES.videoDeclinedNotUs);
+    expect(sent.map((m) => m.subject)).toEqual([alertSubject(SAMPLES.videoDeclinedWrong), alertSubject(SAMPLES.videoDeclinedNotUs)]);
   });
 });
 
