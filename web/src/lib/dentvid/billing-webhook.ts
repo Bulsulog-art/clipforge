@@ -28,6 +28,7 @@ import { ENQUEUE_TIMEOUT_MS, afterPaid, tellOwner, withTimeout, type ActivationD
 import { isAppleManaged, readClinicSource, setBillingSource, type AppleSubscriptionStore } from "./apple-store";
 import { adoptWaitingApple } from "./apple-webhook";
 import type { BillingConfirmNotice } from "./billing-confirm-email";
+import { accountDeleting } from "./deletion-marker";
 import {
   CONFIRM_PROBLEM,
   appleTakesOver,
@@ -129,7 +130,15 @@ export function confirmMailWith(io: ConfirmMailIo = {}) {
     // Only when the email log cannot take the kind (0011 not applied): a long-lived Redis key instead.
     const fallbackClaim = async (key: string) => (ops ? ops.setNx(key, 400 * 86_400).catch(() => true) : true);
     return sendBillingConfirmation(
-      { store: (io.store ?? supabaseLifecycleStore)(db), send, config: lifecycleConfig(env), isDemo: reviewDemoCheck(db), fallbackClaim },
+      {
+        store: (io.store ?? supabaseLifecycleStore)(db),
+        send,
+        config: lifecycleConfig(env),
+        isDemo: reviewDemoCheck(db),
+        fallbackClaim,
+        // The deletion route's own mark, read again right before sending (deletion-marker.ts).
+        accountDeleting: (ownerId) => accountDeleting(ops, ownerId),
+      },
       clinicId,
       notice,
     );
@@ -139,19 +148,30 @@ export function confirmMailWith(io: ConfirmMailIo = {}) {
 const confirmMail = confirmMailWith();
 
 /**
- * Has the owner asked to delete the account in the last hour or two? Read from the deletion route's request
- * count (billing-confirm-checks.ts deletionRequested); null when Redis cannot be read. A connection still
- * opening (the first request after a start) gets one more try shortly after.
+ * Has the owner asked to delete the account in the last hour or two? Either sign is enough: the mark the
+ * deletion route writes right before it cancels Dodo (deletion-marker.ts), or the route's request count
+ * (billing-confirm-checks.ts deletionRequested), which the rate limiter can miss when Redis is slow.
+ * null when Redis cannot be read. A connection still opening (the first request after a start) gets one
+ * more try shortly after.
  */
 export async function accountDeletionMarker(ownerId: string, now: Date, io: { ops?: () => Promise<OpsStore | null>; retryMs?: number } = {}): Promise<boolean | null> {
   const ops = await (io.ops ?? webOpsStore)().catch(() => null);
   if (!ops) return null;
   const read = async (key: string) => Number((await ops.get(key)) ?? 0);
+  const check = async () => {
+    const marked = await accountDeleting(ops, ownerId);
+    if (marked) return true;
+    const counted = await deletionRequested(read, ownerId, now);
+    if (counted) return true;
+    // Neither sign: "no" only when the mark itself could be read too.
+    if (marked === null) throw new Error("deletion mark unreadable");
+    return false;
+  };
   try {
-    return await deletionRequested(read, ownerId, now);
+    return await check();
   } catch {
     await new Promise((r) => setTimeout(r, io.retryMs ?? 400));
-    return deletionRequested(read, ownerId, now).catch(() => null);
+    return check().catch(() => null);
   }
 }
 
@@ -171,6 +191,46 @@ async function cancelHold(db: SupabaseClient, deps: DvWebhookDeps, clinic: Clini
   if (Array.isArray(apple) && appleTakesOver(apple, now)) return "app store takes over";
   if (deleting === null || apple === null) return "not checked";
   return null;
+}
+
+/** A cancellation that stopped a paying clinic now (no paid-through date left), as the owner's alert describes it. */
+export type StoppedCancel =
+  /** The end of a cancellation Dodo reported earlier, while the clinic kept its paid period (step 6). */
+  | { kind: "end of notice" }
+  /** Cancelled with no paid period left; `deleting`: the owner asked to delete the account (null: unknown). */
+  | { kind: "ended now"; deleting: boolean | null };
+
+/**
+ * The owner's "subscription stopped" alert (ops-alert.ts customerAtRisk) for a cancellation that ends the plan now,
+ * with what the clinic was told in writing. DentVideo's written confirmation goes out with the first word of a
+ * cancellation that runs on to a paid-through date (step 6, billing-confirm-email.ts); a plan that stops at once
+ * gets none, and customerAtRisk's own line ("Dodo sends its own payment notices") is about payment trouble. So:
+ *  - the end of a cancellation reported earlier: the clinic was confirmed (or the owner told why not) back then;
+ *  - an account being deleted: no email, rightly, and its videos are going (not kept);
+ *  - otherwise: none went out, and the owner can confirm by hand if the clinic asked to cancel.
+ */
+export function stoppedAlert(a: OwnerAlert, cancel: StoppedCancel, email: string | null): OwnerAlert {
+  const who = email ? `to ${email}` : "to the clinic";
+  const stopped = "The clinic keeps its videos; new weeks have stopped.";
+  if (cancel.kind === "end of notice") {
+    return { ...a, done: [stopped, "This is the end date of a cancellation Dodo reported earlier. The clinic's written confirmation was handled then: it was sent, or you had an alert saying why not."] };
+  }
+  if (cancel.deleting) {
+    return {
+      ...a,
+      done: ["The clinic's owner is deleting the account: its videos and library are being removed.", "No cancellation email went to the clinic: its owner asked to delete the account in the last hour or two."],
+      todo: ["If the clinic still exists tomorrow, its deletion did not finish: check its admin page.", ...a.todo],
+    };
+  }
+  return {
+    ...a,
+    done: [stopped, "No written confirmation went to the clinic. DentVideo confirms a cancellation by email when the plan runs on to the end of a paid period, and this one ended at once."],
+    todo: [
+      `If the clinic asked to cancel, confirm it ${who} by hand: its weekly videos have stopped, and its library stays for 90 days unless it chooses a plan again.`,
+      ...(cancel.deleting === null ? ["It could not be checked whether the owner asked to delete the account: if the clinic is gone tomorrow, no email is needed."] : []),
+      ...a.todo,
+    ],
+  };
 }
 
 /**
@@ -738,11 +798,19 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
     });
   }
 
-  // A paying clinic whose subscription stopped: the owner hears about it (customer at risk).
+  // A paying clinic whose subscription stopped: the owner hears about it (customer at risk), and, for a
+  // cancellation, what the clinic was told in writing about it.
   if (from === "active" && (to === "paused" || to === "cancelled")) {
-    await tell(db, deps, clinic.id, (c) =>
-      alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from, to, clinicEmailed: clinicEmail === "sent" }),
-    );
+    const cancel: StoppedCancel | null =
+      to === "cancelled" && t.kind === "deactivate"
+        ? prev && DV_SUB_ENDING.has(String(prev.status))
+          ? { kind: "end of notice" }
+          : { kind: "ended now", deleting: await (deps.deletionRequested ?? ((owner: string) => accountDeletionMarker(owner, now)))(clinic.owner_id).catch(() => null) }
+        : null;
+    await tell(db, deps, clinic.id, (c) => {
+      const a = alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from, to, clinicEmailed: clinicEmail === "sent" });
+      return cancel ? stoppedAlert(a, cancel, c.email ?? null) : a;
+    });
   }
 
   // Paid: the shared activation (billing-activation.ts) — week queued now, watchdog told, owner's

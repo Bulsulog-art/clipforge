@@ -1,3 +1,4 @@
+import { cancelledEmail, planChangedEmail } from "./billing-confirm-email";
 import { delayEmail, readyEmail } from "./email";
 import type { Rendered } from "./email-layout";
 import { lowestMonthlyFor } from "./lifecycle";
@@ -39,6 +40,8 @@ export const SAMPLE_KINDS = [
   "monthly",
   "payment-failed",
   "payment-hold",
+  "plan-cancelled",
+  "plan-changed",
 ] as const;
 export type SampleKind = (typeof SAMPLE_KINDS)[number];
 
@@ -100,6 +103,12 @@ export function sampleEmailFor(kind: SampleKind, language: string, opts: { brand
     case "payment-failed":
     case "payment-hold":
       return paymentProblemEmail({ language, clinicName, kind: kind === "payment-failed" ? "failed" : "on_hold", fix: "portal", appUrl: `${BASE}/app`, brand });
+    case "plan-cancelled":
+      // The written confirmation of a cancellation (billing webhook): videos until the paid-through date, library 90 days after.
+      return cancelledEmail({ language, clinicName, endsAt: new Date("2026-12-10T12:00:00Z"), timeZone: "UTC", appUrl: `${BASE}/app`, brand });
+    case "plan-changed":
+      // A switch to Practice through the self-serve plan change, which Dodo prorates at once.
+      return planChangedEmail({ language, clinicName, tier: "practice", prorated: true, appUrl: `${BASE}/app`, brand });
   }
 }
 

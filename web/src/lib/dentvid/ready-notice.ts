@@ -72,7 +72,7 @@ export function videoRows(
       title: (i.title ?? "").slice(0, 80),
       thumbUrl: i.thumb_path ? args.thumbUrl(i.thumb_path) : undefined,
       caption: caption ? leadSentence(caption, 140) : undefined,
-      slot: slot ? p.email.postOn.replace("{slot}", slotLabel(slot, locale)) : undefined,
+      slot: slot ? p.email.postOn.replace("{slot}", slotLabel(slot, locale, args.country)) : undefined,
       href: shareable ? postLinkUrl(args.base, args.clinicId, args.week, i.id, args.secret!, args.now) : `${args.base}/app`,
       action: !shareable ? p.email.lookInApp : i.approval === "approved" ? p.email.share : p.email.approveShare,
     };

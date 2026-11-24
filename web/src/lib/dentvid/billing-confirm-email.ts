@@ -34,7 +34,10 @@ import { LIBRARY_DAYS_AFTER_END, libraryUntil } from "./billing-confirm-checks";
  * has no later event that would send it. When a confirmation that should have
  * gone out does not, the webhook tells the owner, who confirms by hand
  * (billing-confirm-checks.ts). The webhook also holds a cancellation back
- * during an account deletion or when an App Store subscription takes over.
+ * during an account deletion or when an App Store subscription takes over,
+ * and this sender checks a cancellation against the deletion route's mark
+ * once more itself (deletion-marker.ts), so no cancellation confirmation
+ * reaches an account being deleted.
  *
  * Never throws for an expected case; the webhook still wraps every call so a
  * failure here never fails or retries the webhook.
@@ -79,7 +82,8 @@ export type BillingConfirmResult =
   | "unverified"
   | "bad date"
   | "failed"
-  | "migration missing";
+  | "migration missing"
+  | "account deletion";
 
 const TIER_NAME: Record<DvTier, string> = { starter: "Starter", practice: "Practice", group: "Group" };
 export const tierName = (tier: DvTier) => TIER_NAME[tier] ?? tier;
@@ -103,11 +107,20 @@ function greeting(copy: BillingConfirmCopy, clinic: string): string {
   return clinic ? tidy(fillConfirm(copy.hello, { clinic })) : copy.helloNoName;
 }
 
-export function cancelledEmail(args: { language: string; clinicName: string; endsAt: Date; timeZone?: string; appUrl: string; brand?: Brand }): Rendered {
+export function cancelledEmail(args: {
+  language: string;
+  clinicName: string;
+  endsAt: Date;
+  timeZone?: string;
+  /** The clinic's country (profile.country): "December 9, 2026" for an English clinic in the US, Canada, Australia or New Zealand. */
+  country?: string | null;
+  appUrl: string;
+  brand?: Brand;
+}): Rendered {
   const { lang, copy } = billingConfirmText(args.language);
   const c = copy.cancelled;
   const clinic = clinicLabel(args.clinicName);
-  const vars = { end: noticeDate(lang, args.endsAt, args.timeZone), library: noticeDate(lang, libraryUntil(args.endsAt), args.timeZone) };
+  const vars = { end: noticeDate(lang, args.endsAt, args.timeZone, args.country), library: noticeDate(lang, libraryUntil(args.endsAt), args.timeZone, args.country) };
   return renderEmail({
     lang,
     subject: c.subject,
@@ -157,6 +170,13 @@ export type ConfirmDeps = {
   isDemo?: (clinicId: string) => Promise<boolean>;
   /** Once-only key when the email log cannot take this kind (0005 / 0011 not applied): Redis SET NX. Default: no store, true. */
   fallbackClaim?: (key: string) => Promise<boolean>;
+  /**
+   * Is the owner's account being deleted (deletion-marker.ts: the mark the deletion route writes before it
+   * cancels Dodo)? Asked for a cancellation only. true: nothing is sent, the confirmation would promise a library
+   * that is being deleted. null (unknown) does not stop it here: the webhook's own check (cancelHold) holds a
+   * cancellation back then. Default: never.
+   */
+  accountDeleting?: (ownerId: string) => Promise<boolean | null>;
   now?: Date;
 };
 
@@ -190,6 +210,10 @@ export async function sendBillingConfirmation(deps: ConfirmDeps, clinicId: strin
 
     const end = notice.kind === "cancelled" ? new Date(notice.endsAt) : null;
     if (end && !Number.isFinite(end.getTime())) return "bad date";
+    // A cancellation is read against the mark again right before the claim: deletion cancels Dodo before it removes
+    // the clinic. A plan change is not: deletion never changes a plan, and a mark left by a deletion that stopped at
+    // Dodo must not swallow the confirmation of a change the owner made afterwards.
+    if (notice.kind === "cancelled" && (await (deps.accountDeleting ?? (async () => false))(clinic.owner_id).catch(() => null)) === true) return "account deletion";
 
     const kind = confirmKind(notice, deps.now);
     const claimed = await claim(deps, clinic.id, kind);
@@ -200,7 +224,7 @@ export async function sendBillingConfirmation(deps: ConfirmDeps, clinicId: strin
     const brand: Brand = { name: clinic.profile?.name ?? "" };
     const msg =
       notice.kind === "cancelled"
-        ? cancelledEmail({ language: lang, clinicName: clinic.profile?.name ?? "", endsAt: end!, timeZone: zoneOf(clinic), appUrl, brand })
+        ? cancelledEmail({ language: lang, clinicName: clinic.profile?.name ?? "", endsAt: end!, timeZone: zoneOf(clinic), country: clinic.profile?.country ?? null, appUrl, brand })
         : planChangedEmail({ language: lang, clinicName: clinic.profile?.name ?? "", tier: notice.tier, prorated: notice.prorated, appUrl, brand });
     const logKind = notice.kind === "cancelled" ? "plan_cancelled" : "plan_changed";
     const ok = await deps.send(owner.email, msg, {

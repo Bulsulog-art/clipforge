@@ -80,7 +80,7 @@ export const en: HelpContent = {
     },
     responsibility: {
       q: "Who is responsible for what we post?",
-      a: "Your clinic is. You approve every video and post it from your own accounts, so you remain responsible for what you publish, including under your country's health-advertising rules.\n\nThe software check helps you spot common problems, but it does not replace your judgement or legal advice. If you are unsure about a topic or a phrase, decline the video, or ask your professional body before posting.",
+      a: "Your clinic is. You approve every video and post it from your own accounts, so you remain responsible for what you publish, including under your country's health-advertising rules.\n\nThe software check helps you spot common problems, but it does not replace your judgment or legal advice. If you are unsure about a topic or a phrase, decline the video, or ask your professional body before posting.",
     },
     "wrong-video": {
       q: "A video is wrong. What can I do?",
